@@ -21,7 +21,7 @@ char *FIFO::ResizeBuffer(char *buffer, size_t oldSize, size_t newSize)
 
 	size_t ceilNewSize = newSize + FIFO::BlockSize - (newSize % FIFO::BlockSize);
 	size_t oldBlocks = oldSize / FIFO::BlockSize;
-	size_t newBlocks = newBlocks / FIFO::BlockSize;
+	size_t newBlocks = ceilNewSize / FIFO::BlockSize;
 
 	if (oldBlocks == newBlocks)
 		return buffer;
