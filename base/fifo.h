@@ -7,7 +7,6 @@ namespace icinga
 class FIFO : public Object
 {
 private:
-	static const size_t BlockSize = 16 * 1024;
 	char *m_Buffer;
 	size_t m_BufferSize;
 	size_t m_Offset;
@@ -16,6 +15,8 @@ private:
 	void Optimize(void);
 
 public:
+	static const size_t BlockSize = 16 * 1024;
+
 	typedef shared_ptr<FIFO> RefType;
 	typedef weak_ptr<FIFO> WeakRefType;
 
@@ -24,7 +25,9 @@ public:
 
 	size_t GetSize(void) const;
 
-	const void *Peek(void) const;
+	const void *GetReadBuffer(void) const;
+	void *GetWriteBuffer(size_t count);
+
 	size_t Read(void *buffer, size_t count);
 	size_t Write(const void *buffer, size_t count);
 };

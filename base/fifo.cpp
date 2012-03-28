@@ -69,7 +69,7 @@ size_t FIFO::GetSize(void) const
 	return m_BufferSize - m_Offset;
 }
 
-const void *FIFO::Peek(void) const
+const void *FIFO::GetReadBuffer(void) const
 {
 	return m_Buffer + m_Offset;
 }
@@ -88,7 +88,7 @@ size_t FIFO::Read(void *buffer, size_t count)
 	return count;
 }
 
-size_t FIFO::Write(const void *buffer, size_t count)
+void *FIFO::GetWriteBuffer(size_t count)
 {
 	char *new_buffer;
 
@@ -98,7 +98,18 @@ size_t FIFO::Write(const void *buffer, size_t count)
 		throw exception(/*"Out of memory."*/);
 
 	m_Buffer = new_buffer;
-	memcpy(new_buffer + m_BufferSize + m_Offset, buffer, count);
+
+	return new_buffer + m_Offset + m_BufferSize;
+}
+
+size_t FIFO::Write(const void *buffer, size_t count)
+{
+	if (buffer != NULL) {
+		void *target_buffer = GetWriteBuffer(count);
+		memcpy(target_buffer, buffer, count);
+	}
+
 	m_BufferSize += count;
+
 	return count;
 }

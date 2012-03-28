@@ -31,13 +31,14 @@ FIFO::RefType TCPClient::GetRecvQueue(void)
 
 int TCPClient::ReadableEventHandler(EventArgs::RefType ea)
 {
-	char buffer[4096];
 	int read_total, rc;
 
 	read_total = 0;
 
 	while (true) {
-		rc = recv(GetFD(), buffer, sizeof(buffer), 0);
+	static const size_t BufferSize = FIFO::BlockSize / 2;
+		char *buffer = (char *)m_RecvQueue->GetWriteBuffer(BufferSize);
+		rc = recv(GetFD(), buffer, BufferSize, 0);
 
 #ifdef _WIN32
 		if (rc < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
@@ -51,7 +52,7 @@ int TCPClient::ReadableEventHandler(EventArgs::RefType ea)
 			return 0;
 		}
 
-		m_RecvQueue->Write(buffer, rc);
+		m_RecvQueue->Write(NULL, rc);
 		read_total += rc;
 
 		/* make sure we don't starve other sockets */
@@ -70,7 +71,7 @@ int TCPClient::WritableEventHandler(EventArgs::RefType ea)
 {
 	int rc;
 
-	rc = send(GetFD(), (const char *)m_SendQueue->Peek(), m_SendQueue->GetSize(), 0);
+	rc = send(GetFD(), (const char *)m_SendQueue->GetReadBuffer(), m_SendQueue->GetSize(), 0);
 
 	if (rc <= 0) {
 		Close();

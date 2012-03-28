@@ -19,7 +19,7 @@ Netstring::~Netstring(void)
 Netstring::RefType Netstring::ReadFromFIFO(FIFO::RefType fifo)
 {
 	size_t buffer_length = fifo->GetSize();
-	const char *buffer = (const char *)fifo->Peek();
+	const char *buffer = (const char *)fifo->GetReadBuffer();
 
 	/* minimum netstring length is 3 */
 	if (buffer_length < 3)

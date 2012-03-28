@@ -36,7 +36,7 @@ public:
 
 		JsonRpcServer::RefType ts = new_object<JsonRpcServer>();
 		ts->MakeSocket();
-		ts->Bind(9999);
+		ts->Bind(7777);
 		ts->Listen();
 
 		ConnectionManager::RefType cm = new_object<ConnectionManager>();
