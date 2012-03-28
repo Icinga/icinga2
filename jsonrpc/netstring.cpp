@@ -4,26 +4,15 @@
 using namespace icinga;
 using std::sprintf;
 
-Netstring::Netstring(void)
-{
-	m_Length = 0;
-	m_Data = NULL;
-}
-
-Netstring::~Netstring(void)
-{
-	Memory::Free(m_Data);
-}
-
 /* based on https://github.com/PeterScott/netstring-c/blob/master/netstring.c */
-Netstring::RefType Netstring::ReadFromFIFO(FIFO::RefType fifo)
+cJSON *Netstring::ReadJSONFromFIFO(FIFO::RefType fifo)
 {
 	size_t buffer_length = fifo->GetSize();
-	const char *buffer = (const char *)fifo->GetReadBuffer();
+	char *buffer = (char *)fifo->GetReadBuffer();
 
 	/* minimum netstring length is 3 */
 	if (buffer_length < 3)
-		return Netstring::RefType();
+		return NULL;
 
 	/* no leading zeros allowed */
 	if (buffer[0] == '0' && isdigit(buffer[1]))
@@ -35,14 +24,14 @@ Netstring::RefType Netstring::ReadFromFIFO(FIFO::RefType fifo)
 	for (i = 0; i < buffer_length && isdigit(buffer[i]); i++) {
 		/* length specifier must have at most 9 characters */
 		if (i >= 9)
-			return Netstring::RefType();
+			return NULL;
 
 		len = len * 10 + (buffer[i] - '0');
 	}
 
 	/* make sure the buffer is large enough */
 	if (i + len + 1 >= buffer_length)
-		return Netstring::RefType();
+		return NULL;
 
 	/* check for the colon delimiter */
 	if (buffer[i++] != ':')
@@ -52,48 +41,30 @@ Netstring::RefType Netstring::ReadFromFIFO(FIFO::RefType fifo)
 	if (buffer[i + len] != ',')
 		throw exception(/*"Invalid Netstring (missing ,)"*/);
 
-	Netstring::RefType ns = new_object<Netstring>();
-	ns->m_Length = len;
-	ns->m_Data = Memory::Allocate(len + 1);
-	memcpy(ns->m_Data, &buffer[i], len);
-	((char *)ns->m_Data)[len] = '\0';
+	/* nuke the comma delimiter */
+	buffer[i + len] = '\0';
+	cJSON *object = cJSON_Parse(&buffer[i]);
+
+	if (object == NULL) {
+		/* restore the comma */
+		buffer[i + len] = ',';
+		throw exception(/*"Invalid JSON string"*/);
+	}
 
 	/* remove the data from the fifo */
 	fifo->Read(NULL, i + len + 1);
 
-	return ns;
+	return object;
 }
 
-bool Netstring::WriteToFIFO(FIFO::RefType fifo) const
+void Netstring::WriteJSONToFIFO(FIFO::RefType fifo, cJSON *object)
 {
+	char *json = cJSON_Print(object);
+	size_t len = strlen(json);
 	char strLength[50];
-	sprintf(strLength, "%lu", (unsigned long)m_Length);
+	sprintf(strLength, "%lu", (unsigned long)len);
 
 	fifo->Write(strLength, strlen(strLength));
-	fifo->Write(m_Data, m_Length);
+	fifo->Write(json, len);
 	fifo->Write(",", 1);
-
-	return true;
-}
-
-size_t Netstring::GetSize(void) const {
-	return m_Length;
-}
-
-const void *Netstring::GetData(void) const
-{
-	return m_Data;
-}
-
-void Netstring::SetString(char *str)
-{
-	m_Data = str;
-	m_Length = strlen(str);
-}
-
-const char *Netstring::ToString(void)
-{
-	/* our implementation already guarantees that there's a NUL char at
-	   the end of the string - so we can just return m_Data here */
-	return (const char *)m_Data;
 }

@@ -11,27 +11,27 @@ void JsonRpcClient::Start(void)
 
 void JsonRpcClient::SendMessage(JsonRpcMessage::RefType message)
 {
-	Netstring::RefType ns = message->ToNetstring();
-	ns->WriteToFIFO(GetSendQueue());
+	Netstring::WriteJSONToFIFO(GetSendQueue(), message->GetJSON());
 }
 
 int JsonRpcClient::DataAvailableHandler(EventArgs::RefType ea)
 {
-	Netstring::RefType ns;
+	cJSON *json;
 
 	while (true) {
 		try {
-			ns = Netstring::ReadFromFIFO(GetRecvQueue());
+			json = Netstring::ReadJSONFromFIFO(GetRecvQueue());
 		} catch (const exception&) {
 			Close();
 
 			return 1;
 		}
 	
-		if (ns == NULL)
+		if (json == NULL)
 			break;
 
-		JsonRpcMessage::RefType msg = JsonRpcMessage::FromNetstring(ns);
+		JsonRpcMessage::RefType msg = new_object<JsonRpcMessage>();
+		msg->SetJSON(json);
 		NewMessageEventArgs::RefType nea = new_object<NewMessageEventArgs>();
 		nea->Source = shared_from_this();
 		nea->Message = msg;

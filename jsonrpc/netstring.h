@@ -14,17 +14,8 @@ public:
 	typedef shared_ptr<Netstring> RefType;
 	typedef weak_ptr<Netstring> WeakRefType;
 
-	Netstring(void);
-	~Netstring(void);
-
-	static Netstring::RefType ReadFromFIFO(FIFO::RefType fifo);
-	bool WriteToFIFO(FIFO::RefType fifo) const;
-
-	size_t GetSize(void) const;
-	const void *GetData(void) const;
-
-	void SetString(char *str);
-	const char *ToString(void);
+	static cJSON *ReadJSONFromFIFO(FIFO::RefType fifo);
+	static void WriteJSONToFIFO(FIFO::RefType fifo, cJSON *object);
 };
 
 }

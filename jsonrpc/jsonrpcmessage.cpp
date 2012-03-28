@@ -12,19 +12,15 @@ JsonRpcMessage::~JsonRpcMessage(void)
 	cJSON_Delete(m_JSON);
 }
 
-JsonRpcMessage::RefType JsonRpcMessage::FromNetstring(Netstring::RefType ns)
+void JsonRpcMessage::SetJSON(cJSON *object)
 {
-	JsonRpcMessage::RefType msg = new_object<JsonRpcMessage>();
-	msg->m_JSON = cJSON_Parse(ns->ToString());
-	return msg;
+	cJSON_Delete(m_JSON);
+	m_JSON = object;
 }
 
-Netstring::RefType JsonRpcMessage::ToNetstring(void)
+cJSON *JsonRpcMessage::GetJSON(void)
 {
-	Netstring::RefType ns = new_object<Netstring>();
-	char *msg = cJSON_Print(m_JSON);
-	ns->SetString(msg);
-	return ns;
+	return m_JSON;
 }
 
 void JsonRpcMessage::SetFieldString(const char *field, const string& value)

@@ -19,9 +19,9 @@ public:
 	JsonRpcMessage(void);
 	~JsonRpcMessage(void);
 
-	static JsonRpcMessage::RefType FromNetstring(Netstring::RefType ns);
-	Netstring::RefType ToNetstring(void);
-
+	void SetJSON(cJSON *object);
+	cJSON *GetJSON(void);
+	
 	void SetVersion(const string& version);
 	string GetVersion(void);
 
