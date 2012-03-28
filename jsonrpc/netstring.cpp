@@ -85,6 +85,12 @@ const void *Netstring::GetData(void) const
 	return m_Data;
 }
 
+void Netstring::SetString(char *str)
+{
+	m_Data = str;
+	m_Length = strlen(str);
+}
+
 const char *Netstring::ToString(void)
 {
 	/* our implementation already guarantees that there's a NUL char at

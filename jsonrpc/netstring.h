@@ -23,6 +23,7 @@ public:
 	size_t GetSize(void) const;
 	const void *GetData(void) const;
 
+	void SetString(char *str);
 	const char *ToString(void);
 };
 

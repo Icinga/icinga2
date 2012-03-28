@@ -50,9 +50,15 @@ public:
 
 	int MessageHandler(NewMessageEventArgs::RefType nea)
 	{
+		JsonRpcClient::RefType client = static_pointer_cast<JsonRpcClient>(nea->Source);
 		JsonRpcMessage::RefType msg = nea->Message;
-		//cout << "Message received: " << msg->GetID() << ": " << msg->GetMethod() << endl;
 
+		JsonRpcMessage::RefType response = new_object<JsonRpcMessage>();
+		response->SetVersion("2.0");
+		response->SetID(msg->GetID());
+		response->SetResult("moo");
+		client->SendMessage(response);
+		
 		return 0;
 	}
 

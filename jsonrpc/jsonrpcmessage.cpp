@@ -21,11 +21,27 @@ JsonRpcMessage::RefType JsonRpcMessage::FromNetstring(Netstring::RefType ns)
 
 Netstring::RefType JsonRpcMessage::ToNetstring(void)
 {
-	return Netstring::RefType();
+	Netstring::RefType ns = new_object<Netstring>();
+	char *msg = cJSON_Print(m_JSON);
+	ns->SetString(msg);
+	return ns;
+}
+
+void JsonRpcMessage::SetFieldString(const char *field, const string& value)
+{
+	if (m_JSON == NULL)
+		m_JSON = cJSON_CreateObject();
+
+	cJSON *object = cJSON_CreateString(value.c_str());
+	cJSON_DeleteItemFromObject(m_JSON, field);
+	cJSON_AddItemToObject(m_JSON, field, object);
 }
 
 string JsonRpcMessage::GetFieldString(const char *field)
 {
+	if (m_JSON == NULL)
+		m_JSON = cJSON_CreateObject();
+
 	cJSON *idObject = cJSON_GetObjectItem(m_JSON, field);
 
 	if (idObject == NULL || idObject->type != cJSON_String)
@@ -34,8 +50,19 @@ string JsonRpcMessage::GetFieldString(const char *field)
 	return string(idObject->valuestring);
 }
 
-void JsonRpcMessage::SetID(string id)
+void JsonRpcMessage::SetVersion(const string& version)
 {
+	SetFieldString("version", version);
+}
+
+string JsonRpcMessage::GetVersion(void)
+{
+	return GetFieldString("jsonrpc");
+}
+
+void JsonRpcMessage::SetID(const string& id)
+{
+	SetFieldString("id", id);
 }
 
 string JsonRpcMessage::GetID(void)
@@ -43,8 +70,9 @@ string JsonRpcMessage::GetID(void)
 	return GetFieldString("id");
 }
 
-void JsonRpcMessage::SetMethod(string method)
+void JsonRpcMessage::SetMethod(const string& method)
 {
+	SetFieldString("method", method);
 }
 
 string JsonRpcMessage::GetMethod(void)
@@ -52,8 +80,9 @@ string JsonRpcMessage::GetMethod(void)
 	return GetFieldString("method");
 }
 
-void JsonRpcMessage::SetParams(string params)
+void JsonRpcMessage::SetParams(const string& params)
 {
+	SetFieldString("params", params);
 }
 
 string JsonRpcMessage::GetParams(void)
@@ -61,8 +90,9 @@ string JsonRpcMessage::GetParams(void)
 	return GetFieldString("params");
 }
 
-void JsonRpcMessage::SetResult(string result)
+void JsonRpcMessage::SetResult(const string& result)
 {
+	SetFieldString("result", result);
 }
 
 string JsonRpcMessage::GetResult(void)
@@ -70,8 +100,9 @@ string JsonRpcMessage::GetResult(void)
 	return GetFieldString("result");
 }
 
-void JsonRpcMessage::SetError(string error)
+void JsonRpcMessage::SetError(const string& error)
 {
+	SetFieldString("error", error);
 }
 
 string JsonRpcMessage::GetError(void)

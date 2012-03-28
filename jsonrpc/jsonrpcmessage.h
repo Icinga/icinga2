@@ -9,6 +9,7 @@ class JsonRpcMessage : public Object
 private:
 	cJSON *m_JSON;
 
+	void SetFieldString(const char *field, const string& value);
 	string GetFieldString(const char *field);
 
 public:
@@ -21,19 +22,22 @@ public:
 	static JsonRpcMessage::RefType FromNetstring(Netstring::RefType ns);
 	Netstring::RefType ToNetstring(void);
 
-	void SetID(string id);
+	void SetVersion(const string& version);
+	string GetVersion(void);
+
+	void SetID(const string& id);
 	string GetID(void);
 
-	void SetMethod(string method);
+	void SetMethod(const string& method);
 	string GetMethod(void);
 
-	void SetParams(string params);
+	void SetParams(const string& params);
 	string GetParams(void);
 
-	void SetResult(string result);
+	void SetResult(const string& result);
 	string GetResult(void);
 
-	void SetError(string error);
+	void SetError(const string& error);
 	string GetError(void);
 };
 

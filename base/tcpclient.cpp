@@ -32,7 +32,9 @@ FIFO::RefType TCPClient::GetRecvQueue(void)
 int TCPClient::ReadableEventHandler(EventArgs::RefType ea)
 {
 	char buffer[4096];
-	int rc;
+	int read_total, rc;
+
+	read_total = 0;
 
 	while (true) {
 		rc = recv(GetFD(), buffer, sizeof(buffer), 0);
@@ -50,8 +52,10 @@ int TCPClient::ReadableEventHandler(EventArgs::RefType ea)
 		}
 
 		m_RecvQueue->Write(buffer, rc);
+		read_total += rc;
 
-		if (m_RecvQueue->GetSize() > 1024 * 1024)
+		/* make sure we don't starve other sockets */
+		if (read_total > 128 * 1024)
 			break;
 	}
 
