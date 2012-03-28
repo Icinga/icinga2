@@ -34,14 +34,26 @@ int TCPClient::ReadableEventHandler(EventArgs::RefType ea)
 	char buffer[4096];
 	int rc;
 
-	rc = recv(GetFD(), buffer, sizeof(buffer), 0);
+	while (true) {
+		rc = recv(GetFD(), buffer, sizeof(buffer), 0);
 
-	if (rc <= 0) {
-		Close();
-		return 0;
+#ifdef _WIN32
+		if (rc < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
+#else /* _WIN32 */
+		if (rc < 0 && errno == EAGAIN)
+#endif /* _WIN32 */
+			break;
+
+		if (rc <= 0) {
+			Close();
+			return 0;
+		}
+
+		m_RecvQueue->Write(buffer, rc);
+
+		if (m_RecvQueue->GetSize() > 1024 * 1024)
+			break;
 	}
-
-	m_RecvQueue->Write(buffer, rc);
 
 	EventArgs::RefType dea = new_object<EventArgs>();
 	dea->Source = shared_from_this();
