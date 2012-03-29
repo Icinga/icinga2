@@ -75,9 +75,10 @@ size_t FIFO::Read(void *buffer, size_t count)
 	return count;
 }
 
-void *FIFO::GetWriteBuffer(size_t count)
+void *FIFO::GetWriteBuffer(size_t *count)
 {
-	ResizeBuffer(m_Offset + m_DataSize + count);
+	ResizeBuffer(m_Offset + m_DataSize + *count);
+	*count = m_AllocSize - m_Offset - m_DataSize;
 
 	return m_Buffer + m_Offset + m_DataSize;
 }
@@ -85,7 +86,8 @@ void *FIFO::GetWriteBuffer(size_t count)
 size_t FIFO::Write(const void *buffer, size_t count)
 {
 	if (buffer != NULL) {
-		void *target_buffer = GetWriteBuffer(count);
+		size_t bufferSize = count;
+		void *target_buffer = GetWriteBuffer(&bufferSize);
 		memcpy(target_buffer, buffer, count);
 	}
 

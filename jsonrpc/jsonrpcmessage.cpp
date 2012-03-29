@@ -23,27 +23,47 @@ cJSON *JsonRpcMessage::GetJSON(void)
 	return m_JSON;
 }
 
-void JsonRpcMessage::SetFieldString(const char *field, const string& value)
+void JsonRpcMessage::InitJson(void)
 {
 	if (m_JSON == NULL)
 		m_JSON = cJSON_CreateObject();
+}
 
-	cJSON *object = cJSON_CreateString(value.c_str());
+void JsonRpcMessage::SetFieldObject(const char *field, cJSON *object)
+{
+	if (m_JSON == NULL && object == NULL)
+		return;
+
+	InitJson();
+
 	cJSON_DeleteItemFromObject(m_JSON, field);
-	cJSON_AddItemToObject(m_JSON, field, object);
+
+	if (object != NULL)
+		cJSON_AddItemToObject(m_JSON, field, object);
+}
+
+cJSON *JsonRpcMessage::GetFieldObject(const char *field)
+{
+	if (m_JSON == NULL)
+		return NULL;
+
+	return cJSON_GetObjectItem(m_JSON, field);
+}
+
+void JsonRpcMessage::SetFieldString(const char *field, const string& value)
+{
+	cJSON *object = cJSON_CreateString(value.c_str());
+	SetFieldObject(field, object);
 }
 
 string JsonRpcMessage::GetFieldString(const char *field)
 {
-	if (m_JSON == NULL)
-		m_JSON = cJSON_CreateObject();
+	cJSON *object = GetFieldObject(field);
 
-	cJSON *idObject = cJSON_GetObjectItem(m_JSON, field);
-
-	if (idObject == NULL || idObject->type != cJSON_String)
+	if (object == NULL || object->type != cJSON_String)
 		return string();
 
-	return string(idObject->valuestring);
+	return string(object->valuestring);
 }
 
 void JsonRpcMessage::SetVersion(const string& version)
@@ -76,24 +96,38 @@ string JsonRpcMessage::GetMethod(void)
 	return GetFieldString("method");
 }
 
-void JsonRpcMessage::SetParams(const string& params)
+void JsonRpcMessage::ClearParams(void)
 {
-	SetFieldString("params", params);
+	SetFieldObject("params", NULL);
 }
 
-string JsonRpcMessage::GetParams(void)
+cJSON *JsonRpcMessage::GetParams(void)
 {
-	return GetFieldString("params");
+	cJSON *object = GetFieldObject("params");
+
+	if (object == NULL) {
+		object = cJSON_CreateObject();
+		cJSON_AddItemToObject(m_JSON, "params", object);
+	}
+
+	return object;
 }
 
-void JsonRpcMessage::SetResult(const string& result)
+void JsonRpcMessage::ClearResult(void)
 {
-	SetFieldString("result", result);
+	SetFieldObject("result", NULL);
 }
 
-string JsonRpcMessage::GetResult(void)
+cJSON *JsonRpcMessage::GetResult(void)
 {
-	return GetFieldString("result");
+	cJSON *object = GetFieldObject("result");
+
+	if (object == NULL) {
+		object = cJSON_CreateObject();
+		cJSON_AddItemToObject(m_JSON, "result", object);
+	}
+
+	return object;
 }
 
 void JsonRpcMessage::SetError(const string& error)

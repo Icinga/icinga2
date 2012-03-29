@@ -1,6 +1,8 @@
 #include "i2-jsonrpc.h"
 
 using namespace icinga;
+using std::map;
+using std::function;
 
 void ConnectionManager::BindServer(JsonRpcServer::RefType server)
 {
@@ -43,7 +45,41 @@ int ConnectionManager::CloseClientHandler(EventArgs::RefType ea)
 
 int ConnectionManager::NewMessageHandler(NewMessageEventArgs::RefType nmea)
 {
-	OnNewMessage(nmea);
+	JsonRpcMessage::RefType request = nmea->Message;
+	JsonRpcClient::RefType client = static_pointer_cast<JsonRpcClient>(nmea->Source);
+
+	map<string, event<NewMessageEventArgs::RefType> >::iterator i;
+	i = m_Methods.find(request->GetMethod());
+
+	if (i == m_Methods.end()) {
+		JsonRpcMessage::RefType response = new_object<JsonRpcMessage>();
+		response->SetVersion("2.0");
+		response->SetError("Unknown method.");
+		response->SetID(request->GetID());
+		Netstring::WriteJSONToFIFO(client->GetSendQueue(), response->GetJSON());
+
+		return 0;
+	}
+
+	i->second(nmea);
 
 	return 0;
+}
+
+void ConnectionManager::RegisterMethod(string method, function<int (NewMessageEventArgs::RefType)> callback)
+{
+	map<string, event<NewMessageEventArgs::RefType> >::iterator i;
+	i = m_Methods.find(method);
+
+	if (i == m_Methods.end()) {
+		m_Methods[method] = event<NewMessageEventArgs::RefType>();
+		i = m_Methods.find(method);
+	}
+
+	i->second.bind(callback);
+}
+
+void ConnectionManager::UnregisterMethod(string method, function<int (NewMessageEventArgs::RefType)> function)
+{
+	// TODO: implement
 }

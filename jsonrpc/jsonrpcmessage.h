@@ -9,8 +9,14 @@ class JsonRpcMessage : public Object
 private:
 	cJSON *m_JSON;
 
+	void InitJson(void);
+
 	void SetFieldString(const char *field, const string& value);
 	string GetFieldString(const char *field);
+
+	void ClearField(const char *field);
+	void SetFieldObject(const char *field, cJSON *object);
+	cJSON *GetFieldObject(const char *field);
 
 public:
 	typedef shared_ptr<JsonRpcMessage> RefType;
@@ -31,11 +37,11 @@ public:
 	void SetMethod(const string& method);
 	string GetMethod(void);
 
-	void SetParams(const string& params);
-	string GetParams(void);
+	void ClearParams(void);
+	cJSON *GetParams(void);
 
-	void SetResult(const string& result);
-	string GetResult(void);
+	void ClearResult();
+	cJSON *GetResult(void);
 
 	void SetError(const string& error);
 	string GetError(void);

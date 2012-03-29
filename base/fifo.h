@@ -27,7 +27,7 @@ public:
 	size_t GetSize(void) const;
 
 	const void *GetReadBuffer(void) const;
-	void *GetWriteBuffer(size_t count);
+	void *GetWriteBuffer(size_t *count);
 
 	size_t Read(void *buffer, size_t count);
 	size_t Write(const void *buffer, size_t count);

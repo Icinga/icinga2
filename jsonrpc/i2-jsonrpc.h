@@ -1,6 +1,7 @@
 #ifndef I2_JSONRPC_H
 #define I2_JSONRPC_H
 
+#include <map>
 #include <i2-base.h>
 
 #include "cJSON.h"

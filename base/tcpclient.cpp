@@ -31,34 +31,25 @@ FIFO::RefType TCPClient::GetRecvQueue(void)
 
 int TCPClient::ReadableEventHandler(EventArgs::RefType ea)
 {
-	int read_total, rc;
+	int rc;
 
-	read_total = 0;
-
-	while (true) {
-	static const size_t BufferSize = FIFO::BlockSize / 2;
-		char *buffer = (char *)m_RecvQueue->GetWriteBuffer(BufferSize);
-		rc = recv(GetFD(), buffer, BufferSize, 0);
+	size_t bufferSize = FIFO::BlockSize / 2;
+	char *buffer = (char *)m_RecvQueue->GetWriteBuffer(&bufferSize);
+	rc = recv(GetFD(), buffer, bufferSize, 0);
 
 #ifdef _WIN32
-		if (rc < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
+	if (rc < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
 #else /* _WIN32 */
-		if (rc < 0 && errno == EAGAIN)
+	if (rc < 0 && errno == EAGAIN)
 #endif /* _WIN32 */
-			break;
+		return 0;
 
-		if (rc <= 0) {
-			Close();
-			return 0;
-		}
-
-		m_RecvQueue->Write(NULL, rc);
-		read_total += rc;
-
-		/* make sure we don't starve other sockets */
-		if (read_total > 128 * 1024)
-			break;
+	if (rc <= 0) {
+		Close();
+		return 0;
 	}
+
+	m_RecvQueue->Write(NULL, rc);
 
 	EventArgs::RefType dea = new_object<EventArgs>();
 	dea->Source = shared_from_this();

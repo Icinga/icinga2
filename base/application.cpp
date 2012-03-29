@@ -42,11 +42,11 @@ void Application::RunEventLoop(void)
 
 			int fd = socket->GetFD();
 
-			if (socket->WantsToRead())
-				FD_SET(fd, &readfds);
-
 			if (socket->WantsToWrite())
 				FD_SET(fd, &writefds);
+
+			if (socket->WantsToRead())
+				FD_SET(fd, &readfds);
 
 			FD_SET(fd, &exceptfds);
 
@@ -96,11 +96,11 @@ void Application::RunEventLoop(void)
 
 			int fd = socket->GetFD();
 
-			if (FD_ISSET(fd, &readfds))
-				socket->OnReadable(ea);
-
 			if (FD_ISSET(fd, &writefds))
 				socket->OnWritable(ea);
+
+			if (FD_ISSET(fd, &readfds))
+				socket->OnReadable(ea);
 
 			if (FD_ISSET(fd, &exceptfds))
 				socket->OnException(ea);

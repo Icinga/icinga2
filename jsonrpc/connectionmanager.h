@@ -4,10 +4,13 @@
 namespace icinga
 {
 
+using std::map;
+
 class ConnectionManager : public Object
 {
 	list<JsonRpcServer::RefType> m_Servers;
 	list<JsonRpcClient::RefType> m_Clients;
+	map< string, event<NewMessageEventArgs::RefType> > m_Methods;
 
 	int NewClientHandler(NewClientEventArgs::RefType ncea);
 	int CloseClientHandler(EventArgs::RefType ea);
@@ -23,7 +26,8 @@ public:
 	void BindClient(JsonRpcClient::RefType client);
 	void UnbindClient(JsonRpcClient::RefType client);
 
-	event<NewMessageEventArgs::RefType> OnNewMessage;
+	void RegisterMethod(string method, function<int (NewMessageEventArgs::RefType)> function);
+	void UnregisterMethod(string method, function<int (NewMessageEventArgs::RefType)> function);
 };
 
 }
