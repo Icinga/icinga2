@@ -8,10 +8,11 @@ class FIFO : public Object
 {
 private:
 	char *m_Buffer;
-	size_t m_BufferSize;
+	size_t m_DataSize;
+	size_t m_AllocSize;
 	size_t m_Offset;
 
-	char *ResizeBuffer(char *buffer, size_t oldSize, size_t newSize);
+	void ResizeBuffer(size_t newSize);
 	void Optimize(void);
 
 public:

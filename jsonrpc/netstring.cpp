@@ -66,5 +66,7 @@ void Netstring::WriteJSONToFIFO(FIFO::RefType fifo, cJSON *object)
 
 	fifo->Write(strLength, strlen(strLength));
 	fifo->Write(json, len);
+	free(json);
+
 	fifo->Write(",", 1);
 }
