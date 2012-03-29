@@ -5,9 +5,10 @@ namespace icinga {
 
 class Socket : public Object
 {
-protected:
+private:
 	SOCKET m_FD;
 
+protected:
 	Socket(void);
 
 	void Close(bool from_dtor);

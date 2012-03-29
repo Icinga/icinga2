@@ -27,7 +27,7 @@ void TCPServer::Start(void)
 
 void TCPServer::Listen(void)
 {
-	listen(m_FD, SOMAXCONN);
+	listen(GetFD(), SOMAXCONN);
 
 	Start();
 }

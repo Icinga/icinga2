@@ -22,4 +22,6 @@ inline void closesocket(int fd)
 	close(fd);
 }
 
+#define ioctlsocket ioctl
+
 #endif /* I2_UNIX_H */

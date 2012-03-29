@@ -30,6 +30,11 @@ void Socket::Stop(void)
 
 void Socket::SetFD(SOCKET fd)
 {
+	unsigned long lTrue = 1;
+
+	if (fd != INVALID_SOCKET)
+		ioctlsocket(fd, FIONBIO, &lTrue);
+
 	m_FD = fd;
 }
 

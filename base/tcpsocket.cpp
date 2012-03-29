@@ -4,9 +4,14 @@ using namespace icinga;
 
 void TCPSocket::MakeSocket(void)
 {
-	assert(m_FD == INVALID_SOCKET);
+	assert(GetFD() == INVALID_SOCKET);
 
-	m_FD = socket(AF_INET, SOCK_STREAM, 0);
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (fd == INVALID_SOCKET)
+		throw exception(/*"socket() failed."*/);
+
+	SetFD(fd);
 }
 
 void TCPSocket::Bind(unsigned short port)
