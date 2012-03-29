@@ -1,8 +1,6 @@
 #include "i2-jsonrpc.h"
 
 using namespace icinga;
-using std::map;
-using std::function;
 
 void ConnectionManager::BindServer(JsonRpcServer::RefType server)
 {

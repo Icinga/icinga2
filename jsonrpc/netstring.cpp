@@ -59,8 +59,16 @@ cJSON *Netstring::ReadJSONFromFIFO(FIFO::RefType fifo)
 
 void Netstring::WriteJSONToFIFO(FIFO::RefType fifo, cJSON *object)
 {
-	char *json = cJSON_Print(object);
-	size_t len = strlen(json);
+	char *json;
+	size_t len;
+
+#ifdef _DEBUG
+	json = cJSON_Print(object);
+#else /* _DEBUG */
+	json = cJSON_PrintUnformatted(object);
+#endif /* _DEBUG */
+
+	len = strlen(json);
 	char strLength[50];
 	sprintf(strLength, "%lu", (unsigned long)len);
 

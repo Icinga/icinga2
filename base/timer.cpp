@@ -62,7 +62,8 @@ void Timer::CallExpiredTimers(void)
 void Timer::StopAllTimers(void)
 {
 	for (list<Timer::WeakRefType>::iterator i = Timers.begin(); i != Timers.end(); ) {
-		Timer::RefType timer = Timer::RefType(*i);
+		Timer::RefType timer = i->lock();
+
 		i++;
 
 		if (timer == NULL)
