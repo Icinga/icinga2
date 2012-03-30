@@ -7,7 +7,7 @@ using std::list;
 using std::bind2nd;
 using std::equal_to;
 
-static time_t g_NextCall;
+time_t Timer::NextCall;
 list<Timer::WeakRefType> Timer::Timers;
 
 Timer::Timer(void)
@@ -17,16 +17,16 @@ Timer::Timer(void)
 
 time_t Timer::GetNextCall(void)
 {
-	if (g_NextCall < time(NULL))
+	if (NextCall < time(NULL))
 		Timer::RescheduleTimers();
 
-	return g_NextCall;
+	return NextCall;
 }
 
 void Timer::RescheduleTimers(void)
 {
 	/* Make sure we wake up at least once every 30 seconds */
-	g_NextCall = time(NULL) + 30;
+	NextCall = time(NULL) + 30;
 
 	for (list<Timer::WeakRefType>::iterator i = Timers.begin(); i != Timers.end(); i++) {
 		Timer::RefType timer = i->lock();
@@ -34,8 +34,8 @@ void Timer::RescheduleTimers(void)
 		if (timer == NULL)
 			continue;
 
-		if (timer->m_Next < g_NextCall)
-			g_NextCall = timer->m_Next;
+		if (timer->m_Next < NextCall)
+			NextCall = timer->m_Next;
 	}
 }
 
