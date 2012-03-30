@@ -8,6 +8,9 @@ using namespace icinga;
 using std::cout;
 using std::endl;
 
+namespace icinga
+{
+
 class MyApplication : public Application
 {
 public:
@@ -46,4 +49,6 @@ public:
 	}
 };
 
-SET_START_CLASS(MyApplication);
+}
+
+SET_START_CLASS(icinga::MyApplication);
