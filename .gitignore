@@ -8,3 +8,10 @@ Debug
 Release
 *.vcxproj.user
 ipch
+*.gcda
+*.o
+*.a
+.deps
+*.in
+Makefile
+*.log
