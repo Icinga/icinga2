@@ -22,6 +22,7 @@ public:
 	virtual int Main(const vector<string>& args) = 0;
 
 	void RunEventLoop(void);
+	bool Daemonize(void);
 	void Shutdown(void);
 };
 
