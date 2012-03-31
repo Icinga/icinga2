@@ -42,7 +42,10 @@ public:
 			prev = i;
 			i++;
 
-			(*prev)(args);
+			int result = (*prev)(args);
+
+			if (result == -1)
+				m_Delegates.erase(prev);
 		}
 	}
 };
