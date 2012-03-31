@@ -33,6 +33,8 @@
 #	include "unix.h"
 #endif
 
+#include "mutex.h"
+#include "condvar.h"
 #include "object.h"
 #include "memory.h"
 #include "delegate.h"
