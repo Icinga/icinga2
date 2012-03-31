@@ -35,6 +35,7 @@
 
 #include "mutex.h"
 #include "condvar.h"
+#include "thread.h"
 #include "object.h"
 #include "memory.h"
 #include "delegate.h"
