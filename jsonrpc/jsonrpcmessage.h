@@ -40,6 +40,10 @@ public:
 	void ClearParams(void);
 	cJSON *GetParams(void);
 
+	void SetParam(const string& name, const string& value);
+	cJSON *GetParam(const string& name);
+	bool GetParamString(const string name, string *value);
+
 	void ClearResult();
 	cJSON *GetResult(void);
 

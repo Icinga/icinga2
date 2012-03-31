@@ -20,14 +20,16 @@ public:
 	typedef shared_ptr<ConnectionManager> RefType;
 	typedef weak_ptr<ConnectionManager> WeakRefType;
 
-	void BindServer(JsonRpcServer::RefType server);
-	void UnbindServer(JsonRpcServer::RefType server);
+	void RegisterServer(JsonRpcServer::RefType server);
+	void UnregisterServer(JsonRpcServer::RefType server);
 
-	void BindClient(JsonRpcClient::RefType client);
-	void UnbindClient(JsonRpcClient::RefType client);
+	void RegisterClient(JsonRpcClient::RefType client);
+	void UnregisterClient(JsonRpcClient::RefType client);
 
 	void RegisterMethod(string method, function<int (NewMessageEventArgs::RefType)> function);
 	void UnregisterMethod(string method, function<int (NewMessageEventArgs::RefType)> function);
+
+	void SendMessage(JsonRpcMessage::RefType message);
 };
 
 }

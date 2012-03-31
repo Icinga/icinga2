@@ -2,25 +2,25 @@
 
 using namespace icinga;
 
-void ConnectionManager::BindServer(JsonRpcServer::RefType server)
+void ConnectionManager::RegisterServer(JsonRpcServer::RefType server)
 {
 	m_Servers.push_front(server);
 	server->OnNewClient.bind(bind_weak(&ConnectionManager::NewClientHandler, shared_from_this()));
 }
 
-void ConnectionManager::UnbindServer(JsonRpcServer::RefType server)
+void ConnectionManager::UnregisterServer(JsonRpcServer::RefType server)
 {
 	m_Servers.remove(server);
 	// TODO: unbind event
 }
 
-void ConnectionManager::BindClient(JsonRpcClient::RefType client)
+void ConnectionManager::RegisterClient(JsonRpcClient::RefType client)
 {
 	m_Clients.push_front(client);
 	client->OnNewMessage.bind(bind_weak(&ConnectionManager::NewMessageHandler, shared_from_this()));
 }
 
-void ConnectionManager::UnbindClient(JsonRpcClient::RefType client)
+void ConnectionManager::UnregisterClient(JsonRpcClient::RefType client)
 {
 	m_Clients.remove(client);
 	// TODO: unbind event
@@ -29,14 +29,14 @@ void ConnectionManager::UnbindClient(JsonRpcClient::RefType client)
 int ConnectionManager::NewClientHandler(NewClientEventArgs::RefType ncea)
 {
 	JsonRpcClient::RefType client = static_pointer_cast<JsonRpcClient>(ncea->Client);
-	BindClient(client);
+	RegisterClient(client);
 
 	return 0;
 }
 
 int ConnectionManager::CloseClientHandler(EventArgs::RefType ea)
 {
-	UnbindClient(static_pointer_cast<JsonRpcClient>(ea->Source));
+	UnregisterClient(static_pointer_cast<JsonRpcClient>(ea->Source));
 
 	return 0;
 }
@@ -80,4 +80,14 @@ void ConnectionManager::RegisterMethod(string method, function<int (NewMessageEv
 void ConnectionManager::UnregisterMethod(string method, function<int (NewMessageEventArgs::RefType)> function)
 {
 	// TODO: implement
+}
+
+void ConnectionManager::SendMessage(JsonRpcMessage::RefType message)
+{
+	/* TODO: filter messages based on event subscriptions */
+	for (list<JsonRpcClient::RefType>::iterator i = m_Clients.begin(); i != m_Clients.end(); i++)
+	{
+		JsonRpcClient::RefType client = *i;
+		client->SendMessage(message);
+	}
 }

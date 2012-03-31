@@ -113,6 +113,32 @@ cJSON *JsonRpcMessage::GetParams(void)
 	return object;
 }
 
+void JsonRpcMessage::SetParam(const string& name, const string& value)
+{
+}
+
+cJSON *JsonRpcMessage::GetParam(const string& name)
+{
+	cJSON *params = GetFieldObject("params");
+
+	if (params == NULL)
+		return NULL;
+
+	return cJSON_GetObjectItem(params, name.c_str());
+}
+
+bool JsonRpcMessage::GetParamString(const string name, string *value)
+{
+	cJSON *param = GetParam(name);
+
+	if (param == NULL || param->type != cJSON_String)
+		return false;
+
+	*value = param->valuestring;
+
+	return true;
+}
+
 void JsonRpcMessage::ClearResult(void)
 {
 	SetFieldObject("result", NULL);
