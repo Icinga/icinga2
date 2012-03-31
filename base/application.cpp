@@ -12,6 +12,7 @@ Application::Application(void)
 #endif
 
 	m_ShuttingDown = false;
+	m_ConfigHive = new_object<ConfigHive>();
 }
 
 Application::~Application(void)
@@ -22,6 +23,10 @@ Application::~Application(void)
 #ifdef _WIN32
 	WSACleanup();
 #endif
+
+	for (map<string, Component::RefType>::iterator i = m_Components.begin(); i != m_Components.end(); i++) {
+		i->second->Stop();
+	}
 }
 
 void Application::RunEventLoop(void)
@@ -155,4 +160,63 @@ bool Application::Daemonize(void) {
 void Application::Shutdown(void)
 {
 	m_ShuttingDown = true;
+}
+
+ConfigHive::RefType Application::GetConfigHive(void)
+{
+	return m_ConfigHive;
+}
+
+Component::RefType Application::LoadComponent(string name)
+{
+	Component::RefType component;
+	Component *(*pCreateComponent)();
+
+	ConfigObject::RefType componentConfig = m_ConfigHive->GetObject("component", name);
+
+	if (componentConfig.get() == NULL) {
+		componentConfig = new_object<ConfigObject>();
+		componentConfig->SetName(name);
+		componentConfig->SetType("component");
+		m_ConfigHive->AddObject(componentConfig);
+	}
+
+	string path = componentConfig->GetProperty("path", name);
+
+#ifdef _WIN32
+	HMODULE hModule = LoadLibrary(path.c_str());
+
+	if (hModule == INVALID_HANDLE_VALUE)
+		throw exception(/*"Could not load module"*/);
+
+	pCreateComponent = (Component *(*)())GetProcAddress(hModule, "CreateComponent");
+
+	if (pCreateComponent == NULL)
+		throw exception(/*"Module does not contain CreateComponent function"*/);
+
+#else /* _WIN32 */
+	// TODO: implement
+#endif /* _WIN32 */
+
+	component = Component::RefType(pCreateComponent());
+	component->SetApplication(static_pointer_cast<Application>(shared_from_this()));
+	m_Components[component->GetName()] = component;
+
+	component->Start(componentConfig);
+
+	return component;
+}
+
+void Application::UnloadComponent(string name)
+{
+	map<string, Component::RefType>::iterator ci = m_Components.find(name);
+
+	if (ci == m_Components.end())
+		return;
+
+	Component::RefType component = ci->second;
+	component->Stop();
+	m_Components.erase(ci);
+
+	// TODO: unload DLL
 }

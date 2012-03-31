@@ -25,4 +25,8 @@ inline void closesocket(int fd)
 
 #define ioctlsocket ioctl
 
+/* default visibility takes care of exported symbols */
+#define I2_EXPORT
+#define I2_IMPORT
+
 #endif /* I2_UNIX_H */

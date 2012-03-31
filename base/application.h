@@ -1,14 +1,21 @@
 #ifndef I2_APPLICATION_H
 #define I2_APPLICATION_H
 
+#include <map>
+
 namespace icinga {
 
 using std::vector;
+using std::map;
 using std::string;
+
+class Component;
 
 class Application : public Object {
 private:
 	bool m_ShuttingDown;
+	ConfigHive::RefType m_ConfigHive;
+	map< string, shared_ptr<Component> > m_Components;
 
 public:
 	typedef shared_ptr<Application> RefType;
@@ -24,6 +31,12 @@ public:
 	void RunEventLoop(void);
 	bool Daemonize(void);
 	void Shutdown(void);
+
+	ConfigHive::RefType GetConfigHive(void);
+
+	shared_ptr<Component> LoadComponent(string name);
+	void UnloadComponent(string name);
+	shared_ptr<Component> GetComponent(string name);
 };
 
 template<class T>

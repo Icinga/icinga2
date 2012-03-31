@@ -46,6 +46,9 @@
 #include "tcpsocket.h"
 #include "tcpclient.h"
 #include "tcpserver.h"
+#include "configobject.h"
+#include "confighive.h"
 #include "application.h"
+#include "component.h"
 
 #endif /* I2_BASE_H */
