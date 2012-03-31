@@ -54,7 +54,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9C92DA90-FD53-43A9-A244-90F2E8AF9677}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>i2base</RootNamespace>
+    <RootNamespace>icinga</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

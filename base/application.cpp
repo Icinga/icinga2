@@ -172,6 +172,11 @@ Component::RefType Application::LoadComponent(string name)
 	Component::RefType component;
 	Component *(*pCreateComponent)();
 
+	component = GetComponent(name);
+
+	if (component.get() != NULL)
+		return component;
+
 	ConfigObject::RefType componentConfig = m_ConfigHive->GetObject("component", name);
 
 	if (componentConfig.get() == NULL) {
@@ -200,11 +205,22 @@ Component::RefType Application::LoadComponent(string name)
 
 	component = Component::RefType(pCreateComponent());
 	component->SetApplication(static_pointer_cast<Application>(shared_from_this()));
+	component->SetConfig(componentConfig);
 	m_Components[component->GetName()] = component;
 
-	component->Start(componentConfig);
+	component->Start();
 
 	return component;
+}
+
+Component::RefType Application::GetComponent(string name)
+{
+	map<string, Component::RefType>::iterator ci = m_Components.find(name);
+
+	if (ci == m_Components.end())
+		return Component::RefType();
+
+	return ci->second;
 }
 
 void Application::UnloadComponent(string name)
