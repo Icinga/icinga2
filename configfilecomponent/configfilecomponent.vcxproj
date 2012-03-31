@@ -10,8 +10,15 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="configfilecomponent.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="configfilecomponent.h" />
+    <ClInclude Include="i2-configfilecomponent.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{697C6D7E-3109-484C-A7AF-384D28711610}</ProjectGuid>
+    <ProjectGuid>{E58F1DA7-B723-412B-B2B7-7FF58E2A944E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>icinga</RootNamespace>
   </PropertyGroup>
@@ -38,13 +45,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\base;$(ProjectDir)\..\jsonrpc;$(ProjectDir)\..\config;$(ProjectDir)\..\icinga;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\base;$(ProjectDir)\..\jsonrpc;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\base;$(ProjectDir)\..\jsonrpc;$(ProjectDir)\..\config;$(ProjectDir)\..\componentloader;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\base;$(ProjectDir)\..\jsonrpc;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -53,13 +58,17 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;CONFIGCOMPONENT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;jsonrpc.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;jsonrpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -69,23 +78,19 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;CONFIGCOMPONENT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>base.lib;jsonrpc.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;jsonrpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <AdditionalDependencies>$(OutDir)\base.lib;$(OutDir)\jsonrpc.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="configcomponent.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="configcomponent.h" />
-    <ClInclude Include="i2-configcomponent.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
