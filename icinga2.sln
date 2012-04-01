@@ -28,8 +28,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "icinga", "icinga\icinga.vcx
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "configfilecomponent", "configfilecomponent\configfilecomponent.vcxproj", "{E58F1DA7-B723-412B-B2B7-7FF58E2A944E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9C92DA90-FD53-43A9-A244-90F2E8AF9677} = {9C92DA90-FD53-43A9-A244-90F2E8AF9677}
+		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8} = {8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "configrpccomponent", "configrpccomponent\configrpccomponent.vcxproj", "{697C6D7E-3109-484C-A7AF-384D28711610}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9C92DA90-FD53-43A9-A244-90F2E8AF9677} = {9C92DA90-FD53-43A9-A244-90F2E8AF9677}
+		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8} = {8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

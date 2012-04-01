@@ -20,5 +20,3 @@ libjsonrpc_a_SOURCES =  \
 	netstring.h
 
 libjsonrpc_a_CXXFLAGS = -I${top_srcdir}/base 
-
-libjsonrpc_a_LIBADD = $(top_builddir)/base/libbase.a 

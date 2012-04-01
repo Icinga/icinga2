@@ -2,6 +2,9 @@
 ## Created by Anjuta
 
 SUBDIRS = base \
+	configfilecomponent \
+	configrpccomponent \
+	icinga \
 	jsonrpc \
 	miniapp 
 

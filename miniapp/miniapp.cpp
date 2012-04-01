@@ -13,20 +13,38 @@ namespace icinga
 
 class MyApplication : public Application
 {
+private:
+	ConfigHive::RefType m_Hive;
+
 public:
 	typedef shared_ptr<MyApplication> RefType;
 	typedef weak_ptr<MyApplication> WeakRefType;
 
 	int Main(const vector<string>& args)
 	{
+		LoadComponent("configcomponent");
+
+		m_Hive = new_object<ConfigHive>();
+		
+		/*ConfigFileSerializer::RefType cfs = new_object<ConfigFileSerializer>();
+		cfs->SetFilename("test.conf");
+		cfs->Deserialize(m_Hive);
+
+		ConfigObject::RefType netconfig = m_Hive->GetObject("netconfig");
+
 		JsonRpcServer::RefType ts = new_object<JsonRpcServer>();
 		ts->MakeSocket();
-		ts->Bind(7777);
+		ts->Bind(netconfig->GetPropertyInteger("port", 7777));
 		ts->Listen();
 
 		ConnectionManager::RefType cm = new_object<ConnectionManager>();
 		cm->RegisterMethod("HelloWorld", bind_weak(&MyApplication::HelloWorld, shared_from_this()));
-		cm->BindServer(ts);
+		cm->RegisterServer(ts);
+
+		ConfigRpcServiceModule::RefType rsm = new_object<ConfigRpcServiceModule>();
+		rsm->SetHive(m_Hive);
+		rsm->SetConfigSource(true);
+		cm->RegisterServiceModule(rsm);*/
 
 		RunEventLoop();
 
@@ -44,7 +62,12 @@ public:
 		cJSON *result = response->GetResult();
 		cJSON_AddStringToObject(result, "greeting", "Hello World!");
 		client->SendMessage(response);
-		
+
+		ConfigObject::RefType co = new_object<ConfigObject>();
+		co->SetName("foo");
+		co->SetType("moo");
+		m_Hive->AddObject(co);
+
 		return 0;
 	}
 };
