@@ -9,3 +9,5 @@ libconfigfilecomponent_la_SOURCES =  \
 	i2-configfilecomponent.h
 
 libconfigfilecomponent_la_CXXFLAGS = -I${top_srcdir}/base -I${top_srcdir}/jsonrpc
+
+libconfigfilecomponent_la_LDFLAGS = -module -version-info 0:0:0 -no-undefined

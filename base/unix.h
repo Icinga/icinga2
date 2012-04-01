@@ -40,13 +40,13 @@ typedef lt_dlhandle HMODULE;
 inline HMODULE LoadLibrary(const char *filename)
 {
 	lt_dlhandle handle = 0;
-    lt_dladvise advise;
+	lt_dladvise advise;
 
-    if (!lt_dladvise_init(&advise) && !lt_dladvise_global(&advise)) {
-            handle = lt_dlopenadvise(filename, advise);
-    }
+	if (!lt_dladvise_init(&advise) && !lt_dladvise_global(&advise)) {
+		handle = lt_dlopenadvise(filename, advise);
+	}
 
-    lt_dladvise_destroy(&advise);
+	lt_dladvise_destroy(&advise);
 
 	return handle;
 }

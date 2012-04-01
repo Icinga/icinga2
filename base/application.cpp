@@ -9,7 +9,9 @@ Application::Application(void)
 #ifdef _WIN32
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(1, 1), &wsaData);
-#endif
+#else /* _WIN32 */
+	lt_dlinit();
+#endif /* _WIN32 */
 
 	m_ShuttingDown = false;
 	m_ConfigHive = new_object<ConfigHive>();
@@ -20,13 +22,15 @@ Application::~Application(void)
 	Timer::StopAllTimers();
 	Socket::CloseAllSockets();
 
-#ifdef _WIN32
-	WSACleanup();
-#endif
-
 	for (map<string, Component::RefType>::iterator i = m_Components.begin(); i != m_Components.end(); i++) {
 		i->second->Stop();
 	}
+
+#ifdef _WIN32
+	WSACleanup();
+#else /* _WIN32 */
+	lt_dlexit();
+#endif /* _WIN32 */
 }
 
 void Application::RunEventLoop(void)
@@ -248,3 +252,4 @@ void Application::Log(const char *format, ...)
 	// TODO: log to file
 	fprintf(stderr, "%s\n", message);
 }
+
