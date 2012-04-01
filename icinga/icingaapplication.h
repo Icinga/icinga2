@@ -9,6 +9,9 @@ class IcingaApplication : public Application
 private:
 	ConnectionManager::RefType m_ConnectionManager;
 
+	int ConfigObjectCreatedHandler(ConfigHiveEventArgs::RefType ea);
+	int ConfigObjectRemovedHandler(ConfigHiveEventArgs::RefType ea);
+
 public:
 	typedef shared_ptr<IcingaApplication> RefType;
 	typedef weak_ptr<IcingaApplication> WeakRefType;

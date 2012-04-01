@@ -14,15 +14,14 @@ IcingaApplication::IcingaApplication(void)
 
 int IcingaApplication::Main(const vector<string>& args)
 {
+	GetConfigHive()->OnObjectCreated.bind(bind_weak(&IcingaApplication::ConfigObjectCreatedHandler, shared_from_this()));
+	GetConfigHive()->OnObjectRemoved.bind(bind_weak(&IcingaApplication::ConfigObjectRemovedHandler, shared_from_this()));
+
 	ConfigObject::RefType fileComponentConfig = new_object<ConfigObject>();
 	fileComponentConfig->SetName("configfilecomponent");
 	fileComponentConfig->SetType("component");
 	fileComponentConfig->SetProperty("filename", "icinga.conf");
 	GetConfigHive()->AddObject(fileComponentConfig);
-
-	LoadComponent("configfilecomponent");
-
-	LoadComponent("configrpccomponent");
 
 	RunEventLoop();
 
@@ -32,6 +31,24 @@ int IcingaApplication::Main(const vector<string>& args)
 ConnectionManager::RefType IcingaApplication::GetConnectionManager(void)
 {
 	return m_ConnectionManager;
+}
+
+int IcingaApplication::ConfigObjectCreatedHandler(ConfigHiveEventArgs::RefType ea)
+{
+	if (ea->ConfigObject->GetType() == "component") {
+		LoadComponent(ea->ConfigObject->GetName());
+	}
+
+	return 0;
+}
+
+int IcingaApplication::ConfigObjectRemovedHandler(ConfigHiveEventArgs::RefType ea)
+{
+	if (ea->ConfigObject->GetType() == "component") {
+		UnloadComponent(ea->ConfigObject->GetName());
+	}
+
+	return 0;
 }
 
 SET_START_CLASS(icinga::IcingaApplication);
