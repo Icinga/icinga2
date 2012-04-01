@@ -36,7 +36,7 @@ public:
 
 	ConfigHive::RefType GetConfigHive(void);
 
-	shared_ptr<Component> LoadComponent(string name);
+	shared_ptr<Component> LoadComponent(string path, ConfigObject::RefType componentConfig);
 	void UnloadComponent(string name);
 	shared_ptr<Component> GetComponent(string name);
 };

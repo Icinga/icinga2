@@ -171,28 +171,12 @@ ConfigHive::RefType Application::GetConfigHive(void)
 	return m_ConfigHive;
 }
 
-Component::RefType Application::LoadComponent(string name)
+Component::RefType Application::LoadComponent(string path, ConfigObject::RefType componentConfig)
 {
 	Component::RefType component;
 	Component *(*pCreateComponent)();
 
-	component = GetComponent(name);
-
-	if (component.get() != NULL)
-		return component;
-
-	Log("Loading component '%s'", name.c_str());
-
-	ConfigObject::RefType componentConfig = m_ConfigHive->GetObject("component", name);
-
-	if (componentConfig.get() == NULL) {
-		componentConfig = new_object<ConfigObject>();
-		componentConfig->SetName(name);
-		componentConfig->SetType("component");
-		m_ConfigHive->AddObject(componentConfig);
-	}
-
-	string path = componentConfig->GetProperty("path", name);
+	Log("Loading component '%s'", path.c_str());
 
 	HMODULE hModule = LoadLibrary(path.c_str());
 

@@ -23,7 +23,8 @@ void ConfigRpcComponent::Start(void)
 	ConnectionManager::RefType connectionManager = icingaApp->GetConnectionManager();
 	ConfigHive::RefType configHive = icingaApp->GetConfigHive();
 
-	if (GetConfig()->GetPropertyInteger("configSource") != 0) {
+	int configSource;
+	if (GetConfig()->GetPropertyInteger("configSource", &configSource) && configSource != 0) {
 		connectionManager->RegisterMethod("config::FetchObjects", bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
 
 		configHive->OnObjectCreated.bind(bind_weak(&ConfigRpcComponent::LocalObjectCreatedHandler, shared_from_this()));
@@ -99,7 +100,8 @@ int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigHiveEventArgs::RefType
 	JsonRpcMessage::RefType msg = MakeObjectMessage(ea->Object, "config::ObjectRemoved", false);
 	cJSON *params = msg->GetParams();
 	cJSON_AddStringToObject(params, "property", ea->Property.c_str());
-	string value = ea->Object->GetProperty(ea->Property);
+	string value;
+	ea->Object->GetProperty(ea->Property, &value);
 	cJSON_AddStringToObject(params, "value", value.c_str());
 
 	ConnectionManager::RefType connectionManager = GetIcingaApplication()->GetConnectionManager();

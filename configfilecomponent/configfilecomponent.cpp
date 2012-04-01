@@ -16,7 +16,11 @@ void ConfigFileComponent::Start(void)
 	ifstream fp;
 	FIFO::RefType fifo = new_object<FIFO>();
 
-	fp.open(GetConfig()->GetProperty("filename").c_str(), ifstream::in);
+	string filename;
+	if (!GetConfig()->GetProperty("filename", &filename))
+		throw exception(/*"Missing filename property"*/);
+
+	fp.open(filename.c_str(), ifstream::in);
 	if (fp.fail())
 		throw exception(/*"Could not open config file"*/);
 	

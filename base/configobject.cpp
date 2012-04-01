@@ -34,8 +34,6 @@ string ConfigObject::GetType(void) const
 
 void ConfigObject::SetProperty(const string& name, const string& value)
 {
-	string oldValue = GetProperty(name);
-
 	Properties[name] = value;
 
 	ConfigHive::RefType hive = m_Hive.lock();
@@ -44,31 +42,38 @@ void ConfigObject::SetProperty(const string& name, const string& value)
 		ea->Source = hive;
 		ea->Object = static_pointer_cast<ConfigObject>(shared_from_this());
 		ea->Property = name;
-		ea->OldValue = oldValue;
+
+		string oldValue;
+		if (GetProperty(name, &oldValue))
+			ea->OldValue = oldValue;
+
 		hive->OnPropertyChanged(ea);
 	}
 }
 
-string ConfigObject::GetProperty(const string& name, const string& defaultValue) const
+bool ConfigObject::GetProperty(const string& name, string *value) const
 {
 	map<string, string>::const_iterator vi = Properties.find(name);
 	if (vi == Properties.end())
-		return defaultValue;
-	return vi->second;
+		return false;
+	*value = vi->second;
+	return true;
 }
 
-int ConfigObject::GetPropertyInteger(const string& name, int defaultValue) const
+bool ConfigObject::GetPropertyInteger(const string& name, int *value) const
 {
-	string value = GetProperty(name);
-	if (value == string())
-		return defaultValue;
-	return strtol(value.c_str(), NULL, 10);
+	string stringValue;
+	if (!GetProperty(name, &stringValue))
+		return false;
+	*value = strtol(stringValue.c_str(), NULL, 10);
+	return true;
 }
 
-double ConfigObject::GetPropertyDouble(const string& name, double defaultValue) const
+bool ConfigObject::GetPropertyDouble(const string& name, double *value) const
 {
-	string value = GetProperty(name);
-	if (value == string())
-		return defaultValue;
-	return strtod(value.c_str(), NULL);
+	string stringValue;
+	if (!GetProperty(name, &stringValue))
+		return false;
+	*value = strtod(stringValue.c_str(), NULL);
+	return true;
 }

@@ -36,7 +36,12 @@ ConnectionManager::RefType IcingaApplication::GetConnectionManager(void)
 int IcingaApplication::ConfigObjectCreatedHandler(ConfigHiveEventArgs::RefType ea)
 {
 	if (ea->Object->GetType() == "component") {
-		LoadComponent(ea->Object->GetName());
+		string path;
+		
+		if (!ea->Object->GetProperty("path", &path))
+			throw exception(/*"Missing path property"*/);
+
+		LoadComponent(path, ea->Object);
 	}
 
 	return 0;
