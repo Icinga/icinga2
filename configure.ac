@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl Created by Anjuta application wizard.
 
-AC_INIT(icinga2, 0.1)
+AC_INIT(icinga, 2.0)
 
 AC_CONFIG_HEADERS([config.h])
 
@@ -31,6 +31,5 @@ configfilecomponent/Makefile
 configrpccomponent/Makefile
 icinga/Makefile
 jsonrpc/Makefile
-miniapp/Makefile
 
 ])
