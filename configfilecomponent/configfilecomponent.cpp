@@ -16,7 +16,7 @@ void ConfigFileComponent::Start(void)
 	ifstream fp;
 	FIFO::RefType fifo = new_object<FIFO>();
 
-	fp.open(GetConfig()->GetProperty("filename"), ifstream::in);
+	fp.open(GetConfig()->GetProperty("filename").c_str(), ifstream::in);
 	if (fp.fail())
 		throw exception(/*"Could not open config file"*/);
 	

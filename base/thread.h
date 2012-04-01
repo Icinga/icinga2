@@ -4,8 +4,6 @@
 namespace icinga
 {
 
-using std::function;
-
 class thread
 {
 private:

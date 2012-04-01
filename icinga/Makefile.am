@@ -4,12 +4,12 @@
 bin_PROGRAMS =  \
 	icinga
 
-miniapp_SOURCES =  \
+icinga_SOURCES =  \
 	icingaapplication.cpp \
 	icingaapplication.h
 
-miniapp_CXXFLAGS = -I${top_srcdir}/base \
+icinga_CXXFLAGS = -I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc 
 
-miniapp_LDFLAGS = $(top_builddir)/base/libbase.a \
+icinga_LDFLAGS = $(top_builddir)/base/libbase.a \
 	$(top_builddir)/jsonrpc/libjsonrpc.a 

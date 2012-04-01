@@ -39,9 +39,9 @@ public:
 	void SetPropertyInteger(const string& name, int value);
 	void SetPropertyDouble(const string& name, double value);
 
-	string GetProperty(const string& name, const string& default = string()) const;
-	int GetPropertyInteger(const string& name, int default = 0) const;
-	double GetPropertyDouble(const string& name, double default = 0.0f) const;
+	string GetProperty(const string& name, const string& defaultValue = string()) const;
+	int GetPropertyInteger(const string& name, int defaultValue = 0) const;
+	double GetPropertyDouble(const string& name, double defaultValue = 0.0f) const;
 };
 
 }

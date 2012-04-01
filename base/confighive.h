@@ -13,7 +13,7 @@ struct ConfigHiveEventArgs : public EventArgs
 	typedef shared_ptr<ConfigHiveEventArgs> RefType;
 	typedef weak_ptr<ConfigHiveEventArgs> WeakRefType;
 
-	ConfigObject::RefType ConfigObject;
+	ConfigObject::RefType Object;
 	string Property;
 	string OldValue;
 };

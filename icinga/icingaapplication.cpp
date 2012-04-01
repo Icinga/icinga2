@@ -35,8 +35,8 @@ ConnectionManager::RefType IcingaApplication::GetConnectionManager(void)
 
 int IcingaApplication::ConfigObjectCreatedHandler(ConfigHiveEventArgs::RefType ea)
 {
-	if (ea->ConfigObject->GetType() == "component") {
-		LoadComponent(ea->ConfigObject->GetName());
+	if (ea->Object->GetType() == "component") {
+		LoadComponent(ea->Object->GetName());
 	}
 
 	return 0;
@@ -44,8 +44,8 @@ int IcingaApplication::ConfigObjectCreatedHandler(ConfigHiveEventArgs::RefType e
 
 int IcingaApplication::ConfigObjectRemovedHandler(ConfigHiveEventArgs::RefType ea)
 {
-	if (ea->ConfigObject->GetType() == "component") {
-		UnloadComponent(ea->ConfigObject->GetName());
+	if (ea->Object->GetType() == "component") {
+		UnloadComponent(ea->Object->GetName());
 	}
 
 	return 0;

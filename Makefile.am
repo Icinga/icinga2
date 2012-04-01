@@ -1,11 +1,12 @@
 ## Process this file with automake to produce Makefile.in
 ## Created by Anjuta
 
-SUBDIRS = base \
+SUBDIRS = ltdl \
+	base \
+	jsonrpc \
 	configfilecomponent \
 	configrpccomponent \
 	icinga \
-	jsonrpc \
 	miniapp 
 
 icinga2docdir = ${prefix}/doc/icinga2

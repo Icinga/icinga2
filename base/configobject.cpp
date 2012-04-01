@@ -42,33 +42,33 @@ void ConfigObject::SetProperty(const string& name, const string& value)
 	if (hive.get() != NULL) {
 		ConfigHiveEventArgs::RefType ea = new_object<ConfigHiveEventArgs>();
 		ea->Source = hive;
-		ea->ConfigObject = static_pointer_cast<ConfigObject>(shared_from_this());
+		ea->Object = static_pointer_cast<ConfigObject>(shared_from_this());
 		ea->Property = name;
 		ea->OldValue = oldValue;
 		hive->OnPropertyChanged(ea);
 	}
 }
 
-string ConfigObject::GetProperty(const string& name, const string& default) const
+string ConfigObject::GetProperty(const string& name, const string& defaultValue) const
 {
 	map<string, string>::const_iterator vi = Properties.find(name);
 	if (vi == Properties.end())
-		return default;
+		return defaultValue;
 	return vi->second;
 }
 
-int ConfigObject::GetPropertyInteger(const string& name, int default) const
+int ConfigObject::GetPropertyInteger(const string& name, int defaultValue) const
 {
 	string value = GetProperty(name);
 	if (value == string())
-		return default;
+		return defaultValue;
 	return strtol(value.c_str(), NULL, 10);
 }
 
-double ConfigObject::GetPropertyDouble(const string& name, double default) const
+double ConfigObject::GetPropertyDouble(const string& name, double defaultValue) const
 {
 	string value = GetProperty(name);
 	if (value == string())
-		return default;
+		return defaultValue;
 	return strtod(value.c_str(), NULL);
 }

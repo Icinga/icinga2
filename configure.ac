@@ -17,7 +17,8 @@ AC_PROG_CXX
 
 
 LT_INIT
-
+LT_CONFIG_LTDL_DIR([ltdl])
+LTDL_INIT
 
 
 
@@ -26,6 +27,9 @@ LT_INIT
 AC_OUTPUT([
 Makefile
 base/Makefile
+configfilecomponent/Makefile
+configrpccomponent/Makefile
+icinga/Makefile
 jsonrpc/Makefile
 miniapp/Makefile
 

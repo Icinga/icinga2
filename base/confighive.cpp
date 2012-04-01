@@ -19,7 +19,7 @@ void ConfigHive::AddObject(ConfigObject::RefType object)
 
 	ConfigHiveEventArgs::RefType ea = new_object<ConfigHiveEventArgs>();
 	ea->Source = shared_from_this();
-	ea->ConfigObject = object;
+	ea->Object = object;
 	OnObjectCreated(ea);
 }
 
@@ -35,7 +35,7 @@ void ConfigHive::RemoveObject(ConfigObject::RefType object)
 
 	ConfigHiveEventArgs::RefType ea = new_object<ConfigHiveEventArgs>();
 	ea->Source = shared_from_this();
-	ea->ConfigObject = object;
+	ea->Object = object;
 	OnObjectRemoved(ea);
 }
 

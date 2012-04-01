@@ -1,10 +1,12 @@
 #ifndef I2_BASE_H
 #define I2_BASE_H
 
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <errno.h>
+#include <cstdlib>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cerrno>
 
 #include <memory>
 #include <string>
