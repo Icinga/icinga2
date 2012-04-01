@@ -2,9 +2,7 @@
 #include <iostream>
 #include "i2-icinga.h"
 
-#ifdef _WIN32
-#	define ICINGA_VERSION "N/A"
-#else /* _WIN32 */
+#ifndef _WIN32
 #	include "icinga-version.h"
 #	define ICINGA_VERSION GIT_MESSAGE
 #endif /* _WIN32 */
@@ -21,12 +19,19 @@ IcingaApplication::IcingaApplication(void)
 
 int IcingaApplication::Main(const vector<string>& args)
 {
+#ifdef _WIN32
+	cout << "Icinga component loader" << endl;
+#else /* _WIN32 */
+	cout << "Icinga component loader (version: " << ICINGA_VERSION << ")" << endl;
+#endif  /* _WIN32 */
+
 	GetConfigHive()->OnObjectCreated.bind(bind_weak(&IcingaApplication::ConfigObjectCreatedHandler, shared_from_this()));
 	GetConfigHive()->OnObjectRemoved.bind(bind_weak(&IcingaApplication::ConfigObjectRemovedHandler, shared_from_this()));
 
 	ConfigObject::RefType fileComponentConfig = new_object<ConfigObject>();
 	fileComponentConfig->SetName("configfilecomponent");
 	fileComponentConfig->SetType("component");
+	fileComponentConfig->SetProperty("path", "libconfigfilecomponent.la");
 	fileComponentConfig->SetProperty("filename", "icinga.conf");
 	GetConfigHive()->AddObject(fileComponentConfig);
 
