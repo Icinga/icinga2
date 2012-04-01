@@ -11,4 +11,4 @@ miniapp_CXXFLAGS = -I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc 
 
 miniapp_LDFLAGS = $(top_builddir)/base/libbase.a \
-	$(top_builddir)/jsonrpc/libjsonrpc.a 
+	$(top_builddir)/jsonrpc/libjsonrpc.a -lltdl
