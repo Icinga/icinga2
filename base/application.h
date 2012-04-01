@@ -32,6 +32,8 @@ public:
 	bool Daemonize(void);
 	void Shutdown(void);
 
+	void Log(const char *format, ...);
+
 	ConfigHive::RefType GetConfigHive(void);
 
 	shared_ptr<Component> LoadComponent(string name);

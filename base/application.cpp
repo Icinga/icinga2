@@ -177,6 +177,8 @@ Component::RefType Application::LoadComponent(string name)
 	if (component.get() != NULL)
 		return component;
 
+	Log("Loading component '%s'", name.c_str());
+
 	ConfigObject::RefType componentConfig = m_ConfigHive->GetObject("component", name);
 
 	if (componentConfig.get() == NULL) {
@@ -230,9 +232,24 @@ void Application::UnloadComponent(string name)
 	if (ci == m_Components.end())
 		return;
 
+	Log("Unloading component '%s'", name.c_str());
+
 	Component::RefType component = ci->second;
 	component->Stop();
 	m_Components.erase(ci);
 
 	// TODO: unload DLL
+}
+
+void Application::Log(const char *format, ...)
+{
+	char message[512];
+	va_list marker;
+
+	va_start(marker, format);
+	vsnprintf(message, sizeof(message), format, marker);
+	va_end(marker);
+
+	// TODO: log to file
+	fprintf(stderr, "%s\n", message);
 }
