@@ -2,6 +2,13 @@
 #include <iostream>
 #include "i2-icinga.h"
 
+#ifdef _WIN32
+#	define ICINGA_VERSION "N/A"
+#else /* _WIN32 */
+#	include "icinga-version.h"
+#	define ICINGA_VERSION GIT_MESSAGE
+#endif /* _WIN32 */
+
 using namespace icinga;
 
 using std::cout;
