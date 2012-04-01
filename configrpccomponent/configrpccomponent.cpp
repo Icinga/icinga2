@@ -81,7 +81,7 @@ int ConfigRpcComponent::FetchObjectsHandler(NewMessageEventArgs::RefType ea)
 int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigHiveEventArgs::RefType ea)
 {
 	ConnectionManager::RefType connectionManager = GetIcingaApplication()->GetConnectionManager();
-	connectionManager->SendMessage(MakeObjectMessage(ea->Object, "config::ObjectCreated", true));
+	connectionManager->SendMessage(MakeObjectMessage(ea->ConfigObject, "config::ObjectCreated", true));
 
 	return 0;
 }
@@ -89,17 +89,17 @@ int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigHiveEventArgs::RefType e
 int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigHiveEventArgs::RefType ea)
 {
 	ConnectionManager::RefType connectionManager = GetIcingaApplication()->GetConnectionManager();
-	connectionManager->SendMessage(MakeObjectMessage(ea->Object, "config::ObjectRemoved", false));
+	connectionManager->SendMessage(MakeObjectMessage(ea->ConfigObject, "config::ObjectRemoved", false));
 
 	return 0;
 }
 
 int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigHiveEventArgs::RefType ea)
 {
-	JsonRpcMessage::RefType msg = MakeObjectMessage(ea->Object, "config::ObjectRemoved", false);
+	JsonRpcMessage::RefType msg = MakeObjectMessage(ea->ConfigObject, "config::ObjectRemoved", false);
 	cJSON *params = msg->GetParams();
 	cJSON_AddStringToObject(params, "property", ea->Property.c_str());
-	string value = ea->Object->GetProperty(ea->Property);
+	string value = ea->ConfigObject->GetProperty(ea->Property);
 	cJSON_AddStringToObject(params, "value", value.c_str());
 
 	ConnectionManager::RefType connectionManager = GetIcingaApplication()->GetConnectionManager();

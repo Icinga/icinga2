@@ -190,7 +190,6 @@ Component::RefType Application::LoadComponent(string name)
 
 	string path = componentConfig->GetProperty("path", name);
 
-#ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.c_str());
 
 	if (hModule == INVALID_HANDLE_VALUE)
@@ -200,10 +199,6 @@ Component::RefType Application::LoadComponent(string name)
 
 	if (pCreateComponent == NULL)
 		throw exception(/*"Module does not contain CreateComponent function"*/);
-
-#else /* _WIN32 */
-	// TODO: implement
-#endif /* _WIN32 */
 
 	component = Component::RefType(pCreateComponent());
 	component->SetApplication(static_pointer_cast<Application>(shared_from_this()));
