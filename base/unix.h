@@ -19,6 +19,12 @@ void closesocket(SOCKET fd);
 
 #define ioctlsocket ioctl
 
+#ifndef PATH_MAX
+#	define PATH_MAX 1024
+#endif /* PATH_MAX */
+
+#define MAXPATHLEN PATH_MAX
+
 /* default visibility takes care of exported symbols */
 #define I2_EXPORT
 #define I2_IMPORT

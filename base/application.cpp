@@ -188,7 +188,7 @@ Component::RefType Application::LoadComponent(string path, ConfigObject::RefType
 	lt_dlhandle hModule = 0;
 	lt_dladvise advise;
 
-	if (!lt_dladvise_init(&advise) && !lt_dladvise_global(&advise)) {
+	if (!lt_dladvise_init(&advise) && !lt_dladvise_local(&advise)) {
 		hModule = lt_dlopenadvise(path.c_str(), advise);
 	}
 
@@ -199,7 +199,7 @@ Component::RefType Application::LoadComponent(string path, ConfigObject::RefType
 		throw exception(/*"Could not load module"*/);
 
 #ifdef _WIN32
-	pCreateComponent = (Component *(*)())GetProcAddress(hModule, );
+	pCreateComponent = (Component *(*)())GetProcAddress(hModule, "CreateComponent");
 #else /* _WIN32 */
 	pCreateComponent = (Component *(*)())lt_dlsym(hModule, "CreateComponent");
 #endif /* _WIN32 */
@@ -256,3 +256,92 @@ void Application::Log(const char *format, ...)
 	fprintf(stderr, "%s\n", message);
 }
 
+vector<string>& Application::GetArguments(void)
+{
+	return m_Arguments;
+}
+
+string Application::GetExeDirectory(void)
+{
+	static string ExePath;
+
+	if (ExePath.length() != 0)
+		return ExePath;
+
+#ifndef _WIN32
+	char Buf[MAXPATHLEN], Cwd[MAXPATHLEN];
+	char *PathEnv, *Directory, PathTest[MAXPATHLEN], FullExePath[MAXPATHLEN];
+	bool FoundPath;
+
+	const char *argv0 = m_Arguments[0].c_str();
+
+	if (getcwd(Cwd, sizeof(Cwd)) == NULL)
+		throw exception(/*"getcwd() failed"*/);
+
+	if (argv0[0] != '/')
+		snprintf(FullExePath, sizeof(FullExePath), "%s/%s", Cwd, argv0);
+	else
+		strncpy(FullExePath, argv0, sizeof(FullExePath));
+
+	if (strchr(argv0, '/') == NULL) {
+		PathEnv = getenv("PATH");
+
+		if (PathEnv != NULL) {
+			PathEnv = strdup(PathEnv);
+
+			if (PathEnv == NULL)
+				throw exception(/*"strdup() failed"*/);
+
+			FoundPath = false;
+
+			for (Directory = strtok(PathEnv, ":"); Directory != NULL; Directory = strtok(NULL, ":")) {
+				if (snprintf(PathTest, sizeof(PathTest), "%s/%s", Directory, argv0) < 0)
+					throw exception(/*"snprintf() failed"*/);
+
+				if (access(PathTest, X_OK) == 0) {
+					strncpy(FullExePath, PathTest, sizeof(FullExePath));
+
+					FoundPath = true;
+
+					break;
+				}
+			}
+
+			free(PathEnv);
+
+			if (!FoundPath)
+				throw exception(/*"Could not determine executable path."*/);
+		}
+	}
+
+	if (realpath(FullExePath, Buf) == NULL)
+		throw exception(/*"realpath() failed"*/);
+
+	// remove filename
+	char *LastSlash = strrchr(Buf, '/');
+
+	if (LastSlash != NULL)
+		*LastSlash = '\0';
+
+	ExePath = string(Buf);
+#else /* _WIN32 */
+	char FullExePath[MAXPATHLEN];
+
+	GetModuleFileName(NULL, FullExePath, MAXPATHLEN);
+
+	PathRemoveFileSpec(FullExePath);
+
+	ExePath = string(FullExePath);
+#endif /* _WIN32 */
+
+	return ExePath;
+}
+
+void Application::AddComponentSearchDir(string componentDirectory)
+{
+#ifdef _WIN32
+	SetDllDirectory(componentDirectory.c_str());
+#else /* _WIN32 */
+	lt_dladdsearchdir(componentDirectory.c_str());
+#endif /* _WIN32 */
+}

@@ -94,7 +94,7 @@
       <AdditionalDependencies>ws2_32.lib;imagehlp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,7 +114,7 @@
       <AdditionalDependencies>ws2_32.lib;imagehlp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

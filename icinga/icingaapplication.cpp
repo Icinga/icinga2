@@ -22,6 +22,16 @@ int IcingaApplication::Main(const vector<string>& args)
 	cout << "Icinga component loader (version: " << ICINGA_VERSION << ")" << endl;
 #endif  /* _WIN32 */
 
+	if (args.size() < 2) {
+		PrintUsage(args[0]);
+		return EXIT_FAILURE;
+	}
+
+#ifndef _WIN32
+	string componentDirectory = GetExeDirectory() + "../lib/icinga";
+	AddComponentSearchDir(componentDirectory);
+#endif /* _WIN32 */
+
 	GetConfigHive()->OnObjectCreated.bind(bind_weak(&IcingaApplication::ConfigObjectCreatedHandler, shared_from_this()));
 	GetConfigHive()->OnObjectRemoved.bind(bind_weak(&IcingaApplication::ConfigObjectRemovedHandler, shared_from_this()));
 
@@ -33,7 +43,12 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	RunEventLoop();
 
-	return 0;
+	return EXIT_SUCCESS;
+}
+
+void IcingaApplication::PrintUsage(const string& programPath)
+{
+	cout << "Syntax: " << programPath << " <config-file>" << endl;
 }
 
 ConnectionManager::RefType IcingaApplication::GetConnectionManager(void)

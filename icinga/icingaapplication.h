@@ -20,6 +20,8 @@ public:
 
 	virtual int Main(const vector<string>& args);
 
+	void PrintUsage(const string& programPath);
+
 	virtual ConnectionManager::RefType GetConnectionManager(void);
 };
 

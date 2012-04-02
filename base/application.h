@@ -10,6 +10,7 @@ private:
 	bool m_ShuttingDown;
 	ConfigHive::RefType m_ConfigHive;
 	map< string, shared_ptr<Component> > m_Components;
+	vector<string> m_Arguments;
 
 public:
 	typedef shared_ptr<Application> RefType;
@@ -22,6 +23,8 @@ public:
 
 	virtual int Main(const vector<string>& args) = 0;
 
+	vector<string>& GetArguments(void);
+
 	void RunEventLoop(void);
 	bool Daemonize(void);
 	void Shutdown(void);
@@ -33,6 +36,9 @@ public:
 	shared_ptr<Component> LoadComponent(string path, ConfigObject::RefType componentConfig);
 	void UnloadComponent(string name);
 	shared_ptr<Component> GetComponent(string name);
+	void AddComponentSearchDir(string componentDirectory);
+
+	string GetExeDirectory(void);
 };
 
 template<class T>
