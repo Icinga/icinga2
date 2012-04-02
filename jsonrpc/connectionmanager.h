@@ -4,8 +4,6 @@
 namespace icinga
 {
 
-using std::map;
-
 class ConnectionManager : public Object
 {
 	list<JsonRpcServer::RefType> m_Servers;

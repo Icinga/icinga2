@@ -14,14 +14,22 @@
 #include <iostream>
 #include <list>
 #include <typeinfo>
-
+#include <map>
 #include <list>
+
+using namespace std;
+
 #ifdef _MSC_VER
 #	include <memory>
 #	include <functional>
+
+using namespace std::placeholders;
 #else
 #	include <tr1/memory>
 #	include <tr1/functional>
+
+using namespace std::tr1;
+using namespace std::tr1::placeholders;
 #endif
 
 #define PLATFORM_WINDOWS 1

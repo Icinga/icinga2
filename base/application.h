@@ -1,13 +1,7 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include <map>
-
 namespace icinga {
-
-using std::vector;
-using std::map;
-using std::string;
 
 class Component;
 

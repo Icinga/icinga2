@@ -6,9 +6,6 @@
 namespace icinga
 {
 
-using std::map;
-using std::string;
-
 class ConfigHive;
 
 class ConfigObject : public Object

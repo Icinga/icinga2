@@ -6,9 +6,6 @@
 namespace icinga
 {
 
-using std::tr1::function;
-using namespace std::tr1::placeholders;
-
 template<class TObject, class TArgs>
 int delegate_fwd(int (TObject::*function)(TArgs), weak_ptr<TObject> wref, const TArgs& args)
 {

@@ -1,10 +1,6 @@
-#include <functional>
-#include <algorithm>
 #include "i2-base.h"
 
 using namespace icinga;
-using std::bind2nd;
-using std::equal_to;
 
 list<Socket::WeakRefType> Socket::Sockets;
 

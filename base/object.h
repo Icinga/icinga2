@@ -4,12 +4,6 @@
 namespace icinga
 {
 
-using std::tr1::shared_ptr;
-using std::tr1::weak_ptr;
-using std::tr1::enable_shared_from_this;
-using std::tr1::static_pointer_cast;
-using std::tr1::function;
-
 class Object : public enable_shared_from_this<Object>
 {
 private:

@@ -4,8 +4,6 @@
 namespace icinga
 {
 
-using std::list;
-
 struct EventArgs : public Object
 {
 	typedef shared_ptr<EventArgs> RefType;

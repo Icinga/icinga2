@@ -1,7 +1,6 @@
 #include "i2-configrpccomponent.h"
 
 using namespace icinga;
-using std::tr1::dynamic_pointer_cast;
 
 IcingaApplication::RefType ConfigRpcComponent::GetIcingaApplication(void)
 {

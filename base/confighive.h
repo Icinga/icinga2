@@ -1,12 +1,8 @@
 #ifndef CONFIGHIVE_H
 #define CONFIGHIVE_H
 
-#include <map>
-
 namespace icinga
 {
-
-using std::map;
 
 struct ConfigHiveEventArgs : public EventArgs
 {

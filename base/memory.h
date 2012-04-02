@@ -4,8 +4,6 @@
 namespace icinga
 {
 
-using std::exception;
-
 class OutOfMemoryException : public exception { };
 
 class Memory

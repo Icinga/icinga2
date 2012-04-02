@@ -4,7 +4,6 @@
 #include <fstream>
 
 using namespace icinga;
-using std::ifstream;
 
 string ConfigFileComponent::GetName(void)
 {

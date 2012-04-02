@@ -9,9 +9,6 @@
 
 using namespace icinga;
 
-using std::cout;
-using std::endl;
-
 IcingaApplication::IcingaApplication(void)
 {
 	m_ConnectionManager = new_object<ConnectionManager>();

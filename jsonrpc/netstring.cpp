@@ -2,7 +2,6 @@
 #include "i2-jsonrpc.h"
 
 using namespace icinga;
-using std::sprintf;
 
 /* based on https://github.com/PeterScott/netstring-c/blob/master/netstring.c */
 cJSON *Netstring::ReadJSONFromFIFO(FIFO::RefType fifo)

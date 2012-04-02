@@ -3,9 +3,6 @@
 #include "i2-base.h"
 
 using namespace icinga;
-using std::list;
-using std::bind2nd;
-using std::equal_to;
 
 time_t Timer::NextCall;
 list<Timer::WeakRefType> Timer::Timers;
