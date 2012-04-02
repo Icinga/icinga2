@@ -23,6 +23,7 @@ public:
 
 	virtual int Main(const vector<string>& args) = 0;
 
+	void SetArguments(const vector<string>& arguments);
 	vector<string>& GetArguments(void);
 
 	void RunEventLoop(void);
@@ -52,6 +53,8 @@ int application_main(int argc, char **argv)
 
 	for (int i = 0; i < argc; i++)
 		args.push_back(string(argv[i]));
+
+	Application::Instance->SetArguments(args);
 
 	result = Application::Instance->Main(args);
 

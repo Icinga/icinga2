@@ -256,6 +256,11 @@ void Application::Log(const char *format, ...)
 	fprintf(stderr, "%s\n", message);
 }
 
+void Application::SetArguments(const vector<string>& arguments)
+{
+	m_Arguments = arguments;
+}
+
 vector<string>& Application::GetArguments(void)
 {
 	return m_Arguments;
