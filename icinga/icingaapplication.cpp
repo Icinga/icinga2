@@ -27,10 +27,8 @@ int IcingaApplication::Main(const vector<string>& args)
 		return EXIT_FAILURE;
 	}
 
-#ifndef _WIN32
-	string componentDirectory = GetExeDirectory() + "../lib/icinga";
+	string componentDirectory = GetExeDirectory() + "/../lib/icinga";
 	AddComponentSearchDir(componentDirectory);
-#endif /* _WIN32 */
 
 	GetConfigHive()->OnObjectCreated.bind(bind_weak(&IcingaApplication::ConfigObjectCreatedHandler, shared_from_this()));
 	GetConfigHive()->OnObjectRemoved.bind(bind_weak(&IcingaApplication::ConfigObjectRemovedHandler, shared_from_this()));
