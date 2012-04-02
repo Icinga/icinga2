@@ -1,5 +1,5 @@
-#ifndef I2_FIFO_H
-#define I2_FIFO_H
+#ifndef FIFO_H
+#define FIFO_H
 
 namespace icinga
 {
@@ -35,4 +35,4 @@ public:
 
 }
 
-#endif /* I2_FIFO_H */
+#endif /* FIFO_H */

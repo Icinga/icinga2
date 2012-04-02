@@ -1,5 +1,5 @@
-#ifndef I2_SOCKET_H
-#define I2_SOCKET_H
+#ifndef SOCKET_H
+#define SOCKET_H
 
 namespace icinga {
 
@@ -43,4 +43,4 @@ public:
 
 }
 
-#endif /* I2_SOCKET_H */
+#endif /* SOCKET_H */

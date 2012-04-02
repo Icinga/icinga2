@@ -1,5 +1,5 @@
-#ifndef I2_TIMER_H
-#define I2_TIMER_H
+#ifndef TIMER_H
+#define TIMER_H
 
 #include <time.h>
 
@@ -54,4 +54,4 @@ public:
 
 }
 
-#endif /* I2_TIMER_H */
+#endif /* TIMER_H */

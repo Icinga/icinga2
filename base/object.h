@@ -1,5 +1,5 @@
-#ifndef I2_OBJECT_H
-#define I2_OBJECT_H
+#ifndef OBJECT_H
+#define OBJECT_H
 
 namespace icinga
 {
@@ -60,4 +60,4 @@ Object::RefType factory(void)
 
 }
 
-#endif /* I2_OBJECT_H */
+#endif /* OBJECT_H */

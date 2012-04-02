@@ -1,5 +1,5 @@
-#ifndef I2_EVENT_H
-#define I2_EVENT_H
+#ifndef EVENT_H
+#define EVENT_H
 
 namespace icinga
 {
@@ -52,4 +52,4 @@ public:
 
 }
 
-#endif /* I2_EVENT_H */
+#endif /* EVENT_H */

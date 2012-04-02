@@ -1,5 +1,5 @@
-#ifndef I2_COMPONENT_H
-#define I2_COMPONENT_H
+#ifndef COMPONENT_H
+#define COMPONENT_H
 
 namespace icinga
 {
@@ -33,4 +33,4 @@ public:
 
 }
 
-#endif /* I2_COMPONENT_H */
+#endif /* COMPONENT_H */

@@ -1,5 +1,5 @@
-#ifndef I2_MEMORY_H
-#define I2_MEMORY_H
+#ifndef MEMORY_H
+#define MEMORY_H
 
 namespace icinga
 {
@@ -21,4 +21,4 @@ public:
 
 }
 
-#endif /* I2_MEMORY_H */
+#endif /* MEMORY_H */

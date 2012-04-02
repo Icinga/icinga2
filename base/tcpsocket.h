@@ -1,5 +1,5 @@
-#ifndef I2_TCPSOCKET_H
-#define I2_TCPSOCKET_H
+#ifndef TCPSOCKET_H
+#define TCPSOCKET_H
 
 namespace icinga
 {
@@ -18,4 +18,4 @@ public:
 
 }
 
-#endif /* I2_TCPSOCKET_H */
+#endif /* TCPSOCKET_H */

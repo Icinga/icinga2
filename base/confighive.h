@@ -1,5 +1,5 @@
-#ifndef I2_CONFIGHIVE_H
-#define I2_CONFIGHIVE_H
+#ifndef CONFIGHIVE_H
+#define CONFIGHIVE_H
 
 #include <map>
 
@@ -39,4 +39,4 @@ public:
 
 }
 
-#endif /* I2_CONFIGHIVE_H */
+#endif /* CONFIGHIVE_H */

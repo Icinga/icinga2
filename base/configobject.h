@@ -1,5 +1,5 @@
-#ifndef I2_CONFIGOBJECT_H
-#define I2_CONFIGOBJECT_H
+#ifndef CONFIGOBJECT_H
+#define CONFIGOBJECT_H
 
 #include <map>
 
@@ -46,4 +46,4 @@ public:
 
 }
 
-#endif /* I2_CONFIGOBJECT_H */
+#endif /* CONFIGOBJECT_H */

@@ -1,5 +1,5 @@
-#ifndef I2_JSONRPC_H
-#define I2_JSONRPC_H
+#ifndef I2JSONRPC_H
+#define I2JSONRPC_H
 
 #include <map>
 #include <i2-base.h>
@@ -11,4 +11,4 @@
 #include "jsonrpcserver.h"
 #include "connectionmanager.h"
 
-#endif /* I2_JSONRPC_H */
+#endif /* I2JSONRPC_H */

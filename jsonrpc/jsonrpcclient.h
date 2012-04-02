@@ -1,5 +1,5 @@
-#ifndef I2_JSONRPCCLIENT_H
-#define I2_JSONRPCCLIENT_H
+#ifndef JSONRPCCLIENT_H
+#define JSONRPCCLIENT_H
 
 namespace icinga
 {
@@ -30,4 +30,4 @@ public:
 
 }
 
-#endif /* I2_JSONRPCCLIENT_H */
+#endif /* JSONRPCCLIENT_H */

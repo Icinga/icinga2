@@ -1,5 +1,5 @@
-#ifndef I2_UNIX_H
-#define I2_UNIX_H
+#ifndef UNIX_H
+#define UNIX_H
 
 #include <ltdl.h>
 #include <execinfo.h>
@@ -62,4 +62,4 @@ inline void *GetProcAddress(HMODULE module, const char *function)
 	return lt_dlsym(module, function);
 }
 
-#endif /* I2_UNIX_H */
+#endif /* UNIX_H */

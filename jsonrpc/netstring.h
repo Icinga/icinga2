@@ -1,5 +1,5 @@
-#ifndef I2_NETSTRING_H
-#define I2_NETSTRING_H
+#ifndef NETSTRING_H
+#define NETSTRING_H
 
 namespace icinga
 {
@@ -20,4 +20,4 @@ public:
 
 }
 
-#endif /* I2_NETSTRING_H */
+#endif /* NETSTRING_H */

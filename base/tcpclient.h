@@ -1,5 +1,5 @@
-#ifndef I2_TCPCLIENT_H
-#define I2_TCPCLIENT_H
+#ifndef TCPCLIENT_H
+#define TCPCLIENT_H
 
 namespace icinga
 {
@@ -34,4 +34,4 @@ public:
 
 }
 
-#endif /* I2_TCPCLIENT_H */
+#endif /* TCPCLIENT_H */

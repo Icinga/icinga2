@@ -1,5 +1,5 @@
-#ifndef I2_BASE_H
-#define I2_BASE_H
+#ifndef I2BASE_H
+#define I2BASE_H
 
 #include <cstdlib>
 #include <cstdarg>
@@ -53,4 +53,4 @@
 #include "application.h"
 #include "component.h"
 
-#endif /* I2_BASE_H */
+#endif /* I2BASE_H */

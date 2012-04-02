@@ -1,5 +1,5 @@
-#ifndef I2_MUTEX_H
-#define I2_MUTEX_H
+#ifndef MUTEX_H
+#define MUTEX_H
 
 namespace icinga
 {
@@ -30,4 +30,4 @@ public:
 
 }
 
-#endif /* I2_MUTEX_H */
+#endif /* MUTEX_H */

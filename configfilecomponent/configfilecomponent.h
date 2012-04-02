@@ -1,5 +1,5 @@
-#ifndef I2_CONFIGFILECOMPONENT_H
-#define I2_CONFIGFILECOMPONENT_H
+#ifndef CONFIGFILECOMPONENT_H
+#define CONFIGFILECOMPONENT_H
 
 namespace icinga
 {
@@ -17,4 +17,4 @@ public:
 
 }
 
-#endif /* I2_CONFIGFILECOMPONENT_H */
+#endif /* CONFIGFILECOMPONENT_H */

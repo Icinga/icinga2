@@ -1,5 +1,5 @@
-#ifndef I2_CONDVAR_H
-#define I2_CONDVAR_H
+#ifndef CONDVAR_H
+#define CONDVAR_H
 
 namespace icinga
 {
@@ -30,4 +30,4 @@ public:
 
 }
 
-#endif /* I2_CONDVAR_H */
+#endif /* CONDVAR_H */

@@ -1,5 +1,5 @@
-#ifndef I2_THREAD_H
-#define I2_THREAD_H
+#ifndef THREAD_H
+#define THREAD_H
 
 namespace icinga
 {
@@ -24,4 +24,4 @@ public:
 
 }
 
-#endif /* I2_THREAD_H */
+#endif /* THREAD_H */

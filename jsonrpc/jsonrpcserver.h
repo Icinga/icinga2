@@ -1,5 +1,5 @@
-#ifndef I2_JSONRPCSERVER_H
-#define I2_JSONRPCSERVER_H
+#ifndef JSONRPCSERVER_H
+#define JSONRPCSERVER_H
 
 namespace icinga
 {
@@ -15,4 +15,4 @@ public:
 
 }
 
-#endif /* I2_JSONRPCSERVER_H */
+#endif /* JSONRPCSERVER_H */

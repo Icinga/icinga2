@@ -1,5 +1,5 @@
-#ifndef I2_APPLICATION_H
-#define I2_APPLICATION_H
+#ifndef APPLICATION_H
+#define APPLICATION_H
 
 #include <map>
 
@@ -42,7 +42,7 @@ public:
 };
 
 template<class T>
-int i2_main(int argc, char **argv)
+int application_main(int argc, char **argv)
 {
 	int result;
 
@@ -64,9 +64,9 @@ int i2_main(int argc, char **argv)
 
 #define SET_START_CLASS(klass)				\
 	int main(int argc, char **argv) {		\
-		return i2_main<klass>(argc, argv);	\
+		return application_main<klass>(argc, argv);	\
 	}
 
 }
 
-#endif /* I2_APPLICATION_H */
+#endif /* APPLICATION_H */

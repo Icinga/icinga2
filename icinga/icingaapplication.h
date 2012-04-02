@@ -1,5 +1,5 @@
-#ifndef I2_ICINGAAPPLICATION_H
-#define I2_ICINGAAPPLICATION_H
+#ifndef ICINGAAPPLICATION_H
+#define ICINGAAPPLICATION_H
 
 namespace icinga
 {
@@ -25,4 +25,4 @@ public:
 
 }
 
-#endif /* I2_ICINGAAPPLICATION_H */
+#endif /* ICINGAAPPLICATION_H */

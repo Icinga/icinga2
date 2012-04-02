@@ -1,5 +1,5 @@
-#ifndef I2_DELEGATE_H
-#define I2_DELEGATE_H
+#ifndef DELEGATE_H
+#define DELEGATE_H
 
 #include <list>
 
@@ -42,4 +42,4 @@ function<int (TArgs)> bind_weak(int (TObject::*function)(TArgs), shared_ptr<Obje
 
 }
 
-#endif /* I2_DELEGATE_H */
+#endif /* DELEGATE_H */

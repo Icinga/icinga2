@@ -31,8 +31,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	ConfigObject::RefType fileComponentConfig = new_object<ConfigObject>();
 	fileComponentConfig->SetName("configfilecomponent");
 	fileComponentConfig->SetType("component");
-	fileComponentConfig->SetProperty("path", "libconfigfilecomponent.la");
-	fileComponentConfig->SetProperty("filename", "icinga.conf");
+	fileComponentConfig->SetProperty("configFilename", "icinga.conf");
 	GetConfigHive()->AddObject(fileComponentConfig);
 
 	RunEventLoop();
@@ -50,8 +49,15 @@ int IcingaApplication::ConfigObjectCreatedHandler(ConfigHiveEventArgs::RefType e
 	if (ea->Object->GetType() == "component") {
 		string path;
 		
-		if (!ea->Object->GetProperty("path", &path))
-			throw exception(/*"Missing path property"*/);
+		if (!ea->Object->GetProperty("path", &path)) {
+#ifdef _WIN32
+			path = ea->Object->GetName() + ".dll";
+#else /* _WIN32 */
+			path = "lib" + ea->Object->GetName() + ".la";
+#endif /* _WIN32 */
+
+			// TODO: try to figure out where the component is located */
+		}
 
 		LoadComponent(path, ea->Object);
 	}

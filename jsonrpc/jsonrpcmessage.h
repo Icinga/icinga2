@@ -1,5 +1,5 @@
-#ifndef I2_JSONRPCMESSAGE_H
-#define I2_JSONRPCMESSAGE_H
+#ifndef JSONRPCMESSAGE_H
+#define JSONRPCMESSAGE_H
 
 namespace icinga
 {
@@ -53,4 +53,4 @@ public:
 
 }
 
-#endif /* I2_JSONRPCMESSAGE_H */
+#endif /* JSONRPCMESSAGE_H */

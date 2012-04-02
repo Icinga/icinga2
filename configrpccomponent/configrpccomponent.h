@@ -1,5 +1,5 @@
-#ifndef I2_CONFIGRPCCOMPONENT_H
-#define I2_CONFIGRPCCOMPONENT_H
+#ifndef CONFIGRPCCOMPONENT_H
+#define CONFIGRPCCOMPONENT_H
 
 namespace icinga
 {
@@ -29,4 +29,4 @@ public:
 
 }
 
-#endif /* I2_CONFIGRPCCOMPONENT_H */
+#endif /* CONFIGRPCCOMPONENT_H */

@@ -1,5 +1,5 @@
-#ifndef I2_CONNECTIONMANAGER_H
-#define I2_CONNECTIONMANAGER_H
+#ifndef CONNECTIONMANAGER_H
+#define CONNECTIONMANAGER_H
 
 namespace icinga
 {
@@ -34,4 +34,4 @@ public:
 
 }
 
-#endif /* I2_CONNECTIONMANAGER_H */
+#endif /* CONNECTIONMANAGER_H */

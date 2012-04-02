@@ -1,5 +1,5 @@
-#ifndef I2_TCPSERVER_H
-#define I2_TCPSERVER_H
+#ifndef TCPSERVER_H
+#define TCPSERVER_H
 
 namespace icinga
 {
@@ -39,4 +39,4 @@ public:
 
 }
 
-#endif /* I2_TCPSERVER_H */
+#endif /* TCPSERVER_H */
