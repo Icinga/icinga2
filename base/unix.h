@@ -1,6 +1,7 @@
 #ifndef UNIX_H
 #define UNIX_H
 
+#include <limits.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -18,10 +19,6 @@ typedef int SOCKET;
 void closesocket(SOCKET fd);
 
 #define ioctlsocket ioctl
-
-#ifndef PATH_MAX
-#	define PATH_MAX 1024
-#endif /* PATH_MAX */
 
 #define MAXPATHLEN PATH_MAX
 
