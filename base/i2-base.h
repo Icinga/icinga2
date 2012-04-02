@@ -36,10 +36,10 @@ using namespace std::tr1::placeholders;
 #define PLATFORM_UNIX 2
 
 #ifdef _WIN32
-#	define I2_PLATFORM Platform_Windows
+#	define I2_PLATFORM PLATFORM_WINDOWS
 #	include "win32.h"
 #else
-#	define I2_PLATFORM Platform_Unix
+#	define I2_PLATFORM PLATFORM_UNIX
 #	include "unix.h"
 #endif
 

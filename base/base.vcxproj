@@ -26,6 +26,7 @@
     <ClCompile Include="tcpsocket.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="timer.cpp" />
+    <ClCompile Include="unix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h" />

@@ -38,5 +38,7 @@ libbase_a_SOURCES =  \
 	thread.h \
 	timer.cpp \
 	timer.h \
+	unix.cpp \
 	unix.h \
+	win32.cpp \
 	win32.h
