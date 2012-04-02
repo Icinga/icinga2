@@ -4,7 +4,7 @@ using namespace icinga;
 
 IcingaApplication::RefType ConfigRpcComponent::GetIcingaApplication(void)
 {
-	return dynamic_pointer_cast<IcingaApplication>(GetApplication());
+	return static_pointer_cast<IcingaApplication>(GetApplication());
 }
 
 string ConfigRpcComponent::GetName(void)
@@ -15,9 +15,6 @@ string ConfigRpcComponent::GetName(void)
 void ConfigRpcComponent::Start(void)
 {
 	IcingaApplication::RefType icingaApp = GetIcingaApplication();
-
-	if (icingaApp.get() == NULL)
-		throw exception(/*"Component loaded by incompatible application."*/);
 
 	ConnectionManager::RefType connectionManager = icingaApp->GetConnectionManager();
 	ConfigHive::RefType configHive = icingaApp->GetConfigHive();

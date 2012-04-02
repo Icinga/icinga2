@@ -44,6 +44,7 @@ libbase_la_SOURCES =  \
 	win32.h
 
 libbase_la_LIBADD=$(LIBLTDL)
+libbase_la_LDFLAGS=-pthread
 
 AM_CFLAGS=$(LTDLINCL)
 AM_CXXFLAGS=$(LTDLINCL)
