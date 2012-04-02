@@ -36,7 +36,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	ConfigObject::RefType fileComponentConfig = new_object<ConfigObject>();
 	fileComponentConfig->SetName("configfilecomponent");
 	fileComponentConfig->SetType("component");
-	fileComponentConfig->SetProperty("configFilename", "icinga.conf");
+	fileComponentConfig->SetProperty("configFilename", args[1]);
 	GetConfigHive()->AddObject(fileComponentConfig);
 
 	RunEventLoop();
