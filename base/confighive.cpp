@@ -2,13 +2,13 @@
 
 using namespace icinga;
 
-void ConfigHive::AddObject(ConfigObject::RefType object)
+void ConfigHive::AddObject(ConfigObject::Ptr object)
 {
 	string type = object->GetType();
 	TypeIterator ti = Objects.find(type);
 
 	if (ti == Objects.end()) {
-		Objects[type] = map<string, ConfigObject::RefType>();
+		Objects[type] = map<string, ConfigObject::Ptr>();
 		ti = Objects.find(type);
 	}
 
@@ -17,13 +17,13 @@ void ConfigHive::AddObject(ConfigObject::RefType object)
 	string name = object->GetName();
 	ti->second[name] = object;
 
-	ConfigHiveEventArgs::RefType ea = new_object<ConfigHiveEventArgs>();
+	ConfigHiveEventArgs::Ptr ea = new_object<ConfigHiveEventArgs>();
 	ea->Source = shared_from_this();
 	ea->Object = object;
 	OnObjectCreated(ea);
 }
 
-void ConfigHive::RemoveObject(ConfigObject::RefType object)
+void ConfigHive::RemoveObject(ConfigObject::Ptr object)
 {
 	string type = object->GetType();
 	TypeIterator ti = Objects.find(type);
@@ -33,23 +33,23 @@ void ConfigHive::RemoveObject(ConfigObject::RefType object)
 
 	ti->second.erase(object->GetName());
 
-	ConfigHiveEventArgs::RefType ea = new_object<ConfigHiveEventArgs>();
+	ConfigHiveEventArgs::Ptr ea = new_object<ConfigHiveEventArgs>();
 	ea->Source = shared_from_this();
 	ea->Object = object;
 	OnObjectRemoved(ea);
 }
 
-ConfigObject::RefType ConfigHive::GetObject(const string& type, const string& name)
+ConfigObject::Ptr ConfigHive::GetObject(const string& type, const string& name)
 {
 	ConfigHive::TypeIterator ti = Objects.find(type);
 
 	if (ti == Objects.end())
-		return ConfigObject::RefType();
+		return ConfigObject::Ptr();
 
 	ConfigHive::ObjectIterator oi = ti->second.find(name);
 
 	if (oi == ti->second.end())
-		return ConfigObject::RefType();
+		return ConfigObject::Ptr();
 
 	return oi->second;
 }

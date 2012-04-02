@@ -6,7 +6,7 @@
 
 using namespace icinga;
 
-Application::RefType Application::Instance;
+Application::Ptr Application::Instance;
 
 Application::Application(void)
 {
@@ -26,7 +26,7 @@ Application::~Application(void)
 	Timer::StopAllTimers();
 	Socket::CloseAllSockets();
 
-	for (map<string, Component::RefType>::iterator i = m_Components.begin(); i != m_Components.end(); i++) {
+	for (map<string, Component::Ptr>::iterator i = m_Components.begin(); i != m_Components.end(); i++) {
 		i->second->Stop();
 	}
 
@@ -47,8 +47,8 @@ void Application::RunEventLoop(void)
 		FD_ZERO(&writefds);
 		FD_ZERO(&exceptfds);
 
-		for (list<Socket::WeakRefType>::iterator i = Socket::Sockets.begin(); i != Socket::Sockets.end(); i++) {
-			Socket::RefType socket = i->lock();
+		for (list<Socket::WeakPtr>::iterator i = Socket::Sockets.begin(); i != Socket::Sockets.end(); i++) {
+			Socket::Ptr socket = i->lock();
 
 			if (socket == NULL)
 				continue;
@@ -94,15 +94,15 @@ void Application::RunEventLoop(void)
 		else if (ready == 0)
 			continue;
 
-		EventArgs::RefType ea = new_object<EventArgs>();
+		EventArgs::Ptr ea = new_object<EventArgs>();
 		ea->Source = shared_from_this();
 
-		list<Socket::WeakRefType>::iterator prev, i;
+		list<Socket::WeakPtr>::iterator prev, i;
 		for (i = Socket::Sockets.begin(); i != Socket::Sockets.end(); ) {
 			prev = i;
 			i++;
 
-			Socket::RefType socket = prev->lock();
+			Socket::Ptr socket = prev->lock();
 
 			if (socket == NULL)
 				continue;
@@ -170,14 +170,14 @@ void Application::Shutdown(void)
 	m_ShuttingDown = true;
 }
 
-ConfigHive::RefType Application::GetConfigHive(void)
+ConfigHive::Ptr Application::GetConfigHive(void)
 {
 	return m_ConfigHive;
 }
 
-Component::RefType Application::LoadComponent(string path, ConfigObject::RefType componentConfig)
+Component::Ptr Application::LoadComponent(string path, ConfigObject::Ptr componentConfig)
 {
-	Component::RefType component;
+	Component::Ptr component;
 	Component *(*pCreateComponent)();
 
 	Log("Loading component '%s'", path.c_str());
@@ -207,7 +207,7 @@ Component::RefType Application::LoadComponent(string path, ConfigObject::RefType
 	if (pCreateComponent == NULL)
 		throw exception(/*"Module does not contain CreateComponent function"*/);
 
-	component = Component::RefType(pCreateComponent());
+	component = Component::Ptr(pCreateComponent());
 	component->SetApplication(static_pointer_cast<Application>(shared_from_this()));
 	component->SetConfig(componentConfig);
 	m_Components[component->GetName()] = component;
@@ -217,26 +217,26 @@ Component::RefType Application::LoadComponent(string path, ConfigObject::RefType
 	return component;
 }
 
-Component::RefType Application::GetComponent(string name)
+Component::Ptr Application::GetComponent(string name)
 {
-	map<string, Component::RefType>::iterator ci = m_Components.find(name);
+	map<string, Component::Ptr>::iterator ci = m_Components.find(name);
 
 	if (ci == m_Components.end())
-		return Component::RefType();
+		return Component::Ptr();
 
 	return ci->second;
 }
 
 void Application::UnloadComponent(string name)
 {
-	map<string, Component::RefType>::iterator ci = m_Components.find(name);
+	map<string, Component::Ptr>::iterator ci = m_Components.find(name);
 
 	if (ci == m_Components.end())
 		return;
 
 	Log("Unloading component '%s'", name.c_str());
 
-	Component::RefType component = ci->second;
+	Component::Ptr component = ci->second;
 	component->Stop();
 	m_Components.erase(ci);
 

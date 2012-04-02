@@ -4,7 +4,7 @@
 using namespace icinga;
 
 /* based on https://github.com/PeterScott/netstring-c/blob/master/netstring.c */
-cJSON *Netstring::ReadJSONFromFIFO(FIFO::RefType fifo)
+cJSON *Netstring::ReadJSONFromFIFO(FIFO::Ptr fifo)
 {
 	size_t buffer_length = fifo->GetSize();
 	char *buffer = (char *)fifo->GetReadBuffer();
@@ -56,7 +56,7 @@ cJSON *Netstring::ReadJSONFromFIFO(FIFO::RefType fifo)
 	return object;
 }
 
-void Netstring::WriteJSONToFIFO(FIFO::RefType fifo, cJSON *object)
+void Netstring::WriteJSONToFIFO(FIFO::Ptr fifo, cJSON *object)
 {
 	char *json;
 	size_t len;

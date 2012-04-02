@@ -6,28 +6,28 @@ namespace icinga
 
 class ConnectionManager : public Object
 {
-	list<JsonRpcServer::RefType> m_Servers;
-	list<JsonRpcClient::RefType> m_Clients;
-	map< string, event<NewMessageEventArgs::RefType> > m_Methods;
+	list<JsonRpcServer::Ptr> m_Servers;
+	list<JsonRpcClient::Ptr> m_Clients;
+	map< string, event<NewMessageEventArgs::Ptr> > m_Methods;
 
-	int NewClientHandler(NewClientEventArgs::RefType ncea);
-	int CloseClientHandler(EventArgs::RefType ea);
-	int NewMessageHandler(NewMessageEventArgs::RefType nmea);
+	int NewClientHandler(NewClientEventArgs::Ptr ncea);
+	int CloseClientHandler(EventArgs::Ptr ea);
+	int NewMessageHandler(NewMessageEventArgs::Ptr nmea);
 
 public:
-	typedef shared_ptr<ConnectionManager> RefType;
-	typedef weak_ptr<ConnectionManager> WeakRefType;
+	typedef shared_ptr<ConnectionManager> Ptr;
+	typedef weak_ptr<ConnectionManager> WeakPtr;
 
-	void RegisterServer(JsonRpcServer::RefType server);
-	void UnregisterServer(JsonRpcServer::RefType server);
+	void RegisterServer(JsonRpcServer::Ptr server);
+	void UnregisterServer(JsonRpcServer::Ptr server);
 
-	void RegisterClient(JsonRpcClient::RefType client);
-	void UnregisterClient(JsonRpcClient::RefType client);
+	void RegisterClient(JsonRpcClient::Ptr client);
+	void UnregisterClient(JsonRpcClient::Ptr client);
 
-	void RegisterMethod(string method, function<int (NewMessageEventArgs::RefType)> function);
-	void UnregisterMethod(string method, function<int (NewMessageEventArgs::RefType)> function);
+	void RegisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> function);
+	void UnregisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> function);
 
-	void SendMessage(JsonRpcMessage::RefType message);
+	void SendMessage(JsonRpcMessage::Ptr message);
 };
 
 }

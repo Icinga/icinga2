@@ -5,7 +5,7 @@
 using namespace icinga;
 
 time_t Timer::NextCall;
-list<Timer::WeakRefType> Timer::Timers;
+list<Timer::WeakPtr> Timer::Timers;
 
 Timer::Timer(void)
 {
@@ -25,8 +25,8 @@ void Timer::RescheduleTimers(void)
 	/* Make sure we wake up at least once every 30 seconds */
 	NextCall = time(NULL) + 30;
 
-	for (list<Timer::WeakRefType>::iterator i = Timers.begin(); i != Timers.end(); i++) {
-		Timer::RefType timer = i->lock();
+	for (list<Timer::WeakPtr>::iterator i = Timers.begin(); i != Timers.end(); i++) {
+		Timer::Ptr timer = i->lock();
 
 		if (timer == NULL)
 			continue;
@@ -42,8 +42,8 @@ void Timer::CallExpiredTimers(void)
 
 	time(&now);
 
-	for (list<Timer::WeakRefType>::iterator i = Timers.begin(); i != Timers.end(); ) {
-		Timer::RefType timer = Timer::RefType(*i);
+	for (list<Timer::WeakPtr>::iterator i = Timers.begin(); i != Timers.end(); ) {
+		Timer::Ptr timer = Timer::Ptr(*i);
 		i++;
 
 		if (timer == NULL)
@@ -58,8 +58,8 @@ void Timer::CallExpiredTimers(void)
 
 void Timer::StopAllTimers(void)
 {
-	for (list<Timer::WeakRefType>::iterator i = Timers.begin(); i != Timers.end(); ) {
-		Timer::RefType timer = i->lock();
+	for (list<Timer::WeakPtr>::iterator i = Timers.begin(); i != Timers.end(); ) {
+		Timer::Ptr timer = i->lock();
 
 		i++;
 
@@ -74,7 +74,7 @@ void Timer::StopAllTimers(void)
  * the timer that originally invoked the delegate */
 void Timer::Call(void)
 {
-	TimerEventArgs::RefType ea = new_object<TimerEventArgs>();
+	TimerEventArgs::Ptr ea = new_object<TimerEventArgs>();
 	ea->Source = shared_from_this();
 	ea->UserArgs = m_UserArgs;
 	OnTimerExpired(ea);

@@ -21,7 +21,7 @@ void TCPServer::Start(void)
 {
 	TCPSocket::Start();
 
-	function<int (EventArgs::RefType)> dr = bind_weak(&TCPServer::ReadableEventHandler, shared_from_this());
+	function<int (EventArgs::Ptr)> dr = bind_weak(&TCPServer::ReadableEventHandler, shared_from_this());
 	OnReadable.bind(dr);
 }
 
@@ -32,7 +32,7 @@ void TCPServer::Listen(void)
 	Start();
 }
 
-int TCPServer::ReadableEventHandler(EventArgs::RefType ea)
+int TCPServer::ReadableEventHandler(EventArgs::Ptr ea)
 {
 	int fd;
 	sockaddr_in addr;
@@ -40,7 +40,7 @@ int TCPServer::ReadableEventHandler(EventArgs::RefType ea)
 
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
-	NewClientEventArgs::RefType nea = new_object<NewClientEventArgs>();
+	NewClientEventArgs::Ptr nea = new_object<NewClientEventArgs>();
 	nea->Source = shared_from_this();
 	nea->Client = static_pointer_cast<TCPSocket>(m_ClientFactory());
 	nea->Client->SetFD(fd);

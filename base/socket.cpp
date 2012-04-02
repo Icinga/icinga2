@@ -2,7 +2,7 @@
 
 using namespace icinga;
 
-list<Socket::WeakRefType> Socket::Sockets;
+list<Socket::WeakPtr> Socket::Sockets;
 
 Socket::Socket(void)
 {
@@ -52,7 +52,7 @@ void Socket::Close(bool from_dtor)
 
 		/* nobody can possibly have a valid event subscription when the destructor has been called */
 		if (!from_dtor) {
-			EventArgs::RefType ea = new_object<EventArgs>();
+			EventArgs::Ptr ea = new_object<EventArgs>();
 			ea->Source = shared_from_this();
 			OnClosed(ea);
 		}
@@ -64,8 +64,8 @@ void Socket::Close(bool from_dtor)
 
 void Socket::CloseAllSockets(void)
 {
-	for (list<Socket::WeakRefType>::iterator i = Sockets.begin(); i != Sockets.end(); ) {
-		Socket::RefType socket = i->lock();
+	for (list<Socket::WeakPtr>::iterator i = Sockets.begin(); i != Sockets.end(); ) {
+		Socket::Ptr socket = i->lock();
 
 		i++;
 

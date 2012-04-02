@@ -7,15 +7,15 @@ namespace icinga
 class TCPClient : public TCPSocket
 {
 private:
-	FIFO::RefType m_SendQueue;
-	FIFO::RefType m_RecvQueue;
+	FIFO::Ptr m_SendQueue;
+	FIFO::Ptr m_RecvQueue;
 
-	int ReadableEventHandler(EventArgs::RefType ea);
-	int WritableEventHandler(EventArgs::RefType ea);
+	int ReadableEventHandler(EventArgs::Ptr ea);
+	int WritableEventHandler(EventArgs::Ptr ea);
 
 public:
-	typedef shared_ptr<TCPClient> RefType;
-	typedef weak_ptr<TCPClient> WeakRefType;
+	typedef shared_ptr<TCPClient> Ptr;
+	typedef weak_ptr<TCPClient> WeakPtr;
 
 	TCPClient(void);
 
@@ -23,13 +23,13 @@ public:
 
 	void Connect(const char *hostname, unsigned short port);
 
-	FIFO::RefType GetSendQueue(void);
-	FIFO::RefType GetRecvQueue(void);
+	FIFO::Ptr GetSendQueue(void);
+	FIFO::Ptr GetRecvQueue(void);
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	event<EventArgs::RefType> OnDataAvailable;
+	event<EventArgs::Ptr> OnDataAvailable;
 };
 
 }

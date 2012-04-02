@@ -6,10 +6,10 @@ namespace icinga
 
 struct EventArgs : public Object
 {
-	typedef shared_ptr<EventArgs> RefType;
-	typedef weak_ptr<EventArgs> WeakRefType;
+	typedef shared_ptr<EventArgs> Ptr;
+	typedef weak_ptr<EventArgs> WeakPtr;
 
-	Object::RefType Source;
+	Object::Ptr Source;
 };
 
 template<class TArgs>

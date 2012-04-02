@@ -8,15 +8,15 @@ class Component;
 class Application : public Object {
 private:
 	bool m_ShuttingDown;
-	ConfigHive::RefType m_ConfigHive;
+	ConfigHive::Ptr m_ConfigHive;
 	map< string, shared_ptr<Component> > m_Components;
 	vector<string> m_Arguments;
 
 public:
-	typedef shared_ptr<Application> RefType;
-	typedef weak_ptr<Application> WeakRefType;
+	typedef shared_ptr<Application> Ptr;
+	typedef weak_ptr<Application> WeakPtr;
 
-	static Application::RefType Instance;
+	static Application::Ptr Instance;
 
 	Application(void);
 	~Application(void);
@@ -32,9 +32,9 @@ public:
 
 	void Log(const char *format, ...);
 
-	ConfigHive::RefType GetConfigHive(void);
+	ConfigHive::Ptr GetConfigHive(void);
 
-	shared_ptr<Component> LoadComponent(string path, ConfigObject::RefType componentConfig);
+	shared_ptr<Component> LoadComponent(string path, ConfigObject::Ptr componentConfig);
 	void UnloadComponent(string name);
 	shared_ptr<Component> GetComponent(string name);
 	void AddComponentSearchDir(string componentDirectory);

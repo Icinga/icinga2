@@ -7,8 +7,8 @@ namespace icinga
 class ConfigFileComponent : public Component
 {
 public:
-	typedef shared_ptr<ConfigFileComponent> RefType;
-	typedef weak_ptr<ConfigFileComponent> WeakRefType;
+	typedef shared_ptr<ConfigFileComponent> Ptr;
+	typedef weak_ptr<ConfigFileComponent> WeakPtr;
 
 	virtual string GetName(void);
 	virtual void Start(void);

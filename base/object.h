@@ -13,8 +13,8 @@ protected:
 	Object(void);
 
 public:
-	typedef shared_ptr<Object> RefType;
-	typedef weak_ptr<Object> WeakRefType;
+	typedef shared_ptr<Object> Ptr;
+	typedef weak_ptr<Object> WeakPtr;
 
 	static unsigned long ActiveObjects;
 
@@ -44,10 +44,10 @@ shared_ptr<T> new_object(void)
 	return shared_ptr<T>(instance);
 }
 
-typedef function<Object::RefType ()> factory_function;
+typedef function<Object::Ptr ()> factory_function;
 
 template<class T>
-Object::RefType factory(void)
+Object::Ptr factory(void)
 {
 	return new_object<T>();
 }

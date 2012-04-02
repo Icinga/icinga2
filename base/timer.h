@@ -7,16 +7,16 @@ namespace icinga {
 
 struct TimerEventArgs : public EventArgs
 {
-	typedef shared_ptr<TimerEventArgs> RefType;
-	typedef weak_ptr<TimerEventArgs> WeakRefType;
+	typedef shared_ptr<TimerEventArgs> Ptr;
+	typedef weak_ptr<TimerEventArgs> WeakPtr;
 
-	EventArgs::RefType UserArgs;
+	EventArgs::Ptr UserArgs;
 };
 
 class Timer : public Object
 {
 private:
-	EventArgs::RefType m_UserArgs;
+	EventArgs::Ptr m_UserArgs;
 	unsigned int m_Interval;
 	time_t m_Next;
 
@@ -27,18 +27,18 @@ private:
 	void Call(void);
 
 public:
-	typedef shared_ptr<Timer> RefType;
-	typedef weak_ptr<Timer> WeakRefType;
+	typedef shared_ptr<Timer> Ptr;
+	typedef weak_ptr<Timer> WeakPtr;
 
-	static list<Timer::WeakRefType> Timers;
+	static list<Timer::WeakPtr> Timers;
 
 	Timer(void);
 
 	void SetInterval(unsigned int interval);
 	unsigned int GetInterval(void) const;
 
-	void SetUserArgs(const EventArgs::RefType& userArgs);
-	EventArgs::RefType GetUserArgs(void) const;
+	void SetUserArgs(const EventArgs::Ptr& userArgs);
+	EventArgs::Ptr GetUserArgs(void) const;
 
 	static time_t GetNextCall(void);
 	static void CallExpiredTimers(void);
@@ -49,7 +49,7 @@ public:
 
 	void Reschedule(time_t next);
 
-	event<TimerEventArgs::RefType> OnTimerExpired;
+	event<TimerEventArgs::Ptr> OnTimerExpired;
 };
 
 }

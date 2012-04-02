@@ -11,11 +11,11 @@ private:
 	void *m_Data;
 
 public:
-	typedef shared_ptr<Netstring> RefType;
-	typedef weak_ptr<Netstring> WeakRefType;
+	typedef shared_ptr<Netstring> Ptr;
+	typedef weak_ptr<Netstring> WeakPtr;
 
-	static cJSON *ReadJSONFromFIFO(FIFO::RefType fifo);
-	static void WriteJSONToFIFO(FIFO::RefType fifo, cJSON *object);
+	static cJSON *ReadJSONFromFIFO(FIFO::Ptr fifo);
+	static void WriteJSONToFIFO(FIFO::Ptr fifo, cJSON *object);
 };
 
 }

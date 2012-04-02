@@ -2,22 +2,22 @@
 
 using namespace icinga;
 
-void Component::SetApplication(const Application::WeakRefType& application)
+void Component::SetApplication(const Application::WeakPtr& application)
 {
 	m_Application = application;
 }
 
-Application::RefType Component::GetApplication(void)
+Application::Ptr Component::GetApplication(void)
 {
 	return m_Application.lock();
 }
 
-void Component::SetConfig(ConfigObject::RefType componentConfig)
+void Component::SetConfig(ConfigObject::Ptr componentConfig)
 {
 	m_Config = componentConfig;
 }
 
-ConfigObject::RefType Component::GetConfig(void)
+ConfigObject::Ptr Component::GetConfig(void)
 {
 	return m_Config;
 }

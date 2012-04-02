@@ -19,8 +19,8 @@ private:
 	cJSON *GetFieldObject(const char *field);
 
 public:
-	typedef shared_ptr<JsonRpcMessage> RefType;
-	typedef weak_ptr<JsonRpcMessage> WeakRefType;
+	typedef shared_ptr<JsonRpcMessage> Ptr;
+	typedef weak_ptr<JsonRpcMessage> WeakPtr;
 
 	JsonRpcMessage(void);
 	~JsonRpcMessage(void);

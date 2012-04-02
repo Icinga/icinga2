@@ -17,8 +17,8 @@ private:
 	string m_Type;
 
 public:
-	typedef shared_ptr<ConfigObject> RefType;
-	typedef weak_ptr<ConfigObject> WeakRefType;
+	typedef shared_ptr<ConfigObject> Ptr;
+	typedef weak_ptr<ConfigObject> WeakPtr;
 
 	typedef map<string, string>::iterator ParameterIterator;
 	map<string, string> Properties;

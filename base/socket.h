@@ -14,10 +14,10 @@ protected:
 	void Close(bool from_dtor);
 
 public:
-	typedef shared_ptr<Socket> RefType;
-	typedef weak_ptr<Socket> WeakRefType;
+	typedef shared_ptr<Socket> Ptr;
+	typedef weak_ptr<Socket> WeakPtr;
 
-	static list<Socket::WeakRefType> Sockets;
+	static list<Socket::WeakPtr> Sockets;
 
 	~Socket(void);
 
@@ -26,11 +26,11 @@ public:
 
 	static void CloseAllSockets(void);
 
-	event<EventArgs::RefType> OnReadable;
-	event<EventArgs::RefType> OnWritable;
-	event<EventArgs::RefType> OnException;
+	event<EventArgs::Ptr> OnReadable;
+	event<EventArgs::Ptr> OnWritable;
+	event<EventArgs::Ptr> OnException;
 
-	event<EventArgs::RefType> OnClosed;
+	event<EventArgs::Ptr> OnClosed;
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;

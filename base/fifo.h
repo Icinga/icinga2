@@ -18,8 +18,8 @@ private:
 public:
 	static const size_t BlockSize = 16 * 1024;
 
-	typedef shared_ptr<FIFO> RefType;
-	typedef weak_ptr<FIFO> WeakRefType;
+	typedef shared_ptr<FIFO> Ptr;
+	typedef weak_ptr<FIFO> WeakPtr;
 
 	FIFO(void);
 	~FIFO(void);

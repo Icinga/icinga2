@@ -9,12 +9,12 @@ void JsonRpcClient::Start(void)
 	OnDataAvailable.bind(bind_weak(&JsonRpcClient::DataAvailableHandler, shared_from_this()));
 }
 
-void JsonRpcClient::SendMessage(JsonRpcMessage::RefType message)
+void JsonRpcClient::SendMessage(JsonRpcMessage::Ptr message)
 {
 	Netstring::WriteJSONToFIFO(GetSendQueue(), message->GetJSON());
 }
 
-int JsonRpcClient::DataAvailableHandler(EventArgs::RefType ea)
+int JsonRpcClient::DataAvailableHandler(EventArgs::Ptr ea)
 {
 	cJSON *json;
 
@@ -30,9 +30,9 @@ int JsonRpcClient::DataAvailableHandler(EventArgs::RefType ea)
 		if (json == NULL)
 			break;
 
-		JsonRpcMessage::RefType msg = new_object<JsonRpcMessage>();
+		JsonRpcMessage::Ptr msg = new_object<JsonRpcMessage>();
 		msg->SetJSON(json);
-		NewMessageEventArgs::RefType nea = new_object<NewMessageEventArgs>();
+		NewMessageEventArgs::Ptr nea = new_object<NewMessageEventArgs>();
 		nea->Source = shared_from_this();
 		nea->Message = msg;
 		OnNewMessage(nea);

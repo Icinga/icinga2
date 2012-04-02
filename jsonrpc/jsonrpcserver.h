@@ -7,8 +7,8 @@ namespace icinga
 class JsonRpcServer : public TCPServer
 {
 public:
-	typedef shared_ptr<JsonRpcServer> RefType;
-	typedef weak_ptr<JsonRpcServer> WeakRefType;
+	typedef shared_ptr<JsonRpcServer> Ptr;
+	typedef weak_ptr<JsonRpcServer> WeakPtr;
 
 	JsonRpcServer(void);
 };

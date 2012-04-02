@@ -7,19 +7,19 @@ namespace icinga
 class ConfigRpcComponent : public Component
 {
 private:
-	IcingaApplication::RefType GetIcingaApplication(void);
+	IcingaApplication::Ptr GetIcingaApplication(void);
 
-	int FetchObjectsHandler(NewMessageEventArgs::RefType ea);
+	int FetchObjectsHandler(NewMessageEventArgs::Ptr ea);
 
-	int LocalObjectCreatedHandler(ConfigHiveEventArgs::RefType ea);
-	int LocalObjectRemovedHandler(ConfigHiveEventArgs::RefType ea);
-	int LocalPropertyChangedHandler(ConfigHiveEventArgs::RefType ea);
+	int LocalObjectCreatedHandler(ConfigHiveEventArgs::Ptr ea);
+	int LocalObjectRemovedHandler(ConfigHiveEventArgs::Ptr ea);
+	int LocalPropertyChangedHandler(ConfigHiveEventArgs::Ptr ea);
 
-	int RemoteObjectCreatedHandler(NewMessageEventArgs::RefType ea);
-	int RemoteObjectRemovedHandler(NewMessageEventArgs::RefType ea);
-	int RemotePropertyChangedHandler(NewMessageEventArgs::RefType ea);
+	int RemoteObjectCreatedHandler(NewMessageEventArgs::Ptr ea);
+	int RemoteObjectRemovedHandler(NewMessageEventArgs::Ptr ea);
+	int RemotePropertyChangedHandler(NewMessageEventArgs::Ptr ea);
 
-	JsonRpcMessage::RefType MakeObjectMessage(const ConfigObject::RefType& object, string method, bool includeProperties);
+	JsonRpcMessage::Ptr MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties);
 
 public:
 	virtual string GetName(void);

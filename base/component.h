@@ -7,18 +7,18 @@ namespace icinga
 class Component : public Object
 {
 private:
-	Application::WeakRefType m_Application;
-	ConfigObject::RefType m_Config;
+	Application::WeakPtr m_Application;
+	ConfigObject::Ptr m_Config;
 
 public:
-	typedef shared_ptr<Component> RefType;
-	typedef weak_ptr<Component> WeakRefType;
+	typedef shared_ptr<Component> Ptr;
+	typedef weak_ptr<Component> WeakPtr;
 
-	void SetApplication(const Application::WeakRefType& application);
-	Application::RefType GetApplication(void);
+	void SetApplication(const Application::WeakPtr& application);
+	Application::Ptr GetApplication(void);
 
-	void SetConfig(ConfigObject::RefType componentConfig);
-	ConfigObject::RefType GetConfig(void);
+	void SetConfig(ConfigObject::Ptr componentConfig);
+	ConfigObject::Ptr GetConfig(void);
 
 	virtual string GetName(void) = 0;
 	virtual void Start(void) = 0;

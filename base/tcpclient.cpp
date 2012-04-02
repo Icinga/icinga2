@@ -12,24 +12,24 @@ void TCPClient::Start(void)
 {
 	TCPSocket::Start();
 
-	function<int (EventArgs::RefType)> rd = bind_weak(&TCPClient::ReadableEventHandler, shared_from_this());
+	function<int (EventArgs::Ptr)> rd = bind_weak(&TCPClient::ReadableEventHandler, shared_from_this());
 	OnReadable.bind(rd);
 
-	function<int (EventArgs::RefType)> wd = bind_weak(&TCPClient::WritableEventHandler, shared_from_this());
+	function<int (EventArgs::Ptr)> wd = bind_weak(&TCPClient::WritableEventHandler, shared_from_this());
 	OnWritable.bind(wd);
 }
 
-FIFO::RefType TCPClient::GetSendQueue(void)
+FIFO::Ptr TCPClient::GetSendQueue(void)
 {
 	return m_SendQueue;
 }
 
-FIFO::RefType TCPClient::GetRecvQueue(void)
+FIFO::Ptr TCPClient::GetRecvQueue(void)
 {
 	return m_RecvQueue;
 }
 
-int TCPClient::ReadableEventHandler(EventArgs::RefType ea)
+int TCPClient::ReadableEventHandler(EventArgs::Ptr ea)
 {
 	int rc;
 
@@ -51,14 +51,14 @@ int TCPClient::ReadableEventHandler(EventArgs::RefType ea)
 
 	m_RecvQueue->Write(NULL, rc);
 
-	EventArgs::RefType dea = new_object<EventArgs>();
+	EventArgs::Ptr dea = new_object<EventArgs>();
 	dea->Source = shared_from_this();
 	OnDataAvailable(dea);
 
 	return 0;
 }
 
-int TCPClient::WritableEventHandler(EventArgs::RefType ea)
+int TCPClient::WritableEventHandler(EventArgs::Ptr ea)
 {
 	int rc;
 

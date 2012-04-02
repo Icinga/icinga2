@@ -2,7 +2,7 @@
 
 using namespace icinga;
 
-IcingaApplication::RefType ConfigRpcComponent::GetIcingaApplication(void)
+IcingaApplication::Ptr ConfigRpcComponent::GetIcingaApplication(void)
 {
 	return static_pointer_cast<IcingaApplication>(GetApplication());
 }
@@ -14,10 +14,10 @@ string ConfigRpcComponent::GetName(void)
 
 void ConfigRpcComponent::Start(void)
 {
-	IcingaApplication::RefType icingaApp = GetIcingaApplication();
+	IcingaApplication::Ptr icingaApp = GetIcingaApplication();
 
-	ConnectionManager::RefType connectionManager = icingaApp->GetConnectionManager();
-	ConfigHive::RefType configHive = icingaApp->GetConfigHive();
+	ConnectionManager::Ptr connectionManager = icingaApp->GetConnectionManager();
+	ConfigHive::Ptr configHive = icingaApp->GetConfigHive();
 
 	int configSource;
 	if (GetConfig()->GetPropertyInteger("configSource", &configSource) && configSource != 0) {
@@ -38,9 +38,9 @@ void ConfigRpcComponent::Stop(void)
 	// TODO: implement
 }
 
-JsonRpcMessage::RefType ConfigRpcComponent::MakeObjectMessage(const ConfigObject::RefType& object, string method, bool includeProperties)
+JsonRpcMessage::Ptr ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
 {
-	JsonRpcMessage::RefType msg = new_object<JsonRpcMessage>();
+	JsonRpcMessage::Ptr msg = new_object<JsonRpcMessage>();
 	msg->SetVersion("2.0");
 	msg->SetMethod(method);
 	cJSON *params = msg->GetParams();
@@ -60,14 +60,14 @@ JsonRpcMessage::RefType ConfigRpcComponent::MakeObjectMessage(const ConfigObject
 	return msg;
 }
 
-int ConfigRpcComponent::FetchObjectsHandler(NewMessageEventArgs::RefType ea)
+int ConfigRpcComponent::FetchObjectsHandler(NewMessageEventArgs::Ptr ea)
 {
-	JsonRpcClient::RefType client = static_pointer_cast<JsonRpcClient>(ea->Source);
-	ConfigHive::RefType configHive = GetIcingaApplication()->GetConfigHive();
+	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea->Source);
+	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
 
 	for (ConfigHive::TypeIterator ti = configHive->Objects.begin(); ti != configHive->Objects.end(); ti++) {
 		for (ConfigHive::ObjectIterator oi = ti->second.begin(); oi != ti->second.end(); oi++) {
-			JsonRpcMessage::RefType msg = MakeObjectMessage(oi->second, "config::ObjectCreated", true);
+			JsonRpcMessage::Ptr msg = MakeObjectMessage(oi->second, "config::ObjectCreated", true);
 			client->SendMessage(msg);
 		}
 	}
@@ -75,48 +75,48 @@ int ConfigRpcComponent::FetchObjectsHandler(NewMessageEventArgs::RefType ea)
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigHiveEventArgs::RefType ea)
+int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigHiveEventArgs::Ptr ea)
 {
-	ConnectionManager::RefType connectionManager = GetIcingaApplication()->GetConnectionManager();
+	ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
 	connectionManager->SendMessage(MakeObjectMessage(ea->Object, "config::ObjectCreated", true));
 
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigHiveEventArgs::RefType ea)
+int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigHiveEventArgs::Ptr ea)
 {
-	ConnectionManager::RefType connectionManager = GetIcingaApplication()->GetConnectionManager();
+	ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
 	connectionManager->SendMessage(MakeObjectMessage(ea->Object, "config::ObjectRemoved", false));
 
 	return 0;
 }
 
-int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigHiveEventArgs::RefType ea)
+int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigHiveEventArgs::Ptr ea)
 {
-	JsonRpcMessage::RefType msg = MakeObjectMessage(ea->Object, "config::ObjectRemoved", false);
+	JsonRpcMessage::Ptr msg = MakeObjectMessage(ea->Object, "config::ObjectRemoved", false);
 	cJSON *params = msg->GetParams();
 	cJSON_AddStringToObject(params, "property", ea->Property.c_str());
 	string value;
 	ea->Object->GetProperty(ea->Property, &value);
 	cJSON_AddStringToObject(params, "value", value.c_str());
 
-	ConnectionManager::RefType connectionManager = GetIcingaApplication()->GetConnectionManager();
+	ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
 	connectionManager->SendMessage(msg);
 
 	return 0;
 }
 
-int ConfigRpcComponent::RemoteObjectCreatedHandler(NewMessageEventArgs::RefType ea)
+int ConfigRpcComponent::RemoteObjectCreatedHandler(NewMessageEventArgs::Ptr ea)
 {
-	JsonRpcMessage::RefType message = ea->Message;
+	JsonRpcMessage::Ptr message = ea->Message;
 
 	// TODO: update hive
 	return 0;
 }
 
-int ConfigRpcComponent::RemoteObjectRemovedHandler(NewMessageEventArgs::RefType ea)
+int ConfigRpcComponent::RemoteObjectRemovedHandler(NewMessageEventArgs::Ptr ea)
 {
-	JsonRpcMessage::RefType message = ea->Message;
+	JsonRpcMessage::Ptr message = ea->Message;
 	string name, type;
 	
 	if (!message->GetParamString("name", &name))
@@ -125,8 +125,8 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(NewMessageEventArgs::RefType 
 	if (!message->GetParamString("type", &type))
 		return 0;
 
-	ConfigHive::RefType configHive = GetIcingaApplication()->GetConfigHive();
-	ConfigObject::RefType object = configHive->GetObject(type, name);
+	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
+	ConfigObject::Ptr object = configHive->GetObject(type, name);
 
 	if (object.get() == NULL)
 		return 0;
@@ -136,9 +136,9 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(NewMessageEventArgs::RefType 
 	return 0;
 }
 
-int ConfigRpcComponent::RemotePropertyChangedHandler(NewMessageEventArgs::RefType ea)
+int ConfigRpcComponent::RemotePropertyChangedHandler(NewMessageEventArgs::Ptr ea)
 {
-	JsonRpcMessage::RefType message = ea->Message;
+	JsonRpcMessage::Ptr message = ea->Message;
 	string name, type, property, value;
 
 	if (!message->GetParamString("name", &name))
@@ -153,8 +153,8 @@ int ConfigRpcComponent::RemotePropertyChangedHandler(NewMessageEventArgs::RefTyp
 	if (!message->GetParamString("value", &value))
 		return 0;
 
-	ConfigHive::RefType configHive = GetIcingaApplication()->GetConfigHive();
-	ConfigObject::RefType object = configHive->GetObject(type, name);
+	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
+	ConfigObject::Ptr object = configHive->GetObject(type, name);
 
 	if (object.get() == NULL)
 		return 0;

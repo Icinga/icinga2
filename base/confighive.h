@@ -6,10 +6,10 @@ namespace icinga
 
 struct ConfigHiveEventArgs : public EventArgs
 {
-	typedef shared_ptr<ConfigHiveEventArgs> RefType;
-	typedef weak_ptr<ConfigHiveEventArgs> WeakRefType;
+	typedef shared_ptr<ConfigHiveEventArgs> Ptr;
+	typedef weak_ptr<ConfigHiveEventArgs> WeakPtr;
 
-	ConfigObject::RefType Object;
+	ConfigObject::Ptr Object;
 	string Property;
 	string OldValue;
 };
@@ -17,20 +17,20 @@ struct ConfigHiveEventArgs : public EventArgs
 class ConfigHive : public Object
 {
 public:
-	typedef shared_ptr<ConfigHive> RefType;
-	typedef weak_ptr<ConfigHive> WeakRefType;
+	typedef shared_ptr<ConfigHive> Ptr;
+	typedef weak_ptr<ConfigHive> WeakPtr;
 
-	typedef map< string, map<string, ConfigObject::RefType> >::iterator TypeIterator;
-	typedef map<string, ConfigObject::RefType>::iterator ObjectIterator;
-	map< string, map<string, ConfigObject::RefType> > Objects;
+	typedef map< string, map<string, ConfigObject::Ptr> >::iterator TypeIterator;
+	typedef map<string, ConfigObject::Ptr>::iterator ObjectIterator;
+	map< string, map<string, ConfigObject::Ptr> > Objects;
 
-	void AddObject(ConfigObject::RefType object);
-	void RemoveObject(ConfigObject::RefType object);
-	ConfigObject::RefType GetObject(const string& type, const string& name = string());
+	void AddObject(ConfigObject::Ptr object);
+	void RemoveObject(ConfigObject::Ptr object);
+	ConfigObject::Ptr GetObject(const string& type, const string& name = string());
 
-	event<ConfigHiveEventArgs::RefType> OnObjectCreated;
-	event<ConfigHiveEventArgs::RefType> OnObjectRemoved;
-	event<ConfigHiveEventArgs::RefType> OnPropertyChanged;
+	event<ConfigHiveEventArgs::Ptr> OnObjectCreated;
+	event<ConfigHiveEventArgs::Ptr> OnObjectRemoved;
+	event<ConfigHiveEventArgs::Ptr> OnPropertyChanged;
 };
 
 }

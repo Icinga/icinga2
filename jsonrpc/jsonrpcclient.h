@@ -6,26 +6,26 @@ namespace icinga
 
 struct NewMessageEventArgs : public EventArgs
 {
-	typedef shared_ptr<NewMessageEventArgs> RefType;
-	typedef weak_ptr<NewMessageEventArgs> WeakRefType;
+	typedef shared_ptr<NewMessageEventArgs> Ptr;
+	typedef weak_ptr<NewMessageEventArgs> WeakPtr;
 
-	JsonRpcMessage::RefType Message;
+	JsonRpcMessage::Ptr Message;
 };
 
 class JsonRpcClient : public TCPClient
 {
 private:
-	int DataAvailableHandler(EventArgs::RefType ea);
+	int DataAvailableHandler(EventArgs::Ptr ea);
 
 public:
-	typedef shared_ptr<JsonRpcClient> RefType;
-	typedef weak_ptr<JsonRpcClient> WeakRefType;
+	typedef shared_ptr<JsonRpcClient> Ptr;
+	typedef weak_ptr<JsonRpcClient> WeakPtr;
 
-	void SendMessage(JsonRpcMessage::RefType message);
+	void SendMessage(JsonRpcMessage::Ptr message);
 
 	virtual void Start(void);
 
-	event<NewMessageEventArgs::RefType> OnNewMessage;
+	event<NewMessageEventArgs::Ptr> OnNewMessage;
 };
 
 }

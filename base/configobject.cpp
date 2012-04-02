@@ -2,12 +2,12 @@
 
 using namespace icinga;
 
-void ConfigObject::SetHive(const ConfigHive::WeakRefType& hive)
+void ConfigObject::SetHive(const ConfigHive::WeakPtr& hive)
 {
 	m_Hive = hive;
 }
 
-ConfigHive::WeakRefType ConfigObject::GetHive(void) const
+ConfigHive::WeakPtr ConfigObject::GetHive(void) const
 {
 	return m_Hive;
 }
@@ -36,9 +36,9 @@ void ConfigObject::SetProperty(const string& name, const string& value)
 {
 	Properties[name] = value;
 
-	ConfigHive::RefType hive = m_Hive.lock();
+	ConfigHive::Ptr hive = m_Hive.lock();
 	if (hive.get() != NULL) {
-		ConfigHiveEventArgs::RefType ea = new_object<ConfigHiveEventArgs>();
+		ConfigHiveEventArgs::Ptr ea = new_object<ConfigHiveEventArgs>();
 		ea->Source = hive;
 		ea->Object = static_pointer_cast<ConfigObject>(shared_from_this());
 		ea->Property = name;

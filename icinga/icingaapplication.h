@@ -7,14 +7,14 @@ namespace icinga
 class IcingaApplication : public Application
 {
 private:
-	ConnectionManager::RefType m_ConnectionManager;
+	ConnectionManager::Ptr m_ConnectionManager;
 
-	int ConfigObjectCreatedHandler(ConfigHiveEventArgs::RefType ea);
-	int ConfigObjectRemovedHandler(ConfigHiveEventArgs::RefType ea);
+	int ConfigObjectCreatedHandler(ConfigHiveEventArgs::Ptr ea);
+	int ConfigObjectRemovedHandler(ConfigHiveEventArgs::Ptr ea);
 
 public:
-	typedef shared_ptr<IcingaApplication> RefType;
-	typedef weak_ptr<IcingaApplication> WeakRefType;
+	typedef shared_ptr<IcingaApplication> Ptr;
+	typedef weak_ptr<IcingaApplication> WeakPtr;
 
 	IcingaApplication(void);
 
@@ -22,7 +22,7 @@ public:
 
 	void PrintUsage(const string& programPath);
 
-	virtual ConnectionManager::RefType GetConnectionManager(void);
+	virtual ConnectionManager::Ptr GetConnectionManager(void);
 };
 
 }

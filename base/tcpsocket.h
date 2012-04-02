@@ -7,8 +7,8 @@ namespace icinga
 class TCPSocket : public Socket
 {
 public:
-	typedef shared_ptr<TCPSocket> RefType;
-	typedef weak_ptr<TCPSocket> WeakRefType;
+	typedef shared_ptr<TCPSocket> Ptr;
+	typedef weak_ptr<TCPSocket> WeakPtr;
 
 	void MakeSocket(void);
 

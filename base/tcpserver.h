@@ -6,22 +6,22 @@ namespace icinga
 
 struct NewClientEventArgs : public EventArgs
 {
-	typedef shared_ptr<NewClientEventArgs> RefType;
-	typedef weak_ptr<NewClientEventArgs> WeakRefType;
+	typedef shared_ptr<NewClientEventArgs> Ptr;
+	typedef weak_ptr<NewClientEventArgs> WeakPtr;
 
-	TCPSocket::RefType Client;
+	TCPSocket::Ptr Client;
 };
 
 class TCPServer : public TCPSocket
 {
 private:
-	int ReadableEventHandler(EventArgs::RefType ea);
+	int ReadableEventHandler(EventArgs::Ptr ea);
 
 	factory_function m_ClientFactory;
 
 public:
-	typedef shared_ptr<TCPServer> RefType;
-	typedef weak_ptr<TCPServer> WeakRefType;
+	typedef shared_ptr<TCPServer> Ptr;
+	typedef weak_ptr<TCPServer> WeakPtr;
 
 	TCPServer(void);
 
@@ -32,7 +32,7 @@ public:
 
 	void Listen(void);
 
-	event<NewClientEventArgs::RefType> OnNewClient;
+	event<NewClientEventArgs::Ptr> OnNewClient;
 
 	virtual bool WantsToRead(void) const;
 };

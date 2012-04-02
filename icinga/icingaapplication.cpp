@@ -33,7 +33,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	GetConfigHive()->OnObjectCreated.bind(bind_weak(&IcingaApplication::ConfigObjectCreatedHandler, shared_from_this()));
 	GetConfigHive()->OnObjectRemoved.bind(bind_weak(&IcingaApplication::ConfigObjectRemovedHandler, shared_from_this()));
 
-	ConfigObject::RefType fileComponentConfig = new_object<ConfigObject>();
+	ConfigObject::Ptr fileComponentConfig = new_object<ConfigObject>();
 	fileComponentConfig->SetName("configfilecomponent");
 	fileComponentConfig->SetType("component");
 	fileComponentConfig->SetProperty("configFilename", args[1]);
@@ -49,12 +49,12 @@ void IcingaApplication::PrintUsage(const string& programPath)
 	cout << "Syntax: " << programPath << " <config-file>" << endl;
 }
 
-ConnectionManager::RefType IcingaApplication::GetConnectionManager(void)
+ConnectionManager::Ptr IcingaApplication::GetConnectionManager(void)
 {
 	return m_ConnectionManager;
 }
 
-int IcingaApplication::ConfigObjectCreatedHandler(ConfigHiveEventArgs::RefType ea)
+int IcingaApplication::ConfigObjectCreatedHandler(ConfigHiveEventArgs::Ptr ea)
 {
 	if (ea->Object->GetType() == "component") {
 		string path;
@@ -75,7 +75,7 @@ int IcingaApplication::ConfigObjectCreatedHandler(ConfigHiveEventArgs::RefType e
 	return 0;
 }
 
-int IcingaApplication::ConfigObjectRemovedHandler(ConfigHiveEventArgs::RefType ea)
+int IcingaApplication::ConfigObjectRemovedHandler(ConfigHiveEventArgs::Ptr ea)
 {
 	if (ea->Object->GetType() == "component") {
 		UnloadComponent(ea->Object->GetName());
