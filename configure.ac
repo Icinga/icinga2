@@ -20,7 +20,11 @@ LT_INIT
 LT_CONFIG_LTDL_DIR([ltdl])
 LTDL_INIT
 
-
+if test "x$with_included_ltdl" != "xyes"; then
+	AC_CHECK_LIB([ltdl], [lt_dladvise_init],
+		[],
+		[AC_MSG_ERROR([installed libltdl is too old])])
+fi
 
 
 

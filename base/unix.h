@@ -23,12 +23,4 @@ void closesocket(SOCKET fd);
 #define I2_EXPORT
 #define I2_IMPORT
 
-typedef void *HMODULE;
-
-#define INVALID_HANDLE_VALUE NULL
-
-HMODULE LoadLibrary(const char *filename);
-void FreeLibrary(HMODULE module);
-void *GetProcAddress(HMODULE module, const char *function);
-
 #endif /* UNIX_H */

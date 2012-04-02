@@ -1,5 +1,9 @@
 #include "i2-base.h"
 
+#ifndef _WIN32
+#	include <ltdl.h>
+#endif
+
 using namespace icinga;
 
 Application::RefType Application::Instance;
@@ -178,12 +182,27 @@ Component::RefType Application::LoadComponent(string path, ConfigObject::RefType
 
 	Log("Loading component '%s'", path.c_str());
 
+#ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.c_str());
+#else /* _WIN32 */
+	lt_dlhandle hModule = 0;
+	lt_dladvise advise;
 
-	if (hModule == INVALID_HANDLE_VALUE)
+	if (!lt_dladvise_init(&advise) && !lt_dladvise_global(&advise)) {
+		hModule = lt_dlopenadvise(path.c_str(), advise);
+	}
+
+	lt_dladvise_destroy(&advise);
+#endif /* _WIN32 */
+
+	if (hModule == NULL)
 		throw exception(/*"Could not load module"*/);
 
-	pCreateComponent = (Component *(*)())GetProcAddress(hModule, "CreateComponent");
+#ifdef _WIN32
+	pCreateComponent = (Component *(*)())GetProcAddress(hModule, );
+#else /* _WIN32 */
+	pCreateComponent = (Component *(*)())lt_dlsym(hModule, "CreateComponent");
+#endif /* _WIN32 */
 
 	if (pCreateComponent == NULL)
 		throw exception(/*"Module does not contain CreateComponent function"*/);

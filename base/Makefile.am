@@ -1,10 +1,10 @@
 ## Process this file with automake to produce Makefile.in
 
 
-noinst_LIBRARIES =  \
-	libbase.a
+noinst_LTLIBRARIES =  \
+	libbase.la
 
-libbase_a_SOURCES =  \
+libbase_la_SOURCES =  \
 	application.cpp \
 	application.h \
 	component.cpp \
@@ -42,3 +42,8 @@ libbase_a_SOURCES =  \
 	unix.h \
 	win32.cpp \
 	win32.h
+
+libbase_la_LIBADD=$(LIBLTDL)
+
+AM_CFLAGS=$(LTDLINCL)
+AM_CXXFLAGS=$(LTDLINCL)

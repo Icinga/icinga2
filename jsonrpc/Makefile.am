@@ -1,10 +1,10 @@
 ## Process this file with automake to produce Makefile.in
 
 
-noinst_LIBRARIES =  \
-	libjsonrpc.a
+noinst_LTLIBRARIES =  \
+	libjsonrpc.la
 
-libjsonrpc_a_SOURCES =  \
+libjsonrpc_la_SOURCES =  \
 	cJSON.c \
 	cJSON.h \
 	connectionmanager.cpp \
@@ -19,4 +19,4 @@ libjsonrpc_a_SOURCES =  \
 	netstring.cpp \
 	netstring.h
 
-libjsonrpc_a_CXXFLAGS = -I${top_srcdir}/base 
+libjsonrpc_la_CXXFLAGS = -I${top_srcdir}/base 
