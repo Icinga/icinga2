@@ -1,7 +1,9 @@
 #ifndef I2BASE_H
 #define I2BASE_H
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#	define HAVE_CXX11
+#else /* _MSC_VER */
 #	include "config.h"
 #endif /* _MSC_VER */
 
@@ -27,7 +29,7 @@
 
 using namespace std;
 
-#ifdef _MSC_VER
+#ifdef HAVE_CXX11
 #	include <memory>
 #	include <functional>
 
@@ -35,7 +37,7 @@ using namespace std::placeholders;
 #else
 #	include <tr1/memory>
 #	include <tr1/functional>
-
+#	include "cxx11-compat.h"
 using namespace std::tr1;
 using namespace std::tr1::placeholders;
 #endif

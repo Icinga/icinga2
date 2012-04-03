@@ -36,6 +36,7 @@
     <ClInclude Include="condvar.h" />
     <ClInclude Include="confighive.h" />
     <ClInclude Include="configobject.h" />
+    <ClInclude Include="cxx11-compat.h" />
     <ClInclude Include="delegate.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="exception.h" />

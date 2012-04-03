@@ -9,11 +9,20 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.11])
 
 m4_include([m4/ax_cxx_gcc_abi_demangle.m4])
+m4_include([m4/ax_check_compile_flag.m4])
 
 AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
 AX_CXX_GCC_ABI_DEMANGLE
+
+AX_CHECK_COMPILE_FLAG([-std=c++0x], [have_cxx11_support=yes])
+
+if test "$have_cxx11_support" = "yes"; then
+	CXXFLAGS="$CXXFLAGS -std=c++0x"
+	AC_DEFINE(HAVE_CXX11, 1,
+		[define if the compiler supports C++11])
+fi
 
 
 
