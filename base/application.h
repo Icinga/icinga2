@@ -24,7 +24,7 @@ public:
 	virtual int Main(const vector<string>& args) = 0;
 
 	void SetArguments(const vector<string>& arguments);
-	vector<string>& GetArguments(void);
+	const vector<string>& GetArguments(void);
 
 	void RunEventLoop(void);
 	bool Daemonize(void);
@@ -34,12 +34,12 @@ public:
 
 	ConfigHive::Ptr GetConfigHive(void);
 
-	shared_ptr<Component> LoadComponent(string path, ConfigObject::Ptr componentConfig);
-	void UnloadComponent(string name);
-	shared_ptr<Component> GetComponent(string name);
-	void AddComponentSearchDir(string componentDirectory);
+	shared_ptr<Component> LoadComponent(const string& path, const ConfigObject::Ptr& componentConfig);
+	void UnloadComponent(const string& name);
+	shared_ptr<Component> GetComponent(const string& name);
+	void AddComponentSearchDir(const string& componentDirectory);
 
-	string GetExeDirectory(void);
+	const string& GetExeDirectory(void);
 };
 
 template<class T>

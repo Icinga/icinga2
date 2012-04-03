@@ -24,8 +24,8 @@ public:
 	typedef map<string, ConfigObject::Ptr>::iterator ObjectIterator;
 	map< string, map<string, ConfigObject::Ptr> > Objects;
 
-	void AddObject(ConfigObject::Ptr object);
-	void RemoveObject(ConfigObject::Ptr object);
+	void AddObject(const ConfigObject::Ptr& object);
+	void RemoveObject(const ConfigObject::Ptr& object);
 	ConfigObject::Ptr GetObject(const string& type, const string& name = string());
 
 	event<ConfigHiveEventArgs::Ptr> OnObjectCreated;

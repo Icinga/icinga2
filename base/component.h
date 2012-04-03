@@ -17,7 +17,7 @@ public:
 	void SetApplication(const Application::WeakPtr& application);
 	Application::Ptr GetApplication(void);
 
-	void SetConfig(ConfigObject::Ptr componentConfig);
+	void SetConfig(const ConfigObject::Ptr& componentConfig);
 	ConfigObject::Ptr GetConfig(void);
 
 	virtual string GetName(void) = 0;

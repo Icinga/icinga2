@@ -12,7 +12,7 @@ Application::Ptr Component::GetApplication(void)
 	return m_Application.lock();
 }
 
-void Component::SetConfig(ConfigObject::Ptr componentConfig)
+void Component::SetConfig(const ConfigObject::Ptr& componentConfig)
 {
 	m_Config = componentConfig;
 }

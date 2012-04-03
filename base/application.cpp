@@ -175,7 +175,7 @@ ConfigHive::Ptr Application::GetConfigHive(void)
 	return m_ConfigHive;
 }
 
-Component::Ptr Application::LoadComponent(string path, ConfigObject::Ptr componentConfig)
+Component::Ptr Application::LoadComponent(const string& path, const ConfigObject::Ptr& componentConfig)
 {
 	Component::Ptr component;
 	Component *(*pCreateComponent)();
@@ -217,7 +217,7 @@ Component::Ptr Application::LoadComponent(string path, ConfigObject::Ptr compone
 	return component;
 }
 
-Component::Ptr Application::GetComponent(string name)
+Component::Ptr Application::GetComponent(const string& name)
 {
 	map<string, Component::Ptr>::iterator ci = m_Components.find(name);
 
@@ -227,7 +227,7 @@ Component::Ptr Application::GetComponent(string name)
 	return ci->second;
 }
 
-void Application::UnloadComponent(string name)
+void Application::UnloadComponent(const string& name)
 {
 	map<string, Component::Ptr>::iterator ci = m_Components.find(name);
 
@@ -261,12 +261,12 @@ void Application::SetArguments(const vector<string>& arguments)
 	m_Arguments = arguments;
 }
 
-vector<string>& Application::GetArguments(void)
+const vector<string>& Application::GetArguments(void)
 {
 	return m_Arguments;
 }
 
-string Application::GetExeDirectory(void)
+const string& Application::GetExeDirectory(void)
 {
 	static string ExePath;
 
@@ -344,7 +344,7 @@ string Application::GetExeDirectory(void)
 	return ExePath;
 }
 
-void Application::AddComponentSearchDir(string componentDirectory)
+void Application::AddComponentSearchDir(const string& componentDirectory)
 {
 #ifdef _WIN32
 	SetDllDirectory(componentDirectory.c_str());

@@ -2,7 +2,7 @@
 
 using namespace icinga;
 
-void ConfigHive::AddObject(ConfigObject::Ptr object)
+void ConfigHive::AddObject(const ConfigObject::Ptr& object)
 {
 	string type = object->GetType();
 	TypeIterator ti = Objects.find(type);
@@ -23,7 +23,7 @@ void ConfigHive::AddObject(ConfigObject::Ptr object)
 	OnObjectCreated(ea);
 }
 
-void ConfigHive::RemoveObject(ConfigObject::Ptr object)
+void ConfigHive::RemoveObject(const ConfigObject::Ptr& object)
 {
 	string type = object->GetType();
 	TypeIterator ti = Objects.find(type);
