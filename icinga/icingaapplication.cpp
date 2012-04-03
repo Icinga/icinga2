@@ -30,8 +30,8 @@ int IcingaApplication::Main(const vector<string>& args)
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga";
 	AddComponentSearchDir(componentDirectory);
 
-	GetConfigHive()->OnObjectCreated.bind(bind_weak(&IcingaApplication::ConfigObjectCreatedHandler, shared_from_this()));
-	GetConfigHive()->OnObjectRemoved.bind(bind_weak(&IcingaApplication::ConfigObjectRemovedHandler, shared_from_this()));
+	GetConfigHive()->OnObjectCreated += bind_weak(&IcingaApplication::ConfigObjectCreatedHandler, shared_from_this());
+	GetConfigHive()->OnObjectRemoved += bind_weak(&IcingaApplication::ConfigObjectRemovedHandler, shared_from_this());
 
 	ConfigObject::Ptr fileComponentConfig = new_object<ConfigObject>();
 	fileComponentConfig->SetName("configfilecomponent");

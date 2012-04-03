@@ -6,7 +6,7 @@ void JsonRpcClient::Start(void)
 {
 	TCPClient::Start();
 
-	OnDataAvailable.bind(bind_weak(&JsonRpcClient::DataAvailableHandler, shared_from_this()));
+	OnDataAvailable += bind_weak(&JsonRpcClient::DataAvailableHandler, shared_from_this());
 }
 
 void JsonRpcClient::SendMessage(JsonRpcMessage::Ptr message)

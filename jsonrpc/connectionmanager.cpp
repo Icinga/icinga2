@@ -5,7 +5,7 @@ using namespace icinga;
 void ConnectionManager::RegisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.push_front(server);
-	server->OnNewClient.bind(bind_weak(&ConnectionManager::NewClientHandler, shared_from_this()));
+	server->OnNewClient += bind_weak(&ConnectionManager::NewClientHandler, shared_from_this());
 }
 
 void ConnectionManager::UnregisterServer(JsonRpcServer::Ptr server)
@@ -17,7 +17,7 @@ void ConnectionManager::UnregisterServer(JsonRpcServer::Ptr server)
 void ConnectionManager::RegisterClient(JsonRpcClient::Ptr client)
 {
 	m_Clients.push_front(client);
-	client->OnNewMessage.bind(bind_weak(&ConnectionManager::NewMessageHandler, shared_from_this()));
+	client->OnNewMessage += bind_weak(&ConnectionManager::NewMessageHandler, shared_from_this());
 }
 
 void ConnectionManager::UnregisterClient(JsonRpcClient::Ptr client)
@@ -74,7 +74,7 @@ void ConnectionManager::RegisterMethod(string method, function<int (NewMessageEv
 		i = m_Methods.find(method);
 	}
 
-	i->second.bind(callback);
+	i->second += callback;
 }
 
 void ConnectionManager::UnregisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> function)

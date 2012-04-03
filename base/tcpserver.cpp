@@ -21,8 +21,7 @@ void TCPServer::Start(void)
 {
 	TCPSocket::Start();
 
-	function<int (EventArgs::Ptr)> dr = bind_weak(&TCPServer::ReadableEventHandler, shared_from_this());
-	OnReadable.bind(dr);
+	OnReadable += bind_weak(&TCPServer::ReadableEventHandler, shared_from_this());
 }
 
 void TCPServer::Listen(void)

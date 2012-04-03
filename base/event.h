@@ -22,14 +22,26 @@ private:
 	list<DelegateType> m_Delegates;
 
 public:
-	void bind(const DelegateType& delegate)
+	void hook(const DelegateType& delegate)
 	{
 		m_Delegates.push_front(delegate);
 	}
 
-	void unbind(const DelegateType& delegate)
+	void unhook(const DelegateType& delegate)
 	{
 		m_Delegates.remove(delegate);
+	}
+
+	event<TArgs>& operator +=(const DelegateType& rhs)
+	{
+		hook(rhs);
+		return *this;
+	}
+
+	event<TArgs>& operator -=(const DelegateType& rhs)
+	{
+		unhook(rhs);
+		return *this;
 	}
 
 	void operator()(const TArgs& args)

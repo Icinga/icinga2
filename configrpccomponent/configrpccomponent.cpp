@@ -23,9 +23,9 @@ void ConfigRpcComponent::Start(void)
 	if (GetConfig()->GetPropertyInteger("configSource", &configSource) && configSource != 0) {
 		connectionManager->RegisterMethod("config::FetchObjects", bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
 
-		configHive->OnObjectCreated.bind(bind_weak(&ConfigRpcComponent::LocalObjectCreatedHandler, shared_from_this()));
-		configHive->OnObjectRemoved.bind(bind_weak(&ConfigRpcComponent::LocalObjectRemovedHandler, shared_from_this()));
-		configHive->OnPropertyChanged.bind(bind_weak(&ConfigRpcComponent::LocalPropertyChangedHandler, shared_from_this()));
+		configHive->OnObjectCreated += bind_weak(&ConfigRpcComponent::LocalObjectCreatedHandler, shared_from_this());
+		configHive->OnObjectRemoved += bind_weak(&ConfigRpcComponent::LocalObjectRemovedHandler, shared_from_this());
+		configHive->OnPropertyChanged += bind_weak(&ConfigRpcComponent::LocalPropertyChangedHandler, shared_from_this());
 	}
 
 	connectionManager->RegisterMethod("config::ObjectCreated", bind_weak(&ConfigRpcComponent::RemoteObjectCreatedHandler, shared_from_this()));

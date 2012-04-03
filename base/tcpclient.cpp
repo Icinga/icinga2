@@ -12,11 +12,8 @@ void TCPClient::Start(void)
 {
 	TCPSocket::Start();
 
-	function<int (EventArgs::Ptr)> rd = bind_weak(&TCPClient::ReadableEventHandler, shared_from_this());
-	OnReadable.bind(rd);
-
-	function<int (EventArgs::Ptr)> wd = bind_weak(&TCPClient::WritableEventHandler, shared_from_this());
-	OnWritable.bind(wd);
+	OnReadable += bind_weak(&TCPClient::ReadableEventHandler, shared_from_this());
+	OnWritable += bind_weak(&TCPClient::WritableEventHandler, shared_from_this());
 }
 
 FIFO::Ptr TCPClient::GetSendQueue(void)
