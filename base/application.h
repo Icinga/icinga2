@@ -65,7 +65,20 @@ int application_main(int argc, char **argv)
 #ifndef _DEBUG
 	} catch (const Exception& ex) {
 		cout << "---" << endl;
-		cout << "Exception: " << typeid(ex).name() << endl;
+
+		string klass = typeid(ex).name();
+
+#ifdef HAVE_GCC_ABI_DEMANGLE
+		int status;
+		char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
+
+		if (realname != NULL) {
+			klass = string(realname);
+			free(realname);
+		}
+#endif /* HAVE_GCC_ABI_DEMANGLE */
+
+		cout << "Exception: " << klass << endl;
 		cout << "Message: " << ex.GetMessage() << endl;
 
 		return EXIT_FAILURE;

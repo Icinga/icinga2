@@ -3,14 +3,17 @@ dnl Created by Anjuta application wizard.
 
 AC_INIT(icinga, 2.0)
 
+AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([1.11])
 
+m4_include([m4/ax_cxx_gcc_abi_demangle.m4])
+
 AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
-
+AX_CXX_GCC_ABI_DEMANGLE
 
 
 

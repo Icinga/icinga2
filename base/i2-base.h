@@ -1,6 +1,10 @@
 #ifndef I2BASE_H
 #define I2BASE_H
 
+#ifndef _MSC_VER
+#	include "config.h"
+#endif /* _MSC_VER */
+
 #include <cstdlib>
 #include <cstdarg>
 #include <cstdio>
@@ -16,6 +20,10 @@
 #include <typeinfo>
 #include <map>
 #include <list>
+
+#ifdef HAVE_GCC_ABI_DEMANGLE
+#	include <cxxabi.h>
+#endif /* HAVE_GCC_ABI_DEMANGLE */
 
 using namespace std;
 
