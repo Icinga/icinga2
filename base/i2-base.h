@@ -47,6 +47,7 @@ using namespace std::tr1::placeholders;
 #include "condvar.h"
 #include "thread.h"
 #include "object.h"
+#include "exception.h"
 #include "memory.h"
 #include "delegate.h"
 #include "event.h"

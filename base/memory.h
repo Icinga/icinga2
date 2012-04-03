@@ -4,16 +4,17 @@
 namespace icinga
 {
 
-class OutOfMemoryException : public exception { };
+DEFINE_EXCEPTION_CLASS(OutOfMemoryException);
 
 class Memory
 {
 private:
-	Memory(void) { }
+	Memory(void);
 
 public:
 	static void *Allocate(size_t size);
 	static void *Reallocate(void *ptr, size_t size);
+	static char *StrDup(const char *str);
 	static void Free(void *ptr);
 };
 

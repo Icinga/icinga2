@@ -17,6 +17,8 @@ libbase_la_SOURCES =  \
 	configobject.h \
 	delegate.h \
 	event.h \
+	exception.cpp \
+	exception.h \
 	fifo.cpp \
 	fifo.h \
 	i2-base.h \

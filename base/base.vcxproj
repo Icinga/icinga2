@@ -16,6 +16,7 @@
     <ClCompile Include="condvar.cpp" />
     <ClCompile Include="confighive.cpp" />
     <ClCompile Include="configobject.cpp" />
+    <ClCompile Include="exception.cpp" />
     <ClCompile Include="fifo.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="mutex.cpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="configobject.h" />
     <ClInclude Include="delegate.h" />
     <ClInclude Include="event.h" />
+    <ClInclude Include="exception.h" />
     <ClInclude Include="fifo.h" />
     <ClInclude Include="i2-base.h" />
     <ClInclude Include="memory.h" />

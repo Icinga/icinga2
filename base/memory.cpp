@@ -2,6 +2,10 @@
 
 using namespace icinga;
 
+Memory::Memory(void)
+{
+}
+
 void *Memory::Allocate(size_t size)
 {
 	void *ptr = malloc(size);
@@ -20,6 +24,16 @@ void *Memory::Reallocate(void *ptr, size_t size)
 		throw OutOfMemoryException();
 	
 	return new_ptr;
+}
+
+char *Memory::StrDup(const char *str)
+{
+	char *new_str = strdup(str);
+
+	if (str == NULL)
+		throw OutOfMemoryException();
+
+	return new_str;
 }
 
 void Memory::Free(void *ptr)

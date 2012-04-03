@@ -196,7 +196,7 @@ Component::Ptr Application::LoadComponent(const string& path, const ConfigObject
 #endif /* _WIN32 */
 
 	if (hModule == NULL)
-		throw exception(/*"Could not load module"*/);
+		throw ComponentLoadException("Could not load module");
 
 #ifdef _WIN32
 	pCreateComponent = (Component *(*)())GetProcAddress(hModule, "CreateComponent");
@@ -205,7 +205,7 @@ Component::Ptr Application::LoadComponent(const string& path, const ConfigObject
 #endif /* _WIN32 */
 
 	if (pCreateComponent == NULL)
-		throw exception(/*"Module does not contain CreateComponent function"*/);
+		throw ComponentLoadException("Loadable module does not contain CreateComponent function");
 
 	component = Component::Ptr(pCreateComponent());
 	component->SetApplication(static_pointer_cast<Application>(shared_from_this()));
@@ -292,10 +292,7 @@ const string& Application::GetExeDirectory(void)
 		PathEnv = getenv("PATH");
 
 		if (PathEnv != NULL) {
-			PathEnv = strdup(PathEnv);
-
-			if (PathEnv == NULL)
-				throw exception(/*"strdup() failed"*/);
+			PathEnv = Memory::StrDup(PathEnv);
 
 			FoundPath = false;
 

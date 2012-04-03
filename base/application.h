@@ -5,6 +5,8 @@ namespace icinga {
 
 class Component;
 
+DEFINE_EXCEPTION_CLASS(ComponentLoadException);
+
 class Application : public Object {
 private:
 	bool m_ShuttingDown;
@@ -56,7 +58,19 @@ int application_main(int argc, char **argv)
 
 	Application::Instance->SetArguments(args);
 
-	result = Application::Instance->Main(args);
+#ifndef _DEBUG
+	try {
+#endif /* !_DEBUG */
+		result = Application::Instance->Main(args);
+#ifndef _DEBUG
+	} catch (const Exception& ex) {
+		cout << "---" << endl;
+		cout << "Exception: " << typeid(ex).name() << endl;
+		cout << "Message: " << ex.GetMessage() << endl;
+
+		return EXIT_FAILURE;
+	}
+#endif /* !_DEBUG */
 
 	Application::Instance.reset();
 

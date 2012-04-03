@@ -4,6 +4,8 @@
 namespace icinga
 {
 
+DEFINE_EXCEPTION_CLASS(ConfigParserException);
+
 class ConfigFileComponent : public Component
 {
 public:

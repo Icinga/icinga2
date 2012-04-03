@@ -17,18 +17,20 @@ void ConfigFileComponent::Start(void)
 
 	string filename;
 	if (!GetConfig()->GetProperty("configFilename", &filename))
-		throw exception(/*"Missing configFilename property"*/);
+		throw ConfigParserException("Missing configFilename property");
 
 	fp.open(filename.c_str(), ifstream::in);
 	if (fp.fail())
-		throw exception(/*"Could not open config file"*/);
+		throw ConfigParserException("Could not open config file");
 	
+	GetApplication()->Log("Reading config file: %s", filename.c_str());
+
 	while (!fp.eof()) {
 		size_t bufferSize = 1024;
 		char *buffer = (char *)fifo->GetWriteBuffer(&bufferSize);
 		fp.read(buffer, bufferSize);
 		if (fp.bad())
-			throw exception(/*"Could not read from config file"*/);
+			throw ConfigParserException("Could not read from config file");
 		fifo->Write(NULL, fp.gcount());
 	}
 
@@ -41,7 +43,7 @@ void ConfigFileComponent::Start(void)
 	fifo->Read(NULL, fifo->GetSize());
 
 	if (jsonobj == NULL)
-		throw exception(/*"Could not parse config file."*/);
+		throw ConfigParserException("Could not parse config file.");
 
 	for (cJSON *typeobj = jsonobj->child; typeobj != NULL; typeobj = typeobj->next) {
 		string type = typeobj->string;

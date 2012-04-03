@@ -44,6 +44,22 @@ shared_ptr<T> new_object(void)
 	return shared_ptr<T>(instance);
 }
 
+template<class T, class TArg1>
+shared_ptr<T> new_object(const TArg1& arg1)
+{
+	T *instance = new T(arg1);
+
+	return shared_ptr<T>(instance);
+}
+
+template<class T, class TArg1, class TArg2>
+shared_ptr<T> new_object(const TArg1& arg1, const TArg2& arg2)
+{
+	T *instance = new T(arg1, arg2);
+
+	return shared_ptr<T>(instance);
+}
+
 typedef function<Object::Ptr ()> factory_function;
 
 template<class T>
