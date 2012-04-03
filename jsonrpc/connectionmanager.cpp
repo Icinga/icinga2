@@ -66,25 +66,17 @@ int ConnectionManager::NewMessageHandler(NewMessageEventArgs::Ptr nmea)
 
 void ConnectionManager::RegisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> callback)
 {
-	map<string, event<NewMessageEventArgs::Ptr> >::iterator i;
-	i = m_Methods.find(method);
-
-	if (i == m_Methods.end()) {
-		m_Methods[method] = event<NewMessageEventArgs::Ptr>();
-		i = m_Methods.find(method);
-	}
-
-	i->second += callback;
+	m_Methods[method] += callback;
 }
 
-void ConnectionManager::UnregisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> function)
+void ConnectionManager::UnregisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> callback)
 {
-	// TODO: implement
+	m_Methods[method] -= callback;
 }
 
 void ConnectionManager::SendMessage(JsonRpcMessage::Ptr message)
 {
-	/* TODO: filter messages based on event subscriptions */
+	/* TODO: filter messages based on event subscriptions; also loopback message to our own handlers */
 	for (list<JsonRpcClient::Ptr>::iterator i = m_Clients.begin(); i != m_Clients.end(); i++)
 	{
 		JsonRpcClient::Ptr client = *i;

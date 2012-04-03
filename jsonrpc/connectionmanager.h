@@ -24,8 +24,8 @@ public:
 	void RegisterClient(JsonRpcClient::Ptr client);
 	void UnregisterClient(JsonRpcClient::Ptr client);
 
-	void RegisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> function);
-	void UnregisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> function);
+	void RegisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> callback);
+	void UnregisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> callback);
 
 	void SendMessage(JsonRpcMessage::Ptr message);
 };
