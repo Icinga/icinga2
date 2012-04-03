@@ -71,7 +71,8 @@ void ConnectionManager::RegisterMethod(string method, function<int (NewMessageEv
 
 void ConnectionManager::UnregisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> callback)
 {
-	m_Methods[method] -= callback;
+	// TODO: implement
+	//m_Methods[method] -= callback;
 }
 
 void ConnectionManager::SendMessage(JsonRpcMessage::Ptr message)

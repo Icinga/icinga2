@@ -13,6 +13,7 @@ private:
 	ConfigHive::Ptr m_ConfigHive;
 	map< string, shared_ptr<Component> > m_Components;
 	vector<string> m_Arguments;
+	bool m_Debugging;
 
 public:
 	typedef shared_ptr<Application> Ptr;
@@ -42,6 +43,8 @@ public:
 	void AddComponentSearchDir(const string& componentDirectory);
 
 	const string& GetExeDirectory(void);
+
+	bool IsDebugging(void) const;
 };
 
 template<class T>
@@ -58,32 +61,32 @@ int application_main(int argc, char **argv)
 
 	Application::Instance->SetArguments(args);
 
-#ifndef _DEBUG
-	try {
-#endif /* !_DEBUG */
+	if (Application::Instance->IsDebugging()) {
 		result = Application::Instance->Main(args);
-#ifndef _DEBUG
-	} catch (const Exception& ex) {
-		cout << "---" << endl;
+	} else {
+		try {
+			result = Application::Instance->Main(args);
+		} catch (const Exception& ex) {
+			cout << "---" << endl;
 
-		string klass = typeid(ex).name();
+			string klass = typeid(ex).name();
 
-#ifdef HAVE_GCC_ABI_DEMANGLE
-		int status;
-		char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
+	#ifdef HAVE_GCC_ABI_DEMANGLE
+			int status;
+			char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
 
-		if (realname != NULL) {
-			klass = string(realname);
-			free(realname);
+			if (realname != NULL) {
+				klass = string(realname);
+				free(realname);
+			}
+	#endif /* HAVE_GCC_ABI_DEMANGLE */
+
+			cout << "Exception: " << klass << endl;
+			cout << "Message: " << ex.GetMessage() << endl;
+
+			return EXIT_FAILURE;
 		}
-#endif /* HAVE_GCC_ABI_DEMANGLE */
-
-		cout << "Exception: " << klass << endl;
-		cout << "Message: " << ex.GetMessage() << endl;
-
-		return EXIT_FAILURE;
 	}
-#endif /* !_DEBUG */
 
 	Application::Instance.reset();
 
