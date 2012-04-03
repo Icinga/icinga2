@@ -50,7 +50,7 @@ int ConnectionManager::NewMessageHandler(NewMessageEventArgs::Ptr nmea)
 	i = m_Methods.find(request->GetMethod());
 
 	if (i == m_Methods.end()) {
-		JsonRpcMessage::Ptr response = new_object<JsonRpcMessage>();
+		JsonRpcMessage::Ptr response = make_shared<JsonRpcMessage>();
 		response->SetVersion("2.0");
 		response->SetError("Unknown method.");
 		response->SetID(request->GetID());

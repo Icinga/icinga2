@@ -4,8 +4,8 @@ using namespace icinga;
 
 TCPClient::TCPClient(void)
 {
-	m_SendQueue = new_object<FIFO>();
-	m_RecvQueue = new_object<FIFO>();
+	m_SendQueue = make_shared<FIFO>();
+	m_RecvQueue = make_shared<FIFO>();
 }
 
 void TCPClient::Start(void)
@@ -48,7 +48,7 @@ int TCPClient::ReadableEventHandler(EventArgs::Ptr ea)
 
 	m_RecvQueue->Write(NULL, rc);
 
-	EventArgs::Ptr dea = new_object<EventArgs>();
+	EventArgs::Ptr dea = make_shared<EventArgs>();
 	dea->Source = shared_from_this();
 	OnDataAvailable(dea);
 

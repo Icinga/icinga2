@@ -30,9 +30,9 @@ int JsonRpcClient::DataAvailableHandler(EventArgs::Ptr ea)
 		if (json == NULL)
 			break;
 
-		JsonRpcMessage::Ptr msg = new_object<JsonRpcMessage>();
+		JsonRpcMessage::Ptr msg = make_shared<JsonRpcMessage>();
 		msg->SetJSON(json);
-		NewMessageEventArgs::Ptr nea = new_object<NewMessageEventArgs>();
+		NewMessageEventArgs::Ptr nea = make_shared<NewMessageEventArgs>();
 		nea->Source = shared_from_this();
 		nea->Message = msg;
 		OnNewMessage(nea);

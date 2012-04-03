@@ -52,7 +52,7 @@ void Socket::Close(bool from_dtor)
 
 		/* nobody can possibly have a valid event subscription when the destructor has been called */
 		if (!from_dtor) {
-			EventArgs::Ptr ea = new_object<EventArgs>();
+			EventArgs::Ptr ea = make_shared<EventArgs>();
 			ea->Source = shared_from_this();
 			OnClosed(ea);
 		}

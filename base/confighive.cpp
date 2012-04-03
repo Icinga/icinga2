@@ -17,7 +17,7 @@ void ConfigHive::AddObject(const ConfigObject::Ptr& object)
 	string name = object->GetName();
 	ti->second[name] = object;
 
-	ConfigHiveEventArgs::Ptr ea = new_object<ConfigHiveEventArgs>();
+	ConfigHiveEventArgs::Ptr ea = make_shared<ConfigHiveEventArgs>();
 	ea->Source = shared_from_this();
 	ea->Object = object;
 	OnObjectCreated(ea);
@@ -33,7 +33,7 @@ void ConfigHive::RemoveObject(const ConfigObject::Ptr& object)
 
 	ti->second.erase(object->GetName());
 
-	ConfigHiveEventArgs::Ptr ea = new_object<ConfigHiveEventArgs>();
+	ConfigHiveEventArgs::Ptr ea = make_shared<ConfigHiveEventArgs>();
 	ea->Source = shared_from_this();
 	ea->Object = object;
 	OnObjectRemoved(ea);

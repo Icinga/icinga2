@@ -40,7 +40,7 @@ void ConfigRpcComponent::Stop(void)
 
 JsonRpcMessage::Ptr ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
 {
-	JsonRpcMessage::Ptr msg = new_object<JsonRpcMessage>();
+	JsonRpcMessage::Ptr msg = make_shared<JsonRpcMessage>();
 	msg->SetVersion("2.0");
 	msg->SetMethod(method);
 	cJSON *params = msg->GetParams();

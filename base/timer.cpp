@@ -74,7 +74,7 @@ void Timer::StopAllTimers(void)
  * the timer that originally invoked the delegate */
 void Timer::Call(void)
 {
-	TimerEventArgs::Ptr ea = new_object<TimerEventArgs>();
+	TimerEventArgs::Ptr ea = make_shared<TimerEventArgs>();
 	ea->Source = shared_from_this();
 	ea->UserArgs = m_UserArgs;
 	OnTimerExpired(ea);

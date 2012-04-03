@@ -39,7 +39,7 @@ int TCPServer::ReadableEventHandler(EventArgs::Ptr ea)
 
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
-	NewClientEventArgs::Ptr nea = new_object<NewClientEventArgs>();
+	NewClientEventArgs::Ptr nea = make_shared<NewClientEventArgs>();
 	nea->Source = shared_from_this();
 	nea->Client = static_pointer_cast<TCPSocket>(m_ClientFactory());
 	nea->Client->SetFD(fd);

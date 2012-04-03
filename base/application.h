@@ -49,7 +49,7 @@ int application_main(int argc, char **argv)
 {
 	int result;
 
-	Application::Instance = new_object<T>();
+	Application::Instance = make_shared<T>();
 
 	vector<string> args;
 

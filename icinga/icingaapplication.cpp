@@ -11,7 +11,7 @@ using namespace icinga;
 
 IcingaApplication::IcingaApplication(void)
 {
-	m_ConnectionManager = new_object<ConnectionManager>();
+	m_ConnectionManager = make_shared<ConnectionManager>();
 }
 
 int IcingaApplication::Main(const vector<string>& args)
@@ -33,7 +33,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	GetConfigHive()->OnObjectCreated += bind_weak(&IcingaApplication::ConfigObjectCreatedHandler, shared_from_this());
 	GetConfigHive()->OnObjectRemoved += bind_weak(&IcingaApplication::ConfigObjectRemovedHandler, shared_from_this());
 
-	ConfigObject::Ptr fileComponentConfig = new_object<ConfigObject>();
+	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>();
 	fileComponentConfig->SetName("configfilecomponent");
 	fileComponentConfig->SetType("component");
 	fileComponentConfig->SetProperty("configFilename", args[1]);

@@ -18,7 +18,7 @@ Application::Application(void)
 #endif /* _WIN32 */
 
 	m_ShuttingDown = false;
-	m_ConfigHive = new_object<ConfigHive>();
+	m_ConfigHive = make_shared<ConfigHive>();
 }
 
 Application::~Application(void)
@@ -94,7 +94,7 @@ void Application::RunEventLoop(void)
 		else if (ready == 0)
 			continue;
 
-		EventArgs::Ptr ea = new_object<EventArgs>();
+		EventArgs::Ptr ea = make_shared<EventArgs>();
 		ea->Source = shared_from_this();
 
 		list<Socket::WeakPtr>::iterator prev, i;

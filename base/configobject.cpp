@@ -38,7 +38,7 @@ void ConfigObject::SetProperty(const string& name, const string& value)
 
 	ConfigHive::Ptr hive = m_Hive.lock();
 	if (hive.get() != NULL) {
-		ConfigHiveEventArgs::Ptr ea = new_object<ConfigHiveEventArgs>();
+		ConfigHiveEventArgs::Ptr ea = make_shared<ConfigHiveEventArgs>();
 		ea->Source = hive;
 		ea->Object = static_pointer_cast<ConfigObject>(shared_from_this());
 		ea->Property = name;

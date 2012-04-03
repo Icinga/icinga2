@@ -13,7 +13,7 @@ string ConfigFileComponent::GetName(void)
 void ConfigFileComponent::Start(void)
 {
 	ifstream fp;
-	FIFO::Ptr fifo = new_object<FIFO>();
+	FIFO::Ptr fifo = make_shared<FIFO>();
 
 	string filename;
 	if (!GetConfig()->GetProperty("configFilename", &filename))
@@ -51,7 +51,7 @@ void ConfigFileComponent::Start(void)
 		for (cJSON *object = typeobj->child; object != NULL; object = object->next) {
 			string name = object->string;
 
-			ConfigObject::Ptr cfgobj = new_object<ConfigObject>();
+			ConfigObject::Ptr cfgobj = make_shared<ConfigObject>();
 			cfgobj->SetName(name);
 			cfgobj->SetType(type);
 
