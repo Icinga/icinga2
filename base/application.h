@@ -45,7 +45,13 @@ public:
 	const string& GetExeDirectory(void);
 
 	bool IsDebugging(void) const;
+	void SigIntHandler(int signum);
 };
+
+inline void sigint_handler(int signum)
+{
+	Application::Instance->SigIntHandler(signum);
+}
 
 template<class T>
 int application_main(int argc, char **argv)
@@ -53,6 +59,13 @@ int application_main(int argc, char **argv)
 	int result;
 
 	Application::Instance = make_shared<T>();
+
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = sigint_handler;
+	sigaction(SIGINT, &sa, NULL);
+#endif /* _WIN32 */
 
 	vector<string> args;
 
@@ -71,7 +84,7 @@ int application_main(int argc, char **argv)
 
 			string klass = typeid(ex).name();
 
-	#ifdef HAVE_GCC_ABI_DEMANGLE
+#ifdef HAVE_GCC_ABI_DEMANGLE
 			int status;
 			char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
 
@@ -79,7 +92,7 @@ int application_main(int argc, char **argv)
 				klass = string(realname);
 				free(realname);
 			}
-	#endif /* HAVE_GCC_ABI_DEMANGLE */
+#endif /* HAVE_GCC_ABI_DEMANGLE */
 
 			cout << "Exception: " << klass << endl;
 			cout << "Message: " << ex.GetMessage() << endl;

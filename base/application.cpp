@@ -359,3 +359,15 @@ bool Application::IsDebugging(void) const
 {
 	return m_Debugging;
 }
+
+void Application::SigIntHandler(int signum)
+{
+	Application::Instance->Shutdown();
+
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGINT, &sa, NULL);
+#endif /* _WIN32 */
+}
