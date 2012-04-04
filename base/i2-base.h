@@ -37,9 +37,11 @@ using namespace std::placeholders;
 #else
 #	include <tr1/memory>
 #	include <tr1/functional>
-#	include "cxx11-compat.h"
+
 using namespace std::tr1;
 using namespace std::tr1::placeholders;
+
+#	include "cxx11-compat.h"
 #endif
 
 #define PLATFORM_WINDOWS 1
@@ -68,6 +70,7 @@ using namespace std::tr1::placeholders;
 #include "tcpclient.h"
 #include "tcpserver.h"
 #include "configobject.h"
+#include "configcollection.h"
 #include "confighive.h"
 #include "application.h"
 #include "component.h"

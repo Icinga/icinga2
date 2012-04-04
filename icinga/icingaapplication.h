@@ -9,8 +9,11 @@ class IcingaApplication : public Application
 private:
 	ConnectionManager::Ptr m_ConnectionManager;
 
-	int ConfigObjectCreatedHandler(ConfigHiveEventArgs::Ptr ea);
-	int ConfigObjectRemovedHandler(ConfigHiveEventArgs::Ptr ea);
+	int NewComponentHandler(ConfigObjectEventArgs::Ptr ea);
+	int DeletedComponentHandler(ConfigObjectEventArgs::Ptr ea);
+
+	int NewRpcListenerHandler(ConfigObjectEventArgs::Ptr ea);
+	int DeletedRpcListenerHandler(ConfigObjectEventArgs::Ptr ea);
 
 public:
 	typedef shared_ptr<IcingaApplication> Ptr;

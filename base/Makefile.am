@@ -11,6 +11,8 @@ libbase_la_SOURCES =  \
 	component.h \
 	condvar.cpp \
 	condvar.h \
+	configcollection.cpp \
+	configcollection.h \
 	confighive.cpp \
 	confighive.h \
 	configobject.cpp \

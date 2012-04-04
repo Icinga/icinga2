@@ -51,9 +51,7 @@ void ConfigFileComponent::Start(void)
 		for (cJSON *object = typeobj->child; object != NULL; object = object->next) {
 			string name = object->string;
 
-			ConfigObject::Ptr cfgobj = make_shared<ConfigObject>();
-			cfgobj->SetName(name);
-			cfgobj->SetType(type);
+			ConfigObject::Ptr cfgobj = make_shared<ConfigObject>(type, name);
 
 			for (cJSON *property = object->child; property != NULL; property = property->next) {
 				string key = property->string;

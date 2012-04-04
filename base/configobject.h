@@ -8,6 +8,15 @@ namespace icinga
 
 class ConfigHive;
 
+struct ConfigObjectEventArgs : public EventArgs
+{
+	typedef shared_ptr<ConfigObjectEventArgs> Ptr;
+	typedef weak_ptr<ConfigObjectEventArgs> WeakPtr;
+
+	string Property;
+	string OldValue;
+};
+
 class ConfigObject : public Object
 {
 private:
@@ -23,7 +32,9 @@ public:
 	typedef map<string, string>::iterator ParameterIterator;
 	map<string, string> Properties;
 
-	void SetHive(const weak_ptr<ConfigHive>& name);
+	ConfigObject(const string& type, const string& name);
+
+	void SetHive(const weak_ptr<ConfigHive>& hive);
 	weak_ptr<ConfigHive> GetHive(void) const;
 
 	void SetName(const string& name);

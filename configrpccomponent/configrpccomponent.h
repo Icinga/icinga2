@@ -11,9 +11,9 @@ private:
 
 	int FetchObjectsHandler(NewMessageEventArgs::Ptr ea);
 
-	int LocalObjectCreatedHandler(ConfigHiveEventArgs::Ptr ea);
-	int LocalObjectRemovedHandler(ConfigHiveEventArgs::Ptr ea);
-	int LocalPropertyChangedHandler(ConfigHiveEventArgs::Ptr ea);
+	int LocalObjectCreatedHandler(ConfigObjectEventArgs::Ptr ea);
+	int LocalObjectRemovedHandler(ConfigObjectEventArgs::Ptr ea);
+	int LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr ea);
 
 	int RemoteObjectCreatedHandler(NewMessageEventArgs::Ptr ea);
 	int RemoteObjectRemovedHandler(NewMessageEventArgs::Ptr ea);

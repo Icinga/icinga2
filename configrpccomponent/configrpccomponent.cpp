@@ -65,8 +65,10 @@ int ConfigRpcComponent::FetchObjectsHandler(NewMessageEventArgs::Ptr ea)
 	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea->Source);
 	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
 
-	for (ConfigHive::TypeIterator ti = configHive->Objects.begin(); ti != configHive->Objects.end(); ti++) {
-		for (ConfigHive::ObjectIterator oi = ti->second.begin(); oi != ti->second.end(); oi++) {
+	for (ConfigHive::CollectionIterator ci = configHive->Collections.begin(); ci != configHive->Collections.end(); ci++) {
+		ConfigCollection::Ptr collection = ci->second;
+
+		for (ConfigCollection::ObjectIterator oi = collection->Objects.begin(); oi != collection->Objects.end(); oi++) {
 			JsonRpcMessage::Ptr msg = MakeObjectMessage(oi->second, "config::ObjectCreated", true);
 			client->SendMessage(msg);
 		}
@@ -75,29 +77,32 @@ int ConfigRpcComponent::FetchObjectsHandler(NewMessageEventArgs::Ptr ea)
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigHiveEventArgs::Ptr ea)
+int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigObjectEventArgs::Ptr ea)
 {
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
 	ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
-	connectionManager->SendMessage(MakeObjectMessage(ea->Object, "config::ObjectCreated", true));
+	connectionManager->SendMessage(MakeObjectMessage(object, "config::ObjectCreated", true));
 
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigHiveEventArgs::Ptr ea)
+int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigObjectEventArgs::Ptr ea)
 {
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
 	ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
-	connectionManager->SendMessage(MakeObjectMessage(ea->Object, "config::ObjectRemoved", false));
+	connectionManager->SendMessage(MakeObjectMessage(object, "config::ObjectRemoved", false));
 
 	return 0;
 }
 
-int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigHiveEventArgs::Ptr ea)
+int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr ea)
 {
-	JsonRpcMessage::Ptr msg = MakeObjectMessage(ea->Object, "config::ObjectRemoved", false);
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
+	JsonRpcMessage::Ptr msg = MakeObjectMessage(object, "config::ObjectRemoved", false);
 	cJSON *params = msg->GetParams();
 	cJSON_AddStringToObject(params, "property", ea->Property.c_str());
 	string value;
-	ea->Object->GetProperty(ea->Property, &value);
+	object->GetProperty(ea->Property, &value);
 	cJSON_AddStringToObject(params, "value", value.c_str());
 
 	ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
