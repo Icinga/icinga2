@@ -27,5 +27,9 @@ void TCPSocket::Bind(const char *hostname, unsigned short port)
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = hostname ? inet_addr(hostname) : htonl(INADDR_ANY);
 	sin.sin_port = htons(port);
-	::bind(GetFD(), (sockaddr *)&sin, sizeof(sin));
+
+	int rc = ::bind(GetFD(), (sockaddr *)&sin, sizeof(sin));
+
+	if (rc < 0)
+		Close();
 }

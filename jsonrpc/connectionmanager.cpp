@@ -2,6 +2,28 @@
 
 using namespace icinga;
 
+void ConnectionManager::AddListener(unsigned short port)
+{
+	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>();
+	RegisterServer(server);
+
+	server->MakeSocket();
+	server->Bind(port);
+	server->Listen();
+	server->Start();
+}
+
+void ConnectionManager::AddConnection(string host, short port)
+{
+	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>();
+	RegisterClient(client);
+
+	client->MakeSocket();
+	client->Connect(host, port);
+	client->Start();
+}
+
+
 void ConnectionManager::RegisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.push_front(server);
@@ -18,6 +40,7 @@ void ConnectionManager::RegisterClient(JsonRpcClient::Ptr client)
 {
 	m_Clients.push_front(client);
 	client->OnNewMessage += bind_weak(&ConnectionManager::NewMessageHandler, shared_from_this());
+	client->OnClosed += bind_weak(&ConnectionManager::CloseClientHandler, shared_from_this());
 }
 
 void ConnectionManager::UnregisterClient(JsonRpcClient::Ptr client)
@@ -36,7 +59,28 @@ int ConnectionManager::NewClientHandler(NewClientEventArgs::Ptr ncea)
 
 int ConnectionManager::CloseClientHandler(EventArgs::Ptr ea)
 {
-	UnregisterClient(static_pointer_cast<JsonRpcClient>(ea->Source));
+	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea->Source);
+	UnregisterClient(client);
+
+	Timer::Ptr timer = make_shared<Timer>();
+	timer->SetInterval(30);
+	timer->SetUserArgs(ea);
+	timer->OnTimerExpired += bind_weak(&ConnectionManager::ReconnectClientHandler, shared_from_this());
+	timer->Start();
+	m_ReconnectTimers.push_front(timer);
+
+	return 0;
+}
+
+int ConnectionManager::ReconnectClientHandler(TimerEventArgs::Ptr ea)
+{
+	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea->UserArgs->Source);
+	Timer::Ptr timer = static_pointer_cast<Timer>(ea->Source);
+
+	AddConnection(client->GetPeerHost(), client->GetPeerPort());
+
+	timer->Stop();
+	m_ReconnectTimers.remove(timer);
 
 	return 0;
 }

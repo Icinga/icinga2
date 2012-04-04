@@ -3,10 +3,23 @@
 
 namespace icinga {
 
+struct SocketErrorEventArgs : public EventArgs
+{
+	typedef shared_ptr<SocketErrorEventArgs> Ptr;
+	typedef weak_ptr<SocketErrorEventArgs> WeakPtr;
+
+	int Code;
+	string Message;
+};
+
 class Socket : public Object
 {
 private:
 	SOCKET m_FD;
+
+	int ExceptionEventHandler(EventArgs::Ptr ea);
+
+	string FormatErrorCode(int errorCode);
 
 protected:
 	Socket(void);
@@ -30,6 +43,7 @@ public:
 	event<EventArgs::Ptr> OnWritable;
 	event<EventArgs::Ptr> OnException;
 
+	event<SocketErrorEventArgs::Ptr> OnError;
 	event<EventArgs::Ptr> OnClosed;
 
 	virtual bool WantsToRead(void) const;

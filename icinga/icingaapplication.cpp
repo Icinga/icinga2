@@ -30,28 +30,33 @@ int IcingaApplication::Main(const vector<string>& args)
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga";
 	AddComponentSearchDir(componentDirectory);
 
-	function<int (ConfigObjectEventArgs::Ptr)> NewComponentHandler;
-	NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
 	ConfigCollection::Ptr componentCollection = GetConfigHive()->GetCollection("component");
+
+	function<int (ConfigObjectEventArgs::Ptr)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
 	componentCollection->OnObjectCreated += NewComponentHandler;
 	componentCollection->ForEachObject(NewComponentHandler);
 
-	function<int (ConfigObjectEventArgs::Ptr)> DeletedComponentHandler;
-	DeletedComponentHandler = bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
-	componentCollection->OnObjectRemoved += DeletedComponentHandler;
+	componentCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
 
-	function<int (ConfigObjectEventArgs::Ptr)> NewRpcListenerHandler;
-	NewRpcListenerHandler = bind_weak(&IcingaApplication::NewRpcListenerHandler, shared_from_this());
 	ConfigCollection::Ptr listenerCollection = GetConfigHive()->GetCollection("rpclistener");
+
+	function<int (ConfigObjectEventArgs::Ptr)> NewRpcListenerHandler = bind_weak(&IcingaApplication::NewRpcListenerHandler, shared_from_this());
 	listenerCollection->OnObjectCreated += NewRpcListenerHandler;
 	listenerCollection->ForEachObject(NewRpcListenerHandler);
 
-	function<int (ConfigObjectEventArgs::Ptr)> DeletedRpcListenerHandler;
-	DeletedRpcListenerHandler = bind_weak(&IcingaApplication::DeletedRpcListenerHandler, shared_from_this());
-	listenerCollection->OnObjectRemoved += DeletedRpcListenerHandler;
+	listenerCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcListenerHandler, shared_from_this());
+
+	ConfigCollection::Ptr connectionCollection = GetConfigHive()->GetCollection("rpcconnection");
+
+	function<int (ConfigObjectEventArgs::Ptr)> NewRpcConnectionHandler = bind_weak(&IcingaApplication::NewRpcConnectionHandler, shared_from_this());
+	connectionCollection->OnObjectCreated += NewRpcConnectionHandler;
+	connectionCollection->ForEachObject(NewRpcConnectionHandler);
+
+	connectionCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcConnectionHandler, shared_from_this());
 
 	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfilecomponent");
 	fileComponentConfig->SetProperty("configFilename", args[1]);
+	fileComponentConfig->SetPropertyInteger("replicate", 0);
 	GetConfigHive()->AddObject(fileComponentConfig);
 
 	ConfigCollection::Ptr collection = GetConfigHive()->GetCollection("rpclistener");
@@ -109,10 +114,7 @@ int IcingaApplication::NewRpcListenerHandler(ConfigObjectEventArgs::Ptr ea)
 
 	Log("Creating JSON-RPC listener on port %d", port);
 
-	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>();
-	server->Bind(port);
-	server->Start();
-	GetConnectionManager()->RegisterServer(server);
+	GetConnectionManager()->AddListener(port);
 
 	return 0;
 }
@@ -123,5 +125,32 @@ int IcingaApplication::DeletedRpcListenerHandler(ConfigObjectEventArgs::Ptr ea)
 
 	return 0;
 }
+
+int IcingaApplication::NewRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea)
+{
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
+	string hostname;
+	int port;
+
+	if (!object->GetProperty("hostname", &hostname))
+		throw Exception("Parameter 'hostname' is required for 'rpcconnection' objects.");
+
+	if (!object->GetPropertyInteger("port", &port))
+		throw Exception("Parameter 'port' is required for 'rpcconnection' objects.");
+
+	Log("Creating JSON-RPC connection to %s:%d", hostname.c_str(), port);
+
+	GetConnectionManager()->AddConnection(hostname, port);
+
+	return 0;
+}
+
+int IcingaApplication::DeletedRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea)
+{
+	throw Exception("Unsupported operation.");
+
+	return 0;
+}
+
 
 SET_START_CLASS(icinga::IcingaApplication);

@@ -15,6 +15,9 @@ private:
 	int NewRpcListenerHandler(ConfigObjectEventArgs::Ptr ea);
 	int DeletedRpcListenerHandler(ConfigObjectEventArgs::Ptr ea);
 
+	int NewRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea);
+	int DeletedRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea);
+
 public:
 	typedef shared_ptr<IcingaApplication> Ptr;
 	typedef weak_ptr<IcingaApplication> WeakPtr;

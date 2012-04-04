@@ -57,6 +57,22 @@ void ConfigObject::SetProperty(const string& name, const string& value)
 	}
 }
 
+void ConfigObject::SetPropertyInteger(const string& name, int value)
+{
+	char valueString[20];
+	sprintf(valueString, "%d", value);
+
+	SetProperty(name, string(valueString));
+}
+
+void ConfigObject::SetPropertyDouble(const string& name, double value)
+{
+	char valueString[20];
+	sprintf(valueString, "%f", value);
+
+	SetProperty(name, string(valueString));
+}
+
 bool ConfigObject::GetProperty(const string& name, string *value) const
 {
 	map<string, string>::const_iterator vi = Properties.find(name);

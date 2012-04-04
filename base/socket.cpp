@@ -16,6 +16,8 @@ Socket::~Socket(void)
 
 void Socket::Start(void)
 {
+	OnException += bind_weak(&Socket::ExceptionEventHandler, shared_from_this());
+
 	Sockets.push_front(static_pointer_cast<Socket>(shared_from_this()));
 }
 
@@ -60,6 +62,49 @@ void Socket::Close(bool from_dtor)
 
 	if (!from_dtor)
 		Stop();
+}
+
+string Socket::FormatErrorCode(int code)
+{
+	char *message;
+	string result = "Unknown socket error.";
+
+#ifdef _WIN32
+	if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, code, 0, (char *)&message, 0, NULL) != 0) {
+		result = string(message);
+		LocalFree(message);
+	}
+#else /* _WIN32 */
+	if (code != 0)
+		message = strerror(code);
+
+	result = string(message);
+#endif /* _WIN32 */
+
+	return result;
+}
+
+int Socket::ExceptionEventHandler(EventArgs::Ptr ea)
+{
+	int opt;
+	socklen_t optlen = sizeof(opt);
+
+	int rc = getsockopt(GetFD(), SOL_SOCKET, SO_ERROR, (char *)&opt, &optlen);
+
+	if (rc < 0) {
+		Close();
+		return 0;
+	}
+
+	if (opt != 0) {
+		SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
+		ea->Code = opt;
+		ea->Message = FormatErrorCode(opt);
+		Close();
+
+	}
+
+	return 0;
 }
 
 void Socket::CloseAllSockets(void)

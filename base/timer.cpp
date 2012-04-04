@@ -90,6 +90,17 @@ unsigned int Timer::GetInterval(void) const
 	return m_Interval;
 }
 
+void Timer::SetUserArgs(const EventArgs::Ptr& userArgs)
+{
+	m_UserArgs = userArgs;
+}
+
+
+EventArgs::Ptr Timer::GetUserArgs(void) const
+{
+	return m_UserArgs;
+}
+
 void Timer::Start(void)
 {
 	Stop();

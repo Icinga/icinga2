@@ -6,6 +6,8 @@ TCPClient::TCPClient(void)
 {
 	m_SendQueue = make_shared<FIFO>();
 	m_RecvQueue = make_shared<FIFO>();
+
+	m_PeerPort = 0;
 }
 
 void TCPClient::Start(void)
@@ -16,6 +18,35 @@ void TCPClient::Start(void)
 	OnWritable += bind_weak(&TCPClient::WritableEventHandler, shared_from_this());
 }
 
+void TCPClient::Connect(const string& hostname, unsigned short port)
+{
+	hostent *hent;
+	sockaddr_in sin;
+
+	memset(&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(port);
+
+	hent = gethostbyname(hostname.c_str());
+
+	if (hent != NULL)
+		sin.sin_addr.s_addr = ((in_addr *)hent->h_addr_list[0])->s_addr;
+	else
+		sin.sin_addr.s_addr = inet_addr(hostname.c_str());
+
+	int rc = connect(GetFD(), (sockaddr *)&sin, sizeof(sin));
+
+#ifdef _WIN32
+	if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
+#else /* _WIN32 */
+	if (rc < 0 && errno != EINPROGRESS)
+#endif /* _WIN32 */
+		Close();
+
+	m_PeerHost = hostname;
+	m_PeerPort = port;
+}
+
 FIFO::Ptr TCPClient::GetSendQueue(void)
 {
 	return m_SendQueue;
@@ -24,6 +55,17 @@ FIFO::Ptr TCPClient::GetSendQueue(void)
 FIFO::Ptr TCPClient::GetRecvQueue(void)
 {
 	return m_RecvQueue;
+}
+
+
+string TCPClient::GetPeerHost(void)
+{
+	return m_PeerHost;
+}
+
+int TCPClient::GetPeerPort(void)
+{
+	return m_PeerPort;
 }
 
 int TCPClient::ReadableEventHandler(EventArgs::Ptr ea)

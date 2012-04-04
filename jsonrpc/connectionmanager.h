@@ -9,20 +9,24 @@ class ConnectionManager : public Object
 	list<JsonRpcServer::Ptr> m_Servers;
 	list<JsonRpcClient::Ptr> m_Clients;
 	map< string, event<NewMessageEventArgs::Ptr> > m_Methods;
+	list<Timer::Ptr> m_ReconnectTimers;
 
 	int NewClientHandler(NewClientEventArgs::Ptr ncea);
 	int CloseClientHandler(EventArgs::Ptr ea);
+	int ReconnectClientHandler(TimerEventArgs::Ptr ea);
 	int NewMessageHandler(NewMessageEventArgs::Ptr nmea);
 
+	void RegisterClient(JsonRpcClient::Ptr server);
+	void UnregisterClient(JsonRpcClient::Ptr server);
+
+	void RegisterServer(JsonRpcServer::Ptr server);
+	void UnregisterServer(JsonRpcServer::Ptr server);
 public:
 	typedef shared_ptr<ConnectionManager> Ptr;
 	typedef weak_ptr<ConnectionManager> WeakPtr;
 
-	void RegisterServer(JsonRpcServer::Ptr server);
-	void UnregisterServer(JsonRpcServer::Ptr server);
-
-	void RegisterClient(JsonRpcClient::Ptr client);
-	void UnregisterClient(JsonRpcClient::Ptr client);
+	void AddListener(unsigned short port);
+	void AddConnection(string host, short port);
 
 	void RegisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> callback);
 	void UnregisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> callback);

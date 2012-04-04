@@ -80,8 +80,14 @@ int ConfigRpcComponent::FetchObjectsHandler(NewMessageEventArgs::Ptr ea)
 int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigObjectEventArgs::Ptr ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
-	ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
-	connectionManager->SendMessage(MakeObjectMessage(object, "config::ObjectCreated", true));
+	
+	int replicate = 0;
+	object->GetPropertyInteger("replicate", &replicate);
+
+	if (replicate) {
+		ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
+		connectionManager->SendMessage(MakeObjectMessage(object, "config::ObjectCreated", true));
+	}
 
 	return 0;
 }
@@ -89,8 +95,14 @@ int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigObjectEventArgs::Ptr ea)
 int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigObjectEventArgs::Ptr ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
-	ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
-	connectionManager->SendMessage(MakeObjectMessage(object, "config::ObjectRemoved", false));
+	
+	int replicate = 0;
+	object->GetPropertyInteger("replicate", &replicate);
+
+	if (replicate) {
+		ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
+		connectionManager->SendMessage(MakeObjectMessage(object, "config::ObjectRemoved", false));
+	}
 
 	return 0;
 }
@@ -98,15 +110,21 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigObjectEventArgs::Ptr ea)
 int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
-	JsonRpcMessage::Ptr msg = MakeObjectMessage(object, "config::ObjectRemoved", false);
-	cJSON *params = msg->GetParams();
-	cJSON_AddStringToObject(params, "property", ea->Property.c_str());
-	string value;
-	object->GetProperty(ea->Property, &value);
-	cJSON_AddStringToObject(params, "value", value.c_str());
+	
+	int replicate = 0;
+	object->GetPropertyInteger("replicate", &replicate);
 
-	ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
-	connectionManager->SendMessage(msg);
+	if (replicate) {
+		JsonRpcMessage::Ptr msg = MakeObjectMessage(object, "config::ObjectRemoved", false);
+		cJSON *params = msg->GetParams();
+		cJSON_AddStringToObject(params, "property", ea->Property.c_str());
+		string value;
+		object->GetProperty(ea->Property, &value);
+		cJSON_AddStringToObject(params, "value", value.c_str());
+
+		ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
+		connectionManager->SendMessage(msg);
+	}
 
 	return 0;
 }
