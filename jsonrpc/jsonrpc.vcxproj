@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cJSON.h" />
-    <ClInclude Include="connectionmanager.h" />
     <ClInclude Include="i2-jsonrpc.h" />
     <ClInclude Include="jsonrpcclient.h" />
     <ClInclude Include="jsonrpcmessage.h" />
@@ -21,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cJSON.c" />
-    <ClCompile Include="connectionmanager.cpp" />
     <ClCompile Include="jsonrpcclient.cpp" />
     <ClCompile Include="jsonrpcmessage.cpp" />
     <ClCompile Include="jsonrpcserver.cpp" />

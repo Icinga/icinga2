@@ -4,6 +4,7 @@
 #include <i2-base.h>
 #include <i2-jsonrpc.h>
 
+#include "connectionmanager.h"
 #include "icingaapplication.h"
 
 #endif /* I2ICINGA_H */

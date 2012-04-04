@@ -5,6 +5,8 @@ bin_PROGRAMS =  \
 	icinga
 
 icinga_SOURCES =  \
+	connectionmanager.cpp \
+	connectionmanager.h \
 	icingaapplication.cpp \
 	icingaapplication.h \
 	i2-icinga.h

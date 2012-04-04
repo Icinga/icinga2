@@ -10,9 +10,11 @@ class ConnectionManager : public Object
 	list<JsonRpcClient::Ptr> m_Clients;
 	map< string, event<NewMessageEventArgs::Ptr> > m_Methods;
 	list<Timer::Ptr> m_ReconnectTimers;
+	string m_Identity;
 
 	int NewClientHandler(NewClientEventArgs::Ptr ncea);
 	int CloseClientHandler(EventArgs::Ptr ea);
+	int ErrorClientHandler(SocketErrorEventArgs::Ptr ea);
 	int ReconnectClientHandler(TimerEventArgs::Ptr ea);
 	int NewMessageHandler(NewMessageEventArgs::Ptr nmea);
 
@@ -24,6 +26,9 @@ class ConnectionManager : public Object
 public:
 	typedef shared_ptr<ConnectionManager> Ptr;
 	typedef weak_ptr<ConnectionManager> WeakPtr;
+
+	void SetIdentity(string identity);
+	string GetIdentity(void);
 
 	void AddListener(unsigned short port);
 	void AddConnection(string host, short port);

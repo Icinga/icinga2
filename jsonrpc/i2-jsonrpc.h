@@ -9,6 +9,5 @@
 #include "jsonrpcmessage.h"
 #include "jsonrpcclient.h"
 #include "jsonrpcserver.h"
-#include "connectionmanager.h"
 
 #endif /* I2JSONRPC_H */

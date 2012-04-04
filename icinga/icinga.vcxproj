@@ -81,9 +81,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="connectionmanager.cpp" />
     <ClCompile Include="icingaapplication.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="connectionmanager.h" />
     <ClInclude Include="icingaapplication.h" />
     <ClInclude Include="i2-icinga.h" />
   </ItemGroup>

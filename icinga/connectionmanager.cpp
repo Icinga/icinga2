@@ -1,6 +1,16 @@
-#include "i2-jsonrpc.h"
+#include "i2-icinga.h"
 
 using namespace icinga;
+
+void ConnectionManager::SetIdentity(string identity)
+{
+	m_Identity = identity;
+}
+
+string ConnectionManager::GetIdentity(void)
+{
+	return m_Identity;
+}
 
 void ConnectionManager::AddListener(unsigned short port)
 {
@@ -23,7 +33,6 @@ void ConnectionManager::AddConnection(string host, short port)
 	client->Start();
 }
 
-
 void ConnectionManager::RegisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.push_front(server);
@@ -41,6 +50,7 @@ void ConnectionManager::RegisterClient(JsonRpcClient::Ptr client)
 	m_Clients.push_front(client);
 	client->OnNewMessage += bind_weak(&ConnectionManager::NewMessageHandler, shared_from_this());
 	client->OnClosed += bind_weak(&ConnectionManager::CloseClientHandler, shared_from_this());
+	client->OnError += bind_weak(&ConnectionManager::ErrorClientHandler, shared_from_this());
 }
 
 void ConnectionManager::UnregisterClient(JsonRpcClient::Ptr client)
@@ -62,12 +72,21 @@ int ConnectionManager::CloseClientHandler(EventArgs::Ptr ea)
 	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea->Source);
 	UnregisterClient(client);
 
-	Timer::Ptr timer = make_shared<Timer>();
-	timer->SetInterval(30);
-	timer->SetUserArgs(ea);
-	timer->OnTimerExpired += bind_weak(&ConnectionManager::ReconnectClientHandler, shared_from_this());
-	timer->Start();
-	m_ReconnectTimers.push_front(timer);
+	if (client->GetPeerHost() != string()) {
+		Timer::Ptr timer = make_shared<Timer>();
+		timer->SetInterval(30);
+		timer->SetUserArgs(ea);
+		timer->OnTimerExpired += bind_weak(&ConnectionManager::ReconnectClientHandler, shared_from_this());
+		timer->Start();
+		m_ReconnectTimers.push_front(timer);
+	}
+
+	return 0;
+}
+
+int ConnectionManager::ErrorClientHandler(SocketErrorEventArgs::Ptr ea)
+{
+	cout << "Error occured for JSON-RPC socket: Code=" << ea->Code << "; Message=" << ea->Message << endl;
 
 	return 0;
 }
