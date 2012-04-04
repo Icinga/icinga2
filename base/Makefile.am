@@ -17,6 +17,7 @@ libbase_la_SOURCES =  \
 	confighive.h \
 	configobject.cpp \
 	configobject.h \
+	cxx11-compat.h \
 	delegate.h \
 	event.h \
 	exception.cpp \

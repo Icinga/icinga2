@@ -17,6 +17,9 @@ Application::Application(void)
 	lt_dlinit();
 #endif /* _WIN32 */
 
+	char *debugging = getenv("_DEBUG");
+	m_Debugging = (debugging && strtol(debugging, NULL, 10) != 0);
+
 	m_ShuttingDown = false;
 	m_ConfigHive = make_shared<ConfigHive>();
 }
@@ -29,6 +32,8 @@ Application::~Application(void)
 	for (map<string, Component::Ptr>::iterator i = m_Components.begin(); i != m_Components.end(); i++) {
 		i->second->Stop();
 	}
+
+	m_Components.clear();
 
 #ifdef _WIN32
 	WSACleanup();
@@ -347,5 +352,22 @@ void Application::AddComponentSearchDir(const string& componentDirectory)
 	SetDllDirectory(componentDirectory.c_str());
 #else /* _WIN32 */
 	lt_dladdsearchdir(componentDirectory.c_str());
+#endif /* _WIN32 */
+}
+
+bool Application::IsDebugging(void) const
+{
+	return m_Debugging;
+}
+
+void Application::SigIntHandler(int signum)
+{
+	Application::Instance->Shutdown();
+
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGINT, &sa, NULL);
 #endif /* _WIN32 */
 }

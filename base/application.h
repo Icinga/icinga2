@@ -13,6 +13,7 @@ private:
 	ConfigHive::Ptr m_ConfigHive;
 	map< string, shared_ptr<Component> > m_Components;
 	vector<string> m_Arguments;
+	bool m_Debugging;
 
 public:
 	typedef shared_ptr<Application> Ptr;
@@ -42,7 +43,15 @@ public:
 	void AddComponentSearchDir(const string& componentDirectory);
 
 	const string& GetExeDirectory(void);
+
+	bool IsDebugging(void) const;
+	void SigIntHandler(int signum);
 };
+
+inline void sigint_handler(int signum)
+{
+	Application::Instance->SigIntHandler(signum);
+}
 
 template<class T>
 int application_main(int argc, char **argv)
@@ -51,6 +60,13 @@ int application_main(int argc, char **argv)
 
 	Application::Instance = make_shared<T>();
 
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = sigint_handler;
+	sigaction(SIGINT, &sa, NULL);
+#endif /* _WIN32 */
+
 	vector<string> args;
 
 	for (int i = 0; i < argc; i++)
@@ -58,32 +74,32 @@ int application_main(int argc, char **argv)
 
 	Application::Instance->SetArguments(args);
 
-#ifndef _DEBUG
-	try {
-#endif /* !_DEBUG */
+	if (Application::Instance->IsDebugging()) {
 		result = Application::Instance->Main(args);
-#ifndef _DEBUG
-	} catch (const Exception& ex) {
-		cout << "---" << endl;
+	} else {
+		try {
+			result = Application::Instance->Main(args);
+		} catch (const Exception& ex) {
+			cout << "---" << endl;
 
-		string klass = typeid(ex).name();
+			string klass = typeid(ex).name();
 
 #ifdef HAVE_GCC_ABI_DEMANGLE
-		int status;
-		char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
+			int status;
+			char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
 
-		if (realname != NULL) {
-			klass = string(realname);
-			free(realname);
-		}
+			if (realname != NULL) {
+				klass = string(realname);
+				free(realname);
+			}
 #endif /* HAVE_GCC_ABI_DEMANGLE */
 
-		cout << "Exception: " << klass << endl;
-		cout << "Message: " << ex.GetMessage() << endl;
+			cout << "Exception: " << klass << endl;
+			cout << "Message: " << ex.GetMessage() << endl;
 
-		return EXIT_FAILURE;
+			return EXIT_FAILURE;
+		}
 	}
-#endif /* !_DEBUG */
 
 	Application::Instance.reset();
 
