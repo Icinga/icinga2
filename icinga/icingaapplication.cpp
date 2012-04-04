@@ -80,7 +80,7 @@ int IcingaApplication::NewComponentHandler(ConfigObjectEventArgs::Ptr ea)
 #ifdef _WIN32
 		path = object->GetName() + ".dll";
 #else /* _WIN32 */
-		path = "lib" + ea->Object->GetName() + ".la";
+		path = "lib" + object->GetName() + ".la";
 #endif /* _WIN32 */
 
 		// TODO: try to figure out where the component is located */

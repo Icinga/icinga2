@@ -10,13 +10,13 @@ shared_ptr<T> make_shared(void)
 template <typename T, typename TArg1>
 shared_ptr<T> make_shared(const TArg1& arg1)
 {
-	return shared_ptr<T>(new T());
+	return shared_ptr<T>(new T(arg1));
 }
 
 template <typename T, typename TArg1, typename TArg2>
 shared_ptr<T> make_shared(const TArg1& arg1, const TArg2& arg2)
 {
-	return shared_ptr<T>(new T());
+	return shared_ptr<T>(new T(arg1, arg2));
 }
 
 #endif /* CXX11COMPAT_H */

@@ -12,5 +12,5 @@ icinga_SOURCES =  \
 icinga_CXXFLAGS = -I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc  -I${top_srcdir}
 
-icinga_LDFLAGS = $(top_builddir)/base/libbase.la \
-	$(top_builddir)/jsonrpc/libjsonrpc.la
+icinga_LDFLAGS = $(top_builddir)/jsonrpc/libjsonrpc.la \
+	$(top_builddir)/base/libbase.la
