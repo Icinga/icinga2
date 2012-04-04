@@ -15,9 +15,8 @@ private:
 	int LocalObjectRemovedHandler(ConfigObjectEventArgs::Ptr ea);
 	int LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr ea);
 
-	int RemoteObjectCreatedHandler(NewMessageEventArgs::Ptr ea);
+	int RemoteObjectUpdatedHandler(NewMessageEventArgs::Ptr ea);
 	int RemoteObjectRemovedHandler(NewMessageEventArgs::Ptr ea);
-	int RemotePropertyChangedHandler(NewMessageEventArgs::Ptr ea);
 
 	JsonRpcMessage::Ptr MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties);
 

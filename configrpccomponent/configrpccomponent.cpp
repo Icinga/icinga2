@@ -28,9 +28,9 @@ void ConfigRpcComponent::Start(void)
 		configHive->OnPropertyChanged += bind_weak(&ConfigRpcComponent::LocalPropertyChangedHandler, shared_from_this());
 	}
 
-	connectionManager->RegisterMethod("config::ObjectCreated", bind_weak(&ConfigRpcComponent::RemoteObjectCreatedHandler, shared_from_this()));
+	connectionManager->RegisterMethod("config::ObjectCreated", bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
 	connectionManager->RegisterMethod("config::ObjectRemoved", bind_weak(&ConfigRpcComponent::RemoteObjectRemovedHandler, shared_from_this()));
-	connectionManager->RegisterMethod("config::PropertyChanged", bind_weak(&ConfigRpcComponent::RemotePropertyChangedHandler, shared_from_this()));
+	connectionManager->RegisterMethod("config::PropertyChanged", bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
 }
 
 void ConfigRpcComponent::Stop(void)
@@ -52,8 +52,11 @@ JsonRpcMessage::Ptr ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Pt
 	cJSON_AddStringToObject(params, "type", type.c_str());
 
 	if (includeProperties) {
+		cJSON *properties = cJSON_CreateObject();
+		cJSON_AddItemToObject(params, "properties", properties);
+
 		for (ConfigObject::ParameterIterator pi = object->Properties.begin(); pi != object->Properties.end(); pi++) {
-			cJSON_AddStringToObject(params, pi->first.c_str(), pi->second.c_str());
+			cJSON_AddStringToObject(properties, pi->first.c_str(), pi->second.c_str());
 		}
 	}
 
@@ -115,12 +118,16 @@ int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr e
 	object->GetPropertyInteger("replicate", &replicate);
 
 	if (replicate) {
-		JsonRpcMessage::Ptr msg = MakeObjectMessage(object, "config::ObjectRemoved", false);
+		JsonRpcMessage::Ptr msg = MakeObjectMessage(object, "config::PropertyChanged", false);
 		cJSON *params = msg->GetParams();
-		cJSON_AddStringToObject(params, "property", ea->Property.c_str());
+
+		cJSON *properties = cJSON_CreateObject();
+		cJSON_AddItemToObject(params, "properties", properties);
+
 		string value;
 		object->GetProperty(ea->Property, &value);
-		cJSON_AddStringToObject(params, "value", value.c_str());
+
+		cJSON_AddStringToObject(properties, ea->Property.c_str(), value.c_str());
 
 		ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
 		connectionManager->SendMessage(msg);
@@ -129,11 +136,40 @@ int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr e
 	return 0;
 }
 
-int ConfigRpcComponent::RemoteObjectCreatedHandler(NewMessageEventArgs::Ptr ea)
+int ConfigRpcComponent::RemoteObjectUpdatedHandler(NewMessageEventArgs::Ptr ea)
 {
 	JsonRpcMessage::Ptr message = ea->Message;
+	string name, type, value;
+	bool was_null = false;
 
-	// TODO: update hive
+	if (!message->GetParamString("name", &name))
+		return 0;
+
+	if (!message->GetParamString("type", &type))
+		return 0;
+
+	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
+	ConfigObject::Ptr object = configHive->GetObject(type, name);
+
+	if (!object) {
+		was_null = true;
+		object = make_shared<ConfigObject>(type, name);
+	}
+
+	cJSON *properties = message->GetParam("properties");
+
+	if (properties != NULL) {
+		for (cJSON *prop = properties->child; prop != NULL; prop = prop->next) {
+			if (prop->type != cJSON_String)
+				continue;
+
+			object->SetProperty(prop->string, prop->valuestring);
+		}
+	}
+
+	if (was_null)
+		configHive->AddObject(object);
+
 	return 0;
 }
 
@@ -158,34 +194,5 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(NewMessageEventArgs::Ptr ea)
 
 	return 0;
 }
-
-int ConfigRpcComponent::RemotePropertyChangedHandler(NewMessageEventArgs::Ptr ea)
-{
-	JsonRpcMessage::Ptr message = ea->Message;
-	string name, type, property, value;
-
-	if (!message->GetParamString("name", &name))
-		return 0;
-
-	if (!message->GetParamString("type", &type))
-		return 0;
-
-	if (!message->GetParamString("property", &property))
-		return 0;
-
-	if (!message->GetParamString("value", &value))
-		return 0;
-
-	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
-	ConfigObject::Ptr object = configHive->GetObject(type, name);
-
-	if (object.get() == NULL)
-		return 0;
-
-	object->SetProperty(property, value);
-
-	return 0;
-}
-
 
 EXPORT_COMPONENT(ConfigRpcComponent);
