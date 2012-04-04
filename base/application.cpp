@@ -38,7 +38,7 @@ Application::~Application(void)
 #ifdef _WIN32
 	WSACleanup();
 #else /* _WIN32 */
-	lt_dlexit();
+	//lt_dlexit();
 #endif /* _WIN32 */
 }
 
