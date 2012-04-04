@@ -99,7 +99,7 @@ int Socket::ExceptionEventHandler(EventArgs::Ptr ea)
 	if (opt != 0) {
 		SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
 		ea->Code = opt;
-		ea->Message = FormatErrorCode(opt);
+		ea->Message = FormatErrorCode(ea->Code);
 		OnError(ea);
 
 		Close();

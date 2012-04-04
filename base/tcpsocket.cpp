@@ -8,8 +8,16 @@ void TCPSocket::MakeSocket(void)
 
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (fd == INVALID_SOCKET)
-		throw exception(/*"socket() failed."*/);
+	if (fd == INVALID_SOCKET) {
+		SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
+#ifdef _WIN32
+		ea->Code = WSAGetLastError();
+#else /* _WIN32 */
+		ea->Code = errno;
+#endif /* _WIN32 */
+		ea->Message = FormatErrorCode(ea->Code);
+		OnError(ea);
+	}
 
 	SetFD(fd);
 }
@@ -30,6 +38,17 @@ void TCPSocket::Bind(const char *hostname, unsigned short port)
 
 	int rc = ::bind(GetFD(), (sockaddr *)&sin, sizeof(sin));
 
-	if (rc < 0)
+	if (rc < 0) {
+		SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
+#ifdef _WIN32
+		ea->Code = WSAGetLastError();
+#else /* _WIN32 */
+		ea->Code = errno;
+#endif /* _WIN32 */
+		ea->Message = FormatErrorCode(ea->Code);
+
+		OnError(ea);
+		
 		Close();
+	}
 }

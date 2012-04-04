@@ -37,11 +37,22 @@ void TCPClient::Connect(const string& hostname, unsigned short port)
 	int rc = connect(GetFD(), (sockaddr *)&sin, sizeof(sin));
 
 #ifdef _WIN32
-	if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
+	if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
 #else /* _WIN32 */
-	if (rc < 0 && errno != EINPROGRESS)
+	if (rc < 0 && errno != EINPROGRESS) {
 #endif /* _WIN32 */
+		SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
+#ifdef _WIN32
+		ea->Code = WSAGetLastError();
+#else /* _WIN32 */
+		ea->Code = errno;
+#endif /* _WIN32 */
+		ea->Message = FormatErrorCode(ea->Code);
+
+		OnError(ea);
+
 		Close();
+	}
 
 	m_PeerHost = hostname;
 	m_PeerPort = port;
@@ -84,6 +95,18 @@ int TCPClient::ReadableEventHandler(EventArgs::Ptr ea)
 		return 0;
 
 	if (rc <= 0) {
+		if (rc < 0) {
+			SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
+#ifdef _WIN32
+			ea->Code = WSAGetLastError();
+#else /* _WIN32 */
+			ea->Code = errno;
+#endif /* _WIN32 */
+			ea->Message = FormatErrorCode(ea->Code);
+
+			OnError(ea);
+		}
+
 		Close();
 		return 0;
 	}
@@ -104,6 +127,18 @@ int TCPClient::WritableEventHandler(EventArgs::Ptr ea)
 	rc = send(GetFD(), (const char *)m_SendQueue->GetReadBuffer(), m_SendQueue->GetSize(), 0);
 
 	if (rc <= 0) {
+		if (rc < 0) {
+			SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
+#ifdef _WIN32
+			ea->Code = WSAGetLastError();
+#else /* _WIN32 */
+			ea->Code = errno;
+#endif /* _WIN32 */
+			ea->Message = FormatErrorCode(ea->Code);
+
+			OnError(ea);
+		}
+
 		Close();
 		return 0;
 	}

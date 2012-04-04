@@ -19,6 +19,7 @@ private:
 
 	int ExceptionEventHandler(EventArgs::Ptr ea);
 
+protected:
 	string FormatErrorCode(int errorCode);
 
 protected:
