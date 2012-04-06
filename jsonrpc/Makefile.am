@@ -15,4 +15,6 @@ libjsonrpc_la_SOURCES =  \
 	netstring.cpp \
 	netstring.h
 
-libjsonrpc_la_CXXFLAGS = -I${top_srcdir}/base 
+libjsonrpc_la_CFLAGS = -DI2_JSONRPC_BUILD
+libjsonrpc_la_CXXFLAGS = -DI2_JSONRPC_BUILD -I${top_srcdir}/base \
+	-I${top_srcdir}/cJSON

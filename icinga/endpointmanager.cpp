@@ -124,7 +124,7 @@ void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
 void EndpointManager::SendMessage(Endpoint::Ptr source, Endpoint::Ptr destination, JsonRpcMessage::Ptr message)
 {
 	if (destination) {
-		destination->SendMessageA(source, message);
+		destination->SendMessage(source, message);
 	} else {
 		for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 		{

@@ -386,7 +386,7 @@ int application_main(int argc, char **argv, Application::Ptr instance)
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = sigint_handler;
+	sa.sa_handler = application_sigint_handler;
 	sigaction(SIGINT, &sa, NULL);
 #endif /* _WIN32 */
 

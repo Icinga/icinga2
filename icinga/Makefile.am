@@ -18,7 +18,9 @@ icinga_SOURCES =  \
 	virtualendpoint.h
 
 icinga_CXXFLAGS = -I${top_srcdir}/base \
-	-I${top_srcdir}/jsonrpc  -I${top_srcdir}
+	-I${top_srcdir}/jsonrpc \
+	-I${top_srcdir}/cJSON \
+	-I${top_srcdir}
 
 icinga_LDFLAGS = $(top_builddir)/jsonrpc/libjsonrpc.la \
 	$(top_builddir)/base/libbase.la \
