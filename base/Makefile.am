@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 
-noinst_LTLIBRARIES =  \
+pkglib_LTLIBRARIES =  \
 	libbase.la
 
 libbase_la_SOURCES =  \
@@ -50,5 +50,4 @@ libbase_la_SOURCES =  \
 
 libbase_la_LIBADD=$(LIBLTDL)
 
-libbase_la_CFLAGS=$(LTDLINCL) -DI2_BASE_BUILD
-libbase_la_CXXFLAGS=$(LTDLINCL) -DI2_BASE_BUILD
+libbase_la_CXXFLAGS=$(LTDLINCL) -DI2_BASE_BUILD -pthread

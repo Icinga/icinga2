@@ -193,7 +193,7 @@ Component::Ptr Application::LoadComponent(const string& path, const ConfigObject
 	lt_dlhandle hModule = 0;
 	lt_dladvise advise;
 
-	if (!lt_dladvise_init(&advise) && !lt_dladvise_local(&advise)) {
+	if (!lt_dladvise_init(&advise) && !lt_dladvise_global(&advise)) {
 		hModule = lt_dlopenadvise(path.c_str(), advise);
 	}
 

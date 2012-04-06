@@ -17,7 +17,9 @@ icinga_SOURCES =  \
 	virtualendpoint.cpp \
 	virtualendpoint.h
 
-icinga_CXXFLAGS = -I${top_srcdir}/base \
+icinga_CFLAGS = -DI2_ICINGA_BUILD
+
+icinga_CXXFLAGS = -DI2_ICINGA_BUILD -I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON \
 	-I${top_srcdir}
