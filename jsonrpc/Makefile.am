@@ -5,8 +5,6 @@ noinst_LTLIBRARIES =  \
 	libjsonrpc.la
 
 libjsonrpc_la_SOURCES =  \
-	cJSON.c \
-	cJSON.h \
 	i2-jsonrpc.h \
 	jsonrpcclient.cpp \
 	jsonrpcclient.h \

@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-struct EventArgs : public Object
+struct I2_BASE_API EventArgs : public Object
 {
 	typedef shared_ptr<EventArgs> Ptr;
 	typedef weak_ptr<EventArgs> WeakPtr;

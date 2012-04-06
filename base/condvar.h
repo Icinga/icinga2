@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class condvar
+class I2_BASE_API condvar
 {
 private:
 #ifdef _WIN32

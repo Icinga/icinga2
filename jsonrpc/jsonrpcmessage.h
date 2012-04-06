@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class JsonRpcMessage : public Object
+class I2_JSONRPC_API JsonRpcMessage : public Object
 {
 private:
 	cJSON *m_JSON;

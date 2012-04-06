@@ -3,6 +3,7 @@
 
 SUBDIRS = ltdl \
 	base \
+	cJSON \
 	jsonrpc \
 	configfilecomponent \
 	configrpccomponent \

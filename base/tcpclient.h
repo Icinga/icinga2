@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class TCPClient : public TCPSocket
+class I2_BASE_API TCPClient : public TCPSocket
 {
 private:
 	string m_PeerHost;

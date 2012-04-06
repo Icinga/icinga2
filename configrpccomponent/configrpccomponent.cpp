@@ -16,21 +16,29 @@ void ConfigRpcComponent::Start(void)
 {
 	IcingaApplication::Ptr icingaApp = GetIcingaApplication();
 
-	ConnectionManager::Ptr connectionManager = icingaApp->GetConnectionManager();
+	EndpointManager::Ptr endpointManager = icingaApp->GetEndpointManager();
 	ConfigHive::Ptr configHive = icingaApp->GetConfigHive();
+
+	m_ConfigRpcEndpoint = make_shared<VirtualEndpoint>();
 
 	int configSource;
 	if (GetConfig()->GetPropertyInteger("configSource", &configSource) && configSource != 0) {
-		connectionManager->RegisterMethod("config::FetchObjects", bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
+		m_ConfigRpcEndpoint->RegisterMethodHandler("config::FetchObjects", bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
 
 		configHive->OnObjectCreated += bind_weak(&ConfigRpcComponent::LocalObjectCreatedHandler, shared_from_this());
 		configHive->OnObjectRemoved += bind_weak(&ConfigRpcComponent::LocalObjectRemovedHandler, shared_from_this());
 		configHive->OnPropertyChanged += bind_weak(&ConfigRpcComponent::LocalPropertyChangedHandler, shared_from_this());
+
+		m_ConfigRpcEndpoint->RegisterMethodSource("config::ObjectCreated");
+		m_ConfigRpcEndpoint->RegisterMethodSource("config::ObjectRemoved");
+		m_ConfigRpcEndpoint->RegisterMethodSource("config::PropertyChanged");
 	}
 
-	connectionManager->RegisterMethod("config::ObjectCreated", bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
-	connectionManager->RegisterMethod("config::ObjectRemoved", bind_weak(&ConfigRpcComponent::RemoteObjectRemovedHandler, shared_from_this()));
-	connectionManager->RegisterMethod("config::PropertyChanged", bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
+	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectCreated", bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
+	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectRemoved", bind_weak(&ConfigRpcComponent::RemoteObjectRemovedHandler, shared_from_this()));
+	m_ConfigRpcEndpoint->RegisterMethodHandler("config::PropertyChanged", bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
+
+	endpointManager->RegisterEndpoint(m_ConfigRpcEndpoint);
 }
 
 void ConfigRpcComponent::Stop(void)
@@ -88,8 +96,8 @@ int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigObjectEventArgs::Ptr ea)
 	object->GetPropertyInteger("replicate", &replicate);
 
 	if (replicate) {
-		ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
-		connectionManager->SendMessage(MakeObjectMessage(object, "config::ObjectCreated", true));
+		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+		mgr->SendMessage(m_ConfigRpcEndpoint, NULL, MakeObjectMessage(object, "config::ObjectCreated", true));
 	}
 
 	return 0;
@@ -103,8 +111,8 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigObjectEventArgs::Ptr ea)
 	object->GetPropertyInteger("replicate", &replicate);
 
 	if (replicate) {
-		ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
-		connectionManager->SendMessage(MakeObjectMessage(object, "config::ObjectRemoved", false));
+		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+		mgr->SendMessage(m_ConfigRpcEndpoint, NULL, MakeObjectMessage(object, "config::ObjectRemoved", false));
 	}
 
 	return 0;
@@ -129,8 +137,8 @@ int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr e
 
 		cJSON_AddStringToObject(properties, ea->Property.c_str(), value.c_str());
 
-		ConnectionManager::Ptr connectionManager = GetIcingaApplication()->GetConnectionManager();
-		connectionManager->SendMessage(msg);
+		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+		mgr->SendMessage(m_ConfigRpcEndpoint, NULL, msg);
 	}
 
 	return 0;

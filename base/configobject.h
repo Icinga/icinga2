@@ -8,7 +8,7 @@ namespace icinga
 
 class ConfigHive;
 
-struct ConfigObjectEventArgs : public EventArgs
+struct I2_BASE_API ConfigObjectEventArgs : public EventArgs
 {
 	typedef shared_ptr<ConfigObjectEventArgs> Ptr;
 	typedef weak_ptr<ConfigObjectEventArgs> WeakPtr;
@@ -17,7 +17,7 @@ struct ConfigObjectEventArgs : public EventArgs
 	string OldValue;
 };
 
-class ConfigObject : public Object
+class I2_BASE_API ConfigObject : public Object
 {
 private:
 	weak_ptr<ConfigHive> m_Hive;

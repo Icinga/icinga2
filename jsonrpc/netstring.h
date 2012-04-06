@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class Netstring : public Object
+class I2_JSONRPC_API Netstring : public Object
 {
 private:
 	size_t m_Length;

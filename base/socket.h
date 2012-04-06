@@ -3,7 +3,7 @@
 
 namespace icinga {
 
-struct SocketErrorEventArgs : public EventArgs
+struct I2_BASE_API SocketErrorEventArgs : public EventArgs
 {
 	typedef shared_ptr<SocketErrorEventArgs> Ptr;
 	typedef weak_ptr<SocketErrorEventArgs> WeakPtr;
@@ -12,7 +12,7 @@ struct SocketErrorEventArgs : public EventArgs
 	string Message;
 };
 
-class Socket : public Object
+class I2_BASE_API Socket : public Object
 {
 private:
 	SOCKET m_FD;

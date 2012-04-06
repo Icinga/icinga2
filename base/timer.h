@@ -5,7 +5,7 @@
 
 namespace icinga {
 
-struct TimerEventArgs : public EventArgs
+struct I2_BASE_API TimerEventArgs : public EventArgs
 {
 	typedef shared_ptr<TimerEventArgs> Ptr;
 	typedef weak_ptr<TimerEventArgs> WeakPtr;
@@ -13,7 +13,7 @@ struct TimerEventArgs : public EventArgs
 	EventArgs::Ptr UserArgs;
 };
 
-class Timer : public Object
+class I2_BASE_API Timer : public Object
 {
 private:
 	EventArgs::Ptr m_UserArgs;

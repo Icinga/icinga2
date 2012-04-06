@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-struct NewClientEventArgs : public EventArgs
+struct I2_BASE_API NewClientEventArgs : public EventArgs
 {
 	typedef shared_ptr<NewClientEventArgs> Ptr;
 	typedef weak_ptr<NewClientEventArgs> WeakPtr;
@@ -12,7 +12,7 @@ struct NewClientEventArgs : public EventArgs
 	TCPSocket::Ptr Client;
 };
 
-class TCPServer : public TCPSocket
+class I2_BASE_API TCPServer : public TCPSocket
 {
 private:
 	int ReadableEventHandler(EventArgs::Ptr ea);

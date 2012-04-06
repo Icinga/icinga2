@@ -7,6 +7,8 @@ namespace icinga
 class ConfigRpcComponent : public Component
 {
 private:
+	VirtualEndpoint::Ptr m_ConfigRpcEndpoint;
+
 	IcingaApplication::Ptr GetIcingaApplication(void);
 
 	int FetchObjectsHandler(NewMessageEventArgs::Ptr ea);

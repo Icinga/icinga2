@@ -3,6 +3,7 @@
 
 #ifdef _MSC_VER
 #	define HAVE_CXX11
+#	pragma warning(disable:4251)
 #else /* _MSC_VER */
 #	include "config.h"
 #endif /* _MSC_VER */
@@ -54,6 +55,12 @@ using namespace std::tr1::placeholders;
 #	define I2_PLATFORM PLATFORM_UNIX
 #	include "unix.h"
 #endif
+
+#ifdef I2_BASE_BUILD
+#	define I2_BASE_API I2_EXPORT
+#else /* I2_BASE_BUILD */
+#	define I2_BASE_API I2_IMPORT
+#endif /* I2_BASE_BUILD */
 
 #include "mutex.h"
 #include "condvar.h"

@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-struct NewMessageEventArgs : public EventArgs
+struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
 {
 	typedef shared_ptr<NewMessageEventArgs> Ptr;
 	typedef weak_ptr<NewMessageEventArgs> WeakPtr;
@@ -12,7 +12,7 @@ struct NewMessageEventArgs : public EventArgs
 	JsonRpcMessage::Ptr Message;
 };
 
-class JsonRpcClient : public TCPClient
+class I2_JSONRPC_API JsonRpcClient : public TCPClient
 {
 private:
 	int DataAvailableHandler(EventArgs::Ptr ea);

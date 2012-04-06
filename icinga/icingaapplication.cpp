@@ -11,7 +11,7 @@ using namespace icinga;
 
 IcingaApplication::IcingaApplication(void)
 {
-	m_ConnectionManager = make_shared<ConnectionManager>();
+	m_EndpointManager = make_shared<EndpointManager>();
 }
 
 int IcingaApplication::Main(const vector<string>& args)
@@ -71,9 +71,9 @@ void IcingaApplication::PrintUsage(const string& programPath)
 	cout << "Syntax: " << programPath << " <config-file>" << endl;
 }
 
-ConnectionManager::Ptr IcingaApplication::GetConnectionManager(void)
+EndpointManager::Ptr IcingaApplication::GetEndpointManager(void)
 {
-	return m_ConnectionManager;
+	return m_EndpointManager;
 }
 
 int IcingaApplication::NewComponentHandler(ConfigObjectEventArgs::Ptr ea)
@@ -114,7 +114,7 @@ int IcingaApplication::NewRpcListenerHandler(ConfigObjectEventArgs::Ptr ea)
 
 	Log("Creating JSON-RPC listener on port %d", port);
 
-	GetConnectionManager()->AddListener(port);
+	GetEndpointManager()->AddListener(port);
 
 	return 0;
 }
@@ -140,7 +140,7 @@ int IcingaApplication::NewRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea)
 
 	Log("Creating JSON-RPC connection to %s:%d", hostname.c_str(), port);
 
-	GetConnectionManager()->AddConnection(hostname, port);
+	GetEndpointManager()->AddConnection(hostname, port);
 
 	return 0;
 }

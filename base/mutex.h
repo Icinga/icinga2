@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class mutex
+class I2_BASE_API mutex
 {
 private:
 #ifdef _WIN32

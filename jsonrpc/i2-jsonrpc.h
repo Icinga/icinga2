@@ -3,8 +3,14 @@
 
 #include <map>
 #include <i2-base.h>
+#include <cJSON.h>
 
-#include "cJSON.h"
+#ifdef I2_JSONRPC_BUILD
+#	define I2_JSONRPC_API I2_EXPORT
+#else /* I2_JSONRPC_BUILD */
+#	define I2_JSONRPC_API I2_IMPORT
+#endif /* I2_JSONRPC_BUILD */
+
 #include "netstring.h"
 #include "jsonrpcmessage.h"
 #include "jsonrpcclient.h"

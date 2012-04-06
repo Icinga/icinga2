@@ -4,10 +4,10 @@
 namespace icinga
 {
 
-class IcingaApplication : public Application
+class I2_ICINGA_API IcingaApplication : public Application
 {
 private:
-	ConnectionManager::Ptr m_ConnectionManager;
+	EndpointManager::Ptr m_EndpointManager;
 
 	int NewComponentHandler(ConfigObjectEventArgs::Ptr ea);
 	int DeletedComponentHandler(ConfigObjectEventArgs::Ptr ea);
@@ -24,11 +24,11 @@ public:
 
 	IcingaApplication(void);
 
-	virtual int Main(const vector<string>& args);
+	int Main(const vector<string>& args);
 
 	void PrintUsage(const string& programPath);
 
-	virtual ConnectionManager::Ptr GetConnectionManager(void);
+	EndpointManager::Ptr GetEndpointManager(void);
 };
 
 }

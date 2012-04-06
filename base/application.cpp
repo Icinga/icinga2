@@ -6,7 +6,7 @@
 
 using namespace icinga;
 
-Application::Ptr Application::Instance;
+Application::Ptr I2_EXPORT Application::Instance;
 
 Application::Application(void)
 {
@@ -370,4 +370,63 @@ void Application::SigIntHandler(int signum)
 	sa.sa_handler = SIG_DFL;
 	sigaction(SIGINT, &sa, NULL);
 #endif /* _WIN32 */
+}
+
+static void application_sigint_handler(int signum)
+{
+	Application::Instance->SigIntHandler(signum);
+}
+
+int application_main(int argc, char **argv, Application::Ptr instance)
+{
+	int result;
+
+	Application::Instance = instance;
+
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = sigint_handler;
+	sigaction(SIGINT, &sa, NULL);
+#endif /* _WIN32 */
+
+	vector<string> args;
+
+	for (int i = 0; i < argc; i++)
+		args.push_back(string(argv[i]));
+
+	Application::Instance->SetArguments(args);
+
+	if (Application::Instance->IsDebugging()) {
+		result = Application::Instance->Main(args);
+	} else {
+		try {
+			result = Application::Instance->Main(args);
+		} catch (const Exception& ex) {
+			cout << "---" << endl;
+
+			string klass = typeid(ex).name();
+
+#ifdef HAVE_GCC_ABI_DEMANGLE
+			int status;
+			char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
+
+			if (realname != NULL) {
+				klass = string(realname);
+				free(realname);
+			}
+#endif /* HAVE_GCC_ABI_DEMANGLE */
+
+			cout << "Exception: " << klass << endl;
+			cout << "Message: " << ex.GetMessage() << endl;
+
+			return EXIT_FAILURE;
+		}
+	}
+
+	Application::Instance.reset();
+
+	assert(Object::ActiveObjects == 0);
+
+	return result;
 }

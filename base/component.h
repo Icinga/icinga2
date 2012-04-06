@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class Component : public Object
+class I2_BASE_API Component : public Object
 {
 private:
 	Application::WeakPtr m_Application;

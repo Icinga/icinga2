@@ -43,6 +43,7 @@ fi
 AC_OUTPUT([
 Makefile
 base/Makefile
+cJSON/Makefile
 configfilecomponent/Makefile
 configrpccomponent/Makefile
 icinga/Makefile

@@ -1,15 +1,15 @@
-#ifndef CONNECTIONMANAGER_H
-#define CONNECTIONMANAGER_H
+#ifndef ENDPOINTMANAGER_H
+#define ENDPOINTMANAGER_H
 
 namespace icinga
 {
 
-class ConnectionManager : public Object
+class I2_ICINGA_API EndpointManager : public Object
 {
 	list<JsonRpcServer::Ptr> m_Servers;
 	list<JsonRpcClient::Ptr> m_Clients;
-	map< string, event<NewMessageEventArgs::Ptr> > m_Methods;
 	list<Timer::Ptr> m_ReconnectTimers;
+	list<Endpoint::Ptr> m_Endpoints;
 	string m_Identity;
 
 	int NewClientHandler(NewClientEventArgs::Ptr ncea);
@@ -23,22 +23,23 @@ class ConnectionManager : public Object
 
 	void RegisterServer(JsonRpcServer::Ptr server);
 	void UnregisterServer(JsonRpcServer::Ptr server);
+
 public:
-	typedef shared_ptr<ConnectionManager> Ptr;
-	typedef weak_ptr<ConnectionManager> WeakPtr;
+	typedef shared_ptr<EndpointManager> Ptr;
+	typedef weak_ptr<EndpointManager> WeakPtr;
 
 	void SetIdentity(string identity);
-	string GetIdentity(void);
+	string GetIdentity(void) const;
 
 	void AddListener(unsigned short port);
 	void AddConnection(string host, short port);
 
-	void RegisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> callback);
-	void UnregisterMethod(string method, function<int (NewMessageEventArgs::Ptr)> callback);
+	void RegisterEndpoint(Endpoint::Ptr endpoint);
+	void UnregisterEndpoint(Endpoint::Ptr endpoint);
 
-	void SendMessage(JsonRpcMessage::Ptr message);
+	void SendMessage(Endpoint::Ptr source, Endpoint::Ptr destination, JsonRpcMessage::Ptr message);
 };
 
 }
 
-#endif /* CONNECTIONMANAGER_H */
+#endif /* ENDPOINTMANAGER_H */

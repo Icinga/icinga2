@@ -6,7 +6,7 @@ namespace icinga
 
 class ConfigHive;
 
-class ConfigCollection : public Object
+class I2_BASE_API ConfigCollection : public Object
 {
 private:
 	weak_ptr<ConfigHive> m_Hive;

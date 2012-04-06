@@ -6,7 +6,7 @@ namespace icinga
 
 DEFINE_EXCEPTION_CLASS(OutOfMemoryException);
 
-class Memory
+class I2_BASE_API Memory
 {
 private:
 	Memory(void);

@@ -7,7 +7,7 @@ class Component;
 
 DEFINE_EXCEPTION_CLASS(ComponentLoadException);
 
-class Application : public Object {
+class I2_BASE_API Application : public Object {
 private:
 	bool m_ShuttingDown;
 	ConfigHive::Ptr m_ConfigHive;
@@ -48,71 +48,14 @@ public:
 	void SigIntHandler(int signum);
 };
 
-inline void sigint_handler(int signum)
-{
-	Application::Instance->SigIntHandler(signum);
 }
 
-template<class T>
-int application_main(int argc, char **argv)
-{
-	int result;
+int I2_EXPORT application_main(int argc, char **argv, icinga::Application::Ptr instance);
 
-	Application::Instance = make_shared<T>();
-
-#ifndef _WIN32
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = sigint_handler;
-	sigaction(SIGINT, &sa, NULL);
-#endif /* _WIN32 */
-
-	vector<string> args;
-
-	for (int i = 0; i < argc; i++)
-		args.push_back(string(argv[i]));
-
-	Application::Instance->SetArguments(args);
-
-	if (Application::Instance->IsDebugging()) {
-		result = Application::Instance->Main(args);
-	} else {
-		try {
-			result = Application::Instance->Main(args);
-		} catch (const Exception& ex) {
-			cout << "---" << endl;
-
-			string klass = typeid(ex).name();
-
-#ifdef HAVE_GCC_ABI_DEMANGLE
-			int status;
-			char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
-
-			if (realname != NULL) {
-				klass = string(realname);
-				free(realname);
-			}
-#endif /* HAVE_GCC_ABI_DEMANGLE */
-
-			cout << "Exception: " << klass << endl;
-			cout << "Message: " << ex.GetMessage() << endl;
-
-			return EXIT_FAILURE;
-		}
+#define SET_START_CLASS(klass)									\
+	int main(int argc, char **argv) {							\
+		shared_ptr<klass> instance = make_shared<klass>();		\
+		return application_main(argc, argv, instance);			\
 	}
-
-	Application::Instance.reset();
-
-	assert(Object::ActiveObjects == 0);
-
-	return result;
-}
-
-#define SET_START_CLASS(klass)				\
-	int main(int argc, char **argv) {		\
-		return application_main<klass>(argc, argv);	\
-	}
-
-}
 
 #endif /* APPLICATION_H */

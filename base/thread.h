@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class thread
+class I2_BASE_API thread
 {
 private:
 #ifdef _WIN32

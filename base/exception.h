@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class Exception
+class I2_BASE_API Exception
 {
 private:
 	string m_Message;

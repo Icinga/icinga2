@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class FIFO : public Object
+class I2_BASE_API FIFO : public Object
 {
 private:
 	char *m_Buffer;

@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class ConfigHive : public Object
+class I2_BASE_API ConfigHive : public Object
 {
 public:
 	typedef shared_ptr<ConfigHive> Ptr;

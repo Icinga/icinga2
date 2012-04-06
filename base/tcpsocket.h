@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class TCPSocket : public Socket
+class I2_BASE_API TCPSocket : public Socket
 {
 public:
 	typedef shared_ptr<TCPSocket> Ptr;

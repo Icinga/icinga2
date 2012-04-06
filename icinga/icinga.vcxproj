@@ -40,12 +40,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\base;$(ProjectDir)\..\jsonrpc;$(ProjectDir)\..\config;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\base;$(ProjectDir)\..\jsonrpc;$(ProjectDir)\..\cJSON;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\base;$(ProjectDir)\..\jsonrpc;$(ProjectDir)\..\config;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\base;$(ProjectDir)\..\jsonrpc;$(ProjectDir)\..\cJSON;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -59,7 +59,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;jsonrpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;jsonrpc.lib;cJSON.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -77,17 +77,23 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>base.lib;jsonrpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;jsonrpc.lib;cJSON.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="connectionmanager.cpp" />
+    <ClCompile Include="endpoint.cpp" />
+    <ClCompile Include="endpointmanager.cpp" />
     <ClCompile Include="icingaapplication.cpp" />
+    <ClCompile Include="jsonrpcendpoint.cpp" />
+    <ClCompile Include="virtualendpoint.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="connectionmanager.h" />
+    <ClInclude Include="endpoint.h" />
+    <ClInclude Include="endpointmanager.h" />
     <ClInclude Include="icingaapplication.h" />
     <ClInclude Include="i2-icinga.h" />
+    <ClInclude Include="jsonrpcendpoint.h" />
+    <ClInclude Include="virtualendpoint.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
