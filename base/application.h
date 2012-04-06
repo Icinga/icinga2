@@ -50,11 +50,11 @@ public:
 
 }
 
-int I2_EXPORT application_main(int argc, char **argv, icinga::Application::Ptr instance);
+int I2_EXPORT application_main(int argc, char **argv, icinga::Application *instance);
 
 #define SET_START_CLASS(klass)									\
 	int main(int argc, char **argv) {							\
-		shared_ptr<klass> instance = make_shared<klass>();		\
+		klass *instance = new klass();		\
 		return application_main(argc, argv, instance);			\
 	}
 

@@ -377,11 +377,11 @@ static void application_sigint_handler(int signum)
 	Application::Instance->SigIntHandler(signum);
 }
 
-int application_main(int argc, char **argv, Application::Ptr instance)
+int application_main(int argc, char **argv, Application *instance)
 {
 	int result;
 
-	Application::Instance = instance;
+	Application::Instance = Application::Ptr(instance);
 
 #ifndef _WIN32
 	struct sigaction sa;
