@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="configfilecomponent.h" />
-    <ClInclude Include="i2-configfilecomponent.h" />
+    <ClInclude Include="i2-configfile.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E58F1DA7-B723-412B-B2B7-7FF58E2A944E}</ProjectGuid>
@@ -79,6 +79,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

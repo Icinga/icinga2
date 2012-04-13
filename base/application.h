@@ -52,10 +52,10 @@ public:
 
 int I2_EXPORT application_main(int argc, char **argv, icinga::Application *instance);
 
-#define SET_START_CLASS(klass)									\
-	int main(int argc, char **argv) {							\
-		klass *instance = new klass();		\
-		return application_main(argc, argv, instance);			\
+#define IMPLEMENT_ENTRY_POINT(klass)					\
+	int main(int argc, char **argv) {					\
+		klass *instance = new klass();					\
+		return application_main(argc, argv, instance);	\
 	}
 
 #endif /* APPLICATION_H */

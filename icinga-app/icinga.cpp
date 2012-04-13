@@ -1,3 +1,5 @@
 #include <i2-icinga.h>
 
-SET_START_CLASS(icinga::IcingaApplication);
+using namespace icinga;
+
+IMPLEMENT_ENTRY_POINT(IcingaApplication);
