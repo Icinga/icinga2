@@ -54,7 +54,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	connectionCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcConnectionHandler, shared_from_this());
 
-	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfilecomponent");
+	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
 	fileComponentConfig->SetProperty("configFilename", args[1]);
 	fileComponentConfig->SetPropertyInteger("replicate", 0);
 	GetConfigHive()->AddObject(fileComponentConfig);
@@ -151,4 +151,3 @@ int IcingaApplication::DeletedRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea
 
 	return 0;
 }
-
