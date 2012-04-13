@@ -34,4 +34,4 @@ ltmain.sh
 missing
 stamp-h1
 .libs
-icinga/icinga
+icinga-app/icinga

@@ -11,10 +11,10 @@ configrpccomponent_la_SOURCES =  \
 configrpccomponent_la_CXXFLAGS = -I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON \
-	-I${top_srcdir}/libicinga
+	-I${top_srcdir}/icinga
 
 configrpccomponent_la_LDFLAGS = -module -version-info 0:0:0 -no-undefined -pthread
 configrpccomponent_la_LIBADD = ${top_builddir}/base/libbase.la \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
 	${top_builddir}/cJSON/libcJSON.la \
-	${top_builddir}/libicinga/libicinga.la
+	${top_builddir}/icinga/libicinga.la
