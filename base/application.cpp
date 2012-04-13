@@ -190,14 +190,7 @@ Component::Ptr Application::LoadComponent(const string& path, const ConfigObject
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.c_str());
 #else /* _WIN32 */
-	lt_dlhandle hModule = 0;
-	lt_dladvise advise;
-
-	if (!lt_dladvise_init(&advise) && !lt_dladvise_global(&advise)) {
-		hModule = lt_dlopenadvise(path.c_str(), advise);
-	}
-
-	lt_dladvise_destroy(&advise);
+	lt_dlhandle hModule = lt_dlopen(path.c_str());
 #endif /* _WIN32 */
 
 	if (hModule == NULL)
