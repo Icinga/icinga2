@@ -4,8 +4,8 @@ pkglib_LTLIBRARIES =  \
 	configfile.la
 
 configfile_la_SOURCES =  \
-	configfile.cpp \
-	configfile.h \
+	configfilecomponent.cpp \
+	configfilecomponent.h \
 	i2-configfile.h
 
 configfile_la_CXXFLAGS = -I${top_srcdir}/base \

@@ -44,8 +44,9 @@ AC_OUTPUT([
 Makefile
 base/Makefile
 cJSON/Makefile
-configfilecomponent/Makefile
-configrpccomponent/Makefile
+components/Makefile
+components/configfile/Makefile
+components/configrpc/Makefile
 icinga/Makefile
 icinga-app/Makefile
 jsonrpc/Makefile

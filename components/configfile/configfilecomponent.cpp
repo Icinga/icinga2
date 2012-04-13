@@ -1,7 +1,7 @@
-#include "i2-configfilecomponent.h"
-#include <cJSON.h>
 #include <iostream>
 #include <fstream>
+#include "i2-configfile.h"
+#include "cJSON.h"
 
 using namespace icinga;
 

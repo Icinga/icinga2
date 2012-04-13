@@ -7,8 +7,7 @@ SUBDIRS = ltdl \
 	jsonrpc \
 	icinga \
 	icinga-app \
-	configfilecomponent \
-	configrpccomponent
+	components
 
 icinga2docdir = ${prefix}/doc/icinga2
 icinga2doc_DATA = \

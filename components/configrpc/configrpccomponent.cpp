@@ -1,4 +1,4 @@
-#include "i2-configrpccomponent.h"
+#include "i2-configrpc.h"
 
 using namespace icinga;
 
