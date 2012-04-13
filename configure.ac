@@ -46,8 +46,8 @@ base/Makefile
 cJSON/Makefile
 configfilecomponent/Makefile
 configrpccomponent/Makefile
-libicinga/Makefile
 icinga/Makefile
+icinga-app/Makefile
 jsonrpc/Makefile
 
 ])

@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual C++ Express 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "base", "base\base.vcxproj", "{9C92DA90-FD53-43A9-A244-90F2E8AF9677}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jsonrpc", "jsonrpc\jsonrpc.vcxproj", "{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}"
@@ -12,13 +12,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3F525944-70CB-4F7A-BA18-3E87CA79488D}"
 	ProjectSection(SolutionItems) = preProject
 		TODO.txt = TODO.txt
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "icinga", "icinga\icinga.vcxproj", "{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}"
-	ProjectSection(ProjectDependencies) = postProject
-		{66BED474-C33F-48F9-90BA-BBCFEDC006B8} = {66BED474-C33F-48F9-90BA-BBCFEDC006B8}
-		{9C92DA90-FD53-43A9-A244-90F2E8AF9677} = {9C92DA90-FD53-43A9-A244-90F2E8AF9677}
-		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8} = {8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "configfilecomponent", "configfilecomponent\configfilecomponent.vcxproj", "{E58F1DA7-B723-412B-B2B7-7FF58E2A944E}"
@@ -39,6 +32,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "configrpccomponent", "confi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cJSON", "cJSON\cJSON.vcxproj", "{66BED474-C33F-48F9-90BA-BBCFEDC006B8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "icinga", "icinga\icinga.vcxproj", "{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "icinga-app", "icinga-app\icinga-app.vcxproj", "{BE412865-FEBA-4259-AD41-58950D1F5432}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -53,10 +50,6 @@ Global
 		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}.Debug|Win32.Build.0 = Debug|Win32
 		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}.Release|Win32.ActiveCfg = Release|Win32
 		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}.Release|Win32.Build.0 = Release|Win32
-		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}.Debug|Win32.Build.0 = Debug|Win32
-		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}.Release|Win32.ActiveCfg = Release|Win32
-		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}.Release|Win32.Build.0 = Release|Win32
 		{E58F1DA7-B723-412B-B2B7-7FF58E2A944E}.Debug|Win32.ActiveCfg = Debug|Win32
 		{E58F1DA7-B723-412B-B2B7-7FF58E2A944E}.Debug|Win32.Build.0 = Debug|Win32
 		{E58F1DA7-B723-412B-B2B7-7FF58E2A944E}.Release|Win32.ActiveCfg = Release|Win32
@@ -69,6 +62,14 @@ Global
 		{66BED474-C33F-48F9-90BA-BBCFEDC006B8}.Debug|Win32.Build.0 = Debug|Win32
 		{66BED474-C33F-48F9-90BA-BBCFEDC006B8}.Release|Win32.ActiveCfg = Release|Win32
 		{66BED474-C33F-48F9-90BA-BBCFEDC006B8}.Release|Win32.Build.0 = Release|Win32
+		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}.Debug|Win32.Build.0 = Debug|Win32
+		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}.Release|Win32.ActiveCfg = Release|Win32
+		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}.Release|Win32.Build.0 = Release|Win32
+		{BE412865-FEBA-4259-AD41-58950D1F5432}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BE412865-FEBA-4259-AD41-58950D1F5432}.Debug|Win32.Build.0 = Debug|Win32
+		{BE412865-FEBA-4259-AD41-58950D1F5432}.Release|Win32.ActiveCfg = Release|Win32
+		{BE412865-FEBA-4259-AD41-58950D1F5432}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

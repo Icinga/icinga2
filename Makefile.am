@@ -5,8 +5,8 @@ SUBDIRS = ltdl \
 	base \
 	cJSON \
 	jsonrpc \
-	libicinga \
-        icinga \
+	icinga \
+	icinga-app \
 	configfilecomponent \
 	configrpccomponent
 
