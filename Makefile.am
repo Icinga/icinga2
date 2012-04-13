@@ -5,9 +5,10 @@ SUBDIRS = ltdl \
 	base \
 	cJSON \
 	jsonrpc \
+	libicinga \
+        icinga \
 	configfilecomponent \
-	configrpccomponent \
-	icinga
+	configrpccomponent
 
 icinga2docdir = ${prefix}/doc/icinga2
 icinga2doc_DATA = \

@@ -5,25 +5,17 @@ bin_PROGRAMS =  \
 	icinga
 
 icinga_SOURCES =  \
-	endpoint.cpp \
-	endpoint.h \
-	endpointmanager.cpp \
-	endpointmanager.h \
-	icingaapplication.cpp \
-	icingaapplication.h \
-	i2-icinga.h \
-	jsonrpcendpoint.cpp \
-	jsonrpcendpoint.h \
-	virtualendpoint.cpp \
-	virtualendpoint.h
+	icinga.cpp
 
-icinga_CFLAGS = -DI2_ICINGA_BUILD
+icinga_CFLAGS = -DI2_ICINGALAUNCHER_BUILD
 
-icinga_CXXFLAGS = -DI2_ICINGA_BUILD -I${top_srcdir}/base \
+icinga_CXXFLAGS = -DI2_ICINGALAUNCHER_BUILD -I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON \
+	-I${top_srcdir}/libicinga \
 	-I${top_srcdir}
 
-icinga_LDFLAGS = $(top_builddir)/jsonrpc/libjsonrpc.la \
+icinga_LDFLAGS = $(top_builddir)/libicinga/libicinga.la \
+	$(top_builddir)/jsonrpc/libjsonrpc.la \
 	$(top_builddir)/base/libbase.la \
 	${top_builddir}/cJSON/libcJSON.la

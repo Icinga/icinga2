@@ -85,7 +85,7 @@ int IcingaApplication::NewComponentHandler(ConfigObjectEventArgs::Ptr ea)
 #ifdef _WIN32
 		path = object->GetName() + ".dll";
 #else /* _WIN32 */
-		path = "lib" + object->GetName() + ".la";
+		path = object->GetName() + ".la";
 #endif /* _WIN32 */
 
 		// TODO: try to figure out where the component is located */
@@ -152,5 +152,3 @@ int IcingaApplication::DeletedRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea
 	return 0;
 }
 
-
-SET_START_CLASS(icinga::IcingaApplication);
