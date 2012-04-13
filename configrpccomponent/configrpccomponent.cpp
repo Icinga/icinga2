@@ -97,7 +97,7 @@ int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigObjectEventArgs::Ptr ea)
 
 	if (replicate) {
 		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-		mgr->SendMessage(m_ConfigRpcEndpoint, NULL, MakeObjectMessage(object, "config::ObjectCreated", true));
+		mgr->SendMessage(m_ConfigRpcEndpoint, Endpoint::Ptr(), MakeObjectMessage(object, "config::ObjectCreated", true));
 	}
 
 	return 0;
@@ -112,7 +112,7 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigObjectEventArgs::Ptr ea)
 
 	if (replicate) {
 		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-		mgr->SendMessage(m_ConfigRpcEndpoint, NULL, MakeObjectMessage(object, "config::ObjectRemoved", false));
+		mgr->SendMessage(m_ConfigRpcEndpoint, Endpoint::Ptr(), MakeObjectMessage(object, "config::ObjectRemoved", false));
 	}
 
 	return 0;
@@ -138,7 +138,7 @@ int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr e
 		cJSON_AddStringToObject(properties, ea->Property.c_str(), value.c_str());
 
 		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-		mgr->SendMessage(m_ConfigRpcEndpoint, NULL, msg);
+		mgr->SendMessage(m_ConfigRpcEndpoint, Endpoint::Ptr(), msg);
 	}
 
 	return 0;
