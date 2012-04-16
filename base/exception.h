@@ -21,8 +21,6 @@ public:
 	string GetMessage(void) const;
 };
 
-}
-
 #define DEFINE_EXCEPTION_CLASS(klass)								\
 	class klass : public Exception									\
 	{																\
@@ -38,5 +36,10 @@ public:
 		{															\
 		}															\
 	};
+
+DEFINE_EXCEPTION_CLASS(NotImplementedException);
+DEFINE_EXCEPTION_CLASS(InvalidArgumentException);
+
+}
 
 #endif /* EXCEPTION_H */

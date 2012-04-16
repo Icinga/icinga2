@@ -1,0 +1,5 @@
+JsonRpcResponse : Message
+	JsonRpc : string
+	Result : string
+	Error : string
+	ID : string

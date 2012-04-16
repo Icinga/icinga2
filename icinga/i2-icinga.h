@@ -3,6 +3,7 @@
 
 #include <i2-base.h>
 #include <i2-jsonrpc.h>
+#include <set>
 
 #ifdef I2_ICINGA_BUILD
 #	define I2_ICINGA_API I2_EXPORT

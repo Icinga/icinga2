@@ -9,7 +9,7 @@ struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
 	typedef shared_ptr<NewMessageEventArgs> Ptr;
 	typedef weak_ptr<NewMessageEventArgs> WeakPtr;
 
-	JsonRpcMessage::Ptr Message;
+	Message::Ptr Message;
 };
 
 class I2_JSONRPC_API JsonRpcClient : public TCPClient
@@ -21,7 +21,7 @@ public:
 	typedef shared_ptr<JsonRpcClient> Ptr;
 	typedef weak_ptr<JsonRpcClient> WeakPtr;
 
-	void SendMessage(JsonRpcMessage::Ptr message);
+	void SendMessage(Message::Ptr message);
 
 	virtual void Start(void);
 

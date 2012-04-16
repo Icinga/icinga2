@@ -14,8 +14,8 @@ public:
 	typedef shared_ptr<Netstring> Ptr;
 	typedef weak_ptr<Netstring> WeakPtr;
 
-	static cJSON *ReadJSONFromFIFO(FIFO::Ptr fifo);
-	static void WriteJSONToFIFO(FIFO::Ptr fifo, cJSON *object);
+	static Message::Ptr ReadMessageFromFIFO(FIFO::Ptr fifo);
+	static void WriteMessageToFIFO(FIFO::Ptr fifo, Message::Ptr message);
 };
 
 }

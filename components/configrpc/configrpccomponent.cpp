@@ -183,7 +183,8 @@ int ConfigRpcComponent::RemoteObjectUpdatedHandler(NewMessageEventArgs::Ptr ea)
 
 int ConfigRpcComponent::RemoteObjectRemovedHandler(NewMessageEventArgs::Ptr ea)
 {
-	JsonRpcMessage::Ptr message = ea->Message;
+	JsonRpcRequest::Ptr message = ea->Message->Cast<JsonRpcRequest>();
+	Message::Ptr params = message->GetParams();
 	string name, type;
 	
 	if (!message->GetParamString("name", &name))

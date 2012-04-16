@@ -9,32 +9,30 @@ void JsonRpcClient::Start(void)
 	OnDataAvailable += bind_weak(&JsonRpcClient::DataAvailableHandler, shared_from_this());
 }
 
-void JsonRpcClient::SendMessage(JsonRpcMessage::Ptr message)
+void JsonRpcClient::SendMessage(Message::Ptr message)
 {
-	Netstring::WriteJSONToFIFO(GetSendQueue(), message->GetJSON());
+	Netstring::WriteMessageToFIFO(GetSendQueue(), message);
 }
 
 int JsonRpcClient::DataAvailableHandler(EventArgs::Ptr ea)
 {
-	cJSON *json;
+	Message::Ptr message;
 
 	while (true) {
 		try {
-			json = Netstring::ReadJSONFromFIFO(GetRecvQueue());
+			message = Netstring::ReadMessageFromFIFO(GetRecvQueue());
 		} catch (const exception&) {
 			Close();
 
 			return 1;
 		}
 	
-		if (json == NULL)
+		if (message.get() == NULL)
 			break;
 
-		JsonRpcMessage::Ptr msg = make_shared<JsonRpcMessage>();
-		msg->SetJSON(json);
 		NewMessageEventArgs::Ptr nea = make_shared<NewMessageEventArgs>();
 		nea->Source = shared_from_this();
-		nea->Message = msg;
+		nea->Message = message;
 		OnNewMessage(nea);
 	}
 

@@ -9,18 +9,23 @@ class EndpointManager;
 class I2_ICINGA_API Endpoint : public Object
 {
 private:
-	bool m_Connected;
+	set<string> m_MethodSinks;
+	set<string> m_MethodSources;
 
 public:
 	typedef shared_ptr<Endpoint> Ptr;
 	typedef weak_ptr<Endpoint> WeakPtr;
 
-	Endpoint(void);
+	void RegisterMethodSink(string method);
+	void UnregisterMethodSink(string method);
+	bool IsMethodSink(string method);
 
-	virtual void SetConnected(bool connected);
-	virtual bool GetConnected(void);
+	void RegisterMethodSource(string method);
+	void UnregisterMethodSource(string method);
+	bool IsMethodSource(string method);
 
-	virtual void SendMessage(Endpoint::Ptr source, JsonRpcMessage::Ptr message) = 0;
+	virtual void SendRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr message) = 0;
+	virtual void SendResponse(Endpoint::Ptr sender, JsonRpcResponse::Ptr message) = 0;
 };
 
 }

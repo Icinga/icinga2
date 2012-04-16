@@ -37,7 +37,8 @@ public:
 	void RegisterEndpoint(Endpoint::Ptr endpoint);
 	void UnregisterEndpoint(Endpoint::Ptr endpoint);
 
-	void SendMessage(Endpoint::Ptr source, Endpoint::Ptr destination, JsonRpcMessage::Ptr message);
+	void SendAnycastRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr request);
+	void SendMulticastRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr request);
 };
 
 }

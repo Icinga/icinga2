@@ -2,47 +2,42 @@
 
 using namespace icinga;
 
-VirtualEndpoint::VirtualEndpoint()
-{
-	SetConnected(true);
-}
-
-void VirtualEndpoint::RegisterMethodHandler(string method, function<int (NewMessageEventArgs::Ptr)> callback)
+void VirtualEndpoint::RegisterMethodHandler(string method, function<int (NewRequestEventArgs::Ptr)> callback)
 {
 	m_MethodHandlers[method] += callback;
+
+	RegisterMethodSink(method);
 }
 
-void VirtualEndpoint::UnregisterMethodHandler(string method, function<int (NewMessageEventArgs::Ptr)> callback)
+void VirtualEndpoint::UnregisterMethodHandler(string method, function<int (NewRequestEventArgs::Ptr)> callback)
 {
 	// TODO: implement
-	//m_Methods[method] -= callback;
+	//m_MethodHandlers[method] -= callback;
+	//UnregisterMethodSink(method);
+
+	throw NotImplementedException();
 }
 
-void VirtualEndpoint::RegisterMethodSource(string method)
+void VirtualEndpoint::SendRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr request)
 {
-	m_MethodSources.push_front(method);
+	string method;
+	if (!request->GetMethod(&method))
+		return;
+
+	map<string, Event<NewRequestEventArgs::Ptr> >::iterator i = m_MethodHandlers.find(method);
+
+	if (i == m_MethodHandlers.end())
+		throw InvalidArgumentException();
+
+	NewRequestEventArgs::Ptr nrea = make_shared<NewRequestEventArgs>();
+	nrea->Source = shared_from_this();
+	nrea->Sender = sender;
+	nrea->Request = request;
+	i->second(nrea);
 }
 
-void VirtualEndpoint::UnregisterMethodSource(string method)
+void VirtualEndpoint::SendResponse(Endpoint::Ptr sender, JsonRpcResponse::Ptr response)
 {
-	m_MethodSources.remove(method);
-}
-
-void VirtualEndpoint::SendMessage(Endpoint::Ptr source, JsonRpcMessage::Ptr message)
-{
-	map<string, Event<NewMessageEventArgs::Ptr> >::iterator i;
-	i = m_MethodHandlers.find(message->GetMethod());
-
-	if (i == m_MethodHandlers.end()) {
-		JsonRpcMessage::Ptr response = make_shared<JsonRpcMessage>();
-		response->SetVersion("2.0");
-		response->SetError("Unknown method.");
-		response->SetID(message->GetID());
-		source->SendMessage(static_pointer_cast<Endpoint>(shared_from_this()), response);
-	}
-
-	NewMessageEventArgs::Ptr nmea = make_shared<NewMessageEventArgs>();
-	nmea->Source = shared_from_this();
-	nmea->Message = message;
-	i->second(nmea);
+	// TODO: figure out which request this response belongs to and notify the caller
+	throw NotImplementedException();
 }

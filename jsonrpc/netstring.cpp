@@ -4,7 +4,7 @@
 using namespace icinga;
 
 /* based on https://github.com/PeterScott/netstring-c/blob/master/netstring.c */
-cJSON *Netstring::ReadJSONFromFIFO(FIFO::Ptr fifo)
+Message::Ptr Netstring::ReadMessageFromFIFO(FIFO::Ptr fifo)
 {
 	size_t buffer_length = fifo->GetSize();
 	char *buffer = (char *)fifo->GetReadBuffer();
@@ -53,18 +53,19 @@ cJSON *Netstring::ReadJSONFromFIFO(FIFO::Ptr fifo)
 	/* remove the data from the fifo */
 	fifo->Read(NULL, i + len + 1);
 
-	return object;
+	return make_shared<Message>(object);
 }
 
-void Netstring::WriteJSONToFIFO(FIFO::Ptr fifo, cJSON *object)
+void Netstring::WriteMessageToFIFO(FIFO::Ptr fifo, Message::Ptr message)
 {
 	char *json;
+	shared_ptr<cJSON> object = message->GetJson();
 	size_t len;
 
 #ifdef _DEBUG
-	json = cJSON_Print(object);
+	json = cJSON_Print(object.get());
 #else /* _DEBUG */
-	json = cJSON_PrintUnformatted(object);
+	json = cJSON_PrintUnformatted(object.get());
 #endif /* _DEBUG */
 
 	len = strlen(json);

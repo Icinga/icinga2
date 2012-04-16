@@ -121,19 +121,31 @@ void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
 	m_Endpoints.remove(endpoint);
 }
 
-void EndpointManager::SendMessage(Endpoint::Ptr source, Endpoint::Ptr destination, JsonRpcMessage::Ptr message)
+void EndpointManager::SendAnycastRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr request)
 {
-	if (destination) {
-		destination->SendMessage(source, message);
-	} else {
-		for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
-		{
-			Endpoint::Ptr endpoint = *i;
+	throw NotImplementedException();
+}
 
-			if (endpoint == source)
-				continue;
+void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr request)
+{
+#ifdef _DEBUG
+	string id;
+	if (request->GetID(&id))
+		throw InvalidArgumentException("Multicast requests must not have an ID.");
+#endif /* _DEBUG */
 
-			endpoint->SendMessage(source, message);
-		}
+	string method;
+	if (!request->GetMethod(&method))
+		throw InvalidArgumentException();
+
+	for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
+	{
+		Endpoint::Ptr endpoint = *i;
+
+		if (endpoint == sender)
+			continue;
+
+		if (endpoint->IsMethodSink(method))
+			endpoint->SendRequest(sender, request);
 	}
 }

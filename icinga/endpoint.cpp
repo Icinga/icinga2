@@ -2,17 +2,32 @@
 
 using namespace icinga;
 
-Endpoint::Endpoint(void)
+void Endpoint::RegisterMethodSink(string method)
 {
-	m_Connected = false;
+	m_MethodSinks.insert(method);
 }
 
-void Endpoint::SetConnected(bool connected)
+void Endpoint::UnregisterMethodSink(string method)
 {
-	m_Connected = connected;
+	m_MethodSinks.erase(method);
 }
 
-bool Endpoint::GetConnected(void)
+bool Endpoint::IsMethodSink(string method)
 {
-	return m_Connected;
+	return (m_MethodSinks.find(method) != m_MethodSinks.end());
+}
+
+void Endpoint::RegisterMethodSource(string method)
+{
+	m_MethodSources.insert(method);
+}
+
+void Endpoint::UnregisterMethodSource(string method)
+{
+	m_MethodSources.erase(method);
+}
+
+bool Endpoint::IsMethodSource(string method)
+{
+	return (m_MethodSources.find(method) != m_MethodSinks.end());
 }
