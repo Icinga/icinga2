@@ -2,7 +2,7 @@
 
 using namespace icinga;
 
-mutex::mutex(void)
+Mutex::Mutex(void)
 {
 #ifdef _WIN32
 	InitializeCriticalSection(&m_Mutex);
@@ -11,7 +11,7 @@ mutex::mutex(void)
 #endif /* _WIN32 */
 }
 
-mutex::~mutex(void)
+Mutex::~Mutex(void)
 {
 #ifdef _WIN32
 	DeleteCriticalSection(&m_Mutex);
@@ -20,7 +20,7 @@ mutex::~mutex(void)
 #endif /* _WIN32 */
 }
 
-bool mutex::tryenter(void)
+bool Mutex::TryEnter(void)
 {
 #ifdef _WIN32
 	return (TryEnterCriticalSection(&m_Mutex) == TRUE);
@@ -29,7 +29,7 @@ bool mutex::tryenter(void)
 #endif /* _WIN32 */
 }
 
-void mutex::enter(void)
+void Mutex::Enter(void)
 {
 #ifdef _WIN32
 	EnterCriticalSection(&m_Mutex);
@@ -38,7 +38,7 @@ void mutex::enter(void)
 #endif /* _WIN32 */
 }
 
-void mutex::exit(void)
+void Mutex::Exit(void)
 {
 #ifdef _WIN32
 	LeaveCriticalSection(&m_Mutex);
@@ -48,9 +48,9 @@ void mutex::exit(void)
 }
 
 #ifdef _WIN32
-CRITICAL_SECTION *mutex::get(void)
+CRITICAL_SECTION *Mutex::Get(void)
 #else /* _WIN32 */
-pthread_mutex_t *mutex::get(void)
+pthread_mutex_t *Mutex::Get(void)
 #endif /* _WIN32 */
 {
 	return &m_Mutex;

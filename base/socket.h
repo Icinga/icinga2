@@ -40,12 +40,12 @@ public:
 
 	static void CloseAllSockets(void);
 
-	event<EventArgs::Ptr> OnReadable;
-	event<EventArgs::Ptr> OnWritable;
-	event<EventArgs::Ptr> OnException;
+	Event<EventArgs::Ptr> OnReadable;
+	Event<EventArgs::Ptr> OnWritable;
+	Event<EventArgs::Ptr> OnException;
 
-	event<SocketErrorEventArgs::Ptr> OnError;
-	event<EventArgs::Ptr> OnClosed;
+	Event<SocketErrorEventArgs::Ptr> OnError;
+	Event<EventArgs::Ptr> OnClosed;
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;

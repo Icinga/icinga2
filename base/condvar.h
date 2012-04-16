@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class I2_BASE_API condvar
+class I2_BASE_API CondVar
 {
 private:
 #ifdef _WIN32
@@ -14,17 +14,17 @@ private:
 #endif /* _WIN32 */
 
 public:
-	condvar(void);
-	~condvar(void);
+	CondVar(void);
+	~CondVar(void);
 
-	void wait(mutex *mtx);
-	void signal(void);
-	void broadcast(void);
+	void Wait(Mutex& mtx);
+	void Signal(void);
+	void Broadcast(void);
 
 #ifdef _WIN32
-	CONDITION_VARIABLE *get(void);
+	CONDITION_VARIABLE *Get(void);
 #else /* _WIN32 */
-	pthread_cond_t *get(void);
+	pthread_cond_t *Get(void);
 #endif /* _WIN32 */
 };
 

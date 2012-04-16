@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class I2_BASE_API mutex
+class I2_BASE_API Mutex
 {
 private:
 #ifdef _WIN32
@@ -14,17 +14,17 @@ private:
 #endif /* _WIN32 */
 
 public:
-	mutex(void);
-	~mutex(void);
+	Mutex(void);
+	~Mutex(void);
 
-	bool tryenter(void);
-	void enter(void);
-	void exit(void);
+	bool TryEnter(void);
+	void Enter(void);
+	void Exit(void);
 
 #ifdef _WIN32
-	CRITICAL_SECTION *get(void);
+	CRITICAL_SECTION *Get(void);
 #else /* _WIN32 */
-	pthread_mutex_t *get(void);
+	pthread_mutex_t *Get(void);
 #endif /* _WIN32 */
 };
 

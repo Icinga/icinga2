@@ -32,7 +32,7 @@ public:
 
 	void Listen(void);
 
-	event<NewClientEventArgs::Ptr> OnNewClient;
+	Event<NewClientEventArgs::Ptr> OnNewClient;
 
 	virtual bool WantsToRead(void) const;
 };

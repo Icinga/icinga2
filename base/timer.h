@@ -49,7 +49,7 @@ public:
 
 	void Reschedule(time_t next);
 
-	event<TimerEventArgs::Ptr> OnTimerExpired;
+	Event<TimerEventArgs::Ptr> OnTimerExpired;
 };
 
 }

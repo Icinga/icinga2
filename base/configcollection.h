@@ -27,9 +27,9 @@ public:
 
 	void ForEachObject(function<int (ConfigObjectEventArgs::Ptr)> callback);
 
-	event<ConfigObjectEventArgs::Ptr> OnObjectCreated;
-	event<ConfigObjectEventArgs::Ptr> OnObjectRemoved;
-	event<ConfigObjectEventArgs::Ptr> OnPropertyChanged;
+	Event<ConfigObjectEventArgs::Ptr> OnObjectCreated;
+	Event<ConfigObjectEventArgs::Ptr> OnObjectRemoved;
+	Event<ConfigObjectEventArgs::Ptr> OnPropertyChanged;
 };
 
 }

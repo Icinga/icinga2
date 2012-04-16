@@ -4,7 +4,7 @@ using namespace icinga;
 
 typedef struct threadparam_s
 {
-	void (*callback)(void*);
+	ThreadProc callback;
 	void *param;
 } threadparam_t;
 
@@ -27,7 +27,7 @@ static void *ThreadStartProc(void *param)
 #endif /* _WIN32 */
 
 
-thread::thread(void (*callback)(void *))
+Thread::Thread(ThreadProc callback)
 {
 	threadparam_t *tparam = new threadparam_t();
 
@@ -41,7 +41,7 @@ thread::thread(void (*callback)(void *))
 #endif /* _WIN32 */
 }
 
-thread::~thread(void)
+Thread::~Thread(void)
 {
 #ifdef _WIN32
 	CloseHandle(m_Thread);
@@ -49,17 +49,8 @@ thread::~thread(void)
 	/* nothing to do here */
 #endif
 }
-	
-void thread::terminate(void)
-{
-#ifdef _WIN32
-	TerminateThread(m_Thread, 0);
-#else /* _WIN32 */
-	/* nothing to do here */
-#endif
-}
 
-void thread::join(void)
+void Thread::Join(void)
 {
 #ifdef _WIN32
 	WaitForSingleObject(m_Thread, INFINITE);

@@ -35,7 +35,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	event<EventArgs::Ptr> OnDataAvailable;
+	Event<EventArgs::Ptr> OnDataAvailable;
 };
 
 }

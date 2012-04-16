@@ -30,7 +30,7 @@ void VirtualEndpoint::UnregisterMethodSource(string method)
 
 void VirtualEndpoint::SendMessage(Endpoint::Ptr source, JsonRpcMessage::Ptr message)
 {
-	map<string, event<NewMessageEventArgs::Ptr> >::iterator i;
+	map<string, Event<NewMessageEventArgs::Ptr> >::iterator i;
 	i = m_MethodHandlers.find(message->GetMethod());
 
 	if (i == m_MethodHandlers.end()) {

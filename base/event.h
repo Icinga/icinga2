@@ -13,7 +13,7 @@ struct I2_BASE_API EventArgs : public Object
 };
 
 template<class TArgs>
-class event
+class Event
 {
 public:
 	typedef function<int (TArgs)> DelegateType;
@@ -22,25 +22,25 @@ private:
 	list<DelegateType> m_Delegates;
 
 public:
-	void hook(const DelegateType& delegate)
+	void Hook(const DelegateType& delegate)
 	{
 		m_Delegates.push_front(delegate);
 	}
 
-	void unhook(const DelegateType& delegate)
+	void Unhook(const DelegateType& delegate)
 	{
 		m_Delegates.remove(delegate);
 	}
 
-	event<TArgs>& operator +=(const DelegateType& rhs)
+	Event<TArgs>& operator +=(const DelegateType& rhs)
 	{
-		hook(rhs);
+		Hook(rhs);
 		return *this;
 	}
 
-	event<TArgs>& operator -=(const DelegateType& rhs)
+	Event<TArgs>& operator -=(const DelegateType& rhs)
 	{
-		unhook(rhs);
+		Unhook(rhs);
 		return *this;
 	}
 

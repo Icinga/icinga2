@@ -4,7 +4,9 @@
 namespace icinga
 {
 
-class I2_BASE_API thread
+typedef void (*ThreadProc)(void *);
+
+class I2_BASE_API Thread
 {
 private:
 #ifdef _WIN32
@@ -14,12 +16,11 @@ private:
 #endif
 
 public:
-	thread(void (*callback)(void *));
-	~thread(void);
+	Thread(void (*callback)(void *));
+	~Thread(void);
 
-	void start(void);
-	void terminate(void);
-	void join(void);
+	void Start(void);
+	void Join(void);
 };
 
 }

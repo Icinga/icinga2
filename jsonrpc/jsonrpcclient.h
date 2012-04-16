@@ -25,7 +25,7 @@ public:
 
 	virtual void Start(void);
 
-	event<NewMessageEventArgs::Ptr> OnNewMessage;
+	Event<NewMessageEventArgs::Ptr> OnNewMessage;
 };
 
 }

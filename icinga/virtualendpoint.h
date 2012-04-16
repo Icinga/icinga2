@@ -7,7 +7,7 @@ namespace icinga
 class I2_ICINGA_API VirtualEndpoint : public Endpoint
 {
 private:
-	map< string, event<NewMessageEventArgs::Ptr> > m_MethodHandlers;
+	map< string, Event<NewMessageEventArgs::Ptr> > m_MethodHandlers;
 	list<string> m_MethodSources;
 
 public:
