@@ -9,30 +9,32 @@ void JsonRpcClient::Start(void)
 	OnDataAvailable += bind_weak(&JsonRpcClient::DataAvailableHandler, shared_from_this());
 }
 
-void JsonRpcClient::SendMessage(Message::Ptr message)
+void JsonRpcClient::SendMessage(const Message& message)
 {
 	Netstring::WriteMessageToFIFO(GetSendQueue(), message);
 }
 
-int JsonRpcClient::DataAvailableHandler(EventArgs::Ptr ea)
+int JsonRpcClient::DataAvailableHandler(const EventArgs& ea)
 {
-	Message::Ptr message;
+	Message message;
+	bool message_read;
 
 	while (true) {
 		try {
-			message = Netstring::ReadMessageFromFIFO(GetRecvQueue());
-		} catch (const exception&) {
+			message_read = Netstring::ReadMessageFromFIFO(GetRecvQueue(), &message);
+		} catch (const Exception& ex) {
+			cerr << "Exception while reading from JSON-RPC client: " << ex.GetMessage() << endl;
 			Close();
 
 			return 1;
 		}
 	
-		if (message.get() == NULL)
+		if (!message_read)
 			break;
 
-		NewMessageEventArgs::Ptr nea = make_shared<NewMessageEventArgs>();
-		nea->Source = shared_from_this();
-		nea->Message = message;
+		NewMessageEventArgs nea;
+		nea.Source = shared_from_this();
+		nea.Message = message;
 		OnNewMessage(nea);
 	}
 

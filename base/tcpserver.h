@@ -15,7 +15,7 @@ struct I2_BASE_API NewClientEventArgs : public EventArgs
 class I2_BASE_API TCPServer : public TCPSocket
 {
 private:
-	int ReadableEventHandler(EventArgs::Ptr ea);
+	int ReadableEventHandler(const EventArgs& ea);
 
 	factory_function m_ClientFactory;
 
@@ -32,7 +32,7 @@ public:
 
 	void Listen(void);
 
-	Event<NewClientEventArgs::Ptr> OnNewClient;
+	Event<NewClientEventArgs> OnNewClient;
 
 	virtual bool WantsToRead(void) const;
 };

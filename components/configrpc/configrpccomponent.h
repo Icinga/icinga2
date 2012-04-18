@@ -11,16 +11,15 @@ private:
 
 	IcingaApplication::Ptr GetIcingaApplication(void);
 
-	int FetchObjectsHandler(NewMessageEventArgs::Ptr ea);
+	int LocalObjectCreatedHandler(const ConfigObjectEventArgs& ea);
+	int LocalObjectRemovedHandler(const ConfigObjectEventArgs& ea);
+	int LocalPropertyChangedHandler(const ConfigObjectEventArgs& ea);
 
-	int LocalObjectCreatedHandler(ConfigObjectEventArgs::Ptr ea);
-	int LocalObjectRemovedHandler(ConfigObjectEventArgs::Ptr ea);
-	int LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr ea);
+	int FetchObjectsHandler(const NewRequestEventArgs& ea);
+	int RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea);
+	int RemoteObjectRemovedHandler(const NewRequestEventArgs& ea);
 
-	int RemoteObjectUpdatedHandler(NewMessageEventArgs::Ptr ea);
-	int RemoteObjectRemovedHandler(NewMessageEventArgs::Ptr ea);
-
-	JsonRpcMessage::Ptr MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties);
+	JsonRpcRequest MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties);
 
 public:
 	virtual string GetName(void);

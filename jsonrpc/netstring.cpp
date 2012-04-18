@@ -3,19 +3,72 @@
 
 using namespace icinga;
 
+Dictionary::Ptr Netstring::GetDictionaryFromJson(cJSON *json)
+{
+	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+
+	for (cJSON *i = json->child; i != NULL; i = i->next) {
+		switch (i->type) {
+			case cJSON_Number:
+				dictionary->SetValueInteger(i->string, i->valueint);
+				break;
+			case cJSON_String:
+				dictionary->SetValueString(i->string, i->valuestring);
+				break;
+			case cJSON_Object:
+				dictionary->SetValueDictionary(i->string, GetDictionaryFromJson(i));
+				break;
+			default:
+				break;
+		}
+	}
+
+	return dictionary;
+}
+
+cJSON *Netstring::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
+{
+	cJSON *json;
+	string valueString;
+	Dictionary::Ptr valueDictionary;
+
+	json = cJSON_CreateObject();
+
+	for (DictionaryIterator i = dictionary->Begin(); i != dictionary->End(); i++) {
+		switch (i->second.GetType()) {
+			case VariantInteger:
+				cJSON_AddNumberToObject(json, i->first.c_str(), i->second.GetInteger());
+				break;
+			case VariantString:
+				valueString = i->second.GetString();
+				cJSON_AddStringToObject(json, i->first.c_str(), valueString.c_str());
+				break;
+			case VariantObject:
+				valueDictionary = dynamic_pointer_cast<Dictionary>(i->second.GetObject());
+
+				if (valueDictionary.get() != NULL)
+					cJSON_AddItemToObject(json, i->first.c_str(), GetJsonFromDictionary(valueDictionary));
+			default:
+				break;
+		}
+	}
+
+	return json;
+}
+
 /* based on https://github.com/PeterScott/netstring-c/blob/master/netstring.c */
-Message::Ptr Netstring::ReadMessageFromFIFO(FIFO::Ptr fifo)
+bool Netstring::ReadMessageFromFIFO(FIFO::Ptr fifo, Message *message)
 {
 	size_t buffer_length = fifo->GetSize();
 	char *buffer = (char *)fifo->GetReadBuffer();
 
 	/* minimum netstring length is 3 */
 	if (buffer_length < 3)
-		return NULL;
+		return false;
 
 	/* no leading zeros allowed */
 	if (buffer[0] == '0' && isdigit(buffer[1]))
-		throw exception(/*"Invalid netstring (leading zero)"*/);
+		throw InvalidArgumentException("Invalid netstring (leading zero)");
 
 	size_t len, i;
 
@@ -23,22 +76,22 @@ Message::Ptr Netstring::ReadMessageFromFIFO(FIFO::Ptr fifo)
 	for (i = 0; i < buffer_length && isdigit(buffer[i]); i++) {
 		/* length specifier must have at most 9 characters */
 		if (i >= 9)
-			return NULL;
+			return false;
 
 		len = len * 10 + (buffer[i] - '0');
 	}
 
 	/* make sure the buffer is large enough */
 	if (i + len + 1 >= buffer_length)
-		return NULL;
+		return false;
 
 	/* check for the colon delimiter */
 	if (buffer[i++] != ':')
-		throw exception(/*"Invalid Netstring (missing :)"*/);
+		throw InvalidArgumentException("Invalid Netstring (missing :)");
 
 	/* check for the comma delimiter after the string */
 	if (buffer[i + len] != ',')
-		throw exception(/*"Invalid Netstring (missing ,)"*/);
+		throw InvalidArgumentException("Invalid Netstring (missing ,)");
 
 	/* nuke the comma delimiter */
 	buffer[i + len] = '\0';
@@ -47,30 +100,34 @@ Message::Ptr Netstring::ReadMessageFromFIFO(FIFO::Ptr fifo)
 	if (object == NULL) {
 		/* restore the comma */
 		buffer[i + len] = ',';
-		throw exception(/*"Invalid JSON string"*/);
+		throw InvalidArgumentException("Invalid JSON string");
 	}
 
 	/* remove the data from the fifo */
 	fifo->Read(NULL, i + len + 1);
 
-	return make_shared<Message>(object);
+	*message = Message(GetDictionaryFromJson(object));
+	cJSON_Delete(object);
+	return true;
 }
 
-void Netstring::WriteMessageToFIFO(FIFO::Ptr fifo, Message::Ptr message)
+void Netstring::WriteMessageToFIFO(FIFO::Ptr fifo, const Message& message)
 {
 	char *json;
-	shared_ptr<cJSON> object = message->GetJson();
+	cJSON *object = GetJsonFromDictionary(message.GetDictionary());
 	size_t len;
 
 #ifdef _DEBUG
-	json = cJSON_Print(object.get());
+	json = cJSON_Print(object);
 #else /* _DEBUG */
-	json = cJSON_PrintUnformatted(object.get());
+	json = cJSON_PrintUnformatted(object);
 #endif /* _DEBUG */
+
+	cJSON_Delete(object);
 
 	len = strlen(json);
 	char strLength[50];
-	sprintf(strLength, "%lu", (unsigned long)len);
+	sprintf(strLength, "%lu:", (unsigned long)len);
 
 	fifo->Write(strLength, strlen(strLength));
 	fifo->Write(json, len);

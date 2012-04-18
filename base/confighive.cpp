@@ -30,7 +30,7 @@ ConfigCollection::Ptr ConfigHive::GetCollection(const string& collection)
 	return ci->second;
 }
 
-void ConfigHive::ForEachObject(const string& type, function<int (ConfigObjectEventArgs::Ptr)> callback)
+void ConfigHive::ForEachObject(const string& type, function<int (const ConfigObjectEventArgs&)> callback)
 {
 	CollectionIterator ci = Collections.find(type);
 

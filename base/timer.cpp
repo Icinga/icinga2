@@ -74,10 +74,10 @@ void Timer::StopAllTimers(void)
  * the timer that originally invoked the delegate */
 void Timer::Call(void)
 {
-	TimerEventArgs::Ptr ea = make_shared<TimerEventArgs>();
-	ea->Source = shared_from_this();
-	ea->UserArgs = m_UserArgs;
-	OnTimerExpired(ea);
+	TimerEventArgs tea;
+	tea.Source = shared_from_this();
+	tea.UserArgs = m_UserArgs;
+	OnTimerExpired(tea);
 }
 
 void Timer::SetInterval(unsigned int interval)
@@ -90,13 +90,13 @@ unsigned int Timer::GetInterval(void) const
 	return m_Interval;
 }
 
-void Timer::SetUserArgs(const EventArgs::Ptr& userArgs)
+void Timer::SetUserArgs(const EventArgs& userArgs)
 {
 	m_UserArgs = userArgs;
 }
 
 
-EventArgs::Ptr Timer::GetUserArgs(void) const
+EventArgs Timer::GetUserArgs(void) const
 {
 	return m_UserArgs;
 }

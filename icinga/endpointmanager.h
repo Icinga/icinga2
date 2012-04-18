@@ -7,22 +7,16 @@ namespace icinga
 class I2_ICINGA_API EndpointManager : public Object
 {
 	list<JsonRpcServer::Ptr> m_Servers;
-	list<JsonRpcClient::Ptr> m_Clients;
-	list<Timer::Ptr> m_ReconnectTimers;
 	list<Endpoint::Ptr> m_Endpoints;
 	string m_Identity;
 
-	int NewClientHandler(NewClientEventArgs::Ptr ncea);
-	int CloseClientHandler(EventArgs::Ptr ea);
-	int ErrorClientHandler(SocketErrorEventArgs::Ptr ea);
-	int ReconnectClientHandler(TimerEventArgs::Ptr ea);
-	int NewMessageHandler(NewMessageEventArgs::Ptr nmea);
-
-	void RegisterClient(JsonRpcClient::Ptr server);
-	void UnregisterClient(JsonRpcClient::Ptr server);
-
 	void RegisterServer(JsonRpcServer::Ptr server);
 	void UnregisterServer(JsonRpcServer::Ptr server);
+
+	int NewClientHandler(const NewClientEventArgs& ncea);
+
+	int NewMethodSinkHandler(const NewMethodEventArgs& ea);
+	int NewMethodSourceHandler(const NewMethodEventArgs& ea);
 
 public:
 	typedef shared_ptr<EndpointManager> Ptr;
@@ -32,13 +26,15 @@ public:
 	string GetIdentity(void) const;
 
 	void AddListener(unsigned short port);
-	void AddConnection(string host, short port);
+	void AddConnection(string host, unsigned short port);
 
 	void RegisterEndpoint(Endpoint::Ptr endpoint);
 	void UnregisterEndpoint(Endpoint::Ptr endpoint);
 
-	void SendAnycastRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr request);
-	void SendMulticastRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr request);
+	void SendAnycastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
+	void SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
+
+	void ForeachEndpoint(function<int (Endpoint::Ptr)> callback);
 };
 
 }

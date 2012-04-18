@@ -23,14 +23,12 @@ void EndpointManager::AddListener(unsigned short port)
 	server->Start();
 }
 
-void EndpointManager::AddConnection(string host, short port)
+void EndpointManager::AddConnection(string host, unsigned short port)
 {
-	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>();
-	RegisterClient(client);
+	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
+	RegisterEndpoint(endpoint);
 
-	client->MakeSocket();
-	client->Connect(host, port);
-	client->Start();
+	endpoint->Connect(host, port);
 }
 
 void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
@@ -39,81 +37,32 @@ void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
 	server->OnNewClient += bind_weak(&EndpointManager::NewClientHandler, shared_from_this());
 }
 
+int EndpointManager::NewClientHandler(const NewClientEventArgs& ncea)
+{
+	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
+	RegisterEndpoint(endpoint);
+
+	endpoint->SetClient(static_pointer_cast<JsonRpcClient>(ncea.Client));
+
+	return 0;
+}
+
 void EndpointManager::UnregisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.remove(server);
 	// TODO: unbind event
 }
 
-void EndpointManager::RegisterClient(JsonRpcClient::Ptr client)
-{
-	m_Clients.push_front(client);
-	client->OnNewMessage += bind_weak(&EndpointManager::NewMessageHandler, shared_from_this());
-	client->OnClosed += bind_weak(&EndpointManager::CloseClientHandler, shared_from_this());
-	client->OnError += bind_weak(&EndpointManager::ErrorClientHandler, shared_from_this());
-}
-
-void EndpointManager::UnregisterClient(JsonRpcClient::Ptr client)
-{
-	m_Clients.remove(client);
-	// TODO: unbind event
-}
-
-int EndpointManager::NewClientHandler(NewClientEventArgs::Ptr ncea)
-{
-	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ncea->Client);
-	RegisterClient(client);
-
-	return 0;
-}
-
-int EndpointManager::CloseClientHandler(EventArgs::Ptr ea)
-{
-	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea->Source);
-	UnregisterClient(client);
-
-	if (client->GetPeerHost() != string()) {
-		Timer::Ptr timer = make_shared<Timer>();
-		timer->SetInterval(30);
-		timer->SetUserArgs(ea);
-		timer->OnTimerExpired += bind_weak(&EndpointManager::ReconnectClientHandler, shared_from_this());
-		timer->Start();
-		m_ReconnectTimers.push_front(timer);
-	}
-
-	return 0;
-}
-
-int EndpointManager::ErrorClientHandler(SocketErrorEventArgs::Ptr ea)
-{
-	cout << "Error occured for JSON-RPC socket: Code=" << ea->Code << "; Message=" << ea->Message << endl;
-
-	return 0;
-}
-
-int EndpointManager::ReconnectClientHandler(TimerEventArgs::Ptr ea)
-{
-	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea->UserArgs->Source);
-	Timer::Ptr timer = static_pointer_cast<Timer>(ea->Source);
-
-	AddConnection(client->GetPeerHost(), client->GetPeerPort());
-
-	timer->Stop();
-	m_ReconnectTimers.remove(timer);
-
-	return 0;
-}
-
-int EndpointManager::NewMessageHandler(NewMessageEventArgs::Ptr nmea)
-{
-// TODO: implement
-
-	return 0;
-}
-
 void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 {
+	endpoint->SetEndpointManager(static_pointer_cast<EndpointManager>(shared_from_this()));
 	m_Endpoints.push_front(endpoint);
+
+	endpoint->OnNewMethodSink += bind_weak(&EndpointManager::NewMethodSinkHandler, shared_from_this());
+	endpoint->ForeachMethodSink(bind(&EndpointManager::NewMethodSinkHandler, this, _1));
+
+	endpoint->OnNewMethodSource += bind_weak(&EndpointManager::NewMethodSourceHandler, shared_from_this());
+	endpoint->ForeachMethodSource(bind(&EndpointManager::NewMethodSourceHandler, this, _1));
 }
 
 void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
@@ -121,21 +70,21 @@ void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
 	m_Endpoints.remove(endpoint);
 }
 
-void EndpointManager::SendAnycastRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr request)
+void EndpointManager::SendAnycastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal)
 {
 	throw NotImplementedException();
 }
 
-void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr request)
+void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal)
 {
 #ifdef _DEBUG
 	string id;
-	if (request->GetID(&id))
+	if (request.GetID(&id))
 		throw InvalidArgumentException("Multicast requests must not have an ID.");
 #endif /* _DEBUG */
 
 	string method;
-	if (!request->GetMethod(&method))
+	if (!request.GetMethod(&method))
 		throw InvalidArgumentException();
 
 	for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
@@ -145,7 +94,58 @@ void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, JsonRpcRequest:
 		if (endpoint == sender)
 			continue;
 
+		/* send non-local messages to just the local endpoints */
+		if (!fromLocal && !endpoint->IsLocal())
+			continue;
+
 		if (endpoint->IsMethodSink(method))
-			endpoint->SendRequest(sender, request);
+			endpoint->ProcessRequest(sender, request);
+	}
+}
+
+int EndpointManager::NewMethodSinkHandler(const NewMethodEventArgs& ea)
+{
+	Endpoint::Ptr sender = static_pointer_cast<Endpoint>(ea.Source);
+
+	if (!sender->IsLocal())
+		return 0;
+
+	JsonRpcRequest request;
+	request.SetVersion("2.0");
+	request.SetMethod("message::Subscribe");
+
+	Message params;
+	params.GetDictionary()->SetValueString("method", ea.Method);
+	request.SetParams(params);
+
+	SendMulticastRequest(sender, request);
+
+	return 0;
+}
+
+int EndpointManager::NewMethodSourceHandler(const NewMethodEventArgs& ea)
+{
+	Endpoint::Ptr sender = static_pointer_cast<Endpoint>(ea.Source);
+
+	if (!sender->IsLocal())
+		return 0;
+
+	JsonRpcRequest request;
+	request.SetVersion("2.0");
+	request.SetMethod("message::Provide");
+
+	Message params;
+	params.GetDictionary()->SetValueString("method", ea.Method);
+	request.SetParams(params);
+
+	SendMulticastRequest(sender, request);
+
+	return 0;
+}
+
+void EndpointManager::ForeachEndpoint(function<int (Endpoint::Ptr)> callback)
+{
+	for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++) {
+		callback(*i);
 	}
 }

@@ -20,6 +20,11 @@ Application::Application(void)
 	char *debugging = getenv("_DEBUG");
 	m_Debugging = (debugging && strtol(debugging, NULL, 10) != 0);
 
+#ifdef _WIN32
+	if (IsDebuggerPresent())
+		m_Debugging = true;
+#endif /* _WIN32 */
+
 	m_ShuttingDown = false;
 	m_ConfigHive = make_shared<ConfigHive>();
 }
@@ -48,6 +53,8 @@ void Application::RunEventLoop(void)
 		fd_set readfds, writefds, exceptfds;
 		int nfds = -1;
 
+		Timer::CallExpiredTimers();
+
 		FD_ZERO(&readfds);
 		FD_ZERO(&writefds);
 		FD_ZERO(&exceptfds);
@@ -72,12 +79,7 @@ void Application::RunEventLoop(void)
 				nfds = fd;
 		}
 
-		long sleep;
-
-		do {
-			Timer::CallExpiredTimers();
-			sleep = (long)(Timer::GetNextCall() - time(NULL));
-		} while (sleep <= 0);
+		long sleep = (long)(Timer::GetNextCall() - time(NULL));
 
 		if (m_ShuttingDown)
 			break;
@@ -99,8 +101,8 @@ void Application::RunEventLoop(void)
 		else if (ready == 0)
 			continue;
 
-		EventArgs::Ptr ea = make_shared<EventArgs>();
-		ea->Source = shared_from_this();
+		EventArgs ea;
+		ea.Source = shared_from_this();
 
 		list<Socket::WeakPtr>::iterator prev, i;
 		for (i = Socket::Sockets.begin(); i != Socket::Sockets.end(); ) {
@@ -206,13 +208,29 @@ Component::Ptr Application::LoadComponent(const string& path, const ConfigObject
 		throw ComponentLoadException("Loadable module does not contain CreateComponent function");
 
 	component = Component::Ptr(pCreateComponent());
-	component->SetApplication(static_pointer_cast<Application>(shared_from_this()));
 	component->SetConfig(componentConfig);
+	RegisterComponent(component);
+	return component;
+}
+
+void Application::RegisterComponent(Component::Ptr component)
+{
+	component->SetApplication(static_pointer_cast<Application>(shared_from_this()));
 	m_Components[component->GetName()] = component;
 
 	component->Start();
+}
 
-	return component;
+void Application::UnregisterComponent(Component::Ptr component)
+{
+	string name = component->GetName();
+
+	Log("Unloading component '%s'", name.c_str());
+	map<string, Component::Ptr>::iterator i = m_Components.find(name);
+	if (i != m_Components.end()) {
+		m_Components.erase(i);
+		component->Stop();
+	}
 }
 
 Component::Ptr Application::GetComponent(const string& name)
@@ -223,22 +241,6 @@ Component::Ptr Application::GetComponent(const string& name)
 		return Component::Ptr();
 
 	return ci->second;
-}
-
-void Application::UnloadComponent(const string& name)
-{
-	map<string, Component::Ptr>::iterator ci = m_Components.find(name);
-
-	if (ci == m_Components.end())
-		return;
-
-	Log("Unloading component '%s'", name.c_str());
-
-	Component::Ptr component = ci->second;
-	component->Stop();
-	m_Components.erase(ci);
-
-	// TODO: unload DLL
 }
 
 void Application::Log(const char *format, ...)
@@ -396,7 +398,7 @@ int application_main(int argc, char **argv, Application *instance)
 		try {
 			result = Application::Instance->Main(args);
 		} catch (const Exception& ex) {
-			cout << "---" << endl;
+			cerr << "---" << endl;
 
 			string klass = typeid(ex).name();
 
@@ -410,8 +412,8 @@ int application_main(int argc, char **argv, Application *instance)
 			}
 #endif /* HAVE_GCC_ABI_DEMANGLE */
 
-			cout << "Exception: " << klass << endl;
-			cout << "Message: " << ex.GetMessage() << endl;
+			cerr << "Exception: " << klass << endl;
+			cerr << "Message: " << ex.GetMessage() << endl;
 
 			return EXIT_FAILURE;
 		}

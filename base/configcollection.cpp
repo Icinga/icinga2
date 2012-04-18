@@ -16,8 +16,8 @@ void ConfigCollection::AddObject(const ConfigObject::Ptr& object)
 {
 	Objects[object->GetName()] = object;
 
-	ConfigObjectEventArgs::Ptr ea = make_shared<ConfigObjectEventArgs>();
-	ea->Source = object;
+	ConfigObjectEventArgs ea;
+	ea.Source = object;
 	OnObjectCreated(ea);
 
 	ConfigHive::Ptr hive = m_Hive.lock();
@@ -32,8 +32,8 @@ void ConfigCollection::RemoveObject(const ConfigObject::Ptr& object)
 	if (oi != Objects.end()) {
 		Objects.erase(oi);
 
-		ConfigObjectEventArgs::Ptr ea = make_shared<ConfigObjectEventArgs>();
-		ea->Source = object;
+		ConfigObjectEventArgs ea;
+		ea.Source = object;
 		OnObjectRemoved(ea);
 
 		ConfigHive::Ptr hive = m_Hive.lock();
@@ -52,11 +52,12 @@ ConfigObject::Ptr ConfigCollection::GetObject(const string& name)
 	return oi->second;
 }
 
-void ConfigCollection::ForEachObject(function<int (ConfigObjectEventArgs::Ptr)> callback)
+void ConfigCollection::ForEachObject(function<int (const ConfigObjectEventArgs&)> callback)
 {
+	ConfigObjectEventArgs ea;
+
 	for (ObjectIterator oi = Objects.begin(); oi != Objects.end(); oi++) {
-		ConfigObjectEventArgs::Ptr ea = make_shared<ConfigObjectEventArgs>();
-		ea->Source = oi->second;
+		ea.Source = oi->second;
 		callback(ea);
 	}
 }

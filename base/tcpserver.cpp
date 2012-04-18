@@ -36,7 +36,7 @@ void TCPServer::Listen(void)
 	Start();
 }
 
-int TCPServer::ReadableEventHandler(EventArgs::Ptr ea)
+int TCPServer::ReadableEventHandler(const EventArgs& ea)
 {
 	int fd;
 	sockaddr_in addr;
@@ -44,11 +44,32 @@ int TCPServer::ReadableEventHandler(EventArgs::Ptr ea)
 
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
-	NewClientEventArgs::Ptr nea = make_shared<NewClientEventArgs>();
-	nea->Source = shared_from_this();
-	nea->Client = static_pointer_cast<TCPSocket>(m_ClientFactory());
-	nea->Client->SetFD(fd);
-	nea->Client->Start();
+	if (fd == INVALID_SOCKET) {
+#ifdef _WIN32
+		if (WSAGetLastError() == WSAEWOULDBLOCK)
+#else /* _WIN32 */
+		if (errno == EINPROGRESS)
+#endif /* _WIN32 */
+			return 0;
+
+		SocketErrorEventArgs sea;
+#ifdef _WIN32
+		sea.Code = WSAGetLastError();
+#else /* _WIN32 */
+		sea.Code = errno;
+#endif /* _WIN32 */
+		sea.Message = FormatErrorCode(sea.Code);
+
+		OnError(sea);
+
+		Close();
+	}
+
+	NewClientEventArgs nea;
+	nea.Source = shared_from_this();
+	nea.Client = static_pointer_cast<TCPSocket>(m_ClientFactory());
+	nea.Client->SetFD(fd);
+	nea.Client->Start();
 	OnNewClient(nea);
 
 	return 0;

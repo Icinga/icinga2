@@ -70,6 +70,8 @@ using namespace std::tr1::placeholders;
 #include "memory.h"
 #include "delegate.h"
 #include "event.h"
+#include "variant.h"
+#include "dictionary.h"
 #include "timer.h"
 #include "fifo.h"
 #include "socket.h"

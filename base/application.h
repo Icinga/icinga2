@@ -38,7 +38,8 @@ public:
 	ConfigHive::Ptr GetConfigHive(void);
 
 	shared_ptr<Component> LoadComponent(const string& path, const ConfigObject::Ptr& componentConfig);
-	void UnloadComponent(const string& name);
+	void RegisterComponent(shared_ptr<Component> component);
+	void UnregisterComponent(shared_ptr<Component> component);
 	shared_ptr<Component> GetComponent(const string& name);
 	void AddComponentSearchDir(const string& componentDirectory);
 

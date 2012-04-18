@@ -4,32 +4,31 @@
 namespace icinga
 {
 
-struct I2_JSONRPC_API NewRequestEventArgs : public EventArgs
+struct I2_ICINGA_API NewRequestEventArgs : public EventArgs
 {
 	typedef shared_ptr<NewRequestEventArgs> Ptr;
 	typedef weak_ptr<NewRequestEventArgs> WeakPtr;
 
 	Endpoint::Ptr Sender;
-	JsonRpcRequest::Ptr Request;
+	JsonRpcRequest Request;
 };
 
 class I2_ICINGA_API VirtualEndpoint : public Endpoint
 {
 private:
-	map< string, Event<NewRequestEventArgs::Ptr> > m_MethodHandlers;
+	map< string, Event<NewRequestEventArgs> > m_MethodHandlers;
 
 public:
 	typedef shared_ptr<VirtualEndpoint> Ptr;
 	typedef weak_ptr<VirtualEndpoint> WeakPtr;
 
-	void RegisterMethodHandler(string method, function<int (NewRequestEventArgs::Ptr)> callback);
-	void UnregisterMethodHandler(string method, function<int (NewRequestEventArgs::Ptr)> callback);
+	void RegisterMethodHandler(string method, function<int (const NewRequestEventArgs&)> callback);
+	void UnregisterMethodHandler(string method, function<int (const NewRequestEventArgs&)> callback);
 
-	virtual void RegisterMethodSource(string method);
-	virtual void UnregisterMethodSource(string method);
+	virtual bool IsLocal(void) const;
 
-	virtual void SendRequest(Endpoint::Ptr sender, JsonRpcRequest::Ptr message);
-	virtual void SendResponse(Endpoint::Ptr sender, JsonRpcResponse::Ptr message);
+	virtual void ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message);
+	virtual void ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message);
 };
 
 }

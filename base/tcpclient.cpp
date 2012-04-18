@@ -41,15 +41,15 @@ void TCPClient::Connect(const string& hostname, unsigned short port)
 #else /* _WIN32 */
 	if (rc < 0 && errno != EINPROGRESS) {
 #endif /* _WIN32 */
-		SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
+		SocketErrorEventArgs sea;
 #ifdef _WIN32
-		ea->Code = WSAGetLastError();
+		sea.Code = WSAGetLastError();
 #else /* _WIN32 */
-		ea->Code = errno;
+		sea.Code = errno;
 #endif /* _WIN32 */
-		ea->Message = FormatErrorCode(ea->Code);
+		sea.Message = FormatErrorCode(sea.Code);
 
-		OnError(ea);
+		OnError(sea);
 
 		Close();
 	}
@@ -79,7 +79,7 @@ int TCPClient::GetPeerPort(void)
 	return m_PeerPort;
 }
 
-int TCPClient::ReadableEventHandler(EventArgs::Ptr ea)
+int TCPClient::ReadableEventHandler(const EventArgs& ea)
 {
 	int rc;
 
@@ -96,15 +96,15 @@ int TCPClient::ReadableEventHandler(EventArgs::Ptr ea)
 
 	if (rc <= 0) {
 		if (rc < 0) {
-			SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
+			SocketErrorEventArgs sea;
 #ifdef _WIN32
-			ea->Code = WSAGetLastError();
+			sea.Code = WSAGetLastError();
 #else /* _WIN32 */
-			ea->Code = errno;
+			sea.Code = errno;
 #endif /* _WIN32 */
-			ea->Message = FormatErrorCode(ea->Code);
+			sea.Message = FormatErrorCode(sea.Code);
 
-			OnError(ea);
+			OnError(sea);
 		}
 
 		Close();
@@ -113,14 +113,14 @@ int TCPClient::ReadableEventHandler(EventArgs::Ptr ea)
 
 	m_RecvQueue->Write(NULL, rc);
 
-	EventArgs::Ptr dea = make_shared<EventArgs>();
-	dea->Source = shared_from_this();
+	EventArgs dea;
+	dea.Source = shared_from_this();
 	OnDataAvailable(dea);
 
 	return 0;
 }
 
-int TCPClient::WritableEventHandler(EventArgs::Ptr ea)
+int TCPClient::WritableEventHandler(const EventArgs& ea)
 {
 	int rc;
 
@@ -128,15 +128,15 @@ int TCPClient::WritableEventHandler(EventArgs::Ptr ea)
 
 	if (rc <= 0) {
 		if (rc < 0) {
-			SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
+			SocketErrorEventArgs sea;
 #ifdef _WIN32
-			ea->Code = WSAGetLastError();
+			sea.Code = WSAGetLastError();
 #else /* _WIN32 */
-			ea->Code = errno;
+			sea.Code = errno;
 #endif /* _WIN32 */
-			ea->Message = FormatErrorCode(ea->Code);
+			sea.Message = FormatErrorCode(sea.Code);
 
-			OnError(ea);
+			OnError(sea);
 		}
 
 		Close();

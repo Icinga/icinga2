@@ -8,16 +8,19 @@ class I2_ICINGA_API IcingaApplication : public Application
 {
 private:
 	EndpointManager::Ptr m_EndpointManager;
+	Timer::Ptr m_TestTimer;
+	VirtualEndpoint::Ptr m_TestEndpoint;
 
-	int NewComponentHandler(ConfigObjectEventArgs::Ptr ea);
-	int DeletedComponentHandler(ConfigObjectEventArgs::Ptr ea);
+	int NewComponentHandler(const ConfigObjectEventArgs& ea);
+	int DeletedComponentHandler(const ConfigObjectEventArgs& ea);
 
-	int NewRpcListenerHandler(ConfigObjectEventArgs::Ptr ea);
-	int DeletedRpcListenerHandler(ConfigObjectEventArgs::Ptr ea);
+	int NewRpcListenerHandler(const ConfigObjectEventArgs& ea);
+	int DeletedRpcListenerHandler(const ConfigObjectEventArgs& ea);
 
-	int NewRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea);
-	int DeletedRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea);
+	int NewRpcConnectionHandler(const ConfigObjectEventArgs& ea);
+	int DeletedRpcConnectionHandler(const ConfigObjectEventArgs& ea);
 
+	int TestTimerHandler(const TimerEventArgs& tea);
 public:
 	typedef shared_ptr<IcingaApplication> Ptr;
 	typedef weak_ptr<IcingaApplication> WeakPtr;

@@ -10,12 +10,15 @@ private:
 	size_t m_Length;
 	void *m_Data;
 
+	static Dictionary::Ptr Netstring::GetDictionaryFromJson(cJSON *json);
+	static cJSON *GetJsonFromDictionary(const Dictionary::Ptr& dictionary);
+
 public:
 	typedef shared_ptr<Netstring> Ptr;
 	typedef weak_ptr<Netstring> WeakPtr;
 
-	static Message::Ptr ReadMessageFromFIFO(FIFO::Ptr fifo);
-	static void WriteMessageToFIFO(FIFO::Ptr fifo, Message::Ptr message);
+	static bool ReadMessageFromFIFO(FIFO::Ptr fifo, Message *message);
+	static void WriteMessageToFIFO(FIFO::Ptr fifo, const Message& message);
 };
 
 }

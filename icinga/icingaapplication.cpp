@@ -32,7 +32,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	ConfigCollection::Ptr componentCollection = GetConfigHive()->GetCollection("component");
 
-	function<int (ConfigObjectEventArgs::Ptr)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
+	function<int (const ConfigObjectEventArgs&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
 	componentCollection->OnObjectCreated += NewComponentHandler;
 	componentCollection->ForEachObject(NewComponentHandler);
 
@@ -40,7 +40,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	ConfigCollection::Ptr listenerCollection = GetConfigHive()->GetCollection("rpclistener");
 
-	function<int (ConfigObjectEventArgs::Ptr)> NewRpcListenerHandler = bind_weak(&IcingaApplication::NewRpcListenerHandler, shared_from_this());
+	function<int (const ConfigObjectEventArgs&)> NewRpcListenerHandler = bind_weak(&IcingaApplication::NewRpcListenerHandler, shared_from_this());
 	listenerCollection->OnObjectCreated += NewRpcListenerHandler;
 	listenerCollection->ForEachObject(NewRpcListenerHandler);
 
@@ -48,7 +48,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	ConfigCollection::Ptr connectionCollection = GetConfigHive()->GetCollection("rpcconnection");
 
-	function<int (ConfigObjectEventArgs::Ptr)> NewRpcConnectionHandler = bind_weak(&IcingaApplication::NewRpcConnectionHandler, shared_from_this());
+	function<int (const ConfigObjectEventArgs&)> NewRpcConnectionHandler = bind_weak(&IcingaApplication::NewRpcConnectionHandler, shared_from_this());
 	connectionCollection->OnObjectCreated += NewRpcConnectionHandler;
 	connectionCollection->ForEachObject(NewRpcConnectionHandler);
 
@@ -61,9 +61,31 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	ConfigCollection::Ptr collection = GetConfigHive()->GetCollection("rpclistener");
 
+	m_TestEndpoint = make_shared<VirtualEndpoint>();
+	m_EndpointManager->RegisterEndpoint(m_TestEndpoint);
+	m_TestEndpoint->RegisterMethodSink("test");
+	m_TestEndpoint->RegisterMethodSource("test");
+
+	m_TestTimer = make_shared<Timer>();
+	m_TestTimer->SetInterval(5);
+	m_TestTimer->OnTimerExpired += bind_weak(&IcingaApplication::TestTimerHandler, shared_from_this());
+	m_TestTimer->Start();
+
 	RunEventLoop();
 
 	return EXIT_SUCCESS;
+}
+
+int IcingaApplication::TestTimerHandler(const TimerEventArgs& tea)
+{
+	cout << "Problem?" << endl;
+
+	JsonRpcRequest request;
+	request.SetVersion("2.0");
+	request.SetMethod("test");
+	m_EndpointManager->SendMulticastRequest(m_TestEndpoint, request);
+
+	return 0;
 }
 
 void IcingaApplication::PrintUsage(const string& programPath)
@@ -76,10 +98,10 @@ EndpointManager::Ptr IcingaApplication::GetEndpointManager(void)
 	return m_EndpointManager;
 }
 
-int IcingaApplication::NewComponentHandler(ConfigObjectEventArgs::Ptr ea)
+int IcingaApplication::NewComponentHandler(const ConfigObjectEventArgs& ea)
 {
 	string path;
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 		
 	if (!object->GetProperty("path", &path)) {
 #ifdef _WIN32
@@ -96,17 +118,18 @@ int IcingaApplication::NewComponentHandler(ConfigObjectEventArgs::Ptr ea)
 	return 0;
 }
 
-int IcingaApplication::DeletedComponentHandler(ConfigObjectEventArgs::Ptr ea)
+int IcingaApplication::DeletedComponentHandler(const ConfigObjectEventArgs& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
-	UnloadComponent(object->GetName());
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
+	Component::Ptr component = GetComponent(object->GetName());
+	UnregisterComponent(component);
 
 	return 0;
 }
 
-int IcingaApplication::NewRpcListenerHandler(ConfigObjectEventArgs::Ptr ea)
+int IcingaApplication::NewRpcListenerHandler(const ConfigObjectEventArgs& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	int port;
 
 	if (!object->GetPropertyInteger("port", &port))
@@ -119,16 +142,16 @@ int IcingaApplication::NewRpcListenerHandler(ConfigObjectEventArgs::Ptr ea)
 	return 0;
 }
 
-int IcingaApplication::DeletedRpcListenerHandler(ConfigObjectEventArgs::Ptr ea)
+int IcingaApplication::DeletedRpcListenerHandler(const ConfigObjectEventArgs& ea)
 {
 	throw Exception("Unsupported operation.");
 
 	return 0;
 }
 
-int IcingaApplication::NewRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea)
+int IcingaApplication::NewRpcConnectionHandler(const ConfigObjectEventArgs& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	string hostname;
 	int port;
 
@@ -145,7 +168,7 @@ int IcingaApplication::NewRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea)
 	return 0;
 }
 
-int IcingaApplication::DeletedRpcConnectionHandler(ConfigObjectEventArgs::Ptr ea)
+int IcingaApplication::DeletedRpcConnectionHandler(const ConfigObjectEventArgs& ea)
 {
 	throw Exception("Unsupported operation.");
 

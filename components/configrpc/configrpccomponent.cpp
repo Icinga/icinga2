@@ -46,114 +46,118 @@ void ConfigRpcComponent::Stop(void)
 	// TODO: implement
 }
 
-JsonRpcMessage::Ptr ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
+JsonRpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
 {
-	JsonRpcMessage::Ptr msg = make_shared<JsonRpcMessage>();
-	msg->SetVersion("2.0");
-	msg->SetMethod(method);
-	cJSON *params = msg->GetParams();
+	JsonRpcRequest msg;
+	msg.SetVersion("2.0");
+	msg.SetMethod(method);
 
-	string name = object->GetName();
-	cJSON_AddStringToObject(params, "name", name.c_str());
+	Message params;
+	msg.SetParams(params);
 
-	string type = object->GetType();
-	cJSON_AddStringToObject(params, "type", type.c_str());
+	params.GetDictionary()->SetValueString("name", object->GetName());
+	params.GetDictionary()->SetValueString("type", object->GetType());
 
 	if (includeProperties) {
-		cJSON *properties = cJSON_CreateObject();
-		cJSON_AddItemToObject(params, "properties", properties);
+		Message properties;
+		params.GetDictionary()->SetValueDictionary("properties", properties.GetDictionary());
 
 		for (ConfigObject::ParameterIterator pi = object->Properties.begin(); pi != object->Properties.end(); pi++) {
-			cJSON_AddStringToObject(properties, pi->first.c_str(), pi->second.c_str());
+			properties.GetDictionary()->SetValueString(pi->first, pi->second);
 		}
 	}
 
 	return msg;
 }
 
-int ConfigRpcComponent::FetchObjectsHandler(NewMessageEventArgs::Ptr ea)
+int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 {
-	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea->Source);
+	Endpoint::Ptr client = ea.Sender;
 	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
 
 	for (ConfigHive::CollectionIterator ci = configHive->Collections.begin(); ci != configHive->Collections.end(); ci++) {
 		ConfigCollection::Ptr collection = ci->second;
 
 		for (ConfigCollection::ObjectIterator oi = collection->Objects.begin(); oi != collection->Objects.end(); oi++) {
-			JsonRpcMessage::Ptr msg = MakeObjectMessage(oi->second, "config::ObjectCreated", true);
-			client->SendMessage(msg);
+			client->ProcessRequest(m_ConfigRpcEndpoint, MakeObjectMessage(oi->second, "config::ObjectCreated", true));
 		}
 	}
 
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectCreatedHandler(ConfigObjectEventArgs::Ptr ea)
+int ConfigRpcComponent::LocalObjectCreatedHandler(const ConfigObjectEventArgs& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
 	int replicate = 0;
 	object->GetPropertyInteger("replicate", &replicate);
 
 	if (replicate) {
 		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-		mgr->SendMessage(m_ConfigRpcEndpoint, Endpoint::Ptr(), MakeObjectMessage(object, "config::ObjectCreated", true));
+		mgr->SendMulticastRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectCreated", true));
 	}
 
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectRemovedHandler(ConfigObjectEventArgs::Ptr ea)
+int ConfigRpcComponent::LocalObjectRemovedHandler(const ConfigObjectEventArgs& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
 	int replicate = 0;
 	object->GetPropertyInteger("replicate", &replicate);
 
 	if (replicate) {
 		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-		mgr->SendMessage(m_ConfigRpcEndpoint, Endpoint::Ptr(), MakeObjectMessage(object, "config::ObjectRemoved", false));
+		mgr->SendMulticastRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectRemoved", false));
 	}
 
 	return 0;
 }
 
-int ConfigRpcComponent::LocalPropertyChangedHandler(ConfigObjectEventArgs::Ptr ea)
+int ConfigRpcComponent::LocalPropertyChangedHandler(const ConfigObjectEventArgs& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea->Source);
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
 	int replicate = 0;
 	object->GetPropertyInteger("replicate", &replicate);
 
 	if (replicate) {
-		JsonRpcMessage::Ptr msg = MakeObjectMessage(object, "config::PropertyChanged", false);
-		cJSON *params = msg->GetParams();
+		JsonRpcRequest msg = MakeObjectMessage(object, "config::PropertyChanged", false);
+		Message params;
+		msg.SetParams(params);
 
-		cJSON *properties = cJSON_CreateObject();
-		cJSON_AddItemToObject(params, "properties", properties);
+		Message properties;
+		params.GetDictionary()->SetValueDictionary("properties", properties.GetDictionary());
 
 		string value;
-		object->GetProperty(ea->Property, &value);
+		object->GetProperty(ea.Property, &value);
 
-		cJSON_AddStringToObject(properties, ea->Property.c_str(), value.c_str());
+		properties.GetDictionary()->SetValueString(ea.Property, value);
 
 		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-		mgr->SendMessage(m_ConfigRpcEndpoint, Endpoint::Ptr(), msg);
+		mgr->SendMulticastRequest(m_ConfigRpcEndpoint, msg);
 	}
 
 	return 0;
 }
 
-int ConfigRpcComponent::RemoteObjectUpdatedHandler(NewMessageEventArgs::Ptr ea)
+int ConfigRpcComponent::RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea)
 {
-	JsonRpcMessage::Ptr message = ea->Message;
-	string name, type, value;
+	JsonRpcRequest message = ea.Request;
 	bool was_null = false;
 
-	if (!message->GetParamString("name", &name))
+	Message params;
+	if (!message.GetParams(&params))
 		return 0;
 
-	if (!message->GetParamString("type", &type))
+	string name;
+	if (!params.GetDictionary()->GetValueString("name", &name))
+		return 0;
+
+	string type;
+	if (!params.GetDictionary()->GetValueString("type", &type))
 		return 0;
 
 	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
@@ -164,15 +168,12 @@ int ConfigRpcComponent::RemoteObjectUpdatedHandler(NewMessageEventArgs::Ptr ea)
 		object = make_shared<ConfigObject>(type, name);
 	}
 
-	cJSON *properties = message->GetParam("properties");
+	Dictionary::Ptr properties;
+	if (!params.GetDictionary()->GetValueDictionary("properties", &properties))
+		return 0;
 
-	if (properties != NULL) {
-		for (cJSON *prop = properties->child; prop != NULL; prop = prop->next) {
-			if (prop->type != cJSON_String)
-				continue;
-
-			object->SetProperty(prop->string, prop->valuestring);
-		}
+	for (DictionaryIterator i = properties->Begin(); i != properties->End(); i++) {
+		object->SetProperty(i->first, i->second);
 	}
 
 	if (was_null)
@@ -181,16 +182,20 @@ int ConfigRpcComponent::RemoteObjectUpdatedHandler(NewMessageEventArgs::Ptr ea)
 	return 0;
 }
 
-int ConfigRpcComponent::RemoteObjectRemovedHandler(NewMessageEventArgs::Ptr ea)
+int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea)
 {
-	JsonRpcRequest::Ptr message = ea->Message->Cast<JsonRpcRequest>();
-	Message::Ptr params = message->GetParams();
-	string name, type;
+	JsonRpcRequest message = ea.Request;
 	
-	if (!message->GetParamString("name", &name))
+	Message params;
+	if (!message.GetParams(&params))
 		return 0;
 
-	if (!message->GetParamString("type", &type))
+	string name;
+	if (!params.GetDictionary()->GetValueString("name", &name))
+		return 0;
+
+	string type;
+	if (!params.GetDictionary()->GetValueString("type", &type))
 		return 0;
 
 	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();

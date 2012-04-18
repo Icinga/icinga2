@@ -13,8 +13,8 @@ private:
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
 
-	int ReadableEventHandler(EventArgs::Ptr ea);
-	int WritableEventHandler(EventArgs::Ptr ea);
+	int ReadableEventHandler(const EventArgs& ea);
+	int WritableEventHandler(const EventArgs& ea);
 
 public:
 	typedef shared_ptr<TCPClient> Ptr;
@@ -35,7 +35,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	Event<EventArgs::Ptr> OnDataAvailable;
+	Event<EventArgs> OnDataAvailable;
 };
 
 }

@@ -16,6 +16,8 @@ Socket::~Socket(void)
 
 void Socket::Start(void)
 {
+	assert(m_FD != INVALID_SOCKET);
+
 	OnException += bind_weak(&Socket::ExceptionEventHandler, shared_from_this());
 
 	Sockets.push_front(static_pointer_cast<Socket>(shared_from_this()));
@@ -54,8 +56,8 @@ void Socket::Close(bool from_dtor)
 
 		/* nobody can possibly have a valid event subscription when the destructor has been called */
 		if (!from_dtor) {
-			EventArgs::Ptr ea = make_shared<EventArgs>();
-			ea->Source = shared_from_this();
+			EventArgs ea;
+			ea.Source = shared_from_this();
 			OnClosed(ea);
 		}
 	}
@@ -84,7 +86,7 @@ string Socket::FormatErrorCode(int code)
 	return result;
 }
 
-int Socket::ExceptionEventHandler(EventArgs::Ptr ea)
+int Socket::ExceptionEventHandler(const EventArgs& ea)
 {
 	int opt;
 	socklen_t optlen = sizeof(opt);
@@ -97,10 +99,10 @@ int Socket::ExceptionEventHandler(EventArgs::Ptr ea)
 	}
 
 	if (opt != 0) {
-		SocketErrorEventArgs::Ptr ea = make_shared<SocketErrorEventArgs>();
-		ea->Code = opt;
-		ea->Message = FormatErrorCode(ea->Code);
-		OnError(ea);
+		SocketErrorEventArgs sea;
+		sea.Code = opt;
+		sea.Message = FormatErrorCode(sea.Code);
+		OnError(sea);
 
 		Close();
 	}

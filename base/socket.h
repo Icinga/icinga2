@@ -17,7 +17,7 @@ class I2_BASE_API Socket : public Object
 private:
 	SOCKET m_FD;
 
-	int ExceptionEventHandler(EventArgs::Ptr ea);
+	int ExceptionEventHandler(const EventArgs& ea);
 
 protected:
 	string FormatErrorCode(int errorCode);
@@ -40,12 +40,12 @@ public:
 
 	static void CloseAllSockets(void);
 
-	Event<EventArgs::Ptr> OnReadable;
-	Event<EventArgs::Ptr> OnWritable;
-	Event<EventArgs::Ptr> OnException;
+	Event<EventArgs> OnReadable;
+	Event<EventArgs> OnWritable;
+	Event<EventArgs> OnException;
 
-	Event<SocketErrorEventArgs::Ptr> OnError;
-	Event<EventArgs::Ptr> OnClosed;
+	Event<SocketErrorEventArgs> OnError;
+	Event<EventArgs> OnClosed;
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;

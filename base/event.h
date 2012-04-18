@@ -4,11 +4,8 @@
 namespace icinga
 {
 
-struct I2_BASE_API EventArgs : public Object
+struct I2_BASE_API EventArgs
 {
-	typedef shared_ptr<EventArgs> Ptr;
-	typedef weak_ptr<EventArgs> WeakPtr;
-
 	Object::Ptr Source;
 };
 
@@ -16,7 +13,7 @@ template<class TArgs>
 class Event
 {
 public:
-	typedef function<int (TArgs)> DelegateType;
+	typedef function<int (const TArgs&)> DelegateType;
 
 private:
 	list<DelegateType> m_Delegates;

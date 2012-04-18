@@ -44,13 +44,13 @@ void ConfigObject::SetProperty(const string& name, const string& value)
 
 	ConfigHive::Ptr hive = m_Hive.lock();
 	if (hive) {
-		ConfigObjectEventArgs::Ptr ea = make_shared<ConfigObjectEventArgs>();
-		ea->Source = shared_from_this();
-		ea->Property = name;
+		ConfigObjectEventArgs ea;
+		ea.Source = shared_from_this();
+		ea.Property = name;
 
 		string oldValue;
 		if (GetProperty(name, &oldValue))
-			ea->OldValue = oldValue;
+			ea.OldValue = oldValue;
 
 		hive->GetCollection(m_Type)->OnPropertyChanged(ea);
 		hive->OnPropertyChanged(ea);
