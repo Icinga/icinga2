@@ -27,7 +27,7 @@ bool Dictionary::GetValueString(string key, string *value)
 	if (!GetValueVariant(key, &data))
 		return false;
 
-	*value = data;
+	*value = static_cast<string>(data);
 	return true;
 }
 

@@ -10,7 +10,7 @@ private:
 	size_t m_Length;
 	void *m_Data;
 
-	static Dictionary::Ptr Netstring::GetDictionaryFromJson(cJSON *json);
+	static Dictionary::Ptr GetDictionaryFromJson(cJSON *json);
 	static cJSON *GetJsonFromDictionary(const Dictionary::Ptr& dictionary);
 
 public:

@@ -9,7 +9,7 @@ struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
 	typedef shared_ptr<NewMessageEventArgs> Ptr;
 	typedef weak_ptr<NewMessageEventArgs> WeakPtr;
 
-	Message Message;
+	icinga::Message Message;
 };
 
 class I2_JSONRPC_API JsonRpcClient : public TCPClient
