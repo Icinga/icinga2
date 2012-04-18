@@ -19,6 +19,8 @@ libbase_la_SOURCES =  \
 	configobject.h \
 	cxx11-compat.h \
 	delegate.h \
+	dictionary.cpp \
+	dictionary.h \
 	event.h \
 	exception.cpp \
 	exception.h \
@@ -45,6 +47,8 @@ libbase_la_SOURCES =  \
 	timer.h \
 	unix.cpp \
 	unix.h \
+	variant.cpp \
+	variant.h \
 	win32.cpp \
 	win32.h
 

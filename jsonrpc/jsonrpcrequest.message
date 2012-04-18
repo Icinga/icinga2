@@ -1,5 +1,0 @@
-JsonRpcRequest : Message
-	JsonRpc : string
-	Method : string
-	Params : Message
-	ID : string

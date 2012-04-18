@@ -8,10 +8,14 @@ libjsonrpc_la_SOURCES =  \
 	i2-jsonrpc.h \
 	jsonrpcclient.cpp \
 	jsonrpcclient.h \
-	jsonrpcmessage.cpp \
-	jsonrpcmessage.h \
+	jsonrpcrequest.cpp \
+	jsonrpcrequest.h \
+	jsonrpcresponse.cpp \
+	jsonrpcresponse.h \
 	jsonrpcserver.cpp \
 	jsonrpcserver.h \
+	message.cpp \
+	message.h \
 	netstring.cpp \
 	netstring.h
 
