@@ -15,12 +15,12 @@ public:
 	typedef weak_ptr<Component> WeakPtr;
 
 	void SetApplication(const Application::WeakPtr& application);
-	Application::Ptr GetApplication(void);
+	Application::Ptr GetApplication(void) const;
 
 	void SetConfig(const ConfigObject::Ptr& componentConfig);
-	ConfigObject::Ptr GetConfig(void);
+	ConfigObject::Ptr GetConfig(void) const;
 
-	virtual string GetName(void) = 0;
+	virtual string GetName(void) const = 0;
 	virtual void Start(void) = 0;
 	virtual void Stop(void) = 0;
 };

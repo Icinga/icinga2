@@ -18,9 +18,6 @@ private:
 	int ClientErrorHandler(const SocketErrorEventArgs& ea);
 	int ClientReconnectHandler(const TimerEventArgs& ea);
 
-	int SyncSubscription(string type, const NewMethodEventArgs& nmea);
-	int SyncSubscriptions(Endpoint::Ptr endpoint);
-
 public:
 	typedef shared_ptr<JsonRpcEndpoint> Ptr;
 	typedef weak_ptr<JsonRpcEndpoint> WeakPtr;

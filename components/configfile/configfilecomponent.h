@@ -12,7 +12,7 @@ public:
 	typedef shared_ptr<ConfigFileComponent> Ptr;
 	typedef weak_ptr<ConfigFileComponent> WeakPtr;
 
-	virtual string GetName(void);
+	virtual string GetName(void) const;
 	virtual void Start(void);
 	virtual void Stop(void);
 };

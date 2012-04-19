@@ -5,7 +5,7 @@
 
 using namespace icinga;
 
-string ConfigFileComponent::GetName(void)
+string ConfigFileComponent::GetName(void) const
 {
 	return "configfilecomponent";
 }

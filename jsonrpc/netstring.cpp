@@ -1,9 +1,10 @@
 #include <cstdio>
 #include "i2-jsonrpc.h"
+#include <cJSON.h>
 
 using namespace icinga;
 
-Dictionary::Ptr Netstring::GetDictionaryFromJson(cJSON *json)
+Dictionary::Ptr Netstring::GetDictionaryFromJson(json_t *json)
 {
 	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 
@@ -26,7 +27,7 @@ Dictionary::Ptr Netstring::GetDictionaryFromJson(cJSON *json)
 	return dictionary;
 }
 
-cJSON *Netstring::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
+json_t *Netstring::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
 {
 	cJSON *json;
 	string valueString;

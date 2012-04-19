@@ -4,6 +4,7 @@
 #ifdef _MSC_VER
 #	define HAVE_CXX11
 #	pragma warning(disable:4251)
+#	define _CRT_SECURE_NO_DEPRECATE
 #else /* _MSC_VER */
 #	include "config.h"
 #endif /* _MSC_VER */

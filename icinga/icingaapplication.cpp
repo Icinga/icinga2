@@ -54,6 +54,9 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	connectionCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcConnectionHandler, shared_from_this());
 
+	SubscriptionComponent::Ptr subscriptionsComponent = make_shared<SubscriptionComponent>();
+	RegisterComponent(subscriptionsComponent);
+
 	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
 	fileComponentConfig->SetProperty("configFilename", args[1]);
 	fileComponentConfig->SetPropertyInteger("replicate", 0);
@@ -84,7 +87,7 @@ int IcingaApplication::TestTimerHandler(const TimerEventArgs& tea)
 	request.SetVersion("2.0");
 	request.SetMethod("test");
 
-	for (int i = 0; i < 10000; i++)
+	for (int i = 0; i < 5; i++)
 		m_EndpointManager->SendMulticastRequest(m_TestEndpoint, request);
 
 	return 0;

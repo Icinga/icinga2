@@ -4,6 +4,11 @@
 namespace icinga
 {
 
+struct I2_ICINGA_API NewEndpointEventArgs : public EventArgs
+{
+	Endpoint::Ptr Endpoint;
+};
+
 class I2_ICINGA_API EndpointManager : public Object
 {
 	list<JsonRpcServer::Ptr> m_Servers;
@@ -34,7 +39,9 @@ public:
 	void SendAnycastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
 	void SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
 
-	void ForeachEndpoint(function<int (Endpoint::Ptr)> callback);
+	void ForeachEndpoint(function<int (const NewEndpointEventArgs&)> callback);
+
+	Event<NewEndpointEventArgs> OnNewEndpoint;
 };
 
 }

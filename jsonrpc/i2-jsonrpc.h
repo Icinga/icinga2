@@ -3,7 +3,6 @@
 
 #include <map>
 #include <i2-base.h>
-#include <cJSON.h>
 
 #ifdef I2_JSONRPC_BUILD
 #	define I2_JSONRPC_API I2_EXPORT

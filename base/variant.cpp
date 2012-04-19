@@ -23,6 +23,7 @@ void Variant::Convert(VariantType newType) const
 	if (newType == m_Type)
 		return;
 
+	// TODO: convert variant data
 	throw NotImplementedException();
 }
 

@@ -16,5 +16,6 @@
 #include "virtualendpoint.h"
 #include "endpointmanager.h"
 #include "icingaapplication.h"
+#include "subscriptioncomponent.h"
 
 #endif /* I2ICINGA_H */

@@ -15,6 +15,7 @@
     <ClCompile Include="endpointmanager.cpp" />
     <ClCompile Include="icingaapplication.cpp" />
     <ClCompile Include="jsonrpcendpoint.cpp" />
+    <ClCompile Include="subscriptioncomponent.cpp" />
     <ClCompile Include="virtualendpoint.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -23,6 +24,7 @@
     <ClInclude Include="i2-icinga.h" />
     <ClInclude Include="icingaapplication.h" />
     <ClInclude Include="jsonrpcendpoint.h" />
+    <ClInclude Include="subscriptioncomponent.h" />
     <ClInclude Include="virtualendpoint.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -55,12 +57,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(SolutionDir)\cJSON;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(SolutionDir)\cJSON;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

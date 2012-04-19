@@ -7,7 +7,7 @@ IcingaApplication::Ptr ConfigRpcComponent::GetIcingaApplication(void)
 	return static_pointer_cast<IcingaApplication>(GetApplication());
 }
 
-string ConfigRpcComponent::GetName(void)
+string ConfigRpcComponent::GetName(void) const
 {
 	return "configcomponent";
 }

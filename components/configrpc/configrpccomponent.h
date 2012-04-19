@@ -22,7 +22,7 @@ private:
 	JsonRpcRequest MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties);
 
 public:
-	virtual string GetName(void);
+	virtual string GetName(void) const;
 	virtual void Start(void);
 	virtual void Stop(void);
 };

@@ -26,9 +26,8 @@ void EndpointManager::AddListener(unsigned short port)
 void EndpointManager::AddConnection(string host, unsigned short port)
 {
 	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
-	RegisterEndpoint(endpoint);
-
 	endpoint->Connect(host, port);
+	RegisterEndpoint(endpoint);
 }
 
 void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
@@ -40,9 +39,8 @@ void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
 int EndpointManager::NewClientHandler(const NewClientEventArgs& ncea)
 {
 	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
-	RegisterEndpoint(endpoint);
-
 	endpoint->SetClient(static_pointer_cast<JsonRpcClient>(ncea.Client));
+	RegisterEndpoint(endpoint);
 
 	return 0;
 }
@@ -63,6 +61,11 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 
 	endpoint->OnNewMethodSource += bind_weak(&EndpointManager::NewMethodSourceHandler, shared_from_this());
 	endpoint->ForeachMethodSource(bind(&EndpointManager::NewMethodSourceHandler, this, _1));
+
+	NewEndpointEventArgs neea;
+	neea.Source = shared_from_this();
+	neea.Endpoint = endpoint;
+	OnNewEndpoint(neea);
 }
 
 void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
@@ -143,9 +146,12 @@ int EndpointManager::NewMethodSourceHandler(const NewMethodEventArgs& ea)
 	return 0;
 }
 
-void EndpointManager::ForeachEndpoint(function<int (Endpoint::Ptr)> callback)
+void EndpointManager::ForeachEndpoint(function<int (const NewEndpointEventArgs&)> callback)
 {
+	NewEndpointEventArgs neea;
+	neea.Source = shared_from_this();
 	for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++) {
-		callback(*i);
+		neea.Endpoint = *i;
+		callback(neea);
 	}
 }
