@@ -83,7 +83,9 @@ int IcingaApplication::TestTimerHandler(const TimerEventArgs& tea)
 	JsonRpcRequest request;
 	request.SetVersion("2.0");
 	request.SetMethod("test");
-	m_EndpointManager->SendMulticastRequest(m_TestEndpoint, request);
+
+	for (int i = 0; i < 1000; i++)
+		m_EndpointManager->SendMulticastRequest(m_TestEndpoint, request);
 
 	return 0;
 }
