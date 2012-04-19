@@ -201,7 +201,7 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea
 	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
 	ConfigObject::Ptr object = configHive->GetObject(type, name);
 
-	if (object.get() == NULL)
+	if (!object)
 		return 0;
 
 	configHive->RemoveObject(object);

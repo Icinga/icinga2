@@ -17,14 +17,14 @@ private:
 	set<string> m_MethodSinks;
 	set<string> m_MethodSources;
 
-	shared_ptr<EndpointManager> m_EndpointManager;
+	weak_ptr<EndpointManager> m_EndpointManager;
 
 public:
 	typedef shared_ptr<Endpoint> Ptr;
 	typedef weak_ptr<Endpoint> WeakPtr;
 
 	shared_ptr<EndpointManager> GetEndpointManager(void) const;
-	void SetEndpointManager(shared_ptr<EndpointManager> manager);
+	void SetEndpointManager(weak_ptr<EndpointManager> manager);
 
 	void RegisterMethodSink(string method);
 	void UnregisterMethodSink(string method);
@@ -44,6 +44,12 @@ public:
 
 	void ForeachMethodSink(function<int (const NewMethodEventArgs&)> callback);
 	void ForeachMethodSource(function<int (const NewMethodEventArgs&)> callback);
+
+	void ClearMethodSinks(void);
+	void ClearMethodSources(void);
+
+	int CountMethodSinks(void) const;
+	int CountMethodSources(void) const;
 };
 
 }

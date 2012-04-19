@@ -47,7 +47,7 @@ json_t *Netstring::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
 			case VariantObject:
 				valueDictionary = dynamic_pointer_cast<Dictionary>(i->second.GetObject());
 
-				if (valueDictionary.get() != NULL)
+				if (valueDictionary)
 					cJSON_AddItemToObject(json, i->first.c_str(), GetJsonFromDictionary(valueDictionary));
 			default:
 				break;

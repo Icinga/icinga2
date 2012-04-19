@@ -9,7 +9,7 @@ int delegate_fwd(int (TObject::*function)(TArgs), weak_ptr<TObject> wref, const 
 {
 	shared_ptr<TObject> ref = wref.lock();
 
-	if (ref.get() == NULL)
+	if (!ref)
 		return -1;
 
 	return (ref.get()->*function)(args);

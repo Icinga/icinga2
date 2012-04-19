@@ -32,7 +32,7 @@ bool JsonRpcEndpoint::IsLocal(void) const
 
 bool JsonRpcEndpoint::IsConnected(void) const
 {
-	return (m_Client.get() != NULL);
+	return m_Client;
 }
 
 void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message)
@@ -44,6 +44,8 @@ void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest&
 			m_PendingCalls[id] = sender;
 
 		m_Client->SendMessage(message);
+	} else {
+		// TODO: persist the event
 	}
 }
 
@@ -94,8 +96,6 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 {
 	m_PendingCalls.clear();
 
-	// TODO: clear method sources/sinks
-
 	if (m_Client->GetPeerHost() != string()) {
 		Timer::Ptr timer = make_shared<Timer>();
 		timer->SetInterval(30);
@@ -104,6 +104,14 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 		timer->Start();
 		m_ReconnectTimer = timer;
 	}
+
+	// TODO: _only_ clear non-persistent method sources/sinks
+	// unregister ourselves if no persistent sources/sinks are left (use a timer for that, once we have a TTL property for the methods)
+	ClearMethodSinks();
+	ClearMethodSources();
+
+	if (CountMethodSinks() == 0)
+		GetEndpointManager()->UnregisterEndpoint(static_pointer_cast<Endpoint>(shared_from_this()));
 
 	m_Client.reset();
 
@@ -124,7 +132,7 @@ int JsonRpcEndpoint::ClientReconnectHandler(const TimerEventArgs& ea)
 	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea.UserArgs.Source);
 	Timer::Ptr timer = static_pointer_cast<Timer>(ea.Source);
 
-	m_Client = client;
+	GetEndpointManager()->AddConnection(client->GetPeerHost(), client->GetPeerPort());
 
 	timer->Stop();
 	m_ReconnectTimer.reset();

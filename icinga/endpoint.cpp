@@ -4,10 +4,10 @@ using namespace icinga;
 
 EndpointManager::Ptr Endpoint::GetEndpointManager(void) const
 {
-	return m_EndpointManager;
+	return m_EndpointManager.lock();
 }
 
-void Endpoint::SetEndpointManager(EndpointManager::Ptr manager)
+void Endpoint::SetEndpointManager(EndpointManager::WeakPtr manager)
 {
 	m_EndpointManager = manager;
 }
@@ -60,4 +60,24 @@ void Endpoint::ForeachMethodSource(function<int (const NewMethodEventArgs&)> cal
 		nmea.Method = *i;
 		callback(nmea);
 	}
+}
+
+void Endpoint::ClearMethodSinks(void)
+{
+	m_MethodSinks.clear();
+}
+
+void Endpoint::ClearMethodSources(void)
+{
+	m_MethodSources.clear();
+}
+
+int Endpoint::CountMethodSinks(void) const
+{
+	return m_MethodSinks.size();
+}
+
+int Endpoint::CountMethodSources(void) const
+{
+	return m_MethodSources.size();
 }
