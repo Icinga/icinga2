@@ -14,6 +14,8 @@ libicinga_la_SOURCES =  \
 	i2-icinga.h \
 	jsonrpcendpoint.cpp \
 	jsonrpcendpoint.h \
+	subscriptioncomponent.cpp \
+	subscriptioncomponent.h \
 	virtualendpoint.cpp \
 	virtualendpoint.h
 

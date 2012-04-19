@@ -6,7 +6,7 @@ namespace icinga
 
 struct I2_ICINGA_API NewEndpointEventArgs : public EventArgs
 {
-	Endpoint::Ptr Endpoint;
+	icinga::Endpoint::Ptr Endpoint;
 };
 
 class I2_ICINGA_API EndpointManager : public Object

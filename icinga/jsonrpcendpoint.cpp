@@ -32,7 +32,7 @@ bool JsonRpcEndpoint::IsLocal(void) const
 
 bool JsonRpcEndpoint::IsConnected(void) const
 {
-	return m_Client;
+	return (bool)m_Client;
 }
 
 void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message)
