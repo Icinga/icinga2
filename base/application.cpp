@@ -79,13 +79,15 @@ void Application::RunEventLoop(void)
 				nfds = fd;
 		}
 
-		long sleep = (long)(Timer::GetNextCall() - time(NULL));
+		time_t now = time(NULL);
+		time_t next = Timer::GetNextCall();
+		long sleep = (next < now) ? 0 : (next - now);
 
 		if (m_ShuttingDown)
 			break;
 
 		timeval tv;
-		tv.tv_sec = sleep;
+		tv.tv_sec = (sleep < 0) ? 0 : sleep;
 		tv.tv_usec = 0;
 
 		int ready;
