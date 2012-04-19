@@ -67,7 +67,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	m_TestEndpoint->RegisterMethodSource("test");
 
 	m_TestTimer = make_shared<Timer>();
-	m_TestTimer->SetInterval(5);
+	m_TestTimer->SetInterval(1);
 	m_TestTimer->OnTimerExpired += bind_weak(&IcingaApplication::TestTimerHandler, shared_from_this());
 	m_TestTimer->Start();
 
@@ -84,7 +84,7 @@ int IcingaApplication::TestTimerHandler(const TimerEventArgs& tea)
 	request.SetVersion("2.0");
 	request.SetMethod("test");
 
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; i < 10000; i++)
 		m_EndpointManager->SendMulticastRequest(m_TestEndpoint, request);
 
 	return 0;
