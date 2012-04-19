@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <set>
 #include <iostream>
 #include <list>
 #include <typeinfo>

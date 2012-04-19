@@ -2,7 +2,7 @@
 
 using namespace icinga;
 
-list<Socket::WeakPtr> Socket::Sockets;
+Socket::CollectionType Socket::Sockets;
 
 Socket::Socket(void)
 {
@@ -20,12 +20,16 @@ void Socket::Start(void)
 
 	OnException += bind_weak(&Socket::ExceptionEventHandler, shared_from_this());
 
-	Sockets.push_front(static_pointer_cast<Socket>(shared_from_this()));
+	Sockets.insert(static_pointer_cast<Socket>(shared_from_this()));
 }
 
 void Socket::Stop(void)
 {
-	Sockets.remove_if(weak_ptr_eq_raw<Socket>(this));
+	Socket::Ptr self = static_pointer_cast<Socket>(shared_from_this());
+	Socket::CollectionType::iterator i = Sockets.find(self);
+
+	if (i != Sockets.end())
+		Sockets.erase(i);
 }
 
 void Socket::SetFD(SOCKET fd)
@@ -112,7 +116,7 @@ int Socket::ExceptionEventHandler(const EventArgs& ea)
 
 void Socket::CloseAllSockets(void)
 {
-	for (list<Socket::WeakPtr>::iterator i = Sockets.begin(); i != Sockets.end(); ) {
+	for (Socket::CollectionType::iterator i = Sockets.begin(); i != Sockets.end(); ) {
 		Socket::Ptr socket = i->lock();
 
 		i++;

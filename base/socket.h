@@ -31,7 +31,9 @@ public:
 	typedef shared_ptr<Socket> Ptr;
 	typedef weak_ptr<Socket> WeakPtr;
 
-	static list<Socket::WeakPtr> Sockets;
+	typedef set< Socket::WeakPtr, owner_less<Socket::WeakPtr> > CollectionType;
+
+	static Socket::CollectionType Sockets;
 
 	~Socket(void);
 

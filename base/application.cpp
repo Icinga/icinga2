@@ -59,7 +59,7 @@ void Application::RunEventLoop(void)
 		FD_ZERO(&writefds);
 		FD_ZERO(&exceptfds);
 
-		for (list<Socket::WeakPtr>::iterator i = Socket::Sockets.begin(); i != Socket::Sockets.end(); i++) {
+		for (Socket::CollectionType::iterator i = Socket::Sockets.begin(); i != Socket::Sockets.end(); i++) {
 			Socket::Ptr socket = i->lock();
 
 			if (socket == NULL)
@@ -104,7 +104,7 @@ void Application::RunEventLoop(void)
 		EventArgs ea;
 		ea.Source = shared_from_this();
 
-		list<Socket::WeakPtr>::iterator prev, i;
+		Socket::CollectionType::iterator prev, i;
 		for (i = Socket::Sockets.begin(); i != Socket::Sockets.end(); ) {
 			prev = i;
 			i++;

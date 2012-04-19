@@ -32,7 +32,7 @@ void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest&
 	map<string, Event<NewRequestEventArgs> >::iterator i = m_MethodHandlers.find(method);
 
 	if (i == m_MethodHandlers.end())
-		throw InvalidArgumentException();
+		return;
 
 	NewRequestEventArgs nrea;
 	nrea.Source = shared_from_this();

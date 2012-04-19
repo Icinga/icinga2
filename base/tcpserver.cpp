@@ -32,8 +32,6 @@ void TCPServer::Listen(void)
 		Close();
 		return;
 	}
-
-	Start();
 }
 
 int TCPServer::ReadableEventHandler(const EventArgs& ea)
@@ -45,13 +43,6 @@ int TCPServer::ReadableEventHandler(const EventArgs& ea)
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
 	if (fd == INVALID_SOCKET) {
-#ifdef _WIN32
-		if (WSAGetLastError() == WSAEWOULDBLOCK)
-#else /* _WIN32 */
-		if (errno == EINPROGRESS)
-#endif /* _WIN32 */
-			return 0;
-
 		SocketErrorEventArgs sea;
 #ifdef _WIN32
 		sea.Code = WSAGetLastError();

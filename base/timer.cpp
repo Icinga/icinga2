@@ -5,7 +5,7 @@
 using namespace icinga;
 
 time_t Timer::NextCall;
-list<Timer::WeakPtr> Timer::Timers;
+Timer::CollectionType Timer::Timers;
 
 Timer::Timer(void)
 {
@@ -25,7 +25,7 @@ void Timer::RescheduleTimers(void)
 	/* Make sure we wake up at least once every 30 seconds */
 	NextCall = time(NULL) + 30;
 
-	for (list<Timer::WeakPtr>::iterator i = Timers.begin(); i != Timers.end(); i++) {
+	for (Timer::CollectionType::iterator i = Timers.begin(); i != Timers.end(); i++) {
 		Timer::Ptr timer = i->lock();
 
 		if (timer == NULL)
@@ -42,7 +42,7 @@ void Timer::CallExpiredTimers(void)
 
 	time(&now);
 
-	for (list<Timer::WeakPtr>::iterator i = Timers.begin(); i != Timers.end(); ) {
+	for (Timer::CollectionType::iterator i = Timers.begin(); i != Timers.end(); ) {
 		Timer::Ptr timer = Timer::Ptr(*i);
 		i++;
 
@@ -58,7 +58,7 @@ void Timer::CallExpiredTimers(void)
 
 void Timer::StopAllTimers(void)
 {
-	for (list<Timer::WeakPtr>::iterator i = Timers.begin(); i != Timers.end(); ) {
+	for (Timer::CollectionType::iterator i = Timers.begin(); i != Timers.end(); ) {
 		Timer::Ptr timer = i->lock();
 
 		i++;
@@ -103,16 +103,18 @@ EventArgs Timer::GetUserArgs(void) const
 
 void Timer::Start(void)
 {
-	Stop();
-
-	Timers.push_front(static_pointer_cast<Timer>(shared_from_this()));
+	Timers.insert(static_pointer_cast<Timer>(shared_from_this()));
 
 	Reschedule(time(NULL) + m_Interval);
 }
 
 void Timer::Stop(void)
 {
-	Timers.remove_if(weak_ptr_eq_raw<Timer>(this));
+	Timer::Ptr self = static_pointer_cast<Timer>(shared_from_this());
+	Timer::CollectionType::iterator i = Timers.find(self);
+
+	if (i != Timers.end())
+		Timers.erase(i);
 }
 
 void Timer::Reschedule(time_t next)
