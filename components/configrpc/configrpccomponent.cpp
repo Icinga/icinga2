@@ -85,14 +85,8 @@ JsonRpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& ob
 	params.GetDictionary()->SetPropertyString("name", object->GetName());
 	params.GetDictionary()->SetPropertyString("type", object->GetType());
 
-	if (includeProperties) {
-		Message properties;
-		params.GetDictionary()->SetPropertyDictionary("properties", properties.GetDictionary());
-
-		for (ConfigObject::ParameterIterator pi = object->Properties.begin(); pi != object->Properties.end(); pi++) {
-			properties.GetDictionary()->SetPropertyString(pi->first, pi->second);
-		}
-	}
+	if (includeProperties)
+		params.SetPropertyMessage("properties", Message(object));
 
 	return msg;
 }
@@ -101,7 +95,7 @@ bool ConfigRpcComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
 {
 	long replicate;
 	if (!object->GetPropertyInteger("replicate", &replicate))
-		return false;
+		return true;
 	return (replicate != 0);
 }
 
