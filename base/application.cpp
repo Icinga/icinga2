@@ -59,11 +59,17 @@ void Application::RunEventLoop(void)
 		FD_ZERO(&writefds);
 		FD_ZERO(&exceptfds);
 
-		for (Socket::CollectionType::iterator i = Socket::Sockets.begin(); i != Socket::Sockets.end(); i++) {
+		Socket::CollectionType::iterator prev, i;
+		for (i = Socket::Sockets.begin(); i != Socket::Sockets.end(); ) {
 			Socket::Ptr socket = i->lock();
 
-			if (socket == NULL)
+			prev = i;
+			i++;
+
+			if (!socket) {
+				Socket::Sockets.erase(prev);
 				continue;
+			}
 
 			int fd = socket->GetFD();
 
@@ -106,15 +112,16 @@ void Application::RunEventLoop(void)
 		EventArgs ea;
 		ea.Source = shared_from_this();
 
-		Socket::CollectionType::iterator prev, i;
 		for (i = Socket::Sockets.begin(); i != Socket::Sockets.end(); ) {
+			Socket::Ptr socket = i->lock();
+
 			prev = i;
 			i++;
 
-			Socket::Ptr socket = prev->lock();
-
-			if (socket == NULL)
+			if (!socket) {
+				Socket::Sockets.erase(prev);
 				continue;
+			}
 
 			int fd = socket->GetFD();
 

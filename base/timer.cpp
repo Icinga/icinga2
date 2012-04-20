@@ -42,12 +42,17 @@ void Timer::CallExpiredTimers(void)
 
 	time(&now);
 
-	for (Timer::CollectionType::iterator i = Timers.begin(); i != Timers.end(); ) {
-		Timer::Ptr timer = Timer::Ptr(*i);
+	Timer::CollectionType::iterator prev, i;
+	for (i = Timers.begin(); i != Timers.end(); ) {
+		Timer::Ptr timer = i->lock();
+
+		prev = i;
 		i++;
 
-		if (timer == NULL)
+		if (!timer) {
+			Timers.erase(prev);
 			continue;
+		}
 
 		if (timer->m_Next <= now) {
 			timer->Call();
