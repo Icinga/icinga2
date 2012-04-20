@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="authenticationcomponent.cpp" />
     <ClCompile Include="endpoint.cpp" />
     <ClCompile Include="endpointmanager.cpp" />
     <ClCompile Include="icingaapplication.cpp" />
@@ -21,6 +22,7 @@
     <ClCompile Include="virtualendpoint.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="authenticationcomponent.h" />
     <ClInclude Include="endpoint.h" />
     <ClInclude Include="endpointmanager.h" />
     <ClInclude Include="i2-icinga.h" />

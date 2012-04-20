@@ -18,6 +18,7 @@
 #include "icingaapplication.h"
 #include "subscriptioncomponent.h"
 #include "subscriptionmessage.h"
+#include "authenticationcomponent.h"
 #include "identitymessage.h"
 
 #endif /* I2ICINGA_H */

@@ -23,16 +23,6 @@ void JsonRpcEndpoint::SetClient(JsonRpcClient::Ptr client)
 	client->OnNewMessage += bind_weak(&JsonRpcEndpoint::NewMessageHandler, shared_from_this());
 	client->OnClosed += bind_weak(&JsonRpcEndpoint::ClientClosedHandler, shared_from_this());
 	client->OnError += bind_weak(&JsonRpcEndpoint::ClientErrorHandler, shared_from_this());
-
-	JsonRpcRequest request;
-	request.SetVersion("2.0");
-	request.SetMethod("message::SetIdentity");
-
-	IdentityMessage params;
-	params.SetIdentity("keks");
-	request.SetParams(params);
-
-	client->SendMessage(request);
 }
 
 bool JsonRpcEndpoint::IsLocal(void) const

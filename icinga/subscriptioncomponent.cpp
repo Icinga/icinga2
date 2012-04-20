@@ -17,7 +17,6 @@ void SubscriptionComponent::Start(void)
 	m_SubscriptionEndpoint = make_shared<VirtualEndpoint>();
 	m_SubscriptionEndpoint->RegisterMethodHandler("message::Subscribe", bind_weak(&SubscriptionComponent::SubscribeMessageHandler, shared_from_this()));
 	m_SubscriptionEndpoint->RegisterMethodHandler("message::Provide", bind_weak(&SubscriptionComponent::ProvideMessageHandler, shared_from_this()));
-	m_SubscriptionEndpoint->RegisterMethodHandler("message::SetIdentity", bind_weak(&SubscriptionComponent::IdentityMessageHandler, shared_from_this()));
 	m_SubscriptionEndpoint->RegisterMethodSource("message::Subscribe");
 	m_SubscriptionEndpoint->RegisterMethodSource("message::Provide");
 	m_SubscriptionEndpoint->RegisterMethodSource("message::Welcome");
@@ -105,28 +104,5 @@ int SubscriptionComponent::ProvideMessageHandler(const NewRequestEventArgs& nrea
 		return 0;
 
 	nrea.Sender->RegisterMethodSource(method);
-	return 0;
-}
-
-int SubscriptionComponent::IdentityMessageHandler(const NewRequestEventArgs& nrea)
-{
-	Message params;
-	if (!nrea.Request.GetParams(&params))
-		return 0;
-
-	IdentityMessage identityMessage = params;
-
-	string identity;
-	if (!identityMessage.GetIdentity(&identity))
-		return 0;
-
-	nrea.Sender->SetIdentity(identity);
-
-	/* there's no authentication for now, just tell them it's ok to send messages */
-	JsonRpcRequest request;
-	request.SetVersion("2.0");
-	request.SetMethod("message::Welcome");
-	nrea.Sender->ProcessRequest(m_SubscriptionEndpoint, request);
-
 	return 0;
 }
