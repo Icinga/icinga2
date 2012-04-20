@@ -29,8 +29,12 @@ void SubscriptionComponent::Start(void)
 
 void SubscriptionComponent::Stop(void)
 {
-	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-	mgr->UnregisterEndpoint(m_SubscriptionEndpoint);
+	IcingaApplication::Ptr app = GetIcingaApplication();
+
+	if (app) {
+		EndpointManager::Ptr mgr = app->GetEndpointManager();
+		mgr->UnregisterEndpoint(m_SubscriptionEndpoint);
+	}
 }
 
 int SubscriptionComponent::SyncSubscription(Endpoint::Ptr target, string type, const NewMethodEventArgs& nmea)

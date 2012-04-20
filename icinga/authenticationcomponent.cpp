@@ -25,12 +25,17 @@ void AuthenticationComponent::Start(void)
 
 void AuthenticationComponent::Stop(void)
 {
+	IcingaApplication::Ptr app = GetIcingaApplication();
 
+	if (app) {
+		EndpointManager::Ptr mgr = app->GetEndpointManager();
+		mgr->UnregisterEndpoint(m_AuthenticationEndpoint);
+	}
 }
 
 int AuthenticationComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 {
-	if (neea.Endpoint->IsLocal())
+	if (neea.Endpoint->IsLocal() || neea.Endpoint->HasIdentity())
 		return 0;
 
 	JsonRpcRequest request;
@@ -42,6 +47,8 @@ int AuthenticationComponent::NewEndpointHandler(const NewEndpointEventArgs& neea
 	request.SetParams(params);
 
 	neea.Endpoint->ProcessRequest(m_AuthenticationEndpoint, request);
+
+	return 0;
 }
 
 int AuthenticationComponent::IdentityMessageHandler(const NewRequestEventArgs& nrea)
