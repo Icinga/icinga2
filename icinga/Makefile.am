@@ -11,6 +11,8 @@ libicinga_la_SOURCES =  \
 	endpointmanager.h \
 	icingaapplication.cpp \
 	icingaapplication.h \
+	identitymessage.cpp \
+	identitymessage.h \
 	i2-icinga.h \
 	jsonrpcendpoint.cpp \
 	jsonrpcendpoint.h \
