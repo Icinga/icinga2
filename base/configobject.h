@@ -15,6 +15,7 @@ private:
 
 	string m_Name;
 	string m_Type;
+	bool m_Replicated;
 
 	int PropertyChangedHandler(const DictionaryPropertyChangedEventArgs dpcea);
 
@@ -35,6 +36,9 @@ public:
 
 	void SetType(const string& type);
 	string GetType(void) const;
+
+	void SetReplicated(bool replicated);
+	bool GetReplicated(void) const;
 };
 
 }

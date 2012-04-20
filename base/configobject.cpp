@@ -6,6 +6,7 @@ ConfigObject::ConfigObject(const string& type, const string& name)
 {
 	m_Type = type;
 	m_Name = name;
+	m_Replicated = false;
 }
 
 void ConfigObject::SetHive(const ConfigHive::WeakPtr& hive)
@@ -40,6 +41,16 @@ void ConfigObject::SetType(const string& type)
 string ConfigObject::GetType(void) const
 {
 	return m_Type;
+}
+
+void ConfigObject::SetReplicated(bool replicated)
+{
+	m_Replicated = replicated;
+}
+
+bool ConfigObject::GetReplicated(void) const
+{
+	return m_Replicated;
 }
 
 int ConfigObject::PropertyChangedHandler(const DictionaryPropertyChangedEventArgs dpcea)

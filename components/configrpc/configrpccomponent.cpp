@@ -97,6 +97,14 @@ JsonRpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& ob
 	return msg;
 }
 
+bool ConfigRpcComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
+{
+	long replicate;
+	if (!object->GetPropertyInteger("replicate", &replicate))
+		return false;
+	return (replicate != 0);
+}
+
 int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 {
 	Endpoint::Ptr client = ea.Sender;
@@ -106,7 +114,12 @@ int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 		ConfigCollection::Ptr collection = ci->second;
 
 		for (ConfigCollection::ObjectIterator oi = collection->Objects.begin(); oi != collection->Objects.end(); oi++) {
-			client->ProcessRequest(m_ConfigRpcEndpoint, MakeObjectMessage(oi->second, "config::ObjectCreated", true));
+			ConfigObject::Ptr object = oi->second;
+
+			if (!ShouldReplicateObject(object))
+				continue;
+
+			client->ProcessRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectCreated", true));
 		}
 	}
 
@@ -117,13 +130,11 @@ int ConfigRpcComponent::LocalObjectCreatedHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
-	long replicate = 0;
-	object->GetPropertyInteger("replicate", &replicate);
+	if (!ShouldReplicateObject(object))
+		return 0;
 
-	if (replicate) {
-		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-		mgr->SendMulticastRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectCreated", true));
-	}
+	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+	mgr->SendMulticastRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectCreated", true));
 
 	return 0;
 }
@@ -132,13 +143,11 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
-	long replicate = 0;
-	object->GetPropertyInteger("replicate", &replicate);
+	if (!ShouldReplicateObject(object))
+		return 0;
 
-	if (replicate) {
-		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-		mgr->SendMulticastRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectRemoved", false));
-	}
+	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+	mgr->SendMulticastRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectRemoved", false));
 
 	return 0;
 }
@@ -147,26 +156,24 @@ int ConfigRpcComponent::LocalPropertyChangedHandler(const DictionaryPropertyChan
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
-	long replicate = 0;
-	object->GetPropertyInteger("replicate", &replicate);
+	if (!ShouldReplicateObject(object))
+		return 0;
 
-	if (replicate) {
-		JsonRpcRequest msg = MakeObjectMessage(object, "config::PropertyChanged", false);
-		Message params;
-		msg.SetParams(params);
+	JsonRpcRequest msg = MakeObjectMessage(object, "config::PropertyChanged", false);
+	Message params;
+	msg.SetParams(params);
 
-		Message properties;
-		params.GetDictionary()->SetPropertyDictionary("properties", properties.GetDictionary());
+	Message properties;
+	params.GetDictionary()->SetPropertyDictionary("properties", properties.GetDictionary());
 
-		string value;
-		if (!object->GetPropertyString(ea.Property, &value))
-			return 0;
+	string value;
+	if (!object->GetPropertyString(ea.Property, &value))
+		return 0;
 
-		properties.GetDictionary()->SetPropertyString(ea.Property, value);
+	properties.GetDictionary()->SetPropertyString(ea.Property, value);
 
-		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-		mgr->SendMulticastRequest(m_ConfigRpcEndpoint, msg);
-	}
+	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+	mgr->SendMulticastRequest(m_ConfigRpcEndpoint, msg);
 
 	return 0;
 }
@@ -204,8 +211,10 @@ int ConfigRpcComponent::RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea
 		object->SetPropertyString(i->first, i->second);
 	}
 
-	if (was_null)
+	if (was_null) {
+		object->SetReplicated(true);
 		configHive->AddObject(object);
+	}
 
 	return 0;
 }
@@ -232,7 +241,8 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea
 	if (!object)
 		return 0;
 
-	configHive->RemoveObject(object);
+	if (object->GetReplicated())
+		configHive->RemoveObject(object);
 
 	return 0;
 }

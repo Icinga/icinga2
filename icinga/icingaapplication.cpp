@@ -108,14 +108,16 @@ int IcingaApplication::NewComponentHandler(const EventArgs& ea)
 	string path;
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
+	/* don't allow replicated config objects */
+	if (object->GetReplicated())
+		return 0;
+
 	if (!object->GetPropertyString("path", &path)) {
 #ifdef _WIN32
 		path = object->GetName() + ".dll";
 #else /* _WIN32 */
 		path = object->GetName() + ".la";
 #endif /* _WIN32 */
-
-		// TODO: try to figure out where the component is located */
 	}
 
 	LoadComponent(path, object);
@@ -126,6 +128,7 @@ int IcingaApplication::NewComponentHandler(const EventArgs& ea)
 int IcingaApplication::DeletedComponentHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
+
 	Component::Ptr component = GetComponent(object->GetName());
 	UnregisterComponent(component);
 
@@ -137,6 +140,10 @@ int IcingaApplication::NewRpcListenerHandler(const EventArgs& ea)
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	long portValue;
 	unsigned short port;
+
+	/* don't allow replicated config objects */
+	if (object->GetReplicated())
+		return 0;
 
 	if (!object->GetPropertyInteger("port", &portValue))
 		throw InvalidArgumentException("Parameter 'port' is required for 'rpclistener' objects.");
@@ -166,6 +173,10 @@ int IcingaApplication::NewRpcConnectionHandler(const EventArgs& ea)
 	string hostname;
 	long portValue;
 	unsigned short port;
+
+	/* don't allow replicated config objects */
+	if (object->GetReplicated())
+		return 0;
 
 	if (!object->GetPropertyString("hostname", &hostname))
 		throw InvalidArgumentException("Parameter 'hostname' is required for 'rpcconnection' objects.");
