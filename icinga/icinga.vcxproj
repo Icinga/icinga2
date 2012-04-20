@@ -14,8 +14,10 @@
     <ClCompile Include="endpoint.cpp" />
     <ClCompile Include="endpointmanager.cpp" />
     <ClCompile Include="icingaapplication.cpp" />
+    <ClCompile Include="identitymessage.cpp" />
     <ClCompile Include="jsonrpcendpoint.cpp" />
     <ClCompile Include="subscriptioncomponent.cpp" />
+    <ClCompile Include="subscriptionmessage.cpp" />
     <ClCompile Include="virtualendpoint.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -23,8 +25,10 @@
     <ClInclude Include="endpointmanager.h" />
     <ClInclude Include="i2-icinga.h" />
     <ClInclude Include="icingaapplication.h" />
+    <ClInclude Include="identitymessage.h" />
     <ClInclude Include="jsonrpcendpoint.h" />
     <ClInclude Include="subscriptioncomponent.h" />
+    <ClInclude Include="subscriptionmessage.h" />
     <ClInclude Include="virtualendpoint.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

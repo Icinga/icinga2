@@ -11,6 +11,9 @@ private:
 
 	IcingaApplication::Ptr GetIcingaApplication(void);
 
+	int NewEndpointHandler(const NewEndpointEventArgs& ea);
+	int WelcomeMessageHandler(const NewRequestEventArgs& ea);
+
 	int LocalObjectCreatedHandler(const ConfigObjectEventArgs& ea);
 	int LocalObjectRemovedHandler(const ConfigObjectEventArgs& ea);
 	int LocalPropertyChangedHandler(const ConfigObjectEventArgs& ea);

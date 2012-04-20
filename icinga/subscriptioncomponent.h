@@ -14,6 +14,7 @@ private:
 	int NewEndpointHandler(const NewEndpointEventArgs& neea);
 	int SubscribeMessageHandler(const NewRequestEventArgs& nrea);
 	int ProvideMessageHandler(const NewRequestEventArgs& nrea);
+	int IdentityMessageHandler(const NewRequestEventArgs& nrea);
 
 	int SyncSubscription(Endpoint::Ptr target, string type, const NewMethodEventArgs& nmea);
 	int SyncSubscriptions(Endpoint::Ptr target, const NewEndpointEventArgs& neea);

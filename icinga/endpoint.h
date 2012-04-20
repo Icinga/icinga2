@@ -14,6 +14,7 @@ struct I2_ICINGA_API NewMethodEventArgs : public EventArgs
 class I2_ICINGA_API Endpoint : public Object
 {
 private:
+	string m_Identity;
 	set<string> m_MethodSinks;
 	set<string> m_MethodSources;
 
@@ -22,6 +23,10 @@ private:
 public:
 	typedef shared_ptr<Endpoint> Ptr;
 	typedef weak_ptr<Endpoint> WeakPtr;
+
+	string GetIdentity(void) const;
+	void SetIdentity(string identity);
+	bool HasIdentity(void) const;
 
 	shared_ptr<EndpointManager> GetEndpointManager(void) const;
 	void SetEndpointManager(weak_ptr<EndpointManager> manager);

@@ -23,6 +23,16 @@ void JsonRpcEndpoint::SetClient(JsonRpcClient::Ptr client)
 	client->OnNewMessage += bind_weak(&JsonRpcEndpoint::NewMessageHandler, shared_from_this());
 	client->OnClosed += bind_weak(&JsonRpcEndpoint::ClientClosedHandler, shared_from_this());
 	client->OnError += bind_weak(&JsonRpcEndpoint::ClientErrorHandler, shared_from_this());
+
+	JsonRpcRequest request;
+	request.SetVersion("2.0");
+	request.SetMethod("message::SetIdentity");
+
+	IdentityMessage params;
+	params.SetIdentity("keks");
+	request.SetParams(params);
+
+	client->SendMessage(request);
 }
 
 bool JsonRpcEndpoint::IsLocal(void) const
@@ -63,21 +73,6 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 	string method;
 	if (message.GetDictionary()->GetValueString("method", &method)) {
 		JsonRpcRequest request = message;
-		Message params;
-		string method;
-
-		if (request.GetMethod(&method) && request.GetParams(&params) &&
-		    (method == "message::Subscribe" || method == "message::Provide")) {
-			string sub_method;
-			if (params.GetDictionary()->GetValueString("method", &sub_method)) {
-				if (method == "message::Subscribe")
-					RegisterMethodSink(sub_method);
-				else
-					RegisterMethodSource(sub_method);
-			}
-
-			return 0;
-		}
 
 		string id;
 		if (request.GetID(&id))
@@ -85,6 +80,8 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 		else
 			GetEndpointManager()->SendMulticastRequest(sender, request, false);
 	} else {
+		JsonRpcResponse response = message;
+
 		// TODO: deal with response messages
 		throw NotImplementedException();
 	}

@@ -34,16 +34,43 @@ void ConfigRpcComponent::Start(void)
 		m_ConfigRpcEndpoint->RegisterMethodSource("config::PropertyChanged");
 	}
 
+	m_ConfigRpcEndpoint->RegisterMethodHandler("message::Welcome", bind_weak(&ConfigRpcComponent::WelcomeMessageHandler, shared_from_this()));
+
 	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectCreated", bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
 	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectRemoved", bind_weak(&ConfigRpcComponent::RemoteObjectRemovedHandler, shared_from_this()));
 	m_ConfigRpcEndpoint->RegisterMethodHandler("config::PropertyChanged", bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
 
 	endpointManager->RegisterEndpoint(m_ConfigRpcEndpoint);
+
+	endpointManager->OnNewEndpoint += bind_weak(&ConfigRpcComponent::NewEndpointHandler, shared_from_this());
+	endpointManager->ForeachEndpoint(bind(&ConfigRpcComponent::NewEndpointHandler, this, _1));
 }
 
 void ConfigRpcComponent::Stop(void)
 {
 	// TODO: implement
+}
+
+int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
+{
+	if (ea.Endpoint->HasIdentity()) {
+		JsonRpcRequest request;
+		request.SetVersion("2.0");
+		request.SetMethod("config::FetchObjects");
+		ea.Endpoint->ProcessRequest(m_ConfigRpcEndpoint, request);
+	}
+
+	return 0;
+}
+
+int ConfigRpcComponent::WelcomeMessageHandler(const NewRequestEventArgs& ea)
+{
+	NewEndpointEventArgs neea;
+	neea.Source = shared_from_this();
+	neea.Endpoint = ea.Sender;
+	NewEndpointHandler(neea);
+
+	return 0;
 }
 
 JsonRpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)

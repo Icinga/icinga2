@@ -2,6 +2,21 @@
 
 using namespace icinga;
 
+string Endpoint::GetIdentity(void) const
+{
+	return m_Identity;
+}
+
+void Endpoint::SetIdentity(string identity)
+{
+	m_Identity = identity;
+}
+
+bool Endpoint::HasIdentity(void) const
+{
+	return !m_Identity.empty();
+}
+
 EndpointManager::Ptr Endpoint::GetEndpointManager(void) const
 {
 	return m_EndpointManager.lock();
