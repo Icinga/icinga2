@@ -16,8 +16,8 @@ void ConfigFileComponent::Start(void)
 	FIFO::Ptr fifo = make_shared<FIFO>();
 
 	string filename;
-	if (!GetConfig()->GetProperty("configFilename", &filename))
-		throw ConfigParserException("Missing configFilename property");
+	if (!GetConfig()->GetPropertyString("configFilename", &filename))
+		throw InvalidArgumentException("Missing 'configFilename' property");
 
 	fp.open(filename.c_str(), ifstream::in);
 	if (fp.fail())
@@ -61,7 +61,7 @@ void ConfigFileComponent::Start(void)
 
 				string value = property->valuestring;
 
-				cfgobj->SetProperty(key, value);
+				cfgobj->SetPropertyString(key, value);
 			}
 
 			GetApplication()->GetConfigHive()->AddObject(cfgobj);

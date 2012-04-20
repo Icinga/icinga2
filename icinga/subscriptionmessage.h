@@ -13,12 +13,12 @@ public:
 
 	inline bool GetMethod(string *value) const
 	{
-		return GetDictionary()->GetValueString("method", value);
+		return GetPropertyString("method", value);
 	}
 
 	inline void SetMethod(const string& value)
 	{
-		GetDictionary()->SetValueString("method", value);
+		SetPropertyString("method", value);
 	}
 };
 

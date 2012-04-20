@@ -2,62 +2,75 @@
 
 using namespace icinga;
 
-bool Dictionary::GetValueVariant(string key, Variant *value)
+bool Dictionary::GetProperty(string key, Variant *value) const
 {
-	DictionaryIterator i = m_Data.find(key);
+	ConstDictionaryIterator i = m_Data.find(key);
 
 	if (i == m_Data.end())
 		return false;
 
 	*value = i->second;
-
 	return true;
 }
 
-void Dictionary::SetValueVariant(string key, const Variant& value)
+void Dictionary::SetProperty(string key, const Variant& value)
 {
-	m_Data.erase(key);
+	DictionaryIterator i = m_Data.find(key);
+
+	Variant oldValue;
+	if (i != m_Data.end()) {
+		oldValue = i->second;
+		m_Data.erase(i);
+	}
+
 	m_Data[key] = value;
+
+	DictionaryPropertyChangedEventArgs dpce;
+	dpce.Source = shared_from_this();
+	dpce.Property = key;
+	dpce.OldValue = oldValue;
+	dpce.NewValue = value;
+	OnPropertyChanged(dpce);
 }
 
-bool Dictionary::GetValueString(string key, string *value)
+bool Dictionary::GetPropertyString(string key, string *value)
 {
 	Variant data;
 
-	if (!GetValueVariant(key, &data))
+	if (!GetProperty(key, &data))
 		return false;
 
 	*value = static_cast<string>(data);
 	return true;
 }
 
-void Dictionary::SetValueString(string key, const string& value)
+void Dictionary::SetPropertyString(string key, const string& value)
 {
-	SetValueVariant(key, Variant(value));
+	SetProperty(key, Variant(value));
 }
 
-bool Dictionary::GetValueInteger(string key, long *value)
+bool Dictionary::GetPropertyInteger(string key, long *value)
 {
 	Variant data;
 
-	if (!GetValueVariant(key, &data))
+	if (!GetProperty(key, &data))
 		return false;
 
-	*value = data;
+	*value = static_cast<long>(data);
 	return true;
 }
 
-void Dictionary::SetValueInteger(string key, long value)
+void Dictionary::SetPropertyInteger(string key, long value)
 {
-	SetValueVariant(key, Variant(value));
+	SetProperty(key, Variant(value));
 }
 
-bool Dictionary::GetValueDictionary(string key, Dictionary::Ptr *value)
+bool Dictionary::GetPropertyDictionary(string key, Dictionary::Ptr *value)
 {
 	Dictionary::Ptr dictionary;
 	Variant data;
 
-	if (!GetValueVariant(key, &data))
+	if (!GetProperty(key, &data))
 		return false;
 
 	dictionary = dynamic_pointer_cast<Dictionary>(data.GetObject());
@@ -70,25 +83,25 @@ bool Dictionary::GetValueDictionary(string key, Dictionary::Ptr *value)
 	return true;
 }
 
-void Dictionary::SetValueDictionary(string key, const Dictionary::Ptr& value)
+void Dictionary::SetPropertyDictionary(string key, const Dictionary::Ptr& value)
 {
-	SetValueVariant(key, Variant(value));
+	SetProperty(key, Variant(value));
 }
 
-bool Dictionary::GetValueObject(string key, Object::Ptr *value)
+bool Dictionary::GetPropertyObject(string key, Object::Ptr *value)
 {
 	Variant data;
 
-	if (!GetValueVariant(key, &data))
+	if (!GetProperty(key, &data))
 		return false;
 
 	*value = data;
 	return true;
 }
 
-void Dictionary::SetValueObject(string key, const Object::Ptr& value)
+void Dictionary::SetPropertyObject(string key, const Object::Ptr& value)
 {
-	SetValueVariant(key, Variant(value));
+	SetProperty(key, Variant(value));
 }
 
 DictionaryIterator Dictionary::Begin(void)

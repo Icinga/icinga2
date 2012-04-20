@@ -25,11 +25,11 @@ public:
 	void RemoveObject(const ConfigObject::Ptr& object);
 	ConfigObject::Ptr GetObject(const string& name = string());
 
-	void ForEachObject(function<int (const ConfigObjectEventArgs&)> callback);
+	void ForEachObject(function<int (const EventArgs&)> callback);
 
-	Event<ConfigObjectEventArgs> OnObjectCreated;
-	Event<ConfigObjectEventArgs> OnObjectRemoved;
-	Event<ConfigObjectEventArgs> OnPropertyChanged;
+	Event<EventArgs> OnObjectCreated;
+	Event<EventArgs> OnObjectRemoved;
+	Event<DictionaryPropertyChangedEventArgs> OnPropertyChanged;
 };
 
 }

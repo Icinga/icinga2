@@ -8,22 +8,15 @@ namespace icinga
 
 class ConfigHive;
 
-struct I2_BASE_API ConfigObjectEventArgs : public EventArgs
-{
-	typedef shared_ptr<ConfigObjectEventArgs> Ptr;
-	typedef weak_ptr<ConfigObjectEventArgs> WeakPtr;
-
-	string Property;
-	string OldValue;
-};
-
-class I2_BASE_API ConfigObject : public Object
+class I2_BASE_API ConfigObject : public Dictionary
 {
 private:
 	weak_ptr<ConfigHive> m_Hive;
 
 	string m_Name;
 	string m_Type;
+
+	int PropertyChangedHandler(const DictionaryPropertyChangedEventArgs dpcea);
 
 public:
 	typedef shared_ptr<ConfigObject> Ptr;
@@ -42,14 +35,6 @@ public:
 
 	void SetType(const string& type);
 	string GetType(void) const;
-
-	void SetProperty(const string& name, const string& value);
-	void SetPropertyInteger(const string& name, int value);
-	void SetPropertyDouble(const string& name, double value);
-
-	bool GetProperty(const string& name, string *value) const;
-	bool GetPropertyInteger(const string& name, int *value) const;
-	bool GetPropertyDouble(const string& name, double *value) const;
 };
 
 }

@@ -71,7 +71,7 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 	Endpoint::Ptr sender = static_pointer_cast<Endpoint>(shared_from_this());
 
 	string method;
-	if (message.GetDictionary()->GetValueString("method", &method)) {
+	if (message.GetPropertyString("method", &method)) {
 		JsonRpcRequest request = message;
 
 		string id;

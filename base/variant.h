@@ -24,16 +24,24 @@ private:
 	void Convert(VariantType newType) const;
 
 public:
-	Variant(void);
-	Variant(long value);
-	Variant(string value);
-	Variant(Object::Ptr value);
+	inline Variant::Variant(void) : m_Type(VariantEmpty) { }
+
+	inline Variant::Variant(long value) : m_Type(VariantInteger), m_IntegerValue(value) { }
+
+	inline Variant::Variant(const char *value) : m_Type(VariantString), m_StringValue(string(value)) { }
+
+	inline Variant::Variant(string value) : m_Type(VariantString), m_StringValue(value) { }
+
+	template<typename T>
+	Variant(const shared_ptr<T>& value) : m_Type(VariantObject), m_ObjectValue(value) { }
 
 	VariantType GetType(void) const;
 
 	long GetInteger(void) const;
 	string GetString(void) const;
 	Object::Ptr GetObject(void) const;
+
+	bool IsEmpty(void) const;
 
 	operator long(void) const;
 	operator string(void) const;

@@ -40,9 +40,9 @@ int SubscriptionComponent::SyncSubscription(Endpoint::Ptr target, string type, c
 	request.SetVersion("2.0");
 	request.SetMethod(type);
 
-	Message params;
-	params.GetDictionary()->SetValueString("method", nmea.Method);
-	request.SetParams(params);
+	SubscriptionMessage subscriptionMessage;
+	subscriptionMessage.SetMethod(nmea.Method);
+	request.SetParams(subscriptionMessage);
 
 	target->ProcessRequest(m_SubscriptionEndpoint, request);
 

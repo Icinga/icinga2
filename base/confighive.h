@@ -18,11 +18,11 @@ public:
 	ConfigObject::Ptr GetObject(const string& collection, const string& name = string());
 	ConfigCollection::Ptr GetCollection(const string& collection);
 
-	void ForEachObject(const string& type, function<int (const ConfigObjectEventArgs&)> callback);
+	void ForEachObject(const string& type, function<int (const EventArgs&)> callback);
 
-	Event<ConfigObjectEventArgs> OnObjectCreated;
-	Event<ConfigObjectEventArgs> OnObjectRemoved;
-	Event<ConfigObjectEventArgs> OnPropertyChanged;
+	Event<EventArgs> OnObjectCreated;
+	Event<EventArgs> OnObjectRemoved;
+	Event<DictionaryPropertyChangedEventArgs> OnPropertyChanged;
 };
 
 }

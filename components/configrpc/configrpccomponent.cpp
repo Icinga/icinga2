@@ -21,7 +21,7 @@ void ConfigRpcComponent::Start(void)
 
 	m_ConfigRpcEndpoint = make_shared<VirtualEndpoint>();
 
-	int configSource;
+	long configSource;
 	if (GetConfig()->GetPropertyInteger("configSource", &configSource) && configSource != 0) {
 		m_ConfigRpcEndpoint->RegisterMethodHandler("config::FetchObjects", bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
 
@@ -82,15 +82,15 @@ JsonRpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& ob
 	Message params;
 	msg.SetParams(params);
 
-	params.GetDictionary()->SetValueString("name", object->GetName());
-	params.GetDictionary()->SetValueString("type", object->GetType());
+	params.GetDictionary()->SetPropertyString("name", object->GetName());
+	params.GetDictionary()->SetPropertyString("type", object->GetType());
 
 	if (includeProperties) {
 		Message properties;
-		params.GetDictionary()->SetValueDictionary("properties", properties.GetDictionary());
+		params.GetDictionary()->SetPropertyDictionary("properties", properties.GetDictionary());
 
 		for (ConfigObject::ParameterIterator pi = object->Properties.begin(); pi != object->Properties.end(); pi++) {
-			properties.GetDictionary()->SetValueString(pi->first, pi->second);
+			properties.GetDictionary()->SetPropertyString(pi->first, pi->second);
 		}
 	}
 
@@ -113,11 +113,11 @@ int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectCreatedHandler(const ConfigObjectEventArgs& ea)
+int ConfigRpcComponent::LocalObjectCreatedHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
-	int replicate = 0;
+	long replicate = 0;
 	object->GetPropertyInteger("replicate", &replicate);
 
 	if (replicate) {
@@ -128,11 +128,11 @@ int ConfigRpcComponent::LocalObjectCreatedHandler(const ConfigObjectEventArgs& e
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectRemovedHandler(const ConfigObjectEventArgs& ea)
+int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
-	int replicate = 0;
+	long replicate = 0;
 	object->GetPropertyInteger("replicate", &replicate);
 
 	if (replicate) {
@@ -143,11 +143,11 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(const ConfigObjectEventArgs& e
 	return 0;
 }
 
-int ConfigRpcComponent::LocalPropertyChangedHandler(const ConfigObjectEventArgs& ea)
+int ConfigRpcComponent::LocalPropertyChangedHandler(const DictionaryPropertyChangedEventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
-	int replicate = 0;
+	long replicate = 0;
 	object->GetPropertyInteger("replicate", &replicate);
 
 	if (replicate) {
@@ -156,12 +156,13 @@ int ConfigRpcComponent::LocalPropertyChangedHandler(const ConfigObjectEventArgs&
 		msg.SetParams(params);
 
 		Message properties;
-		params.GetDictionary()->SetValueDictionary("properties", properties.GetDictionary());
+		params.GetDictionary()->SetPropertyDictionary("properties", properties.GetDictionary());
 
 		string value;
-		object->GetProperty(ea.Property, &value);
+		if (!object->GetPropertyString(ea.Property, &value))
+			return 0;
 
-		properties.GetDictionary()->SetValueString(ea.Property, value);
+		properties.GetDictionary()->SetPropertyString(ea.Property, value);
 
 		EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
 		mgr->SendMulticastRequest(m_ConfigRpcEndpoint, msg);
@@ -180,11 +181,11 @@ int ConfigRpcComponent::RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea
 		return 0;
 
 	string name;
-	if (!params.GetDictionary()->GetValueString("name", &name))
+	if (!params.GetDictionary()->GetPropertyString("name", &name))
 		return 0;
 
 	string type;
-	if (!params.GetDictionary()->GetValueString("type", &type))
+	if (!params.GetDictionary()->GetPropertyString("type", &type))
 		return 0;
 
 	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
@@ -196,11 +197,11 @@ int ConfigRpcComponent::RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea
 	}
 
 	Dictionary::Ptr properties;
-	if (!params.GetDictionary()->GetValueDictionary("properties", &properties))
+	if (!params.GetDictionary()->GetPropertyDictionary("properties", &properties))
 		return 0;
 
 	for (DictionaryIterator i = properties->Begin(); i != properties->End(); i++) {
-		object->SetProperty(i->first, i->second);
+		object->SetPropertyString(i->first, i->second);
 	}
 
 	if (was_null)
@@ -218,11 +219,11 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea
 		return 0;
 
 	string name;
-	if (!params.GetDictionary()->GetValueString("name", &name))
+	if (!params.GetDictionary()->GetPropertyString("name", &name))
 		return 0;
 
 	string type;
-	if (!params.GetDictionary()->GetValueString("type", &type))
+	if (!params.GetDictionary()->GetPropertyString("type", &type))
 		return 0;
 
 	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();

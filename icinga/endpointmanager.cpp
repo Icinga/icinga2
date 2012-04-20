@@ -117,9 +117,9 @@ int EndpointManager::NewMethodSinkHandler(const NewMethodEventArgs& ea)
 	request.SetVersion("2.0");
 	request.SetMethod("message::Subscribe");
 
-	Message params;
-	params.GetDictionary()->SetValueString("method", ea.Method);
-	request.SetParams(params);
+	SubscriptionMessage subscriptionMessage;
+	subscriptionMessage.SetMethod(ea.Method);
+	request.SetParams(subscriptionMessage);
 
 	SendMulticastRequest(sender, request);
 
@@ -137,9 +137,9 @@ int EndpointManager::NewMethodSourceHandler(const NewMethodEventArgs& ea)
 	request.SetVersion("2.0");
 	request.SetMethod("message::Provide");
 
-	Message params;
-	params.GetDictionary()->SetValueString("method", ea.Method);
-	request.SetParams(params);
+	SubscriptionMessage subscriptionMessage;
+	subscriptionMessage.SetMethod(ea.Method);
+	request.SetParams(subscriptionMessage);
 
 	SendMulticastRequest(sender, request);
 

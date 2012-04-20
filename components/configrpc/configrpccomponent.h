@@ -14,9 +14,9 @@ private:
 	int NewEndpointHandler(const NewEndpointEventArgs& ea);
 	int WelcomeMessageHandler(const NewRequestEventArgs& ea);
 
-	int LocalObjectCreatedHandler(const ConfigObjectEventArgs& ea);
-	int LocalObjectRemovedHandler(const ConfigObjectEventArgs& ea);
-	int LocalPropertyChangedHandler(const ConfigObjectEventArgs& ea);
+	int LocalObjectCreatedHandler(const EventArgs& ea);
+	int LocalObjectRemovedHandler(const EventArgs& ea);
+	int LocalPropertyChangedHandler(const DictionaryPropertyChangedEventArgs& ea);
 
 	int FetchObjectsHandler(const NewRequestEventArgs& ea);
 	int RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea);

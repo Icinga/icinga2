@@ -2,29 +2,20 @@
 
 using namespace icinga;
 
-Variant::Variant(void) : m_Type(VariantEmpty)
-{	
-}
-
-Variant::Variant(long value) : m_Type(VariantInteger), m_IntegerValue(value)
-{
-}
-
-Variant::Variant(string value) : m_Type(VariantString), m_StringValue(value)
-{
-}
-
-Variant::Variant(Object::Ptr value) : m_Type(VariantObject), m_ObjectValue(value)
-{
-}
-
 void Variant::Convert(VariantType newType) const
 {
 	if (newType == m_Type)
 		return;
 
+	if (m_Type == VariantString && newType == VariantInteger) {
+		m_IntegerValue = strtol(m_StringValue.c_str(), NULL, 10);
+		m_Type = VariantInteger;
+
+		return;
+	}
+
 	// TODO: convert variant data
-	throw NotImplementedException();
+	throw InvalidArgumentException("Invalid variant conversion.");
 }
 
 VariantType Variant::GetType(void) const
@@ -51,6 +42,11 @@ Object::Ptr Variant::GetObject(void) const
 	Convert(VariantObject);
 
 	return m_ObjectValue;
+}
+
+bool Variant::IsEmpty(void) const
+{
+	return (m_Type == VariantEmpty);
 }
 
 Variant::operator long(void) const

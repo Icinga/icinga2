@@ -11,14 +11,14 @@ private:
 	Timer::Ptr m_TestTimer;
 	VirtualEndpoint::Ptr m_TestEndpoint;
 
-	int NewComponentHandler(const ConfigObjectEventArgs& ea);
-	int DeletedComponentHandler(const ConfigObjectEventArgs& ea);
+	int NewComponentHandler(const EventArgs& ea);
+	int DeletedComponentHandler(const EventArgs& ea);
 
-	int NewRpcListenerHandler(const ConfigObjectEventArgs& ea);
-	int DeletedRpcListenerHandler(const ConfigObjectEventArgs& ea);
+	int NewRpcListenerHandler(const EventArgs& ea);
+	int DeletedRpcListenerHandler(const EventArgs& ea);
 
-	int NewRpcConnectionHandler(const ConfigObjectEventArgs& ea);
-	int DeletedRpcConnectionHandler(const ConfigObjectEventArgs& ea);
+	int NewRpcConnectionHandler(const EventArgs& ea);
+	int DeletedRpcConnectionHandler(const EventArgs& ea);
 
 	int TestTimerHandler(const TimerEventArgs& tea);
 public:

@@ -32,7 +32,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	ConfigCollection::Ptr componentCollection = GetConfigHive()->GetCollection("component");
 
-	function<int (const ConfigObjectEventArgs&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
+	function<int (const EventArgs&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
 	componentCollection->OnObjectCreated += NewComponentHandler;
 	componentCollection->ForEachObject(NewComponentHandler);
 
@@ -40,7 +40,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	ConfigCollection::Ptr listenerCollection = GetConfigHive()->GetCollection("rpclistener");
 
-	function<int (const ConfigObjectEventArgs&)> NewRpcListenerHandler = bind_weak(&IcingaApplication::NewRpcListenerHandler, shared_from_this());
+	function<int (const EventArgs&)> NewRpcListenerHandler = bind_weak(&IcingaApplication::NewRpcListenerHandler, shared_from_this());
 	listenerCollection->OnObjectCreated += NewRpcListenerHandler;
 	listenerCollection->ForEachObject(NewRpcListenerHandler);
 
@@ -48,7 +48,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	ConfigCollection::Ptr connectionCollection = GetConfigHive()->GetCollection("rpcconnection");
 
-	function<int (const ConfigObjectEventArgs&)> NewRpcConnectionHandler = bind_weak(&IcingaApplication::NewRpcConnectionHandler, shared_from_this());
+	function<int (const EventArgs&)> NewRpcConnectionHandler = bind_weak(&IcingaApplication::NewRpcConnectionHandler, shared_from_this());
 	connectionCollection->OnObjectCreated += NewRpcConnectionHandler;
 	connectionCollection->ForEachObject(NewRpcConnectionHandler);
 
@@ -58,7 +58,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	RegisterComponent(subscriptionsComponent);
 
 	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
-	fileComponentConfig->SetProperty("configFilename", args[1]);
+	fileComponentConfig->SetPropertyString("configFilename", args[1]);
 	fileComponentConfig->SetPropertyInteger("replicate", 0);
 	GetConfigHive()->AddObject(fileComponentConfig);
 
@@ -103,12 +103,12 @@ EndpointManager::Ptr IcingaApplication::GetEndpointManager(void)
 	return m_EndpointManager;
 }
 
-int IcingaApplication::NewComponentHandler(const ConfigObjectEventArgs& ea)
+int IcingaApplication::NewComponentHandler(const EventArgs& ea)
 {
 	string path;
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
-		
-	if (!object->GetProperty("path", &path)) {
+	
+	if (!object->GetPropertyString("path", &path)) {
 #ifdef _WIN32
 		path = object->GetName() + ".dll";
 #else /* _WIN32 */
@@ -123,7 +123,7 @@ int IcingaApplication::NewComponentHandler(const ConfigObjectEventArgs& ea)
 	return 0;
 }
 
-int IcingaApplication::DeletedComponentHandler(const ConfigObjectEventArgs& ea)
+int IcingaApplication::DeletedComponentHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	Component::Ptr component = GetComponent(object->GetName());
@@ -132,13 +132,19 @@ int IcingaApplication::DeletedComponentHandler(const ConfigObjectEventArgs& ea)
 	return 0;
 }
 
-int IcingaApplication::NewRpcListenerHandler(const ConfigObjectEventArgs& ea)
+int IcingaApplication::NewRpcListenerHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
-	int port;
+	long portValue;
+	unsigned short port;
 
-	if (!object->GetPropertyInteger("port", &port))
-		throw Exception("Parameter 'port' is required for 'rpclistener' objects.");
+	if (!object->GetPropertyInteger("port", &portValue))
+		throw InvalidArgumentException("Parameter 'port' is required for 'rpclistener' objects.");
+
+	if (portValue < 0 || portValue > USHRT_MAX)
+		throw InvalidArgumentException("Parameter 'port' contains an invalid value.");
+
+	port = (unsigned short)portValue;
 
 	Log("Creating JSON-RPC listener on port %d", port);
 
@@ -147,24 +153,30 @@ int IcingaApplication::NewRpcListenerHandler(const ConfigObjectEventArgs& ea)
 	return 0;
 }
 
-int IcingaApplication::DeletedRpcListenerHandler(const ConfigObjectEventArgs& ea)
+int IcingaApplication::DeletedRpcListenerHandler(const EventArgs& ea)
 {
 	throw Exception("Unsupported operation.");
 
 	return 0;
 }
 
-int IcingaApplication::NewRpcConnectionHandler(const ConfigObjectEventArgs& ea)
+int IcingaApplication::NewRpcConnectionHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	string hostname;
-	int port;
+	long portValue;
+	unsigned short port;
 
-	if (!object->GetProperty("hostname", &hostname))
-		throw Exception("Parameter 'hostname' is required for 'rpcconnection' objects.");
+	if (!object->GetPropertyString("hostname", &hostname))
+		throw InvalidArgumentException("Parameter 'hostname' is required for 'rpcconnection' objects.");
 
-	if (!object->GetPropertyInteger("port", &port))
-		throw Exception("Parameter 'port' is required for 'rpcconnection' objects.");
+	if (!object->GetPropertyInteger("port", &portValue))
+		throw InvalidArgumentException("Parameter 'port' is required for 'rpcconnection' objects.");
+
+	if (portValue < 0 || portValue > USHRT_MAX)
+		throw InvalidArgumentException("Parameter 'port' contains an invalid value.");
+
+	port = (unsigned short)portValue;
 
 	Log("Creating JSON-RPC connection to %s:%d", hostname.c_str(), port);
 
@@ -173,7 +185,7 @@ int IcingaApplication::NewRpcConnectionHandler(const ConfigObjectEventArgs& ea)
 	return 0;
 }
 
-int IcingaApplication::DeletedRpcConnectionHandler(const ConfigObjectEventArgs& ea)
+int IcingaApplication::DeletedRpcConnectionHandler(const EventArgs& ea)
 {
 	throw Exception("Unsupported operation.");
 

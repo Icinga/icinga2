@@ -4,7 +4,15 @@
 namespace icinga
 {
 
+typedef map<string, Variant>::const_iterator ConstDictionaryIterator;
 typedef map<string, Variant>::iterator DictionaryIterator;
+
+struct I2_BASE_API DictionaryPropertyChangedEventArgs : public EventArgs
+{
+	string Property;
+	Variant OldValue;
+	Variant NewValue;
+};
 
 class I2_BASE_API Dictionary : public Object
 {
@@ -15,23 +23,25 @@ public:
 	typedef shared_ptr<Dictionary> Ptr;
 	typedef weak_ptr<Dictionary> WeakPtr;
 
-	bool GetValueVariant(string key, Variant *value);
-	void SetValueVariant(string key, const Variant& value);
+	bool GetProperty(string key, Variant *value) const;
+	void SetProperty(string key, const Variant& value);
 
-	bool GetValueString(string key, string *value);
-	void SetValueString(string key, const string& value);
+	bool GetPropertyString(string key, string *value);
+	void SetPropertyString(string key, const string& value);
 
-	bool GetValueInteger(string key, long *value);
-	void SetValueInteger(string key, long value);
+	bool GetPropertyInteger(string key, long *value);
+	void SetPropertyInteger(string key, long value);
 
-	bool GetValueDictionary(string key, Dictionary::Ptr *value);
-	void SetValueDictionary(string key, const Dictionary::Ptr& value);
+	bool GetPropertyDictionary(string key, Dictionary::Ptr *value);
+	void SetPropertyDictionary(string key, const Dictionary::Ptr& value);
 
-	bool GetValueObject(string key, Object::Ptr *value);
-	void SetValueObject(string key, const Object::Ptr& value);
+	bool GetPropertyObject(string key, Object::Ptr *value);
+	void SetPropertyObject(string key, const Object::Ptr& value);
 
 	DictionaryIterator Begin(void);
 	DictionaryIterator End(void);
+
+	Event<DictionaryPropertyChangedEventArgs> OnPropertyChanged;
 };
 
 }

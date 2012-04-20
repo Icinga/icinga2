@@ -12,42 +12,42 @@ public:
 
 	inline bool GetVersion(string *value) const
 	{
-		return GetDictionary()->GetValueString("jsonrpc", value);
+		return GetPropertyString("jsonrpc", value);
 	}
 
 	inline void SetJsonRpc(const string& value)
 	{
-		GetDictionary()->SetValueString("jsonrpc", value);
+		SetPropertyString("jsonrpc", value);
 	}
 
 	bool GetResult(string *value) const
 	{
-		return GetDictionary()->GetValueString("result", value);
+		return GetPropertyString("result", value);
 	}
 
 	void SetResult(const string& value)
 	{
-		GetDictionary()->SetValueString("result", value);
+		SetPropertyString("result", value);
 	}
 
 	bool GetError(string *value) const
 	{
-		return GetDictionary()->GetValueString("error", value);
+		return GetPropertyString("error", value);
 	}
 
 	void SetError(const string& value)
 	{
-		GetDictionary()->SetValueString("error", value);
+		SetPropertyString("error", value);
 	}
 
 	bool GetID(string *value) const
 	{
-		return GetDictionary()->GetValueString("id", value);
+		return GetPropertyString("id", value);
 	}
 
 	void SetID(const string& value)
 	{
-		GetDictionary()->SetValueString("id", value);
+		SetPropertyString("id", value);
 	}
 };
 

@@ -13,12 +13,12 @@ public:
 
 	inline bool GetIdentity(string *value) const
 	{
-		return GetDictionary()->GetValueString("identity", value);
+		return GetPropertyString("identity", value);
 	}
 
 	inline void SetIdentity(const string& value)
 	{
-		GetDictionary()->SetValueString("identity", value);
+		SetPropertyString("identity", value);
 	}
 };
 

@@ -14,9 +14,11 @@ ConfigHive::WeakPtr ConfigCollection::GetHive(void) const
 
 void ConfigCollection::AddObject(const ConfigObject::Ptr& object)
 {
+	RemoveObject(object);
+
 	Objects[object->GetName()] = object;
 
-	ConfigObjectEventArgs ea;
+	EventArgs ea;
 	ea.Source = object;
 	OnObjectCreated(ea);
 
@@ -32,7 +34,7 @@ void ConfigCollection::RemoveObject(const ConfigObject::Ptr& object)
 	if (oi != Objects.end()) {
 		Objects.erase(oi);
 
-		ConfigObjectEventArgs ea;
+		EventArgs ea;
 		ea.Source = object;
 		OnObjectRemoved(ea);
 
@@ -52,9 +54,9 @@ ConfigObject::Ptr ConfigCollection::GetObject(const string& name)
 	return oi->second;
 }
 
-void ConfigCollection::ForEachObject(function<int (const ConfigObjectEventArgs&)> callback)
+void ConfigCollection::ForEachObject(function<int (const EventArgs&)> callback)
 {
-	ConfigObjectEventArgs ea;
+	EventArgs ea;
 
 	for (ObjectIterator oi = Objects.begin(); oi != Objects.end(); oi++) {
 		ea.Source = oi->second;

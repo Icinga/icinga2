@@ -11,13 +11,13 @@ Dictionary::Ptr Netstring::GetDictionaryFromJson(json_t *json)
 	for (cJSON *i = json->child; i != NULL; i = i->next) {
 		switch (i->type) {
 			case cJSON_Number:
-				dictionary->SetValueInteger(i->string, i->valueint);
+				dictionary->SetProperty(i->string, i->valueint);
 				break;
 			case cJSON_String:
-				dictionary->SetValueString(i->string, i->valuestring);
+				dictionary->SetProperty(i->string, i->valuestring);
 				break;
 			case cJSON_Object:
-				dictionary->SetValueDictionary(i->string, GetDictionaryFromJson(i));
+				dictionary->SetProperty(i->string, GetDictionaryFromJson(i));
 				break;
 			default:
 				break;
