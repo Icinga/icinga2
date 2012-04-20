@@ -125,13 +125,13 @@ void Application::RunEventLoop(void)
 
 			int fd = socket->GetFD();
 
-			if (FD_ISSET(fd, &writefds))
+			if (FD_ISSET(fd, &writefds) && socket->GetFD() != INVALID_SOCKET)
 				socket->OnWritable(ea);
 
-			if (FD_ISSET(fd, &readfds))
+			if (FD_ISSET(fd, &readfds) && socket->GetFD() != INVALID_SOCKET)
 				socket->OnReadable(ea);
 
-			if (FD_ISSET(fd, &exceptfds))
+			if (FD_ISSET(fd, &exceptfds) && socket->GetFD() != INVALID_SOCKET)
 				socket->OnException(ea);
 		}
 	}

@@ -97,7 +97,7 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 	ClearMethodSinks();
 	ClearMethodSources();
 
-	if (CountMethodSinks() == 0)
+	if (CountMethodSinks() == 0 && !m_ReconnectTimer)
 		GetEndpointManager()->UnregisterEndpoint(static_pointer_cast<Endpoint>(shared_from_this()));
 
 	m_Client.reset();
