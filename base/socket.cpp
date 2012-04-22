@@ -58,7 +58,8 @@ void Socket::Close(bool from_dtor)
 		closesocket(m_FD);
 		m_FD = INVALID_SOCKET;
 
-		/* nobody can possibly have a valid event subscription when the destructor has been called */
+		/* nobody can possibly have a valid event subscription when the
+		   destructor has been called */
 		if (!from_dtor) {
 			EventArgs ea;
 			ea.Source = shared_from_this();
@@ -70,62 +71,33 @@ void Socket::Close(bool from_dtor)
 		Stop();
 }
 
-string Socket::FormatErrorCode(int code)
-{
-	char *message;
-	string result = "Unknown socket error.";
-
-#ifdef _WIN32
-	if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, code, 0, (char *)&message, 0, NULL) != 0) {
-		result = string(message);
-		LocalFree(message);
-	}
-#else /* _WIN32 */
-	if (code != 0)
-		message = strerror(code);
-
-	result = string(message);
-#endif /* _WIN32 */
-
-	return result;
-}
-
-int Socket::ExceptionEventHandler(const EventArgs& ea)
+void Socket::HandleSocketError(void)
 {
 	int opt;
 	socklen_t optlen = sizeof(opt);
 
 	int rc = getsockopt(GetFD(), SOL_SOCKET, SO_ERROR, (char *)&opt, &optlen);
 
-	if (rc < 0) {
-		Close();
-		return 0;
-	}
-
-	if (opt != 0) {
+	if (rc >= 0 && opt != 0) {
 		SocketErrorEventArgs sea;
 		sea.Code = opt;
-		sea.Message = FormatErrorCode(sea.Code);
+#ifdef _WIN32
+		sea.Message = Win32Exception::FormatErrorCode(sea.Code);
+#else /* _WIN32 */
+		sea.Message = PosixException::FormatErrorCode(sea.Code);
+#endif /* _WIN32 */
 		OnError(sea);
-
-		Close();
 	}
 
-	return 0;
+	Close();
+	return;
 }
 
-void Socket::CloseAllSockets(void)
+int Socket::ExceptionEventHandler(const EventArgs& ea)
 {
-	for (Socket::CollectionType::iterator i = Sockets.begin(); i != Sockets.end(); ) {
-		Socket::Ptr socket = i->lock();
+	HandleSocketError();
 
-		i++;
-
-		if (socket == NULL)
-			continue;
-
-		socket->Close();
-	}
+	return 0;
 }
 
 bool Socket::WantsToRead(void) const

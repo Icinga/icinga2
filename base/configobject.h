@@ -17,7 +17,7 @@ private:
 	string m_Type;
 	bool m_Replicated;
 
-	int PropertyChangedHandler(const DictionaryPropertyChangedEventArgs dpcea);
+	int PropertyChangedHandler(const PropertyChangedEventArgs& dpcea);
 
 public:
 	typedef shared_ptr<ConfigObject> Ptr;

@@ -16,34 +16,24 @@ public:
 	typedef function<int (const TArgs&)> DelegateType;
 
 private:
-	list<DelegateType> m_Delegates;
+	vector<DelegateType> m_Delegates;
 
 public:
-	void Hook(const DelegateType& delegate)
-	{
-		m_Delegates.push_front(delegate);
-	}
-
-	void Unhook(const DelegateType& delegate)
-	{
-		m_Delegates.remove(delegate);
-	}
-
 	Event<TArgs>& operator +=(const DelegateType& rhs)
 	{
-		Hook(rhs);
+		m_Delegates.push_back(rhs);
 		return *this;
 	}
 
 	Event<TArgs>& operator -=(const DelegateType& rhs)
 	{
-		Unhook(rhs);
+		m_Delegates.erase(rhs);
 		return *this;
 	}
 
 	void operator()(const TArgs& args)
 	{
-		typename list<DelegateType>::iterator prev, i;
+		typename vector<DelegateType>::iterator prev, i;
 
 		for (i = m_Delegates.begin(); i != m_Delegates.end(); ) {
 			prev = i;

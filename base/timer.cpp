@@ -61,20 +61,6 @@ void Timer::CallExpiredTimers(void)
 	}
 }
 
-void Timer::StopAllTimers(void)
-{
-	for (Timer::CollectionType::iterator i = Timers.begin(); i != Timers.end(); ) {
-		Timer::Ptr timer = i->lock();
-
-		i++;
-
-		if (timer == NULL)
-			continue;
-
-		timer->Stop();
-	}
-}
-
 /* Note: the timer delegate must not call Disable() on any other timers than
  * the timer that originally invoked the delegate */
 void Timer::Call(void)

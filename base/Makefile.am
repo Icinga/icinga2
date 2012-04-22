@@ -47,6 +47,8 @@ libbase_la_SOURCES =  \
 	timer.h \
 	unix.cpp \
 	unix.h \
+	utility.cpp \
+	utility.h \
 	variant.cpp \
 	variant.h \
 	win32.cpp \

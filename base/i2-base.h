@@ -67,6 +67,7 @@ using namespace std::tr1::placeholders;
 #include "mutex.h"
 #include "condvar.h"
 #include "thread.h"
+#include "utility.h"
 #include "object.h"
 #include "exception.h"
 #include "memory.h"

@@ -25,10 +25,12 @@ public:
 	virtual void Stop(void) = 0;
 };
 
+typedef Component *(*CreateComponentFunction)(void);
+
 #define EXPORT_COMPONENT(klass) \
 	extern "C" I2_EXPORT icinga::Component *CreateComponent(void)	\
-	{														\
-		return new klass();									\
+	{								\
+		return new klass();					\
 	}
 
 }

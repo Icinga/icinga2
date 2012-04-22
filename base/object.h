@@ -4,20 +4,29 @@
 namespace icinga
 {
 
+/**
+ * Object
+ *
+ * Base class for all heap-allocated objects. At least one of its methods
+ * has to be virtual for RTTI to work.
+ */
 class I2_BASE_API Object : public enable_shared_from_this<Object>
 {
 private:
-	Object(const Object &other);
+	Object(const Object& other);
 
 protected:
-	Object(void);
-	virtual ~Object(void);
+	inline Object(void)
+	{
+	}
+
+	inline virtual ~Object(void)
+	{
+	}
 
 public:
 	typedef shared_ptr<Object> Ptr;
 	typedef weak_ptr<Object> WeakPtr;
-
-	static unsigned long ActiveObjects;
 };
 
 template<class T>
@@ -37,6 +46,11 @@ public:
 
 typedef function<Object::Ptr ()> factory_function;
 
+/**
+ * factory<T>
+ *
+ * Returns a new object of type T.
+ */
 template<class T>
 Object::Ptr factory(void)
 {

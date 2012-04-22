@@ -9,14 +9,9 @@ void TCPSocket::MakeSocket(void)
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (fd == INVALID_SOCKET) {
-		SocketErrorEventArgs sea;
-#ifdef _WIN32
-		sea.Code = WSAGetLastError();
-#else /* _WIN32 */
-		sea.Code = errno;
-#endif /* _WIN32 */
-		sea.Message = FormatErrorCode(sea.Code);
-		OnError(sea);
+		HandleSocketError();
+
+		return;
 	}
 
 	SetFD(fd);
@@ -40,19 +35,6 @@ void TCPSocket::Bind(const char *hostname, unsigned short port)
 	sin.sin_addr.s_addr = hostname ? inet_addr(hostname) : htonl(INADDR_ANY);
 	sin.sin_port = htons(port);
 
-	int rc = ::bind(GetFD(), (sockaddr *)&sin, sizeof(sin));
-
-	if (rc < 0) {
-		SocketErrorEventArgs sea;
-#ifdef _WIN32
-		sea.Code = WSAGetLastError();
-#else /* _WIN32 */
-		sea.Code = errno;
-#endif /* _WIN32 */
-		sea.Message = FormatErrorCode(sea.Code);
-
-		OnError(sea);
-		
-		Close();
-	}
+	if (::bind(GetFD(), (sockaddr *)&sin, sizeof(sin)) < 0)
+		HandleSocketError();
 }

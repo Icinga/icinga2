@@ -6,6 +6,11 @@ namespace icinga
 
 typedef void (*ThreadProc)(void *);
 
+/**
+ * Thread
+ *
+ * A wrapper around OS-specific thread functionality.
+ */
 class I2_BASE_API Thread
 {
 private:
@@ -16,10 +21,9 @@ private:
 #endif
 
 public:
-	Thread(void (*callback)(void *));
+	Thread(ThreadProc callback);
 	~Thread(void);
 
-	void Start(void);
 	void Join(void);
 };
 

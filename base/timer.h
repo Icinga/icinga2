@@ -44,7 +44,6 @@ public:
 
 	static time_t GetNextCall(void);
 	static void CallExpiredTimers(void);
-	static void StopAllTimers(void);
 
 	void Start(void);
 	void Stop(void);

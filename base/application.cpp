@@ -31,10 +31,8 @@ Application::Application(void)
 
 Application::~Application(void)
 {
-	Timer::StopAllTimers();
-	Socket::CloseAllSockets();
-
-	for (map<string, Component::Ptr>::iterator i = m_Components.begin(); i != m_Components.end(); i++) {
+	for (map<string, Component::Ptr>::iterator i = m_Components.begin();
+	    i != m_Components.end(); i++) {
 		i->second->Stop();
 	}
 
@@ -60,7 +58,8 @@ void Application::RunEventLoop(void)
 		FD_ZERO(&exceptfds);
 
 		Socket::CollectionType::iterator prev, i;
-		for (i = Socket::Sockets.begin(); i != Socket::Sockets.end(); ) {
+		for (i = Socket::Sockets.begin();
+		    i != Socket::Sockets.end(); ) {
 			Socket::Ptr socket = i->lock();
 
 			prev = i;
@@ -102,7 +101,8 @@ void Application::RunEventLoop(void)
 			Sleep(tv.tv_sec * 1000 + tv.tv_usec);
 			ready = 0;
 		} else
-			ready = select(nfds + 1, &readfds, &writefds, &exceptfds, &tv);
+			ready = select(nfds + 1, &readfds, &writefds,
+			    &exceptfds, &tv);
 
 		if (ready < 0)
 			break;
@@ -112,7 +112,8 @@ void Application::RunEventLoop(void)
 		EventArgs ea;
 		ea.Source = shared_from_this();
 
-		for (i = Socket::Sockets.begin(); i != Socket::Sockets.end(); ) {
+		for (i = Socket::Sockets.begin();
+		    i != Socket::Sockets.end(); ) {
 			Socket::Ptr socket = i->lock();
 
 			prev = i;
@@ -123,62 +124,21 @@ void Application::RunEventLoop(void)
 				continue;
 			}
 
-			int fd = socket->GetFD();
+			int fd;
 
-			if (FD_ISSET(fd, &writefds) && socket->GetFD() != INVALID_SOCKET)
+			fd = socket->GetFD();
+			if (fd != INVALID_SOCKET && FD_ISSET(fd, &writefds))
 				socket->OnWritable(ea);
 
-			if (FD_ISSET(fd, &readfds) && socket->GetFD() != INVALID_SOCKET)
+			fd = socket->GetFD();
+			if (fd != INVALID_SOCKET && FD_ISSET(fd, &readfds))
 				socket->OnReadable(ea);
 
-			if (FD_ISSET(fd, &exceptfds) && socket->GetFD() != INVALID_SOCKET)
+			fd = socket->GetFD();
+			if (fd != INVALID_SOCKET && FD_ISSET(fd, &exceptfds))
 				socket->OnException(ea);
 		}
 	}
-}
-
-bool Application::Daemonize(void) {
-#ifndef _WIN32
-	pid_t pid;
-	pid_t sid;
-	int fd;
-
-	pid = fork();
-	if (pid == -1) {
-		return false;
-	}
-
-	if (pid) {
-		fprintf(stdout, "DONE\n");
-		exit(0);
-	}
-
-	fd = open("/dev/null", O_RDWR);
-	if (fd) {
-		if (fd != 0) {
-			dup2(fd, 0);
-		}
-
-		if (fd != 1) {
-			dup2(fd, 1);
-		}
-
-		if (fd != 2) {
-			dup2(fd, 2);
-		}
-
-		if (fd > 2) {
-			close(fd);
-		}
-	}
-
-	sid = setsid();
-	if (sid == -1) {
-		return false;
-	}
-#endif
-
-	return true;
 }
 
 void Application::Shutdown(void)
@@ -186,12 +146,13 @@ void Application::Shutdown(void)
 	m_ShuttingDown = true;
 }
 
-ConfigHive::Ptr Application::GetConfigHive(void)
+ConfigHive::Ptr Application::GetConfigHive(void) const
 {
 	return m_ConfigHive;
 }
 
-Component::Ptr Application::LoadComponent(const string& path, const ConfigObject::Ptr& componentConfig)
+Component::Ptr Application::LoadComponent(const string& path,
+    const ConfigObject::Ptr& componentConfig)
 {
 	Component::Ptr component;
 	Component *(*pCreateComponent)();
@@ -208,13 +169,16 @@ Component::Ptr Application::LoadComponent(const string& path, const ConfigObject
 		throw ComponentLoadException("Could not load module");
 
 #ifdef _WIN32
-	pCreateComponent = (Component *(*)())GetProcAddress(hModule, "CreateComponent");
+	pCreateComponent = (CreateComponentFunction)GetProcAddress(hModule,
+	    "CreateComponent");
 #else /* _WIN32 */
-	pCreateComponent = (Component *(*)())lt_dlsym(hModule, "CreateComponent");
+	pCreateComponent = (CreateComponentFunction)lt_dlsym(hModule,
+	    "CreateComponent");
 #endif /* _WIN32 */
 
 	if (pCreateComponent == NULL)
-		throw ComponentLoadException("Loadable module does not contain CreateComponent function");
+		throw ComponentLoadException("Loadable module does not "
+		    "contain CreateComponent function");
 
 	component = Component::Ptr(pCreateComponent());
 	component->SetConfig(componentConfig);
@@ -270,12 +234,12 @@ void Application::SetArguments(const vector<string>& arguments)
 	m_Arguments = arguments;
 }
 
-const vector<string>& Application::GetArguments(void)
+const vector<string>& Application::GetArguments(void) const
 {
 	return m_Arguments;
 }
 
-const string& Application::GetExeDirectory(void)
+string Application::GetExeDirectory(void) const
 {
 	static string ExePath;
 
@@ -364,24 +328,19 @@ bool Application::IsDebugging(void) const
 	return m_Debugging;
 }
 
-void Application::SigIntHandler(int signum)
+#ifndef _WIN32
+static void ApplicationSigIntHandler(int signum)
 {
 	Application::Instance->Shutdown();
 
-#ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
 	sigaction(SIGINT, &sa, NULL);
+}
 #endif /* _WIN32 */
-}
 
-static void application_sigint_handler(int signum)
-{
-	Application::Instance->SigIntHandler(signum);
-}
-
-int application_main(int argc, char **argv, Application *instance)
+int icinga::RunApplication(int argc, char **argv, Application *instance)
 {
 	int result;
 
@@ -390,7 +349,7 @@ int application_main(int argc, char **argv, Application *instance)
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = application_sigint_handler;
+	sa.sa_handler = ApplicationSigIntHandler;
 	sigaction(SIGINT, &sa, NULL);
 #endif /* _WIN32 */
 
@@ -408,29 +367,12 @@ int application_main(int argc, char **argv, Application *instance)
 			result = Application::Instance->Main(args);
 		} catch (const Exception& ex) {
 			cerr << "---" << endl;
-
-			string klass = typeid(ex).name();
-
-#ifdef HAVE_GCC_ABI_DEMANGLE
-			int status;
-			char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
-
-			if (realname != NULL) {
-				klass = string(realname);
-				free(realname);
-			}
-#endif /* HAVE_GCC_ABI_DEMANGLE */
-
-			cerr << "Exception: " << klass << endl;
+			cerr << "Exception: " << Utility::GetTypeName(ex) << endl;
 			cerr << "Message: " << ex.GetMessage() << endl;
 
 			return EXIT_FAILURE;
 		}
 	}
-
-	Application::Instance.reset();
-
-	assert(Object::ActiveObjects == 0);
 
 	return result;
 }

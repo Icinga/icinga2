@@ -41,17 +41,7 @@ void TCPClient::Connect(const string& hostname, unsigned short port)
 #else /* _WIN32 */
 	if (rc < 0 && errno != EINPROGRESS) {
 #endif /* _WIN32 */
-		SocketErrorEventArgs sea;
-#ifdef _WIN32
-		sea.Code = WSAGetLastError();
-#else /* _WIN32 */
-		sea.Code = errno;
-#endif /* _WIN32 */
-		sea.Message = FormatErrorCode(sea.Code);
-
-		OnError(sea);
-
-		Close();
+		HandleSocketError();
 	}
 
 	m_PeerHost = hostname;
@@ -95,19 +85,7 @@ int TCPClient::ReadableEventHandler(const EventArgs& ea)
 		return 0;
 
 	if (rc <= 0) {
-		if (rc < 0) {
-			SocketErrorEventArgs sea;
-#ifdef _WIN32
-			sea.Code = WSAGetLastError();
-#else /* _WIN32 */
-			sea.Code = errno;
-#endif /* _WIN32 */
-			sea.Message = FormatErrorCode(sea.Code);
-
-			OnError(sea);
-		}
-
-		Close();
+		HandleSocketError();
 		return 0;
 	}
 
@@ -127,19 +105,7 @@ int TCPClient::WritableEventHandler(const EventArgs& ea)
 	rc = send(GetFD(), (const char *)m_SendQueue->GetReadBuffer(), m_SendQueue->GetSize(), 0);
 
 	if (rc <= 0) {
-		if (rc < 0) {
-			SocketErrorEventArgs sea;
-#ifdef _WIN32
-			sea.Code = WSAGetLastError();
-#else /* _WIN32 */
-			sea.Code = errno;
-#endif /* _WIN32 */
-			sea.Message = FormatErrorCode(sea.Code);
-
-			OnError(sea);
-		}
-
-		Close();
+		HandleSocketError();
 		return 0;
 	}
 

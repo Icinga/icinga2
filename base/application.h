@@ -15,6 +15,10 @@ private:
 	vector<string> m_Arguments;
 	bool m_Debugging;
 
+protected:
+	void RunEventLoop(void);
+	string GetExeDirectory(void) const;
+
 public:
 	typedef shared_ptr<Application> Ptr;
 	typedef weak_ptr<Application> WeakPtr;
@@ -27,36 +31,32 @@ public:
 	virtual int Main(const vector<string>& args) = 0;
 
 	void SetArguments(const vector<string>& arguments);
-	const vector<string>& GetArguments(void);
+	const vector<string>& GetArguments(void) const;
 
-	void RunEventLoop(void);
-	bool Daemonize(void);
 	void Shutdown(void);
 
 	void Log(const char *format, ...);
 
-	ConfigHive::Ptr GetConfigHive(void);
+	ConfigHive::Ptr GetConfigHive(void) const;
 
-	shared_ptr<Component> LoadComponent(const string& path, const ConfigObject::Ptr& componentConfig);
+	shared_ptr<Component> LoadComponent(const string& path,
+	    const ConfigObject::Ptr& componentConfig);
 	void RegisterComponent(shared_ptr<Component> component);
 	void UnregisterComponent(shared_ptr<Component> component);
 	shared_ptr<Component> GetComponent(const string& name);
 	void AddComponentSearchDir(const string& componentDirectory);
 
-	const string& GetExeDirectory(void);
-
 	bool IsDebugging(void) const;
-	void SigIntHandler(int signum);
 };
+
+int I2_EXPORT RunApplication(int argc, char **argv, Application *instance);
 
 }
 
-int I2_EXPORT application_main(int argc, char **argv, icinga::Application *instance);
-
 #define IMPLEMENT_ENTRY_POINT(klass)					\
-	int main(int argc, char **argv) {					\
-		klass *instance = new klass();					\
-		return application_main(argc, argv, instance);	\
+	int main(int argc, char **argv) {				\
+		klass *instance = new klass();				\
+		return icinga::RunApplication(argc, argv, instance);	\
 	}
 
 #endif /* APPLICATION_H */

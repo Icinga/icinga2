@@ -29,7 +29,7 @@ public:
 
 	Event<EventArgs> OnObjectCreated;
 	Event<EventArgs> OnObjectRemoved;
-	Event<DictionaryPropertyChangedEventArgs> OnPropertyChanged;
+	Event<PropertyChangedEventArgs> OnPropertyChanged;
 };
 
 }

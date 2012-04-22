@@ -15,14 +15,16 @@ public:
 
 	void AddObject(const ConfigObject::Ptr& object);
 	void RemoveObject(const ConfigObject::Ptr& object);
-	ConfigObject::Ptr GetObject(const string& collection, const string& name = string());
+	ConfigObject::Ptr GetObject(const string& collection,
+	    const string& name = string());
 	ConfigCollection::Ptr GetCollection(const string& collection);
 
-	void ForEachObject(const string& type, function<int (const EventArgs&)> callback);
+	void ForEachObject(const string& type,
+	    function<int (const EventArgs&)> callback);
 
 	Event<EventArgs> OnObjectCreated;
 	Event<EventArgs> OnObjectRemoved;
-	Event<DictionaryPropertyChangedEventArgs> OnPropertyChanged;
+	Event<PropertyChangedEventArgs> OnPropertyChanged;
 };
 
 }

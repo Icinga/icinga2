@@ -7,7 +7,7 @@ namespace icinga
 typedef map<string, Variant>::const_iterator ConstDictionaryIterator;
 typedef map<string, Variant>::iterator DictionaryIterator;
 
-struct I2_BASE_API DictionaryPropertyChangedEventArgs : public EventArgs
+struct I2_BASE_API PropertyChangedEventArgs : public EventArgs
 {
 	string Property;
 	Variant OldValue;
@@ -41,7 +41,7 @@ public:
 	DictionaryIterator Begin(void);
 	DictionaryIterator End(void);
 
-	Event<DictionaryPropertyChangedEventArgs> OnPropertyChanged;
+	Event<PropertyChangedEventArgs> OnPropertyChanged;
 };
 
 }

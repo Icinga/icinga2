@@ -4,19 +4,31 @@
 namespace icinga
 {
 
+/**
+ * Exception
+ *
+ * Base class for all exceptions.
+ */
 class I2_BASE_API Exception
 {
 private:
 	string m_Message;
 
-public:
-	typedef shared_ptr<Exception> Ptr;
-	typedef weak_ptr<Exception> WeakPtr;
+protected:
+	void SetMessage(string message);
 
+public:
 	Exception(void);
 	Exception(const string& message);
 
-	virtual ~Exception(void);
+	/**
+	 * ~Exception
+	 *
+	 * Required for RTTI.
+	 */
+	virtual ~Exception(void)
+	{
+	}
 
 	string GetMessage(void) const;
 };
@@ -25,9 +37,6 @@ public:
 	class klass : public Exception									\
 	{																\
 	public:															\
-		typedef shared_ptr<klass> Ptr;								\
-		typedef weak_ptr<klass> WeakPtr;							\
-																	\
 		inline klass(void) : Exception()							\
 		{															\
 		}															\
@@ -39,6 +48,30 @@ public:
 
 DEFINE_EXCEPTION_CLASS(NotImplementedException);
 DEFINE_EXCEPTION_CLASS(InvalidArgumentException);
+
+#ifdef _WIN32
+class Win32Exception : public Exception
+{
+public:
+	inline Win32Exception(const string& message, int errorCode)
+	{
+		SetMessage(message + ": " + FormatErrorCode(errorCode));
+	}
+
+	static string FormatErrorCode(int code);
+};
+#endif /* _WIN32 */
+
+class PosixException : public Exception
+{
+public:
+	inline PosixException(const string& message, int errorCode)
+	{
+		SetMessage(message + ": " + FormatErrorCode(errorCode));
+	}
+
+	static string FormatErrorCode(int code);
+};
 
 }
 

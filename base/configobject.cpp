@@ -53,7 +53,7 @@ bool ConfigObject::GetReplicated(void) const
 	return m_Replicated;
 }
 
-int ConfigObject::PropertyChangedHandler(const DictionaryPropertyChangedEventArgs dpcea)
+int ConfigObject::PropertyChangedHandler(const PropertyChangedEventArgs& dpcea)
 {
 	ConfigHive::Ptr hive = m_Hive.lock();
 	if (hive) {

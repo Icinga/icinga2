@@ -4,6 +4,11 @@
 namespace icinga
 {
 
+/**
+ * CondVar
+ *
+ * A wrapper around OS-specific condition variable functionality.
+ */
 class I2_BASE_API CondVar
 {
 private:

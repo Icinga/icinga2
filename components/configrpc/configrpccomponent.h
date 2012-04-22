@@ -16,7 +16,7 @@ private:
 
 	int LocalObjectCreatedHandler(const EventArgs& ea);
 	int LocalObjectRemovedHandler(const EventArgs& ea);
-	int LocalPropertyChangedHandler(const DictionaryPropertyChangedEventArgs& ea);
+	int LocalPropertyChangedHandler(const PropertyChangedEventArgs& ea);
 
 	int FetchObjectsHandler(const NewRequestEventArgs& ea);
 	int RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea);

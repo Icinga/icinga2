@@ -30,6 +30,7 @@
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="unix.cpp" />
+    <ClCompile Include="utility.cpp" />
     <ClCompile Include="variant.cpp" />
     <ClCompile Include="win32.cpp" />
   </ItemGroup>
@@ -56,6 +57,7 @@
     <ClInclude Include="thread.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="unix.h" />
+    <ClInclude Include="utility.h" />
     <ClInclude Include="variant.h" />
     <ClInclude Include="win32.h" />
   </ItemGroup>

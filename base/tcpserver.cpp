@@ -42,18 +42,9 @@ int TCPServer::ReadableEventHandler(const EventArgs& ea)
 
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
-	if (fd == INVALID_SOCKET) {
-		SocketErrorEventArgs sea;
-#ifdef _WIN32
-		sea.Code = WSAGetLastError();
-#else /* _WIN32 */
-		sea.Code = errno;
-#endif /* _WIN32 */
-		sea.Message = FormatErrorCode(sea.Code);
-
-		OnError(sea);
-
-		Close();
+	if (fd < 0) {
+		HandleSocketError();
+		return 0;
 	}
 
 	NewClientEventArgs nea;

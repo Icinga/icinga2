@@ -146,7 +146,7 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
 	return 0;
 }
 
-int ConfigRpcComponent::LocalPropertyChangedHandler(const DictionaryPropertyChangedEventArgs& ea)
+int ConfigRpcComponent::LocalPropertyChangedHandler(const PropertyChangedEventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	

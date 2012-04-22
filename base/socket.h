@@ -20,11 +20,9 @@ private:
 	int ExceptionEventHandler(const EventArgs& ea);
 
 protected:
-	string FormatErrorCode(int errorCode);
-
-protected:
 	Socket(void);
 
+	void HandleSocketError(void);
 	void Close(bool from_dtor);
 
 public:
@@ -39,8 +37,6 @@ public:
 
 	void SetFD(SOCKET fd);
 	SOCKET GetFD(void) const;
-
-	static void CloseAllSockets(void);
 
 	Event<EventArgs> OnReadable;
 	Event<EventArgs> OnWritable;
