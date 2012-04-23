@@ -87,7 +87,6 @@ int IcingaApplication::TestTimerHandler(const TimerEventArgs& tea)
 	cout << "Problem?" << endl;
 
 	JsonRpcRequest request;
-	request.SetVersion("2.0");
 	request.SetMethod("test");
 
 	for (int i = 0; i < 5; i++)

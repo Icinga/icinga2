@@ -30,7 +30,7 @@ public:
 	typedef shared_ptr<Timer> Ptr;
 	typedef weak_ptr<Timer> WeakPtr;
 
-	typedef set< Timer::WeakPtr, owner_less<Timer::WeakPtr> > CollectionType;
+	typedef list<Timer::WeakPtr> CollectionType;
 
 	static Timer::CollectionType Timers;
 

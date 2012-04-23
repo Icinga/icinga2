@@ -114,7 +114,6 @@ int EndpointManager::NewMethodSinkHandler(const NewMethodEventArgs& ea)
 		return 0;
 
 	JsonRpcRequest request;
-	request.SetVersion("2.0");
 	request.SetMethod("message::Subscribe");
 
 	SubscriptionMessage subscriptionMessage;
@@ -134,7 +133,6 @@ int EndpointManager::NewMethodSourceHandler(const NewMethodEventArgs& ea)
 		return 0;
 
 	JsonRpcRequest request;
-	request.SetVersion("2.0");
 	request.SetMethod("message::Provide");
 
 	SubscriptionMessage subscriptionMessage;

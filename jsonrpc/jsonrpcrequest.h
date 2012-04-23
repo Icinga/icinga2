@@ -8,7 +8,10 @@ class I2_JSONRPC_API JsonRpcRequest : public Message
 {
 
 public:
-	JsonRpcRequest(void) : Message() { }
+	JsonRpcRequest(void) : Message() {
+		SetVersion("2.0");
+	}
+
 	JsonRpcRequest(const Message& message) : Message(message) { }
 
 	inline bool GetVersion(string *value) const

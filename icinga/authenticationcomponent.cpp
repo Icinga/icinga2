@@ -15,7 +15,7 @@ string AuthenticationComponent::GetName(void) const
 void AuthenticationComponent::Start(void)
 {
 	m_AuthenticationEndpoint = make_shared<VirtualEndpoint>();
-	m_AuthenticationEndpoint->RegisterMethodHandler("message::SetIdentity", bind_weak(&AuthenticationComponent::IdentityMessageHandler, shared_from_this()));
+	m_AuthenticationEndpoint->RegisterMethodHandler("auth::SetIdentity", bind_weak(&AuthenticationComponent::IdentityMessageHandler, shared_from_this()));
 
 	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
 	mgr->OnNewEndpoint += bind_weak(&AuthenticationComponent::NewEndpointHandler, shared_from_this());
@@ -39,7 +39,6 @@ int AuthenticationComponent::NewEndpointHandler(const NewEndpointEventArgs& neea
 		return 0;
 
 	JsonRpcRequest request;
-	request.SetVersion("2.0");
 	request.SetMethod("message::SetIdentity");
 
 	IdentityMessage params;
@@ -67,8 +66,7 @@ int AuthenticationComponent::IdentityMessageHandler(const NewRequestEventArgs& n
 
 	/* there's no authentication for now, just tell them it's ok to send messages */
 	JsonRpcRequest request;
-	request.SetVersion("2.0");
-	request.SetMethod("message::Welcome");
+	request.SetMethod("auth::Welcome");
 	nrea.Sender->ProcessRequest(m_AuthenticationEndpoint, request);
 
 	return 0;

@@ -34,7 +34,7 @@ void ConfigRpcComponent::Start(void)
 		m_ConfigRpcEndpoint->RegisterMethodSource("config::PropertyChanged");
 	}
 
-	m_ConfigRpcEndpoint->RegisterMethodHandler("message::Welcome", bind_weak(&ConfigRpcComponent::WelcomeMessageHandler, shared_from_this()));
+	m_ConfigRpcEndpoint->RegisterMethodHandler("auth::Welcome", bind_weak(&ConfigRpcComponent::WelcomeMessageHandler, shared_from_this()));
 
 	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectCreated", bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
 	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectRemoved", bind_weak(&ConfigRpcComponent::RemoteObjectRemovedHandler, shared_from_this()));
@@ -55,7 +55,6 @@ int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
 {
 	if (ea.Endpoint->HasIdentity()) {
 		JsonRpcRequest request;
-		request.SetVersion("2.0");
 		request.SetMethod("config::FetchObjects");
 		ea.Endpoint->ProcessRequest(m_ConfigRpcEndpoint, request);
 	}
@@ -76,7 +75,6 @@ int ConfigRpcComponent::WelcomeMessageHandler(const NewRequestEventArgs& ea)
 JsonRpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
 {
 	JsonRpcRequest msg;
-	msg.SetVersion("2.0");
 	msg.SetMethod(method);
 
 	Message params;

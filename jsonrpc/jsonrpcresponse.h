@@ -7,7 +7,10 @@ namespace icinga
 class I2_JSONRPC_API JsonRpcResponse : public Message
 {
 public:
-	JsonRpcResponse(void) : Message() { }
+	JsonRpcResponse(void) : Message() {
+		SetVersion("2.0");
+	}
+
 	JsonRpcResponse(const Message& message) : Message(message) { }
 
 	inline bool GetVersion(string *value) const
@@ -15,7 +18,7 @@ public:
 		return GetPropertyString("jsonrpc", value);
 	}
 
-	inline void SetJsonRpc(const string& value)
+	inline void SetVersion(const string& value)
 	{
 		SetPropertyString("jsonrpc", value);
 	}

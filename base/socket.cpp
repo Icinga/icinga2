@@ -20,16 +20,12 @@ void Socket::Start(void)
 
 	OnException += bind_weak(&Socket::ExceptionEventHandler, shared_from_this());
 
-	Sockets.insert(static_pointer_cast<Socket>(shared_from_this()));
+	Sockets.push_back(static_pointer_cast<Socket>(shared_from_this()));
 }
 
 void Socket::Stop(void)
 {
-	Socket::Ptr self = static_pointer_cast<Socket>(shared_from_this());
-	Socket::CollectionType::iterator i = Sockets.find(self);
-
-	if (i != Sockets.end())
-		Sockets.erase(i);
+	Sockets.remove_if(weak_ptr_eq_raw<Socket>(this));
 }
 
 void Socket::SetFD(SOCKET fd)

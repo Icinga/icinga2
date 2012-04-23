@@ -254,7 +254,7 @@ string Application::GetExeDirectory(void) const
 	const char *argv0 = m_Arguments[0].c_str();
 
 	if (getcwd(Cwd, sizeof(Cwd)) == NULL)
-		throw exception(/*"getcwd() failed"*/);
+		throw PosixException("getcwd failed", errno);
 
 	if (argv0[0] != '/')
 		snprintf(FullExePath, sizeof(FullExePath), "%s/%s", Cwd, argv0);
@@ -271,7 +271,7 @@ string Application::GetExeDirectory(void) const
 
 			for (Directory = strtok(PathEnv, ":"); Directory != NULL; Directory = strtok(NULL, ":")) {
 				if (snprintf(PathTest, sizeof(PathTest), "%s/%s", Directory, argv0) < 0)
-					throw exception(/*"snprintf() failed"*/);
+					throw PosixException("snprintf failed", errno);
 
 				if (access(PathTest, X_OK) == 0) {
 					strncpy(FullExePath, PathTest, sizeof(FullExePath));
@@ -285,12 +285,12 @@ string Application::GetExeDirectory(void) const
 			free(PathEnv);
 
 			if (!FoundPath)
-				throw exception(/*"Could not determine executable path."*/);
+				throw Exception("Could not determine executable path.");
 		}
 	}
 
 	if ((Buf = realpath(FullExePath, NULL)) == NULL)
-		throw exception(/*"realpath() failed"*/);
+		throw PosixException("realpath failed", errno);
 
 	// remove filename
 	char *LastSlash = strrchr(Buf, '/');

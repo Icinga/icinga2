@@ -94,18 +94,14 @@ EventArgs Timer::GetUserArgs(void) const
 
 void Timer::Start(void)
 {
-	Timers.insert(static_pointer_cast<Timer>(shared_from_this()));
+	Timers.push_back(static_pointer_cast<Timer>(shared_from_this()));
 
 	Reschedule(time(NULL) + m_Interval);
 }
 
 void Timer::Stop(void)
 {
-	Timer::Ptr self = static_pointer_cast<Timer>(shared_from_this());
-	Timer::CollectionType::iterator i = Timers.find(self);
-
-	if (i != Timers.end())
-		Timers.erase(i);
+	Timers.remove_if(weak_ptr_eq_raw<Timer>(this));
 }
 
 void Timer::Reschedule(time_t next)

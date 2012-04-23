@@ -77,7 +77,7 @@ bool Netstring::ReadMessageFromFIFO(FIFO::Ptr fifo, Message *message)
 	for (i = 0; i < buffer_length && isdigit(buffer[i]); i++) {
 		/* length specifier must have at most 9 characters */
 		if (i >= 9)
-			return false;
+			throw InvalidArgumentException("Length specifier must not exceed 9 characters");
 
 		len = len * 10 + (buffer[i] - '0');
 	}

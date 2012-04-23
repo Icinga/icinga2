@@ -19,7 +19,6 @@ void SubscriptionComponent::Start(void)
 	m_SubscriptionEndpoint->RegisterMethodHandler("message::Provide", bind_weak(&SubscriptionComponent::ProvideMessageHandler, shared_from_this()));
 	m_SubscriptionEndpoint->RegisterMethodSource("message::Subscribe");
 	m_SubscriptionEndpoint->RegisterMethodSource("message::Provide");
-	m_SubscriptionEndpoint->RegisterMethodSource("message::Welcome");
 
 	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
 	mgr->OnNewEndpoint += bind_weak(&SubscriptionComponent::NewEndpointHandler, shared_from_this());
