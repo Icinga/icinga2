@@ -60,6 +60,9 @@ int IcingaApplication::Main(const vector<string>& args)
 	SubscriptionComponent::Ptr subscriptionComponent = make_shared<SubscriptionComponent>();
 	RegisterComponent(subscriptionComponent);
 
+	DiscoveryComponent::Ptr discoveryComponent = make_shared<DiscoveryComponent>();
+	RegisterComponent(discoveryComponent);
+
 	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
 	fileComponentConfig->SetPropertyString("configFilename", args[1]);
 	fileComponentConfig->SetPropertyInteger("replicate", 0);

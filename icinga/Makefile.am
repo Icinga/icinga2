@@ -7,6 +7,8 @@ pkglib_LTLIBRARIES =  \
 libicinga_la_SOURCES =  \
 	authenticationcomponent.cpp \
 	authenticationcomponent.h \
+	discoverycomponent.cpp \
+	discoverycomponent.h \
 	endpoint.cpp \
 	endpoint.h \
 	endpointmanager.cpp \
