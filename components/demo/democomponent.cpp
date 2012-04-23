@@ -15,7 +15,8 @@ string DemoComponent::GetName(void) const
 void DemoComponent::Start(void)
 {
 	m_DemoEndpoint = make_shared<VirtualEndpoint>();
-	m_DemoEndpoint->RegisterMethodHandler("demo::HelloWorld", bind_weak(&DemoComponent::HelloWorldRequestHAndler, shared_from_this()));
+	m_DemoEndpoint->RegisterMethodHandler("demo::HelloWorld",
+	    bind_weak(&DemoComponent::HelloWorldRequestHAndler, shared_from_this()));
 	m_DemoEndpoint->RegisterMethodSource("demo::HelloWorld");
 
 	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
@@ -42,6 +43,7 @@ void DemoComponent::Stop(void)
 
 int DemoComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 {
+	/* Allow sending/receiving demo messages without authentication */
 	neea.Endpoint->AddAllowedMethodSinkPrefix("demo::");
 	neea.Endpoint->AddAllowedMethodSourcePrefix("demo::");
 
