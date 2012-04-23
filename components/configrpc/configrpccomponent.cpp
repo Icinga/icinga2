@@ -56,7 +56,9 @@ int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
 	if (ea.Endpoint->HasIdentity()) {
 		JsonRpcRequest request;
 		request.SetMethod("config::FetchObjects");
-		ea.Endpoint->ProcessRequest(m_ConfigRpcEndpoint, request);
+
+		EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
+		endpointManager->SendUnicastRequest(m_ConfigRpcEndpoint, ea.Endpoint, request);
 	}
 
 	return 0;
@@ -111,7 +113,10 @@ int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 			if (!ShouldReplicateObject(object))
 				continue;
 
-			client->ProcessRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectCreated", true));
+			JsonRpcRequest request = MakeObjectMessage(object, "config::ObjectCreated", true);
+
+			EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
+			endpointManager->SendUnicastRequest(m_ConfigRpcEndpoint, client, request);
 		}
 	}
 

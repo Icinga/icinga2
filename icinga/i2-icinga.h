@@ -20,5 +20,6 @@
 #include "subscriptionmessage.h"
 #include "authenticationcomponent.h"
 #include "identitymessage.h"
+#include "discoverycomponent.h"
 
 #endif /* I2ICINGA_H */

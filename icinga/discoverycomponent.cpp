@@ -1,0 +1,70 @@
+#include "i2-icinga.h"
+
+using namespace icinga;
+
+IcingaApplication::Ptr DiscoveryComponent::GetIcingaApplication(void) const
+{
+	return static_pointer_cast<IcingaApplication>(GetApplication());
+}
+
+string DiscoveryComponent::GetName(void) const
+{
+	return "discoverycomponent";
+}
+
+void DiscoveryComponent::Start(void)
+{
+	m_DiscoveryEndpoint = make_shared<VirtualEndpoint>();
+	m_DiscoveryEndpoint->RegisterMethodSource("discovery::PeerAvailable");
+	m_DiscoveryEndpoint->RegisterMethodHandler("auth::Welcome",
+	    bind_weak(&DiscoveryComponent::WelcomeMessageHandler, shared_from_this()));
+	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::GetPeers",
+		bind_weak(&DiscoveryComponent::GetPeersMessageHandler, shared_from_this()));
+
+	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+	mgr->RegisterEndpoint(m_DiscoveryEndpoint);
+}
+
+void DiscoveryComponent::Stop(void)
+{
+	IcingaApplication::Ptr app = GetIcingaApplication();
+
+	if (app) {
+		EndpointManager::Ptr mgr = app->GetEndpointManager();
+		mgr->UnregisterEndpoint(m_DiscoveryEndpoint);
+	}
+}
+
+int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
+{
+	neea.Endpoint->OnIdentityChanged += bind_weak(&DiscoveryComponent::IdentityChangedHandler, shared_from_this());
+
+	/* TODO: register handler for new sink/source */
+
+	return 0;
+}
+
+int DiscoveryComponent::IdentityChangedHandler(const EventArgs& neea)
+{
+	/* TODO: send information about this client to all other clients */
+
+	return 0;
+}
+
+int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
+{
+	JsonRpcRequest request;
+	request.SetMethod("discovery::GetPeers");
+
+	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
+	endpointManager->SendUnicastRequest(m_DiscoveryEndpoint, nrea.Sender, request);
+
+	return 0;
+}
+
+int DiscoveryComponent::GetPeersMessageHandler(const NewRequestEventArgs& nrea)
+{
+	/* TODO: send information about all available clients to this client */
+
+	return 0;
+}

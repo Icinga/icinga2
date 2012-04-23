@@ -16,6 +16,7 @@ void AuthenticationComponent::Start(void)
 {
 	m_AuthenticationEndpoint = make_shared<VirtualEndpoint>();
 	m_AuthenticationEndpoint->RegisterMethodHandler("auth::SetIdentity", bind_weak(&AuthenticationComponent::IdentityMessageHandler, shared_from_this()));
+	m_AuthenticationEndpoint->RegisterMethodSource("auth::Welcome");
 
 	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
 	mgr->OnNewEndpoint += bind_weak(&AuthenticationComponent::NewEndpointHandler, shared_from_this());
@@ -48,7 +49,8 @@ int AuthenticationComponent::NewEndpointHandler(const NewEndpointEventArgs& neea
 	params.SetIdentity("keks");
 	request.SetParams(params);
 
-	neea.Endpoint->ProcessRequest(m_AuthenticationEndpoint, request);
+	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
+	endpointManager->SendUnicastRequest(m_AuthenticationEndpoint, neea.Endpoint, request);
 
 	return 0;
 }
@@ -70,7 +72,9 @@ int AuthenticationComponent::IdentityMessageHandler(const NewRequestEventArgs& n
 	/* there's no authentication for now, just tell them it's ok to send messages */
 	JsonRpcRequest request;
 	request.SetMethod("auth::Welcome");
-	nrea.Sender->ProcessRequest(m_AuthenticationEndpoint, request);
+
+	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
+	endpointManager->SendUnicastRequest(m_AuthenticationEndpoint, nrea.Sender, request);
 
 	return 0;
 }

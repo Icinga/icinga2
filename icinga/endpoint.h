@@ -64,6 +64,8 @@ public:
 
 	int CountMethodSinks(void) const;
 	int CountMethodSources(void) const;
+
+	Event<EventArgs> OnIdentityChanged;
 };
 
 }
