@@ -46,7 +46,8 @@ int SubscriptionComponent::SyncSubscription(Endpoint::Ptr target, string type, c
 	subscriptionMessage.SetMethod(nmea.Method);
 	request.SetParams(subscriptionMessage);
 
-	target->ProcessRequest(m_SubscriptionEndpoint, request);
+	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
+	endpointManager->SendUnicastRequest(m_SubscriptionEndpoint, target, request);
 
 	return 0;
 }

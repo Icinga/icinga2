@@ -73,6 +73,23 @@ void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
 	m_Endpoints.remove(endpoint);
 }
 
+void EndpointManager::SendUnicastRequest(Endpoint::Ptr sender, Endpoint::Ptr recipient, const JsonRpcRequest& request, bool fromLocal)
+{
+	if (sender == recipient)
+		return;
+
+	/* don't forward messages between non-local endpoints */
+	if (!fromLocal && !recipient->IsLocal())
+		return;
+
+	string method;
+	if (!request.GetMethod(&method))
+		throw InvalidArgumentException("Missing 'method' parameter.");
+
+	if (recipient->IsMethodSink(method) && recipient->IsAllowedMethodSink(method))
+		recipient->ProcessRequest(sender, request);
+}
+
 void EndpointManager::SendAnycastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal)
 {
 	throw NotImplementedException();
@@ -92,17 +109,7 @@ void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRe
 
 	for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 	{
-		Endpoint::Ptr endpoint = *i;
-
-		if (endpoint == sender)
-			continue;
-
-		/* send non-local messages to just the local endpoints */
-		if (!fromLocal && !endpoint->IsLocal())
-			continue;
-
-		if (endpoint->IsMethodSink(method) && endpoint->IsAllowedMethodSink(method))
-			endpoint->ProcessRequest(sender, request);
+		SendUnicastRequest(sender, *i, request, fromLocal);
 	}
 }
 

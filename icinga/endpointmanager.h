@@ -36,6 +36,7 @@ public:
 	void RegisterEndpoint(Endpoint::Ptr endpoint);
 	void UnregisterEndpoint(Endpoint::Ptr endpoint);
 
+	void SendUnicastRequest(Endpoint::Ptr sender, Endpoint::Ptr recipient, const JsonRpcRequest& request, bool fromLocal = true);
 	void SendAnycastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
 	void SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
 
