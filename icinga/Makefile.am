@@ -20,6 +20,8 @@ libicinga_la_SOURCES =  \
 	jsonrpcendpoint.h \
 	subscriptioncomponent.cpp \
 	subscriptioncomponent.h \
+	subscriptionmessage.cpp \
+	subscriptionmessage.h \
 	virtualendpoint.cpp \
 	virtualendpoint.h
 
