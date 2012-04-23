@@ -29,7 +29,13 @@ void JsonRpcEndpoint::RemoveAllowedMethodSinkPrefix(string method)
 
 bool JsonRpcEndpoint::IsAllowedMethodSink(string method) const
 {
-	return (m_AllowedMethodSinkPrefixes.find(method) != m_AllowedMethodSinkPrefixes.end());
+	set<string>::iterator i;
+	for (i = m_AllowedMethodSinkPrefixes.begin(); i != m_AllowedMethodSinkPrefixes.end(); i++) {
+		if (method.compare(0, method.length(), method) == 0)
+			return true;
+	}
+
+	return false;
 }
 
 void JsonRpcEndpoint::AddAllowedMethodSourcePrefix(string method)
@@ -44,7 +50,13 @@ void JsonRpcEndpoint::RemoveAllowedMethodSourcePrefix(string method)
 
 bool JsonRpcEndpoint::IsAllowedMethodSource(string method) const
 {
-	return (m_AllowedMethodSourcePrefixes.find(method) != m_AllowedMethodSourcePrefixes.end());
+	set<string>::iterator i;
+	for (i = m_AllowedMethodSourcePrefixes.begin(); i != m_AllowedMethodSourcePrefixes.end(); i++) {
+		if (method.compare(0, method.length(), method) == 0)
+			return true;
+	}
+
+	return false;
 }
 
 void JsonRpcEndpoint::Connect(string host, unsigned short port)

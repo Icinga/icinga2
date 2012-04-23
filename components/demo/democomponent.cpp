@@ -15,7 +15,7 @@ string DemoComponent::GetName(void) const
 void DemoComponent::Start(void)
 {
 	m_DemoEndpoint = make_shared<VirtualEndpoint>();
-	m_DemoEndpoint->RegisterMethodSink("demo::HelloWorld");
+	m_DemoEndpoint->RegisterMethodHandler("demo::HelloWorld", bind_weak(&DemoComponent::HelloWorldRequestHAndler, shared_from_this()));
 	m_DemoEndpoint->RegisterMethodSource("demo::HelloWorld");
 
 	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
@@ -32,14 +32,18 @@ void DemoComponent::Start(void)
 
 void DemoComponent::Stop(void)
 {
-	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-	endpointManager->UnregisterEndpoint(m_DemoEndpoint);
+	IcingaApplication::Ptr app = GetIcingaApplication();
+
+	if (app) {
+		EndpointManager::Ptr endpointManager = app->GetEndpointManager();
+		endpointManager->UnregisterEndpoint(m_DemoEndpoint);
+	}
 }
 
-int AuthenticationComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
+int DemoComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 {
-	neea.Endpoint->AddAllowedMethodSinkPrefix("demo");
-	neea.Endpoint->AddAllowedMethodSourcePrefix("demo");
+	neea.Endpoint->AddAllowedMethodSinkPrefix("demo::");
+	neea.Endpoint->AddAllowedMethodSourcePrefix("demo::");
 
 	return 0;
 }
@@ -49,19 +53,17 @@ int DemoComponent::DemoTimerHandler(const TimerEventArgs& tea)
 	cout << "Sending multicast 'hello world' message." << endl;
 
 	JsonRpcRequest request;
-	request.SetMethod("test");
+	request.SetMethod("demo::HelloWorld");
 
 	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-
-	for (int i = 0; i < 5; i++)
-		endpointManager->SendMulticastRequest(m_DemoEndpoint, request);
+	endpointManager->SendMulticastRequest(m_DemoEndpoint, request);
 
 	return 0;
 }
 
 int DemoComponent::HelloWorldRequestHAndler(const NewRequestEventArgs& nrea)
 {
-	cout << "Got Hello World from " << nrea.Sender->GetAddress();
+	cout << "Got Hello World from " << nrea.Sender->GetAddress() << endl;
 
 	return 0;
 }
