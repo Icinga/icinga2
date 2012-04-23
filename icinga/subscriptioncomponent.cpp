@@ -73,11 +73,14 @@ int SubscriptionComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 	if (neea.Endpoint->IsLocal())
 		return 0;
 
-	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-	mgr->ForeachEndpoint(bind(&SubscriptionComponent::SyncSubscriptions, this, neea.Endpoint, _1));
-
 	neea.Endpoint->AddAllowedMethodSinkPrefix("message::");
 	neea.Endpoint->AddAllowedMethodSourcePrefix("message::");
+
+	neea.Endpoint->RegisterMethodSink("message::Subscribe");
+	neea.Endpoint->RegisterMethodSink("message::Provide");
+
+	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+	mgr->ForeachEndpoint(bind(&SubscriptionComponent::SyncSubscriptions, this, neea.Endpoint, _1));
 
 	return 0;
 }

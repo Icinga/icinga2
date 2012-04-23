@@ -42,8 +42,10 @@ int AuthenticationComponent::NewEndpointHandler(const NewEndpointEventArgs& neea
 	neea.Endpoint->AddAllowedMethodSinkPrefix("auth::");
 	neea.Endpoint->AddAllowedMethodSourcePrefix("auth::");
 
+	neea.Endpoint->RegisterMethodSink("auth::SetIdentity");
+
 	JsonRpcRequest request;
-	request.SetMethod("message::SetIdentity");
+	request.SetMethod("auth::SetIdentity");
 
 	IdentityMessage params;
 	params.SetIdentity("keks");
