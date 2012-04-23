@@ -101,7 +101,7 @@ void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRe
 		if (!fromLocal && !endpoint->IsLocal())
 			continue;
 
-		if (endpoint->IsMethodSink(method))
+		if (endpoint->IsMethodSink(method) && endpoint->IsAllowedMethodSink(method))
 			endpoint->ProcessRequest(sender, request);
 	}
 }

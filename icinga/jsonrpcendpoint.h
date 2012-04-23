@@ -7,9 +7,12 @@ namespace icinga
 class I2_ICINGA_API JsonRpcEndpoint : public Endpoint
 {
 private:
+	string m_Address;
 	JsonRpcClient::Ptr m_Client;
 	map<string, Endpoint::Ptr> m_PendingCalls;
 	Timer::Ptr m_ReconnectTimer;
+	set<string> m_AllowedMethodSinkPrefixes;
+	set<string> m_AllowedMethodSourcePrefixes;
 
 	bool IsConnected(void) const;
 	
@@ -26,6 +29,16 @@ public:
 
 	JsonRpcClient::Ptr GetClient(void);
 	void SetClient(JsonRpcClient::Ptr client);
+
+	void SetAddress(string address);
+	virtual string GetAddress(void) const;
+
+	virtual void AddAllowedMethodSinkPrefix(string method);
+	virtual void RemoveAllowedMethodSinkPrefix(string method);
+	virtual bool IsAllowedMethodSink(string method) const;
+	virtual void AddAllowedMethodSourcePrefix(string method);
+	virtual void RemoveAllowedMethodSourcePrefix(string method);
+	virtual bool IsAllowedMethodSource(string method) const;
 
 	virtual bool IsLocal(void) const;
 

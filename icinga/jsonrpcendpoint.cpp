@@ -2,13 +2,57 @@
 
 using namespace icinga;
 
+void JsonRpcEndpoint::SetAddress(string address)
+{
+	m_Address = address;
+}
+
+string JsonRpcEndpoint::GetAddress(void) const
+{
+	return m_Address;
+}
+
 JsonRpcClient::Ptr JsonRpcEndpoint::GetClient(void)
 {
 	return m_Client;
 }
 
+void JsonRpcEndpoint::AddAllowedMethodSinkPrefix(string method)
+{
+	m_AllowedMethodSinkPrefixes.insert(method);
+}
+
+void JsonRpcEndpoint::RemoveAllowedMethodSinkPrefix(string method)
+{
+	m_AllowedMethodSinkPrefixes.erase(method);
+}
+
+bool JsonRpcEndpoint::IsAllowedMethodSink(string method) const
+{
+	return (m_AllowedMethodSinkPrefixes.find(method) != m_AllowedMethodSinkPrefixes.end());
+}
+
+void JsonRpcEndpoint::AddAllowedMethodSourcePrefix(string method)
+{
+	m_AllowedMethodSourcePrefixes.insert(method);
+}
+
+void JsonRpcEndpoint::RemoveAllowedMethodSourcePrefix(string method)
+{
+	m_AllowedMethodSourcePrefixes.erase(method);
+}
+
+bool JsonRpcEndpoint::IsAllowedMethodSource(string method) const
+{
+	return (m_AllowedMethodSourcePrefixes.find(method) != m_AllowedMethodSourcePrefixes.end());
+}
+
 void JsonRpcEndpoint::Connect(string host, unsigned short port)
 {
+	char portStr[20];
+	sprintf(portStr, "%d", port);
+	SetAddress("jsonrpc-tcp://" + host + ":" + portStr);
+
 	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>();
 	client->MakeSocket();
 	client->Connect(host, port);
@@ -62,6 +106,9 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 
 	string method;
 	if (message.GetPropertyString("method", &method)) {
+		if (!IsAllowedMethodSource(method))
+			return 0;
+
 		JsonRpcRequest request = message;
 
 		string id;

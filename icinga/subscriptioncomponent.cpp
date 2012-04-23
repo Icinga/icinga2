@@ -75,6 +75,9 @@ int SubscriptionComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
 	mgr->ForeachEndpoint(bind(&SubscriptionComponent::SyncSubscriptions, this, neea.Endpoint, _1));
 
+	neea.Endpoint->AddAllowedMethodSinkPrefix("message::");
+	neea.Endpoint->AddAllowedMethodSourcePrefix("message::");
+
 	return 0;
 }
 

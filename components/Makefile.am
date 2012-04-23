@@ -2,4 +2,5 @@
 ## Created by Anjuta
 
 SUBDIRS = configfile \
-	configrpc
+	configrpc \
+	demo

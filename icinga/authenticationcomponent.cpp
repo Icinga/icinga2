@@ -38,6 +38,9 @@ int AuthenticationComponent::NewEndpointHandler(const NewEndpointEventArgs& neea
 	if (neea.Endpoint->IsLocal() || neea.Endpoint->HasIdentity())
 		return 0;
 
+	neea.Endpoint->AddAllowedMethodSinkPrefix("auth::");
+	neea.Endpoint->AddAllowedMethodSourcePrefix("auth::");
+
 	JsonRpcRequest request;
 	request.SetMethod("message::SetIdentity");
 

@@ -2,6 +2,13 @@
 
 using namespace icinga;
 
+string VirtualEndpoint::GetAddress(void) const
+{
+	char address[50];
+	sprintf(address, "virtual:%p", this);
+	return address;
+}
+
 bool VirtualEndpoint::IsLocal(void) const
 {
 	return true;
@@ -45,4 +52,34 @@ void VirtualEndpoint::ProcessResponse(Endpoint::Ptr sender, const JsonRpcRespons
 {
 	// TODO: figure out which request this response belongs to and notify the caller
 	throw NotImplementedException();
+}
+
+void VirtualEndpoint::AddAllowedMethodSinkPrefix(string method)
+{
+	/* Nothing to do here. */
+}
+
+void VirtualEndpoint::RemoveAllowedMethodSinkPrefix(string method)
+{
+	/* Nothing to do here. */
+}
+
+void VirtualEndpoint::AddAllowedMethodSourcePrefix(string method)
+{
+	/* Nothing to do here. */
+}
+
+void VirtualEndpoint::RemoveAllowedMethodSourcePrefix(string method)
+{
+	/* Nothing to do here. */
+}
+
+bool VirtualEndpoint::IsAllowedMethodSink(string method) const
+{
+	return true;
+}
+
+bool VirtualEndpoint::IsAllowedMethodSource(string method) const
+{
+	return true;
 }

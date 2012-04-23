@@ -67,32 +67,9 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	ConfigCollection::Ptr collection = GetConfigHive()->GetCollection("rpclistener");
 
-	m_TestEndpoint = make_shared<VirtualEndpoint>();
-	m_EndpointManager->RegisterEndpoint(m_TestEndpoint);
-	m_TestEndpoint->RegisterMethodSink("test");
-	m_TestEndpoint->RegisterMethodSource("test");
-
-	m_TestTimer = make_shared<Timer>();
-	m_TestTimer->SetInterval(1);
-	m_TestTimer->OnTimerExpired += bind_weak(&IcingaApplication::TestTimerHandler, shared_from_this());
-	m_TestTimer->Start();
-
 	RunEventLoop();
 
 	return EXIT_SUCCESS;
-}
-
-int IcingaApplication::TestTimerHandler(const TimerEventArgs& tea)
-{
-	cout << "Problem?" << endl;
-
-	JsonRpcRequest request;
-	request.SetMethod("test");
-
-	for (int i = 0; i < 5; i++)
-		m_EndpointManager->SendMulticastRequest(m_TestEndpoint, request);
-
-	return 0;
 }
 
 void IcingaApplication::PrintUsage(const string& programPath)

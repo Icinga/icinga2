@@ -8,8 +8,6 @@ class I2_ICINGA_API IcingaApplication : public Application
 {
 private:
 	EndpointManager::Ptr m_EndpointManager;
-	Timer::Ptr m_TestTimer;
-	VirtualEndpoint::Ptr m_TestEndpoint;
 
 	int NewComponentHandler(const EventArgs& ea);
 	int DeletedComponentHandler(const EventArgs& ea);
