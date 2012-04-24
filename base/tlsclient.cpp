@@ -121,7 +121,7 @@ bool TLSClient::WantsToRead(void) const
 	if (SSL_want_read(m_SSL.get()))
 		return true;
 
-	return TCPClient::WantsToWrite();
+	return TCPClient::WantsToRead();
 }
 
 bool TLSClient::WantsToWrite(void) const
