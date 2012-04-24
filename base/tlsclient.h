@@ -40,6 +40,7 @@ public:
 
 	virtual void Start(void);
 
+	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
 	Event<VerifyCertificateEventArgs> OnVerifyCertificate;

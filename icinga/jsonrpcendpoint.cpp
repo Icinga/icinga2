@@ -189,8 +189,12 @@ int JsonRpcEndpoint::ClientReconnectHandler(const TimerEventArgs& ea)
 
 int JsonRpcEndpoint::VerifyCertificateHandler(const VerifyCertificateEventArgs& ea)
 {
-	if (ea.Certificate && ea.ValidCertificate)
-		SetIdentity(Utility::GetCertificateCN(ea.Certificate));
+	if (ea.Certificate && ea.ValidCertificate) {
+		string identity = Utility::GetCertificateCN(ea.Certificate);
+
+		if (GetIdentity().empty() && !identity.empty())
+			SetIdentity(identity);
+	}
 
 	return 0;
 }

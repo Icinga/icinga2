@@ -116,13 +116,18 @@ int TLSClient::WritableEventHandler(const EventArgs& ea)
 	return 0;
 }
 
+bool TLSClient::WantsToRead(void) const
+{
+	if (SSL_want_read(m_SSL.get()))
+		return true;
+
+	return TCPClient::WantsToWrite();
+}
+
 bool TLSClient::WantsToWrite(void) const
 {
 	if (SSL_want_write(m_SSL.get()))
 		return true;
-
-	if (SSL_state(m_SSL.get()) != SSL_ST_OK)
-		return false;
 
 	return TCPClient::WantsToWrite();
 }
