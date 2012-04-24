@@ -15,6 +15,8 @@ libicinga_la_SOURCES =  \
 	endpointmanager.h \
 	icingaapplication.cpp \
 	icingaapplication.h \
+	icingacomponent.cpp \
+	icingacomponent.h \
 	identitymessage.cpp \
 	identitymessage.h \
 	i2-icinga.h \

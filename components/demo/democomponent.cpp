@@ -16,7 +16,7 @@ void DemoComponent::Start(void)
 {
 	m_DemoEndpoint = make_shared<VirtualEndpoint>();
 	m_DemoEndpoint->RegisterMethodHandler("demo::HelloWorld",
-	    bind_weak(&DemoComponent::HelloWorldRequestHAndler, shared_from_this()));
+	    bind_weak(&DemoComponent::HelloWorldRequestHandler, shared_from_this()));
 	m_DemoEndpoint->RegisterMethodSource("demo::HelloWorld");
 
 	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
@@ -26,7 +26,7 @@ void DemoComponent::Start(void)
 	endpointManager->ForeachEndpoint(bind(&DemoComponent::NewEndpointHandler, this, _1));
 
 	m_DemoTimer = make_shared<Timer>();
-	m_DemoTimer->SetInterval(1);
+	m_DemoTimer->SetInterval(5);
 	m_DemoTimer->OnTimerExpired += bind_weak(&DemoComponent::DemoTimerHandler, shared_from_this());
 	m_DemoTimer->Start();
 }
@@ -63,9 +63,9 @@ int DemoComponent::DemoTimerHandler(const TimerEventArgs& tea)
 	return 0;
 }
 
-int DemoComponent::HelloWorldRequestHAndler(const NewRequestEventArgs& nrea)
+int DemoComponent::HelloWorldRequestHandler(const NewRequestEventArgs& nrea)
 {
-	cout << "Got Hello World from " << nrea.Sender->GetAddress() << endl;
+	cout << "Got 'hello world' from " << nrea.Sender->GetAddress() << endl;
 
 	return 0;
 }

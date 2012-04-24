@@ -2,11 +2,6 @@
 
 using namespace icinga;
 
-IcingaApplication::Ptr AuthenticationComponent::GetIcingaApplication(void) const
-{
-	return static_pointer_cast<IcingaApplication>(GetApplication());
-}
-
 string AuthenticationComponent::GetName(void) const
 {
 	return "authenticationcomponent";
@@ -18,7 +13,7 @@ void AuthenticationComponent::Start(void)
 	m_AuthenticationEndpoint->RegisterMethodHandler("auth::SetIdentity", bind_weak(&AuthenticationComponent::IdentityMessageHandler, shared_from_this()));
 	m_AuthenticationEndpoint->RegisterMethodSource("auth::Welcome");
 
-	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+	EndpointManager::Ptr mgr = GetEndpointManager();
 	mgr->OnNewEndpoint += bind_weak(&AuthenticationComponent::NewEndpointHandler, shared_from_this());
 	mgr->ForeachEndpoint(bind(&AuthenticationComponent::NewEndpointHandler, this, _1));
 	mgr->RegisterEndpoint(m_AuthenticationEndpoint);
@@ -26,12 +21,10 @@ void AuthenticationComponent::Start(void)
 
 void AuthenticationComponent::Stop(void)
 {
-	IcingaApplication::Ptr app = GetIcingaApplication();
+	EndpointManager::Ptr mgr = GetEndpointManager();
 
-	if (app) {
-		EndpointManager::Ptr mgr = app->GetEndpointManager();
+	if (mgr)
 		mgr->UnregisterEndpoint(m_AuthenticationEndpoint);
-	}
 }
 
 int AuthenticationComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
@@ -51,8 +44,7 @@ int AuthenticationComponent::NewEndpointHandler(const NewEndpointEventArgs& neea
 	params.SetIdentity("keks");
 	request.SetParams(params);
 
-	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-	endpointManager->SendUnicastRequest(m_AuthenticationEndpoint, neea.Endpoint, request);
+	GetEndpointManager()->SendUnicastRequest(m_AuthenticationEndpoint, neea.Endpoint, request);
 
 	return 0;
 }
@@ -75,8 +67,7 @@ int AuthenticationComponent::IdentityMessageHandler(const NewRequestEventArgs& n
 	JsonRpcRequest request;
 	request.SetMethod("auth::Welcome");
 
-	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-	endpointManager->SendUnicastRequest(m_AuthenticationEndpoint, nrea.Sender, request);
+	GetEndpointManager()->SendUnicastRequest(m_AuthenticationEndpoint, nrea.Sender, request);
 
 	return 0;
 }

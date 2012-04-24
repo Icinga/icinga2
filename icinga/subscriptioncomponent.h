@@ -4,12 +4,10 @@
 namespace icinga
 {
 
-class SubscriptionComponent : public Component
+class SubscriptionComponent : public IcingaComponent
 {
 private:
 	VirtualEndpoint::Ptr m_SubscriptionEndpoint;
-
-	IcingaApplication::Ptr GetIcingaApplication(void) const;
 
 	int NewEndpointHandler(const NewEndpointEventArgs& neea);
 	int SubscribeMessageHandler(const NewRequestEventArgs& nrea);

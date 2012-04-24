@@ -16,6 +16,7 @@
     <ClCompile Include="endpoint.cpp" />
     <ClCompile Include="endpointmanager.cpp" />
     <ClCompile Include="icingaapplication.cpp" />
+    <ClCompile Include="icingacomponent.cpp" />
     <ClCompile Include="identitymessage.cpp" />
     <ClCompile Include="jsonrpcendpoint.cpp" />
     <ClCompile Include="subscriptioncomponent.cpp" />
@@ -29,6 +30,7 @@
     <ClInclude Include="endpointmanager.h" />
     <ClInclude Include="i2-icinga.h" />
     <ClInclude Include="icingaapplication.h" />
+    <ClInclude Include="icingacomponent.h" />
     <ClInclude Include="identitymessage.h" />
     <ClInclude Include="jsonrpcendpoint.h" />
     <ClInclude Include="subscriptioncomponent.h" />

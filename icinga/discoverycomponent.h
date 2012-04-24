@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class DiscoveryComponent : public Component
+class DiscoveryComponent : public IcingaComponent
 {
 private:
 	VirtualEndpoint::Ptr m_DiscoveryEndpoint;

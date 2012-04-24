@@ -4,12 +4,10 @@
 namespace icinga
 {
 
-class AuthenticationComponent : public Component
+class AuthenticationComponent : public IcingaComponent
 {
 private:
 	VirtualEndpoint::Ptr m_AuthenticationEndpoint;
-
-	IcingaApplication::Ptr GetIcingaApplication(void) const;
 
 	int NewEndpointHandler(const NewEndpointEventArgs& neea);
 	int IdentityMessageHandler(const NewRequestEventArgs& nrea);

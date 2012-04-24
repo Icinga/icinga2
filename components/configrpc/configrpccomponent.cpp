@@ -2,11 +2,6 @@
 
 using namespace icinga;
 
-IcingaApplication::Ptr ConfigRpcComponent::GetIcingaApplication(void)
-{
-	return static_pointer_cast<IcingaApplication>(GetApplication());
-}
-
 string ConfigRpcComponent::GetName(void) const
 {
 	return "configcomponent";
@@ -14,10 +9,8 @@ string ConfigRpcComponent::GetName(void) const
 
 void ConfigRpcComponent::Start(void)
 {
-	IcingaApplication::Ptr icingaApp = GetIcingaApplication();
-
-	EndpointManager::Ptr endpointManager = icingaApp->GetEndpointManager();
-	ConfigHive::Ptr configHive = icingaApp->GetConfigHive();
+	EndpointManager::Ptr endpointManager = GetEndpointManager();
+	ConfigHive::Ptr configHive = GetConfigHive();
 
 	m_ConfigRpcEndpoint = make_shared<VirtualEndpoint>();
 
@@ -57,8 +50,7 @@ int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
 		JsonRpcRequest request;
 		request.SetMethod("config::FetchObjects");
 
-		EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-		endpointManager->SendUnicastRequest(m_ConfigRpcEndpoint, ea.Endpoint, request);
+		GetEndpointManager()->SendUnicastRequest(m_ConfigRpcEndpoint, ea.Endpoint, request);
 	}
 
 	return 0;
@@ -102,7 +94,7 @@ bool ConfigRpcComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
 int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 {
 	Endpoint::Ptr client = ea.Sender;
-	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
+	ConfigHive::Ptr configHive = GetConfigHive();
 
 	for (ConfigHive::CollectionIterator ci = configHive->Collections.begin(); ci != configHive->Collections.end(); ci++) {
 		ConfigCollection::Ptr collection = ci->second;
@@ -115,8 +107,7 @@ int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 
 			JsonRpcRequest request = MakeObjectMessage(object, "config::ObjectCreated", true);
 
-			EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-			endpointManager->SendUnicastRequest(m_ConfigRpcEndpoint, client, request);
+			GetEndpointManager()->SendUnicastRequest(m_ConfigRpcEndpoint, client, request);
 		}
 	}
 
@@ -130,8 +121,8 @@ int ConfigRpcComponent::LocalObjectCreatedHandler(const EventArgs& ea)
 	if (!ShouldReplicateObject(object))
 		return 0;
 
-	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-	mgr->SendMulticastRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectCreated", true));
+	GetEndpointManager()->SendMulticastRequest(m_ConfigRpcEndpoint,
+	    MakeObjectMessage(object, "config::ObjectCreated", true));
 
 	return 0;
 }
@@ -143,8 +134,8 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
 	if (!ShouldReplicateObject(object))
 		return 0;
 
-	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-	mgr->SendMulticastRequest(m_ConfigRpcEndpoint, MakeObjectMessage(object, "config::ObjectRemoved", false));
+	GetEndpointManager()->SendMulticastRequest(m_ConfigRpcEndpoint,
+	    MakeObjectMessage(object, "config::ObjectRemoved", false));
 
 	return 0;
 }
@@ -169,8 +160,7 @@ int ConfigRpcComponent::LocalPropertyChangedHandler(const PropertyChangedEventAr
 
 	properties.GetDictionary()->SetPropertyString(ea.Property, value);
 
-	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-	mgr->SendMulticastRequest(m_ConfigRpcEndpoint, msg);
+	GetEndpointManager()->SendMulticastRequest(m_ConfigRpcEndpoint, msg);
 
 	return 0;
 }
@@ -192,7 +182,7 @@ int ConfigRpcComponent::RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea
 	if (!params.GetDictionary()->GetPropertyString("type", &type))
 		return 0;
 
-	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
+	ConfigHive::Ptr configHive = GetConfigHive();
 	ConfigObject::Ptr object = configHive->GetObject(type, name);
 
 	if (!object) {
@@ -232,7 +222,7 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea
 	if (!params.GetDictionary()->GetPropertyString("type", &type))
 		return 0;
 
-	ConfigHive::Ptr configHive = GetIcingaApplication()->GetConfigHive();
+	ConfigHive::Ptr configHive = GetConfigHive();
 	ConfigObject::Ptr object = configHive->GetObject(type, name);
 
 	if (!object)

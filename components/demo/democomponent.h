@@ -14,7 +14,7 @@ private:
 
 	int DemoTimerHandler(const TimerEventArgs& tea);
 	int NewEndpointHandler(const NewEndpointEventArgs& neea);
-	int HelloWorldRequestHAndler(const NewRequestEventArgs& nrea);
+	int HelloWorldRequestHandler(const NewRequestEventArgs& nrea);
 
 public:
 	virtual string GetName(void) const;

@@ -2,11 +2,6 @@
 
 using namespace icinga;
 
-IcingaApplication::Ptr DiscoveryComponent::GetIcingaApplication(void) const
-{
-	return static_pointer_cast<IcingaApplication>(GetApplication());
-}
-
 string DiscoveryComponent::GetName(void) const
 {
 	return "discoverycomponent";
@@ -21,18 +16,15 @@ void DiscoveryComponent::Start(void)
 	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::GetPeers",
 		bind_weak(&DiscoveryComponent::GetPeersMessageHandler, shared_from_this()));
 
-	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-	mgr->RegisterEndpoint(m_DiscoveryEndpoint);
+	GetEndpointManager()->RegisterEndpoint(m_DiscoveryEndpoint);
 }
 
 void DiscoveryComponent::Stop(void)
 {
-	IcingaApplication::Ptr app = GetIcingaApplication();
+	EndpointManager::Ptr mgr = GetEndpointManager();
 
-	if (app) {
-		EndpointManager::Ptr mgr = app->GetEndpointManager();
+	if (mgr)
 		mgr->UnregisterEndpoint(m_DiscoveryEndpoint);
-	}
 }
 
 int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
@@ -56,8 +48,7 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 	JsonRpcRequest request;
 	request.SetMethod("discovery::GetPeers");
 
-	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-	endpointManager->SendUnicastRequest(m_DiscoveryEndpoint, nrea.Sender, request);
+	GetEndpointManager()->SendUnicastRequest(m_DiscoveryEndpoint, nrea.Sender, request);
 
 	return 0;
 }

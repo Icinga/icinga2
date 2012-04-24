@@ -2,11 +2,6 @@
 
 using namespace icinga;
 
-IcingaApplication::Ptr SubscriptionComponent::GetIcingaApplication(void) const
-{
-	return static_pointer_cast<IcingaApplication>(GetApplication());
-}
-
 string SubscriptionComponent::GetName(void) const
 {
 	return "subscriptioncomponent";
@@ -20,7 +15,7 @@ void SubscriptionComponent::Start(void)
 	m_SubscriptionEndpoint->RegisterMethodSource("message::Subscribe");
 	m_SubscriptionEndpoint->RegisterMethodSource("message::Provide");
 
-	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
+	EndpointManager::Ptr mgr = GetEndpointManager();
 	mgr->OnNewEndpoint += bind_weak(&SubscriptionComponent::NewEndpointHandler, shared_from_this());
 	mgr->ForeachEndpoint(bind(&SubscriptionComponent::NewEndpointHandler, this, _1));
 	mgr->RegisterEndpoint(m_SubscriptionEndpoint);
@@ -28,12 +23,10 @@ void SubscriptionComponent::Start(void)
 
 void SubscriptionComponent::Stop(void)
 {
-	IcingaApplication::Ptr app = GetIcingaApplication();
+	EndpointManager::Ptr mgr = GetEndpointManager();
 
-	if (app) {
-		EndpointManager::Ptr mgr = app->GetEndpointManager();
+	if (mgr)
 		mgr->UnregisterEndpoint(m_SubscriptionEndpoint);
-	}
 }
 
 int SubscriptionComponent::SyncSubscription(Endpoint::Ptr target, string type, const NewMethodEventArgs& nmea)
@@ -46,8 +39,7 @@ int SubscriptionComponent::SyncSubscription(Endpoint::Ptr target, string type, c
 	subscriptionMessage.SetMethod(nmea.Method);
 	request.SetParams(subscriptionMessage);
 
-	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-	endpointManager->SendUnicastRequest(m_SubscriptionEndpoint, target, request);
+	GetEndpointManager()->SendUnicastRequest(m_SubscriptionEndpoint, target, request);
 
 	return 0;
 }
@@ -79,8 +71,7 @@ int SubscriptionComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 	neea.Endpoint->RegisterMethodSink("message::Subscribe");
 	neea.Endpoint->RegisterMethodSink("message::Provide");
 
-	EndpointManager::Ptr mgr = GetIcingaApplication()->GetEndpointManager();
-	mgr->ForeachEndpoint(bind(&SubscriptionComponent::SyncSubscriptions, this, neea.Endpoint, _1));
+	GetEndpointManager()->ForeachEndpoint(bind(&SubscriptionComponent::SyncSubscriptions, this, neea.Endpoint, _1));
 
 	return 0;
 }

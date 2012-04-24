@@ -4,12 +4,10 @@
 namespace icinga
 {
 
-class ConfigRpcComponent : public Component
+class ConfigRpcComponent : public IcingaComponent
 {
 private:
 	VirtualEndpoint::Ptr m_ConfigRpcEndpoint;
-
-	IcingaApplication::Ptr GetIcingaApplication(void);
 
 	int NewEndpointHandler(const NewEndpointEventArgs& ea);
 	int WelcomeMessageHandler(const NewRequestEventArgs& ea);

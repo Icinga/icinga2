@@ -16,6 +16,7 @@
 #include "virtualendpoint.h"
 #include "endpointmanager.h"
 #include "icingaapplication.h"
+#include "icingacomponent.h"
 #include "subscriptioncomponent.h"
 #include "subscriptionmessage.h"
 #include "authenticationcomponent.h"
