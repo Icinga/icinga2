@@ -26,6 +26,10 @@
 #include <map>
 #include <list>
 
+#if defined(__APPLE__) && defined(__MACH__)
+#	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
+#endif
+
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
