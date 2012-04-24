@@ -16,6 +16,10 @@ AM_SILENT_RULES([yes])
 AC_PROG_CXX
 AX_CXX_GCC_ABI_DEMANGLE
 
+AC_CHECK_LIB(ssl, SSL_new)
+AC_CHECK_LIB(crypto, X509_NAME_oneline)
+AC_CHECK_LIB(eay32, X509_NAME_oneline)
+
 AX_CHECK_COMPILE_FLAG([-std=c++0x], [have_cxx11_support=yes])
 
 if test "$have_cxx11_support" = "yes"; then

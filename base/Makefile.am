@@ -45,6 +45,8 @@ libbase_la_SOURCES =  \
 	thread.h \
 	timer.cpp \
 	timer.h \
+	tlsclient.cpp \
+	tlsclient.h \
 	unix.cpp \
 	unix.h \
 	utility.cpp \
