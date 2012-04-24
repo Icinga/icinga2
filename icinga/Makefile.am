@@ -5,8 +5,6 @@ pkglib_LTLIBRARIES =  \
 	libicinga.la
 
 libicinga_la_SOURCES =  \
-	authenticationcomponent.cpp \
-	authenticationcomponent.h \
 	discoverycomponent.cpp \
 	discoverycomponent.h \
 	endpoint.cpp \
