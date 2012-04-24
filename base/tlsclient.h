@@ -16,16 +16,24 @@ private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	shared_ptr<SSL> m_SSL;
 
+	static int m_SSLIndex;
+	static bool m_SSLIndexInitialized;
+
 	virtual int ReadableEventHandler(const EventArgs& ea);
 	virtual int WritableEventHandler(const EventArgs& ea);
 
 	virtual void CloseInternal(bool from_dtor);
 
+	static int SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context);
+
+protected:
+	void HandleSSLError(void);
+
 public:
 	TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);
 
-	shared_ptr<X509> GetClientCertificate(void) const;
-	shared_ptr<X509> GetPeerCertificate(void) const;
+	X509 *GetClientCertificate(void) const;
+	X509 *GetPeerCertificate(void) const;
 
 	virtual void Start(void);
 

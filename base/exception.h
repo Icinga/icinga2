@@ -73,6 +73,17 @@ public:
 	static string FormatErrorCode(int code);
 };
 
+class OpenSSLException : public Exception
+{
+public:
+	inline OpenSSLException(const string& message, int errorCode)
+	{
+		SetMessage(message + ": " + FormatErrorCode(errorCode));
+	}
+
+	static string FormatErrorCode(int code);
+};
+
 }
 
 #endif /* EXCEPTION_H */
