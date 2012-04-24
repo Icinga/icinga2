@@ -17,7 +17,7 @@ class I2_BASE_API TCPServer : public TCPSocket
 private:
 	int ReadableEventHandler(const EventArgs& ea);
 
-	factory_function m_ClientFactory;
+	function<TCPClient::Ptr()> m_ClientFactory;
 
 public:
 	typedef shared_ptr<TCPServer> Ptr;
@@ -25,8 +25,8 @@ public:
 
 	TCPServer(void);
 
-	void SetClientFactory(factory_function function);
-	factory_function GetFactoryFunction(void);
+	void SetClientFactory(function<TCPClient::Ptr()> function);
+	function<TCPClient::Ptr()> GetFactoryFunction(void) const;
 
 	virtual void Start();
 

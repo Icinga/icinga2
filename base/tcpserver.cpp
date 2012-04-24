@@ -4,15 +4,15 @@ using namespace icinga;
 
 TCPServer::TCPServer(void)
 {
-	m_ClientFactory = factory<TCPClient>;
+	m_ClientFactory = bind(&TCPClientFactory, RoleInbound);
 }
 
-void TCPServer::SetClientFactory(factory_function clientFactory)
+void TCPServer::SetClientFactory(function<TCPClient::Ptr()> clientFactory)
 {
 	m_ClientFactory = clientFactory;
 }
 
-factory_function TCPServer::GetFactoryFunction(void)
+function<TCPClient::Ptr()> TCPServer::GetFactoryFunction(void) const
 {
 	return m_ClientFactory;
 }

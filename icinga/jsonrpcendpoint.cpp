@@ -59,13 +59,13 @@ bool JsonRpcEndpoint::IsAllowedMethodSource(string method) const
 	return false;
 }
 
-void JsonRpcEndpoint::Connect(string host, unsigned short port)
+void JsonRpcEndpoint::Connect(string host, unsigned short port, shared_ptr<SSL_CTX> sslContext)
 {
 	char portStr[20];
 	sprintf(portStr, "%d", port);
 	SetAddress("jsonrpc-tcp://" + host + ":" + portStr);
 
-	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>();
+	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>(RoleOutbound, sslContext);
 	client->MakeSocket();
 	client->Connect(host, port);
 	client->Start();

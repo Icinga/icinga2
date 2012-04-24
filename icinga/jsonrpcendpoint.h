@@ -7,6 +7,7 @@ namespace icinga
 class I2_ICINGA_API JsonRpcEndpoint : public Endpoint
 {
 private:
+	shared_ptr<SSL_CTX> m_SSLContext;
 	string m_Address;
 	JsonRpcClient::Ptr m_Client;
 	map<string, Endpoint::Ptr> m_PendingCalls;
@@ -25,7 +26,8 @@ public:
 	typedef shared_ptr<JsonRpcEndpoint> Ptr;
 	typedef weak_ptr<JsonRpcEndpoint> WeakPtr;
 
-	void Connect(string host, unsigned short port);
+	void Connect(string host, unsigned short port,
+	    shared_ptr<SSL_CTX> sslContext);
 
 	JsonRpcClient::Ptr GetClient(void);
 	void SetClient(JsonRpcClient::Ptr client);

@@ -11,6 +11,7 @@ public:
 	typedef weak_ptr<ConfigHive> WeakPtr;
 
 	typedef map<string, ConfigCollection::Ptr>::iterator CollectionIterator;
+	typedef map<string, ConfigCollection::Ptr>::const_iterator CollectionConstIterator;
 	map<string, ConfigCollection::Ptr> Collections;
 
 	void AddObject(const ConfigObject::Ptr& object);

@@ -2,6 +2,11 @@
 
 using namespace icinga;
 
+EndpointManager::EndpointManager(shared_ptr<SSL_CTX> sslContext)
+{
+	m_SSLContext = sslContext;
+}
+
 void EndpointManager::SetIdentity(string identity)
 {
 	m_Identity = identity;
@@ -14,7 +19,7 @@ string EndpointManager::GetIdentity(void) const
 
 void EndpointManager::AddListener(unsigned short port)
 {
-	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>();
+	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>(m_SSLContext);
 	RegisterServer(server);
 
 	server->MakeSocket();
@@ -26,7 +31,7 @@ void EndpointManager::AddListener(unsigned short port)
 void EndpointManager::AddConnection(string host, unsigned short port)
 {
 	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
-	endpoint->Connect(host, port);
+	endpoint->Connect(host, port, m_SSLContext);
 	RegisterEndpoint(endpoint);
 }
 

@@ -2,6 +2,8 @@
 
 using namespace icinga;
 
+bool I2_EXPORT Utility::m_SSLInitialized = false;
+
 /**
  * Daemonize
  *
@@ -39,4 +41,36 @@ void Utility::Daemonize(void) {
 	if (setsid() < 0)
 		throw PosixException("setsid failed", errno);
 #endif
+}
+
+void Utility::InitializeOpenSSL(void)
+{
+	if (!m_SSLInitialized) {
+		SSL_library_init();
+		SSL_load_error_strings();
+
+		m_SSLInitialized = true;
+	}
+}
+
+shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, string cakey)
+{
+	InitializeOpenSSL();
+
+	SSL_METHOD *sslMethod = (SSL_METHOD *)TLSv1_method();
+
+	shared_ptr<SSL_CTX> sslContext = shared_ptr<SSL_CTX>(SSL_CTX_new(sslMethod), SSL_CTX_free);
+
+	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+
+	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.c_str()))
+		throw InvalidArgumentException("Could not load public X509 key file.");
+
+	if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.c_str(), SSL_FILETYPE_PEM))
+		throw InvalidArgumentException("Could not load private X509 key file.");
+
+	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.c_str(), NULL))
+		throw InvalidArgumentException("Could not load public CA key file.");
+
+	return sslContext;
 }

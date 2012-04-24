@@ -29,6 +29,7 @@
     <ClCompile Include="tcpsocket.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="timer.cpp" />
+    <ClCompile Include="tlsclient.cpp" />
     <ClCompile Include="unix.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="variant.cpp" />
@@ -56,6 +57,7 @@
     <ClInclude Include="tcpsocket.h" />
     <ClInclude Include="thread.h" />
     <ClInclude Include="timer.h" />
+    <ClInclude Include="tlsclient.h" />
     <ClInclude Include="unix.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="variant.h" />
@@ -103,7 +105,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;libeay32MTd.lib;ssleay32MTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
@@ -125,7 +127,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>

@@ -2,9 +2,12 @@
 
 using namespace icinga;
 
+JsonRpcClient::JsonRpcClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext)
+    : TLSClient(role, sslContext) { }
+
 void JsonRpcClient::Start(void)
 {
-	TCPClient::Start();
+	TLSClient::Start();
 
 	OnDataAvailable += bind_weak(&JsonRpcClient::DataAvailableHandler, shared_from_this());
 }
@@ -39,4 +42,9 @@ int JsonRpcClient::DataAvailableHandler(const EventArgs& ea)
 	}
 
 	return 0;
+}
+
+TCPClient::Ptr icinga::JsonRpcClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> sslContext)
+{
+	return make_shared<JsonRpcClient>(role, sslContext);
 }

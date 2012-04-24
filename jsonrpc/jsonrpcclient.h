@@ -12,7 +12,7 @@ struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
 	icinga::Message Message;
 };
 
-class I2_JSONRPC_API JsonRpcClient : public TCPClient
+class I2_JSONRPC_API JsonRpcClient : public TLSClient
 {
 private:
 	int DataAvailableHandler(const EventArgs& ea);
@@ -21,12 +21,16 @@ public:
 	typedef shared_ptr<JsonRpcClient> Ptr;
 	typedef weak_ptr<JsonRpcClient> WeakPtr;
 
+	JsonRpcClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);
+
 	void SendMessage(const Message& message);
 
 	virtual void Start(void);
 
 	Event<NewMessageEventArgs> OnNewMessage;
 };
+
+TCPClient::Ptr JsonRpcClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);
 
 }
 

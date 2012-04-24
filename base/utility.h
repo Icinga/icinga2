@@ -12,7 +12,11 @@ namespace icinga
 class I2_BASE_API Utility
 {
 private:
+	static bool m_SSLInitialized;
+
 	Utility(void);
+
+	static void InitializeOpenSSL(void);
 
 public:
 	/**
@@ -39,6 +43,8 @@ public:
 	}
 
 	static void Daemonize(void);
+
+	static shared_ptr<SSL_CTX> MakeSSLContext(string pubkey, string privkey, string cakey);
 };
 
 }

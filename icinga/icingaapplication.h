@@ -23,8 +23,6 @@ public:
 	typedef shared_ptr<IcingaApplication> Ptr;
 	typedef weak_ptr<IcingaApplication> WeakPtr;
 
-	IcingaApplication(void);
-
 	int Main(const vector<string>& args);
 
 	void PrintUsage(const string& programPath);

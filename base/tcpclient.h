@@ -4,23 +4,33 @@
 namespace icinga
 {
 
+enum I2_BASE_API TCPClientRole
+{
+	RoleInbound,
+	RoleOutbound
+};
+
 class I2_BASE_API TCPClient : public TCPSocket
 {
 private:
+	TCPClientRole m_Role;
+
 	string m_PeerHost;
 	int m_PeerPort;
 
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
 
-	int ReadableEventHandler(const EventArgs& ea);
-	int WritableEventHandler(const EventArgs& ea);
+	virtual int ReadableEventHandler(const EventArgs& ea);
+	virtual int WritableEventHandler(const EventArgs& ea);
 
 public:
 	typedef shared_ptr<TCPClient> Ptr;
 	typedef weak_ptr<TCPClient> WeakPtr;
 
-	TCPClient(void);
+	TCPClient(TCPClientRole role);
+
+	TCPClientRole GetRole(void) const;
 
 	virtual void Start(void);
 
@@ -37,6 +47,8 @@ public:
 
 	Event<EventArgs> OnDataAvailable;
 };
+
+TCPClient::Ptr TCPClientFactory(TCPClientRole role);
 
 }
 

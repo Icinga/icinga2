@@ -26,6 +26,10 @@
 #include <map>
 #include <list>
 
+#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 #ifdef HAVE_GCC_ABI_DEMANGLE
 #	include <cxxabi.h>
 #endif /* HAVE_GCC_ABI_DEMANGLE */
@@ -81,6 +85,7 @@ using namespace std::tr1::placeholders;
 #include "tcpsocket.h"
 #include "tcpclient.h"
 #include "tcpserver.h"
+#include "tlsclient.h"
 #include "configobject.h"
 #include "configcollection.h"
 #include "confighive.h"

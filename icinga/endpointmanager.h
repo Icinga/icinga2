@@ -11,6 +11,7 @@ struct I2_ICINGA_API NewEndpointEventArgs : public EventArgs
 
 class I2_ICINGA_API EndpointManager : public Object
 {
+	shared_ptr<SSL_CTX> m_SSLContext;
 	list<JsonRpcServer::Ptr> m_Servers;
 	list<Endpoint::Ptr> m_Endpoints;
 	string m_Identity;
@@ -26,6 +27,8 @@ class I2_ICINGA_API EndpointManager : public Object
 public:
 	typedef shared_ptr<EndpointManager> Ptr;
 	typedef weak_ptr<EndpointManager> WeakPtr;
+
+	EndpointManager(shared_ptr<SSL_CTX> sslContext);
 
 	void SetIdentity(string identity);
 	string GetIdentity(void) const;

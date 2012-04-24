@@ -2,12 +2,19 @@
 
 using namespace icinga;
 
-TCPClient::TCPClient(void)
+TCPClient::TCPClient(TCPClientRole role)
 {
+	m_Role = role;
+
 	m_SendQueue = make_shared<FIFO>();
 	m_RecvQueue = make_shared<FIFO>();
 
 	m_PeerPort = 0;
+}
+
+TCPClientRole TCPClient::GetRole(void) const
+{
+	return m_Role;
 }
 
 void TCPClient::Start(void)
@@ -44,6 +51,7 @@ void TCPClient::Connect(const string& hostname, unsigned short port)
 		HandleSocketError();
 	}
 
+	m_Role = RoleOutbound;
 	m_PeerHost = hostname;
 	m_PeerPort = port;
 }
@@ -122,4 +130,9 @@ bool TCPClient::WantsToRead(void) const
 bool TCPClient::WantsToWrite(void) const
 {
 	return (m_SendQueue->GetSize() > 0);
+}
+
+TCPClient::Ptr icinga::TCPClientFactory(TCPClientRole role)
+{
+	return make_shared<TCPClient>(role);
 }

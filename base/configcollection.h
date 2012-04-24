@@ -16,6 +16,7 @@ public:
 	typedef weak_ptr<ConfigCollection> WeakPtr;
 
 	typedef map<string, ConfigObject::Ptr>::iterator ObjectIterator;
+	typedef map<string, ConfigObject::Ptr>::const_iterator ObjectConstIterator;
 	map<string, ConfigObject::Ptr> Objects;
 
 	void SetHive(const weak_ptr<ConfigHive>& hive);
@@ -23,7 +24,7 @@ public:
 
 	void AddObject(const ConfigObject::Ptr& object);
 	void RemoveObject(const ConfigObject::Ptr& object);
-	ConfigObject::Ptr GetObject(const string& name = string());
+	ConfigObject::Ptr GetObject(const string& name = string()) const;
 
 	void ForEachObject(function<int (const EventArgs&)> callback);
 

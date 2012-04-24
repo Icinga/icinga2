@@ -8,6 +8,11 @@ using namespace icinga;
 
 Application::Ptr I2_EXPORT Application::Instance;
 
+/**
+ * Application
+ *
+ * Constructor for the Application class.
+ */
 Application::Application(void)
 {
 #ifdef _WIN32
@@ -29,8 +34,14 @@ Application::Application(void)
 	m_ConfigHive = make_shared<ConfigHive>();
 }
 
+/**
+ * ~Application
+ *
+ * Destructor for the application class.
+ */
 Application::~Application(void)
 {
+	/* stop all components */
 	for (map<string, Component::Ptr>::iterator i = m_Components.begin();
 	    i != m_Components.end(); i++) {
 		i->second->Stop();
@@ -45,6 +56,11 @@ Application::~Application(void)
 #endif /* _WIN32 */
 }
 
+/**
+ * RunEventLoop
+ *
+ * Processes events (e.g. sockets and timers).
+ */
 void Application::RunEventLoop(void)
 {
 	while (!m_ShuttingDown) {
@@ -141,16 +157,38 @@ void Application::RunEventLoop(void)
 	}
 }
 
+/**
+ * Shutdown
+ *
+ * Signals the application to shut down during the next
+ * execution of the event loop.
+ */
 void Application::Shutdown(void)
 {
 	m_ShuttingDown = true;
 }
 
+/**
+ * GetConfigHive
+ *
+ * Returns the application's configuration hive.
+ *
+ * @returns The config hive.
+ */
 ConfigHive::Ptr Application::GetConfigHive(void) const
 {
 	return m_ConfigHive;
 }
 
+/**
+ * LoadComponent
+ *
+ * Loads a component from a library.
+ *
+ * @param path The path of the component library.
+ * @param componentConfig The configuration for the component.
+ * @returns The component.
+ */
 Component::Ptr Application::LoadComponent(const string& path,
     const ConfigObject::Ptr& componentConfig)
 {
@@ -186,6 +224,13 @@ Component::Ptr Application::LoadComponent(const string& path,
 	return component;
 }
 
+/**
+ * RegisterComponent
+ *
+ * Registers a component object and starts it.
+ *
+ * @param component The component.
+ */
 void Application::RegisterComponent(Component::Ptr component)
 {
 	component->SetApplication(static_pointer_cast<Application>(shared_from_this()));
@@ -194,18 +239,33 @@ void Application::RegisterComponent(Component::Ptr component)
 	component->Start();
 }
 
+/**
+ * UnregisterComponent
+ *
+ * Unregisters a component object and stops it.
+ *
+ * @param component The component.
+ */
 void Application::UnregisterComponent(Component::Ptr component)
 {
 	string name = component->GetName();
 
 	Log("Unloading component '%s'", name.c_str());
 	map<string, Component::Ptr>::iterator i = m_Components.find(name);
-	if (i != m_Components.end()) {
+	if (i != m_Components.end())
 		m_Components.erase(i);
-		component->Stop();
-	}
+		
+	component->Stop();
 }
 
+/**
+ * GetComponent
+ *
+ * Finds a loaded component by name.
+ *
+ * @param name The name of the component.
+ * @returns The component or a null pointer if the component could not be found.
+ */
 Component::Ptr Application::GetComponent(const string& name)
 {
 	map<string, Component::Ptr>::iterator ci = m_Components.find(name);
@@ -216,6 +276,14 @@ Component::Ptr Application::GetComponent(const string& name)
 	return ci->second;
 }
 
+/**
+ * Log
+ *
+ * Logs a message.
+ *
+ * @param format The format string.
+ * @param ... Additional parameters for the format string.
+ */
 void Application::Log(const char *format, ...)
 {
 	char message[512];
@@ -229,16 +297,37 @@ void Application::Log(const char *format, ...)
 	fprintf(stderr, "%s\n", message);
 }
 
+/**
+ * SetArguments
+ *
+ * Sets the application's arguments.
+ *
+ * @param arguments The arguments.
+ */
 void Application::SetArguments(const vector<string>& arguments)
 {
 	m_Arguments = arguments;
 }
 
+/**
+ * GetArguments
+ *
+ * Retrieves the application's arguments.
+ *
+ * @returns The arguments.
+ */
 const vector<string>& Application::GetArguments(void) const
 {
 	return m_Arguments;
 }
 
+/**
+ * GetExeDirectory
+ *
+ * Retrieves the directory the application's binary is contained in.
+ *
+ * @returns The directory.
+ */
 string Application::GetExeDirectory(void) const
 {
 	static string ExePath;
@@ -314,6 +403,13 @@ string Application::GetExeDirectory(void) const
 	return ExePath;
 }
 
+/**
+ * AddComponentSearchDir
+ *
+ * Adds a directory to the component search path.
+ *
+ * @param componentDirectory The directory.
+ */
 void Application::AddComponentSearchDir(const string& componentDirectory)
 {
 #ifdef _WIN32
@@ -323,14 +419,30 @@ void Application::AddComponentSearchDir(const string& componentDirectory)
 #endif /* _WIN32 */
 }
 
+/**
+ * IsDebugging
+ *
+ * Retrieves the debugging mode of the application.
+ *
+ * @returns true if the application is being debugged, false otherwise
+ */
 bool Application::IsDebugging(void) const
 {
 	return m_Debugging;
 }
 
 #ifndef _WIN32
+/**
+ * ApplicationSigIntHandler
+ *
+ * Signal handler for SIGINT.
+ *
+ * @param signum The signal number.
+ */
 static void ApplicationSigIntHandler(int signum)
 {
+	assert(signum == SIGINT);
+
 	Application::Instance->Shutdown();
 
 	struct sigaction sa;
@@ -340,6 +452,16 @@ static void ApplicationSigIntHandler(int signum)
 }
 #endif /* _WIN32 */
 
+/**
+ * RunApplication
+ *
+ * Runs the specified application.
+ *
+ * @param argc The number of arguments.
+ * @param argv The arguments that should be passed to the application.
+ * @param instance The application instance.
+ * @returns The application's exit code.
+ */
 int icinga::RunApplication(int argc, char **argv, Application *instance)
 {
 	int result;

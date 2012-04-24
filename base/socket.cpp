@@ -11,7 +11,7 @@ Socket::Socket(void)
 
 Socket::~Socket(void)
 {
-	Close(true);
+	CloseInternal(true);
 }
 
 void Socket::Start(void)
@@ -45,10 +45,10 @@ SOCKET Socket::GetFD(void) const
 
 void Socket::Close(void)
 {
-	Close(false);
+	CloseInternal(false);
 }
 
-void Socket::Close(bool from_dtor)
+void Socket::CloseInternal(bool from_dtor)
 {
 	if (m_FD != INVALID_SOCKET) {
 		closesocket(m_FD);

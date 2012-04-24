@@ -2,7 +2,7 @@
 
 using namespace icinga;
 
-JsonRpcServer::JsonRpcServer(void)
+JsonRpcServer::JsonRpcServer(shared_ptr<SSL_CTX> sslContext)
 {
-	SetClientFactory(factory<JsonRpcClient>);
+	SetClientFactory(bind(&JsonRpcClientFactory, RoleInbound, sslContext));
 }

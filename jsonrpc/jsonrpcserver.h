@@ -10,7 +10,7 @@ public:
 	typedef shared_ptr<JsonRpcServer> Ptr;
 	typedef weak_ptr<JsonRpcServer> WeakPtr;
 
-	JsonRpcServer(void);
+	JsonRpcServer(shared_ptr<SSL_CTX> sslContext);
 };
 
 }

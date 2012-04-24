@@ -44,19 +44,6 @@ public:
 	}
 };
 
-typedef function<Object::Ptr ()> factory_function;
-
-/**
- * factory<T>
- *
- * Returns a new object of type T.
- */
-template<class T>
-Object::Ptr factory(void)
-{
-	return make_shared<T>();
-}
-
 }
 
 #endif /* OBJECT_H */

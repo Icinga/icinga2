@@ -23,7 +23,7 @@ protected:
 	Socket(void);
 
 	void HandleSocketError(void);
-	void Close(bool from_dtor);
+	virtual void CloseInternal(bool from_dtor);
 
 public:
 	typedef shared_ptr<Socket> Ptr;

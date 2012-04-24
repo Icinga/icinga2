@@ -9,11 +9,6 @@
 
 using namespace icinga;
 
-IcingaApplication::IcingaApplication(void)
-{
-	m_EndpointManager = make_shared<EndpointManager>();
-}
-
 int IcingaApplication::Main(const vector<string>& args)
 {
 #ifdef _WIN32
@@ -26,6 +21,10 @@ int IcingaApplication::Main(const vector<string>& args)
 		PrintUsage(args[0]);
 		return EXIT_FAILURE;
 	}
+
+	shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext("icinga-c1.crt", "icinga-c1.key", "ca.crt");
+
+	m_EndpointManager = make_shared<EndpointManager>(sslContext);
 
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga";
 	AddComponentSearchDir(componentDirectory);
