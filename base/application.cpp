@@ -473,6 +473,9 @@ int icinga::RunApplication(int argc, char **argv, Application *instance)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = ApplicationSigIntHandler;
 	sigaction(SIGINT, &sa, NULL);
+
+	sa.sa_handler = SIG_IGN;
+	sigaction(SIGPIPE, &sa, NULL);
 #endif /* _WIN32 */
 
 	vector<string> args;
