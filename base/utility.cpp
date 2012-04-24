@@ -74,3 +74,15 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, strin
 
 	return sslContext;
 }
+
+string Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
+{
+	char buffer[256];
+
+	int rc = X509_NAME_get_text_by_NID(X509_get_subject_name(certificate.get()), NID_commonName, buffer, sizeof(buffer));
+
+	if (rc == -1)
+		throw InvalidArgumentException("X509 certificate has no CN attribute.");
+
+	return buffer;
+}

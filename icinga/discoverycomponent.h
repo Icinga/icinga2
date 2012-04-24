@@ -12,8 +12,7 @@ private:
 	IcingaApplication::Ptr GetIcingaApplication(void) const;
 
 	int NewEndpointHandler(const NewEndpointEventArgs& neea);
-	int IdentityChangedHandler(const EventArgs& neea);
-	int WelcomeMessageHandler(const NewRequestEventArgs& nrea);
+	int SessionEstablishedHandler(const EventArgs& neea);
 	int GetPeersMessageHandler(const NewRequestEventArgs& nrea);
 
 public:

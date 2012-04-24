@@ -11,8 +11,6 @@ void DiscoveryComponent::Start(void)
 {
 	m_DiscoveryEndpoint = make_shared<VirtualEndpoint>();
 	m_DiscoveryEndpoint->RegisterMethodSource("discovery::PeerAvailable");
-	m_DiscoveryEndpoint->RegisterMethodHandler("auth::Welcome",
-	    bind_weak(&DiscoveryComponent::WelcomeMessageHandler, shared_from_this()));
 	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::GetPeers",
 		bind_weak(&DiscoveryComponent::GetPeersMessageHandler, shared_from_this()));
 
@@ -29,26 +27,22 @@ void DiscoveryComponent::Stop(void)
 
 int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 {
-	neea.Endpoint->OnIdentityChanged += bind_weak(&DiscoveryComponent::IdentityChangedHandler, shared_from_this());
+	neea.Endpoint->OnSessionEstablished += bind_weak(&DiscoveryComponent::SessionEstablishedHandler, shared_from_this());
 
 	/* TODO: register handler for new sink/source */
 
 	return 0;
 }
 
-int DiscoveryComponent::IdentityChangedHandler(const EventArgs& neea)
-{
-	/* TODO: send information about this client to all other clients */
-
-	return 0;
-}
-
-int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
+int DiscoveryComponent::SessionEstablishedHandler(const EventArgs& neea)
 {
 	JsonRpcRequest request;
 	request.SetMethod("discovery::GetPeers");
 
-	GetEndpointManager()->SendUnicastRequest(m_DiscoveryEndpoint, nrea.Sender, request);
+	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(neea.Source);
+	GetEndpointManager()->SendUnicastRequest(m_DiscoveryEndpoint, endpoint, request);
+
+	/* TODO: send information about this client to all other clients */
 
 	return 0;
 }

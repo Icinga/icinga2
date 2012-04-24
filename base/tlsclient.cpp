@@ -10,14 +10,19 @@ TLSClient::TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext) : TCPCl
 	m_SSLContext = sslContext;
 }
 
-X509 *TLSClient::GetClientCertificate(void) const
+void TLSClient::NullCertificateDeleter(X509 *certificate)
 {
-	return SSL_get_certificate(m_SSL.get());
+	/* Nothing to do here. */
 }
 
-X509 *TLSClient::GetPeerCertificate(void) const
+shared_ptr<X509> TLSClient::GetClientCertificate(void) const
 {
-	return SSL_get_peer_certificate(m_SSL.get());
+	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &TLSClient::NullCertificateDeleter);
+}
+
+shared_ptr<X509> TLSClient::GetPeerCertificate(void) const
+{
+	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
 
 void TLSClient::Start(void)
@@ -27,7 +32,7 @@ void TLSClient::Start(void)
 	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
 	if (!m_SSL)
-		; /* TODO: deal with error */
+		throw OpenSSLException("SSL_new failed", ERR_get_error());
 
 	if (!GetClientCertificate())
 		throw InvalidArgumentException("No X509 client certificate was specified.");
@@ -161,6 +166,7 @@ int TLSClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
 	vcea.Source = client->shared_from_this();
 	vcea.ValidCertificate = (ok != 0);
 	vcea.Context = x509Context;
+	vcea.Certificate = shared_ptr<X509>(x509Context->cert, &TLSClient::NullCertificateDeleter);
 	client->OnVerifyCertificate(vcea);
 
 	return (int)vcea.ValidCertificate;

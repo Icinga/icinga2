@@ -21,6 +21,7 @@ private:
 	int ClientClosedHandler(const EventArgs& ea);
 	int ClientErrorHandler(const SocketErrorEventArgs& ea);
 	int ClientReconnectHandler(const TimerEventArgs& ea);
+	int VerifyCertificateHandler(const VerifyCertificateEventArgs& ea);
 
 public:
 	typedef shared_ptr<JsonRpcEndpoint> Ptr;

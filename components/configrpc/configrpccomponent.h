@@ -10,7 +10,7 @@ private:
 	VirtualEndpoint::Ptr m_ConfigRpcEndpoint;
 
 	int NewEndpointHandler(const NewEndpointEventArgs& ea);
-	int WelcomeMessageHandler(const NewRequestEventArgs& ea);
+	int SessionEstablishedHandler(const EventArgs& ea);
 
 	int LocalObjectCreatedHandler(const EventArgs& ea);
 	int LocalObjectRemovedHandler(const EventArgs& ea);

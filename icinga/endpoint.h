@@ -66,6 +66,7 @@ public:
 	int CountMethodSources(void) const;
 
 	Event<EventArgs> OnIdentityChanged;
+	Event<EventArgs> OnSessionEstablished;
 };
 
 }

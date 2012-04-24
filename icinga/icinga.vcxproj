@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="authenticationcomponent.cpp" />
     <ClCompile Include="discoverycomponent.cpp" />
     <ClCompile Include="endpoint.cpp" />
     <ClCompile Include="endpointmanager.cpp" />
@@ -24,7 +23,6 @@
     <ClCompile Include="virtualendpoint.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="authenticationcomponent.h" />
     <ClInclude Include="discoverycomponent.h" />
     <ClInclude Include="endpoint.h" />
     <ClInclude Include="endpointmanager.h" />

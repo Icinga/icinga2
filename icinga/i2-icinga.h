@@ -19,7 +19,6 @@
 #include "icingacomponent.h"
 #include "subscriptioncomponent.h"
 #include "subscriptionmessage.h"
-#include "authenticationcomponent.h"
 #include "identitymessage.h"
 #include "discoverycomponent.h"
 

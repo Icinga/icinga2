@@ -8,6 +8,7 @@ struct I2_BASE_API VerifyCertificateEventArgs : public EventArgs
 {
 	bool ValidCertificate;
 	X509_STORE_CTX *Context;
+	shared_ptr<X509> Certificate;
 };
 
 class I2_BASE_API TLSClient : public TCPClient
@@ -24,6 +25,8 @@ private:
 
 	virtual void CloseInternal(bool from_dtor);
 
+	static void NullCertificateDeleter(X509 *certificate);
+
 	static int SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context);
 
 protected:
@@ -32,8 +35,8 @@ protected:
 public:
 	TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);
 
-	X509 *GetClientCertificate(void) const;
-	X509 *GetPeerCertificate(void) const;
+	shared_ptr<X509> GetClientCertificate(void) const;
+	shared_ptr<X509> GetPeerCertificate(void) const;
 
 	virtual void Start(void);
 

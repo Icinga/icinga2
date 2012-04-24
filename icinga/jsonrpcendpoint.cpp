@@ -79,6 +79,7 @@ void JsonRpcEndpoint::SetClient(JsonRpcClient::Ptr client)
 	client->OnNewMessage += bind_weak(&JsonRpcEndpoint::NewMessageHandler, shared_from_this());
 	client->OnClosed += bind_weak(&JsonRpcEndpoint::ClientClosedHandler, shared_from_this());
 	client->OnError += bind_weak(&JsonRpcEndpoint::ClientErrorHandler, shared_from_this());
+	client->OnVerifyCertificate += bind_weak(&JsonRpcEndpoint::VerifyCertificateHandler, shared_from_this());
 }
 
 bool JsonRpcEndpoint::IsLocal(void) const
@@ -182,6 +183,14 @@ int JsonRpcEndpoint::ClientReconnectHandler(const TimerEventArgs& ea)
 
 	timer->Stop();
 	m_ReconnectTimer.reset();
+
+	return 0;
+}
+
+int JsonRpcEndpoint::VerifyCertificateHandler(const VerifyCertificateEventArgs& ea)
+{
+	if (ea.Certificate && ea.ValidCertificate)
+		SetIdentity(Utility::GetCertificateCN(ea.Certificate));
 
 	return 0;
 }

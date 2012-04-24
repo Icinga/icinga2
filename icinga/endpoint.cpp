@@ -14,6 +14,8 @@ void Endpoint::SetIdentity(string identity)
 	EventArgs ea;
 	ea.Source = shared_from_this();
 	OnIdentityChanged(ea);
+
+	OnSessionEstablished(ea);
 }
 
 bool Endpoint::HasIdentity(void) const

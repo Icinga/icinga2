@@ -53,9 +53,6 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	connectionCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcConnectionHandler, shared_from_this());
 
-	AuthenticationComponent::Ptr authenticationComponent = make_shared<AuthenticationComponent>();
-	RegisterComponent(authenticationComponent);
-
 	SubscriptionComponent::Ptr subscriptionComponent = make_shared<SubscriptionComponent>();
 	RegisterComponent(subscriptionComponent);
 
