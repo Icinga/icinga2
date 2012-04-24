@@ -14,7 +14,6 @@ class I2_ICINGA_API EndpointManager : public Object
 	shared_ptr<SSL_CTX> m_SSLContext;
 	list<JsonRpcServer::Ptr> m_Servers;
 	list<Endpoint::Ptr> m_Endpoints;
-	string m_Identity;
 
 	void RegisterServer(JsonRpcServer::Ptr server);
 	void UnregisterServer(JsonRpcServer::Ptr server);
@@ -29,9 +28,6 @@ public:
 	typedef weak_ptr<EndpointManager> WeakPtr;
 
 	EndpointManager(shared_ptr<SSL_CTX> sslContext);
-
-	void SetIdentity(string identity);
-	string GetIdentity(void) const;
 
 	void AddListener(unsigned short port);
 	void AddConnection(string host, unsigned short port);

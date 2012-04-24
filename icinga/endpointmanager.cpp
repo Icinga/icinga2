@@ -7,16 +7,6 @@ EndpointManager::EndpointManager(shared_ptr<SSL_CTX> sslContext)
 	m_SSLContext = sslContext;
 }
 
-void EndpointManager::SetIdentity(string identity)
-{
-	m_Identity = identity;
-}
-
-string EndpointManager::GetIdentity(void) const
-{
-	return m_Identity;
-}
-
 void EndpointManager::AddListener(unsigned short port)
 {
 	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>(m_SSLContext);
