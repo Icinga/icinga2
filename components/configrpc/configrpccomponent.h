@@ -9,8 +9,7 @@ class ConfigRpcComponent : public IcingaComponent
 private:
 	VirtualEndpoint::Ptr m_ConfigRpcEndpoint;
 
-	int NewEndpointHandler(const NewEndpointEventArgs& ea);
-	int SessionEstablishedHandler(const EventArgs& ea);
+	int WelcomeMessageHandler(const NewRequestEventArgs& ea);
 
 	int LocalObjectCreatedHandler(const EventArgs& ea);
 	int LocalObjectRemovedHandler(const EventArgs& ea);

@@ -12,6 +12,7 @@ void SubscriptionComponent::Start(void)
 	m_SubscriptionEndpoint = make_shared<VirtualEndpoint>();
 	m_SubscriptionEndpoint->RegisterMethodHandler("message::Subscribe", bind_weak(&SubscriptionComponent::SubscribeMessageHandler, shared_from_this()));
 	m_SubscriptionEndpoint->RegisterMethodHandler("message::Provide", bind_weak(&SubscriptionComponent::ProvideMessageHandler, shared_from_this()));
+	m_SubscriptionEndpoint->RegisterMethodSource("message::Welcome");
 	m_SubscriptionEndpoint->RegisterMethodSource("message::Subscribe");
 	m_SubscriptionEndpoint->RegisterMethodSource("message::Provide");
 
@@ -38,7 +39,6 @@ int SubscriptionComponent::SyncSubscription(Endpoint::Ptr target, string type, c
 	SubscriptionMessage subscriptionMessage;
 	subscriptionMessage.SetMethod(nmea.Method);
 	request.SetParams(subscriptionMessage);
-
 	GetEndpointManager()->SendUnicastRequest(m_SubscriptionEndpoint, target, request);
 
 	return 0;
@@ -68,10 +68,18 @@ int SubscriptionComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 	neea.Endpoint->AddAllowedMethodSinkPrefix("message::");
 	neea.Endpoint->AddAllowedMethodSourcePrefix("message::");
 
+	/* we just assume the peer wants those messages */
+	neea.Endpoint->RegisterMethodSink("message::Welcome");
 	neea.Endpoint->RegisterMethodSink("message::Subscribe");
 	neea.Endpoint->RegisterMethodSink("message::Provide");
 
 	GetEndpointManager()->ForeachEndpoint(bind(&SubscriptionComponent::SyncSubscriptions, this, neea.Endpoint, _1));
+
+	/* signal the peer that we're done syncing subscriptions and are now
+	 * ready to accept messages. */
+	JsonRpcRequest request;
+	request.SetMethod("message::Welcome");
+	GetEndpointManager()->SendUnicastRequest(m_SubscriptionEndpoint, neea.Endpoint, request);
 
 	return 0;
 }
