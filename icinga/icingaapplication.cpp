@@ -12,9 +12,9 @@ using namespace icinga;
 int IcingaApplication::Main(const vector<string>& args)
 {
 #ifdef _WIN32
-	cout << "Icinga component loader" << endl;
+	Application::Log("Icinga component loader");
 #else /* _WIN32 */
-	cout << "Icinga component loader (version: " << ICINGA_VERSION << ")" << endl;
+	Application::Log("Icinga component loader (version: " ICINGA_VERSION ")");
 #endif  /* _WIN32 */
 
 	if (args.size() < 2) {

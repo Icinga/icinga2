@@ -23,7 +23,7 @@ void ConfigFileComponent::Start(void)
 	if (fp.fail())
 		throw ConfigParserException("Could not open config file");
 	
-	GetApplication()->Log("Reading config file: %s", filename.c_str());
+	GetApplication()->Log("Reading config file: " + filename);
 
 	while (!fp.eof()) {
 		size_t bufferSize = 1024;

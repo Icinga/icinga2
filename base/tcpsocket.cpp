@@ -38,3 +38,88 @@ void TCPSocket::Bind(const char *hostname, unsigned short port)
 	if (::bind(GetFD(), (sockaddr *)&sin, sizeof(sin)) < 0)
 		HandleSocketError();
 }
+
+string TCPSocket::GetAddressFromSockaddr(sockaddr *address)
+{
+	static char Buffer[256];
+
+#ifdef _WIN32
+	DWORD BufferLength = sizeof(Buffer);
+
+	socklen_t len;
+	if (address->sa_family == AF_INET)
+		len = sizeof(sockaddr_in);
+	else if (address->sa_family == AF_INET6)
+		len = sizeof(sockaddr_in6);
+	else {
+		assert(0);
+
+		return "";
+	}
+
+	if (WSAAddressToString(address, len, NULL, Buffer, &BufferLength) != 0) {
+		return NULL;
+	}
+#else /* _WIN32 */
+	void *IpAddress;
+
+	if (Address->sa_family == AF_INET) {
+		IpAddress = &(((sockaddr_in *)Address)->sin_addr);
+	} else {
+		IpAddress = &(((sockaddr_in6 *)Address)->sin6_addr);
+	}
+
+	if (inet_ntop(Address->sa_family, IpAddress, Buffer, sizeof(Buffer)) == NULL) {
+		return NULL;
+	}
+#endif /* _WIN32 */
+
+	return Buffer;
+}
+
+unsigned short TCPSocket::GetPortFromSockaddr(sockaddr *address)
+{
+	if (address->sa_family == AF_INET)
+		return htons(((sockaddr_in *)address)->sin_port);
+	else if (address->sa_family == AF_INET6)
+		return htons(((sockaddr_in6 *)address)->sin6_port);
+	else {
+		assert(0);
+
+		return 0;
+	}
+}
+
+void TCPSocket::GetClientSockaddr(sockaddr_storage *address)
+{
+	socklen_t len = sizeof(*address);
+	
+	if (getsockname(GetFD(), (sockaddr *)address, &len) < 0)
+		HandleSocketError();
+}
+
+void TCPSocket::GetPeerSockaddr(sockaddr_storage *address)
+{
+	socklen_t len = sizeof(*address);
+	
+	if (getpeername(GetFD(), (sockaddr *)address, &len) < 0)
+		HandleSocketError();
+}
+
+string TCPSocket::GetClientAddress(void)
+{
+	sockaddr_storage sin;
+
+	GetClientSockaddr(&sin);
+
+	return GetAddressFromSockaddr((sockaddr *)&sin);
+}
+
+string TCPSocket::GetPeerAddress(void)
+{
+	sockaddr_storage sin;
+
+	GetPeerSockaddr(&sin);
+
+	return GetAddressFromSockaddr((sockaddr *)&sin);
+}

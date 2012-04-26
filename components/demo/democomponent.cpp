@@ -52,7 +52,7 @@ int DemoComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 
 int DemoComponent::DemoTimerHandler(const TimerEventArgs& tea)
 {
-	cout << "Sending multicast 'hello world' message." << endl;
+	Application::Log("Sending multicast 'hello world' message.");
 
 	JsonRpcRequest request;
 	request.SetMethod("demo::HelloWorld");
@@ -65,7 +65,7 @@ int DemoComponent::DemoTimerHandler(const TimerEventArgs& tea)
 
 int DemoComponent::HelloWorldRequestHandler(const NewRequestEventArgs& nrea)
 {
-	cout << "Got 'hello world' from " << nrea.Sender->GetAddress() << endl;
+	Application::Log("Got 'hello world' from address:" + nrea.Sender->GetAddress() + ", identity:" + nrea.Sender->GetIdentity());
 
 	return 0;
 }

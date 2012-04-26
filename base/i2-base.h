@@ -9,6 +9,17 @@
 #	include "config.h"
 #endif /* _MSC_VER */
 
+#define PLATFORM_WINDOWS 1
+#define PLATFORM_UNIX 2
+
+#ifdef _WIN32
+#	define I2_PLATFORM PLATFORM_WINDOWS
+#	include "win32.h"
+#else
+#	define I2_PLATFORM PLATFORM_UNIX
+#	include "unix.h"
+#endif
+
 #include <cstdlib>
 #include <cstdarg>
 #include <cstdio>
@@ -18,6 +29,7 @@
 
 #include <memory>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <set>
 #include <iostream>
@@ -53,17 +65,6 @@ using namespace std::tr1;
 using namespace std::tr1::placeholders;
 
 #	include "cxx11-compat.h"
-#endif
-
-#define PLATFORM_WINDOWS 1
-#define PLATFORM_UNIX 2
-
-#ifdef _WIN32
-#	define I2_PLATFORM PLATFORM_WINDOWS
-#	include "win32.h"
-#else
-#	define I2_PLATFORM PLATFORM_UNIX
-#	include "unix.h"
 #endif
 
 #ifdef I2_BASE_BUILD

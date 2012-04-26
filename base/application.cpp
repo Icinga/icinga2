@@ -195,7 +195,7 @@ Component::Ptr Application::LoadComponent(const string& path,
 	Component::Ptr component;
 	Component *(*pCreateComponent)();
 
-	Log("Loading component '%s'", path.c_str());
+	Log("Loading component '" + path + "'");
 
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.c_str());
@@ -250,7 +250,7 @@ void Application::UnregisterComponent(Component::Ptr component)
 {
 	string name = component->GetName();
 
-	Log("Unloading component '%s'", name.c_str());
+	Log("Unloading component '" + name + "'");
 	map<string, Component::Ptr>::iterator i = m_Components.find(name);
 	if (i != m_Components.end())
 		m_Components.erase(i);
@@ -281,20 +281,19 @@ Component::Ptr Application::GetComponent(const string& name)
  *
  * Logs a message.
  *
- * @param format The format string.
- * @param ... Additional parameters for the format string.
+ * @param message The message.
  */
-void Application::Log(const char *format, ...)
+void Application::Log(string message)
 {
-	char message[512];
-	va_list marker;
+	char timestamp[100];
 
-	va_start(marker, format);
-	vsnprintf(message, sizeof(message), format, marker);
-	va_end(marker);
+	time_t now;
+	time(&now);
+	tm tmnow = *localtime(&now);
 
-	// TODO: log to file
-	fprintf(stderr, "%s\n", message);
+	strftime(timestamp, sizeof(timestamp), "%a %B %d %Y %H:%M:%S", &tmnow);
+
+	cout << "[" << timestamp << "]: " << message << endl;
 }
 
 /**
@@ -491,9 +490,9 @@ int icinga::RunApplication(int argc, char **argv, Application *instance)
 		try {
 			result = Application::Instance->Main(args);
 		} catch (const Exception& ex) {
-			cerr << "---" << endl;
-			cerr << "Exception: " << Utility::GetTypeName(ex) << endl;
-			cerr << "Message: " << ex.GetMessage() << endl;
+			Application::Log("---");
+			Application::Log("Exception: " + Utility::GetTypeName(ex));
+			Application::Log("Message: " + ex.GetMessage());
 
 			return EXIT_FAILURE;
 		}

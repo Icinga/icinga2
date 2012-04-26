@@ -2,14 +2,12 @@
 
 using namespace icinga;
 
-void JsonRpcEndpoint::SetAddress(string address)
-{
-	m_Address = address;
-}
-
 string JsonRpcEndpoint::GetAddress(void) const
 {
-	return m_Address;
+	if (!m_Client)
+		return "<disconnected endpoint>";
+
+	return m_Client->GetPeerAddress();
 }
 
 JsonRpcClient::Ptr JsonRpcEndpoint::GetClient(void)
@@ -61,10 +59,6 @@ bool JsonRpcEndpoint::IsAllowedMethodSource(string method) const
 
 void JsonRpcEndpoint::Connect(string host, unsigned short port, shared_ptr<SSL_CTX> sslContext)
 {
-	char portStr[20];
-	sprintf(portStr, "%d", port);
-	SetAddress("jsonrpc-tcp://" + host + ":" + portStr);
-
 	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>(RoleOutbound, sslContext);
 	client->MakeSocket();
 	client->Connect(host, port);
@@ -142,7 +136,7 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 {
 	string address = GetAddress();
-	Application::Log("Lost connection to endpoint: %s", address.c_str());
+	Application::Log("Lost connection to endpoint: " + address);
 
 	m_PendingCalls.clear();
 
@@ -154,7 +148,7 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 		timer->Start();
 		m_ReconnectTimer = timer;
 
-		Application::Log("Spawned reconnect timer (30 seconds)", address.c_str());
+		Application::Log("Spawned reconnect timer (30 seconds)");
 	}
 
 	// TODO: _only_ clear non-persistent method sources/sinks
