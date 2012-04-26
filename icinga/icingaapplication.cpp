@@ -131,8 +131,6 @@ int IcingaApplication::NewRpcListenerHandler(const EventArgs& ea)
 
 	port = (unsigned short)portValue;
 
-	Log("Creating JSON-RPC listener on port %d", port);
-
 	GetEndpointManager()->AddListener(port);
 
 	return 0;
@@ -166,8 +164,6 @@ int IcingaApplication::NewRpcConnectionHandler(const EventArgs& ea)
 		throw InvalidArgumentException("Parameter 'port' contains an invalid value.");
 
 	port = (unsigned short)portValue;
-
-	Log("Creating JSON-RPC connection to %s:%d", hostname.c_str(), port);
 
 	GetEndpointManager()->AddConnection(hostname, port);
 

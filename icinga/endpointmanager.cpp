@@ -9,6 +9,8 @@ EndpointManager::EndpointManager(shared_ptr<SSL_CTX> sslContext)
 
 void EndpointManager::AddListener(unsigned short port)
 {
+	Application::Log("Adding new listener: port %d", port);
+
 	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>(m_SSLContext);
 	RegisterServer(server);
 
@@ -20,6 +22,8 @@ void EndpointManager::AddListener(unsigned short port)
 
 void EndpointManager::AddConnection(string host, unsigned short port)
 {
+	Application::Log("Adding new endpoint: %s:%d", host.c_str(), port);
+
 	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
 	endpoint->Connect(host, port, m_SSLContext);
 	RegisterEndpoint(endpoint);
@@ -33,6 +37,8 @@ void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
 
 int EndpointManager::NewClientHandler(const NewClientEventArgs& ncea)
 {
+	Application::Log("Accepted new client");
+
 	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
 	endpoint->SetClient(static_pointer_cast<JsonRpcClient>(ncea.Client));
 	RegisterEndpoint(endpoint);
