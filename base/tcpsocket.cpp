@@ -41,10 +41,10 @@ void TCPSocket::Bind(const char *hostname, unsigned short port)
 
 string TCPSocket::GetAddressFromSockaddr(sockaddr *address)
 {
-	static char Buffer[256];
+	static char buffer[256];
 
 #ifdef _WIN32
-	DWORD BufferLength = sizeof(Buffer);
+	DWORD BufferLength = sizeof(buffer);
 
 	socklen_t len;
 	if (address->sa_family == AF_INET)
@@ -57,24 +57,21 @@ string TCPSocket::GetAddressFromSockaddr(sockaddr *address)
 		return "";
 	}
 
-	if (WSAAddressToString(address, len, NULL, Buffer, &BufferLength) != 0) {
-		return NULL;
-	}
+	if (WSAAddressToString(address, len, NULL, buffer, &BufferLength) != 0)
+		return string();
 #else /* _WIN32 */
 	void *IpAddress;
 
-	if (Address->sa_family == AF_INET) {
-		IpAddress = &(((sockaddr_in *)Address)->sin_addr);
-	} else {
-		IpAddress = &(((sockaddr_in6 *)Address)->sin6_addr);
-	}
+	if (address->sa_family == AF_INET)
+		IpAddress = &(((sockaddr_in *)address)->sin_addr);
+	else
+		IpAddress = &(((sockaddr_in6 *)address)->sin6_addr);
 
-	if (inet_ntop(Address->sa_family, IpAddress, Buffer, sizeof(Buffer)) == NULL) {
-		return NULL;
-	}
+	if (inet_ntop(address->sa_family, address, buffer, sizeof(buffer)) == NULL)
+		return string();
 #endif /* _WIN32 */
 
-	return Buffer;
+	return buffer;
 }
 
 unsigned short TCPSocket::GetPortFromSockaddr(sockaddr *address)
