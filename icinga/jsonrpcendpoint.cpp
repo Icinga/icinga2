@@ -141,6 +141,9 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 
 int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 {
+	string address = GetAddress();
+	Application::Log("Lost connection to endpoint: %s", address.c_str());
+
 	m_PendingCalls.clear();
 
 	if (m_Client->GetPeerHost() != string()) {
@@ -150,6 +153,8 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 		timer->OnTimerExpired += bind_weak(&JsonRpcEndpoint::ClientReconnectHandler, shared_from_this());
 		timer->Start();
 		m_ReconnectTimer = timer;
+
+		Application::Log("Spawned reconnect timer (30 seconds)", address.c_str());
 	}
 
 	// TODO: _only_ clear non-persistent method sources/sinks

@@ -35,7 +35,7 @@ public:
 
 	void Shutdown(void);
 
-	void Log(const char *format, ...);
+	static void Log(const char *format, ...);
 
 	ConfigHive::Ptr GetConfigHive(void) const;
 
