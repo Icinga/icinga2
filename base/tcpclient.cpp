@@ -8,8 +8,6 @@ TCPClient::TCPClient(TCPClientRole role)
 
 	m_SendQueue = make_shared<FIFO>();
 	m_RecvQueue = make_shared<FIFO>();
-
-	m_PeerPort = 0;
 }
 
 TCPClientRole TCPClient::GetRole(void) const
@@ -52,8 +50,6 @@ void TCPClient::Connect(const string& hostname, unsigned short port)
 	}
 
 	m_Role = RoleOutbound;
-	m_PeerHost = hostname;
-	m_PeerPort = port;
 }
 
 FIFO::Ptr TCPClient::GetSendQueue(void)
@@ -64,17 +60,6 @@ FIFO::Ptr TCPClient::GetSendQueue(void)
 FIFO::Ptr TCPClient::GetRecvQueue(void)
 {
 	return m_RecvQueue;
-}
-
-
-string TCPClient::GetPeerHost(void)
-{
-	return m_PeerHost;
-}
-
-int TCPClient::GetPeerPort(void)
-{
-	return m_PeerPort;
 }
 
 int TCPClient::ReadableEventHandler(const EventArgs& ea)

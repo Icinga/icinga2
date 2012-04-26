@@ -15,6 +15,9 @@ private:
 	set<string> m_AllowedMethodSinkPrefixes;
 	set<string> m_AllowedMethodSourcePrefixes;
 
+	string m_PeerHostname;
+	unsigned short m_PeerPort;
+
 	bool IsConnected(void) const;
 	
 	int NewMessageHandler(const NewMessageEventArgs& nmea);

@@ -9,7 +9,9 @@ EndpointManager::EndpointManager(shared_ptr<SSL_CTX> sslContext)
 
 void EndpointManager::AddListener(unsigned short port)
 {
-	Application::Log("Adding new listener: port " + port);
+	stringstream s;
+	s << "Adding new listener: port " << port;
+	Application::Log(s.str());
 
 	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>(m_SSLContext);
 	RegisterServer(server);

@@ -59,6 +59,9 @@ bool JsonRpcEndpoint::IsAllowedMethodSource(string method) const
 
 void JsonRpcEndpoint::Connect(string host, unsigned short port, shared_ptr<SSL_CTX> sslContext)
 {
+	m_PeerHostname = host;
+	m_PeerPort = port;
+
 	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>(RoleOutbound, sslContext);
 	client->MakeSocket();
 	client->Connect(host, port);
@@ -140,7 +143,7 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 
 	m_PendingCalls.clear();
 
-	if (m_Client->GetPeerHost() != string()) {
+	if (m_PeerHostname != string()) {
 		Timer::Ptr timer = make_shared<Timer>();
 		timer->SetInterval(30);
 		timer->SetUserArgs(ea);
@@ -178,7 +181,7 @@ int JsonRpcEndpoint::ClientReconnectHandler(const TimerEventArgs& ea)
 	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea.UserArgs.Source);
 	Timer::Ptr timer = static_pointer_cast<Timer>(ea.Source);
 
-	GetEndpointManager()->AddConnection(client->GetPeerHost(), client->GetPeerPort());
+	GetEndpointManager()->AddConnection(m_PeerHostname, m_PeerPort);
 
 	timer->Stop();
 	m_ReconnectTimer.reset();

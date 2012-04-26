@@ -15,9 +15,6 @@ class I2_BASE_API TCPClient : public TCPSocket
 private:
 	TCPClientRole m_Role;
 
-	string m_PeerHost;
-	int m_PeerPort;
-
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
 
@@ -38,9 +35,6 @@ public:
 
 	FIFO::Ptr GetSendQueue(void);
 	FIFO::Ptr GetRecvQueue(void);
-
-	string GetPeerHost(void);
-	int GetPeerPort(void);
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;

@@ -19,8 +19,8 @@ public:
 	void Bind(unsigned short port);
 	void Bind(const char *hostname, unsigned short port);
 
-	void GetClientSockaddr(sockaddr_storage *address);
-	void GetPeerSockaddr(sockaddr_storage *address);
+	bool GetClientSockaddr(sockaddr_storage *address);
+	bool GetPeerSockaddr(sockaddr_storage *address);
 
 	string GetClientAddress(void);
 	string GetPeerAddress(void);
