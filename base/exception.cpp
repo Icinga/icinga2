@@ -47,7 +47,7 @@ string PosixException::FormatErrorCode(int code)
 
 string OpenSSLException::FormatErrorCode(int code)
 {
-	char *message = ERR_error_string(code, NULL);
+	const char *message = ERR_error_string(code, NULL);
 
 	if (message == NULL)
 		message = "Unknown error.";
