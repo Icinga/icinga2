@@ -22,8 +22,8 @@ public:
 	void GetClientSockaddr(sockaddr_storage *address);
 	void GetPeerSockaddr(sockaddr_storage *address);
 
-	string TCPSocket::GetClientAddress(void);
-	string TCPSocket::GetPeerAddress(void);
+	string GetClientAddress(void);
+	string GetPeerAddress(void);
 };
 
 }
