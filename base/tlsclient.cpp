@@ -8,6 +8,8 @@ bool I2_EXPORT TLSClient::m_SSLIndexInitialized = false;
 TLSClient::TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext) : TCPClient(role)
 {
 	m_SSLContext = sslContext;
+	m_BlockRead = false;
+	m_BlockWrite = false;
 }
 
 void TLSClient::NullCertificateDeleter(X509 *certificate)
@@ -60,6 +62,9 @@ int TLSClient::ReadableEventHandler(const EventArgs& ea)
 {
 	int rc;
 
+	m_BlockRead = false;
+	m_BlockWrite = false;
+
 	size_t bufferSize = FIFO::BlockSize / 2;
 	char *buffer = (char *)GetRecvQueue()->GetWriteBuffer(&bufferSize);
 	rc = SSL_read(m_SSL.get(), buffer, bufferSize);
@@ -67,6 +72,8 @@ int TLSClient::ReadableEventHandler(const EventArgs& ea)
 	if (rc <= 0) {
 		switch (SSL_get_error(m_SSL.get(), rc)) {
 			case SSL_ERROR_WANT_WRITE:
+				m_BlockRead = true;
+				/* fall through */
 			case SSL_ERROR_WANT_READ:
 				return 0;
 			case SSL_ERROR_ZERO_RETURN:
@@ -93,12 +100,17 @@ int TLSClient::WritableEventHandler(const EventArgs& ea)
 {
 	int rc;
 
+	m_BlockRead = false;
+	m_BlockWrite = false;
+
 	rc = SSL_write(m_SSL.get(), (const char *)GetSendQueue()->GetReadBuffer(), GetSendQueue()->GetSize());
 
 	if (rc <= 0) {
 		switch (SSL_get_error(m_SSL.get(), rc)) {
-			case SSL_ERROR_WANT_WRITE:
 			case SSL_ERROR_WANT_READ:
+				m_BlockWrite = true;
+				/* fall through */
+			case SSL_ERROR_WANT_WRITE:
 				return 0;
 			case SSL_ERROR_ZERO_RETURN:
 				Close();
@@ -121,6 +133,9 @@ bool TLSClient::WantsToRead(void) const
 	if (SSL_want_read(m_SSL.get()))
 		return true;
 
+	if (m_BlockRead)
+		return false;
+
 	return TCPClient::WantsToRead();
 }
 
@@ -128,6 +143,9 @@ bool TLSClient::WantsToWrite(void) const
 {
 	if (SSL_want_write(m_SSL.get()))
 		return true;
+
+	if (m_BlockWrite)
+		return false;
 
 	return TCPClient::WantsToWrite();
 }

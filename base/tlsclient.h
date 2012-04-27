@@ -17,6 +17,9 @@ private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	shared_ptr<SSL> m_SSL;
 
+	bool m_BlockRead;
+	bool m_BlockWrite;
+
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
