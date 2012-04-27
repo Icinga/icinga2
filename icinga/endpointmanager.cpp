@@ -2,15 +2,24 @@
 
 using namespace icinga;
 
-EndpointManager::EndpointManager(string identity, shared_ptr<SSL_CTX> sslContext)
+void EndpointManager::SetIdentity(string identity)
 {
 	m_Identity = identity;
-	m_SSLContext = sslContext;
 }
 
 string EndpointManager::GetIdentity(void) const
 {
 	return m_Identity;
+}
+
+void EndpointManager::SetSSLContext(shared_ptr<SSL_CTX> sslContext)
+{
+	m_SSLContext = sslContext;
+}
+
+shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
+{
+	return m_SSLContext;
 }
 
 void EndpointManager::AddListener(unsigned short port)
@@ -64,6 +73,9 @@ void EndpointManager::UnregisterServer(JsonRpcServer::Ptr server)
 
 void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 {
+	if (!endpoint->IsLocal() && endpoint->GetIdentity() != "")
+		throw InvalidArgumentException("Identity must be empty.");
+
 	endpoint->SetEndpointManager(static_pointer_cast<EndpointManager>(shared_from_this()));
 	m_Endpoints.push_front(endpoint);
 

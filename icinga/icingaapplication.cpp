@@ -22,54 +22,70 @@ int IcingaApplication::Main(const vector<string>& args)
 		return EXIT_FAILURE;
 	}
 
-	shared_ptr<X509> cert = Utility::GetX509Certificate("icinga-c1.crt");
-	string identity = Utility::GetCertificateCN(cert);
-
-	Application::Log("My identity: " + identity);
-
-	shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext("icinga-c1.crt", "icinga-c1.key", "ca.crt");
-
-	m_EndpointManager = make_shared<EndpointManager>(identity, sslContext);
+	m_EndpointManager = make_shared<EndpointManager>();
 
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga";
 	AddComponentSearchDir(componentDirectory);
 
+	/* register handler for 'component' config objects */
 	ConfigCollection::Ptr componentCollection = GetConfigHive()->GetCollection("component");
-
 	function<int (const EventArgs&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
 	componentCollection->OnObjectCreated += NewComponentHandler;
 	componentCollection->ForEachObject(NewComponentHandler);
-
 	componentCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
 
-	ConfigCollection::Ptr listenerCollection = GetConfigHive()->GetCollection("rpclistener");
+	/* register handler for 'icinga' config objects */
+	ConfigCollection::Ptr icingaCollection = GetConfigHive()->GetCollection("icinga");
+	function<int (const EventArgs&)> NewIcingaConfigHandler = bind_weak(&IcingaApplication::NewIcingaConfigHandler, shared_from_this());
+	icingaCollection->OnObjectCreated += NewIcingaConfigHandler;
+	icingaCollection->ForEachObject(NewIcingaConfigHandler);
+	icingaCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedIcingaConfigHandler, shared_from_this());
 
-	function<int (const EventArgs&)> NewRpcListenerHandler = bind_weak(&IcingaApplication::NewRpcListenerHandler, shared_from_this());
-	listenerCollection->OnObjectCreated += NewRpcListenerHandler;
-	listenerCollection->ForEachObject(NewRpcListenerHandler);
-
-	listenerCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcListenerHandler, shared_from_this());
-
-	ConfigCollection::Ptr connectionCollection = GetConfigHive()->GetCollection("rpcconnection");
-
-	function<int (const EventArgs&)> NewRpcConnectionHandler = bind_weak(&IcingaApplication::NewRpcConnectionHandler, shared_from_this());
-	connectionCollection->OnObjectCreated += NewRpcConnectionHandler;
-	connectionCollection->ForEachObject(NewRpcConnectionHandler);
-
-	connectionCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcConnectionHandler, shared_from_this());
-
-	SubscriptionComponent::Ptr subscriptionComponent = make_shared<SubscriptionComponent>();
-	RegisterComponent(subscriptionComponent);
-
-	DiscoveryComponent::Ptr discoveryComponent = make_shared<DiscoveryComponent>();
-	RegisterComponent(discoveryComponent);
-
+	/* load config file */
 	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
 	fileComponentConfig->SetPropertyString("configFilename", args[1]);
 	fileComponentConfig->SetPropertyInteger("replicate", 0);
 	GetConfigHive()->AddObject(fileComponentConfig);
 
-	ConfigCollection::Ptr collection = GetConfigHive()->GetCollection("rpclistener");
+	if (GetPrivateKeyFile().empty())
+		throw InvalidArgumentException("No private key was specified.");
+
+	if (GetPublicKeyFile().empty())
+		throw InvalidArgumentException("No public certificate was specified.");
+
+	if (GetCAKeyFile().empty())
+		throw InvalidArgumentException("No CA certificate was specified.");
+
+	/* set up SSL context */
+	shared_ptr<X509> cert = Utility::GetX509Certificate(GetPublicKeyFile());
+	string identity = Utility::GetCertificateCN(cert);
+	Application::Log("My identity: " + identity);
+	m_EndpointManager->SetIdentity(identity);
+
+	shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetPublicKeyFile(), GetPrivateKeyFile(), GetCAKeyFile());
+	m_EndpointManager->SetSSLContext(sslContext);
+
+	/* register handler for 'rpclistener' config objects */
+	ConfigCollection::Ptr listenerCollection = GetConfigHive()->GetCollection("rpclistener");
+	function<int (const EventArgs&)> NewRpcListenerHandler = bind_weak(&IcingaApplication::NewRpcListenerHandler, shared_from_this());
+	listenerCollection->OnObjectCreated += NewRpcListenerHandler;
+	listenerCollection->ForEachObject(NewRpcListenerHandler);
+	listenerCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcListenerHandler, shared_from_this());
+
+	/* register handle for 'rpcconnection' config objects */
+	ConfigCollection::Ptr connectionCollection = GetConfigHive()->GetCollection("rpcconnection");
+	function<int (const EventArgs&)> NewRpcConnectionHandler = bind_weak(&IcingaApplication::NewRpcConnectionHandler, shared_from_this());
+	connectionCollection->OnObjectCreated += NewRpcConnectionHandler;
+	connectionCollection->ForEachObject(NewRpcConnectionHandler);
+	connectionCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcConnectionHandler, shared_from_this());
+
+	/* load the subscription component */
+	SubscriptionComponent::Ptr subscriptionComponent = make_shared<SubscriptionComponent>();
+	RegisterComponent(subscriptionComponent);
+
+	/* load the discovery component */
+	DiscoveryComponent::Ptr discoveryComponent = make_shared<DiscoveryComponent>();
+	RegisterComponent(discoveryComponent);
 
 	RunEventLoop();
 
@@ -88,13 +104,13 @@ EndpointManager::Ptr IcingaApplication::GetEndpointManager(void)
 
 int IcingaApplication::NewComponentHandler(const EventArgs& ea)
 {
-	string path;
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
 	/* don't allow replicated config objects */
 	if (object->GetReplicated())
 		return 0;
 
+	string path;
 	if (!object->GetPropertyString("path", &path)) {
 #ifdef _WIN32
 		path = object->GetName() + ".dll";
@@ -118,23 +134,52 @@ int IcingaApplication::DeletedComponentHandler(const EventArgs& ea)
 	return 0;
 }
 
+int IcingaApplication::NewIcingaConfigHandler(const EventArgs& ea)
+{
+	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
+	
+	/* don't allow replicated config objects */
+	if (object->GetReplicated())
+		return 0;
+
+	string privkey;
+	if (object->GetPropertyString("privkey", &privkey))
+		SetPrivateKeyFile(privkey);
+
+	string pubkey;
+	if (object->GetPropertyString("pubkey", &pubkey))
+		SetPublicKeyFile(pubkey);
+
+	string cakey;
+	if (object->GetPropertyString("cakey", &cakey))
+		SetCAKeyFile(cakey);
+
+	return 0;
+}
+
+int IcingaApplication::DeletedIcingaConfigHandler(const EventArgs& ea)
+{
+	throw Exception("Unsupported operation.");
+
+	return 0;
+}
+
 int IcingaApplication::NewRpcListenerHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
-	long portValue;
-	unsigned short port;
 
 	/* don't allow replicated config objects */
 	if (object->GetReplicated())
 		return 0;
 
+	long portValue;
 	if (!object->GetPropertyInteger("port", &portValue))
 		throw InvalidArgumentException("Parameter 'port' is required for 'rpclistener' objects.");
 
 	if (portValue < 0 || portValue > USHRT_MAX)
 		throw InvalidArgumentException("Parameter 'port' contains an invalid value.");
 
-	port = (unsigned short)portValue;
+	unsigned short port = (unsigned short)portValue;
 
 	GetEndpointManager()->AddListener(port);
 
@@ -180,4 +225,34 @@ int IcingaApplication::DeletedRpcConnectionHandler(const EventArgs& ea)
 	throw Exception("Unsupported operation.");
 
 	return 0;
+}
+
+void IcingaApplication::SetPrivateKeyFile(string privkey)
+{
+	m_PrivateKeyFile = privkey;
+}
+
+string IcingaApplication::GetPrivateKeyFile(void) const
+{
+	return m_PrivateKeyFile;
+}
+
+void IcingaApplication::SetPublicKeyFile(string pubkey)
+{
+	m_PublicKeyFile = pubkey;
+}
+
+string IcingaApplication::GetPublicKeyFile(void) const
+{
+	return m_PublicKeyFile;
+}
+
+void IcingaApplication::SetCAKeyFile(string cakey)
+{
+	m_CAKeyFile = cakey;
+}
+
+string IcingaApplication::GetCAKeyFile(void) const
+{
+	return m_CAKeyFile;
 }

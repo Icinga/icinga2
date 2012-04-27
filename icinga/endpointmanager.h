@@ -29,9 +29,11 @@ public:
 	typedef shared_ptr<EndpointManager> Ptr;
 	typedef weak_ptr<EndpointManager> WeakPtr;
 
-	EndpointManager(string identity, shared_ptr<SSL_CTX> sslContext);
-
+	void SetIdentity(string identity);
 	string GetIdentity(void) const;
+
+	void SetSSLContext(shared_ptr<SSL_CTX> sslContext);
+	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 
 	void AddListener(unsigned short port);
 	void AddConnection(string host, unsigned short port);

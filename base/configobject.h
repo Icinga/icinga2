@@ -23,9 +23,6 @@ public:
 	typedef shared_ptr<ConfigObject> Ptr;
 	typedef weak_ptr<ConfigObject> WeakPtr;
 
-	typedef map<string, string>::iterator ParameterIterator;
-	map<string, string> Properties;
-
 	ConfigObject(const string& type, const string& name);
 
 	void SetHive(const weak_ptr<ConfigHive>& hive);
