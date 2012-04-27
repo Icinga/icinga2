@@ -105,3 +105,44 @@ bool Socket::WantsToWrite(void) const
 {
 	return false;
 }
+
+string Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
+{
+	char host[NI_MAXHOST];
+	char service[NI_MAXSERV];
+
+	if (getnameinfo(address, len, host, sizeof(host), service, sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0)
+		throw InvalidArgumentException(); /* TODO: throw proper exception */
+
+	stringstream s;
+	s << "[" << host << "]:" << service;
+	return s.str();
+}
+
+string Socket::GetClientAddress(void)
+{
+	sockaddr_storage sin;
+	socklen_t len = sizeof(sin);
+
+	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0) {
+		HandleSocketError();
+
+		return string();
+	}
+
+	return GetAddressFromSockaddr((sockaddr *)&sin, len);
+}
+
+string Socket::GetPeerAddress(void)
+{
+	sockaddr_storage sin;
+	socklen_t len = sizeof(sin);
+
+	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0) {
+		HandleSocketError();
+
+		return string();
+	}
+
+	return GetAddressFromSockaddr((sockaddr *)&sin, len);
+}

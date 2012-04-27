@@ -19,6 +19,8 @@ private:
 
 	int ExceptionEventHandler(const EventArgs& ea);
 
+	static string GetAddressFromSockaddr(sockaddr *address, socklen_t len);
+
 protected:
 	Socket(void);
 
@@ -52,6 +54,9 @@ public:
 	virtual void Stop(void);
 
 	void Close(void);
+
+	string GetClientAddress(void);
+	string GetPeerAddress(void);
 };
 
 }
