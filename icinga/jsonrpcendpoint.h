@@ -50,6 +50,8 @@ public:
 
 	virtual void ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message);
 	virtual void ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message);
+
+	virtual void Stop(void);
 };
 
 }

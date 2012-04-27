@@ -86,3 +86,23 @@ string Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 
 	return buffer;
 }
+
+shared_ptr<X509> Utility::GetX509Certificate(string pemfile)
+{
+	X509 *cert;
+	BIO *fpcert = BIO_new(BIO_s_file());
+
+	if (fpcert == NULL)
+		throw OpenSSLException("BIO_new failed", ERR_get_error());
+
+	if (BIO_read_filename(fpcert, pemfile.c_str()) < 0)
+		throw OpenSSLException("BIO_read_filename failed", ERR_get_error());
+
+	cert = PEM_read_bio_X509_AUX(fpcert, NULL, NULL, NULL);
+	if (cert == NULL)
+		throw OpenSSLException("PEM_read_bio_X509_AUX failed", ERR_get_error());
+
+	BIO_free(fpcert);
+
+	return shared_ptr<X509>(cert, X509_free);
+}

@@ -11,7 +11,7 @@ void DiscoveryComponent::Start(void)
 {
 	m_DiscoveryEndpoint = make_shared<VirtualEndpoint>();
 	m_DiscoveryEndpoint->RegisterMethodHandler("message::Welcome",
-		bind_weak(&DiscoveryComponent::GetPeersMessageHandler, shared_from_this()));
+		bind_weak(&DiscoveryComponent::WelcomeMessageHandler, shared_from_this()));
 
 	m_DiscoveryEndpoint->RegisterMethodSource("discovery::PeerAvailable");
 	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::GetPeers",
@@ -28,8 +28,34 @@ void DiscoveryComponent::Stop(void)
 		mgr->UnregisterEndpoint(m_DiscoveryEndpoint);
 }
 
+int DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea)
+{
+	if (endpoint == neea.Endpoint)
+		return 0;
+
+	if (endpoint->GetIdentity() == neea.Endpoint->GetIdentity()) {
+		Application::Log("Detected duplicate identity (" + endpoint->GetIdentity() + " - Disconnecting endpoint.");
+
+		endpoint->Stop();
+		GetEndpointManager()->UnregisterEndpoint(endpoint);
+	}
+
+	return 0;
+}
+
 int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& neea)
 {
+	if (neea.Sender->GetIdentity() == GetEndpointManager()->GetIdentity()) {
+		Application::Log("Detected loop-back connection - Disconnecting endpoint.");
+
+		neea.Sender->Stop();
+		GetEndpointManager()->UnregisterEndpoint(neea.Sender);
+
+		return 0;
+	}
+
+	GetEndpointManager()->ForeachEndpoint(bind(&DiscoveryComponent::CheckExistingEndpoint, this, neea.Sender, _1));
+
 	JsonRpcRequest request;
 	request.SetMethod("discovery::GetPeers");
 	GetEndpointManager()->SendUnicastRequest(m_DiscoveryEndpoint, neea.Sender, request);

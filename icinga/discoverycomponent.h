@@ -14,6 +14,8 @@ private:
 	int WelcomeMessageHandler(const NewRequestEventArgs& neea);
 	int GetPeersMessageHandler(const NewRequestEventArgs& nrea);
 
+	int CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea);
+
 public:
 	virtual string GetName(void) const;
 	virtual void Start(void);

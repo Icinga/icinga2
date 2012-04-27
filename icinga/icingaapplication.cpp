@@ -22,9 +22,14 @@ int IcingaApplication::Main(const vector<string>& args)
 		return EXIT_FAILURE;
 	}
 
+	shared_ptr<X509> cert = Utility::GetX509Certificate("icinga-c1.crt");
+	string identity = Utility::GetCertificateCN(cert);
+
+	Application::Log("My identity: " + identity);
+
 	shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext("icinga-c1.crt", "icinga-c1.key", "ca.crt");
 
-	m_EndpointManager = make_shared<EndpointManager>(sslContext);
+	m_EndpointManager = make_shared<EndpointManager>(identity, sslContext);
 
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga";
 	AddComponentSearchDir(componentDirectory);

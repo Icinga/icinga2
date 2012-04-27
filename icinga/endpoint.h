@@ -53,6 +53,8 @@ public:
 	virtual void ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message) = 0;
 	virtual void ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message) = 0;
 
+	virtual void Stop(void) = 0;
+
 	Event<NewMethodEventArgs> OnNewMethodSink;
 	Event<NewMethodEventArgs> OnNewMethodSource;
 

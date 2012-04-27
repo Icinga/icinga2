@@ -2,9 +2,15 @@
 
 using namespace icinga;
 
-EndpointManager::EndpointManager(shared_ptr<SSL_CTX> sslContext)
+EndpointManager::EndpointManager(string identity, shared_ptr<SSL_CTX> sslContext)
 {
+	m_Identity = identity;
 	m_SSLContext = sslContext;
+}
+
+string EndpointManager::GetIdentity(void) const
+{
+	return m_Identity;
 }
 
 void EndpointManager::AddListener(unsigned short port)
@@ -160,8 +166,13 @@ void EndpointManager::ForeachEndpoint(function<int (const NewEndpointEventArgs&)
 {
 	NewEndpointEventArgs neea;
 	neea.Source = shared_from_this();
-	for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++) {
-		neea.Endpoint = *i;
+
+	list<Endpoint::Ptr>::iterator prev, i;
+	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); ) {
+		prev = i;
+		i++;
+
+		neea.Endpoint = *prev;
 		callback(neea);
 	}
 }

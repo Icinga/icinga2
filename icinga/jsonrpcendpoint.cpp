@@ -199,3 +199,11 @@ int JsonRpcEndpoint::VerifyCertificateHandler(const VerifyCertificateEventArgs& 
 
 	return 0;
 }
+
+void JsonRpcEndpoint::Stop(void)
+{
+	if (m_Client) {
+		m_Client->Close();
+		m_Client = JsonRpcClient::Ptr();
+	}
+}

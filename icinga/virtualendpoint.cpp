@@ -83,3 +83,8 @@ bool VirtualEndpoint::IsAllowedMethodSource(string method) const
 {
 	return true;
 }
+
+void VirtualEndpoint::Stop(void)
+{
+	/* Nothing to do here. */
+}
