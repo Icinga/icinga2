@@ -65,7 +65,7 @@ int DemoComponent::DemoTimerHandler(const TimerEventArgs& tea)
 
 int DemoComponent::HelloWorldRequestHandler(const NewRequestEventArgs& nrea)
 {
-	Application::Log("Got 'hello world' from address:" + nrea.Sender->GetAddress() + ", identity:" + nrea.Sender->GetIdentity());
+	Application::Log("Got 'hello world' from address=" + nrea.Sender->GetAddress() + ", identity=" + nrea.Sender->GetIdentity());
 
 	return 0;
 }

@@ -137,8 +137,7 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 
 int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 {
-	string address = GetAddress();
-	Application::Log("Lost connection to endpoint: " + address);
+	Application::Log("Lost connection to endpoint: identity=" + GetIdentity());
 
 	m_PendingCalls.clear();
 
