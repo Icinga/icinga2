@@ -201,8 +201,6 @@ int JsonRpcEndpoint::VerifyCertificateHandler(const VerifyCertificateEventArgs& 
 
 void JsonRpcEndpoint::Stop(void)
 {
-	if (m_Client) {
+	if (m_Client)
 		m_Client->Close();
-		m_Client = JsonRpcClient::Ptr();
-	}
 }

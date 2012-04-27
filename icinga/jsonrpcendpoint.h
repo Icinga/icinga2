@@ -18,8 +18,6 @@ private:
 	string m_PeerHostname;
 	unsigned short m_PeerPort;
 
-	bool IsConnected(void) const;
-	
 	int NewMessageHandler(const NewMessageEventArgs& nmea);
 	int ClientClosedHandler(const EventArgs& ea);
 	int ClientErrorHandler(const SocketErrorEventArgs& ea);
@@ -47,6 +45,7 @@ public:
 	virtual bool IsAllowedMethodSource(string method) const;
 
 	virtual bool IsLocal(void) const;
+	virtual bool IsConnected(void) const;
 
 	virtual void ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message);
 	virtual void ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message);

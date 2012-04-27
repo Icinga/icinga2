@@ -33,11 +33,14 @@ int DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewE
 	if (endpoint == neea.Endpoint)
 		return 0;
 
-	if (endpoint->GetIdentity() == neea.Endpoint->GetIdentity()) {
-		Application::Log("Detected duplicate identity (" + endpoint->GetIdentity() + " - Disconnecting endpoint.");
+	if (!neea.Endpoint->IsConnected())
+		return 0;
 
-		endpoint->Stop();
-		GetEndpointManager()->UnregisterEndpoint(endpoint);
+	if (endpoint->GetIdentity() == neea.Endpoint->GetIdentity()) {
+		Application::Log("Detected duplicate identity (" + endpoint->GetIdentity() + " - Disconnecting old endpoint.");
+
+		neea.Endpoint->Stop();
+		GetEndpointManager()->UnregisterEndpoint(neea.Endpoint);
 	}
 
 	return 0;
@@ -61,6 +64,7 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& neea)
 	GetEndpointManager()->SendUnicastRequest(m_DiscoveryEndpoint, neea.Sender, request);
 
 	/* TODO: send information about this client to all other clients */
+	/* TODO: send stored events for this client */
 
 	return 0;
 }

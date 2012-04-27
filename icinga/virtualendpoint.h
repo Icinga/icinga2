@@ -35,6 +35,7 @@ public:
 	virtual string GetAddress(void) const;
 
 	virtual bool IsLocal(void) const;
+	virtual bool IsConnected(void) const;
 
 	virtual void ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message);
 	virtual void ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message);

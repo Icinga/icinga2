@@ -50,21 +50,21 @@ void Socket::Close(void)
 
 void Socket::CloseInternal(bool from_dtor)
 {
-	if (m_FD != INVALID_SOCKET) {
-		closesocket(m_FD);
-		m_FD = INVALID_SOCKET;
+	if (m_FD == INVALID_SOCKET)
+		return;
 
-		/* nobody can possibly have a valid event subscription when the
-		   destructor has been called */
-		if (!from_dtor) {
-			EventArgs ea;
-			ea.Source = shared_from_this();
-			OnClosed(ea);
-		}
-	}
+	closesocket(m_FD);
+	m_FD = INVALID_SOCKET;
 
-	if (!from_dtor)
+	/* nobody can possibly have a valid event subscription when the
+		destructor has been called */
+	if (!from_dtor) {
 		Stop();
+
+		EventArgs ea;
+		ea.Source = shared_from_this();
+		OnClosed(ea);
+	}
 }
 
 void Socket::HandleSocketError(void)

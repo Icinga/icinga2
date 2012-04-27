@@ -14,6 +14,11 @@ bool VirtualEndpoint::IsLocal(void) const
 	return true;
 }
 
+bool VirtualEndpoint::IsConnected(void) const
+{
+	return true;
+}
+
 void VirtualEndpoint::RegisterMethodHandler(string method, function<int (const NewRequestEventArgs&)> callback)
 {
 	m_MethodHandlers[method] += callback;

@@ -49,6 +49,7 @@ public:
 	virtual bool IsAllowedMethodSource(string method) const = 0;
 
 	virtual bool IsLocal(void) const = 0;
+	virtual bool IsConnected(void) const = 0;
 
 	virtual void ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message) = 0;
 	virtual void ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message) = 0;
