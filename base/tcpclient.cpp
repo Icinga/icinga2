@@ -25,31 +25,54 @@ void TCPClient::Start(void)
 
 void TCPClient::Connect(const string& hostname, unsigned short port)
 {
-	hostent *hent;
-	sockaddr_in sin;
+	m_Role = RoleOutbound;
 
-	memset(&sin, 0, sizeof(sin));
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(port);
+	stringstream s;
+	s << port;
+	string strPort = s.str();
 
-	hent = gethostbyname(hostname.c_str());
+	addrinfo hints;
+	addrinfo *result;
 
-	if (hent != NULL)
-		sin.sin_addr.s_addr = ((in_addr *)hent->h_addr_list[0])->s_addr;
-	else
-		sin.sin_addr.s_addr = inet_addr(hostname.c_str());
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
 
-	int rc = connect(GetFD(), (sockaddr *)&sin, sizeof(sin));
+	int rc = getaddrinfo(hostname.c_str(), strPort.c_str(), &hints, &result);
 
-#ifdef _WIN32
-	if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
-#else /* _WIN32 */
-	if (rc < 0 && errno != EINPROGRESS) {
-#endif /* _WIN32 */
+	if (rc < 0) {
 		HandleSocketError();
+
+		return;
 	}
 
-	m_Role = RoleOutbound;
+	int fd = INVALID_SOCKET;
+
+	for (addrinfo *info = result; info != NULL; info = info->ai_next) {
+		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+
+		if (fd == INVALID_SOCKET)
+			continue;
+
+		SetFD(fd);
+
+		rc = connect(fd, info->ai_addr, info->ai_addrlen);
+
+#ifdef _WIN32
+	if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
+#else /* _WIN32 */
+	if (rc < 0 && errno != EINPROGRESS)
+#endif /* _WIN32 */
+			continue;
+
+		break;
+	}
+
+	if (fd == INVALID_SOCKET)
+		HandleSocketError();
+
+	freeaddrinfo(result);
 }
 
 FIFO::Ptr TCPClient::GetSendQueue(void)

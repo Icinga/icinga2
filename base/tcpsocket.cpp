@@ -2,11 +2,11 @@
 
 using namespace icinga;
 
-void TCPSocket::MakeSocket(void)
+void TCPSocket::MakeSocket(int family)
 {
 	assert(GetFD() == INVALID_SOCKET);
 
-	int fd = socket(AF_INET, SOCK_STREAM, 0);
+	int fd = socket(family, SOCK_STREAM, 0);
 
 	if (fd == INVALID_SOCKET) {
 		HandleSocketError();
@@ -17,118 +17,106 @@ void TCPSocket::MakeSocket(void)
 	SetFD(fd);
 }
 
-void TCPSocket::Bind(unsigned short port)
+void TCPSocket::Bind(unsigned short port, int family)
 {
-	Bind(NULL, port);
+	Bind(NULL, port, family);
 }
 
-void TCPSocket::Bind(const char *hostname, unsigned short port)
+void TCPSocket::Bind(const char *hostname, unsigned short port, int family)
 {
+	stringstream s;
+	s << port;
+	string strPort = s.str();
+
+	addrinfo hints;
+	addrinfo *result;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_flags = AI_PASSIVE;
+
+	if (getaddrinfo(hostname, strPort.c_str(), &hints, &result) < 0) {
+		HandleSocketError();
+
+		return;
+	}
+
+	int fd = INVALID_SOCKET;
+
+	for (addrinfo *info = result; info != NULL; info = info->ai_next) {
+		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+
+		if (fd == INVALID_SOCKET)
+			continue;
+
+		SetFD(fd);
+
+		const int optFalse = 0;
+		setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&optFalse, sizeof(optFalse));
+
 #ifndef _WIN32
-	const int optTrue = 1;
-	setsockopt(GetFD(), SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
+		const int optTrue = 1;
+		setsockopt(GetFD(), SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
 #endif /* _WIN32 */
 
-	sockaddr_in sin;
-	memset(&sin, 0, sizeof(sin));
-	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = hostname ? inet_addr(hostname) : htonl(INADDR_ANY);
-	sin.sin_port = htons(port);
-
-	if (::bind(GetFD(), (sockaddr *)&sin, sizeof(sin)) < 0)
-		HandleSocketError();
-}
-
-string TCPSocket::GetAddressFromSockaddr(sockaddr *address)
-{
-	static char buffer[256];
+		int rc = ::bind(fd, info->ai_addr, info->ai_addrlen);
 
 #ifdef _WIN32
-	DWORD BufferLength = sizeof(buffer);
-
-	socklen_t len;
-	if (address->sa_family == AF_INET)
-		len = sizeof(sockaddr_in);
-	else if (address->sa_family == AF_INET6)
-		len = sizeof(sockaddr_in6);
-	else {
-		assert(0);
-
-		return "";
-	}
-
-	if (WSAAddressToString(address, len, NULL, buffer, &BufferLength) != 0)
-		return string();
+	if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
 #else /* _WIN32 */
-	void *IpAddress;
-
-	if (address->sa_family == AF_INET)
-		IpAddress = &(((sockaddr_in *)address)->sin_addr);
-	else
-		IpAddress = &(((sockaddr_in6 *)address)->sin6_addr);
-
-	if (inet_ntop(address->sa_family, IpAddress, buffer, sizeof(buffer)) == NULL)
-		return string();
+	if (rc < 0 && errno != EINPROGRESS)
 #endif /* _WIN32 */
+			continue;
 
-	return buffer;
-}
-
-unsigned short TCPSocket::GetPortFromSockaddr(sockaddr *address)
-{
-	if (address->sa_family == AF_INET)
-		return htons(((sockaddr_in *)address)->sin_port);
-	else if (address->sa_family == AF_INET6)
-		return htons(((sockaddr_in6 *)address)->sin6_port);
-	else {
-		assert(0);
-
-		return 0;
+		break;
 	}
-}
 
-bool TCPSocket::GetClientSockaddr(sockaddr_storage *address)
-{
-	socklen_t len = sizeof(*address);
-	
-	if (getsockname(GetFD(), (sockaddr *)address, &len) < 0) {
+	if (fd == INVALID_SOCKET)
 		HandleSocketError();
 
-		return false;
-	}
-
-	return true;
+	freeaddrinfo(result);
 }
 
-bool TCPSocket::GetPeerSockaddr(sockaddr_storage *address)
+
+string TCPSocket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 {
-	socklen_t len = sizeof(*address);
-	
-	if (getpeername(GetFD(), (sockaddr *)address, &len) < 0) {
-		HandleSocketError();
+	char host[NI_MAXHOST];
+	char service[NI_MAXSERV];
 
-		return false;
-	}
+	if (getnameinfo(address, len, host, sizeof(host), service, sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0)
+		throw InvalidArgumentException(); /* TODO: throw proper exception */
 
-	return true;
+	stringstream s;
+	s << "[" << host << "]:" << service;
+	return s.str();
 }
 
 string TCPSocket::GetClientAddress(void)
 {
 	sockaddr_storage sin;
+	socklen_t len = sizeof(sin);
 
-	if (!GetClientSockaddr(&sin))
-		return "";
+	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0) {
+		HandleSocketError();
 
-	return GetAddressFromSockaddr((sockaddr *)&sin);
+		return string();
+	}
+
+	return GetAddressFromSockaddr((sockaddr *)&sin, len);
 }
 
 string TCPSocket::GetPeerAddress(void)
 {
 	sockaddr_storage sin;
+	socklen_t len = sizeof(sin);
 
-	if (!GetPeerSockaddr(&sin))
-		return "";
+	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0) {
+		HandleSocketError();
 
-	return GetAddressFromSockaddr((sockaddr *)&sin);
+		return string();
+	}
+
+	return GetAddressFromSockaddr((sockaddr *)&sin, len);
 }

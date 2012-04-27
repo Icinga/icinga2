@@ -37,7 +37,7 @@ void TCPServer::Listen(void)
 int TCPServer::ReadableEventHandler(const EventArgs& ea)
 {
 	int fd;
-	sockaddr_in addr;
+	sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
 
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);

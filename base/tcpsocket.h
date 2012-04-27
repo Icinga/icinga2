@@ -7,17 +7,16 @@ namespace icinga
 class I2_BASE_API TCPSocket : public Socket
 {
 private:
-	static string GetAddressFromSockaddr(sockaddr *address);
-	static unsigned short GetPortFromSockaddr(sockaddr *address);
+	static string GetAddressFromSockaddr(sockaddr *address, socklen_t len);
+
+	void MakeSocket(int family);
 
 public:
 	typedef shared_ptr<TCPSocket> Ptr;
 	typedef weak_ptr<TCPSocket> WeakPtr;
 
-	void MakeSocket(void);
-
-	void Bind(unsigned short port);
-	void Bind(const char *hostname, unsigned short port);
+	void Bind(unsigned short port, int family);
+	void Bind(const char *hostname, unsigned short port, int family);
 
 	bool GetClientSockaddr(sockaddr_storage *address);
 	bool GetPeerSockaddr(sockaddr_storage *address);

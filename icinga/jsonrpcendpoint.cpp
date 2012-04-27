@@ -63,7 +63,6 @@ void JsonRpcEndpoint::Connect(string host, unsigned short port, shared_ptr<SSL_C
 	m_PeerPort = port;
 
 	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>(RoleOutbound, sslContext);
-	client->MakeSocket();
 	client->Connect(host, port);
 	client->Start();
 

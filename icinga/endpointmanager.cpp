@@ -16,8 +16,7 @@ void EndpointManager::AddListener(unsigned short port)
 	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>(m_SSLContext);
 	RegisterServer(server);
 
-	server->MakeSocket();
-	server->Bind(port);
+	server->Bind(port, AF_INET6);
 	server->Listen();
 	server->Start();
 }
@@ -25,7 +24,7 @@ void EndpointManager::AddListener(unsigned short port)
 void EndpointManager::AddConnection(string host, unsigned short port)
 {
 	stringstream s;
-	s << "Adding new endpoint: " << host << ":" << port;
+	s << "Adding new endpoint: [" << host << "]:" << port;
 	Application::Log(s.str());
 
 	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
