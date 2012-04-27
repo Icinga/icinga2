@@ -33,16 +33,15 @@ public:
 
 	void operator()(const TArgs& args)
 	{
-		typename vector<DelegateType>::iterator prev, i;
+		typename vector<DelegateType>::iterator i;
 
 		for (i = m_Delegates.begin(); i != m_Delegates.end(); ) {
-			prev = i;
-			i++;
-
-			int result = (*prev)(args);
+			int result = (*i)(args);
 
 			if (result == -1)
-				m_Delegates.erase(prev);
+				i = m_Delegates.erase(i);
+			else
+				i++;
 		}
 	}
 };
