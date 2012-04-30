@@ -17,9 +17,5 @@
 #include "endpointmanager.h"
 #include "icingaapplication.h"
 #include "icingacomponent.h"
-#include "subscriptioncomponent.h"
-#include "subscriptionmessage.h"
-#include "identitymessage.h"
-#include "discoverycomponent.h"
 
 #endif /* I2ICINGA_H */

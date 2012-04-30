@@ -5,8 +5,6 @@ pkglib_LTLIBRARIES =  \
 	libicinga.la
 
 libicinga_la_SOURCES =  \
-	discoverycomponent.cpp \
-	discoverycomponent.h \
 	endpoint.cpp \
 	endpoint.h \
 	endpointmanager.cpp \
@@ -15,15 +13,9 @@ libicinga_la_SOURCES =  \
 	icingaapplication.h \
 	icingacomponent.cpp \
 	icingacomponent.h \
-	identitymessage.cpp \
-	identitymessage.h \
 	i2-icinga.h \
 	jsonrpcendpoint.cpp \
 	jsonrpcendpoint.h \
-	subscriptioncomponent.cpp \
-	subscriptioncomponent.h \
-	subscriptionmessage.cpp \
-	subscriptionmessage.h \
 	virtualendpoint.cpp \
 	virtualendpoint.h
 

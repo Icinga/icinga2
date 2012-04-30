@@ -79,14 +79,6 @@ int IcingaApplication::Main(const vector<string>& args)
 	connectionCollection->ForEachObject(NewRpcConnectionHandler);
 	connectionCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcConnectionHandler, shared_from_this());
 
-	/* load the subscription component */
-	SubscriptionComponent::Ptr subscriptionComponent = make_shared<SubscriptionComponent>();
-	RegisterComponent(subscriptionComponent);
-
-	/* load the discovery component */
-	DiscoveryComponent::Ptr discoveryComponent = make_shared<DiscoveryComponent>();
-	RegisterComponent(discoveryComponent);
-
 	RunEventLoop();
 
 	return EXIT_SUCCESS;
@@ -153,6 +145,14 @@ int IcingaApplication::NewIcingaConfigHandler(const EventArgs& ea)
 	string cakey;
 	if (object->GetPropertyString("cakey", &cakey))
 		SetCAKeyFile(cakey);
+
+	string node;
+	if (object->GetPropertyString("node", &node))
+		SetNode(node);
+
+	string service;
+	if (object->GetPropertyString("service", &service))
+		SetService(service);
 
 	return 0;
 }
@@ -255,4 +255,24 @@ void IcingaApplication::SetCAKeyFile(string cakey)
 string IcingaApplication::GetCAKeyFile(void) const
 {
 	return m_CAKeyFile;
+}
+
+void IcingaApplication::SetNode(string node)
+{
+	m_Node = node;
+}
+
+string IcingaApplication::GetNode(void) const
+{
+	return m_Node;
+}
+
+void IcingaApplication::SetService(string service)
+{
+	m_Service = service;
+}
+
+string IcingaApplication::GetService(void) const
+{
+	return m_Service;
 }

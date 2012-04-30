@@ -113,3 +113,45 @@ DictionaryIterator Dictionary::End(void)
 {
 	return m_Data.end();
 }
+
+long Dictionary::GetLength(void) const
+{
+	return m_Data.size();
+}
+
+void Dictionary::AddUnnamedProperty(const Variant& value)
+{
+	map<string, Variant>::const_iterator it;
+	string key;
+	do {
+		long index = GetLength();
+	
+		stringstream s;
+		s << "_" << GetLength();
+
+		key = s.str();
+		it = m_Data.find(key);
+	} while (it != m_Data.end());
+
+	m_Data[key] = value;
+}
+
+void Dictionary::AddUnnamedPropertyString(const string& value)
+{
+	AddUnnamedProperty(Variant(value));
+}
+
+void Dictionary::AddUnnamedPropertyInteger(long value)
+{
+	AddUnnamedProperty(Variant(value));
+}
+
+void Dictionary::AddUnnamedPropertyDictionary(const Dictionary::Ptr& value)
+{
+	AddUnnamedProperty(Variant(value));
+}
+
+void Dictionary::AddUnnamedPropertyObject(const Object::Ptr& value)
+{
+	AddUnnamedProperty(Variant(value));
+}

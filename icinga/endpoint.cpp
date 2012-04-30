@@ -68,7 +68,7 @@ void Endpoint::UnregisterMethodSource(string method)
 
 bool Endpoint::IsMethodSource(string method) const
 {
-	return (m_MethodSources.find(method) != m_MethodSinks.end());
+	return (m_MethodSources.find(method) != m_MethodSources.end());
 }
 
 void Endpoint::ForeachMethodSource(function<int (const NewMethodEventArgs&)> callback)
@@ -99,4 +99,24 @@ int Endpoint::CountMethodSinks(void) const
 int Endpoint::CountMethodSources(void) const
 {
 	return m_MethodSources.size();
+}
+
+set<string>::const_iterator Endpoint::BeginSinks(void) const
+{
+	return m_MethodSinks.begin();
+}
+
+set<string>::const_iterator Endpoint::EndSinks(void) const
+{
+	return m_MethodSinks.end();
+}
+
+set<string>::const_iterator Endpoint::BeginSources(void) const
+{
+	return m_MethodSources.begin();
+}
+
+set<string>::const_iterator Endpoint::EndSources(void) const
+{
+	return m_MethodSources.end();
 }

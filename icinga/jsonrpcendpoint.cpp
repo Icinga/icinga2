@@ -15,48 +15,6 @@ JsonRpcClient::Ptr JsonRpcEndpoint::GetClient(void)
 	return m_Client;
 }
 
-void JsonRpcEndpoint::AddAllowedMethodSinkPrefix(string method)
-{
-	m_AllowedMethodSinkPrefixes.insert(method);
-}
-
-void JsonRpcEndpoint::RemoveAllowedMethodSinkPrefix(string method)
-{
-	m_AllowedMethodSinkPrefixes.erase(method);
-}
-
-bool JsonRpcEndpoint::IsAllowedMethodSink(string method) const
-{
-	set<string>::iterator i;
-	for (i = m_AllowedMethodSinkPrefixes.begin(); i != m_AllowedMethodSinkPrefixes.end(); i++) {
-		if (method.compare(0, method.length(), method) == 0)
-			return true;
-	}
-
-	return false;
-}
-
-void JsonRpcEndpoint::AddAllowedMethodSourcePrefix(string method)
-{
-	m_AllowedMethodSourcePrefixes.insert(method);
-}
-
-void JsonRpcEndpoint::RemoveAllowedMethodSourcePrefix(string method)
-{
-	m_AllowedMethodSourcePrefixes.erase(method);
-}
-
-bool JsonRpcEndpoint::IsAllowedMethodSource(string method) const
-{
-	set<string>::iterator i;
-	for (i = m_AllowedMethodSourcePrefixes.begin(); i != m_AllowedMethodSourcePrefixes.end(); i++) {
-		if (method.compare(0, method.length(), method) == 0)
-			return true;
-	}
-
-	return false;
-}
-
 void JsonRpcEndpoint::Connect(string host, unsigned short port, shared_ptr<SSL_CTX> sslContext)
 {
 	m_PeerHostname = host;
@@ -115,7 +73,7 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 
 	string method;
 	if (message.GetPropertyString("method", &method)) {
-		if (!IsAllowedMethodSource(method))
+		if (!IsMethodSource(method))
 			return 0;
 
 		JsonRpcRequest request = message;

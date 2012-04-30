@@ -56,3 +56,18 @@ void Message::SetPropertyMessage(string key, const Message& value)
 {
 	GetDictionary()->SetProperty(key, Variant(value.GetDictionary()));
 }
+
+void Message::AddUnnamedPropertyString(const string& value)
+{
+	GetDictionary()->AddUnnamedPropertyString(value);
+}
+
+void Message::AddUnnamedPropertyInteger(long value)
+{
+	GetDictionary()->AddUnnamedPropertyInteger(value);
+}
+
+void Message::AddUnnamedPropertyMessage(const Message& value)
+{
+	GetDictionary()->AddUnnamedPropertyDictionary(value.GetDictionary());
+}

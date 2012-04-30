@@ -24,6 +24,10 @@ public:
 
 	bool GetPropertyMessage(string key, Message *value) const;
 	void SetPropertyMessage(string key, const Message& value);
+
+	void AddUnnamedPropertyString(const string& value);
+	void AddUnnamedPropertyInteger(long value);
+	void AddUnnamedPropertyMessage(const Message& value);
 };
 
 }

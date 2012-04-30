@@ -40,13 +40,6 @@ public:
 	void RegisterMethodSource(string method);
 	void UnregisterMethodSource(string method);
 	bool IsMethodSource(string method) const;
-	
-	virtual void AddAllowedMethodSinkPrefix(string method) = 0;
-	virtual void RemoveAllowedMethodSinkPrefix(string method) = 0;
-	virtual bool IsAllowedMethodSink(string method) const = 0;
-	virtual void AddAllowedMethodSourcePrefix(string method) = 0;
-	virtual void RemoveAllowedMethodSourcePrefix(string method) = 0;
-	virtual bool IsAllowedMethodSource(string method) const = 0;
 
 	virtual bool IsLocal(void) const = 0;
 	virtual bool IsConnected(void) const = 0;
@@ -68,7 +61,14 @@ public:
 	int CountMethodSinks(void) const;
 	int CountMethodSources(void) const;
 
+	set<string>::const_iterator BeginSinks(void) const;
+	set<string>::const_iterator EndSinks(void) const;
+
+	set<string>::const_iterator BeginSources(void) const;
+	set<string>::const_iterator EndSources(void) const;
+
 	Event<EventArgs> OnIdentityChanged;
+	Event<EventArgs> OnSessionEstablished;
 };
 
 }

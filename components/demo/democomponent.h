@@ -11,7 +11,6 @@ private:
 	VirtualEndpoint::Ptr m_DemoEndpoint;
 
 	int DemoTimerHandler(const TimerEventArgs& tea);
-	int NewEndpointHandler(const NewEndpointEventArgs& neea);
 	int HelloWorldRequestHandler(const NewRequestEventArgs& nrea);
 
 public:

@@ -41,6 +41,14 @@ public:
 	DictionaryIterator Begin(void);
 	DictionaryIterator End(void);
 
+	void AddUnnamedProperty(const Variant& value);
+	void AddUnnamedPropertyString(const string& value);
+	void AddUnnamedPropertyInteger(long value);
+	void AddUnnamedPropertyDictionary(const Dictionary::Ptr& value);
+	void AddUnnamedPropertyObject(const Object::Ptr& value);
+
+	long GetLength(void) const;
+
 	Event<PropertyChangedEventArgs> OnPropertyChanged;
 };
 

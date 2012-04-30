@@ -79,12 +79,6 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 	endpoint->SetEndpointManager(static_pointer_cast<EndpointManager>(shared_from_this()));
 	m_Endpoints.push_front(endpoint);
 
-	endpoint->OnNewMethodSink += bind_weak(&EndpointManager::NewMethodSinkHandler, shared_from_this());
-	endpoint->ForeachMethodSink(bind(&EndpointManager::NewMethodSinkHandler, this, _1));
-
-	endpoint->OnNewMethodSource += bind_weak(&EndpointManager::NewMethodSourceHandler, shared_from_this());
-	endpoint->ForeachMethodSource(bind(&EndpointManager::NewMethodSourceHandler, this, _1));
-
 	NewEndpointEventArgs neea;
 	neea.Source = shared_from_this();
 	neea.Endpoint = endpoint;
@@ -109,7 +103,7 @@ void EndpointManager::SendUnicastRequest(Endpoint::Ptr sender, Endpoint::Ptr rec
 	if (!request.GetMethod(&method))
 		throw InvalidArgumentException("Missing 'method' parameter.");
 
-	if (recipient->IsMethodSink(method) && recipient->IsAllowedMethodSink(method))
+	if (recipient->IsMethodSink(method))
 		recipient->ProcessRequest(sender, request);
 }
 
@@ -134,44 +128,6 @@ void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRe
 	{
 		SendUnicastRequest(sender, *i, request, fromLocal);
 	}
-}
-
-int EndpointManager::NewMethodSinkHandler(const NewMethodEventArgs& ea)
-{
-	Endpoint::Ptr sender = static_pointer_cast<Endpoint>(ea.Source);
-
-	if (!sender->IsLocal())
-		return 0;
-
-	JsonRpcRequest request;
-	request.SetMethod("message::Subscribe");
-
-	SubscriptionMessage subscriptionMessage;
-	subscriptionMessage.SetMethod(ea.Method);
-	request.SetParams(subscriptionMessage);
-
-	SendMulticastRequest(sender, request);
-
-	return 0;
-}
-
-int EndpointManager::NewMethodSourceHandler(const NewMethodEventArgs& ea)
-{
-	Endpoint::Ptr sender = static_pointer_cast<Endpoint>(ea.Source);
-
-	if (!sender->IsLocal())
-		return 0;
-
-	JsonRpcRequest request;
-	request.SetMethod("message::Provide");
-
-	SubscriptionMessage subscriptionMessage;
-	subscriptionMessage.SetMethod(ea.Method);
-	request.SetParams(subscriptionMessage);
-
-	SendMulticastRequest(sender, request);
-
-	return 0;
 }
 
 void EndpointManager::ForeachEndpoint(function<int (const NewEndpointEventArgs&)> callback)

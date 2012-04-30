@@ -3,4 +3,5 @@
 
 SUBDIRS = configfile \
 	configrpc \
-	demo
+	demo \
+	discovery

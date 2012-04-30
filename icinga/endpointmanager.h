@@ -22,9 +22,6 @@ class I2_ICINGA_API EndpointManager : public Object
 
 	int NewClientHandler(const NewClientEventArgs& ncea);
 
-	int NewMethodSinkHandler(const NewMethodEventArgs& ea);
-	int NewMethodSourceHandler(const NewMethodEventArgs& ea);
-
 public:
 	typedef shared_ptr<EndpointManager> Ptr;
 	typedef weak_ptr<EndpointManager> WeakPtr;

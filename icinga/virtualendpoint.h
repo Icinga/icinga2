@@ -25,13 +25,6 @@ public:
 	void RegisterMethodHandler(string method, function<int (const NewRequestEventArgs&)> callback);
 	void UnregisterMethodHandler(string method, function<int (const NewRequestEventArgs&)> callback);
 
-	virtual void AddAllowedMethodSinkPrefix(string method);
-	virtual void RemoveAllowedMethodSinkPrefix(string method);
-	virtual bool IsAllowedMethodSink(string method) const;
-	virtual void AddAllowedMethodSourcePrefix(string method);
-	virtual void RemoveAllowedMethodSourcePrefix(string method);
-	virtual bool IsAllowedMethodSource(string method) const;
-
 	virtual string GetAddress(void) const;
 
 	virtual bool IsLocal(void) const;

@@ -12,6 +12,8 @@ private:
 	string m_PrivateKeyFile;
 	string m_PublicKeyFile;
 	string m_CAKeyFile;
+	string m_Node;
+	string m_Service;
 
 	int NewComponentHandler(const EventArgs& ea);
 	int DeletedComponentHandler(const EventArgs& ea);
@@ -45,6 +47,12 @@ public:
 
 	void SetCAKeyFile(string cakey);
 	string GetCAKeyFile(void) const;
+
+	void SetNode(string node);
+	string GetNode(void) const;
+
+	void SetService(string service);
+	string GetService(void) const;
 };
 
 }

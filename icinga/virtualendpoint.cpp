@@ -59,36 +59,6 @@ void VirtualEndpoint::ProcessResponse(Endpoint::Ptr sender, const JsonRpcRespons
 	throw NotImplementedException();
 }
 
-void VirtualEndpoint::AddAllowedMethodSinkPrefix(string method)
-{
-	/* Nothing to do here. */
-}
-
-void VirtualEndpoint::RemoveAllowedMethodSinkPrefix(string method)
-{
-	/* Nothing to do here. */
-}
-
-void VirtualEndpoint::AddAllowedMethodSourcePrefix(string method)
-{
-	/* Nothing to do here. */
-}
-
-void VirtualEndpoint::RemoveAllowedMethodSourcePrefix(string method)
-{
-	/* Nothing to do here. */
-}
-
-bool VirtualEndpoint::IsAllowedMethodSink(string method) const
-{
-	return true;
-}
-
-bool VirtualEndpoint::IsAllowedMethodSource(string method) const
-{
-	return true;
-}
-
 void VirtualEndpoint::Stop(void)
 {
 	/* Nothing to do here. */

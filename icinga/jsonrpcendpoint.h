@@ -12,8 +12,6 @@ private:
 	JsonRpcClient::Ptr m_Client;
 	map<string, Endpoint::Ptr> m_PendingCalls;
 	Timer::Ptr m_ReconnectTimer;
-	set<string> m_AllowedMethodSinkPrefixes;
-	set<string> m_AllowedMethodSourcePrefixes;
 
 	string m_PeerHostname;
 	unsigned short m_PeerPort;
@@ -36,13 +34,6 @@ public:
 
 	void SetAddress(string address);
 	virtual string GetAddress(void) const;
-
-	virtual void AddAllowedMethodSinkPrefix(string method);
-	virtual void RemoveAllowedMethodSinkPrefix(string method);
-	virtual bool IsAllowedMethodSink(string method) const;
-	virtual void AddAllowedMethodSourcePrefix(string method);
-	virtual void RemoveAllowedMethodSourcePrefix(string method);
-	virtual bool IsAllowedMethodSource(string method) const;
 
 	virtual bool IsLocal(void) const;
 	virtual bool IsConnected(void) const;
