@@ -76,7 +76,7 @@ bool Dictionary::GetPropertyDictionary(string key, Dictionary::Ptr *value)
 	dictionary = dynamic_pointer_cast<Dictionary>(data.GetObject());
 
 	if (dictionary == NULL)
-		throw InvalidArgumentException();
+		throw InvalidArgumentException("Property is not a dictionary.");
 
 	*value = dictionary;
 

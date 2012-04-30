@@ -27,7 +27,7 @@ ConfigObject::ConfigObject(const string& type, const string& name)
 void ConfigObject::SetHive(const ConfigHive::WeakPtr& hive)
 {
 	if (m_Hive.lock())
-		throw InvalidArgumentException();
+		throw InvalidArgumentException("Config object already has a parent hive.");
 
 	m_Hive = hive;
 	OnPropertyChanged += bind_weak(&ConfigObject::PropertyChangedHandler, shared_from_this());

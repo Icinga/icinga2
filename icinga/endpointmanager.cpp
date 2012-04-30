@@ -128,7 +128,7 @@ void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRe
 
 	string method;
 	if (!request.GetMethod(&method))
-		throw InvalidArgumentException();
+		throw InvalidArgumentException("Message is missing the 'method' property.");
 
 	for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 	{

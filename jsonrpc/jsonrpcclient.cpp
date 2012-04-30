@@ -19,26 +19,22 @@ void JsonRpcClient::SendMessage(const Message& message)
 
 int JsonRpcClient::DataAvailableHandler(const EventArgs& ea)
 {
-	Message message;
-	bool message_read;
-
 	while (true) {
 		try {
-			message_read = Netstring::ReadMessageFromFIFO(GetRecvQueue(), &message);
+			Message message;
+
+			if (Netstring::ReadMessageFromFIFO(GetRecvQueue(), &message)) {
+				NewMessageEventArgs nea;
+				nea.Source = shared_from_this();
+				nea.Message = message;
+				OnNewMessage(nea);
+			}
 		} catch (const Exception& ex) {
-			cerr << "Exception while reading from JSON-RPC client: " << ex.GetMessage() << endl;
+			Application::Log("Exception while processing message from JSON-RPC client: " + ex.GetMessage());
 			Close();
 
 			return 1;
 		}
-	
-		if (!message_read)
-			break;
-
-		NewMessageEventArgs nea;
-		nea.Source = shared_from_this();
-		nea.Message = message;
-		OnNewMessage(nea);
 	}
 
 	return 0;
