@@ -4,13 +4,11 @@
 namespace icinga
 {
 
-class DemoComponent : public Component
+class DemoComponent : public IcingaComponent
 {
 private:
 	Timer::Ptr m_DemoTimer;
 	VirtualEndpoint::Ptr m_DemoEndpoint;
-
-	IcingaApplication::Ptr GetIcingaApplication(void);
 
 	int DemoTimerHandler(const TimerEventArgs& tea);
 	int NewEndpointHandler(const NewEndpointEventArgs& neea);

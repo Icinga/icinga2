@@ -2,11 +2,6 @@
 
 using namespace icinga;
 
-IcingaApplication::Ptr DemoComponent::GetIcingaApplication(void)
-{
-	return static_pointer_cast<IcingaApplication>(GetApplication());
-}
-
 string DemoComponent::GetName(void) const
 {
 	return "democomponent";
