@@ -28,12 +28,12 @@ void TCPSocket::Bind(string node, string service, int family)
 	addrinfo *result;
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
+	hints.ai_family = family;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 
-	if (getaddrinfo(node.c_str(), service.c_str(), &hints, &result) < 0) {
+	if (getaddrinfo(node.empty() ? NULL : node.c_str(), service.c_str(), &hints, &result) < 0) {
 		HandleSocketError();
 
 		return;
