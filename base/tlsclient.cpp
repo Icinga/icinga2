@@ -56,6 +56,8 @@ void TLSClient::Start(void)
 		SSL_set_accept_state(m_SSL.get());
 	else
 		SSL_set_connect_state(m_SSL.get());
+
+	SSL_do_handshake(m_SSL.get());
 }
 
 int TLSClient::ReadableEventHandler(const EventArgs& ea)
