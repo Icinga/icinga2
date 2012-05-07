@@ -147,13 +147,13 @@ void EndpointManager::ForeachEndpoint(function<int (const NewEndpointEventArgs&)
 	}
 }
 
-bool EndpointManager::HasConnectedEndpoint(string identity) const
+Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
 {
 	list<Endpoint::Ptr>::const_iterator i;
 	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); i++) {
 		if ((*i)->GetIdentity() == identity)
-			return true;
+			return *i;
 	}
 
-	return false;
+	return Endpoint::Ptr();
 }

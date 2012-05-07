@@ -2,6 +2,11 @@
 
 using namespace icinga;
 
+Endpoint::Endpoint(void)
+{
+	m_HandshakeCounter = false;
+}
+
 string Endpoint::GetIdentity(void) const
 {
 	return m_Identity;
@@ -119,4 +124,14 @@ set<string>::const_iterator Endpoint::BeginSources(void) const
 set<string>::const_iterator Endpoint::EndSources(void) const
 {
 	return m_MethodSources.end();
+}
+
+void Endpoint::IncrementHandshakeCounter(void)
+{
+	m_HandshakeCounter++;
+}
+
+unsigned short Endpoint::GetHandshakeCounter(void) const
+{
+	return m_HandshakeCounter;
 }

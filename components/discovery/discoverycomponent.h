@@ -31,6 +31,8 @@ private:
 	int NewComponentMessageHandler(const NewRequestEventArgs& nrea);
 	int RegisterComponentMessageHandler(const NewRequestEventArgs& nrea);
 
+	int WelcomeMessageHandler(const NewRequestEventArgs& nrea);
+
 	void SendDiscoveryMessage(string method, string identity, Endpoint::Ptr recipient);
 	void ProcessDiscoveryMessage(string identity, DiscoveryMessage message);
 
@@ -44,6 +46,8 @@ private:
 	int ReconnectTimerHandler(const TimerEventArgs& tea);
 
 	bool IsBroker(void) const;
+
+	void FinishDiscoverySetup(Endpoint::Ptr endpoint);
 
 public:
 	virtual string GetName(void) const;

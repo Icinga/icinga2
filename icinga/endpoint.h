@@ -17,6 +17,7 @@ private:
 	string m_Identity;
 	set<string> m_MethodSinks;
 	set<string> m_MethodSources;
+	unsigned short m_HandshakeCounter;
 
 	weak_ptr<EndpointManager> m_EndpointManager;
 
@@ -24,11 +25,16 @@ public:
 	typedef shared_ptr<Endpoint> Ptr;
 	typedef weak_ptr<Endpoint> WeakPtr;
 
+	Endpoint(void);
+
 	virtual string GetAddress(void) const = 0;
 
 	string GetIdentity(void) const;
 	void SetIdentity(string identity);
 	bool HasIdentity(void) const;
+
+	void IncrementHandshakeCounter();
+	unsigned short GetHandshakeCounter(void) const;
 
 	shared_ptr<EndpointManager> GetEndpointManager(void) const;
 	void SetEndpointManager(weak_ptr<EndpointManager> manager);

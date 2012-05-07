@@ -44,7 +44,7 @@ public:
 
 	void ForeachEndpoint(function<int (const NewEndpointEventArgs&)> callback);
 
-	bool HasConnectedEndpoint(string identity) const;
+	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
 
 	Event<NewEndpointEventArgs> OnNewEndpoint;
 };
