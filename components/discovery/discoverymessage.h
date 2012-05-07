@@ -21,6 +21,26 @@ public:
 		SetPropertyString("identity", value);
 	}
 
+	inline bool GetNode(string *value) const
+	{
+		return GetPropertyString("node", value);
+	}
+
+	inline void SetNode(const string& value)
+	{
+		SetPropertyString("node", value);
+	}
+
+	inline bool GetService(string *value) const
+	{
+		return GetPropertyString("service", value);
+	}
+
+	inline void SetService(const string& value)
+	{
+		SetPropertyString("service", value);
+	}
+
 	inline bool GetSubscribes(Message *value) const
 	{
 		return GetPropertyMessage("subscribes", value);

@@ -11,22 +11,17 @@ private:
 	string m_Address;
 	JsonRpcClient::Ptr m_Client;
 	map<string, Endpoint::Ptr> m_PendingCalls;
-	Timer::Ptr m_ReconnectTimer;
-
-	string m_PeerHostname;
-	unsigned short m_PeerPort;
 
 	int NewMessageHandler(const NewMessageEventArgs& nmea);
 	int ClientClosedHandler(const EventArgs& ea);
 	int ClientErrorHandler(const SocketErrorEventArgs& ea);
-	int ClientReconnectHandler(const TimerEventArgs& ea);
 	int VerifyCertificateHandler(const VerifyCertificateEventArgs& ea);
 
 public:
 	typedef shared_ptr<JsonRpcEndpoint> Ptr;
 	typedef weak_ptr<JsonRpcEndpoint> WeakPtr;
 
-	void Connect(string host, unsigned short port,
+	void Connect(string node, string service,
 	    shared_ptr<SSL_CTX> sslContext);
 
 	JsonRpcClient::Ptr GetClient(void);

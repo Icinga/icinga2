@@ -29,7 +29,7 @@ void TCPServer::Listen(void)
 	int rc = listen(GetFD(), SOMAXCONN);
 
 	if (rc < 0) {
-		Close();
+		HandleSocketError();
 		return;
 	}
 }

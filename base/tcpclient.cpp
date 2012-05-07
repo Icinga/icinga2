@@ -23,13 +23,9 @@ void TCPClient::Start(void)
 	OnWritable += bind_weak(&TCPClient::WritableEventHandler, shared_from_this());
 }
 
-void TCPClient::Connect(const string& hostname, unsigned short port)
+void TCPClient::Connect(const string& node, const string& service)
 {
 	m_Role = RoleOutbound;
-
-	stringstream s;
-	s << port;
-	string strPort = s.str();
 
 	addrinfo hints;
 	addrinfo *result;
@@ -39,7 +35,7 @@ void TCPClient::Connect(const string& hostname, unsigned short port)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 
-	int rc = getaddrinfo(hostname.c_str(), strPort.c_str(), &hints, &result);
+	int rc = getaddrinfo(node.c_str(), service.c_str(), &hints, &result);
 
 	if (rc < 0) {
 		HandleSocketError();

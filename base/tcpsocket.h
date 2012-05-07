@@ -13,8 +13,8 @@ public:
 	typedef shared_ptr<TCPSocket> Ptr;
 	typedef weak_ptr<TCPSocket> WeakPtr;
 
-	void Bind(unsigned short port, int family);
-	void Bind(const char *hostname, unsigned short port, int family);
+	void Bind(string service, int family);
+	void Bind(string node, string service, int family);
 };
 
 }

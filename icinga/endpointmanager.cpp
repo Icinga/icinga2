@@ -22,29 +22,29 @@ shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
 	return m_SSLContext;
 }
 
-void EndpointManager::AddListener(unsigned short port)
+void EndpointManager::AddListener(string service)
 {
 	stringstream s;
-	s << "Adding new listener: port " << port;
+	s << "Adding new listener: port " << service;
 	Application::Log(s.str());
 
 	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>(m_SSLContext);
 	RegisterServer(server);
 
-	server->Bind(port, AF_INET6);
+	server->Bind(service, AF_INET6);
 	server->Listen();
 	server->Start();
 }
 
-void EndpointManager::AddConnection(string host, unsigned short port)
+void EndpointManager::AddConnection(string node, string service)
 {
 	stringstream s;
-	s << "Adding new endpoint: [" << host << "]:" << port;
+	s << "Adding new endpoint: [" << node << "]:" << service;
 	Application::Log(s.str());
 
 	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
-	endpoint->Connect(host, port, m_SSLContext);
 	RegisterEndpoint(endpoint);
+	endpoint->Connect(node, service, m_SSLContext);
 }
 
 void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
@@ -103,8 +103,10 @@ void EndpointManager::SendUnicastRequest(Endpoint::Ptr sender, Endpoint::Ptr rec
 	if (!request.GetMethod(&method))
 		throw InvalidArgumentException("Missing 'method' parameter.");
 
-	if (recipient->IsMethodSink(method))
+	if (recipient->IsMethodSink(method)) {
+		Application::Log(sender->GetAddress() + " -> " + recipient->GetAddress() + ": " + method);
 		recipient->ProcessRequest(sender, request);
+	}
 }
 
 void EndpointManager::SendAnycastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal)
@@ -143,4 +145,15 @@ void EndpointManager::ForeachEndpoint(function<int (const NewEndpointEventArgs&)
 		neea.Endpoint = *prev;
 		callback(neea);
 	}
+}
+
+bool EndpointManager::HasConnectedEndpoint(string identity) const
+{
+	list<Endpoint::Ptr>::const_iterator i;
+	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); i++) {
+		if ((*i)->GetIdentity() == identity)
+			return true;
+	}
+
+	return false;
 }

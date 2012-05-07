@@ -31,7 +31,7 @@ public:
 
 	virtual void Start(void);
 
-	void Connect(const string& hostname, unsigned short port);
+	void Connect(const string& node, const string& service);
 
 	FIFO::Ptr GetSendQueue(void);
 	FIFO::Ptr GetRecvQueue(void);

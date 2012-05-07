@@ -15,16 +15,12 @@ JsonRpcClient::Ptr JsonRpcEndpoint::GetClient(void)
 	return m_Client;
 }
 
-void JsonRpcEndpoint::Connect(string host, unsigned short port, shared_ptr<SSL_CTX> sslContext)
+void JsonRpcEndpoint::Connect(string node, string service, shared_ptr<SSL_CTX> sslContext)
 {
-	m_PeerHostname = host;
-	m_PeerPort = port;
-
 	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>(RoleOutbound, sslContext);
-	client->Connect(host, port);
-	client->Start();
-
 	SetClient(client);
+	client->Connect(node, service);
+	client->Start();
 }
 
 void JsonRpcEndpoint::SetClient(JsonRpcClient::Ptr client)
@@ -99,23 +95,12 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 
 	m_PendingCalls.clear();
 
-	if (m_PeerHostname != string()) {
-		Timer::Ptr timer = make_shared<Timer>();
-		timer->SetInterval(30);
-		timer->SetUserArgs(ea);
-		timer->OnTimerExpired += bind_weak(&JsonRpcEndpoint::ClientReconnectHandler, shared_from_this());
-		timer->Start();
-		m_ReconnectTimer = timer;
-
-		Application::Log("Spawned reconnect timer (30 seconds)");
-	}
-
 	// TODO: _only_ clear non-persistent method sources/sinks
 	// unregister ourselves if no persistent sources/sinks are left (use a timer for that, once we have a TTL property for the methods)
 	ClearMethodSinks();
 	ClearMethodSources();
 
-	if (CountMethodSinks() == 0 && !m_ReconnectTimer)
+	if (CountMethodSinks() == 0)
 		GetEndpointManager()->UnregisterEndpoint(static_pointer_cast<Endpoint>(shared_from_this()));
 
 	m_Client.reset();
@@ -128,19 +113,6 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
 int JsonRpcEndpoint::ClientErrorHandler(const SocketErrorEventArgs& ea)
 {
 	cerr << "Error occured for JSON-RPC socket: Code=" << ea.Code << "; Message=" << ea.Message << endl;
-
-	return 0;
-}
-
-int JsonRpcEndpoint::ClientReconnectHandler(const TimerEventArgs& ea)
-{
-	JsonRpcClient::Ptr client = static_pointer_cast<JsonRpcClient>(ea.UserArgs.Source);
-	Timer::Ptr timer = static_pointer_cast<Timer>(ea.Source);
-
-	GetEndpointManager()->AddConnection(m_PeerHostname, m_PeerPort);
-
-	timer->Stop();
-	m_ReconnectTimer.reset();
 
 	return 0;
 }

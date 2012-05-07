@@ -172,16 +172,11 @@ int IcingaApplication::NewRpcListenerHandler(const EventArgs& ea)
 	if (object->GetReplicated())
 		return 0;
 
-	long portValue;
-	if (!object->GetPropertyInteger("port", &portValue))
-		throw InvalidArgumentException("Parameter 'port' is required for 'rpclistener' objects.");
+	string service;
+	if (!object->GetPropertyString("service", &service))
+		throw InvalidArgumentException("Parameter 'service' is required for 'rpclistener' objects.");
 
-	if (portValue < 0 || portValue > USHRT_MAX)
-		throw InvalidArgumentException("Parameter 'port' contains an invalid value.");
-
-	unsigned short port = (unsigned short)portValue;
-
-	GetEndpointManager()->AddListener(port);
+	GetEndpointManager()->AddListener(service);
 
 	return 0;
 }
@@ -196,26 +191,20 @@ int IcingaApplication::DeletedRpcListenerHandler(const EventArgs& ea)
 int IcingaApplication::NewRpcConnectionHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
-	string hostname;
-	long portValue;
-	unsigned short port;
 
 	/* don't allow replicated config objects */
 	if (object->GetReplicated())
 		return 0;
 
-	if (!object->GetPropertyString("hostname", &hostname))
-		throw InvalidArgumentException("Parameter 'hostname' is required for 'rpcconnection' objects.");
+	string node;
+	if (!object->GetPropertyString("node", &node))
+		throw InvalidArgumentException("Parameter 'node' is required for 'rpcconnection' objects.");
 
-	if (!object->GetPropertyInteger("port", &portValue))
-		throw InvalidArgumentException("Parameter 'port' is required for 'rpcconnection' objects.");
+	string service;
+	if (!object->GetPropertyString("service", &service))
+		throw InvalidArgumentException("Parameter 'service' is required for 'rpcconnection' objects.");
 
-	if (portValue < 0 || portValue > USHRT_MAX)
-		throw InvalidArgumentException("Parameter 'port' contains an invalid value.");
-
-	port = (unsigned short)portValue;
-
-	GetEndpointManager()->AddConnection(hostname, port);
+	GetEndpointManager()->AddConnection(node, service);
 
 	return 0;
 }

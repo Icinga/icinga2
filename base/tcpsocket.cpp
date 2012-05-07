@@ -17,17 +17,13 @@ void TCPSocket::MakeSocket(int family)
 	SetFD(fd);
 }
 
-void TCPSocket::Bind(unsigned short port, int family)
+void TCPSocket::Bind(string service, int family)
 {
-	Bind(NULL, port, family);
+	Bind(string(), service, family);
 }
 
-void TCPSocket::Bind(const char *hostname, unsigned short port, int family)
+void TCPSocket::Bind(string node, string service, int family)
 {
-	stringstream s;
-	s << port;
-	string strPort = s.str();
-
 	addrinfo hints;
 	addrinfo *result;
 
@@ -37,7 +33,7 @@ void TCPSocket::Bind(const char *hostname, unsigned short port, int family)
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 
-	if (getaddrinfo(hostname, strPort.c_str(), &hints, &result) < 0) {
+	if (getaddrinfo(node.c_str(), service.c_str(), &hints, &result) < 0) {
 		HandleSocketError();
 
 		return;

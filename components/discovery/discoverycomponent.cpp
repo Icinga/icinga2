@@ -29,6 +29,11 @@ void DiscoveryComponent::Start(void)
 	GetEndpointManager()->OnNewEndpoint += bind_weak(&DiscoveryComponent::NewEndpointHandler, shared_from_this());
 
 	GetEndpointManager()->RegisterEndpoint(m_DiscoveryEndpoint);
+
+	m_DiscoveryConnectTimer = make_shared<Timer>();
+	m_DiscoveryConnectTimer->SetInterval(30);
+	m_DiscoveryConnectTimer->OnTimerExpired += bind_weak(&DiscoveryComponent::ReconnectTimerHandler, shared_from_this());
+	m_DiscoveryConnectTimer->Start();
 }
 
 void DiscoveryComponent::Stop(void)
@@ -61,8 +66,15 @@ int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 {
 	neea.Endpoint->OnIdentityChanged += bind_weak(&DiscoveryComponent::NewIdentityHandler, shared_from_this());
 
-	/* accept discovery::RegisterComponent messages from any endpoint */
-	neea.Endpoint->RegisterMethodSource("discovery::RegisterComponent");
+	if (IsBroker()) {
+		/* accept discovery::RegisterComponent messages from any endpoint */
+		neea.Endpoint->RegisterMethodSource("discovery::RegisterComponent");
+	}
+
+	/* TODO: implement message broker authorisation */
+	neea.Endpoint->RegisterMethodSource("discovery::NewComponent");
+
+	/* TODO: register handler to unregister this endpoint when it's closed */
 
 	return 0;
 }
@@ -120,16 +132,18 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(ea.Source);
 	string identity = endpoint->GetIdentity();
 
-	if (identity == GetEndpointManager()->GetIdentity()) {
-		Application::Log("Detected loop-back connection - Disconnecting endpoint.");
+	if (!GetIcingaApplication()->IsDebugging()) {
+		if (identity == GetEndpointManager()->GetIdentity()) {
+			Application::Log("Detected loop-back connection - Disconnecting endpoint.");
 
-		endpoint->Stop();
-		GetEndpointManager()->UnregisterEndpoint(endpoint);
+			endpoint->Stop();
+			GetEndpointManager()->UnregisterEndpoint(endpoint);
 
-		return 0;
+			return 0;
+		}
+
+		GetEndpointManager()->ForeachEndpoint(bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _1));
 	}
-
-	GetEndpointManager()->ForeachEndpoint(bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _1));
 
 	// we assume the other component _always_ wants
 	// discovery::RegisterComponent messages from us
@@ -194,8 +208,8 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 		return;
 
 	if (!info->Node.empty() && !info->Service.empty()) {
-		params.SetPropertyString("node", info->Node);
-		params.SetPropertyString("service", info->Service);
+		params.SetNode(info->Node);
+		params.SetService(info->Service);
 	}
 
 	set<string>::iterator i;
@@ -214,74 +228,73 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessage message)
 {
 	ComponentDiscoveryInfo::Ptr info = make_shared<ComponentDiscoveryInfo>();
+
+	message.GetNode(&info->Node);
+	message.GetService(&info->Service);
+
+	Message provides;
+	if (message.GetProvides(&provides)) {
+		DictionaryIterator i;
+		for (i = provides.GetDictionary()->Begin(); i != provides.GetDictionary()->End(); i++) {
+			info->PublishedMethods.insert(i->second);
+		}
+	}
+
+	Message subscribes;
+	if (message.GetSubscribes(&subscribes)) {
+		DictionaryIterator i;
+		for (i = subscribes.GetDictionary()->Begin(); i != subscribes.GetDictionary()->End(); i++) {
+			info->SubscribedMethods.insert(i->second);
+		}
+	}
+
+	map<string, ComponentDiscoveryInfo::Ptr>::iterator i;
+
+	i  = m_Components.find(identity);
+
+	if (i != m_Components.end())
+		m_Components.erase(i);
+
+	m_Components[identity] = info;
+
+	SendDiscoveryMessage("discovery::NewComponent", identity, Endpoint::Ptr());
 }
 
 int DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& nrea)
 {
-	/*Message message;
+	DiscoveryMessage message;
 	nrea.Request.GetParams(&message);
-	ProcessDiscoveryMessage(message.GetPropertyString(, DiscoveryMessage(message));*/
+
+	string identity;
+	if (!message.GetIdentity(&identity))
+		return 0;
+
+	ProcessDiscoveryMessage(identity, message);
 	return 0;
 }
 
 int DiscoveryComponent::RegisterComponentMessageHandler(const NewRequestEventArgs& nrea)
 {
-	Message message;
+	DiscoveryMessage message;
 	nrea.Request.GetParams(&message);
-	ProcessDiscoveryMessage(nrea.Sender->GetIdentity(), DiscoveryMessage(message));
+	ProcessDiscoveryMessage(nrea.Sender->GetIdentity(), message);
 	return 0;
 }
 
-void DiscoveryComponent::AddSubscribedMethod(string identity, string method)
+int DiscoveryComponent::ReconnectTimerHandler(const TimerEventArgs& tea)
 {
-	ComponentDiscoveryInfo::Ptr info;
+	EndpointManager::Ptr endpointManager = GetEndpointManager();
 
-	if (!GetComponentDiscoveryInfo(identity, &info))
-		return;
+	map<string, ComponentDiscoveryInfo::Ptr>::iterator i;
+	for (i = m_Components.begin(); i != m_Components.end(); i++) {
+		if (endpointManager->HasConnectedEndpoint(i->first))
+			continue;
 
-	info->SubscribedMethods.insert(method);
-}
+		ComponentDiscoveryInfo::Ptr info = i->second;
+		endpointManager->AddConnection(info->Node, info->Service);
+	}
 
-bool DiscoveryComponent::IsSubscribedMethod(string identity, string method) const
-{
-	if (GetEndpointManager()->GetIdentity() == identity)
-		return true;
-
-	ComponentDiscoveryInfo::Ptr info;
-
-	if (!GetComponentDiscoveryInfo(identity, &info))
-		return false;
-
-	set<string>::const_iterator i;
-	i = info->SubscribedMethods.find(method);
-
-	return (i != info->SubscribedMethods.end());
-}
-
-void DiscoveryComponent::AddPublishedMethod(string identity, string method)
-{
-	ComponentDiscoveryInfo::Ptr info;
-
-	if (!GetComponentDiscoveryInfo(identity, &info))
-		return;
-
-	info->PublishedMethods.insert(method);
-}
-
-bool DiscoveryComponent::IsPublishedMethod(string identity, string method) const
-{
-	if (GetEndpointManager()->GetIdentity() == identity)
-		return true;
-
-	ComponentDiscoveryInfo::Ptr info;
-
-	if (!GetComponentDiscoveryInfo(identity, &info))
-		return false;
-
-	set<string>::const_iterator i;
-	i = info->PublishedMethods.find(method);
-
-	return (i != info->PublishedMethods.end());
+	return 0;
 }
 
 EXPORT_COMPONENT(DiscoveryComponent);

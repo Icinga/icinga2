@@ -32,8 +32,8 @@ public:
 	void SetSSLContext(shared_ptr<SSL_CTX> sslContext);
 	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 
-	void AddListener(unsigned short port);
-	void AddConnection(string host, unsigned short port);
+	void AddListener(string service);
+	void AddConnection(string node, string service);
 
 	void RegisterEndpoint(Endpoint::Ptr endpoint);
 	void UnregisterEndpoint(Endpoint::Ptr endpoint);
@@ -43,6 +43,8 @@ public:
 	void SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
 
 	void ForeachEndpoint(function<int (const NewEndpointEventArgs&)> callback);
+
+	bool HasConnectedEndpoint(string identity) const;
 
 	Event<NewEndpointEventArgs> OnNewEndpoint;
 };
