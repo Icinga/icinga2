@@ -198,12 +198,12 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 {
 	Endpoint::Ptr endpoint = nrea.Sender;
 
-	if (endpoint->GetHandshakeCounter() >= 2)
+	if (endpoint->GetReceivedWelcome())
 		return 0;
 
-	endpoint->IncrementHandshakeCounter();
+	endpoint->SetReceivedWelcome(true);
 
-	if (endpoint->GetHandshakeCounter() >= 2) {
+	if (endpoint->GetSentWelcome()) {
 		EventArgs ea;
 		ea.Source = shared_from_this();
 		endpoint->OnSessionEstablished(ea);
@@ -214,7 +214,7 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 
 void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 {
-	if (endpoint->GetHandshakeCounter() >= 2)
+	if (endpoint->GetSentWelcome())
 		return;
 
 	// we assume the other component _always_ wants
@@ -223,6 +223,8 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 	JsonRpcRequest request;
 	request.SetMethod("discovery::Welcome");
 	GetEndpointManager()->SendUnicastRequest(m_DiscoveryEndpoint, endpoint, request);
+
+	endpoint->SetSentWelcome(true);
 
 	ComponentDiscoveryInfo::Ptr info;
 
@@ -235,9 +237,7 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 			endpoint->RegisterMethodSink(*i);
 	}
 
-	endpoint->IncrementHandshakeCounter();
-
-	if (endpoint->GetHandshakeCounter() >= 2) {
+	if (endpoint->GetReceivedWelcome()) {
 		EventArgs ea;
 		ea.Source = shared_from_this();
 		endpoint->OnSessionEstablished(ea);
@@ -417,6 +417,7 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 			/* update LastSeen if we're still connected to this endpoint */
 			info->LastSeen = now;
 		} else {
+			/* TODO: figure out whether we actually want to connect to this component (_always_ if IsBroker() == true) */
 			/* try and reconnect to this component */
 			endpointManager->AddConnection(info->Node, info->Service);
 		}

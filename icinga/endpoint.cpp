@@ -4,7 +4,8 @@ using namespace icinga;
 
 Endpoint::Endpoint(void)
 {
-	m_HandshakeCounter = false;
+	m_ReceivedWelcome = false;
+	m_SentWelcome = false;
 }
 
 string Endpoint::GetIdentity(void) const
@@ -126,12 +127,22 @@ set<string>::const_iterator Endpoint::EndSources(void) const
 	return m_MethodSources.end();
 }
 
-void Endpoint::IncrementHandshakeCounter(void)
+void Endpoint::SetReceivedWelcome(bool value)
 {
-	m_HandshakeCounter++;
+	m_ReceivedWelcome = value;
 }
 
-unsigned short Endpoint::GetHandshakeCounter(void) const
+bool Endpoint::GetReceivedWelcome(void) const
 {
-	return m_HandshakeCounter;
+	return m_ReceivedWelcome;
+}
+
+void Endpoint::SetSentWelcome(bool value)
+{
+	m_SentWelcome = value;
+}
+
+bool Endpoint::GetSentWelcome(void) const
+{
+	return m_SentWelcome;
 }

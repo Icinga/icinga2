@@ -17,7 +17,8 @@ private:
 	string m_Identity;
 	set<string> m_MethodSinks;
 	set<string> m_MethodSources;
-	unsigned short m_HandshakeCounter;
+	bool m_ReceivedWelcome;
+	bool m_SentWelcome;
 
 	weak_ptr<EndpointManager> m_EndpointManager;
 
@@ -33,8 +34,11 @@ public:
 	void SetIdentity(string identity);
 	bool HasIdentity(void) const;
 
-	void IncrementHandshakeCounter();
-	unsigned short GetHandshakeCounter(void) const;
+	void SetReceivedWelcome(bool value);
+	bool GetReceivedWelcome(void) const;
+
+	void SetSentWelcome(bool value);
+	bool GetSentWelcome(void) const;
 
 	shared_ptr<EndpointManager> GetEndpointManager(void) const;
 	void SetEndpointManager(weak_ptr<EndpointManager> manager);
