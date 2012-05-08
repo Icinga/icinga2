@@ -2,6 +2,13 @@
 
 using namespace icinga;
 
+/**
+ * TCPClient
+ *
+ * Constructor for the TCPClient class.
+ *
+ * @param role The role of the TCP client socket.
+ */
 TCPClient::TCPClient(TCPClientRole role)
 {
 	m_Role = role;
@@ -10,11 +17,23 @@ TCPClient::TCPClient(TCPClientRole role)
 	m_RecvQueue = make_shared<FIFO>();
 }
 
+/**
+ * GetRole
+ *
+ * Retrieves the role of the socket.
+ *
+ * @returns The role.
+ */
 TCPClientRole TCPClient::GetRole(void) const
 {
 	return m_Role;
 }
 
+/**
+ * Start
+ *
+ * Registers the socket and starts processing events for it.
+ */
 void TCPClient::Start(void)
 {
 	TCPSocket::Start();
@@ -23,6 +42,14 @@ void TCPClient::Start(void)
 	OnWritable += bind_weak(&TCPClient::WritableEventHandler, shared_from_this());
 }
 
+/**
+ * Connect
+ *
+ * Creates a socket and connects to the specified node and service.
+ *
+ * @param node The node.
+ * @param service The service.
+ */
 void TCPClient::Connect(const string& node, const string& service)
 {
 	m_Role = RoleOutbound;
@@ -71,16 +98,38 @@ void TCPClient::Connect(const string& node, const string& service)
 	freeaddrinfo(result);
 }
 
+/**
+ * GetSendQueue
+ *
+ * Retrieves the send queue for the socket.
+ *
+ * @returns The send queue.
+ */
 FIFO::Ptr TCPClient::GetSendQueue(void)
 {
 	return m_SendQueue;
 }
 
+/**
+ * GetRecvQueue
+ *
+ * Retrieves the recv queue for the socket.
+ *
+ * @returns The recv queue.
+ */
 FIFO::Ptr TCPClient::GetRecvQueue(void)
 {
 	return m_RecvQueue;
 }
 
+/**
+ * ReadableEventHandler
+ *
+ * Processes data that is available for this socket.
+ *
+ * @param ea Event arguments.
+ * @returns 0
+ */
 int TCPClient::ReadableEventHandler(const EventArgs& ea)
 {
 	int rc;
@@ -110,6 +159,14 @@ int TCPClient::ReadableEventHandler(const EventArgs& ea)
 	return 0;
 }
 
+/**
+ * WritableEventHandler
+ *
+ * Processes data that can be written for this socket.
+ *
+ * @param ea Event arguments.
+ * @returns 0
+ */
 int TCPClient::WritableEventHandler(const EventArgs& ea)
 {
 	int rc;
@@ -126,16 +183,38 @@ int TCPClient::WritableEventHandler(const EventArgs& ea)
 	return 0;
 }
 
+/**
+ * WantsToRead
+ *
+ * Checks whether data should be read for this socket.
+ *
+ * @returns true
+ */
 bool TCPClient::WantsToRead(void) const
 {
 	return true;
 }
 
+/**
+ * WantsToWrite
+ *
+ * Checks whether data should be written for this socket.
+ *
+ * @returns true if data should be written, false otherwise.
+ */
 bool TCPClient::WantsToWrite(void) const
 {
 	return (m_SendQueue->GetSize() > 0);
 }
 
+/**
+ * TCPClientFactory
+ *
+ * Default factory function for TCP clients.
+ *
+ * @param role The role of the new client.
+ * @returns The new client.
+ */
 TCPClient::Ptr icinga::TCPClientFactory(TCPClientRole role)
 {
 	return make_shared<TCPClient>(role);

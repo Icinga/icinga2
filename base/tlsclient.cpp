@@ -5,6 +5,14 @@ using namespace icinga;
 int I2_EXPORT TLSClient::m_SSLIndex;
 bool I2_EXPORT TLSClient::m_SSLIndexInitialized = false;
 
+/**
+ * TLSClient
+ *
+ * Constructor for the TLSClient class.
+ *
+ * @param role The role of the client.
+ * @param sslContext The SSL context for the client.
+ */
 TLSClient::TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext) : TCPClient(role)
 {
 	m_SSLContext = sslContext;
@@ -12,21 +20,47 @@ TLSClient::TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext) : TCPCl
 	m_BlockWrite = false;
 }
 
+/**
+ * NullCertificateDeleter
+ *
+ * Takes a certificate as an argument. Does nothing.
+ *
+ * @param certificate An X509 certificate.
+ */
 void TLSClient::NullCertificateDeleter(X509 *certificate)
 {
 	/* Nothing to do here. */
 }
 
+/**
+ * GetClientCertificate
+ *
+ * Retrieves the X509 certficate for this client.
+ *
+ * @returns The X509 certificate.
+ */
 shared_ptr<X509> TLSClient::GetClientCertificate(void) const
 {
 	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &TLSClient::NullCertificateDeleter);
 }
 
+/**
+ * GetPeerCertificate
+ *
+ * Retrieves the X509 certficate for the peer.
+ *
+ * @returns The X509 certificate.
+ */
 shared_ptr<X509> TLSClient::GetPeerCertificate(void) const
 {
 	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
 
+/**
+ * Start
+ *
+ * Registers the TLS socket and starts processing events for it.
+ */
 void TLSClient::Start(void)
 {
 	TCPClient::Start();
@@ -60,6 +94,14 @@ void TLSClient::Start(void)
 	SSL_do_handshake(m_SSL.get());
 }
 
+/**
+ * ReadableEventHandler
+ *
+ * Processes data that is available for this socket.
+ *
+ * @param ea Event arguments.
+ * @returns 0
+ */
 int TLSClient::ReadableEventHandler(const EventArgs& ea)
 {
 	int rc;
@@ -98,6 +140,14 @@ int TLSClient::ReadableEventHandler(const EventArgs& ea)
 	return 0;
 }
 
+/**
+ * WritableEventHandler
+ *
+ * Processes data that can be written for this socket.
+ *
+ * @param ea Event arguments.
+ * @returns 0
+ */
 int TLSClient::WritableEventHandler(const EventArgs& ea)
 {
 	int rc;
@@ -130,6 +180,13 @@ int TLSClient::WritableEventHandler(const EventArgs& ea)
 	return 0;
 }
 
+/**
+ * WantsToRead
+ *
+ * Checks whether data should be read for this socket.
+ *
+ * @returns true if data should be read, false otherwise.
+ */
 bool TLSClient::WantsToRead(void) const
 {
 	if (SSL_want_read(m_SSL.get()))
@@ -141,6 +198,13 @@ bool TLSClient::WantsToRead(void) const
 	return TCPClient::WantsToRead();
 }
 
+/**
+ * WantsToWrite
+ *
+ * Checks whether data should be written for this socket.
+ *
+ * @returns true if data should be written, false otherwise.
+ */
 bool TLSClient::WantsToWrite(void) const
 {
 	if (SSL_want_write(m_SSL.get()))
@@ -152,6 +216,13 @@ bool TLSClient::WantsToWrite(void) const
 	return TCPClient::WantsToWrite();
 }
 
+/**
+ * CloseInternal
+ *
+ * Closes the socket.
+ *
+ * @param from_dtor Whether this method was invoked from the destructor.
+ */
 void TLSClient::CloseInternal(bool from_dtor)
 {
 	SSL_shutdown(m_SSL.get());
@@ -159,6 +230,11 @@ void TLSClient::CloseInternal(bool from_dtor)
 	TCPClient::CloseInternal(from_dtor);
 }
 
+/**
+ * HandleSSLError
+ *
+ * Handles an OpenSSL error.
+ */
 void TLSClient::HandleSSLError(void)
 {
 	int code = ERR_get_error();
@@ -174,11 +250,29 @@ void TLSClient::HandleSSLError(void)
 	return;
 }
 
+/**
+ * TLSClientFactory
+ *
+ * Factory function for the TLSClient class.
+ *
+ * @param role The role of the TLS socket.
+ * @param sslContext The SSL context for the socket.
+ * @returns A new TLS socket.
+ */
 TCPClient::Ptr icinga::TLSClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> sslContext)
 {
 	return make_shared<TLSClient>(role, sslContext);
 }
 
+/**
+ * SSLVerifyCertificate
+ *
+ * Callback function that verifies SSL certificates.
+ *
+ * @param ok Whether pre-checks for the SSL certificates were successful.
+ * @param x509Context X509 context for the certificate.
+ * @returns 1 if the verification was successful, 0 otherwise.
+ */
 int TLSClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
 {
 	SSL *ssl = (SSL *)X509_STORE_CTX_get_ex_data(x509Context, SSL_get_ex_data_X509_STORE_CTX_idx());

@@ -2,21 +2,45 @@
 
 using namespace icinga;
 
+/**
+ * TCPServer
+ *
+ * Constructor for the TCPServer class.
+ */
 TCPServer::TCPServer(void)
 {
 	m_ClientFactory = bind(&TCPClientFactory, RoleInbound);
 }
 
+/**
+ * SetClientFactory
+ *
+ * Sets the client factory.
+ *
+ * @param clientFactory The client factory function.
+ */
 void TCPServer::SetClientFactory(function<TCPClient::Ptr()> clientFactory)
 {
 	m_ClientFactory = clientFactory;
 }
 
+/**
+ * GetFactoryFunction
+ *
+ * Retrieves the client factory.
+ *
+ * @returns The client factory function.
+ */
 function<TCPClient::Ptr()> TCPServer::GetFactoryFunction(void) const
 {
 	return m_ClientFactory;
 }
 
+/**
+ * Start
+ *
+ * Registers the TCP server and starts processing events for it.
+ */
 void TCPServer::Start(void)
 {
 	TCPSocket::Start();
@@ -24,6 +48,11 @@ void TCPServer::Start(void)
 	OnReadable += bind_weak(&TCPServer::ReadableEventHandler, shared_from_this());
 }
 
+/**
+ * Listen
+ *
+ * Starts listening for incoming client connections.
+ */
 void TCPServer::Listen(void)
 {
 	int rc = listen(GetFD(), SOMAXCONN);
@@ -34,6 +63,15 @@ void TCPServer::Listen(void)
 	}
 }
 
+/**
+ * ReadableEventHandler
+ *
+ * Accepts a new client and creates a new client object for it
+ * using the client factory function.
+ *
+ * @param ea Event arguments.
+ * @returns 0
+ */
 int TCPServer::ReadableEventHandler(const EventArgs& ea)
 {
 	int fd;
@@ -57,6 +95,13 @@ int TCPServer::ReadableEventHandler(const EventArgs& ea)
 	return 0;
 }
 
+/**
+ * WantsToRead
+ *
+ * Checks whether the TCP server wants to read (i.e. accept new clients).
+ *
+ * @returns true
+ */
 bool TCPServer::WantsToRead(void) const
 {
 	return true;
