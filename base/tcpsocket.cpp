@@ -60,11 +60,15 @@ void TCPSocket::Bind(string node, string service, int family)
 		int rc = ::bind(fd, info->ai_addr, info->ai_addrlen);
 
 #ifdef _WIN32
-	if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
+		if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
 #else /* _WIN32 */
-	if (rc < 0 && errno != EINPROGRESS)
+		if (rc < 0 && errno != EINPROGRESS) {
 #endif /* _WIN32 */
+			closesocket(fd);
+			SetFD(INVALID_SOCKET);
+
 			continue;
+		}
 
 		break;
 	}
