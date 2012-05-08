@@ -132,7 +132,7 @@ void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRe
 	}
 }
 
-void EndpointManager::ForeachEndpoint(function<int (const NewEndpointEventArgs&)> callback)
+void EndpointManager::ForEachEndpoint(function<int (const NewEndpointEventArgs&)> callback)
 {
 	NewEndpointEventArgs neea;
 	neea.Source = shared_from_this();

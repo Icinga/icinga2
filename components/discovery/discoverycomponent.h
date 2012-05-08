@@ -15,6 +15,8 @@ public:
 
 	set<string> SubscribedMethods;
 	set<string> PublishedMethods;
+
+	time_t LastSeen;
 };
 
 class DiscoveryComponent : public IcingaComponent
@@ -23,7 +25,7 @@ private:
 	VirtualEndpoint::Ptr m_DiscoveryEndpoint;
 	map<string, ComponentDiscoveryInfo::Ptr> m_Components;
 	bool m_Broker;
-	Timer::Ptr m_DiscoveryConnectTimer;
+	Timer::Ptr m_DiscoveryTimer;
 
 	int NewEndpointHandler(const NewEndpointEventArgs& neea);
 	int NewIdentityHandler(const EventArgs& ea);
@@ -43,11 +45,15 @@ private:
 	int DiscoverySinkHandler(const NewMethodEventArgs& nmea, ComponentDiscoveryInfo::Ptr info) const;
 	int DiscoverySourceHandler(const NewMethodEventArgs& nmea, ComponentDiscoveryInfo::Ptr info) const;
 
-	int ReconnectTimerHandler(const TimerEventArgs& tea);
+	int DiscoveryTimerHandler(const TimerEventArgs& tea);
 
 	bool IsBroker(void) const;
 
 	void FinishDiscoverySetup(Endpoint::Ptr endpoint);
+
+	int BrokerConfigHandler(const EventArgs& ea);
+
+	static const int RegistrationTTL = 300;
 
 public:
 	virtual string GetName(void) const;

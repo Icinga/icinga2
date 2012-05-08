@@ -58,8 +58,8 @@ public:
 	Event<NewMethodEventArgs> OnNewMethodSink;
 	Event<NewMethodEventArgs> OnNewMethodSource;
 
-	void ForeachMethodSink(function<int (const NewMethodEventArgs&)> callback);
-	void ForeachMethodSource(function<int (const NewMethodEventArgs&)> callback);
+	void ForEachMethodSink(function<int (const NewMethodEventArgs&)> callback);
+	void ForEachMethodSource(function<int (const NewMethodEventArgs&)> callback);
 
 	void ClearMethodSinks(void);
 	void ClearMethodSources(void);

@@ -51,7 +51,7 @@ bool Endpoint::IsMethodSink(string method) const
 	return (m_MethodSinks.find(method) != m_MethodSinks.end());
 }
 
-void Endpoint::ForeachMethodSink(function<int (const NewMethodEventArgs&)> callback)
+void Endpoint::ForEachMethodSink(function<int (const NewMethodEventArgs&)> callback)
 {
 	for (set<string>::iterator i = m_MethodSinks.begin(); i != m_MethodSinks.end(); i++) {
 		NewMethodEventArgs nmea;
@@ -76,7 +76,7 @@ bool Endpoint::IsMethodSource(string method) const
 	return (m_MethodSources.find(method) != m_MethodSources.end());
 }
 
-void Endpoint::ForeachMethodSource(function<int (const NewMethodEventArgs&)> callback)
+void Endpoint::ForEachMethodSource(function<int (const NewMethodEventArgs&)> callback)
 {
 	for (set<string>::iterator i = m_MethodSources.begin(); i != m_MethodSources.end(); i++) {
 		NewMethodEventArgs nmea;

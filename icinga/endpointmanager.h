@@ -42,7 +42,7 @@ public:
 	void SendAnycastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
 	void SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
 
-	void ForeachEndpoint(function<int (const NewEndpointEventArgs&)> callback);
+	void ForEachEndpoint(function<int (const NewEndpointEventArgs&)> callback);
 
 	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
 
