@@ -413,7 +413,7 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 		}
 
 		Endpoint::Ptr endpoint = endpointManager->GetEndpointByIdentity(identity);
-		if (endpoint) {
+		if (endpoint && endpoint->IsConnected()) {
 			/* update LastSeen if we're still connected to this endpoint */
 			info->LastSeen = now;
 		} else {
