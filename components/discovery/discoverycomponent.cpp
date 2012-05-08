@@ -2,11 +2,23 @@
 
 using namespace icinga;
 
+/**
+ * GetName
+ *
+ * Returns the name of this component.
+ *
+ * @returns The name.
+ */
 string DiscoveryComponent::GetName(void) const
 {
 	return "discoverycomponent";
 }
 
+/**
+ * Start
+ *
+ * Starts the discovery component.
+ */
 void DiscoveryComponent::Start(void)
 {
 	m_DiscoveryEndpoint = make_shared<VirtualEndpoint>();
@@ -38,6 +50,11 @@ void DiscoveryComponent::Start(void)
 	m_DiscoveryTimer->Start();
 }
 
+/**
+ * Stop
+ *
+ * Stops the discovery component.
+ */
 void DiscoveryComponent::Stop(void)
 {
 	EndpointManager::Ptr mgr = GetEndpointManager();
@@ -46,6 +63,16 @@ void DiscoveryComponent::Stop(void)
 		mgr->UnregisterEndpoint(m_DiscoveryEndpoint);
 }
 
+/**
+ * CheckExistingEndpoint
+ *
+ * Checks whether the specified endpoint is already connected
+ * and disconnects older endpoints.
+ *
+ * @param endpoint The endpoint that is to be checked.
+ * @param neea Event arguments for another endpoint.
+ * @returns 0
+ */
 int DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea)
 {
 	if (endpoint == neea.Endpoint)
@@ -64,6 +91,14 @@ int DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewE
 	return 0;
 }
 
+/**
+ * NewEndpointHandler
+ *
+ * Registers handlers for new endpoints.
+ *
+ * @param neea Event arguments for the new endpoint.
+ * @returns 0
+ */
 int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 {
 	neea.Endpoint->OnIdentityChanged += bind_weak(&DiscoveryComponent::NewIdentityHandler, shared_from_this());
@@ -79,18 +114,45 @@ int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 	return 0;
 }
 
+/**
+ * DiscoverySinkHandler
+ *
+ * Registers a new message sink for a component.
+ *
+ * @param nmea Event args for the new message sink.
+ * @param info The component registration information.
+ * @returns 0
+ */
 int DiscoveryComponent::DiscoverySinkHandler(const NewMethodEventArgs& nmea, ComponentDiscoveryInfo::Ptr info) const
 {
 	info->SubscribedMethods.insert(nmea.Method);
 	return 0;
 }
 
+/**
+ * DiscoverySourceHandler
+ *
+ * Registers a new message source for a component.
+ *
+ * @param nmea Event args for the new message source.
+ * @param info The component registration information.
+ * @returns 0
+ */
 int DiscoveryComponent::DiscoverySourceHandler(const NewMethodEventArgs& nmea, ComponentDiscoveryInfo::Ptr info) const
 {
 	info->PublishedMethods.insert(nmea.Method);
 	return 0;
 }
 
+/**
+ * DiscoveryEndpointHandler
+ *
+ * Registers message sinks/sources in the specified component information object.
+ *
+ * @param neea Event arguments for the endpoint.
+ * @param info Component information object.
+ * @return 0
+ */
 int DiscoveryComponent::DiscoveryEndpointHandler(const NewEndpointEventArgs& neea, ComponentDiscoveryInfo::Ptr info) const
 {
 	neea.Endpoint->ForEachMethodSink(bind(&DiscoveryComponent::DiscoverySinkHandler, this, _1, info));
@@ -98,6 +160,15 @@ int DiscoveryComponent::DiscoveryEndpointHandler(const NewEndpointEventArgs& nee
 	return 0;
 }
 
+/**
+ * GetComponentDiscoveryInfo
+ *
+ * Retrieves the component information object for the specified component.
+ *
+ * @param component The identity of the component.
+ * @param info Pointer to the information object.
+ * @returns true if the info object was successfully retrieved, false otherwise.
+ */
 bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDiscoveryInfo::Ptr *info) const
 {
 	if (component == GetEndpointManager()->GetIdentity()) {
@@ -123,35 +194,47 @@ bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDi
 	return true;
 }
 
+/**
+ * IsBroker
+ *
+ * Returns whether this component is a broker.
+ *
+ * @returns true if the component is a broker, false otherwise.
+ */
 bool DiscoveryComponent::IsBroker(void) const
 {
 	return m_Broker;
 }
 
+/**
+ * NewIdentityHandler
+ *
+ * Deals with a new endpoint whose identity has just become known.
+ *
+ * @param ea Event arguments for the component.
+ * @returns 0
+ */
 int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 {
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(ea.Source);
 	string identity = endpoint->GetIdentity();
 
-	if (!GetIcingaApplication()->IsDebugging()) {
-		if (identity == GetEndpointManager()->GetIdentity()) {
-			Application::Log("Detected loop-back connection - Disconnecting endpoint.");
+	if (identity == GetEndpointManager()->GetIdentity()) {
+		Application::Log("Detected loop-back connection - Disconnecting endpoint.");
 
-			endpoint->Stop();
-			GetEndpointManager()->UnregisterEndpoint(endpoint);
+		endpoint->Stop();
+		GetEndpointManager()->UnregisterEndpoint(endpoint);
 
-			return 0;
-		}
-
-		GetEndpointManager()->ForEachEndpoint(bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _1));
+		return 0;
 	}
+
+	GetEndpointManager()->ForEachEndpoint(bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _1));
 
 	ConfigCollection::Ptr brokerCollection = GetApplication()->GetConfigHive()->GetCollection("broker");
 	if (brokerCollection->GetObject(identity)) {
 		/* accept discovery::NewComponent messages from brokers */
 		endpoint->RegisterMethodSource("discovery::NewComponent");
 	}
-
 
 	// we assume the other component _always_ wants
 	// discovery::RegisterComponent messages from us
@@ -194,6 +277,14 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 	return 0;
 }
 
+/**
+ * WelcomeMessageHandler
+ *
+ * Processes discovery::Welcome messages.
+ *
+ * @param nrea Event arguments for the request.
+ * @returns 0
+ */
 int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 {
 	Endpoint::Ptr endpoint = nrea.Sender;
@@ -212,6 +303,15 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 	return 0;
 }
 
+/**
+ * FinishDiscoverySetup
+ *
+ * Finishes the welcome handshake for a new component
+ * by registering message sinks/sources for the component
+ * and sending a welcome message if necessary.
+ *
+ * @param endpoint The endpoint to set up.
+ */
 void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 {
 	if (endpoint->GetSentWelcome())
@@ -244,6 +344,16 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 	}
 }
 
+/**
+ * SendDiscoveryMessage
+ *
+ * Sends a discovery message for the specified identity using the
+ * specified message type.
+ *
+ * @param method The method to use for the message ("discovery::NewComponent" or "discovery::RegisterComponent").
+ * @param identity The identity of the component for which a message should be sent.
+ * @param recipient The recipient of the message. A multicast message is sent if this parameter is empty.
+ */
 void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, Endpoint::Ptr recipient)
 {
 	JsonRpcRequest request;
@@ -283,6 +393,15 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 		GetEndpointManager()->SendMulticastRequest(m_DiscoveryEndpoint, request);
 }
 
+/**
+ * ProcessDiscoveryMessage
+ *
+ * Processes a discovery message by registering the component in the
+ * discovery component registry.
+ *
+ * @param identity The authorative identity of the component.
+ * @param message The discovery message.
+ */
 void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessage message)
 {
 	/* ignore discovery messages that are about ourselves */
@@ -335,6 +454,14 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 		FinishDiscoverySetup(endpoint);
 }
 
+/**
+ * NewComponentMessageHandler
+ *
+ * Processes "discovery::NewComponent" messages.
+ *
+ * @param nrea Event arguments for the request.
+ * @returns 0
+ */
 int DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& nrea)
 {
 	DiscoveryMessage message;
@@ -348,6 +475,14 @@ int DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& nr
 	return 0;
 }
 
+/**
+ * RegisterComponentMessageHandler
+ *
+ * Processes "discovery::RegisterComponent" messages.
+ *
+ * @param nrea Event arguments for the request.
+ * @returns 0
+ */
 int DiscoveryComponent::RegisterComponentMessageHandler(const NewRequestEventArgs& nrea)
 {
 	/* ignore discovery::RegisterComponent messages when we're not a broker */
@@ -361,6 +496,14 @@ int DiscoveryComponent::RegisterComponentMessageHandler(const NewRequestEventArg
 	return 0;
 }
 
+/**
+ * BrokerConfigHandler
+ *
+ * Processes "broker" config objects.
+ *
+ * @param ea Event arguments for the new config object.
+ * @returns 0
+ */
 int DiscoveryComponent::BrokerConfigHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
@@ -385,6 +528,15 @@ int DiscoveryComponent::BrokerConfigHandler(const EventArgs& ea)
 	return 0;
 }
 
+/**
+ * DiscoveryTimerHandler
+ *
+ * Checks whether we have to reconnect to other components and removes stale
+ * components from the registry.
+ *
+ * @param tea Event arguments for the timer.
+ * @returns 0
+ */
 int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 {
 	EndpointManager::Ptr endpointManager = GetEndpointManager();
@@ -392,6 +544,7 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 	time_t now;
 	time(&now);
 
+	/* check whether we have to reconnect to one of our upstream brokers */
 	ConfigCollection::Ptr brokerCollection = GetApplication()->GetConfigHive()->GetCollection("broker");
 	brokerCollection->ForEachObject(bind(&DiscoveryComponent::BrokerConfigHandler, this, _1));
 
