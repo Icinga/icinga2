@@ -83,7 +83,7 @@ int DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewE
 		return 0;
 
 	if (endpoint->GetIdentity() == neea.Endpoint->GetIdentity()) {
-		Application::Log("Detected duplicate identity (" + endpoint->GetIdentity() + " - Disconnecting old endpoint.");
+		Application::Log("Detected duplicate identity:" + endpoint->GetIdentity() + " - Disconnecting old endpoint.");
 
 		neea.Endpoint->Stop();
 		GetEndpointManager()->UnregisterEndpoint(neea.Endpoint);

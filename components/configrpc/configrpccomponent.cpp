@@ -43,7 +43,10 @@ void ConfigRpcComponent::Start(void)
 
 void ConfigRpcComponent::Stop(void)
 {
-	// TODO: implement
+	EndpointManager::Ptr mgr = GetEndpointManager();
+
+	if (mgr)
+		mgr->UnregisterEndpoint(m_ConfigRpcEndpoint);
 }
 
 int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)

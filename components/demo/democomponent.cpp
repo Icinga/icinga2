@@ -2,11 +2,23 @@
 
 using namespace icinga;
 
+/**
+ * GetName
+ *
+ * Returns the name of the component.
+ *
+ * @returns The name.
+ */
 string DemoComponent::GetName(void) const
 {
 	return "democomponent";
 }
 
+/**
+ * Start
+ *
+ * Starts the component.
+ */
 void DemoComponent::Start(void)
 {
 	m_DemoEndpoint = make_shared<VirtualEndpoint>();
@@ -23,6 +35,11 @@ void DemoComponent::Start(void)
 	m_DemoTimer->Start();
 }
 
+/**
+ * Stop
+ *
+ * Stops the component.
+ */
 void DemoComponent::Stop(void)
 {
 	IcingaApplication::Ptr app = GetIcingaApplication();
@@ -33,6 +50,14 @@ void DemoComponent::Stop(void)
 	}
 }
 
+/**
+ * DemoTimerHandler
+ *
+ * Periodically sends a demo::HelloWorld message.
+ *
+ * @param tea Event arguments for the timer.
+ * @returns 0
+ */
 int DemoComponent::DemoTimerHandler(const TimerEventArgs& tea)
 {
 	Application::Log("Sending multicast 'hello world' message.");
@@ -46,6 +71,11 @@ int DemoComponent::DemoTimerHandler(const TimerEventArgs& tea)
 	return 0;
 }
 
+/**
+ * HelloWorldRequestHandler
+ *
+ * Processes demo::HelloWorld messages.
+ */
 int DemoComponent::HelloWorldRequestHandler(const NewRequestEventArgs& nrea)
 {
 	Application::Log("Got 'hello world' from address=" + nrea.Sender->GetAddress() + ", identity=" + nrea.Sender->GetIdentity());

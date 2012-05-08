@@ -2,6 +2,13 @@
 
 using namespace icinga;
 
+/**
+ * MakeSocket
+ *
+ * Creates a socket.
+ *
+ * @param family The socket family for the new socket.
+ */
 void TCPSocket::MakeSocket(int family)
 {
 	assert(GetFD() == INVALID_SOCKET);
@@ -17,11 +24,27 @@ void TCPSocket::MakeSocket(int family)
 	SetFD(fd);
 }
 
+/**
+ * Bind
+ *
+ * Creates a socket and binds it to the specified service.
+ *
+ * @param service The service.
+ * @param family The address family for the socket.
+ */
 void TCPSocket::Bind(string service, int family)
 {
 	Bind(string(), service, family);
 }
 
+/**
+ * Bind
+ *
+ * Creates a socket and binds it to the specified node and service.
+ *
+ * @param service The service.
+ * @param family The address family for the socket.
+ */
 void TCPSocket::Bind(string node, string service, int family)
 {
 	addrinfo hints;

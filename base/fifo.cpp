@@ -2,6 +2,11 @@
 
 using namespace icinga;
 
+/**
+ * FIFO
+ *
+ * Constructor for the FIFO class.
+ */
 FIFO::FIFO(void)
 {
 	m_Buffer = NULL;
@@ -10,11 +15,23 @@ FIFO::FIFO(void)
 	m_Offset = 0;
 }
 
+/**
+ * ~FIFO
+ *
+ * Destructor for the FIFO class.
+ */
 FIFO::~FIFO(void)
 {
 	Memory::Free(m_Buffer);
 }
 
+/**
+ * ResizeBuffer
+ *
+ * Resizes the FIFO's buffer so that it is at least newSize bytes long.
+ *
+ * @param newSize The minimum new size of the FIFO buffer.
+ */
 void FIFO::ResizeBuffer(size_t newSize)
 {
 	if (m_AllocSize >= newSize)
@@ -26,6 +43,12 @@ void FIFO::ResizeBuffer(size_t newSize)
 	m_AllocSize = newSize;
 }
 
+/**
+ * Optimize
+ *
+ * Optimizes memory usage of the FIFO buffer by reallocating
+ * and moving the buffer.
+ */
 void FIFO::Optimize(void)
 {
 	//char *newBuffer;
@@ -50,16 +73,40 @@ void FIFO::Optimize(void)
 	m_Offset = 0;*/
 }
 
+/**
+ * GetSize
+ *
+ * Returns the number of bytes that are contained in the FIFO.
+ *
+ * @returns The number of bytes.
+ */
 size_t FIFO::GetSize(void) const
 {
 	return m_DataSize;
 }
 
+/**
+ * GetReadBuffer
+ *
+ * Returns a pointer to the start of the read buffer.
+ *
+ * @returns Pointer to the read buffer.
+ */
 const void *FIFO::GetReadBuffer(void) const
 {
 	return m_Buffer + m_Offset;
 }
 
+/**
+ * Read
+ *
+ * Reads data from the FIFO and places it in the specified buffer.
+ *
+ * @param buffer The buffer where the data should be placed (can be NULL if
+ *               the reader is not interested in the data).
+ * @param count The number of bytes to read.
+ * @returns The number of bytes read which may be less than what was requested.
+ */
 size_t FIFO::Read(void *buffer, size_t count)
 {
 	count = (count <= m_DataSize) ? count : m_DataSize;
@@ -75,6 +122,15 @@ size_t FIFO::Read(void *buffer, size_t count)
 	return count;
 }
 
+/**
+ * GetWriteBuffer
+ *
+ * Returns a pointer to the start of the write buffer.
+ *
+ * @param count Minimum size of the buffer; on return this parameter
+ *              contains the actual size of the available buffer which can
+ *              be larger than the requested size.
+ */
 void *FIFO::GetWriteBuffer(size_t *count)
 {
 	ResizeBuffer(m_Offset + m_DataSize + *count);
@@ -83,6 +139,16 @@ void *FIFO::GetWriteBuffer(size_t *count)
 	return m_Buffer + m_Offset + m_DataSize;
 }
 
+/**
+ * Write
+ *
+ * Writes data to the FIFO.
+ *
+ * @param buffer The data that is to be written (can be NULL if the writer has
+ *               already filled the write buffer, e.g. via GetWriteBuffer()).
+ * @param count The number of bytes to write.
+ * @returns The number of bytes written
+ */
 size_t FIFO::Write(const void *buffer, size_t count)
 {
 	if (buffer != NULL) {

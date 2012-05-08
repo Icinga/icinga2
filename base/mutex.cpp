@@ -2,6 +2,11 @@
 
 using namespace icinga;
 
+/**
+ * Mutex
+ *
+ * Constructor for the Mutex class.
+ */
 Mutex::Mutex(void)
 {
 #ifdef _WIN32
@@ -11,6 +16,11 @@ Mutex::Mutex(void)
 #endif /* _WIN32 */
 }
 
+/**
+ * ~Mutex
+ *
+ * Destructor for the Mutex class.
+ */
 Mutex::~Mutex(void)
 {
 #ifdef _WIN32
@@ -20,6 +30,14 @@ Mutex::~Mutex(void)
 #endif /* _WIN32 */
 }
 
+/**
+ * TryEnter
+ *
+ * Tries to lock the mutex. If the mutex cannot be immediatelly
+ * locked the operation fails.
+ *
+ * @returns true if the operation succeeded, false otherwise.
+ */
 bool Mutex::TryEnter(void)
 {
 #ifdef _WIN32
@@ -29,6 +47,11 @@ bool Mutex::TryEnter(void)
 #endif /* _WIN32 */
 }
 
+/**
+ * Enter
+ *
+ * Locks the mutex.
+ */
 void Mutex::Enter(void)
 {
 #ifdef _WIN32
@@ -38,6 +61,11 @@ void Mutex::Enter(void)
 #endif /* _WIN32 */
 }
 
+/**
+ * Exit
+ *
+ * Unlocks the mutex.
+ */
 void Mutex::Exit(void)
 {
 #ifdef _WIN32
@@ -47,6 +75,13 @@ void Mutex::Exit(void)
 #endif /* _WIN32 */
 }
 
+/**
+ * Get
+ *
+ * Retrieves the platform-specific mutex handle.
+ *
+ * @returns The platform-specific mutex handle.
+ */
 #ifdef _WIN32
 CRITICAL_SECTION *Mutex::Get(void)
 #else /* _WIN32 */

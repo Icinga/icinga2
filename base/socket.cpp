@@ -2,18 +2,39 @@
 
 using namespace icinga;
 
+/**
+ * Socket::Sockets
+ *
+ * A collection of weak pointers to Socket objects which have been
+ * registered with the socket sub-system.
+ */
 Socket::CollectionType Socket::Sockets;
 
+/**
+ * Socket
+ *
+ * Constructor for the Socket class.
+ */
 Socket::Socket(void)
 {
 	m_FD = INVALID_SOCKET;
 }
 
+/**
+ * ~Socket
+ *
+ * Destructor for the Socket class.
+ */
 Socket::~Socket(void)
 {
 	CloseInternal(true);
 }
 
+/**
+ * Start
+ *
+ * Registers the socket and starts handling events for it.
+ */
 void Socket::Start(void)
 {
 	assert(m_FD != INVALID_SOCKET);
@@ -23,11 +44,23 @@ void Socket::Start(void)
 	Sockets.push_back(static_pointer_cast<Socket>(shared_from_this()));
 }
 
+/**
+ * Stop
+ *
+ * Unregisters the sockets and stops handling events for it.
+ */
 void Socket::Stop(void)
 {
 	Sockets.remove_if(weak_ptr_eq_raw<Socket>(this));
 }
 
+/**
+ * SetFD
+ *
+ * Sets the file descriptor for this socket object.
+ *
+ * @param fd The file descriptor.
+ */
 void Socket::SetFD(SOCKET fd)
 {
 	unsigned long lTrue = 1;
@@ -38,16 +71,35 @@ void Socket::SetFD(SOCKET fd)
 	m_FD = fd;
 }
 
+/**
+ * GetFD
+ *
+ * Retrieves the file descriptor for this socket object.
+ *
+ * @returns The file descriptor.
+ */
 SOCKET Socket::GetFD(void) const
 {
 	return m_FD;
 }
 
+/**
+ * Close
+ *
+ * Closes the socket.
+ */
 void Socket::Close(void)
 {
 	CloseInternal(false);
 }
 
+/**
+ * CloseInternal
+ *
+ * Closes the socket.
+ *
+ * @param from_dtor Whether this method was called from the destructor.
+ */
 void Socket::CloseInternal(bool from_dtor)
 {
 	if (m_FD == INVALID_SOCKET)
@@ -67,6 +119,11 @@ void Socket::CloseInternal(bool from_dtor)
 	}
 }
 
+/**
+ * HandleSocketError
+ *
+ * Handles a socket error by calling the OnError event.
+ */
 void Socket::HandleSocketError(void)
 {
 	int opt;
@@ -89,6 +146,14 @@ void Socket::HandleSocketError(void)
 	return;
 }
 
+/**
+ * ExceptionEventHandler
+ *
+ * Processes errors that have occured for the socket.
+ *
+ * @param ea Event arguments for the socket error.
+ * @returns 0
+ */
 int Socket::ExceptionEventHandler(const EventArgs& ea)
 {
 	HandleSocketError();
@@ -96,16 +161,37 @@ int Socket::ExceptionEventHandler(const EventArgs& ea)
 	return 0;
 }
 
+/**
+ * WantsToRead
+ *
+ * Checks whether data should be read for this socket object.
+ *
+ * @returns true if the socket should be registered for reading, false otherwise.
+ */
 bool Socket::WantsToRead(void) const
 {
 	return false;
 }
 
+/**
+ * WantsToWrite
+ *
+ * Checks whether data should be written for this socket object.
+ *
+ * @returns true if the socket should be registered for writing, false otherwise.
+ */
 bool Socket::WantsToWrite(void) const
 {
 	return false;
 }
 
+/**
+ * GetAddressFromSockaddr
+ *
+ * Formats a sockaddr in a human-readable way.
+ *
+ * @returns A string describing the sockaddr.
+ */
 string Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 {
 	char host[NI_MAXHOST];
@@ -119,6 +205,13 @@ string Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 	return s.str();
 }
 
+/**
+ * GetClientAddress
+ *
+ * Returns a string describing the local address of the socket.
+ *
+ * @returns A string describing the local address.
+ */
 string Socket::GetClientAddress(void)
 {
 	sockaddr_storage sin;
@@ -133,6 +226,13 @@ string Socket::GetClientAddress(void)
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
 }
 
+/**
+ * GetPeerAddress
+ *
+ * Returns a string describing the peer address of the socket.
+ *
+ * @returns A string describing the peer address.
+ */
 string Socket::GetPeerAddress(void)
 {
 	sockaddr_storage sin;

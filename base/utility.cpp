@@ -43,6 +43,11 @@ void Utility::Daemonize(void) {
 #endif
 }
 
+/**
+ * InitializeOpenSSL
+ *
+ * Initializes the OpenSSL library.
+ */
 void Utility::InitializeOpenSSL(void)
 {
 	if (!m_SSLInitialized) {
@@ -53,6 +58,16 @@ void Utility::InitializeOpenSSL(void)
 	}
 }
 
+/**
+ * MakeSSLContext
+ *
+ * Initializes an SSL context using the specified certificates.
+ *
+ * @param pubkey The public key.
+ * @param privkey The matching private key.
+ * @param cakey CA certificate chain file.
+ * @returns An SSL context.
+ */
 shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, string cakey)
 {
 	InitializeOpenSSL();
@@ -75,6 +90,14 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, strin
 	return sslContext;
 }
 
+/**
+ * GetCertificateCN
+ *
+ * Retrieves the common name for a X509 certificate.
+ *
+ * @param certificate The X509 certificate.
+ * @returns The common name.
+ */
 string Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 {
 	char buffer[256];
@@ -87,6 +110,14 @@ string Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 	return buffer;
 }
 
+/**
+ * GetX509Certificate
+ *
+ * Retrieves an X509 certificate from the specified file.
+ *
+ * @param pemfile The filename.
+ * @returns An X509 certificate.
+ */
 shared_ptr<X509> Utility::GetX509Certificate(string pemfile)
 {
 	X509 *cert;
