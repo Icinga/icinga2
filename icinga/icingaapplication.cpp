@@ -27,19 +27,19 @@ int IcingaApplication::Main(const vector<string>& args)
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga";
 	AddComponentSearchDir(componentDirectory);
 
-	/* register handler for 'component' config objects */
-	ConfigCollection::Ptr componentCollection = GetConfigHive()->GetCollection("component");
-	function<int (const EventArgs&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
-	componentCollection->OnObjectCreated += NewComponentHandler;
-	componentCollection->ForEachObject(NewComponentHandler);
-	componentCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
-
 	/* register handler for 'icinga' config objects */
 	ConfigCollection::Ptr icingaCollection = GetConfigHive()->GetCollection("icinga");
 	function<int (const EventArgs&)> NewIcingaConfigHandler = bind_weak(&IcingaApplication::NewIcingaConfigHandler, shared_from_this());
 	icingaCollection->OnObjectCreated += NewIcingaConfigHandler;
 	icingaCollection->ForEachObject(NewIcingaConfigHandler);
 	icingaCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedIcingaConfigHandler, shared_from_this());
+
+	/* register handler for 'component' config objects */
+	ConfigCollection::Ptr componentCollection = GetConfigHive()->GetCollection("component");
+	function<int (const EventArgs&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
+	componentCollection->OnObjectCreated += NewComponentHandler;
+	componentCollection->ForEachObject(NewComponentHandler);
+	componentCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
 
 	/* load config file */
 	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
@@ -65,19 +65,10 @@ int IcingaApplication::Main(const vector<string>& args)
 	shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetPublicKeyFile(), GetPrivateKeyFile(), GetCAKeyFile());
 	m_EndpointManager->SetSSLContext(sslContext);
 
-	/* register handler for 'rpclistener' config objects */
-	ConfigCollection::Ptr listenerCollection = GetConfigHive()->GetCollection("rpclistener");
-	function<int (const EventArgs&)> NewRpcListenerHandler = bind_weak(&IcingaApplication::NewRpcListenerHandler, shared_from_this());
-	listenerCollection->OnObjectCreated += NewRpcListenerHandler;
-	listenerCollection->ForEachObject(NewRpcListenerHandler);
-	listenerCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcListenerHandler, shared_from_this());
-
-	/* register handle for 'rpcconnection' config objects */
-	ConfigCollection::Ptr connectionCollection = GetConfigHive()->GetCollection("rpcconnection");
-	function<int (const EventArgs&)> NewRpcConnectionHandler = bind_weak(&IcingaApplication::NewRpcConnectionHandler, shared_from_this());
-	connectionCollection->OnObjectCreated += NewRpcConnectionHandler;
-	connectionCollection->ForEachObject(NewRpcConnectionHandler);
-	connectionCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedRpcConnectionHandler, shared_from_this());
+	/* create the primary RPC listener */
+	string service = GetService();
+	if (!service.empty())
+		GetEndpointManager()->AddListener(service);
 
 	RunEventLoop();
 
@@ -158,58 +149,6 @@ int IcingaApplication::NewIcingaConfigHandler(const EventArgs& ea)
 }
 
 int IcingaApplication::DeletedIcingaConfigHandler(const EventArgs& ea)
-{
-	throw Exception("Unsupported operation.");
-
-	return 0;
-}
-
-int IcingaApplication::NewRpcListenerHandler(const EventArgs& ea)
-{
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
-
-	/* don't allow replicated config objects */
-	if (object->GetReplicated())
-		return 0;
-
-	string service;
-	if (!object->GetPropertyString("service", &service))
-		throw InvalidArgumentException("Parameter 'service' is required for 'rpclistener' objects.");
-
-	GetEndpointManager()->AddListener(service);
-
-	return 0;
-}
-
-int IcingaApplication::DeletedRpcListenerHandler(const EventArgs& ea)
-{
-	throw Exception("Unsupported operation.");
-
-	return 0;
-}
-
-int IcingaApplication::NewRpcConnectionHandler(const EventArgs& ea)
-{
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
-
-	/* don't allow replicated config objects */
-	if (object->GetReplicated())
-		return 0;
-
-	string node;
-	if (!object->GetPropertyString("node", &node))
-		throw InvalidArgumentException("Parameter 'node' is required for 'rpcconnection' objects.");
-
-	string service;
-	if (!object->GetPropertyString("service", &service))
-		throw InvalidArgumentException("Parameter 'service' is required for 'rpcconnection' objects.");
-
-	GetEndpointManager()->AddConnection(node, service);
-
-	return 0;
-}
-
-int IcingaApplication::DeletedRpcConnectionHandler(const EventArgs& ea)
 {
 	throw Exception("Unsupported operation.");
 

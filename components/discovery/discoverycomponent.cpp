@@ -44,6 +44,7 @@ void DiscoveryComponent::Start(void)
 
 	GetEndpointManager()->RegisterEndpoint(m_DiscoveryEndpoint);
 
+	/* create the reconnect timer */
 	m_DiscoveryTimer = make_shared<Timer>();
 	m_DiscoveryTimer->SetInterval(30);
 	m_DiscoveryTimer->OnTimerExpired += bind_weak(&DiscoveryComponent::DiscoveryTimerHandler, shared_from_this());
