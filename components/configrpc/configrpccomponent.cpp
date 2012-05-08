@@ -28,9 +28,9 @@ void ConfigRpcComponent::Start(void)
 		m_ConfigRpcEndpoint->RegisterMethodSource("config::PropertyChanged");
 	}
 
-	m_ConfigRpcEndpoint->RegisterMethodHandler("message::Welcome",
-	    bind_weak(&ConfigRpcComponent::WelcomeMessageHandler, shared_from_this()));
+	endpointManager->OnNewEndpoint += bind_weak(&ConfigRpcComponent::NewEndpointHandler, shared_from_this());
 
+	m_ConfigRpcEndpoint->RegisterMethodSource("config::FetchObjects");
 	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectCreated",
 	    bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
 	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectRemoved",
@@ -46,12 +46,20 @@ void ConfigRpcComponent::Stop(void)
 	// TODO: implement
 }
 
-int ConfigRpcComponent::WelcomeMessageHandler(const NewRequestEventArgs& ea)
+int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
+{
+	ea.Endpoint->OnSessionEstablished += bind_weak(&ConfigRpcComponent::SessionEstablishedHandler, shared_from_this());
+
+	return 0;
+}
+
+int ConfigRpcComponent::SessionEstablishedHandler(const EventArgs& ea)
 {
 	JsonRpcRequest request;
 	request.SetMethod("config::FetchObjects");
 
-	GetEndpointManager()->SendUnicastRequest(m_ConfigRpcEndpoint, ea.Sender, request);
+	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(ea.Source);
+	GetEndpointManager()->SendUnicastRequest(m_ConfigRpcEndpoint, endpoint, request);
 
 	return 0;
 }

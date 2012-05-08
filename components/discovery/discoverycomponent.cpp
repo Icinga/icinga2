@@ -297,7 +297,7 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 
 	if (endpoint->GetSentWelcome()) {
 		EventArgs ea;
-		ea.Source = shared_from_this();
+		ea.Source = endpoint;
 		endpoint->OnSessionEstablished(ea);
 	}
 
@@ -340,7 +340,7 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 
 	if (endpoint->GetReceivedWelcome()) {
 		EventArgs ea;
-		ea.Source = shared_from_this();
+		ea.Source = endpoint;
 		endpoint->OnSessionEstablished(ea);
 	}
 }
