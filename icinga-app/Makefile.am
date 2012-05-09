@@ -1,21 +1,20 @@
 ## Process this file with automake to produce Makefile.in
 
 
-bin_PROGRAMS =  \
+bin_PROGRAMS = \
 	icinga
 
-icinga_SOURCES =  \
+icinga_SOURCES = \
 	icinga.cpp
 
-icinga_CFLAGS = -DI2_ICINGALAUNCHER_BUILD
-
-icinga_CXXFLAGS = -DI2_ICINGALAUNCHER_BUILD -I${top_srcdir}/base \
+icinga_CXXFLAGS = \
+	-DI2_ICINGALAUNCHER_BUILD \
+	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON \
 	-I${top_srcdir}/icinga \
 	-I${top_srcdir}
 
-icinga_LDFLAGS = $(top_builddir)/icinga/libicinga.la \
-	$(top_builddir)/jsonrpc/libjsonrpc.la \
-	$(top_builddir)/base/libbase.la \
-	${top_builddir}/cJSON/libcJSON.la
+icinga_LDADD = \
+	${top_builddir}/base/libbase.la \
+	${top_builddir}/icinga/libicinga.la

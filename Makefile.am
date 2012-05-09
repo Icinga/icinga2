@@ -3,8 +3,8 @@
 
 SUBDIRS = ltdl \
 	mmatch \
-	base \
 	cJSON \
+	base \
 	jsonrpc \
 	icinga \
 	icinga-app \

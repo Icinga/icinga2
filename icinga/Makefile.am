@@ -21,11 +21,17 @@ libicinga_la_SOURCES =  \
 
 libicinga_la_CFLAGS = -DI2_ICINGA_BUILD
 
-libicinga_la_CXXFLAGS = -DI2_ICINGA_BUILD -I${top_srcdir}/base \
+libicinga_la_CXXFLAGS = \
+	-DI2_ICINGA_BUILD \
+	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON \
 	-I${top_srcdir}
 
-libicinga_la_LDFLAGS = $(top_builddir)/jsonrpc/libjsonrpc.la \
-	$(top_builddir)/base/libbase.la \
-	${top_builddir}/cJSON/libcJSON.la
+libicinga_la_LDFLAGS = \
+	-no-undefined \
+	-version-info 0:0:0
+
+libicinga_la_LIBADD = \
+	${top_builddir}/jsonrpc/libjsonrpc.la \
+	${top_builddir}/base/libbase.la
