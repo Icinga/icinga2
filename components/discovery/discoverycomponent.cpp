@@ -573,14 +573,17 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 	ConfigCollection::Ptr endpointCollection = GetApplication()->GetConfigHive()->GetCollection("endpoint");
 	endpointCollection->ForEachObject(bind(&DiscoveryComponent::EndpointConfigHandler, this, _1));
 
-	map<string, ComponentDiscoveryInfo::Ptr>::iterator i;
+	map<string, ComponentDiscoveryInfo::Ptr>::iterator curr, i;
 	for (i = m_Components.begin(); i != m_Components.end(); ) {
 		string identity = i->first;
 		ComponentDiscoveryInfo::Ptr info = i->second;
 
+		curr = i;
+		i++;
+
 		if (info->LastSeen < now - DiscoveryComponent::RegistrationTTL) {
 			/* unregister this component if its registration has expired */
-			i = m_Components.erase(i);
+			m_Components.erase(curr);
 			continue;
 		}
 
@@ -599,8 +602,6 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 			/* try and reconnect to this component */
 			endpointManager->AddConnection(info->Node, info->Service);
 		}
-
-		i++;
 	}
 
 	return 0;
