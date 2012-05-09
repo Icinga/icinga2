@@ -484,7 +484,9 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	if (IsBroker())
 		SendDiscoveryMessage("discovery::NewComponent", identity, Endpoint::Ptr());
 
-	if (endpoint)
+	/* don't send a welcome message for discovery::RegisterComponent
+	   messages unless we're a broker */
+	if (endpoint && (trusted || IsBroker()))
 		FinishDiscoverySetup(endpoint);
 }
 
