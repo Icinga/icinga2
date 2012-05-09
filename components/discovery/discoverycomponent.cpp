@@ -590,7 +590,7 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 		if (IsBroker()) {
 			/* send discovery message to all connected components to
 			   refresh their TTL for this component */
-			SendDiscoveryMessage("discovery::NewComponent", i->first, Endpoint::Ptr());
+			SendDiscoveryMessage("discovery::NewComponent", identity, Endpoint::Ptr());
 		}
 
 		Endpoint::Ptr endpoint = endpointManager->GetEndpointByIdentity(identity);
