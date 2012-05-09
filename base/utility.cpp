@@ -141,5 +141,5 @@ shared_ptr<X509> Utility::GetX509Certificate(string pemfile)
 
 bool Utility::Match(string pattern, string text)
 {
-	return (match(pattern.c_str(), text.c_str()) != 0);
+	return (match(pattern.c_str(), text.c_str()) == 0);
 }
