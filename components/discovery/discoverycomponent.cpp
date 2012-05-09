@@ -242,7 +242,7 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 	// the broker knows about our message types
 	SendDiscoveryMessage("discovery::RegisterComponent", GetEndpointManager()->GetIdentity(), endpoint);
 
-	map<string, ComponentDiscoveryInfo::Ptr>::iterator i;
+	map<string, ComponentDiscoveryInfo::Ptr>::iterator ic;
 
 	if (IsBroker()) {
 		// we assume the other component _always_ wants
@@ -254,20 +254,29 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 
 		// send discovery::NewComponent messages for all components
 		// we know about
-		for (i = m_Components.begin(); i != m_Components.end(); i++) {
-			SendDiscoveryMessage("discovery::NewComponent", i->first, endpoint);
+		for (ic = m_Components.begin(); ic != m_Components.end(); ic++) {
+			SendDiscoveryMessage("discovery::NewComponent", ic->first, endpoint);
 		}
 	}
 
 	// check if we already know the other component
-	i = m_Components.find(endpoint->GetIdentity());
+	ic = m_Components.find(endpoint->GetIdentity());
 
-	if (i == m_Components.end()) {
+	if (ic == m_Components.end()) {
 		// we don't know the other component yet, so
 		// wait until we get a discovery::NewComponent message
 		// from a broker
 		return 0;
 	}
+
+	// register published/subscribed methods for this endpoint
+	ComponentDiscoveryInfo::Ptr info = ic->second;
+	set<string>::iterator it;
+	for (it = info->PublishedMethods.begin(); it != info->PublishedMethods.end(); it++)
+		endpoint->RegisterMethodSource(*it);
+
+	for (it = info->SubscribedMethods.begin(); it != info->SubscribedMethods.end(); it++)
+		endpoint->RegisterMethodSink(*it);
 
 	FinishDiscoverySetup(endpoint);
 
@@ -322,17 +331,6 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 	GetEndpointManager()->SendUnicastRequest(m_DiscoveryEndpoint, endpoint, request);
 
 	endpoint->SetSentWelcome(true);
-
-	ComponentDiscoveryInfo::Ptr info;
-
-	if (GetComponentDiscoveryInfo(endpoint->GetIdentity(), &info)) {
-		set<string>::iterator i;
-		for (i = info->PublishedMethods.begin(); i != info->PublishedMethods.end(); i++)
-			endpoint->RegisterMethodSource(*i);
-
-		for (i = info->SubscribedMethods.begin(); i != info->SubscribedMethods.end(); i++)
-			endpoint->RegisterMethodSink(*i);
-	}
 
 	if (endpoint->GetReceivedWelcome()) {
 		EventArgs ea;
@@ -448,12 +446,17 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	if (endpointConfig)
 		endpointConfig->GetPropertyDictionary("roles", &roles);
 
+	Endpoint::Ptr endpoint = GetEndpointManager()->GetEndpointByIdentity(identity);
+
 	Message provides;
 	if (message.GetProvides(&provides)) {
 		DictionaryIterator i;
 		for (i = provides.GetDictionary()->Begin(); i != provides.GetDictionary()->End(); i++) {
-			if (trusted || HasMessagePermission(roles, "publish", i->second))
+			if (trusted || HasMessagePermission(roles, "publish", i->second)) {
 				info->PublishedMethods.insert(i->second);
+				if (endpoint)
+					endpoint->RegisterMethodSource(i->second);
+			}
 		}
 	}
 
@@ -461,8 +464,11 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	if (message.GetSubscribes(&subscribes)) {
 		DictionaryIterator i;
 		for (i = subscribes.GetDictionary()->Begin(); i != subscribes.GetDictionary()->End(); i++) {
-			if (trusted || HasMessagePermission(roles, "subscribe", i->second))
+			if (trusted || HasMessagePermission(roles, "subscribe", i->second)) {
 				info->SubscribedMethods.insert(i->second);
+				if (endpoint)
+					endpoint->RegisterMethodSink(i->second);
+			}
 		}
 	}
 
@@ -478,7 +484,6 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	if (IsBroker())
 		SendDiscoveryMessage("discovery::NewComponent", identity, Endpoint::Ptr());
 
-	Endpoint::Ptr endpoint = GetEndpointManager()->GetEndpointByIdentity(identity);
 	if (endpoint)
 		FinishDiscoverySetup(endpoint);
 }
