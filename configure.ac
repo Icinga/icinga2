@@ -36,7 +36,7 @@ fi
 
 
 
-LT_INIT
+LT_INIT([disable-static])
 LT_CONFIG_LTDL_DIR([ltdl])
 LTDL_INIT
 
