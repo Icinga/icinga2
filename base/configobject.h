@@ -17,8 +17,6 @@ private:
 	string m_Type;
 	bool m_Replicated;
 
-	int PropertyChangedHandler(const PropertyChangedEventArgs& dpcea);
-
 public:
 	typedef shared_ptr<ConfigObject> Ptr;
 	typedef weak_ptr<ConfigObject> WeakPtr;
@@ -36,6 +34,8 @@ public:
 
 	void SetReplicated(bool replicated);
 	bool GetReplicated(void) const;
+
+	void Commit(void);
 };
 
 }

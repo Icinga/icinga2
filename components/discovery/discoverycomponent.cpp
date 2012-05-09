@@ -27,15 +27,16 @@ void DiscoveryComponent::Start(void)
 	GetConfig()->GetPropertyInteger("broker", &isBroker);
 	m_Broker = (isBroker != 0);
 
-	if (IsBroker()) {
-		m_DiscoveryEndpoint->RegisterMethodSource("discovery::NewComponent");
-		m_DiscoveryEndpoint->RegisterMethodHandler("discovery::RegisterComponent",
-			bind_weak(&DiscoveryComponent::RegisterComponentMessageHandler, shared_from_this()));
-	}
-
 	m_DiscoveryEndpoint->RegisterMethodSource("discovery::RegisterComponent");
+	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::RegisterComponent",
+		bind_weak(&DiscoveryComponent::RegisterComponentMessageHandler, shared_from_this()));
+
+	if (IsBroker())
+		m_DiscoveryEndpoint->RegisterMethodSource("discovery::NewComponent");
+
 	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::NewComponent",
 		bind_weak(&DiscoveryComponent::NewComponentMessageHandler, shared_from_this()));
+
 	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::Welcome",
 		bind_weak(&DiscoveryComponent::WelcomeMessageHandler, shared_from_this()));
 
@@ -49,6 +50,9 @@ void DiscoveryComponent::Start(void)
 	m_DiscoveryTimer->SetInterval(30);
 	m_DiscoveryTimer->OnTimerExpired += bind_weak(&DiscoveryComponent::DiscoveryTimerHandler, shared_from_this());
 	m_DiscoveryTimer->Start();
+
+	/* call the timer as soon as possible */
+	m_DiscoveryTimer->Reschedule(0);
 }
 
 /**
@@ -104,10 +108,8 @@ int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 {
 	neea.Endpoint->OnIdentityChanged += bind_weak(&DiscoveryComponent::NewIdentityHandler, shared_from_this());
 
-	if (IsBroker()) {
-		/* accept discovery::RegisterComponent messages from any endpoint */
-		neea.Endpoint->RegisterMethodSource("discovery::RegisterComponent");
-	}
+	/* accept discovery::RegisterComponent messages from any endpoint */
+	neea.Endpoint->RegisterMethodSource("discovery::RegisterComponent");
 
 	/* accept discovery::Welcome messages from any endpoint */
 	neea.Endpoint->RegisterMethodSource("discovery::Welcome");
@@ -230,12 +232,6 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 	}
 
 	GetEndpointManager()->ForEachEndpoint(bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _1));
-
-	ConfigCollection::Ptr brokerCollection = GetApplication()->GetConfigHive()->GetCollection("broker");
-	if (brokerCollection->GetObject(identity)) {
-		/* accept discovery::NewComponent messages from brokers */
-		endpoint->RegisterMethodSource("discovery::NewComponent");
-	}
 
 	// we assume the other component _always_ wants
 	// discovery::RegisterComponent messages from us
@@ -394,6 +390,30 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 		GetEndpointManager()->SendMulticastRequest(m_DiscoveryEndpoint, request);
 }
 
+bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string messageType, string message)
+{
+	ConfigHive::Ptr configHive = GetApplication()->GetConfigHive();
+	ConfigCollection::Ptr roleCollection = configHive->GetCollection("role");
+
+	for (DictionaryIterator ip = roles->Begin(); ip != roles->End(); ip++) {
+		ConfigObject::Ptr role = roleCollection->GetObject(ip->second);
+
+		if (!role)
+			continue;
+
+		Dictionary::Ptr permissions;
+		if (!role->GetPropertyDictionary(messageType, &permissions))
+			continue;
+
+		for (DictionaryIterator is = permissions->Begin(); is != permissions->End(); is++) {
+			if (Utility::Match(is->second.GetString(), message))
+				return true;
+		}
+	}
+
+	return false;
+}
+
 /**
  * ProcessDiscoveryMessage
  *
@@ -402,8 +422,9 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
  *
  * @param identity The authorative identity of the component.
  * @param message The discovery message.
+ * @param trusted Whether the message comes from a trusted source (i.e. a broker).
  */
-void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessage message)
+void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessage message, bool trusted)
 {
 	/* ignore discovery messages that are about ourselves */
 	if (identity == GetEndpointManager()->GetIdentity())
@@ -416,14 +437,20 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	message.GetNode(&info->Node);
 	message.GetService(&info->Service);
 
+	ConfigHive::Ptr configHive = GetApplication()->GetConfigHive();
+	ConfigCollection::Ptr endpointCollection = configHive->GetCollection("endpoint");
+
+	ConfigObject::Ptr endpointConfig = endpointCollection->GetObject(identity);
+	Dictionary::Ptr roles;
+	if (endpointConfig)
+		endpointConfig->GetPropertyDictionary("roles", &roles);
+
 	Message provides;
 	if (message.GetProvides(&provides)) {
 		DictionaryIterator i;
 		for (i = provides.GetDictionary()->Begin(); i != provides.GetDictionary()->End(); i++) {
-			if (IsBroker()) {
-				/* TODO: Add authorisation checks here */
-			}
-			info->PublishedMethods.insert(i->second);
+			if (trusted || HasMessagePermission(roles, "publish", i->second))
+				info->PublishedMethods.insert(i->second);
 		}
 	}
 
@@ -431,16 +458,14 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	if (message.GetSubscribes(&subscribes)) {
 		DictionaryIterator i;
 		for (i = subscribes.GetDictionary()->Begin(); i != subscribes.GetDictionary()->End(); i++) {
-			if (IsBroker()) {
-				/* TODO: Add authorisation checks here */
-			}
-			info->SubscribedMethods.insert(i->second);
+			if (trusted || HasMessagePermission(roles, "subscribe", i->second))
+				info->SubscribedMethods.insert(i->second);
 		}
 	}
 
 	map<string, ComponentDiscoveryInfo::Ptr>::iterator i;
 
-	i  = m_Components.find(identity);
+	i = m_Components.find(identity);
 
 	if (i != m_Components.end())
 		m_Components.erase(i);
@@ -472,7 +497,7 @@ int DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& nr
 	if (!message.GetIdentity(&identity))
 		return 0;
 
-	ProcessDiscoveryMessage(identity, message);
+	ProcessDiscoveryMessage(identity, message, true);
 	return 0;
 }
 
@@ -486,45 +511,36 @@ int DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& nr
  */
 int DiscoveryComponent::RegisterComponentMessageHandler(const NewRequestEventArgs& nrea)
 {
-	/* ignore discovery::RegisterComponent messages when we're not a broker */
-	if (!IsBroker())
-		return 0;
-
 	DiscoveryMessage message;
 	nrea.Request.GetParams(&message);
-	ProcessDiscoveryMessage(nrea.Sender->GetIdentity(), message);
+	ProcessDiscoveryMessage(nrea.Sender->GetIdentity(), message, false);
 
 	return 0;
 }
 
 /**
- * BrokerConfigHandler
+ * EndpointConfigHandler
  *
- * Processes "broker" config objects.
+ * Processes "endpoint" config objects.
  *
  * @param ea Event arguments for the new config object.
  * @returns 0
  */
-int DiscoveryComponent::BrokerConfigHandler(const EventArgs& ea)
+int DiscoveryComponent::EndpointConfigHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 
 	EndpointManager::Ptr endpointManager = GetEndpointManager();
 
-	/* Check if we're already connected to this broker. */
+	/* Check if we're already connected to this endpoint. */
 	if (endpointManager->GetEndpointByIdentity(object->GetName()))
 		return 0;
 
-	string node;
-	if (!object->GetPropertyString("node", &node))
-		throw InvalidArgumentException("'node' property required for 'broker' config object.");
-
-	string service;
-	if (!object->GetPropertyString("service", &service))
-		throw InvalidArgumentException("'service' property required for 'broker' config object.");
-
-	/* reconnect to this broker */
-	endpointManager->AddConnection(node, service);
+	string node, service;
+	if (object->GetPropertyString("node", &node) && object->GetPropertyString("service", &service)) {
+		/* reconnect to this endpoint */
+		endpointManager->AddConnection(node, service);
+	}
 
 	return 0;
 }
@@ -545,9 +561,9 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 	time_t now;
 	time(&now);
 
-	/* check whether we have to reconnect to one of our upstream brokers */
-	ConfigCollection::Ptr brokerCollection = GetApplication()->GetConfigHive()->GetCollection("broker");
-	brokerCollection->ForEachObject(bind(&DiscoveryComponent::BrokerConfigHandler, this, _1));
+	/* check whether we have to reconnect to one of our upstream endpoints */
+	ConfigCollection::Ptr endpointCollection = GetApplication()->GetConfigHive()->GetCollection("endpoint");
+	endpointCollection->ForEachObject(bind(&DiscoveryComponent::EndpointConfigHandler, this, _1));
 
 	map<string, ComponentDiscoveryInfo::Ptr>::iterator i;
 	for (i = m_Components.begin(); i != m_Components.end(); ) {

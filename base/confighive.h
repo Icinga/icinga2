@@ -23,9 +23,8 @@ public:
 	void ForEachObject(const string& type,
 	    function<int (const EventArgs&)> callback);
 
-	Event<EventArgs> OnObjectCreated;
+	Event<EventArgs> OnObjectCommitted;
 	Event<EventArgs> OnObjectRemoved;
-	Event<PropertyChangedEventArgs> OnPropertyChanged;
 };
 
 }

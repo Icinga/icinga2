@@ -55,13 +55,23 @@ void ConfigFileComponent::Start(void)
 
 			for (cJSON *property = object->child; property != NULL; property = property->next) {
 				string key = property->string;
+				
+				if (property->type == cJSON_String) {
+					string value = property->valuestring;
 
-				if (property->type != cJSON_String)
-					continue;
+					cfgobj->SetPropertyString(key, value);
+				} else if (property->type == cJSON_Array) {
+					Dictionary::Ptr items = make_shared<Dictionary>();
 
-				string value = property->valuestring;
+					for (cJSON *item = property->child; item != NULL; item = item->next) {
+						if (item->type != cJSON_String)
+							continue;
 
-				cfgobj->SetPropertyString(key, value);
+						items->AddUnnamedPropertyString(item->valuestring);
+					}
+
+					cfgobj->SetPropertyDictionary(key, items);
+				}
 			}
 
 			GetApplication()->GetConfigHive()->AddObject(cfgobj);

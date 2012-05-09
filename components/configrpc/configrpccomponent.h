@@ -12,12 +12,11 @@ private:
 	int NewEndpointHandler(const NewEndpointEventArgs& ea);
 	int SessionEstablishedHandler(const EventArgs& ea);
 
-	int LocalObjectCreatedHandler(const EventArgs& ea);
+	int LocalObjectCommittedHandler(const EventArgs& ea);
 	int LocalObjectRemovedHandler(const EventArgs& ea);
-	int LocalPropertyChangedHandler(const PropertyChangedEventArgs& ea);
 
 	int FetchObjectsHandler(const NewRequestEventArgs& ea);
-	int RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea);
+	int RemoteObjectCommittedHandler(const NewRequestEventArgs& ea);
 	int RemoteObjectRemovedHandler(const NewRequestEventArgs& ea);
 
 	static JsonRpcRequest MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties);

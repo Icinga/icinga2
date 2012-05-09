@@ -1,4 +1,5 @@
 #include "i2-base.h"
+#include <mmatch.h>
 
 using namespace icinga;
 
@@ -136,4 +137,9 @@ shared_ptr<X509> Utility::GetX509Certificate(string pemfile)
 	BIO_free(fpcert);
 
 	return shared_ptr<X509>(cert, X509_free);
+}
+
+bool Utility::Match(string pattern, string text)
+{
+	return (match(pattern.c_str(), text.c_str()) != 0);
 }

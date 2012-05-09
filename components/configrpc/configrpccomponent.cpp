@@ -19,24 +19,20 @@ void ConfigRpcComponent::Start(void)
 		m_ConfigRpcEndpoint->RegisterMethodHandler("config::FetchObjects",
 		    bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
 
-		configHive->OnObjectCreated += bind_weak(&ConfigRpcComponent::LocalObjectCreatedHandler, shared_from_this());
+		configHive->OnObjectCommitted += bind_weak(&ConfigRpcComponent::LocalObjectCommittedHandler, shared_from_this());
 		configHive->OnObjectRemoved += bind_weak(&ConfigRpcComponent::LocalObjectRemovedHandler, shared_from_this());
-		configHive->OnPropertyChanged += bind_weak(&ConfigRpcComponent::LocalPropertyChangedHandler, shared_from_this());
 
-		m_ConfigRpcEndpoint->RegisterMethodSource("config::ObjectCreated");
+		m_ConfigRpcEndpoint->RegisterMethodSource("config::ObjectCommitted");
 		m_ConfigRpcEndpoint->RegisterMethodSource("config::ObjectRemoved");
-		m_ConfigRpcEndpoint->RegisterMethodSource("config::PropertyChanged");
 	}
 
 	endpointManager->OnNewEndpoint += bind_weak(&ConfigRpcComponent::NewEndpointHandler, shared_from_this());
 
 	m_ConfigRpcEndpoint->RegisterMethodSource("config::FetchObjects");
-	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectCreated",
-	    bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
+	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectCommitted",
+	    bind_weak(&ConfigRpcComponent::RemoteObjectCommittedHandler, shared_from_this()));
 	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectRemoved",
 	    bind_weak(&ConfigRpcComponent::RemoteObjectRemovedHandler, shared_from_this()));
-	m_ConfigRpcEndpoint->RegisterMethodHandler("config::PropertyChanged",
-	    bind_weak(&ConfigRpcComponent::RemoteObjectUpdatedHandler, shared_from_this()));
 
 	endpointManager->RegisterEndpoint(m_ConfigRpcEndpoint);
 }
@@ -115,7 +111,7 @@ int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectCreatedHandler(const EventArgs& ea)
+int ConfigRpcComponent::LocalObjectCommittedHandler(const EventArgs& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
@@ -141,32 +137,7 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
 	return 0;
 }
 
-int ConfigRpcComponent::LocalPropertyChangedHandler(const PropertyChangedEventArgs& ea)
-{
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
-	
-	if (!ShouldReplicateObject(object))
-		return 0;
-
-	JsonRpcRequest msg = MakeObjectMessage(object, "config::PropertyChanged", false);
-	Message params;
-	msg.SetParams(params);
-
-	Message properties;
-	params.GetDictionary()->SetPropertyDictionary("properties", properties.GetDictionary());
-
-	string value;
-	if (!object->GetPropertyString(ea.Property, &value))
-		return 0;
-
-	properties.GetDictionary()->SetPropertyString(ea.Property, value);
-
-	GetEndpointManager()->SendMulticastRequest(m_ConfigRpcEndpoint, msg);
-
-	return 0;
-}
-
-int ConfigRpcComponent::RemoteObjectUpdatedHandler(const NewRequestEventArgs& ea)
+int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& ea)
 {
 	JsonRpcRequest message = ea.Request;
 	bool was_null = false;

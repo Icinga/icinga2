@@ -38,14 +38,7 @@ void ConfigCollection::AddObject(const ConfigObject::Ptr& object)
 	RemoveObject(object);
 
 	Objects[object->GetName()] = object;
-
-	EventArgs ea;
-	ea.Source = object;
-	OnObjectCreated(ea);
-
-	ConfigHive::Ptr hive = m_Hive.lock();
-	if (hive)
-		hive->OnObjectCreated(ea);
+	object->Commit();
 }
 
 /**

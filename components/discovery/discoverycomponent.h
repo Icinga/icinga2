@@ -36,7 +36,7 @@ private:
 	int WelcomeMessageHandler(const NewRequestEventArgs& nrea);
 
 	void SendDiscoveryMessage(string method, string identity, Endpoint::Ptr recipient);
-	void ProcessDiscoveryMessage(string identity, DiscoveryMessage message);
+	void ProcessDiscoveryMessage(string identity, DiscoveryMessage message, bool trusted);
 
 	bool GetComponentDiscoveryInfo(string component, ComponentDiscoveryInfo::Ptr *info) const;
 
@@ -51,7 +51,9 @@ private:
 
 	void FinishDiscoverySetup(Endpoint::Ptr endpoint);
 
-	int BrokerConfigHandler(const EventArgs& ea);
+	int EndpointConfigHandler(const EventArgs& ea);
+
+	bool HasMessagePermission(Dictionary::Ptr roles, string messageType, string message);
 
 	static const int RegistrationTTL = 300;
 

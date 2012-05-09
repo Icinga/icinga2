@@ -56,5 +56,5 @@ components/discovery/Makefile
 icinga/Makefile
 icinga-app/Makefile
 jsonrpc/Makefile
-
+mmatch/Makefile
 ])

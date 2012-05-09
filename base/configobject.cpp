@@ -30,7 +30,6 @@ void ConfigObject::SetHive(const ConfigHive::WeakPtr& hive)
 		throw InvalidArgumentException("Config object already has a parent hive.");
 
 	m_Hive = hive;
-	OnPropertyChanged += bind_weak(&ConfigObject::PropertyChangedHandler, shared_from_this());
 }
 
 /**
@@ -118,21 +117,19 @@ bool ConfigObject::GetReplicated(void) const
 }
 
 /**
- * PropertyChangedHandler
+ * Commit
  *
  * Handles changed properties by propagating them to the hive
  * and collection this object is contained in.
  *
- * @param dpcea The event arguments.
- * @returns 0.
  */
-int ConfigObject::PropertyChangedHandler(const PropertyChangedEventArgs& dpcea)
+void ConfigObject::Commit(void)
 {
 	ConfigHive::Ptr hive = m_Hive.lock();
 	if (hive) {
-		hive->GetCollection(m_Type)->OnPropertyChanged(dpcea);
-		hive->OnPropertyChanged(dpcea);
+		EventArgs ea;
+		ea.Source = shared_from_this();
+		hive->GetCollection(m_Type)->OnObjectCommitted(ea);
+		hive->OnObjectCommitted(ea);
 	}
-
-	return 0;
 }

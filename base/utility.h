@@ -47,6 +47,8 @@ public:
 	static shared_ptr<SSL_CTX> MakeSSLContext(string pubkey, string privkey, string cakey);
 	static string GetCertificateCN(const shared_ptr<X509>& certificate);
 	static shared_ptr<X509> GetX509Certificate(string pemfile);
+
+	static bool Match(string pattern, string text);
 };
 
 }

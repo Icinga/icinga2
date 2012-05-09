@@ -30,14 +30,14 @@ int IcingaApplication::Main(const vector<string>& args)
 	/* register handler for 'icinga' config objects */
 	ConfigCollection::Ptr icingaCollection = GetConfigHive()->GetCollection("icinga");
 	function<int (const EventArgs&)> NewIcingaConfigHandler = bind_weak(&IcingaApplication::NewIcingaConfigHandler, shared_from_this());
-	icingaCollection->OnObjectCreated += NewIcingaConfigHandler;
+	icingaCollection->OnObjectCommitted += NewIcingaConfigHandler;
 	icingaCollection->ForEachObject(NewIcingaConfigHandler);
 	icingaCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedIcingaConfigHandler, shared_from_this());
 
 	/* register handler for 'component' config objects */
 	ConfigCollection::Ptr componentCollection = GetConfigHive()->GetCollection("component");
 	function<int (const EventArgs&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
-	componentCollection->OnObjectCreated += NewComponentHandler;
+	componentCollection->OnObjectCommitted += NewComponentHandler;
 	componentCollection->ForEachObject(NewComponentHandler);
 	componentCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
 

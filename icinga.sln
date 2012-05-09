@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "base", "base\base.vcxproj", "{9C92DA90-FD53-43A9-A244-90F2E8AF9677}"
+	ProjectSection(ProjectDependencies) = postProject
+		{19CBCE06-3F5C-479A-BD75-E2AB6215D345} = {19CBCE06-3F5C-479A-BD75-E2AB6215D345}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jsonrpc", "jsonrpc\jsonrpc.vcxproj", "{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -46,6 +49,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "discovery", "components\dis
 		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8} = {C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmatch", "mmatch\mmatch.vcxproj", "{19CBCE06-3F5C-479A-BD75-E2AB6215D345}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -88,6 +93,10 @@ Global
 		{EAD41628-BB96-4F99-9070-8A9676801295}.Debug|Win32.Build.0 = Debug|Win32
 		{EAD41628-BB96-4F99-9070-8A9676801295}.Release|Win32.ActiveCfg = Release|Win32
 		{EAD41628-BB96-4F99-9070-8A9676801295}.Release|Win32.Build.0 = Release|Win32
+		{19CBCE06-3F5C-479A-BD75-E2AB6215D345}.Debug|Win32.ActiveCfg = Debug|Win32
+		{19CBCE06-3F5C-479A-BD75-E2AB6215D345}.Debug|Win32.Build.0 = Debug|Win32
+		{19CBCE06-3F5C-479A-BD75-E2AB6215D345}.Release|Win32.ActiveCfg = Release|Win32
+		{19CBCE06-3F5C-479A-BD75-E2AB6215D345}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

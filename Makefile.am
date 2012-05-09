@@ -2,6 +2,7 @@
 ## Created by Anjuta
 
 SUBDIRS = ltdl \
+	mmatch \
 	base \
 	cJSON \
 	jsonrpc \
