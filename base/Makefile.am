@@ -58,4 +58,4 @@ libbase_la_SOURCES =  \
 
 libbase_la_LIBADD=$(LIBLTDL)
 
-libbase_la_CXXFLAGS=$(LTDLINCL) -DI2_BASE_BUILD -pthread
+libbase_la_CXXFLAGS=$(LTDLINCL) -DI2_BASE_BUILD -pthread -I${top_srcdir}/mmatch
