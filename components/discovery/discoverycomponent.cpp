@@ -392,6 +392,9 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 
 bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string messageType, string message)
 {
+	if (!roles)
+		return false;
+
 	ConfigHive::Ptr configHive = GetApplication()->GetConfigHive();
 	ConfigCollection::Ptr roleCollection = configHive->GetCollection("role");
 
