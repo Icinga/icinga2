@@ -1,0 +1,111 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Icinga 2
+Upstream-Contact: Icinga Development Team <info@icinga.org>
+Source: http://www.icinga.org/
+
+Files: *
+Copyright: Copyright (C) 2012 Icinga Development Team (http://www.icinga.org/)
+License: GPL-2+ with OpenSSL exception
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+In addition, as a special exception, the copyright holders give
+permission to link the code of portions of this program with the
+OpenSSL library under certain conditions as described in each
+individual source file, and distribute linked combinations including
+the two.
+
+You must obey the GNU General Public License in all respects for all
+of the code used other than OpenSSL. If you modify file(s) with this
+exception, you may extend this exception to your version of the
+file(s), but you are not obligated to do so. If you do not wish to do
+so, delete this exception statement from your version. If you delete
+this exception statement from all source files in the program, then
+also delete it here.
+
+Comment: On Debian systems, the complete text of the GNU General
+         Public License version 2 can be found in
+         `/usr/share/common-licenses/GPL-2'.
+
+Files: ltdl/*
+Copyright: Copyright (C) 1998, 1999, 2000, 2004, 2005, 2006,
+           2007, 2008, 2011 Free Software Foundation, Inc.
+           Written by Thomas Tanner, 1998
+License: LGPL-2+
+GNU Libltdl is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+As a special exception to the GNU Lesser General Public License,
+if you distribute this file as part of a program or library that
+is built using GNU Libtool, you may include this file under the
+same distribution terms that you use for the rest of that program.
+
+GNU Libltdl is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with GNU Libltdl; see the file COPYING.LIB.  If not, a
+copy can be downloaded from  http://www.gnu.org/licenses/lgpl.html,
+or obtained by writing to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+Comment: On Debian systems, the complete text of the GNU Lesser
+         General Public License can be found in
+         `/usr/share/common-licenses/LGPL-2'.
+
+Files: cJSON/*
+Copyright: Copyright (c) 2009 Dave Gamble
+License: permissive
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Files: mmatch/*
+Copyright: Copyright (C) 1990 Jarkko Oikarinen
+License: GPL-1+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 1, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+Comment: On Debian systems, the complete text of the GNU General
+         Public License can be found in
+         `/usr/share/common-licenses/GPL-1'.

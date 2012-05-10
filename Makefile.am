@@ -12,11 +12,12 @@ SUBDIRS = ltdl \
 
 icinga2docdir = ${prefix}/doc/icinga2
 icinga2doc_DATA = \
-	README\
-	COPYING\
-	AUTHORS\
-	ChangeLog\
-	INSTALL\
+	README \
+	COPYING \
+	COPYING.Exceptions \
+	AUTHORS \
+	ChangeLog \
+	INSTALL \
 	NEWS
 
 
