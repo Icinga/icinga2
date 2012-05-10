@@ -24,7 +24,7 @@ using namespace icinga;
 string VirtualEndpoint::GetAddress(void) const
 {
 	char address[50];
-	sprintf(address, "virtual:%p", this);
+	sprintf(address, "virtual:%p", (void *)this);
 	return address;
 }
 

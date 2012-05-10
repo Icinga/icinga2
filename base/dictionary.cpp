@@ -255,11 +255,11 @@ void Dictionary::AddUnnamedProperty(const Variant& value)
 {
 	map<string, Variant>::const_iterator it;
 	string key;
+	long index = GetLength();
 	do {
-		long index = GetLength();
-	
 		stringstream s;
-		s << "_" << GetLength();
+		s << "_" << index;
+		index++;
 
 		key = s.str();
 		it = m_Data.find(key);
