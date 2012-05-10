@@ -42,17 +42,11 @@ void DiscoveryComponent::Start(void)
 {
 	m_DiscoveryEndpoint = make_shared<VirtualEndpoint>();
 
-	long isBroker = 0;
-	GetConfig()->GetPropertyInteger("broker", &isBroker);
-	m_Broker = (isBroker != 0);
-
 	m_DiscoveryEndpoint->RegisterMethodSource("discovery::RegisterComponent");
 	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::RegisterComponent",
 		bind_weak(&DiscoveryComponent::RegisterComponentMessageHandler, shared_from_this()));
 
-	if (IsBroker())
-		m_DiscoveryEndpoint->RegisterMethodSource("discovery::NewComponent");
-
+	m_DiscoveryEndpoint->RegisterMethodSource("discovery::NewComponent");
 	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::NewComponent",
 		bind_weak(&DiscoveryComponent::NewComponentMessageHandler, shared_from_this()));
 
@@ -217,18 +211,6 @@ bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDi
 }
 
 /**
- * IsBroker
- *
- * Returns whether this component is a broker.
- *
- * @returns true if the component is a broker, false otherwise.
- */
-bool DiscoveryComponent::IsBroker(void) const
-{
-	return m_Broker;
-}
-
-/**
  * NewIdentityHandler
  *
  * Deals with a new endpoint whose identity has just become known.
@@ -263,19 +245,17 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 
 	map<string, ComponentDiscoveryInfo::Ptr>::iterator ic;
 
-	if (IsBroker()) {
-		// we assume the other component _always_ wants
-		// discovery::NewComponent messages from us
-		endpoint->RegisterMethodSink("discovery::NewComponent");
+	// we assume the other component _always_ wants
+	// discovery::NewComponent messages from us
+	endpoint->RegisterMethodSink("discovery::NewComponent");
 
-		// send discovery::NewComponent message for ourselves
-		SendDiscoveryMessage("discovery::NewComponent", GetEndpointManager()->GetIdentity(), endpoint);
+	// send discovery::NewComponent message for ourselves
+	SendDiscoveryMessage("discovery::NewComponent", GetEndpointManager()->GetIdentity(), endpoint);
 
-		// send discovery::NewComponent messages for all components
-		// we know about
-		for (ic = m_Components.begin(); ic != m_Components.end(); ic++) {
-			SendDiscoveryMessage("discovery::NewComponent", ic->first, endpoint);
-		}
+	// send discovery::NewComponent messages for all components
+	// we know about
+	for (ic = m_Components.begin(); ic != m_Components.end(); ic++) {
+		SendDiscoveryMessage("discovery::NewComponent", ic->first, endpoint);
 	}
 
 	// check if we already know the other component
@@ -500,12 +480,10 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 
 	m_Components[identity] = info;
 
-	if (IsBroker())
-		SendDiscoveryMessage("discovery::NewComponent", identity, Endpoint::Ptr());
+	SendDiscoveryMessage("discovery::NewComponent", identity, Endpoint::Ptr());
 
-	/* don't send a welcome message for discovery::RegisterComponent
-	   messages unless we're a broker */
-	if (endpoint && (trusted || IsBroker()))
+	/* don't send a welcome message for discovery::RegisterComponent messages */
+	if (endpoint && trusted)
 		FinishDiscoverySetup(endpoint);
 }
 
@@ -608,18 +586,16 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 			continue;
 		}
 
-		if (IsBroker()) {
-			/* send discovery message to all connected components to
-			   refresh their TTL for this component */
-			SendDiscoveryMessage("discovery::NewComponent", identity, Endpoint::Ptr());
-		}
+		/* send discovery message to all connected components to
+			refresh their TTL for this component */
+		SendDiscoveryMessage("discovery::NewComponent", identity, Endpoint::Ptr());
 
 		Endpoint::Ptr endpoint = endpointManager->GetEndpointByIdentity(identity);
 		if (endpoint && endpoint->IsConnected()) {
 			/* update LastSeen if we're still connected to this endpoint */
 			info->LastSeen = now;
 		} else {
-			/* TODO: figure out whether we actually want to connect to this component (_always_ if IsBroker() == true) */
+			/* TODO: figure out whether we actually want to connect to this component */
 			/* try and reconnect to this component */
 			endpointManager->AddConnection(info->Node, info->Service);
 		}

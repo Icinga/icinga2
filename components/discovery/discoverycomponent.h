@@ -43,7 +43,6 @@ class DiscoveryComponent : public IcingaComponent
 private:
 	VirtualEndpoint::Ptr m_DiscoveryEndpoint;
 	map<string, ComponentDiscoveryInfo::Ptr> m_Components;
-	bool m_Broker;
 	Timer::Ptr m_DiscoveryTimer;
 
 	int NewEndpointHandler(const NewEndpointEventArgs& neea);
@@ -65,8 +64,6 @@ private:
 	int DiscoverySourceHandler(const NewMethodEventArgs& nmea, ComponentDiscoveryInfo::Ptr info) const;
 
 	int DiscoveryTimerHandler(const TimerEventArgs& tea);
-
-	bool IsBroker(void) const;
 
 	void FinishDiscoverySetup(Endpoint::Ptr endpoint);
 
