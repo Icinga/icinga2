@@ -64,7 +64,7 @@ public:
 		    : Exception(message)				\
 		{							\
 		}							\
-	};
+	}
 
 DEFINE_EXCEPTION_CLASS(NotImplementedException);
 DEFINE_EXCEPTION_CLASS(InvalidArgumentException);

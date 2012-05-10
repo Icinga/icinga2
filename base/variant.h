@@ -34,25 +34,29 @@ enum I2_BASE_API VariantType
 class I2_BASE_API Variant
 {
 private:
+	mutable VariantType m_Type;
+
 	mutable long m_IntegerValue;
 	mutable string m_StringValue;
 	mutable Object::Ptr m_ObjectValue;
-
-	mutable VariantType m_Type;
 
 	void Convert(VariantType newType) const;
 
 public:
 	inline Variant(void) : m_Type(VariantEmpty) { }
 
-	inline Variant(long value) : m_Type(VariantInteger), m_IntegerValue(value) { }
+	inline Variant(long value)
+	    : m_Type(VariantInteger), m_IntegerValue(value) { }
 
-	inline Variant(const char *value) : m_Type(VariantString), m_StringValue(string(value)) { }
+	inline Variant(const char *value)
+	    : m_Type(VariantString), m_StringValue(string(value)) { }
 
-	inline Variant(string value) : m_Type(VariantString), m_StringValue(value) { }
+	inline Variant(string value)
+	    : m_Type(VariantString), m_StringValue(value) { }
 
 	template<typename T>
-	Variant(const shared_ptr<T>& value) : m_Type(VariantObject), m_ObjectValue(value) { }
+	Variant(const shared_ptr<T>& value)
+	    : m_Type(VariantObject), m_ObjectValue(value) { }
 
 	VariantType GetType(void) const;
 
