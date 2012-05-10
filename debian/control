@@ -1,0 +1,13 @@
+Source: icinga2
+Section: net
+Priority: optional
+Maintainer: Gunnar Beutner <gunnar.beutner@netways.de>
+Build-Depends: debhelper (>= 7), automake, autotools-dev, libltdl3-dev, libssl-dev
+Homepage: http://www.icinga.org/
+
+Package: icinga2
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: a network monitoring application
+ Icinga 2 is a general-purpose network monitoring application.
+
