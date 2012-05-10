@@ -118,10 +118,10 @@ void TLSClient::Start(void)
  *
  * Processes data that is available for this socket.
  *
- * @param ea Event arguments.
+ * @param - Event arguments.
  * @returns 0
  */
-int TLSClient::ReadableEventHandler(const EventArgs& ea)
+int TLSClient::ReadableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -164,10 +164,10 @@ int TLSClient::ReadableEventHandler(const EventArgs& ea)
  *
  * Processes data that can be written for this socket.
  *
- * @param ea Event arguments.
+ * @param - Event arguments.
  * @returns 0
  */
-int TLSClient::WritableEventHandler(const EventArgs& ea)
+int TLSClient::WritableEventHandler(const EventArgs&)
 {
 	int rc;
 

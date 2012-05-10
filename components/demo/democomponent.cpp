@@ -74,10 +74,10 @@ void DemoComponent::Stop(void)
  *
  * Periodically sends a demo::HelloWorld message.
  *
- * @param tea Event arguments for the timer.
+ * @param - Event arguments for the timer.
  * @returns 0
  */
-int DemoComponent::DemoTimerHandler(const TimerEventArgs& tea)
+int DemoComponent::DemoTimerHandler(const TimerEventArgs&)
 {
 	Application::Log("Sending multicast 'hello world' message.");
 

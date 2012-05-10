@@ -226,11 +226,15 @@ Component::Ptr Application::LoadComponent(const string& path,
 		throw ComponentLoadException("Could not load module");
 
 #ifdef _WIN32
-	pCreateComponent = (CreateComponentFunction)GetProcAddress(hModule,
-	    "CreateComponent");
+	pCreateComponent = reinterpret_cast<CreateComponentFunction>(GetProcAddress(hModule,
+	    "CreateComponent"));
 #else /* _WIN32 */
-	pCreateComponent = (CreateComponentFunction)lt_dlsym(hModule,
-	    "CreateComponent");
+#	ifdef __GNUC__
+	/* suppress compiler warning for void * cast */
+	__extension__
+#	endif
+	pCreateComponent = reinterpret_cast<CreateComponentFunction>(lt_dlsym(hModule,
+	    "CreateComponent"));
 #endif /* _WIN32 */
 
 	if (pCreateComponent == NULL)

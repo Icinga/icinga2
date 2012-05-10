@@ -88,10 +88,10 @@ void TCPServer::Listen(void)
  * Accepts a new client and creates a new client object for it
  * using the client factory function.
  *
- * @param ea Event arguments.
+ * @param - Event arguments.
  * @returns 0
  */
-int TCPServer::ReadableEventHandler(const EventArgs& ea)
+int TCPServer::ReadableEventHandler(const EventArgs&)
 {
 	int fd;
 	sockaddr_storage addr;

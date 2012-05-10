@@ -24,6 +24,7 @@
 #	define HAVE_CXX11
 #	pragma warning(disable:4251)
 #	define _CRT_SECURE_NO_DEPRECATE
+#	define _CRT_SECURE_NO_WARNINGS
 #else /* _MSC_VER */
 #	include "config.h"
 #endif /* _MSC_VER */

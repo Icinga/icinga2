@@ -146,10 +146,10 @@ FIFO::Ptr TCPClient::GetRecvQueue(void)
  *
  * Processes data that is available for this socket.
  *
- * @param ea Event arguments.
+ * @param - Event arguments.
  * @returns 0
  */
-int TCPClient::ReadableEventHandler(const EventArgs& ea)
+int TCPClient::ReadableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -183,10 +183,10 @@ int TCPClient::ReadableEventHandler(const EventArgs& ea)
  *
  * Processes data that can be written for this socket.
  *
- * @param ea Event arguments.
+ * @param - Event arguments.
  * @returns 0
  */
-int TCPClient::WritableEventHandler(const EventArgs& ea)
+int TCPClient::WritableEventHandler(const EventArgs&)
 {
 	int rc;
 

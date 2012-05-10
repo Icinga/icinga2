@@ -57,12 +57,15 @@ static void *ThreadStartProc(void *param)
  * Constructor for the thread class. Creates a new thread that begins
  * executing immediately.
  */
-Thread::Thread(ThreadProc callback)
+Thread::Thread(ThreadProc callback, void *param)
 {
 	threadparam_t *tparam = new threadparam_t();
 
 	if (tparam == NULL)
 		throw OutOfMemoryException("Out of memory");
+
+	tparam->callback = callback;
+	tparam->param = param;
 
 #ifdef _WIN32
 	m_Thread = CreateThread(NULL, 0, ThreadStartProc, tparam, CREATE_SUSPENDED, NULL);

@@ -170,10 +170,10 @@ void Socket::HandleSocketError(void)
  *
  * Processes errors that have occured for the socket.
  *
- * @param ea Event arguments for the socket error.
+ * @param - Event arguments for the socket error.
  * @returns 0
  */
-int Socket::ExceptionEventHandler(const EventArgs& ea)
+int Socket::ExceptionEventHandler(const EventArgs&)
 {
 	HandleSocketError();
 

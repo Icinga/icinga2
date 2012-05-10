@@ -40,7 +40,7 @@ private:
 #endif
 
 public:
-	Thread(ThreadProc callback);
+	Thread(ThreadProc callback, void *param);
 	~Thread(void);
 
 	void Join(void);

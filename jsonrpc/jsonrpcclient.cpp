@@ -36,9 +36,9 @@ void JsonRpcClient::SendMessage(const Message& message)
 	Netstring::WriteMessageToFIFO(GetSendQueue(), message);
 }
 
-int JsonRpcClient::DataAvailableHandler(const EventArgs& ea)
+int JsonRpcClient::DataAvailableHandler(const EventArgs&)
 {
-	while (true) {
+	for (;;) {
 		try {
 			Message message;
 

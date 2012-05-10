@@ -108,7 +108,7 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 	return 0;
 }
 
-int JsonRpcEndpoint::ClientClosedHandler(const EventArgs& ea)
+int JsonRpcEndpoint::ClientClosedHandler(const EventArgs&)
 {
 	Application::Log("Lost connection to endpoint: identity=" + GetIdentity());
 
