@@ -35,3 +35,8 @@ missing
 stamp-h1
 .libs
 icinga-app/icinga
+debian/files
+debian/icinga2.postinst.debhelper
+debian/icinga2.postrm.debhelper
+debian/icinga2.substvars
+debian/icinga2
