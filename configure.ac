@@ -33,7 +33,7 @@ if test "$have_cxx11_support" = "yes"; then
 fi
 
 
-
+AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []), [], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application]) ])
 
 
 LT_INIT([disable-static])
