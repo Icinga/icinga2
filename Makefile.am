@@ -10,7 +10,7 @@ SUBDIRS = ltdl \
 	icinga-app \
 	components
 
-icinga2docdir = ${prefix}/doc/icinga2
+icinga2docdir = ${prefix}/share/doc/icinga2
 icinga2doc_DATA = \
 	README \
 	COPYING \

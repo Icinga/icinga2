@@ -8,6 +8,6 @@ Homepage: http://www.icinga.org/
 Package: icinga2
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: a network monitoring application
+Description: network monitoring application
  Icinga 2 is a general-purpose network monitoring application.
 
