@@ -84,8 +84,19 @@ void Socket::SetFD(SOCKET fd)
 {
 	unsigned long lTrue = 1;
 
-	if (fd != INVALID_SOCKET)
+	if (fd != INVALID_SOCKET) {
+#ifdef F_GETFL
+		int flags;
+		flags = fcntl(fd, F_GETFL, 0);
+		if (flags < 0)
+			throw PosixException("fcntl failed", errno);
+
+		if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
+			throw PosixException("fcntl failed", errno);
+#else /* F_GETFL */
 		ioctlsocket(fd, FIONBIO, &lTrue);
+#endif /* F_GETFL */
+	}
 
 	m_FD = fd;
 }
