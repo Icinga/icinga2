@@ -102,4 +102,4 @@ int DemoComponent::HelloWorldRequestHandler(const NewRequestEventArgs& nrea)
 	return 0;
 }
 
-EXPORT_COMPONENT(DemoComponent);
+EXPORT_COMPONENT(demo, DemoComponent);

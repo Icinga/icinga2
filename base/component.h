@@ -46,8 +46,14 @@ public:
 
 typedef Component *(*CreateComponentFunction)(void);
 
-#define EXPORT_COMPONENT(klass) \
-	extern "C" I2_EXPORT icinga::Component *CreateComponent(void)	\
+#ifdef _WIN32
+#	define SYM_CREATECOMPONENT(component) CreateComponent
+#else /* _WIN32 */
+#	define SYM_CREATECOMPONENT(component) component ## _LTX_CreateComponent
+#endif /* _WIN32 */
+
+#define EXPORT_COMPONENT(component, klass) \
+	extern "C" I2_EXPORT icinga::Component *SYM_CREATECOMPONENT(component)(void) \
 	{								\
 		return new klass();					\
 	}

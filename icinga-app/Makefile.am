@@ -17,4 +17,11 @@ icinga_CXXFLAGS = \
 
 icinga_LDADD = \
 	${top_builddir}/base/libbase.la \
-	${top_builddir}/icinga/libicinga.la
+	${top_builddir}/icinga/libicinga.la \
+	-dlopen ${top_builddir}/components/configfile/configfile.la \
+	-dlopen ${top_builddir}/components/configrpc/configrpc.la \
+	-dlopen ${top_builddir}/components/demo/demo.la \
+	-dlopen ${top_builddir}/components/discovery/discovery.la
+
+icinga_DEPENDENCIES = \
+	${top_builddir}/components/configfile/configfile.la

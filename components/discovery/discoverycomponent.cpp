@@ -604,4 +604,4 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 	return 0;
 }
 
-EXPORT_COMPONENT(DiscoveryComponent);
+EXPORT_COMPONENT(discovery, DiscoveryComponent);

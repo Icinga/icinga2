@@ -36,7 +36,7 @@ fi
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []), [], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application]) ])
 
 
-LT_INIT([disable-static])
+LT_INIT([dlopen, disable-static])
 LT_CONFIG_LTDL_DIR([ltdl])
 LTDL_INIT
 

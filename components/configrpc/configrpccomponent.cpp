@@ -225,4 +225,4 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea
 	return 0;
 }
 
-EXPORT_COMPONENT(ConfigRpcComponent);
+EXPORT_COMPONENT(configrpc, ConfigRpcComponent);

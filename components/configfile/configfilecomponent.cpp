@@ -104,4 +104,4 @@ void ConfigFileComponent::Stop(void)
 {
 }
 
-EXPORT_COMPONENT(ConfigFileComponent);
+EXPORT_COMPONENT(configfile, ConfigFileComponent);

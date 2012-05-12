@@ -38,6 +38,8 @@ Application::Application(void)
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(1, 1), &wsaData);
 #else /* _WIN32 */
+	LTDL_SET_PRELOADED_SYMBOLS();
+
 	lt_dlinit();
 #endif /* _WIN32 */
 
