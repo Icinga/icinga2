@@ -20,6 +20,8 @@
 #ifndef CXX11COMPAT_H
 #define CXX11COMPAT_H
 
+namespace icinga {
+
 template <typename T>
 shared_ptr<T> make_shared(void)
 {
@@ -36,6 +38,8 @@ template <typename T, typename TArg1, typename TArg2>
 shared_ptr<T> make_shared(const TArg1& arg1, const TArg2& arg2)
 {
 	return shared_ptr<T>(new T(arg1, arg2));
+}
+
 }
 
 #endif /* CXX11COMPAT_H */
