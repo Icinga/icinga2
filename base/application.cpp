@@ -36,7 +36,8 @@ Application::Application(void)
 {
 #ifdef _WIN32
 	WSADATA wsaData;
-	WSAStartup(MAKEWORD(1, 1), &wsaData);
+	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
+		throw Win32Exception("WSAStartup failed", WSAGetLastError());
 #else /* _WIN32 */
 	LTDL_SET_PRELOADED_SYMBOLS();
 
