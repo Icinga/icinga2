@@ -57,6 +57,8 @@
 #include <typeinfo>
 #include <map>
 #include <list>
+#include <algorithm>
+#include <functional>
 
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 

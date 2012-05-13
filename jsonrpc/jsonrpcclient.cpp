@@ -33,17 +33,20 @@ void JsonRpcClient::Start(void)
 
 void JsonRpcClient::SendMessage(const Message& message)
 {
-	Netstring::WriteMessageToFIFO(GetSendQueue(), message);
+	Netstring::WriteStringToFIFO(GetSendQueue(), message.ToJsonString());
 }
 
 int JsonRpcClient::DataAvailableHandler(const EventArgs&)
 {
 	for (;;) {
 		try {
+			string jsonString;
 			Message message;
 
-			if (!Netstring::ReadMessageFromFIFO(GetRecvQueue(), &message))
+			if (!Netstring::ReadStringFromFIFO(GetRecvQueue(), &jsonString))
 				break;
+
+			message = Message(jsonString);
 
 			NewMessageEventArgs nea;
 			nea.Source = shared_from_this();

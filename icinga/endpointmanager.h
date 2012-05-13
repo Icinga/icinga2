@@ -33,8 +33,8 @@ class I2_ICINGA_API EndpointManager : public Object
 	string m_Identity;
 	shared_ptr<SSL_CTX> m_SSLContext;
 
-	list<JsonRpcServer::Ptr> m_Servers;
-	list<Endpoint::Ptr> m_Endpoints;
+	vector<JsonRpcServer::Ptr> m_Servers;
+	vector<Endpoint::Ptr> m_Endpoints;
 
 	void RegisterServer(JsonRpcServer::Ptr server);
 	void UnregisterServer(JsonRpcServer::Ptr server);

@@ -20,18 +20,28 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
+struct cJSON;
+
 namespace icinga
 {
+
+typedef ::cJSON json_t;
 
 class I2_JSONRPC_API Message
 {
 private:
 	Dictionary::Ptr m_Dictionary;
 
+	static Dictionary::Ptr GetDictionaryFromJson(json_t *json);
+	static json_t *GetJsonFromDictionary(const Dictionary::Ptr& dictionary);
+
 public:
 	Message(void);
+	Message(string json);
 	Message(const Dictionary::Ptr& dictionary);
 	Message(const Message& message);
+
+	string ToJsonString(void) const;
 
 	Dictionary::Ptr GetDictionary(void) const;
 

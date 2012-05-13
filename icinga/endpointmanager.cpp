@@ -68,7 +68,7 @@ void EndpointManager::AddConnection(string node, string service)
 
 void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
 {
-	m_Servers.push_front(server);
+	m_Servers.push_back(server);
 	server->OnNewClient += bind_weak(&EndpointManager::NewClientHandler, shared_from_this());
 }
 
@@ -86,7 +86,9 @@ int EndpointManager::NewClientHandler(const NewClientEventArgs& ncea)
 
 void EndpointManager::UnregisterServer(JsonRpcServer::Ptr server)
 {
-	m_Servers.remove(server);
+	m_Servers.erase(
+	    remove(m_Servers.begin(), m_Servers.end(), server),
+	    m_Servers.end());
 	// TODO: unbind event
 }
 
@@ -96,7 +98,7 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 		throw InvalidArgumentException("Identity must be empty.");
 
 	endpoint->SetEndpointManager(static_pointer_cast<EndpointManager>(shared_from_this()));
-	m_Endpoints.push_front(endpoint);
+	m_Endpoints.push_back(endpoint);
 
 	NewEndpointEventArgs neea;
 	neea.Source = shared_from_this();
@@ -106,7 +108,9 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 
 void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
 {
-	m_Endpoints.remove(endpoint);
+	m_Endpoints.erase(
+	    remove(m_Endpoints.begin(), m_Endpoints.end(), endpoint),
+	    m_Endpoints.end());
 }
 
 void EndpointManager::SendUnicastRequest(Endpoint::Ptr sender, Endpoint::Ptr recipient, const JsonRpcRequest& request, bool fromLocal)
@@ -123,7 +127,7 @@ void EndpointManager::SendUnicastRequest(Endpoint::Ptr sender, Endpoint::Ptr rec
 		throw InvalidArgumentException("Missing 'method' parameter.");
 
 	if (recipient->IsMethodSink(method)) {
-		Application::Log(sender->GetAddress() + " -> " + recipient->GetAddress() + ": " + method);
+		//Application::Log(sender->GetAddress() + " -> " + recipient->GetAddress() + ": " + method);
 		recipient->ProcessRequest(sender, request);
 	}
 }
@@ -145,7 +149,7 @@ void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRe
 	if (!request.GetMethod(&method))
 		throw InvalidArgumentException("Message is missing the 'method' property.");
 
-	for (list<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
+	for (vector<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 	{
 		SendUnicastRequest(sender, *i, request, fromLocal);
 	}
@@ -156,7 +160,7 @@ void EndpointManager::ForEachEndpoint(function<int (const NewEndpointEventArgs&)
 	NewEndpointEventArgs neea;
 	neea.Source = shared_from_this();
 
-	list<Endpoint::Ptr>::iterator prev, i;
+	vector<Endpoint::Ptr>::iterator prev, i;
 	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); ) {
 		prev = i;
 		i++;
@@ -168,7 +172,7 @@ void EndpointManager::ForEachEndpoint(function<int (const NewEndpointEventArgs&)
 
 Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
 {
-	list<Endpoint::Ptr>::const_iterator i;
+	vector<Endpoint::Ptr>::const_iterator i;
 	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); i++) {
 		if ((*i)->GetIdentity() == identity)
 			return *i;
