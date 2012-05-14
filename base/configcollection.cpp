@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * SetHive
- *
  * Sets the hive this collection belongs to.
  *
  * @param hive The hive.
@@ -34,8 +32,6 @@ void ConfigCollection::SetHive(const ConfigHive::WeakPtr& hive)
 }
 
 /**
- * GetHive
- *
  * Retrieves the hive this collection belongs to.
  *
  * @returns The hive.
@@ -46,8 +42,6 @@ ConfigHive::WeakPtr ConfigCollection::GetHive(void) const
 }
 
 /**
- * AddObject
- *
  * Adds a new object to this collection.
  *
  * @param object The new object.
@@ -61,8 +55,6 @@ void ConfigCollection::AddObject(const ConfigObject::Ptr& object)
 }
 
 /**
- * RemoveObject
- *
  * Removes an object from this collection
  *
  * @param object The object that is to be removed.
@@ -85,8 +77,6 @@ void ConfigCollection::RemoveObject(const ConfigObject::Ptr& object)
 }
 
 /**
- * GetObject
- *
  * Retrieves an object by name.
  *
  * @param name The name of the object.
@@ -104,8 +94,6 @@ ConfigObject::Ptr ConfigCollection::GetObject(const string& name) const
 }
 
 /**
- * ForEachObject
- *
  * Invokes the specified callback for each object contained in this collection.
  *
  * @param callback The callback.

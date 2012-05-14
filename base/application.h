@@ -68,14 +68,8 @@ public:
 	bool IsDebugging(void) const;
 };
 
-int I2_EXPORT RunApplication(int argc, char **argv, Application *instance);
+int I2_EXPORT RunApplication(int argc, char **argv, Application::Ptr instance);
 
 }
-
-#define IMPLEMENT_ENTRY_POINT(klass)					\
-	int main(int argc, char **argv) {				\
-		klass *instance = new klass();				\
-		return icinga::RunApplication(argc, argv, instance);	\
-	}
 
 #endif /* APPLICATION_H */

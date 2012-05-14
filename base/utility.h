@@ -24,8 +24,6 @@ namespace icinga
 {
 
 /**
- * Utility
- *
  * Utility functions.
  */
 class I2_BASE_API Utility
@@ -39,8 +37,6 @@ private:
 
 public:
 	/**
-	 * GetTypeName
-	 *
 	 * Returns the type name of an object (using RTTI).
 	 */
 	template<class T>

@@ -26,8 +26,6 @@ namespace icinga
 DEFINE_EXCEPTION_CLASS(OutOfMemoryException);
 
 /**
- * Memory
- *
  * Singleton class which implements memory allocation helpers.
  */
 class I2_BASE_API Memory

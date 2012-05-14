@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * Memory
- *
  * Constructor for the memory class.
  */
 Memory::Memory(void)
@@ -31,8 +29,6 @@ Memory::Memory(void)
 }
 
 /**
- * Allocate
- *
  * Allocates memory. Throws an exception if no memory is available. Alignment
  * guarantees are the same like for malloc().
  *
@@ -50,8 +46,6 @@ void *Memory::Allocate(size_t size)
 }
 
 /**
- * Reallocate
- *
  * Resizes a block of memory. Throws an exception if no memory is available.
  *
  * @param ptr The old memory block or NULL.
@@ -69,8 +63,6 @@ void *Memory::Reallocate(void *ptr, size_t size)
 }
 
 /**
- * StrDup
- *
  * Duplicates a string. Throws an exception if no memory is available.
  *
  * @param str The string.
@@ -87,8 +79,6 @@ char *Memory::StrDup(const char *str)
 }
 
 /**
- * Free
- *
  * Frees a memory block.
  *
  * @param ptr The memory block.

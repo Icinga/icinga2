@@ -22,16 +22,12 @@
 using namespace icinga;
 
 /**
- * Socket::Sockets
- *
  * A collection of weak pointers to Socket objects which have been
  * registered with the socket sub-system.
  */
 Socket::CollectionType Socket::Sockets;
 
 /**
- * Socket
- *
  * Constructor for the Socket class.
  */
 Socket::Socket(void)
@@ -40,8 +36,6 @@ Socket::Socket(void)
 }
 
 /**
- * ~Socket
- *
  * Destructor for the Socket class.
  */
 Socket::~Socket(void)
@@ -50,8 +44,6 @@ Socket::~Socket(void)
 }
 
 /**
- * Start
- *
  * Registers the socket and starts handling events for it.
  */
 void Socket::Start(void)
@@ -64,8 +56,6 @@ void Socket::Start(void)
 }
 
 /**
- * Stop
- *
  * Unregisters the sockets and stops handling events for it.
  */
 void Socket::Stop(void)
@@ -74,8 +64,6 @@ void Socket::Stop(void)
 }
 
 /**
- * SetFD
- *
  * Sets the file descriptor for this socket object.
  *
  * @param fd The file descriptor.
@@ -102,8 +90,6 @@ void Socket::SetFD(SOCKET fd)
 }
 
 /**
- * GetFD
- *
  * Retrieves the file descriptor for this socket object.
  *
  * @returns The file descriptor.
@@ -114,8 +100,6 @@ SOCKET Socket::GetFD(void) const
 }
 
 /**
- * Close
- *
  * Closes the socket.
  */
 void Socket::Close(void)
@@ -124,8 +108,6 @@ void Socket::Close(void)
 }
 
 /**
- * CloseInternal
- *
  * Closes the socket.
  *
  * @param from_dtor Whether this method was called from the destructor.
@@ -150,8 +132,6 @@ void Socket::CloseInternal(bool from_dtor)
 }
 
 /**
- * HandleSocketError
- *
  * Handles a socket error by calling the OnError event.
  */
 void Socket::HandleSocketError(void)
@@ -177,8 +157,6 @@ void Socket::HandleSocketError(void)
 }
 
 /**
- * ExceptionEventHandler
- *
  * Processes errors that have occured for the socket.
  *
  * @param - Event arguments for the socket error.
@@ -192,8 +170,6 @@ int Socket::ExceptionEventHandler(const EventArgs&)
 }
 
 /**
- * WantsToRead
- *
  * Checks whether data should be read for this socket object.
  *
  * @returns true if the socket should be registered for reading, false otherwise.
@@ -204,8 +180,6 @@ bool Socket::WantsToRead(void) const
 }
 
 /**
- * WantsToWrite
- *
  * Checks whether data should be written for this socket object.
  *
  * @returns true if the socket should be registered for writing, false otherwise.
@@ -216,8 +190,6 @@ bool Socket::WantsToWrite(void) const
 }
 
 /**
- * GetAddressFromSockaddr
- *
  * Formats a sockaddr in a human-readable way.
  *
  * @returns A string describing the sockaddr.
@@ -236,8 +208,6 @@ string Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 }
 
 /**
- * GetClientAddress
- *
  * Returns a string describing the local address of the socket.
  *
  * @returns A string describing the local address.
@@ -257,8 +227,6 @@ string Socket::GetClientAddress(void)
 }
 
 /**
- * GetPeerAddress
- *
  * Returns a string describing the peer address of the socket.
  *
  * @returns A string describing the peer address.

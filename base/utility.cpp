@@ -25,8 +25,6 @@ using namespace icinga;
 bool I2_EXPORT Utility::m_SSLInitialized = false;
 
 /**
- * Daemonize
- *
  * Detaches from the controlling terminal.
  */
 void Utility::Daemonize(void) {
@@ -64,23 +62,20 @@ void Utility::Daemonize(void) {
 }
 
 /**
- * InitializeOpenSSL
- *
  * Initializes the OpenSSL library.
  */
 void Utility::InitializeOpenSSL(void)
 {
-	if (!m_SSLInitialized) {
-		SSL_library_init();
-		SSL_load_error_strings();
+	if (m_SSLInitialized)
+		return;
 
-		m_SSLInitialized = true;
-	}
+	SSL_library_init();
+	SSL_load_error_strings();
+
+	m_SSLInitialized = true;
 }
 
 /**
- * MakeSSLContext
- *
  * Initializes an SSL context using the specified certificates.
  *
  * @param pubkey The public key.
@@ -111,9 +106,7 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, strin
 }
 
 /**
- * GetCertificateCN
- *
- * Retrieves the common name for a X509 certificate.
+ * Retrieves the common name for an X509 certificate.
  *
  * @param certificate The X509 certificate.
  * @returns The common name.
@@ -131,8 +124,6 @@ string Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 }
 
 /**
- * GetX509Certificate
- *
  * Retrieves an X509 certificate from the specified file.
  *
  * @param pemfile The filename.
@@ -158,6 +149,13 @@ shared_ptr<X509> Utility::GetX509Certificate(string pemfile)
 	return shared_ptr<X509>(cert, X509_free);
 }
 
+/**
+ * Performs wildcard pattern matching.
+ *
+ * @param pattern The wildcard pattern.
+ * @param text The string that should be checked.
+ * @returns true if the wildcard pattern matches, false otherwise.
+ */
 bool Utility::Match(string pattern, string text)
 {
 	return (match(pattern.c_str(), text.c_str()) == 0);

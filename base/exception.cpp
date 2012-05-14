@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * Exception
- *
  * Default constructor for the Exception class.
  */
 Exception::Exception(void)
@@ -31,8 +29,6 @@ Exception::Exception(void)
 }
 
 /**
- * Exception
- *
  * Constructor for the exception class.
  *
  * @param message A message describing the exception.
@@ -43,8 +39,6 @@ Exception::Exception(const string& message)
 }
 
 /**
- * GetMessage
- *
  * Retrieves the description for the exception.
  *
  * @returns The description.
@@ -55,8 +49,6 @@ string Exception::GetMessage(void) const
 }
 
 /**
- * SetMessage
- *
  * Sets the description for the exception.
  *
  * @param message The description.
@@ -68,8 +60,6 @@ void Exception::SetMessage(string message)
 
 #ifdef _WIN32
 /**
- * FormatError
- *
  * Formats an Win32 error code.
  *
  * @param code The error code.
@@ -94,8 +84,6 @@ string Win32Exception::FormatErrorCode(int code)
 #endif /* _WIN32 */
 
 /**
- * FormatError
- *
  * Formats a Posix error code.
  *
  * @param code The error code.
@@ -107,8 +95,6 @@ string PosixException::FormatErrorCode(int code)
 }
 
 /**
- * FormatError
- *
  * Formats an OpenSSL error code.
  *
  * @param code The error code.

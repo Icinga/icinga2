@@ -28,8 +28,6 @@ using namespace icinga;
 Application::Ptr I2_EXPORT Application::Instance;
 
 /**
- * Application
- *
  * Constructor for the Application class.
  */
 Application::Application(void)
@@ -57,8 +55,6 @@ Application::Application(void)
 }
 
 /**
- * ~Application
- *
  * Destructor for the application class.
  */
 Application::~Application(void)
@@ -79,8 +75,6 @@ Application::~Application(void)
 }
 
 /**
- * RunEventLoop
- *
  * Processes events (e.g. sockets and timers).
  */
 void Application::RunEventLoop(void)
@@ -180,8 +174,6 @@ void Application::RunEventLoop(void)
 }
 
 /**
- * Shutdown
- *
  * Signals the application to shut down during the next
  * execution of the event loop.
  */
@@ -191,8 +183,6 @@ void Application::Shutdown(void)
 }
 
 /**
- * GetConfigHive
- *
  * Returns the application's configuration hive.
  *
  * @returns The config hive.
@@ -203,9 +193,7 @@ ConfigHive::Ptr Application::GetConfigHive(void) const
 }
 
 /**
- * LoadComponent
- *
- * Loads a component from a library.
+ * Loads a component from a shared library.
  *
  * @param path The path of the component library.
  * @param componentConfig The configuration for the component.
@@ -251,8 +239,6 @@ Component::Ptr Application::LoadComponent(const string& path,
 }
 
 /**
- * RegisterComponent
- *
  * Registers a component object and starts it.
  *
  * @param component The component.
@@ -266,8 +252,6 @@ void Application::RegisterComponent(Component::Ptr component)
 }
 
 /**
- * UnregisterComponent
- *
  * Unregisters a component object and stops it.
  *
  * @param component The component.
@@ -285,8 +269,6 @@ void Application::UnregisterComponent(Component::Ptr component)
 }
 
 /**
- * GetComponent
- *
  * Finds a loaded component by name.
  *
  * @param name The name of the component.
@@ -303,8 +285,6 @@ Component::Ptr Application::GetComponent(const string& name)
 }
 
 /**
- * Log
- *
  * Logs a message.
  *
  * @param message The message.
@@ -323,9 +303,7 @@ void Application::Log(string message)
 }
 
 /**
- * SetArguments
- *
- * Sets the application's arguments.
+ * Sets the application's command line arguments.
  *
  * @param arguments The arguments.
  */
@@ -335,9 +313,7 @@ void Application::SetArguments(const vector<string>& arguments)
 }
 
 /**
- * GetArguments
- *
- * Retrieves the application's arguments.
+ * Retrieves the application's command line arguments.
  *
  * @returns The arguments.
  */
@@ -347,8 +323,6 @@ const vector<string>& Application::GetArguments(void) const
 }
 
 /**
- * GetExeDirectory
- *
  * Retrieves the directory the application's binary is contained in.
  *
  * @returns The directory.
@@ -429,8 +403,6 @@ string Application::GetExeDirectory(void) const
 }
 
 /**
- * AddComponentSearchDir
- *
  * Adds a directory to the component search path.
  *
  * @param componentDirectory The directory.
@@ -445,8 +417,6 @@ void Application::AddComponentSearchDir(const string& componentDirectory)
 }
 
 /**
- * IsDebugging
- *
  * Retrieves the debugging mode of the application.
  *
  * @returns true if the application is being debugged, false otherwise
@@ -458,8 +428,6 @@ bool Application::IsDebugging(void) const
 
 #ifndef _WIN32
 /**
- * ApplicationSigIntHandler
- *
  * Signal handler for SIGINT.
  *
  * @param signum The signal number.
@@ -478,8 +446,6 @@ static void ApplicationSigIntHandler(int signum)
 #endif /* _WIN32 */
 
 /**
- * RunApplication
- *
  * Runs the specified application.
  *
  * @param argc The number of arguments.
@@ -487,11 +453,13 @@ static void ApplicationSigIntHandler(int signum)
  * @param instance The application instance.
  * @returns The application's exit code.
  */
-int icinga::RunApplication(int argc, char **argv, Application *instance)
+int icinga::RunApplication(int argc, char **argv, Application::Ptr instance)
 {
 	int result;
 
-	Application::Instance = Application::Ptr(instance);
+	assert(!Application::Instance);
+
+	Application::Instance = instance;
 
 #ifndef _WIN32
 	struct sigaction sa;

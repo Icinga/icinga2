@@ -39,8 +39,6 @@ private:
 
 public:
 	/**
-	 * operator +=
-	 *
 	 * Adds a delegate to this event.
 	 *
 	 * @param rhs The delegate.
@@ -52,8 +50,6 @@ public:
 	}
 
 	/**
-	 * operator -=
-	 *
 	 * Removes a delegate from this event.
 	 *
 	 * @param rhs The delegate.
@@ -65,8 +61,6 @@ public:
 	}
 
 	/**
-	 * operator ()
-	 *
 	 * Invokes each delegate that is registered for this event. Any delegates
 	 * which return -1 are removed.
 	 *

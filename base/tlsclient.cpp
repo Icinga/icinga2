@@ -25,8 +25,6 @@ int I2_EXPORT TLSClient::m_SSLIndex;
 bool I2_EXPORT TLSClient::m_SSLIndexInitialized = false;
 
 /**
- * TLSClient
- *
  * Constructor for the TLSClient class.
  *
  * @param role The role of the client.
@@ -40,8 +38,6 @@ TLSClient::TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext) : TCPCl
 }
 
 /**
- * NullCertificateDeleter
- *
  * Takes a certificate as an argument. Does nothing.
  *
  * @param certificate An X509 certificate.
@@ -52,8 +48,6 @@ void TLSClient::NullCertificateDeleter(X509 *certificate)
 }
 
 /**
- * GetClientCertificate
- *
  * Retrieves the X509 certficate for this client.
  *
  * @returns The X509 certificate.
@@ -64,8 +58,6 @@ shared_ptr<X509> TLSClient::GetClientCertificate(void) const
 }
 
 /**
- * GetPeerCertificate
- *
  * Retrieves the X509 certficate for the peer.
  *
  * @returns The X509 certificate.
@@ -76,8 +68,6 @@ shared_ptr<X509> TLSClient::GetPeerCertificate(void) const
 }
 
 /**
- * Start
- *
  * Registers the TLS socket and starts processing events for it.
  */
 void TLSClient::Start(void)
@@ -114,8 +104,6 @@ void TLSClient::Start(void)
 }
 
 /**
- * ReadableEventHandler
- *
  * Processes data that is available for this socket.
  *
  * @param - Event arguments.
@@ -160,8 +148,6 @@ int TLSClient::ReadableEventHandler(const EventArgs&)
 }
 
 /**
- * WritableEventHandler
- *
  * Processes data that can be written for this socket.
  *
  * @param - Event arguments.
@@ -200,8 +186,6 @@ int TLSClient::WritableEventHandler(const EventArgs&)
 }
 
 /**
- * WantsToRead
- *
  * Checks whether data should be read for this socket.
  *
  * @returns true if data should be read, false otherwise.
@@ -218,8 +202,6 @@ bool TLSClient::WantsToRead(void) const
 }
 
 /**
- * WantsToWrite
- *
  * Checks whether data should be written for this socket.
  *
  * @returns true if data should be written, false otherwise.
@@ -236,8 +218,6 @@ bool TLSClient::WantsToWrite(void) const
 }
 
 /**
- * CloseInternal
- *
  * Closes the socket.
  *
  * @param from_dtor Whether this method was invoked from the destructor.
@@ -250,8 +230,6 @@ void TLSClient::CloseInternal(bool from_dtor)
 }
 
 /**
- * HandleSSLError
- *
  * Handles an OpenSSL error.
  */
 void TLSClient::HandleSSLError(void)
@@ -270,8 +248,6 @@ void TLSClient::HandleSSLError(void)
 }
 
 /**
- * TLSClientFactory
- *
  * Factory function for the TLSClient class.
  *
  * @param role The role of the TLS socket.
@@ -284,8 +260,6 @@ TCPClient::Ptr icinga::TLSClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> 
 }
 
 /**
- * SSLVerifyCertificate
- *
  * Callback function that verifies SSL certificates.
  *
  * @param ok Whether pre-checks for the SSL certificates were successful.

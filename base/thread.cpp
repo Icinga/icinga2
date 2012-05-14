@@ -28,8 +28,6 @@ typedef struct threadparam_s
 } threadparam_t;
 
 /**
- * ThreadStartProc
- *
  * Helper function that deals with OS-specific differences in the thread
  * proc's function signature.
  */
@@ -52,8 +50,6 @@ static void *ThreadStartProc(void *param)
 #endif /* _WIN32 */
 
 /**
- * Thread
- *
  * Constructor for the thread class. Creates a new thread that begins
  * executing immediately.
  */
@@ -78,8 +74,6 @@ Thread::Thread(ThreadProc callback, void *param)
 }
 
 /**
- * ~Thread
- *
  * Destructor for the Thread class. Cleans up the resources associated
  * with the thread.
  */
@@ -93,8 +87,6 @@ Thread::~Thread(void)
 }
 
 /**
- * Join
- *
  * Waits until the thread has finished executing.
  */
 void Thread::Join(void)

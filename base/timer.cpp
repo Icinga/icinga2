@@ -33,8 +33,6 @@ Timer::Timer(void)
 }
 
 /**
- * GetNextCall
- *
  * Retrieves when the next timer is due.
  *
  * @returns Time when the next timer is due.
@@ -48,8 +46,6 @@ time_t Timer::GetNextCall(void)
 }
 
 /**
- * RescheduleTimers
- *
  * Reschedules all timers, thereby updating the NextCall
  * timestamp used by the GetNextCall() function.
  */
@@ -70,8 +66,6 @@ void Timer::RescheduleTimers(void)
 }
 
 /**
- * CallExpiredTimers
- *
  * Calls all expired timers and reschedules them.
  */
 void Timer::CallExpiredTimers(void)
@@ -100,8 +94,6 @@ void Timer::CallExpiredTimers(void)
 }
 
 /**
- * Call
- *
  * Calls this timer. Note: the timer delegate must not call
  * Disable() on any other timers than the timer that originally
  * invoked the delegate.
@@ -115,8 +107,6 @@ void Timer::Call(void)
 }
 
 /**
- * SetInterval
- *
  * Sets the interval for this timer.
  *
  * @param interval The new interval.
@@ -127,8 +117,6 @@ void Timer::SetInterval(unsigned int interval)
 }
 
 /**
- * GetInterval
- *
  * Retrieves the interval for this timer.
  *
  * @returns The interval.
@@ -139,8 +127,6 @@ unsigned int Timer::GetInterval(void) const
 }
 
 /**
- * SetUserArgs
- *
  * Sets user arguments for the timer callback.
  *
  * @param userArgs The user arguments.
@@ -151,8 +137,6 @@ void Timer::SetUserArgs(const EventArgs& userArgs)
 }
 
 /**
- * GetUserArgs
- *
  * Retrieves the user arguments for the timer callback.
  *
  * @returns The user arguments.
@@ -163,8 +147,6 @@ EventArgs Timer::GetUserArgs(void) const
 }
 
 /**
- * Start
- *
  * Registers the timer and starts processing events for it.
  */
 void Timer::Start(void)
@@ -175,8 +157,6 @@ void Timer::Start(void)
 }
 
 /**
- * Stop
- *
  * Unregisters the timer and stops processing events for it.
  */
 void Timer::Stop(void)
@@ -185,8 +165,6 @@ void Timer::Stop(void)
 }
 
 /**
- * Reschedule
- *
  * Reschedules this timer.
  *
  * @param next The time when this timer should be called again.

@@ -24,8 +24,6 @@ namespace icinga
 {
 
 /**
- * Mutex
- *
  * A wrapper around OS-specific mutex functionality.
  */
 class I2_BASE_API Mutex

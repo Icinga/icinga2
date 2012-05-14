@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * TCPServer
- *
  * Constructor for the TCPServer class.
  */
 TCPServer::TCPServer(void)
@@ -32,8 +30,6 @@ TCPServer::TCPServer(void)
 }
 
 /**
- * SetClientFactory
- *
  * Sets the client factory.
  *
  * @param clientFactory The client factory function.
@@ -44,8 +40,6 @@ void TCPServer::SetClientFactory(function<TCPClient::Ptr()> clientFactory)
 }
 
 /**
- * GetFactoryFunction
- *
  * Retrieves the client factory.
  *
  * @returns The client factory function.
@@ -56,8 +50,6 @@ function<TCPClient::Ptr()> TCPServer::GetFactoryFunction(void) const
 }
 
 /**
- * Start
- *
  * Registers the TCP server and starts processing events for it.
  */
 void TCPServer::Start(void)
@@ -68,8 +60,6 @@ void TCPServer::Start(void)
 }
 
 /**
- * Listen
- *
  * Starts listening for incoming client connections.
  */
 void TCPServer::Listen(void)
@@ -83,8 +73,6 @@ void TCPServer::Listen(void)
 }
 
 /**
- * ReadableEventHandler
- *
  * Accepts a new client and creates a new client object for it
  * using the client factory function.
  *
@@ -115,8 +103,6 @@ int TCPServer::ReadableEventHandler(const EventArgs&)
 }
 
 /**
- * WantsToRead
- *
  * Checks whether the TCP server wants to read (i.e. accept new clients).
  *
  * @returns true

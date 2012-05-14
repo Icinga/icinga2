@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * SetApplication
- *
  * Sets the application this component belongs to.
  *
  * @param application The application.
@@ -34,8 +32,6 @@ void Component::SetApplication(const Application::WeakPtr& application)
 }
 
 /**
- * GetApplication
- *
  * Retrieves the application this component belongs to.
  *
  * @returns The application.
@@ -46,8 +42,6 @@ Application::Ptr Component::GetApplication(void) const
 }
 
 /**
- * SetConfig
- *
  * Sets the configuration for this component.
  *
  * @param componentConfig The configuration.
@@ -58,8 +52,6 @@ void Component::SetConfig(const ConfigObject::Ptr& componentConfig)
 }
 
 /**
- * GetConfig
- *
  * Retrieves the configuration for this component.
  *
  * @returns The configuration.

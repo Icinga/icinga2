@@ -24,8 +24,6 @@ namespace icinga
 {
 
 /**
- * Object
- *
  * Base class for all heap-allocated objects. At least one of its methods
  * has to be virtual for RTTI to work.
  */
@@ -35,13 +33,8 @@ private:
 	Object(const Object& other);
 
 protected:
-	inline Object(void)
-	{
-	}
-
-	inline virtual ~Object(void)
-	{
-	}
+	Object(void);
+	virtual ~Object(void);
 
 public:
 	typedef shared_ptr<Object> Ptr;

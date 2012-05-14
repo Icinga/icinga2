@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * TCPClient
- *
  * Constructor for the TCPClient class.
  *
  * @param role The role of the TCP client socket.
@@ -37,8 +35,6 @@ TCPClient::TCPClient(TCPClientRole role)
 }
 
 /**
- * GetRole
- *
  * Retrieves the role of the socket.
  *
  * @returns The role.
@@ -49,8 +45,6 @@ TCPClientRole TCPClient::GetRole(void) const
 }
 
 /**
- * Start
- *
  * Registers the socket and starts processing events for it.
  */
 void TCPClient::Start(void)
@@ -62,8 +56,6 @@ void TCPClient::Start(void)
 }
 
 /**
- * Connect
- *
  * Creates a socket and connects to the specified node and service.
  *
  * @param node The node.
@@ -118,8 +110,6 @@ void TCPClient::Connect(const string& node, const string& service)
 }
 
 /**
- * GetSendQueue
- *
  * Retrieves the send queue for the socket.
  *
  * @returns The send queue.
@@ -130,8 +120,6 @@ FIFO::Ptr TCPClient::GetSendQueue(void)
 }
 
 /**
- * GetRecvQueue
- *
  * Retrieves the recv queue for the socket.
  *
  * @returns The recv queue.
@@ -142,8 +130,6 @@ FIFO::Ptr TCPClient::GetRecvQueue(void)
 }
 
 /**
- * ReadableEventHandler
- *
  * Processes data that is available for this socket.
  *
  * @param - Event arguments.
@@ -179,8 +165,6 @@ int TCPClient::ReadableEventHandler(const EventArgs&)
 }
 
 /**
- * WritableEventHandler
- *
  * Processes data that can be written for this socket.
  *
  * @param - Event arguments.
@@ -203,8 +187,6 @@ int TCPClient::WritableEventHandler(const EventArgs&)
 }
 
 /**
- * WantsToRead
- *
  * Checks whether data should be read for this socket.
  *
  * @returns true
@@ -215,8 +197,6 @@ bool TCPClient::WantsToRead(void) const
 }
 
 /**
- * WantsToWrite
- *
  * Checks whether data should be written for this socket.
  *
  * @returns true if data should be written, false otherwise.
@@ -227,8 +207,6 @@ bool TCPClient::WantsToWrite(void) const
 }
 
 /**
- * TCPClientFactory
- *
  * Default factory function for TCP clients.
  *
  * @param role The role of the new client.

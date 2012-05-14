@@ -21,4 +21,8 @@
 
 using namespace icinga;
 
-IMPLEMENT_ENTRY_POINT(IcingaApplication);
+int main(int argc, char **argv)
+{
+	IcingaApplication::Ptr instance = make_shared<IcingaApplication>();
+	return icinga::RunApplication(argc, argv, instance);
+}

@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * GetName
- *
  * Returns the name of this component.
  *
  * @returns The name.
@@ -34,8 +32,6 @@ string DiscoveryComponent::GetName(void) const
 }
 
 /**
- * Start
- *
  * Starts the discovery component.
  */
 void DiscoveryComponent::Start(void)
@@ -69,8 +65,6 @@ void DiscoveryComponent::Start(void)
 }
 
 /**
- * Stop
- *
  * Stops the discovery component.
  */
 void DiscoveryComponent::Stop(void)
@@ -82,8 +76,6 @@ void DiscoveryComponent::Stop(void)
 }
 
 /**
- * CheckExistingEndpoint
- *
  * Checks whether the specified endpoint is already connected
  * and disconnects older endpoints.
  *
@@ -110,8 +102,6 @@ int DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewE
 }
 
 /**
- * NewEndpointHandler
- *
  * Registers handlers for new endpoints.
  *
  * @param neea Event arguments for the new endpoint.
@@ -131,8 +121,6 @@ int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 }
 
 /**
- * DiscoverySinkHandler
- *
  * Registers a new message sink for a component.
  *
  * @param nmea Event args for the new message sink.
@@ -146,8 +134,6 @@ int DiscoveryComponent::DiscoverySinkHandler(const NewMethodEventArgs& nmea, Com
 }
 
 /**
- * DiscoverySourceHandler
- *
  * Registers a new message source for a component.
  *
  * @param nmea Event args for the new message source.
@@ -161,8 +147,6 @@ int DiscoveryComponent::DiscoverySourceHandler(const NewMethodEventArgs& nmea, C
 }
 
 /**
- * DiscoveryEndpointHandler
- *
  * Registers message sinks/sources in the specified component information object.
  *
  * @param neea Event arguments for the endpoint.
@@ -177,8 +161,6 @@ int DiscoveryComponent::DiscoveryEndpointHandler(const NewEndpointEventArgs& nee
 }
 
 /**
- * GetComponentDiscoveryInfo
- *
  * Retrieves the component information object for the specified component.
  *
  * @param component The identity of the component.
@@ -211,8 +193,6 @@ bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDi
 }
 
 /**
- * NewIdentityHandler
- *
  * Deals with a new endpoint whose identity has just become known.
  *
  * @param ea Event arguments for the component.
@@ -283,8 +263,6 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 }
 
 /**
- * WelcomeMessageHandler
- *
  * Processes discovery::Welcome messages.
  *
  * @param nrea Event arguments for the request.
@@ -309,8 +287,6 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 }
 
 /**
- * FinishDiscoverySetup
- *
  * Finishes the welcome handshake for a new component
  * by registering message sinks/sources for the component
  * and sending a welcome message if necessary.
@@ -339,8 +315,6 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 }
 
 /**
- * SendDiscoveryMessage
- *
  * Sends a discovery message for the specified identity using the
  * specified message type.
  *
@@ -415,8 +389,6 @@ bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string mess
 }
 
 /**
- * ProcessDiscoveryMessage
- *
  * Processes a discovery message by registering the component in the
  * discovery component registry.
  *
@@ -488,8 +460,6 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 }
 
 /**
- * NewComponentMessageHandler
- *
  * Processes "discovery::NewComponent" messages.
  *
  * @param nrea Event arguments for the request.
@@ -509,8 +479,6 @@ int DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& nr
 }
 
 /**
- * RegisterComponentMessageHandler
- *
  * Processes "discovery::RegisterComponent" messages.
  *
  * @param nrea Event arguments for the request.
@@ -526,8 +494,6 @@ int DiscoveryComponent::RegisterComponentMessageHandler(const NewRequestEventArg
 }
 
 /**
- * EndpointConfigHandler
- *
  * Processes "endpoint" config objects.
  *
  * @param ea Event arguments for the new config object.
@@ -553,8 +519,6 @@ int DiscoveryComponent::EndpointConfigHandler(const EventArgs& ea)
 }
 
 /**
- * DiscoveryTimerHandler
- *
  * Checks whether we have to reconnect to other components and removes stale
  * components from the registry.
  *

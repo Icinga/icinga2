@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * GetProperty
- *
  * Retrieves a value from the dictionary.
  *
  * @param key The key.
@@ -42,8 +40,6 @@ bool Dictionary::GetProperty(string key, Variant *value) const
 }
 
 /**
- * SetProperty
- *
  * Sets a value in the dictionary.
  *
  * @param key The key.
@@ -70,8 +66,6 @@ void Dictionary::SetProperty(string key, const Variant& value)
 }
 
 /**
- * GetPropertyString
- *
  * Retrieves a value from the dictionary and converts it to a string.
  *
  * @param key The key.
@@ -90,8 +84,6 @@ bool Dictionary::GetPropertyString(string key, string *value)
 }
 
 /**
- * SetPropertyString
- *
  * Sets a value in the dictionary.
  *
  * @param key The key.
@@ -103,8 +95,6 @@ void Dictionary::SetPropertyString(string key, const string& value)
 }
 
 /**
- * GetPropertyInteger
- *
  * Retrieves a value from the dictionary and converts it to an integer.
  *
  * @param key The key.
@@ -123,8 +113,6 @@ bool Dictionary::GetPropertyInteger(string key, long *value)
 }
 
 /**
- * SetPropertyInteger
- *
  * Sets a value in the dictionary.
  *
  * @param key The key.
@@ -136,8 +124,6 @@ void Dictionary::SetPropertyInteger(string key, long value)
 }
 
 /**
- * GetPropertyDictionary
- *
  * Retrieves a value from the dictionary and converts it to a dictionary.
  *
  * @param key The key.
@@ -163,8 +149,6 @@ bool Dictionary::GetPropertyDictionary(string key, Dictionary::Ptr *value)
 }
 
 /**
- * SetPropertyDictionary
- *
  * Sets a value in the dictionary.
  *
  * @param key The key.
@@ -176,8 +160,6 @@ void Dictionary::SetPropertyDictionary(string key, const Dictionary::Ptr& value)
 }
 
 /**
- * GetPropertyObject
- *
  * Retrieves a value from the dictionary and converts it to an object.
  *
  * @param key The key.
@@ -196,8 +178,6 @@ bool Dictionary::GetPropertyObject(string key, Object::Ptr *value)
 }
 
 /**
- * SetPropertyObject
- *
  * Sets a value in the dictionary.
  *
  * @param key The key.
@@ -209,8 +189,6 @@ void Dictionary::SetPropertyObject(string key, const Object::Ptr& value)
 }
 
 /**
- * Begin
- *
  * Returns an iterator to the beginning of the dictionary.
  *
  * @returns An iterator.
@@ -221,8 +199,6 @@ DictionaryIterator Dictionary::Begin(void)
 }
 
 /**
- * End
- *
  * Returns an iterator to the end of the dictionary.
  *
  * @returns An iterator.
@@ -233,8 +209,6 @@ DictionaryIterator Dictionary::End(void)
 }
 
 /**
- * GetLength
- *
  * Returns the number of elements in the dictionary.
  *
  * @returns Number of elements.
@@ -245,8 +219,6 @@ long Dictionary::GetLength(void) const
 }
 
 /**
- * AddUnnamedProperty
- *
  * Adds an unnamed value to the dictionary.
  *
  * @param value The value.
@@ -269,8 +241,6 @@ void Dictionary::AddUnnamedProperty(const Variant& value)
 }
 
 /**
- * AddUnnamedPropertyString
- *
  * Adds an unnamed value to the dictionary.
  *
  * @param value The value.
@@ -281,8 +251,6 @@ void Dictionary::AddUnnamedPropertyString(const string& value)
 }
 
 /**
- * AddUnnamedPropertyInteger
- *
  * Adds an unnamed value to the dictionary.
  *
  * @param value The value.
@@ -293,8 +261,6 @@ void Dictionary::AddUnnamedPropertyInteger(long value)
 }
 
 /**
- * AddUnnamedPropertyDictionary
- *
  * Adds an unnamed value to the dictionary.
  *
  * @param value The value.
@@ -305,8 +271,6 @@ void Dictionary::AddUnnamedPropertyDictionary(const Dictionary::Ptr& value)
 }
 
 /**
- * AddUnnamedPropertyObject
- *
  * Adds an unnamed value to the dictionary.
  *
  * @param value The value.

@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * GetName
- *
  * Returns the name of the component.
  *
  * @returns The name.
@@ -34,8 +32,6 @@ string DemoComponent::GetName(void) const
 }
 
 /**
- * Start
- *
  * Starts the component.
  */
 void DemoComponent::Start(void)
@@ -55,8 +51,6 @@ void DemoComponent::Start(void)
 }
 
 /**
- * Stop
- *
  * Stops the component.
  */
 void DemoComponent::Stop(void)
@@ -70,8 +64,6 @@ void DemoComponent::Stop(void)
 }
 
 /**
- * DemoTimerHandler
- *
  * Periodically sends a demo::HelloWorld message.
  *
  * @param - Event arguments for the timer.
@@ -91,8 +83,6 @@ int DemoComponent::DemoTimerHandler(const TimerEventArgs&)
 }
 
 /**
- * HelloWorldRequestHandler
- *
  * Processes demo::HelloWorld messages.
  */
 int DemoComponent::HelloWorldRequestHandler(const NewRequestEventArgs& nrea)

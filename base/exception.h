@@ -41,9 +41,7 @@ public:
 	Exception(const string& message);
 
 	/**
-	 * ~Exception
-	 *
-	 * Required for RTTI.
+	 * Destructor for the Exception class. Required for RTTI.
 	 */
 	virtual ~Exception(void)
 	{

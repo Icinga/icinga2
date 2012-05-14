@@ -26,8 +26,6 @@ namespace icinga
 typedef void (*ThreadProc)(void *);
 
 /**
- * Thread
- *
  * A wrapper around OS-specific thread functionality.
  */
 class I2_BASE_API Thread

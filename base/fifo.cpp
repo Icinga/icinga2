@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * FIFO
- *
  * Constructor for the FIFO class.
  */
 FIFO::FIFO(void)
@@ -35,8 +33,6 @@ FIFO::FIFO(void)
 }
 
 /**
- * ~FIFO
- *
  * Destructor for the FIFO class.
  */
 FIFO::~FIFO(void)
@@ -45,8 +41,6 @@ FIFO::~FIFO(void)
 }
 
 /**
- * ResizeBuffer
- *
  * Resizes the FIFO's buffer so that it is at least newSize bytes long.
  *
  * @param newSize The minimum new size of the FIFO buffer.
@@ -63,8 +57,6 @@ void FIFO::ResizeBuffer(size_t newSize)
 }
 
 /**
- * Optimize
- *
  * Optimizes memory usage of the FIFO buffer by reallocating
  * and moving the buffer.
  */
@@ -93,8 +85,6 @@ void FIFO::Optimize(void)
 }
 
 /**
- * GetSize
- *
  * Returns the number of bytes that are contained in the FIFO.
  *
  * @returns The number of bytes.
@@ -105,8 +95,6 @@ size_t FIFO::GetSize(void) const
 }
 
 /**
- * GetReadBuffer
- *
  * Returns a pointer to the start of the read buffer.
  *
  * @returns Pointer to the read buffer.
@@ -117,8 +105,6 @@ const void *FIFO::GetReadBuffer(void) const
 }
 
 /**
- * Read
- *
  * Reads data from the FIFO and places it in the specified buffer.
  *
  * @param buffer The buffer where the data should be placed (can be NULL if
@@ -142,8 +128,6 @@ size_t FIFO::Read(void *buffer, size_t count)
 }
 
 /**
- * GetWriteBuffer
- *
  * Returns a pointer to the start of the write buffer.
  *
  * @param count Minimum size of the buffer; on return this parameter
@@ -159,8 +143,6 @@ void *FIFO::GetWriteBuffer(size_t *count)
 }
 
 /**
- * Write
- *
  * Writes data to the FIFO.
  *
  * @param buffer The data that is to be written (can be NULL if the writer has

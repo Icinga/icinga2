@@ -25,8 +25,6 @@
 using namespace icinga;
 
 /**
- * Sleep
- *
  * Sleeps for the specified amount of time.
  *
  * @param milliseconds The amount of time in milliseconds.
@@ -37,8 +35,6 @@ void Sleep(unsigned long milliseconds)
 }
 
 /**
- * closesocket
- *
  * Closes a socket.
  *
  * @param fd The socket that is to be closed.

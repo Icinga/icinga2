@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * MakeSocket
- *
  * Creates a socket.
  *
  * @param family The socket family for the new socket.
@@ -44,8 +42,6 @@ void TCPSocket::MakeSocket(int family)
 }
 
 /**
- * Bind
- *
  * Creates a socket and binds it to the specified service.
  *
  * @param service The service.
@@ -57,8 +53,6 @@ void TCPSocket::Bind(string service, int family)
 }
 
 /**
- * Bind
- *
  * Creates a socket and binds it to the specified node and service.
  *
  * @param service The service.

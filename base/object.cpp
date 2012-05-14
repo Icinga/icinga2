@@ -20,3 +20,17 @@
 #include "i2-base.h"
 
 using namespace icinga;
+
+/**
+ * Default constructor for the Object class.
+ */
+Object::Object(void)
+{
+}
+
+/**
+ * Destructor for the Object class.
+ */
+Object::~Object(void)
+{
+}

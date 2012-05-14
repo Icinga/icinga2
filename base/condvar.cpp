@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * CondVar
- *
  * Constructor for the CondVar class.
  */
 CondVar::CondVar(void)
@@ -36,8 +34,6 @@ CondVar::CondVar(void)
 }
 
 /**
- * ~CondVar
- *
  * Destructor for the CondVar class.
  */
 CondVar::~CondVar(void)
@@ -50,8 +46,6 @@ CondVar::~CondVar(void)
 }
 
 /**
- * Wait
- *
  * Waits for the condition variable to be signaled. Releases the specified mutex
  * before it begins to wait and re-acquires the mutex after waiting.
  *
@@ -67,8 +61,6 @@ void CondVar::Wait(Mutex& mtx)
 }
 
 /**
- * Signal
- *
  * Wakes up at least one waiting thread.
  */
 void CondVar::Signal(void)
@@ -81,8 +73,6 @@ void CondVar::Signal(void)
 }
 
 /**
- * Broadcast
- *
  * Wakes up all waiting threads.
  */
 void CondVar::Broadcast(void)
@@ -95,8 +85,6 @@ void CondVar::Broadcast(void)
 }
 
 /**
- * Get
- *
  * Retrieves the platform-specific condition variable handle.
  *
  * @returns The platform-specific condition variable handle.

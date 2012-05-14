@@ -22,8 +22,6 @@
 using namespace icinga;
 
 /**
- * Mutex
- *
  * Constructor for the Mutex class.
  */
 Mutex::Mutex(void)
@@ -36,8 +34,6 @@ Mutex::Mutex(void)
 }
 
 /**
- * ~Mutex
- *
  * Destructor for the Mutex class.
  */
 Mutex::~Mutex(void)
@@ -50,8 +46,6 @@ Mutex::~Mutex(void)
 }
 
 /**
- * TryEnter
- *
  * Tries to lock the mutex. If the mutex cannot be immediatelly
  * locked the operation fails.
  *
@@ -67,8 +61,6 @@ bool Mutex::TryEnter(void)
 }
 
 /**
- * Enter
- *
  * Locks the mutex.
  */
 void Mutex::Enter(void)
@@ -81,8 +73,6 @@ void Mutex::Enter(void)
 }
 
 /**
- * Exit
- *
  * Unlocks the mutex.
  */
 void Mutex::Exit(void)
@@ -95,8 +85,6 @@ void Mutex::Exit(void)
 }
 
 /**
- * Get
- *
  * Retrieves the platform-specific mutex handle.
  *
  * @returns The platform-specific mutex handle.
