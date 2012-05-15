@@ -43,6 +43,9 @@ shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
 
 void EndpointManager::AddListener(string service)
 {
+	if (!GetSSLContext())
+		throw InvalidArgumentException("SSL context is required for AddListener()");
+
 	stringstream s;
 	s << "Adding new listener: port " << service;
 	Application::Log(s.str());

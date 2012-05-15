@@ -66,23 +66,16 @@ int IcingaApplication::Main(const vector<string>& args)
 	fileComponentConfig->SetPropertyInteger("replicate", 0);
 	GetConfigHive()->AddObject(fileComponentConfig);
 
-	if (GetPrivateKeyFile().empty())
-		throw InvalidArgumentException("No private key was specified.");
+	if (!GetPrivateKeyFile().empty() && !GetPublicKeyFile().empty() && !GetCAKeyFile().empty()) {
+		/* set up SSL context */
+		shared_ptr<X509> cert = Utility::GetX509Certificate(GetPublicKeyFile());
+		string identity = Utility::GetCertificateCN(cert);
+		Application::Log("My identity: " + identity);
+		m_EndpointManager->SetIdentity(identity);
 
-	if (GetPublicKeyFile().empty())
-		throw InvalidArgumentException("No public certificate was specified.");
-
-	if (GetCAKeyFile().empty())
-		throw InvalidArgumentException("No CA certificate was specified.");
-
-	/* set up SSL context */
-	shared_ptr<X509> cert = Utility::GetX509Certificate(GetPublicKeyFile());
-	string identity = Utility::GetCertificateCN(cert);
-	Application::Log("My identity: " + identity);
-	m_EndpointManager->SetIdentity(identity);
-
-	shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetPublicKeyFile(), GetPrivateKeyFile(), GetCAKeyFile());
-	m_EndpointManager->SetSSLContext(sslContext);
+		shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetPublicKeyFile(), GetPrivateKeyFile(), GetCAKeyFile());
+		m_EndpointManager->SetSSLContext(sslContext);
+	}
 
 	/* create the primary RPC listener */
 	string service = GetService();
