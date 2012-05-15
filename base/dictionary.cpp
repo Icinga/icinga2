@@ -56,13 +56,6 @@ void Dictionary::SetProperty(string key, const Variant& value)
 	}
 
 	m_Data[key] = value;
-
-	PropertyChangedEventArgs dpce;
-	dpce.Source = shared_from_this();
-	dpce.Property = key;
-	dpce.OldValue = oldValue;
-	dpce.NewValue = value;
-	OnPropertyChanged(dpce);
 }
 
 /**

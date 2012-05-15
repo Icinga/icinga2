@@ -23,58 +23,64 @@
 namespace icinga
 {
 
+/**
+ * Base class for event arguments.
+ */
 struct I2_BASE_API EventArgs
 {
-	Object::Ptr Source;
+	Object::Ptr Source; /**< The source of the event. */
 };
 
+/**
+ * An observable event.
+ */
 template<class TArgs>
 class Event
 {
 public:
-	typedef function<int (const TArgs&)> DelegateType;
+	typedef function<int (const TArgs&)> ObserverType;
 
 private:
-	vector<DelegateType> m_Delegates;
+	vector<ObserverType> m_Observers;
 
 public:
 	/**
-	 * Adds a delegate to this event.
+	 * Adds an observer to this event.
 	 *
 	 * @param rhs The delegate.
 	 */
-	Event<TArgs>& operator +=(const DelegateType& rhs)
+	Event<TArgs>& operator +=(const ObserverType& rhs)
 	{
-		m_Delegates.push_back(rhs);
+		m_Observers.push_back(rhs);
 		return *this;
 	}
 
 	/**
-	 * Removes a delegate from this event.
+	 * Removes an observer from this event.
 	 *
 	 * @param rhs The delegate.
 	 */
-	Event<TArgs>& operator -=(const DelegateType& rhs)
+	Event<TArgs>& operator -=(const ObserverType& rhs)
 	{
-		m_Delegates.erase(rhs);
+		m_Observers.erase(rhs);
 		return *this;
 	}
 
 	/**
-	 * Invokes each delegate that is registered for this event. Any delegates
-	 * which return -1 are removed.
+	 * Invokes each observer function that is registered for this event. Any
+	 * observer function which returns -1 is removed.
 	 *
 	 * @param args Event arguments.
 	 */
 	void operator()(const TArgs& args)
 	{
-		typename vector<DelegateType>::iterator i;
+		typename vector<ObserverType>::iterator i;
 
-		for (i = m_Delegates.begin(); i != m_Delegates.end(); ) {
+		for (i = m_Observers.begin(); i != m_Observers.end(); ) {
 			int result = (*i)(args);
 
 			if (result == -1)
-				i = m_Delegates.erase(i);
+				i = m_Observers.erase(i);
 			else
 				i++;
 		}

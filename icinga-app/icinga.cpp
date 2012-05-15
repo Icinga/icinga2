@@ -21,8 +21,15 @@
 
 using namespace icinga;
 
+/**
+ * Entry point for the Icinga application.
+ *
+ * @params argc Number of command line arguments.
+ * @params argv Command line arguments.
+ * @returns The application's exit status.
+ */
 int main(int argc, char **argv)
 {
 	IcingaApplication::Ptr instance = make_shared<IcingaApplication>();
-	return icinga::RunApplication(argc, argv, instance);
+	return instance->Run(argc, argv);
 }

@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * A byte-based FIFO buffer.
+ */
 class I2_BASE_API FIFO : public Object
 {
 private:

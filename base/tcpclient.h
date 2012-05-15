@@ -23,12 +23,18 @@
 namespace icinga
 {
 
+/**
+ * The role of a TCP client object.
+ */
 enum I2_BASE_API TCPClientRole
 {
-	RoleInbound,
-	RoleOutbound
+	RoleInbound, /**< inbound socket, i.e. one that was returned from accept() */
+	RoleOutbound /**< outbound socket, i.e. one that is connect()'d to a remote socket */
 };
 
+/**
+ * A TCP client connection.
+ */
 class I2_BASE_API TCPClient : public TCPSocket
 {
 private:
@@ -61,6 +67,13 @@ public:
 	Event<EventArgs> OnDataAvailable;
 };
 
+/**
+ * Returns a new unconnected TCPClient object that has the specified
+ * connection role.
+ *
+ * @param role The role of the new object.
+ * @returns A new TCPClient object.
+ */
 TCPClient::Ptr TCPClientFactory(TCPClientRole role);
 
 }

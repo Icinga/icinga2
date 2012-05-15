@@ -26,6 +26,9 @@ class Component;
 
 DEFINE_EXCEPTION_CLASS(ComponentLoadException);
 
+/**
+ * Abstract base class for applications.
+ */
 class I2_BASE_API Application : public Object {
 private:
 	bool m_ShuttingDown;
@@ -47,6 +50,8 @@ public:
 	Application(void);
 	~Application(void);
 
+	int Run(int argc, char **argv);
+
 	virtual int Main(const vector<string>& args) = 0;
 
 	void SetArguments(const vector<string>& arguments);
@@ -67,8 +72,6 @@ public:
 
 	bool IsDebugging(void) const;
 };
-
-int I2_EXPORT RunApplication(int argc, char **argv, Application::Ptr instance);
 
 }
 

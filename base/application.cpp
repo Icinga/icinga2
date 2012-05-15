@@ -446,20 +446,18 @@ static void ApplicationSigIntHandler(int signum)
 #endif /* _WIN32 */
 
 /**
- * Runs the specified application.
+ * Runs the application.
  *
  * @param argc The number of arguments.
  * @param argv The arguments that should be passed to the application.
- * @param instance The application instance.
  * @returns The application's exit code.
  */
-int icinga::RunApplication(int argc, char **argv, Application::Ptr instance)
+int Application::Run(int argc, char **argv)
 {
 	int result;
 
 	assert(!Application::Instance);
-
-	Application::Instance = instance;
+	Application::Instance = static_pointer_cast<Application>(shared_from_this());
 
 #ifndef _WIN32
 	struct sigaction sa;
@@ -476,14 +474,18 @@ int icinga::RunApplication(int argc, char **argv, Application::Ptr instance)
 	for (int i = 0; i < argc; i++)
 		args.push_back(string(argv[i]));
 
-	Application::Instance->SetArguments(args);
+	SetArguments(args);
 
-	if (Application::Instance->IsDebugging()) {
-		result = Application::Instance->Main(args);
+	if (IsDebugging()) {
+		result = Main(args);
+
+		Application::Instance.reset();
 	} else {
 		try {
-			result = Application::Instance->Main(args);
+			result = Main(args);
 		} catch (const Exception& ex) {
+			Application::Instance.reset();
+
 			Application::Log("---");
 			Application::Log("Exception: " + Utility::GetTypeName(ex));
 			Application::Log("Message: " + ex.GetMessage());

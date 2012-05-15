@@ -23,6 +23,10 @@
 namespace icinga
 {
 
+/**
+ * An application extension that can be dynamically loaded
+ * at run-time.
+ */
 class I2_BASE_API Component : public Object
 {
 private:

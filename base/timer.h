@@ -24,22 +24,25 @@
 
 namespace icinga {
 
+/**
+ * Event arguments for the "timer expired" event.
+ */
 struct I2_BASE_API TimerEventArgs : public EventArgs
 {
-	typedef shared_ptr<TimerEventArgs> Ptr;
-	typedef weak_ptr<TimerEventArgs> WeakPtr;
-
-	EventArgs UserArgs;
+	EventArgs UserArgs; /**< User-specified event arguments. */
 };
 
+/**
+ * A timer that periodically triggers an event.
+ */
 class I2_BASE_API Timer : public Object
 {
 private:
-	EventArgs m_UserArgs;
-	unsigned int m_Interval;
-	time_t m_Next;
+	EventArgs m_UserArgs; /**< User-specified event arguments. */
+	unsigned int m_Interval; /**< The interval of the timer. */
+	time_t m_Next; /**< When the next event should happen. */
 
-	static time_t NextCall;
+	static time_t NextCall; /**< When the next event should happen (for all timers). */
 
 	static void RescheduleTimers(void);
 

@@ -23,14 +23,17 @@
 namespace icinga
 {
 
+/**
+ * Event arguments for the "new client" event.
+ */
 struct I2_BASE_API NewClientEventArgs : public EventArgs
 {
-	typedef shared_ptr<NewClientEventArgs> Ptr;
-	typedef weak_ptr<NewClientEventArgs> WeakPtr;
-
-	TCPSocket::Ptr Client;
+	TCPSocket::Ptr Client; /**< The new client object. */
 };
 
+/**
+ * A TCP server that listens on a TCP port and accepts incoming
+ * client connections. */
 class I2_BASE_API TCPServer : public TCPSocket
 {
 private:

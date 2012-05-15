@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * A TCP socket.
+ */
 class I2_BASE_API TCPSocket : public Socket
 {
 private:

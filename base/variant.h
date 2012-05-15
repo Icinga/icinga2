@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * The type of a Variant object.
+ */
 enum I2_BASE_API VariantType
 {
 	VariantEmpty,
@@ -31,14 +34,20 @@ enum I2_BASE_API VariantType
 	VariantObject
 };
 
+/**
+ * A type that can hold an arbitrary value.
+ */
 class I2_BASE_API Variant
 {
 private:
-	mutable VariantType m_Type;
+	mutable VariantType m_Type; /**< The type of the Variant. */
 
-	mutable long m_IntegerValue;
-	mutable string m_StringValue;
-	mutable Object::Ptr m_ObjectValue;
+	mutable long m_IntegerValue; /**< The value of the Variant
+				          if m_Type == VariantInteger */
+	mutable string m_StringValue; /**< The value of the Variant
+				           if m_Type == VariantString */
+	mutable Object::Ptr m_ObjectValue; /**< The value of the Variant
+					        if m_Type == VariantObject */
 
 	void Convert(VariantType newType) const;
 

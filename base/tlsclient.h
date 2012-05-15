@@ -23,13 +23,21 @@
 namespace icinga
 {
 
+/**
+ * Event arguments for the "SSL certificate verification" event.
+ */
 struct I2_BASE_API VerifyCertificateEventArgs : public EventArgs
 {
-	bool ValidCertificate;
-	X509_STORE_CTX *Context;
-	shared_ptr<X509> Certificate;
+	bool ValidCertificate; /**< Whether the certificate is valid, can be
+			            changed by the event handler. */
+	X509_STORE_CTX *Context; /**< The X509 store context. */
+	shared_ptr<X509> Certificate; /**< The X509 certificate that should
+				           ve verified. */
 };
 
+/**
+ * A TLS client connection.
+ */
 class I2_BASE_API TLSClient : public TCPClient
 {
 private:

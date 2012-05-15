@@ -22,19 +22,22 @@
 
 namespace icinga {
 
+/**
+ * Event arguments for socket errors.
+ */
 struct I2_BASE_API SocketErrorEventArgs : public EventArgs
 {
-	typedef shared_ptr<SocketErrorEventArgs> Ptr;
-	typedef weak_ptr<SocketErrorEventArgs> WeakPtr;
-
-	int Code;
-	string Message;
+	int Code; /**< The error code. */
+	string Message; /**< A message describing the error. */
 };
 
+/**
+ * Base class for sockets.
+ */
 class I2_BASE_API Socket : public Object
 {
 private:
-	SOCKET m_FD;
+	SOCKET m_FD; /**< The socket descriptor. */
 
 	int ExceptionEventHandler(const EventArgs& ea);
 

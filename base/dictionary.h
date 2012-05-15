@@ -26,13 +26,9 @@ namespace icinga
 typedef map<string, Variant>::const_iterator ConstDictionaryIterator;
 typedef map<string, Variant>::iterator DictionaryIterator;
 
-struct I2_BASE_API PropertyChangedEventArgs : public EventArgs
-{
-	string Property;
-	Variant OldValue;
-	Variant NewValue;
-};
-
+/**
+ * A container that holds key-value pairs.
+ */
 class I2_BASE_API Dictionary : public Object
 {
 private:
@@ -67,8 +63,6 @@ public:
 	void AddUnnamedPropertyObject(const Object::Ptr& value);
 
 	long GetLength(void) const;
-
-	Event<PropertyChangedEventArgs> OnPropertyChanged;
 };
 
 }

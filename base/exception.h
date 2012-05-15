@@ -24,8 +24,6 @@ namespace icinga
 {
 
 /**
- * Exception
- *
  * Base class for all exceptions.
  */
 class I2_BASE_API Exception
@@ -41,7 +39,7 @@ public:
 	Exception(const string& message);
 
 	/**
-	 * Destructor for the Exception class. Required for RTTI.
+	 * Destructor for the Exception class. Must be virtual for RTTI to work.
 	 */
 	virtual ~Exception(void)
 	{
@@ -68,37 +66,82 @@ DEFINE_EXCEPTION_CLASS(NotImplementedException);
 DEFINE_EXCEPTION_CLASS(InvalidArgumentException);
 
 #ifdef _WIN32
+/**
+ * A Win32 error encapsulated in an exception.
+ */
 class Win32Exception : public Exception
 {
 public:
+	/**
+	 * Constructor for the Win32Exception class.
+	 *
+	 * @param message An error message.
+	 * @param errorCode A Win32 error code.
+	 */
 	inline Win32Exception(const string& message, int errorCode)
 	{
 		SetMessage(message + ": " + FormatErrorCode(errorCode));
 	}
 
+	/**
+	 * Returns a string that describes the Win32 error.
+	 *
+	 * @param code The Win32 error code.
+	 * @returns A description of the error.
+	 */
 	static string FormatErrorCode(int code);
 };
 #endif /* _WIN32 */
 
+/**
+ * A Posix error encapsulated in an exception.
+ */
 class PosixException : public Exception
 {
 public:
+	/**
+	 * Constructor for the PosixException class.
+	 *
+	 * @param message An error message.
+	 * @param errorCode A Posix (errno) error code.
+	 */
 	inline PosixException(const string& message, int errorCode)
 	{
 		SetMessage(message + ": " + FormatErrorCode(errorCode));
 	}
 
+	/**
+	 * Returns a string that describes the Posix error.
+	 *
+	 * @param code The Posix error code.
+	 * @returns A description of the error.
+	 */
 	static string FormatErrorCode(int code);
 };
 
+/**
+ * An OpenSSL error encapsulated in an exception.
+ */
 class OpenSSLException : public Exception
 {
 public:
+	/**
+	 * Constructor for the OpenSSLException class.
+	 *
+	 * @param message An error message.
+	 * @param errorCode An OpenSSL error code.
+	 */
 	inline OpenSSLException(const string& message, int errorCode)
 	{
 		SetMessage(message + ": " + FormatErrorCode(errorCode));
 	}
 
+	/**
+	 * Returns a string that describes the OpenSSL error.
+	 *
+	 * @param code The OpenSSL error code.
+	 * @returns A description of the error.
+	 */
 	static string FormatErrorCode(int code);
 };
 
