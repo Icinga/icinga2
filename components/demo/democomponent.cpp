@@ -37,9 +37,9 @@ string DemoComponent::GetName(void) const
 void DemoComponent::Start(void)
 {
 	m_DemoEndpoint = make_shared<VirtualEndpoint>();
-	m_DemoEndpoint->RegisterMethodHandler("demo::HelloWorld",
+	m_DemoEndpoint->RegisterTopicHandler("demo::HelloWorld",
 	    bind_weak(&DemoComponent::HelloWorldRequestHandler, shared_from_this()));
-	m_DemoEndpoint->RegisterMethodSource("demo::HelloWorld");
+	m_DemoEndpoint->RegisterPublication("demo::HelloWorld");
 
 	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
 	endpointManager->RegisterEndpoint(m_DemoEndpoint);
@@ -73,11 +73,11 @@ int DemoComponent::DemoTimerHandler(const TimerEventArgs&)
 {
 	Application::Log("Sending multicast 'hello world' message.");
 
-	JsonRpcRequest request;
+	RpcRequest request;
 	request.SetMethod("demo::HelloWorld");
 
 	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-	endpointManager->SendMulticastRequest(m_DemoEndpoint, request);
+	endpointManager->SendMulticastMessage(m_DemoEndpoint, request);
 
 	return 0;
 }

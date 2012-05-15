@@ -32,8 +32,8 @@ public:
 	string Node;
 	string Service;
 
-	set<string> SubscribedMethods;
-	set<string> PublishedMethods;
+	set<string> Subscriptions;
+	set<string> Publications;
 
 	time_t LastSeen;
 };
@@ -60,8 +60,6 @@ private:
 
 	int CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea);
 	int DiscoveryEndpointHandler(const NewEndpointEventArgs& neea, ComponentDiscoveryInfo::Ptr info) const;
-	int DiscoverySinkHandler(const NewMethodEventArgs& nmea, ComponentDiscoveryInfo::Ptr info) const;
-	int DiscoverySourceHandler(const NewMethodEventArgs& nmea, ComponentDiscoveryInfo::Ptr info) const;
 
 	int DiscoveryTimerHandler(const TimerEventArgs& tea);
 

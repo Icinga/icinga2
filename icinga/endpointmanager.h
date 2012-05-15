@@ -23,11 +23,17 @@
 namespace icinga
 {
 
+/**
+ * Event arguments for the "new endpoint registered" event.
+ */
 struct I2_ICINGA_API NewEndpointEventArgs : public EventArgs
 {
-	icinga::Endpoint::Ptr Endpoint;
+	icinga::Endpoint::Ptr Endpoint; /**< The new endpoint. */
 };
 
+/**
+ * Forwards messages between endpoints.
+ */
 class I2_ICINGA_API EndpointManager : public Object
 {
 	string m_Identity;
@@ -57,9 +63,9 @@ public:
 	void RegisterEndpoint(Endpoint::Ptr endpoint);
 	void UnregisterEndpoint(Endpoint::Ptr endpoint);
 
-	void SendUnicastRequest(Endpoint::Ptr sender, Endpoint::Ptr recipient, const JsonRpcRequest& request, bool fromLocal = true);
-	void SendAnycastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
-	void SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal = true);
+	void SendUnicastMessage(Endpoint::Ptr sender, Endpoint::Ptr recipient, const Message& message);
+	void SendAnycastMessage(Endpoint::Ptr sender, const RpcRequest& message);
+	void SendMulticastMessage(Endpoint::Ptr sender, const RpcRequest& message);
 
 	void ForEachEndpoint(function<int (const NewEndpointEventArgs&)> callback);
 

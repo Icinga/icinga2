@@ -35,22 +35,22 @@ void ConfigRpcComponent::Start(void)
 
 	long configSource;
 	if (GetConfig()->GetPropertyInteger("configSource", &configSource) && configSource != 0) {
-		m_ConfigRpcEndpoint->RegisterMethodHandler("config::FetchObjects",
+		m_ConfigRpcEndpoint->RegisterTopicHandler("config::FetchObjects",
 		    bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
 
 		configHive->OnObjectCommitted += bind_weak(&ConfigRpcComponent::LocalObjectCommittedHandler, shared_from_this());
 		configHive->OnObjectRemoved += bind_weak(&ConfigRpcComponent::LocalObjectRemovedHandler, shared_from_this());
 
-		m_ConfigRpcEndpoint->RegisterMethodSource("config::ObjectCommitted");
-		m_ConfigRpcEndpoint->RegisterMethodSource("config::ObjectRemoved");
+		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectCommitted");
+		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectRemoved");
 	}
 
 	endpointManager->OnNewEndpoint += bind_weak(&ConfigRpcComponent::NewEndpointHandler, shared_from_this());
 
-	m_ConfigRpcEndpoint->RegisterMethodSource("config::FetchObjects");
-	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectCommitted",
+	m_ConfigRpcEndpoint->RegisterPublication("config::FetchObjects");
+	m_ConfigRpcEndpoint->RegisterTopicHandler("config::ObjectCommitted",
 	    bind_weak(&ConfigRpcComponent::RemoteObjectCommittedHandler, shared_from_this()));
-	m_ConfigRpcEndpoint->RegisterMethodHandler("config::ObjectRemoved",
+	m_ConfigRpcEndpoint->RegisterTopicHandler("config::ObjectRemoved",
 	    bind_weak(&ConfigRpcComponent::RemoteObjectRemovedHandler, shared_from_this()));
 
 	endpointManager->RegisterEndpoint(m_ConfigRpcEndpoint);
@@ -73,18 +73,18 @@ int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
 
 int ConfigRpcComponent::SessionEstablishedHandler(const EventArgs& ea)
 {
-	JsonRpcRequest request;
+	RpcRequest request;
 	request.SetMethod("config::FetchObjects");
 
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(ea.Source);
-	GetEndpointManager()->SendUnicastRequest(m_ConfigRpcEndpoint, endpoint, request);
+	GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, endpoint, request);
 
 	return 0;
 }
 
-JsonRpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
+RpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
 {
-	JsonRpcRequest msg;
+	RpcRequest msg;
 	msg.SetMethod(method);
 
 	Message params;
@@ -121,9 +121,9 @@ int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 			if (!ShouldReplicateObject(object))
 				continue;
 
-			JsonRpcRequest request = MakeObjectMessage(object, "config::ObjectCreated", true);
+			RpcRequest request = MakeObjectMessage(object, "config::ObjectCreated", true);
 
-			GetEndpointManager()->SendUnicastRequest(m_ConfigRpcEndpoint, client, request);
+			GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, client, request);
 		}
 	}
 
@@ -137,7 +137,7 @@ int ConfigRpcComponent::LocalObjectCommittedHandler(const EventArgs& ea)
 	if (!ShouldReplicateObject(object))
 		return 0;
 
-	GetEndpointManager()->SendMulticastRequest(m_ConfigRpcEndpoint,
+	GetEndpointManager()->SendMulticastMessage(m_ConfigRpcEndpoint,
 	    MakeObjectMessage(object, "config::ObjectCreated", true));
 
 	return 0;
@@ -150,7 +150,7 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
 	if (!ShouldReplicateObject(object))
 		return 0;
 
-	GetEndpointManager()->SendMulticastRequest(m_ConfigRpcEndpoint,
+	GetEndpointManager()->SendMulticastMessage(m_ConfigRpcEndpoint,
 	    MakeObjectMessage(object, "config::ObjectRemoved", false));
 
 	return 0;
@@ -158,7 +158,7 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
 
 int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& ea)
 {
-	JsonRpcRequest message = ea.Request;
+	RpcRequest message = ea.Request;
 	bool was_null = false;
 
 	Message params;
@@ -199,7 +199,7 @@ int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& 
 
 int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea)
 {
-	JsonRpcRequest message = ea.Request;
+	RpcRequest message = ea.Request;
 	
 	Message params;
 	if (!message.GetParams(&params))

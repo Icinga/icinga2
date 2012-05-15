@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * The Icinga application.
+ */
 class I2_ICINGA_API IcingaApplication : public Application
 {
 private:
@@ -53,8 +56,6 @@ public:
 	typedef weak_ptr<IcingaApplication> WeakPtr;
 
 	int Main(const vector<string>& args);
-
-	void PrintUsage(const string& programPath);
 
 	EndpointManager::Ptr GetEndpointManager(void);
 

@@ -21,26 +21,52 @@
 
 using namespace icinga;
 
+/**
+ * Sets the identity of the endpoint manager. This identity is used when
+ * connecting to remote peers.
+ *
+ * @param identity The new identity.
+ */
 void EndpointManager::SetIdentity(string identity)
 {
 	m_Identity = identity;
 }
 
+/**
+ * Retrieves the identity for the endpoint manager.
+ *
+ * @returns The identity.
+ */
 string EndpointManager::GetIdentity(void) const
 {
 	return m_Identity;
 }
 
+/**
+ * Sets the SSL context that is used for remote connections.
+ *
+ * @param sslContext The new SSL context.
+ */
 void EndpointManager::SetSSLContext(shared_ptr<SSL_CTX> sslContext)
 {
 	m_SSLContext = sslContext;
 }
 
+/**
+ * Retrieves the SSL context that is used for remote connections.
+ *
+ * @returns The SSL context.
+ */
 shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
 {
 	return m_SSLContext;
 }
 
+/**
+ * Creates a new JSON-RPC listener on the specified port.
+ *
+ * @param service The name of the service to listen on (@see getaddrinfo).
+ */
 void EndpointManager::AddListener(string service)
 {
 	if (!GetSSLContext())
@@ -58,6 +84,12 @@ void EndpointManager::AddListener(string service)
 	server->Start();
 }
 
+/**
+ * Creates a new JSON-RPC client and connects to the specified host and port.
+ *
+ * @param node The remote host (@see getaddrinfo).
+ * @param service The remote port (@see getaddrinfo).
+ */
 void EndpointManager::AddConnection(string node, string service)
 {
 	stringstream s;
@@ -69,12 +101,22 @@ void EndpointManager::AddConnection(string node, string service)
 	endpoint->Connect(node, service, m_SSLContext);
 }
 
+/**
+ * Registers a new JSON-RPC server with this endpoint manager.
+ *
+ * @param server The JSON-RPC server.
+ */
 void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.push_back(server);
 	server->OnNewClient += bind_weak(&EndpointManager::NewClientHandler, shared_from_this());
 }
 
+/**
+ * Processes a new client connection.
+ *
+ * @param ncea Event arguments.
+ */
 int EndpointManager::NewClientHandler(const NewClientEventArgs& ncea)
 {
 	string address = ncea.Client->GetPeerAddress();
@@ -87,6 +129,11 @@ int EndpointManager::NewClientHandler(const NewClientEventArgs& ncea)
 	return 0;
 }
 
+/**
+ * Unregisters a JSON-RPC server.
+ *
+ * @param server The JSON-RPC server.
+ */
 void EndpointManager::UnregisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.erase(
@@ -95,6 +142,11 @@ void EndpointManager::UnregisterServer(JsonRpcServer::Ptr server)
 	// TODO: unbind event
 }
 
+/**
+ * Registers a new endpoint with this endpoint manager.
+ *
+ * @param endpoint The new endpoint.
+ */
 void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 {
 	if (!endpoint->IsLocal() && endpoint->GetIdentity() != "")
@@ -109,6 +161,11 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 	OnNewEndpoint(neea);
 }
 
+/**
+ * Unregisters an endpoint.
+ *
+ * @param endpoint The endpoint.
+ */
 void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
 {
 	m_Endpoints.erase(
@@ -116,48 +173,68 @@ void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
 	    m_Endpoints.end());
 }
 
-void EndpointManager::SendUnicastRequest(Endpoint::Ptr sender, Endpoint::Ptr recipient, const JsonRpcRequest& request, bool fromLocal)
+/**
+ * Sends a unicast message to the specified recipient.
+ *
+ * @param sender The sender of the message.
+ * @param recipient The recipient of the message.
+ * @param message The request.
+ */
+void EndpointManager::SendUnicastMessage(Endpoint::Ptr sender, Endpoint::Ptr recipient, const Message& message)
 {
+	/* don't forward messages back to the sender */
 	if (sender == recipient)
 		return;
 
 	/* don't forward messages between non-local endpoints */
-	if (!fromLocal && !recipient->IsLocal())
+	if (!sender->IsLocal() && !recipient->IsLocal())
 		return;
 
-	string method;
-	if (!request.GetMethod(&method))
-		throw InvalidArgumentException("Missing 'method' parameter.");
-
-	if (recipient->IsMethodSink(method)) {
-		//Application::Log(sender->GetAddress() + " -> " + recipient->GetAddress() + ": " + method);
-		recipient->ProcessRequest(sender, request);
-	}
+	recipient->ProcessRequest(sender, message);
 }
 
-void EndpointManager::SendAnycastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal)
+/**
+ * Sends a message to exactly one recipient out of all recipients who have a
+ * subscription for the message's topic.
+ *
+ * @param sender The sender of the message.
+ * @param message The message.
+ */
+void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender, const RpcRequest& message)
 {
 	throw NotImplementedException();
 }
 
-void EndpointManager::SendMulticastRequest(Endpoint::Ptr sender, const JsonRpcRequest& request, bool fromLocal)
+/**
+ * Sends a message to all recipients who have a subscription for the
+ * message's topic.
+ *
+ * @param sender The sender of the message.
+ * @param message The message.
+ */
+void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender, const RpcRequest& message)
 {
-#ifdef _DEBUG
 	string id;
-	if (request.GetID(&id))
+	if (message.GetID(&id))
 		throw InvalidArgumentException("Multicast requests must not have an ID.");
-#endif /* _DEBUG */
 
 	string method;
-	if (!request.GetMethod(&method))
+	if (!message.GetMethod(&method))
 		throw InvalidArgumentException("Message is missing the 'method' property.");
 
 	for (vector<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 	{
-		SendUnicastRequest(sender, *i, request, fromLocal);
+		Endpoint::Ptr recipient = *i;
+		if (recipient->HasSubscription(method))
+			SendUnicastMessage(sender, recipient, message);
 	}
 }
 
+/**
+ * Calls the specified callback function for each registered endpoint.
+ *
+ * @param callback The callback function.
+ */
 void EndpointManager::ForEachEndpoint(function<int (const NewEndpointEventArgs&)> callback)
 {
 	NewEndpointEventArgs neea;
@@ -173,6 +250,11 @@ void EndpointManager::ForEachEndpoint(function<int (const NewEndpointEventArgs&)
 	}
 }
 
+/**
+ * Retrieves an endpoint that has the specified identity.
+ *
+ * @param identity The identity of the endpoint.
+ */
 Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
 {
 	vector<Endpoint::Ptr>::const_iterator i;

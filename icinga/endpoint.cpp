@@ -21,17 +21,30 @@
 
 using namespace icinga;
 
+/**
+ * Constructor for the Endpoint class.
+ */
 Endpoint::Endpoint(void)
 {
 	m_ReceivedWelcome = false;
 	m_SentWelcome = false;
 }
 
+/**
+ * Retrieves the identity of this endpoint.
+ *
+ * @returns The identity of the endpoint.
+ */
 string Endpoint::GetIdentity(void) const
 {
 	return m_Identity;
 }
 
+/**
+ * Sets the identity of this endpoint.
+ *
+ * @param identity The new identity of the endpoint.
+ */
 void Endpoint::SetIdentity(string identity)
 {
 	m_Identity = identity;
@@ -41,126 +54,179 @@ void Endpoint::SetIdentity(string identity)
 	OnIdentityChanged(ea);
 }
 
-bool Endpoint::HasIdentity(void) const
-{
-	return !m_Identity.empty();
-}
-
+/**
+ * Retrieves the endpoint manager this endpoint is registered with.
+ *
+ * @returns The EndpointManager object.
+ */
 EndpointManager::Ptr Endpoint::GetEndpointManager(void) const
 {
 	return m_EndpointManager.lock();
 }
 
+/**
+ * Sets the endpoint manager this endpoint is registered with.
+ *
+ * @param manager The EndpointManager object.
+ */
 void Endpoint::SetEndpointManager(EndpointManager::WeakPtr manager)
 {
 	m_EndpointManager = manager;
 }
 
-void Endpoint::RegisterMethodSink(string method)
+/**
+ * Registers a topic subscription for this endpoint.
+ *
+ * @param topic The name of the topic.
+ */
+void Endpoint::RegisterSubscription(string topic)
 {
-	m_MethodSinks.insert(method);
+	m_Subscriptions.insert(topic);
 }
 
-void Endpoint::UnregisterMethodSink(string method)
+/**
+ * Removes a topic subscription from this endpoint.
+ *
+ * @param topic The name of the topic.
+ */
+void Endpoint::UnregisterSubscription(string topic)
 {
-	m_MethodSinks.erase(method);
+	m_Subscriptions.erase(topic);
 }
 
-bool Endpoint::IsMethodSink(string method) const
+/**
+ * Checks whether the endpoint has a subscription for the specified topic.
+ *
+ * @param topic The name of the topic.
+ * @returns true if the endpoint is subscribed to the topic, false otherwise.
+ */
+bool Endpoint::HasSubscription(string topic) const
 {
-	return (m_MethodSinks.find(method) != m_MethodSinks.end());
+	return (m_Subscriptions.find(topic) != m_Subscriptions.end());
 }
 
-void Endpoint::ForEachMethodSink(function<int (const NewMethodEventArgs&)> callback)
+/**
+ * Registers a topic publication for this endpoint.
+ *
+ * @param topic The name of the topic.
+ */
+void Endpoint::RegisterPublication(string topic)
 {
-	for (set<string>::iterator i = m_MethodSinks.begin(); i != m_MethodSinks.end(); i++) {
-		NewMethodEventArgs nmea;
-		nmea.Source = shared_from_this();
-		nmea.Method = *i;
-		callback(nmea);
-	}
+	m_Publications.insert(topic);
 }
 
-void Endpoint::RegisterMethodSource(string method)
+/**
+ * Removes a topic publication from this endpoint.
+ *
+ * @param topic The name of the topic.
+ */
+void Endpoint::UnregisterPublication(string topic)
 {
-	m_MethodSources.insert(method);
+	m_Publications.erase(topic);
 }
 
-void Endpoint::UnregisterMethodSource(string method)
+/**
+ * Checks whether the endpoint  has a publication for the specified topic.
+ *
+ * @param topic The name of the topic.
+ * @returns true if the endpoint is publishing this topic, false otherwise.
+ */
+bool Endpoint::HasPublication(string topic) const
 {
-	m_MethodSources.erase(method);
+	return (m_Publications.find(topic) != m_Publications.end());
 }
 
-bool Endpoint::IsMethodSource(string method) const
+/**
+ * Removes all subscriptions for the endpoint.
+ */
+void Endpoint::ClearSubscriptions(void)
 {
-	return (m_MethodSources.find(method) != m_MethodSources.end());
+	m_Subscriptions.clear();
 }
 
-void Endpoint::ForEachMethodSource(function<int (const NewMethodEventArgs&)> callback)
+/**
+ * Removes all publications for the endpoint.
+ */
+void Endpoint::ClearPublications(void)
 {
-	for (set<string>::iterator i = m_MethodSources.begin(); i != m_MethodSources.end(); i++) {
-		NewMethodEventArgs nmea;
-		nmea.Source = shared_from_this();
-		nmea.Method = *i;
-		callback(nmea);
-	}
+	m_Publications.clear();
 }
 
-void Endpoint::ClearMethodSinks(void)
+/**
+ * Returns the beginning of the subscriptions list.
+ *
+ * @returns An iterator that points to the first subscription.
+ */
+Endpoint::ConstTopicIterator Endpoint::BeginSubscriptions(void) const
 {
-	m_MethodSinks.clear();
+	return m_Subscriptions.begin();
 }
 
-void Endpoint::ClearMethodSources(void)
+/**
+ * Returns the end of the subscriptions list.
+ *
+ * @returns An iterator that points past the last subscription.
+ */
+Endpoint::ConstTopicIterator Endpoint::EndSubscriptions(void) const
 {
-	m_MethodSources.clear();
+	return m_Subscriptions.end();
 }
 
-int Endpoint::CountMethodSinks(void) const
+/**
+ * Returns the beginning of the publications list.
+ *
+ * @returns An iterator that points to the first publication.
+ */
+Endpoint::ConstTopicIterator Endpoint::BeginPublications(void) const
 {
-	return m_MethodSinks.size();
+	return m_Publications.begin();
 }
 
-int Endpoint::CountMethodSources(void) const
+/**
+ * Returns the end of the publications list.
+ *
+ * @returns An iterator that points past the last publication.
+ */
+Endpoint::ConstTopicIterator Endpoint::EndPublications(void) const
 {
-	return m_MethodSources.size();
+	return m_Publications.end();
 }
 
-set<string>::const_iterator Endpoint::BeginSinks(void) const
-{
-	return m_MethodSinks.begin();
-}
-
-set<string>::const_iterator Endpoint::EndSinks(void) const
-{
-	return m_MethodSinks.end();
-}
-
-set<string>::const_iterator Endpoint::BeginSources(void) const
-{
-	return m_MethodSources.begin();
-}
-
-set<string>::const_iterator Endpoint::EndSources(void) const
-{
-	return m_MethodSources.end();
-}
-
+/**
+ * Sets whether a welcome message has been received from this endpoint.
+ *
+ * @param value Whether we've received a welcome message.
+ */
 void Endpoint::SetReceivedWelcome(bool value)
 {
 	m_ReceivedWelcome = value;
 }
 
+/**
+ * Retrieves whether a welcome message has been received from this endpoint.
+ *
+ * @returns Whether we've received a welcome message.
+ */
 bool Endpoint::GetReceivedWelcome(void) const
 {
 	return m_ReceivedWelcome;
 }
 
+/**
+ * Sets whether a welcome message has been sent to this endpoint.
+ *
+ * @param value Whether we've sent a welcome message.
+ */
 void Endpoint::SetSentWelcome(bool value)
 {
 	m_SentWelcome = value;
 }
 
+/**
+ * Retrieves whether a welcome message has been sent to this endpoint.
+ *
+ * @returns Whether we've sent a welcome message.
+ */
 bool Endpoint::GetSentWelcome(void) const
 {
 	return m_SentWelcome;

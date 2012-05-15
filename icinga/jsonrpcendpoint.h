@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * A JSON-RPC endpoint that can be used to communicate with a remote
+ * Icinga instance. */
 class I2_ICINGA_API JsonRpcEndpoint : public Endpoint
 {
 private:
@@ -52,8 +55,8 @@ public:
 	virtual bool IsLocal(void) const;
 	virtual bool IsConnected(void) const;
 
-	virtual void ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message);
-	virtual void ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message);
+	virtual void ProcessRequest(Endpoint::Ptr sender, const RpcRequest& message);
+	virtual void ProcessResponse(Endpoint::Ptr sender, const RpcResponse& message);
 
 	virtual void Stop(void);
 };

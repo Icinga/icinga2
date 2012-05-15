@@ -25,25 +25,31 @@ namespace icinga
 
 class EndpointManager;
 
-struct I2_ICINGA_API NewMethodEventArgs : public EventArgs
-{
-	string Method;
-};
-
+/**
+ * An endpoint that can be used to send and receive messages.
+ */
 class I2_ICINGA_API Endpoint : public Object
 {
 private:
-	string m_Identity;
-	set<string> m_MethodSinks;
-	set<string> m_MethodSources;
-	bool m_ReceivedWelcome;
-	bool m_SentWelcome;
+	string m_Identity; /**< The identity of this endpoint. */
+	set<string> m_Subscriptions; /**< The topics this endpoint is
+					  subscribed to. */
+	set<string> m_Publications; /**< The topics this endpoint is
+				         publishing. */
+	bool m_ReceivedWelcome; /**< Have we received a welcome message
+				     from this endpoint? */
+	bool m_SentWelcome; /**< Have we sent a welcome message to this
+			         endpoint? */
 
-	weak_ptr<EndpointManager> m_EndpointManager;
+	weak_ptr<EndpointManager> m_EndpointManager; /**< The endpoint manager
+						          this endpoint is
+							  registered with. */
 
 public:
 	typedef shared_ptr<Endpoint> Ptr;
 	typedef weak_ptr<Endpoint> WeakPtr;
+
+	typedef set<string>::const_iterator ConstTopicIterator;
 
 	Endpoint(void);
 
@@ -51,7 +57,6 @@ public:
 
 	string GetIdentity(void) const;
 	void SetIdentity(string identity);
-	bool HasIdentity(void) const;
 
 	void SetReceivedWelcome(bool value);
 	bool GetReceivedWelcome(void) const;
@@ -62,39 +67,30 @@ public:
 	shared_ptr<EndpointManager> GetEndpointManager(void) const;
 	void SetEndpointManager(weak_ptr<EndpointManager> manager);
 
-	void RegisterMethodSink(string method);
-	void UnregisterMethodSink(string method);
-	bool IsMethodSink(string method) const;
+	void RegisterSubscription(string topic);
+	void UnregisterSubscription(string topic);
+	bool HasSubscription(string topic) const;
 
-	void RegisterMethodSource(string method);
-	void UnregisterMethodSource(string method);
-	bool IsMethodSource(string method) const;
+	void RegisterPublication(string topic);
+	void UnregisterPublication(string topic);
+	bool HasPublication(string topic) const;
 
 	virtual bool IsLocal(void) const = 0;
 	virtual bool IsConnected(void) const = 0;
 
-	virtual void ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message) = 0;
-	virtual void ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message) = 0;
+	virtual void ProcessRequest(Endpoint::Ptr sender, const RpcRequest& message) = 0;
+	virtual void ProcessResponse(Endpoint::Ptr sender, const RpcResponse& message) = 0;
 
 	virtual void Stop(void) = 0;
 
-	Event<NewMethodEventArgs> OnNewMethodSink;
-	Event<NewMethodEventArgs> OnNewMethodSource;
+	void ClearSubscriptions(void);
+	void ClearPublications(void);
 
-	void ForEachMethodSink(function<int (const NewMethodEventArgs&)> callback);
-	void ForEachMethodSource(function<int (const NewMethodEventArgs&)> callback);
+	ConstTopicIterator BeginSubscriptions(void) const;
+	ConstTopicIterator EndSubscriptions(void) const;
 
-	void ClearMethodSinks(void);
-	void ClearMethodSources(void);
-
-	int CountMethodSinks(void) const;
-	int CountMethodSources(void) const;
-
-	set<string>::const_iterator BeginSinks(void) const;
-	set<string>::const_iterator EndSinks(void) const;
-
-	set<string>::const_iterator BeginSources(void) const;
-	set<string>::const_iterator EndSources(void) const;
+	ConstTopicIterator BeginPublications(void) const;
+	ConstTopicIterator EndPublications(void) const;
 
 	Event<EventArgs> OnIdentityChanged;
 	Event<EventArgs> OnSessionEstablished;

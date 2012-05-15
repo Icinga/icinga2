@@ -61,7 +61,7 @@ bool JsonRpcEndpoint::IsConnected(void) const
 	return (bool)m_Client;
 }
 
-void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message)
+void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const RpcRequest& message)
 {
 	if (IsConnected()) {
 		string id;
@@ -75,7 +75,7 @@ void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest&
 	}
 }
 
-void JsonRpcEndpoint::ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message)
+void JsonRpcEndpoint::ProcessResponse(Endpoint::Ptr sender, const RpcResponse& message)
 {
 	if (IsConnected())
 		m_Client->SendMessage(message);
@@ -88,18 +88,18 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 
 	string method;
 	if (message.GetPropertyString("method", &method)) {
-		if (!IsMethodSource(method))
+		if (!HasPublication(method))
 			return 0;
 
-		JsonRpcRequest request = message;
+		RpcRequest request = message;
 
 		string id;
 		if (request.GetID(&id))
-			GetEndpointManager()->SendAnycastRequest(sender, request, false);
+			GetEndpointManager()->SendAnycastMessage(sender, request);
 		else
-			GetEndpointManager()->SendMulticastRequest(sender, request, false);
+			GetEndpointManager()->SendMulticastMessage(sender, request);
 	} else {
-		JsonRpcResponse response = message;
+		RpcResponse response = message;
 
 		// TODO: deal with response messages
 		throw NotImplementedException();
@@ -114,12 +114,13 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs&)
 
 	m_PendingCalls.clear();
 
-	// TODO: _only_ clear non-persistent method sources/sinks
-	// unregister ourselves if no persistent sources/sinks are left (use a timer for that, once we have a TTL property for the methods)
-	ClearMethodSinks();
-	ClearMethodSources();
+	// TODO: _only_ clear non-persistent publications/subscriptions
+	// unregister ourselves if no persistent publications/subscriptions are left (use a timer for that, once we have a TTL property for the topics)
+	ClearSubscriptions();
+	ClearPublications();
 
-	if (CountMethodSinks() == 0)
+	// remove the endpoint if there are no more subscriptions */
+	if (BeginSubscriptions() == EndSubscriptions())
 		GetEndpointManager()->UnregisterEndpoint(static_pointer_cast<Endpoint>(shared_from_this()));
 
 	m_Client.reset();

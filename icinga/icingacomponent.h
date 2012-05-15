@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * A component that can be loaded into the Icinga application at run-time.
+ */
 class I2_ICINGA_API IcingaComponent : public Component
 {
 protected:

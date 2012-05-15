@@ -38,31 +38,31 @@ bool VirtualEndpoint::IsConnected(void) const
 	return true;
 }
 
-void VirtualEndpoint::RegisterMethodHandler(string method, function<int (const NewRequestEventArgs&)> callback)
+void VirtualEndpoint::RegisterTopicHandler(string topic, function<int (const NewRequestEventArgs&)> callback)
 {
-	m_MethodHandlers[method] += callback;
+	m_TopicHandlers[topic] += callback;
 
-	RegisterMethodSink(method);
+	RegisterSubscription(topic);
 }
 
-void VirtualEndpoint::UnregisterMethodHandler(string method, function<int (const NewRequestEventArgs&)> callback)
+void VirtualEndpoint::UnregisterTopicHandler(string topic, function<int (const NewRequestEventArgs&)> callback)
 {
 	// TODO: implement
-	//m_MethodHandlers[method] -= callback;
-	//UnregisterMethodSink(method);
+	//m_TopicHandlers[method] -= callback;
+	//UnregisterMethodSubscription(method);
 
 	throw NotImplementedException();
 }
 
-void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& request)
+void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RpcRequest& request)
 {
 	string method;
 	if (!request.GetMethod(&method))
 		return;
 
-	map<string, Event<NewRequestEventArgs> >::iterator i = m_MethodHandlers.find(method);
+	map<string, Event<NewRequestEventArgs> >::iterator i = m_TopicHandlers.find(method);
 
-	if (i == m_MethodHandlers.end())
+	if (i == m_TopicHandlers.end())
 		return;
 
 	NewRequestEventArgs nrea;
@@ -72,7 +72,7 @@ void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest&
 	i->second(nrea);
 }
 
-void VirtualEndpoint::ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& response)
+void VirtualEndpoint::ProcessResponse(Endpoint::Ptr sender, const RpcResponse& response)
 {
 	// TODO: figure out which request this response belongs to and notify the caller
 	throw NotImplementedException();

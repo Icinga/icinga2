@@ -41,24 +41,24 @@ public:
 		SetPropertyString("service", value);
 	}
 
-	inline bool GetSubscribes(Message *value) const
+	inline bool GetSubscriptions(Message *value) const
 	{
-		return GetPropertyMessage("subscribes", value);
+		return GetPropertyMessage("subscriptions", value);
 	}
 
-	inline void SetSubscribes(Message value)
+	inline void SetSubscriptions(Message value)
 	{
-		SetPropertyMessage("subscribes", value);
+		SetPropertyMessage("subscriptions", value);
 	}
 
-	inline bool GetProvides(Message *value) const
+	inline bool GetPublications(Message *value) const
 	{
-		return GetPropertyMessage("provides", value);
+		return GetPropertyMessage("publications", value);
 	}
 
-	inline void SetProvides(Message value)
+	inline void SetPublications(Message value)
 	{
-		SetPropertyMessage("provides", value);
+		SetPropertyMessage("publications", value);
 	}
 };
 

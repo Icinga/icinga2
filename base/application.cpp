@@ -303,26 +303,6 @@ void Application::Log(string message)
 }
 
 /**
- * Sets the application's command line arguments.
- *
- * @param arguments The arguments.
- */
-void Application::SetArguments(const vector<string>& arguments)
-{
-	m_Arguments = arguments;
-}
-
-/**
- * Retrieves the application's command line arguments.
- *
- * @returns The arguments.
- */
-const vector<string>& Application::GetArguments(void) const
-{
-	return m_Arguments;
-}
-
-/**
  * Retrieves the directory the application's binary is contained in.
  *
  * @returns The directory.
@@ -469,20 +449,17 @@ int Application::Run(int argc, char **argv)
 	sigaction(SIGPIPE, &sa, NULL);
 #endif /* _WIN32 */
 
-	vector<string> args;
-
+	m_Arguments.clear();
 	for (int i = 0; i < argc; i++)
-		args.push_back(string(argv[i]));
-
-	SetArguments(args);
+		m_Arguments.push_back(string(argv[i]));
 
 	if (IsDebugging()) {
-		result = Main(args);
+		result = Main(m_Arguments);
 
 		Application::Instance.reset();
 	} else {
 		try {
-			result = Main(args);
+			result = Main(m_Arguments);
 		} catch (const Exception& ex) {
 			Application::Instance.reset();
 

@@ -17,20 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPCRESPONSE_H
-#define JSONRPCRESPONSE_H
+#ifndef RpcRequest_H
+#define RpcRequest_H
 
 namespace icinga
 {
 
-class I2_JSONRPC_API JsonRpcResponse : public Message
+class I2_JSONRPC_API RpcRequest : public Message
 {
+
 public:
-	JsonRpcResponse(void) : Message() {
+	RpcRequest(void) : Message() {
 		SetVersion("2.0");
 	}
 
-	JsonRpcResponse(const Message& message) : Message(message) { }
+	RpcRequest(const Message& message) : Message(message) { }
 
 	inline bool GetVersion(string *value) const
 	{
@@ -42,32 +43,32 @@ public:
 		SetPropertyString("jsonrpc", value);
 	}
 
-	bool GetResult(string *value) const
+	inline bool GetMethod(string *value) const
 	{
-		return GetPropertyString("result", value);
+		return GetPropertyString("method", value);
 	}
 
-	void SetResult(const string& value)
+	inline void SetMethod(const string& value)
 	{
-		SetPropertyString("result", value);
+		SetPropertyString("method", value);
 	}
 
-	bool GetError(string *value) const
+	inline bool GetParams(Message *value) const
 	{
-		return GetPropertyString("error", value);
+		return GetPropertyMessage("params", value);
 	}
 
-	void SetError(const string& value)
+	inline void SetParams(const Message& value)
 	{
-		SetPropertyString("error", value);
+		SetPropertyMessage("params", value);
 	}
 
-	bool GetID(string *value) const
+	inline bool GetID(string *value) const
 	{
 		return GetPropertyString("id", value);
 	}
 
-	void SetID(const string& value)
+	inline void SetID(const string& value)
 	{
 		SetPropertyString("id", value);
 	}
@@ -75,4 +76,4 @@ public:
 
 }
 
-#endif /* JSONRPCRESPONSE_H */
+#endif /* RpcRequest_H */

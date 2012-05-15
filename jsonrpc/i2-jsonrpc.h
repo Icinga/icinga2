@@ -32,9 +32,9 @@
 #include "variant.h"
 #include "dictionary.h"
 #include "message.h"
+#include "rpcrequest.h"
+#include "rpcresponse.h"
 #include "netstring.h"
-#include "jsonrpcrequest.h"
-#include "jsonrpcresponse.h"
 #include "jsonrpcclient.h"
 #include "jsonrpcserver.h"
 

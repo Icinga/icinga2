@@ -5,8 +5,8 @@
     <ClCompile Include="jsonrpcserver.cpp" />
     <ClCompile Include="message.cpp" />
     <ClCompile Include="netstring.cpp" />
-    <ClCompile Include="jsonrpcrequest.cpp" />
-    <ClCompile Include="jsonrpcresponse.cpp" />
+    <ClCompile Include="rpcrequest.cpp" />
+    <ClCompile Include="rpcresponse.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="i2-jsonrpc.h" />
@@ -14,7 +14,7 @@
     <ClInclude Include="jsonrpcserver.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="netstring.h" />
-    <ClInclude Include="jsonrpcrequest.h" />
-    <ClInclude Include="jsonrpcresponse.h" />
+    <ClInclude Include="rpcrequest.h" />
+    <ClInclude Include="rpcresponse.h" />
   </ItemGroup>
 </Project>

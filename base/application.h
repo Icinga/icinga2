@@ -54,9 +54,6 @@ public:
 
 	virtual int Main(const vector<string>& args) = 0;
 
-	void SetArguments(const vector<string>& arguments);
-	const vector<string>& GetArguments(void) const;
-
 	void Shutdown(void);
 
 	static void Log(string message);

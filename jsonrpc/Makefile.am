@@ -8,16 +8,16 @@ libjsonrpc_la_SOURCES = \
 	i2-jsonrpc.h \
 	jsonrpcclient.cpp \
 	jsonrpcclient.h \
-	jsonrpcrequest.cpp \
-	jsonrpcrequest.h \
-	jsonrpcresponse.cpp \
-	jsonrpcresponse.h \
 	jsonrpcserver.cpp \
 	jsonrpcserver.h \
 	message.cpp \
 	message.h \
 	netstring.cpp \
-	netstring.h
+	netstring.h \
+	rpcrequest.cpp \
+	rpcrequest.h \
+	rpcresponse.cpp \
+	rpcresponse.h
 
 libjsonrpc_la_CXXFLAGS = \
 	-DI2_JSONRPC_BUILD \

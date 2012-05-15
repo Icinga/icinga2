@@ -28,6 +28,12 @@
 
 using namespace icinga;
 
+/**
+ * The entry point for the Icinga application.
+ *
+ * @param args Command-line arguments.
+ * @returns An exit status.
+ */
 int IcingaApplication::Main(const vector<string>& args)
 {
 #ifdef _WIN32
@@ -37,7 +43,7 @@ int IcingaApplication::Main(const vector<string>& args)
 #endif  /* _WIN32 */
 
 	if (args.size() < 2) {
-		PrintUsage(args[0]);
+		cout << "Syntax: " << args[0] << " <config-file>" << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -87,11 +93,11 @@ int IcingaApplication::Main(const vector<string>& args)
 	return EXIT_SUCCESS;
 }
 
-void IcingaApplication::PrintUsage(const string& programPath)
-{
-	cout << "Syntax: " << programPath << " <config-file>" << endl;
-}
-
+/**
+ * Retrieves Icinga's endpoint manager.
+ *
+ * @returns The endpoint manager.
+ */
 EndpointManager::Ptr IcingaApplication::GetEndpointManager(void)
 {
 	return m_EndpointManager;

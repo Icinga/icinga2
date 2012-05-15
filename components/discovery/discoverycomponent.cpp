@@ -38,15 +38,15 @@ void DiscoveryComponent::Start(void)
 {
 	m_DiscoveryEndpoint = make_shared<VirtualEndpoint>();
 
-	m_DiscoveryEndpoint->RegisterMethodSource("discovery::RegisterComponent");
-	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::RegisterComponent",
+	m_DiscoveryEndpoint->RegisterPublication("discovery::RegisterComponent");
+	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::RegisterComponent",
 		bind_weak(&DiscoveryComponent::RegisterComponentMessageHandler, shared_from_this()));
 
-	m_DiscoveryEndpoint->RegisterMethodSource("discovery::NewComponent");
-	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::NewComponent",
+	m_DiscoveryEndpoint->RegisterPublication("discovery::NewComponent");
+	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::NewComponent",
 		bind_weak(&DiscoveryComponent::NewComponentMessageHandler, shared_from_this()));
 
-	m_DiscoveryEndpoint->RegisterMethodHandler("discovery::Welcome",
+	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::Welcome",
 		bind_weak(&DiscoveryComponent::WelcomeMessageHandler, shared_from_this()));
 
 	GetEndpointManager()->ForEachEndpoint(bind(&DiscoveryComponent::NewEndpointHandler, this, _1));
@@ -112,42 +112,16 @@ int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 	neea.Endpoint->OnIdentityChanged += bind_weak(&DiscoveryComponent::NewIdentityHandler, shared_from_this());
 
 	/* accept discovery::RegisterComponent messages from any endpoint */
-	neea.Endpoint->RegisterMethodSource("discovery::RegisterComponent");
+	neea.Endpoint->RegisterPublication("discovery::RegisterComponent");
 
 	/* accept discovery::Welcome messages from any endpoint */
-	neea.Endpoint->RegisterMethodSource("discovery::Welcome");
+	neea.Endpoint->RegisterPublication("discovery::Welcome");
 
 	return 0;
 }
 
 /**
- * Registers a new message sink for a component.
- *
- * @param nmea Event args for the new message sink.
- * @param info The component registration information.
- * @returns 0
- */
-int DiscoveryComponent::DiscoverySinkHandler(const NewMethodEventArgs& nmea, ComponentDiscoveryInfo::Ptr info) const
-{
-	info->SubscribedMethods.insert(nmea.Method);
-	return 0;
-}
-
-/**
- * Registers a new message source for a component.
- *
- * @param nmea Event args for the new message source.
- * @param info The component registration information.
- * @returns 0
- */
-int DiscoveryComponent::DiscoverySourceHandler(const NewMethodEventArgs& nmea, ComponentDiscoveryInfo::Ptr info) const
-{
-	info->PublishedMethods.insert(nmea.Method);
-	return 0;
-}
-
-/**
- * Registers message sinks/sources in the specified component information object.
+ * Registers message Subscriptions/sources in the specified component information object.
  *
  * @param neea Event arguments for the endpoint.
  * @param info Component information object.
@@ -155,8 +129,16 @@ int DiscoveryComponent::DiscoverySourceHandler(const NewMethodEventArgs& nmea, C
  */
 int DiscoveryComponent::DiscoveryEndpointHandler(const NewEndpointEventArgs& neea, ComponentDiscoveryInfo::Ptr info) const
 {
-	neea.Endpoint->ForEachMethodSink(bind(&DiscoveryComponent::DiscoverySinkHandler, this, _1, info));
-	neea.Endpoint->ForEachMethodSource(bind(&DiscoveryComponent::DiscoverySourceHandler, this, _1, info));
+	Endpoint::ConstTopicIterator i;
+
+	for (i = neea.Endpoint->BeginSubscriptions(); i != neea.Endpoint->EndSubscriptions(); i++) {
+		info->Subscriptions.insert(*i);
+	}
+
+	for (i = neea.Endpoint->BeginPublications(); i != neea.Endpoint->EndPublications(); i++) {
+		info->Publications.insert(*i);
+	}
+
 	return 0;
 }
 
@@ -216,7 +198,7 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 
 	// we assume the other component _always_ wants
 	// discovery::RegisterComponent messages from us
-	endpoint->RegisterMethodSink("discovery::RegisterComponent");
+	endpoint->RegisterSubscription("discovery::RegisterComponent");
 
 	// send a discovery::RegisterComponent message, if the
 	// other component is a broker this makes sure
@@ -227,7 +209,7 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 
 	// we assume the other component _always_ wants
 	// discovery::NewComponent messages from us
-	endpoint->RegisterMethodSink("discovery::NewComponent");
+	endpoint->RegisterSubscription("discovery::NewComponent");
 
 	// send discovery::NewComponent message for ourselves
 	SendDiscoveryMessage("discovery::NewComponent", GetEndpointManager()->GetIdentity(), endpoint);
@@ -248,14 +230,14 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 		return 0;
 	}
 
-	// register published/subscribed methods for this endpoint
+	// register published/subscribed topics for this endpoint
 	ComponentDiscoveryInfo::Ptr info = ic->second;
 	set<string>::iterator it;
-	for (it = info->PublishedMethods.begin(); it != info->PublishedMethods.end(); it++)
-		endpoint->RegisterMethodSource(*it);
+	for (it = info->Publications.begin(); it != info->Publications.end(); it++)
+		endpoint->RegisterPublication(*it);
 
-	for (it = info->SubscribedMethods.begin(); it != info->SubscribedMethods.end(); it++)
-		endpoint->RegisterMethodSink(*it);
+	for (it = info->Subscriptions.begin(); it != info->Subscriptions.end(); it++)
+		endpoint->RegisterSubscription(*it);
 
 	FinishDiscoverySetup(endpoint);
 
@@ -288,7 +270,7 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 
 /**
  * Finishes the welcome handshake for a new component
- * by registering message sinks/sources for the component
+ * by registering message Subscriptions/sources for the component
  * and sending a welcome message if necessary.
  *
  * @param endpoint The endpoint to set up.
@@ -300,10 +282,10 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 
 	// we assume the other component _always_ wants
 	// discovery::Welcome messages from us
-	endpoint->RegisterMethodSink("discovery::Welcome");
-	JsonRpcRequest request;
+	endpoint->RegisterSubscription("discovery::Welcome");
+	RpcRequest request;
 	request.SetMethod("discovery::Welcome");
-	GetEndpointManager()->SendUnicastRequest(m_DiscoveryEndpoint, endpoint, request);
+	GetEndpointManager()->SendUnicastMessage(m_DiscoveryEndpoint, endpoint, request);
 
 	endpoint->SetSentWelcome(true);
 
@@ -324,7 +306,7 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
  */
 void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, Endpoint::Ptr recipient)
 {
-	JsonRpcRequest request;
+	RpcRequest request;
 	request.SetMethod(method);
 	
 	DiscoveryMessage params;
@@ -333,10 +315,10 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 	params.SetIdentity(identity);
 
 	Message subscriptions;
-	params.SetSubscribes(subscriptions);
+	params.SetSubscriptions(subscriptions);
 
 	Message publications;
-	params.SetProvides(publications);
+	params.SetPublications(publications);
 
 	ComponentDiscoveryInfo::Ptr info;
 
@@ -349,16 +331,16 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 	}
 
 	set<string>::iterator i;
-	for (i = info->PublishedMethods.begin(); i != info->PublishedMethods.end(); i++)
+	for (i = info->Publications.begin(); i != info->Publications.end(); i++)
 		publications.AddUnnamedPropertyString(*i);
 
-	for (i = info->SubscribedMethods.begin(); i != info->SubscribedMethods.end(); i++)
+	for (i = info->Subscriptions.begin(); i != info->Subscriptions.end(); i++)
 		subscriptions.AddUnnamedPropertyString(*i);
 
 	if (recipient)
-		GetEndpointManager()->SendUnicastRequest(m_DiscoveryEndpoint, recipient, request);
+		GetEndpointManager()->SendUnicastMessage(m_DiscoveryEndpoint, recipient, request);
 	else
-		GetEndpointManager()->SendMulticastRequest(m_DiscoveryEndpoint, request);
+		GetEndpointManager()->SendMulticastMessage(m_DiscoveryEndpoint, request);
 }
 
 bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string messageType, string message)
@@ -419,26 +401,26 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 
 	Endpoint::Ptr endpoint = GetEndpointManager()->GetEndpointByIdentity(identity);
 
-	Message provides;
-	if (message.GetProvides(&provides)) {
+	Message publications;
+	if (message.GetPublications(&publications)) {
 		DictionaryIterator i;
-		for (i = provides.GetDictionary()->Begin(); i != provides.GetDictionary()->End(); i++) {
-			if (trusted || HasMessagePermission(roles, "publish", i->second)) {
-				info->PublishedMethods.insert(i->second);
+		for (i = publications.GetDictionary()->Begin(); i != publications.GetDictionary()->End(); i++) {
+			if (trusted || HasMessagePermission(roles, "publications", i->second)) {
+				info->Publications.insert(i->second);
 				if (endpoint)
-					endpoint->RegisterMethodSource(i->second);
+					endpoint->RegisterPublication(i->second);
 			}
 		}
 	}
 
-	Message subscribes;
-	if (message.GetSubscribes(&subscribes)) {
+	Message subscriptions;
+	if (message.GetSubscriptions(&subscriptions)) {
 		DictionaryIterator i;
-		for (i = subscribes.GetDictionary()->Begin(); i != subscribes.GetDictionary()->End(); i++) {
-			if (trusted || HasMessagePermission(roles, "subscribe", i->second)) {
-				info->SubscribedMethods.insert(i->second);
+		for (i = subscriptions.GetDictionary()->Begin(); i != subscriptions.GetDictionary()->End(); i++) {
+			if (trusted || HasMessagePermission(roles, "subscriptions", i->second)) {
+				info->Subscriptions.insert(i->second);
 				if (endpoint)
-					endpoint->RegisterMethodSink(i->second);
+					endpoint->RegisterSubscription(i->second);
 			}
 		}
 	}

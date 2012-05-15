@@ -38,7 +38,7 @@ private:
 	int RemoteObjectCommittedHandler(const NewRequestEventArgs& ea);
 	int RemoteObjectRemovedHandler(const NewRequestEventArgs& ea);
 
-	static JsonRpcRequest MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties);
+	static RpcRequest MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties);
 
 	static bool ShouldReplicateObject(const ConfigObject::Ptr& object);
 public:

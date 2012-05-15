@@ -29,28 +29,31 @@ struct I2_ICINGA_API NewRequestEventArgs : public EventArgs
 	typedef weak_ptr<NewRequestEventArgs> WeakPtr;
 
 	Endpoint::Ptr Sender;
-	JsonRpcRequest Request;
+	RpcRequest Request;
 };
 
+/**
+ * A local endpoint.
+ */
 class I2_ICINGA_API VirtualEndpoint : public Endpoint
 {
 private:
-	map< string, Event<NewRequestEventArgs> > m_MethodHandlers;
+	map< string, Event<NewRequestEventArgs> > m_TopicHandlers;
 
 public:
 	typedef shared_ptr<VirtualEndpoint> Ptr;
 	typedef weak_ptr<VirtualEndpoint> WeakPtr;
 
-	void RegisterMethodHandler(string method, function<int (const NewRequestEventArgs&)> callback);
-	void UnregisterMethodHandler(string method, function<int (const NewRequestEventArgs&)> callback);
+	void RegisterTopicHandler(string topic, function<int (const NewRequestEventArgs&)> callback);
+	void UnregisterTopicHandler(string topic, function<int (const NewRequestEventArgs&)> callback);
 
 	virtual string GetAddress(void) const;
 
 	virtual bool IsLocal(void) const;
 	virtual bool IsConnected(void) const;
 
-	virtual void ProcessRequest(Endpoint::Ptr sender, const JsonRpcRequest& message);
-	virtual void ProcessResponse(Endpoint::Ptr sender, const JsonRpcResponse& message);
+	virtual void ProcessRequest(Endpoint::Ptr sender, const RpcRequest& message);
+	virtual void ProcessResponse(Endpoint::Ptr sender, const RpcResponse& message);
 
 	virtual void Stop(void);
 };
