@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef MESSAGE_H
-#define MESSAGE_H
+#ifndef MESSAGEPART_H
+#define MESSAGEPART_H
 
 struct cJSON;
 
@@ -27,7 +27,7 @@ namespace icinga
 
 typedef ::cJSON json_t;
 
-class I2_JSONRPC_API Message
+class I2_JSONRPC_API MessagePart
 {
 private:
 	Dictionary::Ptr m_Dictionary;
@@ -36,29 +36,44 @@ private:
 	static json_t *GetJsonFromDictionary(const Dictionary::Ptr& dictionary);
 
 public:
-	Message(void);
-	Message(string json);
-	Message(const Dictionary::Ptr& dictionary);
-	Message(const Message& message);
+	MessagePart(void);
+	MessagePart(string json);
+	MessagePart(const Dictionary::Ptr& dictionary);
+	MessagePart(const MessagePart& message);
 
 	string ToJsonString(void) const;
 
 	Dictionary::Ptr GetDictionary(void) const;
 
-	bool GetPropertyString(string key, string *value) const;
-	void SetPropertyString(string key, const string& value);
+	template<typename T>
+	bool GetProperty(string key, T *value) const
+	{
+		return GetDictionary()->GetProperty(key, value);
+	}
 
-	bool GetPropertyInteger(string key, long *value) const;
-	void SetPropertyInteger(string key, long value);
+	template<typename T>
+	void SetProperty(string key, const T& value)
+	{
+		GetDictionary()->SetProperty(key, value);
+	}
 
-	bool GetPropertyMessage(string key, Message *value) const;
-	void SetPropertyMessage(string key, const Message& value);
+	bool GetProperty(string key, MessagePart *value) const;
+	void SetProperty(string key, const MessagePart& value);
 
-	void AddUnnamedPropertyString(const string& value);
-	void AddUnnamedPropertyInteger(long value);
-	void AddUnnamedPropertyMessage(const Message& value);
+	template<typename T>
+	void AddUnnamedProperty(const T& value)
+	{
+		GetDictionary()->AddUnnamedProperty(value);
+	}
+
+	void AddUnnamedProperty(const MessagePart& value);
+
+	DictionaryIterator Begin(void);
+	DictionaryIterator End(void);
+
+	operator Dictionary::Ptr(void);
 };
 
 }
 
-#endif /* MESSAGE_H */
+#endif /* MESSAGEPART_H */

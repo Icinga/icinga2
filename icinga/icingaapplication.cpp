@@ -68,8 +68,8 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	/* load config file */
 	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
-	fileComponentConfig->SetPropertyString("configFilename", args[1]);
-	fileComponentConfig->SetPropertyInteger("replicate", 0);
+	fileComponentConfig->SetProperty("configFilename", args[1]);
+	fileComponentConfig->SetProperty("replicate", 0);
 	GetConfigHive()->AddObject(fileComponentConfig);
 
 	if (!GetPrivateKeyFile().empty() && !GetPublicKeyFile().empty() && !GetCAKeyFile().empty()) {
@@ -112,7 +112,7 @@ int IcingaApplication::NewComponentHandler(const EventArgs& ea)
 		return 0;
 
 	string path;
-	if (!object->GetPropertyString("path", &path)) {
+	if (!object->GetProperty("path", &path)) {
 #ifdef _WIN32
 		path = object->GetName() + ".dll";
 #else /* _WIN32 */
@@ -144,23 +144,23 @@ int IcingaApplication::NewIcingaConfigHandler(const EventArgs& ea)
 		return 0;
 
 	string privkey;
-	if (object->GetPropertyString("privkey", &privkey))
+	if (object->GetProperty("privkey", &privkey))
 		SetPrivateKeyFile(privkey);
 
 	string pubkey;
-	if (object->GetPropertyString("pubkey", &pubkey))
+	if (object->GetProperty("pubkey", &pubkey))
 		SetPublicKeyFile(pubkey);
 
 	string cakey;
-	if (object->GetPropertyString("cakey", &cakey))
+	if (object->GetProperty("cakey", &cakey))
 		SetCAKeyFile(cakey);
 
 	string node;
-	if (object->GetPropertyString("node", &node))
+	if (object->GetProperty("node", &node))
 		SetNode(node);
 
 	string service;
-	if (object->GetPropertyString("service", &service))
+	if (object->GetProperty("service", &service))
 		SetService(service);
 
 	return 0;

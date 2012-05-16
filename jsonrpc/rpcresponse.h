@@ -17,62 +17,62 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef RpcResponse_H
-#define RpcResponse_H
+#ifndef RPCRESPONSE_H
+#define RPCRESPONSE_H
 
 namespace icinga
 {
 
-class I2_JSONRPC_API RpcResponse : public Message
+class I2_JSONRPC_API RpcResponse : public MessagePart
 {
 public:
-	RpcResponse(void) : Message() {
+	RpcResponse(void) : MessagePart() {
 		SetVersion("2.0");
 	}
 
-	RpcResponse(const Message& message) : Message(message) { }
+	RpcResponse(const MessagePart& message) : MessagePart(message) { }
 
 	inline bool GetVersion(string *value) const
 	{
-		return GetPropertyString("jsonrpc", value);
+		return GetProperty("jsonrpc", value);
 	}
 
 	inline void SetVersion(const string& value)
 	{
-		SetPropertyString("jsonrpc", value);
+		SetProperty("jsonrpc", value);
 	}
 
 	bool GetResult(string *value) const
 	{
-		return GetPropertyString("result", value);
+		return GetProperty("result", value);
 	}
 
 	void SetResult(const string& value)
 	{
-		SetPropertyString("result", value);
+		SetProperty("result", value);
 	}
 
 	bool GetError(string *value) const
 	{
-		return GetPropertyString("error", value);
+		return GetProperty("error", value);
 	}
 
 	void SetError(const string& value)
 	{
-		SetPropertyString("error", value);
+		SetProperty("error", value);
 	}
 
 	bool GetID(string *value) const
 	{
-		return GetPropertyString("id", value);
+		return GetProperty("id", value);
 	}
 
 	void SetID(const string& value)
 	{
-		SetPropertyString("id", value);
+		SetProperty("id", value);
 	}
 };
 
 }
 
-#endif /* RpcResponse_H */
+#endif /* RPCRESPONSE_H */

@@ -314,12 +314,6 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 
 	params.SetIdentity(identity);
 
-	Message subscriptions;
-	params.SetSubscriptions(subscriptions);
-
-	Message publications;
-	params.SetPublications(publications);
-
 	ComponentDiscoveryInfo::Ptr info;
 
 	if (!GetComponentDiscoveryInfo(identity, &info))
@@ -331,11 +325,17 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 	}
 
 	set<string>::iterator i;
-	for (i = info->Publications.begin(); i != info->Publications.end(); i++)
-		publications.AddUnnamedPropertyString(*i);
-
+	MessagePart subscriptions;
 	for (i = info->Subscriptions.begin(); i != info->Subscriptions.end(); i++)
-		subscriptions.AddUnnamedPropertyString(*i);
+		subscriptions.AddUnnamedProperty(*i);
+
+	params.SetSubscriptions(subscriptions);
+
+	MessagePart publications;
+	for (i = info->Publications.begin(); i != info->Publications.end(); i++)
+		publications.AddUnnamedProperty(*i);
+
+	params.SetPublications(publications);
 
 	if (recipient)
 		GetEndpointManager()->SendUnicastMessage(m_DiscoveryEndpoint, recipient, request);
@@ -358,7 +358,7 @@ bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string mess
 			continue;
 
 		Dictionary::Ptr permissions;
-		if (!role->GetPropertyDictionary(messageType, &permissions))
+		if (!role->GetProperty(messageType, &permissions))
 			continue;
 
 		for (DictionaryIterator is = permissions->Begin(); is != permissions->End(); is++) {
@@ -397,14 +397,14 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	ConfigObject::Ptr endpointConfig = endpointCollection->GetObject(identity);
 	Dictionary::Ptr roles;
 	if (endpointConfig)
-		endpointConfig->GetPropertyDictionary("roles", &roles);
+		endpointConfig->GetProperty("roles", &roles);
 
 	Endpoint::Ptr endpoint = GetEndpointManager()->GetEndpointByIdentity(identity);
 
-	Message publications;
+	MessagePart publications;
 	if (message.GetPublications(&publications)) {
 		DictionaryIterator i;
-		for (i = publications.GetDictionary()->Begin(); i != publications.GetDictionary()->End(); i++) {
+		for (i = publications.Begin(); i != publications.End(); i++) {
 			if (trusted || HasMessagePermission(roles, "publications", i->second)) {
 				info->Publications.insert(i->second);
 				if (endpoint)
@@ -413,10 +413,10 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 		}
 	}
 
-	Message subscriptions;
+	MessagePart subscriptions;
 	if (message.GetSubscriptions(&subscriptions)) {
 		DictionaryIterator i;
-		for (i = subscriptions.GetDictionary()->Begin(); i != subscriptions.GetDictionary()->End(); i++) {
+		for (i = subscriptions.Begin(); i != subscriptions.End(); i++) {
 			if (trusted || HasMessagePermission(roles, "subscriptions", i->second)) {
 				info->Subscriptions.insert(i->second);
 				if (endpoint)
@@ -492,7 +492,7 @@ int DiscoveryComponent::EndpointConfigHandler(const EventArgs& ea)
 		return 0;
 
 	string node, service;
-	if (object->GetPropertyString("node", &node) && object->GetPropertyString("service", &service)) {
+	if (object->GetProperty("node", &node) && object->GetProperty("service", &service)) {
 		/* reconnect to this endpoint */
 		endpointManager->AddConnection(node, service);
 	}

@@ -83,11 +83,11 @@ void JsonRpcEndpoint::ProcessResponse(Endpoint::Ptr sender, const RpcResponse& m
 
 int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 {
-	const Message& message = nmea.Message;
+	const MessagePart& message = nmea.Message;
 	Endpoint::Ptr sender = static_pointer_cast<Endpoint>(shared_from_this());
 
 	string method;
-	if (message.GetPropertyString("method", &method)) {
+	if (message.GetProperty("method", &method)) {
 		if (!HasPublication(method))
 			return 0;
 

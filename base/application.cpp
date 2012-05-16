@@ -372,7 +372,7 @@ string Application::GetExeDirectory(void) const
 #else /* _WIN32 */
 	char FullExePath[MAXPATHLEN];
 
-	GetModuleFileName(NULL, FullExePath, MAXPATHLEN);
+	GetModuleFileName(NULL, FullExePath, sizeof(FullExePath));
 
 	PathRemoveFileSpec(FullExePath);
 

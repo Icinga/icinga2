@@ -31,11 +31,13 @@ DEFINE_EXCEPTION_CLASS(ComponentLoadException);
  */
 class I2_BASE_API Application : public Object {
 private:
-	bool m_ShuttingDown;
-	ConfigHive::Ptr m_ConfigHive;
-	map< string, shared_ptr<Component> > m_Components;
-	vector<string> m_Arguments;
-	bool m_Debugging;
+	bool m_ShuttingDown; /**< Whether the application is in the process of
+				  shutting down. */
+	ConfigHive::Ptr m_ConfigHive; /**< The application's configuration. */
+	map< string, shared_ptr<Component> > m_Components; /**< Components that
+					were loaded by the application. */
+	vector<string> m_Arguments; /**< Command-line arguments */
+	bool m_Debugging; /**< Whether debugging is enabled. */
 
 protected:
 	void RunEventLoop(void);

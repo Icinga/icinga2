@@ -109,7 +109,8 @@ void EndpointManager::AddConnection(string node, string service)
 void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.push_back(server);
-	server->OnNewClient += bind_weak(&EndpointManager::NewClientHandler, shared_from_this());
+	server->OnNewClient += bind_weak(&EndpointManager::NewClientHandler,
+	    shared_from_this());
 }
 
 /**
@@ -180,7 +181,8 @@ void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
  * @param recipient The recipient of the message.
  * @param message The request.
  */
-void EndpointManager::SendUnicastMessage(Endpoint::Ptr sender, Endpoint::Ptr recipient, const Message& message)
+void EndpointManager::SendUnicastMessage(Endpoint::Ptr sender,
+    Endpoint::Ptr recipient, const MessagePart& message)
 {
 	/* don't forward messages back to the sender */
 	if (sender == recipient)
@@ -200,7 +202,8 @@ void EndpointManager::SendUnicastMessage(Endpoint::Ptr sender, Endpoint::Ptr rec
  * @param sender The sender of the message.
  * @param message The message.
  */
-void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender, const RpcRequest& message)
+void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
+    const RpcRequest& message)
 {
 	throw NotImplementedException();
 }
@@ -212,7 +215,8 @@ void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender, const RpcRequest&
  * @param sender The sender of the message.
  * @param message The message.
  */
-void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender, const RpcRequest& message)
+void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
+    const RpcRequest& message)
 {
 	string id;
 	if (message.GetID(&id))

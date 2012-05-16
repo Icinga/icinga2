@@ -4,61 +4,61 @@
 namespace icinga
 {
 
-class DiscoveryMessage : public Message
+class DiscoveryMessage : public MessagePart
 {
 
 public:
-	DiscoveryMessage(void) : Message() { }
-	DiscoveryMessage(const Message& message) : Message(message) { }
+	DiscoveryMessage(void) : MessagePart() { }
+	DiscoveryMessage(const MessagePart& message) : MessagePart(message) { }
 
 	inline bool GetIdentity(string *value) const
 	{
-		return GetPropertyString("identity", value);
+		return GetProperty("identity", value);
 	}
 
 	inline void SetIdentity(const string& value)
 	{
-		SetPropertyString("identity", value);
+		SetProperty("identity", value);
 	}
 
 	inline bool GetNode(string *value) const
 	{
-		return GetPropertyString("node", value);
+		return GetProperty("node", value);
 	}
 
 	inline void SetNode(const string& value)
 	{
-		SetPropertyString("node", value);
+		SetProperty("node", value);
 	}
 
 	inline bool GetService(string *value) const
 	{
-		return GetPropertyString("service", value);
+		return GetProperty("service", value);
 	}
 
 	inline void SetService(const string& value)
 	{
-		SetPropertyString("service", value);
+		SetProperty("service", value);
 	}
 
-	inline bool GetSubscriptions(Message *value) const
+	inline bool GetSubscriptions(MessagePart *value) const
 	{
-		return GetPropertyMessage("subscriptions", value);
+		return GetProperty("subscriptions", value);
 	}
 
-	inline void SetSubscriptions(Message value)
+	inline void SetSubscriptions(MessagePart value)
 	{
-		SetPropertyMessage("subscriptions", value);
+		SetProperty("subscriptions", value);
 	}
 
-	inline bool GetPublications(Message *value) const
+	inline bool GetPublications(MessagePart *value) const
 	{
-		return GetPropertyMessage("publications", value);
+		return GetProperty("publications", value);
 	}
 
-	inline void SetPublications(Message value)
+	inline void SetPublications(MessagePart value)
 	{
-		SetPropertyMessage("publications", value);
+		SetProperty("publications", value);
 	}
 };
 

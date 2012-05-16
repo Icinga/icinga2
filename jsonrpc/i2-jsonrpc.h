@@ -29,9 +29,7 @@
 #	define I2_JSONRPC_API I2_IMPORT
 #endif /* I2_JSONRPC_BUILD */
 
-#include "variant.h"
-#include "dictionary.h"
-#include "message.h"
+#include "messagepart.h"
 #include "rpcrequest.h"
 #include "rpcresponse.h"
 #include "netstring.h"

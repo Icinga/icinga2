@@ -35,7 +35,7 @@ void ConfigFileComponent::Start(void)
 	FIFO::Ptr fifo = make_shared<FIFO>();
 
 	string filename;
-	if (!GetConfig()->GetPropertyString("configFilename", &filename))
+	if (!GetConfig()->GetProperty("configFilename", &filename))
 		throw InvalidArgumentException("Missing 'configFilename' property");
 
 	fp.open(filename.c_str(), ifstream::in);
@@ -78,7 +78,7 @@ void ConfigFileComponent::Start(void)
 				if (property->type == cJSON_String) {
 					string value = property->valuestring;
 
-					cfgobj->SetPropertyString(key, value);
+					cfgobj->SetProperty(key, value);
 				} else if (property->type == cJSON_Array) {
 					Dictionary::Ptr items = make_shared<Dictionary>();
 
@@ -86,10 +86,10 @@ void ConfigFileComponent::Start(void)
 						if (item->type != cJSON_String)
 							continue;
 
-						items->AddUnnamedPropertyString(item->valuestring);
+						items->AddUnnamedProperty(item->valuestring);
 					}
 
-					cfgobj->SetPropertyDictionary(key, items);
+					cfgobj->SetProperty(key, items);
 				}
 			}
 

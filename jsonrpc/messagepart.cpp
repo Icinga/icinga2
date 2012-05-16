@@ -22,12 +22,12 @@
 
 using namespace icinga;
 
-Message::Message(void)
+MessagePart::MessagePart(void)
 {
 	m_Dictionary = make_shared<Dictionary>();
 }
 
-Message::Message(string jsonString)
+MessagePart::MessagePart(string jsonString)
 {
 	json_t *json = cJSON_Parse(jsonString.c_str());
 
@@ -39,17 +39,17 @@ Message::Message(string jsonString)
 	cJSON_Delete(json);
 }
 
-Message::Message(const Dictionary::Ptr& dictionary)
+MessagePart::MessagePart(const Dictionary::Ptr& dictionary)
 {
 	m_Dictionary = dictionary;
 }
 
-Message::Message(const Message& message)
+MessagePart::MessagePart(const MessagePart& message)
 {
 	m_Dictionary = message.GetDictionary();
 }
 
-Dictionary::Ptr Message::GetDictionaryFromJson(json_t *json)
+Dictionary::Ptr MessagePart::GetDictionaryFromJson(json_t *json)
 {
 	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 
@@ -72,7 +72,7 @@ Dictionary::Ptr Message::GetDictionaryFromJson(json_t *json)
 	return dictionary;
 }
 
-json_t *Message::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
+json_t *MessagePart::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
 {
 	cJSON *json;
 	string valueString;
@@ -102,7 +102,7 @@ json_t *Message::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
 	return json;
 }
 
-string Message::ToJsonString(void) const
+string MessagePart::ToJsonString(void) const
 {
 	json_t *json = GetJsonFromDictionary(m_Dictionary);
 	char *jsonString;
@@ -123,57 +123,42 @@ string Message::ToJsonString(void) const
 	return result;
 }
 
-Dictionary::Ptr Message::GetDictionary(void) const
+Dictionary::Ptr MessagePart::GetDictionary(void) const
 {
 	return m_Dictionary;
 }
 
-bool Message::GetPropertyString(string key, string *value) const
-{
-	return GetDictionary()->GetPropertyString(key, value);
-}
-
-bool Message::GetPropertyInteger(string key, long *value) const
-{
-	return GetDictionary()->GetPropertyInteger(key, value);
-}
-
-bool Message::GetPropertyMessage(string key, Message *value) const
+bool MessagePart::GetProperty(string key, MessagePart *value) const
 {
 	Dictionary::Ptr dictionary;
-	if (!GetDictionary()->GetPropertyDictionary(key, &dictionary))
+	if (!GetDictionary()->GetProperty(key, &dictionary))
 		return false;
 
-	*value = Message(dictionary);
+	*value = MessagePart(dictionary);
 	return true;
 }
 
-void Message::SetPropertyString(string key, const string& value)
+void MessagePart::SetProperty(string key, const MessagePart& value)
 {
-	GetDictionary()->SetProperty(key, value);
+	GetDictionary()->SetProperty(key, value.GetDictionary());
 }
 
-void Message::SetPropertyInteger(string key, long value)
+void MessagePart::AddUnnamedProperty(const MessagePart& value)
 {
-	GetDictionary()->SetProperty(key, value);
+	GetDictionary()->AddUnnamedProperty(value.GetDictionary());
 }
 
-void Message::SetPropertyMessage(string key, const Message& value)
+DictionaryIterator MessagePart::Begin(void)
 {
-	GetDictionary()->SetProperty(key, Variant(value.GetDictionary()));
+	return GetDictionary()->Begin();
 }
 
-void Message::AddUnnamedPropertyString(const string& value)
+DictionaryIterator MessagePart::End(void)
 {
-	GetDictionary()->AddUnnamedPropertyString(value);
+	return GetDictionary()->End();
 }
 
-void Message::AddUnnamedPropertyInteger(long value)
+MessagePart::operator Dictionary::Ptr(void)
 {
-	GetDictionary()->AddUnnamedPropertyInteger(value);
-}
-
-void Message::AddUnnamedPropertyMessage(const Message& value)
-{
-	GetDictionary()->AddUnnamedPropertyDictionary(value.GetDictionary());
+	return GetDictionary();
 }

@@ -59,126 +59,25 @@ void Dictionary::SetProperty(string key, const Variant& value)
 }
 
 /**
- * Retrieves a value from the dictionary and converts it to a string.
+ * Retrieves a value from the dictionary.
  *
  * @param key The key.
  * @param value Pointer to the value.
  * @returns true if the value was retrieved, false otherwise.
  */
-bool Dictionary::GetPropertyString(string key, string *value)
+bool Dictionary::GetProperty(string key, Dictionary::Ptr *value) const
 {
-	Variant data;
+	Object::Ptr object;
 
-	if (!GetProperty(key, &data))
+	if (!GetProperty(key, &object))
 		return false;
 
-	*value = static_cast<string>(data);
-	return true;
-}
-
-/**
- * Sets a value in the dictionary.
- *
- * @param key The key.
- * @param value The value.
- */
-void Dictionary::SetPropertyString(string key, const string& value)
-{
-	SetProperty(key, Variant(value));
-}
-
-/**
- * Retrieves a value from the dictionary and converts it to an integer.
- *
- * @param key The key.
- * @param value Pointer to the value.
- * @returns true if the value was retrieved, false otherwise.
- */
-bool Dictionary::GetPropertyInteger(string key, long *value)
-{
-	Variant data;
-
-	if (!GetProperty(key, &data))
-		return false;
-
-	*value = static_cast<long>(data);
-	return true;
-}
-
-/**
- * Sets a value in the dictionary.
- *
- * @param key The key.
- * @param value The value.
- */
-void Dictionary::SetPropertyInteger(string key, long value)
-{
-	SetProperty(key, Variant(value));
-}
-
-/**
- * Retrieves a value from the dictionary and converts it to a dictionary.
- *
- * @param key The key.
- * @param value Pointer to the value.
- * @returns true if the value was retrieved, false otherwise.
- */
-bool Dictionary::GetPropertyDictionary(string key, Dictionary::Ptr *value)
-{
-	Dictionary::Ptr dictionary;
-	Variant data;
-
-	if (!GetProperty(key, &data))
-		return false;
-
-	dictionary = dynamic_pointer_cast<Dictionary>(data.GetObject());
-
-	if (dictionary == NULL)
-		throw InvalidArgumentException("Property is not a dictionary.");
+	Dictionary::Ptr dictionary = dynamic_pointer_cast<Dictionary>(object);
+	if (!dictionary)
+		throw InvalidArgumentException();
 
 	*value = dictionary;
-
 	return true;
-}
-
-/**
- * Sets a value in the dictionary.
- *
- * @param key The key.
- * @param value The value.
- */
-void Dictionary::SetPropertyDictionary(string key, const Dictionary::Ptr& value)
-{
-	SetProperty(key, Variant(value));
-}
-
-/**
- * Retrieves a value from the dictionary and converts it to an object.
- *
- * @param key The key.
- * @param value Pointer to the value.
- * @returns true if the value was retrieved, false otherwise.
- */
-bool Dictionary::GetPropertyObject(string key, Object::Ptr *value)
-{
-	Variant data;
-
-	if (!GetProperty(key, &data))
-		return false;
-
-	*value = data;
-	return true;
-}
-
-/**
- * Sets a value in the dictionary.
- *
- * @param key The key.
- * @param value The value.
- */
-void Dictionary::SetPropertyObject(string key, const Object::Ptr& value)
-{
-	SetProperty(key, Variant(value));
 }
 
 /**
@@ -231,44 +130,4 @@ void Dictionary::AddUnnamedProperty(const Variant& value)
 	} while (it != m_Data.end());
 
 	m_Data[key] = value;
-}
-
-/**
- * Adds an unnamed value to the dictionary.
- *
- * @param value The value.
- */
-void Dictionary::AddUnnamedPropertyString(const string& value)
-{
-	AddUnnamedProperty(Variant(value));
-}
-
-/**
- * Adds an unnamed value to the dictionary.
- *
- * @param value The value.
- */
-void Dictionary::AddUnnamedPropertyInteger(long value)
-{
-	AddUnnamedProperty(Variant(value));
-}
-
-/**
- * Adds an unnamed value to the dictionary.
- *
- * @param value The value.
- */
-void Dictionary::AddUnnamedPropertyDictionary(const Dictionary::Ptr& value)
-{
-	AddUnnamedProperty(Variant(value));
-}
-
-/**
- * Adds an unnamed value to the dictionary.
- *
- * @param value The value.
- */
-void Dictionary::AddUnnamedPropertyObject(const Object::Ptr& value)
-{
-	AddUnnamedProperty(Variant(value));
 }

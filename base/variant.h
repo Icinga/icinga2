@@ -54,6 +54,9 @@ private:
 public:
 	inline Variant(void) : m_Type(VariantEmpty) { }
 
+	inline Variant(int value)
+	    : m_Type(VariantInteger), m_IntegerValue(value) { }
+
 	inline Variant(long value)
 	    : m_Type(VariantInteger), m_IntegerValue(value) { }
 

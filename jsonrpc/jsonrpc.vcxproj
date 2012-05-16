@@ -16,7 +16,7 @@
     <ClInclude Include="rpcrequest.h" />
     <ClInclude Include="rpcresponse.h" />
     <ClInclude Include="jsonrpcserver.h" />
-    <ClInclude Include="message.h" />
+    <ClInclude Include="messagepart.h" />
     <ClInclude Include="netstring.h" />
   </ItemGroup>
   <ItemGroup>
@@ -24,7 +24,7 @@
     <ClCompile Include="rpcrequest.cpp" />
     <ClCompile Include="rpcresponse.cpp" />
     <ClCompile Include="jsonrpcserver.cpp" />
-    <ClCompile Include="message.cpp" />
+    <ClCompile Include="messagepart.cpp" />
     <ClCompile Include="netstring.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

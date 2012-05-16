@@ -41,26 +41,25 @@ public:
 	bool GetProperty(string key, Variant *value) const;
 	void SetProperty(string key, const Variant& value);
 
-	bool GetPropertyString(string key, string *value);
-	void SetPropertyString(string key, const string& value);
+	template<typename T>
+	bool GetProperty(string key, T *value) const
+	{
+		Variant data;
 
-	bool GetPropertyInteger(string key, long *value);
-	void SetPropertyInteger(string key, long value);
+		if (!GetProperty(key, &data))
+			return false;
 
-	bool GetPropertyDictionary(string key, Dictionary::Ptr *value);
-	void SetPropertyDictionary(string key, const Dictionary::Ptr& value);
+		*value = data;
 
-	bool GetPropertyObject(string key, Object::Ptr *value);
-	void SetPropertyObject(string key, const Object::Ptr& value);
+		return true;
+	}
+
+	bool GetProperty(string key, Dictionary::Ptr *value) const;
 
 	DictionaryIterator Begin(void);
 	DictionaryIterator End(void);
 
 	void AddUnnamedProperty(const Variant& value);
-	void AddUnnamedPropertyString(const string& value);
-	void AddUnnamedPropertyInteger(long value);
-	void AddUnnamedPropertyDictionary(const Dictionary::Ptr& value);
-	void AddUnnamedPropertyObject(const Object::Ptr& value);
 
 	long GetLength(void) const;
 };

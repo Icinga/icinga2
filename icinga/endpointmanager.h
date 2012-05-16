@@ -63,7 +63,7 @@ public:
 	void RegisterEndpoint(Endpoint::Ptr endpoint);
 	void UnregisterEndpoint(Endpoint::Ptr endpoint);
 
-	void SendUnicastMessage(Endpoint::Ptr sender, Endpoint::Ptr recipient, const Message& message);
+	void SendUnicastMessage(Endpoint::Ptr sender, Endpoint::Ptr recipient, const MessagePart& message);
 	void SendAnycastMessage(Endpoint::Ptr sender, const RpcRequest& message);
 	void SendMulticastMessage(Endpoint::Ptr sender, const RpcRequest& message);
 

@@ -34,7 +34,7 @@ void ConfigRpcComponent::Start(void)
 	m_ConfigRpcEndpoint = make_shared<VirtualEndpoint>();
 
 	long configSource;
-	if (GetConfig()->GetPropertyInteger("configSource", &configSource) && configSource != 0) {
+	if (GetConfig()->GetProperty("configSource", &configSource) && configSource != 0) {
 		m_ConfigRpcEndpoint->RegisterTopicHandler("config::FetchObjects",
 		    bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
 
@@ -87,14 +87,14 @@ RpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object
 	RpcRequest msg;
 	msg.SetMethod(method);
 
-	Message params;
+	MessagePart params;
 	msg.SetParams(params);
 
-	params.GetDictionary()->SetPropertyString("name", object->GetName());
-	params.GetDictionary()->SetPropertyString("type", object->GetType());
+	params.SetProperty("name", object->GetName());
+	params.SetProperty("type", object->GetType());
 
 	if (includeProperties)
-		params.SetPropertyMessage("properties", Message(object));
+		params.SetProperty("properties", object);
 
 	return msg;
 }
@@ -102,7 +102,7 @@ RpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object
 bool ConfigRpcComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
 {
 	long replicate;
-	if (!object->GetPropertyInteger("replicate", &replicate))
+	if (!object->GetProperty("replicate", &replicate))
 		return true;
 	return (replicate != 0);
 }
@@ -161,16 +161,16 @@ int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& 
 	RpcRequest message = ea.Request;
 	bool was_null = false;
 
-	Message params;
+	MessagePart params;
 	if (!message.GetParams(&params))
 		return 0;
 
 	string name;
-	if (!params.GetDictionary()->GetPropertyString("name", &name))
+	if (!params.GetProperty("name", &name))
 		return 0;
 
 	string type;
-	if (!params.GetDictionary()->GetPropertyString("type", &type))
+	if (!params.GetProperty("type", &type))
 		return 0;
 
 	ConfigHive::Ptr configHive = GetConfigHive();
@@ -181,12 +181,12 @@ int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& 
 		object = make_shared<ConfigObject>(type, name);
 	}
 
-	Dictionary::Ptr properties;
-	if (!params.GetDictionary()->GetPropertyDictionary("properties", &properties))
+	MessagePart properties;
+	if (!params.GetProperty("properties", &properties))
 		return 0;
 
-	for (DictionaryIterator i = properties->Begin(); i != properties->End(); i++) {
-		object->SetPropertyString(i->first, i->second);
+	for (DictionaryIterator i = properties.Begin(); i != properties.End(); i++) {
+		object->SetProperty(i->first, i->second);
 	}
 
 	if (was_null) {
@@ -201,16 +201,16 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea
 {
 	RpcRequest message = ea.Request;
 	
-	Message params;
+	MessagePart params;
 	if (!message.GetParams(&params))
 		return 0;
 
 	string name;
-	if (!params.GetDictionary()->GetPropertyString("name", &name))
+	if (!params.GetProperty("name", &name))
 		return 0;
 
 	string type;
-	if (!params.GetDictionary()->GetPropertyString("type", &type))
+	if (!params.GetProperty("type", &type))
 		return 0;
 
 	ConfigHive::Ptr configHive = GetConfigHive();

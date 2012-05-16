@@ -28,7 +28,7 @@ struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
 	typedef shared_ptr<NewMessageEventArgs> Ptr;
 	typedef weak_ptr<NewMessageEventArgs> WeakPtr;
 
-	icinga::Message Message;
+	icinga::MessagePart Message;
 };
 
 class I2_JSONRPC_API JsonRpcClient : public TLSClient
@@ -42,7 +42,7 @@ public:
 
 	JsonRpcClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);
 
-	void SendMessage(const Message& message);
+	void SendMessage(const MessagePart& message);
 
 	virtual void Start(void);
 
