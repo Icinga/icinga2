@@ -17,47 +17,76 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONDVAR_H
-#define CONDVAR_H
+#ifndef OBSERVABLE_H
+#define OBSERVABLE_H
 
 namespace icinga
 {
 
 /**
- * A wrapper around OS-specific condition variable functionality.
+ * Base class for event arguments.
  */
-class I2_BASE_API CondVar
+struct I2_BASE_API EventArgs
 {
+	Object::Ptr Source; /**< The source of the event. */
+};
+
+/**
+ * An observable event. Observers can be registered for it.
+ */
+template<class TArgs>
+class Observable
+{
+public:
+	typedef function<int (const TArgs&)> ObserverType;
+
 private:
-#ifdef _WIN32
-	CONDITION_VARIABLE m_CondVar;
-#else /* _WIN32 */
-	pthread_cond_t m_CondVar;
-#endif /* _WIN32 */
+	vector<ObserverType> m_Observers;
 
 public:
-#ifdef _WIN32
-	typedef DWORD WaitTimeout;
-	static const WaitTimeout TimeoutInfinite = INFINITE;
-#else /* _WIN32 */
-	typedef int WaitTimeout;
-	static const WaitTimeout TimeoutInfinite = -1;
-#endif /* _WIN32 */
+	/**
+	 * Adds an observer to this event.
+	 *
+	 * @param rhs The delegate.
+	 */
+	Observable<TArgs>& operator +=(const ObserverType& rhs)
+	{
+		m_Observers.push_back(rhs);
+		return *this;
+	}
 
-	CondVar(void);
-	~CondVar(void);
+	/**
+	 * Removes an observer from this event.
+	 *
+	 * @param rhs The delegate.
+	 */
+	Observable<TArgs>& operator -=(const ObserverType& rhs)
+	{
+		m_Observers.erase(rhs);
+		return *this;
+	}
 
-	bool Wait(Mutex& mtx, WaitTimeout timeoutMilliseconds = TimeoutInfinite);
-	void Signal(void);
-	void Broadcast(void);
+	/**
+	 * Invokes each observer function that is registered for this event. Any
+	 * observer function which returns -1 is removed.
+	 *
+	 * @param args Event arguments.
+	 */
+	void operator()(const TArgs& args)
+	{
+		typename vector<ObserverType>::iterator i;
 
-#ifdef _WIN32
-	CONDITION_VARIABLE *Get(void);
-#else /* _WIN32 */
-	pthread_cond_t *Get(void);
-#endif /* _WIN32 */
+		for (i = m_Observers.begin(); i != m_Observers.end(); ) {
+			int result = (*i)(args);
+
+			if (result == -1)
+				i = m_Observers.erase(i);
+			else
+				i++;
+		}
+	}
 };
 
 }
 
-#endif /* CONDVAR_H */
+#endif /* OBSERVABLE_H */

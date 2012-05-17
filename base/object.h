@@ -31,6 +31,7 @@ class I2_BASE_API Object : public enable_shared_from_this<Object>
 {
 private:
 	Object(const Object& other);
+	Object operator=(const Object& rhs);
 
 protected:
 	Object(void);

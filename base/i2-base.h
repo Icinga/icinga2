@@ -96,6 +96,7 @@ using namespace std::tr1::placeholders;
 #endif /* I2_BASE_BUILD */
 
 #include "mutex.h"
+#include "lock.h"
 #include "condvar.h"
 #include "thread.h"
 #include "utility.h"

@@ -17,47 +17,24 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONDVAR_H
-#define CONDVAR_H
+#include "i2-base.h"
 
-namespace icinga
-{
+using namespace icinga;
 
 /**
- * A wrapper around OS-specific condition variable functionality.
+ * Constructor for the Lock class. Acquires a lock on the specified mutex.
+ *
+ * @param mutex The mutex that is to be locked.
  */
-class I2_BASE_API CondVar
+Lock::Lock(Mutex& mutex) : m_Mutex(mutex)
 {
-private:
-#ifdef _WIN32
-	CONDITION_VARIABLE m_CondVar;
-#else /* _WIN32 */
-	pthread_cond_t m_CondVar;
-#endif /* _WIN32 */
-
-public:
-#ifdef _WIN32
-	typedef DWORD WaitTimeout;
-	static const WaitTimeout TimeoutInfinite = INFINITE;
-#else /* _WIN32 */
-	typedef int WaitTimeout;
-	static const WaitTimeout TimeoutInfinite = -1;
-#endif /* _WIN32 */
-
-	CondVar(void);
-	~CondVar(void);
-
-	bool Wait(Mutex& mtx, WaitTimeout timeoutMilliseconds = TimeoutInfinite);
-	void Signal(void);
-	void Broadcast(void);
-
-#ifdef _WIN32
-	CONDITION_VARIABLE *Get(void);
-#else /* _WIN32 */
-	pthread_cond_t *Get(void);
-#endif /* _WIN32 */
-};
-
+	m_Mutex.Exit();
 }
 
-#endif /* CONDVAR_H */
+/**
+ * Destructor for the Lock class. Releases the lock.
+ */
+Lock::~Lock(void)
+{
+	m_Mutex.Exit();
+}

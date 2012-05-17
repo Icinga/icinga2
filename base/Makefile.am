@@ -27,6 +27,8 @@ libbase_la_SOURCES =  \
 	fifo.cpp \
 	fifo.h \
 	i2-base.h \
+	lock.cpp \
+	lock.h \
 	memory.cpp \
 	memory.h \
 	mutex.cpp \

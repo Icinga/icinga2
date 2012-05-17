@@ -50,13 +50,41 @@ CondVar::~CondVar(void)
  * before it begins to wait and re-acquires the mutex after waiting.
  *
  * @param mtx The mutex that should be released during waiting.
+ * @param timeoutMilliseconds The timeout in milliseconds. Use the special
+ *                            constant CondVar::TimeoutInfinite for an
+ *                            infinite timeout.
+ * @returns false if a timeout occured, true otherwise.
  */
-void CondVar::Wait(Mutex& mtx)
+bool CondVar::Wait(Mutex& mtx, WaitTimeout timeoutMilliseconds)
 {
 #ifdef _WIN32
-	SleepConditionVariableCS(&m_CondVar, mtx.Get(), INFINITE);
+	return (SleepConditionVariableCS(&m_CondVar, mtx.Get(),
+	    timeoutMilliseconds) != FALSE);
 #else /* _WIN32 */
-	pthread_cond_wait(&m_CondVar, mtx.Get());
+	if (timeoutMilliseconds == TimeoutInfinite)
+		pthread_cond_wait(&m_CondVar, mtx.Get());
+	else {
+		timeval now;
+		timespec ts;
+
+		if (gettimeofday(&now, NULL) < 0)
+			throw PosixException("gettimeofday failed.", errno);
+
+		ts.tv_sec = now.tv_sec;
+		ts.tv_nsec = now.tv_usec * 1000;
+		ts.tv_nsec += timeoutMilliseconds * 1000;
+
+		int rc = pthread_cond_timedwait(&m_CondVar, mtx.Get(), &ts);
+
+		if (rc == 0)
+			return true;
+
+		if (errno != ETIMEDOUT)
+			throw PosixException("pthread_cond_timedwait failed",
+			    errno);
+
+		return false;
+	}
 #endif /* _WIN32 */
 }
 

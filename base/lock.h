@@ -17,47 +17,26 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONDVAR_H
-#define CONDVAR_H
+#ifndef LOCK_H
+#define LOCK_H
 
 namespace icinga
 {
 
 /**
- * A wrapper around OS-specific condition variable functionality.
+ * A lock that is held on a mutex and automatically released when the Lock
+ * object is destroyed.
  */
-class I2_BASE_API CondVar
+class I2_BASE_API Lock
 {
 private:
-#ifdef _WIN32
-	CONDITION_VARIABLE m_CondVar;
-#else /* _WIN32 */
-	pthread_cond_t m_CondVar;
-#endif /* _WIN32 */
+	Mutex& m_Mutex;
 
 public:
-#ifdef _WIN32
-	typedef DWORD WaitTimeout;
-	static const WaitTimeout TimeoutInfinite = INFINITE;
-#else /* _WIN32 */
-	typedef int WaitTimeout;
-	static const WaitTimeout TimeoutInfinite = -1;
-#endif /* _WIN32 */
-
-	CondVar(void);
-	~CondVar(void);
-
-	bool Wait(Mutex& mtx, WaitTimeout timeoutMilliseconds = TimeoutInfinite);
-	void Signal(void);
-	void Broadcast(void);
-
-#ifdef _WIN32
-	CONDITION_VARIABLE *Get(void);
-#else /* _WIN32 */
-	pthread_cond_t *Get(void);
-#endif /* _WIN32 */
+	Lock(Mutex& mutex);
+	~Lock(void);
 };
 
 }
 
-#endif /* CONDVAR_H */
+#endif /* LOCK_H */
