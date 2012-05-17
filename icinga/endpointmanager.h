@@ -71,7 +71,7 @@ public:
 
 	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
 
-	Event<NewEndpointEventArgs> OnNewEndpoint;
+	Observable<NewEndpointEventArgs> OnNewEndpoint;
 };
 
 }

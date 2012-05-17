@@ -130,9 +130,13 @@ Dictionary::Ptr MessagePart::GetDictionary(void) const
 
 bool MessagePart::GetProperty(string key, MessagePart *value) const
 {
-	Dictionary::Ptr dictionary;
-	if (!GetDictionary()->GetProperty(key, &dictionary))
+	Object::Ptr object;
+	if (GetDictionary()->GetProperty(key, &object))
 		return false;
+
+	Dictionary::Ptr dictionary = dynamic_pointer_cast<Dictionary>(object);
+	if (!dictionary)
+		throw InvalidCastException();
 
 	*value = MessagePart(dictionary);
 	return true;

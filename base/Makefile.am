@@ -21,7 +21,7 @@ libbase_la_SOURCES =  \
 	delegate.h \
 	dictionary.cpp \
 	dictionary.h \
-	event.h \
+	observable.h \
 	exception.cpp \
 	exception.h \
 	fifo.cpp \

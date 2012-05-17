@@ -38,7 +38,7 @@ struct I2_ICINGA_API NewRequestEventArgs : public EventArgs
 class I2_ICINGA_API VirtualEndpoint : public Endpoint
 {
 private:
-	map< string, Event<NewRequestEventArgs> > m_TopicHandlers;
+	map< string, Observable<NewRequestEventArgs> > m_TopicHandlers;
 
 public:
 	typedef shared_ptr<VirtualEndpoint> Ptr;

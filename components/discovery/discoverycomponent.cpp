@@ -357,9 +357,13 @@ bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string mess
 		if (!role)
 			continue;
 
-		Dictionary::Ptr permissions;
-		if (!role->GetProperty(messageType, &permissions))
+		Object::Ptr object;
+		if (!role->GetProperty(messageType, &object))
 			continue;
+
+		Dictionary::Ptr permissions = dynamic_pointer_cast<Dictionary>(object);
+		if (!permissions)
+			throw InvalidCastException();
 
 		for (DictionaryIterator is = permissions->Begin(); is != permissions->End(); is++) {
 			if (Utility::Match(is->second.GetString(), message))
@@ -396,8 +400,15 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 
 	ConfigObject::Ptr endpointConfig = endpointCollection->GetObject(identity);
 	Dictionary::Ptr roles;
-	if (endpointConfig)
-		endpointConfig->GetProperty("roles", &roles);
+	if (endpointConfig) {
+		Object::Ptr object;
+		if (endpointConfig->GetProperty("roles", &object)) {
+			roles = dynamic_pointer_cast<Dictionary>(object);
+
+			if (!roles)
+				throw InvalidCastException();
+		}
+	}
 
 	Endpoint::Ptr endpoint = GetEndpointManager()->GetEndpointByIdentity(identity);
 

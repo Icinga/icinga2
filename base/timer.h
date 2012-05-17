@@ -72,7 +72,7 @@ public:
 
 	void Reschedule(time_t next);
 
-	Event<TimerEventArgs> OnTimerExpired;
+	Observable<TimerEventArgs> OnTimerExpired;
 };
 
 }

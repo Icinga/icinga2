@@ -46,7 +46,7 @@ public:
 
 	virtual void Start(void);
 
-	Event<NewMessageEventArgs> OnNewMessage;
+	Observable<NewMessageEventArgs> OnNewMessage;
 };
 
 TCPClient::Ptr JsonRpcClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);

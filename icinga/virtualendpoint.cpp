@@ -60,7 +60,7 @@ void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RpcRequest& req
 	if (!request.GetMethod(&method))
 		return;
 
-	map<string, Event<NewRequestEventArgs> >::iterator i = m_TopicHandlers.find(method);
+	map<string, Observable<NewRequestEventArgs> >::iterator i = m_TopicHandlers.find(method);
 
 	if (i == m_TopicHandlers.end())
 		return;

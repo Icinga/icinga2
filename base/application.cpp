@@ -460,12 +460,12 @@ int Application::Run(int argc, char **argv)
 	} else {
 		try {
 			result = Main(m_Arguments);
-		} catch (const Exception& ex) {
+		} catch (const exception& ex) {
 			Application::Instance.reset();
 
 			Application::Log("---");
 			Application::Log("Exception: " + Utility::GetTypeName(ex));
-			Application::Log("Message: " + ex.GetMessage());
+			Application::Log("Message: " + string(ex.what()));
 
 			return EXIT_FAILURE;
 		}

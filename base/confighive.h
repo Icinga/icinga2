@@ -45,8 +45,8 @@ public:
 	void ForEachObject(const string& type,
 	    function<int (const EventArgs&)> callback);
 
-	Event<EventArgs> OnObjectCommitted;
-	Event<EventArgs> OnObjectRemoved;
+	Observable<EventArgs> OnObjectCommitted;
+	Observable<EventArgs> OnObjectRemoved;
 };
 
 }

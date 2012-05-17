@@ -22,65 +22,6 @@
 using namespace icinga;
 
 /**
- * Retrieves a value from the dictionary.
- *
- * @param key The key.
- * @param value Pointer to the value.
- * @returns true if the value was retrieved, false otherwise.
- */
-bool Dictionary::GetProperty(string key, Variant *value) const
-{
-	ConstDictionaryIterator i = m_Data.find(key);
-
-	if (i == m_Data.end())
-		return false;
-
-	*value = i->second;
-	return true;
-}
-
-/**
- * Sets a value in the dictionary.
- *
- * @param key The key.
- * @param value The value.
- */
-void Dictionary::SetProperty(string key, const Variant& value)
-{
-	DictionaryIterator i = m_Data.find(key);
-
-	Variant oldValue;
-	if (i != m_Data.end()) {
-		oldValue = i->second;
-		m_Data.erase(i);
-	}
-
-	m_Data[key] = value;
-}
-
-/**
- * Retrieves a value from the dictionary.
- *
- * @param key The key.
- * @param value Pointer to the value.
- * @returns true if the value was retrieved, false otherwise.
- */
-bool Dictionary::GetProperty(string key, Dictionary::Ptr *value) const
-{
-	Object::Ptr object;
-
-	if (!GetProperty(key, &object))
-		return false;
-
-	Dictionary::Ptr dictionary = dynamic_pointer_cast<Dictionary>(object);
-	if (!dictionary)
-		throw InvalidArgumentException();
-
-	*value = dictionary;
-	return true;
-}
-
-/**
  * Returns an iterator to the beginning of the dictionary.
  *
  * @returns An iterator.
@@ -108,26 +49,4 @@ DictionaryIterator Dictionary::End(void)
 long Dictionary::GetLength(void) const
 {
 	return m_Data.size();
-}
-
-/**
- * Adds an unnamed value to the dictionary.
- *
- * @param value The value.
- */
-void Dictionary::AddUnnamedProperty(const Variant& value)
-{
-	map<string, Variant>::const_iterator it;
-	string key;
-	long index = GetLength();
-	do {
-		stringstream s;
-		s << "_" << index;
-		index++;
-
-		key = s.str();
-		it = m_Data.find(key);
-	} while (it != m_Data.end());
-
-	m_Data[key] = value;
 }

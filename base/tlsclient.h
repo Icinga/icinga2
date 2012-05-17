@@ -73,7 +73,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	Event<VerifyCertificateEventArgs> OnVerifyCertificate;
+	Observable<VerifyCertificateEventArgs> OnVerifyCertificate;
 };
 
 TCPClient::Ptr TLSClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);

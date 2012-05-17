@@ -64,7 +64,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	Event<EventArgs> OnDataAvailable;
+	Observable<EventArgs> OnDataAvailable;
 };
 
 /**

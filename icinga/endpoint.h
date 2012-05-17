@@ -92,8 +92,8 @@ public:
 	ConstTopicIterator BeginPublications(void) const;
 	ConstTopicIterator EndPublications(void) const;
 
-	Event<EventArgs> OnIdentityChanged;
-	Event<EventArgs> OnSessionEstablished;
+	Observable<EventArgs> OnIdentityChanged;
+	Observable<EventArgs> OnSessionEstablished;
 };
 
 }

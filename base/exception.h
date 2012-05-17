@@ -26,26 +26,29 @@ namespace icinga
 /**
  * Base class for all exceptions.
  */
-class I2_BASE_API Exception
+class I2_BASE_API Exception : exception
 {
 private:
-	string m_Message;
+	const char *m_Message;
 
 protected:
-	void SetMessage(string message);
+	void SetMessage(const char *message);
 
 public:
 	Exception(void);
-	Exception(const string& message);
+	Exception(const char *message);
 
 	/**
 	 * Destructor for the Exception class. Must be virtual for RTTI to work.
 	 */
 	virtual ~Exception(void)
 	{
+		delete m_Message;
 	}
 
-	string GetMessage(void) const;
+	const char *GetMessage(void) const;
+
+	virtual const char *what(void) const throw();
 };
 
 #define DEFINE_EXCEPTION_CLASS(klass)					\
@@ -56,7 +59,7 @@ public:
 		{							\
 		}							\
 									\
-		inline klass(const string& message)			\
+		inline klass(const char *message)			\
 		    : Exception(message)				\
 		{							\
 		}							\
@@ -64,6 +67,7 @@ public:
 
 DEFINE_EXCEPTION_CLASS(NotImplementedException);
 DEFINE_EXCEPTION_CLASS(InvalidArgumentException);
+DEFINE_EXCEPTION_CLASS(InvalidCastException);
 
 #ifdef _WIN32
 /**
@@ -80,7 +84,8 @@ public:
 	 */
 	inline Win32Exception(const string& message, int errorCode)
 	{
-		SetMessage(message + ": " + FormatErrorCode(errorCode));
+		string msg = message + ": " + FormatErrorCode(errorCode);
+		SetMessage(msg.c_str());
 	}
 
 	/**
@@ -107,7 +112,8 @@ public:
 	 */
 	inline PosixException(const string& message, int errorCode)
 	{
-		SetMessage(message + ": " + FormatErrorCode(errorCode));
+		string msg = message + ": " + FormatErrorCode(errorCode);
+		SetMessage(msg.c_str());
 	}
 
 	/**
@@ -133,7 +139,8 @@ public:
 	 */
 	inline OpenSSLException(const string& message, int errorCode)
 	{
-		SetMessage(message + ": " + FormatErrorCode(errorCode));
+		string msg = message + ": " + FormatErrorCode(errorCode);
+		SetMessage(msg.c_str());
 	}
 
 	/**

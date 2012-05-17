@@ -53,7 +53,7 @@ int JsonRpcClient::DataAvailableHandler(const EventArgs&)
 			nea.Message = message;
 			OnNewMessage(nea);
 		} catch (const Exception& ex) {
-			Application::Log("Exception while processing message from JSON-RPC client: " + ex.GetMessage());
+			Application::Log("Exception while processing message from JSON-RPC client: " + string(ex.GetMessage()));
 			Close();
 
 			return 1;

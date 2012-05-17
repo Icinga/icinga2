@@ -54,7 +54,7 @@ public:
 
 	void Listen(void);
 
-	Event<NewClientEventArgs> OnNewClient;
+	Observable<NewClientEventArgs> OnNewClient;
 
 	virtual bool WantsToRead(void) const;
 };

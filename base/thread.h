@@ -25,6 +25,12 @@ namespace icinga
 
 typedef void (*ThreadProc)(void *);
 
+struct ThreadParameters
+{
+	ThreadProc Callback;
+	void *UserParams;
+};
+
 /**
  * A wrapper around OS-specific thread functionality.
  */

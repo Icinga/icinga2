@@ -33,7 +33,7 @@ Exception::Exception(void)
  *
  * @param message A message describing the exception.
  */
-Exception::Exception(const string& message)
+Exception::Exception(const char *message)
 {
 	SetMessage(message);
 }
@@ -43,9 +43,19 @@ Exception::Exception(const string& message)
  *
  * @returns The description.
  */
-string Exception::GetMessage(void) const
+const char *Exception::GetMessage(void) const
 {
 	return m_Message;
+}
+
+/**
+ * Retrieves the description for the exception.
+ *
+ * @returns The description.
+ */
+const char *Exception::what(void) const throw()
+{
+	return GetMessage();
 }
 
 /**
@@ -53,9 +63,12 @@ string Exception::GetMessage(void) const
  *
  * @param message The description.
  */
-void Exception::SetMessage(string message)
+void Exception::SetMessage(const char *message)
 {
-	m_Message = message;
+	if (m_Message)
+		delete m_Message;
+
+	m_Message = Memory::StrDup(message);
 }
 
 #ifdef _WIN32

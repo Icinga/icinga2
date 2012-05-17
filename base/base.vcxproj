@@ -45,7 +45,7 @@
     <ClInclude Include="cxx11-compat.h" />
     <ClInclude Include="delegate.h" />
     <ClInclude Include="dictionary.h" />
-    <ClInclude Include="event.h" />
+    <ClInclude Include="observable.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="fifo.h" />
     <ClInclude Include="i2-base.h" />

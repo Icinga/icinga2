@@ -62,12 +62,12 @@ public:
 	void SetFD(SOCKET fd);
 	SOCKET GetFD(void) const;
 
-	Event<EventArgs> OnReadable;
-	Event<EventArgs> OnWritable;
-	Event<EventArgs> OnException;
+	Observable<EventArgs> OnReadable;
+	Observable<EventArgs> OnWritable;
+	Observable<EventArgs> OnException;
 
-	Event<SocketErrorEventArgs> OnError;
-	Event<EventArgs> OnClosed;
+	Observable<SocketErrorEventArgs> OnError;
+	Observable<EventArgs> OnClosed;
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;

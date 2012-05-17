@@ -38,28 +38,63 @@ public:
 	typedef shared_ptr<Dictionary> Ptr;
 	typedef weak_ptr<Dictionary> WeakPtr;
 
-	bool GetProperty(string key, Variant *value) const;
-	void SetProperty(string key, const Variant& value);
-
+	/**
+	 * Retrieves a value from the dictionary.
+	 *
+	 * @param key The key.
+	 * @param value Pointer to the value.
+	 * @returns true if the value was retrieved, false otherwise.
+	 */
 	template<typename T>
 	bool GetProperty(string key, T *value) const
 	{
-		Variant data;
+		ConstDictionaryIterator i = m_Data.find(key);
 
-		if (!GetProperty(key, &data))
+		if (i == m_Data.end())
 			return false;
 
-		*value = data;
+		*value = i->second;
 
 		return true;
 	}
 
-	bool GetProperty(string key, Dictionary::Ptr *value) const;
+	/**
+	 * Sets a value in the dictionary.
+	 *
+	 * @param key The key.
+	 * @param value The value.
+	 */
+	template<typename T>
+	void SetProperty(string key, const T& value)
+	{
+		m_Data[key] = value;
+	}
+
+	/**
+	 * Adds an unnamed value to the dictionary.
+	 *
+	 * @param value The value.
+	 */
+	template<typename T>
+	void AddUnnamedProperty(const T& value)
+	{
+		DictionaryIterator it;
+		string key;
+		long index = GetLength();
+		do {
+			stringstream s;
+			s << "_" << index;
+			index++;
+
+			key = s.str();
+			it = m_Data.find(key);
+		} while (it != m_Data.end());
+
+		SetProperty(key, value);
+	}
 
 	DictionaryIterator Begin(void);
 	DictionaryIterator End(void);
-
-	void AddUnnamedProperty(const Variant& value);
 
 	long GetLength(void) const;
 };

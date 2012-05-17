@@ -103,7 +103,7 @@ using namespace std::tr1::placeholders;
 #include "exception.h"
 #include "memory.h"
 #include "delegate.h"
-#include "event.h"
+#include "observable.h"
 #include "variant.h"
 #include "dictionary.h"
 #include "timer.h"

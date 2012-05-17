@@ -21,12 +21,6 @@
 
 using namespace icinga;
 
-typedef struct threadparam_s
-{
-	ThreadProc callback;
-	void *param;
-} threadparam_t;
-
 /**
  * Helper function that deals with OS-specific differences in the thread
  * proc's function signature.
@@ -34,16 +28,16 @@ typedef struct threadparam_s
 #ifdef _WIN32
 static DWORD WINAPI ThreadStartProc(LPVOID param)
 {
-	threadparam_t *tparam = (threadparam_t *)param;
-	tparam->callback(tparam->param);
+	ThreadParameters *tparam = (ThreadParameters *)param;
+	tparam->Callback(tparam->UserParams);
 	delete tparam;
 	return 0;
 }
 #else /* _WIN32 */
 static void *ThreadStartProc(void *param)
 {
-	threadparam_t *tparam = (threadparam_t *)param;
-	tparam->callback(tparam->param);
+	ThreadParameters *tparam = (ThreadParameters *)param;
+	tparam->Callback(tparam->UserParams);
 	delete tparam;
 	return NULL;
 }
@@ -55,13 +49,13 @@ static void *ThreadStartProc(void *param)
  */
 Thread::Thread(ThreadProc callback, void *param)
 {
-	threadparam_t *tparam = new threadparam_t();
+	ThreadParameters *tparam = new ThreadParameters();
 
 	if (tparam == NULL)
 		throw OutOfMemoryException("Out of memory");
 
-	tparam->callback = callback;
-	tparam->param = param;
+	tparam->Callback = callback;
+	tparam->UserParams = param;
 
 #ifdef _WIN32
 	m_Thread = CreateThread(NULL, 0, ThreadStartProc, tparam, CREATE_SUSPENDED, NULL);
@@ -69,7 +63,8 @@ Thread::Thread(ThreadProc callback, void *param)
 	if (m_Thread == NULL)
 		throw Win32Exception("CreateThread failed.", GetLastError());
 #else /* _WIN32 */
-	pthread_create(&m_Thread, NULL, ThreadStartProc, &tparam);
+	if (pthread_create(&m_Thread, NULL, ThreadStartProc, &tparam) < 0)
+		throw PosixException("pthread_create failed.", errno);
 #endif /* _WIN32 */
 }
 
