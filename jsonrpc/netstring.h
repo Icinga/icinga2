@@ -24,6 +24,11 @@ namespace icinga
 {
 
 /**
+ * Thrown when an invalid netstring was encountered while reading from a FIFO.
+ */
+DEFINE_EXCEPTION_CLASS(InvalidNetstringException);
+
+/**
  * Utility functions for reading/writing messages in the netstring format.
  * See http://cr.yp.to/proto/netstrings.txt for details.
  *

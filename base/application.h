@@ -41,6 +41,10 @@ private:
 	vector<string> m_Arguments; /**< Command-line arguments */
 	bool m_Debugging; /**< Whether debugging is enabled. */
 
+#ifndef _WIN32
+	static void SigIntHandler(int signum);
+#endif /* _WIN32 */
+
 protected:
 	void RunEventLoop(void);
 	string GetExeDirectory(void) const;
@@ -68,7 +72,7 @@ public:
 	    const ConfigObject::Ptr& componentConfig);
 	void RegisterComponent(shared_ptr<Component> component);
 	void UnregisterComponent(shared_ptr<Component> component);
-	shared_ptr<Component> GetComponent(const string& name);
+	shared_ptr<Component> GetComponent(const string& name) const;
 	void AddComponentSearchDir(const string& componentDirectory);
 
 	bool IsDebugging(void) const;

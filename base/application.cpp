@@ -75,7 +75,8 @@ Application::~Application(void)
 }
 
 /**
- * Processes events (e.g. sockets and timers).
+ * Processes events for registered sockets and timers and calls whatever
+ * handlers have been set up for these events.
  */
 void Application::RunEventLoop(void)
 {
@@ -274,18 +275,18 @@ void Application::UnregisterComponent(Component::Ptr component)
  * @param name The name of the component.
  * @returns The component or a null pointer if the component could not be found.
  */
-Component::Ptr Application::GetComponent(const string& name)
+Component::Ptr Application::GetComponent(const string& name) const
 {
-	map<string, Component::Ptr>::iterator ci = m_Components.find(name);
+	map<string, Component::Ptr>::const_iterator i = m_Components.find(name);
 
-	if (ci == m_Components.end())
+	if (i == m_Components.end())
 		return Component::Ptr();
 
-	return ci->second;
+	return i->second;
 }
 
 /**
- * Logs a message.
+ * Writes a message to the application's log.
  *
  * @param message The message.
  */
@@ -408,11 +409,12 @@ bool Application::IsDebugging(void) const
 
 #ifndef _WIN32
 /**
- * Signal handler for SIGINT.
+ * Signal handler for SIGINT. Prepares the application for cleanly
+ * shutting down during the next execution of the event loop.
  *
  * @param signum The signal number.
  */
-static void ApplicationSigIntHandler(int signum)
+void Application::SigIntHandler(int signum)
 {
 	assert(signum == SIGINT);
 
@@ -442,7 +444,7 @@ int Application::Run(int argc, char **argv)
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = ApplicationSigIntHandler;
+	sa.sa_handler = Application::SigIntHandler;
 	sigaction(SIGINT, &sa, NULL);
 
 	sa.sa_handler = SIG_IGN;

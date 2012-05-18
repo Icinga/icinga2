@@ -21,7 +21,15 @@
 
 using namespace icinga;
 
-/* based on https://github.com/PeterScott/netstring-c/blob/master/netstring.c */
+/**
+ * Reads data from a FIFO in netstring format.
+ *
+ * @param fifo The FIFO to read from.
+ * @param[out] str The string that has been read from the FIFO.
+ * @returns true if a complete string was read from the FIFO, false otherwise.
+ * @exception InvalidNetstringException The input stream is invalid.
+ * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
+ */
 bool Netstring::ReadStringFromFIFO(FIFO::Ptr fifo, string *str)
 {
 	size_t buffer_length = fifo->GetSize();
@@ -66,6 +74,12 @@ bool Netstring::ReadStringFromFIFO(FIFO::Ptr fifo, string *str)
 	return true;
 }
 
+/**
+ * Writes data into a FIFO using the netstring format.
+ *
+ * @param fifo The FIFO.
+ * @param str The string that is to be written.
+ */
 void Netstring::WriteStringToFIFO(FIFO::Ptr fifo, const string& str)
 {
 	unsigned long len = str.size();

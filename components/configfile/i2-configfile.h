@@ -21,6 +21,7 @@
 #define I2CONFIGFILECOMPONENT_H
 
 #include <i2-base.h>
+#include <i2-icinga.h>
 
 #include "configfilecomponent.h"
 

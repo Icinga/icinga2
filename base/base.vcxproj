@@ -13,22 +13,18 @@
   <ItemGroup>
     <ClCompile Include="application.cpp" />
     <ClCompile Include="component.cpp" />
-    <ClCompile Include="condvar.cpp" />
     <ClCompile Include="configcollection.cpp" />
     <ClCompile Include="confighive.cpp" />
     <ClCompile Include="configobject.cpp" />
     <ClCompile Include="dictionary.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="fifo.cpp" />
-    <ClCompile Include="lock.cpp" />
     <ClCompile Include="memory.cpp" />
-    <ClCompile Include="mutex.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="tcpclient.cpp" />
     <ClCompile Include="tcpserver.cpp" />
     <ClCompile Include="tcpsocket.cpp" />
-    <ClCompile Include="thread.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="tlsclient.cpp" />
     <ClCompile Include="unix.cpp" />
@@ -39,14 +35,12 @@
   <ItemGroup>
     <ClInclude Include="application.h" />
     <ClInclude Include="component.h" />
-    <ClInclude Include="condvar.h" />
     <ClInclude Include="configcollection.h" />
     <ClInclude Include="confighive.h" />
     <ClInclude Include="configobject.h" />
     <ClInclude Include="cxx11-compat.h" />
     <ClInclude Include="delegate.h" />
     <ClInclude Include="dictionary.h" />
-    <ClInclude Include="lock.h" />
     <ClInclude Include="observable.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="fifo.h" />
@@ -57,16 +51,12 @@
     <ClInclude Include="tcpclient.h" />
     <ClInclude Include="tcpserver.h" />
     <ClInclude Include="tcpsocket.h" />
-    <ClInclude Include="thread.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="tlsclient.h" />
     <ClInclude Include="unix.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="variant.h" />
     <ClInclude Include="win32.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="mutex.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9C92DA90-FD53-43A9-A244-90F2E8AF9677}</ProjectGuid>

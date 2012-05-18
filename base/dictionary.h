@@ -44,7 +44,7 @@ public:
 	 * Retrieves a value from the dictionary.
 	 *
 	 * @param key The key.
-	 * @param value Pointer to the value.
+	 * @param[out] value Pointer to the value.
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
 	template<typename T>

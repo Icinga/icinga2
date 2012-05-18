@@ -10,6 +10,7 @@ configfile_la_SOURCES = \
 
 configfile_la_CXXFLAGS = \
 	-I${top_srcdir}/base \
+	-I${top_srcdir}/icinga \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON
 
@@ -20,4 +21,5 @@ configfile_la_LDFLAGS = \
 
 configfile_la_LIBADD = \
 	$(top_builddir)/base/libbase.la \
+	$(top_builddir)/icinga/libicinga.la \
 	$(top_builddir)/cJSON/libcJSON.la

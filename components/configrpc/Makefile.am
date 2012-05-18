@@ -11,7 +11,6 @@ configrpc_la_SOURCES = \
 configrpc_la_CXXFLAGS = \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
-	-I${top_srcdir}/cJSON \
 	-I${top_srcdir}/icinga
 
 configrpc_la_LDFLAGS = \
@@ -22,5 +21,4 @@ configrpc_la_LDFLAGS = \
 configrpc_la_LIBADD = \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
-	${top_builddir}/cJSON/libcJSON.la \
 	${top_builddir}/icinga/libicinga.la
