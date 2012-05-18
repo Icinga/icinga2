@@ -20,6 +20,10 @@
 #ifndef I2ICINGA_H
 #define I2ICINGA_H
 
+/**
+ * @defgroup icinga
+ */
+
 #include <i2-base.h>
 #include <i2-jsonrpc.h>
 #include <set>

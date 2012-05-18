@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * A byte-based FIFO buffer.
+ *
+ * @ingroup base
  */
 class I2_BASE_API FIFO : public Object
 {

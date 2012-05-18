@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * Event arguments for the "new request" event.
+ *
+ * @ingroup icinga
+ */
 struct I2_ICINGA_API NewRequestEventArgs : public EventArgs
 {
 	typedef shared_ptr<NewRequestEventArgs> Ptr;
@@ -34,6 +39,8 @@ struct I2_ICINGA_API NewRequestEventArgs : public EventArgs
 
 /**
  * A local endpoint.
+ *
+ * @ingroup icinga
  */
 class I2_ICINGA_API VirtualEndpoint : public Endpoint
 {

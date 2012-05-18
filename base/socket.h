@@ -24,6 +24,8 @@ namespace icinga {
 
 /**
  * Event arguments for socket errors.
+ *
+ * @ingroup base
  */
 struct I2_BASE_API SocketErrorEventArgs : public EventArgs
 {
@@ -33,6 +35,8 @@ struct I2_BASE_API SocketErrorEventArgs : public EventArgs
 
 /**
  * Base class for sockets.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Socket : public Object
 {

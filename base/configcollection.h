@@ -27,6 +27,8 @@ class ConfigHive;
 
 /**
  * A collection of configuration objects that each have the same type.
+ *
+ * @ingroup base
  */
 class I2_BASE_API ConfigCollection : public Object
 {

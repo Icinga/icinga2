@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * Utility functions.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Utility
 {

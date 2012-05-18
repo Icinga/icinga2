@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * Base class for event arguments.
+ *
+ * @ingroup base
  */
 struct I2_BASE_API EventArgs
 {
@@ -33,6 +35,8 @@ struct I2_BASE_API EventArgs
 
 /**
  * An observable event. Observers can be registered for it.
+ *
+ * @ingroup base
  */
 template<class TArgs>
 class Observable
@@ -47,7 +51,7 @@ public:
 	/**
 	 * Adds an observer to this event.
 	 *
-	 * @param rhs The delegate.
+	 * @param rhs The observer.
 	 */
 	Observable<TArgs>& operator +=(const ObserverType& rhs)
 	{
@@ -58,7 +62,7 @@ public:
 	/**
 	 * Removes an observer from this event.
 	 *
-	 * @param rhs The delegate.
+	 * @param rhs The observer.
 	 */
 	Observable<TArgs>& operator -=(const ObserverType& rhs)
 	{

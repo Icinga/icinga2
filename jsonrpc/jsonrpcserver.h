@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * A JSON-RPC server.
+ *
+ * @ingroup jsonrpc
+ */
 class I2_JSONRPC_API JsonRpcServer : public TCPServer
 {
 public:

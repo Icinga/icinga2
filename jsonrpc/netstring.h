@@ -23,6 +23,12 @@
 namespace icinga
 {
 
+/**
+ * Utility functions for reading/writing messages in the netstring format.
+ * See http://cr.yp.to/proto/netstrings.txt for details.
+ *
+ * @ingroup jsonrpc
+ */
 class I2_JSONRPC_API Netstring
 {
 private:

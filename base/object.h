@@ -26,6 +26,8 @@ namespace icinga
 /**
  * Base class for all heap-allocated objects. At least one of its methods
  * has to be virtual for RTTI to work.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Object : public enable_shared_from_this<Object>
 {

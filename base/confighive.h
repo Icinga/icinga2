@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * A collection of all configuration objects that belong to an application.
+ *
+ * @ingroup base
  */
 class I2_BASE_API ConfigHive : public Object
 {

@@ -25,7 +25,10 @@ namespace icinga
 
 /**
  * A JSON-RPC endpoint that can be used to communicate with a remote
- * Icinga instance. */
+ * Icinga instance.
+ *
+ * @ingroup icinga
+ */
 class I2_ICINGA_API JsonRpcEndpoint : public Endpoint
 {
 private:

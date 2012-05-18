@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * Event arguments for the "SSL certificate verification" event.
+ *
+ * @ingroup base
  */
 struct I2_BASE_API VerifyCertificateEventArgs : public EventArgs
 {
@@ -37,6 +39,8 @@ struct I2_BASE_API VerifyCertificateEventArgs : public EventArgs
 
 /**
  * A TLS client connection.
+ *
+ * @ingroup base
  */
 class I2_BASE_API TLSClient : public TCPClient
 {

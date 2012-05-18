@@ -27,6 +27,8 @@ DEFINE_EXCEPTION_CLASS(OutOfMemoryException);
 
 /**
  * Singleton class which implements memory allocation helpers.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Memory
 {

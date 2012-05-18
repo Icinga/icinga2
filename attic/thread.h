@@ -33,6 +33,8 @@ struct ThreadParameters
 
 /**
  * A wrapper around OS-specific thread functionality.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Thread
 {

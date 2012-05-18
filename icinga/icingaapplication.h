@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * The Icinga application.
+ *
+ * @ingroup icinga
  */
 class I2_ICINGA_API IcingaApplication : public Application
 {

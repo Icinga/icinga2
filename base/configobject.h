@@ -29,6 +29,8 @@ class ConfigHive;
 
 /**
  * A configuration object that has arbitrary properties.
+ *
+ * @ingroup base
  */
 class I2_BASE_API ConfigObject : public Dictionary
 {

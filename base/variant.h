@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * The type of a Variant object.
+ *
+ * @ingroup base
  */
 enum I2_BASE_API VariantType
 {
@@ -36,6 +38,8 @@ enum I2_BASE_API VariantType
 
 /**
  * A type that can hold an arbitrary value.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Variant
 {

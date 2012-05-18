@@ -27,6 +27,11 @@ namespace icinga
 
 typedef ::cJSON json_t;
 
+/**
+ * A part of an RPC message.
+ *
+ * @ingroup jsonrpc
+ */
 class I2_JSONRPC_API MessagePart
 {
 private:

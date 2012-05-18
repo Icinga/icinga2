@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * Event arguments for the "new message" event.
+ *
+ * @ingroup jsonrpc
+ */
 struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
 {
 	typedef shared_ptr<NewMessageEventArgs> Ptr;
@@ -31,6 +36,11 @@ struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
 	icinga::MessagePart Message;
 };
 
+/**
+ * A JSON-RPC client.
+ *
+ * @ingroup jsonrpc
+ */
 class I2_JSONRPC_API JsonRpcClient : public TLSClient
 {
 private:

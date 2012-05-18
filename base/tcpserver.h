@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * Event arguments for the "new client" event.
+ *
+ * @ingroup base
  */
 struct I2_BASE_API NewClientEventArgs : public EventArgs
 {
@@ -33,7 +35,10 @@ struct I2_BASE_API NewClientEventArgs : public EventArgs
 
 /**
  * A TCP server that listens on a TCP port and accepts incoming
- * client connections. */
+ * client connections.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API TCPServer : public TCPSocket
 {
 private:

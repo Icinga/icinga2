@@ -26,6 +26,8 @@ namespace icinga {
 
 /**
  * Event arguments for the "timer expired" event.
+ *
+ * @ingroup base
  */
 struct I2_BASE_API TimerEventArgs : public EventArgs
 {
@@ -34,6 +36,8 @@ struct I2_BASE_API TimerEventArgs : public EventArgs
 
 /**
  * A timer that periodically triggers an event.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Timer : public Object
 {

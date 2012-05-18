@@ -28,6 +28,8 @@ DEFINE_EXCEPTION_CLASS(ComponentLoadException);
 
 /**
  * Abstract base class for applications.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Application : public Object {
 private:

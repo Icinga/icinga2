@@ -28,6 +28,8 @@ typedef map<string, Variant>::iterator DictionaryIterator;
 
 /**
  * A container that holds key-value pairs.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Dictionary : public Object
 {

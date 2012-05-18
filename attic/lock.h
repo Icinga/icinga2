@@ -26,6 +26,8 @@ namespace icinga
 /**
  * A lock that is held on a mutex and automatically released when the Lock
  * object is destroyed.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Lock
 {

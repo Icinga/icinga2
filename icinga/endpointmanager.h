@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * Event arguments for the "new endpoint registered" event.
+ *
+ * @ingroup icinga
  */
 struct I2_ICINGA_API NewEndpointEventArgs : public EventArgs
 {
@@ -33,6 +35,8 @@ struct I2_ICINGA_API NewEndpointEventArgs : public EventArgs
 
 /**
  * Forwards messages between endpoints.
+ *
+ * @ingroup icinga
  */
 class I2_ICINGA_API EndpointManager : public Object
 {

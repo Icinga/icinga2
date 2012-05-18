@@ -20,6 +20,10 @@
 #ifndef I2JSONRPC_H
 #define I2JSONRPC_H
 
+/**
+ * @defgroup jsonrpc JSON-RPC
+ */
+
 #include <map>
 #include <i2-base.h>
 

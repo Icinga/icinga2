@@ -20,6 +20,16 @@
 #ifndef I2BASE_H
 #define I2BASE_H
 
+/**
+ * @mainpage Foo
+ */
+
+/**
+ * @defgroup base Base class library
+ *
+ * Hello World.
+ */
+
 #ifdef _MSC_VER
 #	define HAVE_CXX11
 #	pragma warning(disable:4251)

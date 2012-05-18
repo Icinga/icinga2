@@ -27,6 +27,8 @@ class EndpointManager;
 
 /**
  * An endpoint that can be used to send and receive messages.
+ *
+ * @ingroup icinga
  */
 class I2_ICINGA_API Endpoint : public Object
 {

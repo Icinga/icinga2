@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * Base class for all exceptions.
+ *
+ * @ingroup base
  */
 class I2_BASE_API Exception : exception
 {
@@ -65,8 +67,28 @@ public:
 		}							\
 	}
 
+/**
+ * An exception that is thrown when a certain feature
+ * is not implemented.
+ *
+ * @ingroup base
+ */
 DEFINE_EXCEPTION_CLASS(NotImplementedException);
+
+/**
+ * An exception that is thrown when an argument to
+ * a function is invalid.
+ *
+ * @ingroup base
+ */
 DEFINE_EXCEPTION_CLASS(InvalidArgumentException);
+
+/**
+ * An exception that is thrown when a cast yields
+ * an invalid result.
+ *
+ * @ingroup base
+ */
 DEFINE_EXCEPTION_CLASS(InvalidCastException);
 
 #ifdef _WIN32

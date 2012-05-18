@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * The role of a TCP client object.
+ *
+ * @ingroup base
  */
 enum I2_BASE_API TCPClientRole
 {
@@ -34,6 +36,8 @@ enum I2_BASE_API TCPClientRole
 
 /**
  * A TCP client connection.
+ *
+ * @ingroup base
  */
 class I2_BASE_API TCPClient : public TCPSocket
 {

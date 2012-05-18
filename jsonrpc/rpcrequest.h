@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * A JSON-RPC request message.
+ *
+ * @ingroup jsonrpc
+ */
 class I2_JSONRPC_API RpcRequest : public MessagePart
 {
 
