@@ -53,7 +53,7 @@ public:
 		if (i == m_Data.end())
 			return false;
 
-		*value = i->second;
+		*value = static_cast<T>(i->second);
 
 		return true;
 	}

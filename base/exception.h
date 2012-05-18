@@ -41,7 +41,7 @@ public:
 	/**
 	 * Destructor for the Exception class. Must be virtual for RTTI to work.
 	 */
-	virtual ~Exception(void)
+	virtual ~Exception(void) throw()
 	{
 		delete m_Message;
 	}
