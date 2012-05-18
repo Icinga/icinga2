@@ -23,12 +23,12 @@
 namespace icinga
 {
 
-class I2_JSONRPC_API Netstring : public Object
+class I2_JSONRPC_API Netstring
 {
-public:
-	typedef shared_ptr<Netstring> Ptr;
-	typedef weak_ptr<Netstring> WeakPtr;
+private:
+	Netstring(void);
 
+public:
 	static bool ReadStringFromFIFO(FIFO::Ptr fifo, string *message);
 	static void WriteStringToFIFO(FIFO::Ptr fifo, const string& message);
 };
