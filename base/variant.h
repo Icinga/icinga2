@@ -28,12 +28,13 @@ namespace icinga
  *
  * @ingroup base
  */
-enum I2_BASE_API VariantType
+enum VariantType
 {
-	VariantEmpty,
-	VariantInteger,
-	VariantString,
-	VariantObject
+	VariantEmpty, /**< Denotes that the Variant is empty. */
+	VariantInteger, /**< Denotes that the Variant is holding an integer. */
+	VariantString, /**< Denotes that the Variant is holding a string. */
+	VariantObject /**< Denotes that the Variant is holding an object
+			   that inherits from the Object class. */
 };
 
 /**

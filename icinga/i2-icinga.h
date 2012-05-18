@@ -21,7 +21,7 @@
 #define I2ICINGA_H
 
 /**
- * @defgroup icinga
+ * @defgroup icinga Icinga application
  */
 
 #include <i2-base.h>

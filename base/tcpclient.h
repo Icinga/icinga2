@@ -28,10 +28,12 @@ namespace icinga
  *
  * @ingroup base
  */
-enum I2_BASE_API TCPClientRole
+enum TCPClientRole
 {
-	RoleInbound, /**< inbound socket, i.e. one that was returned from accept() */
-	RoleOutbound /**< outbound socket, i.e. one that is connect()'d to a remote socket */
+	RoleInbound, /**< Inbound socket, i.e. one that was returned
+			  from accept(). */
+	RoleOutbound /**< Outbound socket, i.e. one that is connect()'d to a
+			  remote socket. */
 };
 
 /**

@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * Thrown when an invalid netstring was encountered while reading from a FIFO.
+ *
+ * @ingroup jsonrpc
  */
 DEFINE_EXCEPTION_CLASS(InvalidNetstringException);
 
