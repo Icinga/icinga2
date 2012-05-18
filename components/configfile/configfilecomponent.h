@@ -25,7 +25,7 @@ namespace icinga
 
 DEFINE_EXCEPTION_CLASS(ConfigParserException);
 
-class ConfigFileComponent : public Component
+class ConfigFileComponent : public IcingaComponent
 {
 public:
 	typedef shared_ptr<ConfigFileComponent> Ptr;
