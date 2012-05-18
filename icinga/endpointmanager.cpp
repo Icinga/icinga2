@@ -65,7 +65,7 @@ shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
 /**
  * Creates a new JSON-RPC listener on the specified port.
  *
- * @param service The name of the service to listen on (@see getaddrinfo).
+ * @param service The port to listen on.
  */
 void EndpointManager::AddListener(string service)
 {
@@ -87,8 +87,8 @@ void EndpointManager::AddListener(string service)
 /**
  * Creates a new JSON-RPC client and connects to the specified host and port.
  *
- * @param node The remote host (@see getaddrinfo).
- * @param service The remote port (@see getaddrinfo).
+ * @param node The remote host.
+ * @param service The remote port.
  */
 void EndpointManager::AddConnection(string node, string service)
 {

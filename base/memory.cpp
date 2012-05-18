@@ -29,11 +29,11 @@ Memory::Memory(void)
 }
 
 /**
- * Allocates memory. Throws an exception if no memory is available. Alignment
- * guarantees are the same like for malloc().
+ * Allocates memory. Alignment guarantees are the same like for malloc().
  *
  * @param size The size of the requested memory block.
  * @returns A new block of memory.
+ * @exception OutOfMemoryException No more memory is available.
  */
 void *Memory::Allocate(size_t size)
 {
@@ -46,11 +46,12 @@ void *Memory::Allocate(size_t size)
 }
 
 /**
- * Resizes a block of memory. Throws an exception if no memory is available.
+ * Resizes a block of memory.
  *
  * @param ptr The old memory block or NULL.
  * @param size The requested new size of the block.
  * @returns A pointer to the new memory block.
+ * @exception OutOfMemoryException No more memory is available.
  */
 void *Memory::Reallocate(void *ptr, size_t size)
 {
@@ -63,10 +64,11 @@ void *Memory::Reallocate(void *ptr, size_t size)
 }
 
 /**
- * Duplicates a string. Throws an exception if no memory is available.
+ * Duplicates a string.
  *
  * @param str The string.
  * @returns A copy of the string.
+ * @exception OutOfMemoryException No more memory is available.
  */
 char *Memory::StrDup(const char *str)
 {

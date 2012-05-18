@@ -26,7 +26,7 @@ namespace icinga
 DEFINE_EXCEPTION_CLASS(OutOfMemoryException);
 
 /**
- * Singleton class which implements memory allocation helpers.
+ * Memory allocation helper functions.
  *
  * @ingroup base
  */

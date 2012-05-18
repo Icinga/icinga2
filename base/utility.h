@@ -24,7 +24,7 @@ namespace icinga
 {
 
 /**
- * Utility functions.
+ * Helper functions.
  *
  * @ingroup base
  */
@@ -39,7 +39,10 @@ private:
 
 public:
 	/**
-	 * Returns the type name of an object (using RTTI).
+	 * Returns a human-readable type name of an object (using RTTI).
+	 *
+	 * @param value An object.
+	 * @returns The type name of the object.
 	 */
 	template<class T>
 	static string GetTypeName(const T& value)
