@@ -1,18 +1,28 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl Created by Anjuta application wizard.
 
-AC_INIT(icinga, 2.0)
+m4_include([m4/ax_cxx_gcc_abi_demangle.m4])
+m4_include([m4/ax_check_compile_flag.m4])
+m4_include([m4/ax_pthread.m4])
+m4_include([m4/ax_prog_doxygen.m4])
+
+AC_INIT([icinga], [2.0])
 
 AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([1.11])
-
-m4_include([m4/ax_cxx_gcc_abi_demangle.m4])
-m4_include([m4/ax_check_compile_flag.m4])
-m4_include([m4/ax_pthread.m4])
-
 AM_SILENT_RULES([yes])
+
+DX_HTML_FEATURE(ON)
+DX_CHM_FEATURE(OFF)
+DX_CHI_FEATURE(OFF)
+DX_MAN_FEATURE(OFF)
+DX_RTF_FEATURE(OFF)
+DX_XML_FEATURE(OFF)
+DX_PDF_FEATURE(OFF)
+DX_PS_FEATURE(OFF)
+DX_INIT_DOXYGEN([icinga], [Doxyfile], [doc])
 
 AC_PROG_CXX
 AX_CXX_GCC_ABI_DEMANGLE
@@ -61,4 +71,5 @@ icinga/Makefile
 icinga-app/Makefile
 jsonrpc/Makefile
 mmatch/Makefile
+Doxyfile
 ])

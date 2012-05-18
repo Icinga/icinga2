@@ -1,6 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 ## Created by Anjuta
 
+include aminclude.am
+
 SUBDIRS = ltdl \
 	mmatch \
 	cJSON \
