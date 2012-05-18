@@ -95,10 +95,6 @@ using namespace std::tr1::placeholders;
 #	define I2_BASE_API I2_IMPORT
 #endif /* I2_BASE_BUILD */
 
-#include "mutex.h"
-#include "lock.h"
-#include "condvar.h"
-#include "thread.h"
 #include "utility.h"
 #include "object.h"
 #include "exception.h"

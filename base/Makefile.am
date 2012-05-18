@@ -9,8 +9,6 @@ libbase_la_SOURCES =  \
 	application.h \
 	component.cpp \
 	component.h \
-	condvar.cpp \
-	condvar.h \
 	configcollection.cpp \
 	configcollection.h \
 	confighive.cpp \
@@ -27,12 +25,8 @@ libbase_la_SOURCES =  \
 	fifo.cpp \
 	fifo.h \
 	i2-base.h \
-	lock.cpp \
-	lock.h \
 	memory.cpp \
 	memory.h \
-	mutex.cpp \
-	mutex.h \
 	object.cpp \
 	object.h \
 	socket.cpp \
@@ -43,8 +37,6 @@ libbase_la_SOURCES =  \
 	tcpserver.h \
 	tcpsocket.cpp \
 	tcpsocket.h \
-	thread.cpp \
-	thread.h \
 	timer.cpp \
 	timer.h \
 	tlsclient.cpp \
