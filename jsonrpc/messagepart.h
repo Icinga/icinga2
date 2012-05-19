@@ -50,12 +50,25 @@ public:
 
 	Dictionary::Ptr GetDictionary(void) const;
 
+	/**
+	 * Retrieves a property's value.
+	 *
+	 * @param key The name of the property.
+	 * @param[out] The value.
+	 * @returns true if the value was retrieved, false otherwise.
+	 */
 	template<typename T>
 	bool GetProperty(string key, T *value) const
 	{
 		return GetDictionary()->GetProperty(key, value);
 	}
 
+	/**
+	 * Sets a property's value.
+	 *
+	 * @param key The name of the property.
+	 * @param value The value.
+	 */
 	template<typename T>
 	void SetProperty(string key, const T& value)
 	{
@@ -65,6 +78,11 @@ public:
 	bool GetProperty(string key, MessagePart *value) const;
 	void SetProperty(string key, const MessagePart& value);
 
+	/**
+	 * Adds an item to the message using an automatically generated property name.
+	 *
+	 * @param value The value.
+	 */
 	template<typename T>
 	void AddUnnamedProperty(const T& value)
 	{
@@ -75,8 +93,6 @@ public:
 
 	DictionaryIterator Begin(void);
 	DictionaryIterator End(void);
-
-	operator Dictionary::Ptr(void);
 };
 
 }

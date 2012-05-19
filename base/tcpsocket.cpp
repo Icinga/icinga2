@@ -26,7 +26,7 @@ using namespace icinga;
  *
  * @param family The socket family for the new socket.
  */
-void TCPSocket::MakeSocket(int family)
+void TcpSocket::MakeSocket(int family)
 {
 	assert(GetFD() == INVALID_SOCKET);
 
@@ -47,7 +47,7 @@ void TCPSocket::MakeSocket(int family)
  * @param service The service.
  * @param family The address family for the socket.
  */
-void TCPSocket::Bind(string service, int family)
+void TcpSocket::Bind(string service, int family)
 {
 	Bind(string(), service, family);
 }
@@ -58,7 +58,7 @@ void TCPSocket::Bind(string service, int family)
  * @param service The service.
  * @param family The address family for the socket.
  */
-void TCPSocket::Bind(string node, string service, int family)
+void TcpSocket::Bind(string node, string service, int family)
 {
 	addrinfo hints;
 	addrinfo *result;

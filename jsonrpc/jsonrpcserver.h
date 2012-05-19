@@ -28,7 +28,7 @@ namespace icinga
  *
  * @ingroup jsonrpc
  */
-class I2_JSONRPC_API JsonRpcServer : public TCPServer
+class I2_JSONRPC_API JsonRpcServer : public TcpServer
 {
 public:
 	typedef shared_ptr<JsonRpcServer> Ptr;

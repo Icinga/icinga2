@@ -42,7 +42,7 @@ struct I2_BASE_API VerifyCertificateEventArgs : public EventArgs
  *
  * @ingroup base
  */
-class I2_BASE_API TLSClient : public TCPClient
+class I2_BASE_API TlsClient : public TcpClient
 {
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
@@ -67,7 +67,7 @@ protected:
 	void HandleSSLError(void);
 
 public:
-	TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);
+	TlsClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
 
 	shared_ptr<X509> GetClientCertificate(void) const;
 	shared_ptr<X509> GetPeerCertificate(void) const;
@@ -80,7 +80,7 @@ public:
 	Observable<VerifyCertificateEventArgs> OnVerifyCertificate;
 };
 
-TCPClient::Ptr TLSClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);
+TcpClient::Ptr TlsClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
 
 }
 

@@ -30,7 +30,7 @@ namespace icinga
  */
 struct I2_BASE_API NewClientEventArgs : public EventArgs
 {
-	TCPSocket::Ptr Client; /**< The new client object. */
+	TcpSocket::Ptr Client; /**< The new client object. */
 };
 
 /**
@@ -39,21 +39,21 @@ struct I2_BASE_API NewClientEventArgs : public EventArgs
  *
  * @ingroup base
  */
-class I2_BASE_API TCPServer : public TCPSocket
+class I2_BASE_API TcpServer : public TcpSocket
 {
 private:
 	int ReadableEventHandler(const EventArgs& ea);
 
-	function<TCPClient::Ptr()> m_ClientFactory;
+	function<TcpClient::Ptr()> m_ClientFactory;
 
 public:
-	typedef shared_ptr<TCPServer> Ptr;
-	typedef weak_ptr<TCPServer> WeakPtr;
+	typedef shared_ptr<TcpServer> Ptr;
+	typedef weak_ptr<TcpServer> WeakPtr;
 
-	TCPServer(void);
+	TcpServer(void);
 
-	void SetClientFactory(function<TCPClient::Ptr()> function);
-	function<TCPClient::Ptr()> GetFactoryFunction(void) const;
+	void SetClientFactory(function<TcpClient::Ptr()> function);
+	function<TcpClient::Ptr()> GetFactoryFunction(void) const;
 
 	virtual void Start();
 

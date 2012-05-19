@@ -30,9 +30,6 @@ namespace icinga
  */
 struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
 {
-	typedef shared_ptr<NewMessageEventArgs> Ptr;
-	typedef weak_ptr<NewMessageEventArgs> WeakPtr;
-
 	icinga::MessagePart Message;
 };
 
@@ -41,16 +38,16 @@ struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
  *
  * @ingroup jsonrpc
  */
-class I2_JSONRPC_API JsonRpcClient : public TLSClient
+class I2_JSONRPC_API JsonRpcClient : public TlsClient
 {
 private:
-	int DataAvailableHandler(const EventArgs& ea);
+	int DataAvailableHandler(const EventArgs&);
 
 public:
 	typedef shared_ptr<JsonRpcClient> Ptr;
 	typedef weak_ptr<JsonRpcClient> WeakPtr;
 
-	JsonRpcClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);
+	JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
 
 	void SendMessage(const MessagePart& message);
 
@@ -59,7 +56,7 @@ public:
 	Observable<NewMessageEventArgs> OnNewMessage;
 };
 
-TCPClient::Ptr JsonRpcClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> sslContext);
+JsonRpcClient::Ptr JsonRpcClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
 
 }
 

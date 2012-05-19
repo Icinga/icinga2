@@ -30,9 +30,6 @@ namespace icinga
  */
 struct I2_ICINGA_API NewRequestEventArgs : public EventArgs
 {
-	typedef shared_ptr<NewRequestEventArgs> Ptr;
-	typedef weak_ptr<NewRequestEventArgs> WeakPtr;
-
 	Endpoint::Ptr Sender;
 	RpcRequest Request;
 };

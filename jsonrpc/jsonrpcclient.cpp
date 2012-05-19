@@ -21,21 +21,38 @@
 
 using namespace icinga;
 
-JsonRpcClient::JsonRpcClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext)
-    : TLSClient(role, sslContext) { }
+/**
+ * Constructor for the JsonRpcClient class.
+ *
+ * @param role The role of the underlying TCP client.
+ * @param sslContext SSL context for the TLS connection.
+ */
+JsonRpcClient::JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
+    : TlsClient(role, sslContext) { }
 
 void JsonRpcClient::Start(void)
 {
-	TLSClient::Start();
+	TlsClient::Start();
 
 	OnDataAvailable += bind_weak(&JsonRpcClient::DataAvailableHandler, shared_from_this());
 }
 
+/**
+ * Sends a message to the connected peer.
+ *
+ * @param message The message.
+ */
 void JsonRpcClient::SendMessage(const MessagePart& message)
 {
 	Netstring::WriteStringToFIFO(GetSendQueue(), message.ToJsonString());
 }
 
+/**
+ * Processes inbound data.
+ *
+ * @param - Event arguments for the event.
+ * @returns 0
+ */
 int JsonRpcClient::DataAvailableHandler(const EventArgs&)
 {
 	for (;;) {
@@ -56,14 +73,21 @@ int JsonRpcClient::DataAvailableHandler(const EventArgs&)
 			Application::Log("Exception while processing message from JSON-RPC client: " + string(ex.GetMessage()));
 			Close();
 
-			return 1;
+			return 0;
 		}
 	}
 
 	return 0;
 }
 
-TCPClient::Ptr icinga::JsonRpcClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> sslContext)
+/**
+ * Factory function for JSON-RPC clients.
+ *
+ * @param role The role of the underlying TCP client.
+ * @param sslContext SSL context for the TLS connection.
+ * @returns A new JSON-RPC client.
+ */
+JsonRpcClient::Ptr icinga::JsonRpcClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
 {
 	return make_shared<JsonRpcClient>(role, sslContext);
 }

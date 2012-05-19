@@ -22,11 +22,20 @@
 
 using namespace icinga;
 
+/**
+ * Constructor for the MessagePart class.
+ */
 MessagePart::MessagePart(void)
 {
 	m_Dictionary = make_shared<Dictionary>();
 }
 
+/**
+ * Constructor for the MessagePart class.
+ *
+ * @param jsonString The JSON string that should be used to initialize
+ *		     the message.
+ */
 MessagePart::MessagePart(string jsonString)
 {
 	json_t *json = cJSON_Parse(jsonString.c_str());
@@ -39,16 +48,32 @@ MessagePart::MessagePart(string jsonString)
 	cJSON_Delete(json);
 }
 
+/**
+ * Constructor for the MessagePart class.
+ *
+ * @param dictionary The dictionary that this MessagePart object should wrap.
+ */
 MessagePart::MessagePart(const Dictionary::Ptr& dictionary)
 {
 	m_Dictionary = dictionary;
 }
 
+/**
+ * Copy-constructor for the MessagePart class.
+ *
+ * @param message The message that should be copied.
+ */
 MessagePart::MessagePart(const MessagePart& message)
 {
 	m_Dictionary = message.GetDictionary();
 }
 
+/**
+ * Converts a JSON object to a dictionary.
+ *
+ * @param json The JSON object.
+ * @returns A dictionary that is equivalent to the JSON object.
+ */
 Dictionary::Ptr MessagePart::GetDictionaryFromJson(json_t *json)
 {
 	Dictionary::Ptr dictionary = make_shared<Dictionary>();
@@ -72,6 +97,13 @@ Dictionary::Ptr MessagePart::GetDictionaryFromJson(json_t *json)
 	return dictionary;
 }
 
+/**
+ * Converts a dictionary to a JSON object.
+ *
+ * @param dictionary The dictionary.
+ * @returns A JSON object that is equivalent to the dictionary. Values that
+ *	    cannot be represented in JSON are omitted.
+ */
 json_t *MessagePart::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
 {
 	cJSON *json;
@@ -102,6 +134,11 @@ json_t *MessagePart::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
 	return json;
 }
 
+/**
+ * Converts a message into a JSON string.
+ *
+ * @returns A JSON string representing the message.
+ */
 string MessagePart::ToJsonString(void) const
 {
 	json_t *json = GetJsonFromDictionary(m_Dictionary);
@@ -123,11 +160,23 @@ string MessagePart::ToJsonString(void) const
 	return result;
 }
 
+/**
+ * Retrieves the underlying dictionary for this message.
+ *
+ * @returns A dictionary.
+ */
 Dictionary::Ptr MessagePart::GetDictionary(void) const
 {
 	return m_Dictionary;
 }
 
+/**
+ * Retrieves a property's value.
+ *
+ * @param key The name of the property.
+ * @param[out] The value.
+ * @returns true if the value was retrieved, false otherwise.
+ */
 bool MessagePart::GetProperty(string key, MessagePart *value) const
 {
 	Object::Ptr object;
@@ -142,27 +191,45 @@ bool MessagePart::GetProperty(string key, MessagePart *value) const
 	return true;
 }
 
+/**
+ * Sets a property's value.
+ *
+ * @param key The name of the property.
+ * @param value The value.
+ */
 void MessagePart::SetProperty(string key, const MessagePart& value)
 {
 	GetDictionary()->SetProperty(key, value.GetDictionary());
 }
 
+/**
+ * Adds an item to the message using an automatically generated property name.
+ *
+ * @param value The value.
+ */
 void MessagePart::AddUnnamedProperty(const MessagePart& value)
 {
 	GetDictionary()->AddUnnamedProperty(value.GetDictionary());
 }
 
+/**
+ * Returns an iterator that points to the first element of the dictionary
+ * which holds the properties for the message.
+ *
+ * @returns An iterator.
+ */
 DictionaryIterator MessagePart::Begin(void)
 {
 	return GetDictionary()->Begin();
 }
 
+/**
+ * Returns an iterator that points past the last element of the dictionary
+ * which holds the properties for the message.
+ *
+ * @returns An iterator.
+ */
 DictionaryIterator MessagePart::End(void)
 {
 	return GetDictionary()->End();
-}
-
-MessagePart::operator Dictionary::Ptr(void)
-{
-	return GetDictionary();
 }

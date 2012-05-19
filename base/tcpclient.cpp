@@ -22,11 +22,11 @@
 using namespace icinga;
 
 /**
- * Constructor for the TCPClient class.
+ * Constructor for the TcpClient class.
  *
  * @param role The role of the TCP client socket.
  */
-TCPClient::TCPClient(TCPClientRole role)
+TcpClient::TcpClient(TcpClientRole role)
 {
 	m_Role = role;
 
@@ -39,7 +39,7 @@ TCPClient::TCPClient(TCPClientRole role)
  *
  * @returns The role.
  */
-TCPClientRole TCPClient::GetRole(void) const
+TcpClientRole TcpClient::GetRole(void) const
 {
 	return m_Role;
 }
@@ -47,12 +47,12 @@ TCPClientRole TCPClient::GetRole(void) const
 /**
  * Registers the socket and starts processing events for it.
  */
-void TCPClient::Start(void)
+void TcpClient::Start(void)
 {
-	TCPSocket::Start();
+	TcpSocket::Start();
 
-	OnReadable += bind_weak(&TCPClient::ReadableEventHandler, shared_from_this());
-	OnWritable += bind_weak(&TCPClient::WritableEventHandler, shared_from_this());
+	OnReadable += bind_weak(&TcpClient::ReadableEventHandler, shared_from_this());
+	OnWritable += bind_weak(&TcpClient::WritableEventHandler, shared_from_this());
 }
 
 /**
@@ -61,7 +61,7 @@ void TCPClient::Start(void)
  * @param node The node.
  * @param service The service.
  */
-void TCPClient::Connect(const string& node, const string& service)
+void TcpClient::Connect(const string& node, const string& service)
 {
 	m_Role = RoleOutbound;
 
@@ -114,7 +114,7 @@ void TCPClient::Connect(const string& node, const string& service)
  *
  * @returns The send queue.
  */
-FIFO::Ptr TCPClient::GetSendQueue(void)
+FIFO::Ptr TcpClient::GetSendQueue(void)
 {
 	return m_SendQueue;
 }
@@ -124,7 +124,7 @@ FIFO::Ptr TCPClient::GetSendQueue(void)
  *
  * @returns The recv queue.
  */
-FIFO::Ptr TCPClient::GetRecvQueue(void)
+FIFO::Ptr TcpClient::GetRecvQueue(void)
 {
 	return m_RecvQueue;
 }
@@ -135,7 +135,7 @@ FIFO::Ptr TCPClient::GetRecvQueue(void)
  * @param - Event arguments.
  * @returns 0
  */
-int TCPClient::ReadableEventHandler(const EventArgs&)
+int TcpClient::ReadableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -170,7 +170,7 @@ int TCPClient::ReadableEventHandler(const EventArgs&)
  * @param - Event arguments.
  * @returns 0
  */
-int TCPClient::WritableEventHandler(const EventArgs&)
+int TcpClient::WritableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -191,7 +191,7 @@ int TCPClient::WritableEventHandler(const EventArgs&)
  *
  * @returns true
  */
-bool TCPClient::WantsToRead(void) const
+bool TcpClient::WantsToRead(void) const
 {
 	return true;
 }
@@ -201,7 +201,7 @@ bool TCPClient::WantsToRead(void) const
  *
  * @returns true if data should be written, false otherwise.
  */
-bool TCPClient::WantsToWrite(void) const
+bool TcpClient::WantsToWrite(void) const
 {
 	return (m_SendQueue->GetSize() > 0);
 }
@@ -212,7 +212,7 @@ bool TCPClient::WantsToWrite(void) const
  * @param role The role of the new client.
  * @returns The new client.
  */
-TCPClient::Ptr icinga::TCPClientFactory(TCPClientRole role)
+TcpClient::Ptr icinga::TcpClientFactory(TcpClientRole role)
 {
-	return make_shared<TCPClient>(role);
+	return make_shared<TcpClient>(role);
 }

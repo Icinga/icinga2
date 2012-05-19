@@ -21,6 +21,11 @@
 
 using namespace icinga;
 
+/**
+ * Constructor for the JsonRpcServer class.
+ *
+ * @param sslContext SSL context that should be used for client connections.
+ */
 JsonRpcServer::JsonRpcServer(shared_ptr<SSL_CTX> sslContext)
 {
 	SetClientFactory(bind(&JsonRpcClientFactory, RoleInbound, sslContext));

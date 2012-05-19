@@ -22,11 +22,11 @@
 using namespace icinga;
 
 /**
- * Constructor for the TCPServer class.
+ * Constructor for the TcpServer class.
  */
-TCPServer::TCPServer(void)
+TcpServer::TcpServer(void)
 {
-	m_ClientFactory = bind(&TCPClientFactory, RoleInbound);
+	m_ClientFactory = bind(&TcpClientFactory, RoleInbound);
 }
 
 /**
@@ -34,7 +34,7 @@ TCPServer::TCPServer(void)
  *
  * @param clientFactory The client factory function.
  */
-void TCPServer::SetClientFactory(function<TCPClient::Ptr()> clientFactory)
+void TcpServer::SetClientFactory(function<TcpClient::Ptr()> clientFactory)
 {
 	m_ClientFactory = clientFactory;
 }
@@ -44,7 +44,7 @@ void TCPServer::SetClientFactory(function<TCPClient::Ptr()> clientFactory)
  *
  * @returns The client factory function.
  */
-function<TCPClient::Ptr()> TCPServer::GetFactoryFunction(void) const
+function<TcpClient::Ptr()> TcpServer::GetFactoryFunction(void) const
 {
 	return m_ClientFactory;
 }
@@ -52,17 +52,17 @@ function<TCPClient::Ptr()> TCPServer::GetFactoryFunction(void) const
 /**
  * Registers the TCP server and starts processing events for it.
  */
-void TCPServer::Start(void)
+void TcpServer::Start(void)
 {
-	TCPSocket::Start();
+	TcpSocket::Start();
 
-	OnReadable += bind_weak(&TCPServer::ReadableEventHandler, shared_from_this());
+	OnReadable += bind_weak(&TcpServer::ReadableEventHandler, shared_from_this());
 }
 
 /**
  * Starts listening for incoming client connections.
  */
-void TCPServer::Listen(void)
+void TcpServer::Listen(void)
 {
 	int rc = listen(GetFD(), SOMAXCONN);
 
@@ -79,7 +79,7 @@ void TCPServer::Listen(void)
  * @param - Event arguments.
  * @returns 0
  */
-int TCPServer::ReadableEventHandler(const EventArgs&)
+int TcpServer::ReadableEventHandler(const EventArgs&)
 {
 	int fd;
 	sockaddr_storage addr;
@@ -94,7 +94,7 @@ int TCPServer::ReadableEventHandler(const EventArgs&)
 
 	NewClientEventArgs nea;
 	nea.Source = shared_from_this();
-	nea.Client = static_pointer_cast<TCPSocket>(m_ClientFactory());
+	nea.Client = static_pointer_cast<TcpSocket>(m_ClientFactory());
 	nea.Client->SetFD(fd);
 	nea.Client->Start();
 	OnNewClient(nea);
@@ -107,7 +107,7 @@ int TCPServer::ReadableEventHandler(const EventArgs&)
  *
  * @returns true
  */
-bool TCPServer::WantsToRead(void) const
+bool TcpServer::WantsToRead(void) const
 {
 	return true;
 }

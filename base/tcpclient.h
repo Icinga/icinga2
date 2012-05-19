@@ -28,7 +28,7 @@ namespace icinga
  *
  * @ingroup base
  */
-enum TCPClientRole
+enum TcpClientRole
 {
 	RoleInbound, /**< Inbound socket, i.e. one that was returned
 			  from accept(). */
@@ -41,10 +41,10 @@ enum TCPClientRole
  *
  * @ingroup base
  */
-class I2_BASE_API TCPClient : public TCPSocket
+class I2_BASE_API TcpClient : public TcpSocket
 {
 private:
-	TCPClientRole m_Role;
+	TcpClientRole m_Role;
 
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
@@ -53,12 +53,12 @@ private:
 	virtual int WritableEventHandler(const EventArgs& ea);
 
 public:
-	typedef shared_ptr<TCPClient> Ptr;
-	typedef weak_ptr<TCPClient> WeakPtr;
+	typedef shared_ptr<TcpClient> Ptr;
+	typedef weak_ptr<TcpClient> WeakPtr;
 
-	TCPClient(TCPClientRole role);
+	TcpClient(TcpClientRole role);
 
-	TCPClientRole GetRole(void) const;
+	TcpClientRole GetRole(void) const;
 
 	virtual void Start(void);
 
@@ -74,13 +74,13 @@ public:
 };
 
 /**
- * Returns a new unconnected TCPClient object that has the specified
+ * Returns a new unconnected TcpClient object that has the specified
  * connection role.
  *
  * @param role The role of the new object.
- * @returns A new TCPClient object.
+ * @returns A new TcpClient object.
  */
-TCPClient::Ptr TCPClientFactory(TCPClientRole role);
+TcpClient::Ptr TcpClientFactory(TcpClientRole role);
 
 }
 

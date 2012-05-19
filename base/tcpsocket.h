@@ -28,14 +28,14 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API TCPSocket : public Socket
+class I2_BASE_API TcpSocket : public Socket
 {
 private:
 	void MakeSocket(int family);
 
 public:
-	typedef shared_ptr<TCPSocket> Ptr;
-	typedef weak_ptr<TCPSocket> WeakPtr;
+	typedef shared_ptr<TcpSocket> Ptr;
+	typedef weak_ptr<TcpSocket> WeakPtr;
 
 	void Bind(string service, int family);
 	void Bind(string node, string service, int family);

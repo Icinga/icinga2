@@ -21,16 +21,16 @@
 
 using namespace icinga;
 
-int I2_EXPORT TLSClient::m_SSLIndex;
-bool I2_EXPORT TLSClient::m_SSLIndexInitialized = false;
+int I2_EXPORT TlsClient::m_SSLIndex;
+bool I2_EXPORT TlsClient::m_SSLIndexInitialized = false;
 
 /**
- * Constructor for the TLSClient class.
+ * Constructor for the TlsClient class.
  *
  * @param role The role of the client.
  * @param sslContext The SSL context for the client.
  */
-TLSClient::TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext) : TCPClient(role)
+TlsClient::TlsClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext) : TcpClient(role)
 {
 	m_SSLContext = sslContext;
 	m_BlockRead = false;
@@ -42,7 +42,7 @@ TLSClient::TLSClient(TCPClientRole role, shared_ptr<SSL_CTX> sslContext) : TCPCl
  *
  * @param certificate An X509 certificate.
  */
-void TLSClient::NullCertificateDeleter(X509 *certificate)
+void TlsClient::NullCertificateDeleter(X509 *certificate)
 {
 	/* Nothing to do here. */
 }
@@ -52,9 +52,9 @@ void TLSClient::NullCertificateDeleter(X509 *certificate)
  *
  * @returns The X509 certificate.
  */
-shared_ptr<X509> TLSClient::GetClientCertificate(void) const
+shared_ptr<X509> TlsClient::GetClientCertificate(void) const
 {
-	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &TLSClient::NullCertificateDeleter);
+	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &TlsClient::NullCertificateDeleter);
 }
 
 /**
@@ -62,7 +62,7 @@ shared_ptr<X509> TLSClient::GetClientCertificate(void) const
  *
  * @returns The X509 certificate.
  */
-shared_ptr<X509> TLSClient::GetPeerCertificate(void) const
+shared_ptr<X509> TlsClient::GetPeerCertificate(void) const
 {
 	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
@@ -70,9 +70,9 @@ shared_ptr<X509> TLSClient::GetPeerCertificate(void) const
 /**
  * Registers the TLS socket and starts processing events for it.
  */
-void TLSClient::Start(void)
+void TlsClient::Start(void)
 {
-	TCPClient::Start();
+	TcpClient::Start();
 
 	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
@@ -83,14 +83,14 @@ void TLSClient::Start(void)
 		throw InvalidArgumentException("No X509 client certificate was specified.");
 
 	if (!m_SSLIndexInitialized) {
-		m_SSLIndex = SSL_get_ex_new_index(0, (void *)"TLSClient", NULL, NULL, NULL);
+		m_SSLIndex = SSL_get_ex_new_index(0, (void *)"TlsClient", NULL, NULL, NULL);
 		m_SSLIndexInitialized = true;
 	}
 
 	SSL_set_ex_data(m_SSL.get(), m_SSLIndex, this);
 
 	SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
-	    &TLSClient::SSLVerifyCertificate);
+	    &TlsClient::SSLVerifyCertificate);
 
 	BIO *bio = BIO_new_socket(GetFD(), 0);
 	SSL_set_bio(m_SSL.get(), bio, bio);
@@ -109,7 +109,7 @@ void TLSClient::Start(void)
  * @param - Event arguments.
  * @returns 0
  */
-int TLSClient::ReadableEventHandler(const EventArgs&)
+int TlsClient::ReadableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -153,7 +153,7 @@ int TLSClient::ReadableEventHandler(const EventArgs&)
  * @param - Event arguments.
  * @returns 0
  */
-int TLSClient::WritableEventHandler(const EventArgs&)
+int TlsClient::WritableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -190,7 +190,7 @@ int TLSClient::WritableEventHandler(const EventArgs&)
  *
  * @returns true if data should be read, false otherwise.
  */
-bool TLSClient::WantsToRead(void) const
+bool TlsClient::WantsToRead(void) const
 {
 	if (SSL_want_read(m_SSL.get()))
 		return true;
@@ -198,7 +198,7 @@ bool TLSClient::WantsToRead(void) const
 	if (m_BlockRead)
 		return false;
 
-	return TCPClient::WantsToRead();
+	return TcpClient::WantsToRead();
 }
 
 /**
@@ -206,7 +206,7 @@ bool TLSClient::WantsToRead(void) const
  *
  * @returns true if data should be written, false otherwise.
  */
-bool TLSClient::WantsToWrite(void) const
+bool TlsClient::WantsToWrite(void) const
 {
 	if (SSL_want_write(m_SSL.get()))
 		return true;
@@ -214,7 +214,7 @@ bool TLSClient::WantsToWrite(void) const
 	if (m_BlockWrite)
 		return false;
 
-	return TCPClient::WantsToWrite();
+	return TcpClient::WantsToWrite();
 }
 
 /**
@@ -222,17 +222,17 @@ bool TLSClient::WantsToWrite(void) const
  *
  * @param from_dtor Whether this method was invoked from the destructor.
  */
-void TLSClient::CloseInternal(bool from_dtor)
+void TlsClient::CloseInternal(bool from_dtor)
 {
 	SSL_shutdown(m_SSL.get());
 
-	TCPClient::CloseInternal(from_dtor);
+	TcpClient::CloseInternal(from_dtor);
 }
 
 /**
  * Handles an OpenSSL error.
  */
-void TLSClient::HandleSSLError(void)
+void TlsClient::HandleSSLError(void)
 {
 	int code = ERR_get_error();
 
@@ -248,15 +248,15 @@ void TLSClient::HandleSSLError(void)
 }
 
 /**
- * Factory function for the TLSClient class.
+ * Factory function for the TlsClient class.
  *
  * @param role The role of the TLS socket.
  * @param sslContext The SSL context for the socket.
  * @returns A new TLS socket.
  */
-TCPClient::Ptr icinga::TLSClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> sslContext)
+TcpClient::Ptr icinga::TlsClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
 {
-	return make_shared<TLSClient>(role, sslContext);
+	return make_shared<TlsClient>(role, sslContext);
 }
 
 /**
@@ -266,10 +266,10 @@ TCPClient::Ptr icinga::TLSClientFactory(TCPClientRole role, shared_ptr<SSL_CTX> 
  * @param x509Context X509 context for the certificate.
  * @returns 1 if the verification was successful, 0 otherwise.
  */
-int TLSClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
+int TlsClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
 {
 	SSL *ssl = (SSL *)X509_STORE_CTX_get_ex_data(x509Context, SSL_get_ex_data_X509_STORE_CTX_idx());
-	TLSClient *client = (TLSClient *)SSL_get_ex_data(ssl, m_SSLIndex);
+	TlsClient *client = (TlsClient *)SSL_get_ex_data(ssl, m_SSLIndex);
 
 	if (client == NULL)
 		return 0;
@@ -278,7 +278,7 @@ int TLSClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
 	vcea.Source = client->shared_from_this();
 	vcea.ValidCertificate = (ok != 0);
 	vcea.Context = x509Context;
-	vcea.Certificate = shared_ptr<X509>(x509Context->cert, &TLSClient::NullCertificateDeleter);
+	vcea.Certificate = shared_ptr<X509>(x509Context->cert, &TlsClient::NullCertificateDeleter);
 	client->OnVerifyCertificate(vcea);
 
 	return (int)vcea.ValidCertificate;

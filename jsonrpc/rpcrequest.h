@@ -30,49 +30,100 @@ namespace icinga
  */
 class I2_JSONRPC_API RpcRequest : public MessagePart
 {
-
 public:
+	/**
+	 * Constructor for the RpcRequest class.
+	 */
 	RpcRequest(void) : MessagePart() {
 		SetVersion("2.0");
 	}
 
+	/**
+	 * Copy-constructor for the RpcRequest class.
+	 *
+	 * @param message The message that is to be copied.
+	 */
 	RpcRequest(const MessagePart& message) : MessagePart(message) { }
 
+	/**
+	 * Retrieves the version of the JSON-RPC protocol.
+	 *
+	 * @param[out] value The value.
+	 * @returns true if the value was retrieved, false otherwise.
+	 */
 	inline bool GetVersion(string *value) const
 	{
 		return GetProperty("jsonrpc", value);
 	}
 
+	/**
+	 * Sets the version of the JSON-RPC protocol that should be used.
+	 *
+	 * @param value The version.
+	 */
 	inline void SetVersion(const string& value)
 	{
 		SetProperty("jsonrpc", value);
 	}
 
+	/**
+	 * Retrieves the method of the JSON-RPC call.
+	 *
+	 * @param[out] value The method.
+	 * @returns true if the value was retrieved, false otherwise.
+	 */
 	inline bool GetMethod(string *value) const
 	{
 		return GetProperty("method", value);
 	}
 
+	/**
+	 * Sets the method for the JSON-RPC call.
+	 *
+	 * @param value The method.
+	 */
 	inline void SetMethod(const string& value)
 	{
 		SetProperty("method", value);
 	}
 
+	/**
+	 * Retrieves the parameters of the JSON-RPC call.
+	 *
+	 * @param[out] value The parameters.
+	 * @returns true if the value was retrieved, false otherwise.
+	 */
 	inline bool GetParams(MessagePart *value) const
 	{
 		return GetProperty("params", value);
 	}
 
+	/**
+	 * Sets the parameters for the JSON-RPC call.
+	 *
+	 * @param value The parameters.
+	 */
 	inline void SetParams(const MessagePart& value)
 	{
 		SetProperty("params", value);
 	}
 
+	/**
+	 * Retrieves the ID of the JSON-RPC call.
+	 *
+	 * @param[out] value The ID.
+	 * @return true if the value was retrieved, false otherwise.
+	 */
 	inline bool GetID(string *value) const
 	{
 		return GetProperty("id", value);
 	}
 
+	/**
+	 * Sets the ID for the JSON-RPC call.
+	 *
+	 * @param value The ID.
+	 */
 	inline void SetID(const string& value)
 	{
 		SetProperty("id", value);
