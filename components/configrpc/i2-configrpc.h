@@ -20,6 +20,12 @@
 #ifndef I2CONFIGRPC_H
 #define I2CONFIGRPC_H
 
+/**
+ * @defgroup configrpc ConfigRpc component
+ *
+ * The ConfigRpc component replicates configuration objects to other peers.
+ */
+
 #include <i2-base.h>
 #include <i2-jsonrpc.h>
 #include <i2-icinga.h>

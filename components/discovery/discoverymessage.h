@@ -4,6 +4,9 @@
 namespace icinga
 {
 
+/**
+ * @ingroup discovery
+ */
 class DiscoveryMessage : public MessagePart
 {
 

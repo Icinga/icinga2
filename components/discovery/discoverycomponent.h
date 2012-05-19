@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * @ingroup discovery
+ */
 class ComponentDiscoveryInfo : public Object
 {
 public:
@@ -38,6 +41,9 @@ public:
 	time_t LastSeen;
 };
 
+/**
+ * @ingroup discovery
+ */
 class DiscoveryComponent : public IcingaComponent
 {
 private:

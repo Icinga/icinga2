@@ -58,6 +58,12 @@ typedef Component *(*CreateComponentFunction)(void);
 #	define SYM_CREATECOMPONENT(component) component ## _LTX_CreateComponent
 #endif /* _WIN32 */
 
+/**
+ * Implements the loader function for a component.
+ *
+ * @param component The name of the component.
+ * @param klass The component class.
+ */
 #define EXPORT_COMPONENT(component, klass) \
 	extern "C" I2_EXPORT icinga::Component *SYM_CREATECOMPONENT(component)(void) \
 	{								\

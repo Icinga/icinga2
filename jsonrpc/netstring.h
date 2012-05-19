@@ -32,7 +32,8 @@ DEFINE_EXCEPTION_CLASS(InvalidNetstringException);
 
 /**
  * Helper functions for reading/writing messages in the netstring format.
- * See http://cr.yp.to/proto/netstrings.txt for details.
+ *
+ * @see http://cr.yp.to/proto/netstrings.txt
  *
  * @ingroup jsonrpc
  */

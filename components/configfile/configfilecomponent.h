@@ -23,8 +23,16 @@
 namespace icinga
 {
 
+/**
+ * Thrown when a parser error occurs while reading a config file.
+ *
+ * @ingroup configfile
+ */
 DEFINE_EXCEPTION_CLASS(ConfigParserException);
 
+/**
+ * @ingroup configfile
+ */
 class ConfigFileComponent : public IcingaComponent
 {
 public:

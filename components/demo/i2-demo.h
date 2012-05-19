@@ -20,6 +20,12 @@
 #ifndef I2DEMO_H
 #define I2DEMO_H
 
+/**
+ * @defgroup demo Demo component
+ *
+ * The demo component periodically sends demo messages.
+ */
+
 #include <i2-base.h>
 #include <i2-jsonrpc.h>
 #include <i2-icinga.h>

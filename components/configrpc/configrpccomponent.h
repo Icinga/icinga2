@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * @ingroup configrpc
+ */
 class ConfigRpcComponent : public IcingaComponent
 {
 private:
@@ -38,7 +41,8 @@ private:
 	int RemoteObjectCommittedHandler(const NewRequestEventArgs& ea);
 	int RemoteObjectRemovedHandler(const NewRequestEventArgs& ea);
 
-	static RpcRequest MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties);
+	static RpcRequest MakeObjectMessage(const ConfigObject::Ptr& object,
+	    string method, bool includeProperties);
 
 	static bool ShouldReplicateObject(const ConfigObject::Ptr& object);
 public:

@@ -20,6 +20,13 @@
 #ifndef I2DISCOVERY_H
 #define I2DISCOVERY_H
 
+/**
+ * @defgroup discovery Discovery component
+ *
+ * The Discovery component takes care of connecting peers to each other
+ * and performs authorisation checks for the message subscriptions.
+ */
+
 #include <i2-base.h>
 #include <i2-jsonrpc.h>
 #include <i2-icinga.h>

@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * @ingroup demo
+ */
 class DemoComponent : public IcingaComponent
 {
 private:

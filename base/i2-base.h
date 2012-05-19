@@ -30,16 +30,18 @@
  *
  * The framework's code critically depends on the following patterns:
  *
- * -Smart pointers
+ * <list type="bullet">
+ * <item>Smart pointers
  *
  * The shared_ptr and weak_ptr template classes are used to simplify memory
- * management and to avoid accidental memory leaks and use-after-free bugs.
+ * management and to avoid accidental memory leaks and use-after-free bugs.</item>
  *
- * -Observer pattern
+ * <item>Observer pattern
  *
  * Framework classes expose events which other objects can subscribe to. This
  * is used to decouple clients of a class from the class' internal
- * implementation.
+ * implementation.</item>
+ * </list>
  */
 
 /**

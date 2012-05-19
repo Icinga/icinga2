@@ -20,6 +20,13 @@
 #ifndef I2CONFIGFILECOMPONENT_H
 #define I2CONFIGFILECOMPONENT_H
 
+/**
+ * @defgroup configfile ConfigFile component
+ *
+ * The ConfigFile component reads configuration objects from a configuration
+ * file
+ */
+
 #include <i2-base.h>
 #include <i2-icinga.h>
 
