@@ -22,6 +22,9 @@
 
 /**
  * @defgroup icinga Icinga application
+ *
+ * The Icinga application is in charge of boot-strapping the Icinga
+ * environment and loading additional components.
  */
 
 #include <i2-base.h>

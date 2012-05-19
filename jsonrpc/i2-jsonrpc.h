@@ -22,6 +22,9 @@
 
 /**
  * @defgroup jsonrpc JSON-RPC
+ *
+ * The JSON-RPC library implements server and client classes for the JSON-RPC
+ * protocol.
  */
 
 #include <map>

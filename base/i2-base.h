@@ -21,13 +21,32 @@
 #define I2BASE_H
 
 /**
- * @mainpage Foo
+ * @mainpage Icinga Documentation
+ *
+ * Icinga implements a framework for run-time-loadable components which can
+ * pass messages between them. These components can either be hosted in the
+ * same process or in several host processes (either on the same machine or
+ * on different machines).
+ *
+ * The framework's code critically depends on the following patterns:
+ *
+ * -Smart pointers
+ *
+ * The shared_ptr and weak_ptr template classes are used to simplify memory
+ * management and to avoid accidental memory leaks and use-after-free bugs.
+ *
+ * -Observer pattern
+ *
+ * Framework classes expose events which other objects can subscribe to. This
+ * is used to decouple clients of a class from the class' internal
+ * implementation.
  */
 
 /**
  * @defgroup base Base class library
  *
- * Hello World.
+ * The base class library implements commonly-used functionality like
+ * event handling for sockets and timers.
  */
 
 #ifdef _MSC_VER
