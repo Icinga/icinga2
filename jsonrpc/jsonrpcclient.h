@@ -40,9 +40,6 @@ struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
  */
 class I2_JSONRPC_API JsonRpcClient : public TlsClient
 {
-private:
-	int DataAvailableHandler(const EventArgs&);
-
 public:
 	typedef shared_ptr<JsonRpcClient> Ptr;
 	typedef weak_ptr<JsonRpcClient> WeakPtr;
@@ -54,6 +51,9 @@ public:
 	virtual void Start(void);
 
 	Observable<NewMessageEventArgs> OnNewMessage;
+
+private:
+	int DataAvailableHandler(const EventArgs&);
 };
 
 JsonRpcClient::Ptr JsonRpcClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);

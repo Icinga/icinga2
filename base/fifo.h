@@ -30,15 +30,6 @@ namespace icinga
  */
 class I2_BASE_API FIFO : public Object
 {
-private:
-	char *m_Buffer;
-	size_t m_DataSize;
-	size_t m_AllocSize;
-	size_t m_Offset;
-
-	void ResizeBuffer(size_t newSize);
-	void Optimize(void);
-
 public:
 	static const size_t BlockSize = 16 * 1024;
 
@@ -55,6 +46,15 @@ public:
 
 	size_t Read(void *buffer, size_t count);
 	size_t Write(const void *buffer, size_t count);
+
+private:
+	char *m_Buffer;
+	size_t m_DataSize;
+	size_t m_AllocSize;
+	size_t m_Offset;
+
+	void ResizeBuffer(size_t newSize);
+	void Optimize(void);
 };
 
 }

@@ -33,9 +33,6 @@ typedef map<string, Variant>::iterator DictionaryIterator;
  */
 class I2_BASE_API Dictionary : public Object
 {
-private:
-	map<string, Variant> m_Data;
-
 public:
 	typedef shared_ptr<Dictionary> Ptr;
 	typedef weak_ptr<Dictionary> WeakPtr;
@@ -99,6 +96,9 @@ public:
 	DictionaryIterator End(void);
 
 	long GetLength(void) const;
+
+private:
+	map<string, Variant> m_Data;
 };
 
 }

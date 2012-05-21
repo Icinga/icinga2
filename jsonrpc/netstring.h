@@ -39,12 +39,12 @@ DEFINE_EXCEPTION_CLASS(InvalidNetstringException);
  */
 class I2_JSONRPC_API Netstring
 {
-private:
-	Netstring(void);
-
 public:
 	static bool ReadStringFromFIFO(FIFO::Ptr fifo, string *message);
 	static void WriteStringToFIFO(FIFO::Ptr fifo, const string& message);
+
+private:
+	Netstring(void);
 };
 
 }

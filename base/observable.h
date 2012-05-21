@@ -44,10 +44,6 @@ class Observable
 public:
 	typedef function<int (const TArgs&)> ObserverType;
 
-private:
-	vector<ObserverType> m_Observers;
-
-public:
 	/**
 	 * Adds an observer to this event.
 	 *
@@ -89,6 +85,9 @@ public:
 				i++;
 		}
 	}
+
+private:
+	vector<ObserverType> m_Observers;
 };
 
 }

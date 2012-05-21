@@ -34,12 +34,6 @@ typedef ::cJSON json_t;
  */
 class I2_JSONRPC_API MessagePart
 {
-private:
-	Dictionary::Ptr m_Dictionary;
-
-	static Dictionary::Ptr GetDictionaryFromJson(json_t *json);
-	static json_t *GetJsonFromDictionary(const Dictionary::Ptr& dictionary);
-
 public:
 	MessagePart(void);
 	MessagePart(string json);
@@ -93,6 +87,12 @@ public:
 
 	DictionaryIterator Begin(void);
 	DictionaryIterator End(void);
+
+private:
+	Dictionary::Ptr m_Dictionary;
+
+	static Dictionary::Ptr GetDictionaryFromJson(json_t *json);
+	static json_t *GetJsonFromDictionary(const Dictionary::Ptr& dictionary);
 };
 
 }

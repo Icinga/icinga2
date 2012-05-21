@@ -43,15 +43,6 @@ enum TcpClientRole
  */
 class I2_BASE_API TcpClient : public TcpSocket
 {
-private:
-	TcpClientRole m_Role;
-
-	FIFO::Ptr m_SendQueue;
-	FIFO::Ptr m_RecvQueue;
-
-	virtual int ReadableEventHandler(const EventArgs& ea);
-	virtual int WritableEventHandler(const EventArgs& ea);
-
 public:
 	typedef shared_ptr<TcpClient> Ptr;
 	typedef weak_ptr<TcpClient> WeakPtr;
@@ -71,6 +62,15 @@ public:
 	virtual bool WantsToWrite(void) const;
 
 	Observable<EventArgs> OnDataAvailable;
+
+private:
+	TcpClientRole m_Role;
+
+	FIFO::Ptr m_SendQueue;
+	FIFO::Ptr m_RecvQueue;
+
+	virtual int ReadableEventHandler(const EventArgs& ea);
+	virtual int WritableEventHandler(const EventArgs& ea);
 };
 
 /**

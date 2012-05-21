@@ -30,13 +30,6 @@ namespace icinga
  */
 class I2_BASE_API Utility
 {
-private:
-	static bool m_SSLInitialized;
-
-	Utility(void);
-
-	static void InitializeOpenSSL(void);
-
 public:
 	/**
 	 * Returns a human-readable type name of an object (using RTTI).
@@ -69,6 +62,13 @@ public:
 	static shared_ptr<X509> GetX509Certificate(string pemfile);
 
 	static bool Match(string pattern, string text);
+
+private:
+	static bool m_SSLInitialized;
+
+	Utility(void);
+
+	static void InitializeOpenSSL(void);
 };
 
 }

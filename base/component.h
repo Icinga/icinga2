@@ -31,9 +31,6 @@ namespace icinga
  */
 class I2_BASE_API Component : public Object
 {
-private:
-	ConfigObject::Ptr m_Config;
-
 public:
 	typedef shared_ptr<Component> Ptr;
 	typedef weak_ptr<Component> WeakPtr;
@@ -44,6 +41,9 @@ public:
 	virtual string GetName(void) const = 0;
 	virtual void Start(void) = 0;
 	virtual void Stop(void) = 0;
+
+private:
+	ConfigObject::Ptr m_Config;
 };
 
 typedef Component *(*CreateComponentFunction)(void);

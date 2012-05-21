@@ -44,18 +44,6 @@ enum VariantType
  */
 class I2_BASE_API Variant
 {
-private:
-	mutable VariantType m_Type; /**< The type of the Variant. */
-
-	mutable long m_IntegerValue; /**< The value of the Variant
-				          if m_Type == VariantInteger */
-	mutable string m_StringValue; /**< The value of the Variant
-				           if m_Type == VariantString */
-	mutable Object::Ptr m_ObjectValue; /**< The value of the Variant
-					        if m_Type == VariantObject */
-
-	void Convert(VariantType newType) const;
-
 public:
 	inline Variant(void) : m_Type(VariantEmpty) { }
 
@@ -86,6 +74,18 @@ public:
 	operator long(void) const;
 	operator string(void) const;
 	operator Object::Ptr(void) const;
+
+private:
+	mutable VariantType m_Type; /**< The type of the Variant. */
+
+	mutable long m_IntegerValue; /**< The value of the Variant
+				          if m_Type == VariantInteger */
+	mutable string m_StringValue; /**< The value of the Variant
+				           if m_Type == VariantString */
+	mutable Object::Ptr m_ObjectValue; /**< The value of the Variant
+					        if m_Type == VariantObject */
+
+	void Convert(VariantType newType) const;
 };
 
 }

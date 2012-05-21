@@ -41,17 +41,6 @@ struct I2_BASE_API TimerEventArgs : public EventArgs
  */
 class I2_BASE_API Timer : public Object
 {
-private:
-	EventArgs m_UserArgs; /**< User-specified event arguments. */
-	unsigned int m_Interval; /**< The interval of the timer. */
-	time_t m_Next; /**< When the next event should happen. */
-
-	static time_t NextCall; /**< When the next event should happen (for all timers). */
-
-	static void RescheduleTimers(void);
-
-	void Call(void);
-
 public:
 	typedef shared_ptr<Timer> Ptr;
 	typedef weak_ptr<Timer> WeakPtr;
@@ -77,6 +66,17 @@ public:
 	void Reschedule(time_t next);
 
 	Observable<TimerEventArgs> OnTimerExpired;
+
+private:
+	EventArgs m_UserArgs; /**< User-specified event arguments. */
+	unsigned int m_Interval; /**< The interval of the timer. */
+	time_t m_Next; /**< When the next event should happen. */
+
+	static time_t NextCall; /**< When the next event should happen (for all timers). */
+
+	static void RescheduleTimers(void);
+
+	void Call(void);
 };
 
 }

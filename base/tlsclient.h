@@ -44,6 +44,22 @@ struct I2_BASE_API VerifyCertificateEventArgs : public EventArgs
  */
 class I2_BASE_API TlsClient : public TcpClient
 {
+public:
+	TlsClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
+
+	shared_ptr<X509> GetClientCertificate(void) const;
+	shared_ptr<X509> GetPeerCertificate(void) const;
+
+	virtual void Start(void);
+
+	virtual bool WantsToRead(void) const;
+	virtual bool WantsToWrite(void) const;
+
+	Observable<VerifyCertificateEventArgs> OnVerifyCertificate;
+
+protected:
+	void HandleSSLError(void);
+
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	shared_ptr<SSL> m_SSL;
@@ -62,22 +78,6 @@ private:
 	static void NullCertificateDeleter(X509 *certificate);
 
 	static int SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context);
-
-protected:
-	void HandleSSLError(void);
-
-public:
-	TlsClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
-
-	shared_ptr<X509> GetClientCertificate(void) const;
-	shared_ptr<X509> GetPeerCertificate(void) const;
-
-	virtual void Start(void);
-
-	virtual bool WantsToRead(void) const;
-	virtual bool WantsToWrite(void) const;
-
-	Observable<VerifyCertificateEventArgs> OnVerifyCertificate;
 };
 
 TcpClient::Ptr TlsClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);

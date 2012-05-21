@@ -32,21 +32,6 @@ class EndpointManager;
  */
 class I2_ICINGA_API Endpoint : public Object
 {
-private:
-	string m_Identity; /**< The identity of this endpoint. */
-	set<string> m_Subscriptions; /**< The topics this endpoint is
-					  subscribed to. */
-	set<string> m_Publications; /**< The topics this endpoint is
-				         publishing. */
-	bool m_ReceivedWelcome; /**< Have we received a welcome message
-				     from this endpoint? */
-	bool m_SentWelcome; /**< Have we sent a welcome message to this
-			         endpoint? */
-
-	weak_ptr<EndpointManager> m_EndpointManager; /**< The endpoint manager
-						          this endpoint is
-							  registered with. */
-
 public:
 	typedef shared_ptr<Endpoint> Ptr;
 	typedef weak_ptr<Endpoint> WeakPtr;
@@ -96,6 +81,21 @@ public:
 
 	Observable<EventArgs> OnIdentityChanged;
 	Observable<EventArgs> OnSessionEstablished;
+
+private:
+	string m_Identity; /**< The identity of this endpoint. */
+	set<string> m_Subscriptions; /**< The topics this endpoint is
+					  subscribed to. */
+	set<string> m_Publications; /**< The topics this endpoint is
+				         publishing. */
+	bool m_ReceivedWelcome; /**< Have we received a welcome message
+				     from this endpoint? */
+	bool m_SentWelcome; /**< Have we sent a welcome message to this
+			         endpoint? */
+
+	weak_ptr<EndpointManager> m_EndpointManager; /**< The endpoint manager
+						          this endpoint is
+							  registered with. */
 };
 
 }

@@ -36,28 +36,6 @@ public:
 	typedef shared_ptr<Application> Ptr;
 	typedef weak_ptr<Application> WeakPtr;
 
-private:
-	static Application::Ptr m_Instance;
-
-	bool m_ShuttingDown; /**< Whether the application is in the process of
-				  shutting down. */
-	ConfigHive::Ptr m_ConfigHive; /**< The application's configuration. */
-	map< string, shared_ptr<Component> > m_Components; /**< Components that
-					were loaded by the application. */
-	vector<string> m_Arguments; /**< Command-line arguments */
-	bool m_Debugging; /**< Whether debugging is enabled. */
-
-#ifndef _WIN32
-	static void SigIntHandler(int signum);
-#else /* _WIN32 */
-	static BOOL WINAPI CtrlHandler(DWORD type);
-#endif /* _WIN32 */
-
-protected:
-	void RunEventLoop(void);
-	string GetExeDirectory(void) const;
-
-public:
 	Application(void);
 	~Application(void);
 
@@ -81,6 +59,27 @@ public:
 	void AddComponentSearchDir(const string& componentDirectory);
 
 	bool IsDebugging(void) const;
+
+protected:
+	void RunEventLoop(void);
+	string GetExeDirectory(void) const;
+
+private:
+	static Application::Ptr m_Instance;
+
+	bool m_ShuttingDown; /**< Whether the application is in the process of
+				  shutting down. */
+	ConfigHive::Ptr m_ConfigHive; /**< The application's configuration. */
+	map< string, shared_ptr<Component> > m_Components; /**< Components that
+					were loaded by the application. */
+	vector<string> m_Arguments; /**< Command-line arguments */
+	bool m_Debugging; /**< Whether debugging is enabled. */
+
+#ifndef _WIN32
+	static void SigIntHandler(int signum);
+#else /* _WIN32 */
+	static BOOL WINAPI CtrlHandler(DWORD type);
+#endif /* _WIN32 */
 };
 
 }

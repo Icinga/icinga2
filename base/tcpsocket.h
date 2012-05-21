@@ -30,15 +30,15 @@ namespace icinga
  */
 class I2_BASE_API TcpSocket : public Socket
 {
-private:
-	void MakeSocket(int family);
-
 public:
 	typedef shared_ptr<TcpSocket> Ptr;
 	typedef weak_ptr<TcpSocket> WeakPtr;
 
 	void Bind(string service, int family);
 	void Bind(string node, string service, int family);
+
+private:
+	void MakeSocket(int family);
 };
 
 }

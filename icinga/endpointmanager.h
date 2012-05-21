@@ -40,17 +40,6 @@ struct I2_ICINGA_API NewEndpointEventArgs : public EventArgs
  */
 class I2_ICINGA_API EndpointManager : public Object
 {
-	string m_Identity;
-	shared_ptr<SSL_CTX> m_SSLContext;
-
-	vector<JsonRpcServer::Ptr> m_Servers;
-	vector<Endpoint::Ptr> m_Endpoints;
-
-	void RegisterServer(JsonRpcServer::Ptr server);
-	void UnregisterServer(JsonRpcServer::Ptr server);
-
-	int NewClientHandler(const NewClientEventArgs& ncea);
-
 public:
 	typedef shared_ptr<EndpointManager> Ptr;
 	typedef weak_ptr<EndpointManager> WeakPtr;
@@ -76,8 +65,18 @@ public:
 	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
 
 	Observable<NewEndpointEventArgs> OnNewEndpoint;
-};
 
+private:
+	string m_Identity;
+	shared_ptr<SSL_CTX> m_SSLContext;
+
+	vector<JsonRpcServer::Ptr> m_Servers;
+	vector<Endpoint::Ptr> m_Endpoints;
+
+	void RegisterServer(JsonRpcServer::Ptr server);
+	void UnregisterServer(JsonRpcServer::Ptr server);
+
+	int NewClientHandler(const NewClientEventArgs& ncea);
 }
 
 #endif /* ENDPOINTMANAGER_H */

@@ -40,19 +40,6 @@ struct I2_BASE_API SocketErrorEventArgs : public EventArgs
  */
 class I2_BASE_API Socket : public Object
 {
-private:
-	SOCKET m_FD; /**< The socket descriptor. */
-
-	int ExceptionEventHandler(const EventArgs& ea);
-
-	static string GetAddressFromSockaddr(sockaddr *address, socklen_t len);
-
-protected:
-	Socket(void);
-
-	void HandleSocketError(void);
-	virtual void CloseInternal(bool from_dtor);
-
 public:
 	typedef shared_ptr<Socket> Ptr;
 	typedef weak_ptr<Socket> WeakPtr;
@@ -83,6 +70,19 @@ public:
 
 	string GetClientAddress(void);
 	string GetPeerAddress(void);
+
+protected:
+	Socket(void);
+
+	void HandleSocketError(void);
+	virtual void CloseInternal(bool from_dtor);
+
+private:
+	SOCKET m_FD; /**< The socket descriptor. */
+
+	int ExceptionEventHandler(const EventArgs& ea);
+
+	static string GetAddressFromSockaddr(sockaddr *address, socklen_t len);
 };
 
 }

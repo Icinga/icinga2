@@ -31,17 +31,6 @@ namespace icinga
  */
 class I2_ICINGA_API JsonRpcEndpoint : public Endpoint
 {
-private:
-	shared_ptr<SSL_CTX> m_SSLContext;
-	string m_Address;
-	JsonRpcClient::Ptr m_Client;
-	map<string, Endpoint::Ptr> m_PendingCalls;
-
-	int NewMessageHandler(const NewMessageEventArgs& nmea);
-	int ClientClosedHandler(const EventArgs& ea);
-	int ClientErrorHandler(const SocketErrorEventArgs& ea);
-	int VerifyCertificateHandler(const VerifyCertificateEventArgs& ea);
-
 public:
 	typedef shared_ptr<JsonRpcEndpoint> Ptr;
 	typedef weak_ptr<JsonRpcEndpoint> WeakPtr;
@@ -62,6 +51,17 @@ public:
 	virtual void ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& message);
 
 	virtual void Stop(void);
+
+private:
+	shared_ptr<SSL_CTX> m_SSLContext;
+	string m_Address;
+	JsonRpcClient::Ptr m_Client;
+	map<string, Endpoint::Ptr> m_PendingCalls;
+
+	int NewMessageHandler(const NewMessageEventArgs& nmea);
+	int ClientClosedHandler(const EventArgs& ea);
+	int ClientErrorHandler(const SocketErrorEventArgs& ea);
+	int VerifyCertificateHandler(const VerifyCertificateEventArgs& ea);
 };
 
 }

@@ -41,11 +41,6 @@ struct I2_BASE_API NewClientEventArgs : public EventArgs
  */
 class I2_BASE_API TcpServer : public TcpSocket
 {
-private:
-	int ReadableEventHandler(const EventArgs& ea);
-
-	function<TcpClient::Ptr()> m_ClientFactory;
-
 public:
 	typedef shared_ptr<TcpServer> Ptr;
 	typedef weak_ptr<TcpServer> WeakPtr;
@@ -62,6 +57,11 @@ public:
 	Observable<NewClientEventArgs> OnNewClient;
 
 	virtual bool WantsToRead(void) const;
+
+private:
+	int ReadableEventHandler(const EventArgs& ea);
+
+	function<TcpClient::Ptr()> m_ClientFactory;
 };
 
 }

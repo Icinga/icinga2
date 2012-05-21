@@ -28,17 +28,17 @@ namespace icinga
  */
 class DemoComponent : public IcingaComponent
 {
+public:
+	virtual string GetName(void) const;
+	virtual void Start(void);
+	virtual void Stop(void);
+
 private:
 	Timer::Ptr m_DemoTimer;
 	VirtualEndpoint::Ptr m_DemoEndpoint;
 
 	int DemoTimerHandler(const TimerEventArgs& tea);
 	int HelloWorldRequestHandler(const NewRequestEventArgs& nrea);
-
-public:
-	virtual string GetName(void) const;
-	virtual void Start(void);
-	virtual void Stop(void);
 };
 
 }

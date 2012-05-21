@@ -30,12 +30,6 @@ namespace icinga
  */
 class I2_BASE_API Exception : public exception
 {
-private:
-	char *m_Message;
-
-protected:
-	void SetMessage(const char *message);
-
 public:
 	Exception(void);
 	Exception(const char *message);
@@ -44,6 +38,12 @@ public:
 	const char *GetMessage(void) const;
 
 	virtual const char *what(void) const throw();
+
+protected:
+	void SetMessage(const char *message);
+
+private:
+	char *m_Message;
 };
 
 #define DEFINE_EXCEPTION_CLASS(klass)					\

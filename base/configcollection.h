@@ -32,9 +32,6 @@ class ConfigHive;
  */
 class I2_BASE_API ConfigCollection : public Object
 {
-private:
-	weak_ptr<ConfigHive> m_Hive;
-
 public:
 	typedef shared_ptr<ConfigCollection> Ptr;
 	typedef weak_ptr<ConfigCollection> WeakPtr;
@@ -54,6 +51,10 @@ public:
 
 	Observable<EventArgs> OnObjectCommitted;
 	Observable<EventArgs> OnObjectRemoved;
+
+private:
+	weak_ptr<ConfigHive> m_Hive;
+
 };
 
 }

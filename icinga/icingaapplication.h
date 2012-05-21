@@ -30,29 +30,6 @@ namespace icinga
  */
 class I2_ICINGA_API IcingaApplication : public Application
 {
-private:
-	EndpointManager::Ptr m_EndpointManager;
-
-	string m_PrivateKeyFile;
-	string m_PublicKeyFile;
-	string m_CAKeyFile;
-	string m_Node;
-	string m_Service;
-
-	int NewComponentHandler(const EventArgs& ea);
-	int DeletedComponentHandler(const EventArgs& ea);
-
-	int NewIcingaConfigHandler(const EventArgs& ea);
-	int DeletedIcingaConfigHandler(const EventArgs& ea);
-
-	int NewRpcListenerHandler(const EventArgs& ea);
-	int DeletedRpcListenerHandler(const EventArgs& ea);
-
-	int NewRpcConnectionHandler(const EventArgs& ea);
-	int DeletedRpcConnectionHandler(const EventArgs& ea);
-
-	int TestTimerHandler(const TimerEventArgs& tea);
-
 public:
 	typedef shared_ptr<IcingaApplication> Ptr;
 	typedef weak_ptr<IcingaApplication> WeakPtr;
@@ -75,6 +52,27 @@ public:
 
 	void SetService(string service);
 	string GetService(void) const;
+
+private:
+	EndpointManager::Ptr m_EndpointManager;
+
+	string m_PrivateKeyFile;
+	string m_PublicKeyFile;
+	string m_CAKeyFile;
+	string m_Node;
+	string m_Service;
+
+	int NewComponentHandler(const EventArgs& ea);
+	int DeletedComponentHandler(const EventArgs& ea);
+
+	int NewIcingaConfigHandler(const EventArgs& ea);
+	int DeletedIcingaConfigHandler(const EventArgs& ea);
+
+	int NewRpcListenerHandler(const EventArgs& ea);
+	int DeletedRpcListenerHandler(const EventArgs& ea);
+
+	int NewRpcConnectionHandler(const EventArgs& ea);
+	int DeletedRpcConnectionHandler(const EventArgs& ea);
 };
 
 }

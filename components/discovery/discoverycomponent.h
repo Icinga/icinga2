@@ -46,6 +46,11 @@ public:
  */
 class DiscoveryComponent : public IcingaComponent
 {
+public:
+	virtual string GetName(void) const;
+	virtual void Start(void);
+	virtual void Stop(void);
+
 private:
 	VirtualEndpoint::Ptr m_DiscoveryEndpoint;
 	map<string, ComponentDiscoveryInfo::Ptr> m_Components;
@@ -76,11 +81,6 @@ private:
 	bool HasMessagePermission(Dictionary::Ptr roles, string messageType, string message);
 
 	static const int RegistrationTTL = 300;
-
-public:
-	virtual string GetName(void) const;
-	virtual void Start(void);
-	virtual void Stop(void);
 };
 
 }

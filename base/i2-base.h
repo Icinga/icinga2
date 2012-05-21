@@ -24,8 +24,8 @@
  * @mainpage Icinga Documentation
  *
  * Icinga implements a framework for run-time-loadable components which can
- * pass messages between them. These components can either be hosted in the
- * same process or in several host processes (either on the same machine or
+ * pass messages between each other. These components can either be hosted in
+ * the same process or in several host processes (either on the same machine or
  * on different machines).
  *
  * The framework's code critically depends on the following patterns:
@@ -34,7 +34,8 @@
  * <item>Smart pointers
  *
  * The shared_ptr and weak_ptr template classes are used to simplify memory
- * management and to avoid accidental memory leaks and use-after-free bugs.</item>
+ * management and to avoid accidental memory leaks and use-after-free
+ * bugs.</item>
  *
  * <item>Observer pattern
  *

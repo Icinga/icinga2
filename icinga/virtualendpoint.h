@@ -41,9 +41,6 @@ struct I2_ICINGA_API NewRequestEventArgs : public EventArgs
  */
 class I2_ICINGA_API VirtualEndpoint : public Endpoint
 {
-private:
-	map< string, Observable<NewRequestEventArgs> > m_TopicHandlers;
-
 public:
 	typedef shared_ptr<VirtualEndpoint> Ptr;
 	typedef weak_ptr<VirtualEndpoint> WeakPtr;
@@ -60,6 +57,9 @@ public:
 	virtual void ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& message);
 
 	virtual void Stop(void);
+
+private:
+	map< string, Observable<NewRequestEventArgs> > m_TopicHandlers;
 };
 
 }

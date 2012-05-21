@@ -34,13 +34,6 @@ class ConfigHive;
  */
 class I2_BASE_API ConfigObject : public Dictionary
 {
-private:
-	weak_ptr<ConfigHive> m_Hive;
-
-	string m_Name;
-	string m_Type;
-	bool m_Replicated;
-
 public:
 	typedef shared_ptr<ConfigObject> Ptr;
 	typedef weak_ptr<ConfigObject> WeakPtr;
@@ -60,6 +53,13 @@ public:
 	bool GetReplicated(void) const;
 
 	void Commit(void);
+
+private:
+	weak_ptr<ConfigHive> m_Hive;
+
+	string m_Name;
+	string m_Type;
+	bool m_Replicated;
 };
 
 }
