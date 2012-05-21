@@ -73,7 +73,7 @@ int DemoComponent::DemoTimerHandler(const TimerEventArgs&)
 {
 	Application::Log("Sending multicast 'hello world' message.");
 
-	RpcRequest request;
+	RequestMessage request;
 	request.SetMethod("demo::HelloWorld");
 
 	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();

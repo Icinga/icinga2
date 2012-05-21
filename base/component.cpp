@@ -22,26 +22,6 @@
 using namespace icinga;
 
 /**
- * Sets the application this component belongs to.
- *
- * @param application The application.
- */
-void Component::SetApplication(const Application::WeakPtr& application)
-{
-	m_Application = application;
-}
-
-/**
- * Retrieves the application this component belongs to.
- *
- * @returns The application.
- */
-Application::Ptr Component::GetApplication(void) const
-{
-	return m_Application.lock();
-}
-
-/**
  * Sets the configuration for this component.
  *
  * @param componentConfig The configuration.

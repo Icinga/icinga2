@@ -73,7 +73,7 @@ int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
 
 int ConfigRpcComponent::SessionEstablishedHandler(const EventArgs& ea)
 {
-	RpcRequest request;
+	RequestMessage request;
 	request.SetMethod("config::FetchObjects");
 
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(ea.Source);
@@ -82,9 +82,9 @@ int ConfigRpcComponent::SessionEstablishedHandler(const EventArgs& ea)
 	return 0;
 }
 
-RpcRequest ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
+RequestMessage ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
 {
-	RpcRequest msg;
+	RequestMessage msg;
 	msg.SetMethod(method);
 
 	MessagePart params;
@@ -121,7 +121,7 @@ int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 			if (!ShouldReplicateObject(object))
 				continue;
 
-			RpcRequest request = MakeObjectMessage(object, "config::ObjectCreated", true);
+			RequestMessage request = MakeObjectMessage(object, "config::ObjectCreated", true);
 
 			GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, client, request);
 		}
@@ -158,7 +158,7 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
 
 int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& ea)
 {
-	RpcRequest message = ea.Request;
+	RequestMessage message = ea.Request;
 	bool was_null = false;
 
 	MessagePart params;
@@ -199,7 +199,7 @@ int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& 
 
 int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea)
 {
-	RpcRequest message = ea.Request;
+	RequestMessage message = ea.Request;
 	
 	MessagePart params;
 	if (!message.GetParams(&params))

@@ -32,15 +32,11 @@ namespace icinga
 class I2_BASE_API Component : public Object
 {
 private:
-	Application::WeakPtr m_Application;
 	ConfigObject::Ptr m_Config;
 
 public:
 	typedef shared_ptr<Component> Ptr;
 	typedef weak_ptr<Component> WeakPtr;
-
-	void SetApplication(const Application::WeakPtr& application);
-	Application::Ptr GetApplication(void) const;
 
 	void SetConfig(const ConfigObject::Ptr& componentConfig);
 	ConfigObject::Ptr GetConfig(void) const;

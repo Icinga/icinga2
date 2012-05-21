@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-Application::Ptr I2_EXPORT Application::Instance;
+Application::Ptr I2_EXPORT Application::m_Instance;
 
 /**
  * Constructor for the Application class.
@@ -72,6 +72,16 @@ Application::~Application(void)
 #else /* _WIN32 */
 	//lt_dlexit();
 #endif /* _WIN32 */
+}
+
+/**
+ * Retrieves a pointer to the application singleton object.
+ *
+ * @returns The application object.
+ */
+Application::Ptr Application::GetInstance(void)
+{
+	return m_Instance;
 }
 
 /**
@@ -246,7 +256,6 @@ Component::Ptr Application::LoadComponent(const string& path,
  */
 void Application::RegisterComponent(Component::Ptr component)
 {
-	component->SetApplication(static_pointer_cast<Application>(shared_from_this()));
 	m_Components[component->GetName()] = component;
 
 	component->Start();
@@ -418,12 +427,23 @@ void Application::SigIntHandler(int signum)
 {
 	assert(signum == SIGINT);
 
-	Application::Instance->Shutdown();
+	Application::GetInstance()->Shutdown();
 
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
 	sigaction(SIGINT, &sa, NULL);
+}
+#else /* _WIN32 */
+/**
+ * Console control handler. Prepares the application for cleanly
+ * shutting down during the next execution of the event loop.
+ */
+BOOL WINAPI Application::CtrlHandler(DWORD type)
+{
+	Application::GetInstance()->Shutdown();
+	SetConsoleCtrlHandler(NULL, FALSE);
+	return TRUE;
 }
 #endif /* _WIN32 */
 
@@ -438,17 +458,19 @@ int Application::Run(int argc, char **argv)
 {
 	int result;
 
-	assert(!Application::Instance);
-	Application::Instance = static_pointer_cast<Application>(shared_from_this());
+	assert(!Application::m_Instance);
+	Application::m_Instance = static_pointer_cast<Application>(shared_from_this());
 
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = Application::SigIntHandler;
+	sa.sa_handler = &Application::SigIntHandler;
 	sigaction(SIGINT, &sa, NULL);
 
 	sa.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sa, NULL);
+#else
+	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
 	m_Arguments.clear();
@@ -458,12 +480,12 @@ int Application::Run(int argc, char **argv)
 	if (IsDebugging()) {
 		result = Main(m_Arguments);
 
-		Application::Instance.reset();
+		Application::m_Instance.reset();
 	} else {
 		try {
 			result = Main(m_Arguments);
 		} catch (const exception& ex) {
-			Application::Instance.reset();
+			Application::m_Instance.reset();
 
 			Application::Log("---");
 			Application::Log("Exception: " + Utility::GetTypeName(ex));

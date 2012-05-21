@@ -283,7 +283,7 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 	// we assume the other component _always_ wants
 	// discovery::Welcome messages from us
 	endpoint->RegisterSubscription("discovery::Welcome");
-	RpcRequest request;
+	RequestMessage request;
 	request.SetMethod("discovery::Welcome");
 	GetEndpointManager()->SendUnicastMessage(m_DiscoveryEndpoint, endpoint, request);
 
@@ -306,7 +306,7 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
  */
 void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, Endpoint::Ptr recipient)
 {
-	RpcRequest request;
+	RequestMessage request;
 	request.SetMethod(method);
 	
 	DiscoveryMessage params;
@@ -348,7 +348,7 @@ bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string mess
 	if (!roles)
 		return false;
 
-	ConfigHive::Ptr configHive = GetApplication()->GetConfigHive();
+	ConfigHive::Ptr configHive = GetConfigHive();
 	ConfigCollection::Ptr roleCollection = configHive->GetCollection("role");
 
 	for (DictionaryIterator ip = roles->Begin(); ip != roles->End(); ip++) {
@@ -395,7 +395,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	message.GetNode(&info->Node);
 	message.GetService(&info->Service);
 
-	ConfigHive::Ptr configHive = GetApplication()->GetConfigHive();
+	ConfigHive::Ptr configHive = GetConfigHive();
 	ConfigCollection::Ptr endpointCollection = configHive->GetCollection("endpoint");
 
 	ConfigObject::Ptr endpointConfig = endpointCollection->GetObject(identity);
@@ -526,7 +526,7 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 	time(&now);
 
 	/* check whether we have to reconnect to one of our upstream endpoints */
-	ConfigCollection::Ptr endpointCollection = GetApplication()->GetConfigHive()->GetCollection("endpoint");
+	ConfigCollection::Ptr endpointCollection = GetConfigHive()->GetCollection("endpoint");
 	endpointCollection->ForEachObject(bind(&DiscoveryComponent::EndpointConfigHandler, this, _1));
 
 	map<string, ComponentDiscoveryInfo::Ptr>::iterator curr, i;

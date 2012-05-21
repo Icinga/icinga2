@@ -23,7 +23,8 @@ using namespace icinga;
 
 IcingaApplication::Ptr IcingaComponent::GetIcingaApplication(void) const
 {
-	return static_pointer_cast<IcingaApplication>(GetApplication());
+	Application::Ptr application = Application::GetInstance();
+	return static_pointer_cast<IcingaApplication>(application);
 }
 
 EndpointManager::Ptr IcingaComponent::GetEndpointManager(void) const

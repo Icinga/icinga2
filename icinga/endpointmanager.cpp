@@ -203,7 +203,7 @@ void EndpointManager::SendUnicastMessage(Endpoint::Ptr sender,
  * @param message The message.
  */
 void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
-    const RpcRequest& message)
+    const RequestMessage& message)
 {
 	throw NotImplementedException();
 }
@@ -216,7 +216,7 @@ void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
  * @param message The message.
  */
 void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
-    const RpcRequest& message)
+    const RequestMessage& message)
 {
 	string id;
 	if (message.GetID(&id))

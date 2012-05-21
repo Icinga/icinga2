@@ -78,6 +78,7 @@ ConfigCollection::Ptr ConfigHive::GetCollection(const string& collection)
 /**
  * Invokes the specified callback for each object contained in this hive.
  *
+ * @param type The config object type.
  * @param callback The callback.
  */
 void ConfigHive::ForEachObject(const string& type,

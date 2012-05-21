@@ -61,7 +61,7 @@ bool JsonRpcEndpoint::IsConnected(void) const
 	return (bool)m_Client;
 }
 
-void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const RpcRequest& message)
+void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage& message)
 {
 	if (IsConnected()) {
 		string id;
@@ -75,7 +75,7 @@ void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const RpcRequest& mes
 	}
 }
 
-void JsonRpcEndpoint::ProcessResponse(Endpoint::Ptr sender, const RpcResponse& message)
+void JsonRpcEndpoint::ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& message)
 {
 	if (IsConnected())
 		m_Client->SendMessage(message);
@@ -91,7 +91,7 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 		if (!HasPublication(method))
 			return 0;
 
-		RpcRequest request = message;
+		RequestMessage request = message;
 
 		string id;
 		if (request.GetID(&id))
@@ -99,7 +99,7 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 		else
 			GetEndpointManager()->SendMulticastMessage(sender, request);
 	} else {
-		RpcResponse response = message;
+		ResponseMessage response = message;
 
 		// TODO: deal with response messages
 		throw NotImplementedException();

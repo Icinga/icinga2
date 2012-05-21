@@ -32,7 +32,13 @@ DEFINE_EXCEPTION_CLASS(ComponentLoadException);
  * @ingroup base
  */
 class I2_BASE_API Application : public Object {
+public:
+	typedef shared_ptr<Application> Ptr;
+	typedef weak_ptr<Application> WeakPtr;
+
 private:
+	static Application::Ptr m_Instance;
+
 	bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */
 	ConfigHive::Ptr m_ConfigHive; /**< The application's configuration. */
@@ -43,6 +49,8 @@ private:
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);
+#else /* _WIN32 */
+	static BOOL WINAPI CtrlHandler(DWORD type);
 #endif /* _WIN32 */
 
 protected:
@@ -50,13 +58,10 @@ protected:
 	string GetExeDirectory(void) const;
 
 public:
-	typedef shared_ptr<Application> Ptr;
-	typedef weak_ptr<Application> WeakPtr;
-
-	static Application::Ptr Instance;
-
 	Application(void);
 	~Application(void);
+
+	static Application::Ptr GetInstance(void);
 
 	int Run(int argc, char **argv);
 

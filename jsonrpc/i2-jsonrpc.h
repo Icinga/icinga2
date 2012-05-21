@@ -37,8 +37,8 @@
 #endif /* I2_JSONRPC_BUILD */
 
 #include "messagepart.h"
-#include "rpcrequest.h"
-#include "rpcresponse.h"
+#include "requestmessage.h"
+#include "responsemessage.h"
 #include "netstring.h"
 #include "jsonrpcclient.h"
 #include "jsonrpcserver.h"

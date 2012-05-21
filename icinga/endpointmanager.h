@@ -68,8 +68,8 @@ public:
 	void UnregisterEndpoint(Endpoint::Ptr endpoint);
 
 	void SendUnicastMessage(Endpoint::Ptr sender, Endpoint::Ptr recipient, const MessagePart& message);
-	void SendAnycastMessage(Endpoint::Ptr sender, const RpcRequest& message);
-	void SendMulticastMessage(Endpoint::Ptr sender, const RpcRequest& message);
+	void SendAnycastMessage(Endpoint::Ptr sender, const RequestMessage& message);
+	void SendMulticastMessage(Endpoint::Ptr sender, const RequestMessage& message);
 
 	void ForEachEndpoint(function<int (const NewEndpointEventArgs&)> callback);
 

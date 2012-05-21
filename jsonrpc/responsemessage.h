@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef RPCRESPONSE_H
-#define RPCRESPONSE_H
+#ifndef RESPONSEMESSAGE_H
+#define RESPONSEMESSAGE_H
 
 namespace icinga
 {
@@ -28,22 +28,22 @@ namespace icinga
  *
  * @ingroup jsonrpc
  */
-class I2_JSONRPC_API RpcResponse : public MessagePart
+class I2_JSONRPC_API ResponseMessage : public MessagePart
 {
 public:
 	/**
-	 * Constructor for the RpcResponse class.
+	 * Constructor for the ResponseMessage class.
 	 */
-	RpcResponse(void) : MessagePart() {
+	ResponseMessage(void) : MessagePart() {
 		SetVersion("2.0");
 	}
 
 	/**
-	 * Copy-constructor for the RpcResponse class.
+	 * Copy-constructor for the ResponseMessage class.
 	 *
 	 * @param message The message that should be copied.
 	 */
-	RpcResponse(const MessagePart& message) : MessagePart(message) { }
+	ResponseMessage(const MessagePart& message) : MessagePart(message) { }
 
 	/**
 	 * Retrieves the version of the JSON-RPC protocol.
@@ -132,4 +132,4 @@ public:
 
 }
 
-#endif /* RPCRESPONSE_H */
+#endif /* RESPONSEMESSAGE_H */

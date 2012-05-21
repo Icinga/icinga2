@@ -14,10 +14,10 @@ libjsonrpc_la_SOURCES = \
 	messagepart.h \
 	netstring.cpp \
 	netstring.h \
-	rpcrequest.cpp \
-	rpcrequest.h \
-	rpcresponse.cpp \
-	rpcresponse.h
+	requestmessage.cpp \
+	requestmessage.h \
+	responsemessage.cpp \
+	responsemessage.h
 
 libjsonrpc_la_CXXFLAGS = \
 	-DI2_JSONRPC_BUILD \

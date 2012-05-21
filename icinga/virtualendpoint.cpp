@@ -54,7 +54,7 @@ void VirtualEndpoint::UnregisterTopicHandler(string topic, function<int (const N
 	throw NotImplementedException();
 }
 
-void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RpcRequest& request)
+void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage& request)
 {
 	string method;
 	if (!request.GetMethod(&method))
@@ -72,7 +72,7 @@ void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RpcRequest& req
 	i->second(nrea);
 }
 
-void VirtualEndpoint::ProcessResponse(Endpoint::Ptr sender, const RpcResponse& response)
+void VirtualEndpoint::ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& response)
 {
 	// TODO: figure out which request this response belongs to and notify the caller
 	throw NotImplementedException();

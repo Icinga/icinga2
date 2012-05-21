@@ -145,11 +145,10 @@ string MessagePart::ToJsonString(void) const
 	char *jsonString;
 	string result;
 
-#ifdef _DEBUG
-	jsonString = cJSON_Print(json);
-#else /* _DEBUG */
-	jsonString = cJSON_PrintUnformatted(json);
-#endif /* _DEBUG */
+	if (!Application::GetInstance()->IsDebugging())
+		jsonString = cJSON_Print(json);
+	else
+		jsonString = cJSON_PrintUnformatted(json);
 
 	cJSON_Delete(json);
 

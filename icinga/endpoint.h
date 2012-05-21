@@ -80,8 +80,8 @@ public:
 	virtual bool IsLocal(void) const = 0;
 	virtual bool IsConnected(void) const = 0;
 
-	virtual void ProcessRequest(Endpoint::Ptr sender, const RpcRequest& message) = 0;
-	virtual void ProcessResponse(Endpoint::Ptr sender, const RpcResponse& message) = 0;
+	virtual void ProcessRequest(Endpoint::Ptr sender, const RequestMessage& message) = 0;
+	virtual void ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& message) = 0;
 
 	virtual void Stop(void) = 0;
 

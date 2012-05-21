@@ -42,7 +42,7 @@ void ConfigFileComponent::Start(void)
 	if (fp.fail())
 		throw ConfigParserException("Could not open config file");
 	
-	GetApplication()->Log("Reading config file: " + filename);
+	GetIcingaApplication()->Log("Reading config file: " + filename);
 
 	while (!fp.eof()) {
 		size_t bufferSize = 1024;
@@ -93,7 +93,7 @@ void ConfigFileComponent::Start(void)
 				}
 			}
 
-			GetApplication()->GetConfigHive()->AddObject(cfgobj);
+			GetConfigHive()->AddObject(cfgobj);
 		}
 	}
 

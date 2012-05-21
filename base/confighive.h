@@ -40,9 +40,9 @@ public:
 
 	void AddObject(const ConfigObject::Ptr& object);
 	void RemoveObject(const ConfigObject::Ptr& object);
-	ConfigObject::Ptr GetObject(const string& collection,
+	ConfigObject::Ptr GetObject(const string& type,
 	    const string& name = string());
-	ConfigCollection::Ptr GetCollection(const string& collection);
+	ConfigCollection::Ptr GetCollection(const string& type);
 
 	void ForEachObject(const string& type,
 	    function<int (const EventArgs&)> callback);

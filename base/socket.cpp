@@ -60,7 +60,7 @@ void Socket::Start(void)
  */
 void Socket::Stop(void)
 {
-	Sockets.remove_if(weak_ptr_eq_raw<Socket>(this));
+	Sockets.remove_if(WeakPtrEqual<Socket>(this));
 }
 
 /**

@@ -161,7 +161,7 @@ void Timer::Start(void)
  */
 void Timer::Stop(void)
 {
-	Timers.remove_if(weak_ptr_eq_raw<Timer>(this));
+	Timers.remove_if(WeakPtrEqual<Timer>(this));
 }
 
 /**

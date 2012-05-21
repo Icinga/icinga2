@@ -44,15 +44,24 @@ public:
 	typedef weak_ptr<Object> WeakPtr;
 };
 
+/**
+ * Compares a weak pointer with a raw pointer.
+ */
 template<class T>
-struct weak_ptr_eq_raw
+struct WeakPtrEqual
 {
 private:
 	const void *m_Ref;
 
 public:
-	weak_ptr_eq_raw(const void *ref) : m_Ref(ref) { }
+	WeakPtrEqual(const void *ref) : m_Ref(ref) { }
 
+	/**
+	 * Compares the two pointers.
+	 *
+	 * @param wref The weak pointer.
+	 * @returns true if the pointers point to the same object, false otherwise.
+	 */
 	bool operator()(const weak_ptr<T>& wref) const
 	{
 		return (wref.lock().get() == (const T *)m_Ref);
