@@ -28,7 +28,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Exception : exception
+class I2_BASE_API Exception : public exception
 {
 private:
 	char *m_Message;
