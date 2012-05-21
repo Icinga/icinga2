@@ -31,7 +31,7 @@ namespace icinga
 class I2_BASE_API Exception : exception
 {
 private:
-	const char *m_Message;
+	char *m_Message;
 
 protected:
 	void SetMessage(const char *message);
@@ -39,14 +39,7 @@ protected:
 public:
 	Exception(void);
 	Exception(const char *message);
-
-	/**
-	 * Destructor for the Exception class. Must be virtual for RTTI to work.
-	 */
-	virtual ~Exception(void) throw()
-	{
-		delete m_Message;
-	}
+	virtual ~Exception(void) throw();
 
 	const char *GetMessage(void) const;
 

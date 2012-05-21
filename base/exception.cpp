@@ -26,6 +26,7 @@ using namespace icinga;
  */
 Exception::Exception(void)
 {
+	m_Message = NULL;
 }
 
 /**
@@ -35,7 +36,16 @@ Exception::Exception(void)
  */
 Exception::Exception(const char *message)
 {
+	m_Message = NULL;
 	SetMessage(message);
+}
+
+/**
+ * Destructor for the Exception class. Must be virtual for RTTI to work.
+ */
+Exception::~Exception(void) throw()
+{
+	Memory::Free(m_Message);
 }
 
 /**
@@ -65,9 +75,7 @@ const char *Exception::what(void) const throw()
  */
 void Exception::SetMessage(const char *message)
 {
-	if (m_Message)
-		delete m_Message;
-
+	Memory::Free(m_Message);
 	m_Message = Memory::StrDup(message);
 }
 
