@@ -77,6 +77,8 @@ private:
 	void UnregisterServer(JsonRpcServer::Ptr server);
 
 	int NewClientHandler(const NewClientEventArgs& ncea);
+};
+
 }
 
 #endif /* ENDPOINTMANAGER_H */
