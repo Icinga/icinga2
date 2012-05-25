@@ -79,7 +79,6 @@
 #include <cassert>
 #include <cerrno>
 
-#include <memory>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -90,7 +89,31 @@
 #include <map>
 #include <list>
 #include <algorithm>
-#include <functional>
+
+#ifdef HAVE_CXX11
+#	include <memory>
+#	include <functional>
+
+using namespace std;
+using namespace std::placeholders;
+
+#else /* HAVE_CXX11 */
+#	ifdef HAVE_BOOST
+#		include <boost/tr1/memory.hpp>
+#		include <boost/tr1/functional.hpp>
+
+using namespace std;
+
+#	else /* HAVE_BOOST */
+#		include <tr1/memory>
+#		include <tr1/functional>
+#		include "cxx11-compat.h"
+
+using namespace std;
+using namespace std::placeholders;
+
+#	endif /* HAVE_BOOST */
+#endif /* HAVE_CXX11 */
 
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
@@ -103,23 +126,6 @@
 #ifdef HAVE_GCC_ABI_DEMANGLE
 #	include <cxxabi.h>
 #endif /* HAVE_GCC_ABI_DEMANGLE */
-
-using namespace std;
-
-#ifdef HAVE_CXX11
-#	include <memory>
-#	include <functional>
-
-using namespace std::placeholders;
-#else
-#	include <tr1/memory>
-#	include <tr1/functional>
-
-using namespace std::tr1;
-using namespace std::tr1::placeholders;
-
-#	include "cxx11-compat.h"
-#endif
 
 #ifdef I2_BASE_BUILD
 #	define I2_BASE_API I2_EXPORT

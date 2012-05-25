@@ -29,7 +29,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Object : protected enable_shared_from_this<Object>
+class I2_BASE_API Object : public enable_shared_from_this<Object>
 {
 public:
 	typedef shared_ptr<Object> Ptr;

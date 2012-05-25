@@ -10,6 +10,13 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.11])
 AM_SILENT_RULES([yes])
 
+LT_INIT([dlopen, disable-static])
+LT_CONFIG_LTDL_DIR([ltdl])
+LTDL_INIT
+
+AX_BOOST_BASE
+AX_BOOST_UNIT_TEST_FRAMEWORK
+
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
 DX_CHI_FEATURE(OFF)
@@ -43,18 +50,6 @@ fi
 
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], [])], [], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application]) ])
-
-
-LT_INIT([dlopen, disable-static])
-LT_CONFIG_LTDL_DIR([ltdl])
-LTDL_INIT
-
-if test "x$with_included_ltdl" != "xyes"; then
-	AC_CHECK_LIB([ltdl], [lt_dladvise_init],
-		[],
-		[AC_MSG_ERROR([installed libltdl is too old])])
-fi
-
 
 
 AC_OUTPUT([
