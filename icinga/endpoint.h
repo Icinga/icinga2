@@ -46,10 +46,10 @@ public:
 	void SetIdentity(string identity);
 
 	void SetReceivedWelcome(bool value);
-	bool GetReceivedWelcome(void) const;
+	bool HasReceivedWelcome(void) const;
 
 	void SetSentWelcome(bool value);
-	bool GetSentWelcome(void) const;
+	bool HasSentWelcome(void) const;
 
 	shared_ptr<EndpointManager> GetEndpointManager(void) const;
 	void SetEndpointManager(weak_ptr<EndpointManager> manager);

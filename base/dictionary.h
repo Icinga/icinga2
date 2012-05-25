@@ -58,6 +58,27 @@ public:
 	}
 
 	/**
+	 * Retrieves a value from the dictionary.
+	 *
+	 * @param key The key.
+	 * @param[out] value Pointer to the value.
+	 * @returns true if the value was retrieved, false otherwise.
+	 */
+	bool GetProperty(string key, Dictionary::Ptr *value)
+	{
+		Object::Ptr object;
+
+		if (!GetProperty(key, &object))
+			return false;
+
+		*value = dynamic_pointer_cast<Dictionary>(object);
+		if (!*value)
+			throw InvalidCastException();
+
+		return true;
+	}
+
+	/**
 	 * Sets a value in the dictionary.
 	 *
 	 * @param key The key.

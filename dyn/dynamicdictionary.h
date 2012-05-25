@@ -17,51 +17,63 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGOBJECT_H
-#define CONFIGOBJECT_H
-
-#include <map>
+#ifndef DYNAMICDICTIONARY_H
+#define DYNAMICDICTIONARY_H
 
 namespace icinga
 {
 
-class ConfigHive;
+enum DynamicDictionaryOperator
+{
+	OperatorSet,
+	OperatorPlus,
+	OperatorMinus,
+	OperatorMultiply,
+	OperatorDivide
+};
 
-/**
- * A configuration object that has arbitrary properties.
- *
- * @ingroup base
- */
-class I2_BASE_API ConfigObject : public Dictionary
+struct DynamicDictionaryValue
+{
+	Variant Value;
+	DynamicDictionaryOperator Operator;
+};
+
+class DynamicDictionary : public Object
 {
 public:
-	typedef shared_ptr<ConfigObject> Ptr;
-	typedef weak_ptr<ConfigObject> WeakPtr;
+	typedef shared_ptr<DynamicDictionary> Ptr;
+	typedef weak_ptr<DynamicDictionary> WeakPtr;
 
-	ConfigObject(const string& type, const string& name);
+	DynamicDictionary(void);
+	DynamicDictionary(Dictionary::Ptr serializedDictionary);
 
-	void SetHive(const weak_ptr<ConfigHive>& hive);
-	weak_ptr<ConfigHive> GetHive(void) const;
+	void AddParent(DynamicDictionary::Ptr parent);
+	void ClearParents(void);
 
-	void SetName(const string& name);
-	string GetName(void) const;
+	template<typename T>
+	bool GetProperty(string name, T *value, DynamicDictionaryOperator *op) const
+	{
+		map<string, DynamicDictionaryValue>::const_iterator di;
 
-	void SetType(const string& type);
-	string GetType(void) const;
+		di = m_Values.find(name);
+		if (di == m_Values.end())
+			return false;
 
-	void SetReplicated(bool replicated);
-	bool IsReplicated(void) const;
+		return di->second.op;
+	}
 
-	void Commit(void);
+	template<typename T>
+	void SetProperty(string name, const T& value, DynamicDictionaryOperator op);
+
+	Dictionary::Ptr ToFlatDictionary(void) const;
+
+	Dictionary::Ptr Serialize(void);
 
 private:
-	weak_ptr<ConfigHive> m_Hive;
-
-	string m_Name;
-	string m_Type;
-	bool m_Replicated;
+	set<DynamicDictionary::Ptr> m_Parents;
+	map<string, DynamicDictionaryValue> m_Values;
 };
 
 }
 
-#endif /* CONFIGOBJECT_H */
+#endif /* DYNAMICDICTIONARY_H */

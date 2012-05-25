@@ -55,6 +55,7 @@ void TcpSocket::Bind(string service, int family)
 /**
  * Creates a socket and binds it to the specified node and service.
  *
+ * @param node The node.
  * @param service The service.
  * @param family The address family for the socket.
  */

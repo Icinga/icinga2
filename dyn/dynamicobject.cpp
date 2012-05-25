@@ -17,51 +17,74 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGOBJECT_H
-#define CONFIGOBJECT_H
+#include "i2-dyn.h"
 
-#include <map>
+using namespace icinga;
 
-namespace icinga
+DynamicDictionary::Ptr DynamicObject::GetProperties(void) const
 {
-
-class ConfigHive;
-
-/**
- * A configuration object that has arbitrary properties.
- *
- * @ingroup base
- */
-class I2_BASE_API ConfigObject : public Dictionary
-{
-public:
-	typedef shared_ptr<ConfigObject> Ptr;
-	typedef weak_ptr<ConfigObject> WeakPtr;
-
-	ConfigObject(const string& type, const string& name);
-
-	void SetHive(const weak_ptr<ConfigHive>& hive);
-	weak_ptr<ConfigHive> GetHive(void) const;
-
-	void SetName(const string& name);
-	string GetName(void) const;
-
-	void SetType(const string& type);
-	string GetType(void) const;
-
-	void SetReplicated(bool replicated);
-	bool IsReplicated(void) const;
-
-	void Commit(void);
-
-private:
-	weak_ptr<ConfigHive> m_Hive;
-
-	string m_Name;
-	string m_Type;
-	bool m_Replicated;
-};
-
+	return m_Properties;
 }
 
-#endif /* CONFIGOBJECT_H */
+void DynamicObject::SetProperties(DynamicDictionary::Ptr properties)
+{	
+	m_Properties = properties;
+	Dictionary::Ptr resolvedProperties = properties->ToFlatDictionary();
+	Reload(resolvedProperties);
+}
+
+string DynamicObject::GetName(void) const
+{
+	return m_Name;
+}
+
+void DynamicObject::SetName(string name)
+{
+	m_Name = name;
+}
+
+string DynamicObject::GetType(void) const
+{
+	return m_Type;
+}
+
+void DynamicObject::SetType(string type)
+{
+	m_Type = type;
+}
+
+bool DynamicObject::IsLocal(void) const
+{
+	return m_Local;
+}
+
+void DynamicObject::SetLocal(bool value)
+{
+	m_Local = value;
+}
+
+bool DynamicObject::IsAbstract(void) const
+{
+	return m_Abstract;
+}
+
+void DynamicObject::SetAbstract(bool value)
+{
+	m_Abstract = value;
+}
+
+void DynamicObject::Commit(void)
+{
+	// TODO: link properties to parent objects
+
+	Dictionary::Ptr resolvedProperties = m_Properties->ToFlatDictionary();
+	Reload(resolvedProperties);
+}
+
+void DynamicObject::Reload(Dictionary::Ptr resolvedProperties)
+{
+	resolvedProperties->GetProperty("__name", &m_Name);
+	resolvedProperties->GetProperty("__type", &m_Type);
+	resolvedProperties->GetProperty("__local", &m_Local);
+	resolvedProperties->GetProperty("__abstract", &m_Abstract);
+}

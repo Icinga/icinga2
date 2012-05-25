@@ -207,7 +207,7 @@ void Endpoint::SetReceivedWelcome(bool value)
  *
  * @returns Whether we've received a welcome message.
  */
-bool Endpoint::GetReceivedWelcome(void) const
+bool Endpoint::HasReceivedWelcome(void) const
 {
 	return m_ReceivedWelcome;
 }
@@ -227,7 +227,7 @@ void Endpoint::SetSentWelcome(bool value)
  *
  * @returns Whether we've sent a welcome message.
  */
-bool Endpoint::GetSentWelcome(void) const
+bool Endpoint::HasSentWelcome(void) const
 {
 	return m_SentWelcome;
 }

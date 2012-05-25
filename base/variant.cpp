@@ -65,6 +65,18 @@ long Variant::GetInteger(void) const
 }
 
 /**
+ * Retrieves the variant's value as a bool.
+ *
+ * @returns The variant's value as a bool.
+ */
+long Variant::GetBool(void) const
+{
+	Convert(VariantInteger);
+
+	return (m_IntegerValue != 0);
+}
+
+/**
  * Retrieves the variant's value as a string.
  *
  * @returns The variant's value as a string.
@@ -106,6 +118,16 @@ bool Variant::IsEmpty(void) const
 Variant::operator long(void) const
 {
 	return GetInteger();
+}
+
+/**
+ * Retrieves the variant's value as a bool.
+ *
+ * @returns The variant's value as a bool.
+ */
+Variant::operator bool(void) const
+{
+	return GetBool();
 }
 
 /**

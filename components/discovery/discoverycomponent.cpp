@@ -254,12 +254,12 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 {
 	Endpoint::Ptr endpoint = nrea.Sender;
 
-	if (endpoint->GetReceivedWelcome())
+	if (endpoint->HasReceivedWelcome())
 		return 0;
 
 	endpoint->SetReceivedWelcome(true);
 
-	if (endpoint->GetSentWelcome()) {
+	if (endpoint->HasSentWelcome()) {
 		EventArgs ea;
 		ea.Source = endpoint;
 		endpoint->OnSessionEstablished(ea);
@@ -277,7 +277,7 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
  */
 void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 {
-	if (endpoint->GetSentWelcome())
+	if (endpoint->HasSentWelcome())
 		return;
 
 	// we assume the other component _always_ wants
@@ -289,7 +289,7 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 
 	endpoint->SetSentWelcome(true);
 
-	if (endpoint->GetReceivedWelcome()) {
+	if (endpoint->HasReceivedWelcome()) {
 		EventArgs ea;
 		ea.Source = endpoint;
 		endpoint->OnSessionEstablished(ea);

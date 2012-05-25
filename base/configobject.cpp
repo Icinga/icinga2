@@ -112,7 +112,7 @@ void ConfigObject::SetReplicated(bool replicated)
  *
  * @returns Whether this object was replicated.
  */
-bool ConfigObject::GetReplicated(void) const
+bool ConfigObject::IsReplicated(void) const
 {
 	return m_Replicated;
 }

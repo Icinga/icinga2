@@ -17,51 +17,20 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGOBJECT_H
-#define CONFIGOBJECT_H
-
-#include <map>
-
-namespace icinga
-{
-
-class ConfigHive;
+#ifndef I2DYN_H
+#define I2DYN_H
 
 /**
- * A configuration object that has arbitrary properties.
+ * @defgroup dyn Dynamic object library
  *
- * @ingroup base
+ * The dynamic object library implements serializable objects which support
+ * inheritance.
  */
-class I2_BASE_API ConfigObject : public Dictionary
-{
-public:
-	typedef shared_ptr<ConfigObject> Ptr;
-	typedef weak_ptr<ConfigObject> WeakPtr;
 
-	ConfigObject(const string& type, const string& name);
+#include <i2-base.h>
 
-	void SetHive(const weak_ptr<ConfigHive>& hive);
-	weak_ptr<ConfigHive> GetHive(void) const;
+#include "dynamicdictionary.h"
+#include "dynamicobject.h"
+#include "objectspace.h"
 
-	void SetName(const string& name);
-	string GetName(void) const;
-
-	void SetType(const string& type);
-	string GetType(void) const;
-
-	void SetReplicated(bool replicated);
-	bool IsReplicated(void) const;
-
-	void Commit(void);
-
-private:
-	weak_ptr<ConfigHive> m_Hive;
-
-	string m_Name;
-	string m_Type;
-	bool m_Replicated;
-};
-
-}
-
-#endif /* CONFIGOBJECT_H */
+#endif /* I2DYN_H */

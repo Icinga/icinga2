@@ -50,6 +50,9 @@ public:
 	inline Variant(int value)
 	    : m_Type(VariantInteger), m_IntegerValue(value) { }
 
+	inline Variant(bool value)
+	    : m_Type(VariantInteger), m_IntegerValue(value ? 1 : 0) { }
+
 	inline Variant(long value)
 	    : m_Type(VariantInteger), m_IntegerValue(value) { }
 
@@ -66,12 +69,14 @@ public:
 	VariantType GetType(void) const;
 
 	long GetInteger(void) const;
+	long GetBool(void) const;
 	string GetString(void) const;
 	Object::Ptr GetObject(void) const;
 
 	bool IsEmpty(void) const;
 
 	operator long(void) const;
+	operator bool(void) const;
 	operator string(void) const;
 	operator Object::Ptr(void) const;
 

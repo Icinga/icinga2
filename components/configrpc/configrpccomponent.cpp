@@ -219,7 +219,7 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea
 	if (!object)
 		return 0;
 
-	if (object->GetReplicated())
+	if (object->IsReplicated())
 		configHive->RemoveObject(object);
 
 	return 0;

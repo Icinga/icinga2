@@ -108,7 +108,7 @@ int IcingaApplication::NewComponentHandler(const EventArgs& ea)
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
 	/* don't allow replicated config objects */
-	if (object->GetReplicated())
+	if (object->IsReplicated())
 		return 0;
 
 	string path;
@@ -140,7 +140,7 @@ int IcingaApplication::NewIcingaConfigHandler(const EventArgs& ea)
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
 	/* don't allow replicated config objects */
-	if (object->GetReplicated())
+	if (object->IsReplicated())
 		return 0;
 
 	string privkey;

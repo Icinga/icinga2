@@ -17,51 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGOBJECT_H
-#define CONFIGOBJECT_H
-
-#include <map>
+#ifndef OBJECTSPACE_H
+#define OBJECTSPACE_H
 
 namespace icinga
 {
 
-class ConfigHive;
+typedef function<DynamicObject::Ptr()> DynamicObjectFactory;
 
-/**
- * A configuration object that has arbitrary properties.
- *
- * @ingroup base
- */
-class I2_BASE_API ConfigObject : public Dictionary
+class ObjectSpace : public Object
 {
 public:
-	typedef shared_ptr<ConfigObject> Ptr;
-	typedef weak_ptr<ConfigObject> WeakPtr;
+	void RegisterClass(string name, DynamicObjectFactory factory);
+	void UnregisterClass(string name);
 
-	ConfigObject(const string& type, const string& name);
+	Dictionary::Ptr SerializeObject(DynamicObject::Ptr object);
+	DynamicObject::Ptr UnserializeObject(Dictionary::Ptr serializedObject);
 
-	void SetHive(const weak_ptr<ConfigHive>& hive);
-	weak_ptr<ConfigHive> GetHive(void) const;
-
-	void SetName(const string& name);
-	string GetName(void) const;
-
-	void SetType(const string& type);
-	string GetType(void) const;
-
-	void SetReplicated(bool replicated);
-	bool IsReplicated(void) const;
-
-	void Commit(void);
+	vector<DynamicObject::Ptr> FindObjects(function<bool (DynamicObject::Ptr)> predicate);
 
 private:
-	weak_ptr<ConfigHive> m_Hive;
+	map<string, DynamicObjectFactory> m_Classes;
+	set<DynamicObject::Ptr> m_Objects;
 
-	string m_Name;
-	string m_Type;
-	bool m_Replicated;
+	void RegisterObject(DynamicObject::Ptr object);
+	void UnregisterObject(DynamicObject::Ptr object);
 };
 
 }
 
-#endif /* CONFIGOBJECT_H */
+#endif /* OBJECTSPACE_H */
