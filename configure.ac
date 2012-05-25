@@ -54,6 +54,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], [])], [], [AC_M
 
 AC_OUTPUT([
 Makefile
+compat/Makefile
 base/Makefile
 cJSON/Makefile
 components/Makefile

@@ -3,7 +3,9 @@
 
 include aminclude.am
 
-SUBDIRS = ltdl \
+SUBDIRS = \
+	compat \
+	ltdl \
 	mmatch \
 	cJSON \
 	base \

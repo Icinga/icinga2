@@ -23,6 +23,7 @@ libicinga_la_CFLAGS = -DI2_ICINGA_BUILD
 
 libicinga_la_CXXFLAGS = \
 	-DI2_ICINGA_BUILD \
+	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON \
@@ -33,5 +34,6 @@ libicinga_la_LDFLAGS = \
 	-version-info 0:0:0
 
 libicinga_la_LIBADD = \
+	$(BOOST_LDFLAGS) \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
 	${top_builddir}/base/libbase.la

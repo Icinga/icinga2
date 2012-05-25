@@ -9,6 +9,7 @@ icinga_SOURCES = \
 
 icinga_CXXFLAGS = \
 	-DI2_ICINGALAUNCHER_BUILD \
+	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON \
@@ -16,6 +17,7 @@ icinga_CXXFLAGS = \
 	-I${top_srcdir}
 
 icinga_LDADD = \
+	$(BOOST_LDFLAGS) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/icinga/libicinga.la \
 	-dlopen ${top_builddir}/components/configfile/configfile.la \

@@ -53,6 +53,7 @@ libbase_la_SOURCES =  \
 libbase_la_CXXFLAGS = \
 	-DI2_BASE_BUILD \
 	$(LTDLINCL) \
+	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/mmatch
 
 libbase_la_LDFLAGS = \
@@ -61,4 +62,5 @@ libbase_la_LDFLAGS = \
 
 libbase_la_LIBADD = \
 	$(LIBLTDL) \
+	$(BOOST_LDFLAGS) \
 	${top_builddir}/mmatch/libmmatch.la

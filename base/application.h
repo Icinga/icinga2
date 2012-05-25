@@ -45,7 +45,7 @@ public:
 
 	virtual int Main(const vector<string>& args) = 0;
 
-	void Shutdown(void);
+	static void Shutdown(void);
 
 	static void Log(string message);
 
@@ -65,9 +65,9 @@ protected:
 	string GetExeDirectory(void) const;
 
 private:
-	static Application::Ptr m_Instance;
+	static Application::Ptr m_Instance; /**< The application instance. */
 
-	bool m_ShuttingDown; /**< Whether the application is in the process of
+	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */
 	ConfigHive::Ptr m_ConfigHive; /**< The application's configuration. */
 	map< string, shared_ptr<Component> > m_Components; /**< Components that

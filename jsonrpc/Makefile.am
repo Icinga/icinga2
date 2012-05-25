@@ -21,6 +21,7 @@ libjsonrpc_la_SOURCES = \
 
 libjsonrpc_la_CXXFLAGS = \
 	-DI2_JSONRPC_BUILD \
+	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/cJSON
 
@@ -29,5 +30,6 @@ libjsonrpc_la_LDFLAGS = \
 	-version-info 0:0:0
 
 libjsonrpc_la_LIBADD = \
+	$(BOOST_LDFLAGS) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/cJSON/libcJSON.la

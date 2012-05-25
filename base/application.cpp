@@ -26,6 +26,7 @@
 using namespace icinga;
 
 Application::Ptr I2_EXPORT Application::m_Instance;
+bool I2_EXPORT Application::m_ShuttingDown = false;
 
 /**
  * Constructor for the Application class.
@@ -50,7 +51,6 @@ Application::Application(void)
 		m_Debugging = true;
 #endif /* _WIN32 */
 
-	m_ShuttingDown = false;
 	m_ConfigHive = make_shared<ConfigHive>();
 }
 
@@ -59,6 +59,8 @@ Application::Application(void)
  */
 Application::~Application(void)
 {
+	m_ShuttingDown = true;
+
 	/* stop all components */
 	for (map<string, Component::Ptr>::iterator i = m_Components.begin();
 	    i != m_Components.end(); i++) {
@@ -81,7 +83,10 @@ Application::~Application(void)
  */
 Application::Ptr Application::GetInstance(void)
 {
-	return m_Instance;
+	if (m_ShuttingDown)
+		return Application::Ptr();
+	else
+		return m_Instance;
 }
 
 /**

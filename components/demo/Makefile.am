@@ -9,6 +9,7 @@ demo_la_SOURCES = \
 	i2-demo.h
 
 demo_la_CXXFLAGS = \
+	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON \
@@ -20,6 +21,7 @@ demo_la_LDFLAGS = \
 	-version-info 0:0:0
 
 demo_la_LIBADD = \
+	$(BOOST_LDFLAGS) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
 	${top_builddir}/icinga/libicinga.la

@@ -17,7 +17,7 @@
 #
 #   This macro calls:
 #
-#     AC_SUBST(BOOST_CPPFLAGS) / AC_SUBST(BOOST_LDFLAGS)
+#     AC_SUBST(BOOST_CPPFLAGS) / AC_SUBST(BOOST_LDFLAGS) AC_SUBST(BOOST_PATH)
 #
 #   And sets:
 #
@@ -100,6 +100,7 @@ if test "x$want_boost" = "xyes"; then
     dnl or if you install boost with RPM
     if test "$ac_boost_path" != ""; then
         BOOST_CPPFLAGS="-I$ac_boost_path/include"
+        BOOST_PATH="$ac_boost_path"
         for ac_boost_path_tmp in $libsubdirs; do
                 if test -d "$ac_boost_path"/"$ac_boost_path_tmp" ; then
                         BOOST_LDFLAGS="-L$ac_boost_path/$ac_boost_path_tmp"
@@ -107,13 +108,14 @@ if test "x$want_boost" = "xyes"; then
                 fi
         done
     elif test "$cross_compiling" != yes; then
-        for ac_boost_path_tmp in /usr /usr/local /opt /opt/local ; do
+        for ac_boost_path_tmp in /usr /usr/local /opt /opt/local "`pwd`/compat" ; do
             if test -d "$ac_boost_path_tmp/include/boost" && test -r "$ac_boost_path_tmp/include/boost"; then
                 for libsubdir in $libsubdirs ; do
                     if ls "$ac_boost_path_tmp/$libsubdir/libboost_"* >/dev/null 2>&1 ; then break; fi
                 done
                 BOOST_LDFLAGS="-L$ac_boost_path_tmp/$libsubdir"
                 BOOST_CPPFLAGS="-I$ac_boost_path_tmp/include"
+                BOOST_PATH="$ac_boost_path_tmp"
                 break;
             fi
         done
@@ -246,6 +248,7 @@ if test "x$want_boost" = "xyes"; then
     else
         AC_SUBST(BOOST_CPPFLAGS)
         AC_SUBST(BOOST_LDFLAGS)
+        AC_SUBST(BOOST_PATH)
         AC_DEFINE(HAVE_BOOST,,[define if the Boost library is available])
         # execute ACTION-IF-FOUND (if present):
         ifelse([$2], , :, [$2])
