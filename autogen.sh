@@ -1,6 +1,8 @@
 #!/bin/sh
 # Run this to generate all the initial makefiles, etc.
 
+ACLOCAL_FLAGS="$ACLOCAL_FLAGS -I config"
+
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 

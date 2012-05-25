@@ -1,14 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl Created by Anjuta application wizard.
 
-m4_include([m4/ax_cxx_gcc_abi_demangle.m4])
-m4_include([m4/ax_check_compile_flag.m4])
-m4_include([m4/ax_pthread.m4])
-m4_include([m4/ax_prog_doxygen.m4])
-
 AC_INIT([icinga], [2.0])
+AC_LANG(C++)
 
-AC_CONFIG_AUX_DIR([m4])
+AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([1.11])
@@ -24,7 +20,10 @@ DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN([icinga], [Doxyfile], [doc])
 
+AC_PROG_INSTALL
+AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_LIBTOOL
 AX_CXX_GCC_ABI_DEMANGLE
 AX_PTHREAD
 
@@ -43,7 +42,7 @@ if test "$have_cxx11_support" = "yes"; then
 fi
 
 
-AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []), [], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application]) ])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], [])], [], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application]) ])
 
 
 LT_INIT([dlopen, disable-static])
