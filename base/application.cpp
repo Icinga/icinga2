@@ -326,7 +326,7 @@ string Application::GetExeDirectory(void) const
 
 #ifndef _WIN32
 	char Cwd[MAXPATHLEN];
-	char *Buf, *PathEnv, *Directory, PathTest[MAXPATHLEN], FullExePath[MAXPATHLEN];
+	char *PathEnv, *Directory, PathTest[MAXPATHLEN], FullExePath[MAXPATHLEN];
 	bool FoundPath;
 
 	const char *argv0 = m_Arguments[0].c_str();
@@ -367,7 +367,8 @@ string Application::GetExeDirectory(void) const
 		}
 	}
 
-	if ((Buf = realpath(FullExePath, NULL)) == NULL)
+	char Buf[PATH_MAX];
+	if (realpath(FullExePath, Buf) == NULL)
 		throw PosixException("realpath failed", errno);
 
 	// remove filename
@@ -377,8 +378,6 @@ string Application::GetExeDirectory(void) const
 		*LastSlash = '\0';
 
 	ExePath = string(Buf);
-
-	free(Buf);
 #else /* _WIN32 */
 	char FullExePath[MAXPATHLEN];
 
