@@ -156,9 +156,8 @@ EOF
 
 # Detect git tool (should work with old and new git versions)
 git_found=yes
-if [ "x$GIT" = "xgit" ] && [ x`which $GIT 2>/dev/null` = "x" ]; then
+if [ "x$GIT" = "xgit" ] && [ x`command -v $GIT 2>/dev/null` = "x" ]; then
     git_found="'$GIT' not found"
-    break
 fi
 # If git_found=yes, we can now use $() substitutions (as git does). Hooray!
 
