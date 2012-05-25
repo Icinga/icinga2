@@ -28,7 +28,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Exception : public virtual exception
+class I2_BASE_API Exception : public virtual std::exception
 {
 public:
 	Exception(void);

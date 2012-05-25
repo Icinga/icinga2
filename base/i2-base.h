@@ -80,6 +80,7 @@
 #include <cerrno>
 
 #include <string>
+#include <exception>
 #include <sstream>
 #include <vector>
 #include <set>
@@ -90,29 +91,33 @@
 #include <list>
 #include <algorithm>
 
+using namespace std;
+using std::exception;
+
 #ifdef HAVE_CXX11
 #	include <memory>
 #	include <functional>
 
-using namespace std;
 using namespace std::placeholders;
 
 #else /* HAVE_CXX11 */
 #	ifdef HAVE_BOOST
-#		include <boost/tr1/memory.hpp>
-#		include <boost/tr1/functional.hpp>
+#		include <boost/smart_ptr.hpp>
+#		include <boost/make_shared.hpp>
+#		include <boost/bind.hpp>
+#		include <boost/function.hpp>
 
-using namespace std;
+using namespace boost;
 
 #	else /* HAVE_BOOST */
 #		include <tr1/memory>
 #		include <tr1/functional>
 #		include "cxx11-compat.h"
 
-using namespace std;
-using namespace std::placeholders;
+using namespace std::tr1;
+using namespace std::tr1::placeholders;
 
-#	endif /* HAVE_BOOST */
+#endif /* HAVE_BOOST */
 #endif /* HAVE_CXX11 */
 
 #if defined(__APPLE__) && defined(__MACH__)

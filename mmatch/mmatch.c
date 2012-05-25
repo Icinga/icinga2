@@ -303,3 +303,4 @@ char *collapse(char *mask)
   };
   return mask;
 }
+

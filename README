@@ -1,0 +1,8 @@
+Requirements
+------------
+
+-C++ compiler that supports C++11
+
+or
+
+-Boost library (components: tr1 smart_ptr bind function make_shared)
