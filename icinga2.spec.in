@@ -1,9 +1,9 @@
 Summary: network monitoring application
-Name: icinga
-Version: 1.3beta6
-Release: 2
+Name: icinga2
+Version: @VERSION@
+Release: 1%{?dist}
 License: GPL
-Group: Productivity/Networking/IRC
+Group: Applications/System
 Source: https://github.com/gunnarbeutner/strawberry/
 URL: http://www.icinga.org/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build

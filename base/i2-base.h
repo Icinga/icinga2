@@ -81,6 +81,7 @@
 
 #include <string>
 #include <exception>
+#include <stdexcept>
 #include <sstream>
 #include <vector>
 #include <set>

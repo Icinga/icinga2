@@ -17,12 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-AC_INIT([icinga], [2.0])
+AC_INIT([icinga2], [2.0])
 AC_LANG(C++)
-
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config.h])
-
 AM_INIT_AUTOMAKE([1.11])
 AM_SILENT_RULES([yes])
 
@@ -63,7 +61,6 @@ AC_COMPILE_IFELSE(
 	[],
 	[AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application]) ])
 
-
 AC_OUTPUT([
 Makefile
 compat/Makefile
@@ -79,4 +76,5 @@ icinga-app/Makefile
 jsonrpc/Makefile
 mmatch/Makefile
 Doxyfile
+icinga2.spec
 ])
