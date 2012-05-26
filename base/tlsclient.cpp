@@ -132,7 +132,8 @@ int TlsClient::ReadableEventHandler(const EventArgs&)
 
 				return 0;
 			default:
-				HandleSSLError();
+				HandleSocketError(OpenSSLException(
+				    "SSL_read failed", ERR_get_error()));
 
 				return 0;
 		}
@@ -174,7 +175,8 @@ int TlsClient::WritableEventHandler(const EventArgs&)
 
 				return 0;
 			default:
-				HandleSSLError();
+				HandleSocketError(OpenSSLException(
+				    "SSL_write failed", ERR_get_error()));
 
 				return 0;
 		}
@@ -227,24 +229,6 @@ void TlsClient::CloseInternal(bool from_dtor)
 	SSL_shutdown(m_SSL.get());
 
 	TcpClient::CloseInternal(from_dtor);
-}
-
-/**
- * Handles an OpenSSL error.
- */
-void TlsClient::HandleSSLError(void)
-{
-	int code = ERR_get_error();
-
-	if (code != 0) {
-		SocketErrorEventArgs sea;
-		sea.Code = code;
-		sea.Message = OpenSSLException::FormatErrorCode(sea.Code);
-		OnError(sea);
-	}
-
-	Close();
-	return;
 }
 
 /**

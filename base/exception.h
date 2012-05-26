@@ -35,15 +35,18 @@ public:
 	Exception(const char *message);
 	virtual ~Exception(void) throw();
 
+	int GetCode(void) const;
 	const char *GetMessage(void) const;
 
 	virtual const char *what(void) const throw();
 
 protected:
+	void SetCode(int code);
 	void SetMessage(const char *message);
 
 private:
 	char *m_Message;
+	int m_Code;
 };
 
 #define DEFINE_EXCEPTION_CLASS(klass)					\
@@ -101,6 +104,7 @@ public:
 	{
 		string msg = message + ": " + FormatErrorCode(errorCode);
 		SetMessage(msg.c_str());
+		SetCode(errorCode);
 	}
 
 	/**
@@ -129,6 +133,7 @@ public:
 	{
 		string msg = message + ": " + FormatErrorCode(errorCode);
 		SetMessage(msg.c_str());
+		SetCode(errorCode);
 	}
 
 	/**

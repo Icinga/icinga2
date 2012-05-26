@@ -132,28 +132,53 @@ void Socket::CloseInternal(bool from_dtor)
 }
 
 /**
- * Handles a socket error by calling the OnError event.
+ * Retrieves the last error that occured for the socket.
+ *
+ * @returns An error code.
  */
-void Socket::HandleSocketError(void)
+int Socket::GetError(void) const
 {
 	int opt;
 	socklen_t optlen = sizeof(opt);
 
 	int rc = getsockopt(GetFD(), SOL_SOCKET, SO_ERROR, (char *)&opt, &optlen);
 
-	if (rc >= 0 && opt != 0) {
-		SocketErrorEventArgs sea;
-		sea.Code = opt;
-#ifdef _WIN32
-		sea.Message = Win32Exception::FormatErrorCode(sea.Code);
-#else /* _WIN32 */
-		sea.Message = PosixException::FormatErrorCode(sea.Code);
-#endif /* _WIN32 */
-		OnError(sea);
-	}
+	if (rc >= 0)
+		return opt;
 
-	Close();
-	return;
+	return 0;
+}
+
+/**
+ * Retrieves the last socket error.
+ *
+ * @returns An error code.
+ */
+int Socket::GetLastSocketError(void)
+{
+#ifdef _WIN32
+	return WSAGetLastError();
+#else /* _WIN32 */
+	return errno;
+#endif /* _WIN32 */
+}
+
+/**
+ * Handles a socket error by calling the OnError event or throwing an exception
+ * when there are no observers for the OnError event.
+ *
+ * @param exception An exception.
+ */
+void Socket::HandleSocketError(const Exception& exception)
+{
+	if (OnError.HasObservers()) {
+		SocketErrorEventArgs sea(exception);
+		OnError(sea);
+
+		Close();
+	} else {
+		throw exception;
+	}
 }
 
 /**
@@ -164,7 +189,8 @@ void Socket::HandleSocketError(void)
  */
 int Socket::ExceptionEventHandler(const EventArgs&)
 {
-	HandleSocketError();
+	HandleSocketError(SocketException(
+	    "select() returned fd in except fdset", GetError()));
 
 	return 0;
 }
@@ -218,7 +244,8 @@ string Socket::GetClientAddress(void)
 	socklen_t len = sizeof(sin);
 
 	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0) {
-		HandleSocketError();
+		HandleSocketError(SocketException(
+		    "getsockname() failed", GetError()));
 
 		return string();
 	}
@@ -237,10 +264,29 @@ string Socket::GetPeerAddress(void)
 	socklen_t len = sizeof(sin);
 
 	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0) {
-		HandleSocketError();
+		HandleSocketError(SocketException(
+		    "getpeername() failed", GetError()));
 
 		return string();
 	}
 
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
+}
+
+/**
+ * Constructor for the SocketException class.
+ *
+ * @param message The error message.
+ * @param errorCode The error code.
+ */
+SocketException::SocketException(const string& message, int errorCode)	
+{
+#ifdef _WIN32
+	string details = Win32Exception::FormatErrorCode(errorCode);
+#else /* _WIN32 */
+	string details = PosixException::FormatErrorCode(errorCode);
+#endif /* _WIN32 */
+
+	string msg = message + ": " + details;
+	SetMessage(msg.c_str());
 }

@@ -76,8 +76,8 @@ void TcpClient::Connect(const string& node, const string& service)
 	int rc = getaddrinfo(node.c_str(), service.c_str(), &hints, &result);
 
 	if (rc < 0) {
-		HandleSocketError();
-
+		HandleSocketError(SocketException(
+		    "getaddrinfo() failed", GetLastSocketError()));
 		return;
 	}
 
@@ -94,19 +94,23 @@ void TcpClient::Connect(const string& node, const string& service)
 		rc = connect(fd, info->ai_addr, info->ai_addrlen);
 
 #ifdef _WIN32
-	if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
+		if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
 #else /* _WIN32 */
-	if (rc < 0 && errno != EINPROGRESS)
+		if (rc < 0 && errno != EINPROGRESS) {
 #endif /* _WIN32 */
+			closesocket(fd);
+			SetFD(INVALID_SOCKET);
+
 			continue;
+		}
 
 		break;
 	}
 
-	if (fd == INVALID_SOCKET)
-		HandleSocketError();
-
 	freeaddrinfo(result);
+
+	if (fd == INVALID_SOCKET)
+		HandleSocketError(InvalidArgumentException());
 }
 
 /**
@@ -151,7 +155,7 @@ int TcpClient::ReadableEventHandler(const EventArgs&)
 		return 0;
 
 	if (rc <= 0) {
-		HandleSocketError();
+		HandleSocketError(SocketException("recv() failed", GetError()));
 		return 0;
 	}
 
@@ -177,7 +181,7 @@ int TcpClient::WritableEventHandler(const EventArgs&)
 	rc = send(GetFD(), (const char *)m_SendQueue->GetReadBuffer(), m_SendQueue->GetSize(), 0);
 
 	if (rc <= 0) {
-		HandleSocketError();
+		HandleSocketError(SocketException("send() failed", GetError()));
 		return 0;
 	}
 

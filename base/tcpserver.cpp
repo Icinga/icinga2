@@ -67,7 +67,8 @@ void TcpServer::Listen(void)
 	int rc = listen(GetFD(), SOMAXCONN);
 
 	if (rc < 0) {
-		HandleSocketError();
+		HandleSocketError(SocketException(
+		    "listen() failed", GetError()));
 		return;
 	}
 }
@@ -88,7 +89,8 @@ int TcpServer::ReadableEventHandler(const EventArgs&)
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
 	if (fd < 0) {
-		HandleSocketError();
+		HandleSocketError(SocketException(
+		    "accept() failed", GetError()));
 		return 0;
 	}
 

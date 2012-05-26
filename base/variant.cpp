@@ -69,7 +69,7 @@ long Variant::GetInteger(void) const
  *
  * @returns The variant's value as a bool.
  */
-long Variant::GetBool(void) const
+bool Variant::GetBool(void) const
 {
 	Convert(VariantInteger);
 

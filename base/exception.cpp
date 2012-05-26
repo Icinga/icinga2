@@ -26,6 +26,7 @@ using namespace icinga;
  */
 Exception::Exception(void)
 {
+	m_Code = 0;
 	m_Message = NULL;
 }
 
@@ -36,6 +37,7 @@ Exception::Exception(void)
  */
 Exception::Exception(const char *message)
 {
+	m_Code = 0;
 	m_Message = NULL;
 	SetMessage(message);
 }
@@ -46,6 +48,26 @@ Exception::Exception(const char *message)
 Exception::~Exception(void) throw()
 {
 	Memory::Free(m_Message);
+}
+
+/**
+ * Retrieves the error code for the exception.
+ *
+ * @returns The error code.
+ */
+int Exception::GetCode(void) const
+{
+	return m_Code;
+}
+
+/**
+ * Sets the error code for the exception.
+ *
+ * @param code The error code.
+ */
+void Exception::SetCode(int code)
+{
+	m_Code = code;
 }
 
 /**

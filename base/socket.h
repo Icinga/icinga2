@@ -29,8 +29,10 @@ namespace icinga {
  */
 struct I2_BASE_API SocketErrorEventArgs : public EventArgs
 {
-	int Code; /**< The error code. */
-	string Message; /**< A message describing the error. */
+	const Exception& Error;
+
+	SocketErrorEventArgs(const Exception& exception)
+	    : Error(exception) { }
 };
 
 /**
@@ -74,7 +76,10 @@ public:
 protected:
 	Socket(void);
 
-	void HandleSocketError(void);
+	int GetError(void) const;
+	static int GetLastSocketError(void);
+	void HandleSocketError(const Exception& exception);
+
 	virtual void CloseInternal(bool from_dtor);
 
 private:
@@ -83,6 +88,15 @@ private:
 	int ExceptionEventHandler(const EventArgs& ea);
 
 	static string GetAddressFromSockaddr(sockaddr *address, socklen_t len);
+};
+
+/**
+ * A socket exception.
+ */
+class SocketException : public Exception
+{
+public:
+	SocketException(const string& message, int errorCode);
 };
 
 }

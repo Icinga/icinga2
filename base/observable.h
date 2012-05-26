@@ -86,6 +86,16 @@ public:
 		}
 	}
 
+	/**
+	 * Checks whether there's at least one observer.
+	 *
+	 * @returns true if there are one or more observers, false otherwise.
+	 */
+	bool HasObservers(void) const
+	{
+		return !m_Observers.empty();
+	}
+
 private:
 	vector<ObserverType> m_Observers;
 };

@@ -69,7 +69,7 @@ public:
 	VariantType GetType(void) const;
 
 	long GetInteger(void) const;
-	long GetBool(void) const;
+	bool GetBool(void) const;
 	string GetString(void) const;
 	Object::Ptr GetObject(void) const;
 
