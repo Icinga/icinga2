@@ -73,7 +73,7 @@ public:
 
 		*value = dynamic_pointer_cast<Dictionary>(object);
 		if (!*value)
-			throw InvalidCastException();
+			throw runtime_error("Object is not a dictionary.");
 
 		return true;
 	}

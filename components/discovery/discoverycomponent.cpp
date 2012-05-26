@@ -363,7 +363,7 @@ bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string mess
 
 		Dictionary::Ptr permissions = dynamic_pointer_cast<Dictionary>(object);
 		if (!permissions)
-			throw InvalidCastException();
+			throw runtime_error("Object is not a dictionary.");
 
 		for (DictionaryIterator is = permissions->Begin(); is != permissions->End(); is++) {
 			if (Utility::Match(is->second.GetString(), message))
@@ -404,9 +404,8 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 		Object::Ptr object;
 		if (endpointConfig->GetProperty("roles", &object)) {
 			roles = dynamic_pointer_cast<Dictionary>(object);
-
 			if (!roles)
-				throw InvalidCastException();
+				throw runtime_error("Object is not a dictionary.");
 		}
 	}
 

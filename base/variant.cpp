@@ -39,7 +39,7 @@ void Variant::Convert(VariantType newType) const
 	}
 
 	// TODO: convert variant data
-	throw InvalidArgumentException("Invalid variant conversion.");
+	throw runtime_error("Invalid variant conversion.");
 }
 
 /**

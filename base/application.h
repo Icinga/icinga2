@@ -24,8 +24,6 @@ namespace icinga {
 
 class Component;
 
-DEFINE_EXCEPTION_CLASS(ComponentLoadException);
-
 /**
  * Abstract base class for applications.
  *

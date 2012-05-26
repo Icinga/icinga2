@@ -31,21 +31,35 @@ namespace icinga
 class I2_BASE_API Exception : public virtual std::exception
 {
 public:
-	Exception(void);
-	Exception(const char *message);
-	virtual ~Exception(void) throw();
+	Exception(void)
+	    : m_Message(), m_Code(0)
+	{ }
+
+	Exception(string message)
+	    : m_Message(message), m_Code(0)
+	{ }
+
+	Exception(string message, int code)
+	    : m_Message(message), m_Code(code)
+	{ }
+
+	/**
+	 * Destructor for the Exception class. Must be virtual for RTTI to work.
+	 */
+	virtual ~Exception(void) throw()
+	{ }
 
 	int GetCode(void) const;
-	const char *GetMessage(void) const;
+	string GetMessage(void) const;
 
 	virtual const char *what(void) const throw();
 
 protected:
 	void SetCode(int code);
-	void SetMessage(const char *message);
+	void SetMessage(string message);
 
 private:
-	char *m_Message;
+	string m_Message;
 	int m_Code;
 };
 
@@ -54,13 +68,11 @@ private:
 	{								\
 	public:								\
 		inline klass(void) : Exception()			\
-		{							\
-		}							\
+		{ }							\
 									\
-		inline klass(const char *message)			\
+		inline klass(string message)				\
 		    : Exception(message)				\
-		{							\
-		}							\
+		{ }							\
 	}
 
 /**
@@ -70,22 +82,6 @@ private:
  * @ingroup base
  */
 DEFINE_EXCEPTION_CLASS(NotImplementedException);
-
-/**
- * An exception that is thrown when an argument to
- * a function is invalid.
- *
- * @ingroup base
- */
-DEFINE_EXCEPTION_CLASS(InvalidArgumentException);
-
-/**
- * An exception that is thrown when a cast yields
- * an invalid result.
- *
- * @ingroup base
- */
-DEFINE_EXCEPTION_CLASS(InvalidCastException);
 
 #ifdef _WIN32
 /**
@@ -101,11 +97,8 @@ public:
 	 * @param errorCode A Win32 error code.
 	 */
 	inline Win32Exception(const string& message, int errorCode)
-	{
-		string msg = message + ": " + FormatErrorCode(errorCode);
-		SetMessage(msg.c_str());
-		SetCode(errorCode);
-	}
+	    : Exception(message + ": " + FormatErrorCode(errorCode), errorCode)
+	{ }
 
 	/**
 	 * Returns a string that describes the Win32 error.
@@ -130,11 +123,8 @@ public:
 	 * @param errorCode A Posix (errno) error code.
 	 */
 	inline PosixException(const string& message, int errorCode)
-	{
-		string msg = message + ": " + FormatErrorCode(errorCode);
-		SetMessage(msg.c_str());
-		SetCode(errorCode);
-	}
+	    : Exception(message + ": " + FormatErrorCode(errorCode), errorCode)
+	{ }
 
 	/**
 	 * Returns a string that describes the Posix error.
@@ -158,10 +148,8 @@ public:
 	 * @param errorCode An OpenSSL error code.
 	 */
 	inline OpenSSLException(const string& message, int errorCode)
-	{
-		string msg = message + ": " + FormatErrorCode(errorCode);
-		SetMessage(msg.c_str());
-	}
+	    : Exception(message + ": " + FormatErrorCode(errorCode), errorCode)
+	{ }
 
 	/**
 	 * Returns a string that describes the OpenSSL error.

@@ -230,7 +230,7 @@ Component::Ptr Application::LoadComponent(const string& path,
 #endif /* _WIN32 */
 
 	if (hModule == NULL)
-		throw ComponentLoadException("Could not load module");
+		throw runtime_error("Could not load module");
 
 #ifdef _WIN32
 	pCreateComponent = (CreateComponentFunction)GetProcAddress(hModule,
@@ -245,8 +245,8 @@ Component::Ptr Application::LoadComponent(const string& path,
 #endif /* _WIN32 */
 
 	if (pCreateComponent == NULL)
-		throw ComponentLoadException("Loadable module does not "
-		    "contain CreateComponent function");
+		throw runtime_error("Loadable module does not contain "
+		    "CreateComponent function");
 
 	component = Component::Ptr(pCreateComponent());
 	component->SetConfig(componentConfig);
@@ -368,7 +368,7 @@ string Application::GetExeDirectory(void) const
 			free(PathEnv);
 
 			if (!FoundPath)
-				throw Exception("Could not determine executable path.");
+				throw runtime_error("Could not determine executable path.");
 		}
 	}
 

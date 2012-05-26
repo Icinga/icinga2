@@ -41,7 +41,7 @@ MessagePart::MessagePart(string jsonString)
 	json_t *json = cJSON_Parse(jsonString.c_str());
 
 	if (!json)
-		throw InvalidArgumentException("Invalid JSON string");
+		throw runtime_error("Invalid JSON string");
 
 	m_Dictionary = GetDictionaryFromJson(json);
 
@@ -184,7 +184,7 @@ bool MessagePart::GetProperty(string key, MessagePart *value) const
 
 	Dictionary::Ptr dictionary = dynamic_pointer_cast<Dictionary>(object);
 	if (!dictionary)
-		throw InvalidCastException();
+		throw runtime_error("Object is not a dictionary.");
 
 	*value = MessagePart(dictionary);
 	return true;

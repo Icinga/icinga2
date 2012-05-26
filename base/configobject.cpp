@@ -42,7 +42,7 @@ ConfigObject::ConfigObject(const string& type, const string& name)
 void ConfigObject::SetHive(const ConfigHive::WeakPtr& hive)
 {
 	if (m_Hive.lock())
-		throw InvalidArgumentException("Config object already has a parent hive.");
+		throw logic_error("Config object already has a parent hive.");
 
 	m_Hive = hive;
 }

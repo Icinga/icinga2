@@ -80,7 +80,7 @@ void TlsClient::Start(void)
 		throw OpenSSLException("SSL_new failed", ERR_get_error());
 
 	if (!GetClientCertificate())
-		throw InvalidArgumentException("No X509 client certificate was specified.");
+		throw logic_error("No X509 client certificate was specified.");
 
 	if (!m_SSLIndexInitialized) {
 		m_SSLIndex = SSL_get_ex_new_index(0, (void *)"TlsClient", NULL, NULL, NULL);

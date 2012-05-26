@@ -116,5 +116,6 @@ void TcpSocket::Bind(string node, string service, int family)
 	freeaddrinfo(result);
 
 	if (fd == INVALID_SOCKET)
-		HandleSocketError(InvalidArgumentException());
+		HandleSocketError(runtime_error(
+		    "Could not create a suitable socket."));
 }

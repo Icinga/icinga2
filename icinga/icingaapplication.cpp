@@ -168,7 +168,7 @@ int IcingaApplication::NewIcingaConfigHandler(const EventArgs& ea)
 
 int IcingaApplication::DeletedIcingaConfigHandler(const EventArgs&)
 {
-	throw Exception("Unsupported operation.");
+	throw runtime_error("Unsupported operation.");
 }
 
 void IcingaApplication::SetPrivateKeyFile(string privkey)

@@ -29,10 +29,10 @@ namespace icinga {
  */
 struct I2_BASE_API SocketErrorEventArgs : public EventArgs
 {
-	const Exception& Error;
+	const exception& Exception;
 
-	SocketErrorEventArgs(const Exception& exception)
-	    : Error(exception) { }
+	SocketErrorEventArgs(const exception& ex)
+	    : Exception(ex) { }
 };
 
 /**
@@ -78,7 +78,7 @@ protected:
 
 	int GetError(void) const;
 	static int GetLastSocketError(void);
-	void HandleSocketError(const Exception& exception);
+	void HandleSocketError(const exception& ex);
 
 	virtual void CloseInternal(bool from_dtor);
 

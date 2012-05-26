@@ -34,7 +34,7 @@ void Utility::Daemonize(void) {
 
 	pid = fork();
 	if (pid < 0)
-		throw PosixException("fork failed", errno);
+		throw PosixException("fork() failed", errno);
 
 	if (pid)
 		exit(0);
@@ -42,7 +42,7 @@ void Utility::Daemonize(void) {
 	fd = open("/dev/null", O_RDWR);
 
 	if (fd < 0)
-		throw PosixException("open failed", errno);
+		throw PosixException("open() failed", errno);
 
 	if (fd != 0)
 		dup2(fd, 0);
@@ -57,7 +57,7 @@ void Utility::Daemonize(void) {
 		close(fd);
 
 	if (setsid() < 0)
-		throw PosixException("setsid failed", errno);
+		throw PosixException("setsid() failed", errno);
 #endif
 }
 
@@ -94,13 +94,13 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, strin
 	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
 	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.c_str()))
-		throw InvalidArgumentException("Could not load public X509 key file.");
+		throw OpenSSLException("Could not load public X509 key file", ERR_get_error());
 
 	if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.c_str(), SSL_FILETYPE_PEM))
-		throw InvalidArgumentException("Could not load private X509 key file.");
+		throw OpenSSLException("Could not load private X509 key file", ERR_get_error());
 
 	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.c_str(), NULL))
-		throw InvalidArgumentException("Could not load public CA key file.");
+		throw OpenSSLException("Could not load public CA key file", ERR_get_error());
 
 	return sslContext;
 }
@@ -118,7 +118,7 @@ string Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 	int rc = X509_NAME_get_text_by_NID(X509_get_subject_name(certificate.get()), NID_commonName, buffer, sizeof(buffer));
 
 	if (rc == -1)
-		throw InvalidArgumentException("X509 certificate has no CN attribute.");
+		throw OpenSSLException("X509 certificate has no CN attribute", ERR_get_error());
 
 	return buffer;
 }

@@ -36,11 +36,11 @@ void ConfigFileComponent::Start(void)
 
 	string filename;
 	if (!GetConfig()->GetProperty("configFilename", &filename))
-		throw InvalidArgumentException("Missing 'configFilename' property");
+		throw logic_error("Missing 'configFilename' property");
 
 	fp.open(filename.c_str(), ifstream::in);
 	if (fp.fail())
-		throw ConfigParserException("Could not open config file");
+		throw runtime_error("Could not open config file");
 	
 	GetIcingaApplication()->Log("Reading config file: " + filename);
 
@@ -49,7 +49,7 @@ void ConfigFileComponent::Start(void)
 		char *buffer = (char *)fifo->GetWriteBuffer(&bufferSize);
 		fp.read(buffer, bufferSize);
 		if (fp.bad())
-			throw ConfigParserException("Could not read from config file");
+			throw runtime_error("Could not read from config file");
 		fifo->Write(NULL, fp.gcount());
 	}
 

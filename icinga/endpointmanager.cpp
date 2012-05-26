@@ -70,7 +70,7 @@ shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
 void EndpointManager::AddListener(string service)
 {
 	if (!GetSSLContext())
-		throw InvalidArgumentException("SSL context is required for AddListener()");
+		throw logic_error("SSL context is required for AddListener()");
 
 	stringstream s;
 	s << "Adding new listener: port " << service;
@@ -151,7 +151,7 @@ void EndpointManager::UnregisterServer(JsonRpcServer::Ptr server)
 void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 {
 	if (!endpoint->IsLocal() && endpoint->GetIdentity() != "")
-		throw InvalidArgumentException("Identity must be empty.");
+		throw invalid_argument("Identity must be empty.");
 
 	endpoint->SetEndpointManager(static_pointer_cast<EndpointManager>(shared_from_this()));
 	m_Endpoints.push_back(endpoint);
@@ -220,11 +220,11 @@ void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
 {
 	string id;
 	if (message.GetID(&id))
-		throw InvalidArgumentException("Multicast requests must not have an ID.");
+		throw invalid_argument("Multicast requests must not have an ID.");
 
 	string method;
 	if (!message.GetMethod(&method))
-		throw InvalidArgumentException("Message is missing the 'method' property.");
+		throw invalid_argument("Message is missing the 'method' property.");
 
 	for (vector<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 	{

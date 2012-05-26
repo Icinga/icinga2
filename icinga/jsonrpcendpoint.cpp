@@ -132,7 +132,7 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs&)
 
 int JsonRpcEndpoint::ClientErrorHandler(const SocketErrorEventArgs& ea)
 {
-	cerr << "Error occured for JSON-RPC socket: Code=" << ea.Error.GetCode() << "; Message=" << ea.Error.GetMessage() << endl;
+	cerr << "Error occured for JSON-RPC socket: Message=" << ea.Exception.what() << endl;
 
 	return 0;
 }

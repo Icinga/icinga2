@@ -22,35 +22,6 @@
 using namespace icinga;
 
 /**
- * Default constructor for the Exception class.
- */
-Exception::Exception(void)
-{
-	m_Code = 0;
-	m_Message = NULL;
-}
-
-/**
- * Constructor for the exception class.
- *
- * @param message A message describing the exception.
- */
-Exception::Exception(const char *message)
-{
-	m_Code = 0;
-	m_Message = NULL;
-	SetMessage(message);
-}
-
-/**
- * Destructor for the Exception class. Must be virtual for RTTI to work.
- */
-Exception::~Exception(void) throw()
-{
-	Memory::Free(m_Message);
-}
-
-/**
  * Retrieves the error code for the exception.
  *
  * @returns The error code.
@@ -75,7 +46,7 @@ void Exception::SetCode(int code)
  *
  * @returns The description.
  */
-const char *Exception::GetMessage(void) const
+string Exception::GetMessage(void) const
 {
 	return m_Message;
 }
@@ -87,7 +58,7 @@ const char *Exception::GetMessage(void) const
  */
 const char *Exception::what(void) const throw()
 {
-	return GetMessage();
+	return GetMessage().c_str();
 }
 
 /**
@@ -95,10 +66,9 @@ const char *Exception::what(void) const throw()
  *
  * @param message The description.
  */
-void Exception::SetMessage(const char *message)
+void Exception::SetMessage(string message)
 {
-	Memory::Free(m_Message);
-	m_Message = Memory::StrDup(message);
+	m_Message = message;
 }
 
 #ifdef _WIN32

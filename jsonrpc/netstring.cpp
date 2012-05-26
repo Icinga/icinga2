@@ -41,7 +41,7 @@ bool Netstring::ReadStringFromFIFO(FIFO::Ptr fifo, string *str)
 
 	/* no leading zeros allowed */
 	if (buffer[0] == '0' && isdigit(buffer[1]))
-		throw InvalidArgumentException("Invalid netstring (leading zero)");
+		throw invalid_argument("Invalid netstring (leading zero)");
 
 	size_t len, i;
 
@@ -49,7 +49,7 @@ bool Netstring::ReadStringFromFIFO(FIFO::Ptr fifo, string *str)
 	for (i = 0; i < buffer_length && isdigit(buffer[i]); i++) {
 		/* length specifier must have at most 9 characters */
 		if (i >= 9)
-			throw InvalidArgumentException("Length specifier must not exceed 9 characters");
+			throw invalid_argument("Length specifier must not exceed 9 characters");
 
 		len = len * 10 + (buffer[i] - '0');
 	}
@@ -60,11 +60,11 @@ bool Netstring::ReadStringFromFIFO(FIFO::Ptr fifo, string *str)
 
 	/* check for the colon delimiter */
 	if (buffer[i++] != ':')
-		throw InvalidArgumentException("Invalid Netstring (missing :)");
+		throw invalid_argument("Invalid Netstring (missing :)");
 
 	/* check for the comma delimiter after the string */
 	if (buffer[i + len] != ',')
-		throw InvalidArgumentException("Invalid Netstring (missing ,)");
+		throw invalid_argument("Invalid Netstring (missing ,)");
 
 	*str = string(&buffer[i], &buffer[i + len]);
 

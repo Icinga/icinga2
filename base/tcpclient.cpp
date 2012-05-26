@@ -110,7 +110,8 @@ void TcpClient::Connect(const string& node, const string& service)
 	freeaddrinfo(result);
 
 	if (fd == INVALID_SOCKET)
-		HandleSocketError(InvalidArgumentException());
+		HandleSocketError(runtime_error(
+		    "Could not create a suitable socket."));
 }
 
 /**

@@ -167,17 +167,17 @@ int Socket::GetLastSocketError(void)
  * Handles a socket error by calling the OnError event or throwing an exception
  * when there are no observers for the OnError event.
  *
- * @param exception An exception.
+ * @param ex An exception.
  */
-void Socket::HandleSocketError(const Exception& exception)
+void Socket::HandleSocketError(const exception& ex)
 {
 	if (OnError.HasObservers()) {
-		SocketErrorEventArgs sea(exception);
+		SocketErrorEventArgs sea(ex);
 		OnError(sea);
 
 		Close();
 	} else {
-		throw exception;
+		throw ex;
 	}
 }
 
@@ -226,7 +226,8 @@ string Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 	char service[NI_MAXSERV];
 
 	if (getnameinfo(address, len, host, sizeof(host), service, sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0)
-		throw InvalidArgumentException(); /* TODO: throw proper exception */
+		throw SocketException("getnameinfo() failed",
+		    GetLastSocketError());
 
 	stringstream s;
 	s << "[" << host << "]:" << service;
