@@ -348,7 +348,10 @@ string Application::GetExeDirectory(void) const
 		PathEnv = getenv("PATH");
 
 		if (PathEnv != NULL) {
-			PathEnv = Memory::StrDup(PathEnv);
+			PathEnv = strdup(PathEnv);
+
+			if (PathEnv == NULL)
+				throw bad_alloc();
 
 			FoundPath = false;
 
