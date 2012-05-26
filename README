@@ -1,8 +1,39 @@
-Requirements
-------------
+Build Requirements
+------------------
 
--C++ compiler that supports C++11
+The following requirements need to be fulfilled in order to build the
+application using a dist tarball:
 
-or
+* C++ compiler
+* OpenSSL library and header files
+* Doxygen (only if you plan on building the internal code documentation)
 
--Boost library (components: tr1 smart_ptr bind function make_shared)
+Packaging Requirements
+----------------------
+
+In order to build a dist tarball for the application the following external
+software components need to be installed in addition to the build requirements
+mentioned above:
+
+* Boost library
+* GNU Automake
+* GNU Autoconf
+* GNU Libtool
+
+"make dist" extracts the following components from the Boost library (using
+bcp):
+
+* tr1
+* smart_ptr
+* bind
+* function
+* make_shared
+
+These components are only used on the target system if your C++ compiler does
+not at least support TR1 and there's no other system-wide installation of the
+Boost library.
+
+This program comes with its own Debian packaging scripts which may or may not
+fully comply with the official Debian packaging requirements. These scripts can
+be found in the 'debian' sub-directory. Binary packages can be built using
+'dpkg-buildpackage'.
