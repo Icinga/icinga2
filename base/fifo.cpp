@@ -57,6 +57,8 @@ void FIFO::ResizeBuffer(size_t newSize)
 	if (newBuffer == NULL)
 		throw bad_alloc();
 
+	m_Buffer = newBuffer;
+
 	m_AllocSize = newSize;
 }
 
