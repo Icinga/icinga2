@@ -25,8 +25,6 @@ libbase_la_SOURCES =  \
 	fifo.cpp \
 	fifo.h \
 	i2-base.h \
-	memory.cpp \
-	memory.h \
 	object.cpp \
 	object.h \
 	socket.cpp \

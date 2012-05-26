@@ -37,7 +37,7 @@ FIFO::FIFO(void)
  */
 FIFO::~FIFO(void)
 {
-	Memory::Free(m_Buffer);
+	free(m_Buffer);
 }
 
 /**
@@ -52,7 +52,11 @@ void FIFO::ResizeBuffer(size_t newSize)
 
 	newSize = (newSize / FIFO::BlockSize + 1) * FIFO::BlockSize;
 
-	m_Buffer = (char *)Memory::Reallocate(m_Buffer, newSize);
+	char *newBuffer = (char *)realloc(m_Buffer, newSize);
+
+	if (newBuffer == NULL)
+		throw bad_alloc();
+
 	m_AllocSize = newSize;
 }
 
