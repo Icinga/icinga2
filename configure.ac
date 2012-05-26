@@ -39,6 +39,7 @@ AC_CHECK_LIB(crypto, X509_NAME_oneline)
 AC_CHECK_LIB(eay32, X509_NAME_oneline)
 AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(pthread, pthread_create)
+AC_CHECK_LIB(socket, getsockname)
 
 AX_CHECK_COMPILE_FLAG([-std=c++0x], [have_cxx11_support=yes])
 
