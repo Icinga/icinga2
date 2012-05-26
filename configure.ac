@@ -1,5 +1,21 @@
-dnl Process this file with autoconf to produce a configure script.
-dnl Created by Anjuta application wizard.
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012 Icinga Development Team (http://www.icinga.org/)        *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
 
 AC_INIT([icinga], [2.0])
 AC_LANG(C++)
@@ -31,6 +47,7 @@ AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_LIBTOOL
+AX_CXX_COMPILE_STDCXX_0X
 AX_CXX_GCC_ABI_DEMANGLE
 AX_PTHREAD
 
@@ -41,16 +58,10 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(pthread, pthread_create)
 AC_CHECK_LIB(socket, getsockname)
 
-AX_CHECK_COMPILE_FLAG([-std=c++0x], [have_cxx11_support=yes])
-
-if test "$have_cxx11_support" = "yes"; then
-	CXXFLAGS="$CXXFLAGS -std=c++0x"
-	AC_DEFINE(HAVE_CXX11, 1,
-		[define if the compiler supports C++11])
-fi
-
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], [])], [], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application]) ])
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], [])],
+	[],
+	[AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application]) ])
 
 
 AC_OUTPUT([

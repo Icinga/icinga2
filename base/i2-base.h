@@ -53,7 +53,7 @@
  */
 
 #ifdef _MSC_VER
-#	define HAVE_CXX11
+#	define HAVE_STDCXX_0X
 #	pragma warning(disable:4251)
 #	define _CRT_SECURE_NO_DEPRECATE
 #	define _CRT_SECURE_NO_WARNINGS
@@ -94,13 +94,13 @@
 using namespace std;
 using std::exception;
 
-#ifdef HAVE_CXX11
+#ifdef HAVE_STDCXX_0X
 #	include <memory>
 #	include <functional>
 
 using namespace std::placeholders;
 
-#else /* HAVE_CXX11 */
+#else /* HAVE_STDCXX_0X */
 #	ifdef HAVE_BOOST
 #		include <boost/smart_ptr.hpp>
 #		include <boost/make_shared.hpp>
@@ -118,7 +118,7 @@ using namespace std::tr1;
 using namespace std::tr1::placeholders;
 
 #endif /* HAVE_BOOST */
-#endif /* HAVE_CXX11 */
+#endif /* HAVE_STDCXX_0X */
 
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
