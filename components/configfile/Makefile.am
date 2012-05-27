@@ -18,7 +18,7 @@ configfile_la_CXXFLAGS = \
 configfile_la_LDFLAGS = \
 	-module \
 	-no-undefined \
-	-version-info 0:0:0
+	-version-info @LIBRARY_VERSION@
 
 configfile_la_LIBADD = \
 	$(BOOST_LDFLAGS) \

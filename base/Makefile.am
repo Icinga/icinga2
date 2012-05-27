@@ -56,7 +56,7 @@ libbase_la_CXXFLAGS = \
 
 libbase_la_LDFLAGS = \
 	-no-undefined \
-	-version-info PACKAGE_VERSION
+	-version-info @LIBRARY_VERSION@
 
 libbase_la_LIBADD = \
 	$(LIBLTDL) \

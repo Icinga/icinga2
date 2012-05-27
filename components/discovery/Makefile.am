@@ -19,8 +19,8 @@ discovery_la_CXXFLAGS = \
 
 discovery_la_LDFLAGS = \
 	-module \
-	-version-info 0:0:0 \
-	-no-undefined
+	-no-undefined \
+	-version-info @LIBRARY_VERSION@
 
 discovery_la_LIBADD = \
 	$(BOOST_LDFLAGS) \

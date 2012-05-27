@@ -31,7 +31,7 @@ libicinga_la_CXXFLAGS = \
 
 libicinga_la_LDFLAGS = \
 	-no-undefined \
-	-version-info 0:0:0
+	-version-info @LIBRARY_VERSION@
 
 libicinga_la_LIBADD = \
 	$(BOOST_LDFLAGS) \

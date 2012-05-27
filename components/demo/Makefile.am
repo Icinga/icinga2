@@ -18,7 +18,7 @@ demo_la_CXXFLAGS = \
 demo_la_LDFLAGS = \
 	-module \
 	-no-undefined \
-	-version-info 0:0:0
+	-version-info @LIBRARY_VERSION@
 
 demo_la_LIBADD = \
 	$(BOOST_LDFLAGS) \

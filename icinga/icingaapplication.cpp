@@ -49,7 +49,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	m_EndpointManager = make_shared<EndpointManager>();
 
-	string componentDirectory = GetExeDirectory() + "/../lib/icinga";
+	string componentDirectory = GetExeDirectory() + "/../lib/icinga2";
 	AddComponentSearchDir(componentDirectory);
 
 	/* register handler for 'icinga' config objects */

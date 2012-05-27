@@ -17,7 +17,7 @@ configrpc_la_CXXFLAGS = \
 configrpc_la_LDFLAGS = \
 	-module \
 	-no-undefined \
-	-version-info 0:0:0
+	-version-info @LIBRARY_VERSION@
 
 configrpc_la_LIBADD = \
 	$(BOOST_LDFLAGS) \
