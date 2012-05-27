@@ -25,7 +25,7 @@ icinga2doc_DATA = \
 	NEWS
 
 
-EXTRA_DIST = $(icinga2doc_DATA) git_version.sh
+EXTRA_DIST = $(icinga2doc_DATA) git_version.sh icinga2.spec
 
 
 # Remove doc directory on uninstall

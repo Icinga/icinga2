@@ -33,6 +33,9 @@ These components are only used on the target system if your C++ compiler does
 not at least support TR1 and there's no other system-wide installation of the
 Boost library.
 
+Debian Packages
+---------------
+
 This program comes with its own Debian packaging scripts which may or may not
 fully comply with the official Debian packaging requirements. These scripts can
 be found in the 'debian' sub-directory. Binary packages can be built using
