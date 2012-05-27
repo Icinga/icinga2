@@ -27,7 +27,8 @@ libjsonrpc_la_CXXFLAGS = \
 
 libjsonrpc_la_LDFLAGS = \
 	-no-undefined \
-	-version-info @LIBRARY_VERSION@
+	@RELEASE_INFO@ \
+	@VERSION_INFO@
 
 libjsonrpc_la_LIBADD = \
 	$(BOOST_LDFLAGS) \

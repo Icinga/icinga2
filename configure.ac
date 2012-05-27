@@ -17,11 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-AC_INIT([icinga2], [2.0])
-AC_SUBST([LIBRARY_VERSION], [2:0:0])
+AC_INIT
+AX_SPEC_FILE([icinga2.spec])
+AX_SPEC_DEFAULTS
+AX_SET_VERSION_INFO
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([1.11])
+AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
@@ -35,7 +37,7 @@ AX_CXX_COMPILE_STDCXX_0X
 AX_CXX_GCC_ABI_DEMANGLE
 AX_PTHREAD
 
-LT_INIT([dlopen, disable-static])
+LT_INIT([dlopen disable-static])
 LT_CONFIG_LTDL_DIR([ltdl])
 LTDL_INIT
 
@@ -86,5 +88,4 @@ icinga-app/Makefile
 jsonrpc/Makefile
 mmatch/Makefile
 Doxyfile
-icinga2.spec
 ])
