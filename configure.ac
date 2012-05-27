@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 AC_INIT([icinga2], [2.0])
-AC_LANG(C++)
+AC_SUBST([LIBRARY_VERSION], [2:0:0])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.11])
@@ -44,6 +44,7 @@ DX_INIT_DOXYGEN([icinga], [Doxyfile], [doc])
 AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_CXX
+AC_LANG_CPLUSPLUS
 AC_PROG_LIBTOOL
 AX_CXX_COMPILE_STDCXX_0X
 AX_CXX_GCC_ABI_DEMANGLE
