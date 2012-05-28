@@ -37,7 +37,11 @@ AX_CXX_COMPILE_STDCXX_0X
 AX_CXX_GCC_ABI_DEMANGLE
 AX_PTHREAD
 
+<<<<<<< Updated upstream
 LT_INIT([dlopen disable-static])
+=======
+LT_INIT([dlopen shared disable-static win32-dll])
+>>>>>>> Stashed changes
 LT_CONFIG_LTDL_DIR([ltdl])
 LTDL_INIT
 
@@ -67,6 +71,8 @@ AC_CHECK_LIB(eay32, X509_NAME_oneline)
 AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(pthread, pthread_create)
 AC_CHECK_LIB(socket, getsockname)
+AC_CHECK_LIB(ws2_32, getsockname)
+AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 
 AC_COMPILE_IFELSE(
 	[AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], [])],

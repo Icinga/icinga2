@@ -38,8 +38,6 @@ Application::Application(void)
 	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
 		throw Win32Exception("WSAStartup failed", WSAGetLastError());
 #else /* _WIN32 */
-	LTDL_SET_PRELOADED_SYMBOLS();
-
 	lt_dlinit();
 #endif /* _WIN32 */
 

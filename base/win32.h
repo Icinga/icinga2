@@ -21,11 +21,18 @@
 #define WIN32_H
 
 #define WIN32_LEAN_AND_MEAN
+#define _WIN32_WINNT 0x0502
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <imagehlp.h>
 #include <shlwapi.h>
+
+#ifdef __MINGW32__
+#	ifndef IPV6_V6ONLY
+#		define IPV6_V6ONLY 27
+#	endif /* IPV6_V6ONLY */
+#endif /* __MINGW32__ */
 
 typedef int socklen_t;
 

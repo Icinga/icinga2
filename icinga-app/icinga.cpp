@@ -19,6 +19,10 @@
 
 #include <i2-icinga.h>
 
+#ifndef _WIN32
+#	include <ltdl.h>
+#endif /* _WIN32 */
+
 using namespace icinga;
 
 /**
@@ -30,6 +34,8 @@ using namespace icinga;
  */
 int main(int argc, char **argv)
 {
+	LTDL_SET_PRELOADED_SYMBOLS();
+
 	IcingaApplication::Ptr instance = make_shared<IcingaApplication>();
 	return instance->Run(argc, argv);
 }
