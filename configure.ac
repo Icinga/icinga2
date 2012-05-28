@@ -37,11 +37,7 @@ AX_CXX_COMPILE_STDCXX_0X
 AX_CXX_GCC_ABI_DEMANGLE
 AX_PTHREAD
 
-<<<<<<< Updated upstream
-LT_INIT([dlopen disable-static])
-=======
 LT_INIT([dlopen shared disable-static win32-dll])
->>>>>>> Stashed changes
 LT_CONFIG_LTDL_DIR([ltdl])
 LTDL_INIT
 
@@ -93,5 +89,6 @@ icinga/Makefile
 icinga-app/Makefile
 jsonrpc/Makefile
 mmatch/Makefile
+test/Makefile
 Doxyfile
 ])

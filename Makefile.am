@@ -12,7 +12,8 @@ SUBDIRS = \
 	jsonrpc \
 	icinga \
 	components \
-	icinga-app
+	icinga-app \
+	test
 
 icinga2docdir = ${prefix}/share/doc/icinga2
 icinga2doc_DATA = \
