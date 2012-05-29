@@ -52,14 +52,17 @@ libbase_la_CPPFLAGS = \
 	-DI2_BASE_BUILD \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
+	$(OPENSSL_INCLUDES) \
 	-I${top_srcdir}/third-party/mmatch
 
 libbase_la_LDFLAGS = \
+	$(BOOST_LDFLAGS) \
+	$(OPENSSL_LDFLAGS) \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
 libbase_la_LIBADD = \
 	$(LIBLTDL) \
-	$(BOOST_LDFLAGS) \
+	$(OPENSSL_LIBS) \
 	${top_builddir}/third-party/mmatch/libmmatch.la

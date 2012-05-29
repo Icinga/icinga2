@@ -16,13 +16,13 @@ configfile_la_CPPFLAGS = \
 	-I${top_srcdir}/third-party/cJSON
 
 configfile_la_LDFLAGS = \
+	$(BOOST_LDFLAGS) \
 	-module \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
 configfile_la_LIBADD = \
-	$(BOOST_LDFLAGS) \
 	$(top_builddir)/base/libbase.la \
 	$(top_builddir)/icinga/libicinga.la \
 	$(top_builddir)/third-party/cJSON/libcJSON.la

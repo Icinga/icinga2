@@ -169,7 +169,7 @@ int Socket::GetLastSocketError(void)
  *
  * @param ex An exception.
  */
-void Socket::HandleSocketError(const exception& ex)
+void Socket::HandleSocketError(const std::exception& ex)
 {
 	if (OnError.HasObservers()) {
 		SocketErrorEventArgs sea(ex);

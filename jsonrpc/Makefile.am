@@ -26,11 +26,11 @@ libjsonrpc_la_CPPFLAGS = \
 	-I${top_srcdir}/third-party/cJSON
 
 libjsonrpc_la_LDFLAGS = \
+	$(BOOST_LDFLAGS) \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
 libjsonrpc_la_LIBADD = \
-	$(BOOST_LDFLAGS) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/third-party/cJSON/libcJSON.la

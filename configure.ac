@@ -33,7 +33,7 @@ AC_LANG_CPLUSPLUS
 AC_PROG_CC
 AC_LANG_C
 
-LT_INIT([dlopen])
+LT_INIT([dlopen disable-static win32-dll])
 LT_CONFIG_LTDL_DIR([third-party/ltdl])
 LTDL_INIT
 
@@ -54,7 +54,7 @@ AX_CXX_GCC_ABI_DEMANGLE
 AX_PTHREAD
 AX_BOOST_BASE
 AX_BOOST_UNIT_TEST_FRAMEWORK
-
+AX_CHECK_OPENSSL([], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application])])
 AC_CHECK_LIB(ssl, SSL_new)
 AC_CHECK_LIB(crypto, X509_NAME_oneline)
 AC_CHECK_LIB(eay32, X509_NAME_oneline)
@@ -63,20 +63,6 @@ AC_CHECK_LIB(pthread, pthread_create)
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
-
-AC_MSG_CHECKING([for OpenSSL])
-AC_LANG_PUSH(C)
-AC_COMPILE_IFELSE(
-	AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []),
-	[
-	AC_MSG_RESULT([yes])
-	],
-	[
-	AC_MSG_RESULT([no])
-	AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application])
-	]
-	)
-AC_LANG_POP(C)
 
 AC_CHECK_LIB(sqlite3, sqlite3_open)
 

@@ -34,7 +34,9 @@ using namespace icinga;
  */
 int main(int argc, char **argv)
 {
+#ifndef _WIN32
 	LTDL_SET_PRELOADED_SYMBOLS();
+#endif /* _WIN32 */
 
 	IcingaApplication::Ptr instance = make_shared<IcingaApplication>();
 	return instance->Run(argc, argv);

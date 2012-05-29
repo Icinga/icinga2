@@ -15,8 +15,10 @@ icinga_CPPFLAGS = \
 	-I${top_srcdir}/icinga \
 	-I${top_srcdir}
 
+icinga_LDFLAGS = \
+	$(BOOST_LDFLAGS)
+
 icinga_LDADD = \
-	$(BOOST_LDFLAGS) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/icinga/libicinga.la \
 	-dlopen ${top_builddir}/components/configfile/configfile.la \

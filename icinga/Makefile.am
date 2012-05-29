@@ -28,11 +28,11 @@ libicinga_la_CPPFLAGS = \
 	-I${top_srcdir}
 
 libicinga_la_LDFLAGS = \
+	$(BOOST_LDFLAGS) \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
 libicinga_la_LIBADD = \
-	$(BOOST_LDFLAGS) \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
 	${top_builddir}/base/libbase.la

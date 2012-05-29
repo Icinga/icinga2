@@ -37,7 +37,13 @@ int delegate_fwd(int (TObject::*function)(TArgs), weak_ptr<TObject> wref, TArgs 
 template<class TObject, class TArgs>
 function<int (TArgs)> bind_weak(int (TObject::*function)(TArgs), const weak_ptr<TObject>& wref)
 {
-	return bind(&delegate_fwd<TObject, TArgs>, function, wref, placeholders::_1);
+	return bind(&delegate_fwd<TObject, TArgs>, function, wref,
+#ifdef HAVE_BOOST
+	    _1
+#else /* HAVE_BOOST */
+	    placeholders::_1
+#endif /* HAVE_BOOST */
+	);
 }
 
 template<class TObject, class TArgs>

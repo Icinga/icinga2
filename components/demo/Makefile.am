@@ -15,13 +15,13 @@ demo_la_CPPFLAGS = \
 	-I${top_srcdir}/icinga
 
 demo_la_LDFLAGS = \
+	$(BOOST_LDFLAGS) \
 	-module \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
 demo_la_LIBADD = \
-	$(BOOST_LDFLAGS) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
 	${top_builddir}/icinga/libicinga.la
