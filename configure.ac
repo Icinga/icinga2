@@ -64,10 +64,48 @@ AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 
+AC_MSG_CHECKING([for OpenSSL])
+AC_LANG_PUSH(C)
 AC_COMPILE_IFELSE(
-	[AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], [])],
-	[],
-	[AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application]) ])
+	AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []),
+	[
+	AC_MSG_RESULT([yes])
+	],
+	[
+	AC_MSG_RESULT([no])
+	AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application])
+	]
+	)
+AC_LANG_POP(C)
+
+AC_CHECK_LIB(sqlite, sqlite3_open)
+
+AC_MSG_CHECKING([for SQLite3])
+AC_LANG_PUSH(C)
+AC_COMPILE_IFELSE(
+	AC_LANG_PROGRAM([[#include <sqlite3.h>]], []),
+	[
+	AC_MSG_RESULT([yes])
+	bundled_sqlite3=no
+	],
+	[
+	AC_MSG_ERROR([no])
+	bundled_sqlite3=yes
+	]
+	)
+AC_LANG_POP(C)
+
+AM_CONDITIONAL([USE_BUNDLED_SQLITE3], [test "$bundled_sqlite3" = yes])
+
+if test "$bundled_sqlite3" = yes; then
+	SQLITE3_LDFLAGS=${top_builddir}/third-party/sqlite/libsqlite3.la
+	SQLITE3_CPPFLAGS=-I${top_srcdir}/third-party/sqlite
+else
+	SQLITE3_LDFLAGS=
+	SQLITE3_CPPFLAGS=
+fi
+AC_SUBST([SQLITE3_LDFLAGS])
+AC_SUBST([SQLITE3_CPPFLAGS])
 
 AC_OUTPUT([
 Makefile
