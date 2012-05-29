@@ -5,9 +5,7 @@ include aminclude.am
 
 SUBDIRS = \
 	compat \
-	ltdl \
-	mmatch \
-	cJSON \
+	third-party \
 	base \
 	jsonrpc \
 	icinga \

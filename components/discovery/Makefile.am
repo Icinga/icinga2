@@ -10,11 +10,10 @@ discovery_la_SOURCES =  \
 	discoverymessage.h \
 	i2-discovery.h
 
-discovery_la_CXXFLAGS = \
+discovery_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
-	-I${top_srcdir}/cJSON \
 	-I${top_srcdir}/icinga
 
 discovery_la_LDFLAGS = \
@@ -27,5 +26,4 @@ discovery_la_LIBADD = \
 	$(BOOST_LDFLAGS) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
-	${top_builddir}/cJSON/libcJSON.la \
 	${top_builddir}/icinga/libicinga.la

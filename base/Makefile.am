@@ -48,11 +48,11 @@ libbase_la_SOURCES =  \
 	win32.cpp \
 	win32.h
 
-libbase_la_CXXFLAGS = \
+libbase_la_CPPFLAGS = \
 	-DI2_BASE_BUILD \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/mmatch
+	-I${top_srcdir}/third-party/mmatch
 
 libbase_la_LDFLAGS = \
 	-no-undefined \
@@ -62,4 +62,4 @@ libbase_la_LDFLAGS = \
 libbase_la_LIBADD = \
 	$(LIBLTDL) \
 	$(BOOST_LDFLAGS) \
-	${top_builddir}/mmatch/libmmatch.la
+	${top_builddir}/third-party/mmatch/libmmatch.la

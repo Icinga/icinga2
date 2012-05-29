@@ -19,9 +19,7 @@ libicinga_la_SOURCES =  \
 	virtualendpoint.cpp \
 	virtualendpoint.h
 
-libicinga_la_CFLAGS = -DI2_ICINGA_BUILD
-
-libicinga_la_CXXFLAGS = \
+libicinga_la_CPPFLAGS = \
 	-DI2_ICINGA_BUILD \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \

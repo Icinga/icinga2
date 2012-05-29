@@ -7,12 +7,11 @@ bin_PROGRAMS = \
 icinga_SOURCES = \
 	icinga.cpp
 
-icinga_CXXFLAGS = \
+icinga_CPPFLAGS = \
 	-DI2_ICINGALAUNCHER_BUILD \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
-	-I${top_srcdir}/cJSON \
 	-I${top_srcdir}/icinga \
 	-I${top_srcdir}
 

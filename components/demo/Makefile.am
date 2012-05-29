@@ -8,11 +8,10 @@ demo_la_SOURCES = \
 	democomponent.h \
 	i2-demo.h
 
-demo_la_CXXFLAGS = \
+demo_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
-	-I${top_srcdir}/cJSON \
 	-I${top_srcdir}/icinga
 
 demo_la_LDFLAGS = \

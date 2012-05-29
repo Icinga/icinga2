@@ -8,7 +8,7 @@ configrpc_la_SOURCES = \
 	configrpccomponent.h \
 	i2-configrpc.h
 
-configrpc_la_CXXFLAGS = \
+configrpc_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \

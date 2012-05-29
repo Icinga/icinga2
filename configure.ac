@@ -24,25 +24,18 @@ AX_SET_VERSION_INFO
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
-AM_SILENT_RULES([yes])
+#AM_SILENT_RULES([yes])
+
+AC_CONFIG_SUBDIRS([third-party/sqlite])
 
 AC_PROG_CXX
 AC_LANG_CPLUSPLUS
 AC_PROG_CC
 AC_LANG_C
 
-AC_PROG_INSTALL
-AC_PROG_LIBTOOL
-AX_CXX_COMPILE_STDCXX_0X
-AX_CXX_GCC_ABI_DEMANGLE
-AX_PTHREAD
-
-LT_INIT([dlopen shared disable-static win32-dll])
-LT_CONFIG_LTDL_DIR([ltdl])
+LT_INIT([dlopen])
+LT_CONFIG_LTDL_DIR([third-party/ltdl])
 LTDL_INIT
-
-AX_BOOST_BASE
-AX_BOOST_UNIT_TEST_FRAMEWORK
 
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
@@ -55,11 +48,12 @@ DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN([icinga], [Doxyfile], [doc])
 
 AC_PROG_INSTALL
-AC_PROG_CC
 AC_PROG_LIBTOOL
 AX_CXX_COMPILE_STDCXX_0X
 AX_CXX_GCC_ABI_DEMANGLE
 AX_PTHREAD
+AX_BOOST_BASE
+AX_BOOST_UNIT_TEST_FRAMEWORK
 
 AC_CHECK_LIB(ssl, SSL_new)
 AC_CHECK_LIB(crypto, X509_NAME_oneline)
@@ -79,7 +73,6 @@ AC_OUTPUT([
 Makefile
 compat/Makefile
 base/Makefile
-cJSON/Makefile
 components/Makefile
 components/configfile/Makefile
 components/configrpc/Makefile
@@ -88,7 +81,9 @@ components/discovery/Makefile
 icinga/Makefile
 icinga-app/Makefile
 jsonrpc/Makefile
-mmatch/Makefile
 test/Makefile
+third-party/Makefile
+third-party/cJSON/Makefile
+third-party/mmatch/Makefile
 Doxyfile
 ])

@@ -8,12 +8,12 @@ configfile_la_SOURCES = \
 	configfilecomponent.h \
 	i2-configfile.h
 
-configfile_la_CXXFLAGS = \
+configfile_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/icinga \
 	-I${top_srcdir}/jsonrpc \
-	-I${top_srcdir}/cJSON
+	-I${top_srcdir}/third-party/cJSON
 
 configfile_la_LDFLAGS = \
 	-module \
@@ -25,4 +25,4 @@ configfile_la_LIBADD = \
 	$(BOOST_LDFLAGS) \
 	$(top_builddir)/base/libbase.la \
 	$(top_builddir)/icinga/libicinga.la \
-	$(top_builddir)/cJSON/libcJSON.la
+	$(top_builddir)/third-party/cJSON/libcJSON.la

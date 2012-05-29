@@ -19,11 +19,11 @@ libjsonrpc_la_SOURCES = \
 	responsemessage.cpp \
 	responsemessage.h
 
-libjsonrpc_la_CXXFLAGS = \
+libjsonrpc_la_CPPFLAGS = \
 	-DI2_JSONRPC_BUILD \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
-	-I${top_srcdir}/cJSON
+	-I${top_srcdir}/third-party/cJSON
 
 libjsonrpc_la_LDFLAGS = \
 	-no-undefined \
@@ -33,4 +33,4 @@ libjsonrpc_la_LDFLAGS = \
 libjsonrpc_la_LIBADD = \
 	$(BOOST_LDFLAGS) \
 	${top_builddir}/base/libbase.la \
-	${top_builddir}/cJSON/libcJSON.la
+	${top_builddir}/third-party/cJSON/libcJSON.la

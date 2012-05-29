@@ -9,12 +9,16 @@ check_PROGRAMS = \
 base_dictionary_SOURCES = \
 	base-dictionary.cpp
 
-base_dictionary_CXXFLAGS = \
+base_dictionary_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
+	-I${top_srcdir}/jsonrpc \
+	-I${top_srcdir}/icinga \
 	-I${top_srcdir}
 
 base_dictionary_LDADD = \
 	$(BOOST_LDFLAGS) \
 	$(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
-	${top_builddir}/base/libbase.la
+	${top_builddir}/base/libbase.la \
+	${top_builddir}/jsonrpc/libjsonrpc.la \
+	${top_builddir}/icinga/libicinga.la
