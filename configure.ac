@@ -78,7 +78,7 @@ AC_COMPILE_IFELSE(
 	)
 AC_LANG_POP(C)
 
-AC_CHECK_LIB(sqlite, sqlite3_open)
+AC_CHECK_LIB(sqlite3, sqlite3_open)
 
 AC_MSG_CHECKING([for SQLite3])
 AC_LANG_PUSH(C)
@@ -95,6 +95,10 @@ AC_COMPILE_IFELSE(
 	)
 AC_LANG_POP(C)
 
+AC_ARG_ENABLE(bundled-sqlite3,
+	[  --disable-bundled-sqlite3
+                          disables building the bundled sqlite3 library],
+	[bundled_sqlite3=$enableval])
 AM_CONDITIONAL([USE_BUNDLED_SQLITE3], [test "$bundled_sqlite3" = yes])
 
 if test "$bundled_sqlite3" = yes; then
@@ -107,7 +111,7 @@ fi
 AC_SUBST([SQLITE3_LDFLAGS])
 AC_SUBST([SQLITE3_CPPFLAGS])
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 compat/Makefile
 base/Makefile
@@ -125,3 +129,22 @@ third-party/cJSON/Makefile
 third-party/mmatch/Makefile
 Doxyfile
 ])
+AC_OUTPUT
+
+if test "$bundled_sqlite3" = yes; then
+	sqlite3_msg="bundled"
+else
+	sqlite3_msg="system-provided"
+fi
+
+if ! test -z "$LTDLDEPS"; then
+	ltdl_msg="bundled"
+else
+	ltdl_msg="system-provided"
+fi
+
+echo "
+Libraries:
+     sqlite3: $sqlite3_msg
+     ltdl: $ltdl_msg
+"
