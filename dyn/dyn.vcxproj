@@ -14,12 +14,14 @@
     <ClInclude Include="dynamicdictionary.h" />
     <ClInclude Include="dynamicobject.h" />
     <ClInclude Include="i2-dyn.h" />
-    <ClInclude Include="objectspace.h" />
+    <ClInclude Include="objectmap.h" />
+    <ClInclude Include="objectset.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dynamicdictionary.cpp" />
     <ClCompile Include="dynamicobject.cpp" />
-    <ClCompile Include="objectspace.cpp" />
+    <ClCompile Include="objectmap.cpp" />
+    <ClCompile Include="objectset.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B26AFFA6-2BDF-42E6-A224-2591FFD9BFB7}</ProjectGuid>
@@ -62,7 +64,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDLL;I2_DYN_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -78,7 +80,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDLL;I2_DYN_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

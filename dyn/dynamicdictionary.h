@@ -38,7 +38,7 @@ struct DynamicDictionaryValue
 	DynamicDictionaryOperator Operator;
 };
 
-class DynamicDictionary : public Object
+class I2_DYN_API DynamicDictionary : public Object
 {
 public:
 	typedef shared_ptr<DynamicDictionary> Ptr;

@@ -84,11 +84,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\mmatch;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\third-party\mmatch;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\mmatch;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\third-party\mmatch;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

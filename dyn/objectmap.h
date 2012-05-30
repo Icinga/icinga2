@@ -17,33 +17,43 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef OBJECTSPACE_H
-#define OBJECTSPACE_H
+#ifndef OBJECTMAP_H
+#define OBJECTMAP_H
 
 namespace icinga
 {
 
-typedef function<DynamicObject::Ptr()> DynamicObjectFactory;
+typedef function<bool (const Object::Ptr&, string *key)> ObjectKeyGetter;
 
-class ObjectSpace : public Object
+class I2_DYN_API ObjectMap : public Object
 {
 public:
-	void RegisterClass(string name, DynamicObjectFactory factory);
-	void UnregisterClass(string name);
+	typedef shared_ptr<ObjectMap> Ptr;
+	typedef weak_ptr<ObjectMap> WeakPtr;
 
-	Dictionary::Ptr SerializeObject(DynamicObject::Ptr object);
-	DynamicObject::Ptr UnserializeObject(Dictionary::Ptr serializedObject);
+	typedef multimap<string, Object::Ptr>::iterator Iterator;
+	typedef pair<Iterator, Iterator> Range;
 
-	vector<DynamicObject::Ptr> FindObjects(function<bool (DynamicObject::Ptr)> predicate);
+	ObjectMap(const ObjectSet::Ptr& parent, ObjectKeyGetter keygetter);
+
+	void Start(void);
+
+	Range GetRange(string key);
 
 private:
-	map<string, DynamicObjectFactory> m_Classes;
-	set<DynamicObject::Ptr> m_Objects;
+	multimap<string, Object::Ptr> m_Objects;
+	ObjectSet::Ptr m_Parent;
+	ObjectKeyGetter m_KeyGetter;
 
-	void RegisterObject(DynamicObject::Ptr object);
-	void UnregisterObject(DynamicObject::Ptr object);
+	void AddObject(const Object::Ptr& object);
+	void RemoveObject(const Object::Ptr& object);
+	void CheckObject(const Object::Ptr& object);
+
+	int ObjectAddedHandler(const ObjectSetEventArgs& ea);
+	int ObjectCommittedHandler(const ObjectSetEventArgs& ea);
+	int ObjectRemovedHandler(const ObjectSetEventArgs& ea);
 };
 
 }
 
-#endif /* OBJECTSPACE_H */
+#endif OBJECTMAP_H

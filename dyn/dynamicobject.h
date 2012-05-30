@@ -23,47 +23,23 @@
 namespace icinga
 {
 
-class DynamicObject : public Object
+class I2_DYN_API DynamicObject : public Object
 {
 public:
 	typedef shared_ptr<DynamicObject> Ptr;
 	typedef weak_ptr<DynamicObject> WeakPtr;
 
-	void AddParentObject(DynamicObject::Ptr parent);
-	void RemoveParentObject(DynamicObject::Ptr parent);
+	DynamicObject(void);
 
-	void AddChildObject(DynamicObject::WeakPtr parent);
-	void RemoveChildObject(DynamicObject::WeakPtr parent);
-
-	DynamicDictionary::Ptr GetProperties(void) const;
-	void SetProperties(DynamicDictionary::Ptr properties);
-
-	Dictionary::Ptr GetResolvedProperties(void) const;
-
-	string GetName(void) const;
-	string GetType(void) const;
-	bool IsLocal(void) const;
-	bool IsAbstract(void) const;
+	Dictionary::Ptr GetConfig(void) const;
+	Dictionary::Ptr GetTags(void) const;
 
 	void Commit(void);
-
-protected:
-	virtual void Reload(Dictionary::Ptr resolvedProperties);
+	void Unregister(void);
 
 private:
-	set<DynamicObject::Ptr> m_Parents;
-	set<DynamicObject::WeakPtr> m_Children;
-	DynamicDictionary::Ptr m_Properties;
-
-	string m_Type;
-	string m_Name;
-	bool m_Local;
-	bool m_Abstract;
-
-	void SetName(string name);
-	void SetType(string type);
-	void SetLocal(bool local);
-	void SetAbstract(bool abstract);
+	Dictionary::Ptr m_Config;
+	Dictionary::Ptr m_Tags;
 };
 
 }

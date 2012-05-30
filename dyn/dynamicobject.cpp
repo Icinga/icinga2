@@ -21,70 +21,29 @@
 
 using namespace icinga;
 
-DynamicDictionary::Ptr DynamicObject::GetProperties(void) const
+DynamicObject::DynamicObject(void)
+	: m_Config(make_shared<Dictionary>()), m_Tags(make_shared<Dictionary>())
 {
-	return m_Properties;
 }
 
-void DynamicObject::SetProperties(DynamicDictionary::Ptr properties)
-{	
-	m_Properties = properties;
-	Dictionary::Ptr resolvedProperties = properties->ToFlatDictionary();
-	Reload(resolvedProperties);
+Dictionary::Ptr DynamicObject::GetConfig(void) const
+{
+	return m_Config;
 }
 
-string DynamicObject::GetName(void) const
+Dictionary::Ptr DynamicObject::GetTags(void) const
 {
-	return m_Name;
-}
-
-void DynamicObject::SetName(string name)
-{
-	m_Name = name;
-}
-
-string DynamicObject::GetType(void) const
-{
-	return m_Type;
-}
-
-void DynamicObject::SetType(string type)
-{
-	m_Type = type;
-}
-
-bool DynamicObject::IsLocal(void) const
-{
-	return m_Local;
-}
-
-void DynamicObject::SetLocal(bool value)
-{
-	m_Local = value;
-}
-
-bool DynamicObject::IsAbstract(void) const
-{
-	return m_Abstract;
-}
-
-void DynamicObject::SetAbstract(bool value)
-{
-	m_Abstract = value;
+	return m_Tags;
 }
 
 void DynamicObject::Commit(void)
 {
-	// TODO: link properties to parent objects
-
-	Dictionary::Ptr resolvedProperties = m_Properties->ToFlatDictionary();
-	Reload(resolvedProperties);
+	DynamicObject::Ptr self = static_pointer_cast<DynamicObject>(shared_from_this());
+	ObjectSet::GetAllObjects()->CheckObject(self);
 }
 
-void DynamicObject::Reload(Dictionary::Ptr resolvedProperties)
+void DynamicObject::Unregister(void)
 {
-	resolvedProperties->GetProperty("__name", &m_Name);
-	resolvedProperties->GetProperty("__type", &m_Type);
-	resolvedProperties->GetProperty("__local", &m_Local);
-	resolvedProperties->GetProperty("__abstract", &m_Abstract);
+	DynamicObject::Ptr self = static_pointer_cast<DynamicObject>(shared_from_this());
+	ObjectSet::GetAllObjects()->RemoveObject(self);
 }

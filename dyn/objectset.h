@@ -17,27 +17,57 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DYN_H
-#define I2DYN_H
+#ifndef OBJECTSET_H
+#define OBJECTSET_H
 
-/**
- * @defgroup dyn Dynamic object library
- *
- * The dynamic object library implements serializable objects which support
- * inheritance.
- */
+namespace icinga
+{
 
-#include <i2-base.h>
+struct ObjectSetEventArgs : public EventArgs
+{
+	Object::Ptr Object;
+};
 
-#ifdef I2_DYN_BUILD
-#	define I2_DYN_API I2_EXPORT
-#else /* I2_DYN_BUILD */
-#	define I2_DYN_API I2_IMPORT
-#endif /* I2_DYN_BUILD */
+typedef function<bool (const Object::Ptr&)> ObjectPredicate;
 
-#include "dynamicdictionary.h"
-#include "dynamicobject.h"
-#include "objectset.h"
-#include "objectmap.h"
+class I2_DYN_API ObjectSet : public Object
+{
+public:
+	typedef shared_ptr<ObjectSet> Ptr;
+	typedef weak_ptr<ObjectSet> WeakPtr;
 
-#endif /* I2DYN_H */
+	typedef set<Object::Ptr>::iterator Iterator;
+
+	ObjectSet(void);
+	ObjectSet(const ObjectSet::Ptr& parent, ObjectPredicate filter);
+
+	void Start(void);
+
+	void AddObject(const Object::Ptr& object);
+	void RemoveObject(const Object::Ptr& object);
+	bool Contains(const Object::Ptr& object) const;
+
+	void CheckObject(const Object::Ptr& object);
+
+	Observable<ObjectSetEventArgs> OnObjectAdded;
+	Observable<ObjectSetEventArgs> OnObjectCommitted;
+	Observable<ObjectSetEventArgs> OnObjectRemoved;
+
+	Iterator Begin(void);
+	Iterator End(void);
+
+	static ObjectSet::Ptr GetAllObjects(void);
+
+private:
+	set<Object::Ptr> m_Objects;
+
+	ObjectSet::Ptr m_Parent;
+	ObjectPredicate m_Filter;
+
+	int ObjectCommittedHandler(const ObjectSetEventArgs& ea);
+	int ObjectRemovedHandler(const ObjectSetEventArgs& ea);
+};
+
+}
+
+#endif /* OBJECTSET_H */
