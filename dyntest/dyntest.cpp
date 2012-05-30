@@ -18,19 +18,48 @@ bool foo(const Object::Ptr& object)
 
 int main(int argc, char **argv)
 {
-	for (int i = 0; i < 1000000; i++) {
+	int num = atoi(argv[1]);
+	int num_obs = atoi(argv[2]);
+
+	time_t st, et;
+
+	time(&st);
+	vector<DynamicObject::Ptr> objects;
+	for (int i = 0; i < num; i++) {
 		DynamicObject::Ptr dobj = make_shared<DynamicObject>();
 		dobj->GetConfig()->SetProperty("foo", "bar");
-		dobj->Commit();
+		objects.push_back(dobj);
 	}
+	time(&et);
+	cout << "Creating objects: " << et - st << " seconds" << endl;
 
-	ObjectSet::Ptr filtered = make_shared<ObjectSet>(ObjectSet::GetAllObjects(), &foo);
-	filtered->Start();
+	time(&st);
+	for (vector<DynamicObject::Ptr>::iterator it = objects.begin(); it != objects.end(); it++) {
+		(*it)->Commit();
+	}
+	time(&et);
+	cout << "Committing objects: " << et - st << " seconds" << endl;
 
+	time(&st);
+	Dictionary::Ptr obs = make_shared<Dictionary>();
+	for (int a = 0; a < num_obs; a++) {
+		ObjectSet::Ptr os = make_shared<ObjectSet>(ObjectSet::GetAllObjects(), &foo);
+		os->Start();
+		obs->AddUnnamedProperty(os);
+	}
+	time(&et);
+	cout << "Creating objectsets: " << et - st << " seconds" << endl;
+
+	time(&st);
 	ObjectMap::Ptr m = make_shared<ObjectMap>(ObjectSet::GetAllObjects(), &foogetter);
 	m->Start();
+	time(&et);
+	cout << "Creating objectmap: " << et - st << " seconds" << endl;
 
+	time(&st);
 	ObjectMap::Range range = m->GetRange("bar");
+	time(&et);
+	cout << "Retrieving objects from map: " << et - st << " seconds" << endl;
 	cout << distance(range.first, range.second) << " elements" << endl;
 
 	return 0;

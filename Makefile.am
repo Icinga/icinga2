@@ -7,6 +7,8 @@ SUBDIRS = \
 	compat \
 	third-party \
 	base \
+	dyn \
+	dyntest \
 	jsonrpc \
 	icinga \
 	components \

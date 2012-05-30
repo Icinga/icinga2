@@ -71,6 +71,8 @@ components/configfile/Makefile
 components/configrpc/Makefile
 components/demo/Makefile
 components/discovery/Makefile
+dyn/Makefile
+dyntest/Makefile
 icinga/Makefile
 icinga-app/Makefile
 jsonrpc/Makefile
