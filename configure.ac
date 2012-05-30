@@ -26,8 +26,6 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 #AM_SILENT_RULES([yes])
 
-AC_CONFIG_SUBDIRS([third-party/sqlite])
-
 AC_PROG_CXX
 AC_LANG_CPLUSPLUS
 AC_PROG_CC
@@ -64,39 +62,6 @@ AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 
-AC_CHECK_LIB(sqlite3, sqlite3_open)
-
-AC_MSG_CHECKING([for SQLite3])
-AC_LANG_PUSH(C)
-AC_COMPILE_IFELSE(
-	AC_LANG_PROGRAM([[#include <sqlite3.h>]], []),
-	[
-	AC_MSG_RESULT([yes])
-	bundled_sqlite3=no
-	],
-	[
-	AC_MSG_ERROR([no])
-	bundled_sqlite3=yes
-	]
-	)
-AC_LANG_POP(C)
-
-AC_ARG_ENABLE(bundled-sqlite3,
-	[  --disable-bundled-sqlite3
-                          disables building the bundled sqlite3 library],
-	[bundled_sqlite3=$enableval])
-AM_CONDITIONAL([USE_BUNDLED_SQLITE3], [test "$bundled_sqlite3" = yes])
-
-if test "$bundled_sqlite3" = yes; then
-	SQLITE3_LDFLAGS=${top_builddir}/third-party/sqlite/libsqlite3.la
-	SQLITE3_CPPFLAGS=-I${top_srcdir}/third-party/sqlite
-else
-	SQLITE3_LDFLAGS=
-	SQLITE3_CPPFLAGS=
-fi
-AC_SUBST([SQLITE3_LDFLAGS])
-AC_SUBST([SQLITE3_CPPFLAGS])
-
 AC_CONFIG_FILES([
 Makefile
 compat/Makefile
@@ -117,12 +82,6 @@ Doxyfile
 ])
 AC_OUTPUT
 
-if test "$bundled_sqlite3" = yes; then
-	sqlite3_msg="bundled"
-else
-	sqlite3_msg="system-provided"
-fi
-
 if ! test -z "$LTDLDEPS"; then
 	ltdl_msg="bundled"
 else
@@ -131,6 +90,5 @@ fi
 
 echo "
 Libraries:
-     sqlite3: $sqlite3_msg
      ltdl: $ltdl_msg
 "
