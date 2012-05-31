@@ -46,6 +46,13 @@ void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 	throw runtime_error(message.str());
 }
 
+int yyparse(ConfigContext *context);
+
+void ConfigContext::Compile(void)
+{
+	yyparse(this);
+}
+
 #define scanner (context->GetScanner())
 
 %}

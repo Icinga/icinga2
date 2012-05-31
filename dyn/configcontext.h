@@ -29,6 +29,8 @@ public:
 	ConfigContext(istream *input = &cin);
 	virtual ~ConfigContext(void);
 
+	void Compile(void);
+
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
 
@@ -41,7 +43,5 @@ private:
 };
 
 }
-
-int yyparse(icinga::ConfigContext *context);
 
 #endif /* CONFIGCONTEXT_H */

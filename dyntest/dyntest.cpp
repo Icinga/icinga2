@@ -1,4 +1,4 @@
-#include <i2-configfile.h>
+#include <i2-dyn.h>
 
 using namespace icinga;
 

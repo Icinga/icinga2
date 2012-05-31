@@ -186,12 +186,19 @@ void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 	throw runtime_error(message.str());
 }
 
+int yyparse(ConfigContext *context);
+
+void ConfigContext::Compile(void)
+{
+	yyparse(this);
+}
+
 #define scanner (context->GetScanner())
 
 
 
 /* Line 343 of yacc.c  */
-#line 195 "config_parser.cc"
+#line 202 "config_parser.cc"
 
 #ifdef short
 # undef short
@@ -490,10 +497,10 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    54,    54,    55,    58,    58,    61,    64,    65,    68,
-      71,    72,    75,    76,    79,    80,    83,    84,    87,    90,
-      91,    92,    95,    98,    98,    98,    98,   101,   104,   106,
-     107
+       0,    61,    61,    62,    65,    65,    68,    71,    72,    75,
+      78,    79,    82,    83,    86,    87,    90,    91,    94,    97,
+      98,    99,   102,   105,   105,   105,   105,   108,   111,   113,
+     114
 };
 #endif
 
@@ -1498,7 +1505,7 @@ yyreduce:
       
 
 /* Line 1806 of yacc.c  */
-#line 1502 "config_parser.cc"
+#line 1509 "config_parser.cc"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1736,6 +1743,6 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 109 "config_parser.yy"
+#line 116 "config_parser.yy"
 
 
