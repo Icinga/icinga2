@@ -46,6 +46,8 @@ DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN([icinga], [Doxyfile], [doc])
 
 AC_PROG_INSTALL
+AM_PROG_LEX
+AC_PROG_YACC
 AC_PROG_LIBTOOL
 AX_CXX_COMPILE_STDCXX_0X
 AX_CXX_GCC_ABI_DEMANGLE
@@ -71,6 +73,8 @@ components/configfile/Makefile
 components/configrpc/Makefile
 components/demo/Makefile
 components/discovery/Makefile
+dyn/Makefile
+dyntest/Makefile
 icinga/Makefile
 icinga-app/Makefile
 jsonrpc/Makefile
