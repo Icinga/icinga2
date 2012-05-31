@@ -1,5 +1,6 @@
 %{
 #include "i2-configfile.h"
+#include "icinga_parser.h"
 
 using namespace icinga;
 

@@ -502,9 +502,10 @@ static yyconst flex_int32_t yy_rule_can_match_eol[23] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "icinga_lexer.ll"
 #line 2 "icinga_lexer.ll"
-#include <iostream>
-#include "configcontext.h"
+#include "i2-configfile.h"
 #include "icinga_parser.h"
+
+using namespace icinga;
 
 #define YY_EXTRA_TYPE ConfigContext *
 #define YY_USER_ACTION yylloc->first_line = yylineno;
@@ -514,8 +515,7 @@ do {						\
 	yyextra->Input->read(buf, max_size);	\
 	result = yyextra->Input->gcount();	\
 } while (0)
-
-#define YY_NO_UNISTD_H
+#define YY_NO_UNISTD_H 1
 
 #line 521 "icinga_lexer.cc"
 
@@ -764,7 +764,7 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 24 "icinga_lexer.ll"
+#line 23 "icinga_lexer.ll"
 
 #line 770 "icinga_lexer.cc"
 
@@ -863,119 +863,119 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 25 "icinga_lexer.ll"
+#line 24 "icinga_lexer.ll"
 return T_ABSTRACT;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 26 "icinga_lexer.ll"
+#line 25 "icinga_lexer.ll"
 return T_LOCAL;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 27 "icinga_lexer.ll"
+#line 26 "icinga_lexer.ll"
 return T_OBJECT;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 28 "icinga_lexer.ll"
+#line 27 "icinga_lexer.ll"
 return T_INCLUDE;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 29 "icinga_lexer.ll"
+#line 28 "icinga_lexer.ll"
 return T_INHERITS;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 30 "icinga_lexer.ll"
+#line 29 "icinga_lexer.ll"
 return T_IDENTIFIER;
 	YY_BREAK
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 31 "icinga_lexer.ll"
+#line 30 "icinga_lexer.ll"
 { yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 32 "icinga_lexer.ll"
+#line 31 "icinga_lexer.ll"
 { yylval->num = atoi(yytext); return T_NUMBER; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 33 "icinga_lexer.ll"
+#line 32 "icinga_lexer.ll"
 return T_OPEN_BRACE;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 34 "icinga_lexer.ll"
+#line 33 "icinga_lexer.ll"
 return T_CLOSE_BRACE;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 35 "icinga_lexer.ll"
+#line 34 "icinga_lexer.ll"
 return T_OPEN_BRACKET;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 36 "icinga_lexer.ll"
+#line 35 "icinga_lexer.ll"
 return T_CLOSE_BRACKET;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 37 "icinga_lexer.ll"
+#line 36 "icinga_lexer.ll"
 return T_COMMA;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 38 "icinga_lexer.ll"
+#line 37 "icinga_lexer.ll"
 return T_EQUAL;
 	YY_BREAK
 
 case 15:
 YY_RULE_SETUP
-#line 41 "icinga_lexer.ll"
+#line 40 "icinga_lexer.ll"
 BEGIN(IN_C_COMMENT);
 	YY_BREAK
 
 
 case 16:
 YY_RULE_SETUP
-#line 45 "icinga_lexer.ll"
+#line 44 "icinga_lexer.ll"
 BEGIN(INITIAL);
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 46 "icinga_lexer.ll"
+#line 45 "icinga_lexer.ll"
 /* ignore comment */
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 47 "icinga_lexer.ll"
+#line 46 "icinga_lexer.ll"
 /* ignore star */
 	YY_BREAK
 
 case 19:
 YY_RULE_SETUP
-#line 50 "icinga_lexer.ll"
+#line 49 "icinga_lexer.ll"
 /* ignore C++-style comments */
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 51 "icinga_lexer.ll"
+#line 50 "icinga_lexer.ll"
 /* ignore shell-style comments */
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 52 "icinga_lexer.ll"
+#line 51 "icinga_lexer.ll"
 /* ignore whitespace */
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 53 "icinga_lexer.ll"
+#line 52 "icinga_lexer.ll"
 ECHO;
 	YY_BREAK
 #line 982 "icinga_lexer.cc"
@@ -2166,7 +2166,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 53 "icinga_lexer.ll"
+#line 52 "icinga_lexer.ll"
 
 
 

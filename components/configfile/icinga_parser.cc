@@ -168,8 +168,9 @@ typedef struct YYLTYPE
 /* Line 343 of yacc.c  */
 #line 30 "icinga_parser.yy"
 
-#include <iostream>
-#include "configcontext.h"
+#include "i2-configfile.h"
+
+using namespace icinga;
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
@@ -186,7 +187,7 @@ void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 
 
 /* Line 343 of yacc.c  */
-#line 190 "icinga_parser.cc"
+#line 191 "icinga_parser.cc"
 
 #ifdef short
 # undef short
@@ -485,10 +486,10 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    49,    49,    50,    53,    53,    56,    59,    60,    63,
-      66,    67,    70,    71,    74,    75,    78,    79,    82,    85,
-      86,    87,    90,    93,    93,    93,    93,    96,    99,   101,
-     102
+       0,    50,    50,    51,    54,    54,    57,    60,    61,    64,
+      67,    68,    71,    72,    75,    76,    79,    80,    83,    86,
+      87,    88,    91,    94,    94,    94,    94,    97,   100,   102,
+     103
 };
 #endif
 
@@ -1493,7 +1494,7 @@ yyreduce:
       
 
 /* Line 1806 of yacc.c  */
-#line 1497 "icinga_parser.cc"
+#line 1498 "icinga_parser.cc"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1731,6 +1732,6 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 104 "icinga_parser.yy"
+#line 105 "icinga_parser.yy"
 
 
