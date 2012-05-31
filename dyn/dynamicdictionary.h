@@ -59,7 +59,9 @@ public:
 		if (di == m_Values.end())
 			return false;
 
-		return di->second.op;
+		*value = di->second.Value;
+		*op = di->second.Operator;
+		return true;
 	}
 
 	template<typename T>
