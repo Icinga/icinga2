@@ -25,7 +25,7 @@ namespace icinga
 
 struct ObjectSetEventArgs : public EventArgs
 {
-	Object::Ptr Object;
+	Object::Ptr Target;
 };
 
 typedef function<bool (const Object::Ptr&)> ObjectPredicate;
@@ -64,7 +64,7 @@ private:
 	ObjectSet::Ptr m_Parent;
 	ObjectPredicate m_Filter;
 
-	int ObjectCommittedHandler(const ObjectSetEventArgs& ea);
+	int ObjectAddedOrCommittedHandler(const ObjectSetEventArgs& ea);
 	int ObjectRemovedHandler(const ObjectSetEventArgs& ea);
 };
 

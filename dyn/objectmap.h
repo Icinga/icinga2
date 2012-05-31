@@ -56,4 +56,4 @@ private:
 
 }
 
-#endif OBJECTMAP_H
+#endif /* OBJECTMAP_H */

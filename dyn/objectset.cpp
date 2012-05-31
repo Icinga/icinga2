@@ -34,7 +34,8 @@ ObjectSet::ObjectSet(const ObjectSet::Ptr& parent, ObjectPredicate filter)
 void ObjectSet::Start(void)
 {
 	if (m_Parent) {
-		m_Parent->OnObjectCommitted += bind_weak(&ObjectSet::ObjectCommittedHandler, shared_from_this());
+		m_Parent->OnObjectAdded += bind_weak(&ObjectSet::ObjectAddedOrCommittedHandler, shared_from_this());
+		m_Parent->OnObjectCommitted += bind_weak(&ObjectSet::ObjectAddedOrCommittedHandler, shared_from_this());
 		m_Parent->OnObjectRemoved += bind_weak(&ObjectSet::ObjectRemovedHandler, shared_from_this());
 
 		for (ObjectSet::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
@@ -48,7 +49,7 @@ void ObjectSet::AddObject(const Object::Ptr& object)
 
 	ObjectSetEventArgs ea;
 	ea.Source = shared_from_this();
-	ea.Object = object;
+	ea.Target = object;
 	OnObjectAdded(ea);
 }
 
@@ -61,7 +62,7 @@ void ObjectSet::RemoveObject(const Object::Ptr& object)
 
 		ObjectSetEventArgs ea;
 		ea.Source = shared_from_this();
-		ea.Object = object;
+		ea.Target = object;
 		OnObjectRemoved(ea);
 	}
 }
@@ -83,21 +84,21 @@ void ObjectSet::CheckObject(const Object::Ptr& object)
 		else {
 			ObjectSetEventArgs ea;
 			ea.Source = shared_from_this();
-			ea.Object = object;
+			ea.Target = object;
 			OnObjectCommitted(ea);
 		}
 	}
 }
 
-int ObjectSet::ObjectCommittedHandler(const ObjectSetEventArgs& ea)
+int ObjectSet::ObjectAddedOrCommittedHandler(const ObjectSetEventArgs& ea)
 {
-	CheckObject(ea.Object);
+	CheckObject(ea.Target);
 	return 0;
 }
 
 int ObjectSet::ObjectRemovedHandler(const ObjectSetEventArgs& ea)
 {
-	RemoveObject(ea.Object);
+	RemoveObject(ea.Target);
 	return 0;
 }
 

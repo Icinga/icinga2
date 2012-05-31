@@ -45,10 +45,10 @@ public:
 	typedef weak_ptr<DynamicDictionary> WeakPtr;
 
 	DynamicDictionary(void);
-	DynamicDictionary(Dictionary::Ptr serializedDictionary);
+//	DynamicDictionary(Dictionary::Ptr serializedDictionary);
 
-	void AddParent(DynamicDictionary::Ptr parent);
-	void ClearParents(void);
+//	void AddParent(DynamicDictionary::Ptr parent);
+//	void ClearParents(void);
 
 	template<typename T>
 	bool GetProperty(string name, T *value, DynamicDictionaryOperator *op) const
@@ -63,14 +63,20 @@ public:
 	}
 
 	template<typename T>
-	void SetProperty(string name, const T& value, DynamicDictionaryOperator op);
+	void SetProperty(string name, const T& value, DynamicDictionaryOperator op)
+	{
+		DynamicDictionaryValue ddv;
+		ddv.Value = value;
+		ddv.Operator = op;
+		m_Values[name] = ddv;
+	}
 
-	Dictionary::Ptr ToFlatDictionary(void) const;
+//	Dictionary::Ptr ToFlatDictionary(void) const;
 
-	Dictionary::Ptr Serialize(void);
+//	Dictionary::Ptr Serialize(void);
 
 private:
-	set<DynamicDictionary::Ptr> m_Parents;
+//	set<DynamicDictionary::Ptr> m_Parents;
 	map<string, DynamicDictionaryValue> m_Values;
 };
 

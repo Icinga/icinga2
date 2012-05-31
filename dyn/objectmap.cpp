@@ -76,18 +76,18 @@ ObjectMap::Range ObjectMap::GetRange(string key)
 
 int ObjectMap::ObjectAddedHandler(const ObjectSetEventArgs& ea)
 {
-	AddObject(ea.Object);
+	AddObject(ea.Target);
 	return 0;
 }
 
 int ObjectMap::ObjectCommittedHandler(const ObjectSetEventArgs& ea)
 {
-	CheckObject(ea.Object);
+	CheckObject(ea.Target);
 	return 0;
 }
 
 int ObjectMap::ObjectRemovedHandler(const ObjectSetEventArgs& ea)
 {
-	RemoveObject(ea.Object);
+	RemoveObject(ea.Target);
 	return 0;
 }
