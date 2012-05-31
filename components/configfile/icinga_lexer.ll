@@ -1,7 +1,7 @@
 %{
 #include <iostream>
 #include "configcontext.h"
-#include "icinga.tab.h"
+#include "icinga_parser.h"
 
 #define YY_EXTRA_TYPE ConfigContext *
 #define YY_USER_ACTION yylloc->first_line = yylineno;
@@ -14,7 +14,6 @@ do {						\
 %}
 
 %option reentrant noyywrap yylineno
-%option prefix="icinga"
 %option bison-bridge bison-locations
 
 %x IN_C_COMMENT

@@ -1,5 +1,4 @@
 %pure-parser
-%name-prefix="icinga"
 
 %locations
 %defines
@@ -32,9 +31,9 @@
 #include <iostream>
 #include "configcontext.h"
 
-int icingalex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
+int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
-void icingaerror(YYLTYPE *locp, ConfigContext *context, const char *err)
+void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 {
 	std::cout << locp->first_line << ":" << locp->first_column
 	    << "-"
