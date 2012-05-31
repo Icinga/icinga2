@@ -20,3 +20,7 @@
 #include "i2-dyn.h"
 
 using namespace icinga;
+
+DynamicDictionary::DynamicDictionary(void)
+{
+}

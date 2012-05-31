@@ -29,6 +29,8 @@
 
 #include <i2-base.h>
 
+#include <stack>
+
 #ifdef I2_DYN_BUILD
 #	define I2_DYN_API I2_EXPORT
 #else /* I2_DYN_BUILD */

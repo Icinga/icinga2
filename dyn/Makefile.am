@@ -14,6 +14,8 @@ libdyn_la_SOURCES = \
 	config_lexer.ll \
 	config_parser.yy \
 	i2-dyn.h \
+	dynamicdictionary.cpp \
+	dynamicdictionary.h \
 	dynamicobject.cpp \
 	dynamicobject.h \
 	objectset.cpp \
