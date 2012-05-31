@@ -28,8 +28,9 @@
 %token T_INHERITS
 
 %{
-#include <iostream>
-#include "configcontext.h"
+#include "i2-configfile.h"
+
+using namespace icinga;
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 

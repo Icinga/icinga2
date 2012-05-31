@@ -30,6 +30,7 @@
 #include <i2-base.h>
 #include <i2-icinga.h>
 
+#include "configcontext.h"
 #include "configfilecomponent.h"
 
 #endif /* I2CONFIGFILECOMPONENT_H */

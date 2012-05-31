@@ -1,7 +1,7 @@
 %{
-#include <iostream>
-#include "configcontext.h"
-#include "icinga_parser.h"
+#include "i2-configfile.h"
+
+using namespace icinga;
 
 #define YY_EXTRA_TYPE ConfigContext *
 #define YY_USER_ACTION yylloc->first_line = yylineno;
@@ -11,13 +11,11 @@ do {						\
 	yyextra->Input->read(buf, max_size);	\
 	result = yyextra->Input->gcount();	\
 } while (0)
-
-#define YY_NO_UNISTD_H
 %}
 
 %option reentrant noyywrap yylineno
 %option bison-bridge bison-locations
-%option never-interactive
+%option never-interactive nounistd
 
 %x IN_C_COMMENT
 

@@ -1,7 +1,6 @@
-#include <iostream>
-#include "configcontext.h"
+#include "i2-configfile.h"
 
-using namespace std;
+using namespace icinga;
 
 ConfigContext::ConfigContext(istream *input)
 {
