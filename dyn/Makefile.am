@@ -11,7 +11,7 @@ AM_YFLAGS = -d
 libdyn_la_SOURCES = \
 	configcontext.cpp \
 	configcontext.h \
-	config_lexer.ll
+	config_lexer.ll \
 	config_parser.yy \
 	i2-dyn.h \
 	dynamicobject.cpp \

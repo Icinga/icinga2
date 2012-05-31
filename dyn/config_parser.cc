@@ -67,7 +67,7 @@
 
 
 /* Line 268 of yacc.c  */
-#line 71 "icinga_parser.cc"
+#line 71 "config_parser.cc"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -134,7 +134,7 @@ typedef union YYSTYPE
 {
 
 /* Line 293 of yacc.c  */
-#line 10 "icinga_parser.yy"
+#line 10 "config_parser.yy"
 
 	char *text;
 	int num;
@@ -142,7 +142,7 @@ typedef union YYSTYPE
 
 
 /* Line 293 of yacc.c  */
-#line 146 "icinga_parser.cc"
+#line 146 "config_parser.cc"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -166,9 +166,9 @@ typedef struct YYLTYPE
 /* Copy the second part of user declarations.  */
 
 /* Line 343 of yacc.c  */
-#line 30 "icinga_parser.yy"
+#line 30 "config_parser.yy"
 
-#include "i2-configfile.h"
+#include "i2-dyn.h"
 
 using namespace icinga;
 
@@ -181,7 +181,7 @@ void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 	message << locp->first_line << ":" << locp->first_column
 	    << "-"
 	    << locp->last_line << ":" << locp->last_column
-	    << ": " << err << std::endl;
+	    << ": " << err << endl;
 
 	throw runtime_error(message.str());
 }
@@ -191,7 +191,7 @@ void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 
 
 /* Line 343 of yacc.c  */
-#line 195 "icinga_parser.cc"
+#line 195 "config_parser.cc"
 
 #ifdef short
 # undef short
@@ -1498,7 +1498,7 @@ yyreduce:
       
 
 /* Line 1806 of yacc.c  */
-#line 1502 "icinga_parser.cc"
+#line 1502 "config_parser.cc"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1736,6 +1736,6 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 109 "icinga_parser.yy"
+#line 109 "config_parser.yy"
 
 

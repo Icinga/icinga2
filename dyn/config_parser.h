@@ -77,7 +77,7 @@ typedef union YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 10 "icinga_parser.yy"
+#line 10 "config_parser.yy"
 
 	char *text;
 	int num;
@@ -85,7 +85,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 89 "icinga_parser.h"
+#line 89 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
