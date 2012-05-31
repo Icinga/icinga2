@@ -29,10 +29,13 @@ public:
 	ConfigContext(istream *input = &cin);
 	virtual ~ConfigContext(void);
 
-	istream *Input;
-	void *Scanner;
+	size_t ReadInput(char *buffer, size_t max_bytes);
+	void *GetScanner(void) const;
 
 private:
+	istream *m_Input;
+	void *m_Scanner;
+
 	void InitializeScanner(void);
 	void DestroyScanner(void);
 };

@@ -12,6 +12,9 @@ dyntest_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/dyn \
+	-I${top_srcdir}/jsonrpc \
+	-I${top_srcdir}/icinga \
+	-I${top_srcdir}/components/configfile \
 	-I${top_srcdir}
 
 dyntest_LDFLAGS = \
@@ -19,4 +22,5 @@ dyntest_LDFLAGS = \
 
 dyntest_LDADD = \
 	${top_builddir}/base/libbase.la \
-	${top_builddir}/dyn/libdyn.la
+	${top_builddir}/dyn/libdyn.la \
+	${top_builddir}/components/configfile/configfile.la

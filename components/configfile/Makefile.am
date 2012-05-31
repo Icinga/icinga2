@@ -3,17 +3,9 @@
 pkglib_LTLIBRARIES = \
 	configfile.la
 
-BUILD_SOURCES = icinga_parser.h
-
-AM_YFLAGS = -d
-
 configfile_la_SOURCES = \
-	configcontext.cpp \
-	configcontext.h \
 	configfilecomponent.cpp \
 	configfilecomponent.h \
-	icinga_lexer.ll \
-	icinga_parser.yy \
 	i2-configfile.h
 
 configfile_la_CPPFLAGS = \

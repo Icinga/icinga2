@@ -176,18 +176,22 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 {
-	std::cout << locp->first_line << ":" << locp->first_column
+	stringstream message;
+
+	message << locp->first_line << ":" << locp->first_column
 	    << "-"
 	    << locp->last_line << ":" << locp->last_column
 	    << ": " << err << std::endl;
+
+	throw runtime_error(message.str());
 }
 
-#define scanner context->Scanner
+#define scanner (context->GetScanner())
 
 
 
 /* Line 343 of yacc.c  */
-#line 191 "icinga_parser.cc"
+#line 195 "icinga_parser.cc"
 
 #ifdef short
 # undef short
@@ -486,10 +490,10 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    50,    50,    51,    54,    54,    57,    60,    61,    64,
-      67,    68,    71,    72,    75,    76,    79,    80,    83,    86,
-      87,    88,    91,    94,    94,    94,    94,    97,   100,   102,
-     103
+       0,    54,    54,    55,    58,    58,    61,    64,    65,    68,
+      71,    72,    75,    76,    79,    80,    83,    84,    87,    90,
+      91,    92,    95,    98,    98,    98,    98,   101,   104,   106,
+     107
 };
 #endif
 
@@ -1494,7 +1498,7 @@ yyreduce:
       
 
 /* Line 1806 of yacc.c  */
-#line 1498 "icinga_parser.cc"
+#line 1502 "icinga_parser.cc"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1732,6 +1736,6 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 105 "icinga_parser.yy"
+#line 109 "icinga_parser.yy"
 
 

@@ -36,13 +36,17 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 {
-	std::cout << locp->first_line << ":" << locp->first_column
+	stringstream message;
+
+	message << locp->first_line << ":" << locp->first_column
 	    << "-"
 	    << locp->last_line << ":" << locp->last_column
-	    << ": " << err << std::endl;
+	    << ": " << err << endl;
+
+	throw runtime_error(message.str());
 }
 
-#define scanner context->Scanner
+#define scanner (context->GetScanner())
 
 %}
 

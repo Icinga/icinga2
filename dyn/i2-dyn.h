@@ -35,6 +35,7 @@
 #	define I2_DYN_API I2_IMPORT
 #endif /* I2_DYN_BUILD */
 
+#include "configcontext.h"
 #include "dynamicdictionary.h"
 #include "dynamicobject.h"
 #include "objectset.h"

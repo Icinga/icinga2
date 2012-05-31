@@ -1,16 +1,15 @@
 %{
-#include "i2-configfile.h"
-#include "icinga_parser.h"
+#include "i2-dyn.h"
+#include "config_parser.h"
 
 using namespace icinga;
 
 #define YY_EXTRA_TYPE ConfigContext *
 #define YY_USER_ACTION yylloc->first_line = yylineno;
 
-#define YY_INPUT(buf, result, max_size)		\
-do {						\
-	yyextra->Input->read(buf, max_size);	\
-	result = yyextra->Input->gcount();	\
+#define YY_INPUT(buf, result, max_size)			\
+do {							\
+	result = yyextra->ReadInput(buf, max_size);	\
 } while (0)
 %}
 
@@ -54,12 +53,12 @@ inherits		return T_INHERITS;
 
 void ConfigContext::InitializeScanner(void)
 {
-	yylex_init(&Scanner);
-	yyset_extra(this, Scanner);
+	yylex_init(&m_Scanner);
+	yyset_extra(this, m_Scanner);
 }
 
 void ConfigContext::DestroyScanner(void)
 {
-	yylex_destroy(Scanner);
+	yylex_destroy(m_Scanner);
 }
 
