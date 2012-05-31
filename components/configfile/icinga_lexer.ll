@@ -11,10 +11,13 @@ do {						\
 	yyextra->Input->read(buf, max_size);	\
 	result = yyextra->Input->gcount();	\
 } while (0)
+
+#define YY_NO_UNISTD_H
 %}
 
 %option reentrant noyywrap yylineno
 %option bison-bridge bison-locations
+%option never-interactive
 
 %x IN_C_COMMENT
 
