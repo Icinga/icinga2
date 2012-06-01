@@ -22,7 +22,6 @@
 
 using namespace icinga;
 
-Variant *z;
 %}
 
 %pure-parser
@@ -38,11 +37,12 @@ Variant *z;
 	char *text;
 	int num;
 	icinga::Variant *variant;
-	icinga::DynamicDictionaryOperator op;
+	icinga::ExpressionOperator op;
 }
 
 %token <text> T_STRING
 %token <num> T_NUMBER
+%token T_NULL
 %token <text> T_IDENTIFIER
 %token T_OPEN_BRACE
 %token T_CLOSE_BRACE
@@ -59,9 +59,10 @@ Variant *z;
 %token T_OBJECT
 %token T_INCLUDE
 %token T_INHERITS
+%type <variant> simplevalue
 %type <variant> value
 %type <variant> array
-%type <variant> dictionary
+%type <variant> expressionlist
 %type <op> operator
 %left '+' '-'
 %left '*' '/'
@@ -90,13 +91,22 @@ void ConfigContext::Compile(void)
 
 #define scanner (context->GetScanner())
 
-static stack<DynamicDictionary::Ptr> m_Dictionaries;
-
+static stack<ExpressionList::Ptr> m_ExpressionLists;
+static map<pair<string, string>, DConfigObject::Ptr> m_Objects;
+static DConfigObject::Ptr m_Object;
+static string m_Name;
+static string m_Type;
+static bool m_Abstract;
+static bool m_Local;
+static Dictionary::Ptr m_Array;
 %}
 
 %%
 statements: /* empty */
 	| statements statement
+	{
+		context->SetResult(m_Objects);
+	}
 	;
 
 statement: object | include
@@ -105,55 +115,119 @@ statement: object | include
 include: T_INCLUDE T_STRING
 	;
 
-object: attributes_list object_declaration
-	| object_declaration
+object: 
+	{
+		m_Object = make_shared<DConfigObject>();
+		m_Abstract = false;
+		m_Local = false;
+	}
+attributes T_OBJECT T_IDENTIFIER T_STRING
+	{
+		m_Type = $4;
+		free($4);
+
+		m_Name = $5;
+		free($5);
+	}
+inherits_specifier expressionlist
+	{
+		Object::Ptr exprl_object = *$8;
+		delete $8;
+		ExpressionList::Ptr exprl = dynamic_pointer_cast<ExpressionList>(exprl_object);
+
+		Expression typeexpr("__type", OperatorSet, m_Type);
+		exprl->AddExpression(typeexpr);
+
+		Expression nameexpr("__name", OperatorSet, m_Name);
+		exprl->AddExpression(nameexpr);
+
+		Expression abstractexpr("__abstract", OperatorSet, m_Abstract ? 1 : 0);
+		exprl->AddExpression(abstractexpr);
+
+		Expression localexpr("__local", OperatorSet, m_Local ? 1 : 0);
+		exprl->AddExpression(localexpr);
+
+		m_Object->SetExpressionList(exprl);
+
+		m_Objects[pair<string, string>(m_Type, m_Name)] = m_Object;
+
+		free($4);
+		free($5);
+	}
 	;
 
-object_declaration: T_OBJECT T_IDENTIFIER T_STRING inherits_specifier dictionary
-	;
-
-attributes_list: attributes_list attribute
-	| attribute
+attributes: /* empty */
+	| attributes attribute
 	;
 
 attribute: T_ABSTRACT
+	{
+		m_Abstract = true;
+	}
 	| T_LOCAL
+	{
+		m_Local = true;
+	}
 	;
 
-inherits_list: T_STRING
-	| inherits_list T_COMMA T_STRING
+inherits_list: inherits_item
+	| inherits_list T_COMMA inherits_item
+	;
+
+inherits_item: T_STRING
+	{
+		m_Object->AddParent($1);
+	}
 	;
 
 inherits_specifier: /* empty */
 	| T_INHERITS inherits_list
 	;
 
-dictionary: T_OPEN_BRACE
+expressionlist: T_OPEN_BRACE
 	{
-		DynamicDictionary::Ptr dictionary = make_shared<DynamicDictionary>();
-		m_Dictionaries.push(dictionary);
+		m_ExpressionLists.push(make_shared<ExpressionList>());
 	}
-	nvpairs
+	expressions
 	T_CLOSE_BRACE
 	{
-		DynamicDictionary::Ptr dictionary = m_Dictionaries.top();
-		$$ = new Variant(dictionary);
-
-		m_Dictionaries.pop();
+		$$ = new Variant(m_ExpressionLists.top());
+		m_ExpressionLists.pop();
 	}
 	;
 
-nvpairs: /* empty */
-	| nvpair
-	| nvpairs T_COMMA nvpair
+expressions: /* empty */
+	| expression
+	| expressions T_COMMA expression
 	;
 
-nvpair: T_IDENTIFIER operator value
+expression: T_IDENTIFIER operator value
 	{
-		DynamicDictionary::Ptr dictionary = m_Dictionaries.top();
-		dictionary->SetProperty($1, *$3, $2);
+		Expression expr($1, $2, *$3);
 		free($1);
 		delete $3;
+
+		m_ExpressionLists.top()->AddExpression(expr);
+	}
+	| T_IDENTIFIER T_OPEN_BRACKET T_STRING T_CLOSE_BRACKET operator value
+	{
+		Expression subexpr($3, $5, *$6);
+		free($3);
+		delete $6;
+
+		ExpressionList::Ptr subexprl = make_shared<ExpressionList>();
+		subexprl->AddExpression(subexpr);
+
+		Expression expr($1, OperatorPlus, subexprl);
+
+		m_ExpressionLists.top()->AddExpression(expr);
+	}
+	| T_STRING
+	{
+		Expression expr($1, OperatorSet, $1);
+		free($1);
+		
+		m_ExpressionLists.top()->AddExpression(expr);
 	}
 	;
 
@@ -167,7 +241,7 @@ operator: T_EQUAL
 	}
 	;
 
-value: T_STRING
+simplevalue: T_STRING
 	{
 		$$ = new Variant($1);
 	}
@@ -175,8 +249,15 @@ value: T_STRING
 	{
 		$$ = new Variant($1);
 	}
+	| T_NULL
+	{
+		$$ = new Variant();
+	}
+	;
+
+value: simplevalue
 	| array
-	| dictionary
+	| expressionlist
 	{
 		$$ = $1;
 	}
@@ -184,31 +265,26 @@ value: T_STRING
 
 array: T_OPEN_BRACKET
 	{
-		DynamicDictionary::Ptr dictionary = make_shared<DynamicDictionary>();
-		m_Dictionaries.push(dictionary);
+		m_Array = make_shared<Dictionary>();
 	}
 	arrayitems
 	T_CLOSE_BRACKET
 	{
-		DynamicDictionary::Ptr dictionary = m_Dictionaries.top();
-		$$ = new Variant(dictionary);
-
-		m_Dictionaries.pop();
+		$$ = new Variant(m_Array);
+		m_Array.reset();
 	}
 	;
 
 arrayitems:
 	/* empty */
-	| value
+	| simplevalue
 	{
-		DynamicDictionary::Ptr dictionary = m_Dictionaries.top();
-		//dictionary->AddUnnamedProperty(*$1);
+		m_Array->AddUnnamedProperty(*$1);
 		delete $1;
 	}
-	| arrayitems T_COMMA value
+	| arrayitems T_COMMA simplevalue
 	{
-		DynamicDictionary::Ptr dictionary = m_Dictionaries.top();
-		//dictionary->AddUnnamedProperty(*$3);
+		m_Array->AddUnnamedProperty(*$3);
 		delete $3;
 	}
 	;

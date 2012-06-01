@@ -17,71 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DYNAMICDICTIONARY_H
-#define DYNAMICDICTIONARY_H
+#include "i2-dyn.h"
 
-namespace icinga
+using namespace icinga;
+
+Expression::Expression(string key, ExpressionOperator op, Variant value)
 {
-
-enum DynamicDictionaryOperator
-{
-	OperatorSet,
-	OperatorPlus,
-	OperatorMinus,
-	OperatorMultiply,
-	OperatorDivide
-};
-
-struct DynamicDictionaryValue
-{
-	Variant Value;
-	DynamicDictionaryOperator Operator;
-};
-
-class I2_DYN_API DynamicDictionary : public Object
-{
-public:
-	typedef shared_ptr<DynamicDictionary> Ptr;
-	typedef weak_ptr<DynamicDictionary> WeakPtr;
-
-	DynamicDictionary(void);
-//	DynamicDictionary(Dictionary::Ptr serializedDictionary);
-
-//	void AddParent(DynamicDictionary::Ptr parent);
-//	void ClearParents(void);
-
-	template<typename T>
-	bool GetProperty(string name, T *value, DynamicDictionaryOperator *op) const
-	{
-		map<string, DynamicDictionaryValue>::const_iterator di;
-
-		di = m_Values.find(name);
-		if (di == m_Values.end())
-			return false;
-
-		*value = di->second.Value;
-		*op = di->second.Operator;
-		return true;
-	}
-
-	template<typename T>
-	void SetProperty(string name, const T& value, DynamicDictionaryOperator op)
-	{
-		DynamicDictionaryValue ddv;
-		ddv.Value = value;
-		ddv.Operator = op;
-		m_Values[name] = ddv;
-	}
-
-//	Dictionary::Ptr ToFlatDictionary(void) const;
-
-//	Dictionary::Ptr Serialize(void);
-
-private:
-//	set<DynamicDictionary::Ptr> m_Parents;
-	map<string, DynamicDictionaryValue> m_Values;
-};
-
+	Key = key;
+	Operator = op;
+	Value = value;
 }
 
-#endif /* DYNAMICDICTIONARY_H */
+void Expression::Execute(const Dictionary::Ptr& dictionary)
+{
+	Variant oldValue, newValue;
+	dictionary->GetProperty(Key, &oldValue);
+
+	switch (Operator) {
+		case OperatorSet:
+			if (oldValue.GetType() == VariantObject) {
+				Object::Ptr object = oldValue;
+				ExpressionList::Ptr exprl = dynamic_pointer_cast<ExpressionList>(object);
+
+				if (exprl)
+					newValue = exprl->Execute();
+			}
+
+		default:
+			assert(!"Not yet implemented.");
+
+	}
+
+	dictionary->SetProperty(Key, newValue);
+}

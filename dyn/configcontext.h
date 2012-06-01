@@ -31,12 +31,16 @@ public:
 
 	void Compile(void);
 
+	void SetResult(map<pair<string, string>, DConfigObject::Ptr> result);
+	map<pair<string, string>, DConfigObject::Ptr> GetResult(void) const;
+
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
 
 private:
 	istream *m_Input;
 	void *m_Scanner;
+	map<pair<string, string>, DConfigObject::Ptr> m_Result;
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);

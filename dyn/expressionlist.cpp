@@ -17,32 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DYN_H
-#define I2DYN_H
+#include "i2-dyn.h"
 
-/**
- * @defgroup dyn Dynamic object library
- *
- * The dynamic object library implements serializable objects which support
- * inheritance.
- */
+using namespace icinga;
 
-#include <i2-base.h>
+ExpressionList::ExpressionList(void)
+{
+}
 
-#include <stack>
+void ExpressionList::AddExpression(const Expression& expression)
+{
+	m_Expressions.push_back(expression);
+}
 
-#ifdef I2_DYN_BUILD
-#	define I2_DYN_API I2_EXPORT
-#else /* I2_DYN_BUILD */
-#	define I2_DYN_API I2_IMPORT
-#endif /* I2_DYN_BUILD */
+size_t ExpressionList::GetLength(void) const
+{
+	return m_Expressions.size();
+}
 
-#include "expression.h"
-#include "expressionlist.h"
-#include "dynamicobject.h"
-#include "objectset.h"
-#include "objectmap.h"
-#include "dconfigobject.h"
-#include "configcontext.h"
-
-#endif /* I2DYN_H */

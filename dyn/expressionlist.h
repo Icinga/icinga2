@@ -17,32 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DYN_H
-#define I2DYN_H
+#ifndef EXPRESSIONLIST_H
+#define EXPRESSIONLIST_H
 
-/**
- * @defgroup dyn Dynamic object library
- *
- * The dynamic object library implements serializable objects which support
- * inheritance.
- */
+namespace icinga
+{
 
-#include <i2-base.h>
+class I2_DYN_API ExpressionList : public Object
+{
+public:
+	typedef shared_ptr<ExpressionList> Ptr;
+	typedef weak_ptr<ExpressionList> WeakPtr;
 
-#include <stack>
+	ExpressionList(void);
+//	ExpressionList(Dictionary::Ptr serializedDictionary);
 
-#ifdef I2_DYN_BUILD
-#	define I2_DYN_API I2_EXPORT
-#else /* I2_DYN_BUILD */
-#	define I2_DYN_API I2_IMPORT
-#endif /* I2_DYN_BUILD */
+	void AddExpression(const Expression& expression);
 
-#include "expression.h"
-#include "expressionlist.h"
-#include "dynamicobject.h"
-#include "objectset.h"
-#include "objectmap.h"
-#include "dconfigobject.h"
-#include "configcontext.h"
+	Dictionary::Ptr Execute(void) const;
+	Dictionary::Ptr Execute(Dictionary::Ptr input) const;
 
-#endif /* I2DYN_H */
+	size_t GetLength(void) const;
+
+//	Dictionary::Ptr Serialize(void);
+
+private:
+	vector<Expression> m_Expressions;
+};
+
+}
+
+#endif /* EXPRESSIONLIST_H */

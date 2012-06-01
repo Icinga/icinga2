@@ -24,3 +24,13 @@ void *ConfigContext::GetScanner(void) const
 	return m_Scanner;
 }
 
+void ConfigContext::SetResult(map<pair<string, string>, DConfigObject::Ptr> result)
+{
+	m_Result = result;
+}
+
+map<pair<string, string>, DConfigObject::Ptr> ConfigContext::GetResult(void) const
+{
+	return m_Result;
+}
+

@@ -44,6 +44,7 @@ local				return T_LOCAL;
 object				return T_OBJECT;
 include				return T_INCLUDE;
 inherits			return T_INHERITS;
+null				return T_NULL;
 [a-zA-Z\-_][a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
 \"[^\"]+\"			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING; }
 [0-9]+				{ yylval->num = atoi(yytext); return T_NUMBER; }

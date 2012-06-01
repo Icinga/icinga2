@@ -17,10 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-dyn.h"
+#ifndef EXPRESSION_H
+#define EXPRESSION_H
 
-using namespace icinga;
-
-DynamicDictionary::DynamicDictionary(void)
+namespace icinga
 {
+
+enum ExpressionOperator
+{
+	OperatorSet,
+	OperatorPlus,
+	OperatorMinus,
+	OperatorMultiply,
+	OperatorDivide
+};
+
+struct I2_DYN_API Expression
+{
+	string Key;
+	ExpressionOperator Operator;
+	Variant Value;
+
+	Expression(string key, ExpressionOperator op, Variant value);
+
+	void Execute(const Dictionary::Ptr& dictionary);
+};
+
 }
+
+#endif /* EXPRESSION_H */
