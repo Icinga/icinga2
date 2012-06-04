@@ -11,20 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="configcontext.cpp" />
     <ClCompile Include="configfilecomponent.cpp" />
-    <ClCompile Include="icinga_lexer.cc" />
-    <ClCompile Include="icinga_parser.cc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="configcontext.h" />
     <ClInclude Include="configfilecomponent.h" />
     <ClInclude Include="i2-configfile.h" />
-    <ClInclude Include="icinga_parser.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="icinga_lexer.ll" />
-    <None Include="icinga_parser.yy" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E58F1DA7-B723-412B-B2B7-7FF58E2A944E}</ProjectGuid>

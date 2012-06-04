@@ -17,35 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGCONTEXT_H
-#define CONFIGCONTEXT_H
+#ifndef CONFIGOBJECT_H
+#define CONFIGOBJECT_H
 
 namespace icinga
 {
 
-class I2_DYN_API ConfigContext
+class I2_DYN_API ConfigObject : public Object
 {
 public:
-	ConfigContext(istream *input = &cin);
-	virtual ~ConfigContext(void);
-
-	void Compile(void);
-
-	void SetResult(map<pair<string, string>, DConfigObject::Ptr> result);
-	map<pair<string, string>, DConfigObject::Ptr> GetResult(void) const;
-
-	size_t ReadInput(char *buffer, size_t max_bytes);
-	void *GetScanner(void) const;
-
 private:
-	istream *m_Input;
-	void *m_Scanner;
-	map<pair<string, string>, DConfigObject::Ptr> m_Result;
-
-	void InitializeScanner(void);
-	void DestroyScanner(void);
+	DynamicObject::WeakPtr m_DynamicObject;
 };
 
 }
 
-#endif /* CONFIGCONTEXT_H */
+#endif /* CONFIGOBJECT_H */

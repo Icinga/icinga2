@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="configcontext.h" />
+    <ClInclude Include="config_parser.h" />
     <ClInclude Include="dynamicdictionary.h" />
     <ClInclude Include="dynamicobject.h" />
     <ClInclude Include="i2-dyn.h" />
@@ -18,10 +20,29 @@
     <ClInclude Include="objectset.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="configcontext.cpp" />
+    <ClCompile Include="config_lexer.cc" />
+    <ClCompile Include="config_parser.cc" />
     <ClCompile Include="dynamicdictionary.cpp" />
     <ClCompile Include="dynamicobject.cpp" />
     <ClCompile Include="objectmap.cpp" />
     <ClCompile Include="objectset.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config_lexer.ll">
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">config_lexer.cc</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">config_lexer.cc</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_flex "%(FullPath)"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_flex "%(FullPath)"</Command>
+      <FileType>Document</FileType>
+    </None>
+    <None Include="config_parser.yy">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_bison -d "%(FullPath)"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">config_parser.cc config_parser.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_bison -d "%(FullPath)"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">config_parser.cc config_parser.h</Outputs>
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B26AFFA6-2BDF-42E6-A224-2591FFD9BFB7}</ProjectGuid>
