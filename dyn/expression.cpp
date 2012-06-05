@@ -74,8 +74,9 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			break;
 
 		default:
+			assert(!"Not yet implemented.");
+
 			break;
-			//assert(!"Not yet implemented.");
 	}
 
 	dictionary->SetProperty(Key, newValue);

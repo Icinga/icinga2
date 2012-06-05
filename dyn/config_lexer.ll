@@ -45,16 +45,9 @@ object				return T_OBJECT;
 include				return T_INCLUDE;
 inherits			return T_INHERITS;
 null				return T_NULL;
-[a-zA-Z\-_][a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
+[a-zA-Z][a-zA-Z0-9\-]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
 \"[^\"]+\"			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING; }
 [0-9]+				{ yylval->num = atoi(yytext); return T_NUMBER; }
-\(				return T_OPEN_PARENTHESIS;
-\)				return T_CLOSE_PARENTHESIS;
-\{				return T_OPEN_BRACE;
-\}				return T_CLOSE_BRACE;
-\[				return T_OPEN_BRACKET;
-\]				return T_CLOSE_BRACKET;
-,				return T_COMMA;
 =				{ yylval->op = OperatorSet; return T_EQUAL; }
 \+=				{ yylval->op = OperatorPlus; return T_PLUS_EQUAL; }
 -=				{ yylval->op = OperatorMinus; return T_MINUS_EQUAL; }

@@ -44,18 +44,11 @@ using namespace icinga;
 %token <num> T_NUMBER
 %token T_NULL
 %token <text> T_IDENTIFIER
-%token T_OPEN_PARENTHESIS
-%token T_CLOSE_PARENTHESIS
-%token T_OPEN_BRACE
-%token T_CLOSE_BRACE
-%token T_OPEN_BRACKET
-%token T_CLOSE_BRACKET
 %token <op> T_EQUAL
 %token <op> T_PLUS_EQUAL
 %token <op> T_MINUS_EQUAL
 %token <op> T_MULTIPLY_EQUAL
 %token <op> T_DIVIDE_EQUAL
-%token T_COMMA
 %token T_ABSTRACT
 %token T_LOCAL
 %token T_OBJECT
@@ -167,7 +160,7 @@ attribute: T_ABSTRACT
 	;
 
 inherits_list: inherits_item
-	| inherits_list T_COMMA inherits_item
+	| inherits_list ',' inherits_item
 	;
 
 inherits_item: T_STRING
@@ -180,12 +173,12 @@ inherits_specifier: /* empty */
 	| T_INHERITS inherits_list
 	;
 
-expressionlist: T_OPEN_BRACE
+expressionlist: '{'
 	{
 		m_ExpressionLists.push(make_shared<ExpressionList>());
 	}
 	expressions
-	T_CLOSE_BRACE
+	'}'
 	{
 		$$ = new Variant(m_ExpressionLists.top());
 		m_ExpressionLists.pop();
@@ -194,7 +187,7 @@ expressionlist: T_OPEN_BRACE
 
 expressions: /* empty */
 	| expression
-	| expression T_COMMA expressions
+	| expression ',' expressions
 	;
 
 expression: T_IDENTIFIER operator value
@@ -205,7 +198,7 @@ expression: T_IDENTIFIER operator value
 
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
-	| T_IDENTIFIER T_OPEN_BRACKET T_STRING T_CLOSE_BRACKET operator value
+	| T_IDENTIFIER '[' T_STRING ']' operator value
 	{
 		Expression subexpr($3, $5, *$6, yylloc.first_line);
 		free($3);
@@ -259,12 +252,12 @@ value: simplevalue
 	}
 	;
 
-tuple: T_OPEN_PARENTHESIS
+tuple: '('
 	{
 		m_Array = make_shared<Dictionary>();
 	}
 	tupleitems
-	T_CLOSE_PARENTHESIS
+	')'
 	{
 		$$ = new Variant(m_Array);
 		m_Array.reset();
@@ -280,6 +273,6 @@ tupleitem: simplevalue
 tupleitems:
 	/* empty */
 	| tupleitem
-	| tupleitem T_COMMA tupleitems
+	| tupleitem ',' tupleitems
 	;
 %%
