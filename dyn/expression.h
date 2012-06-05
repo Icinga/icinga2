@@ -37,10 +37,11 @@ struct I2_DYN_API Expression
 	string Key;
 	ExpressionOperator Operator;
 	Variant Value;
+	long DebugInfo;
 
-	Expression(string key, ExpressionOperator op, Variant value);
+	Expression(string key, ExpressionOperator op, Variant value, long debuginfo);
 
-	void Execute(const Dictionary::Ptr& dictionary);
+	void Execute(const Dictionary::Ptr& dictionary) const;
 };
 
 }

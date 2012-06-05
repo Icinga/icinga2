@@ -56,7 +56,7 @@ public:
 	shared_ptr<Component> GetComponent(const string& name) const;
 	void AddComponentSearchDir(const string& componentDirectory);
 
-	bool IsDebugging(void) const;
+	static bool IsDebugging(void);
 
 protected:
 	void RunEventLoop(void);
@@ -71,7 +71,7 @@ private:
 	map< string, shared_ptr<Component> > m_Components; /**< Components that
 					were loaded by the application. */
 	vector<string> m_Arguments; /**< Command-line arguments */
-	bool m_Debugging; /**< Whether debugging is enabled. */
+	static bool m_Debugging; /**< Whether debugging is enabled. */
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);

@@ -35,3 +35,11 @@ size_t ExpressionList::GetLength(void) const
 	return m_Expressions.size();
 }
 
+void ExpressionList::Execute(const Dictionary::Ptr& dictionary) const
+{
+	vector<Expression>::const_iterator it;
+
+	for (it = m_Expressions.begin(); it != m_Expressions.end(); it++) {
+		it->Execute(dictionary);
+	}
+}

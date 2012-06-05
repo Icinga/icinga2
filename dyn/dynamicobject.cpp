@@ -39,11 +39,23 @@ Dictionary::Ptr DynamicObject::GetTags(void) const
 void DynamicObject::Commit(void)
 {
 	DynamicObject::Ptr self = static_pointer_cast<DynamicObject>(shared_from_this());
-	ObjectSet::GetAllObjects()->CheckObject(self);
+	DynamicObject::GetAllObjects()->CheckObject(self);
 }
 
 void DynamicObject::Unregister(void)
 {
 	DynamicObject::Ptr self = static_pointer_cast<DynamicObject>(shared_from_this());
-	ObjectSet::GetAllObjects()->RemoveObject(self);
+	DynamicObject::GetAllObjects()->RemoveObject(self);
+}
+
+ObjectSet<DynamicObject::Ptr>::Ptr DynamicObject::GetAllObjects(void)
+{
+	static ObjectSet<DynamicObject::Ptr>::Ptr allObjects;
+
+	if (!allObjects) {
+		allObjects = make_shared<ObjectSet<DynamicObject::Ptr> >();
+		allObjects->Start();
+	}
+
+	return allObjects;
 }

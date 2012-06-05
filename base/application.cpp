@@ -27,6 +27,7 @@ using namespace icinga;
 
 Application::Ptr I2_EXPORT Application::m_Instance;
 bool I2_EXPORT Application::m_ShuttingDown = false;
+bool I2_EXPORT Application::m_Debugging = false;
 
 /**
  * Constructor for the Application class.
@@ -416,7 +417,7 @@ void Application::AddComponentSearchDir(const string& componentDirectory)
  *
  * @returns true if the application is being debugged, false otherwise
  */
-bool Application::IsDebugging(void) const
+bool Application::IsDebugging(void)
 {
 	return m_Debugging;
 }

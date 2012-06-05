@@ -21,31 +21,61 @@
 
 using namespace icinga;
 
-Expression::Expression(string key, ExpressionOperator op, Variant value)
+Expression::Expression(string key, ExpressionOperator op, Variant value, long debuginfo)
+	: Key(key), Operator(op), Value(value), DebugInfo(debuginfo)
 {
-	Key = key;
-	Operator = op;
-	Value = value;
 }
 
-void Expression::Execute(const Dictionary::Ptr& dictionary)
+void Expression::Execute(const Dictionary::Ptr& dictionary) const
 {
 	Variant oldValue, newValue;
 	dictionary->GetProperty(Key, &oldValue);
 
+	ExpressionList::Ptr exprl;
+	if (Value.GetType() == VariantObject)
+		exprl = dynamic_pointer_cast<ExpressionList>(Value.GetObject());
+
+	newValue = Value;
+
 	switch (Operator) {
 		case OperatorSet:
-			if (oldValue.GetType() == VariantObject) {
-				Object::Ptr object = oldValue;
-				ExpressionList::Ptr exprl = dynamic_pointer_cast<ExpressionList>(object);
-
-				if (exprl)
-					newValue = exprl->Execute();
+			if (exprl) {
+				Dictionary::Ptr dict = make_shared<Dictionary>();
+				exprl->Execute(dict);
+				newValue = dict;
 			}
 
-		default:
-			assert(!"Not yet implemented.");
+			break;
 
+		case OperatorPlus:
+			if (exprl) {
+				Dictionary::Ptr dict;
+				if (oldValue.GetType() == VariantObject)
+					dict = dynamic_pointer_cast<Dictionary>(oldValue.GetObject());
+
+				if (!dict) {
+					if (!oldValue.IsEmpty()) {
+						stringstream message;
+						message << "Wrong argument types for += (non-dictionary and dictionary) (in line " << DebugInfo << ")";
+						throw domain_error(message.str());
+					}
+
+					dict = make_shared<Dictionary>();
+				}
+
+				exprl->Execute(dict);
+				newValue = dict;
+			} else {
+				stringstream message;
+				message << "+= only works for dictionaries (in line " << DebugInfo << ")";
+				throw domain_error(message.str());
+			}
+
+			break;
+
+		default:
+			break;
+			//assert(!"Not yet implemented.");
 	}
 
 	dictionary->SetProperty(Key, newValue);

@@ -44,6 +44,8 @@ using namespace icinga;
 %token <num> T_NUMBER
 %token T_NULL
 %token <text> T_IDENTIFIER
+%token T_OPEN_PARENTHESIS
+%token T_CLOSE_PARENTHESIS
 %token T_OPEN_BRACE
 %token T_CLOSE_BRACE
 %token T_OPEN_BRACKET
@@ -61,7 +63,7 @@ using namespace icinga;
 %token T_INHERITS
 %type <variant> simplevalue
 %type <variant> value
-%type <variant> array
+%type <variant> tuple
 %type <variant> expressionlist
 %type <op> operator
 %left '+' '-'
@@ -92,10 +94,8 @@ void ConfigContext::Compile(void)
 #define scanner (context->GetScanner())
 
 static stack<ExpressionList::Ptr> m_ExpressionLists;
-static map<pair<string, string>, DConfigObject::Ptr> m_Objects;
+static set<DConfigObject::Ptr> m_Objects;
 static DConfigObject::Ptr m_Object;
-static string m_Name;
-static string m_Type;
 static bool m_Abstract;
 static bool m_Local;
 static Dictionary::Ptr m_Array;
@@ -117,16 +117,13 @@ include: T_INCLUDE T_STRING
 
 object: 
 	{
-		m_Object = make_shared<DConfigObject>();
 		m_Abstract = false;
 		m_Local = false;
 	}
 attributes T_OBJECT T_IDENTIFIER T_STRING
 	{
-		m_Type = $4;
+		m_Object = make_shared<DConfigObject>($4, $5, yylloc.first_line);
 		free($4);
-
-		m_Name = $5;
 		free($5);
 	}
 inherits_specifier expressionlist
@@ -135,24 +132,23 @@ inherits_specifier expressionlist
 		delete $8;
 		ExpressionList::Ptr exprl = dynamic_pointer_cast<ExpressionList>(exprl_object);
 
-		Expression typeexpr("__type", OperatorSet, m_Type);
+		Expression typeexpr("__type", OperatorSet, m_Object->GetType(), yylloc.first_line);
 		exprl->AddExpression(typeexpr);
 
-		Expression nameexpr("__name", OperatorSet, m_Name);
+		Expression nameexpr("__name", OperatorSet, m_Object->GetName(), yylloc.first_line);
 		exprl->AddExpression(nameexpr);
 
-		Expression abstractexpr("__abstract", OperatorSet, m_Abstract ? 1 : 0);
+		Expression abstractexpr("__abstract", OperatorSet, m_Abstract ? 1 : 0, yylloc.first_line);
 		exprl->AddExpression(abstractexpr);
 
-		Expression localexpr("__local", OperatorSet, m_Local ? 1 : 0);
+		Expression localexpr("__local", OperatorSet, m_Local ? 1 : 0, yylloc.first_line);
 		exprl->AddExpression(localexpr);
 
 		m_Object->SetExpressionList(exprl);
 
-		m_Objects[pair<string, string>(m_Type, m_Name)] = m_Object;
-
-		free($4);
-		free($5);
+		DConfigObject::AddObject(m_Object);
+		m_Objects.insert(m_Object);
+		m_Object.reset();
 	}
 	;
 
@@ -198,12 +194,12 @@ expressionlist: T_OPEN_BRACE
 
 expressions: /* empty */
 	| expression
-	| expressions T_COMMA expression
+	| expression T_COMMA expressions
 	;
 
 expression: T_IDENTIFIER operator value
 	{
-		Expression expr($1, $2, *$3);
+		Expression expr($1, $2, *$3, yylloc.first_line);
 		free($1);
 		delete $3;
 
@@ -211,20 +207,20 @@ expression: T_IDENTIFIER operator value
 	}
 	| T_IDENTIFIER T_OPEN_BRACKET T_STRING T_CLOSE_BRACKET operator value
 	{
-		Expression subexpr($3, $5, *$6);
+		Expression subexpr($3, $5, *$6, yylloc.first_line);
 		free($3);
 		delete $6;
 
 		ExpressionList::Ptr subexprl = make_shared<ExpressionList>();
 		subexprl->AddExpression(subexpr);
 
-		Expression expr($1, OperatorPlus, subexprl);
+		Expression expr($1, OperatorPlus, subexprl, yylloc.first_line);
 
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
 	| T_STRING
 	{
-		Expression expr($1, OperatorSet, $1);
+		Expression expr($1, OperatorSet, $1, yylloc.first_line);
 		free($1);
 		
 		m_ExpressionLists.top()->AddExpression(expr);
@@ -256,36 +252,34 @@ simplevalue: T_STRING
 	;
 
 value: simplevalue
-	| array
+	| tuple
 	| expressionlist
 	{
 		$$ = $1;
 	}
 	;
 
-array: T_OPEN_BRACKET
+tuple: T_OPEN_PARENTHESIS
 	{
 		m_Array = make_shared<Dictionary>();
 	}
-	arrayitems
-	T_CLOSE_BRACKET
+	tupleitems
+	T_CLOSE_PARENTHESIS
 	{
 		$$ = new Variant(m_Array);
 		m_Array.reset();
 	}
 	;
 
-arrayitems:
-	/* empty */
-	| simplevalue
+tupleitem: simplevalue
 	{
 		m_Array->AddUnnamedProperty(*$1);
 		delete $1;
 	}
-	| arrayitems T_COMMA simplevalue
-	{
-		m_Array->AddUnnamedProperty(*$3);
-		delete $3;
-	}
+
+tupleitems:
+	/* empty */
+	| tupleitem
+	| tupleitem T_COMMA tupleitems
 	;
 %%

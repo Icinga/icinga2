@@ -41,21 +41,23 @@
      T_NUMBER = 259,
      T_NULL = 260,
      T_IDENTIFIER = 261,
-     T_OPEN_BRACE = 262,
-     T_CLOSE_BRACE = 263,
-     T_OPEN_BRACKET = 264,
-     T_CLOSE_BRACKET = 265,
-     T_EQUAL = 266,
-     T_PLUS_EQUAL = 267,
-     T_MINUS_EQUAL = 268,
-     T_MULTIPLY_EQUAL = 269,
-     T_DIVIDE_EQUAL = 270,
-     T_COMMA = 271,
-     T_ABSTRACT = 272,
-     T_LOCAL = 273,
-     T_OBJECT = 274,
-     T_INCLUDE = 275,
-     T_INHERITS = 276
+     T_OPEN_PARENTHESIS = 262,
+     T_CLOSE_PARENTHESIS = 263,
+     T_OPEN_BRACE = 264,
+     T_CLOSE_BRACE = 265,
+     T_OPEN_BRACKET = 266,
+     T_CLOSE_BRACKET = 267,
+     T_EQUAL = 268,
+     T_PLUS_EQUAL = 269,
+     T_MINUS_EQUAL = 270,
+     T_MULTIPLY_EQUAL = 271,
+     T_DIVIDE_EQUAL = 272,
+     T_COMMA = 273,
+     T_ABSTRACT = 274,
+     T_LOCAL = 275,
+     T_OBJECT = 276,
+     T_INCLUDE = 277,
+     T_INHERITS = 278
    };
 #endif
 /* Tokens.  */
@@ -63,21 +65,23 @@
 #define T_NUMBER 259
 #define T_NULL 260
 #define T_IDENTIFIER 261
-#define T_OPEN_BRACE 262
-#define T_CLOSE_BRACE 263
-#define T_OPEN_BRACKET 264
-#define T_CLOSE_BRACKET 265
-#define T_EQUAL 266
-#define T_PLUS_EQUAL 267
-#define T_MINUS_EQUAL 268
-#define T_MULTIPLY_EQUAL 269
-#define T_DIVIDE_EQUAL 270
-#define T_COMMA 271
-#define T_ABSTRACT 272
-#define T_LOCAL 273
-#define T_OBJECT 274
-#define T_INCLUDE 275
-#define T_INHERITS 276
+#define T_OPEN_PARENTHESIS 262
+#define T_CLOSE_PARENTHESIS 263
+#define T_OPEN_BRACE 264
+#define T_CLOSE_BRACE 265
+#define T_OPEN_BRACKET 266
+#define T_CLOSE_BRACKET 267
+#define T_EQUAL 268
+#define T_PLUS_EQUAL 269
+#define T_MINUS_EQUAL 270
+#define T_MULTIPLY_EQUAL 271
+#define T_DIVIDE_EQUAL 272
+#define T_COMMA 273
+#define T_ABSTRACT 274
+#define T_LOCAL 275
+#define T_OBJECT 276
+#define T_INCLUDE 277
+#define T_INHERITS 278
 
 
 
@@ -97,7 +101,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 101 "config_parser.h"
+#line 105 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

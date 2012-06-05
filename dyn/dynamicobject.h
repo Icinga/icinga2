@@ -37,6 +37,8 @@ public:
 	void Commit(void);
 	void Unregister(void);
 
+	static ObjectSet<DynamicObject::Ptr>::Ptr GetAllObjects(void);
+
 private:
 	Dictionary::Ptr m_Config;
 	Dictionary::Ptr m_Tags;

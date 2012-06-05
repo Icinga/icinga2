@@ -39,9 +39,9 @@
 
 #include "expression.h"
 #include "expressionlist.h"
-#include "dynamicobject.h"
 #include "objectset.h"
 #include "objectmap.h"
+#include "dynamicobject.h"
 #include "dconfigobject.h"
 #include "configcontext.h"
 

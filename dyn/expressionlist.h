@@ -34,8 +34,7 @@ public:
 
 	void AddExpression(const Expression& expression);
 
-	Dictionary::Ptr Execute(void) const;
-	Dictionary::Ptr Execute(Dictionary::Ptr input) const;
+	void Execute(const Dictionary::Ptr& dictionary) const;
 
 	size_t GetLength(void) const;
 

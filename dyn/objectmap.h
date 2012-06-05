@@ -23,35 +23,95 @@
 namespace icinga
 {
 
-typedef function<bool (const Object::Ptr&, string *key)> ObjectKeyGetter;
-
+template<typename TKey = string, typename TValue = Object::Ptr>
 class I2_DYN_API ObjectMap : public Object
 {
 public:
-	typedef shared_ptr<ObjectMap> Ptr;
-	typedef weak_ptr<ObjectMap> WeakPtr;
+	typedef shared_ptr<ObjectMap<TKey, TValue> > Ptr;
+	typedef weak_ptr<ObjectMap<TKey, TValue > > WeakPtr;
 
-	typedef multimap<string, Object::Ptr>::iterator Iterator;
+	typedef typename multimap<TKey, TValue>::iterator Iterator;
 	typedef pair<Iterator, Iterator> Range;
 
-	ObjectMap(const ObjectSet::Ptr& parent, ObjectKeyGetter keygetter);
+	ObjectMap(const typename ObjectSet<TValue>::Ptr& parent,
+	    function<bool (const TValue&, TKey *key)> keygetter)
+		: m_Parent(parent), m_KeyGetter(keygetter)
+	{ 
+		assert(m_Parent);
+		assert(m_KeyGetter);
+	}
 
-	void Start(void);
+	void Start(void)
+	{
+		m_Parent->OnObjectAdded += bind_weak(&ObjectMap::ObjectAddedHandler, shared_from_this());
+        	m_Parent->OnObjectCommitted += bind_weak(&ObjectMap::ObjectCommittedHandler, shared_from_this());
+	        m_Parent->OnObjectRemoved += bind_weak(&ObjectMap::ObjectRemovedHandler, shared_from_this());
 
-	Range GetRange(string key);
+        	for (typename ObjectSet<TValue>::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
+	                AddObject(*it);
+	}
+
+	Range GetRange(TKey key)
+	{
+		return m_Objects.equal_range(key);
+	}
 
 private:
-	multimap<string, Object::Ptr> m_Objects;
-	ObjectSet::Ptr m_Parent;
-	ObjectKeyGetter m_KeyGetter;
+	multimap<TKey, TValue> m_Objects;
+	typename ObjectSet<TValue>::Ptr m_Parent;
+	function<bool (const TValue&, TKey *key)> m_KeyGetter;
 
-	void AddObject(const Object::Ptr& object);
-	void RemoveObject(const Object::Ptr& object);
-	void CheckObject(const Object::Ptr& object);
+	void AddObject(const TValue& object)
+	{
+		TKey key;
+		if (!m_KeyGetter(object, &key))
+			return;
 
-	int ObjectAddedHandler(const ObjectSetEventArgs& ea);
-	int ObjectCommittedHandler(const ObjectSetEventArgs& ea);
-	int ObjectRemovedHandler(const ObjectSetEventArgs& ea);
+		m_Objects.insert(make_pair(key, object));
+	}
+
+	void RemoveObject(const TValue& object)
+	{
+		TKey key;
+		if (!m_KeyGetter(object, &key))
+        	        return;
+
+	        pair<Iterator, Iterator> range = GetRange(key);
+
+        	for (Iterator i = range.first; i != range.second; i++) {
+                	if (i->second == object) {
+	                        m_Objects.erase(i);
+        	                break;
+                	}
+        	}
+	}
+
+	void CheckObject(const TValue& object)
+	{
+		RemoveObject(object);
+		AddObject(object);
+	}
+
+	int ObjectAddedHandler(const ObjectSetEventArgs<TValue>& ea)
+	{
+		AddObject(ea.Target);
+
+		return 0;
+	}
+
+	int ObjectCommittedHandler(const ObjectSetEventArgs<TValue>& ea)
+	{
+		CheckObject(ea.Target);
+
+		return 0;
+	}
+
+	int ObjectRemovedHandler(const ObjectSetEventArgs<TValue>& ea)
+	{
+		RemoveObject(ea.Target);
+
+		return 0;
+	}
 };
 
 }

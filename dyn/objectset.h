@@ -23,49 +23,123 @@
 namespace icinga
 {
 
+template<typename TValue>
 struct ObjectSetEventArgs : public EventArgs
 {
-	Object::Ptr Target;
+	TValue Target;
 };
 
-typedef function<bool (const Object::Ptr&)> ObjectPredicate;
-
+template<typename TValue>
 class I2_DYN_API ObjectSet : public Object
 {
 public:
-	typedef shared_ptr<ObjectSet> Ptr;
-	typedef weak_ptr<ObjectSet> WeakPtr;
+	typedef shared_ptr<ObjectSet<TValue> > Ptr;
+	typedef weak_ptr<ObjectSet<TValue> > WeakPtr;
 
-	typedef set<Object::Ptr>::iterator Iterator;
+	typedef typename set<TValue>::iterator Iterator;
 
-	ObjectSet(void);
-	ObjectSet(const ObjectSet::Ptr& parent, ObjectPredicate filter);
+	ObjectSet(void)
+		: m_Parent(), m_Predicate()
+	{ }
 
-	void Start(void);
+	ObjectSet(const typename ObjectSet<TValue>::Ptr& parent, function<bool(const TValue&)> predicate)
+		: m_Parent(parent), m_Predicate(predicate)
+	{ }
 
-	void AddObject(const Object::Ptr& object);
-	void RemoveObject(const Object::Ptr& object);
-	bool Contains(const Object::Ptr& object) const;
+	void Start(void)
+	{
+		if (m_Parent) {
+			m_Parent->OnObjectAdded += bind_weak(&ObjectSet::ObjectAddedOrCommittedHandler, shared_from_this());
+			m_Parent->OnObjectCommitted += bind_weak(&ObjectSet::ObjectAddedOrCommittedHandler, shared_from_this());
+			m_Parent->OnObjectRemoved += bind_weak(&ObjectSet::ObjectRemovedHandler, shared_from_this());
 
-	void CheckObject(const Object::Ptr& object);
+			for (ObjectSet::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
+				CheckObject(*it);
+	        }
 
-	Observable<ObjectSetEventArgs> OnObjectAdded;
-	Observable<ObjectSetEventArgs> OnObjectCommitted;
-	Observable<ObjectSetEventArgs> OnObjectRemoved;
 
-	Iterator Begin(void);
-	Iterator End(void);
+	}
 
-	static ObjectSet::Ptr GetAllObjects(void);
+	void AddObject(const TValue& object)
+	{
+		m_Objects.insert(object);
+
+		ObjectSetEventArgs<TValue> ea;
+		ea.Source = shared_from_this();
+		ea.Target = object;
+		OnObjectAdded(ea);
+	}
+
+	void RemoveObject(const TValue& object)
+	{
+		ObjectSet::Iterator it = m_Objects.find(object);
+
+		if (it != m_Objects.end()) {
+			m_Objects.erase(it);
+
+			ObjectSetEventArgs<TValue> ea;
+			ea.Source = shared_from_this();
+			ea.Target = object;
+			OnObjectRemoved(ea);
+		}
+	}
+
+	bool Contains(const TValue& object) const
+	{
+		ObjectSet::Iterator it = m_Objects.find(object);
+
+		return !(it == m_Objects.end());
+	}
+
+	void CheckObject(const TValue& object)
+	{
+		if (m_Predicate && !m_Predicate(object)) {
+			RemoveObject(object);
+		} else {
+			if (!Contains(object)) {
+				AddObject(object);
+			} else {
+				ObjectSetEventArgs<TValue> ea;
+				ea.Source = shared_from_this();
+				ea.Target = object;
+				OnObjectCommitted(ea);
+			}
+		}
+	}
+
+	Observable<ObjectSetEventArgs<TValue> > OnObjectAdded;
+	Observable<ObjectSetEventArgs<TValue> > OnObjectCommitted;
+	Observable<ObjectSetEventArgs<TValue> > OnObjectRemoved;
+
+	Iterator Begin(void)
+	{
+		return m_Objects.begin();
+	}
+
+	Iterator End(void)
+	{
+		return m_Objects.end();
+	}
 
 private:
-	set<Object::Ptr> m_Objects;
+	set<TValue> m_Objects;
 
 	ObjectSet::Ptr m_Parent;
-	ObjectPredicate m_Filter;
+	function<bool (const TValue&)> m_Predicate;
 
-	int ObjectAddedOrCommittedHandler(const ObjectSetEventArgs& ea);
-	int ObjectRemovedHandler(const ObjectSetEventArgs& ea);
+	int ObjectAddedOrCommittedHandler(const ObjectSetEventArgs<TValue>& ea)
+	{
+		CheckObject(ea.Target);
+
+		return 0;
+	}
+
+	int ObjectRemovedHandler(const ObjectSetEventArgs<TValue>& ea)
+	{
+		RemoveObject(ea.Target);
+
+		return 0;
+	}
 };
 
 }
