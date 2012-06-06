@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 10000; i++) {
 		vector<ConfigItem::Ptr> objects = ConfigCompiler::CompileFile(string(argv[1]));
 
 		ConfigVM::ExecuteItems(objects);

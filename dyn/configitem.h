@@ -41,7 +41,7 @@ public:
 	ExpressionList::Ptr GetExpressionList(void) const;
 	void SetExpressionList(const ExpressionList::Ptr& exprl);
 
-	Dictionary::Ptr CalculateProperties(void) const;
+	void CalculateProperties(Dictionary::Ptr dictionary) const;
 
 	void Commit(void);
 	void Unregister(void);

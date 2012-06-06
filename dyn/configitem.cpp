@@ -56,10 +56,8 @@ void ConfigItem::AddParent(string parent)
 	m_Parents.push_back(parent);
 }
 
-Dictionary::Ptr ConfigItem::CalculateProperties(void) const
+void ConfigItem::CalculateProperties(Dictionary::Ptr dictionary) const
 {
-	Dictionary::Ptr result = make_shared<Dictionary>();
-
 	vector<string>::const_iterator it;
 	for (it = m_Parents.begin(); it != m_Parents.end(); it++) {
 		ConfigItem::Ptr parent = ConfigItem::GetObject(GetType(), *it);
@@ -70,12 +68,10 @@ Dictionary::Ptr ConfigItem::CalculateProperties(void) const
 			throw domain_error(message.str());
 		}
 
-		parent->GetExpressionList()->Execute(result);
+		parent->CalculateProperties(dictionary);
 	}
 
-	m_ExpressionList->Execute(result);
-
-	return result;
+	m_ExpressionList->Execute(dictionary);
 }
 
 ObjectSet<ConfigItem::Ptr>::Ptr ConfigItem::GetAllObjects(void)
@@ -122,7 +118,9 @@ void ConfigItem::Commit(void)
 		m_DynamicObject = dobj;
 	}
 
-	dobj->SetConfig(CalculateProperties());
+	Dictionary::Ptr properties = make_shared<Dictionary>();
+	CalculateProperties(properties);
+	dobj->SetConfig(properties);
 	dobj->Commit();
 
 	ConfigItem::Ptr ci = GetObject(GetType(), GetName());
