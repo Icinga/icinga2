@@ -1,4 +1,4 @@
-%{
+%code requires {
 /******************************************************************************
  * Icinga 2                                                                   *
  * Copyright (C) 2012 Icinga Development Team (http://www.icinga.org/)        *
@@ -22,7 +22,9 @@
 
 using namespace icinga;
 
-%}
+#define YYLTYPE DebugInfo
+
+}
 
 %pure-parser
 
@@ -30,7 +32,7 @@ using namespace icinga;
 %defines
 %error-verbose
 
-%parse-param { ConfigContext *context }
+%parse-param { ConfigCompiler *context }
 %lex-param { void *scanner }
 
 %union {
@@ -65,7 +67,7 @@ using namespace icinga;
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
-void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
+void yyerror(YYLTYPE *locp, ConfigCompiler *context, const char *err)
 {
 	stringstream message;
 
@@ -77,29 +79,30 @@ void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 	throw runtime_error(message.str());
 }
 
-int yyparse(ConfigContext *context);
+int yyparse(ConfigCompiler *context);
 
-void ConfigContext::Compile(void)
+static stack<ExpressionList::Ptr> m_ExpressionLists;
+static vector<ConfigItem::Ptr> m_Objects;
+static ConfigItem::Ptr m_Object;
+static bool m_Abstract;
+static bool m_Local;
+static Dictionary::Ptr m_Array;
+
+void ConfigCompiler::Compile(void)
 {
+	m_Objects.clear();
 	yyparse(this);
+	SetResult(m_Objects);
+	m_Objects.clear();
 }
 
 #define scanner (context->GetScanner())
 
-static stack<ExpressionList::Ptr> m_ExpressionLists;
-static set<DConfigObject::Ptr> m_Objects;
-static DConfigObject::Ptr m_Object;
-static bool m_Abstract;
-static bool m_Local;
-static Dictionary::Ptr m_Array;
 %}
 
 %%
 statements: /* empty */
 	| statements statement
-	{
-		context->SetResult(m_Objects);
-	}
 	;
 
 statement: object | include
@@ -115,7 +118,7 @@ object:
 	}
 attributes T_OBJECT T_IDENTIFIER T_STRING
 	{
-		m_Object = make_shared<DConfigObject>($4, $5, yylloc.first_line);
+		m_Object = make_shared<ConfigItem>($4, $5, yylloc);
 		free($4);
 		free($5);
 	}
@@ -125,22 +128,21 @@ inherits_specifier expressionlist
 		delete $8;
 		ExpressionList::Ptr exprl = dynamic_pointer_cast<ExpressionList>(exprl_object);
 
-		Expression typeexpr("__type", OperatorSet, m_Object->GetType(), yylloc.first_line);
+		Expression typeexpr("__type", OperatorSet, m_Object->GetType(), yylloc);
 		exprl->AddExpression(typeexpr);
 
-		Expression nameexpr("__name", OperatorSet, m_Object->GetName(), yylloc.first_line);
+		Expression nameexpr("__name", OperatorSet, m_Object->GetName(), yylloc);
 		exprl->AddExpression(nameexpr);
 
-		Expression abstractexpr("__abstract", OperatorSet, m_Abstract ? 1 : 0, yylloc.first_line);
+		Expression abstractexpr("__abstract", OperatorSet, m_Abstract ? 1 : 0, yylloc);
 		exprl->AddExpression(abstractexpr);
 
-		Expression localexpr("__local", OperatorSet, m_Local ? 1 : 0, yylloc.first_line);
+		Expression localexpr("__local", OperatorSet, m_Local ? 1 : 0, yylloc);
 		exprl->AddExpression(localexpr);
 
 		m_Object->SetExpressionList(exprl);
 
-		DConfigObject::AddObject(m_Object);
-		m_Objects.insert(m_Object);
+		m_Objects.push_back(m_Object);
 		m_Object.reset();
 	}
 	;
@@ -166,6 +168,7 @@ inherits_list: inherits_item
 inherits_item: T_STRING
 	{
 		m_Object->AddParent($1);
+		free($1);
 	}
 	;
 
@@ -192,7 +195,7 @@ expressions: /* empty */
 
 expression: T_IDENTIFIER operator value
 	{
-		Expression expr($1, $2, *$3, yylloc.first_line);
+		Expression expr($1, $2, *$3, yylloc);
 		free($1);
 		delete $3;
 
@@ -200,22 +203,23 @@ expression: T_IDENTIFIER operator value
 	}
 	| T_IDENTIFIER '[' T_STRING ']' operator value
 	{
-		Expression subexpr($3, $5, *$6, yylloc.first_line);
+		Expression subexpr($3, $5, *$6, yylloc);
 		free($3);
 		delete $6;
 
 		ExpressionList::Ptr subexprl = make_shared<ExpressionList>();
 		subexprl->AddExpression(subexpr);
 
-		Expression expr($1, OperatorPlus, subexprl, yylloc.first_line);
+		Expression expr($1, OperatorPlus, subexprl, yylloc);
+		free($1);
 
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
 	| T_STRING
 	{
-		Expression expr($1, OperatorSet, $1, yylloc.first_line);
+		Expression expr($1, OperatorSet, $1, yylloc);
 		free($1);
-		
+
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
 	;
@@ -233,6 +237,7 @@ operator: T_EQUAL
 simplevalue: T_STRING
 	{
 		$$ = new Variant($1);
+		free($1);
 	}
 	| T_NUMBER
 	{

@@ -5,20 +5,23 @@ using namespace icinga;
 
 int main(int argc, char **argv)
 {
-	ConfigContext ctx;
-	ctx.Compile();
-	set<DConfigObject::Ptr> objects = ctx.GetResult();
+	if (argc < 2) {
+		cout << "Syntax: " << argv[0] << " <filename>" << endl;
+		return 1;
+	}
 
-	for (auto it = objects.begin(); it != objects.end(); it++) {
-		DConfigObject::Ptr obj = *it;
+	for (int i = 0; i < 10; i++) {
+		vector<ConfigItem::Ptr> objects = ConfigCompiler::CompileFile(string(argv[1]));
+
+		ConfigVM::ExecuteItems(objects);
+	}
+
+	ObjectSet<DynamicObject::Ptr>::Iterator it;
+	for (it = DynamicObject::GetAllObjects()->Begin(); it != DynamicObject::GetAllObjects()->End(); it++) {
+		DynamicObject::Ptr obj = *it;
 		cout << "Object, name: " << obj->GetName() << ", type: " << obj->GetType() << endl;
-		cout << "\t" << obj->GetParents().size() << " parents" << endl;
-		cout << "\t" << obj->GetExpressionList()->GetLength() << " top-level exprs" << endl;
 
-		Dictionary::Ptr props = obj->CalculateProperties();
-		cout << "\t" << props->GetLength() << " top-level properties" << endl;
-
-		MessagePart mp(props);
+		MessagePart mp(obj->GetConfig());
 		cout << mp.ToJsonString() << endl;
 	}
 

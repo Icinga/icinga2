@@ -1,15 +1,36 @@
-#ifndef DCONFIGOBJECT_H
-#define DCONFIGOBJECT_H
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012 Icinga Development Team (http://www.icinga.org/)        *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
+#ifndef CONFIGITEM_H
+#define CONFIGITEM_H
 
 namespace icinga
 {
 
-class DConfigObject : public Object {
+class ConfigItem : public Object {
 public:
-	typedef shared_ptr<DConfigObject> Ptr;
-	typedef weak_ptr<DConfigObject> WeakPtr;
+	typedef shared_ptr<ConfigItem> Ptr;
+	typedef weak_ptr<ConfigItem> WeakPtr;
 
-	DConfigObject(string type, string name, long debuginfo);
+	typedef ObjectMap<pair<string, string>, ConfigItem::Ptr> TNMap;
+
+	ConfigItem(string type, string name, DebugInfo debuginfo);
 
 	string GetType(void) const;
 	string GetName(void) const;
@@ -22,23 +43,26 @@ public:
 
 	Dictionary::Ptr CalculateProperties(void) const;
 
-	static ObjectSet<DConfigObject::Ptr>::Ptr GetAllObjects(void);
-	static ObjectMap<pair<string, string>, DConfigObject::Ptr>::Ptr GetObjectsByTypeAndName(void);
-	static void AddObject(DConfigObject::Ptr object);
-	static void RemoveObject(DConfigObject::Ptr object);
-	static DConfigObject::Ptr GetObject(string type, string name);
+	void Commit(void);
+	void Unregister(void);
+
+	static ObjectSet<ConfigItem::Ptr>::Ptr GetAllObjects(void);
+	static TNMap::Ptr GetObjectsByTypeAndName(void);
+	static ConfigItem::Ptr GetObject(string type, string name);
 
 private:
 	string m_Type;
 	string m_Name;
-	long m_DebugInfo;
+	DebugInfo m_DebugInfo;
 	vector<string> m_Parents;
 	ExpressionList::Ptr m_ExpressionList;
 
-	static bool GetTypeAndName(const DConfigObject::Ptr& object, pair<string, string> *key);
+	DynamicObject::WeakPtr m_DynamicObject;
+
+	static bool GetTypeAndName(const ConfigItem::Ptr& object, pair<string, string> *key);
 };
 
 
 }
 
-#endif /* DCONFIGOBJECT_H */
+#endif /* CONFIGITEM_H */

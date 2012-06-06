@@ -30,6 +30,7 @@
 #include <i2-base.h>
 
 #include <stack>
+#include <fstream>
 
 #ifdef I2_DYN_BUILD
 #	define I2_DYN_API I2_EXPORT
@@ -37,12 +38,14 @@
 #	define I2_DYN_API I2_IMPORT
 #endif /* I2_DYN_BUILD */
 
+#include "debuginfo.h"
 #include "expression.h"
 #include "expressionlist.h"
 #include "objectset.h"
 #include "objectmap.h"
 #include "dynamicobject.h"
-#include "dconfigobject.h"
-#include "configcontext.h"
+#include "configitem.h"
+#include "configcompiler.h"
+#include "configvm.h"
 
 #endif /* I2DYN_H */

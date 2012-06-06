@@ -1,53 +1,72 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012 Icinga Development Team (http://www.icinga.org/)        *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
 #include "i2-dyn.h"
 
 using namespace icinga;
 
-DConfigObject::DConfigObject(string type, string name, long debuginfo)
+ConfigItem::ConfigItem(string type, string name, DebugInfo debuginfo)
 	: m_Type(type), m_Name(name), m_DebugInfo(debuginfo)
 {
 }
 
-string DConfigObject::GetType(void) const
+string ConfigItem::GetType(void) const
 {
 	return m_Type;
 }
 
-string DConfigObject::GetName(void) const
+string ConfigItem::GetName(void) const
 {
 	return m_Name;
 }
 
-ExpressionList::Ptr DConfigObject::GetExpressionList(void) const
+ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 {
 	return m_ExpressionList;
 }
 
-void DConfigObject::SetExpressionList(const ExpressionList::Ptr& exprl)
+void ConfigItem::SetExpressionList(const ExpressionList::Ptr& exprl)
 {
 	m_ExpressionList = exprl;
 }
 
-vector<string> DConfigObject::GetParents(void) const
+vector<string> ConfigItem::GetParents(void) const
 {
 	return m_Parents;
 }
 
-void DConfigObject::AddParent(string parent)
+void ConfigItem::AddParent(string parent)
 {
 	m_Parents.push_back(parent);
 }
 
-Dictionary::Ptr DConfigObject::CalculateProperties(void) const
+Dictionary::Ptr ConfigItem::CalculateProperties(void) const
 {
 	Dictionary::Ptr result = make_shared<Dictionary>();
 
 	vector<string>::const_iterator it;
 	for (it = m_Parents.begin(); it != m_Parents.end(); it++) {
-		DConfigObject::Ptr parent = DConfigObject::GetObject(GetType(), *it);
+		ConfigItem::Ptr parent = ConfigItem::GetObject(GetType(), *it);
 
 		if (!parent) {
 			stringstream message;
-			message << "Parent object '" << *it << "' does not exist (in line " << m_DebugInfo << ")";
+			message << "Parent object '" << *it << "' does not exist (" << m_DebugInfo << ")";
 			throw domain_error(message.str());
 		}
 
@@ -59,56 +78,79 @@ Dictionary::Ptr DConfigObject::CalculateProperties(void) const
 	return result;
 }
 
-ObjectSet<DConfigObject::Ptr>::Ptr DConfigObject::GetAllObjects(void)
+ObjectSet<ConfigItem::Ptr>::Ptr ConfigItem::GetAllObjects(void)
 {
-	static ObjectSet<DConfigObject::Ptr>::Ptr allObjects;
+	static ObjectSet<ConfigItem::Ptr>::Ptr allObjects;
 
         if (!allObjects) {
-                allObjects = make_shared<ObjectSet<DConfigObject::Ptr> >();
+                allObjects = make_shared<ObjectSet<ConfigItem::Ptr> >();
                 allObjects->Start();
         }
 
         return allObjects;
 }
 
-bool DConfigObject::GetTypeAndName(const DConfigObject::Ptr& object, pair<string, string> *key)
+bool ConfigItem::GetTypeAndName(const ConfigItem::Ptr& object, pair<string, string> *key)
 {
 	*key = make_pair(object->GetType(), object->GetName());
 
 	return true;
 }
 
-ObjectMap<pair<string, string>, DConfigObject::Ptr>::Ptr DConfigObject::GetObjectsByTypeAndName(void)
+ConfigItem::TNMap::Ptr ConfigItem::GetObjectsByTypeAndName(void)
 {
-	static ObjectMap<pair<string, string>, DConfigObject::Ptr>::Ptr tnmap;
+	static ConfigItem::TNMap::Ptr tnmap;
 
 	if (!tnmap) {
-		tnmap = make_shared<ObjectMap<pair<string, string>, DConfigObject::Ptr> >(GetAllObjects(), &DConfigObject::GetTypeAndName);
+		tnmap = make_shared<ConfigItem::TNMap>(GetAllObjects(), &ConfigItem::GetTypeAndName);
 		tnmap->Start();
 	}
 
 	return tnmap;
 }
 
-void DConfigObject::AddObject(DConfigObject::Ptr object)
+void ConfigItem::Commit(void)
 {
-	GetAllObjects()->AddObject(object);
+	DynamicObject::Ptr dobj = m_DynamicObject.lock();
+
+	if (!dobj) {
+		dobj = DynamicObject::GetObject(GetType(), GetName());
+
+		if (!dobj)
+			dobj = make_shared<DynamicObject>();
+
+		m_DynamicObject = dobj;
+	}
+
+	dobj->SetConfig(CalculateProperties());
+	dobj->Commit();
+
+	ConfigItem::Ptr ci = GetObject(GetType(), GetName());
+	ConfigItem::Ptr self = static_pointer_cast<ConfigItem>(shared_from_this());
+	if (ci && ci != self) {
+		ci->m_DynamicObject.reset();
+		GetAllObjects()->RemoveObject(ci);
+	}
+	GetAllObjects()->CheckObject(self);
 }
 
-void DConfigObject::RemoveObject(DConfigObject::Ptr object)
+void ConfigItem::Unregister(void)
 {
-	throw logic_error("not implemented.");
+	// TODO: unregister associated DynamicObject
+
+	ConfigItem::Ptr self = static_pointer_cast<ConfigItem>(shared_from_this());
+	GetAllObjects()->RemoveObject(self);
 }
 
-DConfigObject::Ptr DConfigObject::GetObject(string type, string name)
+ConfigItem::Ptr ConfigItem::GetObject(string type, string name)
 {
-	ObjectMap<pair<string, string>, DConfigObject::Ptr>::Range range;
+	ConfigItem::TNMap::Range range;
 	range = GetObjectsByTypeAndName()->GetRange(make_pair(type, name));
 
 	assert(distance(range.first, range.second) <= 1);
 
 	if (range.first == range.second)
-		return DConfigObject::Ptr();
+		return ConfigItem::Ptr();
 	else
 		return range.first->second;
 }

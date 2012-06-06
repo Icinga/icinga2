@@ -23,8 +23,15 @@
 
 using namespace icinga;
 
-#define YY_EXTRA_TYPE ConfigContext *
-#define YY_USER_ACTION yylloc->first_line = yylineno;
+#define YY_EXTRA_TYPE ConfigCompiler *
+#define YY_USER_ACTION 					\
+do {							\
+	yylloc->FirstLine = yylineno;			\
+	yylloc->FirstColumn = yycolumn;			\
+	yylloc->LastLine = yylineno;			\
+	yylloc->LastColumn = yycolumn + yyleng - 1;	\
+	yycolumn += yyleng;				\
+} while (0);
 
 #define YY_INPUT(buf, result, max_size)			\
 do {							\
@@ -72,13 +79,13 @@ null				return T_NULL;
 %%
 
 
-void ConfigContext::InitializeScanner(void)
+void ConfigCompiler::InitializeScanner(void)
 {
 	yylex_init(&m_Scanner);
 	yyset_extra(this, m_Scanner);
 }
 
-void ConfigContext::DestroyScanner(void)
+void ConfigCompiler::DestroyScanner(void)
 {
 	yylex_destroy(m_Scanner);
 }

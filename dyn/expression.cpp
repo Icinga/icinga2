@@ -21,23 +21,23 @@
 
 using namespace icinga;
 
-Expression::Expression(string key, ExpressionOperator op, Variant value, long debuginfo)
-	: Key(key), Operator(op), Value(value), DebugInfo(debuginfo)
+Expression::Expression(string key, ExpressionOperator op, const Variant& value, const DebugInfo& debuginfo)
+	: m_Key(key), m_Operator(op), m_Value(value), m_DebugInfo(debuginfo)
 {
 }
 
 void Expression::Execute(const Dictionary::Ptr& dictionary) const
 {
 	Variant oldValue, newValue;
-	dictionary->GetProperty(Key, &oldValue);
+	dictionary->GetProperty(m_Key, &oldValue);
 
 	ExpressionList::Ptr exprl;
-	if (Value.GetType() == VariantObject)
-		exprl = dynamic_pointer_cast<ExpressionList>(Value.GetObject());
+	if (m_Value.GetType() == VariantObject)
+		exprl = dynamic_pointer_cast<ExpressionList>(m_Value.GetObject());
 
-	newValue = Value;
+	newValue = m_Value;
 
-	switch (Operator) {
+	switch (m_Operator) {
 		case OperatorSet:
 			if (exprl) {
 				Dictionary::Ptr dict = make_shared<Dictionary>();
@@ -56,7 +56,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				if (!dict) {
 					if (!oldValue.IsEmpty()) {
 						stringstream message;
-						message << "Wrong argument types for += (non-dictionary and dictionary) (in line " << DebugInfo << ")";
+						message << "Wrong argument types for += (non-dictionary and dictionary) (" << m_DebugInfo << ")";
 						throw domain_error(message.str());
 					}
 
@@ -67,7 +67,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				newValue = dict;
 			} else {
 				stringstream message;
-				message << "+= only works for dictionaries (in line " << DebugInfo << ")";
+				message << "+= only works for dictionaries (" << m_DebugInfo << ")";
 				throw domain_error(message.str());
 			}
 
@@ -79,5 +79,5 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			break;
 	}
 
-	dictionary->SetProperty(Key, newValue);
+	dictionary->SetProperty(m_Key, newValue);
 }

@@ -17,22 +17,26 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGCONTEXT_H
-#define CONFIGCONTEXT_H
+#ifndef CONFIGCOMPILER_H
+#define CONFIGCOMPILER_H
 
 namespace icinga
 {
 
-class I2_DYN_API ConfigContext
+class I2_DYN_API ConfigCompiler
 {
 public:
-	ConfigContext(istream *input = &cin);
-	virtual ~ConfigContext(void);
+	ConfigCompiler(istream *input = &cin);
+	virtual ~ConfigCompiler(void);
 
 	void Compile(void);
 
-	void SetResult(set<DConfigObject::Ptr> result);
-	set<DConfigObject::Ptr> GetResult(void) const;
+	static vector<ConfigItem::Ptr> CompileStream(istream *stream);
+	static vector<ConfigItem::Ptr> CompileFile(string filename);
+	static vector<ConfigItem::Ptr> CompileText(string text);
+
+	void SetResult(vector<ConfigItem::Ptr> result);
+	vector<ConfigItem::Ptr> GetResult(void) const;
 
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
@@ -40,7 +44,7 @@ public:
 private:
 	istream *m_Input;
 	void *m_Scanner;
-	set<DConfigObject::Ptr> m_Result;
+	vector<ConfigItem::Ptr> m_Result;
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);
@@ -48,4 +52,4 @@ private:
 
 }
 
-#endif /* CONFIGCONTEXT_H */
+#endif /* CONFIGCOMPILER_H */

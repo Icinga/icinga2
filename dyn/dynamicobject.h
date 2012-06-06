@@ -29,19 +29,30 @@ public:
 	typedef shared_ptr<DynamicObject> Ptr;
 	typedef weak_ptr<DynamicObject> WeakPtr;
 
+	typedef ObjectMap<pair<string, string>, DynamicObject::Ptr> TNMap;
+
 	DynamicObject(void);
 
+	void SetConfig(Dictionary::Ptr config);
 	Dictionary::Ptr GetConfig(void) const;
+
 	Dictionary::Ptr GetTags(void) const;
+
+	string GetType(void) const;
+	string GetName(void) const;
 
 	void Commit(void);
 	void Unregister(void);
 
 	static ObjectSet<DynamicObject::Ptr>::Ptr GetAllObjects(void);
+	static TNMap::Ptr GetObjectsByTypeAndName(void);
+	static DynamicObject::Ptr GetObject(string type, string name);
 
 private:
 	Dictionary::Ptr m_Config;
 	Dictionary::Ptr m_Tags;
+
+	static bool GetTypeAndName(const DynamicObject::Ptr& object, pair<string, string> *key);
 };
 
 }

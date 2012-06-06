@@ -87,7 +87,10 @@ public:
 	template<typename T>
 	void SetProperty(string key, const T& value)
 	{
-		m_Data[key] = value;
+		pair<typename map<string, Variant>::iterator, bool> ret;
+		ret = m_Data.insert(make_pair(key, value));
+		if (!ret.second)
+			ret.first->second = value;
 	}
 
 	/**

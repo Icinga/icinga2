@@ -65,7 +65,31 @@
 
 /* Copy the first part of user declarations.  */
 
+
 /* Line 268 of yacc.c  */
+#line 71 "config_parser.cc"
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+
+/* Enabling verbose error messages.  */
+#ifdef YYERROR_VERBOSE
+# undef YYERROR_VERBOSE
+# define YYERROR_VERBOSE 1
+#else
+# define YYERROR_VERBOSE 1
+#endif
+
+/* Enabling the token table.  */
+#ifndef YYTOKEN_TABLE
+# define YYTOKEN_TABLE 0
+#endif
+
+/* "%code requires" blocks.  */
+
+/* Line 288 of yacc.c  */
 #line 1 "config_parser.yy"
 
 /******************************************************************************
@@ -91,29 +115,13 @@
 
 using namespace icinga;
 
+#define YYLTYPE DebugInfo
 
 
-/* Line 268 of yacc.c  */
-#line 98 "config_parser.cc"
 
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
 
-/* Enabling verbose error messages.  */
-#ifdef YYERROR_VERBOSE
-# undef YYERROR_VERBOSE
-# define YYERROR_VERBOSE 1
-#else
-# define YYERROR_VERBOSE 1
-#endif
-
-/* Enabling the token table.  */
-#ifndef YYTOKEN_TABLE
-# define YYTOKEN_TABLE 0
-#endif
-
+/* Line 288 of yacc.c  */
+#line 125 "config_parser.cc"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -161,7 +169,7 @@ typedef union YYSTYPE
 {
 
 /* Line 293 of yacc.c  */
-#line 36 "config_parser.yy"
+#line 38 "config_parser.yy"
 
 	char *text;
 	int num;
@@ -171,7 +179,7 @@ typedef union YYSTYPE
 
 
 /* Line 293 of yacc.c  */
-#line 175 "config_parser.cc"
+#line 183 "config_parser.cc"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -195,12 +203,12 @@ typedef struct YYLTYPE
 /* Copy the second part of user declarations.  */
 
 /* Line 343 of yacc.c  */
-#line 64 "config_parser.yy"
+#line 66 "config_parser.yy"
 
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
-void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
+void yyerror(YYLTYPE *locp, ConfigCompiler *context, const char *err)
 {
 	stringstream message;
 
@@ -212,25 +220,29 @@ void yyerror(YYLTYPE *locp, ConfigContext *context, const char *err)
 	throw runtime_error(message.str());
 }
 
-int yyparse(ConfigContext *context);
-
-void ConfigContext::Compile(void)
-{
-	yyparse(this);
-}
-
-#define scanner (context->GetScanner())
+int yyparse(ConfigCompiler *context);
 
 static stack<ExpressionList::Ptr> m_ExpressionLists;
-static set<DConfigObject::Ptr> m_Objects;
-static DConfigObject::Ptr m_Object;
+static vector<ConfigItem::Ptr> m_Objects;
+static ConfigItem::Ptr m_Object;
 static bool m_Abstract;
 static bool m_Local;
 static Dictionary::Ptr m_Array;
 
+void ConfigCompiler::Compile(void)
+{
+	m_Objects.clear();
+	yyparse(this);
+	SetResult(m_Objects);
+	m_Objects.clear();
+}
+
+#define scanner (context->GetScanner())
+
+
 
 /* Line 343 of yacc.c  */
-#line 234 "config_parser.cc"
+#line 246 "config_parser.cc"
 
 #ifdef short
 # undef short
@@ -533,11 +545,11 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    98,    98,    99,   105,   105,   108,   112,   117,   112,
-     148,   149,   152,   156,   162,   163,   166,   172,   173,   177,
-     176,   188,   189,   190,   193,   201,   214,   223,   224,   225,
-     226,   227,   233,   237,   241,   247,   248,   249,   256,   255,
-     267,   273,   275,   276
+       0,   104,   104,   105,   108,   108,   111,   115,   120,   115,
+     150,   151,   154,   158,   164,   165,   168,   175,   176,   180,
+     179,   191,   192,   193,   196,   204,   218,   227,   228,   229,
+     230,   231,   237,   242,   246,   252,   253,   254,   261,   260,
+     272,   278,   280,   281
 };
 #endif
 
@@ -803,7 +815,7 @@ do {									  \
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, ConfigContext *context)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, ConfigCompiler *context)
 #else
 static void
 yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp, context)
@@ -811,7 +823,7 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp, context)
     int yytype;
     YYSTYPE const * const yyvaluep;
     YYLTYPE const * const yylocationp;
-    ConfigContext *context;
+    ConfigCompiler *context;
 #endif
 {
   if (!yyvaluep)
@@ -839,7 +851,7 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp, context)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, ConfigContext *context)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, ConfigCompiler *context)
 #else
 static void
 yy_symbol_print (yyoutput, yytype, yyvaluep, yylocationp, context)
@@ -847,7 +859,7 @@ yy_symbol_print (yyoutput, yytype, yyvaluep, yylocationp, context)
     int yytype;
     YYSTYPE const * const yyvaluep;
     YYLTYPE const * const yylocationp;
-    ConfigContext *context;
+    ConfigCompiler *context;
 #endif
 {
   if (yytype < YYNTOKENS)
@@ -900,14 +912,14 @@ do {								\
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_reduce_print (YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule, ConfigContext *context)
+yy_reduce_print (YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule, ConfigCompiler *context)
 #else
 static void
 yy_reduce_print (yyvsp, yylsp, yyrule, context)
     YYSTYPE *yyvsp;
     YYLTYPE *yylsp;
     int yyrule;
-    ConfigContext *context;
+    ConfigCompiler *context;
 #endif
 {
   int yynrhs = yyr2[yyrule];
@@ -1206,7 +1218,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocationp, ConfigContext *context)
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocationp, ConfigCompiler *context)
 #else
 static void
 yydestruct (yymsg, yytype, yyvaluep, yylocationp, context)
@@ -1214,7 +1226,7 @@ yydestruct (yymsg, yytype, yyvaluep, yylocationp, context)
     int yytype;
     YYSTYPE *yyvaluep;
     YYLTYPE *yylocationp;
-    ConfigContext *context;
+    ConfigCompiler *context;
 #endif
 {
   YYUSE (yyvaluep);
@@ -1243,7 +1255,7 @@ int yyparse ();
 #endif
 #else /* ! YYPARSE_PARAM */
 #if defined __STDC__ || defined __cplusplus
-int yyparse (ConfigContext *context);
+int yyparse (ConfigCompiler *context);
 #else
 int yyparse ();
 #endif
@@ -1268,11 +1280,11 @@ yyparse (YYPARSE_PARAM)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 int
-yyparse (ConfigContext *context)
+yyparse (ConfigCompiler *context)
 #else
 int
 yyparse (context)
-    ConfigContext *context;
+    ConfigCompiler *context;
 #endif
 #endif
 {
@@ -1551,19 +1563,10 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 3:
+        case 7:
 
 /* Line 1806 of yacc.c  */
-#line 100 "config_parser.yy"
-    {
-		context->SetResult(m_Objects);
-	}
-    break;
-
-  case 7:
-
-/* Line 1806 of yacc.c  */
-#line 112 "config_parser.yy"
+#line 115 "config_parser.yy"
     {
 		m_Abstract = false;
 		m_Local = false;
@@ -1573,9 +1576,9 @@ yyreduce:
   case 8:
 
 /* Line 1806 of yacc.c  */
-#line 117 "config_parser.yy"
+#line 120 "config_parser.yy"
     {
-		m_Object = make_shared<DConfigObject>((yyvsp[(4) - (5)].text), (yyvsp[(5) - (5)].text), yylloc.first_line);
+		m_Object = make_shared<ConfigItem>((yyvsp[(4) - (5)].text), (yyvsp[(5) - (5)].text), yylloc);
 		free((yyvsp[(4) - (5)].text));
 		free((yyvsp[(5) - (5)].text));
 	}
@@ -1584,28 +1587,27 @@ yyreduce:
   case 9:
 
 /* Line 1806 of yacc.c  */
-#line 123 "config_parser.yy"
+#line 126 "config_parser.yy"
     {
 		Object::Ptr exprl_object = *(yyvsp[(8) - (8)].variant);
 		delete (yyvsp[(8) - (8)].variant);
 		ExpressionList::Ptr exprl = dynamic_pointer_cast<ExpressionList>(exprl_object);
 
-		Expression typeexpr("__type", OperatorSet, m_Object->GetType(), yylloc.first_line);
+		Expression typeexpr("__type", OperatorSet, m_Object->GetType(), yylloc);
 		exprl->AddExpression(typeexpr);
 
-		Expression nameexpr("__name", OperatorSet, m_Object->GetName(), yylloc.first_line);
+		Expression nameexpr("__name", OperatorSet, m_Object->GetName(), yylloc);
 		exprl->AddExpression(nameexpr);
 
-		Expression abstractexpr("__abstract", OperatorSet, m_Abstract ? 1 : 0, yylloc.first_line);
+		Expression abstractexpr("__abstract", OperatorSet, m_Abstract ? 1 : 0, yylloc);
 		exprl->AddExpression(abstractexpr);
 
-		Expression localexpr("__local", OperatorSet, m_Local ? 1 : 0, yylloc.first_line);
+		Expression localexpr("__local", OperatorSet, m_Local ? 1 : 0, yylloc);
 		exprl->AddExpression(localexpr);
 
 		m_Object->SetExpressionList(exprl);
 
-		DConfigObject::AddObject(m_Object);
-		m_Objects.insert(m_Object);
+		m_Objects.push_back(m_Object);
 		m_Object.reset();
 	}
     break;
@@ -1613,7 +1615,7 @@ yyreduce:
   case 12:
 
 /* Line 1806 of yacc.c  */
-#line 153 "config_parser.yy"
+#line 155 "config_parser.yy"
     {
 		m_Abstract = true;
 	}
@@ -1622,7 +1624,7 @@ yyreduce:
   case 13:
 
 /* Line 1806 of yacc.c  */
-#line 157 "config_parser.yy"
+#line 159 "config_parser.yy"
     {
 		m_Local = true;
 	}
@@ -1631,16 +1633,17 @@ yyreduce:
   case 16:
 
 /* Line 1806 of yacc.c  */
-#line 167 "config_parser.yy"
+#line 169 "config_parser.yy"
     {
 		m_Object->AddParent((yyvsp[(1) - (1)].text));
+		free((yyvsp[(1) - (1)].text));
 	}
     break;
 
   case 19:
 
 /* Line 1806 of yacc.c  */
-#line 177 "config_parser.yy"
+#line 180 "config_parser.yy"
     {
 		m_ExpressionLists.push(make_shared<ExpressionList>());
 	}
@@ -1649,7 +1652,7 @@ yyreduce:
   case 20:
 
 /* Line 1806 of yacc.c  */
-#line 182 "config_parser.yy"
+#line 185 "config_parser.yy"
     {
 		(yyval.variant) = new Variant(m_ExpressionLists.top());
 		m_ExpressionLists.pop();
@@ -1659,9 +1662,9 @@ yyreduce:
   case 24:
 
 /* Line 1806 of yacc.c  */
-#line 194 "config_parser.yy"
+#line 197 "config_parser.yy"
     {
-		Expression expr((yyvsp[(1) - (3)].text), (yyvsp[(2) - (3)].op), *(yyvsp[(3) - (3)].variant), yylloc.first_line);
+		Expression expr((yyvsp[(1) - (3)].text), (yyvsp[(2) - (3)].op), *(yyvsp[(3) - (3)].variant), yylloc);
 		free((yyvsp[(1) - (3)].text));
 		delete (yyvsp[(3) - (3)].variant);
 
@@ -1672,16 +1675,17 @@ yyreduce:
   case 25:
 
 /* Line 1806 of yacc.c  */
-#line 202 "config_parser.yy"
+#line 205 "config_parser.yy"
     {
-		Expression subexpr((yyvsp[(3) - (6)].text), (yyvsp[(5) - (6)].op), *(yyvsp[(6) - (6)].variant), yylloc.first_line);
+		Expression subexpr((yyvsp[(3) - (6)].text), (yyvsp[(5) - (6)].op), *(yyvsp[(6) - (6)].variant), yylloc);
 		free((yyvsp[(3) - (6)].text));
 		delete (yyvsp[(6) - (6)].variant);
 
 		ExpressionList::Ptr subexprl = make_shared<ExpressionList>();
 		subexprl->AddExpression(subexpr);
 
-		Expression expr((yyvsp[(1) - (6)].text), OperatorPlus, subexprl, yylloc.first_line);
+		Expression expr((yyvsp[(1) - (6)].text), OperatorPlus, subexprl, yylloc);
+		free((yyvsp[(1) - (6)].text));
 
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
@@ -1690,11 +1694,11 @@ yyreduce:
   case 26:
 
 /* Line 1806 of yacc.c  */
-#line 215 "config_parser.yy"
+#line 219 "config_parser.yy"
     {
-		Expression expr((yyvsp[(1) - (1)].text), OperatorSet, (yyvsp[(1) - (1)].text), yylloc.first_line);
+		Expression expr((yyvsp[(1) - (1)].text), OperatorSet, (yyvsp[(1) - (1)].text), yylloc);
 		free((yyvsp[(1) - (1)].text));
-		
+
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
     break;
@@ -1702,7 +1706,7 @@ yyreduce:
   case 31:
 
 /* Line 1806 of yacc.c  */
-#line 228 "config_parser.yy"
+#line 232 "config_parser.yy"
     {
 		(yyval.op) = (yyvsp[(1) - (1)].op);
 	}
@@ -1711,16 +1715,17 @@ yyreduce:
   case 32:
 
 /* Line 1806 of yacc.c  */
-#line 234 "config_parser.yy"
+#line 238 "config_parser.yy"
     {
 		(yyval.variant) = new Variant((yyvsp[(1) - (1)].text));
+		free((yyvsp[(1) - (1)].text));
 	}
     break;
 
   case 33:
 
 /* Line 1806 of yacc.c  */
-#line 238 "config_parser.yy"
+#line 243 "config_parser.yy"
     {
 		(yyval.variant) = new Variant((yyvsp[(1) - (1)].num));
 	}
@@ -1729,7 +1734,7 @@ yyreduce:
   case 34:
 
 /* Line 1806 of yacc.c  */
-#line 242 "config_parser.yy"
+#line 247 "config_parser.yy"
     {
 		(yyval.variant) = new Variant();
 	}
@@ -1738,7 +1743,7 @@ yyreduce:
   case 37:
 
 /* Line 1806 of yacc.c  */
-#line 250 "config_parser.yy"
+#line 255 "config_parser.yy"
     {
 		(yyval.variant) = (yyvsp[(1) - (1)].variant);
 	}
@@ -1747,7 +1752,7 @@ yyreduce:
   case 38:
 
 /* Line 1806 of yacc.c  */
-#line 256 "config_parser.yy"
+#line 261 "config_parser.yy"
     {
 		m_Array = make_shared<Dictionary>();
 	}
@@ -1756,7 +1761,7 @@ yyreduce:
   case 39:
 
 /* Line 1806 of yacc.c  */
-#line 261 "config_parser.yy"
+#line 266 "config_parser.yy"
     {
 		(yyval.variant) = new Variant(m_Array);
 		m_Array.reset();
@@ -1766,7 +1771,7 @@ yyreduce:
   case 40:
 
 /* Line 1806 of yacc.c  */
-#line 268 "config_parser.yy"
+#line 273 "config_parser.yy"
     {
 		m_Array->AddUnnamedProperty(*(yyvsp[(1) - (1)].variant));
 		delete (yyvsp[(1) - (1)].variant);
@@ -1776,7 +1781,7 @@ yyreduce:
 
 
 /* Line 1806 of yacc.c  */
-#line 1780 "config_parser.cc"
+#line 1785 "config_parser.cc"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2014,6 +2019,6 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 278 "config_parser.yy"
+#line 283 "config_parser.yy"
 
 

@@ -34,14 +34,16 @@ enum ExpressionOperator
 
 struct I2_DYN_API Expression
 {
-	string Key;
-	ExpressionOperator Operator;
-	Variant Value;
-	long DebugInfo;
-
-	Expression(string key, ExpressionOperator op, Variant value, long debuginfo);
+public:
+	Expression(string key, ExpressionOperator op, const Variant& value, const DebugInfo& debuginfo);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
+
+private:
+	string m_Key;
+	ExpressionOperator m_Operator;
+	Variant m_Value;
+	DebugInfo m_DebugInfo;
 };
 
 }

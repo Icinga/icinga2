@@ -26,6 +26,11 @@ DynamicObject::DynamicObject(void)
 {
 }
 
+void DynamicObject::SetConfig(Dictionary::Ptr config)
+{
+	m_Config = config;
+}
+
 Dictionary::Ptr DynamicObject::GetConfig(void) const
 {
 	return m_Config;
@@ -36,16 +41,32 @@ Dictionary::Ptr DynamicObject::GetTags(void) const
 	return m_Tags;
 }
 
+string DynamicObject::GetType(void) const
+{
+	string type;
+	GetConfig()->GetProperty("__type", &type);
+	return type;
+}
+
+string DynamicObject::GetName(void) const
+{
+	string name;
+	GetConfig()->GetProperty("__name", &name);
+	return name;
+}
+
 void DynamicObject::Commit(void)
 {
+	DynamicObject::Ptr dobj = GetObject(GetType(), GetName());
 	DynamicObject::Ptr self = static_pointer_cast<DynamicObject>(shared_from_this());
-	DynamicObject::GetAllObjects()->CheckObject(self);
+	assert(!dobj || dobj == self);
+	GetAllObjects()->CheckObject(self);
 }
 
 void DynamicObject::Unregister(void)
 {
 	DynamicObject::Ptr self = static_pointer_cast<DynamicObject>(shared_from_this());
-	DynamicObject::GetAllObjects()->RemoveObject(self);
+	GetAllObjects()->RemoveObject(self);
 }
 
 ObjectSet<DynamicObject::Ptr>::Ptr DynamicObject::GetAllObjects(void)
@@ -59,3 +80,36 @@ ObjectSet<DynamicObject::Ptr>::Ptr DynamicObject::GetAllObjects(void)
 
 	return allObjects;
 }
+
+DynamicObject::TNMap::Ptr DynamicObject::GetObjectsByTypeAndName(void)
+{
+	static DynamicObject::TNMap::Ptr tnmap;
+
+	if (!tnmap) {
+		tnmap = make_shared<DynamicObject::TNMap>(GetAllObjects(), &DynamicObject::GetTypeAndName);
+		tnmap->Start();
+	}
+
+	return tnmap;
+}
+
+DynamicObject::Ptr DynamicObject::GetObject(string type, string name)
+{
+	DynamicObject::TNMap::Range range;
+	range = GetObjectsByTypeAndName()->GetRange(make_pair(type, name));
+
+	assert(distance(range.first, range.second) <= 1);
+
+	if (range.first == range.second)
+		return DynamicObject::Ptr();
+	else
+		return range.first->second;
+}
+
+bool DynamicObject::GetTypeAndName(const DynamicObject::Ptr& object, pair<string, string> *key)
+{
+        *key = make_pair(object->GetType(), object->GetName());
+
+        return true;
+}
+

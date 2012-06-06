@@ -9,13 +9,15 @@ BUILT_SOURCES = config_parser.h
 AM_YFLAGS = -d
 
 libdyn_la_SOURCES = \
-	configcontext.cpp \
-	configcontext.h \
+	configcompiler.cpp \
+	configcompiler.h \
+	configvm.cpp \
+	configvm.h \
 	config_lexer.ll \
 	config_parser.yy \
 	i2-dyn.h \
-	dconfigobject.cpp \
-	dconfigobject.h \
+	configitem.cpp \
+	configitem.h \
 	expression.cpp \
 	expression.h \
 	expressionlist.cpp \
