@@ -23,7 +23,7 @@
 namespace icinga
 {
 
-class ConfigVM
+class I2_DYN_API ConfigVM
 {
 public:
 	static void ExecuteItems(const vector<ConfigItem::Ptr>& items);

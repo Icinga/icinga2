@@ -11,20 +11,27 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="configcontext.h" />
+    <ClInclude Include="configcompiler.h" />
+    <ClInclude Include="configitem.h" />
+    <ClInclude Include="configvm.h" />
     <ClInclude Include="config_parser.h" />
-    <ClInclude Include="dynamicdictionary.h" />
+    <ClInclude Include="debuginfo.h" />
     <ClInclude Include="dynamicobject.h" />
+    <ClInclude Include="expression.h" />
+    <ClInclude Include="expressionlist.h" />
     <ClInclude Include="i2-dyn.h" />
     <ClInclude Include="objectmap.h" />
     <ClInclude Include="objectset.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="configcontext.cpp" />
+    <ClCompile Include="configcompiler.cpp" />
+    <ClCompile Include="configitem.cpp" />
+    <ClCompile Include="configvm.cpp" />
     <ClCompile Include="config_lexer.cc" />
     <ClCompile Include="config_parser.cc" />
-    <ClCompile Include="dynamicdictionary.cpp" />
     <ClCompile Include="dynamicobject.cpp" />
+    <ClCompile Include="expression.cpp" />
+    <ClCompile Include="expressionlist.cpp" />
     <ClCompile Include="objectmap.cpp" />
     <ClCompile Include="objectset.cpp" />
   </ItemGroup>

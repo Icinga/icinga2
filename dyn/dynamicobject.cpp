@@ -36,8 +36,11 @@ Dictionary::Ptr DynamicObject::GetConfig(void) const
 	return m_Config;
 }
 
-Dictionary::Ptr DynamicObject::GetTags(void) const
+Dictionary::Ptr DynamicObject::GetTags(void)
 {
+	if (!m_Tags)
+		m_Tags = make_shared<Dictionary>();
+
 	return m_Tags;
 }
 

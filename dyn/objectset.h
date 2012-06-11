@@ -124,7 +124,7 @@ public:
 private:
 	set<TValue> m_Objects;
 
-	ObjectSet::Ptr m_Parent;
+	typename ObjectSet<TValue>::Ptr m_Parent;
 	function<bool (const TValue&)> m_Predicate;
 
 	int ObjectAddedOrCommittedHandler(const ObjectSetEventArgs<TValue>& ea)

@@ -36,7 +36,7 @@ public:
 	void SetConfig(Dictionary::Ptr config);
 	Dictionary::Ptr GetConfig(void) const;
 
-	Dictionary::Ptr GetTags(void) const;
+	Dictionary::Ptr GetTags(void);
 
 	string GetType(void) const;
 	string GetName(void) const;
