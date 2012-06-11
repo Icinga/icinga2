@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-ConfigItem::ConfigItem(string type, string name, DebugInfo debuginfo)
+ConfigItem::ConfigItem(const string& type, const string& name, const DebugInfo& debuginfo)
 	: m_Type(type), m_Name(name), m_DebugInfo(debuginfo)
 {
 }
@@ -51,7 +51,7 @@ vector<string> ConfigItem::GetParents(void) const
 	return m_Parents;
 }
 
-void ConfigItem::AddParent(string parent)
+void ConfigItem::AddParent(const string& parent)
 {
 	m_Parents.push_back(parent);
 }
@@ -140,7 +140,7 @@ void ConfigItem::Unregister(void)
 	GetAllObjects()->RemoveObject(self);
 }
 
-ConfigItem::Ptr ConfigItem::GetObject(string type, string name)
+ConfigItem::Ptr ConfigItem::GetObject(const string& type, const string& name)
 {
 	ConfigItem::TNMap::Range range;
 	range = GetObjectsByTypeAndName()->GetRange(make_pair(type, name));

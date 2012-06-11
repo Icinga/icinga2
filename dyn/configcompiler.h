@@ -32,8 +32,8 @@ public:
 	void Compile(void);
 
 	static vector<ConfigItem::Ptr> CompileStream(istream *stream);
-	static vector<ConfigItem::Ptr> CompileFile(string filename);
-	static vector<ConfigItem::Ptr> CompileText(string text);
+	static vector<ConfigItem::Ptr> CompileFile(const string& filename);
+	static vector<ConfigItem::Ptr> CompileText(const string& text);
 
 	void SetResult(vector<ConfigItem::Ptr> result);
 	vector<ConfigItem::Ptr> GetResult(void) const;

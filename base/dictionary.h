@@ -45,7 +45,7 @@ public:
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
 	template<typename T>
-	bool GetProperty(string key, T *value) const
+	bool GetProperty(const string& key, T *value) const
 	{
 		ConstDictionaryIterator i = m_Data.find(key);
 
@@ -64,7 +64,7 @@ public:
 	 * @param[out] value Pointer to the value.
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
-	bool GetProperty(string key, Dictionary::Ptr *value)
+	bool GetProperty(const string& key, Dictionary::Ptr *value)
 	{
 		Object::Ptr object;
 
@@ -85,7 +85,7 @@ public:
 	 * @param value The value.
 	 */
 	template<typename T>
-	void SetProperty(string key, const T& value)
+	void SetProperty(const string& key, const T& value)
 	{
 		pair<typename map<string, Variant>::iterator, bool> ret;
 		ret = m_Data.insert(make_pair(key, value));

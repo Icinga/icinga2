@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-Expression::Expression(string key, ExpressionOperator op, const Variant& value, const DebugInfo& debuginfo)
+Expression::Expression(const string& key, ExpressionOperator op, const Variant& value, const DebugInfo& debuginfo)
 	: m_Key(key), m_Operator(op), m_Value(value), m_DebugInfo(debuginfo)
 {
 }
@@ -29,7 +29,6 @@ Expression::Expression(string key, ExpressionOperator op, const Variant& value, 
 void Expression::Execute(const Dictionary::Ptr& dictionary) const
 {
 	Variant oldValue, newValue;
-	dictionary->GetProperty(m_Key, &oldValue);
 
 	ExpressionList::Ptr exprl;
 	if (m_Value.GetType() == VariantObject)
@@ -49,6 +48,8 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 		case OperatorPlus:
 			if (exprl) {
+				dictionary->GetProperty(m_Key, &oldValue);
+
 				Dictionary::Ptr dict;
 				if (oldValue.GetType() == VariantObject)
 					dict = dynamic_pointer_cast<Dictionary>(oldValue.GetObject());

@@ -30,13 +30,13 @@ public:
 
 	typedef ObjectMap<pair<string, string>, ConfigItem::Ptr> TNMap;
 
-	ConfigItem(string type, string name, DebugInfo debuginfo);
+	ConfigItem(const string& type, const string& name, const DebugInfo& debuginfo);
 
 	string GetType(void) const;
 	string GetName(void) const;
 
 	vector<string> GetParents(void) const;
-	void AddParent(string parent);
+	void AddParent(const string& parent);
 
 	ExpressionList::Ptr GetExpressionList(void) const;
 	void SetExpressionList(const ExpressionList::Ptr& exprl);
@@ -48,7 +48,7 @@ public:
 
 	static ObjectSet<ConfigItem::Ptr>::Ptr GetAllObjects(void);
 	static TNMap::Ptr GetObjectsByTypeAndName(void);
-	static ConfigItem::Ptr GetObject(string type, string name);
+	static ConfigItem::Ptr GetObject(const string& type, const string& name);
 
 private:
 	string m_Type;
@@ -61,7 +61,6 @@ private:
 
 	static bool GetTypeAndName(const ConfigItem::Ptr& object, pair<string, string> *key);
 };
-
 
 }
 

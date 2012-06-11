@@ -35,7 +35,7 @@ enum ExpressionOperator
 struct I2_DYN_API Expression
 {
 public:
-	Expression(string key, ExpressionOperator op, const Variant& value, const DebugInfo& debuginfo);
+	Expression(const string& key, ExpressionOperator op, const Variant& value, const DebugInfo& debuginfo);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
 

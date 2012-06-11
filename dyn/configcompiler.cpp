@@ -60,14 +60,14 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(istream *stream)
 	return ctx.GetResult();
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(string filename)
+vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& filename)
 {
 	ifstream stream;
 	stream.open(filename, ifstream::in);
 	return CompileStream(&stream);
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileText(string text)
+vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const string& text)
 {
 	stringstream stream(text);
 	return CompileStream(&stream);
