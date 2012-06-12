@@ -179,7 +179,7 @@ Dictionary::Ptr MessagePart::GetDictionary(void) const
 bool MessagePart::GetProperty(string key, MessagePart *value) const
 {
 	Object::Ptr object;
-	if (GetDictionary()->GetProperty(key, &object))
+	if (!GetDictionary()->GetProperty(key, &object))
 		return false;
 
 	Dictionary::Ptr dictionary = dynamic_pointer_cast<Dictionary>(object);

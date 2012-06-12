@@ -58,7 +58,7 @@ string Exception::GetMessage(void) const
  */
 const char *Exception::what(void) const throw()
 {
-	return GetMessage().c_str();
+	return m_Message.c_str();
 }
 
 /**
