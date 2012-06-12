@@ -52,6 +52,19 @@ int IcingaApplication::Main(const vector<string>& args)
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga2";
 	AddComponentSearchDir(componentDirectory);
 
+	/* register handler for 'component' config objects */
+	static ConfigObject::Set::Ptr componentObjects = make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("component"));
+	function<int (const ObjectSetEventArgs<ConfigObject::Ptr>&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
+	componentObjects->OnObjectAdded += NewComponentHandler;
+	componentObjects->OnObjectCommitted += NewComponentHandler;
+	componentObjects->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
+	componentObjects->Start();
+
+	/* load config file */
+	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
+	fileComponentConfig->SetProperty("configFilename", args[1]);
+	fileComponentConfig->Commit();
+
 	ConfigObject::Ptr icingaConfig = ConfigObject::GetObject("application", "icinga");
 
 	if (!icingaConfig)
@@ -65,19 +78,6 @@ int IcingaApplication::Main(const vector<string>& args)
 	icingaConfig->GetProperty("cakey", &m_CAKeyFile);
 	icingaConfig->GetProperty("node", &m_Node);
 	icingaConfig->GetProperty("service", &m_Service);
-
-	/* register handler for 'component' config objects */
-	static ConfigObject::Set::Ptr componentObjects = make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("component"));
-	function<int (const ObjectSetEventArgs<ConfigObject::Ptr>&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
-	componentObjects->OnObjectAdded += NewComponentHandler;
-	componentObjects->OnObjectCommitted += NewComponentHandler;
-	componentObjects->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
-	componentObjects->Start();
-
-	/* load config file */
-	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
-	fileComponentConfig->GetProperties()->SetProperty("configFilename", args[1]);
-	fileComponentConfig->Commit();
 
 	if (!GetPrivateKeyFile().empty() && !GetPublicKeyFile().empty() && !GetCAKeyFile().empty()) {
 		/* set up SSL context */

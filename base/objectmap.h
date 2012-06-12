@@ -44,11 +44,11 @@ public:
 	void Start(void)
 	{
 		m_Parent->OnObjectAdded += bind_weak(&ObjectMap::ObjectAddedHandler, shared_from_this());
-        	m_Parent->OnObjectCommitted += bind_weak(&ObjectMap::ObjectCommittedHandler, shared_from_this());
-	        m_Parent->OnObjectRemoved += bind_weak(&ObjectMap::ObjectRemovedHandler, shared_from_this());
+		m_Parent->OnObjectCommitted += bind_weak(&ObjectMap::ObjectCommittedHandler, shared_from_this());
+		m_Parent->OnObjectRemoved += bind_weak(&ObjectMap::ObjectRemovedHandler, shared_from_this());
 
-        	for (typename ObjectSet<TValue>::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
-	                AddObject(*it);
+		for (typename ObjectSet<TValue>::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
+			AddObject(*it);
 	}
 
 	Range GetRange(TKey key)

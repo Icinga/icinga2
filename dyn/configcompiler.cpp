@@ -63,6 +63,7 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(istream *stream)
 vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& filename)
 {
 	ifstream stream;
+	stream.exceptions(ifstream::badbit);
 	stream.open(filename, ifstream::in);
 	return CompileStream(&stream);
 }
