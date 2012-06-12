@@ -38,6 +38,15 @@ void Variant::Convert(VariantType newType) const
 		return;
 	}
 
+	if (m_Type == VariantInteger && newType == VariantString) {
+		stringstream sbuf;
+		sbuf << m_IntegerValue;
+		m_StringValue = sbuf.str();
+		m_Type = VariantString;
+
+		return;
+	}
+
 	// TODO: convert variant data
 	throw runtime_error("Invalid variant conversion.");
 }

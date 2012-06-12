@@ -128,7 +128,7 @@ int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 
 int ConfigRpcComponent::LocalObjectCommittedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
+	ConfigObject::Ptr object = ea.Target;
 	
 	if (!ShouldReplicateObject(object))
 		return 0;
@@ -141,7 +141,7 @@ int ConfigRpcComponent::LocalObjectCommittedHandler(const ObjectSetEventArgs<Con
 
 int ConfigRpcComponent::LocalObjectRemovedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
+	ConfigObject::Ptr object = ea.Target;
 	
 	if (!ShouldReplicateObject(object))
 		return 0;
