@@ -62,6 +62,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	/* load config file */
 	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
+	fileComponentConfig->SetLocal(true);
 	fileComponentConfig->SetProperty("configFilename", args[1]);
 	fileComponentConfig->Commit();
 

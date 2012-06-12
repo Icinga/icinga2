@@ -74,8 +74,8 @@ public:
 	 */
 	void operator()(const TArgs& args)
 	{
-		vector<ObserverType>::size_type i = 0;
-		for (i = 0; i < m_Observers.size(); i++) {
+		typename vector<ObserverType>::size_type i = 0;
+		for (i = 0; i < m_Observers.size(); ) {
 			int result = m_Observers[i](args);
 
 			if (result == -1)

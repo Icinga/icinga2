@@ -68,9 +68,9 @@ void ConfigObject::SetLocal(bool value)
 
 bool ConfigObject::IsLocal(void) const
 {
-	bool value;
+	bool value = false;
 	GetProperties()->GetProperty("__local", &value);
-	return (value != 0);
+	return value;
 }
 
 void ConfigObject::SetAbstract(bool value)
@@ -80,9 +80,9 @@ void ConfigObject::SetAbstract(bool value)
 
 bool ConfigObject::IsAbstract(void) const
 {
-	long value;
+	bool value = false;
 	GetProperties()->GetProperty("__abstract", &value);
-	return (value != 0);
+	return value;
 }
 
 void ConfigObject::Commit(void)
