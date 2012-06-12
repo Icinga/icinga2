@@ -11,9 +11,7 @@ configfile_la_SOURCES = \
 configfile_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
-	-I${top_srcdir}/icinga \
-	-I${top_srcdir}/jsonrpc \
-	-I${top_srcdir}/third-party/cJSON
+	-I${top_srcdir}/dyn
 
 configfile_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
@@ -24,5 +22,4 @@ configfile_la_LDFLAGS = \
 
 configfile_la_LIBADD = \
 	$(top_builddir)/base/libbase.la \
-	$(top_builddir)/icinga/libicinga.la \
-	$(top_builddir)/third-party/cJSON/libcJSON.la
+	$(top_builddir)/dyn/libdyn.la

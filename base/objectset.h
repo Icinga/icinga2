@@ -30,7 +30,7 @@ struct ObjectSetEventArgs : public EventArgs
 };
 
 template<typename TValue>
-class I2_DYN_API ObjectSet : public Object
+class ObjectSet : public Object
 {
 public:
 	typedef shared_ptr<ObjectSet<TValue> > Ptr;
@@ -119,6 +119,17 @@ public:
 	Iterator End(void)
 	{
 		return m_Objects.end();
+	}
+
+	void ForeachObject(function<int (const ObjectSetEventArgs<TValue>&)> callback)
+	{
+		ObjectSetEventArgs<TValue> ea;
+		ea.Source = shared_from_this();
+
+		for (Iterator it = Begin(); it != End(); it++) {
+			ea.Target(*it);
+			callback(ea);
+		}
 	}
 
 private:

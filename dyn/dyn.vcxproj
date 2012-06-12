@@ -16,12 +16,9 @@
     <ClInclude Include="configvm.h" />
     <ClInclude Include="config_parser.h" />
     <ClInclude Include="debuginfo.h" />
-    <ClInclude Include="dynamicobject.h" />
     <ClInclude Include="expression.h" />
     <ClInclude Include="expressionlist.h" />
     <ClInclude Include="i2-dyn.h" />
-    <ClInclude Include="objectmap.h" />
-    <ClInclude Include="objectset.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="configcompiler.cpp" />
@@ -29,11 +26,8 @@
     <ClCompile Include="configvm.cpp" />
     <ClCompile Include="config_lexer.cc" />
     <ClCompile Include="config_parser.cc" />
-    <ClCompile Include="dynamicobject.cpp" />
     <ClCompile Include="expression.cpp" />
     <ClCompile Include="expressionlist.cpp" />
-    <ClCompile Include="objectmap.cpp" />
-    <ClCompile Include="objectset.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="config_lexer.ll">

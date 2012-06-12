@@ -20,46 +20,82 @@
 #ifndef CONFIGOBJECT_H
 #define CONFIGOBJECT_H
 
-#include <map>
-
 namespace icinga
 {
 
-class ConfigHive;
-
-/**
- * A configuration object that has arbitrary properties.
- *
- * @ingroup base
- */
-class I2_BASE_API ConfigObject : public Dictionary
+class I2_BASE_API ConfigObject : public Object
 {
 public:
 	typedef shared_ptr<ConfigObject> Ptr;
 	typedef weak_ptr<ConfigObject> WeakPtr;
 
-	ConfigObject(const string& type, const string& name);
+	typedef ObjectMap<pair<string, string>, ConfigObject::Ptr> TNMap;
+	typedef ObjectMap<string, ConfigObject::Ptr> TMap;
+	typedef ObjectSet<ConfigObject::Ptr> Set;
 
-	void SetHive(const weak_ptr<ConfigHive>& hive);
-	weak_ptr<ConfigHive> GetHive(void) const;
+	ConfigObject(Dictionary::Ptr properties);
+	ConfigObject(string type, string name);
 
-	void SetName(const string& name);
+	void SetProperties(Dictionary::Ptr config);
+	Dictionary::Ptr GetProperties(void) const;
+
+	template<typename T>
+	void SetProperty(const string& key, const T& value)
+	{
+		GetProperties()->SetProperty(key, value);
+	}
+
+	template<typename T>
+	bool GetProperty(const string& key, T *value) const
+	{
+		return GetProperties()->GetProperty(key, value);
+	}
+
+	Dictionary::Ptr GetTags(void) const;
+
+	template<typename T>
+	void SetTag(const string& key, const T& value)
+	{
+		GetTags()->SetProperty(key, value);
+	}
+
+	template<typename T>
+	bool GetTag(const string& key, T *value) const
+	{
+		return GetTags()->GetProperty(key, value);
+	}
+
+	string GetType(void) const;
 	string GetName(void) const;
 
-	void SetType(const string& type);
-	string GetType(void) const;
+	void SetLocal(bool value);
+	bool IsLocal(void) const;
 
-	void SetReplicated(bool replicated);
-	bool IsReplicated(void) const;
+	void SetAbstract(bool value);
+	bool IsAbstract(void) const;
 
 	void Commit(void);
+	void Unregister(void);
+
+	static ObjectSet<ConfigObject::Ptr>::Ptr GetAllObjects(void);
+
+	static TNMap::Ptr GetObjectsByTypeAndName(void);
+	static TMap::Ptr GetObjectsByType(void);
+
+	static ConfigObject::Ptr GetObject(string type, string name);
+	
+	static TMap::Range GetObjects(string type);
+
+	static function<bool (ConfigObject::Ptr)> MakeTypePredicate(string type);
 
 private:
-	weak_ptr<ConfigHive> m_Hive;
+	Dictionary::Ptr m_Properties;
+	Dictionary::Ptr m_Tags;
 
-	string m_Name;
-	string m_Type;
-	bool m_Replicated;
+	static bool TypeAndNameGetter(const ConfigObject::Ptr& object, pair<string, string> *key);
+   	static bool TypePredicate(const ConfigObject::Ptr& object, string type);
+
+	static bool TypeGetter(const ConfigObject::Ptr& object, string *key);
 };
 
 }

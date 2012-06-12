@@ -52,25 +52,32 @@ int IcingaApplication::Main(const vector<string>& args)
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga2";
 	AddComponentSearchDir(componentDirectory);
 
-	/* register handler for 'icinga' config objects */
-	ConfigCollection::Ptr icingaCollection = GetConfigHive()->GetCollection("icinga");
-	function<int (const EventArgs&)> NewIcingaConfigHandler = bind_weak(&IcingaApplication::NewIcingaConfigHandler, shared_from_this());
-	icingaCollection->OnObjectCommitted += NewIcingaConfigHandler;
-	icingaCollection->ForEachObject(NewIcingaConfigHandler);
-	icingaCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedIcingaConfigHandler, shared_from_this());
+	ConfigObject::Ptr icingaConfig = ConfigObject::GetObject("application", "icinga");
+
+	if (!icingaConfig)
+		throw runtime_error("Configuration must contain an 'application' object named 'icinga'.");
+
+	if (!icingaConfig->IsLocal())
+		throw runtime_error("'icinga' application object must be 'local'.");
+
+	icingaConfig->GetProperty("privkey", &m_PrivateKeyFile);
+	icingaConfig->GetProperty("pubkey", &m_PublicKeyFile);
+	icingaConfig->GetProperty("cakey", &m_CAKeyFile);
+	icingaConfig->GetProperty("node", &m_Node);
+	icingaConfig->GetProperty("service", &m_Service);
 
 	/* register handler for 'component' config objects */
-	ConfigCollection::Ptr componentCollection = GetConfigHive()->GetCollection("component");
-	function<int (const EventArgs&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
-	componentCollection->OnObjectCommitted += NewComponentHandler;
-	componentCollection->ForEachObject(NewComponentHandler);
-	componentCollection->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
+	static ConfigObject::Set::Ptr componentObjects = make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("component"));
+	function<int (const ObjectSetEventArgs<ConfigObject::Ptr>&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
+	componentObjects->OnObjectAdded += NewComponentHandler;
+	componentObjects->OnObjectCommitted += NewComponentHandler;
+	componentObjects->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
+	componentObjects->Start();
 
 	/* load config file */
 	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
-	fileComponentConfig->SetProperty("configFilename", args[1]);
-	fileComponentConfig->SetProperty("replicate", 0);
-	GetConfigHive()->AddObject(fileComponentConfig);
+	fileComponentConfig->GetProperties()->SetProperty("configFilename", args[1]);
+	fileComponentConfig->Commit();
 
 	if (!GetPrivateKeyFile().empty() && !GetPublicKeyFile().empty() && !GetCAKeyFile().empty()) {
 		/* set up SSL context */
@@ -103,12 +110,12 @@ EndpointManager::Ptr IcingaApplication::GetEndpointManager(void)
 	return m_EndpointManager;
 }
 
-int IcingaApplication::NewComponentHandler(const EventArgs& ea)
+int IcingaApplication::NewComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
+	ConfigObject::Ptr object = ea.Target;
 	
 	/* don't allow replicated config objects */
-	if (object->IsReplicated())
+	if (!object->IsLocal())
 		return 0;
 
 	string path;
@@ -125,9 +132,9 @@ int IcingaApplication::NewComponentHandler(const EventArgs& ea)
 	return 0;
 }
 
-int IcingaApplication::DeletedComponentHandler(const EventArgs& ea)
+int IcingaApplication::DeletedComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
+	ConfigObject::Ptr object = ea.Target;
 
 	Component::Ptr component = GetComponent(object->GetName());
 	UnregisterComponent(component);
@@ -135,55 +142,9 @@ int IcingaApplication::DeletedComponentHandler(const EventArgs& ea)
 	return 0;
 }
 
-int IcingaApplication::NewIcingaConfigHandler(const EventArgs& ea)
-{
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
-	
-	/* don't allow replicated config objects */
-	if (object->IsReplicated())
-		return 0;
-
-	string privkey;
-	if (object->GetProperty("privkey", &privkey))
-		SetPrivateKeyFile(privkey);
-
-	string pubkey;
-	if (object->GetProperty("pubkey", &pubkey))
-		SetPublicKeyFile(pubkey);
-
-	string cakey;
-	if (object->GetProperty("cakey", &cakey))
-		SetCAKeyFile(cakey);
-
-	string node;
-	if (object->GetProperty("node", &node))
-		SetNode(node);
-
-	string service;
-	if (object->GetProperty("service", &service))
-		SetService(service);
-
-	return 0;
-}
-
-int IcingaApplication::DeletedIcingaConfigHandler(const EventArgs&)
-{
-	throw runtime_error("Unsupported operation.");
-}
-
-void IcingaApplication::SetPrivateKeyFile(string privkey)
-{
-	m_PrivateKeyFile = privkey;
-}
-
 string IcingaApplication::GetPrivateKeyFile(void) const
 {
 	return m_PrivateKeyFile;
-}
-
-void IcingaApplication::SetPublicKeyFile(string pubkey)
-{
-	m_PublicKeyFile = pubkey;
 }
 
 string IcingaApplication::GetPublicKeyFile(void) const
@@ -191,29 +152,14 @@ string IcingaApplication::GetPublicKeyFile(void) const
 	return m_PublicKeyFile;
 }
 
-void IcingaApplication::SetCAKeyFile(string cakey)
-{
-	m_CAKeyFile = cakey;
-}
-
 string IcingaApplication::GetCAKeyFile(void) const
 {
 	return m_CAKeyFile;
 }
 
-void IcingaApplication::SetNode(string node)
-{
-	m_Node = node;
-}
-
 string IcingaApplication::GetNode(void) const
 {
 	return m_Node;
-}
-
-void IcingaApplication::SetService(string service)
-{
-	m_Service = service;
 }
 
 string IcingaApplication::GetService(void) const

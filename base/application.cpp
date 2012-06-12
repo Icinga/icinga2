@@ -49,8 +49,6 @@ Application::Application(void)
 	if (IsDebuggerPresent())
 		m_Debugging = true;
 #endif /* _WIN32 */
-
-	m_ConfigHive = make_shared<ConfigHive>();
 }
 
 /**
@@ -195,16 +193,6 @@ void Application::RunEventLoop(void)
 void Application::Shutdown(void)
 {
 	m_ShuttingDown = true;
-}
-
-/**
- * Returns the application's configuration hive.
- *
- * @returns The config hive.
- */
-ConfigHive::Ptr Application::GetConfigHive(void) const
-{
-	return m_ConfigHive;
 }
 
 /**

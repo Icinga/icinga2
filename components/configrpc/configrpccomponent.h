@@ -28,14 +28,19 @@ namespace icinga
  */
 class ConfigRpcComponent : public IcingaComponent
 {
+public:
+	virtual string GetName(void) const;
+	virtual void Start(void);
+	virtual void Stop(void);
+
 private:
 	VirtualEndpoint::Ptr m_ConfigRpcEndpoint;
 
 	int NewEndpointHandler(const NewEndpointEventArgs& ea);
 	int SessionEstablishedHandler(const EventArgs& ea);
 
-	int LocalObjectCommittedHandler(const EventArgs& ea);
-	int LocalObjectRemovedHandler(const EventArgs& ea);
+	int LocalObjectCommittedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
+	int LocalObjectRemovedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
 
 	int FetchObjectsHandler(const NewRequestEventArgs& ea);
 	int RemoteObjectCommittedHandler(const NewRequestEventArgs& ea);
@@ -45,10 +50,6 @@ private:
 	    string method, bool includeProperties);
 
 	static bool ShouldReplicateObject(const ConfigObject::Ptr& object);
-public:
-	virtual string GetName(void) const;
-	virtual void Start(void);
-	virtual void Stop(void);
 };
 
 }

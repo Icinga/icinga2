@@ -28,7 +28,7 @@
  */
 
 #include <i2-base.h>
-#include <i2-icinga.h>
+#include <i2-dyn.h>
 
 #include "configfilecomponent.h"
 

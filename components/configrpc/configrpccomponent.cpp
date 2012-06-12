@@ -29,7 +29,6 @@ string ConfigRpcComponent::GetName(void) const
 void ConfigRpcComponent::Start(void)
 {
 	EndpointManager::Ptr endpointManager = GetEndpointManager();
-	ConfigHive::Ptr configHive = GetConfigHive();
 
 	m_ConfigRpcEndpoint = make_shared<VirtualEndpoint>();
 
@@ -38,8 +37,9 @@ void ConfigRpcComponent::Start(void)
 		m_ConfigRpcEndpoint->RegisterTopicHandler("config::FetchObjects",
 		    bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
 
-		configHive->OnObjectCommitted += bind_weak(&ConfigRpcComponent::LocalObjectCommittedHandler, shared_from_this());
-		configHive->OnObjectRemoved += bind_weak(&ConfigRpcComponent::LocalObjectRemovedHandler, shared_from_this());
+		ConfigObject::GetAllObjects()->OnObjectAdded += bind_weak(&ConfigRpcComponent::LocalObjectCommittedHandler, shared_from_this());
+		ConfigObject::GetAllObjects()->OnObjectCommitted += bind_weak(&ConfigRpcComponent::LocalObjectCommittedHandler, shared_from_this());
+		ConfigObject::GetAllObjects()->OnObjectRemoved += bind_weak(&ConfigRpcComponent::LocalObjectRemovedHandler, shared_from_this());
 
 		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectCommitted");
 		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectRemoved");
@@ -110,27 +110,23 @@ bool ConfigRpcComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
 int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 {
 	Endpoint::Ptr client = ea.Sender;
-	ConfigHive::Ptr configHive = GetConfigHive();
+	ConfigObject::Set::Ptr allObjects = ConfigObject::GetAllObjects();
 
-	for (ConfigHive::CollectionIterator ci = configHive->Collections.begin(); ci != configHive->Collections.end(); ci++) {
-		ConfigCollection::Ptr collection = ci->second;
+	for (ConfigObject::Set::Iterator ci = allObjects->Begin(); ci != allObjects->End(); ci++) {
+		ConfigObject::Ptr object = *ci;
 
-		for (ConfigCollection::ObjectIterator oi = collection->Objects.begin(); oi != collection->Objects.end(); oi++) {
-			ConfigObject::Ptr object = oi->second;
+		if (!ShouldReplicateObject(object))
+			continue;
 
-			if (!ShouldReplicateObject(object))
-				continue;
+		RequestMessage request = MakeObjectMessage(object, "config::ObjectCreated", true);
 
-			RequestMessage request = MakeObjectMessage(object, "config::ObjectCreated", true);
-
-			GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, client, request);
-		}
+		GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, client, request);
 	}
 
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectCommittedHandler(const EventArgs& ea)
+int ConfigRpcComponent::LocalObjectCommittedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
@@ -143,7 +139,7 @@ int ConfigRpcComponent::LocalObjectCommittedHandler(const EventArgs& ea)
 	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
+int ConfigRpcComponent::LocalObjectRemovedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
 	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
 	
@@ -159,7 +155,6 @@ int ConfigRpcComponent::LocalObjectRemovedHandler(const EventArgs& ea)
 int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& ea)
 {
 	RequestMessage message = ea.Request;
-	bool was_null = false;
 
 	MessagePart params;
 	if (!message.GetParams(&params))
@@ -173,26 +168,18 @@ int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& 
 	if (!params.GetProperty("type", &type))
 		return 0;
 
-	ConfigHive::Ptr configHive = GetConfigHive();
-	ConfigObject::Ptr object = configHive->GetObject(type, name);
-
-	if (!object) {
-		was_null = true;
-		object = make_shared<ConfigObject>(type, name);
-	}
-
 	MessagePart properties;
 	if (!params.GetProperty("properties", &properties))
 		return 0;
 
-	for (DictionaryIterator i = properties.Begin(); i != properties.End(); i++) {
-		object->SetProperty(i->first, i->second);
-	}
+	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);
 
-	if (was_null) {
-		object->SetReplicated(true);
-		configHive->AddObject(object);
-	}
+	if (!object)
+		object = make_shared<ConfigObject>(properties.GetDictionary());
+	else
+		object->SetProperties(properties.GetDictionary());
+
+	object->Commit();
 
 	return 0;
 }
@@ -213,14 +200,13 @@ int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea
 	if (!params.GetProperty("type", &type))
 		return 0;
 
-	ConfigHive::Ptr configHive = GetConfigHive();
-	ConfigObject::Ptr object = configHive->GetObject(type, name);
+	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);
 
 	if (!object)
 		return 0;
 
-	if (object->IsReplicated())
-		configHive->RemoveObject(object);
+	if (!object->IsLocal())
+		object->Unregister();
 
 	return 0;
 }

@@ -21,114 +21,157 @@
 
 using namespace icinga;
 
-/**
- * Constructor for the ConfigObject class.
- *
- * @param type The type of the object.
- * @param name The name of the object.
- */
-ConfigObject::ConfigObject(const string& type, const string& name)
+ConfigObject::ConfigObject(Dictionary::Ptr properties)
+	: m_Properties(properties), m_Tags(make_shared<Dictionary>())
+{ }
+
+ConfigObject::ConfigObject(string type, string name)
+	: m_Properties(make_shared<Dictionary>()), m_Tags(make_shared<Dictionary>())
 {
-	m_Type = type;
-	m_Name = name;
-	m_Replicated = false;
+	SetProperty("__type", type);
+	SetProperty("__name", name);
 }
 
-/**
- * Sets the hive this object belongs to.
- *
- * @param hive The hive.
- */
-void ConfigObject::SetHive(const ConfigHive::WeakPtr& hive)
+void ConfigObject::SetProperties(Dictionary::Ptr properties)
 {
-	if (m_Hive.lock())
-		throw logic_error("Config object already has a parent hive.");
-
-	m_Hive = hive;
+	m_Properties = properties;
 }
 
-/**
- * Retrieves the hive this object belongs to.
- *
- * @returns The hive.
- */
-ConfigHive::WeakPtr ConfigObject::GetHive(void) const
+Dictionary::Ptr ConfigObject::GetProperties(void) const
 {
-	return m_Hive;
+	return m_Properties;
 }
 
-/**
- * Sets the name of this object.
- *
- * @param name The name.
- */
-void ConfigObject::SetName(const string& name)
+Dictionary::Ptr ConfigObject::GetTags(void) const
 {
-	m_Name = name;
+	return m_Tags;
 }
 
-/**
- * Retrieves the name of this object.
- *
- * @returns The name.
- */
-string ConfigObject::GetName(void) const
-{
-	return m_Name;
-}
-
-/**
- * Sets the type of this object.
- *
- * @param type The type.
- */
-void ConfigObject::SetType(const string& type)
-{
-	m_Type = type;
-}
-
-/**
- * Retrieves the type of this object.
- *
- * @returns The type.
- */
 string ConfigObject::GetType(void) const
 {
-	return m_Type;
+	string type;
+	GetProperties()->GetProperty("__type", &type);
+	return type;
 }
 
-/**
- * Sets whether this object was replicated.
- *
- * @param replicated Whether this object was replicated.
- */
-void ConfigObject::SetReplicated(bool replicated)
+string ConfigObject::GetName(void) const
 {
-	m_Replicated = replicated;
+	string name;
+	GetProperties()->GetProperty("__name", &name);
+	return name;
 }
 
-/**
- * Retrieves whether this object was replicated.
- *
- * @returns Whether this object was replicated.
- */
-bool ConfigObject::IsReplicated(void) const
+void ConfigObject::SetLocal(bool value)
 {
-	return m_Replicated;
+	GetProperties()->SetProperty("__local", value ? 1 : 0);
 }
 
-/**
- * Handles changed properties by propagating them to the hive
- * and collection this object is contained in.
- *
- */
+bool ConfigObject::IsLocal(void) const
+{
+	bool value;
+	GetProperties()->GetProperty("__local", &value);
+	return (value != 0);
+}
+
+void ConfigObject::SetAbstract(bool value)
+{
+	GetProperties()->SetProperty("__abstract", value ? 1 : 0);
+}
+
+bool ConfigObject::IsAbstract(void) const
+{
+	long value;
+	GetProperties()->GetProperty("__abstract", &value);
+	return (value != 0);
+}
+
 void ConfigObject::Commit(void)
 {
-	ConfigHive::Ptr hive = m_Hive.lock();
-	if (hive) {
-		EventArgs ea;
-		ea.Source = shared_from_this();
-		hive->GetCollection(m_Type)->OnObjectCommitted(ea);
-		hive->OnObjectCommitted(ea);
+	ConfigObject::Ptr dobj = GetObject(GetType(), GetName());
+	ConfigObject::Ptr self = static_pointer_cast<ConfigObject>(shared_from_this());
+	assert(!dobj || dobj == self);
+	GetAllObjects()->CheckObject(self);
+}
+
+void ConfigObject::Unregister(void)
+{
+	ConfigObject::Ptr self = static_pointer_cast<ConfigObject>(shared_from_this());
+	GetAllObjects()->RemoveObject(self);
+}
+
+ObjectSet<ConfigObject::Ptr>::Ptr ConfigObject::GetAllObjects(void)
+{
+	static ObjectSet<ConfigObject::Ptr>::Ptr allObjects;
+
+	if (!allObjects) {
+		allObjects = make_shared<ObjectSet<ConfigObject::Ptr> >();
+		allObjects->Start();
 	}
+
+	return allObjects;
+}
+
+ConfigObject::TNMap::Ptr ConfigObject::GetObjectsByTypeAndName(void)
+{
+	static ConfigObject::TNMap::Ptr tnmap;
+
+	if (!tnmap) {
+		tnmap = make_shared<ConfigObject::TNMap>(GetAllObjects(), &ConfigObject::TypeAndNameGetter);
+		tnmap->Start();
+	}
+
+	return tnmap;
+}
+
+ConfigObject::Ptr ConfigObject::GetObject(string type, string name)
+{
+	ConfigObject::TNMap::Range range;
+	range = GetObjectsByTypeAndName()->GetRange(make_pair(type, name));
+
+	assert(distance(range.first, range.second) <= 1);
+
+	if (range.first == range.second)
+		return ConfigObject::Ptr();
+	else
+		return range.first->second;
+}
+
+bool ConfigObject::TypeAndNameGetter(const ConfigObject::Ptr& object, pair<string, string> *key)
+{
+        *key = make_pair(object->GetType(), object->GetName());
+
+        return true;
+}
+
+function<bool (ConfigObject::Ptr)> ConfigObject::MakeTypePredicate(string type)
+{
+	return bind(&ConfigObject::TypePredicate, _1, type);
+}
+
+bool ConfigObject::TypePredicate(const ConfigObject::Ptr& object, string type)
+{
+	return (object->GetType() == type);
+}
+
+ConfigObject::TMap::Ptr ConfigObject::GetObjectsByType(void)
+{
+	static ObjectMap<string, ConfigObject::Ptr>::Ptr tmap;
+
+	if (!tmap) {
+		tmap = make_shared<ConfigObject::TMap>(GetAllObjects(), &ConfigObject::TypeGetter);
+		tmap->Start();
+	}
+
+	return tmap;
+}
+
+bool ConfigObject::TypeGetter(const ConfigObject::Ptr& object, string *key)
+{
+	*key = object->GetType();
+	return true;
+}
+
+ConfigObject::TMap::Range ConfigObject::GetObjects(string type)
+{
+	return GetObjectsByType()->GetRange(type);
 }

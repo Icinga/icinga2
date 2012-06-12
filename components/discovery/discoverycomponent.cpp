@@ -348,14 +348,10 @@ bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string mess
 	if (!roles)
 		return false;
 
-	ConfigHive::Ptr configHive = GetConfigHive();
-	ConfigCollection::Ptr roleCollection = configHive->GetCollection("role");
+	ConfigObject::TMap::Range range = ConfigObject::GetObjects("role");
 
-	for (DictionaryIterator ip = roles->Begin(); ip != roles->End(); ip++) {
-		ConfigObject::Ptr role = roleCollection->GetObject(ip->second);
-
-		if (!role)
-			continue;
+	for (ConfigObject::TMap::Iterator ip = range.first; ip != range.second; ip++) {
+		ConfigObject::Ptr role = ip->second;
 
 		Object::Ptr object;
 		if (!role->GetProperty(messageType, &object))
@@ -395,10 +391,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	message.GetNode(&info->Node);
 	message.GetService(&info->Service);
 
-	ConfigHive::Ptr configHive = GetConfigHive();
-	ConfigCollection::Ptr endpointCollection = configHive->GetCollection("endpoint");
-
-	ConfigObject::Ptr endpointConfig = endpointCollection->GetObject(identity);
+	ConfigObject::Ptr endpointConfig = ConfigObject::GetObject("endpoint", identity);
 	Dictionary::Ptr roles;
 	if (endpointConfig) {
 		Object::Ptr object;
@@ -486,31 +479,6 @@ int DiscoveryComponent::RegisterComponentMessageHandler(const NewRequestEventArg
 }
 
 /**
- * Processes "endpoint" config objects.
- *
- * @param ea Event arguments for the new config object.
- * @returns 0
- */
-int DiscoveryComponent::EndpointConfigHandler(const EventArgs& ea)
-{
-	ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(ea.Source);
-
-	EndpointManager::Ptr endpointManager = GetEndpointManager();
-
-	/* Check if we're already connected to this endpoint. */
-	if (endpointManager->GetEndpointByIdentity(object->GetName()))
-		return 0;
-
-	string node, service;
-	if (object->GetProperty("node", &node) && object->GetProperty("service", &service)) {
-		/* reconnect to this endpoint */
-		endpointManager->AddConnection(node, service);
-	}
-
-	return 0;
-}
-
-/**
  * Checks whether we have to reconnect to other components and removes stale
  * components from the registry.
  *
@@ -525,8 +493,21 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 	time(&now);
 
 	/* check whether we have to reconnect to one of our upstream endpoints */
-	ConfigCollection::Ptr endpointCollection = GetConfigHive()->GetCollection("endpoint");
-	endpointCollection->ForEachObject(bind(&DiscoveryComponent::EndpointConfigHandler, this, _1));
+	ConfigObject::TMap::Range range = ConfigObject::GetObjects("endpoint");
+
+	for (ConfigObject::TMap::Iterator it = range.first; it != range.second; it++) {
+		ConfigObject::Ptr object = it->second;
+
+		/* Check if we're already connected to this endpoint. */
+		if (endpointManager->GetEndpointByIdentity(object->GetName()))
+			continue;
+
+		string node, service;
+		if (object->GetProperty("node", &node) && object->GetProperty("service", &service)) {
+			/* reconnect to this endpoint */
+			endpointManager->AddConnection(node, service);
+		}
+	}
 
 	map<string, ComponentDiscoveryInfo::Ptr>::iterator curr, i;
 	for (i = m_Components.begin(); i != m_Components.end(); ) {

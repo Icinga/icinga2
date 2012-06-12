@@ -21,13 +21,7 @@ libdyn_la_SOURCES = \
 	expression.cpp \
 	expression.h \
 	expressionlist.cpp \
-	expressionlist.h \
-	dynamicobject.cpp \
-	dynamicobject.h \
-	objectset.cpp \
-	objectset.h \
-	objectmap.cpp \
-	objectmap.h
+	expressionlist.h
 
 libdyn_la_CPPFLAGS = \
 	-DI2_DYN_BUILD \

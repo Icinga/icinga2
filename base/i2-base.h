@@ -154,9 +154,9 @@ using namespace std::tr1::placeholders;
 #include "tcpclient.h"
 #include "tcpserver.h"
 #include "tlsclient.h"
+#include "objectset.h"
+#include "objectmap.h"
 #include "configobject.h"
-#include "configcollection.h"
-#include "confighive.h"
 #include "application.h"
 #include "component.h"
 

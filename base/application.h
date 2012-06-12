@@ -47,8 +47,6 @@ public:
 
 	static void Log(string message);
 
-	ConfigHive::Ptr GetConfigHive(void) const;
-
 	shared_ptr<Component> LoadComponent(const string& path,
 	    const ConfigObject::Ptr& componentConfig);
 	void RegisterComponent(shared_ptr<Component> component);
@@ -67,7 +65,6 @@ private:
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */
-	ConfigHive::Ptr m_ConfigHive; /**< The application's configuration. */
 	map< string, shared_ptr<Component> > m_Components; /**< Components that
 					were loaded by the application. */
 	vector<string> m_Arguments; /**< Command-line arguments */

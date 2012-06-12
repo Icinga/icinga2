@@ -17,46 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGCOLLECTION_H
-#define CONFIGCOLLECTION_H
+#include "i2-base.h"
 
-namespace icinga
-{
+using namespace icinga;
 
-class ConfigHive;
-
-/**
- * A collection of configuration objects that each have the same type.
- *
- * @ingroup base
- */
-class I2_BASE_API ConfigCollection : public Object
-{
-public:
-	typedef shared_ptr<ConfigCollection> Ptr;
-	typedef weak_ptr<ConfigCollection> WeakPtr;
-
-	typedef map<string, ConfigObject::Ptr>::iterator ObjectIterator;
-	typedef map<string, ConfigObject::Ptr>::const_iterator ObjectConstIterator;
-	map<string, ConfigObject::Ptr> Objects;
-
-	void SetHive(const weak_ptr<ConfigHive>& hive);
-	weak_ptr<ConfigHive> GetHive(void) const;
-
-	void AddObject(const ConfigObject::Ptr& object);
-	void RemoveObject(const ConfigObject::Ptr& object);
-	ConfigObject::Ptr GetObject(const string& name = string()) const;
-
-	void ForEachObject(function<int (const EventArgs&)> callback);
-
-	Observable<EventArgs> OnObjectCommitted;
-	Observable<EventArgs> OnObjectRemoved;
-
-private:
-	weak_ptr<ConfigHive> m_Hive;
-
-};
-
-}
-
-#endif /* CONFIGCOLLECTION_H */

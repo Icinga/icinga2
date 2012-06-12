@@ -24,7 +24,7 @@ namespace icinga
 {
 
 template<typename TKey = string, typename TValue = Object::Ptr>
-class I2_DYN_API ObjectMap : public Object
+class ObjectMap : public Object
 {
 public:
 	typedef shared_ptr<ObjectMap<TKey, TValue> > Ptr;
@@ -54,6 +54,19 @@ public:
 	Range GetRange(TKey key)
 	{
 		return m_Objects.equal_range(key);
+	}
+
+	void ForeachObject(TKey key, function<int (const ObjectSetEventArgs<TValue>&)> callback)
+	{
+		ObjectSetEventArgs<TValue> ea;
+		ea.Source = shared_from_this();
+
+		Range range = GetRange(key);
+
+		for (Iterator it = range.first; it != range.second; it++) {
+			ea.Target(*it);
+			callback(ea);
+		}
 	}
 
 private:

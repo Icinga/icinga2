@@ -1,5 +1,5 @@
 #include <i2-dyn.h>
-#include <i2-jsonrpc.h>
+//#include <i2-jsonrpc.h>
 
 using namespace icinga;
 

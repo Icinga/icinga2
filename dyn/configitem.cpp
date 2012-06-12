@@ -107,26 +107,27 @@ ConfigItem::TNMap::Ptr ConfigItem::GetObjectsByTypeAndName(void)
 
 void ConfigItem::Commit(void)
 {
-	DynamicObject::Ptr dobj = m_DynamicObject.lock();
-
-	if (!dobj) {
-		dobj = DynamicObject::GetObject(GetType(), GetName());
-
-		if (!dobj)
-			dobj = make_shared<DynamicObject>();
-
-		m_DynamicObject = dobj;
-	}
+	ConfigObject::Ptr dobj = m_ConfigObject.lock();
 
 	Dictionary::Ptr properties = make_shared<Dictionary>();
 	CalculateProperties(properties);
-	dobj->SetConfig(properties);
+
+	if (!dobj)
+		dobj = ConfigObject::GetObject(GetType(), GetName());
+
+	if (!dobj)
+		dobj = make_shared<ConfigObject>(properties);
+	else
+		dobj->SetProperties(properties);
+
+	m_ConfigObject = dobj;
+
 	dobj->Commit();
 
 	ConfigItem::Ptr ci = GetObject(GetType(), GetName());
 	ConfigItem::Ptr self = static_pointer_cast<ConfigItem>(shared_from_this());
 	if (ci && ci != self) {
-		ci->m_DynamicObject.reset();
+		ci->m_ConfigObject.reset();
 		GetAllObjects()->RemoveObject(ci);
 	}
 	GetAllObjects()->CheckObject(self);
@@ -134,7 +135,7 @@ void ConfigItem::Commit(void)
 
 void ConfigItem::Unregister(void)
 {
-	// TODO: unregister associated DynamicObject
+	// TODO: unregister associated ConfigObject
 
 	ConfigItem::Ptr self = static_pointer_cast<ConfigItem>(shared_from_this());
 	GetAllObjects()->RemoveObject(self);

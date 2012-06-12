@@ -33,7 +33,7 @@ DEFINE_EXCEPTION_CLASS(ConfigParserException);
 /**
  * @ingroup configfile
  */
-class ConfigFileComponent : public IcingaComponent
+class ConfigFileComponent : public Component
 {
 public:
 	typedef shared_ptr<ConfigFileComponent> Ptr;

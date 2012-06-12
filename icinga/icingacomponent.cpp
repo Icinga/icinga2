@@ -36,13 +36,3 @@ EndpointManager::Ptr IcingaComponent::GetEndpointManager(void) const
 
 	return app->GetEndpointManager();
 }
-
-ConfigHive::Ptr IcingaComponent::GetConfigHive(void) const
-{
-	IcingaApplication::Ptr app = GetIcingaApplication();
-
-	if (!app)
-		return ConfigHive::Ptr();
-
-	return app->GetConfigHive();
-}

@@ -57,7 +57,7 @@ private:
 	vector<string> m_Parents;
 	ExpressionList::Ptr m_ExpressionList;
 
-	DynamicObject::WeakPtr m_DynamicObject;
+	ConfigObject::WeakPtr m_ConfigObject;
 
 	static bool GetTypeAndName(const ConfigItem::Ptr& object, pair<string, string> *key);
 };

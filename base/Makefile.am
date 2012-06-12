@@ -9,10 +9,6 @@ libbase_la_SOURCES =  \
 	application.h \
 	component.cpp \
 	component.h \
-	configcollection.cpp \
-	configcollection.h \
-	confighive.cpp \
-	confighive.h \
 	configobject.cpp \
 	configobject.h \
 	cxx11-compat.h \
@@ -27,6 +23,10 @@ libbase_la_SOURCES =  \
 	i2-base.h \
 	object.cpp \
 	object.h \
+	objectset.cpp \
+	objectset.h \
+	objectmap.cpp \
+	objectmap.h \
 	socket.cpp \
 	socket.h \
 	tcpclient.cpp \

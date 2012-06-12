@@ -76,8 +76,6 @@ private:
 
 	void FinishDiscoverySetup(Endpoint::Ptr endpoint);
 
-	int EndpointConfigHandler(const EventArgs& ea);
-
 	bool HasMessagePermission(Dictionary::Ptr roles, string messageType, string message);
 
 	static const int RegistrationTTL = 300;
