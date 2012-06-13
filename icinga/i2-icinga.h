@@ -44,4 +44,12 @@
 #include "icingaapplication.h"
 #include "icingacomponent.h"
 
+#include "configobjectadapter.h"
+#include "host.h"
+#include "service.h"
+
+#include "macroprocessor.h"
+#include "checktask.h"
+#include "nagioschecktask.h"
+
 #endif /* I2ICINGA_H */

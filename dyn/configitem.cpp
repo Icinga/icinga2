@@ -122,7 +122,10 @@ void ConfigItem::Commit(void)
 
 	m_ConfigObject = dobj;
 
-	dobj->Commit();
+	if (dobj->IsAbstract())
+		dobj->Unregister();
+	else
+		dobj->Commit();
 
 	ConfigItem::Ptr ci = GetObject(GetType(), GetName());
 	ConfigItem::Ptr self = static_pointer_cast<ConfigItem>(shared_from_this());

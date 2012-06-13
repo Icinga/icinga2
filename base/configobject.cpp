@@ -21,12 +21,14 @@
 
 using namespace icinga;
 
-ConfigObject::ConfigObject(Dictionary::Ptr properties)
-	: m_Properties(properties), m_Tags(make_shared<Dictionary>())
+ConfigObject::ConfigObject(Dictionary::Ptr properties, const ConfigObject::Set::Ptr& container)
+	: m_Container(container ? container : GetAllObjects()),
+	m_Properties(properties), m_Tags(make_shared<Dictionary>())
 { }
 
-ConfigObject::ConfigObject(string type, string name)
-	: m_Properties(make_shared<Dictionary>()), m_Tags(make_shared<Dictionary>())
+ConfigObject::ConfigObject(string type, string name, const ConfigObject::Set::Ptr& container)
+	: m_Container(container ? container : GetAllObjects()),
+	m_Properties(make_shared<Dictionary>()), m_Tags(make_shared<Dictionary>())
 {
 	SetProperty("__type", type);
 	SetProperty("__name", name);
@@ -90,13 +92,13 @@ void ConfigObject::Commit(void)
 	ConfigObject::Ptr dobj = GetObject(GetType(), GetName());
 	ConfigObject::Ptr self = static_pointer_cast<ConfigObject>(shared_from_this());
 	assert(!dobj || dobj == self);
-	GetAllObjects()->CheckObject(self);
+	m_Container->CheckObject(self);
 }
 
 void ConfigObject::Unregister(void)
 {
 	ConfigObject::Ptr self = static_pointer_cast<ConfigObject>(shared_from_this());
-	GetAllObjects()->RemoveObject(self);
+	m_Container->RemoveObject(self);
 }
 
 ObjectSet<ConfigObject::Ptr>::Ptr ConfigObject::GetAllObjects(void)

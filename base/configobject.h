@@ -33,8 +33,8 @@ public:
 	typedef ObjectMap<string, ConfigObject::Ptr> TMap;
 	typedef ObjectSet<ConfigObject::Ptr> Set;
 
-	ConfigObject(Dictionary::Ptr properties);
-	ConfigObject(string type, string name);
+	ConfigObject(Dictionary::Ptr properties, const Set::Ptr& container = Set::Ptr());
+	ConfigObject(string type, string name, const Set::Ptr& container = Set::Ptr());
 
 	void SetProperties(Dictionary::Ptr config);
 	Dictionary::Ptr GetProperties(void) const;
@@ -89,6 +89,7 @@ public:
 	static function<bool (ConfigObject::Ptr)> MakeTypePredicate(string type);
 
 private:
+	Set::Ptr m_Container;
 	Dictionary::Ptr m_Properties;
 	Dictionary::Ptr m_Tags;
 

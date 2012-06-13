@@ -94,17 +94,14 @@ RequestMessage ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& ob
 	params.SetProperty("type", object->GetType());
 
 	if (includeProperties)
-		params.SetProperty("properties", object);
+		params.SetProperty("properties", object->GetProperties());
 
 	return msg;
 }
 
 bool ConfigRpcComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
 {
-	long replicate;
-	if (!object->GetProperty("replicate", &replicate))
-		return true;
-	return (replicate != 0);
+	return (!object->IsLocal());
 }
 
 int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)

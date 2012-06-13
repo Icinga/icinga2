@@ -91,6 +91,18 @@ int IcingaApplication::Main(const vector<string>& args)
 		m_EndpointManager->SetSSLContext(sslContext);
 	}
 
+	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask);
+
+	ConfigObject::TMap::Range range = ConfigObject::GetObjects("service");
+
+	for (ConfigObject::TMap::Iterator it = range.first; it != range.second; it++) {
+		ConfigObject::Ptr obj = it->second;
+
+		Service svc = Service(obj);
+		CheckTask::Ptr ct = CheckTask::CreateTask(svc);
+		CheckResult cr = ct->Execute();
+	}
+
 	/* create the primary RPC listener */
 	string service = GetService();
 	if (!service.empty())
@@ -117,7 +129,7 @@ int IcingaApplication::NewComponentHandler(const ObjectSetEventArgs<ConfigObject
 	
 	/* don't allow replicated config objects */
 	if (!object->IsLocal())
-		return 0;
+		throw runtime_error("'component' objects must be 'local'");
 
 	string path;
 	if (!object->GetProperty("path", &path)) {
