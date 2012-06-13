@@ -96,9 +96,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	ConfigObject::TMap::Range range = ConfigObject::GetObjects("service");
 
 	for (ConfigObject::TMap::Iterator it = range.first; it != range.second; it++) {
-		ConfigObject::Ptr obj = it->second;
-
-		Service svc = Service(obj);
+		Service svc(it->second);
 		CheckTask::Ptr ct = CheckTask::CreateTask(svc);
 		CheckResult cr = ct->Execute();
 	}
