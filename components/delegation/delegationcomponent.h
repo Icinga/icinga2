@@ -17,25 +17,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CHECKERCOMPONENT_H
-#define CHECKERCOMPONENT_H
+#ifndef DELEGATIONCOMPONENT_H
+#define DELEGATIONCOMPONENT_H
 
 namespace icinga
 {
 
-struct ServiceNextCheckLessComparer
-{
-public:
-	bool operator()(const Service& a, const Service& b)
-	{
-		return a.GetNextCheck() < b.GetNextCheck();
-	}
-};
-
 /**
- * @ingroup checker
+ * @ingroup delegation
  */
-class CheckerComponent : public IcingaComponent
+class DelegationComponent : public IcingaComponent
 {
 public:
 	virtual string GetName(void) const;
@@ -43,18 +34,21 @@ public:
 	virtual void Stop(void);
 
 private:
-	priority_queue<Service, vector<Service>, ServiceNextCheckLessComparer> m_Services;
-	Timer::Ptr m_CheckTimer;
-	VirtualEndpoint::Ptr m_CheckerEndpoint;
+	VirtualEndpoint::Ptr m_DelegationEndpoint;
+	ConfigObject::Set::Ptr m_AllServices;
 
 	int NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
+	int RemovedServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
 
-	int CheckTimerHandler(const TimerEventArgs& ea);
+	int AssignServiceResponseHandler(const NewResponseEventArgs& nrea);
+	int RevokeServiceResponseHandler(const NewResponseEventArgs& nrea);
 
-	int AssignServiceRequestHandler(const NewRequestEventArgs& nrea);
-	int RevokeServiceRequestHandler(const NewRequestEventArgs& nrea);
+	void AssignService(const ConfigObject::Ptr& service);
+	void RevokeService(const ConfigObject::Ptr& service);
+
+	int TestResponseHandler(const NewResponseEventArgs& ea);
 };
 
 }
 
-#endif /* CHECKERCOMPONENT_H */
+#endif /* DELEGATIONCOMPONENT_H */

@@ -72,6 +72,7 @@ components/Makefile
 components/checker/Makefile
 components/configfile/Makefile
 components/configrpc/Makefile
+components/delegation/Makefile
 components/demo/Makefile
 components/discovery/Makefile
 dyn/Makefile

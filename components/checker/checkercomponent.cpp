@@ -23,7 +23,7 @@ using namespace icinga;
 
 string CheckerComponent::GetName(void) const
 {
-	return "configcomponent";
+	return "checker";
 }
 
 void CheckerComponent::Start(void)
@@ -59,14 +59,12 @@ void CheckerComponent::Start(void)
 	}
 }
 
-int CheckerComponent::TestResponseHandler(const NewResponseEventArgs& ea)
-{
-	return 0;
-}
-
 void CheckerComponent::Stop(void)
 {
+	EndpointManager::Ptr mgr = GetEndpointManager();
 
+	if (mgr)
+		mgr->UnregisterEndpoint(m_CheckerEndpoint);
 }
 
 int CheckerComponent::NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)

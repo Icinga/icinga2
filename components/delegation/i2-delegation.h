@@ -17,44 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CHECKERCOMPONENT_H
-#define CHECKERCOMPONENT_H
-
-namespace icinga
-{
-
-struct ServiceNextCheckLessComparer
-{
-public:
-	bool operator()(const Service& a, const Service& b)
-	{
-		return a.GetNextCheck() < b.GetNextCheck();
-	}
-};
+#ifndef I2DELEGATION_H
+#define I2DELEGATION_H
 
 /**
- * @ingroup checker
+ * @defgroup delegation Delegation component
+ *
+ * The Delegation component delegates service checks to the checker component.
  */
-class CheckerComponent : public IcingaComponent
-{
-public:
-	virtual string GetName(void) const;
-	virtual void Start(void);
-	virtual void Stop(void);
 
-private:
-	priority_queue<Service, vector<Service>, ServiceNextCheckLessComparer> m_Services;
-	Timer::Ptr m_CheckTimer;
-	VirtualEndpoint::Ptr m_CheckerEndpoint;
+#include <i2-base.h>
+#include <i2-icinga.h>
 
-	int NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
+#include "delegationcomponent.h"
 
-	int CheckTimerHandler(const TimerEventArgs& ea);
-
-	int AssignServiceRequestHandler(const NewRequestEventArgs& nrea);
-	int RevokeServiceRequestHandler(const NewRequestEventArgs& nrea);
-};
-
-}
-
-#endif /* CHECKERCOMPONENT_H */
+#endif /* I2DELEGATION_H */
