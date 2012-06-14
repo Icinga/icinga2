@@ -82,10 +82,12 @@ void DelegationComponent::AssignService(const ConfigObject::Ptr& service)
 
 int DelegationComponent::AssignServiceResponseHandler(const ConfigObject::Ptr& service, const NewResponseEventArgs& nrea)
 {
-	if (nrea.TimedOut)
+	if (nrea.TimedOut) {
 		Application::Log("Service delegation for service '" + service->GetName() + "' timed out.");
-	else
+	} else {
+		service->SetTag("checker", nrea.Sender->GetIdentity());
 		Application::Log("Service delegation for service '" + service->GetName() + "'was successful.");
+	}
 
 	return 0;
 }

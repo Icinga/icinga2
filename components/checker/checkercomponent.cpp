@@ -36,9 +36,6 @@ void CheckerComponent::Start(void)
 	m_CheckerEndpoint->RegisterPublication("checker::CheckResult");
 	GetEndpointManager()->RegisterEndpoint(m_CheckerEndpoint);
 
-	// TODO: get rid of this
-	ConfigObject::GetAllObjects()->OnObjectAdded.connect(bind(&CheckerComponent::NewServiceHandler, this, _1));
-
 	m_CheckTimer = make_shared<Timer>();
 	m_CheckTimer->SetInterval(10);
 	m_CheckTimer->OnTimerExpired.connect(bind(&CheckerComponent::CheckTimerHandler, this, _1));
@@ -61,14 +58,6 @@ void CheckerComponent::Stop(void)
 
 	if (mgr)
 		mgr->UnregisterEndpoint(m_CheckerEndpoint);
-}
-
-int CheckerComponent::NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
-{
-	if (ea.Target->GetType() == "service")
-		m_Services.push(ea.Target);
-
-	return 0;
 }
 
 int CheckerComponent::CheckTimerHandler(const TimerEventArgs& ea)
@@ -121,6 +110,9 @@ int CheckerComponent::AssignServiceRequestHandler(const NewRequestEventArgs& nre
 	m_Services.push(service);
 
 	Application::Log("Accepted service '" + service.GetName() + "'");
+
+	/* force a service check */
+	m_CheckTimer->Reschedule(0);
 
 	ResponseMessage rm;
 	rm.SetID(id);

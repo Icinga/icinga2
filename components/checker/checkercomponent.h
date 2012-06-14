@@ -47,8 +47,6 @@ private:
 	Timer::Ptr m_CheckTimer;
 	VirtualEndpoint::Ptr m_CheckerEndpoint;
 
-	int NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
-
 	int CheckTimerHandler(const TimerEventArgs& ea);
 
 	int AssignServiceRequestHandler(const NewRequestEventArgs& nrea);
