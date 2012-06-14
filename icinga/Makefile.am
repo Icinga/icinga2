@@ -5,6 +5,10 @@ pkglib_LTLIBRARIES =  \
 	libicinga.la
 
 libicinga_la_SOURCES =  \
+	checktask.cpp \
+	checktask.h \
+	configobjectadapter.cpp \
+	configobjectadapter.h \
 	endpoint.cpp \
 	endpoint.h \
 	endpointmanager.cpp \
@@ -13,9 +17,17 @@ libicinga_la_SOURCES =  \
 	icingaapplication.h \
 	icingacomponent.cpp \
 	icingacomponent.h \
+	host.cpp \
+	host.h \
 	i2-icinga.h \
 	jsonrpcendpoint.cpp \
 	jsonrpcendpoint.h \
+	macroprocessor.cpp \
+	macroprocessor.h \
+	nagioschecktask.cpp \
+	nagioschecktask.h \
+	service.cpp \
+	service.h \
 	virtualendpoint.cpp \
 	virtualendpoint.h
 

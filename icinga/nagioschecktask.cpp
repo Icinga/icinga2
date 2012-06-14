@@ -37,7 +37,7 @@ CheckResult NagiosCheckTask::Execute(void) const
 
 	cr.Output = output.str();
 
-	int status, exitstatus;
+	int status, exitcode;
 #ifdef _MSC_VER
 	status = _pclose(fp);
 #else /* _MSC_VER */
@@ -48,10 +48,10 @@ CheckResult NagiosCheckTask::Execute(void) const
 	if (WIFEXITED(status)) {
 		exitcode = WEXITSTATUS(status);
 #else /* _MSC_VER */
-		exitstatus = status;
+		exitcode = status;
 #endif /* _MSC_VER */
 
-		switch (exitstatus) {
+		switch (exitcode) {
 			case 0:
 				cr.State = StateOK;
 				break;
@@ -68,7 +68,7 @@ CheckResult NagiosCheckTask::Execute(void) const
 #ifndef _MSC_VER
 	} else if (WIFSIGNALED(status)) {
 		cr.Output = "Process was terminated by signal " + WTERMSIG(status);
-		cr.Status = StateUnknown;
+		cr.State = StateUnknown;
 	}
 #endif /* _MSC_VER */
 
