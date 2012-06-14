@@ -33,6 +33,38 @@ struct I2_ICINGA_API NewEndpointEventArgs : public EventArgs
 	icinga::Endpoint::Ptr Endpoint; /**< The new endpoint. */
 };
 
+struct NewResponseEventArgs;
+
+/**
+ * Information about a pending API request.
+ *
+ * @ingroup icinga
+ */
+struct I2_ICINGA_API PendingRequest
+{
+	time_t Timeout;
+	RequestMessage Request;
+	function<int(const NewResponseEventArgs&)> Callback;
+
+	bool HasTimedOut(void) const
+	{
+		return time(NULL) > Timeout;
+	}
+};
+
+/**
+ * Event arguments for the "new response" event.
+ *
+ * @ingroup icinga
+ */
+struct I2_ICINGA_API NewResponseEventArgs : public EventArgs
+{
+	Endpoint::Ptr Sender;
+	RequestMessage Request;
+	ResponseMessage Response;
+	bool TimedOut;
+};
+
 /**
  * Forwards messages between endpoints.
  *
@@ -43,6 +75,10 @@ class I2_ICINGA_API EndpointManager : public Object
 public:
 	typedef shared_ptr<EndpointManager> Ptr;
 	typedef weak_ptr<EndpointManager> WeakPtr;
+
+	EndpointManager(void)
+		: m_NextMessageID(0)
+	{ }
 
 	void SetIdentity(string identity);
 	string GetIdentity(void) const;
@@ -60,6 +96,11 @@ public:
 	void SendAnycastMessage(Endpoint::Ptr sender, const RequestMessage& message);
 	void SendMulticastMessage(Endpoint::Ptr sender, const RequestMessage& message);
 
+	void SendAPIMessage(Endpoint::Ptr sender, RequestMessage& message,
+	    function<int(const NewResponseEventArgs&)> callback, time_t timeout = 10);
+
+	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
+
 	void ForEachEndpoint(function<int (const NewEndpointEventArgs&)> callback);
 
 	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
@@ -73,8 +114,16 @@ private:
 	vector<JsonRpcServer::Ptr> m_Servers;
 	vector<Endpoint::Ptr> m_Endpoints;
 
+	long m_NextMessageID;
+	map<string, PendingRequest> m_Requests;
+	Timer::Ptr m_RequestTimer;
+
 	void RegisterServer(JsonRpcServer::Ptr server);
 	void UnregisterServer(JsonRpcServer::Ptr server);
+
+	static bool RequestTimeoutLessComparer(const pair<string, PendingRequest>& a, const pair<string, PendingRequest>& b);
+	void RescheduleRequestTimer(void);
+	int RequestTimerHandler(const TimerEventArgs& ea);
 
 	int NewClientHandler(const NewClientEventArgs& ncea);
 };

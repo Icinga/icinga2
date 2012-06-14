@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class NagiosCheckTask : public CheckTask
+class I2_ICINGA_API NagiosCheckTask : public CheckTask
 {
 public:
 	NagiosCheckTask(const Service& service);

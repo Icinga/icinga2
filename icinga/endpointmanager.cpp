@@ -184,15 +184,14 @@ void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
 void EndpointManager::SendUnicastMessage(Endpoint::Ptr sender,
     Endpoint::Ptr recipient, const MessagePart& message)
 {
-	/* don't forward messages back to the sender */
-	if (sender == recipient)
-		return;
-
 	/* don't forward messages between non-local endpoints */
 	if (!sender->IsLocal() && !recipient->IsLocal())
 		return;
 
-	recipient->ProcessRequest(sender, message);
+	if (ResponseMessage::IsResponseMessage(message))
+		recipient->ProcessResponse(sender, message);
+	else
+		recipient->ProcessRequest(sender, message);
 }
 
 /**
@@ -205,7 +204,23 @@ void EndpointManager::SendUnicastMessage(Endpoint::Ptr sender,
 void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
     const RequestMessage& message)
 {
-	throw NotImplementedException();
+	string method;
+	if (!message.GetMethod(&method))
+		throw invalid_argument("Message is missing the 'method' property.");
+
+	vector<Endpoint::Ptr> candidates;
+	for (vector<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
+	{
+		Endpoint::Ptr endpoint = *i;
+		if (endpoint->HasSubscription(method))
+			candidates.push_back(endpoint);
+	}
+
+	if (candidates.size() == 0)
+		return;
+
+	Endpoint::Ptr recipient = candidates[rand() % candidates.size()];
+	SendUnicastMessage(sender, recipient, message);
 }
 
 /**
@@ -229,6 +244,11 @@ void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
 	for (vector<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 	{
 		Endpoint::Ptr recipient = *i;
+
+		/* don't forward messages back to the sender */
+		if (sender == recipient)
+			continue;
+
 		if (recipient->HasSubscription(method))
 			SendUnicastMessage(sender, recipient, message);
 	}
@@ -268,4 +288,104 @@ Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
 	}
 
 	return Endpoint::Ptr();
+}
+
+void EndpointManager::SendAPIMessage(Endpoint::Ptr sender,
+    RequestMessage& message,
+    function<int(const NewResponseEventArgs&)> callback, time_t timeout)
+{
+	m_NextMessageID++;
+
+	stringstream idstream;
+	idstream << m_NextMessageID;
+
+	string id = idstream.str();
+	message.SetID(id);
+
+	PendingRequest pr;
+	pr.Request = message;
+	pr.Callback = callback;
+	pr.Timeout = time(NULL) + timeout;
+
+	m_Requests[id] = pr;
+	RescheduleRequestTimer();
+
+	SendAnycastMessage(sender, message);
+}
+
+bool EndpointManager::RequestTimeoutLessComparer(const pair<string, PendingRequest>& a,
+    const pair<string, PendingRequest>& b)
+{
+	return a.second.Timeout < b.second.Timeout;
+}
+
+void EndpointManager::RescheduleRequestTimer(void)
+{
+	map<string, PendingRequest>::iterator it;
+	it = min_element(m_Requests.begin(), m_Requests.end(),
+	    &EndpointManager::RequestTimeoutLessComparer);
+
+	if (!m_RequestTimer) {
+		m_RequestTimer = make_shared<Timer>();
+		m_RequestTimer->OnTimerExpired += bind_weak(&EndpointManager::RequestTimerHandler, shared_from_this());
+	}
+
+	if (it != m_Requests.end()) {
+		time_t now;
+		time(&now);
+
+		time_t next_timeout = (it->second.Timeout < now) ? now : it->second.Timeout;
+		m_RequestTimer->SetInterval(next_timeout - now);
+		m_RequestTimer->Start();
+	} else {
+		m_RequestTimer->Stop();
+	}
+}
+
+int EndpointManager::RequestTimerHandler(const TimerEventArgs& ea)
+{
+	map<string, PendingRequest>::iterator it;
+	for (it = m_Requests.begin(); it != m_Requests.end(); it++) {
+		if (it->second.HasTimedOut()) {
+			NewResponseEventArgs nrea;
+			nrea.Request = it->second.Request;
+			nrea.Source = shared_from_this();
+			nrea.TimedOut = true;
+
+			it->second.Callback(nrea);
+
+			m_Requests.erase(it);
+
+			break;
+		}
+	}
+
+	RescheduleRequestTimer();
+
+	return 0;
+}
+
+void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message)
+{
+	string id;
+	if (!message.GetID(&id))
+		throw invalid_argument("Response message must have a message ID.");
+
+	map<string, PendingRequest>::iterator it;
+	it = m_Requests.find(id);
+
+	if (it == m_Requests.end())
+		return;
+
+	NewResponseEventArgs nrea;
+	nrea.Sender = sender;
+	nrea.Request = it->second.Request;
+	nrea.Response = message;
+	nrea.Source = shared_from_this();
+	nrea.TimedOut = false;
+
+	it->second.Callback(nrea);
+
+	m_Requests.erase(it);
+	RescheduleRequestTimer();
 }

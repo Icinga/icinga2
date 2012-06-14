@@ -74,8 +74,7 @@ void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage&
 
 void VirtualEndpoint::ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& response)
 {
-	// TODO: figure out which request this response belongs to and notify the caller
-	throw NotImplementedException();
+	GetEndpointManager()->ProcessResponseMessage(sender, response);
 }
 
 void VirtualEndpoint::Stop(void)

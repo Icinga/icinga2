@@ -40,9 +40,7 @@ void DemoComponent::Start(void)
 	m_DemoEndpoint->RegisterTopicHandler("demo::HelloWorld",
 	    bind_weak(&DemoComponent::HelloWorldRequestHandler, shared_from_this()));
 	m_DemoEndpoint->RegisterPublication("demo::HelloWorld");
-
-	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-	endpointManager->RegisterEndpoint(m_DemoEndpoint);
+	GetEndpointManager()->RegisterEndpoint(m_DemoEndpoint);
 
 	m_DemoTimer = make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);

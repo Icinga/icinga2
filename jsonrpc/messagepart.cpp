@@ -232,3 +232,14 @@ DictionaryIterator MessagePart::End(void)
 {
 	return GetDictionary()->End();
 }
+
+/**
+ * Checks whether the message contains the specified element.
+ *
+ * @param key The name of the element.
+ * @returns true if the message contains the element, false otherwise.
+ */
+bool MessagePart::Contains(const string& key) const
+{
+	return GetDictionary()->Contains(key);
+}

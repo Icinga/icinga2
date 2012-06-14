@@ -19,6 +19,9 @@ public:
 	long GetMaxCheckAttempts(void) const;
 	long GetCheckInterval(void) const;
 	long GetRetryInterval(void) const;
+
+	void SetNextCheck(time_t nextCheck);
+	time_t GetNextCheck(void) const;
 };
 
 }

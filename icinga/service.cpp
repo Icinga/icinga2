@@ -51,14 +51,26 @@ long Service::GetMaxCheckAttempts(void) const
 
 long Service::GetCheckInterval(void) const
 {
-	long value = 1;
+	long value = 300;
 	GetConfigObject()->GetProperty("check_interval", &value);
 	return value;
 }
 
 long Service::GetRetryInterval(void) const
 {
-	long value = 1;
+	long value = 15;
 	GetConfigObject()->GetProperty("retry_interval", &value);
+	return value;
+}
+
+void Service::SetNextCheck(time_t nextCheck)
+{
+	GetConfigObject()->SetTag("next_check", static_cast<long>(nextCheck));
+}
+
+time_t Service::GetNextCheck(void) const
+{
+	long value = 0;
+	GetConfigObject()->GetTag("next_check", &value);
 	return value;
 }

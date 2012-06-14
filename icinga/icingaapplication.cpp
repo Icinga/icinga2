@@ -91,16 +91,6 @@ int IcingaApplication::Main(const vector<string>& args)
 		m_EndpointManager->SetSSLContext(sslContext);
 	}
 
-	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask);
-
-	ConfigObject::TMap::Range range = ConfigObject::GetObjects("service");
-
-	for (ConfigObject::TMap::Iterator it = range.first; it != range.second; it++) {
-		Service svc(it->second);
-		CheckTask::Ptr ct = CheckTask::CreateTask(svc);
-		CheckResult cr = ct->Execute();
-	}
-
 	/* create the primary RPC listener */
 	string service = GetService();
 	if (!service.empty())

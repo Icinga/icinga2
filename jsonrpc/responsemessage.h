@@ -128,6 +128,17 @@ public:
 	{
 		SetProperty("id", value);
 	}
+
+	/**
+	 * Checks whether a message is a response message.
+	 *
+	 * @param message The message.
+	 * @returns true if the message is a response message, false otherwise.
+	 */
+	static bool IsResponseMessage(const MessagePart& message)
+	{
+		return (message.Contains("result"));
+	}
 };
 
 }

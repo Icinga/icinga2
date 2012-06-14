@@ -77,8 +77,7 @@ void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage&
 
 void JsonRpcEndpoint::ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& message)
 {
-	if (IsConnected())
-		m_Client->SendMessage(message);
+	m_Client->SendMessage(message);
 }
 
 int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
@@ -86,24 +85,27 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 	const MessagePart& message = nmea.Message;
 	Endpoint::Ptr sender = static_pointer_cast<Endpoint>(shared_from_this());
 
-	string method;
-	if (message.GetProperty("method", &method)) {
-		if (!HasPublication(method))
-			return 0;
-
-		RequestMessage request = message;
-
-		string id;
-		if (request.GetID(&id))
-			GetEndpointManager()->SendAnycastMessage(sender, request);
-		else
-			GetEndpointManager()->SendMulticastMessage(sender, request);
-	} else {
-		ResponseMessage response = message;
-
-		// TODO: deal with response messages
-		throw NotImplementedException();
+	if (ResponseMessage::IsResponseMessage(message)) {
+		/* rather than routing the message to the right virtual
+		 * endpoint we just process it here right away. */
+		GetEndpointManager()->ProcessResponseMessage(sender, message);
+		return 0;
 	}
+
+	string method;
+	if (!message.GetProperty("method", &method))
+		return 0;
+
+	if (!HasPublication(method))
+		return 0;
+
+	RequestMessage request = message;
+
+	string id;
+	if (request.GetID(&id))
+		GetEndpointManager()->SendAnycastMessage(sender, request);
+	else
+		GetEndpointManager()->SendMulticastMessage(sender, request);
 
 	return 0;
 }

@@ -24,7 +24,7 @@ struct CheckResult
 	Dictionary::Ptr PerformanceData;
 };
 
-class CheckTask : public Object
+class I2_ICINGA_API CheckTask : public Object
 {
 public:
 	typedef shared_ptr<CheckTask> Ptr;

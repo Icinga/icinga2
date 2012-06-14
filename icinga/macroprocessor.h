@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class MacroProcessor
+class I2_ICINGA_API MacroProcessor
 {
 public:
 	static string ResolveMacros(string str, Dictionary::Ptr macros);

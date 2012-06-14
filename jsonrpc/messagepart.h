@@ -85,6 +85,8 @@ public:
 
 	void AddUnnamedProperty(const MessagePart& value);
 
+	bool Contains(const string& key) const;
+
 	DictionaryIterator Begin(void);
 	DictionaryIterator End(void);
 

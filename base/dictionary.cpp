@@ -50,3 +50,8 @@ long Dictionary::GetLength(void) const
 {
 	return m_Data.size();
 }
+
+bool Dictionary::Contains(const string& key) const
+{
+	return (m_Data.find(key) != m_Data.end());
+}

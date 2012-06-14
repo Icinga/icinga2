@@ -151,6 +151,8 @@ EventArgs Timer::GetUserArgs(void) const
  */
 void Timer::Start(void)
 {
+	Stop();
+
 	Timers.push_back(static_pointer_cast<Timer>(shared_from_this()));
 
 	Reschedule(time(NULL) + m_Interval);
