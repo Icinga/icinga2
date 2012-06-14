@@ -23,7 +23,7 @@ using namespace icinga;
 
 string CheckerComponent::GetName(void) const
 {
-	return "configcomponent";
+	return "checker";
 }
 
 void CheckerComponent::Start(void)
@@ -35,13 +35,6 @@ void CheckerComponent::Start(void)
 		bind_weak(&CheckerComponent::AssignServiceRequestHandler, shared_from_this()));
 	m_CheckerEndpoint->RegisterPublication("checker::CheckResult");
 	GetEndpointManager()->RegisterEndpoint(m_CheckerEndpoint);
-
-	RequestMessage rm;
-	rm.SetMethod("checker::AssignService");
-	GetEndpointManager()->SendAPIMessage(m_CheckerEndpoint, rm, bind(&CheckerComponent::TestResponseHandler, this, _1));
-
-	// TODO: get rid of this
-	ConfigObject::GetAllObjects()->OnObjectAdded += bind_weak(&CheckerComponent::NewServiceHandler, shared_from_this());
 
 	m_CheckTimer = make_shared<Timer>();
 	m_CheckTimer->SetInterval(10);
@@ -59,14 +52,12 @@ void CheckerComponent::Start(void)
 	}
 }
 
-int CheckerComponent::TestResponseHandler(const NewResponseEventArgs& ea)
-{
-	return 0;
-}
-
 void CheckerComponent::Stop(void)
 {
+	EndpointManager::Ptr mgr = GetEndpointManager();
 
+	if (mgr)
+		mgr->UnregisterEndpoint(m_CheckerEndpoint);
 }
 
 int CheckerComponent::NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)

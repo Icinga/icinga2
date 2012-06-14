@@ -5,5 +5,6 @@ SUBDIRS = \
 	checker \
 	configfile \
 	configrpc \
+	delegation \
 	demo \
 	discovery
