@@ -40,7 +40,19 @@ bool VirtualEndpoint::IsConnected(void) const
 
 void VirtualEndpoint::RegisterTopicHandler(string topic, function<int (const NewRequestEventArgs&)> callback)
 {
-	m_TopicHandlers[topic] += callback;
+	map<string, shared_ptr<boost::signal<void (const NewRequestEventArgs&)> > >::iterator it;
+	it = m_TopicHandlers.find(topic);
+
+	shared_ptr<boost::signal<void (const NewRequestEventArgs&)> > sig;
+
+	if (it == m_TopicHandlers.end()) {
+		sig = make_shared<boost::signal<void (const NewRequestEventArgs&)> >();
+		m_TopicHandlers.insert(make_pair(topic, sig));
+	} else {
+		sig = it->second;
+	}
+
+	sig->connect(callback);
 
 	RegisterSubscription(topic);
 }
@@ -60,16 +72,17 @@ void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage&
 	if (!request.GetMethod(&method))
 		return;
 
-	map<string, Observable<NewRequestEventArgs> >::iterator i = m_TopicHandlers.find(method);
+	map<string, shared_ptr<boost::signal<void (const NewRequestEventArgs&)> > >::iterator it;
+	it = m_TopicHandlers.find(method);
 
-	if (i == m_TopicHandlers.end())
+	if (it == m_TopicHandlers.end())
 		return;
 
 	NewRequestEventArgs nrea;
 	nrea.Source = shared_from_this();
 	nrea.Sender = sender;
 	nrea.Request = request;
-	i->second(nrea);
+	(*it->second)(nrea);
 }
 
 void VirtualEndpoint::ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& response)

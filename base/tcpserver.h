@@ -54,7 +54,7 @@ public:
 
 	void Listen(void);
 
-	Observable<NewClientEventArgs> OnNewClient;
+	boost::signal<void (const NewClientEventArgs&)> OnNewClient;
 
 	virtual bool WantsToRead(void) const;
 

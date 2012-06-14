@@ -40,24 +40,24 @@ void DiscoveryComponent::Start(void)
 
 	m_DiscoveryEndpoint->RegisterPublication("discovery::RegisterComponent");
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::RegisterComponent",
-		bind_weak(&DiscoveryComponent::RegisterComponentMessageHandler, shared_from_this()));
+		bind(&DiscoveryComponent::RegisterComponentMessageHandler, this, _1));
 
 	m_DiscoveryEndpoint->RegisterPublication("discovery::NewComponent");
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::NewComponent",
-		bind_weak(&DiscoveryComponent::NewComponentMessageHandler, shared_from_this()));
+		bind(&DiscoveryComponent::NewComponentMessageHandler, this, _1));
 
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::Welcome",
-		bind_weak(&DiscoveryComponent::WelcomeMessageHandler, shared_from_this()));
+		bind(&DiscoveryComponent::WelcomeMessageHandler, this, _1));
 
 	GetEndpointManager()->ForEachEndpoint(bind(&DiscoveryComponent::NewEndpointHandler, this, _1));
-	GetEndpointManager()->OnNewEndpoint += bind_weak(&DiscoveryComponent::NewEndpointHandler, shared_from_this());
+	GetEndpointManager()->OnNewEndpoint.connect(bind(&DiscoveryComponent::NewEndpointHandler, this, _1));
 
 	GetEndpointManager()->RegisterEndpoint(m_DiscoveryEndpoint);
 
 	/* create the reconnect timer */
 	m_DiscoveryTimer = make_shared<Timer>();
 	m_DiscoveryTimer->SetInterval(30);
-	m_DiscoveryTimer->OnTimerExpired += bind_weak(&DiscoveryComponent::DiscoveryTimerHandler, shared_from_this());
+	m_DiscoveryTimer->OnTimerExpired.connect(bind(&DiscoveryComponent::DiscoveryTimerHandler, this, _1));
 	m_DiscoveryTimer->Start();
 
 	/* call the timer as soon as possible */
@@ -109,7 +109,7 @@ int DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewE
  */
 int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 {
-	neea.Endpoint->OnIdentityChanged += bind_weak(&DiscoveryComponent::NewIdentityHandler, shared_from_this());
+	neea.Endpoint->OnIdentityChanged.connect(bind(&DiscoveryComponent::NewIdentityHandler, this, _1));
 
 	/* accept discovery::RegisterComponent messages from any endpoint */
 	neea.Endpoint->RegisterPublication("discovery::RegisterComponent");

@@ -35,23 +35,23 @@ void ConfigRpcComponent::Start(void)
 	long configSource;
 	if (GetConfig()->GetProperty("configSource", &configSource) && configSource != 0) {
 		m_ConfigRpcEndpoint->RegisterTopicHandler("config::FetchObjects",
-		    bind_weak(&ConfigRpcComponent::FetchObjectsHandler, shared_from_this()));
+		    bind(&ConfigRpcComponent::FetchObjectsHandler, this, _1));
 
-		ConfigObject::GetAllObjects()->OnObjectAdded += bind_weak(&ConfigRpcComponent::LocalObjectCommittedHandler, shared_from_this());
-		ConfigObject::GetAllObjects()->OnObjectCommitted += bind_weak(&ConfigRpcComponent::LocalObjectCommittedHandler, shared_from_this());
-		ConfigObject::GetAllObjects()->OnObjectRemoved += bind_weak(&ConfigRpcComponent::LocalObjectRemovedHandler, shared_from_this());
+		ConfigObject::GetAllObjects()->OnObjectAdded.connect(bind(&ConfigRpcComponent::LocalObjectCommittedHandler, this, _1));
+		ConfigObject::GetAllObjects()->OnObjectCommitted.connect(bind(&ConfigRpcComponent::LocalObjectCommittedHandler, this, _1));
+		ConfigObject::GetAllObjects()->OnObjectRemoved.connect(bind(&ConfigRpcComponent::LocalObjectRemovedHandler, this, _1));
 
 		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectCommitted");
 		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectRemoved");
 	}
 
-	endpointManager->OnNewEndpoint += bind_weak(&ConfigRpcComponent::NewEndpointHandler, shared_from_this());
+	endpointManager->OnNewEndpoint.connect(bind(&ConfigRpcComponent::NewEndpointHandler, this, _1));
 
 	m_ConfigRpcEndpoint->RegisterPublication("config::FetchObjects");
 	m_ConfigRpcEndpoint->RegisterTopicHandler("config::ObjectCommitted",
-	    bind_weak(&ConfigRpcComponent::RemoteObjectCommittedHandler, shared_from_this()));
+	    bind(&ConfigRpcComponent::RemoteObjectCommittedHandler, this, _1));
 	m_ConfigRpcEndpoint->RegisterTopicHandler("config::ObjectRemoved",
-	    bind_weak(&ConfigRpcComponent::RemoteObjectRemovedHandler, shared_from_this()));
+	    bind(&ConfigRpcComponent::RemoteObjectRemovedHandler, this, _1));
 
 	endpointManager->RegisterEndpoint(m_ConfigRpcEndpoint);
 }
@@ -66,7 +66,7 @@ void ConfigRpcComponent::Stop(void)
 
 int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
 {
-	ea.Endpoint->OnSessionEstablished += bind_weak(&ConfigRpcComponent::SessionEstablishedHandler, shared_from_this());
+	ea.Endpoint->OnSessionEstablished.connect(bind(&ConfigRpcComponent::SessionEstablishedHandler, this, _1));
 
 	return 0;
 }

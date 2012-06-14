@@ -65,7 +65,7 @@ public:
 
 	void Reschedule(time_t next);
 
-	Observable<TimerEventArgs> OnTimerExpired;
+	boost::signal<void (const TimerEventArgs&)> OnTimerExpired;
 
 private:
 	EventArgs m_UserArgs; /**< User-specified event arguments. */

@@ -93,7 +93,6 @@
 #include <algorithm>
 
 using namespace std;
-using std::exception;
 
 #ifdef HAVE_STDCXX_0X
 #	include <memory>
@@ -121,6 +120,8 @@ using namespace std::tr1::placeholders;
 #endif /* HAVE_BOOST */
 #endif /* HAVE_STDCXX_0X */
 
+#include <boost/signal.hpp>
+
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
 #endif
@@ -143,9 +144,8 @@ using namespace std::tr1::placeholders;
 #include "object.h"
 #include "exception.h"
 #include "memory.h"
-#include "delegate.h"
-#include "observable.h"
 #include "variant.h"
+#include "eventargs.h"
 #include "dictionary.h"
 #include "timer.h"
 #include "fifo.h"

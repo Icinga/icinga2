@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef OBSERVABLE_H
-#define OBSERVABLE_H
+#ifndef EVENTARGS_H
+#define EVENTARGS_H
 
 namespace icinga
 {
@@ -33,72 +33,6 @@ struct I2_BASE_API EventArgs
 	Object::Ptr Source; /**< The source of the event. */
 };
 
-/**
- * An observable event. Observers can be registered for it.
- *
- * @ingroup base
- */
-template<class TArgs>
-class Observable
-{
-public:
-	typedef function<int (const TArgs&)> ObserverType;
-
-	/**
-	 * Adds an observer to this event.
-	 *
-	 * @param rhs The observer.
-	 */
-	Observable<TArgs>& operator +=(const ObserverType& rhs)
-	{
-		m_Observers.push_back(rhs);
-		return *this;
-	}
-
-	/**
-	 * Removes an observer from this event.
-	 *
-	 * @param rhs The observer.
-	 */
-	Observable<TArgs>& operator -=(const ObserverType& rhs)
-	{
-		m_Observers.erase(rhs);
-		return *this;
-	}
-
-	/**
-	 * Invokes each observer function that is registered for this event. Any
-	 * observer function which returns -1 is removed.
-	 *
-	 * @param args Event arguments.
-	 */
-	void operator()(const TArgs& args)
-	{
-		typename vector<ObserverType>::size_type i = 0;
-		for (i = 0; i < m_Observers.size(); ) {
-			int result = m_Observers[i](args);
-
-			if (result == -1)
-				m_Observers.erase(m_Observers.begin() + i);
-			else
-				i++;
-		}
-	}
-
-	/**
-	 * Checks whether there's at least one observer.
-	 *
-	 * @returns true if there are one or more observers, false otherwise.
-	 */
-	bool HasObservers(void) const
-	{
-		return !m_Observers.empty();
-	}
-
-private:
-	vector<ObserverType> m_Observers;
-};
-
 }
 
-#endif /* OBSERVABLE_H */
+#endif /* EVENTARGS_H */

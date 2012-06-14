@@ -56,7 +56,7 @@ void TcpServer::Start(void)
 {
 	TcpSocket::Start();
 
-	OnReadable += bind_weak(&TcpServer::ReadableEventHandler, shared_from_this());
+	OnReadable.connect(bind(&TcpServer::ReadableEventHandler, this, _1));
 }
 
 /**

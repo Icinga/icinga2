@@ -34,7 +34,7 @@ void JsonRpcClient::Start(void)
 {
 	TlsClient::Start();
 
-	OnDataAvailable += bind_weak(&JsonRpcClient::DataAvailableHandler, shared_from_this());
+	OnDataAvailable.connect(bind(&JsonRpcClient::DataAvailableHandler, this, _1));
 }
 
 /**

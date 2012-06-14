@@ -49,9 +49,9 @@ public:
 	void Start(void)
 	{
 		if (m_Parent) {
-			m_Parent->OnObjectAdded += bind_weak(&ObjectSet::ObjectAddedOrCommittedHandler, shared_from_this());
-			m_Parent->OnObjectCommitted += bind_weak(&ObjectSet::ObjectAddedOrCommittedHandler, shared_from_this());
-			m_Parent->OnObjectRemoved += bind_weak(&ObjectSet::ObjectRemovedHandler, shared_from_this());
+			m_Parent->OnObjectAdded.connect(bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _1));
+			m_Parent->OnObjectCommitted.connect(bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _1));
+			m_Parent->OnObjectRemoved.connect(bind(&ObjectSet::ObjectRemovedHandler, this, _1));
 
 			for (ObjectSet::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
 				CheckObject(*it);
@@ -107,9 +107,9 @@ public:
 		}
 	}
 
-	Observable<ObjectSetEventArgs<TValue> > OnObjectAdded;
-	Observable<ObjectSetEventArgs<TValue> > OnObjectCommitted;
-	Observable<ObjectSetEventArgs<TValue> > OnObjectRemoved;
+	boost::signal<void (const ObjectSetEventArgs<TValue>&)> OnObjectAdded;
+	boost::signal<void (const ObjectSetEventArgs<TValue>&)> OnObjectCommitted;
+	boost::signal<void (const ObjectSetEventArgs<TValue>&)> OnObjectRemoved;
 
 	Iterator Begin(void)
 	{

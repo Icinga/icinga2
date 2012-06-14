@@ -30,9 +30,9 @@ void CheckerComponent::Start(void)
 {
 	m_CheckerEndpoint = make_shared<VirtualEndpoint>();
 	m_CheckerEndpoint->RegisterTopicHandler("checker::AssignService",
-		bind_weak(&CheckerComponent::AssignServiceRequestHandler, shared_from_this()));
+		bind(&CheckerComponent::AssignServiceRequestHandler, this, _1));
 	m_CheckerEndpoint->RegisterTopicHandler("checker::RevokeService",
-		bind_weak(&CheckerComponent::AssignServiceRequestHandler, shared_from_this()));
+		bind(&CheckerComponent::AssignServiceRequestHandler, this, _1));
 	m_CheckerEndpoint->RegisterPublication("checker::CheckResult");
 	GetEndpointManager()->RegisterEndpoint(m_CheckerEndpoint);
 
@@ -41,11 +41,11 @@ void CheckerComponent::Start(void)
 	GetEndpointManager()->SendAPIMessage(m_CheckerEndpoint, rm, bind(&CheckerComponent::TestResponseHandler, this, _1));
 
 	// TODO: get rid of this
-	ConfigObject::GetAllObjects()->OnObjectAdded += bind_weak(&CheckerComponent::NewServiceHandler, shared_from_this());
+	ConfigObject::GetAllObjects()->OnObjectAdded.connect(bind(&CheckerComponent::NewServiceHandler, this, _1));
 
 	m_CheckTimer = make_shared<Timer>();
 	m_CheckTimer->SetInterval(10);
-	m_CheckTimer->OnTimerExpired += bind_weak(&CheckerComponent::CheckTimerHandler, shared_from_this());
+	m_CheckTimer->OnTimerExpired.connect(bind(&CheckerComponent::CheckTimerHandler, this, _1));
 	m_CheckTimer->Start();
 
 	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask);

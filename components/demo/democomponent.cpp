@@ -38,13 +38,13 @@ void DemoComponent::Start(void)
 {
 	m_DemoEndpoint = make_shared<VirtualEndpoint>();
 	m_DemoEndpoint->RegisterTopicHandler("demo::HelloWorld",
-	    bind_weak(&DemoComponent::HelloWorldRequestHandler, shared_from_this()));
+	    bind(&DemoComponent::HelloWorldRequestHandler, this, _1));
 	m_DemoEndpoint->RegisterPublication("demo::HelloWorld");
 	GetEndpointManager()->RegisterEndpoint(m_DemoEndpoint);
 
 	m_DemoTimer = make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);
-	m_DemoTimer->OnTimerExpired += bind_weak(&DemoComponent::DemoTimerHandler, shared_from_this());
+	m_DemoTimer->OnTimerExpired.connect(bind(&DemoComponent::DemoTimerHandler, this, _1));
 	m_DemoTimer->Start();
 }
 

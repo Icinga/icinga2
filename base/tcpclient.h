@@ -61,7 +61,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	Observable<EventArgs> OnDataAvailable;
+	boost::signal<void (const EventArgs&)> OnDataAvailable;
 
 private:
 	TcpClientRole m_Role;

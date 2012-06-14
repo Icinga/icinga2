@@ -54,10 +54,10 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	/* register handler for 'component' config objects */
 	static ConfigObject::Set::Ptr componentObjects = make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("component"));
-	function<int (const ObjectSetEventArgs<ConfigObject::Ptr>&)> NewComponentHandler = bind_weak(&IcingaApplication::NewComponentHandler, shared_from_this());
-	componentObjects->OnObjectAdded += NewComponentHandler;
-	componentObjects->OnObjectCommitted += NewComponentHandler;
-	componentObjects->OnObjectRemoved += bind_weak(&IcingaApplication::DeletedComponentHandler, shared_from_this());
+	function<int (const ObjectSetEventArgs<ConfigObject::Ptr>&)> NewComponentHandler = bind(&IcingaApplication::NewComponentHandler, this, _1);
+	componentObjects->OnObjectAdded.connect(NewComponentHandler);
+	componentObjects->OnObjectCommitted.connect(NewComponentHandler);
+	componentObjects->OnObjectRemoved.connect(bind(&IcingaApplication::DeletedComponentHandler, this, _1));
 	componentObjects->Start();
 
 	/* load config file */

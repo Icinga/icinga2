@@ -59,7 +59,7 @@ public:
 	virtual void Stop(void);
 
 private:
-	map< string, Observable<NewRequestEventArgs> > m_TopicHandlers;
+	map< string, shared_ptr<boost::signal<void (const NewRequestEventArgs&)> > > m_TopicHandlers;
 };
 
 }

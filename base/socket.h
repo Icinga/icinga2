@@ -55,12 +55,12 @@ public:
 	void SetFD(SOCKET fd);
 	SOCKET GetFD(void) const;
 
-	Observable<EventArgs> OnReadable;
-	Observable<EventArgs> OnWritable;
-	Observable<EventArgs> OnException;
+	boost::signal<void (const EventArgs&)> OnReadable;
+	boost::signal<void (const EventArgs&)> OnWritable;
+	boost::signal<void (const EventArgs&)> OnException;
 
-	Observable<SocketErrorEventArgs> OnError;
-	Observable<EventArgs> OnClosed;
+	boost::signal<void (const SocketErrorEventArgs&)> OnError;
+	boost::signal<void (const EventArgs&)> OnClosed;
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;

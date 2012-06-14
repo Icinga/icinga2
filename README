@@ -6,6 +6,7 @@ application using a dist tarball:
 
 * C++ compiler
 * OpenSSL library and header files
+* Boost library and header files
 * Doxygen (only if you plan on building the internal code documentation)
 
 Packaging Requirements
@@ -15,23 +16,9 @@ In order to build a dist tarball for the application the following external
 software components need to be installed in addition to the build requirements
 mentioned above:
 
-* Boost library
 * GNU Automake
 * GNU Autoconf
 * GNU Libtool
-
-"make dist" extracts the following components from the Boost library (using
-bcp):
-
-* tr1
-* smart_ptr
-* bind
-* function
-* make_shared
-
-These components are only used on the target system if your C++ compiler does
-not at least support TR1 and there's no other system-wide installation of the
-Boost library.
 
 Debian Packages
 ---------------

@@ -50,7 +50,7 @@ public:
 
 	virtual void Start(void);
 
-	Observable<NewMessageEventArgs> OnNewMessage;
+	boost::signal<void (const NewMessageEventArgs&)> OnNewMessage;
 
 private:
 	int DataAvailableHandler(const EventArgs&);

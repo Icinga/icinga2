@@ -45,10 +45,10 @@ void JsonRpcEndpoint::Connect(string node, string service, shared_ptr<SSL_CTX> s
 void JsonRpcEndpoint::SetClient(JsonRpcClient::Ptr client)
 {
 	m_Client = client;
-	client->OnNewMessage += bind_weak(&JsonRpcEndpoint::NewMessageHandler, shared_from_this());
-	client->OnClosed += bind_weak(&JsonRpcEndpoint::ClientClosedHandler, shared_from_this());
-	client->OnError += bind_weak(&JsonRpcEndpoint::ClientErrorHandler, shared_from_this());
-	client->OnVerifyCertificate += bind_weak(&JsonRpcEndpoint::VerifyCertificateHandler, shared_from_this());
+	client->OnNewMessage.connect(bind(&JsonRpcEndpoint::NewMessageHandler, this, _1));
+	client->OnClosed.connect(bind(&JsonRpcEndpoint::ClientClosedHandler, this, _1));
+	client->OnError.connect(bind(&JsonRpcEndpoint::ClientErrorHandler, this, _1));
+	client->OnVerifyCertificate.connect(bind(&JsonRpcEndpoint::VerifyCertificateHandler, this, _1));
 }
 
 bool JsonRpcEndpoint::IsLocal(void) const
@@ -122,8 +122,10 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs&)
 	ClearPublications();
 
 	// remove the endpoint if there are no more subscriptions */
-	if (BeginSubscriptions() == EndSubscriptions())
+	if (BeginSubscriptions() == EndSubscriptions()) {
+		Hold();
 		GetEndpointManager()->UnregisterEndpoint(static_pointer_cast<Endpoint>(shared_from_this()));
+	}
 
 	m_Client.reset();
 

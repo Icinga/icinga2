@@ -50,7 +50,7 @@ void Socket::Start(void)
 {
 	assert(m_FD != INVALID_SOCKET);
 
-	OnException += bind_weak(&Socket::ExceptionEventHandler, shared_from_this());
+	OnException.connect(bind(&Socket::ExceptionEventHandler, this, _1));
 
 	Sockets.push_back(static_pointer_cast<Socket>(shared_from_this()));
 }
@@ -171,14 +171,15 @@ int Socket::GetLastSocketError(void)
  */
 void Socket::HandleSocketError(const std::exception& ex)
 {
-	if (OnError.HasObservers()) {
+	// XXX, TODO: add SetErrorHandling() function
+/*	if (OnError.HasObservers()) {*/
 		SocketErrorEventArgs sea(ex);
 		OnError(sea);
 
 		Close();
-	} else {
+/*	} else {
 		throw ex;
-	}
+	}*/
 }
 
 /**

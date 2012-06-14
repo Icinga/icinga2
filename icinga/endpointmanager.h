@@ -105,7 +105,7 @@ public:
 
 	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
 
-	Observable<NewEndpointEventArgs> OnNewEndpoint;
+	boost::signal<void (const NewEndpointEventArgs&)> OnNewEndpoint;
 
 private:
 	string m_Identity;

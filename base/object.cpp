@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+vector<Object::Ptr> Object::m_HeldObjects;
+
 /**
  * Default constructor for the Object class.
  */
@@ -33,5 +35,24 @@ Object::Object(void)
  */
 Object::~Object(void)
 {
+}
+
+/**
+ * Temporarily holds onto a reference for an object. This can
+ * be used to safely clear the last reference to an object
+ * in an event handler.
+ */
+void Object::Hold(void)
+{
+	m_HeldObjects.push_back(shared_from_this());
+}
+
+/**
+ * Clears all temporarily held objects.
+ */
+void Object::ClearHeldObjects(void)
+{
+	cout << "Cleared " << m_HeldObjects.size() << " held objects." << endl;
+	m_HeldObjects.clear();
 }
 

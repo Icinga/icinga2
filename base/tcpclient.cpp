@@ -51,8 +51,8 @@ void TcpClient::Start(void)
 {
 	TcpSocket::Start();
 
-	OnReadable += bind_weak(&TcpClient::ReadableEventHandler, shared_from_this());
-	OnWritable += bind_weak(&TcpClient::WritableEventHandler, shared_from_this());
+	OnReadable.connect(bind(&TcpClient::ReadableEventHandler, this, _1));
+	OnWritable.connect(bind(&TcpClient::WritableEventHandler, this, _1));
 }
 
 /**

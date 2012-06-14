@@ -29,7 +29,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Object : public enable_shared_from_this<Object>
+class I2_BASE_API Object : public enable_shared_from_this<Object>, boost::signals::trackable
 {
 public:
 	typedef shared_ptr<Object> Ptr;
@@ -39,9 +39,16 @@ protected:
 	Object(void);
 	virtual ~Object(void);
 
+	static void ClearHeldObjects(void);
+
+protected:
+	void Hold(void);
+
 private:
 	Object(const Object& other);
 	Object operator=(const Object& rhs);
+
+	static vector<Object::Ptr> m_HeldObjects;
 };
 
 /**

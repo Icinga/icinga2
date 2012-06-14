@@ -109,8 +109,8 @@ void EndpointManager::AddConnection(string node, string service)
 void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.push_back(server);
-	server->OnNewClient += bind_weak(&EndpointManager::NewClientHandler,
-	    shared_from_this());
+	server->OnNewClient.connect(bind(&EndpointManager::NewClientHandler,
+	    this, _1));
 }
 
 /**
@@ -327,7 +327,7 @@ void EndpointManager::RescheduleRequestTimer(void)
 
 	if (!m_RequestTimer) {
 		m_RequestTimer = make_shared<Timer>();
-		m_RequestTimer->OnTimerExpired += bind_weak(&EndpointManager::RequestTimerHandler, shared_from_this());
+		m_RequestTimer->OnTimerExpired.connect(bind(&EndpointManager::RequestTimerHandler, this, _1));
 	}
 
 	if (it != m_Requests.end()) {

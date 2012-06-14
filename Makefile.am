@@ -4,7 +4,6 @@
 include aminclude.am
 
 SUBDIRS = \
-	compat \
 	third-party \
 	base \
 	dyn \

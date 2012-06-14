@@ -96,6 +96,8 @@ void Application::RunEventLoop(void)
 		fd_set readfds, writefds, exceptfds;
 		int nfds = -1;
 
+		Object::ClearHeldObjects();
+
 		Timer::CallExpiredTimers();
 
 		FD_ZERO(&readfds);

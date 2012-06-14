@@ -79,8 +79,8 @@ public:
 	ConstTopicIterator BeginPublications(void) const;
 	ConstTopicIterator EndPublications(void) const;
 
-	Observable<EventArgs> OnIdentityChanged;
-	Observable<EventArgs> OnSessionEstablished;
+	boost::signal<void (const EventArgs&)> OnIdentityChanged;
+	boost::signal<void (const EventArgs&)> OnSessionEstablished;
 
 private:
 	string m_Identity; /**< The identity of this endpoint. */

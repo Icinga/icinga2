@@ -55,7 +55,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	Observable<VerifyCertificateEventArgs> OnVerifyCertificate;
+	boost::signal<void (const VerifyCertificateEventArgs&)> OnVerifyCertificate;
 
 protected:
 	void HandleSSLError(void);

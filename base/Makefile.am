@@ -65,4 +65,5 @@ libbase_la_LDFLAGS = \
 libbase_la_LIBADD = \
 	$(LIBLTDL) \
 	$(OPENSSL_LIBS) \
+	$(BOOST_SIGNALS_LIB) \
 	${top_builddir}/third-party/mmatch/libmmatch.la
