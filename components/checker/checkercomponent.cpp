@@ -69,7 +69,6 @@ int CheckerComponent::CheckTimerHandler(const TimerEventArgs& ea)
 		return 0;
 
 	for (;;) {
-
 		Service service = m_Services.top();
 
 		if (service.GetNextCheck() > now)

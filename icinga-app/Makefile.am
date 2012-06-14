@@ -24,6 +24,7 @@ icinga_LDADD = \
 	-dlopen ${top_builddir}/components/checker/checker.la \
 	-dlopen ${top_builddir}/components/configfile/configfile.la \
 	-dlopen ${top_builddir}/components/configrpc/configrpc.la \
+	-dlopen ${top_builddir}/components/delegation/delegation.la \
 	-dlopen ${top_builddir}/components/demo/demo.la \
 	-dlopen ${top_builddir}/components/discovery/discovery.la
 
