@@ -29,19 +29,15 @@ string DelegationComponent::GetName(void) const
 void DelegationComponent::Start(void)
 {
 	m_AllServices = make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("service"));
-	m_AllServices->OnObjectAdded += bind_weak(&DelegationComponent::NewServiceHandler, shared_from_this());
-	m_AllServices->OnObjectCommitted += bind_weak(&DelegationComponent::NewServiceHandler, shared_from_this());
-	m_AllServices->OnObjectRemoved += bind_weak(&DelegationComponent::RemovedServiceHandler, shared_from_this());
+	m_AllServices->OnObjectAdded.connect(bind(&DelegationComponent::NewServiceHandler, this, _1));
+	m_AllServices->OnObjectCommitted.connect(bind(&DelegationComponent::NewServiceHandler, this, _1));
+	m_AllServices->OnObjectRemoved.connect(bind(&DelegationComponent::RemovedServiceHandler, this, _1));
 	m_AllServices->Start();
 
 	m_DelegationEndpoint = make_shared<VirtualEndpoint>();
 	m_DelegationEndpoint->RegisterPublication("checker::AssignService");
 	m_DelegationEndpoint->RegisterPublication("checker::RevokeService");
 	GetEndpointManager()->RegisterEndpoint(m_DelegationEndpoint);
-
-	RequestMessage rm;
-	rm.SetMethod("checker::AssignService");
-	GetEndpointManager()->SendAPIMessage(m_DelegationEndpoint, rm, bind(&DelegationComponent::TestResponseHandler, this, _1));
 }
 
 void DelegationComponent::Stop(void)
@@ -73,12 +69,19 @@ void DelegationComponent::AssignService(const ConfigObject::Ptr& service)
 	params.SetProperty("service", service->GetProperties());
 	request.SetParams(params);
 
+	Application::Log("Trying to delegate service '" + service->GetName() + "'");
+
 	GetEndpointManager()->SendAPIMessage(m_DelegationEndpoint, request,
-	    bind_weak(&DelegationComponent::AssignServiceResponseHandler, shared_from_this()));
+	    bind(&DelegationComponent::AssignServiceResponseHandler, this, service, _1));
 }
 
-int DelegationComponent::AssignServiceResponseHandler(const NewResponseEventArgs& nrea)
+int DelegationComponent::AssignServiceResponseHandler(const ConfigObject::Ptr& service, const NewResponseEventArgs& nrea)
 {
+	if (nrea.TimedOut)
+		Application::Log("Service delegation for service '" + service->GetName() + "' timed out.");
+	else
+		Application::Log("Service delegation for service '" + service->GetName() + "'was successful.");
+
 	return 0;
 }
 

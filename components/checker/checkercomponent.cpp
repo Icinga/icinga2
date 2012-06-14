@@ -36,10 +36,6 @@ void CheckerComponent::Start(void)
 	m_CheckerEndpoint->RegisterPublication("checker::CheckResult");
 	GetEndpointManager()->RegisterEndpoint(m_CheckerEndpoint);
 
-	RequestMessage rm;
-	rm.SetMethod("checker::AssignService");
-	GetEndpointManager()->SendAPIMessage(m_CheckerEndpoint, rm, bind(&CheckerComponent::TestResponseHandler, this, _1));
-
 	// TODO: get rid of this
 	ConfigObject::GetAllObjects()->OnObjectAdded.connect(bind(&CheckerComponent::NewServiceHandler, this, _1));
 
@@ -110,6 +106,20 @@ int CheckerComponent::AssignServiceRequestHandler(const NewRequestEventArgs& nre
 	string id;
 	if (!nrea.Request.GetID(&id))
 		return 0;
+
+	MessagePart params;
+	if (!nrea.Request.GetParams(&params))
+		return 0;
+
+	MessagePart serviceMsg;
+	if (!params.GetProperty("service", &serviceMsg))
+		return 0;
+
+	ConfigObject::Ptr object = make_shared<ConfigObject>(serviceMsg.GetDictionary());
+	Service service(object);
+	m_Services.push(service);
+
+	Application::Log("Accepted service '" + service.GetName() + "'");
 
 	ResponseMessage rm;
 	rm.SetID(id);

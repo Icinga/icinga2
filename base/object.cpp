@@ -52,7 +52,6 @@ void Object::Hold(void)
  */
 void Object::ClearHeldObjects(void)
 {
-	cout << "Cleared " << m_HeldObjects.size() << " held objects." << endl;
 	m_HeldObjects.clear();
 }
 

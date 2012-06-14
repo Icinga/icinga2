@@ -40,7 +40,7 @@ private:
 	int NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
 	int RemovedServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
 
-	int AssignServiceResponseHandler(const NewResponseEventArgs& nrea);
+	int AssignServiceResponseHandler(const ConfigObject::Ptr& service, const NewResponseEventArgs& nrea);
 	int RevokeServiceResponseHandler(const NewResponseEventArgs& nrea);
 
 	void AssignService(const ConfigObject::Ptr& service);

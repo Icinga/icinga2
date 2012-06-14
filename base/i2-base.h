@@ -55,6 +55,7 @@
 #ifdef _MSC_VER
 #	define HAVE_STDCXX_0X
 #	pragma warning(disable:4251)
+#	pragma warning(disable:4275)
 #	define _CRT_SECURE_NO_DEPRECATE
 #	define _CRT_SECURE_NO_WARNINGS
 #else /* _MSC_VER */
