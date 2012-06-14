@@ -17,6 +17,8 @@ CheckResult NagiosCheckTask::Execute(void) const
 
 	string command = m_Command + " 2>&1";
 
+	Application::Log("Nagios check command: " + command);
+
 #ifdef _MSC_VER
 	fp = _popen(command.c_str(), "r");
 #else /* _MSC_VER */
@@ -36,6 +38,8 @@ CheckResult NagiosCheckTask::Execute(void) const
 	}
 
 	cr.Output = output.str();
+
+	Application::Log("Nagios plugin output: " + cr.Output);
 
 	int status, exitcode;
 #ifdef _MSC_VER

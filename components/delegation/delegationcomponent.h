@@ -36,12 +36,15 @@ public:
 private:
 	VirtualEndpoint::Ptr m_DelegationEndpoint;
 	ConfigObject::Set::Ptr m_AllServices;
+	Timer::Ptr m_DelegationTimer;
 
 	int NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
 	int RemovedServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
 
 	int AssignServiceResponseHandler(const ConfigObject::Ptr& service, const NewResponseEventArgs& nrea);
 	int RevokeServiceResponseHandler(const NewResponseEventArgs& nrea);
+
+	int DelegationTimerHandler(const TimerEventArgs& ea);
 
 	void AssignService(const ConfigObject::Ptr& service);
 	void RevokeService(const ConfigObject::Ptr& service);

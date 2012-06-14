@@ -87,6 +87,7 @@ int CheckerComponent::CheckTimerHandler(const TimerEventArgs& ea)
 			break;
 
 		CheckTask::Ptr ct = CheckTask::CreateTask(service);
+		Application::Log("Executing service check for '" + service.GetName() + "'");
 		CheckResult cr = ct->Execute();
 
 		m_Services.pop();

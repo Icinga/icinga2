@@ -34,6 +34,11 @@ void DelegationComponent::Start(void)
 	m_AllServices->OnObjectRemoved.connect(bind(&DelegationComponent::RemovedServiceHandler, this, _1));
 	m_AllServices->Start();
 
+	m_DelegationTimer = make_shared<Timer>();
+	m_DelegationTimer->SetInterval(30);
+	m_DelegationTimer->OnTimerExpired.connect(bind(&DelegationComponent::DelegationTimerHandler, this, _1));
+	m_DelegationTimer->Start();
+
 	m_DelegationEndpoint = make_shared<VirtualEndpoint>();
 	m_DelegationEndpoint->RegisterPublication("checker::AssignService");
 	m_DelegationEndpoint->RegisterPublication("checker::RevokeService");
@@ -92,6 +97,22 @@ void DelegationComponent::RevokeService(const ConfigObject::Ptr& service)
 
 int DelegationComponent::RevokeServiceResponseHandler(const NewResponseEventArgs& nrea)
 {
+	return 0;
+}
+
+int DelegationComponent::DelegationTimerHandler(const TimerEventArgs& ea)
+{
+	ConfigObject::Set::Iterator it;
+	for (it = m_AllServices->Begin(); it != m_AllServices->End(); it++) {
+		ConfigObject::Ptr object = *it;
+
+		string checker;
+		if (object->GetTag("checker", &checker) && GetEndpointManager()->GetEndpointByIdentity(checker))
+			continue;
+
+		AssignService(object);
+	}
+
 	return 0;
 }
 
