@@ -26,7 +26,7 @@ using namespace icinga;
  */
 TcpServer::TcpServer(void)
 {
-	m_ClientFactory = bind(&TcpClientFactory, RoleInbound);
+	m_ClientFactory = boost::bind(&TcpClientFactory, RoleInbound);
 }
 
 /**
@@ -56,7 +56,7 @@ void TcpServer::Start(void)
 {
 	TcpSocket::Start();
 
-	OnReadable.connect(bind(&TcpServer::ReadableEventHandler, this, _1));
+	OnReadable.connect(boost::bind(&TcpServer::ReadableEventHandler, this, _1));
 }
 
 /**

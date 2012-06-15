@@ -118,7 +118,7 @@ object:
 	}
 attributes T_OBJECT T_IDENTIFIER T_STRING
 	{
-		m_Object = make_shared<ConfigItem>($4, $5, yylloc);
+		m_Object = boost::make_shared<ConfigItem>($4, $5, yylloc);
 		free($4);
 		free($5);
 	}
@@ -178,7 +178,7 @@ inherits_specifier: /* empty */
 
 expressionlist: '{'
 	{
-		m_ExpressionLists.push(make_shared<ExpressionList>());
+		m_ExpressionLists.push(boost::make_shared<ExpressionList>());
 	}
 	expressions
 	'}'
@@ -207,7 +207,7 @@ expression: T_IDENTIFIER operator value
 		free($3);
 		delete $6;
 
-		ExpressionList::Ptr subexprl = make_shared<ExpressionList>();
+		ExpressionList::Ptr subexprl = boost::make_shared<ExpressionList>();
 		subexprl->AddExpression(subexpr);
 
 		Expression expr($1, OperatorPlus, subexprl, yylloc);
@@ -259,7 +259,7 @@ value: simplevalue
 
 tuple: '('
 	{
-		m_Array = make_shared<Dictionary>();
+		m_Array = boost::make_shared<Dictionary>();
 	}
 	tupleitems
 	')'

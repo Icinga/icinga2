@@ -44,7 +44,7 @@ struct I2_ICINGA_API PendingRequest
 {
 	time_t Timeout;
 	RequestMessage Request;
-	function<int(const NewResponseEventArgs&)> Callback;
+	function<void(const NewResponseEventArgs&)> Callback;
 
 	bool HasTimedOut(void) const
 	{
@@ -97,11 +97,11 @@ public:
 	void SendMulticastMessage(Endpoint::Ptr sender, const RequestMessage& message);
 
 	void SendAPIMessage(Endpoint::Ptr sender, RequestMessage& message,
-	    function<int(const NewResponseEventArgs&)> callback, time_t timeout = 10);
+	    function<void(const NewResponseEventArgs&)> callback, time_t timeout = 10);
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
-	void ForEachEndpoint(function<int (const NewEndpointEventArgs&)> callback);
+	void ForEachEndpoint(function<void (const NewEndpointEventArgs&)> callback);
 
 	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
 
@@ -123,9 +123,9 @@ private:
 
 	static bool RequestTimeoutLessComparer(const pair<string, PendingRequest>& a, const pair<string, PendingRequest>& b);
 	void RescheduleRequestTimer(void);
-	int RequestTimerHandler(const TimerEventArgs& ea);
+	void RequestTimerHandler(void);
 
-	int NewClientHandler(const NewClientEventArgs& ncea);
+	void NewClientHandler(const NewClientEventArgs& ncea);
 };
 
 }

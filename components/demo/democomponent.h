@@ -37,8 +37,8 @@ private:
 	Timer::Ptr m_DemoTimer;
 	VirtualEndpoint::Ptr m_DemoEndpoint;
 
-	int DemoTimerHandler(const TimerEventArgs& tea);
-	int HelloWorldRequestHandler(const NewRequestEventArgs& nrea);
+	void DemoTimerHandler(void);
+	void HelloWorldRequestHandler(const NewRequestEventArgs& nrea);
 };
 
 }

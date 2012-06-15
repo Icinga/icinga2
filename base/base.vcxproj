@@ -35,12 +35,10 @@
     <ClInclude Include="application.h" />
     <ClInclude Include="component.h" />
     <ClInclude Include="configobject.h" />
-    <ClInclude Include="cxx11-compat.h" />
-    <ClInclude Include="delegate.h" />
     <ClInclude Include="dictionary.h" />
+    <ClInclude Include="eventargs.h" />
     <ClInclude Include="objectmap.h" />
     <ClInclude Include="objectset.h" />
-    <ClInclude Include="observable.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="fifo.h" />
     <ClInclude Include="i2-base.h" />

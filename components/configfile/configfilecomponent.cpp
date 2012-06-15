@@ -19,6 +19,8 @@
 
 #include "i2-configfile.h"
 
+using std::ifstream;
+
 using namespace icinga;
 
 string ConfigFileComponent::GetName(void) const
@@ -29,17 +31,17 @@ string ConfigFileComponent::GetName(void) const
 void ConfigFileComponent::Start(void)
 {
 	ifstream fp;
-	FIFO::Ptr fifo = make_shared<FIFO>();
+	FIFO::Ptr fifo = boost::make_shared<FIFO>();
 
 	string filename;
 	if (!GetConfig()->GetProperty("configFilename", &filename))
 		throw logic_error("Missing 'configFilename' property");
 
-	Application::Log("Compiling config file: " + filename);
+	Application::Log(LogInformation, "configfile", "Compiling config file: " + filename);
 
 	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(filename);
 
-	Application::Log("Executing config items...");
+	Application::Log(LogInformation, "configfile", "Executing config items...");
 
 	ConfigVM::ExecuteItems(configItems);
 }

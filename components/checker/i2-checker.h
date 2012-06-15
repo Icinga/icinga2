@@ -31,6 +31,8 @@
 
 #include <queue>
 
+using std::priority_queue;
+
 #include "checkercomponent.h"
 
 #endif /* I2CHECKER_H */

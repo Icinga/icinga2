@@ -53,7 +53,6 @@
  */
 
 #ifdef _MSC_VER
-#	define HAVE_STDCXX_0X
 #	pragma warning(disable:4251)
 #	pragma warning(disable:4275)
 #	define _CRT_SECURE_NO_DEPRECATE
@@ -93,35 +92,35 @@
 #include <list>
 #include <algorithm>
 
-using namespace std;
+using std::string;
+using std::vector;
+using std::map;
+using std::list;
+using std::set;
+using std::multimap;
+using std::pair;
 
-#ifdef HAVE_STDCXX_0X
-#	include <memory>
-#	include <functional>
+using std::stringstream;
 
-using namespace std::placeholders;
+using std::runtime_error;
+using std::logic_error;
+using std::invalid_argument;
+using std::domain_error;
 
-#else /* HAVE_STDCXX_0X */
-#	ifdef HAVE_BOOST
-#		include <boost/smart_ptr.hpp>
-#		include <boost/make_shared.hpp>
-#		include <boost/bind.hpp>
-#		include <boost/function.hpp>
-
-using namespace boost;
-
-#	else /* HAVE_BOOST */
-#		include <tr1/memory>
-#		include <tr1/functional>
-#		include "cxx11-compat.h"
-
-using namespace std::tr1;
-using namespace std::tr1::placeholders;
-
-#endif /* HAVE_BOOST */
-#endif /* HAVE_STDCXX_0X */
-
+#include <boost/smart_ptr.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
 #include <boost/signal.hpp>
+#include <boost/algorithm/string/trim.hpp>
+
+using boost::shared_ptr;
+using boost::weak_ptr;
+using boost::enable_shared_from_this;
+using boost::dynamic_pointer_cast;
+using boost::static_pointer_cast;
+using boost::function;
+using boost::signal;
 
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 

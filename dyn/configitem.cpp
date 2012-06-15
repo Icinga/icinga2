@@ -79,7 +79,7 @@ ObjectSet<ConfigItem::Ptr>::Ptr ConfigItem::GetAllObjects(void)
 	static ObjectSet<ConfigItem::Ptr>::Ptr allObjects;
 
         if (!allObjects) {
-                allObjects = make_shared<ObjectSet<ConfigItem::Ptr> >();
+                allObjects = boost::make_shared<ObjectSet<ConfigItem::Ptr> >();
                 allObjects->Start();
         }
 
@@ -98,7 +98,7 @@ ConfigItem::TNMap::Ptr ConfigItem::GetObjectsByTypeAndName(void)
 	static ConfigItem::TNMap::Ptr tnmap;
 
 	if (!tnmap) {
-		tnmap = make_shared<ConfigItem::TNMap>(GetAllObjects(), &ConfigItem::GetTypeAndName);
+		tnmap = boost::make_shared<ConfigItem::TNMap>(GetAllObjects(), &ConfigItem::GetTypeAndName);
 		tnmap->Start();
 	}
 
@@ -109,14 +109,14 @@ void ConfigItem::Commit(void)
 {
 	ConfigObject::Ptr dobj = m_ConfigObject.lock();
 
-	Dictionary::Ptr properties = make_shared<Dictionary>();
+	Dictionary::Ptr properties = boost::make_shared<Dictionary>();
 	CalculateProperties(properties);
 
 	if (!dobj)
 		dobj = ConfigObject::GetObject(GetType(), GetName());
 
 	if (!dobj)
-		dobj = make_shared<ConfigObject>(properties);
+		dobj = boost::make_shared<ConfigObject>(properties);
 	else
 		dobj->SetProperties(properties);
 

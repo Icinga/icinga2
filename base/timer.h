@@ -25,16 +25,6 @@
 namespace icinga {
 
 /**
- * Event arguments for the "timer expired" event.
- *
- * @ingroup base
- */
-struct I2_BASE_API TimerEventArgs : public EventArgs
-{
-	EventArgs UserArgs; /**< User-specified event arguments. */
-};
-
-/**
  * A timer that periodically triggers an event.
  *
  * @ingroup base
@@ -51,11 +41,8 @@ public:
 
 	Timer(void);
 
-	void SetInterval(unsigned int interval);
-	unsigned int GetInterval(void) const;
-
-	void SetUserArgs(const EventArgs& userArgs);
-	EventArgs GetUserArgs(void) const;
+	void SetInterval(time_t interval);
+	time_t GetInterval(void) const;
 
 	static time_t GetNextCall(void);
 	static void CallExpiredTimers(void);
@@ -65,11 +52,10 @@ public:
 
 	void Reschedule(time_t next);
 
-	boost::signal<void (const TimerEventArgs&)> OnTimerExpired;
+	boost::signal<void(const EventArgs&)> OnTimerExpired;
 
 private:
-	EventArgs m_UserArgs; /**< User-specified event arguments. */
-	unsigned int m_Interval; /**< The interval of the timer. */
+	time_t m_Interval; /**< The interval of the timer. */
 	time_t m_Next; /**< When the next event should happen. */
 
 	static time_t NextCall; /**< When the next event should happen (for all timers). */

@@ -27,7 +27,7 @@ using namespace icinga;
  */
 MessagePart::MessagePart(void)
 {
-	m_Dictionary = make_shared<Dictionary>();
+	m_Dictionary = boost::make_shared<Dictionary>();
 }
 
 /**
@@ -76,7 +76,7 @@ MessagePart::MessagePart(const MessagePart& message)
  */
 Dictionary::Ptr MessagePart::GetDictionaryFromJson(json_t *json)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
 
 	for (cJSON *i = json->child; i != NULL; i = i->next) {
 		switch (i->type) {

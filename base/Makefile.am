@@ -11,11 +11,8 @@ libbase_la_SOURCES =  \
 	component.h \
 	configobject.cpp \
 	configobject.h \
-	cxx11-compat.h \
-	delegate.h \
 	dictionary.cpp \
 	dictionary.h \
-	observable.h \
 	exception.cpp \
 	exception.h \
 	fifo.cpp \

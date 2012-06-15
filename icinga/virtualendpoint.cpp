@@ -38,7 +38,7 @@ bool VirtualEndpoint::IsConnected(void) const
 	return true;
 }
 
-void VirtualEndpoint::RegisterTopicHandler(string topic, function<int (const NewRequestEventArgs&)> callback)
+void VirtualEndpoint::RegisterTopicHandler(string topic, function<void (const NewRequestEventArgs&)> callback)
 {
 	map<string, shared_ptr<boost::signal<void (const NewRequestEventArgs&)> > >::iterator it;
 	it = m_TopicHandlers.find(topic);
@@ -46,7 +46,7 @@ void VirtualEndpoint::RegisterTopicHandler(string topic, function<int (const New
 	shared_ptr<boost::signal<void (const NewRequestEventArgs&)> > sig;
 
 	if (it == m_TopicHandlers.end()) {
-		sig = make_shared<boost::signal<void (const NewRequestEventArgs&)> >();
+		sig = boost::make_shared<boost::signal<void (const NewRequestEventArgs&)> >();
 		m_TopicHandlers.insert(make_pair(topic, sig));
 	} else {
 		sig = it->second;
@@ -57,7 +57,7 @@ void VirtualEndpoint::RegisterTopicHandler(string topic, function<int (const New
 	RegisterSubscription(topic);
 }
 
-void VirtualEndpoint::UnregisterTopicHandler(string topic, function<int (const NewRequestEventArgs&)> callback)
+void VirtualEndpoint::UnregisterTopicHandler(string topic, function<void (const NewRequestEventArgs&)> callback)
 {
 	// TODO: implement
 	//m_TopicHandlers[method] -= callback;

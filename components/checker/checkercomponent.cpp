@@ -28,17 +28,19 @@ string CheckerComponent::GetName(void) const
 
 void CheckerComponent::Start(void)
 {
-	m_CheckerEndpoint = make_shared<VirtualEndpoint>();
+	m_CheckerEndpoint = boost::make_shared<VirtualEndpoint>();
 	m_CheckerEndpoint->RegisterTopicHandler("checker::AssignService",
-		bind(&CheckerComponent::AssignServiceRequestHandler, this, _1));
+		boost::bind(&CheckerComponent::AssignServiceRequestHandler, this, _1));
 	m_CheckerEndpoint->RegisterTopicHandler("checker::RevokeService",
-		bind(&CheckerComponent::AssignServiceRequestHandler, this, _1));
+		boost::bind(&CheckerComponent::RevokeServiceRequestHandler, this, _1));
+	m_CheckerEndpoint->RegisterTopicHandler("checker::ClearServices",
+		boost::bind(&CheckerComponent::ClearServicesRequestHandler, this, _1));
 	m_CheckerEndpoint->RegisterPublication("checker::CheckResult");
 	GetEndpointManager()->RegisterEndpoint(m_CheckerEndpoint);
 
-	m_CheckTimer = make_shared<Timer>();
+	m_CheckTimer = boost::make_shared<Timer>();
 	m_CheckTimer->SetInterval(10);
-	m_CheckTimer->OnTimerExpired.connect(bind(&CheckerComponent::CheckTimerHandler, this, _1));
+	m_CheckTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::CheckTimerHandler, this));
 	m_CheckTimer->Start();
 
 	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask);
@@ -60,13 +62,13 @@ void CheckerComponent::Stop(void)
 		mgr->UnregisterEndpoint(m_CheckerEndpoint);
 }
 
-int CheckerComponent::CheckTimerHandler(const TimerEventArgs& ea)
+void CheckerComponent::CheckTimerHandler(void)
 {
 	time_t now;
 	time(&now);
 
 	if (m_Services.size() == 0)
-		return 0;
+		return;
 
 	for (;;) {
 		Service service = m_Services.top();
@@ -75,7 +77,7 @@ int CheckerComponent::CheckTimerHandler(const TimerEventArgs& ea)
 			break;
 
 		CheckTask::Ptr ct = CheckTask::CreateTask(service);
-		Application::Log("Executing service check for '" + service.GetName() + "'");
+		Application::Log(LogInformation, "checker", "Executing service check for '" + service.GetName() + "'");
 		CheckResult cr = ct->Execute();
 
 		m_Services.pop();
@@ -85,47 +87,91 @@ int CheckerComponent::CheckTimerHandler(const TimerEventArgs& ea)
 
 	/* adjust next call time for the check timer */
 	Service service = m_Services.top();
-	static_pointer_cast<Timer>(ea.Source)->SetInterval(service.GetNextCheck() - now);
-
-	return 0;
+	m_CheckTimer->SetInterval(service.GetNextCheck() - now);
 }
 
-int CheckerComponent::AssignServiceRequestHandler(const NewRequestEventArgs& nrea)
+void CheckerComponent::AssignServiceRequestHandler(const NewRequestEventArgs& nrea)
 {
-	string id;
-	if (!nrea.Request.GetID(&id))
-		return 0;
-
 	MessagePart params;
 	if (!nrea.Request.GetParams(&params))
-		return 0;
+		return;
 
 	MessagePart serviceMsg;
 	if (!params.GetProperty("service", &serviceMsg))
-		return 0;
+		return;
 
-	ConfigObject::Ptr object = make_shared<ConfigObject>(serviceMsg.GetDictionary());
+	ConfigObject::Ptr object = boost::make_shared<ConfigObject>(serviceMsg.GetDictionary());
 	Service service(object);
 	m_Services.push(service);
 
-	Application::Log("Accepted service '" + service.GetName() + "'");
+	Application::Log(LogInformation, "checker", "Accepted delegation for service '" + service.GetName() + "'");
 
 	/* force a service check */
 	m_CheckTimer->Reschedule(0);
 
-	ResponseMessage rm;
-	rm.SetID(id);
+	string id;
+	if (nrea.Request.GetID(&id)) {
+		ResponseMessage rm;
+		rm.SetID(id);
 
-	MessagePart result;
-	rm.SetResult(result);
-	GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, nrea.Sender, rm);
-
-	return 0;
+		MessagePart result;
+		rm.SetResult(result);
+		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, nrea.Sender, rm);
+	}
 }
 
-int CheckerComponent::RevokeServiceRequestHandler(const NewRequestEventArgs& nrea)
+void CheckerComponent::RevokeServiceRequestHandler(const NewRequestEventArgs& nrea)
 {
-	return 0;
+	MessagePart params;
+	if (!nrea.Request.GetParams(&params))
+		return;
+
+	string name;
+	if (!params.GetProperty("service", &name))
+		return;
+
+	vector<Service> services;
+
+	while (!m_Services.empty()) {
+		Service service = m_Services.top();
+
+		if (service.GetName() == name)
+			continue;
+
+		services.push_back(service);
+	}
+
+	vector<Service>::const_iterator it;
+	for (it = services.begin(); it != services.end(); it++)
+		m_Services.push(*it);
+
+	Application::Log(LogInformation, "checker", "Revoked delegation for service '" + name + "'");
+
+	string id;
+	if (nrea.Request.GetID(&id)) {
+		ResponseMessage rm;
+		rm.SetID(id);
+
+		MessagePart result;
+		rm.SetResult(result);
+		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, nrea.Sender, rm);
+	}
+}
+
+void CheckerComponent::ClearServicesRequestHandler(const NewRequestEventArgs& nrea)
+{
+	Application::Log(LogInformation, "checker", "Clearing service delegations.");
+	m_Services = ServiceQueue();
+
+	string id;
+	if (nrea.Request.GetID(&id)) {
+		ResponseMessage rm;
+		rm.SetID(id);
+
+		MessagePart result;
+		rm.SetResult(result);
+		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, nrea.Sender, rm);
+	}
 }
 
 EXPORT_COMPONENT(checker, CheckerComponent);

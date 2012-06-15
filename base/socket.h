@@ -85,7 +85,7 @@ protected:
 private:
 	SOCKET m_FD; /**< The socket descriptor. */
 
-	int ExceptionEventHandler(const EventArgs& ea);
+	void ExceptionEventHandler(const EventArgs& ea);
 
 	static string GetAddressFromSockaddr(sockaddr *address, socklen_t len);
 };

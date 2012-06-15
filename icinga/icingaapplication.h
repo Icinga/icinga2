@@ -53,14 +53,8 @@ private:
 	string m_Node;
 	string m_Service;
 
-	int NewComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
-	int DeletedComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
-
-	int NewRpcListenerHandler(const EventArgs& ea);
-	int DeletedRpcListenerHandler(const EventArgs& ea);
-
-	int NewRpcConnectionHandler(const EventArgs& ea);
-	int DeletedRpcConnectionHandler(const EventArgs& ea);
+	void NewComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
+	void DeletedComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
 };
 
 }

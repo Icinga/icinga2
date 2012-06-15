@@ -45,8 +45,8 @@ public:
 	typedef shared_ptr<VirtualEndpoint> Ptr;
 	typedef weak_ptr<VirtualEndpoint> WeakPtr;
 
-	void RegisterTopicHandler(string topic, function<int (const NewRequestEventArgs&)> callback);
-	void UnregisterTopicHandler(string topic, function<int (const NewRequestEventArgs&)> callback);
+	void RegisterTopicHandler(string topic, function<void (const NewRequestEventArgs&)> callback);
+	void UnregisterTopicHandler(string topic, function<void (const NewRequestEventArgs&)> callback);
 
 	virtual string GetAddress(void) const;
 

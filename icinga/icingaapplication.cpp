@@ -37,31 +37,33 @@ using namespace icinga;
 int IcingaApplication::Main(const vector<string>& args)
 {
 #ifdef _WIN32
-	Application::Log("Icinga component loader");
+	Application::Log(LogInformation, "icinga", "Icinga component loader");
 #else /* _WIN32 */
-	Application::Log("Icinga component loader (version: " ICINGA_VERSION ")");
+	Application::Log(LogInformation, "icinga", "Icinga component loader (version: " ICINGA_VERSION ")");
 #endif  /* _WIN32 */
 
 	if (args.size() < 2) {
-		cout << "Syntax: " << args[0] << " <config-file>" << endl;
+		stringstream msgbuf;
+		msgbuf << "Syntax: " << args[0] << " <config-file>";
+		Application::Log(LogInformation, "icinga", msgbuf.str());
 		return EXIT_FAILURE;
 	}
 
-	m_EndpointManager = make_shared<EndpointManager>();
+	m_EndpointManager = boost::make_shared<EndpointManager>();
 
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga2";
 	AddComponentSearchDir(componentDirectory);
 
 	/* register handler for 'component' config objects */
-	static ConfigObject::Set::Ptr componentObjects = make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("component"));
-	function<int (const ObjectSetEventArgs<ConfigObject::Ptr>&)> NewComponentHandler = bind(&IcingaApplication::NewComponentHandler, this, _1);
+	static ConfigObject::Set::Ptr componentObjects = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("component"));
+	function<void (const ObjectSetEventArgs<ConfigObject::Ptr>&)> NewComponentHandler = boost::bind(&IcingaApplication::NewComponentHandler, this, _1);
 	componentObjects->OnObjectAdded.connect(NewComponentHandler);
 	componentObjects->OnObjectCommitted.connect(NewComponentHandler);
-	componentObjects->OnObjectRemoved.connect(bind(&IcingaApplication::DeletedComponentHandler, this, _1));
+	componentObjects->OnObjectRemoved.connect(boost::bind(&IcingaApplication::DeletedComponentHandler, this, _1));
 	componentObjects->Start();
 
 	/* load config file */
-	ConfigObject::Ptr fileComponentConfig = make_shared<ConfigObject>("component", "configfile");
+	ConfigObject::Ptr fileComponentConfig = boost::make_shared<ConfigObject>("component", "configfile");
 	fileComponentConfig->SetLocal(true);
 	fileComponentConfig->SetProperty("configFilename", args[1]);
 	fileComponentConfig->Commit();
@@ -84,7 +86,7 @@ int IcingaApplication::Main(const vector<string>& args)
 		/* set up SSL context */
 		shared_ptr<X509> cert = Utility::GetX509Certificate(GetPublicKeyFile());
 		string identity = Utility::GetCertificateCN(cert);
-		Application::Log("My identity: " + identity);
+		Application::Log(LogInformation, "icinga", "My identity: " + identity);
 		m_EndpointManager->SetIdentity(identity);
 
 		shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetPublicKeyFile(), GetPrivateKeyFile(), GetCAKeyFile());
@@ -111,7 +113,7 @@ EndpointManager::Ptr IcingaApplication::GetEndpointManager(void)
 	return m_EndpointManager;
 }
 
-int IcingaApplication::NewComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
+void IcingaApplication::NewComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
 	ConfigObject::Ptr object = ea.Target;
 	
@@ -129,18 +131,14 @@ int IcingaApplication::NewComponentHandler(const ObjectSetEventArgs<ConfigObject
 	}
 
 	LoadComponent(path, object);
-
-	return 0;
 }
 
-int IcingaApplication::DeletedComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
+void IcingaApplication::DeletedComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
 	ConfigObject::Ptr object = ea.Target;
 
 	Component::Ptr component = GetComponent(object->GetName());
 	UnregisterComponent(component);
-
-	return 0;
 }
 
 string IcingaApplication::GetPrivateKeyFile(void) const

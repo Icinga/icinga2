@@ -23,6 +23,9 @@
 #	include <ltdl.h>
 #endif
 
+using std::cout;
+using std::endl;
+
 using namespace icinga;
 
 Application::Ptr I2_EXPORT Application::m_Instance;
@@ -210,7 +213,7 @@ Component::Ptr Application::LoadComponent(const string& path,
 	Component::Ptr component;
 	Component *(*pCreateComponent)();
 
-	Log("Loading component '" + path + "'");
+	Log(LogInformation, "base", "Loading component '" + path + "'");
 
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.c_str());
@@ -264,7 +267,7 @@ void Application::UnregisterComponent(Component::Ptr component)
 {
 	string name = component->GetName();
 
-	Log("Unloading component '" + name + "'");
+	Log(LogInformation, "base", "Unloading component '" + name + "'");
 	map<string, Component::Ptr>::iterator i = m_Components.find(name);
 	if (i != m_Components.end())
 		m_Components.erase(i);
@@ -291,19 +294,41 @@ Component::Ptr Application::GetComponent(const string& name) const
 /**
  * Writes a message to the application's log.
  *
+ * @param severity The message severity.
+ * @param facility The log facility.
  * @param message The message.
  */
-void Application::Log(string message)
+void Application::Log(LogSeverity severity, string facility, string message)
 {
 	char timestamp[100];
+
+	string severityStr;
+	switch (severity) {
+		case LogDebug:
+			severityStr = "debug";
+			break;
+		case LogInformation:
+			severityStr = "info";
+			break;
+		case LogWarning:
+			severityStr = "warning";
+			break;
+		case LogCritical:
+			severityStr = "critical";
+			break;
+		default:
+			assert(!"Invalid severity specified.");
+	}
 
 	time_t now;
 	time(&now);
 	tm tmnow = *localtime(&now);
 
-	strftime(timestamp, sizeof(timestamp), "%a %B %d %Y %H:%M:%S", &tmnow);
+	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S", &tmnow);
 
-	cout << "[" << timestamp << "]: " << message << endl;
+	cout << "[" << timestamp << "] "
+		 << severityStr << "/" << facility << ": "
+		 << message << endl;
 }
 
 /**
@@ -483,9 +508,9 @@ int Application::Run(int argc, char **argv)
 		} catch (const std::exception& ex) {
 			Application::m_Instance.reset();
 
-			Application::Log("---");
-			Application::Log("Exception: " + Utility::GetTypeName(ex));
-			Application::Log("Message: " + string(ex.what()));
+			Application::Log(LogCritical, "base", "---");
+			Application::Log(LogCritical, "base", "Exception: " + Utility::GetTypeName(ex));
+			Application::Log(LogCritical, "base", "Message: " + string(ex.what()));
 
 			return EXIT_FAILURE;
 		}

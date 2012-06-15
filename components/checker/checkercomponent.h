@@ -38,19 +38,25 @@ public:
 class CheckerComponent : public IcingaComponent
 {
 public:
+	typedef shared_ptr<CheckerComponent> Ptr;
+	typedef weak_ptr<CheckerComponent> WeakPtr;
+
+	typedef priority_queue<Service, vector<Service>, ServiceNextCheckLessComparer> ServiceQueue;
+
 	virtual string GetName(void) const;
 	virtual void Start(void);
 	virtual void Stop(void);
 
 private:
-	priority_queue<Service, vector<Service>, ServiceNextCheckLessComparer> m_Services;
+	ServiceQueue m_Services;
 	Timer::Ptr m_CheckTimer;
 	VirtualEndpoint::Ptr m_CheckerEndpoint;
 
-	int CheckTimerHandler(const TimerEventArgs& ea);
+	void CheckTimerHandler(void);
 
-	int AssignServiceRequestHandler(const NewRequestEventArgs& nrea);
-	int RevokeServiceRequestHandler(const NewRequestEventArgs& nrea);
+	void AssignServiceRequestHandler(const NewRequestEventArgs& nrea);
+	void RevokeServiceRequestHandler(const NewRequestEventArgs& nrea);
+	void ClearServicesRequestHandler(const NewRequestEventArgs& nrea);
 };
 
 }

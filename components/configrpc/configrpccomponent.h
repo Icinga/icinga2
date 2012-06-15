@@ -36,15 +36,15 @@ public:
 private:
 	VirtualEndpoint::Ptr m_ConfigRpcEndpoint;
 
-	int NewEndpointHandler(const NewEndpointEventArgs& ea);
-	int SessionEstablishedHandler(const EventArgs& ea);
+	void NewEndpointHandler(const NewEndpointEventArgs& ea);
+	void SessionEstablishedHandler(const EventArgs& ea);
 
-	int LocalObjectCommittedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
-	int LocalObjectRemovedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
+	void LocalObjectCommittedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
+	void LocalObjectRemovedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
 
-	int FetchObjectsHandler(const NewRequestEventArgs& ea);
-	int RemoteObjectCommittedHandler(const NewRequestEventArgs& ea);
-	int RemoteObjectRemovedHandler(const NewRequestEventArgs& ea);
+	void FetchObjectsHandler(const NewRequestEventArgs& ea);
+	void RemoteObjectCommittedHandler(const NewRequestEventArgs& ea);
+	void RemoteObjectRemovedHandler(const NewRequestEventArgs& ea);
 
 	static RequestMessage MakeObjectMessage(const ConfigObject::Ptr& object,
 	    string method, bool includeProperties);

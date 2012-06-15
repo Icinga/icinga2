@@ -17,7 +17,7 @@ CheckResult NagiosCheckTask::Execute(void) const
 
 	string command = m_Command + " 2>&1";
 
-	Application::Log("Nagios check command: " + command);
+	Application::Log(LogDebug, "icinga", "Nagios check command: " + command);
 
 #ifdef _MSC_VER
 	fp = _popen(command.c_str(), "r");
@@ -39,7 +39,7 @@ CheckResult NagiosCheckTask::Execute(void) const
 
 	cr.Output = output.str();
 
-	Application::Log("Nagios plugin output: " + cr.Output);
+	Application::Log(LogDebug, "icinga", "Nagios plugin output: " + cr.Output);
 
 	int status, exitcode;
 #ifdef _MSC_VER
@@ -85,5 +85,5 @@ CheckTask::Ptr NagiosCheckTask::CreateTask(const Service& service)
 {
 	assert(service.GetCheckType() == "nagios");
 
-	return make_shared<NagiosCheckTask>(service);
+	return boost::make_shared<NagiosCheckTask>(service);
 }

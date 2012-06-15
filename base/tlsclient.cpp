@@ -107,9 +107,8 @@ void TlsClient::Start(void)
  * Processes data that is available for this socket.
  *
  * @param - Event arguments.
- * @returns 0
  */
-int TlsClient::ReadableEventHandler(const EventArgs&)
+void TlsClient::ReadableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -126,16 +125,14 @@ int TlsClient::ReadableEventHandler(const EventArgs&)
 				m_BlockRead = true;
 				/* fall through */
 			case SSL_ERROR_WANT_READ:
-				return 0;
+				return;
 			case SSL_ERROR_ZERO_RETURN:
 				Close();
-
-				return 0;
+				return;
 			default:
 				HandleSocketError(OpenSSLException(
 				    "SSL_read failed", ERR_get_error()));
-
-				return 0;
+				return;
 		}
 	}
 
@@ -144,17 +141,14 @@ int TlsClient::ReadableEventHandler(const EventArgs&)
 	EventArgs dea;
 	dea.Source = shared_from_this();
 	OnDataAvailable(dea);
-
-	return 0;
 }
 
 /**
  * Processes data that can be written for this socket.
  *
  * @param - Event arguments.
- * @returns 0
  */
-int TlsClient::WritableEventHandler(const EventArgs&)
+void TlsClient::WritableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -169,22 +163,18 @@ int TlsClient::WritableEventHandler(const EventArgs&)
 				m_BlockWrite = true;
 				/* fall through */
 			case SSL_ERROR_WANT_WRITE:
-				return 0;
+				return;
 			case SSL_ERROR_ZERO_RETURN:
 				Close();
-
-				return 0;
+				return;
 			default:
 				HandleSocketError(OpenSSLException(
 				    "SSL_write failed", ERR_get_error()));
-
-				return 0;
+				return;
 		}
 	}
 
 	GetSendQueue()->Read(NULL, rc);
-
-	return 0;
 }
 
 /**
@@ -240,7 +230,7 @@ void TlsClient::CloseInternal(bool from_dtor)
  */
 TcpClient::Ptr icinga::TlsClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
 {
-	return make_shared<TlsClient>(role, sslContext);
+	return boost::make_shared<TlsClient>(role, sslContext);
 }
 
 /**

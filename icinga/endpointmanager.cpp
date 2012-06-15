@@ -74,9 +74,9 @@ void EndpointManager::AddListener(string service)
 
 	stringstream s;
 	s << "Adding new listener: port " << service;
-	Application::Log(s.str());
+	Application::Log(LogInformation, "icinga", s.str());
 
-	JsonRpcServer::Ptr server = make_shared<JsonRpcServer>(m_SSLContext);
+	JsonRpcServer::Ptr server = boost::make_shared<JsonRpcServer>(m_SSLContext);
 	RegisterServer(server);
 
 	server->Bind(service, AF_INET6);
@@ -94,9 +94,9 @@ void EndpointManager::AddConnection(string node, string service)
 {
 	stringstream s;
 	s << "Adding new endpoint: [" << node << "]:" << service;
-	Application::Log(s.str());
+	Application::Log(LogInformation, "icinga", s.str());
 
-	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
+	JsonRpcEndpoint::Ptr endpoint = boost::make_shared<JsonRpcEndpoint>();
 	RegisterEndpoint(endpoint);
 	endpoint->Connect(node, service, m_SSLContext);
 }
@@ -109,7 +109,7 @@ void EndpointManager::AddConnection(string node, string service)
 void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.push_back(server);
-	server->OnNewClient.connect(bind(&EndpointManager::NewClientHandler,
+	server->OnNewClient.connect(boost::bind(&EndpointManager::NewClientHandler,
 	    this, _1));
 }
 
@@ -118,16 +118,14 @@ void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
  *
  * @param ncea Event arguments.
  */
-int EndpointManager::NewClientHandler(const NewClientEventArgs& ncea)
+void EndpointManager::NewClientHandler(const NewClientEventArgs& ncea)
 {
 	string address = ncea.Client->GetPeerAddress();
-	Application::Log("Accepted new client from " + address);
+	Application::Log(LogInformation, "icinga", "Accepted new client from " + address);
 
-	JsonRpcEndpoint::Ptr endpoint = make_shared<JsonRpcEndpoint>();
+	JsonRpcEndpoint::Ptr endpoint = boost::make_shared<JsonRpcEndpoint>();
 	endpoint->SetClient(static_pointer_cast<JsonRpcClient>(ncea.Client));
 	RegisterEndpoint(endpoint);
-
-	return 0;
 }
 
 /**
@@ -259,7 +257,7 @@ void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
  *
  * @param callback The callback function.
  */
-void EndpointManager::ForEachEndpoint(function<int (const NewEndpointEventArgs&)> callback)
+void EndpointManager::ForEachEndpoint(function<void (const NewEndpointEventArgs&)> callback)
 {
 	NewEndpointEventArgs neea;
 	neea.Source = shared_from_this();
@@ -292,7 +290,7 @@ Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
 
 void EndpointManager::SendAPIMessage(Endpoint::Ptr sender,
     RequestMessage& message,
-    function<int(const NewResponseEventArgs&)> callback, time_t timeout)
+    function<void(const NewResponseEventArgs&)> callback, time_t timeout)
 {
 	m_NextMessageID++;
 
@@ -326,8 +324,8 @@ void EndpointManager::RescheduleRequestTimer(void)
 	    &EndpointManager::RequestTimeoutLessComparer);
 
 	if (!m_RequestTimer) {
-		m_RequestTimer = make_shared<Timer>();
-		m_RequestTimer->OnTimerExpired.connect(bind(&EndpointManager::RequestTimerHandler, this, _1));
+		m_RequestTimer = boost::make_shared<Timer>();
+		m_RequestTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::RequestTimerHandler, this));
 	}
 
 	if (it != m_Requests.end()) {
@@ -342,7 +340,7 @@ void EndpointManager::RescheduleRequestTimer(void)
 	}
 }
 
-int EndpointManager::RequestTimerHandler(const TimerEventArgs& ea)
+void EndpointManager::RequestTimerHandler(void)
 {
 	map<string, PendingRequest>::iterator it;
 	for (it = m_Requests.begin(); it != m_Requests.end(); it++) {
@@ -361,8 +359,6 @@ int EndpointManager::RequestTimerHandler(const TimerEventArgs& ea)
 	}
 
 	RescheduleRequestTimer();
-
-	return 0;
 }
 
 void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message)

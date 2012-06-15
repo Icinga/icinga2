@@ -1578,7 +1578,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 120 "config_parser.yy"
     {
-		m_Object = make_shared<ConfigItem>((yyvsp[(4) - (5)].text), (yyvsp[(5) - (5)].text), yylloc);
+		m_Object = boost::make_shared<ConfigItem>((yyvsp[(4) - (5)].text), (yyvsp[(5) - (5)].text), yylloc);
 		free((yyvsp[(4) - (5)].text));
 		free((yyvsp[(5) - (5)].text));
 	}
@@ -1645,7 +1645,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 180 "config_parser.yy"
     {
-		m_ExpressionLists.push(make_shared<ExpressionList>());
+		m_ExpressionLists.push(boost::make_shared<ExpressionList>());
 	}
     break;
 
@@ -1681,7 +1681,7 @@ yyreduce:
 		free((yyvsp[(3) - (6)].text));
 		delete (yyvsp[(6) - (6)].variant);
 
-		ExpressionList::Ptr subexprl = make_shared<ExpressionList>();
+		ExpressionList::Ptr subexprl = boost::make_shared<ExpressionList>();
 		subexprl->AddExpression(subexpr);
 
 		Expression expr((yyvsp[(1) - (6)].text), OperatorPlus, subexprl, yylloc);
@@ -1754,7 +1754,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 261 "config_parser.yy"
     {
-		m_Array = make_shared<Dictionary>();
+		m_Array = boost::make_shared<Dictionary>();
 	}
     break;
 

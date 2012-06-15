@@ -43,9 +43,9 @@ public:
 
 	void Start(void)
 	{
-		m_Parent->OnObjectAdded.connect(bind(&ObjectMap::ObjectAddedHandler, this, _1));
-		m_Parent->OnObjectCommitted.connect(bind(&ObjectMap::ObjectCommittedHandler, this, _1));
-		m_Parent->OnObjectRemoved.connect(bind(&ObjectMap::ObjectRemovedHandler, this, _1));
+		m_Parent->OnObjectAdded.connect(boost::bind(&ObjectMap::ObjectAddedHandler, this, _1));
+		m_Parent->OnObjectCommitted.connect(boost::bind(&ObjectMap::ObjectCommittedHandler, this, _1));
+		m_Parent->OnObjectRemoved.connect(boost::bind(&ObjectMap::ObjectRemovedHandler, this, _1));
 
 		for (typename ObjectSet<TValue>::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
 			AddObject(*it);
@@ -56,7 +56,7 @@ public:
 		return m_Objects.equal_range(key);
 	}
 
-	void ForeachObject(TKey key, function<int (const ObjectSetEventArgs<TValue>&)> callback)
+	void ForeachObject(TKey key, function<void (const ObjectSetEventArgs<TValue>&)> callback)
 	{
 		ObjectSetEventArgs<TValue> ea;
 		ea.Source = shared_from_this();
@@ -105,25 +105,19 @@ private:
 		AddObject(object);
 	}
 
-	int ObjectAddedHandler(const ObjectSetEventArgs<TValue>& ea)
+	void ObjectAddedHandler(const ObjectSetEventArgs<TValue>& ea)
 	{
 		AddObject(ea.Target);
-
-		return 0;
 	}
 
-	int ObjectCommittedHandler(const ObjectSetEventArgs<TValue>& ea)
+	void ObjectCommittedHandler(const ObjectSetEventArgs<TValue>& ea)
 	{
 		CheckObject(ea.Target);
-
-		return 0;
 	}
 
-	int ObjectRemovedHandler(const ObjectSetEventArgs<TValue>& ea)
+	void ObjectRemovedHandler(const ObjectSetEventArgs<TValue>& ea)
 	{
 		RemoveObject(ea.Target);
-
-		return 0;
 	}
 };
 

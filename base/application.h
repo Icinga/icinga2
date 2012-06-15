@@ -22,6 +22,14 @@
 
 namespace icinga {
 
+enum LogSeverity
+{
+	LogDebug,
+	LogInformation,
+	LogWarning,
+	LogCritical
+};
+
 class Component;
 
 /**
@@ -45,7 +53,7 @@ public:
 
 	static void Shutdown(void);
 
-	static void Log(string message);
+	static void Log(LogSeverity severity, string facility, string message);
 
 	shared_ptr<Component> LoadComponent(const string& path,
 	    const ConfigObject::Ptr& componentConfig);

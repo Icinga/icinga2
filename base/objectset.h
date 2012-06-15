@@ -49,9 +49,9 @@ public:
 	void Start(void)
 	{
 		if (m_Parent) {
-			m_Parent->OnObjectAdded.connect(bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _1));
-			m_Parent->OnObjectCommitted.connect(bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _1));
-			m_Parent->OnObjectRemoved.connect(bind(&ObjectSet::ObjectRemovedHandler, this, _1));
+			m_Parent->OnObjectAdded.connect(boost::bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _1));
+			m_Parent->OnObjectCommitted.connect(boost::bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _1));
+			m_Parent->OnObjectRemoved.connect(boost::bind(&ObjectSet::ObjectRemovedHandler, this, _1));
 
 			for (ObjectSet::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
 				CheckObject(*it);
@@ -86,9 +86,7 @@ public:
 
 	bool Contains(const TValue& object) const
 	{
-		ObjectSet::Iterator it = m_Objects.find(object);
-
-		return !(it == m_Objects.end());
+		return !(m_Objects.find(object) == m_Objects.end());
 	}
 
 	void CheckObject(const TValue& object)
@@ -121,7 +119,7 @@ public:
 		return m_Objects.end();
 	}
 
-	void ForeachObject(function<int (const ObjectSetEventArgs<TValue>&)> callback)
+	void ForeachObject(function<void (const ObjectSetEventArgs<TValue>&)> callback)
 	{
 		ObjectSetEventArgs<TValue> ea;
 		ea.Source = shared_from_this();
@@ -138,18 +136,14 @@ private:
 	typename ObjectSet<TValue>::Ptr m_Parent;
 	function<bool (const TValue&)> m_Predicate;
 
-	int ObjectAddedOrCommittedHandler(const ObjectSetEventArgs<TValue>& ea)
+	void ObjectAddedOrCommittedHandler(const ObjectSetEventArgs<TValue>& ea)
 	{
 		CheckObject(ea.Target);
-
-		return 0;
 	}
 
-	int ObjectRemovedHandler(const ObjectSetEventArgs<TValue>& ea)
+	void ObjectRemovedHandler(const ObjectSetEventArgs<TValue>& ea)
 	{
 		RemoveObject(ea.Target);
-
-		return 0;
 	}
 };
 

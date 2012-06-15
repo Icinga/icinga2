@@ -23,12 +23,12 @@ using namespace icinga;
 
 ConfigObject::ConfigObject(Dictionary::Ptr properties, const ConfigObject::Set::Ptr& container)
 	: m_Container(container ? container : GetAllObjects()),
-	m_Properties(properties), m_Tags(make_shared<Dictionary>())
+	m_Properties(properties), m_Tags(boost::make_shared<Dictionary>())
 { }
 
 ConfigObject::ConfigObject(string type, string name, const ConfigObject::Set::Ptr& container)
 	: m_Container(container ? container : GetAllObjects()),
-	m_Properties(make_shared<Dictionary>()), m_Tags(make_shared<Dictionary>())
+	m_Properties(boost::make_shared<Dictionary>()), m_Tags(boost::make_shared<Dictionary>())
 {
 	SetProperty("__type", type);
 	SetProperty("__name", name);
@@ -106,7 +106,7 @@ ObjectSet<ConfigObject::Ptr>::Ptr ConfigObject::GetAllObjects(void)
 	static ObjectSet<ConfigObject::Ptr>::Ptr allObjects;
 
 	if (!allObjects) {
-		allObjects = make_shared<ObjectSet<ConfigObject::Ptr> >();
+		allObjects = boost::make_shared<ObjectSet<ConfigObject::Ptr> >();
 		allObjects->Start();
 	}
 
@@ -118,7 +118,7 @@ ConfigObject::TNMap::Ptr ConfigObject::GetObjectsByTypeAndName(void)
 	static ConfigObject::TNMap::Ptr tnmap;
 
 	if (!tnmap) {
-		tnmap = make_shared<ConfigObject::TNMap>(GetAllObjects(), &ConfigObject::TypeAndNameGetter);
+		tnmap = boost::make_shared<ConfigObject::TNMap>(GetAllObjects(), &ConfigObject::TypeAndNameGetter);
 		tnmap->Start();
 	}
 
@@ -147,7 +147,7 @@ bool ConfigObject::TypeAndNameGetter(const ConfigObject::Ptr& object, pair<strin
 
 function<bool (ConfigObject::Ptr)> ConfigObject::MakeTypePredicate(string type)
 {
-	return bind(&ConfigObject::TypePredicate, _1, type);
+	return boost::bind(&ConfigObject::TypePredicate, _1, type);
 }
 
 bool ConfigObject::TypePredicate(const ConfigObject::Ptr& object, string type)
@@ -160,7 +160,7 @@ ConfigObject::TMap::Ptr ConfigObject::GetObjectsByType(void)
 	static ObjectMap<string, ConfigObject::Ptr>::Ptr tmap;
 
 	if (!tmap) {
-		tmap = make_shared<ConfigObject::TMap>(GetAllObjects(), &ConfigObject::TypeGetter);
+		tmap = boost::make_shared<ConfigObject::TMap>(GetAllObjects(), &ConfigObject::TypeGetter);
 		tmap->Start();
 	}
 

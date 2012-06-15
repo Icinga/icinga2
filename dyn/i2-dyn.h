@@ -32,6 +32,12 @@
 #include <stack>
 #include <fstream>
 
+using std::stack;
+using std::istream;
+using std::ostream;
+using std::cin;
+using std::endl;
+
 #ifdef I2_DYN_BUILD
 #	define I2_DYN_API I2_EXPORT
 #else /* I2_DYN_BUILD */

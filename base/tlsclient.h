@@ -70,8 +70,8 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
-	virtual int ReadableEventHandler(const EventArgs& ea);
-	virtual int WritableEventHandler(const EventArgs& ea);
+	virtual void ReadableEventHandler(const EventArgs& ea);
+	virtual void WritableEventHandler(const EventArgs& ea);
 
 	virtual void CloseInternal(bool from_dtor);
 

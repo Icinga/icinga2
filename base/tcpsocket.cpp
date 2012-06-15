@@ -97,7 +97,7 @@ void TcpSocket::Bind(string node, string service, int family)
 		setsockopt(GetFD(), SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
 #endif /* _WIN32 */
 
-		int rc = ::bind(fd, info->ai_addr, info->ai_addrlen);
+		int rc = bind(fd, info->ai_addr, info->ai_addrlen);
 
 #ifdef _WIN32
 		if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK) {

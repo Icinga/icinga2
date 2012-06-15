@@ -56,23 +56,23 @@ private:
 	map<string, ComponentDiscoveryInfo::Ptr> m_Components;
 	Timer::Ptr m_DiscoveryTimer;
 
-	int NewEndpointHandler(const NewEndpointEventArgs& neea);
-	int NewIdentityHandler(const EventArgs& ea);
+	void NewEndpointHandler(const NewEndpointEventArgs& neea);
+	void NewIdentityHandler(const EventArgs& ea);
 
-	int NewComponentMessageHandler(const NewRequestEventArgs& nrea);
-	int RegisterComponentMessageHandler(const NewRequestEventArgs& nrea);
+	void NewComponentMessageHandler(const NewRequestEventArgs& nrea);
+	void RegisterComponentMessageHandler(const NewRequestEventArgs& nrea);
 
-	int WelcomeMessageHandler(const NewRequestEventArgs& nrea);
+	void WelcomeMessageHandler(const NewRequestEventArgs& nrea);
 
 	void SendDiscoveryMessage(string method, string identity, Endpoint::Ptr recipient);
 	void ProcessDiscoveryMessage(string identity, DiscoveryMessage message, bool trusted);
 
 	bool GetComponentDiscoveryInfo(string component, ComponentDiscoveryInfo::Ptr *info) const;
 
-	int CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea);
-	int DiscoveryEndpointHandler(const NewEndpointEventArgs& neea, ComponentDiscoveryInfo::Ptr info) const;
+	void CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea);
+	void DiscoveryEndpointHandler(const NewEndpointEventArgs& neea, ComponentDiscoveryInfo::Ptr info) const;
 
-	int DiscoveryTimerHandler(const TimerEventArgs& tea);
+	void DiscoveryTimerHandler(void);
 
 	void FinishDiscoverySetup(Endpoint::Ptr endpoint);
 

@@ -53,7 +53,7 @@ public:
 	boost::signal<void (const NewMessageEventArgs&)> OnNewMessage;
 
 private:
-	int DataAvailableHandler(const EventArgs&);
+	void DataAvailableHandler(const EventArgs&);
 };
 
 JsonRpcClient::Ptr JsonRpcClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);

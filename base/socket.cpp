@@ -50,7 +50,7 @@ void Socket::Start(void)
 {
 	assert(m_FD != INVALID_SOCKET);
 
-	OnException.connect(bind(&Socket::ExceptionEventHandler, this, _1));
+	OnException.connect(boost::bind(&Socket::ExceptionEventHandler, this, _1));
 
 	Sockets.push_back(static_pointer_cast<Socket>(shared_from_this()));
 }
@@ -171,29 +171,25 @@ int Socket::GetLastSocketError(void)
  */
 void Socket::HandleSocketError(const std::exception& ex)
 {
-	// XXX, TODO: add SetErrorHandling() function
-/*	if (OnError.HasObservers()) {*/
+	if (!OnError.empty()) {
 		SocketErrorEventArgs sea(ex);
 		OnError(sea);
 
 		Close();
-/*	} else {
+	} else {
 		throw ex;
-	}*/
+	}
 }
 
 /**
  * Processes errors that have occured for the socket.
  *
  * @param - Event arguments for the socket error.
- * @returns 0
  */
-int Socket::ExceptionEventHandler(const EventArgs&)
+void Socket::ExceptionEventHandler(const EventArgs&)
 {
 	HandleSocketError(SocketException(
 	    "select() returned fd in except fdset", GetError()));
-
-	return 0;
 }
 
 /**

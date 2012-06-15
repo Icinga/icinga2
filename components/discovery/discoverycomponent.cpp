@@ -36,28 +36,28 @@ string DiscoveryComponent::GetName(void) const
  */
 void DiscoveryComponent::Start(void)
 {
-	m_DiscoveryEndpoint = make_shared<VirtualEndpoint>();
+	m_DiscoveryEndpoint = boost::make_shared<VirtualEndpoint>();
 
 	m_DiscoveryEndpoint->RegisterPublication("discovery::RegisterComponent");
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::RegisterComponent",
-		bind(&DiscoveryComponent::RegisterComponentMessageHandler, this, _1));
+		boost::bind(&DiscoveryComponent::RegisterComponentMessageHandler, this, _1));
 
 	m_DiscoveryEndpoint->RegisterPublication("discovery::NewComponent");
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::NewComponent",
-		bind(&DiscoveryComponent::NewComponentMessageHandler, this, _1));
+		boost::bind(&DiscoveryComponent::NewComponentMessageHandler, this, _1));
 
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::Welcome",
-		bind(&DiscoveryComponent::WelcomeMessageHandler, this, _1));
+		boost::bind(&DiscoveryComponent::WelcomeMessageHandler, this, _1));
 
-	GetEndpointManager()->ForEachEndpoint(bind(&DiscoveryComponent::NewEndpointHandler, this, _1));
-	GetEndpointManager()->OnNewEndpoint.connect(bind(&DiscoveryComponent::NewEndpointHandler, this, _1));
+	GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _1));
+	GetEndpointManager()->OnNewEndpoint.connect(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _1));
 
 	GetEndpointManager()->RegisterEndpoint(m_DiscoveryEndpoint);
 
 	/* create the reconnect timer */
-	m_DiscoveryTimer = make_shared<Timer>();
+	m_DiscoveryTimer = boost::make_shared<Timer>();
 	m_DiscoveryTimer->SetInterval(30);
-	m_DiscoveryTimer->OnTimerExpired.connect(bind(&DiscoveryComponent::DiscoveryTimerHandler, this, _1));
+	m_DiscoveryTimer->OnTimerExpired.connect(boost::bind(&DiscoveryComponent::DiscoveryTimerHandler, this));
 	m_DiscoveryTimer->Start();
 
 	/* call the timer as soon as possible */
@@ -81,24 +81,21 @@ void DiscoveryComponent::Stop(void)
  *
  * @param endpoint The endpoint that is to be checked.
  * @param neea Event arguments for another endpoint.
- * @returns 0
  */
-int DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea)
+void DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea)
 {
 	if (endpoint == neea.Endpoint)
-		return 0;
+		return;
 
 	if (!neea.Endpoint->IsConnected())
-		return 0;
+		return;
 
 	if (endpoint->GetIdentity() == neea.Endpoint->GetIdentity()) {
-		Application::Log("Detected duplicate identity:" + endpoint->GetIdentity() + " - Disconnecting old endpoint.");
+		Application::Log(LogWarning, "discovery", "Detected duplicate identity:" + endpoint->GetIdentity() + " - Disconnecting old endpoint.");
 
 		neea.Endpoint->Stop();
 		GetEndpointManager()->UnregisterEndpoint(neea.Endpoint);
 	}
-
-	return 0;
 }
 
 /**
@@ -107,17 +104,15 @@ int DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewE
  * @param neea Event arguments for the new endpoint.
  * @returns 0
  */
-int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
+void DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
 {
-	neea.Endpoint->OnIdentityChanged.connect(bind(&DiscoveryComponent::NewIdentityHandler, this, _1));
+	neea.Endpoint->OnIdentityChanged.connect(boost::bind(&DiscoveryComponent::NewIdentityHandler, this, _1));
 
 	/* accept discovery::RegisterComponent messages from any endpoint */
 	neea.Endpoint->RegisterPublication("discovery::RegisterComponent");
 
 	/* accept discovery::Welcome messages from any endpoint */
 	neea.Endpoint->RegisterPublication("discovery::Welcome");
-
-	return 0;
 }
 
 /**
@@ -127,7 +122,7 @@ int DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
  * @param info Component information object.
  * @return 0
  */
-int DiscoveryComponent::DiscoveryEndpointHandler(const NewEndpointEventArgs& neea, ComponentDiscoveryInfo::Ptr info) const
+void DiscoveryComponent::DiscoveryEndpointHandler(const NewEndpointEventArgs& neea, ComponentDiscoveryInfo::Ptr info) const
 {
 	Endpoint::ConstTopicIterator i;
 
@@ -138,8 +133,6 @@ int DiscoveryComponent::DiscoveryEndpointHandler(const NewEndpointEventArgs& nee
 	for (i = neea.Endpoint->BeginPublications(); i != neea.Endpoint->EndPublications(); i++) {
 		info->Publications.insert(*i);
 	}
-
-	return 0;
 }
 
 /**
@@ -153,8 +146,8 @@ bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDi
 {
 	if (component == GetEndpointManager()->GetIdentity()) {
 		/* Build fake discovery info for ourselves */
-		*info = make_shared<ComponentDiscoveryInfo>();
-		GetEndpointManager()->ForEachEndpoint(bind(&DiscoveryComponent::DiscoveryEndpointHandler, this, _1, *info));
+		*info = boost::make_shared<ComponentDiscoveryInfo>();
+		GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::DiscoveryEndpointHandler, this, _1, *info));
 		
 		(*info)->LastSeen = 0;
 		(*info)->Node = GetIcingaApplication()->GetNode();
@@ -180,21 +173,21 @@ bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDi
  * @param ea Event arguments for the component.
  * @returns 0
  */
-int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
+void DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 {
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(ea.Source);
 	string identity = endpoint->GetIdentity();
 
 	if (identity == GetEndpointManager()->GetIdentity()) {
-		Application::Log("Detected loop-back connection - Disconnecting endpoint.");
+		Application::Log(LogWarning, "discovery", "Detected loop-back connection - Disconnecting endpoint.");
 
 		endpoint->Stop();
 		GetEndpointManager()->UnregisterEndpoint(endpoint);
 
-		return 0;
+		return;
 	}
 
-	GetEndpointManager()->ForEachEndpoint(bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _1));
+	GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _1));
 
 	// we assume the other component _always_ wants
 	// discovery::RegisterComponent messages from us
@@ -227,7 +220,7 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 		// we don't know the other component yet, so
 		// wait until we get a discovery::NewComponent message
 		// from a broker
-		return 0;
+		return;
 	}
 
 	// register published/subscribed topics for this endpoint
@@ -240,8 +233,6 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 		endpoint->RegisterSubscription(*it);
 
 	FinishDiscoverySetup(endpoint);
-
-	return 0;
 }
 
 /**
@@ -250,12 +241,12 @@ int DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
  * @param nrea Event arguments for the request.
  * @returns 0
  */
-int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
+void DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 {
 	Endpoint::Ptr endpoint = nrea.Sender;
 
 	if (endpoint->HasReceivedWelcome())
-		return 0;
+		return;
 
 	endpoint->SetReceivedWelcome(true);
 
@@ -264,8 +255,6 @@ int DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
 		ea.Source = endpoint;
 		endpoint->OnSessionEstablished(ea);
 	}
-
-	return 0;
 }
 
 /**
@@ -384,7 +373,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
 	if (identity == GetEndpointManager()->GetIdentity())
 		return;
 
-	ComponentDiscoveryInfo::Ptr info = make_shared<ComponentDiscoveryInfo>();
+	ComponentDiscoveryInfo::Ptr info = boost::make_shared<ComponentDiscoveryInfo>();
 
 	time(&(info->LastSeen));
 
@@ -448,44 +437,36 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
  * Processes "discovery::NewComponent" messages.
  *
  * @param nrea Event arguments for the request.
- * @returns 0
  */
-int DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& nrea)
+void DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& nrea)
 {
 	DiscoveryMessage message;
 	nrea.Request.GetParams(&message);
 
 	string identity;
 	if (!message.GetIdentity(&identity))
-		return 0;
+		return;
 
 	ProcessDiscoveryMessage(identity, message, true);
-	return 0;
 }
 
 /**
  * Processes "discovery::RegisterComponent" messages.
  *
  * @param nrea Event arguments for the request.
- * @returns 0
  */
-int DiscoveryComponent::RegisterComponentMessageHandler(const NewRequestEventArgs& nrea)
+void DiscoveryComponent::RegisterComponentMessageHandler(const NewRequestEventArgs& nrea)
 {
 	DiscoveryMessage message;
 	nrea.Request.GetParams(&message);
 	ProcessDiscoveryMessage(nrea.Sender->GetIdentity(), message, false);
-
-	return 0;
 }
 
 /**
  * Checks whether we have to reconnect to other components and removes stale
  * components from the registry.
- *
- * @param tea Event arguments for the timer.
- * @returns 0
  */
-int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
+void DiscoveryComponent::DiscoveryTimerHandler(void)
 {
 	EndpointManager::Ptr endpointManager = GetEndpointManager();
 	
@@ -537,8 +518,6 @@ int DiscoveryComponent::DiscoveryTimerHandler(const TimerEventArgs& tea)
 			endpointManager->AddConnection(info->Node, info->Service);
 		}
 	}
-
-	return 0;
 }
 
 EXPORT_COMPONENT(discovery, DiscoveryComponent);

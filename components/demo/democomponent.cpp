@@ -36,15 +36,15 @@ string DemoComponent::GetName(void) const
  */
 void DemoComponent::Start(void)
 {
-	m_DemoEndpoint = make_shared<VirtualEndpoint>();
+	m_DemoEndpoint = boost::make_shared<VirtualEndpoint>();
 	m_DemoEndpoint->RegisterTopicHandler("demo::HelloWorld",
-	    bind(&DemoComponent::HelloWorldRequestHandler, this, _1));
+	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _1));
 	m_DemoEndpoint->RegisterPublication("demo::HelloWorld");
 	GetEndpointManager()->RegisterEndpoint(m_DemoEndpoint);
 
-	m_DemoTimer = make_shared<Timer>();
+	m_DemoTimer = boost::make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);
-	m_DemoTimer->OnTimerExpired.connect(bind(&DemoComponent::DemoTimerHandler, this, _1));
+	m_DemoTimer->OnTimerExpired.connect(boost::bind(&DemoComponent::DemoTimerHandler, this));
 	m_DemoTimer->Start();
 }
 
@@ -65,29 +65,24 @@ void DemoComponent::Stop(void)
  * Periodically sends a demo::HelloWorld message.
  *
  * @param - Event arguments for the timer.
- * @returns 0
  */
-int DemoComponent::DemoTimerHandler(const TimerEventArgs&)
+void DemoComponent::DemoTimerHandler(void)
 {
-	Application::Log("Sending multicast 'hello world' message.");
+	Application::Log(LogInformation, "demo", "Sending multicast 'hello world' message.");
 
 	RequestMessage request;
 	request.SetMethod("demo::HelloWorld");
 
 	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
 	endpointManager->SendMulticastMessage(m_DemoEndpoint, request);
-
-	return 0;
 }
 
 /**
  * Processes demo::HelloWorld messages.
  */
-int DemoComponent::HelloWorldRequestHandler(const NewRequestEventArgs& nrea)
+void DemoComponent::HelloWorldRequestHandler(const NewRequestEventArgs& nrea)
 {
-	Application::Log("Got 'hello world' from address=" + nrea.Sender->GetAddress() + ", identity=" + nrea.Sender->GetIdentity());
-
-	return 0;
+	Application::Log(LogInformation, "demo", "Got 'hello world' from address=" + nrea.Sender->GetAddress() + ", identity=" + nrea.Sender->GetIdentity());
 }
 
 EXPORT_COMPONENT(demo, DemoComponent);

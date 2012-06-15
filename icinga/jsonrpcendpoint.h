@@ -58,10 +58,10 @@ private:
 	JsonRpcClient::Ptr m_Client;
 	map<string, Endpoint::Ptr> m_PendingCalls;
 
-	int NewMessageHandler(const NewMessageEventArgs& nmea);
-	int ClientClosedHandler(const EventArgs& ea);
-	int ClientErrorHandler(const SocketErrorEventArgs& ea);
-	int VerifyCertificateHandler(const VerifyCertificateEventArgs& ea);
+	void NewMessageHandler(const NewMessageEventArgs& nmea);
+	void ClientClosedHandler(const EventArgs& ea);
+	void ClientErrorHandler(const SocketErrorEventArgs& ea);
+	void VerifyCertificateHandler(const VerifyCertificateEventArgs& ea);
 };
 
 }

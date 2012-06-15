@@ -30,28 +30,28 @@ void ConfigRpcComponent::Start(void)
 {
 	EndpointManager::Ptr endpointManager = GetEndpointManager();
 
-	m_ConfigRpcEndpoint = make_shared<VirtualEndpoint>();
+	m_ConfigRpcEndpoint = boost::make_shared<VirtualEndpoint>();
 
 	long configSource;
 	if (GetConfig()->GetProperty("configSource", &configSource) && configSource != 0) {
 		m_ConfigRpcEndpoint->RegisterTopicHandler("config::FetchObjects",
-		    bind(&ConfigRpcComponent::FetchObjectsHandler, this, _1));
+		    boost::bind(&ConfigRpcComponent::FetchObjectsHandler, this, _1));
 
-		ConfigObject::GetAllObjects()->OnObjectAdded.connect(bind(&ConfigRpcComponent::LocalObjectCommittedHandler, this, _1));
-		ConfigObject::GetAllObjects()->OnObjectCommitted.connect(bind(&ConfigRpcComponent::LocalObjectCommittedHandler, this, _1));
-		ConfigObject::GetAllObjects()->OnObjectRemoved.connect(bind(&ConfigRpcComponent::LocalObjectRemovedHandler, this, _1));
+		ConfigObject::GetAllObjects()->OnObjectAdded.connect(boost::bind(&ConfigRpcComponent::LocalObjectCommittedHandler, this, _1));
+		ConfigObject::GetAllObjects()->OnObjectCommitted.connect(boost::bind(&ConfigRpcComponent::LocalObjectCommittedHandler, this, _1));
+		ConfigObject::GetAllObjects()->OnObjectRemoved.connect(boost::bind(&ConfigRpcComponent::LocalObjectRemovedHandler, this, _1));
 
 		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectCommitted");
 		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectRemoved");
 	}
 
-	endpointManager->OnNewEndpoint.connect(bind(&ConfigRpcComponent::NewEndpointHandler, this, _1));
+	endpointManager->OnNewEndpoint.connect(boost::bind(&ConfigRpcComponent::NewEndpointHandler, this, _1));
 
 	m_ConfigRpcEndpoint->RegisterPublication("config::FetchObjects");
 	m_ConfigRpcEndpoint->RegisterTopicHandler("config::ObjectCommitted",
-	    bind(&ConfigRpcComponent::RemoteObjectCommittedHandler, this, _1));
+	    boost::bind(&ConfigRpcComponent::RemoteObjectCommittedHandler, this, _1));
 	m_ConfigRpcEndpoint->RegisterTopicHandler("config::ObjectRemoved",
-	    bind(&ConfigRpcComponent::RemoteObjectRemovedHandler, this, _1));
+	    boost::bind(&ConfigRpcComponent::RemoteObjectRemovedHandler, this, _1));
 
 	endpointManager->RegisterEndpoint(m_ConfigRpcEndpoint);
 }
@@ -64,22 +64,18 @@ void ConfigRpcComponent::Stop(void)
 		mgr->UnregisterEndpoint(m_ConfigRpcEndpoint);
 }
 
-int ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
+void ConfigRpcComponent::NewEndpointHandler(const NewEndpointEventArgs& ea)
 {
-	ea.Endpoint->OnSessionEstablished.connect(bind(&ConfigRpcComponent::SessionEstablishedHandler, this, _1));
-
-	return 0;
+	ea.Endpoint->OnSessionEstablished.connect(boost::bind(&ConfigRpcComponent::SessionEstablishedHandler, this, _1));
 }
 
-int ConfigRpcComponent::SessionEstablishedHandler(const EventArgs& ea)
+void ConfigRpcComponent::SessionEstablishedHandler(const EventArgs& ea)
 {
 	RequestMessage request;
 	request.SetMethod("config::FetchObjects");
 
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(ea.Source);
 	GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, endpoint, request);
-
-	return 0;
 }
 
 RequestMessage ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
@@ -104,7 +100,7 @@ bool ConfigRpcComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
 	return (!object->IsLocal());
 }
 
-int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
+void ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 {
 	Endpoint::Ptr client = ea.Sender;
 	ConfigObject::Set::Ptr allObjects = ConfigObject::GetAllObjects();
@@ -119,93 +115,83 @@ int ConfigRpcComponent::FetchObjectsHandler(const NewRequestEventArgs& ea)
 
 		GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, client, request);
 	}
-
-	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectCommittedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
+void ConfigRpcComponent::LocalObjectCommittedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
 	ConfigObject::Ptr object = ea.Target;
 	
 	if (!ShouldReplicateObject(object))
-		return 0;
+		return;
 
 	GetEndpointManager()->SendMulticastMessage(m_ConfigRpcEndpoint,
 	    MakeObjectMessage(object, "config::ObjectCreated", true));
-
-	return 0;
 }
 
-int ConfigRpcComponent::LocalObjectRemovedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
+void ConfigRpcComponent::LocalObjectRemovedHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
 {
 	ConfigObject::Ptr object = ea.Target;
 	
 	if (!ShouldReplicateObject(object))
-		return 0;
+		return;
 
 	GetEndpointManager()->SendMulticastMessage(m_ConfigRpcEndpoint,
 	    MakeObjectMessage(object, "config::ObjectRemoved", false));
-
-	return 0;
 }
 
-int ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& ea)
+void ConfigRpcComponent::RemoteObjectCommittedHandler(const NewRequestEventArgs& ea)
 {
 	RequestMessage message = ea.Request;
 
 	MessagePart params;
 	if (!message.GetParams(&params))
-		return 0;
+		return;
 
 	string name;
 	if (!params.GetProperty("name", &name))
-		return 0;
+		return;
 
 	string type;
 	if (!params.GetProperty("type", &type))
-		return 0;
+		return;
 
 	MessagePart properties;
 	if (!params.GetProperty("properties", &properties))
-		return 0;
+		return;
 
 	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);
 
 	if (!object)
-		object = make_shared<ConfigObject>(properties.GetDictionary());
+		object = boost::make_shared<ConfigObject>(properties.GetDictionary());
 	else
 		object->SetProperties(properties.GetDictionary());
 
 	object->Commit();
-
-	return 0;
 }
 
-int ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea)
+void ConfigRpcComponent::RemoteObjectRemovedHandler(const NewRequestEventArgs& ea)
 {
 	RequestMessage message = ea.Request;
 	
 	MessagePart params;
 	if (!message.GetParams(&params))
-		return 0;
+		return;
 
 	string name;
 	if (!params.GetProperty("name", &name))
-		return 0;
+		return;
 
 	string type;
 	if (!params.GetProperty("type", &type))
-		return 0;
+		return;
 
 	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);
 
 	if (!object)
-		return 0;
+		return;
 
 	if (!object->IsLocal())
 		object->Unregister();
-
-	return 0;
 }
 
 EXPORT_COMPONENT(configrpc, ConfigRpcComponent);

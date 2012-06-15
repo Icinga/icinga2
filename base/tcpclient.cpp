@@ -30,8 +30,8 @@ TcpClient::TcpClient(TcpClientRole role)
 {
 	m_Role = role;
 
-	m_SendQueue = make_shared<FIFO>();
-	m_RecvQueue = make_shared<FIFO>();
+	m_SendQueue = boost::make_shared<FIFO>();
+	m_RecvQueue = boost::make_shared<FIFO>();
 }
 
 /**
@@ -51,8 +51,8 @@ void TcpClient::Start(void)
 {
 	TcpSocket::Start();
 
-	OnReadable.connect(bind(&TcpClient::ReadableEventHandler, this, _1));
-	OnWritable.connect(bind(&TcpClient::WritableEventHandler, this, _1));
+	OnReadable.connect(boost::bind(&TcpClient::ReadableEventHandler, this, _1));
+	OnWritable.connect(boost::bind(&TcpClient::WritableEventHandler, this, _1));
 }
 
 /**
@@ -138,9 +138,8 @@ FIFO::Ptr TcpClient::GetRecvQueue(void)
  * Processes data that is available for this socket.
  *
  * @param - Event arguments.
- * @returns 0
  */
-int TcpClient::ReadableEventHandler(const EventArgs&)
+void TcpClient::ReadableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -153,11 +152,11 @@ int TcpClient::ReadableEventHandler(const EventArgs&)
 #else /* _WIN32 */
 	if (rc < 0 && errno == EAGAIN)
 #endif /* _WIN32 */
-		return 0;
+		return;
 
 	if (rc <= 0) {
 		HandleSocketError(SocketException("recv() failed", GetError()));
-		return 0;
+		return;
 	}
 
 	m_RecvQueue->Write(NULL, rc);
@@ -165,17 +164,14 @@ int TcpClient::ReadableEventHandler(const EventArgs&)
 	EventArgs dea;
 	dea.Source = shared_from_this();
 	OnDataAvailable(dea);
-
-	return 0;
 }
 
 /**
  * Processes data that can be written for this socket.
  *
  * @param - Event arguments.
- * @returns 0
  */
-int TcpClient::WritableEventHandler(const EventArgs&)
+void TcpClient::WritableEventHandler(const EventArgs&)
 {
 	int rc;
 
@@ -183,12 +179,10 @@ int TcpClient::WritableEventHandler(const EventArgs&)
 
 	if (rc <= 0) {
 		HandleSocketError(SocketException("send() failed", GetError()));
-		return 0;
+		return;
 	}
 
 	m_SendQueue->Read(NULL, rc);
-
-	return 0;
 }
 
 /**
@@ -219,5 +213,5 @@ bool TcpClient::WantsToWrite(void) const
  */
 TcpClient::Ptr icinga::TcpClientFactory(TcpClientRole role)
 {
-	return make_shared<TcpClient>(role);
+	return boost::make_shared<TcpClient>(role);
 }

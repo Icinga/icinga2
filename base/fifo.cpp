@@ -19,6 +19,8 @@
 
 #include "i2-base.h"
 
+using std::bad_alloc;
+
 using namespace icinga;
 
 /**

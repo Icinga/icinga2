@@ -36,7 +36,7 @@ JsonRpcClient::Ptr JsonRpcEndpoint::GetClient(void)
 
 void JsonRpcEndpoint::Connect(string node, string service, shared_ptr<SSL_CTX> sslContext)
 {
-	JsonRpcClient::Ptr client = make_shared<JsonRpcClient>(RoleOutbound, sslContext);
+	JsonRpcClient::Ptr client = boost::make_shared<JsonRpcClient>(RoleOutbound, sslContext);
 	SetClient(client);
 	client->Connect(node, service);
 	client->Start();
@@ -45,10 +45,10 @@ void JsonRpcEndpoint::Connect(string node, string service, shared_ptr<SSL_CTX> s
 void JsonRpcEndpoint::SetClient(JsonRpcClient::Ptr client)
 {
 	m_Client = client;
-	client->OnNewMessage.connect(bind(&JsonRpcEndpoint::NewMessageHandler, this, _1));
-	client->OnClosed.connect(bind(&JsonRpcEndpoint::ClientClosedHandler, this, _1));
-	client->OnError.connect(bind(&JsonRpcEndpoint::ClientErrorHandler, this, _1));
-	client->OnVerifyCertificate.connect(bind(&JsonRpcEndpoint::VerifyCertificateHandler, this, _1));
+	client->OnNewMessage.connect(boost::bind(&JsonRpcEndpoint::NewMessageHandler, this, _1));
+	client->OnClosed.connect(boost::bind(&JsonRpcEndpoint::ClientClosedHandler, this, _1));
+	client->OnError.connect(boost::bind(&JsonRpcEndpoint::ClientErrorHandler, this, _1));
+	client->OnVerifyCertificate.connect(boost::bind(&JsonRpcEndpoint::VerifyCertificateHandler, this, _1));
 }
 
 bool JsonRpcEndpoint::IsLocal(void) const
@@ -80,7 +80,7 @@ void JsonRpcEndpoint::ProcessResponse(Endpoint::Ptr sender, const ResponseMessag
 	m_Client->SendMessage(message);
 }
 
-int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
+void JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 {
 	const MessagePart& message = nmea.Message;
 	Endpoint::Ptr sender = static_pointer_cast<Endpoint>(shared_from_this());
@@ -89,15 +89,15 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 		/* rather than routing the message to the right virtual
 		 * endpoint we just process it here right away. */
 		GetEndpointManager()->ProcessResponseMessage(sender, message);
-		return 0;
+		return;
 	}
 
 	string method;
 	if (!message.GetProperty("method", &method))
-		return 0;
+		return;
 
 	if (!HasPublication(method))
-		return 0;
+		return;
 
 	RequestMessage request = message;
 
@@ -106,13 +106,11 @@ int JsonRpcEndpoint::NewMessageHandler(const NewMessageEventArgs& nmea)
 		GetEndpointManager()->SendAnycastMessage(sender, request);
 	else
 		GetEndpointManager()->SendMulticastMessage(sender, request);
-
-	return 0;
 }
 
-int JsonRpcEndpoint::ClientClosedHandler(const EventArgs&)
+void JsonRpcEndpoint::ClientClosedHandler(const EventArgs&)
 {
-	Application::Log("Lost connection to endpoint: identity=" + GetIdentity());
+	Application::Log(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetIdentity());
 
 	m_PendingCalls.clear();
 
@@ -130,18 +128,17 @@ int JsonRpcEndpoint::ClientClosedHandler(const EventArgs&)
 	m_Client.reset();
 
 	// TODO: persist events, etc., for now we just disable the endpoint
-
-	return 0;
 }
 
-int JsonRpcEndpoint::ClientErrorHandler(const SocketErrorEventArgs& ea)
+void JsonRpcEndpoint::ClientErrorHandler(const SocketErrorEventArgs& ea)
 {
-	cerr << "Error occured for JSON-RPC socket: Message=" << ea.Exception.what() << endl;
+	stringstream message;
+	message << "Error occured for JSON-RPC socket: Message=" << ea.Exception.what();
 
-	return 0;
+	Application::Log(LogWarning, "jsonrpc", message.str());
 }
 
-int JsonRpcEndpoint::VerifyCertificateHandler(const VerifyCertificateEventArgs& ea)
+void JsonRpcEndpoint::VerifyCertificateHandler(const VerifyCertificateEventArgs& ea)
 {
 	if (ea.Certificate && ea.ValidCertificate) {
 		string identity = Utility::GetCertificateCN(ea.Certificate);
@@ -149,8 +146,6 @@ int JsonRpcEndpoint::VerifyCertificateHandler(const VerifyCertificateEventArgs& 
 		if (GetIdentity().empty() && !identity.empty())
 			SetIdentity(identity);
 	}
-
-	return 0;
 }
 
 void JsonRpcEndpoint::Stop(void)

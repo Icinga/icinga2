@@ -39,7 +39,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 	switch (m_Operator) {
 		case OperatorSet:
 			if (exprl) {
-				Dictionary::Ptr dict = make_shared<Dictionary>();
+				Dictionary::Ptr dict = boost::make_shared<Dictionary>();
 				exprl->Execute(dict);
 				newValue = dict;
 			}
@@ -61,7 +61,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 						throw domain_error(message.str());
 					}
 
-					dict = make_shared<Dictionary>();
+					dict = boost::make_shared<Dictionary>();
 				}
 
 				exprl->Execute(dict);

@@ -34,7 +34,7 @@ void JsonRpcClient::Start(void)
 {
 	TlsClient::Start();
 
-	OnDataAvailable.connect(bind(&JsonRpcClient::DataAvailableHandler, this, _1));
+	OnDataAvailable.connect(boost::bind(&JsonRpcClient::DataAvailableHandler, this, _1));
 }
 
 /**
@@ -53,7 +53,7 @@ void JsonRpcClient::SendMessage(const MessagePart& message)
  * @param - Event arguments for the event.
  * @returns 0
  */
-int JsonRpcClient::DataAvailableHandler(const EventArgs&)
+void JsonRpcClient::DataAvailableHandler(const EventArgs&)
 {
 	for (;;) {
 		try {
@@ -61,7 +61,7 @@ int JsonRpcClient::DataAvailableHandler(const EventArgs&)
 			MessagePart message;
 
 			if (!Netstring::ReadStringFromFIFO(GetRecvQueue(), &jsonString))
-				break;
+				return;
 
 			message = MessagePart(jsonString);
 
@@ -70,14 +70,12 @@ int JsonRpcClient::DataAvailableHandler(const EventArgs&)
 			nea.Message = message;
 			OnNewMessage(nea);
 		} catch (const Exception& ex) {
-			Application::Log("Exception while processing message from JSON-RPC client: " + string(ex.GetMessage()));
+			Application::Log(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + string(ex.GetMessage()));
 			Close();
 
-			return 0;
+			return;
 		}
 	}
-
-	return 0;
 }
 
 /**
@@ -89,5 +87,5 @@ int JsonRpcClient::DataAvailableHandler(const EventArgs&)
  */
 JsonRpcClient::Ptr icinga::JsonRpcClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
 {
-	return make_shared<JsonRpcClient>(role, sslContext);
+	return boost::make_shared<JsonRpcClient>(role, sslContext);
 }

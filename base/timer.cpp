@@ -100,9 +100,8 @@ void Timer::CallExpiredTimers(void)
  */
 void Timer::Call(void)
 {
-	TimerEventArgs tea;
+	EventArgs tea;
 	tea.Source = shared_from_this();
-	tea.UserArgs = m_UserArgs;
 	OnTimerExpired(tea);
 }
 
@@ -111,7 +110,7 @@ void Timer::Call(void)
  *
  * @param interval The new interval.
  */
-void Timer::SetInterval(unsigned int interval)
+void Timer::SetInterval(time_t interval)
 {
 	m_Interval = interval;
 }
@@ -121,29 +120,9 @@ void Timer::SetInterval(unsigned int interval)
  *
  * @returns The interval.
  */
-unsigned int Timer::GetInterval(void) const
+time_t Timer::GetInterval(void) const
 {
 	return m_Interval;
-}
-
-/**
- * Sets user arguments for the timer callback.
- *
- * @param userArgs The user arguments.
- */
-void Timer::SetUserArgs(const EventArgs& userArgs)
-{
-	m_UserArgs = userArgs;
-}
-
-/**
- * Retrieves the user arguments for the timer callback.
- *
- * @returns The user arguments.
- */
-EventArgs Timer::GetUserArgs(void) const
-{
-	return m_UserArgs;
 }
 
 /**

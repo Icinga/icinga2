@@ -19,6 +19,8 @@
 
 #include "i2-dyn.h"
 
+using std::ifstream;
+
 using namespace icinga;
 
 ConfigCompiler::ConfigCompiler(istream *input)
@@ -35,7 +37,7 @@ ConfigCompiler::~ConfigCompiler(void)
 size_t ConfigCompiler::ReadInput(char *buffer, size_t max_size)
 {
 	m_Input->read(buffer, max_size);
-	return m_Input->gcount();
+	return static_cast<size_t>(m_Input->gcount());
 }
 
 void *ConfigCompiler::GetScanner(void) const

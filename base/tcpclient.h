@@ -69,8 +69,8 @@ private:
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
 
-	virtual int ReadableEventHandler(const EventArgs& ea);
-	virtual int WritableEventHandler(const EventArgs& ea);
+	virtual void ReadableEventHandler(const EventArgs& ea);
+	virtual void WritableEventHandler(const EventArgs& ea);
 };
 
 /**

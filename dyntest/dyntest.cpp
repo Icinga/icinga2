@@ -1,6 +1,9 @@
 #include <i2-dyn.h>
 //#include <i2-jsonrpc.h>
 
+using std::cout;
+using std::endl;
+
 using namespace icinga;
 
 int main(int argc, char **argv)

@@ -90,6 +90,9 @@ string Win32Exception::FormatErrorCode(int code)
 	if (rc != 0) {
 		result = string(message);
 		LocalFree(message);
+
+		/* remove trailing new-line characters */
+		boost::algorithm::trim_right(result);
 	}
 
 	return result;

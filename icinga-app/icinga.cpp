@@ -38,6 +38,6 @@ int main(int argc, char **argv)
 	LTDL_SET_PRELOADED_SYMBOLS();
 #endif /* _WIN32 */
 
-	IcingaApplication::Ptr instance = make_shared<IcingaApplication>();
+	IcingaApplication::Ptr instance = boost::make_shared<IcingaApplication>();
 	return instance->Run(argc, argv);
 }
