@@ -353,6 +353,7 @@ string Application::GetExeDirectory(void) const
 	if (getcwd(Cwd, sizeof(Cwd)) == NULL)
 		throw PosixException("getcwd failed", errno);
 
+	// TODO:: C++ify this.
 	if (argv0[0] != '/')
 		snprintf(FullExePath, sizeof(FullExePath), "%s/%s", Cwd, argv0);
 	else
@@ -365,7 +366,7 @@ string Application::GetExeDirectory(void) const
 			PathEnv = strdup(PathEnv);
 
 			if (PathEnv == NULL)
-				throw bad_alloc();
+				throw runtime_error("strdup failed");
 
 			FoundPath = false;
 
