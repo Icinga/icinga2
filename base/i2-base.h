@@ -113,6 +113,7 @@ using std::domain_error;
 #include <boost/function.hpp>
 #include <boost/signal.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;

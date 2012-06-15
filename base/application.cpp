@@ -338,69 +338,56 @@ void Application::Log(LogSeverity severity, string facility, string message)
  */
 string Application::GetExeDirectory(void) const
 {
-	static string ExePath;
+	static string result;
 
-	if (ExePath.length() != 0)
-		return ExePath;
+	if (!result.empty())
+		return result;
 
 #ifndef _WIN32
-	char Cwd[MAXPATHLEN];
-	char *PathEnv, *Directory, PathTest[MAXPATHLEN], FullExePath[MAXPATHLEN];
-	bool FoundPath;
+	string argv0 = m_Arguments[0];
 
-	const char *argv0 = m_Arguments[0].c_str();
-
-	if (getcwd(Cwd, sizeof(Cwd)) == NULL)
+	char buffer[MAXPATHLEN];
+	if (getcwd(buffer, sizeof(buffer)) == NULL)
 		throw PosixException("getcwd failed", errno);
+	string workingDirectory = buffer;
 
-	// TODO:: C++ify this.
 	if (argv0[0] != '/')
-		snprintf(FullExePath, sizeof(FullExePath), "%s/%s", Cwd, argv0);
+		result = workingDirectory + "/" + argv0;
 	else
-		strncpy(FullExePath, argv0, sizeof(FullExePath));
+		result = argv0;
 
-	if (strchr(argv0, '/') == NULL) {
-		PathEnv = getenv("PATH");
+	if (argv0.find_first_of('/') == string::npos) {
+		const char *pathEnv = getenv("PATH");
+		if (pathEnv != NULL) {
+			vector<string> paths;
+			boost::algorithm::split(paths, pathEnv, boost::is_any_of(":"));
 
-		if (PathEnv != NULL) {
-			PathEnv = strdup(PathEnv);
+			bool foundPath = false;
+			for (vector<string>::iterator it = paths.begin(); it != paths.end(); it++) {
+				string pathTest = *it + "/" + argv0;
 
-			if (PathEnv == NULL)
-				throw runtime_error("strdup failed");
-
-			FoundPath = false;
-
-			for (Directory = strtok(PathEnv, ":"); Directory != NULL; Directory = strtok(NULL, ":")) {
-				if (snprintf(PathTest, sizeof(PathTest), "%s/%s", Directory, argv0) < 0)
-					throw PosixException("snprintf failed", errno);
-
-				if (access(PathTest, X_OK) == 0) {
-					strncpy(FullExePath, PathTest, sizeof(FullExePath));
-
-					FoundPath = true;
-
+				if (access(pathTest.c_str(), X_OK) == 0) {
+					result = pathTest;
+					foundPath = true;
 					break;
 				}
 			}
 
-			free(PathEnv);
-
-			if (!FoundPath)
+			if (!foundPath) {
+				result.clear();
 				throw runtime_error("Could not determine executable path.");
+			}
 		}
 	}
 
-	char Buf[PATH_MAX];
-	if (realpath(FullExePath, Buf) == NULL)
+	if (realpath(result.c_str(), buffer) == NULL)
 		throw PosixException("realpath failed", errno);
 
-	// remove filename
-	char *LastSlash = strrchr(Buf, '/');
+	result = buffer;
 
-	if (LastSlash != NULL)
-		*LastSlash = '\0';
-
-	ExePath = string(Buf);
+	size_t pos = result.find_last_of('/');
+	if (pos != string::npos)
+		result.erase(pos);
 #else /* _WIN32 */
 	char FullExePath[MAXPATHLEN];
 
@@ -408,10 +395,10 @@ string Application::GetExeDirectory(void) const
 
 	PathRemoveFileSpec(FullExePath);
 
-	ExePath = string(FullExePath);
+	result = FullExePath;
 #endif /* _WIN32 */
 
-	return ExePath;
+	return result;
 }
 
 /**
