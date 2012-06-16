@@ -24,18 +24,6 @@ namespace icinga
 {
 
 /**
- * Event arguments for the "new endpoint registered" event.
- *
- * @ingroup icinga
- */
-struct I2_ICINGA_API NewEndpointEventArgs : public EventArgs
-{
-	icinga::Endpoint::Ptr Endpoint; /**< The new endpoint. */
-};
-
-struct NewResponseEventArgs;
-
-/**
  * Information about a pending API request.
  *
  * @ingroup icinga
@@ -44,25 +32,12 @@ struct I2_ICINGA_API PendingRequest
 {
 	time_t Timeout;
 	RequestMessage Request;
-	function<void(const NewResponseEventArgs&)> Callback;
+	function<void(const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> Callback;
 
 	bool HasTimedOut(void) const
 	{
 		return time(NULL) > Timeout;
 	}
-};
-
-/**
- * Event arguments for the "new response" event.
- *
- * @ingroup icinga
- */
-struct I2_ICINGA_API NewResponseEventArgs : public EventArgs
-{
-	Endpoint::Ptr Sender;
-	RequestMessage Request;
-	ResponseMessage Response;
-	bool TimedOut;
 };
 
 /**
@@ -97,15 +72,15 @@ public:
 	void SendMulticastMessage(Endpoint::Ptr sender, const RequestMessage& message);
 
 	void SendAPIMessage(Endpoint::Ptr sender, RequestMessage& message,
-	    function<void(const NewResponseEventArgs&)> callback, time_t timeout = 10);
+	    function<void(const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout = 10);
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
-	void ForEachEndpoint(function<void (const NewEndpointEventArgs&)> callback);
+	void ForEachEndpoint(function<void (const Object::Ptr&, const Endpoint::Ptr&)> callback);
 
 	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
 
-	boost::signal<void (const NewEndpointEventArgs&)> OnNewEndpoint;
+	boost::signal<void (const Object::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
 
 private:
 	string m_Identity;
@@ -125,7 +100,7 @@ private:
 	void RescheduleRequestTimer(void);
 	void RequestTimerHandler(void);
 
-	void NewClientHandler(const NewClientEventArgs& ncea);
+	void NewClientHandler(const TcpClient::Ptr& client);
 };
 
 }

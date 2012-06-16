@@ -23,19 +23,6 @@
 namespace icinga {
 
 /**
- * Event arguments for socket errors.
- *
- * @ingroup base
- */
-struct I2_BASE_API SocketErrorEventArgs : public EventArgs
-{
-	const std::exception& Exception;
-
-	SocketErrorEventArgs(const std::exception& ex)
-	    : Exception(ex) { }
-};
-
-/**
  * Base class for sockets.
  *
  * @ingroup base
@@ -55,12 +42,12 @@ public:
 	void SetFD(SOCKET fd);
 	SOCKET GetFD(void) const;
 
-	boost::signal<void (const EventArgs&)> OnReadable;
-	boost::signal<void (const EventArgs&)> OnWritable;
-	boost::signal<void (const EventArgs&)> OnException;
+	boost::signal<void (const Object::Ptr&)> OnReadable;
+	boost::signal<void (const Object::Ptr&)> OnWritable;
+	boost::signal<void (const Object::Ptr&)> OnException;
 
-	boost::signal<void (const SocketErrorEventArgs&)> OnError;
-	boost::signal<void (const EventArgs&)> OnClosed;
+	boost::signal<void (const Object::Ptr&, const std::exception&)> OnError;
+	boost::signal<void (const Object::Ptr&)> OnClosed;
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
@@ -85,7 +72,7 @@ protected:
 private:
 	SOCKET m_FD; /**< The socket descriptor. */
 
-	void ExceptionEventHandler(const EventArgs& ea);
+	void ExceptionEventHandler(void);
 
 	static string GetAddressFromSockaddr(sockaddr *address, socklen_t len);
 };

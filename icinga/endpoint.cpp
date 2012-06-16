@@ -48,10 +48,7 @@ string Endpoint::GetIdentity(void) const
 void Endpoint::SetIdentity(string identity)
 {
 	m_Identity = identity;
-
-	EventArgs ea;
-	ea.Source = shared_from_this();
-	OnIdentityChanged(ea);
+	OnIdentityChanged(shared_from_this());
 }
 
 /**

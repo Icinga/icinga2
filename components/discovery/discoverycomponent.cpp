@@ -40,17 +40,17 @@ void DiscoveryComponent::Start(void)
 
 	m_DiscoveryEndpoint->RegisterPublication("discovery::RegisterComponent");
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::RegisterComponent",
-		boost::bind(&DiscoveryComponent::RegisterComponentMessageHandler, this, _1));
+		boost::bind(&DiscoveryComponent::RegisterComponentMessageHandler, this, _2, _3));
 
 	m_DiscoveryEndpoint->RegisterPublication("discovery::NewComponent");
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::NewComponent",
-		boost::bind(&DiscoveryComponent::NewComponentMessageHandler, this, _1));
+		boost::bind(&DiscoveryComponent::NewComponentMessageHandler, this, _3));
 
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::Welcome",
-		boost::bind(&DiscoveryComponent::WelcomeMessageHandler, this, _1));
+		boost::bind(&DiscoveryComponent::WelcomeMessageHandler, this, _2, _3));
 
-	GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _1));
-	GetEndpointManager()->OnNewEndpoint.connect(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _1));
+	GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _2));
+	GetEndpointManager()->OnNewEndpoint.connect(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _2));
 
 	GetEndpointManager()->RegisterEndpoint(m_DiscoveryEndpoint);
 
@@ -79,40 +79,39 @@ void DiscoveryComponent::Stop(void)
  * Checks whether the specified endpoint is already connected
  * and disconnects older endpoints.
  *
- * @param endpoint The endpoint that is to be checked.
- * @param neea Event arguments for another endpoint.
+ * @param self The endpoint that is to be checked.
+ * @param other The other endpoint.
  */
-void DiscoveryComponent::CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea)
+void DiscoveryComponent::CheckExistingEndpoint(const Endpoint::Ptr& self, const Endpoint::Ptr& other)
 {
-	if (endpoint == neea.Endpoint)
+	if (self == other)
 		return;
 
-	if (!neea.Endpoint->IsConnected())
+	if (!other->IsConnected())
 		return;
 
-	if (endpoint->GetIdentity() == neea.Endpoint->GetIdentity()) {
-		Application::Log(LogWarning, "discovery", "Detected duplicate identity:" + endpoint->GetIdentity() + " - Disconnecting old endpoint.");
+	if (self->GetIdentity() == other->GetIdentity()) {
+		Application::Log(LogWarning, "discovery", "Detected duplicate identity:" + other->GetIdentity() + " - Disconnecting old endpoint.");
 
-		neea.Endpoint->Stop();
-		GetEndpointManager()->UnregisterEndpoint(neea.Endpoint);
+		other->Stop();
+		GetEndpointManager()->UnregisterEndpoint(other);
 	}
 }
 
 /**
  * Registers handlers for new endpoints.
  *
- * @param neea Event arguments for the new endpoint.
- * @returns 0
+ * @param endpoint The endpoint.
  */
-void DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
+void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 {
-	neea.Endpoint->OnIdentityChanged.connect(boost::bind(&DiscoveryComponent::NewIdentityHandler, this, _1));
+	endpoint->OnIdentityChanged.connect(boost::bind(&DiscoveryComponent::NewIdentityHandler, this, _1));
 
 	/* accept discovery::RegisterComponent messages from any endpoint */
-	neea.Endpoint->RegisterPublication("discovery::RegisterComponent");
+	endpoint->RegisterPublication("discovery::RegisterComponent");
 
 	/* accept discovery::Welcome messages from any endpoint */
-	neea.Endpoint->RegisterPublication("discovery::Welcome");
+	endpoint->RegisterPublication("discovery::Welcome");
 }
 
 /**
@@ -122,17 +121,15 @@ void DiscoveryComponent::NewEndpointHandler(const NewEndpointEventArgs& neea)
  * @param info Component information object.
  * @return 0
  */
-void DiscoveryComponent::DiscoveryEndpointHandler(const NewEndpointEventArgs& neea, ComponentDiscoveryInfo::Ptr info) const
+void DiscoveryComponent::DiscoveryEndpointHandler(const Endpoint::Ptr& endpoint, const ComponentDiscoveryInfo::Ptr& info) const
 {
 	Endpoint::ConstTopicIterator i;
 
-	for (i = neea.Endpoint->BeginSubscriptions(); i != neea.Endpoint->EndSubscriptions(); i++) {
+	for (i = endpoint->BeginSubscriptions(); i != endpoint->EndSubscriptions(); i++)
 		info->Subscriptions.insert(*i);
-	}
 
-	for (i = neea.Endpoint->BeginPublications(); i != neea.Endpoint->EndPublications(); i++) {
+	for (i = endpoint->BeginPublications(); i != endpoint->EndPublications(); i++)
 		info->Publications.insert(*i);
-	}
 }
 
 /**
@@ -147,7 +144,7 @@ bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDi
 	if (component == GetEndpointManager()->GetIdentity()) {
 		/* Build fake discovery info for ourselves */
 		*info = boost::make_shared<ComponentDiscoveryInfo>();
-		GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::DiscoveryEndpointHandler, this, _1, *info));
+		GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::DiscoveryEndpointHandler, this, _2, *info));
 		
 		(*info)->LastSeen = 0;
 		(*info)->Node = GetIcingaApplication()->GetNode();
@@ -173,9 +170,9 @@ bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDi
  * @param ea Event arguments for the component.
  * @returns 0
  */
-void DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
+void DiscoveryComponent::NewIdentityHandler(const Object::Ptr& source)
 {
-	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(ea.Source);
+	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(source);
 	string identity = endpoint->GetIdentity();
 
 	if (identity == GetEndpointManager()->GetIdentity()) {
@@ -187,7 +184,7 @@ void DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
 		return;
 	}
 
-	GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _1));
+	GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _2));
 
 	// we assume the other component _always_ wants
 	// discovery::RegisterComponent messages from us
@@ -241,20 +238,15 @@ void DiscoveryComponent::NewIdentityHandler(const EventArgs& ea)
  * @param nrea Event arguments for the request.
  * @returns 0
  */
-void DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
+void DiscoveryComponent::WelcomeMessageHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	Endpoint::Ptr endpoint = nrea.Sender;
-
-	if (endpoint->HasReceivedWelcome())
+	if (sender->HasReceivedWelcome())
 		return;
 
-	endpoint->SetReceivedWelcome(true);
+	sender->SetReceivedWelcome(true);
 
-	if (endpoint->HasSentWelcome()) {
-		EventArgs ea;
-		ea.Source = endpoint;
-		endpoint->OnSessionEstablished(ea);
-	}
+	if (sender->HasSentWelcome())
+		sender->OnSessionEstablished(sender);
 }
 
 /**
@@ -264,7 +256,7 @@ void DiscoveryComponent::WelcomeMessageHandler(const NewRequestEventArgs& nrea)
  *
  * @param endpoint The endpoint to set up.
  */
-void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
+void DiscoveryComponent::FinishDiscoverySetup(const Endpoint::Ptr& endpoint)
 {
 	if (endpoint->HasSentWelcome())
 		return;
@@ -278,11 +270,8 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
 
 	endpoint->SetSentWelcome(true);
 
-	if (endpoint->HasReceivedWelcome()) {
-		EventArgs ea;
-		ea.Source = endpoint;
-		endpoint->OnSessionEstablished(ea);
-	}
+	if (endpoint->HasReceivedWelcome())
+		endpoint->OnSessionEstablished(endpoint);
 }
 
 /**
@@ -293,7 +282,7 @@ void DiscoveryComponent::FinishDiscoverySetup(Endpoint::Ptr endpoint)
  * @param identity The identity of the component for which a message should be sent.
  * @param recipient The recipient of the message. A multicast message is sent if this parameter is empty.
  */
-void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, Endpoint::Ptr recipient)
+void DiscoveryComponent::SendDiscoveryMessage(const string& method, const string& identity, const Endpoint::Ptr& recipient)
 {
 	RequestMessage request;
 	request.SetMethod(method);
@@ -332,7 +321,7 @@ void DiscoveryComponent::SendDiscoveryMessage(string method, string identity, En
 		GetEndpointManager()->SendMulticastMessage(m_DiscoveryEndpoint, request);
 }
 
-bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string messageType, string message)
+bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, const string& messageType, const string& message)
 {
 	if (!roles)
 		return false;
@@ -367,7 +356,7 @@ bool DiscoveryComponent::HasMessagePermission(Dictionary::Ptr roles, string mess
  * @param message The discovery message.
  * @param trusted Whether the message comes from a trusted source (i.e. a broker).
  */
-void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessage message, bool trusted)
+void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const DiscoveryMessage& message, bool trusted)
 {
 	/* ignore discovery messages that are about ourselves */
 	if (identity == GetEndpointManager()->GetIdentity())
@@ -438,10 +427,10 @@ void DiscoveryComponent::ProcessDiscoveryMessage(string identity, DiscoveryMessa
  *
  * @param nrea Event arguments for the request.
  */
-void DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& nrea)
+void DiscoveryComponent::NewComponentMessageHandler(const RequestMessage& request)
 {
 	DiscoveryMessage message;
-	nrea.Request.GetParams(&message);
+	request.GetParams(&message);
 
 	string identity;
 	if (!message.GetIdentity(&identity))
@@ -455,11 +444,11 @@ void DiscoveryComponent::NewComponentMessageHandler(const NewRequestEventArgs& n
  *
  * @param nrea Event arguments for the request.
  */
-void DiscoveryComponent::RegisterComponentMessageHandler(const NewRequestEventArgs& nrea)
+void DiscoveryComponent::RegisterComponentMessageHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
 	DiscoveryMessage message;
-	nrea.Request.GetParams(&message);
-	ProcessDiscoveryMessage(nrea.Sender->GetIdentity(), message, false);
+	request.GetParams(&message);
+	ProcessDiscoveryMessage(sender->GetIdentity(), message, false);
 }
 
 /**

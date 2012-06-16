@@ -79,8 +79,8 @@ public:
 	ConstTopicIterator BeginPublications(void) const;
 	ConstTopicIterator EndPublications(void) const;
 
-	boost::signal<void (const EventArgs&)> OnIdentityChanged;
-	boost::signal<void (const EventArgs&)> OnSessionEstablished;
+	boost::signal<void (const Object::Ptr&)> OnIdentityChanged;
+	boost::signal<void (const Object::Ptr&)> OnSessionEstablished;
 
 private:
 	string m_Identity; /**< The identity of this endpoint. */

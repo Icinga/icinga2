@@ -56,7 +56,7 @@ void TcpServer::Start(void)
 {
 	TcpSocket::Start();
 
-	OnReadable.connect(boost::bind(&TcpServer::ReadableEventHandler, this, _1));
+	OnReadable.connect(boost::bind(&TcpServer::ReadableEventHandler, this));
 }
 
 /**
@@ -64,9 +64,7 @@ void TcpServer::Start(void)
  */
 void TcpServer::Listen(void)
 {
-	int rc = listen(GetFD(), SOMAXCONN);
-
-	if (rc < 0) {
+	if (listen(GetFD(), SOMAXCONN) < 0) {
 		HandleSocketError(SocketException(
 		    "listen() failed", GetError()));
 		return;
@@ -76,11 +74,8 @@ void TcpServer::Listen(void)
 /**
  * Accepts a new client and creates a new client object for it
  * using the client factory function.
- *
- * @param - Event arguments.
- * @returns 0
  */
-int TcpServer::ReadableEventHandler(const EventArgs&)
+void TcpServer::ReadableEventHandler(void)
 {
 	int fd;
 	sockaddr_storage addr;
@@ -91,17 +86,14 @@ int TcpServer::ReadableEventHandler(const EventArgs&)
 	if (fd < 0) {
 		HandleSocketError(SocketException(
 		    "accept() failed", GetError()));
-		return 0;
+		return;
 	}
 
-	NewClientEventArgs nea;
-	nea.Source = shared_from_this();
-	nea.Client = static_pointer_cast<TcpSocket>(m_ClientFactory());
-	nea.Client->SetFD(fd);
-	nea.Client->Start();
-	OnNewClient(nea);
+	TcpClient::Ptr client = m_ClientFactory();
+	client->SetFD(fd);
+	client->Start();
 
-	return 0;
+	OnNewClient(shared_from_this(), client);
 }
 
 /**

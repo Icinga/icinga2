@@ -82,12 +82,12 @@ bool Netstring::ReadStringFromFIFO(FIFO::Ptr fifo, string *str)
  */
 void Netstring::WriteStringToFIFO(FIFO::Ptr fifo, const string& str)
 {
-	unsigned long len = str.size();
-	char strLength[50];
-	sprintf(strLength, "%lu:", (unsigned long)len);
+	stringstream prefixbuf;
+	prefixbuf << str.size() << ":";
 
-	fifo->Write(strLength, strlen(strLength));
-	fifo->Write(str.c_str(), len);
+	string prefix = prefixbuf.str();
+	fifo->Write(prefix.c_str(), prefix.size());
+	fifo->Write(str.c_str(), str.size());
 
 	fifo->Write(",", 1);
 }

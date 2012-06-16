@@ -51,8 +51,8 @@ void TcpClient::Start(void)
 {
 	TcpSocket::Start();
 
-	OnReadable.connect(boost::bind(&TcpClient::ReadableEventHandler, this, _1));
-	OnWritable.connect(boost::bind(&TcpClient::WritableEventHandler, this, _1));
+	OnReadable.connect(boost::bind(&TcpClient::ReadableEventHandler, this));
+	OnWritable.connect(boost::bind(&TcpClient::WritableEventHandler, this));
 }
 
 /**
@@ -136,10 +136,8 @@ FIFO::Ptr TcpClient::GetRecvQueue(void)
 
 /**
  * Processes data that is available for this socket.
- *
- * @param - Event arguments.
  */
-void TcpClient::ReadableEventHandler(const EventArgs&)
+void TcpClient::ReadableEventHandler(void)
 {
 	int rc;
 
@@ -161,17 +159,13 @@ void TcpClient::ReadableEventHandler(const EventArgs&)
 
 	m_RecvQueue->Write(NULL, rc);
 
-	EventArgs dea;
-	dea.Source = shared_from_this();
-	OnDataAvailable(dea);
+	OnDataAvailable(shared_from_this());
 }
 
 /**
  * Processes data that can be written for this socket.
- *
- * @param - Event arguments.
  */
-void TcpClient::WritableEventHandler(const EventArgs&)
+void TcpClient::WritableEventHandler(void)
 {
 	int rc;
 

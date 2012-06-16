@@ -36,7 +36,6 @@
     <ClInclude Include="component.h" />
     <ClInclude Include="configobject.h" />
     <ClInclude Include="dictionary.h" />
-    <ClInclude Include="eventargs.h" />
     <ClInclude Include="objectmap.h" />
     <ClInclude Include="objectset.h" />
     <ClInclude Include="exception.h" />

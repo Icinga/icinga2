@@ -56,27 +56,27 @@ private:
 	map<string, ComponentDiscoveryInfo::Ptr> m_Components;
 	Timer::Ptr m_DiscoveryTimer;
 
-	void NewEndpointHandler(const NewEndpointEventArgs& neea);
-	void NewIdentityHandler(const EventArgs& ea);
+	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
+	void NewIdentityHandler(const Object::Ptr& source);
 
-	void NewComponentMessageHandler(const NewRequestEventArgs& nrea);
-	void RegisterComponentMessageHandler(const NewRequestEventArgs& nrea);
+	void NewComponentMessageHandler(const RequestMessage& request);
+	void RegisterComponentMessageHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 
-	void WelcomeMessageHandler(const NewRequestEventArgs& nrea);
+	void WelcomeMessageHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 
-	void SendDiscoveryMessage(string method, string identity, Endpoint::Ptr recipient);
-	void ProcessDiscoveryMessage(string identity, DiscoveryMessage message, bool trusted);
+	void SendDiscoveryMessage(const string& method, const string& identity, const Endpoint::Ptr& recipient);
+	void ProcessDiscoveryMessage(const string& identity, const DiscoveryMessage& message, bool trusted);
 
 	bool GetComponentDiscoveryInfo(string component, ComponentDiscoveryInfo::Ptr *info) const;
 
-	void CheckExistingEndpoint(Endpoint::Ptr endpoint, const NewEndpointEventArgs& neea);
-	void DiscoveryEndpointHandler(const NewEndpointEventArgs& neea, ComponentDiscoveryInfo::Ptr info) const;
+	void CheckExistingEndpoint(const Endpoint::Ptr& self, const Endpoint::Ptr& other);
+	void DiscoveryEndpointHandler(const Endpoint::Ptr& endpoint, const ComponentDiscoveryInfo::Ptr& info) const;
 
 	void DiscoveryTimerHandler(void);
 
-	void FinishDiscoverySetup(Endpoint::Ptr endpoint);
+	void FinishDiscoverySetup(const Endpoint::Ptr& endpoint);
 
-	bool HasMessagePermission(Dictionary::Ptr roles, string messageType, string message);
+	bool HasMessagePermission(const Dictionary::Ptr& roles, const string& messageType, const string& message);
 
 	static const int RegistrationTTL = 300;
 };

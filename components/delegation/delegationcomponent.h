@@ -38,11 +38,11 @@ private:
 	ConfigObject::Set::Ptr m_AllServices;
 	Timer::Ptr m_DelegationTimer;
 
-	void NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
-	void RemovedServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
+	void NewServiceHandler(const ConfigObject::Ptr& object);
+	void RemovedServiceHandler(const ConfigObject::Ptr& object);
 
-	void AssignServiceResponseHandler(const ConfigObject::Ptr& service, const NewResponseEventArgs& nrea);
-	void RevokeServiceResponseHandler(const NewResponseEventArgs& nrea);
+	void AssignServiceResponseHandler(const ConfigObject::Ptr& service, const Endpoint::Ptr& sender, bool timedOut);
+	void RevokeServiceResponseHandler(const ConfigObject::Ptr& service, const Endpoint::Ptr& sender, bool timedOut);
 
 	void DelegationTimerHandler(void);
 

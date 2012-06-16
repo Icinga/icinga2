@@ -145,7 +145,6 @@ using boost::function;
 #include "exception.h"
 #include "memory.h"
 #include "variant.h"
-#include "eventargs.h"
 #include "dictionary.h"
 #include "timer.h"
 #include "fifo.h"

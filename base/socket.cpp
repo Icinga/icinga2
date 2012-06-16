@@ -50,7 +50,7 @@ void Socket::Start(void)
 {
 	assert(m_FD != INVALID_SOCKET);
 
-	OnException.connect(boost::bind(&Socket::ExceptionEventHandler, this, _1));
+	OnException.connect(boost::bind(&Socket::ExceptionEventHandler, this));
 
 	Sockets.push_back(static_pointer_cast<Socket>(shared_from_this()));
 }
@@ -125,9 +125,7 @@ void Socket::CloseInternal(bool from_dtor)
 	if (!from_dtor) {
 		Stop();
 
-		EventArgs ea;
-		ea.Source = shared_from_this();
-		OnClosed(ea);
+		OnClosed(shared_from_this());
 	}
 }
 
@@ -172,8 +170,7 @@ int Socket::GetLastSocketError(void)
 void Socket::HandleSocketError(const std::exception& ex)
 {
 	if (!OnError.empty()) {
-		SocketErrorEventArgs sea(ex);
-		OnError(sea);
+		OnError(shared_from_this(), ex);
 
 		Close();
 	} else {
@@ -186,7 +183,7 @@ void Socket::HandleSocketError(const std::exception& ex)
  *
  * @param - Event arguments for the socket error.
  */
-void Socket::ExceptionEventHandler(const EventArgs&)
+void Socket::ExceptionEventHandler(void)
 {
 	HandleSocketError(SocketException(
 	    "select() returned fd in except fdset", GetError()));

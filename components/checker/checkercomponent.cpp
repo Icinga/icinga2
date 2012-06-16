@@ -30,11 +30,11 @@ void CheckerComponent::Start(void)
 {
 	m_CheckerEndpoint = boost::make_shared<VirtualEndpoint>();
 	m_CheckerEndpoint->RegisterTopicHandler("checker::AssignService",
-		boost::bind(&CheckerComponent::AssignServiceRequestHandler, this, _1));
+		boost::bind(&CheckerComponent::AssignServiceRequestHandler, this, _2, _3));
 	m_CheckerEndpoint->RegisterTopicHandler("checker::RevokeService",
-		boost::bind(&CheckerComponent::RevokeServiceRequestHandler, this, _1));
+		boost::bind(&CheckerComponent::RevokeServiceRequestHandler, this, _2, _3));
 	m_CheckerEndpoint->RegisterTopicHandler("checker::ClearServices",
-		boost::bind(&CheckerComponent::ClearServicesRequestHandler, this, _1));
+		boost::bind(&CheckerComponent::ClearServicesRequestHandler, this, _2, _3));
 	m_CheckerEndpoint->RegisterPublication("checker::CheckResult");
 	GetEndpointManager()->RegisterEndpoint(m_CheckerEndpoint);
 
@@ -90,10 +90,10 @@ void CheckerComponent::CheckTimerHandler(void)
 	m_CheckTimer->SetInterval(service.GetNextCheck() - now);
 }
 
-void CheckerComponent::AssignServiceRequestHandler(const NewRequestEventArgs& nrea)
+void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
 	MessagePart params;
-	if (!nrea.Request.GetParams(&params))
+	if (!request.GetParams(&params))
 		return;
 
 	MessagePart serviceMsg;
@@ -110,20 +110,20 @@ void CheckerComponent::AssignServiceRequestHandler(const NewRequestEventArgs& nr
 	m_CheckTimer->Reschedule(0);
 
 	string id;
-	if (nrea.Request.GetID(&id)) {
+	if (request.GetID(&id)) {
 		ResponseMessage rm;
 		rm.SetID(id);
 
 		MessagePart result;
 		rm.SetResult(result);
-		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, nrea.Sender, rm);
+		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, sender, rm);
 	}
 }
 
-void CheckerComponent::RevokeServiceRequestHandler(const NewRequestEventArgs& nrea)
+void CheckerComponent::RevokeServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
 	MessagePart params;
-	if (!nrea.Request.GetParams(&params))
+	if (!request.GetParams(&params))
 		return;
 
 	string name;
@@ -148,29 +148,29 @@ void CheckerComponent::RevokeServiceRequestHandler(const NewRequestEventArgs& nr
 	Application::Log(LogInformation, "checker", "Revoked delegation for service '" + name + "'");
 
 	string id;
-	if (nrea.Request.GetID(&id)) {
+	if (request.GetID(&id)) {
 		ResponseMessage rm;
 		rm.SetID(id);
 
 		MessagePart result;
 		rm.SetResult(result);
-		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, nrea.Sender, rm);
+		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, sender, rm);
 	}
 }
 
-void CheckerComponent::ClearServicesRequestHandler(const NewRequestEventArgs& nrea)
+void CheckerComponent::ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
 	Application::Log(LogInformation, "checker", "Clearing service delegations.");
 	m_Services = ServiceQueue();
 
 	string id;
-	if (nrea.Request.GetID(&id)) {
+	if (request.GetID(&id)) {
 		ResponseMessage rm;
 		rm.SetID(id);
 
 		MessagePart result;
 		rm.SetResult(result);
-		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, nrea.Sender, rm);
+		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, sender, rm);
 	}
 }
 

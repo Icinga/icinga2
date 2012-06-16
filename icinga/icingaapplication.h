@@ -53,8 +53,8 @@ private:
 	string m_Node;
 	string m_Service;
 
-	void NewComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
-	void DeletedComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea);
+	void NewComponentHandler(const ConfigObject::Ptr& object);
+	void DeletedComponentHandler(const ConfigObject::Ptr& object);
 };
 
 }

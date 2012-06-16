@@ -56,10 +56,9 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	/* register handler for 'component' config objects */
 	static ConfigObject::Set::Ptr componentObjects = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("component"));
-	function<void (const ObjectSetEventArgs<ConfigObject::Ptr>&)> NewComponentHandler = boost::bind(&IcingaApplication::NewComponentHandler, this, _1);
-	componentObjects->OnObjectAdded.connect(NewComponentHandler);
-	componentObjects->OnObjectCommitted.connect(NewComponentHandler);
-	componentObjects->OnObjectRemoved.connect(boost::bind(&IcingaApplication::DeletedComponentHandler, this, _1));
+	componentObjects->OnObjectAdded.connect(boost::bind(&IcingaApplication::NewComponentHandler, this, _2));
+	componentObjects->OnObjectCommitted.connect(boost::bind(&IcingaApplication::NewComponentHandler, this, _2));
+	componentObjects->OnObjectRemoved.connect(boost::bind(&IcingaApplication::DeletedComponentHandler, this, _2));
 	componentObjects->Start();
 
 	/* load config file */
@@ -113,10 +112,8 @@ EndpointManager::Ptr IcingaApplication::GetEndpointManager(void)
 	return m_EndpointManager;
 }
 
-void IcingaApplication::NewComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
+void IcingaApplication::NewComponentHandler(const ConfigObject::Ptr& object)
 {
-	ConfigObject::Ptr object = ea.Target;
-	
 	/* don't allow replicated config objects */
 	if (!object->IsLocal())
 		throw runtime_error("'component' objects must be 'local'");
@@ -133,10 +130,8 @@ void IcingaApplication::NewComponentHandler(const ObjectSetEventArgs<ConfigObjec
 	LoadComponent(path, object);
 }
 
-void IcingaApplication::DeletedComponentHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
+void IcingaApplication::DeletedComponentHandler(const ConfigObject::Ptr& object)
 {
-	ConfigObject::Ptr object = ea.Target;
-
 	Component::Ptr component = GetComponent(object->GetName());
 	UnregisterComponent(component);
 }

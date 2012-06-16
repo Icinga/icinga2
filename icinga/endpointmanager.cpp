@@ -110,7 +110,7 @@ void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
 {
 	m_Servers.push_back(server);
 	server->OnNewClient.connect(boost::bind(&EndpointManager::NewClientHandler,
-	    this, _1));
+	    this, _2));
 }
 
 /**
@@ -118,13 +118,12 @@ void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
  *
  * @param ncea Event arguments.
  */
-void EndpointManager::NewClientHandler(const NewClientEventArgs& ncea)
+void EndpointManager::NewClientHandler(const TcpClient::Ptr& client)
 {
-	string address = ncea.Client->GetPeerAddress();
-	Application::Log(LogInformation, "icinga", "Accepted new client from " + address);
+	Application::Log(LogInformation, "icinga", "Accepted new client from " + client->GetPeerAddress());
 
 	JsonRpcEndpoint::Ptr endpoint = boost::make_shared<JsonRpcEndpoint>();
-	endpoint->SetClient(static_pointer_cast<JsonRpcClient>(ncea.Client));
+	endpoint->SetClient(static_pointer_cast<JsonRpcClient>(client));
 	RegisterEndpoint(endpoint);
 }
 
@@ -154,10 +153,7 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 	endpoint->SetEndpointManager(static_pointer_cast<EndpointManager>(shared_from_this()));
 	m_Endpoints.push_back(endpoint);
 
-	NewEndpointEventArgs neea;
-	neea.Source = shared_from_this();
-	neea.Endpoint = endpoint;
-	OnNewEndpoint(neea);
+	OnNewEndpoint(shared_from_this(), endpoint);
 }
 
 /**
@@ -257,18 +253,14 @@ void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
  *
  * @param callback The callback function.
  */
-void EndpointManager::ForEachEndpoint(function<void (const NewEndpointEventArgs&)> callback)
+void EndpointManager::ForEachEndpoint(function<void (const Object::Ptr&, const Endpoint::Ptr&)> callback)
 {
-	NewEndpointEventArgs neea;
-	neea.Source = shared_from_this();
-
 	vector<Endpoint::Ptr>::iterator prev, i;
 	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); ) {
 		prev = i;
 		i++;
 
-		neea.Endpoint = *prev;
-		callback(neea);
+		callback(shared_from_this(), *prev);
 	}
 }
 
@@ -290,7 +282,7 @@ Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
 
 void EndpointManager::SendAPIMessage(Endpoint::Ptr sender,
     RequestMessage& message,
-    function<void(const NewResponseEventArgs&)> callback, time_t timeout)
+    function<void(const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout)
 {
 	m_NextMessageID++;
 
@@ -345,12 +337,7 @@ void EndpointManager::RequestTimerHandler(void)
 	map<string, PendingRequest>::iterator it;
 	for (it = m_Requests.begin(); it != m_Requests.end(); it++) {
 		if (it->second.HasTimedOut()) {
-			NewResponseEventArgs nrea;
-			nrea.Request = it->second.Request;
-			nrea.Source = shared_from_this();
-			nrea.TimedOut = true;
-
-			it->second.Callback(nrea);
+			it->second.Callback(shared_from_this(), Endpoint::Ptr(), it->second.Request, ResponseMessage(), true);
 
 			m_Requests.erase(it);
 
@@ -373,14 +360,7 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const 
 	if (it == m_Requests.end())
 		return;
 
-	NewResponseEventArgs nrea;
-	nrea.Sender = sender;
-	nrea.Request = it->second.Request;
-	nrea.Response = message;
-	nrea.Source = shared_from_this();
-	nrea.TimedOut = false;
-
-	it->second.Callback(nrea);
+	it->second.Callback(shared_from_this(), sender, it->second.Request, message, false);
 
 	m_Requests.erase(it);
 	RescheduleRequestTimer();

@@ -38,7 +38,7 @@ private:
 	VirtualEndpoint::Ptr m_DemoEndpoint;
 
 	void DemoTimerHandler(void);
-	void HelloWorldRequestHandler(const NewRequestEventArgs& nrea);
+	void HelloWorldRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
 
 }

@@ -28,13 +28,9 @@ using namespace icinga;
  * @param sslContext SSL context for the TLS connection.
  */
 JsonRpcClient::JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
-    : TlsClient(role, sslContext) { }
-
-void JsonRpcClient::Start(void)
+	: TlsClient(role, sslContext)
 {
-	TlsClient::Start();
-
-	OnDataAvailable.connect(boost::bind(&JsonRpcClient::DataAvailableHandler, this, _1));
+	OnDataAvailable.connect(boost::bind(&JsonRpcClient::DataAvailableHandler, this));
 }
 
 /**
@@ -49,11 +45,8 @@ void JsonRpcClient::SendMessage(const MessagePart& message)
 
 /**
  * Processes inbound data.
- *
- * @param - Event arguments for the event.
- * @returns 0
  */
-void JsonRpcClient::DataAvailableHandler(const EventArgs&)
+void JsonRpcClient::DataAvailableHandler(void)
 {
 	for (;;) {
 		try {
@@ -64,11 +57,7 @@ void JsonRpcClient::DataAvailableHandler(const EventArgs&)
 				return;
 
 			message = MessagePart(jsonString);
-
-			NewMessageEventArgs nea;
-			nea.Source = shared_from_this();
-			nea.Message = message;
-			OnNewMessage(nea);
+			OnNewMessage(shared_from_this(), message);
 		} catch (const Exception& ex) {
 			Application::Log(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + string(ex.GetMessage()));
 			Close();

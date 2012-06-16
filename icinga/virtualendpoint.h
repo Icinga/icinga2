@@ -24,17 +24,6 @@ namespace icinga
 {
 
 /**
- * Event arguments for the "new request" event.
- *
- * @ingroup icinga
- */
-struct I2_ICINGA_API NewRequestEventArgs : public EventArgs
-{
-	Endpoint::Ptr Sender;
-	RequestMessage Request;
-};
-
-/**
  * A local endpoint.
  *
  * @ingroup icinga
@@ -45,8 +34,8 @@ public:
 	typedef shared_ptr<VirtualEndpoint> Ptr;
 	typedef weak_ptr<VirtualEndpoint> WeakPtr;
 
-	void RegisterTopicHandler(string topic, function<void (const NewRequestEventArgs&)> callback);
-	void UnregisterTopicHandler(string topic, function<void (const NewRequestEventArgs&)> callback);
+	void RegisterTopicHandler(string topic, function<void (const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback);
+	void UnregisterTopicHandler(string topic, function<void (const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback);
 
 	virtual string GetAddress(void) const;
 
@@ -59,7 +48,7 @@ public:
 	virtual void Stop(void);
 
 private:
-	map< string, shared_ptr<boost::signal<void (const NewRequestEventArgs&)> > > m_TopicHandlers;
+	map< string, shared_ptr<boost::signal<void (const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > > m_TopicHandlers;
 };
 
 }

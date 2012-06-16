@@ -100,9 +100,7 @@ void Timer::CallExpiredTimers(void)
  */
 void Timer::Call(void)
 {
-	EventArgs tea;
-	tea.Source = shared_from_this();
-	OnTimerExpired(tea);
+	OnTimerExpired(shared_from_this());
 }
 
 /**

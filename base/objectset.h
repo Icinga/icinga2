@@ -24,12 +24,6 @@ namespace icinga
 {
 
 template<typename TValue>
-struct ObjectSetEventArgs : public EventArgs
-{
-	TValue Target;
-};
-
-template<typename TValue>
 class ObjectSet : public Object
 {
 public:
@@ -49,25 +43,19 @@ public:
 	void Start(void)
 	{
 		if (m_Parent) {
-			m_Parent->OnObjectAdded.connect(boost::bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _1));
-			m_Parent->OnObjectCommitted.connect(boost::bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _1));
-			m_Parent->OnObjectRemoved.connect(boost::bind(&ObjectSet::ObjectRemovedHandler, this, _1));
+			m_Parent->OnObjectAdded.connect(boost::bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _2));
+			m_Parent->OnObjectCommitted.connect(boost::bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _2));
+			m_Parent->OnObjectRemoved.connect(boost::bind(&ObjectSet::ObjectRemovedHandler, this, _2));
 
 			for (ObjectSet::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
 				CheckObject(*it);
-	        }
-
-
+        }
 	}
 
 	void AddObject(const TValue& object)
 	{
 		m_Objects.insert(object);
-
-		ObjectSetEventArgs<TValue> ea;
-		ea.Source = shared_from_this();
-		ea.Target = object;
-		OnObjectAdded(ea);
+		OnObjectAdded(shared_from_this(), object);
 	}
 
 	void RemoveObject(const TValue& object)
@@ -76,11 +64,7 @@ public:
 
 		if (it != m_Objects.end()) {
 			m_Objects.erase(it);
-
-			ObjectSetEventArgs<TValue> ea;
-			ea.Source = shared_from_this();
-			ea.Target = object;
-			OnObjectRemoved(ea);
+			OnObjectRemoved(shared_from_this(), object);
 		}
 	}
 
@@ -97,17 +81,14 @@ public:
 			if (!Contains(object)) {
 				AddObject(object);
 			} else {
-				ObjectSetEventArgs<TValue> ea;
-				ea.Source = shared_from_this();
-				ea.Target = object;
-				OnObjectCommitted(ea);
+				OnObjectCommitted(shared_from_this(), object);
 			}
 		}
 	}
 
-	boost::signal<void (const ObjectSetEventArgs<TValue>&)> OnObjectAdded;
-	boost::signal<void (const ObjectSetEventArgs<TValue>&)> OnObjectCommitted;
-	boost::signal<void (const ObjectSetEventArgs<TValue>&)> OnObjectRemoved;
+	boost::signal<void (const Object::Ptr&, const TValue&)> OnObjectAdded;
+	boost::signal<void (const Object::Ptr&, const TValue&)> OnObjectCommitted;
+	boost::signal<void (const Object::Ptr&, const TValue&)> OnObjectRemoved;
 
 	Iterator Begin(void)
 	{
@@ -119,14 +100,10 @@ public:
 		return m_Objects.end();
 	}
 
-	void ForeachObject(function<void (const ObjectSetEventArgs<TValue>&)> callback)
+	void ForeachObject(function<void (const typename Object::Ptr&, const TValue&)> callback)
 	{
-		ObjectSetEventArgs<TValue> ea;
-		ea.Source = shared_from_this();
-
 		for (Iterator it = Begin(); it != End(); it++) {
-			ea.Target(*it);
-			callback(ea);
+			callback(shared_from_this(), *it);
 		}
 	}
 
@@ -136,14 +113,14 @@ private:
 	typename ObjectSet<TValue>::Ptr m_Parent;
 	function<bool (const TValue&)> m_Predicate;
 
-	void ObjectAddedOrCommittedHandler(const ObjectSetEventArgs<TValue>& ea)
+	void ObjectAddedOrCommittedHandler(const TValue& object)
 	{
-		CheckObject(ea.Target);
+		CheckObject(object);
 	}
 
-	void ObjectRemovedHandler(const ObjectSetEventArgs<TValue>& ea)
+	void ObjectRemovedHandler(const TValue& object)
 	{
-		RemoveObject(ea.Target);
+		RemoveObject(object);
 	}
 };
 

@@ -105,10 +105,8 @@ void TlsClient::Start(void)
 
 /**
  * Processes data that is available for this socket.
- *
- * @param - Event arguments.
  */
-void TlsClient::ReadableEventHandler(const EventArgs&)
+void TlsClient::ReadableEventHandler(void)
 {
 	int rc;
 
@@ -138,17 +136,13 @@ void TlsClient::ReadableEventHandler(const EventArgs&)
 
 	GetRecvQueue()->Write(NULL, rc);
 
-	EventArgs dea;
-	dea.Source = shared_from_this();
-	OnDataAvailable(dea);
+	OnDataAvailable(shared_from_this());
 }
 
 /**
  * Processes data that can be written for this socket.
- *
- * @param - Event arguments.
  */
-void TlsClient::WritableEventHandler(const EventArgs&)
+void TlsClient::WritableEventHandler(void)
 {
 	int rc;
 
@@ -248,12 +242,9 @@ int TlsClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
 	if (client == NULL)
 		return 0;
 
-	VerifyCertificateEventArgs vcea;
-	vcea.Source = client->shared_from_this();
-	vcea.ValidCertificate = (ok != 0);
-	vcea.Context = x509Context;
-	vcea.Certificate = shared_ptr<X509>(x509Context->cert, &TlsClient::NullCertificateDeleter);
-	client->OnVerifyCertificate(vcea);
+	bool valid = false;
+	shared_ptr<X509> x509Certificate = shared_ptr<X509>(x509Context->cert, &TlsClient::NullCertificateDeleter);
+	client->OnVerifyCertificate(client->shared_from_this(), valid, x509Context, x509Certificate);
 
-	return (int)vcea.ValidCertificate;
+	return valid ? 1 : 0;
 }

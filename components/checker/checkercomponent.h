@@ -54,9 +54,9 @@ private:
 
 	void CheckTimerHandler(void);
 
-	void AssignServiceRequestHandler(const NewRequestEventArgs& nrea);
-	void RevokeServiceRequestHandler(const NewRequestEventArgs& nrea);
-	void ClearServicesRequestHandler(const NewRequestEventArgs& nrea);
+	void AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	void RevokeServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	void ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
 
 }

@@ -159,9 +159,6 @@ void Application::RunEventLoop(void)
 		else if (ready == 0)
 			continue;
 
-		EventArgs ea;
-		ea.Source = shared_from_this();
-
 		for (i = Socket::Sockets.begin();
 		    i != Socket::Sockets.end(); ) {
 			Socket::Ptr socket = i->lock();
@@ -178,15 +175,15 @@ void Application::RunEventLoop(void)
 
 			fd = socket->GetFD();
 			if (fd != INVALID_SOCKET && FD_ISSET(fd, &writefds))
-				socket->OnWritable(ea);
+				socket->OnWritable(socket);
 
 			fd = socket->GetFD();
 			if (fd != INVALID_SOCKET && FD_ISSET(fd, &readfds))
-				socket->OnReadable(ea);
+				socket->OnReadable(socket);
 
 			fd = socket->GetFD();
 			if (fd != INVALID_SOCKET && FD_ISSET(fd, &exceptfds))
-				socket->OnException(ea);
+				socket->OnException(socket);
 		}
 	}
 }

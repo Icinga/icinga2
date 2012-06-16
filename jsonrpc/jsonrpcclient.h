@@ -24,16 +24,6 @@ namespace icinga
 {
 
 /**
- * Event arguments for the "new message" event.
- *
- * @ingroup jsonrpc
- */
-struct I2_JSONRPC_API NewMessageEventArgs : public EventArgs
-{
-	icinga::MessagePart Message;
-};
-
-/**
  * A JSON-RPC client.
  *
  * @ingroup jsonrpc
@@ -48,12 +38,10 @@ public:
 
 	void SendMessage(const MessagePart& message);
 
-	virtual void Start(void);
-
-	boost::signal<void (const NewMessageEventArgs&)> OnNewMessage;
+	boost::signal<void (const Object::Ptr&, const MessagePart&)> OnNewMessage;
 
 private:
-	void DataAvailableHandler(const EventArgs&);
+	void DataAvailableHandler(void);
 };
 
 JsonRpcClient::Ptr JsonRpcClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);

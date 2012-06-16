@@ -61,7 +61,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	boost::signal<void (const EventArgs&)> OnDataAvailable;
+	boost::signal<void (const Object::Ptr&)> OnDataAvailable;
 
 private:
 	TcpClientRole m_Role;
@@ -69,8 +69,8 @@ private:
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
 
-	virtual void ReadableEventHandler(const EventArgs& ea);
-	virtual void WritableEventHandler(const EventArgs& ea);
+	virtual void ReadableEventHandler(void);
+	virtual void WritableEventHandler(void);
 };
 
 /**

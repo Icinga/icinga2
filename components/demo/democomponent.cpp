@@ -38,7 +38,7 @@ void DemoComponent::Start(void)
 {
 	m_DemoEndpoint = boost::make_shared<VirtualEndpoint>();
 	m_DemoEndpoint->RegisterTopicHandler("demo::HelloWorld",
-	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _1));
+	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2, _3));
 	m_DemoEndpoint->RegisterPublication("demo::HelloWorld");
 	GetEndpointManager()->RegisterEndpoint(m_DemoEndpoint);
 
@@ -80,9 +80,9 @@ void DemoComponent::DemoTimerHandler(void)
 /**
  * Processes demo::HelloWorld messages.
  */
-void DemoComponent::HelloWorldRequestHandler(const NewRequestEventArgs& nrea)
+void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	Application::Log(LogInformation, "demo", "Got 'hello world' from address=" + nrea.Sender->GetAddress() + ", identity=" + nrea.Sender->GetIdentity());
+	Application::Log(LogInformation, "demo", "Got 'hello world' from address=" + sender->GetAddress() + ", identity=" + sender->GetIdentity());
 }
 
 EXPORT_COMPONENT(demo, DemoComponent);

@@ -24,20 +24,6 @@ namespace icinga
 {
 
 /**
- * Event arguments for the "SSL certificate verification" event.
- *
- * @ingroup base
- */
-struct I2_BASE_API VerifyCertificateEventArgs : public EventArgs
-{
-	bool ValidCertificate; /**< Whether the certificate is valid, can be
-			            changed by the event handler. */
-	X509_STORE_CTX *Context; /**< The X509 store context. */
-	shared_ptr<X509> Certificate; /**< The X509 certificate that should
-				           ve verified. */
-};
-
-/**
  * A TLS client connection.
  *
  * @ingroup base
@@ -55,7 +41,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	boost::signal<void (const VerifyCertificateEventArgs&)> OnVerifyCertificate;
+	boost::signal<void (const Object::Ptr&, bool&, X509_STORE_CTX *, const shared_ptr<X509>&)> OnVerifyCertificate;
 
 protected:
 	void HandleSSLError(void);
@@ -70,8 +56,8 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
-	virtual void ReadableEventHandler(const EventArgs& ea);
-	virtual void WritableEventHandler(const EventArgs& ea);
+	virtual void ReadableEventHandler(void);
+	virtual void WritableEventHandler(void);
 
 	virtual void CloseInternal(bool from_dtor);
 

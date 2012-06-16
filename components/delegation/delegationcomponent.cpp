@@ -29,9 +29,9 @@ string DelegationComponent::GetName(void) const
 void DelegationComponent::Start(void)
 {
 	m_AllServices = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("service"));
-	m_AllServices->OnObjectAdded.connect(boost::bind(&DelegationComponent::NewServiceHandler, this, _1));
-	m_AllServices->OnObjectCommitted.connect(boost::bind(&DelegationComponent::NewServiceHandler, this, _1));
-	m_AllServices->OnObjectRemoved.connect(boost::bind(&DelegationComponent::RemovedServiceHandler, this, _1));
+	m_AllServices->OnObjectAdded.connect(boost::bind(&DelegationComponent::NewServiceHandler, this, _2));
+	m_AllServices->OnObjectCommitted.connect(boost::bind(&DelegationComponent::NewServiceHandler, this, _2));
+	m_AllServices->OnObjectRemoved.connect(boost::bind(&DelegationComponent::RemovedServiceHandler, this, _2));
 	m_AllServices->Start();
 
 	m_DelegationTimer = boost::make_shared<Timer>();
@@ -53,14 +53,14 @@ void DelegationComponent::Stop(void)
 		mgr->UnregisterEndpoint(m_DelegationEndpoint);
 }
 
-void DelegationComponent::NewServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
+void DelegationComponent::NewServiceHandler(const ConfigObject::Ptr& object)
 {
-	AssignService(ea.Target);
+	AssignService(object);
 }
 
-void DelegationComponent::RemovedServiceHandler(const ObjectSetEventArgs<ConfigObject::Ptr>& ea)
+void DelegationComponent::RemovedServiceHandler(const ConfigObject::Ptr& object)
 {
-	RevokeService(ea.Target);
+	RevokeService(object);
 }
 
 void DelegationComponent::AssignService(const ConfigObject::Ptr& service)
@@ -75,15 +75,15 @@ void DelegationComponent::AssignService(const ConfigObject::Ptr& service)
 	Application::Log(LogInformation, "delegation", "Trying to delegate service '" + service->GetName() + "'");
 
 	GetEndpointManager()->SendAPIMessage(m_DelegationEndpoint, request,
-	    boost::bind(&DelegationComponent::AssignServiceResponseHandler, this, service, _1));
+	    boost::bind(&DelegationComponent::AssignServiceResponseHandler, this, service, _2, _5));
 }
 
-void DelegationComponent::AssignServiceResponseHandler(const ConfigObject::Ptr& service, const NewResponseEventArgs& nrea)
+void DelegationComponent::AssignServiceResponseHandler(const ConfigObject::Ptr& service, const Endpoint::Ptr& sender, bool timedOut)
 {
-	if (nrea.TimedOut) {
+	if (timedOut) {
 		Application::Log(LogInformation, "delegation", "Service delegation for service '" + service->GetName() + "' timed out.");
 	} else {
-		service->SetTag("checker", nrea.Sender->GetIdentity());
+		service->SetTag("checker", sender->GetIdentity());
 		Application::Log(LogInformation, "delegation", "Service delegation for service '" + service->GetName() + "' was successful.");
 	}
 }
@@ -93,7 +93,7 @@ void DelegationComponent::RevokeService(const ConfigObject::Ptr& service)
 
 }
 
-void DelegationComponent::RevokeServiceResponseHandler(const NewResponseEventArgs& nrea)
+void DelegationComponent::RevokeServiceResponseHandler(const ConfigObject::Ptr& service, const Endpoint::Ptr& sender, bool timedOut)
 {
 }
 

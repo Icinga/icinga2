@@ -24,16 +24,6 @@ namespace icinga
 {
 
 /**
- * Event arguments for the "new client" event.
- *
- * @ingroup base
- */
-struct I2_BASE_API NewClientEventArgs : public EventArgs
-{
-	TcpSocket::Ptr Client; /**< The new client object. */
-};
-
-/**
  * A TCP server that listens on a TCP port and accepts incoming
  * client connections.
  *
@@ -54,12 +44,12 @@ public:
 
 	void Listen(void);
 
-	boost::signal<void (const NewClientEventArgs&)> OnNewClient;
+	boost::signal<void (const Object::Ptr&, const TcpClient::Ptr&)> OnNewClient;
 
 	virtual bool WantsToRead(void) const;
 
 private:
-	int ReadableEventHandler(const EventArgs& ea);
+	void ReadableEventHandler(void);
 
 	function<TcpClient::Ptr()> m_ClientFactory;
 };
