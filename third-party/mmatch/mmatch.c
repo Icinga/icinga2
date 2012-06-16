@@ -164,9 +164,9 @@ int mmatch(const char *old_mask, const char *new_mask)
 
 /****************** Nemesi's match() ***************/
 
-int match(const char *mask, const char *string)
+int match(const char *mask, const char *str)
 {
-  const char *m = mask, *s = string;
+  const char *m = mask, *s = str;
   char ch;
   const char *bm, *bs;          /* Will be reg anyway on a decent CPU/compiler */
 
@@ -261,10 +261,10 @@ break_while:
  * Note that this new optimized alghoritm can *only* work in place.
  */
 
-char *collapse(char *mask)
+char *collapse(char *pattern)
 {
   int star = 0;
-  char *m = mask;
+  char *m = pattern;
   char *b;
 
   if (m)
