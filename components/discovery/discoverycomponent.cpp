@@ -170,9 +170,8 @@ bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDi
  * @param ea Event arguments for the component.
  * @returns 0
  */
-void DiscoveryComponent::NewIdentityHandler(const Object::Ptr& source)
+void DiscoveryComponent::NewIdentityHandler(const Endpoint::Ptr& endpoint)
 {
-	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(source);
 	string identity = endpoint->GetIdentity();
 
 	if (identity == GetEndpointManager()->GetIdentity()) {

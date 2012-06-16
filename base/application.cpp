@@ -465,7 +465,7 @@ int Application::Run(int argc, char **argv)
 	int result;
 
 	assert(!Application::m_Instance);
-	Application::m_Instance = static_pointer_cast<Application>(shared_from_this());
+	Application::m_Instance = GetSelf();
 
 #ifndef _WIN32
 	struct sigaction sa;

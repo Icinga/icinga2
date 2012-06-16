@@ -128,7 +128,7 @@ void ConfigItem::Commit(void)
 		dobj->Commit();
 
 	ConfigItem::Ptr ci = GetObject(GetType(), GetName());
-	ConfigItem::Ptr self = static_pointer_cast<ConfigItem>(shared_from_this());
+	ConfigItem::Ptr self = GetSelf();
 	if (ci && ci != self) {
 		ci->m_ConfigObject.reset();
 		GetAllObjects()->RemoveObject(ci);
@@ -140,8 +140,7 @@ void ConfigItem::Unregister(void)
 {
 	// TODO: unregister associated ConfigObject
 
-	ConfigItem::Ptr self = static_pointer_cast<ConfigItem>(shared_from_this());
-	GetAllObjects()->RemoveObject(self);
+	GetAllObjects()->RemoveObject(GetSelf());
 }
 
 ConfigItem::Ptr ConfigItem::GetObject(const string& type, const string& name)

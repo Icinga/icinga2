@@ -100,7 +100,7 @@ void Timer::CallExpiredTimers(void)
  */
 void Timer::Call(void)
 {
-	OnTimerExpired(shared_from_this());
+	OnTimerExpired(GetSelf());
 }
 
 /**
@@ -130,7 +130,7 @@ void Timer::Start(void)
 {
 	Stop();
 
-	Timers.push_back(static_pointer_cast<Timer>(shared_from_this()));
+	Timers.push_back(GetSelf());
 
 	Reschedule(time(NULL) + m_Interval);
 }

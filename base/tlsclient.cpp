@@ -136,7 +136,7 @@ void TlsClient::ReadableEventHandler(void)
 
 	GetRecvQueue()->Write(NULL, rc);
 
-	OnDataAvailable(shared_from_this());
+	OnDataAvailable(GetSelf());
 }
 
 /**
@@ -244,7 +244,7 @@ int TlsClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
 
 	bool valid = false;
 	shared_ptr<X509> x509Certificate = shared_ptr<X509>(x509Context->cert, &TlsClient::NullCertificateDeleter);
-	client->OnVerifyCertificate(client->shared_from_this(), valid, x509Context, x509Certificate);
+	client->OnVerifyCertificate(client->GetSelf(), valid, x509Context, x509Certificate);
 
 	return valid ? 1 : 0;
 }

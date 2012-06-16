@@ -301,6 +301,6 @@ char *collapse(char *pattern)
     }
     while (*m++);
   };
-  return mask;
+  return pattern;
 }
 

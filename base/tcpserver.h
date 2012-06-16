@@ -44,7 +44,7 @@ public:
 
 	void Listen(void);
 
-	boost::signal<void (const Object::Ptr&, const TcpClient::Ptr&)> OnNewClient;
+	boost::signal<void (const TcpServer::Ptr&, const TcpClient::Ptr&)> OnNewClient;
 
 	virtual bool WantsToRead(void) const;
 

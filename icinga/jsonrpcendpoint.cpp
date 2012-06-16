@@ -82,7 +82,7 @@ void JsonRpcEndpoint::ProcessResponse(Endpoint::Ptr sender, const ResponseMessag
 
 void JsonRpcEndpoint::NewMessageHandler(const MessagePart& message)
 {
-	Endpoint::Ptr sender = static_pointer_cast<Endpoint>(shared_from_this());
+	Endpoint::Ptr sender = GetSelf();
 
 	if (ResponseMessage::IsResponseMessage(message)) {
 		/* rather than routing the message to the right virtual
@@ -121,7 +121,7 @@ void JsonRpcEndpoint::ClientClosedHandler(void)
 	// remove the endpoint if there are no more subscriptions */
 	if (BeginSubscriptions() == EndSubscriptions()) {
 		Hold();
-		GetEndpointManager()->UnregisterEndpoint(static_pointer_cast<Endpoint>(shared_from_this()));
+		GetEndpointManager()->UnregisterEndpoint(GetSelf());
 	}
 
 	m_Client.reset();

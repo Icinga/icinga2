@@ -150,10 +150,10 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 	if (!endpoint->IsLocal() && endpoint->GetIdentity() != "")
 		throw invalid_argument("Identity must be empty.");
 
-	endpoint->SetEndpointManager(static_pointer_cast<EndpointManager>(shared_from_this()));
+	endpoint->SetEndpointManager(GetSelf());
 	m_Endpoints.push_back(endpoint);
 
-	OnNewEndpoint(shared_from_this(), endpoint);
+	OnNewEndpoint(GetSelf(), endpoint);
 }
 
 /**
@@ -253,14 +253,14 @@ void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
  *
  * @param callback The callback function.
  */
-void EndpointManager::ForEachEndpoint(function<void (const Object::Ptr&, const Endpoint::Ptr&)> callback)
+void EndpointManager::ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback)
 {
 	vector<Endpoint::Ptr>::iterator prev, i;
 	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); ) {
 		prev = i;
 		i++;
 
-		callback(shared_from_this(), *prev);
+		callback(GetSelf(), *prev);
 	}
 }
 
@@ -282,7 +282,7 @@ Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
 
 void EndpointManager::SendAPIMessage(Endpoint::Ptr sender,
     RequestMessage& message,
-    function<void(const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout)
+    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout)
 {
 	m_NextMessageID++;
 
@@ -337,7 +337,7 @@ void EndpointManager::RequestTimerHandler(void)
 	map<string, PendingRequest>::iterator it;
 	for (it = m_Requests.begin(); it != m_Requests.end(); it++) {
 		if (it->second.HasTimedOut()) {
-			it->second.Callback(shared_from_this(), Endpoint::Ptr(), it->second.Request, ResponseMessage(), true);
+			it->second.Callback(GetSelf(), Endpoint::Ptr(), it->second.Request, ResponseMessage(), true);
 
 			m_Requests.erase(it);
 
@@ -360,7 +360,7 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const 
 	if (it == m_Requests.end())
 		return;
 
-	it->second.Callback(shared_from_this(), sender, it->second.Request, message, false);
+	it->second.Callback(GetSelf(), sender, it->second.Request, message, false);
 
 	m_Requests.erase(it);
 	RescheduleRequestTimer();

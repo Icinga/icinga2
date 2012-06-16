@@ -93,7 +93,7 @@ void TcpServer::ReadableEventHandler(void)
 	client->SetFD(fd);
 	client->Start();
 
-	OnNewClient(shared_from_this(), client);
+	OnNewClient(GetSelf(), client);
 }
 
 /**

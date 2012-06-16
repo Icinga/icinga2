@@ -69,12 +69,11 @@ void ConfigRpcComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 	endpoint->OnSessionEstablished.connect(boost::bind(&ConfigRpcComponent::SessionEstablishedHandler, this, _1));
 }
 
-void ConfigRpcComponent::SessionEstablishedHandler(const Object::Ptr& source)
+void ConfigRpcComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoint)
 {
 	RequestMessage request;
 	request.SetMethod("config::FetchObjects");
 
-	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(source);
 	GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, endpoint, request);
 }
 

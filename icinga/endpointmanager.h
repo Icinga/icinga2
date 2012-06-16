@@ -24,23 +24,6 @@ namespace icinga
 {
 
 /**
- * Information about a pending API request.
- *
- * @ingroup icinga
- */
-struct I2_ICINGA_API PendingRequest
-{
-	time_t Timeout;
-	RequestMessage Request;
-	function<void(const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> Callback;
-
-	bool HasTimedOut(void) const
-	{
-		return time(NULL) > Timeout;
-	}
-};
-
-/**
  * Forwards messages between endpoints.
  *
  * @ingroup icinga
@@ -72,15 +55,15 @@ public:
 	void SendMulticastMessage(Endpoint::Ptr sender, const RequestMessage& message);
 
 	void SendAPIMessage(Endpoint::Ptr sender, RequestMessage& message,
-	    function<void(const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout = 10);
+	    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout = 10);
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
-	void ForEachEndpoint(function<void (const Object::Ptr&, const Endpoint::Ptr&)> callback);
+	void ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback);
 
 	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
 
-	boost::signal<void (const Object::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
+	boost::signal<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
 
 private:
 	string m_Identity;
@@ -88,6 +71,23 @@ private:
 
 	vector<JsonRpcServer::Ptr> m_Servers;
 	vector<Endpoint::Ptr> m_Endpoints;
+
+	/**
+	 * Information about a pending API request.
+	 *
+	 * @ingroup icinga
+	 */
+	struct I2_ICINGA_API PendingRequest
+	{
+		time_t Timeout;
+		RequestMessage Request;
+		function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> Callback;
+
+		bool HasTimedOut(void) const
+		{
+			return time(NULL) > Timeout;
+		}
+	};
 
 	long m_NextMessageID;
 	map<string, PendingRequest> m_Requests;

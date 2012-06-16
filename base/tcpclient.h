@@ -61,7 +61,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	boost::signal<void (const Object::Ptr&)> OnDataAvailable;
+	boost::signal<void (const TcpClient::Ptr&)> OnDataAvailable;
 
 private:
 	TcpClientRole m_Role;

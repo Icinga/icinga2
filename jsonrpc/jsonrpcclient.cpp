@@ -57,7 +57,7 @@ void JsonRpcClient::DataAvailableHandler(void)
 				return;
 
 			message = MessagePart(jsonString);
-			OnNewMessage(shared_from_this(), message);
+			OnNewMessage(GetSelf(), message);
 		} catch (const Exception& ex) {
 			Application::Log(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + string(ex.GetMessage()));
 			Close();

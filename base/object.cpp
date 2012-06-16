@@ -44,7 +44,7 @@ Object::~Object(void)
  */
 void Object::Hold(void)
 {
-	m_HeldObjects.push_back(shared_from_this());
+	m_HeldObjects.push_back(GetSelf());
 }
 
 /**
@@ -55,3 +55,7 @@ void Object::ClearHeldObjects(void)
 	m_HeldObjects.clear();
 }
 
+SharedPtrHolder Object::GetSelf(void)
+{
+	return SharedPtrHolder(shared_from_this());
+}

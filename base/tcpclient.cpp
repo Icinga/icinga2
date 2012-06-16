@@ -159,7 +159,7 @@ void TcpClient::ReadableEventHandler(void)
 
 	m_RecvQueue->Write(NULL, rc);
 
-	OnDataAvailable(shared_from_this());
+	OnDataAvailable(GetSelf());
 }
 
 /**

@@ -41,7 +41,7 @@ public:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	boost::signal<void (const Object::Ptr&, bool&, X509_STORE_CTX *, const shared_ptr<X509>&)> OnVerifyCertificate;
+	boost::signal<void (const TlsClient::Ptr&, bool&, X509_STORE_CTX *, const shared_ptr<X509>&)> OnVerifyCertificate;
 
 protected:
 	void HandleSSLError(void);

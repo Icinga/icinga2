@@ -61,7 +61,7 @@ public:
 		Range range = GetRange(key);
 
 		for (Iterator it = range.first; it != range.second; it++) {
-			callback(shared_from_this(), *it);
+			callback(GetSelf(), *it);
 		}
 	}
 

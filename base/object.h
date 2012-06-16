@@ -23,6 +23,8 @@
 namespace icinga
 {
 
+class SharedPtrHolder;
+
 /**
  * Base class for all heap-allocated objects. At least one of its methods
  * has to be virtual for RTTI to work.
@@ -43,11 +45,46 @@ protected:
 
 	void Hold(void);
 
+	SharedPtrHolder GetSelf(void);
+
 private:
 	Object(const Object& other);
 	Object operator=(const Object& rhs);
 
 	static vector<Object::Ptr> m_HeldObjects;
+};
+
+/**
+ * Holds a shared pointer and provides support for implicit upcasts.
+ */
+class SharedPtrHolder
+{
+public:
+	explicit SharedPtrHolder(const shared_ptr<Object>& object)
+		: m_Object(object)
+	{ }
+
+	template<typename T>
+	operator shared_ptr<T>(void) const
+	{
+#ifdef _DEBUG
+		shared_ptr<T> other = dynamic_pointer_cast<T>(m_Object);
+		assert(other);
+#else /* _DEBUG */
+		shared_ptr<T> other = static_pointer_cast<T>(m_Object);
+#endif /* _DEBUG */
+
+		return other;
+	}
+
+	template<typename T>
+	operator weak_ptr<T>(void) const
+	{
+		return static_cast<shared_ptr<T> >(*this);
+	}
+
+private:
+	shared_ptr<Object> m_Object;
 };
 
 /**

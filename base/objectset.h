@@ -55,7 +55,7 @@ public:
 	void AddObject(const TValue& object)
 	{
 		m_Objects.insert(object);
-		OnObjectAdded(shared_from_this(), object);
+		OnObjectAdded(GetSelf(), object);
 	}
 
 	void RemoveObject(const TValue& object)
@@ -64,7 +64,7 @@ public:
 
 		if (it != m_Objects.end()) {
 			m_Objects.erase(it);
-			OnObjectRemoved(shared_from_this(), object);
+			OnObjectRemoved(GetSelf(), object);
 		}
 	}
 
@@ -81,14 +81,14 @@ public:
 			if (!Contains(object)) {
 				AddObject(object);
 			} else {
-				OnObjectCommitted(shared_from_this(), object);
+				OnObjectCommitted(GetSelf(), object);
 			}
 		}
 	}
 
-	boost::signal<void (const Object::Ptr&, const TValue&)> OnObjectAdded;
-	boost::signal<void (const Object::Ptr&, const TValue&)> OnObjectCommitted;
-	boost::signal<void (const Object::Ptr&, const TValue&)> OnObjectRemoved;
+	boost::signal<void (const typename ObjectSet<TValue>::Ptr&, const TValue&)> OnObjectAdded;
+	boost::signal<void (const typename ObjectSet<TValue>::Ptr&, const TValue&)> OnObjectCommitted;
+	boost::signal<void (const typename ObjectSet<TValue>::Ptr&, const TValue&)> OnObjectRemoved;
 
 	Iterator Begin(void)
 	{
@@ -103,7 +103,7 @@ public:
 	void ForeachObject(function<void (const typename Object::Ptr&, const TValue&)> callback)
 	{
 		for (Iterator it = Begin(); it != End(); it++) {
-			callback(shared_from_this(), *it);
+			callback(GetSelf(), *it);
 		}
 	}
 

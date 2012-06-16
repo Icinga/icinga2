@@ -90,14 +90,14 @@ bool ConfigObject::IsAbstract(void) const
 void ConfigObject::Commit(void)
 {
 	ConfigObject::Ptr dobj = GetObject(GetType(), GetName());
-	ConfigObject::Ptr self = static_pointer_cast<ConfigObject>(shared_from_this());
+	ConfigObject::Ptr self = GetSelf();
 	assert(!dobj || dobj == self);
 	m_Container->CheckObject(self);
 }
 
 void ConfigObject::Unregister(void)
 {
-	ConfigObject::Ptr self = static_pointer_cast<ConfigObject>(shared_from_this());
+	ConfigObject::Ptr self = GetSelf();
 	m_Container->RemoveObject(self);
 }
 

@@ -38,15 +38,15 @@ bool VirtualEndpoint::IsConnected(void) const
 	return true;
 }
 
-void VirtualEndpoint::RegisterTopicHandler(string topic, function<void (const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback)
+void VirtualEndpoint::RegisterTopicHandler(string topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback)
 {
-	map<string, shared_ptr<boost::signal<void (const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > >::iterator it;
+	map<string, shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > >::iterator it;
 	it = m_TopicHandlers.find(topic);
 
-	shared_ptr<boost::signal<void (const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > sig;
+	shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > sig;
 
 	if (it == m_TopicHandlers.end()) {
-		sig = boost::make_shared<boost::signal<void (const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&)> >();
+		sig = boost::make_shared<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> >();
 		m_TopicHandlers.insert(make_pair(topic, sig));
 	} else {
 		sig = it->second;
@@ -57,7 +57,7 @@ void VirtualEndpoint::RegisterTopicHandler(string topic, function<void (const Ob
 	RegisterSubscription(topic);
 }
 
-void VirtualEndpoint::UnregisterTopicHandler(string topic, function<void (const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback)
+void VirtualEndpoint::UnregisterTopicHandler(string topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback)
 {
 	// TODO: implement
 	//m_TopicHandlers[method] -= callback;
@@ -72,13 +72,13 @@ void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage&
 	if (!request.GetMethod(&method))
 		return;
 
-	map<string, shared_ptr<boost::signal<void (const Object::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > >::iterator it;
+	map<string, shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > >::iterator it;
 	it = m_TopicHandlers.find(method);
 
 	if (it == m_TopicHandlers.end())
 		return;
 
-	(*it->second)(shared_from_this(), sender, request);
+	(*it->second)(GetSelf(), sender, request);
 }
 
 void VirtualEndpoint::ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& response)

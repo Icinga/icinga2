@@ -37,7 +37,7 @@ private:
 	VirtualEndpoint::Ptr m_ConfigRpcEndpoint;
 
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
-	void SessionEstablishedHandler(const Object::Ptr& source);
+	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
 
 	void LocalObjectCommittedHandler(const ConfigObject::Ptr& object);
 	void LocalObjectRemovedHandler(const ConfigObject::Ptr& object);

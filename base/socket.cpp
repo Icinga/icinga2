@@ -52,7 +52,7 @@ void Socket::Start(void)
 
 	OnException.connect(boost::bind(&Socket::ExceptionEventHandler, this));
 
-	Sockets.push_back(static_pointer_cast<Socket>(shared_from_this()));
+	Sockets.push_back(GetSelf());
 }
 
 /**
@@ -125,7 +125,7 @@ void Socket::CloseInternal(bool from_dtor)
 	if (!from_dtor) {
 		Stop();
 
-		OnClosed(shared_from_this());
+		OnClosed(GetSelf());
 	}
 }
 
@@ -170,7 +170,7 @@ int Socket::GetLastSocketError(void)
 void Socket::HandleSocketError(const std::exception& ex)
 {
 	if (!OnError.empty()) {
-		OnError(shared_from_this(), ex);
+		OnError(GetSelf(), ex);
 
 		Close();
 	} else {

@@ -42,12 +42,12 @@ public:
 	void SetFD(SOCKET fd);
 	SOCKET GetFD(void) const;
 
-	boost::signal<void (const Object::Ptr&)> OnReadable;
-	boost::signal<void (const Object::Ptr&)> OnWritable;
-	boost::signal<void (const Object::Ptr&)> OnException;
+	boost::signal<void (const Socket::Ptr&)> OnReadable;
+	boost::signal<void (const Socket::Ptr&)> OnWritable;
+	boost::signal<void (const Socket::Ptr&)> OnException;
 
-	boost::signal<void (const Object::Ptr&, const std::exception&)> OnError;
-	boost::signal<void (const Object::Ptr&)> OnClosed;
+	boost::signal<void (const Socket::Ptr&, const std::exception&)> OnError;
+	boost::signal<void (const Socket::Ptr&)> OnClosed;
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;

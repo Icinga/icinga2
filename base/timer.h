@@ -52,7 +52,7 @@ public:
 
 	void Reschedule(time_t next);
 
-	boost::signal<void(const Object::Ptr&)> OnTimerExpired;
+	boost::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
 private:
 	time_t m_Interval; /**< The interval of the timer. */

@@ -38,7 +38,7 @@ public:
 
 	void SendMessage(const MessagePart& message);
 
-	boost::signal<void (const Object::Ptr&, const MessagePart&)> OnNewMessage;
+	boost::signal<void (const JsonRpcClient::Ptr&, const MessagePart&)> OnNewMessage;
 
 private:
 	void DataAvailableHandler(void);
