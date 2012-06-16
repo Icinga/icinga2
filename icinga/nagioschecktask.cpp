@@ -25,7 +25,7 @@ CheckResult NagiosCheckTask::Execute(void) const
 	fp = popen(command.c_str(), "r");
 #endif /* _MSC_VER */
 
-	stringstream output;
+	stringstream outputbuf;
 
 	while (!feof(fp)) {
 		char buffer[128];
@@ -34,10 +34,11 @@ CheckResult NagiosCheckTask::Execute(void) const
 		if (read == 0)
 			break;
 
-		output << string(buffer, buffer + read);
+		outputbuf << string(buffer, buffer + read);
 	}
 
-	cr.Output = output.str();
+	cr.Output = outputbuf.str();
+	boost::algorithm::trim(cr.Output);
 
 	Application::Log(LogDebug, "icinga", "Nagios plugin output: " + cr.Output);
 

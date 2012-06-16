@@ -55,7 +55,7 @@ void Object::ClearHeldObjects(void)
 	m_HeldObjects.clear();
 }
 
-SharedPtrHolder Object::GetSelf(void)
+Object::SharedPtrHolder Object::GetSelf(void)
 {
-	return SharedPtrHolder(shared_from_this());
+	return Object::SharedPtrHolder(shared_from_this());
 }
