@@ -35,13 +35,12 @@ public:
 	typedef shared_ptr<Object> Ptr;
 	typedef weak_ptr<Object> WeakPtr;
 
+	static void ClearHeldObjects(void);
+
 protected:
 	Object(void);
 	virtual ~Object(void);
 
-	static void ClearHeldObjects(void);
-
-protected:
 	void Hold(void);
 
 private:
