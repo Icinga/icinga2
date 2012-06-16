@@ -74,3 +74,15 @@ time_t Service::GetNextCheck(void) const
 	GetConfigObject()->GetTag("next_check", &value);
 	return value;
 }
+
+void Service::SetChecker(string checker)
+{
+	GetConfigObject()->SetTag("checker", checker);
+}
+
+string Service::GetChecker(void) const
+{
+	string value;
+	GetConfigObject()->GetTag("checker", &value);
+	return value;
+}

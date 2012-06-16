@@ -22,6 +22,8 @@ public:
 
 	void SetNextCheck(time_t nextCheck);
 	time_t GetNextCheck(void) const;
+	void SetChecker(string checker);
+	string GetChecker(void) const;
 };
 
 }

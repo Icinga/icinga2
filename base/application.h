@@ -57,8 +57,8 @@ public:
 
 	shared_ptr<Component> LoadComponent(const string& path,
 	    const ConfigObject::Ptr& componentConfig);
-	void RegisterComponent(shared_ptr<Component> component);
-	void UnregisterComponent(shared_ptr<Component> component);
+	void RegisterComponent(const shared_ptr<Component>& component);
+	void UnregisterComponent(const shared_ptr<Component>& component);
 	shared_ptr<Component> GetComponent(const string& name) const;
 	void AddComponentSearchDir(const string& componentDirectory);
 

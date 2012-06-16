@@ -16,7 +16,6 @@ public:
 
 	bool IsLocal(void) const;
 
-protected:
 	ConfigObject::Ptr GetConfigObject() const;
 
 private:

@@ -48,7 +48,7 @@ void CheckerComponent::Start(void)
 	ConfigObject::TMap::Range range = ConfigObject::GetObjects("service");
 
 	for (ConfigObject::TMap::Iterator it = range.first; it != range.second; it++) {
-		Service svc(it->second);
+		Service svc = it->second;
 		CheckTask::Ptr ct = CheckTask::CreateTask(svc);
 		CheckResult cr = ct->Execute();
 	}

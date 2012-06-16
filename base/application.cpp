@@ -248,7 +248,7 @@ Component::Ptr Application::LoadComponent(const string& path,
  *
  * @param component The component.
  */
-void Application::RegisterComponent(Component::Ptr component)
+void Application::RegisterComponent(const Component::Ptr& component)
 {
 	m_Components[component->GetName()] = component;
 
@@ -260,7 +260,7 @@ void Application::RegisterComponent(Component::Ptr component)
  *
  * @param component The component.
  */
-void Application::UnregisterComponent(Component::Ptr component)
+void Application::UnregisterComponent(const Component::Ptr& component)
 {
 	string name = component->GetName();
 
