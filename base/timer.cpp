@@ -151,5 +151,7 @@ void Timer::Stop(void)
 void Timer::Reschedule(time_t next)
 {
 	m_Next = next;
-	RescheduleTimers();
+
+	if (next < NextCall)
+		NextCall = next;
 }
