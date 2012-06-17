@@ -122,12 +122,7 @@ void CheckerComponent::AdjustCheckTimer(void)
 	/* adjust next call time for the check timer */
 	Service service = m_Services.top();
 
-	if (service.HasPendingCheck()) {
-		m_CheckTimer->Stop();
-	} else {
-		m_CheckTimer->SetInterval(service.GetNextCheck() - time(NULL));
-		m_CheckTimer->Start();
-	}
+	m_CheckTimer->Reschedule(service.GetNextCheck());
 }
 
 void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
