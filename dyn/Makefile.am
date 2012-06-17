@@ -18,6 +18,7 @@ libdyn_la_SOURCES = \
 	i2-dyn.h \
 	configitem.cpp \
 	configitem.h \
+	debuginfo.h \
 	expression.cpp \
 	expression.h \
 	expressionlist.cpp \
