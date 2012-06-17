@@ -98,7 +98,7 @@ void CheckerComponent::ResultTimerHandler(void)
 
 		if (!task->IsFinished()) {
 			unfinishedTasks.push_back(task);
-			break;
+			continue;
 		}
 
 		CheckResult result = task->GetResult();
