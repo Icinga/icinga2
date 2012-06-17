@@ -53,7 +53,7 @@ public:
 
 	static void Shutdown(void);
 
-	static void Log(LogSeverity severity, string facility, string message);
+	static void Log(LogSeverity severity, const string& facility, const string& message);
 
 	shared_ptr<Component> LoadComponent(const string& path,
 	    const ConfigObject::Ptr& componentConfig);

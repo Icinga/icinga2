@@ -51,6 +51,12 @@ long Dictionary::GetLength(void) const
 	return m_Data.size();
 }
 
+/**
+ * Checks whether the dictionary contains the specified key.
+ *
+ * @param key The key.
+ * @returns true if the dictionary contains the key, false otherwise.
+ */
 bool Dictionary::Contains(const string& key) const
 {
 	return (m_Data.find(key) != m_Data.end());

@@ -295,7 +295,7 @@ Component::Ptr Application::GetComponent(const string& name) const
  * @param facility The log facility.
  * @param message The message.
  */
-void Application::Log(LogSeverity severity, string facility, string message)
+void Application::Log(LogSeverity severity, const string& facility, const string& message)
 {
 	char timestamp[100];
 
