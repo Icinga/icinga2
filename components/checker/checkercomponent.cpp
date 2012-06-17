@@ -46,7 +46,7 @@ void CheckerComponent::Start(void)
 	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask);
 
 	m_ResultTimer = boost::make_shared<Timer>();
-	m_ResultTimer->SetInterval(10);
+	m_ResultTimer->SetInterval(5);
 	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));
 	m_ResultTimer->Start();
 }
