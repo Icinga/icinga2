@@ -70,8 +70,11 @@ void CheckerComponent::CheckTimerHandler(void)
 	for (;;) {
 		Service service = m_Services.top();
 
-		if (service.GetNextCheck() > now)
+		if (service.GetNextCheck() > now || service.HasPendingCheck())
 			break;
+
+		m_Services.pop();
+		service.SetPendingCheck(true);
 
 		Application::Log(LogInformation, "checker", "Executing service check for '" + service.GetName() + "'");
 
@@ -79,14 +82,11 @@ void CheckerComponent::CheckTimerHandler(void)
 		task->Execute();
 		m_PendingTasks.push_back(task);
 
-		m_Services.pop();
 		service.SetNextCheck(now + service.GetCheckInterval());
 		m_Services.push(service);
 	}
 
-	/* adjust next call time for the check timer */
-	Service service = m_Services.top();
-	m_CheckTimer->SetInterval(service.GetNextCheck() - now);
+	AdjustCheckTimer();
 }
 
 void CheckerComponent::ResultTimerHandler(void)
@@ -101,11 +101,31 @@ void CheckerComponent::ResultTimerHandler(void)
 			continue;
 		}
 
+		task->GetService().SetPendingCheck(false);
+
 		CheckResult result = task->GetResult();
 		Application::Log(LogInformation, "checker", "Got result! Plugin output: " + result.Output);
 	}
 
 	m_PendingTasks = unfinishedTasks;
+
+	AdjustCheckTimer();
+}
+
+void CheckerComponent::AdjustCheckTimer(void)
+{
+	if (m_Services.size() == 0)
+		return;
+
+	/* adjust next call time for the check timer */
+	Service service = m_Services.top();
+
+	if (service.HasPendingCheck()) {
+		m_CheckTimer->Stop();
+	} else {
+		m_CheckTimer->SetInterval(service.GetNextCheck() - time(NULL));
+		m_CheckTimer->Start();
+	}
 }
 
 void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)

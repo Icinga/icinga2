@@ -86,3 +86,15 @@ string Service::GetChecker(void) const
 	GetConfigObject()->GetTag("checker", &value);
 	return value;
 }
+
+void Service::SetPendingCheck(bool pending)
+{
+	GetConfigObject()->SetTag("pendingCheck", pending);
+}
+
+bool Service::HasPendingCheck(void) const
+{
+	bool value = false;
+	GetConfigObject()->GetTag("pendingCheck", &value);
+	return value;
+}

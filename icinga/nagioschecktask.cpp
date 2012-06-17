@@ -3,6 +3,7 @@
 using namespace icinga;
 
 NagiosCheckTask::NagiosCheckTask(const Service& service)
+	: CheckTask(service)
 {
 	string checkCommand = service.GetCheckCommand();
 	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros()) + " 2>&1";

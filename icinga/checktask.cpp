@@ -4,6 +4,15 @@ using namespace icinga;
 
 map<string, CheckTask::Factory> CheckTask::m_Types;
 
+CheckTask::CheckTask(const Service& service)
+	: m_Service(service)
+{ }
+
+Service CheckTask::GetService(void) const
+{
+	return m_Service;
+}
+
 void CheckTask::RegisterType(string type, Factory factory)
 {
 	m_Types[type] = factory;

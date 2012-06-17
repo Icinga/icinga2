@@ -24,6 +24,8 @@ public:
 	time_t GetNextCheck(void) const;
 	void SetChecker(string checker);
 	string GetChecker(void) const;
+	void SetPendingCheck(bool pending);
+	bool HasPendingCheck(void) const;
 };
 
 }
