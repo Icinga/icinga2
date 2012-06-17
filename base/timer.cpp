@@ -131,8 +131,6 @@ void Timer::Start(void)
 	Stop();
 
 	Timers.push_back(GetSelf());
-
-	Reschedule(time(NULL) + m_Interval);
 }
 
 /**
