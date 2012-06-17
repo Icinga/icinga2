@@ -23,14 +23,11 @@
 namespace icinga
 {
 
-struct ServiceCheckPriorityLessComparer
+struct ServiceNextCheckLessComparer
 {
 public:
 	bool operator()(const Service& a, const Service& b)
 	{
-		if (a.HasPendingCheck() && !b.HasPendingCheck())
-			return true;
-
 		return a.GetNextCheck() > b.GetNextCheck();
 	}
 };
@@ -44,16 +41,19 @@ public:
 	typedef shared_ptr<CheckerComponent> Ptr;
 	typedef weak_ptr<CheckerComponent> WeakPtr;
 
-	typedef priority_queue<Service, vector<Service>, ServiceCheckPriorityLessComparer> ServiceQueue;
+	typedef priority_queue<Service, vector<Service>, ServiceNextCheckLessComparer> ServiceQueue;
 
 	virtual string GetName(void) const;
 	virtual void Start(void);
 	virtual void Stop(void);
 
 private:
-	ServiceQueue m_Services;
-	Timer::Ptr m_CheckTimer;
 	VirtualEndpoint::Ptr m_CheckerEndpoint;
+
+	ServiceQueue m_Services;
+	set<Service> m_PendingServices;
+
+	Timer::Ptr m_CheckTimer;
 
 	Timer::Ptr m_ResultTimer;
 	vector<CheckTask::Ptr> m_PendingTasks;

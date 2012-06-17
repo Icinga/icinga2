@@ -64,10 +64,10 @@ void CheckerComponent::CheckTimerHandler(void)
 	time_t now;
 	time(&now);
 
-	if (m_Services.size() == 0)
-		return;
-
 	for (;;) {
+		if (m_Services.size() == 0)
+			break;
+
 		Service service = m_Services.top();
 
 		if (service.GetNextCheck() > now || service.HasPendingCheck())
@@ -83,7 +83,6 @@ void CheckerComponent::CheckTimerHandler(void)
 		m_PendingTasks.push_back(task);
 
 		service.SetNextCheck(now + service.GetCheckInterval());
-		m_Services.push(service);
 	}
 
 	AdjustCheckTimer();
@@ -101,10 +100,13 @@ void CheckerComponent::ResultTimerHandler(void)
 			continue;
 		}
 
-		task->GetService().SetPendingCheck(false);
+		Service service = task->GetService();
+		service.SetPendingCheck(false);
 
 		CheckResult result = task->GetResult();
 		Application::Log(LogInformation, "checker", "Got result! Plugin output: " + result.Output);
+
+		m_Services.push(service);
 	}
 
 	m_PendingTasks = unfinishedTasks;
@@ -175,6 +177,9 @@ void CheckerComponent::RevokeServiceRequestHandler(const Endpoint::Ptr& sender, 
 
 		if (service.GetName() == name)
 			continue;
+
+		if (service.HasPendingCheck()) // TODO: remember services that should be removed once their pending check is done
+			throw runtime_error("not yet implemented");
 
 		services.push_back(service);
 	}
