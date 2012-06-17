@@ -46,5 +46,6 @@ libicinga_la_LDFLAGS = \
 	@VERSION_INFO@
 
 libicinga_la_LIBADD = \
+	$(BOOST_THREAD_LIB) \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
 	${top_builddir}/base/libbase.la

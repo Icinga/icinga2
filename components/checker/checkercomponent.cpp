@@ -45,13 +45,10 @@ void CheckerComponent::Start(void)
 
 	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask);
 
-	ConfigObject::TMap::Range range = ConfigObject::GetObjects("service");
-
-	for (ConfigObject::TMap::Iterator it = range.first; it != range.second; it++) {
-		Service svc = it->second;
-		CheckTask::Ptr ct = CheckTask::CreateTask(svc);
-		CheckResult cr = ct->Execute();
-	}
+	m_ResultTimer = boost::make_shared<Timer>();
+	m_ResultTimer->SetInterval(10);
+	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));
+	m_ResultTimer->Start();
 }
 
 void CheckerComponent::Stop(void)
@@ -76,9 +73,11 @@ void CheckerComponent::CheckTimerHandler(void)
 		if (service.GetNextCheck() > now)
 			break;
 
-		CheckTask::Ptr ct = CheckTask::CreateTask(service);
 		Application::Log(LogInformation, "checker", "Executing service check for '" + service.GetName() + "'");
-		CheckResult cr = ct->Execute();
+
+		CheckTask::Ptr task = CheckTask::CreateTask(service);
+		task->Execute();
+		m_PendingTasks.push_back(task);
 
 		m_Services.pop();
 		service.SetNextCheck(now + service.GetCheckInterval());
@@ -88,6 +87,25 @@ void CheckerComponent::CheckTimerHandler(void)
 	/* adjust next call time for the check timer */
 	Service service = m_Services.top();
 	m_CheckTimer->SetInterval(service.GetNextCheck() - now);
+}
+
+void CheckerComponent::ResultTimerHandler(void)
+{
+	vector<CheckTask::Ptr> unfinishedTasks;
+
+	for (vector<CheckTask::Ptr>::iterator it = m_PendingTasks.begin(); it != m_PendingTasks.end(); it++) {
+		CheckTask::Ptr task = *it;
+
+		if (!task->IsFinished()) {
+			unfinishedTasks.push_back(task);
+			break;
+		}
+
+		CheckResult result = task->GetResult();
+		Application::Log(LogInformation, "checker", "Got result! Plugin output: " + result.Output);
+	}
+
+	m_PendingTasks = unfinishedTasks;
 }
 
 void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)

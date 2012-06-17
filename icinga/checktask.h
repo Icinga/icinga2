@@ -32,7 +32,9 @@ public:
 
 	typedef function<CheckTask::Ptr(const Service&)> Factory;
 
-	virtual CheckResult Execute(void) const = 0;
+	virtual void Execute(void) = 0;
+	virtual bool IsFinished(void) const = 0;
+	virtual CheckResult GetResult(void) = 0;
 
 	static void RegisterType(string type, Factory factory);
 	static CheckTask::Ptr CreateTask(const Service& service);

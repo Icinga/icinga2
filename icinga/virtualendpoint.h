@@ -37,6 +37,7 @@ public:
 	void RegisterTopicHandler(string topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback);
 	void UnregisterTopicHandler(string topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback);
 
+	virtual string GetIdentity(void) const;
 	virtual string GetAddress(void) const;
 
 	virtual bool IsLocal(void) const;

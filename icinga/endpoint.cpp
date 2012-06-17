@@ -22,36 +22,6 @@
 using namespace icinga;
 
 /**
- * Constructor for the Endpoint class.
- */
-Endpoint::Endpoint(void)
-{
-	m_ReceivedWelcome = false;
-	m_SentWelcome = false;
-}
-
-/**
- * Retrieves the identity of this endpoint.
- *
- * @returns The identity of the endpoint.
- */
-string Endpoint::GetIdentity(void) const
-{
-	return m_Identity;
-}
-
-/**
- * Sets the identity of this endpoint.
- *
- * @param identity The new identity of the endpoint.
- */
-void Endpoint::SetIdentity(string identity)
-{
-	m_Identity = identity;
-	OnIdentityChanged(GetSelf());
-}
-
-/**
  * Retrieves the endpoint manager this endpoint is registered with.
  *
  * @returns The EndpointManager object.

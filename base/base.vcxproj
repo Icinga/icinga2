@@ -24,6 +24,7 @@
     <ClCompile Include="tcpclient.cpp" />
     <ClCompile Include="tcpserver.cpp" />
     <ClCompile Include="tcpsocket.cpp" />
+    <ClCompile Include="threadpool.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="tlsclient.cpp" />
     <ClCompile Include="unix.cpp" />
@@ -46,6 +47,7 @@
     <ClInclude Include="tcpclient.h" />
     <ClInclude Include="tcpserver.h" />
     <ClInclude Include="tcpsocket.h" />
+    <ClInclude Include="threadpool.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="tlsclient.h" />
     <ClInclude Include="unix.h" />

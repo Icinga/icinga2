@@ -29,10 +29,8 @@
 
 #include <i2-base.h>
 
-#include <stack>
 #include <fstream>
 
-using std::stack;
 using std::istream;
 using std::ostream;
 using std::cin;

@@ -50,16 +50,15 @@ AM_PROG_LEX
 AC_PROG_YACC
 AC_PROG_LIBTOOL
 AX_CXX_GCC_ABI_DEMANGLE
-AX_PTHREAD
 AX_BOOST_BASE
 AX_BOOST_SIGNALS
+AX_BOOST_THREAD
 AX_BOOST_UNIT_TEST_FRAMEWORK
 AX_CHECK_OPENSSL([], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application])])
 AC_CHECK_LIB(ssl, SSL_new)
 AC_CHECK_LIB(crypto, X509_NAME_oneline)
 AC_CHECK_LIB(eay32, X509_NAME_oneline)
 AC_CHECK_LIB(m, floor)
-AC_CHECK_LIB(pthread, pthread_create)
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)

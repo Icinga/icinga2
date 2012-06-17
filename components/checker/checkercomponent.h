@@ -52,7 +52,11 @@ private:
 	Timer::Ptr m_CheckTimer;
 	VirtualEndpoint::Ptr m_CheckerEndpoint;
 
+	Timer::Ptr m_ResultTimer;
+	vector<CheckTask::Ptr> m_PendingTasks;
+
 	void CheckTimerHandler(void);
+	void ResultTimerHandler(void);
 
 	void AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 	void RevokeServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);

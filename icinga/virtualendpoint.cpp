@@ -21,6 +21,11 @@
 
 using namespace icinga;
 
+string VirtualEndpoint::GetIdentity(void) const
+{
+	return "__" + GetAddress();
+}
+
 string VirtualEndpoint::GetAddress(void) const
 {
 	char address[50];

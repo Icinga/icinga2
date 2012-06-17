@@ -5,24 +5,45 @@ using namespace icinga;
 NagiosCheckTask::NagiosCheckTask(const Service& service)
 {
 	string checkCommand = service.GetCheckCommand();
-	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros());
+	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros()) + " 2>&1";
+
+	m_Task = packaged_task<CheckResult>(boost::bind(&NagiosCheckTask::RunCheck, this));
+	m_Result = m_Task.get_future();
 }
 
-CheckResult NagiosCheckTask::Execute(void) const
+void NagiosCheckTask::Execute(void)
+{
+	Application::Log(LogDebug, "icinga", "Nagios check command: " + m_Command);
+
+	ThreadPool::GetDefaultPool()->EnqueueTask(boost::bind(&NagiosCheckTask::InternalExecute, this));
+}
+
+void NagiosCheckTask::InternalExecute(void)
+{
+	m_Task();
+}
+
+bool NagiosCheckTask::IsFinished(void) const
+{
+	return m_Result.is_ready();
+}
+
+CheckResult NagiosCheckTask::GetResult(void)
+{
+	return m_Result.get();
+}
+
+CheckResult NagiosCheckTask::RunCheck(void) const
 {
 	CheckResult cr;
 	FILE *fp;
 
 	time(&cr.StartTime);
 
-	string command = m_Command + " 2>&1";
-
-	Application::Log(LogDebug, "icinga", "Nagios check command: " + command);
-
 #ifdef _MSC_VER
-	fp = _popen(command.c_str(), "r");
+	fp = _popen(m_Command.c_str(), "r");
 #else /* _MSC_VER */
-	fp = popen(command.c_str(), "r");
+	fp = popen(m_Command.c_str(), "r");
 #endif /* _MSC_VER */
 
 	stringstream outputbuf;
@@ -39,8 +60,6 @@ CheckResult NagiosCheckTask::Execute(void) const
 
 	cr.Output = outputbuf.str();
 	boost::algorithm::trim(cr.Output);
-
-	Application::Log(LogDebug, "icinga", "Nagios plugin output: " + cr.Output);
 
 	int status, exitcode;
 #ifdef _MSC_VER

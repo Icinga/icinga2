@@ -32,6 +32,8 @@ libbase_la_SOURCES =  \
 	tcpserver.h \
 	tcpsocket.cpp \
 	tcpsocket.h \
+	threadpool.cpp \
+	threadpool.h \
 	timer.cpp \
 	timer.h \
 	tlsclient.cpp \
@@ -63,4 +65,5 @@ libbase_la_LIBADD = \
 	$(LIBLTDL) \
 	$(OPENSSL_LIBS) \
 	$(BOOST_SIGNALS_LIB) \
+	$(BOOST_THREAD_LIB) \
 	${top_builddir}/third-party/mmatch/libmmatch.la

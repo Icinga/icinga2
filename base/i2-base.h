@@ -91,6 +91,7 @@
 #include <map>
 #include <list>
 #include <algorithm>
+#include <stack>
 
 using std::string;
 using std::vector;
@@ -99,6 +100,7 @@ using std::list;
 using std::set;
 using std::multimap;
 using std::pair;
+using std::stack;
 
 using std::stringstream;
 
@@ -114,6 +116,7 @@ using std::domain_error;
 #include <boost/signal.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/thread.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
@@ -121,6 +124,11 @@ using boost::enable_shared_from_this;
 using boost::dynamic_pointer_cast;
 using boost::static_pointer_cast;
 using boost::function;
+using boost::thread;
+using boost::thread_group;
+using boost::mutex;
+using boost::unique_lock;
+using boost::condition_variable;
 
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
@@ -158,5 +166,6 @@ using boost::function;
 #include "configobject.h"
 #include "application.h"
 #include "component.h"
+#include "threadpool.h"
 
 #endif /* I2BASE_H */

@@ -21,6 +21,11 @@
 
 using namespace icinga;
 
+string JsonRpcEndpoint::GetIdentity(void) const
+{
+	return m_Identity;
+}
+
 string JsonRpcEndpoint::GetAddress(void) const
 {
 	if (!m_Client)
@@ -142,8 +147,10 @@ void JsonRpcEndpoint::VerifyCertificateHandler(bool& valid, const shared_ptr<X50
 	if (certificate && valid) {
 		string identity = Utility::GetCertificateCN(certificate);
 
-		if (GetIdentity().empty() && !identity.empty())
-			SetIdentity(identity);
+		if (GetIdentity().empty() && !identity.empty()) {
+			m_Identity = identity;
+			OnIdentityChanged(GetSelf());
+		}
 	}
 }
 

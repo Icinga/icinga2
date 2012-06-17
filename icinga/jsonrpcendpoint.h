@@ -41,7 +41,7 @@ public:
 	JsonRpcClient::Ptr GetClient(void);
 	void SetClient(JsonRpcClient::Ptr client);
 
-	void SetAddress(string address);
+	virtual string GetIdentity(void) const;
 	virtual string GetAddress(void) const;
 
 	virtual bool IsLocal(void) const;
@@ -53,10 +53,14 @@ public:
 	virtual void Stop(void);
 
 private:
+	string m_Identity; /**< The identity of this endpoint. */
+
 	shared_ptr<SSL_CTX> m_SSLContext;
 	string m_Address;
 	JsonRpcClient::Ptr m_Client;
 	map<string, Endpoint::Ptr> m_PendingCalls;
+
+	void SetAddress(string address);
 
 	void NewMessageHandler(const MessagePart& message);
 	void ClientClosedHandler(void);

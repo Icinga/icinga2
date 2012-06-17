@@ -38,12 +38,12 @@ public:
 
 	typedef set<string>::const_iterator ConstTopicIterator;
 
-	Endpoint(void);
+	Endpoint(void)
+		: m_ReceivedWelcome(false), m_SentWelcome(false)
+	{ }
 
+	virtual string GetIdentity(void) const = 0;
 	virtual string GetAddress(void) const = 0;
-
-	string GetIdentity(void) const;
-	void SetIdentity(string identity);
 
 	void SetReceivedWelcome(bool value);
 	bool HasReceivedWelcome(void) const;
@@ -83,7 +83,6 @@ public:
 	boost::signal<void (const Endpoint::Ptr&)> OnSessionEstablished;
 
 private:
-	string m_Identity; /**< The identity of this endpoint. */
 	set<string> m_Subscriptions; /**< The topics this endpoint is
 					  subscribed to. */
 	set<string> m_Publications; /**< The topics this endpoint is
