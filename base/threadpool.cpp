@@ -11,15 +11,17 @@ ThreadPool::ThreadPool(long numThreads)
 
 ThreadPool::~ThreadPool(void)
 {
-	unique_lock<mutex> lock(m_Lock);
-	
-	/* wait for all pending tasks */
-	while (m_Tasks.size() > 0)
-		m_CV.wait(lock);
+	{
+		unique_lock<mutex> lock(m_Lock);
 
-	/* notify worker threads to exit */
-	m_Alive = false;
-	m_CV.notify_all();
+		m_Tasks.clear();
+
+		/* notify worker threads to exit */
+		m_Alive = false;
+		m_CV.notify_all();
+	}
+
+	m_Threads.join_all();
 }
 
 void ThreadPool::EnqueueTask(Task task)
@@ -27,6 +29,15 @@ void ThreadPool::EnqueueTask(Task task)
 	unique_lock<mutex> lock(m_Lock);
 	m_Tasks.push_back(task);
 	m_CV.notify_one();
+}
+
+void ThreadPool::WaitForTasks(void)
+{
+	unique_lock<mutex> lock(m_Lock);
+
+	/* wait for all pending tasks */
+	while (m_Tasks.size() > 0)
+		m_CV.wait(lock);
 }
 
 void ThreadPool::WorkerThreadProc(void)
@@ -38,10 +49,10 @@ void ThreadPool::WorkerThreadProc(void)
 			unique_lock<mutex> lock(m_Lock);
 
 			while (m_Tasks.size() == 0) {
-				m_CV.wait(lock);
-
 				if (!m_Alive)
 					return;
+
+				m_CV.wait(lock);
 			}
 
 			task = m_Tasks.front();

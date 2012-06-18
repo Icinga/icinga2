@@ -18,6 +18,7 @@ public:
 	static ThreadPool::Ptr GetDefaultPool(void);
 
 	void EnqueueTask(Task task);
+	void WaitForTasks(void);
 
 private:
 	mutex m_Lock;
