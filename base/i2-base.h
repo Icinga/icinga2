@@ -91,7 +91,7 @@
 #include <map>
 #include <list>
 #include <algorithm>
-#include <stack>
+#include <deque>
 
 using std::string;
 using std::vector;
@@ -100,7 +100,7 @@ using std::list;
 using std::set;
 using std::multimap;
 using std::pair;
-using std::stack;
+using std::deque;
 
 using std::stringstream;
 

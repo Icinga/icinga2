@@ -25,7 +25,7 @@ ThreadPool::~ThreadPool(void)
 void ThreadPool::EnqueueTask(Task task)
 {
 	unique_lock<mutex> lock(m_Lock);
-	m_Tasks.push(task);
+	m_Tasks.push_back(task);
 	m_CV.notify_one();
 }
 
@@ -44,8 +44,8 @@ void ThreadPool::WorkerThreadProc(void)
 					return;
 			}
 
-			task = m_Tasks.top();
-			m_Tasks.pop();
+			task = m_Tasks.front();
+			m_Tasks.pop_front();
 		}
 
 		task();

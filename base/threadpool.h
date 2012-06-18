@@ -23,7 +23,7 @@ private:
 	mutex m_Lock;
 	condition_variable m_CV;
 
-	stack<Task> m_Tasks;
+	deque<Task> m_Tasks;
 
 	thread_group m_Threads;
 	bool m_Alive;
