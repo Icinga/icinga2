@@ -65,7 +65,7 @@ void CheckerComponent::CheckTimerHandler(void)
 	time(&now);
 
 	for (;;) {
-		if (m_Services.size() == 0)
+		if (m_Services.empty())
 			break;
 
 		Service service = m_Services.top();
@@ -116,7 +116,7 @@ void CheckerComponent::ResultTimerHandler(void)
 
 void CheckerComponent::AdjustCheckTimer(void)
 {
-	if (m_Services.size() == 0)
+	if (m_Services.empty())
 		return;
 
 	/* adjust next call time for the check timer */
