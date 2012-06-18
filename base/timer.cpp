@@ -71,7 +71,6 @@ void Timer::RescheduleTimers(void)
 void Timer::CallExpiredTimers(void)
 {
 	time_t now;
-
 	time(&now);
 
 	Timer::CollectionType::iterator prev, i;

@@ -121,7 +121,6 @@ void CheckerComponent::AdjustCheckTimer(void)
 
 	/* adjust next call time for the check timer */
 	Service service = m_Services.top();
-
 	m_CheckTimer->Reschedule(service.GetNextCheck());
 }
 

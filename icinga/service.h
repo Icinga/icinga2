@@ -21,7 +21,7 @@ public:
 	long GetRetryInterval(void) const;
 
 	void SetNextCheck(time_t nextCheck);
-	time_t GetNextCheck(void) const;
+	time_t GetNextCheck(void);
 	void SetChecker(string checker);
 	string GetChecker(void) const;
 	void SetPendingCheck(bool pending);

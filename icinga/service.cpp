@@ -53,6 +53,10 @@ long Service::GetCheckInterval(void) const
 {
 	long value = 300;
 	GetConfigObject()->GetProperty("check_interval", &value);
+
+	if (value < 15)
+		value = 15;
+
 	return value;
 }
 
@@ -68,10 +72,16 @@ void Service::SetNextCheck(time_t nextCheck)
 	GetConfigObject()->SetTag("next_check", static_cast<long>(nextCheck));
 }
 
-time_t Service::GetNextCheck(void) const
+time_t Service::GetNextCheck(void)
 {
-	long value = 0;
+	long value = -1;
 	GetConfigObject()->GetTag("next_check", &value);
+
+	if (value == -1) {
+		value = time(NULL) + rand() % GetCheckInterval();
+		SetNextCheck(value);
+	}
+
 	return value;
 }
 

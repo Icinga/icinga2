@@ -26,7 +26,7 @@ namespace icinga
 struct ServiceNextCheckLessComparer
 {
 public:
-	bool operator()(const Service& a, const Service& b)
+	bool operator()(Service& a, Service& b)
 	{
 		return a.GetNextCheck() > b.GetNextCheck();
 	}
