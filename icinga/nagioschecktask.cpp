@@ -2,6 +2,8 @@
 
 using namespace icinga;
 
+vector<ThreadPool::Task> NagiosCheckTask::m_QueuedTasks;
+
 NagiosCheckTask::NagiosCheckTask(const Service& service)
 	: CheckTask(service)
 {
@@ -12,26 +14,30 @@ NagiosCheckTask::NagiosCheckTask(const Service& service)
 	m_Result = m_Task.get_future();
 }
 
-void NagiosCheckTask::Execute(void)
+void NagiosCheckTask::Enqueue(void)
 {
-	Application::Log(LogDebug, "icinga", "Nagios check command: " + m_Command);
-
-	ThreadPool::GetDefaultPool()->EnqueueTask(boost::bind(&NagiosCheckTask::InternalExecute, this));
+	m_QueuedTasks.push_back(bind(&NagiosCheckTask::Execute, this));
 }
 
-void NagiosCheckTask::InternalExecute(void)
+void NagiosCheckTask::FlushQueue(void)
 {
-	m_Task();
+	ThreadPool::GetDefaultPool()->EnqueueTasks(m_QueuedTasks);
+	m_QueuedTasks.clear();
 }
 
 bool NagiosCheckTask::IsFinished(void) const
 {
-	return m_Result.is_ready();
+	return m_Result.has_value();
 }
 
 CheckResult NagiosCheckTask::GetResult(void)
 {
 	return m_Result.get();
+}
+
+void NagiosCheckTask::Execute(void)
+{
+	m_Task();
 }
 
 CheckResult NagiosCheckTask::RunCheck(void) const

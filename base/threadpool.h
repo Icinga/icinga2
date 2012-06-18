@@ -17,6 +17,7 @@ public:
 
 	static ThreadPool::Ptr GetDefaultPool(void);
 
+	void EnqueueTasks(const vector<Task>& tasks);
 	void EnqueueTask(Task task);
 	void WaitForTasks(void);
 

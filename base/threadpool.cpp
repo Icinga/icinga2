@@ -5,8 +5,26 @@ using namespace icinga;
 ThreadPool::ThreadPool(long numThreads)
 	: m_Alive(true)
 {
-	for (long i = 0; i < numThreads; i++)
-		m_Threads.create_thread(boost::bind(&ThreadPool::WorkerThreadProc, this));
+	for (long i = 0; i < numThreads; i++) {
+		thread *thr = m_Threads.create_thread(boost::bind(&ThreadPool::WorkerThreadProc, this));
+#ifdef _WIN32
+		HANDLE handle = thr->native_handle();
+		SetPriorityClass(handle, BELOW_NORMAL_PRIORITY_CLASS);
+#else /* _WIN32 */
+		pthread_t handle = thr->native_handle();
+
+		int policy;
+		sched_param param;
+
+		if (pthread_getschedparam(handle, &policy, &param) < 0)
+			throw PosixException("pthread_getschedparam failed", errno);
+
+		param.sched_priority = 0;
+
+		if (pthread_setschedparam(handle, SCHED_IDLE, &param) < 0)
+			throw PosixException("pthread_setschedparam failed", errno);
+#endif /* _WIN32 */
+	}
 }
 
 ThreadPool::~ThreadPool(void)
@@ -22,6 +40,14 @@ ThreadPool::~ThreadPool(void)
 	}
 
 	m_Threads.join_all();
+}
+
+void ThreadPool::EnqueueTasks(const vector<Task>& tasks)
+{
+	unique_lock<mutex> lock(m_Lock);
+
+	std::copy(tasks.begin(), tasks.end(), std::back_inserter(m_Tasks));
+	m_CV.notify_all();
 }
 
 void ThreadPool::EnqueueTask(Task task)

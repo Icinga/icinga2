@@ -99,7 +99,19 @@ void Timer::CallExpiredTimers(void)
  */
 void Timer::Call(void)
 {
+	time_t st;
+	time(&st);
+
 	OnTimerExpired(GetSelf());
+
+	time_t et;
+	time(&et);
+
+	if (et - st > 5) {
+		stringstream msgbuf;
+		msgbuf << "Timer call took " << et - st << " seconds.";
+		Application::Log(LogDebug, "base", msgbuf.str());
+	}
 }
 
 /**

@@ -24,6 +24,8 @@ struct CheckResult
 	Dictionary::Ptr PerformanceData;
 };
 
+struct CheckTaskType;
+
 class I2_ICINGA_API CheckTask : public Object
 {
 public:
@@ -31,15 +33,18 @@ public:
 	typedef weak_ptr<CheckTask> WeakPtr;
 
 	typedef function<CheckTask::Ptr(const Service&)> Factory;
+	typedef function<void()> QueueFlusher;
 
 	Service GetService(void) const;
 
-	virtual void Execute(void) = 0;
+	virtual void Enqueue(void) = 0;
 	virtual bool IsFinished(void) const = 0;
 	virtual CheckResult GetResult(void) = 0;
 
-	static void RegisterType(string type, Factory factory);
+	static void RegisterType(string type, Factory factory, QueueFlusher qflusher);
 	static CheckTask::Ptr CreateTask(const Service& service);
+	static void Enqueue(const CheckTask::Ptr& task);
+	static void FlushQueue(void);
 
 protected:
 	CheckTask(const Service& service);
@@ -47,7 +52,13 @@ protected:
 private:
 	Service m_Service;
 
-	static map<string, Factory> m_Types;
+	static map<string, CheckTaskType> m_Types;
+};
+
+struct CheckTaskType
+{
+	CheckTask::Factory Factory;
+	CheckTask::QueueFlusher QueueFlusher;
 };
 
 }

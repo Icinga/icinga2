@@ -43,7 +43,7 @@ void CheckerComponent::Start(void)
 	m_CheckTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::CheckTimerHandler, this));
 	m_CheckTimer->Start();
 
-	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask);
+	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask, NagiosCheckTask::FlushQueue);
 
 	m_ResultTimer = boost::make_shared<Timer>();
 	m_ResultTimer->SetInterval(5);
@@ -64,6 +64,10 @@ void CheckerComponent::CheckTimerHandler(void)
 	time_t now;
 	time(&now);
 
+	Application::Log(LogDebug, "checker", "CheckTimerHandler entered.");
+
+	long tasks = 0;
+
 	for (;;) {
 		if (m_Services.empty())
 			break;
@@ -76,21 +80,35 @@ void CheckerComponent::CheckTimerHandler(void)
 		m_Services.pop();
 		service.SetPendingCheck(true);
 
-		Application::Log(LogInformation, "checker", "Executing service check for '" + service.GetName() + "'");
+//		Application::Log(LogInformation, "checker", "Executing service check for '" + service.GetName() + "'");
 
 		CheckTask::Ptr task = CheckTask::CreateTask(service);
-		task->Execute();
+		task->Enqueue();
 		m_PendingTasks.push_back(task);
 
 		service.SetNextCheck(now + service.GetCheckInterval());
+
+		tasks++;
 	}
 
+	Application::Log(LogDebug, "checker", "CheckTimerHandler: past loop.");
+
+	CheckTask::FlushQueue();
+
 	AdjustCheckTimer();
+
+	stringstream msgbuf;
+	msgbuf << "CheckTimerHandler: created " << tasks << " tasks";
+	Application::Log(LogDebug, "checker", msgbuf.str());
 }
 
 void CheckerComponent::ResultTimerHandler(void)
 {
 	vector<CheckTask::Ptr> unfinishedTasks;
+
+	Application::Log(LogDebug, "checker", "ResultTimerHandler entered.");
+
+	long results = 0;
 
 	for (vector<CheckTask::Ptr>::iterator it = m_PendingTasks.begin(); it != m_PendingTasks.end(); it++) {
 		CheckTask::Ptr task = *it;
@@ -104,10 +122,16 @@ void CheckerComponent::ResultTimerHandler(void)
 		service.SetPendingCheck(false);
 
 		CheckResult result = task->GetResult();
-		Application::Log(LogInformation, "checker", "Got result! Plugin output: " + result.Output);
+//		Application::Log(LogInformation, "checker", "Got result! Plugin output: " + result.Output);
+
+		results++;
 
 		m_Services.push(service);
 	}
+
+	stringstream msgbuf;
+	msgbuf << "ResultTimerHandler: " << results << " results; " << unfinishedTasks.size() << " unfinished";
+	Application::Log(LogDebug, "checker", msgbuf.str());
 
 	m_PendingTasks = unfinishedTasks;
 
