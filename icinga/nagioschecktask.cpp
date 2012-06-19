@@ -4,19 +4,19 @@ using namespace icinga;
 
 vector<ThreadPool::Task> NagiosCheckTask::m_QueuedTasks;
 
+boost::mutex NagiosCheckTask::m_FinishedTasksMutex;
+vector<CheckTask::Ptr> NagiosCheckTask::m_FinishedTasks;
+
 NagiosCheckTask::NagiosCheckTask(const Service& service)
 	: CheckTask(service)
 {
 	string checkCommand = service.GetCheckCommand();
 	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros()) + " 2>&1";
-
-	m_Task = packaged_task<CheckResult>(boost::bind(&NagiosCheckTask::RunCheck, this));
-	m_Result = m_Task.get_future();
 }
 
 void NagiosCheckTask::Enqueue(void)
 {
-	m_QueuedTasks.push_back(bind(&NagiosCheckTask::Execute, this));
+	m_QueuedTasks.push_back(bind(&NagiosCheckTask::Execute, static_cast<NagiosCheckTask::Ptr>(GetSelf())));
 }
 
 void NagiosCheckTask::FlushQueue(void)
@@ -25,19 +25,26 @@ void NagiosCheckTask::FlushQueue(void)
 	m_QueuedTasks.clear();
 }
 
-bool NagiosCheckTask::IsFinished(void) const
+void NagiosCheckTask::GetFinishedTasks(vector<CheckTask::Ptr>& tasks)
 {
-	return m_Result.has_value();
+	unique_lock<mutex> lock(m_FinishedTasksMutex);
+	std::copy(m_FinishedTasks.begin(), m_FinishedTasks.end(), back_inserter(tasks));
+	m_FinishedTasks.clear();
 }
 
 CheckResult NagiosCheckTask::GetResult(void)
 {
-	return m_Result.get();
+	return m_Result;
 }
 
 void NagiosCheckTask::Execute(void)
 {
-	m_Task();
+	m_Result = RunCheck();
+
+	{
+		unique_lock<mutex> lock(m_FinishedTasksMutex);
+		m_FinishedTasks.push_back(GetSelf());
+	}
 }
 
 CheckResult NagiosCheckTask::RunCheck(void) const
@@ -110,7 +117,5 @@ CheckResult NagiosCheckTask::RunCheck(void) const
 
 CheckTask::Ptr NagiosCheckTask::CreateTask(const Service& service)
 {
-	assert(service.GetCheckType() == "nagios");
-
 	return boost::make_shared<NagiosCheckTask>(service);
 }

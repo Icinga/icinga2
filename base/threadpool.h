@@ -12,7 +12,7 @@ public:
 
 	typedef function<void()> Task;
 
-	ThreadPool(long numThreads = 64);
+	ThreadPool(long numThreads = 16);
 	~ThreadPool(void);
 
 	static ThreadPool::Ptr GetDefaultPool(void);

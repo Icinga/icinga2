@@ -34,17 +34,18 @@ public:
 
 	typedef function<CheckTask::Ptr(const Service&)> Factory;
 	typedef function<void()> QueueFlusher;
+	typedef function<void (vector<CheckTask::Ptr>& tasks)> FinishedTasksGetter;
 
 	Service GetService(void) const;
 
 	virtual void Enqueue(void) = 0;
-	virtual bool IsFinished(void) const = 0;
 	virtual CheckResult GetResult(void) = 0;
 
-	static void RegisterType(string type, Factory factory, QueueFlusher qflusher);
+	static void RegisterType(string type, Factory factory, QueueFlusher qflusher, FinishedTasksGetter qtasksgetter);
 	static CheckTask::Ptr CreateTask(const Service& service);
 	static void Enqueue(const CheckTask::Ptr& task);
 	static void FlushQueue(void);
+	static vector<CheckTask::Ptr> GetFinishedTasks(void);
 
 protected:
 	CheckTask(const Service& service);
@@ -59,6 +60,7 @@ struct CheckTaskType
 {
 	CheckTask::Factory Factory;
 	CheckTask::QueueFlusher QueueFlusher;
+	CheckTask::FinishedTasksGetter FinishedTasksGetter;
 };
 
 }

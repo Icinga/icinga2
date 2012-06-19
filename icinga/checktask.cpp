@@ -13,11 +13,12 @@ Service CheckTask::GetService(void) const
 	return m_Service;
 }
 
-void CheckTask::RegisterType(string type, Factory factory, QueueFlusher qflusher)
+void CheckTask::RegisterType(string type, Factory factory, QueueFlusher qflusher, FinishedTasksGetter qtasksgetter)
 {
 	CheckTaskType ctt;
 	ctt.Factory = factory;
 	ctt.QueueFlusher = qflusher;
+	ctt.FinishedTasksGetter = qtasksgetter;
 
 	m_Types[type] = ctt;
 }
@@ -42,7 +43,18 @@ void CheckTask::Enqueue(const CheckTask::Ptr& task)
 void CheckTask::FlushQueue(void)
 {
 	map<string, CheckTaskType>::iterator it;
-
 	for (it = m_Types.begin(); it != m_Types.end(); it++)
 		it->second.QueueFlusher();
 }
+
+vector<CheckTask::Ptr> CheckTask::GetFinishedTasks(void)
+{
+	vector<CheckTask::Ptr> tasks;
+
+	map<string, CheckTaskType>::iterator it;
+	for (it = m_Types.begin(); it != m_Types.end(); it++)
+		it->second.FinishedTasksGetter(tasks);
+
+	return tasks;
+}
+

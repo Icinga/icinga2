@@ -56,7 +56,6 @@ private:
 	Timer::Ptr m_CheckTimer;
 
 	Timer::Ptr m_ResultTimer;
-	vector<CheckTask::Ptr> m_PendingTasks;
 
 	void CheckTimerHandler(void);
 	void ResultTimerHandler(void);

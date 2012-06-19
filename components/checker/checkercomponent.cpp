@@ -43,7 +43,7 @@ void CheckerComponent::Start(void)
 	m_CheckTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::CheckTimerHandler, this));
 	m_CheckTimer->Start();
 
-	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask, NagiosCheckTask::FlushQueue);
+	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask, NagiosCheckTask::FlushQueue, NagiosCheckTask::GetFinishedTasks);
 
 	m_ResultTimer = boost::make_shared<Timer>();
 	m_ResultTimer->SetInterval(5);
@@ -68,25 +68,18 @@ void CheckerComponent::CheckTimerHandler(void)
 
 	long tasks = 0;
 
-	for (;;) {
-		if (m_Services.empty())
-			break;
-
+	while (!m_Services.empty()) {
 		Service service = m_Services.top();
 
-		if (service.GetNextCheck() > now || service.HasPendingCheck())
+		if (service.GetNextCheck() > now)
 			break;
 
 		m_Services.pop();
-		service.SetPendingCheck(true);
 
 //		Application::Log(LogInformation, "checker", "Executing service check for '" + service.GetName() + "'");
 
 		CheckTask::Ptr task = CheckTask::CreateTask(service);
 		task->Enqueue();
-		m_PendingTasks.push_back(task);
-
-		service.SetNextCheck(now + service.GetCheckInterval());
 
 		tasks++;
 	}
@@ -104,36 +97,32 @@ void CheckerComponent::CheckTimerHandler(void)
 
 void CheckerComponent::ResultTimerHandler(void)
 {
-	vector<CheckTask::Ptr> unfinishedTasks;
-
 	Application::Log(LogDebug, "checker", "ResultTimerHandler entered.");
+
+	time_t now;
+	time(&now);
 
 	long results = 0;
 
-	for (vector<CheckTask::Ptr>::iterator it = m_PendingTasks.begin(); it != m_PendingTasks.end(); it++) {
+	vector<CheckTask::Ptr> finishedTasks = CheckTask::GetFinishedTasks();
+
+	for (vector<CheckTask::Ptr>::iterator it = finishedTasks.begin(); it != finishedTasks.end(); it++) {
 		CheckTask::Ptr task = *it;
 
-		if (!task->IsFinished()) {
-			unfinishedTasks.push_back(task);
-			continue;
-		}
-
 		Service service = task->GetService();
-		service.SetPendingCheck(false);
 
 		CheckResult result = task->GetResult();
 //		Application::Log(LogInformation, "checker", "Got result! Plugin output: " + result.Output);
 
 		results++;
 
+		service.SetNextCheck(now + service.GetCheckInterval());
 		m_Services.push(service);
 	}
 
 	stringstream msgbuf;
-	msgbuf << "ResultTimerHandler: " << results << " results; " << unfinishedTasks.size() << " unfinished";
+	msgbuf << "ResultTimerHandler: " << results << " results";
 	Application::Log(LogDebug, "checker", msgbuf.str());
-
-	m_PendingTasks = unfinishedTasks;
 
 	AdjustCheckTimer();
 }
@@ -196,8 +185,7 @@ void CheckerComponent::RevokeServiceRequestHandler(const Endpoint::Ptr& sender, 
 		if (service.GetName() == name)
 			continue;
 
-		if (service.HasPendingCheck()) // TODO: remember services that should be removed once their pending check is done
-			throw runtime_error("not yet implemented");
+		// TODO: take care of services that are currently being checked
 
 		services.push_back(service);
 	}

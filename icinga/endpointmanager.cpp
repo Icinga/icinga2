@@ -210,7 +210,7 @@ void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
 			candidates.push_back(endpoint);
 	}
 
-	if (candidates.size() == 0)
+	if (candidates.empty())
 		return;
 
 	Endpoint::Ptr recipient = candidates[rand() % candidates.size()];
