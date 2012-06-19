@@ -12,7 +12,7 @@ ThreadPool::ThreadPool(long numThreads)
 ThreadPool::~ThreadPool(void)
 {
 	{
-		unique_lock<mutex> lock(m_Lock);
+		mutex::scoped_lock lock(m_Lock);
 
 		m_Tasks.clear();
 
@@ -24,24 +24,47 @@ ThreadPool::~ThreadPool(void)
 	m_Threads.join_all();
 }
 
-void ThreadPool::EnqueueTasks(const vector<Task>& tasks)
+void ThreadPool::EnqueueTasks(list<ThreadPoolTask::Ptr>& tasks)
 {
-	unique_lock<mutex> lock(m_Lock);
+	{
+		mutex::scoped_lock lock(m_Lock);
+		m_Tasks.splice(m_Tasks.end(), tasks, tasks.begin(), tasks.end());
+	}
 
-	std::copy(tasks.begin(), tasks.end(), std::back_inserter(m_Tasks));
 	m_CV.notify_all();
 }
 
-void ThreadPool::EnqueueTask(Task task)
+void ThreadPool::EnqueueTask(const ThreadPoolTask::Ptr& task)
 {
-	unique_lock<mutex> lock(m_Lock);
-	m_Tasks.push_back(task);
+	{
+		mutex::scoped_lock lock(m_Lock);
+		m_Tasks.push_back(task);
+	}
+
 	m_CV.notify_one();
+}
+
+
+ThreadPoolTask::Ptr ThreadPool::DequeueTask(void)
+{
+	mutex::scoped_lock lock(m_Lock);
+
+	while (m_Tasks.empty()) {
+		if (!m_Alive)
+			return ThreadPoolTask::Ptr();
+
+		m_CV.wait(lock);
+	}
+
+	ThreadPoolTask::Ptr task = m_Tasks.front();
+	m_Tasks.pop_front();
+
+	return task;
 }
 
 void ThreadPool::WaitForTasks(void)
 {
-	unique_lock<mutex> lock(m_Lock);
+	mutex::scoped_lock lock(m_Lock);
 
 	/* wait for all pending tasks */
 	while (!m_Tasks.empty())
@@ -51,23 +74,12 @@ void ThreadPool::WaitForTasks(void)
 void ThreadPool::WorkerThreadProc(void)
 {
 	while (true) {
-		Task task;
+		ThreadPoolTask::Ptr task = DequeueTask();
 
-		{
-			unique_lock<mutex> lock(m_Lock);
+		if (!task)
+			break;
 
-			while (m_Tasks.empty()) {
-				if (!m_Alive)
-					return;
-
-				m_CV.wait(lock);
-			}
-
-			task = m_Tasks.front();
-			m_Tasks.pop_front();
-		}
-
-		task();
+		task->Execute();
 	}
 }
 
@@ -80,3 +92,4 @@ ThreadPool::Ptr ThreadPool::GetDefaultPool(void)
 
 	return threadPool;
 }
+

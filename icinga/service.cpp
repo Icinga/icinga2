@@ -69,42 +69,26 @@ long Service::GetRetryInterval(void) const
 
 void Service::SetNextCheck(time_t nextCheck)
 {
-	GetConfigObject()->SetTag("next_check", static_cast<long>(nextCheck));
+	m_NextCheck = nextCheck;
 }
 
 time_t Service::GetNextCheck(void)
 {
-	long value = -1;
-	GetConfigObject()->GetTag("next_check", &value);
+	if (m_NextCheck == -1)
+		m_NextCheck = time(NULL) + rand() % GetCheckInterval();
 
-	if (value == -1) {
-		value = time(NULL) + rand() % GetCheckInterval();
-		SetNextCheck(value);
-	}
-
-	return value;
+	return m_NextCheck;
 }
 
 void Service::SetChecker(string checker)
 {
-	GetConfigObject()->SetTag("checker", checker);
+	GetConfigObject()->SetProperty("checker", checker);
 }
 
 string Service::GetChecker(void) const
 {
 	string value;
-	GetConfigObject()->GetTag("checker", &value);
+	GetConfigObject()->GetProperty("checker", &value);
 	return value;
 }
 
-void Service::SetPendingCheck(bool pending)
-{
-	GetConfigObject()->SetTag("pendingCheck", pending);
-}
-
-bool Service::HasPendingCheck(void) const
-{
-	bool value = false;
-	GetConfigObject()->GetTag("pendingCheck", &value);
-	return value;
-}

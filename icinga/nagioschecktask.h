@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class I2_ICINGA_API NagiosCheckTask : public CheckTask
+class I2_ICINGA_API NagiosCheckTask : public CheckTask, public ThreadPoolTask
 {
 public:
 	typedef shared_ptr<NagiosCheckTask> Ptr;
@@ -23,13 +23,13 @@ private:
 	string m_Command;
 	CheckResult m_Result;
 
-	static vector<ThreadPool::Task> m_QueuedTasks;
+	static list<ThreadPoolTask::Ptr> m_QueuedTasks;
 
 	static boost::mutex m_FinishedTasksMutex;
 	static vector<CheckTask::Ptr> m_FinishedTasks;
 
-	void Execute(void);
-	CheckResult RunCheck(void) const;
+	virtual void Execute(void);
+	void RunCheck(void);
 };
 
 }

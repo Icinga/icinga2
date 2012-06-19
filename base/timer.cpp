@@ -87,7 +87,7 @@ void Timer::CallExpiredTimers(void)
 
 		if (timer->m_Next <= now) {
 			timer->Call();
-			timer->Reschedule(now + timer->GetInterval());
+			timer->Reschedule(time(NULL) + timer->GetInterval());
 		}
 	}
 }

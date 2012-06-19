@@ -39,7 +39,7 @@ void CheckerComponent::Start(void)
 	GetEndpointManager()->RegisterEndpoint(m_CheckerEndpoint);
 
 	m_CheckTimer = boost::make_shared<Timer>();
-	m_CheckTimer->SetInterval(10);
+	m_CheckTimer->SetInterval(5);
 	m_CheckTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::CheckTimerHandler, this));
 	m_CheckTimer->Start();
 
@@ -88,8 +88,6 @@ void CheckerComponent::CheckTimerHandler(void)
 
 	CheckTask::FlushQueue();
 
-	AdjustCheckTimer();
-
 	stringstream msgbuf;
 	msgbuf << "CheckTimerHandler: created " << tasks << " tasks";
 	Application::Log(LogDebug, "checker", msgbuf.str());
@@ -102,7 +100,7 @@ void CheckerComponent::ResultTimerHandler(void)
 	time_t now;
 	time(&now);
 
-	long results = 0;
+	long latency = 0, results = 0;
 
 	vector<CheckTask::Ptr> finishedTasks = CheckTask::GetFinishedTasks();
 
@@ -114,6 +112,7 @@ void CheckerComponent::ResultTimerHandler(void)
 		CheckResult result = task->GetResult();
 //		Application::Log(LogInformation, "checker", "Got result! Plugin output: " + result.Output);
 
+		latency += result.EndTime - result.StartTime;
 		results++;
 
 		service.SetNextCheck(now + service.GetCheckInterval());
@@ -121,20 +120,8 @@ void CheckerComponent::ResultTimerHandler(void)
 	}
 
 	stringstream msgbuf;
-	msgbuf << "ResultTimerHandler: " << results << " results";
+	msgbuf << "ResultTimerHandler: " << results << " results; avg. latency: " << latency / (results ? results : 1);
 	Application::Log(LogDebug, "checker", msgbuf.str());
-
-	AdjustCheckTimer();
-}
-
-void CheckerComponent::AdjustCheckTimer(void)
-{
-	if (m_Services.empty())
-		return;
-
-	/* adjust next call time for the check timer */
-	Service service = m_Services.top();
-	m_CheckTimer->Reschedule(service.GetNextCheck());
 }
 
 void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)

@@ -2,7 +2,7 @@
 
 using namespace icinga;
 
-vector<ThreadPool::Task> NagiosCheckTask::m_QueuedTasks;
+list<ThreadPoolTask::Ptr> NagiosCheckTask::m_QueuedTasks;
 
 boost::mutex NagiosCheckTask::m_FinishedTasksMutex;
 vector<CheckTask::Ptr> NagiosCheckTask::m_FinishedTasks;
@@ -16,7 +16,9 @@ NagiosCheckTask::NagiosCheckTask(const Service& service)
 
 void NagiosCheckTask::Enqueue(void)
 {
-	m_QueuedTasks.push_back(bind(&NagiosCheckTask::Execute, static_cast<NagiosCheckTask::Ptr>(GetSelf())));
+	time(&m_Result.StartTime);
+	m_QueuedTasks.push_back(static_pointer_cast<ThreadPoolTask>(static_cast<NagiosCheckTask::Ptr>(GetSelf())));
+//	m_QueuedTasks.push_back(new ThreadPool:Task(bind(&NagiosCheckTask::Execute, static_cast<NagiosCheckTask::Ptr>(GetSelf()))));
 }
 
 void NagiosCheckTask::FlushQueue(void)
@@ -27,7 +29,7 @@ void NagiosCheckTask::FlushQueue(void)
 
 void NagiosCheckTask::GetFinishedTasks(vector<CheckTask::Ptr>& tasks)
 {
-	unique_lock<mutex> lock(m_FinishedTasksMutex);
+	mutex::scoped_lock lock(m_FinishedTasksMutex);
 	std::copy(m_FinishedTasks.begin(), m_FinishedTasks.end(), back_inserter(tasks));
 	m_FinishedTasks.clear();
 }
@@ -39,20 +41,17 @@ CheckResult NagiosCheckTask::GetResult(void)
 
 void NagiosCheckTask::Execute(void)
 {
-	m_Result = RunCheck();
+	RunCheck();
 
 	{
-		unique_lock<mutex> lock(m_FinishedTasksMutex);
+		mutex::scoped_lock lock(m_FinishedTasksMutex);
 		m_FinishedTasks.push_back(GetSelf());
 	}
 }
 
-CheckResult NagiosCheckTask::RunCheck(void) const
+void NagiosCheckTask::RunCheck(void)
 {
-	CheckResult cr;
 	FILE *fp;
-
-	time(&cr.StartTime);
 
 #ifdef _MSC_VER
 	fp = _popen(m_Command.c_str(), "r");
@@ -60,7 +59,7 @@ CheckResult NagiosCheckTask::RunCheck(void) const
 	fp = popen(m_Command.c_str(), "r");
 #endif /* _MSC_VER */
 
-	stringstream outputbuf;
+//	ostringstream outputbuf;
 
 	while (!feof(fp)) {
 		char buffer[128];
@@ -69,11 +68,11 @@ CheckResult NagiosCheckTask::RunCheck(void) const
 		if (read == 0)
 			break;
 
-		outputbuf << string(buffer, buffer + read);
+//		outputbuf.write(buffer, read);
 	}
 
-	cr.Output = outputbuf.str();
-	boost::algorithm::trim(cr.Output);
+//	m_Result.Output = outputbuf.str();
+//	boost::algorithm::trim(m_Result.Output);
 
 	int status, exitcode;
 #ifdef _MSC_VER
@@ -91,28 +90,26 @@ CheckResult NagiosCheckTask::RunCheck(void) const
 
 		switch (exitcode) {
 			case 0:
-				cr.State = StateOK;
+				m_Result.State = StateOK;
 				break;
 			case 1:
-				cr.State = StateWarning;
+				m_Result.State = StateWarning;
 				break;
 			case 2:
-				cr.State = StateCritical;
+				m_Result.State = StateCritical;
 				break;
 			default:
-				cr.State = StateUnknown;
+				m_Result.State = StateUnknown;
 				break;
 		}
 #ifndef _MSC_VER
 	} else if (WIFSIGNALED(status)) {
-		cr.Output = "Process was terminated by signal " + WTERMSIG(status);
-		cr.State = StateUnknown;
+		m_Result.Output = "Process was terminated by signal " + WTERMSIG(status);
+		m_Result.State = StateUnknown;
 	}
 #endif /* _MSC_VER */
 
-	time(&cr.EndTime);
-
-	return cr;
+	time(&m_Result.EndTime);
 }
 
 CheckTask::Ptr NagiosCheckTask::CreateTask(const Service& service)

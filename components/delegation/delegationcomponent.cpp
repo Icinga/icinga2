@@ -109,6 +109,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		AssignService(service);
 	}
+
+	m_DelegationTimer->Stop();
 }
 
 EXPORT_COMPONENT(delegation, DelegationComponent);

@@ -127,7 +127,6 @@ using boost::function;
 using boost::thread;
 using boost::thread_group;
 using boost::mutex;
-using boost::unique_lock;
 using boost::condition_variable;
 
 #if defined(__APPLE__) && defined(__MACH__)
