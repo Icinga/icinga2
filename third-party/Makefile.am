@@ -3,4 +3,5 @@
 SUBDIRS = \
 	ltdl \
 	cJSON \
-	mmatch
+	mmatch \
+	popen-noshell

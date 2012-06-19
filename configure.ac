@@ -83,6 +83,7 @@ test/Makefile
 third-party/Makefile
 third-party/cJSON/Makefile
 third-party/mmatch/Makefile
+third-party/popen-noshell/Makefile
 Doxyfile
 ])
 AC_OUTPUT

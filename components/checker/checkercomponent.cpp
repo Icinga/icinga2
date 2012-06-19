@@ -100,7 +100,7 @@ void CheckerComponent::ResultTimerHandler(void)
 	time_t now;
 	time(&now);
 
-	long latency = 0, results = 0;
+	long min_latency = -1, max_latency = 0, avg_latency = 0, results = 0;
 
 	vector<CheckTask::Ptr> finishedTasks = CheckTask::GetFinishedTasks();
 
@@ -112,7 +112,15 @@ void CheckerComponent::ResultTimerHandler(void)
 		CheckResult result = task->GetResult();
 //		Application::Log(LogInformation, "checker", "Got result! Plugin output: " + result.Output);
 
-		latency += result.EndTime - result.StartTime;
+		long latency = result.EndTime - result.StartTime;
+		avg_latency += latency;
+
+		if (min_latency == -1 || latency < min_latency)
+			min_latency = latency;
+
+		if (latency > max_latency)
+			max_latency = latency;
+
 		results++;
 
 		service.SetNextCheck(now + service.GetCheckInterval());
@@ -120,7 +128,7 @@ void CheckerComponent::ResultTimerHandler(void)
 	}
 
 	stringstream msgbuf;
-	msgbuf << "ResultTimerHandler: " << results << " results; avg. latency: " << latency / (results ? results : 1);
+	msgbuf << "ResultTimerHandler: " << results << " results; latency: avg=" << avg_latency / (results ? results : 1) << ", min=" << min_latency << ", max: " << max_latency;
 	Application::Log(LogDebug, "checker", msgbuf.str());
 }
 

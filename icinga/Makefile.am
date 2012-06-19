@@ -37,6 +37,7 @@ libicinga_la_CPPFLAGS = \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/cJSON \
+	-I${top_srcdir}/third-party/popen-noshell \
 	-I${top_srcdir}
 
 libicinga_la_LDFLAGS = \
@@ -48,4 +49,5 @@ libicinga_la_LDFLAGS = \
 libicinga_la_LIBADD = \
 	$(BOOST_THREAD_LIB) \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
-	${top_builddir}/base/libbase.la
+	${top_builddir}/base/libbase.la \
+	${top_builddir}/third-party/popen-noshell/libpopen_noshell.la

@@ -1,4 +1,5 @@
 #include "i2-icinga.h"
+#include "popen_noshell.h"
 
 using namespace icinga;
 
@@ -11,7 +12,7 @@ NagiosCheckTask::NagiosCheckTask(const Service& service)
 	: CheckTask(service)
 {
 	string checkCommand = service.GetCheckCommand();
-	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros()) + " 2>&1";
+	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros()); // + " 2>&1";
 }
 
 void NagiosCheckTask::Enqueue(void)
@@ -56,29 +57,30 @@ void NagiosCheckTask::RunCheck(void)
 #ifdef _MSC_VER
 	fp = _popen(m_Command.c_str(), "r");
 #else /* _MSC_VER */
-	fp = popen(m_Command.c_str(), "r");
+	popen_noshell_pass_to_pclose pclose_arg;
+	fp = popen_noshell_compat(m_Command.c_str(), "r", &pclose_arg);
 #endif /* _MSC_VER */
 
-//	ostringstream outputbuf;
+	stringstream outputbuf;
 
 	while (!feof(fp)) {
-		char buffer[128];
+		char buffer[512];
 		size_t read = fread(buffer, 1, sizeof(buffer), fp);
 
 		if (read == 0)
 			break;
 
-//		outputbuf.write(buffer, read);
+		outputbuf.write(buffer, read);
 	}
 
-//	m_Result.Output = outputbuf.str();
-//	boost::algorithm::trim(m_Result.Output);
+	m_Result.Output = outputbuf.str();
+	boost::algorithm::trim(m_Result.Output);
 
 	int status, exitcode;
 #ifdef _MSC_VER
 	status = _pclose(fp);
 #else /* _MSC_VER */
-	status = pclose(fp);
+	status = pclose_noshell(&pclose_arg);
 #endif /* _MSC_VER */
 
 #ifndef _MSC_VER
