@@ -38,9 +38,6 @@ private:
 	ConfigObject::Set::Ptr m_AllServices;
 	Timer::Ptr m_DelegationTimer;
 
-	void NewServiceHandler(const Service& object);
-	void RemovedServiceHandler(const Service& object);
-
 	void AssignServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut);
 	void RevokeServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut);
 
@@ -48,8 +45,8 @@ private:
 
 	vector<Endpoint::Ptr> GetCheckerCandidates(const Service& service) const;
 
-	void AssignService(const Service& service);
-	void RevokeService(const Service& service);
+	void AssignService(const Endpoint::Ptr& checker, const Service& service);
+	void ClearServices(const Endpoint::Ptr& checker);
 };
 
 }

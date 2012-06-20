@@ -56,7 +56,7 @@ public:
 	void SendAnycastMessage(Endpoint::Ptr sender, const RequestMessage& message);
 	void SendMulticastMessage(Endpoint::Ptr sender, const RequestMessage& message);
 
-	void SendAPIMessage(Endpoint::Ptr sender, RequestMessage& message,
+	void SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, RequestMessage& message,
 	    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout = 10);
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);

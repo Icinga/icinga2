@@ -292,7 +292,7 @@ Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
 		return Endpoint::Ptr();
 }
 
-void EndpointManager::SendAPIMessage(Endpoint::Ptr sender,
+void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient,
     RequestMessage& message,
     function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout)
 {
@@ -312,7 +312,10 @@ void EndpointManager::SendAPIMessage(Endpoint::Ptr sender,
 	m_Requests[id] = pr;
 	RescheduleRequestTimer();
 
-	SendAnycastMessage(sender, message);
+	if (!recipient)
+		SendAnycastMessage(sender, message);
+	else
+		SendUnicastMessage(sender, recipient, message);
 }
 
 bool EndpointManager::RequestTimeoutLessComparer(const pair<string, PendingRequest>& a,

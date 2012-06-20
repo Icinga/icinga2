@@ -57,8 +57,19 @@ void NagiosCheckTask::RunCheck(void)
 #ifdef _MSC_VER
 	fp = _popen(m_Command.c_str(), "r");
 #else /* _MSC_VER */
+	bool use_libc_popen = false;
+
 	popen_noshell_pass_to_pclose pclose_arg;
-	fp = popen_noshell_compat(m_Command.c_str(), "r", &pclose_arg);
+
+	if (!use_libc_popen) {
+		fp = popen_noshell_compat(m_Command.c_str(), "r", &pclose_arg);
+
+		if (fp == NULL) // TODO: add check for valgrind
+			use_libc_popen = true;
+	}
+
+	if (use_libc_popen)
+		fp = popen(m_Command.c_str(), "r");
 #endif /* _MSC_VER */
 
 	stringstream outputbuf;
@@ -80,7 +91,10 @@ void NagiosCheckTask::RunCheck(void)
 #ifdef _MSC_VER
 	status = _pclose(fp);
 #else /* _MSC_VER */
-	status = pclose_noshell(&pclose_arg);
+	if (use_libc_popen)
+		status = pclose(fp);
+	else
+		status = pclose_noshell(&pclose_arg);
 #endif /* _MSC_VER */
 
 #ifndef _MSC_VER
