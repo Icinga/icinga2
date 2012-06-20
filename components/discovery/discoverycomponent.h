@@ -57,7 +57,6 @@ private:
 	Timer::Ptr m_DiscoveryTimer;
 
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
-	void NewIdentityHandler(const Endpoint::Ptr& endpoint);
 
 	void NewComponentMessageHandler(const RequestMessage& request);
 	void RegisterComponentMessageHandler(const Endpoint::Ptr& sender, const RequestMessage& request);

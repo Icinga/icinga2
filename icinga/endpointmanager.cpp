@@ -151,9 +151,17 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 		throw invalid_argument("Identity must be empty.");
 
 	endpoint->SetEndpointManager(GetSelf());
-	m_Endpoints.push_back(endpoint);
 
-	OnNewEndpoint(GetSelf(), endpoint);
+	UnregisterEndpoint(endpoint);
+
+	string identity = endpoint->GetIdentity();
+
+	if (!identity.empty()) {
+		m_Endpoints[identity] = endpoint;
+		OnNewEndpoint(GetSelf(), endpoint);
+	} else {
+		m_PendingEndpoints.push_back(endpoint);
+	}
 }
 
 /**
@@ -163,9 +171,13 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
  */
 void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
 {
-	m_Endpoints.erase(
-	    remove(m_Endpoints.begin(), m_Endpoints.end(), endpoint),
-	    m_Endpoints.end());
+	m_PendingEndpoints.erase(
+	    remove(m_PendingEndpoints.begin(), m_PendingEndpoints.end(), endpoint),
+	    m_PendingEndpoints.end());
+
+	string identity = endpoint->GetIdentity();
+	if (!identity.empty())
+		m_Endpoints.erase(identity);
 }
 
 /**
@@ -203,9 +215,9 @@ void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
 		throw invalid_argument("Message is missing the 'method' property.");
 
 	vector<Endpoint::Ptr> candidates;
-	for (vector<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
+	for (map<string, Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 	{
-		Endpoint::Ptr endpoint = *i;
+		Endpoint::Ptr endpoint = i->second;
 		if (endpoint->HasSubscription(method))
 			candidates.push_back(endpoint);
 	}
@@ -235,9 +247,10 @@ void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
 	if (!message.GetMethod(&method))
 		throw invalid_argument("Message is missing the 'method' property.");
 
-	for (vector<Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
+	map<string, Endpoint::Ptr>::iterator i;
+	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 	{
-		Endpoint::Ptr recipient = *i;
+		Endpoint::Ptr recipient = i->second;
 
 		/* don't forward messages back to the sender */
 		if (sender == recipient)
@@ -255,12 +268,12 @@ void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
  */
 void EndpointManager::ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback)
 {
-	vector<Endpoint::Ptr>::iterator prev, i;
+	map<string, Endpoint::Ptr>::iterator prev, i;
 	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); ) {
 		prev = i;
 		i++;
 
-		callback(GetSelf(), *prev);
+		callback(GetSelf(), prev->second);
 	}
 }
 
@@ -271,13 +284,12 @@ void EndpointManager::ForEachEndpoint(function<void (const EndpointManager::Ptr&
  */
 Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
 {
-	vector<Endpoint::Ptr>::const_iterator i;
-	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); i++) {
-		if ((*i)->GetIdentity() == identity)
-			return *i;
-	}
-
-	return Endpoint::Ptr();
+	map<string, Endpoint::Ptr>::const_iterator i;
+	i = m_Endpoints.find(identity);
+	if (i != m_Endpoints.end())
+		return i->second;
+	else
+		return Endpoint::Ptr();
 }
 
 void EndpointManager::SendAPIMessage(Endpoint::Ptr sender,

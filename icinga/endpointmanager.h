@@ -70,7 +70,8 @@ private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 
 	vector<JsonRpcServer::Ptr> m_Servers;
-	vector<Endpoint::Ptr> m_Endpoints;
+	vector<Endpoint::Ptr> m_PendingEndpoints;
+	map<string, Endpoint::Ptr> m_Endpoints;
 
 	/**
 	 * Information about a pending API request.

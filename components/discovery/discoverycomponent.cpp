@@ -99,79 +99,18 @@ void DiscoveryComponent::CheckExistingEndpoint(const Endpoint::Ptr& self, const 
 }
 
 /**
- * Registers handlers for new endpoints.
+ * Deals with a new endpoint.
  *
  * @param endpoint The endpoint.
  */
 void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 {
-	endpoint->OnIdentityChanged.connect(boost::bind(&DiscoveryComponent::NewIdentityHandler, this, _1));
-
 	/* accept discovery::RegisterComponent messages from any endpoint */
 	endpoint->RegisterPublication("discovery::RegisterComponent");
 
 	/* accept discovery::Welcome messages from any endpoint */
 	endpoint->RegisterPublication("discovery::Welcome");
-}
 
-/**
- * Registers message Subscriptions/sources in the specified component information object.
- *
- * @param neea Event arguments for the endpoint.
- * @param info Component information object.
- * @return 0
- */
-void DiscoveryComponent::DiscoveryEndpointHandler(const Endpoint::Ptr& endpoint, const ComponentDiscoveryInfo::Ptr& info) const
-{
-	Endpoint::ConstTopicIterator i;
-
-	for (i = endpoint->BeginSubscriptions(); i != endpoint->EndSubscriptions(); i++)
-		info->Subscriptions.insert(*i);
-
-	for (i = endpoint->BeginPublications(); i != endpoint->EndPublications(); i++)
-		info->Publications.insert(*i);
-}
-
-/**
- * Retrieves the component information object for the specified component.
- *
- * @param component The identity of the component.
- * @param info Pointer to the information object.
- * @returns true if the info object was successfully retrieved, false otherwise.
- */
-bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDiscoveryInfo::Ptr *info) const
-{
-	if (component == GetEndpointManager()->GetIdentity()) {
-		/* Build fake discovery info for ourselves */
-		*info = boost::make_shared<ComponentDiscoveryInfo>();
-		GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::DiscoveryEndpointHandler, this, _2, *info));
-		
-		(*info)->LastSeen = 0;
-		(*info)->Node = GetIcingaApplication()->GetNode();
-		(*info)->Service = GetIcingaApplication()->GetService();
-
-		return true;
-	}
-
-	map<string, ComponentDiscoveryInfo::Ptr>::const_iterator i;
-
-	i = m_Components.find(component);
-
-	if (i == m_Components.end())
-		return false;
-
-	*info = i->second;
-	return true;
-}
-
-/**
- * Deals with a new endpoint whose identity has just become known.
- *
- * @param ea Event arguments for the component.
- * @returns 0
- */
-void DiscoveryComponent::NewIdentityHandler(const Endpoint::Ptr& endpoint)
-{
 	string identity = endpoint->GetIdentity();
 
 	if (identity == GetEndpointManager()->GetIdentity()) {
@@ -229,6 +168,56 @@ void DiscoveryComponent::NewIdentityHandler(const Endpoint::Ptr& endpoint)
 		endpoint->RegisterSubscription(*it);
 
 	FinishDiscoverySetup(endpoint);
+}
+
+/**
+ * Registers message Subscriptions/sources in the specified component information object.
+ *
+ * @param neea Event arguments for the endpoint.
+ * @param info Component information object.
+ * @return 0
+ */
+void DiscoveryComponent::DiscoveryEndpointHandler(const Endpoint::Ptr& endpoint, const ComponentDiscoveryInfo::Ptr& info) const
+{
+	Endpoint::ConstTopicIterator i;
+
+	for (i = endpoint->BeginSubscriptions(); i != endpoint->EndSubscriptions(); i++)
+		info->Subscriptions.insert(*i);
+
+	for (i = endpoint->BeginPublications(); i != endpoint->EndPublications(); i++)
+		info->Publications.insert(*i);
+}
+
+/**
+ * Retrieves the component information object for the specified component.
+ *
+ * @param component The identity of the component.
+ * @param info Pointer to the information object.
+ * @returns true if the info object was successfully retrieved, false otherwise.
+ */
+bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDiscoveryInfo::Ptr *info) const
+{
+	if (component == GetEndpointManager()->GetIdentity()) {
+		/* Build fake discovery info for ourselves */
+		*info = boost::make_shared<ComponentDiscoveryInfo>();
+		GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::DiscoveryEndpointHandler, this, _2, *info));
+		
+		(*info)->LastSeen = 0;
+		(*info)->Node = GetIcingaApplication()->GetNode();
+		(*info)->Service = GetIcingaApplication()->GetService();
+
+		return true;
+	}
+
+	map<string, ComponentDiscoveryInfo::Ptr>::const_iterator i;
+
+	i = m_Components.find(component);
+
+	if (i == m_Components.end())
+		return false;
+
+	*info = i->second;
+	return true;
 }
 
 /**

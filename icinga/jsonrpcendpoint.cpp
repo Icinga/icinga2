@@ -149,7 +149,7 @@ void JsonRpcEndpoint::VerifyCertificateHandler(bool& valid, const shared_ptr<X50
 
 		if (GetIdentity().empty() && !identity.empty()) {
 			m_Identity = identity;
-			OnIdentityChanged(GetSelf());
+			GetEndpointManager()->RegisterEndpoint(GetSelf());
 		}
 	}
 }
