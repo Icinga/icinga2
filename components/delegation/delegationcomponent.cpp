@@ -72,7 +72,7 @@ void DelegationComponent::AssignService(const Service& service)
 	params.SetProperty("service", service.GetConfigObject()->GetProperties());
 	request.SetParams(params);
 
-	Application::Log(LogInformation, "delegation", "Trying to delegate service '" + service.GetName() + "'");
+	Application::Log(LogDebug, "delegation", "Trying to delegate service '" + service.GetName() + "'");
 
 	GetEndpointManager()->SendAPIMessage(m_DelegationEndpoint, request,
 	    boost::bind(&DelegationComponent::AssignServiceResponseHandler, this, service, _2, _5));
@@ -81,10 +81,10 @@ void DelegationComponent::AssignService(const Service& service)
 void DelegationComponent::AssignServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut)
 {
 	if (timedOut) {
-		Application::Log(LogInformation, "delegation", "Service delegation for service '" + service.GetName() + "' timed out.");
+		Application::Log(LogDebug, "delegation", "Service delegation for service '" + service.GetName() + "' timed out.");
 	} else {
 		service.SetChecker(sender->GetIdentity());
-		Application::Log(LogInformation, "delegation", "Service delegation for service '" + service.GetName() + "' was successful.");
+		Application::Log(LogDebug, "delegation", "Service delegation for service '" + service.GetName() + "' was successful.");
 	}
 }
 
@@ -100,6 +100,7 @@ void DelegationComponent::RevokeServiceResponseHandler(Service& service, const E
 void DelegationComponent::DelegationTimerHandler(void)
 {
 	ConfigObject::Set::Iterator it;
+	long delegated = 0;
 	for (it = m_AllServices->Begin(); it != m_AllServices->End(); it++) {
 		Service service = *it;
 
@@ -108,9 +109,12 @@ void DelegationComponent::DelegationTimerHandler(void)
 			continue;
 
 		AssignService(service);
+		delegated++;
 	}
 
-	m_DelegationTimer->Stop();
+	stringstream msgbuf;
+	msgbuf << "Delegated " << delegated << " services";
+	Application::Log(LogInformation, "delegation", msgbuf.str());
 }
 
 EXPORT_COMPONENT(delegation, DelegationComponent);

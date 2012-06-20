@@ -18,7 +18,7 @@ public:
 	typedef shared_ptr<ThreadPool> Ptr;
 	typedef weak_ptr<ThreadPool> WeakPtr;
 
-	ThreadPool(long numThreads = 128);
+	ThreadPool(long maxThreads = 128);
 	~ThreadPool(void);
 
 	static ThreadPool::Ptr GetDefaultPool(void);
