@@ -38,7 +38,7 @@ Comment: On Debian systems, the complete text of the GNU General
          Public License version 2 can be found in
          `/usr/share/common-licenses/GPL-2'.
 
-Files: ltdl/*
+Files: third-party/ltdl/*
 Copyright: Copyright (C) 1998, 1999, 2000, 2004, 2005, 2006,
            2007, 2008, 2011 Free Software Foundation, Inc.
            Written by Thomas Tanner, 1998
@@ -68,7 +68,7 @@ Comment: On Debian systems, the complete text of the GNU Lesser
          General Public License can be found in
          `/usr/share/common-licenses/LGPL-2'.
 
-Files: cJSON/*
+Files: third-party/cJSON/*
 Copyright: Copyright (c) 2009 Dave Gamble
 License: permissive
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -89,7 +89,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-Files: mmatch/*
+Files: third-party/mmatch/*
 Copyright: Copyright (C) 1990 Jarkko Oikarinen
 License: GPL-1+
 This program is free software; you can redistribute it and/or modify
@@ -109,3 +109,22 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 Comment: On Debian systems, the complete text of the GNU General
          Public License can be found in
          `/usr/share/common-licenses/GPL-1'.
+
+Files: third-party/popen-noshell/*
+Copyright: Copyright (c) 2009 Ivan Zahariev (famzah)
+License: LGPL-3
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; under version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses>.
+
+Comment: On Debian systems, the complete text of the GNU Lesser
+         General Public License can be found in
+         `/usr/share/common-licenses/LGPL-3'.
