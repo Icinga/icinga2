@@ -130,6 +130,12 @@ void CheckerComponent::ResultTimerHandler(void)
 		m_Services.push(service);
 	}
 
+	if (min_latency > 5) {
+		stringstream latwarn;
+		latwarn << "We can't keep up with the checks: minimum latency is " << min_latency << " seconds";
+		Application::Log(LogWarning, "checker", latwarn.str());
+	}
+
 	stringstream msgbuf;
 	msgbuf << "ResultTimerHandler: " << results << " results (" << failed << " failed); latency: avg=" << avg_latency / (results ? results : 1) << ", min=" << min_latency << ", max: " << max_latency;
 	Application::Log(LogInformation, "checker", msgbuf.str());
