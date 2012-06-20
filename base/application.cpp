@@ -437,7 +437,12 @@ void Application::SigIntHandler(int signum)
 {
 	assert(signum == SIGINT);
 
-	Application::GetInstance()->Shutdown();
+	Application::Ptr instance = Application::GetInstance();
+
+	if (!instance)
+		return;
+
+	instance->Shutdown();
 
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -451,7 +456,13 @@ void Application::SigIntHandler(int signum)
  */
 BOOL WINAPI Application::CtrlHandler(DWORD type)
 {
-	Application::GetInstance()->Shutdown();
+	Application::Ptr instance = Application::GetInstance();
+
+	if (!instance)
+		return TRUE;
+
+	instance->GetInstance()->Shutdown();
+
 	SetConsoleCtrlHandler(NULL, FALSE);
 	return TRUE;
 }
