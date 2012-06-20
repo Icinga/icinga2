@@ -8,7 +8,7 @@ class I2_ICINGA_API Service : public ConfigObjectAdapter
 {
 public:
 	Service(const ConfigObject::Ptr& configObject)
-		: ConfigObjectAdapter(configObject), m_NextCheck(-1)
+		: ConfigObjectAdapter(configObject)
 	{ }
 
 	string GetDisplayName(void) const;
@@ -24,9 +24,6 @@ public:
 	time_t GetNextCheck(void);
 	void SetChecker(string checker);
 	string GetChecker(void) const;
-
-private:
-	time_t m_NextCheck;
 };
 
 }
