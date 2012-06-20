@@ -34,6 +34,8 @@ public:
 	typedef shared_ptr<EndpointManager> Ptr;
 	typedef weak_ptr<EndpointManager> WeakPtr;
 
+	typedef map<string, Endpoint::Ptr>::iterator Iterator;
+
 	EndpointManager(void)
 		: m_NextMessageID(0)
 	{ }
@@ -60,6 +62,8 @@ public:
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
 	void ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback);
+	Iterator Begin(void);
+	Iterator End(void);
 
 	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
 

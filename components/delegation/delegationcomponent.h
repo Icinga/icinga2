@@ -46,6 +46,8 @@ private:
 
 	void DelegationTimerHandler(void);
 
+	vector<Endpoint::Ptr> GetCheckerCandidates(const Service& service) const;
+
 	void AssignService(const Service& service);
 	void RevokeService(const Service& service);
 };

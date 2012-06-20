@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-delegation.h"
+#include <algorithm>
 
 using namespace icinga;
 
@@ -97,23 +98,108 @@ void DelegationComponent::RevokeServiceResponseHandler(Service& service, const E
 {
 }
 
+vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service& service) const
+{
+	vector<Endpoint::Ptr> candidates;
+
+	EndpointManager::Iterator it;
+	for (it = GetEndpointManager()->Begin(); it != GetEndpointManager()->End(); it++)
+		candidates.push_back(it->second);
+
+	return candidates;
+}
+
 void DelegationComponent::DelegationTimerHandler(void)
 {
+	map<Endpoint::Ptr, int> histogram;
+
+	EndpointManager::Iterator eit;
+	for (eit = GetEndpointManager()->Begin(); eit != GetEndpointManager()->End(); eit++) {
+		histogram[eit->second] = 0;
+	}
+
+	/* nothing to do if we have no checkers */
+	if (histogram.size() == 0)
+		return;
+
+	vector<Service> services;
+
+	/* build "checker -> service count" histogram */
 	ConfigObject::Set::Iterator it;
-	long delegated = 0;
 	for (it = m_AllServices->Begin(); it != m_AllServices->End(); it++) {
 		Service service = *it;
 
+		services.push_back(service);
+
 		string checker = service.GetChecker();
-		if (!checker.empty() && GetEndpointManager()->GetEndpointByIdentity(checker))
+		if (checker.empty())
 			continue;
 
-		AssignService(service);
-		delegated++;
+		Endpoint::Ptr endpoint = GetEndpointManager()->GetEndpointByIdentity(checker);
+		if (!endpoint)
+			continue;
+
+		histogram[endpoint]++;
+	}
+
+	std::random_shuffle(services.begin(), services.end());
+
+	long delegated = 0;
+
+	/* re-assign services */
+	vector<Service>::iterator sit;
+	for (sit = services.begin(); sit != services.end(); it++) {
+		Service service = *sit;
+
+		string checker = service.GetChecker();
+
+		Endpoint::Ptr oldEndpoint;
+		if (!checker.empty())
+			oldEndpoint = GetEndpointManager()->GetEndpointByIdentity(checker);
+
+		vector<Endpoint::Ptr> candidates = GetCheckerCandidates(service);
+
+		long avg_services = 0;
+		vector<Endpoint::Ptr>::iterator cit;
+		for (cit = candidates.begin(); cit != candidates.end(); cit++)
+			avg_services += histogram[*cit];
+
+		avg_services /= candidates.size();
+		long overflow_tolerance = candidates.size() * 2;
+
+		/* don't re-assign service if the checker is still valid
+		 * and doesn't have too many services */
+		if (oldEndpoint && find(candidates.begin(), candidates.end(), oldEndpoint) != candidates.end() &&
+		    histogram[oldEndpoint] <= avg_services + overflow_tolerance)
+			continue;
+
+		/* clear the service's current checker */
+		if (!checker.empty()) {
+			service.SetChecker("");
+
+			if (oldEndpoint)
+				histogram[oldEndpoint]--;
+		}
+
+		/* find a new checker for the service */
+		for (cit = candidates.begin(); cit != candidates.end(); cit++) {
+			Endpoint::Ptr newEndpoint = *cit;
+
+			/* does this checker already have too many services */
+			if (histogram[newEndpoint] > avg_services)
+				continue;
+
+			service.SetChecker(newEndpoint->GetIdentity());
+			histogram[newEndpoint]++;
+
+			delegated++;
+		}
+
+		assert(!service.GetChecker().empty());
 	}
 
 	stringstream msgbuf;
-	msgbuf << "Delegated " << delegated << " services";
+	msgbuf << "Re-delegated " << delegated << " services";
 	Application::Log(LogInformation, "delegation", msgbuf.str());
 }
 

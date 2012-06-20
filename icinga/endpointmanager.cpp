@@ -377,3 +377,14 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const 
 	m_Requests.erase(it);
 	RescheduleRequestTimer();
 }
+
+EndpointManager::Iterator EndpointManager::Begin(void)
+{
+	return m_Endpoints.begin();
+}
+
+EndpointManager::Iterator EndpointManager::End(void)
+{
+	return m_Endpoints.end();
+}
+
