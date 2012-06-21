@@ -210,6 +210,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 	if (delegated > 0) {
 		// TODO: send clear message when session is established
 		// TODO: clear local assignments when session is lost
+		need_clear = true; /* remove this once clear messages are properly sent */
 		if (need_clear) {
 			map<Endpoint::Ptr, int>::iterator hit;
 			for (hit = histogram.begin(); hit != histogram.end(); hit++) {

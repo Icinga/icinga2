@@ -151,7 +151,9 @@ void TlsClient::WritableEventHandler(void)
 	m_BlockRead = false;
 	m_BlockWrite = false;
 
-	rc = SSL_write(m_SSL.get(), (const char *)GetSendQueue()->GetReadBuffer(), GetSendQueue()->GetSize());
+	size_t write_size = std::min(GetSendQueue()->GetSize(), (size_t)(16 * 1024));
+
+	rc = SSL_write(m_SSL.get(), (const char *)GetSendQueue()->GetReadBuffer(), write_size);
 
 	if (rc <= 0) {
 		int error = SSL_get_error(m_SSL.get(), rc);
