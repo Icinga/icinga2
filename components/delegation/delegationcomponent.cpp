@@ -194,6 +194,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 			histogram[newEndpoint]++;
 
 			delegated++;
+
+			break;
 		}
 
 		assert(candidates.size() == 0 || !service.GetChecker().empty());
