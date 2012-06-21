@@ -483,6 +483,9 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 		string identity = i->first;
 		ComponentDiscoveryInfo::Ptr info = i->second;
 
+		curr = i;
+		i++;
+
 		/* there's no need to reconnect to ourself */
 		if (identity == GetEndpointManager()->GetIdentity())
 			continue;
@@ -492,9 +495,6 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 		 * config object - which is what the for loop above does */
 		if (ConfigObject::GetObject("endpoint", identity))
 			continue;
-
-		curr = i;
-		i++;
 
 		if (info->LastSeen < now - DiscoveryComponent::RegistrationTTL) {
 			/* unregister this component if its registration has expired */
