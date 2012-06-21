@@ -38,6 +38,9 @@ private:
 	ConfigObject::Set::Ptr m_AllServices;
 	Timer::Ptr m_DelegationTimer;
 
+	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
+	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
+
 	void AssignServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut);
 
 	void DelegationTimerHandler(void);

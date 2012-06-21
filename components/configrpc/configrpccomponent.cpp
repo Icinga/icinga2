@@ -66,6 +66,10 @@ void ConfigRpcComponent::Stop(void)
 
 void ConfigRpcComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 {
+	/* no need to sync the config with local endpoints */
+	if (endpoint->IsLocal())
+		return;
+
 	endpoint->OnSessionEstablished.connect(boost::bind(&ConfigRpcComponent::SessionEstablishedHandler, this, _1));
 }
 

@@ -110,7 +110,7 @@ void Timer::Call(void)
 	if (et - st > 3) {
 		stringstream msgbuf;
 		msgbuf << "Timer call took " << et - st << " seconds.";
-		Application::Log(LogInformation, "base", msgbuf.str());
+		Application::Log(LogWarning, "base", msgbuf.str());
 	}
 }
 

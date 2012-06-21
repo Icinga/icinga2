@@ -30,9 +30,6 @@ string DelegationComponent::GetName(void) const
 void DelegationComponent::Start(void)
 {
 	m_AllServices = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("service"));
-/*	m_AllServices->OnObjectAdded.connect(boost::bind(&DelegationComponent::NewServiceHandler, this, _2));
-	m_AllServices->OnObjectCommitted.connect(boost::bind(&DelegationComponent::NewServiceHandler, this, _2));
-	m_AllServices->OnObjectRemoved.connect(boost::bind(&DelegationComponent::RemovedServiceHandler, this, _2));*/
 	m_AllServices->Start();
 
 	m_DelegationTimer = boost::make_shared<Timer>();
@@ -45,6 +42,8 @@ void DelegationComponent::Start(void)
 	m_DelegationEndpoint->RegisterPublication("checker::AssignService");
 	m_DelegationEndpoint->RegisterPublication("checker::ClearServices");
 	GetEndpointManager()->RegisterEndpoint(m_DelegationEndpoint);
+
+	GetEndpointManager()->OnNewEndpoint.connect(bind(&DelegationComponent::NewEndpointHandler, this, _2));
 }
 
 void DelegationComponent::Stop(void)
@@ -108,6 +107,29 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service& s
 	}
 
 	return candidates;
+}
+
+void DelegationComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
+{
+	endpoint->OnSessionEstablished.connect(bind(&DelegationComponent::SessionEstablishedHandler, this, _1));
+}
+void DelegationComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoint)
+{
+	stringstream msgbuf;
+	msgbuf << "Clearing assigned services for endpoint '" << endpoint->GetIdentity() << "'";
+	Application::Log(LogInformation, "delegation", msgbuf.str());
+
+	/* locally clear checker for all services that previously belonged to this endpoint */
+	ConfigObject::Set::Iterator it;
+	for (it = m_AllServices->Begin(); it != m_AllServices->End(); it++) {
+		Service service = *it;
+
+		if (service.GetChecker() == endpoint->GetIdentity())
+			service.SetChecker("");
+	}
+
+	/* remotely clear services for this endpoint */
+	ClearServices(endpoint);
 }
 
 void DelegationComponent::DelegationTimerHandler(void)
@@ -208,9 +230,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 	}
 
 	if (delegated > 0) {
-		// TODO: send clear message when session is established
-		// TODO: clear local assignments when session is lost
-		need_clear = true; /* remove this once clear messages are properly sent */
 		if (need_clear) {
 			map<Endpoint::Ptr, int>::iterator hit;
 			for (hit = histogram.begin(); hit != histogram.end(); hit++) {
@@ -230,7 +249,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 	}
 
 	stringstream msgbuf;
-	msgbuf << "Re-delegated " << delegated << " services";
+	msgbuf << "Updated delegations for " << delegated << " services";
 	Application::Log(LogInformation, "delegation", msgbuf.str());
 }
 

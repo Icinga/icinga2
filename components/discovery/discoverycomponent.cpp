@@ -105,9 +105,11 @@ void DiscoveryComponent::CheckExistingEndpoint(const Endpoint::Ptr& self, const 
  */
 void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 {
-	/* ignore local endpoints */
-	if (endpoint->IsLocal())
+	/* immediately finish session setup for local endpoints */
+	if (endpoint->IsLocal()) {
+		endpoint->OnSessionEstablished(endpoint);
 		return;
+	}
 
 	/* accept discovery::RegisterComponent messages from any endpoint */
 	endpoint->RegisterPublication("discovery::RegisterComponent");
@@ -414,8 +416,8 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	SendDiscoveryMessage("discovery::NewComponent", identity, Endpoint::Ptr());
 
-	/* don't send a welcome message for discovery::RegisterComponent messages */
-	if (endpoint && trusted)
+	/* don't send a welcome message for discovery::NewComponent messages */
+	if (endpoint && !trusted)
 		FinishDiscoverySetup(endpoint);
 }
 
@@ -483,6 +485,12 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 
 		/* there's no need to reconnect to ourself */
 		if (identity == GetEndpointManager()->GetIdentity())
+			continue;
+
+		/* for explicitly-configured upstream endpoints
+		 * we prefer to use the node/service from the
+		 * config object - which is what the for loop above does */
+		if (ConfigObject::GetObject("endpoint", identity))
 			continue;
 
 		curr = i;
