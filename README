@@ -20,8 +20,8 @@ mentioned above:
 * GNU Automake (automake)
 * GNU Autoconf (autoconf)
 * GNU Libtool (libtool, libtool-ltdl-devel)
-* optional: GNU bison (bison)
-* optional: GNU flex (flex)
+* GNU bison (bison)
+* GNU flex (flex)
 
 Debian Packages
 ---------------

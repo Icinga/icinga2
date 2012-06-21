@@ -63,7 +63,6 @@ private:
 	void AdjustCheckTimer(void);
 
 	void AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
-	void RevokeServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 	void ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
 
