@@ -36,9 +36,7 @@ public:
 
 	typedef map<string, Endpoint::Ptr>::iterator Iterator;
 
-	EndpointManager(void)
-		: m_NextMessageID(0)
-	{ }
+	EndpointManager(void);
 
 	void SetIdentity(string identity);
 	string GetIdentity(void) const;
@@ -102,7 +100,6 @@ private:
 	void UnregisterServer(JsonRpcServer::Ptr server);
 
 	static bool RequestTimeoutLessComparer(const pair<string, PendingRequest>& a, const pair<string, PendingRequest>& b);
-	void RescheduleRequestTimer(void);
 	void RequestTimerHandler(void);
 
 	void NewClientHandler(const TcpClient::Ptr& client);

@@ -22,6 +22,18 @@
 using namespace icinga;
 
 /**
+ * Constructor for the EndpointManager class.
+ */
+EndpointManager::EndpointManager(void)
+	: m_NextMessageID(0)
+{
+	m_RequestTimer = boost::make_shared<Timer>();
+	m_RequestTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::RequestTimerHandler, this));
+	m_RequestTimer->SetInterval(5);
+	m_RequestTimer->Start();
+}
+
+/**
  * Sets the identity of the endpoint manager. This identity is used when
  * connecting to remote peers.
  *
@@ -147,9 +159,6 @@ void EndpointManager::UnregisterServer(JsonRpcServer::Ptr server)
  */
 void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 {
-	if (!endpoint->IsLocal() && endpoint->GetIdentity() != "")
-		throw invalid_argument("Identity must be empty.");
-
 	endpoint->SetEndpointManager(GetSelf());
 
 	UnregisterEndpoint(endpoint);
@@ -310,7 +319,6 @@ void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint
 	pr.Timeout = time(NULL) + timeout;
 
 	m_Requests[id] = pr;
-	RescheduleRequestTimer();
 
 	if (!recipient)
 		SendAnycastMessage(sender, message);
@@ -322,29 +330,6 @@ bool EndpointManager::RequestTimeoutLessComparer(const pair<string, PendingReque
     const pair<string, PendingRequest>& b)
 {
 	return a.second.Timeout < b.second.Timeout;
-}
-
-void EndpointManager::RescheduleRequestTimer(void)
-{
-	map<string, PendingRequest>::iterator it;
-	it = min_element(m_Requests.begin(), m_Requests.end(),
-	    &EndpointManager::RequestTimeoutLessComparer);
-
-	if (!m_RequestTimer) {
-		m_RequestTimer = boost::make_shared<Timer>();
-		m_RequestTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::RequestTimerHandler, this));
-	}
-
-	if (it != m_Requests.end()) {
-		time_t now;
-		time(&now);
-
-		time_t next_timeout = (it->second.Timeout < now) ? now : it->second.Timeout;
-		m_RequestTimer->SetInterval(next_timeout - now);
-		m_RequestTimer->Start();
-	} else {
-		m_RequestTimer->Stop();
-	}
 }
 
 void EndpointManager::RequestTimerHandler(void)
@@ -359,8 +344,6 @@ void EndpointManager::RequestTimerHandler(void)
 			break;
 		}
 	}
-
-	RescheduleRequestTimer();
 }
 
 void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message)
@@ -378,7 +361,6 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const 
 	it->second.Callback(GetSelf(), sender, it->second.Request, message, false);
 
 	m_Requests.erase(it);
-	RescheduleRequestTimer();
 }
 
 EndpointManager::Iterator EndpointManager::Begin(void)

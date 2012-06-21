@@ -105,6 +105,10 @@ void DiscoveryComponent::CheckExistingEndpoint(const Endpoint::Ptr& self, const 
  */
 void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 {
+	/* ignore local endpoints */
+	if (endpoint->IsLocal())
+		return;
+
 	/* accept discovery::RegisterComponent messages from any endpoint */
 	endpoint->RegisterPublication("discovery::RegisterComponent");
 
@@ -354,8 +358,13 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	time(&(info->LastSeen));
 
-	message.GetNode(&info->Node);
-	message.GetService(&info->Service);
+	string node;
+	if (message.GetNode(&node) && !node.empty())
+		info->Node = node;
+
+	string service;
+	if (message.GetService(&service) && !service.empty())
+		info->Service = service;
 
 	ConfigObject::Ptr endpointConfig = ConfigObject::GetObject("endpoint", identity);
 	Dictionary::Ptr roles;
@@ -472,6 +481,10 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 		string identity = i->first;
 		ComponentDiscoveryInfo::Ptr info = i->second;
 
+		/* there's no need to reconnect to ourself */
+		if (identity == GetEndpointManager()->GetIdentity())
+			continue;
+
 		curr = i;
 		i++;
 
@@ -492,7 +505,14 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 		} else {
 			/* TODO: figure out whether we actually want to connect to this component */
 			/* try and reconnect to this component */
-			endpointManager->AddConnection(info->Node, info->Service);
+			try {
+				if (!info->Node.empty() && !info->Service.empty())
+					endpointManager->AddConnection(info->Node, info->Service);
+			} catch (const std::exception& ex) {
+				stringstream msgbuf;
+				msgbuf << "Exception while trying to reconnect to endpoint '" << endpoint->GetIdentity() << "': " << ex.what();;
+				Application::Log(LogInformation, "discovery", msgbuf.str());
+			}
 		}
 	}
 }

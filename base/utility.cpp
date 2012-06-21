@@ -100,6 +100,14 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, strin
 	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.c_str(), NULL))
 		throw OpenSSLException("Could not load public CA key file", ERR_get_error());
 
+	STACK_OF(X509_NAME) *cert_names;
+
+	cert_names = SSL_load_client_CA_file(cakey.c_str());
+	if (cert_names == NULL)
+		throw OpenSSLException("SSL_load_client_CA_file() failed", ERR_get_error());
+
+	SSL_CTX_set_client_CA_list(sslContext.get(), cert_names);
+
 	return sslContext;
 }
 

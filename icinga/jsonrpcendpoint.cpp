@@ -142,9 +142,9 @@ void JsonRpcEndpoint::ClientErrorHandler(const std::exception& ex)
 	Application::Log(LogWarning, "jsonrpc", message.str());
 }
 
-void JsonRpcEndpoint::VerifyCertificateHandler(bool& valid, const shared_ptr<X509>& certificate)
+void JsonRpcEndpoint::VerifyCertificateHandler(bool *valid, const shared_ptr<X509>& certificate)
 {
-	if (certificate && valid) {
+	if (certificate && *valid) {
 		string identity = Utility::GetCertificateCN(certificate);
 
 		if (GetIdentity().empty() && !identity.empty()) {

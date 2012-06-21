@@ -65,7 +65,7 @@ private:
 	void NewMessageHandler(const MessagePart& message);
 	void ClientClosedHandler(void);
 	void ClientErrorHandler(const std::exception& ex);
-	void VerifyCertificateHandler(bool& valid, const shared_ptr<X509>& certificate);
+	void VerifyCertificateHandler(bool *valid, const shared_ptr<X509>& certificate);
 };
 
 }

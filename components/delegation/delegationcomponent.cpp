@@ -43,7 +43,7 @@ void DelegationComponent::Start(void)
 
 	m_DelegationEndpoint = boost::make_shared<VirtualEndpoint>();
 	m_DelegationEndpoint->RegisterPublication("checker::AssignService");
-	m_DelegationEndpoint->RegisterPublication("checker::RevokeService");
+	m_DelegationEndpoint->RegisterPublication("checker::ClearServices");
 	GetEndpointManager()->RegisterEndpoint(m_DelegationEndpoint);
 }
 
@@ -112,10 +112,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 	for (eit = GetEndpointManager()->Begin(); eit != GetEndpointManager()->End(); eit++)
 		histogram[eit->second] = 0;
 
-	/* nothing to do if we have no checkers */
-	if (histogram.size() == 0)
-		return;
-
 	vector<Service> services;
 
 	/* build "checker -> service count" histogram */
@@ -152,19 +148,23 @@ void DelegationComponent::DelegationTimerHandler(void)
 			oldEndpoint = GetEndpointManager()->GetEndpointByIdentity(checker);
 
 		vector<Endpoint::Ptr> candidates = GetCheckerCandidates(service);
-		std::random_shuffle(candidates.begin(), candidates.end());
 
-		stringstream msgbuf;
-		msgbuf << "Service: " << service.GetName() << ", candidates: " << candidates.size();
-		Application::Log(LogDebug, "delegation", msgbuf.str());
-
-		int avg_services = 0;
+		int avg_services = 0, overflow_tolerance = 0;
 		vector<Endpoint::Ptr>::iterator cit;
-		for (cit = candidates.begin(); cit != candidates.end(); cit++)
-			avg_services += histogram[*cit];
 
-		avg_services /= candidates.size();
-		int overflow_tolerance = candidates.size() * 2;
+		if (candidates.size() > 0) {
+			std::random_shuffle(candidates.begin(), candidates.end());
+
+			stringstream msgbuf;
+			msgbuf << "Service: " << service.GetName() << ", candidates: " << candidates.size();
+			Application::Log(LogDebug, "delegation", msgbuf.str());
+
+			for (cit = candidates.begin(); cit != candidates.end(); cit++)
+				avg_services += histogram[*cit];
+
+			avg_services /= candidates.size();
+			overflow_tolerance = candidates.size() * 2;
+		}
 
 		/* don't re-assign service if the checker is still valid
 		 * and doesn't have too many services */
@@ -194,7 +194,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 			delegated++;
 		}
 
-		assert(!service.GetChecker().empty());
+		assert(candidates.size() == 0 || !service.GetChecker().empty());
 	}
 
 	if (delegated > 0) {

@@ -31,8 +31,6 @@ void CheckerComponent::Start(void)
 	m_CheckerEndpoint = boost::make_shared<VirtualEndpoint>();
 	m_CheckerEndpoint->RegisterTopicHandler("checker::AssignService",
 		boost::bind(&CheckerComponent::AssignServiceRequestHandler, this, _2, _3));
-	m_CheckerEndpoint->RegisterTopicHandler("checker::RevokeService",
-		boost::bind(&CheckerComponent::RevokeServiceRequestHandler, this, _2, _3));
 	m_CheckerEndpoint->RegisterTopicHandler("checker::ClearServices",
 		boost::bind(&CheckerComponent::ClearServicesRequestHandler, this, _2, _3));
 	m_CheckerEndpoint->RegisterPublication("checker::CheckResult");
@@ -78,6 +76,8 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		Application::Log(LogDebug, "checker", "Executing service check for '" + service.GetName() + "'");
 
+		m_PendingServices.insert(service.GetName());
+
 		CheckTask::Ptr task = CheckTask::CreateTask(service);
 		task->Enqueue();
 
@@ -109,6 +109,11 @@ void CheckerComponent::ResultTimerHandler(void)
 
 		Service service = task->GetService();
 
+		/* if the service isn't in the set of pending services
+		 * it was removed and we need to ignore this check result. */
+		if (m_PendingServices.find(service.GetName()) == m_PendingServices.end())
+			continue;
+
 		CheckResult result = task->GetResult();
 		Application::Log(LogDebug, "checker", "Got result for service '" + service.GetName() + "'");
 
@@ -127,6 +132,7 @@ void CheckerComponent::ResultTimerHandler(void)
 			failed++;
 
 		service.SetNextCheck(now + service.GetCheckInterval());
+		m_PendingServices.erase(service.GetName());
 		m_Services.push(service);
 	}
 
@@ -157,49 +163,6 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 
 	Application::Log(LogDebug, "checker", "Accepted delegation for service '" + service.GetName() + "'");
 
-	/* force a service check */
-	m_CheckTimer->Reschedule(0);
-
-	string id;
-	if (request.GetID(&id)) {
-		ResponseMessage rm;
-		rm.SetID(id);
-
-		MessagePart result;
-		rm.SetResult(result);
-		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, sender, rm);
-	}
-}
-
-void CheckerComponent::RevokeServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
-{
-	MessagePart params;
-	if (!request.GetParams(&params))
-		return;
-
-	string name;
-	if (!params.GetProperty("service", &name))
-		return;
-
-	vector<Service> services;
-
-	while (!m_Services.empty()) {
-		Service service = m_Services.top();
-
-		if (service.GetName() == name)
-			continue;
-
-		// TODO: take care of services that are currently being checked
-
-		services.push_back(service);
-	}
-
-	vector<Service>::const_iterator it;
-	for (it = services.begin(); it != services.end(); it++)
-		m_Services.push(*it);
-
-	Application::Log(LogDebug, "checker", "Revoked delegation for service '" + name + "'");
-
 	string id;
 	if (request.GetID(&id)) {
 		ResponseMessage rm;
@@ -214,7 +177,12 @@ void CheckerComponent::RevokeServiceRequestHandler(const Endpoint::Ptr& sender, 
 void CheckerComponent::ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
 	Application::Log(LogDebug, "checker", "Clearing service delegations.");
+
+	/* clear the services lists */
 	m_Services = ServiceQueue();
+	m_PendingServices.clear();
+
+	/* TODO: clear checks we've already sent to the thread pool */
 
 	string id;
 	if (request.GetID(&id)) {
