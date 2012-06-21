@@ -39,7 +39,6 @@ private:
 	Timer::Ptr m_DelegationTimer;
 
 	void AssignServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut);
-	void RevokeServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut);
 
 	void DelegationTimerHandler(void);
 

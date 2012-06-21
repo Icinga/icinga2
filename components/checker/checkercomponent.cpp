@@ -176,23 +176,13 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 
 void CheckerComponent::ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	Application::Log(LogDebug, "checker", "Clearing service delegations.");
+	Application::Log(LogInformation, "checker", "Clearing service delegations.");
 
 	/* clear the services lists */
 	m_Services = ServiceQueue();
 	m_PendingServices.clear();
 
 	/* TODO: clear checks we've already sent to the thread pool */
-
-	string id;
-	if (request.GetID(&id)) {
-		ResponseMessage rm;
-		rm.SetID(id);
-
-		MessagePart result;
-		rm.SetResult(result);
-		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, sender, rm);
-	}
 }
 
 EXPORT_COMPONENT(checker, CheckerComponent);

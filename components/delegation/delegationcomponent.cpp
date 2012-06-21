@@ -80,11 +80,13 @@ void DelegationComponent::AssignServiceResponseHandler(Service& service, const E
 
 void DelegationComponent::ClearServices(const Endpoint::Ptr& checker)
 {
+	RequestMessage request;
+	request.SetMethod("checker::ClearServices");
 
-}
+	MessagePart params;
+	request.SetParams(params);
 
-void DelegationComponent::RevokeServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut)
-{
+	GetEndpointManager()->SendUnicastMessage(m_DelegationEndpoint, checker, request);
 }
 
 vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service& service) const
