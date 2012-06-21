@@ -72,8 +72,12 @@ void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Serv
 
 void DelegationComponent::AssignServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut)
 {
+	/* ignore the message if it's not from the designated checker for this service */
+	if (!sender || service.GetChecker() != sender->GetIdentity())
+		return;
+
 	if (timedOut) {
-		Application::Log(LogDebug, "delegation", "Service delegation for service '" + service.GetName() + "' timed out.");
+		Application::Log(LogInformation, "delegation", "Service delegation for service '" + service.GetName() + "' timed out.");
 		service.SetChecker("");
 	}
 }
@@ -136,6 +140,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 	std::random_shuffle(services.begin(), services.end());
 
+	bool need_clear = false;
 	int delegated = 0;
 
 	/* re-assign services */
@@ -176,6 +181,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		/* clear the service's current checker */
 		if (!checker.empty()) {
+			need_clear = true;
 			service.SetChecker("");
 
 			if (oldEndpoint)
@@ -202,9 +208,13 @@ void DelegationComponent::DelegationTimerHandler(void)
 	}
 
 	if (delegated > 0) {
-		map<Endpoint::Ptr, int>::iterator hit;
-		for (hit = histogram.begin(); hit != histogram.end(); hit++) {
-			ClearServices(hit->first);
+		// TODO: send clear message when session is established
+		// TODO: clear local assignments when session is lost
+		if (need_clear) {
+			map<Endpoint::Ptr, int>::iterator hit;
+			for (hit = histogram.begin(); hit != histogram.end(); hit++) {
+				ClearServices(hit->first);
+			}
 		}
 
 		for (sit = services.begin(); sit != services.end(); sit++) {
