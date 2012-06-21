@@ -118,7 +118,9 @@ void TlsClient::ReadableEventHandler(void)
 	rc = SSL_read(m_SSL.get(), buffer, bufferSize);
 
 	if (rc <= 0) {
-		switch (SSL_get_error(m_SSL.get(), rc)) {
+		int error = SSL_get_error(m_SSL.get(), rc);
+
+		switch (error) {
 			case SSL_ERROR_WANT_WRITE:
 				m_BlockRead = true;
 				/* fall through */
@@ -129,7 +131,7 @@ void TlsClient::ReadableEventHandler(void)
 				return;
 			default:
 				HandleSocketError(OpenSSLException(
-				    "SSL_read failed", ERR_get_error()));
+				    "SSL_read failed", error));
 				return;
 		}
 	}
@@ -152,7 +154,8 @@ void TlsClient::WritableEventHandler(void)
 	rc = SSL_write(m_SSL.get(), (const char *)GetSendQueue()->GetReadBuffer(), GetSendQueue()->GetSize());
 
 	if (rc <= 0) {
-		switch (SSL_get_error(m_SSL.get(), rc)) {
+		int error = SSL_get_error(m_SSL.get(), rc);
+		switch (error) {
 			case SSL_ERROR_WANT_READ:
 				m_BlockWrite = true;
 				/* fall through */
@@ -163,7 +166,7 @@ void TlsClient::WritableEventHandler(void)
 				return;
 			default:
 				HandleSocketError(OpenSSLException(
-				    "SSL_write failed", ERR_get_error()));
+				    "SSL_write failed", error));
 				return;
 		}
 	}
@@ -210,7 +213,8 @@ bool TlsClient::WantsToWrite(void) const
  */
 void TlsClient::CloseInternal(bool from_dtor)
 {
-	SSL_shutdown(m_SSL.get());
+	if (m_SSL)
+		SSL_shutdown(m_SSL.get());
 
 	TcpClient::CloseInternal(from_dtor);
 }
@@ -242,9 +246,9 @@ int TlsClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
 	if (client == NULL)
 		return 0;
 
-	bool valid = false;
+	bool valid = (ok != 0);
 	shared_ptr<X509> x509Certificate = shared_ptr<X509>(x509Context->cert, &TlsClient::NullCertificateDeleter);
-	client->OnVerifyCertificate(client->GetSelf(), valid, x509Context, x509Certificate);
+	client->OnVerifyCertificate(client->GetSelf(), &valid, x509Context, x509Certificate);
 
 	return valid ? 1 : 0;
 }
