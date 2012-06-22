@@ -124,6 +124,20 @@ FIFO::Ptr TcpClient::GetSendQueue(void)
 	return m_SendQueue;
 }
 
+size_t TcpClient::FlushSendQueue(void)
+{
+	int rc;
+
+	rc = send(GetFD(), (const char *)m_SendQueue->GetReadBuffer(), m_SendQueue->GetSize(), 0);
+
+	if (rc <= 0) {
+		HandleSocketError(SocketException("send() failed", GetError()));
+		return 0;
+	}
+
+	m_SendQueue->Read(NULL, rc);
+}
+
 /**
  * Retrieves the recv queue for the socket.
  *
@@ -134,10 +148,7 @@ FIFO::Ptr TcpClient::GetRecvQueue(void)
 	return m_RecvQueue;
 }
 
-/**
- * Processes data that is available for this socket.
- */
-void TcpClient::ReadableEventHandler(void)
+size_t TcpClient::FillRecvQueue(void)
 {
 	int rc;
 
@@ -150,16 +161,34 @@ void TcpClient::ReadableEventHandler(void)
 #else /* _WIN32 */
 	if (rc < 0 && errno == EAGAIN)
 #endif /* _WIN32 */
-		return;
+		return 0;
 
 	if (rc <= 0) {
 		HandleSocketError(SocketException("recv() failed", GetError()));
-		return;
+		return 0;
 	}
 
 	m_RecvQueue->Write(NULL, rc);
 
-	OnDataAvailable(GetSelf());
+	return rc;
+}
+
+void TcpClient::Flush(void)
+{
+	/* try to speculatively flush the buffer if there's a reasonable amount
+	 * of data, this may fail, e.g. when the socket cannot immediately
+	 * send this much data - the event loop will take care of this later on */
+	if (GetSendQueue()->GetSize() > 128 * 1024)
+		FlushSendQueue();
+}
+
+/**
+ * Processes data that is available for this socket.
+ */
+void TcpClient::ReadableEventHandler(void)
+{
+	if (FillRecvQueue() > 0)
+		OnDataAvailable(GetSelf());
 }
 
 /**
@@ -167,16 +196,7 @@ void TcpClient::ReadableEventHandler(void)
  */
 void TcpClient::WritableEventHandler(void)
 {
-	int rc;
-
-	rc = send(GetFD(), (const char *)m_SendQueue->GetReadBuffer(), m_SendQueue->GetSize(), 0);
-
-	if (rc <= 0) {
-		HandleSocketError(SocketException("send() failed", GetError()));
-		return;
-	}
-
-	m_SendQueue->Read(NULL, rc);
+	FlushSendQueue();
 }
 
 /**

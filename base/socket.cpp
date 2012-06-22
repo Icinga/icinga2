@@ -72,6 +72,7 @@ void Socket::SetFD(SOCKET fd)
 {
 	unsigned long lTrue = 1;
 
+	/* mark the socket as non-blocking */
 	if (fd != INVALID_SOCKET) {
 #ifdef F_GETFL
 		int flags;

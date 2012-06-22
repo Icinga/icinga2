@@ -56,8 +56,8 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
-	virtual void ReadableEventHandler(void);
-	virtual void WritableEventHandler(void);
+	virtual size_t FillRecvQueue(void);
+	virtual size_t FlushSendQueue(void);
 
 	virtual void CloseInternal(bool from_dtor);
 

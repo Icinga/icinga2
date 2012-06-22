@@ -106,52 +106,62 @@ void TlsClient::Start(void)
 /**
  * Processes data that is available for this socket.
  */
-void TlsClient::ReadableEventHandler(void)
+size_t TlsClient::FillRecvQueue(void)
 {
-	int rc;
+	int result;
 
 	m_BlockRead = false;
 	m_BlockWrite = false;
 
-	size_t bufferSize = FIFO::BlockSize / 2;
-	char *buffer = (char *)GetRecvQueue()->GetWriteBuffer(&bufferSize);
-	rc = SSL_read(m_SSL.get(), buffer, bufferSize);
+	result = 0;
 
-	if (rc <= 0) {
-		switch (SSL_get_error(m_SSL.get(), rc)) {
-			case SSL_ERROR_WANT_WRITE:
-				m_BlockRead = true;
-				/* fall through */
-			case SSL_ERROR_WANT_READ:
-				return;
-			case SSL_ERROR_ZERO_RETURN:
-				Close();
-				return;
-			default:
-				HandleSocketError(OpenSSLException(
-				    "SSL_read failed", ERR_get_error()));
-				return;
+	for (;;) {
+		int rc;
+		size_t bufferSize = FIFO::BlockSize / 2;
+		char *buffer = (char *)GetRecvQueue()->GetWriteBuffer(&bufferSize);
+		rc = SSL_read(m_SSL.get(), buffer, bufferSize);
+
+		if (rc <= 0) {
+			switch (SSL_get_error(m_SSL.get(), rc)) {
+				case SSL_ERROR_WANT_WRITE:
+					m_BlockRead = true;
+					/* fall through */
+				case SSL_ERROR_WANT_READ:
+					return result;
+				case SSL_ERROR_ZERO_RETURN:
+					Close();
+					return result;
+				default:
+					HandleSocketError(OpenSSLException(
+					    "SSL_read failed", ERR_get_error()));
+					return result;
+			}
 		}
+
+		GetRecvQueue()->Write(NULL, rc);
+
+		result += rc;
 	}
 
-	GetRecvQueue()->Write(NULL, rc);
-
-	OnDataAvailable(GetSelf());
+	return result;
 }
 
 /**
  * Processes data that can be written for this socket.
  */
-void TlsClient::WritableEventHandler(void)
+size_t TlsClient::FlushSendQueue(void)
 {
 	int rc;
+
+	if (!WantsToWrite())
+		return 0;
+
+	std::cerr << "tls sendq: " << GetSendQueue()->GetSize() << " bytes" << std::endl;
 
 	m_BlockRead = false;
 	m_BlockWrite = false;
 
-	size_t write_size = std::min(GetSendQueue()->GetSize(), (size_t)(16 * 1024));
-
-	rc = SSL_write(m_SSL.get(), (const char *)GetSendQueue()->GetReadBuffer(), write_size);
+	rc = SSL_write(m_SSL.get(), (const char *)GetSendQueue()->GetReadBuffer(), GetSendQueue()->GetSize());
 
 	if (rc <= 0) {
 		switch (SSL_get_error(m_SSL.get(), rc)) {
@@ -159,18 +169,20 @@ void TlsClient::WritableEventHandler(void)
 				m_BlockWrite = true;
 				/* fall through */
 			case SSL_ERROR_WANT_WRITE:
-				return;
+				return 0;
 			case SSL_ERROR_ZERO_RETURN:
 				Close();
-				return;
+				return 0;
 			default:
 				HandleSocketError(OpenSSLException(
 				    "SSL_write failed", ERR_get_error()));
-				return;
+				return 0;
 		}
 	}
 
 	GetSendQueue()->Read(NULL, rc);
+
+	return rc;
 }
 
 /**

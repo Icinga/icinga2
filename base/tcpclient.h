@@ -58,6 +58,8 @@ public:
 	FIFO::Ptr GetSendQueue(void);
 	FIFO::Ptr GetRecvQueue(void);
 
+	void Flush(void);
+
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
@@ -69,8 +71,11 @@ private:
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
 
-	virtual void ReadableEventHandler(void);
-	virtual void WritableEventHandler(void);
+	virtual size_t FillRecvQueue(void);
+	virtual size_t FlushSendQueue(void);
+
+	void ReadableEventHandler(void);
+	void WritableEventHandler(void);
 };
 
 /**
