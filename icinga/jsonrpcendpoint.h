@@ -58,7 +58,6 @@ private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	string m_Address;
 	JsonRpcClient::Ptr m_Client;
-	map<string, Endpoint::Ptr> m_PendingCalls;
 
 	void SetAddress(string address);
 

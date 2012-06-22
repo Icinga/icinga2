@@ -72,7 +72,7 @@ void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Serv
 void DelegationComponent::AssignServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut)
 {
 	/* ignore the message if it's not from the designated checker for this service */
-	if (!sender || service.GetChecker() != sender->GetIdentity())
+	if (sender && service.GetChecker() != sender->GetIdentity())
 		return;
 
 	if (timedOut) {

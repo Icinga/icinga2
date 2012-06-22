@@ -227,6 +227,11 @@ void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
 	for (map<string, Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
 	{
 		Endpoint::Ptr endpoint = i->second;
+
+		/* don't forward messages between non-local endpoints */
+		if (!sender->IsLocal() && !endpoint->IsLocal())
+			continue;
+
 		if (endpoint->HasSubscription(method))
 			candidates.push_back(endpoint);
 	}

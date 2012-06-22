@@ -69,11 +69,6 @@ bool JsonRpcEndpoint::IsConnected(void) const
 void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage& message)
 {
 	if (IsConnected()) {
-		string id;
-		if (message.GetID(&id))
-			// TODO: remove calls after a certain timeout (and notify callers?)
-			m_PendingCalls[id] = sender;
-
 		m_Client->SendMessage(message);
 	} else {
 		// TODO: persist the event
@@ -115,8 +110,6 @@ void JsonRpcEndpoint::NewMessageHandler(const MessagePart& message)
 void JsonRpcEndpoint::ClientClosedHandler(void)
 {
 	Application::Log(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetIdentity());
-
-	m_PendingCalls.clear();
 
 	// TODO: _only_ clear non-persistent publications/subscriptions
 	// unregister ourselves if no persistent publications/subscriptions are left (use a timer for that, once we have a TTL property for the topics)

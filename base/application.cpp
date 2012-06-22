@@ -296,7 +296,7 @@ void Application::Log(LogSeverity severity, const string& facility, const string
 	char timestamp[100];
 
 	// TODO: make this configurable
-	if (severity < LogInformation)
+	if (!IsDebugging() && severity < LogInformation)
 		return;
 
 	string severityStr;
