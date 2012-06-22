@@ -41,11 +41,10 @@ public:
 
 	Timer(void);
 
-	void SetInterval(time_t interval);
-	time_t GetInterval(void) const;
+	void SetInterval(long interval);
+	long GetInterval(void) const;
 
-	static time_t GetNextCall(void);
-	static void CallExpiredTimers(void);
+	static long ProcessTimers(void);
 
 	void Start(void);
 	void Stop(void);
@@ -55,12 +54,8 @@ public:
 	boost::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
 private:
-	time_t m_Interval; /**< The interval of the timer. */
+	long m_Interval; /**< The interval of the timer. */
 	time_t m_Next; /**< When the next event should happen. */
-
-	static time_t NextCall; /**< When the next event should happen (for all timers). */
-
-	static void RescheduleTimers(void);
 
 	void Call(void);
 };

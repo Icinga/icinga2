@@ -101,7 +101,10 @@ void Application::RunEventLoop(void)
 
 		Object::ClearHeldObjects();
 
-		Timer::CallExpiredTimers();
+		long sleep = Timer::ProcessTimers();
+
+		if (m_ShuttingDown)
+			break;
 
 		FD_ZERO(&readfds);
 		FD_ZERO(&writefds);
@@ -134,15 +137,8 @@ void Application::RunEventLoop(void)
 				nfds = fd;
 		}
 
-		time_t now = time(NULL);
-		time_t next = Timer::GetNextCall();
-		time_t sleep = (next < now) ? 0 : (next - now);
-
-		if (m_ShuttingDown)
-			break;
-
 		timeval tv;
-		tv.tv_sec = (sleep < 0) ? 0 : (long)sleep;
+		tv.tv_sec = sleep;
 		tv.tv_usec = 0;
 
 		int ready;

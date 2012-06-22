@@ -21,7 +21,6 @@
 
 using namespace icinga;
 
-time_t Timer::NextCall;
 Timer::CollectionType Timer::Timers;
 
 /**
@@ -33,45 +32,13 @@ Timer::Timer(void)
 }
 
 /**
- * Retrieves when the next timer is due.
+ * Calls expired timers and returned when the next wake-up should happen.
  *
  * @returns Time when the next timer is due.
  */
-time_t Timer::GetNextCall(void)
+long Timer::ProcessTimers(void)
 {
-	if (NextCall < time(NULL))
-		Timer::RescheduleTimers();
-
-	return NextCall;
-}
-
-/**
- * Reschedules all timers, thereby updating the NextCall
- * timestamp used by the GetNextCall() function.
- */
-void Timer::RescheduleTimers(void)
-{
-	/* Make sure we wake up at least once every 30 seconds */
-	NextCall = time(NULL) + 30;
-
-	for (Timer::CollectionType::iterator i = Timers.begin(); i != Timers.end(); i++) {
-		Timer::Ptr timer = i->lock();
-
-		if (timer == NULL)
-			continue;
-
-		if (timer->m_Next < NextCall)
-			NextCall = timer->m_Next;
-	}
-}
-
-/**
- * Calls all expired timers and reschedules them.
- */
-void Timer::CallExpiredTimers(void)
-{
-	time_t now;
-	time(&now);
+	long wakeup = 30;
 
 	Timer::CollectionType::iterator prev, i;
 	for (i = Timers.begin(); i != Timers.end(); ) {
@@ -85,11 +52,28 @@ void Timer::CallExpiredTimers(void)
 			continue;
 		}
 
+		time_t now;
+		time(&now);
+
 		if (timer->m_Next <= now) {
 			timer->Call();
-			timer->Reschedule(time(NULL) + timer->GetInterval());
+
+			/* time may have changed depending on how long the
+			 * timer call took - we need to fetch the current time */
+			time(&now);
+
+			timer->Reschedule(now + timer->GetInterval());
 		}
+
+		assert(timer->m_Next > now);
+
+		if (timer->m_Next - now < wakeup)
+			wakeup = timer->m_Next - now;
 	}
+
+	assert(wakeup > 0);
+
+	return wakeup;
 }
 
 /**
@@ -119,8 +103,11 @@ void Timer::Call(void)
  *
  * @param interval The new interval.
  */
-void Timer::SetInterval(time_t interval)
+void Timer::SetInterval(long interval)
 {
+	if (interval <= 0)
+		throw invalid_argument("interval");
+
 	m_Interval = interval;
 }
 
@@ -129,7 +116,7 @@ void Timer::SetInterval(time_t interval)
  *
  * @returns The interval.
  */
-time_t Timer::GetInterval(void) const
+long Timer::GetInterval(void) const
 {
 	return m_Interval;
 }
@@ -162,7 +149,4 @@ void Timer::Stop(void)
 void Timer::Reschedule(time_t next)
 {
 	m_Next = next;
-
-	if (next < NextCall)
-		NextCall = next;
 }
