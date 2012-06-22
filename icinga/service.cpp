@@ -69,7 +69,7 @@ long Service::GetRetryInterval(void) const
 
 void Service::SetNextCheck(time_t nextCheck)
 {
-	GetConfigObject()->SetProperty("next_check", nextCheck);
+	GetConfigObject()->SetProperty("next_check", (long)nextCheck);
 }
 
 time_t Service::GetNextCheck(void)
