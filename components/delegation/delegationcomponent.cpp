@@ -235,6 +235,13 @@ void DelegationComponent::DelegationTimerHandler(void)
 		assert(candidates.size() == 0 || !service.GetChecker().empty());
 	}
 
+	map<Endpoint::Ptr, int>::iterator hit;
+	for (hit = histogram.begin(); hit != histogram.end(); hit++) {
+		stringstream msgbuf;
+		msgbuf << "histogram: " << hit->first->GetIdentity() << " - " << hit->second;
+		Application::Log(LogInformation, "delegation", msgbuf.str());
+	}
+
 	if (delegated > 0) {
 		if (need_clear) {
 			map<Endpoint::Ptr, int>::iterator hit;
@@ -251,13 +258,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 				continue;
 
 			AssignService(endpoint, *sit);
-		}
-
-		map<Endpoint::Ptr, int>::iterator hit;
-		for (hit = histogram.begin(); hit != histogram.end(); hit++) {
-			stringstream msgbuf;
-			msgbuf << "histogram: " << hit->first->GetIdentity() << " - " << hit->second;
-			Application::Log(LogInformation, "delegation", msgbuf.str());
 		}
 	}
 

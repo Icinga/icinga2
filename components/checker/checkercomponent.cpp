@@ -76,7 +76,7 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		Application::Log(LogDebug, "checker", "Executing service check for '" + service.GetName() + "'");
 
-		m_PendingServices.insert(service.GetName());
+		m_PendingServices.insert(service.GetConfigObject());
 
 		CheckTask::Ptr task = CheckTask::CreateTask(service);
 		task->Enqueue();
@@ -111,7 +111,7 @@ void CheckerComponent::ResultTimerHandler(void)
 
 		/* if the service isn't in the set of pending services
 		 * it was removed and we need to ignore this check result. */
-		if (m_PendingServices.find(service.GetName()) == m_PendingServices.end())
+		if (m_PendingServices.find(service.GetConfigObject()) == m_PendingServices.end())
 			continue;
 
 		CheckResult result = task->GetResult();
@@ -132,7 +132,7 @@ void CheckerComponent::ResultTimerHandler(void)
 			failed++;
 
 		service.SetNextCheck(now + service.GetCheckInterval());
-		m_PendingServices.erase(service.GetName());
+		m_PendingServices.erase(service.GetConfigObject());
 		m_Services.push(service);
 	}
 

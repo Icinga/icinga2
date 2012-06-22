@@ -51,7 +51,7 @@ private:
 	VirtualEndpoint::Ptr m_CheckerEndpoint;
 
 	ServiceQueue m_Services;
-	set<string> m_PendingServices;
+	set<ConfigObject::Ptr> m_PendingServices;
 
 	Timer::Ptr m_CheckTimer;
 
