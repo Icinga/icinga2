@@ -150,7 +150,7 @@ void CheckerComponent::ResultTimerHandler(void)
 
 	{
 		stringstream msgbuf;
-		msgbuf << "Pending services: " << m_PendingServices.size() << "; idle services: " << m_Services.size();
+		msgbuf << "Pending services: " << m_PendingServices.size() << "; Idle services: " << m_Services.size();
 		Application::Log(LogInformation, "checker", msgbuf.str());
 	}
 }

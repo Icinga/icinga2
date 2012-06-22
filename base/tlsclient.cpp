@@ -153,11 +153,6 @@ size_t TlsClient::FlushSendQueue(void)
 {
 	int rc;
 
-	if (!WantsToWrite())
-		return 0;
-
-	std::cerr << "tls sendq: " << GetSendQueue()->GetSize() << " bytes" << std::endl;
-
 	m_BlockRead = false;
 	m_BlockWrite = false;
 
