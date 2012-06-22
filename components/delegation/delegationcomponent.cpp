@@ -202,7 +202,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		/* don't re-assign service if the checker is still valid
 		 * and doesn't have too many services */
-		if (oldEndpoint && find(candidates.begin(), candidates.end(), oldEndpoint) != candidates.end() &&
+		if (oldEndpoint && oldEndpoint->IsConnected() &&
+		    find(candidates.begin(), candidates.end(), oldEndpoint) != candidates.end() &&
 		    histogram[oldEndpoint] <= avg_services + overflow_tolerance)
 			continue;
 
