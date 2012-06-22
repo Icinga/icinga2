@@ -142,9 +142,17 @@ void CheckerComponent::ResultTimerHandler(void)
 		Application::Log(LogWarning, "checker", latwarn.str());
 	}
 
-	stringstream msgbuf;
-	msgbuf << "ResultTimerHandler: " << results << " results (" << failed << " failed); latency: avg=" << avg_latency / (results ? results : 1) << ", min=" << min_latency << ", max: " << max_latency;
-	Application::Log(LogInformation, "checker", msgbuf.str());
+	{
+		stringstream msgbuf;
+		msgbuf << "ResultTimerHandler: " << results << " results (" << failed << " failed); latency: avg=" << avg_latency / (results ? results : 1) << ", min=" << min_latency << ", max: " << max_latency;
+		Application::Log(LogInformation, "checker", msgbuf.str());
+	}
+
+	{
+		stringstream msgbuf;
+		msgbuf << "Pending services: " << m_PendingServices.size() << "; idle services: " << m_Services.size();
+		Application::Log(LogInformation, "checker", msgbuf.str());
+	}
 }
 
 void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)

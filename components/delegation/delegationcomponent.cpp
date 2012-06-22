@@ -100,6 +100,11 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service& s
 	for (it = GetEndpointManager()->Begin(); it != GetEndpointManager()->End(); it++) {
 		Endpoint::Ptr endpoint = it->second;
 
+		/* ignore disconnected endpoints */
+		if (!endpoint->IsConnected())
+			continue;
+
+		/* ignore endpoints that aren't running the checker component */
 		if (!endpoint->HasSubscription("checker::AssignService"))
 			continue;
 
@@ -245,6 +250,13 @@ void DelegationComponent::DelegationTimerHandler(void)
 				continue;
 
 			AssignService(endpoint, *sit);
+		}
+
+		map<Endpoint::Ptr, int>::iterator hit;
+		for (hit = histogram.begin(); hit != histogram.end(); hit++) {
+			stringstream msgbuf;
+			msgbuf << "histogram: " << hit->first->GetIdentity() << " - " << hit->second;
+			Application::Log(LogInformation, "delegation", msgbuf.str());
 		}
 	}
 
