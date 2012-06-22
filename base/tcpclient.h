@@ -58,8 +58,6 @@ public:
 	FIFO::Ptr GetSendQueue(void);
 	FIFO::Ptr GetRecvQueue(void);
 
-	void Flush(void);
-
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 

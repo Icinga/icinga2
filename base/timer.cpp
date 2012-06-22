@@ -40,6 +40,9 @@ long Timer::ProcessTimers(void)
 {
 	long wakeup = 30;
 
+	time_t st;
+	time(&st);
+
 	Timer::CollectionType::iterator prev, i;
 	for (i = Timers.begin(); i != Timers.end(); ) {
 		Timer::Ptr timer = i->lock();
@@ -72,6 +75,13 @@ long Timer::ProcessTimers(void)
 	}
 
 	assert(wakeup > 0);
+
+	time_t et;
+	time(&et);
+
+	stringstream msgbuf;
+	msgbuf << "Timers took " << et - st << " seconds";
+	Application::Log(LogDebug, "base", msgbuf.str());
 
 	return wakeup;
 }

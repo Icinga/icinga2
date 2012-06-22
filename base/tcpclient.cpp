@@ -173,15 +173,6 @@ size_t TcpClient::FillRecvQueue(void)
 	return rc;
 }
 
-void TcpClient::Flush(void)
-{
-	/* try to speculatively flush the buffer if there's a reasonable amount
-	 * of data, this may fail, e.g. when the socket cannot immediately
-	 * send this much data - the event loop will take care of this later on */
-	if (GetSendQueue()->GetSize() > 128 * 1024)
-		FlushSendQueue();
-}
-
 /**
  * Processes data that is available for this socket.
  */

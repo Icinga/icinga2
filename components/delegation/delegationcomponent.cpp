@@ -65,20 +65,7 @@ void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Serv
 
 	Application::Log(LogDebug, "delegation", "Trying to delegate service '" + service.GetName() + "'");
 
-	GetEndpointManager()->SendAPIMessage(m_DelegationEndpoint, checker, request,
-	    boost::bind(&DelegationComponent::AssignServiceResponseHandler, this, service, _2, _5));
-}
-
-void DelegationComponent::AssignServiceResponseHandler(Service& service, const Endpoint::Ptr& sender, bool timedOut)
-{
-	/* ignore the message if it's not from the designated checker for this service */
-	if (sender && service.GetChecker() != sender->GetIdentity())
-		return;
-
-	if (timedOut) {
-		Application::Log(LogInformation, "delegation", "Service delegation for service '" + service.GetName() + "' timed out.");
-		service.SetChecker("");
-	}
+	GetEndpointManager()->SendUnicastMessage(m_DelegationEndpoint, checker, request);
 }
 
 void DelegationComponent::ClearServices(const Endpoint::Ptr& checker)

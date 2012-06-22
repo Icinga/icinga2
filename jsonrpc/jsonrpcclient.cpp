@@ -40,7 +40,7 @@ JsonRpcClient::JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
  */
 void JsonRpcClient::SendMessage(const MessagePart& message)
 {
-	Netstring::WriteStringToSocket(GetSelf(), message.ToJsonString());
+	Netstring::WriteStringToFIFO(GetSendQueue(), message.ToJsonString());
 }
 
 /**
@@ -53,7 +53,7 @@ void JsonRpcClient::DataAvailableHandler(void)
 			string jsonString;
 			MessagePart message;
 
-			if (!Netstring::ReadStringFromSocket(GetSelf(), &jsonString))
+			if (!Netstring::ReadStringFromFIFO(GetRecvQueue(), &jsonString))
 				return;
 
 			message = MessagePart(jsonString);

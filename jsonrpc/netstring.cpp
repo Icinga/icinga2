@@ -22,7 +22,7 @@
 using namespace icinga;
 
 /**
- * Reads data from a TCP client in netstring format.
+ * Reads data from a FIFO in netstring format.
  *
  * @param fifo The FIFO to read from.
  * @param[out] str The string that has been read from the FIFO.
@@ -30,9 +30,8 @@ using namespace icinga;
  * @exception InvalidNetstringException The input stream is invalid.
  * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
-bool Netstring::ReadStringFromSocket(const TcpClient::Ptr& client, string *str)
+bool Netstring::ReadStringFromFIFO(const FIFO::Ptr& fifo, string *str)
 {
-	FIFO::Ptr fifo = client->GetRecvQueue();
 	size_t buffer_length = fifo->GetSize();
 	char *buffer = (char *)fifo->GetReadBuffer();
 
@@ -76,15 +75,13 @@ bool Netstring::ReadStringFromSocket(const TcpClient::Ptr& client, string *str)
 }
 
 /**
- * Writes data into a TCP client's send buffer using the netstring format.
+ * Writes data into a FIFO using the netstring format.
  *
  * @param fifo The FIFO.
  * @param str The string that is to be written.
  */
-void Netstring::WriteStringToSocket(const TcpClient::Ptr& client, const string& str)
+void Netstring::WriteStringToFIFO(const FIFO::Ptr& fifo, const string& str)
 {
-	FIFO::Ptr fifo = client->GetSendQueue();
-
 	stringstream prefixbuf;
 	prefixbuf << str.size() << ":";
 
@@ -93,6 +90,4 @@ void Netstring::WriteStringToSocket(const TcpClient::Ptr& client, const string& 
 	fifo->Write(str.c_str(), str.size());
 
 	fifo->Write(",", 1);
-
-	client->Flush();
 }
