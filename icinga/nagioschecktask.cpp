@@ -77,7 +77,9 @@ void NagiosCheckTask::CheckThreadProc(void)
 
 				if (!it->second->RunTask()) {
 					CheckTask::FinishTask(it->second);
-					it = tasks.erase(it);
+					prev = it;
+					it++;
+					tasks.erase(prev);
 				} else {
 					it++;
 				}
@@ -138,7 +140,7 @@ bool NagiosCheckTask::RunTask(void)
 	status = _pclose(m_FP);
 #else /* _MSC_VER */
 	if (m_UsePopen)
-		status = pclose(fp);
+		status = pclose(m_FP);
 	else
 		status = pclose_noshell(&m_PCloseArg);
 #endif /* _MSC_VER */

@@ -27,7 +27,9 @@ private:
 	FILE *m_FP;
 	stringstream m_OutputStream;
 	bool m_UsePopen;
+#ifndef _MSC_VER
 	popen_noshell_pass_to_pclose m_PCloseArg;
+#endif /* _MSC_VER */
 
 	static boost::mutex m_Mutex;
 	static deque<NagiosCheckTask::Ptr> m_Tasks;
