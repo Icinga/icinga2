@@ -1,7 +1,4 @@
 #include "i2-icinga.h"
-#ifndef _MSC_VER
-#	include "popen_noshell.h"
-#endif /* _MSC_VER */
 
 using namespace icinga;
 
@@ -10,7 +7,7 @@ deque<NagiosCheckTask::Ptr> NagiosCheckTask::m_Tasks;
 condition_variable NagiosCheckTask::m_TasksCV;
 
 NagiosCheckTask::NagiosCheckTask(const Service& service)
-	: CheckTask(service), m_FP(NULL)
+	: CheckTask(service), m_FP(NULL), m_UsePopen(false)
 {
 	string checkCommand = service.GetCheckCommand();
 	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros()); // + " 2>&1";
@@ -108,18 +105,14 @@ bool NagiosCheckTask::InitTask(void)
 #ifdef _MSC_VER
 	m_FP = _popen(m_Command.c_str(), "r");
 #else /* _MSC_VER */
-	bool use_libc_popen = false;
-
-	popen_noshell_pass_to_pclose pclose_arg;
-
-	if (!use_libc_popen) {
-		m_FP = popen_noshell_compat(m_Command.c_str(), "r", &pclose_arg);
+	if (!m_UsePopen) {
+		m_FP = popen_noshell_compat(m_Command.c_str(), "r", &m_PCloseArg);
 
 		if (m_FP == NULL) // TODO: add check for valgrind
-			use_libc_popen = true;
+			m_UsePopen = true;
 	}
 
-	if (use_libc_popen)
+	if (m_UsePopen)
 		m_FP = popen(m_Command.c_str(), "r");
 #endif /* _MSC_VER */
 
@@ -144,10 +137,10 @@ bool NagiosCheckTask::RunTask(void)
 #ifdef _MSC_VER
 	status = _pclose(m_FP);
 #else /* _MSC_VER */
-	if (use_libc_popen)
+	if (m_UsePopen)
 		status = pclose(fp);
 	else
-		status = pclose_noshell(&pclose_arg);
+		status = pclose_noshell(&m_PCloseArg);
 #endif /* _MSC_VER */
 
 #ifndef _MSC_VER
