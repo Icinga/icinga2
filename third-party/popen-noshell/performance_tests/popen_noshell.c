@@ -1,1 +1,0 @@
-../popen_noshell.c

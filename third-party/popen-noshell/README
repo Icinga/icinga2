@@ -1,6 +1,7 @@
 /*
  * popen_noshell: A faster implementation of popen() and system() for Linux.
  * Copyright (c) 2009 Ivan Zahariev (famzah)
+ * Copyright (c) 2012 Gunnar Beutner
  * Version: 1.0
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,9 +23,5 @@ The package provides the following files:
 	* The C implementation of the library:
 		popen_noshell.c
 		popen_noshell.h
-	* Examples:
-		popen_noshell_examples.c
-	* Unit tests:
-		popen_noshell_tests.c
 
 Compile instructions are included in each file.

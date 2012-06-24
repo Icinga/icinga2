@@ -44,10 +44,10 @@ void NagiosCheckTask::CheckThreadProc(void)
 	mutex::scoped_lock lock(m_Mutex);
 
 	map<int, NagiosCheckTask::Ptr> tasks;
-	const int maxTasks = 16;
+	const int maxTasks = 128;
 
 	for (;;) {
-		while (m_Tasks.empty() || tasks.size() >= maxTasks) {
+		while (m_Tasks.empty() || tasks.size() >= MaxChecksPerThread) {
 			lock.unlock();
 
 			map<int, NagiosCheckTask::Ptr>::iterator it, prev;
@@ -202,7 +202,10 @@ void NagiosCheckTask::Register(void)
 {
 	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask, NagiosCheckTask::FlushQueue);
 
-	int numThreads = max(4, boost::thread::hardware_concurrency());
+	int numThreads = boost::thread::hardware_concurrency();
+
+	if (numThreads < 4)
+		numThreads = 4;
 
 	for (int i = 0; i < numThreads; i++) {
 		thread t(&NagiosCheckTask::CheckThreadProc);

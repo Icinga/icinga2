@@ -246,8 +246,6 @@ int TlsClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
 	SSL *ssl = (SSL *)X509_STORE_CTX_get_ex_data(x509Context, SSL_get_ex_data_X509_STORE_CTX_idx());
 	TlsClient *client = (TlsClient *)SSL_get_ex_data(ssl, m_SSLIndex);
 
-	assert(client->GetMutex().active_count);
-
 	if (client == NULL)
 		return 0;
 

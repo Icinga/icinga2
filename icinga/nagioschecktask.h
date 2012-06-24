@@ -10,6 +10,8 @@ public:
 	typedef shared_ptr<NagiosCheckTask> Ptr;
 	typedef weak_ptr<NagiosCheckTask> WeakPtr;
 
+	static const int MaxChecksPerThread = 128;
+
 	NagiosCheckTask(const Service& service);
 
 	virtual void Enqueue(void);
