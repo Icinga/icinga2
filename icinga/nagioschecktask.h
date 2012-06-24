@@ -33,6 +33,7 @@ private:
 
 	static boost::mutex m_Mutex;
 	static deque<NagiosCheckTask::Ptr> m_Tasks;
+	static vector<NagiosCheckTask::Ptr> m_PendingTasks;
 	static condition_variable m_TasksCV;
 
 	static void CheckThreadProc(void);

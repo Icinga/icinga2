@@ -7,6 +7,7 @@
 using namespace icinga;
 
 boost::mutex NagiosCheckTask::m_Mutex;
+vector<NagiosCheckTask::Ptr> NagiosCheckTask::m_PendingTasks;
 deque<NagiosCheckTask::Ptr> NagiosCheckTask::m_Tasks;
 condition_variable NagiosCheckTask::m_TasksCV;
 
@@ -20,16 +21,17 @@ NagiosCheckTask::NagiosCheckTask(const Service& service)
 void NagiosCheckTask::Enqueue(void)
 {
 	time(&m_Result.StartTime);
-
-	{
-			mutex::scoped_lock lock(m_Mutex);
-			m_Tasks.push_back(GetSelf());
-	}
+	m_PendingTasks.push_back(GetSelf());
 }
 
 void NagiosCheckTask::FlushQueue(void)
 {
-	m_TasksCV.notify_all();
+	{
+		mutex::scoped_lock lock(m_Mutex);
+		std::copy(m_PendingTasks.begin(), m_PendingTasks.end(), back_inserter(m_Tasks));
+		m_PendingTasks.clear();
+		m_TasksCV.notify_all();
+	}
 }
 
 CheckResult NagiosCheckTask::GetResult(void)
@@ -200,7 +202,9 @@ void NagiosCheckTask::Register(void)
 {
 	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask, NagiosCheckTask::FlushQueue);
 
-	for (int i = 0; i < 1; i++) {
+	int numThreads = max(4, boost::thread::hardware_concurrency());
+
+	for (int i = 0; i < numThreads; i++) {
 		thread t(&NagiosCheckTask::CheckThreadProc);
 		t.detach();
 	}
