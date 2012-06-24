@@ -1,5 +1,9 @@
 #include "i2-icinga.h"
 
+#ifndef _MSC_VER
+#	include "popen_noshell.h"
+#endif /* _MSC_VER */
+
 using namespace icinga;
 
 boost::mutex NagiosCheckTask::m_Mutex;
@@ -108,7 +112,9 @@ bool NagiosCheckTask::InitTask(void)
 	m_FP = _popen(m_Command.c_str(), "r");
 #else /* _MSC_VER */
 	if (!m_UsePopen) {
-		m_FP = popen_noshell_compat(m_Command.c_str(), "r", &m_PCloseArg);
+		m_PCloseArg = new popen_noshell_pass_to_pclose;
+
+		m_FP = popen_noshell_compat(m_Command.c_str(), "r", (popen_noshell_pass_to_pclose *)m_PCloseArg);
 
 		if (m_FP == NULL) // TODO: add check for valgrind
 			m_UsePopen = true;
@@ -139,10 +145,12 @@ bool NagiosCheckTask::RunTask(void)
 #ifdef _MSC_VER
 	status = _pclose(m_FP);
 #else /* _MSC_VER */
-	if (m_UsePopen)
+	if (m_UsePopen) {
 		status = pclose(m_FP);
-	else
-		status = pclose_noshell(&m_PCloseArg);
+	} else {
+		status = pclose_noshell((popen_noshell_pass_to_pclose *)m_PCloseArg);
+		delete (popen_noshell_pass_to_pclose *)m_PCloseArg;
+	}
 #endif /* _MSC_VER */
 
 #ifndef _MSC_VER

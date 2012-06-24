@@ -31,10 +31,6 @@
 #include <i2-jsonrpc.h>
 #include <set>
 
-#ifndef _MSC_VER
-#	include "popen_noshell.h"
-#endif /* _MSC_VER */
-
 #include <boost/thread/future.hpp>
 using boost::packaged_task;
 using boost::unique_future;
