@@ -33,18 +33,23 @@ class I2_BASE_API TlsClient : public TcpClient
 public:
 	TlsClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
 
+	virtual void Start(void);
+
 	shared_ptr<X509> GetClientCertificate(void) const;
 	shared_ptr<X509> GetPeerCertificate(void) const;
 
-	virtual void Start(void);
+	boost::signal<void (const TlsClient::Ptr&)> OnCertificateValidated;
+
+protected:
+	void HandleSSLError(void);
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	boost::signal<void (const TlsClient::Ptr&, bool *, X509_STORE_CTX *, const shared_ptr<X509>&)> OnVerifyCertificate;
+	virtual void HandleReadable(void);
+	virtual void HandleWritable(void);
 
-protected:
-	void HandleSSLError(void);
+	virtual bool ValidateCertificate(bool ok, X509_STORE_CTX *x509Context, const shared_ptr<X509>& x509Certificate);
 
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
@@ -56,14 +61,12 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
-	virtual size_t FillRecvQueue(void);
-	virtual size_t FlushSendQueue(void);
-
 	virtual void CloseInternal(bool from_dtor);
 
 	static void NullCertificateDeleter(X509 *certificate);
 
 	static int SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context);
+	int ValidateCertificateInternal(int ok, X509_STORE_CTX *x509Context);
 };
 
 TcpClient::Ptr TlsClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);

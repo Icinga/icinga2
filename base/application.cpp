@@ -96,9 +96,6 @@ Application::Ptr Application::GetInstance(void)
 void Application::RunEventLoop(void)
 {
 	while (!m_ShuttingDown) {
-		fd_set readfds, writefds, exceptfds;
-		int nfds = -1;
-
 		Object::ClearHeldObjects();
 
 		long sleep = Timer::ProcessTimers();
@@ -106,80 +103,13 @@ void Application::RunEventLoop(void)
 		if (m_ShuttingDown)
 			break;
 
-		FD_ZERO(&readfds);
-		FD_ZERO(&writefds);
-		FD_ZERO(&exceptfds);
+		vector<Event::Ptr> events;
+		
+		Event::Wait(&events, boost::get_system_time() + boost::posix_time::seconds(sleep));
 
-		Socket::CollectionType::iterator prev, i;
-		for (i = Socket::Sockets.begin();
-		    i != Socket::Sockets.end(); ) {
-			Socket::Ptr socket = i->lock();
-
-			prev = i;
-			i++;
-
-			if (!socket) {
-				Socket::Sockets.erase(prev);
-				continue;
-			}
-
-			int fd = socket->GetFD();
-
-			if (socket->WantsToWrite())
-				FD_SET(fd, &writefds);
-
-			if (socket->WantsToRead())
-				FD_SET(fd, &readfds);
-
-			FD_SET(fd, &exceptfds);
-
-			if (fd > nfds)
-				nfds = fd;
-		}
-
-		timeval tv;
-		tv.tv_sec = sleep;
-		tv.tv_usec = 0;
-
-		int ready;
-
-		if (nfds == -1) {
-			Sleep(tv.tv_sec * 1000 + tv.tv_usec);
-			ready = 0;
-		} else
-			ready = select(nfds + 1, &readfds, &writefds,
-			    &exceptfds, &tv);
-
-		if (ready < 0)
-			break;
-		else if (ready == 0)
-			continue;
-
-		for (i = Socket::Sockets.begin();
-		    i != Socket::Sockets.end(); ) {
-			Socket::Ptr socket = i->lock();
-
-			prev = i;
-			i++;
-
-			if (!socket) {
-				Socket::Sockets.erase(prev);
-				continue;
-			}
-
-			int fd;
-
-			fd = socket->GetFD();
-			if (fd != INVALID_SOCKET && FD_ISSET(fd, &writefds))
-				socket->OnWritable(socket);
-
-			fd = socket->GetFD();
-			if (fd != INVALID_SOCKET && FD_ISSET(fd, &readfds))
-				socket->OnReadable(socket);
-
-			fd = socket->GetFD();
-			if (fd != INVALID_SOCKET && FD_ISSET(fd, &exceptfds))
-				socket->OnException(socket);
+		for (vector<Event::Ptr>::iterator it = events.begin(); it != events.end(); it++) {
+			Event::Ptr ev = *it;
+			ev->OnEventDelivered();
 		}
 	}
 }
@@ -296,7 +226,7 @@ void Application::Log(LogSeverity severity, const string& facility, const string
 	char timestamp[100];
 
 	// TODO: make this configurable
-	if (!IsDebugging() && severity < LogInformation)
+	if (/*!IsDebugging() && */severity < LogInformation)
 		return;
 
 	string severityStr;

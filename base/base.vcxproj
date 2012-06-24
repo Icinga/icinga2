@@ -15,6 +15,7 @@
     <ClCompile Include="component.cpp" />
     <ClCompile Include="configobject.cpp" />
     <ClCompile Include="dictionary.cpp" />
+    <ClCompile Include="event.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="fifo.cpp" />
     <ClCompile Include="object.cpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="component.h" />
     <ClInclude Include="configobject.h" />
     <ClInclude Include="dictionary.h" />
+    <ClInclude Include="event.h" />
     <ClInclude Include="objectmap.h" />
     <ClInclude Include="objectset.h" />
     <ClInclude Include="exception.h" />
@@ -97,6 +99,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WINDLL;I2_BASE_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -117,6 +121,8 @@
       <PreprocessorDefinitions>_WINDLL;I2_BASE_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WarningLevel>Level3</WarningLevel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

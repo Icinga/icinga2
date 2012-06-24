@@ -13,6 +13,8 @@ libbase_la_SOURCES =  \
 	configobject.h \
 	dictionary.cpp \
 	dictionary.h \
+	event.cpp \
+	event.h \
 	exception.cpp \
 	exception.h \
 	fifo.cpp \

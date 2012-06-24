@@ -40,6 +40,8 @@ JsonRpcClient::JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
  */
 void JsonRpcClient::SendMessage(const MessagePart& message)
 {
+	mutex::scoped_lock lock(GetMutex());
+
 	Netstring::WriteStringToFIFO(GetSendQueue(), message.ToJsonString());
 }
 
@@ -53,13 +55,17 @@ void JsonRpcClient::DataAvailableHandler(void)
 			string jsonString;
 			MessagePart message;
 
-			if (!Netstring::ReadStringFromFIFO(GetRecvQueue(), &jsonString))
-				return;
+			{
+				mutex::scoped_lock lock(GetMutex());
+
+				if (!Netstring::ReadStringFromFIFO(GetRecvQueue(), &jsonString))
+					return;
+			}
 
 			message = MessagePart(jsonString);
 			OnNewMessage(GetSelf(), message);
-		} catch (const Exception& ex) {
-			Application::Log(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + string(ex.GetMessage()));
+		} catch (const std::exception& ex) {
+			Application::Log(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + string(ex.what()));
 			Close();
 
 			return;
@@ -70,11 +76,14 @@ void JsonRpcClient::DataAvailableHandler(void)
 /**
  * Factory function for JSON-RPC clients.
  *
+ * @param fd The file descriptor.
  * @param role The role of the underlying TCP client.
  * @param sslContext SSL context for the TLS connection.
  * @returns A new JSON-RPC client.
  */
-JsonRpcClient::Ptr icinga::JsonRpcClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
+JsonRpcClient::Ptr icinga::JsonRpcClientFactory(SOCKET fd, TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
 {
-	return boost::make_shared<JsonRpcClient>(role, sslContext);
+	JsonRpcClient::Ptr client = boost::make_shared<JsonRpcClient>(role, sslContext);
+	client->SetFD(fd);
+	return client;
 }

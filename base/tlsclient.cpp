@@ -37,43 +37,8 @@ TlsClient::TlsClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext) : TcpCl
 	m_BlockWrite = false;
 }
 
-/**
- * Takes a certificate as an argument. Does nothing.
- *
- * @param certificate An X509 certificate.
- */
-void TlsClient::NullCertificateDeleter(X509 *certificate)
-{
-	/* Nothing to do here. */
-}
-
-/**
- * Retrieves the X509 certficate for this client.
- *
- * @returns The X509 certificate.
- */
-shared_ptr<X509> TlsClient::GetClientCertificate(void) const
-{
-	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &TlsClient::NullCertificateDeleter);
-}
-
-/**
- * Retrieves the X509 certficate for the peer.
- *
- * @returns The X509 certificate.
- */
-shared_ptr<X509> TlsClient::GetPeerCertificate(void) const
-{
-	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
-}
-
-/**
- * Registers the TLS socket and starts processing events for it.
- */
 void TlsClient::Start(void)
 {
-	TcpClient::Start();
-
 	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
 	if (!m_SSL)
@@ -101,12 +66,48 @@ void TlsClient::Start(void)
 		SSL_set_connect_state(m_SSL.get());
 
 	SSL_do_handshake(m_SSL.get());
+
+	Socket::Start();
+}
+
+/**
+ * Takes a certificate as an argument. Does nothing.
+ *
+ * @param certificate An X509 certificate.
+ */
+void TlsClient::NullCertificateDeleter(X509 *certificate)
+{
+	/* Nothing to do here. */
+}
+
+/**
+ * Retrieves the X509 certficate for this client.
+ *
+ * @returns The X509 certificate.
+ */
+shared_ptr<X509> TlsClient::GetClientCertificate(void) const
+{
+	mutex::scoped_lock lock(GetMutex());
+
+	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &TlsClient::NullCertificateDeleter);
+}
+
+/**
+ * Retrieves the X509 certficate for the peer.
+ *
+ * @returns The X509 certificate.
+ */
+shared_ptr<X509> TlsClient::GetPeerCertificate(void) const
+{
+	mutex::scoped_lock lock(GetMutex());
+
+	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
 
 /**
  * Processes data that is available for this socket.
  */
-size_t TlsClient::FillRecvQueue(void)
+void TlsClient::HandleReadable(void)
 {
 	int result;
 
@@ -116,10 +117,9 @@ size_t TlsClient::FillRecvQueue(void)
 	result = 0;
 
 	for (;;) {
-		int rc;
 		size_t bufferSize = FIFO::BlockSize / 2;
 		char *buffer = (char *)GetRecvQueue()->GetWriteBuffer(&bufferSize);
-		rc = SSL_read(m_SSL.get(), buffer, bufferSize);
+		int rc = SSL_read(m_SSL.get(), buffer, bufferSize);
 
 		if (rc <= 0) {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
@@ -127,36 +127,35 @@ size_t TlsClient::FillRecvQueue(void)
 					m_BlockRead = true;
 					/* fall through */
 				case SSL_ERROR_WANT_READ:
-					return result;
+					goto post_event;
 				case SSL_ERROR_ZERO_RETURN:
-					Close();
-					return result;
+					CloseInternal(false);
+					goto post_event;
 				default:
 					HandleSocketError(OpenSSLException(
 					    "SSL_read failed", ERR_get_error()));
-					return result;
+					goto post_event;
 			}
 		}
 
 		GetRecvQueue()->Write(NULL, rc);
-
-		result += rc;
 	}
 
-	return result;
+post_event:
+	Event::Ptr ev = boost::make_shared<Event>();
+	ev->OnEventDelivered.connect(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
+	Event::Post(ev);
 }
 
 /**
  * Processes data that can be written for this socket.
  */
-size_t TlsClient::FlushSendQueue(void)
+void TlsClient::HandleWritable(void)
 {
-	int rc;
-
 	m_BlockRead = false;
 	m_BlockWrite = false;
 
-	rc = SSL_write(m_SSL.get(), (const char *)GetSendQueue()->GetReadBuffer(), GetSendQueue()->GetSize());
+	int rc = SSL_write(m_SSL.get(), (const char *)GetSendQueue()->GetReadBuffer(), GetSendQueue()->GetSize());
 
 	if (rc <= 0) {
 		switch (SSL_get_error(m_SSL.get(), rc)) {
@@ -164,20 +163,18 @@ size_t TlsClient::FlushSendQueue(void)
 				m_BlockWrite = true;
 				/* fall through */
 			case SSL_ERROR_WANT_WRITE:
-				return 0;
+				return;
 			case SSL_ERROR_ZERO_RETURN:
-				Close();
-				return 0;
+				CloseInternal(false);
+				return;
 			default:
 				HandleSocketError(OpenSSLException(
 				    "SSL_write failed", ERR_get_error()));
-				return 0;
+				return;
 		}
 	}
 
 	GetSendQueue()->Read(NULL, rc);
-
-	return rc;
 }
 
 /**
@@ -249,12 +246,29 @@ int TlsClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
 	SSL *ssl = (SSL *)X509_STORE_CTX_get_ex_data(x509Context, SSL_get_ex_data_X509_STORE_CTX_idx());
 	TlsClient *client = (TlsClient *)SSL_get_ex_data(ssl, m_SSLIndex);
 
+	assert(client->GetMutex().active_count);
+
 	if (client == NULL)
 		return 0;
 
-	bool valid = (ok != 0);
+	return client->ValidateCertificateInternal(ok, x509Context);
+}
+
+int TlsClient::ValidateCertificateInternal(int ok, X509_STORE_CTX *x509Context)
+{
 	shared_ptr<X509> x509Certificate = shared_ptr<X509>(x509Context->cert, &TlsClient::NullCertificateDeleter);
-	client->OnVerifyCertificate(client->GetSelf(), &valid, x509Context, x509Certificate);
+	bool valid = ValidateCertificate((ok != 0), x509Context, x509Certificate);
+
+	if (valid) {
+		Event::Ptr ev = boost::make_shared<Event>();
+		ev->OnEventDelivered.connect(boost::bind(boost::ref(OnCertificateValidated), GetSelf()));
+		Event::Post(ev);
+	}
 
 	return valid ? 1 : 0;
+}
+
+bool TlsClient::ValidateCertificate(bool ok, X509_STORE_CTX *x509Context, const shared_ptr<X509>& x509Certificate)
+{
+	return ok;
 }

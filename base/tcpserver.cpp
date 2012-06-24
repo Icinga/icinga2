@@ -34,7 +34,7 @@ TcpServer::TcpServer(void)
  *
  * @param clientFactory The client factory function.
  */
-void TcpServer::SetClientFactory(function<TcpClient::Ptr()> clientFactory)
+void TcpServer::SetClientFactory(function<TcpClient::Ptr(SOCKET)> clientFactory)
 {
 	m_ClientFactory = clientFactory;
 }
@@ -44,19 +44,9 @@ void TcpServer::SetClientFactory(function<TcpClient::Ptr()> clientFactory)
  *
  * @returns The client factory function.
  */
-function<TcpClient::Ptr()> TcpServer::GetFactoryFunction(void) const
+function<TcpClient::Ptr(SOCKET)> TcpServer::GetFactoryFunction(void) const
 {
 	return m_ClientFactory;
-}
-
-/**
- * Registers the TCP server and starts processing events for it.
- */
-void TcpServer::Start(void)
-{
-	TcpSocket::Start();
-
-	OnReadable.connect(boost::bind(&TcpServer::ReadableEventHandler, this));
 }
 
 /**
@@ -72,10 +62,20 @@ void TcpServer::Listen(void)
 }
 
 /**
+ * Checks whether the TCP server wants to read (i.e. accept new clients).
+ *
+ * @returns true
+ */
+bool TcpServer::WantsToRead(void) const
+{
+	return true;
+}
+
+/**
  * Accepts a new client and creates a new client object for it
  * using the client factory function.
  */
-void TcpServer::ReadableEventHandler(void)
+void TcpServer::HandleReadable(void)
 {
 	int fd;
 	sockaddr_storage addr;
@@ -89,19 +89,9 @@ void TcpServer::ReadableEventHandler(void)
 		return;
 	}
 
-	TcpClient::Ptr client = m_ClientFactory();
-	client->SetFD(fd);
-	client->Start();
+	TcpClient::Ptr client = m_ClientFactory(fd);
 
-	OnNewClient(GetSelf(), client);
-}
-
-/**
- * Checks whether the TCP server wants to read (i.e. accept new clients).
- *
- * @returns true
- */
-bool TcpServer::WantsToRead(void) const
-{
-	return true;
+	Event::Ptr ev = boost::make_shared<Event>();
+	ev->OnEventDelivered.connect(boost::bind(boost::ref(OnNewClient), GetSelf(), client));
+	Event::Post(ev);
 }

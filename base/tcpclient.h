@@ -51,29 +51,25 @@ public:
 
 	TcpClientRole GetRole(void) const;
 
-	virtual void Start(void);
-
 	void Connect(const string& node, const string& service);
 
 	FIFO::Ptr GetSendQueue(void);
 	FIFO::Ptr GetRecvQueue(void);
 
+	boost::signal<void (const TcpClient::Ptr&)> OnDataAvailable;
+
+protected:
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
 
-	boost::signal<void (const TcpClient::Ptr&)> OnDataAvailable;
+	virtual void HandleReadable(void);
+	virtual void HandleWritable(void);
 
 private:
 	TcpClientRole m_Role;
 
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
-
-	virtual size_t FillRecvQueue(void);
-	virtual size_t FlushSendQueue(void);
-
-	void ReadableEventHandler(void);
-	void WritableEventHandler(void);
 };
 
 /**

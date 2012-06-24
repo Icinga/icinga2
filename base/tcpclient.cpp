@@ -45,17 +45,6 @@ TcpClientRole TcpClient::GetRole(void) const
 }
 
 /**
- * Registers the socket and starts processing events for it.
- */
-void TcpClient::Start(void)
-{
-	TcpSocket::Start();
-
-	OnReadable.connect(boost::bind(&TcpClient::ReadableEventHandler, this));
-	OnWritable.connect(boost::bind(&TcpClient::WritableEventHandler, this));
-}
-
-/**
  * Creates a socket and connects to the specified node and service.
  *
  * @param node The node.
@@ -124,7 +113,7 @@ FIFO::Ptr TcpClient::GetSendQueue(void)
 	return m_SendQueue;
 }
 
-size_t TcpClient::FlushSendQueue(void)
+void TcpClient::HandleWritable(void)
 {
 	int rc;
 
@@ -132,7 +121,7 @@ size_t TcpClient::FlushSendQueue(void)
 
 	if (rc <= 0) {
 		HandleSocketError(SocketException("send() failed", GetError()));
-		return 0;
+		return;
 	}
 
 	m_SendQueue->Read(NULL, rc);
@@ -148,46 +137,31 @@ FIFO::Ptr TcpClient::GetRecvQueue(void)
 	return m_RecvQueue;
 }
 
-size_t TcpClient::FillRecvQueue(void)
+void TcpClient::HandleReadable(void)
 {
-	int rc;
+	for (;;) {
+		size_t bufferSize = FIFO::BlockSize / 2;
+		char *buffer = (char *)m_RecvQueue->GetWriteBuffer(&bufferSize);
+		int rc = recv(GetFD(), buffer, bufferSize, 0);
 
-	size_t bufferSize = FIFO::BlockSize / 2;
-	char *buffer = (char *)m_RecvQueue->GetWriteBuffer(&bufferSize);
-	rc = recv(GetFD(), buffer, bufferSize, 0);
+	#ifdef _WIN32
+		if (rc < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
+	#else /* _WIN32 */
+		if (rc < 0 && errno == EAGAIN)
+	#endif /* _WIN32 */
+			return;
 
-#ifdef _WIN32
-	if (rc < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
-#else /* _WIN32 */
-	if (rc < 0 && errno == EAGAIN)
-#endif /* _WIN32 */
-		return 0;
+		if (rc <= 0) {
+			HandleSocketError(SocketException("recv() failed", GetError()));
+			return;
+		}
 
-	if (rc <= 0) {
-		HandleSocketError(SocketException("recv() failed", GetError()));
-		return 0;
+		m_RecvQueue->Write(NULL, rc);
 	}
 
-	m_RecvQueue->Write(NULL, rc);
-
-	return rc;
-}
-
-/**
- * Processes data that is available for this socket.
- */
-void TcpClient::ReadableEventHandler(void)
-{
-	if (FillRecvQueue() > 0)
-		OnDataAvailable(GetSelf());
-}
-
-/**
- * Processes data that can be written for this socket.
- */
-void TcpClient::WritableEventHandler(void)
-{
-	FlushSendQueue();
+	Event::Ptr ev = boost::make_shared<Event>();
+	ev->OnEventDelivered.connect(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
+	Event::Post(ev);
 }
 
 /**

@@ -33,44 +33,58 @@ public:
 	typedef shared_ptr<Socket> Ptr;
 	typedef weak_ptr<Socket> WeakPtr;
 
-	typedef list<Socket::WeakPtr> CollectionType;
+	//typedef list<Socket::WeakPtr> CollectionType;
 
-	static Socket::CollectionType Sockets;
+	//static Socket::CollectionType Sockets;
 
 	~Socket(void);
 
-	void SetFD(SOCKET fd);
-	SOCKET GetFD(void) const;
-
-	boost::signal<void (const Socket::Ptr&)> OnReadable;
-	boost::signal<void (const Socket::Ptr&)> OnWritable;
-	boost::signal<void (const Socket::Ptr&)> OnException;
+	//boost::signal<void (const Socket::Ptr&)> OnReadable;
+	//boost::signal<void (const Socket::Ptr&)> OnWritable;
+	//boost::signal<void (const Socket::Ptr&)> OnException;
 
 	boost::signal<void (const Socket::Ptr&, const std::exception&)> OnError;
 	boost::signal<void (const Socket::Ptr&)> OnClosed;
 
-	virtual bool WantsToRead(void) const;
-	virtual bool WantsToWrite(void) const;
-
 	virtual void Start(void);
-	virtual void Stop(void);
+	//virtual void Stop(void);
 
 	void Close(void);
 
 	string GetClientAddress(void);
 	string GetPeerAddress(void);
 
+	mutex& GetMutex(void) const;
+
 protected:
 	Socket(void);
+
+	void SetFD(SOCKET fd);
+	SOCKET GetFD(void) const;
 
 	int GetError(void) const;
 	static int GetLastSocketError(void);
 	void HandleSocketError(const std::exception& ex);
 
+	virtual bool WantsToRead(void) const;
+	virtual bool WantsToWrite(void) const;
+
+	virtual void HandleReadable(void);
+	virtual void HandleWritable(void);
+	virtual void HandleException(void);
+
 	virtual void CloseInternal(bool from_dtor);
+
+	mutable mutex m_Mutex;
 
 private:
 	SOCKET m_FD; /**< The socket descriptor. */
+
+	thread m_ReadThread;
+	thread m_WriteThread;
+
+	void ReadThreadProc(void);
+	void WriteThreadProc(void);
 
 	void ExceptionEventHandler(void);
 

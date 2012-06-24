@@ -53,7 +53,7 @@ void JsonRpcEndpoint::SetClient(JsonRpcClient::Ptr client)
 	client->OnNewMessage.connect(boost::bind(&JsonRpcEndpoint::NewMessageHandler, this, _2));
 	client->OnClosed.connect(boost::bind(&JsonRpcEndpoint::ClientClosedHandler, this));
 	client->OnError.connect(boost::bind(&JsonRpcEndpoint::ClientErrorHandler, this, _2));
-	client->OnVerifyCertificate.connect(boost::bind(&JsonRpcEndpoint::VerifyCertificateHandler, this, _2, _4));
+	client->OnCertificateValidated.connect(boost::bind(&JsonRpcEndpoint::CertificateValidatedHandler, this));
 }
 
 bool JsonRpcEndpoint::IsLocal(void) const
@@ -135,15 +135,13 @@ void JsonRpcEndpoint::ClientErrorHandler(const std::exception& ex)
 	Application::Log(LogWarning, "jsonrpc", message.str());
 }
 
-void JsonRpcEndpoint::VerifyCertificateHandler(bool *valid, const shared_ptr<X509>& certificate)
+void JsonRpcEndpoint::CertificateValidatedHandler(void)
 {
-	if (certificate && *valid) {
-		string identity = Utility::GetCertificateCN(certificate);
+	string identity = Utility::GetCertificateCN(m_Client->GetPeerCertificate());
 
-		if (GetIdentity().empty() && !identity.empty()) {
-			m_Identity = identity;
-			GetEndpointManager()->RegisterEndpoint(GetSelf());
-		}
+	if (GetIdentity().empty() && !identity.empty()) {
+		m_Identity = identity;
+		GetEndpointManager()->RegisterEndpoint(GetSelf());
 	}
 }
 

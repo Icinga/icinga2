@@ -37,21 +37,20 @@ public:
 
 	TcpServer(void);
 
-	void SetClientFactory(function<TcpClient::Ptr()> function);
-	function<TcpClient::Ptr()> GetFactoryFunction(void) const;
-
-	virtual void Start();
+	void SetClientFactory(function<TcpClient::Ptr(SOCKET)> function);
+	function<TcpClient::Ptr(SOCKET)> GetFactoryFunction(void) const;
 
 	void Listen(void);
 
 	boost::signal<void (const TcpServer::Ptr&, const TcpClient::Ptr&)> OnNewClient;
 
+protected:
 	virtual bool WantsToRead(void) const;
 
-private:
-	void ReadableEventHandler(void);
+	virtual void HandleReadable(void);
 
-	function<TcpClient::Ptr()> m_ClientFactory;
+private:
+	function<TcpClient::Ptr(SOCKET)> m_ClientFactory;
 };
 
 }

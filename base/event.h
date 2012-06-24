@@ -17,56 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPCENDPOINT_H
-#define JSONRPCENDPOINT_H
+#ifndef EVENT_H
+#define EVENT_H
 
 namespace icinga
 {
 
-/**
- * A JSON-RPC endpoint that can be used to communicate with a remote
- * Icinga instance.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API JsonRpcEndpoint : public Endpoint
+class Event : public Object
 {
 public:
-	typedef shared_ptr<JsonRpcEndpoint> Ptr;
-	typedef weak_ptr<JsonRpcEndpoint> WeakPtr;
+	typedef shared_ptr<Event> Ptr;
+	typedef weak_ptr<Event> WeakPtr;
 
-	void Connect(string node, string service,
-	    shared_ptr<SSL_CTX> sslContext);
+	static bool Wait(vector<Event::Ptr> *events, const system_time& wait_until);
+	static void Post(const Event::Ptr& ev);
 
-	JsonRpcClient::Ptr GetClient(void);
-	void SetClient(JsonRpcClient::Ptr client);
-
-	virtual string GetIdentity(void) const;
-	virtual string GetAddress(void) const;
-
-	virtual bool IsLocal(void) const;
-	virtual bool IsConnected(void) const;
-
-	virtual void ProcessRequest(Endpoint::Ptr sender, const RequestMessage& message);
-	virtual void ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& message);
-
-	virtual void Stop(void);
+	boost::signal<void ()> OnEventDelivered;
 
 private:
-	string m_Identity; /**< The identity of this endpoint. */
-
-	shared_ptr<SSL_CTX> m_SSLContext;
-	string m_Address;
-	JsonRpcClient::Ptr m_Client;
-
-	void SetAddress(string address);
-
-	void NewMessageHandler(const MessagePart& message);
-	void ClientClosedHandler(void);
-	void ClientErrorHandler(const std::exception& ex);
-	void CertificateValidatedHandler(void);
+	static deque<Event::Ptr> m_Events;
+	static condition_variable m_EventAvailable;
+	static mutex m_Mutex;
 };
 
 }
 
-#endif /* JSONRPCENDPOINT_H */
+#endif /* EVENT_H */

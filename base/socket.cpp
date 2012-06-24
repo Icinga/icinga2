@@ -22,12 +22,6 @@
 using namespace icinga;
 
 /**
- * A collection of weak pointers to Socket objects which have been
- * registered with the socket sub-system.
- */
-Socket::CollectionType Socket::Sockets;
-
-/**
  * Constructor for the Socket class.
  */
 Socket::Socket(void)
@@ -40,27 +34,23 @@ Socket::Socket(void)
  */
 Socket::~Socket(void)
 {
-	CloseInternal(true);
+	{
+		mutex::scoped_lock lock(m_Mutex);
+
+		CloseInternal(true);
+	}
 }
 
-/**
- * Registers the socket and starts handling events for it.
- */
 void Socket::Start(void)
 {
-	assert(m_FD != INVALID_SOCKET);
+	assert(!m_ReadThread.joinable() && !m_WriteThread.joinable());
+	assert(GetFD() != INVALID_SOCKET);
 
-	OnException.connect(boost::bind(&Socket::ExceptionEventHandler, this));
+	m_ReadThread = thread(boost::bind(&Socket::ReadThreadProc, static_cast<Socket::Ptr>(GetSelf())));
+	m_ReadThread.detach();
 
-	Sockets.push_back(GetSelf());
-}
-
-/**
- * Unregisters the sockets and stops handling events for it.
- */
-void Socket::Stop(void)
-{
-	Sockets.remove_if(WeakPtrEqual<Socket>(this));
+	m_WriteThread = thread(boost::bind(&Socket::WriteThreadProc, static_cast<Socket::Ptr>(GetSelf())));
+	m_WriteThread.detach();
 }
 
 /**
@@ -70,8 +60,6 @@ void Socket::Stop(void)
  */
 void Socket::SetFD(SOCKET fd)
 {
-	unsigned long lTrue = 1;
-
 	/* mark the socket as non-blocking */
 	if (fd != INVALID_SOCKET) {
 #ifdef F_GETFL
@@ -83,6 +71,7 @@ void Socket::SetFD(SOCKET fd)
 		if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
 			throw PosixException("fcntl failed", errno);
 #else /* F_GETFL */
+		unsigned long lTrue = 1;
 		ioctlsocket(fd, FIONBIO, &lTrue);
 #endif /* F_GETFL */
 	}
@@ -105,6 +94,8 @@ SOCKET Socket::GetFD(void) const
  */
 void Socket::Close(void)
 {
+	mutex::scoped_lock lock(m_Mutex);
+
 	CloseInternal(false);
 }
 
@@ -124,9 +115,9 @@ void Socket::CloseInternal(bool from_dtor)
 	/* nobody can possibly have a valid event subscription when the
 		destructor has been called */
 	if (!from_dtor) {
-		Stop();
-
-		OnClosed(GetSelf());
+		Event::Ptr ev = boost::make_shared<Event>();
+		ev->OnEventDelivered.connect(boost::bind(boost::ref(OnClosed), GetSelf()));
+		Event::Post(ev);
 	}
 }
 
@@ -171,9 +162,11 @@ int Socket::GetLastSocketError(void)
 void Socket::HandleSocketError(const std::exception& ex)
 {
 	if (!OnError.empty()) {
-		OnError(GetSelf(), ex);
+		Event::Ptr ev = boost::make_shared<Event>();
+		ev->OnEventDelivered.connect(boost::bind(boost::ref(OnError), GetSelf(), ex));
+		Event::Post(ev);
 
-		Close();
+		CloseInternal(false);
 	} else {
 		throw ex;
 	}
@@ -181,10 +174,8 @@ void Socket::HandleSocketError(const std::exception& ex)
 
 /**
  * Processes errors that have occured for the socket.
- *
- * @param - Event arguments for the socket error.
  */
-void Socket::ExceptionEventHandler(void)
+void Socket::HandleException(void)
 {
 	HandleSocketError(SocketException(
 	    "select() returned fd in except fdset", GetError()));
@@ -200,6 +191,9 @@ bool Socket::WantsToRead(void) const
 	return false;
 }
 
+void Socket::HandleReadable(void)
+{ }
+
 /**
  * Checks whether data should be written for this socket object.
  *
@@ -209,6 +203,9 @@ bool Socket::WantsToWrite(void) const
 {
 	return false;
 }
+
+void Socket::HandleWritable(void)
+{ }
 
 /**
  * Formats a sockaddr in a human-readable way.
@@ -236,6 +233,8 @@ string Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
  */
 string Socket::GetClientAddress(void)
 {
+	mutex::scoped_lock lock(m_Mutex);
+
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
 
@@ -256,6 +255,8 @@ string Socket::GetClientAddress(void)
  */
 string Socket::GetPeerAddress(void)
 {
+	mutex::scoped_lock lock(m_Mutex);
+
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
 
@@ -285,4 +286,92 @@ SocketException::SocketException(const string& message, int errorCode)
 
 	string msg = message + ": " + details;
 	SetMessage(msg.c_str());
+}
+
+void Socket::ReadThreadProc(void)
+{
+	mutex::scoped_lock lock(m_Mutex);
+
+	for (;;) {
+		fd_set readfds, exceptfds;
+
+		FD_ZERO(&readfds);
+		FD_ZERO(&exceptfds);
+
+		int fd = GetFD();
+
+		if (fd == INVALID_SOCKET)
+			return;
+
+		if (WantsToRead())
+			FD_SET(fd, &readfds);
+
+		FD_SET(fd, &exceptfds);
+
+		lock.unlock();
+
+		timeval tv;
+		tv.tv_sec = 5;
+		tv.tv_usec = 0;
+		int rc = select(fd + 1, &readfds, NULL, &exceptfds, &tv);
+
+		lock.lock();
+
+		if (rc < 0) {
+			HandleSocketError(SocketException("select() failed", GetError()));
+			return;
+		}
+
+		if (FD_ISSET(fd, &readfds))
+			HandleReadable();
+
+		if (FD_ISSET(fd, &exceptfds))
+			HandleException();
+
+		if (WantsToWrite())
+			; /* notify Write thread */
+	}
+}
+
+void Socket::WriteThreadProc(void)
+{
+	mutex::scoped_lock lock(m_Mutex);
+
+	for (;;) {
+		fd_set writefds;
+
+		FD_ZERO(&writefds);
+
+		int fd = GetFD();
+
+		while (!WantsToWrite()) {
+			if (GetFD() == INVALID_SOCKET)
+				return;
+
+			lock.unlock();
+			Sleep(500);
+			lock.lock();
+		}
+
+		FD_SET(fd, &writefds);
+
+		lock.unlock();
+
+		int rc = select(fd + 1, NULL, &writefds, NULL, NULL);
+
+		lock.lock();
+
+		if (rc < 0) {
+			HandleSocketError(SocketException("select() failed", GetError()));
+			return;
+		}
+
+		if (FD_ISSET(fd, &writefds))
+			HandleWritable();
+	}
+}
+
+mutex& Socket::GetMutex(void) const
+{
+	return m_Mutex;
 }

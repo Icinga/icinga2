@@ -128,6 +128,7 @@ using boost::thread;
 using boost::thread_group;
 using boost::mutex;
 using boost::condition_variable;
+using boost::system_time;
 
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
@@ -150,7 +151,7 @@ using boost::condition_variable;
 #include "utility.h"
 #include "object.h"
 #include "exception.h"
-#include "memory.h"
+#include "event.h"
 #include "variant.h"
 #include "dictionary.h"
 #include "timer.h"

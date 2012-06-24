@@ -136,6 +136,7 @@ void EndpointManager::NewClientHandler(const TcpClient::Ptr& client)
 
 	JsonRpcEndpoint::Ptr endpoint = boost::make_shared<JsonRpcEndpoint>();
 	endpoint->SetClient(static_pointer_cast<JsonRpcClient>(client));
+	client->Start();
 	RegisterEndpoint(endpoint);
 }
 

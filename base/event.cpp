@@ -17,56 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPCENDPOINT_H
-#define JSONRPCENDPOINT_H
+#include "i2-base.h"
 
-namespace icinga
+using namespace icinga;
+
+deque<Event::Ptr> Event::m_Events;
+condition_variable Event::m_EventAvailable;
+mutex Event::m_Mutex;
+
+bool Event::Wait(vector<Event::Ptr> *events, const system_time& wait_until)
 {
+	mutex::scoped_lock lock(m_Mutex);
 
-/**
- * A JSON-RPC endpoint that can be used to communicate with a remote
- * Icinga instance.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API JsonRpcEndpoint : public Endpoint
-{
-public:
-	typedef shared_ptr<JsonRpcEndpoint> Ptr;
-	typedef weak_ptr<JsonRpcEndpoint> WeakPtr;
+	while (m_Events.empty()) {
+		if (!m_EventAvailable.timed_wait(lock, wait_until))
+			return false;
+	}
+	
+	vector<Event::Ptr> result;
+	std::copy(m_Events.begin(), m_Events.end(), back_inserter(*events));
+	m_Events.clear();
 
-	void Connect(string node, string service,
-	    shared_ptr<SSL_CTX> sslContext);
-
-	JsonRpcClient::Ptr GetClient(void);
-	void SetClient(JsonRpcClient::Ptr client);
-
-	virtual string GetIdentity(void) const;
-	virtual string GetAddress(void) const;
-
-	virtual bool IsLocal(void) const;
-	virtual bool IsConnected(void) const;
-
-	virtual void ProcessRequest(Endpoint::Ptr sender, const RequestMessage& message);
-	virtual void ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& message);
-
-	virtual void Stop(void);
-
-private:
-	string m_Identity; /**< The identity of this endpoint. */
-
-	shared_ptr<SSL_CTX> m_SSLContext;
-	string m_Address;
-	JsonRpcClient::Ptr m_Client;
-
-	void SetAddress(string address);
-
-	void NewMessageHandler(const MessagePart& message);
-	void ClientClosedHandler(void);
-	void ClientErrorHandler(const std::exception& ex);
-	void CertificateValidatedHandler(void);
-};
-
+	return true;
 }
 
-#endif /* JSONRPCENDPOINT_H */
+void Event::Post(const Event::Ptr& ev)
+{
+	mutex::scoped_lock lock(m_Mutex);
+	m_Events.push_back(ev);
+	m_EventAvailable.notify_all();
+}
