@@ -3,6 +3,8 @@
 using namespace icinga;
 
 map<string, CheckTaskType> CheckTask::m_Types;
+vector<CheckTask::Ptr> CheckTask::m_FinishedTasks;
+mutex CheckTask::m_FinishedTasksMutex;
 
 CheckTask::CheckTask(const Service& service)
 	: m_Service(service)
@@ -13,12 +15,11 @@ Service CheckTask::GetService(void) const
 	return m_Service;
 }
 
-void CheckTask::RegisterType(string type, Factory factory, QueueFlusher qflusher, FinishedTasksGetter qtasksgetter)
+void CheckTask::RegisterType(string type, Factory factory, QueueFlusher qflusher)
 {
 	CheckTaskType ctt;
 	ctt.Factory = factory;
 	ctt.QueueFlusher = qflusher;
-	ctt.FinishedTasksGetter = qtasksgetter;
 
 	m_Types[type] = ctt;
 }
@@ -49,12 +50,16 @@ void CheckTask::FlushQueue(void)
 
 vector<CheckTask::Ptr> CheckTask::GetFinishedTasks(void)
 {
-	vector<CheckTask::Ptr> tasks;
+	mutex::scoped_lock lock(m_FinishedTasksMutex);
 
-	map<string, CheckTaskType>::iterator it;
-	for (it = m_Types.begin(); it != m_Types.end(); it++)
-		it->second.FinishedTasksGetter(tasks);
+	vector<CheckTask::Ptr> result = m_FinishedTasks;
+	m_FinishedTasks.clear();
 
-	return tasks;
+	return result;
 }
 
+void CheckTask::FinishTask(const CheckTask::Ptr& task)
+{
+	mutex::scoped_lock lock(m_FinishedTasksMutex);
+	m_FinishedTasks.push_back(task);
+}
