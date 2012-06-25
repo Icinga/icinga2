@@ -117,7 +117,7 @@ void CheckerComponent::ResultTimerHandler(void)
 		CheckResult result = task->GetResult();
 		Application::Log(LogDebug, "checker", "Got result for service '" + service.GetName() + "'");
 
-		long latency = result.EndTime - result.StartTime;
+		long latency = result.GetEndTime() - result.GetStartTime();
 		avg_latency += latency;
 
 		if (min_latency == -1 || latency < min_latency)
@@ -128,8 +128,21 @@ void CheckerComponent::ResultTimerHandler(void)
 
 		results++;
 
-		if (result.State != StateOK)
+		if (result.GetState() != StateOK)
 			failed++;
+
+		RequestMessage rm;
+		rm.SetMethod("checker::CheckResult");
+
+		MessagePart params;
+		params.SetProperty("service", service.GetName());
+		params.SetProperty("result", result.GetDictionary());
+
+		rm.SetParams(params);
+
+		GetEndpointManager()->SendMulticastMessage(m_CheckerEndpoint, rm);
+
+		service.ApplyCheckResult(result);
 
 		service.SetNextCheck(now + service.GetCheckInterval());
 		m_PendingServices.erase(service.GetConfigObject());

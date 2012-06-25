@@ -4,26 +4,6 @@
 namespace icinga
 {
 
-enum CheckState
-{
-	StateOK,
-	StateWarning,
-	StateCritical,
-	StateUnreachable,
-	StateUncheckable,
-	StateUnknown
-};
-
-struct CheckResult
-{
-	time_t StartTime;
-	time_t EndTime;
-
-	CheckState State;
-	string Output;
-	Dictionary::Ptr PerformanceData;
-};
-
 struct CheckTaskType;
 
 class I2_ICINGA_API CheckTask : public Object

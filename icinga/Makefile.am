@@ -5,6 +5,8 @@ pkglib_LTLIBRARIES =  \
 	libicinga.la
 
 libicinga_la_SOURCES =  \
+	checkresult.cpp \
+	checkresult.h \
 	checktask.cpp \
 	checktask.h \
 	configobjectadapter.cpp \

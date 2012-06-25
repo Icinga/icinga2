@@ -4,6 +4,8 @@
 namespace icinga
 {
 
+struct CheckResult;
+
 class I2_ICINGA_API Service : public ConfigObjectAdapter
 {
 public:
@@ -24,6 +26,8 @@ public:
 	time_t GetNextCheck(void);
 	void SetChecker(string checker);
 	string GetChecker(void) const;
+
+	void ApplyCheckResult(const CheckResult& cr);
 };
 
 }

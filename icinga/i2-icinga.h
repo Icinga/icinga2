@@ -53,6 +53,7 @@ using boost::unique_future;
 #include "service.h"
 
 #include "macroprocessor.h"
+#include "checkresult.h"
 #include "checktask.h"
 #include "nagioschecktask.h"
 

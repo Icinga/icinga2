@@ -95,3 +95,7 @@ string Service::GetChecker(void) const
 	return value;
 }
 
+void Service::ApplyCheckResult(const CheckResult& cr)
+{
+
+}

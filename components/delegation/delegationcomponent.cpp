@@ -41,6 +41,7 @@ void DelegationComponent::Start(void)
 	m_DelegationEndpoint = boost::make_shared<VirtualEndpoint>();
 	m_DelegationEndpoint->RegisterPublication("checker::AssignService");
 	m_DelegationEndpoint->RegisterPublication("checker::ClearServices");
+	m_DelegationEndpoint->RegisterSubscription("checker::CheckResult");
 	GetEndpointManager()->RegisterEndpoint(m_DelegationEndpoint);
 
 	GetEndpointManager()->OnNewEndpoint.connect(bind(&DelegationComponent::NewEndpointHandler, this, _2));

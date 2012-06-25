@@ -20,7 +20,10 @@ NagiosCheckTask::NagiosCheckTask(const Service& service)
 
 void NagiosCheckTask::Enqueue(void)
 {
-	time(&m_Result.StartTime);
+	time_t now;
+	time(&now);
+	m_Result.SetStartTime(now);
+
 	m_PendingTasks.push_back(GetSelf());
 }
 
@@ -44,7 +47,6 @@ void NagiosCheckTask::CheckThreadProc(void)
 	mutex::scoped_lock lock(m_Mutex);
 
 	map<int, NagiosCheckTask::Ptr> tasks;
-	const int maxTasks = 128;
 
 	for (;;) {
 		while (m_Tasks.empty() || tasks.size() >= MaxChecksPerThread) {
@@ -94,7 +96,7 @@ void NagiosCheckTask::CheckThreadProc(void)
 			lock.lock();
 		}
 
-		while (!m_Tasks.empty() && tasks.size() < maxTasks) {
+		while (!m_Tasks.empty() && tasks.size() < MaxChecksPerThread) {
 			NagiosCheckTask::Ptr task = m_Tasks.front();
 			m_Tasks.pop_front();
 			if (!task->InitTask()) {
@@ -140,8 +142,9 @@ bool NagiosCheckTask::RunTask(void)
 	if (!feof(m_FP))
 		return true;
 
-	m_Result.Output = m_OutputStream.str();
-	boost::algorithm::trim(m_Result.Output);
+	string output = m_OutputStream.str();
+	boost::algorithm::trim(output);
+	m_Result.SetOutput(output);
 
 	int status, exitcode;
 #ifdef _MSC_VER
@@ -162,28 +165,36 @@ bool NagiosCheckTask::RunTask(void)
 		exitcode = status;
 #endif /* _MSC_VER */
 
+		CheckState state;
+
 		switch (exitcode) {
 			case 0:
-				m_Result.State = StateOK;
+				state = StateOK;
 				break;
 			case 1:
-				m_Result.State = StateWarning;
+				state = StateWarning;
 				break;
 			case 2:
-				m_Result.State = StateCritical;
+				state = StateCritical;
 				break;
 			default:
-				m_Result.State = StateUnknown;
+				state = StateUnknown;
 				break;
 		}
+
+		m_Result.SetState(state);
 #ifndef _MSC_VER
 	} else if (WIFSIGNALED(status)) {
-		m_Result.Output = "Process was terminated by signal " + WTERMSIG(status);
-		m_Result.State = StateUnknown;
+		stringstream outputbuf;
+		outputbuf << "Process was terminated by signal " << WTERMSIG(status);
+		m_Result.SetOutput(outputbuf.str());
+		m_Result.SetState(StateUnknown);
 	}
 #endif /* _MSC_VER */
 
-	time(&m_Result.EndTime);
+	time_t now;
+	time(&now);
+	m_Result.SetEndTime(now);
 
 	return false;
 }

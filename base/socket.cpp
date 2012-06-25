@@ -329,7 +329,7 @@ void Socket::ReadThreadProc(void)
 			HandleException();
 
 		if (WantsToWrite())
-			; /* notify Write thread */
+			m_WriteCV.notify_all(); /* notify Write thread */
 	}
 }
 
@@ -342,16 +342,17 @@ void Socket::WriteThreadProc(void)
 
 		FD_ZERO(&writefds);
 
-		int fd = GetFD();
-
 		while (!WantsToWrite()) {
+			m_WriteCV.timed_wait(lock, boost::posix_time::seconds(1));
+
 			if (GetFD() == INVALID_SOCKET)
 				return;
-
-			lock.unlock();
-			Sleep(500);
-			lock.lock();
 		}
+
+		int fd = GetFD();
+
+		if (fd == INVALID_SOCKET)
+			return;
 
 		FD_SET(fd, &writefds);
 

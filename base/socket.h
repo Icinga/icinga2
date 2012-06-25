@@ -83,6 +83,8 @@ private:
 	thread m_ReadThread;
 	thread m_WriteThread;
 
+	condition_variable m_WriteCV;
+
 	void ReadThreadProc(void);
 	void WriteThreadProc(void);
 
