@@ -131,18 +131,22 @@ void CheckerComponent::ResultTimerHandler(void)
 		if (result.GetState() != StateOK)
 			failed++;
 
+		/* update service state */
+		service.ApplyCheckResult(result);
+
 		RequestMessage rm;
 		rm.SetMethod("checker::CheckResult");
 
 		MessagePart params;
 		params.SetProperty("service", service.GetName());
+		params.SetProperty("state", static_cast<long>(service.GetState()));
+		params.SetProperty("state_type", static_cast<long>(service.GetStateType()));
+		params.SetProperty("current_attempt", static_cast<long>(service.GetCurrentCheckAttempt()));
 		params.SetProperty("result", result.GetDictionary());
 
 		rm.SetParams(params);
 
 		GetEndpointManager()->SendMulticastMessage(m_CheckerEndpoint, rm);
-
-		service.ApplyCheckResult(result);
 
 		service.SetNextCheck(now + service.GetCheckInterval());
 		m_PendingServices.erase(service.GetConfigObject());

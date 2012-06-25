@@ -4,6 +4,22 @@
 namespace icinga
 {
 
+enum ServiceState
+{
+	StateOK,
+	StateWarning,
+	StateCritical,
+	StateUnreachable,
+	StateUncheckable,
+	StateUnknown
+};
+
+enum ServiceStateType
+{
+	StateTypeHard,
+	StateTypeSoft
+};
+
 struct CheckResult;
 
 class I2_ICINGA_API Service : public ConfigObjectAdapter
@@ -24,8 +40,18 @@ public:
 
 	void SetNextCheck(time_t nextCheck);
 	time_t GetNextCheck(void);
+
 	void SetChecker(string checker);
 	string GetChecker(void) const;
+
+	void SetCurrentCheckAttempt(long attempt);
+	long GetCurrentCheckAttempt(void) const;
+
+	void SetState(ServiceState state);
+	ServiceState GetState(void) const;
+
+	void SetStateType(ServiceStateType type);
+	ServiceStateType GetStateType(void) const;
 
 	void ApplyCheckResult(const CheckResult& cr);
 };

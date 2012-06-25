@@ -62,6 +62,8 @@ void JsonRpcClient::DataAvailableHandler(void)
 					return;
 			}
 
+			std::cerr << jsonString << std::endl;
+
 			message = MessagePart(jsonString);
 			OnNewMessage(GetSelf(), message);
 		} catch (const std::exception& ex) {

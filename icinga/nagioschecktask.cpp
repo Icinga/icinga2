@@ -165,7 +165,7 @@ bool NagiosCheckTask::RunTask(void)
 		exitcode = status;
 #endif /* _MSC_VER */
 
-		CheckState state;
+		ServiceState state;
 
 		switch (exitcode) {
 			case 0:

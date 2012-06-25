@@ -4,16 +4,6 @@
 namespace icinga
 {
 
-enum CheckState
-{
-	StateOK,
-	StateWarning,
-	StateCritical,
-	StateUnreachable,
-	StateUncheckable,
-	StateUnknown
-};
-
 struct CheckResult
 {
 public:
@@ -28,8 +18,8 @@ public:
 	void SetEndTime(time_t ts);
 	time_t GetEndTime(void) const;
 
-	void SetState(CheckState state);
-	CheckState GetState(void) const;
+	void SetState(ServiceState state);
+	ServiceState GetState(void) const;
 
 	void SetOutput(string output);
 	string GetOutput(void) const;

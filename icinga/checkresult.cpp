@@ -39,16 +39,16 @@ time_t CheckResult::GetEndTime(void) const
 	return static_cast<time_t>(value);
 }
 
-void CheckResult::SetState(CheckState state)
+void CheckResult::SetState(ServiceState state)
 {
 	m_Data->SetProperty("state", static_cast<long>(state));
 }
 
-CheckState CheckResult::GetState(void) const
+ServiceState CheckResult::GetState(void) const
 {
 	long value = StateUnknown;
 	m_Data->GetProperty("state", &value);
-	return static_cast<CheckState>(value);
+	return static_cast<ServiceState>(value);
 }
 
 void CheckResult::SetOutput(string output)

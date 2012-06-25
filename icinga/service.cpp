@@ -44,7 +44,7 @@ string Service::GetCheckCommand(void) const
 
 long Service::GetMaxCheckAttempts(void) const
 {
-	long value = 1;
+	long value = 3;
 	GetConfigObject()->GetProperty("max_check_attempts", &value);
 	return value;
 }
@@ -62,20 +62,20 @@ long Service::GetCheckInterval(void) const
 
 long Service::GetRetryInterval(void) const
 {
-	long value = 15;
+	long value = 60;
 	GetConfigObject()->GetProperty("retry_interval", &value);
 	return value;
 }
 
 void Service::SetNextCheck(time_t nextCheck)
 {
-	GetConfigObject()->SetProperty("next_check", (long)nextCheck);
+	GetConfigObject()->SetTag("next_check", (long)nextCheck);
 }
 
 time_t Service::GetNextCheck(void)
 {
 	long value = -1;
-	GetConfigObject()->GetProperty("next_check", &value);
+	GetConfigObject()->GetTag("next_check", &value);
 	if (value == -1) {
 		value = time(NULL) + rand() % GetCheckInterval();
 		SetNextCheck(value);
@@ -85,17 +85,74 @@ time_t Service::GetNextCheck(void)
 
 void Service::SetChecker(string checker)
 {
-	GetConfigObject()->SetProperty("checker", checker);
+	GetConfigObject()->SetTag("checker", checker);
 }
 
 string Service::GetChecker(void) const
 {
 	string value;
-	GetConfigObject()->GetProperty("checker", &value);
+	GetConfigObject()->GetTag("checker", &value);
 	return value;
+}
+
+void Service::SetCurrentCheckAttempt(long attempt)
+{
+	GetConfigObject()->SetTag("check_attempt", attempt);
+}
+
+long Service::GetCurrentCheckAttempt(void) const
+{
+	long value = 0;
+	GetConfigObject()->GetTag("check_attempt", &value);
+	return value;
+}
+
+void Service::SetState(ServiceState state)
+{
+	GetConfigObject()->SetTag("state", static_cast<long>(state));
+}
+
+ServiceState Service::GetState(void) const
+{
+	long value = StateUnknown;
+	GetConfigObject()->GetTag("state", &value);
+	return static_cast<ServiceState>(value);
+}
+
+void Service::SetStateType(ServiceStateType type)
+{
+	GetConfigObject()->SetTag("state_type", static_cast<long>(type));
+}
+
+ServiceStateType Service::GetStateType(void) const
+{
+	long value = StateTypeHard;
+	GetConfigObject()->GetTag("state_type", &value);
+	return static_cast<ServiceStateType>(value);
 }
 
 void Service::ApplyCheckResult(const CheckResult& cr)
 {
+	long attempt = GetCurrentCheckAttempt();
 
+	if (GetState() == StateOK && cr.GetState() == StateOK) {
+		SetStateType(StateTypeHard);
+		SetCurrentCheckAttempt(0);
+	} else if (GetState() == StateOK && cr.GetState() != StateOK) {
+		attempt++;
+
+		if (attempt >= GetMaxCheckAttempts()) {
+			SetStateType(StateTypeHard);
+			attempt = 0;
+		} else {
+			SetStateType(StateTypeSoft);
+		}
+
+		SetCurrentCheckAttempt(attempt);
+	} else if (GetState() != StateOK && cr.GetState() == StateOK) {
+		SetState(StateOK);
+	}
+
+	SetState(cr.GetState());
 }
+
