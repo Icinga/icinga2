@@ -102,7 +102,7 @@ void Service::SetCurrentCheckAttempt(long attempt)
 
 long Service::GetCurrentCheckAttempt(void) const
 {
-	long value = 0;
+	long value = 1;
 	GetConfigObject()->GetTag("check_attempt", &value);
 	return value;
 }
@@ -135,24 +135,22 @@ void Service::ApplyCheckResult(const CheckResult& cr)
 {
 	long attempt = GetCurrentCheckAttempt();
 
-	if (GetState() == StateOK && cr.GetState() == StateOK) {
-		SetStateType(StateTypeHard);
-		SetCurrentCheckAttempt(0);
-	} else if (GetState() == StateOK && cr.GetState() != StateOK) {
-		attempt++;
+	if (cr.GetState() == StateOK) {
+		if (GetState() == StateOK)
+			SetStateType(StateTypeHard);
 
+		attempt = 1;
+	} else {
 		if (attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
-			attempt = 0;
-		} else {
+			attempt = 1;
+		} else if (GetStateType() == StateTypeSoft || GetState() == StateOK) {
 			SetStateType(StateTypeSoft);
+			attempt++;
 		}
-
-		SetCurrentCheckAttempt(attempt);
-	} else if (GetState() != StateOK && cr.GetState() == StateOK) {
-		SetState(StateOK);
 	}
 
+	SetCurrentCheckAttempt(attempt);
 	SetState(cr.GetState());
 }
 
