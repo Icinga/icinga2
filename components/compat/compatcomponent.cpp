@@ -102,7 +102,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 		cr->GetProperty("execution_end", &execution_end);
 	}
 
-	long execution_time = (execution_start - execution_start);
+	long execution_time = (execution_end - execution_start);
 	long latency = (schedule_end - schedule_start) - execution_time;
 
 	fp << "servicestatus {" << endl
