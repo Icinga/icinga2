@@ -33,21 +33,12 @@ public:
 	typedef shared_ptr<Socket> Ptr;
 	typedef weak_ptr<Socket> WeakPtr;
 
-	//typedef list<Socket::WeakPtr> CollectionType;
-
-	//static Socket::CollectionType Sockets;
-
 	~Socket(void);
-
-	//boost::signal<void (const Socket::Ptr&)> OnReadable;
-	//boost::signal<void (const Socket::Ptr&)> OnWritable;
-	//boost::signal<void (const Socket::Ptr&)> OnException;
 
 	boost::signal<void (const Socket::Ptr&, const std::exception&)> OnError;
 	boost::signal<void (const Socket::Ptr&)> OnClosed;
 
 	virtual void Start(void);
-	//virtual void Stop(void);
 
 	void Close(void);
 

@@ -30,6 +30,7 @@ string DelegationComponent::GetName(void) const
 void DelegationComponent::Start(void)
 {
 	m_AllServices = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("service"));
+	m_AllServices->OnObjectCommitted.connect(boost::bind(&DelegationComponent::ObjectCommittedHandler, this, _2));
 	m_AllServices->Start();
 
 	m_DelegationTimer = boost::make_shared<Timer>();
@@ -53,6 +54,14 @@ void DelegationComponent::Stop(void)
 
 	if (mgr)
 		mgr->UnregisterEndpoint(m_DelegationEndpoint);
+}
+
+void DelegationComponent::ObjectCommittedHandler(const ConfigObject::Ptr& object)
+{
+	Service service(object);
+
+	/* object was updated, clear its checker to make sure it's re-delegated by the delegation timer */
+	service.SetChecker("");
 }
 
 void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Service& service)

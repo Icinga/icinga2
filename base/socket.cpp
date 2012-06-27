@@ -317,6 +317,9 @@ void Socket::ReadThreadProc(void)
 
 		lock.lock();
 
+		if (GetFD() == INVALID_SOCKET)
+			return;
+
 		if (rc < 0) {
 			HandleSocketError(SocketException("select() failed", GetError()));
 			return;
@@ -361,6 +364,9 @@ void Socket::WriteThreadProc(void)
 		int rc = select(fd + 1, NULL, &writefds, NULL, NULL);
 
 		lock.lock();
+
+		if (GetFD() == INVALID_SOCKET)
+			return;
 
 		if (rc < 0) {
 			HandleSocketError(SocketException("select() failed", GetError()));
