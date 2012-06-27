@@ -36,7 +36,7 @@ public:
 
 	int Main(const vector<string>& args);
 
-	EndpointManager::Ptr GetEndpointManager(void);
+	static IcingaApplication::Ptr GetInstance(void);
 
 	string GetCertificateFile(void) const;
 	string GetCAFile(void) const;
@@ -44,8 +44,6 @@ public:
 	string GetService(void) const;
 
 private:
-	EndpointManager::Ptr m_EndpointManager;
-
 	string m_CertificateFile;
 	string m_CAFile;
 	string m_Node;

@@ -163,7 +163,7 @@ void Socket::HandleSocketError(const std::exception& ex)
 {
 	if (!OnError.empty()) {
 		Event::Ptr ev = boost::make_shared<Event>();
-		ev->OnEventDelivered.connect(boost::bind(boost::ref(OnError), GetSelf(), ex));
+		ev->OnEventDelivered.connect(boost::bind(boost::ref(OnError), GetSelf(), runtime_error(ex.what())));
 		Event::Post(ev);
 
 		CloseInternal(false);

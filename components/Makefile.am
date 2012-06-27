@@ -3,6 +3,7 @@
 
 SUBDIRS = \
 	checker \
+	compat \
 	configfile \
 	configrpc \
 	delegation \

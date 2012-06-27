@@ -9,6 +9,8 @@ libicinga_la_SOURCES =  \
 	checkresult.h \
 	checktask.cpp \
 	checktask.h \
+	cib.cpp \
+	cib.h \
 	configobjectadapter.cpp \
 	configobjectadapter.h \
 	endpoint.cpp \
@@ -17,8 +19,6 @@ libicinga_la_SOURCES =  \
 	endpointmanager.h \
 	icingaapplication.cpp \
 	icingaapplication.h \
-	icingacomponent.cpp \
-	icingacomponent.h \
 	host.cpp \
 	host.h \
 	i2-icinga.h \

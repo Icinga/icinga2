@@ -28,7 +28,7 @@ using namespace icinga;
  */
 string DemoComponent::GetName(void) const
 {
-	return "democomponent";
+	return "demo";
 }
 
 /**
@@ -40,7 +40,7 @@ void DemoComponent::Start(void)
 	m_DemoEndpoint->RegisterTopicHandler("demo::HelloWorld",
 	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2, _3));
 	m_DemoEndpoint->RegisterPublication("demo::HelloWorld");
-	GetEndpointManager()->RegisterEndpoint(m_DemoEndpoint);
+	EndpointManager::GetInstance()->RegisterEndpoint(m_DemoEndpoint);
 
 	m_DemoTimer = boost::make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);
@@ -53,12 +53,10 @@ void DemoComponent::Start(void)
  */
 void DemoComponent::Stop(void)
 {
-	IcingaApplication::Ptr app = GetIcingaApplication();
+	EndpointManager::Ptr endpointManager = EndpointManager::GetInstance();
 
-	if (app) {
-		EndpointManager::Ptr endpointManager = app->GetEndpointManager();
+	if (endpointManager)
 		endpointManager->UnregisterEndpoint(m_DemoEndpoint);
-	}
 }
 
 /**
@@ -73,8 +71,7 @@ void DemoComponent::DemoTimerHandler(void)
 	RequestMessage request;
 	request.SetMethod("demo::HelloWorld");
 
-	EndpointManager::Ptr endpointManager = GetIcingaApplication()->GetEndpointManager();
-	endpointManager->SendMulticastMessage(m_DemoEndpoint, request);
+	EndpointManager::GetInstance()->SendMulticastMessage(m_DemoEndpoint, request);
 }
 
 /**

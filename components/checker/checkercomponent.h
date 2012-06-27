@@ -35,7 +35,7 @@ public:
 /**
  * @ingroup checker
  */
-class CheckerComponent : public IcingaComponent
+class CheckerComponent : public Component
 {
 public:
 	typedef shared_ptr<CheckerComponent> Ptr;

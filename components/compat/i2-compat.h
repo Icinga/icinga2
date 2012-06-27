@@ -17,24 +17,24 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ICINGACOMPONENT_H
-#define ICINGACOMPONENT_H
-
-namespace icinga
-{
+#ifndef I2COMPAT_H
+#define I2COMPAT_H
 
 /**
- * A component that can be loaded into the Icinga application at run-time.
+ * @defgroup compat Compat component
  *
- * @ingroup icinga
+ * The compat component implements compatibility functionality for Icinga 1.x.
  */
-class I2_ICINGA_API IcingaComponent : public Component
-{
-protected:
-	IcingaApplication::Ptr GetIcingaApplication(void) const;
-	EndpointManager::Ptr GetEndpointManager(void) const;
-};
 
-}
+#include <i2-base.h>
+#include <i2-jsonrpc.h>
+#include <i2-icinga.h>
 
-#endif /* ICINGACOMPONENT_H */
+#include <fstream>
+
+using std::ofstream;
+using std::endl;
+
+#include "compatcomponent.h"
+
+#endif /* I2COMPAT_H */

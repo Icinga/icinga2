@@ -46,11 +46,12 @@ using boost::unique_future;
 #include "virtualendpoint.h"
 #include "endpointmanager.h"
 #include "icingaapplication.h"
-#include "icingacomponent.h"
 
 #include "configobjectadapter.h"
 #include "host.h"
 #include "service.h"
+
+#include "cib.h"
 
 #include "macroprocessor.h"
 #include "checkresult.h"

@@ -28,7 +28,7 @@ string ConfigRpcComponent::GetName(void) const
 
 void ConfigRpcComponent::Start(void)
 {
-	EndpointManager::Ptr endpointManager = GetEndpointManager();
+	EndpointManager::Ptr endpointManager = EndpointManager::GetInstance();
 
 	m_ConfigRpcEndpoint = boost::make_shared<VirtualEndpoint>();
 
@@ -58,7 +58,7 @@ void ConfigRpcComponent::Start(void)
 
 void ConfigRpcComponent::Stop(void)
 {
-	EndpointManager::Ptr mgr = GetEndpointManager();
+	EndpointManager::Ptr mgr = EndpointManager::GetInstance();
 
 	if (mgr)
 		mgr->UnregisterEndpoint(m_ConfigRpcEndpoint);
@@ -78,7 +78,7 @@ void ConfigRpcComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoint
 	RequestMessage request;
 	request.SetMethod("config::FetchObjects");
 
-	GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, endpoint, request);
+	EndpointManager::GetInstance()->SendUnicastMessage(m_ConfigRpcEndpoint, endpoint, request);
 }
 
 RequestMessage ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
@@ -115,7 +115,7 @@ void ConfigRpcComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 
 		RequestMessage request = MakeObjectMessage(object, "config::ObjectCreated", true);
 
-		GetEndpointManager()->SendUnicastMessage(m_ConfigRpcEndpoint, sender, request);
+		EndpointManager::GetInstance()->SendUnicastMessage(m_ConfigRpcEndpoint, sender, request);
 	}
 }
 
@@ -124,7 +124,7 @@ void ConfigRpcComponent::LocalObjectCommittedHandler(const ConfigObject::Ptr& ob
 	if (!ShouldReplicateObject(object))
 		return;
 
-	GetEndpointManager()->SendMulticastMessage(m_ConfigRpcEndpoint,
+	EndpointManager::GetInstance()->SendMulticastMessage(m_ConfigRpcEndpoint,
 	    MakeObjectMessage(object, "config::ObjectCreated", true));
 }
 
@@ -133,7 +133,7 @@ void ConfigRpcComponent::LocalObjectRemovedHandler(const ConfigObject::Ptr& obje
 	if (!ShouldReplicateObject(object))
 		return;
 
-	GetEndpointManager()->SendMulticastMessage(m_ConfigRpcEndpoint,
+	EndpointManager::GetInstance()->SendMulticastMessage(m_ConfigRpcEndpoint,
 	    MakeObjectMessage(object, "config::ObjectRemoved", false));
 }
 

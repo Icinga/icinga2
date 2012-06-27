@@ -42,15 +42,17 @@ void DelegationComponent::Start(void)
 	m_DelegationEndpoint = boost::make_shared<VirtualEndpoint>();
 	m_DelegationEndpoint->RegisterPublication("checker::AssignService");
 	m_DelegationEndpoint->RegisterPublication("checker::ClearServices");
-	m_DelegationEndpoint->RegisterSubscription("checker::CheckResult");
-	GetEndpointManager()->RegisterEndpoint(m_DelegationEndpoint);
+	m_DelegationEndpoint->RegisterTopicHandler("checker::CheckResult",
+	    boost::bind(&DelegationComponent::CheckResultRequestHandler, this, _2, _3));
+	m_DelegationEndpoint->RegisterPublication("delegation::ServiceStatus");
+	EndpointManager::GetInstance()->RegisterEndpoint(m_DelegationEndpoint);
 
-	GetEndpointManager()->OnNewEndpoint.connect(bind(&DelegationComponent::NewEndpointHandler, this, _2));
+	EndpointManager::GetInstance()->OnNewEndpoint.connect(bind(&DelegationComponent::NewEndpointHandler, this, _2));
 }
 
 void DelegationComponent::Stop(void)
 {
-	EndpointManager::Ptr mgr = GetEndpointManager();
+	EndpointManager::Ptr mgr = EndpointManager::GetInstance();
 
 	if (mgr)
 		mgr->UnregisterEndpoint(m_DelegationEndpoint);
@@ -75,7 +77,7 @@ void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Serv
 
 	Application::Log(LogDebug, "delegation", "Trying to delegate service '" + service.GetName() + "'");
 
-	GetEndpointManager()->SendUnicastMessage(m_DelegationEndpoint, checker, request);
+	EndpointManager::GetInstance()->SendUnicastMessage(m_DelegationEndpoint, checker, request);
 }
 
 void DelegationComponent::ClearServices(const Endpoint::Ptr& checker)
@@ -86,7 +88,12 @@ void DelegationComponent::ClearServices(const Endpoint::Ptr& checker)
 	MessagePart params;
 	request.SetParams(params);
 
-	GetEndpointManager()->SendUnicastMessage(m_DelegationEndpoint, checker, request);
+	EndpointManager::GetInstance()->SendUnicastMessage(m_DelegationEndpoint, checker, request);
+}
+
+bool DelegationComponent::IsEndpointChecker(const Endpoint::Ptr& endpoint)
+{
+	return (endpoint->HasSubscription("checker::AssignService"));
 }
 
 vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service& service) const
@@ -94,7 +101,7 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service& s
 	vector<Endpoint::Ptr> candidates;
 
 	EndpointManager::Iterator it;
-	for (it = GetEndpointManager()->Begin(); it != GetEndpointManager()->End(); it++) {
+	for (it = EndpointManager::GetInstance()->Begin(); it != EndpointManager::GetInstance()->End(); it++) {
 		Endpoint::Ptr endpoint = it->second;
 
 		/* ignore disconnected endpoints */
@@ -102,7 +109,11 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service& s
 			continue;
 
 		/* ignore endpoints that aren't running the checker component */
-		if (!endpoint->HasSubscription("checker::AssignService"))
+		if (!IsEndpointChecker(endpoint))
+			continue;
+
+		/* ignore endpoints that aren't allowed to check this service */
+		if (!service.IsAllowedChecker(it->first))
 			continue;
 
 		candidates.push_back(endpoint);
@@ -117,6 +128,10 @@ void DelegationComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 }
 void DelegationComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoint)
 {
+	/* ignore this endpoint if it's not a checker */
+	if (!IsEndpointChecker(endpoint))
+		return;
+
 	stringstream msgbuf;
 	msgbuf << "Clearing assigned services for endpoint '" << endpoint->GetIdentity() << "'";
 	Application::Log(LogInformation, "delegation", msgbuf.str());
@@ -139,7 +154,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 	map<Endpoint::Ptr, int> histogram;
 
 	EndpointManager::Iterator eit;
-	for (eit = GetEndpointManager()->Begin(); eit != GetEndpointManager()->End(); eit++)
+	for (eit = EndpointManager::GetInstance()->Begin(); eit != EndpointManager::GetInstance()->End(); eit++)
 		histogram[eit->second] = 0;
 
 	vector<Service> services;
@@ -155,7 +170,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 		if (checker.empty())
 			continue;
 
-		Endpoint::Ptr endpoint = GetEndpointManager()->GetEndpointByIdentity(checker);
+		Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
 		if (!endpoint)
 			continue;
 
@@ -176,7 +191,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		Endpoint::Ptr oldEndpoint;
 		if (!checker.empty())
-			oldEndpoint = GetEndpointManager()->GetEndpointByIdentity(checker);
+			oldEndpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
 
 		vector<Endpoint::Ptr> candidates = GetCheckerCandidates(service);
 
@@ -249,7 +264,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		for (sit = services.begin(); sit != services.end(); sit++) {
 			string checker = sit->GetChecker();
-			Endpoint::Ptr endpoint = GetEndpointManager()->GetEndpointByIdentity(checker);
+			Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
 
 			if (!endpoint)
 				continue;
@@ -261,6 +276,31 @@ void DelegationComponent::DelegationTimerHandler(void)
 	stringstream msgbuf;
 	msgbuf << "Updated delegations for " << delegated << " services";
 	Application::Log(LogInformation, "delegation", msgbuf.str());
+}
+
+void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+{
+	MessagePart params;
+	if (!request.GetParams(&params))
+		return;
+
+	string svcname;
+	if (!params.GetProperty("service", &svcname))
+		return;
+
+	Service service = Service::GetByName(svcname);
+
+	/* validate that this is an authentic check result */
+	if (!service.IsAllowedChecker(sender->GetIdentity()))
+		return;
+
+	/* TODO: send state update for dependant services */
+
+	/* send state update */
+	RequestMessage rm;
+	rm.SetMethod("delegation::ServiceStatus");
+	rm.SetParams(params);
+	EndpointManager::GetInstance()->SendMulticastMessage(m_DelegationEndpoint, rm);
 }
 
 EXPORT_COMPONENT(delegation, DelegationComponent);

@@ -68,6 +68,7 @@ Makefile
 base/Makefile
 components/Makefile
 components/checker/Makefile
+components/compat/Makefile
 components/configfile/Makefile
 components/configrpc/Makefile
 components/delegation/Makefile

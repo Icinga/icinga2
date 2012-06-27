@@ -379,3 +379,12 @@ EndpointManager::Iterator EndpointManager::End(void)
 	return m_Endpoints.end();
 }
 
+EndpointManager::Ptr EndpointManager::GetInstance(void)
+{
+	static EndpointManager::Ptr instance;
+
+	if (!instance)
+		instance = boost::make_shared<EndpointManager>();
+
+	return instance;
+}

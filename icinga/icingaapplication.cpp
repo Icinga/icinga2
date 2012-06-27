@@ -49,8 +49,6 @@ int IcingaApplication::Main(const vector<string>& args)
 		return EXIT_FAILURE;
 	}
 
-	m_EndpointManager = boost::make_shared<EndpointManager>();
-
 	string componentDirectory = GetExeDirectory() + "/../lib/icinga2";
 	AddComponentSearchDir(componentDirectory);
 
@@ -85,30 +83,23 @@ int IcingaApplication::Main(const vector<string>& args)
 		shared_ptr<X509> cert = Utility::GetX509Certificate(GetCertificateFile());
 		string identity = Utility::GetCertificateCN(cert);
 		Application::Log(LogInformation, "icinga", "My identity: " + identity);
-		m_EndpointManager->SetIdentity(identity);
+		EndpointManager::GetInstance()->SetIdentity(identity);
 
 		shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
-		m_EndpointManager->SetSSLContext(sslContext);
+		EndpointManager::GetInstance()->SetSSLContext(sslContext);
 	}
 
 	/* create the primary RPC listener */
 	string service = GetService();
 	if (!service.empty())
-		GetEndpointManager()->AddListener(service);
+		EndpointManager::GetInstance()->AddListener(service);
+
+	CIB::RequireInformation(CIB_ServiceStatus);
+	CIB::Start();
 
 	RunEventLoop();
 
 	return EXIT_SUCCESS;
-}
-
-/**
- * Retrieves Icinga's endpoint manager.
- *
- * @returns The endpoint manager.
- */
-EndpointManager::Ptr IcingaApplication::GetEndpointManager(void)
-{
-	return m_EndpointManager;
 }
 
 void IcingaApplication::NewComponentHandler(const ConfigObject::Ptr& object)
@@ -127,6 +118,11 @@ void IcingaApplication::NewComponentHandler(const ConfigObject::Ptr& object)
 	}
 
 	LoadComponent(path, object);
+}
+
+IcingaApplication::Ptr IcingaApplication::GetInstance(void)
+{
+	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
 
 void IcingaApplication::DeletedComponentHandler(const ConfigObject::Ptr& object)

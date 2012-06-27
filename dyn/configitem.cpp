@@ -138,7 +138,10 @@ void ConfigItem::Commit(void)
 
 void ConfigItem::Unregister(void)
 {
-	// TODO: unregister associated ConfigObject
+	ConfigObject::Ptr dobj = m_ConfigObject.lock();
+
+	if (dobj)
+		dobj->Unregister();
 
 	GetAllObjects()->RemoveObject(GetSelf());
 }

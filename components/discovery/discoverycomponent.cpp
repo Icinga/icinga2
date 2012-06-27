@@ -49,10 +49,10 @@ void DiscoveryComponent::Start(void)
 	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::Welcome",
 		boost::bind(&DiscoveryComponent::WelcomeMessageHandler, this, _2, _3));
 
-	GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _2));
-	GetEndpointManager()->OnNewEndpoint.connect(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _2));
+	EndpointManager::GetInstance()->ForEachEndpoint(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _2));
+	EndpointManager::GetInstance()->OnNewEndpoint.connect(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _2));
 
-	GetEndpointManager()->RegisterEndpoint(m_DiscoveryEndpoint);
+	EndpointManager::GetInstance()->RegisterEndpoint(m_DiscoveryEndpoint);
 
 	/* create the reconnect timer */
 	m_DiscoveryTimer = boost::make_shared<Timer>();
@@ -69,7 +69,7 @@ void DiscoveryComponent::Start(void)
  */
 void DiscoveryComponent::Stop(void)
 {
-	EndpointManager::Ptr mgr = GetEndpointManager();
+	EndpointManager::Ptr mgr = EndpointManager::GetInstance();
 
 	if (mgr)
 		mgr->UnregisterEndpoint(m_DiscoveryEndpoint);
@@ -94,7 +94,7 @@ void DiscoveryComponent::CheckExistingEndpoint(const Endpoint::Ptr& self, const 
 		Application::Log(LogWarning, "discovery", "Detected duplicate identity:" + other->GetIdentity() + " - Disconnecting old endpoint.");
 
 		other->Stop();
-		GetEndpointManager()->UnregisterEndpoint(other);
+		EndpointManager::GetInstance()->UnregisterEndpoint(other);
 	}
 }
 
@@ -119,16 +119,16 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 
 	string identity = endpoint->GetIdentity();
 
-	if (identity == GetEndpointManager()->GetIdentity()) {
+	if (identity == EndpointManager::GetInstance()->GetIdentity()) {
 		Application::Log(LogWarning, "discovery", "Detected loop-back connection - Disconnecting endpoint.");
 
 		endpoint->Stop();
-		GetEndpointManager()->UnregisterEndpoint(endpoint);
+		EndpointManager::GetInstance()->UnregisterEndpoint(endpoint);
 
 		return;
 	}
 
-	GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _2));
+	EndpointManager::GetInstance()->ForEachEndpoint(boost::bind(&DiscoveryComponent::CheckExistingEndpoint, this, endpoint, _2));
 
 	// we assume the other component _always_ wants
 	// discovery::RegisterComponent messages from us
@@ -137,7 +137,7 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 	// send a discovery::RegisterComponent message, if the
 	// other component is a broker this makes sure
 	// the broker knows about our message types
-	SendDiscoveryMessage("discovery::RegisterComponent", GetEndpointManager()->GetIdentity(), endpoint);
+	SendDiscoveryMessage("discovery::RegisterComponent", EndpointManager::GetInstance()->GetIdentity(), endpoint);
 
 	map<string, ComponentDiscoveryInfo::Ptr>::iterator ic;
 
@@ -146,7 +146,7 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 	endpoint->RegisterSubscription("discovery::NewComponent");
 
 	// send discovery::NewComponent message for ourselves
-	SendDiscoveryMessage("discovery::NewComponent", GetEndpointManager()->GetIdentity(), endpoint);
+	SendDiscoveryMessage("discovery::NewComponent", EndpointManager::GetInstance()->GetIdentity(), endpoint);
 
 	// send discovery::NewComponent messages for all components
 	// we know about
@@ -203,14 +203,14 @@ void DiscoveryComponent::DiscoveryEndpointHandler(const Endpoint::Ptr& endpoint,
  */
 bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDiscoveryInfo::Ptr *info) const
 {
-	if (component == GetEndpointManager()->GetIdentity()) {
+	if (component == EndpointManager::GetInstance()->GetIdentity()) {
 		/* Build fake discovery info for ourselves */
 		*info = boost::make_shared<ComponentDiscoveryInfo>();
-		GetEndpointManager()->ForEachEndpoint(boost::bind(&DiscoveryComponent::DiscoveryEndpointHandler, this, _2, *info));
+		EndpointManager::GetInstance()->ForEachEndpoint(boost::bind(&DiscoveryComponent::DiscoveryEndpointHandler, this, _2, *info));
 		
 		(*info)->LastSeen = 0;
-		(*info)->Node = GetIcingaApplication()->GetNode();
-		(*info)->Service = GetIcingaApplication()->GetService();
+		(*info)->Node = IcingaApplication::GetInstance()->GetNode();
+		(*info)->Service = IcingaApplication::GetInstance()->GetService();
 
 		return true;
 	}
@@ -260,7 +260,7 @@ void DiscoveryComponent::FinishDiscoverySetup(const Endpoint::Ptr& endpoint)
 	endpoint->RegisterSubscription("discovery::Welcome");
 	RequestMessage request;
 	request.SetMethod("discovery::Welcome");
-	GetEndpointManager()->SendUnicastMessage(m_DiscoveryEndpoint, endpoint, request);
+	EndpointManager::GetInstance()->SendUnicastMessage(m_DiscoveryEndpoint, endpoint, request);
 
 	endpoint->SetSentWelcome(true);
 
@@ -310,9 +310,9 @@ void DiscoveryComponent::SendDiscoveryMessage(const string& method, const string
 	params.SetPublications(publications);
 
 	if (recipient)
-		GetEndpointManager()->SendUnicastMessage(m_DiscoveryEndpoint, recipient, request);
+		EndpointManager::GetInstance()->SendUnicastMessage(m_DiscoveryEndpoint, recipient, request);
 	else
-		GetEndpointManager()->SendMulticastMessage(m_DiscoveryEndpoint, request);
+		EndpointManager::GetInstance()->SendMulticastMessage(m_DiscoveryEndpoint, request);
 }
 
 bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, const string& messageType, const string& message)
@@ -353,7 +353,7 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
 void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const DiscoveryMessage& message, bool trusted)
 {
 	/* ignore discovery messages that are about ourselves */
-	if (identity == GetEndpointManager()->GetIdentity())
+	if (identity == EndpointManager::GetInstance()->GetIdentity())
 		return;
 
 	ComponentDiscoveryInfo::Ptr info = boost::make_shared<ComponentDiscoveryInfo>();
@@ -379,7 +379,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 		}
 	}
 
-	Endpoint::Ptr endpoint = GetEndpointManager()->GetEndpointByIdentity(identity);
+	Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(identity);
 
 	MessagePart publications;
 	if (message.GetPublications(&publications)) {
@@ -456,7 +456,7 @@ void DiscoveryComponent::RegisterComponentMessageHandler(const Endpoint::Ptr& se
  */
 void DiscoveryComponent::DiscoveryTimerHandler(void)
 {
-	EndpointManager::Ptr endpointManager = GetEndpointManager();
+	EndpointManager::Ptr endpointManager = EndpointManager::GetInstance();
 	
 	time_t now;
 	time(&now);
@@ -487,7 +487,7 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 		i++;
 
 		/* there's no need to reconnect to ourself */
-		if (identity == GetEndpointManager()->GetIdentity())
+		if (identity == EndpointManager::GetInstance()->GetIdentity())
 			continue;
 
 		/* for explicitly-configured upstream endpoints

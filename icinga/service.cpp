@@ -12,6 +12,16 @@ string Service::GetDisplayName(void) const
 	return GetName();
 }
 
+Service Service::GetByName(string name)
+{
+	ConfigObject::Ptr configObject = ConfigObject::GetObject("service", name);
+
+	if (!configObject)
+		throw invalid_argument("Service '" + name + "' does not exist.");
+
+	return configObject;
+}
+
 Host Service::GetHost(void) const
 {
 	string hostname;
@@ -62,8 +72,17 @@ long Service::GetCheckInterval(void) const
 
 long Service::GetRetryInterval(void) const
 {
-	long value = 60;
-	GetConfigObject()->GetProperty("retry_interval", &value);
+	long value;
+	if (!GetConfigObject()->GetProperty("retry_interval", &value))
+		value = GetCheckInterval() / 5;
+
+	return value;
+}
+
+Dictionary::Ptr Service::GetDependencies(void) const
+{
+	Dictionary::Ptr value;
+	GetConfigObject()->GetProperty("dependencies", &value);
 	return value;
 }
 
@@ -74,13 +93,23 @@ void Service::SetNextCheck(time_t nextCheck)
 
 time_t Service::GetNextCheck(void)
 {
-	long value = -1;
-	GetConfigObject()->GetTag("next_check", &value);
-	if (value == -1) {
+	long value;
+	if (!GetConfigObject()->GetTag("next_check", &value)) {
 		value = time(NULL) + rand() % GetCheckInterval();
 		SetNextCheck(value);
 	}
 	return value;
+}
+
+void Service::UpdateNextCheck(void)
+{
+	time_t now;
+	time(&now);
+
+	if (GetStateType() == StateTypeSoft)
+		SetNextCheck(now + GetRetryInterval());
+	else
+		SetNextCheck(now + GetCheckInterval());
 }
 
 void Service::SetChecker(string checker)
@@ -131,6 +160,42 @@ ServiceStateType Service::GetStateType(void) const
 	return static_cast<ServiceStateType>(value);
 }
 
+void Service::SetLastCheckResult(const Dictionary::Ptr& result)
+{
+	GetConfigObject()->SetTag("last_result", result);
+}
+
+Dictionary::Ptr Service::GetLastCheckResult(void) const
+{
+	Dictionary::Ptr value;
+	GetConfigObject()->GetTag("last_result", &value);
+	return value;
+}
+
+void Service::SetLastStateChange(time_t ts)
+{
+	GetConfigObject()->SetTag("last_state_change", ts);
+}
+
+time_t Service::GetLastStateChange(void) const
+{
+	long value = 0;
+	GetConfigObject()->GetTag("last_state_change", &value);
+	return value;
+}
+
+void Service::SetLastHardStateChange(time_t ts)
+{
+	GetConfigObject()->SetTag("last_hard_state_change", ts);
+}
+
+time_t Service::GetLastHardStateChange(void) const
+{
+	long value = 0;
+	GetConfigObject()->GetTag("last_hard_state_change", &value);
+	return value;
+}
+
 void Service::ApplyCheckResult(const CheckResult& cr)
 {
 	long attempt = GetCurrentCheckAttempt();
@@ -154,3 +219,66 @@ void Service::ApplyCheckResult(const CheckResult& cr)
 	SetState(cr.GetState());
 }
 
+ServiceState Service::StateFromString(string state)
+{
+	/* TODO: make this thread-safe */
+	static map<string, ServiceState> stateLookup;
+
+	if (stateLookup.empty()) {
+		stateLookup["ok"] = StateOK;
+		stateLookup["warning"] = StateWarning;
+		stateLookup["critical"] = StateCritical;
+		stateLookup["unreachable"] = StateUnreachable;
+		stateLookup["uncheckable"] = StateUncheckable;
+		stateLookup["unknown"] = StateUnknown;
+	}
+
+	map<string, ServiceState>::iterator it;
+	it = stateLookup.find(state);
+
+	if (it == stateLookup.end())
+		return StateUnknown;
+	else
+		return it->second;
+}
+
+string Service::StateToString(ServiceState state)
+{
+	switch (state) {
+		case StateOK:
+			return "ok";
+		case StateWarning:
+			return "warning";
+		case StateCritical:
+			return "critical";
+		case StateUnreachable:
+			return "unreachable";
+		case StateUncheckable:
+			return "uncheckable";
+		case StateUnknown:
+		default:
+			return "unknown";
+	}
+}
+
+ServiceStateType Service::StateTypeFromString(string type)
+{
+	if (type == "soft")
+		return StateTypeSoft;
+	else
+		return StateTypeHard;
+}
+
+string Service::StateTypeToString(ServiceStateType type)
+{
+	if (type == StateTypeSoft)
+		return "soft";
+	else
+		return "hard";
+}
+
+bool Service::IsAllowedChecker(string checker) const
+{
+	/* TODO: check config */
+	return true;
+}

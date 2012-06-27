@@ -17,22 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-icinga.h"
+#ifndef COMPATCOMPONENT_H
+#define COMPATCOMPONENT_H
 
-using namespace icinga;
-
-IcingaApplication::Ptr IcingaComponent::GetIcingaApplication(void) const
+namespace icinga
 {
-	Application::Ptr application = Application::GetInstance();
-	return static_pointer_cast<IcingaApplication>(application);
+
+/**
+ * @ingroup compat
+ */
+class CompatComponent : public Component
+{
+public:
+	virtual string GetName(void) const;
+	virtual void Start(void);
+	virtual void Stop(void);
+
+private:
+	Timer::Ptr m_StatusTimer;
+
+	void DumpHostStatus(ofstream& fp, Host host);
+	void DumpHostObject(ofstream& fp, Host host);
+
+	void DumpServiceStatus(ofstream& fp, Service service);
+	void DumpServiceObject(ofstream& fp, Service service);
+
+	void StatusTimerHandler(void);
+};
+
 }
 
-EndpointManager::Ptr IcingaComponent::GetEndpointManager(void) const
-{
-	IcingaApplication::Ptr app = GetIcingaApplication();
-
-	if (!app)
-		return EndpointManager::Ptr();
-
-	return app->GetEndpointManager();
-}
+#endif /* COMPATCOMPONENT_H */

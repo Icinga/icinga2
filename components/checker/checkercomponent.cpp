@@ -34,7 +34,7 @@ void CheckerComponent::Start(void)
 	m_CheckerEndpoint->RegisterTopicHandler("checker::ClearServices",
 		boost::bind(&CheckerComponent::ClearServicesRequestHandler, this, _2, _3));
 	m_CheckerEndpoint->RegisterPublication("checker::CheckResult");
-	GetEndpointManager()->RegisterEndpoint(m_CheckerEndpoint);
+	EndpointManager::GetInstance()->RegisterEndpoint(m_CheckerEndpoint);
 
 	m_CheckTimer = boost::make_shared<Timer>();
 	m_CheckTimer->SetInterval(5);
@@ -51,7 +51,7 @@ void CheckerComponent::Start(void)
 
 void CheckerComponent::Stop(void)
 {
-	EndpointManager::Ptr mgr = GetEndpointManager();
+	EndpointManager::Ptr mgr = EndpointManager::GetInstance();
 
 	if (mgr)
 		mgr->UnregisterEndpoint(m_CheckerEndpoint);
@@ -134,6 +134,13 @@ void CheckerComponent::ResultTimerHandler(void)
 		/* update service state */
 		service.ApplyCheckResult(result);
 
+		/* figure out when the next check is for this service */
+		service.UpdateNextCheck();
+
+		/* remove the service from the list of pending services */
+		m_PendingServices.erase(service.GetConfigObject());
+		m_Services.push(service);
+
 		RequestMessage rm;
 		rm.SetMethod("checker::CheckResult");
 
@@ -142,15 +149,12 @@ void CheckerComponent::ResultTimerHandler(void)
 		params.SetProperty("state", static_cast<long>(service.GetState()));
 		params.SetProperty("state_type", static_cast<long>(service.GetStateType()));
 		params.SetProperty("current_attempt", static_cast<long>(service.GetCurrentCheckAttempt()));
+		params.SetProperty("next_check", static_cast<long>(service.GetNextCheck()));
 		params.SetProperty("result", result.GetDictionary());
 
 		rm.SetParams(params);
 
-		GetEndpointManager()->SendMulticastMessage(m_CheckerEndpoint, rm);
-
-		service.SetNextCheck(now + service.GetCheckInterval());
-		m_PendingServices.erase(service.GetConfigObject());
-		m_Services.push(service);
+		EndpointManager::GetInstance()->SendMulticastMessage(m_CheckerEndpoint, rm);
 	}
 
 	if (min_latency > 5) {
@@ -195,7 +199,7 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 
 		MessagePart result;
 		rm.SetResult(result);
-		GetEndpointManager()->SendUnicastMessage(m_CheckerEndpoint, sender, rm);
+		EndpointManager::GetInstance()->SendUnicastMessage(m_CheckerEndpoint, sender, rm);
 	}
 }
 

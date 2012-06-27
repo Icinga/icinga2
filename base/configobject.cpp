@@ -75,6 +75,19 @@ bool ConfigObject::IsLocal(void) const
 	return value;
 }
 
+
+void ConfigObject::SetTemporary(bool value)
+{
+	GetProperties()->SetProperty("__temporary", value ? 1 : 0);
+}
+
+bool ConfigObject::IsTemporary(void) const
+{
+	bool value = false;
+	GetProperties()->GetProperty("__temporary", &value);
+	return value;
+}
+
 void ConfigObject::SetAbstract(bool value)
 {
 	GetProperties()->SetProperty("__abstract", value ? 1 : 0);

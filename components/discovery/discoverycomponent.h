@@ -44,7 +44,7 @@ public:
 /**
  * @ingroup discovery
  */
-class DiscoveryComponent : public IcingaComponent
+class DiscoveryComponent : public Component
 {
 public:
 	virtual string GetName(void) const;

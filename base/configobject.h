@@ -71,6 +71,9 @@ public:
 	void SetLocal(bool value);
 	bool IsLocal(void) const;
 
+	void SetTemporary(bool value);
+	bool IsTemporary(void) const;
+
 	void SetAbstract(bool value);
 	bool IsAbstract(void) const;
 

@@ -26,7 +26,7 @@ namespace icinga
 /**
  * @ingroup delegation
  */
-class DelegationComponent : public IcingaComponent
+class DelegationComponent : public Component
 {
 public:
 	virtual string GetName(void) const;
@@ -48,6 +48,10 @@ private:
 
 	void AssignService(const Endpoint::Ptr& checker, const Service& service);
 	void ClearServices(const Endpoint::Ptr& checker);
+
+	static bool IsEndpointChecker(const Endpoint::Ptr& endpoint);
+
+	void CheckResultRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
 
 }

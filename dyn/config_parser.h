@@ -82,10 +82,11 @@ using namespace icinga;
      T_MULTIPLY_EQUAL = 265,
      T_DIVIDE_EQUAL = 266,
      T_ABSTRACT = 267,
-     T_LOCAL = 268,
-     T_OBJECT = 269,
-     T_INCLUDE = 270,
-     T_INHERITS = 271
+     T_TEMPORARY = 268,
+     T_LOCAL = 269,
+     T_OBJECT = 270,
+     T_INCLUDE = 271,
+     T_INHERITS = 272
    };
 #endif
 /* Tokens.  */
@@ -99,10 +100,11 @@ using namespace icinga;
 #define T_MULTIPLY_EQUAL 265
 #define T_DIVIDE_EQUAL 266
 #define T_ABSTRACT 267
-#define T_LOCAL 268
-#define T_OBJECT 269
-#define T_INCLUDE 270
-#define T_INHERITS 271
+#define T_TEMPORARY 268
+#define T_LOCAL 269
+#define T_OBJECT 270
+#define T_INCLUDE 271
+#define T_INHERITS 272
 
 
 
@@ -122,7 +124,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 126 "config_parser.h"
+#line 128 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -38,6 +38,8 @@ public:
 
 	EndpointManager(void);
 
+	static EndpointManager::Ptr GetInstance(void);
+
 	void SetIdentity(string identity);
 	string GetIdentity(void) const;
 

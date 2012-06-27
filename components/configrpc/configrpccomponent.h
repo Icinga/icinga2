@@ -26,7 +26,7 @@ namespace icinga
 /**
  * @ingroup configrpc
  */
-class ConfigRpcComponent : public IcingaComponent
+class ConfigRpcComponent : public Component
 {
 public:
 	virtual string GetName(void) const;

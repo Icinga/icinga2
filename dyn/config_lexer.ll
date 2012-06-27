@@ -48,6 +48,7 @@ do {							\
 %%
 abstract			return T_ABSTRACT;
 local				return T_LOCAL;
+temporary			return T_TEMPORARY;
 object				return T_OBJECT;
 include				return T_INCLUDE;
 inherits			return T_INHERITS;
