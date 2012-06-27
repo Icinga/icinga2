@@ -101,10 +101,8 @@ void NagiosCheckTask::CheckThreadProc(void)
 		while (!m_Tasks.empty() && tasks.size() < MaxChecksPerThread) {
 			NagiosCheckTask::Ptr task = m_Tasks.front();
 			m_Tasks.pop_front();
-			time_t now;
-			time(&now);
-			task->GetResult().SetScheduleStart(now);
 			if (!task->InitTask()) {
+				time_t now;
 				time(&now);
 				task->GetResult().SetScheduleEnd(now);
 
@@ -120,6 +118,10 @@ void NagiosCheckTask::CheckThreadProc(void)
 
 bool NagiosCheckTask::InitTask(void)
 {
+	time_t now;
+	time(&now);
+	GetResult().SetExecutionStart(now);
+
 #ifdef _MSC_VER
 	m_FP = _popen(m_Command.c_str(), "r");
 #else /* _MSC_VER */
