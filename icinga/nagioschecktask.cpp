@@ -22,7 +22,7 @@ void NagiosCheckTask::Enqueue(void)
 {
 	time_t now;
 	time(&now);
-	m_Result.SetStartTime(now);
+	GetResult().SetScheduleStart(now);
 
 	m_PendingTasks.push_back(GetSelf());
 }
@@ -35,11 +35,6 @@ void NagiosCheckTask::FlushQueue(void)
 		m_PendingTasks.clear();
 		m_TasksCV.notify_all();
 	}
-}
-
-CheckResult NagiosCheckTask::GetResult(void)
-{
-	return m_Result;
 }
 
 void NagiosCheckTask::CheckThreadProc(void)
@@ -76,15 +71,22 @@ void NagiosCheckTask::CheckThreadProc(void)
 #endif /* _MSC_VER */
 
 			for (it = tasks.begin(); it != tasks.end(); ) {
+				int fd = it->first;
+				NagiosCheckTask::Ptr task = it->second;
+
 #ifndef _MSC_VER
-				if (!FD_ISSET(it->first, &readfds)) {
+				if (!FD_ISSET(fd, &readfds)) {
 					it++;
 					continue;
 				}
 #endif /* _MSC_VER */
 
-				if (!it->second->RunTask()) {
-					CheckTask::FinishTask(it->second);
+				if (!task->RunTask()) {
+					time_t now;
+					time(&now);
+					task->GetResult().SetScheduleEnd(now);
+
+					CheckTask::FinishTask(task);
 					prev = it;
 					it++;
 					tasks.erase(prev);
@@ -100,6 +102,10 @@ void NagiosCheckTask::CheckThreadProc(void)
 			NagiosCheckTask::Ptr task = m_Tasks.front();
 			m_Tasks.pop_front();
 			if (!task->InitTask()) {
+				time_t now;
+				time(&now);
+				task->GetResult().SetScheduleEnd(now);
+
 				CheckTask::FinishTask(task);
 			} else {
 				int fd = task->GetFD();
@@ -128,7 +134,15 @@ bool NagiosCheckTask::InitTask(void)
 		m_FP = popen(m_Command.c_str(), "r");
 #endif /* _MSC_VER */
 
-	return (m_FP != NULL);
+	if (m_FP == NULL) {
+		time_t now;
+		time(&now);
+		GetResult().SetExecutionEnd(now);
+
+		return false;
+	}
+
+	return true;
 }
 
 bool NagiosCheckTask::RunTask(void)
@@ -144,7 +158,7 @@ bool NagiosCheckTask::RunTask(void)
 
 	string output = m_OutputStream.str();
 	boost::algorithm::trim(output);
-	m_Result.SetOutput(output);
+	GetResult().SetOutput(output);
 
 	int status, exitcode;
 #ifdef _MSC_VER
@@ -182,19 +196,19 @@ bool NagiosCheckTask::RunTask(void)
 				break;
 		}
 
-		m_Result.SetState(state);
+		GetResult().SetState(state);
 #ifndef _MSC_VER
 	} else if (WIFSIGNALED(status)) {
 		stringstream outputbuf;
 		outputbuf << "Process was terminated by signal " << WTERMSIG(status);
-		m_Result.SetOutput(outputbuf.str());
-		m_Result.SetState(StateUnknown);
+		GetResult().SetOutput(outputbuf.str());
+		GetResult().SetState(StateUnknown);
 	}
 #endif /* _MSC_VER */
 
 	time_t now;
 	time(&now);
-	m_Result.SetEndTime(now);
+	GetResult().SetExecutionEnd(now);
 
 	return false;
 }

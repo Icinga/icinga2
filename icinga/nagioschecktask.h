@@ -15,7 +15,6 @@ public:
 	NagiosCheckTask(const Service& service);
 
 	virtual void Enqueue(void);
-	virtual CheckResult GetResult(void);
 
 	static CheckTask::Ptr CreateTask(const Service& service);
 	static void FlushQueue(void);
@@ -24,7 +23,6 @@ public:
 
 private:
 	string m_Command;
-	CheckResult m_Result;
 
 	FILE *m_FP;
 	stringstream m_OutputStream;

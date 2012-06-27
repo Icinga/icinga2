@@ -12,11 +12,17 @@ public:
 
 	Dictionary::Ptr GetDictionary(void) const;
 
-	void SetStartTime(time_t ts);
-	time_t GetStartTime(void) const;
+	void SetScheduleStart(time_t ts);
+	time_t GetScheduleStart(void) const;
 
-	void SetEndTime(time_t ts);
-	time_t GetEndTime(void) const;
+	void SetScheduleEnd(time_t ts);
+	time_t GetScheduleEnd(void) const;
+
+	void SetExecutionStart(time_t ts);
+	time_t GetExecutionStart(void) const;
+
+	void SetExecutionEnd(time_t ts);
+	time_t GetExecutionEnd(void) const;
 
 	void SetState(ServiceState state);
 	ServiceState GetState(void) const;

@@ -10,9 +10,14 @@ CheckTask::CheckTask(const Service& service)
 	: m_Service(service)
 { }
 
-Service CheckTask::GetService(void) const
+Service& CheckTask::GetService(void)
 {
 	return m_Service;
+}
+
+CheckResult& CheckTask::GetResult(void)
+{
+	return m_Result;
 }
 
 void CheckTask::RegisterType(string type, Factory factory, QueueFlusher qflusher)

@@ -15,28 +15,52 @@ Dictionary::Ptr CheckResult::GetDictionary(void) const
 	return m_Data;
 }
 
-void CheckResult::SetStartTime(time_t ts)
+void CheckResult::SetScheduleStart(time_t ts)
 {
-	m_Data->SetProperty("start_time", static_cast<long>(ts));
+	m_Data->SetProperty("schedule_start", static_cast<long>(ts));
 }
 
-time_t CheckResult::GetStartTime(void) const
+time_t CheckResult::GetScheduleStart(void) const
 {
 	long value = 0;
-	m_Data->GetProperty("start_time", &value);
+	m_Data->GetProperty("schedule_start", &value);
 	return static_cast<time_t>(value);
 }
 
-void CheckResult::SetEndTime(time_t ts)
+void CheckResult::SetScheduleEnd(time_t ts)
 {
-	m_Data->SetProperty("end_time", static_cast<long>(ts));
+	m_Data->SetProperty("schedule_end", static_cast<long>(ts));
 }
 
-time_t CheckResult::GetEndTime(void) const
+time_t CheckResult::GetScheduleEnd(void) const
 {
 	long value = 0;
-	m_Data->GetProperty("end_time", &value);
+	m_Data->GetProperty("schedule_end", &value);
 	return static_cast<time_t>(value);
+}
+
+void CheckResult::SetExecutionStart(time_t ts)
+{
+	m_Data->SetProperty("execution_start", static_cast<long>(ts));
+}
+
+time_t CheckResult::GetExecutionStart(void) const
+{
+	long value = 0;
+	m_Data->GetProperty("execution_start", &value);
+	return static_cast<time_t>(value);
+}
+
+void CheckResult::SetExecutionEnd(time_t ts)
+{
+	m_Data->SetProperty("execution_end", static_cast<long>(ts));
+}
+
+time_t CheckResult::GetExecutionEnd(void) const
+{
+	long value = 0;
+	m_Data->GetProperty("execution_end", &value);
+	return value;
 }
 
 void CheckResult::SetState(ServiceState state)

@@ -43,11 +43,15 @@ public:
 	string GetNode(void) const;
 	string GetService(void) const;
 
+	time_t GetStartTime(void) const;
+
 private:
 	string m_CertificateFile;
 	string m_CAFile;
 	string m_Node;
 	string m_Service;
+
+	time_t m_StartTime;
 
 	void NewComponentHandler(const ConfigObject::Ptr& object);
 	void DeletedComponentHandler(const ConfigObject::Ptr& object);

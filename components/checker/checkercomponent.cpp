@@ -117,7 +117,8 @@ void CheckerComponent::ResultTimerHandler(void)
 		CheckResult result = task->GetResult();
 		Application::Log(LogDebug, "checker", "Got result for service '" + service.GetName() + "'");
 
-		long latency = result.GetEndTime() - result.GetStartTime();
+		long execution_time = result.GetExecutionEnd() - result.GetExecutionStart();
+		long latency = (result.GetScheduleEnd() - result.GetScheduleStart()) - execution_time;
 		avg_latency += latency;
 
 		if (min_latency == -1 || latency < min_latency)

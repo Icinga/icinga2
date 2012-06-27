@@ -61,6 +61,7 @@ void CompatComponent::DumpHostStatus(ofstream& fp, Host host)
 	   << "\t" << "check_execution_time=0" << endl
 	   << "\t" << "check_latency=0" << endl
 	   << "\t" << "current_state=0" << endl
+	   << "\t" << "state_type=1" << endl
 	   << "\t" << "last_check=" << time(NULL) << endl
 	   << "\t" << "next_check=" << time(NULL) << endl
 	   << "\t" << "current_attempt=1" << endl
@@ -91,25 +92,32 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 	cr = service.GetLastCheckResult();
 
 	string plugin_output;
-	long start_time = -1, end_time = -1;
+	long schedule_start = -1, schedule_end = -1;
+	long execution_start = -1, execution_end = -1;
 	if (cr) {
 		cr->GetProperty("output", &plugin_output);
-		cr->GetProperty("start_time", &start_time);
-		cr->GetProperty("end_time", &end_time);
+		cr->GetProperty("schedule_start", &schedule_start);
+		cr->GetProperty("schedule_end", &schedule_end);
+		cr->GetProperty("execution_start", &execution_start);
+		cr->GetProperty("execution_end", &execution_end);
 	}
+
+	long execution_time = (execution_start - execution_start);
+	long latency = (schedule_end - schedule_start) - execution_time;
 
 	fp << "servicestatus {" << endl
            << "\t" << "host_name=" << service.GetHost().GetName() << endl
 	   << "\t" << "service_description=" << service.GetDisplayName() << endl
 	   << "\t" << "check_interval=" << service.GetCheckInterval() / 60.0 << endl
 	   << "\t" << "retry_interval=" << service.GetRetryInterval() / 60.0 << endl
-	   << "\t" << "has_been_checked=" << (end_time == -1 ? 0 : 1) << endl
+	   << "\t" << "has_been_checked=" << (cr ? 1 : 0) << endl
 	   << "\t" << "should_be_scheduled=1" << endl
-	   << "\t" << "check_execution_time=" << end_time - start_time << endl
-	   << "\t" << "check_latency=0" << endl
+	   << "\t" << "check_execution_time=" << execution_time << endl
+	   << "\t" << "check_latency=" << latency << endl
 	   << "\t" << "current_state=" << service.GetState() << endl
+	   << "\t" << "state_type=" << service.GetStateType() << endl
 	   << "\t" << "plugin_output=" << plugin_output << endl
-	   << "\t" << "last_check=" << start_time << endl
+	   << "\t" << "last_check=" << schedule_start << endl
 	   << "\t" << "next_check=" << service.GetNextCheck() << endl
 	   << "\t" << "current_attempt=" << service.GetCurrentCheckAttempt() << endl
 	   << "\t" << "max_attempts=" << service.GetMaxCheckAttempts() << endl
@@ -153,6 +161,19 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "created=" << time(NULL) << endl
 		 << "\t" << "version=2.0" << endl
 		 << "\t" << "}" << endl
+		 << endl;
+
+	statusfp << "programstatus {" << endl
+		 << "\t" << "daemon_mode=1" << endl
+		 << "\t" << "program_start=" << IcingaApplication::GetInstance()->GetStartTime() << endl
+		 << "\t" << "active_service_checks_enabled=1" << endl
+		 << "\t" << "passive_service_checks_enabled=1" << endl
+		 << "\t" << "active_host_checks_enabled=0" << endl
+		 << "\t" << "passive_host_checks_enabled=0" << endl
+		 << "\t" << "check_service_freshness=1" << endl
+		 << "\t" << "check_host_freshness=0" << endl
+		 << "\t" << "enable_flap_detection=1" << endl
+		 << "\t" << "enable_failure_prediction=0" << endl
 		 << endl;
 
 	ofstream objectfp;

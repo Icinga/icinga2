@@ -179,8 +179,9 @@ void Service::SetLastStateChange(time_t ts)
 
 time_t Service::GetLastStateChange(void) const
 {
-	long value = 0;
-	GetConfigObject()->GetTag("last_state_change", &value);
+	long value;
+	if (!GetConfigObject()->GetTag("last_state_change", &value))
+		value = IcingaApplication::GetInstance()->GetStartTime();
 	return value;
 }
 
@@ -191,8 +192,9 @@ void Service::SetLastHardStateChange(time_t ts)
 
 time_t Service::GetLastHardStateChange(void) const
 {
-	long value = 0;
-	GetConfigObject()->GetTag("last_hard_state_change", &value);
+	long value;
+	if (!GetConfigObject()->GetTag("last_hard_state_change", &value))
+		value = IcingaApplication::GetInstance()->GetStartTime();
 	return value;
 }
 

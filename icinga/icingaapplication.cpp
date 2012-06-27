@@ -42,6 +42,8 @@ int IcingaApplication::Main(const vector<string>& args)
 	Application::Log(LogInformation, "icinga", "Icinga component loader (version: " ICINGA_VERSION ")");
 #endif  /* _WIN32 */
 
+	time(&m_StartTime);
+
 	if (args.size() < 2) {
 		stringstream msgbuf;
 		msgbuf << "Syntax: " << args[0] << " <config-file>";
@@ -149,4 +151,9 @@ string IcingaApplication::GetNode(void) const
 string IcingaApplication::GetService(void) const
 {
 	return m_Service;
+}
+
+time_t IcingaApplication::GetStartTime(void) const
+{
+	return m_StartTime;
 }

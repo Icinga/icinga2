@@ -15,10 +15,10 @@ public:
 	typedef function<CheckTask::Ptr(const Service&)> Factory;
 	typedef function<void()> QueueFlusher;
 
-	Service GetService(void) const;
+	Service& GetService(void);
+	CheckResult& GetResult(void);
 
 	virtual void Enqueue(void) = 0;
-	virtual CheckResult GetResult(void) = 0;
 
 	static void RegisterType(string type, Factory factory, QueueFlusher qflusher);
 	static CheckTask::Ptr CreateTask(const Service& service);
@@ -33,6 +33,7 @@ protected:
 
 private:
 	Service m_Service;
+	CheckResult m_Result;
 
 	static map<string, CheckTaskType> m_Types;
 
