@@ -75,20 +75,19 @@ int IcingaApplication::Main(const vector<string>& args)
 	if (!icingaConfig->IsLocal())
 		throw runtime_error("'icinga' application object must be 'local'.");
 
-	icingaConfig->GetProperty("privkey", &m_PrivateKeyFile);
-	icingaConfig->GetProperty("pubkey", &m_PublicKeyFile);
-	icingaConfig->GetProperty("cakey", &m_CAKeyFile);
+	icingaConfig->GetProperty("cert", &m_CertificateFile);
+	icingaConfig->GetProperty("ca", &m_CAFile);
 	icingaConfig->GetProperty("node", &m_Node);
 	icingaConfig->GetProperty("service", &m_Service);
 
-	if (!GetPrivateKeyFile().empty() && !GetPublicKeyFile().empty() && !GetCAKeyFile().empty()) {
+	if (!GetCertificateFile().empty() && !GetCAFile().empty()) {
 		/* set up SSL context */
-		shared_ptr<X509> cert = Utility::GetX509Certificate(GetPublicKeyFile());
+		shared_ptr<X509> cert = Utility::GetX509Certificate(GetCertificateFile());
 		string identity = Utility::GetCertificateCN(cert);
 		Application::Log(LogInformation, "icinga", "My identity: " + identity);
 		m_EndpointManager->SetIdentity(identity);
 
-		shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetPublicKeyFile(), GetPrivateKeyFile(), GetCAKeyFile());
+		shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
 		m_EndpointManager->SetSSLContext(sslContext);
 	}
 
@@ -136,19 +135,14 @@ void IcingaApplication::DeletedComponentHandler(const ConfigObject::Ptr& object)
 	UnregisterComponent(component);
 }
 
-string IcingaApplication::GetPrivateKeyFile(void) const
+string IcingaApplication::GetCertificateFile(void) const
 {
-	return m_PrivateKeyFile;
+	return m_CertificateFile;
 }
 
-string IcingaApplication::GetPublicKeyFile(void) const
+string IcingaApplication::GetCAFile(void) const
 {
-	return m_PublicKeyFile;
-}
-
-string IcingaApplication::GetCAKeyFile(void) const
-{
-	return m_CAKeyFile;
+	return m_CAFile;
 }
 
 string IcingaApplication::GetNode(void) const

@@ -38,18 +38,16 @@ public:
 
 	EndpointManager::Ptr GetEndpointManager(void);
 
-	string GetPrivateKeyFile(void) const;
-	string GetPublicKeyFile(void) const;
-	string GetCAKeyFile(void) const;
+	string GetCertificateFile(void) const;
+	string GetCAFile(void) const;
 	string GetNode(void) const;
 	string GetService(void) const;
 
 private:
 	EndpointManager::Ptr m_EndpointManager;
 
-	string m_PrivateKeyFile;
-	string m_PublicKeyFile;
-	string m_CAKeyFile;
+	string m_CertificateFile;
+	string m_CAFile;
 	string m_Node;
 	string m_Service;
 
