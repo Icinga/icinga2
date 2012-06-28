@@ -154,6 +154,7 @@ using boost::system_time;
 #include "event.h"
 #include "variant.h"
 #include "dictionary.h"
+#include "ringbuffer.h"
 #include "timer.h"
 #include "fifo.h"
 #include "socket.h"

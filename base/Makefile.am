@@ -26,6 +26,8 @@ libbase_la_SOURCES =  \
 	objectset.h \
 	objectmap.cpp \
 	objectmap.h \
+	ringbuffer.cpp \
+	ringbuffer.h \
 	socket.cpp \
 	socket.h \
 	tcpclient.cpp \

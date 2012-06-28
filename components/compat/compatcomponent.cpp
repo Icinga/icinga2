@@ -117,7 +117,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 	   << "\t" << "current_state=" << service.GetState() << endl
 	   << "\t" << "state_type=" << service.GetStateType() << endl
 	   << "\t" << "plugin_output=" << plugin_output << endl
-	   << "\t" << "last_check=" << schedule_start << endl
+	   << "\t" << "last_check=" << schedule_end << endl
 	   << "\t" << "next_check=" << service.GetNextCheck() << endl
 	   << "\t" << "current_attempt=" << service.GetCurrentCheckAttempt() << endl
 	   << "\t" << "max_attempts=" << service.GetMaxCheckAttempts() << endl
@@ -174,6 +174,7 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "check_host_freshness=0" << endl
 		 << "\t" << "enable_flap_detection=1" << endl
 		 << "\t" << "enable_failure_prediction=0" << endl
+		 << "\t" << "active_scheduled_service_check_stats=" << CheckTask::GetTaskStatistics(60) << "," << CheckTask::GetTaskStatistics(5 * 60) << "," << CheckTask::GetTaskStatistics(15 * 60) << endl
 		 << endl;
 
 	ofstream objectfp;

@@ -5,6 +5,7 @@ using namespace icinga;
 map<string, CheckTaskType> CheckTask::m_Types;
 vector<CheckTask::Ptr> CheckTask::m_FinishedTasks;
 mutex CheckTask::m_FinishedTasksMutex;
+Ringbuffer CheckTask::m_TaskStatistics(15 * 60);
 
 CheckTask::CheckTask(const Service& service)
 	: m_Service(service)
@@ -67,4 +68,11 @@ void CheckTask::FinishTask(const CheckTask::Ptr& task)
 {
 	mutex::scoped_lock lock(m_FinishedTasksMutex);
 	m_FinishedTasks.push_back(task);
+	m_TaskStatistics.InsertValue(task->GetResult().GetScheduleEnd(), 1);
+}
+
+int CheckTask::GetTaskStatistics(time_t timespan)
+{
+	mutex::scoped_lock lock(m_FinishedTasksMutex);
+	return m_TaskStatistics.GetValues(timespan);
 }
