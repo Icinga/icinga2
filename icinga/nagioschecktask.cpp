@@ -15,7 +15,7 @@ NagiosCheckTask::NagiosCheckTask(const Service& service)
 	: CheckTask(service), m_FP(NULL), m_UsePopen(false)
 {
 	string checkCommand = service.GetCheckCommand();
-	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros()); // + " 2>&1";
+	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros());
 }
 
 void NagiosCheckTask::Enqueue(void)

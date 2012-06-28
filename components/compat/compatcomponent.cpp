@@ -107,7 +107,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 
 	fp << "servicestatus {" << endl
            << "\t" << "host_name=" << service.GetHost().GetName() << endl
-	   << "\t" << "service_description=" << service.GetDisplayName() << endl
+	   << "\t" << "service_description=" << service.GetAlias() << endl
 	   << "\t" << "check_interval=" << service.GetCheckInterval() / 60.0 << endl
 	   << "\t" << "retry_interval=" << service.GetRetryInterval() / 60.0 << endl
 	   << "\t" << "has_been_checked=" << (cr ? 1 : 0) << endl
@@ -134,7 +134,7 @@ void CompatComponent::DumpServiceObject(ofstream& fp, Service service)
 {
 	fp << "define service {" << endl
 	   << "\t" << "host_name" << "\t" << service.GetHost().GetName() << endl
-	   << "\t" << "service_description" << "\t" << service.GetDisplayName() << endl
+	   << "\t" << "service_description" << "\t" << service.GetAlias() << endl
 	   << "\t" << "check_command" << "\t" << "check_i2" << endl
 	   << "\t" << "check_interval" << "\t" << service.GetCheckInterval() / 60.0 << endl
 	   << "\t" << "retry_interval" << "\t" << service.GetRetryInterval() / 60.0 << endl

@@ -2,11 +2,11 @@
 
 using namespace icinga;
 
-string Service::GetDisplayName(void) const
+string Service::GetAlias(void) const
 {
 	string value;
 
-	if (GetConfigObject()->GetProperty("displayname", &value))
+	if (GetConfigObject()->GetProperty("alias", &value))
 		return value;
 
 	return GetName();

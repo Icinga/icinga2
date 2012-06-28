@@ -31,7 +31,7 @@ public:
 
 	static Service GetByName(string name);
 
-	string GetDisplayName(void) const;
+	string GetAlias(void) const;
 	Host GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 	string GetCheckType(void) const;
