@@ -149,6 +149,39 @@ bool NagiosCheckTask::InitTask(void)
 	return true;
 }
 
+void NagiosCheckTask::ProcessCheckOutput(const string& output)
+{
+	string text;
+	string perfdata;
+
+	vector<string> lines;
+	boost::algorithm::split(lines, output, is_any_of("\r\n"));
+
+	vector<string>::iterator it;
+	for (it = lines.begin(); it != lines.end(); it++) {
+		const string& line = *it;
+
+		string::size_type delim = line.find('|');
+
+		if (!text.empty())
+			text.append("\n");
+
+		if (delim != string::npos) {
+			text.append(line, 0, delim - 1);
+
+			if (!perfdata.empty())
+				perfdata.append(" ");
+
+			perfdata.append(line, delim + 1, line.size());
+		} else {
+			text.append(line);
+		}
+	}
+
+	GetResult().SetOutput(text);
+	GetResult().SetPerformanceDataRaw(perfdata);
+}
+
 bool NagiosCheckTask::RunTask(void)
 {
 	char buffer[512];
@@ -162,7 +195,7 @@ bool NagiosCheckTask::RunTask(void)
 
 	string output = m_OutputStream.str();
 	boost::algorithm::trim(output);
-	GetResult().SetOutput(output);
+	ProcessCheckOutput(output);
 
 	int status, exitcode;
 #ifdef _MSC_VER

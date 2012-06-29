@@ -28,6 +28,9 @@ public:
 	void SetOutput(string output);
 	string GetOutput(void) const;
 
+	void SetPerformanceDataRaw(const string& pd);
+	string GetPerformanceDataRaw(void) const;
+
 	void SetPerformanceData(const Dictionary::Ptr& pd);
 	Dictionary::Ptr GetPerformanceData(void) const;
 };

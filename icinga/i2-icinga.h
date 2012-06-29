@@ -31,9 +31,8 @@
 #include <i2-jsonrpc.h>
 #include <set>
 
-#include <boost/thread/future.hpp>
-using boost::packaged_task;
-using boost::unique_future;
+using boost::iterator_range;
+using boost::algorithm::is_any_of;
 
 #ifdef I2_ICINGA_BUILD
 #	define I2_ICINGA_API I2_EXPORT

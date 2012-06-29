@@ -74,6 +74,18 @@ string CheckResult::GetOutput(void) const
 	return value;
 }
 
+void CheckResult::SetPerformanceDataRaw(const string& pd)
+{
+	SetProperty("performance_data_raw", pd);
+}
+
+string CheckResult::GetPerformanceDataRaw(void) const
+{
+	string value;
+	GetProperty("performance_data_raw", &value);
+	return value;
+}
+
 void CheckResult::SetPerformanceData(const Dictionary::Ptr& pd)
 {
 	SetProperty("performance_data", pd);

@@ -39,6 +39,7 @@ private:
 	static void CheckThreadProc(void);
 
 	bool InitTask(void);
+	void ProcessCheckOutput(const string& output);
 	bool RunTask(void);
 	int GetFD(void) const;
 };

@@ -12,7 +12,7 @@ string Service::GetAlias(void) const
 	return GetName();
 }
 
-Service Service::GetByName(string name)
+Service Service::GetByName(const string& name)
 {
 	ConfigObject::Ptr configObject = ConfigObject::GetObject("service", name);
 
@@ -112,7 +112,7 @@ void Service::UpdateNextCheck(void)
 		SetNextCheck(now + GetCheckInterval());
 }
 
-void Service::SetChecker(string checker)
+void Service::SetChecker(const string& checker)
 {
 	GetConfigObject()->SetTag("checker", checker);
 }
@@ -221,7 +221,7 @@ void Service::ApplyCheckResult(const CheckResult& cr)
 	SetState(cr.GetState());
 }
 
-ServiceState Service::StateFromString(string state)
+ServiceState Service::StateFromString(const string& state)
 {
 	/* TODO: make this thread-safe */
 	static map<string, ServiceState> stateLookup;
@@ -263,7 +263,7 @@ string Service::StateToString(ServiceState state)
 	}
 }
 
-ServiceStateType Service::StateTypeFromString(string type)
+ServiceStateType Service::StateTypeFromString(const string& type)
 {
 	if (type == "soft")
 		return StateTypeSoft;
@@ -279,7 +279,7 @@ string Service::StateTypeToString(ServiceStateType type)
 		return "hard";
 }
 
-bool Service::IsAllowedChecker(string checker) const
+bool Service::IsAllowedChecker(const string& checker) const
 {
 	/* TODO: check config */
 	return true;

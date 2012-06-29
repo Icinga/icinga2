@@ -29,7 +29,7 @@ public:
 		: ConfigObjectAdapter(configObject)
 	{ }
 
-	static Service GetByName(string name);
+	static Service GetByName(const string& name);
 
 	string GetAlias(void) const;
 	Host GetHost(void) const;
@@ -45,10 +45,10 @@ public:
 	time_t GetNextCheck(void);
 	void UpdateNextCheck(void);
 
-	void SetChecker(string checker);
+	void SetChecker(const string& checker);
 	string GetChecker(void) const;
 
-	bool IsAllowedChecker(string checker) const;
+	bool IsAllowedChecker(const string& checker) const;
 
 	void SetCurrentCheckAttempt(long attempt);
 	long GetCurrentCheckAttempt(void) const;
@@ -70,10 +70,10 @@ public:
 
 	void ApplyCheckResult(const CheckResult& cr);
 
-	static ServiceState StateFromString(string state);
+	static ServiceState StateFromString(const string& state);
 	static string StateToString(ServiceState state);
 
-	static ServiceStateType StateTypeFromString(string state);
+	static ServiceStateType StateTypeFromString(const string& state);
 	static string StateTypeToString(ServiceStateType state);
 };
 

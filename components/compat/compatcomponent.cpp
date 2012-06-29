@@ -22,6 +22,12 @@
 using namespace icinga;
 
 /**
+ * Hint: The reason why we're using "\n" rather than std::endl is because
+ * std::endl also _flushes_ the output stream which severely degrades
+ * performance (see http://gcc.gnu.org/onlinedocs/libstdc++/manual/bk01pt11ch25s02.html).
+ */
+
+/**
  * Returns the name of the component.
  *
  * @returns The name.
@@ -54,36 +60,36 @@ void CompatComponent::Stop(void)
 
 void CompatComponent::DumpHostStatus(ofstream& fp, Host host)
 {
-	fp << "hoststatus {" << endl
-	   << "\t" << "host_name=" << host.GetName() << endl
-	   << "\t" << "has_been_checked=1" << endl
-	   << "\t" << "should_be_scheduled=1" << endl
-	   << "\t" << "check_execution_time=0" << endl
-	   << "\t" << "check_latency=0" << endl
-	   << "\t" << "current_state=0" << endl
-	   << "\t" << "state_type=1" << endl
-	   << "\t" << "last_check=" << time(NULL) << endl
-	   << "\t" << "next_check=" << time(NULL) << endl
-	   << "\t" << "current_attempt=1" << endl
-	   << "\t" << "max_attempts=1" << endl
-	   << "\t" << "active_checks_enabled=1" << endl
-	   << "\t" << "passive_checks_enabled=1" << endl
-	   << "\t" << "}" << endl
-	   << endl;
+	fp << "hoststatus {" << "\n"
+	   << "\t" << "host_name=" << host.GetName() << "\n"
+	   << "\t" << "has_been_checked=1" << "\n"
+	   << "\t" << "should_be_scheduled=1" << "\n"
+	   << "\t" << "check_execution_time=0" << "\n"
+	   << "\t" << "check_latency=0" << "\n"
+	   << "\t" << "current_state=0" << "\n"
+	   << "\t" << "state_type=1" << "\n"
+	   << "\t" << "last_check=" << time(NULL) << "\n"
+	   << "\t" << "next_check=" << time(NULL) << "\n"
+	   << "\t" << "current_attempt=1" << "\n"
+	   << "\t" << "max_attempts=1" << "\n"
+	   << "\t" << "active_checks_enabled=1" << "\n"
+	   << "\t" << "passive_checks_enabled=1" << "\n"
+	   << "\t" << "}" << "\n"
+	   << "\n";
 }
 
 void CompatComponent::DumpHostObject(ofstream& fp, Host host)
 {
-	fp << "define host {" << endl
-	   << "\t" << "host_name" << "\t" << host.GetName() << endl
-	   << "\t" << "hostgroups" << "\t" << "all-hosts" << endl
-	   << "\t" << "check_interval" << "\t" << 1 << endl
-	   << "\t" << "retry_interval" << "\t" << 1 << endl
-	   << "\t" << "max_check_attempts" << "\t" << 1 << endl
-	   << "\t" << "active_checks_enabled" << "\t" << 1 << endl
-	   << "\t" << "passive_checks_enabled" << "\t" << 1 << endl
-	   << "\t" << "}" << endl
-	   << endl;
+	fp << "define host {" << "\n"
+	   << "\t" << "host_name" << "\t" << host.GetName() << "\n"
+	   << "\t" << "hostgroups" << "\t" << "all-hosts" << "\n"
+	   << "\t" << "check_interval" << "\t" << 1 << "\n"
+	   << "\t" << "retry_interval" << "\t" << 1 << "\n"
+	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
+	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
+	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n"
+	   << "\t" << "}" << "\n"
+	   << "\n";
 }
 
 void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
@@ -91,58 +97,61 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 	Dictionary::Ptr cr;
 	cr = service.GetLastCheckResult();
 
-	string plugin_output;
+	string output;
+	string perfdata;
 	long schedule_start = -1, schedule_end = -1;
 	long execution_start = -1, execution_end = -1;
 	if (cr) {
-		cr->GetProperty("output", &plugin_output);
+		cr->GetProperty("output", &output);
 		cr->GetProperty("schedule_start", &schedule_start);
 		cr->GetProperty("schedule_end", &schedule_end);
 		cr->GetProperty("execution_start", &execution_start);
 		cr->GetProperty("execution_end", &execution_end);
+		cr->GetProperty("performance_data_raw", &perfdata);
 	}
 
 	long execution_time = (execution_end - execution_start);
 	long latency = (schedule_end - schedule_start) - execution_time;
 
-	fp << "servicestatus {" << endl
-           << "\t" << "host_name=" << service.GetHost().GetName() << endl
-	   << "\t" << "service_description=" << service.GetAlias() << endl
-	   << "\t" << "check_interval=" << service.GetCheckInterval() / 60.0 << endl
-	   << "\t" << "retry_interval=" << service.GetRetryInterval() / 60.0 << endl
-	   << "\t" << "has_been_checked=" << (cr ? 1 : 0) << endl
-	   << "\t" << "should_be_scheduled=1" << endl
-	   << "\t" << "check_execution_time=" << execution_time << endl
-	   << "\t" << "check_latency=" << latency << endl
-	   << "\t" << "current_state=" << service.GetState() << endl
-	   << "\t" << "state_type=" << service.GetStateType() << endl
-	   << "\t" << "plugin_output=" << plugin_output << endl
-	   << "\t" << "last_check=" << schedule_end << endl
-	   << "\t" << "next_check=" << service.GetNextCheck() << endl
-	   << "\t" << "current_attempt=" << service.GetCurrentCheckAttempt() << endl
-	   << "\t" << "max_attempts=" << service.GetMaxCheckAttempts() << endl
-	   << "\t" << "last_state_change=" << service.GetLastStateChange() << endl
-	   << "\t" << "last_hard_state_change=" << service.GetLastHardStateChange() << endl
-	   << "\t" << "last_update=" << time(NULL) << endl
-	   << "\t" << "active_checks_enabled=1" << endl
-	   << "\t" << "passive_checks_enabled=1" << endl
-	   << "\t" << "}" << endl
-	   << endl;
+	fp << "servicestatus {" << "\n"
+           << "\t" << "host_name=" << service.GetHost().GetName() << "\n"
+	   << "\t" << "service_description=" << service.GetAlias() << "\n"
+	   << "\t" << "check_interval=" << service.GetCheckInterval() / 60.0 << "\n"
+	   << "\t" << "retry_interval=" << service.GetRetryInterval() / 60.0 << "\n"
+	   << "\t" << "has_been_checked=" << (cr ? 1 : 0) << "\n"
+	   << "\t" << "should_be_scheduled=1" << "\n"
+	   << "\t" << "check_execution_time=" << execution_time << "\n"
+	   << "\t" << "check_latency=" << latency << "\n"
+	   << "\t" << "current_state=" << service.GetState() << "\n"
+	   << "\t" << "state_type=" << service.GetStateType() << "\n"
+	   << "\t" << "plugin_output=" << output << "\n"
+	   << "\t" << "performance_data=" << perfdata << "\n"
+	   << "\t" << "last_check=" << schedule_end << "\n"
+	   << "\t" << "next_check=" << service.GetNextCheck() << "\n"
+	   << "\t" << "current_attempt=" << service.GetCurrentCheckAttempt() << "\n"
+	   << "\t" << "max_attempts=" << service.GetMaxCheckAttempts() << "\n"
+	   << "\t" << "last_state_change=" << service.GetLastStateChange() << "\n"
+	   << "\t" << "last_hard_state_change=" << service.GetLastHardStateChange() << "\n"
+	   << "\t" << "last_update=" << time(NULL) << "\n"
+	   << "\t" << "active_checks_enabled=1" << "\n"
+	   << "\t" << "passive_checks_enabled=1" << "\n"
+	   << "\t" << "}" << "\n"
+	   << "\n";
 }
 
 void CompatComponent::DumpServiceObject(ofstream& fp, Service service)
 {
-	fp << "define service {" << endl
-	   << "\t" << "host_name" << "\t" << service.GetHost().GetName() << endl
-	   << "\t" << "service_description" << "\t" << service.GetAlias() << endl
-	   << "\t" << "check_command" << "\t" << "check_i2" << endl
-	   << "\t" << "check_interval" << "\t" << service.GetCheckInterval() / 60.0 << endl
-	   << "\t" << "retry_interval" << "\t" << service.GetRetryInterval() / 60.0 << endl
-	   << "\t" << "max_check_attempts" << "\t" << 1 << endl
-	   << "\t" << "active_checks_enabled" << "\t" << 1 << endl
-	   << "\t" << "passive_checks_enabled" << "\t" << 1 << endl
-	   << "\t" << "}" << endl
-	   << endl;
+	fp << "define service {" << "\n"
+	   << "\t" << "host_name" << "\t" << service.GetHost().GetName() << "\n"
+	   << "\t" << "service_description" << "\t" << service.GetAlias() << "\n"
+	   << "\t" << "check_command" << "\t" << "check_i2" << "\n"
+	   << "\t" << "check_interval" << "\t" << service.GetCheckInterval() / 60.0 << "\n"
+	   << "\t" << "retry_interval" << "\t" << service.GetRetryInterval() / 60.0 << "\n"
+	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
+	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
+	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n"
+	   << "\t" << "}" << "\n"
+	   << "\n";
 }
 
 /**
@@ -153,40 +162,40 @@ void CompatComponent::StatusTimerHandler(void)
 	ofstream statusfp;
 	statusfp.open("status.dat.tmp", ofstream::out | ofstream::trunc);
 
-	statusfp << "# Icinga status file" << endl
-		 << "# This file is auto-generated. Do not modify this file." << endl
-		 << endl;
+	statusfp << "# Icinga status file" << "\n"
+		 << "# This file is auto-generated. Do not modify this file." << "\n"
+		 << "\n";
 
-	statusfp << "info {" << endl
-		 << "\t" << "created=" << time(NULL) << endl
-		 << "\t" << "version=2.0" << endl
-		 << "\t" << "}" << endl
-		 << endl;
+	statusfp << "info {" << "\n"
+		 << "\t" << "created=" << time(NULL) << "\n"
+		 << "\t" << "version=2.0" << "\n"
+		 << "\t" << "}" << "\n"
+		 << "\n";
 
-	statusfp << "programstatus {" << endl
-		 << "\t" << "daemon_mode=1" << endl
-		 << "\t" << "program_start=" << IcingaApplication::GetInstance()->GetStartTime() << endl
-		 << "\t" << "active_service_checks_enabled=1" << endl
-		 << "\t" << "passive_service_checks_enabled=1" << endl
-		 << "\t" << "active_host_checks_enabled=0" << endl
-		 << "\t" << "passive_host_checks_enabled=0" << endl
-		 << "\t" << "check_service_freshness=1" << endl
-		 << "\t" << "check_host_freshness=0" << endl
-		 << "\t" << "enable_flap_detection=1" << endl
-		 << "\t" << "enable_failure_prediction=0" << endl
-		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetTaskStatistics(60) << "," << CIB::GetTaskStatistics(5 * 60) << "," << CIB::GetTaskStatistics(15 * 60) << endl
-		 << "\t" << "}" << endl
-		 << endl;
+	statusfp << "programstatus {" << "\n"
+		 << "\t" << "daemon_mode=1" << "\n"
+		 << "\t" << "program_start=" << IcingaApplication::GetInstance()->GetStartTime() << "\n"
+		 << "\t" << "active_service_checks_enabled=1" << "\n"
+		 << "\t" << "passive_service_checks_enabled=1" << "\n"
+		 << "\t" << "active_host_checks_enabled=0" << "\n"
+		 << "\t" << "passive_host_checks_enabled=0" << "\n"
+		 << "\t" << "check_service_freshness=1" << "\n"
+		 << "\t" << "check_host_freshness=0" << "\n"
+		 << "\t" << "enable_flap_detection=1" << "\n"
+		 << "\t" << "enable_failure_prediction=0" << "\n"
+		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetTaskStatistics(60) << "," << CIB::GetTaskStatistics(5 * 60) << "," << CIB::GetTaskStatistics(15 * 60) << "\n"
+		 << "\t" << "}" << "\n"
+		 << "\n";
 
 	ofstream objectfp;
 	objectfp.open("objects.cache.tmp", ofstream::out | ofstream::trunc);
 
-	objectfp << "# Icinga object cache file" << endl
-		 << "# This file is auto-generated. Do not modify this file." << endl
-		 << endl;
+	objectfp << "# Icinga object cache file" << "\n"
+		 << "# This file is auto-generated. Do not modify this file." << "\n"
+		 << "\n";
 
-	objectfp << "define hostgroup {" << endl
-		 << "\t" << "hostgroup_name" << "\t" << "all-hosts" << endl;
+	objectfp << "define hostgroup {" << "\n"
+		 << "\t" << "hostgroup_name" << "\t" << "all-hosts" << "\n";
 
 	ConfigObject::TMap::Range range;
 	range = ConfigObject::GetObjects("host");
@@ -203,11 +212,11 @@ void CompatComponent::StatusTimerHandler(void)
 			if (distance(it, range.second) != 1)
 				objectfp << ",";
 		}
-		objectfp << endl;
+		objectfp << "\n";
 	}
 
-	objectfp << "\t" << "}" << endl
-		 << endl;
+	objectfp << "\t" << "}" << "\n"
+		 << "\n";
 
 	for (it = range.first; it != range.second; it++) {
 		DumpHostStatus(statusfp, it->second);
