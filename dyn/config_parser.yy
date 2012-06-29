@@ -197,9 +197,12 @@ expressionlist: '{'
 	}
 	;
 
-expressions: /* empty */
+expressions: expressions_inner
+	| expressions_inner ','
+
+expressions_inner: /* empty */
 	| expression
-	| expression ',' expressions
+	| expressions_inner ',' expression
 	;
 
 expression: T_IDENTIFIER operator value
@@ -284,9 +287,12 @@ tupleitem: simplevalue
 		delete $1;
 	}
 
-tupleitems:
+tupleitems: tupleitems_inner
+	| tupleitems_inner ','
+
+tupleitems_inner:
 	/* empty */
 	| tupleitem
-	| tupleitem ',' tupleitems
+	| tupleitems_inner ',' tupleitem
 	;
 %%
