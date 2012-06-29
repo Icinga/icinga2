@@ -113,7 +113,7 @@ void ConfigRpcComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 		if (!ShouldReplicateObject(object))
 			continue;
 
-		RequestMessage request = MakeObjectMessage(object, "config::ObjectCreated", true);
+		RequestMessage request = MakeObjectMessage(object, "config::ObjectCommitted", true);
 
 		EndpointManager::GetInstance()->SendUnicastMessage(m_ConfigRpcEndpoint, sender, request);
 	}
@@ -125,7 +125,7 @@ void ConfigRpcComponent::LocalObjectCommittedHandler(const ConfigObject::Ptr& ob
 		return;
 
 	EndpointManager::GetInstance()->SendMulticastMessage(m_ConfigRpcEndpoint,
-	    MakeObjectMessage(object, "config::ObjectCreated", true));
+	    MakeObjectMessage(object, "config::ObjectCommitted", true));
 }
 
 void ConfigRpcComponent::LocalObjectRemovedHandler(const ConfigObject::Ptr& object)
