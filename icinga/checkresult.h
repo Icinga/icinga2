@@ -4,13 +4,11 @@
 namespace icinga
 {
 
-struct CheckResult
+class CheckResult : public MessagePart
 {
 public:
-	CheckResult(void);
-	CheckResult(const Dictionary::Ptr& dictionary);
-
-	Dictionary::Ptr GetDictionary(void) const;
+	CheckResult(void) : MessagePart() { }
+	CheckResult(const MessagePart& message) : MessagePart(message) { }
 
 	void SetScheduleStart(time_t ts);
 	time_t GetScheduleStart(void) const;
@@ -32,9 +30,6 @@ public:
 
 	void SetPerformanceData(const Dictionary::Ptr& pd);
 	Dictionary::Ptr GetPerformanceData(void) const;
-
-private:
-	Dictionary::Ptr m_Data;
 };
 
 }

@@ -51,26 +51,21 @@ void JsonRpcClient::SendMessage(const MessagePart& message)
 void JsonRpcClient::DataAvailableHandler(void)
 {
 	for (;;) {
+		string jsonString;
+		MessagePart message;
+
+		{
+			mutex::scoped_lock lock(GetMutex());
+
+			if (!Netstring::ReadStringFromFIFO(GetRecvQueue(), &jsonString))
+				return;
+		}
+
 		try {
-			string jsonString;
-			MessagePart message;
-
-			{
-				mutex::scoped_lock lock(GetMutex());
-
-				if (!Netstring::ReadStringFromFIFO(GetRecvQueue(), &jsonString))
-					return;
-			}
-
-			std::cerr << jsonString << std::endl;
-
 			message = MessagePart(jsonString);
 			OnNewMessage(GetSelf(), message);
 		} catch (const std::exception& ex) {
 			Application::Log(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + string(ex.what()));
-			Close();
-
-			return;
 		}
 	}
 }

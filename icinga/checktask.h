@@ -29,8 +29,6 @@ public:
 	static void FinishTask(const CheckTask::Ptr& task);
 	static vector<CheckTask::Ptr> GetFinishedTasks(void);
 
-	static int GetTaskStatistics(time_t timespan);
-
 protected:
 	CheckTask(const Service& service);
 
@@ -42,7 +40,6 @@ private:
 
 	static vector<CheckTask::Ptr> m_FinishedTasks;
 	static mutex m_FinishedTasksMutex;
-	static Ringbuffer m_TaskStatistics;
 };
 
 struct CheckTaskType

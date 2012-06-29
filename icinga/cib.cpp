@@ -4,6 +4,7 @@ using namespace icinga;
 
 int CIB::m_Types;
 VirtualEndpoint::Ptr CIB::m_Endpoint;
+Ringbuffer CIB::m_TaskStatistics(15 * 60);
 
 void CIB::RequireInformation(InformationType types)
 {
@@ -63,5 +64,13 @@ void CIB::ServiceStatusRequestHandler(const Endpoint::Ptr& sender, const Request
 	Dictionary::Ptr cr;
 	if (params.GetProperty("result", &cr))
 		service.SetLastCheckResult(cr);
+
+	time_t now;
+	time(&now);
+	m_TaskStatistics.InsertValue(now, 1);
 }
 
+int CIB::GetTaskStatistics(long timespan)
+{
+	return m_TaskStatistics.GetValues(timespan);
+}

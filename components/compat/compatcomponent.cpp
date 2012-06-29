@@ -174,7 +174,8 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "check_host_freshness=0" << endl
 		 << "\t" << "enable_flap_detection=1" << endl
 		 << "\t" << "enable_failure_prediction=0" << endl
-		 << "\t" << "active_scheduled_service_check_stats=" << CheckTask::GetTaskStatistics(60) << "," << CheckTask::GetTaskStatistics(5 * 60) << "," << CheckTask::GetTaskStatistics(15 * 60) << endl
+		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetTaskStatistics(60) << "," << CIB::GetTaskStatistics(5 * 60) << "," << CIB::GetTaskStatistics(15 * 60) << endl
+		 << "\t" << "}" << endl
 		 << endl;
 
 	ofstream objectfp;

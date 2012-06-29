@@ -18,9 +18,13 @@ public:
 
 	static void Start(void);
 
+	static int GetTaskStatistics(long timespan);
+
 private:
 	static int m_Types;
 	static VirtualEndpoint::Ptr m_Endpoint;
+
+	static Ringbuffer m_TaskStatistics;
 
 	static void ServiceStatusRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
