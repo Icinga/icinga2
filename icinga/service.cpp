@@ -12,6 +12,11 @@ string Service::GetAlias(void) const
 	return GetName();
 }
 
+bool Service::Exists(const string& name)
+{
+	return (ConfigObject::GetObject("service", name));
+}
+
 Service Service::GetByName(const string& name)
 {
 	ConfigObject::Ptr configObject = ConfigObject::GetObject("service", name);
@@ -83,6 +88,13 @@ Dictionary::Ptr Service::GetDependencies(void) const
 {
 	Dictionary::Ptr value;
 	GetConfigObject()->GetProperty("dependencies", &value);
+	return value;
+}
+
+Dictionary::Ptr Service::GetGroups(void) const
+{
+	Dictionary::Ptr value;
+	GetConfigObject()->GetProperty("servicegroups", &value);
 	return value;
 }
 

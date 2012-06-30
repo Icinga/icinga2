@@ -11,9 +11,11 @@ public:
 		: ConfigObjectAdapter(configObject)
 	{ }
 
-	static Host GetByName(string name);
+	static bool Exists(const string& name);
+	static Host GetByName(const string& name);
 
-	string GetDisplayName(void) const;
+	string GetAlias(void) const;
+	Dictionary::Ptr GetGroups(void) const;
 };
 
 }

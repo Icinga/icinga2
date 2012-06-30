@@ -82,7 +82,6 @@ void CompatComponent::DumpHostObject(ofstream& fp, Host host)
 {
 	fp << "define host {" << "\n"
 	   << "\t" << "host_name" << "\t" << host.GetName() << "\n"
-	   << "\t" << "hostgroups" << "\t" << "all-hosts" << "\n"
 	   << "\t" << "check_interval" << "\t" << 1 << "\n"
 	   << "\t" << "retry_interval" << "\t" << 1 << "\n"
 	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
@@ -154,6 +153,20 @@ void CompatComponent::DumpServiceObject(ofstream& fp, Service service)
 	   << "\n";
 }
 
+void CompatComponent::DumpStringList(ofstream& fp, const vector<string>& list)
+{
+	vector<string>::const_iterator it;
+	bool first = true;
+	for (it = list.begin(); it != list.end(); it++) {
+		if (!first)
+			fp << ",";
+		else
+			first = false;
+
+		fp << *it;
+	}
+}
+
 /**
  * Periodically writes the status.dat and objects.cache files.
  */
@@ -194,40 +207,96 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
 
-	objectfp << "define hostgroup {" << "\n"
-		 << "\t" << "hostgroup_name" << "\t" << "all-hosts" << "\n";
+	map<string, vector<string> > hostgroups;
 
 	ConfigObject::TMap::Range range;
 	range = ConfigObject::GetObjects("host");
 
 	ConfigObject::TMap::Iterator it;
+	for (it = range.first; it != range.second; it++) {
+		Host host = it->second;
 
-	if (range.first != range.second) {
-		objectfp << "\t" << "members" << "\t";
-		for (it = range.first; it != range.second; it++) {
-			Host host(it->second);
+		Dictionary::Ptr dict;
+		DictionaryIterator dt;
 
-			objectfp << host.GetName();
+		dict = host.GetGroups();
 
-			if (distance(it, range.second) != 1)
-				objectfp << ",";
+		if (dict) {
+			for (dt = dict->Begin(); dt != dict->End(); dt++)
+				hostgroups[dt->second].push_back(host.GetName());
 		}
-		objectfp << "\n";
+
+		DumpHostStatus(statusfp, host);
+		DumpHostObject(objectfp, host);
 	}
 
-	objectfp << "\t" << "}" << "\n"
-		 << "\n";
+	map<string, vector<string> >::iterator hgt;
+	for (hgt = hostgroups.begin(); hgt != hostgroups.end(); hgt++) {
+		objectfp << "define hostgroup {" << "\n"
+			 << "\t" << "hostgroup_name" << "\t" << hgt->first << "\n";
 
-	for (it = range.first; it != range.second; it++) {
-		DumpHostStatus(statusfp, it->second);
-		DumpHostObject(objectfp, it->second);
+		if (HostGroup::Exists(hgt->first)) {
+			HostGroup hg = HostGroup::GetByName(hgt->first);
+			objectfp << "\t" << "alias" << "\t" << hg.GetAlias() << "\n"
+				 << "\t" << "notes_url" << "\t" << hg.GetNotesUrl() << "\n"
+				 << "\t" << "action_url" << "\t" << hg.GetActionUrl() << "\n";
+		}
+
+		objectfp << "\t" << "members" << "\t";
+
+		DumpStringList(objectfp, hgt->second);
+
+		objectfp << "\n"
+			 << "}" << "\n";
 	}
 
 	range = ConfigObject::GetObjects("service");
 
+	map<string, vector<Service> > servicegroups;
+
 	for (it = range.first; it != range.second; it++) {
-		DumpServiceStatus(statusfp, it->second);
-		DumpServiceObject(objectfp, it->second);
+		Service service = it->second;
+
+		Dictionary::Ptr dict;
+		DictionaryIterator dt;
+
+		dict = service.GetGroups();
+
+		if (dict) {
+			for (dt = dict->Begin(); dt != dict->End(); dt++)
+				servicegroups[dt->second].push_back(service);
+		}
+
+		DumpServiceStatus(statusfp, service);
+		DumpServiceObject(objectfp, service);
+	}
+
+	map<string, vector<Service > >::iterator sgt;
+	for (sgt = servicegroups.begin(); sgt != servicegroups.end(); sgt++) {
+		objectfp << "define servicegroup {" << "\n"
+			 << "\t" << "servicegroup_name" << "\t" << sgt->first << "\n";
+
+		if (ServiceGroup::Exists(sgt->first)) {
+			ServiceGroup sg = ServiceGroup::GetByName(sgt->first);
+			objectfp << "\t" << "alias" << "\t" << sg.GetAlias() << "\n"
+				 << "\t" << "notes_url" << "\t" << sg.GetNotesUrl() << "\n"
+				 << "\t" << "action_url" << "\t" << sg.GetActionUrl() << "\n";
+		}
+
+		objectfp << "\t" << "members" << "\t";
+
+		vector<string> sglist;
+		vector<Service>::iterator vt;
+
+		for (vt = sgt->second.begin(); vt != sgt->second.end(); vt++) {
+			sglist.push_back(vt->GetHost().GetName());
+			sglist.push_back(vt->GetName());
+		}
+
+		DumpStringList(objectfp, sglist);
+
+		objectfp << "\n"
+			 << "}" << "\n";
 	}
 
 	statusfp.close();

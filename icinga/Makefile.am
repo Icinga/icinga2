@@ -21,6 +21,8 @@ libicinga_la_SOURCES =  \
 	icingaapplication.h \
 	host.cpp \
 	host.h \
+	hostgroup.cpp \
+	hostgroup.h \
 	i2-icinga.h \
 	jsonrpcendpoint.cpp \
 	jsonrpcendpoint.h \
@@ -30,6 +32,8 @@ libicinga_la_SOURCES =  \
 	nagioschecktask.h \
 	service.cpp \
 	service.h \
+	servicegroup.cpp \
+	servicegroup.h \
 	virtualendpoint.cpp \
 	virtualendpoint.h
 

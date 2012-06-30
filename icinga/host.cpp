@@ -2,17 +2,22 @@
 
 using namespace icinga;
 
-string Host::GetDisplayName(void) const
+string Host::GetAlias(void) const
 {
 	string value;
 
-	if (GetConfigObject()->GetProperty("displayname", &value))
+	if (GetConfigObject()->GetProperty("alias", &value))
 		return value;
 
 	return GetName();
 }
 
-Host Host::GetByName(string name)
+bool Host::Exists(const string& name)
+{
+	return (ConfigObject::GetObject("host", name));
+}
+
+Host Host::GetByName(const string& name)
 {
 	ConfigObject::Ptr configObject = ConfigObject::GetObject("host", name);
 
@@ -20,4 +25,11 @@ Host Host::GetByName(string name)
 		throw invalid_argument("Host '" + name + "' does not exist.");
 
 	return Host(configObject);
+}
+
+Dictionary::Ptr Host::GetGroups(void) const
+{
+	Dictionary::Ptr value;
+	GetConfigObject()->GetProperty("hostgroups", &value);
+	return value;
 }

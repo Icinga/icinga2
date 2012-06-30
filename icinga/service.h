@@ -29,6 +29,7 @@ public:
 		: ConfigObjectAdapter(configObject)
 	{ }
 
+	static bool Exists(const string& name);
 	static Service GetByName(const string& name);
 
 	string GetAlias(void) const;
@@ -40,6 +41,7 @@ public:
 	long GetCheckInterval(void) const;
 	long GetRetryInterval(void) const;
 	Dictionary::Ptr GetDependencies(void) const;
+	Dictionary::Ptr GetGroups(void) const;
 
 	void SetNextCheck(time_t nextCheck);
 	time_t GetNextCheck(void);

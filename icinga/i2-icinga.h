@@ -48,7 +48,9 @@ using boost::algorithm::is_any_of;
 
 #include "configobjectadapter.h"
 #include "host.h"
+#include "hostgroup.h"
 #include "service.h"
+#include "servicegroup.h"
 
 #include "cib.h"
 

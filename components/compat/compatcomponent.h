@@ -39,6 +39,8 @@ private:
 	void DumpHostStatus(ofstream& fp, Host host);
 	void DumpHostObject(ofstream& fp, Host host);
 
+	void DumpStringList(ofstream& fp, const vector<string>& list);
+
 	void DumpServiceStatus(ofstream& fp, Service service);
 	void DumpServiceObject(ofstream& fp, Service service);
 
