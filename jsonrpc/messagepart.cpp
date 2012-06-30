@@ -112,7 +112,7 @@ json_t *MessagePart::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
 
 	json = cJSON_CreateObject();
 
-	for (DictionaryIterator i = dictionary->Begin(); i != dictionary->End(); i++) {
+	for (Dictionary::Iterator i = dictionary->Begin(); i != dictionary->End(); i++) {
 		switch (i->second.GetType()) {
 			case VariantInteger:
 				cJSON_AddNumberToObject(json, i->first.c_str(), i->second.GetInteger());
@@ -217,7 +217,7 @@ void MessagePart::AddUnnamedProperty(const MessagePart& value)
  *
  * @returns An iterator.
  */
-DictionaryIterator MessagePart::Begin(void)
+Dictionary::Iterator MessagePart::Begin(void)
 {
 	return GetDictionary()->Begin();
 }
@@ -228,7 +228,7 @@ DictionaryIterator MessagePart::Begin(void)
  *
  * @returns An iterator.
  */
-DictionaryIterator MessagePart::End(void)
+Dictionary::Iterator MessagePart::End(void)
 {
 	return GetDictionary()->End();
 }

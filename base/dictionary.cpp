@@ -26,7 +26,7 @@ using namespace icinga;
  *
  * @returns An iterator.
  */
-DictionaryIterator Dictionary::Begin(void)
+Dictionary::Iterator Dictionary::Begin(void)
 {
 	return m_Data.begin();
 }
@@ -36,7 +36,7 @@ DictionaryIterator Dictionary::Begin(void)
  *
  * @returns An iterator.
  */
-DictionaryIterator Dictionary::End(void)
+Dictionary::Iterator Dictionary::End(void)
 {
 	return m_Data.end();
 }

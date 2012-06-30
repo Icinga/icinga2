@@ -22,6 +22,11 @@
 
 namespace icinga {
 
+/**
+ * Log severity.
+ *
+ * @ingroup base
+ */
 enum LogSeverity
 {
 	LogDebug,
