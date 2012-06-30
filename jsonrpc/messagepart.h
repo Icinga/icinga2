@@ -87,8 +87,8 @@ public:
 
 	bool Contains(const string& key) const;
 
-	DictionaryIterator Begin(void);
-	DictionaryIterator End(void);
+	Dictionary::Iterator Begin(void);
+	Dictionary::Iterator End(void);
 
 private:
 	Dictionary::Ptr m_Dictionary;

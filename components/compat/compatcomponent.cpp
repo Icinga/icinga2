@@ -217,7 +217,7 @@ void CompatComponent::StatusTimerHandler(void)
 		Host host = it->second;
 
 		Dictionary::Ptr dict;
-		DictionaryIterator dt;
+		Dictionary::Iterator dt;
 
 		dict = host.GetGroups();
 
@@ -258,7 +258,7 @@ void CompatComponent::StatusTimerHandler(void)
 		Service service = it->second;
 
 		Dictionary::Ptr dict;
-		DictionaryIterator dt;
+		Dictionary::Iterator dt;
 
 		dict = service.GetGroups();
 

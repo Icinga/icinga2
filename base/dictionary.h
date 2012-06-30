@@ -23,9 +23,6 @@
 namespace icinga
 {
 
-typedef map<string, Variant>::const_iterator ConstDictionaryIterator;
-typedef map<string, Variant>::iterator DictionaryIterator;
-
 /**
  * A container that holds key-value pairs.
  *
@@ -37,6 +34,9 @@ public:
 	typedef shared_ptr<Dictionary> Ptr;
 	typedef weak_ptr<Dictionary> WeakPtr;
 
+	typedef map<string, Variant>::const_iterator ConstIterator;
+	typedef map<string, Variant>::iterator Iterator;
+
 	/**
 	 * Retrieves a value from the dictionary.
 	 *
@@ -47,7 +47,7 @@ public:
 	template<typename T>
 	bool GetProperty(const string& key, T *value) const
 	{
-		ConstDictionaryIterator i = m_Data.find(key);
+		ConstIterator i = m_Data.find(key);
 
 		if (i == m_Data.end())
 			return false;
@@ -101,7 +101,7 @@ public:
 	template<typename T>
 	void AddUnnamedProperty(const T& value)
 	{
-		DictionaryIterator it;
+		Iterator it;
 		string key;
 		long index = GetLength();
 		do {
@@ -118,8 +118,8 @@ public:
 
 	bool Contains(const string& key) const;
 
-	DictionaryIterator Begin(void);
-	DictionaryIterator End(void);
+	Iterator Begin(void);
+	Iterator End(void);
 
 	long GetLength(void) const;
 
