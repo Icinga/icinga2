@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * A configuration object.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API ConfigObject : public Object
 {
 public:
