@@ -21,6 +21,7 @@
     <ClCompile Include="object.cpp" />
     <ClCompile Include="objectmap.cpp" />
     <ClCompile Include="objectset.cpp" />
+    <ClCompile Include="ringbuffer.cpp" />
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="tcpclient.cpp" />
     <ClCompile Include="tcpserver.cpp" />
@@ -45,6 +46,7 @@
     <ClInclude Include="fifo.h" />
     <ClInclude Include="i2-base.h" />
     <ClInclude Include="object.h" />
+    <ClInclude Include="ringbuffer.h" />
     <ClInclude Include="socket.h" />
     <ClInclude Include="tcpclient.h" />
     <ClInclude Include="tcpserver.h" />

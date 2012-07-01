@@ -333,7 +333,7 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
 		if (!permissions)
 			throw runtime_error("Object is not a dictionary.");
 
-		for (DictionaryIterator is = permissions->Begin(); is != permissions->End(); is++) {
+		for (Dictionary::Iterator is = permissions->Begin(); is != permissions->End(); is++) {
 			if (Utility::Match(is->second.GetString(), message))
 				return true;
 		}
@@ -383,7 +383,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	MessagePart publications;
 	if (message.GetPublications(&publications)) {
-		DictionaryIterator i;
+		Dictionary::Iterator i;
 		for (i = publications.Begin(); i != publications.End(); i++) {
 			if (trusted || HasMessagePermission(roles, "publications", i->second)) {
 				info->Publications.insert(i->second);
@@ -395,7 +395,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	MessagePart subscriptions;
 	if (message.GetSubscriptions(&subscriptions)) {
-		DictionaryIterator i;
+		Dictionary::Iterator i;
 		for (i = subscriptions.Begin(); i != subscriptions.End(); i++) {
 			if (trusted || HasMessagePermission(roles, "subscriptions", i->second)) {
 				info->Subscriptions.insert(i->second);

@@ -186,7 +186,7 @@ Dictionary::Ptr Service::GetLastCheckResult(void) const
 
 void Service::SetLastStateChange(time_t ts)
 {
-	GetConfigObject()->SetTag("last_state_change", ts);
+	GetConfigObject()->SetTag("last_state_change", static_cast<long>(ts));
 }
 
 time_t Service::GetLastStateChange(void) const
@@ -199,7 +199,7 @@ time_t Service::GetLastStateChange(void) const
 
 void Service::SetLastHardStateChange(time_t ts)
 {
-	GetConfigObject()->SetTag("last_hard_state_change", ts);
+	GetConfigObject()->SetTag("last_hard_state_change", static_cast<long>(ts));
 }
 
 time_t Service::GetLastHardStateChange(void) const

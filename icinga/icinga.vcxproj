@@ -11,32 +11,38 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="checkresult.cpp" />
     <ClCompile Include="checktask.cpp" />
+    <ClCompile Include="cib.cpp" />
     <ClCompile Include="configobjectadapter.cpp" />
     <ClCompile Include="endpoint.cpp" />
     <ClCompile Include="endpointmanager.cpp" />
     <ClCompile Include="host.cpp" />
+    <ClCompile Include="hostgroup.cpp" />
     <ClCompile Include="icingaapplication.cpp" />
-    <ClCompile Include="icingacomponent.cpp" />
     <ClCompile Include="jsonrpcendpoint.cpp" />
     <ClCompile Include="macroprocessor.cpp" />
     <ClCompile Include="nagioschecktask.cpp" />
     <ClCompile Include="service.cpp" />
+    <ClCompile Include="servicegroup.cpp" />
     <ClCompile Include="virtualendpoint.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="checkresult.h" />
     <ClInclude Include="checktask.h" />
+    <ClInclude Include="cib.h" />
     <ClInclude Include="configobjectadapter.h" />
     <ClInclude Include="endpoint.h" />
     <ClInclude Include="endpointmanager.h" />
     <ClInclude Include="host.h" />
+    <ClInclude Include="hostgroup.h" />
     <ClInclude Include="i2-icinga.h" />
     <ClInclude Include="icingaapplication.h" />
-    <ClInclude Include="icingacomponent.h" />
     <ClInclude Include="jsonrpcendpoint.h" />
     <ClInclude Include="macroprocessor.h" />
     <ClInclude Include="nagioschecktask.h" />
     <ClInclude Include="service.h" />
+    <ClInclude Include="servicegroup.h" />
     <ClInclude Include="virtualendpoint.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

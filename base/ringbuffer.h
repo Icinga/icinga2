@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class Ringbuffer
+class I2_BASE_API Ringbuffer
 {
 public:
 	Ringbuffer(int slots);

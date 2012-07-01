@@ -20,7 +20,7 @@ enum ServiceStateType
 	StateTypeHard
 };
 
-struct CheckResult;
+class CheckResult;
 
 class I2_ICINGA_API Service : public ConfigObjectAdapter
 {
