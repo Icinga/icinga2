@@ -36,9 +36,33 @@ string CIBSyncComponent::GetName(void) const
  */
 void CIBSyncComponent::Start(void)
 {
+	m_SyncingConfig = false;
+
 	m_Endpoint = boost::make_shared<VirtualEndpoint>();
+
+	/* config objects */
+	m_Endpoint->RegisterTopicHandler("config::FetchObjects",
+	    boost::bind(&CIBSyncComponent::FetchObjectsHandler, this, _2));
+
+	ConfigObject::GetAllObjects()->OnObjectAdded.connect(boost::bind(&CIBSyncComponent::LocalObjectCommittedHandler, this, _2));
+	ConfigObject::GetAllObjects()->OnObjectCommitted.connect(boost::bind(&CIBSyncComponent::LocalObjectCommittedHandler, this, _2));
+	ConfigObject::GetAllObjects()->OnObjectRemoved.connect(boost::bind(&CIBSyncComponent::LocalObjectRemovedHandler, this, _2));
+
+	m_Endpoint->RegisterPublication("config::ObjectCommitted");
+	m_Endpoint->RegisterPublication("config::ObjectRemoved");
+
+	EndpointManager::GetInstance()->OnNewEndpoint.connect(boost::bind(&CIBSyncComponent::NewEndpointHandler, this, _2));
+
+	m_Endpoint->RegisterPublication("config::FetchObjects");
+	m_Endpoint->RegisterTopicHandler("config::ObjectCommitted",
+	    boost::bind(&CIBSyncComponent::RemoteObjectCommittedHandler, this, _2, _3));
+	m_Endpoint->RegisterTopicHandler("config::ObjectRemoved",
+	    boost::bind(&CIBSyncComponent::RemoteObjectRemovedHandler, this, _3));
+
+	/* service status */
 	m_Endpoint->RegisterTopicHandler("delegation::ServiceStatus",
 	    boost::bind(&CIBSyncComponent::ServiceStatusRequestHandler, _2, _3));
+
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 }
 
@@ -100,6 +124,175 @@ void CIBSyncComponent::ServiceStatusRequestHandler(const Endpoint::Ptr& sender, 
 	time_t now;
 	time(&now);
 	CIB::UpdateTaskStatistics(now, 1);
+}
+
+void CIBSyncComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
+{
+	/* no need to sync the config with local endpoints */
+	if (endpoint->IsLocal())
+		return;
+
+	endpoint->OnSessionEstablished.connect(boost::bind(&CIBSyncComponent::SessionEstablishedHandler, this, _1));
+}
+
+void CIBSyncComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoint)
+{
+	RequestMessage request;
+	request.SetMethod("config::FetchObjects");
+
+	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, endpoint, request);
+}
+
+RequestMessage CIBSyncComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
+{
+	RequestMessage msg;
+	msg.SetMethod(method);
+
+	MessagePart params;
+	msg.SetParams(params);
+
+	params.SetProperty("name", object->GetName());
+	params.SetProperty("type", object->GetType());
+
+	if (includeProperties)
+		params.SetProperty("properties", object->GetProperties());
+
+	return msg;
+}
+
+bool CIBSyncComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
+{
+	return (!object->IsLocal());
+}
+
+void CIBSyncComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
+{
+	ConfigObject::Set::Ptr allObjects = ConfigObject::GetAllObjects();
+
+	for (ConfigObject::Set::Iterator ci = allObjects->Begin(); ci != allObjects->End(); ci++) {
+		ConfigObject::Ptr object = *ci;
+
+		if (!ShouldReplicateObject(object))
+			continue;
+
+		RequestMessage request = MakeObjectMessage(object, "config::ObjectCommitted", true);
+
+		EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, sender, request);
+	}
+}
+
+void CIBSyncComponent::LocalObjectCommittedHandler(const ConfigObject::Ptr& object)
+{
+	/* don't send messages when we're currently processing a remote update */
+	if (m_SyncingConfig)
+		return;
+
+	if (!ShouldReplicateObject(object))
+		return;
+
+	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
+	    MakeObjectMessage(object, "config::ObjectCommitted", true));
+}
+
+void CIBSyncComponent::LocalObjectRemovedHandler(const ConfigObject::Ptr& object)
+{
+	/* don't send messages when we're currently processing a remote update */
+	if (m_SyncingConfig)
+		return;
+
+	if (!ShouldReplicateObject(object))
+		return;
+
+	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
+	    MakeObjectMessage(object, "config::ObjectRemoved", false));
+}
+
+void CIBSyncComponent::RemoteObjectCommittedHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+{
+	MessagePart params;
+	if (!request.GetParams(&params))
+		return;
+
+	string name;
+	if (!params.GetProperty("name", &name))
+		return;
+
+	string type;
+	if (!params.GetProperty("type", &type))
+		return;
+
+	MessagePart properties;
+	if (!params.GetProperty("properties", &properties))
+		return;
+
+	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);
+
+	if (!object) {
+		object = boost::make_shared<ConfigObject>(properties.GetDictionary());
+
+		if (object->GetSource() == EndpointManager::GetInstance()->GetIdentity()) {
+			/* the peer sent us an object that was originally created by us - 
+			 * however if was deleted locally so we have to tell the peer to destroy
+			 * its copy of the object. */
+			EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
+			    MakeObjectMessage(object, "config::ObjectRemoved", false));
+
+			return;
+		}
+	} else {
+		/* TODO: compare transaction timestamps and reject the update if our local object is newer */
+
+		object->SetProperties(properties.GetDictionary());
+	}
+
+	if (object->IsLocal())
+		throw invalid_argument("Replicated remote object is marked as local.");
+
+	if (object->GetSource().empty())
+		object->SetSource(sender->GetIdentity());
+
+	try {
+		/* TODO: only ignore updates for _this_ object rather than all objects
+		 * this might be relevant if the commit handler for this object
+		 * creates other objects. */
+		m_SyncingConfig = true;
+		object->Commit();
+		m_SyncingConfig = false;
+	} catch (const std::exception& ex) {
+		m_SyncingConfig = false;
+		throw;
+	}
+}
+
+void CIBSyncComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
+{
+	MessagePart params;
+	if (!request.GetParams(&params))
+		return;
+
+	string name;
+	if (!params.GetProperty("name", &name))
+		return;
+
+	string type;
+	if (!params.GetProperty("type", &type))
+		return;
+
+	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);
+
+	if (!object)
+		return;
+
+	if (!object->IsLocal()) {
+		try {
+			m_SyncingConfig = true;
+			object->Unregister();
+			m_SyncingConfig = false;
+		} catch (const std::exception& ex) {
+			m_SyncingConfig = false;
+			throw;
+		}
+	}
 }
 
 EXPORT_COMPONENT(cibsync, CIBSyncComponent);

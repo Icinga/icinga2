@@ -72,7 +72,6 @@ components/checker/Makefile
 components/cibsync/Makefile
 components/compat/Makefile
 components/configfile/Makefile
-components/configrpc/Makefile
 components/delegation/Makefile
 components/demo/Makefile
 components/discovery/Makefile

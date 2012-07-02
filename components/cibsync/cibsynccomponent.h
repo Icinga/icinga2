@@ -37,6 +37,24 @@ private:
 	VirtualEndpoint::Ptr m_Endpoint;
 
 	static void ServiceStatusRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+
+	bool m_SyncingConfig;
+
+	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
+	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
+
+	void LocalObjectCommittedHandler(const ConfigObject::Ptr& object);
+	void LocalObjectRemovedHandler(const ConfigObject::Ptr& object);
+
+	void FetchObjectsHandler(const Endpoint::Ptr& sender);
+	void RemoteObjectCommittedHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	void RemoteObjectRemovedHandler(const RequestMessage& request);
+
+	static RequestMessage MakeObjectMessage(const ConfigObject::Ptr& object,
+	    string method, bool includeProperties);
+
+	static bool ShouldReplicateObject(const ConfigObject::Ptr& object);
+
 };
 
 }
