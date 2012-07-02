@@ -3,6 +3,7 @@
 
 SUBDIRS = \
 	checker \
+	cibsync \
 	compat \
 	configfile \
 	configrpc \

@@ -15,18 +15,15 @@ class CIB
 {
 public:
 	static void RequireInformation(InformationType type);
+	static int GetInformationTypes(void);
 
-	static void Start(void);
-
+	static void UpdateTaskStatistics(long tv, int num);
 	static int GetTaskStatistics(long timespan);
 
 private:
 	static int m_Types;
-	static VirtualEndpoint::Ptr m_Endpoint;
 
 	static Ringbuffer m_TaskStatistics;
-
-	static void ServiceStatusRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
 
 }

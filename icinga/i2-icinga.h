@@ -46,17 +46,4 @@ using boost::algorithm::is_any_of;
 #include "endpointmanager.h"
 #include "icingaapplication.h"
 
-#include "configobjectadapter.h"
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
-
-#include "cib.h"
-
-#include "macroprocessor.h"
-#include "checkresult.h"
-#include "checktask.h"
-#include "nagioschecktask.h"
-
 #endif /* I2ICINGA_H */

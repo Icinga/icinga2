@@ -17,19 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DELEGATION_H
-#define I2DELEGATION_H
+#ifndef CIBSYNCCOMPONENT_H
+#define CIBSYNCCOMPONENT_H
+
+namespace icinga
+{
 
 /**
- * @defgroup delegation Delegation component
- *
- * The Delegation component delegates service checks to the checker component.
+ * @ingroup cibsync
  */
+class CIBSyncComponent : public Component
+{
+public:
+	virtual string GetName(void) const;
+	virtual void Start(void);
+	virtual void Stop(void);
 
-#include <i2-base.h>
-#include <i2-icinga.h>
-#include <i2-cib.h>
+private:
+	VirtualEndpoint::Ptr m_Endpoint;
 
-#include "delegationcomponent.h"
+	static void ServiceStatusRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+};
 
-#endif /* I2DELEGATION_H */
+}
+
+#endif /* CIBSYNCCOMPONENT_H */

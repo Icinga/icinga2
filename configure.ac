@@ -66,8 +66,10 @@ AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 AC_CONFIG_FILES([
 Makefile
 base/Makefile
+cib/Makefile
 components/Makefile
 components/checker/Makefile
+components/cibsync/Makefile
 components/compat/Makefile
 components/configfile/Makefile
 components/configrpc/Makefile
@@ -75,7 +77,6 @@ components/delegation/Makefile
 components/demo/Makefile
 components/discovery/Makefile
 dyn/Makefile
-dyntest/Makefile
 icinga/Makefile
 icinga-app/Makefile
 jsonrpc/Makefile

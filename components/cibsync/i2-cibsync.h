@@ -17,19 +17,20 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DELEGATION_H
-#define I2DELEGATION_H
+#ifndef I2CIBSYNC_H
+#define I2CIBSYNC_H
 
 /**
- * @defgroup delegation Delegation component
+ * @defgroup cibsync CIB synchronisation component
  *
- * The Delegation component delegates service checks to the checker component.
+ * Collects update messages to synchronize the local CIB.
  */
 
 #include <i2-base.h>
+#include <i2-jsonrpc.h>
 #include <i2-icinga.h>
 #include <i2-cib.h>
 
-#include "delegationcomponent.h"
+#include "cibsynccomponent.h"
 
-#endif /* I2DELEGATION_H */
+#endif /* I2CIBSYNC_H */

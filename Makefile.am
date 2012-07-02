@@ -8,8 +8,8 @@ SUBDIRS = \
 	base \
 	dyn \
 	jsonrpc \
-	dyntest \
 	icinga \
+	cib \
 	components \
 	icinga-app \
 	test

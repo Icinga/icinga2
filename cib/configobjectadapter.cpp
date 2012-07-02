@@ -1,4 +1,4 @@
-#include "i2-icinga.h"
+#include "i2-cib.h"
 
 using namespace icinga;
 

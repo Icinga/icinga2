@@ -48,6 +48,8 @@ void DelegationComponent::Start(void)
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	EndpointManager::GetInstance()->OnNewEndpoint.connect(bind(&DelegationComponent::NewEndpointHandler, this, _2));
+
+	CIB::RequireInformation(CIB_Configuration);
 }
 
 void DelegationComponent::Stop(void)

@@ -96,9 +96,6 @@ int IcingaApplication::Main(const vector<string>& args)
 	if (!service.empty())
 		EndpointManager::GetInstance()->AddListener(service);
 
-	CIB::RequireInformation(CIB_ServiceStatus);
-	CIB::Start();
-
 	RunEventLoop();
 
 	return EXIT_SUCCESS;

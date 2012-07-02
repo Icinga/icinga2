@@ -1,8 +1,8 @@
-#include "i2-icinga.h"
+#include "i2-cib.h"
 
 using namespace icinga;
 
-string HostGroup::GetAlias(void) const
+string ServiceGroup::GetAlias(void) const
 {
 	string value;
 
@@ -12,32 +12,32 @@ string HostGroup::GetAlias(void) const
 	return GetName();
 }
 
-string HostGroup::GetNotesUrl(void) const
+string ServiceGroup::GetNotesUrl(void) const
 {
 	string value;
 	GetConfigObject()->GetProperty("notes_url", &value);
 	return value;
 }
 
-string HostGroup::GetActionUrl(void) const
+string ServiceGroup::GetActionUrl(void) const
 {
 	string value;
 	GetConfigObject()->GetProperty("action_url", &value);
 	return value;
 }
 
-bool HostGroup::Exists(const string& name)
+bool ServiceGroup::Exists(const string& name)
 {
 	return (ConfigObject::GetObject("hostgroup", name));
 }
 
-HostGroup HostGroup::GetByName(const string& name)
+ServiceGroup ServiceGroup::GetByName(const string& name)
 {
 	ConfigObject::Ptr configObject = ConfigObject::GetObject("hostgroup", name);
 
 	if (!configObject)
-		throw invalid_argument("HostGroup '" + name + "' does not exist.");
+		throw invalid_argument("ServiceGroup '" + name + "' does not exist.");
 
-	return HostGroup(configObject);
+	return ServiceGroup(configObject);
 }
 

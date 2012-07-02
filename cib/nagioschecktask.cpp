@@ -1,4 +1,4 @@
-#include "i2-icinga.h"
+#include "i2-cib.h"
 
 #ifndef _MSC_VER
 #	include "popen_noshell.h"
