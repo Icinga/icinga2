@@ -11,7 +11,7 @@ enum InformationType
 	CIB_ServiceStatus = 1<<2
 };
 
-class CIB
+class I2_CIB_API CIB
 {
 public:
 	static void RequireInformation(InformationType type);

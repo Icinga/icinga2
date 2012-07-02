@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class I2_ICINGA_API ConfigObjectAdapter
+class I2_CIB_API ConfigObjectAdapter
 {
 public:
 	ConfigObjectAdapter(const ConfigObject::Ptr& configObject)

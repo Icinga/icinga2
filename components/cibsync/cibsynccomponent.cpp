@@ -258,7 +258,7 @@ void CIBSyncComponent::RemoteObjectCommittedHandler(const Endpoint::Ptr& sender,
 		m_SyncingConfig = true;
 		object->Commit();
 		m_SyncingConfig = false;
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		m_SyncingConfig = false;
 		throw;
 	}

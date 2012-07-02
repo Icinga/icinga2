@@ -22,7 +22,7 @@ enum ServiceStateType
 
 class CheckResult;
 
-class I2_ICINGA_API Service : public ConfigObjectAdapter
+class I2_CIB_API Service : public ConfigObjectAdapter
 {
 public:
 	Service(const ConfigObject::Ptr& configObject)

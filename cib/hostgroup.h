@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class I2_ICINGA_API HostGroup : public ConfigObjectAdapter
+class I2_CIB_API HostGroup : public ConfigObjectAdapter
 {
 public:
 	HostGroup(const ConfigObject::Ptr& configObject)

@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class I2_ICINGA_API CheckResult : public MessagePart
+class I2_CIB_API CheckResult : public MessagePart
 {
 public:
 	CheckResult(void) : MessagePart() { }

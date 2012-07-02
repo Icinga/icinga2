@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class I2_ICINGA_API NagiosCheckTask : public CheckTask
+class I2_CIB_API NagiosCheckTask : public CheckTask
 {
 public:
 	typedef shared_ptr<NagiosCheckTask> Ptr;
