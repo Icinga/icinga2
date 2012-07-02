@@ -23,8 +23,9 @@ using std::ifstream;
 
 using namespace icinga;
 
-ConfigCompiler::ConfigCompiler(istream *input)
+ConfigCompiler::ConfigCompiler(istream *input, HandleIncludeFunc includeHandler)
 {
+	m_HandleInclude = includeHandler;
 	m_Input = input;
 	InitializeScanner();
 }
@@ -45,14 +46,15 @@ void *ConfigCompiler::GetScanner(void) const
 	return m_Scanner;
 }
 
-void ConfigCompiler::SetResult(vector<ConfigItem::Ptr> result)
-{
-	m_Result = result;
-}
-
 vector<ConfigItem::Ptr> ConfigCompiler::GetResult(void) const
 {
         return m_Result;
+}
+
+void ConfigCompiler::HandleInclude(const string& include)
+{
+	vector<ConfigItem::Ptr> items = m_HandleInclude(include);
+	std::copy(items.begin(), items.end(), back_inserter(m_Result));
 }
 
 vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(istream *stream)
@@ -67,6 +69,9 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& filename)
 	ifstream stream;
 	stream.exceptions(ifstream::badbit);
 	stream.open(filename.c_str(), ifstream::in);
+
+	Application::Log(LogInformation, "dyn", "Compiling config file: " + filename);
+
 	return CompileStream(&stream);
 }
 
@@ -74,4 +79,15 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const string& text)
 {
 	stringstream stream(text);
 	return CompileStream(&stream);
+}
+
+vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const string& include)
+{
+	/* TODO: implement wildcard includes */
+	return CompileFile(include);
+}
+
+void ConfigCompiler::AddObject(const ConfigItem::Ptr& object)
+{
+	m_Result.push_back(object);
 }

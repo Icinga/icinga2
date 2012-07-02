@@ -26,7 +26,10 @@ namespace icinga
 class I2_DYN_API ConfigCompiler
 {
 public:
-	ConfigCompiler(istream *input = &cin);
+	typedef function<vector<ConfigItem::Ptr> (const string& include)> HandleIncludeFunc;
+
+	ConfigCompiler(istream *input = &cin,
+	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
 	virtual ~ConfigCompiler(void);
 
 	void Compile(void);
@@ -35,13 +38,18 @@ public:
 	static vector<ConfigItem::Ptr> CompileFile(const string& filename);
 	static vector<ConfigItem::Ptr> CompileText(const string& text);
 
-	void SetResult(vector<ConfigItem::Ptr> result);
+	static vector<ConfigItem::Ptr> HandleFileInclude(const string& include);
+
 	vector<ConfigItem::Ptr> GetResult(void) const;
 
+	/* internally used methods */
+	void HandleInclude(const string& include);
+	void AddObject(const ConfigItem::Ptr& object);
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
 
 private:
+	HandleIncludeFunc m_HandleInclude;
 	istream *m_Input;
 	void *m_Scanner;
 	vector<ConfigItem::Ptr> m_Result;

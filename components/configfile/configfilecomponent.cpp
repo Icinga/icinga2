@@ -37,12 +37,7 @@ void ConfigFileComponent::Start(void)
 	if (!GetConfig()->GetProperty("configFilename", &filename))
 		throw logic_error("Missing 'configFilename' property");
 
-	Application::Log(LogInformation, "configfile", "Compiling config file: " + filename);
-
 	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(filename);
-
-	Application::Log(LogInformation, "configfile", "Executing config items...");
-
 	ConfigVM::ExecuteItems(configItems);
 }
 

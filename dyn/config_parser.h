@@ -1,10 +1,8 @@
+/* A Bison parser, made by GNU Bison 2.5.  */
 
-/* A Bison parser, made by GNU Bison 2.4.1.  */
-
-/* Skeleton interface for Bison's Yacc-like parsers in C
+/* Bison interface for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,7 +32,7 @@
 
 /* "%code requires" blocks.  */
 
-/* Line 1676 of yacc.c  */
+/* Line 2068 of yacc.c  */
 #line 1 "config_parser.yy"
 
 /******************************************************************************
@@ -65,8 +63,8 @@ using namespace icinga;
 
 
 
-/* Line 1676 of yacc.c  */
-#line 70 "config_parser.h"
+/* Line 2068 of yacc.c  */
+#line 68 "config_parser.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -115,7 +113,7 @@ using namespace icinga;
 typedef union YYSTYPE
 {
 
-/* Line 1676 of yacc.c  */
+/* Line 2068 of yacc.c  */
 #line 38 "config_parser.yy"
 
 	char *text;
@@ -125,8 +123,8 @@ typedef union YYSTYPE
 
 
 
-/* Line 1676 of yacc.c  */
-#line 130 "config_parser.h"
+/* Line 2068 of yacc.c  */
+#line 128 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

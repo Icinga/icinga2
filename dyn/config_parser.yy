@@ -83,7 +83,6 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *context, const char *err)
 int yyparse(ConfigCompiler *context);
 
 static stack<ExpressionList::Ptr> m_ExpressionLists;
-static vector<ConfigItem::Ptr> m_Objects;
 static ConfigItem::Ptr m_Object;
 static bool m_Abstract;
 static bool m_Temporary;
@@ -92,10 +91,7 @@ static Dictionary::Ptr m_Array;
 
 void ConfigCompiler::Compile(void)
 {
-	m_Objects.clear();
 	yyparse(this);
-	SetResult(m_Objects);
-	m_Objects.clear();
 }
 
 #define scanner (context->GetScanner())
@@ -111,7 +107,9 @@ statement: object | include
 	;
 
 include: T_INCLUDE T_STRING
-	;
+	{
+		context->HandleInclude($2);
+	}
 
 object: 
 	{
@@ -147,7 +145,7 @@ inherits_specifier expressionlist
 
 		m_Object->SetExpressionList(exprl);
 
-		m_Objects.push_back(m_Object);
+		context->AddObject(m_Object);
 		m_Object.reset();
 	}
 	;

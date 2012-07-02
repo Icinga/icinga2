@@ -25,6 +25,8 @@ void ConfigVM::ExecuteItems(const vector<ConfigItem::Ptr>& items)
 {
 	vector<ConfigItem::Ptr>::const_iterator it;
 
+	Application::Log(LogInformation, "dyn", "Executing config items...");
+
 	for (it = items.begin(); it != items.end(); it++) {
 		ConfigItem::Ptr obj = *it;
 		obj->Commit();
