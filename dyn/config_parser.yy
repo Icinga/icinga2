@@ -52,7 +52,6 @@ using namespace icinga;
 %token <op> T_MULTIPLY_EQUAL
 %token <op> T_DIVIDE_EQUAL
 %token T_ABSTRACT
-%token T_TEMPORARY
 %token T_LOCAL
 %token T_OBJECT
 %token T_INCLUDE
@@ -85,7 +84,6 @@ int yyparse(ConfigCompiler *context);
 static stack<ExpressionList::Ptr> m_ExpressionLists;
 static ConfigItem::Ptr m_Object;
 static bool m_Abstract;
-static bool m_Temporary;
 static bool m_Local;
 static Dictionary::Ptr m_Array;
 
@@ -137,9 +135,6 @@ inherits_specifier expressionlist
 		Expression abstractexpr("__abstract", OperatorSet, m_Abstract ? 1 : 0, yylloc);
 		exprl->AddExpression(abstractexpr);
 
-		Expression tempexpr("__temporary", OperatorSet, m_Temporary ? 1 : 0, yylloc);
-		exprl->AddExpression(tempexpr);
-
 		Expression localexpr("__local", OperatorSet, m_Local ? 1 : 0, yylloc);
 		exprl->AddExpression(localexpr);
 
@@ -157,10 +152,6 @@ attributes: /* empty */
 attribute: T_ABSTRACT
 	{
 		m_Abstract = true;
-	}
-	| T_TEMPORARY
-	{
-		m_Temporary = true;
 	}
 	| T_LOCAL
 	{
