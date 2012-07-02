@@ -87,6 +87,18 @@ bool ConfigObject::IsAbstract(void) const
 	return value;
 }
 
+void ConfigObject::SetSource(const string& value)
+{
+	GetProperties()->SetProperty("__source", value);
+}
+
+string ConfigObject::GetSource(void) const
+{
+	string value;
+	GetProperties()->GetProperty("__source", &value);
+	return value;
+}
+
 void ConfigObject::Commit(void)
 {
 	ConfigObject::Ptr dobj = GetObject(GetType(), GetName());

@@ -35,6 +35,7 @@ public:
 
 private:
 	VirtualEndpoint::Ptr m_Endpoint;
+	bool m_Syncing;
 
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
 	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
@@ -43,7 +44,7 @@ private:
 	void LocalObjectRemovedHandler(const ConfigObject::Ptr& object);
 
 	void FetchObjectsHandler(const Endpoint::Ptr& sender);
-	void RemoteObjectCommittedHandler(const RequestMessage& request);
+	void RemoteObjectCommittedHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 	void RemoteObjectRemovedHandler(const RequestMessage& request);
 
 	static RequestMessage MakeObjectMessage(const ConfigObject::Ptr& object,

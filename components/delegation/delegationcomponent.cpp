@@ -64,8 +64,18 @@ void DelegationComponent::ObjectCommittedHandler(const ConfigObject::Ptr& object
 {
 	Service service(object);
 
-	/* object was updated, clear its checker to make sure it's re-delegated by the delegation timer */
-	service.SetChecker("");
+	string checker = service.GetChecker();
+
+	if (!checker.empty()) {
+		/* object was updated, clear its checker to make sure it's re-delegated by the delegation timer */
+		service.SetChecker("");
+
+		/* TODO: figure out a better way to clear individual services */
+		Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
+
+		if (endpoint)
+			ClearServices(endpoint);
+	}
 }
 
 void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Service& service)
@@ -84,6 +94,10 @@ void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Serv
 
 void DelegationComponent::ClearServices(const Endpoint::Ptr& checker)
 {
+	stringstream msgbuf;
+	msgbuf << "Clearing assigned services for endpoint '" << checker->GetIdentity() << "'";
+	Application::Log(LogInformation, "delegation", msgbuf.str());
+
 	RequestMessage request;
 	request.SetMethod("checker::ClearServices");
 
@@ -133,10 +147,6 @@ void DelegationComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoin
 	/* ignore this endpoint if it's not a checker */
 	if (!IsEndpointChecker(endpoint))
 		return;
-
-	stringstream msgbuf;
-	msgbuf << "Clearing assigned services for endpoint '" << endpoint->GetIdentity() << "'";
-	Application::Log(LogInformation, "delegation", msgbuf.str());
 
 	/* locally clear checker for all services that previously belonged to this endpoint */
 	ConfigObject::Set::Iterator it;

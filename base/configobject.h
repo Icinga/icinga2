@@ -79,6 +79,9 @@ public:
 	void SetAbstract(bool value);
 	bool IsAbstract(void) const;
 
+	void SetSource(const string& value);
+	string GetSource(void) const;
+
 	void Commit(void);
 	void Unregister(void);
 
