@@ -172,6 +172,21 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
 	} else {
 		m_PendingEndpoints.push_back(endpoint);
 	}
+
+	if (endpoint->IsLocal()) {
+		/* this endpoint might have introduced new subscriptions
+		 * or publications which affect remote endpoints, we need
+		 * to close all fully-connected remote endpoints to make sure
+		 * these subscriptions/publications are kept up-to-date. */
+		Iterator prev, it;
+		for (it = m_Endpoints.begin(); it != m_Endpoints.end(); ) {
+			prev = it;
+			it++;
+
+			if (!prev->second->IsLocal())
+				m_Endpoints.erase(prev);
+		}
+	}
 }
 
 /**
