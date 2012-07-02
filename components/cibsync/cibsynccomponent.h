@@ -35,10 +35,9 @@ public:
 
 private:
 	VirtualEndpoint::Ptr m_Endpoint;
+	bool m_SyncingConfig;
 
 	static void ServiceStatusRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
-
-	bool m_SyncingConfig;
 
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
 	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
@@ -54,7 +53,6 @@ private:
 	    string method, bool includeProperties);
 
 	static bool ShouldReplicateObject(const ConfigObject::Ptr& object);
-
 };
 
 }

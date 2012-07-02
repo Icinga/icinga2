@@ -112,6 +112,11 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 	long execution_time = (execution_end - execution_start);
 	long latency = (schedule_end - schedule_start) - execution_time;
 
+	int state = service.GetState();
+
+	if (state >= StateUnknown)
+		state = StateUnknown;
+
 	fp << "servicestatus {" << "\n"
            << "\t" << "host_name=" << service.GetHost().GetName() << "\n"
 	   << "\t" << "service_description=" << service.GetAlias() << "\n"
@@ -121,7 +126,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 	   << "\t" << "should_be_scheduled=1" << "\n"
 	   << "\t" << "check_execution_time=" << execution_time << "\n"
 	   << "\t" << "check_latency=" << latency << "\n"
-	   << "\t" << "current_state=" << service.GetState() << "\n"
+	   << "\t" << "current_state=" << state << "\n"
 	   << "\t" << "state_type=" << service.GetStateType() << "\n"
 	   << "\t" << "plugin_output=" << output << "\n"
 	   << "\t" << "performance_data=" << perfdata << "\n"
@@ -149,6 +154,7 @@ void CompatComponent::DumpServiceObject(ofstream& fp, Service service)
 	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
 	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
 	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n"
+	   << "\t" << "check_freshness" << "\t" << 1 << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
 }

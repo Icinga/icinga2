@@ -33,3 +33,4 @@ int CIB::GetInformationTypes(void)
 {
 	return m_Types;
 }
+
