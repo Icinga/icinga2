@@ -28,13 +28,13 @@ string CheckerComponent::GetName(void) const
 
 void CheckerComponent::Start(void)
 {
-	m_CheckerEndpoint = boost::make_shared<VirtualEndpoint>();
-	m_CheckerEndpoint->RegisterTopicHandler("checker::AssignService",
+	m_Endpoint = boost::make_shared<VirtualEndpoint>();
+	m_Endpoint->RegisterTopicHandler("checker::AssignService",
 		boost::bind(&CheckerComponent::AssignServiceRequestHandler, this, _2, _3));
-	m_CheckerEndpoint->RegisterTopicHandler("checker::ClearServices",
+	m_Endpoint->RegisterTopicHandler("checker::ClearServices",
 		boost::bind(&CheckerComponent::ClearServicesRequestHandler, this, _2, _3));
-	m_CheckerEndpoint->RegisterPublication("checker::CheckResult");
-	EndpointManager::GetInstance()->RegisterEndpoint(m_CheckerEndpoint);
+	m_Endpoint->RegisterPublication("checker::CheckResult");
+	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	m_CheckTimer = boost::make_shared<Timer>();
 	m_CheckTimer->SetInterval(5);
@@ -54,7 +54,7 @@ void CheckerComponent::Stop(void)
 	EndpointManager::Ptr mgr = EndpointManager::GetInstance();
 
 	if (mgr)
-		mgr->UnregisterEndpoint(m_CheckerEndpoint);
+		mgr->UnregisterEndpoint(m_Endpoint);
 }
 
 void CheckerComponent::CheckTimerHandler(void)
@@ -155,7 +155,7 @@ void CheckerComponent::ResultTimerHandler(void)
 
 		rm.SetParams(params);
 
-		EndpointManager::GetInstance()->SendMulticastMessage(m_CheckerEndpoint, rm);
+		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
 	}
 
 	if (min_latency > 5) {
@@ -200,7 +200,7 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 
 		MessagePart result;
 		rm.SetResult(result);
-		EndpointManager::GetInstance()->SendUnicastMessage(m_CheckerEndpoint, sender, rm);
+		EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, sender, rm);
 	}
 }
 

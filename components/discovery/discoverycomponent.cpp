@@ -36,23 +36,23 @@ string DiscoveryComponent::GetName(void) const
  */
 void DiscoveryComponent::Start(void)
 {
-	m_DiscoveryEndpoint = boost::make_shared<VirtualEndpoint>();
+	m_Endpoint = boost::make_shared<VirtualEndpoint>();
 
-	m_DiscoveryEndpoint->RegisterPublication("discovery::RegisterComponent");
-	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::RegisterComponent",
+	m_Endpoint->RegisterPublication("discovery::RegisterComponent");
+	m_Endpoint->RegisterTopicHandler("discovery::RegisterComponent",
 		boost::bind(&DiscoveryComponent::RegisterComponentMessageHandler, this, _2, _3));
 
-	m_DiscoveryEndpoint->RegisterPublication("discovery::NewComponent");
-	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::NewComponent",
+	m_Endpoint->RegisterPublication("discovery::NewComponent");
+	m_Endpoint->RegisterTopicHandler("discovery::NewComponent",
 		boost::bind(&DiscoveryComponent::NewComponentMessageHandler, this, _3));
 
-	m_DiscoveryEndpoint->RegisterTopicHandler("discovery::Welcome",
+	m_Endpoint->RegisterTopicHandler("discovery::Welcome",
 		boost::bind(&DiscoveryComponent::WelcomeMessageHandler, this, _2, _3));
 
 	EndpointManager::GetInstance()->ForEachEndpoint(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _2));
 	EndpointManager::GetInstance()->OnNewEndpoint.connect(boost::bind(&DiscoveryComponent::NewEndpointHandler, this, _2));
 
-	EndpointManager::GetInstance()->RegisterEndpoint(m_DiscoveryEndpoint);
+	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	/* create the reconnect timer */
 	m_DiscoveryTimer = boost::make_shared<Timer>();
@@ -72,7 +72,7 @@ void DiscoveryComponent::Stop(void)
 	EndpointManager::Ptr mgr = EndpointManager::GetInstance();
 
 	if (mgr)
-		mgr->UnregisterEndpoint(m_DiscoveryEndpoint);
+		mgr->UnregisterEndpoint(m_Endpoint);
 }
 
 /**
@@ -260,7 +260,7 @@ void DiscoveryComponent::FinishDiscoverySetup(const Endpoint::Ptr& endpoint)
 	endpoint->RegisterSubscription("discovery::Welcome");
 	RequestMessage request;
 	request.SetMethod("discovery::Welcome");
-	EndpointManager::GetInstance()->SendUnicastMessage(m_DiscoveryEndpoint, endpoint, request);
+	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, endpoint, request);
 
 	endpoint->SetSentWelcome(true);
 
@@ -310,9 +310,9 @@ void DiscoveryComponent::SendDiscoveryMessage(const string& method, const string
 	params.SetPublications(publications);
 
 	if (recipient)
-		EndpointManager::GetInstance()->SendUnicastMessage(m_DiscoveryEndpoint, recipient, request);
+		EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, recipient, request);
 	else
-		EndpointManager::GetInstance()->SendMulticastMessage(m_DiscoveryEndpoint, request);
+		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
 }
 
 bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, const string& messageType, const string& message)

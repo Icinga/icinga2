@@ -36,11 +36,11 @@ string DemoComponent::GetName(void) const
  */
 void DemoComponent::Start(void)
 {
-	m_DemoEndpoint = boost::make_shared<VirtualEndpoint>();
-	m_DemoEndpoint->RegisterTopicHandler("demo::HelloWorld",
+	m_Endpoint = boost::make_shared<VirtualEndpoint>();
+	m_Endpoint->RegisterTopicHandler("demo::HelloWorld",
 	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2, _3));
-	m_DemoEndpoint->RegisterPublication("demo::HelloWorld");
-	EndpointManager::GetInstance()->RegisterEndpoint(m_DemoEndpoint);
+	m_Endpoint->RegisterPublication("demo::HelloWorld");
+	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	m_DemoTimer = boost::make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);
@@ -56,7 +56,7 @@ void DemoComponent::Stop(void)
 	EndpointManager::Ptr endpointManager = EndpointManager::GetInstance();
 
 	if (endpointManager)
-		endpointManager->UnregisterEndpoint(m_DemoEndpoint);
+		endpointManager->UnregisterEndpoint(m_Endpoint);
 }
 
 /**
@@ -71,7 +71,7 @@ void DemoComponent::DemoTimerHandler(void)
 	RequestMessage request;
 	request.SetMethod("demo::HelloWorld");
 
-	EndpointManager::GetInstance()->SendMulticastMessage(m_DemoEndpoint, request);
+	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
 }
 
 /**

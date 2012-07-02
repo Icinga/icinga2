@@ -52,7 +52,7 @@ public:
 	virtual void Stop(void);
 
 private:
-	VirtualEndpoint::Ptr m_DiscoveryEndpoint;
+	VirtualEndpoint::Ptr m_Endpoint;
 	map<string, ComponentDiscoveryInfo::Ptr> m_Components;
 	Timer::Ptr m_DiscoveryTimer;
 

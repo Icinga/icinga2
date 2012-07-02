@@ -30,30 +30,30 @@ void ConfigRpcComponent::Start(void)
 {
 	EndpointManager::Ptr endpointManager = EndpointManager::GetInstance();
 
-	m_ConfigRpcEndpoint = boost::make_shared<VirtualEndpoint>();
+	m_Endpoint = boost::make_shared<VirtualEndpoint>();
 
 	long configSource;
 	if (GetConfig()->GetProperty("configSource", &configSource) && configSource != 0) {
-		m_ConfigRpcEndpoint->RegisterTopicHandler("config::FetchObjects",
+		m_Endpoint->RegisterTopicHandler("config::FetchObjects",
 		    boost::bind(&ConfigRpcComponent::FetchObjectsHandler, this, _2));
 
 		ConfigObject::GetAllObjects()->OnObjectAdded.connect(boost::bind(&ConfigRpcComponent::LocalObjectCommittedHandler, this, _2));
 		ConfigObject::GetAllObjects()->OnObjectCommitted.connect(boost::bind(&ConfigRpcComponent::LocalObjectCommittedHandler, this, _2));
 		ConfigObject::GetAllObjects()->OnObjectRemoved.connect(boost::bind(&ConfigRpcComponent::LocalObjectRemovedHandler, this, _2));
 
-		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectCommitted");
-		m_ConfigRpcEndpoint->RegisterPublication("config::ObjectRemoved");
+		m_Endpoint->RegisterPublication("config::ObjectCommitted");
+		m_Endpoint->RegisterPublication("config::ObjectRemoved");
 	}
 
 	endpointManager->OnNewEndpoint.connect(boost::bind(&ConfigRpcComponent::NewEndpointHandler, this, _2));
 
-	m_ConfigRpcEndpoint->RegisterPublication("config::FetchObjects");
-	m_ConfigRpcEndpoint->RegisterTopicHandler("config::ObjectCommitted",
+	m_Endpoint->RegisterPublication("config::FetchObjects");
+	m_Endpoint->RegisterTopicHandler("config::ObjectCommitted",
 	    boost::bind(&ConfigRpcComponent::RemoteObjectCommittedHandler, this, _3));
-	m_ConfigRpcEndpoint->RegisterTopicHandler("config::ObjectRemoved",
+	m_Endpoint->RegisterTopicHandler("config::ObjectRemoved",
 	    boost::bind(&ConfigRpcComponent::RemoteObjectRemovedHandler, this, _3));
 
-	endpointManager->RegisterEndpoint(m_ConfigRpcEndpoint);
+	endpointManager->RegisterEndpoint(m_Endpoint);
 }
 
 void ConfigRpcComponent::Stop(void)
@@ -61,7 +61,7 @@ void ConfigRpcComponent::Stop(void)
 	EndpointManager::Ptr mgr = EndpointManager::GetInstance();
 
 	if (mgr)
-		mgr->UnregisterEndpoint(m_ConfigRpcEndpoint);
+		mgr->UnregisterEndpoint(m_Endpoint);
 }
 
 void ConfigRpcComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
@@ -78,7 +78,7 @@ void ConfigRpcComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoint
 	RequestMessage request;
 	request.SetMethod("config::FetchObjects");
 
-	EndpointManager::GetInstance()->SendUnicastMessage(m_ConfigRpcEndpoint, endpoint, request);
+	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, endpoint, request);
 }
 
 RequestMessage ConfigRpcComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
@@ -115,7 +115,7 @@ void ConfigRpcComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 
 		RequestMessage request = MakeObjectMessage(object, "config::ObjectCommitted", true);
 
-		EndpointManager::GetInstance()->SendUnicastMessage(m_ConfigRpcEndpoint, sender, request);
+		EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, sender, request);
 	}
 }
 
@@ -124,7 +124,7 @@ void ConfigRpcComponent::LocalObjectCommittedHandler(const ConfigObject::Ptr& ob
 	if (!ShouldReplicateObject(object))
 		return;
 
-	EndpointManager::GetInstance()->SendMulticastMessage(m_ConfigRpcEndpoint,
+	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
 	    MakeObjectMessage(object, "config::ObjectCommitted", true));
 }
 
@@ -133,7 +133,7 @@ void ConfigRpcComponent::LocalObjectRemovedHandler(const ConfigObject::Ptr& obje
 	if (!ShouldReplicateObject(object))
 		return;
 
-	EndpointManager::GetInstance()->SendMulticastMessage(m_ConfigRpcEndpoint,
+	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
 	    MakeObjectMessage(object, "config::ObjectRemoved", false));
 }
 

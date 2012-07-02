@@ -34,7 +34,7 @@ public:
 	virtual void Stop(void);
 
 private:
-	VirtualEndpoint::Ptr m_ConfigRpcEndpoint;
+	VirtualEndpoint::Ptr m_Endpoint;
 
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
 	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);

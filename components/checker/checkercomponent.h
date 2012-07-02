@@ -48,7 +48,7 @@ public:
 	virtual void Stop(void);
 
 private:
-	VirtualEndpoint::Ptr m_CheckerEndpoint;
+	VirtualEndpoint::Ptr m_Endpoint;
 
 	ServiceQueue m_Services;
 	set<ConfigObject::Ptr> m_PendingServices;

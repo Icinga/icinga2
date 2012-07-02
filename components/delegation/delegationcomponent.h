@@ -34,7 +34,7 @@ public:
 	virtual void Stop(void);
 
 private:
-	VirtualEndpoint::Ptr m_DelegationEndpoint;
+	VirtualEndpoint::Ptr m_Endpoint;
 	ConfigObject::Set::Ptr m_AllServices;
 	Timer::Ptr m_DelegationTimer;
 

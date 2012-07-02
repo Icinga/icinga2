@@ -39,13 +39,13 @@ void DelegationComponent::Start(void)
 	m_DelegationTimer->Start();
 	m_DelegationTimer->Reschedule(0);
 
-	m_DelegationEndpoint = boost::make_shared<VirtualEndpoint>();
-	m_DelegationEndpoint->RegisterPublication("checker::AssignService");
-	m_DelegationEndpoint->RegisterPublication("checker::ClearServices");
-	m_DelegationEndpoint->RegisterTopicHandler("checker::CheckResult",
+	m_Endpoint = boost::make_shared<VirtualEndpoint>();
+	m_Endpoint->RegisterPublication("checker::AssignService");
+	m_Endpoint->RegisterPublication("checker::ClearServices");
+	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
 	    boost::bind(&DelegationComponent::CheckResultRequestHandler, this, _2, _3));
-	m_DelegationEndpoint->RegisterPublication("delegation::ServiceStatus");
-	EndpointManager::GetInstance()->RegisterEndpoint(m_DelegationEndpoint);
+	m_Endpoint->RegisterPublication("delegation::ServiceStatus");
+	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	EndpointManager::GetInstance()->OnNewEndpoint.connect(bind(&DelegationComponent::NewEndpointHandler, this, _2));
 }
@@ -55,7 +55,7 @@ void DelegationComponent::Stop(void)
 	EndpointManager::Ptr mgr = EndpointManager::GetInstance();
 
 	if (mgr)
-		mgr->UnregisterEndpoint(m_DelegationEndpoint);
+		mgr->UnregisterEndpoint(m_Endpoint);
 }
 
 void DelegationComponent::ObjectCommittedHandler(const ConfigObject::Ptr& object)
@@ -77,7 +77,7 @@ void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Serv
 
 	Application::Log(LogDebug, "delegation", "Trying to delegate service '" + service.GetName() + "'");
 
-	EndpointManager::GetInstance()->SendUnicastMessage(m_DelegationEndpoint, checker, request);
+	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, checker, request);
 }
 
 void DelegationComponent::ClearServices(const Endpoint::Ptr& checker)
@@ -88,7 +88,7 @@ void DelegationComponent::ClearServices(const Endpoint::Ptr& checker)
 	MessagePart params;
 	request.SetParams(params);
 
-	EndpointManager::GetInstance()->SendUnicastMessage(m_DelegationEndpoint, checker, request);
+	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, checker, request);
 }
 
 bool DelegationComponent::IsEndpointChecker(const Endpoint::Ptr& endpoint)
@@ -300,7 +300,7 @@ void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender,
 	RequestMessage rm;
 	rm.SetMethod("delegation::ServiceStatus");
 	rm.SetParams(params);
-	EndpointManager::GetInstance()->SendMulticastMessage(m_DelegationEndpoint, rm);
+	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
 }
 
 EXPORT_COMPONENT(delegation, DelegationComponent);

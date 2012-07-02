@@ -35,7 +35,7 @@ public:
 
 private:
 	Timer::Ptr m_DemoTimer;
-	VirtualEndpoint::Ptr m_DemoEndpoint;
+	VirtualEndpoint::Ptr m_Endpoint;
 
 	void DemoTimerHandler(void);
 	void HelloWorldRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
