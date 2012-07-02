@@ -82,6 +82,8 @@ public:
 	void SetSource(const string& value);
 	string GetSource(void) const;
 
+	time_t GetCommitTimestamp(void) const;
+
 	void Commit(void);
 	void Unregister(void);
 
@@ -100,6 +102,8 @@ private:
 	Set::Ptr m_Container;
 	Dictionary::Ptr m_Properties;
 	Dictionary::Ptr m_Tags;
+
+	void SetCommitTimestamp(time_t ts);
 
 	static bool TypeAndNameGetter(const ConfigObject::Ptr& object, pair<string, string> *key);
    	static bool TypePredicate(const ConfigObject::Ptr& object, string type);

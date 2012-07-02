@@ -240,7 +240,10 @@ void CIBSyncComponent::RemoteObjectCommittedHandler(const Endpoint::Ptr& sender,
 			return;
 		}
 	} else {
-		/* TODO: compare transaction timestamps and reject the update if our local object is newer */
+		ConfigObject::Ptr remoteObject = boost::make_shared<ConfigObject>(properties.GetDictionary());
+
+		if (object->GetCommitTimestamp() >= remoteObject->GetCommitTimestamp())
+			return;
 
 		object->SetProperties(properties.GetDictionary());
 	}
