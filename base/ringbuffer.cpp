@@ -2,7 +2,7 @@
 
 using namespace icinga;
 
-Ringbuffer::Ringbuffer(int slots)
+Ringbuffer::Ringbuffer(long slots)
 	: m_Slots(slots, 0), m_Offset(0)
 { }
 
@@ -13,7 +13,7 @@ int Ringbuffer::GetLength(void) const
 
 void Ringbuffer::InsertValue(long tv, int num)
 {
-	int offsetTarget = tv % m_Slots.size();
+	vector<int>::size_type offsetTarget = tv % m_Slots.size();
 
 	/* walk towards the target offset, resetting slots to 0 */
 	while (m_Offset != offsetTarget) {

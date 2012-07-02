@@ -7,7 +7,7 @@ namespace icinga
 class I2_BASE_API Ringbuffer
 {
 public:
-	Ringbuffer(int slots);
+	Ringbuffer(long slots);
 
 	int GetLength(void) const;
 	void InsertValue(long tv, int num);
@@ -15,7 +15,7 @@ public:
 
 private:
 	vector<int> m_Slots;
-	int m_Offset;
+	vector<int>::size_type m_Offset;
 };
 
 }
