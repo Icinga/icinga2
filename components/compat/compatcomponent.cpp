@@ -154,7 +154,6 @@ void CompatComponent::DumpServiceObject(ofstream& fp, Service service)
 	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
 	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
 	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n"
-	   << "\t" << "check_freshness" << "\t" << 1 << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
 }
@@ -198,7 +197,7 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "passive_service_checks_enabled=1" << "\n"
 		 << "\t" << "active_host_checks_enabled=0" << "\n"
 		 << "\t" << "passive_host_checks_enabled=0" << "\n"
-		 << "\t" << "check_service_freshness=1" << "\n"
+		 << "\t" << "check_service_freshness=0" << "\n"
 		 << "\t" << "check_host_freshness=0" << "\n"
 		 << "\t" << "enable_flap_detection=1" << "\n"
 		 << "\t" << "enable_failure_prediction=0" << "\n"
