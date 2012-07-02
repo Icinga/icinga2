@@ -70,6 +70,9 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& filename)
 	stream.exceptions(ifstream::badbit);
 	stream.open(filename.c_str(), ifstream::in);
 
+	if (!stream.good())
+		throw invalid_argument("Could not open config file: " + filename);
+
 	Application::Log(LogInformation, "dyn", "Compiling config file: " + filename);
 
 	return CompileStream(&stream);
