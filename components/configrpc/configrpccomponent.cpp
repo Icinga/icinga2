@@ -162,6 +162,9 @@ void ConfigRpcComponent::RemoteObjectCommittedHandler(const RequestMessage& requ
 	else
 		object->SetProperties(properties.GetDictionary());
 
+	if (object->IsLocal())
+		throw invalid_argument("Replicated remote object is marked as local.");
+
 	object->Commit();
 }
 
