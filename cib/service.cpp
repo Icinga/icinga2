@@ -107,6 +107,13 @@ Dictionary::Ptr Service::GetGroups(void) const
 	return value;
 }
 
+Dictionary::Ptr Service::GetCheckers(void) const
+{
+	Dictionary::Ptr value;
+	GetConfigObject()->GetProperty("checkers", &value);
+	return value;
+}
+
 void Service::SetNextCheck(time_t nextCheck)
 {
 	GetConfigObject()->SetTag("next_check", (long)nextCheck);
@@ -302,6 +309,19 @@ string Service::StateTypeToString(ServiceStateType type)
 
 bool Service::IsAllowedChecker(const string& checker) const
 {
-	/* TODO: check config */
-	return true;
+	Dictionary::Ptr checkers = GetCheckers();
+
+	if (!checkers)
+		return true;
+
+	Dictionary::Iterator it;
+	for (it = checkers->Begin(); it != checkers->End(); it++) {
+		string pattern = it->second;
+
+		if (Utility::Match(pattern, checker))
+			return true;
+	}
+
+	return false;
 }
+

@@ -43,6 +43,7 @@ public:
 	long GetFreshnessInterval(void) const;
 	Dictionary::Ptr GetDependencies(void) const;
 	Dictionary::Ptr GetGroups(void) const;
+	Dictionary::Ptr GetCheckers(void) const;
 
 	void SetNextCheck(time_t nextCheck);
 	time_t GetNextCheck(void);
