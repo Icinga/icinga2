@@ -4,6 +4,7 @@ using namespace icinga;
 
 int CIB::m_Types;
 Ringbuffer CIB::m_TaskStatistics(15 * 60);
+boost::signal<void (const ServiceStatusMessage&)> CIB::OnServiceStatusUpdate;
 
 void CIB::RequireInformation(InformationType types)
 {

@@ -297,7 +297,7 @@ void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender,
 		return;
 
 	string svcname;
-	if (params.GetService(&svcname))
+	if (!params.GetService(&svcname))
 		return;
 
 	Service service = Service::GetByName(svcname);
@@ -306,12 +306,39 @@ void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender,
 	if (!service.IsAllowedChecker(sender->GetIdentity()))
 		return;
 
-	/* TODO: send state update for dependant services */
+	vector<Service> children = service.GetChildren();
+
+	vector<Service>::iterator it;
+	for (it = children.begin(); it != children.end(); it++) {
+		Service child = *it;
+
+		vector<Service> affectedServices = child.GetParents();
+		affectedServices.push_back(child);
+
+		ServiceStatusMessage statusmsg = Service::CalculateCombinedStatus(NULL, affectedServices);
+		statusmsg.SetService(child.GetName());
+
+		ServiceState state = StateUnreachable;
+		statusmsg.GetState(&state);
+
+		if (child.GetState() == StateUnreachable || state == StateUnreachable) {
+			RequestMessage rm;
+			rm.SetMethod("delegation::ServiceStatus");
+			rm.SetParams(statusmsg);
+
+			EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
+		}
+	}
 
 	/* send state update */
 	RequestMessage rm;
 	rm.SetMethod("delegation::ServiceStatus");
-	rm.SetParams(params);
+
+	vector<Service> parents = service.GetParents();
+	ServiceStatusMessage statusmsg = Service::CalculateCombinedStatus(&params, parents);
+	statusmsg.SetService(service.GetName());
+
+	rm.SetParams(statusmsg);
 	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
 }
 

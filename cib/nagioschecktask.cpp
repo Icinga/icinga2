@@ -214,6 +214,12 @@ bool NagiosCheckTask::RunTask(void)
 		exitcode = WEXITSTATUS(status);
 #else /* _MSC_VER */
 		exitcode = status;
+
+		/* cmd.exe returns error code 1 (warning) when the plugin
+		 * could not be executed - change the exit status to "unknown"
+		 * when we have no plugin output. */
+		if (output.empty())
+			exitcode = 128;
 #endif /* _MSC_VER */
 
 		ServiceState state;

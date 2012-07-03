@@ -22,13 +22,13 @@
 #include "service.h"
 #include "servicegroup.h"
 
-#include "cib.h"
-
 #include "macroprocessor.h"
 #include "checkresult.h"
 #include "checktask.h"
 #include "nagioschecktask.h"
 
 #include "servicestatusmessage.h"
+
+#include "cib.h"
 
 #endif /* I2CIB_H */

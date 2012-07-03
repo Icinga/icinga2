@@ -79,25 +79,27 @@ void CIBSyncComponent::Stop(void)
 
 void CIBSyncComponent::ServiceStatusRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	MessagePart params;
+	ServiceStatusMessage params;
 	if (!request.GetParams(&params))
 		return;
 
+	CIB::OnServiceStatusUpdate(params);
+
 	string svcname;
-	if (!params.GetProperty("service", &svcname))
+	if (!params.GetService(&svcname))
 		return;
 
 	Service service = Service::GetByName(svcname);
 
-	long nextCheck;
-	if (params.GetProperty("next_check", &nextCheck))
+	time_t nextCheck;
+	if (params.GetNextCheck(&nextCheck))
 		service.SetNextCheck(nextCheck);
 
-	long state, stateType;
-	if (params.GetProperty("state", &state) && params.GetProperty("state_type", &stateType)) {
-		long old_state, old_stateType;
-		old_state = service.GetState();
-		old_stateType = service.GetStateType();
+	ServiceState state;
+	ServiceStateType stateType;
+	if (params.GetState(&state) && params.GetStateType(&stateType)) {
+		ServiceState old_state = service.GetState();
+		ServiceStateType old_stateType = service.GetStateType();
 
 		if (state != old_state) {
 			time_t now;
@@ -109,16 +111,16 @@ void CIBSyncComponent::ServiceStatusRequestHandler(const Endpoint::Ptr& sender, 
 				service.SetLastHardStateChange(now);
 		}
 
-		service.SetState(static_cast<ServiceState>(state));
-		service.SetStateType(static_cast<ServiceStateType>(stateType));
+		service.SetState(state);
+		service.SetStateType(stateType);
 	}
 
 	long attempt;
-	if (params.GetProperty("current_attempt", &attempt))
+	if (params.GetCurrentCheckAttempt(&attempt))
 		service.SetCurrentCheckAttempt(attempt);
 
-	Dictionary::Ptr cr;
-	if (params.GetProperty("result", &cr))
+	CheckResult cr;
+	if (params.GetCheckResult(&cr))
 		service.SetLastCheckResult(cr);
 
 	time_t now;

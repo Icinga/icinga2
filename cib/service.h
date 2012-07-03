@@ -21,6 +21,7 @@ enum ServiceStateType
 };
 
 class CheckResult;
+class ServiceStatusMessage;
 
 class I2_CIB_API Service : public ConfigObjectAdapter
 {
@@ -44,6 +45,13 @@ public:
 	Dictionary::Ptr GetGroups(void) const;
 	Dictionary::Ptr GetCheckers(void) const;
 
+	vector<Service> GetParents(void) const;
+	vector<Service> GetChildren(void) const;
+	static void UpdateDependencyCache(void);
+	static void InvalidateDependencyCache(void);
+
+	static ServiceStatusMessage CalculateCombinedStatus(ServiceStatusMessage *input, const vector<Service>& parents);
+
 	void SetNextCheck(time_t nextCheck);
 	time_t GetNextCheck(void);
 	void UpdateNextCheck(void);
@@ -62,8 +70,9 @@ public:
 	void SetStateType(ServiceStateType type);
 	ServiceStateType GetStateType(void) const;
 
-	void SetLastCheckResult(const Dictionary::Ptr& result);
-	Dictionary::Ptr GetLastCheckResult(void) const;
+	bool HasLastCheckResult(void) const;
+	void SetLastCheckResult(const CheckResult& result);
+	CheckResult GetLastCheckResult(void) const;
 
 	void SetLastStateChange(time_t ts);
 	time_t GetLastStateChange(void) const;
@@ -78,6 +87,9 @@ public:
 
 	static ServiceStateType StateTypeFromString(const string& state);
 	static string StateTypeToString(ServiceStateType state);
+
+private:
+	static bool m_DependencyCacheValid;
 };
 
 }

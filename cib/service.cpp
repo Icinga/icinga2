@@ -2,6 +2,8 @@
 
 using namespace icinga;
 
+bool Service::m_DependencyCacheValid = false;
+
 string Service::GetAlias(void) const
 {
 	string value;
@@ -105,6 +107,142 @@ Dictionary::Ptr Service::GetCheckers(void) const
 	return value;
 }
 
+vector<Service> Service::GetParents(void) const
+{
+	vector<Service> parents;
+
+	Dictionary::Ptr dependencies = GetDependencies();
+	if (dependencies) {
+		Dictionary::Iterator it;
+		for (it = dependencies->Begin(); it != dependencies->End(); it++)
+			parents.push_back(Service::GetByName(it->second));
+	}
+	return parents;
+}
+
+vector<Service> Service::GetChildren(void) const
+{
+	vector<Service> children;
+
+	UpdateDependencyCache();
+
+	Dictionary::Ptr childrenCache;
+	GetConfigObject()->GetTag("dependency_children", &childrenCache);
+
+	if (childrenCache) {
+		Dictionary::Iterator it;
+		for (it = childrenCache->Begin(); it != childrenCache->End(); it++)
+			children.push_back(Service::GetByName(it->second));
+	}
+
+	return children;
+}
+
+void Service::UpdateDependencyCache(void)
+{
+	static long cacheTx = 0;
+
+	if (m_DependencyCacheValid)
+		return;
+
+	cacheTx++;
+
+	ConfigObject::TMap::Range range = ConfigObject::GetObjects("service");
+	ConfigObject::TMap::Iterator it;
+	for (it = range.first; it != range.second; it++) {
+		Service child = it->second;
+
+		vector<Service> parents = child.GetParents();
+
+		vector<Service>::iterator st;
+		for (st = parents.begin(); st != parents.end(); st++) {
+			Service parent = *st;
+
+			long tx = 0;
+			parent.GetConfigObject()->GetTag("dependency_cache_tx", &tx);
+
+			Dictionary::Ptr children;
+
+			/* rather than resetting the dependency dictionary in a separate loop we use the cache_tx
+			 * tag to check if the dictionary is from this cache update run. */
+			if (tx != cacheTx) {
+				children = boost::make_shared<Dictionary>();
+				parent.GetConfigObject()->SetTag("dependency_children", children);
+				parent.GetConfigObject()->SetTag("dependency_cache_tx", cacheTx);
+			} else {
+				parent.GetConfigObject()->GetTag("dependency_children", &children);
+				assert(children);
+			}
+
+			children->AddUnnamedProperty(child.GetName());
+		}
+	}
+
+	m_DependencyCacheValid = true;
+}
+
+void Service::InvalidateDependencyCache(void)
+{
+	m_DependencyCacheValid = false;
+}
+
+ServiceStatusMessage Service::CalculateCombinedStatus(ServiceStatusMessage *input, const vector<Service>& parents)
+{
+	vector<Service> failedServices;
+
+	time_t nextCheck = -1;
+	time_t lastChange = -1;
+
+	vector<Service>::const_iterator it;
+	for (it = parents.begin(); it != parents.end(); it++) {
+		Service parent = *it;
+
+		if (parent.GetState() != StateOK && parent.GetState() != StateWarning)
+			failedServices.push_back(parent);
+
+		if (lastChange == -1 || parent.GetLastStateChange() > lastChange)
+			lastChange = parent.GetLastStateChange();
+
+		if (nextCheck == -1 || parent.GetNextCheck() < nextCheck)
+			nextCheck = parent.GetNextCheck();
+	}
+
+	string message;
+	ServiceState state;
+
+	if (failedServices.empty()) {
+		if (input)
+			return *input;
+
+		state = StateOK;
+		message = "Dependant services are available.";
+	} else {
+		state = StateUnreachable;
+		message = "One or more dependant services have failed.";
+	}
+
+	ServiceStatusMessage result;
+	result.SetState(state);
+	result.SetStateType(StateTypeHard);
+	result.SetCurrentCheckAttempt(1);
+	result.SetNextCheck(nextCheck);
+
+	time_t now;
+	time(&now);
+
+	CheckResult cr;
+	cr.SetScheduleStart(now);
+	cr.SetScheduleEnd(now);
+	cr.SetExecutionStart(now);
+	cr.SetExecutionEnd(now);
+	cr.SetOutput(message);
+	cr.SetState(state);
+
+	result.SetCheckResult(cr);
+
+	return result;
+}
+
 void Service::SetNextCheck(time_t nextCheck)
 {
 	GetConfigObject()->SetTag("next_check", (long)nextCheck);
@@ -179,16 +317,23 @@ ServiceStateType Service::GetStateType(void) const
 	return static_cast<ServiceStateType>(value);
 }
 
-void Service::SetLastCheckResult(const Dictionary::Ptr& result)
+void Service::SetLastCheckResult(const CheckResult& result)
 {
-	GetConfigObject()->SetTag("last_result", result);
+	GetConfigObject()->SetTag("last_result", result.GetDictionary());
 }
 
-Dictionary::Ptr Service::GetLastCheckResult(void) const
+bool Service::HasLastCheckResult(void) const
 {
 	Dictionary::Ptr value;
-	GetConfigObject()->GetTag("last_result", &value);
-	return value;
+	return GetConfigObject()->GetTag("last_result", &value) && value;
+}
+
+CheckResult Service::GetLastCheckResult(void) const
+{
+	Dictionary::Ptr value;
+	if (!GetConfigObject()->GetTag("last_result", &value))
+		throw invalid_argument("Service has no last check result.");
+	return CheckResult(value);
 }
 
 void Service::SetLastStateChange(time_t ts)
@@ -315,4 +460,3 @@ bool Service::IsAllowedChecker(const string& checker) const
 
 	return false;
 }
-

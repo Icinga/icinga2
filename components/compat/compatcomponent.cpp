@@ -94,24 +94,22 @@ void CompatComponent::DumpHostObject(ofstream& fp, Host host)
 
 void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 {
-	Dictionary::Ptr cr;
-	cr = service.GetLastCheckResult();
-
 	string output;
 	string perfdata;
-	long schedule_start = -1, schedule_end = -1;
-	long execution_start = -1, execution_end = -1;
-	if (cr) {
-		cr->GetProperty("output", &output);
-		cr->GetProperty("schedule_start", &schedule_start);
-		cr->GetProperty("schedule_end", &schedule_end);
-		cr->GetProperty("execution_start", &execution_start);
-		cr->GetProperty("execution_end", &execution_end);
-		cr->GetProperty("performance_data_raw", &perfdata);
+	time_t schedule_start = -1, schedule_end = -1;
+	time_t execution_start = -1, execution_end = -1;
+	if (service.HasLastCheckResult()) {
+		CheckResult cr = service.GetLastCheckResult();
+		output = cr.GetOutput();
+		schedule_start = cr.GetScheduleStart();
+		schedule_end = cr.GetScheduleEnd();
+		execution_start = cr.GetExecutionStart();
+		execution_end = cr.GetExecutionEnd();
+		perfdata = cr.GetPerformanceDataRaw();
 	}
 
-	long execution_time = (execution_end - execution_start);
-	long latency = (schedule_end - schedule_start) - execution_time;
+	time_t execution_time = (execution_end - execution_start);
+	time_t latency = (schedule_end - schedule_start) - execution_time;
 
 	int state = service.GetState();
 
@@ -123,7 +121,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 	   << "\t" << "service_description=" << service.GetAlias() << "\n"
 	   << "\t" << "check_interval=" << service.GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval=" << service.GetRetryInterval() / 60.0 << "\n"
-	   << "\t" << "has_been_checked=" << (cr ? 1 : 0) << "\n"
+	   << "\t" << "has_been_checked=" << (service.HasLastCheckResult() ? 1 : 0) << "\n"
 	   << "\t" << "should_be_scheduled=1" << "\n"
 	   << "\t" << "check_execution_time=" << execution_time << "\n"
 	   << "\t" << "check_latency=" << latency << "\n"

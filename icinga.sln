@@ -41,6 +41,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demo", "components\demo\dem
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "discovery", "components\discovery\discovery.vcxproj", "{EAD41628-BB96-4F99-9070-8A9676801295}"
 	ProjectSection(ProjectDependencies) = postProject
+		{538D7F53-A6A0-459A-AE4F-70DB135BC9AF} = {538D7F53-A6A0-459A-AE4F-70DB135BC9AF}
 		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8} = {C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}
 	EndProjectSection
 EndProject
@@ -77,6 +78,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cibsync", "components\cibsy
 		{538D7F53-A6A0-459A-AE4F-70DB135BC9AF} = {538D7F53-A6A0-459A-AE4F-70DB135BC9AF}
 		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8} = {C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compat", "components\compat\compat.vcxproj", "{2BD1C70C-43DB-4F44-B66B-67CF5C7044AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -140,6 +143,10 @@ Global
 		{704DDD8E-9E6D-4C22-80BD-6DE10F3A5E1C}.Debug|Win32.Build.0 = Debug|Win32
 		{704DDD8E-9E6D-4C22-80BD-6DE10F3A5E1C}.Release|Win32.ActiveCfg = Release|Win32
 		{704DDD8E-9E6D-4C22-80BD-6DE10F3A5E1C}.Release|Win32.Build.0 = Release|Win32
+		{2BD1C70C-43DB-4F44-B66B-67CF5C7044AA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2BD1C70C-43DB-4F44-B66B-67CF5C7044AA}.Debug|Win32.Build.0 = Debug|Win32
+		{2BD1C70C-43DB-4F44-B66B-67CF5C7044AA}.Release|Win32.ActiveCfg = Release|Win32
+		{2BD1C70C-43DB-4F44-B66B-67CF5C7044AA}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
