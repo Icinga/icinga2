@@ -292,12 +292,12 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	MessagePart params;
+	ServiceStatusMessage params;
 	if (!request.GetParams(&params))
 		return;
 
 	string svcname;
-	if (!params.GetProperty("service", &svcname))
+	if (params.GetService(&svcname))
 		return;
 
 	Service service = Service::GetByName(svcname);

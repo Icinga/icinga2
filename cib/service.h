@@ -40,7 +40,6 @@ public:
 	long GetMaxCheckAttempts(void) const;
 	long GetCheckInterval(void) const;
 	long GetRetryInterval(void) const;
-	long GetFreshnessInterval(void) const;
 	Dictionary::Ptr GetDependencies(void) const;
 	Dictionary::Ptr GetGroups(void) const;
 	Dictionary::Ptr GetCheckers(void) const;

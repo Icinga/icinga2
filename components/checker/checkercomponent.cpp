@@ -145,13 +145,13 @@ void CheckerComponent::ResultTimerHandler(void)
 		RequestMessage rm;
 		rm.SetMethod("checker::CheckResult");
 
-		MessagePart params;
-		params.SetProperty("service", service.GetName());
-		params.SetProperty("state", static_cast<long>(service.GetState()));
-		params.SetProperty("state_type", static_cast<long>(service.GetStateType()));
-		params.SetProperty("current_attempt", static_cast<long>(service.GetCurrentCheckAttempt()));
-		params.SetProperty("next_check", static_cast<long>(service.GetNextCheck()));
-		params.SetProperty("result", result.GetDictionary());
+		ServiceStatusMessage params;
+		params.SetService(service.GetName());
+		params.SetState(service.GetState());
+		params.SetStateType(service.GetStateType());
+		params.SetCurrentCheckAttempt(service.GetCurrentCheckAttempt());
+		params.SetNextCheck(service.GetNextCheck());
+		params.SetCheckResult(result);
 
 		rm.SetParams(params);
 

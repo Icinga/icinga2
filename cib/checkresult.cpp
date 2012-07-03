@@ -2,6 +2,14 @@
 
 using namespace icinga;
 
+CheckResult::CheckResult(void)
+	: MessagePart()
+{ }
+
+CheckResult::CheckResult(const MessagePart& message)
+	: MessagePart(message)
+{ }
+
 void CheckResult::SetScheduleStart(time_t ts)
 {
 	SetProperty("schedule_start", static_cast<long>(ts));

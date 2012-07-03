@@ -291,7 +291,7 @@ void CIBSyncComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
 			m_SyncingConfig = true;
 			object->Unregister();
 			m_SyncingConfig = false;
-		} catch (const std::exception& ex) {
+		} catch (const std::exception&) {
 			m_SyncingConfig = false;
 			throw;
 		}

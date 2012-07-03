@@ -24,7 +24,9 @@ libcib_la_SOURCES = \
 	service.cpp \
 	service.h \
 	servicegroup.cpp \
-	servicegroup.h
+	servicegroup.h \
+	servicestatusmessage.cpp \
+	servicestatusmessage.h
 
 libcib_la_CPPFLAGS = \
 	-DI2_CIB_BUILD \

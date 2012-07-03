@@ -7,8 +7,8 @@ namespace icinga
 class I2_CIB_API CheckResult : public MessagePart
 {
 public:
-	CheckResult(void) : MessagePart() { }
-	CheckResult(const MessagePart& message) : MessagePart(message) { }
+	CheckResult(void);
+	CheckResult(const MessagePart& message);
 
 	void SetScheduleStart(time_t ts);
 	time_t GetScheduleStart(void) const;

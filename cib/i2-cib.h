@@ -29,4 +29,6 @@
 #include "checktask.h"
 #include "nagioschecktask.h"
 
+#include "servicestatusmessage.h"
+
 #endif /* I2CIB_H */

@@ -101,7 +101,7 @@ string ConfigObject::GetSource(void) const
 
 void ConfigObject::SetCommitTimestamp(time_t ts)
 {
-	GetProperties()->SetProperty("__tx", ts);
+	GetProperties()->SetProperty("__tx", static_cast<long>(ts));
 }
 
 time_t ConfigObject::GetCommitTimestamp(void) const

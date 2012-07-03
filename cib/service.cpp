@@ -84,15 +84,6 @@ long Service::GetRetryInterval(void) const
 	return value;
 }
 
-long Service::GetFreshnessInterval(void) const
-{
-	long value;
-	if (!GetConfigObject()->GetProperty("freshness_interval", &value));
-		value = GetCheckInterval() * 3;
-
-	return value;
-}
-
 Dictionary::Ptr Service::GetDependencies(void) const
 {
 	Dictionary::Ptr value;
