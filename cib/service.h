@@ -10,7 +10,6 @@ enum ServiceState
 	StateWarning,
 	StateCritical,
 	StateUnknown,
-	StateUnreachable,
 	StateUncheckable,
 };
 
@@ -50,7 +49,7 @@ public:
 	static void UpdateDependencyCache(void);
 	static void InvalidateDependencyCache(void);
 
-	static ServiceStatusMessage CalculateCombinedStatus(Service *current, ServiceStatusMessage *input, const vector<Service>& parents);
+	bool IsReachable(void) const;
 
 	void SetNextCheck(time_t nextCheck);
 	time_t GetNextCheck(void);

@@ -306,39 +306,10 @@ void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender,
 	if (!service.IsAllowedChecker(sender->GetIdentity()))
 		return;
 
-	vector<Service> children = service.GetChildren();
-
-	vector<Service>::iterator it;
-	for (it = children.begin(); it != children.end(); it++) {
-		Service child = *it;
-
-		vector<Service> affectedServices = child.GetParents();
-		affectedServices.push_back(child);
-
-		ServiceStatusMessage statusmsg = Service::CalculateCombinedStatus(&child, NULL, affectedServices);
-		statusmsg.SetService(child.GetName());
-
-		ServiceState state = StateUnreachable;
-		statusmsg.GetState(&state);
-
-		if (child.GetState() == StateUnreachable || state == StateUnreachable) {
-			RequestMessage rm;
-			rm.SetMethod("delegation::ServiceStatus");
-			rm.SetParams(statusmsg);
-
-			EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
-		}
-	}
-
 	/* send state update */
 	RequestMessage rm;
 	rm.SetMethod("delegation::ServiceStatus");
-
-	vector<Service> parents = service.GetParents();
-	ServiceStatusMessage statusmsg = Service::CalculateCombinedStatus(&service, &params, parents);
-	statusmsg.SetService(service.GetName());
-
-	rm.SetParams(statusmsg);
+	rm.SetParams(params);
 	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
 }
 

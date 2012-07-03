@@ -186,74 +186,17 @@ void Service::InvalidateDependencyCache(void)
 	m_DependencyCacheValid = false;
 }
 
-ServiceStatusMessage Service::CalculateCombinedStatus(Service *current, ServiceStatusMessage *input, const vector<Service>& parents)
+bool Service::IsReachable(void) const
 {
-	vector<Service> failedServices;
+	vector<Service> parents = GetParents();
 
-	time_t nextCheck = -1;
-
-	vector<Service>::const_iterator it;
+	vector<Service>::iterator it;
 	for (it = parents.begin(); it != parents.end(); it++) {
-		Service parent = *it;
-
-		if (current && current->GetName() == parent.GetName())
-			continue;
-
-		if (!parent.HasLastCheckResult())
-			continue;
-
-		string svcname;
-		ServiceState state = StateUnknown;
-		ServiceStateType type = StateTypeHard;
-		if (input && input->GetService(&svcname) && svcname == parent.GetName()) {
-			input->GetState(&state);
-			input->GetStateType(&type);
-		} else {
-			state = parent.GetState();
-			type = parent.GetStateType();
-		}
-
-		if (state != StateOK && state != StateWarning && type == StateTypeHard)
-			failedServices.push_back(parent);
-
-		if (nextCheck == -1 || parent.GetNextCheck() < nextCheck)
-			nextCheck = parent.GetNextCheck();
+		if (!it->IsReachable())
+			return false;
 	}
-
-	string message;
-	ServiceState state;
-
-	if (failedServices.empty()) {
-		if (input)
-			return *input;
-
-		state = StateOK;
-		message = "Dependant services are available.";
-	} else {
-		state = StateUnreachable;
-		message = "One or more dependant services have failed.";
-	}
-
-	ServiceStatusMessage result;
-	result.SetState(state);
-	result.SetStateType(StateTypeHard);
-	result.SetCurrentCheckAttempt(1);
-	result.SetNextCheck(nextCheck);
-
-	time_t now;
-	time(&now);
-
-	CheckResult cr;
-	cr.SetScheduleStart(now);
-	cr.SetScheduleEnd(now);
-	cr.SetExecutionStart(now);
-	cr.SetExecutionEnd(now);
-	cr.SetOutput(message);
-	cr.SetState(state);
-
-	result.SetCheckResult(cr);
-
-	return result;
+	
+	return true;
 }
 
 void Service::SetNextCheck(time_t nextCheck)
@@ -407,7 +350,6 @@ ServiceState Service::StateFromString(const string& state)
 		stateLookup["ok"] = StateOK;
 		stateLookup["warning"] = StateWarning;
 		stateLookup["critical"] = StateCritical;
-		stateLookup["unreachable"] = StateUnreachable;
 		stateLookup["uncheckable"] = StateUncheckable;
 		stateLookup["unknown"] = StateUnknown;
 	}
@@ -430,8 +372,6 @@ string Service::StateToString(ServiceState state)
 			return "warning";
 		case StateCritical:
 			return "critical";
-		case StateUnreachable:
-			return "unreachable";
 		case StateUncheckable:
 			return "uncheckable";
 		case StateUnknown:
