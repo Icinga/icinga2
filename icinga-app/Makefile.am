@@ -19,6 +19,8 @@ icinga_LDFLAGS = \
 	$(BOOST_LDFLAGS)
 
 icinga_LDADD = \
+	$(BOOST_SIGNALS_LIB) \
+	$(BOOST_THREAD_LIB) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/icinga/libicinga.la \
 	-dlopen ${top_builddir}/components/checker/checker.la \

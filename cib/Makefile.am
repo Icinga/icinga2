@@ -41,6 +41,8 @@ libcib_la_LDFLAGS = \
 	@VERSION_INFO@
 
 libcib_la_LIBADD = \
+	$(BOOST_SIGNALS_LIB) \
+	$(BOOST_THREAD_LIB) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
 	${top_builddir}/icinga/libicinga.la \
