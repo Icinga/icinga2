@@ -200,7 +200,10 @@ bool Service::IsReachable(void) const
 			return false;
 	}
 	
-	return true;
+	if (GetStateType() == StateTypeHard && GetState() != StateOK && GetState() != StateWarning)
+		return false;
+	else
+		return true;
 }
 
 void Service::SetNextCheck(time_t nextCheck)
