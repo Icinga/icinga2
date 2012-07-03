@@ -198,12 +198,13 @@ bool Service::IsReachable(void) const
 
 		if (!it->IsReachable())
 			return false;
+		
+		if (it->GetStateType() == StateTypeHard && it->GetState() != StateOK &&
+		    it->GetState() != StateWarning)
+			return false;
 	}
 	
-	if (GetStateType() == StateTypeHard && GetState() != StateOK && GetState() != StateWarning)
-		return false;
-	else
-		return true;
+	return true;
 }
 
 void Service::SetNextCheck(time_t nextCheck)
