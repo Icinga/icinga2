@@ -192,6 +192,10 @@ bool Service::IsReachable(void) const
 
 	vector<Service>::iterator it;
 	for (it = parents.begin(); it != parents.end(); it++) {
+		/* ignore ourselves */
+		if (it->GetName() == GetName())
+			continue;
+
 		if (!it->IsReachable())
 			return false;
 	}
