@@ -44,11 +44,6 @@ public:
 	Dictionary::Ptr GetGroups(void) const;
 	Dictionary::Ptr GetCheckers(void) const;
 
-	vector<Service> GetParents(void) const;
-	vector<Service> GetChildren(void) const;
-	static void UpdateDependencyCache(void);
-	static void InvalidateDependencyCache(void);
-
 	bool IsReachable(void) const;
 
 	void SetNextCheck(time_t nextCheck);

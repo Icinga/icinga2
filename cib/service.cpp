@@ -107,101 +107,26 @@ Dictionary::Ptr Service::GetCheckers(void) const
 	return value;
 }
 
-vector<Service> Service::GetParents(void) const
-{
-	vector<Service> parents;
-
-	Dictionary::Ptr dependencies = GetDependencies();
-	if (dependencies) {
-		Dictionary::Iterator it;
-		for (it = dependencies->Begin(); it != dependencies->End(); it++)
-			parents.push_back(Service::GetByName(it->second));
-	}
-	return parents;
-}
-
-vector<Service> Service::GetChildren(void) const
-{
-	vector<Service> children;
-
-	UpdateDependencyCache();
-
-	Dictionary::Ptr childrenCache;
-	GetConfigObject()->GetTag("dependency_children", &childrenCache);
-
-	if (childrenCache) {
-		Dictionary::Iterator it;
-		for (it = childrenCache->Begin(); it != childrenCache->End(); it++)
-			children.push_back(Service::GetByName(it->second));
-	}
-
-	return children;
-}
-
-void Service::UpdateDependencyCache(void)
-{
-	static long cacheTx = 0;
-
-	if (m_DependencyCacheValid)
-		return;
-
-	cacheTx++;
-
-	ConfigObject::TMap::Range range = ConfigObject::GetObjects("service");
-	ConfigObject::TMap::Iterator it;
-	for (it = range.first; it != range.second; it++) {
-		Service child = it->second;
-
-		vector<Service> parents = child.GetParents();
-
-		vector<Service>::iterator st;
-		for (st = parents.begin(); st != parents.end(); st++) {
-			Service parent = *st;
-
-			long tx = 0;
-			parent.GetConfigObject()->GetTag("dependency_cache_tx", &tx);
-
-			Dictionary::Ptr children;
-
-			/* rather than resetting the dependency dictionary in a separate loop we use the cache_tx
-			 * tag to check if the dictionary is from this cache update run. */
-			if (tx != cacheTx) {
-				children = boost::make_shared<Dictionary>();
-				parent.GetConfigObject()->SetTag("dependency_children", children);
-				parent.GetConfigObject()->SetTag("dependency_cache_tx", cacheTx);
-			} else {
-				parent.GetConfigObject()->GetTag("dependency_children", &children);
-				assert(children);
-			}
-
-			children->AddUnnamedProperty(child.GetName());
-		}
-	}
-
-	m_DependencyCacheValid = true;
-}
-
-void Service::InvalidateDependencyCache(void)
-{
-	m_DependencyCacheValid = false;
-}
-
 bool Service::IsReachable(void) const
 {
-	vector<Service> parents = GetParents();
+	Dictionary::Ptr dependencies = GetDependencies();
 
-	vector<Service>::iterator it;
-	for (it = parents.begin(); it != parents.end(); it++) {
-		/* ignore ourselves */
-		if (it->GetName() == GetName())
-			continue;
+	if (dependencies) {
+		Dictionary::Iterator it;
+		for (it = dependencies->Begin(); it != dependencies->End(); it++) {
+			Service service = Service::GetByName(it->second);
 
-		if (!it->IsReachable())
-			return false;
+			/* ignore ourselves */
+			if (service.GetName() == GetName())
+				continue;
+
+			if (!service.IsReachable())
+				return false;
 		
-		if (it->GetStateType() == StateTypeHard && it->GetState() != StateOK &&
-		    it->GetState() != StateWarning)
-			return false;
+			if (service.GetStateType() == StateTypeHard && service.GetState() != StateOK &&
+				service.GetState() != StateWarning)
+				return false;
+		}
 	}
 	
 	return true;
