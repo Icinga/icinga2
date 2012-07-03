@@ -186,22 +186,35 @@ void Service::InvalidateDependencyCache(void)
 	m_DependencyCacheValid = false;
 }
 
-ServiceStatusMessage Service::CalculateCombinedStatus(ServiceStatusMessage *input, const vector<Service>& parents)
+ServiceStatusMessage Service::CalculateCombinedStatus(Service *current, ServiceStatusMessage *input, const vector<Service>& parents)
 {
 	vector<Service> failedServices;
 
 	time_t nextCheck = -1;
-	time_t lastChange = -1;
 
 	vector<Service>::const_iterator it;
 	for (it = parents.begin(); it != parents.end(); it++) {
 		Service parent = *it;
 
-		if (parent.GetState() != StateOK && parent.GetState() != StateWarning)
-			failedServices.push_back(parent);
+		if (current && current->GetName() == parent.GetName())
+			continue;
 
-		if (lastChange == -1 || parent.GetLastStateChange() > lastChange)
-			lastChange = parent.GetLastStateChange();
+		if (!parent.HasLastCheckResult())
+			continue;
+
+		string svcname;
+		ServiceState state = StateUnknown;
+		ServiceStateType type = StateTypeHard;
+		if (input && input->GetService(&svcname) && svcname == parent.GetName()) {
+			input->GetState(&state);
+			input->GetStateType(&type);
+		} else {
+			state = parent.GetState();
+			type = parent.GetStateType();
+		}
+
+		if (state != StateOK && state != StateWarning && type == StateTypeHard)
+			failedServices.push_back(parent);
 
 		if (nextCheck == -1 || parent.GetNextCheck() < nextCheck)
 			nextCheck = parent.GetNextCheck();

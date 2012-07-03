@@ -113,6 +113,9 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 
 	int state = service.GetState();
 
+	if (state == StateUnreachable)
+		state = StateCritical;
+
 	if (state >= StateUnknown)
 		state = StateUnknown;
 

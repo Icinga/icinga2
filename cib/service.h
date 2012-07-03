@@ -50,7 +50,7 @@ public:
 	static void UpdateDependencyCache(void);
 	static void InvalidateDependencyCache(void);
 
-	static ServiceStatusMessage CalculateCombinedStatus(ServiceStatusMessage *input, const vector<Service>& parents);
+	static ServiceStatusMessage CalculateCombinedStatus(Service *current, ServiceStatusMessage *input, const vector<Service>& parents);
 
 	void SetNextCheck(time_t nextCheck);
 	time_t GetNextCheck(void);

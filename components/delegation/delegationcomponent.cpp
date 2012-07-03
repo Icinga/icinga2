@@ -315,7 +315,7 @@ void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender,
 		vector<Service> affectedServices = child.GetParents();
 		affectedServices.push_back(child);
 
-		ServiceStatusMessage statusmsg = Service::CalculateCombinedStatus(NULL, affectedServices);
+		ServiceStatusMessage statusmsg = Service::CalculateCombinedStatus(&child, NULL, affectedServices);
 		statusmsg.SetService(child.GetName());
 
 		ServiceState state = StateUnreachable;
@@ -335,7 +335,7 @@ void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender,
 	rm.SetMethod("delegation::ServiceStatus");
 
 	vector<Service> parents = service.GetParents();
-	ServiceStatusMessage statusmsg = Service::CalculateCombinedStatus(&params, parents);
+	ServiceStatusMessage statusmsg = Service::CalculateCombinedStatus(&service, &params, parents);
 	statusmsg.SetService(service.GetName());
 
 	rm.SetParams(statusmsg);
