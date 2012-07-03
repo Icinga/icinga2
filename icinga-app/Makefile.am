@@ -22,9 +22,9 @@ icinga_LDADD = \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/icinga/libicinga.la \
 	-dlopen ${top_builddir}/components/checker/checker.la \
+	-dlopen ${top_builddir}/components/cibsync/cibsync.la \
 	-dlopen ${top_builddir}/components/compat/compat.la \
 	-dlopen ${top_builddir}/components/configfile/configfile.la \
-	-dlopen ${top_builddir}/components/configrpc/configrpc.la \
 	-dlopen ${top_builddir}/components/delegation/delegation.la \
 	-dlopen ${top_builddir}/components/demo/demo.la \
 	-dlopen ${top_builddir}/components/discovery/discovery.la
