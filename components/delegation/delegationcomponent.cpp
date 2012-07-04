@@ -30,7 +30,8 @@ string DelegationComponent::GetName(void) const
 void DelegationComponent::Start(void)
 {
 	m_AllServices = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("service"));
-	m_AllServices->OnObjectCommitted.connect(boost::bind(&DelegationComponent::ObjectCommittedHandler, this, _2));
+	m_AllServices->OnObjectCommitted.connect(boost::bind(&DelegationComponent::ServiceCommittedHandler, this, _2));
+	m_AllServices->OnObjectRemoved.connect(boost::bind(&DelegationComponent::ServiceRemovedHandler, this, _2));
 	m_AllServices->Start();
 
 	m_DelegationTimer = boost::make_shared<Timer>();
@@ -60,16 +61,27 @@ void DelegationComponent::Stop(void)
 		mgr->UnregisterEndpoint(m_Endpoint);
 }
 
-void DelegationComponent::ObjectCommittedHandler(const ConfigObject::Ptr& object)
+void DelegationComponent::ServiceCommittedHandler(Service service)
 {
-	Service service(object);
-
 	string checker = service.GetChecker();
 
 	if (!checker.empty()) {
 		/* object was updated, clear its checker to make sure it's re-delegated by the delegation timer */
 		service.SetChecker("");
 
+		/* TODO: figure out a better way to clear individual services */
+		Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
+
+		if (endpoint)
+			ClearServices(endpoint);
+	}
+}
+
+void DelegationComponent::ServiceRemovedHandler(Service service)
+{
+	string checker = service.GetChecker();
+
+	if (!checker.empty()) {
 		/* TODO: figure out a better way to clear individual services */
 		Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
 

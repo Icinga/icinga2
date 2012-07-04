@@ -41,7 +41,8 @@ private:
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
 	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
 
-	void ObjectCommittedHandler(const ConfigObject::Ptr& object);
+	void ServiceCommittedHandler(Service service);
+	void ServiceRemovedHandler(Service service);
 	void DelegationTimerHandler(void);
 
 	vector<Endpoint::Ptr> GetCheckerCandidates(const Service& service) const;
