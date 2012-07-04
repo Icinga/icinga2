@@ -25,6 +25,7 @@ config.h
 config.status
 config.sub
 configure
+config/ylwrap
 depcomp
 icinga-version.h
 install-sh
