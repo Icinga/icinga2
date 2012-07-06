@@ -130,7 +130,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 		}
 	}
 
-	//host.GetConfigObject()->SetTag("convenience-services", newServices);
+	host->SetTag("convenience-services", newServices);
 }
 
 void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
