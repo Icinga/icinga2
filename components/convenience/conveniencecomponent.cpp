@@ -60,6 +60,11 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 		return;
 
 	ConfigObject::Ptr host = ConfigObject::GetObject("host", item->GetName());
+
+	/* ignore abstract host objects */
+	if (!host)
+		return;
+
 	Dictionary::Ptr oldServices;
 	host->GetTag("convenience-services", &oldServices);
 
