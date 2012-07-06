@@ -17,57 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGITEM_H
-#define CONFIGITEM_H
+#ifndef CONVENIENCECOMPONENT_H
+#define CONVENIENCECOMPONENT_H
 
 namespace icinga
 {
 
-class ConfigItem : public Object {
+/**
+ * @ingroup convenience
+ */
+class ConvenienceComponent : public Component
+{
 public:
-	typedef shared_ptr<ConfigItem> Ptr;
-	typedef weak_ptr<ConfigItem> WeakPtr;
-
-	typedef ObjectSet<ConfigItem::Ptr> Set;
-
-	typedef ObjectMap<pair<string, string>, ConfigItem::Ptr> TNMap;
-
-	ConfigItem(const string& type, const string& name, const DebugInfo& debuginfo);
-
-	string GetType(void) const;
-	string GetName(void) const;
-
-	vector<string> GetParents(void) const;
-	void AddParent(const string& parent);
-
-	ExpressionList::Ptr GetExpressionList(void) const;
-	void SetExpressionList(const ExpressionList::Ptr& exprl);
-
-	void CalculateProperties(Dictionary::Ptr dictionary) const;
-
-	ConfigObject::Ptr Commit(void);
-	void Unregister(void);
-
-	ConfigObject::Ptr GetConfigObject(void) const;
-
-	DebugInfo GetDebugInfo(void) const;
-
-	static Set::Ptr GetAllObjects(void);
-	static TNMap::Ptr GetObjectsByTypeAndName(void);
-	static ConfigItem::Ptr GetObject(const string& type, const string& name);
+	virtual string GetName(void) const;
+	virtual void Start(void);
+	virtual void Stop(void);
 
 private:
-	string m_Type;
-	string m_Name;
-	DebugInfo m_DebugInfo;
-	vector<string> m_Parents;
-	ExpressionList::Ptr m_ExpressionList;
-
-	ConfigObject::WeakPtr m_ConfigObject;
-
-	static bool GetTypeAndName(const ConfigItem::Ptr& object, pair<string, string> *key);
+	void HostAddedHandler(const ConfigItem::Ptr& item);
+	void HostCommittedHandler(const ConfigItem::Ptr& item);
+	void HostRemovedHandler(const ConfigItem::Ptr& item);
 };
 
 }
 
-#endif /* CONFIGITEM_H */
+#endif /* CONVENIENCECOMPONENT_H */

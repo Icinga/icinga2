@@ -30,42 +30,52 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 {
 	Variant oldValue, newValue;
 
-	ExpressionList::Ptr exprl;
-	if (m_Value.GetType() == VariantObject)
-		exprl = dynamic_pointer_cast<ExpressionList>(m_Value.GetObject());
+	ExpressionList::Ptr valueExprl;
+	Dictionary::Ptr valueDict;
+	if (m_Value.GetType() == VariantObject) {
+		valueExprl = dynamic_pointer_cast<ExpressionList>(m_Value.GetObject());
+		valueDict = dynamic_pointer_cast<Dictionary>(m_Value.GetObject());
+	}
 
 	newValue = m_Value;
 
+	Dictionary::Ptr dict;
+
 	switch (m_Operator) {
 		case OperatorSet:
-			if (exprl) {
-				Dictionary::Ptr dict = boost::make_shared<Dictionary>();
-				exprl->Execute(dict);
+			if (valueExprl) {
+				dict = boost::make_shared<Dictionary>();
+				valueExprl->Execute(dict);
 				newValue = dict;
 			}
 
 			break;
 
 		case OperatorPlus:
-			if (exprl) {
-				dictionary->GetProperty(m_Key, &oldValue);
+			dictionary->GetProperty(m_Key, &oldValue);
 
-				Dictionary::Ptr dict;
-				if (oldValue.GetType() == VariantObject)
-					dict = dynamic_pointer_cast<Dictionary>(oldValue.GetObject());
+			if (oldValue.GetType() == VariantObject)
+				dict = dynamic_pointer_cast<Dictionary>(oldValue.GetObject());
 
-				if (!dict) {
-					if (!oldValue.IsEmpty()) {
-						stringstream message;
-						message << "Wrong argument types for += (non-dictionary and dictionary) (" << m_DebugInfo << ")";
-						throw domain_error(message.str());
-					}
-
-					dict = boost::make_shared<Dictionary>();
+			if (!dict) {
+				if (!oldValue.IsEmpty()) {
+					stringstream message;
+					message << "Wrong argument types for += (non-dictionary and dictionary) (" << m_DebugInfo << ")";
+					throw domain_error(message.str());
 				}
 
-				exprl->Execute(dict);
-				newValue = dict;
+				dict = boost::make_shared<Dictionary>();
+			}
+
+			newValue = dict;
+
+			if (valueExprl) {
+				valueExprl->Execute(dict);
+			} else if (valueDict) {
+				Dictionary::Iterator it;
+				for (it = valueDict->Begin(); it != valueDict->End(); it++) {
+					dict->SetProperty(it->first, it->second);
+				}
 			} else {
 				stringstream message;
 				message << "+= only works for dictionaries (" << m_DebugInfo << ")";

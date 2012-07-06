@@ -61,6 +61,11 @@ int IcingaApplication::Main(const vector<string>& args)
 	componentObjects->OnObjectRemoved.connect(boost::bind(&IcingaApplication::DeletedComponentHandler, this, _2));
 	componentObjects->Start();
 
+	/* load convenience config component */
+	ConfigObject::Ptr convenienceComponentConfig = boost::make_shared<ConfigObject>("component", "convenience");
+	convenienceComponentConfig->SetLocal(true);
+	convenienceComponentConfig->Commit();
+
 	/* load config file */
 	ConfigObject::Ptr fileComponentConfig = boost::make_shared<ConfigObject>("component", "configfile");
 	fileComponentConfig->SetLocal(true);

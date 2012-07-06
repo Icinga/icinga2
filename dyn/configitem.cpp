@@ -36,6 +36,11 @@ string ConfigItem::GetName(void) const
 	return m_Name;
 }
 
+DebugInfo ConfigItem::GetDebugInfo(void) const
+{
+	return m_DebugInfo;
+}
+
 ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 {
 	return m_ExpressionList;
@@ -74,7 +79,7 @@ void ConfigItem::CalculateProperties(Dictionary::Ptr dictionary) const
 	m_ExpressionList->Execute(dictionary);
 }
 
-ObjectSet<ConfigItem::Ptr>::Ptr ConfigItem::GetAllObjects(void)
+ConfigItem::Set::Ptr ConfigItem::GetAllObjects(void)
 {
 	static ObjectSet<ConfigItem::Ptr>::Ptr allObjects;
 
@@ -105,7 +110,7 @@ ConfigItem::TNMap::Ptr ConfigItem::GetObjectsByTypeAndName(void)
 	return tnmap;
 }
 
-void ConfigItem::Commit(void)
+ConfigObject::Ptr ConfigItem::Commit(void)
 {
 	ConfigObject::Ptr dobj = m_ConfigObject.lock();
 
@@ -127,6 +132,9 @@ void ConfigItem::Commit(void)
 	else
 		dobj->Commit();
 
+	/* TODO: Figure out whether there are any child objects which inherit
+	 * from this config item and Commit() them as well */
+
 	ConfigItem::Ptr ci = GetObject(GetType(), GetName());
 	ConfigItem::Ptr self = GetSelf();
 	if (ci && ci != self) {
@@ -134,6 +142,8 @@ void ConfigItem::Commit(void)
 		GetAllObjects()->RemoveObject(ci);
 	}
 	GetAllObjects()->CheckObject(self);
+
+	return dobj;
 }
 
 void ConfigItem::Unregister(void)
@@ -144,6 +154,11 @@ void ConfigItem::Unregister(void)
 		dobj->Unregister();
 
 	GetAllObjects()->RemoveObject(GetSelf());
+}
+
+ConfigObject::Ptr ConfigItem::GetConfigObject(void) const
+{
+	return m_ConfigObject.lock();
 }
 
 ConfigItem::Ptr ConfigItem::GetObject(const string& type, const string& name)

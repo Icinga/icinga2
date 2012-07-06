@@ -6,6 +6,7 @@ SUBDIRS = \
 	cibsync \
 	compat \
 	configfile \
+	convenience \
 	delegation \
 	demo \
 	discovery

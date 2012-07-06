@@ -17,57 +17,23 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGITEM_H
-#define CONFIGITEM_H
+#ifndef I2CONVENIENCE_H
+#define I2CONVENIENCE_H
 
-namespace icinga
-{
+/**
+ * @defgroup convenience Convenience component
+ *
+ * The convenience component takes service definitions from host objects
+ * and creates service objects. Technically this isn't strictly necessary but
+ * makes defining services a lot easier for users.
+ */
 
-class ConfigItem : public Object {
-public:
-	typedef shared_ptr<ConfigItem> Ptr;
-	typedef weak_ptr<ConfigItem> WeakPtr;
+#include <i2-base.h>
+#include <i2-dyn.h>
+#include <i2-jsonrpc.h>
+#include <i2-icinga.h>
+#include <i2-cib.h>
 
-	typedef ObjectSet<ConfigItem::Ptr> Set;
+#include "conveniencecomponent.h"
 
-	typedef ObjectMap<pair<string, string>, ConfigItem::Ptr> TNMap;
-
-	ConfigItem(const string& type, const string& name, const DebugInfo& debuginfo);
-
-	string GetType(void) const;
-	string GetName(void) const;
-
-	vector<string> GetParents(void) const;
-	void AddParent(const string& parent);
-
-	ExpressionList::Ptr GetExpressionList(void) const;
-	void SetExpressionList(const ExpressionList::Ptr& exprl);
-
-	void CalculateProperties(Dictionary::Ptr dictionary) const;
-
-	ConfigObject::Ptr Commit(void);
-	void Unregister(void);
-
-	ConfigObject::Ptr GetConfigObject(void) const;
-
-	DebugInfo GetDebugInfo(void) const;
-
-	static Set::Ptr GetAllObjects(void);
-	static TNMap::Ptr GetObjectsByTypeAndName(void);
-	static ConfigItem::Ptr GetObject(const string& type, const string& name);
-
-private:
-	string m_Type;
-	string m_Name;
-	DebugInfo m_DebugInfo;
-	vector<string> m_Parents;
-	ExpressionList::Ptr m_ExpressionList;
-
-	ConfigObject::WeakPtr m_ConfigObject;
-
-	static bool GetTypeAndName(const ConfigItem::Ptr& object, pair<string, string> *key);
-};
-
-}
-
-#endif /* CONFIGITEM_H */
+#endif /* I2CONVENIENCE_H */
