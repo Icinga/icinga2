@@ -38,7 +38,14 @@ void ConfigFileComponent::Start(void)
 		throw logic_error("Missing 'configFilename' property");
 
 	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(filename);
-	ConfigVM::ExecuteItems(configItems);
+
+	Application::Log(LogInformation, "configfile", "Executing config items...");
+
+	vector<ConfigItem::Ptr>::iterator it;
+	for (it = configItems.begin(); it != configItems.end(); it++) {
+		ConfigItem::Ptr item = *it;
+		item->Commit();
+	}
 }
 
 void ConfigFileComponent::Stop(void)
