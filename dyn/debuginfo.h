@@ -39,14 +39,14 @@ struct DebugInfo
 
 	union
 	{
-		int LastColumn;
-		int last_column;
+		int LastLine;
+		int last_line;
 	};
 
 	union
 	{
-		int LastLine;
-		int last_line;
+		int LastColumn;
+		int last_column;
 	};
 };
 

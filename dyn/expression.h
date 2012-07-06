@@ -25,6 +25,7 @@ namespace icinga
 
 enum ExpressionOperator
 {
+	OperatorExecute,
 	OperatorSet,
 	OperatorPlus,
 	OperatorMinus,

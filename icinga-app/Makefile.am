@@ -11,6 +11,7 @@ icinga_CPPFLAGS = \
 	-DI2_ICINGALAUNCHER_BUILD \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
+	-I${top_srcdir}/dyn \
 	-I${top_srcdir}/jsonrpc \
 	-I${top_srcdir}/icinga \
 	-I${top_srcdir}
@@ -22,6 +23,7 @@ icinga_LDADD = \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	${top_builddir}/base/libbase.la \
+	${top_builddir}/dyn/libdyn.la \
 	${top_builddir}/icinga/libicinga.la \
 	-dlopen ${top_builddir}/components/checker/checker.la \
 	-dlopen ${top_builddir}/components/cibsync/cibsync.la \

@@ -8,6 +8,7 @@
  * updates from all the other Icinga components.
  */
 
+#include <i2-dyn.h>
 #include <i2-icinga.h>
 
 #ifdef I2_CIB_BUILD

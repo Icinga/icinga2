@@ -82,7 +82,7 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *context, const char *err)
 int yyparse(ConfigCompiler *context);
 
 static stack<ExpressionList::Ptr> m_ExpressionLists;
-static ConfigItem::Ptr m_Object;
+static ConfigItemBuilder::Ptr m_Item;
 static bool m_Abstract;
 static bool m_Local;
 static Dictionary::Ptr m_Array;
@@ -116,9 +116,9 @@ object:
 	}
 attributes T_OBJECT T_IDENTIFIER T_STRING
 	{
-		m_Object = boost::make_shared<ConfigItem>($4, $5, yylloc);
-		free($4);
-		free($5);
+		m_Item = boost::make_shared<ConfigItemBuilder>(yylloc);
+		m_Item->SetType($4);
+		m_Item->SetName($5);
 	}
 inherits_specifier expressionlist
 	{
@@ -126,22 +126,12 @@ inherits_specifier expressionlist
 		delete $8;
 		ExpressionList::Ptr exprl = dynamic_pointer_cast<ExpressionList>(exprl_object);
 
-		Expression typeexpr("__type", OperatorSet, m_Object->GetType(), yylloc);
-		exprl->AddExpression(typeexpr);
+		m_Item->AddExpressionList(exprl);
+		m_Item->SetLocal(m_Local);
+		m_Item->SetAbstract(m_Abstract);
 
-		Expression nameexpr("__name", OperatorSet, m_Object->GetName(), yylloc);
-		exprl->AddExpression(nameexpr);
-
-		Expression abstractexpr("__abstract", OperatorSet, m_Abstract ? 1 : 0, yylloc);
-		exprl->AddExpression(abstractexpr);
-
-		Expression localexpr("__local", OperatorSet, m_Local ? 1 : 0, yylloc);
-		exprl->AddExpression(localexpr);
-
-		m_Object->SetExpressionList(exprl);
-
-		context->AddObject(m_Object);
-		m_Object.reset();
+		context->AddObject(m_Item->Compile());
+		m_Item.reset();
 	}
 	;
 
@@ -165,7 +155,7 @@ inherits_list: inherits_item
 
 inherits_item: T_STRING
 	{
-		m_Object->AddParent($1);
+		m_Item->AddParent($1);
 		free($1);
 	}
 	;

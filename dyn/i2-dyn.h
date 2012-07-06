@@ -48,6 +48,7 @@ using std::endl;
 #include "expression.h"
 #include "expressionlist.h"
 #include "configitem.h"
+#include "configitembuilder.h"
 #include "configcompiler.h"
 
 #endif /* I2DYN_H */

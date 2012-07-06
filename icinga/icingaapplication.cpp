@@ -62,15 +62,19 @@ int IcingaApplication::Main(const vector<string>& args)
 	componentObjects->Start();
 
 	/* load convenience config component */
-	ConfigObject::Ptr convenienceComponentConfig = boost::make_shared<ConfigObject>("component", "convenience");
+	ConfigItemBuilder::Ptr convenienceComponentConfig = boost::make_shared<ConfigItemBuilder>();
+	convenienceComponentConfig->SetType("component");
+	convenienceComponentConfig->SetName("convenience");
 	convenienceComponentConfig->SetLocal(true);
-	convenienceComponentConfig->Commit();
+	convenienceComponentConfig->Compile()->Commit();
 
 	/* load config file */
-	ConfigObject::Ptr fileComponentConfig = boost::make_shared<ConfigObject>("component", "configfile");
+	ConfigItemBuilder::Ptr fileComponentConfig = boost::make_shared<ConfigItemBuilder>();
+	fileComponentConfig->SetType("component");
+	fileComponentConfig->SetName("configfile");
 	fileComponentConfig->SetLocal(true);
-	fileComponentConfig->SetProperty("configFilename", args[1]);
-	fileComponentConfig->Commit();
+	fileComponentConfig->AddExpression("configFilename", OperatorSet, args[1]);
+	fileComponentConfig->Compile()->Commit();
 
 	ConfigObject::Ptr icingaConfig = ConfigObject::GetObject("application", "icinga");
 

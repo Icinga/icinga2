@@ -14,9 +14,12 @@ void CIB::RequireInformation(InformationType types)
 	Component::Ptr component = app->GetComponent("cibsync");
 
 	if (!component) {
-		ConfigObject::Ptr cibsyncComponentConfig = boost::make_shared<ConfigObject>("component", "cibsync");
-		cibsyncComponentConfig->SetLocal(true);
-		cibsyncComponentConfig->Commit();
+		ConfigItemBuilder::Ptr cb = boost::make_shared<ConfigItemBuilder>();
+		cb->SetType("component");
+		cb->SetName("cibsync");
+		cb->SetLocal(true);
+		ConfigItem::Ptr ci = cb->Compile();
+		ci->Commit();
 	}
 }
 

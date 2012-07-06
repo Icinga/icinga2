@@ -32,16 +32,16 @@ public:
 
 	typedef ObjectMap<pair<string, string>, ConfigItem::Ptr> TNMap;
 
-	ConfigItem(const string& type, const string& name, const DebugInfo& debuginfo);
+	ConfigItem(const string& type, const string& name,
+	    const ExpressionList::Ptr& exprl, const vector<string>& parents,
+	    const DebugInfo& debuginfo);
 
 	string GetType(void) const;
 	string GetName(void) const;
 
 	vector<string> GetParents(void) const;
-	void AddParent(const string& parent);
 
 	ExpressionList::Ptr GetExpressionList(void) const;
-	void SetExpressionList(const ExpressionList::Ptr& exprl);
 
 	void CalculateProperties(Dictionary::Ptr dictionary) const;
 
@@ -59,9 +59,10 @@ public:
 private:
 	string m_Type;
 	string m_Name;
-	DebugInfo m_DebugInfo;
-	vector<string> m_Parents;
+
 	ExpressionList::Ptr m_ExpressionList;
+	vector<string> m_Parents;
+	DebugInfo m_DebugInfo;
 
 	ConfigObject::WeakPtr m_ConfigObject;
 

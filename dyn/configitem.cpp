@@ -21,8 +21,11 @@
 
 using namespace icinga;
 
-ConfigItem::ConfigItem(const string& type, const string& name, const DebugInfo& debuginfo)
-	: m_Type(type), m_Name(name), m_DebugInfo(debuginfo)
+ConfigItem::ConfigItem(const string& type, const string& name,
+    const ExpressionList::Ptr& exprl, const vector<string>& parents,
+    const DebugInfo& debuginfo)
+	: m_Type(type), m_Name(name), m_ExpressionList(exprl),
+	  m_Parents(parents), m_DebugInfo(debuginfo)
 {
 }
 
@@ -46,19 +49,9 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 	return m_ExpressionList;
 }
 
-void ConfigItem::SetExpressionList(const ExpressionList::Ptr& exprl)
-{
-	m_ExpressionList = exprl;
-}
-
 vector<string> ConfigItem::GetParents(void) const
 {
 	return m_Parents;
-}
-
-void ConfigItem::AddParent(const string& parent)
-{
-	m_Parents.push_back(parent);
 }
 
 void ConfigItem::CalculateProperties(Dictionary::Ptr dictionary) const

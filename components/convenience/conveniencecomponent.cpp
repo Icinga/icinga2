@@ -73,7 +73,8 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 		Dictionary::Iterator it;
 		for (it = serviceDescs->Begin(); it != serviceDescs->End(); it++) {
 			Variant desc = it->second;
-			ConfigItem::Ptr serviceItem;
+
+			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
 
 			string name;
 
@@ -82,60 +83,34 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 				namebuf << item->GetName() << "-" << string(desc);
 				name = namebuf.str();
 
-				serviceItem = boost::make_shared<ConfigItem>("service", name, item->GetDebugInfo());
-				serviceItem->AddParent(desc);
+				builder->SetType("service");
+				builder->SetName(name);
 
-				ExpressionList::Ptr exprl = boost::make_shared<ExpressionList>();
-
-				Expression localExpr("__local", OperatorSet, 1, item->GetDebugInfo());
-				exprl->AddExpression(localExpr);
-
-				Expression abstractExpr("__abstract", OperatorSet, 0, item->GetDebugInfo());
-				exprl->AddExpression(abstractExpr);
-
-				Expression typeExpr("__type", OperatorSet, "service", item->GetDebugInfo());
-				exprl->AddExpression(typeExpr);
-
-				Expression nameExpr("__name", OperatorSet, name, item->GetDebugInfo());
-				exprl->AddExpression(nameExpr);
-
-				Expression hostExpr("host_name", OperatorSet, item->GetName(), item->GetDebugInfo());
-				exprl->AddExpression(hostExpr);
-
-				Expression aliasExpr("alias", OperatorSet, string(desc), item->GetDebugInfo());
-				exprl->AddExpression(aliasExpr);
+				builder->AddParent(desc);
+				builder->AddExpression("host_name", OperatorSet, item->GetName());
+				builder->AddExpression("alias", OperatorSet, string(desc));
 
 				Dictionary::Ptr macros;
-				if (host->GetProperty("macros", &macros)) {
-					Expression macrosExpr("macros", OperatorPlus, macros, item->GetDebugInfo());
-					exprl->AddExpression(macrosExpr);
-				}
+				if (host->GetProperty("macros", &macros))
+					builder->AddExpression("macros", OperatorPlus, macros);
 
 				long checkInterval;
-				if (host->GetProperty("check_interval", &checkInterval)) {
-					Expression checkExpr("check_interval", OperatorSet, checkInterval, item->GetDebugInfo());
-					exprl->AddExpression(checkExpr);
-				}
+				if (host->GetProperty("check_interval", &checkInterval))
+					builder->AddExpression("check_interval", OperatorSet, checkInterval);
 
 				long retryInterval;
-				if (host->GetProperty("retry_interval", &retryInterval)) {
-					Expression retryExpr("retry_interval", OperatorSet, retryInterval, item->GetDebugInfo());
-					exprl->AddExpression(retryExpr);
-				}
+				if (host->GetProperty("retry_interval", &retryInterval))
+					builder->AddExpression("retry_interval", OperatorSet, retryInterval);
 
 				Dictionary::Ptr sgroups;
-				if (host->GetProperty("servicegroups", &sgroups)) {
-					Expression sgroupsExpr("servicegroups", OperatorPlus, sgroups, item->GetDebugInfo());
-					exprl->AddExpression(sgroupsExpr);
-				}
+				if (host->GetProperty("servicegroups", &sgroups))
+					builder->AddExpression("servicegroups", OperatorPlus, sgroups);
 
 				Dictionary::Ptr checkers;
-				if (host->GetProperty("checkers", &checkers)) {
-					Expression checkersExpr("checkers", OperatorSet, checkers, item->GetDebugInfo());
-					exprl->AddExpression(checkersExpr);
-				}
+				if (host->GetProperty("checkers", &checkers))
+					builder->AddExpression("checkers", OperatorSet, checkers);
 
-				serviceItem->SetExpressionList(exprl);
+				ConfigItem::Ptr serviceItem = builder->Compile();
 				ConfigObject::Ptr service = serviceItem->Commit();
 
 				newServices->SetProperty(name, serviceItem);

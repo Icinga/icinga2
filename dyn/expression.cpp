@@ -42,6 +42,14 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 	Dictionary::Ptr dict;
 
 	switch (m_Operator) {
+		case OperatorExecute:
+			if (!valueExprl)
+				throw invalid_argument("Operand for OperatorExecute must be an ExpressionList.");
+
+			valueExprl->Execute(dictionary);
+
+			return;
+
 		case OperatorSet:
 			if (valueExprl) {
 				dict = boost::make_shared<Dictionary>();
@@ -85,9 +93,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			break;
 
 		default:
-			assert(!"Not yet implemented.");
-
-			break;
+			throw runtime_error("Not yet implemented.");
 	}
 
 	dictionary->SetProperty(m_Key, newValue);

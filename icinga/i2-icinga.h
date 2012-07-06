@@ -28,6 +28,8 @@
  */
 
 #include <i2-base.h>
+#include <i2-dyn.h>
+#include <i2-dyn.h>
 #include <i2-jsonrpc.h>
 #include <set>
 
