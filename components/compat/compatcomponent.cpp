@@ -305,7 +305,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 		for (vt = sgt->second.begin(); vt != sgt->second.end(); vt++) {
 			sglist.push_back(vt->GetHost().GetName());
-			sglist.push_back(vt->GetName());
+			sglist.push_back(vt->GetAlias());
 		}
 
 		DumpStringList(objectfp, sglist);
