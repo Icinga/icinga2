@@ -167,7 +167,7 @@ void NagiosCheckTask::ProcessCheckOutput(const string& output)
 			text.append("\n");
 
 		if (delim != string::npos) {
-			text.append(line, 0, delim - 1);
+			text.append(line, 0, delim);
 
 			if (!perfdata.empty())
 				perfdata.append(" ");
