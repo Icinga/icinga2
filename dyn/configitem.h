@@ -23,7 +23,7 @@
 namespace icinga
 {
 
-class ConfigItem : public Object {
+class I2_DYN_API ConfigItem : public Object {
 public:
 	typedef shared_ptr<ConfigItem> Ptr;
 	typedef weak_ptr<ConfigItem> WeakPtr;

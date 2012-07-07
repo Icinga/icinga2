@@ -15,6 +15,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "icinga", "icinga\icinga.vcxproj", "{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9C92DA90-FD53-43A9-A244-90F2E8AF9677} = {9C92DA90-FD53-43A9-A244-90F2E8AF9677}
+		{B26AFFA6-2BDF-42E6-A224-2591FFD9BFB7} = {B26AFFA6-2BDF-42E6-A224-2591FFD9BFB7}
 		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8} = {8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}
 	EndProjectSection
 EndProject
@@ -80,6 +81,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cibsync", "components\cibsy
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compat", "components\compat\compat.vcxproj", "{2BD1C70C-43DB-4F44-B66B-67CF5C7044AA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "convenience", "components\convenience\convenience.vcxproj", "{D02A349B-BAF7-41FB-86FF-B05BA05FE578}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8} = {C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -147,6 +153,10 @@ Global
 		{2BD1C70C-43DB-4F44-B66B-67CF5C7044AA}.Debug|Win32.Build.0 = Debug|Win32
 		{2BD1C70C-43DB-4F44-B66B-67CF5C7044AA}.Release|Win32.ActiveCfg = Release|Win32
 		{2BD1C70C-43DB-4F44-B66B-67CF5C7044AA}.Release|Win32.Build.0 = Release|Win32
+		{D02A349B-BAF7-41FB-86FF-B05BA05FE578}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D02A349B-BAF7-41FB-86FF-B05BA05FE578}.Debug|Win32.Build.0 = Debug|Win32
+		{D02A349B-BAF7-41FB-86FF-B05BA05FE578}.Release|Win32.ActiveCfg = Release|Win32
+		{D02A349B-BAF7-41FB-86FF-B05BA05FE578}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

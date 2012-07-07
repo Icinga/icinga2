@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class ConfigItemBuilder : public Object
+class I2_DYN_API ConfigItemBuilder : public Object
 {
 public:
 	typedef shared_ptr<ConfigItemBuilder> Ptr;
