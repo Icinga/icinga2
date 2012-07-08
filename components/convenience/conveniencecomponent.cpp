@@ -54,6 +54,29 @@ void ConvenienceComponent::HostAddedHandler(const ConfigItem::Ptr& item)
 	HostCommittedHandler(item);
 }
 
+void ConvenienceComponent::CopyServiceAttributes(const Dictionary::Ptr& service, const ConfigItemBuilder::Ptr& builder)
+{
+	Dictionary::Ptr macros; 
+	if (service->GetProperty("macros", &macros))
+		builder->AddExpression("macros", OperatorPlus, macros);
+
+	long checkInterval;
+	if (service->GetProperty("check_interval", &checkInterval))
+		builder->AddExpression("check_interval", OperatorSet, checkInterval);
+
+	long retryInterval;
+	if (service->GetProperty("retry_interval", &retryInterval))
+		builder->AddExpression("retry_interval", OperatorSet, retryInterval);
+
+	Dictionary::Ptr sgroups;
+	if (service->GetProperty("servicegroups", &sgroups))
+		builder->AddExpression("servicegroups", OperatorPlus, sgroups);
+
+	Dictionary::Ptr checkers;
+	if (service->GetProperty("checkers", &checkers))
+		builder->AddExpression("checkers", OperatorSet, checkers);
+}
+
 void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 {
 	if (item->GetType() != "host")
@@ -77,51 +100,44 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 	if (serviceDescs) {
 		Dictionary::Iterator it;
 		for (it = serviceDescs->Begin(); it != serviceDescs->End(); it++) {
-			Variant desc = it->second;
+			string svcname = it->first;
+			Variant svcdesc = it->second;
+
+			stringstream namebuf;
+			namebuf << item->GetName() << "-" << svcname;
+			string name = namebuf.str();
 
 			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
+			builder->SetType("service");
+			builder->SetName(name);
+			builder->AddExpression("host_name", OperatorSet, item->GetName());
+			builder->AddExpression("alias", OperatorSet, svcname);
 
-			string name;
+			CopyServiceAttributes(host->GetProperties(), builder);
 
-			if (desc.GetType() == VariantString) {
-				stringstream namebuf;
-				namebuf << item->GetName() << "-" << string(desc);
-				name = namebuf.str();
+			if (svcdesc.GetType() == VariantString) {
+				builder->AddParent(svcdesc);
+			} else if (svcdesc.GetType() == VariantObject) {
+				Dictionary::Ptr service = dynamic_pointer_cast<Dictionary>(svcdesc.GetObject());
 
-				builder->SetType("service");
-				builder->SetName(name);
+				if (!service)
+					throw invalid_argument("Service description invalid.");
 
-				builder->AddParent(desc);
-				builder->AddExpression("host_name", OperatorSet, item->GetName());
-				builder->AddExpression("alias", OperatorSet, string(desc));
+				string parent;
+				if (!service->GetProperty("service", &parent))
+					parent = string(svcdesc);
 
-				Dictionary::Ptr macros;
-				if (host->GetProperty("macros", &macros))
-					builder->AddExpression("macros", OperatorPlus, macros);
+				builder->AddParent(parent);
 
-				long checkInterval;
-				if (host->GetProperty("check_interval", &checkInterval))
-					builder->AddExpression("check_interval", OperatorSet, checkInterval);
-
-				long retryInterval;
-				if (host->GetProperty("retry_interval", &retryInterval))
-					builder->AddExpression("retry_interval", OperatorSet, retryInterval);
-
-				Dictionary::Ptr sgroups;
-				if (host->GetProperty("servicegroups", &sgroups))
-					builder->AddExpression("servicegroups", OperatorPlus, sgroups);
-
-				Dictionary::Ptr checkers;
-				if (host->GetProperty("checkers", &checkers))
-					builder->AddExpression("checkers", OperatorSet, checkers);
-
-				ConfigItem::Ptr serviceItem = builder->Compile();
-				ConfigObject::Ptr service = serviceItem->Commit();
-
-				newServices->SetProperty(name, serviceItem);
+				CopyServiceAttributes(service, builder);
 			} else {
-				throw runtime_error("Not supported.");
+				throw invalid_argument("Service description must be either a string or a dictionary.");
 			}
+
+			ConfigItem::Ptr serviceItem = builder->Compile();
+			serviceItem->Commit();
+
+			newServices->SetProperty(name, serviceItem);
 		}
 	}
 
