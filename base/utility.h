@@ -63,6 +63,9 @@ public:
 
 	static bool Match(string pattern, string text);
 
+	static string DirName(const string& path);
+	static string BaseName(const string& path);
+
 private:
 	static bool m_SSLInitialized;
 

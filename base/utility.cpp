@@ -166,3 +166,58 @@ bool Utility::Match(string pattern, string text)
 {
 	return (match(pattern.c_str(), text.c_str()) == 0);
 }
+
+/**
+ * Returns the directory component of a path. See dirname(3) for details.
+ *
+ * @param path The full path.
+ * @returns The directory.
+ */
+string Utility::DirName(const string& path)
+{
+	char *dir = strdup(path.c_str());
+	string result;
+
+	if (dir == NULL)
+		throw std::bad_alloc("strdup() failed");
+
+#ifndef _WIN32
+	result = dirname(dir);
+#else /* _WIN32 */
+	if (!PathRemoveFileSpec(dir)) {
+		free(dir);
+		throw Win32Exception("PathRemoveFileSpec() failed", GetLastError());
+	}
+
+	result = dir;
+#endif /* _WIN32 */
+
+	free(dir);
+
+	return result;
+}
+
+/**
+ * Returns the file component of a path. See basename(3) for details.
+ *
+ * @param path The full path.
+ * @returns The filename.
+ */
+string Utility::BaseName(const string& path)
+{
+	char *dir = strdup(path.c_str());
+	string result;
+
+	if (dir == NULL)
+		throw std::bad_alloc("strdup() failed");
+
+#ifndef _WIN32
+	result = basename(dir);
+#else /* _WIN32 */
+	result = PathFindFileName(dir);
+#endif /* _WIN32 */
+
+	free(dir);
+
+	return result;
+}

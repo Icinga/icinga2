@@ -28,19 +28,21 @@ class I2_DYN_API ConfigCompiler
 public:
 	typedef function<vector<ConfigItem::Ptr> (const string& include)> HandleIncludeFunc;
 
-	ConfigCompiler(istream *input = &cin,
+	ConfigCompiler(const string& path, istream *input = &cin,
 	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
 	virtual ~ConfigCompiler(void);
 
 	void Compile(void);
 
-	static vector<ConfigItem::Ptr> CompileStream(istream *stream);
-	static vector<ConfigItem::Ptr> CompileFile(const string& filename);
-	static vector<ConfigItem::Ptr> CompileText(const string& text);
+	static vector<ConfigItem::Ptr> CompileStream(const string& path, istream *stream);
+	static vector<ConfigItem::Ptr> CompileFile(const string& path);
+	static vector<ConfigItem::Ptr> CompileText(const string& path, const string& text);
 
 	static vector<ConfigItem::Ptr> HandleFileInclude(const string& include);
 
 	vector<ConfigItem::Ptr> GetResult(void) const;
+
+	string GetPath(void) const;
 
 	/* internally used methods */
 	void HandleInclude(const string& include);
@@ -49,8 +51,11 @@ public:
 	void *GetScanner(void) const;
 
 private:
-	HandleIncludeFunc m_HandleInclude;
+	string m_Path;
 	istream *m_Input;
+
+	HandleIncludeFunc m_HandleInclude;
+
 	void *m_Scanner;
 	vector<ConfigItem::Ptr> m_Result;
 

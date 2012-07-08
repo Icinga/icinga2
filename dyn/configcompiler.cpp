@@ -23,10 +23,9 @@ using std::ifstream;
 
 using namespace icinga;
 
-ConfigCompiler::ConfigCompiler(istream *input, HandleIncludeFunc includeHandler)
+ConfigCompiler::ConfigCompiler(const string& path, istream *input, HandleIncludeFunc includeHandler)
+	: m_Path(path), m_Input(input), m_HandleInclude(includeHandler)
 {
-	m_HandleInclude = includeHandler;
-	m_Input = input;
 	InitializeScanner();
 }
 
@@ -51,37 +50,43 @@ vector<ConfigItem::Ptr> ConfigCompiler::GetResult(void) const
         return m_Result;
 }
 
+string ConfigCompiler::GetPath(void) const
+{
+	return m_Path;
+}
+
 void ConfigCompiler::HandleInclude(const string& include)
 {
-	vector<ConfigItem::Ptr> items = m_HandleInclude(include);
+	string path = Utility::DirName(GetPath()) + "/" + include;
+	vector<ConfigItem::Ptr> items = m_HandleInclude(path);
 	std::copy(items.begin(), items.end(), back_inserter(m_Result));
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(istream *stream)
+vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(const string& path, istream *stream)
 {
-	ConfigCompiler ctx(stream);
+	ConfigCompiler ctx(path, stream);
 	ctx.Compile();
 	return ctx.GetResult();
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& filename)
+vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& path)
 {
 	ifstream stream;
 	stream.exceptions(ifstream::badbit);
-	stream.open(filename.c_str(), ifstream::in);
+	stream.open(path.c_str(), ifstream::in);
 
 	if (!stream.good())
-		throw invalid_argument("Could not open config file: " + filename);
+		throw invalid_argument("Could not open config file: " + path);
 
-	Application::Log(LogInformation, "dyn", "Compiling config file: " + filename);
+	Application::Log(LogInformation, "dyn", "Compiling config file: " + path);
 
-	return CompileStream(&stream);
+	return CompileStream(path, &stream);
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const string& text)
+vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const string& path, const string& text)
 {
 	stringstream stream(text);
-	return CompileStream(&stream);
+	return CompileStream(path, &stream);
 }
 
 vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const string& include)

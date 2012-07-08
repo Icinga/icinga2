@@ -270,6 +270,8 @@ string Application::GetExeDirectory(void) const
 	if (!result.empty())
 		return result;
 
+	string executablePath;
+
 #ifndef _WIN32
 	string argv0 = m_Arguments[0];
 
@@ -279,9 +281,9 @@ string Application::GetExeDirectory(void) const
 	string workingDirectory = buffer;
 
 	if (argv0[0] != '/')
-		result = workingDirectory + "/" + argv0;
+		executablePath = workingDirectory + "/" + argv0;
 	else
-		result = argv0;
+		executablePath = argv0;
 
 	if (argv0.find_first_of('/') == string::npos) {
 		const char *pathEnv = getenv("PATH");
@@ -294,36 +296,33 @@ string Application::GetExeDirectory(void) const
 				string pathTest = *it + "/" + argv0;
 
 				if (access(pathTest.c_str(), X_OK) == 0) {
-					result = pathTest;
+					executablePath = pathTest;
 					foundPath = true;
 					break;
 				}
 			}
 
 			if (!foundPath) {
-				result.clear();
+				executablePath.clear();
 				throw runtime_error("Could not determine executable path.");
 			}
 		}
 	}
 
-	if (realpath(result.c_str(), buffer) == NULL)
+	if (realpath(executablePath.c_str(), buffer) == NULL)
 		throw PosixException("realpath failed", errno);
 
-	result = buffer;
-
-	size_t pos = result.find_last_of('/');
-	if (pos != string::npos)
-		result.erase(pos);
+	executablePath = buffer;
 #else /* _WIN32 */
 	char FullExePath[MAXPATHLEN];
 
-	GetModuleFileName(NULL, FullExePath, sizeof(FullExePath));
+	if (!GetModuleFileName(NULL, FullExePath, sizeof(FullExePath)))
+		throw Win32Exception("GetModuleFileName() failed", GetLastError());
 
-	PathRemoveFileSpec(FullExePath);
-
-	result = FullExePath;
+	executablePath = FullExePath;
 #endif /* _WIN32 */
+
+	result = Utility::DirName(executablePath);
 
 	return result;
 }
