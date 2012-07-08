@@ -70,13 +70,7 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 void yyerror(YYLTYPE *locp, ConfigCompiler *context, const char *err)
 {
 	stringstream message;
-
-	message << "in " << locp->Path << ": "
-	    << locp->FirstLine << ":" << locp->FirstColumn
-	    << "-"
-	    << locp->LastLine << ":" << locp->LastColumn
-	    << ": " << err << endl;
-
+	message << *locp;
 	throw runtime_error(message.str());
 }
 

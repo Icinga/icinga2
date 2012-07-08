@@ -54,7 +54,8 @@ struct DebugInfo
 
 inline ostream& operator<<(ostream& out, const DebugInfo& val)
 {
-	out << val.FirstLine << ":" << val.FirstColumn
+	out << "in " << val.Path << ": "
+	    << val.FirstLine << ":" << val.FirstColumn
 	    << "-"
 	    << val.LastLine << ":" << val.LastColumn;
 
