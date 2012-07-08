@@ -26,6 +26,7 @@ using namespace icinga;
 #define YY_EXTRA_TYPE ConfigCompiler *
 #define YY_USER_ACTION 					\
 do {							\
+	yylloc->Path = yyextra->GetPath();		\
 	yylloc->FirstLine = yylineno;			\
 	yylloc->FirstColumn = yycolumn;			\
 	yylloc->LastLine = yylineno;			\

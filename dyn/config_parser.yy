@@ -71,9 +71,10 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *context, const char *err)
 {
 	stringstream message;
 
-	message << locp->first_line << ":" << locp->first_column
+	message << "in " << locp->Path << ": "
+	    << locp->FirstLine << ":" << locp->FirstColumn
 	    << "-"
-	    << locp->last_line << ":" << locp->last_column
+	    << locp->LastLine << ":" << locp->LastColumn
 	    << ": " << err << endl;
 
 	throw runtime_error(message.str());

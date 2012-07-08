@@ -25,6 +25,8 @@ namespace icinga
 
 struct DebugInfo
 {
+	string Path;
+
 	union
 	{
 		int FirstLine;
