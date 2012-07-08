@@ -32,6 +32,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <signal.h>
+#include <libgen.h>
 
 void Sleep(unsigned long milliseconds);
 

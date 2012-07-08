@@ -179,7 +179,7 @@ string Utility::DirName(const string& path)
 	string result;
 
 	if (dir == NULL)
-		throw std::bad_alloc("strdup() failed");
+		throw std::bad_alloc();
 
 #ifndef _WIN32
 	result = dirname(dir);
@@ -209,7 +209,7 @@ string Utility::BaseName(const string& path)
 	string result;
 
 	if (dir == NULL)
-		throw std::bad_alloc("strdup() failed");
+		throw std::bad_alloc();
 
 #ifndef _WIN32
 	result = basename(dir);

@@ -41,15 +41,16 @@ def processHost(host):
 
     for element in host.getElementsByTagName("port"):
         port = int(element.getAttribute("portid"))
+        protocol = element.getAttribute("protocol")
 
         try:
-            serv = socket.getservbyport(port, "tcp")
+            serv = socket.getservbyport(port, protocol)
         except:
             serv = str(port)
 
         print ""
         print "\tservices[\"%s\"] = {" % (serv)
-        print "\t\tservice = \"tcp\","
+        print "\t\tservice = \"%s\"," % (protocol)
         print ""
         print "\t\tmacros = {"
         print "\t\t\tport = %s" % (port)
