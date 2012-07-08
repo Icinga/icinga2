@@ -125,7 +125,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 
 				string parent;
 				if (!service->GetProperty("service", &parent))
-					parent = string(svcdesc);
+					parent = svcname;
 
 				builder->AddParent(parent);
 
@@ -160,6 +160,9 @@ void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
 		return;
 
 	ConfigObject::Ptr host = item->GetConfigObject();
+
+	if (!host)
+		return;
 
 	Dictionary::Ptr services;
 	host->GetTag("convenience-services", &services);
