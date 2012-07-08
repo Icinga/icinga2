@@ -35,4 +35,5 @@ icinga_LDADD = \
 	-dlopen ${top_builddir}/components/discovery/discovery.la
 
 icinga_DEPENDENCIES = \
-	${top_builddir}/components/configfile/configfile.la
+	${top_builddir}/components/configfile/configfile.la \
+	${top_builddir}/components/convenience/convenience.la
