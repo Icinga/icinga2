@@ -34,7 +34,7 @@ public:
 	virtual void Stop(void);
 
 private:
-	void CopyServiceAttributes(const Dictionary::Ptr& service, const ConfigItemBuilder::Ptr& builder);
+	void CopyServiceAttributes(const ConfigObject::Ptr& host, const Dictionary::Ptr& service, const ConfigItemBuilder::Ptr& builder);
 	void HostAddedHandler(const ConfigItem::Ptr& item);
 	void HostCommittedHandler(const ConfigItem::Ptr& item);
 	void HostRemovedHandler(const ConfigItem::Ptr& item);

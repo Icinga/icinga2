@@ -93,6 +93,26 @@ Dictionary::Ptr Service::GetDependencies(void) const
 	return value;
 }
 
+void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
+	assert(result);
+
+	Dictionary::Ptr dependencies = GetDependencies();
+
+	if (!dependencies)
+		return;
+
+	Dictionary::Iterator it;
+	for (it = dependencies->Begin(); it != dependencies->End(); it++) {
+		if (result->Contains(it->second))
+			continue;
+
+		result->SetProperty(it->second, it->second);
+
+		Service service = Service::GetByName(it->second);
+		service.GetDependenciesRecursive(result);
+	}
+}
+
 Dictionary::Ptr Service::GetGroups(void) const
 {
 	Dictionary::Ptr value;
@@ -109,24 +129,20 @@ Dictionary::Ptr Service::GetCheckers(void) const
 
 bool Service::IsReachable(void) const
 {
-	Dictionary::Ptr dependencies = GetDependencies();
+	Dictionary::Ptr dependencies = boost::make_shared<Dictionary>();
+	GetDependenciesRecursive(dependencies);
 
-	if (dependencies) {
-		Dictionary::Iterator it;
-		for (it = dependencies->Begin(); it != dependencies->End(); it++) {
-			Service service = Service::GetByName(it->second);
+	Dictionary::Iterator it;
+	for (it = dependencies->Begin(); it != dependencies->End(); it++) {
+		Service service = Service::GetByName(it->second);
 
-			/* ignore ourselves */
-			if (service.GetName() == GetName())
-				continue;
+		/* ignore ourselves */
+		if (service.GetName() == GetName())
+			continue;
 
-			if (!service.IsReachable())
-				return false;
-		
-			if (service.GetStateType() == StateTypeHard && service.GetState() != StateOK &&
-				service.GetState() != StateWarning)
-				return false;
-		}
+		if (service.GetStateType() == StateTypeHard && service.GetState() != StateOK &&
+		    service.GetState() != StateWarning)
+			return false;
 	}
 	
 	return true;
@@ -345,4 +361,22 @@ bool Service::IsAllowedChecker(const string& checker) const
 	}
 
 	return false;
+}
+
+Dictionary::Ptr Service::ResolveDependencies(Host host, const Dictionary::Ptr& dependencies)
+{
+	Dictionary::Ptr services;
+	host.GetConfigObject()->GetProperty("services", &services);
+
+	Dictionary::Ptr result = boost::make_shared<Dictionary>();
+
+	Dictionary::Iterator it;
+	for (it = dependencies->Begin(); it != dependencies->End(); it++) {
+		if (services && services->Contains(it->first))
+			result->AddUnnamedProperty(host.GetName() + "-" + it->first);
+		else
+			result->AddUnnamedProperty(it->first);
+	}
+
+        return result;
 }

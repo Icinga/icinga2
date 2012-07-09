@@ -41,6 +41,7 @@ public:
 	long GetCheckInterval(void) const;
 	long GetRetryInterval(void) const;
 	Dictionary::Ptr GetDependencies(void) const;
+	void GetDependenciesRecursive(const Dictionary::Ptr& result) const;
 	Dictionary::Ptr GetGroups(void) const;
 	Dictionary::Ptr GetCheckers(void) const;
 
@@ -81,6 +82,8 @@ public:
 
 	static ServiceStateType StateTypeFromString(const string& state);
 	static string StateTypeToString(ServiceStateType state);
+
+	static Dictionary::Ptr ResolveDependencies(Host host, const Dictionary::Ptr& dependencies);
 
 private:
 	static bool m_DependencyCacheValid;

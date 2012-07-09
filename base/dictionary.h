@@ -123,6 +123,8 @@ public:
 
 	long GetLength(void) const;
 
+	void RemoveProperty(const string& key);
+
 private:
 	map<string, Variant> m_Data;
 };

@@ -61,13 +61,36 @@ void CompatComponent::Stop(void)
 
 void CompatComponent::DumpHostStatus(ofstream& fp, Host host)
 {
+	int state = 0; /* up */
+
+	Dictionary::Ptr dependencies;
+	if (host.GetConfigObject()->GetProperty("dependencies", &dependencies)) {
+		dependencies = Service::ResolveDependencies(host, dependencies);
+
+		Dictionary::Iterator it;
+		for (it = dependencies->Begin(); it != dependencies->End(); it++) {
+			Service service = Service::GetByName(it->second);
+
+			if (!service.IsReachable()) {
+				std::cerr << service.GetName() << " is unreachable." << std::endl;
+				state = 2; /* unreachable */
+				break;
+			}
+
+			if (service.GetState() != StateOK && service.GetState() != StateWarning) {
+				state = 1; /* down */
+				break;
+			}
+		}
+	}
+
 	fp << "hoststatus {" << "\n"
 	   << "\t" << "host_name=" << host.GetName() << "\n"
 	   << "\t" << "has_been_checked=1" << "\n"
 	   << "\t" << "should_be_scheduled=1" << "\n"
 	   << "\t" << "check_execution_time=0" << "\n"
 	   << "\t" << "check_latency=0" << "\n"
-	   << "\t" << "current_state=0" << "\n"
+	   << "\t" << "current_state=" << state << "\n"
 	   << "\t" << "state_type=1" << "\n"
 	   << "\t" << "last_check=" << time(NULL) << "\n"
 	   << "\t" << "next_check=" << time(NULL) << "\n"
@@ -124,7 +147,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 			output = text + " (" + output + ")";
 	}
 
-	if (state >= StateUnknown)
+	if (state > StateUnknown)
 		state = StateUnknown;
 
 	fp << "servicestatus {" << "\n"

@@ -33,3 +33,4 @@ Dictionary::Ptr Host::GetGroups(void) const
 	GetConfigObject()->GetProperty("hostgroups", &value);
 	return value;
 }
+

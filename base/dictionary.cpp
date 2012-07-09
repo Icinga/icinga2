@@ -61,3 +61,19 @@ bool Dictionary::Contains(const string& key) const
 {
 	return (m_Data.find(key) != m_Data.end());
 }
+
+/**
+ * Removes the specified key from the dictionary.
+ *
+ * @param key The key.
+ */
+void Dictionary::RemoveProperty(const string& key)
+{
+	Dictionary::Iterator it;
+	it = m_Data.find(key);
+
+	if (it == m_Data.end())
+		return;
+
+	m_Data.erase(it);
+}

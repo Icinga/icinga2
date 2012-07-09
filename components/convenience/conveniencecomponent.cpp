@@ -54,7 +54,7 @@ void ConvenienceComponent::HostAddedHandler(const ConfigItem::Ptr& item)
 	HostCommittedHandler(item);
 }
 
-void ConvenienceComponent::CopyServiceAttributes(const Dictionary::Ptr& service, const ConfigItemBuilder::Ptr& builder)
+void ConvenienceComponent::CopyServiceAttributes(const ConfigObject::Ptr& host, const Dictionary::Ptr& service, const ConfigItemBuilder::Ptr& builder)
 {
 	Dictionary::Ptr macros; 
 	if (service->GetProperty("macros", &macros))
@@ -113,7 +113,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 			builder->AddExpression("host_name", OperatorSet, item->GetName());
 			builder->AddExpression("alias", OperatorSet, svcname);
 
-			CopyServiceAttributes(host->GetProperties(), builder);
+			CopyServiceAttributes(host, host->GetProperties(), builder);
 
 			if (svcdesc.GetType() == VariantString) {
 				builder->AddParent(svcdesc);
@@ -129,7 +129,12 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 
 				builder->AddParent(parent);
 
-				CopyServiceAttributes(service, builder);
+				CopyServiceAttributes(host, service, builder);
+
+				Dictionary::Ptr dependencies;
+				if (service->GetProperty("dependencies", &dependencies))                
+					builder->AddExpression("dependencies", OperatorPlus,            
+					    Service::ResolveDependencies(host, dependencies));
 			} else {
 				throw invalid_argument("Service description must be either a string or a dictionary.");
 			}
