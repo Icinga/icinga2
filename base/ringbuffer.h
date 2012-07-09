@@ -4,12 +4,12 @@
 namespace icinga
 {
 
-class I2_BASE_API Ringbuffer
+class I2_BASE_API RingBuffer
 {
 public:
-	Ringbuffer(long slots);
+	RingBuffer(long slots);
 
-	int GetLength(void) const;
+	long GetLength(void) const;
 	void InsertValue(long tv, int num);
 	int GetValues(long span) const;
 

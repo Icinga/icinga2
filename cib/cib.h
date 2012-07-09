@@ -25,7 +25,7 @@ public:
 private:
 	static int m_Types;
 
-	static Ringbuffer m_TaskStatistics;
+	static RingBuffer m_TaskStatistics;
 };
 
 }

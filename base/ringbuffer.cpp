@@ -2,16 +2,16 @@
 
 using namespace icinga;
 
-Ringbuffer::Ringbuffer(long slots)
+RingBuffer::RingBuffer(long slots)
 	: m_Slots(slots, 0), m_Offset(0)
 { }
 
-int Ringbuffer::GetLength(void) const
+long RingBuffer::GetLength(void) const
 {
 	return m_Slots.size();
 }
 
-void Ringbuffer::InsertValue(long tv, int num)
+void RingBuffer::InsertValue(long tv, int num)
 {
 	vector<int>::size_type offsetTarget = tv % m_Slots.size();
 
@@ -28,7 +28,7 @@ void Ringbuffer::InsertValue(long tv, int num)
 	m_Slots[m_Offset] += num;
 }
 
-int Ringbuffer::GetValues(long span) const
+int RingBuffer::GetValues(long span) const
 {
 	if (span > m_Slots.size())
 		span = m_Slots.size();
