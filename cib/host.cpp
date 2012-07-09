@@ -6,7 +6,7 @@ string Host::GetAlias(void) const
 {
 	string value;
 
-	if (GetConfigObject()->GetProperty("alias", &value))
+	if (GetProperty("alias", &value))
 		return value;
 
 	return GetName();
@@ -30,7 +30,7 @@ Host Host::GetByName(const string& name)
 Dictionary::Ptr Host::GetGroups(void) const
 {
 	Dictionary::Ptr value;
-	GetConfigObject()->GetProperty("hostgroups", &value);
+	GetProperty("hostgroups", &value);
 	return value;
 }
 
@@ -40,7 +40,7 @@ set<string> Host::GetParents(void) const
 
 	Dictionary::Ptr dependencies;
 
-	if (GetConfigObject()->GetProperty("dependencies", &dependencies)) {
+	if (GetProperty("dependencies", &dependencies)) {
 		dependencies = Service::ResolveDependencies(*this, dependencies);
 
 		Dictionary::Iterator it;
@@ -63,7 +63,7 @@ set<string> Host::GetParents(void) const
 bool Host::IsReachable(void) const
 {
 	Dictionary::Ptr dependencies;
-	if (GetConfigObject()->GetProperty("dependencies", &dependencies)) {
+	if (GetProperty("dependencies", &dependencies)) {
 		dependencies = Service::ResolveDependencies(*this, dependencies);
 
 		Dictionary::Iterator it;
@@ -83,7 +83,7 @@ bool Host::IsReachable(void) const
 bool Host::IsUp(void) const
 {
 	Dictionary::Ptr hostchecks;
-	if (GetConfigObject()->GetProperty("hostchecks", &hostchecks)) {
+	if (GetProperty("hostchecks", &hostchecks)) {
 		hostchecks = Service::ResolveDependencies(*this, hostchecks);
 
 		Dictionary::Iterator it;

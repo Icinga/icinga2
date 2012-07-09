@@ -8,7 +8,7 @@ string Service::GetAlias(void) const
 {
 	string value;
 
-	if (GetConfigObject()->GetProperty("alias", &value))
+	if (GetProperty("alias", &value))
 		return value;
 
 	return GetName();
@@ -32,7 +32,7 @@ Service Service::GetByName(const string& name)
 Host Service::GetHost(void) const
 {
 	string hostname;
-	if (!GetConfigObject()->GetProperty("host_name", &hostname))
+	if (!GetProperty("host_name", &hostname))
 		throw runtime_error("Service object is missing the 'host_name' property.");
 
 	return Host::GetByName(hostname);
@@ -41,35 +41,35 @@ Host Service::GetHost(void) const
 Dictionary::Ptr Service::GetMacros(void) const
 {
 	Dictionary::Ptr macros;
-	GetConfigObject()->GetProperty("macros", &macros);
+	GetProperty("macros", &macros);
 	return macros;
 }
 
 string Service::GetCheckType(void) const
 {
 	string value = "nagios";
-	GetConfigObject()->GetProperty("check_type", &value);
+	GetProperty("check_type", &value);
 	return value;
 }
 
 string Service::GetCheckCommand(void) const
 {
 	string value;
-	GetConfigObject()->GetProperty("check_command", &value);
+	GetProperty("check_command", &value);
 	return value;
 }
 
 long Service::GetMaxCheckAttempts(void) const
 {
 	long value = 3;
-	GetConfigObject()->GetProperty("max_check_attempts", &value);
+	GetProperty("max_check_attempts", &value);
 	return value;
 }
 
 long Service::GetCheckInterval(void) const
 {
 	long value = 300;
-	GetConfigObject()->GetProperty("check_interval", &value);
+	GetProperty("check_interval", &value);
 
 	if (value < 15)
 		value = 15;
@@ -80,7 +80,7 @@ long Service::GetCheckInterval(void) const
 long Service::GetRetryInterval(void) const
 {
 	long value;
-	if (!GetConfigObject()->GetProperty("retry_interval", &value))
+	if (!GetProperty("retry_interval", &value))
 		value = GetCheckInterval() / 5;
 
 	return value;
@@ -89,7 +89,7 @@ long Service::GetRetryInterval(void) const
 Dictionary::Ptr Service::GetDependencies(void) const
 {
 	Dictionary::Ptr value;
-	GetConfigObject()->GetProperty("dependencies", &value);
+	GetProperty("dependencies", &value);
 	return value;
 }
 
@@ -116,14 +116,14 @@ void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
 Dictionary::Ptr Service::GetGroups(void) const
 {
 	Dictionary::Ptr value;
-	GetConfigObject()->GetProperty("servicegroups", &value);
+	GetProperty("servicegroups", &value);
 	return value;
 }
 
 Dictionary::Ptr Service::GetCheckers(void) const
 {
 	Dictionary::Ptr value;
-	GetConfigObject()->GetProperty("checkers", &value);
+	GetProperty("checkers", &value);
 	return value;
 }
 
@@ -154,13 +154,13 @@ bool Service::IsReachable(void) const
 
 void Service::SetNextCheck(time_t nextCheck)
 {
-	GetConfigObject()->SetTag("next_check", (long)nextCheck);
+	SetTag("next_check", (long)nextCheck);
 }
 
 time_t Service::GetNextCheck(void)
 {
 	long value;
-	if (!GetConfigObject()->GetTag("next_check", &value)) {
+	if (!GetTag("next_check", &value)) {
 		value = time(NULL) + rand() % GetCheckInterval();
 		SetNextCheck(value);
 	}
@@ -180,93 +180,93 @@ void Service::UpdateNextCheck(void)
 
 void Service::SetChecker(const string& checker)
 {
-	GetConfigObject()->SetTag("checker", checker);
+	SetTag("checker", checker);
 }
 
 string Service::GetChecker(void) const
 {
 	string value;
-	GetConfigObject()->GetTag("checker", &value);
+	GetTag("checker", &value);
 	return value;
 }
 
 void Service::SetCurrentCheckAttempt(long attempt)
 {
-	GetConfigObject()->SetTag("check_attempt", attempt);
+	SetTag("check_attempt", attempt);
 }
 
 long Service::GetCurrentCheckAttempt(void) const
 {
 	long value = 1;
-	GetConfigObject()->GetTag("check_attempt", &value);
+	GetTag("check_attempt", &value);
 	return value;
 }
 
 void Service::SetState(ServiceState state)
 {
-	GetConfigObject()->SetTag("state", static_cast<long>(state));
+	SetTag("state", static_cast<long>(state));
 }
 
 ServiceState Service::GetState(void) const
 {
 	long value = StateUnknown;
-	GetConfigObject()->GetTag("state", &value);
+	GetTag("state", &value);
 	return static_cast<ServiceState>(value);
 }
 
 void Service::SetStateType(ServiceStateType type)
 {
-	GetConfigObject()->SetTag("state_type", static_cast<long>(type));
+	SetTag("state_type", static_cast<long>(type));
 }
 
 ServiceStateType Service::GetStateType(void) const
 {
 	long value = StateTypeHard;
-	GetConfigObject()->GetTag("state_type", &value);
+	GetTag("state_type", &value);
 	return static_cast<ServiceStateType>(value);
 }
 
 void Service::SetLastCheckResult(const CheckResult& result)
 {
-	GetConfigObject()->SetTag("last_result", result.GetDictionary());
+	SetTag("last_result", result.GetDictionary());
 }
 
 bool Service::HasLastCheckResult(void) const
 {
 	Dictionary::Ptr value;
-	return GetConfigObject()->GetTag("last_result", &value) && value;
+	return GetTag("last_result", &value) && value;
 }
 
 CheckResult Service::GetLastCheckResult(void) const
 {
 	Dictionary::Ptr value;
-	if (!GetConfigObject()->GetTag("last_result", &value))
+	if (!GetTag("last_result", &value))
 		throw invalid_argument("Service has no last check result.");
 	return CheckResult(value);
 }
 
 void Service::SetLastStateChange(time_t ts)
 {
-	GetConfigObject()->SetTag("last_state_change", static_cast<long>(ts));
+	SetTag("last_state_change", static_cast<long>(ts));
 }
 
 time_t Service::GetLastStateChange(void) const
 {
 	long value;
-	if (!GetConfigObject()->GetTag("last_state_change", &value))
+	if (!GetTag("last_state_change", &value))
 		value = IcingaApplication::GetInstance()->GetStartTime();
 	return value;
 }
 
 void Service::SetLastHardStateChange(time_t ts)
 {
-	GetConfigObject()->SetTag("last_hard_state_change", static_cast<long>(ts));
+	SetTag("last_hard_state_change", static_cast<long>(ts));
 }
 
 time_t Service::GetLastHardStateChange(void) const
 {
 	long value;
-	if (!GetConfigObject()->GetTag("last_hard_state_change", &value))
+	if (!GetTag("last_hard_state_change", &value))
 		value = IcingaApplication::GetInstance()->GetStartTime();
 	return value;
 }
@@ -370,7 +370,7 @@ bool Service::IsAllowedChecker(const string& checker) const
 Dictionary::Ptr Service::ResolveDependencies(Host host, const Dictionary::Ptr& dependencies)
 {
 	Dictionary::Ptr services;
-	host.GetConfigObject()->GetProperty("services", &services);
+	host.GetProperty("services", &services);
 
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();
 

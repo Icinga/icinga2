@@ -6,7 +6,7 @@ string ServiceGroup::GetAlias(void) const
 {
 	string value;
 
-	if (GetConfigObject()->GetProperty("alias", &value))
+	if (GetProperty("alias", &value))
 		return value;
 
 	return GetName();
@@ -15,14 +15,14 @@ string ServiceGroup::GetAlias(void) const
 string ServiceGroup::GetNotesUrl(void) const
 {
 	string value;
-	GetConfigObject()->GetProperty("notes_url", &value);
+	GetProperty("notes_url", &value);
 	return value;
 }
 
 string ServiceGroup::GetActionUrl(void) const
 {
 	string value;
-	GetConfigObject()->GetProperty("action_url", &value);
+	GetProperty("action_url", &value);
 	return value;
 }
 
