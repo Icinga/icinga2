@@ -9,7 +9,9 @@ class I2_CIB_API Host : public ConfigObjectAdapter
 public:
 	Host(const ConfigObject::Ptr& configObject)
 		: ConfigObjectAdapter(configObject)
-	{ }
+	{
+		assert(GetType() == "host");
+	}
 
 	static bool Exists(const string& name);
 	static Host GetByName(const string& name);

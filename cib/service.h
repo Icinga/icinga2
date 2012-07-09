@@ -27,7 +27,9 @@ class I2_CIB_API Service : public ConfigObjectAdapter
 public:
 	Service(const ConfigObject::Ptr& configObject)
 		: ConfigObjectAdapter(configObject)
-	{ }
+	{
+		assert(GetType() == "service");
+	}
 
 	static bool Exists(const string& name);
 	static Service GetByName(const string& name);

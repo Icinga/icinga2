@@ -9,7 +9,9 @@ class I2_CIB_API ServiceGroup : public ConfigObjectAdapter
 public:
 	ServiceGroup(const ConfigObject::Ptr& configObject)
 		: ConfigObjectAdapter(configObject)
-	{ }
+	{
+		assert(GetType() == "servicegroup");
+	}
 
 	static bool Exists(const string& name);
 	static ServiceGroup GetByName(const string& name);
