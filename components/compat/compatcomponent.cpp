@@ -46,6 +46,7 @@ void CompatComponent::Start(void)
 	m_StatusTimer->SetInterval(15);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
+	m_StatusTimer->Reschedule(0);
 
 	CIB::RequireInformation(CIB_Configuration);
 	CIB::RequireInformation(CIB_ProgramStatus);
