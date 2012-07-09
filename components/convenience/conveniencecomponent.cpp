@@ -75,6 +75,11 @@ void ConvenienceComponent::CopyServiceAttributes(const ConfigObject::Ptr& host, 
 	Dictionary::Ptr checkers;
 	if (service->GetProperty("checkers", &checkers))
 		builder->AddExpression("checkers", OperatorSet, checkers);
+
+	Dictionary::Ptr dependencies;
+	if (service->GetProperty("dependencies", &dependencies))
+		builder->AddExpression("dependencies", OperatorPlus,
+		    Service::ResolveDependencies(host, dependencies));
 }
 
 void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
@@ -130,11 +135,6 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 				builder->AddParent(parent);
 
 				CopyServiceAttributes(host, service, builder);
-
-				Dictionary::Ptr dependencies;
-				if (service->GetProperty("dependencies", &dependencies))                
-					builder->AddExpression("dependencies", OperatorPlus,            
-					    Service::ResolveDependencies(host, dependencies));
 			} else {
 				throw invalid_argument("Service description must be either a string or a dictionary.");
 			}

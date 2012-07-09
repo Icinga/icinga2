@@ -71,12 +71,22 @@ void CompatComponent::DumpHostStatus(ofstream& fp, Host host)
 		for (it = dependencies->Begin(); it != dependencies->End(); it++) {
 			Service service = Service::GetByName(it->second);
 
-			if (!service.IsReachable()) {
+			if (!service.IsReachable() ||
+			    (service.GetState() != StateOK && service.GetState() != StateWarning)) {
 				std::cerr << service.GetName() << " is unreachable." << std::endl;
 				state = 2; /* unreachable */
 				break;
 			}
+		}
+	}
 
+	Dictionary::Ptr hostchecks;
+	if (state == 0 && host.GetConfigObject()->GetProperty("hostchecks", &hostchecks)) {
+		hostchecks = Service::ResolveDependencies(host, hostchecks);
+
+		Dictionary::Iterator it;
+		for (it = hostchecks->Begin(); it != hostchecks->End(); it++) {
+			Service service = Service::GetByName(it->second);
 			if (service.GetState() != StateOK && service.GetState() != StateWarning) {
 				state = 1; /* down */
 				break;
