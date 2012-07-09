@@ -7,11 +7,7 @@ namespace icinga
 class I2_CIB_API HostGroup : public ConfigObjectAdapter
 {
 public:
-	HostGroup(const ConfigObject::Ptr& configObject)
-		: ConfigObjectAdapter(configObject)
-	{
-		assert(GetType() == "hostgroup");
-	}
+	HostGroup(const ConfigObject::Ptr& configObject);
 
 	static bool Exists(const string& name);
 	static HostGroup GetByName(const string& name);

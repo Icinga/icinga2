@@ -2,6 +2,13 @@
 
 using namespace icinga;
 
+Host::Host(const ConfigObject::Ptr& configObject)
+	: ConfigObjectAdapter(configObject)
+{
+	assert(GetType() == "host");
+}
+
+
 string Host::GetAlias(void) const
 {
 	string value;

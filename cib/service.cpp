@@ -2,6 +2,12 @@
 
 using namespace icinga;
 
+Service::Service(const ConfigObject::Ptr& configObject)
+	: ConfigObjectAdapter(configObject)
+{
+	assert(GetType() == "service");
+}
+
 string Service::GetAlias(void) const
 {
 	string value;

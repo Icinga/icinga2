@@ -25,11 +25,7 @@ class ServiceStatusMessage;
 class I2_CIB_API Service : public ConfigObjectAdapter
 {
 public:
-	Service(const ConfigObject::Ptr& configObject)
-		: ConfigObjectAdapter(configObject)
-	{
-		assert(GetType() == "service");
-	}
+	Service(const ConfigObject::Ptr& configObject);
 
 	static bool Exists(const string& name);
 	static Service GetByName(const string& name);

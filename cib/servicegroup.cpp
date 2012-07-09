@@ -2,6 +2,13 @@
 
 using namespace icinga;
 
+ServiceGroup::ServiceGroup(const ConfigObject::Ptr& configObject)
+	: ConfigObjectAdapter(configObject)
+{
+	assert(GetType() == "servicegroup");
+}
+
+
 string ServiceGroup::GetAlias(void) const
 {
 	string value;

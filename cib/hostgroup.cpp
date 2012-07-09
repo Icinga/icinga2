@@ -2,6 +2,12 @@
 
 using namespace icinga;
 
+HostGroup::HostGroup(const ConfigObject::Ptr& configObject)
+	: ConfigObjectAdapter(configObject)
+{
+	assert(GetType() == "hostgroup");
+}
+
 string HostGroup::GetAlias(void) const
 {
 	string value;
