@@ -144,11 +144,18 @@ bool Service::IsReachable(void) const
 		if (!service.HasLastCheckResult())
 			continue;
 
-		if (service.GetStateType() == StateTypeHard && service.GetState() != StateOK &&
-		    service.GetState() != StateWarning)
-			return false;
+		/* ignore soft states */
+		if (service.GetStateType() == StateTypeSoft)
+			continue;
+
+		/* ignore services states OK and Warning */
+		if (service.GetState() == StateOK ||
+		    service.GetState() == StateWarning)
+			continue;
+
+		return false;
 	}
-	
+
 	return true;
 }
 
