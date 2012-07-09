@@ -57,32 +57,32 @@ void ConvenienceComponent::HostAddedHandler(const ConfigItem::Ptr& item)
 void ConvenienceComponent::CopyServiceAttributes(const ConfigObject::Ptr& host, const Dictionary::Ptr& service, const ConfigItemBuilder::Ptr& builder)
 {
 	Dictionary::Ptr macros; 
-	if (service->GetProperty("macros", &macros))
+	if (service->Get("macros", &macros))
 		builder->AddExpression("macros", OperatorPlus, macros);
 
 	long checkInterval;
-	if (service->GetProperty("check_interval", &checkInterval))
+	if (service->Get("check_interval", &checkInterval))
 		builder->AddExpression("check_interval", OperatorSet, checkInterval);
 
 	long retryInterval;
-	if (service->GetProperty("retry_interval", &retryInterval))
+	if (service->Get("retry_interval", &retryInterval))
 		builder->AddExpression("retry_interval", OperatorSet, retryInterval);
 
 	Dictionary::Ptr sgroups;
-	if (service->GetProperty("servicegroups", &sgroups))
+	if (service->Get("servicegroups", &sgroups))
 		builder->AddExpression("servicegroups", OperatorPlus, sgroups);
 
 	Dictionary::Ptr checkers;
-	if (service->GetProperty("checkers", &checkers))
+	if (service->Get("checkers", &checkers))
 		builder->AddExpression("checkers", OperatorSet, checkers);
 
 	Dictionary::Ptr dependencies;
-	if (service->GetProperty("dependencies", &dependencies))
+	if (service->Get("dependencies", &dependencies))
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, dependencies));
 
 	Dictionary::Ptr hostchecks;
-	if (service->GetProperty("hostchecks", &hostchecks))
+	if (service->Get("hostchecks", &hostchecks))
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, hostchecks));
 }
@@ -134,7 +134,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 					throw invalid_argument("Service description invalid.");
 
 				string parent;
-				if (!service->GetProperty("service", &parent))
+				if (!service->Get("service", &parent))
 					parent = svcname;
 
 				builder->AddParent(parent);
@@ -147,7 +147,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 			ConfigItem::Ptr serviceItem = builder->Compile();
 			serviceItem->Commit();
 
-			newServices->SetProperty(name, serviceItem);
+			newServices->Set(name, serviceItem);
 		}
 	}
 

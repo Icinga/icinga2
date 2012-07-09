@@ -12,50 +12,50 @@ DiscoveryMessage::DiscoveryMessage(const MessagePart& message)
 
 bool DiscoveryMessage::GetIdentity(string *value) const
 {
-	return GetProperty("identity", value);
+	return Get("identity", value);
 }
 
 void DiscoveryMessage::SetIdentity(const string& value)
 {
-	SetProperty("identity", value);
+	Set("identity", value);
 }
 
 bool DiscoveryMessage::GetNode(string *value) const
 {
-	return GetProperty("node", value);
+	return Get("node", value);
 }
 
 void DiscoveryMessage::SetNode(const string& value)
 {
-	SetProperty("node", value);
+	Set("node", value);
 }
 
 bool DiscoveryMessage::GetService(string *value) const
 {
-	return GetProperty("service", value);
+	return Get("service", value);
 }
 
 void DiscoveryMessage::SetService(const string& value)
 {
-	SetProperty("service", value);
+	Set("service", value);
 }
 
 bool DiscoveryMessage::GetSubscriptions(MessagePart *value) const
 {
-	return GetProperty("subscriptions", value);
+	return Get("subscriptions", value);
 }
 
 void DiscoveryMessage::SetSubscriptions(MessagePart value)
 {
-	SetProperty("subscriptions", value);
+	Set("subscriptions", value);
 }
 
 bool DiscoveryMessage::GetPublications(MessagePart *value) const
 {
-	return GetProperty("publications", value);
+	return Get("publications", value);
 }
 
 void DiscoveryMessage::SetPublications(MessagePart value)
 {
-	SetProperty("publications", value);
+	Set("publications", value);
 }

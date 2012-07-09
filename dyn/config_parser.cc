@@ -1768,7 +1768,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 259 "config_parser.yy"
     {
-		m_Array->AddUnnamedProperty(*(yyvsp[(1) - (1)].variant));
+		m_Array->Add(*(yyvsp[(1) - (1)].variant));
 		delete (yyvsp[(1) - (1)].variant);
 	}
     break;

@@ -45,7 +45,7 @@ public:
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
 	template<typename T>
-	bool GetProperty(const string& key, T *value) const
+	bool Get(const string& key, T *value) const
 	{
 		ConstIterator i = m_Data.find(key);
 
@@ -64,11 +64,11 @@ public:
 	 * @param[out] value Pointer to the value.
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
-	bool GetProperty(const string& key, Dictionary::Ptr *value)
+	bool Get(const string& key, Dictionary::Ptr *value)
 	{
 		Object::Ptr object;
 
-		if (!GetProperty(key, &object))
+		if (!Get(key, &object))
 			return false;
 
 		*value = dynamic_pointer_cast<Dictionary>(object);
@@ -85,7 +85,7 @@ public:
 	 * @param value The value.
 	 */
 	template<typename T>
-	void SetProperty(const string& key, const T& value)
+	void Set(const string& key, const T& value)
 	{
 		pair<typename map<string, Variant>::iterator, bool> ret;
 		ret = m_Data.insert(make_pair(key, value));
@@ -99,7 +99,7 @@ public:
 	 * @param value The value.
 	 */
 	template<typename T>
-	void AddUnnamedProperty(const T& value)
+	void Add(const T& value)
 	{
 		Iterator it;
 		string key;
@@ -113,7 +113,7 @@ public:
 			it = m_Data.find(key);
 		} while (it != m_Data.end());
 
-		SetProperty(key, value);
+		Set(key, value);
 	}
 
 	bool Contains(const string& key) const;
@@ -123,7 +123,7 @@ public:
 
 	long GetLength(void) const;
 
-	void RemoveProperty(const string& key);
+	void Remove(const string& key);
 
 private:
 	map<string, Variant> m_Data;

@@ -17,7 +17,7 @@ string MacroProcessor::ResolveMacros(const string& str, const Dictionary::Ptr& m
 
 		string name = result.substr(pos_first + 1, pos_second - pos_first - 1);
 		string value;
-		if (!macros || !macros->GetProperty(name, &value))
+		if (!macros || !macros->Get(name, &value))
 			throw runtime_error("Macro '" + name + "' is not defined.");
 
 		result.replace(pos_first, pos_second - pos_first + 1, value);

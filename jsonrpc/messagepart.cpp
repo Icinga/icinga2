@@ -81,13 +81,13 @@ Dictionary::Ptr MessagePart::GetDictionaryFromJson(json_t *json)
 	for (cJSON *i = json->child; i != NULL; i = i->next) {
 		switch (i->type) {
 			case cJSON_Number:
-				dictionary->SetProperty(i->string, i->valueint);
+				dictionary->Set(i->string, i->valueint);
 				break;
 			case cJSON_String:
-				dictionary->SetProperty(i->string, i->valuestring);
+				dictionary->Set(i->string, i->valuestring);
 				break;
 			case cJSON_Object:
-				dictionary->SetProperty(i->string, GetDictionaryFromJson(i));
+				dictionary->Set(i->string, GetDictionaryFromJson(i));
 				break;
 			default:
 				break;
@@ -176,10 +176,10 @@ Dictionary::Ptr MessagePart::GetDictionary(void) const
  * @param[out] The value.
  * @returns true if the value was retrieved, false otherwise.
  */
-bool MessagePart::GetProperty(string key, MessagePart *value) const
+bool MessagePart::Get(string key, MessagePart *value) const
 {
 	Object::Ptr object;
-	if (!GetDictionary()->GetProperty(key, &object))
+	if (!GetDictionary()->Get(key, &object))
 		return false;
 
 	Dictionary::Ptr dictionary = dynamic_pointer_cast<Dictionary>(object);
@@ -196,9 +196,9 @@ bool MessagePart::GetProperty(string key, MessagePart *value) const
  * @param key The name of the property.
  * @param value The value.
  */
-void MessagePart::SetProperty(string key, const MessagePart& value)
+void MessagePart::Set(string key, const MessagePart& value)
 {
-	GetDictionary()->SetProperty(key, value.GetDictionary());
+	GetDictionary()->Set(key, value.GetDictionary());
 }
 
 /**
@@ -206,9 +206,9 @@ void MessagePart::SetProperty(string key, const MessagePart& value)
  *
  * @param value The value.
  */
-void MessagePart::AddUnnamedProperty(const MessagePart& value)
+void MessagePart::Add(const MessagePart& value)
 {
-	GetDictionary()->AddUnnamedProperty(value.GetDictionary());
+	GetDictionary()->Add(value.GetDictionary());
 }
 
 /**

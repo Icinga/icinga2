@@ -52,9 +52,9 @@ public:
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
 	template<typename T>
-	bool GetProperty(string key, T *value) const
+	bool Get(string key, T *value) const
 	{
-		return GetDictionary()->GetProperty(key, value);
+		return GetDictionary()->Get(key, value);
 	}
 
 	/**
@@ -64,13 +64,13 @@ public:
 	 * @param value The value.
 	 */
 	template<typename T>
-	void SetProperty(string key, const T& value)
+	void Set(string key, const T& value)
 	{
-		GetDictionary()->SetProperty(key, value);
+		GetDictionary()->Set(key, value);
 	}
 
-	bool GetProperty(string key, MessagePart *value) const;
-	void SetProperty(string key, const MessagePart& value);
+	bool Get(string key, MessagePart *value) const;
+	void Set(string key, const MessagePart& value);
 
 	/**
 	 * Adds an item to the message using an automatically generated property name.
@@ -78,12 +78,12 @@ public:
 	 * @param value The value.
 	 */
 	template<typename T>
-	void AddUnnamedProperty(const T& value)
+	void Add(const T& value)
 	{
-		GetDictionary()->AddUnnamedProperty(value);
+		GetDictionary()->Add(value);
 	}
 
-	void AddUnnamedProperty(const MessagePart& value);
+	void Add(const MessagePart& value);
 
 	bool Contains(const string& key) const;
 

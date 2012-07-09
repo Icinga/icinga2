@@ -184,7 +184,7 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 		return;
 
 	MessagePart serviceMsg;
-	if (!params.GetProperty("service", &serviceMsg))
+	if (!params.Get("service", &serviceMsg))
 		return;
 
 	ConfigObject::Ptr object = boost::make_shared<ConfigObject>(serviceMsg.GetDictionary());

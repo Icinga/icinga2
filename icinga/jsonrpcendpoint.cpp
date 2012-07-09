@@ -91,14 +91,14 @@ void JsonRpcEndpoint::NewMessageHandler(const MessagePart& message)
 		return;
 	}
 
+	RequestMessage request = message;
+
 	string method;
-	if (!message.GetProperty("method", &method))
+	if (!request.GetMethod(&method))
 		return;
 
 	if (!HasPublication(method))
 		return;
-
-	RequestMessage request = message;
 
 	string id;
 	if (request.GetID(&id))

@@ -52,62 +52,62 @@ Dictionary::Ptr ConfigObject::GetTags(void) const
 string ConfigObject::GetType(void) const
 {
 	string type;
-	GetProperties()->GetProperty("__type", &type);
+	GetProperties()->Get("__type", &type);
 	return type;
 }
 
 string ConfigObject::GetName(void) const
 {
 	string name;
-	GetProperties()->GetProperty("__name", &name);
+	GetProperties()->Get("__name", &name);
 	return name;
 }
 
 void ConfigObject::SetLocal(bool value)
 {
-	GetProperties()->SetProperty("__local", value ? 1 : 0);
+	GetProperties()->Set("__local", value ? 1 : 0);
 }
 
 bool ConfigObject::IsLocal(void) const
 {
 	bool value = false;
-	GetProperties()->GetProperty("__local", &value);
+	GetProperties()->Get("__local", &value);
 	return value;
 }
 
 void ConfigObject::SetAbstract(bool value)
 {
-	GetProperties()->SetProperty("__abstract", value ? 1 : 0);
+	GetProperties()->Set("__abstract", value ? 1 : 0);
 }
 
 bool ConfigObject::IsAbstract(void) const
 {
 	bool value = false;
-	GetProperties()->GetProperty("__abstract", &value);
+	GetProperties()->Get("__abstract", &value);
 	return value;
 }
 
 void ConfigObject::SetSource(const string& value)
 {
-	GetProperties()->SetProperty("__source", value);
+	GetProperties()->Set("__source", value);
 }
 
 string ConfigObject::GetSource(void) const
 {
 	string value;
-	GetProperties()->GetProperty("__source", &value);
+	GetProperties()->Get("__source", &value);
 	return value;
 }
 
 void ConfigObject::SetCommitTimestamp(time_t ts)
 {
-	GetProperties()->SetProperty("__tx", static_cast<long>(ts));
+	GetProperties()->Set("__tx", static_cast<long>(ts));
 }
 
 time_t ConfigObject::GetCommitTimestamp(void) const
 {
 	long value = false;
-	GetProperties()->GetProperty("__tx", &value);
+	GetProperties()->Get("__tx", &value);
 	return value;
 }
 

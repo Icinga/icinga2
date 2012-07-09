@@ -301,13 +301,13 @@ void DiscoveryComponent::SendDiscoveryMessage(const string& method, const string
 	set<string>::iterator i;
 	MessagePart subscriptions;
 	for (i = info->Subscriptions.begin(); i != info->Subscriptions.end(); i++)
-		subscriptions.AddUnnamedProperty(*i);
+		subscriptions.Add(*i);
 
 	params.SetSubscriptions(subscriptions);
 
 	MessagePart publications;
 	for (i = info->Publications.begin(); i != info->Publications.end(); i++)
-		publications.AddUnnamedProperty(*i);
+		publications.Add(*i);
 
 	params.SetPublications(publications);
 

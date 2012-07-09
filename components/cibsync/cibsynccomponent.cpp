@@ -153,11 +153,11 @@ RequestMessage CIBSyncComponent::MakeObjectMessage(const ConfigObject::Ptr& obje
 	MessagePart params;
 	msg.SetParams(params);
 
-	params.SetProperty("name", object->GetName());
-	params.SetProperty("type", object->GetType());
+	params.Set("name", object->GetName());
+	params.Set("type", object->GetType());
 
 	if (includeProperties)
-		params.SetProperty("properties", object->GetProperties());
+		params.Set("properties", object->GetProperties());
 
 	return msg;
 }
@@ -216,15 +216,15 @@ void CIBSyncComponent::RemoteObjectCommittedHandler(const Endpoint::Ptr& sender,
 		return;
 
 	string name;
-	if (!params.GetProperty("name", &name))
+	if (!params.Get("name", &name))
 		return;
 
 	string type;
-	if (!params.GetProperty("type", &type))
+	if (!params.Get("type", &type))
 		return;
 
 	MessagePart properties;
-	if (!params.GetProperty("properties", &properties))
+	if (!params.Get("properties", &properties))
 		return;
 
 	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);
@@ -276,11 +276,11 @@ void CIBSyncComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
 		return;
 
 	string name;
-	if (!params.GetProperty("name", &name))
+	if (!params.Get("name", &name))
 		return;
 
 	string type;
-	if (!params.GetProperty("type", &type))
+	if (!params.Get("type", &type))
 		return;
 
 	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);

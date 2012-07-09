@@ -67,7 +67,7 @@ bool Dictionary::Contains(const string& key) const
  *
  * @param key The key.
  */
-void Dictionary::RemoveProperty(const string& key)
+void Dictionary::Remove(const string& key)
 {
 	Dictionary::Iterator it;
 	it = m_Data.find(key);

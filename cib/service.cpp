@@ -106,7 +106,7 @@ void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
 		if (result->Contains(it->second))
 			continue;
 
-		result->SetProperty(it->second, it->second);
+		result->Set(it->second, it->second);
 
 		Service service = Service::GetByName(it->second);
 		service.GetDependenciesRecursive(result);
@@ -383,7 +383,7 @@ Dictionary::Ptr Service::ResolveDependencies(Host host, const Dictionary::Ptr& d
 		else
 			name = it->first;
 
-		result->SetProperty(name, name);
+		result->Set(name, name);
 	}
 
         return result;

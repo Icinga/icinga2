@@ -53,7 +53,7 @@ public:
 	 */
 	inline bool GetVersion(string *value) const
 	{
-		return GetProperty("jsonrpc", value);
+		return Get("jsonrpc", value);
 	}
 
 	/**
@@ -63,7 +63,7 @@ public:
 	 */
 	inline void SetVersion(const string& value)
 	{
-		SetProperty("jsonrpc", value);
+		Set("jsonrpc", value);
 	}
 
 	/**
@@ -74,7 +74,7 @@ public:
 	 */
 	inline bool GetMethod(string *value) const
 	{
-		return GetProperty("method", value);
+		return Get("method", value);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public:
 	 */
 	inline void SetMethod(const string& value)
 	{
-		SetProperty("method", value);
+		Set("method", value);
 	}
 
 	/**
@@ -95,7 +95,7 @@ public:
 	 */
 	inline bool GetParams(MessagePart *value) const
 	{
-		return GetProperty("params", value);
+		return Get("params", value);
 	}
 
 	/**
@@ -105,7 +105,7 @@ public:
 	 */
 	inline void SetParams(const MessagePart& value)
 	{
-		SetProperty("params", value);
+		Set("params", value);
 	}
 
 	/**
@@ -116,7 +116,7 @@ public:
 	 */
 	inline bool GetID(string *value) const
 	{
-		return GetProperty("id", value);
+		return Get("id", value);
 	}
 
 	/**
@@ -126,7 +126,7 @@ public:
 	 */
 	inline void SetID(const string& value)
 	{
-		SetProperty("id", value);
+		Set("id", value);
 	}
 };
 

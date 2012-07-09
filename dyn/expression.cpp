@@ -60,7 +60,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			break;
 
 		case OperatorPlus:
-			dictionary->GetProperty(m_Key, &oldValue);
+			dictionary->Get(m_Key, &oldValue);
 
 			if (oldValue.GetType() == VariantObject)
 				dict = dynamic_pointer_cast<Dictionary>(oldValue.GetObject());
@@ -82,7 +82,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			} else if (valueDict) {
 				Dictionary::Iterator it;
 				for (it = valueDict->Begin(); it != valueDict->End(); it++) {
-					dict->SetProperty(it->first, it->second);
+					dict->Set(it->first, it->second);
 				}
 			} else {
 				stringstream message;
@@ -96,5 +96,5 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			throw runtime_error("Not yet implemented.");
 	}
 
-	dictionary->SetProperty(m_Key, newValue);
+	dictionary->Set(m_Key, newValue);
 }

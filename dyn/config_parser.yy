@@ -257,7 +257,7 @@ tuple: '('
 
 tupleitem: simplevalue
 	{
-		m_Array->AddUnnamedProperty(*$1);
+		m_Array->Add(*$1);
 		delete $1;
 	}
 

@@ -47,13 +47,13 @@ public:
 	template<typename T>
 	void SetProperty(const string& key, const T& value)
 	{
-		GetProperties()->SetProperty(key, value);
+		GetProperties()->Set(key, value);
 	}
 
 	template<typename T>
 	bool GetProperty(const string& key, T *value) const
 	{
-		return GetProperties()->GetProperty(key, value);
+		return GetProperties()->Get(key, value);
 	}
 
 	Dictionary::Ptr GetTags(void) const;
@@ -61,13 +61,13 @@ public:
 	template<typename T>
 	void SetTag(const string& key, const T& value)
 	{
-		GetTags()->SetProperty(key, value);
+		GetTags()->Set(key, value);
 	}
 
 	template<typename T>
 	bool GetTag(const string& key, T *value) const
 	{
-		return GetTags()->GetProperty(key, value);
+		return GetTags()->Get(key, value);
 	}
 
 	string GetType(void) const;
