@@ -2,8 +2,6 @@
 
 using namespace icinga;
 
-bool Service::m_DependencyCacheValid = false;
-
 string Service::GetAlias(void) const
 {
 	string value;

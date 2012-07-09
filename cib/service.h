@@ -86,9 +86,6 @@ public:
 	static string StateTypeToString(ServiceStateType state);
 
 	static Dictionary::Ptr ResolveDependencies(Host host, const Dictionary::Ptr& dependencies);
-
-private:
-	static bool m_DependencyCacheValid;
 };
 
 }
