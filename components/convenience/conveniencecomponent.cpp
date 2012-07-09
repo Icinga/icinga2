@@ -80,6 +80,11 @@ void ConvenienceComponent::CopyServiceAttributes(const ConfigObject::Ptr& host, 
 	if (service->GetProperty("dependencies", &dependencies))
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, dependencies));
+
+	Dictionary::Ptr hostchecks;
+	if (service->GetProperty("hostchecks", &hostchecks))
+		builder->AddExpression("dependencies", OperatorPlus,
+		    Service::ResolveDependencies(host, hostchecks));
 }
 
 void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)

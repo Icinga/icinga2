@@ -140,6 +140,10 @@ bool Service::IsReachable(void) const
 		if (service.GetName() == GetName())
 			continue;
 
+		/* ignore pending services */
+		if (!service.HasLastCheckResult())
+			continue;
+
 		if (service.GetStateType() == StateTypeHard && service.GetState() != StateOK &&
 		    service.GetState() != StateWarning)
 			return false;

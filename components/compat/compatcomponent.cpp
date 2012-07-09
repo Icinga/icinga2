@@ -116,12 +116,22 @@ void CompatComponent::DumpHostObject(ofstream& fp, Host host)
 {
 	fp << "define host {" << "\n"
 	   << "\t" << "host_name" << "\t" << host.GetName() << "\n"
+	   << "\t" << "alias" << "\t" << host.GetAlias() << "\n"
 	   << "\t" << "check_interval" << "\t" << 1 << "\n"
 	   << "\t" << "retry_interval" << "\t" << 1 << "\n"
 	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
 	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
-	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n"
-	   << "\t" << "}" << "\n"
+	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n";
+
+	set<string> parents = host.GetParents();
+
+	if (!parents.empty()) {
+		fp << "\t" << "parents" << "\t";
+		DumpStringList(fp, parents);
+		fp << "\n";
+	}
+
+	fp << "\t" << "}" << "\n"
 	   << "\n";
 }
 
@@ -199,20 +209,6 @@ void CompatComponent::DumpServiceObject(ofstream& fp, Service service)
 	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
-}
-
-void CompatComponent::DumpStringList(ofstream& fp, const vector<string>& list)
-{
-	vector<string>::const_iterator it;
-	bool first = true;
-	for (it = list.begin(); it != list.end(); it++) {
-		if (!first)
-			fp << ",";
-		else
-			first = false;
-
-		fp << *it;
-	}
 }
 
 /**

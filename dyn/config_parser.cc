@@ -211,7 +211,7 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 void yyerror(YYLTYPE *locp, ConfigCompiler *context, const char *err)
 {
 	stringstream message;
-	message << *locp;
+	message << *locp << ": " << err;
 	throw runtime_error(message.str());
 }
 

@@ -39,7 +39,21 @@ private:
 	void DumpHostStatus(ofstream& fp, Host host);
 	void DumpHostObject(ofstream& fp, Host host);
 
-	void DumpStringList(ofstream& fp, const vector<string>& list);
+	template<typename T>
+	void DumpStringList(ofstream& fp, const T& list)
+	{
+		typename T::const_iterator it;
+		bool first = true;
+		for (it = list.begin(); it != list.end(); it++) {
+			if (!first)
+				fp << ",";
+			else
+				first = false;
+
+			fp << *it;
+		}
+	}
+
 
 	void DumpServiceStatus(ofstream& fp, Service service);
 	void DumpServiceObject(ofstream& fp, Service service);

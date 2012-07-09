@@ -34,3 +34,28 @@ Dictionary::Ptr Host::GetGroups(void) const
 	return value;
 }
 
+set<string> Host::GetParents(void) const
+{
+	set<string> parents;
+
+	Dictionary::Ptr dependencies;
+
+	if (GetConfigObject()->GetProperty("dependencies", &dependencies)) {
+		dependencies = Service::ResolveDependencies(*this, dependencies);
+
+		Dictionary::Iterator it;
+		for (it = dependencies->Begin(); it != dependencies->End(); it++) {
+			Service service = Service::GetByName(it->second);
+
+			string parent = service.GetHost().GetName();
+
+			/* ignore ourselves */
+			if (parent == GetName())
+				continue;
+
+			parents.insert(parent);
+		}
+	}
+
+	return parents;
+}

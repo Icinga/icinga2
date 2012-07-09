@@ -16,6 +16,7 @@ public:
 
 	string GetAlias(void) const;
 	Dictionary::Ptr GetGroups(void) const;
+	set<string> GetParents(void) const;
 };
 
 }
