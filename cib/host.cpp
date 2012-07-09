@@ -59,3 +59,41 @@ set<string> Host::GetParents(void) const
 
 	return parents;
 }
+
+bool Host::IsReachable(void) const
+{
+	Dictionary::Ptr dependencies;
+	if (GetConfigObject()->GetProperty("dependencies", &dependencies)) {
+		dependencies = Service::ResolveDependencies(*this, dependencies);
+
+		Dictionary::Iterator it;
+		for (it = dependencies->Begin(); it != dependencies->End(); it++) {
+			Service service = Service::GetByName(it->second);
+
+			if (!service.IsReachable() ||
+			    (service.GetState() != StateOK && service.GetState() != StateWarning)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool Host::IsUp(void) const
+{
+	Dictionary::Ptr hostchecks;
+	if (GetConfigObject()->GetProperty("hostchecks", &hostchecks)) {
+		hostchecks = Service::ResolveDependencies(*this, hostchecks);
+
+		Dictionary::Iterator it;
+		for (it = hostchecks->Begin(); it != hostchecks->End(); it++) {
+			Service service = Service::GetByName(it->second);
+			if (service.GetState() != StateOK && service.GetState() != StateWarning) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}

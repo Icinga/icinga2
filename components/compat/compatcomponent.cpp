@@ -61,38 +61,13 @@ void CompatComponent::Stop(void)
 
 void CompatComponent::DumpHostStatus(ofstream& fp, Host host)
 {
-	int state = 0; /* up */
-
-	Dictionary::Ptr dependencies;
-	if (host.GetConfigObject()->GetProperty("dependencies", &dependencies)) {
-		dependencies = Service::ResolveDependencies(host, dependencies);
-
-		Dictionary::Iterator it;
-		for (it = dependencies->Begin(); it != dependencies->End(); it++) {
-			Service service = Service::GetByName(it->second);
-
-			if (!service.IsReachable() ||
-			    (service.GetState() != StateOK && service.GetState() != StateWarning)) {
-				std::cerr << service.GetName() << " is unreachable." << std::endl;
-				state = 2; /* unreachable */
-				break;
-			}
-		}
-	}
-
-	Dictionary::Ptr hostchecks;
-	if (state == 0 && host.GetConfigObject()->GetProperty("hostchecks", &hostchecks)) {
-		hostchecks = Service::ResolveDependencies(host, hostchecks);
-
-		Dictionary::Iterator it;
-		for (it = hostchecks->Begin(); it != hostchecks->End(); it++) {
-			Service service = Service::GetByName(it->second);
-			if (service.GetState() != StateOK && service.GetState() != StateWarning) {
-				state = 1; /* down */
-				break;
-			}
-		}
-	}
+	int state;
+	if (!host.IsReachable())
+		state = 2; /* unreachable */
+	else if (!host.IsUp())
+		state = 1; /* down */
+	else
+		state = 0; /* up */
 
 	fp << "hoststatus {" << "\n"
 	   << "\t" << "host_name=" << host.GetName() << "\n"
@@ -108,6 +83,7 @@ void CompatComponent::DumpHostStatus(ofstream& fp, Host host)
 	   << "\t" << "max_attempts=1" << "\n"
 	   << "\t" << "active_checks_enabled=1" << "\n"
 	   << "\t" << "passive_checks_enabled=1" << "\n"
+	   << "\t" << "last_update=" << time(NULL) << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
 }

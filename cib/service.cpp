@@ -376,10 +376,14 @@ Dictionary::Ptr Service::ResolveDependencies(Host host, const Dictionary::Ptr& d
 
 	Dictionary::Iterator it;
 	for (it = dependencies->Begin(); it != dependencies->End(); it++) {
+		string name;
+
 		if (services && services->Contains(it->first))
-			result->AddUnnamedProperty(host.GetName() + "-" + it->first);
+			name = host.GetName() + "-" + it->first;
 		else
-			result->AddUnnamedProperty(it->first);
+			name = it->first;
+
+		result->SetProperty(name, name);
 	}
 
         return result;
