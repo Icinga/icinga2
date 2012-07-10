@@ -113,6 +113,8 @@ time_t ConfigObject::GetCommitTimestamp(void) const
 
 void ConfigObject::Commit(void)
 {
+	assert(Application::IsMainThread());
+
 	ConfigObject::Ptr dobj = GetObject(GetType(), GetName());
 	ConfigObject::Ptr self = GetSelf();
 	assert(!dobj || dobj == self);
@@ -125,6 +127,8 @@ void ConfigObject::Commit(void)
 
 void ConfigObject::Unregister(void)
 {
+	assert(Application::IsMainThread());
+
 	ConfigObject::Ptr self = GetSelf();
 	m_Container->RemoveObject(self);
 }

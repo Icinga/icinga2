@@ -61,6 +61,8 @@ void Logger::Write(LogSeverity severity, const string& facility,
  */
 void Logger::RegisterLogger(const Logger::Ptr& logger)
 {
+	assert(Application::IsMainThread());
+
 	m_Loggers.push_back(logger);
 }
 

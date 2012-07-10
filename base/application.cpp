@@ -134,6 +134,8 @@ Component::Ptr Application::LoadComponent(const string& path,
 	Component::Ptr component;
 	Component *(*pCreateComponent)();
 
+	assert(Application::IsMainThread());
+
 	Logger::Write(LogInformation, "base", "Loading component '" + path + "'");
 
 #ifdef _WIN32

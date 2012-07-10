@@ -34,11 +34,8 @@ Socket::Socket(void)
  */
 Socket::~Socket(void)
 {
-	{
-		mutex::scoped_lock lock(m_Mutex);
-
-		CloseInternal(true);
-	}
+	mutex::scoped_lock lock(m_Mutex);
+	CloseInternal(true);
 }
 
 void Socket::Start(void)

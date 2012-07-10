@@ -136,6 +136,8 @@ long Timer::GetInterval(void) const
  */
 void Timer::Start(void)
 {
+	assert(Application::IsMainThread());
+
 	Stop();
 
 	Timers.push_back(GetSelf());
@@ -148,6 +150,8 @@ void Timer::Start(void)
  */
 void Timer::Stop(void)
 {
+	assert(Application::IsMainThread());
+
 	Timers.remove_if(WeakPtrEqual<Timer>(this));
 }
 
