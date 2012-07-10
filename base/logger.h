@@ -57,12 +57,13 @@ public:
 	typedef shared_ptr<Logger> Ptr;
 	typedef weak_ptr<Logger> WeakPtr;
 
-	Logger(LogSeverity minSeverity = LogDebug);
+	Logger(LogSeverity minSeverity);
 
 	static void Write(LogSeverity severity, const string& facility,
 	    const string& message);
 
 	static void RegisterLogger(const Logger::Ptr& logger);
+	static void UnregisterLogger(const Logger::Ptr& logger);
 
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
@@ -72,7 +73,7 @@ protected:
 private:
 	LogSeverity m_MinSeverity;
 
-	static vector<Logger::Ptr> m_Loggers;
+	static set<Logger::Ptr> m_Loggers;
 
 	static void ForwardLogEntry(const LogEntry& entry);
 };

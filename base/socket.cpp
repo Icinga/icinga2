@@ -156,7 +156,7 @@ int Socket::GetLastSocketError(void)
  *
  * @param ex An exception.
  */
-void Socket::HandleSocketError(const std::exception& ex)
+void Socket::HandleSocketError(const exception& ex)
 {
 	if (!OnError.empty()) {
 		Event::Ptr ev = boost::make_shared<Event>();

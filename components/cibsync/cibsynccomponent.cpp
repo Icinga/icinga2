@@ -263,7 +263,7 @@ void CIBSyncComponent::RemoteObjectCommittedHandler(const Endpoint::Ptr& sender,
 		m_SyncingConfig = true;
 		object->Commit();
 		m_SyncingConfig = false;
-	} catch (const std::exception&) {
+	} catch (const exception&) {
 		m_SyncingConfig = false;
 		throw;
 	}
@@ -293,7 +293,7 @@ void CIBSyncComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
 			m_SyncingConfig = true;
 			object->Unregister();
 			m_SyncingConfig = false;
-		} catch (const std::exception&) {
+		} catch (const exception&) {
 			m_SyncingConfig = false;
 			throw;
 		}

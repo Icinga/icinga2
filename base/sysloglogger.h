@@ -10,6 +10,9 @@ namespace icinga
 class SyslogLogger : public Logger
 {
 public:
+	typedef shared_ptr<SyslogLogger> Ptr;
+	typedef weak_ptr<SyslogLogger> WeakPtr;
+
 	SyslogLogger(LogSeverity minSeverity);
 
 protected:

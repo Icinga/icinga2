@@ -518,7 +518,7 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 			try {
 				if (!info->Node.empty() && !info->Service.empty())
 					endpointManager->AddConnection(info->Node, info->Service);
-			} catch (const std::exception& ex) {
+			} catch (const exception& ex) {
 				stringstream msgbuf;
 				msgbuf << "Exception while trying to reconnect to endpoint '" << endpoint->GetIdentity() << "': " << ex.what();;
 				Logger::Write(LogInformation, "discovery", msgbuf.str());

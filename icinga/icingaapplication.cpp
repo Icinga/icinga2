@@ -36,11 +36,8 @@ using namespace icinga;
  */
 int IcingaApplication::Main(const vector<string>& args)
 {
-	ConsoleLogger::Ptr consoleLogger = boost::make_shared<ConsoleLogger>(LogInformation);
+	StreamLogger::Ptr consoleLogger = boost::make_shared<StreamLogger>(&std::cout, LogInformation);
 	Logger::RegisterLogger(consoleLogger);
-
-	SyslogLogger::Ptr syslogLogger = boost::make_shared<SyslogLogger>(LogInformation);
-	Logger::RegisterLogger(syslogLogger);
 
 #ifdef _WIN32
 	Logger::Write(LogInformation, "icinga", "Icinga component loader");
@@ -52,9 +49,62 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	if (args.size() < 2) {
 		stringstream msgbuf;
-		msgbuf << "Syntax: " << args[0] << " <config-file>";
+		msgbuf << "Syntax: " << args[0] << " [-S] [-L logfile] [-d] [--] <config-file>";
 		Logger::Write(LogInformation, "icinga", msgbuf.str());
 		return EXIT_FAILURE;
+	}
+
+	bool enableSyslog = false;
+	bool daemonize = false;
+	bool parseOpts = true;
+	string configFile;
+
+	/* TODO: clean up this mess; for now it will just have to do */
+	vector<string>::const_iterator it;
+	for (it = args.begin() + 1 ; it != args.end(); it++) {
+		string arg = *it;
+
+		/* ignore empty arguments */
+		if (arg.empty())
+			continue;
+
+		if (arg == "--") {
+			parseOpts = false;
+			continue;
+		}
+
+		if (parseOpts && arg[0] == '-') {
+			if (arg == "-S") {
+				enableSyslog = true;
+				continue;
+			} else if (arg == "-L") {
+				if (it + 1 == args.end())
+					throw invalid_argument("Option -L requires a parameter");
+
+				StreamLogger::Ptr fileLogger = boost::make_shared<StreamLogger>(LogInformation);
+				fileLogger->OpenFile(*(it + 1));
+				Logger::RegisterLogger(fileLogger);
+
+				it++;
+
+				continue;
+			} else {
+				throw invalid_argument("Unknown option: " + arg);
+			}
+		}
+
+		configFile = arg;
+
+		if (it + 1 != args.end())
+			throw invalid_argument("Trailing command line arguments after config filename.");
+	}
+
+	if (configFile.empty())
+		throw invalid_argument("No config file was specified on the command line.");
+
+	if (enableSyslog) {
+		SyslogLogger::Ptr syslogLogger = boost::make_shared<SyslogLogger>(LogInformation);
+		Logger::RegisterLogger(syslogLogger);
 	}
 
 	string componentDirectory = Utility::DirName(GetExePath()) + "/../lib/icinga2";
@@ -79,7 +129,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	fileComponentConfig->SetType("component");
 	fileComponentConfig->SetName("configfile");
 	fileComponentConfig->SetLocal(true);
-	fileComponentConfig->AddExpression("configFilename", OperatorSet, args[1]);
+	fileComponentConfig->AddExpression("configFilename", OperatorSet, configFile);
 	fileComponentConfig->Compile()->Commit();
 
 	ConfigObject::Ptr icingaConfig = ConfigObject::GetObject("application", "icinga");
@@ -110,6 +160,12 @@ int IcingaApplication::Main(const vector<string>& args)
 	string service = GetService();
 	if (!service.empty())
 		EndpointManager::GetInstance()->AddListener(service);
+
+	if (daemonize) {
+		Logger::Write(LogInformation, "icinga", "Daemonizing.");
+		Utility::Daemonize();
+		Logger::UnregisterLogger(consoleLogger);
+	}
 
 	RunEventLoop();
 

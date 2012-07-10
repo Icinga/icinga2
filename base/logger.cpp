@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-vector<Logger::Ptr> Logger::m_Loggers;
+set<Logger::Ptr> Logger::m_Loggers;
 
 /**
  * Constructor for the logger class.
@@ -63,7 +63,19 @@ void Logger::RegisterLogger(const Logger::Ptr& logger)
 {
 	assert(Application::IsMainThread());
 
-	m_Loggers.push_back(logger);
+	m_Loggers.insert(logger);
+}
+
+/**
+ * Unregisters a logger.
+ *
+ * @param logger The logger.
+ */
+void Logger::UnregisterLogger(const Logger::Ptr& logger)
+{
+	assert(Application::IsMainThread());
+
+	m_Loggers.erase(logger);
 }
 
 /**
@@ -83,7 +95,7 @@ LogSeverity Logger::GetMinSeverity(void) const
  */
 void Logger::ForwardLogEntry(const LogEntry& entry)
 {
-	vector<Logger::Ptr>::iterator it;
+	set<Logger::Ptr>::iterator it;
 	for (it = m_Loggers.begin(); it != m_Loggers.end(); it++) {
 		Logger::Ptr logger = *it;
 

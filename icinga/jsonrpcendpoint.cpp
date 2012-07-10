@@ -127,7 +127,7 @@ void JsonRpcEndpoint::ClientClosedHandler(void)
 	// TODO: persist events, etc., for now we just disable the endpoint
 }
 
-void JsonRpcEndpoint::ClientErrorHandler(const std::exception& ex)
+void JsonRpcEndpoint::ClientErrorHandler(const exception& ex)
 {
 	stringstream message;
 	message << "Error occured for JSON-RPC socket: Message=" << ex.what();

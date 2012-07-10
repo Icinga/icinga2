@@ -396,7 +396,7 @@ int Application::Run(int argc, char **argv)
 	} else {
 		try {
 			result = Main(m_Arguments);
-		} catch (const std::exception& ex) {
+		} catch (const exception& ex) {
 			Application::m_Instance.reset();
 
 			Logger::Write(LogCritical, "base", "---");

@@ -86,6 +86,7 @@
 #include <vector>
 #include <set>
 #include <iostream>
+#include <fstream>
 #include <list>
 #include <typeinfo>
 #include <map>
@@ -103,7 +104,10 @@ using std::pair;
 using std::deque;
 
 using std::stringstream;
+using std::ostream;
+using std::ofstream;
 
+using std::exception;
 using std::runtime_error;
 using std::logic_error;
 using std::invalid_argument;
@@ -169,7 +173,7 @@ using boost::system_time;
 #include "component.h"
 #include "threadpool.h"
 #include "logger.h"
-#include "consolelogger.h"
+#include "streamlogger.h"
 #include "sysloglogger.h"
 
 #endif /* I2BASE_H */

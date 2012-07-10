@@ -64,7 +64,7 @@ void JsonRpcClient::DataAvailableHandler(void)
 		try {
 			message = MessagePart(jsonString);
 			OnNewMessage(GetSelf(), message);
-		} catch (const std::exception& ex) {
+		} catch (const exception& ex) {
 			Logger::Write(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + string(ex.what()));
 		}
 	}

@@ -35,7 +35,7 @@ public:
 
 	~Socket(void);
 
-	boost::signal<void (const Socket::Ptr&, const std::exception&)> OnError;
+	boost::signal<void (const Socket::Ptr&, const exception&)> OnError;
 	boost::signal<void (const Socket::Ptr&)> OnClosed;
 
 	virtual void Start(void);
@@ -55,7 +55,7 @@ protected:
 
 	int GetError(void) const;
 	static int GetLastSocketError(void);
-	void HandleSocketError(const std::exception& ex);
+	void HandleSocketError(const exception& ex);
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
