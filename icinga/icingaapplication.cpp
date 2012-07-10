@@ -88,6 +88,9 @@ int IcingaApplication::Main(const vector<string>& args)
 				it++;
 
 				continue;
+			} else if (arg == "-d") {
+				daemonize = true;
+				continue;
 			} else {
 				throw invalid_argument("Unknown option: " + arg);
 			}
