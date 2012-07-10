@@ -39,16 +39,9 @@ public:
 	typedef ObjectSet<ConfigObject::Ptr> Set;
 
 	ConfigObject(Dictionary::Ptr properties, const Set::Ptr& container = Set::Ptr());
-	ConfigObject(string type, string name, const Set::Ptr& container = Set::Ptr());
 
 	void SetProperties(Dictionary::Ptr config);
 	Dictionary::Ptr GetProperties(void) const;
-
-	template<typename T>
-	void SetProperty(const string& key, const T& value)
-	{
-		GetProperties()->Set(key, value);
-	}
 
 	template<typename T>
 	bool GetProperty(const string& key, T *value) const
@@ -73,10 +66,7 @@ public:
 	string GetType(void) const;
 	string GetName(void) const;
 
-	void SetLocal(bool value);
 	bool IsLocal(void) const;
-
-	void SetAbstract(bool value);
 	bool IsAbstract(void) const;
 
 	void SetSource(const string& value);

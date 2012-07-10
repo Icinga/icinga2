@@ -26,14 +26,6 @@ ConfigObject::ConfigObject(Dictionary::Ptr properties, const ConfigObject::Set::
 	m_Properties(properties), m_Tags(boost::make_shared<Dictionary>())
 { }
 
-ConfigObject::ConfigObject(string type, string name, const ConfigObject::Set::Ptr& container)
-	: m_Container(container ? container : GetAllObjects()),
-	m_Properties(boost::make_shared<Dictionary>()), m_Tags(boost::make_shared<Dictionary>())
-{
-	SetProperty("__type", type);
-	SetProperty("__name", name);
-}
-
 void ConfigObject::SetProperties(Dictionary::Ptr properties)
 {
 	m_Properties = properties;
@@ -63,21 +55,11 @@ string ConfigObject::GetName(void) const
 	return name;
 }
 
-void ConfigObject::SetLocal(bool value)
-{
-	GetProperties()->Set("__local", value ? 1 : 0);
-}
-
 bool ConfigObject::IsLocal(void) const
 {
 	bool value = false;
 	GetProperties()->Get("__local", &value);
 	return value;
-}
-
-void ConfigObject::SetAbstract(bool value)
-{
-	GetProperties()->Set("__abstract", value ? 1 : 0);
 }
 
 bool ConfigObject::IsAbstract(void) const
