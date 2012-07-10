@@ -7,13 +7,13 @@ using namespace icinga;
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
 	BOOST_REQUIRE(dictionary);
 }
 
 BOOST_AUTO_TEST_CASE(getproperty)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
 
@@ -31,8 +31,8 @@ BOOST_AUTO_TEST_CASE(getproperty)
 
 BOOST_AUTO_TEST_CASE(getproperty_dict)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
-	Dictionary::Ptr other = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	Dictionary::Ptr other = boost::make_shared<Dictionary>();
 
 	dictionary->Set("test1", other);
 
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(getproperty_dict)
 
 BOOST_AUTO_TEST_CASE(unnamed)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
 	dictionary->Add("test1");
 	dictionary->Add("test2");
 	dictionary->Add("test3");
