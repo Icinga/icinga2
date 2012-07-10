@@ -170,5 +170,6 @@ using boost::system_time;
 #include "threadpool.h"
 #include "logger.h"
 #include "consolelogger.h"
+#include "sysloglogger.h"
 
 #endif /* I2BASE_H */

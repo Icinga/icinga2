@@ -33,6 +33,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <libgen.h>
+#include <syslog.h>
 
 void Sleep(unsigned long milliseconds);
 

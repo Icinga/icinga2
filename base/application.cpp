@@ -140,12 +140,16 @@ Component::Ptr Application::LoadComponent(const string& path,
 
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.c_str());
-#else /* _WIN32 */
-	lt_dlhandle hModule = lt_dlopen(path.c_str());
-#endif /* _WIN32 */
 
 	if (hModule == NULL)
-		throw runtime_error("Could not load module");
+		throw Win32Exception("LoadLibrary('" + path + "') failed", GetLastError());
+#else /* _WIN32 */
+	lt_dlhandle hModule = lt_dlopen(path.c_str());
+
+	if (hModule == NULL) {
+		throw runtime_error("Could not load module '" + path + "': " +  lt_dlerror());
+	}
+#endif /* _WIN32 */
 
 #ifdef _WIN32
 	pCreateComponent = (CreateComponentFunction)GetProcAddress(hModule,
@@ -215,11 +219,11 @@ Component::Ptr Application::GetComponent(const string& name) const
 }
 
 /**
- * Retrieves the directory the application's binary is contained in.
+ * Retrieves the full path of the executable.
  *
- * @returns The directory.
+ * @returns The path.
  */
-string Application::GetExeDirectory(void) const
+string Application::GetExePath(void) const
 {
 	static string result;
 
@@ -268,17 +272,15 @@ string Application::GetExeDirectory(void) const
 	if (realpath(executablePath.c_str(), buffer) == NULL)
 		throw PosixException("realpath failed", errno);
 
-	executablePath = buffer;
+	result = buffer;
 #else /* _WIN32 */
 	char FullExePath[MAXPATHLEN];
 
 	if (!GetModuleFileName(NULL, FullExePath, sizeof(FullExePath)))
 		throw Win32Exception("GetModuleFileName() failed", GetLastError());
 
-	executablePath = FullExePath;
+	result = FullExePath;
 #endif /* _WIN32 */
-
-	result = Utility::DirName(executablePath);
 
 	return result;
 }

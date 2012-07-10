@@ -34,6 +34,8 @@ libbase_la_SOURCES =  \
 	ringbuffer.h \
 	socket.cpp \
 	socket.h \
+	sysloglogger.cpp \
+	sysloglogger.h \
 	tcpclient.cpp \
 	tcpclient.h \
 	tcpserver.cpp \

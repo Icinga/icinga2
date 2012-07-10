@@ -58,7 +58,7 @@ public:
 
 protected:
 	void RunEventLoop(void);
-	string GetExeDirectory(void) const;
+	string GetExePath(void) const;
 
 private:
 	static Application::Ptr m_Instance; /**< The application instance. */

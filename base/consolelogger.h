@@ -5,7 +5,7 @@ namespace icinga
 {
 
 /**
- * A logger that logs to stderr.
+ * A logger that logs to stdout.
  */
 class ConsoleLogger : public Logger
 {

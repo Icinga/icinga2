@@ -39,6 +39,9 @@ int IcingaApplication::Main(const vector<string>& args)
 	ConsoleLogger::Ptr consoleLogger = boost::make_shared<ConsoleLogger>(LogInformation);
 	Logger::RegisterLogger(consoleLogger);
 
+	SyslogLogger::Ptr syslogLogger = boost::make_shared<SyslogLogger>("icinga", LogDebug);
+	Logger::RegisterLogger(syslogLogger);
+
 #ifdef _WIN32
 	Logger::Write(LogInformation, "icinga", "Icinga component loader");
 #else /* _WIN32 */
@@ -54,7 +57,7 @@ int IcingaApplication::Main(const vector<string>& args)
 		return EXIT_FAILURE;
 	}
 
-	string componentDirectory = GetExeDirectory() + "/../lib/icinga2";
+	string componentDirectory = Utility::DirName(GetExePath()) + "/../lib/icinga2";
 	AddComponentSearchDir(componentDirectory);
 
 	/* register handler for 'component' config objects */
