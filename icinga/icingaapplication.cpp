@@ -36,10 +36,13 @@ using namespace icinga;
  */
 int IcingaApplication::Main(const vector<string>& args)
 {
+	ConsoleLogger::Ptr consoleLogger = boost::make_shared<ConsoleLogger>(LogInformation);
+	Logger::RegisterLogger(consoleLogger);
+
 #ifdef _WIN32
-	Application::Log(LogInformation, "icinga", "Icinga component loader");
+	Logger::Write(LogInformation, "icinga", "Icinga component loader");
 #else /* _WIN32 */
-	Application::Log(LogInformation, "icinga", "Icinga component loader (version: " ICINGA_VERSION ")");
+	Logger::Write(LogInformation, "icinga", "Icinga component loader (version: " ICINGA_VERSION ")");
 #endif  /* _WIN32 */
 
 	time(&m_StartTime);
@@ -47,7 +50,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	if (args.size() < 2) {
 		stringstream msgbuf;
 		msgbuf << "Syntax: " << args[0] << " <config-file>";
-		Application::Log(LogInformation, "icinga", msgbuf.str());
+		Logger::Write(LogInformation, "icinga", msgbuf.str());
 		return EXIT_FAILURE;
 	}
 
@@ -93,7 +96,7 @@ int IcingaApplication::Main(const vector<string>& args)
 		/* set up SSL context */
 		shared_ptr<X509> cert = Utility::GetX509Certificate(GetCertificateFile());
 		string identity = Utility::GetCertificateCN(cert);
-		Application::Log(LogInformation, "icinga", "My identity: " + identity);
+		Logger::Write(LogInformation, "icinga", "My identity: " + identity);
 		EndpointManager::GetInstance()->SetIdentity(identity);
 
 		shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());

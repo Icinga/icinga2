@@ -168,5 +168,7 @@ using boost::system_time;
 #include "application.h"
 #include "component.h"
 #include "threadpool.h"
+#include "logger.h"
+#include "consolelogger.h"
 
 #endif /* I2BASE_H */

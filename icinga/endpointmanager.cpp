@@ -86,7 +86,7 @@ void EndpointManager::AddListener(string service)
 
 	stringstream s;
 	s << "Adding new listener: port " << service;
-	Application::Log(LogInformation, "icinga", s.str());
+	Logger::Write(LogInformation, "icinga", s.str());
 
 	JsonRpcServer::Ptr server = boost::make_shared<JsonRpcServer>(m_SSLContext);
 	RegisterServer(server);
@@ -106,7 +106,7 @@ void EndpointManager::AddConnection(string node, string service)
 {
 	stringstream s;
 	s << "Adding new endpoint: [" << node << "]:" << service;
-	Application::Log(LogInformation, "icinga", s.str());
+	Logger::Write(LogInformation, "icinga", s.str());
 
 	JsonRpcEndpoint::Ptr endpoint = boost::make_shared<JsonRpcEndpoint>();
 	RegisterEndpoint(endpoint);
@@ -132,7 +132,7 @@ void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
  */
 void EndpointManager::NewClientHandler(const TcpClient::Ptr& client)
 {
-	Application::Log(LogInformation, "icinga", "Accepted new client from " + client->GetPeerAddress());
+	Logger::Write(LogInformation, "icinga", "Accepted new client from " + client->GetPeerAddress());
 
 	JsonRpcEndpoint::Ptr endpoint = boost::make_shared<JsonRpcEndpoint>();
 	endpoint->SetClient(static_pointer_cast<JsonRpcClient>(client));

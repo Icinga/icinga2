@@ -66,7 +66,7 @@ void DemoComponent::Stop(void)
  */
 void DemoComponent::DemoTimerHandler(void)
 {
-	Application::Log(LogInformation, "demo", "Sending multicast 'hello world' message.");
+	Logger::Write(LogInformation, "demo", "Sending multicast 'hello world' message.");
 
 	RequestMessage request;
 	request.SetMethod("demo::HelloWorld");
@@ -79,7 +79,7 @@ void DemoComponent::DemoTimerHandler(void)
  */
 void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	Application::Log(LogInformation, "demo", "Got 'hello world' from address=" + sender->GetAddress() + ", identity=" + sender->GetIdentity());
+	Logger::Write(LogInformation, "demo", "Got 'hello world' from address=" + sender->GetAddress() + ", identity=" + sender->GetIdentity());
 }
 
 EXPORT_COMPONENT(demo, DemoComponent);

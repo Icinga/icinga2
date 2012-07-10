@@ -81,7 +81,7 @@ long Timer::ProcessTimers(void)
 
 	stringstream msgbuf;
 	msgbuf << "Timers took " << et - st << " seconds";
-	Application::Log(LogDebug, "base", msgbuf.str());
+	Logger::Write(LogDebug, "base", msgbuf.str());
 
 	return wakeup;
 }
@@ -104,7 +104,7 @@ void Timer::Call(void)
 	if (et - st > 3) {
 		stringstream msgbuf;
 		msgbuf << "Timer call took " << et - st << " seconds.";
-		Application::Log(LogWarning, "base", msgbuf.str());
+		Logger::Write(LogWarning, "base", msgbuf.str());
 	}
 }
 

@@ -62,7 +62,7 @@ void CheckerComponent::CheckTimerHandler(void)
 	time_t now;
 	time(&now);
 
-	Application::Log(LogDebug, "checker", "CheckTimerHandler entered.");
+	Logger::Write(LogDebug, "checker", "CheckTimerHandler entered.");
 
 	long tasks = 0;
 
@@ -74,7 +74,7 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		m_Services.pop();
 
-		Application::Log(LogDebug, "checker", "Executing service check for '" + service.GetName() + "'");
+		Logger::Write(LogDebug, "checker", "Executing service check for '" + service.GetName() + "'");
 
 		m_PendingServices.insert(service.GetConfigObject());
 
@@ -84,18 +84,18 @@ void CheckerComponent::CheckTimerHandler(void)
 		tasks++;
 	}
 
-	Application::Log(LogDebug, "checker", "CheckTimerHandler: past loop.");
+	Logger::Write(LogDebug, "checker", "CheckTimerHandler: past loop.");
 
 	CheckTask::FlushQueue();
 
 	stringstream msgbuf;
 	msgbuf << "CheckTimerHandler: created " << tasks << " tasks";
-	Application::Log(LogInformation, "checker", msgbuf.str());
+	Logger::Write(LogInformation, "checker", msgbuf.str());
 }
 
 void CheckerComponent::ResultTimerHandler(void)
 {
-	Application::Log(LogDebug, "checker", "ResultTimerHandler entered.");
+	Logger::Write(LogDebug, "checker", "ResultTimerHandler entered.");
 
 	time_t now;
 	time(&now);
@@ -115,7 +115,7 @@ void CheckerComponent::ResultTimerHandler(void)
 			continue;
 
 		CheckResult result = task->GetResult();
-		Application::Log(LogDebug, "checker", "Got result for service '" + service.GetName() + "'");
+		Logger::Write(LogDebug, "checker", "Got result for service '" + service.GetName() + "'");
 
 		long execution_time = result.GetExecutionEnd() - result.GetExecutionStart();
 		long latency = (result.GetScheduleEnd() - result.GetScheduleStart()) - execution_time;
@@ -161,19 +161,19 @@ void CheckerComponent::ResultTimerHandler(void)
 	if (min_latency > 5) {
 		stringstream latwarn;
 		latwarn << "We can't keep up with the checks: minimum latency is " << min_latency << " seconds";
-		Application::Log(LogWarning, "checker", latwarn.str());
+		Logger::Write(LogWarning, "checker", latwarn.str());
 	}
 
 	{
 		stringstream msgbuf;
 		msgbuf << "ResultTimerHandler: " << results << " results (" << failed << " failed); latency: avg=" << avg_latency / (results ? results : 1) << ", min=" << min_latency << ", max: " << max_latency;
-		Application::Log(LogInformation, "checker", msgbuf.str());
+		Logger::Write(LogInformation, "checker", msgbuf.str());
 	}
 
 	{
 		stringstream msgbuf;
 		msgbuf << "Pending services: " << m_PendingServices.size() << "; Idle services: " << m_Services.size();
-		Application::Log(LogInformation, "checker", msgbuf.str());
+		Logger::Write(LogInformation, "checker", msgbuf.str());
 	}
 }
 
@@ -191,7 +191,7 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 	Service service(object);
 	m_Services.push(service);
 
-	Application::Log(LogDebug, "checker", "Accepted delegation for service '" + service.GetName() + "'");
+	Logger::Write(LogDebug, "checker", "Accepted delegation for service '" + service.GetName() + "'");
 
 	string id;
 	if (request.GetID(&id)) {
@@ -206,7 +206,7 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 
 void CheckerComponent::ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	Application::Log(LogInformation, "checker", "Clearing service delegations.");
+	Logger::Write(LogInformation, "checker", "Clearing service delegations.");
 
 	/* clear the services lists */
 	m_Services = ServiceQueue();

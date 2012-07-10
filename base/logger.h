@@ -17,39 +17,58 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-configfile.h"
+#ifndef LOGGER_H
+#define LOGGER_H
 
-using std::ifstream;
-
-using namespace icinga;
-
-string ConfigFileComponent::GetName(void) const
+namespace icinga
 {
-	return "configfilecomponent";
+
+/**
+ * Log severity.
+ *
+ * @ingroup base
+ */
+enum LogSeverity
+{
+	LogDebug,
+	LogInformation,
+	LogWarning,
+	LogCritical
+};
+
+struct LogEntry {
+	time_t Timestamp;
+	LogSeverity Severity;
+	string Facility;
+	string Message;
+};
+
+class I2_BASE_API Logger : public Object
+{
+public:
+	typedef shared_ptr<Logger> Ptr;
+	typedef weak_ptr<Logger> WeakPtr;
+
+	Logger(LogSeverity minSeverity = LogDebug);
+
+	static void Write(LogSeverity severity, const string& facility,
+	    const string& message);
+
+	static void RegisterLogger(const Logger::Ptr& logger);
+
+protected:
+	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
+
+	LogSeverity GetMinSeverity(void) const;
+
+private:
+	LogSeverity m_MinSeverity;
+
+	static vector<Logger::Ptr> m_Loggers;
+
+	static void ForwardLogEntry(const LogEntry& entry);
+};
+
 }
 
-void ConfigFileComponent::Start(void)
-{
-	ifstream fp;
-	FIFO::Ptr fifo = boost::make_shared<FIFO>();
-
-	string filename;
-	if (!GetConfig()->GetProperty("configFilename", &filename))
-		throw logic_error("Missing 'configFilename' property");
-
-	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(filename);
-
-	Logger::Write(LogInformation, "configfile", "Executing config items...");
-
-	vector<ConfigItem::Ptr>::iterator it;
-	for (it = configItems.begin(); it != configItems.end(); it++) {
-		ConfigItem::Ptr item = *it;
-		item->Commit();
-	}
-}
-
-void ConfigFileComponent::Stop(void)
-{
-}
-
-EXPORT_COMPONENT(configfile, ConfigFileComponent);
+#endif /* LOGGER_H */

@@ -23,14 +23,12 @@
 #	include <ltdl.h>
 #endif
 
-using std::cout;
-using std::endl;
-
 using namespace icinga;
 
-Application::Ptr I2_EXPORT Application::m_Instance;
-bool I2_EXPORT Application::m_ShuttingDown = false;
-bool I2_EXPORT Application::m_Debugging = false;
+Application::Ptr Application::m_Instance;
+bool Application::m_ShuttingDown = false;
+bool Application::m_Debugging = false;
+boost::thread::id Application::m_MainThreadID;
 
 /**
  * Constructor for the Application class.
@@ -136,7 +134,7 @@ Component::Ptr Application::LoadComponent(const string& path,
 	Component::Ptr component;
 	Component *(*pCreateComponent)();
 
-	Log(LogInformation, "base", "Loading component '" + path + "'");
+	Logger::Write(LogInformation, "base", "Loading component '" + path + "'");
 
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.c_str());
@@ -190,7 +188,7 @@ void Application::UnregisterComponent(const Component::Ptr& component)
 {
 	string name = component->GetName();
 
-	Log(LogInformation, "base", "Unloading component '" + name + "'");
+	Logger::Write(LogInformation, "base", "Unloading component '" + name + "'");
 	map<string, Component::Ptr>::iterator i = m_Components.find(name);
 	if (i != m_Components.end())
 		m_Components.erase(i);
@@ -212,50 +210,6 @@ Component::Ptr Application::GetComponent(const string& name) const
 		return Component::Ptr();
 
 	return i->second;
-}
-
-/**
- * Writes a message to the application's log.
- *
- * @param severity The message severity.
- * @param facility The log facility.
- * @param message The message.
- */
-void Application::Log(LogSeverity severity, const string& facility, const string& message)
-{
-	char timestamp[100];
-
-	// TODO: make this configurable
-	if (/*!IsDebugging() && */severity < LogInformation)
-		return;
-
-	string severityStr;
-	switch (severity) {
-		case LogDebug:
-			severityStr = "debug";
-			break;
-		case LogInformation:
-			severityStr = "info";
-			break;
-		case LogWarning:
-			severityStr = "warning";
-			break;
-		case LogCritical:
-			severityStr = "critical";
-			break;
-		default:
-			assert(!"Invalid severity specified.");
-	}
-
-	time_t now;
-	time(&now);
-	tm tmnow = *localtime(&now);
-
-	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S", &tmnow);
-
-	cout << "[" << timestamp << "] "
-		 << severityStr << "/" << facility << ": "
-		 << message << endl;
 }
 
 /**
@@ -351,6 +305,11 @@ bool Application::IsDebugging(void)
 	return m_Debugging;
 }
 
+bool Application::IsMainThread(void)
+{
+	return (boost::this_thread::get_id() == m_MainThreadID);
+}
+
 #ifndef _WIN32
 /**
  * Signal handler for SIGINT. Prepares the application for cleanly
@@ -405,6 +364,9 @@ int Application::Run(int argc, char **argv)
 	int result;
 
 	assert(!Application::m_Instance);
+
+	m_MainThreadID = boost::this_thread::get_id();
+
 	Application::m_Instance = GetSelf();
 
 #ifndef _WIN32
@@ -433,9 +395,9 @@ int Application::Run(int argc, char **argv)
 		} catch (const std::exception& ex) {
 			Application::m_Instance.reset();
 
-			Application::Log(LogCritical, "base", "---");
-			Application::Log(LogCritical, "base", "Exception: " + Utility::GetTypeName(ex));
-			Application::Log(LogCritical, "base", "Message: " + string(ex.what()));
+			Logger::Write(LogCritical, "base", "---");
+			Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(ex));
+			Logger::Write(LogCritical, "base", "Message: " + string(ex.what()));
 
 			return EXIT_FAILURE;
 		}

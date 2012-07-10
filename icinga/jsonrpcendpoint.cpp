@@ -109,7 +109,7 @@ void JsonRpcEndpoint::NewMessageHandler(const MessagePart& message)
 
 void JsonRpcEndpoint::ClientClosedHandler(void)
 {
-	Application::Log(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetIdentity());
+	Logger::Write(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetIdentity());
 
 	// TODO: _only_ clear non-persistent publications/subscriptions
 	// unregister ourselves if no persistent publications/subscriptions are left (use a timer for that, once we have a TTL property for the topics)
@@ -132,7 +132,7 @@ void JsonRpcEndpoint::ClientErrorHandler(const std::exception& ex)
 	stringstream message;
 	message << "Error occured for JSON-RPC socket: Message=" << ex.what();
 
-	Application::Log(LogWarning, "jsonrpc", message.str());
+	Logger::Write(LogWarning, "jsonrpc", message.str());
 }
 
 void JsonRpcEndpoint::CertificateValidatedHandler(void)

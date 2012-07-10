@@ -93,7 +93,7 @@ void DiscoveryComponent::CheckExistingEndpoint(const Endpoint::Ptr& self, const 
 		return;
 
 	if (self->GetIdentity() == other->GetIdentity()) {
-		Application::Log(LogWarning, "discovery", "Detected duplicate identity:" + other->GetIdentity() + " - Disconnecting old endpoint.");
+		Logger::Write(LogWarning, "discovery", "Detected duplicate identity:" + other->GetIdentity() + " - Disconnecting old endpoint.");
 
 		other->Stop();
 		EndpointManager::GetInstance()->UnregisterEndpoint(other);
@@ -122,7 +122,7 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 	string identity = endpoint->GetIdentity();
 
 	if (identity == EndpointManager::GetInstance()->GetIdentity()) {
-		Application::Log(LogWarning, "discovery", "Detected loop-back connection - Disconnecting endpoint.");
+		Logger::Write(LogWarning, "discovery", "Detected loop-back connection - Disconnecting endpoint.");
 
 		endpoint->Stop();
 		EndpointManager::GetInstance()->UnregisterEndpoint(endpoint);
@@ -521,7 +521,7 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 			} catch (const std::exception& ex) {
 				stringstream msgbuf;
 				msgbuf << "Exception while trying to reconnect to endpoint '" << endpoint->GetIdentity() << "': " << ex.what();;
-				Application::Log(LogInformation, "discovery", msgbuf.str());
+				Logger::Write(LogInformation, "discovery", msgbuf.str());
 			}
 		}
 	}

@@ -73,7 +73,6 @@ null				return T_NULL;
 }
 
 \/\/[^\n]+			/* ignore C++-style comments */
-#[^\n]+				/* ignore shell-style comments */
 [ \t\n]+			/* ignore whitespace */
 
 .				return yytext[0];

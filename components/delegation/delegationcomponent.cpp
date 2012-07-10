@@ -99,7 +99,7 @@ void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Serv
 	params.Set("service", service.GetConfigObject()->GetProperties());
 	request.SetParams(params);
 
-	Application::Log(LogDebug, "delegation", "Trying to delegate service '" + service.GetName() + "'");
+	Logger::Write(LogDebug, "delegation", "Trying to delegate service '" + service.GetName() + "'");
 
 	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, checker, request);
 }
@@ -108,7 +108,7 @@ void DelegationComponent::ClearServices(const Endpoint::Ptr& checker)
 {
 	stringstream msgbuf;
 	msgbuf << "Clearing assigned services for endpoint '" << checker->GetIdentity() << "'";
-	Application::Log(LogInformation, "delegation", msgbuf.str());
+	Logger::Write(LogInformation, "delegation", msgbuf.str());
 
 	RequestMessage request;
 	request.SetMethod("checker::ClearServices");
@@ -227,7 +227,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 			stringstream msgbuf;
 			msgbuf << "Service: " << service.GetName() << ", candidates: " << candidates.size();
-			Application::Log(LogDebug, "delegation", msgbuf.str());
+			Logger::Write(LogDebug, "delegation", msgbuf.str());
 
 			for (cit = candidates.begin(); cit != candidates.end(); cit++)
 				avg_services += histogram[*cit];
@@ -275,7 +275,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 	for (hit = histogram.begin(); hit != histogram.end(); hit++) {
 		stringstream msgbuf;
 		msgbuf << "histogram: " << hit->first->GetIdentity() << " - " << hit->second;
-		Application::Log(LogInformation, "delegation", msgbuf.str());
+		Logger::Write(LogInformation, "delegation", msgbuf.str());
 	}
 
 	if (delegated > 0) {
@@ -299,7 +299,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 	stringstream msgbuf;
 	msgbuf << "Updated delegations for " << delegated << " services";
-	Application::Log(LogInformation, "delegation", msgbuf.str());
+	Logger::Write(LogInformation, "delegation", msgbuf.str());
 }
 
 void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)

@@ -22,19 +22,6 @@
 
 namespace icinga {
 
-/**
- * Log severity.
- *
- * @ingroup base
- */
-enum LogSeverity
-{
-	LogDebug,
-	LogInformation,
-	LogWarning,
-	LogCritical
-};
-
 class Component;
 
 /**
@@ -58,8 +45,6 @@ public:
 
 	static void Shutdown(void);
 
-	static void Log(LogSeverity severity, const string& facility, const string& message);
-
 	shared_ptr<Component> LoadComponent(const string& path,
 	    const ConfigObject::Ptr& componentConfig);
 	void RegisterComponent(const shared_ptr<Component>& component);
@@ -68,6 +53,8 @@ public:
 	void AddComponentSearchDir(const string& componentDirectory);
 
 	static bool IsDebugging(void);
+
+	static bool IsMainThread(void);
 
 protected:
 	void RunEventLoop(void);
@@ -82,6 +69,7 @@ private:
 					were loaded by the application. */
 	vector<string> m_Arguments; /**< Command-line arguments */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
+	static boost::thread::id m_MainThreadID; /**< ID of the main thread. */
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);

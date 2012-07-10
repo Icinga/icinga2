@@ -43,7 +43,14 @@ bool Event::Wait(vector<Event::Ptr> *events, const system_time& wait_until)
 
 void Event::Post(const Event::Ptr& ev)
 {
-	mutex::scoped_lock lock(m_Mutex);
-	m_Events.push_back(ev);
-	m_EventAvailable.notify_all();
+	if (Application::IsMainThread()) {
+		ev->OnEventDelivered();
+		return;
+	}
+
+	{
+		mutex::scoped_lock lock(m_Mutex);
+		m_Events.push_back(ev);
+		m_EventAvailable.notify_all();
+	}
 }

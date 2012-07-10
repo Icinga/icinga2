@@ -17,39 +17,54 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-configfile.h"
-
-using std::ifstream;
+#include "i2-base.h"
 
 using namespace icinga;
 
-string ConfigFileComponent::GetName(void) const
+vector<Logger::Ptr> Logger::m_Loggers;
+
+Logger::Logger(LogSeverity minSeverity)
+	: m_MinSeverity(minSeverity)
+{ }
+
+/**
+ * Writes a message to the application's log.
+ *
+ * @param severity The message severity.
+ * @param facility The log facility.
+ * @param message The message.
+ */
+void Logger::Write(LogSeverity severity, const string& facility,
+    const string& message)
 {
-	return "configfilecomponent";
+	LogEntry entry;
+	time(&entry.Timestamp);
+	entry.Severity = severity;
+	entry.Facility = facility;
+	entry.Message = message;
+
+	Event::Ptr ev = boost::make_shared<Event>();
+	ev->OnEventDelivered.connect(boost::bind(&Logger::ForwardLogEntry, entry));
+	Event::Post(ev);
 }
 
-void ConfigFileComponent::Start(void)
+void Logger::RegisterLogger(const Logger::Ptr& logger)
 {
-	ifstream fp;
-	FIFO::Ptr fifo = boost::make_shared<FIFO>();
+	m_Loggers.push_back(logger);
+}
 
-	string filename;
-	if (!GetConfig()->GetProperty("configFilename", &filename))
-		throw logic_error("Missing 'configFilename' property");
+LogSeverity Logger::GetMinSeverity(void) const
+{
+	return m_MinSeverity;
+}
 
-	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(filename);
+void Logger::ForwardLogEntry(const LogEntry& entry)
+{
+	vector<Logger::Ptr>::iterator it;
+	for (it = m_Loggers.begin(); it != m_Loggers.end(); it++) {
+		Logger::Ptr logger = *it;
 
-	Logger::Write(LogInformation, "configfile", "Executing config items...");
-
-	vector<ConfigItem::Ptr>::iterator it;
-	for (it = configItems.begin(); it != configItems.end(); it++) {
-		ConfigItem::Ptr item = *it;
-		item->Commit();
+		if (entry.Severity >= logger->GetMinSeverity())
+			logger->ProcessLogEntry(entry);
 	}
 }
-
-void ConfigFileComponent::Stop(void)
-{
-}
-
-EXPORT_COMPONENT(configfile, ConfigFileComponent);

@@ -11,6 +11,8 @@ libbase_la_SOURCES =  \
 	component.h \
 	configobject.cpp \
 	configobject.h \
+	consolelogger.cpp \
+	consolelogger.h \
 	dictionary.cpp \
 	dictionary.h \
 	event.cpp \
@@ -20,6 +22,8 @@ libbase_la_SOURCES =  \
 	fifo.cpp \
 	fifo.h \
 	i2-base.h \
+	logger.cpp \
+	logger.h \
 	object.cpp \
 	object.h \
 	objectset.cpp \
