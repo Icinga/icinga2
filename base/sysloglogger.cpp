@@ -7,11 +7,9 @@ using namespace icinga;
  *
  * @param minSeverity Minimum severity for log messages.
  */
-SyslogLogger::SyslogLogger(const string& ident, LogSeverity minSeverity)
+SyslogLogger::SyslogLogger(LogSeverity minSeverity)
 	: Logger(minSeverity)
-{
-//	openlog(ident.c_str(), 0, LOG_USER);
-}
+{ }
 
 /**
  * Processes a log entry and outputs it to syslog.

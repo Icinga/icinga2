@@ -39,7 +39,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	ConsoleLogger::Ptr consoleLogger = boost::make_shared<ConsoleLogger>(LogInformation);
 	Logger::RegisterLogger(consoleLogger);
 
-	SyslogLogger::Ptr syslogLogger = boost::make_shared<SyslogLogger>("icinga", LogDebug);
+	SyslogLogger::Ptr syslogLogger = boost::make_shared<SyslogLogger>(LogInformation);
 	Logger::RegisterLogger(syslogLogger);
 
 #ifdef _WIN32

@@ -10,7 +10,7 @@ namespace icinga
 class SyslogLogger : public Logger
 {
 public:
-	SyslogLogger(const string& ident, LogSeverity minSeverity);
+	SyslogLogger(LogSeverity minSeverity);
 
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);
