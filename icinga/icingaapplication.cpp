@@ -103,8 +103,12 @@ int IcingaApplication::Main(const vector<string>& args)
 		throw invalid_argument("No config file was specified on the command line.");
 
 	if (enableSyslog) {
+#ifndef _WIN32
 		SyslogLogger::Ptr syslogLogger = boost::make_shared<SyslogLogger>(LogInformation);
 		Logger::RegisterLogger(syslogLogger);
+#else /* _WIN32 */
+		throw invalid_argument("Syslog is not supported on Windows.");
+#endif /* _WIN32 */
 	}
 
 	string componentDirectory = Utility::DirName(GetExePath()) + "/../lib/icinga2";

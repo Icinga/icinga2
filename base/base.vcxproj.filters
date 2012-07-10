@@ -67,6 +67,15 @@
     <ClCompile Include="win32.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="logger.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="streamlogger.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="sysloglogger.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -136,6 +145,15 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="variant.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="streamlogger.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="sysloglogger.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

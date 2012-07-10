@@ -1,3 +1,4 @@
+#ifndef _WIN32
 #include "i2-base.h"
 
 using namespace icinga;
@@ -40,3 +41,4 @@ void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
 
 	syslog(severity | LOG_USER, "%s", entry.Message.c_str());
 }
+#endif /* _WIN32 */

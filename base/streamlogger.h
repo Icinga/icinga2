@@ -7,7 +7,7 @@ namespace icinga
 /**
  * A logger that logs to stdout.
  */
-class StreamLogger : public Logger
+class I2_BASE_API StreamLogger : public Logger
 {
 public:
 	typedef shared_ptr<StreamLogger> Ptr;

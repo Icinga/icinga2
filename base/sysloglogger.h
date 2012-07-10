@@ -1,13 +1,14 @@
 #ifndef SYSLOGLOGGER_H
 #define SYSLOGLOGGER_H
 
+#ifndef _WIN32
 namespace icinga
 {
 
 /**
  * A logger that logs to syslog.
  */
-class SyslogLogger : public Logger
+class I2_BASE_API SyslogLogger : public Logger
 {
 public:
 	typedef shared_ptr<SyslogLogger> Ptr;
@@ -20,5 +21,6 @@ protected:
 };
 
 }
+#endif /* _WIN32 */
 
 #endif /* SYSLOGLOGGER_H */
