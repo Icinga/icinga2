@@ -2,10 +2,20 @@
 
 using namespace icinga;
 
+/**
+ * Constructor for the ConsoleLogger class.
+ *
+ * @param minSeverity Minimum severity for log messages.
+ */
 ConsoleLogger::ConsoleLogger(LogSeverity minSeverity)
 	: Logger(minSeverity)
 { }
 
+/**
+ * Processes a log entry and outputs it to standard out.
+ *
+ * @param entry The log entry.
+ */
 void ConsoleLogger::ProcessLogEntry(const LogEntry& entry)
 {
 	char timestamp[100];

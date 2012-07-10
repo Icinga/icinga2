@@ -23,6 +23,12 @@ using namespace icinga;
 
 vector<Logger::Ptr> Logger::m_Loggers;
 
+/**
+ * Constructor for the logger class.
+ *
+ * @param minSeverity The minimum severity of log messages that should be sent
+ *                    to this logger.
+ */
 Logger::Logger(LogSeverity minSeverity)
 	: m_MinSeverity(minSeverity)
 { }
@@ -48,16 +54,31 @@ void Logger::Write(LogSeverity severity, const string& facility,
 	Event::Post(ev);
 }
 
+/**
+ * Registers a new logger.
+ *
+ * @param logger The logger.
+ */
 void Logger::RegisterLogger(const Logger::Ptr& logger)
 {
 	m_Loggers.push_back(logger);
 }
 
+/**
+ * Retrieves the minimum severity for this logger.
+ *
+ * @returns The minimum severity.
+ */
 LogSeverity Logger::GetMinSeverity(void) const
 {
 	return m_MinSeverity;
 }
 
+/**
+ * Forwards a log entry to the registered loggers.
+ *
+ * @param entry The log entry.
+ */
 void Logger::ForwardLogEntry(const LogEntry& entry)
 {
 	vector<Logger::Ptr>::iterator it;

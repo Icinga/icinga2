@@ -4,6 +4,9 @@
 namespace icinga
 {
 
+/**
+ * A logger that logs to stderr.
+ */
 class ConsoleLogger : public Logger
 {
 public:

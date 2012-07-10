@@ -36,6 +36,11 @@ enum LogSeverity
 	LogCritical
 };
 
+/**
+ * A lot entry.
+ *
+ * @ingroup base
+ */
 struct LogEntry {
 	time_t Timestamp;
 	LogSeverity Severity;
@@ -43,6 +48,9 @@ struct LogEntry {
 	string Message;
 };
 
+/**
+ * Base class for all loggers.
+ */
 class I2_BASE_API Logger : public Object
 {
 public:
