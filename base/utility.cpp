@@ -44,16 +44,16 @@ void Utility::Daemonize(void) {
 	if (fd < 0)
 		throw PosixException("open() failed", errno);
 
-	if (fd != 0)
-		dup2(fd, 0);
+	if (fd != STDIN_FILENO)
+		dup2(fd, STDIN_FILENO);
 
-	if (fd != 1)
-		dup2(fd, 1);
+	if (fd != STDOUT_FILENO)
+		dup2(fd, STDOUT_FILENO);
 
-	if (fd != 2)
-		dup2(fd, 2);
+	if (fd != STDERR_FILENO)
+		dup2(fd, STDERR_FILENO);
 
-	if (fd > 2)
+	if (fd > STDERR_FILENO)
 		close(fd);
 
 	if (setsid() < 0)
