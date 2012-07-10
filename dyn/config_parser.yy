@@ -58,7 +58,6 @@ using namespace icinga;
 %token T_INHERITS
 %type <variant> simplevalue
 %type <variant> value
-%type <variant> tuple
 %type <variant> expressionlist
 %type <op> operator
 %left '+' '-'
@@ -236,37 +235,9 @@ simplevalue: T_STRING
 	;
 
 value: simplevalue
-	| tuple
 	| expressionlist
 	{
 		$$ = $1;
 	}
-	;
-
-tuple: '('
-	{
-		m_Array = boost::make_shared<Dictionary>();
-	}
-	tupleitems
-	')'
-	{
-		$$ = new Variant(m_Array);
-		m_Array.reset();
-	}
-	;
-
-tupleitem: simplevalue
-	{
-		m_Array->Add(*$1);
-		delete $1;
-	}
-
-tupleitems: tupleitems_inner
-	| tupleitems_inner ','
-
-tupleitems_inner:
-	/* empty */
-	| tupleitem
-	| tupleitems_inner ',' tupleitem
 	;
 %%
