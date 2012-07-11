@@ -24,20 +24,6 @@ namespace icinga
 {
 
 /**
- * The type of a Variant object.
- *
- * @ingroup base
- */
-enum VariantType
-{
-	VariantEmpty, /**< Denotes that the Variant is empty. */
-	VariantInteger, /**< Denotes that the Variant is holding an integer. */
-	VariantString, /**< Denotes that the Variant is holding a string. */
-	VariantObject /**< Denotes that the Variant is holding an object
-			   that inherits from the Object class. */
-};
-
-/**
  * A type that can hold an arbitrary value.
  *
  * @ingroup base
@@ -45,52 +31,81 @@ enum VariantType
 class I2_BASE_API Variant
 {
 public:
-	inline Variant(void) : m_Type(VariantEmpty) { }
+	inline Variant(void)
+		: m_Value()
+	{ }
 
-	inline Variant(int value)
-	    : m_Type(VariantInteger), m_IntegerValue(value) { }
+	inline Variant(double value)
+		: m_Value(value)
+	{ }
 
-	inline Variant(bool value)
-	    : m_Type(VariantInteger), m_IntegerValue(value ? 1 : 0) { }
-
-	inline Variant(long value)
-	    : m_Type(VariantInteger), m_IntegerValue(value) { }
+	inline Variant(const string& value)
+		: m_Value(value)
+	{ }
 
 	inline Variant(const char *value)
-	    : m_Type(VariantString), m_StringValue(string(value)) { }
-
-	inline Variant(string value)
-	    : m_Type(VariantString), m_StringValue(value) { }
+		: m_Value(string(value))
+	{ }
 
 	template<typename T>
-	Variant(const shared_ptr<T>& value)
-	    : m_Type(VariantObject), m_ObjectValue(value) { }
+	inline Variant(const shared_ptr<T>& value)
+	{
+		Object::Ptr object = dynamic_pointer_cast<Object>(value);
 
-	VariantType GetType(void) const;
+		if (!object)
+			throw invalid_argument("shared_ptr value type must inherit from Object class.");
 
-	long GetInteger(void) const;
-	bool GetBool(void) const;
-	string GetString(void) const;
-	Object::Ptr GetObject(void) const;
+		m_Value = object;
+	}
+
+	operator double(void) const
+	{
+		if (m_Value.type() != typeid(double)) {
+			double result = boost::lexical_cast<double>(m_Value);
+			m_Value = result;
+			return result;
+		} else {
+			return boost::get<double>(m_Value);
+		}
+	}
+
+	operator string(void) const
+	{
+		if (m_Value.type() != typeid(string)) {
+			string result = boost::lexical_cast<string>(m_Value);
+			m_Value = result;
+			return result;
+		} else {
+			return boost::get<string>(m_Value);
+		}
+	}
+
+	template<typename T>
+	operator shared_ptr<T>(void) const
+	{
+		shared_ptr<T> object = dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value));
+
+		if (!object)
+			throw bad_cast();
+
+		return object;
+	}
 
 	bool IsEmpty(void) const;
+	bool IsScalar(void) const;
+	bool IsObject(void) const;
 
-	operator long(void) const;
-	operator bool(void) const;
-	operator string(void) const;
-	operator Object::Ptr(void) const;
+	template<typename T>
+	bool IsObjectType(void) const
+	{
+		if (!IsObject())
+			return false;
+
+		return (dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value)));
+	}
 
 private:
-	mutable VariantType m_Type; /**< The type of the Variant. */
-
-	mutable long m_IntegerValue; /**< The value of the Variant
-				          if m_Type == VariantInteger */
-	mutable string m_StringValue; /**< The value of the Variant
-				           if m_Type == VariantString */
-	mutable Object::Ptr m_ObjectValue; /**< The value of the Variant
-					        if m_Type == VariantObject */
-
-	void Convert(VariantType newType) const;
+	mutable boost::variant<double, string, Object::Ptr> m_Value;
 };
 
 }

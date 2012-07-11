@@ -400,7 +400,7 @@ int Application::Run(int argc, char **argv)
 			Application::m_Instance.reset();
 
 			Logger::Write(LogCritical, "base", "---");
-			Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(ex));
+			Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(typeid(ex)));
 			Logger::Write(LogCritical, "base", "Message: " + string(ex.what()));
 
 			return EXIT_FAILURE;

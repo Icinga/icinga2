@@ -125,13 +125,10 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 
 			CopyServiceAttributes(host, host->GetProperties(), builder);
 
-			if (svcdesc.GetType() == VariantString) {
+			if (svcdesc.IsScalar()) {
 				builder->AddParent(svcdesc);
-			} else if (svcdesc.GetType() == VariantObject) {
-				Dictionary::Ptr service = dynamic_pointer_cast<Dictionary>(svcdesc.GetObject());
-
-				if (!service)
-					throw invalid_argument("Service description invalid.");
+			} else if (svcdesc.IsObjectType<Dictionary>()) {
+				Dictionary::Ptr service = svcdesc;
 
 				string parent;
 				if (!service->Get("service", &parent))
@@ -154,7 +151,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 	if (oldServices) {
 		Dictionary::Iterator it;
 		for (it = oldServices->Begin(); it != oldServices->End(); it++) {
-			ConfigItem::Ptr service = static_pointer_cast<ConfigItem>(it->second.GetObject());
+			ConfigItem::Ptr service = it->second;
 
 			if (!newServices->Contains(service->GetName()))
 				service->Unregister();
@@ -182,7 +179,7 @@ void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
 
 	Dictionary::Iterator it;
 	for (it = services->Begin(); it != services->End(); it++) {
-		ConfigItem::Ptr service = static_pointer_cast<ConfigItem>(it->second.GetObject());
+		ConfigItem::Ptr service = it->second;
 		service->Unregister();
 	}
 }

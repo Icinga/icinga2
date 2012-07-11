@@ -108,10 +108,13 @@ using std::ostream;
 using std::ofstream;
 
 using std::exception;
+using std::bad_cast;
 using std::runtime_error;
 using std::logic_error;
 using std::invalid_argument;
 using std::domain_error;
+
+using std::type_info;
 
 #include <boost/smart_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -121,6 +124,8 @@ using std::domain_error;
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/thread.hpp>
+#include <boost/variant.hpp>
+#include <boost/lexical_cast.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;

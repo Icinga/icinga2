@@ -113,21 +113,15 @@ json_t *MessagePart::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
 	json = cJSON_CreateObject();
 
 	for (Dictionary::Iterator i = dictionary->Begin(); i != dictionary->End(); i++) {
-		switch (i->second.GetType()) {
-			case VariantInteger:
-				cJSON_AddNumberToObject(json, i->first.c_str(), i->second.GetInteger());
-				break;
-			case VariantString:
-				valueString = i->second.GetString();
-				cJSON_AddStringToObject(json, i->first.c_str(), valueString.c_str());
-				break;
-			case VariantObject:
-				valueDictionary = dynamic_pointer_cast<Dictionary>(i->second.GetObject());
-
-				if (valueDictionary)
-					cJSON_AddItemToObject(json, i->first.c_str(), GetJsonFromDictionary(valueDictionary));
-			default:
-				break;
+		if (i->second.IsScalar()) {
+			valueString = static_cast<string>(i->second);
+			cJSON_AddStringToObject(json, i->first.c_str(), valueString.c_str());
+		} else if (i->second.IsObjectType<Dictionary>()) {
+			cJSON_AddItemToObject(json, i->first.c_str(), GetJsonFromDictionary(i->second));
+		} else {
+			stringstream msgbuf;
+			msgbuf << "Dictionary serialization: Ignored property '" << i->first << "' (unknown type)";
+			Logger::Write(LogDebug, "jsonrpc", msgbuf.str());
 		}
 	}
 
@@ -178,13 +172,9 @@ Dictionary::Ptr MessagePart::GetDictionary(void) const
  */
 bool MessagePart::Get(string key, MessagePart *value) const
 {
-	Object::Ptr object;
-	if (!GetDictionary()->Get(key, &object))
+	Dictionary::Ptr dictionary;
+	if (!GetDictionary()->Get(key, &dictionary))
 		return false;
-
-	Dictionary::Ptr dictionary = dynamic_pointer_cast<Dictionary>(object);
-	if (!dictionary)
-		throw runtime_error("Object is not a dictionary.");
 
 	*value = MessagePart(dictionary);
 	return true;

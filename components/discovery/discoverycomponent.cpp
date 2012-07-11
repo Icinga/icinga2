@@ -327,16 +327,12 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
 	for (ConfigObject::TMap::Iterator ip = range.first; ip != range.second; ip++) {
 		ConfigObject::Ptr role = ip->second;
 
-		Object::Ptr object;
-		if (!role->GetProperty(messageType, &object))
+		Dictionary::Ptr permissions;
+		if (!role->GetProperty(messageType, &permissions))
 			continue;
 
-		Dictionary::Ptr permissions = dynamic_pointer_cast<Dictionary>(object);
-		if (!permissions)
-			throw runtime_error("Object is not a dictionary.");
-
 		for (Dictionary::Iterator is = permissions->Begin(); is != permissions->End(); is++) {
-			if (Utility::Match(is->second.GetString(), message))
+			if (Utility::Match(is->second, message))
 				return true;
 		}
 	}
@@ -372,14 +368,8 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	ConfigObject::Ptr endpointConfig = ConfigObject::GetObject("endpoint", identity);
 	Dictionary::Ptr roles;
-	if (endpointConfig) {
-		Object::Ptr object;
-		if (endpointConfig->GetProperty("roles", &object)) {
-			roles = dynamic_pointer_cast<Dictionary>(object);
-			if (!roles)
-				throw runtime_error("Object is not a dictionary.");
-		}
-	}
+	if (endpointConfig)
+		endpointConfig->GetProperty("roles", &roles);
 
 	Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(identity);
 

@@ -22,139 +22,21 @@
 using namespace icinga;
 
 /**
- * Converts the variant's value to a new type.
- *
- * @param newType The new type of the variant.
- */
-void Variant::Convert(VariantType newType) const
-{
-	if (newType == m_Type)
-		return;
-
-	if (m_Type == VariantString && newType == VariantInteger) {
-		m_IntegerValue = strtol(m_StringValue.c_str(), NULL, 10);
-		m_Type = VariantInteger;
-
-		return;
-	}
-
-	if (m_Type == VariantInteger && newType == VariantString) {
-		stringstream sbuf;
-		sbuf << m_IntegerValue;
-		m_StringValue = sbuf.str();
-		m_Type = VariantString;
-
-		return;
-	}
-
-	// TODO: convert variant data
-	throw runtime_error("Invalid variant conversion.");
-}
-
-/**
- * Retrieves the variant value's type.
- *
- * @returns The variant's type.
- */
-VariantType Variant::GetType(void) const
-{
-	return m_Type;
-}
-
-/**
- * Retrieves the variant's value as an integer.
- *
- * @returns The variant's value as an integer.
- */
-long Variant::GetInteger(void) const
-{
-	Convert(VariantInteger);
-
-	return m_IntegerValue;
-}
-
-/**
- * Retrieves the variant's value as a bool.
- *
- * @returns The variant's value as a bool.
- */
-bool Variant::GetBool(void) const
-{
-	Convert(VariantInteger);
-
-	return (m_IntegerValue != 0);
-}
-
-/**
- * Retrieves the variant's value as a string.
- *
- * @returns The variant's value as a string.
- */
-string Variant::GetString(void) const
-{
-	Convert(VariantString);
-
-	return m_StringValue;
-}
-
-/**
- * Retrieves the variant's value as an object.
- *
- * @returns The variant's value as an object.
- */
-Object::Ptr Variant::GetObject(void) const
-{
-	Convert(VariantObject);
-
-	return m_ObjectValue;
-}
-
-/**
  * Checks whether the variant is empty.
  *
  * @returns true if the variant is empty, false otherwise.
  */
 bool Variant::IsEmpty(void) const
 {
-	return (m_Type == VariantEmpty);
+	return (m_Value.empty());
 }
 
-/**
- * Retrieves the variant's value as an integer.
- *
- * @returns The variant's value as an integer.
- */
-Variant::operator long(void) const
+bool Variant::IsScalar(void) const
 {
-	return GetInteger();
+	return !IsEmpty() && !IsObject();
 }
 
-/**
- * Retrieves the variant's value as a bool.
- *
- * @returns The variant's value as a bool.
- */
-Variant::operator bool(void) const
+bool Variant::IsObject(void) const
 {
-	return GetBool();
-}
-
-/**
- * Retrieves the variant's value as a string.
- *
- * @returns The variant's value as a string.
- */
-Variant::operator string(void) const
-{
-	return GetString();
-}
-
-/**
- * Retrieves the variant's value as an object.
- *
- * @returns The variant's value as an object.
- */
-Variant::operator Object::Ptr(void) const
-{
-	return GetObject();
+	return !IsEmpty() && (m_Value.type() == typeid(Object::Ptr));
 }

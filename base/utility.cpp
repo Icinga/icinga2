@@ -25,6 +25,30 @@ using namespace icinga;
 bool I2_EXPORT Utility::m_SSLInitialized = false;
 
 /**
+ * Returns a human-readable type name of a type_info object.
+ *
+ * @param ti A type_info object.
+ * @returns The type name of the object.
+ */
+string Utility::GetTypeName(const type_info& ti)
+{
+	string klass = ti.name();
+
+#ifdef HAVE_GCC_ABI_DEMANGLE
+	int status;
+	char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
+
+	if (realname != NULL) {
+		klass = string(realname);
+		free(realname);
+	}
+#endif /* HAVE_GCC_ABI_DEMANGLE */
+
+	return klass;
+}
+
+
+/**
  * Detaches from the controlling terminal.
  */
 void Utility::Daemonize(void) {

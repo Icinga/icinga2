@@ -116,9 +116,8 @@ attributes T_OBJECT T_IDENTIFIER T_STRING
 	}
 inherits_specifier expressionlist
 	{
-		Object::Ptr exprl_object = *$8;
+		ExpressionList::Ptr exprl = *$8;
 		delete $8;
-		ExpressionList::Ptr exprl = dynamic_pointer_cast<ExpressionList>(exprl_object);
 
 		m_Item->AddExpressionList(exprl);
 		m_Item->SetLocal(m_Local);

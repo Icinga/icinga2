@@ -32,10 +32,11 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 	ExpressionList::Ptr valueExprl;
 	Dictionary::Ptr valueDict;
-	if (m_Value.GetType() == VariantObject) {
-		valueExprl = dynamic_pointer_cast<ExpressionList>(m_Value.GetObject());
-		valueDict = dynamic_pointer_cast<Dictionary>(m_Value.GetObject());
-	}
+	if (m_Value.IsObjectType<ExpressionList>())
+		valueExprl = m_Value;
+
+	if (m_Value.IsObjectType<Dictionary>())
+		valueDict = m_Value;
 
 	newValue = m_Value;
 
@@ -62,8 +63,8 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 		case OperatorPlus:
 			dictionary->Get(m_Key, &oldValue);
 
-			if (oldValue.GetType() == VariantObject)
-				dict = dynamic_pointer_cast<Dictionary>(oldValue.GetObject());
+			if (oldValue.IsObjectType<Dictionary>())
+				dict = oldValue;
 
 			if (!dict) {
 				if (!oldValue.IsEmpty()) {
