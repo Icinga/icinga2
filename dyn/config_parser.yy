@@ -37,7 +37,7 @@ using namespace icinga;
 
 %union {
 	char *text;
-	int num;
+	double num;
 	icinga::Variant *variant;
 	icinga::ExpressionOperator op;
 }

@@ -172,7 +172,7 @@ typedef union YYSTYPE
 #line 38 "config_parser.yy"
 
 	char *text;
-	int num;
+	double num;
 	icinga::Variant *variant;
 	icinga::ExpressionOperator op;
 
