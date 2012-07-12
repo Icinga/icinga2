@@ -76,9 +76,10 @@ public:
 	 * Adds an unnamed value to the dictionary.
 	 *
 	 * @param value The value.
+	 * @returns The key that was used to add the new item.
 	 */
 	template<typename T>
-	void Add(const T& value)
+	string Add(const T& value)
 	{
 		Iterator it;
 		string key;
@@ -93,6 +94,7 @@ public:
 		} while (it != m_Data.end());
 
 		Set(key, value);
+		return key;
 	}
 
 	bool Contains(const string& key) const;
