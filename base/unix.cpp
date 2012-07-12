@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#ifndef _WIN32
 #include "i2-base.h"
 
-#if I2_PLATFORM == PLATFORM_UNIX
 #include <ltdl.h>
 
 using namespace icinga;
@@ -44,4 +44,4 @@ void closesocket(SOCKET fd)
 	close(fd);
 }
 
-#endif /* I2_PLATFORM == PLATFORM_UNIX */
+#endif /* _WIN32 */

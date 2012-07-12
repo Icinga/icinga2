@@ -61,14 +61,9 @@
 #	include "config.h"
 #endif /* _MSC_VER */
 
-#define PLATFORM_WINDOWS 1
-#define PLATFORM_UNIX 2
-
 #ifdef _WIN32
-#	define I2_PLATFORM PLATFORM_WINDOWS
 #	include "win32.h"
 #else
-#	define I2_PLATFORM PLATFORM_UNIX
 #	include "unix.h"
 #endif
 

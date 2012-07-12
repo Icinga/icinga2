@@ -17,12 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#ifdef _WIN32
 #include "i2-base.h"
-
-#if I2_PLATFORM == PLATFORM_WINDOWS
 
 using namespace icinga;
 
 /* nothing here (yet) */
 
-#endif /* I2_PLATFORM == PLATFORM_WINDOWS */
+#endif /* _WIN32 */
