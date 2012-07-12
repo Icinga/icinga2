@@ -81,10 +81,7 @@ Application::~Application(void)
  */
 Application::Ptr Application::GetInstance(void)
 {
-	if (m_ShuttingDown)
-		return Application::Ptr();
-	else
-		return m_Instance;
+	return m_Instance;
 }
 
 /**
