@@ -34,6 +34,7 @@
 #include <signal.h>
 #include <libgen.h>
 #include <syslog.h>
+#include <sys/file.h>
 
 void Sleep(unsigned long milliseconds);
 

@@ -45,6 +45,8 @@ public:
 
 	time_t GetStartTime(void) const;
 
+	static const string PidFilename;
+
 private:
 	string m_CertificateFile;
 	string m_CAFile;

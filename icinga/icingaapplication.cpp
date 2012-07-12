@@ -28,6 +28,8 @@
 
 using namespace icinga;
 
+const string IcingaApplication::PidFilename = "icinga.pid";
+
 /**
  * The entry point for the Icinga application.
  *
@@ -46,6 +48,8 @@ int IcingaApplication::Main(const vector<string>& args)
 #endif  /* _WIN32 */
 
 	time(&m_StartTime);
+
+	UpdatePidFile(PidFilename);
 
 	if (args.size() < 2) {
 		stringstream msgbuf;
@@ -170,7 +174,9 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	if (daemonize) {
 		Logger::Write(LogInformation, "icinga", "Daemonizing.");
+		ClosePidFile();
 		Utility::Daemonize();
+		UpdatePidFile(PidFilename);
 		Logger::UnregisterLogger(consoleLogger);
 	}
 

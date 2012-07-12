@@ -56,6 +56,9 @@ public:
 
 	static bool IsMainThread(void);
 
+	void UpdatePidFile(const string& filename);
+	void ClosePidFile(void);
+
 protected:
 	void RunEventLoop(void);
 	string GetExePath(void) const;
@@ -68,6 +71,7 @@ private:
 	map< string, shared_ptr<Component> > m_Components; /**< Components that
 					were loaded by the application. */
 	vector<string> m_Arguments; /**< Command-line arguments */
+	FILE *m_PidFile; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
 	static boost::thread::id m_MainThreadID; /**< ID of the main thread. */
 

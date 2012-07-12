@@ -69,9 +69,9 @@ Application::~Application(void)
 
 #ifdef _WIN32
 	WSACleanup();
-#else /* _WIN32 */
-	//lt_dlexit();
 #endif /* _WIN32 */
+
+	ClosePidFile();
 }
 
 /**
@@ -406,3 +406,41 @@ int Application::Run(int argc, char **argv)
 
 	return result;
 }
+
+void Application::UpdatePidFile(const string& filename)
+{
+	ClosePidFile();
+
+	/* There's just no sane way of getting a file descriptor for a
+	 * C++ ofstream which is why we're using FILEs here. */
+	m_PidFile = fopen(filename.c_str(), "w");
+
+	if (m_PidFile == NULL)
+		throw runtime_error("Could not open PID file '" + filename + "'");
+
+	if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {
+		ClosePidFile();
+
+		throw runtime_error("Another instance of the application is "
+		    "already running. Remove the '" + filename + "' file if "
+		    "you're certain that this is not the case.");
+	}
+
+#ifndef _WIN32
+	pid_t pid = getpid();
+#else /* _WIN32 */
+	DWORD pid = GetCurrentProcessId();
+#endif /* _WIN32 */
+
+	fprintf(m_PidFile, "%d", pid);
+	fflush(m_PidFile);
+}
+
+void Application::ClosePidFile(void)
+{
+	if (m_PidFile != NULL)
+		fclose(m_PidFile);
+
+	m_PidFile = NULL;
+}
+
