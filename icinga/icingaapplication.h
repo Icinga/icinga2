@@ -34,6 +34,8 @@ public:
 	typedef shared_ptr<IcingaApplication> Ptr;
 	typedef weak_ptr<IcingaApplication> WeakPtr;
 
+	IcingaApplication(void);
+
 	int Main(const vector<string>& args);
 
 	static IcingaApplication::Ptr GetInstance(void);
@@ -42,16 +44,18 @@ public:
 	string GetCAFile(void) const;
 	string GetNode(void) const;
 	string GetService(void) const;
+	string GetPidPath(void) const;
 
 	time_t GetStartTime(void) const;
 
-	static const string PidFilename;
+	static const string DefaultPidPath;
 
 private:
 	string m_CertificateFile;
 	string m_CAFile;
 	string m_Node;
 	string m_Service;
+	string m_PidPath;
 
 	time_t m_StartTime;
 

@@ -28,7 +28,11 @@
 
 using namespace icinga;
 
-const string IcingaApplication::PidFilename = "icinga.pid";
+const string IcingaApplication::DefaultPidPath = "icinga.pid";
+
+IcingaApplication::IcingaApplication(void)
+	: m_PidPath(DefaultPidPath)
+{ }
 
 /**
  * The entry point for the Icinga application.
@@ -48,8 +52,6 @@ int IcingaApplication::Main(const vector<string>& args)
 #endif  /* _WIN32 */
 
 	time(&m_StartTime);
-
-	UpdatePidFile(PidFilename);
 
 	if (args.size() < 2) {
 		stringstream msgbuf;
@@ -155,6 +157,9 @@ int IcingaApplication::Main(const vector<string>& args)
 	icingaConfig->GetProperty("ca", &m_CAFile);
 	icingaConfig->GetProperty("node", &m_Node);
 	icingaConfig->GetProperty("service", &m_Service);
+	icingaConfig->GetProperty("pidpath", &m_PidPath);
+
+	UpdatePidFile(GetPidPath());
 
 	if (!GetCertificateFile().empty() && !GetCAFile().empty()) {
 		/* set up SSL context */
@@ -176,7 +181,7 @@ int IcingaApplication::Main(const vector<string>& args)
 		Logger::Write(LogInformation, "icinga", "Daemonizing.");
 		ClosePidFile();
 		Utility::Daemonize();
-		UpdatePidFile(PidFilename);
+		UpdatePidFile(GetPidPath());
 		Logger::UnregisterLogger(consoleLogger);
 	}
 
@@ -232,6 +237,11 @@ string IcingaApplication::GetNode(void) const
 string IcingaApplication::GetService(void) const
 {
 	return m_Service;
+}
+
+string IcingaApplication::GetPidPath(void) const
+{
+	return m_PidPath;
 }
 
 time_t IcingaApplication::GetStartTime(void) const
