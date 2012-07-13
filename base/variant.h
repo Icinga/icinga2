@@ -90,7 +90,7 @@ public:
 
 	operator bool(void) const
 	{
-		return static_cast<long>(*this);
+		return (static_cast<long>(*this) != 0);
 	}
 
 	operator string(void) const
