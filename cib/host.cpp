@@ -86,6 +86,13 @@ set<string> Host::GetParents(void) const
 	return parents;
 }
 
+Dictionary::Ptr Host::GetMacros(void) const
+{
+	Dictionary::Ptr value;
+	GetProperty("macros", &value);
+	return value;
+}
+
 bool Host::IsReachable(void) const
 {
 	Dictionary::Ptr dependencies;

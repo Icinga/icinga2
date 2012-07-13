@@ -45,6 +45,7 @@ public:
 	string GetNode(void) const;
 	string GetService(void) const;
 	string GetPidPath(void) const;
+	Dictionary::Ptr GetMacros(void) const;
 
 	time_t GetStartTime(void) const;
 
@@ -56,6 +57,7 @@ private:
 	string m_Node;
 	string m_Service;
 	string m_PidPath;
+	Dictionary::Ptr m_Macros;
 
 	time_t m_StartTime;
 

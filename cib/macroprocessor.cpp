@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-string MacroProcessor::ResolveMacros(const string& str, const Dictionary::Ptr& macros)
+string MacroProcessor::ResolveMacros(const string& str, const vector<Dictionary::Ptr>& macroDicts)
 {
 	string::size_type offset, pos_first, pos_second;
 
@@ -36,7 +36,18 @@ string MacroProcessor::ResolveMacros(const string& str, const Dictionary::Ptr& m
 
 		string name = result.substr(pos_first + 1, pos_second - pos_first - 1);
 		string value;
-		if (!macros || !macros->Get(name, &value))
+		bool resolved = false;
+
+		vector<Dictionary::Ptr>::const_iterator it;
+		for (it = macroDicts.begin(); it != macroDicts.end(); it++) {
+			Dictionary::Ptr macros = *it;
+			if (macros && macros->Get(name, &value)) {
+				resolved = true;
+				break;
+			}
+		}
+
+		if (!resolved)
 			throw runtime_error("Macro '" + name + "' is not defined.");
 
 		result.replace(pos_first, pos_second - pos_first + 1, value);

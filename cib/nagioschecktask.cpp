@@ -34,7 +34,12 @@ NagiosCheckTask::NagiosCheckTask(const Service& service)
 	: CheckTask(service), m_FP(NULL), m_UsePopen(false)
 {
 	string checkCommand = service.GetCheckCommand();
-	m_Command = MacroProcessor::ResolveMacros(checkCommand, service.GetMacros());
+
+	vector<Dictionary::Ptr> macroDicts;
+	macroDicts.push_back(service.GetMacros());
+	macroDicts.push_back(service.GetHost().GetMacros());
+	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
+	m_Command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
 }
 
 void NagiosCheckTask::Enqueue(void)

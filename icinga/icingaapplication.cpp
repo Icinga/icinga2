@@ -170,6 +170,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	icingaConfig->GetProperty("node", &m_Node);
 	icingaConfig->GetProperty("service", &m_Service);
 	icingaConfig->GetProperty("pidpath", &m_PidPath);
+	icingaConfig->GetProperty("macros", &m_Macros);
 
 	string logpath;
 	if (icingaConfig->GetProperty("logpath", &logpath)) {
@@ -312,6 +313,11 @@ string IcingaApplication::GetService(void) const
 string IcingaApplication::GetPidPath(void) const
 {
 	return m_PidPath;
+}
+
+Dictionary::Ptr IcingaApplication::GetMacros(void) const
+{
+	return m_Macros;
 }
 
 time_t IcingaApplication::GetStartTime(void) const
