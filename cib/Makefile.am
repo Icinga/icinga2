@@ -34,8 +34,7 @@ libcib_la_CPPFLAGS = \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/dyn \
 	-I${top_srcdir}/jsonrpc \
-	-I${top_srcdir}/icinga \
-	-I${top_srcdir}/third-party/popen-noshell
+	-I${top_srcdir}/icinga
 
 libcib_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
@@ -49,5 +48,4 @@ libcib_la_LIBADD = \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/dyn/libdyn.la \
 	${top_builddir}/jsonrpc/libjsonrpc.la \
-	${top_builddir}/icinga/libicinga.la \
-	${top_builddir}/third-party/popen-noshell/libpopen_noshell.la
+	${top_builddir}/icinga/libicinga.la

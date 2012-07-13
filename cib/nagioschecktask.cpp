@@ -19,10 +19,6 @@
 
 #include "i2-cib.h"
 
-#ifndef _MSC_VER
-#	include "popen_noshell.h"
-#endif /* _MSC_VER */
-
 using namespace icinga;
 
 NagiosCheckTask::NagiosCheckTask(const Service& service)
