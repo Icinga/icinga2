@@ -105,7 +105,7 @@ public:
 	}
 
 private:
-	mutable boost::variant<double, string, Object::Ptr> m_Value;
+	mutable boost::variant<boost::blank, double, string, Object::Ptr> m_Value;
 };
 
 }

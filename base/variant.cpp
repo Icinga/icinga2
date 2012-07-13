@@ -28,7 +28,7 @@ using namespace icinga;
  */
 bool Variant::IsEmpty(void) const
 {
-	return (m_Value.empty());
+	return (m_Value.type() == typeid(boost::blank));
 }
 
 bool Variant::IsScalar(void) const
