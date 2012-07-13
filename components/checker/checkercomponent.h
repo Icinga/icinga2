@@ -60,6 +60,8 @@ private:
 	void CheckTimerHandler(void);
 	void ResultTimerHandler(void);
 
+	void CheckCompletedHandler(const CheckTask::Ptr& task);
+
 	void AdjustCheckTimer(void);
 
 	void AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);

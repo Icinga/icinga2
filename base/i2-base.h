@@ -175,5 +175,7 @@ using boost::system_time;
 #include "logger.h"
 #include "streamlogger.h"
 #include "sysloglogger.h"
+#include "asynctask.h"
+#include "process.h"
 
 #endif /* I2BASE_H */

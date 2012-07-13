@@ -7,6 +7,7 @@ pkglib_LTLIBRARIES =  \
 libbase_la_SOURCES =  \
 	application.cpp \
 	application.h \
+	asynctask.h \
 	component.cpp \
 	component.h \
 	configobject.cpp \
@@ -28,6 +29,8 @@ libbase_la_SOURCES =  \
 	objectset.h \
 	objectmap.cpp \
 	objectmap.h \
+	process.cpp \
+	process.h \
 	ringbuffer.cpp \
 	ringbuffer.h \
 	socket.cpp \

@@ -23,7 +23,7 @@
 namespace icinga
 {
 
-class Event : public Object
+class I2_BASE_API Event : public Object
 {
 public:
 	typedef shared_ptr<Event> Ptr;

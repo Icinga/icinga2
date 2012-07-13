@@ -76,6 +76,9 @@
     <ClCompile Include="sysloglogger.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="process.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -156,13 +159,19 @@
     <ClInclude Include="sysloglogger.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="asynctask.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="process.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Headerdateien">
-      <UniqueIdentifier>{7bbee99c-5763-4063-836c-ddbcc8966ae3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Quelldateien">
       <UniqueIdentifier>{229e6896-1a39-4b0e-b5e4-a1291b825200}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien">
+      <UniqueIdentifier>{7bbee99c-5763-4063-836c-ddbcc8966ae3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
