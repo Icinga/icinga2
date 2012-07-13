@@ -35,8 +35,20 @@ public:
 		: m_Value()
 	{ }
 
+	inline Variant(int value)
+		: m_Value(static_cast<long>(value))
+	{ }
+
+	inline Variant(long value)
+		: m_Value(value)
+	{ }
+
 	inline Variant(double value)
 		: m_Value(value)
+	{ }
+
+	inline Variant(bool value)
+		: m_Value(static_cast<long>(value))
 	{ }
 
 	inline Variant(const string& value)
@@ -58,15 +70,27 @@ public:
 		m_Value = object;
 	}
 
+	operator long(void) const
+	{
+		if (m_Value.type() != typeid(long)) {
+			return boost::lexical_cast<long>(m_Value);
+		} else {
+			return boost::get<long>(m_Value);
+		}
+	}
+
 	operator double(void) const
 	{
 		if (m_Value.type() != typeid(double)) {
-			double result = boost::lexical_cast<double>(m_Value);
-			m_Value = result;
-			return result;
+			return boost::lexical_cast<double>(m_Value);
 		} else {
 			return boost::get<double>(m_Value);
 		}
+	}
+
+	operator bool(void) const
+	{
+		return static_cast<long>(*this);
 	}
 
 	operator string(void) const
@@ -105,7 +129,7 @@ public:
 	}
 
 private:
-	mutable boost::variant<boost::blank, double, string, Object::Ptr> m_Value;
+	mutable boost::variant<boost::blank, long, double, string, Object::Ptr> m_Value;
 };
 
 }
