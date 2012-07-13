@@ -103,3 +103,33 @@ void Logger::ForwardLogEntry(const LogEntry& entry)
 			logger->ProcessLogEntry(entry);
 	}
 }
+
+string Logger::SeverityToString(LogSeverity severity)
+{
+	switch (severity) {
+		case LogDebug:
+			return "debug";
+		case LogInformation:
+			return "information";
+		case LogWarning:
+			return "warning";
+		case LogCritical:
+			return "critical";
+		default:
+			throw invalid_argument("Invalid severity.");
+	}
+}
+
+LogSeverity Logger::StringToSeverity(const string& severity)
+{
+	if (severity == "debug")
+		return LogDebug;
+	else if (severity == "information")
+		return LogInformation;
+	else if (severity == "warning")
+		return LogWarning;
+	else if (severity == "critical")
+		return LogCritical;
+	else
+		throw invalid_argument("Invalid severity: " + severity);
+}

@@ -61,6 +61,9 @@ private:
 
 	void NewComponentHandler(const ConfigObject::Ptr& object);
 	void DeletedComponentHandler(const ConfigObject::Ptr& object);
+
+	void NewLogHandler(const ConfigObject::Ptr& object);
+	void DeletedLogHandler(const ConfigObject::Ptr& object);
 };
 
 }

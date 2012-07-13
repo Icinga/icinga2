@@ -57,29 +57,11 @@ void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 {
 	char timestamp[100];
 
-	string severityStr;
-	switch (entry.Severity) {
-		case LogDebug:
-			severityStr = "debug";
-			break;
-		case LogInformation:
-			severityStr = "info";
-			break;
-		case LogWarning:
-			severityStr = "warning";
-			break;
-		case LogCritical:
-			severityStr = "critical";
-			break;
-		default:
-			assert(!"Invalid severity specified.");
-	}
-
 	tm tmnow = *localtime(&entry.Timestamp);
 
 	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S", &tmnow);
 
 	*m_Stream << "[" << timestamp << "] "
-		 << severityStr << "/" << entry.Facility << ": "
+		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "
 		 << entry.Message << std::endl;
 }

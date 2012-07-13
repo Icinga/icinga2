@@ -42,8 +42,20 @@ IcingaApplication::IcingaApplication(void)
  */
 int IcingaApplication::Main(const vector<string>& args)
 {
-	StreamLogger::Ptr consoleLogger = boost::make_shared<StreamLogger>(&std::cout, LogInformation);
-	Logger::RegisterLogger(consoleLogger);
+	/* register handler for 'log' config objects */
+	static ConfigObject::Set::Ptr logObjects = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("log"));
+	logObjects->OnObjectAdded.connect(boost::bind(&IcingaApplication::NewLogHandler, this, _2));
+	logObjects->OnObjectCommitted.connect(boost::bind(&IcingaApplication::NewLogHandler, this, _2));
+	logObjects->OnObjectRemoved.connect(boost::bind(&IcingaApplication::DeletedLogHandler, this, _2));
+	logObjects->Start();
+
+	/* create console logger */
+	ConfigItemBuilder::Ptr consoleLogConfig = boost::make_shared<ConfigItemBuilder>();
+	consoleLogConfig->SetType("log");
+	consoleLogConfig->SetName("console");
+	consoleLogConfig->SetLocal(true);
+	consoleLogConfig->AddExpression("type", OperatorSet, "console");
+	consoleLogConfig->Compile()->Commit();
 
 #ifdef _WIN32
 	Logger::Write(LogInformation, "icinga", "Icinga component loader");
@@ -159,6 +171,17 @@ int IcingaApplication::Main(const vector<string>& args)
 	icingaConfig->GetProperty("service", &m_Service);
 	icingaConfig->GetProperty("pidpath", &m_PidPath);
 
+	string logpath;
+	if (icingaConfig->GetProperty("logpath", &logpath)) {
+		ConfigItemBuilder::Ptr fileLogConfig = boost::make_shared<ConfigItemBuilder>();
+		fileLogConfig->SetType("log");
+		fileLogConfig->SetName("main");
+		fileLogConfig->SetLocal(true);
+		fileLogConfig->AddExpression("type", OperatorSet, "file");
+		fileLogConfig->AddExpression("path", OperatorSet, logpath);
+		fileLogConfig->Compile()->Commit();
+	}
+
 	UpdatePidFile(GetPidPath());
 
 	if (!GetCertificateFile().empty() && !GetCAFile().empty()) {
@@ -182,7 +205,6 @@ int IcingaApplication::Main(const vector<string>& args)
 		ClosePidFile();
 		Utility::Daemonize();
 		UpdatePidFile(GetPidPath());
-		Logger::UnregisterLogger(consoleLogger);
 	}
 
 	RunEventLoop();
@@ -206,6 +228,54 @@ void IcingaApplication::NewComponentHandler(const ConfigObject::Ptr& object)
 	}
 
 	LoadComponent(path, object);
+}
+
+void IcingaApplication::NewLogHandler(const ConfigObject::Ptr& object)
+{
+	/* don't allow replicated config objects */
+	if (!object->IsLocal())
+		throw runtime_error("'log' objects must be 'local'");
+
+	Logger::Ptr logger;
+	if (object->GetTag("logger", &logger))
+		Logger::UnregisterLogger(logger);
+
+	string type;
+	if (!object->GetProperty("type", &type))
+		throw invalid_argument("'log' object must have a 'type' property");
+
+	string strSeverity;
+	LogSeverity severity = LogInformation;
+	if (object->GetProperty("severity", &strSeverity))
+		severity = Logger::StringToSeverity(strSeverity);
+
+	if (type == "syslog") {
+		logger = boost::make_shared<SyslogLogger>(severity);
+	} else if (type == "file") {
+		string path;
+		if (!object->GetProperty("path", &path))
+			throw invalid_argument("'log' object of type 'file' must have a 'path' property");
+
+		StreamLogger::Ptr slogger = boost::make_shared<StreamLogger>(severity);
+		slogger->OpenFile(path);
+
+		logger = slogger;
+	} else if (type == "console") {
+		logger = boost::make_shared<StreamLogger>(&std::cout, severity);
+	} else {
+		throw runtime_error("Unknown log type: " + type);
+	}
+
+	object->SetTag("logger", logger);
+
+	Logger::RegisterLogger(logger);
+}
+
+void IcingaApplication::DeletedLogHandler(const ConfigObject::Ptr& object)
+{
+	Logger::Ptr logger;
+	if (object->GetTag("logger", &logger))
+		Logger::UnregisterLogger(logger);
 }
 
 IcingaApplication::Ptr IcingaApplication::GetInstance(void)

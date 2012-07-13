@@ -65,6 +65,9 @@ public:
 	static void RegisterLogger(const Logger::Ptr& logger);
 	static void UnregisterLogger(const Logger::Ptr& logger);
 
+	static string SeverityToString(LogSeverity severity);
+	static LogSeverity StringToSeverity(const string& severity);
+
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
 
