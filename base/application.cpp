@@ -427,7 +427,7 @@ void Application::UpdatePidFile(const string& filename)
 		    "already running. Remove the '" + filename + "' file if "
 		    "you're certain that this is not the case.");
 	}
-#endif
+#endif /* _WIN32 */
 
 #ifndef _WIN32
 	pid_t pid = getpid();

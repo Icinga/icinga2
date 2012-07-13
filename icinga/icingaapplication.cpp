@@ -251,7 +251,11 @@ void IcingaApplication::NewLogHandler(const ConfigObject::Ptr& object)
 		severity = Logger::StringToSeverity(strSeverity);
 
 	if (type == "syslog") {
+#ifndef _WIN32
 		logger = boost::make_shared<SyslogLogger>(severity);
+#else /* _WIN32 */
+		throw invalid_argument("Syslog is not supported on Windows.");
+#endif /* _WIN32 */
 	} else if (type == "file") {
 		string path;
 		if (!object->GetProperty("path", &path))
