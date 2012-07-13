@@ -37,8 +37,6 @@ public:
 
 	typedef list<Timer::WeakPtr> CollectionType;
 
-	static Timer::CollectionType Timers;
-
 	Timer(void);
 
 	void SetInterval(long interval);
@@ -56,6 +54,8 @@ public:
 private:
 	long m_Interval; /**< The interval of the timer. */
 	time_t m_Next; /**< When the next event should happen. */
+
+	static Timer::CollectionType m_Timers;
 
 	void Call(void);
 };

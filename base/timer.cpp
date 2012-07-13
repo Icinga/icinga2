@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-Timer::CollectionType Timer::Timers;
+Timer::CollectionType Timer::m_Timers;
 
 /**
  * Constructor for the Timer class.
@@ -44,14 +44,14 @@ long Timer::ProcessTimers(void)
 	time(&st);
 
 	Timer::CollectionType::iterator prev, i;
-	for (i = Timers.begin(); i != Timers.end(); ) {
+	for (i = m_Timers.begin(); i != m_Timers.end(); ) {
 		Timer::Ptr timer = i->lock();
 
 		prev = i;
 		i++;
 
 		if (!timer) {
-			Timers.erase(prev);
+			m_Timers.erase(prev);
 			continue;
 		}
 
@@ -140,7 +140,7 @@ void Timer::Start(void)
 
 	Stop();
 
-	Timers.push_back(GetSelf());
+	m_Timers.push_back(GetSelf());
 
 	Reschedule(time(NULL) + m_Interval);
 }
@@ -152,7 +152,7 @@ void Timer::Stop(void)
 {
 	assert(Application::IsMainThread());
 
-	Timers.remove_if(WeakPtrEqual<Timer>(this));
+	m_Timers.remove_if(WeakPtrEqual<Timer>(this));
 }
 
 /**
