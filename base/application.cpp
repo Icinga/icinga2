@@ -34,6 +34,7 @@ boost::thread::id Application::m_MainThreadID;
  * Constructor for the Application class.
  */
 Application::Application(void)
+	: m_PidFile(NULL)
 {
 #ifdef _WIN32
 	WSADATA wsaData;
