@@ -23,19 +23,18 @@
 namespace icinga
 {
 
-class I2_BASE_API Event : public Object
+class I2_BASE_API Event
 {
 public:
-	typedef shared_ptr<Event> Ptr;
-	typedef weak_ptr<Event> WeakPtr;
-
-	static bool Wait(vector<Event::Ptr> *events, const system_time& wait_until);
-	static void Post(const Event::Ptr& ev);
-
-	boost::signal<void ()> OnEventDelivered;
+	static void ProcessEvents(const system_time& wait_until);
+	static void Post(const function<void ()>& callback);
 
 private:
-	static deque<Event::Ptr> m_Events;
+	Event(const function<void ()>& callback);
+
+	function<void ()> m_Callback;
+
+	static vector<Event> m_Events;
 	static condition_variable m_EventAvailable;
 	static mutex m_Mutex;
 };

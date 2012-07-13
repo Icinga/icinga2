@@ -91,7 +91,5 @@ void TcpServer::HandleReadable(void)
 
 	TcpClient::Ptr client = m_ClientFactory(fd);
 
-	Event::Ptr ev = boost::make_shared<Event>();
-	ev->OnEventDelivered.connect(boost::bind(boost::ref(OnNewClient), GetSelf(), client));
-	Event::Post(ev);
+	Event::Post(boost::bind(boost::ref(OnNewClient), GetSelf(), client));
 }

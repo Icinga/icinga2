@@ -21,32 +21,42 @@
 
 using namespace icinga;
 
-deque<Event::Ptr> Event::m_Events;
+vector<Event> Event::m_Events;
 condition_variable Event::m_EventAvailable;
 mutex Event::m_Mutex;
 
-bool Event::Wait(vector<Event::Ptr> *events, const system_time& wait_until)
+Event::Event(const function<void ()>& callback)
+	: m_Callback(callback)
+{ }
+
+void Event::ProcessEvents(const system_time& wait_until)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	vector<Event> events;
 
-	while (m_Events.empty()) {
-		if (!m_EventAvailable.timed_wait(lock, wait_until))
-			return false;
+	{
+		mutex::scoped_lock lock(m_Mutex);
+
+		while (m_Events.empty()) {
+			if (!m_EventAvailable.timed_wait(lock, wait_until))
+				return;
+		}
+
+		events.swap(m_Events);
 	}
-	
-	vector<Event::Ptr> result;
-	std::copy(m_Events.begin(), m_Events.end(), back_inserter(*events));
-	m_Events.clear();
 
-	return true;
+	vector<Event>::iterator it;
+	for (it = events.begin(); it != events.end(); it++)
+		it->m_Callback();
 }
 
-void Event::Post(const Event::Ptr& ev)
+void Event::Post(const function<void ()>& callback)
 {
 	if (Application::IsMainThread()) {
-		ev->OnEventDelivered();
+		callback();
 		return;
 	}
+
+	Event ev(callback);
 
 	{
 		mutex::scoped_lock lock(m_Mutex);

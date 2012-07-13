@@ -142,9 +142,7 @@ void TlsClient::HandleReadable(void)
 	}
 
 post_event:
-	Event::Ptr ev = boost::make_shared<Event>();
-	ev->OnEventDelivered.connect(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
-	Event::Post(ev);
+	Event::Post(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
 }
 
 /**
@@ -257,11 +255,8 @@ int TlsClient::ValidateCertificateInternal(int ok, X509_STORE_CTX *x509Context)
 	shared_ptr<X509> x509Certificate = shared_ptr<X509>(x509Context->cert, &TlsClient::NullCertificateDeleter);
 	bool valid = ValidateCertificate((ok != 0), x509Context, x509Certificate);
 
-	if (valid) {
-		Event::Ptr ev = boost::make_shared<Event>();
-		ev->OnEventDelivered.connect(boost::bind(boost::ref(OnCertificateValidated), GetSelf()));
-		Event::Post(ev);
-	}
+	if (valid)
+		Event::Post(boost::bind(boost::ref(OnCertificateValidated), GetSelf()));
 
 	return valid ? 1 : 0;
 }

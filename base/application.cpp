@@ -99,14 +99,7 @@ void Application::RunEventLoop(void)
 		if (m_ShuttingDown)
 			break;
 
-		vector<Event::Ptr> events;
-		
-		Event::Wait(&events, boost::get_system_time() + boost::posix_time::seconds(sleep));
-
-		for (vector<Event::Ptr>::iterator it = events.begin(); it != events.end(); it++) {
-			Event::Ptr ev = *it;
-			ev->OnEventDelivered();
-		}
+		Event::ProcessEvents(boost::get_system_time() + boost::posix_time::seconds(sleep));
 	}
 }
 

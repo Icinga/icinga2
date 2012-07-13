@@ -53,18 +53,10 @@ protected:
 
 	void Finish(void)
 	{
-		Event::Ptr ev = boost::make_shared<Event>();
-		ev->OnEventDelivered.connect(boost::bind(&T::FinishForwarder, static_cast<shared_ptr<T> >(GetSelf())));
-		Event::Post(ev);
+		Event::Post(boost::bind(boost::cref(OnTaskCompleted), static_cast<shared_ptr<T> >(GetSelf())));
 	}
 
 	bool m_Finished;
-
-private:
-	static void FinishForwarder(const shared_ptr<T>& task)
-	{
-		task->OnTaskCompleted(task);
-	}
 };
 
 }

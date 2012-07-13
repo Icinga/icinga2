@@ -159,9 +159,7 @@ void TcpClient::HandleReadable(void)
 		m_RecvQueue->Write(NULL, rc);
 	}
 
-	Event::Ptr ev = boost::make_shared<Event>();
-	ev->OnEventDelivered.connect(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
-	Event::Post(ev);
+	Event::Post(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
 }
 
 /**

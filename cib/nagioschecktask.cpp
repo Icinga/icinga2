@@ -46,6 +46,10 @@ void NagiosCheckTask::Run(void)
 
 void NagiosCheckTask::ProcessFinishedHandler(void)
 {
+	time_t now;
+	time(&now);
+	GetResult().SetExecutionEnd(now);
+
 	string output = m_Process->GetOutput();
 	boost::algorithm::trim(output);
 	ProcessCheckOutput(output);
@@ -71,9 +75,8 @@ void NagiosCheckTask::ProcessFinishedHandler(void)
 
 	GetResult().SetState(state);
 
-	time_t now;
 	time(&now);
-	GetResult().SetExecutionEnd(now);
+	GetResult().SetScheduleEnd(now);
 
 	Finish();
 }

@@ -49,9 +49,7 @@ void Logger::Write(LogSeverity severity, const string& facility,
 	entry.Facility = facility;
 	entry.Message = message;
 
-	Event::Ptr ev = boost::make_shared<Event>();
-	ev->OnEventDelivered.connect(boost::bind(&Logger::ForwardLogEntry, entry));
-	Event::Post(ev);
+	Event::Post(boost::bind(&Logger::ForwardLogEntry, entry));
 }
 
 /**

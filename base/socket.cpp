@@ -111,11 +111,8 @@ void Socket::CloseInternal(bool from_dtor)
 
 	/* nobody can possibly have a valid event subscription when the
 		destructor has been called */
-	if (!from_dtor) {
-		Event::Ptr ev = boost::make_shared<Event>();
-		ev->OnEventDelivered.connect(boost::bind(boost::ref(OnClosed), GetSelf()));
-		Event::Post(ev);
-	}
+	if (!from_dtor)
+		Event::Post(boost::bind(boost::ref(OnClosed), GetSelf()));
 }
 
 /**
@@ -159,9 +156,7 @@ int Socket::GetLastSocketError(void)
 void Socket::HandleSocketError(const exception& ex)
 {
 	if (!OnError.empty()) {
-		Event::Ptr ev = boost::make_shared<Event>();
-		ev->OnEventDelivered.connect(boost::bind(boost::ref(OnError), GetSelf(), runtime_error(ex.what())));
-		Event::Post(ev);
+		Event::Post(boost::bind(boost::ref(OnError), GetSelf(), runtime_error(ex.what())));
 
 		CloseInternal(false);
 	} else {
