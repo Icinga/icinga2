@@ -56,7 +56,10 @@ void ConvenienceComponent::HostAddedHandler(const ConfigItem::Ptr& item)
 
 void ConvenienceComponent::CopyServiceAttributes(const ConfigObject::Ptr& host, const Dictionary::Ptr& service, const ConfigItemBuilder::Ptr& builder)
 {
-	Dictionary::Ptr macros; 
+	/* TODO: we only need to copy macros if this is an inline definition,
+	 * i.e. host->GetProperties() != service, however for now we just
+	 * copy them anyway. */
+	Dictionary::Ptr macros;
 	if (service->Get("macros", &macros))
 		builder->AddExpression("macros", OperatorPlus, macros);
 
