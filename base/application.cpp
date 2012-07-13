@@ -419,6 +419,7 @@ void Application::UpdatePidFile(const string& filename)
 	if (m_PidFile == NULL)
 		throw runtime_error("Could not open PID file '" + filename + "'");
 
+#ifndef _WIN32
 	if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {
 		ClosePidFile();
 
@@ -426,6 +427,7 @@ void Application::UpdatePidFile(const string& filename)
 		    "already running. Remove the '" + filename + "' file if "
 		    "you're certain that this is not the case.");
 	}
+#endif
 
 #ifndef _WIN32
 	pid_t pid = getpid();
