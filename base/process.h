@@ -31,13 +31,16 @@ public:
 
 	static const int MaxTasksPerThread = 128;
 
-	Process(const string& command);
+	Process(const string& command, const CompletionCallback& completionCallback);
+
+	time_t GetExecutionStart(void) const;
+	time_t GetExecutionEnd(void) const;
 
 	long GetExitStatus(void) const;
 	string GetOutput(void) const;
 
 private:
-	static bool m_ThreadsCreated;
+	static bool m_ThreadCreated;
 
 	string m_Command;
 
@@ -48,6 +51,8 @@ private:
 	void *m_PCloseArg;
 #endif /* _MSC_VER */
 
+	time_t m_ExecutionStart;
+	time_t m_ExecutionEnd;
 	long m_ExitStatus;
 	string m_Output;
 

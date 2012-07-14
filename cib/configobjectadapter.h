@@ -55,6 +55,8 @@ public:
 		return GetConfigObject()->GetTag(key, value);
 	}
 
+	void RemoveTag(const string& key);
+
 private:
 	ConfigObject::Ptr m_ConfigObject;
 };

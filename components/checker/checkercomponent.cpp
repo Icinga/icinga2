@@ -37,7 +37,7 @@ void CheckerComponent::Start(void)
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	m_CheckTimer = boost::make_shared<Timer>();
-	m_CheckTimer->SetInterval(5);
+	m_CheckTimer->SetInterval(1);
 	m_CheckTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::CheckTimerHandler, this));
 	m_CheckTimer->Start();
 
@@ -78,9 +78,10 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		m_PendingServices.insert(service.GetConfigObject());
 
-		CheckTask::Ptr task = CheckTask::CreateTask(service);
-		task->OnTaskCompleted.connect(boost::bind(&CheckerComponent::CheckCompletedHandler, this, _1));
+		CheckTask::Ptr task = CheckTask::CreateTask(service, boost::bind(&CheckerComponent::CheckCompletedHandler, this, _1));
 		task->Start();
+
+		service.SetTag("current_task", task);
 
 		tasks++;
 	}
@@ -96,8 +97,10 @@ void CheckerComponent::CheckCompletedHandler(const CheckTask::Ptr& task)
 {
 	Service service = task->GetService();
 
+	service.RemoveTag("current_task");
+
 	/* if the service isn't in the set of pending services
-		* it was removed and we need to ignore this check result. */
+	 * it was removed and we need to ignore this check result. */
 	if (m_PendingServices.find(service.GetConfigObject()) == m_PendingServices.end())
 		return;
 

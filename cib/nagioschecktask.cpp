@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-NagiosCheckTask::NagiosCheckTask(const Service& service)
-	: CheckTask(service)
+NagiosCheckTask::NagiosCheckTask(const Service& service, const CompletionCallback& completionCallback)
+	: CheckTask(service, completionCallback)
 {
 	string checkCommand = service.GetCheckCommand();
 
@@ -30,8 +30,7 @@ NagiosCheckTask::NagiosCheckTask(const Service& service)
 	macroDicts.push_back(service.GetMacros());
 	macroDicts.push_back(service.GetHost().GetMacros());
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
-	string command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
-	m_Process = boost::make_shared<Process>(command);
+	m_Command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
 }
 
 void NagiosCheckTask::Run(void)
@@ -40,21 +39,21 @@ void NagiosCheckTask::Run(void)
 	time(&now);
 	GetResult().SetScheduleStart(now);
 
-	m_Process->OnTaskCompleted.connect(boost::bind(&NagiosCheckTask::ProcessFinishedHandler, static_cast<NagiosCheckTask::Ptr>(GetSelf())));
+	m_Process = boost::make_shared<Process>(m_Command, boost::bind(&NagiosCheckTask::ProcessFinishedHandler, static_cast<NagiosCheckTask::Ptr>(GetSelf())));
 	m_Process->Start();
 }
 
 void NagiosCheckTask::ProcessFinishedHandler(void)
 {
-	time_t now;
-	time(&now);
-	GetResult().SetExecutionEnd(now);
+	GetResult().SetExecutionStart(m_Process->GetExecutionStart());
+	GetResult().SetExecutionEnd(m_Process->GetExecutionEnd());
 
 	string output = m_Process->GetOutput();
+	long exitcode = m_Process->GetExitStatus();
+	m_Process.reset();
+
 	boost::algorithm::trim(output);
 	ProcessCheckOutput(output);
-
-	long exitcode = m_Process->GetExitStatus();
 
 	ServiceState state;
 
@@ -75,6 +74,7 @@ void NagiosCheckTask::ProcessFinishedHandler(void)
 
 	GetResult().SetState(state);
 
+	time_t now;
 	time(&now);
 	GetResult().SetScheduleEnd(now);
 
@@ -114,9 +114,9 @@ void NagiosCheckTask::ProcessCheckOutput(const string& output)
 	GetResult().SetPerformanceDataRaw(perfdata);
 }
 
-CheckTask::Ptr NagiosCheckTask::CreateTask(const Service& service)
+CheckTask::Ptr NagiosCheckTask::CreateTask(const Service& service, const CompletionCallback& completionCallback)
 {
-	return boost::make_shared<NagiosCheckTask>(service);
+	return boost::make_shared<NagiosCheckTask>(service, completionCallback);
 }
 
 void NagiosCheckTask::Register(void)

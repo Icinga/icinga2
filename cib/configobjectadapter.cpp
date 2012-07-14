@@ -40,3 +40,8 @@ ConfigObject::Ptr ConfigObjectAdapter::GetConfigObject() const
 {
 	return m_ConfigObject;
 }
+
+void ConfigObjectAdapter::RemoveTag(const string& key)
+{
+	m_ConfigObject->RemoveTag(key);
+}

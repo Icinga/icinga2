@@ -23,8 +23,8 @@ using namespace icinga;
 
 map<string, CheckTaskType> CheckTask::m_Types;
 
-CheckTask::CheckTask(const Service& service)
-	: m_Service(service)
+CheckTask::CheckTask(const Service& service, const CompletionCallback& completionCallback)
+	: AsyncTask<CheckTask>(completionCallback), m_Service(service)
 { }
 
 Service& CheckTask::GetService(void)
@@ -45,7 +45,7 @@ void CheckTask::RegisterType(string type, Factory factory)
 	m_Types[type] = ctt;
 }
 
-CheckTask::Ptr CheckTask::CreateTask(const Service& service)
+CheckTask::Ptr CheckTask::CreateTask(const Service& service, const CompletionCallback& completionCallback)
 {
 	map<string, CheckTaskType>::iterator it;
 
@@ -54,5 +54,5 @@ CheckTask::Ptr CheckTask::CreateTask(const Service& service)
 	if (it == m_Types.end())
 		throw runtime_error("Invalid check type specified for service '" + service.GetName() + "'");
 
-	return it->second.Factory(service);
+	return it->second.Factory(service, completionCallback);
 }

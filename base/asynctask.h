@@ -30,8 +30,10 @@ public:
 	typedef shared_ptr<AsyncTask<T> > Ptr;
 	typedef weak_ptr<AsyncTask<T> > WeakPtr;
 
-	AsyncTask(void)
-		: m_Finished(false)
+	typedef function<void (const shared_ptr<T>&)> CompletionCallback;
+
+	AsyncTask(const CompletionCallback& completionCallback)
+		: m_Finished(false), m_CompletionCallback(completionCallback)
 	{ }
 
 	~AsyncTask(void)
@@ -46,17 +48,24 @@ public:
 		Run();
 	}
 
-	boost::signal<void (const shared_ptr<T>&)> OnTaskCompleted;
-
 protected:
 	virtual void Run(void) = 0;
 
 	void Finish(void)
 	{
-		Event::Post(boost::bind(boost::cref(OnTaskCompleted), static_cast<shared_ptr<T> >(GetSelf())));
+		Event::Post(boost::bind(&T::ForwardCallback, static_cast<shared_ptr<T> >(GetSelf())));
+	}
+
+private:
+	void ForwardCallback(void)
+	{
+		m_CompletionCallback(GetSelf());
+		m_CompletionCallback = CompletionCallback();
+		m_Finished = true;
 	}
 
 	bool m_Finished;
+	CompletionCallback m_CompletionCallback;
 };
 
 }

@@ -63,6 +63,8 @@ public:
 		return GetTags()->Get(key, value);
 	}
 
+	void RemoveTag(const string& key);
+
 	string GetType(void) const;
 	string GetName(void) const;
 

@@ -31,18 +31,18 @@ public:
 	typedef shared_ptr<CheckTask> Ptr;
 	typedef weak_ptr<CheckTask> WeakPtr;
 
-	typedef function<CheckTask::Ptr(const Service&)> Factory;
+	typedef function<CheckTask::Ptr(const Service&, const CompletionCallback&)> Factory;
 
 	Service& GetService(void);
 	CheckResult& GetResult(void);
 
 	static void RegisterType(string type, Factory factory);
-	static CheckTask::Ptr CreateTask(const Service& service);
+	static CheckTask::Ptr CreateTask(const Service& service, const CompletionCallback& completionCallback);
 
 	static int GetTaskHistogramSlots(void);
 
 protected:
-	CheckTask(const Service& service);
+	CheckTask(const Service& service, const CompletionCallback& completionCallback);
 
 	virtual void Run(void) = 0;
 

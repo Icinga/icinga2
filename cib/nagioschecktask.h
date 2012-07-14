@@ -29,13 +29,14 @@ public:
 	typedef shared_ptr<NagiosCheckTask> Ptr;
 	typedef weak_ptr<NagiosCheckTask> WeakPtr;
 
-	NagiosCheckTask(const Service& service);
+	NagiosCheckTask(const Service& service, const CompletionCallback& completionCallback);
 
-	static CheckTask::Ptr CreateTask(const Service& service);
+	static CheckTask::Ptr CreateTask(const Service& service, const CompletionCallback& completionCallback);
 
 	static void Register(void);
 
 private:
+	string m_Command;
 	Process::Ptr m_Process;
 
 	virtual void Run(void);

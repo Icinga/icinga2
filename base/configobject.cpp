@@ -191,3 +191,8 @@ ConfigObject::TMap::Range ConfigObject::GetObjects(string type)
 {
 	return GetObjectsByType()->GetRange(type);
 }
+
+void ConfigObject::RemoveTag(const string& key)
+{
+	GetTags()->Remove(key);
+}

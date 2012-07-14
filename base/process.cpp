@@ -25,26 +25,19 @@
 
 using namespace icinga;
 
-bool Process::m_ThreadsCreated = false;
+bool Process::m_ThreadCreated = false;
 boost::mutex Process::m_Mutex;
 deque<Process::Ptr> Process::m_Tasks;
 condition_variable Process::m_TasksCV;
 
-Process::Process(const string& command)
-	: m_Command(command)
+Process::Process(const string& command, const CompletionCallback& completionCallback)
+	: AsyncTask<Process>(completionCallback), m_Command(command), m_UsePopen(false)
 {
-	if (!m_ThreadsCreated) {
-		int numThreads = boost::thread::hardware_concurrency();
+	if (!m_ThreadCreated) {
+		thread t(&Process::WorkerThreadProc);
+		t.detach();
 
-		if (numThreads < 4)
-			numThreads = 4;
-
-		for (int i = 0; i < numThreads; i++) {
-			thread t(&Process::WorkerThreadProc);
-			t.detach();
-		}
-
-		m_ThreadsCreated = true;
+		m_ThreadCreated = true;
 	}
 }
 
@@ -52,7 +45,7 @@ void Process::Run(void)
 {
 	mutex::scoped_lock lock(m_Mutex);
 	m_Tasks.push_back(GetSelf());
-	m_TasksCV.notify_one();
+	m_TasksCV.notify_all();
 }
 
 void Process::WorkerThreadProc(void)
@@ -116,6 +109,9 @@ void Process::WorkerThreadProc(void)
 		while (!m_Tasks.empty() && tasks.size() < MaxTasksPerThread) {
 			Process::Ptr task = m_Tasks.front();
 			m_Tasks.pop_front();
+
+			lock.unlock();
+
 			if (!task->InitTask()) {
 				task->Finish();
 			} else {
@@ -123,12 +119,16 @@ void Process::WorkerThreadProc(void)
 				if (fd >= 0)
 					tasks[fd] = task;
 			}
+
+			lock.lock();
 		}
 	}
 }
 
 bool Process::InitTask(void)
 {
+	time(&m_ExecutionStart);
+
 #ifdef _MSC_VER
 	m_FP = _popen(m_Command.c_str(), "r");
 #else /* _MSC_VER */
@@ -147,6 +147,8 @@ bool Process::InitTask(void)
 #endif /* _MSC_VER */
 
 	if (m_FP == NULL) {
+		m_ExitStatus = 128;
+		m_ExecutionEnd = m_ExecutionStart;
 		return false;
 	}
 
@@ -177,6 +179,8 @@ bool Process::RunTask(void)
 		delete (popen_noshell_pass_to_pclose *)m_PCloseArg;
 	}
 #endif /* _MSC_VER */
+
+	time(&m_ExecutionEnd);
 
 #ifndef _MSC_VER
 	if (WIFEXITED(status)) {
@@ -220,3 +224,14 @@ string Process::GetOutput(void) const
 {
 	return m_Output;
 }
+
+time_t Process::GetExecutionStart(void) const
+{
+	return m_ExecutionStart;
+}
+
+time_t Process::GetExecutionEnd(void) const
+{
+	return m_ExecutionEnd;
+}
+
