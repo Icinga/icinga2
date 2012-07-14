@@ -31,7 +31,6 @@ string ConfigFileComponent::GetName(void) const
 void ConfigFileComponent::Start(void)
 {
 	ifstream fp;
-	FIFO::Ptr fifo = boost::make_shared<FIFO>();
 
 	string filename;
 	if (!GetConfig()->GetProperty("configFilename", &filename))
