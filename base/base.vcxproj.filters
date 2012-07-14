@@ -82,6 +82,12 @@
     <ClCompile Include="asynctask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="scriptfunction.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="scripttask.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -166,6 +172,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="process.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="scripttask.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="scriptfunction.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

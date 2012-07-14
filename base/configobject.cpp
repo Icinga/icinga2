@@ -154,9 +154,9 @@ ConfigObject::Ptr ConfigObject::GetObject(string type, string name)
 
 bool ConfigObject::TypeAndNameGetter(const ConfigObject::Ptr& object, pair<string, string> *key)
 {
-        *key = make_pair(object->GetType(), object->GetName());
+	*key = make_pair(object->GetType(), object->GetName());
 
-        return true;
+	return true;
 }
 
 function<bool (ConfigObject::Ptr)> ConfigObject::MakeTypePredicate(string type)
@@ -195,4 +195,23 @@ ConfigObject::TMap::Range ConfigObject::GetObjects(string type)
 void ConfigObject::RemoveTag(const string& key)
 {
 	GetTags()->Remove(key);
+}
+
+ScriptTask::Ptr ConfigObject::InvokeHook(const string& hook,
+    const vector<Variant>& arguments, AsyncTask::CompletionCallback callback)
+{
+	Dictionary::Ptr hooks;
+	string funcName;
+	if (!GetProperty("hooks", &hooks) || !hooks->Get(hook, &funcName))
+		return ScriptTask::Ptr();
+
+	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
+
+	if (!func)
+		throw invalid_argument("Function '" + funcName + "' does not exist.");
+
+	ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments, callback);
+	task->Start();
+
+	return task;
 }

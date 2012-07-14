@@ -65,6 +65,9 @@ public:
 
 	void RemoveTag(const string& key);
 
+	ScriptTask::Ptr InvokeHook(const string& hook,
+	    const vector<Variant>& arguments, AsyncTask::CompletionCallback callback);
+
 	string GetType(void) const;
 	string GetName(void) const;
 
@@ -98,7 +101,7 @@ private:
 	void SetCommitTimestamp(time_t ts);
 
 	static bool TypeAndNameGetter(const ConfigObject::Ptr& object, pair<string, string> *key);
-   	static bool TypePredicate(const ConfigObject::Ptr& object, string type);
+	static bool TypePredicate(const ConfigObject::Ptr& object, string type);
 
 	static bool TypeGetter(const ConfigObject::Ptr& object, string *key);
 };

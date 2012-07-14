@@ -14,9 +14,6 @@
     <ClInclude Include="checkresult.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="checktask.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="cib.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -50,9 +47,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="checkresult.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="checktask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="cib.cpp">

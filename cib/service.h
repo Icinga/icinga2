@@ -52,7 +52,6 @@ public:
 	string GetAlias(void) const;
 	Host GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
-	string GetCheckType(void) const;
 	string GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
 	long GetCheckInterval(void) const;

@@ -68,13 +68,6 @@ Dictionary::Ptr Service::GetMacros(void) const
 	return macros;
 }
 
-string Service::GetCheckType(void) const
-{
-	string value = "nagios";
-	GetProperty("check_type", &value);
-	return value;
-}
-
 string Service::GetCheckCommand(void) const
 {
 	string value;
@@ -416,5 +409,5 @@ Dictionary::Ptr Service::ResolveDependencies(Host host, const Dictionary::Ptr& d
 		result->Set(name, name);
 	}
 
-        return result;
+	return result;
 }

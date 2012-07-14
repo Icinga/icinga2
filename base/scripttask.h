@@ -17,37 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ASYNCTASK_H
-#define ASYNCTASK_H 
+#ifndef SCRIPTTASK_H
+#define SCRIPTTASK_H
 
 namespace icinga
 {
 
-class I2_BASE_API AsyncTask : public Object
+class I2_BASE_API ScriptTask : public AsyncTask
 {
 public:
-	typedef shared_ptr<AsyncTask> Ptr;
-	typedef weak_ptr<AsyncTask> WeakPtr;
+	typedef shared_ptr<ScriptTask> Ptr;
+	typedef weak_ptr<ScriptTask> WeakPtr;
 
-	typedef function<void (const AsyncTask::Ptr&)> CompletionCallback;
+	ScriptTask(const ScriptFunction::Ptr& function, const vector<Variant>& arguments, CompletionCallback callback);
 
-	AsyncTask(const CompletionCallback& completionCallback);
-	~AsyncTask(void);
-
-	void Start(void);
-
-	void Finish(void);
+	void SetResult(const Variant& result);
+	Variant GetResult(void);
 
 protected:
-	virtual void Run(void) = 0;
+	virtual void Run(void);
 
 private:
-	void ForwardCallback(void);
-
-	bool m_Finished;
-	CompletionCallback m_CompletionCallback;
+	ScriptFunction::Ptr m_Function;
+	vector<Variant> m_Arguments;
+	Variant m_Result;
 };
 
 }
 
-#endif /* ASYNCTASK_H */
+#endif /* SCRIPTTASK_H */

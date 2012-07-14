@@ -25,6 +25,8 @@
     <ClCompile Include="objectset.cpp" />
     <ClCompile Include="process.cpp" />
     <ClCompile Include="ringbuffer.cpp" />
+    <ClCompile Include="scriptfunction.cpp" />
+    <ClCompile Include="scripttask.cpp" />
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="streamlogger.cpp" />
     <ClCompile Include="sysloglogger.cpp" />
@@ -46,6 +48,8 @@
     <ClInclude Include="configobject.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="event.h" />
+    <ClInclude Include="scriptfunction.h" />
+    <ClInclude Include="scripttask.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="objectmap.h" />
     <ClInclude Include="objectset.h" />

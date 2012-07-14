@@ -17,37 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ASYNCTASK_H
-#define ASYNCTASK_H 
+#ifndef SCRIPTFUNCTION_H
+#define SCRIPTFUNCTION_H
 
 namespace icinga
 {
 
-class I2_BASE_API AsyncTask : public Object
+class ScriptTask;
+
+class I2_BASE_API ScriptFunction : public Object
 {
 public:
-	typedef shared_ptr<AsyncTask> Ptr;
-	typedef weak_ptr<AsyncTask> WeakPtr;
+	typedef shared_ptr<ScriptFunction> Ptr;
+	typedef weak_ptr<ScriptFunction> WeakPtr;
 
-	typedef function<void (const AsyncTask::Ptr&)> CompletionCallback;
+	typedef function<void (const shared_ptr<ScriptTask>&, const vector<Variant>& arguments)> Callback;
 
-	AsyncTask(const CompletionCallback& completionCallback);
-	~AsyncTask(void);
+	ScriptFunction(const Callback& function);
 
-	void Start(void);
+	static void Register(const string& name, const ScriptFunction::Ptr& function);
+	static void Unregister(const string& name);
+	static ScriptFunction::Ptr GetByName(const string& name);
 
-	void Finish(void);
-
-protected:
-	virtual void Run(void) = 0;
+	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Variant>& arguments);
 
 private:
-	void ForwardCallback(void);
+	Callback m_Callback;
 
-	bool m_Finished;
-	CompletionCallback m_CompletionCallback;
+	static map<string, ScriptFunction::Ptr> m_Functions;
 };
 
 }
 
-#endif /* ASYNCTASK_H */
+#endif /* SCRIPTFUNCTION_H */

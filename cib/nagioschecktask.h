@@ -23,25 +23,16 @@
 namespace icinga
 {
 
-class I2_CIB_API NagiosCheckTask : public CheckTask
+class I2_CIB_API NagiosCheckTask
 {
 public:
-	typedef shared_ptr<NagiosCheckTask> Ptr;
-	typedef weak_ptr<NagiosCheckTask> WeakPtr;
-
-	NagiosCheckTask(const Service& service, const CompletionCallback& completionCallback);
-
-	static CheckTask::Ptr CreateTask(const Service& service, const CompletionCallback& completionCallback);
+	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments);
 
 	static void Register(void);
 
 private:
-	string m_Command;
-	Process::Ptr m_Process;
-
-	virtual void Run(void);
-	void ProcessFinishedHandler(void);
-	void ProcessCheckOutput(const string& output);
+	static void ProcessFinishedHandler(const ScriptTask::Ptr& task, const AsyncTask::Ptr& aprocess, CheckResult result);
+	static void ProcessCheckOutput(CheckResult& result, const string& output);
 };
 
 }

@@ -81,7 +81,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="checkresult.h" />
-    <ClInclude Include="checktask.h" />
     <ClInclude Include="cib.h" />
     <ClInclude Include="configobjectadapter.h" />
     <ClInclude Include="host.h" />
@@ -95,7 +94,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="checkresult.cpp" />
-    <ClCompile Include="checktask.cpp" />
     <ClCompile Include="cib.cpp" />
     <ClCompile Include="configobjectadapter.cpp" />
     <ClCompile Include="host.cpp" />

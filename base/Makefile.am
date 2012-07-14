@@ -34,6 +34,10 @@ libbase_la_SOURCES =  \
 	process.h \
 	ringbuffer.cpp \
 	ringbuffer.h \
+	scriptfunction.cpp \
+	scriptfunction.h \
+	scripttask.cpp \
+	scripttask.h \
 	socket.cpp \
 	socket.h \
 	streamlogger.cpp \

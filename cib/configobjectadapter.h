@@ -57,6 +57,9 @@ public:
 
 	void RemoveTag(const string& key);
 
+	ScriptTask::Ptr InvokeHook(const string& hook,
+	    const vector<Variant>& arguments, AsyncTask::CompletionCallback callback);
+
 private:
 	ConfigObject::Ptr m_ConfigObject;
 };

@@ -21,39 +21,47 @@
 
 using namespace icinga;
 
-NagiosCheckTask::NagiosCheckTask(const Service& service, const CompletionCallback& completionCallback)
-	: CheckTask(service, completionCallback)
+void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments)
 {
+	if (arguments.size() < 1)
+		throw invalid_argument("Missing argument: Service must be specified.");
+
+	Variant vservice = arguments[0];
+	if (!vservice.IsObjectType<ConfigObject>())
+		throw invalid_argument("Argument must be a config object.");
+
+	Service service = static_cast<ConfigObject::Ptr>(vservice);
+
 	string checkCommand = service.GetCheckCommand();
 
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(service.GetMacros());
 	macroDicts.push_back(service.GetHost().GetMacros());
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
-	m_Command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
-}
+	string command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
 
-void NagiosCheckTask::Run(void)
-{
+	CheckResult result;
+
 	time_t now;
 	time(&now);
-	GetResult().SetScheduleStart(now);
+	result.SetScheduleStart(now);
 
-	m_Process = boost::make_shared<Process>(m_Command, boost::bind(&NagiosCheckTask::ProcessFinishedHandler, static_cast<NagiosCheckTask::Ptr>(GetSelf())));
-	m_Process->Start();
+	Process::Ptr process = boost::make_shared<Process>(command, boost::bind(&NagiosCheckTask::ProcessFinishedHandler, task, _1, result));
+	process->Start();
 }
 
-void NagiosCheckTask::ProcessFinishedHandler(void)
+void NagiosCheckTask::ProcessFinishedHandler(const ScriptTask::Ptr& task, const AsyncTask::Ptr& aprocess, CheckResult result)
 {
-	GetResult().SetExecutionStart(m_Process->GetExecutionStart());
-	GetResult().SetExecutionEnd(m_Process->GetExecutionEnd());
+	Process::Ptr process = static_pointer_cast<Process>(aprocess);
 
-	string output = m_Process->GetOutput();
-	long exitcode = m_Process->GetExitStatus();
-	m_Process.reset();
+	result.SetExecutionStart(process->GetExecutionStart());
+	result.SetExecutionEnd(process->GetExecutionEnd());
+
+	string output = process->GetOutput();
+	long exitcode = process->GetExitStatus();
 
 	boost::algorithm::trim(output);
-	ProcessCheckOutput(output);
+	ProcessCheckOutput(result, output);
 
 	ServiceState state;
 
@@ -72,16 +80,17 @@ void NagiosCheckTask::ProcessFinishedHandler(void)
 			break;
 	}
 
-	GetResult().SetState(state);
+	result.SetState(state);
 
 	time_t now;
 	time(&now);
-	GetResult().SetScheduleEnd(now);
+	result.SetScheduleEnd(now);
 
-	Finish();
+	task->SetResult(result.GetDictionary());
+	task->Finish();
 }
 
-void NagiosCheckTask::ProcessCheckOutput(const string& output)
+void NagiosCheckTask::ProcessCheckOutput(CheckResult& result, const string& output)
 {
 	string text;
 	string perfdata;
@@ -110,16 +119,12 @@ void NagiosCheckTask::ProcessCheckOutput(const string& output)
 		}
 	}
 
-	GetResult().SetOutput(text);
-	GetResult().SetPerformanceDataRaw(perfdata);
-}
-
-CheckTask::Ptr NagiosCheckTask::CreateTask(const Service& service, const CompletionCallback& completionCallback)
-{
-	return boost::make_shared<NagiosCheckTask>(service, completionCallback);
+	result.SetOutput(text);
+	result.SetPerformanceDataRaw(perfdata);
 }
 
 void NagiosCheckTask::Register(void)
 {
-	CheckTask::RegisterType("nagios", NagiosCheckTask::CreateTask);
+	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&NagiosCheckTask::ScriptFunc);
+	ScriptFunction::Register("builtin::NagiosCheck", func);
 }

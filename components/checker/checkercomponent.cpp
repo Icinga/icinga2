@@ -76,10 +76,16 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service.GetName() + "'");
 
+		vector<Variant> arguments;
+		arguments.push_back(service.GetConfigObject());
+		ScriptTask::Ptr task;
+		task = service.InvokeHook("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
+		assert(task); /* TODO: gracefully handle missing hooks */
+
 		m_PendingServices.insert(service.GetConfigObject());
 
-		CheckTask::Ptr task = CheckTask::CreateTask(service, boost::bind(&CheckerComponent::CheckCompletedHandler, this, _1));
-		task->Start();
+		/*CheckTask::Ptr task = CheckTask::CreateTask(service, boost::bind(&CheckerComponent::CheckCompletedHandler, this, _1));
+		task->Start();*/
 
 		service.SetTag("current_task", task);
 
@@ -93,10 +99,9 @@ void CheckerComponent::CheckTimerHandler(void)
 	Logger::Write(LogInformation, "checker", msgbuf.str());
 }
 
-void CheckerComponent::CheckCompletedHandler(const AsyncTask::Ptr& atask)
+void CheckerComponent::CheckCompletedHandler(Service& service, const AsyncTask::Ptr& atask)
 {
-	CheckTask::Ptr task = static_pointer_cast<CheckTask>(atask);
-	Service service = task->GetService();
+	ScriptTask::Ptr task = static_pointer_cast<ScriptTask>(atask);
 
 	service.RemoveTag("current_task");
 
@@ -105,7 +110,16 @@ void CheckerComponent::CheckCompletedHandler(const AsyncTask::Ptr& atask)
 	if (m_PendingServices.find(service.GetConfigObject()) == m_PendingServices.end())
 		return;
 
-	CheckResult result = task->GetResult();
+	/* remove the service from the list of pending services */
+	m_PendingServices.erase(service.GetConfigObject());
+	m_Services.push(service);
+
+	Variant vresult = task->GetResult();
+	if (!vresult.IsObjectType<Dictionary>())
+		return;
+
+	CheckResult result = static_cast<Dictionary::Ptr>(vresult);
+
 	Logger::Write(LogDebug, "checker", "Got result for service '" + service.GetName() + "'");
 
 	long execution_time = result.GetExecutionEnd() - result.GetExecutionStart();
@@ -116,10 +130,6 @@ void CheckerComponent::CheckCompletedHandler(const AsyncTask::Ptr& atask)
 
 	/* figure out when the next check is for this service */
 	service.UpdateNextCheck();
-
-	/* remove the service from the list of pending services */
-	m_PendingServices.erase(service.GetConfigObject());
-	m_Services.push(service);
 
 	RequestMessage rm;
 	rm.SetMethod("checker::CheckResult");
