@@ -36,7 +36,10 @@ void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Varia
 
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(service.GetMacros());
-	macroDicts.push_back(service.GetHost().GetMacros());
+	/* TODO: figure out whether we should replicate hosts to checkers,
+	 * for now we just rely on the convenience module to fill in host macros
+	 * for inline service definitions. */
+	//macroDicts.push_back(service.GetHost().GetMacros());
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
 	string command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
 
