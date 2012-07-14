@@ -17,57 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CHECKERCOMPONENT_H
-#define CHECKERCOMPONENT_H
+#include "i2-base.h"
 
-namespace icinga
+using namespace icinga;
+
+AsyncTask::AsyncTask(const AsyncTask::CompletionCallback& completionCallback)
+	: m_Finished(false), m_CompletionCallback(completionCallback)
+{ }
+
+AsyncTask::~AsyncTask(void)
 {
-
-struct ServiceNextCheckLessComparer
-{
-public:
-	bool operator()(Service& a, Service& b)
-	{
-		return a.GetNextCheck() > b.GetNextCheck();
-	}
-};
-
-/**
- * @ingroup checker
- */
-class CheckerComponent : public Component
-{
-public:
-	typedef shared_ptr<CheckerComponent> Ptr;
-	typedef weak_ptr<CheckerComponent> WeakPtr;
-
-	typedef priority_queue<Service, vector<Service>, ServiceNextCheckLessComparer> ServiceQueue;
-
-	virtual string GetName(void) const;
-	virtual void Start(void);
-	virtual void Stop(void);
-
-private:
-	VirtualEndpoint::Ptr m_Endpoint;
-
-	ServiceQueue m_Services;
-	set<ConfigObject::Ptr> m_PendingServices;
-
-	Timer::Ptr m_CheckTimer;
-
-	Timer::Ptr m_ResultTimer;
-
-	void CheckTimerHandler(void);
-	void ResultTimerHandler(void);
-
-	void CheckCompletedHandler(const AsyncTask::Ptr& task);
-
-	void AdjustCheckTimer(void);
-
-	void AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
-	void ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
-};
-
+	assert(m_Finished);
 }
 
-#endif /* CHECKERCOMPONENT_H */
+void AsyncTask::Start(void)
+{
+	assert(Application::IsMainThread());
+
+	Run();
+}
+
+void AsyncTask::Finish(void)
+{
+	Event::Post(boost::bind(&AsyncTask::ForwardCallback, static_cast<AsyncTask::Ptr>(GetSelf())));
+}
+
+void AsyncTask::ForwardCallback(void)
+{
+	m_CompletionCallback(GetSelf());
+	m_CompletionCallback = CompletionCallback();
+	m_Finished = true;
+}

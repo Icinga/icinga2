@@ -31,7 +31,7 @@ deque<Process::Ptr> Process::m_Tasks;
 condition_variable Process::m_TasksCV;
 
 Process::Process(const string& command, const CompletionCallback& completionCallback)
-	: AsyncTask<Process>(completionCallback), m_Command(command), m_UsePopen(false)
+	: AsyncTask(completionCallback), m_Command(command), m_UsePopen(false)
 {
 	if (!m_ThreadCreated) {
 		thread t(&Process::WorkerThreadProc);

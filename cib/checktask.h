@@ -25,7 +25,7 @@ namespace icinga
 
 struct CheckTaskType;
 
-class I2_CIB_API CheckTask : public AsyncTask<CheckTask>
+class I2_CIB_API CheckTask : public AsyncTask
 {
 public:
 	typedef shared_ptr<CheckTask> Ptr;

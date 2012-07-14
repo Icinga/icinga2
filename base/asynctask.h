@@ -23,46 +23,26 @@
 namespace icinga
 {
 
-template<typename T>
-class AsyncTask : public Object
+class I2_BASE_API AsyncTask : public Object
 {
 public:
-	typedef shared_ptr<AsyncTask<T> > Ptr;
-	typedef weak_ptr<AsyncTask<T> > WeakPtr;
+	typedef shared_ptr<AsyncTask> Ptr;
+	typedef weak_ptr<AsyncTask> WeakPtr;
 
-	typedef function<void (const shared_ptr<T>&)> CompletionCallback;
+	typedef function<void (const AsyncTask::Ptr&)> CompletionCallback;
 
-	AsyncTask(const CompletionCallback& completionCallback)
-		: m_Finished(false), m_CompletionCallback(completionCallback)
-	{ }
+	AsyncTask(const CompletionCallback& completionCallback);
+	~AsyncTask(void);
 
-	~AsyncTask(void)
-	{
-		assert(m_Finished);
-	}
-
-	void Start(void)
-	{
-		assert(Application::IsMainThread());
-
-		Run();
-	}
+	void Start(void);
 
 protected:
 	virtual void Run(void) = 0;
 
-	void Finish(void)
-	{
-		Event::Post(boost::bind(&T::ForwardCallback, static_cast<shared_ptr<T> >(GetSelf())));
-	}
+	void Finish(void);
 
 private:
-	void ForwardCallback(void)
-	{
-		m_CompletionCallback(GetSelf());
-		m_CompletionCallback = CompletionCallback();
-		m_Finished = true;
-	}
+	void ForwardCallback(void);
 
 	bool m_Finished;
 	CompletionCallback m_CompletionCallback;

@@ -55,6 +55,7 @@
 #ifdef _MSC_VER
 #	pragma warning(disable:4251)
 #	pragma warning(disable:4275)
+#	pragma warning(disable:4345)
 #	define _CRT_SECURE_NO_DEPRECATE
 #	define _CRT_SECURE_NO_WARNINGS
 #else /* _MSC_VER */

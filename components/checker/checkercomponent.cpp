@@ -93,8 +93,9 @@ void CheckerComponent::CheckTimerHandler(void)
 	Logger::Write(LogInformation, "checker", msgbuf.str());
 }
 
-void CheckerComponent::CheckCompletedHandler(const CheckTask::Ptr& task)
+void CheckerComponent::CheckCompletedHandler(const AsyncTask::Ptr& atask)
 {
+	CheckTask::Ptr task = static_pointer_cast<CheckTask>(atask);
 	Service service = task->GetService();
 
 	service.RemoveTag("current_task");

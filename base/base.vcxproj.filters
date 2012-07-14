@@ -79,6 +79,9 @@
     <ClCompile Include="process.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="asynctask.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">

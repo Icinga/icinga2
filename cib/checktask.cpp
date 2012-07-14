@@ -24,7 +24,7 @@ using namespace icinga;
 map<string, CheckTaskType> CheckTask::m_Types;
 
 CheckTask::CheckTask(const Service& service, const CompletionCallback& completionCallback)
-	: AsyncTask<CheckTask>(completionCallback), m_Service(service)
+	: AsyncTask(completionCallback), m_Service(service)
 { }
 
 Service& CheckTask::GetService(void)

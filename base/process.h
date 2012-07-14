@@ -23,7 +23,7 @@
 namespace icinga
 {
 
-class I2_BASE_API Process : public AsyncTask<Process>
+class I2_BASE_API Process : public AsyncTask
 {
 public:
 	typedef shared_ptr<Process> Ptr;
