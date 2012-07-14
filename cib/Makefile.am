@@ -6,8 +6,6 @@ pkglib_LTLIBRARIES = \
 libcib_la_SOURCES = \
 	checkresult.cpp \
 	checkresult.h \
-	checktask.cpp \
-	checktask.h \
 	cib.cpp \
 	cib.h \
 	configobjectadapter.cpp \

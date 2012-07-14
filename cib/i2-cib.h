@@ -44,7 +44,6 @@
 
 #include "macroprocessor.h"
 #include "checkresult.h"
-#include "checktask.h"
 #include "nagioschecktask.h"
 
 #include "servicestatusmessage.h"

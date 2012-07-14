@@ -99,7 +99,7 @@ void CheckerComponent::CheckTimerHandler(void)
 	Logger::Write(LogInformation, "checker", msgbuf.str());
 }
 
-void CheckerComponent::CheckCompletedHandler(Service& service, const AsyncTask::Ptr& atask)
+void CheckerComponent::CheckCompletedHandler(Service service, const AsyncTask::Ptr& atask)
 {
 	ScriptTask::Ptr task = static_pointer_cast<ScriptTask>(atask);
 
@@ -110,41 +110,38 @@ void CheckerComponent::CheckCompletedHandler(Service& service, const AsyncTask::
 	if (m_PendingServices.find(service.GetConfigObject()) == m_PendingServices.end())
 		return;
 
-	/* remove the service from the list of pending services */
-	m_PendingServices.erase(service.GetConfigObject());
-	m_Services.push(service);
-
 	Variant vresult = task->GetResult();
-	if (!vresult.IsObjectType<Dictionary>())
-		return;
+	bool hasResult = false;
+	if (vresult.IsObjectType<Dictionary>()) {
+		CheckResult result = CheckResult(static_cast<Dictionary::Ptr>(vresult));
 
-	CheckResult result = static_cast<Dictionary::Ptr>(vresult);
+		/* update service state */
+		service.ApplyCheckResult(result);
 
-	Logger::Write(LogDebug, "checker", "Got result for service '" + service.GetName() + "'");
+		RequestMessage rm;
+		rm.SetMethod("checker::CheckResult");
 
-	long execution_time = result.GetExecutionEnd() - result.GetExecutionStart();
-	long latency = (result.GetScheduleEnd() - result.GetScheduleStart()) - execution_time;
+		ServiceStatusMessage params;
+		params.SetService(service.GetName());
+		params.SetState(service.GetState());
+		params.SetStateType(service.GetStateType());
+		params.SetCurrentCheckAttempt(service.GetCurrentCheckAttempt());
+		params.SetNextCheck(service.GetNextCheck());
+		params.SetCheckResult(result);
 
-	/* update service state */
-	service.ApplyCheckResult(result);
+		rm.SetParams(params);
+
+		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
+	}
 
 	/* figure out when the next check is for this service */
 	service.UpdateNextCheck();
 
-	RequestMessage rm;
-	rm.SetMethod("checker::CheckResult");
+	/* remove the service from the list of pending services */
+	m_PendingServices.erase(service.GetConfigObject());
+	m_Services.push(service);
 
-	ServiceStatusMessage params;
-	params.SetService(service.GetName());
-	params.SetState(service.GetState());
-	params.SetStateType(service.GetStateType());
-	params.SetCurrentCheckAttempt(service.GetCurrentCheckAttempt());
-	params.SetNextCheck(service.GetNextCheck());
-	params.SetCheckResult(result);
-
-	rm.SetParams(params);
-
-	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
+	Logger::Write(LogDebug, "checker", "Check finished for service '" + service.GetName() + "'");
 }
 
 void CheckerComponent::ResultTimerHandler(void)
