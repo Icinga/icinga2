@@ -27,7 +27,10 @@ AsyncTask::AsyncTask(const AsyncTask::CompletionCallback& completionCallback)
 
 AsyncTask::~AsyncTask(void)
 {
-	assert(m_Finished);
+	if (!m_Finished) {
+		Logger::Write(LogCritical, "base", "Contract violation: "
+		    "AsyncTask was destroyed before its completion callback was invoked.");
+	}
 }
 
 void AsyncTask::Start(void)
