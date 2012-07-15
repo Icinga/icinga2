@@ -22,54 +22,86 @@
 using namespace icinga;
 
 /**
- * Reads data from a FIFO in netstring format.
+ * Reads data from an IOQueue in netstring format.
  *
- * @param fifo The FIFO to read from.
+ * @param fifo The IOQueue to read from.
  * @param[out] str The string that has been read from the FIFO.
  * @returns true if a complete string was read from the FIFO, false otherwise.
- * @exception InvalidNetstringException The input stream is invalid.
+ * @exception invalid_argument The input stream is invalid.
  * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
-bool Netstring::ReadStringFromFIFO(const FIFO::Ptr& fifo, string *str)
+bool Netstring::ReadStringFromIOQueue(IOQueue *queue, string *str)
 {
-	size_t buffer_length = fifo->GetSize();
-	char *buffer = (char *)fifo->GetReadBuffer();
+	size_t buffer_length = queue->GetAvailableBytes();
 
 	/* minimum netstring length is 3 */
 	if (buffer_length < 3)
 		return false;
 
+	/* limit the number of bytes we're reading for the header */
+	if (buffer_length > 16)
+		buffer_length = 16;
+
+	char *buffer = (char *)malloc(buffer_length);
+	queue->Peek(buffer, buffer_length);
+
 	/* no leading zeros allowed */
-	if (buffer[0] == '0' && isdigit(buffer[1]))
+	if (buffer[0] == '0' && isdigit(buffer[1])) {
+		free(buffer);
 		throw invalid_argument("Invalid netstring (leading zero)");
+	}
 
 	size_t len, i;
 
 	len = 0;
 	for (i = 0; i < buffer_length && isdigit(buffer[i]); i++) {
 		/* length specifier must have at most 9 characters */
-		if (i >= 9)
+		if (i >= 9) {
+			free(buffer);
 			throw invalid_argument("Length specifier must not exceed 9 characters");
+		}
 
 		len = len * 10 + (buffer[i] - '0');
 	}
+
+	buffer_length = queue->GetAvailableBytes();
 
 	/* make sure the buffer is large enough */
 	if (i + len + 1 >= buffer_length)
 		return false;
 
+	/* limit the number of bytes we're reading to this message */
+	buffer_length = i + 1 + len + 1;
+
+	char *new_buffer = (char *)realloc(buffer, buffer_length);
+
+	if (new_buffer == NULL) {
+		free(buffer);
+		throw std::bad_alloc();
+	}
+
+	buffer = new_buffer;
+
+	queue->Peek(buffer, buffer_length);
+
 	/* check for the colon delimiter */
-	if (buffer[i++] != ':')
+	if (buffer[i] != ':') {
+		free(buffer);
 		throw invalid_argument("Invalid Netstring (missing :)");
+	}
 
 	/* check for the comma delimiter after the string */
-	if (buffer[i + len] != ',')
+	if (buffer[i + 1 + len] != ',') {
+		free(buffer);
 		throw invalid_argument("Invalid Netstring (missing ,)");
+	}
 
-	*str = string(&buffer[i], &buffer[i + len]);
+	*str = string(&buffer[i + 1], &buffer[i + 1 + len]);
+
+	free(buffer);
 
 	/* remove the data from the fifo */
-	fifo->Read(NULL, i + len + 1);
+	queue->Read(NULL, buffer_length);
 
 	return true;
 }
@@ -80,14 +112,13 @@ bool Netstring::ReadStringFromFIFO(const FIFO::Ptr& fifo, string *str)
  * @param fifo The FIFO.
  * @param str The string that is to be written.
  */
-void Netstring::WriteStringToFIFO(const FIFO::Ptr& fifo, const string& str)
+void Netstring::WriteStringToIOQueue(IOQueue *queue, const string& str)
 {
 	stringstream prefixbuf;
 	prefixbuf << str.size() << ":";
 
 	string prefix = prefixbuf.str();
-	fifo->Write(prefix.c_str(), prefix.size());
-	fifo->Write(str.c_str(), str.size());
-
-	fifo->Write(",", 1);
+	queue->Write(prefix.c_str(), prefix.size());
+	queue->Write(str.c_str(), str.size());
+	queue->Write(",", 1);
 }

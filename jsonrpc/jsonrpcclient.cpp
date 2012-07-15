@@ -40,9 +40,7 @@ JsonRpcClient::JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
  */
 void JsonRpcClient::SendMessage(const MessagePart& message)
 {
-	mutex::scoped_lock lock(GetMutex());
-
-	Netstring::WriteStringToFIFO(GetSendQueue(), message.ToJsonString());
+	Netstring::WriteStringToIOQueue(this, message.ToJsonString());
 }
 
 /**
@@ -54,12 +52,8 @@ void JsonRpcClient::DataAvailableHandler(void)
 		string jsonString;
 		MessagePart message;
 
-		{
-			mutex::scoped_lock lock(GetMutex());
-
-			if (!Netstring::ReadStringFromFIFO(GetRecvQueue(), &jsonString))
-				return;
-		}
+		if (!Netstring::ReadStringFromIOQueue(this, &jsonString))
+			return;
 
 		try {
 			message = MessagePart(jsonString);

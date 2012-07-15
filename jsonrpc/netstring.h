@@ -24,13 +24,6 @@ namespace icinga
 {
 
 /**
- * Thrown when an invalid netstring was encountered while reading from a FIFO.
- *
- * @ingroup jsonrpc
- */
-DEFINE_EXCEPTION_CLASS(InvalidNetstringException);
-
-/**
  * Helper functions for reading/writing messages in the netstring format.
  *
  * @see http://cr.yp.to/proto/netstrings.txt
@@ -40,8 +33,8 @@ DEFINE_EXCEPTION_CLASS(InvalidNetstringException);
 class I2_JSONRPC_API Netstring
 {
 public:
-	static bool ReadStringFromFIFO(const FIFO::Ptr& fifo, string *message);
-	static void WriteStringToFIFO(const FIFO::Ptr& fifo, const string& message);
+	static bool ReadStringFromIOQueue(IOQueue *queue, string *message);
+	static void WriteStringToIOQueue(IOQueue *queue, const string& message);
 
 private:
 	Netstring(void);
