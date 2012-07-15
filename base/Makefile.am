@@ -21,6 +21,7 @@ libbase_la_SOURCES =  \
 	fifo.cpp \
 	fifo.h \
 	i2-base.h \
+	ioqueue.h \
 	logger.cpp \
 	logger.h \
 	object.cpp \

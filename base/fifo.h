@@ -28,7 +28,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API FIFO : public Object
+class I2_BASE_API FIFO : public Object, public IOQueue
 {
 public:
 	static const size_t BlockSize = 16 * 1024;
@@ -39,13 +39,13 @@ public:
 	FIFO(void);
 	~FIFO(void);
 
-	size_t GetSize(void) const;
+	/*const void *GetReadBuffer(void) const;
+	void *GetWriteBuffer(size_t *count);*/
 
-	const void *GetReadBuffer(void) const;
-	void *GetWriteBuffer(size_t *count);
-
-	size_t Read(void *buffer, size_t count);
-	size_t Write(const void *buffer, size_t count);
+	virtual size_t GetAvailableBytes(void) const;
+	virtual void Peek(void *buffer, size_t count);
+	virtual void Read(void *buffer, size_t count);
+	virtual void Write(const void *buffer, size_t count);
 
 private:
 	char *m_Buffer;

@@ -93,11 +93,9 @@ void FIFO::Optimize(void)
 }
 
 /**
- * Returns the number of bytes that are contained in the FIFO.
- *
- * @returns The number of bytes.
+ * Implements IOQueue::GetAvailableBytes().
  */
-size_t FIFO::GetSize(void) const
+size_t FIFO::GetAvailableBytes(void) const
 {
 	return m_DataSize;
 }
@@ -107,32 +105,33 @@ size_t FIFO::GetSize(void) const
  *
  * @returns Pointer to the read buffer.
  */
-const void *FIFO::GetReadBuffer(void) const
+/*const void *FIFO::GetReadBuffer(void) const
 {
 	return m_Buffer + m_Offset;
-}
+}*/
 
 /**
- * Reads data from the FIFO and places it in the specified buffer.
- *
- * @param buffer The buffer where the data should be placed (can be NULL if
- *               the reader is not interested in the data).
- * @param count The number of bytes to read.
- * @returns The number of bytes read which may be less than what was requested.
+ * Implements IOQueue::Peek.
  */
-size_t FIFO::Read(void *buffer, size_t count)
+void FIFO::Peek(void *buffer, size_t count)
 {
-	count = (count <= m_DataSize) ? count : m_DataSize;
+	assert(m_DataSize >= count);
 
 	if (buffer != NULL)
 		memcpy(buffer, m_Buffer + m_Offset, count);
+}
+
+/**
+ * Implements IOQueue::Read.
+ */
+void FIFO::Read(void *buffer, size_t count)
+{
+	Peek(buffer, count);
 
 	m_DataSize -= count;
 	m_Offset += count;
 
 	Optimize();
-
-	return count;
 }
 
 /**
@@ -142,31 +141,20 @@ size_t FIFO::Read(void *buffer, size_t count)
  *              contains the actual size of the available buffer which can
  *              be larger than the requested size.
  */
-void *FIFO::GetWriteBuffer(size_t *count)
+/*void *FIFO::GetWriteBuffer(size_t *count)
 {
 	ResizeBuffer(m_Offset + m_DataSize + *count);
 	*count = m_AllocSize - m_Offset - m_DataSize;
 
 	return m_Buffer + m_Offset + m_DataSize;
-}
+}*/
 
 /**
- * Writes data to the FIFO.
- *
- * @param buffer The data that is to be written (can be NULL if the writer has
- *               already filled the write buffer, e.g. via GetWriteBuffer()).
- * @param count The number of bytes to write.
- * @returns The number of bytes written
+ * Implements IOQueue::Write.
  */
-size_t FIFO::Write(const void *buffer, size_t count)
+void FIFO::Write(const void *buffer, size_t count)
 {
-	if (buffer != NULL) {
-		size_t bufferSize = count;
-		void *target_buffer = GetWriteBuffer(&bufferSize);
-		memcpy(target_buffer, buffer, count);
-	}
-
+	ResizeBuffer(m_Offset + m_DataSize + count);
+	memcpy(m_Buffer + m_Offset + m_DataSize, buffer, count);
 	m_DataSize += count;
-
-	return count;
 }

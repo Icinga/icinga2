@@ -161,6 +161,7 @@ using boost::system_time;
 #include "dictionary.h"
 #include "ringbuffer.h"
 #include "timer.h"
+#include "ioqueue.h"
 #include "fifo.h"
 #include "socket.h"
 #include "tcpsocket.h"

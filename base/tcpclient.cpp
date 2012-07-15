@@ -103,46 +103,79 @@ void TcpClient::Connect(const string& node, const string& service)
 		    "Could not create a suitable socket."));
 }
 
-/**
- * Retrieves the send queue for the socket.
- *
- * @returns The send queue.
- */
-FIFO::Ptr TcpClient::GetSendQueue(void)
-{
-	return m_SendQueue;
-}
-
 void TcpClient::HandleWritable(void)
 {
 	int rc;
+	char data[1024];
+	size_t count;
 
-	rc = send(GetFD(), (const char *)m_SendQueue->GetReadBuffer(), m_SendQueue->GetSize(), 0);
+	for (;;) {
+		count = m_SendQueue->GetAvailableBytes();
 
-	if (rc <= 0) {
-		HandleSocketError(SocketException("send() failed", GetError()));
-		return;
+		if (count == 0)
+			break;
+
+		if (count > sizeof(data))
+			count = sizeof(data);
+
+		m_SendQueue->Peek(data, count);
+
+		rc = send(GetFD(), (const char *)data, count, 0);
+
+		if (rc <= 0) {
+			HandleSocketError(SocketException("send() failed", GetError()));
+			return;
+		}
+
+		m_SendQueue->Read(NULL, rc);
 	}
-
-	m_SendQueue->Read(NULL, rc);
 }
 
 /**
- * Retrieves the recv queue for the socket.
- *
- * @returns The recv queue.
+ * Implements IOQueue::GetAvailableBytes.
  */
-FIFO::Ptr TcpClient::GetRecvQueue(void)
+size_t TcpClient::GetAvailableBytes(void) const
 {
-	return m_RecvQueue;
+	mutex::scoped_lock lock(GetMutex());
+
+	return m_RecvQueue->GetAvailableBytes();
+}
+
+/**
+ * Implements IOQueue::Peek.
+ */
+void TcpClient::Peek(void *buffer, size_t count)
+{
+	mutex::scoped_lock lock(GetMutex());
+
+	m_RecvQueue->Peek(buffer, count);
+}
+
+/**
+ * Implements IOQueue::Read.
+ */
+void TcpClient::Read(void *buffer, size_t count)
+{
+	mutex::scoped_lock lock(GetMutex());
+
+	m_RecvQueue->Read(buffer, count);
+}
+
+/**
+ * Implements IOQueue::Write.
+ */
+void TcpClient::Write(const void *buffer, size_t count)
+{
+	mutex::scoped_lock lock(GetMutex());
+
+	m_SendQueue->Write(buffer, count);
 }
 
 void TcpClient::HandleReadable(void)
 {
 	for (;;) {
-		size_t bufferSize = FIFO::BlockSize / 2;
-		char *buffer = (char *)m_RecvQueue->GetWriteBuffer(&bufferSize);
-		int rc = recv(GetFD(), buffer, bufferSize, 0);
+		char data[1024];
+		int rc = recv(GetFD(), data, sizeof(data), 0);
 
 	#ifdef _WIN32
 		if (rc < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
@@ -156,7 +189,7 @@ void TcpClient::HandleReadable(void)
 			return;
 		}
 
-		m_RecvQueue->Write(NULL, rc);
+		m_RecvQueue->Write(data, rc);
 	}
 
 	Event::Post(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
@@ -179,7 +212,7 @@ bool TcpClient::WantsToRead(void) const
  */
 bool TcpClient::WantsToWrite(void) const
 {
-	return (m_SendQueue->GetSize() > 0);
+	return (m_SendQueue->GetAvailableBytes() > 0);
 }
 
 /**

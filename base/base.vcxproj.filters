@@ -180,6 +180,9 @@
     <ClInclude Include="scriptfunction.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="ioqueue.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Quelldateien">

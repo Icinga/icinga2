@@ -41,7 +41,7 @@ enum TcpClientRole
  *
  * @ingroup base
  */
-class I2_BASE_API TcpClient : public TcpSocket
+class I2_BASE_API TcpClient : public TcpSocket, public IOQueue
 {
 public:
 	typedef shared_ptr<TcpClient> Ptr;
@@ -53,10 +53,12 @@ public:
 
 	void Connect(const string& node, const string& service);
 
-	FIFO::Ptr GetSendQueue(void);
-	FIFO::Ptr GetRecvQueue(void);
-
 	boost::signal<void (const TcpClient::Ptr&)> OnDataAvailable;
+
+	virtual size_t GetAvailableBytes(void) const;
+	virtual void Peek(void *buffer, size_t count);
+	virtual void Read(void *buffer, size_t count);
+	virtual void Write(const void *buffer, size_t count);
 
 protected:
 	virtual bool WantsToRead(void) const;
@@ -65,11 +67,11 @@ protected:
 	virtual void HandleReadable(void);
 	virtual void HandleWritable(void);
 
-private:
-	TcpClientRole m_Role;
-
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
+
+private:
+	TcpClientRole m_Role;
 };
 
 /**

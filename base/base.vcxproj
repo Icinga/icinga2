@@ -51,6 +51,7 @@
     <ClInclude Include="configobject.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="event.h" />
+    <ClInclude Include="ioqueue.h" />
     <ClInclude Include="scriptfunction.h" />
     <ClInclude Include="scripttask.h" />
     <ClInclude Include="logger.h" />
