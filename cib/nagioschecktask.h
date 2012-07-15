@@ -31,13 +31,14 @@ public:
 	static void Register(void);
 
 private:
-	static void ProcessFinishedHandler(NagiosCheckTask ct, CheckResult result);
+	static void ProcessFinishedHandler(NagiosCheckTask ct);
 	static void ProcessCheckOutput(CheckResult& result, const string& output);
 
 	NagiosCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process);
 
 	ScriptTask::Ptr m_Task;
 	Process::Ptr m_Process;
+	CheckResult m_Result;
 };
 
 }

@@ -47,19 +47,18 @@ void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Varia
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
 	string command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
 
-	CheckResult result;
-
-	time_t now;
-	time(&now);
-	result.SetScheduleStart(now);
-
 	Process::Ptr process = boost::make_shared<Process>(command);
 
 	NagiosCheckTask ct(task, process);
-	process->Start(boost::bind(&NagiosCheckTask::ProcessFinishedHandler, ct, result));
+
+	time_t now;
+	time(&now);
+	ct.m_Result.SetScheduleStart(now);
+
+	process->Start(boost::bind(&NagiosCheckTask::ProcessFinishedHandler, ct));
 }
 
-void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct, CheckResult result)
+void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct)
 {
 	ProcessResult pr;
 
@@ -70,12 +69,12 @@ void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct, CheckResult res
 		return;
 	}
 
-	result.SetExecutionStart(pr.ExecutionStart);
-	result.SetExecutionEnd(pr.ExecutionEnd);
+	ct.m_Result.SetExecutionStart(pr.ExecutionStart);
+	ct.m_Result.SetExecutionEnd(pr.ExecutionEnd);
 
 	string output = pr.Output;
 	boost::algorithm::trim(output);
-	ProcessCheckOutput(result, output);
+	ProcessCheckOutput(ct.m_Result, output);
 
 	ServiceState state;
 
@@ -94,13 +93,13 @@ void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct, CheckResult res
 			break;
 	}
 
-	result.SetState(state);
+	ct.m_Result.SetState(state);
 
 	time_t now;
 	time(&now);
-	result.SetScheduleEnd(now);
+	ct.m_Result.SetScheduleEnd(now);
 
-	ct.m_Task->FinishResult(result.GetDictionary());
+	ct.m_Task->FinishResult(ct.m_Result.GetDictionary());
 }
 
 void NagiosCheckTask::ProcessCheckOutput(CheckResult& result, const string& output)
