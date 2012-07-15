@@ -39,7 +39,7 @@ public:
 
 	static const int MaxTasksPerThread = 128;
 
-	Process(const string& command, const CompletionCallback& completionCallback);
+	Process(const string& command);
 
 private:
 	static bool m_ThreadCreated;

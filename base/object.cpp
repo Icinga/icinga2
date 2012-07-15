@@ -27,15 +27,13 @@ vector<Object::Ptr> Object::m_HeldObjects;
  * Default constructor for the Object class.
  */
 Object::Object(void)
-{
-}
+{ }
 
 /**
  * Destructor for the Object class.
  */
 Object::~Object(void)
-{
-}
+{ }
 
 /**
  * Temporarily holds onto a reference for an object. This can

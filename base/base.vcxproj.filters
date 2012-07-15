@@ -85,9 +85,6 @@
     <ClCompile Include="scripttask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="asynctask.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="i2-base.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>

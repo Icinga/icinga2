@@ -23,39 +23,13 @@
 namespace icinga
 {
 
-class I2_BASE_API AsyncTaskBase : public Object
-{
-public:
-	typedef shared_ptr<AsyncTaskBase> Ptr;
-	typedef weak_ptr<AsyncTaskBase> WeakPtr;
-
-	AsyncTaskBase(void);
-	~AsyncTaskBase(void);
-
-	void Start(void);
-	void Finish(const boost::exception_ptr& ex);
-
-	bool CallWithExceptionGuard(function<void ()> function);
-
-protected:
-	virtual void Run(void) = 0;
-
-	virtual void InvokeCompletionCallback(void) = 0;
-
-	void FinishInternal(void);
-
-	bool m_Finished; /**< Whether the task is finished. */
-	bool m_ResultRetrieved; /**< Whether the result was retrieved. */
-	boost::exception_ptr m_Exception;
-};
-
 /**
  * An asynchronous task.
  *
  * @ingroup base
  */
  template<typename TClass, typename TResult>
-class AsyncTask : public AsyncTaskBase
+class AsyncTask : public Object
 {
 public:
 	typedef shared_ptr<AsyncTask<TClass, TResult> > Ptr;
@@ -65,12 +39,38 @@ public:
 
 	/**
 	 * Constructor for the AsyncTask class.
-	 *
-	 * @param completionCallback Function that is called when the task is completed.
 	 */
-	AsyncTask(const CompletionCallback& completionCallback)
-		: m_CompletionCallback(completionCallback)
+	AsyncTask(void)
+		: m_Finished(false), m_ResultRetrieved(false)
 	{ }
+
+	/**
+	 * Destructor for the AsyncTask class.
+	 */
+	~AsyncTask(void)
+	{
+		if (!m_Finished) {
+			Logger::Write(LogCritical, "base", "Contract violation: "
+				"AsyncTask was destroyed before its completion callback was invoked.");
+		} else if (!m_ResultRetrieved) {
+			Logger::Write(LogCritical, "base", "Contract violation: "
+				"AsyncTask was destroyed before its result was retrieved.");
+		}
+	}
+
+
+	/**
+	 * Starts the async task. The caller must hold a reference to the AsyncTask
+	 * object until the completion callback is invoked.
+	 */
+	void Start(const CompletionCallback& completionCallback)
+	{
+		assert(Application::IsMainThread());
+
+		m_CompletionCallback = completionCallback;
+
+		CallWithExceptionGuard(boost::bind(&AsyncTask<TClass, TResult>::Run, this));
+	}
 
 	/**
 	 * Retrieves the result of the task. Throws an exception if one is stored in
@@ -89,21 +89,66 @@ public:
 		if (m_Exception)
 			boost::rethrow_exception(m_Exception);
 
-		return m_Result;
+		m_ResultRetrieved = true;
+
+		TResult result;
+		std::swap(m_Result, result);
+		return result;
 	}
 
+	/**
+	 * Finishes the task using an exception.
+	 *
+	 * @param ex The exception.
+	 */
+	void Finish(const boost::exception_ptr& ex)
+	{
+		m_Exception = ex;
+		FinishInternal();
+	}
+
+	/**
+	 * Finishes the task using an ordinary result.
+	 *
+	 * @param result The result.
+	 */
 	void Finish(const TResult& result)
 	{
 		m_Result = result;
 		FinishInternal();
 	}
 
+	/**
+	 * Invokes the provided callback function and catches any exceptions it throws.
+	 * Exceptions are stored into the task so that they can be re-thrown when the
+	 * task owner calls GetResult().
+	 *
+	 * @param task The task where exceptions should be saved.
+	 * @param function The function that should be invoked.
+	 * @returns true if no exception occured, false otherwise.
+	 */
+	bool CallWithExceptionGuard(function<void ()> function)
+	{
+		try {
+			function();
+
+			return true;
+		} catch (const exception&) {
+			Finish(boost::current_exception());
+
+			return false;
+		}
+	}
+
+protected:
+	virtual void Run(void) = 0;
+
 private:
 	/**
 	 * Used by the Finish method to proxy the completion callback into the main
 	 * thread. Invokes the completion callback and marks the task as finished.
 	 */
-	virtual void InvokeCompletionCallback(void)
+	void InvokeCompletionCallback(void)
 	{
 		m_Finished = true;
 		m_CompletionCallback(GetSelf());
@@ -113,8 +158,23 @@ private:
 		m_CompletionCallback = CompletionCallback();
 	}
 
+	/**
+	 * Finishes the task and causes the completion callback to be invoked. This
+	 * function must be called before the object is destroyed.
+	 */
+	void FinishInternal(void)
+	{
+		assert(!m_Finished);
+
+		Event::Post(boost::bind(&AsyncTask<TClass, TResult>::InvokeCompletionCallback, this));
+	}
+
 	CompletionCallback m_CompletionCallback; /**< The completion callback. */
 	TResult m_Result; /**< The task's result. */
+	boost::exception_ptr m_Exception; /**< The task's exception. */
+
+	bool m_Finished; /**< Whether the task is finished. */
+	bool m_ResultRetrieved; /**< Whether the result was retrieved. */
 };
 
 }

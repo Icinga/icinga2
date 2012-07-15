@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="application.cpp" />
-    <ClCompile Include="asynctask.cpp" />
     <ClCompile Include="component.cpp" />
     <ClCompile Include="configobject.cpp" />
     <ClCompile Include="dictionary.cpp" />

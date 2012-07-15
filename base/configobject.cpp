@@ -210,8 +210,8 @@ ScriptTask::Ptr ConfigObject::InvokeHook(const string& hook,
 	if (!func)
 		throw invalid_argument("Function '" + funcName + "' does not exist.");
 
-	ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments, callback);
-	task->Start();
+	ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
+	task->Start(callback);
 
 	return task;
 }

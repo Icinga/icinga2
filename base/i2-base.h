@@ -167,6 +167,7 @@ using boost::system_time;
 #include "tcpclient.h"
 #include "tcpserver.h"
 #include "tlsclient.h"
+#include "logger.h"
 #include "asynctask.h"
 #include "process.h"
 #include "scriptfunction.h"
@@ -177,7 +178,6 @@ using boost::system_time;
 #include "application.h"
 #include "component.h"
 #include "threadpool.h"
-#include "logger.h"
 #include "streamlogger.h"
 #include "sysloglogger.h"
 

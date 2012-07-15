@@ -7,7 +7,6 @@ pkglib_LTLIBRARIES =  \
 libbase_la_SOURCES =  \
 	application.cpp \
 	application.h \
-	asynctask.cpp \
 	asynctask.h \
 	component.cpp \
 	component.h \

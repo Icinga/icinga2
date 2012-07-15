@@ -29,7 +29,7 @@ public:
 	typedef shared_ptr<ScriptTask> Ptr;
 	typedef weak_ptr<ScriptTask> WeakPtr;
 
-	ScriptTask(const ScriptFunction::Ptr& function, const vector<Variant>& arguments, CompletionCallback callback);
+	ScriptTask(const ScriptFunction::Ptr& function, const vector<Variant>& arguments);
 
 protected:
 	virtual void Run(void);
