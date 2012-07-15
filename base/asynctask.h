@@ -120,41 +120,10 @@ public:
 		FinishInternal();
 	}
 
-	/**
-	 * Invokes the provided callback function and catches any exceptions it throws.
-	 * Exceptions are stored into the task so that they can be re-thrown when the
-	 * task owner calls GetResult().
-	 *
-	 * @param task The task where exceptions should be saved.
-	 * @param function The function that should be invoked.
-	 * @returns true if no exception occured, false otherwise.
-	 */
-	/*bool CallWithExceptionGuard(function<void ()> function)
-	{
-		try {
-			function();
-
-			return true;
-		} catch (const exception&) {
-			Finish(boost::current_exception());
-
-			return false;
-		}
-	}*/
-
 protected:
 	virtual void Run(void) = 0;
 
 private:
-	/**
-	 * Used by the Finish method to proxy the completion callback into the main
-	 * thread. Invokes the completion callback and marks the task as finished.
-	 */
-	void InvokeCompletionCallback(void)
-	{
-		
-	}
-
 	/**
 	 * Finishes the task and causes the completion callback to be invoked. This
 	 * function must be called before the object is destroyed.
