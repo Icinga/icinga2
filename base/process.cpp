@@ -97,7 +97,7 @@ void Process::WorkerThreadProc(void)
 					it++;
 					tasks.erase(prev);
 
-					task->Finish(task->m_Result);
+					Event::Post(boost::bind(&Process::FinishResult, task, task->m_Result));
 				} else {
 					it++;
 				}
@@ -112,10 +112,14 @@ void Process::WorkerThreadProc(void)
 
 			lock.unlock();
 
-			if (task->CallWithExceptionGuard(boost::bind(&Process::InitTask, task))) {
+			try {
+				task->InitTask();
+
 				int fd = task->GetFD();
 				if (fd >= 0)
 					tasks[fd] = task;
+			} catch (const exception&) {
+				Event::Post(boost::bind(&Process::FinishException, task, boost::current_exception()));
 			}
 
 			lock.lock();

@@ -21,6 +21,10 @@
 
 using namespace icinga;
 
+NagiosCheckTask::NagiosCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process)
+	: m_Task(task), m_Process(process)
+{ }
+
 void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments)
 {
 	if (arguments.size() < 1)
@@ -49,14 +53,22 @@ void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Varia
 	time(&now);
 	result.SetScheduleStart(now);
 
-	Process::Ptr process = boost::make_shared<Process>(command, boost::bind(&NagiosCheckTask::ProcessFinishedHandler, task, _1, result));
-	process->Start();
+	Process::Ptr process = boost::make_shared<Process>(command);
+
+	NagiosCheckTask ct(task, process);
+	process->Start(boost::bind(&NagiosCheckTask::ProcessFinishedHandler, ct, result));
 }
 
-void NagiosCheckTask::ProcessFinishedHandler(const ScriptTask::Ptr& task, const Process::Ptr& process, CheckResult result)
+void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct, CheckResult result)
 {
 	ProcessResult pr;
-	pr = process->GetResult();
+
+	try {
+		pr = ct.m_Process->GetResult();
+	} catch (const exception&) {
+		ct.m_Task->FinishException(boost::current_exception());
+		return;
+	}
 
 	result.SetExecutionStart(pr.ExecutionStart);
 	result.SetExecutionEnd(pr.ExecutionEnd);
@@ -88,7 +100,7 @@ void NagiosCheckTask::ProcessFinishedHandler(const ScriptTask::Ptr& task, const 
 	time(&now);
 	result.SetScheduleEnd(now);
 
-	task->Finish(result.GetDictionary());
+	ct.m_Task->FinishResult(result.GetDictionary());
 }
 
 void NagiosCheckTask::ProcessCheckOutput(CheckResult& result, const string& output)

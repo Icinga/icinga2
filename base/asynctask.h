@@ -65,11 +65,13 @@ public:
 	 */
 	void Start(const CompletionCallback& completionCallback)
 	{
-		assert(Application::IsMainThread());
-
 		m_CompletionCallback = completionCallback;
 
-		CallWithExceptionGuard(boost::bind(&AsyncTask<TClass, TResult>::Run, this));
+		try {
+	  		Run();
+		} catch (const exception& ex) {
+	     		FinishException(boost::current_exception());
+		}
 	}
 
 	/**
@@ -101,7 +103,7 @@ public:
 	 *
 	 * @param ex The exception.
 	 */
-	void Finish(const boost::exception_ptr& ex)
+	void FinishException(const boost::exception_ptr& ex)
 	{
 		m_Exception = ex;
 		FinishInternal();
@@ -112,7 +114,7 @@ public:
 	 *
 	 * @param result The result.
 	 */
-	void Finish(const TResult& result)
+	void FinishResult(const TResult& result)
 	{
 		m_Result = result;
 		FinishInternal();
@@ -127,7 +129,7 @@ public:
 	 * @param function The function that should be invoked.
 	 * @returns true if no exception occured, false otherwise.
 	 */
-	bool CallWithExceptionGuard(function<void ()> function)
+	/*bool CallWithExceptionGuard(function<void ()> function)
 	{
 		try {
 			function();
@@ -138,7 +140,7 @@ public:
 
 			return false;
 		}
-	}
+	}*/
 
 protected:
 	virtual void Run(void) = 0;
@@ -150,12 +152,7 @@ private:
 	 */
 	void InvokeCompletionCallback(void)
 	{
-		m_Finished = true;
-		m_CompletionCallback(GetSelf());
-
-		/* Clear callback because the bound function might hold a
-		 * reference to this task. */
-		m_CompletionCallback = CompletionCallback();
+		
 	}
 
 	/**
@@ -166,7 +163,12 @@ private:
 	{
 		assert(!m_Finished);
 
-		Event::Post(boost::bind(&AsyncTask<TClass, TResult>::InvokeCompletionCallback, this));
+		m_Finished = true;
+		m_CompletionCallback(GetSelf());
+
+		/* Clear callback because the bound function might hold a
+		 * reference to this task. */
+		m_CompletionCallback = CompletionCallback();
 	}
 
 	CompletionCallback m_CompletionCallback; /**< The completion callback. */

@@ -103,41 +103,48 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 {
 	service.RemoveTag("current_task");
 
-	/* if the service isn't in the set of pending services
-	 * it was removed and we need to ignore this check result. */
-	if (m_PendingServices.find(service.GetConfigObject()) == m_PendingServices.end())
-		return;
+	try {
+		Variant vresult = task->GetResult();
 
-	Variant vresult = task->GetResult();
-	bool hasResult = false;
-	if (vresult.IsObjectType<Dictionary>()) {
-		CheckResult result = CheckResult(static_cast<Dictionary::Ptr>(vresult));
+		if (vresult.IsObjectType<Dictionary>()) {
+			CheckResult result = CheckResult(static_cast<Dictionary::Ptr>(vresult));
 
-		/* update service state */
-		service.ApplyCheckResult(result);
+			/* update service state */
+			service.ApplyCheckResult(result);
 
-		RequestMessage rm;
-		rm.SetMethod("checker::CheckResult");
+			RequestMessage rm;
+			rm.SetMethod("checker::CheckResult");
 
-		ServiceStatusMessage params;
-		params.SetService(service.GetName());
-		params.SetState(service.GetState());
-		params.SetStateType(service.GetStateType());
-		params.SetCurrentCheckAttempt(service.GetCurrentCheckAttempt());
-		params.SetNextCheck(service.GetNextCheck());
-		params.SetCheckResult(result);
+			ServiceStatusMessage params;
+			params.SetService(service.GetName());
+			params.SetState(service.GetState());
+			params.SetStateType(service.GetStateType());
+			params.SetCurrentCheckAttempt(service.GetCurrentCheckAttempt());
+			params.SetNextCheck(service.GetNextCheck());
+			params.SetCheckResult(result);
 
-		rm.SetParams(params);
+			rm.SetParams(params);
 
-		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
+			EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
+		}
+
+	} catch (const exception& ex) {
+		stringstream msgbuf;
+		msgbuf << "Exception occured during check for service '"
+		       << service.GetName() << "': " << ex.what();
+		Logger::Write(LogWarning, "checker", msgbuf.str());
 	}
 
 	/* figure out when the next check is for this service */
 	service.UpdateNextCheck();
 
-	/* remove the service from the list of pending services */
-	m_PendingServices.erase(service.GetConfigObject());
-	m_Services.push(service);
+	/* remove the service from the list of pending services; if it's not in the
+	 * list this was a manual (i.e. forced) check and we must not re-add the
+	 * service to the services list because it's already there. */
+	if (m_PendingServices.find(service.GetConfigObject()) != m_PendingServices.end()) {
+		m_PendingServices.erase(service.GetConfigObject());
+		m_Services.push(service);
+	}
 
 	Logger::Write(LogDebug, "checker", "Check finished for service '" + service.GetName() + "'");
 }
