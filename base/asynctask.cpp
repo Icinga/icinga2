@@ -1,53 +1,81 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012 Icinga Development Team (http://www.icinga.org/)        *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
-
 #include "i2-base.h"
 
 using namespace icinga;
 
-AsyncTask::AsyncTask(const AsyncTask::CompletionCallback& completionCallback)
-	: m_Finished(false), m_CompletionCallback(completionCallback)
+/**
+ * Constructor for the AsyncTaskBase class.
+ */
+AsyncTaskBase::AsyncTaskBase(void)
+	: m_Finished(false), m_ResultRetrieved(false)
 { }
 
-AsyncTask::~AsyncTask(void)
+/**
+ * Destructor for the AsyncTaskBase class.
+ */
+AsyncTaskBase::~AsyncTaskBase(void)
 {
 	if (!m_Finished) {
 		Logger::Write(LogCritical, "base", "Contract violation: "
-		    "AsyncTask was destroyed before its completion callback was invoked.");
+			"AsyncTask was destroyed before its completion callback was invoked.");
+	} else if (!m_ResultRetrieved) {
+		Logger::Write(LogCritical, "base", "Contract violation: "
+			"AsyncTask was destroyed before its result was retrieved.");
 	}
 }
 
-void AsyncTask::Start(void)
+/**
+ * Starts the async task. The caller must hold a reference to the AsyncTask
+ * object until the completion callback is invoked.
+ */
+void AsyncTaskBase::Start(void)
 {
 	assert(Application::IsMainThread());
 
-	Run();
+	CallWithExceptionGuard(boost::bind(&AsyncTaskBase::Run, this));
 }
 
-void AsyncTask::Finish(void)
+/**
+ * Finishes the task using an exception.
+ *
+ * @param ex The exception.
+ */
+void AsyncTaskBase::Finish(const boost::exception_ptr& ex)
 {
-	Event::Post(boost::bind(&AsyncTask::ForwardCallback, static_cast<AsyncTask::Ptr>(GetSelf())));
+	m_Exception = ex;
+
+	FinishInternal();
 }
 
-void AsyncTask::ForwardCallback(void)
+/**
+ * Finishes the task and causes the completion callback to be invoked. This
+ * function must be called before the object is destroyed.
+ */
+void AsyncTaskBase::FinishInternal(void)
 {
-	m_CompletionCallback(GetSelf());
-	m_CompletionCallback = CompletionCallback();
-	m_Finished = true;
+	assert(!m_Finished);
+
+	Event::Post(boost::bind(&AsyncTaskBase::InvokeCompletionCallback,
+	    static_cast<AsyncTaskBase::Ptr>(GetSelf())));
+}
+
+/**
+ * Invokes the provided callback function and catches any exceptions it throws.
+ * Exceptions are stored into the task so that they can be re-thrown when the
+ * task owner calls GetResult().
+ *
+ * @param task The task where exceptions should be saved.
+ * @param function The function that should be invoked.
+ * @returns true if no exception occured, false otherwise.
+ */
+bool AsyncTaskBase::CallWithExceptionGuard(function<void ()> function)
+{
+	try {
+		function();
+
+		return true;
+	} catch (const exception&) {
+		Finish(boost::current_exception());
+
+		return false;
+	}
 }

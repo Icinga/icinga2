@@ -23,7 +23,7 @@
 namespace icinga
 {
 
-class I2_BASE_API ScriptTask : public AsyncTask
+class I2_BASE_API ScriptTask : public AsyncTask<ScriptTask, Variant>
 {
 public:
 	typedef shared_ptr<ScriptTask> Ptr;
@@ -31,16 +31,12 @@ public:
 
 	ScriptTask(const ScriptFunction::Ptr& function, const vector<Variant>& arguments, CompletionCallback callback);
 
-	void SetResult(const Variant& result);
-	Variant GetResult(void);
-
 protected:
 	virtual void Run(void);
 
 private:
 	ScriptFunction::Ptr m_Function;
 	vector<Variant> m_Arguments;
-	Variant m_Result;
 };
 
 }

@@ -34,12 +34,6 @@ IcingaApplication::IcingaApplication(void)
 	: m_PidPath(DefaultPidPath)
 { }
 
-void TestScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments)
-{
-	std::cout << "Got " << arguments.size() << " arguments." << std::endl;
-	task->Finish();
-}
-
 /**
  * The entry point for the Icinga application.
  *

@@ -97,7 +97,7 @@ void Process::WorkerThreadProc(void)
 					it++;
 					tasks.erase(prev);
 
-					task->Finish();
+					task->Finish(task->m_Result);
 				} else {
 					it++;
 				}
@@ -112,9 +112,7 @@ void Process::WorkerThreadProc(void)
 
 			lock.unlock();
 
-			if (!task->InitTask()) {
-				task->Finish();
-			} else {
+			if (task->CallWithExceptionGuard(boost::bind(&Process::InitTask, task))) {
 				int fd = task->GetFD();
 				if (fd >= 0)
 					tasks[fd] = task;
@@ -125,9 +123,9 @@ void Process::WorkerThreadProc(void)
 	}
 }
 
-bool Process::InitTask(void)
+void Process::InitTask(void)
 {
-	time(&m_ExecutionStart);
+	time(&m_Result.ExecutionStart);
 
 #ifdef _MSC_VER
 	m_FP = _popen(m_Command.c_str(), "r");
@@ -138,7 +136,7 @@ bool Process::InitTask(void)
 		m_FP = popen_noshell_compat(m_Command.c_str(), "r",
 		    (popen_noshell_pass_to_pclose *)m_PCloseArg);
 
-		if (m_FP == NULL) // TODO: add check for valgrind
+		if (m_FP == NULL)
 			m_UsePopen = true;
 	}
 
@@ -146,13 +144,8 @@ bool Process::InitTask(void)
 		m_FP = popen(m_Command.c_str(), "r");
 #endif /* _MSC_VER */
 
-	if (m_FP == NULL) {
-		m_ExitStatus = 128;
-		m_ExecutionEnd = m_ExecutionStart;
-		return false;
-	}
-
-	return true;
+	if (m_FP == NULL)
+		throw runtime_error("Could not create process.");
 }
 
 bool Process::RunTask(void)
@@ -180,7 +173,7 @@ bool Process::RunTask(void)
 	}
 #endif /* _MSC_VER */
 
-	time(&m_ExecutionEnd);
+	time(&m_Result.ExecutionEnd);
 
 #ifndef _MSC_VER
 	if (WIFEXITED(status)) {
@@ -204,8 +197,8 @@ bool Process::RunTask(void)
 	}
 #endif /* _MSC_VER */
 
-	m_ExitStatus = exitcode;
-	m_Output = output;
+	m_Result.ExitStatus = exitcode;
+	m_Result.Output = output;
 
 	return false;
 }
@@ -213,25 +206,5 @@ bool Process::RunTask(void)
 int Process::GetFD(void) const
 {
 	return fileno(m_FP);
-}
-
-long Process::GetExitStatus(void) const
-{
-	return m_ExitStatus;
-}
-
-string Process::GetOutput(void) const
-{
-	return m_Output;
-}
-
-time_t Process::GetExecutionStart(void) const
-{
-	return m_ExecutionStart;
-}
-
-time_t Process::GetExecutionEnd(void) const
-{
-	return m_ExecutionEnd;
 }
 

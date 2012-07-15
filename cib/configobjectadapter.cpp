@@ -47,7 +47,7 @@ void ConfigObjectAdapter::RemoveTag(const string& key)
 }
 
 ScriptTask::Ptr ConfigObjectAdapter::InvokeHook(const string& hook,
-	const vector<Variant>& arguments, AsyncTask::CompletionCallback callback)
+	const vector<Variant>& arguments, ScriptTask::CompletionCallback callback)
 {
 	return m_ConfigObject->InvokeHook(hook, arguments, callback);
 }

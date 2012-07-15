@@ -99,10 +99,8 @@ void CheckerComponent::CheckTimerHandler(void)
 	Logger::Write(LogInformation, "checker", msgbuf.str());
 }
 
-void CheckerComponent::CheckCompletedHandler(Service service, const AsyncTask::Ptr& atask)
+void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::Ptr& task)
 {
-	ScriptTask::Ptr task = static_pointer_cast<ScriptTask>(atask);
-
 	service.RemoveTag("current_task");
 
 	/* if the service isn't in the set of pending services

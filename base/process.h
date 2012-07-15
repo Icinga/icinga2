@@ -23,7 +23,15 @@
 namespace icinga
 {
 
-class I2_BASE_API Process : public AsyncTask
+struct ProcessResult
+{
+	time_t ExecutionStart;
+	time_t ExecutionEnd;
+	long ExitStatus;
+	string Output;
+};
+
+class I2_BASE_API Process : public AsyncTask<Process, ProcessResult>
 {
 public:
 	typedef shared_ptr<Process> Ptr;
@@ -32,12 +40,6 @@ public:
 	static const int MaxTasksPerThread = 128;
 
 	Process(const string& command, const CompletionCallback& completionCallback);
-
-	time_t GetExecutionStart(void) const;
-	time_t GetExecutionEnd(void) const;
-
-	long GetExitStatus(void) const;
-	string GetOutput(void) const;
 
 private:
 	static bool m_ThreadCreated;
@@ -51,10 +53,7 @@ private:
 	void *m_PCloseArg;
 #endif /* _MSC_VER */
 
-	time_t m_ExecutionStart;
-	time_t m_ExecutionEnd;
-	long m_ExitStatus;
-	string m_Output;
+	ProcessResult m_Result;
 
 	virtual void Run(void);
 
@@ -64,7 +63,7 @@ private:
 
 	static void WorkerThreadProc(void);
 
-	bool InitTask(void);
+	void InitTask(void);
 	bool RunTask(void);
 
 	int GetFD(void) const;

@@ -60,7 +60,7 @@ private:
 	void CheckTimerHandler(void);
 	void ResultTimerHandler(void);
 
-	void CheckCompletedHandler(Service service, const AsyncTask::Ptr& atask);
+	void CheckCompletedHandler(Service service, const ScriptTask::Ptr& task);
 
 	void AdjustCheckTimer(void);
 

@@ -198,7 +198,7 @@ void ConfigObject::RemoveTag(const string& key)
 }
 
 ScriptTask::Ptr ConfigObject::InvokeHook(const string& hook,
-    const vector<Variant>& arguments, AsyncTask::CompletionCallback callback)
+    const vector<Variant>& arguments, ScriptTask::CompletionCallback callback)
 {
 	Dictionary::Ptr hooks;
 	string funcName;

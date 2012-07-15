@@ -53,22 +53,21 @@ void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Varia
 	process->Start();
 }
 
-void NagiosCheckTask::ProcessFinishedHandler(const ScriptTask::Ptr& task, const AsyncTask::Ptr& aprocess, CheckResult result)
+void NagiosCheckTask::ProcessFinishedHandler(const ScriptTask::Ptr& task, const Process::Ptr& process, CheckResult result)
 {
-	Process::Ptr process = static_pointer_cast<Process>(aprocess);
+	ProcessResult pr;
+	pr = process->GetResult();
 
-	result.SetExecutionStart(process->GetExecutionStart());
-	result.SetExecutionEnd(process->GetExecutionEnd());
+	result.SetExecutionStart(pr.ExecutionStart);
+	result.SetExecutionEnd(pr.ExecutionEnd);
 
-	string output = process->GetOutput();
-	long exitcode = process->GetExitStatus();
-
+	string output = pr.Output;
 	boost::algorithm::trim(output);
 	ProcessCheckOutput(result, output);
 
 	ServiceState state;
 
-	switch (exitcode) {
+	switch (pr.ExitStatus) {
 		case 0:
 			state = StateOK;
 			break;
@@ -89,8 +88,7 @@ void NagiosCheckTask::ProcessFinishedHandler(const ScriptTask::Ptr& task, const 
 	time(&now);
 	result.SetScheduleEnd(now);
 
-	task->SetResult(result.GetDictionary());
-	task->Finish();
+	task->Finish(result.GetDictionary());
 }
 
 void NagiosCheckTask::ProcessCheckOutput(CheckResult& result, const string& output)
@@ -129,5 +127,5 @@ void NagiosCheckTask::ProcessCheckOutput(CheckResult& result, const string& outp
 void NagiosCheckTask::Register(void)
 {
 	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&NagiosCheckTask::ScriptFunc);
-	ScriptFunction::Register("builtin::NagiosCheck", func);
+	ScriptFunction::Register("native::NagiosCheck", func);
 }

@@ -31,7 +31,7 @@ public:
 	static void Register(void);
 
 private:
-	static void ProcessFinishedHandler(const ScriptTask::Ptr& task, const AsyncTask::Ptr& aprocess, CheckResult result);
+	static void ProcessFinishedHandler(const ScriptTask::Ptr& task, const Process::Ptr& process, CheckResult result);
 	static void ProcessCheckOutput(CheckResult& result, const string& output);
 };
 

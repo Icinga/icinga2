@@ -79,13 +79,13 @@
     <ClCompile Include="process.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="asynctask.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="scriptfunction.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="scripttask.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="asynctask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
