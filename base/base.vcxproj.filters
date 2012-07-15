@@ -88,6 +88,9 @@
     <ClCompile Include="asynctask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="i2-base.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">

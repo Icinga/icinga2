@@ -19,6 +19,9 @@
     <ClCompile Include="requestmessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="i2-jsonrpc.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="i2-jsonrpc.h">

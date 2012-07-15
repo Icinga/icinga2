@@ -17,11 +17,6 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+/* This file is used by MSVC to generate the pre-compiled hedader. */
 
-#ifdef _WIN32
-using namespace icinga;
-
-/* nothing here (yet) */
-
-#endif /* _WIN32 */
+#include "i2-cib.h"

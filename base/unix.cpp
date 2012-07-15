@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef _WIN32
 #include "i2-base.h"
 
+#ifndef _WIN32
 #include <ltdl.h>
 
 using namespace icinga;

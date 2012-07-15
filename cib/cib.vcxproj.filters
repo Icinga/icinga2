@@ -76,5 +76,8 @@
     <ClCompile Include="servicestatusmessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="i2-cib.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
-#ifndef _WIN32
 #include "i2-base.h"
 
+#ifndef _WIN32
 using namespace icinga;
 
 /**

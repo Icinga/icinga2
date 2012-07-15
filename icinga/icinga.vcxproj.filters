@@ -16,6 +16,9 @@
     <ClCompile Include="jsonrpcendpoint.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="i2-icinga.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="endpoint.h">

@@ -22,6 +22,9 @@
     <ClCompile Include="expressionlist.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="i2-dyn.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config_parser.h">
