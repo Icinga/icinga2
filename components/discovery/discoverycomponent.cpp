@@ -333,7 +333,7 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
 		if (!role->GetProperty(messageType, &permissions))
 			continue;
 
-		string permission;
+		Variant permission;
 		BOOST_FOREACH(tie(tuples::ignore, permission), permissions) {
 			if (Utility::Match(permission, message))
 				return true;
@@ -378,7 +378,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	Dictionary::Ptr publications;
 	if (message.GetPublications(&publications)) {
-		string publication;
+		Variant publication;
 		BOOST_FOREACH(tie(tuples::ignore, publication), publications) {
 			if (trusted || HasMessagePermission(roles, "publications", publication)) {
 				info->Publications.insert(publication);
@@ -390,7 +390,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	Dictionary::Ptr subscriptions;
 	if (message.GetSubscriptions(&subscriptions)) {
-		string subscription;
+		Variant subscription;
 		BOOST_FOREACH(tie(tuples::ignore, subscription), subscriptions) {
 			if (trusted || HasMessagePermission(roles, "subscriptions", subscription)) {
 				info->Subscriptions.insert(subscription);

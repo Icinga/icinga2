@@ -138,13 +138,15 @@ namespace boost
 template<typename TKey, typename TValue>
 struct range_mutable_iterator<shared_ptr<icinga::ObjectMap<TKey, TValue> > >
 {
-	typedef typename shared_ptr<icinga::ObjectMap<TKey, TValue> >::Iterator type;
+	typedef shared_ptr<icinga::ObjectMap<TKey, TValue> > objtype;
+	typedef typename objtype::Iterator type;
 };
 
 template<typename TKey, typename TValue>
 struct range_const_iterator<shared_ptr<icinga::ObjectMap<TKey, TValue> > >
 {
-	typedef typename shared_ptr<icinga::ObjectMap<TKey, TValue> > type;
+	typedef shared_ptr<icinga::ObjectMap<TKey, TValue> > objtype;
+	typedef typename objtype::Iterator type;
 };
 
 }

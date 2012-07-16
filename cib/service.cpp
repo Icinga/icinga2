@@ -117,7 +117,7 @@ void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
 	if (!dependencies)
 		return;
 
-	string dependency;
+	Variant dependency;
 	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
 		if (result->Contains(dependency))
 			continue;
@@ -148,7 +148,7 @@ bool Service::IsReachable(void) const
 	Dictionary::Ptr dependencies = boost::make_shared<Dictionary>();
 	GetDependenciesRecursive(dependencies);
 
-	string dependency;
+	Variant dependency;
 	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
 		Service service = Service::GetByName(dependency);
 
@@ -379,7 +379,7 @@ bool Service::IsAllowedChecker(const string& checker) const
 	if (!checkers)
 		return true;
 
-	string pattern;
+	Variant pattern;
 	BOOST_FOREACH(tie(tuples::ignore, pattern), checkers) {
 		if (Utility::Match(pattern, checker))
 			return true;
@@ -395,14 +395,14 @@ Dictionary::Ptr Service::ResolveDependencies(Host host, const Dictionary::Ptr& d
 
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();
 
-	string dependency;
+	Variant dependency;
 	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
 		string name;
 
 		if (services && services->Contains(dependency))
-			name = host.GetName() + "-" + dependency;
+			name = host.GetName() + "-" + static_cast<string>(dependency);
 		else
-			name = dependency;
+			name = static_cast<string>(dependency);
 
 		result->Set(name, name);
 	}

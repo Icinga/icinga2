@@ -241,7 +241,7 @@ void CompatComponent::StatusTimerHandler(void)
 		dict = host.GetGroups();
 
 		if (dict) {
-			string hostgroup;
+			Variant hostgroup;
 			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
 				hostgroups[hostgroup].push_back(host.GetName());
 			}
@@ -286,7 +286,7 @@ void CompatComponent::StatusTimerHandler(void)
 		dict = service.GetGroups();
 
 		if (dict) {
-			string servicegroup;
+			Variant servicegroup;
 			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
 				servicegroups[servicegroup].push_back(service);
 			}
