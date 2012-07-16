@@ -42,6 +42,7 @@ void CheckerComponent::Start(void)
 	m_CheckTimer->Start();
 
 	NagiosCheckTask::Register();
+	NullCheckTask::Register();
 
 	m_ResultTimer = boost::make_shared<Timer>();
 	m_ResultTimer->SetInterval(5);
@@ -76,13 +77,13 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service.GetName() + "'");
 
+		m_PendingServices.insert(service.GetConfigObject());
+
 		vector<Variant> arguments;
 		arguments.push_back(service.GetConfigObject());
 		ScriptTask::Ptr task;
 		task = service.InvokeMethod("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
 		assert(task); /* TODO: gracefully handle missing hooks */
-
-		m_PendingServices.insert(service.GetConfigObject());
 
 		/*CheckTask::Ptr task = CheckTask::CreateTask(service, boost::bind(&CheckerComponent::CheckCompletedHandler, this, _1));
 		task->Start();*/

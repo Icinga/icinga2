@@ -17,38 +17,20 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CIB_H
-#define I2CIB_H
+#ifndef NULLCHECKTASK_H
+#define NULLCHECKTASK_H
 
-/**
- * @defgroup cib Common Information Base
- *
- * The CIB component implements functionality to gather status
- * updates from all the other Icinga components.
- */
+namespace icinga
+{
 
-#include <i2-dyn.h>
-#include <i2-icinga.h>
+class I2_CIB_API NullCheckTask
+{
+public:
+	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments);
 
-#ifdef I2_CIB_BUILD
-#	define I2_CIB_API I2_EXPORT
-#else /* I2_CIB_BUILD */
-#	define I2_CIB_API I2_IMPORT
-#endif /* I2_CIB_BUILD */
+	static void Register(void);
+};
 
-#include "configobjectadapter.h"
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
+}
 
-#include "macroprocessor.h"
-#include "checkresult.h"
-#include "nagioschecktask.h"
-#include "nullchecktask.h"
-
-#include "servicestatusmessage.h"
-
-#include "cib.h"
-
-#endif /* I2CIB_H */
+#endif /* NULLCHECKTASK_H */

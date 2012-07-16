@@ -17,38 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CIB_H
-#define I2CIB_H
+#include "i2-cib.h"
 
-/**
- * @defgroup cib Common Information Base
- *
- * The CIB component implements functionality to gather status
- * updates from all the other Icinga components.
- */
+using namespace icinga;
 
-#include <i2-dyn.h>
-#include <i2-icinga.h>
+void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments)
+{
+	if (arguments.size() < 1)
+		throw invalid_argument("Missing argument: Service must be specified.");
 
-#ifdef I2_CIB_BUILD
-#	define I2_CIB_API I2_EXPORT
-#else /* I2_CIB_BUILD */
-#	define I2_CIB_API I2_IMPORT
-#endif /* I2_CIB_BUILD */
+	time_t now;
+	time(&now);
 
-#include "configobjectadapter.h"
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
+	CheckResult cr;
+	cr.SetScheduleStart(now);
+	cr.SetScheduleEnd(now);
+	cr.SetExecutionStart(now);
+	cr.SetExecutionEnd(now);
+	cr.SetState(StateUnknown);
 
-#include "macroprocessor.h"
-#include "checkresult.h"
-#include "nagioschecktask.h"
-#include "nullchecktask.h"
+	task->FinishResult(cr.GetDictionary());
+}
 
-#include "servicestatusmessage.h"
-
-#include "cib.h"
-
-#endif /* I2CIB_H */
+void NullCheckTask::Register(void)                                            
+{
+        ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&NullCheckTask::ScriptFunc);
+        ScriptFunction::Register("native::NullCheck", func);
+}

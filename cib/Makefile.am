@@ -19,6 +19,8 @@ libcib_la_SOURCES = \
 	macroprocessor.h \
 	nagioschecktask.cpp \
 	nagioschecktask.h \
+	nullchecktask.cpp \
+	nullchecktask.h \
 	service.cpp \
 	service.h \
 	servicegroup.cpp \
