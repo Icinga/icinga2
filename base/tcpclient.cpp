@@ -27,12 +27,9 @@ using namespace icinga;
  * @param role The role of the TCP client socket.
  */
 TcpClient::TcpClient(TcpClientRole role)
-{
-	m_Role = role;
-
-	m_SendQueue = boost::make_shared<FIFO>();
-	m_RecvQueue = boost::make_shared<FIFO>();
-}
+	: m_Role(role), m_SendQueue(boost::make_shared<FIFO>()),
+	  m_RecvQueue(boost::make_shared<FIFO>())
+{ }
 
 /**
  * Retrieves the role of the socket.

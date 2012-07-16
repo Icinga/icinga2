@@ -70,6 +70,7 @@ protected:
 
 private:
 	SOCKET m_FD; /**< The socket descriptor. */
+	bool m_Connected;
 
 	thread m_ReadThread;
 	thread m_WriteThread;

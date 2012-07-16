@@ -25,9 +25,8 @@ using namespace icinga;
  * Constructor for the Socket class.
  */
 Socket::Socket(void)
-{
-	m_FD = INVALID_SOCKET;
-}
+	: m_FD(INVALID_SOCKET), m_Connected(false)
+{ }
 
 /**
  * Destructor for the Socket class.
@@ -317,8 +316,12 @@ void Socket::ReadThreadProc(void)
 			return;
 		}
 
-		if (FD_ISSET(fd, &readfds))
+		if (FD_ISSET(fd, &readfds)) {
+			if (!m_Connected)
+				m_Connected = true;
+
 			HandleReadable();
+		}
 
 		if (FD_ISSET(fd, &exceptfds))
 			HandleException();
@@ -337,7 +340,7 @@ void Socket::WriteThreadProc(void)
 
 		FD_ZERO(&writefds);
 
-		while (!WantsToWrite()) {
+		while (!WantsToWrite() && m_Connected) {
 			m_WriteCV.timed_wait(lock, boost::posix_time::seconds(1));
 
 			if (GetFD() == INVALID_SOCKET)
@@ -365,8 +368,12 @@ void Socket::WriteThreadProc(void)
 			return;
 		}
 
-		if (FD_ISSET(fd, &writefds))
+		if (FD_ISSET(fd, &writefds)) {
+			if (!m_Connected)
+				m_Connected = true;
+
 			HandleWritable();
+		}
 	}
 }
 
