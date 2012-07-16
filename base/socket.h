@@ -53,6 +53,9 @@ protected:
 	void SetFD(SOCKET fd);
 	SOCKET GetFD(void) const;
 
+	void SetConnected(bool connected);
+	bool IsConnected(void) const;
+
 	int GetError(void) const;
 	static int GetLastSocketError(void);
 	void HandleSocketError(const exception& ex);

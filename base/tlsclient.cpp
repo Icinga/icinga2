@@ -118,7 +118,13 @@ void TlsClient::HandleReadable(void)
 
 	for (;;) {
 		char data[1024];
-		int rc = SSL_read(m_SSL.get(), data, sizeof(data));
+		int rc;
+
+		if (IsConnected()) {
+			rc = SSL_read(m_SSL.get(), data, sizeof(data));
+		} else {
+			rc = SSL_do_handshake(m_SSL.get());
+		}
 
 		if (rc <= 0) {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
@@ -137,7 +143,10 @@ void TlsClient::HandleReadable(void)
 			}
 		}
 
-		m_RecvQueue->Write(data, rc);
+		if (IsConnected())
+			m_RecvQueue->Write(data, rc);
+		else
+			SetConnected(true);
 	}
 
 post_event:
@@ -156,17 +165,23 @@ void TlsClient::HandleWritable(void)
 	size_t count;
 
 	for (;;) {
-		count = m_SendQueue->GetAvailableBytes();
+		int rc;
 
-		if (count == 0)
-			break;
+		if (IsConnected()) {
+			count = m_SendQueue->GetAvailableBytes();
 
-		if (count > sizeof(data))
-			count = sizeof(data);
+			if (count == 0)
+				break;
 
-		m_SendQueue->Peek(data, count);
+			if (count > sizeof(data))
+				count = sizeof(data);
 
-		int rc = SSL_write(m_SSL.get(), (const char *)data, count);
+			m_SendQueue->Peek(data, count);
+
+			rc = SSL_write(m_SSL.get(), (const char *)data, count);
+		} else {
+			rc = SSL_do_handshake(m_SSL.get());
+		}
 
 		if (rc <= 0) {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
@@ -185,7 +200,10 @@ void TlsClient::HandleWritable(void)
 			}
 		}
 
-		m_SendQueue->Read(NULL, rc);
+		if (IsConnected())
+			m_SendQueue->Read(NULL, rc);
+		else
+			SetConnected(true);
 	}
 }
 

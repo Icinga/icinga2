@@ -316,12 +316,8 @@ void Socket::ReadThreadProc(void)
 			return;
 		}
 
-		if (FD_ISSET(fd, &readfds)) {
-			if (!m_Connected)
-				m_Connected = true;
-
+		if (FD_ISSET(fd, &readfds))
 			HandleReadable();
-		}
 
 		if (FD_ISSET(fd, &exceptfds))
 			HandleException();
@@ -340,7 +336,7 @@ void Socket::WriteThreadProc(void)
 
 		FD_ZERO(&writefds);
 
-		while (!WantsToWrite() && m_Connected) {
+		while (!WantsToWrite()) {
 			m_WriteCV.timed_wait(lock, boost::posix_time::seconds(1));
 
 			if (GetFD() == INVALID_SOCKET)
@@ -368,16 +364,22 @@ void Socket::WriteThreadProc(void)
 			return;
 		}
 
-		if (FD_ISSET(fd, &writefds)) {
-			if (!m_Connected)
-				m_Connected = true;
-
+		if (FD_ISSET(fd, &writefds))
 			HandleWritable();
-		}
 	}
 }
 
 mutex& Socket::GetMutex(void) const
 {
 	return m_Mutex;
+}
+
+void Socket::SetConnected(bool connected)
+{
+	m_Connected = connected;
+}
+
+bool Socket::IsConnected(void) const
+{
+	return m_Connected;
 }

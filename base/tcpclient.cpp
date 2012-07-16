@@ -120,9 +120,13 @@ void TcpClient::HandleWritable(void)
 		rc = send(GetFD(), (const char *)data, count, 0);
 
 		if (rc <= 0) {
+			SetConnected(false);
+
 			HandleSocketError(SocketException("send() failed", GetError()));
 			return;
 		}
+
+		SetConnected(true);
 
 		m_SendQueue->Read(NULL, rc);
 	}
@@ -182,9 +186,13 @@ void TcpClient::HandleReadable(void)
 			return;
 
 		if (rc <= 0) {
+			SetConnected(false);
+
 			HandleSocketError(SocketException("recv() failed", GetError()));
 			return;
 		}
+
+		SetConnected(true);
 
 		m_RecvQueue->Write(data, rc);
 	}
