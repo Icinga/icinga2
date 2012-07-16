@@ -79,7 +79,7 @@ void CheckerComponent::CheckTimerHandler(void)
 		vector<Variant> arguments;
 		arguments.push_back(service.GetConfigObject());
 		ScriptTask::Ptr task;
-		task = service.InvokeHook("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
+		task = service.InvokeMethod("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
 		assert(task); /* TODO: gracefully handle missing hooks */
 
 		m_PendingServices.insert(service.GetConfigObject());

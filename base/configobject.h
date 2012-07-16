@@ -65,7 +65,7 @@ public:
 
 	void RemoveTag(const string& key);
 
-	ScriptTask::Ptr InvokeHook(const string& hook,
+	ScriptTask::Ptr InvokeMethod(const string& hook,
 	    const vector<Variant>& arguments, ScriptTask::CompletionCallback callback);
 
 	string GetType(void) const;

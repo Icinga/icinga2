@@ -197,12 +197,12 @@ void ConfigObject::RemoveTag(const string& key)
 	GetTags()->Remove(key);
 }
 
-ScriptTask::Ptr ConfigObject::InvokeHook(const string& hook,
+ScriptTask::Ptr ConfigObject::InvokeMethod(const string& method,
     const vector<Variant>& arguments, ScriptTask::CompletionCallback callback)
 {
-	Dictionary::Ptr hooks;
+	Dictionary::Ptr methods;
 	string funcName;
-	if (!GetProperty("hooks", &hooks) || !hooks->Get(hook, &funcName))
+	if (!GetProperty("methods", &methods) || !methods->Get(method, &funcName))
 		return ScriptTask::Ptr();
 
 	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
