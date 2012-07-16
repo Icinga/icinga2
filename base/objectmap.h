@@ -47,8 +47,9 @@ public:
 		m_Parent->OnObjectCommitted.connect(boost::bind(&ObjectMap::ObjectCommittedHandler, this, _2));
 		m_Parent->OnObjectRemoved.connect(boost::bind(&ObjectMap::ObjectRemovedHandler, this, _2));
 
-		for (typename ObjectSet<TValue>::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
-			AddObject(*it);
+		BOOST_FOREACH(const TValue& object, m_Parent) {
+			AddObject(object);
+		}
 	}
 
 	Range GetRange(TKey key)
@@ -60,8 +61,8 @@ public:
 	{
 		Range range = GetRange(key);
 
-		for (Iterator it = range.first; it != range.second; it++) {
-			callback(GetSelf(), *it);
+		BOOST_FOREACH(const TValue& object, range) {
+			callback(GetSelf(), object);
 		}
 	}
 
@@ -83,16 +84,16 @@ private:
 	{
 		TKey key;
 		if (!m_KeyGetter(object, &key))
-        	        return;
+			return;
 
-	        pair<Iterator, Iterator> range = GetRange(key);
+		pair<Iterator, Iterator> range = GetRange(key);
 
-        	for (Iterator i = range.first; i != range.second; i++) {
-                	if (i->second == object) {
-	                        m_Objects.erase(i);
-        	                break;
-                	}
-        	}
+		for (Iterator i = range.first; i != range.second; i++) {
+			if (i->second == object) {
+				m_Objects.erase(i);
+				break;
+			}
+		}
 	}
 
 	void CheckObject(const TValue& object)
@@ -115,6 +116,35 @@ private:
 	{
 		RemoveObject(object);
 	}
+};
+
+template<typename TKey, typename TValue>
+typename ObjectMap<TKey, TValue>::Iterator range_begin(typename ObjectMap<TKey, TValue>::Ptr x)
+{
+	return x->Begin();
+}
+
+template <typename TKey, typename TValue>
+typename ObjectSet<TValue>::Iterator range_end(typename ObjectMap<TKey, TValue>::Ptr x)
+{
+	return x->End();
+}
+
+}
+
+namespace boost
+{
+
+template<typename TKey, typename TValue>
+struct range_mutable_iterator<shared_ptr<icinga::ObjectMap<TKey, TValue> > >
+{
+	typedef typename shared_ptr<icinga::ObjectMap<TKey, TValue> >::Iterator type;
+};
+
+template<typename TKey, typename TValue>
+struct range_const_iterator<shared_ptr<icinga::ObjectMap<TKey, TValue> > >
+{
+	typedef typename shared_ptr<icinga::ObjectMap<TKey, TValue> > type;
 };
 
 }

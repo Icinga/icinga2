@@ -59,22 +59,22 @@ void DiscoveryMessage::SetService(const string& value)
 	Set("service", value);
 }
 
-bool DiscoveryMessage::GetSubscriptions(MessagePart *value) const
+bool DiscoveryMessage::GetSubscriptions(Dictionary::Ptr *value) const
 {
 	return Get("subscriptions", value);
 }
 
-void DiscoveryMessage::SetSubscriptions(MessagePart value)
+void DiscoveryMessage::SetSubscriptions(const Dictionary::Ptr& value)
 {
 	Set("subscriptions", value);
 }
 
-bool DiscoveryMessage::GetPublications(MessagePart *value) const
+bool DiscoveryMessage::GetPublications(Dictionary::Ptr *value) const
 {
 	return Get("publications", value);
 }
 
-void DiscoveryMessage::SetPublications(MessagePart value)
+void DiscoveryMessage::SetPublications(const Dictionary::Ptr& value)
 {
 	Set("publications", value);
 }

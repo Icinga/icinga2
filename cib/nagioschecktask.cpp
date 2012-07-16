@@ -110,10 +110,7 @@ void NagiosCheckTask::ProcessCheckOutput(CheckResult& result, const string& outp
 	vector<string> lines;
 	boost::algorithm::split(lines, output, is_any_of("\r\n"));
 
-	vector<string>::iterator it;
-	for (it = lines.begin(); it != lines.end(); it++) {
-		const string& line = *it;
-
+	BOOST_FOREACH (const string& line, lines) {
 		string::size_type delim = line.find('|');
 
 		if (!text.empty())

@@ -39,8 +39,8 @@ void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant
 	task->FinishResult(cr.GetDictionary());
 }
 
-void NullCheckTask::Register(void)                                            
+void NullCheckTask::Register(void)
 {
-        ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&NullCheckTask::ScriptFunc);
-        ScriptFunction::Register("native::NullCheck", func);
+	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&NullCheckTask::ScriptFunc);
+	ScriptFunction::Register("native::NullCheck", func);
 }

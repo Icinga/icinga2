@@ -81,9 +81,10 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			if (valueExprl) {
 				valueExprl->Execute(dict);
 			} else if (valueDict) {
-				Dictionary::Iterator it;
-				for (it = valueDict->Begin(); it != valueDict->End(); it++) {
-					dict->Set(it->first, it->second);
+				string key;
+				Variant value;
+				BOOST_FOREACH(tie(key, value), valueDict) {
+					dict->Set(key, value);
 				}
 			} else {
 				stringstream message;

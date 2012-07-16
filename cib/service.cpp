@@ -117,14 +117,14 @@ void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
 	if (!dependencies)
 		return;
 
-	Dictionary::Iterator it;
-	for (it = dependencies->Begin(); it != dependencies->End(); it++) {
-		if (result->Contains(it->second))
+	string dependency;
+	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
+		if (result->Contains(dependency))
 			continue;
 
-		result->Set(it->second, it->second);
+		result->Set(dependency, dependency);
 
-		Service service = Service::GetByName(it->second);
+		Service service = Service::GetByName(dependency);
 		service.GetDependenciesRecursive(result);
 	}
 }
@@ -148,9 +148,9 @@ bool Service::IsReachable(void) const
 	Dictionary::Ptr dependencies = boost::make_shared<Dictionary>();
 	GetDependenciesRecursive(dependencies);
 
-	Dictionary::Iterator it;
-	for (it = dependencies->Begin(); it != dependencies->End(); it++) {
-		Service service = Service::GetByName(it->second);
+	string dependency;
+	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
+		Service service = Service::GetByName(dependency);
 
 		/* ignore ourselves */
 		if (service.GetName() == GetName())
@@ -379,10 +379,8 @@ bool Service::IsAllowedChecker(const string& checker) const
 	if (!checkers)
 		return true;
 
-	Dictionary::Iterator it;
-	for (it = checkers->Begin(); it != checkers->End(); it++) {
-		string pattern = it->second;
-
+	string pattern;
+	BOOST_FOREACH(tie(tuples::ignore, pattern), checkers) {
 		if (Utility::Match(pattern, checker))
 			return true;
 	}
@@ -397,14 +395,14 @@ Dictionary::Ptr Service::ResolveDependencies(Host host, const Dictionary::Ptr& d
 
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();
 
-	Dictionary::Iterator it;
-	for (it = dependencies->Begin(); it != dependencies->End(); it++) {
+	string dependency;
+	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
 		string name;
 
-		if (services && services->Contains(it->first))
-			name = host.GetName() + "-" + it->first;
+		if (services && services->Contains(dependency))
+			name = host.GetName() + "-" + dependency;
 		else
-			name = it->first;
+			name = dependency;
 
 		result->Set(name, name);
 	}

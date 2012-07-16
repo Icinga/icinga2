@@ -148,7 +148,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 		state = StateUnknown;
 
 	fp << "servicestatus {" << "\n"
-           << "\t" << "host_name=" << service.GetHost().GetName() << "\n"
+	   << "\t" << "host_name=" << service.GetHost().GetName() << "\n"
 	   << "\t" << "service_description=" << service.GetAlias() << "\n"
 	   << "\t" << "check_interval=" << service.GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval=" << service.GetRetryInterval() / 60.0 << "\n"
@@ -233,31 +233,34 @@ void CompatComponent::StatusTimerHandler(void)
 	ConfigObject::TMap::Range range;
 	range = ConfigObject::GetObjects("host");
 
-	ConfigObject::TMap::Iterator it;
-	for (it = range.first; it != range.second; it++) {
-		Host host = it->second;
+	ConfigObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), range) {
+		Host host = object;
 
 		Dictionary::Ptr dict;
-		Dictionary::Iterator dt;
-
 		dict = host.GetGroups();
 
 		if (dict) {
-			for (dt = dict->Begin(); dt != dict->End(); dt++)
-				hostgroups[dt->second].push_back(host.GetName());
+			string hostgroup;
+			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
+				hostgroups[hostgroup].push_back(host.GetName());
+			}
 		}
 
 		DumpHostStatus(statusfp, host);
 		DumpHostObject(objectfp, host);
 	}
 
-	map<string, vector<string> >::iterator hgt;
-	for (hgt = hostgroups.begin(); hgt != hostgroups.end(); hgt++) {
-		objectfp << "define hostgroup {" << "\n"
-			 << "\t" << "hostgroup_name" << "\t" << hgt->first << "\n";
+	pair<string, vector<string > > hgt;
+	BOOST_FOREACH(hgt, hostgroups) {
+		const string& name = hgt.first;
+		const vector<string>& hosts = hgt.second;
 
-		if (HostGroup::Exists(hgt->first)) {
-			HostGroup hg = HostGroup::GetByName(hgt->first);
+		objectfp << "define hostgroup {" << "\n"
+			 << "\t" << "hostgroup_name" << "\t" << name << "\n";
+
+		if (HostGroup::Exists(name)) {
+			HostGroup hg = HostGroup::GetByName(name);
 			objectfp << "\t" << "alias" << "\t" << hg.GetAlias() << "\n"
 				 << "\t" << "notes_url" << "\t" << hg.GetNotesUrl() << "\n"
 				 << "\t" << "action_url" << "\t" << hg.GetActionUrl() << "\n";
@@ -265,7 +268,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 		objectfp << "\t" << "members" << "\t";
 
-		DumpStringList(objectfp, hgt->second);
+		DumpStringList(objectfp, hosts);
 
 		objectfp << "\n"
 			 << "}" << "\n";
@@ -275,30 +278,34 @@ void CompatComponent::StatusTimerHandler(void)
 
 	map<string, vector<Service> > servicegroups;
 
-	for (it = range.first; it != range.second; it++) {
-		Service service = it->second;
+	BOOST_FOREACH(tie(tuples::ignore, object), range) {
+		Service service = object;
 
 		Dictionary::Ptr dict;
-		Dictionary::Iterator dt;
 
 		dict = service.GetGroups();
 
 		if (dict) {
-			for (dt = dict->Begin(); dt != dict->End(); dt++)
-				servicegroups[dt->second].push_back(service);
+			string servicegroup;
+			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
+				servicegroups[servicegroup].push_back(service);
+			}
 		}
 
 		DumpServiceStatus(statusfp, service);
 		DumpServiceObject(objectfp, service);
 	}
 
-	map<string, vector<Service > >::iterator sgt;
-	for (sgt = servicegroups.begin(); sgt != servicegroups.end(); sgt++) {
-		objectfp << "define servicegroup {" << "\n"
-			 << "\t" << "servicegroup_name" << "\t" << sgt->first << "\n";
+	pair<string, vector<Service > > sgt;
+	BOOST_FOREACH(sgt, servicegroups) {
+		const string& name = sgt.first;
+		const vector<Service>& services = sgt.second;
 
-		if (ServiceGroup::Exists(sgt->first)) {
-			ServiceGroup sg = ServiceGroup::GetByName(sgt->first);
+		objectfp << "define servicegroup {" << "\n"
+			 << "\t" << "servicegroup_name" << "\t" << name << "\n";
+
+		if (ServiceGroup::Exists(name)) {
+			ServiceGroup sg = ServiceGroup::GetByName(name);
 			objectfp << "\t" << "alias" << "\t" << sg.GetAlias() << "\n"
 				 << "\t" << "notes_url" << "\t" << sg.GetNotesUrl() << "\n"
 				 << "\t" << "action_url" << "\t" << sg.GetActionUrl() << "\n";
@@ -309,9 +316,9 @@ void CompatComponent::StatusTimerHandler(void)
 		vector<string> sglist;
 		vector<Service>::iterator vt;
 
-		for (vt = sgt->second.begin(); vt != sgt->second.end(); vt++) {
-			sglist.push_back(vt->GetHost().GetName());
-			sglist.push_back(vt->GetAlias());
+		BOOST_FOREACH(const Service& service, services) {
+			sglist.push_back(service.GetHost().GetName());
+			sglist.push_back(service.GetAlias());
 		}
 
 		DumpStringList(objectfp, sglist);

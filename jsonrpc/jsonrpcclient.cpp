@@ -48,16 +48,11 @@ void JsonRpcClient::SendMessage(const MessagePart& message)
  */
 void JsonRpcClient::DataAvailableHandler(void)
 {
-	for (;;) {
-		string jsonString;
-		MessagePart message;
+	string jsonString;
 
-		if (!Netstring::ReadStringFromIOQueue(this, &jsonString))
-			return;
-
+	while (Netstring::ReadStringFromIOQueue(this, &jsonString)) {
 		try {
-			message = MessagePart(jsonString);
-			OnNewMessage(GetSelf(), message);
+			OnNewMessage(GetSelf(), MessagePart(jsonString));
 		} catch (const exception& ex) {
 			Logger::Write(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + string(ex.what()));
 		}

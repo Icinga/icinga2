@@ -161,9 +161,8 @@ void DelegationComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoin
 		return;
 
 	/* locally clear checker for all services that previously belonged to this endpoint */
-	ConfigObject::Set::Iterator it;
-	for (it = m_AllServices->Begin(); it != m_AllServices->End(); it++) {
-		Service service = *it;
+	BOOST_FOREACH(const ConfigObject::Ptr& object, m_AllServices) {
+		Service service = object;
 
 		if (service.GetChecker() == endpoint->GetIdentity())
 			service.SetChecker("");
@@ -184,9 +183,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 	vector<Service> services;
 
 	/* build "checker -> service count" histogram */
-	ConfigObject::Set::Iterator it;
-	for (it = m_AllServices->Begin(); it != m_AllServices->End(); it++) {
-		Service service = *it;
+	BOOST_FOREACH(const ConfigObject::Ptr& object, m_AllServices) {
+		Service service = object;
 
 		services.push_back(service);
 
@@ -207,10 +205,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 	int delegated = 0;
 
 	/* re-assign services */
-	vector<Service>::iterator sit;
-	for (sit = services.begin(); sit != services.end(); sit++) {
-		Service service = *sit;
-
+	BOOST_FOREACH(Service& service, services) {
 		string checker = service.GetChecker();
 
 		Endpoint::Ptr oldEndpoint;
@@ -229,8 +224,9 @@ void DelegationComponent::DelegationTimerHandler(void)
 			msgbuf << "Service: " << service.GetName() << ", candidates: " << candidates.size();
 			Logger::Write(LogDebug, "delegation", msgbuf.str());
 
-			for (cit = candidates.begin(); cit != candidates.end(); cit++)
-				avg_services += histogram[*cit];
+			BOOST_FOREACH(const Endpoint::Ptr& candidate, candidates) {
+				avg_services += histogram[candidate];
+			}
 
 			avg_services /= candidates.size();
 			overflow_tolerance = candidates.size() * 2;
@@ -253,15 +249,13 @@ void DelegationComponent::DelegationTimerHandler(void)
 		}
 
 		/* find a new checker for the service */
-		for (cit = candidates.begin(); cit != candidates.end(); cit++) {
-			Endpoint::Ptr newEndpoint = *cit;
-
+		BOOST_FOREACH(const Endpoint::Ptr& candidate, candidates) {
 			/* does this checker already have too many services */
-			if (histogram[newEndpoint] > avg_services)
+			if (histogram[candidate] > avg_services)
 				continue;
 
-			service.SetChecker(newEndpoint->GetIdentity());
-			histogram[newEndpoint]++;
+			service.SetChecker(candidate->GetIdentity());
+			histogram[candidate]++;
 
 			delegated++;
 
@@ -271,29 +265,30 @@ void DelegationComponent::DelegationTimerHandler(void)
 		assert(candidates.size() == 0 || !service.GetChecker().empty());
 	}
 
-	map<Endpoint::Ptr, int>::iterator hit;
-	for (hit = histogram.begin(); hit != histogram.end(); hit++) {
+	Endpoint::Ptr endpoint;
+	int count;
+	BOOST_FOREACH(tie(endpoint, count), histogram) {
 		stringstream msgbuf;
-		msgbuf << "histogram: " << hit->first->GetIdentity() << " - " << hit->second;
+		msgbuf << "histogram: " << endpoint->GetIdentity() << " - " << count;
 		Logger::Write(LogInformation, "delegation", msgbuf.str());
 	}
 
 	if (delegated > 0) {
 		if (need_clear) {
-			map<Endpoint::Ptr, int>::iterator hit;
-			for (hit = histogram.begin(); hit != histogram.end(); hit++) {
-				ClearServices(hit->first);
+			Endpoint::Ptr endpoint;
+			BOOST_FOREACH(tie(endpoint, tuples::ignore), histogram) {
+				ClearServices(endpoint);
 			}
 		}
 
-		for (sit = services.begin(); sit != services.end(); sit++) {
-			string checker = sit->GetChecker();
+		BOOST_FOREACH(Service& service, services) {
+			string checker = service.GetChecker();
 			Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
 
 			if (!endpoint)
 				continue;
 
-			AssignService(endpoint, *sit);
+			AssignService(endpoint, service);
 		}
 	}
 

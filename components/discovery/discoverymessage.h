@@ -41,11 +41,11 @@ public:
 	bool GetService(string *value) const;
 	void SetService(const string& value);
 
-	bool GetSubscriptions(MessagePart *value) const;
-	void SetSubscriptions(MessagePart value);
+	bool GetSubscriptions(Dictionary::Ptr *value) const;
+	void SetSubscriptions(const Dictionary::Ptr& value);
 
-	bool GetPublications(MessagePart *value) const;
-	void SetPublications(MessagePart value);
+	bool GetPublications(Dictionary::Ptr *value) const;
+	void SetPublications(const Dictionary::Ptr& value);
 };
 
 }

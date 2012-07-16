@@ -44,9 +44,9 @@ void Event::ProcessEvents(const system_time& wait_until)
 		events.swap(m_Events);
 	}
 
-	vector<Event>::iterator it;
-	for (it = events.begin(); it != events.end(); it++)
-		it->m_Callback();
+	BOOST_FOREACH(const Event& ev, events) {
+		ev.m_Callback();
+	}
 }
 
 void Event::Post(const function<void ()>& callback)

@@ -40,9 +40,7 @@ void ConfigFileComponent::Start(void)
 
 	Logger::Write(LogInformation, "configfile", "Executing config items...");
 
-	vector<ConfigItem::Ptr>::iterator it;
-	for (it = configItems.begin(); it != configItems.end(); it++) {
-		ConfigItem::Ptr item = *it;
+	BOOST_FOREACH(const ConfigItem::Ptr& item, configItems) {
 		item->Commit();
 	}
 }

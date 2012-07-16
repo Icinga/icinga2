@@ -34,7 +34,6 @@ public:
 	typedef shared_ptr<Dictionary> Ptr;
 	typedef weak_ptr<Dictionary> WeakPtr;
 
-	typedef map<string, Variant>::const_iterator ConstIterator;
 	typedef map<string, Variant>::iterator Iterator;
 
 	/**
@@ -47,7 +46,7 @@ public:
 	template<typename T>
 	bool Get(const string& key, T *value) const
 	{
-		ConstIterator i = m_Data.find(key);
+		map<string, Variant>::const_iterator i = m_Data.find(key);
 
 		if (i == m_Data.end())
 			return false;
@@ -108,6 +107,33 @@ public:
 
 private:
 	map<string, Variant> m_Data;
+};
+
+inline Dictionary::Iterator range_begin(Dictionary::Ptr x)
+{
+	return x->Begin();
+}
+
+inline Dictionary::Iterator range_end(Dictionary::Ptr x)
+{
+	return x->End();
+}
+
+}
+
+namespace boost
+{
+
+template<>
+struct range_mutable_iterator<icinga::Dictionary::Ptr>
+{
+	typedef icinga::Dictionary::Iterator type;
+};
+
+template<>
+struct range_const_iterator<icinga::Dictionary::Ptr>
+{
+	typedef icinga::Dictionary::Iterator type;
 };
 
 }

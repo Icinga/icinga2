@@ -61,9 +61,9 @@ Application::~Application(void)
 	m_ShuttingDown = true;
 
 	/* stop all components */
-	for (map<string, Component::Ptr>::iterator i = m_Components.begin();
-	    i != m_Components.end(); i++) {
-		i->second->Stop();
+	Component::Ptr component;
+	BOOST_FOREACH(tie(tuples::ignore, component), m_Components) {
+		component->Stop();
 	}
 
 	m_Components.clear();
@@ -243,8 +243,8 @@ string Application::GetExePath(void) const
 			boost::algorithm::split(paths, pathEnv, boost::is_any_of(":"));
 
 			bool foundPath = false;
-			for (vector<string>::iterator it = paths.begin(); it != paths.end(); it++) {
-				string pathTest = *it + "/" + argv0;
+			BOOST_FOREACH(string& path, paths) {
+				string pathTest = path + "/" + argv0;
 
 				if (access(pathTest.c_str(), X_OK) == 0) {
 					executablePath = pathTest;

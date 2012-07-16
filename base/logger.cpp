@@ -93,10 +93,7 @@ LogSeverity Logger::GetMinSeverity(void) const
  */
 void Logger::ForwardLogEntry(const LogEntry& entry)
 {
-	set<Logger::Ptr>::iterator it;
-	for (it = m_Loggers.begin(); it != m_Loggers.end(); it++) {
-		Logger::Ptr logger = *it;
-
+	BOOST_FOREACH(const Logger::Ptr& logger, m_Loggers) {
 		if (entry.Severity >= logger->GetMinSeverity())
 			logger->ProcessLogEntry(entry);
 	}

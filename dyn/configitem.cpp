@@ -56,13 +56,12 @@ vector<string> ConfigItem::GetParents(void) const
 
 void ConfigItem::CalculateProperties(Dictionary::Ptr dictionary) const
 {
-	vector<string>::const_iterator it;
-	for (it = m_Parents.begin(); it != m_Parents.end(); it++) {
-		ConfigItem::Ptr parent = ConfigItem::GetObject(GetType(), *it);
+	BOOST_FOREACH(const string& name, m_Parents) {
+		ConfigItem::Ptr parent = ConfigItem::GetObject(GetType(), name);
 
 		if (!parent) {
 			stringstream message;
-			message << "Parent object '" << *it << "' does not exist (" << m_DebugInfo << ")";
+			message << "Parent object '" << name << "' does not exist (" << m_DebugInfo << ")";
 			throw domain_error(message.str());
 		}
 
@@ -76,12 +75,12 @@ ConfigItem::Set::Ptr ConfigItem::GetAllObjects(void)
 {
 	static ObjectSet<ConfigItem::Ptr>::Ptr allObjects;
 
-        if (!allObjects) {
-                allObjects = boost::make_shared<ObjectSet<ConfigItem::Ptr> >();
-                allObjects->Start();
-        }
+	if (!allObjects) {
+		allObjects = boost::make_shared<ObjectSet<ConfigItem::Ptr> >();
+		allObjects->Start();
+	}
 
-        return allObjects;
+	return allObjects;
 }
 
 bool ConfigItem::GetTypeAndName(const ConfigItem::Ptr& object, pair<string, string> *key)

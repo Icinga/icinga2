@@ -29,16 +29,11 @@ public:
 	typedef shared_ptr<ExpressionList> Ptr;
 	typedef weak_ptr<ExpressionList> WeakPtr;
 
-	ExpressionList(void);
-//	ExpressionList(Dictionary::Ptr serializedDictionary);
-
 	void AddExpression(const Expression& expression);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
 
 	size_t GetLength(void) const;
-
-//	Dictionary::Ptr Serialize(void);
 
 private:
 	vector<Expression> m_Expressions;

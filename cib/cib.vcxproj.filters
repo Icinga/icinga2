@@ -44,6 +44,9 @@
     <ClInclude Include="servicestatusmessage.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="nullchecktask.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="checkresult.cpp">
@@ -77,6 +80,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="i2-cib.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="nullchecktask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

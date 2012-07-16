@@ -90,6 +90,7 @@
     <ClInclude Include="i2-cib.h" />
     <ClInclude Include="macroprocessor.h" />
     <ClInclude Include="nagioschecktask.h" />
+    <ClInclude Include="nullchecktask.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />
     <ClInclude Include="servicestatusmessage.h" />
@@ -106,6 +107,7 @@
     </ClCompile>
     <ClCompile Include="macroprocessor.cpp" />
     <ClCompile Include="nagioschecktask.cpp" />
+    <ClCompile Include="nullchecktask.cpp" />
     <ClCompile Include="service.cpp" />
     <ClCompile Include="servicegroup.cpp" />
     <ClCompile Include="servicestatusmessage.cpp" />

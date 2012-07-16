@@ -21,10 +21,6 @@
 
 using namespace icinga;
 
-ExpressionList::ExpressionList(void)
-{
-}
-
 void ExpressionList::AddExpression(const Expression& expression)
 {
 	m_Expressions.push_back(expression);
@@ -37,9 +33,7 @@ size_t ExpressionList::GetLength(void) const
 
 void ExpressionList::Execute(const Dictionary::Ptr& dictionary) const
 {
-	vector<Expression>::const_iterator it;
-
-	for (it = m_Expressions.begin(); it != m_Expressions.end(); it++) {
-		it->Execute(dictionary);
+	BOOST_FOREACH(const Expression& expression, m_Expressions) {
+		expression.Execute(dictionary);
 	}
 }

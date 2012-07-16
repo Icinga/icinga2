@@ -47,7 +47,7 @@ void *ConfigCompiler::GetScanner(void) const
 
 vector<ConfigItem::Ptr> ConfigCompiler::GetResult(void) const
 {
-        return m_Result;
+	return m_Result;
 }
 
 string ConfigCompiler::GetPath(void) const

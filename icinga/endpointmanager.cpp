@@ -240,10 +240,8 @@ void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
 		throw invalid_argument("Message is missing the 'method' property.");
 
 	vector<Endpoint::Ptr> candidates;
-	for (map<string, Endpoint::Ptr>::iterator i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
-	{
-		Endpoint::Ptr endpoint = i->second;
-
+	Endpoint::Ptr endpoint;
+	BOOST_FOREACH(tie(tuples::ignore, endpoint), m_Endpoints) {
 		/* don't forward messages between non-local endpoints */
 		if (!sender->IsLocal() && !endpoint->IsLocal())
 			continue;
@@ -277,11 +275,8 @@ void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
 	if (!message.GetMethod(&method))
 		throw invalid_argument("Message is missing the 'method' property.");
 
-	map<string, Endpoint::Ptr>::iterator i;
-	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); i++)
-	{
-		Endpoint::Ptr recipient = i->second;
-
+	Endpoint::Ptr recipient;
+	BOOST_FOREACH(tie(tuples::ignore, recipient), m_Endpoints) {
 		/* don't forward messages back to the sender */
 		if (sender == recipient)
 			continue;

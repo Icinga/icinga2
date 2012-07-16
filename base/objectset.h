@@ -47,9 +47,10 @@ public:
 			m_Parent->OnObjectCommitted.connect(boost::bind(&ObjectSet::ObjectAddedOrCommittedHandler, this, _2));
 			m_Parent->OnObjectRemoved.connect(boost::bind(&ObjectSet::ObjectRemovedHandler, this, _2));
 
-			for (ObjectSet::Iterator it = m_Parent->Begin(); it != m_Parent->End(); it++)
-				CheckObject(*it);
-        }
+			BOOST_FOREACH(const TValue& object, m_Parent) {
+				CheckObject(object);
+			}
+		}
 	}
 
 	void AddObject(const TValue& object)
@@ -102,8 +103,8 @@ public:
 
 	void ForeachObject(function<void (const typename Object::Ptr&, const TValue&)> callback)
 	{
-		for (Iterator it = Begin(); it != End(); it++) {
-			callback(GetSelf(), *it);
+		BOOST_FOREACH(const TValue& object, m_Objects) {
+			callback(GetSelf(), object);
 		}
 	}
 
@@ -122,6 +123,35 @@ private:
 	{
 		RemoveObject(object);
 	}
+};
+
+template<typename TValue>
+typename ObjectSet<TValue>::Iterator range_begin(shared_ptr<ObjectSet<TValue> > x)
+{
+	return x->Begin();
+}
+
+template <typename TValue>
+typename ObjectSet<TValue>::Iterator range_end(shared_ptr<ObjectSet<TValue> > x)
+{
+	return x->End();
+}
+
+}
+
+namespace boost
+{
+
+template<typename TValue>
+struct range_mutable_iterator<shared_ptr<icinga::ObjectSet<TValue> > >
+{
+	typedef typename icinga::ObjectSet<TValue>::Iterator type;
+};
+
+template<typename TValue>
+struct range_const_iterator<shared_ptr<icinga::ObjectSet<TValue> > >
+{
+	typedef typename icinga::ObjectSet<TValue>::Iterator type;
 };
 
 }

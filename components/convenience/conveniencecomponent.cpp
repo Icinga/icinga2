@@ -111,11 +111,9 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 	host->GetProperty("services", &serviceDescs);
 
 	if (serviceDescs) {
-		Dictionary::Iterator it;
-		for (it = serviceDescs->Begin(); it != serviceDescs->End(); it++) {
-			string svcname = it->first;
-			Variant svcdesc = it->second;
-
+		string svcname;
+		Variant svcdesc;
+		BOOST_FOREACH(tie(svcname, svcdesc), serviceDescs) {
 			stringstream namebuf;
 			namebuf << item->GetName() << "-" << svcname;
 			string name = namebuf.str();
@@ -152,10 +150,8 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 	}
 
 	if (oldServices) {
-		Dictionary::Iterator it;
-		for (it = oldServices->Begin(); it != oldServices->End(); it++) {
-			ConfigItem::Ptr service = it->second;
-
+		ConfigItem::Ptr service;
+		BOOST_FOREACH(tie(tuples::ignore, service), oldServices) {
 			if (!newServices->Contains(service->GetName()))
 				service->Unregister();
 		}
@@ -180,9 +176,8 @@ void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
 	if (!services)
 		return;
 
-	Dictionary::Iterator it;
-	for (it = services->Begin(); it != services->End(); it++) {
-		ConfigItem::Ptr service = it->second;
+	ConfigItem::Ptr service;
+	BOOST_FOREACH(tie(tuples::ignore, service), services) {
 		service->Unregister();
 	}
 }

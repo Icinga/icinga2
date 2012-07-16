@@ -66,11 +66,12 @@ void Process::WorkerThreadProc(void)
 			
 			FD_ZERO(&readfds);
 
-			for (it = tasks.begin(); it != tasks.end(); it++) {
-				if (it->first > nfds)
-					nfds = it->first;
+			int fd;
+			BOOST_FOREACH(tie(fd, tuples::ignore), tasks);
+				if (fd > nfds)
+					nfds = fd;
 
-				FD_SET(it->first, &readfds);
+				FD_SET(fd, &readfds);
 			}
 
 			timeval tv;

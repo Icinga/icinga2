@@ -171,9 +171,7 @@ void CIBSyncComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 {
 	ConfigObject::Set::Ptr allObjects = ConfigObject::GetAllObjects();
 
-	for (ConfigObject::Set::Iterator ci = allObjects->Begin(); ci != allObjects->End(); ci++) {
-		ConfigObject::Ptr object = *ci;
-
+	BOOST_FOREACH(const ConfigObject::Ptr& object, allObjects) {
 		if (!ShouldReplicateObject(object))
 			continue;
 

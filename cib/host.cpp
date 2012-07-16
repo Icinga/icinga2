@@ -69,9 +69,9 @@ set<string> Host::GetParents(void) const
 	if (GetProperty("dependencies", &dependencies)) {
 		dependencies = Service::ResolveDependencies(*this, dependencies);
 
-		Dictionary::Iterator it;
-		for (it = dependencies->Begin(); it != dependencies->End(); it++) {
-			Service service = Service::GetByName(it->second);
+		string dependency;
+		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
+			Service service = Service::GetByName(dependency);
 
 			string parent = service.GetHost().GetName();
 
@@ -99,9 +99,9 @@ bool Host::IsReachable(void) const
 	if (GetProperty("dependencies", &dependencies)) {
 		dependencies = Service::ResolveDependencies(*this, dependencies);
 
-		Dictionary::Iterator it;
-		for (it = dependencies->Begin(); it != dependencies->End(); it++) {
-			Service service = Service::GetByName(it->second);
+		string dependency;
+		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
+			Service service = Service::GetByName(dependency);
 
 			if (!service.IsReachable() ||
 			    (service.GetState() != StateOK && service.GetState() != StateWarning)) {
@@ -119,9 +119,10 @@ bool Host::IsUp(void) const
 	if (GetProperty("hostchecks", &hostchecks)) {
 		hostchecks = Service::ResolveDependencies(*this, hostchecks);
 
-		Dictionary::Iterator it;
-		for (it = hostchecks->Begin(); it != hostchecks->End(); it++) {
-			Service service = Service::GetByName(it->second);
+		string hostcheck;
+		BOOST_FOREACH(tie(tuples::ignore, hostcheck), hostchecks) {
+			Service service = Service::GetByName(hostcheck);
+
 			if (service.GetState() != StateOK && service.GetState() != StateWarning) {
 				return false;
 			}

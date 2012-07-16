@@ -38,10 +38,8 @@ string MacroProcessor::ResolveMacros(const string& str, const vector<Dictionary:
 		string value;
 		bool resolved = false;
 
-		vector<Dictionary::Ptr>::const_iterator it;
-		for (it = macroDicts.begin(); it != macroDicts.end(); it++) {
-			Dictionary::Ptr macros = *it;
-			if (macros && macros->Get(name, &value)) {
+		BOOST_FOREACH(const Dictionary::Ptr& macroDict, macroDicts) {
+			if (macroDict && macroDict->Get(name, &value)) {
 				resolved = true;
 				break;
 			}

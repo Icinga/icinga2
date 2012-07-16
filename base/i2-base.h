@@ -122,6 +122,8 @@ using std::type_info;
 #include <boost/thread.hpp>
 #include <boost/variant.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
@@ -134,6 +136,9 @@ using boost::thread_group;
 using boost::mutex;
 using boost::condition_variable;
 using boost::system_time;
+using boost::tie;
+
+namespace tuples = boost::tuples;
 
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 

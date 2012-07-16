@@ -168,12 +168,13 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 
 	// register published/subscribed topics for this endpoint
 	ComponentDiscoveryInfo::Ptr info = ic->second;
-	set<string>::iterator it;
-	for (it = info->Publications.begin(); it != info->Publications.end(); it++)
-		endpoint->RegisterPublication(*it);
+	BOOST_FOREACH(string publication, info->Publications) {
+		endpoint->RegisterPublication(publication);
+	}
 
-	for (it = info->Subscriptions.begin(); it != info->Subscriptions.end(); it++)
-		endpoint->RegisterSubscription(*it);
+	BOOST_FOREACH(string subscription, info->Subscriptions) {
+		endpoint->RegisterSubscription(subscription);
+	}
 
 	FinishDiscoverySetup(endpoint);
 }
@@ -299,15 +300,17 @@ void DiscoveryComponent::SendDiscoveryMessage(const string& method, const string
 	}
 
 	set<string>::iterator i;
-	MessagePart subscriptions;
-	for (i = info->Subscriptions.begin(); i != info->Subscriptions.end(); i++)
-		subscriptions.Add(*i);
+	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
+	BOOST_FOREACH(string subscription, info->Subscriptions) {
+		subscriptions->Add(subscription);
+	}
 
 	params.SetSubscriptions(subscriptions);
 
-	MessagePart publications;
-	for (i = info->Publications.begin(); i != info->Publications.end(); i++)
-		publications.Add(*i);
+	Dictionary::Ptr publications = boost::make_shared<Dictionary>();
+	BOOST_FOREACH(string publication, info->Publications) {
+		publications->Add(publication);
+	}
 
 	params.SetPublications(publications);
 
@@ -324,15 +327,15 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
 
 	ConfigObject::TMap::Range range = ConfigObject::GetObjects("role");
 
-	for (ConfigObject::TMap::Iterator ip = range.first; ip != range.second; ip++) {
-		ConfigObject::Ptr role = ip->second;
-
+	ConfigObject::Ptr role;
+	BOOST_FOREACH(tie(tuples::ignore, role), range) {
 		Dictionary::Ptr permissions;
 		if (!role->GetProperty(messageType, &permissions))
 			continue;
 
-		for (Dictionary::Iterator is = permissions->Begin(); is != permissions->End(); is++) {
-			if (Utility::Match(is->second, message))
+		string permission;
+		BOOST_FOREACH(tie(tuples::ignore, permission), permissions) {
+			if (Utility::Match(permission, message))
 				return true;
 		}
 	}
@@ -373,26 +376,26 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(identity);
 
-	MessagePart publications;
+	Dictionary::Ptr publications;
 	if (message.GetPublications(&publications)) {
-		Dictionary::Iterator i;
-		for (i = publications.Begin(); i != publications.End(); i++) {
-			if (trusted || HasMessagePermission(roles, "publications", i->second)) {
-				info->Publications.insert(i->second);
+		string publication;
+		BOOST_FOREACH(tie(tuples::ignore, publication), publications) {
+			if (trusted || HasMessagePermission(roles, "publications", publication)) {
+				info->Publications.insert(publication);
 				if (endpoint)
-					endpoint->RegisterPublication(i->second);
+					endpoint->RegisterPublication(publication);
 			}
 		}
 	}
 
-	MessagePart subscriptions;
+	Dictionary::Ptr subscriptions;
 	if (message.GetSubscriptions(&subscriptions)) {
-		Dictionary::Iterator i;
-		for (i = subscriptions.Begin(); i != subscriptions.End(); i++) {
-			if (trusted || HasMessagePermission(roles, "subscriptions", i->second)) {
-				info->Subscriptions.insert(i->second);
+		string subscription;
+		BOOST_FOREACH(tie(tuples::ignore, subscription), subscriptions) {
+			if (trusted || HasMessagePermission(roles, "subscriptions", subscription)) {
+				info->Subscriptions.insert(subscription);
 				if (endpoint)
-					endpoint->RegisterSubscription(i->second);
+					endpoint->RegisterSubscription(subscription);
 			}
 		}
 	}
@@ -456,9 +459,8 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 	/* check whether we have to reconnect to one of our upstream endpoints */
 	ConfigObject::TMap::Range range = ConfigObject::GetObjects("endpoint");
 
-	for (ConfigObject::TMap::Iterator it = range.first; it != range.second; it++) {
-		ConfigObject::Ptr object = it->second;
-
+	ConfigObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), range) {
 		/* Check if we're already connected to this endpoint. */
 		if (endpointManager->GetEndpointByIdentity(object->GetName()))
 			continue;
@@ -472,8 +474,8 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 
 	map<string, ComponentDiscoveryInfo::Ptr>::iterator curr, i;
 	for (i = m_Components.begin(); i != m_Components.end(); ) {
-		string identity = i->first;
-		ComponentDiscoveryInfo::Ptr info = i->second;
+		const string& identity = i->first;
+		const ComponentDiscoveryInfo::Ptr& info = i->second;
 
 		curr = i;
 		i++;
