@@ -58,7 +58,7 @@ void Utility::Daemonize(void) {
 
 	pid = fork();
 	if (pid < 0)
-		throw_exception PosixException("fork() failed", errno);
+		throw_exception(PosixException("fork() failed", errno));
 
 	if (pid)
 		exit(0);
@@ -66,7 +66,7 @@ void Utility::Daemonize(void) {
 	fd = open("/dev/null", O_RDWR);
 
 	if (fd < 0)
-		throw_exception PosixException("open() failed", errno);
+		throw_exception(PosixException("open() failed", errno));
 
 	if (fd != STDIN_FILENO)
 		dup2(fd, STDIN_FILENO);
@@ -81,7 +81,7 @@ void Utility::Daemonize(void) {
 		close(fd);
 
 	if (setsid() < 0)
-		throw_exception PosixException("setsid() failed", errno);
+		throw_exception(PosixException("setsid() failed", errno));
 #endif
 }
 
