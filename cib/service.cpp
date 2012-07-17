@@ -190,13 +190,18 @@ time_t Service::GetNextCheck(void)
 
 void Service::UpdateNextCheck(void)
 {
-	time_t now;
+	time_t now, previous, next, interval;
+
 	time(&now);
+	previous = GetNextCheck();
 
 	if (GetStateType() == StateTypeSoft)
-		SetNextCheck(now + GetRetryInterval());
+		interval = GetRetryInterval();
 	else
-		SetNextCheck(now + GetCheckInterval());
+		interval = GetCheckInterval();
+
+	next = now + ((now - previous) / interval + 1) * interval;
+	SetNextCheck(next);
 }
 
 void Service::SetChecker(const string& checker)

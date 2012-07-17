@@ -104,6 +104,9 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 {
 	service.RemoveTag("current_task");
 
+	/* figure out when the next check is for this service */
+	service.UpdateNextCheck();
+
 	try {
 		Variant vresult = task->GetResult();
 
@@ -135,14 +138,13 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 		Logger::Write(LogWarning, "checker", msgbuf.str());
 	}
 
-	/* figure out when the next check is for this service */
-	service.UpdateNextCheck();
-
 	/* remove the service from the list of pending services; if it's not in the
 	 * list this was a manual (i.e. forced) check and we must not re-add the
 	 * service to the services list because it's already there. */
-	if (m_PendingServices.find(service.GetConfigObject()) != m_PendingServices.end()) {
-		m_PendingServices.erase(service.GetConfigObject());
+	set<ConfigObject::Ptr>::iterator it;
+	it = m_PendingServices.find(service.GetConfigObject());
+	if (it != m_PendingServices.end()) {
+		m_PendingServices.erase(it);
 		m_Services.push(service);
 	}
 
