@@ -28,11 +28,11 @@ NagiosCheckTask::NagiosCheckTask(const ScriptTask::Ptr& task, const Process::Ptr
 void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments)
 {
 	if (arguments.size() < 1)
-		throw invalid_argument("Missing argument: Service must be specified.");
+		throw_exception(invalid_argument("Missing argument: Service must be specified."));
 
 	Variant vservice = arguments[0];
 	if (!vservice.IsObjectType<ConfigObject>())
-		throw invalid_argument("Argument must be a config object.");
+		throw_exception(invalid_argument("Argument must be a config object."));
 
 	Service service = static_cast<ConfigObject::Ptr>(vservice);
 

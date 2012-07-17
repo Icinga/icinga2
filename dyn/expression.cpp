@@ -45,7 +45,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 	switch (m_Operator) {
 		case OperatorExecute:
 			if (!valueExprl)
-				throw invalid_argument("Operand for OperatorExecute must be an ExpressionList.");
+				throw_exception(invalid_argument("Operand for OperatorExecute must be an ExpressionList."));
 
 			valueExprl->Execute(dictionary);
 
@@ -70,7 +70,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				if (!oldValue.IsEmpty()) {
 					stringstream message;
 					message << "Wrong argument types for += (non-dictionary and dictionary) (" << m_DebugInfo << ")";
-					throw domain_error(message.str());
+					throw_exception(domain_error(message.str()));
 				}
 
 				dict = boost::make_shared<Dictionary>();
@@ -89,13 +89,13 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			} else {
 				stringstream message;
 				message << "+= only works for dictionaries (" << m_DebugInfo << ")";
-				throw domain_error(message.str());
+				throw_exception(domain_error(message.str()));
 			}
 
 			break;
 
 		default:
-			throw runtime_error("Not yet implemented.");
+			throw_exception(runtime_error("Not yet implemented."));
 	}
 
 	dictionary->Set(m_Key, newValue);

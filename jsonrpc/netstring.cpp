@@ -43,12 +43,16 @@ bool Netstring::ReadStringFromIOQueue(IOQueue *queue, string *str)
 		buffer_length = 16;
 
 	char *buffer = (char *)malloc(buffer_length);
+
+	if (buffer == NULL && buffer_length > 0)
+		throw_exception(bad_alloc());
+
 	queue->Peek(buffer, buffer_length);
 
 	/* no leading zeros allowed */
 	if (buffer[0] == '0' && isdigit(buffer[1])) {
 		free(buffer);
-		throw invalid_argument("Invalid netstring (leading zero)");
+		throw_exception(invalid_argument("Invalid netstring (leading zero)"));
 	}
 
 	size_t len, i;
@@ -58,7 +62,7 @@ bool Netstring::ReadStringFromIOQueue(IOQueue *queue, string *str)
 		/* length specifier must have at most 9 characters */
 		if (i >= 9) {
 			free(buffer);
-			throw invalid_argument("Length specifier must not exceed 9 characters");
+			throw_exception(invalid_argument("Length specifier must not exceed 9 characters"));
 		}
 
 		len = len * 10 + (buffer[i] - '0');
@@ -77,7 +81,7 @@ bool Netstring::ReadStringFromIOQueue(IOQueue *queue, string *str)
 
 	if (new_buffer == NULL) {
 		free(buffer);
-		throw std::bad_alloc();
+		throw_exception(bad_alloc());
 	}
 
 	buffer = new_buffer;
@@ -87,13 +91,13 @@ bool Netstring::ReadStringFromIOQueue(IOQueue *queue, string *str)
 	/* check for the colon delimiter */
 	if (buffer[i] != ':') {
 		free(buffer);
-		throw invalid_argument("Invalid Netstring (missing :)");
+		throw_exception(invalid_argument("Invalid Netstring (missing :)"));
 	}
 
 	/* check for the comma delimiter after the string */
 	if (buffer[i + 1 + len] != ',') {
 		free(buffer);
-		throw invalid_argument("Invalid Netstring (missing ,)");
+		throw_exception(invalid_argument("Invalid Netstring (missing ,)"));
 	}
 
 	*str = string(&buffer[i + 1], &buffer[i + 1 + len]);

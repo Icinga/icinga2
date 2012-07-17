@@ -62,7 +62,7 @@ ServiceGroup ServiceGroup::GetByName(const string& name)
 	ConfigObject::Ptr configObject = ConfigObject::GetObject("hostgroup", name);
 
 	if (!configObject)
-		throw invalid_argument("ServiceGroup '" + name + "' does not exist.");
+		throw_exception(invalid_argument("ServiceGroup '" + name + "' does not exist."));
 
 	return ServiceGroup(configObject);
 }

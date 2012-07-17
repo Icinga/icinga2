@@ -32,7 +32,7 @@ string MacroProcessor::ResolveMacros(const string& str, const vector<Dictionary:
 		pos_second = result.find_first_of('$', pos_first + 1);
 
 		if (pos_second == string::npos)
-			throw runtime_error("Closing $ not found in macro format string.");
+			throw_exception(runtime_error("Closing $ not found in macro format string."));
 
 		string name = result.substr(pos_first + 1, pos_second - pos_first - 1);
 		string value;
@@ -46,7 +46,7 @@ string MacroProcessor::ResolveMacros(const string& str, const vector<Dictionary:
 		}
 
 		if (!resolved)
-			throw runtime_error("Macro '" + name + "' is not defined.");
+			throw_exception(runtime_error("Macro '" + name + "' is not defined."));
 
 		result.replace(pos_first, pos_second - pos_first + 1, value);
 

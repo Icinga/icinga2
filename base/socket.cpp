@@ -62,10 +62,10 @@ void Socket::SetFD(SOCKET fd)
 		int flags;
 		flags = fcntl(fd, F_GETFL, 0);
 		if (flags < 0)
-			throw PosixException("fcntl failed", errno);
+			throw_exception(PosixException("fcntl failed", errno));
 
 		if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
-			throw PosixException("fcntl failed", errno);
+			throw_exception(PosixException("fcntl failed", errno));
 #else /* F_GETFL */
 		unsigned long lTrue = 1;
 		ioctlsocket(fd, FIONBIO, &lTrue);
@@ -104,6 +104,8 @@ void Socket::CloseInternal(bool from_dtor)
 {
 	if (m_FD == INVALID_SOCKET)
 		return;
+
+	SetConnected(false);
 
 	closesocket(m_FD);
 	m_FD = INVALID_SOCKET;
@@ -147,29 +149,11 @@ int Socket::GetLastSocketError(void)
 }
 
 /**
- * Handles a socket error by calling the OnError event or throwing an exception
- * when there are no observers for the OnError event.
- *
- * @param ex An exception.
- */
-void Socket::HandleSocketError(const exception& ex)
-{
-	if (!OnError.empty()) {
-		Event::Post(boost::bind(boost::ref(OnError), GetSelf(), runtime_error(ex.what())));
-
-		CloseInternal(false);
-	} else {
-		throw ex;
-	}
-}
-
-/**
  * Processes errors that have occured for the socket.
  */
 void Socket::HandleException(void)
 {
-	HandleSocketError(SocketException(
-	    "select() returned fd in except fdset", GetError()));
+	throw_exception(SocketException("select() returned fd in except fdset", GetError()));
 }
 
 /**
@@ -208,9 +192,10 @@ string Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 	char host[NI_MAXHOST];
 	char service[NI_MAXSERV];
 
-	if (getnameinfo(address, len, host, sizeof(host), service, sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0)
-		throw SocketException("getnameinfo() failed",
-		    GetLastSocketError());
+	if (getnameinfo(address, len, host, sizeof(host), service,
+	    sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0)
+		throw_exception(SocketException("getnameinfo() failed",
+		    GetLastSocketError()));
 
 	stringstream s;
 	s << "[" << host << "]:" << service;
@@ -229,12 +214,8 @@ string Socket::GetClientAddress(void)
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
 
-	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0) {
-		HandleSocketError(SocketException(
-		    "getsockname() failed", GetError()));
-
-		return string();
-	}
+	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0)
+		throw_exception(SocketException("getsockname() failed", GetError()));
 
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
 }
@@ -251,12 +232,8 @@ string Socket::GetPeerAddress(void)
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
 
-	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0) {
-		HandleSocketError(SocketException(
-		    "getpeername() failed", GetError()));
-
-		return string();
-	}
+	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0)
+		throw_exception(SocketException("getpeername() failed", GetError()));
 
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
 }
@@ -311,16 +288,22 @@ void Socket::ReadThreadProc(void)
 		if (GetFD() == INVALID_SOCKET)
 			return;
 
-		if (rc < 0) {
-			HandleSocketError(SocketException("select() failed", GetError()));
-			return;
+		try {
+			if (rc < 0)
+				throw_exception(SocketException("select() failed", GetError()));
+
+			if (FD_ISSET(fd, &readfds))
+				HandleReadable();
+
+			if (FD_ISSET(fd, &exceptfds))
+				HandleException();
+		} catch (const exception&) {
+			m_Exception = boost::current_exception();
+
+			CloseInternal(false);
+
+			break;
 		}
-
-		if (FD_ISSET(fd, &readfds))
-			HandleReadable();
-
-		if (FD_ISSET(fd, &exceptfds))
-			HandleException();
 
 		if (WantsToWrite())
 			m_WriteCV.notify_all(); /* notify Write thread */
@@ -359,13 +342,19 @@ void Socket::WriteThreadProc(void)
 		if (GetFD() == INVALID_SOCKET)
 			return;
 
-		if (rc < 0) {
-			HandleSocketError(SocketException("select() failed", GetError()));
-			return;
-		}
+		try {
+			if (rc < 0)
+				throw_exception(SocketException("select() failed", GetError()));
 
-		if (FD_ISSET(fd, &writefds))
-			HandleWritable();
+			if (FD_ISSET(fd, &writefds))
+				HandleWritable();
+		} catch (const exception&) {
+			m_Exception = boost::current_exception();
+
+			CloseInternal(false);
+
+			break;
+		}
 	}
 }
 
@@ -382,4 +371,10 @@ void Socket::SetConnected(bool connected)
 bool Socket::IsConnected(void) const
 {
 	return m_Connected;
+}
+
+void Socket::CheckException(void)
+{
+	if (m_Exception)
+		rethrow_exception(m_Exception);
 }

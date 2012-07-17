@@ -113,11 +113,8 @@ void Timer::Call(void)
  *
  * @param interval The new interval.
  */
-void Timer::SetInterval(long interval)
+void Timer::SetInterval(unsigned long interval)
 {
-	if (interval <= 0)
-		throw invalid_argument("interval");
-
 	m_Interval = interval;
 }
 
@@ -126,7 +123,7 @@ void Timer::SetInterval(long interval)
  *
  * @returns The interval.
  */
-long Timer::GetInterval(void) const
+unsigned long Timer::GetInterval(void) const
 {
 	return m_Interval;
 }

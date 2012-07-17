@@ -48,7 +48,7 @@ Host Host::GetByName(const string& name)
 	ConfigObject::Ptr configObject = ConfigObject::GetObject("host", name);
 
 	if (!configObject)
-		throw invalid_argument("Host '" + name + "' does not exist.");
+		throw_exception(invalid_argument("Host '" + name + "' does not exist."));
 
 	return Host(configObject);
 }

@@ -42,10 +42,10 @@ void TlsClient::Start(void)
 	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
 	if (!m_SSL)
-		throw OpenSSLException("SSL_new failed", ERR_get_error());
+		throw_exception(OpenSSLException("SSL_new failed", ERR_get_error()));
 
 	if (!GetClientCertificate())
-		throw logic_error("No X509 client certificate was specified.");
+		throw_exception(logic_error("No X509 client certificate was specified."));
 
 	if (!m_SSLIndexInitialized) {
 		m_SSLIndex = SSL_get_ex_new_index(0, (void *)"TlsClient", NULL, NULL, NULL);
@@ -137,9 +137,7 @@ void TlsClient::HandleReadable(void)
 					CloseInternal(false);
 					goto post_event;
 				default:
-					HandleSocketError(OpenSSLException(
-					    "SSL_read failed", ERR_get_error()));
-					goto post_event;
+					throw_exception(OpenSSLException("SSL_read failed", ERR_get_error()));
 			}
 		}
 
@@ -194,9 +192,7 @@ void TlsClient::HandleWritable(void)
 					CloseInternal(false);
 					return;
 				default:
-					HandleSocketError(OpenSSLException(
-					    "SSL_write failed", ERR_get_error()));
-					return;
+					throw_exception(OpenSSLException("SSL_write failed", ERR_get_error()));
 			}
 		}
 

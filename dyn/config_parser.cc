@@ -212,7 +212,7 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *context, const char *err)
 {
 	stringstream message;
 	message << *locp << ": " << err;
-	throw runtime_error(message.str());
+	throw_exception(runtime_error(message.str()));
 }
 
 int yyparse(ConfigCompiler *context);

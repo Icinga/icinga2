@@ -111,7 +111,7 @@ string Logger::SeverityToString(LogSeverity severity)
 		case LogCritical:
 			return "critical";
 		default:
-			throw invalid_argument("Invalid severity.");
+			throw_exception(invalid_argument("Invalid severity."));
 	}
 }
 
@@ -126,5 +126,5 @@ LogSeverity Logger::StringToSeverity(const string& severity)
 	else if (severity == "critical")
 		return LogCritical;
 	else
-		throw invalid_argument("Invalid severity: " + severity);
+		throw_exception(invalid_argument("Invalid severity: " + severity));
 }

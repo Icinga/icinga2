@@ -249,7 +249,7 @@ void CIBSyncComponent::RemoteObjectCommittedHandler(const Endpoint::Ptr& sender,
 	}
 
 	if (object->IsLocal())
-		throw invalid_argument("Replicated remote object is marked as local.");
+		throw_exception(invalid_argument("Replicated remote object is marked as local."));
 
 	if (object->GetSource().empty())
 		object->SetSource(sender->GetIdentity());

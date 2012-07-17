@@ -54,11 +54,8 @@ function<TcpClient::Ptr(SOCKET)> TcpServer::GetFactoryFunction(void) const
  */
 void TcpServer::Listen(void)
 {
-	if (listen(GetFD(), SOMAXCONN) < 0) {
-		HandleSocketError(SocketException(
-		    "listen() failed", GetError()));
-		return;
-	}
+	if (listen(GetFD(), SOMAXCONN) < 0)
+		throw_exception(SocketException("listen() failed", GetError()));
 }
 
 /**
@@ -83,11 +80,8 @@ void TcpServer::HandleReadable(void)
 
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
-	if (fd < 0) {
-		HandleSocketError(SocketException(
-		    "accept() failed", GetError()));
-		return;
-	}
+	if (fd < 0)
+		throw_exception(SocketException("accept() failed", GetError()));
 
 	TcpClient::Ptr client = m_ClientFactory(fd);
 

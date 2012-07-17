@@ -41,7 +41,7 @@ MessagePart::MessagePart(string jsonString)
 	json_t *json = cJSON_Parse(jsonString.c_str());
 
 	if (!json)
-		throw runtime_error("Invalid JSON string");
+		throw_exception(runtime_error("Invalid JSON string"));
 
 	m_Dictionary = GetDictionaryFromJson(json);
 

@@ -32,12 +32,8 @@ void TcpSocket::MakeSocket(int family)
 
 	int fd = socket(family, SOCK_STREAM, 0);
 
-	if (fd == INVALID_SOCKET) {
-		HandleSocketError(SocketException(
-		    "socket() failed", GetLastSocketError()));
-
-		return;
-	}
+	if (fd == INVALID_SOCKET)
+		throw_exception(SocketException("socket() failed", GetLastSocketError()));
 
 	SetFD(fd);
 }
@@ -72,12 +68,8 @@ void TcpSocket::Bind(string node, string service, int family)
 	hints.ai_flags = AI_PASSIVE;
 
 	if (getaddrinfo(node.empty() ? NULL : node.c_str(),
-	    service.c_str(), &hints, &result) < 0) {
-		HandleSocketError(SocketException(
-		    "getaddrinfo() failed", GetLastSocketError()));
-
-		return;
-	}
+	    service.c_str(), &hints, &result) < 0)
+		throw_exception(SocketException("getaddrinfo() failed", GetLastSocketError()));
 
 	int fd = INVALID_SOCKET;
 
@@ -116,6 +108,5 @@ void TcpSocket::Bind(string node, string service, int family)
 	freeaddrinfo(result);
 
 	if (fd == INVALID_SOCKET)
-		HandleSocketError(runtime_error(
-		    "Could not create a suitable socket."));
+		throw_exception(runtime_error("Could not create a suitable socket."));
 }

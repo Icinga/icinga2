@@ -1801,7 +1801,7 @@ YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, int  _yybytes_len , yysc
 	if ( ! b )
 		YY_FATAL_ERROR( "bad buffer in yy_scan_bytes()" );
 
-	/* It's okay to grow etc. this buffer, and we should throw it
+	/* It's okay to grow etc. this buffer, and we should throw_exception it
 	 * away when we're done.
 	 */
 	b->yy_is_our_buffer = 1;

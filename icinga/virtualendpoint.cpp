@@ -68,7 +68,7 @@ void VirtualEndpoint::UnregisterTopicHandler(string topic, function<void (const 
 	//m_TopicHandlers[method] -= callback;
 	//UnregisterMethodSubscription(method);
 
-	throw NotImplementedException();
+	throw_exception(NotImplementedException());
 }
 
 void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage& request)

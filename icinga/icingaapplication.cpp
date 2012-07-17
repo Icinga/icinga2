@@ -97,7 +97,7 @@ int IcingaApplication::Main(const vector<string>& args)
 				continue;
 			} else if (arg == "-L") {
 				if (it + 1 == args.end())
-					throw invalid_argument("Option -L requires a parameter");
+					throw_exception(invalid_argument("Option -L requires a parameter"));
 
 				StreamLogger::Ptr fileLogger = boost::make_shared<StreamLogger>(LogInformation);
 				fileLogger->OpenFile(*(it + 1));
@@ -110,25 +110,25 @@ int IcingaApplication::Main(const vector<string>& args)
 				daemonize = true;
 				continue;
 			} else {
-				throw invalid_argument("Unknown option: " + arg);
+				throw_exception(invalid_argument("Unknown option: " + arg));
 			}
 		}
 
 		configFile = arg;
 
 		if (it + 1 != args.end())
-			throw invalid_argument("Trailing command line arguments after config filename.");
+			throw_exception(invalid_argument("Trailing command line arguments after config filename."));
 	}
 
 	if (configFile.empty())
-		throw invalid_argument("No config file was specified on the command line.");
+		throw_exception(invalid_argument("No config file was specified on the command line."));
 
 	if (enableSyslog) {
 #ifndef _WIN32
 		SyslogLogger::Ptr syslogLogger = boost::make_shared<SyslogLogger>(LogInformation);
 		Logger::RegisterLogger(syslogLogger);
 #else /* _WIN32 */
-		throw invalid_argument("Syslog is not supported on Windows.");
+		throw_exception(invalid_argument("Syslog is not supported on Windows."));
 #endif /* _WIN32 */
 	}
 
@@ -160,10 +160,10 @@ int IcingaApplication::Main(const vector<string>& args)
 	ConfigObject::Ptr icingaConfig = ConfigObject::GetObject("application", "icinga");
 
 	if (!icingaConfig)
-		throw runtime_error("Configuration must contain an 'application' object named 'icinga'.");
+		throw_exception(runtime_error("Configuration must contain an 'application' object named 'icinga'."));
 
 	if (!icingaConfig->IsLocal())
-		throw runtime_error("'icinga' application object must be 'local'.");
+		throw_exception(runtime_error("'icinga' application object must be 'local'."));
 
 	icingaConfig->GetProperty("cert", &m_CertificateFile);
 	icingaConfig->GetProperty("ca", &m_CAFile);
@@ -217,7 +217,7 @@ void IcingaApplication::NewComponentHandler(const ConfigObject::Ptr& object)
 {
 	/* don't allow replicated config objects */
 	if (!object->IsLocal())
-		throw runtime_error("'component' objects must be 'local'");
+		throw_exception(runtime_error("'component' objects must be 'local'"));
 
 	string path;
 	if (!object->GetProperty("path", &path)) {
@@ -235,7 +235,7 @@ void IcingaApplication::NewLogHandler(const ConfigObject::Ptr& object)
 {
 	/* don't allow replicated config objects */
 	if (!object->IsLocal())
-		throw runtime_error("'log' objects must be 'local'");
+		throw_exception(runtime_error("'log' objects must be 'local'"));
 
 	Logger::Ptr logger;
 	if (object->GetTag("logger", &logger))
@@ -243,7 +243,7 @@ void IcingaApplication::NewLogHandler(const ConfigObject::Ptr& object)
 
 	string type;
 	if (!object->GetProperty("type", &type))
-		throw invalid_argument("'log' object must have a 'type' property");
+		throw_exception(invalid_argument("'log' object must have a 'type' property"));
 
 	string strSeverity;
 	LogSeverity severity = LogInformation;
@@ -254,12 +254,12 @@ void IcingaApplication::NewLogHandler(const ConfigObject::Ptr& object)
 #ifndef _WIN32
 		logger = boost::make_shared<SyslogLogger>(severity);
 #else /* _WIN32 */
-		throw invalid_argument("Syslog is not supported on Windows.");
+		throw_exception(invalid_argument("Syslog is not supported on Windows."));
 #endif /* _WIN32 */
 	} else if (type == "file") {
 		string path;
 		if (!object->GetProperty("path", &path))
-			throw invalid_argument("'log' object of type 'file' must have a 'path' property");
+			throw_exception(invalid_argument("'log' object of type 'file' must have a 'path' property"));
 
 		StreamLogger::Ptr slogger = boost::make_shared<StreamLogger>(severity);
 		slogger->OpenFile(path);
@@ -268,7 +268,7 @@ void IcingaApplication::NewLogHandler(const ConfigObject::Ptr& object)
 	} else if (type == "console") {
 		logger = boost::make_shared<StreamLogger>(&std::cout, severity);
 	} else {
-		throw runtime_error("Unknown log type: " + type);
+		throw_exception(runtime_error("Unknown log type: " + type));
 	}
 
 	object->SetTag("logger", logger);

@@ -35,7 +35,6 @@ public:
 
 	~Socket(void);
 
-	boost::signal<void (const Socket::Ptr&, const exception&)> OnError;
 	boost::signal<void (const Socket::Ptr&)> OnClosed;
 
 	virtual void Start(void);
@@ -47,6 +46,10 @@ public:
 
 	mutex& GetMutex(void) const;
 
+	bool IsConnected(void) const;
+
+	void CheckException(void);
+
 protected:
 	Socket(void);
 
@@ -54,11 +57,9 @@ protected:
 	SOCKET GetFD(void) const;
 
 	void SetConnected(bool connected);
-	bool IsConnected(void) const;
 
 	int GetError(void) const;
 	static int GetLastSocketError(void);
-	void HandleSocketError(const exception& ex);
 
 	virtual bool WantsToRead(void) const;
 	virtual bool WantsToWrite(void) const;
@@ -69,8 +70,6 @@ protected:
 
 	virtual void CloseInternal(bool from_dtor);
 
-	mutable mutex m_Mutex;
-
 private:
 	SOCKET m_FD; /**< The socket descriptor. */
 	bool m_Connected;
@@ -79,6 +78,9 @@ private:
 	thread m_WriteThread;
 
 	condition_variable m_WriteCV;
+
+	mutable mutex m_Mutex;
+	boost::exception_ptr m_Exception;
 
 	void ReadThreadProc(void);
 	void WriteThreadProc(void);

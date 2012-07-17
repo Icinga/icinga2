@@ -72,11 +72,10 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(const string& path, istrea
 vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& path)
 {
 	ifstream stream;
-	stream.exceptions(ifstream::badbit);
 	stream.open(path.c_str(), ifstream::in);
 
 	if (!stream.good())
-		throw invalid_argument("Could not open config file: " + path);
+		throw_exception(invalid_argument("Could not open config file: " + path));
 
 	Logger::Write(LogInformation, "dyn", "Compiling config file: " + path);
 

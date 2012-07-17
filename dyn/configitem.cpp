@@ -62,7 +62,7 @@ void ConfigItem::CalculateProperties(Dictionary::Ptr dictionary) const
 		if (!parent) {
 			stringstream message;
 			message << "Parent object '" << name << "' does not exist (" << m_DebugInfo << ")";
-			throw domain_error(message.str());
+			throw_exception(domain_error(message.str()));
 		}
 
 		parent->CalculateProperties(dictionary);

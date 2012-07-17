@@ -208,7 +208,7 @@ ScriptTask::Ptr ConfigObject::InvokeMethod(const string& method,
 	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
 
 	if (!func)
-		throw invalid_argument("Function '" + funcName + "' does not exist.");
+		throw_exception(invalid_argument("Function '" + funcName + "' does not exist."));
 
 	ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
 	task->Start(callback);

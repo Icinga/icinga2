@@ -104,6 +104,7 @@ using std::ostream;
 using std::ofstream;
 
 using std::exception;
+using std::bad_alloc;
 using std::bad_cast;
 using std::runtime_error;
 using std::logic_error;
@@ -137,6 +138,9 @@ using boost::mutex;
 using boost::condition_variable;
 using boost::system_time;
 using boost::tie;
+using boost::throw_exception;
+using boost::rethrow_exception;
+using boost::current_exception;
 
 namespace tuples = boost::tuples;
 

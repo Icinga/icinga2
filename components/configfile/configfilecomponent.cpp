@@ -34,7 +34,7 @@ void ConfigFileComponent::Start(void)
 
 	string filename;
 	if (!GetConfig()->GetProperty("configFilename", &filename))
-		throw logic_error("Missing 'configFilename' property");
+		throw_exception(logic_error("Missing 'configFilename' property"));
 
 	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(filename);
 

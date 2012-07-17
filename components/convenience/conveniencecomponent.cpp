@@ -139,7 +139,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 
 				CopyServiceAttributes(host, service, builder);
 			} else {
-				throw invalid_argument("Service description must be either a string or a dictionary.");
+				throw_exception(invalid_argument("Service description must be either a string or a dictionary."));
 			}
 
 			ConfigItem::Ptr serviceItem = builder->Compile();

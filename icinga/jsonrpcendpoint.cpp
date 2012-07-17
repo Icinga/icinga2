@@ -52,7 +52,6 @@ void JsonRpcEndpoint::SetClient(JsonRpcClient::Ptr client)
 	m_Client = client;
 	client->OnNewMessage.connect(boost::bind(&JsonRpcEndpoint::NewMessageHandler, this, _2));
 	client->OnClosed.connect(boost::bind(&JsonRpcEndpoint::ClientClosedHandler, this));
-	client->OnError.connect(boost::bind(&JsonRpcEndpoint::ClientErrorHandler, this, _2));
 	client->OnCertificateValidated.connect(boost::bind(&JsonRpcEndpoint::CertificateValidatedHandler, this));
 }
 
@@ -63,7 +62,7 @@ bool JsonRpcEndpoint::IsLocal(void) const
 
 bool JsonRpcEndpoint::IsConnected(void) const
 {
-	return (bool)m_Client;
+	return (m_Client && m_Client->IsConnected());
 }
 
 void JsonRpcEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage& message)
@@ -109,6 +108,15 @@ void JsonRpcEndpoint::NewMessageHandler(const MessagePart& message)
 
 void JsonRpcEndpoint::ClientClosedHandler(void)
 {
+	try {
+		m_Client->CheckException();
+	} catch (const exception& ex) {
+		stringstream message;
+		message << "Error occured for JSON-RPC socket: Message=" << ex.what();
+
+		Logger::Write(LogWarning, "jsonrpc", message.str());
+	}
+
 	Logger::Write(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetIdentity());
 
 	// TODO: _only_ clear non-persistent publications/subscriptions
@@ -129,10 +137,6 @@ void JsonRpcEndpoint::ClientClosedHandler(void)
 
 void JsonRpcEndpoint::ClientErrorHandler(const exception& ex)
 {
-	stringstream message;
-	message << "Error occured for JSON-RPC socket: Message=" << ex.what();
-
-	Logger::Write(LogWarning, "jsonrpc", message.str());
 }
 
 void JsonRpcEndpoint::CertificateValidatedHandler(void)

@@ -82,7 +82,7 @@ shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
 void EndpointManager::AddListener(string service)
 {
 	if (!GetSSLContext())
-		throw logic_error("SSL context is required for AddListener()");
+		throw_exception(logic_error("SSL context is required for AddListener()"));
 
 	stringstream s;
 	s << "Adding new listener: port " << service;
@@ -237,7 +237,7 @@ void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
 {
 	string method;
 	if (!message.GetMethod(&method))
-		throw invalid_argument("Message is missing the 'method' property.");
+		throw_exception(invalid_argument("Message is missing the 'method' property."));
 
 	vector<Endpoint::Ptr> candidates;
 	Endpoint::Ptr endpoint;
@@ -269,11 +269,11 @@ void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
 {
 	string id;
 	if (message.GetID(&id))
-		throw invalid_argument("Multicast requests must not have an ID.");
+		throw_exception(invalid_argument("Multicast requests must not have an ID."));
 
 	string method;
 	if (!message.GetMethod(&method))
-		throw invalid_argument("Message is missing the 'method' property.");
+		throw_exception(invalid_argument("Message is missing the 'method' property."));
 
 	Endpoint::Ptr recipient;
 	BOOST_FOREACH(tie(tuples::ignore, recipient), m_Endpoints) {
@@ -366,7 +366,7 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const 
 {
 	string id;
 	if (!message.GetID(&id))
-		throw invalid_argument("Response message must have a message ID.");
+		throw_exception(invalid_argument("Response message must have a message ID."));
 
 	map<string, PendingRequest>::iterator it;
 	it = m_Requests.find(id);

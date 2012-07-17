@@ -61,7 +61,7 @@ HostGroup HostGroup::GetByName(const string& name)
 	ConfigObject::Ptr configObject = ConfigObject::GetObject("hostgroup", name);
 
 	if (!configObject)
-		throw invalid_argument("HostGroup '" + name + "' does not exist.");
+		throw_exception(invalid_argument("HostGroup '" + name + "' does not exist."));
 
 	return HostGroup(configObject);
 }

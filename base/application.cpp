@@ -39,7 +39,7 @@ Application::Application(void)
 #ifdef _WIN32
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
-		throw Win32Exception("WSAStartup failed", WSAGetLastError());
+		throw_exception(Win32Exception("WSAStartup failed", WSAGetLastError()));
 #else /* _WIN32 */
 	lt_dlinit();
 #endif /* _WIN32 */
@@ -133,12 +133,12 @@ Component::Ptr Application::LoadComponent(const string& path,
 	HMODULE hModule = LoadLibrary(path.c_str());
 
 	if (hModule == NULL)
-		throw Win32Exception("LoadLibrary('" + path + "') failed", GetLastError());
+		throw_exception(Win32Exception("LoadLibrary('" + path + "') failed", GetLastError()));
 #else /* _WIN32 */
 	lt_dlhandle hModule = lt_dlopen(path.c_str());
 
 	if (hModule == NULL) {
-		throw runtime_error("Could not load module '" + path + "': " +  lt_dlerror());
+		throw_exception(runtime_error("Could not load module '" + path + "': " +  lt_dlerror()));
 	}
 #endif /* _WIN32 */
 
@@ -155,8 +155,8 @@ Component::Ptr Application::LoadComponent(const string& path,
 #endif /* _WIN32 */
 
 	if (pCreateComponent == NULL)
-		throw runtime_error("Loadable module does not contain "
-		    "CreateComponent function");
+		throw_exception(runtime_error("Loadable module does not contain "
+		    "CreateComponent function"));
 
 	component = Component::Ptr(pCreateComponent());
 	component->SetConfig(componentConfig);
@@ -228,7 +228,7 @@ string Application::GetExePath(void) const
 
 	char buffer[MAXPATHLEN];
 	if (getcwd(buffer, sizeof(buffer)) == NULL)
-		throw PosixException("getcwd failed", errno);
+		throw_exception(PosixException("getcwd failed", errno));
 	string workingDirectory = buffer;
 
 	if (argv0[0] != '/')
@@ -255,20 +255,20 @@ string Application::GetExePath(void) const
 
 			if (!foundPath) {
 				executablePath.clear();
-				throw runtime_error("Could not determine executable path.");
+				throw_exception(runtime_error("Could not determine executable path."));
 			}
 		}
 	}
 
 	if (realpath(executablePath.c_str(), buffer) == NULL)
-		throw PosixException("realpath failed", errno);
+		throw_exception(PosixException("realpath failed", errno));
 
 	result = buffer;
 #else /* _WIN32 */
 	char FullExePath[MAXPATHLEN];
 
 	if (!GetModuleFileName(NULL, FullExePath, sizeof(FullExePath)))
-		throw Win32Exception("GetModuleFileName() failed", GetLastError());
+		throw_exception(Win32Exception("GetModuleFileName() failed", GetLastError()));
 
 	result = FullExePath;
 #endif /* _WIN32 */
@@ -410,15 +410,15 @@ void Application::UpdatePidFile(const string& filename)
 	m_PidFile = fopen(filename.c_str(), "w");
 
 	if (m_PidFile == NULL)
-		throw runtime_error("Could not open PID file '" + filename + "'");
+		throw_exception(runtime_error("Could not open PID file '" + filename + "'"));
 
 #ifndef _WIN32
 	if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {
 		ClosePidFile();
 
-		throw runtime_error("Another instance of the application is "
+		throw_exception(runtime_error("Another instance of the application is "
 		    "already running. Remove the '" + filename + "' file if "
-		    "you're certain that this is not the case.");
+		    "you're certain that this is not the case."));
 	}
 #endif /* _WIN32 */
 

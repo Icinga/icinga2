@@ -61,11 +61,8 @@ void TcpClient::Connect(const string& node, const string& service)
 
 	int rc = getaddrinfo(node.c_str(), service.c_str(), &hints, &result);
 
-	if (rc < 0) {
-		HandleSocketError(SocketException(
-		    "getaddrinfo() failed", GetLastSocketError()));
-		return;
-	}
+	if (rc < 0)
+		throw_exception(SocketException("getaddrinfo() failed", GetLastSocketError()));
 
 	int fd = INVALID_SOCKET;
 
@@ -96,8 +93,7 @@ void TcpClient::Connect(const string& node, const string& service)
 	freeaddrinfo(result);
 
 	if (fd == INVALID_SOCKET)
-		HandleSocketError(runtime_error(
-		    "Could not create a suitable socket."));
+		throw_exception(runtime_error("Could not create a suitable socket."));
 }
 
 void TcpClient::HandleWritable(void)
@@ -122,8 +118,7 @@ void TcpClient::HandleWritable(void)
 		if (rc <= 0) {
 			SetConnected(false);
 
-			HandleSocketError(SocketException("send() failed", GetError()));
-			return;
+			throw_exception(SocketException("send() failed", GetError()));
 		}
 
 		SetConnected(true);
@@ -188,8 +183,7 @@ void TcpClient::HandleReadable(void)
 		if (rc <= 0) {
 			SetConnected(false);
 
-			HandleSocketError(SocketException("recv() failed", GetError()));
-			return;
+			throw_exception(SocketException("recv() failed", GetError()));
 		}
 
 		SetConnected(true);

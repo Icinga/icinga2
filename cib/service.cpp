@@ -47,7 +47,7 @@ Service Service::GetByName(const string& name)
 	ConfigObject::Ptr configObject = ConfigObject::GetObject("service", name);
 
 	if (!configObject)
-		throw invalid_argument("Service '" + name + "' does not exist.");
+		throw_exception(invalid_argument("Service '" + name + "' does not exist."));
 
 	return configObject;
 }
@@ -56,7 +56,7 @@ Host Service::GetHost(void) const
 {
 	string hostname;
 	if (!GetProperty("host_name", &hostname))
-		throw runtime_error("Service object is missing the 'host_name' property.");
+		throw_exception(runtime_error("Service object is missing the 'host_name' property."));
 
 	return Host::GetByName(hostname);
 }
@@ -269,7 +269,7 @@ CheckResult Service::GetLastCheckResult(void) const
 {
 	Dictionary::Ptr value;
 	if (!GetTag("last_result", &value))
-		throw invalid_argument("Service has no last check result.");
+		throw_exception(invalid_argument("Service has no last check result."));
 	return CheckResult(value);
 }
 
