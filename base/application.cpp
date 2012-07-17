@@ -61,7 +61,8 @@ Application::~Application(void)
 	m_ShuttingDown = true;
 
 	/* stop all components */
-	BOOST_FOREACH(const Component::Ptr& component, m_Components | map_values) {
+	Component::Ptr component;
+	BOOST_FOREACH(tie(tuples::ignore, component), m_Components) {
 		component->Stop();
 	}
 

@@ -168,11 +168,11 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 
 	// register published/subscribed topics for this endpoint
 	ComponentDiscoveryInfo::Ptr info = ic->second;
-	BOOST_FOREACH(const string& publication, info->Publications) {
+	BOOST_FOREACH(string publication, info->Publications) {
 		endpoint->RegisterPublication(publication);
 	}
 
-	BOOST_FOREACH(const string& subscription, info->Subscriptions) {
+	BOOST_FOREACH(string subscription, info->Subscriptions) {
 		endpoint->RegisterSubscription(subscription);
 	}
 
@@ -301,14 +301,14 @@ void DiscoveryComponent::SendDiscoveryMessage(const string& method, const string
 
 	set<string>::iterator i;
 	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
-	BOOST_FOREACH(const string &subscription, info->Subscriptions) {
+	BOOST_FOREACH(string subscription, info->Subscriptions) {
 		subscriptions->Add(subscription);
 	}
 
 	params.SetSubscriptions(subscriptions);
 
 	Dictionary::Ptr publications = boost::make_shared<Dictionary>();
-	BOOST_FOREACH(const string& publication, info->Publications) {
+	BOOST_FOREACH(string publication, info->Publications) {
 		publications->Add(publication);
 	}
 
@@ -327,12 +327,14 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
 
 	ConfigObject::TMap::Range range = ConfigObject::GetObjects("role");
 
-	BOOST_FOREACH(const ConfigObject::Ptr& role, range | map_values) {
+	ConfigObject::Ptr role;
+	BOOST_FOREACH(tie(tuples::ignore, role), range) {
 		Dictionary::Ptr permissions;
 		if (!role->GetProperty(messageType, &permissions))
 			continue;
 
-		BOOST_FOREACH(const Variant& permission, permissions | map_values) {
+		Variant permission;
+		BOOST_FOREACH(tie(tuples::ignore, permission), permissions) {
 			if (Utility::Match(permission, message))
 				return true;
 		}
@@ -376,7 +378,8 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	Dictionary::Ptr publications;
 	if (message.GetPublications(&publications)) {
-		BOOST_FOREACH(const Variant& publication, publications | map_values) {
+		Variant publication;
+		BOOST_FOREACH(tie(tuples::ignore, publication), publications) {
 			if (trusted || HasMessagePermission(roles, "publications", publication)) {
 				info->Publications.insert(publication);
 				if (endpoint)
@@ -387,7 +390,8 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	Dictionary::Ptr subscriptions;
 	if (message.GetSubscriptions(&subscriptions)) {
-		BOOST_FOREACH(const Variant& subscription, subscriptions | map_values) {
+		Variant subscription;
+		BOOST_FOREACH(tie(tuples::ignore, subscription), subscriptions) {
 			if (trusted || HasMessagePermission(roles, "subscriptions", subscription)) {
 				info->Subscriptions.insert(subscription);
 				if (endpoint)
@@ -455,7 +459,8 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 	/* check whether we have to reconnect to one of our upstream endpoints */
 	ConfigObject::TMap::Range range = ConfigObject::GetObjects("endpoint");
 
-	BOOST_FOREACH(const ConfigObject::Ptr& object, range | map_values) {
+	ConfigObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), range) {
 		/* Check if we're already connected to this endpoint. */
 		if (endpointManager->GetEndpointByIdentity(object->GetName()))
 			continue;

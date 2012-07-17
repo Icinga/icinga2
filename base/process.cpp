@@ -66,7 +66,8 @@ void Process::WorkerThreadProc(void)
 			
 			FD_ZERO(&readfds);
 
-			BOOST_FOREACH(int fd, tasks | map_keys) {
+			int fd;
+			BOOST_FOREACH(tie(fd, tuples::ignore), tasks) {
 				if (fd > nfds)
 					nfds = fd;
 

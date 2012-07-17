@@ -275,12 +275,13 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 	if (delegated > 0) {
 		if (need_clear) {
-			BOOST_FOREACH(const Endpoint::Ptr& endpoint, histogram | map_keys) {
+			Endpoint::Ptr endpoint;
+			BOOST_FOREACH(tie(endpoint, tuples::ignore), histogram) {
 				ClearServices(endpoint);
 			}
 		}
 
-		BOOST_FOREACH(const Service& service, services) {
+		BOOST_FOREACH(Service& service, services) {
 			string checker = service.GetChecker();
 			Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
 
