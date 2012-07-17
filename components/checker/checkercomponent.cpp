@@ -48,6 +48,9 @@ void CheckerComponent::Start(void)
 	m_ResultTimer->SetInterval(5);
 	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));
 	m_ResultTimer->Start();
+
+	CIB::RequireInformation(CIB_Configuration);
+	CIB::RequireInformation(CIB_ServiceStatus);
 }
 
 void CheckerComponent::Stop(void)
@@ -84,9 +87,6 @@ void CheckerComponent::CheckTimerHandler(void)
 		ScriptTask::Ptr task;
 		task = service.InvokeMethod("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
 		assert(task); /* TODO: gracefully handle missing hooks */
-
-		/*CheckTask::Ptr task = CheckTask::CreateTask(service, boost::bind(&CheckerComponent::CheckCompletedHandler, this, _1));
-		task->Start();*/
 
 		service.SetTag("current_task", task);
 
@@ -128,7 +128,6 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 
 			EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
 		}
-
 	} catch (const exception& ex) {
 		stringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"
@@ -165,25 +164,20 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 	if (!request.GetParams(&params))
 		return;
 
-	MessagePart serviceMsg;
-	if (!params.Get("service", &serviceMsg))
+	string service;
+	if (!params.Get("service", &service))
 		return;
 
-	ConfigObject::Ptr object = boost::make_shared<ConfigObject>(serviceMsg.GetDictionary());
-	Service service(object);
-	m_Services.push(service);
+	ConfigObject::Ptr object = ConfigObject::GetObject("service", service);
 
-	Logger::Write(LogDebug, "checker", "Accepted delegation for service '" + service.GetName() + "'");
-
-	string id;
-	if (request.GetID(&id)) {
-		ResponseMessage rm;
-		rm.SetID(id);
-
-		MessagePart result;
-		rm.SetResult(result);
-		EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, sender, rm);
+	if (!object) {
+		Logger::Write(LogWarning, "checker", "Ignoring delegation request for unknown service '" + service + "'.");
+		return;
 	}
+
+	m_Services.push(object);
+
+	Logger::Write(LogDebug, "checker", "Accepted delegation for service '" + service + "'");
 }
 
 void CheckerComponent::ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
@@ -193,8 +187,6 @@ void CheckerComponent::ClearServicesRequestHandler(const Endpoint::Ptr& sender, 
 	/* clear the services lists */
 	m_Services = ServiceQueue();
 	m_PendingServices.clear();
-
-	/* TODO: clear checks we've already sent to the thread pool */
 }
 
 EXPORT_COMPONENT(checker, CheckerComponent);

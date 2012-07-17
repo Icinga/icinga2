@@ -96,7 +96,7 @@ void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Serv
 	request.SetMethod("checker::AssignService");
 
 	MessagePart params;
-	params.Set("service", service.GetConfigObject()->GetProperties());
+	params.Set("service", service.GetName());
 	request.SetParams(params);
 
 	Logger::Write(LogDebug, "delegation", "Trying to delegate service '" + service.GetName() + "'");
