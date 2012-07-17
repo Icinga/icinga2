@@ -69,8 +69,7 @@ set<string> Host::GetParents(void) const
 	if (GetProperty("dependencies", &dependencies)) {
 		dependencies = Service::ResolveDependencies(*this, dependencies);
 
-		Variant dependency;
-		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
+		BOOST_FOREACH(const Variant& dependency, dependencies | map_values) {
 			Service service = Service::GetByName(dependency);
 
 			string parent = service.GetHost().GetName();
@@ -99,8 +98,7 @@ bool Host::IsReachable(void) const
 	if (GetProperty("dependencies", &dependencies)) {
 		dependencies = Service::ResolveDependencies(*this, dependencies);
 
-		Variant dependency;
-		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
+		BOOST_FOREACH(const Variant& dependency, dependencies | map_values) {
 			Service service = Service::GetByName(dependency);
 
 			if (!service.IsReachable() ||
@@ -119,8 +117,7 @@ bool Host::IsUp(void) const
 	if (GetProperty("hostchecks", &hostchecks)) {
 		hostchecks = Service::ResolveDependencies(*this, hostchecks);
 
-		Variant hostcheck;
-		BOOST_FOREACH(tie(tuples::ignore, hostcheck), hostchecks) {
+		BOOST_FOREACH(const Variant& hostcheck, hostchecks | map_values) {
 			Service service = Service::GetByName(hostcheck);
 
 			if (service.GetState() != StateOK && service.GetState() != StateWarning) {

@@ -233,16 +233,14 @@ void CompatComponent::StatusTimerHandler(void)
 	ConfigObject::TMap::Range range;
 	range = ConfigObject::GetObjects("host");
 
-	ConfigObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), range) {
+	BOOST_FOREACH(const ConfigObject::Ptr& object, range | map_values) {
 		Host host = object;
 
 		Dictionary::Ptr dict;
 		dict = host.GetGroups();
 
 		if (dict) {
-			Variant hostgroup;
-			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
+			BOOST_FOREACH(const Variant& hostgroup, dict | map_values) {
 				hostgroups[hostgroup].push_back(host.GetName());
 			}
 		}
@@ -278,7 +276,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 	map<string, vector<Service> > servicegroups;
 
-	BOOST_FOREACH(tie(tuples::ignore, object), range) {
+	BOOST_FOREACH(const ConfigObject::Ptr& object, range | map_values) {
 		Service service = object;
 
 		Dictionary::Ptr dict;
@@ -286,8 +284,7 @@ void CompatComponent::StatusTimerHandler(void)
 		dict = service.GetGroups();
 
 		if (dict) {
-			Variant servicegroup;
-			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
+			BOOST_FOREACH(const Variant& servicegroup, dict | map_values) {
 				servicegroups[servicegroup].push_back(service);
 			}
 		}

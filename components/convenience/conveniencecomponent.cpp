@@ -150,8 +150,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 	}
 
 	if (oldServices) {
-		ConfigItem::Ptr service;
-		BOOST_FOREACH(tie(tuples::ignore, service), oldServices) {
+		BOOST_FOREACH(const ConfigItem::Ptr& service, oldServices | map_values) {
 			if (!newServices->Contains(service->GetName()))
 				service->Unregister();
 		}
@@ -176,8 +175,7 @@ void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
 	if (!services)
 		return;
 
-	ConfigItem::Ptr service;
-	BOOST_FOREACH(tie(tuples::ignore, service), services) {
+	BOOST_FOREACH(const ConfigItem::Ptr& service, services | map_values) {
 		service->Unregister();
 	}
 }
