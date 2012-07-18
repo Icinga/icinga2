@@ -39,7 +39,7 @@ EndpointManager::EndpointManager(void)
  *
  * @param identity The new identity.
  */
-void EndpointManager::SetIdentity(string identity)
+void EndpointManager::SetIdentity(const string& identity)
 {
 	m_Identity = identity;
 }
@@ -59,7 +59,7 @@ string EndpointManager::GetIdentity(void) const
  *
  * @param sslContext The new SSL context.
  */
-void EndpointManager::SetSSLContext(shared_ptr<SSL_CTX> sslContext)
+void EndpointManager::SetSSLContext(const shared_ptr<SSL_CTX>& sslContext)
 {
 	m_SSLContext = sslContext;
 }
@@ -79,7 +79,7 @@ shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
  *
  * @param service The port to listen on.
  */
-void EndpointManager::AddListener(string service)
+void EndpointManager::AddListener(const string& service)
 {
 	if (!GetSSLContext())
 		throw_exception(logic_error("SSL context is required for AddListener()"));
@@ -102,7 +102,7 @@ void EndpointManager::AddListener(string service)
  * @param node The remote host.
  * @param service The remote port.
  */
-void EndpointManager::AddConnection(string node, string service)
+void EndpointManager::AddConnection(const string& node, const string& service)
 {
 	stringstream s;
 	s << "Adding new endpoint: [" << node << "]:" << service;
@@ -118,7 +118,7 @@ void EndpointManager::AddConnection(string node, string service)
  *
  * @param server The JSON-RPC server.
  */
-void EndpointManager::RegisterServer(JsonRpcServer::Ptr server)
+void EndpointManager::RegisterServer(const JsonRpcServer::Ptr& server)
 {
 	m_Servers.push_back(server);
 	server->OnNewClient.connect(boost::bind(&EndpointManager::NewClientHandler,
@@ -145,7 +145,7 @@ void EndpointManager::NewClientHandler(const TcpClient::Ptr& client)
  *
  * @param server The JSON-RPC server.
  */
-void EndpointManager::UnregisterServer(JsonRpcServer::Ptr server)
+void EndpointManager::UnregisterServer(const JsonRpcServer::Ptr& server)
 {
 	m_Servers.erase(
 	    remove(m_Servers.begin(), m_Servers.end(), server),
@@ -158,7 +158,7 @@ void EndpointManager::UnregisterServer(JsonRpcServer::Ptr server)
  *
  * @param endpoint The new endpoint.
  */
-void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
+void EndpointManager::RegisterEndpoint(const Endpoint::Ptr& endpoint)
 {
 	endpoint->SetEndpointManager(GetSelf());
 
@@ -194,7 +194,7 @@ void EndpointManager::RegisterEndpoint(Endpoint::Ptr endpoint)
  *
  * @param endpoint The endpoint.
  */
-void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
+void EndpointManager::UnregisterEndpoint(const Endpoint::Ptr& endpoint)
 {
 	m_PendingEndpoints.erase(
 	    remove(m_PendingEndpoints.begin(), m_PendingEndpoints.end(), endpoint),
@@ -212,8 +212,8 @@ void EndpointManager::UnregisterEndpoint(Endpoint::Ptr endpoint)
  * @param recipient The recipient of the message.
  * @param message The request.
  */
-void EndpointManager::SendUnicastMessage(Endpoint::Ptr sender,
-    Endpoint::Ptr recipient, const MessagePart& message)
+void EndpointManager::SendUnicastMessage(const Endpoint::Ptr& sender,
+    const Endpoint::Ptr& recipient, const MessagePart& message)
 {
 	/* don't forward messages between non-local endpoints */
 	if (!sender->IsLocal() && !recipient->IsLocal())
@@ -232,7 +232,7 @@ void EndpointManager::SendUnicastMessage(Endpoint::Ptr sender,
  * @param sender The sender of the message.
  * @param message The message.
  */
-void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
+void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
     const RequestMessage& message)
 {
 	string method;
@@ -264,7 +264,7 @@ void EndpointManager::SendAnycastMessage(Endpoint::Ptr sender,
  * @param sender The sender of the message.
  * @param message The message.
  */
-void EndpointManager::SendMulticastMessage(Endpoint::Ptr sender,
+void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
     const RequestMessage& message)
 {
 	string id;
@@ -307,7 +307,7 @@ void EndpointManager::ForEachEndpoint(function<void (const EndpointManager::Ptr&
  *
  * @param identity The identity of the endpoint.
  */
-Endpoint::Ptr EndpointManager::GetEndpointByIdentity(string identity) const
+Endpoint::Ptr EndpointManager::GetEndpointByIdentity(const string& identity) const
 {
 	map<string, Endpoint::Ptr>::const_iterator i;
 	i = m_Endpoints.find(identity);

@@ -40,21 +40,21 @@ public:
 
 	static EndpointManager::Ptr GetInstance(void);
 
-	void SetIdentity(string identity);
+	void SetIdentity(const string& identity);
 	string GetIdentity(void) const;
 
-	void SetSSLContext(shared_ptr<SSL_CTX> sslContext);
+	void SetSSLContext(const shared_ptr<SSL_CTX>& sslContext);
 	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 
-	void AddListener(string service);
-	void AddConnection(string node, string service);
+	void AddListener(const string& service);
+	void AddConnection(const string& node, const string& service);
 
-	void RegisterEndpoint(Endpoint::Ptr endpoint);
-	void UnregisterEndpoint(Endpoint::Ptr endpoint);
+	void RegisterEndpoint(const Endpoint::Ptr& endpoint);
+	void UnregisterEndpoint(const Endpoint::Ptr& endpoint);
 
-	void SendUnicastMessage(Endpoint::Ptr sender, Endpoint::Ptr recipient, const MessagePart& message);
-	void SendAnycastMessage(Endpoint::Ptr sender, const RequestMessage& message);
-	void SendMulticastMessage(Endpoint::Ptr sender, const RequestMessage& message);
+	void SendUnicastMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, const MessagePart& message);
+	void SendAnycastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
+	void SendMulticastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
 
 	void SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, RequestMessage& message,
 	    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout = 30);
@@ -65,7 +65,7 @@ public:
 	Iterator Begin(void);
 	Iterator End(void);
 
-	Endpoint::Ptr GetEndpointByIdentity(string identity) const;
+	Endpoint::Ptr GetEndpointByIdentity(const string& identity) const;
 
 	boost::signal<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
 
@@ -98,8 +98,8 @@ private:
 	map<string, PendingRequest> m_Requests;
 	Timer::Ptr m_RequestTimer;
 
-	void RegisterServer(JsonRpcServer::Ptr server);
-	void UnregisterServer(JsonRpcServer::Ptr server);
+	void RegisterServer(const JsonRpcServer::Ptr& server);
+	void UnregisterServer(const JsonRpcServer::Ptr& server);
 
 	static bool RequestTimeoutLessComparer(const pair<string, PendingRequest>& a, const pair<string, PendingRequest>& b);
 	void RequestTimerHandler(void);
