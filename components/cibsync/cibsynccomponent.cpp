@@ -91,10 +91,6 @@ void CIBSyncComponent::ServiceStatusRequestHandler(const Endpoint::Ptr& sender, 
 
 	Service service = Service::GetByName(svcname);
 
-	time_t nextCheck;
-	if (params.GetNextCheck(&nextCheck))
-		service.SetNextCheck(nextCheck);
-
 	ServiceState state;
 	ServiceStateType stateType;
 	if (params.GetState(&state) && params.GetStateType(&stateType)) {
@@ -122,6 +118,8 @@ void CIBSyncComponent::ServiceStatusRequestHandler(const Endpoint::Ptr& sender, 
 	CheckResult cr;
 	if (params.GetCheckResult(&cr))
 		service.SetLastCheckResult(cr);
+
+	service.UpdateNextCheck();
 
 	time_t now;
 	time(&now);

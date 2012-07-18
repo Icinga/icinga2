@@ -41,9 +41,6 @@ public:
 	bool GetCurrentCheckAttempt(long *attempt) const;
 	void SetCurrentCheckAttempt(long attempt);
 
-	bool GetNextCheck(time_t *ts) const;
-	void SetNextCheck(time_t ts);
-
 	bool GetCheckResult(CheckResult *cr) const;
 	void SetCheckResult(CheckResult cr);
 };

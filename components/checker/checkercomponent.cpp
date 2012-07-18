@@ -104,9 +104,6 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 {
 	service.RemoveTag("current_task");
 
-	/* figure out when the next check is for this service */
-	service.UpdateNextCheck();
-
 	try {
 		Variant vresult = task->GetResult();
 
@@ -124,7 +121,6 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 			params.SetState(service.GetState());
 			params.SetStateType(service.GetStateType());
 			params.SetCurrentCheckAttempt(service.GetCurrentCheckAttempt());
-			params.SetNextCheck(service.GetNextCheck());
 			params.SetCheckResult(result);
 
 			rm.SetParams(params);
@@ -137,6 +133,11 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 		       << service.GetName() << "': " << ex.what();
 		Logger::Write(LogWarning, "checker", msgbuf.str());
 	}
+
+	/* figure out when the next check is for this service; the local
+	 * cibsync component should've already done this as part of processing
+	 * the CheckResult message, but lets do it again to be sure */
+	service.UpdateNextCheck();
 
 	/* remove the service from the list of pending services; if it's not in the
 	 * list this was a manual (i.e. forced) check and we must not re-add the

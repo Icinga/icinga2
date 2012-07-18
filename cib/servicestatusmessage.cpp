@@ -71,21 +71,6 @@ void ServiceStatusMessage::SetCurrentCheckAttempt(long attempt)
 	Set("current_attempt", attempt);
 }
 
-bool ServiceStatusMessage::GetNextCheck(time_t *ts) const
-{
-	long value;
-	if (Get("next_check", &value)) {
-		*ts = value;
-		return true;
-	}
-	return false;
-}
-
-void ServiceStatusMessage::SetNextCheck(time_t ts)
-{
-	Set("next_check", static_cast<long>(ts));
-}
-
 bool ServiceStatusMessage::GetCheckResult(CheckResult *cr) const
 {
 	Dictionary::Ptr obj;
