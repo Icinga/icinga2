@@ -41,6 +41,8 @@ void TlsClient::Start(void)
 {
 	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
+	m_SSLContext.reset();
+
 	if (!m_SSL)
 		throw_exception(OpenSSLException("SSL_new failed", ERR_get_error()));
 
@@ -54,18 +56,21 @@ void TlsClient::Start(void)
 
 	SSL_set_ex_data(m_SSL.get(), m_SSLIndex, this);
 
-	SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
-	    &TlsClient::SSLVerifyCertificate);
+	SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
 
-	BIO *bio = BIO_new_socket(GetFD(), 0);
-	SSL_set_bio(m_SSL.get(), bio, bio);
+	SSL_set_fd(m_SSL.get(), GetFD());
 
 	if (GetRole() == RoleInbound)
 		SSL_set_accept_state(m_SSL.get());
 	else
 		SSL_set_connect_state(m_SSL.get());
 
-	SSL_do_handshake(m_SSL.get());
+	int rc = SSL_do_handshake(m_SSL.get());
+
+	if (rc == 1) {
+		SetConnected(true);
+		OnConnected(GetSelf());
+	}
 
 	Socket::Start();
 }
@@ -124,6 +129,12 @@ void TlsClient::HandleReadable(void)
 			rc = SSL_read(m_SSL.get(), data, sizeof(data));
 		} else {
 			rc = SSL_do_handshake(m_SSL.get());
+
+			if (rc == 1) {
+				SetConnected(true);
+				Event::Post(boost::bind(boost::cref(OnConnected), GetSelf()));
+				return;
+			}
 		}
 
 		if (rc <= 0) {
@@ -143,8 +154,6 @@ void TlsClient::HandleReadable(void)
 
 		if (IsConnected())
 			m_RecvQueue->Write(data, rc);
-		else
-			SetConnected(true);
 	}
 
 post_event:
@@ -179,6 +188,12 @@ void TlsClient::HandleWritable(void)
 			rc = SSL_write(m_SSL.get(), (const char *)data, count);
 		} else {
 			rc = SSL_do_handshake(m_SSL.get());
+
+			if (rc == 1) {
+				SetConnected(true);
+				Event::Post(boost::bind(boost::cref(OnConnected), GetSelf()));
+				return;
+			}
 		}
 
 		if (rc <= 0) {
@@ -198,8 +213,6 @@ void TlsClient::HandleWritable(void)
 
 		if (IsConnected())
 			m_SendQueue->Read(NULL, rc);
-		else
-			SetConnected(true);
 	}
 }
 
@@ -260,36 +273,3 @@ TcpClient::Ptr icinga::TlsClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> 
 	return boost::make_shared<TlsClient>(role, sslContext);
 }
 
-/**
- * Callback function that verifies SSL certificates.
- *
- * @param ok Whether pre-checks for the SSL certificates were successful.
- * @param x509Context X509 context for the certificate.
- * @returns 1 if the verification was successful, 0 otherwise.
- */
-int TlsClient::SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context)
-{
-	SSL *ssl = (SSL *)X509_STORE_CTX_get_ex_data(x509Context, SSL_get_ex_data_X509_STORE_CTX_idx());
-	TlsClient *client = (TlsClient *)SSL_get_ex_data(ssl, m_SSLIndex);
-
-	if (client == NULL)
-		return 0;
-
-	return client->ValidateCertificateInternal(ok, x509Context);
-}
-
-int TlsClient::ValidateCertificateInternal(int ok, X509_STORE_CTX *x509Context)
-{
-	shared_ptr<X509> x509Certificate = shared_ptr<X509>(x509Context->cert, &TlsClient::NullCertificateDeleter);
-	bool valid = ValidateCertificate((ok != 0), x509Context, x509Certificate);
-
-	if (valid)
-		Event::Post(boost::bind(boost::ref(OnCertificateValidated), GetSelf()));
-
-	return valid ? 1 : 0;
-}
-
-bool TlsClient::ValidateCertificate(bool ok, X509_STORE_CTX *x509Context, const shared_ptr<X509>& x509Certificate)
-{
-	return ok;
-}

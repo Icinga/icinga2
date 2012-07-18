@@ -63,8 +63,7 @@ private:
 
 	void NewMessageHandler(const MessagePart& message);
 	void ClientClosedHandler(void);
-	void ClientErrorHandler(const std::exception& ex);
-	void CertificateValidatedHandler(void);
+	void ClientConnectedHandler(void);
 };
 
 }

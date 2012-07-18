@@ -87,6 +87,11 @@ void TcpClient::Connect(const string& node, const string& service)
 			continue;
 		}
 
+		if (rc >= 0) {
+			SetConnected(true);
+			OnConnected(GetSelf());
+		}
+
 		break;
 	}
 
@@ -102,6 +107,11 @@ void TcpClient::HandleWritable(void)
 	char data[1024];
 	size_t count;
 
+	if (!IsConnected()) {
+		SetConnected(true);
+		Event::Post(boost::bind(boost::cref(OnConnected), GetSelf()));
+	}
+
 	for (;;) {
 		count = m_SendQueue->GetAvailableBytes();
 
@@ -115,13 +125,8 @@ void TcpClient::HandleWritable(void)
 
 		rc = send(GetFD(), (const char *)data, count, 0);
 
-		if (rc <= 0) {
-			SetConnected(false);
-
+		if (rc <= 0)
 			throw_exception(SocketException("send() failed", GetError()));
-		}
-
-		SetConnected(true);
 
 		m_SendQueue->Read(NULL, rc);
 	}
@@ -169,6 +174,11 @@ void TcpClient::Write(const void *buffer, size_t count)
 
 void TcpClient::HandleReadable(void)
 {
+	if (!IsConnected()) {
+		SetConnected(true);
+		Event::Post(boost::bind(boost::cref(OnConnected), GetSelf()));
+	}
+
 	for (;;) {
 		char data[1024];
 		int rc = recv(GetFD(), data, sizeof(data), 0);
@@ -180,13 +190,8 @@ void TcpClient::HandleReadable(void)
 	#endif /* _WIN32 */
 			return;
 
-		if (rc <= 0) {
-			SetConnected(false);
-
+		if (rc <= 0)
 			throw_exception(SocketException("recv() failed", GetError()));
-		}
-
-		SetConnected(true);
 
 		m_RecvQueue->Write(data, rc);
 	}
@@ -211,7 +216,7 @@ bool TcpClient::WantsToRead(void) const
  */
 bool TcpClient::WantsToWrite(void) const
 {
-	return (m_SendQueue->GetAvailableBytes() > 0);
+	return (m_SendQueue->GetAvailableBytes() > 0 || !IsConnected());
 }
 
 /**

@@ -52,7 +52,7 @@ void JsonRpcEndpoint::SetClient(JsonRpcClient::Ptr client)
 	m_Client = client;
 	client->OnNewMessage.connect(boost::bind(&JsonRpcEndpoint::NewMessageHandler, this, _2));
 	client->OnClosed.connect(boost::bind(&JsonRpcEndpoint::ClientClosedHandler, this));
-	client->OnCertificateValidated.connect(boost::bind(&JsonRpcEndpoint::CertificateValidatedHandler, this));
+	client->OnConnected.connect(boost::bind(&JsonRpcEndpoint::ClientConnectedHandler, this));
 }
 
 bool JsonRpcEndpoint::IsLocal(void) const
@@ -135,11 +135,7 @@ void JsonRpcEndpoint::ClientClosedHandler(void)
 	// TODO: persist events, etc., for now we just disable the endpoint
 }
 
-void JsonRpcEndpoint::ClientErrorHandler(const exception& ex)
-{
-}
-
-void JsonRpcEndpoint::CertificateValidatedHandler(void)
+void JsonRpcEndpoint::ClientConnectedHandler(void)
 {
 	string identity = Utility::GetCertificateCN(m_Client->GetPeerCertificate());
 

@@ -193,6 +193,8 @@ void CompatComponent::DumpServiceObject(ofstream& fp, Service service)
  */
 void CompatComponent::StatusTimerHandler(void)
 {
+	Logger::Write(LogInformation, "compat", "Writing compat status information");
+
 	ofstream statusfp;
 	statusfp.open("status.dat.tmp", ofstream::out | ofstream::trunc);
 

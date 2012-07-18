@@ -38,8 +38,6 @@ public:
 	shared_ptr<X509> GetClientCertificate(void) const;
 	shared_ptr<X509> GetPeerCertificate(void) const;
 
-	boost::signal<void (const TlsClient::Ptr&)> OnCertificateValidated;
-
 protected:
 	void HandleSSLError(void);
 
@@ -48,8 +46,6 @@ protected:
 
 	virtual void HandleReadable(void);
 	virtual void HandleWritable(void);
-
-	virtual bool ValidateCertificate(bool ok, X509_STORE_CTX *x509Context, const shared_ptr<X509>& x509Certificate);
 
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
@@ -64,9 +60,6 @@ private:
 	virtual void CloseInternal(bool from_dtor);
 
 	static void NullCertificateDeleter(X509 *certificate);
-
-	static int SSLVerifyCertificate(int ok, X509_STORE_CTX *x509Context);
-	int ValidateCertificateInternal(int ok, X509_STORE_CTX *x509Context);
 };
 
 TcpClient::Ptr TlsClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);

@@ -53,6 +53,7 @@ public:
 
 	void Connect(const string& node, const string& service);
 
+	boost::signal<void (const TcpClient::Ptr&)> OnConnected;
 	boost::signal<void (const TcpClient::Ptr&)> OnDataAvailable;
 
 	virtual size_t GetAvailableBytes(void) const;
