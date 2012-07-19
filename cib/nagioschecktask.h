@@ -26,11 +26,11 @@ namespace icinga
 class I2_CIB_API NagiosCheckTask
 {
 public:
-	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments);
-
 	static void Register(void);
 
 private:
+	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments);
+
 	static void ProcessFinishedHandler(NagiosCheckTask ct);
 	static void ProcessCheckOutput(CheckResult& result, const string& output);
 
