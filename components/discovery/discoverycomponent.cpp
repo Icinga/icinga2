@@ -62,8 +62,6 @@ void DiscoveryComponent::Start(void)
 
 	/* call the timer as soon as possible */
 	m_DiscoveryTimer->Reschedule(0);
-
-	CIB::RequireInformation(CIB_Configuration);
 }
 
 /**

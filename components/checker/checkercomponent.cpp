@@ -48,9 +48,6 @@ void CheckerComponent::Start(void)
 	m_ResultTimer->SetInterval(5);
 	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));
 	m_ResultTimer->Start();
-
-	CIB::RequireInformation(CIB_Configuration);
-	CIB::RequireInformation(CIB_ServiceStatus);
 }
 
 void CheckerComponent::Stop(void)
