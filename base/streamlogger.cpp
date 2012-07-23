@@ -39,7 +39,7 @@ void StreamLogger::OpenFile(const string& filename)
 
 		if (!stream->good())
 			throw_exception(runtime_error("Could not open logfile '" + filename + "'"));
-	} catch (const exception&) {
+	} catch (...) {
 		delete stream;
 		throw;
 	}

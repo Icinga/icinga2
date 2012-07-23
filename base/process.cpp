@@ -119,7 +119,7 @@ void Process::WorkerThreadProc(void)
 				int fd = task->GetFD();
 				if (fd >= 0)
 					tasks[fd] = task;
-			} catch (const exception&) {
+			} catch (...) {
 				Event::Post(boost::bind(&Process::FinishException, task, boost::current_exception()));
 			}
 

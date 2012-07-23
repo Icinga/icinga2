@@ -61,7 +61,7 @@ void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct)
 
 	try {
 		pr = ct.m_Process->GetResult();
-	} catch (const exception&) {
+	} catch (...) {
 		ct.m_Task->FinishException(boost::current_exception());
 		return;
 	}

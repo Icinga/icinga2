@@ -297,7 +297,7 @@ void Socket::ReadThreadProc(void)
 
 			if (FD_ISSET(fd, &exceptfds))
 				HandleException();
-		} catch (const exception&) {
+		} catch (...) {
 			m_Exception = boost::current_exception();
 
 			CloseInternal(false);
@@ -348,7 +348,7 @@ void Socket::WriteThreadProc(void)
 
 			if (FD_ISSET(fd, &writefds))
 				HandleWritable();
-		} catch (const exception&) {
+		} catch (...) {
 			m_Exception = boost::current_exception();
 
 			CloseInternal(false);

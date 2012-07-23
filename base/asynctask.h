@@ -69,7 +69,7 @@ public:
 
 		try {
 	  		Run();
-		} catch (const exception&) {
+		} catch (...) {
 	     		FinishException(boost::current_exception());
 		}
 	}
