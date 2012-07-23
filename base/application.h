@@ -45,13 +45,6 @@ public:
 
 	static void Shutdown(void);
 
-	shared_ptr<Component> LoadComponent(const string& path,
-	    const ConfigObject::Ptr& componentConfig);
-	void RegisterComponent(const shared_ptr<Component>& component);
-	void UnregisterComponent(const shared_ptr<Component>& component);
-	shared_ptr<Component> GetComponent(const string& name) const;
-	void AddComponentSearchDir(const string& componentDirectory);
-
 	static bool IsDebugging(void);
 
 	static bool IsMainThread(void);
@@ -68,8 +61,6 @@ private:
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */
-	map< string, shared_ptr<Component> > m_Components; /**< Components that
-					were loaded by the application. */
 	vector<string> m_Arguments; /**< Command-line arguments */
 	FILE *m_PidFile; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */

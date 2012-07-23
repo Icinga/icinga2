@@ -35,15 +35,35 @@ public:
 	typedef shared_ptr<Component> Ptr;
 	typedef weak_ptr<Component> WeakPtr;
 
-	void SetConfig(const ConfigObject::Ptr& componentConfig);
+	Component(void);
+	virtual ~Component(void);
+
 	ConfigObject::Ptr GetConfig(void) const;
 
-	virtual string GetName(void) const = 0;
-	virtual void Start(void) = 0;
-	virtual void Stop(void) = 0;
+	virtual void Start(void);
+	virtual void Stop(void);
+
+	string GetName(void) const;
+
+	static void Load(const string& name, const ConfigObject::Ptr& config);
+	static void Unload(const Component::Ptr& component);
+	static void Unload(const string& componentName);
+	static void UnloadAll(void);
+	static Component::Ptr GetByName(const string& name);
+	static void AddSearchDir(const string& componentDirectory);
 
 private:
+	string m_Name;
 	ConfigObject::Ptr m_Config;
+
+#ifdef _WIN32
+	HMODULE m_ModuleHandle;
+#else /* _WIN32 */
+	lt_dlhandle m_ModuleHandle;
+#endif /* _WIN32 */
+
+	static map<string, Component::Ptr> m_Components; /**< Components that
+					were loaded by the application. */
 };
 
 typedef Component *(*CreateComponentFunction)(void);

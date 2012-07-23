@@ -133,7 +133,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	}
 
 	string componentDirectory = Utility::DirName(GetExePath()) + "/../lib/icinga2";
-	AddComponentSearchDir(componentDirectory);
+	Component::AddSearchDir(componentDirectory);
 
 	/* register handler for 'component' config objects */
 	static ConfigObject::Set::Ptr componentObjects = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("component"));
@@ -219,16 +219,7 @@ void IcingaApplication::NewComponentHandler(const ConfigObject::Ptr& object)
 	if (!object->IsLocal())
 		throw_exception(runtime_error("'component' objects must be 'local'"));
 
-	string path;
-	if (!object->GetProperty("path", &path)) {
-#ifdef _WIN32
-		path = object->GetName() + ".dll";
-#else /* _WIN32 */
-		path = object->GetName() + ".la";
-#endif /* _WIN32 */
-	}
-
-	LoadComponent(path, object);
+	Component::Load(object->GetName(), object);
 }
 
 void IcingaApplication::NewLogHandler(const ConfigObject::Ptr& object)
@@ -290,8 +281,7 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 
 void IcingaApplication::DeletedComponentHandler(const ConfigObject::Ptr& object)
 {
-	Component::Ptr component = GetComponent(object->GetName());
-	UnregisterComponent(component);
+	Component::Unload(object->GetName());
 }
 
 string IcingaApplication::GetCertificateFile(void) const

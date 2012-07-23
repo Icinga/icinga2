@@ -60,14 +60,6 @@ Application::~Application(void)
 {
 	m_ShuttingDown = true;
 
-	/* stop all components */
-	Component::Ptr component;
-	BOOST_FOREACH(tie(tuples::ignore, component), m_Components) {
-		component->Stop();
-	}
-
-	m_Components.clear();
-
 #ifdef _WIN32
 	WSACleanup();
 #endif /* _WIN32 */
@@ -101,6 +93,8 @@ void Application::RunEventLoop(void)
 
 		Event::ProcessEvents(boost::get_system_time() + boost::posix_time::seconds(sleep));
 	}
+
+	Component::UnloadAll();
 }
 
 /**
@@ -110,103 +104,6 @@ void Application::RunEventLoop(void)
 void Application::Shutdown(void)
 {
 	m_ShuttingDown = true;
-}
-
-/**
- * Loads a component from a shared library.
- *
- * @param path The path of the component library.
- * @param componentConfig The configuration for the component.
- * @returns The component.
- */
-Component::Ptr Application::LoadComponent(const string& path,
-    const ConfigObject::Ptr& componentConfig)
-{
-	Component::Ptr component;
-	Component *(*pCreateComponent)();
-
-	assert(Application::IsMainThread());
-
-	Logger::Write(LogInformation, "base", "Loading component '" + path + "'");
-
-#ifdef _WIN32
-	HMODULE hModule = LoadLibrary(path.c_str());
-
-	if (hModule == NULL)
-		throw_exception(Win32Exception("LoadLibrary('" + path + "') failed", GetLastError()));
-#else /* _WIN32 */
-	lt_dlhandle hModule = lt_dlopen(path.c_str());
-
-	if (hModule == NULL) {
-		throw_exception(runtime_error("Could not load module '" + path + "': " +  lt_dlerror()));
-	}
-#endif /* _WIN32 */
-
-#ifdef _WIN32
-	pCreateComponent = (CreateComponentFunction)GetProcAddress(hModule,
-	    "CreateComponent");
-#else /* _WIN32 */
-#	ifdef __GNUC__
-	/* suppress compiler warning for void * cast */
-	__extension__
-#	endif
-	pCreateComponent = (CreateComponentFunction)lt_dlsym(hModule,
-	    "CreateComponent");
-#endif /* _WIN32 */
-
-	if (pCreateComponent == NULL)
-		throw_exception(runtime_error("Loadable module does not contain "
-		    "CreateComponent function"));
-
-	component = Component::Ptr(pCreateComponent());
-	component->SetConfig(componentConfig);
-	RegisterComponent(component);
-	return component;
-}
-
-/**
- * Registers a component object and starts it.
- *
- * @param component The component.
- */
-void Application::RegisterComponent(const Component::Ptr& component)
-{
-	m_Components[component->GetName()] = component;
-
-	component->Start();
-}
-
-/**
- * Unregisters a component object and stops it.
- *
- * @param component The component.
- */
-void Application::UnregisterComponent(const Component::Ptr& component)
-{
-	string name = component->GetName();
-
-	Logger::Write(LogInformation, "base", "Unloading component '" + name + "'");
-	map<string, Component::Ptr>::iterator i = m_Components.find(name);
-	if (i != m_Components.end())
-		m_Components.erase(i);
-		
-	component->Stop();
-}
-
-/**
- * Finds a loaded component by name.
- *
- * @param name The name of the component.
- * @returns The component or a null pointer if the component could not be found.
- */
-Component::Ptr Application::GetComponent(const string& name) const
-{
-	map<string, Component::Ptr>::const_iterator i = m_Components.find(name);
-
-	if (i == m_Components.end())
-		return Component::Ptr();
-
-	return i->second;
 }
 
 /**
@@ -274,20 +171,6 @@ string Application::GetExePath(void) const
 #endif /* _WIN32 */
 
 	return result;
-}
-
-/**
- * Adds a directory to the component search path.
- *
- * @param componentDirectory The directory.
- */
-void Application::AddComponentSearchDir(const string& componentDirectory)
-{
-#ifdef _WIN32
-	SetDllDirectory(componentDirectory.c_str());
-#else /* _WIN32 */
-	lt_dladdsearchdir(componentDirectory.c_str());
-#endif /* _WIN32 */
 }
 
 /**
