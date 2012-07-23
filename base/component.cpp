@@ -91,7 +91,6 @@ void Component::Load(const string& name, const ConfigObject::Ptr& config)
 
 	component->m_Name = name;
 	component->m_Config = config;
-	component->m_ModuleHandle = hModule;
 
 	try {
 		m_Components[name] = component;

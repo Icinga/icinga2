@@ -56,12 +56,6 @@ private:
 	string m_Name;
 	ConfigObject::Ptr m_Config;
 
-#ifdef _WIN32
-	HMODULE m_ModuleHandle;
-#else /* _WIN32 */
-	lt_dlhandle m_ModuleHandle;
-#endif /* _WIN32 */
-
 	static map<string, Component::Ptr> m_Components; /**< Components that
 					were loaded by the application. */
 };
