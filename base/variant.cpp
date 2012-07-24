@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <cJSON.h>
 
 using namespace icinga;
 
@@ -39,4 +40,76 @@ bool Variant::IsScalar(void) const
 bool Variant::IsObject(void) const
 {
 	return !IsEmpty() && (m_Value.type() == typeid(Object::Ptr));
+}
+
+Variant Variant::FromJson(cJSON *json)
+{
+	if (json->type == cJSON_Number)
+		return json->valuedouble;
+	else if (json->type == cJSON_String)
+		return json->valuestring;
+	else if (json->type == cJSON_True)
+		return 1;
+	else if (json->type == cJSON_False)
+		return 0;
+	else if (json->type == cJSON_Object)
+		return Dictionary::FromJson(json);
+	else if (json->type == cJSON_NULL)
+		return Variant();
+	else
+		throw invalid_argument("Unsupported JSON type.");
+}
+
+string Variant::Serialize(void) const
+{
+	cJSON *json = ToJson();
+
+	char *jsonString;
+
+	if (!Application::GetInstance()->IsDebugging())
+		jsonString = cJSON_Print(json);
+	else
+		jsonString = cJSON_PrintUnformatted(json);
+
+	cJSON_Delete(json);
+
+	string result = jsonString;
+
+	free(jsonString);
+
+	return result;
+}
+
+cJSON *Variant::ToJson(void) const
+{
+	if (m_Value.type() == typeid(long)) {
+		return cJSON_CreateNumber(boost::get<long>(m_Value));
+	} else if (m_Value.type() == typeid(double)) {
+		return cJSON_CreateNumber(boost::get<double>(m_Value));
+	} else if (m_Value.type() == typeid(string)) {
+		return cJSON_CreateString(boost::get<string>(m_Value).c_str());
+	} else if (m_Value.type() == typeid(Object::Ptr)) {
+		if (IsObjectType<Dictionary>()) {
+			Dictionary::Ptr dictionary = *this;
+			return dictionary->ToJson();
+		} else {
+			Logger::Write(LogDebug, "base", "Ignoring unknown object while converting variant to JSON.");
+			return cJSON_CreateNull();
+		}
+	} else {
+		throw runtime_error("Invalid variant type.");
+	}
+}
+
+Variant Variant::Deserialize(const string& jsonString)
+{
+	cJSON *json = cJSON_Parse(jsonString.c_str());
+
+	if (!json)
+		throw_exception(runtime_error("Invalid JSON string"));
+
+	Variant value = FromJson(json);
+	cJSON_Delete(json);
+
+	return value;
 }

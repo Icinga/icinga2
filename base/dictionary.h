@@ -105,6 +105,9 @@ public:
 
 	void Remove(const string& key);
 
+	static Dictionary::Ptr FromJson(cJSON *json);
+	cJSON *ToJson(void) const;
+
 private:
 	map<string, Variant> m_Data;
 };

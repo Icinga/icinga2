@@ -146,19 +146,6 @@ void Component::AddSearchDir(const string& componentDirectory)
 }
 
 /**
- * Constructor for the Component class.
- */
-Component::Component(void)
-	: m_ModuleHandle(0)
-{ }
-
-/**
- * Destructor for the Component class.
- */
-Component::~Component(void)
-{ }
-
-/**
  * Retrieves the name of the component.
  *
  * @returns Name of the component.

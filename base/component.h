@@ -35,9 +35,6 @@ public:
 	typedef shared_ptr<Component> Ptr;
 	typedef weak_ptr<Component> WeakPtr;
 
-	Component(void);
-	virtual ~Component(void);
-
 	ConfigObject::Ptr GetConfig(void) const;
 
 	virtual void Start(void);

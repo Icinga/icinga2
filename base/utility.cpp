@@ -245,3 +245,13 @@ string Utility::BaseName(const string& path)
 
 	return result;
 }
+
+/**
+ * Null deleter. Used as a parameter for the shared_ptr constructor.
+ *
+ * @param obj The object that should be deleted.
+ */
+void Utility::NullDeleter(void *obj)
+{
+	/* Nothing to do here. */
+}

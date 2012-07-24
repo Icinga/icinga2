@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <cJSON.h>
 
 using namespace icinga;
 
@@ -76,4 +77,49 @@ void Dictionary::Remove(const string& key)
 		return;
 
 	m_Data.erase(it);
+}
+
+/**
+ * Converts a JSON object to a dictionary.
+ *
+ * @param json The JSON object.
+ * @returns A dictionary that is equivalent to the JSON object.
+ */
+Dictionary::Ptr Dictionary::FromJson(cJSON *json)
+{
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+
+	if (json->type != cJSON_Object)
+		throw invalid_argument("JSON type must be cJSON_Object.");
+
+	for (cJSON *i = json->child; i != NULL; i = i->next) {
+		dictionary->Set(i->string, Variant::FromJson(i));
+	}
+
+	return dictionary;
+}
+
+/**
+ * Converts a dictionary to a JSON object.
+ *
+ * @param dictionary The dictionary.
+ * @returns A JSON object that is equivalent to the dictionary. Values that
+ *	    cannot be represented in JSON are omitted.
+ */
+cJSON *Dictionary::ToJson(void) const
+{
+	cJSON *json = cJSON_CreateObject();
+
+	try {
+		string key;
+		Variant value;
+		BOOST_FOREACH(tie(key, value), m_Data) {
+			cJSON_AddItemToObject(json, key.c_str(), value.ToJson());
+		}
+	} catch (...) {
+		cJSON_Delete(json);
+		throw;
+	}
+
+	return json;
 }

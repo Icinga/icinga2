@@ -105,11 +105,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\third-party\mmatch;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\third-party\mmatch;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -125,7 +125,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;mmatch.lib;libeay32MTd.lib;ssleay32MTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MTd.lib;ssleay32MTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
@@ -149,7 +149,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;mmatch.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>

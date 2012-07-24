@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "i2-jsonrpc.h"
-#include <cJSON.h>
 
 using namespace icinga;
 
@@ -28,24 +27,6 @@ using namespace icinga;
 MessagePart::MessagePart(void)
 {
 	m_Dictionary = boost::make_shared<Dictionary>();
-}
-
-/**
- * Constructor for the MessagePart class.
- *
- * @param jsonString The JSON string that should be used to initialize
- *		     the message.
- */
-MessagePart::MessagePart(string jsonString)
-{
-	json_t *json = cJSON_Parse(jsonString.c_str());
-
-	if (!json)
-		throw_exception(runtime_error("Invalid JSON string"));
-
-	m_Dictionary = GetDictionaryFromJson(json);
-
-	cJSON_Delete(json);
 }
 
 /**
@@ -66,91 +47,6 @@ MessagePart::MessagePart(const Dictionary::Ptr& dictionary)
 MessagePart::MessagePart(const MessagePart& message)
 {
 	m_Dictionary = message.GetDictionary();
-}
-
-/**
- * Converts a JSON object to a dictionary.
- *
- * @param json The JSON object.
- * @returns A dictionary that is equivalent to the JSON object.
- */
-Dictionary::Ptr MessagePart::GetDictionaryFromJson(json_t *json)
-{
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-
-	for (cJSON *i = json->child; i != NULL; i = i->next) {
-		switch (i->type) {
-			case cJSON_Number:
-				dictionary->Set(i->string, i->valueint);
-				break;
-			case cJSON_String:
-				dictionary->Set(i->string, i->valuestring);
-				break;
-			case cJSON_Object:
-				dictionary->Set(i->string, GetDictionaryFromJson(i));
-				break;
-			default:
-				break;
-		}
-	}
-
-	return dictionary;
-}
-
-/**
- * Converts a dictionary to a JSON object.
- *
- * @param dictionary The dictionary.
- * @returns A JSON object that is equivalent to the dictionary. Values that
- *	    cannot be represented in JSON are omitted.
- */
-json_t *MessagePart::GetJsonFromDictionary(const Dictionary::Ptr& dictionary)
-{
-	cJSON *json;
-	string valueString;
-	Dictionary::Ptr valueDictionary;
-
-	json = cJSON_CreateObject();
-
-	for (Dictionary::Iterator i = dictionary->Begin(); i != dictionary->End(); i++) {
-		if (i->second.IsScalar()) {
-			valueString = static_cast<string>(i->second);
-			cJSON_AddStringToObject(json, i->first.c_str(), valueString.c_str());
-		} else if (i->second.IsObjectType<Dictionary>()) {
-			cJSON_AddItemToObject(json, i->first.c_str(), GetJsonFromDictionary(i->second));
-		} else {
-			stringstream msgbuf;
-			msgbuf << "Dictionary serialization: Ignored property '" << i->first << "' (unknown type)";
-			Logger::Write(LogDebug, "jsonrpc", msgbuf.str());
-		}
-	}
-
-	return json;
-}
-
-/**
- * Converts a message into a JSON string.
- *
- * @returns A JSON string representing the message.
- */
-string MessagePart::ToJsonString(void) const
-{
-	json_t *json = GetJsonFromDictionary(m_Dictionary);
-	char *jsonString;
-	string result;
-
-	if (!Application::GetInstance()->IsDebugging())
-		jsonString = cJSON_Print(json);
-	else
-		jsonString = cJSON_PrintUnformatted(json);
-
-	cJSON_Delete(json);
-
-	result = jsonString;
-
-	free(jsonString);
-
-	return result;
 }
 
 /**

@@ -44,6 +44,8 @@ public:
 	static string DirName(const string& path);
 	static string BaseName(const string& path);
 
+	static void NullDeleter(void *obj);
+
 private:
 	static bool m_SSLInitialized;
 

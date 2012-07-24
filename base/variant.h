@@ -20,6 +20,8 @@
 #ifndef VARIANT_H
 #define VARIANT_H
 
+struct cJSON;
+
 namespace icinga
 {
 
@@ -127,6 +129,12 @@ public:
 
 		return (dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value)));
 	}
+
+	static Variant FromJson(cJSON *json);
+	cJSON *ToJson(void) const;
+
+	string Serialize(void) const;
+	static Variant Deserialize(const string& jsonString);
 
 private:
 	mutable boost::variant<boost::blank, long, double, string, Object::Ptr> m_Value;

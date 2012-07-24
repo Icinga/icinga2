@@ -36,11 +36,8 @@ class I2_JSONRPC_API MessagePart
 {
 public:
 	MessagePart(void);
-	MessagePart(string json);
 	MessagePart(const Dictionary::Ptr& dictionary);
 	MessagePart(const MessagePart& message);
-
-	string ToJsonString(void) const;
 
 	Dictionary::Ptr GetDictionary(void) const;
 
@@ -92,9 +89,6 @@ public:
 
 private:
 	Dictionary::Ptr m_Dictionary;
-
-	static Dictionary::Ptr GetDictionaryFromJson(json_t *json);
-	static json_t *GetJsonFromDictionary(const Dictionary::Ptr& dictionary);
 };
 
 }
