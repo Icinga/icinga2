@@ -24,6 +24,8 @@ libbase_la_SOURCES =  \
 	ioqueue.h \
 	logger.cpp \
 	logger.h \
+	netstring.cpp \
+	netstring.h \
 	object.cpp \
 	object.h \
 	objectset.cpp \
@@ -71,6 +73,7 @@ libbase_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	$(OPENSSL_INCLUDES) \
 	-I${top_srcdir}/third-party/mmatch \
+	-I${top_srcdir}/third-party/cJSON \
 	-I${top_srcdir}/third-party/popen-noshell
 
 libbase_la_LDFLAGS = \
@@ -86,4 +89,5 @@ libbase_la_LIBADD = \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	${top_builddir}/third-party/mmatch/libmmatch.la \
+	${top_builddir}/third-party/cJSON/libcJSON.la \
 	${top_builddir}/third-party/popen-noshell/libpopen_noshell.la

@@ -12,8 +12,6 @@ libjsonrpc_la_SOURCES = \
 	jsonrpcserver.h \
 	messagepart.cpp \
 	messagepart.h \
-	netstring.cpp \
-	netstring.h \
 	requestmessage.cpp \
 	requestmessage.h \
 	responsemessage.cpp \
@@ -22,8 +20,7 @@ libjsonrpc_la_SOURCES = \
 libjsonrpc_la_CPPFLAGS = \
 	-DI2_JSONRPC_BUILD \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/base \
-	-I${top_srcdir}/third-party/cJSON
+	-I${top_srcdir}/base
 
 libjsonrpc_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
@@ -32,5 +29,4 @@ libjsonrpc_la_LDFLAGS = \
 	@VERSION_INFO@
 
 libjsonrpc_la_LIBADD = \
-	${top_builddir}/base/libbase.la \
-	${top_builddir}/third-party/cJSON/libcJSON.la
+	${top_builddir}/base/libbase.la

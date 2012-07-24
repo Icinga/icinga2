@@ -19,10 +19,6 @@
 
 #include "i2-base.h"
 
-#ifndef _WIN32
-#	include <ltdl.h>
-#endif
-
 using namespace icinga;
 
 Application::Ptr Application::m_Instance;

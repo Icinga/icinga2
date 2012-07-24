@@ -305,10 +305,10 @@ void ConfigObject::RestoreObjects(const string& filename)
 			continue;
 
 		ConfigObject::Ptr object = boost::make_shared<ConfigObject>(properties);
+		object->SetTags(tags);
 
 		if (!object->GetSource().empty()) {
 			/* restore replicated objects right away */
-			object->SetTags(tags);
 			object->Commit();
 		} else {
 			/* keep non-replicated objects until another config object with
