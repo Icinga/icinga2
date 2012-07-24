@@ -38,9 +38,6 @@ public:
 	bool GetStateType(ServiceStateType *type) const;
 	void SetStateType(ServiceStateType type);
 
-	bool GetCurrentCheckAttempt(long *attempt) const;
-	void SetCurrentCheckAttempt(long attempt);
-
 	bool GetCheckResult(CheckResult *cr) const;
 	void SetCheckResult(CheckResult cr);
 };

@@ -152,6 +152,9 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 	if (oldServices) {
 		ConfigItem::Ptr service;
 		BOOST_FOREACH(tie(tuples::ignore, service), oldServices) {
+			if (!service)
+				continue;
+
 			if (!newServices->Contains(service->GetName()))
 				service->Unregister();
 		}

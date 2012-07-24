@@ -107,17 +107,11 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 		if (vresult.IsObjectType<Dictionary>()) {
 			CheckResult result = CheckResult(static_cast<Dictionary::Ptr>(vresult));
 
-			/* update service state */
-			service.ApplyCheckResult(result);
-
 			RequestMessage rm;
 			rm.SetMethod("checker::CheckResult");
 
 			ServiceStatusMessage params;
 			params.SetService(service.GetName());
-			params.SetState(service.GetState());
-			params.SetStateType(service.GetStateType());
-			params.SetCurrentCheckAttempt(service.GetCurrentCheckAttempt());
 			params.SetCheckResult(result);
 
 			rm.SetParams(params);

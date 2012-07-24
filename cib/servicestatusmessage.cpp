@@ -61,16 +61,6 @@ void ServiceStatusMessage::SetStateType(ServiceStateType type)
 	Set("state_type", static_cast<long>(type));
 }
 
-bool ServiceStatusMessage::GetCurrentCheckAttempt(long *attempt) const
-{
-	return Get("current_attempt", attempt);
-}
-
-void ServiceStatusMessage::SetCurrentCheckAttempt(long attempt)
-{
-	Set("current_attempt", attempt);
-}
-
 bool ServiceStatusMessage::GetCheckResult(CheckResult *cr) const
 {
 	Dictionary::Ptr obj;

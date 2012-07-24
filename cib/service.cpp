@@ -301,6 +301,12 @@ time_t Service::GetLastHardStateChange(void) const
 
 void Service::ApplyCheckResult(const CheckResult& cr)
 {
+	time_t now;
+	time(&now);
+
+	ServiceState old_state = GetState();
+	ServiceStateType old_stateType = GetStateType();
+
 	long attempt = GetCurrentCheckAttempt();
 
 	if (cr.GetState() == StateOK) {
@@ -320,6 +326,17 @@ void Service::ApplyCheckResult(const CheckResult& cr)
 
 	SetCurrentCheckAttempt(attempt);
 	SetState(cr.GetState());
+
+	SetLastCheckResult(cr);
+
+	if (old_state != GetState()) {
+		SetLastStateChange(now);
+
+		if (old_stateType != GetStateType())
+			SetLastHardStateChange(now);
+	}
+
+	UpdateNextCheck();
 }
 
 ServiceState Service::StateFromString(const string& state)

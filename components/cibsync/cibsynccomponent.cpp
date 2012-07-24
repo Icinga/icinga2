@@ -91,35 +91,9 @@ void CIBSyncComponent::ServiceStatusRequestHandler(const Endpoint::Ptr& sender, 
 
 	Service service = Service::GetByName(svcname);
 
-	ServiceState state;
-	ServiceStateType stateType;
-	if (params.GetState(&state) && params.GetStateType(&stateType)) {
-		ServiceState old_state = service.GetState();
-		ServiceStateType old_stateType = service.GetStateType();
-
-		if (state != old_state) {
-			time_t now;
-			time(&now);
-
-			service.SetLastStateChange(now);
-
-			if (old_stateType != stateType)
-				service.SetLastHardStateChange(now);
-		}
-
-		service.SetState(state);
-		service.SetStateType(stateType);
-	}
-
-	long attempt;
-	if (params.GetCurrentCheckAttempt(&attempt))
-		service.SetCurrentCheckAttempt(attempt);
-
 	CheckResult cr;
 	if (params.GetCheckResult(&cr))
-		service.SetLastCheckResult(cr);
-
-	service.UpdateNextCheck();
+		service.ApplyCheckResult(cr);
 
 	time_t now;
 	time(&now);
