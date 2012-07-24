@@ -202,7 +202,7 @@ void Service::UpdateNextCheck(void)
 	else
 		interval = GetCheckInterval();
 
-	next = now + ((now - previous) / interval + 1) * interval;
+	next = (now - previous % interval) + interval;
 	SetNextCheck(next);
 }
 
