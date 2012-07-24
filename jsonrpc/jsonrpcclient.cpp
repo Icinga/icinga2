@@ -56,7 +56,7 @@ void JsonRpcClient::DataAvailableHandler(void)
 			Variant value = Variant::Deserialize(jsonString);
 
 			if (!value.IsObjectType<Dictionary>())
-				throw invalid_argument("JSON-RPC message must be a dictionary.");
+				throw_exception(invalid_argument("JSON-RPC message must be a dictionary."));
 
 			OnNewMessage(GetSelf(), MessagePart(value));
 		} catch (const exception& ex) {

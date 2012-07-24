@@ -57,7 +57,7 @@ Variant Variant::FromJson(cJSON *json)
 	else if (json->type == cJSON_NULL)
 		return Variant();
 	else
-		throw invalid_argument("Unsupported JSON type.");
+		throw_exception(invalid_argument("Unsupported JSON type."));
 }
 
 string Variant::Serialize(void) const
@@ -99,7 +99,7 @@ cJSON *Variant::ToJson(void) const
 	} else if (m_Value.type() == typeid(boost::blank)) {
 		return cJSON_CreateNull();
 	} else {
-		throw runtime_error("Invalid variant type.");
+		throw_exception(runtime_error("Invalid variant type."));
 	}
 }
 
