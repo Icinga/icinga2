@@ -150,6 +150,13 @@ int IcingaApplication::Main(const vector<string>& args)
 	componentObjects->OnObjectRemoved.connect(boost::bind(&IcingaApplication::DeletedComponentHandler, this, _2));
 	componentObjects->Start();
 
+	/* load cibsync config component */
+	ConfigItemBuilder::Ptr cibsyncComponentConfig = boost::make_shared<ConfigItemBuilder>();
+	cibsyncComponentConfig->SetType("component");
+	cibsyncComponentConfig->SetName("cibsync");
+	cibsyncComponentConfig->SetLocal(true);
+	cibsyncComponentConfig->Compile()->Commit();
+
 	/* load convenience config component */
 	ConfigItemBuilder::Ptr convenienceComponentConfig = boost::make_shared<ConfigItemBuilder>();
 	convenienceComponentConfig->SetType("component");
