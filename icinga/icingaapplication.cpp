@@ -42,6 +42,14 @@ IcingaApplication::IcingaApplication(void)
  */
 int IcingaApplication::Main(const vector<string>& args)
 {
+	/* restore the previous program state */
+	ConfigObject::RestoreObjects("retention.dat");
+
+	m_RetentionTimer = boost::make_shared<Timer>();
+	m_RetentionTimer->SetInterval(60);
+	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::RetentionTimerHandler, this));
+	m_RetentionTimer->Start();
+
 	/* register handler for 'log' config objects */
 	static ConfigObject::Set::Ptr logObjects = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("log"));
 	logObjects->OnObjectAdded.connect(boost::bind(&IcingaApplication::NewLogHandler, this, _2));
@@ -211,6 +219,10 @@ int IcingaApplication::Main(const vector<string>& args)
 	RunEventLoop();
 
 	return EXIT_SUCCESS;
+}
+
+void IcingaApplication::RetentionTimerHandler(void) {
+	ConfigObject::DumpObjects("retention.dat");
 }
 
 void IcingaApplication::NewComponentHandler(const ConfigObject::Ptr& object)

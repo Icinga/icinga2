@@ -19,9 +19,6 @@
     <ClCompile Include="exception.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="fifo.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="object.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -88,6 +85,12 @@
     <ClCompile Include="i2-base.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="fifo.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="netstring.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -109,9 +112,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="exception.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="fifo.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="i2-base.h">
@@ -181,6 +181,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="ioqueue.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="fifo.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="netstring.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -75,7 +75,12 @@ public:
 	operator long(void) const
 	{
 		if (m_Value.type() != typeid(long)) {
-			return boost::lexical_cast<long>(m_Value);
+			if (m_Value.type() == typeid(double)) {
+				// TODO: log this?
+				return boost::get<double>(m_Value);
+			} else {
+				return boost::lexical_cast<long>(m_Value);
+			}
 		} else {
 			return boost::get<long>(m_Value);
 		}
@@ -109,6 +114,9 @@ public:
 	template<typename T>
 	operator shared_ptr<T>(void) const
 	{
+		if (IsEmpty())
+			return shared_ptr<T>();
+
 		shared_ptr<T> object = dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value));
 
 		if (!object)

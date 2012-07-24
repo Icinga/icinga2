@@ -28,9 +28,9 @@ namespace icinga
  *
  * @see http://cr.yp.to/proto/netstrings.txt
  *
- * @ingroup jsonrpc
+ * @ingroup base
  */
-class I2_JSONRPC_API Netstring
+class I2_BASE_API Netstring
 {
 public:
 	static bool ReadStringFromIOQueue(IOQueue *queue, string *message);

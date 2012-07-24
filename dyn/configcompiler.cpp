@@ -74,7 +74,7 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& path)
 	ifstream stream;
 	stream.open(path.c_str(), ifstream::in);
 
-	if (!stream.good())
+	if (!stream)
 		throw_exception(invalid_argument("Could not open config file: " + path));
 
 	Logger::Write(LogInformation, "dyn", "Compiling config file: " + path);

@@ -23,6 +23,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="logger.cpp" />
+    <ClCompile Include="netstring.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="objectmap.cpp" />
     <ClCompile Include="objectset.cpp" />
@@ -51,14 +52,15 @@
     <ClInclude Include="configobject.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="event.h" />
+    <ClInclude Include="fifo.h" />
     <ClInclude Include="ioqueue.h" />
+    <ClInclude Include="netstring.h" />
     <ClInclude Include="scriptfunction.h" />
     <ClInclude Include="scripttask.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="objectmap.h" />
     <ClInclude Include="objectset.h" />
     <ClInclude Include="exception.h" />
-    <ClInclude Include="fifo.h" />
     <ClInclude Include="i2-base.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="process.h" />

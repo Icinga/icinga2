@@ -13,9 +13,6 @@
     <ClCompile Include="messagepart.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="netstring.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="requestmessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -34,9 +31,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="messagepart.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="netstring.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="requestmessage.h">

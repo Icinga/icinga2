@@ -61,6 +61,10 @@ private:
 
 	time_t m_StartTime;
 
+	Timer::Ptr m_RetentionTimer;
+
+	void RetentionTimerHandler(void);
+
 	void NewComponentHandler(const ConfigObject::Ptr& object);
 	void DeletedComponentHandler(const ConfigObject::Ptr& object);
 

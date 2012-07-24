@@ -100,7 +100,9 @@ using std::pair;
 using std::deque;
 
 using std::stringstream;
+using std::istream;
 using std::ostream;
+using std::ifstream;
 using std::ofstream;
 
 using std::exception;
@@ -171,6 +173,7 @@ namespace tuples = boost::tuples;
 #include "ringbuffer.h"
 #include "timer.h"
 #include "ioqueue.h"
+#include "netstring.h"
 #include "fifo.h"
 #include "socket.h"
 #include "tcpsocket.h"

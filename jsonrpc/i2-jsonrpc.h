@@ -39,7 +39,6 @@
 #include "messagepart.h"
 #include "requestmessage.h"
 #include "responsemessage.h"
-#include "netstring.h"
 #include "jsonrpcclient.h"
 #include "jsonrpcserver.h"
 

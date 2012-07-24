@@ -17,7 +17,6 @@
     <ClInclude Include="responsemessage.h" />
     <ClInclude Include="jsonrpcserver.h" />
     <ClInclude Include="messagepart.h" />
-    <ClInclude Include="netstring.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="i2-jsonrpc.cpp">
@@ -29,7 +28,6 @@
     <ClCompile Include="responsemessage.cpp" />
     <ClCompile Include="jsonrpcserver.cpp" />
     <ClCompile Include="messagepart.cpp" />
-    <ClCompile Include="netstring.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}</ProjectGuid>

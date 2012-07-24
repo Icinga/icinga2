@@ -40,7 +40,7 @@ public:
 
 	ConfigObject(Dictionary::Ptr properties, const Set::Ptr& container = Set::Ptr());
 
-	void SetProperties(Dictionary::Ptr config);
+	void SetProperties(const Dictionary::Ptr& config);
 	Dictionary::Ptr GetProperties(void) const;
 
 	template<typename T>
@@ -49,6 +49,7 @@ public:
 		return GetProperties()->Get(key, value);
 	}
 
+	void SetTags(const Dictionary::Ptr& tags);
 	Dictionary::Ptr GetTags(void) const;
 
 	template<typename T>
@@ -93,10 +94,15 @@ public:
 
 	static function<bool (ConfigObject::Ptr)> MakeTypePredicate(string type);
 
+	static void DumpObjects(const string& filename);
+	static void RestoreObjects(const string& filename);
+
 private:
 	Set::Ptr m_Container;
 	Dictionary::Ptr m_Properties;
 	Dictionary::Ptr m_Tags;
+
+	static map<pair<string, string>, ConfigObject::Ptr> m_RetainedObjects;
 
 	void SetCommitTimestamp(time_t ts);
 
