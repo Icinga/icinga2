@@ -21,19 +21,18 @@
 
 using namespace icinga;
 
-map<pair<string, string>, ConfigObject::Ptr> ConfigObject::m_RetainedObjects;
+map<pair<string, string>, Dictionary::Ptr> ConfigObject::m_PersistentTags;
 
 ConfigObject::ConfigObject(Dictionary::Ptr properties, const ConfigObject::Set::Ptr& container)
 	: m_Container(container ? container : GetAllObjects()),
 	m_Properties(properties), m_Tags(boost::make_shared<Dictionary>())
 {
 	/* restore the object's tags */
-	map<pair<string, string>, ConfigObject::Ptr>::iterator it;
-	it = m_RetainedObjects.find(make_pair(GetType(), GetName()));
-	if (it != m_RetainedObjects.end()) {
-		ConfigObject::Ptr retainedObject = it->second;
-		m_Tags = retainedObject->GetTags();
-		m_RetainedObjects.erase(it);
+	map<pair<string, string>, Dictionary::Ptr>::iterator it;
+	it = m_PersistentTags.find(make_pair(GetType(), GetName()));
+	if (it != m_PersistentTags.end()) {
+		m_Tags = it->second;
+		m_PersistentTags.erase(it);
 	}
 }
 
@@ -247,7 +246,14 @@ void ConfigObject::DumpObjects(const string& filename)
 	BOOST_FOREACH(const ConfigObject::Ptr object, ConfigObject::GetAllObjects()) {
 		Dictionary::Ptr persistentObject = boost::make_shared<Dictionary>();
 
-		persistentObject->Set("properties", object->GetProperties());
+		persistentObject->Set("type", object->GetType());
+		persistentObject->Set("name", object->GetName());
+
+		/* only persist properties for replicated objects or for objects
+		 * that are marked as persistent */
+		if (!object->GetSource().empty() /*|| object->IsPersistent()*/)
+			persistentObject->Set("properties", object->GetProperties());
+
 		persistentObject->Set("tags", object->GetTags());
 
 		Variant value = persistentObject;
@@ -296,24 +302,27 @@ void ConfigObject::RestoreObjects(const string& filename)
 
 		Dictionary::Ptr persistentObject = value;
 
-		Dictionary::Ptr properties;
-		if (!persistentObject->Get("properties", &properties))
+		string type;
+		if (!persistentObject->Get("type", &type))
+			continue;
+
+		string name;
+		if (!persistentObject->Get("name", &name))
 			continue;
 
 		Dictionary::Ptr tags;
 		if (!persistentObject->Get("tags", &tags))
 			continue;
 
-		ConfigObject::Ptr object = boost::make_shared<ConfigObject>(properties);
-		object->SetTags(tags);
-
-		if (!object->GetSource().empty()) {
-			/* restore replicated objects right away */
+		Dictionary::Ptr properties;
+		if (persistentObject->Get("properties", &properties)) {
+			ConfigObject::Ptr object = boost::make_shared<ConfigObject>(properties);
+			object->SetTags(tags);
 			object->Commit();
 		} else {
 			/* keep non-replicated objects until another config object with
 			 * the same name is created (which is when we restore its tags) */
-			m_RetainedObjects[make_pair(object->GetType(), object->GetName())] = object;
+			m_PersistentTags[make_pair(type, name)] = tags;
 		}
 	}
 }

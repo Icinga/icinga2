@@ -102,7 +102,7 @@ private:
 	Dictionary::Ptr m_Properties;
 	Dictionary::Ptr m_Tags;
 
-	static map<pair<string, string>, ConfigObject::Ptr> m_RetainedObjects;
+	static map<pair<string, string>, Dictionary::Ptr> m_PersistentTags;
 
 	void SetCommitTimestamp(time_t ts);
 
