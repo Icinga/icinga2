@@ -96,6 +96,8 @@ cJSON *Variant::ToJson(void) const
 			Logger::Write(LogDebug, "base", "Ignoring unknown object while converting variant to JSON.");
 			return cJSON_CreateNull();
 		}
+	} else if (m_Value.type() == typeid(boost::blank)) {
+		return cJSON_CreateNull();
 	} else {
 		throw runtime_error("Invalid variant type.");
 	}
