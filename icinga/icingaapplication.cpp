@@ -225,6 +225,8 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	RunEventLoop();
 
+	Logger::Write(LogInformation, "icinga", "Icinga shutting down.");
+
 	return EXIT_SUCCESS;
 }
 
