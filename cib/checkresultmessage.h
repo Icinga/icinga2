@@ -26,8 +26,8 @@ namespace icinga
 class I2_CIB_API CheckResultMessage : public MessagePart
 {
 public:
-	ServiceStatusMessage(void) : MessagePart() { }
-	ServiceStatusMessage(const MessagePart& message) : MessagePart(message) { }
+	CheckResultMessage(void) : MessagePart() { }
+	CheckResultMessage(const MessagePart& message) : MessagePart(message) { }
 
 	bool GetService(string *service) const;
 	void SetService(const string& service);
