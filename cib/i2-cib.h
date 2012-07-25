@@ -47,7 +47,7 @@
 #include "nagioschecktask.h"
 #include "nullchecktask.h"
 
-#include "servicestatusmessage.h"
+#include "checkresultmessage.h"
 
 #include "cib.h"
 

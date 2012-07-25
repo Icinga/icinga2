@@ -60,8 +60,8 @@ void CIBSyncComponent::Start(void)
 	    boost::bind(&CIBSyncComponent::RemoteObjectRemovedHandler, this, _3));
 
 	/* service status */
-	m_Endpoint->RegisterTopicHandler("delegation::ServiceStatus",
-	    boost::bind(&CIBSyncComponent::ServiceStatusRequestHandler, _2, _3));
+	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
+	    boost::bind(&CIBSyncComponent::CheckResultRequestHandler, _2, _3));
 
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 }
@@ -77,13 +77,11 @@ void CIBSyncComponent::Stop(void)
 		endpointManager->UnregisterEndpoint(m_Endpoint);
 }
 
-void CIBSyncComponent::ServiceStatusRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void CIBSyncComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	ServiceStatusMessage params;
+	CheckResultMessage params;
 	if (!request.GetParams(&params))
 		return;
-
-	CIB::OnServiceStatusUpdate(params);
 
 	string svcname;
 	if (!params.GetService(&svcname))
@@ -92,8 +90,11 @@ void CIBSyncComponent::ServiceStatusRequestHandler(const Endpoint::Ptr& sender, 
 	Service service = Service::GetByName(svcname);
 
 	CheckResult cr;
-	if (params.GetCheckResult(&cr))
-		service.ApplyCheckResult(cr);
+	if (!params.GetCheckResult(&cr))
+		return;
+
+	CIB::OnCheckResultReceived(params);
+	service.ApplyCheckResult(cr);
 
 	time_t now;
 	time(&now);

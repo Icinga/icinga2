@@ -43,8 +43,6 @@ void DelegationComponent::Start(void)
 	m_Endpoint = boost::make_shared<VirtualEndpoint>();
 	m_Endpoint->RegisterPublication("checker::AssignService");
 	m_Endpoint->RegisterPublication("checker::ClearServices");
-	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
-	    boost::bind(&DelegationComponent::CheckResultRequestHandler, this, _2, _3));
 	m_Endpoint->RegisterPublication("delegation::ServiceStatus");
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
@@ -293,29 +291,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 	stringstream msgbuf;
 	msgbuf << "Updated delegations for " << delegated << " services";
 	Logger::Write(LogInformation, "delegation", msgbuf.str());
-}
-
-void DelegationComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
-{
-	ServiceStatusMessage params;
-	if (!request.GetParams(&params))
-		return;
-
-	string svcname;
-	if (!params.GetService(&svcname))
-		return;
-
-	Service service = Service::GetByName(svcname);
-
-	/* validate that this is an authentic check result */
-	if (!service.IsAllowedChecker(sender->GetIdentity()))
-		return;
-
-	/* send state update */
-	RequestMessage rm;
-	rm.SetMethod("delegation::ServiceStatus");
-	rm.SetParams(params);
-	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
 }
 
 EXPORT_COMPONENT(delegation, DelegationComponent);

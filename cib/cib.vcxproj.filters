@@ -41,7 +41,7 @@
     <ClInclude Include="servicegroup.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="servicestatusmessage.h">
+    <ClInclude Include="checkresultmessage.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="nullchecktask.h">
@@ -76,7 +76,7 @@
     <ClCompile Include="servicegroup.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="servicestatusmessage.cpp">
+    <ClCompile Include="checkresultmessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="i2-cib.cpp">

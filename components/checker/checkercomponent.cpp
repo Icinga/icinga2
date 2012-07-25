@@ -110,7 +110,7 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 			RequestMessage rm;
 			rm.SetMethod("checker::CheckResult");
 
-			ServiceStatusMessage params;
+			CheckResultMessage params;
 			params.SetService(service.GetName());
 			params.SetCheckResult(result);
 

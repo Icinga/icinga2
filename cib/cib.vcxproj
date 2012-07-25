@@ -93,7 +93,7 @@
     <ClInclude Include="nullchecktask.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />
-    <ClInclude Include="servicestatusmessage.h" />
+    <ClInclude Include="checkresultmessage.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="checkresult.cpp" />
@@ -110,7 +110,7 @@
     <ClCompile Include="nullchecktask.cpp" />
     <ClCompile Include="service.cpp" />
     <ClCompile Include="servicegroup.cpp" />
-    <ClCompile Include="servicestatusmessage.cpp" />
+    <ClCompile Include="checkresultmessage.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

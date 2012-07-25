@@ -17,61 +17,25 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-cib.h"
+#ifndef CHECKRESULTMESSAGE_H
+#define CHECKRESULTMESSAGE_H
 
-using namespace icinga;
-
-bool ServiceStatusMessage::GetService(string *service) const
+namespace icinga
 {
-	return Get("service", service);
+
+class I2_CIB_API CheckResultMessage : public MessagePart
+{
+public:
+	ServiceStatusMessage(void) : MessagePart() { }
+	ServiceStatusMessage(const MessagePart& message) : MessagePart(message) { }
+
+	bool GetService(string *service) const;
+	void SetService(const string& service);
+
+	bool GetCheckResult(CheckResult *cr) const;
+	void SetCheckResult(CheckResult cr);
+};
+
 }
 
-void ServiceStatusMessage::SetService(const string& service)
-{
-	Set("service", service);
-}
-
-bool ServiceStatusMessage::GetState(ServiceState *state) const
-{
-	long value;
-	if (Get("state", &value)) {
-		*state = static_cast<ServiceState>(value);
-		return true;
-	}
-	return false;
-}
-
-void ServiceStatusMessage::SetState(ServiceState state)
-{
-	Set("state", static_cast<long>(state));
-}
-
-bool ServiceStatusMessage::GetStateType(ServiceStateType *type) const
-{
-	long value;
-	if (Get("state_type", &value)) {
-		*type = static_cast<ServiceStateType>(value);
-		return true;
-	}
-	return false;
-}
-
-void ServiceStatusMessage::SetStateType(ServiceStateType type)
-{
-	Set("state_type", static_cast<long>(type));
-}
-
-bool ServiceStatusMessage::GetCheckResult(CheckResult *cr) const
-{
-	Dictionary::Ptr obj;
-	if (Get("result", &obj)) {
-		*cr = CheckResult(MessagePart(obj));
-		return true;
-	}
-	return false;
-}
-
-void ServiceStatusMessage::SetCheckResult(CheckResult cr)
-{
-	Set("result", cr.GetDictionary());
-}
+#endif /* CHECKRESULTMESSAGE_H */

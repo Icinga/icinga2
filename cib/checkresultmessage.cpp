@@ -17,31 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SERVICESTATUSMESSAGE_H
-#define SERVICESTATUSMESSAGE_H
+#include "i2-cib.h"
 
-namespace icinga
+using namespace icinga;
+
+bool CheckResultMessage::GetService(string *service) const
 {
-
-class I2_CIB_API ServiceStatusMessage : public MessagePart
-{
-public:
-	ServiceStatusMessage(void) : MessagePart() { }
-	ServiceStatusMessage(const MessagePart& message) : MessagePart(message) { }
-
-	bool GetService(string *service) const;
-	void SetService(const string& service);
-
-	bool GetState(ServiceState *state) const;
-	void SetState(ServiceState state);
-
-	bool GetStateType(ServiceStateType *type) const;
-	void SetStateType(ServiceStateType type);
-
-	bool GetCheckResult(CheckResult *cr) const;
-	void SetCheckResult(CheckResult cr);
-};
-
+	return Get("service", service);
 }
 
-#endif /* SERVICESTATUSMESSAGE_H */
+void CheckResultMessage::SetService(const string& service)
+{
+	Set("service", service);
+}
+
+bool CheckResultMessage::GetCheckResult(CheckResult *cr) const
+{
+	Dictionary::Ptr obj;
+	if (Get("result", &obj)) {
+		*cr = CheckResult(MessagePart(obj));
+		return true;
+	}
+	return false;
+}
+
+void CheckResultMessage::SetCheckResult(CheckResult cr)
+{
+	Set("result", cr.GetDictionary());
+}

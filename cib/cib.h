@@ -29,7 +29,7 @@ public:
 	static void UpdateTaskStatistics(long tv, int num);
 	static int GetTaskStatistics(long timespan);
 
-	static boost::signal<void (const ServiceStatusMessage&)> OnServiceStatusUpdate;
+	static boost::signal<void (const CheckResultMessage&)> OnCheckResultReceived;
 
 private:
 	static RingBuffer m_TaskStatistics;

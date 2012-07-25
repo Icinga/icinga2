@@ -6,6 +6,8 @@ pkglib_LTLIBRARIES = \
 libcib_la_SOURCES = \
 	checkresult.cpp \
 	checkresult.h \
+	checkresultmessage.cpp \
+	checkresultmessage.h \
 	cib.cpp \
 	cib.h \
 	configobjectadapter.cpp \
@@ -24,9 +26,7 @@ libcib_la_SOURCES = \
 	service.cpp \
 	service.h \
 	servicegroup.cpp \
-	servicegroup.h \
-	servicestatusmessage.cpp \
-	servicestatusmessage.h
+	servicegroup.h
 
 libcib_la_CPPFLAGS = \
 	-DI2_CIB_BUILD \
