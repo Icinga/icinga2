@@ -26,8 +26,7 @@ void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Missing argument: Service must be specified."));
 
-	time_t now;
-	time(&now);
+	double now = Utility::GetTime();
 
 	CheckResult cr;
 	cr.SetScheduleStart(now);

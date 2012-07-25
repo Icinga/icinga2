@@ -175,35 +175,48 @@ bool Service::IsReachable(void) const
 	return true;
 }
 
-void Service::SetNextCheck(time_t nextCheck)
+void Service::SetSchedulingOffset(long offset)
 {
-	SetTag("next_check", (long)nextCheck);
+	SetTag("scheduling_offset", offset);
 }
 
-time_t Service::GetNextCheck(void)
+long Service::GetSchedulingOffset(void)
 {
 	long value;
+	if (!GetTag("scheduling_offset", &value)) {
+		value = rand();
+		SetSchedulingOffset(value);
+	}
+	return value;
+}
+
+void Service::SetNextCheck(double nextCheck)
+{
+	SetTag("next_check", nextCheck);
+}
+
+double Service::GetNextCheck(void)
+{
+	double value;
 	if (!GetTag("next_check", &value)) {
-		value = time(NULL) + rand() % GetCheckInterval();
-		SetNextCheck(value);
+		UpdateNextCheck();
+		return GetNextCheck();
 	}
 	return value;
 }
 
 void Service::UpdateNextCheck(void)
 {
-	time_t now, previous, next, interval;
-
-	time(&now);
-	previous = GetNextCheck();
+	double interval;
 
 	if (GetStateType() == StateTypeSoft)
 		interval = GetRetryInterval();
 	else
 		interval = GetCheckInterval();
 
-	next = (now - previous % interval) + interval;
-	SetNextCheck(next);
+	double now = Utility::GetTime();
+	double adj = fmod(now + GetSchedulingOffset(), interval);
+	SetNextCheck(now - adj + interval);
 }
 
 void Service::SetChecker(const string& checker)
@@ -273,12 +286,12 @@ CheckResult Service::GetLastCheckResult(void) const
 	return CheckResult(value);
 }
 
-void Service::SetLastStateChange(time_t ts)
+void Service::SetLastStateChange(double ts)
 {
 	SetTag("last_state_change", static_cast<long>(ts));
 }
 
-time_t Service::GetLastStateChange(void) const
+double Service::GetLastStateChange(void) const
 {
 	long value;
 	if (!GetTag("last_state_change", &value))
@@ -286,14 +299,14 @@ time_t Service::GetLastStateChange(void) const
 	return value;
 }
 
-void Service::SetLastHardStateChange(time_t ts)
+void Service::SetLastHardStateChange(double ts)
 {
-	SetTag("last_hard_state_change", static_cast<long>(ts));
+	SetTag("last_hard_state_change", ts);
 }
 
-time_t Service::GetLastHardStateChange(void) const
+double Service::GetLastHardStateChange(void) const
 {
-	long value;
+	double value;
 	if (!GetTag("last_hard_state_change", &value))
 		value = IcingaApplication::GetInstance()->GetStartTime();
 	return value;
@@ -301,9 +314,6 @@ time_t Service::GetLastHardStateChange(void) const
 
 void Service::ApplyCheckResult(const CheckResult& cr)
 {
-	time_t now;
-	time(&now);
-
 	ServiceState old_state = GetState();
 	ServiceStateType old_stateType = GetStateType();
 
@@ -330,6 +340,8 @@ void Service::ApplyCheckResult(const CheckResult& cr)
 	SetLastCheckResult(cr);
 
 	if (old_state != GetState()) {
+		double now = Utility::GetTime();
+
 		SetLastStateChange(now);
 
 		if (old_stateType != GetStateType())

@@ -29,17 +29,17 @@ public:
 	CheckResult(void);
 	CheckResult(const MessagePart& message);
 
-	void SetScheduleStart(time_t ts);
-	time_t GetScheduleStart(void) const;
+	void SetScheduleStart(double ts);
+	double GetScheduleStart(void) const;
 
-	void SetScheduleEnd(time_t ts);
-	time_t GetScheduleEnd(void) const;
+	void SetScheduleEnd(double ts);
+	double GetScheduleEnd(void) const;
 
-	void SetExecutionStart(time_t ts);
-	time_t GetExecutionStart(void) const;
+	void SetExecutionStart(double ts);
+	double GetExecutionStart(void) const;
 
-	void SetExecutionEnd(time_t ts);
-	time_t GetExecutionEnd(void) const;
+	void SetExecutionEnd(double ts);
+	double GetExecutionEnd(void) const;
 
 	void SetState(ServiceState state);
 	ServiceState GetState(void) const;

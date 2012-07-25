@@ -42,7 +42,7 @@ enum LogSeverity
  * @ingroup base
  */
 struct LogEntry {
-	time_t Timestamp;
+	double Timestamp;
 	LogSeverity Severity;
 	string Facility;
 	string Message;

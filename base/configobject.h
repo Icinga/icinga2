@@ -78,7 +78,7 @@ public:
 	void SetSource(const string& value);
 	string GetSource(void) const;
 
-	time_t GetCommitTimestamp(void) const;
+	double GetCommitTimestamp(void) const;
 
 	void Commit(void);
 	void Unregister(void);
@@ -104,7 +104,7 @@ private:
 
 	static map<pair<string, string>, Dictionary::Ptr> m_PersistentTags;
 
-	void SetCommitTimestamp(time_t ts);
+	void SetCommitTimestamp(double ts);
 
 	static bool TypeAndNameGetter(const ConfigObject::Ptr& object, pair<string, string> *key);
 	static bool TypePredicate(const ConfigObject::Ptr& object, string type);

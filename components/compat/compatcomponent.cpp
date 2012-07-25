@@ -112,8 +112,8 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 {
 	string output;
 	string perfdata;
-	time_t schedule_start = -1, schedule_end = -1;
-	time_t execution_start = -1, execution_end = -1;
+	double schedule_start = -1, schedule_end = -1;
+	double execution_start = -1, execution_end = -1;
 	if (service.HasLastCheckResult()) {
 		CheckResult cr = service.GetLastCheckResult();
 		output = cr.GetOutput();
@@ -124,8 +124,8 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 		perfdata = cr.GetPerformanceDataRaw();
 	}
 
-	time_t execution_time = (execution_end - execution_start);
-	time_t latency = (schedule_end - schedule_start) - execution_time;
+	double execution_time = (execution_end - execution_start);
+	double latency = (schedule_end - schedule_start) - execution_time;
 
 	int state = service.GetState();
 
@@ -194,6 +194,8 @@ void CompatComponent::StatusTimerHandler(void)
 	ofstream statusfp;
 	statusfp.open("status.dat.tmp", ofstream::out | ofstream::trunc);
 
+	statusfp << std::fixed;
+
 	statusfp << "# Icinga status file" << "\n"
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
@@ -221,6 +223,8 @@ void CompatComponent::StatusTimerHandler(void)
 
 	ofstream objectfp;
 	objectfp.open("objects.cache.tmp", ofstream::out | ofstream::trunc);
+
+	objectfp << std::fixed;
 
 	objectfp << "# Icinga object cache file" << "\n"
 		 << "# This file is auto-generated. Do not modify this file." << "\n"

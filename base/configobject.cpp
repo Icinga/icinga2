@@ -96,14 +96,14 @@ string ConfigObject::GetSource(void) const
 	return value;
 }
 
-void ConfigObject::SetCommitTimestamp(time_t ts)
+void ConfigObject::SetCommitTimestamp(double ts)
 {
-	GetProperties()->Set("__tx", static_cast<long>(ts));
+	GetProperties()->Set("__tx", ts);
 }
 
-time_t ConfigObject::GetCommitTimestamp(void) const
+double ConfigObject::GetCommitTimestamp(void) const
 {
-	long value = 0;
+	double value = 0;
 	GetProperties()->Get("__tx", &value);
 	return value;
 }
@@ -117,9 +117,7 @@ void ConfigObject::Commit(void)
 	assert(!dobj || dobj == self);
 	m_Container->CheckObject(self);
 
-	time_t now;
-	time(&now);
-	SetCommitTimestamp(now);
+	SetCommitTimestamp(Utility::GetTime());
 }
 
 void ConfigObject::Unregister(void)

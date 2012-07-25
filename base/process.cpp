@@ -130,7 +130,7 @@ void Process::WorkerThreadProc(void)
 
 void Process::InitTask(void)
 {
-	time(&m_Result.ExecutionStart);
+	m_Result.ExecutionStart = Utility::GetTime();
 
 #ifdef _MSC_VER
 	m_FP = _popen(m_Command.c_str(), "r");
@@ -178,7 +178,7 @@ bool Process::RunTask(void)
 	}
 #endif /* _MSC_VER */
 
-	time(&m_Result.ExecutionEnd);
+	m_Result.ExecutionEnd = Utility::GetTime();
 
 #ifndef _MSC_VER
 	if (WIFEXITED(status)) {

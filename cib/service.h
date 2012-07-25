@@ -63,8 +63,11 @@ public:
 
 	bool IsReachable(void) const;
 
-	void SetNextCheck(time_t nextCheck);
-	time_t GetNextCheck(void);
+	long GetSchedulingOffset(void);
+	void SetSchedulingOffset(long offset);
+	
+	void SetNextCheck(double nextCheck);
+	double GetNextCheck(void);
 	void UpdateNextCheck(void);
 
 	void SetChecker(const string& checker);
@@ -85,11 +88,11 @@ public:
 	void SetLastCheckResult(const CheckResult& result);
 	CheckResult GetLastCheckResult(void) const;
 
-	void SetLastStateChange(time_t ts);
-	time_t GetLastStateChange(void) const;
+	void SetLastStateChange(double ts);
+	double GetLastStateChange(void) const;
 
-	void SetLastHardStateChange(time_t ts);
-	time_t GetLastHardStateChange(void) const;
+	void SetLastHardStateChange(double ts);
+	double GetLastHardStateChange(void) const;
 
 	void ApplyCheckResult(const CheckResult& cr);
 

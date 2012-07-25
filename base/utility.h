@@ -46,6 +46,8 @@ public:
 
 	static void NullDeleter(void *obj);
 
+	static double GetTime(void);
+
 private:
 	static bool m_SSLInitialized;
 

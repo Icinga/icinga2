@@ -48,9 +48,7 @@ void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Varia
 
 	NagiosCheckTask ct(task, process);
 
-	time_t now;
-	time(&now);
-	ct.m_Result.SetScheduleStart(now);
+	ct.m_Result.SetScheduleStart(Utility::GetTime());
 
 	process->Start(boost::bind(&NagiosCheckTask::ProcessFinishedHandler, ct));
 }
@@ -92,9 +90,7 @@ void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct)
 
 	ct.m_Result.SetState(state);
 
-	time_t now;
-	time(&now);
-	ct.m_Result.SetScheduleEnd(now);
+	ct.m_Result.SetScheduleEnd(Utility::GetTime());
 
 	ct.m_Task->FinishResult(ct.m_Result.GetDictionary());
 }

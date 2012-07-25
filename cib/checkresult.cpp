@@ -29,50 +29,50 @@ CheckResult::CheckResult(const MessagePart& message)
 	: MessagePart(message)
 { }
 
-void CheckResult::SetScheduleStart(time_t ts)
+void CheckResult::SetScheduleStart(double ts)
 {
-	Set("schedule_start", static_cast<long>(ts));
+	Set("schedule_start", ts);
 }
 
-time_t CheckResult::GetScheduleStart(void) const
+double CheckResult::GetScheduleStart(void) const
 {
-	long value = 0;
+	double value = 0;
 	Get("schedule_start", &value);
-	return static_cast<time_t>(value);
+	return value;
 }
 
-void CheckResult::SetScheduleEnd(time_t ts)
+void CheckResult::SetScheduleEnd(double ts)
 {
-	Set("schedule_end", static_cast<long>(ts));
+	Set("schedule_end", ts);
 }
 
-time_t CheckResult::GetScheduleEnd(void) const
+double CheckResult::GetScheduleEnd(void) const
 {
-	long value = 0;
+	double value = 0;
 	Get("schedule_end", &value);
-	return static_cast<time_t>(value);
+	return value;
 }
 
-void CheckResult::SetExecutionStart(time_t ts)
+void CheckResult::SetExecutionStart(double ts)
 {
-	Set("execution_start", static_cast<long>(ts));
+	Set("execution_start", ts);
 }
 
-time_t CheckResult::GetExecutionStart(void) const
+double CheckResult::GetExecutionStart(void) const
 {
-	long value = 0;
+	double value = 0;
 	Get("execution_start", &value);
-	return static_cast<time_t>(value);
+	return value;
 }
 
-void CheckResult::SetExecutionEnd(time_t ts)
+void CheckResult::SetExecutionEnd(double ts)
 {
-	Set("execution_end", static_cast<long>(ts));
+	Set("execution_end", ts);
 }
 
-time_t CheckResult::GetExecutionEnd(void) const
+double CheckResult::GetExecutionEnd(void) const
 {
-	long value = 0;
+	double value = 0;
 	Get("execution_end", &value);
 	return value;
 }

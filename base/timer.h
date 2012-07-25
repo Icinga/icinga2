@@ -39,21 +39,21 @@ public:
 
 	Timer(void);
 
-	void SetInterval(unsigned long interval);
-	unsigned long GetInterval(void) const;
+	void SetInterval(double interval);
+	double GetInterval(void) const;
 
-	static long ProcessTimers(void);
+	static double ProcessTimers(void);
 
 	void Start(void);
 	void Stop(void);
 
-	void Reschedule(time_t next);
+	void Reschedule(double next);
 
 	boost::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
 private:
-	unsigned long m_Interval; /**< The interval of the timer. */
-	time_t m_Next; /**< When the next event should happen. */
+	double m_Interval; /**< The interval of the timer. */
+	double m_Next; /**< When the next event should happen. */
 
 	static Timer::CollectionType m_Timers;
 

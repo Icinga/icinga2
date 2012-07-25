@@ -357,7 +357,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	ComponentDiscoveryInfo::Ptr info = boost::make_shared<ComponentDiscoveryInfo>();
 
-	time(&(info->LastSeen));
+	info->LastSeen = Utility::GetTime();
 
 	string node;
 	if (message.GetNode(&node) && !node.empty())
@@ -451,8 +451,7 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 {
 	EndpointManager::Ptr endpointManager = EndpointManager::GetInstance();
 	
-	time_t now;
-	time(&now);
+	double now = Utility::GetTime();
 
 	/* check whether we have to reconnect to one of our upstream endpoints */
 	ConfigObject::TMap::Range range = ConfigObject::GetObjects("endpoint");

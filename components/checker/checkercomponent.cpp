@@ -60,11 +60,9 @@ void CheckerComponent::Stop(void)
 
 void CheckerComponent::CheckTimerHandler(void)
 {
-	time_t now;
-	time(&now);
-
 	Logger::Write(LogDebug, "checker", "CheckTimerHandler entered.");
 
+	double now = Utility::GetTime();
 	long tasks = 0;
 
 	while (!m_Services.empty()) {

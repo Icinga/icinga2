@@ -38,7 +38,7 @@ public:
 	set<string> Subscriptions;
 	set<string> Publications;
 
-	time_t LastSeen;
+	double LastSeen;
 };
 
 /**

@@ -96,8 +96,7 @@ void CIBSyncComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender, co
 	CIB::OnCheckResultReceived(params);
 	service.ApplyCheckResult(cr);
 
-	time_t now;
-	time(&now);
+	time_t now = Utility::GetTime();
 	CIB::UpdateTaskStatistics(now, 1);
 }
 

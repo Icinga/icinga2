@@ -25,8 +25,8 @@ namespace icinga
 
 struct ProcessResult
 {
-	time_t ExecutionStart;
-	time_t ExecutionEnd;
+	double ExecutionStart;
+	double ExecutionEnd;
 	long ExitStatus;
 	string Output;
 };

@@ -57,7 +57,8 @@ void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 {
 	char timestamp[100];
 
-	tm tmnow = *localtime(&entry.Timestamp);
+	time_t ts = entry.Timestamp;
+	tm tmnow = *localtime(&ts);
 
 	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S", &tmnow);
 

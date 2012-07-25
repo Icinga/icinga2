@@ -82,12 +82,12 @@ void Application::RunEventLoop(void)
 	while (!m_ShuttingDown) {
 		Object::ClearHeldObjects();
 
-		long sleep = Timer::ProcessTimers();
+		double sleep = Timer::ProcessTimers();
 
 		if (m_ShuttingDown)
 			break;
 
-		Event::ProcessEvents(boost::get_system_time() + boost::posix_time::seconds(sleep));
+		Event::ProcessEvents(boost::get_system_time() + boost::posix_time::milliseconds(sleep * 1000));
 	}
 
 	Component::UnloadAll();

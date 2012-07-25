@@ -255,3 +255,18 @@ void Utility::NullDeleter(void *obj)
 {
 	/* Nothing to do here. */
 }
+
+/**
+ * Returns the current UNIX timestamp including fractions of seconds.
+ *
+ * @returns The current time.
+ */
+double Utility::GetTime(void)
+{
+	struct timeval tv;
+
+	if (gettimeofday(&tv, NULL) < 0)
+		throw PosixException("gettimeofday() failed", errno);
+
+	return tv.tv_sec + tv.tv_usec / 1000000.0;
+}

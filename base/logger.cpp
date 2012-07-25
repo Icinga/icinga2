@@ -44,7 +44,7 @@ void Logger::Write(LogSeverity severity, const string& facility,
     const string& message)
 {
 	LogEntry entry;
-	time(&entry.Timestamp);
+	entry.Timestamp = Utility::GetTime();
 	entry.Severity = severity;
 	entry.Facility = facility;
 	entry.Message = message;

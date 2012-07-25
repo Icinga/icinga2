@@ -36,12 +36,11 @@ Timer::Timer(void)
  *
  * @returns Time when the next timer is due.
  */
-long Timer::ProcessTimers(void)
+double Timer::ProcessTimers(void)
 {
-	long wakeup = 30;
+	double wakeup = 30;
 
-	time_t st;
-	time(&st);
+	double st = Utility::GetTime();
 
 	Timer::CollectionType::iterator prev, i;
 	for (i = m_Timers.begin(); i != m_Timers.end(); ) {
@@ -55,15 +54,14 @@ long Timer::ProcessTimers(void)
 			continue;
 		}
 
-		time_t now;
-		time(&now);
+		double now = Utility::GetTime();
 
 		if (timer->m_Next <= now) {
 			timer->Call();
 
 			/* time may have changed depending on how long the
 			 * timer call took - we need to fetch the current time */
-			time(&now);
+			now = Utility::GetTime();
 
 			timer->Reschedule(now + timer->GetInterval());
 		}
@@ -76,8 +74,7 @@ long Timer::ProcessTimers(void)
 
 	assert(wakeup > 0);
 
-	time_t et;
-	time(&et);
+	double et = Utility::GetTime();
 
 	stringstream msgbuf;
 	msgbuf << "Timers took " << et - st << " seconds";
@@ -93,13 +90,11 @@ long Timer::ProcessTimers(void)
  */
 void Timer::Call(void)
 {
-	time_t st;
-	time(&st);
+	double st = Utility::GetTime();
 
 	OnTimerExpired(GetSelf());
 
-	time_t et;
-	time(&et);
+	double et = Utility::GetTime();
 
 	if (et - st > 3) {
 		stringstream msgbuf;
@@ -113,7 +108,7 @@ void Timer::Call(void)
  *
  * @param interval The new interval.
  */
-void Timer::SetInterval(unsigned long interval)
+void Timer::SetInterval(double interval)
 {
 	m_Interval = interval;
 }
@@ -123,7 +118,7 @@ void Timer::SetInterval(unsigned long interval)
  *
  * @returns The interval.
  */
-unsigned long Timer::GetInterval(void) const
+double Timer::GetInterval(void) const
 {
 	return m_Interval;
 }
@@ -139,7 +134,7 @@ void Timer::Start(void)
 
 	m_Timers.push_back(GetSelf());
 
-	Reschedule(time(NULL) + m_Interval);
+	Reschedule(Utility::GetTime() + m_Interval);
 }
 
 /**
@@ -157,7 +152,7 @@ void Timer::Stop(void)
  *
  * @param next The time when this timer should be called again.
  */
-void Timer::Reschedule(time_t next)
+void Timer::Reschedule(double next)
 {
 	m_Next = next;
 }
