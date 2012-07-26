@@ -167,7 +167,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	/* load config file */
 	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
 
-	Logger::Write(LogInformation, "configfile", "Executing config items...");
+	Logger::Write(LogInformation, "icinga", "Executing config items...");
 
 	BOOST_FOREACH(const ConfigItem::Ptr& item, configItems) {
 		item->Commit();
