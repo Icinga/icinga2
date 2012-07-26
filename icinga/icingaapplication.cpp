@@ -165,12 +165,13 @@ int IcingaApplication::Main(const vector<string>& args)
 	convenienceComponentConfig->Compile()->Commit();
 
 	/* load config file */
-	ConfigItemBuilder::Ptr fileComponentConfig = boost::make_shared<ConfigItemBuilder>();
-	fileComponentConfig->SetType("component");
-	fileComponentConfig->SetName("configfile");
-	fileComponentConfig->SetLocal(true);
-	fileComponentConfig->AddExpression("configFilename", OperatorSet, configFile);
-	fileComponentConfig->Compile()->Commit();
+	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
+
+	Logger::Write(LogInformation, "configfile", "Executing config items...");
+
+	BOOST_FOREACH(const ConfigItem::Ptr& item, configItems) {
+		item->Commit();
+	}
 
 	ConfigObject::Ptr icingaConfig = ConfigObject::GetObject("application", "icinga");
 

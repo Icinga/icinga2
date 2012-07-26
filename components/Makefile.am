@@ -5,7 +5,6 @@ SUBDIRS = \
 	checker \
 	cibsync \
 	compat \
-	configfile \
 	convenience \
 	delegation \
 	demo \
