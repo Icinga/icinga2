@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+boost::signal<void (Service, const CheckResultMessage&)> Service::OnCheckResultReceived;
+
 Service::Service(const ConfigObject::Ptr& configObject)
 	: ConfigObjectAdapter(configObject)
 {

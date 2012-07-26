@@ -22,7 +22,6 @@
 using namespace icinga;
 
 RingBuffer CIB::m_TaskStatistics(15 * 60);
-boost::signal<void (const CheckResultMessage&)> CIB::OnCheckResultReceived;
 
 void CIB::UpdateTaskStatistics(long tv, int num)
 {

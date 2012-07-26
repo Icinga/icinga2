@@ -39,6 +39,7 @@ enum ServiceStateType
 };
 
 class CheckResult;
+class CheckResultMessage;
 class ServiceStatusMessage;
 
 class I2_CIB_API Service : public ConfigObjectAdapter
@@ -103,6 +104,8 @@ public:
 	static string StateTypeToString(ServiceStateType state);
 
 	static Dictionary::Ptr ResolveDependencies(Host host, const Dictionary::Ptr& dependencies);
+
+	static boost::signal<void (Service service, const CheckResultMessage&)> OnCheckResultReceived;
 };
 
 }
