@@ -63,7 +63,7 @@ private:
 
 	Timer::Ptr m_RetentionTimer;
 
-	void RetentionTimerHandler(void);
+	void DumpProgramState(void);
 
 	void NewComponentHandler(const ConfigObject::Ptr& object);
 	void DeletedComponentHandler(const ConfigObject::Ptr& object);

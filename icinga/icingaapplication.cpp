@@ -47,7 +47,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	m_RetentionTimer = boost::make_shared<Timer>();
 	m_RetentionTimer->SetInterval(60);
-	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::RetentionTimerHandler, this));
+	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
 	m_RetentionTimer->Start();
 
 	/* register handler for 'log' config objects */
@@ -225,13 +225,16 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	RunEventLoop();
 
+	DumpProgramState();
+
 	Logger::Write(LogInformation, "icinga", "Icinga shutting down.");
 
 	return EXIT_SUCCESS;
 }
 
-void IcingaApplication::RetentionTimerHandler(void) {
-	ConfigObject::DumpObjects("retention.dat");
+void IcingaApplication::DumpProgramState(void) {
+	ConfigObject::DumpObjects("retention.dat.tmp");
+	rename("retention.dat.tmp", "retention.dat");
 }
 
 void IcingaApplication::NewComponentHandler(const ConfigObject::Ptr& object)
