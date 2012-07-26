@@ -237,7 +237,7 @@ void ConfigObject::DumpObjects(const string& filename)
 	fp.open(filename.c_str());
 
 	if (!fp)
-		throw_exception(runtime_error("Could not open retention.dat file"));
+		throw_exception(runtime_error("Could not open '" + filename + "' file"));
 
 	FIFO::Ptr fifo = boost::make_shared<FIFO>();
 
@@ -296,7 +296,7 @@ void ConfigObject::RestoreObjects(const string& filename)
 		Variant value = Variant::Deserialize(message);
 
 		if (!value.IsObjectType<Dictionary>())
-			throw_exception(runtime_error("JSON objects in the retention file must be dictionaries."));
+			throw_exception(runtime_error("JSON objects in the program state file must be dictionaries."));
 
 		Dictionary::Ptr persistentObject = value;
 
