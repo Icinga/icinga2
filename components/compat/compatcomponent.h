@@ -26,18 +26,17 @@ namespace icinga
 /**
  * @ingroup compat
  */
-class CompatComponent : public Component
+class CompatComponent : public IComponent
 {
 public:
-	virtual string GetName(void) const;
 	virtual void Start(void);
 	virtual void Stop(void);
 
 private:
 	Timer::Ptr m_StatusTimer;
 
-	void DumpHostStatus(ofstream& fp, Host host);
-	void DumpHostObject(ofstream& fp, Host host);
+	void DumpHostStatus(ofstream& fp, const Host::Ptr& host);
+	void DumpHostObject(ofstream& fp, const Host::Ptr& host);
 
 	template<typename T>
 	void DumpStringList(ofstream& fp, const T& list)
@@ -55,8 +54,8 @@ private:
 	}
 
 
-	void DumpServiceStatus(ofstream& fp, Service service);
-	void DumpServiceObject(ofstream& fp, Service service);
+	void DumpServiceStatus(ofstream& fp, const Service::Ptr& service);
+	void DumpServiceObject(ofstream& fp, const Service::Ptr& service);
 
 	void StatusTimerHandler(void);
 };

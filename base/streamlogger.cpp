@@ -4,11 +4,9 @@ using namespace icinga;
 
 /**
  * Constructor for the StreamLogger class.
- *
- * @param minSeverity Minimum severity for log messages.
  */
-StreamLogger::StreamLogger(LogSeverity minSeverity)
-	: Logger(minSeverity), m_Stream(NULL), m_OwnsStream(false)
+StreamLogger::StreamLogger(void)
+	: ILogger(), m_Stream(NULL), m_OwnsStream(false)
 { }
 
 /**
@@ -17,8 +15,8 @@ StreamLogger::StreamLogger(LogSeverity minSeverity)
  * @param stream The stream.
  * @param minSeverity Minimum severity for log messages.
  */
-StreamLogger::StreamLogger(ostream *stream, LogSeverity minSeverity)
-	: Logger(minSeverity), m_Stream(stream), m_OwnsStream(false)
+StreamLogger::StreamLogger(ostream *stream)
+	: ILogger(), m_Stream(stream), m_OwnsStream(false)
 { }
 
 /**

@@ -26,15 +26,13 @@ namespace icinga
 /**
  * @ingroup convenience
  */
-class ConvenienceComponent : public Component
+class ConvenienceComponent : public IComponent
 {
 public:
-	virtual string GetName(void) const;
 	virtual void Start(void);
-	virtual void Stop(void);
 
 private:
-	void CopyServiceAttributes(const ConfigObject::Ptr& host, const Dictionary::Ptr& service, const ConfigItemBuilder::Ptr& builder);
+	void CopyServiceAttributes(const Host::Ptr& host, const Dictionary::Ptr& serviceDesc, const ConfigItemBuilder::Ptr& builder);
 	void HostAddedHandler(const ConfigItem::Ptr& item);
 	void HostCommittedHandler(const ConfigItem::Ptr& item);
 	void HostRemovedHandler(const ConfigItem::Ptr& item);

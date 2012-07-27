@@ -8,13 +8,11 @@ namespace icinga
 /**
  * A logger that logs to syslog.
  */
-class I2_BASE_API SyslogLogger : public Logger
+class I2_BASE_API SyslogLogger : public ILogger
 {
 public:
 	typedef shared_ptr<SyslogLogger> Ptr;
 	typedef weak_ptr<SyslogLogger> WeakPtr;
-
-	SyslogLogger(LogSeverity minSeverity);
 
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);

@@ -22,16 +22,6 @@
 using namespace icinga;
 
 /**
- * Returns the name of the component.
- *
- * @returns The name.
- */
-string CIBSyncComponent::GetName(void) const
-{
-	return "cibsync";
-}
-
-/**
  * Starts the component.
  */
 void CIBSyncComponent::Start(void)
@@ -44,9 +34,8 @@ void CIBSyncComponent::Start(void)
 	m_Endpoint->RegisterTopicHandler("config::FetchObjects",
 	    boost::bind(&CIBSyncComponent::FetchObjectsHandler, this, _2));
 
-	ConfigObject::GetAllObjects()->OnObjectAdded.connect(boost::bind(&CIBSyncComponent::LocalObjectCommittedHandler, this, _2));
-	ConfigObject::GetAllObjects()->OnObjectCommitted.connect(boost::bind(&CIBSyncComponent::LocalObjectCommittedHandler, this, _2));
-	ConfigObject::GetAllObjects()->OnObjectRemoved.connect(boost::bind(&CIBSyncComponent::LocalObjectRemovedHandler, this, _2));
+	ConfigObject::OnCommitted.connect(boost::bind(&CIBSyncComponent::LocalObjectCommittedHandler, this, _1));
+	ConfigObject::OnRemoved.connect(boost::bind(&CIBSyncComponent::LocalObjectRemovedHandler, this, _1));
 
 	m_Endpoint->RegisterPublication("config::ObjectCommitted");
 	m_Endpoint->RegisterPublication("config::ObjectRemoved");
@@ -87,14 +76,14 @@ void CIBSyncComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender, co
 	if (!params.GetService(&svcname))
 		return;
 
-	Service service = Service::GetByName(svcname);
+	Service::Ptr service = Service::GetByName(svcname);
 
 	CheckResult cr;
 	if (!params.GetCheckResult(&cr))
 		return;
 
 	Service::OnCheckResultReceived(service, params);
-	service.ApplyCheckResult(cr);
+	service->ApplyCheckResult(cr);
 
 	time_t now = Utility::GetTime();
 	CIB::UpdateTaskStatistics(now, 1);
@@ -141,15 +130,18 @@ bool CIBSyncComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
 
 void CIBSyncComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 {
-	ConfigObject::Set::Ptr allObjects = ConfigObject::GetAllObjects();
+	pair<ConfigObject::TypeMap::iterator, ConfigObject::TypeMap::iterator> trange;
+	ConfigObject::TypeMap::iterator tt;
+	for (tt = trange.first; tt != trange.second; tt++) {
+		ConfigObject::Ptr object;
+		BOOST_FOREACH(tie(tuples::ignore, object), tt->second) {
+			if (!ShouldReplicateObject(object))
+				continue;
 
-	BOOST_FOREACH(const ConfigObject::Ptr& object, allObjects) {
-		if (!ShouldReplicateObject(object))
-			continue;
+			RequestMessage request = MakeObjectMessage(object, "config::ObjectCommitted", true);
 
-		RequestMessage request = MakeObjectMessage(object, "config::ObjectCommitted", true);
-
-		EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, sender, request);
+			EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, sender, request);
+		}
 	}
 }
 

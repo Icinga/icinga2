@@ -21,12 +21,7 @@
 
 using namespace icinga;
 
-Host::Host(const ConfigObject::Ptr& configObject)
-	: ConfigObjectAdapter(configObject)
-{
-	assert(GetType() == "host");
-}
-
+REGISTER_CLASS(Host);
 
 string Host::GetAlias(void) const
 {
@@ -40,17 +35,17 @@ string Host::GetAlias(void) const
 
 bool Host::Exists(const string& name)
 {
-	return (ConfigObject::GetObject("host", name));
+	return (ConfigObject::GetObject("Host", name));
 }
 
-Host Host::GetByName(const string& name)
+Host::Ptr Host::GetByName(const string& name)
 {
-	ConfigObject::Ptr configObject = ConfigObject::GetObject("host", name);
+	ConfigObject::Ptr configObject = ConfigObject::GetObject("Host", name);
 
 	if (!configObject)
 		throw_exception(invalid_argument("Host '" + name + "' does not exist."));
 
-	return Host(configObject);
+	return dynamic_pointer_cast<Host>(configObject);
 }
 
 Dictionary::Ptr Host::GetGroups(void) const
@@ -60,20 +55,20 @@ Dictionary::Ptr Host::GetGroups(void) const
 	return value;
 }
 
-set<string> Host::GetParents(void) const
+set<string> Host::GetParents(void)
 {
 	set<string> parents;
 
 	Dictionary::Ptr dependencies;
 
 	if (GetProperty("dependencies", &dependencies)) {
-		dependencies = Service::ResolveDependencies(*this, dependencies);
+		dependencies = Service::ResolveDependencies(GetSelf(), dependencies);
 
 		Variant dependency;
 		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-			Service service = Service::GetByName(dependency);
+			Service::Ptr service = Service::GetByName(dependency);
 
-			string parent = service.GetHost().GetName();
+			string parent = service->GetHost()->GetName();
 
 			/* ignore ourselves */
 			if (parent == GetName())
@@ -93,18 +88,18 @@ Dictionary::Ptr Host::GetMacros(void) const
 	return value;
 }
 
-bool Host::IsReachable(void) const
+bool Host::IsReachable(void)
 {
 	Dictionary::Ptr dependencies;
 	if (GetProperty("dependencies", &dependencies)) {
-		dependencies = Service::ResolveDependencies(*this, dependencies);
+		dependencies = Service::ResolveDependencies(GetSelf(), dependencies);
 
 		Variant dependency;
 		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-			Service service = Service::GetByName(dependency);
+			Service::Ptr service = Service::GetByName(dependency);
 
-			if (!service.IsReachable() ||
-			    (service.GetState() != StateOK && service.GetState() != StateWarning)) {
+			if (!service->IsReachable() ||
+			    (service->GetState() != StateOK && service->GetState() != StateWarning)) {
 				return false;
 			}
 		}
@@ -113,17 +108,17 @@ bool Host::IsReachable(void) const
 	return true;
 }
 
-bool Host::IsUp(void) const
+bool Host::IsUp(void)
 {
 	Dictionary::Ptr hostchecks;
 	if (GetProperty("hostchecks", &hostchecks)) {
-		hostchecks = Service::ResolveDependencies(*this, hostchecks);
+		hostchecks = Service::ResolveDependencies(GetSelf(), hostchecks);
 
 		Variant hostcheck;
 		BOOST_FOREACH(tie(tuples::ignore, hostcheck), hostchecks) {
-			Service service = Service::GetByName(hostcheck);
+			Service::Ptr service = Service::GetByName(hostcheck);
 
-			if (service.GetState() != StateOK && service.GetState() != StateWarning) {
+			if (service->GetState() != StateOK && service->GetState() != StateWarning) {
 				return false;
 			}
 		}

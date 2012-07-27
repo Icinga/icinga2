@@ -26,28 +26,26 @@ namespace icinga
 /**
  * @ingroup delegation
  */
-class DelegationComponent : public Component
+class DelegationComponent : public IComponent
 {
 public:
-	virtual string GetName(void) const;
 	virtual void Start(void);
 	virtual void Stop(void);
 
 private:
 	VirtualEndpoint::Ptr m_Endpoint;
-	ConfigObject::Set::Ptr m_AllServices;
 	Timer::Ptr m_DelegationTimer;
 
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
 	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
 
-	void ServiceCommittedHandler(Service service);
-	void ServiceRemovedHandler(Service service);
+	void ServiceCommittedHandler(const ConfigObject::Ptr& object);
+	void ServiceRemovedHandler(const ConfigObject::Ptr& object);
 	void DelegationTimerHandler(void);
 
-	vector<Endpoint::Ptr> GetCheckerCandidates(const Service& service) const;
+	vector<Endpoint::Ptr> GetCheckerCandidates(const Service::Ptr& service) const;
 
-	void AssignService(const Endpoint::Ptr& checker, const Service& service);
+	void AssignService(const Endpoint::Ptr& checker, const Service::Ptr& service);
 	void ClearServices(const Endpoint::Ptr& checker);
 
 	static bool IsEndpointChecker(const Endpoint::Ptr& endpoint);

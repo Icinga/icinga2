@@ -84,7 +84,6 @@
   <ItemGroup>
     <ClInclude Include="checkresult.h" />
     <ClInclude Include="cib.h" />
-    <ClInclude Include="configobjectadapter.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="hostgroup.h" />
     <ClInclude Include="i2-cib.h" />
@@ -98,7 +97,6 @@
   <ItemGroup>
     <ClCompile Include="checkresult.cpp" />
     <ClCompile Include="cib.cpp" />
-    <ClCompile Include="configobjectadapter.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="hostgroup.cpp" />
     <ClCompile Include="i2-cib.cpp">

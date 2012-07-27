@@ -21,6 +21,10 @@
 
 using namespace icinga;
 
+ConfigItem::ItemMap ConfigItem::m_Items;
+boost::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
+boost::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
+
 ConfigItem::ConfigItem(const string& type, const string& name,
     const ExpressionList::Ptr& exprl, const vector<string>& parents,
     const DebugInfo& debuginfo)
@@ -71,37 +75,6 @@ void ConfigItem::CalculateProperties(Dictionary::Ptr dictionary) const
 	m_ExpressionList->Execute(dictionary);
 }
 
-ConfigItem::Set::Ptr ConfigItem::GetAllObjects(void)
-{
-	static ObjectSet<ConfigItem::Ptr>::Ptr allObjects;
-
-	if (!allObjects) {
-		allObjects = boost::make_shared<ObjectSet<ConfigItem::Ptr> >();
-		allObjects->Start();
-	}
-
-	return allObjects;
-}
-
-bool ConfigItem::GetTypeAndName(const ConfigItem::Ptr& object, pair<string, string> *key)
-{
-	*key = make_pair(object->GetType(), object->GetName());
-
-	return true;
-}
-
-ConfigItem::TNMap::Ptr ConfigItem::GetObjectsByTypeAndName(void)
-{
-	static ConfigItem::TNMap::Ptr tnmap;
-
-	if (!tnmap) {
-		tnmap = boost::make_shared<ConfigItem::TNMap>(GetAllObjects(), &ConfigItem::GetTypeAndName);
-		tnmap->Start();
-	}
-
-	return tnmap;
-}
-
 ConfigObject::Ptr ConfigItem::Commit(void)
 {
 	ConfigObject::Ptr dobj = m_ConfigObject.lock();
@@ -113,7 +86,7 @@ ConfigObject::Ptr ConfigItem::Commit(void)
 		dobj = ConfigObject::GetObject(GetType(), GetName());
 
 	if (!dobj)
-		dobj = boost::make_shared<ConfigObject>(properties);
+		dobj = ConfigObject::Create(GetType(), properties);
 	else
 		dobj->SetProperties(properties);
 
@@ -127,13 +100,9 @@ ConfigObject::Ptr ConfigItem::Commit(void)
 	/* TODO: Figure out whether there are any child objects which inherit
 	 * from this config item and Commit() them as well */
 
-	ConfigItem::Ptr ci = GetObject(GetType(), GetName());
-	ConfigItem::Ptr self = GetSelf();
-	if (ci && ci != self) {
-		ci->m_ConfigObject.reset();
-		GetAllObjects()->RemoveObject(ci);
-	}
-	GetAllObjects()->CheckObject(self);
+	m_Items[make_pair(GetType(), GetName())] = GetSelf();
+
+	OnCommitted(GetSelf());
 
 	return dobj;
 }
@@ -145,7 +114,13 @@ void ConfigItem::Unregister(void)
 	if (dobj)
 		dobj->Unregister();
 
-	GetAllObjects()->RemoveObject(GetSelf());
+	ConfigItem::ItemMap::iterator it;
+	it = m_Items.find(make_pair(GetType(), GetName()));
+
+	if (it != m_Items.end())
+		m_Items.erase(it);
+
+	OnRemoved(GetSelf());
 }
 
 ConfigObject::Ptr ConfigItem::GetConfigObject(void) const
@@ -155,13 +130,11 @@ ConfigObject::Ptr ConfigItem::GetConfigObject(void) const
 
 ConfigItem::Ptr ConfigItem::GetObject(const string& type, const string& name)
 {
-	ConfigItem::TNMap::Range range;
-	range = GetObjectsByTypeAndName()->GetRange(make_pair(type, name));
+	ConfigItem::ItemMap::iterator it;
+	it = m_Items.find(make_pair(type, name));
 
-	assert(distance(range.first, range.second) <= 1);
-
-	if (range.first == range.second)
+	if (it == m_Items.end())
 		return ConfigItem::Ptr();
-	else
-		return range.first->second;
+
+	return it->second;
 }

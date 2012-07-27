@@ -4,15 +4,6 @@
 using namespace icinga;
 
 /**
- * Constructor for the SyslogLogger class.
- *
- * @param minSeverity Minimum severity for log messages.
- */
-SyslogLogger::SyslogLogger(LogSeverity minSeverity)
-	: Logger(minSeverity)
-{ }
-
-/**
  * Processes a log entry and outputs it to syslog.
  *
  * @param entry The log entry.

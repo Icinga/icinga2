@@ -263,10 +263,29 @@ void Utility::NullDeleter(void *obj)
  */
 double Utility::GetTime(void)
 {
+#ifdef _WIN32
+	FILETIME cft;
+	GetSystemTimeAsFileTime(&cft);
+
+	ULARGE_INTEGER ucft;
+	ucft.HighPart = cft.dwHighDateTime;
+	ucft.LowPart = cft.dwLowDateTime;
+
+	SYSTEMTIME est = { 1970, 1, 4, 1, 0, 0, 0, 0};
+	FILETIME eft;
+	SystemTimeToFileTime(&est, &eft);
+
+	ULARGE_INTEGER ueft;
+	ueft.HighPart = eft.dwHighDateTime;
+	ueft.LowPart = eft.dwLowDateTime;
+
+	return ((ucft.QuadPart - ueft.QuadPart) / 10000) / 1000.0;
+#else /* _WIN32 */
 	struct timeval tv;
 
 	if (gettimeofday(&tv, NULL) < 0)
 		throw PosixException("gettimeofday() failed", errno);
 
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
+#endif /* _WIN32 */
 }

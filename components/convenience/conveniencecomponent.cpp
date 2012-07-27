@@ -22,70 +22,46 @@
 using namespace icinga;
 
 /**
- * Returns the name of the component.
- *
- * @returns The name.
- */
-string ConvenienceComponent::GetName(void) const
-{
-	return "convenience";
-}
-
-/**
  * Starts the component.
  */
 void ConvenienceComponent::Start(void)
 {
-	ConfigItem::Set::Ptr itemSet = ConfigItem::GetAllObjects();
-	itemSet->OnObjectAdded.connect(boost::bind(&ConvenienceComponent::HostAddedHandler, this, _2));
-	itemSet->OnObjectCommitted.connect(boost::bind(&ConvenienceComponent::HostCommittedHandler, this, _2));
-	itemSet->OnObjectRemoved.connect(boost::bind(&ConvenienceComponent::HostRemovedHandler, this, _2));
+	ConfigItem::OnCommitted.connect(boost::bind(&ConvenienceComponent::HostCommittedHandler, this, _1));
+	ConfigItem::OnRemoved.connect(boost::bind(&ConvenienceComponent::HostRemovedHandler, this, _1));
 }
 
-/**
- * Stops the component.
- */
-void ConvenienceComponent::Stop(void)
-{
-}
-
-void ConvenienceComponent::HostAddedHandler(const ConfigItem::Ptr& item)
-{
-	HostCommittedHandler(item);
-}
-
-void ConvenienceComponent::CopyServiceAttributes(const ConfigObject::Ptr& host, const Dictionary::Ptr& service, const ConfigItemBuilder::Ptr& builder)
+void ConvenienceComponent::CopyServiceAttributes(const Host::Ptr& host, const Dictionary::Ptr& serviceDesc, const ConfigItemBuilder::Ptr& builder)
 {
 	/* TODO: we only need to copy macros if this is an inline definition,
 	 * i.e. host->GetProperties() != service, however for now we just
 	 * copy them anyway. */
 	Dictionary::Ptr macros;
-	if (service->Get("macros", &macros))
+	if (serviceDesc->Get("macros", &macros))
 		builder->AddExpression("macros", OperatorPlus, macros);
 
 	long checkInterval;
-	if (service->Get("check_interval", &checkInterval))
+	if (serviceDesc->Get("check_interval", &checkInterval))
 		builder->AddExpression("check_interval", OperatorSet, checkInterval);
 
 	long retryInterval;
-	if (service->Get("retry_interval", &retryInterval))
+	if (serviceDesc->Get("retry_interval", &retryInterval))
 		builder->AddExpression("retry_interval", OperatorSet, retryInterval);
 
 	Dictionary::Ptr sgroups;
-	if (service->Get("servicegroups", &sgroups))
+	if (serviceDesc->Get("servicegroups", &sgroups))
 		builder->AddExpression("servicegroups", OperatorPlus, sgroups);
 
 	Dictionary::Ptr checkers;
-	if (service->Get("checkers", &checkers))
+	if (serviceDesc->Get("checkers", &checkers))
 		builder->AddExpression("checkers", OperatorSet, checkers);
 
 	Dictionary::Ptr dependencies;
-	if (service->Get("dependencies", &dependencies))
+	if (serviceDesc->Get("dependencies", &dependencies))
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, dependencies));
 
 	Dictionary::Ptr hostchecks;
-	if (service->Get("hostchecks", &hostchecks))
+	if (serviceDesc->Get("hostchecks", &hostchecks))
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, hostchecks));
 }
@@ -95,7 +71,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 	if (item->GetType() != "host")
 		return;
 
-	ConfigObject::Ptr host = ConfigObject::GetObject("host", item->GetName());
+	Host::Ptr host = Host::GetByName(item->GetName());
 
 	/* ignore abstract host objects */
 	if (!host)

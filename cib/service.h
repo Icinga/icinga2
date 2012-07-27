@@ -42,16 +42,21 @@ class CheckResult;
 class CheckResultMessage;
 class ServiceStatusMessage;
 
-class I2_CIB_API Service : public ConfigObjectAdapter
+class I2_CIB_API Service : public ConfigObject
 {
 public:
-	Service(const ConfigObject::Ptr& configObject);
+	typedef shared_ptr<Service> Ptr;
+	typedef weak_ptr<Service> WeakPtr;
+
+	Service(const Dictionary::Ptr& properties)
+		: ConfigObject(properties)
+	{ }
 
 	static bool Exists(const string& name);
-	static Service GetByName(const string& name);
+	static Service::Ptr GetByName(const string& name);
 
 	string GetAlias(void) const;
-	Host GetHost(void) const;
+	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 	string GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
@@ -103,9 +108,9 @@ public:
 	static ServiceStateType StateTypeFromString(const string& state);
 	static string StateTypeToString(ServiceStateType state);
 
-	static Dictionary::Ptr ResolveDependencies(Host host, const Dictionary::Ptr& dependencies);
+	static Dictionary::Ptr ResolveDependencies(const Host::Ptr& host, const Dictionary::Ptr& dependencies);
 
-	static boost::signal<void (Service service, const CheckResultMessage&)> OnCheckResultReceived;
+	static boost::signal<void (const Service::Ptr& service, const CheckResultMessage&)> OnCheckResultReceived;
 };
 
 }

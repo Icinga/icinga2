@@ -34,11 +34,13 @@ public:
 	typedef shared_ptr<ConfigObject> Ptr;
 	typedef weak_ptr<ConfigObject> WeakPtr;
 
-	typedef ObjectMap<pair<string, string>, ConfigObject::Ptr> TNMap;
-	typedef ObjectMap<string, ConfigObject::Ptr> TMap;
-	typedef ObjectSet<ConfigObject::Ptr> Set;
+	typedef function<ConfigObject::Ptr (const Dictionary::Ptr&)> Factory;
 
-	ConfigObject(Dictionary::Ptr properties, const Set::Ptr& container = Set::Ptr());
+	typedef map<string, Factory> ClassMap;
+	typedef map<string, ConfigObject::Ptr> NameMap;
+	typedef map<string, NameMap> TypeMap;
+
+	ConfigObject(const Dictionary::Ptr& properties);
 
 	void SetProperties(const Dictionary::Ptr& config);
 	Dictionary::Ptr GetProperties(void) const;
@@ -83,34 +85,42 @@ public:
 	void Commit(void);
 	void Unregister(void);
 
-	static ObjectSet<ConfigObject::Ptr>::Ptr GetAllObjects(void);
-
-	static TNMap::Ptr GetObjectsByTypeAndName(void);
-	static TMap::Ptr GetObjectsByType(void);
-
-	static ConfigObject::Ptr GetObject(string type, string name);
-	
-	static TMap::Range GetObjects(string type);
-
-	static function<bool (ConfigObject::Ptr)> MakeTypePredicate(string type);
+	static ConfigObject::Ptr GetObject(const string& type, const string& name);
+	static pair<TypeMap::iterator, TypeMap::iterator> GetTypes(void);
+	static pair<NameMap::iterator, NameMap::iterator> GetObjects(const string& type);
 
 	static void DumpObjects(const string& filename);
 	static void RestoreObjects(const string& filename);
 
+	static void RegisterClass(const string& type, Factory factory);
+	static ConfigObject::Ptr Create(const string& type, const Dictionary::Ptr& properties);
+
+	static boost::signal<void (const ConfigObject::Ptr&)> OnCommitted;
+	static boost::signal<void (const ConfigObject::Ptr&)> OnRemoved;
+
 private:
-	Set::Ptr m_Container;
+	static ClassMap& GetClasses(void);
+	static TypeMap& GetAllObjects(void);
+
 	Dictionary::Ptr m_Properties;
 	Dictionary::Ptr m_Tags;
 
 	static map<pair<string, string>, Dictionary::Ptr> m_PersistentTags;
 
 	void SetCommitTimestamp(double ts);
-
-	static bool TypeAndNameGetter(const ConfigObject::Ptr& object, pair<string, string> *key);
-	static bool TypePredicate(const ConfigObject::Ptr& object, string type);
-
-	static bool TypeGetter(const ConfigObject::Ptr& object, string *key);
 };
+
+class RegisterClassHelper
+{
+public:
+	RegisterClassHelper(const string& name, ConfigObject::Factory factory)
+	{
+		ConfigObject::RegisterClass(name, factory);
+	}
+};
+
+#define REGISTER_CLASS(klass) \
+	static RegisterClassHelper g_Register ## klass(#klass, boost::make_shared<klass, const Dictionary::Ptr&>);
 
 }
 

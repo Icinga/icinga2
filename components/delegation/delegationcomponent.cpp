@@ -22,17 +22,10 @@
 
 using namespace icinga;
 
-string DelegationComponent::GetName(void) const
-{
-	return "delegation";
-}
-
 void DelegationComponent::Start(void)
 {
-	m_AllServices = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("service"));
-	m_AllServices->OnObjectCommitted.connect(boost::bind(&DelegationComponent::ServiceCommittedHandler, this, _2));
-	m_AllServices->OnObjectRemoved.connect(boost::bind(&DelegationComponent::ServiceRemovedHandler, this, _2));
-	m_AllServices->Start();
+	ConfigObject::OnCommitted.connect(boost::bind(&DelegationComponent::ServiceCommittedHandler, this, _1));
+	ConfigObject::OnRemoved.connect(boost::bind(&DelegationComponent::ServiceRemovedHandler, this, _1));
 
 	m_DelegationTimer = boost::make_shared<Timer>();
 	m_DelegationTimer->SetInterval(30);
@@ -57,13 +50,18 @@ void DelegationComponent::Stop(void)
 		mgr->UnregisterEndpoint(m_Endpoint);
 }
 
-void DelegationComponent::ServiceCommittedHandler(Service service)
+void DelegationComponent::ServiceCommittedHandler(const ConfigObject::Ptr& object)
 {
-	string checker = service.GetChecker();
+	Service::Ptr service = dynamic_pointer_cast<Service>(object);
+
+	if (!service)
+		return;
+
+	string checker = service->GetChecker();
 
 	if (!checker.empty()) {
 		/* object was updated, clear its checker to make sure it's re-delegated by the delegation timer */
-		service.SetChecker("");
+		service->SetChecker("");
 
 		/* TODO: figure out a better way to clear individual services */
 		Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
@@ -73,9 +71,14 @@ void DelegationComponent::ServiceCommittedHandler(Service service)
 	}
 }
 
-void DelegationComponent::ServiceRemovedHandler(Service service)
+void DelegationComponent::ServiceRemovedHandler(const ConfigObject::Ptr& object)
 {
-	string checker = service.GetChecker();
+	Service::Ptr service = dynamic_pointer_cast<Service>(object);
+
+	if (!service)
+		return;
+
+	string checker = service->GetChecker();
 
 	if (!checker.empty()) {
 		/* TODO: figure out a better way to clear individual services */
@@ -86,16 +89,16 @@ void DelegationComponent::ServiceRemovedHandler(Service service)
 	}
 }
 
-void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Service& service)
+void DelegationComponent::AssignService(const Endpoint::Ptr& checker, const Service::Ptr& service)
 {
 	RequestMessage request;
 	request.SetMethod("checker::AssignService");
 
 	MessagePart params;
-	params.Set("service", service.GetName());
+	params.Set("service", service->GetName());
 	request.SetParams(params);
 
-	Logger::Write(LogDebug, "delegation", "Trying to delegate service '" + service.GetName() + "'");
+	Logger::Write(LogDebug, "delegation", "Trying to delegate service '" + service->GetName() + "'");
 
 	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, checker, request);
 }
@@ -120,7 +123,7 @@ bool DelegationComponent::IsEndpointChecker(const Endpoint::Ptr& endpoint)
 	return (endpoint->HasSubscription("checker::AssignService"));
 }
 
-vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service& service) const
+vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::Ptr& service) const
 {
 	vector<Endpoint::Ptr> candidates;
 
@@ -137,7 +140,7 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service& s
 			continue;
 
 		/* ignore endpoints that aren't allowed to check this service */
-		if (!service.IsAllowedChecker(it->first))
+		if (!service->IsAllowedChecker(it->first))
 			continue;
 
 		candidates.push_back(endpoint);
@@ -157,11 +160,15 @@ void DelegationComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoin
 		return;
 
 	/* locally clear checker for all services that previously belonged to this endpoint */
-	BOOST_FOREACH(const ConfigObject::Ptr& object, m_AllServices) {
-		Service service = object;
+	ConfigObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Service")) {
+		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
-		if (service.GetChecker() == endpoint->GetIdentity())
-			service.SetChecker("");
+		if (!service)
+			continue;
+
+		if (service->GetChecker() == endpoint->GetIdentity())
+			service->SetChecker("");
 	}
 
 	/* remotely clear services for this endpoint */
@@ -176,15 +183,19 @@ void DelegationComponent::DelegationTimerHandler(void)
 	for (eit = EndpointManager::GetInstance()->Begin(); eit != EndpointManager::GetInstance()->End(); eit++)
 		histogram[eit->second] = 0;
 
-	vector<Service> services;
+	vector<Service::Ptr> services;
 
 	/* build "checker -> service count" histogram */
-	BOOST_FOREACH(const ConfigObject::Ptr& object, m_AllServices) {
-		Service service = object;
+	ConfigObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Service")) {
+		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+
+		if (!service)
+			continue;
 
 		services.push_back(service);
 
-		string checker = service.GetChecker();
+		string checker = service->GetChecker();
 		if (checker.empty())
 			continue;
 
@@ -201,8 +212,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 	int delegated = 0;
 
 	/* re-assign services */
-	BOOST_FOREACH(Service& service, services) {
-		string checker = service.GetChecker();
+	BOOST_FOREACH(const Service::Ptr& service, services) {
+		string checker = service->GetChecker();
 
 		Endpoint::Ptr oldEndpoint;
 		if (!checker.empty())
@@ -217,7 +228,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 			std::random_shuffle(candidates.begin(), candidates.end());
 
 			stringstream msgbuf;
-			msgbuf << "Service: " << service.GetName() << ", candidates: " << candidates.size();
+			msgbuf << "Service: " << service->GetName() << ", candidates: " << candidates.size();
 			Logger::Write(LogDebug, "delegation", msgbuf.str());
 
 			BOOST_FOREACH(const Endpoint::Ptr& candidate, candidates) {
@@ -238,7 +249,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 		/* clear the service's current checker */
 		if (!checker.empty()) {
 			need_clear = true;
-			service.SetChecker("");
+			service->SetChecker("");
 
 			if (oldEndpoint)
 				histogram[oldEndpoint]--;
@@ -250,7 +261,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 			if (histogram[candidate] > avg_services)
 				continue;
 
-			service.SetChecker(candidate->GetIdentity());
+			service->SetChecker(candidate->GetIdentity());
 			histogram[candidate]++;
 
 			delegated++;
@@ -258,7 +269,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 			break;
 		}
 
-		assert(candidates.size() == 0 || !service.GetChecker().empty());
+		assert(candidates.size() == 0 || !service->GetChecker().empty());
 	}
 
 	Endpoint::Ptr endpoint;
@@ -277,8 +288,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 			}
 		}
 
-		BOOST_FOREACH(Service& service, services) {
-			string checker = service.GetChecker();
+		BOOST_FOREACH(const Service::Ptr& service, services) {
+			string checker = service->GetChecker();
 			Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
 
 			if (!endpoint)

@@ -23,13 +23,18 @@
 namespace icinga
 {
 
-class I2_CIB_API ServiceGroup : public ConfigObjectAdapter
+class I2_CIB_API ServiceGroup : public ConfigObject
 {
 public:
-	ServiceGroup(const ConfigObject::Ptr& configObject);
+	typedef shared_ptr<ServiceGroup> Ptr;
+	typedef weak_ptr<ServiceGroup> WeakPtr;
+
+	ServiceGroup(const Dictionary::Ptr& properties)
+		: ConfigObject(properties)
+	{ }
 
 	static bool Exists(const string& name);
-	static ServiceGroup GetByName(const string& name);
+	static ServiceGroup::Ptr GetByName(const string& name);
 
 	string GetAlias(void) const;
 	string GetNotesUrl(void) const;

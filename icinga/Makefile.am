@@ -35,5 +35,6 @@ libicinga_la_LDFLAGS = \
 libicinga_la_LIBADD = \
 	$(BOOST_THREAD_LIB) \
 	${top_builddir}/base/libbase.la \
+	${top_builddir}/cib/libcib.la \
 	${top_builddir}/dyn/libdyn.la \
 	${top_builddir}/jsonrpc/libjsonrpc.la

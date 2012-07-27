@@ -50,16 +50,9 @@ int IcingaApplication::Main(const vector<string>& args)
 	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
 	m_RetentionTimer->Start();
 
-	/* register handler for 'log' config objects */
-	static ConfigObject::Set::Ptr logObjects = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("log"));
-	logObjects->OnObjectAdded.connect(boost::bind(&IcingaApplication::NewLogHandler, this, _2));
-	logObjects->OnObjectCommitted.connect(boost::bind(&IcingaApplication::NewLogHandler, this, _2));
-	logObjects->OnObjectRemoved.connect(boost::bind(&IcingaApplication::DeletedLogHandler, this, _2));
-	logObjects->Start();
-
 	/* create console logger */
 	ConfigItemBuilder::Ptr consoleLogConfig = boost::make_shared<ConfigItemBuilder>();
-	consoleLogConfig->SetType("log");
+	consoleLogConfig->SetType("Logger");
 	consoleLogConfig->SetName("console");
 	consoleLogConfig->SetLocal(true);
 	consoleLogConfig->AddExpression("type", OperatorSet, "console");
@@ -80,7 +73,6 @@ int IcingaApplication::Main(const vector<string>& args)
 		return EXIT_FAILURE;
 	}
 
-	bool enableSyslog = false;
 	bool daemonize = false;
 	bool parseOpts = true;
 	string configFile;
@@ -100,21 +92,7 @@ int IcingaApplication::Main(const vector<string>& args)
 		}
 
 		if (parseOpts && arg[0] == '-') {
-			if (arg == "-S") {
-				enableSyslog = true;
-				continue;
-			} else if (arg == "-L") {
-				if (it + 1 == args.end())
-					throw_exception(invalid_argument("Option -L requires a parameter"));
-
-				StreamLogger::Ptr fileLogger = boost::make_shared<StreamLogger>(LogInformation);
-				fileLogger->OpenFile(*(it + 1));
-				Logger::RegisterLogger(fileLogger);
-
-				it++;
-
-				continue;
-			} else if (arg == "-d") {
+			if (arg == "-d") {
 				daemonize = true;
 				continue;
 			} else {
@@ -131,35 +109,19 @@ int IcingaApplication::Main(const vector<string>& args)
 	if (configFile.empty())
 		throw_exception(invalid_argument("No config file was specified on the command line."));
 
-	if (enableSyslog) {
-#ifndef _WIN32
-		SyslogLogger::Ptr syslogLogger = boost::make_shared<SyslogLogger>(LogInformation);
-		Logger::RegisterLogger(syslogLogger);
-#else /* _WIN32 */
-		throw_exception(invalid_argument("Syslog is not supported on Windows."));
-#endif /* _WIN32 */
-	}
-
 	string componentDirectory = Utility::DirName(GetExePath()) + "/../lib/icinga2";
 	Component::AddSearchDir(componentDirectory);
 
-	/* register handler for 'component' config objects */
-	static ConfigObject::Set::Ptr componentObjects = boost::make_shared<ConfigObject::Set>(ConfigObject::GetAllObjects(), ConfigObject::MakeTypePredicate("component"));
-	componentObjects->OnObjectAdded.connect(boost::bind(&IcingaApplication::NewComponentHandler, this, _2));
-	componentObjects->OnObjectCommitted.connect(boost::bind(&IcingaApplication::NewComponentHandler, this, _2));
-	componentObjects->OnObjectRemoved.connect(boost::bind(&IcingaApplication::DeletedComponentHandler, this, _2));
-	componentObjects->Start();
-
 	/* load cibsync config component */
 	ConfigItemBuilder::Ptr cibsyncComponentConfig = boost::make_shared<ConfigItemBuilder>();
-	cibsyncComponentConfig->SetType("component");
+	cibsyncComponentConfig->SetType("Component");
 	cibsyncComponentConfig->SetName("cibsync");
 	cibsyncComponentConfig->SetLocal(true);
 	cibsyncComponentConfig->Compile()->Commit();
 
 	/* load convenience config component */
 	ConfigItemBuilder::Ptr convenienceComponentConfig = boost::make_shared<ConfigItemBuilder>();
-	convenienceComponentConfig->SetType("component");
+	convenienceComponentConfig->SetType("Component");
 	convenienceComponentConfig->SetName("convenience");
 	convenienceComponentConfig->SetLocal(true);
 	convenienceComponentConfig->Compile()->Commit();
@@ -173,10 +135,10 @@ int IcingaApplication::Main(const vector<string>& args)
 		item->Commit();
 	}
 
-	ConfigObject::Ptr icingaConfig = ConfigObject::GetObject("application", "icinga");
+	ConfigObject::Ptr icingaConfig = ConfigObject::GetObject("Application", "icinga");
 
 	if (!icingaConfig)
-		throw_exception(runtime_error("Configuration must contain an 'application' object named 'icinga'."));
+		throw_exception(runtime_error("Configuration must contain an 'Application' object named 'icinga'."));
 
 	if (!icingaConfig->IsLocal())
 		throw_exception(runtime_error("'icinga' application object must be 'local'."));
@@ -191,7 +153,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	string logpath;
 	if (icingaConfig->GetProperty("logpath", &logpath)) {
 		ConfigItemBuilder::Ptr fileLogConfig = boost::make_shared<ConfigItemBuilder>();
-		fileLogConfig->SetType("log");
+		fileLogConfig->SetType("Logger");
 		fileLogConfig->SetName("main");
 		fileLogConfig->SetLocal(true);
 		fileLogConfig->AddExpression("type", OperatorSet, "file");
@@ -238,75 +200,9 @@ void IcingaApplication::DumpProgramState(void) {
 	rename("retention.dat.tmp", "retention.dat");
 }
 
-void IcingaApplication::NewComponentHandler(const ConfigObject::Ptr& object)
-{
-	/* don't allow replicated config objects */
-	if (!object->IsLocal())
-		throw_exception(runtime_error("'component' objects must be 'local'"));
-
-	Component::Load(object->GetName(), object);
-}
-
-void IcingaApplication::NewLogHandler(const ConfigObject::Ptr& object)
-{
-	/* don't allow replicated config objects */
-	if (!object->IsLocal())
-		throw_exception(runtime_error("'log' objects must be 'local'"));
-
-	Logger::Ptr logger;
-	if (object->GetTag("logger", &logger))
-		Logger::UnregisterLogger(logger);
-
-	string type;
-	if (!object->GetProperty("type", &type))
-		throw_exception(invalid_argument("'log' object must have a 'type' property"));
-
-	string strSeverity;
-	LogSeverity severity = LogInformation;
-	if (object->GetProperty("severity", &strSeverity))
-		severity = Logger::StringToSeverity(strSeverity);
-
-	if (type == "syslog") {
-#ifndef _WIN32
-		logger = boost::make_shared<SyslogLogger>(severity);
-#else /* _WIN32 */
-		throw_exception(invalid_argument("Syslog is not supported on Windows."));
-#endif /* _WIN32 */
-	} else if (type == "file") {
-		string path;
-		if (!object->GetProperty("path", &path))
-			throw_exception(invalid_argument("'log' object of type 'file' must have a 'path' property"));
-
-		StreamLogger::Ptr slogger = boost::make_shared<StreamLogger>(severity);
-		slogger->OpenFile(path);
-
-		logger = slogger;
-	} else if (type == "console") {
-		logger = boost::make_shared<StreamLogger>(&std::cout, severity);
-	} else {
-		throw_exception(runtime_error("Unknown log type: " + type));
-	}
-
-	object->SetTag("logger", logger);
-
-	Logger::RegisterLogger(logger);
-}
-
-void IcingaApplication::DeletedLogHandler(const ConfigObject::Ptr& object)
-{
-	Logger::Ptr logger;
-	if (object->GetTag("logger", &logger))
-		Logger::UnregisterLogger(logger);
-}
-
 IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 {
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
-}
-
-void IcingaApplication::DeletedComponentHandler(const ConfigObject::Ptr& object)
-{
-	Component::Unload(object->GetName());
 }
 
 string IcingaApplication::GetCertificateFile(void) const

@@ -33,6 +33,9 @@ Application::Application(void)
 	: m_PidFile(NULL)
 {
 #ifdef _WIN32
+	/* disable GUI-based error messages for LoadLibrary() */
+	SetErrorMode(SEM_FAILCRITICALERRORS);
+
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
 		throw_exception(Win32Exception("WSAStartup failed", WSAGetLastError()));
@@ -89,8 +92,6 @@ void Application::RunEventLoop(void)
 
 		Event::ProcessEvents(boost::get_system_time() + boost::posix_time::milliseconds(sleep * 1000));
 	}
-
-	Component::UnloadAll();
 }
 
 /**

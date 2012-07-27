@@ -51,32 +51,44 @@ struct LogEntry {
 /**
  * Base class for all loggers.
  */
-class I2_BASE_API Logger : public Object
+class I2_BASE_API ILogger : public Object
+{
+public:
+	typedef shared_ptr<ILogger> Ptr;
+	typedef weak_ptr<ILogger> WeakPtr;
+
+	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
+
+protected:
+	ConfigObject::Ptr GetConfig(void) const;
+
+private:
+	ConfigObject *m_Config;
+
+	friend class Logger;
+};
+
+class I2_BASE_API Logger : public ConfigObject
 {
 public:
 	typedef shared_ptr<Logger> Ptr;
 	typedef weak_ptr<Logger> WeakPtr;
 
-	Logger(LogSeverity minSeverity);
+	Logger(const Dictionary::Ptr& properties);
 
 	static void Write(LogSeverity severity, const string& facility,
 	    const string& message);
 
-	static void RegisterLogger(const Logger::Ptr& logger);
-	static void UnregisterLogger(const Logger::Ptr& logger);
-
 	static string SeverityToString(LogSeverity severity);
 	static LogSeverity StringToSeverity(const string& severity);
-
-protected:
-	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
 
 	LogSeverity GetMinSeverity(void) const;
 
 private:
 	LogSeverity m_MinSeverity;
 
-	static set<Logger::Ptr> m_Loggers;
+	ILogger::Ptr GetImplementation(void) const;
+	void SetImplementation(const ILogger::Ptr& impl);
 
 	static void ForwardLogEntry(const LogEntry& entry);
 };

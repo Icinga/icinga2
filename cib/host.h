@@ -23,21 +23,26 @@
 namespace icinga
 {
 
-class I2_CIB_API Host : public ConfigObjectAdapter
+class I2_CIB_API Host : public ConfigObject
 {
 public:
-	Host(const ConfigObject::Ptr& configObject);
+	typedef shared_ptr<Host> Ptr;
+	typedef weak_ptr<Host> WeakPtr;
+
+	Host(const Dictionary::Ptr& properties)
+		: ConfigObject(properties)
+	{ }
 
 	static bool Exists(const string& name);
-	static Host GetByName(const string& name);
+	static Host::Ptr GetByName(const string& name);
 
 	string GetAlias(void) const;
 	Dictionary::Ptr GetGroups(void) const;
-	set<string> GetParents(void) const;
+	set<string> GetParents(void);
 	Dictionary::Ptr GetMacros(void) const;
 
-	bool IsReachable(void) const;
-	bool IsUp(void) const;
+	bool IsReachable(void);
+	bool IsUp(void);
 };
 
 }

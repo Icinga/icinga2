@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-set<Logger::Ptr> Logger::m_Loggers;
+REGISTER_CLASS(Logger);
 
 /**
  * Constructor for the logger class.
@@ -29,9 +29,42 @@ set<Logger::Ptr> Logger::m_Loggers;
  * @param minSeverity The minimum severity of log messages that should be sent
  *                    to this logger.
  */
-Logger::Logger(LogSeverity minSeverity)
-	: m_MinSeverity(minSeverity)
-{ }
+Logger::Logger(const Dictionary::Ptr& properties)
+	: ConfigObject(properties)
+{
+	if (!IsLocal())
+		throw_exception(runtime_error("Logger objects must be local."));
+
+	string type;
+	if (!GetProperty("type", &type))
+		throw_exception(runtime_error("Logger objects must have a 'type' property."));
+
+	ILogger::Ptr impl;
+
+	if (type == "syslog") {
+#ifndef _WIN32
+		impl = boost::make_shared<SyslogLogger>();
+#else /* _WIN32 */
+		throw_exception(invalid_argument("Syslog is not supported on Windows."));
+#endif /* _WIN32 */
+	} else if (type == "file") {
+		string path;
+		if (!GetProperty("path", &path))
+			throw_exception(invalid_argument("'log' object of type 'file' must have a 'path' property"));
+
+		StreamLogger::Ptr slogger = boost::make_shared<StreamLogger>();
+		slogger->OpenFile(path);
+
+		impl = slogger;
+	} else if (type == "console") {
+		impl = boost::make_shared<StreamLogger>(&std::cout);
+	} else {
+		throw_exception(runtime_error("Unknown log type: " + type));
+	}
+
+	impl->m_Config = this;
+	SetImplementation(impl);
+}
 
 /**
  * Writes a message to the application's log.
@@ -53,37 +86,18 @@ void Logger::Write(LogSeverity severity, const string& facility,
 }
 
 /**
- * Registers a new logger.
- *
- * @param logger The logger.
- */
-void Logger::RegisterLogger(const Logger::Ptr& logger)
-{
-	assert(Application::IsMainThread());
-
-	m_Loggers.insert(logger);
-}
-
-/**
- * Unregisters a logger.
- *
- * @param logger The logger.
- */
-void Logger::UnregisterLogger(const Logger::Ptr& logger)
-{
-	assert(Application::IsMainThread());
-
-	m_Loggers.erase(logger);
-}
-
-/**
  * Retrieves the minimum severity for this logger.
  *
  * @returns The minimum severity.
  */
 LogSeverity Logger::GetMinSeverity(void) const
 {
-	return m_MinSeverity;
+	string strSeverity;
+	LogSeverity severity = LogInformation;
+	if (GetProperty("severity", &strSeverity))
+		severity = Logger::StringToSeverity(strSeverity);
+
+	return severity;
 }
 
 /**
@@ -93,10 +107,25 @@ LogSeverity Logger::GetMinSeverity(void) const
  */
 void Logger::ForwardLogEntry(const LogEntry& entry)
 {
-	BOOST_FOREACH(const Logger::Ptr& logger, m_Loggers) {
+	ConfigObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Logger")) {
+		Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
+
 		if (entry.Severity >= logger->GetMinSeverity())
-			logger->ProcessLogEntry(entry);
+			logger->GetImplementation()->ProcessLogEntry(entry);
 	}
+}
+
+ILogger::Ptr Logger::GetImplementation(void) const
+{
+	ILogger::Ptr impl;
+	GetTag("impl", &impl);
+	return impl;
+}
+
+void Logger::SetImplementation(const ILogger::Ptr& impl)
+{
+	SetTag("impl", impl);
 }
 
 string Logger::SeverityToString(LogSeverity severity)

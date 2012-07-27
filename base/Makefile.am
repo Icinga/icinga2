@@ -28,10 +28,6 @@ libbase_la_SOURCES =  \
 	netstring.h \
 	object.cpp \
 	object.h \
-	objectset.cpp \
-	objectset.h \
-	objectmap.cpp \
-	objectmap.h \
 	process.cpp \
 	process.h \
 	ringbuffer.cpp \

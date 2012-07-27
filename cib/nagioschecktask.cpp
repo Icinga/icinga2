@@ -34,13 +34,13 @@ void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Varia
 	if (!vservice.IsObjectType<ConfigObject>())
 		throw_exception(invalid_argument("Argument must be a config object."));
 
-	Service service = static_cast<ConfigObject::Ptr>(vservice);
+	Service::Ptr service = static_cast<Service::Ptr>(vservice);
 
-	string checkCommand = service.GetCheckCommand();
+	string checkCommand = service->GetCheckCommand();
 
 	vector<Dictionary::Ptr> macroDicts;
-	macroDicts.push_back(service.GetMacros());
-	macroDicts.push_back(service.GetHost().GetMacros());
+	macroDicts.push_back(service->GetMacros());
+	macroDicts.push_back(service->GetHost()->GetMacros());
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
 	string command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
 

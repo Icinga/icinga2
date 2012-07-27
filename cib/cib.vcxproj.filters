@@ -17,9 +17,6 @@
     <ClInclude Include="cib.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="configobjectadapter.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="host.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -53,9 +50,6 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="cib.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="configobjectadapter.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="host.cpp">

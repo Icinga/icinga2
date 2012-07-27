@@ -36,7 +36,6 @@
 #	define I2_CIB_API I2_IMPORT
 #endif /* I2_CIB_BUILD */
 
-#include "configobjectadapter.h"
 #include "host.h"
 #include "hostgroup.h"
 #include "service.h"

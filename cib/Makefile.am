@@ -10,8 +10,6 @@ libcib_la_SOURCES = \
 	checkresultmessage.h \
 	cib.cpp \
 	cib.h \
-	configobjectadapter.cpp \
-	configobjectadapter.h \
 	host.cpp \
 	host.h \
 	hostgroup.cpp \

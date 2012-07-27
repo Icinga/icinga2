@@ -26,7 +26,7 @@ namespace icinga
 /**
  * @ingroup demo
  */
-class DemoComponent : public Component
+class DemoComponent : public IComponent
 {
 public:
 	virtual string GetName(void) const;

@@ -21,13 +21,9 @@
 
 using namespace icinga;
 
-boost::signal<void (Service, const CheckResultMessage&)> Service::OnCheckResultReceived;
+REGISTER_CLASS(Service);
 
-Service::Service(const ConfigObject::Ptr& configObject)
-	: ConfigObjectAdapter(configObject)
-{
-	assert(GetType() == "service");
-}
+boost::signal<void (const Service::Ptr&, const CheckResultMessage&)> Service::OnCheckResultReceived;
 
 string Service::GetAlias(void) const
 {
@@ -41,20 +37,20 @@ string Service::GetAlias(void) const
 
 bool Service::Exists(const string& name)
 {
-	return (ConfigObject::GetObject("service", name));
+	return (ConfigObject::GetObject("Service", name));
 }
 
-Service Service::GetByName(const string& name)
+Service::Ptr Service::GetByName(const string& name)
 {
-	ConfigObject::Ptr configObject = ConfigObject::GetObject("service", name);
+	ConfigObject::Ptr configObject = ConfigObject::GetObject("Service", name);
 
 	if (!configObject)
 		throw_exception(invalid_argument("Service '" + name + "' does not exist."));
 
-	return configObject;
+	return dynamic_pointer_cast<Service>(configObject);
 }
 
-Host Service::GetHost(void) const
+Host::Ptr Service::GetHost(void) const
 {
 	string hostname;
 	if (!GetProperty("host_name", &hostname))
@@ -126,8 +122,8 @@ void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
 
 		result->Set(dependency, dependency);
 
-		Service service = Service::GetByName(dependency);
-		service.GetDependenciesRecursive(result);
+		Service::Ptr service = Service::GetByName(dependency);
+		service->GetDependenciesRecursive(result);
 	}
 }
 
@@ -152,23 +148,23 @@ bool Service::IsReachable(void) const
 
 	Variant dependency;
 	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-		Service service = Service::GetByName(dependency);
+		Service::Ptr service = Service::GetByName(dependency);
 
 		/* ignore ourselves */
-		if (service.GetName() == GetName())
+		if (service->GetName() == GetName())
 			continue;
 
 		/* ignore pending services */
-		if (!service.HasLastCheckResult())
+		if (!service->HasLastCheckResult())
 			continue;
 
 		/* ignore soft states */
-		if (service.GetStateType() == StateTypeSoft)
+		if (service->GetStateType() == StateTypeSoft)
 			continue;
 
 		/* ignore services states OK and Warning */
-		if (service.GetState() == StateOK ||
-		    service.GetState() == StateWarning)
+		if (service->GetState() == StateOK ||
+		    service->GetState() == StateWarning)
 			continue;
 
 		return false;
@@ -424,10 +420,10 @@ bool Service::IsAllowedChecker(const string& checker) const
 	return false;
 }
 
-Dictionary::Ptr Service::ResolveDependencies(Host host, const Dictionary::Ptr& dependencies)
+Dictionary::Ptr Service::ResolveDependencies(const Host::Ptr& host, const Dictionary::Ptr& dependencies)
 {
 	Dictionary::Ptr services;
-	host.GetProperty("services", &services);
+	host->GetProperty("services", &services);
 
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();
 
@@ -436,7 +432,7 @@ Dictionary::Ptr Service::ResolveDependencies(Host host, const Dictionary::Ptr& d
 		string name;
 
 		if (services && services->Contains(dependency))
-			name = host.GetName() + "-" + static_cast<string>(dependency);
+			name = host->GetName() + "-" + static_cast<string>(dependency);
 		else
 			name = static_cast<string>(dependency);
 

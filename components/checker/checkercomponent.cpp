@@ -21,11 +21,6 @@
 
 using namespace icinga;
 
-string CheckerComponent::GetName(void) const
-{
-	return "checker";
-}
-
 void CheckerComponent::Start(void)
 {
 	m_Endpoint = boost::make_shared<VirtualEndpoint>();
@@ -66,24 +61,24 @@ void CheckerComponent::CheckTimerHandler(void)
 	long tasks = 0;
 
 	while (!m_Services.empty()) {
-		Service service = m_Services.top();
+		Service::Ptr service = m_Services.top();
 
-		if (service.GetNextCheck() > now)
+		if (service->GetNextCheck() > now)
 			break;
 
 		m_Services.pop();
 
-		Logger::Write(LogDebug, "checker", "Executing service check for '" + service.GetName() + "'");
+		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
-		m_PendingServices.insert(service.GetConfigObject());
+		m_PendingServices.insert(service);
 
 		vector<Variant> arguments;
-		arguments.push_back(service.GetConfigObject());
+		arguments.push_back(service);
 		ScriptTask::Ptr task;
-		task = service.InvokeMethod("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
+		task = service->InvokeMethod("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
 		assert(task); /* TODO: gracefully handle missing hooks */
 
-		service.SetTag("current_task", task);
+		service->SetTag("current_task", task);
 
 		tasks++;
 	}
@@ -95,9 +90,9 @@ void CheckerComponent::CheckTimerHandler(void)
 	Logger::Write(LogInformation, "checker", msgbuf.str());
 }
 
-void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::Ptr& task)
+void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const ScriptTask::Ptr& task)
 {
-	service.RemoveTag("current_task");
+	service->RemoveTag("current_task");
 
 	try {
 		Variant vresult = task->GetResult();
@@ -109,7 +104,7 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 			rm.SetMethod("checker::CheckResult");
 
 			CheckResultMessage params;
-			params.SetService(service.GetName());
+			params.SetService(service->GetName());
 			params.SetCheckResult(result);
 
 			rm.SetParams(params);
@@ -119,26 +114,26 @@ void CheckerComponent::CheckCompletedHandler(Service service, const ScriptTask::
 	} catch (const exception& ex) {
 		stringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"
-		       << service.GetName() << "': " << ex.what();
+		       << service->GetName() << "': " << ex.what();
 		Logger::Write(LogWarning, "checker", msgbuf.str());
 	}
 
 	/* figure out when the next check is for this service; the local
 	 * cibsync component should've already done this as part of processing
 	 * the CheckResult message, but lets do it again to be sure */
-	service.UpdateNextCheck();
+	service->UpdateNextCheck();
 
 	/* remove the service from the list of pending services; if it's not in the
 	 * list this was a manual (i.e. forced) check and we must not re-add the
 	 * service to the services list because it's already there. */
-	set<ConfigObject::Ptr>::iterator it;
-	it = m_PendingServices.find(service.GetConfigObject());
+	set<Service::Ptr>::iterator it;
+	it = m_PendingServices.find(service);
 	if (it != m_PendingServices.end()) {
 		m_PendingServices.erase(it);
 		m_Services.push(service);
 	}
 
-	Logger::Write(LogDebug, "checker", "Check finished for service '" + service.GetName() + "'");
+	Logger::Write(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
 }
 
 void CheckerComponent::ResultTimerHandler(void)
@@ -160,12 +155,12 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 	if (!params.Get("service", &service))
 		return;
 
-	ConfigObject::Ptr object = ConfigObject::GetObject("service", service);
-
-	if (!object) {
+	if (!Service::Exists(service)) {
 		Logger::Write(LogWarning, "checker", "Ignoring delegation request for unknown service '" + service + "'.");
 		return;
 	}
+
+	Service::Ptr object = Service::GetByName(service);
 
 	m_Services.push(object);
 

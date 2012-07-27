@@ -49,13 +49,10 @@ public:
 	 */
 	~AsyncTask(void)
 	{
-		if (!m_Finished) {
-			Logger::Write(LogCritical, "base", "Contract violation: "
-				"AsyncTask was destroyed before its completion callback was invoked.");
-		} else if (!m_ResultRetrieved) {
-			Logger::Write(LogCritical, "base", "Contract violation: "
-				"AsyncTask was destroyed before its result was retrieved.");
-		}
+		if (!m_Finished)
+			assert(!"Contract violation: AsyncTask was destroyed before its completion callback was invoked.");
+		else if (!m_ResultRetrieved)
+			assert(!"Contract violation: AsyncTask was destroyed before its result was retrieved.");
 	}
 
 

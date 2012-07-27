@@ -28,10 +28,6 @@ public:
 	typedef shared_ptr<ConfigItem> Ptr;
 	typedef weak_ptr<ConfigItem> WeakPtr;
 
-	typedef ObjectSet<ConfigItem::Ptr> Set;
-
-	typedef ObjectMap<pair<string, string>, ConfigItem::Ptr> TNMap;
-
 	ConfigItem(const string& type, const string& name,
 	    const ExpressionList::Ptr& exprl, const vector<string>& parents,
 	    const DebugInfo& debuginfo);
@@ -52,9 +48,10 @@ public:
 
 	DebugInfo GetDebugInfo(void) const;
 
-	static Set::Ptr GetAllObjects(void);
-	static TNMap::Ptr GetObjectsByTypeAndName(void);
 	static ConfigItem::Ptr GetObject(const string& type, const string& name);
+
+	static boost::signal<void (const ConfigItem::Ptr&)> OnCommitted;
+	static boost::signal<void (const ConfigItem::Ptr&)> OnRemoved;
 
 private:
 	string m_Type;
@@ -66,7 +63,8 @@ private:
 
 	ConfigObject::WeakPtr m_ConfigObject;
 
-	static bool GetTypeAndName(const ConfigItem::Ptr& object, pair<string, string> *key);
+	typedef map<pair<string, string>, ConfigItem::Ptr> ItemMap;
+	static ItemMap m_Items;
 };
 
 }

@@ -28,16 +28,6 @@ using namespace icinga;
  */
 
 /**
- * Returns the name of the component.
- *
- * @returns The name.
- */
-string CompatComponent::GetName(void) const
-{
-	return "compat";
-}
-
-/**
  * Starts the component.
  */
 void CompatComponent::Start(void)
@@ -56,18 +46,18 @@ void CompatComponent::Stop(void)
 {
 }
 
-void CompatComponent::DumpHostStatus(ofstream& fp, Host host)
+void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 {
 	int state;
-	if (!host.IsReachable())
+	if (!host->IsReachable())
 		state = 2; /* unreachable */
-	else if (!host.IsUp())
+	else if (!host->IsUp())
 		state = 1; /* down */
 	else
 		state = 0; /* up */
 
 	fp << "hoststatus {" << "\n"
-	   << "\t" << "host_name=" << host.GetName() << "\n"
+	   << "\t" << "host_name=" << host->GetName() << "\n"
 	   << "\t" << "has_been_checked=1" << "\n"
 	   << "\t" << "should_be_scheduled=1" << "\n"
 	   << "\t" << "check_execution_time=0" << "\n"
@@ -85,18 +75,18 @@ void CompatComponent::DumpHostStatus(ofstream& fp, Host host)
 	   << "\n";
 }
 
-void CompatComponent::DumpHostObject(ofstream& fp, Host host)
+void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 {
 	fp << "define host {" << "\n"
-	   << "\t" << "host_name" << "\t" << host.GetName() << "\n"
-	   << "\t" << "alias" << "\t" << host.GetAlias() << "\n"
+	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
+	   << "\t" << "alias" << "\t" << host->GetAlias() << "\n"
 	   << "\t" << "check_interval" << "\t" << 1 << "\n"
 	   << "\t" << "retry_interval" << "\t" << 1 << "\n"
 	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
 	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
 	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n";
 
-	set<string> parents = host.GetParents();
+	set<string> parents = host->GetParents();
 
 	if (!parents.empty()) {
 		fp << "\t" << "parents" << "\t";
@@ -108,14 +98,14 @@ void CompatComponent::DumpHostObject(ofstream& fp, Host host)
 	   << "\n";
 }
 
-void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
+void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& service)
 {
 	string output;
 	string perfdata;
 	double schedule_start = -1, schedule_end = -1;
 	double execution_start = -1, execution_end = -1;
-	if (service.HasLastCheckResult()) {
-		CheckResult cr = service.GetLastCheckResult();
+	if (service->HasLastCheckResult()) {
+		CheckResult cr = service->GetLastCheckResult();
 		output = cr.GetOutput();
 		schedule_start = cr.GetScheduleStart();
 		schedule_end = cr.GetScheduleEnd();
@@ -127,9 +117,9 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 	double execution_time = (execution_end - execution_start);
 	double latency = (schedule_end - schedule_start) - execution_time;
 
-	int state = service.GetState();
+	int state = service->GetState();
 
-	if (!service.IsReachable()) {
+	if (!service->IsReachable()) {
 		state = StateCritical;
 		
 		string text = "One or more parent services are unavailable.";
@@ -144,24 +134,24 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 		state = StateUnknown;
 
 	fp << "servicestatus {" << "\n"
-	   << "\t" << "host_name=" << service.GetHost().GetName() << "\n"
-	   << "\t" << "service_description=" << service.GetAlias() << "\n"
-	   << "\t" << "check_interval=" << service.GetCheckInterval() / 60.0 << "\n"
-	   << "\t" << "retry_interval=" << service.GetRetryInterval() / 60.0 << "\n"
-	   << "\t" << "has_been_checked=" << (service.HasLastCheckResult() ? 1 : 0) << "\n"
+	   << "\t" << "host_name=" << service->GetHost()->GetName() << "\n"
+	   << "\t" << "service_description=" << service->GetAlias() << "\n"
+	   << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
+	   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
+	   << "\t" << "has_been_checked=" << (service->HasLastCheckResult() ? 1 : 0) << "\n"
 	   << "\t" << "should_be_scheduled=1" << "\n"
 	   << "\t" << "check_execution_time=" << execution_time << "\n"
 	   << "\t" << "check_latency=" << latency << "\n"
 	   << "\t" << "current_state=" << state << "\n"
-	   << "\t" << "state_type=" << service.GetStateType() << "\n"
+	   << "\t" << "state_type=" << service->GetStateType() << "\n"
 	   << "\t" << "plugin_output=" << output << "\n"
 	   << "\t" << "performance_data=" << perfdata << "\n"
 	   << "\t" << "last_check=" << schedule_end << "\n"
-	   << "\t" << "next_check=" << service.GetNextCheck() << "\n"
-	   << "\t" << "current_attempt=" << service.GetCurrentCheckAttempt() << "\n"
-	   << "\t" << "max_attempts=" << service.GetMaxCheckAttempts() << "\n"
-	   << "\t" << "last_state_change=" << service.GetLastStateChange() << "\n"
-	   << "\t" << "last_hard_state_change=" << service.GetLastHardStateChange() << "\n"
+	   << "\t" << "next_check=" << service->GetNextCheck() << "\n"
+	   << "\t" << "current_attempt=" << service->GetCurrentCheckAttempt() << "\n"
+	   << "\t" << "max_attempts=" << service->GetMaxCheckAttempts() << "\n"
+	   << "\t" << "last_state_change=" << service->GetLastStateChange() << "\n"
+	   << "\t" << "last_hard_state_change=" << service->GetLastHardStateChange() << "\n"
 	   << "\t" << "last_update=" << time(NULL) << "\n"
 	   << "\t" << "active_checks_enabled=1" << "\n"
 	   << "\t" << "passive_checks_enabled=1" << "\n"
@@ -169,14 +159,14 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, Service service)
 	   << "\n";
 }
 
-void CompatComponent::DumpServiceObject(ofstream& fp, Service service)
+void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& service)
 {
 	fp << "define service {" << "\n"
-	   << "\t" << "host_name" << "\t" << service.GetHost().GetName() << "\n"
-	   << "\t" << "service_description" << "\t" << service.GetAlias() << "\n"
+	   << "\t" << "host_name" << "\t" << service->GetHost()->GetName() << "\n"
+	   << "\t" << "service_description" << "\t" << service->GetAlias() << "\n"
 	   << "\t" << "check_command" << "\t" << "check_i2" << "\n"
-	   << "\t" << "check_interval" << "\t" << service.GetCheckInterval() / 60.0 << "\n"
-	   << "\t" << "retry_interval" << "\t" << service.GetRetryInterval() / 60.0 << "\n"
+	   << "\t" << "check_interval" << "\t" << service->GetCheckInterval() / 60.0 << "\n"
+	   << "\t" << "retry_interval" << "\t" << service->GetRetryInterval() / 60.0 << "\n"
 	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
 	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
 	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n"
@@ -232,20 +222,17 @@ void CompatComponent::StatusTimerHandler(void)
 
 	map<string, vector<string> > hostgroups;
 
-	ConfigObject::TMap::Range range;
-	range = ConfigObject::GetObjects("host");
-
 	ConfigObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), range) {
-		Host host = object;
+	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Host")) {
+		const Host::Ptr& host = static_pointer_cast<Host>(object);
 
 		Dictionary::Ptr dict;
-		dict = host.GetGroups();
+		dict = host->GetGroups();
 
 		if (dict) {
 			Variant hostgroup;
 			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
-				hostgroups[hostgroup].push_back(host.GetName());
+				hostgroups[hostgroup].push_back(host->GetName());
 			}
 		}
 
@@ -262,10 +249,10 @@ void CompatComponent::StatusTimerHandler(void)
 			 << "\t" << "hostgroup_name" << "\t" << name << "\n";
 
 		if (HostGroup::Exists(name)) {
-			HostGroup hg = HostGroup::GetByName(name);
-			objectfp << "\t" << "alias" << "\t" << hg.GetAlias() << "\n"
-				 << "\t" << "notes_url" << "\t" << hg.GetNotesUrl() << "\n"
-				 << "\t" << "action_url" << "\t" << hg.GetActionUrl() << "\n";
+			HostGroup::Ptr hg = HostGroup::GetByName(name);
+			objectfp << "\t" << "alias" << "\t" << hg->GetAlias() << "\n"
+				 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
+				 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
 		}
 
 		objectfp << "\t" << "members" << "\t";
@@ -276,16 +263,14 @@ void CompatComponent::StatusTimerHandler(void)
 			 << "}" << "\n";
 	}
 
-	range = ConfigObject::GetObjects("service");
+	map<string, vector<Service::Ptr> > servicegroups;
 
-	map<string, vector<Service> > servicegroups;
-
-	BOOST_FOREACH(tie(tuples::ignore, object), range) {
-		Service service = object;
+	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Service")) {
+		Service::Ptr service = static_pointer_cast<Service>(object);
 
 		Dictionary::Ptr dict;
 
-		dict = service.GetGroups();
+		dict = service->GetGroups();
 
 		if (dict) {
 			Variant servicegroup;
@@ -298,29 +283,29 @@ void CompatComponent::StatusTimerHandler(void)
 		DumpServiceObject(objectfp, service);
 	}
 
-	pair<string, vector<Service > > sgt;
+	pair<string, vector<Service::Ptr> > sgt;
 	BOOST_FOREACH(sgt, servicegroups) {
 		const string& name = sgt.first;
-		const vector<Service>& services = sgt.second;
+		const vector<Service::Ptr>& services = sgt.second;
 
 		objectfp << "define servicegroup {" << "\n"
 			 << "\t" << "servicegroup_name" << "\t" << name << "\n";
 
 		if (ServiceGroup::Exists(name)) {
-			ServiceGroup sg = ServiceGroup::GetByName(name);
-			objectfp << "\t" << "alias" << "\t" << sg.GetAlias() << "\n"
-				 << "\t" << "notes_url" << "\t" << sg.GetNotesUrl() << "\n"
-				 << "\t" << "action_url" << "\t" << sg.GetActionUrl() << "\n";
+			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
+			objectfp << "\t" << "alias" << "\t" << sg->GetAlias() << "\n"
+				 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
+				 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
 		}
 
 		objectfp << "\t" << "members" << "\t";
 
 		vector<string> sglist;
-		vector<Service>::iterator vt;
+		vector<Service::Ptr>::iterator vt;
 
-		BOOST_FOREACH(const Service& service, services) {
-			sglist.push_back(service.GetHost().GetName());
-			sglist.push_back(service.GetAlias());
+		BOOST_FOREACH(const Service::Ptr& service, services) {
+			sglist.push_back(service->GetHost()->GetName());
+			sglist.push_back(service->GetAlias());
 		}
 
 		DumpStringList(objectfp, sglist);

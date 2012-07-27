@@ -37,13 +37,8 @@ public:
 	typedef shared_ptr<Object> Ptr;
 	typedef weak_ptr<Object> WeakPtr;
 
-	static void ClearHeldObjects(void);
-
-protected:
-	Object(void);
-	virtual ~Object(void);
-
 	void Hold(void);
+	static void ClearHeldObjects(void);
 
 	/**
 	 * Holds a shared pointer and provides support for implicit upcasts.
@@ -79,6 +74,10 @@ protected:
 	};
 
 	SharedPtrHolder GetSelf(void);
+
+protected:
+	Object(void);
+	virtual ~Object(void);
 
 private:
 	Object(const Object& other);

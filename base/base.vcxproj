@@ -25,8 +25,6 @@
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="netstring.cpp" />
     <ClCompile Include="object.cpp" />
-    <ClCompile Include="objectmap.cpp" />
-    <ClCompile Include="objectset.cpp" />
     <ClCompile Include="process.cpp" />
     <ClCompile Include="ringbuffer.cpp" />
     <ClCompile Include="scriptfunction.cpp" />
@@ -58,8 +56,6 @@
     <ClInclude Include="scriptfunction.h" />
     <ClInclude Include="scripttask.h" />
     <ClInclude Include="logger.h" />
-    <ClInclude Include="objectmap.h" />
-    <ClInclude Include="objectset.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="i2-base.h" />
     <ClInclude Include="object.h" />

@@ -23,13 +23,18 @@
 namespace icinga
 {
 
-class I2_CIB_API HostGroup : public ConfigObjectAdapter
+class I2_CIB_API HostGroup : public ConfigObject
 {
 public:
-	HostGroup(const ConfigObject::Ptr& configObject);
+	typedef shared_ptr<HostGroup> Ptr;
+	typedef weak_ptr<HostGroup> WeakPtr;
+
+	HostGroup(const Dictionary::Ptr& properties)
+		: ConfigObject(properties)
+	{ }
 
 	static bool Exists(const string& name);
-	static HostGroup GetByName(const string& name);
+	static HostGroup::Ptr GetByName(const string& name);
 
 	string GetAlias(void) const;
 	string GetNotesUrl(void) const;

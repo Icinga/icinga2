@@ -23,41 +23,47 @@
 namespace icinga
 {
 
+class I2_BASE_API IComponent : public Object
+{
+public:
+	typedef shared_ptr<IComponent> Ptr;
+	typedef weak_ptr<IComponent> WeakPtr;
+
+	virtual void Start(void);
+	virtual void Stop(void);
+
+protected:
+	ConfigObject::Ptr GetConfig(void) const;
+
+private:
+	ConfigObject *m_Config;
+
+	friend class Component;
+};
+
 /**
  * An application extension that can be dynamically loaded
  * at run-time.
  *
  * @ingroup base
  */
-class I2_BASE_API Component : public Object
+class I2_BASE_API Component : public ConfigObject
 {
 public:
 	typedef shared_ptr<Component> Ptr;
 	typedef weak_ptr<Component> WeakPtr;
 
-	ConfigObject::Ptr GetConfig(void) const;
+	Component(const Dictionary::Ptr& properties);
+	~Component(void);
 
-	virtual void Start(void);
-	virtual void Stop(void);
-
-	string GetName(void) const;
-
-	static void Load(const string& name, const ConfigObject::Ptr& config);
-	static void Unload(const Component::Ptr& component);
-	static void Unload(const string& componentName);
-	static void UnloadAll(void);
-	static Component::Ptr GetByName(const string& name);
 	static void AddSearchDir(const string& componentDirectory);
 
 private:
-	string m_Name;
-	ConfigObject::Ptr m_Config;
-
-	static map<string, Component::Ptr> m_Components; /**< Components that
-					were loaded by the application. */
+	IComponent::Ptr GetImplementation(void) const;
+	void SetImplementation(const IComponent::Ptr& impl);
 };
 
-typedef Component *(*CreateComponentFunction)(void);
+typedef IComponent *(*CreateComponentFunction)(void);
 
 #ifdef _WIN32
 #	define SYM_CREATECOMPONENT(component) CreateComponent
@@ -72,7 +78,7 @@ typedef Component *(*CreateComponentFunction)(void);
  * @param klass The component class.
  */
 #define EXPORT_COMPONENT(component, klass) \
-	extern "C" I2_EXPORT icinga::Component *SYM_CREATECOMPONENT(component)(void) \
+	extern "C" I2_EXPORT icinga::IComponent *SYM_CREATECOMPONENT(component)(void) \
 	{								\
 		return new klass();					\
 	}

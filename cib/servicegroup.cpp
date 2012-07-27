@@ -21,12 +21,7 @@
 
 using namespace icinga;
 
-ServiceGroup::ServiceGroup(const ConfigObject::Ptr& configObject)
-	: ConfigObjectAdapter(configObject)
-{
-	assert(GetType() == "servicegroup");
-}
-
+REGISTER_CLASS(ServiceGroup);
 
 string ServiceGroup::GetAlias(void) const
 {
@@ -54,16 +49,16 @@ string ServiceGroup::GetActionUrl(void) const
 
 bool ServiceGroup::Exists(const string& name)
 {
-	return (ConfigObject::GetObject("hostgroup", name));
+	return (ConfigObject::GetObject("ServiceGroup", name));
 }
 
-ServiceGroup ServiceGroup::GetByName(const string& name)
+ServiceGroup::Ptr ServiceGroup::GetByName(const string& name)
 {
-	ConfigObject::Ptr configObject = ConfigObject::GetObject("hostgroup", name);
+	ConfigObject::Ptr configObject = ConfigObject::GetObject("ServiceGroup", name);
 
 	if (!configObject)
 		throw_exception(invalid_argument("ServiceGroup '" + name + "' does not exist."));
 
-	return ServiceGroup(configObject);
+	return dynamic_pointer_cast<ServiceGroup>(configObject);
 }
 

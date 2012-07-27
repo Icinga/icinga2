@@ -7,14 +7,14 @@ namespace icinga
 /**
  * A logger that logs to stdout.
  */
-class I2_BASE_API StreamLogger : public Logger
+class I2_BASE_API StreamLogger : public ILogger
 {
 public:
 	typedef shared_ptr<StreamLogger> Ptr;
 	typedef weak_ptr<StreamLogger> WeakPtr;
 
-	StreamLogger(LogSeverity minSeverity);
-	StreamLogger(std::ostream *stream, LogSeverity minSeverity);
+	StreamLogger(void);
+	StreamLogger(std::ostream *stream);
 	~StreamLogger(void);
 
 	void OpenFile(const string& filename);

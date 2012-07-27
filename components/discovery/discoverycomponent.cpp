@@ -22,16 +22,6 @@
 using namespace icinga;
 
 /**
- * Returns the name of this component.
- *
- * @returns The name.
- */
-string DiscoveryComponent::GetName(void) const
-{
-	return "discoverycomponent";
-}
-
-/**
  * Starts the discovery component.
  */
 void DiscoveryComponent::Start(void)
@@ -323,10 +313,8 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
 	if (!roles)
 		return false;
 
-	ConfigObject::TMap::Range range = ConfigObject::GetObjects("role");
-
 	ConfigObject::Ptr role;
-	BOOST_FOREACH(tie(tuples::ignore, role), range) {
+	BOOST_FOREACH(tie(tuples::ignore, role), ConfigObject::GetObjects("Role")) {
 		Dictionary::Ptr permissions;
 		if (!role->GetProperty(messageType, &permissions))
 			continue;
@@ -454,10 +442,8 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 	double now = Utility::GetTime();
 
 	/* check whether we have to reconnect to one of our upstream endpoints */
-	ConfigObject::TMap::Range range = ConfigObject::GetObjects("endpoint");
-
 	ConfigObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), range) {
+	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Endpoint")) {
 		/* Check if we're already connected to this endpoint. */
 		if (endpointManager->GetEndpointByIdentity(object->GetName()))
 			continue;

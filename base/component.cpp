@@ -21,26 +21,27 @@
 
 using namespace icinga;
 
-map<string, Component::Ptr> Component::m_Components;
+REGISTER_CLASS(Component);
 
 /**
- * Loads a component from a shared library.
- *
- * @param name The name of the component.
- * @param componentConfig The configuration for the component.
+ * Constructor for the component class.
  */
-void Component::Load(const string& name, const ConfigObject::Ptr& config)
+Component::Component(const Dictionary::Ptr& properties)
+	: ConfigObject(properties)
 {
 	assert(Application::IsMainThread());
 
+	if (!IsLocal())
+		throw_exception(runtime_error("Component objects must be local."));
+
 	string path;
 #ifdef _WIN32
-	path = name + ".dll";
+	path = GetName() + ".dll";
 #else /* _WIN32 */
-	path = name + ".la";
+	path = GetName() + ".la";
 #endif /* _WIN32 */
 
-	Logger::Write(LogInformation, "base", "Loading component '" + name + "' (using library '" + path + "')");
+	Logger::Write(LogInformation, "base", "Loading component '" + GetName() + "' (using library '" + path + "')");
 
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.c_str());
@@ -69,16 +70,17 @@ void Component::Load(const string& name, const ConfigObject::Ptr& config)
 	    "CreateComponent");
 #endif /* _WIN32 */
 
-	Component::Ptr component;
+	IComponent::Ptr impl;
 
 	try {
 		if (pCreateComponent == NULL)
 			throw_exception(runtime_error("Loadable module does not contain "
 			    "CreateComponent function"));
 
-		component = Component::Ptr(pCreateComponent());
+		/* pCreateComponent returns a raw pointer which we must wrap in a shared_ptr */
+		impl = IComponent::Ptr(pCreateComponent());
 
-		if (!component)
+		if (!impl)
 			throw_exception(runtime_error("CreateComponent function returned NULL."));
 	} catch (...) {
 #ifdef _WIN32
@@ -89,46 +91,30 @@ void Component::Load(const string& name, const ConfigObject::Ptr& config)
 		throw;
 	}
 
-	component->m_Name = name;
-	component->m_Config = config;
+	impl->m_Config = this;
+	SetImplementation(impl);
 
-	try {
-		m_Components[name] = component;
-		component->Start();
-	} catch (...) {
-		m_Components.erase(name);
-		throw;
-	}
+	impl->Start();
 }
 
-void Component::Unload(const string& componentName)
+Component::~Component(void)
 {
-	map<string, Component::Ptr>::iterator it;
-	
-	it = m_Components.find(componentName);
+	IComponent::Ptr impl = GetImplementation();
 
-	if (it == m_Components.end())
-		return;
-
-	Logger::Write(LogInformation, "base", "Unloading component '" + componentName + "'");
-
-	Component::Ptr component = it->second;
-	component->Stop();
-
-	m_Components.erase(it);
-
-	/** Unfortunatelly we can't safely unload the DLL/shared library
-	 * here because there could still be objects that use the library. */
+	if (impl)
+		impl->Stop();
 }
 
-void Component::UnloadAll(void)
+IComponent::Ptr Component::GetImplementation(void) const
 {
-	Logger::Write(LogInformation, "base", "Unloading all components");
+	IComponent::Ptr impl;
+	GetTag("impl", &impl);
+	return impl;
+}
 
-	while (!m_Components.empty()) {
-		string name = m_Components.begin()->first;
-		Unload(name);
-	}
+void Component::SetImplementation(const IComponent::Ptr& impl)
+{
+	SetTag("impl", impl);
 }
 
 /**
@@ -146,29 +132,19 @@ void Component::AddSearchDir(const string& componentDirectory)
 }
 
 /**
- * Retrieves the name of the component.
- *
- * @returns Name of the component.
- */
-string Component::GetName(void) const
-{
-	return m_Name;
-}
-
-/**
  * Retrieves the configuration for this component.
  *
  * @returns The configuration.
  */
-ConfigObject::Ptr Component::GetConfig(void) const
+ConfigObject::Ptr IComponent::GetConfig(void) const
 {
-	return m_Config;
+	return m_Config->GetSelf();
 }
 
 /**
  * Starts the component.
  */
-void Component::Start(void)
+void IComponent::Start(void)
 {
 	/* Nothing to do in the default implementation. */
 }
@@ -176,7 +152,7 @@ void Component::Start(void)
 /**
  * Stops the component.
  */
-void Component::Stop(void)
+void IComponent::Stop(void)
 {
 	/* Nothing to do in the default implementation. */
 }

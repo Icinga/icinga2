@@ -22,12 +22,6 @@
     <ClCompile Include="object.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="objectmap.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="objectset.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="ringbuffer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -118,12 +112,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="object.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="objectmap.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="objectset.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="ringbuffer.h">

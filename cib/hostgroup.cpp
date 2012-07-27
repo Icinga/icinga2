@@ -21,11 +21,7 @@
 
 using namespace icinga;
 
-HostGroup::HostGroup(const ConfigObject::Ptr& configObject)
-	: ConfigObjectAdapter(configObject)
-{
-	assert(GetType() == "hostgroup");
-}
+REGISTER_CLASS(HostGroup);
 
 string HostGroup::GetAlias(void) const
 {
@@ -53,16 +49,16 @@ string HostGroup::GetActionUrl(void) const
 
 bool HostGroup::Exists(const string& name)
 {
-	return (ConfigObject::GetObject("hostgroup", name));
+	return (ConfigObject::GetObject("HostGroup", name));
 }
 
-HostGroup HostGroup::GetByName(const string& name)
+HostGroup::Ptr HostGroup::GetByName(const string& name)
 {
-	ConfigObject::Ptr configObject = ConfigObject::GetObject("hostgroup", name);
+	ConfigObject::Ptr configObject = ConfigObject::GetObject("HostGroup", name);
 
 	if (!configObject)
 		throw_exception(invalid_argument("HostGroup '" + name + "' does not exist."));
 
-	return HostGroup(configObject);
+	return dynamic_pointer_cast<HostGroup>(configObject);
 }
 

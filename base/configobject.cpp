@@ -22,10 +22,11 @@
 using namespace icinga;
 
 map<pair<string, string>, Dictionary::Ptr> ConfigObject::m_PersistentTags;
+boost::signal<void (const ConfigObject::Ptr&)> ConfigObject::OnCommitted;
+boost::signal<void (const ConfigObject::Ptr&)> ConfigObject::OnRemoved;
 
-ConfigObject::ConfigObject(Dictionary::Ptr properties, const ConfigObject::Set::Ptr& container)
-	: m_Container(container ? container : GetAllObjects()),
-	m_Properties(properties), m_Tags(boost::make_shared<Dictionary>())
+ConfigObject::ConfigObject(const Dictionary::Ptr& properties)
+	: m_Properties(properties), m_Tags(boost::make_shared<Dictionary>())
 {
 	/* restore the object's tags */
 	map<pair<string, string>, Dictionary::Ptr>::iterator it;
@@ -115,94 +116,63 @@ void ConfigObject::Commit(void)
 	ConfigObject::Ptr dobj = GetObject(GetType(), GetName());
 	ConfigObject::Ptr self = GetSelf();
 	assert(!dobj || dobj == self);
-	m_Container->CheckObject(self);
+
+	pair<ConfigObject::TypeMap::iterator, bool> ti;
+	ti = GetAllObjects().insert(make_pair(GetType(), ConfigObject::NameMap()));
+	ti.first->second.insert(make_pair(GetName(), GetSelf()));
 
 	SetCommitTimestamp(Utility::GetTime());
+
+	OnCommitted(GetSelf());
 }
 
 void ConfigObject::Unregister(void)
 {
 	assert(Application::IsMainThread());
 
-	ConfigObject::Ptr self = GetSelf();
-	m_Container->RemoveObject(self);
+	ConfigObject::TypeMap::iterator tt;
+	tt = GetAllObjects().find(GetType());
+
+	if (tt == GetAllObjects().end())
+		return;
+
+	ConfigObject::NameMap::iterator nt = tt->second.find(GetName());
+
+	if (nt == tt->second.end())
+		return;
+
+	tt->second.erase(nt);
+
+	OnRemoved(GetSelf());
 }
 
-ObjectSet<ConfigObject::Ptr>::Ptr ConfigObject::GetAllObjects(void)
+ConfigObject::Ptr ConfigObject::GetObject(const string& type, const string& name)
 {
-	static ObjectSet<ConfigObject::Ptr>::Ptr allObjects;
+	ConfigObject::TypeMap::iterator tt;
+	tt = GetAllObjects().find(type);
 
-	if (!allObjects) {
-		allObjects = boost::make_shared<ObjectSet<ConfigObject::Ptr> >();
-		allObjects->Start();
-	}
-
-	return allObjects;
-}
-
-ConfigObject::TNMap::Ptr ConfigObject::GetObjectsByTypeAndName(void)
-{
-	static ConfigObject::TNMap::Ptr tnmap;
-
-	if (!tnmap) {
-		tnmap = boost::make_shared<ConfigObject::TNMap>(GetAllObjects(), &ConfigObject::TypeAndNameGetter);
-		tnmap->Start();
-	}
-
-	return tnmap;
-}
-
-ConfigObject::Ptr ConfigObject::GetObject(string type, string name)
-{
-	ConfigObject::TNMap::Range range;
-	range = GetObjectsByTypeAndName()->GetRange(make_pair(type, name));
-
-	assert(distance(range.first, range.second) <= 1);
-
-	if (range.first == range.second)
+	if (tt == GetAllObjects().end())
 		return ConfigObject::Ptr();
-	else
-		return range.first->second;
+
+	ConfigObject::NameMap::iterator nt = tt->second.find(name);              
+
+	if (nt == tt->second.end())
+		return ConfigObject::Ptr();
+
+	return nt->second;
 }
 
-bool ConfigObject::TypeAndNameGetter(const ConfigObject::Ptr& object, pair<string, string> *key)
+pair<ConfigObject::TypeMap::iterator, ConfigObject::TypeMap::iterator> ConfigObject::GetTypes(void)
 {
-	*key = make_pair(object->GetType(), object->GetName());
-
-	return true;
+	return make_pair(GetAllObjects().begin(), GetAllObjects().end());
 }
 
-function<bool (ConfigObject::Ptr)> ConfigObject::MakeTypePredicate(string type)
+pair<ConfigObject::NameMap::iterator, ConfigObject::NameMap::iterator> ConfigObject::GetObjects(const string& type)
 {
-	return boost::bind(&ConfigObject::TypePredicate, _1, type);
-}
+	pair<ConfigObject::TypeMap::iterator, bool> ti;
+	ti = GetAllObjects().insert(make_pair(type, ConfigObject::NameMap()));
 
-bool ConfigObject::TypePredicate(const ConfigObject::Ptr& object, string type)
-{
-	return (object->GetType() == type);
-}
-
-ConfigObject::TMap::Ptr ConfigObject::GetObjectsByType(void)
-{
-	static ObjectMap<string, ConfigObject::Ptr>::Ptr tmap;
-
-	if (!tmap) {
-		tmap = boost::make_shared<ConfigObject::TMap>(GetAllObjects(), &ConfigObject::TypeGetter);
-		tmap->Start();
-	}
-
-	return tmap;
-}
-
-bool ConfigObject::TypeGetter(const ConfigObject::Ptr& object, string *key)
-{
-	*key = object->GetType();
-	return true;
-}
-
-ConfigObject::TMap::Range ConfigObject::GetObjects(string type)
-{
-	return GetObjectsByType()->GetRange(type);
+	return make_pair(ti.first->second.begin(), ti.first->second.end());
 }
 
 void ConfigObject::RemoveTag(const string& key)
@@ -241,41 +211,47 @@ void ConfigObject::DumpObjects(const string& filename)
 
 	FIFO::Ptr fifo = boost::make_shared<FIFO>();
 
-	BOOST_FOREACH(const ConfigObject::Ptr object, ConfigObject::GetAllObjects()) {
-		Dictionary::Ptr persistentObject = boost::make_shared<Dictionary>();
+	ConfigObject::TypeMap::iterator tt;
+	for (tt = GetAllObjects().begin(); tt != GetAllObjects().end(); tt++) {
+		ConfigObject::NameMap::iterator nt;
+		for (nt = tt->second.begin(); nt != tt->second.end(); nt++) {
+			ConfigObject::Ptr object = nt->second;
 
-		persistentObject->Set("type", object->GetType());
-		persistentObject->Set("name", object->GetName());
+			Dictionary::Ptr persistentObject = boost::make_shared<Dictionary>();
 
-		/* only persist properties for replicated objects or for objects
-		 * that are marked as persistent */
-		if (!object->GetSource().empty() /*|| object->IsPersistent()*/)
-			persistentObject->Set("properties", object->GetProperties());
+			persistentObject->Set("type", object->GetType());
+			persistentObject->Set("name", object->GetName());
 
-		persistentObject->Set("tags", object->GetTags());
+			/* only persist properties for replicated objects or for objects
+			 * that are marked as persistent */
+			if (!object->GetSource().empty() /*|| object->IsPersistent()*/)
+				persistentObject->Set("properties", object->GetProperties());
 
-		Variant value = persistentObject;
-		string json = value.Serialize();
+			persistentObject->Set("tags", object->GetTags());
 
-		/* This is quite ugly, unfortunatelly Netstring requires an IOQueue object */
-		Netstring::WriteStringToIOQueue(fifo.get(), json);
+			Variant value = persistentObject;
+			string json = value.Serialize();
 
-		size_t count;
-		while ((count = fifo->GetAvailableBytes()) > 0) {
-			char buffer[1024];
+			/* This is quite ugly, unfortunatelly Netstring requires an IOQueue object */
+			Netstring::WriteStringToIOQueue(fifo.get(), json);
+
+			size_t count;
+			while ((count = fifo->GetAvailableBytes()) > 0) {
+				char buffer[1024];
 			
-			if (count > sizeof(buffer))
-				count = sizeof(buffer);
+				if (count > sizeof(buffer))
+					count = sizeof(buffer);
 
-			fifo->Read(buffer, count);
-			fp.write(buffer, count);
+				fifo->Read(buffer, count);
+				fp.write(buffer, count);
+			}
 		}
 	}
 }
 
 void ConfigObject::RestoreObjects(const string& filename)
 {
-	assert(GetAllObjects()->Begin() == GetAllObjects()->End());
+	assert(GetAllObjects().empty());
 
 	Logger::Write(LogInformation, "base", "Restoring program state from file '" + filename + "'");
 
@@ -314,7 +290,7 @@ void ConfigObject::RestoreObjects(const string& filename)
 
 		Dictionary::Ptr properties;
 		if (persistentObject->Get("properties", &properties)) {
-			ConfigObject::Ptr object = boost::make_shared<ConfigObject>(properties);
+			ConfigObject::Ptr object = Create(type, properties);
 			object->SetTags(tags);
 			object->Commit();
 		} else {
@@ -324,3 +300,34 @@ void ConfigObject::RestoreObjects(const string& filename)
 		}
 	}
 }
+
+ConfigObject::TypeMap& ConfigObject::GetAllObjects(void)
+{
+	static TypeMap objects;
+	return objects;
+}
+
+ConfigObject::ClassMap& ConfigObject::GetClasses(void)
+{
+	static ClassMap classes;
+	return classes;
+}
+
+void ConfigObject::RegisterClass(const string& type, ConfigObject::Factory factory)
+{
+	GetClasses()[type] = factory;
+
+	/* TODO: upgrade existing objects */
+}
+
+ConfigObject::Ptr ConfigObject::Create(const string& type, const Dictionary::Ptr& properties)
+{
+	ConfigObject::ClassMap::iterator it;
+	it = GetClasses().find(type);
+
+	if (it != GetClasses().end())
+		return it->second(properties);
+	else
+		return boost::make_shared<ConfigObject>(properties);
+}
+
