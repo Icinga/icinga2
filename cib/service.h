@@ -42,14 +42,14 @@ class CheckResult;
 class CheckResultMessage;
 class ServiceStatusMessage;
 
-class I2_CIB_API Service : public ConfigObject
+class I2_CIB_API Service : public DynamicObject
 {
 public:
 	typedef shared_ptr<Service> Ptr;
 	typedef weak_ptr<Service> WeakPtr;
 
 	Service(const Dictionary::Ptr& properties)
-		: ConfigObject(properties)
+		: DynamicObject(properties)
 	{ }
 
 	static bool Exists(const string& name);

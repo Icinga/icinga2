@@ -17,30 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGOBJECT_H
-#define CONFIGOBJECT_H
+#ifndef DYNAMICOBJECT_H
+#define DYNAMICOBJECT_H
 
 namespace icinga
 {
 
 /**
- * A configuration object.
+ * A dynamic object that can be instantiated from the configuration file.
  *
  * @ingroup base
  */
-class I2_BASE_API ConfigObject : public Object
+class I2_BASE_API DynamicObject : public Object
 {
 public:
-	typedef shared_ptr<ConfigObject> Ptr;
-	typedef weak_ptr<ConfigObject> WeakPtr;
+	typedef shared_ptr<DynamicObject> Ptr;
+	typedef weak_ptr<DynamicObject> WeakPtr;
 
-	typedef function<ConfigObject::Ptr (const Dictionary::Ptr&)> Factory;
+	typedef function<DynamicObject::Ptr (const Dictionary::Ptr&)> Factory;
 
 	typedef map<string, Factory> ClassMap;
-	typedef map<string, ConfigObject::Ptr> NameMap;
+	typedef map<string, DynamicObject::Ptr> NameMap;
 	typedef map<string, NameMap> TypeMap;
 
-	ConfigObject(const Dictionary::Ptr& properties);
+	DynamicObject(const Dictionary::Ptr& properties);
 
 	void SetProperties(const Dictionary::Ptr& config);
 	Dictionary::Ptr GetProperties(void) const;
@@ -68,7 +68,7 @@ public:
 
 	void RemoveTag(const string& key);
 
-	ScriptTask::Ptr InvokeMethod(const string& hook,
+	ScriptTask::Ptr InvokeMethod(const string& method,
 	    const vector<Variant>& arguments, ScriptTask::CompletionCallback callback);
 
 	string GetType(void) const;
@@ -85,7 +85,7 @@ public:
 	void Commit(void);
 	void Unregister(void);
 
-	static ConfigObject::Ptr GetObject(const string& type, const string& name);
+	static DynamicObject::Ptr GetObject(const string& type, const string& name);
 	static pair<TypeMap::iterator, TypeMap::iterator> GetTypes(void);
 	static pair<NameMap::iterator, NameMap::iterator> GetObjects(const string& type);
 
@@ -93,10 +93,10 @@ public:
 	static void RestoreObjects(const string& filename);
 
 	static void RegisterClass(const string& type, Factory factory);
-	static ConfigObject::Ptr Create(const string& type, const Dictionary::Ptr& properties);
+	static DynamicObject::Ptr Create(const string& type, const Dictionary::Ptr& properties);
 
-	static boost::signal<void (const ConfigObject::Ptr&)> OnCommitted;
-	static boost::signal<void (const ConfigObject::Ptr&)> OnRemoved;
+	static boost::signal<void (const DynamicObject::Ptr&)> OnCommitted;
+	static boost::signal<void (const DynamicObject::Ptr&)> OnRemoved;
 
 private:
 	static ClassMap& GetClasses(void);
@@ -113,9 +113,9 @@ private:
 class RegisterClassHelper
 {
 public:
-	RegisterClassHelper(const string& name, ConfigObject::Factory factory)
+	RegisterClassHelper(const string& name, DynamicObject::Factory factory)
 	{
-		ConfigObject::RegisterClass(name, factory);
+		DynamicObject::RegisterClass(name, factory);
 	}
 };
 
@@ -124,4 +124,4 @@ public:
 
 }
 
-#endif /* CONFIGOBJECT_H */
+#endif /* DYNAMICOBJECT_H */

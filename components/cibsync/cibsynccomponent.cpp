@@ -34,8 +34,8 @@ void CIBSyncComponent::Start(void)
 	m_Endpoint->RegisterTopicHandler("config::FetchObjects",
 	    boost::bind(&CIBSyncComponent::FetchObjectsHandler, this, _2));
 
-	ConfigObject::OnCommitted.connect(boost::bind(&CIBSyncComponent::LocalObjectCommittedHandler, this, _1));
-	ConfigObject::OnRemoved.connect(boost::bind(&CIBSyncComponent::LocalObjectRemovedHandler, this, _1));
+	DynamicObject::OnCommitted.connect(boost::bind(&CIBSyncComponent::LocalObjectCommittedHandler, this, _1));
+	DynamicObject::OnRemoved.connect(boost::bind(&CIBSyncComponent::LocalObjectRemovedHandler, this, _1));
 
 	m_Endpoint->RegisterPublication("config::ObjectCommitted");
 	m_Endpoint->RegisterPublication("config::ObjectRemoved");
@@ -106,7 +106,7 @@ void CIBSyncComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoint)
 	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, endpoint, request);
 }
 
-RequestMessage CIBSyncComponent::MakeObjectMessage(const ConfigObject::Ptr& object, string method, bool includeProperties)
+RequestMessage CIBSyncComponent::MakeObjectMessage(const DynamicObject::Ptr& object, string method, bool includeProperties)
 {
 	RequestMessage msg;
 	msg.SetMethod(method);
@@ -123,17 +123,17 @@ RequestMessage CIBSyncComponent::MakeObjectMessage(const ConfigObject::Ptr& obje
 	return msg;
 }
 
-bool CIBSyncComponent::ShouldReplicateObject(const ConfigObject::Ptr& object)
+bool CIBSyncComponent::ShouldReplicateObject(const DynamicObject::Ptr& object)
 {
 	return (!object->IsLocal());
 }
 
 void CIBSyncComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 {
-	pair<ConfigObject::TypeMap::iterator, ConfigObject::TypeMap::iterator> trange;
-	ConfigObject::TypeMap::iterator tt;
+	pair<DynamicObject::TypeMap::iterator, DynamicObject::TypeMap::iterator> trange;
+	DynamicObject::TypeMap::iterator tt;
 	for (tt = trange.first; tt != trange.second; tt++) {
-		ConfigObject::Ptr object;
+		DynamicObject::Ptr object;
 		BOOST_FOREACH(tie(tuples::ignore, object), tt->second) {
 			if (!ShouldReplicateObject(object))
 				continue;
@@ -145,7 +145,7 @@ void CIBSyncComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 	}
 }
 
-void CIBSyncComponent::LocalObjectCommittedHandler(const ConfigObject::Ptr& object)
+void CIBSyncComponent::LocalObjectCommittedHandler(const DynamicObject::Ptr& object)
 {
 	/* don't send messages when we're currently processing a remote update */
 	if (m_SyncingConfig)
@@ -158,7 +158,7 @@ void CIBSyncComponent::LocalObjectCommittedHandler(const ConfigObject::Ptr& obje
 	    MakeObjectMessage(object, "config::ObjectCommitted", true));
 }
 
-void CIBSyncComponent::LocalObjectRemovedHandler(const ConfigObject::Ptr& object)
+void CIBSyncComponent::LocalObjectRemovedHandler(const DynamicObject::Ptr& object)
 {
 	/* don't send messages when we're currently processing a remote update */
 	if (m_SyncingConfig)
@@ -189,10 +189,10 @@ void CIBSyncComponent::RemoteObjectCommittedHandler(const Endpoint::Ptr& sender,
 	if (!params.Get("properties", &properties))
 		return;
 
-	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);
+	DynamicObject::Ptr object = DynamicObject::GetObject(type, name);
 
 	if (!object) {
-		object = boost::make_shared<ConfigObject>(properties.GetDictionary());
+		object = boost::make_shared<DynamicObject>(properties.GetDictionary());
 
 		if (object->GetSource() == EndpointManager::GetInstance()->GetIdentity()) {
 			/* the peer sent us an object that was originally created by us - 
@@ -204,7 +204,7 @@ void CIBSyncComponent::RemoteObjectCommittedHandler(const Endpoint::Ptr& sender,
 			return;
 		}
 	} else {
-		ConfigObject::Ptr remoteObject = boost::make_shared<ConfigObject>(properties.GetDictionary());
+		DynamicObject::Ptr remoteObject = boost::make_shared<DynamicObject>(properties.GetDictionary());
 
 		if (object->GetCommitTimestamp() >= remoteObject->GetCommitTimestamp())
 			return;
@@ -245,7 +245,7 @@ void CIBSyncComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
 	if (!params.Get("type", &type))
 		return;
 
-	ConfigObject::Ptr object = ConfigObject::GetObject(type, name);
+	DynamicObject::Ptr object = DynamicObject::GetObject(type, name);
 
 	if (!object)
 		return;

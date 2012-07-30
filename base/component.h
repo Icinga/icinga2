@@ -33,10 +33,10 @@ public:
 	virtual void Stop(void);
 
 protected:
-	ConfigObject::Ptr GetConfig(void) const;
+	DynamicObject::Ptr GetConfig(void) const;
 
 private:
-	ConfigObject *m_Config;
+	DynamicObject *m_Config;
 
 	friend class Component;
 };
@@ -47,7 +47,7 @@ private:
  *
  * @ingroup base
  */
-class I2_BASE_API Component : public ConfigObject
+class I2_BASE_API Component : public DynamicObject
 {
 public:
 	typedef shared_ptr<Component> Ptr;

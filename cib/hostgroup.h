@@ -23,14 +23,14 @@
 namespace icinga
 {
 
-class I2_CIB_API HostGroup : public ConfigObject
+class I2_CIB_API HostGroup : public DynamicObject
 {
 public:
 	typedef shared_ptr<HostGroup> Ptr;
 	typedef weak_ptr<HostGroup> WeakPtr;
 
 	HostGroup(const Dictionary::Ptr& properties)
-		: ConfigObject(properties)
+		: DynamicObject(properties)
 	{ }
 
 	static bool Exists(const string& name);

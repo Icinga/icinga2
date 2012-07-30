@@ -7,9 +7,6 @@
     <ClCompile Include="component.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="configobject.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="dictionary.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -85,6 +82,9 @@
     <ClCompile Include="netstring.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="dynamicobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -94,9 +94,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="component.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="configobject.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="dictionary.h">
@@ -175,6 +172,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="netstring.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamicobject.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

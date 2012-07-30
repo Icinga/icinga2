@@ -31,7 +31,7 @@ void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Varia
 		throw_exception(invalid_argument("Missing argument: Service must be specified."));
 
 	Variant vservice = arguments[0];
-	if (!vservice.IsObjectType<ConfigObject>())
+	if (!vservice.IsObjectType<DynamicObject>())
 		throw_exception(invalid_argument("Argument must be a config object."));
 
 	Service::Ptr service = static_cast<Service::Ptr>(vservice);

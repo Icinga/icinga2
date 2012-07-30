@@ -49,12 +49,12 @@ string HostGroup::GetActionUrl(void) const
 
 bool HostGroup::Exists(const string& name)
 {
-	return (ConfigObject::GetObject("HostGroup", name));
+	return (DynamicObject::GetObject("HostGroup", name));
 }
 
 HostGroup::Ptr HostGroup::GetByName(const string& name)
 {
-	ConfigObject::Ptr configObject = ConfigObject::GetObject("HostGroup", name);
+	DynamicObject::Ptr configObject = DynamicObject::GetObject("HostGroup", name);
 
 	if (!configObject)
 		throw_exception(invalid_argument("HostGroup '" + name + "' does not exist."));

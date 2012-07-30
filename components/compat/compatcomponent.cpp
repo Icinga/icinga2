@@ -222,8 +222,8 @@ void CompatComponent::StatusTimerHandler(void)
 
 	map<string, vector<string> > hostgroups;
 
-	ConfigObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Host")) {
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Host")) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
 
 		Dictionary::Ptr dict;
@@ -265,7 +265,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 	map<string, vector<Service::Ptr> > servicegroups;
 
-	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Service")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
 
 		Dictionary::Ptr dict;

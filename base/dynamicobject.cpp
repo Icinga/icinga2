@@ -21,11 +21,11 @@
 
 using namespace icinga;
 
-map<pair<string, string>, Dictionary::Ptr> ConfigObject::m_PersistentTags;
-boost::signal<void (const ConfigObject::Ptr&)> ConfigObject::OnCommitted;
-boost::signal<void (const ConfigObject::Ptr&)> ConfigObject::OnRemoved;
+map<pair<string, string>, Dictionary::Ptr> DynamicObject::m_PersistentTags;
+boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnCommitted;
+boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRemoved;
 
-ConfigObject::ConfigObject(const Dictionary::Ptr& properties)
+DynamicObject::DynamicObject(const Dictionary::Ptr& properties)
 	: m_Properties(properties), m_Tags(boost::make_shared<Dictionary>())
 {
 	/* restore the object's tags */
@@ -37,88 +37,88 @@ ConfigObject::ConfigObject(const Dictionary::Ptr& properties)
 	}
 }
 
-void ConfigObject::SetProperties(const Dictionary::Ptr& properties)
+void DynamicObject::SetProperties(const Dictionary::Ptr& properties)
 {
 	m_Properties = properties;
 }
 
-Dictionary::Ptr ConfigObject::GetProperties(void) const
+Dictionary::Ptr DynamicObject::GetProperties(void) const
 {
 	return m_Properties;
 }
 
-void ConfigObject::SetTags(const Dictionary::Ptr& tags)
+void DynamicObject::SetTags(const Dictionary::Ptr& tags)
 {
 	m_Tags = tags;
 }
 
-Dictionary::Ptr ConfigObject::GetTags(void) const
+Dictionary::Ptr DynamicObject::GetTags(void) const
 {
 	return m_Tags;
 }
 
-string ConfigObject::GetType(void) const
+string DynamicObject::GetType(void) const
 {
 	string type;
 	GetProperties()->Get("__type", &type);
 	return type;
 }
 
-string ConfigObject::GetName(void) const
+string DynamicObject::GetName(void) const
 {
 	string name;
 	GetProperties()->Get("__name", &name);
 	return name;
 }
 
-bool ConfigObject::IsLocal(void) const
+bool DynamicObject::IsLocal(void) const
 {
 	bool value = false;
 	GetProperties()->Get("__local", &value);
 	return value;
 }
 
-bool ConfigObject::IsAbstract(void) const
+bool DynamicObject::IsAbstract(void) const
 {
 	bool value = false;
 	GetProperties()->Get("__abstract", &value);
 	return value;
 }
 
-void ConfigObject::SetSource(const string& value)
+void DynamicObject::SetSource(const string& value)
 {
 	GetProperties()->Set("__source", value);
 }
 
-string ConfigObject::GetSource(void) const
+string DynamicObject::GetSource(void) const
 {
 	string value;
 	GetProperties()->Get("__source", &value);
 	return value;
 }
 
-void ConfigObject::SetCommitTimestamp(double ts)
+void DynamicObject::SetCommitTimestamp(double ts)
 {
 	GetProperties()->Set("__tx", ts);
 }
 
-double ConfigObject::GetCommitTimestamp(void) const
+double DynamicObject::GetCommitTimestamp(void) const
 {
 	double value = 0;
 	GetProperties()->Get("__tx", &value);
 	return value;
 }
 
-void ConfigObject::Commit(void)
+void DynamicObject::Commit(void)
 {
 	assert(Application::IsMainThread());
 
-	ConfigObject::Ptr dobj = GetObject(GetType(), GetName());
-	ConfigObject::Ptr self = GetSelf();
+	DynamicObject::Ptr dobj = GetObject(GetType(), GetName());
+	DynamicObject::Ptr self = GetSelf();
 	assert(!dobj || dobj == self);
 
-	pair<ConfigObject::TypeMap::iterator, bool> ti;
-	ti = GetAllObjects().insert(make_pair(GetType(), ConfigObject::NameMap()));
+	pair<DynamicObject::TypeMap::iterator, bool> ti;
+	ti = GetAllObjects().insert(make_pair(GetType(), DynamicObject::NameMap()));
 	ti.first->second.insert(make_pair(GetName(), GetSelf()));
 
 	SetCommitTimestamp(Utility::GetTime());
@@ -126,17 +126,17 @@ void ConfigObject::Commit(void)
 	OnCommitted(GetSelf());
 }
 
-void ConfigObject::Unregister(void)
+void DynamicObject::Unregister(void)
 {
 	assert(Application::IsMainThread());
 
-	ConfigObject::TypeMap::iterator tt;
+	DynamicObject::TypeMap::iterator tt;
 	tt = GetAllObjects().find(GetType());
 
 	if (tt == GetAllObjects().end())
 		return;
 
-	ConfigObject::NameMap::iterator nt = tt->second.find(GetName());
+	DynamicObject::NameMap::iterator nt = tt->second.find(GetName());
 
 	if (nt == tt->second.end())
 		return;
@@ -146,41 +146,41 @@ void ConfigObject::Unregister(void)
 	OnRemoved(GetSelf());
 }
 
-ConfigObject::Ptr ConfigObject::GetObject(const string& type, const string& name)
+DynamicObject::Ptr DynamicObject::GetObject(const string& type, const string& name)
 {
-	ConfigObject::TypeMap::iterator tt;
+	DynamicObject::TypeMap::iterator tt;
 	tt = GetAllObjects().find(type);
 
 	if (tt == GetAllObjects().end())
-		return ConfigObject::Ptr();
+		return DynamicObject::Ptr();
 
-	ConfigObject::NameMap::iterator nt = tt->second.find(name);              
+	DynamicObject::NameMap::iterator nt = tt->second.find(name);              
 
 	if (nt == tt->second.end())
-		return ConfigObject::Ptr();
+		return DynamicObject::Ptr();
 
 	return nt->second;
 }
 
-pair<ConfigObject::TypeMap::iterator, ConfigObject::TypeMap::iterator> ConfigObject::GetTypes(void)
+pair<DynamicObject::TypeMap::iterator, DynamicObject::TypeMap::iterator> DynamicObject::GetTypes(void)
 {
 	return make_pair(GetAllObjects().begin(), GetAllObjects().end());
 }
 
-pair<ConfigObject::NameMap::iterator, ConfigObject::NameMap::iterator> ConfigObject::GetObjects(const string& type)
+pair<DynamicObject::NameMap::iterator, DynamicObject::NameMap::iterator> DynamicObject::GetObjects(const string& type)
 {
-	pair<ConfigObject::TypeMap::iterator, bool> ti;
-	ti = GetAllObjects().insert(make_pair(type, ConfigObject::NameMap()));
+	pair<DynamicObject::TypeMap::iterator, bool> ti;
+	ti = GetAllObjects().insert(make_pair(type, DynamicObject::NameMap()));
 
 	return make_pair(ti.first->second.begin(), ti.first->second.end());
 }
 
-void ConfigObject::RemoveTag(const string& key)
+void DynamicObject::RemoveTag(const string& key)
 {
 	GetTags()->Remove(key);
 }
 
-ScriptTask::Ptr ConfigObject::InvokeMethod(const string& method,
+ScriptTask::Ptr DynamicObject::InvokeMethod(const string& method,
     const vector<Variant>& arguments, ScriptTask::CompletionCallback callback)
 {
 	Dictionary::Ptr methods;
@@ -199,7 +199,7 @@ ScriptTask::Ptr ConfigObject::InvokeMethod(const string& method,
 	return task;
 }
 
-void ConfigObject::DumpObjects(const string& filename)
+void DynamicObject::DumpObjects(const string& filename)
 {
 	Logger::Write(LogInformation, "base", "Dumping program state to file '" + filename + "'");
 
@@ -211,11 +211,11 @@ void ConfigObject::DumpObjects(const string& filename)
 
 	FIFO::Ptr fifo = boost::make_shared<FIFO>();
 
-	ConfigObject::TypeMap::iterator tt;
+	DynamicObject::TypeMap::iterator tt;
 	for (tt = GetAllObjects().begin(); tt != GetAllObjects().end(); tt++) {
-		ConfigObject::NameMap::iterator nt;
+		DynamicObject::NameMap::iterator nt;
 		for (nt = tt->second.begin(); nt != tt->second.end(); nt++) {
-			ConfigObject::Ptr object = nt->second;
+			DynamicObject::Ptr object = nt->second;
 
 			Dictionary::Ptr persistentObject = boost::make_shared<Dictionary>();
 
@@ -249,10 +249,8 @@ void ConfigObject::DumpObjects(const string& filename)
 	}
 }
 
-void ConfigObject::RestoreObjects(const string& filename)
+void DynamicObject::RestoreObjects(const string& filename)
 {
-	assert(GetAllObjects().empty());
-
 	Logger::Write(LogInformation, "base", "Restoring program state from file '" + filename + "'");
 
 	std::ifstream fp;
@@ -290,7 +288,7 @@ void ConfigObject::RestoreObjects(const string& filename)
 
 		Dictionary::Ptr properties;
 		if (persistentObject->Get("properties", &properties)) {
-			ConfigObject::Ptr object = Create(type, properties);
+			DynamicObject::Ptr object = Create(type, properties);
 			object->SetTags(tags);
 			object->Commit();
 		} else {
@@ -301,33 +299,34 @@ void ConfigObject::RestoreObjects(const string& filename)
 	}
 }
 
-ConfigObject::TypeMap& ConfigObject::GetAllObjects(void)
+DynamicObject::TypeMap& DynamicObject::GetAllObjects(void)
 {
 	static TypeMap objects;
 	return objects;
 }
 
-ConfigObject::ClassMap& ConfigObject::GetClasses(void)
+DynamicObject::ClassMap& DynamicObject::GetClasses(void)
 {
 	static ClassMap classes;
 	return classes;
 }
 
-void ConfigObject::RegisterClass(const string& type, ConfigObject::Factory factory)
+void DynamicObject::RegisterClass(const string& type, DynamicObject::Factory factory)
 {
-	GetClasses()[type] = factory;
+	if (GetObjects(type).first != GetObjects(type).second)
+		throw_exception(runtime_error("Cannot register class for type '" +
+		    type + "': Objects of this type already exist."));
 
-	/* TODO: upgrade existing objects */
+	GetClasses()[type] = factory;
 }
 
-ConfigObject::Ptr ConfigObject::Create(const string& type, const Dictionary::Ptr& properties)
+DynamicObject::Ptr DynamicObject::Create(const string& type, const Dictionary::Ptr& properties)
 {
-	ConfigObject::ClassMap::iterator it;
+	DynamicObject::ClassMap::iterator it;
 	it = GetClasses().find(type);
 
 	if (it != GetClasses().end())
 		return it->second(properties);
 	else
-		return boost::make_shared<ConfigObject>(properties);
+		return boost::make_shared<DynamicObject>(properties);
 }
-

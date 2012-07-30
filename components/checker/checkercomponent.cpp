@@ -76,7 +76,7 @@ void CheckerComponent::CheckTimerHandler(void)
 		arguments.push_back(service);
 		ScriptTask::Ptr task;
 		task = service->InvokeMethod("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
-		assert(task); /* TODO: gracefully handle missing hooks */
+		assert(task); /* TODO: gracefully handle missing methods */
 
 		service->SetTag("current_task", task);
 

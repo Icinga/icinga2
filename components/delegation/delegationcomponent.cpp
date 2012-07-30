@@ -24,8 +24,8 @@ using namespace icinga;
 
 void DelegationComponent::Start(void)
 {
-	ConfigObject::OnCommitted.connect(boost::bind(&DelegationComponent::ServiceCommittedHandler, this, _1));
-	ConfigObject::OnRemoved.connect(boost::bind(&DelegationComponent::ServiceRemovedHandler, this, _1));
+	DynamicObject::OnCommitted.connect(boost::bind(&DelegationComponent::ServiceCommittedHandler, this, _1));
+	DynamicObject::OnRemoved.connect(boost::bind(&DelegationComponent::ServiceRemovedHandler, this, _1));
 
 	m_DelegationTimer = boost::make_shared<Timer>();
 	m_DelegationTimer->SetInterval(30);
@@ -50,7 +50,7 @@ void DelegationComponent::Stop(void)
 		mgr->UnregisterEndpoint(m_Endpoint);
 }
 
-void DelegationComponent::ServiceCommittedHandler(const ConfigObject::Ptr& object)
+void DelegationComponent::ServiceCommittedHandler(const DynamicObject::Ptr& object)
 {
 	Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
@@ -71,7 +71,7 @@ void DelegationComponent::ServiceCommittedHandler(const ConfigObject::Ptr& objec
 	}
 }
 
-void DelegationComponent::ServiceRemovedHandler(const ConfigObject::Ptr& object)
+void DelegationComponent::ServiceRemovedHandler(const DynamicObject::Ptr& object)
 {
 	Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
@@ -160,8 +160,8 @@ void DelegationComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoin
 		return;
 
 	/* locally clear checker for all services that previously belonged to this endpoint */
-	ConfigObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Service")) {
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
 		if (!service)
@@ -186,8 +186,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 	vector<Service::Ptr> services;
 
 	/* build "checker -> service count" histogram */
-	ConfigObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Service")) {
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
 		if (!service)

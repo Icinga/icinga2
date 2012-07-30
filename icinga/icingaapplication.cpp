@@ -42,14 +42,6 @@ IcingaApplication::IcingaApplication(void)
  */
 int IcingaApplication::Main(const vector<string>& args)
 {
-	/* restore the previous program state */
-	ConfigObject::RestoreObjects("retention.dat");
-
-	m_RetentionTimer = boost::make_shared<Timer>();
-	m_RetentionTimer->SetInterval(60);
-	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
-	m_RetentionTimer->Start();
-
 	/* create console logger */
 	ConfigItemBuilder::Ptr consoleLogConfig = boost::make_shared<ConfigItemBuilder>();
 	consoleLogConfig->SetType("Logger");
@@ -57,6 +49,15 @@ int IcingaApplication::Main(const vector<string>& args)
 	consoleLogConfig->SetLocal(true);
 	consoleLogConfig->AddExpression("type", OperatorSet, "console");
 	consoleLogConfig->Compile()->Commit();
+
+	/* restore the previous program state */
+	DynamicObject::RestoreObjects("retention.dat");
+
+	/* periodically dump the program state */
+	m_RetentionTimer = boost::make_shared<Timer>();
+	m_RetentionTimer->SetInterval(60);
+	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
+	m_RetentionTimer->Start();
 
 #ifdef _WIN32
 	Logger::Write(LogInformation, "icinga", "Icinga component loader");
@@ -135,7 +136,7 @@ int IcingaApplication::Main(const vector<string>& args)
 		item->Commit();
 	}
 
-	ConfigObject::Ptr icingaConfig = ConfigObject::GetObject("Application", "icinga");
+	DynamicObject::Ptr icingaConfig = DynamicObject::GetObject("Application", "icinga");
 
 	if (!icingaConfig)
 		throw_exception(runtime_error("Configuration must contain an 'Application' object named 'icinga'."));
@@ -196,7 +197,7 @@ int IcingaApplication::Main(const vector<string>& args)
 }
 
 void IcingaApplication::DumpProgramState(void) {
-	ConfigObject::DumpObjects("retention.dat.tmp");
+	DynamicObject::DumpObjects("retention.dat.tmp");
 	rename("retention.dat.tmp", "retention.dat");
 }
 

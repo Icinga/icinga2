@@ -27,7 +27,7 @@ REGISTER_CLASS(Component);
  * Constructor for the component class.
  */
 Component::Component(const Dictionary::Ptr& properties)
-	: ConfigObject(properties)
+	: DynamicObject(properties)
 {
 	assert(Application::IsMainThread());
 
@@ -136,7 +136,7 @@ void Component::AddSearchDir(const string& componentDirectory)
  *
  * @returns The configuration.
  */
-ConfigObject::Ptr IComponent::GetConfig(void) const
+DynamicObject::Ptr IComponent::GetConfig(void) const
 {
 	return m_Config->GetSelf();
 }

@@ -313,8 +313,8 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
 	if (!roles)
 		return false;
 
-	ConfigObject::Ptr role;
-	BOOST_FOREACH(tie(tuples::ignore, role), ConfigObject::GetObjects("Role")) {
+	DynamicObject::Ptr role;
+	BOOST_FOREACH(tie(tuples::ignore, role), DynamicObject::GetObjects("Role")) {
 		Dictionary::Ptr permissions;
 		if (!role->GetProperty(messageType, &permissions))
 			continue;
@@ -355,7 +355,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 	if (message.GetService(&service) && !service.empty())
 		info->Service = service;
 
-	ConfigObject::Ptr endpointConfig = ConfigObject::GetObject("endpoint", identity);
+	DynamicObject::Ptr endpointConfig = DynamicObject::GetObject("endpoint", identity);
 	Dictionary::Ptr roles;
 	if (endpointConfig)
 		endpointConfig->GetProperty("roles", &roles);
@@ -442,8 +442,8 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 	double now = Utility::GetTime();
 
 	/* check whether we have to reconnect to one of our upstream endpoints */
-	ConfigObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Endpoint")) {
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
 		/* Check if we're already connected to this endpoint. */
 		if (endpointManager->GetEndpointByIdentity(object->GetName()))
 			continue;
@@ -470,7 +470,7 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 		/* for explicitly-configured upstream endpoints
 		 * we prefer to use the node/service from the
 		 * config object - which is what the for loop above does */
-		if (ConfigObject::GetObject("endpoint", identity))
+		if (DynamicObject::GetObject("endpoint", identity))
 			continue;
 
 		if (info->LastSeen < now - DiscoveryComponent::RegistrationTTL) {

@@ -35,12 +35,12 @@ string Host::GetAlias(void) const
 
 bool Host::Exists(const string& name)
 {
-	return (ConfigObject::GetObject("Host", name));
+	return (DynamicObject::GetObject("Host", name));
 }
 
 Host::Ptr Host::GetByName(const string& name)
 {
-	ConfigObject::Ptr configObject = ConfigObject::GetObject("Host", name);
+	DynamicObject::Ptr configObject = DynamicObject::GetObject("Host", name);
 
 	if (!configObject)
 		throw_exception(invalid_argument("Host '" + name + "' does not exist."));

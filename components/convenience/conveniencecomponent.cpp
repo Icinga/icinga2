@@ -144,7 +144,7 @@ void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
 	if (item->GetType() != "host")
 		return;
 
-	ConfigObject::Ptr host = item->GetConfigObject();
+	DynamicObject::Ptr host = item->GetDynamicObject();
 
 	if (!host)
 		return;

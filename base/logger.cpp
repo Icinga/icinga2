@@ -30,7 +30,7 @@ REGISTER_CLASS(Logger);
  *                    to this logger.
  */
 Logger::Logger(const Dictionary::Ptr& properties)
-	: ConfigObject(properties)
+	: DynamicObject(properties)
 {
 	if (!IsLocal())
 		throw_exception(runtime_error("Logger objects must be local."));
@@ -107,8 +107,8 @@ LogSeverity Logger::GetMinSeverity(void) const
  */
 void Logger::ForwardLogEntry(const LogEntry& entry)
 {
-	ConfigObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), ConfigObject::GetObjects("Logger")) {
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Logger")) {
 		Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
 
 		if (entry.Severity >= logger->GetMinSeverity())

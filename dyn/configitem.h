@@ -41,10 +41,10 @@ public:
 
 	void CalculateProperties(Dictionary::Ptr dictionary) const;
 
-	ConfigObject::Ptr Commit(void);
+	DynamicObject::Ptr Commit(void);
 	void Unregister(void);
 
-	ConfigObject::Ptr GetConfigObject(void) const;
+	DynamicObject::Ptr GetDynamicObject(void) const;
 
 	DebugInfo GetDebugInfo(void) const;
 
@@ -61,7 +61,7 @@ private:
 	vector<string> m_Parents;
 	DebugInfo m_DebugInfo;
 
-	ConfigObject::WeakPtr m_ConfigObject;
+	DynamicObject::WeakPtr m_DynamicObject;
 
 	typedef map<pair<string, string>, ConfigItem::Ptr> ItemMap;
 	static ItemMap m_Items;

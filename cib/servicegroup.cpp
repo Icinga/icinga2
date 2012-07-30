@@ -49,12 +49,12 @@ string ServiceGroup::GetActionUrl(void) const
 
 bool ServiceGroup::Exists(const string& name)
 {
-	return (ConfigObject::GetObject("ServiceGroup", name));
+	return (DynamicObject::GetObject("ServiceGroup", name));
 }
 
 ServiceGroup::Ptr ServiceGroup::GetByName(const string& name)
 {
-	ConfigObject::Ptr configObject = ConfigObject::GetObject("ServiceGroup", name);
+	DynamicObject::Ptr configObject = DynamicObject::GetObject("ServiceGroup", name);
 
 	if (!configObject)
 		throw_exception(invalid_argument("ServiceGroup '" + name + "' does not exist."));

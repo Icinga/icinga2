@@ -13,7 +13,7 @@
   <ItemGroup>
     <ClCompile Include="application.cpp" />
     <ClCompile Include="component.cpp" />
-    <ClCompile Include="configobject.cpp" />
+    <ClCompile Include="dynamicobject.cpp" />
     <ClCompile Include="dictionary.cpp" />
     <ClCompile Include="event.cpp" />
     <ClCompile Include="exception.cpp" />
@@ -47,7 +47,7 @@
     <ClInclude Include="application.h" />
     <ClInclude Include="asynctask.h" />
     <ClInclude Include="component.h" />
-    <ClInclude Include="configobject.h" />
+    <ClInclude Include="dynamicobject.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="fifo.h" />

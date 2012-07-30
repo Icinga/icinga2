@@ -75,22 +75,22 @@ void ConfigItem::CalculateProperties(Dictionary::Ptr dictionary) const
 	m_ExpressionList->Execute(dictionary);
 }
 
-ConfigObject::Ptr ConfigItem::Commit(void)
+DynamicObject::Ptr ConfigItem::Commit(void)
 {
-	ConfigObject::Ptr dobj = m_ConfigObject.lock();
+	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
 	Dictionary::Ptr properties = boost::make_shared<Dictionary>();
 	CalculateProperties(properties);
 
 	if (!dobj)
-		dobj = ConfigObject::GetObject(GetType(), GetName());
+		dobj = DynamicObject::GetObject(GetType(), GetName());
 
 	if (!dobj)
-		dobj = ConfigObject::Create(GetType(), properties);
+		dobj = DynamicObject::Create(GetType(), properties);
 	else
 		dobj->SetProperties(properties);
 
-	m_ConfigObject = dobj;
+	m_DynamicObject = dobj;
 
 	if (dobj->IsAbstract())
 		dobj->Unregister();
@@ -109,7 +109,7 @@ ConfigObject::Ptr ConfigItem::Commit(void)
 
 void ConfigItem::Unregister(void)
 {
-	ConfigObject::Ptr dobj = m_ConfigObject.lock();
+	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
 	if (dobj)
 		dobj->Unregister();
@@ -123,9 +123,9 @@ void ConfigItem::Unregister(void)
 	OnRemoved(GetSelf());
 }
 
-ConfigObject::Ptr ConfigItem::GetConfigObject(void) const
+DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
 {
-	return m_ConfigObject.lock();
+	return m_DynamicObject.lock();
 }
 
 ConfigItem::Ptr ConfigItem::GetObject(const string& type, const string& name)

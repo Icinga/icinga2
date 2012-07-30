@@ -60,15 +60,15 @@ public:
 	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
 
 protected:
-	ConfigObject::Ptr GetConfig(void) const;
+	DynamicObject::Ptr GetConfig(void) const;
 
 private:
-	ConfigObject *m_Config;
+	DynamicObject *m_Config;
 
 	friend class Logger;
 };
 
-class I2_BASE_API Logger : public ConfigObject
+class I2_BASE_API Logger : public DynamicObject
 {
 public:
 	typedef shared_ptr<Logger> Ptr;

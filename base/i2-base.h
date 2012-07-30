@@ -184,7 +184,7 @@ namespace tuples = boost::tuples;
 #include "process.h"
 #include "scriptfunction.h"
 #include "scripttask.h"
-#include "configobject.h"
+#include "dynamicobject.h"
 #include "logger.h"
 #include "application.h"
 #include "component.h"

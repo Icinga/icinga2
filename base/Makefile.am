@@ -10,10 +10,10 @@ libbase_la_SOURCES =  \
 	asynctask.h \
 	component.cpp \
 	component.h \
-	configobject.cpp \
-	configobject.h \
 	dictionary.cpp \
 	dictionary.h \
+	dynamicobject.cpp \
+	dynamicobject.h \
 	event.cpp \
 	event.h \
 	exception.cpp \

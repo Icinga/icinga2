@@ -37,12 +37,12 @@ string Service::GetAlias(void) const
 
 bool Service::Exists(const string& name)
 {
-	return (ConfigObject::GetObject("Service", name));
+	return (DynamicObject::GetObject("Service", name));
 }
 
 Service::Ptr Service::GetByName(const string& name)
 {
-	ConfigObject::Ptr configObject = ConfigObject::GetObject("Service", name);
+	DynamicObject::Ptr configObject = DynamicObject::GetObject("Service", name);
 
 	if (!configObject)
 		throw_exception(invalid_argument("Service '" + name + "' does not exist."));
