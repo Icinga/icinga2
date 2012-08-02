@@ -220,6 +220,8 @@ void CIBSyncComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, co
 
 			return;
 		}
+
+		object->Register();
 	} else {
 		if (object->IsLocal())
 			throw_exception(invalid_argument("Replicated remote object is marked as local."));
