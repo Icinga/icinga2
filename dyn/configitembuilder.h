@@ -32,25 +32,25 @@ public:
 	ConfigItemBuilder(void);
 	ConfigItemBuilder(const DebugInfo& debugInfo);
 
-	void SetType(const string& type);
-	void SetName(const string& name);
+	void SetType(const String& type);
+	void SetName(const String& name);
 	void SetLocal(bool local);
 	void SetAbstract(bool abstract);
 
-	void AddParent(const string& parent);
+	void AddParent(const String& parent);
 
 	void AddExpression(const Expression& expr);
-	void AddExpression(const string& key, ExpressionOperator op, const Variant& value);
+	void AddExpression(const String& key, ExpressionOperator op, const Value& value);
 	void AddExpressionList(const ExpressionList::Ptr& exprl);
 
 	ConfigItem::Ptr Compile(void);
 
 private:
-	string m_Type;
-	string m_Name;
+	String m_Type;
+	String m_Name;
 	bool m_Local;
 	bool m_Abstract;
-	vector<string> m_Parents;
+	vector<String> m_Parents;
 	ExpressionList::Ptr m_ExpressionList;
 	DebugInfo m_DebugInfo;
 };

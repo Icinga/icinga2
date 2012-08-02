@@ -173,7 +173,7 @@ typedef union YYSTYPE
 
 	char *text;
 	double num;
-	icinga::Variant *variant;
+	icinga::Value *variant;
 	icinga::ExpressionOperator op;
 
 
@@ -1636,7 +1636,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 166 "config_parser.yy"
     {
-		(yyval.variant) = new Variant(m_ExpressionLists.top());
+		(yyval.variant) = new Value(m_ExpressionLists.top());
 		m_ExpressionLists.pop();
 	}
     break;
@@ -1699,7 +1699,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 222 "config_parser.yy"
     {
-		(yyval.variant) = new Variant((yyvsp[(1) - (1)].text));
+		(yyval.variant) = new Value((yyvsp[(1) - (1)].text));
 		free((yyvsp[(1) - (1)].text));
 	}
     break;
@@ -1709,7 +1709,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 227 "config_parser.yy"
     {
-		(yyval.variant) = new Variant((yyvsp[(1) - (1)].num));
+		(yyval.variant) = new Value((yyvsp[(1) - (1)].num));
 	}
     break;
 
@@ -1718,7 +1718,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 231 "config_parser.yy"
     {
-		(yyval.variant) = new Variant();
+		(yyval.variant) = new Value();
 	}
     break;
 

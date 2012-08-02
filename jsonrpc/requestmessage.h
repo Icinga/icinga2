@@ -51,7 +51,7 @@ public:
 	 * @param[out] value The value.
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
-	inline bool GetVersion(string *value) const
+	inline bool GetVersion(String *value) const
 	{
 		return Get("jsonrpc", value);
 	}
@@ -61,7 +61,7 @@ public:
 	 *
 	 * @param value The version.
 	 */
-	inline void SetVersion(const string& value)
+	inline void SetVersion(const String& value)
 	{
 		Set("jsonrpc", value);
 	}
@@ -72,7 +72,7 @@ public:
 	 * @param[out] value The method.
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
-	inline bool GetMethod(string *value) const
+	inline bool GetMethod(String *value) const
 	{
 		return Get("method", value);
 	}
@@ -82,7 +82,7 @@ public:
 	 *
 	 * @param value The method.
 	 */
-	inline void SetMethod(const string& value)
+	inline void SetMethod(const String& value)
 	{
 		Set("method", value);
 	}
@@ -114,7 +114,7 @@ public:
 	 * @param[out] value The ID.
 	 * @return true if the value was retrieved, false otherwise.
 	 */
-	inline bool GetID(string *value) const
+	inline bool GetID(String *value) const
 	{
 		return Get("id", value);
 	}
@@ -124,7 +124,7 @@ public:
 	 *
 	 * @param value The ID.
 	 */
-	inline void SetID(const string& value)
+	inline void SetID(const String& value)
 	{
 		Set("id", value);
 	}

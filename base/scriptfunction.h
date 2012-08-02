@@ -31,20 +31,20 @@ public:
 	typedef shared_ptr<ScriptFunction> Ptr;
 	typedef weak_ptr<ScriptFunction> WeakPtr;
 
-	typedef function<void (const shared_ptr<ScriptTask>&, const vector<Variant>& arguments)> Callback;
+	typedef function<void (const shared_ptr<ScriptTask>&, const vector<Value>& arguments)> Callback;
 
 	ScriptFunction(const Callback& function);
 
-	static void Register(const string& name, const ScriptFunction::Ptr& function);
-	static void Unregister(const string& name);
-	static ScriptFunction::Ptr GetByName(const string& name);
+	static void Register(const String& name, const ScriptFunction::Ptr& function);
+	static void Unregister(const String& name);
+	static ScriptFunction::Ptr GetByName(const String& name);
 
-	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Variant>& arguments);
+	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Value>& arguments);
 
 private:
 	Callback m_Callback;
 
-	static map<string, ScriptFunction::Ptr> m_Functions;
+	static map<String, ScriptFunction::Ptr> m_Functions;
 };
 
 }

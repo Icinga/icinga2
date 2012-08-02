@@ -32,14 +32,14 @@ public:
 	DiscoveryMessage(void);
 	DiscoveryMessage(const MessagePart& message);
 
-	bool GetIdentity(string *value) const;
-	void SetIdentity(const string& value);
+	bool GetIdentity(String *value) const;
+	void SetIdentity(const String& value);
 
-	bool GetNode(string *value) const;
-	void SetNode(const string& value);
+	bool GetNode(String *value) const;
+	void SetNode(const String& value);
 
-	bool GetService(string *value) const;
-	void SetService(const string& value);
+	bool GetService(String *value) const;
+	void SetService(const String& value);
 
 	bool GetSubscriptions(Dictionary::Ptr *value) const;
 	void SetSubscriptions(const Dictionary::Ptr& value);

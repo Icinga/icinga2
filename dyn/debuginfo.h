@@ -25,7 +25,7 @@ namespace icinga
 
 struct DebugInfo
 {
-	string Path;
+	String Path;
 
 	union
 	{

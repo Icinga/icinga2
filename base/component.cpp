@@ -34,7 +34,7 @@ Component::Component(const Dictionary::Ptr& properties)
 	if (!IsLocal())
 		throw_exception(runtime_error("Component objects must be local."));
 
-	string path;
+	String path;
 #ifdef _WIN32
 	path = GetName() + ".dll";
 #else /* _WIN32 */
@@ -44,12 +44,12 @@ Component::Component(const Dictionary::Ptr& properties)
 	Logger::Write(LogInformation, "base", "Loading component '" + GetName() + "' (using library '" + path + "')");
 
 #ifdef _WIN32
-	HMODULE hModule = LoadLibrary(path.c_str());
+	HMODULE hModule = LoadLibrary(path.CStr());
 
 	if (hModule == NULL)
 		throw_exception(Win32Exception("LoadLibrary('" + path + "') failed", GetLastError()));
 #else /* _WIN32 */
-	lt_dlhandle hModule = lt_dlopen(path.c_str());
+	lt_dlhandle hModule = lt_dlopen(path.CStr());
 
 	if (hModule == NULL) {
 		throw_exception(runtime_error("Could not load module '" + path + "': " +  lt_dlerror()));
@@ -92,29 +92,14 @@ Component::Component(const Dictionary::Ptr& properties)
 	}
 
 	impl->m_Config = this;
-	SetImplementation(impl);
-
 	impl->Start();
+	m_Impl = impl;
 }
 
 Component::~Component(void)
 {
-	IComponent::Ptr impl = GetImplementation();
-
-	if (impl)
-		impl->Stop();
-}
-
-IComponent::Ptr Component::GetImplementation(void) const
-{
-	IComponent::Ptr impl;
-	GetTag("impl", &impl);
-	return impl;
-}
-
-void Component::SetImplementation(const IComponent::Ptr& impl)
-{
-	SetTag("impl", impl);
+	if (m_Impl)
+		m_Impl->Stop();
 }
 
 /**
@@ -122,12 +107,12 @@ void Component::SetImplementation(const IComponent::Ptr& impl)
  *
  * @param componentDirectory The directory.
  */
-void Component::AddSearchDir(const string& componentDirectory)
+void Component::AddSearchDir(const String& componentDirectory)
 {
 #ifdef _WIN32
-	SetDllDirectory(componentDirectory.c_str());
+	SetDllDirectory(componentDirectory.CStr());
 #else /* _WIN32 */
-	lt_dladdsearchdir(componentDirectory.c_str());
+	lt_dladdsearchdir(componentDirectory.CStr());
 #endif /* _WIN32 */
 }
 

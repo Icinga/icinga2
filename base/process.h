@@ -28,7 +28,7 @@ struct ProcessResult
 	double ExecutionStart;
 	double ExecutionEnd;
 	long ExitStatus;
-	string Output;
+	String Output;
 };
 
 class I2_BASE_API Process : public AsyncTask<Process, ProcessResult>
@@ -39,12 +39,12 @@ public:
 
 	static const int MaxTasksPerThread = 128;
 
-	Process(const string& command);
+	Process(const String& command);
 
 private:
 	static bool m_ThreadCreated;
 
-	string m_Command;
+	String m_Command;
 
 	FILE *m_FP;
 	stringstream m_OutputStream;

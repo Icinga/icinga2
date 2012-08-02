@@ -25,20 +25,20 @@ ConfigItem::ItemMap ConfigItem::m_Items;
 boost::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
 boost::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
 
-ConfigItem::ConfigItem(const string& type, const string& name,
-    const ExpressionList::Ptr& exprl, const vector<string>& parents,
+ConfigItem::ConfigItem(const String& type, const String& name,
+    const ExpressionList::Ptr& exprl, const vector<String>& parents,
     const DebugInfo& debuginfo)
 	: m_Type(type), m_Name(name), m_ExpressionList(exprl),
 	  m_Parents(parents), m_DebugInfo(debuginfo)
 {
 }
 
-string ConfigItem::GetType(void) const
+String ConfigItem::GetType(void) const
 {
 	return m_Type;
 }
 
-string ConfigItem::GetName(void) const
+String ConfigItem::GetName(void) const
 {
 	return m_Name;
 }
@@ -53,14 +53,14 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 	return m_ExpressionList;
 }
 
-vector<string> ConfigItem::GetParents(void) const
+vector<String> ConfigItem::GetParents(void) const
 {
 	return m_Parents;
 }
 
-void ConfigItem::CalculateProperties(Dictionary::Ptr dictionary) const
+void ConfigItem::CalculateProperties(const Dictionary::Ptr& dictionary) const
 {
-	BOOST_FOREACH(const string& name, m_Parents) {
+	BOOST_FOREACH(const String& name, m_Parents) {
 		ConfigItem::Ptr parent = ConfigItem::GetObject(GetType(), name);
 
 		if (!parent) {
@@ -82,20 +82,38 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	Dictionary::Ptr properties = boost::make_shared<Dictionary>();
 	CalculateProperties(properties);
 
+	/* Create a fake update in the format that
+	 * DynamicObject::ApplyUpdate expects. */
+	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
+
+	String key;
+	Value data;
+	BOOST_FOREACH(tie(key, data), properties) {
+		Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+		attr->Set("data", data);
+		attr->Set("type", Attribute_Config);
+		attr->Set("tx", DynamicObject::GetCurrentTx());
+		attrs->Set(key, attr);
+	}
+
+	Dictionary::Ptr update = boost::make_shared<Dictionary>();
+	update->Set("attrs", attrs);
+	update->Set("configTx", DynamicObject::GetCurrentTx());
+
 	if (!dobj)
 		dobj = DynamicObject::GetObject(GetType(), GetName());
 
 	if (!dobj)
-		dobj = DynamicObject::Create(GetType(), properties);
+		dobj = DynamicObject::Create(GetType(), update);
 	else
-		dobj->SetProperties(properties);
+		dobj->ApplyUpdate(update);
 
 	m_DynamicObject = dobj;
 
 	if (dobj->IsAbstract())
 		dobj->Unregister();
 	else
-		dobj->Commit();
+		dobj->Register();
 
 	/* TODO: Figure out whether there are any child objects which inherit
 	 * from this config item and Commit() them as well */
@@ -128,7 +146,7 @@ DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
 	return m_DynamicObject.lock();
 }
 
-ConfigItem::Ptr ConfigItem::GetObject(const string& type, const string& name)
+ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
 	ConfigItem::ItemMap::iterator it;
 	it = m_Items.find(make_pair(type, name));

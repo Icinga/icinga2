@@ -29,32 +29,32 @@ DiscoveryMessage::DiscoveryMessage(const MessagePart& message)
 	: MessagePart(message)
 { }
 
-bool DiscoveryMessage::GetIdentity(string *value) const
+bool DiscoveryMessage::GetIdentity(String *value) const
 {
 	return Get("identity", value);
 }
 
-void DiscoveryMessage::SetIdentity(const string& value)
+void DiscoveryMessage::SetIdentity(const String& value)
 {
 	Set("identity", value);
 }
 
-bool DiscoveryMessage::GetNode(string *value) const
+bool DiscoveryMessage::GetNode(String *value) const
 {
 	return Get("node", value);
 }
 
-void DiscoveryMessage::SetNode(const string& value)
+void DiscoveryMessage::SetNode(const String& value)
 {
 	Set("node", value);
 }
 
-bool DiscoveryMessage::GetService(string *value) const
+bool DiscoveryMessage::GetService(String *value) const
 {
 	return Get("service", value);
 }
 
-void DiscoveryMessage::SetService(const string& value)
+void DiscoveryMessage::SetService(const String& value)
 {
 	Set("service", value);
 }

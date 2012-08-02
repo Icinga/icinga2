@@ -24,20 +24,20 @@ namespace icinga
 {
 
 /**
- * Helper functions for reading/writing messages in the netstring format.
+ * Helper functions for reading/writing messages in the netString format.
  *
- * @see http://cr.yp.to/proto/netstrings.txt
+ * @see http://cr.yp.to/proto/netStrings.txt
  *
  * @ingroup base
  */
-class I2_BASE_API Netstring
+class I2_BASE_API NetString
 {
 public:
-	static bool ReadStringFromIOQueue(IOQueue *queue, string *message);
-	static void WriteStringToIOQueue(IOQueue *queue, const string& message);
+	static bool ReadStringFromIOQueue(IOQueue *queue, String *message);
+	static void WriteStringToIOQueue(IOQueue *queue, const String& message);
 
 private:
-	Netstring(void);
+	NetString(void);
 };
 
 }

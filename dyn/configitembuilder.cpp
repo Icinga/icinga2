@@ -38,12 +38,12 @@ ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
 	m_DebugInfo = debugInfo;
 }
 
-void ConfigItemBuilder::SetType(const string& type)
+void ConfigItemBuilder::SetType(const String& type)
 {
 	m_Type = type;
 }
 
-void ConfigItemBuilder::SetName(const string& name)
+void ConfigItemBuilder::SetName(const String& name)
 {
 	m_Name = name;
 }
@@ -58,7 +58,7 @@ void ConfigItemBuilder::SetAbstract(bool abstract)
 	m_Abstract = abstract;
 }
 
-void ConfigItemBuilder::AddParent(const string& parent)
+void ConfigItemBuilder::AddParent(const String& parent)
 {
 	m_Parents.push_back(parent);
 }
@@ -68,7 +68,7 @@ void ConfigItemBuilder::AddExpression(const Expression& expr)
 	m_ExpressionList->AddExpression(expr);
 }
 
-void ConfigItemBuilder::AddExpression(const string& key, ExpressionOperator op, const Variant& value)
+void ConfigItemBuilder::AddExpression(const String& key, ExpressionOperator op, const Value& value)
 {
 	Expression expr(key, op, value, m_DebugInfo);
 	AddExpression(expr);
@@ -81,8 +81,8 @@ void ConfigItemBuilder::AddExpressionList(const ExpressionList::Ptr& exprl)
 
 ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 {
-	assert(!m_Type.empty());
-	assert(!m_Name.empty());
+	assert(!m_Type.IsEmpty());
+	assert(!m_Name.IsEmpty());
 
 	ExpressionList::Ptr exprl = boost::make_shared<ExpressionList>();
 

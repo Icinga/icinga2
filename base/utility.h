@@ -31,18 +31,18 @@ namespace icinga
 class I2_BASE_API Utility
 {
 public:
-	static string GetTypeName(const type_info& ti);
+	static String GetTypeName(const type_info& ti);
 
 	static void Daemonize(void);
 
-	static shared_ptr<SSL_CTX> MakeSSLContext(string pubkey, string privkey, string cakey);
-	static string GetCertificateCN(const shared_ptr<X509>& certificate);
-	static shared_ptr<X509> GetX509Certificate(string pemfile);
+	static shared_ptr<SSL_CTX> MakeSSLContext(String pubkey, String privkey, String cakey);
+	static String GetCertificateCN(const shared_ptr<X509>& certificate);
+	static shared_ptr<X509> GetX509Certificate(String pemfile);
 
-	static bool Match(string pattern, string text);
+	static bool Match(String pattern, String text);
 
-	static string DirName(const string& path);
-	static string BaseName(const string& path);
+	static String DirName(const String& path);
+	static String BaseName(const String& path);
 
 	static void NullDeleter(void *obj);
 

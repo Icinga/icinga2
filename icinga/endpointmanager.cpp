@@ -39,7 +39,7 @@ EndpointManager::EndpointManager(void)
  *
  * @param identity The new identity.
  */
-void EndpointManager::SetIdentity(const string& identity)
+void EndpointManager::SetIdentity(const String& identity)
 {
 	m_Identity = identity;
 }
@@ -49,7 +49,7 @@ void EndpointManager::SetIdentity(const string& identity)
  *
  * @returns The identity.
  */
-string EndpointManager::GetIdentity(void) const
+String EndpointManager::GetIdentity(void) const
 {
 	return m_Identity;
 }
@@ -79,7 +79,7 @@ shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
  *
  * @param service The port to listen on.
  */
-void EndpointManager::AddListener(const string& service)
+void EndpointManager::AddListener(const String& service)
 {
 	if (!GetSSLContext())
 		throw_exception(logic_error("SSL context is required for AddListener()"));
@@ -102,7 +102,7 @@ void EndpointManager::AddListener(const string& service)
  * @param node The remote host.
  * @param service The remote port.
  */
-void EndpointManager::AddConnection(const string& node, const string& service)
+void EndpointManager::AddConnection(const String& node, const String& service)
 {
 	stringstream s;
 	s << "Adding new endpoint: [" << node << "]:" << service;
@@ -164,9 +164,9 @@ void EndpointManager::RegisterEndpoint(const Endpoint::Ptr& endpoint)
 
 	UnregisterEndpoint(endpoint);
 
-	string identity = endpoint->GetIdentity();
+	String identity = endpoint->GetIdentity();
 
-	if (!identity.empty()) {
+	if (!identity.IsEmpty()) {
 		m_Endpoints[identity] = endpoint;
 		OnNewEndpoint(GetSelf(), endpoint);
 	} else {
@@ -200,8 +200,8 @@ void EndpointManager::UnregisterEndpoint(const Endpoint::Ptr& endpoint)
 	    remove(m_PendingEndpoints.begin(), m_PendingEndpoints.end(), endpoint),
 	    m_PendingEndpoints.end());
 
-	string identity = endpoint->GetIdentity();
-	if (!identity.empty())
+	String identity = endpoint->GetIdentity();
+	if (!identity.IsEmpty())
 		m_Endpoints.erase(identity);
 }
 
@@ -235,7 +235,7 @@ void EndpointManager::SendUnicastMessage(const Endpoint::Ptr& sender,
 void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
     const RequestMessage& message)
 {
-	string method;
+	String method;
 	if (!message.GetMethod(&method))
 		throw_exception(invalid_argument("Message is missing the 'method' property."));
 
@@ -267,11 +267,11 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
     const RequestMessage& message)
 {
-	string id;
+	String id;
 	if (message.GetID(&id))
 		throw_exception(invalid_argument("Multicast requests must not have an ID."));
 
-	string method;
+	String method;
 	if (!message.GetMethod(&method))
 		throw_exception(invalid_argument("Message is missing the 'method' property."));
 
@@ -293,7 +293,7 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
  */
 void EndpointManager::ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback)
 {
-	map<string, Endpoint::Ptr>::iterator prev, i;
+	map<String, Endpoint::Ptr>::iterator prev, i;
 	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); ) {
 		prev = i;
 		i++;
@@ -307,9 +307,9 @@ void EndpointManager::ForEachEndpoint(function<void (const EndpointManager::Ptr&
  *
  * @param identity The identity of the endpoint.
  */
-Endpoint::Ptr EndpointManager::GetEndpointByIdentity(const string& identity) const
+Endpoint::Ptr EndpointManager::GetEndpointByIdentity(const String& identity) const
 {
-	map<string, Endpoint::Ptr>::const_iterator i;
+	map<String, Endpoint::Ptr>::const_iterator i;
 	i = m_Endpoints.find(identity);
 	if (i != m_Endpoints.end())
 		return i->second;
@@ -326,7 +326,7 @@ void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint
 	stringstream idstream;
 	idstream << m_NextMessageID;
 
-	string id = idstream.str();
+	String id = idstream.str();
 	message.SetID(id);
 
 	PendingRequest pr;
@@ -342,15 +342,15 @@ void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint
 		SendUnicastMessage(sender, recipient, message);
 }
 
-bool EndpointManager::RequestTimeoutLessComparer(const pair<string, PendingRequest>& a,
-    const pair<string, PendingRequest>& b)
+bool EndpointManager::RequestTimeoutLessComparer(const pair<String, PendingRequest>& a,
+    const pair<String, PendingRequest>& b)
 {
 	return a.second.Timeout < b.second.Timeout;
 }
 
 void EndpointManager::RequestTimerHandler(void)
 {
-	map<string, PendingRequest>::iterator it;
+	map<String, PendingRequest>::iterator it;
 	for (it = m_Requests.begin(); it != m_Requests.end(); it++) {
 		if (it->second.HasTimedOut()) {
 			it->second.Callback(GetSelf(), Endpoint::Ptr(), it->second.Request, ResponseMessage(), true);
@@ -364,11 +364,11 @@ void EndpointManager::RequestTimerHandler(void)
 
 void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message)
 {
-	string id;
+	String id;
 	if (!message.GetID(&id))
 		throw_exception(invalid_argument("Response message must have a message ID."));
 
-	map<string, PendingRequest>::iterator it;
+	map<String, PendingRequest>::iterator it;
 	it = m_Requests.find(id);
 
 	if (it == m_Requests.end())

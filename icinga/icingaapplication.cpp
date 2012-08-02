@@ -28,7 +28,7 @@
 
 using namespace icinga;
 
-const string IcingaApplication::DefaultPidPath = "icinga.pid";
+const String IcingaApplication::DefaultPidPath = "icinga.pid";
 
 IcingaApplication::IcingaApplication(void)
 	: m_PidPath(DefaultPidPath)
@@ -40,7 +40,7 @@ IcingaApplication::IcingaApplication(void)
  * @param args Command-line arguments.
  * @returns An exit status.
  */
-int IcingaApplication::Main(const vector<string>& args)
+int IcingaApplication::Main(const vector<String>& args)
 {
 	/* create console logger */
 	ConfigItemBuilder::Ptr consoleLogConfig = boost::make_shared<ConfigItemBuilder>();
@@ -55,7 +55,7 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	/* periodically dump the program state */
 	m_RetentionTimer = boost::make_shared<Timer>();
-	m_RetentionTimer->SetInterval(60);
+	m_RetentionTimer->SetInterval(10);
 	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
 	m_RetentionTimer->Start();
 
@@ -76,15 +76,15 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	bool daemonize = false;
 	bool parseOpts = true;
-	string configFile;
+	String configFile;
 
 	/* TODO: clean up this mess; for now it will just have to do */
-	vector<string>::const_iterator it;
+	vector<String>::const_iterator it;
 	for (it = args.begin() + 1 ; it != args.end(); it++) {
-		string arg = *it;
+		String arg = *it;
 
 		/* ignore empty arguments */
-		if (arg.empty())
+		if (arg.IsEmpty())
 			continue;
 
 		if (arg == "--") {
@@ -107,10 +107,10 @@ int IcingaApplication::Main(const vector<string>& args)
 			throw_exception(invalid_argument("Trailing command line arguments after config filename."));
 	}
 
-	if (configFile.empty())
+	if (configFile.IsEmpty())
 		throw_exception(invalid_argument("No config file was specified on the command line."));
 
-	string componentDirectory = Utility::DirName(GetExePath()) + "/../lib/icinga2";
+	String componentDirectory = Utility::DirName(GetExePath()) + "/../lib/icinga2";
 	Component::AddSearchDir(componentDirectory);
 
 	/* load cibsync config component */
@@ -125,7 +125,7 @@ int IcingaApplication::Main(const vector<string>& args)
 	convenienceComponentConfig->SetType("Component");
 	convenienceComponentConfig->SetName("convenience");
 	convenienceComponentConfig->SetLocal(true);
-	convenienceComponentConfig->Compile()->Commit();
+	//convenienceComponentConfig->Compile()->Commit();
 
 	/* load config file */
 	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
@@ -144,15 +144,16 @@ int IcingaApplication::Main(const vector<string>& args)
 	if (!icingaConfig->IsLocal())
 		throw_exception(runtime_error("'icinga' application object must be 'local'."));
 
-	icingaConfig->GetProperty("cert", &m_CertificateFile);
-	icingaConfig->GetProperty("ca", &m_CAFile);
-	icingaConfig->GetProperty("node", &m_Node);
-	icingaConfig->GetProperty("service", &m_Service);
-	icingaConfig->GetProperty("pidpath", &m_PidPath);
-	icingaConfig->GetProperty("macros", &m_Macros);
+	icingaConfig->GetAttribute("cert", &m_CertificateFile);
+	icingaConfig->GetAttribute("ca", &m_CAFile);
+	icingaConfig->GetAttribute("node", &m_Node);
+	icingaConfig->GetAttribute("service", &m_Service);
+	icingaConfig->GetAttribute("pidpath", &m_PidPath);
+	icingaConfig->GetAttribute("macros", &m_Macros);
 
-	string logpath;
-	if (icingaConfig->GetProperty("logpath", &logpath)) {
+	String logpath;
+	icingaConfig->GetAttribute("logpath", &logpath);
+	if (!logpath.IsEmpty()) {
 		ConfigItemBuilder::Ptr fileLogConfig = boost::make_shared<ConfigItemBuilder>();
 		fileLogConfig->SetType("Logger");
 		fileLogConfig->SetName("main");
@@ -164,10 +165,10 @@ int IcingaApplication::Main(const vector<string>& args)
 
 	UpdatePidFile(GetPidPath());
 
-	if (!GetCertificateFile().empty() && !GetCAFile().empty()) {
+	if (!GetCertificateFile().IsEmpty() && !GetCAFile().IsEmpty()) {
 		/* set up SSL context */
 		shared_ptr<X509> cert = Utility::GetX509Certificate(GetCertificateFile());
-		string identity = Utility::GetCertificateCN(cert);
+		String identity = Utility::GetCertificateCN(cert);
 		Logger::Write(LogInformation, "icinga", "My identity: " + identity);
 		EndpointManager::GetInstance()->SetIdentity(identity);
 
@@ -176,8 +177,8 @@ int IcingaApplication::Main(const vector<string>& args)
 	}
 
 	/* create the primary RPC listener */
-	string service = GetService();
-	if (!service.empty())
+	String service = GetService();
+	if (!service.IsEmpty())
 		EndpointManager::GetInstance()->AddListener(service);
 
 	if (daemonize) {
@@ -206,27 +207,27 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
 
-string IcingaApplication::GetCertificateFile(void) const
+String IcingaApplication::GetCertificateFile(void) const
 {
 	return m_CertificateFile;
 }
 
-string IcingaApplication::GetCAFile(void) const
+String IcingaApplication::GetCAFile(void) const
 {
 	return m_CAFile;
 }
 
-string IcingaApplication::GetNode(void) const
+String IcingaApplication::GetNode(void) const
 {
 	return m_Node;
 }
 
-string IcingaApplication::GetService(void) const
+String IcingaApplication::GetService(void) const
 {
 	return m_Service;
 }
 
-string IcingaApplication::GetPidPath(void) const
+String IcingaApplication::GetPidPath(void) const
 {
 	return m_PidPath;
 }

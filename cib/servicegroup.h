@@ -33,12 +33,12 @@ public:
 		: DynamicObject(properties)
 	{ }
 
-	static bool Exists(const string& name);
-	static ServiceGroup::Ptr GetByName(const string& name);
+	static bool Exists(const String& name);
+	static ServiceGroup::Ptr GetByName(const String& name);
 
-	string GetAlias(void) const;
-	string GetNotesUrl(void) const;
-	string GetActionUrl(void) const;
+	String GetAlias(void) const;
+	String GetNotesUrl(void) const;
+	String GetActionUrl(void) const;
 };
 
 }

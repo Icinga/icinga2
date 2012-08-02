@@ -36,27 +36,27 @@ public:
 
 	IcingaApplication(void);
 
-	int Main(const vector<string>& args);
+	int Main(const vector<String>& args);
 
 	static IcingaApplication::Ptr GetInstance(void);
 
-	string GetCertificateFile(void) const;
-	string GetCAFile(void) const;
-	string GetNode(void) const;
-	string GetService(void) const;
-	string GetPidPath(void) const;
+	String GetCertificateFile(void) const;
+	String GetCAFile(void) const;
+	String GetNode(void) const;
+	String GetService(void) const;
+	String GetPidPath(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 
 	time_t GetStartTime(void) const;
 
-	static const string DefaultPidPath;
+	static const String DefaultPidPath;
 
 private:
-	string m_CertificateFile;
-	string m_CAFile;
-	string m_Node;
-	string m_Service;
-	string m_PidPath;
+	String m_CertificateFile;
+	String m_CAFile;
+	String m_Node;
+	String m_Service;
+	String m_PidPath;
 	Dictionary::Ptr m_Macros;
 
 	time_t m_StartTime;

@@ -86,7 +86,7 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
 	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n";
 
-	set<string> parents = host->GetParents();
+	set<String> parents = host->GetParents();
 
 	if (!parents.empty()) {
 		fp << "\t" << "parents" << "\t";
@@ -100,18 +100,19 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 
 void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& service)
 {
-	string output;
-	string perfdata;
+	String output;
+	String perfdata;
 	double schedule_start = -1, schedule_end = -1;
 	double execution_start = -1, execution_end = -1;
-	if (service->HasLastCheckResult()) {
-		CheckResult cr = service->GetLastCheckResult();
-		output = cr.GetOutput();
-		schedule_start = cr.GetScheduleStart();
-		schedule_end = cr.GetScheduleEnd();
-		execution_start = cr.GetExecutionStart();
-		execution_end = cr.GetExecutionEnd();
-		perfdata = cr.GetPerformanceDataRaw();
+
+	Dictionary::Ptr cr = service->GetLastCheckResult();
+	if (cr) {
+		output = cr->Get("output");
+		schedule_start = cr->Get("schedule_start");
+		schedule_end = cr->Get("schedule_end");
+		execution_start = cr->Get("execution_start");
+		execution_end = cr->Get("execution_end");
+		perfdata = cr->Get("performance_data_raw");
 	}
 
 	double execution_time = (execution_end - execution_start);
@@ -122,9 +123,9 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	if (!service->IsReachable()) {
 		state = StateCritical;
 		
-		string text = "One or more parent services are unavailable.";
+		String text = "One or more parent services are unavailable.";
 
-		if (output.empty())
+		if (output.IsEmpty())
 			output = text;
 		else
 			output = text + " (" + output + ")";
@@ -138,7 +139,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	   << "\t" << "service_description=" << service->GetAlias() << "\n"
 	   << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
-	   << "\t" << "has_been_checked=" << (service->HasLastCheckResult() ? 1 : 0) << "\n"
+	   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
 	   << "\t" << "should_be_scheduled=1" << "\n"
 	   << "\t" << "check_execution_time=" << execution_time << "\n"
 	   << "\t" << "check_latency=" << latency << "\n"
@@ -220,7 +221,7 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
 
-	map<string, vector<string> > hostgroups;
+	map<String, vector<String> > hostgroups;
 
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Host")) {
@@ -230,7 +231,7 @@ void CompatComponent::StatusTimerHandler(void)
 		dict = host->GetGroups();
 
 		if (dict) {
-			Variant hostgroup;
+			Value hostgroup;
 			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
 				hostgroups[hostgroup].push_back(host->GetName());
 			}
@@ -240,10 +241,10 @@ void CompatComponent::StatusTimerHandler(void)
 		DumpHostObject(objectfp, host);
 	}
 
-	pair<string, vector<string > > hgt;
+	pair<String, vector<String > > hgt;
 	BOOST_FOREACH(hgt, hostgroups) {
-		const string& name = hgt.first;
-		const vector<string>& hosts = hgt.second;
+		const String& name = hgt.first;
+		const vector<String>& hosts = hgt.second;
 
 		objectfp << "define hostgroup {" << "\n"
 			 << "\t" << "hostgroup_name" << "\t" << name << "\n";
@@ -263,7 +264,7 @@ void CompatComponent::StatusTimerHandler(void)
 			 << "}" << "\n";
 	}
 
-	map<string, vector<Service::Ptr> > servicegroups;
+	map<String, vector<Service::Ptr> > servicegroups;
 
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
@@ -273,7 +274,7 @@ void CompatComponent::StatusTimerHandler(void)
 		dict = service->GetGroups();
 
 		if (dict) {
-			Variant servicegroup;
+			Value servicegroup;
 			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
 				servicegroups[servicegroup].push_back(service);
 			}
@@ -283,9 +284,9 @@ void CompatComponent::StatusTimerHandler(void)
 		DumpServiceObject(objectfp, service);
 	}
 
-	pair<string, vector<Service::Ptr> > sgt;
+	pair<String, vector<Service::Ptr> > sgt;
 	BOOST_FOREACH(sgt, servicegroups) {
-		const string& name = sgt.first;
+		const String& name = sgt.first;
 		const vector<Service::Ptr>& services = sgt.second;
 
 		objectfp << "define servicegroup {" << "\n"
@@ -300,7 +301,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 		objectfp << "\t" << "members" << "\t";
 
-		vector<string> sglist;
+		vector<String> sglist;
 		vector<Service::Ptr>::iterator vt;
 
 		BOOST_FOREACH(const Service::Ptr& service, services) {

@@ -30,16 +30,16 @@ bool I2_EXPORT Utility::m_SSLInitialized = false;
  * @param ti A type_info object.
  * @returns The type name of the object.
  */
-string Utility::GetTypeName(const type_info& ti)
+String Utility::GetTypeName(const type_info& ti)
 {
-	string klass = ti.name();
+	String klass = ti.name();
 
 #ifdef HAVE_GCC_ABI_DEMANGLE
 	int status;
-	char *realname = abi::__cxa_demangle(klass.c_str(), 0, 0, &status);
+	char *realname = abi::__cxa_demangle(klass.CStr(), 0, 0, &status);
 
 	if (realname != NULL) {
-		klass = string(realname);
+		klass = String(realname);
 		free(realname);
 	}
 #endif /* HAVE_GCC_ABI_DEMANGLE */
@@ -107,7 +107,7 @@ void Utility::InitializeOpenSSL(void)
  * @param cakey CA certificate chain file.
  * @returns An SSL context.
  */
-shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, string cakey)
+shared_ptr<SSL_CTX> Utility::MakeSSLContext(String pubkey, String privkey, String cakey)
 {
 	InitializeOpenSSL();
 
@@ -115,18 +115,18 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, strin
 
 	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
-	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.c_str()))
+	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr()))
 		throw_exception(OpenSSLException("Could not load public X509 key file", ERR_get_error()));
 
-	if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.c_str(), SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.CStr(), SSL_FILETYPE_PEM))
 		throw_exception(OpenSSLException("Could not load private X509 key file", ERR_get_error()));
 
-	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.c_str(), NULL))
+	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), NULL))
 		throw_exception(OpenSSLException("Could not load public CA key file", ERR_get_error()));
 
 	STACK_OF(X509_NAME) *cert_names;
 
-	cert_names = SSL_load_client_CA_file(cakey.c_str());
+	cert_names = SSL_load_client_CA_file(cakey.CStr());
 	if (cert_names == NULL)
 		throw_exception(OpenSSLException("SSL_load_client_CA_file() failed", ERR_get_error()));
 
@@ -141,7 +141,7 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(string pubkey, string privkey, strin
  * @param certificate The X509 certificate.
  * @returns The common name.
  */
-string Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
+String Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 {
 	char buffer[256];
 
@@ -159,7 +159,7 @@ string Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
  * @param pemfile The filename.
  * @returns An X509 certificate.
  */
-shared_ptr<X509> Utility::GetX509Certificate(string pemfile)
+shared_ptr<X509> Utility::GetX509Certificate(String pemfile)
 {
 	X509 *cert;
 	BIO *fpcert = BIO_new(BIO_s_file());
@@ -167,7 +167,7 @@ shared_ptr<X509> Utility::GetX509Certificate(string pemfile)
 	if (fpcert == NULL)
 		throw_exception(OpenSSLException("BIO_new failed", ERR_get_error()));
 
-	if (BIO_read_filename(fpcert, pemfile.c_str()) < 0)
+	if (BIO_read_filename(fpcert, pemfile.CStr()) < 0)
 		throw_exception(OpenSSLException("BIO_read_filename failed", ERR_get_error()));
 
 	cert = PEM_read_bio_X509_AUX(fpcert, NULL, NULL, NULL);
@@ -183,12 +183,12 @@ shared_ptr<X509> Utility::GetX509Certificate(string pemfile)
  * Performs wildcard pattern matching.
  *
  * @param pattern The wildcard pattern.
- * @param text The string that should be checked.
+ * @param text The String that should be checked.
  * @returns true if the wildcard pattern matches, false otherwise.
  */
-bool Utility::Match(string pattern, string text)
+bool Utility::Match(String pattern, String text)
 {
-	return (match(pattern.c_str(), text.c_str()) == 0);
+	return (match(pattern.CStr(), text.CStr()) == 0);
 }
 
 /**
@@ -197,10 +197,10 @@ bool Utility::Match(string pattern, string text)
  * @param path The full path.
  * @returns The directory.
  */
-string Utility::DirName(const string& path)
+String Utility::DirName(const String& path)
 {
-	char *dir = strdup(path.c_str());
-	string result;
+	char *dir = strdup(path.CStr());
+	String result;
 
 	if (dir == NULL)
 		throw_exception(bad_alloc());
@@ -227,10 +227,10 @@ string Utility::DirName(const string& path)
  * @param path The full path.
  * @returns The filename.
  */
-string Utility::BaseName(const string& path)
+String Utility::BaseName(const String& path)
 {
-	char *dir = strdup(path.c_str());
-	string result;
+	char *dir = strdup(path.CStr());
+	String result;
 
 	if (dir == NULL)
 		throw_exception(bad_alloc());

@@ -36,14 +36,14 @@ public:
 	typedef shared_ptr<Endpoint> Ptr;
 	typedef weak_ptr<Endpoint> WeakPtr;
 
-	typedef set<string>::const_iterator ConstTopicIterator;
+	typedef set<String>::const_iterator ConstTopicIterator;
 
 	Endpoint(void)
 		: m_ReceivedWelcome(false), m_SentWelcome(false)
 	{ }
 
-	virtual string GetIdentity(void) const = 0;
-	virtual string GetAddress(void) const = 0;
+	virtual String GetIdentity(void) const = 0;
+	virtual String GetAddress(void) const = 0;
 
 	void SetReceivedWelcome(bool value);
 	bool HasReceivedWelcome(void) const;
@@ -54,13 +54,13 @@ public:
 	shared_ptr<EndpointManager> GetEndpointManager(void) const;
 	void SetEndpointManager(weak_ptr<EndpointManager> manager);
 
-	void RegisterSubscription(string topic);
-	void UnregisterSubscription(string topic);
-	bool HasSubscription(string topic) const;
+	void RegisterSubscription(String topic);
+	void UnregisterSubscription(String topic);
+	bool HasSubscription(String topic) const;
 
-	void RegisterPublication(string topic);
-	void UnregisterPublication(string topic);
-	bool HasPublication(string topic) const;
+	void RegisterPublication(String topic);
+	void UnregisterPublication(String topic);
+	bool HasPublication(String topic) const;
 
 	virtual bool IsLocal(void) const = 0;
 	virtual bool IsConnected(void) const = 0;
@@ -82,9 +82,9 @@ public:
 	boost::signal<void (const Endpoint::Ptr&)> OnSessionEstablished;
 
 private:
-	set<string> m_Subscriptions; /**< The topics this endpoint is
+	set<String> m_Subscriptions; /**< The topics this endpoint is
 					  subscribed to. */
-	set<string> m_Publications; /**< The topics this endpoint is
+	set<String> m_Publications; /**< The topics this endpoint is
 				         publishing. */
 	bool m_ReceivedWelcome; /**< Have we received a welcome message
 				     from this endpoint? */

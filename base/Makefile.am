@@ -30,6 +30,8 @@ libbase_la_SOURCES =  \
 	object.h \
 	process.cpp \
 	process.h \
+	qstring.cpp \
+	qstring.h \
 	ringbuffer.cpp \
 	ringbuffer.h \
 	scriptfunction.cpp \
@@ -58,8 +60,8 @@ libbase_la_SOURCES =  \
 	unix.h \
 	utility.cpp \
 	utility.h \
-	variant.cpp \
-	variant.h \
+	value.cpp \
+	value.h \
 	win32.cpp \
 	win32.h
 

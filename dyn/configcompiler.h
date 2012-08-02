@@ -26,32 +26,32 @@ namespace icinga
 class I2_DYN_API ConfigCompiler
 {
 public:
-	typedef function<vector<ConfigItem::Ptr> (const string& include)> HandleIncludeFunc;
+	typedef function<vector<ConfigItem::Ptr> (const String& include)> HandleIncludeFunc;
 
-	ConfigCompiler(const string& path, istream *input = &cin,
+	ConfigCompiler(const String& path, istream *input = &cin,
 	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
 	virtual ~ConfigCompiler(void);
 
 	void Compile(void);
 
-	static vector<ConfigItem::Ptr> CompileStream(const string& path, istream *stream);
-	static vector<ConfigItem::Ptr> CompileFile(const string& path);
-	static vector<ConfigItem::Ptr> CompileText(const string& path, const string& text);
+	static vector<ConfigItem::Ptr> CompileStream(const String& path, istream *stream);
+	static vector<ConfigItem::Ptr> CompileFile(const String& path);
+	static vector<ConfigItem::Ptr> CompileText(const String& path, const String& text);
 
-	static vector<ConfigItem::Ptr> HandleFileInclude(const string& include);
+	static vector<ConfigItem::Ptr> HandleFileInclude(const String& include);
 
 	vector<ConfigItem::Ptr> GetResult(void) const;
 
-	string GetPath(void) const;
+	String GetPath(void) const;
 
 	/* internally used methods */
-	void HandleInclude(const string& include);
+	void HandleInclude(const String& include);
 	void AddObject(const ConfigItem::Ptr& object);
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
 
 private:
-	string m_Path;
+	String m_Path;
 	istream *m_Input;
 
 	HandleIncludeFunc m_HandleInclude;

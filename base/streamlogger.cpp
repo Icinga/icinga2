@@ -28,12 +28,12 @@ StreamLogger::~StreamLogger(void)
 		delete m_Stream;
 }
 
-void StreamLogger::OpenFile(const string& filename)
+void StreamLogger::OpenFile(const String& filename)
 {
 	ofstream *stream = new ofstream();
 
 	try {
-		stream->open(filename.c_str(), ofstream::out | ofstream::trunc);
+		stream->open(filename.CStr(), ofstream::out | ofstream::trunc);
 
 		if (!stream->good())
 			throw_exception(runtime_error("Could not open logfile '" + filename + "'"));

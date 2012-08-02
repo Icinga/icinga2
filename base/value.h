@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef VARIANT_H
-#define VARIANT_H
+#ifndef VALUE_H
+#define VALUE_H
 
 struct cJSON;
 
@@ -30,60 +30,46 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Variant
+class I2_BASE_API Value
 {
 public:
-	inline Variant(void)
+	inline Value(void)
 		: m_Value()
 	{ }
 
-	inline Variant(int value)
-		: m_Value(static_cast<long>(value))
-	{ }
-
-	inline Variant(long value)
+	inline Value(int value)
 		: m_Value(value)
 	{ }
 
-	inline Variant(double value)
+	inline Value(long value)
+		: m_Value(double(value))
+	{ }
+
+	inline Value(double value)
 		: m_Value(value)
 	{ }
 
-	inline Variant(bool value)
-		: m_Value(static_cast<long>(value))
-	{ }
-
-	inline Variant(const string& value)
+	inline Value(const String& value)
 		: m_Value(value)
 	{ }
 
-	inline Variant(const char *value)
-		: m_Value(string(value))
+	inline Value(const char *value)
+		: m_Value(String(value))
 	{ }
 
 	template<typename T>
-	inline Variant(const shared_ptr<T>& value)
+	inline Value(const shared_ptr<T>& value)
+		: m_Value()
 	{
+		if (!value)
+			return;
+
 		Object::Ptr object = dynamic_pointer_cast<Object>(value);
 
 		if (!object)
 			throw_exception(invalid_argument("shared_ptr value type must inherit from Object class."));
 
 		m_Value = object;
-	}
-
-	operator long(void) const
-	{
-		if (m_Value.type() != typeid(long)) {
-			if (m_Value.type() == typeid(double)) {
-				// TODO: log this?
-				return boost::get<double>(m_Value);
-			} else {
-				return boost::lexical_cast<long>(m_Value);
-			}
-		} else {
-			return boost::get<long>(m_Value);
-		}
 	}
 
 	operator double(void) const
@@ -95,20 +81,17 @@ public:
 		}
 	}
 
-	operator bool(void) const
+	operator String(void) const
 	{
-		return (static_cast<long>(*this) != 0);
-	}
+		if (IsEmpty())
+			return String();
 
-	operator string(void) const
-	{
-		if (m_Value.type() != typeid(string)) {
-			string result = boost::lexical_cast<string>(m_Value);
+		if (m_Value.type() != typeid(String)) {
+			String result = boost::lexical_cast<String>(m_Value);
 			m_Value = result;
-			return result;
-		} else {
-			return boost::get<string>(m_Value);
 		}
+
+		return boost::get<String>(m_Value);
 	}
 
 	template<typename T>
@@ -138,16 +121,16 @@ public:
 		return (dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value)));
 	}
 
-	static Variant FromJson(cJSON *json);
+	static Value FromJson(cJSON *json);
 	cJSON *ToJson(void) const;
 
-	string Serialize(void) const;
-	static Variant Deserialize(const string& jsonString);
+	String Serialize(void) const;
+	static Value Deserialize(const String& jsonString);
 
 private:
-	mutable boost::variant<boost::blank, long, double, string, Object::Ptr> m_Value;
+	mutable boost::variant<boost::blank, double, String, Object::Ptr> m_Value;
 };
 
 }
 
-#endif /* VARIANT_H */
+#endif /* VALUE_H */

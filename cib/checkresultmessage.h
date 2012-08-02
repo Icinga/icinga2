@@ -29,11 +29,8 @@ public:
 	CheckResultMessage(void) : MessagePart() { }
 	CheckResultMessage(const MessagePart& message) : MessagePart(message) { }
 
-	bool GetService(string *service) const;
-	void SetService(const string& service);
-
-	bool GetCheckResult(CheckResult *cr) const;
-	void SetCheckResult(CheckResult cr);
+	bool GetService(String *service) const;
+	void SetService(const String& service);
 };
 
 }

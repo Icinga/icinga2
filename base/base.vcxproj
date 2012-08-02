@@ -26,6 +26,7 @@
     <ClCompile Include="netstring.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="process.cpp" />
+    <ClCompile Include="qstring.cpp" />
     <ClCompile Include="ringbuffer.cpp" />
     <ClCompile Include="scriptfunction.cpp" />
     <ClCompile Include="scripttask.cpp" />
@@ -40,7 +41,7 @@
     <ClCompile Include="tlsclient.cpp" />
     <ClCompile Include="unix.cpp" />
     <ClCompile Include="utility.cpp" />
-    <ClCompile Include="variant.cpp" />
+    <ClCompile Include="value.cpp" />
     <ClCompile Include="win32.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -53,6 +54,7 @@
     <ClInclude Include="fifo.h" />
     <ClInclude Include="ioqueue.h" />
     <ClInclude Include="netstring.h" />
+    <ClInclude Include="qstring.h" />
     <ClInclude Include="scriptfunction.h" />
     <ClInclude Include="scripttask.h" />
     <ClInclude Include="logger.h" />
@@ -72,7 +74,7 @@
     <ClInclude Include="tlsclient.h" />
     <ClInclude Include="unix.h" />
     <ClInclude Include="utility.h" />
-    <ClInclude Include="variant.h" />
+    <ClInclude Include="value.h" />
     <ClInclude Include="win32.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

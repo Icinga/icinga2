@@ -25,30 +25,31 @@ NagiosCheckTask::NagiosCheckTask(const ScriptTask::Ptr& task, const Process::Ptr
 	: m_Task(task), m_Process(process)
 { }
 
-void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments)
+void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Missing argument: Service must be specified."));
 
-	Variant vservice = arguments[0];
+	Value vservice = arguments[0];
 	if (!vservice.IsObjectType<DynamicObject>())
 		throw_exception(invalid_argument("Argument must be a config object."));
 
 	Service::Ptr service = static_cast<Service::Ptr>(vservice);
 
-	string checkCommand = service->GetCheckCommand();
+	String checkCommand = service->GetCheckCommand();
 
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(service->GetMacros());
 	macroDicts.push_back(service->GetHost()->GetMacros());
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
-	string command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
+	String command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
 
 	Process::Ptr process = boost::make_shared<Process>(command);
 
 	NagiosCheckTask ct(task, process);
 
-	ct.m_Result.SetScheduleStart(Utility::GetTime());
+	ct.m_Result = boost::make_shared<Dictionary>();
+	ct.m_Result->Set("schedule_start", Utility::GetTime());
 
 	process->Start(boost::bind(&NagiosCheckTask::ProcessFinishedHandler, ct));
 }
@@ -64,11 +65,11 @@ void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct)
 		return;
 	}
 
-	ct.m_Result.SetExecutionStart(pr.ExecutionStart);
-	ct.m_Result.SetExecutionEnd(pr.ExecutionEnd);
+	ct.m_Result->Set("execution_start", pr.ExecutionStart);
+	ct.m_Result->Set("execution_end", pr.ExecutionEnd);
 
-	string output = pr.Output;
-	boost::algorithm::trim(output);
+	String output = pr.Output;
+	output.Trim();
 	ProcessCheckOutput(ct.m_Result, output);
 
 	ServiceState state;
@@ -88,41 +89,40 @@ void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct)
 			break;
 	}
 
-	ct.m_Result.SetState(state);
+	ct.m_Result->Set("state", state);
 
-	ct.m_Result.SetScheduleEnd(Utility::GetTime());
+	ct.m_Result->Set("schedule_end", Utility::GetTime());
 
-	ct.m_Task->FinishResult(ct.m_Result.GetDictionary());
+	ct.m_Task->FinishResult(ct.m_Result);
 }
 
-void NagiosCheckTask::ProcessCheckOutput(CheckResult& result, const string& output)
+void NagiosCheckTask::ProcessCheckOutput(const Dictionary::Ptr& result, String& output)
 {
-	string text;
-	string perfdata;
+	String text;
+	String perfdata;
 
-	vector<string> lines;
-	boost::algorithm::split(lines, output, is_any_of("\r\n"));
+	vector<String> lines = output.Split(is_any_of("\r\n"));
 
-	BOOST_FOREACH (const string& line, lines) {
-		string::size_type delim = line.find('|');
+	BOOST_FOREACH (const String& line, lines) {
+		size_t delim = line.FindFirstOf("|");
 
-		if (!text.empty())
-			text.append("\n");
+		if (!text.IsEmpty())
+			text += "\n";
 
-		if (delim != string::npos) {
-			text.append(line, 0, delim);
+		if (delim != String::NPos) {
+			text += line.SubStr(0, delim);
 
-			if (!perfdata.empty())
-				perfdata.append(" ");
+			if (!perfdata.IsEmpty())
+				perfdata += " ";
 
-			perfdata.append(line, delim + 1, line.size());
+			perfdata += line.SubStr(delim + 1, line.GetLength());
 		} else {
-			text.append(line);
+			text += line;
 		}
 	}
 
-	result.SetOutput(text);
-	result.SetPerformanceDataRaw(perfdata);
+	result->Set("output", text);
+	result->Set("performance_data_raw", perfdata);
 }
 
 void NagiosCheckTask::Register(void)

@@ -49,9 +49,6 @@
     <ClCompile Include="utility.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="variant.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="win32.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -83,6 +80,12 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="dynamicobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="value.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="qstring.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -141,9 +144,6 @@
     <ClInclude Include="utility.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="variant.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="logger.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -175,6 +175,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="dynamicobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="value.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="qstring.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

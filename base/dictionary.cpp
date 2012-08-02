@@ -23,6 +23,68 @@
 using namespace icinga;
 
 /**
+ * Retrieves a value from the dictionary.
+ *
+ * @param key The key whose value should be retrieved.
+ * @returns The value or an empty value if the key was not found.
+ */
+Value Dictionary::Get(const String& key) const
+{
+	map<String, Value>::const_iterator it;
+	it = m_Data.find(key);
+
+	if (it == m_Data.end())
+		return Value();
+
+	return it->second;
+}
+
+/**
+ * Sets a value in the dictionary.
+ *
+ * @param key The key.
+ * @param value The value.
+ */
+void Dictionary::Set(const String& key, const Value& value)
+{
+	if (value.IsEmpty()) {
+		Remove(key);
+		return;
+	}
+
+	pair<map<String, Value>::iterator, bool> ret;
+	ret = m_Data.insert(make_pair(key, value));
+	if (!ret.second)
+		ret.first->second = value;
+
+	OnItemModified(key, value);
+}
+
+/**
+ * Adds an unnamed value to the dictionary.
+ *
+ * @param value The value.
+ * @returns The key that was used to add the new item.
+ */
+String Dictionary::Add(const Value& value)
+{
+	Dictionary::Iterator it;
+	String key;
+	long index = GetLength();
+	do {
+		stringstream s;
+		s << "_" << index;
+		index++;
+
+		key = s.str();
+		it = m_Data.find(key);
+	} while (it != m_Data.end());
+
+	Set(key, value);
+	return key;
+}
+
+/**
  * Returns an iterator to the beginning of the dictionary.
  *
  * @returns An iterator.
@@ -58,7 +120,7 @@ long Dictionary::GetLength(void) const
  * @param key The key.
  * @returns true if the dictionary contains the key, false otherwise.
  */
-bool Dictionary::Contains(const string& key) const
+bool Dictionary::Contains(const String& key) const
 {
 	return (m_Data.find(key) != m_Data.end());
 }
@@ -68,7 +130,7 @@ bool Dictionary::Contains(const string& key) const
  *
  * @param key The key.
  */
-void Dictionary::Remove(const string& key)
+void Dictionary::Remove(const String& key)
 {
 	Dictionary::Iterator it;
 	it = m_Data.find(key);
@@ -77,6 +139,21 @@ void Dictionary::Remove(const string& key)
 		return;
 
 	m_Data.erase(it);
+
+	OnItemModified(key, Value());
+}
+
+/**
+ * Removes the item specified by the iterator from the dictionary.
+ *
+ * @param it The iterator.
+ */
+void Dictionary::Remove(Dictionary::Iterator it)
+{
+	String key = it->first;
+	m_Data.erase(it);
+
+	OnItemModified(key, Value());
 }
 
 /**
@@ -93,7 +170,7 @@ Dictionary::Ptr Dictionary::FromJson(cJSON *json)
 		throw_exception(invalid_argument("JSON type must be cJSON_Object."));
 
 	for (cJSON *i = json->child; i != NULL; i = i->next) {
-		dictionary->Set(i->string, Variant::FromJson(i));
+		dictionary->Set(i->string, Value::FromJson(i));
 	}
 
 	return dictionary;
@@ -111,10 +188,10 @@ cJSON *Dictionary::ToJson(void) const
 	cJSON *json = cJSON_CreateObject();
 
 	try {
-		string key;
-		Variant value;
+		String key;
+		Value value;
 		BOOST_FOREACH(tie(key, value), m_Data) {
-			cJSON_AddItemToObject(json, key.c_str(), value.ToJson());
+			cJSON_AddItemToObject(json, key.CStr(), value.ToJson());
 		}
 	} catch (...) {
 		cJSON_Delete(json);
@@ -123,3 +200,6 @@ cJSON *Dictionary::ToJson(void) const
 
 	return json;
 }
+
+void Dictionary::OnItemModified(const String& key, const Value& value)
+{ }

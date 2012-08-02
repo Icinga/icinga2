@@ -44,9 +44,9 @@ void TcpSocket::MakeSocket(int family)
  * @param service The service.
  * @param family The address family for the socket.
  */
-void TcpSocket::Bind(string service, int family)
+void TcpSocket::Bind(String service, int family)
 {
-	Bind(string(), service, family);
+	Bind(String(), service, family);
 }
 
 /**
@@ -56,7 +56,7 @@ void TcpSocket::Bind(string service, int family)
  * @param service The service.
  * @param family The address family for the socket.
  */
-void TcpSocket::Bind(string node, string service, int family)
+void TcpSocket::Bind(String node, String service, int family)
 {
 	addrinfo hints;
 	addrinfo *result;
@@ -67,8 +67,8 @@ void TcpSocket::Bind(string node, string service, int family)
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 
-	if (getaddrinfo(node.empty() ? NULL : node.c_str(),
-	    service.c_str(), &hints, &result) < 0)
+	if (getaddrinfo(node.IsEmpty() ? NULL : node.CStr(),
+	    service.CStr(), &hints, &result) < 0)
 		throw_exception(SocketException("getaddrinfo() failed", GetLastSocketError()));
 
 	int fd = INVALID_SOCKET;

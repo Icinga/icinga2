@@ -116,7 +116,7 @@ typedef union YYSTYPE
 
 	char *text;
 	double num;
-	icinga::Variant *variant;
+	icinga::Value *variant;
 	icinga::ExpressionOperator op;
 
 

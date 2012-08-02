@@ -44,8 +44,8 @@ enum LogSeverity
 struct LogEntry {
 	double Timestamp;
 	LogSeverity Severity;
-	string Facility;
-	string Message;
+	String Facility;
+	String Message;
 };
 
 /**
@@ -76,19 +76,17 @@ public:
 
 	Logger(const Dictionary::Ptr& properties);
 
-	static void Write(LogSeverity severity, const string& facility,
-	    const string& message);
+	static void Write(LogSeverity severity, const String& facility,
+	    const String& message);
 
-	static string SeverityToString(LogSeverity severity);
-	static LogSeverity StringToSeverity(const string& severity);
+	static String SeverityToString(LogSeverity severity);
+	static LogSeverity StringToSeverity(const String& severity);
 
 	LogSeverity GetMinSeverity(void) const;
 
 private:
 	LogSeverity m_MinSeverity;
-
-	ILogger::Ptr GetImplementation(void) const;
-	void SetImplementation(const ILogger::Ptr& impl);
+	ILogger::Ptr m_Impl;
 
 	static void ForwardLogEntry(const LogEntry& entry);
 };

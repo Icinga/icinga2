@@ -2,25 +2,25 @@
 
 using namespace icinga;
 
-map<string, ScriptFunction::Ptr> ScriptFunction::m_Functions;
+map<String, ScriptFunction::Ptr> ScriptFunction::m_Functions;
 
 ScriptFunction::ScriptFunction(const Callback& function)
 	: m_Callback(function)
 { }
 
-void ScriptFunction::Register(const string& name, const ScriptFunction::Ptr& function)
+void ScriptFunction::Register(const String& name, const ScriptFunction::Ptr& function)
 {
 	m_Functions[name] = function;
 }
 
-void ScriptFunction::Unregister(const string& name)
+void ScriptFunction::Unregister(const String& name)
 {
 	m_Functions.erase(name);
 }
 
-ScriptFunction::Ptr ScriptFunction::GetByName(const string& name)
+ScriptFunction::Ptr ScriptFunction::GetByName(const String& name)
 {
-	map<string, ScriptFunction::Ptr>::iterator it;
+	map<String, ScriptFunction::Ptr>::iterator it;
 
 	it = m_Functions.find(name);
 
@@ -30,7 +30,7 @@ ScriptFunction::Ptr ScriptFunction::GetByName(const string& name)
 	return it->second;
 }
 
-void ScriptFunction::Invoke(const ScriptTask::Ptr& task, const vector<Variant>& arguments)
+void ScriptFunction::Invoke(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	m_Callback(task, arguments);
 }

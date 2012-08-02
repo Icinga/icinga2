@@ -34,11 +34,11 @@ public:
 	typedef shared_ptr<VirtualEndpoint> Ptr;
 	typedef weak_ptr<VirtualEndpoint> WeakPtr;
 
-	void RegisterTopicHandler(string topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback);
-	void UnregisterTopicHandler(string topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback);
+	void RegisterTopicHandler(String topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback);
+	void UnregisterTopicHandler(String topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback);
 
-	virtual string GetIdentity(void) const;
-	virtual string GetAddress(void) const;
+	virtual String GetIdentity(void) const;
+	virtual String GetAddress(void) const;
 
 	virtual bool IsLocal(void) const;
 	virtual bool IsConnected(void) const;
@@ -49,7 +49,7 @@ public:
 	virtual void Stop(void);
 
 private:
-	map< string, shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > > m_TopicHandlers;
+	map< String, shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > > m_TopicHandlers;
 };
 
 }

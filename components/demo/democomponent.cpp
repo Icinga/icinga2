@@ -22,16 +22,6 @@
 using namespace icinga;
 
 /**
- * Returns the name of the component.
- *
- * @returns The name.
- */
-string DemoComponent::GetName(void) const
-{
-	return "demo";
-}
-
-/**
  * Starts the component.
  */
 void DemoComponent::Start(void)

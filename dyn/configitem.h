@@ -28,18 +28,16 @@ public:
 	typedef shared_ptr<ConfigItem> Ptr;
 	typedef weak_ptr<ConfigItem> WeakPtr;
 
-	ConfigItem(const string& type, const string& name,
-	    const ExpressionList::Ptr& exprl, const vector<string>& parents,
+	ConfigItem(const String& type, const String& name,
+	    const ExpressionList::Ptr& exprl, const vector<String>& parents,
 	    const DebugInfo& debuginfo);
 
-	string GetType(void) const;
-	string GetName(void) const;
+	String GetType(void) const;
+	String GetName(void) const;
 
-	vector<string> GetParents(void) const;
+	vector<String> GetParents(void) const;
 
 	ExpressionList::Ptr GetExpressionList(void) const;
-
-	void CalculateProperties(Dictionary::Ptr dictionary) const;
 
 	DynamicObject::Ptr Commit(void);
 	void Unregister(void);
@@ -48,22 +46,24 @@ public:
 
 	DebugInfo GetDebugInfo(void) const;
 
-	static ConfigItem::Ptr GetObject(const string& type, const string& name);
+	static ConfigItem::Ptr GetObject(const String& type, const String& name);
 
 	static boost::signal<void (const ConfigItem::Ptr&)> OnCommitted;
 	static boost::signal<void (const ConfigItem::Ptr&)> OnRemoved;
 
 private:
-	string m_Type;
-	string m_Name;
+	void CalculateProperties(const Dictionary::Ptr& dictionary) const;
+
+	String m_Type;
+	String m_Name;
 
 	ExpressionList::Ptr m_ExpressionList;
-	vector<string> m_Parents;
+	vector<String> m_Parents;
 	DebugInfo m_DebugInfo;
 
 	DynamicObject::WeakPtr m_DynamicObject;
 
-	typedef map<pair<string, string>, ConfigItem::Ptr> ItemMap;
+	typedef map<pair<String, String>, ConfigItem::Ptr> ItemMap;
 	static ItemMap m_Items;
 };
 

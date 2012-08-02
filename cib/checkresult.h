@@ -23,36 +23,20 @@
 namespace icinga
 {
 
-class I2_CIB_API CheckResult : public MessagePart
+/*struct CheckResult
 {
-public:
-	CheckResult(void);
-	CheckResult(const MessagePart& message);
+	static const char *ScheduleStart = "schedule_start";
+	static const char *ScheduleEnd = "schedule_end";
+	static const char *ExecutionStart = "execution_start";
+	static const char *ExecutionEnd = "execution_end";
+	static const char *State = "state";
+	static const char *Output = "output";
+	static const char *PerformanceDataRaw = "performance_data_raw";
+	static const char *PerformanceData = "performance_data";
 
-	void SetScheduleStart(double ts);
-	double GetScheduleStart(void) const;
-
-	void SetScheduleEnd(double ts);
-	double GetScheduleEnd(void) const;
-
-	void SetExecutionStart(double ts);
-	double GetExecutionStart(void) const;
-
-	void SetExecutionEnd(double ts);
-	double GetExecutionEnd(void) const;
-
-	void SetState(ServiceState state);
-	ServiceState GetState(void) const;
-
-	void SetOutput(string output);
-	string GetOutput(void) const;
-
-	void SetPerformanceDataRaw(const string& pd);
-	string GetPerformanceDataRaw(void) const;
-
-	void SetPerformanceData(const Dictionary::Ptr& pd);
-	Dictionary::Ptr GetPerformanceData(void) const;
-};
+private:
+	CheckResult();
+};*/
 
 }
 

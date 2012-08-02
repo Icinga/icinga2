@@ -56,11 +56,10 @@ public:
 	Component(const Dictionary::Ptr& properties);
 	~Component(void);
 
-	static void AddSearchDir(const string& componentDirectory);
+	static void AddSearchDir(const String& componentDirectory);
 
 private:
-	IComponent::Ptr GetImplementation(void) const;
-	void SetImplementation(const IComponent::Ptr& impl);
+	IComponent::Ptr m_Impl;
 };
 
 typedef IComponent *(*CreateComponentFunction)(void);

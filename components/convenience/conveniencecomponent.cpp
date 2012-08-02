@@ -78,21 +78,21 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 		return;
 
 	Dictionary::Ptr oldServices;
-	host->GetTag("convenience-services", &oldServices);
+	host->GetAttribute("convenience_services", &oldServices);
 
 	Dictionary::Ptr newServices;
 	newServices = boost::make_shared<Dictionary>();
 
 	Dictionary::Ptr serviceDescs;
-	host->GetProperty("services", &serviceDescs);
+	host->GetAttribute("services", &serviceDescs);
 
 	if (serviceDescs) {
-		string svcname;
-		Variant svcdesc;
+		String svcname;
+		Value svcdesc;
 		BOOST_FOREACH(tie(svcname, svcdesc), serviceDescs) {
 			stringstream namebuf;
 			namebuf << item->GetName() << "-" << svcname;
-			string name = namebuf.str();
+			String name = namebuf.str();
 
 			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
 			builder->SetType("service");
@@ -107,7 +107,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 			} else if (svcdesc.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr service = svcdesc;
 
-				string parent;
+				String parent;
 				if (!service->Get("service", &parent))
 					parent = svcname;
 
@@ -136,7 +136,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 		}
 	}
 
-	host->SetTag("convenience-services", newServices);
+	host->SetAttribute("convenience_services", newServices);
 }
 
 void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
@@ -150,7 +150,7 @@ void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
 		return;
 
 	Dictionary::Ptr services;
-	host->GetTag("convenience-services", &services);
+	host->GetAttribute("convenience_services", &services);
 
 	if (!services)
 		return;

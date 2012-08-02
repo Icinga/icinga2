@@ -32,11 +32,11 @@ public:
 	typedef shared_ptr<ComponentDiscoveryInfo> Ptr;
 	typedef weak_ptr<ComponentDiscoveryInfo> WeakPtr;
 
-	string Node;
-	string Service;
+	String Node;
+	String Service;
 
-	set<string> Subscriptions;
-	set<string> Publications;
+	set<String> Subscriptions;
+	set<String> Publications;
 
 	double LastSeen;
 };
@@ -52,7 +52,7 @@ public:
 
 private:
 	VirtualEndpoint::Ptr m_Endpoint;
-	map<string, ComponentDiscoveryInfo::Ptr> m_Components;
+	map<String, ComponentDiscoveryInfo::Ptr> m_Components;
 	Timer::Ptr m_DiscoveryTimer;
 
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
@@ -62,10 +62,10 @@ private:
 
 	void WelcomeMessageHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 
-	void SendDiscoveryMessage(const string& method, const string& identity, const Endpoint::Ptr& recipient);
-	void ProcessDiscoveryMessage(const string& identity, const DiscoveryMessage& message, bool trusted);
+	void SendDiscoveryMessage(const String& method, const String& identity, const Endpoint::Ptr& recipient);
+	void ProcessDiscoveryMessage(const String& identity, const DiscoveryMessage& message, bool trusted);
 
-	bool GetComponentDiscoveryInfo(string component, ComponentDiscoveryInfo::Ptr *info) const;
+	bool GetComponentDiscoveryInfo(String component, ComponentDiscoveryInfo::Ptr *info) const;
 
 	void CheckExistingEndpoint(const Endpoint::Ptr& self, const Endpoint::Ptr& other);
 	void DiscoveryEndpointHandler(const Endpoint::Ptr& endpoint, const ComponentDiscoveryInfo::Ptr& info) const;
@@ -74,7 +74,7 @@ private:
 
 	void FinishDiscoverySetup(const Endpoint::Ptr& endpoint);
 
-	bool HasMessagePermission(const Dictionary::Ptr& roles, const string& messageType, const string& message);
+	bool HasMessagePermission(const Dictionary::Ptr& roles, const String& messageType, const String& message);
 
 	static const int RegistrationTTL = 300;
 };

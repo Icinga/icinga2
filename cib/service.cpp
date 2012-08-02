@@ -25,22 +25,47 @@ REGISTER_CLASS(Service);
 
 boost::signal<void (const Service::Ptr&, const CheckResultMessage&)> Service::OnCheckResultReceived;
 
-string Service::GetAlias(void) const
+Service::Service(const Dictionary::Ptr& serializedObject)
+	: DynamicObject(serializedObject)
 {
-	string value;
+	RegisterAttribute("alias", Attribute_Config);
+	RegisterAttribute("host_name", Attribute_Config);
+	RegisterAttribute("macros", Attribute_Config);
+	RegisterAttribute("check_command", Attribute_Config);
+	RegisterAttribute("max_check_attempts", Attribute_Config);
+	RegisterAttribute("check_interval", Attribute_Config);
+	RegisterAttribute("retry_interval", Attribute_Config);
+	RegisterAttribute("dependencies", Attribute_Config);
+	RegisterAttribute("servicegroups", Attribute_Config);
+	RegisterAttribute("checkers", Attribute_Config);
 
-	if (GetProperty("alias", &value))
+	RegisterAttribute("scheduling_offset", Attribute_Transient);
+	RegisterAttribute("next_check", Attribute_Replicated);
+	RegisterAttribute("checker", Attribute_Replicated);
+	RegisterAttribute("check_attempt", Attribute_Replicated);
+	RegisterAttribute("state", Attribute_Replicated);
+	RegisterAttribute("state_type", Attribute_Replicated);
+	RegisterAttribute("last_result", Attribute_Replicated);
+	RegisterAttribute("last_state_change", Attribute_Replicated);
+	RegisterAttribute("last_hard_state_change", Attribute_Replicated);
+}
+
+String Service::GetAlias(void) const
+{
+	String value;
+
+	if (GetAttribute("alias", &value))
 		return value;
 
 	return GetName();
 }
 
-bool Service::Exists(const string& name)
+bool Service::Exists(const String& name)
 {
 	return (DynamicObject::GetObject("Service", name));
 }
 
-Service::Ptr Service::GetByName(const string& name)
+Service::Ptr Service::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Service", name);
 
@@ -52,8 +77,8 @@ Service::Ptr Service::GetByName(const string& name)
 
 Host::Ptr Service::GetHost(void) const
 {
-	string hostname;
-	if (!GetProperty("host_name", &hostname))
+	String hostname;
+	if (!GetAttribute("host_name", &hostname))
 		throw_exception(runtime_error("Service object is missing the 'host_name' property."));
 
 	return Host::GetByName(hostname);
@@ -62,28 +87,28 @@ Host::Ptr Service::GetHost(void) const
 Dictionary::Ptr Service::GetMacros(void) const
 {
 	Dictionary::Ptr macros;
-	GetProperty("macros", &macros);
+	GetAttribute("macros", &macros);
 	return macros;
 }
 
-string Service::GetCheckCommand(void) const
+String Service::GetCheckCommand(void) const
 {
-	string value;
-	GetProperty("check_command", &value);
+	String value;
+	GetAttribute("check_command", &value);
 	return value;
 }
 
 long Service::GetMaxCheckAttempts(void) const
 {
 	long value = 3;
-	GetProperty("max_check_attempts", &value);
+	GetAttribute("max_check_attempts", &value);
 	return value;
 }
 
 long Service::GetCheckInterval(void) const
 {
 	long value = 300;
-	GetProperty("check_interval", &value);
+	GetAttribute("check_interval", &value);
 
 	if (value < 15)
 		value = 15;
@@ -94,7 +119,7 @@ long Service::GetCheckInterval(void) const
 long Service::GetRetryInterval(void) const
 {
 	long value;
-	if (!GetProperty("retry_interval", &value))
+	if (!GetAttribute("retry_interval", &value))
 		value = GetCheckInterval() / 5;
 
 	return value;
@@ -103,7 +128,7 @@ long Service::GetRetryInterval(void) const
 Dictionary::Ptr Service::GetDependencies(void) const
 {
 	Dictionary::Ptr value;
-	GetProperty("dependencies", &value);
+	GetAttribute("dependencies", &value);
 	return value;
 }
 
@@ -115,7 +140,7 @@ void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
 	if (!dependencies)
 		return;
 
-	Variant dependency;
+	Value dependency;
 	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
 		if (result->Contains(dependency))
 			continue;
@@ -130,14 +155,14 @@ void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
 Dictionary::Ptr Service::GetGroups(void) const
 {
 	Dictionary::Ptr value;
-	GetProperty("servicegroups", &value);
+	GetAttribute("servicegroups", &value);
 	return value;
 }
 
 Dictionary::Ptr Service::GetCheckers(void) const
 {
 	Dictionary::Ptr value;
-	GetProperty("checkers", &value);
+	GetAttribute("checkers", &value);
 	return value;
 }
 
@@ -146,7 +171,7 @@ bool Service::IsReachable(void) const
 	Dictionary::Ptr dependencies = boost::make_shared<Dictionary>();
 	GetDependenciesRecursive(dependencies);
 
-	Variant dependency;
+	Value dependency;
 	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
 		Service::Ptr service = Service::GetByName(dependency);
 
@@ -155,7 +180,7 @@ bool Service::IsReachable(void) const
 			continue;
 
 		/* ignore pending services */
-		if (!service->HasLastCheckResult())
+		if (!service->GetLastCheckResult())
 			continue;
 
 		/* ignore soft states */
@@ -175,13 +200,13 @@ bool Service::IsReachable(void) const
 
 void Service::SetSchedulingOffset(long offset)
 {
-	SetTag("scheduling_offset", offset);
+	SetAttribute("scheduling_offset", offset);
 }
 
 long Service::GetSchedulingOffset(void)
 {
 	long value;
-	if (!GetTag("scheduling_offset", &value)) {
+	if (!GetAttribute("scheduling_offset", &value)) {
 		value = rand();
 		SetSchedulingOffset(value);
 	}
@@ -190,15 +215,17 @@ long Service::GetSchedulingOffset(void)
 
 void Service::SetNextCheck(double nextCheck)
 {
-	SetTag("next_check", nextCheck);
+	SetAttribute("next_check", nextCheck);
 }
 
 double Service::GetNextCheck(void)
 {
 	double value;
-	if (!GetTag("next_check", &value)) {
+	if (!GetAttribute("next_check", &value)) {
 		UpdateNextCheck();
-		return GetNextCheck();
+
+		if (!GetAttribute("next_check", &value))
+			throw_exception(runtime_error("Failed to schedule next check."));
 	}
 	return value;
 }
@@ -217,107 +244,100 @@ void Service::UpdateNextCheck(void)
 	SetNextCheck(now - adj + interval);
 }
 
-void Service::SetChecker(const string& checker)
+void Service::SetChecker(const String& checker)
 {
-	SetTag("checker", checker);
+	SetAttribute("checker", checker);
 }
 
-string Service::GetChecker(void) const
+String Service::GetChecker(void) const
 {
-	string value;
-	GetTag("checker", &value);
+	String value;
+	GetAttribute("checker", &value);
 	return value;
 }
 
 void Service::SetCurrentCheckAttempt(long attempt)
 {
-	SetTag("check_attempt", attempt);
+	SetAttribute("check_attempt", attempt);
 }
 
 long Service::GetCurrentCheckAttempt(void) const
 {
 	long value = 1;
-	GetTag("check_attempt", &value);
+	GetAttribute("check_attempt", &value);
 	return value;
 }
 
 void Service::SetState(ServiceState state)
 {
-	SetTag("state", static_cast<long>(state));
+	SetAttribute("state", static_cast<long>(state));
 }
 
 ServiceState Service::GetState(void) const
 {
 	long value = StateUnknown;
-	GetTag("state", &value);
+	GetAttribute("state", &value);
 	return static_cast<ServiceState>(value);
 }
 
 void Service::SetStateType(ServiceStateType type)
 {
-	SetTag("state_type", static_cast<long>(type));
+	SetAttribute("state_type", static_cast<long>(type));
 }
 
 ServiceStateType Service::GetStateType(void) const
 {
 	long value = StateTypeHard;
-	GetTag("state_type", &value);
+	GetAttribute("state_type", &value);
 	return static_cast<ServiceStateType>(value);
 }
 
-void Service::SetLastCheckResult(const CheckResult& result)
+void Service::SetLastCheckResult(const Dictionary::Ptr& result)
 {
-	SetTag("last_result", result.GetDictionary());
+	SetAttribute("last_result", result);
 }
 
-bool Service::HasLastCheckResult(void) const
+Dictionary::Ptr Service::GetLastCheckResult(void) const
 {
 	Dictionary::Ptr value;
-	return GetTag("last_result", &value) && value;
-}
-
-CheckResult Service::GetLastCheckResult(void) const
-{
-	Dictionary::Ptr value;
-	if (!GetTag("last_result", &value))
-		throw_exception(invalid_argument("Service has no last check result."));
-	return CheckResult(value);
+	GetAttribute("last_result", &value);
+	return value;
 }
 
 void Service::SetLastStateChange(double ts)
 {
-	SetTag("last_state_change", static_cast<long>(ts));
+	SetAttribute("last_state_change", static_cast<long>(ts));
 }
 
 double Service::GetLastStateChange(void) const
 {
 	long value;
-	if (!GetTag("last_state_change", &value))
+	if (!GetAttribute("last_state_change", &value))
 		value = IcingaApplication::GetInstance()->GetStartTime();
 	return value;
 }
 
 void Service::SetLastHardStateChange(double ts)
 {
-	SetTag("last_hard_state_change", ts);
+	SetAttribute("last_hard_state_change", ts);
 }
 
 double Service::GetLastHardStateChange(void) const
 {
 	double value;
-	if (!GetTag("last_hard_state_change", &value))
+	if (!GetAttribute("last_hard_state_change", &value))
 		value = IcingaApplication::GetInstance()->GetStartTime();
 	return value;
 }
 
-void Service::ApplyCheckResult(const CheckResult& cr)
+void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 {
 	ServiceState old_state = GetState();
 	ServiceStateType old_stateType = GetStateType();
 
 	long attempt = GetCurrentCheckAttempt();
 
-	if (cr.GetState() == StateOK) {
+	if (cr->Get("state") == StateOK) {
 		if (GetState() == StateOK)
 			SetStateType(StateTypeHard);
 
@@ -333,7 +353,9 @@ void Service::ApplyCheckResult(const CheckResult& cr)
 	}
 
 	SetCurrentCheckAttempt(attempt);
-	SetState(cr.GetState());
+
+	int state = cr->Get("state");
+	SetState(static_cast<ServiceState>(state));
 
 	SetLastCheckResult(cr);
 
@@ -345,14 +367,12 @@ void Service::ApplyCheckResult(const CheckResult& cr)
 		if (old_stateType != GetStateType())
 			SetLastHardStateChange(now);
 	}
-
-	UpdateNextCheck();
 }
 
-ServiceState Service::StateFromString(const string& state)
+ServiceState Service::StateFromString(const String& state)
 {
 	/* TODO: make this thread-safe */
-	static map<string, ServiceState> stateLookup;
+	static map<String, ServiceState> stateLookup;
 
 	if (stateLookup.empty()) {
 		stateLookup["ok"] = StateOK;
@@ -362,7 +382,7 @@ ServiceState Service::StateFromString(const string& state)
 		stateLookup["unknown"] = StateUnknown;
 	}
 
-	map<string, ServiceState>::iterator it;
+	map<String, ServiceState>::iterator it;
 	it = stateLookup.find(state);
 
 	if (it == stateLookup.end())
@@ -371,7 +391,7 @@ ServiceState Service::StateFromString(const string& state)
 		return it->second;
 }
 
-string Service::StateToString(ServiceState state)
+String Service::StateToString(ServiceState state)
 {
 	switch (state) {
 		case StateOK:
@@ -388,7 +408,7 @@ string Service::StateToString(ServiceState state)
 	}
 }
 
-ServiceStateType Service::StateTypeFromString(const string& type)
+ServiceStateType Service::StateTypeFromString(const String& type)
 {
 	if (type == "soft")
 		return StateTypeSoft;
@@ -396,7 +416,7 @@ ServiceStateType Service::StateTypeFromString(const string& type)
 		return StateTypeHard;
 }
 
-string Service::StateTypeToString(ServiceStateType type)
+String Service::StateTypeToString(ServiceStateType type)
 {
 	if (type == StateTypeSoft)
 		return "soft";
@@ -404,14 +424,14 @@ string Service::StateTypeToString(ServiceStateType type)
 		return "hard";
 }
 
-bool Service::IsAllowedChecker(const string& checker) const
+bool Service::IsAllowedChecker(const String& checker) const
 {
 	Dictionary::Ptr checkers = GetCheckers();
 
 	if (!checkers)
 		return true;
 
-	Variant pattern;
+	Value pattern;
 	BOOST_FOREACH(tie(tuples::ignore, pattern), checkers) {
 		if (Utility::Match(pattern, checker))
 			return true;
@@ -423,18 +443,18 @@ bool Service::IsAllowedChecker(const string& checker) const
 Dictionary::Ptr Service::ResolveDependencies(const Host::Ptr& host, const Dictionary::Ptr& dependencies)
 {
 	Dictionary::Ptr services;
-	host->GetProperty("services", &services);
+	host->GetAttribute("services", &services);
 
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();
 
-	Variant dependency;
+	Value dependency;
 	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-		string name;
+		String name;
 
 		if (services && services->Contains(dependency))
-			name = host->GetName() + "-" + static_cast<string>(dependency);
+			name = host->GetName() + "-" + static_cast<String>(dependency);
 		else
-			name = static_cast<string>(dependency);
+			name = static_cast<String>(dependency);
 
 		result->Set(name, name);
 	}

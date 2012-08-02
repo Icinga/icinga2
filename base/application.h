@@ -41,7 +41,7 @@ public:
 
 	int Run(int argc, char **argv);
 
-	virtual int Main(const vector<string>& args) = 0;
+	virtual int Main(const vector<String>& args) = 0;
 
 	static void Shutdown(void);
 
@@ -49,19 +49,19 @@ public:
 
 	static bool IsMainThread(void);
 
-	void UpdatePidFile(const string& filename);
+	void UpdatePidFile(const String& filename);
 	void ClosePidFile(void);
 
 protected:
 	void RunEventLoop(void);
-	string GetExePath(void) const;
+	String GetExePath(void) const;
 
 private:
 	static Application::Ptr m_Instance; /**< The application instance. */
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */
-	vector<string> m_Arguments; /**< Command-line arguments */
+	vector<String> m_Arguments; /**< Command-line arguments */
 	FILE *m_PidFile; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
 	static boost::thread::id m_MainThreadID; /**< ID of the main thread. */

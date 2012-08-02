@@ -185,9 +185,9 @@ void Socket::HandleWritable(void)
 /**
  * Formats a sockaddr in a human-readable way.
  *
- * @returns A string describing the sockaddr.
+ * @returns A String describing the sockaddr.
  */
-string Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
+String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 {
 	char host[NI_MAXHOST];
 	char service[NI_MAXSERV];
@@ -203,11 +203,11 @@ string Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 }
 
 /**
- * Returns a string describing the local address of the socket.
+ * Returns a String describing the local address of the socket.
  *
- * @returns A string describing the local address.
+ * @returns A String describing the local address.
  */
-string Socket::GetClientAddress(void)
+String Socket::GetClientAddress(void)
 {
 	mutex::scoped_lock lock(m_Mutex);
 
@@ -221,11 +221,11 @@ string Socket::GetClientAddress(void)
 }
 
 /**
- * Returns a string describing the peer address of the socket.
+ * Returns a String describing the peer address of the socket.
  *
- * @returns A string describing the peer address.
+ * @returns A String describing the peer address.
  */
-string Socket::GetPeerAddress(void)
+String Socket::GetPeerAddress(void)
 {
 	mutex::scoped_lock lock(m_Mutex);
 
@@ -244,16 +244,16 @@ string Socket::GetPeerAddress(void)
  * @param message The error message.
  * @param errorCode The error code.
  */
-SocketException::SocketException(const string& message, int errorCode)	
+SocketException::SocketException(const String& message, int errorCode)	
 {
 #ifdef _WIN32
-	string details = Win32Exception::FormatErrorCode(errorCode);
+	String details = Win32Exception::FormatErrorCode(errorCode);
 #else /* _WIN32 */
-	string details = PosixException::FormatErrorCode(errorCode);
+	String details = PosixException::FormatErrorCode(errorCode);
 #endif /* _WIN32 */
 
-	string msg = message + ": " + details;
-	SetMessage(msg.c_str());
+	String msg = message + ": " + details;
+	SetMessage(msg.CStr());
 }
 
 void Socket::ReadThreadProc(void)

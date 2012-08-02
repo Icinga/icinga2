@@ -41,15 +41,16 @@ private:
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
 	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
 
-	void LocalObjectCommittedHandler(const DynamicObject::Ptr& object);
-	void LocalObjectRemovedHandler(const DynamicObject::Ptr& object);
+	void LocalObjectRegisteredHandler(const DynamicObject::Ptr& object);
+	void LocalObjectUnregisteredHandler(const DynamicObject::Ptr& object);
+	void TransactionClosingHandler(const set<DynamicObject::Ptr>& modifiedObjects);
 
 	void FetchObjectsHandler(const Endpoint::Ptr& sender);
-	void RemoteObjectCommittedHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	void RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 	void RemoteObjectRemovedHandler(const RequestMessage& request);
 
 	static RequestMessage MakeObjectMessage(const DynamicObject::Ptr& object,
-	    string method, bool includeProperties);
+	    const String& method, double sinceTx, bool includeProperties);
 
 	static bool ShouldReplicateObject(const DynamicObject::Ptr& object);
 };

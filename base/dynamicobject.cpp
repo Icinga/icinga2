@@ -21,95 +21,267 @@
 
 using namespace icinga;
 
-map<pair<string, string>, Dictionary::Ptr> DynamicObject::m_PersistentTags;
-boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnCommitted;
-boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRemoved;
+map<pair<String, String>, Dictionary::Ptr> DynamicObject::m_PersistentUpdates;
+double DynamicObject::m_CurrentTx = 0;
+set<DynamicObject::Ptr> DynamicObject::m_ModifiedObjects;
 
-DynamicObject::DynamicObject(const Dictionary::Ptr& properties)
-	: m_Properties(properties), m_Tags(boost::make_shared<Dictionary>())
+boost::signal<void (const DynamicObject::Ptr&, const String& name)> DynamicObject::OnAttributeChanged;
+boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
+boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
+boost::signal<void (const set<DynamicObject::Ptr>&)> DynamicObject::OnTransactionClosing;
+
+DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
+	: m_ConfigTx(0)
 {
-	/* restore the object's tags */
-	map<pair<string, string>, Dictionary::Ptr>::iterator it;
-	it = m_PersistentTags.find(make_pair(GetType(), GetName()));
-	if (it != m_PersistentTags.end()) {
-		m_Tags = it->second;
-		m_PersistentTags.erase(it);
+	RegisterAttribute("__name", Attribute_Config);
+	RegisterAttribute("__type", Attribute_Config);
+	RegisterAttribute("__local", Attribute_Config);
+	RegisterAttribute("__abstract", Attribute_Config);
+	RegisterAttribute("__source", Attribute_Local);
+	RegisterAttribute("methods", Attribute_Config);
+
+	/* apply state from the config item/remote update */
+	ApplyUpdate(serializedObject, true);
+
+	/* restore the object's persistent state */
+	map<pair<String, String>, Dictionary::Ptr>::iterator it;
+	it = m_PersistentUpdates.find(make_pair(GetType(), GetName()));
+	if (it != m_PersistentUpdates.end()) {
+		Logger::Write(LogDebug, "base",  "Restoring persistent state "
+		    "for object " + GetType() + ":" + GetName());
+		ApplyUpdate(it->second, true);
+		m_PersistentUpdates.erase(it);
 	}
 }
 
-void DynamicObject::SetProperties(const Dictionary::Ptr& properties)
+Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) const
 {
-	m_Properties = properties;
+	DynamicObject::AttributeConstIterator it;
+
+	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
+
+	for (it = m_Attributes.begin(); it != m_Attributes.end(); it++) {
+		if (it->second.Type == Attribute_Transient)
+			continue;
+
+		if ((it->second.Type & attributeTypes) == 0)
+			continue;
+
+		if (it->second.Tx == 0)
+			continue;
+
+		if (it->second.Tx < sinceTx && !(it->second.Type == Attribute_Config && m_ConfigTx >= sinceTx))
+			continue;
+
+		Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+		attr->Set("data", it->second.Data);
+		attr->Set("type", it->second.Type);
+		attr->Set("tx", it->second.Tx);
+
+		attrs->Set(it->first, attr);
+	}
+
+	Dictionary::Ptr update = boost::make_shared<Dictionary>();
+	update->Set("attrs", attrs);
+
+	if (m_ConfigTx >= sinceTx && attributeTypes & Attribute_Config)
+		update->Set("configTx", m_ConfigTx);
+	else if (attrs->GetLength() == 0)
+		return Dictionary::Ptr();
+
+	return update;
 }
 
-Dictionary::Ptr DynamicObject::GetProperties(void) const
+void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate, bool suppressEvents)
 {
-	return m_Properties;
+	double configTx = 0;
+	if (serializedUpdate->Contains("configTx")) {
+		configTx = serializedUpdate->Get("configTx");
+
+		if (configTx > m_ConfigTx)
+			ClearAttributesByType(Attribute_Config);
+	}
+
+	Dictionary::Ptr attrs = serializedUpdate->Get("attrs");
+
+	Dictionary::Iterator it;
+	for (it = attrs->Begin(); it != attrs->End(); it++) {
+		if (!it->second.IsObjectType<Dictionary>())
+			continue;
+
+		Dictionary::Ptr attr = it->second;
+
+		Value data = attr->Get("data");
+		int type = attr->Get("type");
+		double tx = attr->Get("tx");
+
+		if (type & Attribute_Config)
+			RegisterAttribute(it->first, Attribute_Config);
+
+		if (!HasAttribute(it->first))
+			RegisterAttribute(it->first, static_cast<DynamicAttributeType>(type));
+
+		InternalSetAttribute(it->first, data, tx, suppressEvents);
+	}
 }
 
-void DynamicObject::SetTags(const Dictionary::Ptr& tags)
+void DynamicObject::SanitizeUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes)
 {
-	m_Tags = tags;
+	if ((allowedTypes & Attribute_Config) == 0)
+		serializedUpdate->Remove("configTx");
+
+	Dictionary::Ptr attrs = serializedUpdate->Get("attrs");
+
+	Dictionary::Iterator prev, it;
+	for (it = attrs->Begin(); it != attrs->End(); ) {
+		if (!it->second.IsObjectType<Dictionary>())
+			continue;
+
+		Dictionary::Ptr attr = it->second;
+
+		int type = attr->Get("type");
+
+		if (type == 0 || type & ~allowedTypes) {
+			prev = it;
+			it++;
+			attrs->Remove(prev);
+			continue;
+		}
+
+		it++;
+	}
 }
 
-Dictionary::Ptr DynamicObject::GetTags(void) const
+void DynamicObject::RegisterAttribute(const String& name, DynamicAttributeType type)
 {
-	return m_Tags;
+	DynamicAttribute attr;
+	attr.Type = type;
+	attr.Tx = 0;
+
+	pair<DynamicObject::AttributeIterator, bool> tt;
+	tt = m_Attributes.insert(make_pair(name, attr));
+
+	if (!tt.second)
+		tt.first->second.Type = type;
 }
 
-string DynamicObject::GetType(void) const
+void DynamicObject::SetAttribute(const String& name, const Value& data)
 {
-	string type;
-	GetProperties()->Get("__type", &type);
+	InternalSetAttribute(name, data, GetCurrentTx());
+}
+
+void DynamicObject::InternalSetAttribute(const String& name, const Value& data, double tx, bool suppressEvent)
+{
+	DynamicAttribute attr;
+	attr.Type = Attribute_Transient;
+	attr.Data = data;
+	attr.Tx = tx;
+
+	pair<DynamicObject::AttributeIterator, bool> tt;
+	tt = m_Attributes.insert(make_pair(name, attr));
+
+	if (!tt.second && tx >= tt.first->second.Tx) {
+		tt.first->second.Data = data;
+		tt.first->second.Tx = tx;
+	}
+
+	if (tt.first->second.Type & Attribute_Config)
+		m_ConfigTx = tx;
+
+	if (!suppressEvent) {
+		m_ModifiedObjects.insert(GetSelf());
+		DynamicObject::OnAttributeChanged(GetSelf(), name);
+	}
+}
+
+Value DynamicObject::InternalGetAttribute(const String& name) const
+{
+	DynamicObject::AttributeConstIterator it;
+	it = m_Attributes.find(name);
+
+	if (it == m_Attributes.end())
+		return Value();
+	else
+		return it->second.Data;
+}
+
+void DynamicObject::ClearAttribute(const String& name)
+{
+	SetAttribute(name, Value());
+}
+
+bool DynamicObject::HasAttribute(const String& name) const
+{
+	return (m_Attributes.find(name) != m_Attributes.end());
+}
+
+void DynamicObject::ClearAttributesByType(DynamicAttributeType type)
+{
+	DynamicObject::AttributeIterator prev, at;
+	for (at = m_Attributes.begin(); at != m_Attributes.end(); ) {
+		if (at->second.Type == type) {
+			prev = at;
+			at++;
+			m_Attributes.erase(prev);
+
+			continue;
+		}
+
+		at++;
+	}
+}
+
+DynamicObject::AttributeConstIterator DynamicObject::AttributeBegin(void) const
+{
+	return m_Attributes.begin();
+}
+
+DynamicObject::AttributeConstIterator DynamicObject::AttributeEnd(void) const
+{
+	return m_Attributes.end();
+}
+
+String DynamicObject::GetType(void) const
+{
+	String type;
+	GetAttribute("__type", &type);
 	return type;
 }
 
-string DynamicObject::GetName(void) const
+String DynamicObject::GetName(void) const
 {
-	string name;
-	GetProperties()->Get("__name", &name);
+	String name;
+	GetAttribute("__name", &name);
 	return name;
 }
 
 bool DynamicObject::IsLocal(void) const
 {
-	bool value = false;
-	GetProperties()->Get("__local", &value);
-	return value;
+	long local = 0;
+	GetAttribute("__local", &local);
+	return (local != 0);
 }
 
 bool DynamicObject::IsAbstract(void) const
 {
-	bool value = false;
-	GetProperties()->Get("__abstract", &value);
-	return value;
+	long abstract = 0;
+	GetAttribute("__abstract", &abstract);
+	return (abstract != 0);
 }
 
-void DynamicObject::SetSource(const string& value)
+void DynamicObject::SetSource(const String& value)
 {
-	GetProperties()->Set("__source", value);
+	SetAttribute("__source", value);
 }
 
-string DynamicObject::GetSource(void) const
+String DynamicObject::GetSource(void) const
 {
-	string value;
-	GetProperties()->Get("__source", &value);
-	return value;
+	String source;
+	GetAttribute("__source", &source);
+	return source;
 }
 
-void DynamicObject::SetCommitTimestamp(double ts)
-{
-	GetProperties()->Set("__tx", ts);
-}
-
-double DynamicObject::GetCommitTimestamp(void) const
-{
-	double value = 0;
-	GetProperties()->Get("__tx", &value);
-	return value;
-}
-
-void DynamicObject::Commit(void)
+void DynamicObject::Register(void)
 {
 	assert(Application::IsMainThread());
 
@@ -121,9 +293,7 @@ void DynamicObject::Commit(void)
 	ti = GetAllObjects().insert(make_pair(GetType(), DynamicObject::NameMap()));
 	ti.first->second.insert(make_pair(GetName(), GetSelf()));
 
-	SetCommitTimestamp(Utility::GetTime());
-
-	OnCommitted(GetSelf());
+	OnRegistered(GetSelf());
 }
 
 void DynamicObject::Unregister(void)
@@ -143,10 +313,10 @@ void DynamicObject::Unregister(void)
 
 	tt->second.erase(nt);
 
-	OnRemoved(GetSelf());
+	OnUnregistered(GetSelf());
 }
 
-DynamicObject::Ptr DynamicObject::GetObject(const string& type, const string& name)
+DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& name)
 {
 	DynamicObject::TypeMap::iterator tt;
 	tt = GetAllObjects().find(type);
@@ -167,7 +337,7 @@ pair<DynamicObject::TypeMap::iterator, DynamicObject::TypeMap::iterator> Dynamic
 	return make_pair(GetAllObjects().begin(), GetAllObjects().end());
 }
 
-pair<DynamicObject::NameMap::iterator, DynamicObject::NameMap::iterator> DynamicObject::GetObjects(const string& type)
+pair<DynamicObject::NameMap::iterator, DynamicObject::NameMap::iterator> DynamicObject::GetObjects(const String& type)
 {
 	pair<DynamicObject::TypeMap::iterator, bool> ti;
 	ti = GetAllObjects().insert(make_pair(type, DynamicObject::NameMap()));
@@ -175,18 +345,14 @@ pair<DynamicObject::NameMap::iterator, DynamicObject::NameMap::iterator> Dynamic
 	return make_pair(ti.first->second.begin(), ti.first->second.end());
 }
 
-void DynamicObject::RemoveTag(const string& key)
-{
-	GetTags()->Remove(key);
-}
-
-ScriptTask::Ptr DynamicObject::InvokeMethod(const string& method,
-    const vector<Variant>& arguments, ScriptTask::CompletionCallback callback)
+ScriptTask::Ptr DynamicObject::InvokeMethod(const String& method,
+    const vector<Value>& arguments, ScriptTask::CompletionCallback callback)
 {
 	Dictionary::Ptr methods;
-	string funcName;
-	if (!GetProperty("methods", &methods) || !methods->Get(method, &funcName))
+	if (!GetAttribute("methods", &methods) || !methods->Contains(method))
 		return ScriptTask::Ptr();
+
+	String funcName = methods->Get(method);
 
 	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
 
@@ -199,12 +365,12 @@ ScriptTask::Ptr DynamicObject::InvokeMethod(const string& method,
 	return task;
 }
 
-void DynamicObject::DumpObjects(const string& filename)
+void DynamicObject::DumpObjects(const String& filename)
 {
 	Logger::Write(LogInformation, "base", "Dumping program state to file '" + filename + "'");
 
 	ofstream fp;
-	fp.open(filename.c_str());
+	fp.open(filename.CStr());
 
 	if (!fp)
 		throw_exception(runtime_error("Could not open '" + filename + "' file"));
@@ -222,18 +388,29 @@ void DynamicObject::DumpObjects(const string& filename)
 			persistentObject->Set("type", object->GetType());
 			persistentObject->Set("name", object->GetName());
 
+			int types = Attribute_Replicated;
+
 			/* only persist properties for replicated objects or for objects
 			 * that are marked as persistent */
-			if (!object->GetSource().empty() /*|| object->IsPersistent()*/)
-				persistentObject->Set("properties", object->GetProperties());
+			if (!object->GetSource().IsEmpty() /*|| object->IsPersistent()*/) {
+				types |= Attribute_Config;
+				persistentObject->Set("create", true);
+			} else {
+				persistentObject->Set("create", false);
+			}
 
-			persistentObject->Set("tags", object->GetTags());
+			Dictionary::Ptr update = object->BuildUpdate(0, types);
 
-			Variant value = persistentObject;
-			string json = value.Serialize();
+			if (!update)
+				continue;
 
-			/* This is quite ugly, unfortunatelly Netstring requires an IOQueue object */
-			Netstring::WriteStringToIOQueue(fifo.get(), json);
+			persistentObject->Set("update", update);
+
+			Value value = persistentObject;
+			String json = value.Serialize();
+
+			/* This is quite ugly, unfortunatelly NetString requires an IOQueue object */
+			NetString::WriteStringToIOQueue(fifo.get(), json);
 
 			size_t count;
 			while ((count = fifo->GetAvailableBytes()) > 0) {
@@ -249,12 +426,12 @@ void DynamicObject::DumpObjects(const string& filename)
 	}
 }
 
-void DynamicObject::RestoreObjects(const string& filename)
+void DynamicObject::RestoreObjects(const String& filename)
 {
 	Logger::Write(LogInformation, "base", "Restoring program state from file '" + filename + "'");
 
 	std::ifstream fp;
-	fp.open(filename.c_str());
+	fp.open(filename.CStr());
 
 	/* TODO: Fix this horrible mess. */
 	FIFO::Ptr fifo = boost::make_shared<FIFO>();
@@ -265,36 +442,27 @@ void DynamicObject::RestoreObjects(const string& filename)
 		fifo->Write(buffer, fp.gcount());
 	}
 
-	string message;
-	while (Netstring::ReadStringFromIOQueue(fifo.get(), &message)) {
-		Variant value = Variant::Deserialize(message);
+	String message;
+	while (NetString::ReadStringFromIOQueue(fifo.get(), &message)) {
+		Value value = Value::Deserialize(message);
 
 		if (!value.IsObjectType<Dictionary>())
 			throw_exception(runtime_error("JSON objects in the program state file must be dictionaries."));
 
 		Dictionary::Ptr persistentObject = value;
 
-		string type;
-		if (!persistentObject->Get("type", &type))
-			continue;
+		String type = persistentObject->Get("type");
+		String name = persistentObject->Get("name");
+		int create = persistentObject->Get("create");
+		Dictionary::Ptr update = persistentObject->Get("update");
 
-		string name;
-		if (!persistentObject->Get("name", &name))
-			continue;
-
-		Dictionary::Ptr tags;
-		if (!persistentObject->Get("tags", &tags))
-			continue;
-
-		Dictionary::Ptr properties;
-		if (persistentObject->Get("properties", &properties)) {
-			DynamicObject::Ptr object = Create(type, properties);
-			object->SetTags(tags);
-			object->Commit();
+		if (create != 0) {
+			DynamicObject::Ptr object = Create(type, update);
+			object->Register();
 		} else {
 			/* keep non-replicated objects until another config object with
 			 * the same name is created (which is when we restore its tags) */
-			m_PersistentTags[make_pair(type, name)] = tags;
+			m_PersistentUpdates[make_pair(type, name)] = update;
 		}
 	}
 }
@@ -311,7 +479,7 @@ DynamicObject::ClassMap& DynamicObject::GetClasses(void)
 	return classes;
 }
 
-void DynamicObject::RegisterClass(const string& type, DynamicObject::Factory factory)
+void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory factory)
 {
 	if (GetObjects(type).first != GetObjects(type).second)
 		throw_exception(runtime_error("Cannot register class for type '" +
@@ -320,7 +488,7 @@ void DynamicObject::RegisterClass(const string& type, DynamicObject::Factory fac
 	GetClasses()[type] = factory;
 }
 
-DynamicObject::Ptr DynamicObject::Create(const string& type, const Dictionary::Ptr& properties)
+DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::Ptr& properties)
 {
 	DynamicObject::ClassMap::iterator it;
 	it = GetClasses().find(type);
@@ -329,4 +497,24 @@ DynamicObject::Ptr DynamicObject::Create(const string& type, const Dictionary::P
 		return it->second(properties);
 	else
 		return boost::make_shared<DynamicObject>(properties);
+}
+
+double DynamicObject::GetCurrentTx(void)
+{
+	assert(m_CurrentTx != 0);
+
+	return m_CurrentTx;
+}
+
+void DynamicObject::BeginTx(void)
+{
+	m_CurrentTx = Utility::GetTime();
+}
+
+void DynamicObject::FinishTx(void)
+{
+	OnTransactionClosing(m_ModifiedObjects);
+	m_ModifiedObjects.clear();
+
+	m_CurrentTx = 0;
 }

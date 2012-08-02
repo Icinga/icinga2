@@ -34,17 +34,18 @@ void CIBSyncComponent::Start(void)
 	m_Endpoint->RegisterTopicHandler("config::FetchObjects",
 	    boost::bind(&CIBSyncComponent::FetchObjectsHandler, this, _2));
 
-	DynamicObject::OnCommitted.connect(boost::bind(&CIBSyncComponent::LocalObjectCommittedHandler, this, _1));
-	DynamicObject::OnRemoved.connect(boost::bind(&CIBSyncComponent::LocalObjectRemovedHandler, this, _1));
+	DynamicObject::OnRegistered.connect(boost::bind(&CIBSyncComponent::LocalObjectRegisteredHandler, this, _1));
+	DynamicObject::OnUnregistered.connect(boost::bind(&CIBSyncComponent::LocalObjectUnregisteredHandler, this, _1));
+	DynamicObject::OnTransactionClosing.connect(boost::bind(&CIBSyncComponent::TransactionClosingHandler, this, _1));
 
-	m_Endpoint->RegisterPublication("config::ObjectCommitted");
+	m_Endpoint->RegisterPublication("config::ObjectUpdate");
 	m_Endpoint->RegisterPublication("config::ObjectRemoved");
 
 	EndpointManager::GetInstance()->OnNewEndpoint.connect(boost::bind(&CIBSyncComponent::NewEndpointHandler, this, _2));
 
 	m_Endpoint->RegisterPublication("config::FetchObjects");
-	m_Endpoint->RegisterTopicHandler("config::ObjectCommitted",
-	    boost::bind(&CIBSyncComponent::RemoteObjectCommittedHandler, this, _2, _3));
+	m_Endpoint->RegisterTopicHandler("config::ObjectUpdate",
+	    boost::bind(&CIBSyncComponent::RemoteObjectUpdateHandler, this, _2, _3));
 	m_Endpoint->RegisterTopicHandler("config::ObjectRemoved",
 	    boost::bind(&CIBSyncComponent::RemoteObjectRemovedHandler, this, _3));
 
@@ -72,18 +73,18 @@ void CIBSyncComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender, co
 	if (!request.GetParams(&params))
 		return;
 
-	string svcname;
+	String svcname;
 	if (!params.GetService(&svcname))
 		return;
 
 	Service::Ptr service = Service::GetByName(svcname);
 
-	CheckResult cr;
-	if (!params.GetCheckResult(&cr))
-		return;
+	//CheckResult cr;
+	//if (!params.GetCheckResult(&cr))
+	//	return;
 
-	Service::OnCheckResultReceived(service, params);
-	service->ApplyCheckResult(cr);
+	//Service::OnCheckResultReceived(service, params);
+	//service->ApplyCheckResult(cr);
 
 	time_t now = Utility::GetTime();
 	CIB::UpdateTaskStatistics(now, 1);
@@ -106,7 +107,7 @@ void CIBSyncComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoint)
 	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, endpoint, request);
 }
 
-RequestMessage CIBSyncComponent::MakeObjectMessage(const DynamicObject::Ptr& object, string method, bool includeProperties)
+RequestMessage CIBSyncComponent::MakeObjectMessage(const DynamicObject::Ptr& object, const String& method, double sinceTx, bool includeProperties)
 {
 	RequestMessage msg;
 	msg.SetMethod(method);
@@ -118,7 +119,7 @@ RequestMessage CIBSyncComponent::MakeObjectMessage(const DynamicObject::Ptr& obj
 	params.Set("type", object->GetType());
 
 	if (includeProperties)
-		params.Set("properties", object->GetProperties());
+		params.Set("update", object->BuildUpdate(sinceTx, Attribute_Replicated | Attribute_Config));
 
 	return msg;
 }
@@ -138,14 +139,14 @@ void CIBSyncComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 			if (!ShouldReplicateObject(object))
 				continue;
 
-			RequestMessage request = MakeObjectMessage(object, "config::ObjectCommitted", true);
+			RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", 0, true);
 
 			EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, sender, request);
 		}
 	}
 }
 
-void CIBSyncComponent::LocalObjectCommittedHandler(const DynamicObject::Ptr& object)
+void CIBSyncComponent::LocalObjectRegisteredHandler(const DynamicObject::Ptr& object)
 {
 	/* don't send messages when we're currently processing a remote update */
 	if (m_SyncingConfig)
@@ -155,10 +156,10 @@ void CIBSyncComponent::LocalObjectCommittedHandler(const DynamicObject::Ptr& obj
 		return;
 
 	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
-	    MakeObjectMessage(object, "config::ObjectCommitted", true));
+	    MakeObjectMessage(object, "config::ObjectCommitted", 0, true));
 }
 
-void CIBSyncComponent::LocalObjectRemovedHandler(const DynamicObject::Ptr& object)
+void CIBSyncComponent::LocalObjectUnregisteredHandler(const DynamicObject::Ptr& object)
 {
 	/* don't send messages when we're currently processing a remote update */
 	if (m_SyncingConfig)
@@ -168,66 +169,65 @@ void CIBSyncComponent::LocalObjectRemovedHandler(const DynamicObject::Ptr& objec
 		return;
 
 	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
-	    MakeObjectMessage(object, "config::ObjectRemoved", false));
+	    MakeObjectMessage(object, "config::ObjectRemoved", 0, false));
 }
 
-void CIBSyncComponent::RemoteObjectCommittedHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void CIBSyncComponent::TransactionClosingHandler(const set<DynamicObject::Ptr>& modifiedObjects)
+{
+	stringstream msgbuf;
+	msgbuf << "Sending " << modifiedObjects.size() << " replication updates.";
+	Logger::Write(LogInformation, "cibsync", msgbuf.str());
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, modifiedObjects) {
+		if (!ShouldReplicateObject(object))
+				continue;
+
+		RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", DynamicObject::GetCurrentTx(), true);
+
+		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
+	}
+}
+
+void CIBSyncComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
 	MessagePart params;
 	if (!request.GetParams(&params))
 		return;
 
-	string name;
+	String name;
 	if (!params.Get("name", &name))
 		return;
 
-	string type;
+	String type;
 	if (!params.Get("type", &type))
 		return;
 
-	MessagePart properties;
-	if (!params.Get("properties", &properties))
+	Dictionary::Ptr update;
+	if (!params.Get("update", &update))
 		return;
 
 	DynamicObject::Ptr object = DynamicObject::GetObject(type, name);
 
 	if (!object) {
-		object = boost::make_shared<DynamicObject>(properties.GetDictionary());
+		object = DynamicObject::Create(type, update);
 
 		if (object->GetSource() == EndpointManager::GetInstance()->GetIdentity()) {
 			/* the peer sent us an object that was originally created by us - 
-			 * however if was deleted locally so we have to tell the peer to destroy
+			 * however it was deleted locally so we have to tell the peer to destroy
 			 * its copy of the object. */
 			EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
-			    MakeObjectMessage(object, "config::ObjectRemoved", false));
+			    MakeObjectMessage(object, "config::ObjectRemoved", 0, false));
 
 			return;
 		}
 	} else {
-		DynamicObject::Ptr remoteObject = boost::make_shared<DynamicObject>(properties.GetDictionary());
+		if (object->IsLocal())
+			throw_exception(invalid_argument("Replicated remote object is marked as local."));
 
-		if (object->GetCommitTimestamp() >= remoteObject->GetCommitTimestamp())
-			return;
+		if (object->GetSource().IsEmpty())
+			object->SetSource(sender->GetIdentity());
 
-		object->SetProperties(properties.GetDictionary());
-	}
-
-	if (object->IsLocal())
-		throw_exception(invalid_argument("Replicated remote object is marked as local."));
-
-	if (object->GetSource().empty())
-		object->SetSource(sender->GetIdentity());
-
-	try {
-		/* TODO: only ignore updates for _this_ object rather than all objects
-		 * this might be relevant if the commit handler for this object
-		 * creates other objects. */
-		m_SyncingConfig = true;
-		object->Commit();
-		m_SyncingConfig = false;
-	} catch (...) {
-		m_SyncingConfig = false;
-		throw;
+		object->ApplyUpdate(update, true);
 	}
 }
 
@@ -237,11 +237,11 @@ void CIBSyncComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
 	if (!request.GetParams(&params))
 		return;
 
-	string name;
+	String name;
 	if (!params.Get("name", &name))
 		return;
 
-	string type;
+	String type;
 	if (!params.Get("type", &type))
 		return;
 

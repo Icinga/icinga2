@@ -51,7 +51,7 @@ public:
 
 	TcpClientRole GetRole(void) const;
 
-	void Connect(const string& node, const string& service);
+	void Connect(const String& node, const String& service);
 
 	boost::signal<void (const TcpClient::Ptr&)> OnConnected;
 	boost::signal<void (const TcpClient::Ptr&)> OnDataAvailable;

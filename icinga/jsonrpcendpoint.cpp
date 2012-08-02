@@ -21,12 +21,12 @@
 
 using namespace icinga;
 
-string JsonRpcEndpoint::GetIdentity(void) const
+String JsonRpcEndpoint::GetIdentity(void) const
 {
 	return m_Identity;
 }
 
-string JsonRpcEndpoint::GetAddress(void) const
+String JsonRpcEndpoint::GetAddress(void) const
 {
 	if (!m_Client)
 		return "<disconnected endpoint>";
@@ -39,7 +39,7 @@ JsonRpcClient::Ptr JsonRpcEndpoint::GetClient(void)
 	return m_Client;
 }
 
-void JsonRpcEndpoint::Connect(string node, string service, shared_ptr<SSL_CTX> sslContext)
+void JsonRpcEndpoint::Connect(String node, String service, shared_ptr<SSL_CTX> sslContext)
 {
 	JsonRpcClient::Ptr client = boost::make_shared<JsonRpcClient>(RoleOutbound, sslContext);
 	SetClient(client);
@@ -92,14 +92,14 @@ void JsonRpcEndpoint::NewMessageHandler(const MessagePart& message)
 
 	RequestMessage request = message;
 
-	string method;
+	String method;
 	if (!request.GetMethod(&method))
 		return;
 
 	if (!HasPublication(method))
 		return;
 
-	string id;
+	String id;
 	if (request.GetID(&id))
 		GetEndpointManager()->SendAnycastMessage(sender, request);
 	else
@@ -137,9 +137,9 @@ void JsonRpcEndpoint::ClientClosedHandler(void)
 
 void JsonRpcEndpoint::ClientConnectedHandler(void)
 {
-	string identity = Utility::GetCertificateCN(m_Client->GetPeerCertificate());
+	String identity = Utility::GetCertificateCN(m_Client->GetPeerCertificate());
 
-	if (GetIdentity().empty() && !identity.empty()) {
+	if (GetIdentity().IsEmpty() && !identity.IsEmpty()) {
 		m_Identity = identity;
 		GetEndpointManager()->RegisterEndpoint(GetSelf());
 	}

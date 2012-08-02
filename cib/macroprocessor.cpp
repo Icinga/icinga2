@@ -21,36 +21,37 @@
 
 using namespace icinga;
 
-string MacroProcessor::ResolveMacros(const string& str, const vector<Dictionary::Ptr>& macroDicts)
+String MacroProcessor::ResolveMacros(const String& str, const vector<Dictionary::Ptr>& macroDicts)
 {
-	string::size_type offset, pos_first, pos_second;
+	size_t offset, pos_first, pos_second;
 
 	offset = 0;
 
-	string result = str;
-	while ((pos_first = result.find_first_of('$', offset)) != string::npos) {
-		pos_second = result.find_first_of('$', pos_first + 1);
+	String result = str;
+	while ((pos_first = result.FindFirstOf("$", offset)) != String::NPos) {
+		pos_second = result.FindFirstOf("$", pos_first + 1);
 
-		if (pos_second == string::npos)
-			throw_exception(runtime_error("Closing $ not found in macro format string."));
+		if (pos_second == String::NPos)
+			throw_exception(runtime_error("Closing $ not found in macro format String."));
 
-		string name = result.substr(pos_first + 1, pos_second - pos_first - 1);
-		string value;
+		String name = result.SubStr(pos_first + 1, pos_second - pos_first - 1);
+		String value;
 		bool resolved = false;
 
 		BOOST_FOREACH(const Dictionary::Ptr& macroDict, macroDicts) {
-			if (macroDict && macroDict->Get(name, &value)) {
-				resolved = true;
-				break;
-			}
+			if (!macroDict || !macroDict->Contains(name))
+				continue;
+
+			String value = macroDict->Get(name);
+			result.Replace(pos_first, pos_second - pos_first + 1, value);
+			offset = pos_first + value.GetLength();
+
+			resolved = true;
+			break;
 		}
 
 		if (!resolved)
 			throw_exception(runtime_error("Macro '" + name + "' is not defined."));
-
-		result.replace(pos_first, pos_second - pos_first + 1, value);
-
-		offset = pos_first + value.size();
 	}
 
 	return result;

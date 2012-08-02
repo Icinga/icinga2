@@ -40,8 +40,8 @@ JsonRpcClient::JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
  */
 void JsonRpcClient::SendMessage(const MessagePart& message)
 {
-	Variant value = message.GetDictionary();
-	Netstring::WriteStringToIOQueue(this, value.Serialize());
+	Value value = message.GetDictionary();
+	NetString::WriteStringToIOQueue(this, value.Serialize());
 }
 
 /**
@@ -49,18 +49,18 @@ void JsonRpcClient::SendMessage(const MessagePart& message)
  */
 void JsonRpcClient::DataAvailableHandler(void)
 {
-	string jsonString;
+	String jsonString;
 
-	while (Netstring::ReadStringFromIOQueue(this, &jsonString)) {
+	while (NetString::ReadStringFromIOQueue(this, &jsonString)) {
 		try {
-			Variant value = Variant::Deserialize(jsonString);
+			Value value = Value::Deserialize(jsonString);
 
 			if (!value.IsObjectType<Dictionary>())
 				throw_exception(invalid_argument("JSON-RPC message must be a dictionary."));
 
 			OnNewMessage(GetSelf(), MessagePart(value));
 		} catch (const exception& ex) {
-			Logger::Write(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + string(ex.what()));
+			Logger::Write(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + String(ex.what()));
 		}
 	}
 }

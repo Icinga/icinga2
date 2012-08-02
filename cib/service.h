@@ -38,7 +38,6 @@ enum ServiceStateType
 	StateTypeHard
 };
 
-class CheckResult;
 class CheckResultMessage;
 class ServiceStatusMessage;
 
@@ -48,17 +47,15 @@ public:
 	typedef shared_ptr<Service> Ptr;
 	typedef weak_ptr<Service> WeakPtr;
 
-	Service(const Dictionary::Ptr& properties)
-		: DynamicObject(properties)
-	{ }
+	Service(const Dictionary::Ptr& properties);
 
-	static bool Exists(const string& name);
-	static Service::Ptr GetByName(const string& name);
+	static bool Exists(const String& name);
+	static Service::Ptr GetByName(const String& name);
 
-	string GetAlias(void) const;
+	String GetAlias(void) const;
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
-	string GetCheckCommand(void) const;
+	String GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
 	long GetCheckInterval(void) const;
 	long GetRetryInterval(void) const;
@@ -76,10 +73,10 @@ public:
 	double GetNextCheck(void);
 	void UpdateNextCheck(void);
 
-	void SetChecker(const string& checker);
-	string GetChecker(void) const;
+	void SetChecker(const String& checker);
+	String GetChecker(void) const;
 
-	bool IsAllowedChecker(const string& checker) const;
+	bool IsAllowedChecker(const String& checker) const;
 
 	void SetCurrentCheckAttempt(long attempt);
 	long GetCurrentCheckAttempt(void) const;
@@ -90,9 +87,8 @@ public:
 	void SetStateType(ServiceStateType type);
 	ServiceStateType GetStateType(void) const;
 
-	bool HasLastCheckResult(void) const;
-	void SetLastCheckResult(const CheckResult& result);
-	CheckResult GetLastCheckResult(void) const;
+	void SetLastCheckResult(const Dictionary::Ptr& result);
+	Dictionary::Ptr GetLastCheckResult(void) const;
 
 	void SetLastStateChange(double ts);
 	double GetLastStateChange(void) const;
@@ -100,13 +96,13 @@ public:
 	void SetLastHardStateChange(double ts);
 	double GetLastHardStateChange(void) const;
 
-	void ApplyCheckResult(const CheckResult& cr);
+	void ApplyCheckResult(const Dictionary::Ptr& cr);
 
-	static ServiceState StateFromString(const string& state);
-	static string StateToString(ServiceState state);
+	static ServiceState StateFromString(const String& state);
+	static String StateToString(ServiceState state);
 
-	static ServiceStateType StateTypeFromString(const string& state);
-	static string StateTypeToString(ServiceStateType state);
+	static ServiceStateType StateTypeFromString(const String& state);
+	static String StateTypeToString(ServiceStateType state);
 
 	static Dictionary::Ptr ResolveDependencies(const Host::Ptr& host, const Dictionary::Ptr& dependencies);
 

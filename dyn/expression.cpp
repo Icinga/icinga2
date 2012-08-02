@@ -21,14 +21,14 @@
 
 using namespace icinga;
 
-Expression::Expression(const string& key, ExpressionOperator op, const Variant& value, const DebugInfo& debuginfo)
+Expression::Expression(const String& key, ExpressionOperator op, const Value& value, const DebugInfo& debuginfo)
 	: m_Key(key), m_Operator(op), m_Value(value), m_DebugInfo(debuginfo)
 {
 }
 
 void Expression::Execute(const Dictionary::Ptr& dictionary) const
 {
-	Variant oldValue, newValue;
+	Value oldValue, newValue;
 
 	ExpressionList::Ptr valueExprl;
 	Dictionary::Ptr valueDict;
@@ -61,7 +61,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			break;
 
 		case OperatorPlus:
-			dictionary->Get(m_Key, &oldValue);
+			oldValue = dictionary->Get(m_Key);
 
 			if (oldValue.IsObjectType<Dictionary>())
 				dict = oldValue;
@@ -81,8 +81,8 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			if (valueExprl) {
 				valueExprl->Execute(dict);
 			} else if (valueDict) {
-				string key;
-				Variant value;
+				String key;
+				Value value;
 				BOOST_FOREACH(tie(key, value), valueDict) {
 					dict->Set(key, value);
 				}

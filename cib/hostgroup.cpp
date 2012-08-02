@@ -23,36 +23,37 @@ using namespace icinga;
 
 REGISTER_CLASS(HostGroup);
 
-string HostGroup::GetAlias(void) const
+String HostGroup::GetAlias(void) const
 {
-	string value;
+	String value;
+	GetAttribute("alias", &value);
 
-	if (GetProperty("alias", &value))
+	if (!value.IsEmpty())
 		return value;
-
-	return GetName();
+	else
+		return GetName();
 }
 
-string HostGroup::GetNotesUrl(void) const
+String HostGroup::GetNotesUrl(void) const
 {
-	string value;
-	GetProperty("notes_url", &value);
+	String value;
+	GetAttribute("notes_url", &value);
 	return value;
 }
 
-string HostGroup::GetActionUrl(void) const
+String HostGroup::GetActionUrl(void) const
 {
-	string value;
-	GetProperty("action_url", &value);
+	String value;
+	GetAttribute("action_url", &value);
 	return value;
 }
 
-bool HostGroup::Exists(const string& name)
+bool HostGroup::Exists(const String& name)
 {
 	return (DynamicObject::GetObject("HostGroup", name));
 }
 
-HostGroup::Ptr HostGroup::GetByName(const string& name)
+HostGroup::Ptr HostGroup::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("HostGroup", name);
 

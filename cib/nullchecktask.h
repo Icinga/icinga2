@@ -29,7 +29,7 @@ public:
 	static void Register(void);
 
 private:
-	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments);
+	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
 };
 
 }

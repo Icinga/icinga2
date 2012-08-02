@@ -38,7 +38,7 @@ using namespace icinga;
 %union {
 	char *text;
 	double num;
-	icinga::Variant *variant;
+	icinga::Value *variant;
 	icinga::ExpressionOperator op;
 }
 
@@ -164,7 +164,7 @@ expressionlist: '{'
 	expressions
 	'}'
 	{
-		$$ = new Variant(m_ExpressionLists.top());
+		$$ = new Value(m_ExpressionLists.top());
 		m_ExpressionLists.pop();
 	}
 	;
@@ -220,16 +220,16 @@ operator: T_EQUAL
 
 simplevalue: T_STRING
 	{
-		$$ = new Variant($1);
+		$$ = new Value($1);
 		free($1);
 	}
 	| T_NUMBER
 	{
-		$$ = new Variant($1);
+		$$ = new Value($1);
 	}
 	| T_NULL
 	{
-		$$ = new Variant();
+		$$ = new Value();
 	}
 	;
 

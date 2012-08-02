@@ -32,11 +32,15 @@ REGISTER_CLASS(Logger);
 Logger::Logger(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
+	RegisterAttribute("type", Attribute_Config);
+	RegisterAttribute("path", Attribute_Config);
+	RegisterAttribute("severity", Attribute_Config);
+
 	if (!IsLocal())
 		throw_exception(runtime_error("Logger objects must be local."));
 
-	string type;
-	if (!GetProperty("type", &type))
+	String type;
+	if (!GetAttribute("type", &type))
 		throw_exception(runtime_error("Logger objects must have a 'type' property."));
 
 	ILogger::Ptr impl;
@@ -48,8 +52,8 @@ Logger::Logger(const Dictionary::Ptr& properties)
 		throw_exception(invalid_argument("Syslog is not supported on Windows."));
 #endif /* _WIN32 */
 	} else if (type == "file") {
-		string path;
-		if (!GetProperty("path", &path))
+		String path;
+		if (!GetAttribute("path", &path))
 			throw_exception(invalid_argument("'log' object of type 'file' must have a 'path' property"));
 
 		StreamLogger::Ptr slogger = boost::make_shared<StreamLogger>();
@@ -63,7 +67,7 @@ Logger::Logger(const Dictionary::Ptr& properties)
 	}
 
 	impl->m_Config = this;
-	SetImplementation(impl);
+	m_Impl = impl;
 }
 
 /**
@@ -73,8 +77,8 @@ Logger::Logger(const Dictionary::Ptr& properties)
  * @param facility The log facility.
  * @param message The message.
  */
-void Logger::Write(LogSeverity severity, const string& facility,
-    const string& message)
+void Logger::Write(LogSeverity severity, const String& facility,
+    const String& message)
 {
 	LogEntry entry;
 	entry.Timestamp = Utility::GetTime();
@@ -92,12 +96,9 @@ void Logger::Write(LogSeverity severity, const string& facility,
  */
 LogSeverity Logger::GetMinSeverity(void) const
 {
-	string strSeverity;
-	LogSeverity severity = LogInformation;
-	if (GetProperty("severity", &strSeverity))
-		severity = Logger::StringToSeverity(strSeverity);
-
-	return severity;
+	String strSeverity = "information";
+	GetAttribute("severity", &strSeverity);
+	return Logger::StringToSeverity(strSeverity);
 }
 
 /**
@@ -112,23 +113,11 @@ void Logger::ForwardLogEntry(const LogEntry& entry)
 		Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
 
 		if (entry.Severity >= logger->GetMinSeverity())
-			logger->GetImplementation()->ProcessLogEntry(entry);
+			logger->m_Impl->ProcessLogEntry(entry);
 	}
 }
 
-ILogger::Ptr Logger::GetImplementation(void) const
-{
-	ILogger::Ptr impl;
-	GetTag("impl", &impl);
-	return impl;
-}
-
-void Logger::SetImplementation(const ILogger::Ptr& impl)
-{
-	SetTag("impl", impl);
-}
-
-string Logger::SeverityToString(LogSeverity severity)
+String Logger::SeverityToString(LogSeverity severity)
 {
 	switch (severity) {
 		case LogDebug:
@@ -144,7 +133,7 @@ string Logger::SeverityToString(LogSeverity severity)
 	}
 }
 
-LogSeverity Logger::StringToSeverity(const string& severity)
+LogSeverity Logger::StringToSeverity(const String& severity)
 {
 	if (severity == "debug")
 		return LogDebug;

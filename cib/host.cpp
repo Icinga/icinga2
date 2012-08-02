@@ -23,22 +23,28 @@ using namespace icinga;
 
 REGISTER_CLASS(Host);
 
-string Host::GetAlias(void) const
+Host::Host(const Dictionary::Ptr& properties)
+	: DynamicObject(properties)
 {
-	string value;
-
-	if (GetProperty("alias", &value))
-		return value;
-
-	return GetName();
+	RegisterAttribute("alias", Attribute_Config);
+	RegisterAttribute("hostgroups", Attribute_Config);
 }
 
-bool Host::Exists(const string& name)
+String Host::GetAlias(void) const
+{
+	String value;
+	if (GetAttribute("alias", &value))
+		return value;
+	else
+		return GetName();
+}
+
+bool Host::Exists(const String& name)
 {
 	return (DynamicObject::GetObject("Host", name));
 }
 
-Host::Ptr Host::GetByName(const string& name)
+Host::Ptr Host::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Host", name);
 
@@ -51,24 +57,24 @@ Host::Ptr Host::GetByName(const string& name)
 Dictionary::Ptr Host::GetGroups(void) const
 {
 	Dictionary::Ptr value;
-	GetProperty("hostgroups", &value);
+	GetAttribute("hostgroups", &value);
 	return value;
 }
 
-set<string> Host::GetParents(void)
+set<String> Host::GetParents(void)
 {
-	set<string> parents;
+	set<String> parents;
 
 	Dictionary::Ptr dependencies;
-
-	if (GetProperty("dependencies", &dependencies)) {
+	GetAttribute("dependencies", &dependencies);
+	if (dependencies) {
 		dependencies = Service::ResolveDependencies(GetSelf(), dependencies);
 
-		Variant dependency;
+		Value dependency;
 		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
 			Service::Ptr service = Service::GetByName(dependency);
 
-			string parent = service->GetHost()->GetName();
+			String parent = service->GetHost()->GetName();
 
 			/* ignore ourselves */
 			if (parent == GetName())
@@ -84,17 +90,18 @@ set<string> Host::GetParents(void)
 Dictionary::Ptr Host::GetMacros(void) const
 {
 	Dictionary::Ptr value;
-	GetProperty("macros", &value);
+	GetAttribute("macros", &value);
 	return value;
 }
 
 bool Host::IsReachable(void)
 {
 	Dictionary::Ptr dependencies;
-	if (GetProperty("dependencies", &dependencies)) {
+	GetAttribute("dependencies", &dependencies);
+	if (dependencies) {
 		dependencies = Service::ResolveDependencies(GetSelf(), dependencies);
 
-		Variant dependency;
+		Value dependency;
 		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
 			Service::Ptr service = Service::GetByName(dependency);
 
@@ -111,10 +118,11 @@ bool Host::IsReachable(void)
 bool Host::IsUp(void)
 {
 	Dictionary::Ptr hostchecks;
-	if (GetProperty("hostchecks", &hostchecks)) {
+	GetAttribute("hostchecks", &hostchecks);
+	if (hostchecks) {
 		hostchecks = Service::ResolveDependencies(GetSelf(), hostchecks);
 
-		Variant hostcheck;
+		Value hostcheck;
 		BOOST_FOREACH(tie(tuples::ignore, hostcheck), hostchecks) {
 			Service::Ptr service = Service::GetByName(hostcheck);
 

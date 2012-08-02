@@ -34,20 +34,20 @@ public:
 	typedef shared_ptr<EndpointManager> Ptr;
 	typedef weak_ptr<EndpointManager> WeakPtr;
 
-	typedef map<string, Endpoint::Ptr>::iterator Iterator;
+	typedef map<String, Endpoint::Ptr>::iterator Iterator;
 
 	EndpointManager(void);
 
 	static EndpointManager::Ptr GetInstance(void);
 
-	void SetIdentity(const string& identity);
-	string GetIdentity(void) const;
+	void SetIdentity(const String& identity);
+	String GetIdentity(void) const;
 
 	void SetSSLContext(const shared_ptr<SSL_CTX>& sslContext);
 	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 
-	void AddListener(const string& service);
-	void AddConnection(const string& node, const string& service);
+	void AddListener(const String& service);
+	void AddConnection(const String& node, const String& service);
 
 	void RegisterEndpoint(const Endpoint::Ptr& endpoint);
 	void UnregisterEndpoint(const Endpoint::Ptr& endpoint);
@@ -65,17 +65,17 @@ public:
 	Iterator Begin(void);
 	Iterator End(void);
 
-	Endpoint::Ptr GetEndpointByIdentity(const string& identity) const;
+	Endpoint::Ptr GetEndpointByIdentity(const String& identity) const;
 
 	boost::signal<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
 
 private:
-	string m_Identity;
+	String m_Identity;
 	shared_ptr<SSL_CTX> m_SSLContext;
 
 	vector<JsonRpcServer::Ptr> m_Servers;
 	vector<Endpoint::Ptr> m_PendingEndpoints;
-	map<string, Endpoint::Ptr> m_Endpoints;
+	map<String, Endpoint::Ptr> m_Endpoints;
 
 	/**
 	 * Information about a pending API request.
@@ -95,13 +95,13 @@ private:
 	};
 
 	long m_NextMessageID;
-	map<string, PendingRequest> m_Requests;
+	map<String, PendingRequest> m_Requests;
 	Timer::Ptr m_RequestTimer;
 
 	void RegisterServer(const JsonRpcServer::Ptr& server);
 	void UnregisterServer(const JsonRpcServer::Ptr& server);
 
-	static bool RequestTimeoutLessComparer(const pair<string, PendingRequest>& a, const pair<string, PendingRequest>& b);
+	static bool RequestTimeoutLessComparer(const pair<String, PendingRequest>& a, const pair<String, PendingRequest>& b);
 	void RequestTimerHandler(void);
 
 	void NewClientHandler(const TcpClient::Ptr& client);

@@ -35,11 +35,11 @@ public:
 	    : m_Message(), m_Code(0)
 	{ }
 
-	Exception(string message)
+	Exception(String message)
 	    : m_Message(message), m_Code(0)
 	{ }
 
-	Exception(string message, int code)
+	Exception(String message, int code)
 	    : m_Message(message), m_Code(code)
 	{ }
 
@@ -50,16 +50,16 @@ public:
 	{ }
 
 	int GetCode(void) const;
-	string GetMessage(void) const;
+	String GetMessage(void) const;
 
 	virtual const char *what(void) const throw();
 
 protected:
 	void SetCode(int code);
-	void SetMessage(string message);
+	void SetMessage(String message);
 
 private:
-	string m_Message;
+	String m_Message;
 	int m_Code;
 };
 
@@ -70,7 +70,7 @@ private:
 		inline klass(void) : Exception()			\
 		{ }							\
 									\
-		inline klass(string message)				\
+		inline klass(String message)				\
 		    : Exception(message)				\
 		{ }							\
 	}
@@ -96,17 +96,17 @@ public:
 	 * @param message An error message.
 	 * @param errorCode A Win32 error code.
 	 */
-	inline Win32Exception(const string& message, int errorCode)
+	inline Win32Exception(const String& message, int errorCode)
 	    : Exception(message + ": " + FormatErrorCode(errorCode), errorCode)
 	{ }
 
 	/**
-	 * Returns a string that describes the Win32 error.
+	 * Returns a String that describes the Win32 error.
 	 *
 	 * @param code The Win32 error code.
 	 * @returns A description of the error.
 	 */
-	static string FormatErrorCode(int code);
+	static String FormatErrorCode(int code);
 };
 #endif /* _WIN32 */
 
@@ -122,17 +122,17 @@ public:
 	 * @param message An error message.
 	 * @param errorCode A Posix (errno) error code.
 	 */
-	inline PosixException(const string& message, int errorCode)
+	inline PosixException(const String& message, int errorCode)
 	    : Exception(message + ": " + FormatErrorCode(errorCode), errorCode)
 	{ }
 
 	/**
-	 * Returns a string that describes the Posix error.
+	 * Returns a String that describes the Posix error.
 	 *
 	 * @param code The Posix error code.
 	 * @returns A description of the error.
 	 */
-	static string FormatErrorCode(int code);
+	static String FormatErrorCode(int code);
 };
 
 /**
@@ -147,17 +147,17 @@ public:
 	 * @param message An error message.
 	 * @param errorCode An OpenSSL error code.
 	 */
-	inline OpenSSLException(const string& message, int errorCode)
+	inline OpenSSLException(const String& message, int errorCode)
 	    : Exception(message + ": " + FormatErrorCode(errorCode), errorCode)
 	{ }
 
 	/**
-	 * Returns a string that describes the OpenSSL error.
+	 * Returns a String that describes the OpenSSL error.
 	 *
 	 * @param code The OpenSSL error code.
 	 * @returns A description of the error.
 	 */
-	static string FormatErrorCode(int code);
+	static String FormatErrorCode(int code);
 };
 
 }

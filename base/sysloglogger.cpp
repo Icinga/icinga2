@@ -30,6 +30,6 @@ void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
 			assert(!"Invalid severity specified.");
 	}
 
-	syslog(severity | LOG_USER, "%s", entry.Message.c_str());
+	syslog(severity | LOG_USER, "%s", entry.Message.CStr());
 }
 #endif /* _WIN32 */

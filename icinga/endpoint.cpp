@@ -46,7 +46,7 @@ void Endpoint::SetEndpointManager(EndpointManager::WeakPtr manager)
  *
  * @param topic The name of the topic.
  */
-void Endpoint::RegisterSubscription(string topic)
+void Endpoint::RegisterSubscription(String topic)
 {
 	m_Subscriptions.insert(topic);
 }
@@ -56,7 +56,7 @@ void Endpoint::RegisterSubscription(string topic)
  *
  * @param topic The name of the topic.
  */
-void Endpoint::UnregisterSubscription(string topic)
+void Endpoint::UnregisterSubscription(String topic)
 {
 	m_Subscriptions.erase(topic);
 }
@@ -67,7 +67,7 @@ void Endpoint::UnregisterSubscription(string topic)
  * @param topic The name of the topic.
  * @returns true if the endpoint is subscribed to the topic, false otherwise.
  */
-bool Endpoint::HasSubscription(string topic) const
+bool Endpoint::HasSubscription(String topic) const
 {
 	return (m_Subscriptions.find(topic) != m_Subscriptions.end());
 }
@@ -77,7 +77,7 @@ bool Endpoint::HasSubscription(string topic) const
  *
  * @param topic The name of the topic.
  */
-void Endpoint::RegisterPublication(string topic)
+void Endpoint::RegisterPublication(String topic)
 {
 	m_Publications.insert(topic);
 }
@@ -87,7 +87,7 @@ void Endpoint::RegisterPublication(string topic)
  *
  * @param topic The name of the topic.
  */
-void Endpoint::UnregisterPublication(string topic)
+void Endpoint::UnregisterPublication(String topic)
 {
 	m_Publications.erase(topic);
 }
@@ -98,7 +98,7 @@ void Endpoint::UnregisterPublication(string topic)
  * @param topic The name of the topic.
  * @returns true if the endpoint is publishing this topic, false otherwise.
  */
-bool Endpoint::HasPublication(string topic) const
+bool Endpoint::HasPublication(String topic) const
 {
 	return (m_Publications.find(topic) != m_Publications.end());
 }

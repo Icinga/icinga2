@@ -23,36 +23,37 @@ using namespace icinga;
 
 REGISTER_CLASS(ServiceGroup);
 
-string ServiceGroup::GetAlias(void) const
+String ServiceGroup::GetAlias(void) const
 {
-	string value;
+	String value;
+	GetAttribute("alias", &value);
 
-	if (GetProperty("alias", &value))
+	if (!value.IsEmpty())
 		return value;
-
-	return GetName();
+	else
+		return GetName();
 }
 
-string ServiceGroup::GetNotesUrl(void) const
+String ServiceGroup::GetNotesUrl(void) const
 {
-	string value;
-	GetProperty("notes_url", &value);
+	String value;
+	GetAttribute("notes_url", &value);
 	return value;
 }
 
-string ServiceGroup::GetActionUrl(void) const
+String ServiceGroup::GetActionUrl(void) const
 {
-	string value;
-	GetProperty("action_url", &value);
+	String value;
+	GetAttribute("action_url", &value);
 	return value;
 }
 
-bool ServiceGroup::Exists(const string& name)
+bool ServiceGroup::Exists(const String& name)
 {
 	return (DynamicObject::GetObject("ServiceGroup", name));
 }
 
-ServiceGroup::Ptr ServiceGroup::GetByName(const string& name)
+ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("ServiceGroup", name);
 

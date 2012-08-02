@@ -107,7 +107,7 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 	/* accept discovery::Welcome messages from any endpoint */
 	endpoint->RegisterPublication("discovery::Welcome");
 
-	string identity = endpoint->GetIdentity();
+	String identity = endpoint->GetIdentity();
 
 	if (identity == EndpointManager::GetInstance()->GetIdentity()) {
 		Logger::Write(LogWarning, "discovery", "Detected loop-back connection - Disconnecting endpoint.");
@@ -129,7 +129,7 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 	// the broker knows about our message types
 	SendDiscoveryMessage("discovery::RegisterComponent", EndpointManager::GetInstance()->GetIdentity(), endpoint);
 
-	map<string, ComponentDiscoveryInfo::Ptr>::iterator ic;
+	map<String, ComponentDiscoveryInfo::Ptr>::iterator ic;
 
 	// we assume the other component _always_ wants
 	// discovery::NewComponent messages from us
@@ -156,11 +156,11 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 
 	// register published/subscribed topics for this endpoint
 	ComponentDiscoveryInfo::Ptr info = ic->second;
-	BOOST_FOREACH(string publication, info->Publications) {
+	BOOST_FOREACH(String publication, info->Publications) {
 		endpoint->RegisterPublication(publication);
 	}
 
-	BOOST_FOREACH(string subscription, info->Subscriptions) {
+	BOOST_FOREACH(String subscription, info->Subscriptions) {
 		endpoint->RegisterSubscription(subscription);
 	}
 
@@ -192,7 +192,7 @@ void DiscoveryComponent::DiscoveryEndpointHandler(const Endpoint::Ptr& endpoint,
  * @param info Pointer to the information object.
  * @returns true if the info object was successfully retrieved, false otherwise.
  */
-bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDiscoveryInfo::Ptr *info) const
+bool DiscoveryComponent::GetComponentDiscoveryInfo(String component, ComponentDiscoveryInfo::Ptr *info) const
 {
 	if (component == EndpointManager::GetInstance()->GetIdentity()) {
 		/* Build fake discovery info for ourselves */
@@ -206,7 +206,7 @@ bool DiscoveryComponent::GetComponentDiscoveryInfo(string component, ComponentDi
 		return true;
 	}
 
-	map<string, ComponentDiscoveryInfo::Ptr>::const_iterator i;
+	map<String, ComponentDiscoveryInfo::Ptr>::const_iterator i;
 
 	i = m_Components.find(component);
 
@@ -267,7 +267,7 @@ void DiscoveryComponent::FinishDiscoverySetup(const Endpoint::Ptr& endpoint)
  * @param identity The identity of the component for which a message should be sent.
  * @param recipient The recipient of the message. A multicast message is sent if this parameter is empty.
  */
-void DiscoveryComponent::SendDiscoveryMessage(const string& method, const string& identity, const Endpoint::Ptr& recipient)
+void DiscoveryComponent::SendDiscoveryMessage(const String& method, const String& identity, const Endpoint::Ptr& recipient)
 {
 	RequestMessage request;
 	request.SetMethod(method);
@@ -282,21 +282,21 @@ void DiscoveryComponent::SendDiscoveryMessage(const string& method, const string
 	if (!GetComponentDiscoveryInfo(identity, &info))
 		return;
 
-	if (!info->Node.empty() && !info->Service.empty()) {
+	if (!info->Node.IsEmpty() && !info->Service.IsEmpty()) {
 		params.SetNode(info->Node);
 		params.SetService(info->Service);
 	}
 
-	set<string>::iterator i;
+	set<String>::iterator i;
 	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
-	BOOST_FOREACH(string subscription, info->Subscriptions) {
+	BOOST_FOREACH(String subscription, info->Subscriptions) {
 		subscriptions->Add(subscription);
 	}
 
 	params.SetSubscriptions(subscriptions);
 
 	Dictionary::Ptr publications = boost::make_shared<Dictionary>();
-	BOOST_FOREACH(string publication, info->Publications) {
+	BOOST_FOREACH(String publication, info->Publications) {
 		publications->Add(publication);
 	}
 
@@ -308,18 +308,19 @@ void DiscoveryComponent::SendDiscoveryMessage(const string& method, const string
 		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
 }
 
-bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, const string& messageType, const string& message)
+bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, const String& messageType, const String& message)
 {
 	if (!roles)
 		return false;
 
-	DynamicObject::Ptr role;
-	BOOST_FOREACH(tie(tuples::ignore, role), DynamicObject::GetObjects("Role")) {
+	Value roleName;
+	BOOST_FOREACH(tie(tuples::ignore, roleName), roles) {
+		DynamicObject::Ptr role = DynamicObject::GetObject("Role", roleName);
 		Dictionary::Ptr permissions;
-		if (!role->GetProperty(messageType, &permissions))
+		if (!role->GetAttribute(messageType, &permissions))
 			continue;
 
-		Variant permission;
+		Value permission;
 		BOOST_FOREACH(tie(tuples::ignore, permission), permissions) {
 			if (Utility::Match(permission, message))
 				return true;
@@ -337,7 +338,7 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
  * @param message The discovery message.
  * @param trusted Whether the message comes from a trusted source (i.e. a broker).
  */
-void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const DiscoveryMessage& message, bool trusted)
+void DiscoveryComponent::ProcessDiscoveryMessage(const String& identity, const DiscoveryMessage& message, bool trusted)
 {
 	/* ignore discovery messages that are about ourselves */
 	if (identity == EndpointManager::GetInstance()->GetIdentity())
@@ -347,24 +348,24 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	info->LastSeen = Utility::GetTime();
 
-	string node;
-	if (message.GetNode(&node) && !node.empty())
+	String node;
+	if (message.GetNode(&node) && !node.IsEmpty())
 		info->Node = node;
 
-	string service;
-	if (message.GetService(&service) && !service.empty())
+	String service;
+	if (message.GetService(&service) && !service.IsEmpty())
 		info->Service = service;
 
 	DynamicObject::Ptr endpointConfig = DynamicObject::GetObject("endpoint", identity);
 	Dictionary::Ptr roles;
 	if (endpointConfig)
-		endpointConfig->GetProperty("roles", &roles);
+		endpointConfig->GetAttribute("roles", &roles);
 
 	Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(identity);
 
 	Dictionary::Ptr publications;
 	if (message.GetPublications(&publications)) {
-		Variant publication;
+		Value publication;
 		BOOST_FOREACH(tie(tuples::ignore, publication), publications) {
 			if (trusted || HasMessagePermission(roles, "publications", publication)) {
 				info->Publications.insert(publication);
@@ -376,7 +377,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 
 	Dictionary::Ptr subscriptions;
 	if (message.GetSubscriptions(&subscriptions)) {
-		Variant subscription;
+		Value subscription;
 		BOOST_FOREACH(tie(tuples::ignore, subscription), subscriptions) {
 			if (trusted || HasMessagePermission(roles, "subscriptions", subscription)) {
 				info->Subscriptions.insert(subscription);
@@ -386,7 +387,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const string& identity, const D
 		}
 	}
 
-	map<string, ComponentDiscoveryInfo::Ptr>::iterator i;
+	map<String, ComponentDiscoveryInfo::Ptr>::iterator i;
 
 	i = m_Components.find(identity);
 
@@ -412,7 +413,7 @@ void DiscoveryComponent::NewComponentMessageHandler(const RequestMessage& reques
 	DiscoveryMessage message;
 	request.GetParams(&message);
 
-	string identity;
+	String identity;
 	if (!message.GetIdentity(&identity))
 		return;
 
@@ -448,16 +449,16 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 		if (endpointManager->GetEndpointByIdentity(object->GetName()))
 			continue;
 
-		string node, service;
-		if (object->GetProperty("node", &node) && object->GetProperty("service", &service)) {
+		String node, service;
+		if (object->GetAttribute("node", &node) && object->GetAttribute("service", &service)) {
 			/* reconnect to this endpoint */
 			endpointManager->AddConnection(node, service);
 		}
 	}
 
-	map<string, ComponentDiscoveryInfo::Ptr>::iterator curr, i;
+	map<String, ComponentDiscoveryInfo::Ptr>::iterator curr, i;
 	for (i = m_Components.begin(); i != m_Components.end(); ) {
-		const string& identity = i->first;
+		const String& identity = i->first;
 		const ComponentDiscoveryInfo::Ptr& info = i->second;
 
 		curr = i;
@@ -491,7 +492,7 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 			/* TODO: figure out whether we actually want to connect to this component */
 			/* try and reconnect to this component */
 			try {
-				if (!info->Node.empty() && !info->Service.empty())
+				if (!info->Node.IsEmpty() && !info->Service.IsEmpty())
 					endpointManager->AddConnection(info->Node, info->Service);
 			} catch (const exception& ex) {
 				stringstream msgbuf;

@@ -35,14 +35,14 @@ public:
 	typedef shared_ptr<JsonRpcEndpoint> Ptr;
 	typedef weak_ptr<JsonRpcEndpoint> WeakPtr;
 
-	void Connect(string node, string service,
+	void Connect(String node, String service,
 	    shared_ptr<SSL_CTX> sslContext);
 
 	JsonRpcClient::Ptr GetClient(void);
 	void SetClient(JsonRpcClient::Ptr client);
 
-	virtual string GetIdentity(void) const;
-	virtual string GetAddress(void) const;
+	virtual String GetIdentity(void) const;
+	virtual String GetAddress(void) const;
 
 	virtual bool IsLocal(void) const;
 	virtual bool IsConnected(void) const;
@@ -53,13 +53,13 @@ public:
 	virtual void Stop(void);
 
 private:
-	string m_Identity; /**< The identity of this endpoint. */
+	String m_Identity; /**< The identity of this endpoint. */
 
 	shared_ptr<SSL_CTX> m_SSLContext;
-	string m_Address;
+	String m_Address;
 	JsonRpcClient::Ptr m_Client;
 
-	void SetAddress(string address);
+	void SetAddress(String address);
 
 	void NewMessageHandler(const MessagePart& message);
 	void ClientClosedHandler(void);

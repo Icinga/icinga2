@@ -30,7 +30,7 @@ boost::mutex Process::m_Mutex;
 deque<Process::Ptr> Process::m_Tasks;
 condition_variable Process::m_TasksCV;
 
-Process::Process(const string& command)
+Process::Process(const String& command)
 	: AsyncTask<Process, ProcessResult>(), m_Command(command), m_UsePopen(false)
 {
 	if (!m_ThreadCreated) {
@@ -133,12 +133,12 @@ void Process::InitTask(void)
 	m_Result.ExecutionStart = Utility::GetTime();
 
 #ifdef _MSC_VER
-	m_FP = _popen(m_Command.c_str(), "r");
+	m_FP = _popen(m_Command.CStr(), "r");
 #else /* _MSC_VER */
 	if (!m_UsePopen) {
 		m_PCloseArg = new popen_noshell_pass_to_pclose;
 
-		m_FP = popen_noshell_compat(m_Command.c_str(), "r",
+		m_FP = popen_noshell_compat(m_Command.CStr(), "r",
 		    (popen_noshell_pass_to_pclose *)m_PCloseArg);
 
 		if (m_FP == NULL)
@@ -146,7 +146,7 @@ void Process::InitTask(void)
 	}
 
 	if (m_UsePopen)
-		m_FP = popen(m_Command.c_str(), "r");
+		m_FP = popen(m_Command.CStr(), "r");
 #endif /* _MSC_VER */
 
 	if (m_FP == NULL)
@@ -164,7 +164,7 @@ bool Process::RunTask(void)
 	if (!feof(m_FP))
 		return true;
 
-	string output = m_OutputStream.str();
+	String output = m_OutputStream.str();
 
 	int status, exitcode;
 #ifdef _MSC_VER
@@ -189,7 +189,7 @@ bool Process::RunTask(void)
 		/* cmd.exe returns error code 1 (warning) when the plugin
 		 * could not be executed - change the exit status to "unknown"
 		 * when we have no plugin output. */
-		if (output.empty())
+		if (output.IsEmpty())
 			exitcode = 128;
 #endif /* _MSC_VER */
 

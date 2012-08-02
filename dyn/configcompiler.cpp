@@ -23,7 +23,7 @@ using std::ifstream;
 
 using namespace icinga;
 
-ConfigCompiler::ConfigCompiler(const string& path, istream *input, HandleIncludeFunc includeHandler)
+ConfigCompiler::ConfigCompiler(const String& path, istream *input, HandleIncludeFunc includeHandler)
 	: m_Path(path), m_Input(input), m_HandleInclude(includeHandler)
 {
 	InitializeScanner();
@@ -50,29 +50,29 @@ vector<ConfigItem::Ptr> ConfigCompiler::GetResult(void) const
 	return m_Result;
 }
 
-string ConfigCompiler::GetPath(void) const
+String ConfigCompiler::GetPath(void) const
 {
 	return m_Path;
 }
 
-void ConfigCompiler::HandleInclude(const string& include)
+void ConfigCompiler::HandleInclude(const String& include)
 {
-	string path = Utility::DirName(GetPath()) + "/" + include;
+	String path = Utility::DirName(GetPath()) + "/" + include;
 	vector<ConfigItem::Ptr> items = m_HandleInclude(path);
 	std::copy(items.begin(), items.end(), back_inserter(m_Result));
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(const string& path, istream *stream)
+vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(const String& path, istream *stream)
 {
 	ConfigCompiler ctx(path, stream);
 	ctx.Compile();
 	return ctx.GetResult();
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& path)
+vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const String& path)
 {
 	ifstream stream;
-	stream.open(path.c_str(), ifstream::in);
+	stream.open(path.CStr(), ifstream::in);
 
 	if (!stream)
 		throw_exception(invalid_argument("Could not open config file: " + path));
@@ -82,13 +82,13 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const string& path)
 	return CompileStream(path, &stream);
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const string& path, const string& text)
+vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const String& path, const String& text)
 {
 	stringstream stream(text);
 	return CompileStream(path, &stream);
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const string& include)
+vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include)
 {
 	/* TODO: implement wildcard includes */
 	return CompileFile(include);

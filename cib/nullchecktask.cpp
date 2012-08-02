@@ -21,21 +21,21 @@
 
 using namespace icinga;
 
-void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Variant>& arguments)
+void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Missing argument: Service must be specified."));
 
 	double now = Utility::GetTime();
 
-	CheckResult cr;
-	cr.SetScheduleStart(now);
-	cr.SetScheduleEnd(now);
-	cr.SetExecutionStart(now);
-	cr.SetExecutionEnd(now);
-	cr.SetState(StateUnknown);
+	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
+	cr->Set("schedule_start", now);
+	cr->Set("schedule_end", now);
+	cr->Set("execution_start", now);
+	cr->Set("execution_end", now);
+	cr->Set("state", StateUnknown);
 
-	task->FinishResult(cr.GetDictionary());
+	task->FinishResult(cr);
 }
 
 void NullCheckTask::Register(void)

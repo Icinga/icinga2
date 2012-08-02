@@ -11,9 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="checkresult.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="cib.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -46,9 +43,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="checkresult.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="cib.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>

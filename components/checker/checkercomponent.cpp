@@ -72,13 +72,13 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		m_PendingServices.insert(service);
 
-		vector<Variant> arguments;
+		vector<Value> arguments;
 		arguments.push_back(service);
 		ScriptTask::Ptr task;
 		task = service->InvokeMethod("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
 		assert(task); /* TODO: gracefully handle missing methods */
 
-		service->SetTag("current_task", task);
+		service->SetAttribute("current_task", task);
 
 		tasks++;
 	}
@@ -92,20 +92,22 @@ void CheckerComponent::CheckTimerHandler(void)
 
 void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const ScriptTask::Ptr& task)
 {
-	service->RemoveTag("current_task");
+	service->ClearAttribute("current_task");
 
 	try {
-		Variant vresult = task->GetResult();
+		Value vresult = task->GetResult();
 
 		if (vresult.IsObjectType<Dictionary>()) {
-			CheckResult result = CheckResult(static_cast<Dictionary::Ptr>(vresult));
+			Dictionary::Ptr result = vresult;
+
+			service->ApplyCheckResult(result);
 
 			RequestMessage rm;
-			rm.SetMethod("checker::CheckResult");
+			rm.SetMethod("checker::ServiceStateChange");
 
+			/* TODO: add _old_ state to message */
 			CheckResultMessage params;
 			params.SetService(service->GetName());
-			params.SetCheckResult(result);
 
 			rm.SetParams(params);
 
@@ -118,10 +120,12 @@ void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const 
 		Logger::Write(LogWarning, "checker", msgbuf.str());
 	}
 
-	/* figure out when the next check is for this service; the local
-	 * cibsync component should've already done this as part of processing
-	 * the CheckResult message, but lets do it again to be sure */
+	/* figure out when the next check is for this service; the call to
+	 * ApplyCheckResult() should've already done this but lets do it again
+	 * just in case there was no check result. */
 	service->UpdateNextCheck();
+
+	assert(service->GetNextCheck() > Utility::GetTime());
 
 	/* remove the service from the list of pending services; if it's not in the
 	 * list this was a manual (i.e. forced) check and we must not re-add the
@@ -151,7 +155,7 @@ void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, 
 	if (!request.GetParams(&params))
 		return;
 
-	string service;
+	String service;
 	if (!params.Get("service", &service))
 		return;
 

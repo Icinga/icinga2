@@ -47,7 +47,7 @@ TcpClientRole TcpClient::GetRole(void) const
  * @param node The node.
  * @param service The service.
  */
-void TcpClient::Connect(const string& node, const string& service)
+void TcpClient::Connect(const String& node, const String& service)
 {
 	m_Role = RoleOutbound;
 
@@ -59,7 +59,7 @@ void TcpClient::Connect(const string& node, const string& service)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 
-	int rc = getaddrinfo(node.c_str(), service.c_str(), &hints, &result);
+	int rc = getaddrinfo(node.CStr(), service.CStr(), &hints, &result);
 
 	if (rc < 0)
 		throw_exception(SocketException("getaddrinfo() failed", GetLastSocketError()));

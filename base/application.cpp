@@ -91,6 +91,9 @@ void Application::RunEventLoop(void)
 			break;
 
 		Event::ProcessEvents(boost::get_system_time() + boost::posix_time::milliseconds(sleep * 1000));
+
+		DynamicObject::FinishTx();
+		DynamicObject::BeginTx();
 	}
 }
 
@@ -108,39 +111,47 @@ void Application::Shutdown(void)
  *
  * @returns The path.
  */
-string Application::GetExePath(void) const
+String Application::GetExePath(void) const
 {
-	static string result;
+	static String result;
 
-	if (!result.empty())
+	if (!result.IsEmpty())
 		return result;
 
-	string executablePath;
+	String executablePath;
 
 #ifndef _WIN32
-	string argv0 = m_Arguments[0];
+	String argv0 = m_Arguments[0];
 
 	char buffer[MAXPATHLEN];
 	if (getcwd(buffer, sizeof(buffer)) == NULL)
 		throw_exception(PosixException("getcwd failed", errno));
-	string workingDirectory = buffer;
+	String workingDirectory = buffer;
 
 	if (argv0[0] != '/')
 		executablePath = workingDirectory + "/" + argv0;
 	else
 		executablePath = argv0;
 
-	if (argv0.find_first_of('/') == string::npos) {
+	bool foundSlash = false;
+	for (int i = 0; i < argv0.GetLength(); i++) {
+		if (argv0[i] == '/') {
+			foundSlash = true;
+			break;
+		}
+	}
+
+	if (!foundSlash) {
 		const char *pathEnv = getenv("PATH");
 		if (pathEnv != NULL) {
-			vector<string> paths;
+			vector<String> paths;
 			boost::algorithm::split(paths, pathEnv, boost::is_any_of(":"));
 
 			bool foundPath = false;
-			BOOST_FOREACH(string& path, paths) {
-				string pathTest = path + "/" + argv0;
+			BOOST_FOREACH(String& path, paths) {
+				String pathTest = path + "/" + argv0;
 
-				if (access(pathTest.c_str(), X_OK) == 0) {
+				if (access(pathTest.CStr(), X_OK) == 0) {
 					executablePath = pathTest;
 					foundPath = true;
 					break;
@@ -148,13 +159,13 @@ string Application::GetExePath(void) const
 			}
 
 			if (!foundPath) {
-				executablePath.clear();
+				executablePath.Clear();
 				throw_exception(runtime_error("Could not determine executable path."));
 			}
 		}
 	}
 
-	if (realpath(executablePath.c_str(), buffer) == NULL)
+	if (realpath(executablePath.CStr(), buffer) == NULL)
 		throw_exception(PosixException("realpath failed", errno));
 
 	result = buffer;
@@ -258,7 +269,9 @@ int Application::Run(int argc, char **argv)
 
 	m_Arguments.clear();
 	for (int i = 0; i < argc; i++)
-		m_Arguments.push_back(string(argv[i]));
+		m_Arguments.push_back(String(argv[i]));
+
+	DynamicObject::BeginTx();
 
 	if (IsDebugging()) {
 		result = Main(m_Arguments);
@@ -272,22 +285,24 @@ int Application::Run(int argc, char **argv)
 
 			Logger::Write(LogCritical, "base", "---");
 			Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(typeid(ex)));
-			Logger::Write(LogCritical, "base", "Message: " + string(ex.what()));
+			Logger::Write(LogCritical, "base", "Message: " + String(ex.what()));
 
 			return EXIT_FAILURE;
 		}
 	}
 
+	DynamicObject::FinishTx();
+
 	return result;
 }
 
-void Application::UpdatePidFile(const string& filename)
+void Application::UpdatePidFile(const String& filename)
 {
 	ClosePidFile();
 
 	/* There's just no sane way of getting a file descriptor for a
 	 * C++ ofstream which is why we're using FILEs here. */
-	m_PidFile = fopen(filename.c_str(), "w");
+	m_PidFile = fopen(filename.CStr(), "w");
 
 	if (m_PidFile == NULL)
 		throw_exception(runtime_error("Could not open PID file '" + filename + "'"));

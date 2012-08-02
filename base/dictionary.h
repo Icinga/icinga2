@@ -34,82 +34,28 @@ public:
 	typedef shared_ptr<Dictionary> Ptr;
 	typedef weak_ptr<Dictionary> WeakPtr;
 
-	typedef map<string, Variant>::iterator Iterator;
+	typedef map<String, Value>::iterator Iterator;
 
-	/**
-	 * Retrieves a value from the dictionary.
-	 *
-	 * @param key The key.
-	 * @param[out] value Pointer to the value.
-	 * @returns true if the value was retrieved, false otherwise.
-	 */
-	template<typename T>
-	bool Get(const string& key, T *value) const
-	{
-		map<string, Variant>::const_iterator i = m_Data.find(key);
-
-		if (i == m_Data.end())
-			return false;
-
-		*value = static_cast<T>(i->second);
-
-		return true;
-	}
-
-	/**
-	 * Sets a value in the dictionary.
-	 *
-	 * @param key The key.
-	 * @param value The value.
-	 */
-	template<typename T>
-	void Set(const string& key, const T& value)
-	{
-		pair<typename map<string, Variant>::iterator, bool> ret;
-		ret = m_Data.insert(make_pair(key, value));
-		if (!ret.second)
-			ret.first->second = value;
-	}
-
-	/**
-	 * Adds an unnamed value to the dictionary.
-	 *
-	 * @param value The value.
-	 * @returns The key that was used to add the new item.
-	 */
-	template<typename T>
-	string Add(const T& value)
-	{
-		Iterator it;
-		string key;
-		long index = GetLength();
-		do {
-			stringstream s;
-			s << "_" << index;
-			index++;
-
-			key = s.str();
-			it = m_Data.find(key);
-		} while (it != m_Data.end());
-
-		Set(key, value);
-		return key;
-	}
-
-	bool Contains(const string& key) const;
+	Value Get(const String& key) const;
+	void Set(const String& key, const Value& value);
+	String Add(const Value& value);
+	bool Contains(const String& key) const;
 
 	Iterator Begin(void);
 	Iterator End(void);
 
 	long GetLength(void) const;
 
-	void Remove(const string& key);
+	void Remove(const String& key);
+	void Remove(Iterator it);
 
 	static Dictionary::Ptr FromJson(cJSON *json);
 	cJSON *ToJson(void) const;
 
+	virtual void OnItemModified(const String& key, const Value& value);
+
 private:
-	map<string, Variant> m_Data;
+	map<String, Value> m_Data;
 };
 
 inline Dictionary::Iterator range_begin(Dictionary::Ptr x)

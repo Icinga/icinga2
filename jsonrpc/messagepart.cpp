@@ -66,11 +66,15 @@ Dictionary::Ptr MessagePart::GetDictionary(void) const
  * @param[out] The value.
  * @returns true if the value was retrieved, false otherwise.
  */
-bool MessagePart::Get(string key, MessagePart *value) const
+bool MessagePart::Get(String key, MessagePart *value) const
 {
-	Dictionary::Ptr dictionary;
-	if (!GetDictionary()->Get(key, &dictionary))
+	Value v;
+	v = GetDictionary()->Get(key);
+
+	if (!v.IsObjectType<Dictionary>())
 		return false;
+
+	Dictionary::Ptr dictionary = v;
 
 	*value = MessagePart(dictionary);
 	return true;
@@ -82,7 +86,7 @@ bool MessagePart::Get(string key, MessagePart *value) const
  * @param key The name of the property.
  * @param value The value.
  */
-void MessagePart::Set(string key, const MessagePart& value)
+void MessagePart::Set(String key, const MessagePart& value)
 {
 	GetDictionary()->Set(key, value.GetDictionary());
 }
@@ -125,7 +129,7 @@ Dictionary::Iterator MessagePart::End(void)
  * @param key The name of the element.
  * @returns true if the message contains the element, false otherwise.
  */
-bool MessagePart::Contains(const string& key) const
+bool MessagePart::Contains(const String& key) const
 {
 	return GetDictionary()->Contains(key);
 }

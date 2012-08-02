@@ -4,7 +4,6 @@ pkglib_LTLIBRARIES = \
 	libcib.la
 
 libcib_la_SOURCES = \
-	checkresult.cpp \
 	checkresult.h \
 	checkresultmessage.cpp \
 	checkresultmessage.h \

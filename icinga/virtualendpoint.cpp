@@ -21,12 +21,12 @@
 
 using namespace icinga;
 
-string VirtualEndpoint::GetIdentity(void) const
+String VirtualEndpoint::GetIdentity(void) const
 {
 	return "__" + GetAddress();
 }
 
-string VirtualEndpoint::GetAddress(void) const
+String VirtualEndpoint::GetAddress(void) const
 {
 	char address[50];
 	sprintf(address, "virtual:%p", (void *)this);
@@ -43,9 +43,9 @@ bool VirtualEndpoint::IsConnected(void) const
 	return true;
 }
 
-void VirtualEndpoint::RegisterTopicHandler(string topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback)
+void VirtualEndpoint::RegisterTopicHandler(String topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback)
 {
-	map<string, shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > >::iterator it;
+	map<String, shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > >::iterator it;
 	it = m_TopicHandlers.find(topic);
 
 	shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > sig;
@@ -62,7 +62,7 @@ void VirtualEndpoint::RegisterTopicHandler(string topic, function<void (const Vi
 	RegisterSubscription(topic);
 }
 
-void VirtualEndpoint::UnregisterTopicHandler(string topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback)
+void VirtualEndpoint::UnregisterTopicHandler(String topic, function<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> callback)
 {
 	// TODO: implement
 	//m_TopicHandlers[method] -= callback;
@@ -73,11 +73,11 @@ void VirtualEndpoint::UnregisterTopicHandler(string topic, function<void (const 
 
 void VirtualEndpoint::ProcessRequest(Endpoint::Ptr sender, const RequestMessage& request)
 {
-	string method;
+	String method;
 	if (!request.GetMethod(&method))
 		return;
 
-	map<string, shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > >::iterator it;
+	map<String, shared_ptr<boost::signal<void (const VirtualEndpoint::Ptr&, const Endpoint::Ptr, const RequestMessage&)> > >::iterator it;
 	it = m_TopicHandlers.find(method);
 
 	if (it == m_TopicHandlers.end())

@@ -41,8 +41,8 @@ public:
 
 	void Close(void);
 
-	string GetClientAddress(void);
-	string GetPeerAddress(void);
+	String GetClientAddress(void);
+	String GetPeerAddress(void);
 
 	mutex& GetMutex(void) const;
 
@@ -87,7 +87,7 @@ private:
 
 	void ExceptionEventHandler(void);
 
-	static string GetAddressFromSockaddr(sockaddr *address, socklen_t len);
+	static String GetAddressFromSockaddr(sockaddr *address, socklen_t len);
 };
 
 /**
@@ -96,7 +96,7 @@ private:
 class SocketException : public Exception
 {
 public:
-	SocketException(const string& message, int errorCode);
+	SocketException(const String& message, int errorCode);
 };
 
 }

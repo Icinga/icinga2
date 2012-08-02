@@ -2,8 +2,8 @@
 
 using namespace icinga;
 
-ScriptTask::ScriptTask(const ScriptFunction::Ptr& function, const vector<Variant>& arguments)
-	: AsyncTask<ScriptTask, Variant>(), m_Function(function), m_Arguments(arguments)
+ScriptTask::ScriptTask(const ScriptFunction::Ptr& function, const vector<Value>& arguments)
+	: AsyncTask<ScriptTask, Value>(), m_Function(function), m_Arguments(arguments)
 { }
 
 void ScriptTask::Run(void)

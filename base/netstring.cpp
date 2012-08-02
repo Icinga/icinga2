@@ -22,19 +22,19 @@
 using namespace icinga;
 
 /**
- * Reads data from an IOQueue in netstring format.
+ * Reads data from an IOQueue in netString format.
  *
  * @param fifo The IOQueue to read from.
- * @param[out] str The string that has been read from the FIFO.
- * @returns true if a complete string was read from the FIFO, false otherwise.
+ * @param[out] str The String that has been read from the FIFO.
+ * @returns true if a complete String was read from the FIFO, false otherwise.
  * @exception invalid_argument The input stream is invalid.
- * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
+ * @see https://github.com/PeterScott/netString-c/blob/master/netString.c
  */
-bool Netstring::ReadStringFromIOQueue(IOQueue *queue, string *str)
+bool NetString::ReadStringFromIOQueue(IOQueue *queue, String *str)
 {
 	size_t buffer_length = queue->GetAvailableBytes();
 
-	/* minimum netstring length is 3 */
+	/* minimum netString length is 3 */
 	if (buffer_length < 3)
 		return false;
 
@@ -52,7 +52,7 @@ bool Netstring::ReadStringFromIOQueue(IOQueue *queue, string *str)
 	/* no leading zeros allowed */
 	if (buffer[0] == '0' && isdigit(buffer[1])) {
 		free(buffer);
-		throw_exception(invalid_argument("Invalid netstring (leading zero)"));
+		throw_exception(invalid_argument("Invalid netString (leading zero)"));
 	}
 
 	size_t len, i;
@@ -91,16 +91,16 @@ bool Netstring::ReadStringFromIOQueue(IOQueue *queue, string *str)
 	/* check for the colon delimiter */
 	if (buffer[i] != ':') {
 		free(buffer);
-		throw_exception(invalid_argument("Invalid Netstring (missing :)"));
+		throw_exception(invalid_argument("Invalid NetString (missing :)"));
 	}
 
-	/* check for the comma delimiter after the string */
+	/* check for the comma delimiter after the String */
 	if (buffer[i + 1 + len] != ',') {
 		free(buffer);
-		throw_exception(invalid_argument("Invalid Netstring (missing ,)"));
+		throw_exception(invalid_argument("Invalid NetString (missing ,)"));
 	}
 
-	*str = string(&buffer[i + 1], &buffer[i + 1 + len]);
+	*str = String(&buffer[i + 1], &buffer[i + 1 + len]);
 
 	free(buffer);
 
@@ -111,18 +111,18 @@ bool Netstring::ReadStringFromIOQueue(IOQueue *queue, string *str)
 }
 
 /**
- * Writes data into a FIFO using the netstring format.
+ * Writes data into a FIFO using the netString format.
  *
  * @param fifo The FIFO.
- * @param str The string that is to be written.
+ * @param str The String that is to be written.
  */
-void Netstring::WriteStringToIOQueue(IOQueue *queue, const string& str)
+void NetString::WriteStringToIOQueue(IOQueue *queue, const String& str)
 {
 	stringstream prefixbuf;
-	prefixbuf << str.size() << ":";
+	prefixbuf << str.GetLength() << ":";
 
-	string prefix = prefixbuf.str();
-	queue->Write(prefix.c_str(), prefix.size());
-	queue->Write(str.c_str(), str.size());
+	String prefix = prefixbuf.str();
+	queue->Write(prefix.CStr(), prefix.GetLength());
+	queue->Write(str.CStr(), str.GetLength());
 	queue->Write(",", 1);
 }

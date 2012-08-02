@@ -49,9 +49,15 @@ public:
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
 	template<typename T>
-	bool Get(string key, T *value) const
+	bool Get(String key, T *value) const
 	{
-		return GetDictionary()->Get(key, value);
+		Value v =GetDictionary()->Get(key);
+
+		if (v.IsEmpty())
+			return false;
+
+		*value = static_cast<T>(v);
+		return true;
 	}
 
 	/**
@@ -61,13 +67,13 @@ public:
 	 * @param value The value.
 	 */
 	template<typename T>
-	void Set(string key, const T& value)
+	void Set(String key, const T& value)
 	{
 		GetDictionary()->Set(key, value);
 	}
 
-	bool Get(string key, MessagePart *value) const;
-	void Set(string key, const MessagePart& value);
+	bool Get(String key, MessagePart *value) const;
+	void Set(String key, const MessagePart& value);
 
 	/**
 	 * Adds an item to the message using an automatically generated property name.
@@ -82,7 +88,7 @@ public:
 
 	void Add(const MessagePart& value);
 
-	bool Contains(const string& key) const;
+	bool Contains(const String& key) const;
 
 	Dictionary::Iterator Begin(void);
 	Dictionary::Iterator End(void);

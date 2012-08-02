@@ -26,7 +26,7 @@ namespace icinga
 class I2_CIB_API MacroProcessor
 {
 public:
-	static string ResolveMacros(const string& str, const vector<Dictionary::Ptr>& macroDicts);
+	static String ResolveMacros(const String& str, const vector<Dictionary::Ptr>& macroDicts);
 };
 
 }

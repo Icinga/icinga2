@@ -90,7 +90,6 @@
 #include <algorithm>
 #include <deque>
 
-using std::string;
 using std::vector;
 using std::map;
 using std::list;
@@ -98,6 +97,7 @@ using std::set;
 using std::multimap;
 using std::pair;
 using std::deque;
+using std::make_pair;
 
 using std::stringstream;
 using std::istream;
@@ -164,11 +164,12 @@ namespace tuples = boost::tuples;
 #	define I2_BASE_API I2_IMPORT
 #endif /* I2_BASE_BUILD */
 
+#include "qstring.h"
 #include "utility.h"
 #include "object.h"
 #include "exception.h"
 #include "event.h"
-#include "variant.h"
+#include "value.h"
 #include "dictionary.h"
 #include "ringbuffer.h"
 #include "timer.h"

@@ -29,16 +29,14 @@ public:
 	typedef shared_ptr<Host> Ptr;
 	typedef weak_ptr<Host> WeakPtr;
 
-	Host(const Dictionary::Ptr& properties)
-		: DynamicObject(properties)
-	{ }
+	Host(const Dictionary::Ptr& properties);
 
-	static bool Exists(const string& name);
-	static Host::Ptr GetByName(const string& name);
+	static bool Exists(const String& name);
+	static Host::Ptr GetByName(const String& name);
 
-	string GetAlias(void) const;
+	String GetAlias(void) const;
 	Dictionary::Ptr GetGroups(void) const;
-	set<string> GetParents(void);
+	set<String> GetParents(void);
 	Dictionary::Ptr GetMacros(void) const;
 
 	bool IsReachable(void);

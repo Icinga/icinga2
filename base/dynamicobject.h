@@ -23,6 +23,30 @@
 namespace icinga
 {
 
+enum DynamicAttributeType
+{
+	Attribute_Transient = 1,
+
+	/* Unlike transient attributes local attributes are persisted
+	 * in the program state file. */
+	Attribute_Local = 2,
+
+	/* Replicated attributes are sent to other daemons for which
+	 * replication is enabled. */
+	Attribute_Replicated = 4,
+
+	/* Attributes read from the config file are implicitly marked
+	 * as config attributes. */
+	Attribute_Config = 8,
+};
+
+struct DynamicAttribute
+{
+	Value Data;
+	DynamicAttributeType Type;
+	double Tx;
+};
+
 /**
  * A dynamic object that can be instantiated from the configuration file.
  *
@@ -36,84 +60,102 @@ public:
 
 	typedef function<DynamicObject::Ptr (const Dictionary::Ptr&)> Factory;
 
-	typedef map<string, Factory> ClassMap;
-	typedef map<string, DynamicObject::Ptr> NameMap;
-	typedef map<string, NameMap> TypeMap;
+	typedef map<String, Factory> ClassMap;
+	typedef map<String, DynamicObject::Ptr> NameMap;
+	typedef map<String, NameMap> TypeMap;
 
-	DynamicObject(const Dictionary::Ptr& properties);
+	typedef map<String, DynamicAttribute> AttributeMap;
+	typedef AttributeMap::iterator AttributeIterator;
+	typedef AttributeMap::const_iterator AttributeConstIterator;
 
-	void SetProperties(const Dictionary::Ptr& config);
-	Dictionary::Ptr GetProperties(void) const;
+	DynamicObject(const Dictionary::Ptr& serializedObject);
 
-	template<typename T>
-	bool GetProperty(const string& key, T *value) const
-	{
-		return GetProperties()->Get(key, value);
-	}
+	Dictionary::Ptr BuildUpdate(double sinceTx, int attributeTypes) const;
+	void ApplyUpdate(const Dictionary::Ptr& serializedUpdate, bool suppressEvents = false);
+	static void SanitizeUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes);
 
-	void SetTags(const Dictionary::Ptr& tags);
-	Dictionary::Ptr GetTags(void) const;
+	void RegisterAttribute(const String& name, DynamicAttributeType type);
 
-	template<typename T>
-	void SetTag(const string& key, const T& value)
-	{
-		GetTags()->Set(key, value);
-	}
+	void SetAttribute(const String& name, const Value& data);
 
 	template<typename T>
-	bool GetTag(const string& key, T *value) const
+	bool GetAttribute(const String& name, T *retval) const
 	{
-		return GetTags()->Get(key, value);
+		Value data = InternalGetAttribute(name);
+
+		if (data.IsEmpty())
+			return false;
+
+		*retval = static_cast<T>(data);
+		return true;
 	}
 
-	void RemoveTag(const string& key);
+	void ClearAttribute(const String& name);
 
-	ScriptTask::Ptr InvokeMethod(const string& method,
-	    const vector<Variant>& arguments, ScriptTask::CompletionCallback callback);
+	bool HasAttribute(const String& name) const;
 
-	string GetType(void) const;
-	string GetName(void) const;
+	void ClearAttributesByType(DynamicAttributeType type);
+
+	AttributeConstIterator AttributeBegin(void) const;
+	AttributeConstIterator AttributeEnd(void) const;
+
+	static boost::signal<void (const DynamicObject::Ptr&, const String& name)> OnAttributeChanged;
+	static boost::signal<void (const DynamicObject::Ptr&)> OnRegistered;
+	static boost::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
+	static boost::signal<void (const set<DynamicObject::Ptr>&)> OnTransactionClosing;
+
+	ScriptTask::Ptr InvokeMethod(const String& method,
+	    const vector<Value>& arguments, ScriptTask::CompletionCallback callback);
+
+	String GetType(void) const;
+	String GetName(void) const;
 
 	bool IsLocal(void) const;
 	bool IsAbstract(void) const;
 
-	void SetSource(const string& value);
-	string GetSource(void) const;
+	void SetSource(const String& value);
+	String GetSource(void) const;
 
-	double GetCommitTimestamp(void) const;
+	void SetTx(double tx);
+	double GetTx(void) const;
 
-	void Commit(void);
+	void Register(void);
 	void Unregister(void);
 
-	static DynamicObject::Ptr GetObject(const string& type, const string& name);
+	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 	static pair<TypeMap::iterator, TypeMap::iterator> GetTypes(void);
-	static pair<NameMap::iterator, NameMap::iterator> GetObjects(const string& type);
+	static pair<NameMap::iterator, NameMap::iterator> GetObjects(const String& type);
 
-	static void DumpObjects(const string& filename);
-	static void RestoreObjects(const string& filename);
+	static void DumpObjects(const String& filename);
+	static void RestoreObjects(const String& filename);
 
-	static void RegisterClass(const string& type, Factory factory);
-	static DynamicObject::Ptr Create(const string& type, const Dictionary::Ptr& properties);
+	static void RegisterClass(const String& type, Factory factory);
+	static DynamicObject::Ptr Create(const String& type, const Dictionary::Ptr& properties);
 
-	static boost::signal<void (const DynamicObject::Ptr&)> OnCommitted;
-	static boost::signal<void (const DynamicObject::Ptr&)> OnRemoved;
+	static double GetCurrentTx(void);
+	static void BeginTx(void);
+	static void FinishTx(void);
 
 private:
+	void InternalSetAttribute(const String& name, const Value& data, double tx, bool suppressEvent = false);
+	Value InternalGetAttribute(const String& name) const;
+
 	static ClassMap& GetClasses(void);
 	static TypeMap& GetAllObjects(void);
 
-	Dictionary::Ptr m_Properties;
-	Dictionary::Ptr m_Tags;
+	AttributeMap m_Attributes;
+	double m_ConfigTx;
 
-	static map<pair<string, string>, Dictionary::Ptr> m_PersistentTags;
+	static map<pair<String, String>, Dictionary::Ptr> m_PersistentUpdates;
+	static double m_CurrentTx;
 
-	void SetCommitTimestamp(double ts);
+	static set<DynamicObject::Ptr> m_ModifiedObjects;
 };
 
 class RegisterClassHelper
 {
 public:
-	RegisterClassHelper(const string& name, DynamicObject::Factory factory)
+	RegisterClassHelper(const String& name, DynamicObject::Factory factory)
 	{
 		DynamicObject::RegisterClass(name, factory);
 	}

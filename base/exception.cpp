@@ -46,7 +46,7 @@ void Exception::SetCode(int code)
  *
  * @returns The description.
  */
-string Exception::GetMessage(void) const
+String Exception::GetMessage(void) const
 {
 	return m_Message;
 }
@@ -58,7 +58,7 @@ string Exception::GetMessage(void) const
  */
 const char *Exception::what(void) const throw()
 {
-	return m_Message.c_str();
+	return m_Message.CStr();
 }
 
 /**
@@ -66,7 +66,7 @@ const char *Exception::what(void) const throw()
  *
  * @param message The description.
  */
-void Exception::SetMessage(string message)
+void Exception::SetMessage(String message)
 {
 	m_Message = message;
 }
@@ -76,19 +76,19 @@ void Exception::SetMessage(string message)
  * Formats an Win32 error code.
  *
  * @param code The error code.
- * @returns A string describing the error.
+ * @returns A String describing the error.
  */
-string Win32Exception::FormatErrorCode(int code)
+String Win32Exception::FormatErrorCode(int code)
 {
 	char *message;
-	string result = "Unknown error.";
+	String result = "Unknown error.";
 
 	DWORD rc = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
 		FORMAT_MESSAGE_FROM_SYSTEM, NULL, code, 0, (char *)&message,
 		0, NULL);
 
 	if (rc != 0) {
-		result = string(message);
+		result = String(message);
 		LocalFree(message);
 
 		/* remove trailing new-line characters */
@@ -103,9 +103,9 @@ string Win32Exception::FormatErrorCode(int code)
  * Formats a Posix error code.
  *
  * @param code The error code.
- * @returns A string describing the error.
+ * @returns A String describing the error.
  */
-string PosixException::FormatErrorCode(int code)
+String PosixException::FormatErrorCode(int code)
 {
 	return strerror(code);
 }
@@ -114,9 +114,9 @@ string PosixException::FormatErrorCode(int code)
  * Formats an OpenSSL error code.
  *
  * @param code The error code.
- * @returns A string describing the error.
+ * @returns A String describing the error.
  */
-string OpenSSLException::FormatErrorCode(int code)
+String OpenSSLException::FormatErrorCode(int code)
 {
 	const char *message = ERR_error_string(code, NULL);
 
