@@ -356,7 +356,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const String& identity, const D
 	if (message.GetService(&service) && !service.IsEmpty())
 		info->Service = service;
 
-	DynamicObject::Ptr endpointConfig = DynamicObject::GetObject("endpoint", identity);
+	DynamicObject::Ptr endpointConfig = DynamicObject::GetObject("Endpoint", identity);
 	Dictionary::Ptr roles;
 	if (endpointConfig)
 		endpointConfig->GetAttribute("roles", &roles);

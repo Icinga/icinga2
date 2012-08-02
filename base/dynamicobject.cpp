@@ -40,6 +40,9 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("__source", Attribute_Local);
 	RegisterAttribute("methods", Attribute_Config);
 
+	if (!serializedObject->Contains("configTx"))
+		throw invalid_argument("Serialized object must contain a config snapshot.");
+
 	/* apply state from the config item/remote update */
 	ApplyUpdate(serializedObject, true);
 
@@ -392,12 +395,8 @@ void DynamicObject::DumpObjects(const String& filename)
 
 			/* only persist properties for replicated objects or for objects
 			 * that are marked as persistent */
-			if (!object->GetSource().IsEmpty() /*|| object->IsPersistent()*/) {
+			if (!object->GetSource().IsEmpty() /*|| object->IsPersistent()*/)
 				types |= Attribute_Config;
-				persistentObject->Set("create", true);
-			} else {
-				persistentObject->Set("create", false);
-			}
 
 			Dictionary::Ptr update = object->BuildUpdate(0, types);
 
@@ -453,10 +452,10 @@ void DynamicObject::RestoreObjects(const String& filename)
 
 		String type = persistentObject->Get("type");
 		String name = persistentObject->Get("name");
-		int create = persistentObject->Get("create");
+		bool hasConfig = persistentObject->Contains("configTx");
 		Dictionary::Ptr update = persistentObject->Get("update");
 
-		if (create != 0) {
+		if (hasConfig) {
 			DynamicObject::Ptr object = Create(type, update);
 			object->Register();
 		} else {

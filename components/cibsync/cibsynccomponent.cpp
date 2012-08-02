@@ -131,7 +131,7 @@ bool CIBSyncComponent::ShouldReplicateObject(const DynamicObject::Ptr& object)
 
 void CIBSyncComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 {
-	pair<DynamicObject::TypeMap::iterator, DynamicObject::TypeMap::iterator> trange;
+	pair<DynamicObject::TypeMap::iterator, DynamicObject::TypeMap::iterator> trange = DynamicObject::GetTypes();
 	DynamicObject::TypeMap::iterator tt;
 	for (tt = trange.first; tt != trange.second; tt++) {
 		DynamicObject::Ptr object;
@@ -156,7 +156,7 @@ void CIBSyncComponent::LocalObjectRegisteredHandler(const DynamicObject::Ptr& ob
 		return;
 
 	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
-	    MakeObjectMessage(object, "config::ObjectCommitted", 0, true));
+	    MakeObjectMessage(object, "config::ObjectUpdate", 0, true));
 }
 
 void CIBSyncComponent::LocalObjectUnregisteredHandler(const DynamicObject::Ptr& object)
