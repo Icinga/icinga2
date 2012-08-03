@@ -31,7 +31,6 @@ using namespace icinga;
 const String IcingaApplication::DefaultPidPath = "icinga.pid";
 
 IcingaApplication::IcingaApplication(void)
-	: m_PidPath(DefaultPidPath)
 { }
 
 /**
@@ -49,13 +48,14 @@ int IcingaApplication::Main(const vector<String>& args)
 	consoleLogConfig->SetLocal(true);
 	consoleLogConfig->AddExpression("type", OperatorSet, "console");
 	consoleLogConfig->Compile()->Commit();
+	consoleLogConfig.reset();
 
 	/* restore the previous program state */
 	DynamicObject::RestoreObjects("retention.dat");
 
 	/* periodically dump the program state */
 	m_RetentionTimer = boost::make_shared<Timer>();
-	m_RetentionTimer->SetInterval(10);
+	m_RetentionTimer->SetInterval(60);
 	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
 	m_RetentionTimer->Start();
 
@@ -119,13 +119,15 @@ int IcingaApplication::Main(const vector<String>& args)
 	cibsyncComponentConfig->SetName("cibsync");
 	cibsyncComponentConfig->SetLocal(true);
 	cibsyncComponentConfig->Compile()->Commit();
+	cibsyncComponentConfig.reset();
 
 	/* load convenience config component */
 	ConfigItemBuilder::Ptr convenienceComponentConfig = boost::make_shared<ConfigItemBuilder>();
 	convenienceComponentConfig->SetType("Component");
 	convenienceComponentConfig->SetName("convenience");
 	convenienceComponentConfig->SetLocal(true);
-	//convenienceComponentConfig->Compile()->Commit();
+	convenienceComponentConfig->Compile()->Commit();
+	convenienceComponentConfig.reset();
 
 	/* load config file */
 	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
@@ -144,15 +146,18 @@ int IcingaApplication::Main(const vector<String>& args)
 	if (!icingaConfig->IsLocal())
 		throw_exception(runtime_error("'icinga' application object must be 'local'."));
 
-	icingaConfig->GetAttribute("cert", &m_CertificateFile);
-	icingaConfig->GetAttribute("ca", &m_CAFile);
-	icingaConfig->GetAttribute("node", &m_Node);
-	icingaConfig->GetAttribute("service", &m_Service);
-	icingaConfig->GetAttribute("pidpath", &m_PidPath);
-	icingaConfig->GetAttribute("macros", &m_Macros);
+	m_CertificateFile = icingaConfig->Get("cert");
+	m_CAFile = icingaConfig->Get("ca");
+	m_Node = icingaConfig->Get("node");
+	m_Service = icingaConfig->Get("service");
+	m_PidPath = icingaConfig->Get("pidpath");
 
-	String logpath;
-	icingaConfig->GetAttribute("logpath", &logpath);
+	if (m_PidPath.IsEmpty())
+		m_PidPath = DefaultPidPath;
+
+	m_Macros = icingaConfig->Get("macros");
+
+	String logpath = icingaConfig->Get("logpath");
 	if (!logpath.IsEmpty()) {
 		ConfigItemBuilder::Ptr fileLogConfig = boost::make_shared<ConfigItemBuilder>();
 		fileLogConfig->SetType("Logger");

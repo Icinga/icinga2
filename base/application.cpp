@@ -94,6 +94,14 @@ void Application::RunEventLoop(void)
 
 		DynamicObject::FinishTx();
 		DynamicObject::BeginTx();
+
+#ifdef _DEBUG
+		stringstream msgbuf;
+		msgbuf << "Active objects: " << Object::GetAliveObjects();
+		Logger::Write(LogInformation, "base", msgbuf.str());
+
+		Object::PrintMemoryProfile();
+#endif /* _DEBUG */
 	}
 }
 

@@ -34,7 +34,7 @@ Value Dictionary::Get(const String& key) const
 	it = m_Data.find(key);
 
 	if (it == m_Data.end())
-		return Value();
+		return Empty;
 
 	return it->second;
 }
@@ -140,7 +140,7 @@ void Dictionary::Remove(const String& key)
 
 	m_Data.erase(it);
 
-	OnItemModified(key, Value());
+	OnItemModified(key, Empty);
 }
 
 /**
@@ -153,7 +153,7 @@ void Dictionary::Remove(Dictionary::Iterator it)
 	String key = it->first;
 	m_Data.erase(it);
 
-	OnItemModified(key, Value());
+	OnItemModified(key, Empty);
 }
 
 /**

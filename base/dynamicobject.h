@@ -76,21 +76,8 @@ public:
 
 	void RegisterAttribute(const String& name, DynamicAttributeType type);
 
-	void SetAttribute(const String& name, const Value& data);
-
-	template<typename T>
-	bool GetAttribute(const String& name, T *retval) const
-	{
-		Value data = InternalGetAttribute(name);
-
-		if (data.IsEmpty())
-			return false;
-
-		*retval = static_cast<T>(data);
-		return true;
-	}
-
-	void ClearAttribute(const String& name);
+	void Set(const String& name, const Value& data);
+	Value Get(const String& name) const;
 
 	bool HasAttribute(const String& name) const;
 

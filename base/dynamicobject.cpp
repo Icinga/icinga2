@@ -168,9 +168,14 @@ void DynamicObject::RegisterAttribute(const String& name, DynamicAttributeType t
 		tt.first->second.Type = type;
 }
 
-void DynamicObject::SetAttribute(const String& name, const Value& data)
+void DynamicObject::Set(const String& name, const Value& data)
 {
 	InternalSetAttribute(name, data, GetCurrentTx());
+}
+
+Value DynamicObject::Get(const String& name) const
+{
+	return InternalGetAttribute(name);
 }
 
 void DynamicObject::InternalSetAttribute(const String& name, const Value& data, double tx, bool suppressEvent)
@@ -203,14 +208,9 @@ Value DynamicObject::InternalGetAttribute(const String& name) const
 	it = m_Attributes.find(name);
 
 	if (it == m_Attributes.end())
-		return Value();
-	else
-		return it->second.Data;
-}
+		return Empty;
 
-void DynamicObject::ClearAttribute(const String& name)
-{
-	SetAttribute(name, Value());
+	return it->second.Data;
 }
 
 bool DynamicObject::HasAttribute(const String& name) const
@@ -246,42 +246,42 @@ DynamicObject::AttributeConstIterator DynamicObject::AttributeEnd(void) const
 
 String DynamicObject::GetType(void) const
 {
-	String type;
-	GetAttribute("__type", &type);
-	return type;
+	return Get("__type");
 }
 
 String DynamicObject::GetName(void) const
 {
-	String name;
-	GetAttribute("__name", &name);
-	return name;
+	return Get("__name");
 }
 
 bool DynamicObject::IsLocal(void) const
 {
-	long local = 0;
-	GetAttribute("__local", &local);
-	return (local != 0);
+	Value value = Get("__local");
+
+	if (value.IsEmpty())
+		return false;
+
+	return (value != 0);
 }
 
 bool DynamicObject::IsAbstract(void) const
 {
-	long abstract = 0;
-	GetAttribute("__abstract", &abstract);
-	return (abstract != 0);
+	Value value = Get("__abstract");
+
+	if (value.IsEmpty())
+		return false;
+
+	return (value != 0);
 }
 
 void DynamicObject::SetSource(const String& value)
 {
-	SetAttribute("__source", value);
+	Set("__source", value);
 }
 
 String DynamicObject::GetSource(void) const
 {
-	String source;
-	GetAttribute("__source", &source);
-	return source;
+	return Get("__source");
 }
 
 void DynamicObject::Register(void)
@@ -351,8 +351,13 @@ pair<DynamicObject::NameMap::iterator, DynamicObject::NameMap::iterator> Dynamic
 ScriptTask::Ptr DynamicObject::InvokeMethod(const String& method,
     const vector<Value>& arguments, ScriptTask::CompletionCallback callback)
 {
-	Dictionary::Ptr methods;
-	if (!GetAttribute("methods", &methods) || !methods->Contains(method))
+	Value value = Get("methods");
+
+	if (!value.IsObjectType<Dictionary>())
+		return ScriptTask::Ptr();
+
+	Dictionary::Ptr methods = value;
+	if (!methods->Contains(method))
 		return ScriptTask::Ptr();
 
 	String funcName = methods->Get(method);

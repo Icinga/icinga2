@@ -25,8 +25,7 @@ REGISTER_CLASS(ServiceGroup);
 
 String ServiceGroup::GetAlias(void) const
 {
-	String value;
-	GetAttribute("alias", &value);
+	String value = Get("alias");
 
 	if (!value.IsEmpty())
 		return value;
@@ -36,16 +35,12 @@ String ServiceGroup::GetAlias(void) const
 
 String ServiceGroup::GetNotesUrl(void) const
 {
-	String value;
-	GetAttribute("notes_url", &value);
-	return value;
+	return Get("notes_url");
 }
 
 String ServiceGroup::GetActionUrl(void) const
 {
-	String value;
-	GetAttribute("action_url", &value);
-	return value;
+	return Get("action_url");
 }
 
 bool ServiceGroup::Exists(const String& name)

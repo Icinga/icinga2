@@ -32,8 +32,8 @@ Host::Host(const Dictionary::Ptr& properties)
 
 String Host::GetAlias(void) const
 {
-	String value;
-	if (GetAttribute("alias", &value))
+	String value = Get("alias");
+	if (!value.IsEmpty())
 		return value;
 	else
 		return GetName();
@@ -56,17 +56,14 @@ Host::Ptr Host::GetByName(const String& name)
 
 Dictionary::Ptr Host::GetGroups(void) const
 {
-	Dictionary::Ptr value;
-	GetAttribute("hostgroups", &value);
-	return value;
+	return Get("hostgroups");
 }
 
 set<String> Host::GetParents(void)
 {
 	set<String> parents;
 
-	Dictionary::Ptr dependencies;
-	GetAttribute("dependencies", &dependencies);
+	Dictionary::Ptr dependencies = Get("dependencies");
 	if (dependencies) {
 		dependencies = Service::ResolveDependencies(GetSelf(), dependencies);
 
@@ -89,15 +86,12 @@ set<String> Host::GetParents(void)
 
 Dictionary::Ptr Host::GetMacros(void) const
 {
-	Dictionary::Ptr value;
-	GetAttribute("macros", &value);
-	return value;
+	return Get("macros");
 }
 
 bool Host::IsReachable(void)
 {
-	Dictionary::Ptr dependencies;
-	GetAttribute("dependencies", &dependencies);
+	Dictionary::Ptr dependencies = Get("dependencies");
 	if (dependencies) {
 		dependencies = Service::ResolveDependencies(GetSelf(), dependencies);
 
@@ -117,8 +111,7 @@ bool Host::IsReachable(void)
 
 bool Host::IsUp(void)
 {
-	Dictionary::Ptr hostchecks;
-	GetAttribute("hostchecks", &hostchecks);
+	Dictionary::Ptr hostchecks = Get("hostchecks");
 	if (hostchecks) {
 		hostchecks = Service::ResolveDependencies(GetSelf(), hostchecks);
 

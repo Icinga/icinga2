@@ -5,6 +5,7 @@ using namespace icinga;
 const size_t String::NPos = std::string::npos;
 
 String::String(void)
+	: m_Data()
 { }
 
 String::String(const char *data)
@@ -181,6 +182,21 @@ bool icinga::operator==(const String& lhs, const char *rhs)
 bool icinga::operator==(const char *lhs, const String& rhs)
 {
 	return lhs == static_cast<std::string>(rhs);
+}
+
+bool icinga::operator!=(const String& lhs, const String& rhs)
+{
+	return static_cast<std::string>(lhs) != static_cast<std::string>(rhs);
+}
+
+bool icinga::operator!=(const String& lhs, const char *rhs)
+{
+	return static_cast<std::string>(lhs) != rhs;
+}
+
+bool icinga::operator!=(const char *lhs, const String& rhs)
+{
+	return lhs != static_cast<std::string>(rhs);
 }
 
 String::Iterator icinga::range_begin(String& x)

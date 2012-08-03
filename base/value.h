@@ -131,6 +131,8 @@ private:
 	mutable boost::variant<boost::blank, double, String, Object::Ptr> m_Value;
 };
 
+static Value Empty;
+
 }
 
 #endif /* VALUE_H */

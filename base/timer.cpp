@@ -96,7 +96,7 @@ void Timer::Call(void)
 
 	double et = Utility::GetTime();
 
-	if (et - st > 3) {
+	if (et - st > 1.0) {
 		stringstream msgbuf;
 		msgbuf << "Timer call took " << et - st << " seconds.";
 		Logger::Write(LogWarning, "base", msgbuf.str());

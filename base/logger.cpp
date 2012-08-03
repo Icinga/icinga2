@@ -39,8 +39,8 @@ Logger::Logger(const Dictionary::Ptr& properties)
 	if (!IsLocal())
 		throw_exception(runtime_error("Logger objects must be local."));
 
-	String type;
-	if (!GetAttribute("type", &type))
+	String type = Get("type");
+	if (type.IsEmpty())
 		throw_exception(runtime_error("Logger objects must have a 'type' property."));
 
 	ILogger::Ptr impl;
@@ -52,8 +52,8 @@ Logger::Logger(const Dictionary::Ptr& properties)
 		throw_exception(invalid_argument("Syslog is not supported on Windows."));
 #endif /* _WIN32 */
 	} else if (type == "file") {
-		String path;
-		if (!GetAttribute("path", &path))
+		String path = Get("path");
+		if (path.IsEmpty())
 			throw_exception(invalid_argument("'log' object of type 'file' must have a 'path' property"));
 
 		StreamLogger::Ptr slogger = boost::make_shared<StreamLogger>();
@@ -96,9 +96,11 @@ void Logger::Write(LogSeverity severity, const String& facility,
  */
 LogSeverity Logger::GetMinSeverity(void) const
 {
-	String strSeverity = "information";
-	GetAttribute("severity", &strSeverity);
-	return Logger::StringToSeverity(strSeverity);
+	String severity = Get("severity");
+	if (severity.IsEmpty())
+		return LogInformation;
+	else
+		return Logger::StringToSeverity(severity);
 }
 
 /**

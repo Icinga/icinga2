@@ -21,19 +21,33 @@
 
 using namespace icinga;
 
+mutex Object::m_Mutex;
 vector<Object::Ptr> Object::m_HeldObjects;
+#ifdef _DEBUG
+set<Object *> Object::m_AliveObjects;
+#endif /* _DEBUG */
 
 /**
  * Default constructor for the Object class.
  */
 Object::Object(void)
-{ }
+{
+#ifdef _DEBUG
+	mutex::scoped_lock lock(m_Mutex);
+	m_AliveObjects.insert(this);
+#endif /* _DEBUG */
+}
 
 /**
  * Destructor for the Object class.
  */
 Object::~Object(void)
-{ }
+{
+#ifdef _DEBUG
+	mutex::scoped_lock lock(m_Mutex);
+	m_AliveObjects.erase(this);
+#endif /* _DEBUG */
+}
 
 /**
  * Temporarily holds onto a reference for an object. This can
@@ -42,6 +56,7 @@ Object::~Object(void)
  */
 void Object::Hold(void)
 {
+	mutex::scoped_lock lock(m_Mutex);
 	m_HeldObjects.push_back(GetSelf());
 }
 
@@ -50,6 +65,7 @@ void Object::Hold(void)
  */
 void Object::ClearHeldObjects(void)
 {
+	mutex::scoped_lock lock(m_Mutex);
 	m_HeldObjects.clear();
 }
 
@@ -57,3 +73,43 @@ Object::SharedPtrHolder Object::GetSelf(void)
 {
 	return Object::SharedPtrHolder(shared_from_this());
 }
+
+#ifdef _DEBUG
+int Object::GetAliveObjects(void)
+{
+	mutex::scoped_lock lock(m_Mutex);
+	return m_AliveObjects.size();
+}
+
+void Object::PrintMemoryProfile(void)
+{
+	map<String, int> types;
+
+	ofstream dictfp("dictionaries.dump.tmp");
+
+	{
+		mutex::scoped_lock lock(m_Mutex);
+		set<Object *>::iterator it;
+		BOOST_FOREACH(Object *obj, m_AliveObjects) {
+			pair<map<String, int>::iterator, bool> tt;
+			tt = types.insert(make_pair(Utility::GetTypeName(typeid(*obj)), 1));
+			if (!tt.second)
+				tt.first->second++;
+
+			if (typeid(*obj) == typeid(Dictionary)) {
+				Dictionary::Ptr dict = obj->GetSelf();
+				dictfp << Value(dict).Serialize() << std::endl;
+			}
+		}
+	}
+
+	dictfp.close();
+	rename("dictionaries.dump.tmp", "dictionaries.dump");
+
+	String type;
+	int count;
+	BOOST_FOREACH(tie(type, count), types) {
+		std::cerr << type << ": " << count << std::endl;
+	}
+}
+#endif /* _DEBUG */

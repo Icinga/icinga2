@@ -174,6 +174,9 @@ void CIBSyncComponent::LocalObjectUnregisteredHandler(const DynamicObject::Ptr& 
 
 void CIBSyncComponent::TransactionClosingHandler(const set<DynamicObject::Ptr>& modifiedObjects)
 {
+	if (modifiedObjects.empty())
+		return;
+
 	stringstream msgbuf;
 	msgbuf << "Sending " << modifiedObjects.size() << " replication updates.";
 	Logger::Write(LogInformation, "cibsync", msgbuf.str());
@@ -183,7 +186,6 @@ void CIBSyncComponent::TransactionClosingHandler(const set<DynamicObject::Ptr>& 
 				continue;
 
 		RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", DynamicObject::GetCurrentTx(), true);
-
 		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
 	}
 }

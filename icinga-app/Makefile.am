@@ -9,6 +9,7 @@ icinga_SOURCES = \
 
 icinga_CPPFLAGS = \
 	-DI2_ICINGALAUNCHER_BUILD \
+	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/base \
 	-I${top_srcdir}/dyn \
@@ -20,6 +21,7 @@ icinga_LDFLAGS = \
 	$(BOOST_LDFLAGS)
 
 icinga_LDADD = \
+	$(LIBLTDL) \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	${top_builddir}/base/libbase.la \

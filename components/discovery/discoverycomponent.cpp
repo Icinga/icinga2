@@ -316,8 +316,8 @@ bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, cons
 	Value roleName;
 	BOOST_FOREACH(tie(tuples::ignore, roleName), roles) {
 		DynamicObject::Ptr role = DynamicObject::GetObject("Role", roleName);
-		Dictionary::Ptr permissions;
-		if (!role->GetAttribute(messageType, &permissions))
+		Dictionary::Ptr permissions = role->Get(messageType);
+		if (!permissions)
 			continue;
 
 		Value permission;
@@ -359,7 +359,7 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const String& identity, const D
 	DynamicObject::Ptr endpointConfig = DynamicObject::GetObject("Endpoint", identity);
 	Dictionary::Ptr roles;
 	if (endpointConfig)
-		endpointConfig->GetAttribute("roles", &roles);
+		roles = endpointConfig->Get("roles");
 
 	Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(identity);
 
@@ -449,8 +449,9 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 		if (endpointManager->GetEndpointByIdentity(object->GetName()))
 			continue;
 
-		String node, service;
-		if (object->GetAttribute("node", &node) && object->GetAttribute("service", &service)) {
+		String node = object->Get("node");
+		String service = object->Get("service");
+		if (!node.IsEmpty() && !service.IsEmpty()) {
 			/* reconnect to this endpoint */
 			endpointManager->AddConnection(node, service);
 		}

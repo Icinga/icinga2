@@ -25,8 +25,7 @@ REGISTER_CLASS(HostGroup);
 
 String HostGroup::GetAlias(void) const
 {
-	String value;
-	GetAttribute("alias", &value);
+	String value = Get("alias");
 
 	if (!value.IsEmpty())
 		return value;
@@ -36,16 +35,12 @@ String HostGroup::GetAlias(void) const
 
 String HostGroup::GetNotesUrl(void) const
 {
-	String value;
-	GetAttribute("notes_url", &value);
-	return value;
+	return Get("notes_url");
 }
 
 String HostGroup::GetActionUrl(void) const
 {
-	String value;
-	GetAttribute("action_url", &value);
-	return value;
+	return Get("action_url");
 }
 
 bool HostGroup::Exists(const String& name)

@@ -52,9 +52,9 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 
 String Service::GetAlias(void) const
 {
-	String value;
+	String value = Get("alias");
 
-	if (GetAttribute("alias", &value))
+	if (!value.IsEmpty())
 		return value;
 
 	return GetName();
@@ -77,8 +77,9 @@ Service::Ptr Service::GetByName(const String& name)
 
 Host::Ptr Service::GetHost(void) const
 {
-	String hostname;
-	if (!GetAttribute("host_name", &hostname))
+	String hostname = Get("host_name");
+
+	if (hostname.IsEmpty())
 		throw_exception(runtime_error("Service object is missing the 'host_name' property."));
 
 	return Host::GetByName(hostname);
@@ -86,29 +87,30 @@ Host::Ptr Service::GetHost(void) const
 
 Dictionary::Ptr Service::GetMacros(void) const
 {
-	Dictionary::Ptr macros;
-	GetAttribute("macros", &macros);
-	return macros;
+	return Get("macros");
 }
 
 String Service::GetCheckCommand(void) const
 {
-	String value;
-	GetAttribute("check_command", &value);
-	return value;
+	return Get("check_command");
 }
 
 long Service::GetMaxCheckAttempts(void) const
 {
-	long value = 3;
-	GetAttribute("max_check_attempts", &value);
+	Value value = Get("max_check_attempts");
+
+	if (value.IsEmpty())
+		return 3;
+
 	return value;
 }
 
 long Service::GetCheckInterval(void) const
 {
-	long value = 300;
-	GetAttribute("check_interval", &value);
+	Value value = Get("check_interval");
+
+	if (value.IsEmpty())
+		return 300;
 
 	if (value < 15)
 		value = 15;
@@ -118,18 +120,17 @@ long Service::GetCheckInterval(void) const
 
 long Service::GetRetryInterval(void) const
 {
-	long value;
-	if (!GetAttribute("retry_interval", &value))
-		value = GetCheckInterval() / 5;
+	Value value = Get("retry_interval");
+
+	if (value.IsEmpty())
+		return GetCheckInterval() / 5;
 
 	return value;
 }
 
 Dictionary::Ptr Service::GetDependencies(void) const
 {
-	Dictionary::Ptr value;
-	GetAttribute("dependencies", &value);
-	return value;
+	return Get("dependencies");
 }
 
 void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
@@ -154,16 +155,12 @@ void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
 
 Dictionary::Ptr Service::GetGroups(void) const
 {
-	Dictionary::Ptr value;
-	GetAttribute("servicegroups", &value);
-	return value;
+	return Get("servicegroups");
 }
 
 Dictionary::Ptr Service::GetCheckers(void) const
 {
-	Dictionary::Ptr value;
-	GetAttribute("checkers", &value);
-	return value;
+	return Get("checkers");
 }
 
 bool Service::IsReachable(void) const
@@ -200,33 +197,39 @@ bool Service::IsReachable(void) const
 
 void Service::SetSchedulingOffset(long offset)
 {
-	SetAttribute("scheduling_offset", offset);
+	Set("scheduling_offset", offset);
 }
 
 long Service::GetSchedulingOffset(void)
 {
-	long value;
-	if (!GetAttribute("scheduling_offset", &value)) {
+	Value value = Get("scheduling_offset");
+
+	if (value.IsEmpty()) {
 		value = rand();
 		SetSchedulingOffset(value);
 	}
+
 	return value;
 }
 
 void Service::SetNextCheck(double nextCheck)
 {
-	SetAttribute("next_check", nextCheck);
+	Set("next_check", nextCheck);
 }
 
 double Service::GetNextCheck(void)
 {
-	double value;
-	if (!GetAttribute("next_check", &value)) {
+	Value value = Get("next_check");
+
+	if (value.IsEmpty()) {
 		UpdateNextCheck();
 
-		if (!GetAttribute("next_check", &value))
+		value = Get("next_check");
+
+		if (value.IsEmpty())
 			throw_exception(runtime_error("Failed to schedule next check."));
 	}
+
 	return value;
 }
 
@@ -246,87 +249,98 @@ void Service::UpdateNextCheck(void)
 
 void Service::SetChecker(const String& checker)
 {
-	SetAttribute("checker", checker);
+	Set("checker", checker);
 }
 
 String Service::GetChecker(void) const
 {
-	String value;
-	GetAttribute("checker", &value);
-	return value;
+	return Get("checker");
 }
 
 void Service::SetCurrentCheckAttempt(long attempt)
 {
-	SetAttribute("check_attempt", attempt);
+	Set("check_attempt", attempt);
 }
 
 long Service::GetCurrentCheckAttempt(void) const
 {
-	long value = 1;
-	GetAttribute("check_attempt", &value);
+	Value value = Get("check_attempt");
+
+	if (value.IsEmpty())
+		return 1;
+
 	return value;
 }
 
 void Service::SetState(ServiceState state)
 {
-	SetAttribute("state", static_cast<long>(state));
+	Set("state", static_cast<long>(state));
 }
 
 ServiceState Service::GetState(void) const
 {
-	long value = StateUnknown;
-	GetAttribute("state", &value);
-	return static_cast<ServiceState>(value);
+	Value value = Get("state");
+
+	if (value.IsEmpty())
+		return StateUnknown;
+
+	int ivalue = static_cast<int>(value);
+	return static_cast<ServiceState>(ivalue);
 }
 
 void Service::SetStateType(ServiceStateType type)
 {
-	SetAttribute("state_type", static_cast<long>(type));
+	Set("state_type", static_cast<long>(type));
 }
 
 ServiceStateType Service::GetStateType(void) const
 {
-	long value = StateTypeHard;
-	GetAttribute("state_type", &value);
-	return static_cast<ServiceStateType>(value);
+	Value value = Get("state_type");
+
+	if (value.IsEmpty())
+		return StateTypeHard;
+
+	int ivalue = static_cast<int>(value);
+	return static_cast<ServiceStateType>(ivalue);
 }
 
 void Service::SetLastCheckResult(const Dictionary::Ptr& result)
 {
-	SetAttribute("last_result", result);
+	Set("last_result", result);
 }
 
 Dictionary::Ptr Service::GetLastCheckResult(void) const
 {
-	Dictionary::Ptr value;
-	GetAttribute("last_result", &value);
-	return value;
+	return Get("last_result");
 }
 
 void Service::SetLastStateChange(double ts)
 {
-	SetAttribute("last_state_change", static_cast<long>(ts));
+	Set("last_state_change", static_cast<long>(ts));
 }
 
 double Service::GetLastStateChange(void) const
 {
-	long value;
-	if (!GetAttribute("last_state_change", &value))
-		value = IcingaApplication::GetInstance()->GetStartTime();
+	Value value = Get("last_state_change");
+
+	if (value.IsEmpty())
+		return IcingaApplication::GetInstance()->GetStartTime();
+
 	return value;
 }
 
 void Service::SetLastHardStateChange(double ts)
 {
-	SetAttribute("last_hard_state_change", ts);
+	Set("last_hard_state_change", ts);
 }
 
 double Service::GetLastHardStateChange(void) const
 {
-	double value;
-	if (!GetAttribute("last_hard_state_change", &value))
+	Value value = Get("last_hard_state_change");
+
+	if (value.IsEmpty())
 		value = IcingaApplication::GetInstance()->GetStartTime();
+
 	return value;
 }
 
@@ -442,8 +456,7 @@ bool Service::IsAllowedChecker(const String& checker) const
 
 Dictionary::Ptr Service::ResolveDependencies(const Host::Ptr& host, const Dictionary::Ptr& dependencies)
 {
-	Dictionary::Ptr services;
-	host->GetAttribute("services", &services);
+	Dictionary::Ptr services = host->Get("services");
 
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();
 

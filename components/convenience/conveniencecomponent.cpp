@@ -30,38 +30,40 @@ void ConvenienceComponent::Start(void)
 	ConfigItem::OnRemoved.connect(boost::bind(&ConvenienceComponent::HostRemovedHandler, this, _1));
 }
 
-void ConvenienceComponent::CopyServiceAttributes(const Host::Ptr& host, const Dictionary::Ptr& serviceDesc, const ConfigItemBuilder::Ptr& builder)
+template<typename TDict>
+static void CopyServiceAttributes(const Host::Ptr& host, TDict serviceDesc,
+    const ConfigItemBuilder::Ptr& builder)
 {
 	/* TODO: we only need to copy macros if this is an inline definition,
 	 * i.e. host->GetProperties() != service, however for now we just
 	 * copy them anyway. */
-	Dictionary::Ptr macros;
-	if (serviceDesc->Get("macros", &macros))
+	Value macros = serviceDesc->Get("macros");
+	if (!macros.IsEmpty())
 		builder->AddExpression("macros", OperatorPlus, macros);
 
-	long checkInterval;
-	if (serviceDesc->Get("check_interval", &checkInterval))
+	Value checkInterval = serviceDesc->Get("check_interval");
+	if (!checkInterval.IsEmpty())
 		builder->AddExpression("check_interval", OperatorSet, checkInterval);
 
-	long retryInterval;
-	if (serviceDesc->Get("retry_interval", &retryInterval))
+	Value retryInterval = serviceDesc->Get("retry_interval");
+	if (!retryInterval.IsEmpty())
 		builder->AddExpression("retry_interval", OperatorSet, retryInterval);
 
-	Dictionary::Ptr sgroups;
-	if (serviceDesc->Get("servicegroups", &sgroups))
+	Value sgroups = serviceDesc->Get("servicegroups");
+	if (!sgroups.IsEmpty())
 		builder->AddExpression("servicegroups", OperatorPlus, sgroups);
 
-	Dictionary::Ptr checkers;
-	if (serviceDesc->Get("checkers", &checkers))
+	Value checkers = serviceDesc->Get("checkers");
+	if (!checkers.IsEmpty())
 		builder->AddExpression("checkers", OperatorSet, checkers);
 
-	Dictionary::Ptr dependencies;
-	if (serviceDesc->Get("dependencies", &dependencies))
+	Value dependencies = serviceDesc->Get("dependencies");
+	if (!dependencies.IsEmpty())
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, dependencies));
 
-	Dictionary::Ptr hostchecks;
-	if (serviceDesc->Get("hostchecks", &hostchecks))
+	Value hostchecks = serviceDesc->Get("hostchecks");
+	if (!hostchecks.IsEmpty())
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, hostchecks));
 }
@@ -77,14 +79,12 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 	if (!host)
 		return;
 
-	Dictionary::Ptr oldServices;
-	host->GetAttribute("convenience_services", &oldServices);
+	Dictionary::Ptr oldServices = host->Get("convenience_services");
 
 	Dictionary::Ptr newServices;
 	newServices = boost::make_shared<Dictionary>();
 
-	Dictionary::Ptr serviceDescs;
-	host->GetAttribute("services", &serviceDescs);
+	Dictionary::Ptr serviceDescs = host->Get("services");
 
 	if (serviceDescs) {
 		String svcname;
@@ -100,15 +100,15 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 			builder->AddExpression("host_name", OperatorSet, item->GetName());
 			builder->AddExpression("alias", OperatorSet, svcname);
 
-			CopyServiceAttributes(host, host->GetProperties(), builder);
+			CopyServiceAttributes(host, host, builder);
 
 			if (svcdesc.IsScalar()) {
 				builder->AddParent(svcdesc);
 			} else if (svcdesc.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr service = svcdesc;
 
-				String parent;
-				if (!service->Get("service", &parent))
+				String parent = service->Get("service");
+				if (parent.IsEmpty())
 					parent = svcname;
 
 				builder->AddParent(parent);
@@ -136,7 +136,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 		}
 	}
 
-	host->SetAttribute("convenience_services", newServices);
+	host->Set("convenience_services", newServices);
 }
 
 void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
@@ -149,8 +149,7 @@ void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
 	if (!host)
 		return;
 
-	Dictionary::Ptr services;
-	host->GetAttribute("convenience_services", &services);
+	Dictionary::Ptr services = host->Get("convenience_services");
 
 	if (!services)
 		return;

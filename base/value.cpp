@@ -22,6 +22,8 @@
 
 using namespace icinga;
 
+Value Empty;
+
 /**
  * Checks whether the variant is empty.
  *

@@ -45,7 +45,17 @@ void Event::ProcessEvents(const system_time& wait_until)
 	}
 
 	BOOST_FOREACH(const Event& ev, events) {
+		double st = Utility::GetTime();
+
 		ev.m_Callback();
+
+		double et = Utility::GetTime();
+
+		if (et - st > 1.0) {
+			stringstream msgbuf;
+			msgbuf << "Event call took " << et - st << " seconds.";
+			Logger::Write(LogWarning, "base", msgbuf.str());
+		}
 	}
 }
 

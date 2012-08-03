@@ -75,6 +75,11 @@ public:
 
 	SharedPtrHolder GetSelf(void);
 
+#ifdef _DEBUG
+	static int GetAliveObjects(void);
+	static void PrintMemoryProfile(void);
+#endif /* _DEBUG */
+
 protected:
 	Object(void);
 	virtual ~Object(void);
@@ -83,7 +88,11 @@ private:
 	Object(const Object& other);
 	Object operator=(const Object& rhs);
 
+	static mutex m_Mutex;
 	static vector<Object::Ptr> m_HeldObjects;
+#ifdef _DEBUG
+	static set<Object *> m_AliveObjects;
+#endif /* _DEBUG */
 };
 
 /**

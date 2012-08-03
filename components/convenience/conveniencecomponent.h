@@ -32,7 +32,6 @@ public:
 	virtual void Start(void);
 
 private:
-	void CopyServiceAttributes(const Host::Ptr& host, const Dictionary::Ptr& serviceDesc, const ConfigItemBuilder::Ptr& builder);
 	void HostAddedHandler(const ConfigItem::Ptr& item);
 	void HostCommittedHandler(const ConfigItem::Ptr& item);
 	void HostRemovedHandler(const ConfigItem::Ptr& item);

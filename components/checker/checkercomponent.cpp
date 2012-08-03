@@ -78,7 +78,7 @@ void CheckerComponent::CheckTimerHandler(void)
 		task = service->InvokeMethod("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, _1));
 		assert(task); /* TODO: gracefully handle missing methods */
 
-		service->SetAttribute("current_task", task);
+		service->Set("current_task", task);
 
 		tasks++;
 	}
@@ -92,7 +92,7 @@ void CheckerComponent::CheckTimerHandler(void)
 
 void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const ScriptTask::Ptr& task)
 {
-	service->ClearAttribute("current_task");
+	service->Set("current_task", Empty);
 
 	try {
 		Value vresult = task->GetResult();
