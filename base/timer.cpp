@@ -27,9 +27,8 @@ Timer::CollectionType Timer::m_Timers;
  * Constructor for the Timer class.
  */
 Timer::Timer(void)
-{
-	m_Interval = 0;
-}
+	: m_Interval(0)
+{ }
 
 /**
  * Calls expired timers and returned when the next wake-up should happen.

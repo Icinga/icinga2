@@ -26,13 +26,15 @@ namespace icinga
 class I2_BASE_API Event
 {
 public:
+	typedef function<void ()> Callback;
+
 	static void ProcessEvents(const system_time& wait_until);
-	static void Post(const function<void ()>& callback);
+	static void Post(const Callback& callback);
 
 private:
-	Event(const function<void ()>& callback);
+	Event(const Callback& callback);
 
-	function<void ()> m_Callback;
+	Callback m_Callback;
 
 	static vector<Event> m_Events;
 	static condition_variable m_EventAvailable;

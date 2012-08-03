@@ -210,6 +210,8 @@ void CIBSyncComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, co
 
 	DynamicObject::Ptr object = DynamicObject::GetObject(type, name);
 
+	// TODO: sanitize update, disallow __local
+
 	if (!object) {
 		object = DynamicObject::Create(type, update);
 

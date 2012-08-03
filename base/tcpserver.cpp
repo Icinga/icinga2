@@ -25,16 +25,15 @@ using namespace icinga;
  * Constructor for the TcpServer class.
  */
 TcpServer::TcpServer(void)
-{
-	m_ClientFactory = boost::bind(&TcpClientFactory, RoleInbound);
-}
+	: m_ClientFactory(boost::bind(&TcpClientFactory, RoleInbound))
+{ }
 
 /**
  * Sets the client factory.
  *
  * @param clientFactory The client factory function.
  */
-void TcpServer::SetClientFactory(function<TcpClient::Ptr(SOCKET)> clientFactory)
+void TcpServer::SetClientFactory(const TcpServer::ClientFactory& clientFactory)
 {
 	m_ClientFactory = clientFactory;
 }
@@ -44,7 +43,7 @@ void TcpServer::SetClientFactory(function<TcpClient::Ptr(SOCKET)> clientFactory)
  *
  * @returns The client factory function.
  */
-function<TcpClient::Ptr(SOCKET)> TcpServer::GetFactoryFunction(void) const
+TcpServer::ClientFactory TcpServer::GetFactoryFunction(void) const
 {
 	return m_ClientFactory;
 }
@@ -87,3 +86,4 @@ void TcpServer::HandleReadable(void)
 
 	Event::Post(boost::bind(boost::ref(OnNewClient), GetSelf(), client));
 }
+

@@ -30,12 +30,10 @@ bool I2_EXPORT TlsClient::m_SSLIndexInitialized = false;
  * @param role The role of the client.
  * @param sslContext The SSL context for the client.
  */
-TlsClient::TlsClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext) : TcpClient(role)
-{
-	m_SSLContext = sslContext;
-	m_BlockRead = false;
-	m_BlockWrite = false;
-}
+TlsClient::TlsClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
+	: TcpClient(role), m_SSLContext(sslContext),
+	  m_BlockRead(false), m_BlockWrite(false)
+{ }
 
 void TlsClient::Start(void)
 {

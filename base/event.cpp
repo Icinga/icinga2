@@ -25,7 +25,7 @@ vector<Event> Event::m_Events;
 condition_variable Event::m_EventAvailable;
 mutex Event::m_Mutex;
 
-Event::Event(const function<void ()>& callback)
+Event::Event(const Event::Callback& callback)
 	: m_Callback(callback)
 { }
 
@@ -59,7 +59,7 @@ void Event::ProcessEvents(const system_time& wait_until)
 	}
 }
 
-void Event::Post(const function<void ()>& callback)
+void Event::Post(const Event::Callback& callback)
 {
 	if (Application::IsMainThread()) {
 		callback();
@@ -74,3 +74,4 @@ void Event::Post(const function<void ()>& callback)
 		m_EventAvailable.notify_all();
 	}
 }
+

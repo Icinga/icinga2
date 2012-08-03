@@ -35,10 +35,12 @@ public:
 	typedef shared_ptr<TcpServer> Ptr;
 	typedef weak_ptr<TcpServer> WeakPtr;
 
+	typedef function<TcpClient::Ptr(SOCKET)> ClientFactory;
+
 	TcpServer(void);
 
-	void SetClientFactory(function<TcpClient::Ptr(SOCKET)> function);
-	function<TcpClient::Ptr(SOCKET)> GetFactoryFunction(void) const;
+	void SetClientFactory(const ClientFactory& function);
+	ClientFactory GetFactoryFunction(void) const;
 
 	void Listen(void);
 
@@ -50,7 +52,7 @@ protected:
 	virtual void HandleReadable(void);
 
 private:
-	function<TcpClient::Ptr(SOCKET)> m_ClientFactory;
+	ClientFactory m_ClientFactory;
 };
 
 }

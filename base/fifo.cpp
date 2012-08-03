@@ -27,12 +27,8 @@ using namespace icinga;
  * Constructor for the FIFO class.
  */
 FIFO::FIFO(void)
-{
-	m_Buffer = NULL;
-	m_DataSize = 0;
-	m_AllocSize = 0;
-	m_Offset = 0;
-}
+	: m_Buffer(NULL), m_DataSize(0), m_AllocSize(0), m_Offset(0)
+{ }
 
 /**
  * Destructor for the FIFO class.
