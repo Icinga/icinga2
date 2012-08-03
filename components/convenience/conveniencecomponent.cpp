@@ -70,14 +70,14 @@ static void CopyServiceAttributes(const Host::Ptr& host, TDict serviceDesc,
 
 void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 {
-	if (item->GetType() != "host")
+	if (item->GetType() != "Host")
+		return;
+
+	/* ignore abstract host objects */
+	if (!Host::Exists(item->GetName()))
 		return;
 
 	Host::Ptr host = Host::GetByName(item->GetName());
-
-	/* ignore abstract host objects */
-	if (!host)
-		return;
 
 	Dictionary::Ptr oldServices = host->Get("convenience_services");
 
@@ -95,7 +95,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 			String name = namebuf.str();
 
 			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
-			builder->SetType("service");
+			builder->SetType("Service");
 			builder->SetName(name);
 			builder->AddExpression("host_name", OperatorSet, item->GetName());
 			builder->AddExpression("alias", OperatorSet, svcname);
@@ -141,7 +141,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 
 void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
 {
-	if (item->GetType() != "host")
+	if (item->GetType() != "Host")
 		return;
 
 	DynamicObject::Ptr host = item->GetDynamicObject();
