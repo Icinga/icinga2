@@ -24,6 +24,7 @@ using namespace icinga;
 REGISTER_CLASS(Service);
 
 boost::signal<void (const Service::Ptr&, const CheckResultMessage&)> Service::OnCheckResultReceived;
+boost::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChanged;
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
@@ -473,4 +474,10 @@ Dictionary::Ptr Service::ResolveDependencies(const Host::Ptr& host, const Dictio
 	}
 
 	return result;
+}
+
+void Service::OnAttributeChanged(const String& name, const Value& oldValue)
+{
+	if (name == "checker")
+		OnCheckerChanged(GetSelf(), oldValue);
 }

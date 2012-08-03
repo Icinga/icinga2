@@ -95,6 +95,7 @@ using std::map;
 using std::list;
 using std::set;
 using std::multimap;
+using std::multiset;
 using std::pair;
 using std::deque;
 using std::make_pair;

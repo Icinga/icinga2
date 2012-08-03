@@ -38,6 +38,9 @@ enum DynamicAttributeType
 	/* Attributes read from the config file are implicitly marked
 	 * as config attributes. */
 	Attribute_Config = 8,
+
+	/* Combination of all attribute types */
+	Attribute_All = Attribute_Transient | Attribute_Local | Attribute_Replicated | Attribute_Config
 };
 
 struct DynamicAttribute
@@ -71,8 +74,7 @@ public:
 	DynamicObject(const Dictionary::Ptr& serializedObject);
 
 	Dictionary::Ptr BuildUpdate(double sinceTx, int attributeTypes) const;
-	void ApplyUpdate(const Dictionary::Ptr& serializedUpdate, bool suppressEvents = false);
-	static void SanitizeUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes);
+	void ApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes);
 
 	void RegisterAttribute(const String& name, DynamicAttributeType type);
 
@@ -86,7 +88,6 @@ public:
 	AttributeConstIterator AttributeBegin(void) const;
 	AttributeConstIterator AttributeEnd(void) const;
 
-	static boost::signal<void (const DynamicObject::Ptr&, const String& name)> OnAttributeChanged;
 	static boost::signal<void (const DynamicObject::Ptr&)> OnRegistered;
 	static boost::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
 	static boost::signal<void (const set<DynamicObject::Ptr>&)> OnTransactionClosing;
@@ -123,6 +124,9 @@ public:
 	static void BeginTx(void);
 	static void FinishTx(void);
 
+protected:
+	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
+
 private:
 	void InternalSetAttribute(const String& name, const Value& data, double tx, bool suppressEvent = false);
 	Value InternalGetAttribute(const String& name) const;
@@ -137,6 +141,8 @@ private:
 	static double m_CurrentTx;
 
 	static set<DynamicObject::Ptr> m_ModifiedObjects;
+
+	void InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes, bool suppressEvents);
 };
 
 class RegisterClassHelper

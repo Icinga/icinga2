@@ -107,6 +107,10 @@ public:
 	static Dictionary::Ptr ResolveDependencies(const Host::Ptr& host, const Dictionary::Ptr& dependencies);
 
 	static boost::signal<void (const Service::Ptr& service, const CheckResultMessage&)> OnCheckResultReceived;
+	static boost::signal<void (const Service::Ptr&, const String&)> OnCheckerChanged;
+
+protected:
+	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 };
 
 }

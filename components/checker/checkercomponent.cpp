@@ -24,12 +24,11 @@ using namespace icinga;
 void CheckerComponent::Start(void)
 {
 	m_Endpoint = boost::make_shared<VirtualEndpoint>();
-	m_Endpoint->RegisterTopicHandler("checker::AssignService",
-		boost::bind(&CheckerComponent::AssignServiceRequestHandler, this, _2, _3));
-	m_Endpoint->RegisterTopicHandler("checker::ClearServices",
-		boost::bind(&CheckerComponent::ClearServicesRequestHandler, this, _2, _3));
 	m_Endpoint->RegisterPublication("checker::ServiceStateChange");
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
+
+	Service::OnCheckerChanged.connect(bind(&CheckerComponent::CheckerChangedHandler, this, _1));
+	DynamicObject::OnUnregistered.connect(bind(&CheckerComponent::ServiceRemovedHandler, this, _1));
 
 	m_CheckTimer = boost::make_shared<Timer>();
 	m_CheckTimer->SetInterval(1);
@@ -61,12 +60,13 @@ void CheckerComponent::CheckTimerHandler(void)
 	long tasks = 0;
 
 	while (!m_Services.empty()) {
-		Service::Ptr service = m_Services.top();
+		CheckerComponent::ServiceMultiSet::iterator it = m_Services.begin();
+		Service::Ptr service = *it;
 
 		if (service->GetNextCheck() > now)
 			break;
 
-		m_Services.pop();
+		m_Services.erase(it);
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
@@ -130,11 +130,11 @@ void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const 
 	/* remove the service from the list of pending services; if it's not in the
 	 * list this was a manual (i.e. forced) check and we must not re-add the
 	 * service to the services list because it's already there. */
-	set<Service::Ptr>::iterator it;
+	CheckerComponent::ServiceMultiSet::iterator it;
 	it = m_PendingServices.find(service);
 	if (it != m_PendingServices.end()) {
 		m_PendingServices.erase(it);
-		m_Services.push(service);
+		m_Services.insert(service);
 	}
 
 	Logger::Write(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
@@ -149,35 +149,31 @@ void CheckerComponent::ResultTimerHandler(void)
 	Logger::Write(LogInformation, "checker", msgbuf.str());
 }
 
-void CheckerComponent::AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 {
-	MessagePart params;
-	if (!request.GetParams(&params))
-		return;
+	String checker = service->GetChecker();
 
-	String service;
-	if (!params.Get("service", &service))
-		return;
+	if (checker == EndpointManager::GetInstance()->GetIdentity() || checker == m_Endpoint->GetIdentity()) {
+		if (m_PendingServices.find(service) != m_PendingServices.end())
+			return;
 
-	if (!Service::Exists(service)) {
-		Logger::Write(LogWarning, "checker", "Ignoring delegation request for unknown service '" + service + "'.");
-		return;
+		m_Services.insert(service);
+	} else {
+		m_Services.erase(service);
+		m_PendingServices.erase(service);
 	}
-
-	Service::Ptr object = Service::GetByName(service);
-
-	m_Services.push(object);
-
-	Logger::Write(LogDebug, "checker", "Accepted delegation for service '" + service + "'");
 }
 
-void CheckerComponent::ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void CheckerComponent::ServiceRemovedHandler(const DynamicObject::Ptr& object)
 {
-	Logger::Write(LogInformation, "checker", "Clearing service delegations.");
+	Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
-	/* clear the services lists */
-	m_Services = ServiceQueue();
-	m_PendingServices.clear();
+	/* ignore it if the removed object is not a service */
+	if (!service)
+		return;
+
+	m_Services.erase(service);
+	m_PendingServices.erase(service);
 }
 
 EXPORT_COMPONENT(checker, CheckerComponent);

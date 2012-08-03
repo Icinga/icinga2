@@ -82,6 +82,8 @@ Application::Ptr Application::GetInstance(void)
  */
 void Application::RunEventLoop(void)
 {
+	double nextProfile = 0;
+
 	while (!m_ShuttingDown) {
 		Object::ClearHeldObjects();
 
@@ -96,11 +98,15 @@ void Application::RunEventLoop(void)
 		DynamicObject::BeginTx();
 
 #ifdef _DEBUG
-		stringstream msgbuf;
-		msgbuf << "Active objects: " << Object::GetAliveObjects();
-		Logger::Write(LogInformation, "base", msgbuf.str());
+		if (nextProfile < Utility::GetTime()) {
+			stringstream msgbuf;
+			msgbuf << "Active objects: " << Object::GetAliveObjects();
+			Logger::Write(LogInformation, "base", msgbuf.str());
 
-		Object::PrintMemoryProfile();
+			Object::PrintMemoryProfile();
+
+			nextProfile = Utility::GetTime() + 15.0;
+		}
 #endif /* _DEBUG */
 	}
 }

@@ -106,7 +106,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	if (!dobj)
 		dobj = DynamicObject::Create(GetType(), update);
 	else
-		dobj->ApplyUpdate(update);
+		dobj->ApplyUpdate(update, Attribute_Config);
 
 	m_DynamicObject = dobj;
 

@@ -30,27 +30,15 @@ class DelegationComponent : public IComponent
 {
 public:
 	virtual void Start(void);
-	virtual void Stop(void);
 
 private:
-	VirtualEndpoint::Ptr m_Endpoint;
 	Timer::Ptr m_DelegationTimer;
 
-	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
-	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
-
-	void ServiceCommittedHandler(const DynamicObject::Ptr& object);
-	void ServiceRemovedHandler(const DynamicObject::Ptr& object);
 	void DelegationTimerHandler(void);
 
 	vector<Endpoint::Ptr> GetCheckerCandidates(const Service::Ptr& service) const;
 
-	void AssignService(const Endpoint::Ptr& checker, const Service::Ptr& service);
-	void ClearServices(const Endpoint::Ptr& checker);
-
 	static bool IsEndpointChecker(const Endpoint::Ptr& endpoint);
-
-	void CheckResultRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
 
 }

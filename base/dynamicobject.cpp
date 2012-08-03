@@ -25,7 +25,6 @@ map<pair<String, String>, Dictionary::Ptr> DynamicObject::m_PersistentUpdates;
 double DynamicObject::m_CurrentTx = 0;
 set<DynamicObject::Ptr> DynamicObject::m_ModifiedObjects;
 
-boost::signal<void (const DynamicObject::Ptr&, const String& name)> DynamicObject::OnAttributeChanged;
 boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
 boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
 boost::signal<void (const set<DynamicObject::Ptr>&)> DynamicObject::OnTransactionClosing;
@@ -43,18 +42,10 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	if (!serializedObject->Contains("configTx"))
 		throw invalid_argument("Serialized object must contain a config snapshot.");
 
-	/* apply state from the config item/remote update */
-	ApplyUpdate(serializedObject, true);
-
-	/* restore the object's persistent state */
-	map<pair<String, String>, Dictionary::Ptr>::iterator it;
-	it = m_PersistentUpdates.find(make_pair(GetType(), GetName()));
-	if (it != m_PersistentUpdates.end()) {
-		Logger::Write(LogDebug, "base",  "Restoring persistent state "
-		    "for object " + GetType() + ":" + GetName());
-		ApplyUpdate(it->second, true);
-		m_PersistentUpdates.erase(it);
-	}
+	/* apply config state from the config item/remote update;
+	 * The DynamicObject::Create function takes care of restoring
+	 * non-config state after the object has been fully constructed */
+	InternalApplyUpdate(serializedObject, Attribute_Config, true);
 }
 
 Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) const
@@ -95,10 +86,15 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 	return update;
 }
 
-void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate, bool suppressEvents)
+void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes)
+{
+	InternalApplyUpdate(serializedUpdate, allowedTypes, false);
+}
+
+void DynamicObject::InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes, bool suppressEvents)
 {
 	double configTx = 0;
-	if (serializedUpdate->Contains("configTx")) {
+	if ((allowedTypes & Attribute_Config) != 0 && serializedUpdate->Contains("configTx")) {
 		configTx = serializedUpdate->Get("configTx");
 
 		if (configTx > m_ConfigTx)
@@ -114,8 +110,12 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate, bool su
 
 		Dictionary::Ptr attr = it->second;
 
-		Value data = attr->Get("data");
 		int type = attr->Get("type");
+
+		if ((type & ~allowedTypes) != 0)
+			continue;
+
+		Value data = attr->Get("data");
 		double tx = attr->Get("tx");
 
 		if (type & Attribute_Config)
@@ -125,33 +125,6 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate, bool su
 			RegisterAttribute(it->first, static_cast<DynamicAttributeType>(type));
 
 		InternalSetAttribute(it->first, data, tx, suppressEvents);
-	}
-}
-
-void DynamicObject::SanitizeUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes)
-{
-	if ((allowedTypes & Attribute_Config) == 0)
-		serializedUpdate->Remove("configTx");
-
-	Dictionary::Ptr attrs = serializedUpdate->Get("attrs");
-
-	Dictionary::Iterator prev, it;
-	for (it = attrs->Begin(); it != attrs->End(); ) {
-		if (!it->second.IsObjectType<Dictionary>())
-			continue;
-
-		Dictionary::Ptr attr = it->second;
-
-		int type = attr->Get("type");
-
-		if (type == 0 || type & ~allowedTypes) {
-			prev = it;
-			it++;
-			attrs->Remove(prev);
-			continue;
-		}
-
-		it++;
 	}
 }
 
@@ -188,7 +161,10 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data, 
 	pair<DynamicObject::AttributeIterator, bool> tt;
 	tt = m_Attributes.insert(make_pair(name, attr));
 
+	Value oldValue;
+
 	if (!tt.second && tx >= tt.first->second.Tx) {
+		oldValue = tt.first->second.Data;
 		tt.first->second.Data = data;
 		tt.first->second.Tx = tx;
 	}
@@ -198,7 +174,7 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data, 
 
 	if (!suppressEvent) {
 		m_ModifiedObjects.insert(GetSelf());
-		DynamicObject::OnAttributeChanged(GetSelf(), name);
+		OnAttributeChanged(name, oldValue);
 	}
 }
 
@@ -494,13 +470,31 @@ void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory fac
 
 DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::Ptr& properties)
 {
-	DynamicObject::ClassMap::iterator it;
-	it = GetClasses().find(type);
+	DynamicObject::ClassMap::iterator ct;
+	ct = GetClasses().find(type);
 
-	if (it != GetClasses().end())
-		return it->second(properties);
-	else
-		return boost::make_shared<DynamicObject>(properties);
+	DynamicObject::Ptr obj;
+	if (ct != GetClasses().end()) {
+		obj = ct->second(properties);
+	} else {
+		obj = boost::make_shared<DynamicObject>(properties);
+
+		Logger::Write(LogCritical, "base", "Creating generic DynamicObject for type '" + type + "'");
+	}
+
+	/* restore the object's persistent non-config attributes */
+	map<pair<String, String>, Dictionary::Ptr>::iterator st;
+	st = m_PersistentUpdates.find(make_pair(obj->GetType(), obj->GetName()));
+	if (st != m_PersistentUpdates.end()) {
+		Logger::Write(LogDebug, "base",  "Restoring persistent state "
+		    "for object " + obj->GetType() + ":" + obj->GetName());
+		obj->ApplyUpdate(st->second, Attribute_All & ~Attribute_Config);
+
+		/* we're done with this update, remove it */
+		m_PersistentUpdates.erase(st);
+	}
+
+	return obj;
 }
 
 double DynamicObject::GetCurrentTx(void)
@@ -522,3 +516,6 @@ void DynamicObject::FinishTx(void)
 
 	m_CurrentTx = 0;
 }
+
+void DynamicObject::OnAttributeChanged(const String& name, const Value& oldValue)
+{ }

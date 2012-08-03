@@ -233,7 +233,9 @@ void CIBSyncComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, co
 		if (object->GetSource().IsEmpty())
 			object->SetSource(sender->GetIdentity());
 
-		object->ApplyUpdate(update, true);
+		// TODO: disallow config updates depending on endpoint config
+
+		object->ApplyUpdate(update, Attribute_All);
 	}
 }
 

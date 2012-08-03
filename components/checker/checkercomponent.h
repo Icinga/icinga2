@@ -41,7 +41,7 @@ public:
 	typedef shared_ptr<CheckerComponent> Ptr;
 	typedef weak_ptr<CheckerComponent> WeakPtr;
 
-	typedef priority_queue<Service::Ptr, vector<Service::Ptr>, ServiceNextCheckLessComparer> ServiceQueue;
+	typedef multiset<Service::Ptr, ServiceNextCheckLessComparer> ServiceMultiSet;
 
 	virtual void Start(void);
 	virtual void Stop(void);
@@ -49,8 +49,8 @@ public:
 private:
 	VirtualEndpoint::Ptr m_Endpoint;
 
-	ServiceQueue m_Services;
-	set<Service::Ptr> m_PendingServices;
+	ServiceMultiSet m_Services;
+	ServiceMultiSet m_PendingServices;
 
 	Timer::Ptr m_CheckTimer;
 
@@ -63,8 +63,11 @@ private:
 
 	void AdjustCheckTimer(void);
 
-	void AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
-	void ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	void CheckerChangedHandler(const Service::Ptr& service);
+	void ServiceRemovedHandler(const DynamicObject::Ptr& object);
+
+	//void AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	//void ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
 
 }
