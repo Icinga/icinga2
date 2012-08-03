@@ -21,12 +21,12 @@
 
 using namespace icinga;
 
-bool CheckResultMessage::GetService(String *service) const
+bool ServiceStateChangeMessage::GetService(String *service) const
 {
 	return Get("service", service);
 }
 
-void CheckResultMessage::SetService(const String& service)
+void ServiceStateChangeMessage::SetService(const String& service)
 {
 	Set("service", service);
 }

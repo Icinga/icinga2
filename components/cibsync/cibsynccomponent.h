@@ -36,7 +36,7 @@ private:
 	VirtualEndpoint::Ptr m_Endpoint;
 	bool m_SyncingConfig;
 
-	static void CheckResultRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	static void ServiceStateChangeRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 
 	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
 	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);

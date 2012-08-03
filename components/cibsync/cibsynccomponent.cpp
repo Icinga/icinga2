@@ -50,8 +50,8 @@ void CIBSyncComponent::Start(void)
 	    boost::bind(&CIBSyncComponent::RemoteObjectRemovedHandler, this, _3));
 
 	/* service status */
-	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
-	    boost::bind(&CIBSyncComponent::CheckResultRequestHandler, _2, _3));
+	m_Endpoint->RegisterTopicHandler("checker::ServiceStateChange",
+	    boost::bind(&CIBSyncComponent::ServiceStateChangeRequestHandler, _2, _3));
 
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 }
@@ -67,9 +67,9 @@ void CIBSyncComponent::Stop(void)
 		endpointManager->UnregisterEndpoint(m_Endpoint);
 }
 
-void CIBSyncComponent::CheckResultRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void CIBSyncComponent::ServiceStateChangeRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	CheckResultMessage params;
+	ServiceStateChangeMessage params;
 	if (!request.GetParams(&params))
 		return;
 
@@ -179,7 +179,7 @@ void CIBSyncComponent::TransactionClosingHandler(const set<DynamicObject::Ptr>& 
 
 	stringstream msgbuf;
 	msgbuf << "Sending " << modifiedObjects.size() << " replication updates.";
-	Logger::Write(LogInformation, "cibsync", msgbuf.str());
+	Logger::Write(LogDebug, "cibsync", msgbuf.str());
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, modifiedObjects) {
 		if (!ShouldReplicateObject(object))

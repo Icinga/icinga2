@@ -28,7 +28,7 @@ void CheckerComponent::Start(void)
 		boost::bind(&CheckerComponent::AssignServiceRequestHandler, this, _2, _3));
 	m_Endpoint->RegisterTopicHandler("checker::ClearServices",
 		boost::bind(&CheckerComponent::ClearServicesRequestHandler, this, _2, _3));
-	m_Endpoint->RegisterPublication("checker::CheckResult");
+	m_Endpoint->RegisterPublication("checker::ServiceStateChange");
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	m_CheckTimer = boost::make_shared<Timer>();
@@ -106,7 +106,7 @@ void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const 
 			rm.SetMethod("checker::ServiceStateChange");
 
 			/* TODO: add _old_ state to message */
-			CheckResultMessage params;
+			ServiceStateChangeMessage params;
 			params.SetService(service->GetName());
 
 			rm.SetParams(params);

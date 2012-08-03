@@ -17,27 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CHECKRESULT_H
-#define CHECKRESULT_H
+#ifndef SERVICESTATECHANGEMESSAGE_H
+#define SERVICESTATECHANGEMESSAGE_H
 
 namespace icinga
 {
 
-/*struct CheckResult
+class I2_CIB_API ServiceStateChangeMessage : public MessagePart
 {
-	static const char *ScheduleStart = "schedule_start";
-	static const char *ScheduleEnd = "schedule_end";
-	static const char *ExecutionStart = "execution_start";
-	static const char *ExecutionEnd = "execution_end";
-	static const char *State = "state";
-	static const char *Output = "output";
-	static const char *PerformanceDataRaw = "performance_data_raw";
-	static const char *PerformanceData = "performance_data";
+public:
+	ServiceStateChangeMessage(void) : MessagePart() { }
+	ServiceStateChangeMessage(const MessagePart& message) : MessagePart(message) { }
 
-private:
-	CheckResult();
-};*/
+	bool GetService(String *service) const;
+	void SetService(const String& service);
+};
 
 }
 
-#endif /* CHECKRESULT_H */
+#endif /* SERVICESTATECHANGEMESSAGE_H */

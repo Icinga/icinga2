@@ -42,11 +42,10 @@
 #include "servicegroup.h"
 
 #include "macroprocessor.h"
-#include "checkresult.h"
 #include "nagioschecktask.h"
 #include "nullchecktask.h"
 
-#include "checkresultmessage.h"
+#include "servicestatechangemessage.h"
 
 #include "cib.h"
 
