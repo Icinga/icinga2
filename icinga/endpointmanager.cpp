@@ -319,7 +319,7 @@ Endpoint::Ptr EndpointManager::GetEndpointByIdentity(const String& identity) con
 
 void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient,
     RequestMessage& message,
-    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout)
+    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, double timeout)
 {
 	m_NextMessageID++;
 
@@ -332,7 +332,7 @@ void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint
 	PendingRequest pr;
 	pr.Request = message;
 	pr.Callback = callback;
-	pr.Timeout = time(NULL) + timeout;
+	pr.Timeout = Utility::GetTime() + timeout;
 
 	m_Requests[id] = pr;
 

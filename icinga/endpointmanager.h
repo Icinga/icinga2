@@ -57,7 +57,7 @@ public:
 	void SendMulticastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
 
 	void SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, RequestMessage& message,
-	    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, time_t timeout = 30);
+	    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, double timeout = 30);
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
@@ -84,13 +84,13 @@ private:
 	 */
 	struct I2_ICINGA_API PendingRequest
 	{
-		time_t Timeout;
+		double Timeout;
 		RequestMessage Request;
 		function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> Callback;
 
 		bool HasTimedOut(void) const
 		{
-			return time(NULL) > Timeout;
+			return Utility::GetTime() > Timeout;
 		}
 	};
 

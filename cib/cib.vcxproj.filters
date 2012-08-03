@@ -35,10 +35,10 @@
     <ClInclude Include="servicegroup.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="checkresultmessage.h">
+    <ClInclude Include="nullchecktask.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="nullchecktask.h">
+    <ClInclude Include="servicestatechangemessage.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -64,13 +64,13 @@
     <ClCompile Include="servicegroup.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="checkresultmessage.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="i2-cib.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="nullchecktask.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="servicestatechangemessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

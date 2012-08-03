@@ -64,13 +64,13 @@ void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 	   << "\t" << "check_latency=0" << "\n"
 	   << "\t" << "current_state=" << state << "\n"
 	   << "\t" << "state_type=1" << "\n"
-	   << "\t" << "last_check=" << time(NULL) << "\n"
-	   << "\t" << "next_check=" << time(NULL) << "\n"
+	   << "\t" << "last_check=" << Utility::GetTime() << "\n"
+	   << "\t" << "next_check=" << Utility::GetTime() << "\n"
 	   << "\t" << "current_attempt=1" << "\n"
 	   << "\t" << "max_attempts=1" << "\n"
 	   << "\t" << "active_checks_enabled=1" << "\n"
 	   << "\t" << "passive_checks_enabled=1" << "\n"
-	   << "\t" << "last_update=" << time(NULL) << "\n"
+	   << "\t" << "last_update=" << Utility::GetTime() << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
 }
@@ -192,7 +192,7 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\n";
 
 	statusfp << "info {" << "\n"
-		 << "\t" << "created=" << time(NULL) << "\n"
+		 << "\t" << "created=" << Utility::GetTime() << "\n"
 		 << "\t" << "version=2.0" << "\n"
 		 << "\t" << "}" << "\n"
 		 << "\n";

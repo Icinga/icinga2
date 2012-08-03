@@ -47,7 +47,7 @@ public:
 	String GetPidPath(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 
-	time_t GetStartTime(void) const;
+	double GetStartTime(void) const;
 
 	static const String DefaultPidPath;
 
@@ -59,7 +59,7 @@ private:
 	String m_PidPath;
 	Dictionary::Ptr m_Macros;
 
-	time_t m_StartTime;
+	double m_StartTime;
 
 	Timer::Ptr m_RetentionTimer;
 

@@ -86,7 +86,7 @@ void CIBSyncComponent::ServiceStateChangeRequestHandler(const Endpoint::Ptr& sen
 	//Service::OnCheckResultReceived(service, params);
 	//service->ApplyCheckResult(cr);
 
-	time_t now = Utility::GetTime();
+	time_t now = static_cast<time_t>(Utility::GetTime());
 	CIB::UpdateTaskStatistics(now, 1);
 }
 

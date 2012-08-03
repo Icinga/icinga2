@@ -65,7 +65,7 @@ int IcingaApplication::Main(const vector<String>& args)
 	Logger::Write(LogInformation, "icinga", "Icinga component loader (version: " ICINGA_VERSION ")");
 #endif  /* _WIN32 */
 
-	time(&m_StartTime);
+	m_StartTime = Utility::GetTime();
 
 	if (args.size() < 2) {
 		stringstream msgbuf;
@@ -242,7 +242,7 @@ Dictionary::Ptr IcingaApplication::GetMacros(void) const
 	return m_Macros;
 }
 
-time_t IcingaApplication::GetStartTime(void) const
+double IcingaApplication::GetStartTime(void) const
 {
 	return m_StartTime;
 }
