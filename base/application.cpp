@@ -82,7 +82,9 @@ Application::Ptr Application::GetInstance(void)
  */
 void Application::RunEventLoop(void)
 {
+#ifdef _DEBUG
 	double nextProfile = 0;
+#endif /* _DEBUG */
 
 	while (!m_ShuttingDown) {
 		Object::ClearHeldObjects();
@@ -148,7 +150,7 @@ String Application::GetExePath(void) const
 		executablePath = argv0;
 
 	bool foundSlash = false;
-	for (int i = 0; i < argv0.GetLength(); i++) {
+	for (size_t i = 0; i < argv0.GetLength(); i++) {
 		if (argv0[i] == '/') {
 			foundSlash = true;
 			break;

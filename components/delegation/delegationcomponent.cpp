@@ -95,7 +95,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 	std::random_shuffle(services.begin(), services.end());
 
-	bool need_clear = false;
 	int delegated = 0;
 
 	/* re-assign services */
@@ -135,7 +134,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		/* clear the service's current checker */
 		if (!checker.IsEmpty()) {
-			need_clear = true;
 			service->SetChecker("");
 
 			if (oldEndpoint)

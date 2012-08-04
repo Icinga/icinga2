@@ -199,6 +199,8 @@ bool Process::RunTask(void)
 		outputbuf << "Process was terminated by signal " << WTERMSIG(status);
 		output = outputbuf.str();
 		exitcode = 128;
+	} else {
+		exitcode = 128;
 	}
 #endif /* _MSC_VER */
 

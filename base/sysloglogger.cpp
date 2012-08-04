@@ -10,8 +10,6 @@ using namespace icinga;
  */
 void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
 {
-	char timestamp[100];
-
 	int severity;
 	switch (entry.Severity) {
 		case LogDebug:

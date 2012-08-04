@@ -112,12 +112,8 @@ shared_ptr<X509> TlsClient::GetPeerCertificate(void) const
  */
 void TlsClient::HandleReadable(void)
 {
-	int result;
-
 	m_BlockRead = false;
 	m_BlockWrite = false;
-
-	result = 0;
 
 	for (;;) {
 		char data[1024];
