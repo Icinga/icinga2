@@ -157,6 +157,8 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 		if (m_PendingServices.find(service) != m_PendingServices.end())
 			return;
 
+		service->UpdateNextCheck();
+
 		m_Services.insert(service);
 	} else {
 		m_Services.erase(service);
