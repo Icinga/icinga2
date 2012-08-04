@@ -26,8 +26,6 @@ using namespace icinga;
  */
 void CIBSyncComponent::Start(void)
 {
-	m_SyncingConfig = false;
-
 	m_Endpoint = boost::make_shared<VirtualEndpoint>();
 
 	/* config objects */
@@ -148,10 +146,6 @@ void CIBSyncComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
 
 void CIBSyncComponent::LocalObjectRegisteredHandler(const DynamicObject::Ptr& object)
 {
-	/* don't send messages when we're currently processing a remote update */
-	if (m_SyncingConfig)
-		return;
-
 	if (!ShouldReplicateObject(object))
 		return;
 
@@ -161,10 +155,6 @@ void CIBSyncComponent::LocalObjectRegisteredHandler(const DynamicObject::Ptr& ob
 
 void CIBSyncComponent::LocalObjectUnregisteredHandler(const DynamicObject::Ptr& object)
 {
-	/* don't send messages when we're currently processing a remote update */
-	if (m_SyncingConfig)
-		return;
-
 	if (!ShouldReplicateObject(object))
 		return;
 
@@ -259,14 +249,7 @@ void CIBSyncComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
 		return;
 
 	if (!object->IsLocal()) {
-		try {
-			m_SyncingConfig = true;
-			object->Unregister();
-			m_SyncingConfig = false;
-		} catch (...) {
-			m_SyncingConfig = false;
-			throw;
-		}
+		object->Unregister();
 	}
 }
 

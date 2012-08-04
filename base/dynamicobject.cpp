@@ -468,16 +468,16 @@ void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory fac
 	GetClasses()[type] = factory;
 }
 
-DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::Ptr& properties)
+DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::Ptr& serializedUpdate)
 {
 	DynamicObject::ClassMap::iterator ct;
 	ct = GetClasses().find(type);
 
 	DynamicObject::Ptr obj;
 	if (ct != GetClasses().end()) {
-		obj = ct->second(properties);
+		obj = ct->second(serializedUpdate);
 	} else {
-		obj = boost::make_shared<DynamicObject>(properties);
+		obj = boost::make_shared<DynamicObject>(serializedUpdate);
 
 		Logger::Write(LogCritical, "base", "Creating generic DynamicObject for type '" + type + "'");
 	}
@@ -493,6 +493,9 @@ DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::P
 		/* we're done with this update, remove it */
 		m_PersistentUpdates.erase(st);
 	}
+
+	/* apply the object's non-config attributes */
+	obj->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
 
 	return obj;
 }

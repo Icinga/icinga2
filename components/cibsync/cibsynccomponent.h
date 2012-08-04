@@ -34,7 +34,6 @@ public:
 
 private:
 	VirtualEndpoint::Ptr m_Endpoint;
-	bool m_SyncingConfig;
 
 	static void ServiceStateChangeRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 
