@@ -21,7 +21,6 @@
 
 using namespace icinga;
 
-map<pair<String, String>, Dictionary::Ptr> DynamicObject::m_PersistentUpdates;
 double DynamicObject::m_CurrentTx = 0;
 set<DynamicObject::Ptr> DynamicObject::m_ModifiedObjects;
 
@@ -442,7 +441,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 		} else {
 			/* keep non-replicated objects until another config object with
 			 * the same name is created (which is when we restore its tags) */
-			m_PersistentUpdates[make_pair(type, name)] = update;
+			GetPersistentObjects()[make_pair(type, name)] = update;
 		}
 	}
 }
@@ -459,6 +458,13 @@ DynamicObject::ClassMap& DynamicObject::GetClasses(void)
 	return classes;
 }
 
+DynamicObject::PersistentUpdateMap& DynamicObject::GetPersistentObjects(void)
+{
+	static DynamicObject::PersistentUpdateMap persistentObjects;
+	return persistentObjects;
+}
+
+
 void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory factory)
 {
 	if (GetObjects(type).first != GetObjects(type).second)
@@ -469,7 +475,7 @@ void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory fac
 
 	/* restore persistent objects that match the newly-registered class */
 	map<pair<String, String>, Dictionary::Ptr>::iterator prev, st;
-	for (st = m_PersistentUpdates.begin(); st != m_PersistentUpdates.end(); st++)
+	for (st = GetPersistentObjects().begin(); st != GetPersistentObjects().end(); )
 	{
 		/* check type of the update */
 		if (st->first.first != type) {
@@ -489,7 +495,7 @@ void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory fac
 
 		prev = st;
 		st++;
-		m_PersistentUpdates.erase(prev);
+		GetPersistentObjects().erase(prev);
 	}
 
 }
@@ -515,14 +521,14 @@ DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::P
 
 	/* restore the object's persistent non-config attributes */
 	map<pair<String, String>, Dictionary::Ptr>::iterator st;
-	st = m_PersistentUpdates.find(make_pair(obj->GetType(), obj->GetName()));
-	if (st != m_PersistentUpdates.end()) {
+	st = GetPersistentObjects().find(make_pair(obj->GetType(), obj->GetName()));
+	if (st != GetPersistentObjects().end()) {
 		Logger::Write(LogDebug, "base",  "Restoring persistent state "
 		    "for object " + obj->GetType() + ":" + obj->GetName());
 		obj->ApplyUpdate(st->second, Attribute_All & ~Attribute_Config);
 
 		/* we're done with this update, remove it */
-		m_PersistentUpdates.erase(st);
+		GetPersistentObjects().erase(st);
 	}
 
 	/* apply the object's non-config attributes */

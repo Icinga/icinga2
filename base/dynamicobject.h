@@ -138,8 +138,10 @@ private:
 	AttributeMap m_Attributes;
 	double m_ConfigTx;
 
-	static map<pair<String, String>, Dictionary::Ptr> m_PersistentUpdates;
 	static double m_CurrentTx;
+
+	typedef map<pair<String, String>, Dictionary::Ptr> PersistentUpdateMap;
+	static PersistentUpdateMap& GetPersistentObjects(void);
 
 	static set<DynamicObject::Ptr> m_ModifiedObjects;
 
