@@ -30,9 +30,16 @@
 #include <i2-icinga.h>
 #include <i2-cib.h>
 
-#include <queue>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/key_extractors.hpp>
 
-using std::priority_queue;
+using boost::multi_index_container;
+using boost::multi_index::indexed_by;
+using boost::multi_index::identity;
+using boost::multi_index::ordered_unique;
+using boost::multi_index::ordered_non_unique;
+using boost::multi_index::nth_index;
 
 #include "checkercomponent.h"
 

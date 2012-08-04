@@ -59,14 +59,17 @@ void CheckerComponent::CheckTimerHandler(void)
 	double now = Utility::GetTime();
 	long tasks = 0;
 
-	while (!m_Services.empty()) {
-		CheckerComponent::ServiceMultiSet::iterator it = m_Services.begin();
+	while (!m_IdleServices.empty()) {
+		typedef nth_index<ServiceSet, 1>::type CheckTimeView;
+		CheckTimeView& idx = boost::get<1>(m_IdleServices);
+
+		CheckTimeView::iterator it = idx.begin();
 		Service::Ptr service = *it;
 
 		if (service->GetNextCheck() > now)
 			break;
 
-		m_Services.erase(it);
+		idx.erase(it);
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
@@ -130,11 +133,11 @@ void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const 
 	/* remove the service from the list of pending services; if it's not in the
 	 * list this was a manual (i.e. forced) check and we must not re-add the
 	 * service to the services list because it's already there. */
-	CheckerComponent::ServiceMultiSet::iterator it;
+	CheckerComponent::ServiceSet::iterator it;
 	it = m_PendingServices.find(service);
 	if (it != m_PendingServices.end()) {
 		m_PendingServices.erase(it);
-		m_Services.insert(service);
+		m_IdleServices.insert(service);
 	}
 
 	Logger::Write(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
@@ -145,7 +148,7 @@ void CheckerComponent::ResultTimerHandler(void)
 	Logger::Write(LogDebug, "checker", "ResultTimerHandler entered.");
 
 	stringstream msgbuf;
-	msgbuf << "Pending services: " << m_PendingServices.size() << "; Idle services: " << m_Services.size();
+	msgbuf << "Pending services: " << m_PendingServices.size() << "; Idle services: " << m_IdleServices.size();
 	Logger::Write(LogInformation, "checker", msgbuf.str());
 }
 
@@ -159,9 +162,9 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 
 		service->UpdateNextCheck();
 
-		m_Services.insert(service);
+		m_IdleServices.insert(service);
 	} else {
-		m_Services.erase(service);
+		m_IdleServices.erase(service);
 		m_PendingServices.erase(service);
 	}
 }
@@ -174,7 +177,7 @@ void CheckerComponent::ServiceRemovedHandler(const DynamicObject::Ptr& object)
 	if (!service)
 		return;
 
-	m_Services.erase(service);
+	m_IdleServices.erase(service);
 	m_PendingServices.erase(service);
 }
 

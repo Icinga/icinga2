@@ -23,12 +23,13 @@
 namespace icinga
 {
 
-struct ServiceNextCheckLessComparer
+struct ServiceNextCheckExtractor
 {
-public:
-	bool operator()(const Service::Ptr& a, const Service::Ptr& b)
+	typedef double result_type;
+
+	double operator()(const Service::Ptr& service)
 	{
-		return a->GetNextCheck() > b->GetNextCheck();
+		return service->GetNextCheck();
 	}
 };
 
@@ -41,7 +42,13 @@ public:
 	typedef shared_ptr<CheckerComponent> Ptr;
 	typedef weak_ptr<CheckerComponent> WeakPtr;
 
-	typedef multiset<Service::Ptr, ServiceNextCheckLessComparer> ServiceMultiSet;
+	typedef multi_index_container<
+		Service::Ptr,
+		indexed_by<
+			ordered_unique<identity<Service::Ptr> >,
+			ordered_non_unique<ServiceNextCheckExtractor>
+		>
+	> ServiceSet;
 
 	virtual void Start(void);
 	virtual void Stop(void);
@@ -49,8 +56,8 @@ public:
 private:
 	VirtualEndpoint::Ptr m_Endpoint;
 
-	ServiceMultiSet m_Services;
-	ServiceMultiSet m_PendingServices;
+	ServiceSet m_IdleServices;
+	ServiceSet m_PendingServices;
 
 	Timer::Ptr m_CheckTimer;
 
