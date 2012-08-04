@@ -118,6 +118,7 @@ public:
 	static void RestoreObjects(const String& filename);
 
 	static void RegisterClass(const String& type, Factory factory);
+	static bool ClassExists(const String& type);
 	static DynamicObject::Ptr Create(const String& type, const Dictionary::Ptr& serializedUpdate);
 
 	static double GetCurrentTx(void);

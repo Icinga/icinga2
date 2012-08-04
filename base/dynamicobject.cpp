@@ -436,7 +436,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 		bool hasConfig = persistentObject->Contains("configTx");
 		Dictionary::Ptr update = persistentObject->Get("update");
 
-		if (hasConfig) {
+		if (hasConfig && ClassExists(type)) {
 			DynamicObject::Ptr object = Create(type, update);
 			object->Register();
 		} else {
@@ -466,6 +466,37 @@ void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory fac
 		    type + "': Objects of this type already exist."));
 
 	GetClasses()[type] = factory;
+
+	/* restore persistent objects that match the newly-registered class */
+	map<pair<String, String>, Dictionary::Ptr>::iterator prev, st;
+	for (st = m_PersistentUpdates.begin(); st != m_PersistentUpdates.end(); st++)
+	{
+		/* check type of the update */
+		if (st->first.first != type) {
+			st++;
+			continue;
+		}
+
+		Dictionary::Ptr update = st->second;
+		bool hasConfig = update->Contains("configTx");
+		if (!hasConfig) {
+			st++;
+			continue;
+		}
+
+		DynamicObject::Ptr object = Create(type, update);
+		object->Register();
+
+		prev = st;
+		st++;
+		m_PersistentUpdates.erase(prev);
+	}
+
+}
+
+bool DynamicObject::ClassExists(const String& type)
+{
+	return (GetClasses().find(type) != GetClasses().end());
 }
 
 DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::Ptr& serializedUpdate)
