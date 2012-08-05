@@ -50,15 +50,6 @@ int IcingaApplication::Main(const vector<String>& args)
 	consoleLogConfig->Compile()->Commit();
 	consoleLogConfig.reset();
 
-	/* restore the previous program state */
-	DynamicObject::RestoreObjects("retention.dat");
-
-	/* periodically dump the program state */
-	m_RetentionTimer = boost::make_shared<Timer>();
-	m_RetentionTimer->SetInterval(60);
-	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
-	m_RetentionTimer->Start();
-
 #ifdef _WIN32
 	Logger::Write(LogInformation, "icinga", "Icinga component loader");
 #else /* _WIN32 */
@@ -192,6 +183,15 @@ int IcingaApplication::Main(const vector<String>& args)
 		Utility::Daemonize();
 		UpdatePidFile(GetPidPath());
 	}
+
+	/* restore the previous program state */
+	DynamicObject::RestoreObjects("retention.dat");
+
+	/* periodically dump the program state */
+	m_RetentionTimer = boost::make_shared<Timer>();
+	m_RetentionTimer->SetInterval(300);
+	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
+	m_RetentionTimer->Start();
 
 	RunEventLoop();
 

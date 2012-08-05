@@ -423,25 +423,21 @@ void DynamicObject::RestoreObjects(const String& filename)
 
 	String message;
 	while (NetString::ReadStringFromIOQueue(fifo.get(), &message)) {
-		Value value = Value::Deserialize(message);
-
-		if (!value.IsObjectType<Dictionary>())
-			throw_exception(runtime_error("JSON objects in the program state file must be dictionaries."));
-
-		Dictionary::Ptr persistentObject = value;
+		Dictionary::Ptr persistentObject = Value::Deserialize(message);
 
 		String type = persistentObject->Get("type");
 		String name = persistentObject->Get("name");
-		bool hasConfig = persistentObject->Contains("configTx");
 		Dictionary::Ptr update = persistentObject->Get("update");
 
-		if (hasConfig && ClassExists(type)) {
-			DynamicObject::Ptr object = Create(type, update);
+		bool hasConfig = update->Contains("configTx");
+
+		DynamicObject::Ptr object = GetObject(type, name);
+
+		if (hasConfig && !object) {
+			object = Create(type, update);
 			object->Register();
-		} else {
-			/* keep non-replicated objects until another config object with
-			 * the same name is created (which is when we restore its tags) */
-			GetPersistentObjects()[make_pair(type, name)] = update;
+		} else if (object) {
+			object->ApplyUpdate(update, Attribute_All);
 		}
 	}
 }
@@ -458,13 +454,6 @@ DynamicObject::ClassMap& DynamicObject::GetClasses(void)
 	return classes;
 }
 
-DynamicObject::PersistentUpdateMap& DynamicObject::GetPersistentObjects(void)
-{
-	static DynamicObject::PersistentUpdateMap persistentObjects;
-	return persistentObjects;
-}
-
-
 void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory factory)
 {
 	if (GetObjects(type).first != GetObjects(type).second)
@@ -472,37 +461,6 @@ void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory fac
 		    type + "': Objects of this type already exist."));
 
 	GetClasses()[type] = factory;
-
-	/* restore persistent objects that match the newly-registered class */
-	map<pair<String, String>, Dictionary::Ptr>::iterator prev, st;
-	for (st = GetPersistentObjects().begin(); st != GetPersistentObjects().end(); )
-	{
-		/* check type of the update */
-		if (st->first.first != type) {
-			st++;
-			continue;
-		}
-
-		Dictionary::Ptr update = st->second;
-		bool hasConfig = update->Contains("configTx");
-		if (!hasConfig) {
-			st++;
-			continue;
-		}
-
-		DynamicObject::Ptr object = Create(type, update);
-		object->Register();
-
-		prev = st;
-		st++;
-		GetPersistentObjects().erase(prev);
-	}
-
-}
-
-bool DynamicObject::ClassExists(const String& type)
-{
-	return (GetClasses().find(type) != GetClasses().end());
 }
 
 DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::Ptr& serializedUpdate)
@@ -517,18 +475,6 @@ DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::P
 		obj = boost::make_shared<DynamicObject>(serializedUpdate);
 
 		Logger::Write(LogCritical, "base", "Creating generic DynamicObject for type '" + type + "'");
-	}
-
-	/* restore the object's persistent non-config attributes */
-	map<pair<String, String>, Dictionary::Ptr>::iterator st;
-	st = GetPersistentObjects().find(make_pair(obj->GetType(), obj->GetName()));
-	if (st != GetPersistentObjects().end()) {
-		Logger::Write(LogDebug, "base",  "Restoring persistent state "
-		    "for object " + obj->GetType() + ":" + obj->GetName());
-		obj->ApplyUpdate(st->second, Attribute_All & ~Attribute_Config);
-
-		/* we're done with this update, remove it */
-		GetPersistentObjects().erase(st);
 	}
 
 	/* apply the object's non-config attributes */

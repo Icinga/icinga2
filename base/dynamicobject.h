@@ -140,9 +140,6 @@ private:
 
 	static double m_CurrentTx;
 
-	typedef map<pair<String, String>, Dictionary::Ptr> PersistentUpdateMap;
-	static PersistentUpdateMap& GetPersistentObjects(void);
-
 	static set<DynamicObject::Ptr> m_ModifiedObjects;
 
 	void InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes, bool suppressEvents);
