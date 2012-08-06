@@ -128,8 +128,6 @@ void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const 
 	 * just in case there was no check result. */
 	service->UpdateNextCheck();
 
-	assert(service->GetNextCheck() > Utility::GetTime());
-
 	/* remove the service from the list of pending services; if it's not in the
 	 * list this was a manual (i.e. forced) check and we must not re-add the
 	 * service to the services list because it's already there. */
