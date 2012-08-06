@@ -120,17 +120,6 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 
 	int state = service->GetState();
 
-	if (!service->IsReachable()) {
-		state = StateCritical;
-		
-		String text = "One or more parent services are unavailable.";
-
-		if (output.IsEmpty())
-			output = text;
-		else
-			output = text + " (" + output + ")";
-	}
-
 	if (state > StateUnknown)
 		state = StateUnknown;
 
