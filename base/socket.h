@@ -44,8 +44,6 @@ public:
 	String GetClientAddress(void);
 	String GetPeerAddress(void);
 
-	mutex& GetMutex(void) const;
-
 	bool IsConnected(void) const;
 
 	void CheckException(void);
@@ -70,6 +68,8 @@ protected:
 
 	virtual void CloseInternal(bool from_dtor);
 
+	mutable mutex m_SocketMutex;
+
 private:
 	SOCKET m_FD; /**< The socket descriptor. */
 	bool m_Connected;
@@ -79,7 +79,6 @@ private:
 
 	condition_variable m_WriteCV;
 
-	mutable mutex m_Mutex;
 	boost::exception_ptr m_Exception;
 
 	void ReadThreadProc(void);

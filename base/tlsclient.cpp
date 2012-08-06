@@ -90,7 +90,7 @@ void TlsClient::NullCertificateDeleter(X509 *certificate)
  */
 shared_ptr<X509> TlsClient::GetClientCertificate(void) const
 {
-	mutex::scoped_lock lock(GetMutex());
+	mutex::scoped_lock lock(m_SocketMutex);
 
 	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &TlsClient::NullCertificateDeleter);
 }
@@ -102,7 +102,7 @@ shared_ptr<X509> TlsClient::GetClientCertificate(void) const
  */
 shared_ptr<X509> TlsClient::GetPeerCertificate(void) const
 {
-	mutex::scoped_lock lock(GetMutex());
+	mutex::scoped_lock lock(m_SocketMutex);
 
 	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
@@ -146,8 +146,11 @@ void TlsClient::HandleReadable(void)
 			}
 		}
 
-		if (IsConnected())
+		if (IsConnected()) {
+			mutex::scoped_lock lock(m_QueueMutex);
+
 			m_RecvQueue->Write(data, rc);
+		}
 	}
 
 post_event:
@@ -169,15 +172,19 @@ void TlsClient::HandleWritable(void)
 		int rc;
 
 		if (IsConnected()) {
-			count = m_SendQueue->GetAvailableBytes();
+			{
+				mutex::scoped_lock lock(m_QueueMutex);
 
-			if (count == 0)
-				break;
+				count = m_SendQueue->GetAvailableBytes();
 
-			if (count > sizeof(data))
-				count = sizeof(data);
+				if (count == 0)
+					break;
 
-			m_SendQueue->Peek(data, count);
+				if (count > sizeof(data))
+					count = sizeof(data);
+
+				m_SendQueue->Peek(data, count);
+			}
 
 			rc = SSL_write(m_SSL.get(), (const char *)data, count);
 		} else {
@@ -205,8 +212,11 @@ void TlsClient::HandleWritable(void)
 			}
 		}
 
-		if (IsConnected())
+		if (IsConnected()) {
+			mutex::scoped_lock lock(m_QueueMutex);
+
 			m_SendQueue->Read(NULL, rc);
+		}
 	}
 }
 

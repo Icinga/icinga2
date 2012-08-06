@@ -33,7 +33,7 @@ Socket::Socket(void)
  */
 Socket::~Socket(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	mutex::scoped_lock lock(m_SocketMutex);
 	CloseInternal(true);
 }
 
@@ -90,7 +90,7 @@ SOCKET Socket::GetFD(void) const
  */
 void Socket::Close(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	mutex::scoped_lock lock(m_SocketMutex);
 
 	CloseInternal(false);
 }
@@ -209,7 +209,7 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
  */
 String Socket::GetClientAddress(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	mutex::scoped_lock lock(m_SocketMutex);
 
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
@@ -227,7 +227,7 @@ String Socket::GetClientAddress(void)
  */
 String Socket::GetPeerAddress(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	mutex::scoped_lock lock(m_SocketMutex);
 
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
@@ -258,7 +258,7 @@ SocketException::SocketException(const String& message, int errorCode)
 
 void Socket::ReadThreadProc(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	mutex::scoped_lock lock(m_SocketMutex);
 
 	for (;;) {
 		fd_set readfds, exceptfds;
@@ -312,7 +312,7 @@ void Socket::ReadThreadProc(void)
 
 void Socket::WriteThreadProc(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	mutex::scoped_lock lock(m_SocketMutex);
 
 	for (;;) {
 		fd_set writefds;
@@ -356,11 +356,6 @@ void Socket::WriteThreadProc(void)
 			break;
 		}
 	}
-}
-
-mutex& Socket::GetMutex(void) const
-{
-	return m_Mutex;
 }
 
 void Socket::SetConnected(bool connected)

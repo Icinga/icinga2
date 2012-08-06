@@ -68,6 +68,7 @@ protected:
 	virtual void HandleReadable(void);
 	virtual void HandleWritable(void);
 
+	mutable mutex m_QueueMutex;
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
 

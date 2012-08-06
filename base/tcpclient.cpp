@@ -113,22 +113,29 @@ void TcpClient::HandleWritable(void)
 	}
 
 	for (;;) {
-		count = m_SendQueue->GetAvailableBytes();
+		{
+			mutex::scoped_lock lock(m_QueueMutex);
 
-		if (count == 0)
-			break;
+			count = m_SendQueue->GetAvailableBytes();
 
-		if (count > sizeof(data))
-			count = sizeof(data);
+			if (count == 0)
+				break;
 
-		m_SendQueue->Peek(data, count);
+			if (count > sizeof(data))
+				count = sizeof(data);
+
+			m_SendQueue->Peek(data, count);
+		}
 
 		rc = send(GetFD(), (const char *)data, count, 0);
 
 		if (rc <= 0)
 			throw_exception(SocketException("send() failed", GetError()));
 
-		m_SendQueue->Read(NULL, rc);
+		{
+			mutex::scoped_lock lock(m_QueueMutex);
+			m_SendQueue->Read(NULL, rc);
+		}
 	}
 }
 
@@ -137,7 +144,7 @@ void TcpClient::HandleWritable(void)
  */
 size_t TcpClient::GetAvailableBytes(void) const
 {
-	mutex::scoped_lock lock(GetMutex());
+	mutex::scoped_lock lock(m_QueueMutex);
 
 	return m_RecvQueue->GetAvailableBytes();
 }
@@ -147,7 +154,7 @@ size_t TcpClient::GetAvailableBytes(void) const
  */
 void TcpClient::Peek(void *buffer, size_t count)
 {
-	mutex::scoped_lock lock(GetMutex());
+	mutex::scoped_lock lock(m_QueueMutex);
 
 	m_RecvQueue->Peek(buffer, count);
 }
@@ -157,7 +164,7 @@ void TcpClient::Peek(void *buffer, size_t count)
  */
 void TcpClient::Read(void *buffer, size_t count)
 {
-	mutex::scoped_lock lock(GetMutex());
+	mutex::scoped_lock lock(m_QueueMutex);
 
 	m_RecvQueue->Read(buffer, count);
 }
@@ -167,7 +174,7 @@ void TcpClient::Read(void *buffer, size_t count)
  */
 void TcpClient::Write(const void *buffer, size_t count)
 {
-	mutex::scoped_lock lock(GetMutex());
+	mutex::scoped_lock lock(m_QueueMutex);
 
 	m_SendQueue->Write(buffer, count);
 }
@@ -193,7 +200,11 @@ void TcpClient::HandleReadable(void)
 		if (rc <= 0)
 			throw_exception(SocketException("recv() failed", GetError()));
 
-		m_RecvQueue->Write(data, rc);
+		{
+			mutex::scoped_lock lock(m_QueueMutex);
+
+			m_RecvQueue->Write(data, rc);
+		}
 	}
 
 	Event::Post(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
@@ -216,7 +227,14 @@ bool TcpClient::WantsToRead(void) const
  */
 bool TcpClient::WantsToWrite(void) const
 {
-	return (m_SendQueue->GetAvailableBytes() > 0 || !IsConnected());
+	{
+		mutex::scoped_lock lock(m_QueueMutex);
+
+		if (m_SendQueue->GetAvailableBytes() > 0)
+			return true;
+	}
+
+	return (!IsConnected());
 }
 
 /**
