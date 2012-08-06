@@ -36,6 +36,7 @@ public:
 
 	typedef map<String, Value>::iterator Iterator;
 
+	Value Get(const char *key) const;
 	Value Get(const String& key) const;
 	void Set(const String& key, const Value& value);
 	String Add(const Value& value);

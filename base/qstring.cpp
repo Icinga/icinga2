@@ -199,6 +199,26 @@ bool icinga::operator!=(const char *lhs, const String& rhs)
 	return lhs != static_cast<std::string>(rhs);
 }
 
+bool icinga::operator<(const String& lhs, const char *rhs)
+{
+	return static_cast<std::string>(lhs) < rhs;
+}
+
+bool icinga::operator<(const char *lhs, const String& rhs)
+{
+	return lhs < static_cast<std::string>(rhs);
+}
+
+bool icinga::operator>(const String& lhs, const char *rhs)
+{
+	return static_cast<std::string>(lhs) > rhs;
+}
+
+bool icinga::operator>(const char *lhs, const String& rhs)
+{
+	return lhs > static_cast<std::string>(rhs);
+}
+
 String::Iterator icinga::range_begin(String& x)
 {
 	return x.Begin();

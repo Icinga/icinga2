@@ -89,6 +89,11 @@ I2_BASE_API bool operator!=(const String& lhs, const String& rhs);
 I2_BASE_API bool operator!=(const String& lhs, const char *rhs);
 I2_BASE_API bool operator!=(const char *lhs, const String& rhs);
 
+I2_BASE_API bool operator<(const String& lhs, const char *rhs);
+I2_BASE_API bool operator<(const char *lhs, const String& rhs);
+I2_BASE_API bool operator>(const String& lhs, const char *rhs);
+I2_BASE_API bool operator>(const char *lhs, const String& rhs);
+
 I2_BASE_API String::Iterator range_begin(String& x);
 I2_BASE_API String::ConstIterator range_begin(const String& x);
 I2_BASE_API String::Iterator range_end(String& x);

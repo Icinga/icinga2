@@ -22,6 +22,37 @@
 
 using namespace icinga;
 
+struct DictionaryKeyLessComparer
+{
+	bool operator()(const pair<String, Value>& a, const char *b)
+	{
+		return a.first < b;
+	}
+
+	bool operator()(const char *a, const pair<String, Value>& b)
+	{
+		return a < b.first;
+	}
+};
+
+/**
+ * Restrieves a value from a dictionary.
+ *
+ * @param key The key whose value should be retrieved.
+ * @returns The value of an empty value if the key was not found.
+ */
+Value Dictionary::Get(const char *key) const
+{
+	map<String, Value>::const_iterator it;
+
+	it = std::lower_bound(m_Data.begin(), m_Data.end(), key, DictionaryKeyLessComparer());
+
+	if (it == m_Data.end() || DictionaryKeyLessComparer()(key, *it))
+		return Empty;
+
+	return it->second;
+}
+
 /**
  * Retrieves a value from the dictionary.
  *
@@ -30,13 +61,7 @@ using namespace icinga;
  */
 Value Dictionary::Get(const String& key) const
 {
-	map<String, Value>::const_iterator it;
-	it = m_Data.find(key);
-
-	if (it == m_Data.end())
-		return Empty;
-
-	return it->second;
+	return Get(key.CStr());
 }
 
 /**
