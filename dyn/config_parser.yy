@@ -66,7 +66,7 @@ using namespace icinga;
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
-void yyerror(YYLTYPE *locp, ConfigCompiler *context, const char *err)
+void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
 {
 	stringstream message;
 	message << *locp << ": " << err;

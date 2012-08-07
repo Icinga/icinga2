@@ -86,7 +86,7 @@ protected:
 
 private:
 	Object(const Object& other);
-	Object operator=(const Object& rhs);
+	Object& operator=(const Object& rhs);
 
 	static mutex m_Mutex;
 	static vector<Object::Ptr> m_HeldObjects;

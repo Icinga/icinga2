@@ -521,5 +521,6 @@ void DynamicObject::FinishTx(void)
 	m_CurrentTx = 0;
 }
 
-void DynamicObject::OnAttributeChanged(const String& name, const Value& oldValue)
+void DynamicObject::OnAttributeChanged(const String&, const Value&)
 { }
+

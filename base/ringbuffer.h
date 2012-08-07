@@ -26,15 +26,17 @@ namespace icinga
 class I2_BASE_API RingBuffer
 {
 public:
-	RingBuffer(long slots);
+	typedef vector<int>::size_type SizeType;
 
-	long GetLength(void) const;
-	void InsertValue(long tv, int num);
-	int GetValues(long span) const;
+	RingBuffer(SizeType slots);
+
+	SizeType GetLength(void) const;
+	void InsertValue(SizeType tv, int num);
+	int GetValues(SizeType span) const;
 
 private:
 	vector<int> m_Slots;
-	vector<int>::size_type m_Offset;
+	SizeType m_Offset;
 };
 
 }

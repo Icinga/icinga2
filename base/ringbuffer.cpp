@@ -13,7 +13,7 @@
  * GNU General Public License for more details.                               *
  *                                                                            *
  * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
+ * aRingBuffer::SizeType with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
@@ -21,16 +21,16 @@
 
 using namespace icinga;
 
-RingBuffer::RingBuffer(long slots)
+RingBuffer::RingBuffer(RingBuffer::SizeType slots)
 	: m_Slots(slots, 0), m_Offset(0)
 { }
 
-long RingBuffer::GetLength(void) const
+RingBuffer::SizeType RingBuffer::GetLength(void) const
 {
 	return m_Slots.size();
 }
 
-void RingBuffer::InsertValue(long tv, int num)
+void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 {
 	vector<int>::size_type offsetTarget = tv % m_Slots.size();
 
@@ -47,7 +47,7 @@ void RingBuffer::InsertValue(long tv, int num)
 	m_Slots[m_Offset] += num;
 }
 
-int RingBuffer::GetValues(long span) const
+int RingBuffer::GetValues(RingBuffer::SizeType span) const
 {
 	if (span > m_Slots.size())
 		span = m_Slots.size();

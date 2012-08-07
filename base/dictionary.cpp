@@ -81,8 +81,6 @@ void Dictionary::Set(const String& key, const Value& value)
 	ret = m_Data.insert(make_pair(key, value));
 	if (!ret.second)
 		ret.first->second = value;
-
-	OnItemModified(key, value);
 }
 
 /**
@@ -164,8 +162,6 @@ void Dictionary::Remove(const String& key)
 		return;
 
 	m_Data.erase(it);
-
-	OnItemModified(key, Empty);
 }
 
 /**
@@ -177,8 +173,6 @@ void Dictionary::Remove(Dictionary::Iterator it)
 {
 	String key = it->first;
 	m_Data.erase(it);
-
-	OnItemModified(key, Empty);
 }
 
 /**
@@ -226,5 +220,3 @@ cJSON *Dictionary::ToJson(void) const
 	return json;
 }
 
-void Dictionary::OnItemModified(const String& key, const Value& value)
-{ }

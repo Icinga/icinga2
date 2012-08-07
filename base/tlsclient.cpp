@@ -74,16 +74,6 @@ void TlsClient::Start(void)
 }
 
 /**
- * Takes a certificate as an argument. Does nothing.
- *
- * @param certificate An X509 certificate.
- */
-void TlsClient::NullCertificateDeleter(X509 *certificate)
-{
-	/* Nothing to do here. */
-}
-
-/**
  * Retrieves the X509 certficate for this client.
  *
  * @returns The X509 certificate.
@@ -92,7 +82,7 @@ shared_ptr<X509> TlsClient::GetClientCertificate(void) const
 {
 	mutex::scoped_lock lock(m_SocketMutex);
 
-	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &TlsClient::NullCertificateDeleter);
+	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
 }
 
 /**

@@ -53,8 +53,6 @@ public:
 	static Dictionary::Ptr FromJson(cJSON *json);
 	cJSON *ToJson(void) const;
 
-	virtual void OnItemModified(const String& key, const Value& value);
-
 private:
 	map<String, Value> m_Data;
 };
