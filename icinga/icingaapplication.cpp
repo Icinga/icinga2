@@ -29,6 +29,7 @@
 using namespace icinga;
 
 const String IcingaApplication::DefaultPidPath = "icinga.pid";
+const String IcingaApplication::DefaultStatePath = "icinga.state";
 
 IcingaApplication::IcingaApplication(void)
 { }
@@ -141,10 +142,14 @@ int IcingaApplication::Main(const vector<String>& args)
 	m_CAFile = icingaConfig->Get("ca");
 	m_Node = icingaConfig->Get("node");
 	m_Service = icingaConfig->Get("service");
-	m_PidPath = icingaConfig->Get("pidpath");
 
+	m_PidPath = icingaConfig->Get("pidpath");
 	if (m_PidPath.IsEmpty())
 		m_PidPath = DefaultPidPath;
+
+	m_StatePath = icingaConfig->Get("statepath");
+	if (m_StatePath.IsEmpty())
+		m_StatePath = DefaultStatePath;
 
 	m_Macros = icingaConfig->Get("macros");
 
@@ -185,7 +190,7 @@ int IcingaApplication::Main(const vector<String>& args)
 	}
 
 	/* restore the previous program state */
-	DynamicObject::RestoreObjects("retention.dat");
+	DynamicObject::RestoreObjects(GetStatePath());
 
 	/* periodically dump the program state */
 	m_RetentionTimer = boost::make_shared<Timer>();
@@ -203,8 +208,9 @@ int IcingaApplication::Main(const vector<String>& args)
 }
 
 void IcingaApplication::DumpProgramState(void) {
-	DynamicObject::DumpObjects("retention.dat.tmp");
-	rename("retention.dat.tmp", "retention.dat");
+	String temp = GetStatePath() + ".tmp";
+	DynamicObject::DumpObjects(temp);
+	rename(temp.CStr(), GetStatePath().CStr());
 }
 
 IcingaApplication::Ptr IcingaApplication::GetInstance(void)
@@ -235,6 +241,11 @@ String IcingaApplication::GetService(void) const
 String IcingaApplication::GetPidPath(void) const
 {
 	return m_PidPath;
+}
+
+String IcingaApplication::GetStatePath(void) const
+{
+	return m_StatePath;
 }
 
 Dictionary::Ptr IcingaApplication::GetMacros(void) const

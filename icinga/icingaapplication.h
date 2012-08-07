@@ -45,11 +45,13 @@ public:
 	String GetNode(void) const;
 	String GetService(void) const;
 	String GetPidPath(void) const;
+	String GetStatePath(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 
 	double GetStartTime(void) const;
 
 	static const String DefaultPidPath;
+	static const String DefaultStatePath;
 
 private:
 	String m_CertificateFile;
@@ -57,6 +59,7 @@ private:
 	String m_Node;
 	String m_Service;
 	String m_PidPath;
+	String m_StatePath;
 	Dictionary::Ptr m_Macros;
 
 	double m_StartTime;
