@@ -215,13 +215,13 @@ void CIBSyncComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, co
 			return;
 		}
 
+		if (object->GetSource().IsEmpty())
+			object->SetSource(sender->GetIdentity());
+
 		object->Register();
 	} else {
 		if (object->IsLocal())
 			throw_exception(invalid_argument("Replicated remote object is marked as local."));
-
-		if (object->GetSource().IsEmpty())
-			object->SetSource(sender->GetIdentity());
 
 		// TODO: disallow config updates depending on endpoint config
 
