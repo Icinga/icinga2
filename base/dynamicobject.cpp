@@ -442,6 +442,20 @@ void DynamicObject::RestoreObjects(const String& filename)
 	}
 }
 
+void DynamicObject::DeactivateObjects(void)
+{
+	DynamicObject::TypeMap::iterator tt;
+	for (tt = GetAllObjects().begin(); tt != GetAllObjects().end(); tt++) {
+		DynamicObject::NameMap::iterator nt;
+
+		while ((nt = tt->second.begin()) != tt->second.end()) {
+			DynamicObject::Ptr object = nt->second;
+
+			object->Unregister();
+		}
+	}
+}
+
 DynamicObject::TypeMap& DynamicObject::GetAllObjects(void)
 {
 	static TypeMap objects;

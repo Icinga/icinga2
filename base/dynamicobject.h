@@ -116,6 +116,7 @@ public:
 
 	static void DumpObjects(const String& filename);
 	static void RestoreObjects(const String& filename);
+	static void DeactivateObjects(void);
 
 	static void RegisterClass(const String& type, Factory factory);
 	static bool ClassExists(const String& type);

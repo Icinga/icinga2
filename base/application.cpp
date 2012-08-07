@@ -59,6 +59,8 @@ Application::~Application(void)
 {
 	m_ShuttingDown = true;
 
+	DynamicObject::DeactivateObjects();
+
 #ifdef _WIN32
 	WSACleanup();
 #endif /* _WIN32 */
