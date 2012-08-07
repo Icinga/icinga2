@@ -352,8 +352,10 @@ void DynamicObject::DumpObjects(const String& filename)
 {
 	Logger::Write(LogInformation, "base", "Dumping program state to file '" + filename + "'");
 
+	String tempFilename = filename + ".tmp";
+
 	ofstream fp;
-	fp.open(filename.CStr());
+	fp.open(tempFilename.CStr());
 
 	if (!fp)
 		throw_exception(runtime_error("Could not open '" + filename + "' file"));
@@ -403,6 +405,8 @@ void DynamicObject::DumpObjects(const String& filename)
 			}
 		}
 	}
+
+	rename(tempFilename.CStr(), filename.CStr());
 }
 
 void DynamicObject::RestoreObjects(const String& filename)

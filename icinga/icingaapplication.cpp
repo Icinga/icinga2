@@ -208,9 +208,7 @@ int IcingaApplication::Main(const vector<String>& args)
 }
 
 void IcingaApplication::DumpProgramState(void) {
-	String temp = GetStatePath() + ".tmp";
-	DynamicObject::DumpObjects(temp);
-	rename(temp.CStr(), GetStatePath().CStr());
+	DynamicObject::DumpObjects(GetStatePath());
 }
 
 IcingaApplication::Ptr IcingaApplication::GetInstance(void)
