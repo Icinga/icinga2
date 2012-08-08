@@ -156,7 +156,7 @@ public:
 };
 
 #define REGISTER_CLASS(klass) \
-	static RegisterClassHelper g_Register ## klass(#klass, boost::make_shared<klass, const Dictionary::Ptr&>);
+	static RegisterClassHelper g_Register ## klass(#klass, boost::make_shared<klass, const Dictionary::Ptr&>)
 
 }
 

@@ -128,7 +128,7 @@ void TcpClient::HandleWritable(void)
 			m_SendQueue->Peek(data, count);
 		}
 
-		rc = send(GetFD(), (const char *)data, count, 0);
+		rc = send(GetFD(), data, count, 0);
 
 		if (rc <= 0)
 			throw_exception(SocketException("send() failed", GetError()));

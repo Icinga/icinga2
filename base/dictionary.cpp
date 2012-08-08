@@ -132,7 +132,7 @@ Dictionary::Iterator Dictionary::End(void)
  *
  * @returns Number of elements.
  */
-long Dictionary::GetLength(void) const
+size_t Dictionary::GetLength(void) const
 {
 	return m_Data.size();
 }

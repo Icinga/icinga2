@@ -50,7 +50,7 @@ void FIFO::ResizeBuffer(size_t newSize)
 
 	newSize = (newSize / FIFO::BlockSize + 1) * FIFO::BlockSize;
 
-	char *newBuffer = (char *)realloc(m_Buffer, newSize);
+	char *newBuffer = static_cast<char *>(realloc(m_Buffer, newSize));
 
 	if (newBuffer == NULL)
 		throw_exception(bad_alloc());

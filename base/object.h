@@ -115,7 +115,7 @@ public:
 	 */
 	bool operator()(const weak_ptr<T>& wref) const
 	{
-		return (wref.lock().get() == (const T *)m_Ref);
+		return (wref.lock().get() == static_cast<const T *>(m_Ref));
 	}
 };
 

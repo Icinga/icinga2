@@ -42,7 +42,7 @@ bool NetString::ReadStringFromIOQueue(IOQueue *queue, String *str)
 	if (buffer_length > 16)
 		buffer_length = 16;
 
-	char *buffer = (char *)malloc(buffer_length);
+	char *buffer = static_cast<char *>(malloc(buffer_length));
 
 	if (buffer == NULL && buffer_length > 0)
 		throw_exception(bad_alloc());
@@ -77,7 +77,7 @@ bool NetString::ReadStringFromIOQueue(IOQueue *queue, String *str)
 	/* limit the number of bytes we're reading to this message */
 	buffer_length = i + 1 + len + 1;
 
-	char *new_buffer = (char *)realloc(buffer, buffer_length);
+	char *new_buffer = static_cast<char *>(realloc(buffer, buffer_length));
 
 	if (new_buffer == NULL) {
 		free(buffer);

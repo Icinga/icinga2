@@ -45,7 +45,7 @@ public:
 	Iterator Begin(void);
 	Iterator End(void);
 
-	long GetLength(void) const;
+	size_t GetLength(void) const;
 
 	void Remove(const String& key);
 	void Remove(Iterator it);
