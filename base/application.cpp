@@ -18,6 +18,9 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#ifndef _WIN32
+#	include <ltdl.h>
+#endif /* _WIN32 */
 
 using namespace icinga;
 
