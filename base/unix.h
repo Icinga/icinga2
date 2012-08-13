@@ -35,6 +35,7 @@
 #include <libgen.h>
 #include <syslog.h>
 #include <sys/file.h>
+#include <sys/wait.h>
 
 void Sleep(unsigned long milliseconds);
 

@@ -155,8 +155,14 @@ public:
 	}
 };
 
+template<typename T>
+shared_ptr<T> DynamicObjectFactory(const Dictionary::Ptr& serializedUpdate)
+{
+	return boost::make_shared<T>(serializedUpdate);
+}
+
 #define REGISTER_CLASS(klass) \
-	static RegisterClassHelper g_Register ## klass(#klass, boost::make_shared<klass, const Dictionary::Ptr&>)
+	static RegisterClassHelper g_Register ## klass(#klass, DynamicObjectFactory<klass>)
 
 }
 

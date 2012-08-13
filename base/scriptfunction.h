@@ -50,3 +50,4 @@ private:
 }
 
 #endif /* SCRIPTFUNCTION_H */
+
