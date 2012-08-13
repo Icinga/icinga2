@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-mutex Object::m_Mutex;
+boost::mutex Object::m_Mutex;
 vector<Object::Ptr> Object::m_HeldObjects;
 #ifdef _DEBUG
 set<Object *> Object::m_AliveObjects;
@@ -33,7 +33,7 @@ set<Object *> Object::m_AliveObjects;
 Object::Object(void)
 {
 #ifdef _DEBUG
-	mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 	m_AliveObjects.insert(this);
 #endif /* _DEBUG */
 }
@@ -44,7 +44,7 @@ Object::Object(void)
 Object::~Object(void)
 {
 #ifdef _DEBUG
-	mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 	m_AliveObjects.erase(this);
 #endif /* _DEBUG */
 }
@@ -56,7 +56,7 @@ Object::~Object(void)
  */
 void Object::Hold(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 	m_HeldObjects.push_back(GetSelf());
 }
 
@@ -65,7 +65,7 @@ void Object::Hold(void)
  */
 void Object::ClearHeldObjects(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 	m_HeldObjects.clear();
 }
 
@@ -77,7 +77,7 @@ Object::SharedPtrHolder Object::GetSelf(void)
 #ifdef _DEBUG
 int Object::GetAliveObjects(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_AliveObjects.size();
 }
 
@@ -88,7 +88,7 @@ void Object::PrintMemoryProfile(void)
 	ofstream dictfp("dictionaries.dump.tmp");
 
 	{
-		mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(m_Mutex);
 		set<Object *>::iterator it;
 		BOOST_FOREACH(Object *obj, m_AliveObjects) {
 			pair<map<String, int>::iterator, bool> tt;

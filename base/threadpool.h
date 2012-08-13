@@ -47,7 +47,7 @@ public:
 	void WaitForTasks(void);
 
 private:
-	mutable mutex m_Lock;
+	mutable boost::mutex m_Lock;
 	condition_variable m_CV;
 
 	list<ThreadPoolTask::Ptr> m_Tasks;

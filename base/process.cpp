@@ -43,14 +43,14 @@ Process::Process(const String& command)
 
 void Process::Run(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Tasks.push_back(GetSelf());
 	m_TasksCV.notify_all();
 }
 
 void Process::WorkerThreadProc(void)
 {
-	mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
 	map<int, Process::Ptr> tasks;
 

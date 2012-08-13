@@ -137,7 +137,6 @@ using boost::static_pointer_cast;
 using boost::function;
 using boost::thread;
 using boost::thread_group;
-using boost::mutex;
 using boost::condition_variable;
 using boost::system_time;
 using boost::tie;

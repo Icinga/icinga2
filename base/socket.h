@@ -68,7 +68,7 @@ protected:
 
 	virtual void CloseInternal(bool from_dtor);
 
-	mutable mutex m_SocketMutex;
+	mutable boost::mutex m_SocketMutex;
 
 private:
 	SOCKET m_FD; /**< The socket descriptor. */

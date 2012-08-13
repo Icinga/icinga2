@@ -80,7 +80,7 @@ void TlsClient::Start(void)
  */
 shared_ptr<X509> TlsClient::GetClientCertificate(void) const
 {
-	mutex::scoped_lock lock(m_SocketMutex);
+	boost::mutex::scoped_lock lock(m_SocketMutex);
 
 	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
 }
@@ -92,7 +92,7 @@ shared_ptr<X509> TlsClient::GetClientCertificate(void) const
  */
 shared_ptr<X509> TlsClient::GetPeerCertificate(void) const
 {
-	mutex::scoped_lock lock(m_SocketMutex);
+	boost::mutex::scoped_lock lock(m_SocketMutex);
 
 	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
@@ -137,7 +137,7 @@ void TlsClient::HandleReadable(void)
 		}
 
 		if (IsConnected()) {
-			mutex::scoped_lock lock(m_QueueMutex);
+			boost::mutex::scoped_lock lock(m_QueueMutex);
 
 			m_RecvQueue->Write(data, rc);
 		}
@@ -163,7 +163,7 @@ void TlsClient::HandleWritable(void)
 
 		if (IsConnected()) {
 			{
-				mutex::scoped_lock lock(m_QueueMutex);
+				boost::mutex::scoped_lock lock(m_QueueMutex);
 
 				count = m_SendQueue->GetAvailableBytes();
 
@@ -203,7 +203,7 @@ void TlsClient::HandleWritable(void)
 		}
 
 		if (IsConnected()) {
-			mutex::scoped_lock lock(m_QueueMutex);
+			boost::mutex::scoped_lock lock(m_QueueMutex);
 
 			m_SendQueue->Read(NULL, rc);
 		}

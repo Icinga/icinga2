@@ -23,7 +23,7 @@ using namespace icinga;
 
 vector<Event> Event::m_Events;
 condition_variable Event::m_EventAvailable;
-mutex Event::m_Mutex;
+boost::mutex Event::m_Mutex;
 
 Event::Event(const Event::Callback& callback)
 	: m_Callback(callback)
@@ -34,7 +34,7 @@ void Event::ProcessEvents(const system_time& wait_until)
 	vector<Event> events;
 
 	{
-		mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(m_Mutex);
 
 		while (m_Events.empty()) {
 			if (!m_EventAvailable.timed_wait(lock, wait_until))
@@ -69,7 +69,7 @@ void Event::Post(const Event::Callback& callback)
 	Event ev(callback);
 
 	{
-		mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Events.push_back(ev);
 		m_EventAvailable.notify_all();
 	}

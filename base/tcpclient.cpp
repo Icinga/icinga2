@@ -115,7 +115,7 @@ void TcpClient::HandleWritable(void)
 
 	for (;;) {
 		{
-			mutex::scoped_lock lock(m_QueueMutex);
+			boost::mutex::scoped_lock lock(m_QueueMutex);
 
 			count = m_SendQueue->GetAvailableBytes();
 
@@ -134,7 +134,7 @@ void TcpClient::HandleWritable(void)
 			throw_exception(SocketException("send() failed", GetError()));
 
 		{
-			mutex::scoped_lock lock(m_QueueMutex);
+			boost::mutex::scoped_lock lock(m_QueueMutex);
 			m_SendQueue->Read(NULL, rc);
 		}
 	}
@@ -145,7 +145,7 @@ void TcpClient::HandleWritable(void)
  */
 size_t TcpClient::GetAvailableBytes(void) const
 {
-	mutex::scoped_lock lock(m_QueueMutex);
+	boost::mutex::scoped_lock lock(m_QueueMutex);
 
 	return m_RecvQueue->GetAvailableBytes();
 }
@@ -155,7 +155,7 @@ size_t TcpClient::GetAvailableBytes(void) const
  */
 void TcpClient::Peek(void *buffer, size_t count)
 {
-	mutex::scoped_lock lock(m_QueueMutex);
+	boost::mutex::scoped_lock lock(m_QueueMutex);
 
 	m_RecvQueue->Peek(buffer, count);
 }
@@ -165,7 +165,7 @@ void TcpClient::Peek(void *buffer, size_t count)
  */
 void TcpClient::Read(void *buffer, size_t count)
 {
-	mutex::scoped_lock lock(m_QueueMutex);
+	boost::mutex::scoped_lock lock(m_QueueMutex);
 
 	m_RecvQueue->Read(buffer, count);
 }
@@ -175,7 +175,7 @@ void TcpClient::Read(void *buffer, size_t count)
  */
 void TcpClient::Write(const void *buffer, size_t count)
 {
-	mutex::scoped_lock lock(m_QueueMutex);
+	boost::mutex::scoped_lock lock(m_QueueMutex);
 
 	m_SendQueue->Write(buffer, count);
 }
@@ -202,7 +202,7 @@ void TcpClient::HandleReadable(void)
 			throw_exception(SocketException("recv() failed", GetError()));
 
 		{
-			mutex::scoped_lock lock(m_QueueMutex);
+			boost::mutex::scoped_lock lock(m_QueueMutex);
 
 			m_RecvQueue->Write(data, rc);
 		}
@@ -229,7 +229,7 @@ bool TcpClient::WantsToRead(void) const
 bool TcpClient::WantsToWrite(void) const
 {
 	{
-		mutex::scoped_lock lock(m_QueueMutex);
+		boost::mutex::scoped_lock lock(m_QueueMutex);
 
 		if (m_SendQueue->GetAvailableBytes() > 0)
 			return true;

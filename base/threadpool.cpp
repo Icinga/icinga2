@@ -31,7 +31,7 @@ ThreadPool::ThreadPool(long numThreads)
 ThreadPool::~ThreadPool(void)
 {
 	{
-		mutex::scoped_lock lock(m_Lock);
+		boost::mutex::scoped_lock lock(m_Lock);
 
 		m_Tasks.clear();
 
@@ -46,7 +46,7 @@ ThreadPool::~ThreadPool(void)
 void ThreadPool::EnqueueTasks(list<ThreadPoolTask::Ptr>& tasks)
 {
 	{
-		mutex::scoped_lock lock(m_Lock);
+		boost::mutex::scoped_lock lock(m_Lock);
 		m_Tasks.splice(m_Tasks.end(), tasks, tasks.begin(), tasks.end());
 	}
 
@@ -56,7 +56,7 @@ void ThreadPool::EnqueueTasks(list<ThreadPoolTask::Ptr>& tasks)
 void ThreadPool::EnqueueTask(const ThreadPoolTask::Ptr& task)
 {
 	{
-		mutex::scoped_lock lock(m_Lock);
+		boost::mutex::scoped_lock lock(m_Lock);
 		m_Tasks.push_back(task);
 	}
 
@@ -66,7 +66,7 @@ void ThreadPool::EnqueueTask(const ThreadPoolTask::Ptr& task)
 
 ThreadPoolTask::Ptr ThreadPool::DequeueTask(void)
 {
-	mutex::scoped_lock lock(m_Lock);
+	boost::mutex::scoped_lock lock(m_Lock);
 
 	while (m_Tasks.empty()) {
 		if (!m_Alive)
@@ -83,7 +83,7 @@ ThreadPoolTask::Ptr ThreadPool::DequeueTask(void)
 
 void ThreadPool::WaitForTasks(void)
 {
-	mutex::scoped_lock lock(m_Lock);
+	boost::mutex::scoped_lock lock(m_Lock);
 
 	/* wait for all pending tasks */
 	while (!m_Tasks.empty())

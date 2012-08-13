@@ -38,7 +38,7 @@ private:
 
 	static vector<Event> m_Events;
 	static condition_variable m_EventAvailable;
-	static mutex m_Mutex;
+	static boost::mutex m_Mutex;
 };
 
 }

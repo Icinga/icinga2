@@ -88,7 +88,7 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	static mutex m_Mutex;
+	static boost::mutex m_Mutex;
 	static vector<Object::Ptr> m_HeldObjects;
 #ifdef _DEBUG
 	static set<Object *> m_AliveObjects;
