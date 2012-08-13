@@ -373,7 +373,7 @@ void DynamicObject::DumpObjects(const String& filename)
 			persistentObject->Set("type", object->GetType());
 			persistentObject->Set("name", object->GetName());
 
-			int types = Attribute_Replicated;
+			int types = Attribute_Local | Attribute_Replicated;
 
 			/* only persist properties for replicated objects or for objects
 			 * that are marked as persistent */
