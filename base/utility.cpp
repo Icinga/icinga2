@@ -284,7 +284,7 @@ double Utility::GetTime(void)
 	struct timeval tv;
 
 	if (gettimeofday(&tv, NULL) < 0)
-		throw PosixException("gettimeofday() failed", errno);
+		throw_exception(PosixException("gettimeofday() failed", errno));
 
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
 #endif /* _WIN32 */

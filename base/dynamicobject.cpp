@@ -39,7 +39,7 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("methods", Attribute_Config);
 
 	if (!serializedObject->Contains("configTx"))
-		throw invalid_argument("Serialized object must contain a config snapshot.");
+		throw_exception(invalid_argument("Serialized object must contain a config snapshot."));
 
 	/* apply config state from the config item/remote update;
 	 * The DynamicObject::Create function takes care of restoring
@@ -406,7 +406,8 @@ void DynamicObject::DumpObjects(const String& filename)
 		}
 	}
 
-	rename(tempFilename.CStr(), filename.CStr());
+	if (rename(tempFilename.CStr(), filename.CStr()) < 0)
+		throw_exception(PosixException("rename() failed", errno));
 }
 
 void DynamicObject::RestoreObjects(const String& filename)
