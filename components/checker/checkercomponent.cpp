@@ -24,7 +24,11 @@ using namespace icinga;
 void CheckerComponent::Start(void)
 {
 	m_Endpoint = boost::make_shared<VirtualEndpoint>();
-	m_Endpoint->RegisterPublication("checker::ServiceStateChange");
+
+	/* dummy registration so the delegation module knows this is a checker
+	   TODO: figure out a better way for this */
+	m_Endpoint->RegisterSubscription("checker");
+
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	Service::OnCheckerChanged.connect(bind(&CheckerComponent::CheckerChangedHandler, this, _1));

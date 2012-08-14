@@ -73,50 +73,11 @@ bool Endpoint::HasSubscription(String topic) const
 }
 
 /**
- * Registers a topic publication for this endpoint.
- *
- * @param topic The name of the topic.
- */
-void Endpoint::RegisterPublication(String topic)
-{
-	m_Publications.insert(topic);
-}
-
-/**
- * Removes a topic publication from this endpoint.
- *
- * @param topic The name of the topic.
- */
-void Endpoint::UnregisterPublication(String topic)
-{
-	m_Publications.erase(topic);
-}
-
-/**
- * Checks whether the endpoint  has a publication for the specified topic.
- *
- * @param topic The name of the topic.
- * @returns true if the endpoint is publishing this topic, false otherwise.
- */
-bool Endpoint::HasPublication(String topic) const
-{
-	return (m_Publications.find(topic) != m_Publications.end());
-}
-
-/**
  * Removes all subscriptions for the endpoint.
  */
 void Endpoint::ClearSubscriptions(void)
 {
 	m_Subscriptions.clear();
-}
-
-/**
- * Removes all publications for the endpoint.
- */
-void Endpoint::ClearPublications(void)
-{
-	m_Publications.clear();
 }
 
 /**
@@ -137,26 +98,6 @@ Endpoint::ConstTopicIterator Endpoint::BeginSubscriptions(void) const
 Endpoint::ConstTopicIterator Endpoint::EndSubscriptions(void) const
 {
 	return m_Subscriptions.end();
-}
-
-/**
- * Returns the beginning of the publications list.
- *
- * @returns An iterator that points to the first publication.
- */
-Endpoint::ConstTopicIterator Endpoint::BeginPublications(void) const
-{
-	return m_Publications.begin();
-}
-
-/**
- * Returns the end of the publications list.
- *
- * @returns An iterator that points past the last publication.
- */
-Endpoint::ConstTopicIterator Endpoint::EndPublications(void) const
-{
-	return m_Publications.end();
 }
 
 /**

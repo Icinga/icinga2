@@ -36,12 +36,8 @@ void CIBSyncComponent::Start(void)
 	DynamicObject::OnUnregistered.connect(boost::bind(&CIBSyncComponent::LocalObjectUnregisteredHandler, this, _1));
 	DynamicObject::OnTransactionClosing.connect(boost::bind(&CIBSyncComponent::TransactionClosingHandler, this, _1));
 
-	m_Endpoint->RegisterPublication("config::ObjectUpdate");
-	m_Endpoint->RegisterPublication("config::ObjectRemoved");
-
 	EndpointManager::GetInstance()->OnNewEndpoint.connect(boost::bind(&CIBSyncComponent::NewEndpointHandler, this, _2));
 
-	m_Endpoint->RegisterPublication("config::FetchObjects");
 	m_Endpoint->RegisterTopicHandler("config::ObjectUpdate",
 	    boost::bind(&CIBSyncComponent::RemoteObjectUpdateHandler, this, _2, _3));
 	m_Endpoint->RegisterTopicHandler("config::ObjectRemoved",

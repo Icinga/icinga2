@@ -58,10 +58,6 @@ public:
 	void UnregisterSubscription(String topic);
 	bool HasSubscription(String topic) const;
 
-	void RegisterPublication(String topic);
-	void UnregisterPublication(String topic);
-	bool HasPublication(String topic) const;
-
 	virtual bool IsLocal(void) const = 0;
 	virtual bool IsConnected(void) const = 0;
 
@@ -71,21 +67,15 @@ public:
 	virtual void Stop(void) = 0;
 
 	void ClearSubscriptions(void);
-	void ClearPublications(void);
 
 	ConstTopicIterator BeginSubscriptions(void) const;
 	ConstTopicIterator EndSubscriptions(void) const;
-
-	ConstTopicIterator BeginPublications(void) const;
-	ConstTopicIterator EndPublications(void) const;
 
 	boost::signal<void (const Endpoint::Ptr&)> OnSessionEstablished;
 
 private:
 	set<String> m_Subscriptions; /**< The topics this endpoint is
 					  subscribed to. */
-	set<String> m_Publications; /**< The topics this endpoint is
-				         publishing. */
 	bool m_ReceivedWelcome; /**< Have we received a welcome message
 				     from this endpoint? */
 	bool m_SentWelcome; /**< Have we sent a welcome message to this

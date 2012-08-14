@@ -53,6 +53,7 @@ AX_CXX_GCC_ABI_DEMANGLE
 AX_BOOST_BASE
 AX_BOOST_SIGNALS
 AX_BOOST_THREAD
+AX_BOOST_SYSTEM
 AX_BOOST_UNIT_TEST_FRAMEWORK
 AX_CHECK_OPENSSL([], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application])])
 AC_CHECK_LIB(ssl, SSL_new)

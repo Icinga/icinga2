@@ -96,9 +96,6 @@ void JsonRpcEndpoint::NewMessageHandler(const MessagePart& message)
 	if (!request.GetMethod(&method))
 		return;
 
-	if (!HasPublication(method))
-		return;
-
 	String id;
 	if (request.GetID(&id))
 		GetEndpointManager()->SendAnycastMessage(sender, request);
@@ -119,10 +116,9 @@ void JsonRpcEndpoint::ClientClosedHandler(void)
 
 	Logger::Write(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetIdentity());
 
-	// TODO: _only_ clear non-persistent publications/subscriptions
-	// unregister ourselves if no persistent publications/subscriptions are left (use a timer for that, once we have a TTL property for the topics)
+	// TODO: _only_ clear non-persistent subscriptions
+	// unregister ourselves if no persistent subscriptions are left (use a timer for that, once we have a TTL property for the topics)
 	ClearSubscriptions();
-	ClearPublications();
 
 	// remove the endpoint if there are no more subscriptions */
 	if (BeginSubscriptions() == EndSubscriptions()) {

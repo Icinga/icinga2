@@ -74,8 +74,6 @@ private:
 
 	void FinishDiscoverySetup(const Endpoint::Ptr& endpoint);
 
-	bool HasMessagePermission(const Dictionary::Ptr& roles, const String& messageType, const String& message);
-
 	static const int RegistrationTTL = 300;
 };
 

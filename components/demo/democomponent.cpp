@@ -29,7 +29,6 @@ void DemoComponent::Start(void)
 	m_Endpoint = boost::make_shared<VirtualEndpoint>();
 	m_Endpoint->RegisterTopicHandler("demo::HelloWorld",
 	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2, _3));
-	m_Endpoint->RegisterPublication("demo::HelloWorld");
 	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	m_DemoTimer = boost::make_shared<Timer>();

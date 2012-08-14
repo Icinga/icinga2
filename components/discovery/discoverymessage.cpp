@@ -69,12 +69,3 @@ void DiscoveryMessage::SetSubscriptions(const Dictionary::Ptr& value)
 	Set("subscriptions", value);
 }
 
-bool DiscoveryMessage::GetPublications(Dictionary::Ptr *value) const
-{
-	return Get("publications", value);
-}
-
-void DiscoveryMessage::SetPublications(const Dictionary::Ptr& value)
-{
-	Set("publications", value);
-}

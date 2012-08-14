@@ -28,11 +28,9 @@ void DiscoveryComponent::Start(void)
 {
 	m_Endpoint = boost::make_shared<VirtualEndpoint>();
 
-	m_Endpoint->RegisterPublication("discovery::RegisterComponent");
 	m_Endpoint->RegisterTopicHandler("discovery::RegisterComponent",
 		boost::bind(&DiscoveryComponent::RegisterComponentMessageHandler, this, _2, _3));
 
-	m_Endpoint->RegisterPublication("discovery::NewComponent");
 	m_Endpoint->RegisterTopicHandler("discovery::NewComponent",
 		boost::bind(&DiscoveryComponent::NewComponentMessageHandler, this, _3));
 
@@ -101,12 +99,6 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 		return;
 	}
 
-	/* accept discovery::RegisterComponent messages from any endpoint */
-	endpoint->RegisterPublication("discovery::RegisterComponent");
-
-	/* accept discovery::Welcome messages from any endpoint */
-	endpoint->RegisterPublication("discovery::Welcome");
-
 	String identity = endpoint->GetIdentity();
 
 	if (identity == EndpointManager::GetInstance()->GetIdentity()) {
@@ -156,10 +148,6 @@ void DiscoveryComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
 
 	// register published/subscribed topics for this endpoint
 	ComponentDiscoveryInfo::Ptr info = ic->second;
-	BOOST_FOREACH(String publication, info->Publications) {
-		endpoint->RegisterPublication(publication);
-	}
-
 	BOOST_FOREACH(String subscription, info->Subscriptions) {
 		endpoint->RegisterSubscription(subscription);
 	}
@@ -180,9 +168,6 @@ void DiscoveryComponent::DiscoveryEndpointHandler(const Endpoint::Ptr& endpoint,
 
 	for (i = endpoint->BeginSubscriptions(); i != endpoint->EndSubscriptions(); i++)
 		info->Subscriptions.insert(*i);
-
-	for (i = endpoint->BeginPublications(); i != endpoint->EndPublications(); i++)
-		info->Publications.insert(*i);
 }
 
 /**
@@ -295,39 +280,10 @@ void DiscoveryComponent::SendDiscoveryMessage(const String& method, const String
 
 	params.SetSubscriptions(subscriptions);
 
-	Dictionary::Ptr publications = boost::make_shared<Dictionary>();
-	BOOST_FOREACH(String publication, info->Publications) {
-		publications->Add(publication);
-	}
-
-	params.SetPublications(publications);
-
 	if (recipient)
 		EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, recipient, request);
 	else
 		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
-}
-
-bool DiscoveryComponent::HasMessagePermission(const Dictionary::Ptr& roles, const String& messageType, const String& message)
-{
-	if (!roles)
-		return false;
-
-	Value roleName;
-	BOOST_FOREACH(tie(tuples::ignore, roleName), roles) {
-		DynamicObject::Ptr role = DynamicObject::GetObject("Role", roleName);
-		Dictionary::Ptr permissions = role->Get(messageType);
-		if (!permissions)
-			continue;
-
-		Value permission;
-		BOOST_FOREACH(tie(tuples::ignore, permission), permissions) {
-			if (Utility::Match(permission, message))
-				return true;
-		}
-	}
-
-	return false;
 }
 
 /**
@@ -363,27 +319,13 @@ void DiscoveryComponent::ProcessDiscoveryMessage(const String& identity, const D
 
 	Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(identity);
 
-	Dictionary::Ptr publications;
-	if (message.GetPublications(&publications)) {
-		Value publication;
-		BOOST_FOREACH(tie(tuples::ignore, publication), publications) {
-			if (trusted || HasMessagePermission(roles, "publications", publication)) {
-				info->Publications.insert(publication);
-				if (endpoint)
-					endpoint->RegisterPublication(publication);
-			}
-		}
-	}
-
 	Dictionary::Ptr subscriptions;
 	if (message.GetSubscriptions(&subscriptions)) {
 		Value subscription;
 		BOOST_FOREACH(tie(tuples::ignore, subscription), subscriptions) {
-			if (trusted || HasMessagePermission(roles, "subscriptions", subscription)) {
-				info->Subscriptions.insert(subscription);
-				if (endpoint)
-					endpoint->RegisterSubscription(subscription);
-			}
+			info->Subscriptions.insert(subscription);
+			if (endpoint)
+				endpoint->RegisterSubscription(subscription);
 		}
 	}
 
@@ -490,7 +432,6 @@ void DiscoveryComponent::DiscoveryTimerHandler(void)
 			/* update LastSeen if we're still connected to this endpoint */
 			info->LastSeen = now;
 		} else {
-			/* TODO: figure out whether we actually want to connect to this component */
 			/* try and reconnect to this component */
 			try {
 				if (!info->Node.IsEmpty() && !info->Service.IsEmpty())

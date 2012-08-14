@@ -33,7 +33,7 @@ void DelegationComponent::Start(void)
 
 bool DelegationComponent::IsEndpointChecker(const Endpoint::Ptr& endpoint)
 {
-	return (endpoint->HasPublication("checker::ServiceStateChange"));
+	return (endpoint->HasSubscription("checker"));
 }
 
 vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::Ptr& service) const

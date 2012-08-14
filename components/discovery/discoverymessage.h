@@ -43,9 +43,6 @@ public:
 
 	bool GetSubscriptions(Dictionary::Ptr *value) const;
 	void SetSubscriptions(const Dictionary::Ptr& value);
-
-	bool GetPublications(Dictionary::Ptr *value) const;
-	void SetPublications(const Dictionary::Ptr& value);
 };
 
 }
