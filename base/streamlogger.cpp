@@ -49,9 +49,10 @@ void StreamLogger::OpenFile(const String& filename)
 /**
  * Processes a log entry and outputs it to a stream.
  *
+ * @param stream The output stream.
  * @param entry The log entry.
  */
-void StreamLogger::ProcessLogEntry(const LogEntry& entry)
+void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 {
 	char timestamp[100];
 
@@ -60,7 +61,18 @@ void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 
 	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S", &tmnow);
 
-	*m_Stream << "[" << timestamp << "] "
+	stream << "[" << timestamp << "] "
 		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "
 		 << entry.Message << std::endl;
 }
+
+/**
+ * Processes a log entry and outputs it to a stream.
+ *
+ * @param entry The log entry.
+ */
+void StreamLogger::ProcessLogEntry(const LogEntry& entry)
+{
+	ProcessLogEntry(*m_Stream, entry);
+}
+

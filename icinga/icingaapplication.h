@@ -34,7 +34,7 @@ public:
 	typedef shared_ptr<IcingaApplication> Ptr;
 	typedef weak_ptr<IcingaApplication> WeakPtr;
 
-	IcingaApplication(void);
+	IcingaApplication(const Dictionary::Ptr& serializedUpdate);
 
 	int Main(const vector<String>& args);
 
@@ -68,6 +68,8 @@ private:
 
 	void DumpProgramState(void);
 };
+
+REGISTER_CLASS(IcingaApplication);
 
 }
 

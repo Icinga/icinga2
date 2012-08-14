@@ -29,12 +29,12 @@ class Component;
  *
  * @ingroup base
  */
-class I2_BASE_API Application : public Object {
+class I2_BASE_API Application : public DynamicObject {
 public:
 	typedef shared_ptr<Application> Ptr;
 	typedef weak_ptr<Application> WeakPtr;
 
-	Application(void);
+	Application(const Dictionary::Ptr& serializedUpdate);
 	~Application(void);
 
 	static Application::Ptr GetInstance(void);
@@ -48,16 +48,18 @@ public:
 	static bool IsDebugging(void);
 
 	static bool IsMainThread(void);
+	static void SetMainThread(void);
 
 	void UpdatePidFile(const String& filename);
 	void ClosePidFile(void);
 
+	static String GetExePath(const String& argv0);
+
 protected:
 	void RunEventLoop(void);
-	String GetExePath(void) const;
 
 private:
-	static Application::Ptr m_Instance; /**< The application instance. */
+	static Application *m_Instance; /**< The application instance. */
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */

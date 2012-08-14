@@ -151,7 +151,8 @@ class RegisterClassHelper
 public:
 	RegisterClassHelper(const String& name, DynamicObject::Factory factory)
 	{
-		DynamicObject::RegisterClass(name, factory);
+		if (!DynamicObject::ClassExists(name))
+			DynamicObject::RegisterClass(name, factory);
 	}
 };
 

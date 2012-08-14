@@ -110,13 +110,20 @@ LogSeverity Logger::GetMinSeverity(void) const
  */
 void Logger::ForwardLogEntry(const LogEntry& entry)
 {
+	bool processed = false;
+
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Logger")) {
 		Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
 
 		if (entry.Severity >= logger->GetMinSeverity())
 			logger->m_Impl->ProcessLogEntry(entry);
+
+		processed = true;
 	}
+
+	if (!processed && entry.Severity >= LogInformation)
+		StreamLogger::ProcessLogEntry(std::cout, entry);
 }
 
 String Logger::SeverityToString(LogSeverity severity)

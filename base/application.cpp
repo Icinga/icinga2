@@ -18,13 +18,14 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+
 #ifndef _WIN32
 #	include <ltdl.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
 
-Application::Ptr Application::m_Instance;
+Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_Debugging = false;
 boost::thread::id Application::m_MainThreadID;
@@ -32,9 +33,12 @@ boost::thread::id Application::m_MainThreadID;
 /**
  * Constructor for the Application class.
  */
-Application::Application(void)
-	: m_PidFile(NULL)
+Application::Application(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate), m_PidFile(NULL)
 {
+	if (!IsLocal())
+		throw_exception(runtime_error("Application objects must be local."));
+
 #ifdef _WIN32
 	/* disable GUI-based error messages for LoadLibrary() */
 	SetErrorMode(SEM_FAILCRITICALERRORS);
@@ -42,8 +46,6 @@ Application::Application(void)
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
 		throw_exception(Win32Exception("WSAStartup failed", WSAGetLastError()));
-#else /* _WIN32 */
-	lt_dlinit();
 #endif /* _WIN32 */
 
 	char *debugging = getenv("_DEBUG");
@@ -53,6 +55,9 @@ Application::Application(void)
 	if (IsDebuggerPresent())
 		m_Debugging = true;
 #endif /* _WIN32 */
+
+	assert(m_Instance == NULL);
+	m_Instance = this;
 }
 
 /**
@@ -60,6 +65,8 @@ Application::Application(void)
  */
 Application::~Application(void)
 {
+	m_Instance = NULL;
+
 	m_ShuttingDown = true;
 
 	DynamicObject::DeactivateObjects();
@@ -78,7 +85,10 @@ Application::~Application(void)
  */
 Application::Ptr Application::GetInstance(void)
 {
-	return m_Instance;
+	if (m_Instance)
+		return m_Instance->GetSelf();
+	else
+		return Application::Ptr();
 }
 
 /**
@@ -130,20 +140,14 @@ void Application::Shutdown(void)
 /**
  * Retrieves the full path of the executable.
  *
+ * @param argv0 The first command-line argument.
  * @returns The path.
  */
-String Application::GetExePath(void) const
+String Application::GetExePath(const String& argv0)
 {
-	static String result;
-
-	if (!result.IsEmpty())
-		return result;
-
 	String executablePath;
 
 #ifndef _WIN32
-	String argv0 = m_Arguments[0];
-
 	char buffer[MAXPATHLEN];
 	if (getcwd(buffer, sizeof(buffer)) == NULL)
 		throw_exception(PosixException("getcwd failed", errno));
@@ -189,17 +193,15 @@ String Application::GetExePath(void) const
 	if (realpath(executablePath.CStr(), buffer) == NULL)
 		throw_exception(PosixException("realpath failed", errno));
 
-	result = buffer;
+	return buffer;
 #else /* _WIN32 */
 	char FullExePath[MAXPATHLEN];
 
 	if (!GetModuleFileName(NULL, FullExePath, sizeof(FullExePath)))
 		throw_exception(Win32Exception("GetModuleFileName() failed", GetLastError()));
 
-	result = FullExePath;
+	return FullExePath;
 #endif /* _WIN32 */
-
-	return result;
 }
 
 /**
@@ -215,6 +217,11 @@ bool Application::IsDebugging(void)
 bool Application::IsMainThread(void)
 {
 	return (boost::this_thread::get_id() == m_MainThreadID);
+}
+
+void Application::SetMainThread(void)
+{
+	m_MainThreadID = boost::this_thread::get_id();
 }
 
 #ifndef _WIN32
@@ -270,12 +277,6 @@ int Application::Run(int argc, char **argv)
 {
 	int result;
 
-	assert(!Application::m_Instance);
-
-	m_MainThreadID = boost::this_thread::get_id();
-
-	Application::m_Instance = GetSelf();
-
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -294,27 +295,23 @@ int Application::Run(int argc, char **argv)
 
 	DynamicObject::BeginTx();
 
-	if (IsDebugging()) {
+	try {
 		result = Main(m_Arguments);
 
-		Application::m_Instance.reset();
-	} else {
-		try {
-			result = Main(m_Arguments);
+		DynamicObject::FinishTx();
+		DynamicObject::DeactivateObjects();
 
-			Application::m_Instance.reset();
-		} catch (const exception& ex) {
-			Application::m_Instance.reset();
+		assert(m_Instance == NULL);
+	} catch (const exception& ex) {
+		Logger::Write(LogCritical, "base", "---");
+		Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(typeid(ex)));
+		Logger::Write(LogCritical, "base", "Message: " + String(ex.what()));
 
-			Logger::Write(LogCritical, "base", "---");
-			Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(typeid(ex)));
-			Logger::Write(LogCritical, "base", "Message: " + String(ex.what()));
+		if (IsDebugging())
+			throw;
 
-			return EXIT_FAILURE;
-		}
+		return EXIT_FAILURE;
 	}
-
-	DynamicObject::FinishTx();
 
 	return result;
 }

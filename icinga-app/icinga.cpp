@@ -20,6 +20,9 @@
 #include <i2-icinga.h>
 
 #ifndef _WIN32
+#	include "icinga-version.h"
+#	define ICINGA_VERSION GIT_MESSAGE
+
 #	include <ltdl.h>
 #endif /* _WIN32 */
 
@@ -38,6 +41,48 @@ int main(int argc, char **argv)
 	LTDL_SET_PRELOADED_SYMBOLS();
 #endif /* _WIN32 */
 
-	IcingaApplication::Ptr instance = boost::make_shared<IcingaApplication>();
-	return instance->Run(argc, argv);
+#ifndef _WIN32
+	lt_dlinit();
+#endif /* _WIN32 */
+
+	Application::SetMainThread();
+
+#ifdef _WIN32
+	Logger::Write(LogInformation, "icinga", "Icinga application loader");    
+#else /* _WIN32 */
+	Logger::Write(LogInformation, "icinga", "Icinga application loader (version: " ICINGA_VERSION ")");
+#endif  /* _WIN32 */
+
+	if (argc < 3 || strcmp(argv[1], "-c") != 0) {
+		stringstream msgbuf;
+		msgbuf << "Syntax: " << argv[0] << " -c <config-file> ...";    
+		Logger::Write(LogInformation, "base", msgbuf.str());
+		return EXIT_FAILURE;
+	}
+
+	String configFile = argv[2];
+
+	String componentDirectory = Utility::DirName(Application::GetExePath(argv[0])) + "/../lib/icinga2";
+	Component::AddSearchDir(componentDirectory);
+
+	DynamicObject::BeginTx();
+
+	/* load config file */
+	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
+
+	Logger::Write(LogInformation, "icinga", "Executing config items...");  
+
+	BOOST_FOREACH(const ConfigItem::Ptr& item, configItems) {
+		item->Commit();
+	}
+
+	DynamicObject::FinishTx();
+
+	Application::Ptr app = Application::GetInstance();
+
+	if (!app)
+		throw_exception(runtime_error("Configuration must create an Application object."));
+
+	return app->Run(argc - 2, &(argv[2]));
 }
+

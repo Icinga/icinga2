@@ -18,6 +18,9 @@ public:
 	~StreamLogger(void);
 
 	void OpenFile(const String& filename);
+
+	static void ProcessLogEntry(std::ostream& stream, const LogEntry& entry);
+
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);
 

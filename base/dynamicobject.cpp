@@ -473,6 +473,11 @@ DynamicObject::ClassMap& DynamicObject::GetClasses(void)
 	return classes;
 }
 
+bool DynamicObject::ClassExists(const String& name)
+{
+	return (GetClasses().find(name) != GetClasses().end());
+}
+
 void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory factory)
 {
 	if (GetObjects(type).first != GetObjects(type).second)

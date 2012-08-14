@@ -31,8 +31,25 @@ using namespace icinga;
 const String IcingaApplication::DefaultPidPath = "icinga.pid";
 const String IcingaApplication::DefaultStatePath = "icinga.state";
 
-IcingaApplication::IcingaApplication(void)
-{ }
+IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
+	: Application(serializedUpdate)
+{
+	/* load cibsync config component */
+	ConfigItemBuilder::Ptr cibsyncComponentConfig = boost::make_shared<ConfigItemBuilder>();
+	cibsyncComponentConfig->SetType("Component");
+	cibsyncComponentConfig->SetName("cibsync");
+	cibsyncComponentConfig->SetLocal(true);
+	cibsyncComponentConfig->Compile()->Commit();
+	cibsyncComponentConfig.reset();
+
+	/* load convenience config component */
+	ConfigItemBuilder::Ptr convenienceComponentConfig = boost::make_shared<ConfigItemBuilder>();
+	convenienceComponentConfig->SetType("Component");
+	convenienceComponentConfig->SetName("convenience");
+	convenienceComponentConfig->SetLocal(true);
+	convenienceComponentConfig->Compile()->Commit();
+	convenienceComponentConfig.reset();
+}
 
 /**
  * The entry point for the Icinga application.
@@ -42,26 +59,13 @@ IcingaApplication::IcingaApplication(void)
  */
 int IcingaApplication::Main(const vector<String>& args)
 {
-	/* create console logger */
-	ConfigItemBuilder::Ptr consoleLogConfig = boost::make_shared<ConfigItemBuilder>();
-	consoleLogConfig->SetType("Logger");
-	consoleLogConfig->SetName("console");
-	consoleLogConfig->SetLocal(true);
-	consoleLogConfig->AddExpression("type", OperatorSet, "console");
-	consoleLogConfig->Compile()->Commit();
-	consoleLogConfig.reset();
-
-#ifdef _WIN32
-	Logger::Write(LogInformation, "icinga", "Icinga component loader");
-#else /* _WIN32 */
-	Logger::Write(LogInformation, "icinga", "Icinga component loader (version: " ICINGA_VERSION ")");
-#endif  /* _WIN32 */
+	Logger::Write(LogInformation, "icinga", "In IcingaApplication::Main()");
 
 	m_StartTime = Utility::GetTime();
 
-	if (args.size() < 2) {
+	if (args.size() == 1 && args[0] == "--help") {
 		stringstream msgbuf;
-		msgbuf << "Syntax: " << args[0] << " [-S] [-L logfile] [-d] [--] <config-file>";
+		msgbuf << "Syntax: " << args[0] << " ... -d";
 		Logger::Write(LogInformation, "icinga", msgbuf.str());
 		return EXIT_FAILURE;
 	}
@@ -92,68 +96,24 @@ int IcingaApplication::Main(const vector<String>& args)
 				throw_exception(invalid_argument("Unknown option: " + arg));
 			}
 		}
-
-		configFile = arg;
-
-		if (it + 1 != args.end())
-			throw_exception(invalid_argument("Trailing command line arguments after config filename."));
 	}
 
-	if (configFile.IsEmpty())
-		throw_exception(invalid_argument("No config file was specified on the command line."));
+	m_CertificateFile = Get("cert");
+	m_CAFile = Get("ca");
+	m_Node = Get("node");
+	m_Service = Get("service");
 
-	String componentDirectory = Utility::DirName(GetExePath()) + "/../lib/icinga2";
-	Component::AddSearchDir(componentDirectory);
-
-	/* load cibsync config component */
-	ConfigItemBuilder::Ptr cibsyncComponentConfig = boost::make_shared<ConfigItemBuilder>();
-	cibsyncComponentConfig->SetType("Component");
-	cibsyncComponentConfig->SetName("cibsync");
-	cibsyncComponentConfig->SetLocal(true);
-	cibsyncComponentConfig->Compile()->Commit();
-	cibsyncComponentConfig.reset();
-
-	/* load convenience config component */
-	ConfigItemBuilder::Ptr convenienceComponentConfig = boost::make_shared<ConfigItemBuilder>();
-	convenienceComponentConfig->SetType("Component");
-	convenienceComponentConfig->SetName("convenience");
-	convenienceComponentConfig->SetLocal(true);
-	convenienceComponentConfig->Compile()->Commit();
-	convenienceComponentConfig.reset();
-
-	/* load config file */
-	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
-
-	Logger::Write(LogInformation, "icinga", "Executing config items...");
-
-	BOOST_FOREACH(const ConfigItem::Ptr& item, configItems) {
-		item->Commit();
-	}
-
-	DynamicObject::Ptr icingaConfig = DynamicObject::GetObject("Application", "icinga");
-
-	if (!icingaConfig)
-		throw_exception(runtime_error("Configuration must contain an 'Application' object named 'icinga'."));
-
-	if (!icingaConfig->IsLocal())
-		throw_exception(runtime_error("'icinga' application object must be 'local'."));
-
-	m_CertificateFile = icingaConfig->Get("cert");
-	m_CAFile = icingaConfig->Get("ca");
-	m_Node = icingaConfig->Get("node");
-	m_Service = icingaConfig->Get("service");
-
-	m_PidPath = icingaConfig->Get("pidpath");
+	m_PidPath = Get("pidpath");
 	if (m_PidPath.IsEmpty())
 		m_PidPath = DefaultPidPath;
 
-	m_StatePath = icingaConfig->Get("statepath");
+	m_StatePath = Get("statepath");
 	if (m_StatePath.IsEmpty())
 		m_StatePath = DefaultStatePath;
 
-	m_Macros = icingaConfig->Get("macros");
+	m_Macros = Get("macros");
 
-	String logpath = icingaConfig->Get("logpath");
+	String logpath = Get("logpath");
 	if (!logpath.IsEmpty()) {
 		ConfigItemBuilder::Ptr fileLogConfig = boost::make_shared<ConfigItemBuilder>();
 		fileLogConfig->SetType("Logger");
