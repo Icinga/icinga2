@@ -85,10 +85,10 @@ public:
 		if (m_ResultRetrieved)
 			throw_exception(runtime_error("GetResult called on an AsyncTask whose result was already retrieved."));
 
+		m_ResultRetrieved = true;
+
 		if (m_Exception)
 			rethrow_exception(m_Exception);
-
-		m_ResultRetrieved = true;
 
 		TResult result;
 		std::swap(m_Result, result);
