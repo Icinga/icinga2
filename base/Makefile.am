@@ -86,6 +86,7 @@ libbase_la_LIBADD = \
 	$(OPENSSL_LIBS) \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
+	$(BOOST_SYSTEM_LIB) \
 	${top_builddir}/third-party/mmatch/libmmatch.la \
 	${top_builddir}/third-party/cJSON/libcJSON.la \
 	${top_builddir}/third-party/popen-noshell/libpopen_noshell.la

@@ -24,6 +24,7 @@ icinga_LDADD = \
 	$(LIBLTDL) \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
+	$(BOOST_SYSTEM_LIB) \
 	${top_builddir}/base/libbase.la \
 	${top_builddir}/dyn/libdyn.la \
 	${top_builddir}/icinga/libicinga.la \
