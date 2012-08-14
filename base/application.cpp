@@ -301,6 +301,8 @@ int Application::Run(int argc, char **argv)
 	} else {
 		try {
 			result = Main(m_Arguments);
+
+			Application::m_Instance.reset();
 		} catch (const exception& ex) {
 			Application::m_Instance.reset();
 
