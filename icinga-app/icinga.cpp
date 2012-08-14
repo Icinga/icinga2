@@ -45,6 +45,8 @@ int main(int argc, char **argv)
 	lt_dlinit();
 #endif /* _WIN32 */
 
+	/* This must be done before calling any other functions
+	 * in the base library. */
 	Application::SetMainThread();
 
 #ifdef _WIN32
@@ -60,14 +62,13 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	String configFile = argv[2];
-
 	String componentDirectory = Utility::DirName(Application::GetExePath(argv[0])) + "/../lib/icinga2";
 	Component::AddSearchDir(componentDirectory);
 
 	DynamicObject::BeginTx();
 
 	/* load config file */
+	String configFile = argv[2];
 	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
 
 	Logger::Write(LogInformation, "icinga", "Executing config items...");  
@@ -83,6 +84,8 @@ int main(int argc, char **argv)
 	if (!app)
 		throw_exception(runtime_error("Configuration must create an Application object."));
 
+	/* The application class doesn't need to know about the "-c configFile"
+	 * command-line arguments. */
 	return app->Run(argc - 2, &(argv[2]));
 }
 

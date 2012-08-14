@@ -69,8 +69,6 @@ Application::~Application(void)
 
 	m_ShuttingDown = true;
 
-	DynamicObject::DeactivateObjects();
-
 #ifdef _WIN32
 	WSACleanup();
 #endif /* _WIN32 */
@@ -300,8 +298,6 @@ int Application::Run(int argc, char **argv)
 
 		DynamicObject::FinishTx();
 		DynamicObject::DeactivateObjects();
-
-		assert(m_Instance == NULL);
 	} catch (const exception& ex) {
 		Logger::Write(LogCritical, "base", "---");
 		Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(typeid(ex)));
