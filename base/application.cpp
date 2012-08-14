@@ -293,21 +293,22 @@ int Application::Run(int argc, char **argv)
 
 	DynamicObject::BeginTx();
 
-	try {
+	if (IsDebugging()) {
 		result = Main(m_Arguments);
+	} else {
+		try {
+			result = Main(m_Arguments);
+		} catch (const exception& ex) {
+			Logger::Write(LogCritical, "base", "---");
+			Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(typeid(ex)));
+			Logger::Write(LogCritical, "base", "Message: " + String(ex.what()));
 
-		DynamicObject::FinishTx();
-		DynamicObject::DeactivateObjects();
-	} catch (const exception& ex) {
-		Logger::Write(LogCritical, "base", "---");
-		Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(typeid(ex)));
-		Logger::Write(LogCritical, "base", "Message: " + String(ex.what()));
-
-		if (IsDebugging())
-			throw;
-
-		return EXIT_FAILURE;
+			result = EXIT_FAILURE;
+		}
 	}
+
+	DynamicObject::FinishTx();
+	DynamicObject::DeactivateObjects();
 
 	return result;
 }
