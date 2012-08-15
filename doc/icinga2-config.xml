@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<article>
+  <articleinfo>
+    <title>Icinga 2 Configuration</title>
+
+    <author>
+      <firstname>Gunnar</firstname>
+
+      <surname>Beutner</surname>
+
+      <affiliation>
+        <orgname>Icinga Development Team</orgname>
+      </affiliation>
+    </author>
+  </articleinfo>
+
+  <section>
+    <title>Icinga 2 Configuration Format</title>
+
+    <para/>
+
+    <section>
+      <title>Object Definition</title>
+
+      <para>Icinga 2 features an object-based configuration format. In order
+      to define objects the „object“ keyword is used:</para>
+
+      <programlisting>object Host "host1.example.org" {
+  alias = "host1",
+
+  check_interval = 30,
+  retry_interval = 15,
+
+  macros = {
+    address = "192.168.0.1"
+  }
+}</programlisting>
+
+      <para><emphasis role="bold">Note</emphasis>: The Icinga 2 configuration
+      format is agnostic to whitespaces and new-lines.</para>
+
+      <para>Each object is uniquely identified by its type ("Host") and name
+      ("localhost"). Objects can contain a comma-separated list of property
+      declarations. The following data types are available for property
+      values:</para>
+
+      <table>
+        <title/>
+
+        <tgroup cols="3">
+          <thead>
+            <row>
+              <entry align="center">Data Type</entry>
+
+              <entry align="center">Example</entry>
+
+              <entry align="center">Notes</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>Number</entry>
+
+              <entry><programlisting>-27.3</programlisting></entry>
+
+              <entry>A floating-point number.</entry>
+            </row>
+
+            <row>
+              <entry>String</entry>
+
+              <entry><programlisting>"Hello World!"</programlisting></entry>
+
+              <entry>A string. No escape characters are supported at present
+              though this will likely change.</entry>
+            </row>
+
+            <row>
+              <entry>Expression List</entry>
+
+              <entry><programlisting>{
+  address = "192.168.0.1",
+  port = 443
+}
+</programlisting></entry>
+
+              <entry>A list of expressions that when executed has a dictionary
+              as a result.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+
+    <section>
+      <title>Operators</title>
+
+      <para>In addition to the "=" operator shown above a number of other
+      operators to manipulate configuration objects are supported. Here's a
+      list of all available operators:</para>
+
+      <para/>
+
+      <table>
+        <title/>
+
+        <tgroup cols="3">
+          <thead>
+            <row>
+              <entry align="center">Operator</entry>
+
+              <entry align="center">Example</entry>
+
+              <entry align="center">Notes</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>=</entry>
+
+              <entry><programlisting>{
+  a = 5,
+  a = 7
+}</programlisting></entry>
+
+              <entry>a is 7.</entry>
+            </row>
+
+            <row>
+              <entry>+=</entry>
+
+              <entry><programlisting>{
+  a = { "hello" },
+  a += { "world" }
+}</programlisting></entry>
+
+              <entry>a contains both "hello" and "world". This currently only
+              works for expression lists. Support for numbers might be added
+              later on.</entry>
+            </row>
+
+            <row>
+              <entry>-=</entry>
+
+              <entry><programlisting>{
+  a = { "hello", "world" },
+  a -= { "world" }
+}</programlisting></entry>
+
+              <entry>a contains "hello". Trying to remove an item that does
+              not exist is not an error. Not implemented yet.</entry>
+            </row>
+
+            <row>
+              <entry>*=</entry>
+
+              <entry><programlisting>{
+  a = 60,
+  a *= 5
+}</programlisting></entry>
+
+              <entry>a is 300. This only works for numbers. Not implemented
+              yet.</entry>
+            </row>
+
+            <row>
+              <entry>/=</entry>
+
+              <entry><programlisting>{
+  a = 300,
+  a /= 5
+}</programlisting></entry>
+
+              <entry>a is 60. This only works for numbers. Not implemented
+              yet.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+
+    <section>
+      <title>Attribute Shortcuts</title>
+
+      <para>The following shortcuts can be used in expression lists:</para>
+
+      <para/>
+
+      <table>
+        <title/>
+
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry align="center">Shortcut</entry>
+
+              <entry align="center">Equivalent Code</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry><programlisting>{
+  "hello"
+}
+</programlisting></entry>
+
+              <entry><programlisting>{
+  hello = "hello"
+}</programlisting></entry>
+            </row>
+
+            <row>
+              <entry><programlisting>{
+  hello["key"] = "world"
+}</programlisting></entry>
+
+              <entry><programlisting>{
+  hello += {
+    key = "world"
+  }
+}</programlisting></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+
+    <section>
+      <title>Specifiers</title>
+
+      <para>Objects can have specifiers that have special meaning. The
+      following specifiers can be used (before the "object" keyword):</para>
+
+      <para/>
+
+      <table>
+        <title/>
+
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry align="center">Keyword</entry>
+
+              <entry align="center">Usage</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>abstract</entry>
+
+              <entry>Identifies the object as a template which can be used by
+              other object definitions. The object will not be instantiated on
+              its own.</entry>
+            </row>
+
+            <row>
+              <entry>local</entry>
+
+              <entry>Disabled replication for this object. The object will not
+              be sent to remote Icinga instances.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+
+    <section>
+      <title>Inheritance</title>
+
+      <para>Objects can inherit attributes from one or more other
+      objects.</para>
+
+      <para><programlisting>abstract object Host "default-host" {
+  check_interval = 30,
+
+  macros = {
+    color = "red"
+  }
+}
+
+abstract object Host "test-host" {
+  macros += {
+    color = "blue"
+  }
+}
+
+object Host "localhost" inherits "test-host" {
+  macros += {
+    address = "127.0.0.1",
+    address6 = "::1"
+  }
+}
+</programlisting><emphasis role="bold">Note</emphasis>: The „default-host“ and
+      „test-host“ objects is marked as templates using the „abstract“ keyword.
+      Parent objects do not necessarily have to be „abstract“ though in
+      general they are.</para>
+
+      <para><emphasis role="bold">Note</emphasis>: The += operator is used to
+      insert additional properties into the macros dictionary. The final
+      dictionary contains all 3 macros and the property „color“ has the value
+      „blue“.</para>
+
+      <para>Parent objects are resolved in the order they're specified using
+      the „inherits“ keyword. Parent objects must already be defined by the
+      time they're used in an object definition.</para>
+    </section>
+
+    <section>
+      <title>Comments</title>
+
+      <para>The Icinga 2 configuration format supports C/C++-style
+      comments:</para>
+
+      <programlisting>/*
+ This is a comment.
+ */
+object Host "localhost" {
+  check_interval = 30, // this is also a comment.
+  retry_interval = 15
+}</programlisting>
+    </section>
+
+    <section>
+      <title>Includes</title>
+
+      <para>Other configuration files can be included using the „#include“
+      directive. Paths must be relative to the configuration file that
+      contains the „#include“ keyword:</para>
+
+      <programlisting>#include "some/other/file.conf"</programlisting>
+    </section>
+  </section>
+
+  <section>
+    <title>Icinga 2 Configuration Objects</title>
+
+    <para/>
+
+    <section>
+      <title>Type: IcingaApplication</title>
+
+      <para>The "IcingaApplication" type is used to specify global
+      configuration parameters for Icinga. There must be exactly one
+      application object in each Icinga 2 configuration. The object must have
+      the "local" specifier:</para>
+
+      <programlisting>local object IcingaApplication "icinga" {
+  cert = "my-cert.pem",
+  ca = "ca.crt",
+
+  node = "192.168.0.1",
+  service = 7777,
+
+  pidpath = "/var/run/icinga2.pid",
+  logpath = "/var/log/icinga2.log",
+  statepath = "/var/lib/icinga2.state",
+
+  macros = {
+    plugindir = "/usr/local/icinga/libexec"
+  }
+}
+</programlisting>
+    </section>
+  </section>
+</article>
