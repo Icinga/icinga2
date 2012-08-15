@@ -25,7 +25,7 @@
       <title>Object Definition</title>
 
       <para>Icinga 2 features an object-based configuration format. In order
-      to define objects the „object“ keyword is used:</para>
+      to define objects the "object" keyword is used:</para>
 
       <programlisting>object Host "host1.example.org" {
   alias = "host1",
@@ -296,18 +296,18 @@ object Host "localhost" inherits "test-host" {
     address6 = "::1"
   }
 }
-</programlisting><emphasis role="bold">Note</emphasis>: The „default-host“ and
-      „test-host“ objects is marked as templates using the „abstract“ keyword.
-      Parent objects do not necessarily have to be „abstract“ though in
+</programlisting><emphasis role="bold">Note</emphasis>: The "default-host" and
+      "test-host" objects is marked as templates using the "abstract" keyword.
+      Parent objects do not necessarily have to be "abstract" though in
       general they are.</para>
 
       <para><emphasis role="bold">Note</emphasis>: The += operator is used to
       insert additional properties into the macros dictionary. The final
-      dictionary contains all 3 macros and the property „color“ has the value
-      „blue“.</para>
+      dictionary contains all 3 macros and the property "color" has the value
+      "blue".</para>
 
       <para>Parent objects are resolved in the order they're specified using
-      the „inherits“ keyword. Parent objects must already be defined by the
+      the "inherits" keyword. Parent objects must already be defined by the
       time they're used in an object definition.</para>
     </section>
 
@@ -329,9 +329,9 @@ object Host "localhost" {
     <section>
       <title>Includes</title>
 
-      <para>Other configuration files can be included using the „#include“
+      <para>Other configuration files can be included using the "#include"
       directive. Paths must be relative to the configuration file that
-      contains the „#include“ keyword:</para>
+      contains the "#include" keyword:</para>
 
       <programlisting>#include "some/other/file.conf"</programlisting>
     </section>
@@ -368,7 +368,7 @@ object Host "localhost" {
 </programlisting>
 
       <section>
-        <title>Property: cert</title>
+        <title>Attribute: cert</title>
 
         <para>This is used to specify the SSL client certificate Icinga 2 will
         use when connecting to other Icinga 2 instances. This property is
@@ -377,7 +377,7 @@ object Host "localhost" {
       </section>
 
       <section>
-        <title>Property: ca</title>
+        <title>Attribute: ca</title>
 
         <para>This is the public CA certificate that is used to verify
         connections from other Icinga 2 instances. This property is optional
@@ -385,7 +385,7 @@ object Host "localhost" {
       </section>
 
       <section>
-        <title>Property: node</title>
+        <title>Attribute: node</title>
 
         <para>The externally visible IP address that is used by other Icinga 2
         instances to connect to this instance. This property is optional when
@@ -396,7 +396,7 @@ object Host "localhost" {
       </section>
 
       <section>
-        <title>Property: service</title>
+        <title>Attribute: service</title>
 
         <para>The port this Icinga 2 instance should listen on. This property
         is optional when you're setting up a non-networked Icinga 2
@@ -404,22 +404,22 @@ object Host "localhost" {
       </section>
 
       <section>
-        <title>Property: pidpath</title>
+        <title>Attribute: pidpath</title>
 
         <para>Optional. The path to the PID file. Defaults to "icinga.pid" in
         the current working directory.</para>
       </section>
 
       <section>
-        <title>Property: logpath</title>
+        <title>Attribute: logpath</title>
 
         <para>Optional. The path to the logfile. This is a shortcut for
-        creating a Logger object of type „file“ with the specified log
+        creating a Logger object of type "file" with the specified log
         path.</para>
       </section>
 
       <section>
-        <title>Property: statepath</title>
+        <title>Attribute: statepath</title>
 
         <para>Optional. The path of the state file. This is the file Icinga 2
         uses to persist objects between program runs. Defaults to
@@ -427,7 +427,7 @@ object Host "localhost" {
       </section>
 
       <section>
-        <title>Property: macros</title>
+        <title>Attribute: macros</title>
 
         <para>Optional. Global macros that are used for service checks and
         notifications.</para>
@@ -447,20 +447,20 @@ object Host "localhost" {
 }</programlisting>
 
       <section>
-        <title>Property: type</title>
+        <title>Attribute: type</title>
 
         <para>The type of the log. Can be "console", "syslog" or
         "file".</para>
       </section>
 
       <section>
-        <title>Property: path</title>
+        <title>Attribute: path</title>
 
         <para>The log path. Ignored if the log type is not "file".</para>
       </section>
 
       <section>
-        <title>Property: severity</title>
+        <title>Attribute: severity</title>
 
         <para>The minimum severity for this log. Can be "debug",
         "information", "warning" or "critical". Defaults to
@@ -487,19 +487,19 @@ object Host "localhost" {
       <para>Endpoint objects are used by the "discovery" component to specify
       connection information for remote Icinga 2 instances:</para>
 
-      <programlisting>local object Endpoint „icinga-c2“ {
+      <programlisting>local object Endpoint "icinga-c2" {
   node = "192.168.5.46",
   service = 7777,
 }</programlisting>
 
       <section>
-        <title>Property: node</title>
+        <title>Attribute: node</title>
 
         <para>The hostname/IP address of the remote Icinga 2 instance.</para>
       </section>
 
       <section>
-        <title>Property: service</title>
+        <title>Attribute: service</title>
 
         <para>The port of the remote Icinga 2 instance.</para>
       </section>
@@ -540,53 +540,53 @@ object Host "localhost" {
 }</programlisting>
 
       <section>
-        <title>Property: host_name</title>
+        <title>Attribute: host_name</title>
 
         <para>The host this service belongs to. There must be a "Host" object
         with that name.</para>
       </section>
 
       <section>
-        <title>Property: alias</title>
+        <title>Attribute: alias</title>
 
         <para>Optional. A short description of the service.</para>
       </section>
 
       <section>
-        <title>Property: methods - check</title>
+        <title>Attribute: methods - check</title>
 
         <para>The check type of the service. For now only Nagios-compatible
         plugins are supported ("native::NagiosCheck").</para>
       </section>
 
       <section>
-        <title>Property: check_command</title>
+        <title>Attribute: check_command</title>
 
         <para>Optional when not using check_type == "nagios". The check
         command. This command may use macros.</para>
       </section>
 
       <section>
-        <title>Property: check_interval</title>
+        <title>Attribute: check_interval</title>
 
         <para>Optional. The check interval (in seconds).</para>
       </section>
 
       <section>
-        <title>Property: retry_interval</title>
+        <title>Attribute: retry_interval</title>
 
         <para>Optional. The retry interval (in seconds). This is used when the
         service is in a soft state.</para>
       </section>
 
       <section>
-        <title>Property: servicegroups</title>
+        <title>Attribute: servicegroups</title>
 
         <para>Optional. The service groups this service belongs to.</para>
       </section>
 
       <section>
-        <title>Property: checkers</title>
+        <title>Attribute: checkers</title>
 
         <para>Optional. A list of remote endpoints that may check this
         service. Wildcards can be used here.</para>
@@ -606,19 +606,19 @@ object Host "localhost" {
 }</programlisting>
 
       <section>
-        <title>Property: alias</title>
+        <title>Attribute: alias</title>
 
         <para>Optional. A short description of the service group.</para>
       </section>
 
       <section>
-        <title>Property: notes_url</title>
+        <title>Attribute: notes_url</title>
 
         <para>Optional. Notes URL. Used by the CGIs.</para>
       </section>
 
       <section>
-        <title>Property: action_url</title>
+        <title>Attribute: action_url</title>
 
         <para>Optional. Action URL. Used by the CGIs.</para>
       </section>
@@ -659,33 +659,33 @@ object Host "localhost" {
 }</programlisting>
 
       <section>
-        <title>Property: alias</title>
+        <title>Attribute: alias</title>
 
         <para>Optional. A short description of the host.</para>
       </section>
 
       <section>
-        <title>Property: hostgroups</title>
+        <title>Attribute: hostgroups</title>
 
         <para>Optional. A list of host groups this host belongs to.</para>
       </section>
 
       <section>
-        <title>Property: hostchecks</title>
+        <title>Attribute: hostchecks</title>
 
         <para>Optional. A list of services that are used to determine whether
         the host is up or down.</para>
       </section>
 
       <section>
-        <title>Property: dependencies</title>
+        <title>Attribute: dependencies</title>
 
         <para>Optional. A list of services that are used to determine whether
         the host is unreachable.</para>
       </section>
 
       <section>
-        <title>Property: services</title>
+        <title>Attribute: services</title>
 
         <para>Inline definition of services. Each property in this dictionary
         specifies a service. If the value of a property is a string it is
@@ -694,7 +694,7 @@ object Host "localhost" {
         is used to determine the parent object and all other service-related
         properties are additively copied into the new service object.</para>
 
-        <para>The new service's name is „hostname-service“ - where „service“
+        <para>The new service's name is "hostname-service" - where "service"
         is the dictionary key in the services dictionary.</para>
 
         <para>The priority for service properties is (from highest to
@@ -718,28 +718,28 @@ object Host "localhost" {
       </section>
 
       <section>
-        <title>Property: check_interval</title>
+        <title>Attribute: check_interval</title>
 
         <para>Optional. Copied into inline service definitions. The host
         itself does not have any checks.</para>
       </section>
 
       <section>
-        <title>Property: retry_interval</title>
+        <title>Attribute: retry_interval</title>
 
         <para>Optional. Copied into inline service definitions. The host
         itself does not have any checks.</para>
       </section>
 
       <section>
-        <title>Property: servicegroups</title>
+        <title>Attribute: servicegroups</title>
 
         <para>Optional. Copied into inline service definitions. The host
         itself does not have any checks.</para>
       </section>
 
       <section>
-        <title>Property: checkers</title>
+        <title>Attribute: checkers</title>
 
         <para>Optional. Copied into inline service definitions. The host
         itself does not have any checks.</para>
@@ -759,19 +759,19 @@ object Host "localhost" {
 }</programlisting>
 
       <section>
-        <title>Property: alias</title>
+        <title>Attribute: alias</title>
 
         <para>Optional. A short description of the host group.</para>
       </section>
 
       <section>
-        <title>Property: notes_url</title>
+        <title>Attribute: notes_url</title>
 
         <para>Optional. Notes URL. Used by the CGIs.</para>
       </section>
 
       <section>
-        <title>Property: action_url</title>
+        <title>Attribute: action_url</title>
 
         <para>Optional. Action URL. Used by the CGIs.</para>
       </section>
@@ -802,7 +802,7 @@ local object Component "delegation" {
 
 abstract object Service "nagios-service" {
   methods {
-    check = „native::NagiosCheck“
+    check = "native::NagiosCheck"
   },
 
   macros = {
