@@ -366,6 +366,474 @@ object Host "localhost" {
   }
 }
 </programlisting>
+
+      <section>
+        <title>Property: cert</title>
+
+        <para>This is used to specify the SSL client certificate Icinga 2 will
+        use when connecting to other Icinga 2 instances. This property is
+        optional when you're setting up a non-networked Icinga 2
+        instance.</para>
+      </section>
+
+      <section>
+        <title>Property: ca</title>
+
+        <para>This is the public CA certificate that is used to verify
+        connections from other Icinga 2 instances. This property is optional
+        when you're setting up a non-networked Icinga 2 instance.</para>
+      </section>
+
+      <section>
+        <title>Property: node</title>
+
+        <para>The externally visible IP address that is used by other Icinga 2
+        instances to connect to this instance. This property is optional when
+        you're setting up a non-networked Icinga 2 instance.</para>
+
+        <para><emphasis role="bold">Note</emphasis>: Icinga does not bind to
+        this IP address.</para>
+      </section>
+
+      <section>
+        <title>Property: service</title>
+
+        <para>The port this Icinga 2 instance should listen on. This property
+        is optional when you're setting up a non-networked Icinga 2
+        instance.</para>
+      </section>
+
+      <section>
+        <title>Property: pidpath</title>
+
+        <para>Optional. The path to the PID file. Defaults to "icinga.pid" in
+        the current working directory.</para>
+      </section>
+
+      <section>
+        <title>Property: logpath</title>
+
+        <para>Optional. The path to the logfile. This is a shortcut for
+        creating a Logger object of type „file“ with the specified log
+        path.</para>
+      </section>
+
+      <section>
+        <title>Property: statepath</title>
+
+        <para>Optional. The path of the state file. This is the file Icinga 2
+        uses to persist objects between program runs. Defaults to
+        "icinga.state" in the current working directory.</para>
+      </section>
+
+      <section>
+        <title>Property: macros</title>
+
+        <para>Optional. Global macros that are used for service checks and
+        notifications.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Type: Logger</title>
+
+      <para>Specifies where Icinga 2 should be logging. Objects of this type
+      must have the "local" specifier:</para>
+
+      <programlisting>local object Logger "my-debug-log" {
+  type = "file",
+  path = "/var/log/icinga2.log",
+  severity = "debug"
+}</programlisting>
+
+      <section>
+        <title>Property: type</title>
+
+        <para>The type of the log. Can be "console", "syslog" or
+        "file".</para>
+      </section>
+
+      <section>
+        <title>Property: path</title>
+
+        <para>The log path. Ignored if the log type is not "file".</para>
+      </section>
+
+      <section>
+        <title>Property: severity</title>
+
+        <para>The minimum severity for this log. Can be "debug",
+        "information", "warning" or "critical". Defaults to
+        "information".</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Type: Component</title>
+
+      <para>Icinga 2 uses a number of components to implement its feature-set.
+      The "Component" configuration object is used to load these components
+      and specify additional parameters for them. "component" objects must
+      have the "local" specifier:</para>
+
+      <programlisting>local object Component "discovery" {
+  broker = 1
+}</programlisting>
+    </section>
+
+    <section>
+      <title>Type: Endpoint</title>
+
+      <para>Endpoint objects are used by the "discovery" component to specify
+      connection information for remote Icinga 2 instances:</para>
+
+      <programlisting>local object Endpoint „icinga-c2“ {
+  node = "192.168.5.46",
+  service = 7777,
+}</programlisting>
+
+      <section>
+        <title>Property: node</title>
+
+        <para>The hostname/IP address of the remote Icinga 2 instance.</para>
+      </section>
+
+      <section>
+        <title>Property: service</title>
+
+        <para>The port of the remote Icinga 2 instance.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Type: Service</title>
+
+      <para>Service objects describe network services and how they should be
+      checked by Icinga 2:</para>
+
+      <programlisting>object Service "localhost-uptime" { 
+  host_name = "localhost",
+
+  alias = "localhost Uptime",
+
+  methods = {
+    check = "native::NagiosCheck"
+  },
+
+  check_command = "$plugindir$/check_snmp -H $address$ -C $community$ -o $oid$", 
+
+  macros = { 
+    plugindir = "/usr/lib/nagios/plugins",
+    address = "127.0.0.1",
+    community = "public" ,A hos
+    oid = "DISMAN-EVENT-MIB::sysUpTimeInstance" 
+  } 
+
+  check_interval = 60,
+  retry_interval = 15,
+
+  dependencies = { "localhost-ping" },
+
+  servicegroups = { "all-services", "snmp" },
+
+  checkers = { "*" },
+}</programlisting>
+
+      <section>
+        <title>Property: host_name</title>
+
+        <para>The host this service belongs to. There must be a "Host" object
+        with that name.</para>
+      </section>
+
+      <section>
+        <title>Property: alias</title>
+
+        <para>Optional. A short description of the service.</para>
+      </section>
+
+      <section>
+        <title>Property: methods - check</title>
+
+        <para>The check type of the service. For now only Nagios-compatible
+        plugins are supported ("native::NagiosCheck").</para>
+      </section>
+
+      <section>
+        <title>Property: check_command</title>
+
+        <para>Optional when not using check_type == "nagios". The check
+        command. This command may use macros.</para>
+      </section>
+
+      <section>
+        <title>Property: check_interval</title>
+
+        <para>Optional. The check interval (in seconds).</para>
+      </section>
+
+      <section>
+        <title>Property: retry_interval</title>
+
+        <para>Optional. The retry interval (in seconds). This is used when the
+        service is in a soft state.</para>
+      </section>
+
+      <section>
+        <title>Property: servicegroups</title>
+
+        <para>Optional. The service groups this service belongs to.</para>
+      </section>
+
+      <section>
+        <title>Property: checkers</title>
+
+        <para>Optional. A list of remote endpoints that may check this
+        service. Wildcards can be used here.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Type: ServiceGroup</title>
+
+      <para>A group of services:</para>
+
+      <programlisting>object ServiceGroup "snmp" {
+  alias = "SNMP services",
+
+  notes_url = "http://www.example.org/",
+  action_url = "http://www.example.org/",
+}</programlisting>
+
+      <section>
+        <title>Property: alias</title>
+
+        <para>Optional. A short description of the service group.</para>
+      </section>
+
+      <section>
+        <title>Property: notes_url</title>
+
+        <para>Optional. Notes URL. Used by the CGIs.</para>
+      </section>
+
+      <section>
+        <title>Property: action_url</title>
+
+        <para>Optional. Action URL. Used by the CGIs.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Type: Host</title>
+
+      <para>A host. Unlike in Icinga 1.x hosts are not checkable objects in
+      Icinga 2:</para>
+
+      <programlisting>object Host "localhost" {
+  alias = "The best host there is",
+
+  hostgroups = { "all-hosts" },
+
+  hostchecks = { "ping" },
+  dependencies = { "router-ping" }
+
+  services = {
+    "ping",
+    "my-http" {
+      service = "http",
+
+      macros = {
+        vhost = "test1.example.org",
+        port = 81
+      }
+    }
+  }
+
+  check_interval = 60,
+  retry_interval = 15,
+
+  servicegroups = { "all-services" },
+
+  checkers = { "*" },
+}</programlisting>
+
+      <section>
+        <title>Property: alias</title>
+
+        <para>Optional. A short description of the host.</para>
+      </section>
+
+      <section>
+        <title>Property: hostgroups</title>
+
+        <para>Optional. A list of host groups this host belongs to.</para>
+      </section>
+
+      <section>
+        <title>Property: hostchecks</title>
+
+        <para>Optional. A list of services that are used to determine whether
+        the host is up or down.</para>
+      </section>
+
+      <section>
+        <title>Property: dependencies</title>
+
+        <para>Optional. A list of services that are used to determine whether
+        the host is unreachable.</para>
+      </section>
+
+      <section>
+        <title>Property: services</title>
+
+        <para>Inline definition of services. Each property in this dictionary
+        specifies a service. If the value of a property is a string it is
+        interpreted as the name of a service template and is used as a parent
+        object for the new service. If it is a dictionary its service property
+        is used to determine the parent object and all other service-related
+        properties are additively copied into the new service object.</para>
+
+        <para>The new service's name is „hostname-service“ - where „service“
+        is the dictionary key in the services dictionary.</para>
+
+        <para>The priority for service properties is (from highest to
+        lowest):</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Properties specified in the dictionary of the inline service
+            definition</para>
+          </listitem>
+
+          <listitem>
+            <para>Host properties</para>
+          </listitem>
+
+          <listitem>
+            <para>Properties inherited from the new service's parent
+            object</para>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section>
+        <title>Property: check_interval</title>
+
+        <para>Optional. Copied into inline service definitions. The host
+        itself does not have any checks.</para>
+      </section>
+
+      <section>
+        <title>Property: retry_interval</title>
+
+        <para>Optional. Copied into inline service definitions. The host
+        itself does not have any checks.</para>
+      </section>
+
+      <section>
+        <title>Property: servicegroups</title>
+
+        <para>Optional. Copied into inline service definitions. The host
+        itself does not have any checks.</para>
+      </section>
+
+      <section>
+        <title>Property: checkers</title>
+
+        <para>Optional. Copied into inline service definitions. The host
+        itself does not have any checks.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Type: HostGroup</title>
+
+      <para>A group of hosts:</para>
+
+      <programlisting>object HostGroup "my-hosts" {
+  alias = "My hosts",
+
+  notes_url = "http://www.example.org/",
+  action_url = "http://www.example.org/",
+}</programlisting>
+
+      <section>
+        <title>Property: alias</title>
+
+        <para>Optional. A short description of the host group.</para>
+      </section>
+
+      <section>
+        <title>Property: notes_url</title>
+
+        <para>Optional. Notes URL. Used by the CGIs.</para>
+      </section>
+
+      <section>
+        <title>Property: action_url</title>
+
+        <para>Optional. Action URL. Used by the CGIs.</para>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Icinga 2 Configuration Examples</title>
+
+    <para/>
+
+    <section>
+      <title>Non-networked minimal example</title>
+
+      <para/>
+
+      <programlisting>local object IcingaApplication "icinga" {
+
+}
+
+local object Component "checker" {
+
+}
+
+local object Component "delegation" {
+
+}
+
+abstract object Service "nagios-service" {
+  methods {
+    check = „native::NagiosCheck“
+  },
+
+  macros = {
+    plugindir = "/usr/lib/nagios/plugins"
+  }
+}
+
+abstract object Service "ping" inherits "nagios-service" {
+  check_command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
+
+  macros += {
+    wrta = 50,
+    wpl = 5,
+    crta = 100,
+    cpl = 10
+  }
+}
+
+object Host "localhost" {
+  services = { "ping" },
+
+  macros = {
+    address = "127.0.0.1"
+  },
+
+  check_interval = 10
+}</programlisting>
+
+      <para><emphasis role="bold">Note</emphasis>: You may also want to load
+      the "compat" component if you want Icinga 2 to write status.dat and
+      objects.cache files.</para>
     </section>
   </section>
 </article>
