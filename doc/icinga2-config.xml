@@ -17,7 +17,7 @@
   </articleinfo>
 
   <section>
-    <title>Icinga 2 Configuration Format</title>
+    <title>Configuration Format</title>
 
     <para/>
 
@@ -42,9 +42,9 @@
       format is agnostic to whitespaces and new-lines.</para>
 
       <para>Each object is uniquely identified by its type ("Host") and name
-      ("localhost"). Objects can contain a comma-separated list of property
-      declarations. The following data types are available for property
-      values:</para>
+      ("host1.example.org"). Objects can contain a comma-separated list of
+      property declarations. The following data types are available for
+      property values:</para>
 
       <table>
         <title/>
@@ -284,7 +284,7 @@
   }
 }
 
-abstract object Host "test-host" {
+abstract object Host "test-host" inherits "default-host" {
   macros += {
     color = "blue"
   }
@@ -338,7 +338,7 @@ object Host "localhost" {
   </section>
 
   <section>
-    <title>Icinga 2 Configuration Objects</title>
+    <title>Configuration Objects</title>
 
     <para/>
 
@@ -779,7 +779,7 @@ object Host "localhost" {
   </section>
 
   <section>
-    <title>Icinga 2 Configuration Examples</title>
+    <title>Configuration Examples</title>
 
     <para/>
 
