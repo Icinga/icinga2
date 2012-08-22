@@ -37,7 +37,7 @@ public:
 	typedef shared_ptr<Process> Ptr;
 	typedef weak_ptr<Process> WeakPtr;
 
-	static const deque<Process::Ptr>::size_type MaxTasksPerThread = 128;
+	static const deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
 	Process(const String& command);
 
