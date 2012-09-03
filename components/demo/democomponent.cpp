@@ -26,10 +26,9 @@ using namespace icinga;
  */
 void DemoComponent::Start(void)
 {
-	m_Endpoint = boost::make_shared<VirtualEndpoint>();
+	m_Endpoint = Endpoint::MakeEndpoint("demo", true);
 	m_Endpoint->RegisterTopicHandler("demo::HelloWorld",
 	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2, _3));
-	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	m_DemoTimer = boost::make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);
@@ -42,10 +41,7 @@ void DemoComponent::Start(void)
  */
 void DemoComponent::Stop(void)
 {
-	EndpointManager::Ptr endpointManager = EndpointManager::GetInstance();
-
-	if (endpointManager)
-		endpointManager->UnregisterEndpoint(m_Endpoint);
+	m_Endpoint->Unregister();
 }
 
 /**
@@ -68,7 +64,7 @@ void DemoComponent::DemoTimerHandler(void)
  */
 void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	Logger::Write(LogInformation, "demo", "Got 'hello world' from address=" + sender->GetAddress() + ", identity=" + sender->GetIdentity());
+	Logger::Write(LogInformation, "demo", "Got 'hello world' from address=" + sender->GetAddress() + ", identity=" + sender->GetName());
 }
 
 EXPORT_COMPONENT(demo, DemoComponent);

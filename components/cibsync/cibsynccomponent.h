@@ -33,18 +33,16 @@ public:
 	virtual void Stop(void);
 
 private:
-	VirtualEndpoint::Ptr m_Endpoint;
+	Endpoint::Ptr m_Endpoint;
 
 	static void ServiceStateChangeRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 
-	void NewEndpointHandler(const Endpoint::Ptr& endpoint);
-	void SessionEstablishedHandler(const Endpoint::Ptr& endpoint);
+	void EndpointConnectedHandler(const Endpoint::Ptr& endpoint);
 
 	void LocalObjectRegisteredHandler(const DynamicObject::Ptr& object);
 	void LocalObjectUnregisteredHandler(const DynamicObject::Ptr& object);
 	void TransactionClosingHandler(const set<DynamicObject::Ptr>& modifiedObjects);
 
-	void FetchObjectsHandler(const Endpoint::Ptr& sender);
 	void RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 	void RemoteObjectRemovedHandler(const RequestMessage& request);
 

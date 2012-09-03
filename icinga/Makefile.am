@@ -11,11 +11,7 @@ libicinga_la_SOURCES =  \
 	endpointmanager.h \
 	icingaapplication.cpp \
 	icingaapplication.h \
-	i2-icinga.h \
-	jsonrpcendpoint.cpp \
-	jsonrpcendpoint.h \
-	virtualendpoint.cpp \
-	virtualendpoint.h
+	i2-icinga.h
 
 libicinga_la_CPPFLAGS = \
 	-DI2_ICINGA_BUILD \

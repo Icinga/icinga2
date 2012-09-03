@@ -50,6 +50,8 @@ public:
 	void Remove(const String& key);
 	void Remove(Iterator it);
 
+	Dictionary::Ptr ShallowClone(void) const;
+
 	static Dictionary::Ptr FromJson(cJSON *json);
 	cJSON *ToJson(void) const;
 

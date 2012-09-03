@@ -33,6 +33,8 @@ condition_variable Process::m_TasksCV;
 Process::Process(const String& command)
 	: AsyncTask<Process, ProcessResult>(), m_Command(command), m_UsePopen(false)
 {
+	assert(Application::IsMainThread());
+
 	if (!m_ThreadCreated) {
 		thread t(&Process::WorkerThreadProc);
 		t.detach();

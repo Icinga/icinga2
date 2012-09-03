@@ -79,6 +79,7 @@ public:
 	void RegisterAttribute(const String& name, DynamicAttributeType type);
 
 	void Set(const String& name, const Value& data);
+	void Touch(const String& name);
 	Value Get(const String& name) const;
 
 	bool HasAttribute(const String& name) const;
@@ -162,8 +163,11 @@ shared_ptr<T> DynamicObjectFactory(const Dictionary::Ptr& serializedUpdate)
 	return boost::make_shared<T>(serializedUpdate);
 }
 
+#define REGISTER_CLASS_ALIAS(klass, alias) \
+	static RegisterClassHelper g_Register ## klass(alias, DynamicObjectFactory<klass>)
+
 #define REGISTER_CLASS(klass) \
-	static RegisterClassHelper g_Register ## klass(#klass, DynamicObjectFactory<klass>)
+	REGISTER_CLASS_ALIAS(klass, #klass)
 
 }
 

@@ -21,24 +21,109 @@
 
 using namespace icinga;
 
-/**
- * Retrieves the endpoint manager this endpoint is registered with.
- *
- * @returns The EndpointManager object.
- */
-EndpointManager::Ptr Endpoint::GetEndpointManager(void) const
+REGISTER_CLASS(Endpoint);
+
+boost::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
+boost::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
+boost::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionRegistered;
+boost::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionUnregistered;
+
+Endpoint::Endpoint(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
-	return m_EndpointManager.lock();
+	RegisterAttribute("node", Attribute_Replicated);
+	RegisterAttribute("service", Attribute_Replicated);
+	RegisterAttribute("local", Attribute_Config);
+	RegisterAttribute("subscriptions", Attribute_Replicated);
+	RegisterAttribute("client", Attribute_Transient);
+}
+
+bool Endpoint::Exists(const String& name)
+{
+	return (DynamicObject::GetObject("Endpoint", name));
+}
+
+Endpoint::Ptr Endpoint::GetByName(const String& name)
+{
+        DynamicObject::Ptr configObject = DynamicObject::GetObject("Endpoint", name);
+
+        if (!configObject)
+                throw_exception(invalid_argument("Endpoint '" + name + "' does not exist."));
+
+        return dynamic_pointer_cast<Endpoint>(configObject);
+}
+
+Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool local)
+{
+	ConfigItemBuilder::Ptr endpointConfig = boost::make_shared<ConfigItemBuilder>();
+	endpointConfig->SetType("Endpoint");
+	endpointConfig->SetName(local ? "local:" + name : name);
+	endpointConfig->SetLocal(local ? 1 : 0);
+	endpointConfig->AddExpression("local", OperatorSet, local);
+
+	DynamicObject::Ptr object = endpointConfig->Compile()->Commit();
+	return dynamic_pointer_cast<Endpoint>(object);
 }
 
 /**
- * Sets the endpoint manager this endpoint is registered with.
+ * Checks whether this is a local endpoint.
  *
- * @param manager The EndpointManager object.
+ * @returns true if this is a local endpoint, false otherwise.
  */
-void Endpoint::SetEndpointManager(EndpointManager::WeakPtr manager)
+bool Endpoint::IsLocalEndpoint(void) const
 {
-	m_EndpointManager = manager;
+	Value value = Get("local");
+
+	return (!value.IsEmpty() && value);
+}
+
+/**
+ * Checks whether this endpoint is connected.
+ *
+ * @returns true if the endpoint is connected, false otherwise.
+ */
+bool Endpoint::IsConnected(void) const
+{
+	if (IsLocalEndpoint()) {
+		return true;
+	} else {
+		JsonRpcClient::Ptr client = GetClient();
+
+		return (client && client->IsConnected());
+	}
+}
+
+/**
+ * Retrieves the address for the endpoint.
+ *
+ * @returns The endpoint's address.
+ */
+String Endpoint::GetAddress(void) const
+{
+	if (IsLocalEndpoint()) {
+		return "local:" + GetName();
+	} else {
+		JsonRpcClient::Ptr client = GetClient();
+
+		if (!client)
+			return "<disconnected endpoint>";
+
+		return client->GetPeerAddress();
+	}
+}
+
+JsonRpcClient::Ptr Endpoint::GetClient(void) const
+{
+	return Get("client");
+}
+
+void Endpoint::SetClient(const JsonRpcClient::Ptr& client)
+{
+	Set("client", client);
+	client->OnNewMessage.connect(boost::bind(&Endpoint::NewMessageHandler, this, _2));
+	client->OnClosed.connect(boost::bind(&Endpoint::ClientClosedHandler, this));
+
+	OnConnected(GetSelf());
 }
 
 /**
@@ -46,9 +131,18 @@ void Endpoint::SetEndpointManager(EndpointManager::WeakPtr manager)
  *
  * @param topic The name of the topic.
  */
-void Endpoint::RegisterSubscription(String topic)
+void Endpoint::RegisterSubscription(const String& topic)
 {
-	m_Subscriptions.insert(topic);
+	Dictionary::Ptr subscriptions = GetSubscriptions();
+
+	if (!subscriptions)
+		subscriptions = boost::make_shared<Dictionary>();
+
+	if (!subscriptions->Contains(topic)) {
+		Dictionary::Ptr newSubscriptions = subscriptions->ShallowClone();
+		newSubscriptions->Set(topic, topic);
+		SetSubscriptions(newSubscriptions);
+	}
 }
 
 /**
@@ -56,9 +150,15 @@ void Endpoint::RegisterSubscription(String topic)
  *
  * @param topic The name of the topic.
  */
-void Endpoint::UnregisterSubscription(String topic)
+void Endpoint::UnregisterSubscription(const String& topic)
 {
-	m_Subscriptions.erase(topic);
+	Dictionary::Ptr subscriptions = GetSubscriptions();
+
+	if (subscriptions && subscriptions->Contains(topic)) {
+		Dictionary::Ptr newSubscriptions = subscriptions->ShallowClone();
+		newSubscriptions->Remove(topic);
+		SetSubscriptions(newSubscriptions);
+	}
 }
 
 /**
@@ -67,9 +167,11 @@ void Endpoint::UnregisterSubscription(String topic)
  * @param topic The name of the topic.
  * @returns true if the endpoint is subscribed to the topic, false otherwise.
  */
-bool Endpoint::HasSubscription(String topic) const
+bool Endpoint::HasSubscription(const String& topic) const
 {
-	return (m_Subscriptions.find(topic) != m_Subscriptions.end());
+	Dictionary::Ptr subscriptions = GetSubscriptions();
+
+	return (subscriptions && subscriptions->Contains(topic));
 }
 
 /**
@@ -77,65 +179,168 @@ bool Endpoint::HasSubscription(String topic) const
  */
 void Endpoint::ClearSubscriptions(void)
 {
-	m_Subscriptions.clear();
+	Set("subscriptions", Empty);
 }
 
-/**
- * Returns the beginning of the subscriptions list.
- *
- * @returns An iterator that points to the first subscription.
- */
-Endpoint::ConstTopicIterator Endpoint::BeginSubscriptions(void) const
+Dictionary::Ptr Endpoint::GetSubscriptions(void) const
 {
-	return m_Subscriptions.begin();
+	return Get("subscriptions");
 }
 
-/**
- * Returns the end of the subscriptions list.
- *
- * @returns An iterator that points past the last subscription.
- */
-Endpoint::ConstTopicIterator Endpoint::EndSubscriptions(void) const
+void Endpoint::SetSubscriptions(const Dictionary::Ptr& subscriptions)
 {
-	return m_Subscriptions.end();
+	Set("subscriptions", subscriptions);
 }
 
-/**
- * Sets whether a welcome message has been received from this endpoint.
- *
- * @param value Whether we've received a welcome message.
- */
-void Endpoint::SetReceivedWelcome(bool value)
+void Endpoint::RegisterTopicHandler(const String& topic, const function<Endpoint::Callback>& callback)
 {
-	m_ReceivedWelcome = value;
+	map<String, shared_ptr<boost::signal<Endpoint::Callback> > >::iterator it;
+	it = m_TopicHandlers.find(topic);
+
+	shared_ptr<boost::signal<Endpoint::Callback> > sig;
+
+	if (it == m_TopicHandlers.end()) {
+		sig = boost::make_shared<boost::signal<Endpoint::Callback> >();
+		m_TopicHandlers.insert(make_pair(topic, sig));
+	} else {
+		sig = it->second;
+	}
+
+	sig->connect(callback);
+
+	RegisterSubscription(topic);
 }
 
-/**
- * Retrieves whether a welcome message has been received from this endpoint.
- *
- * @returns Whether we've received a welcome message.
- */
-bool Endpoint::HasReceivedWelcome(void) const
+void Endpoint::UnregisterTopicHandler(const String& topic, const function<Endpoint::Callback>& callback)
 {
-	return m_ReceivedWelcome;
+	// TODO: implement
+	//m_TopicHandlers[method] -= callback;
+	//UnregisterSubscription(method);
+
+	throw_exception(NotImplementedException());
 }
 
-/**
- * Sets whether a welcome message has been sent to this endpoint.
- *
- * @param value Whether we've sent a welcome message.
- */
-void Endpoint::SetSentWelcome(bool value)
+void Endpoint::OnAttributeChanged(const String& name, const Value& oldValue)
 {
-	m_SentWelcome = value;
+	if (name == "subscriptions") {
+		Dictionary::Ptr oldSubscriptions, newSubscriptions;
+
+		if (oldValue.IsObjectType<Dictionary>())
+			oldSubscriptions = oldValue;
+
+		newSubscriptions = GetSubscriptions();
+
+		if (oldSubscriptions) {
+			String subscription;
+			BOOST_FOREACH(tie(tuples::ignore, subscription), oldSubscriptions) {
+				if (!newSubscriptions || !newSubscriptions->Contains(subscription)) {
+					Logger::Write(LogInformation, "icinga", "Removed subscription for '" + GetName() + "': " + subscription);
+					OnSubscriptionUnregistered(GetSelf(), subscription);
+				}
+			}
+		}
+
+		if (newSubscriptions) {
+			String subscription;
+			BOOST_FOREACH(tie(tuples::ignore, subscription), newSubscriptions) {
+				if (!oldSubscriptions || !oldSubscriptions->Contains(subscription)) {
+					Logger::Write(LogInformation, "icinga", "New subscription for '" + GetName() + "': " + subscription);
+					OnSubscriptionRegistered(GetSelf(), subscription);
+				}
+			}
+		}
+	}
 }
 
-/**
- * Retrieves whether a welcome message has been sent to this endpoint.
- *
- * @returns Whether we've sent a welcome message.
- */
-bool Endpoint::HasSentWelcome(void) const
+void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
-	return m_SentWelcome;
+	if (!IsConnected()) {
+		// TODO: persist the message
+		return;
+	}
+
+	if (IsLocalEndpoint()) {
+		String method;
+		if (!request.GetMethod(&method))
+			return;
+
+		map<String, shared_ptr<boost::signal<Endpoint::Callback> > >::iterator it;
+		it = m_TopicHandlers.find(method);
+
+		if (it == m_TopicHandlers.end())
+			return;
+
+		(*it->second)(GetSelf(), sender, request);
+	} else {
+		GetClient()->SendMessage(request);
+	}
 }
+
+void Endpoint::ProcessResponse(const Endpoint::Ptr& sender, const ResponseMessage& response)
+{
+	if (!IsConnected())
+		return;
+
+	if (IsLocalEndpoint())
+		EndpointManager::GetInstance()->ProcessResponseMessage(sender, response);
+	else
+		GetClient()->SendMessage(response);
+}
+
+void Endpoint::NewMessageHandler(const MessagePart& message)
+{
+	Endpoint::Ptr sender = GetSelf();
+
+	if (ResponseMessage::IsResponseMessage(message)) {
+		/* rather than routing the message to the right virtual
+		 * endpoint we just process it here right away. */
+		EndpointManager::GetInstance()->ProcessResponseMessage(sender, message);
+		return;
+	}
+
+	RequestMessage request = message;
+
+	String method;
+	if (!request.GetMethod(&method))
+		return;
+
+	String id;
+	if (request.GetID(&id))
+		EndpointManager::GetInstance()->SendAnycastMessage(sender, request);
+	else
+		EndpointManager::GetInstance()->SendMulticastMessage(sender, request);
+}
+
+void Endpoint::ClientClosedHandler(void)
+{
+	try {
+		GetClient()->CheckException();
+	} catch (const exception& ex) {
+		stringstream message;
+		message << "Error occured for JSON-RPC socket: Message=" << ex.what();
+
+		Logger::Write(LogWarning, "jsonrpc", message.str());
+	}
+
+	Logger::Write(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetName());
+
+	// TODO: _only_ clear non-persistent subscriptions
+	// unregister ourselves if no persistent subscriptions are left (use a
+	// timer for that, once we have a TTL property for the topics)
+	ClearSubscriptions();
+
+	Set("client", Empty);
+
+	OnDisconnected(GetSelf());
+}
+
+String Endpoint::GetNode(void) const
+{
+	return Get("node");
+}
+
+String Endpoint::GetService(void) const
+{
+	return Get("service");
+}
+

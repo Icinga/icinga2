@@ -47,6 +47,7 @@ public:
 	String GetPidPath(void) const;
 	String GetStatePath(void) const;
 	Dictionary::Ptr GetMacros(void) const;
+	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 
 	double GetStartTime(void) const;
 
@@ -61,6 +62,7 @@ private:
 	String m_PidPath;
 	String m_StatePath;
 	Dictionary::Ptr m_Macros;
+	shared_ptr<SSL_CTX> m_SSLContext;
 
 	double m_StartTime;
 

@@ -33,8 +33,7 @@ icinga_LDADD = \
 	-dlopen ${top_builddir}/components/compat/compat.la \
 	-dlopen ${top_builddir}/components/convenience/convenience.la \
 	-dlopen ${top_builddir}/components/delegation/delegation.la \
-	-dlopen ${top_builddir}/components/demo/demo.la \
-	-dlopen ${top_builddir}/components/discovery/discovery.la
+	-dlopen ${top_builddir}/components/demo/demo.la
 
 icinga_DEPENDENCIES = \
 	${top_builddir}/components/cibsync/cibsync.la \

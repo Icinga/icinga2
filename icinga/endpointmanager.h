@@ -34,7 +34,7 @@ public:
 	typedef shared_ptr<EndpointManager> Ptr;
 	typedef weak_ptr<EndpointManager> WeakPtr;
 
-	typedef map<String, Endpoint::Ptr>::iterator Iterator;
+//	typedef map<String, Endpoint::Ptr>::iterator Iterator;
 
 	EndpointManager(void);
 
@@ -49,9 +49,6 @@ public:
 	void AddListener(const String& service);
 	void AddConnection(const String& node, const String& service);
 
-	void RegisterEndpoint(const Endpoint::Ptr& endpoint);
-	void UnregisterEndpoint(const Endpoint::Ptr& endpoint);
-
 	void SendUnicastMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, const MessagePart& message);
 	void SendAnycastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
 	void SendMulticastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
@@ -61,21 +58,22 @@ public:
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
-	void ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback);
-	Iterator Begin(void);
-	Iterator End(void);
-
-	Endpoint::Ptr GetEndpointByIdentity(const String& identity) const;
+//	void ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback);
+//	Iterator Begin(void);
+//	Iterator End(void);
 
 	boost::signal<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
 
 private:
 	String m_Identity;
-	shared_ptr<SSL_CTX> m_SSLContext;
+	Endpoint::Ptr m_Endpoint;
 
-	vector<JsonRpcServer::Ptr> m_Servers;
-	vector<Endpoint::Ptr> m_PendingEndpoints;
-	map<String, Endpoint::Ptr> m_Endpoints;
+	Timer::Ptr m_SubscriptionTimer;
+
+	Timer::Ptr m_ReconnectTimer;
+
+	set<JsonRpcServer::Ptr> m_Servers;
+	set<JsonRpcClient::Ptr> m_PendingClients;
 
 	/**
 	 * Information about a pending API request.
@@ -98,13 +96,15 @@ private:
 	map<String, PendingRequest> m_Requests;
 	Timer::Ptr m_RequestTimer;
 
-	void RegisterServer(const JsonRpcServer::Ptr& server);
-	void UnregisterServer(const JsonRpcServer::Ptr& server);
-
 	static bool RequestTimeoutLessComparer(const pair<String, PendingRequest>& a, const pair<String, PendingRequest>& b);
 	void RequestTimerHandler(void);
 
+	void SubscriptionTimerHandler(void);
+
+	void ReconnectTimerHandler(void);
+
 	void NewClientHandler(const TcpClient::Ptr& client);
+	void ClientConnectedHandler(const TcpClient::Ptr& client);
 };
 
 }

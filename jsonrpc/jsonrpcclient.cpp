@@ -41,7 +41,9 @@ JsonRpcClient::JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
 void JsonRpcClient::SendMessage(const MessagePart& message)
 {
 	Value value = message.GetDictionary();
-	NetString::WriteStringToIOQueue(this, value.Serialize());
+	String json = value.Serialize();
+	//std::cerr << ">> " << json << std::endl;
+	NetString::WriteStringToIOQueue(this, json);
 }
 
 /**
@@ -52,6 +54,8 @@ void JsonRpcClient::DataAvailableHandler(void)
 	String jsonString;
 
 	while (NetString::ReadStringFromIOQueue(this, &jsonString)) {
+		//std::cerr << "<< " << jsonString << std::endl;
+
 		try {
 			Value value = Value::Deserialize(jsonString);
 

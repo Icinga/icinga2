@@ -40,9 +40,9 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::P
 {
 	vector<Endpoint::Ptr> candidates;
 
-	EndpointManager::Iterator it;
-	for (it = EndpointManager::GetInstance()->Begin(); it != EndpointManager::GetInstance()->End(); it++) {
-		Endpoint::Ptr endpoint = it->second;
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
 		/* ignore disconnected endpoints */
 		if (!endpoint->IsConnected())
@@ -53,7 +53,7 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::P
 			continue;
 
 		/* ignore endpoints that aren't allowed to check this service */
-		if (!service->IsAllowedChecker(it->first))
+		if (!service->IsAllowedChecker(endpoint->GetName()))
 			continue;
 
 		candidates.push_back(endpoint);
@@ -66,14 +66,16 @@ void DelegationComponent::DelegationTimerHandler(void)
 {
 	map<Endpoint::Ptr, int> histogram;
 
-	EndpointManager::Iterator eit;
-	for (eit = EndpointManager::GetInstance()->Begin(); eit != EndpointManager::GetInstance()->End(); eit++)
-		histogram[eit->second] = 0;
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
+
+		histogram[endpoint] = 0;
+	}
 
 	vector<Service::Ptr> services;
 
 	/* build "checker -> service count" histogram */
-	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
@@ -86,9 +88,10 @@ void DelegationComponent::DelegationTimerHandler(void)
 		if (checker.IsEmpty())
 			continue;
 
-		Endpoint::Ptr endpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
-		if (!endpoint)
+		if (!Endpoint::Exists(checker))
 			continue;
+
+		Endpoint::Ptr endpoint = Endpoint::GetByName(checker);
 
 		histogram[endpoint]++;
 	}
@@ -102,8 +105,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 		String checker = service->GetChecker();
 
 		Endpoint::Ptr oldEndpoint;
-		if (!checker.IsEmpty())
-			oldEndpoint = EndpointManager::GetInstance()->GetEndpointByIdentity(checker);
+		if (Endpoint::Exists(checker))
+			oldEndpoint = Endpoint::GetByName(checker);
 
 		vector<Endpoint::Ptr> candidates = GetCheckerCandidates(service);
 
@@ -146,7 +149,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 			if (histogram[candidate] > avg_services)
 				continue;
 
-			service->SetChecker(candidate->GetIdentity());
+			service->SetChecker(candidate->GetName());
 			histogram[candidate]++;
 
 			delegated++;
@@ -161,7 +164,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 	int count;
 	BOOST_FOREACH(tie(endpoint, count), histogram) {
 		stringstream msgbuf;
-		msgbuf << "histogram: " << endpoint->GetIdentity() << " - " << count;
+		msgbuf << "histogram: " << endpoint->GetName() << " - " << count;
 		Logger::Write(LogInformation, "delegation", msgbuf.str());
 	}
 

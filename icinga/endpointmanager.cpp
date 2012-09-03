@@ -31,6 +31,16 @@ EndpointManager::EndpointManager(void)
 	m_RequestTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::RequestTimerHandler, this));
 	m_RequestTimer->SetInterval(5);
 	m_RequestTimer->Start();
+
+	m_SubscriptionTimer = boost::make_shared<Timer>();
+	m_SubscriptionTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::SubscriptionTimerHandler, this));
+	m_SubscriptionTimer->SetInterval(10);
+	m_SubscriptionTimer->Start();
+
+	m_ReconnectTimer = boost::make_shared<Timer>();
+	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::ReconnectTimerHandler, this));
+	m_ReconnectTimer->SetInterval(10);
+	m_ReconnectTimer->Start();
 }
 
 /**
@@ -42,6 +52,16 @@ EndpointManager::EndpointManager(void)
 void EndpointManager::SetIdentity(const String& identity)
 {
 	m_Identity = identity;
+
+	if (m_Endpoint)
+		m_Endpoint->Unregister();
+
+	DynamicObject::Ptr object = DynamicObject::GetObject("Endpoint", identity);
+
+	if (object)
+		m_Endpoint = dynamic_pointer_cast<Endpoint>(object);
+	else
+		m_Endpoint = Endpoint::MakeEndpoint(identity, false);
 }
 
 /**
@@ -55,41 +75,26 @@ String EndpointManager::GetIdentity(void) const
 }
 
 /**
- * Sets the SSL context that is used for remote connections.
- *
- * @param sslContext The new SSL context.
- */
-void EndpointManager::SetSSLContext(const shared_ptr<SSL_CTX>& sslContext)
-{
-	m_SSLContext = sslContext;
-}
-
-/**
- * Retrieves the SSL context that is used for remote connections.
- *
- * @returns The SSL context.
- */
-shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
-{
-	return m_SSLContext;
-}
-
-/**
  * Creates a new JSON-RPC listener on the specified port.
  *
  * @param service The port to listen on.
  */
 void EndpointManager::AddListener(const String& service)
 {
-	if (!GetSSLContext())
+	shared_ptr<SSL_CTX> sslContext = IcingaApplication::GetInstance()->GetSSLContext();
+
+	if (!sslContext)
 		throw_exception(logic_error("SSL context is required for AddListener()"));
 
 	stringstream s;
 	s << "Adding new listener: port " << service;
 	Logger::Write(LogInformation, "icinga", s.str());
 
-	JsonRpcServer::Ptr server = boost::make_shared<JsonRpcServer>(m_SSLContext);
-	RegisterServer(server);
+	JsonRpcServer::Ptr server = boost::make_shared<JsonRpcServer>(sslContext);
+
+	m_Servers.insert(server);
+	server->OnNewClient.connect(boost::bind(&EndpointManager::NewClientHandler,
+	   this, _2));
 
 	server->Bind(service, AF_INET6);
 	server->Listen();
@@ -102,107 +107,47 @@ void EndpointManager::AddListener(const String& service)
  * @param node The remote host.
  * @param service The remote port.
  */
-void EndpointManager::AddConnection(const String& node, const String& service)
-{
-	stringstream s;
-	s << "Adding new endpoint: [" << node << "]:" << service;
-	Logger::Write(LogInformation, "icinga", s.str());
-
-	JsonRpcEndpoint::Ptr endpoint = boost::make_shared<JsonRpcEndpoint>();
-	RegisterEndpoint(endpoint);
-	endpoint->Connect(node, service, m_SSLContext);
-}
-
-/**
- * Registers a new JSON-RPC server with this endpoint manager.
- *
- * @param server The JSON-RPC server.
- */
-void EndpointManager::RegisterServer(const JsonRpcServer::Ptr& server)
-{
-	m_Servers.push_back(server);
-	server->OnNewClient.connect(boost::bind(&EndpointManager::NewClientHandler,
-	    this, _2));
+void EndpointManager::AddConnection(const String& node, const String& service) {
+	JsonRpcClient::Ptr client = boost::make_shared<JsonRpcClient>(RoleOutbound,
+	    IcingaApplication::GetInstance()->GetSSLContext());
+	client->Connect(node, service);
+	NewClientHandler(client);
 }
 
 /**
  * Processes a new client connection.
  *
- * @param ncea Event arguments.
+ * @param client The new client.
  */
 void EndpointManager::NewClientHandler(const TcpClient::Ptr& client)
 {
-	Logger::Write(LogInformation, "icinga", "Accepted new client from " + client->GetPeerAddress());
+	JsonRpcClient::Ptr jclient = static_pointer_cast<JsonRpcClient>(client);
 
-	JsonRpcEndpoint::Ptr endpoint = boost::make_shared<JsonRpcEndpoint>();
-	endpoint->SetClient(static_pointer_cast<JsonRpcClient>(client));
-	client->Start();
-	RegisterEndpoint(endpoint);
+	Logger::Write(LogInformation, "icinga", "New client connection from " + jclient->GetPeerAddress());
+
+	m_PendingClients.insert(jclient);
+	jclient->OnConnected.connect(boost::bind(&EndpointManager::ClientConnectedHandler, this, _1));
+	jclient->Start();
 }
 
-/**
- * Unregisters a JSON-RPC server.
- *
- * @param server The JSON-RPC server.
- */
-void EndpointManager::UnregisterServer(const JsonRpcServer::Ptr& server)
+void EndpointManager::ClientConnectedHandler(const TcpClient::Ptr& client)
 {
-	m_Servers.erase(
-	    remove(m_Servers.begin(), m_Servers.end(), server),
-	    m_Servers.end());
-	// TODO: unbind event
-}
+	JsonRpcClient::Ptr jclient = static_pointer_cast<JsonRpcClient>(client);
 
-/**
- * Registers a new endpoint with this endpoint manager.
- *
- * @param endpoint The new endpoint.
- */
-void EndpointManager::RegisterEndpoint(const Endpoint::Ptr& endpoint)
-{
-	endpoint->SetEndpointManager(GetSelf());
+	m_PendingClients.erase(jclient);
 
-	UnregisterEndpoint(endpoint);
+	shared_ptr<X509> cert = jclient->GetPeerCertificate();
 
-	String identity = endpoint->GetIdentity();
+	String identity = Utility::GetCertificateCN(cert);
 
-	if (!identity.IsEmpty()) {
-		m_Endpoints[identity] = endpoint;
-		OnNewEndpoint(GetSelf(), endpoint);
-	} else {
-		m_PendingEndpoints.push_back(endpoint);
-	}
+	Endpoint::Ptr endpoint;
 
-	if (endpoint->IsLocal()) {
-		/* this endpoint might have introduced new subscriptions
-		 * or publications which affect remote endpoints, we need
-		 * to close all fully-connected remote endpoints to make sure
-		 * these subscriptions/publications are kept up-to-date. */
-		Iterator prev, it;
-		for (it = m_Endpoints.begin(); it != m_Endpoints.end(); ) {
-			prev = it;
-			it++;
+	if (Endpoint::Exists(identity))
+		endpoint = Endpoint::GetByName(identity);
+	else
+		endpoint = Endpoint::MakeEndpoint(identity, false);
 
-			if (!prev->second->IsLocal())
-				m_Endpoints.erase(prev);
-		}
-	}
-}
-
-/**
- * Unregisters an endpoint.
- *
- * @param endpoint The endpoint.
- */
-void EndpointManager::UnregisterEndpoint(const Endpoint::Ptr& endpoint)
-{
-	m_PendingEndpoints.erase(
-	    remove(m_PendingEndpoints.begin(), m_PendingEndpoints.end(), endpoint),
-	    m_PendingEndpoints.end());
-
-	String identity = endpoint->GetIdentity();
-	if (!identity.IsEmpty())
-		m_Endpoints.erase(identity);
+	endpoint->SetClient(jclient);
 }
 
 /**
@@ -240,8 +185,9 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 		throw_exception(invalid_argument("Message is missing the 'method' property."));
 
 	vector<Endpoint::Ptr> candidates;
-	Endpoint::Ptr endpoint;
-	BOOST_FOREACH(tie(tuples::ignore, endpoint), m_Endpoints) {
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 		/* don't forward messages between non-local endpoints */
 		if (!sender->IsLocal() && !endpoint->IsLocal())
 			continue;
@@ -275,8 +221,10 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
 	if (!message.GetMethod(&method))
 		throw_exception(invalid_argument("Message is missing the 'method' property."));
 
-	Endpoint::Ptr recipient;
-	BOOST_FOREACH(tie(tuples::ignore, recipient), m_Endpoints) {
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+		Endpoint::Ptr recipient = dynamic_pointer_cast<Endpoint>(object);
+
 		/* don't forward messages back to the sender */
 		if (sender == recipient)
 			continue;
@@ -291,31 +239,16 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
  *
  * @param callback The callback function.
  */
-void EndpointManager::ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback)
-{
-	map<String, Endpoint::Ptr>::iterator prev, i;
-	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); ) {
-		prev = i;
-		i++;
-
-		callback(GetSelf(), prev->second);
-	}
-}
-
-/**
- * Retrieves an endpoint that has the specified identity.
- *
- * @param identity The identity of the endpoint.
- */
-Endpoint::Ptr EndpointManager::GetEndpointByIdentity(const String& identity) const
-{
-	map<String, Endpoint::Ptr>::const_iterator i;
-	i = m_Endpoints.find(identity);
-	if (i != m_Endpoints.end())
-		return i->second;
-	else
-		return Endpoint::Ptr();
-}
+//void EndpointManager::ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback)
+//{
+//	map<String, Endpoint::Ptr>::iterator prev, i;
+//	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); ) {
+//		prev = i;
+//		i++;
+//
+//		callback(GetSelf(), prev->second);
+//	}
+//}
 
 void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient,
     RequestMessage& message,
@@ -346,6 +279,46 @@ bool EndpointManager::RequestTimeoutLessComparer(const pair<String, PendingReque
     const pair<String, PendingRequest>& b)
 {
 	return a.second.Timeout < b.second.Timeout;
+}
+
+void EndpointManager::SubscriptionTimerHandler(void)
+{
+	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
+
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
+
+		if (!endpoint->IsLocalEndpoint())
+			continue;
+
+		String topic;
+		BOOST_FOREACH(tie(tuples::ignore, topic), endpoint->GetSubscriptions()) {
+			subscriptions->Set(topic, topic);
+		}
+	}
+
+	m_Endpoint->SetSubscriptions(subscriptions);
+}
+
+void EndpointManager::ReconnectTimerHandler(void)
+{
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
+
+		if (endpoint->IsConnected())
+			continue;
+
+		String node, service;
+		node = endpoint->GetNode();
+		service = endpoint->GetService();
+
+		if (node.IsEmpty() || service.IsEmpty())
+			continue;
+
+		AddConnection(node, service);
+	}
 }
 
 void EndpointManager::RequestTimerHandler(void)
@@ -379,15 +352,15 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const 
 	m_Requests.erase(it);
 }
 
-EndpointManager::Iterator EndpointManager::Begin(void)
-{
-	return m_Endpoints.begin();
-}
+//EndpointManager::Iterator EndpointManager::Begin(void)
+//{
+//	return m_Endpoints.begin();
+//}
 
-EndpointManager::Iterator EndpointManager::End(void)
-{
-	return m_Endpoints.end();
-}
+//EndpointManager::Iterator EndpointManager::End(void)
+//{
+//	return m_Endpoints.end();
+//}
 
 EndpointManager::Ptr EndpointManager::GetInstance(void)
 {

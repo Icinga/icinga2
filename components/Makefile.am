@@ -7,5 +7,4 @@ SUBDIRS = \
 	compat \
 	convenience \
 	delegation \
-	demo \
-	discovery
+	demo

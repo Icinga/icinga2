@@ -42,8 +42,6 @@ using boost::algorithm::is_any_of;
 #endif /* I2_ICINGA_BUILD */
 
 #include "endpoint.h"
-#include "jsonrpcendpoint.h"
-#include "virtualendpoint.h"
 #include "endpointmanager.h"
 #include "icingaapplication.h"
 

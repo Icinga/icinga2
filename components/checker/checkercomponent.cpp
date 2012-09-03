@@ -23,13 +23,11 @@ using namespace icinga;
 
 void CheckerComponent::Start(void)
 {
-	m_Endpoint = boost::make_shared<VirtualEndpoint>();
+	m_Endpoint = Endpoint::MakeEndpoint("checker", true);
 
 	/* dummy registration so the delegation module knows this is a checker
 	   TODO: figure out a better way for this */
 	m_Endpoint->RegisterSubscription("checker");
-
-	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 
 	Service::OnCheckerChanged.connect(bind(&CheckerComponent::CheckerChangedHandler, this, _1));
 	DynamicObject::OnUnregistered.connect(bind(&CheckerComponent::ServiceRemovedHandler, this, _1));
@@ -50,10 +48,7 @@ void CheckerComponent::Start(void)
 
 void CheckerComponent::Stop(void)
 {
-	EndpointManager::Ptr mgr = EndpointManager::GetInstance();
-
-	if (mgr)
-		mgr->UnregisterEndpoint(m_Endpoint);
+	m_Endpoint->Unregister();
 }
 
 void CheckerComponent::CheckTimerHandler(void)
@@ -158,7 +153,7 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 {
 	String checker = service->GetChecker();
 
-	if (checker == EndpointManager::GetInstance()->GetIdentity() || checker == m_Endpoint->GetIdentity()) {
+	if (checker == EndpointManager::GetInstance()->GetIdentity() || checker == m_Endpoint->GetName()) {
 		if (m_PendingServices.find(service) != m_PendingServices.end())
 			return;
 

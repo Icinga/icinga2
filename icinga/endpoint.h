@@ -30,60 +30,65 @@ class EndpointManager;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Endpoint : public Object
+class I2_ICINGA_API Endpoint : public DynamicObject
 {
 public:
 	typedef shared_ptr<Endpoint> Ptr;
 	typedef weak_ptr<Endpoint> WeakPtr;
 
-	typedef set<String>::const_iterator ConstTopicIterator;
+	typedef void (Callback)(const Endpoint::Ptr&, const Endpoint::Ptr&, const RequestMessage&);
 
-	Endpoint(void)
-		: m_ReceivedWelcome(false), m_SentWelcome(false)
-	{ }
+	Endpoint(const Dictionary::Ptr& serializedUpdate);
 
-	virtual String GetIdentity(void) const = 0;
-	virtual String GetAddress(void) const = 0;
+	static bool Exists(const String& name);
+	static Endpoint::Ptr GetByName(const String& name);
 
-	void SetReceivedWelcome(bool value);
-	bool HasReceivedWelcome(void) const;
+	String GetAddress(void) const;
 
-	void SetSentWelcome(bool value);
-	bool HasSentWelcome(void) const;
+	JsonRpcClient::Ptr GetClient(void) const;
+	void SetClient(const JsonRpcClient::Ptr& client);
 
-	shared_ptr<EndpointManager> GetEndpointManager(void) const;
-	void SetEndpointManager(weak_ptr<EndpointManager> manager);
+	void RegisterSubscription(const String& topic);
+	void UnregisterSubscription(const String& topic);
+	bool HasSubscription(const String& topic) const;
 
-	void RegisterSubscription(String topic);
-	void UnregisterSubscription(String topic);
-	bool HasSubscription(String topic) const;
+	Dictionary::Ptr GetSubscriptions(void) const;
+	void SetSubscriptions(const Dictionary::Ptr& subscriptions);
 
-	virtual bool IsLocal(void) const = 0;
-	virtual bool IsConnected(void) const = 0;
+	bool IsLocalEndpoint(void) const;
+	bool IsConnected(void) const;
 
-	virtual void ProcessRequest(Endpoint::Ptr sender, const RequestMessage& message) = 0;
-	virtual void ProcessResponse(Endpoint::Ptr sender, const ResponseMessage& message) = 0;
-
-	virtual void Stop(void) = 0;
+	void ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage& message);
+	void ProcessResponse(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
 	void ClearSubscriptions(void);
 
-	ConstTopicIterator BeginSubscriptions(void) const;
-	ConstTopicIterator EndSubscriptions(void) const;
+	void RegisterTopicHandler(const String& topic, const function<Callback>& callback);
+	void UnregisterTopicHandler(const String& topic, const function<Callback>& callback);
 
-	boost::signal<void (const Endpoint::Ptr&)> OnSessionEstablished;
+	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
+
+	String GetNode(void) const;
+	String GetService(void) const;
+
+	static Endpoint::Ptr MakeEndpoint(const String& name, bool local);
+
+	static boost::signal<void (const Endpoint::Ptr&)> OnConnected;
+	static boost::signal<void (const Endpoint::Ptr&)> OnDisconnected;
+
+	static boost::signal<void (const Endpoint::Ptr&, const String& topic)> OnSubscriptionRegistered;
+	static boost::signal<void (const Endpoint::Ptr&, const String& topic)> OnSubscriptionUnregistered;
 
 private:
-	set<String> m_Subscriptions; /**< The topics this endpoint is
-					  subscribed to. */
 	bool m_ReceivedWelcome; /**< Have we received a welcome message
 				     from this endpoint? */
 	bool m_SentWelcome; /**< Have we sent a welcome message to this
 			         endpoint? */
 
-	weak_ptr<EndpointManager> m_EndpointManager; /**< The endpoint manager
-						          this endpoint is
-							  registered with. */
+	map<String, shared_ptr<boost::signal<Callback> > > m_TopicHandlers;
+
+	void NewMessageHandler(const MessagePart& message);
+	void ClientClosedHandler(void);
 };
 
 }

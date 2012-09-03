@@ -54,7 +54,7 @@ public:
 	virtual void Stop(void);
 
 private:
-	VirtualEndpoint::Ptr m_Endpoint;
+	Endpoint::Ptr m_Endpoint;
 
 	ServiceSet m_IdleServices;
 	ServiceSet m_PendingServices;

@@ -26,18 +26,14 @@ using namespace icinga;
  */
 void CIBSyncComponent::Start(void)
 {
-	m_Endpoint = boost::make_shared<VirtualEndpoint>();
-
-	/* config objects */
-	m_Endpoint->RegisterTopicHandler("config::FetchObjects",
-	    boost::bind(&CIBSyncComponent::FetchObjectsHandler, this, _2));
+	m_Endpoint = Endpoint::MakeEndpoint("cibsync", true);
 
 	DynamicObject::OnRegistered.connect(boost::bind(&CIBSyncComponent::LocalObjectRegisteredHandler, this, _1));
 	DynamicObject::OnUnregistered.connect(boost::bind(&CIBSyncComponent::LocalObjectUnregisteredHandler, this, _1));
 	DynamicObject::OnTransactionClosing.connect(boost::bind(&CIBSyncComponent::TransactionClosingHandler, this, _1));
 
-	EndpointManager::GetInstance()->OnNewEndpoint.connect(boost::bind(&CIBSyncComponent::NewEndpointHandler, this, _2));
-
+	Endpoint::OnConnected.connect(boost::bind(&CIBSyncComponent::EndpointConnectedHandler, this, _1));
+	
 	m_Endpoint->RegisterTopicHandler("config::ObjectUpdate",
 	    boost::bind(&CIBSyncComponent::RemoteObjectUpdateHandler, this, _2, _3));
 	m_Endpoint->RegisterTopicHandler("config::ObjectRemoved",
@@ -46,8 +42,6 @@ void CIBSyncComponent::Start(void)
 	/* service status */
 	m_Endpoint->RegisterTopicHandler("checker::ServiceStateChange",
 	    boost::bind(&CIBSyncComponent::ServiceStateChangeRequestHandler, _2, _3));
-
-	EndpointManager::GetInstance()->RegisterEndpoint(m_Endpoint);
 }
 
 /**
@@ -55,10 +49,7 @@ void CIBSyncComponent::Start(void)
  */
 void CIBSyncComponent::Stop(void)
 {
-	EndpointManager::Ptr endpointManager = EndpointManager::GetInstance();
-
-	if (endpointManager)
-		endpointManager->UnregisterEndpoint(m_Endpoint);
+	m_Endpoint->Unregister();
 }
 
 void CIBSyncComponent::ServiceStateChangeRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
@@ -84,21 +75,28 @@ void CIBSyncComponent::ServiceStateChangeRequestHandler(const Endpoint::Ptr& sen
 	CIB::UpdateTaskStatistics(now, 1);
 }
 
-void CIBSyncComponent::NewEndpointHandler(const Endpoint::Ptr& endpoint)
+void CIBSyncComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoint)
 {
 	/* no need to sync the config with local endpoints */
-	if (endpoint->IsLocal())
+	if (endpoint->IsLocalEndpoint())
 		return;
 
-	endpoint->OnSessionEstablished.connect(boost::bind(&CIBSyncComponent::SessionEstablishedHandler, this, _1));
-}
+	/* we just assume the other endpoint wants object updates */
+	endpoint->RegisterSubscription("config::ObjectUpdate");
+	endpoint->RegisterSubscription("config::ObjectRemoved");
 
-void CIBSyncComponent::SessionEstablishedHandler(const Endpoint::Ptr& endpoint)
-{
-	RequestMessage request;
-	request.SetMethod("config::FetchObjects");
+	pair<DynamicObject::TypeMap::iterator, DynamicObject::TypeMap::iterator> trange = DynamicObject::GetTypes();
+	DynamicObject::TypeMap::iterator tt;
+	for (tt = trange.first; tt != trange.second; tt++) {
+		DynamicObject::Ptr object;
+		BOOST_FOREACH(tie(tuples::ignore, object), tt->second) {
+			if (!ShouldReplicateObject(object))
+				continue;
 
-	EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, endpoint, request);
+			RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", 0, true);
+			EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, endpoint, request);
+		}
+	}
 }
 
 RequestMessage CIBSyncComponent::MakeObjectMessage(const DynamicObject::Ptr& object, const String& method, double sinceTx, bool includeProperties)
@@ -121,23 +119,6 @@ RequestMessage CIBSyncComponent::MakeObjectMessage(const DynamicObject::Ptr& obj
 bool CIBSyncComponent::ShouldReplicateObject(const DynamicObject::Ptr& object)
 {
 	return (!object->IsLocal());
-}
-
-void CIBSyncComponent::FetchObjectsHandler(const Endpoint::Ptr& sender)
-{
-	pair<DynamicObject::TypeMap::iterator, DynamicObject::TypeMap::iterator> trange = DynamicObject::GetTypes();
-	DynamicObject::TypeMap::iterator tt;
-	for (tt = trange.first; tt != trange.second; tt++) {
-		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), tt->second) {
-			if (!ShouldReplicateObject(object))
-				continue;
-
-			RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", 0, true);
-
-			EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, sender, request);
-		}
-	}
 }
 
 void CIBSyncComponent::LocalObjectRegisteredHandler(const DynamicObject::Ptr& object)
@@ -212,7 +193,7 @@ void CIBSyncComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, co
 		}
 
 		if (object->GetSource().IsEmpty())
-			object->SetSource(sender->GetIdentity());
+			object->SetSource(sender->GetName());
 
 		object->Register();
 	} else {

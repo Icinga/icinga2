@@ -133,8 +133,7 @@ int IcingaApplication::Main(const vector<String>& args)
 		Logger::Write(LogInformation, "icinga", "My identity: " + identity);
 		EndpointManager::GetInstance()->SetIdentity(identity);
 
-		shared_ptr<SSL_CTX> sslContext = Utility::MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
-		EndpointManager::GetInstance()->SetSSLContext(sslContext);
+		m_SSLContext = Utility::MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
 	}
 
 	/* create the primary RPC listener */
@@ -214,4 +213,9 @@ Dictionary::Ptr IcingaApplication::GetMacros(void) const
 double IcingaApplication::GetStartTime(void) const
 {
 	return m_StartTime;
+}
+
+shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
+{
+	return m_SSLContext;
 }

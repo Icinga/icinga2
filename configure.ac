@@ -76,7 +76,6 @@ components/compat/Makefile
 components/convenience/Makefile
 components/delegation/Makefile
 components/demo/Makefile
-components/discovery/Makefile
 dyn/Makefile
 icinga/Makefile
 icinga-app/Makefile

@@ -176,6 +176,24 @@ void Dictionary::Remove(Dictionary::Iterator it)
 }
 
 /**
+ * Makes a shallow copy of a dictionary.
+ *
+ * @returns a copy of the dictionary.
+ */
+Dictionary::Ptr Dictionary::ShallowClone(void) const
+{
+	Dictionary::Ptr clone = boost::make_shared<Dictionary>();
+
+	String key;
+	Value value;
+	BOOST_FOREACH(tie(key, value), m_Data) {
+		clone->Set(key, value);
+	}
+
+	return clone;
+}
+
+/**
  * Converts a JSON object to a dictionary.
  *
  * @param json The JSON object.

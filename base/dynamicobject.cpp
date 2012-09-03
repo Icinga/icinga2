@@ -145,6 +145,11 @@ void DynamicObject::Set(const String& name, const Value& data)
 	InternalSetAttribute(name, data, GetCurrentTx());
 }
 
+void DynamicObject::Touch(const String& name)
+{
+	InternalSetAttribute(name, InternalGetAttribute(name), GetCurrentTx());
+}
+
 Value DynamicObject::Get(const String& name) const
 {
 	return InternalGetAttribute(name);
