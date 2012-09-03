@@ -23,6 +23,11 @@ using namespace icinga;
 
 REGISTER_CLASS(Service);
 
+const int Service::DefaultMaxAttempts = 3;
+const int Service::DefaultCheckInterval = 5 * 60;
+const int Service::MinCheckInterval = 15;
+const int Service::CheckIntervalDivisor = 5;
+
 boost::signal<void (const Service::Ptr&, const CheckResultMessage&)> Service::OnCheckResultReceived;
 boost::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChanged;
 
@@ -101,7 +106,7 @@ long Service::GetMaxCheckAttempts(void) const
 	Value value = Get("max_check_attempts");
 
 	if (value.IsEmpty())
-		return 3;
+		return DefaultMaxCheckAttempts;
 
 	return value;
 }
@@ -111,10 +116,10 @@ long Service::GetCheckInterval(void) const
 	Value value = Get("check_interval");
 
 	if (value.IsEmpty())
-		return 300;
+		return DefaultCheckInterval;
 
-	if (value < 15)
-		value = 15;
+	if (value < MinCheckInterval)
+		value = MinCheckInterval;
 
 	return value;
 }
@@ -124,7 +129,7 @@ long Service::GetRetryInterval(void) const
 	Value value = Get("retry_interval");
 
 	if (value.IsEmpty())
-		return GetCheckInterval() / 5;
+		return GetCheckInterval() / CheckIntervalDivisor;
 
 	return value;
 }
