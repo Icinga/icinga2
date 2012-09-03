@@ -58,6 +58,8 @@ void CheckerComponent::CheckTimerHandler(void)
 	double now = Utility::GetTime();
 	long tasks = 0;
 
+	int missedServices = 0, missedChecks = 0;
+
 	while (!m_IdleServices.empty()) {
 		typedef nth_index<ServiceSet, 1>::type CheckTimeView;
 		CheckTimeView& idx = boost::get<1>(m_IdleServices);
@@ -69,6 +71,18 @@ void CheckerComponent::CheckTimerHandler(void)
 			break;
 
 		idx.erase(it);
+
+		Dictionary::Ptr cr = service->GetLastCheckResult();
+
+		if (cr) {
+			double lastCheck = cr->Get("execution_end");
+			int missed = (Utility::GetTime() - lastCheck) / service->GetCheckInterval();
+
+			if (missed > 0) {
+				missedChecks += missed;
+				missedServices++;
+			}
+		}
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
@@ -86,6 +100,12 @@ void CheckerComponent::CheckTimerHandler(void)
 	}
 
 	Logger::Write(LogDebug, "checker", "CheckTimerHandler: past loop.");
+
+	if (missedServices > 0) {
+		stringstream msgbuf;
+		msgbuf << "Missed " << missedChecks << " checks for " << missedServices << " services";;
+		Logger::Write(LogWarning, "checker", msgbuf.str());
+	}
 
 	stringstream msgbuf;
 	msgbuf << "CheckTimerHandler: created " << tasks << " tasks";
