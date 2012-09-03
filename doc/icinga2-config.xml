@@ -484,10 +484,11 @@ object Host "localhost" {
     <section>
       <title>Type: Endpoint</title>
 
-      <para>Endpoint objects are used by the "discovery" component to specify
-      connection information for remote Icinga 2 instances:</para>
+      <para>Endpoint objects are used to specify connection information for
+      remote Icinga 2 instances. Objects of this type should not be
+      local:</para>
 
-      <programlisting>local object Endpoint "icinga-c2" {
+      <programlisting>object Endpoint "icinga-c2" {
   node = "192.168.5.46",
   service = 7777,
 }</programlisting>
