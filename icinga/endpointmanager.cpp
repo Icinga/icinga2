@@ -307,15 +307,19 @@ void EndpointManager::ReconnectTimerHandler(void)
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
-		if (endpoint->IsConnected())
+		if (endpoint->IsConnected() || endpoint == m_Endpoint)
 			continue;
 
 		String node, service;
 		node = endpoint->GetNode();
 		service = endpoint->GetService();
 
-		if (node.IsEmpty() || service.IsEmpty())
+		if (node.IsEmpty() || service.IsEmpty()) {
+			Logger::Write(LogWarning, "icinga", "Can't reconnect "
+			    "to endpoint '" + endpoint->GetName() + "': No "
+			    "node/service information.");
 			continue;
+		}
 
 		AddConnection(node, service);
 	}
