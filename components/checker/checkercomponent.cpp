@@ -76,7 +76,7 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		if (cr) {
 			double lastCheck = cr->Get("execution_end");
-			int missed = (Utility::GetTime() - lastCheck) / service->GetCheckInterval();
+			int missed = (Utility::GetTime() - lastCheck) / service->GetCheckInterval() - 1;
 
 			if (missed > 0) {
 				missedChecks += missed;
