@@ -1,0 +1,753 @@
+Icinga 2 Configuration
+======================
+
+:keywords:	Icinga, documentation, configuration
+:description:	Description of the Icinga 2 config
+
+Configuration Format
+--------------------
+
+Object Definition
+~~~~~~~~~~~~~~~~~
+
+Icinga 2 features an object-based configuration format. In order to define
+objects the "object" keyword is used:
+
+-------------------------------------------------------------------------------
+object Host "host1.example.org" {
+  alias = "host1",
+
+  check_interval = 30,
+  retry_interval = 15,
+
+  macros = {
+    address = "192.168.0.1"
+  }
+}
+-------------------------------------------------------------------------------
+
+NOTE: The Icinga 2 configuration format is agnostic to whitespaces and
+new-lines.
+
+Each object is uniquely identified by its type ("Host") and name
+("host1.example.org"). Objects can contain a comma-separated list of property
+declarations. The following data types are available for property values:
+
+Number
+^^^^^^
+
+A floating-point number.
+
+Example:
+
+-------------------------------------------------------------------------------
+-27.3
+-------------------------------------------------------------------------------
+
+String
+^^^^^^
+
+A string. No escape characters are supported at present though this will likely
+change.
+
+Example:
+
+-------------------------------------------------------------------------------
+"Hello World!"
+-------------------------------------------------------------------------------
+
+Expression List
+^^^^^^^^^^^^^^^
+
+A list of expressions that when executed has a dictionary as a result.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  address = "192.168.0.1",
+  port = 443
+}
+-------------------------------------------------------------------------------
+
+Operators
+~~~~~~~~~
+
+In addition to the "=" operator shown above a number of other operators to
+manipulate configuration objects are supported. Here's a list of all available
+operators:
+
+Operator "="
+^^^^^^^^^^^^
+
+Sets a dictionary element to the specified value.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = 5,
+  a = 7
+}
+-------------------------------------------------------------------------------
+
+In this example a has the value 7 after both instructions are executed.
+
+Operator "+="
+^^^^^^^^^^^^^
+
+Modifies a dictionary by adding new elements to it.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = { "hello" },
+  a += { "world" }
+}
+-------------------------------------------------------------------------------
+
+In this example a contains both "hello" and "world". This currently only works
+for expression lists. Support for numbers might be added later on.
+
+Operator "-="
+^^^^^^^^^^^^^
+
+Removes elements from a dictionary.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = { "hello", "world" },
+  a -= { "world" }
+}
+-------------------------------------------------------------------------------
+
+In this example a contains "hello". Trying to remove an item that does not
+exist is not an error. Not implemented yet.
+
+Operator "*="
+^^^^^^^^^^^^^
+
+Multiplies an existing dictionary element with the specified number. If the
+dictionary element does not already exist 0 is used as its value.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = 60,
+  a *= 5
+}
+-------------------------------------------------------------------------------
+
+In this example a is 300. This only works for numbers. Not implemented yet.
+
+Operator "/="
+^^^^^^^^^^^^^
+
+Divides an existing dictionary element by the specified number. If the
+dictionary element does not already exist 0 is used as its value.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = 300,
+  a /= 5
+}
+-------------------------------------------------------------------------------
+
+In this example a is 60. This only works for numbers. Not implemented yet.
+
+
+Attribute Shortcuts
+~~~~~~~~~~~~~~~~~~~
+
+Value Shortcut
+^^^^^^^^^^^^^^
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  "hello"
+}
+-------------------------------------------------------------------------------
+
+This is equivalent to writing:
+
+-------------------------------------------------------------------------------
+{
+  hello = "hello"
+}
+-------------------------------------------------------------------------------
+
+Indexer Shortcut
+^^^^^^^^^^^^^^^^
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  hello["key"] = "world"
+}
+-------------------------------------------------------------------------------
+
+This is equivalent to writing:
+
+-------------------------------------------------------------------------------
+{
+  hello += {
+    key = "world"
+  }
+}
+-------------------------------------------------------------------------------
+
+Specifiers
+~~~~~~~~~~
+
+Objects can have specifiers that have special meaning. The following specifiers
+can be used (before the "object" keyword):
+
+Specifier "abstract"
+^^^^^^^^^^^^^^^^^^^^
+
+This specifier identifies the object as a template which can be used by other
+object definitions. The object will not be instantiated on its own.
+
+Specifier "local"
+^^^^^^^^^^^^^^^^^
+
+This specifier disables replication for this object. The object will not be
+sent to remote Icinga instances.
+
+Inheritance
+~~~~~~~~~~~
+
+Objects can inherit attributes from one or more other objects.
+
+Example:
+
+-------------------------------------------------------------------------------
+abstract object Host "default-host" {
+  check_interval = 30,
+
+  macros = {
+    color = "red"
+  }
+}
+
+abstract object Host "test-host" inherits "default-host" {
+  macros += {
+    color = "blue"
+  }
+}
+
+object Host "localhost" inherits "test-host" {
+  macros += {
+    address = "127.0.0.1",
+    address6 = "::1"
+  }
+}
+-------------------------------------------------------------------------------
+
+NOTE: The "default-host" and "test-host" objects is marked as templates using
+the "abstract" keyword. Parent objects do not necessarily have to be "abstract"
+though in general they are.
+
+NOTE: The += operator is used to insert additional properties into the macros
+dictionary. The final dictionary contains all 3 macros and the property "color"
+has the value "blue".
+
+Parent objects are resolved in the order they're specified using the "inherits"
+keyword. Parent objects must already be defined by the time they're used in an
+object definition.
+
+Comments
+~~~~~~~~
+
+The Icinga 2 configuration format supports C/C++-style comments.
+
+Example:
+
+-------------------------------------------------------------------------------
+/*
+ This is a comment.
+ */
+object Host "localhost" {
+  check_interval = 30, // this is also a comment.
+  retry_interval = 15
+}
+-------------------------------------------------------------------------------
+
+Includes
+~~~~~~~~
+
+Other configuration files can be included using the "#include" directive. Paths
+must be relative to the configuration file that contains the "#include"
+keyword:
+
+Example:
+
+-------------------------------------------------------------------------------
+#include "some/other/file.conf"
+#include "conf.d/*.conf"
+-------------------------------------------------------------------------------
+
+NOTE: Wildcard includes are not currently implemented.
+
+Configuration Objects
+---------------------
+
+Type: IcingaApplication
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The "IcingaApplication" type is used to specify global configuration parameters
+for Icinga. There must be exactly one application object in each Icinga 2
+configuration. The object must have the "local" specifier.
+
+Example:
+
+-------------------------------------------------------------------------------
+local object IcingaApplication "icinga" {
+  cert = "my-cert.pem",
+  ca = "ca.crt",
+
+  node = "192.168.0.1",
+  service = 7777,
+
+  pidpath = "/var/run/icinga2.pid",
+  logpath = "/var/log/icinga2.log",
+  statepath = "/var/lib/icinga2.state",
+
+  macros = {
+    plugindir = "/usr/local/icinga/libexec"
+  }
+}
+-------------------------------------------------------------------------------
+
+Attribute: cert
+^^^^^^^^^^^^^^^
+
+This is used to specify the SSL client certificate Icinga 2 will use when
+connecting to other Icinga 2 instances. This property is optional when you're
+setting up a non-networked Icinga 2 instance.
+
+Attribute: ca
+^^^^^^^^^^^^^
+
+This is the public CA certificate that is used to verify connections from other
+Icinga 2 instances. This property is optional when you're setting up a
+non-networked Icinga 2 instance.
+
+Attribute: node
+^^^^^^^^^^^^^^^
+
+The externally visible IP address that is used by other Icinga 2 instances to
+connect to this instance. This property is optional when you're setting up a
+non-networked Icinga 2 instance.
+
+NOTE: Icinga does not bind to this IP address.
+
+Attribute: service
+^^^^^^^^^^^^^^^^^^
+
+The port this Icinga 2 instance should listen on. This property is optional
+when you're setting up a non-networked Icinga 2 instance.
+
+Attribute: pidpath
+^^^^^^^^^^^^^^^^^^
+
+Optional. The path to the PID file. Defaults to "icinga.pid" in the current
+working directory.
+
+Attribute: logpath
+^^^^^^^^^^^^^^^^^^
+
+Optional. The path to the logfile. This is a shortcut for creating a Logger
+object of type "file" with the specified log path.
+
+Attribute: statepath
+^^^^^^^^^^^^^^^^^^^^
+
+Optional. The path of the state file. This is the file Icinga 2 uses to persist
+objects between program runs. Defaults to "icinga.state" in the current working
+directory.
+
+Attribute: macros
+^^^^^^^^^^^^^^^^^
+
+Optional. Global macros that are used for service checks and notifications.
+
+Type: Logger
+~~~~~~~~~~~~
+
+Specifies where Icinga 2 should be logging. Objects of this type must have the
+"local" specifier.
+
+Example:
+
+-------------------------------------------------------------------------------
+local object Logger "my-debug-log" {
+  type = "file",
+  path = "/var/log/icinga2.log",
+  severity = "debug"
+}
+-------------------------------------------------------------------------------
+
+Attribute: type
+^^^^^^^^^^^^^^^
+
+The type of the log. Can be "console", "syslog" or "file".
+
+Attribute: path
+^^^^^^^^^^^^^^^
+
+The log path. Ignored if the log type is not "file".
+
+Attribute: severity
+^^^^^^^^^^^^^^^^^^^
+
+The minimum severity for this log. Can be "debug", "information", "warning" or
+"critical". Defaults to "information".
+
+Type: Component
+~~~~~~~~~~~~~~~
+
+Icinga 2 uses a number of components to implement its feature-set. The
+"Component" configuration object is used to load these components and specify
+additional parameters for them. "component" objects must have the "local"
+specifier.
+
+Example:
+
+-------------------------------------------------------------------------------
+local object Component "discovery" {
+  broker = 1
+}
+-------------------------------------------------------------------------------
+
+Type: Endpoint
+~~~~~~~~~~~~~~
+
+Endpoint objects are used to specify connection information for remote Icinga 2
+instances. Objects of this type should not be local:
+
+-------------------------------------------------------------------------------
+object Endpoint "icinga-c2" {
+  node = "192.168.5.46",
+  service = 7777,
+}
+-------------------------------------------------------------------------------
+
+Attribute: node
+^^^^^^^^^^^^^^^
+
+The hostname/IP address of the remote Icinga 2 instance.
+
+Attribute: service
+^^^^^^^^^^^^^^^^^^
+
+The service name/port of the remote Icinga 2 instance.
+
+Type: Service
+~~~~~~~~~~~~~
+
+Service objects describe network services and how they should be checked by
+Icinga 2.
+
+Example:
+
+-------------------------------------------------------------------------------
+object Service "localhost-uptime" {
+  host_name = "localhost",
+
+  alias = "localhost Uptime",
+
+  methods = {
+    check = "native::NagiosCheck"
+  },
+
+  check_command = "$plugindir$/check_snmp -H $address$ -C $community$ -o $oid$",
+
+  macros = {
+    plugindir = "/usr/lib/nagios/plugins",
+    address = "127.0.0.1",
+    community = "public" ,A hos
+    oid = "DISMAN-EVENT-MIB::sysUpTimeInstance"
+  }
+
+  check_interval = 60,
+  retry_interval = 15,
+
+  dependencies = { "localhost-ping" },
+
+  servicegroups = { "all-services", "snmp" },
+
+  checkers = { "*" },
+}
+-------------------------------------------------------------------------------
+
+Attribute: host_name
+^^^^^^^^^^^^^^^^^^^^
+
+The host this service belongs to. There must be a "Host" object with that name.
+
+Attribute: alias
+^^^^^^^^^^^^^^^^
+
+Optional. A short description of the service.
+
+Attribute: methods - check
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The check type of the service. For now only Nagios-compatible plugins are
+supported ("native::NagiosCheck").
+
+Attribute: check_command
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional when not using check_type == "nagios". The check command. This command
+may use macros.
+
+Attribute: check_interval
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. The check interval (in seconds).
+
+Attribute: retry_interval
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. The retry interval (in seconds). This is used when the service is in
+a soft state.
+
+Attribute: servicegroups
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. The service groups this service belongs to.
+
+Attribute: checkers
+^^^^^^^^^^^^^^^^^^^
+
+Optional. A list of remote endpoints that may check this service. Wildcards can
+be used here.
+
+Type: ServiceGroup
+~~~~~~~~~~~~~~~~~~
+
+A group of services.
+
+Example:
+
+-------------------------------------------------------------------------------
+object ServiceGroup "snmp" {
+  alias = "SNMP services",
+
+  notes_url = "http://www.example.org/",
+  action_url = "http://www.example.org/",
+}
+-------------------------------------------------------------------------------
+
+Attribute: alias
+^^^^^^^^^^^^^^^^
+
+Optional. A short description of the service group.
+
+Attribute: notes_url
+^^^^^^^^^^^^^^^^^^^^
+
+Optional. Notes URL. Used by the CGIs.
+
+Attribute: action_url
+^^^^^^^^^^^^^^^^^^^^^
+
+Optional. Action URL. Used by the CGIs.
+
+Type: Host
+~~~~~~~~~~
+
+A host. Unlike in Icinga 1.x hosts are not checkable objects in Icinga 2.
+
+Example:
+
+-------------------------------------------------------------------------------
+object Host "localhost" {
+  alias = "The best host there is",
+
+  hostgroups = { "all-hosts" },
+
+  hostchecks = { "ping" },
+  dependencies = { "router-ping" }
+
+  services = {
+    "ping",
+    "my-http" {
+      service = "http",
+
+      macros = {
+        vhost = "test1.example.org",
+        port = 81
+      }
+    }
+  }
+
+  check_interval = 60,
+  retry_interval = 15,
+
+  servicegroups = { "all-services" },
+
+  checkers = { "*" },
+}
+-------------------------------------------------------------------------------
+
+Attribute: alias
+^^^^^^^^^^^^^^^^
+
+Optional. A short description of the host.
+
+Attribute: hostgroups
+^^^^^^^^^^^^^^^^^^^^^
+
+Optional. A list of host groups this host belongs to.
+
+Attribute: hostchecks
+^^^^^^^^^^^^^^^^^^^^^
+
+Optional. A list of services that are used to determine whether the host is up
+or down.
+
+Attribute: dependencies
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. A list of services that are used to determine whether the host is
+unreachable.
+
+Attribute: services
+^^^^^^^^^^^^^^^^^^^
+
+Inline definition of services. Each property in this dictionary specifies a
+service. If the value of a property is a string it is interpreted as the name
+of a service template and is used as a parent object for the new service. If it
+is a dictionary its service property is used to determine the parent object and
+all other service-related properties are additively copied into the new service
+object.
+
+The new service's name is "hostname-service" - where "service" is the
+dictionary key in the services dictionary.
+
+The priority for service properties is (from highest to lowest):
+
+1. Properties specified in the dictionary of the inline service definition
+2. Host properties
+3. Properties inherited from the new service's parent object
+
+Attribute: check_interval
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. Copied into inline service definitions. The host itself does not have
+any checks.
+
+Attribute: retry_interval
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. Copied into inline service definitions. The host itself does not have
+any checks.
+
+Attribute: servicegroups
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. Copied into inline service definitions. The host itself does not have
+any checks.
+
+Attribute: checkers
+^^^^^^^^^^^^^^^^^^^
+
+Optional. Copied into inline service definitions. The host itself does not have
+any checks.
+
+Type: HostGroup
+~~~~~~~~~~~~~~~
+
+A group of hosts.
+
+Example
+
+-------------------------------------------------------------------------------
+object HostGroup "my-hosts" {
+  alias = "My hosts",
+
+  notes_url = "http://www.example.org/",
+  action_url = "http://www.example.org/",
+}
+-------------------------------------------------------------------------------
+
+Attribute: alias
+^^^^^^^^^^^^^^^^
+
+Optional. A short description of the host group.
+
+Attribute: notes_url
+^^^^^^^^^^^^^^^^^^^^
+
+Optional. Notes URL. Used by the CGIs.
+
+Attribute: action_url
+^^^^^^^^^^^^^^^^^^^^^
+
+Optional. Action URL. Used by the CGIs.
+
+Configuration Examples
+----------------------
+
+Non-networked minimal example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-------------------------------------------------------------------------------
+local object IcingaApplication "icinga" {
+
+}
+
+local object Component "checker" {
+
+}
+
+local object Component "delegation" {
+
+}
+
+abstract object Service "nagios-service" {
+  methods {
+    check = "native::NagiosCheck"
+  },
+
+  macros = {
+    plugindir = "/usr/lib/nagios/plugins"
+  }
+}
+
+abstract object Service "ping" inherits "nagios-service" {
+  check_command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
+
+  macros += {
+    wrta = 50,
+    wpl = 5,
+    crta = 100,
+    cpl = 10
+  }
+}
+
+object Host "localhost" {
+  services = { "ping" },
+
+  macros = {
+    address = "127.0.0.1"
+  },
+
+  check_interval = 10
+}
+-------------------------------------------------------------------------------
+
+NOTE: You may also want to load the "compat" component if you want Icinga 2 to
+write status.dat and objects.cache files.
