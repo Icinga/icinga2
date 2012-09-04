@@ -1,0 +1,147 @@
+Icinga 2
+========
+
+Icinga 2 is a network monitoring application that tries to improve upon the
+success of Icinga 1.x while fixing some of its shortcomings. A few frequently
+encountered issues are:
+
+- Scalability problems in large monitoring setups
+- Difficult configuration with dozens of "magic" tweaks and several ways of
+  defining services
+- Code quality and the resulting inability to implement changes without
+  breaking add-ons
+- Limited access to the runtime state of Icinga (e.g. for querying a service's
+  state or for dynamically creating new services)
+
+Fixing these issues would involve major breaking changes to the Icinga 1.x core
+and configuration syntax. Icinga users would likely experience plenty of
+problems with the Icinga versions introducing these changes. Many of these
+changes would likely break add-ons which rely on the NEB API and other core
+internals.
+
+From a developer standpoint this may be justifiable in order to get to a better
+end-product. However, for (business) users spending time on getting familiar
+with these changes for each new version may become quite frustrating and may
+easily cause users to lose their confidence in Icinga.
+
+Nagios(TM) 4 is currently following this approach and it remains to be seen how
+this fares with its users.
+
+Instead the Icinga project will maintain two active development branches. One
+for Icinga 1.x which focuses on improving the existing Icinga 1.x code base -
+just like it has been done so far. Independent from Icinga 1.x development
+on Icinga 2 will happen in a separate branch.
+
+Code Quality
+------------
+
+Icinga 2 will not be using any code from the Icinga 1.x branch due to the
+rampant code quality issues with the existing code base. However, an important
+property of the Icinga development process has always been to rely on proven
+technologies and Icinga 2 will be no exception.
+
+A lot of effort has gone into designing a maintainable architecture for Icinga
+2 and making sure that algorithmic choices are in alignment with our
+scalability goals for Icinga 2.
+
+There are plans to implement unit tests for most Icinga 2 features in order to
+make sure that changes to the code base do not break things that were known
+to work before.
+
+Language Choice
+---------------
+
+Icinga 1.x is written in C and while in general C has quite a number of
+advantages (e.g. performance and relatively easy portability to other *NIX-
+based platforms) some of its disadvantages show in the context of a project
+that is as large as Icinga.
+
+With a complex software project like Icinga an object-oriented design helps
+tremendously with keeping things modular and making changes to the existing
+code easier.
+
+While it is true that you can write object-oriented software in C (the Linux
+kernel is one of the best examples of how to do that) a truly object-oriented
+language makes the programmers' life just a little bit easier.
+
+For Icinga 2 we have chosen C++ as the main language. This decision was
+influenced by a number of criteria including performance, support on different
+platforms and general user acceptability.
+
+In general there is nothing wrong with other languages like Java, C# or Python;
+however - even when ignoring technical problems for just a moment - in a
+community as conservative as the monitoring community these languages seem out
+of place.
+
+Knowing that users will likely want to run Icinga 2 on older systems (which
+are still fully vendor-supported even for years to come) we will make every
+effort to ensure that Icinga 2 can be built and run on commonly used operating
+systems and refrain from using new and exotic features like C++11.
+
+Configuration
+-------------
+
+Icinga 1.x has a configuration format that is fully backwards-compatible to the
+Nagios(TM) configurationi format. This has the advantage of allowing users to
+easily upgrade their existing Nagios(TM) installations as well as downgrading
+if they choose to do so (even though this is generally not the case).
+
+The Nagios(TM) configuration format has evolved organically over time and
+for the most part it does what it's supposed to do. However this evolutionary
+process has brought with it a number of problems that make it difficult for
+new users to understand the full breadth of available options and ways of
+setting up their monitoring environment.
+
+Experience with other configuration formats like the one used by Puppet has
+shown that it is often better to have a single "right" way of doing things
+rather than having multiple ways like Nagios(TM) does (e.g. defining
+host/service dependencies and parent/child relationships for hosts).
+
+Icinga 2 tries to fix those issues by introducing a new configuration format
+that is heavily based on templates and supports user-friendly features like
+freeform macros.
+
+External Interfaces
+-------------------
+
+While Icinga 1.x has easily accessible interfaces to its internal state (e.g.
+status.dat, objects.cache and the command pipe) there is no standards-based
+way of getting that information.
+
+For example, using Icinga's status information in a custom script generally
+involves writing a parser for the status.dat format and there are literally
+dozens of Icinga-specific status.dat parsers out there.
+
+While Icinga 2 will support these legacy interfaces in order to make migration
+easier and allowing users to use the existing CGIs and whatever other scripts
+they may have Icinga 2 will focus on providing a unified interface to Icinga's
+state. The exact details for such an interface are yet to be determined but
+this will likely be an RPC interface based on one of the commonly used
+web-based remoting technologies.
+
+Icinga 2 will also feature dynamic reconfiguration which means users can
+create, delete and update any configuration object (e.g. hosts and services)
+on-the-fly.
+
+Scalability
+-----------
+
+Icinga 1.x has some serious scalability issues which explains why there are
+several add-ons which try to improve the core's check performance. One of
+these add-ons is mod_gearman which can be used to distribute checks to
+multiple workers running on remote systems.
+
+A problem that remains is the performance of the core when processing check
+results. Scaling Icinga 1.x beyond 25.000 services proves to be a challenging
+problem and usually involves setting up a cascade of Icinga 1.x instances and
+dividing the service checks between those instances. This significantly
+increases the maintenance overhead when updating the configuration for such a
+setup.
+
+Icinga 2 natively supports setting up multiple Icinga 2 instances in a cluster
+to distribute work between those instances. This is not limited to service
+checks but may also be used for other tasks such as writing the history
+database, doing notifications, etc.
+
+In order to support using Icinga 2 in a partially trusted environment SSL is
+used for all network communication between individual instances.
