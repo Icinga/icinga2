@@ -82,7 +82,7 @@ Configuration
 -------------
 
 Icinga 1.x has a configuration format that is fully backwards-compatible to the
-Nagios(TM) configurationi format. This has the advantage of allowing users to
+Nagios(TM) configuration format. This has the advantage of allowing users to
 easily upgrade their existing Nagios(TM) installations as well as downgrading
 if they choose to do so (even though this is generally not the case).
 
