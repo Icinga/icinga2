@@ -23,7 +23,7 @@ using namespace icinga;
 
 REGISTER_CLASS(Service);
 
-const int Service::DefaultMaxAttempts = 3;
+const int Service::DefaultMaxCheckAttempts = 3;
 const int Service::DefaultCheckInterval = 5 * 60;
 const int Service::MinCheckInterval = 15;
 const int Service::CheckIntervalDivisor = 5;

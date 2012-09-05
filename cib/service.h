@@ -52,7 +52,7 @@ public:
 	static bool Exists(const String& name);
 	static Service::Ptr GetByName(const String& name);
 
-	static const int DefaultMaxAttempts;
+	static const int DefaultMaxCheckAttempts;
 	static const int DefaultCheckInterval;
 	static const int MinCheckInterval;
 	static const int CheckIntervalDivisor;
