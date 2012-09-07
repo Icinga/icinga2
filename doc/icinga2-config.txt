@@ -33,8 +33,8 @@ Each object is uniquely identified by its type ("Host") and name
 ("host1.example.org"). Objects can contain a comma-separated list of property
 declarations. The following data types are available for property values:
 
-Number
-^^^^^^
+Numeric Literals
+^^^^^^^^^^^^^^^^
 
 A floating-point number.
 
@@ -44,8 +44,8 @@ Example:
 -27.3
 -------------------------------------------------------------------------------
 
-String
-^^^^^^
+String Literals
+^^^^^^^^^^^^^^^
 
 A string. No escape characters are supported at present though this will likely
 change.
