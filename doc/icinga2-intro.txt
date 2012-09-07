@@ -27,10 +27,14 @@ easily cause users to lose their confidence in Icinga.
 Nagios(TM) 4 is currently following this approach and it remains to be seen how
 this fares with its users.
 
-Instead the Icinga project will maintain two active development branches. One
-for Icinga 1.x which focuses on improving the existing Icinga 1.x code base -
-just like it has been done so far. Independent from Icinga 1.x development
-on Icinga 2 will happen in a separate branch.
+Instead the Icinga project will maintain two active development branches. There
+will be one branch for Icinga 1.x which focuses on improving the existing
+Icinga 1.x code base - just like it has been done so far.
+
+Independently from Icinga 1.x development on Icinga 2 will happen in a separate
+branch and some of the long-term design goals will be outlined in this
+document. Status updates for Icinga 2 will be posted on the project website
+(www.icinga.org) as they become available.
 
 Code Quality
 ------------
@@ -78,6 +82,11 @@ are still fully vendor-supported even for years to come) we will make every
 effort to ensure that Icinga 2 can be built and run on commonly used operating
 systems and refrain from using new and exotic features like C++11.
 
+Unlike Icinga 1.x there will be Windows support for Icinga 2. Some of the
+compatibility features (e.g. the command pipe) which rely on *NIX features
+may not be supported on Windows but all new features will be designed in such
+a way as to support *NIX as well as Windows.
+
 Configuration
 -------------
 
@@ -97,9 +106,9 @@ shown that it is often better to have a single "right" way of doing things
 rather than having multiple ways like Nagios(TM) does (e.g. defining
 host/service dependencies and parent/child relationships for hosts).
 
-Icinga 2 tries to fix those issues by introducing a new configuration format
-that is heavily based on templates and supports user-friendly features like
-freeform macros.
+Icinga 2 tries to fix those issues by introducing a new object-based
+configuration format that is heavily based on templates and supports
+user-friendly features like freely definable macros.
 
 External Interfaces
 -------------------
@@ -115,13 +124,53 @@ dozens of Icinga-specific status.dat parsers out there.
 While Icinga 2 will support these legacy interfaces in order to make migration
 easier and allowing users to use the existing CGIs and whatever other scripts
 they may have Icinga 2 will focus on providing a unified interface to Icinga's
-state. The exact details for such an interface are yet to be determined but
-this will likely be an RPC interface based on one of the commonly used
+state and providing similar functionality to that provided by the command pipe
+in Icinga 1.x. The exact details for such an interface are yet to be determined
+but this will likely be an RPC interface based on one of the commonly used
 web-based remoting technologies.
 
-Icinga 2 will also feature dynamic reconfiguration which means users can
-create, delete and update any configuration object (e.g. hosts and services)
-on-the-fly.
+Icinga 1.x exports historical data using the IDO database interface (Icinga
+Data Output). Icinga 2 will support IDO in a backwards-compatible fashion in
+order to support icinga-web. Additionally there will be a newly-designed
+backend for historical data which can be queried using the built-in API when
+available. Effort will be put into making this new data source more efficient
+for use with SLA reporting.
+
+Icinga 2 will also feature dynamic reconfiguration using the API which means
+users can create, delete and update any configuration object (e.g. hosts and
+services) on-the-fly. Based on the API there are plans to implement a
+command-line configuration tool similar to what Pacemaker has with "crm". Later
+on this API may also be used to implement auto-discovery for new services.
+
+The RPC interface may also be used to receive events in real-time, e.g. when
+service checks are being executed or when a service's state changes. Some
+possible uses of this interface would be to export performance data for
+services (RRD, graphite, etc.) or general log information (logstash, graylog2,
+etc.).
+
+Checks
+-------
+
+In Icinga 2 services are the only checkable objects. Hosts only have a
+calculated state and no check are ever run for them.
+
+In order to maintain compatibility with the hundreds of existing check plugins
+for Icinga 1.x there will be support for Nagios(TM)-style checks. The check
+interface however will be modular so that support for other kinds of checks
+can be implemented later on (e.g. built-in checks for commonly used services
+like PING, HTTP, etc. in order to avoid spawning a process for each check).
+
+Based on the availability of remote Icinga 2 instances the core can delegate
+execution of service checks to them in order to support large-scale distributed
+setups with a minimal amount of maintenance. Services can be assigned to
+specific check instances using configuration settings.
+
+Notifications
+-------------
+
+Event handlers and notifications will be supported similar to Icinga 1.x.
+Thanks to the dynamic configuration it is possible to easily adjust the
+notification settings at runtime (e.g. in order to implement on-call rotation).
 
 Scalability
 -----------
@@ -139,9 +188,65 @@ increases the maintenance overhead when updating the configuration for such a
 setup.
 
 Icinga 2 natively supports setting up multiple Icinga 2 instances in a cluster
-to distribute work between those instances. This is not limited to service
-checks but may also be used for other tasks such as writing the history
-database, doing notifications, etc.
+to distribute work between those instances. Independent tasks (e.g. performing
+service checks, sending notifications, updating the history database, etc.) are
+implemented as components which can be loaded for each instance. Configuration
+as well as program state is automatically replicated between instances.
 
 In order to support using Icinga 2 in a partially trusted environment SSL is
-used for all network communication between individual instances.
+used for all network communication between individual instances. Objects (like
+hosts and services) can be grouped into security domains for which permissions
+can be specified on a per-instance basis (so e.g. you can have a separate API
+or checker instance for a specific domain).
+
+Agent-based Checks
+------------------
+
+Traditionally most service checks have been performed actively, meaning that
+check plugins are executed on the same server that is also running Icinga.
+This works great for checking most network-based services, e.g. PING and HTTP.
+However, there are a number of services which cannot be checked remotely either
+because they are not network-based or because firewall settings or network
+policies ("no unencrypted traffic") disallow accessing these services from the
+network where Icinga is running.
+
+To solve this problem two add-ons have emerged, namely NRPE and NSCA. NRPE
+can be thought of as a light-weight remote shell which allows the execution
+of a restricted set of commands while supporting some Nagios(TM)-specific
+concepts like command timeouts. However unlike with the design of commonly used
+protocols like SSH security in NRPE is merely an afterthought.
+
+In most monitoring setups all NRPE agents share the same secret key which is
+embedded into the NRPE binary at compile time. This means that users can
+extract this secret key from their NRPE agent binary and use it to query
+sensitive monitoring information from other systems running the same NRPE
+binary. NSCA has similar problems.
+
+Based on Icinga 2's code for check execution there will be an agent which can
+be used on *NIX as well as on Windows platforms. The agent will be using the
+same configuration format like Icinga 2 itself and will support SSL and
+IPv4/IPv6 to communicate with Icinga 2.
+
+Business Processes
+-------------
+
+In most cases users don't care about the availability of individual services
+but rather the aggregated state of multiple related services. For example one
+might have a database cluster that is used for a web shop. For an end-user the
+shop is available as long as at least one of the database servers is working.
+
+Icinga 1.x does not have any support for business processes out of the box.
+There are several add-ons which implement business process support for Icinga,
+however none of those are well-integrated into Icinga.
+
+Icinga 2 will have native support for business processes which are built right
+into the core and can be configured in a similar manner to Nagios(TM)-style
+checks. Users can define their own services based on business rules which can
+be used as dependencies for other hosts or services.
+
+Logging
+-------
+
+Icinga 2 supports file-based logged as well as syslog (on *NIX) and event log
+(on Windows). Additionally Icinga 2 supports remote logging to a central Icinga
+2 instance.
