@@ -391,24 +391,16 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 
 ServiceState Service::StateFromString(const String& state)
 {
-	/* TODO: make this thread-safe */
-	static map<String, ServiceState> stateLookup;
-
-	if (stateLookup.empty()) {
-		stateLookup["ok"] = StateOK;
-		stateLookup["warning"] = StateWarning;
-		stateLookup["critical"] = StateCritical;
-		stateLookup["uncheckable"] = StateUncheckable;
-		stateLookup["unknown"] = StateUnknown;
-	}
-
-	map<String, ServiceState>::iterator it;
-	it = stateLookup.find(state);
-
-	if (it == stateLookup.end())
-		return StateUnknown;
+	if (state == "ok")
+		return StateOK;
+	else if (state == "warning")
+		return StateWarning;
+	else if (state == "critical")
+		return StateCritical;
+	else if (state == "uncheckable")
+		return StateUncheckable;
 	else
-		return it->second;
+		return StateUnknown;
 }
 
 String Service::StateToString(ServiceState state)
