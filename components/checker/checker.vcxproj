@@ -40,12 +40,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(SolutionDir)\icinga;$(SolutionDir)\cib;$(SolutionDir)\config;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib\base;$(SolutionDir)\lib\jsonrpc;$(SolutionDir)\lib\icinga;$(SolutionDir)\lib\cib;$(SolutionDir)\lib\config;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(SolutionDir)\icinga;$(SolutionDir)\cib;$(SolutionDir)\config;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib\base;$(SolutionDir)\lib\jsonrpc;$(SolutionDir)\lib\icinga;$(SolutionDir)\lib\cib;$(SolutionDir)\lib\config;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

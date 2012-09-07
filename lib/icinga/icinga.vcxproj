@@ -18,16 +18,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="icingaapplication.cpp" />
-    <ClCompile Include="jsonrpcendpoint.cpp" />
-    <ClCompile Include="virtualendpoint.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="endpoint.h" />
     <ClInclude Include="endpointmanager.h" />
     <ClInclude Include="i2-icinga.h" />
     <ClInclude Include="icingaapplication.h" />
-    <ClInclude Include="jsonrpcendpoint.h" />
-    <ClInclude Include="virtualendpoint.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}</ProjectGuid>
@@ -59,12 +55,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(SolutionDir)\dyn;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib\base;$(SolutionDir)\lib\jsonrpc;$(SolutionDir)\lib\config;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(SolutionDir)\dyn;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib\base;$(SolutionDir)\lib\jsonrpc;$(SolutionDir)\lib\config;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

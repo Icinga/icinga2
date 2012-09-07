@@ -39,12 +39,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\icinga;$(SolutionDir)\jsonrpc;$(SolutionDir)\config;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib\base;$(SolutionDir)\lib\icinga;$(SolutionDir)\lib\jsonrpc;$(SolutionDir)\lib\config;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\icinga;$(SolutionDir)\jsonrpc;$(SolutionDir)\config;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib\base;$(SolutionDir)\lib\icinga;$(SolutionDir)\lib\jsonrpc;$(SolutionDir)\lib\config;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

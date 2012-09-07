@@ -4,16 +4,10 @@
     <ClCompile Include="endpoint.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="virtualendpoint.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="endpointmanager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="icingaapplication.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="jsonrpcendpoint.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="i2-icinga.cpp">
@@ -31,12 +25,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="icingaapplication.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="jsonrpcendpoint.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="virtualendpoint.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
