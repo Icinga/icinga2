@@ -17,23 +17,56 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CONVENIENCE_H
-#define I2CONVENIENCE_H
+#ifndef CONFIGITEM_H
+#define CONFIGITEM_H
 
-/**
- * @defgroup convenience Convenience component
- *
- * The convenience component takes service definitions from host objects
- * and creates service objects. Technically this isn't strictly necessary but
- * makes defining services a lot easier for users.
- */
+namespace icinga
+{
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-jsonrpc.h>
-#include <i2-icinga.h>
-#include <i2-cib.h>
+class I2_CONFIG_API ConfigItem : public Object {
+public:
+	typedef shared_ptr<ConfigItem> Ptr;
+	typedef weak_ptr<ConfigItem> WeakPtr;
 
-#include "conveniencecomponent.h"
+	ConfigItem(const String& type, const String& name,
+	    const ExpressionList::Ptr& exprl, const vector<String>& parents,
+	    const DebugInfo& debuginfo);
 
-#endif /* I2CONVENIENCE_H */
+	String GetType(void) const;
+	String GetName(void) const;
+
+	vector<String> GetParents(void) const;
+
+	ExpressionList::Ptr GetExpressionList(void) const;
+
+	DynamicObject::Ptr Commit(void);
+	void Unregister(void);
+
+	DynamicObject::Ptr GetDynamicObject(void) const;
+
+	DebugInfo GetDebugInfo(void) const;
+
+	static ConfigItem::Ptr GetObject(const String& type, const String& name);
+
+	static boost::signal<void (const ConfigItem::Ptr&)> OnCommitted;
+	static boost::signal<void (const ConfigItem::Ptr&)> OnRemoved;
+
+private:
+	void CalculateProperties(const Dictionary::Ptr& dictionary) const;
+
+	String m_Type;
+	String m_Name;
+
+	ExpressionList::Ptr m_ExpressionList;
+	vector<String> m_Parents;
+	DebugInfo m_DebugInfo;
+
+	DynamicObject::WeakPtr m_DynamicObject;
+
+	typedef map<pair<String, String>, ConfigItem::Ptr> ItemMap;
+	static ItemMap m_Items;
+};
+
+}
+
+#endif /* CONFIGITEM_H */

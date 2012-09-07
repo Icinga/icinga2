@@ -17,23 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CONVENIENCE_H
-#define I2CONVENIENCE_H
+#ifndef I2CIB_H
+#define I2CIB_H
 
 /**
- * @defgroup convenience Convenience component
+ * @defgroup cib Common Information Base
  *
- * The convenience component takes service definitions from host objects
- * and creates service objects. Technically this isn't strictly necessary but
- * makes defining services a lot easier for users.
+ * The CIB component implements functionality to gather status
+ * updates from all the other Icinga components.
  */
 
-#include <i2-base.h>
 #include <i2-config.h>
-#include <i2-jsonrpc.h>
 #include <i2-icinga.h>
-#include <i2-cib.h>
 
-#include "conveniencecomponent.h"
+#ifdef I2_CIB_BUILD
+#	define I2_CIB_API I2_EXPORT
+#else /* I2_CIB_BUILD */
+#	define I2_CIB_API I2_IMPORT
+#endif /* I2_CIB_BUILD */
 
-#endif /* I2CONVENIENCE_H */
+#include "host.h"
+#include "hostgroup.h"
+#include "service.h"
+#include "servicegroup.h"
+
+#include "macroprocessor.h"
+#include "nagioschecktask.h"
+#include "nullchecktask.h"
+
+#include "servicestatechangemessage.h"
+
+#include "cib.h"
+
+#endif /* I2CIB_H */

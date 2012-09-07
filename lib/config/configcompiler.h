@@ -17,23 +17,52 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CONVENIENCE_H
-#define I2CONVENIENCE_H
+#ifndef CONFIGCOMPILER_H
+#define CONFIGCOMPILER_H
 
-/**
- * @defgroup convenience Convenience component
- *
- * The convenience component takes service definitions from host objects
- * and creates service objects. Technically this isn't strictly necessary but
- * makes defining services a lot easier for users.
- */
+namespace icinga
+{
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-jsonrpc.h>
-#include <i2-icinga.h>
-#include <i2-cib.h>
+class I2_CONFIG_API ConfigCompiler
+{
+public:
+	typedef function<vector<ConfigItem::Ptr> (const String& include)> HandleIncludeFunc;
 
-#include "conveniencecomponent.h"
+	ConfigCompiler(const String& path, istream *input = &cin,
+	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
+	virtual ~ConfigCompiler(void);
 
-#endif /* I2CONVENIENCE_H */
+	void Compile(void);
+
+	static vector<ConfigItem::Ptr> CompileStream(const String& path, istream *stream);
+	static vector<ConfigItem::Ptr> CompileFile(const String& path);
+	static vector<ConfigItem::Ptr> CompileText(const String& path, const String& text);
+
+	static vector<ConfigItem::Ptr> HandleFileInclude(const String& include);
+
+	vector<ConfigItem::Ptr> GetResult(void) const;
+
+	String GetPath(void) const;
+
+	/* internally used methods */
+	void HandleInclude(const String& include);
+	void AddObject(const ConfigItem::Ptr& object);
+	size_t ReadInput(char *buffer, size_t max_bytes);
+	void *GetScanner(void) const;
+
+private:
+	String m_Path;
+	istream *m_Input;
+
+	HandleIncludeFunc m_HandleInclude;
+
+	void *m_Scanner;
+	vector<ConfigItem::Ptr> m_Result;
+
+	void InitializeScanner(void);
+	void DestroyScanner(void);
+};
+
+}
+
+#endif /* CONFIGCOMPILER_H */

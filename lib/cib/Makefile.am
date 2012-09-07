@@ -1,28 +1,44 @@
 ## Process this file with automake to produce Makefile.in
 
 pkglib_LTLIBRARIES = \
-	demo.la
+	libcib.la
 
-demo_la_SOURCES = \
-	democomponent.cpp \
-	democomponent.h \
-	i2-demo.h
+libcib_la_SOURCES = \
+	cib.cpp \
+	cib.h \
+	host.cpp \
+	host.h \
+	hostgroup.cpp \
+	hostgroup.h \
+	i2-cib.h \
+	macroprocessor.cpp \
+	macroprocessor.h \
+	nagioschecktask.cpp \
+	nagioschecktask.h \
+	nullchecktask.cpp \
+	nullchecktask.h \
+	service.cpp \
+	service.h \
+	servicegroup.cpp \
+	servicegroup.h \
+	servicestatechangemessage.cpp \
+	servicestatechangemessage.h
 
-demo_la_CPPFLAGS = \
+libcib_la_CPPFLAGS = \
+	-DI2_CIB_BUILD \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib/base \
 	-I${top_srcdir}/lib/config \
 	-I${top_srcdir}/lib/jsonrpc \
 	-I${top_srcdir}/lib/icinga
 
-demo_la_LDFLAGS = \
+libcib_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
-	-module \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
-demo_la_LIBADD = \
+libcib_la_LIBADD = \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	${top_builddir}/lib/base/libbase.la \

@@ -21,7 +21,7 @@ AC_INIT
 AX_SPEC_FILE([icinga2.spec])
 AX_SPEC_DEFAULTS
 AX_SET_VERSION_INFO
-AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
@@ -44,7 +44,7 @@ DX_RTF_FEATURE(OFF)
 DX_XML_FEATURE(OFF)
 DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
-DX_INIT_DOXYGEN([icinga], [Doxyfile], [doc])
+DX_INIT_DOXYGEN([icinga], [docs/Doxyfile], [docs/dev])
 
 AC_PROG_INSTALL
 AM_PROG_LEX
@@ -67,8 +67,6 @@ AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 
 AC_CONFIG_FILES([
 Makefile
-base/Makefile
-cib/Makefile
 components/Makefile
 components/checker/Makefile
 components/cibsync/Makefile
@@ -76,16 +74,19 @@ components/compat/Makefile
 components/convenience/Makefile
 components/delegation/Makefile
 components/demo/Makefile
-dyn/Makefile
-icinga/Makefile
+docs/Doxyfile
 icinga-app/Makefile
-jsonrpc/Makefile
+lib/Makefile
+lib/base/Makefile
+lib/cib/Makefile
+lib/config/Makefile
+lib/icinga/Makefile
+lib/jsonrpc/Makefile
 test/Makefile
 third-party/Makefile
 third-party/cJSON/Makefile
 third-party/mmatch/Makefile
 third-party/popen-noshell/Makefile
-Doxyfile
 ])
 AC_OUTPUT
 

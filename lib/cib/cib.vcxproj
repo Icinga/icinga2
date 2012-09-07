@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{704DDD8E-9E6D-4C22-80BD-6DE10F3A5E1C}</ProjectGuid>
+    <ProjectGuid>{538D7F53-A6A0-459A-AE4F-70DB135BC9AF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>cibsync</RootNamespace>
+    <RootNamespace>cib</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -39,34 +39,38 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(SolutionDir)\icinga;$(SolutionDir)\cib;$(SolutionDir)\config;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\icinga;$(SolutionDir)\jsonrpc;$(SolutionDir)\config;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\jsonrpc;$(SolutionDir)\icinga;$(SolutionDir)\cib;$(SolutionDir)\config;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\base;$(SolutionDir)\icinga;$(SolutionDir)\jsonrpc;$(SolutionDir)\config;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;CIBSYNC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDLL;I2_CIB_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>i2-cib.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;config.lib;jsonrpc.lib;icinga.lib;cib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;icinga.lib;jsonrpc.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;CIBSYNC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDLL;I2_CIB_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>i2-cib.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -74,15 +78,35 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>base.lib;config.lib;jsonrpc.lib;icinga.lib;cib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;icinga.lib;jsonrpc.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cibsynccomponent.h" />
-    <ClInclude Include="i2-cibsync.h" />
+    <ClInclude Include="cib.h" />
+    <ClInclude Include="host.h" />
+    <ClInclude Include="hostgroup.h" />
+    <ClInclude Include="i2-cib.h" />
+    <ClInclude Include="macroprocessor.h" />
+    <ClInclude Include="nagioschecktask.h" />
+    <ClInclude Include="nullchecktask.h" />
+    <ClInclude Include="service.h" />
+    <ClInclude Include="servicegroup.h" />
+    <ClInclude Include="servicestatechangemessage.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cibsynccomponent.cpp" />
+    <ClCompile Include="cib.cpp" />
+    <ClCompile Include="host.cpp" />
+    <ClCompile Include="hostgroup.cpp" />
+    <ClCompile Include="i2-cib.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="macroprocessor.cpp" />
+    <ClCompile Include="nagioschecktask.cpp" />
+    <ClCompile Include="nullchecktask.cpp" />
+    <ClCompile Include="service.cpp" />
+    <ClCompile Include="servicegroup.cpp" />
+    <ClCompile Include="servicestatechangemessage.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

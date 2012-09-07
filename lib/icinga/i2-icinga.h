@@ -17,23 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CONVENIENCE_H
-#define I2CONVENIENCE_H
+#ifndef I2ICINGA_H
+#define I2ICINGA_H
 
 /**
- * @defgroup convenience Convenience component
+ * @defgroup icinga Icinga application
  *
- * The convenience component takes service definitions from host objects
- * and creates service objects. Technically this isn't strictly necessary but
- * makes defining services a lot easier for users.
+ * The Icinga application is in charge of boot-strapping the Icinga
+ * environment and loading additional components.
  */
 
 #include <i2-base.h>
 #include <i2-config.h>
 #include <i2-jsonrpc.h>
-#include <i2-icinga.h>
-#include <i2-cib.h>
+#include <set>
 
-#include "conveniencecomponent.h"
+using boost::iterator_range;
+using boost::algorithm::is_any_of;
 
-#endif /* I2CONVENIENCE_H */
+#ifdef I2_ICINGA_BUILD
+#	define I2_ICINGA_API I2_EXPORT
+#else /* I2_ICINGA_BUILD */
+#	define I2_ICINGA_API I2_IMPORT
+#endif /* I2_ICINGA_BUILD */
+
+#include "endpoint.h"
+#include "endpointmanager.h"
+#include "icingaapplication.h"
+
+#endif /* I2ICINGA_H */

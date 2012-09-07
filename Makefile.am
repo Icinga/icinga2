@@ -5,11 +5,7 @@ include aminclude.am
 
 SUBDIRS = \
 	third-party \
-	base \
-	dyn \
-	jsonrpc \
-	icinga \
-	cib \
+	lib \
 	components \
 	icinga-app \
 	test

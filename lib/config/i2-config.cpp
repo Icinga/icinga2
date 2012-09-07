@@ -17,23 +17,6 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CONVENIENCE_H
-#define I2CONVENIENCE_H
+/* This file is used by MSVC to generate the pre-compiled hedader. */
 
-/**
- * @defgroup convenience Convenience component
- *
- * The convenience component takes service definitions from host objects
- * and creates service objects. Technically this isn't strictly necessary but
- * makes defining services a lot easier for users.
- */
-
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-jsonrpc.h>
-#include <i2-icinga.h>
-#include <i2-cib.h>
-
-#include "conveniencecomponent.h"
-
-#endif /* I2CONVENIENCE_H */
+#include "i2-config.h"

@@ -17,23 +17,38 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CONVENIENCE_H
-#define I2CONVENIENCE_H
+#ifndef I2CONFIG_H
+#define I2CONFIG_H
 
 /**
- * @defgroup convenience Convenience component
+ * @defgroup config Dynamic object library
  *
- * The convenience component takes service definitions from host objects
- * and creates service objects. Technically this isn't strictly necessary but
- * makes defining services a lot easier for users.
+ * The dynamic object library implements serializable objects which support
+ * inheritance.
  */
 
 #include <i2-base.h>
-#include <i2-config.h>
-#include <i2-jsonrpc.h>
-#include <i2-icinga.h>
-#include <i2-cib.h>
 
-#include "conveniencecomponent.h"
+#include <stack>
+#include <fstream>
 
-#endif /* I2CONVENIENCE_H */
+using std::stack;
+using std::istream;
+using std::ostream;
+using std::cin;
+using std::endl;
+
+#ifdef I2_CONFIG_BUILD
+#	define I2_CONFIG_API I2_EXPORT
+#else /* I2_CONFIG_BUILD */
+#	define I2_CONFIG_API I2_IMPORT
+#endif /* I2_CONFIG_BUILD */
+
+#include "debuginfo.h"
+#include "expression.h"
+#include "expressionlist.h"
+#include "configitem.h"
+#include "configitembuilder.h"
+#include "configcompiler.h"
+
+#endif /* I2CONFIG_H */

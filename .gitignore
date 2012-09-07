@@ -42,5 +42,5 @@ debian/icinga2.postrm.debhelper
 debian/icinga2.substvars
 debian/icinga2
 compat/include
-doc
+docs/dev
 Doxyfile

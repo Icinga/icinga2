@@ -17,23 +17,44 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CONVENIENCE_H
-#define I2CONVENIENCE_H
+#ifndef CONFIGITEMBUILDER_H
+#define CONFIGITEMBUILDER_H
 
-/**
- * @defgroup convenience Convenience component
- *
- * The convenience component takes service definitions from host objects
- * and creates service objects. Technically this isn't strictly necessary but
- * makes defining services a lot easier for users.
- */
+namespace icinga
+{
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-jsonrpc.h>
-#include <i2-icinga.h>
-#include <i2-cib.h>
+class I2_CONFIG_API ConfigItemBuilder : public Object
+{
+public:
+	typedef shared_ptr<ConfigItemBuilder> Ptr;
+	typedef weak_ptr<ConfigItemBuilder> WeakPtr;
 
-#include "conveniencecomponent.h"
+	ConfigItemBuilder(void);
+	ConfigItemBuilder(const DebugInfo& debugInfo);
 
-#endif /* I2CONVENIENCE_H */
+	void SetType(const String& type);
+	void SetName(const String& name);
+	void SetLocal(bool local);
+	void SetAbstract(bool abstract);
+
+	void AddParent(const String& parent);
+
+	void AddExpression(const Expression& expr);
+	void AddExpression(const String& key, ExpressionOperator op, const Value& value);
+	void AddExpressionList(const ExpressionList::Ptr& exprl);
+
+	ConfigItem::Ptr Compile(void);
+
+private:
+	String m_Type;
+	String m_Name;
+	bool m_Local;
+	bool m_Abstract;
+	vector<String> m_Parents;
+	ExpressionList::Ptr m_ExpressionList;
+	DebugInfo m_DebugInfo;
+};
+
+}
+
+#endif /* CONFIGITEMBUILDER */

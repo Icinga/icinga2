@@ -17,23 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CONVENIENCE_H
-#define I2CONVENIENCE_H
+#ifndef EXPRESSION_H
+#define EXPRESSION_H
 
-/**
- * @defgroup convenience Convenience component
- *
- * The convenience component takes service definitions from host objects
- * and creates service objects. Technically this isn't strictly necessary but
- * makes defining services a lot easier for users.
- */
+namespace icinga
+{
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-jsonrpc.h>
-#include <i2-icinga.h>
-#include <i2-cib.h>
+enum ExpressionOperator
+{
+	OperatorExecute,
+	OperatorSet,
+	OperatorPlus,
+	OperatorMinus,
+	OperatorMultiply,
+	OperatorDivide
+};
 
-#include "conveniencecomponent.h"
+struct I2_CONFIG_API Expression
+{
+public:
+	Expression(const String& key, ExpressionOperator op, const Value& value, const DebugInfo& debuginfo);
 
-#endif /* I2CONVENIENCE_H */
+	void Execute(const Dictionary::Ptr& dictionary) const;
+
+private:
+	String m_Key;
+	ExpressionOperator m_Operator;
+	Value m_Value;
+	DebugInfo m_DebugInfo;
+};
+
+}
+
+#endif /* EXPRESSION_H */
