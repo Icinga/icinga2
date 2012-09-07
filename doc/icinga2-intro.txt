@@ -149,7 +149,7 @@ services (RRD, graphite, etc.) or general log information (logstash, graylog2,
 etc.).
 
 Checks
--------
+------
 
 In Icinga 2 services are the only checkable objects. Hosts only have a
 calculated state and no check are ever run for them.
@@ -228,7 +228,7 @@ same configuration format like Icinga 2 itself and will support SSL and
 IPv4/IPv6 to communicate with Icinga 2.
 
 Business Processes
--------------
+------------------
 
 In most cases users don't care about the availability of individual services
 but rather the aggregated state of multiple related services. For example one
