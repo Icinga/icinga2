@@ -105,7 +105,7 @@ String Endpoint::GetAddress(void) const
 	} else {
 		JsonRpcClient::Ptr client = GetClient();
 
-		if (!client)
+		if (!client || !client->IsConnected())
 			return "<disconnected endpoint>";
 
 		return client->GetPeerAddress();
