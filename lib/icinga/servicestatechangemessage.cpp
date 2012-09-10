@@ -17,19 +17,17 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#include "i2-icinga.h"
 
-/**
- * @defgroup demo Demo component
- *
- * The demo component periodically sends demo messages.
- */
+using namespace icinga;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+bool ServiceStateChangeMessage::GetService(String *service) const
+{
+	return Get("service", service);
+}
 
-#include "democomponent.h"
+void ServiceStateChangeMessage::SetService(const String& service)
+{
+	Set("service", service);
+}
 
-#endif /* I2DEMO_H */

@@ -78,10 +78,9 @@ docs/Doxyfile
 icinga-app/Makefile
 lib/Makefile
 lib/base/Makefile
-lib/cib/Makefile
 lib/config/Makefile
 lib/icinga/Makefile
-lib/jsonrpc/Makefile
+lib/remoting/Makefile
 test/Makefile
 third-party/Makefile
 third-party/cJSON/Makefile

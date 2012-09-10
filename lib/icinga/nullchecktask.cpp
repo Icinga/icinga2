@@ -17,19 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#include "i2-icinga.h"
 
-/**
- * @defgroup demo Demo component
- *
- * The demo component periodically sends demo messages.
- */
+using namespace icinga;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Missing argument: Service must be specified."));
 
-#include "democomponent.h"
+	double now = Utility::GetTime();
 
-#endif /* I2DEMO_H */
+	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
+	cr->Set("schedule_start", now);
+	cr->Set("schedule_end", now);
+	cr->Set("execution_start", now);
+	cr->Set("execution_end", now);
+	cr->Set("state", StateUnknown);
+
+	task->FinishResult(cr);
+}
+
+void NullCheckTask::Register(void)
+{
+	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&NullCheckTask::ScriptFunc);
+	ScriptFunction::Register("native::NullCheck", func);
+}

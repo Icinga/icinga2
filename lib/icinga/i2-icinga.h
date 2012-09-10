@@ -29,8 +29,7 @@
 
 #include <i2-base.h>
 #include <i2-config.h>
-#include <i2-jsonrpc.h>
-#include <set>
+#include <i2-remoting.h>
 
 using boost::iterator_range;
 using boost::algorithm::is_any_of;
@@ -44,5 +43,18 @@ using boost::algorithm::is_any_of;
 #include "endpoint.h"
 #include "endpointmanager.h"
 #include "icingaapplication.h"
+
+#include "host.h"
+#include "hostgroup.h"
+#include "service.h"
+#include "servicegroup.h"
+
+#include "macroprocessor.h"
+#include "nagioschecktask.h"
+#include "nullchecktask.h"
+
+#include "servicestatechangemessage.h"
+
+#include "cib.h"
 
 #endif /* I2ICINGA_H */

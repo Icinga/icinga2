@@ -17,19 +17,44 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#include "i2-icinga.h"
 
-/**
- * @defgroup demo Demo component
- *
- * The demo component periodically sends demo messages.
- */
+using namespace icinga;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+REGISTER_CLASS(ServiceGroup);
 
-#include "democomponent.h"
+String ServiceGroup::GetAlias(void) const
+{
+	String value = Get("alias");
 
-#endif /* I2DEMO_H */
+	if (!value.IsEmpty())
+		return value;
+	else
+		return GetName();
+}
+
+String ServiceGroup::GetNotesUrl(void) const
+{
+	return Get("notes_url");
+}
+
+String ServiceGroup::GetActionUrl(void) const
+{
+	return Get("action_url");
+}
+
+bool ServiceGroup::Exists(const String& name)
+{
+	return (DynamicObject::GetObject("ServiceGroup", name));
+}
+
+ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
+{
+	DynamicObject::Ptr configObject = DynamicObject::GetObject("ServiceGroup", name);
+
+	if (!configObject)
+		throw_exception(invalid_argument("ServiceGroup '" + name + "' does not exist."));
+
+	return dynamic_pointer_cast<ServiceGroup>(configObject);
+}
+

@@ -17,19 +17,6 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#include "i2-remoting.h"
 
-/**
- * @defgroup demo Demo component
- *
- * The demo component periodically sends demo messages.
- */
-
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
-
-#include "democomponent.h"
-
-#endif /* I2DEMO_H */
+using namespace icinga;

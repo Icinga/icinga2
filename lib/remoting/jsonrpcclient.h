@@ -17,19 +17,37 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#ifndef JSONRPCCLIENT_H
+#define JSONRPCCLIENT_H
+
+namespace icinga
+{
 
 /**
- * @defgroup demo Demo component
+ * A JSON-RPC client.
  *
- * The demo component periodically sends demo messages.
+ * @ingroup remoting
  */
+class I2_REMOTING_API JsonRpcClient : public TlsClient
+{
+public:
+	typedef shared_ptr<JsonRpcClient> Ptr;
+	typedef weak_ptr<JsonRpcClient> WeakPtr;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+	JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
 
-#include "democomponent.h"
+	void SendMessage(const MessagePart& message);
 
-#endif /* I2DEMO_H */
+	boost::signal<void (const JsonRpcClient::Ptr&, const MessagePart&)> OnNewMessage;
+
+private:
+	void DataAvailableHandler(void);
+
+	friend JsonRpcClient::Ptr JsonRpcClientFactory(SOCKET fd, TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
+};
+
+JsonRpcClient::Ptr JsonRpcClientFactory(SOCKET fd, TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
+
+}
+
+#endif /* JSONRPCCLIENT_H */

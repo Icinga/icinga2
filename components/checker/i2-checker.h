@@ -28,7 +28,6 @@
 
 #include <i2-base.h>
 #include <i2-icinga.h>
-#include <i2-cib.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>

@@ -17,19 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#include "i2-icinga.h"
 
-/**
- * @defgroup demo Demo component
- *
- * The demo component periodically sends demo messages.
- */
+using namespace icinga;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+RingBuffer CIB::m_TaskStatistics(15 * 60);
 
-#include "democomponent.h"
+void CIB::UpdateTaskStatistics(long tv, int num)
+{
+	m_TaskStatistics.InsertValue(tv, num);
+}
 
-#endif /* I2DEMO_H */
+int CIB::GetTaskStatistics(long timespan)
+{
+	return m_TaskStatistics.GetValues(timespan);
+}

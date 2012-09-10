@@ -17,19 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#ifndef I2REMOTING_H
+#define I2REMOTING_H
 
 /**
- * @defgroup demo Demo component
+ * @defgroup remoting JSON-RPC library
  *
- * The demo component periodically sends demo messages.
+ * The JSON-RPC library implements server and client classes for the JSON-RPC
+ * protocol.
  */
 
 #include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include <i2-config.h>
 
-#include "democomponent.h"
+#ifdef I2_REMOTING_BUILD
+#	define I2_REMOTING_API I2_EXPORT
+#else /* I2_REMOTING_BUILD */
+#	define I2_REMOTING_API I2_IMPORT
+#endif /* I2_REMOTING_BUILD */
 
-#endif /* I2DEMO_H */
+#include "messagepart.h"
+#include "requestmessage.h"
+#include "responsemessage.h"
+#include "jsonrpcclient.h"
+#include "jsonrpcserver.h"
+#include "endpoint.h"
+#include "endpointmanager.h"
+
+#endif /* I2REMOTING_H */

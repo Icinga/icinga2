@@ -17,19 +17,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#include "i2-remoting.h"
+
+using namespace icinga;
 
 /**
- * @defgroup demo Demo component
+ * Constructor for the JsonRpcServer class.
  *
- * The demo component periodically sends demo messages.
+ * @param sslContext SSL context that should be used for client connections.
  */
-
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
-
-#include "democomponent.h"
-
-#endif /* I2DEMO_H */
+JsonRpcServer::JsonRpcServer(shared_ptr<SSL_CTX> sslContext)
+{
+	SetClientFactory(boost::bind(&JsonRpcClientFactory, _1, RoleInbound, sslContext));
+}

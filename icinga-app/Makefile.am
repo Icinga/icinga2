@@ -13,7 +13,7 @@ icinga_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib/base \
 	-I${top_srcdir}/lib/config \
-	-I${top_srcdir}/lib/jsonrpc \
+	-I${top_srcdir}/lib/remoting \
 	-I${top_srcdir}/lib/icinga \
 	-I${top_srcdir}
 
@@ -27,6 +27,7 @@ icinga_LDADD = \
 	$(BOOST_SYSTEM_LIB) \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
+	${top_builddir}/lib/remoting/libremoting.la \
 	${top_builddir}/lib/icinga/libicinga.la \
 	-dlopen ${top_builddir}/components/checker/checker.la \
 	-dlopen ${top_builddir}/components/cibsync/cibsync.la \

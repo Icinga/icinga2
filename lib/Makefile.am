@@ -4,6 +4,5 @@
 SUBDIRS = \
 	base \
 	config \
-	jsonrpc \
-	icinga \
-	cib
+	remoting \
+	icinga

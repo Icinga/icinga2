@@ -17,19 +17,42 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#include "i2-icinga.h"
 
-/**
- * @defgroup demo Demo component
- *
- * The demo component periodically sends demo messages.
- */
+using namespace icinga;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+String MacroProcessor::ResolveMacros(const String& str, const vector<Dictionary::Ptr>& macroDicts)
+{
+	size_t offset, pos_first, pos_second;
 
-#include "democomponent.h"
+	offset = 0;
 
-#endif /* I2DEMO_H */
+	String result = str;
+	while ((pos_first = result.FindFirstOf("$", offset)) != String::NPos) {
+		pos_second = result.FindFirstOf("$", pos_first + 1);
+
+		if (pos_second == String::NPos)
+			throw_exception(runtime_error("Closing $ not found in macro format String."));
+
+		String name = result.SubStr(pos_first + 1, pos_second - pos_first - 1);
+		String value;
+		bool resolved = false;
+
+		BOOST_FOREACH(const Dictionary::Ptr& macroDict, macroDicts) {
+			if (!macroDict || !macroDict->Contains(name))
+				continue;
+
+			String value = macroDict->Get(name);
+			result.Replace(pos_first, pos_second - pos_first + 1, value);
+			offset = pos_first + value.GetLength();
+
+			resolved = true;
+			break;
+		}
+
+		if (!resolved)
+			throw_exception(runtime_error("Macro '" + name + "' is not defined."));
+	}
+
+	return result;
+}

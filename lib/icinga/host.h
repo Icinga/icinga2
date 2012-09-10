@@ -17,19 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#ifndef HOST_H
+#define HOST_H
 
-/**
- * @defgroup demo Demo component
- *
- * The demo component periodically sends demo messages.
- */
+namespace icinga
+{
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+class I2_ICINGA_API Host : public DynamicObject
+{
+public:
+	typedef shared_ptr<Host> Ptr;
+	typedef weak_ptr<Host> WeakPtr;
 
-#include "democomponent.h"
+	Host(const Dictionary::Ptr& properties);
 
-#endif /* I2DEMO_H */
+	static bool Exists(const String& name);
+	static Host::Ptr GetByName(const String& name);
+
+	String GetAlias(void) const;
+	Dictionary::Ptr GetGroups(void) const;
+	set<String> GetParents(void);
+	Dictionary::Ptr GetMacros(void) const;
+
+	bool IsReachable(void);
+	bool IsUp(void);
+};
+
+}
+
+#endif /* HOST_H */

@@ -134,6 +134,8 @@ int IcingaApplication::Main(const vector<String>& args)
 		EndpointManager::GetInstance()->SetIdentity(identity);
 
 		m_SSLContext = Utility::MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
+
+		EndpointManager::GetInstance()->SetSSLContext(m_SSLContext);
 	}
 
 	/* create the primary RPC listener */

@@ -17,19 +17,26 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2DEMO_H
-#define I2DEMO_H
+#ifndef JSONRPCSERVER_H
+#define JSONRPCSERVER_H
+
+namespace icinga
+{
 
 /**
- * @defgroup demo Demo component
+ * A JSON-RPC server.
  *
- * The demo component periodically sends demo messages.
+ * @ingroup remoting
  */
+class I2_REMOTING_API JsonRpcServer : public TcpServer
+{
+public:
+	typedef shared_ptr<JsonRpcServer> Ptr;
+	typedef weak_ptr<JsonRpcServer> WeakPtr;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+	JsonRpcServer(shared_ptr<SSL_CTX> sslContext);
+};
 
-#include "democomponent.h"
+}
 
-#endif /* I2DEMO_H */
+#endif /* JSONRPCSERVER_H */
