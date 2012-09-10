@@ -19,4 +19,4 @@
 
 /* This file is used by MSVC to generate the pre-compiled hedader. */
 
-#include "i2-jsonrpc.h"
+#include "i2-remoting.h"

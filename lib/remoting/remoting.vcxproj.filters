@@ -16,14 +16,17 @@
     <ClCompile Include="requestmessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="i2-jsonrpc.cpp">
+    <ClCompile Include="i2-remoting.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="endpoint.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="endpointmanager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="i2-jsonrpc.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="jsonrpcclient.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -37,6 +40,15 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="responsemessage.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="i2-remoting.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="endpoint.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="endpointmanager.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
