@@ -51,7 +51,7 @@ AM_PROG_LEX
 AC_PROG_YACC
 AC_PROG_LIBTOOL
 AX_CXX_GCC_ABI_DEMANGLE
-AX_BOOST_BASE
+AX_BOOST_BASE([1.20], [], [AC_MSG_ERROR([You need the Boost headers and libraries in order to build this application])])
 AX_BOOST_SIGNALS
 AX_BOOST_THREAD
 AX_BOOST_SYSTEM
