@@ -76,6 +76,7 @@ components/demo/Makefile
 components/replication/Makefile
 docs/Doxyfile
 icinga-app/Makefile
+icinga-app/config/Makefile
 lib/Makefile
 lib/base/Makefile
 lib/config/Makefile

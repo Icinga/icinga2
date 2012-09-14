@@ -1,0 +1,47 @@
+local object IcingaApplication "icinga" {
+
+}
+
+local object Component "checker" {
+
+}
+
+local object Component "delegation" {
+
+}
+
+local object Component "compat" {
+
+}
+
+abstract object Service "nagios-service" {
+  methods {
+    check = "native::NagiosCheck"
+  },
+
+  macros = {
+    plugindir = "/usr/lib/nagios/plugins"
+  }
+}
+
+abstract object Service "ping" inherits "nagios-service" {
+  check_command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
+
+  macros += {
+    wrta = 50,
+    wpl = 5,
+    crta = 100,
+    cpl = 10
+  }
+}
+
+object Host "localhost" {
+  services = { "ping" },
+
+  macros = {
+    address = "127.0.0.1"
+  },
+
+  check_interval = 10
+}
+
