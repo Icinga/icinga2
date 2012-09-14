@@ -11,14 +11,12 @@ base_dictionary_SOURCES = \
 
 base_dictionary_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/base \
-	-I${top_srcdir}/jsonrpc \
-	-I${top_srcdir}/icinga \
+	-I${top_srcdir}/lib/base \
+	-I${top_srcdir}/lib/icinga \
 	-I${top_srcdir}
 
 base_dictionary_LDADD = \
 	$(BOOST_LDFLAGS) \
 	$(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
-	${top_builddir}/base/libbase.la \
-	${top_builddir}/jsonrpc/libjsonrpc.la \
-	${top_builddir}/icinga/libicinga.la
+	${top_builddir}/lib/base/libbase.la \
+	${top_builddir}/lib/icinga/libicinga.la

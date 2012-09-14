@@ -17,16 +17,17 @@ BOOST_AUTO_TEST_CASE(getproperty)
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
 
-	long test1;
-	BOOST_REQUIRE(dictionary->Get("test1", &test1));
+	Value test1;
+	test1 = dictionary->Get("test1");
 	BOOST_REQUIRE(test1 == 7);
 
-	string test2;
-	BOOST_REQUIRE(dictionary->Get("test2", &test2));
+	Value test2;
+	test2 = dictionary->Get("test2");
 	BOOST_REQUIRE(test2 == "hello world");
 
-	long test3;
-	BOOST_REQUIRE(!dictionary->Get("test3", &test3));
+	Value test3;
+	test3 = dictionary->Get("test3");
+	BOOST_REQUIRE(test3.IsEmpty());
 }
 
 BOOST_AUTO_TEST_CASE(getproperty_dict)
@@ -36,12 +37,11 @@ BOOST_AUTO_TEST_CASE(getproperty_dict)
 
 	dictionary->Set("test1", other);
 
-	Dictionary::Ptr test1;
-	BOOST_REQUIRE(dictionary->Get("test1", &test1));
+	Dictionary::Ptr test1 = dictionary->Get("test1");
 	BOOST_REQUIRE(other == test1);
 
-	Dictionary::Ptr test2;
-	BOOST_REQUIRE(!dictionary->Get("test2", &test2));
+	Dictionary::Ptr test2 = dictionary->Get("test2");
+	BOOST_REQUIRE(!test2);
 }
 
 BOOST_AUTO_TEST_CASE(unnamed)
