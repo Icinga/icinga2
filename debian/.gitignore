@@ -1,0 +1,4 @@
+files
+icinga2.postinst.debhelper
+icinga2.postrm.debhelper
+icinga2
