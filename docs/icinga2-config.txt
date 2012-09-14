@@ -718,7 +718,7 @@ local object Component "delegation" {
 }
 
 abstract object Service "nagios-service" {
-  methods {
+  methods = {
     check = "native::NagiosCheck"
   },
 
