@@ -69,18 +69,31 @@ void Object::ClearHeldObjects(void)
 	m_HeldObjects.clear();
 }
 
+/**
+ * Returns a reference-counted pointer to this object.
+ *
+ * @returns A shared_ptr object that points to this object
+ */
 Object::SharedPtrHolder Object::GetSelf(void)
 {
 	return Object::SharedPtrHolder(shared_from_this());
 }
 
 #ifdef _DEBUG
+/**
+ * Retrieves the number of currently alive objects.
+ *
+ * @returns The number of alive objects.
+ */
 int Object::GetAliveObjects(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_AliveObjects.size();
 }
 
+/**
+ * Dumps a memory histogram to the "dictionaries.dump" file.
+ */
 void Object::PrintMemoryProfile(void)
 {
 	map<String, int> types;

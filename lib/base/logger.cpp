@@ -126,6 +126,11 @@ void Logger::ForwardLogEntry(const LogEntry& entry)
 		StreamLogger::ProcessLogEntry(std::cout, entry);
 }
 
+/**
+ * Converts a severity enum value to a string.
+ *
+ * @param severity The severity value.
+ */
 String Logger::SeverityToString(LogSeverity severity)
 {
 	switch (severity) {
@@ -142,6 +147,11 @@ String Logger::SeverityToString(LogSeverity severity)
 	}
 }
 
+/**
+ * Converts a string to a severity enum value.
+ *
+ * @param severity The severity.
+ */
 LogSeverity Logger::StringToSeverity(const String& severity)
 {
 	if (severity == "debug")

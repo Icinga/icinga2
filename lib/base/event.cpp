@@ -25,13 +25,26 @@ vector<Event> Event::m_Events;
 condition_variable Event::m_EventAvailable;
 boost::mutex Event::m_Mutex;
 
+/**
+ * Constructor for the Event class
+ *
+ * @param callback The callback function for the new event object.
+ */
 Event::Event(const Event::Callback& callback)
 	: m_Callback(callback)
 { }
 
+/**
+ * Waits for events using the specified timeout value and processes
+ * them.
+ *
+ * @param wait_until The wait timeout.
+ */
 void Event::ProcessEvents(const system_time& wait_until)
 {
 	vector<Event> events;
+
+	assert(Application::IsMainThread());
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -59,6 +72,12 @@ void Event::ProcessEvents(const system_time& wait_until)
 	}
 }
 
+/**
+ * Appends an event to the event queue. Events will be processed in FIFO
+ * order on the main thread.
+ *
+ * @param callback The callback function for the event.
+ */
 void Event::Post(const Event::Callback& callback)
 {
 	if (Application::IsMainThread()) {

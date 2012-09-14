@@ -22,6 +22,9 @@
 
 using namespace icinga;
 
+/**
+ * Compares the keys of dictionary keys using the less operator.
+ */
 struct DictionaryKeyLessComparer
 {
 	bool operator()(const pair<String, Value>& a, const char *b)

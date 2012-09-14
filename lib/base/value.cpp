@@ -34,16 +34,31 @@ bool Value::IsEmpty(void) const
 	return (m_Value.type() == typeid(boost::blank));
 }
 
+/**
+ * Checks whether the variant is scalar (i.e. not an object and not empty).
+ *
+ * @returns true if the variant is scalar, false otherwise.
+ */
 bool Value::IsScalar(void) const
 {
 	return !IsEmpty() && !IsObject();
 }
 
+/**
+ * Checks whether the variant is a non-null object.
+ *
+ * @returns true if the variant is a non-null object, false otherwise.
+ */
 bool Value::IsObject(void) const
 {
 	return !IsEmpty() && (m_Value.type() == typeid(Object::Ptr));
 }
 
+/**
+ * Converts a JSON object into a variant.
+ *
+ * @param json The JSON object.
+ */
 Value Value::FromJson(cJSON *json)
 {
 	if (json->type == cJSON_Number)
@@ -62,6 +77,11 @@ Value Value::FromJson(cJSON *json)
 		throw_exception(invalid_argument("Unsupported JSON type."));
 }
 
+/**
+ * Serializes a variant into a string.
+ *
+ * @returns A string representing this variant.
+ */
 String Value::Serialize(void) const
 {
 	cJSON *json = ToJson();
@@ -82,6 +102,11 @@ String Value::Serialize(void) const
 	return result;
 }
 
+/**
+ * Serializes the variant.
+ *
+ * @returns A JSON object representing this variant.
+ */
 cJSON *Value::ToJson(void) const
 {
 	if (m_Value.type() == typeid(long)) {
@@ -105,6 +130,12 @@ cJSON *Value::ToJson(void) const
 	}
 }
 
+/**
+ * Deserializes the string representation of a variant.
+ *
+ * @params jsonString A JSON string obtained from Value::Serialize
+ * @returns The newly deserialized variant.
+ */
 Value Value::Deserialize(const String& jsonString)
 {
 	cJSON *json = cJSON_Parse(jsonString.CStr());

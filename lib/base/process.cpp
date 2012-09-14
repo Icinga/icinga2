@@ -212,6 +212,11 @@ bool Process::RunTask(void)
 	return false;
 }
 
+/**
+ * Retrives the stdout file descriptor for the child process.
+ *
+ * @returns The stdout file descriptor.
+ */
 int Process::GetFD(void) const
 {
 	return fileno(m_FP);

@@ -37,6 +37,9 @@ Socket::~Socket(void)
 	CloseInternal(true);
 }
 
+/**
+ * Starts I/O processing for this socket.
+ */
 void Socket::Start(void)
 {
 	assert(!m_ReadThread.joinable() && !m_WriteThread.joinable());
@@ -256,6 +259,10 @@ SocketException::SocketException(const String& message, int errorCode)
 	SetMessage(msg.CStr());
 }
 
+/**
+ * Read thread procedure for sockets. This function waits until the
+ * socket is readable and processes inbound data.
+ */
 void Socket::ReadThreadProc(void)
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
@@ -310,6 +317,10 @@ void Socket::ReadThreadProc(void)
 	}
 }
 
+/**
+ * Write thread procedure for sockets. This function waits until the socket
+ * is writable and processes outbound data.
+ */
 void Socket::WriteThreadProc(void)
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
@@ -358,16 +369,30 @@ void Socket::WriteThreadProc(void)
 	}
 }
 
+/**
+ * Sets whether the socket is fully connected.
+ *
+ * @param connected Whether the socket is connected
+ */
 void Socket::SetConnected(bool connected)
 {
 	m_Connected = connected;
 }
 
+/**
+ * Checks whether the socket is fully connected.
+ *
+ * @returns true if the socket is connected, false otherwise
+ */
 bool Socket::IsConnected(void) const
 {
 	return m_Connected;
 }
 
+/**
+ * Checks whether an exception is available for this socket. Should be called
+ * by user-supplied handlers for the OnClosed signal.
+ */
 void Socket::CheckException(void)
 {
 	if (m_Exception)

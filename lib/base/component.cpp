@@ -99,6 +99,9 @@ Component::Component(const Dictionary::Ptr& properties)
 	m_Impl = impl;
 }
 
+/**
+ * Destructor for the Component class.
+ */
 Component::~Component(void)
 {
 	if (m_Impl)

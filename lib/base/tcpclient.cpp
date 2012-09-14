@@ -102,6 +102,9 @@ void TcpClient::Connect(const String& node, const String& service)
 		throw_exception(runtime_error("Could not create a suitable socket."));
 }
 
+/**
+ * Processes data that is available for this socket.
+ */
 void TcpClient::HandleWritable(void)
 {
 	int rc;
@@ -180,6 +183,9 @@ void TcpClient::Write(const void *buffer, size_t count)
 	m_SendQueue->Write(buffer, count);
 }
 
+/**
+ * Processes data that can be written for this socket.
+ */
 void TcpClient::HandleReadable(void)
 {
 	if (!IsConnected()) {

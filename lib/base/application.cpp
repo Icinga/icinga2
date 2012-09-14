@@ -212,11 +212,19 @@ bool Application::IsDebugging(void)
 	return m_Debugging;
 }
 
+/**
+ * Checks whether we're currently on the main thread.
+ *
+ * @returns true if this is the main thread, false otherwise
+ */
 bool Application::IsMainThread(void)
 {
 	return (boost::this_thread::get_id() == m_MainThreadID);
 }
 
+/**
+ * Sets the main thread to the currently running thread.
+ */
 void Application::SetMainThread(void)
 {
 	m_MainThreadID = boost::this_thread::get_id();
@@ -313,6 +321,11 @@ int Application::Run(int argc, char **argv)
 	return result;
 }
 
+/**
+ * Grabs the PID file lock and updates the PID.
+ *
+ * @param filename The name of the PID file.
+ */
 void Application::UpdatePidFile(const String& filename)
 {
 	ClosePidFile();
@@ -344,6 +357,9 @@ void Application::UpdatePidFile(const String& filename)
 	fflush(m_PidFile);
 }
 
+/**
+ * Closes the PID file. Does nothing if the PID file is not currently open.
+ */
 void Application::ClosePidFile(void)
 {
 	if (m_PidFile != NULL)
