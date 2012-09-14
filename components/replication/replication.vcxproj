@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{704DDD8E-9E6D-4C22-80BD-6DE10F3A5E1C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>cibsync</RootNamespace>
+    <RootNamespace>replication</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cibsynccomponent.h" />
-    <ClInclude Include="i2-cibsync.h" />
+    <ClInclude Include="replicationcomponent.h" />
+    <ClInclude Include="i2-replication.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cibsynccomponent.cpp" />
+    <ClCompile Include="replicationcomponent.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

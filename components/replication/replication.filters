@@ -11,15 +11,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cibsynccomponent.h">
+    <ClInclude Include="replicationcomponent.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="i2-cibsync.h">
+    <ClInclude Include="i2-replication.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cibsynccomponent.cpp">
+    <ClCompile Include="replicationcomponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

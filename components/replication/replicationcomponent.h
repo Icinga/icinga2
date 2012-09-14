@@ -24,9 +24,9 @@ namespace icinga
 {
 
 /**
- * @ingroup cibsync
+ * @ingroup replication
  */
-class CIBSyncComponent : public IComponent
+class ReplicationComponent : public IComponent
 {
 public:
 	virtual void Start(void);

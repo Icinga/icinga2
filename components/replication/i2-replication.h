@@ -17,19 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2CIBSYNC_H
-#define I2CIBSYNC_H
+#ifndef I2REPLICATION_H
+#define I2REPLICATION_H
 
 /**
- * @defgroup cibsync CIB synchronisation component
+ * @defgroup replication Replication component
  *
- * Collects update messages to synchronize the local CIB.
+ * Replicates Icinga 2 objects to remote instances.
  */
 
 #include <i2-base.h>
 #include <i2-remoting.h>
 #include <i2-icinga.h>
 
-#include "cibsynccomponent.h"
+#include "replicationcomponent.h"
 
-#endif /* I2CIBSYNC_H */
+#endif /* I2REPLICATION_H */

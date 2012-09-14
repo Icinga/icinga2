@@ -30,12 +30,12 @@ icinga_LDADD = \
 	${top_builddir}/lib/remoting/libremoting.la \
 	${top_builddir}/lib/icinga/libicinga.la \
 	-dlopen ${top_builddir}/components/checker/checker.la \
-	-dlopen ${top_builddir}/components/cibsync/cibsync.la \
+	-dlopen ${top_builddir}/components/replication/replication.la \
 	-dlopen ${top_builddir}/components/compat/compat.la \
 	-dlopen ${top_builddir}/components/convenience/convenience.la \
 	-dlopen ${top_builddir}/components/delegation/delegation.la \
 	-dlopen ${top_builddir}/components/demo/demo.la
 
 icinga_DEPENDENCIES = \
-	${top_builddir}/components/cibsync/cibsync.la \
+	${top_builddir}/components/replication/replication.la \
 	${top_builddir}/components/convenience/convenience.la

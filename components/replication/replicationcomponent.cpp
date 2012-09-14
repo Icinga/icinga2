@@ -17,42 +17,42 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-cibsync.h"
+#include "i2-replication.h"
 
 using namespace icinga;
 
 /**
  * Starts the component.
  */
-void CIBSyncComponent::Start(void)
+void ReplicationComponent::Start(void)
 {
-	m_Endpoint = Endpoint::MakeEndpoint("cibsync", true);
+	m_Endpoint = Endpoint::MakeEndpoint("replication", true);
 
-	DynamicObject::OnRegistered.connect(boost::bind(&CIBSyncComponent::LocalObjectRegisteredHandler, this, _1));
-	DynamicObject::OnUnregistered.connect(boost::bind(&CIBSyncComponent::LocalObjectUnregisteredHandler, this, _1));
-	DynamicObject::OnTransactionClosing.connect(boost::bind(&CIBSyncComponent::TransactionClosingHandler, this, _1));
+	DynamicObject::OnRegistered.connect(boost::bind(&ReplicationComponent::LocalObjectRegisteredHandler, this, _1));
+	DynamicObject::OnUnregistered.connect(boost::bind(&ReplicationComponent::LocalObjectUnregisteredHandler, this, _1));
+	DynamicObject::OnTransactionClosing.connect(boost::bind(&ReplicationComponent::TransactionClosingHandler, this, _1));
 
-	Endpoint::OnConnected.connect(boost::bind(&CIBSyncComponent::EndpointConnectedHandler, this, _1));
+	Endpoint::OnConnected.connect(boost::bind(&ReplicationComponent::EndpointConnectedHandler, this, _1));
 	
 	m_Endpoint->RegisterTopicHandler("config::ObjectUpdate",
-	    boost::bind(&CIBSyncComponent::RemoteObjectUpdateHandler, this, _2, _3));
+	    boost::bind(&ReplicationComponent::RemoteObjectUpdateHandler, this, _2, _3));
 	m_Endpoint->RegisterTopicHandler("config::ObjectRemoved",
-	    boost::bind(&CIBSyncComponent::RemoteObjectRemovedHandler, this, _3));
+	    boost::bind(&ReplicationComponent::RemoteObjectRemovedHandler, this, _3));
 
 	/* service status */
 	m_Endpoint->RegisterTopicHandler("checker::ServiceStateChange",
-	    boost::bind(&CIBSyncComponent::ServiceStateChangeRequestHandler, _2, _3));
+	    boost::bind(&ReplicationComponent::ServiceStateChangeRequestHandler, _2, _3));
 }
 
 /**
  * Stops the component.
  */
-void CIBSyncComponent::Stop(void)
+void ReplicationComponent::Stop(void)
 {
 	m_Endpoint->Unregister();
 }
 
-void CIBSyncComponent::ServiceStateChangeRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void ReplicationComponent::ServiceStateChangeRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
 	ServiceStateChangeMessage params;
 	if (!request.GetParams(&params))
@@ -75,7 +75,7 @@ void CIBSyncComponent::ServiceStateChangeRequestHandler(const Endpoint::Ptr& sen
 	CIB::UpdateTaskStatistics(now, 1);
 }
 
-void CIBSyncComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoint)
+void ReplicationComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoint)
 {
 	/* no need to sync the config with local endpoints */
 	if (endpoint->IsLocalEndpoint())
@@ -99,7 +99,7 @@ void CIBSyncComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoint)
 	}
 }
 
-RequestMessage CIBSyncComponent::MakeObjectMessage(const DynamicObject::Ptr& object, const String& method, double sinceTx, bool includeProperties)
+RequestMessage ReplicationComponent::MakeObjectMessage(const DynamicObject::Ptr& object, const String& method, double sinceTx, bool includeProperties)
 {
 	RequestMessage msg;
 	msg.SetMethod(method);
@@ -116,12 +116,12 @@ RequestMessage CIBSyncComponent::MakeObjectMessage(const DynamicObject::Ptr& obj
 	return msg;
 }
 
-bool CIBSyncComponent::ShouldReplicateObject(const DynamicObject::Ptr& object)
+bool ReplicationComponent::ShouldReplicateObject(const DynamicObject::Ptr& object)
 {
 	return (!object->IsLocal());
 }
 
-void CIBSyncComponent::LocalObjectRegisteredHandler(const DynamicObject::Ptr& object)
+void ReplicationComponent::LocalObjectRegisteredHandler(const DynamicObject::Ptr& object)
 {
 	if (!ShouldReplicateObject(object))
 		return;
@@ -130,7 +130,7 @@ void CIBSyncComponent::LocalObjectRegisteredHandler(const DynamicObject::Ptr& ob
 	    MakeObjectMessage(object, "config::ObjectUpdate", 0, true));
 }
 
-void CIBSyncComponent::LocalObjectUnregisteredHandler(const DynamicObject::Ptr& object)
+void ReplicationComponent::LocalObjectUnregisteredHandler(const DynamicObject::Ptr& object)
 {
 	if (!ShouldReplicateObject(object))
 		return;
@@ -139,14 +139,14 @@ void CIBSyncComponent::LocalObjectUnregisteredHandler(const DynamicObject::Ptr& 
 	    MakeObjectMessage(object, "config::ObjectRemoved", 0, false));
 }
 
-void CIBSyncComponent::TransactionClosingHandler(const set<DynamicObject::Ptr>& modifiedObjects)
+void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject::Ptr>& modifiedObjects)
 {
 	if (modifiedObjects.empty())
 		return;
 
 	stringstream msgbuf;
 	msgbuf << "Sending " << modifiedObjects.size() << " replication updates.";
-	Logger::Write(LogDebug, "cibsync", msgbuf.str());
+	Logger::Write(LogDebug, "replication", msgbuf.str());
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, modifiedObjects) {
 		if (!ShouldReplicateObject(object))
@@ -157,7 +157,7 @@ void CIBSyncComponent::TransactionClosingHandler(const set<DynamicObject::Ptr>& 
 	}
 }
 
-void CIBSyncComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void ReplicationComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
 	MessagePart params;
 	if (!request.GetParams(&params))
@@ -206,7 +206,7 @@ void CIBSyncComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, co
 	}
 }
 
-void CIBSyncComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
+void ReplicationComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
 {
 	MessagePart params;
 	if (!request.GetParams(&params))
@@ -230,4 +230,4 @@ void CIBSyncComponent::RemoteObjectRemovedHandler(const RequestMessage& request)
 	}
 }
 
-EXPORT_COMPONENT(cibsync, CIBSyncComponent);
+EXPORT_COMPONENT(replication, ReplicationComponent);

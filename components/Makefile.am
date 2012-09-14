@@ -3,8 +3,8 @@
 
 SUBDIRS = \
 	checker \
-	cibsync \
 	compat \
 	convenience \
 	delegation \
-	demo
+	demo \
+	replication

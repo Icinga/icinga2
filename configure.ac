@@ -69,11 +69,11 @@ AC_CONFIG_FILES([
 Makefile
 components/Makefile
 components/checker/Makefile
-components/cibsync/Makefile
 components/compat/Makefile
 components/convenience/Makefile
 components/delegation/Makefile
 components/demo/Makefile
+components/replication/Makefile
 docs/Doxyfile
 icinga-app/Makefile
 lib/Makefile
