@@ -189,7 +189,6 @@ namespace tuples = boost::tuples;
 #include "logger.h"
 #include "application.h"
 #include "component.h"
-#include "threadpool.h"
 #include "streamlogger.h"
 #include "sysloglogger.h"
 

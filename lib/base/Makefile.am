@@ -50,8 +50,6 @@ libbase_la_SOURCES =  \
 	tcpserver.h \
 	tcpsocket.cpp \
 	tcpsocket.h \
-	threadpool.cpp \
-	threadpool.h \
 	timer.cpp \
 	timer.h \
 	tlsclient.cpp \
