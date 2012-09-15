@@ -50,7 +50,7 @@ void IdoSocket::SendMessage(const String& message)
 	 * as we inherit all the functionality
 	 * of the tcpclient class
 	 */
-	Write(message, message.size());
+	Write(message.CStr(), message.GetLength());
 }
 
 /**
@@ -59,23 +59,23 @@ void IdoSocket::SendMessage(const String& message)
  */
 void IdoSocket::DataAvailableHandler(void)
 {
-	for (;;) {
-		string sString;
+	String sString;
 
-		{
-			mutex::scoped_lock lock(GetMutex());
+        while (NetString::ReadStringFromIOQueue(this, &sString)) {
+                //std::cerr << "<< " << jsonString << std::endl;
 
-			if (!Netstring::ReadStringFromFIFO(GetRecvQueue(), &sString))
-				return;
-		}
+                try {  
+//                        Value value = Value::Deserialize(jsonString);
 
-		try {
-			//message = MessagePart(jsonString);
-			//OnNewMessage(GetSelf(), message);
-		} catch (const exception& ex) {
-			Logger::Write(LogCritical, "idosocket", "Exception while processing message from idosocket client: " + string(ex.what()));
-		}
-	}
+//                        if (!value.IsObjectType<Dictionary>())
+//                                throw_exception(invalid_argument("JSON-RPC message must be a dictionary."));
+
+//                        OnNewMessage(GetSelf(), MessagePart(value));
+                } catch (const exception& ex) {
+                        Logger::Write(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + String(ex.what()));
+                }
+        }
+
 }
 
 /**

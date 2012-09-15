@@ -4,9 +4,11 @@ pkglib_LTLIBRARIES = \
 	compatido.la
 
 compatido_la_SOURCES = \
+	i2-compatido.h \
+	idosocket.cpp \
+	idosocket.h \
 	compatidocomponent.cpp \
-	compatidocomponent.h \
-	i2-compatido.h
+	compatidocomponent.h
 
 compatido_la_CPPFLAGS = \
         $(BOOST_CPPFLAGS) \
