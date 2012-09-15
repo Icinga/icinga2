@@ -35,7 +35,7 @@ IdoSocket::IdoSocket(TcpClientRole role)
 	 * a local instance of our datahandler in case of a new 
 	 * signal telling about new data
 	 */
-	//OnDataAvailable.connect(boost::bind(&IdoSocket::DataAvailableHandler, this));
+	OnDataAvailable.connect(boost::bind(&IdoSocket::DataAvailableHandler, this));
 }
 
 /**
@@ -59,23 +59,25 @@ void IdoSocket::SendMessage(const String& message)
  */
 void IdoSocket::DataAvailableHandler(void)
 {
+	return;
+/*
 	String sString;
 
         while (NetString::ReadStringFromIOQueue(this, &sString)) {
                 //std::cerr << "<< " << jsonString << std::endl;
 
                 try {  
-//                        Value value = Value::Deserialize(jsonString);
+			Value value = Value::Deserialize(jsonString);
 
-//                        if (!value.IsObjectType<Dictionary>())
-//                                throw_exception(invalid_argument("JSON-RPC message must be a dictionary."));
+                        if (!value.IsObjectType<Dictionary>())
+                                throw_exception(invalid_argument("JSON-RPC message must be a dictionary."));
 
-//                        OnNewMessage(GetSelf(), MessagePart(value));
+                        OnNewMessage(GetSelf(), MessagePart(value));
                 } catch (const exception& ex) {
                         Logger::Write(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + String(ex.what()));
                 }
         }
-
+*/
 }
 
 /**

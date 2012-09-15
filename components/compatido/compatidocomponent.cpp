@@ -50,16 +50,17 @@ void CompatIdoComponent::Start(void)
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
 
+	m_ConfigTimer = boost::make_shared<Timer>();
+	m_ConfigTimer->SetInterval(15);
+	m_ConfigTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ConfigTimerHandler, this));
+	m_ConfigTimer->Start();
+	m_ConfigTimer->Reschedule(0);
+
 	/*
-	 * open ido socket
+	 * open ido socket once, send the updates via timer then
 	 */
 	OpenSink("127.0.0.1", "5668");
 	SendHello("i2-default");
-
-	/*
-	 * send the config on startup - FIXME dynamic config update handler
-	 */
-	DumpConfigObjects();
 }
 
 /**
@@ -82,13 +83,13 @@ void CompatIdoComponent::Stop(void)
  */
 void CompatIdoComponent::StatusTimerHandler(void)
 {
-
+	Logger::Write(LogInformation, "compatido", "TODO: Writing compat ido status information");
 	/*
 	 * TODO 
-	 * - fetch config, dump it
 	 * - fetch status data, dump it periodically
 	 * - subscribe to check events and status updates, dump it	
 	 */
+	DumpStatusData();
 
 	/* 
 	 * HINTS
@@ -104,12 +105,14 @@ void CompatIdoComponent::StatusTimerHandler(void)
 void CompatIdoComponent::ConfigTimerHandler(void)
 {
 
+	Logger::Write(LogInformation, "compatido", "TODO: Writing compat ido config updates information");
 	/*
 	 * TODO 
 	 * - fetch config, dump it
-	 * - fetch status data, dump it periodically
-	 * - subscribe to check events and status updates, dump it	
+	 * - subscribe to config update events, and send insert/update/delete for configs to ido2db
 	 */
+
+	DumpConfigObjects();
 
 	/* 
 	 * HINTS
@@ -156,6 +159,9 @@ void CompatIdoComponent::SendHello(String instancename)
 	m_IdoSocket->SendMessage(message.str());
 }
 
+/**
+ * sends config dump start signal to ido
+ */
 void CompatIdoComponent::StartConfigDump()
 {
 	struct timeval now;
@@ -163,32 +169,37 @@ void CompatIdoComponent::StartConfigDump()
 
 	/* IDOMOD_CONFIG_DUMP_ORIGINAL=1 is the default config type */
 	stringstream message;
-	message << "\n"
+	message << "\n\n"
 		<< IDO_API_STARTCONFIGDUMP << ":" << "\n"
 		<< IDO_DATA_CONFIGDUMPTYPE << "=" << 1 << "\n"
 		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
 		<< IDO_API_ENDDATA
-		<< "\n";
+		<< "\n\n";
 
 	m_IdoSocket->SendMessage(message.str());
 }
 
+/**
+ * sends config dump end signal to ido
+ */
 void CompatIdoComponent::EndConfigDump()
 {
         struct timeval now;
         gettimeofday(&now, NULL);
 
         stringstream message;
-        message << "\n"
+        message << "\n\n"
                 << IDO_API_ENDCONFIGDUMP << ":" << "\n"
                 << IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
                 << IDO_API_ENDDATA
-                << "\n";
+                << "\n\n";
 
         m_IdoSocket->SendMessage(message.str());
-
 }
 
+/**
+ * dump host config to ido
+ */
 void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 {
         struct timeval now;
@@ -251,22 +262,28 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 		<< IDO_DATA_HAVE3DCOORDS << "=" << 0 << "\n"	
 		<< IDO_DATA_X3D << "=" << 0.0 << "\n"	
 		<< IDO_DATA_Y3D << "=" << 0.0 << "\n"	
-		<< IDO_DATA_Z3D<< "=" << 0.0 << "\n"	
+		<< IDO_DATA_Z3D<< "=" << 0.0 << "\n";
 		/* FIXME add more related config items
 	 	* parents, contactgroups, contacts, custom vars
 	 	* before sending the message
 	 	*/
-		<< IDO_API_ENDDATA << "\n\n";
 
 
         m_IdoSocket->SendMessage(message.str());
 }
 
+/**
+ * dump host status to ido
+ */
 void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 {
 
+	//FIXME
 }
 
+/**
+ * dump service config to ido
+ */
 void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 {
         struct timeval now;
@@ -322,19 +339,23 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 		<< IDO_DATA_NOTESURL << "=" << "" << "\n"
 		<< IDO_DATA_ACTIONURL << "=" << "" << "\n"
 		<< IDO_DATA_ICONIMAGE << "=" << "" << "\n"
-		<< IDO_DATA_ICONIMAGEALT << "=" << "" << "\n"
+		<< IDO_DATA_ICONIMAGEALT << "=" << "" << "\n";
 		/* FIXME add more related config items
 	 	* contactgroups, contacts, custom vars
 	 	* before sending the message
 	 	*/
-		<< IDO_API_ENDDATA << "\n\n";
 
+	Logger::Write(LogInformation, "compatido", "Writing compat ido service");
         m_IdoSocket->SendMessage(message.str());
 }
 
+/**
+ * dump service status to ido
+ */ 
 void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 {
 
+	//FIXME
 }
 
 /**

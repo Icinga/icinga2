@@ -35,6 +35,7 @@ public:
 
 private:
 	Timer::Ptr m_StatusTimer;
+	Timer::Ptr m_ConfigTimer;
 	IdoSocket::Ptr m_IdoSocket;
 
 	void OpenSink(String node, String service );
