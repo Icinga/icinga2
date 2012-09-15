@@ -36,6 +36,7 @@ public:
 private:
 	Timer::Ptr m_StatusTimer;
 	Timer::Ptr m_ConfigTimer;
+	Timer::Ptr m_ProgramStatusTimer;
 	IdoSocket::Ptr m_IdoSocket;
 
 	void OpenSink(String node, String service );
@@ -51,6 +52,7 @@ private:
 	void DumpStatusData(void);
 	void DumpHostStatus(const Host::Ptr& host);
 	void DumpServiceStatus(const Service::Ptr& service);
+	void DumpProgramStatusData(void);
 
 	template<typename T>
 	void CreateMessageList(stringstream& msg, const T& list, int type)
@@ -66,6 +68,7 @@ private:
 
 	void ConfigTimerHandler(void);
 	void StatusTimerHandler(void);
+	void ProgramStatusTimerHandler(void);
 };
 
 }

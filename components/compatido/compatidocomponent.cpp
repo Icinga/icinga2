@@ -36,13 +36,18 @@ String CompatIdoComponent::GetName(void) const
  */
 void CompatIdoComponent::Start(void)
 {
-	/*
+	/* HINTS - XXX
+	 * - only tcp sockets
+	 * - only icinga idoutils 1.8
+	 * - only "retained" config
+	 * - instance_name is i2-default
 	 * TODO
 	 * we should have configs for 
-	 * - socket (unix or tcp)
 	 * - data_processing_options
-	 * - config_output_options - 0..orig, 1..retained (fake one)
+	 * - config_output_options - 0..orig, 1..retained (chose retained for icinga-web preferred)
 	 * - INSTANCE_NAME ?
+	 * - update interval ?
+	 * - tcp socket+port
 	 */
 	m_StatusTimer = boost::make_shared<Timer>();
 	m_StatusTimer->SetInterval(15);
@@ -55,6 +60,12 @@ void CompatIdoComponent::Start(void)
 	m_ConfigTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ConfigTimerHandler, this));
 	m_ConfigTimer->Start();
 	m_ConfigTimer->Reschedule(0);
+
+	m_ProgramStatusTimer = boost::make_shared<Timer>();
+	m_ProgramStatusTimer->SetInterval(15);
+	m_ProgramStatusTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ProgramStatusTimerHandler, this));
+	m_ProgramStatusTimer->Start();
+	m_ProgramStatusTimer->Reschedule(0);
 
 	/*
 	 * open ido socket once, send the updates via timer then
@@ -86,18 +97,13 @@ void CompatIdoComponent::Stop(void)
  */
 void CompatIdoComponent::StatusTimerHandler(void)
 {
-	Logger::Write(LogInformation, "compatido", "TODO: Writing compat ido status information");
+	Logger::Write(LogInformation, "compatido", "Writing compat ido status information");
 	/*
 	 * TODO 
 	 * - fetch status data, dump it periodically
 	 * - subscribe to check events and status updates, dump it	
 	 */
 	DumpStatusData();
-
-	/* 
-	 * HINTS
-	 * - we don't have any implizit host commands, fake it
-	 */
 }
 
 /**
@@ -107,8 +113,7 @@ void CompatIdoComponent::StatusTimerHandler(void)
  */
 void CompatIdoComponent::ConfigTimerHandler(void)
 {
-
-	Logger::Write(LogInformation, "compatido", "TODO: Writing compat ido config updates information");
+	Logger::Write(LogInformation, "compatido", "Writing compat ido config information");
 	/*
 	 * TODO 
 	 * - fetch config, dump it
@@ -116,15 +121,21 @@ void CompatIdoComponent::ConfigTimerHandler(void)
 	 */
 
 	DumpConfigObjects();
-
-	/* 
-	 * HINTS
-	 * - we don't have any implizit host commands, fake it
-	 */
-
-
-
 }
+
+/**
+ * Periodically dumps program status information
+ *
+ * @param - Event arguments for the timer.
+ */
+void CompatIdoComponent::ProgramStatusTimerHandler(void)
+{
+        Logger::Write(LogInformation, "compatido", "Writing compat ido program status information");
+
+        DumpProgramStatusData();
+}
+
+
 
 /**
  * opens a tcp connection to the socket
@@ -450,7 +461,6 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 		<< IDO_DATA_CUSTOMVARIABLE << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"
 		<< IDO_API_ENDDATA << "\n\n";
 
-	Logger::Write(LogInformation, "compatido", "Writing compat ido service");
         m_IdoSocket->SendMessage(message.str());
 }
 
@@ -539,8 +549,52 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 		<< IDO_DATA_RETRYCHECKINTERVAL << "=" << service->GetRetryInterval() / 60.0 << "\n"
 		<< IDO_DATA_SERVICECHECKPERIOD << "=" << "" << "\n"
 		/* FIXME dump customvars in a loop */
-		<< IDO_DATA_CUSTOMVARIABLE << "=" << "" << ":" << "1" << ":" << "\n"
+		<< IDO_DATA_CUSTOMVARIABLE << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"
 		<< IDO_API_ENDDATA << "\n\n";
+
+        m_IdoSocket->SendMessage(message.str());
+}
+
+
+/** 
+ * dumps programstatus to ido
+ */
+void CompatIdoComponent::DumpProgramStatusData(void)
+{
+        struct timeval now;
+        gettimeofday(&now, NULL);
+
+	double start_time = IcingaApplication::GetInstance()->GetStartTime();
+
+        stringstream message;
+        message << "\n"
+                << IDO_API_PROGRAMSTATUSDATA << ":" << "\n"
+		<< IDO_DATA_TYPE << "=" << "" << "\n"
+		<< IDO_DATA_FLAGS << "=" << "" << "\n"
+		<< IDO_DATA_ATTRIBUTES << "=" << "" << "\n"
+		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
+		<< IDO_DATA_PROGRAMSTARTTIME << "=" << static_cast<int>(start_time) << "\n"
+		<< IDO_DATA_PROCESSID << "=" << getpid() << "\n"
+		<< IDO_DATA_DAEMONMODE << "=" << "1" << "\n"
+		<< IDO_DATA_LASTCOMMANDCHECK << "=" << "" << "\n"
+		<< IDO_DATA_LASTLOGROTATION << "=" << "" << "\n"
+		<< IDO_DATA_NOTIFICATIONSENABLED << "=" << "" << "\n"
+		<< IDO_DATA_ACTIVESERVICECHECKSENABLED << "=" << "1" << "\n"
+		<< IDO_DATA_PASSIVESERVICECHECKSENABLED << "=" << "1" << "\n"
+		<< IDO_DATA_ACTIVEHOSTCHECKSENABLED << "=" << "0" << "\n"
+		<< IDO_DATA_PASSIVEHOSTCHECKSENABLED << "=" << "0" << "\n"
+		<< IDO_DATA_EVENTHANDLERSENABLED << "=" << "0" << "\n"
+		<< IDO_DATA_FLAPDETECTIONENABLED << "=" << "1" << "\n"
+		<< IDO_DATA_FAILUREPREDICTIONENABLED << "=" << "0" << "\n"
+		<< IDO_DATA_PROCESSPERFORMANCEDATA << "=" << "1" << "\n"
+		<< IDO_DATA_OBSESSOVERHOSTS << "=" << "0" << "\n"
+		<< IDO_DATA_OBSESSOVERSERVICES << "=" << "0" << "\n"
+		<< IDO_DATA_MODIFIEDHOSTATTRIBUTES << "=" << "0" << "\n"
+		<< IDO_DATA_MODIFIEDSERVICEATTRIBUTES << "=" << "0" << "\n"
+		<< IDO_DATA_GLOBALHOSTEVENTHANDLER << "=" << "" << "\n"
+		<< IDO_DATA_GLOBALSERVICEEVENTHANDLER << "=" << "" << "\n"
+		<< IDO_DATA_DISABLED_NOTIFICATIONS_EXPIRE_TIME << "=" << "" << "\n" //XXX supported in 1.8
+                << IDO_API_ENDDATA << "\n\n";
 
         m_IdoSocket->SendMessage(message.str());
 }
@@ -555,7 +609,6 @@ void CompatIdoComponent::DumpConfigObjects(void)
 	 * escalations, dependencies
 	 * if needed/available.
 	 */
-	Logger::Write(LogInformation, "compatido", "Writing compat ido config information");
 
 	/* tell ido2db that we start now */
 	StartConfigDump();
@@ -678,9 +731,6 @@ void CompatIdoComponent::DumpConfigObjects(void)
  */
 void CompatIdoComponent::DumpStatusData(void)
 {
-	Logger::Write(LogInformation, "compatido", "Writing compat ido status information");
-//FIXME update programstatus data more frequently
-//
         /* hosts */
         DynamicObject::Ptr object;
         BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Host")) {
@@ -697,7 +747,6 @@ void CompatIdoComponent::DumpStatusData(void)
                 DumpServiceStatus(service);
         }
 }
-
 
 
 EXPORT_COMPONENT(compatido, CompatIdoComponent);
