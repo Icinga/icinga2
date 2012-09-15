@@ -40,6 +40,8 @@ private:
 
 	void OpenSink(String node, String service );
 	void SendHello(String instancename);
+	void GoodByeSink();
+	void CloseSink();
 	void StartConfigDump();
 	void EndConfigDump();
 

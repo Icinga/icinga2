@@ -69,6 +69,9 @@ void CompatIdoComponent::Start(void)
 void CompatIdoComponent::Stop(void)
 {
 
+	//FIXME cleanly close ido socket
+	GoodByeSink();
+	CloseSink();
 }
 
 /* TODO
@@ -157,6 +160,32 @@ void CompatIdoComponent::SendHello(String instancename)
 		<< "\n\n";
 
 	m_IdoSocket->SendMessage(message.str());
+}
+
+/**
+ * sends goodbye msg to ido
+ */
+void CompatIdoComponent::GoodByeSink()
+{
+        time_t now;
+        time(&now);
+
+        stringstream message;
+        message << "\n"
+                << IDO_API_ENDDATADUMP << "\n"
+                << IDO_API_ENDTIME << ": " << now << "\n"
+		<< IDO_API_GOODBYE
+                << "\n\n";
+
+        m_IdoSocket->SendMessage(message.str());
+}
+
+/**
+ * closes sink
+ */
+void CompatIdoComponent::CloseSink()
+{
+	m_IdoSocket->Close();
 }
 
 /**
@@ -262,11 +291,17 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 		<< IDO_DATA_HAVE3DCOORDS << "=" << 0 << "\n"	
 		<< IDO_DATA_X3D << "=" << 0.0 << "\n"	
 		<< IDO_DATA_Y3D << "=" << 0.0 << "\n"	
-		<< IDO_DATA_Z3D<< "=" << 0.0 << "\n";
+		<< IDO_DATA_Z3D<< "=" << 0.0 << "\n"
 		/* FIXME add more related config items
 	 	* parents, contactgroups, contacts, custom vars
 	 	* before sending the message
 	 	*/
+		<< IDO_DATA_PARENTHOST << "=" << "i2_parent" << "\n"
+		<< IDO_DATA_CONTACTGROUP << "=" << "i2_contactgroup" << "\n"
+		<< IDO_DATA_CONTACT << "=" << "i2_contact" << "\n"
+                << IDO_DATA_CUSTOMVARIABLE << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"
+                << IDO_API_ENDDATA << "\n\n";
+
 
 
         m_IdoSocket->SendMessage(message.str());
@@ -278,7 +313,73 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 {
 
-	//FIXME
+        int state;
+        if (!host->IsReachable())
+                state = 2; /* unreachable */
+        else if (!host->IsUp())
+                state = 1; /* down */
+        else   
+                state = 0; /* up */
+
+        struct timeval now;
+        gettimeofday(&now, NULL);
+
+        stringstream message;
+        message << "\n"
+		<< IDO_API_HOSTSTATUSDATA << ":" << "\n"
+		<< IDO_DATA_TYPE << "=" << "" << "\n"
+		<< IDO_DATA_FLAGS << "=" << "" << "\n"
+		<< IDO_DATA_ATTRIBUTES << "=" << "" << "\n"
+		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
+		<< IDO_DATA_HOST << "=" << host->GetName() << "\n"
+		<< IDO_DATA_OUTPUT << "=" << "" << "\n"
+		<< IDO_DATA_LONGOUTPUT << "=" << "" << "\n"
+		<< IDO_DATA_PERFDATA << "=" << "" << "\n"
+		<< IDO_DATA_CURRENTSTATE << "=" << "" << "\n"
+		<< IDO_DATA_HASBEENCHECKED << "=" << 1 << "\n"
+		<< IDO_DATA_SHOULDBESCHEDULED << "=" << 1 << "\n"
+		<< IDO_DATA_CURRENTCHECKATTEMPT << "=" << 1 << "\n"
+		<< IDO_DATA_MAXCHECKATTEMPTS << "=" << 1 << "\n"
+		<< IDO_DATA_LASTHOSTCHECK << "=" << Utility::GetTime() << "\n"
+		<< IDO_DATA_NEXTHOSTCHECK << "=" << Utility::GetTime() << "\n"
+		<< IDO_DATA_CHECKTYPE << "=" << "" << "\n"
+		<< IDO_DATA_LASTSTATECHANGE << "=" << "" << "\n"
+		<< IDO_DATA_LASTHARDSTATECHANGE << "=" << "" << "\n"
+		<< IDO_DATA_LASTHARDSTATE << "=" << "" << "\n"
+		<< IDO_DATA_LASTTIMEUP << "=" << "" << "\n"
+		<< IDO_DATA_LASTTIMEDOWN << "=" << "" << "\n"
+		<< IDO_DATA_LASTTIMEUNREACHABLE << "=" << "" << "\n"
+		<< IDO_DATA_STATETYPE << "=" << "" << "\n"
+		<< IDO_DATA_LASTHOSTNOTIFICATION << "=" << "" << "\n"
+		<< IDO_DATA_NEXTHOSTNOTIFICATION << "=" << "" << "\n"
+		<< IDO_DATA_NOMORENOTIFICATIONS << "=" << 0 << "\n"
+		<< IDO_DATA_NOTIFICATIONSENABLED << "=" << 0 << "\n"
+		<< IDO_DATA_PROBLEMHASBEENACKNOWLEDGED << "=" << 0 << "\n"
+		<< IDO_DATA_ACKNOWLEDGEMENTTYPE << "=" << "" << "\n"
+		<< IDO_DATA_CURRENTNOTIFICATIONNUMBER << "=" << 0 << "\n"
+		<< IDO_DATA_PASSIVEHOSTCHECKSENABLED << "=" << 1 << "\n"
+		<< IDO_DATA_EVENTHANDLERENABLED << "=" << "" << "\n"
+		<< IDO_DATA_ACTIVEHOSTCHECKSENABLED << "=" << "" << "\n"
+		<< IDO_DATA_FLAPDETECTIONENABLED << "=" << "" << "\n"
+		<< IDO_DATA_ISFLAPPING << "=" << "" << "\n"
+		<< IDO_DATA_PERCENTSTATECHANGE << "=" << "" << "\n"
+		<< IDO_DATA_LATENCY << "=" << "" << "\n"
+		<< IDO_DATA_EXECUTIONTIME << "=" << "" << "\n"
+		<< IDO_DATA_SCHEDULEDDOWNTIMEDEPTH << "=" << 0 << "\n"
+		<< IDO_DATA_FAILUREPREDICTIONENABLED << "=" << "" << "\n"
+		<< IDO_DATA_PROCESSPERFORMANCEDATA << "=" << 1 << "\n"
+		<< IDO_DATA_OBSESSOVERHOST << "=" << 0 << "\n"
+		<< IDO_DATA_MODIFIEDHOSTATTRIBUTES << "=" << "" << "\n"
+		<< IDO_DATA_EVENTHANDLER << "=" << "" << "\n"
+		<< IDO_DATA_CHECKCOMMAND << "=" << "i2_virtual_check" << "\n"
+		<< IDO_DATA_NORMALCHECKINTERVAL << "=" << "" << "\n"
+		<< IDO_DATA_RETRYCHECKINTERVAL << "=" << "" << "\n"
+		<< IDO_DATA_HOSTCHECKPERIOD << "=" << "" << "\n"
+		/* FIXME dump all customvars in a loop */
+		<< IDO_DATA_CUSTOMVARIABLE << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"
+		<< IDO_API_ENDDATA << "\n\n";
+
+        m_IdoSocket->SendMessage(message.str());
 }
 
 /**
@@ -339,11 +440,15 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 		<< IDO_DATA_NOTESURL << "=" << "" << "\n"
 		<< IDO_DATA_ACTIONURL << "=" << "" << "\n"
 		<< IDO_DATA_ICONIMAGE << "=" << "" << "\n"
-		<< IDO_DATA_ICONIMAGEALT << "=" << "" << "\n";
+		<< IDO_DATA_ICONIMAGEALT << "=" << "" << "\n"
 		/* FIXME add more related config items
 	 	* contactgroups, contacts, custom vars
-	 	* before sending the message
+	 	* before sending the message, in a loop
 	 	*/
+		<< IDO_DATA_CONTACTGROUP << "=" << "i2_contactgroup" << "\n"
+		<< IDO_DATA_CONTACT << "=" << "i2_contact" << "\n"
+		<< IDO_DATA_CUSTOMVARIABLE << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"
+		<< IDO_API_ENDDATA << "\n\n";
 
 	Logger::Write(LogInformation, "compatido", "Writing compat ido service");
         m_IdoSocket->SendMessage(message.str());
@@ -354,8 +459,90 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
  */ 
 void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 {
+        String output;
+        String perfdata;
+        double schedule_start = -1, schedule_end = -1;
+        double execution_start = -1, execution_end = -1;
 
-	//FIXME
+        Dictionary::Ptr cr = service->GetLastCheckResult();
+        if (cr) {
+                output = cr->Get("output");
+                schedule_start = cr->Get("schedule_start");
+                schedule_end = cr->Get("schedule_end");
+                execution_start = cr->Get("execution_start");
+                execution_end = cr->Get("execution_end");
+                perfdata = cr->Get("performance_data_raw");
+        }
+
+        double execution_time = (execution_end - execution_start);
+        double latency = (schedule_end - schedule_start) - execution_time;
+
+        int state = service->GetState();
+
+        if (state > StateUnknown)
+                state = StateUnknown;
+
+        struct timeval now;
+        gettimeofday(&now, NULL);
+
+        stringstream message;
+        message << "\n"
+                << IDO_API_SERVICESTATUSDATA << ":" << "\n"
+		<< IDO_DATA_TYPE << "=" << "" << "\n"
+		<< IDO_DATA_FLAGS << "=" << "" << "\n"
+		<< IDO_DATA_ATTRIBUTES << "=" << "" << "\n"
+		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
+		<< IDO_DATA_HOST << "=" << service->GetHost()->GetName() << "\n"
+		<< IDO_DATA_SERVICE << "=" << service->GetAlias() << "\n"
+		<< IDO_DATA_OUTPUT << "=" << output << "\n"
+		<< IDO_DATA_LONGOUTPUT << "=" << "" << "\n"
+		<< IDO_DATA_PERFDATA << "=" << perfdata << "\n"
+		<< IDO_DATA_CURRENTSTATE << "=" << state << "\n"
+		<< IDO_DATA_HASBEENCHECKED << "=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
+		<< IDO_DATA_SHOULDBESCHEDULED << "=" << "1" << "\n"
+		<< IDO_DATA_CURRENTCHECKATTEMPT << "=" << service->GetCurrentCheckAttempt() << "\n"
+		<< IDO_DATA_MAXCHECKATTEMPTS << "=" << service->GetMaxCheckAttempts() << "\n"
+		<< IDO_DATA_LASTSERVICECHECK << "=" << schedule_end << "\n"
+		<< IDO_DATA_NEXTSERVICECHECK << "=" << service->GetNextCheck() << "\n"
+		<< IDO_DATA_CHECKTYPE << "=" << "" << "\n"
+		<< IDO_DATA_LASTSTATECHANGE << "=" << service->GetLastStateChange() << "\n"
+		<< IDO_DATA_LASTHARDSTATECHANGE << "=" << service->GetLastHardStateChange() << "\n"
+		<< IDO_DATA_LASTHARDSTATE << "=" << "" << "\n"
+		<< IDO_DATA_LASTTIMEOK << "=" << "" << "\n"
+		<< IDO_DATA_LASTTIMEWARNING << "=" << "" << "\n"
+		<< IDO_DATA_LASTTIMEUNKNOWN << "=" << "" << "\n"
+		<< IDO_DATA_LASTTIMECRITICAL << "=" << "" << "\n"
+		<< IDO_DATA_STATETYPE << "=" << service->GetStateType() << "\n"
+		<< IDO_DATA_LASTSERVICENOTIFICATION << "=" << "" << "\n"
+		<< IDO_DATA_NEXTSERVICENOTIFICATION << "=" << "" << "\n"
+		<< IDO_DATA_NOMORENOTIFICATIONS << "=" << 0 << "\n"
+		<< IDO_DATA_NOTIFICATIONSENABLED << "=" << 0 << "\n"
+		<< IDO_DATA_PROBLEMHASBEENACKNOWLEDGED << "=" << 0 << "\n"
+		<< IDO_DATA_ACKNOWLEDGEMENTTYPE << "=" << "" << "\n"
+		<< IDO_DATA_CURRENTNOTIFICATIONNUMBER << "=" << 0 << "\n"
+		<< IDO_DATA_PASSIVESERVICECHECKSENABLED << "=" << "" << "\n"
+		<< IDO_DATA_EVENTHANDLERENABLED << "=" << "" << "\n"
+		<< IDO_DATA_ACTIVESERVICECHECKSENABLED << "=" << "" << "\n"
+		<< IDO_DATA_FLAPDETECTIONENABLED << "=" << "" << "\n"
+		<< IDO_DATA_ISFLAPPING << "=" << "" << "\n"
+		<< IDO_DATA_PERCENTSTATECHANGE << "=" << "" << "\n"
+		<< IDO_DATA_LATENCY << "=" << latency << "\n"
+		<< IDO_DATA_EXECUTIONTIME << "=" << execution_time << "\n"
+		<< IDO_DATA_SCHEDULEDDOWNTIMEDEPTH << "=" << 0 << "\n"
+		<< IDO_DATA_FAILUREPREDICTIONENABLED << "=" << 0 << "\n"
+		<< IDO_DATA_PROCESSPERFORMANCEDATA << "=" << 1 << "\n"
+		<< IDO_DATA_OBSESSOVERSERVICE << "=" << 0 << "\n"
+		<< IDO_DATA_MODIFIEDSERVICEATTRIBUTES << "=" << 0 << "\n"
+		<< IDO_DATA_EVENTHANDLER << "=" << "" << "\n"
+		<< IDO_DATA_CHECKCOMMAND << "=" << "i2_check_service" << "\n"
+		<< IDO_DATA_NORMALCHECKINTERVAL << "=" << service->GetCheckInterval() / 60.0 << "\n"
+		<< IDO_DATA_RETRYCHECKINTERVAL << "=" << service->GetRetryInterval() / 60.0 << "\n"
+		<< IDO_DATA_SERVICECHECKPERIOD << "=" << "" << "\n"
+		/* FIXME dump customvars in a loop */
+		<< IDO_DATA_CUSTOMVARIABLE << "=" << "" << ":" << "1" << ":" << "\n"
+		<< IDO_API_ENDDATA << "\n\n";
+
+        m_IdoSocket->SendMessage(message.str());
 }
 
 /**
@@ -492,12 +679,23 @@ void CompatIdoComponent::DumpConfigObjects(void)
 void CompatIdoComponent::DumpStatusData(void)
 {
 	Logger::Write(LogInformation, "compatido", "Writing compat ido status information");
+//FIXME update programstatus data more frequently
+//
+        /* hosts */
+        DynamicObject::Ptr object;
+        BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Host")) {
+                const Host::Ptr& host = static_pointer_cast<Host>(object);
 
-	stringstream message;
+                DumpHostStatus(host);
+        }
 
-	/* program status - should probably done more often */
-	message << "\n\n";
 
+        /* services */
+        BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
+                Service::Ptr service = static_pointer_cast<Service>(object);
+
+                DumpServiceStatus(service);
+        }
 }
 
 
