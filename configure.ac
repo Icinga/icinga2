@@ -51,7 +51,7 @@ AM_PROG_LEX
 AC_PROG_YACC
 AC_PROG_LIBTOOL
 AX_CXX_GCC_ABI_DEMANGLE
-AX_BOOST_BASE([1.46], [], [AC_MSG_ERROR([You need the Boost headers and libraries in order to build this application])])
+AX_BOOST_BASE([1.42], [], [AC_MSG_ERROR([You need the Boost headers and libraries in order to build this application])])
 AX_BOOST_SIGNALS
 AX_BOOST_THREAD
 AX_BOOST_SYSTEM
@@ -70,6 +70,7 @@ Makefile
 components/Makefile
 components/checker/Makefile
 components/compat/Makefile
+components/compatido/Makefile
 components/convenience/Makefile
 components/delegation/Makefile
 components/demo/Makefile
