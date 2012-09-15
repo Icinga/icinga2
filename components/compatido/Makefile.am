@@ -10,11 +10,10 @@ compatido_la_SOURCES = \
 
 compatido_la_CPPFLAGS = \
         $(BOOST_CPPFLAGS) \
-        -I${top_srcdir}/base \
-        -I${top_srcdir}/dyn \
-        -I${top_srcdir}/jsonrpc \
-        -I${top_srcdir}/icinga \
-        -I${top_srcdir}/cib
+        -I${top_srcdir}/lib/base \
+        -I${top_srcdir}/lib/config \
+        -I${top_srcdir}/lib/remoting \
+        -I${top_srcdir}/lib/icinga
 
 compatido_la_LDFLAGS = \
         $(BOOST_LDFLAGS) \
@@ -26,9 +25,8 @@ compatido_la_LDFLAGS = \
 compatido_la_LIBADD = \
         $(BOOST_SIGNALS_LIB) \
         $(BOOST_THREAD_LIB) \
-        ${top_builddir}/base/libbase.la \
-        ${top_builddir}/dyn/libdyn.la \
-        ${top_builddir}/jsonrpc/libjsonrpc.la \
-        ${top_builddir}/icinga/libicinga.la \
-        ${top_builddir}/cib/libcib.la
+        ${top_builddir}/lib/base/libbase.la \
+        ${top_builddir}/lib/config/libconfig.la \
+        ${top_builddir}/lib/remoting/libremoting.la \
+        ${top_builddir}/lib/icinga/libicinga.la
 
