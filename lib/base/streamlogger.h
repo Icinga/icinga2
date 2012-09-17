@@ -5,7 +5,9 @@ namespace icinga
 {
 
 /**
- * A logger that logs to stdout.
+ * A logger that logs to an iostream.
+ *
+ * @ingroup base
  */
 class I2_BASE_API StreamLogger : public ILogger
 {

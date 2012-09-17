@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * A script task.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API ScriptTask : public AsyncTask<ScriptTask, Value>
 {
 public:

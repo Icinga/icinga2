@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * An Icinga service group.
+ *
+ * @ingroup icinga
+ */
 class I2_ICINGA_API ServiceGroup : public DynamicObject
 {
 public:

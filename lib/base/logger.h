@@ -50,6 +50,8 @@ struct LogEntry {
 
 /**
  * Base class for all loggers.
+ *
+ * @ingroup base
  */
 class I2_BASE_API ILogger : public Object
 {
@@ -68,6 +70,11 @@ private:
 	friend class Logger;
 };
 
+/**
+ * A log provider. Can be instantiated from the config.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API Logger : public DynamicObject
 {
 public:

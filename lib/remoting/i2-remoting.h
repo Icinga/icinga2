@@ -21,10 +21,10 @@
 #define I2REMOTING_H
 
 /**
- * @defgroup remoting JSON-RPC library
+ * @defgroup remoting Remoting library
  *
- * The JSON-RPC library implements server and client classes for the JSON-RPC
- * protocol.
+ * Implements server and client classes for the JSON-RPC protocol. Also
+ * supports endpoint-based communication using messages.
  */
 
 #include <i2-base.h>

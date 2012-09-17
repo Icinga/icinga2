@@ -21,10 +21,11 @@
 #define I2CONFIG_H
 
 /**
- * @defgroup config Dynamic object library
+ * @defgroup config Configuration library
  *
- * The dynamic object library implements serializable objects which support
- * inheritance.
+ * The configuration library implements a compiler for Icinga 2's configuration
+ * format. It also provides functionality to create configuration objects
+ * at runtime.
  */
 
 #include <i2-base.h>

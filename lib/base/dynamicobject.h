@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * The type of an attribute for a DynamicObject.
+ */
 enum DynamicAttributeType
 {
 	Attribute_Transient = 1,
@@ -43,6 +46,9 @@ enum DynamicAttributeType
 	Attribute_All = Attribute_Transient | Attribute_Local | Attribute_Replicated | Attribute_Config
 };
 
+/**
+ * An attribute for a DynamicObject.
+ */
 struct DynamicAttribute
 {
 	Value Data;
@@ -51,7 +57,8 @@ struct DynamicAttribute
 };
 
 /**
- * A dynamic object that can be instantiated from the configuration file.
+ * A dynamic object that can be instantiated from the configuration file
+ * and that supports attribute replication to remote application instances.
  *
  * @ingroup base
  */
@@ -147,6 +154,11 @@ private:
 	void InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes, bool suppressEvents);
 };
 
+/**
+ * Helper class for registering DynamicObject implementation classes.
+ *
+ * @ingroup base
+ */
 class RegisterClassHelper
 {
 public:

@@ -23,6 +23,12 @@
 namespace icinga
 {
 
+/**
+ * Common Information Base class. Holds some statistics (and will likely be
+ * removed/refactored).
+ *
+ * @ingroup icinga
+ */
 class I2_ICINGA_API CIB
 {
 public:

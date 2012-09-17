@@ -13,7 +13,6 @@ StreamLogger::StreamLogger(void)
  * Constructor for the StreamLogger class.
  *
  * @param stream The stream.
- * @param minSeverity Minimum severity for log messages.
  */
 StreamLogger::StreamLogger(ostream *stream)
 	: ILogger(), m_Stream(stream), m_OwnsStream(false)

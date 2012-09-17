@@ -26,7 +26,7 @@ namespace icinga
 /**
  * Forwards messages between endpoints.
  *
- * @ingroup icinga
+ * @ingroup remoting
  */
 class I2_REMOTING_API EndpointManager : public Object
 {
@@ -56,10 +56,6 @@ public:
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
-//	void ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback);
-//	Iterator Begin(void);
-//	Iterator End(void);
-
 	boost::signal<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
 
 private:
@@ -78,7 +74,7 @@ private:
 	/**
 	 * Information about a pending API request.
 	 *
-	 * @ingroup icinga
+	 * @ingroup remoting
 	 */
 	struct I2_REMOTING_API PendingRequest
 	{

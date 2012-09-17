@@ -44,7 +44,7 @@ public:
 	static String DirName(const String& path);
 	static String BaseName(const String& path);
 
-	static void NullDeleter(void *obj);
+	static void NullDeleter(void *);
 
 	static double GetTime(void);
 

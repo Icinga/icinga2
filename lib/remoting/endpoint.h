@@ -28,7 +28,7 @@ class EndpointManager;
 /**
  * An endpoint that can be used to send and receive messages.
  *
- * @ingroup icinga
+ * @ingroup remoting
  */
 class I2_REMOTING_API Endpoint : public DynamicObject
 {

@@ -63,7 +63,7 @@ Dictionary::Ptr MessagePart::GetDictionary(void) const
  * Retrieves a property's value.
  *
  * @param key The name of the property.
- * @param[out] The value.
+ * @param[out] value The value.
  * @returns true if the value was retrieved, false otherwise.
  */
 bool MessagePart::Get(String key, MessagePart *value) const

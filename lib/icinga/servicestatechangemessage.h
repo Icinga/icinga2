@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * A state change message for a service.
+ *
+ * @ingroup icinga
+ */
 class I2_ICINGA_API ServiceStateChangeMessage : public MessagePart
 {
 public:

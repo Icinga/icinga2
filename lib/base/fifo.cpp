@@ -131,21 +131,6 @@ void FIFO::Read(void *buffer, size_t count)
 }
 
 /**
- * Returns a pointer to the start of the write buffer.
- *
- * @param count Minimum size of the buffer; on return this parameter
- *              contains the actual size of the available buffer which can
- *              be larger than the requested size.
- */
-/*void *FIFO::GetWriteBuffer(size_t *count)
-{
-	ResizeBuffer(m_Offset + m_DataSize + *count);
-	*count = m_AllocSize - m_Offset - m_DataSize;
-
-	return m_Buffer + m_Offset + m_DataSize;
-}*/
-
-/**
  * Implements IOQueue::Write.
  */
 void FIFO::Write(const void *buffer, size_t count)

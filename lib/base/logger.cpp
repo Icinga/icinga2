@@ -24,10 +24,9 @@ using namespace icinga;
 REGISTER_CLASS(Logger);
 
 /**
- * Constructor for the logger class.
+ * Constructor for the Logger class.
  *
- * @param minSeverity The minimum severity of log messages that should be sent
- *                    to this logger.
+ * @param properties A serialized dictionary containing attributes.
  */
 Logger::Logger(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)

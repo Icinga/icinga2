@@ -133,7 +133,7 @@ cJSON *Value::ToJson(void) const
 /**
  * Deserializes the string representation of a variant.
  *
- * @params jsonString A JSON string obtained from Value::Serialize
+ * @param jsonString A JSON string obtained from Value::Serialize
  * @returns The newly deserialized variant.
  */
 Value Value::Deserialize(const String& jsonString)

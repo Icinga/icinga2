@@ -217,9 +217,8 @@ Dictionary::Ptr Dictionary::FromJson(cJSON *json)
 }
 
 /**
- * Converts a dictionary to a JSON object.
+ * Converts this dictionary to a JSON object.
  *
- * @param dictionary The dictionary.
  * @returns A JSON object that is equivalent to the dictionary. Values that
  *	    cannot be represented in JSON are omitted.
  */

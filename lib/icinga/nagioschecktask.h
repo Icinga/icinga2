@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * Implements Nagios(TM)-style checks.
+ *
+ * @ingroup icinga
+ */
 class I2_ICINGA_API NagiosCheckTask
 {
 public:

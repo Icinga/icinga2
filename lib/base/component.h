@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * Interface for application extensions.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API IComponent : public Object
 {
 public:
