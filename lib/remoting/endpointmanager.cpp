@@ -322,7 +322,8 @@ void EndpointManager::SubscriptionTimerHandler(void)
 		}
 	}
 
-	m_Endpoint->SetSubscriptions(subscriptions);
+	if (m_Endpoint)
+		m_Endpoint->SetSubscriptions(subscriptions);
 }
 
 void EndpointManager::ReconnectTimerHandler(void)
