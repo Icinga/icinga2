@@ -33,7 +33,7 @@ make install DESTDIR=%{buildroot}
 
 %files
 %defattr(-,root,root)
-%{_bindir}/icinga
+%{_bindir}/icinga2
 %{_datadir}/doc/icinga2
 %{_libdir}/icinga2
 %{_sysconfdir}/icinga2
