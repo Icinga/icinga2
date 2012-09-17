@@ -214,16 +214,6 @@ void DynamicObject::ClearAttributesByType(DynamicAttributeType type)
 	}
 }
 
-DynamicObject::AttributeConstIterator DynamicObject::AttributeBegin(void) const
-{
-	return m_Attributes.begin();
-}
-
-DynamicObject::AttributeConstIterator DynamicObject::AttributeEnd(void) const
-{
-	return m_Attributes.end();
-}
-
 String DynamicObject::GetType(void) const
 {
 	return Get("__type");

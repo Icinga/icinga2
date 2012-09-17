@@ -41,6 +41,12 @@ public:
 
 	int Run(int argc, char **argv);
 
+	/**
+	 * Starts the application.
+	 *
+	 * @param args Arguments for the application.
+	 * @returns The exit code of the application.
+	 */
 	virtual int Main(const vector<String>& args) = 0;
 
 	static void Shutdown(void);

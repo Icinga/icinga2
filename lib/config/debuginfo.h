@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * Debug information for a configuration element.
+ *
+ * @ingroup config
+ */
 struct DebugInfo
 {
 	String Path;

@@ -164,3 +164,14 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 	else
 		throw_exception(invalid_argument("Invalid severity: " + severity));
 }
+
+/**
+ * Retrieves the configuration object that belongs to this logger.
+ *
+ * @returns The configuration object.
+ */
+DynamicObject::Ptr ILogger::GetConfig(void) const
+{
+	return m_Config->GetSelf();
+}
+

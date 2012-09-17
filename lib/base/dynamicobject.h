@@ -51,9 +51,9 @@ enum DynamicAttributeType
  */
 struct DynamicAttribute
 {
-	Value Data;
-	DynamicAttributeType Type;
-	double Tx;
+	Value Data; /**< The current value of the attribute. */
+	DynamicAttributeType Type; /**< The type of the attribute. */
+	double Tx; /**< The timestamp of the last value change. */
 };
 
 /**
@@ -92,9 +92,6 @@ public:
 	bool HasAttribute(const String& name) const;
 
 	void ClearAttributesByType(DynamicAttributeType type);
-
-	AttributeConstIterator AttributeBegin(void) const;
-	AttributeConstIterator AttributeEnd(void) const;
 
 	static boost::signal<void (const DynamicObject::Ptr&)> OnRegistered;
 	static boost::signal<void (const DynamicObject::Ptr&)> OnUnregistered;

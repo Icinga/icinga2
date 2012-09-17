@@ -23,6 +23,12 @@
 namespace icinga
 {
 
+/**
+ * Config item builder. Used to dynamically build configuration objects
+ * at runtime.
+ *
+ * @ingroup config
+ */
 class I2_CONFIG_API ConfigItemBuilder : public Object
 {
 public:

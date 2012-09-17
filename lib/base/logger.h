@@ -42,10 +42,10 @@ enum LogSeverity
  * @ingroup base
  */
 struct LogEntry {
-	double Timestamp;
-	LogSeverity Severity;
-	String Facility;
-	String Message;
+	double Timestamp; /**< The timestamp when this log entry was created. */
+	LogSeverity Severity; /**< The severity of this log entry. */
+	String Facility; /**< The facility this log entry belongs to. */
+	String Message; /**< The log entry's message. */
 };
 
 /**
@@ -59,6 +59,12 @@ public:
 	typedef shared_ptr<ILogger> Ptr;
 	typedef weak_ptr<ILogger> WeakPtr;
 
+	/**
+	 * Processes the log entry and writes it to the log that is
+	 * represented by this ILogger object.
+	 *
+	 * @param entry The log entry that is to be processed.
+	 */
 	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
 
 protected:

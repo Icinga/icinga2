@@ -118,6 +118,11 @@ public:
 	}
 
 protected:
+	/**
+	 * Begins executing the task. The Run method must ensure
+	 * that one of the Finish*() functions is executed on the task
+	 * object (possibly after the Run method has returned).
+	 */
 	virtual void Run(void) = 0;
 
 private:

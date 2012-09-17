@@ -23,6 +23,12 @@
 namespace icinga
 {
 
+/**
+ * A configuration item. Can be used to create a configuration object at
+ * runtime.
+ *
+ * @ingroup config
+ */
 class I2_CONFIG_API ConfigItem : public Object {
 public:
 	typedef shared_ptr<ConfigItem> Ptr;
