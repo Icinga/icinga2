@@ -24,8 +24,6 @@
 #	define ICINGA_VERSION VERSION ", " GIT_MESSAGE
 
 #	include <ltdl.h>
-#else /* _WIN32 */
-#	define ICINGA_VERSION VERSION
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -51,7 +49,11 @@ int main(int argc, char **argv)
 	 * in the base library. */
 	Application::SetMainThread();
 
-	Logger::Write(LogInformation, "icinga", "Icinga application loader (version: " ICINGA_VERSION ")");
+	Logger::Write(LogInformation, "icinga", "Icinga application loader"
+#ifndef _WIN32
+		" (version: " ICINGA_VERSION ")"
+#endif /* _WIN32 */
+	);
 
 	if (argc < 3 || strcmp(argv[1], "-c") != 0) {
 		stringstream msgbuf;
