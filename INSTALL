@@ -12,15 +12,16 @@ Build Requirements
 ------------------
 
 The following requirements need to be fulfilled in order to build the
-application using a dist tarball (package names in parenthesis):
+application using a dist tarball (package names for RHEL and Debian in
+parenthesis):
 
-* GNU make (make on RHEL and Debian)
+* GNU make (make)
 * C++ compiler (gcc-c++ on RHEL, build-essential on Debian)
 * OpenSSL library and header files (openssl-devel on RHEL, libssl-dev
                                     on Debian)
 * Boost library and header files (boost-devel on RHEL, libboost-all-dev
                                   on Debian)
-* optional: Doxygen (doxygen on RHEL and Debian)
+* optional: Doxygen (doxygen)
 
 Packaging Requirements
 ----------------------
@@ -29,12 +30,12 @@ In order to build a dist tarball for the application the following external
 software components need to be installed in addition to the build requirements
 mentioned above:
 
-* GNU Automake (automake on RHEL and Debian)
-* GNU Autoconf (autoconf on RHEL and Debian)
+* GNU Automake (automake)
+* GNU Autoconf (autoconf)
 * GNU Libtool (libtool and libtool-ltdl-devel on RHEL, libtool and
                libltdl-dev on Debian)
-* GNU bison (bison on RHEL and Debian)
-* GNU flex (flex on RHEL and Debian)
+* GNU bison (bison)
+* GNU flex (flex)
 
 Debian Packages
 ---------------
