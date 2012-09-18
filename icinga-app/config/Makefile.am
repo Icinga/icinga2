@@ -6,3 +6,5 @@ icinga2conf_DATA = \
 	icinga-c1.pem \
 	icinga-c2.pem \
 	icinga-c3.pem
+
+EXTRA_DIST = $(icinga2conf_DATA)
