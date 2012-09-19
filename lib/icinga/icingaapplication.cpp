@@ -28,8 +28,8 @@
 
 using namespace icinga;
 
-const String IcingaApplication::DefaultPidPath = "icinga.pid";
-const String IcingaApplication::DefaultStatePath = "icinga.state";
+const String IcingaApplication::DefaultPidPath = "icinga2.pid";
+const String IcingaApplication::DefaultStatePath = "icinga2.state";
 
 IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
 	: Application(serializedUpdate)
