@@ -289,3 +289,17 @@ double Utility::GetTime(void)
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
 #endif /* _WIN32 */
 }
+
+/**
+ * Returns the ID of the current process.
+ *
+ * @returns The PID.
+ */
+pid_t Utility::GetPid(void)
+{
+#ifndef _WIN32
+	return getpid();
+#else /* _WIN32 */
+	return GetCurrentProcessId();
+#endif /* _WIN32 */
+}

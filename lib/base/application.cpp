@@ -347,13 +347,7 @@ void Application::UpdatePidFile(const String& filename)
 	}
 #endif /* _WIN32 */
 
-#ifndef _WIN32
-	pid_t pid = getpid();
-#else /* _WIN32 */
-	DWORD pid = GetCurrentProcessId();
-#endif /* _WIN32 */
-
-	fprintf(m_PidFile, "%d", pid);
+	fprintf(m_PidFile, "%d", Utility::GetPid());
 	fflush(m_PidFile);
 }
 

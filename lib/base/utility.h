@@ -48,6 +48,8 @@ public:
 
 	static double GetTime(void);
 
+	static pid_t GetPid(void);
+
 private:
 	static bool m_SSLInitialized;
 
