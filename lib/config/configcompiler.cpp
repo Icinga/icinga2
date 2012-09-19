@@ -168,7 +168,6 @@ vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include)
  *
  * @param object The configuration item.
  */
- * 
 void ConfigCompiler::AddObject(const ConfigItem::Ptr& object)
 {
 	m_Result.push_back(object);
