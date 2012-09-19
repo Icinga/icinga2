@@ -24,9 +24,9 @@ namespace icinga
 {
 
 /**
- * Helper functions for reading/writing messages in the netString format.
+ * Helper functions for reading/writing messages in the netstring format.
  *
- * @see http://cr.yp.to/proto/netStrings.txt
+ * @see http://cr.yp.to/proto/netstrings.txt
  *
  * @ingroup base
  */

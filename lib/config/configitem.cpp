@@ -25,6 +25,15 @@ ConfigItem::ItemMap ConfigItem::m_Items;
 boost::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
 boost::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
 
+/**
+ * Constructor for the ConfigItem class.
+ *
+ * @param type The object type.
+ * @param name The name of the item.
+ * @param exprl Expression list for the item.
+ * @param parents Parent objects for the item.
+ * @param debuginfo Debug information.
+ */
 ConfigItem::ConfigItem(const String& type, const String& name,
     const ExpressionList::Ptr& exprl, const vector<String>& parents,
     const DebugInfo& debuginfo)
@@ -33,31 +42,63 @@ ConfigItem::ConfigItem(const String& type, const String& name,
 {
 }
 
+/**
+ * Retrieves the type of the configuration item.
+ *
+ * @returns The type.
+ */
 String ConfigItem::GetType(void) const
 {
 	return m_Type;
 }
 
+/**
+ * Retrieves the name of the configuration item.
+ *
+ * @returns The name.
+ */
 String ConfigItem::GetName(void) const
 {
 	return m_Name;
 }
 
+/**
+ * Retrieves the debug information for the configuration item.
+ *
+ * @returns The debug information.
+ */
 DebugInfo ConfigItem::GetDebugInfo(void) const
 {
 	return m_DebugInfo;
 }
 
+/**
+ * Retrieves the expression list for the configuration item.
+ *
+ * @returns The expression list.
+ */
 ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 {
 	return m_ExpressionList;
 }
 
+/**
+ * Retrieves the list of parents for the configuration item.
+ *
+ * @returns The list of parents.
+ */
 vector<String> ConfigItem::GetParents(void) const
 {
 	return m_Parents;
 }
 
+/**
+ * Calculates the object's properties based on parent objects and the object's
+ * expression list.
+ *
+ * @param dictionary The dictionary that should be used to store the
+ *		     properties.
+ */
 void ConfigItem::CalculateProperties(const Dictionary::Ptr& dictionary) const
 {
 	BOOST_FOREACH(const String& name, m_Parents) {
@@ -65,7 +106,8 @@ void ConfigItem::CalculateProperties(const Dictionary::Ptr& dictionary) const
 
 		if (!parent) {
 			stringstream message;
-			message << "Parent object '" << name << "' does not exist (" << m_DebugInfo << ")";
+			message << "Parent object '" << name << "' does not"
+			    " exist (" << m_DebugInfo << ")";
 			throw_exception(domain_error(message.str()));
 		}
 
@@ -75,6 +117,12 @@ void ConfigItem::CalculateProperties(const Dictionary::Ptr& dictionary) const
 	m_ExpressionList->Execute(dictionary);
 }
 
+/**
+ * Commits the configuration item by creating or updating a DynamicObject
+ * object.
+ *
+ * @returns The DynamicObject that was created/updated.
+ */
 DynamicObject::Ptr ConfigItem::Commit(void)
 {
 	DynamicObject::Ptr dobj = m_DynamicObject.lock();
@@ -125,6 +173,9 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	return dobj;
 }
 
+/**
+ * Unregisters the configuration item.
+ */
 void ConfigItem::Unregister(void)
 {
 	DynamicObject::Ptr dobj = m_DynamicObject.lock();
@@ -141,11 +192,23 @@ void ConfigItem::Unregister(void)
 	OnRemoved(GetSelf());
 }
 
+/**
+ * Retrieves the DynamicObject that belongs to the configuration item.
+ *
+ * @returns The DynamicObject.
+ */
 DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
 {
 	return m_DynamicObject.lock();
 }
 
+/**
+ * Retrieves a configuration item by type and name.
+ *
+ * @param type The type of the ConfigItem that is to be looked up.
+ * @param name The name of the ConfigItem that is to be looked up.
+ * @returns The configuration item.
+ */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
 	ConfigItem::ItemMap::iterator it;

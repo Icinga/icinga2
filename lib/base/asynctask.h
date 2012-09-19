@@ -35,6 +35,9 @@ public:
 	typedef shared_ptr<AsyncTask<TClass, TResult> > Ptr;
 	typedef weak_ptr<AsyncTask<TClass, TResult> > WeakPtr;
 
+	/**
+	 * A completion callback for an AsyncTask.
+	 */
 	typedef function<void (const shared_ptr<TClass>&)> CompletionCallback;
 
 	/**

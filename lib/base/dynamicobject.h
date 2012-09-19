@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * The type of an attribute for a DynamicObject.
+ *
+ * @ingroup base
  */
 enum DynamicAttributeType
 {
@@ -48,6 +50,8 @@ enum DynamicAttributeType
 
 /**
  * An attribute for a DynamicObject.
+ *
+ * @ingroup base
  */
 struct DynamicAttribute
 {
@@ -166,6 +170,11 @@ public:
 	}
 };
 
+/**
+ * Factory function for DynamicObject-based classes.
+ *
+ * @ingroup base
+ */
 template<typename T>
 shared_ptr<T> DynamicObjectFactory(const Dictionary::Ptr& serializedUpdate)
 {

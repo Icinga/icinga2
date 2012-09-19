@@ -21,7 +21,8 @@
 
 using namespace icinga;
 
-Expression::Expression(const String& key, ExpressionOperator op, const Value& value, const DebugInfo& debuginfo)
+Expression::Expression(const String& key, ExpressionOperator op,
+    const Value& value, const DebugInfo& debuginfo)
 	: m_Key(key), m_Operator(op), m_Value(value), m_DebugInfo(debuginfo)
 {
 }
@@ -69,7 +70,10 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			if (!dict) {
 				if (!oldValue.IsEmpty()) {
 					stringstream message;
-					message << "Wrong argument types for += (non-dictionary and dictionary) (" << m_DebugInfo << ")";
+					message << "Wrong argument types for"
+					    " += (non-dictionary and"
+					    " dictionary) ("
+					        << m_DebugInfo << ")";
 					throw_exception(domain_error(message.str()));
 				}
 
@@ -88,7 +92,8 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				}
 			} else {
 				stringstream message;
-				message << "+= only works for dictionaries (" << m_DebugInfo << ")";
+				message << "+= only works for dictionaries ("
+					<< m_DebugInfo << ")";
 				throw_exception(domain_error(message.str()));
 			}
 

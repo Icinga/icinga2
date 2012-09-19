@@ -46,7 +46,8 @@ enum ExpressionOperator
 struct I2_CONFIG_API Expression
 {
 public:
-	Expression(const String& key, ExpressionOperator op, const Value& value, const DebugInfo& debuginfo);
+	Expression(const String& key, ExpressionOperator op, const Value& value,
+	    const DebugInfo& debuginfo);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
 

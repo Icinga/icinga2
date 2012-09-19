@@ -23,15 +23,31 @@
 using namespace icinga;
 
 /**
- * Compares the keys of dictionary keys using the less operator.
+ * Compares dictionary keys using the less operator.
  */
 struct DictionaryKeyLessComparer
 {
+	/**
+	 * Compares two keys.
+	 *
+	 * @param a The first key.
+	 * @param b The second key.
+	 * @returns true if the first key is less than the second key, false
+	 *		 otherwise
+	 */
 	bool operator()(const pair<String, Value>& a, const char *b)
 	{
 		return a.first < b;
 	}
 
+	/**
+	 * Compares two keys.
+	 *
+	 * @param a The first key.
+	 * @param b The second key.
+	 * @returns true if the first key is less than the second key, false
+	 *		 otherwise
+	 */
 	bool operator()(const char *a, const pair<String, Value>& b)
 	{
 		return a < b.first;

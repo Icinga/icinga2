@@ -42,14 +42,28 @@ public:
 
 	/**
 	 * Holds a shared pointer and provides support for implicit upcasts.
+	 *
+	 * @ingroup base
 	 */
 	class SharedPtrHolder
 	{
 	public:
+		/**
+		 * Constructor for the SharedPtrHolder class.
+		 *
+		 * @param object The shared pointer that should be used to
+		 *		 construct this shared pointer holder.
+		 */
 		explicit SharedPtrHolder(const Object::Ptr& object)
 			: m_Object(object)
 		{ }
 
+		/**
+		 * Retrieves a shared pointer for the object that is associated
+		 * this holder instance.
+		 *
+		 * @returns A shared pointer.
+		 */
 		template<typename T>
 		operator shared_ptr<T>(void) const
 		{
@@ -63,6 +77,12 @@ public:
 			return other;
 		}
 
+		/**
+		 * Retrieves a weak pointer for the object that is associated
+		 * with this holder instance.
+		 *
+		 * @returns A weak pointer.
+		 */
 		template<typename T>
 		operator weak_ptr<T>(void) const
 		{
@@ -70,7 +90,8 @@ public:
 		}
 
 	private:
-		Object::Ptr m_Object;
+		Object::Ptr m_Object; /**< The object that belongs to this
+					   holder instance */
 	};
 
 	SharedPtrHolder GetSelf(void);
@@ -88,23 +109,33 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	static boost::mutex m_Mutex;
-	static vector<Object::Ptr> m_HeldObjects;
+	static boost::mutex m_Mutex; /**< Mutex which protects static members
+					  of the Object class. */
+	static vector<Object::Ptr> m_HeldObjects; /**< Currently held
+						       objects. */
 #ifdef _DEBUG
-	static set<Object *> m_AliveObjects;
+	static set<Object *> m_AliveObjects; /**< Currently alive objects -
+						  for debugging purposes. */
 #endif /* _DEBUG */
 };
 
 /**
  * Compares a weak pointer with a raw pointer.
+ *
+ * @ingroup base
  */
 template<class T>
 struct WeakPtrEqual
 {
 private:
-	const void *m_Ref;
+	const void *m_Ref; /**< The object. */
 
 public:
+	/**
+	 * Constructor for the WeakPtrEqual class.
+	 *
+	 * @param ref The object that should be compared with the weak pointer.
+	 */
 	WeakPtrEqual(const void *ref) : m_Ref(ref) { }
 
 	/**

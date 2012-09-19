@@ -24,7 +24,7 @@
  * @defgroup config Configuration library
  *
  * The configuration library implements a compiler for Icinga 2's configuration
- * format. It also provides functionality to create configuration objects
+ * format. It also provides functionality for creating configuration objects
  * at runtime.
  */
 

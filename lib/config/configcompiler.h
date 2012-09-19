@@ -25,7 +25,7 @@ namespace icinga
 
 /**
  * The configuration compiler can be used to compile a configuration file
- * into a number of configuration objects.
+ * into a number of configuration items.
  *
  * @ingroup config
  */
@@ -40,9 +40,11 @@ public:
 
 	void Compile(void);
 
-	static vector<ConfigItem::Ptr> CompileStream(const String& path, istream *stream);
+	static vector<ConfigItem::Ptr> CompileStream(const String& path,
+	    istream *stream);
 	static vector<ConfigItem::Ptr> CompileFile(const String& path);
-	static vector<ConfigItem::Ptr> CompileText(const String& path, const String& text);
+	static vector<ConfigItem::Ptr> CompileText(const String& path,
+	    const String& text);
 
 	static vector<ConfigItem::Ptr> HandleFileInclude(const String& include);
 
