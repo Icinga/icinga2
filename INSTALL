@@ -45,9 +45,6 @@ fully comply with the official Debian packaging requirements. These scripts can
 be found in the 'debian' sub-directory. Binary packages can be built using
 'dpkg-buildpackage'.
 
-If you're using 'git-buildpackage' make sure to specify the autogen.sh script
-as a prebuild requirement (git-buildpackage --git-prebuild=./autogen.sh).
-
 Building Icinga 2
 -----------------
 
