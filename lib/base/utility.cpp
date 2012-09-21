@@ -145,10 +145,12 @@ String Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 {
 	char buffer[256];
 
-	int rc = X509_NAME_get_text_by_NID(X509_get_subject_name(certificate.get()), NID_commonName, buffer, sizeof(buffer));
+	int rc = X509_NAME_get_text_by_NID(X509_get_subject_name(certificate.get()),
+	    NID_commonName, buffer, sizeof(buffer));
 
 	if (rc == -1)
-		throw_exception(OpenSSLException("X509 certificate has no CN attribute", ERR_get_error()));
+		throw_exception(OpenSSLException("X509 certificate has no CN"
+		    " attribute", ERR_get_error()));
 
 	return buffer;
 }
@@ -165,14 +167,17 @@ shared_ptr<X509> Utility::GetX509Certificate(String pemfile)
 	BIO *fpcert = BIO_new(BIO_s_file());
 
 	if (fpcert == NULL)
-		throw_exception(OpenSSLException("BIO_new failed", ERR_get_error()));
+		throw_exception(OpenSSLException("BIO_new failed",
+		    ERR_get_error()));
 
 	if (BIO_read_filename(fpcert, pemfile.CStr()) < 0)
-		throw_exception(OpenSSLException("BIO_read_filename failed", ERR_get_error()));
+		throw_exception(OpenSSLException("BIO_read_filename failed",
+		    ERR_get_error()));
 
 	cert = PEM_read_bio_X509_AUX(fpcert, NULL, NULL, NULL);
 	if (cert == NULL)
-		throw_exception(OpenSSLException("PEM_read_bio_X509_AUX failed", ERR_get_error()));
+		throw_exception(OpenSSLException("PEM_read_bio_X509_AUX failed",
+		    ERR_get_error()));
 
 	BIO_free(fpcert);
 
@@ -210,7 +215,8 @@ String Utility::DirName(const String& path)
 #else /* _WIN32 */
 	if (!PathRemoveFileSpec(dir)) {
 		free(dir);
-		throw_exception(Win32Exception("PathRemoveFileSpec() failed", GetLastError()));
+		throw_exception(Win32Exception("PathRemoveFileSpec() failed",
+		    GetLastError()));
 	}
 
 	result = dir;

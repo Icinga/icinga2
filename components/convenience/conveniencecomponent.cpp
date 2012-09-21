@@ -26,8 +26,8 @@ using namespace icinga;
  */
 void ConvenienceComponent::Start(void)
 {
-	ConfigItem::OnCommitted.connect(boost::bind(&ConvenienceComponent::HostCommittedHandler, this, _1));
-	ConfigItem::OnRemoved.connect(boost::bind(&ConvenienceComponent::HostRemovedHandler, this, _1));
+	ConfigItem::OnCommitted.connect(boost::bind(&ConvenienceComponent::ObjectCommittedHandler, this, _1));
+	ConfigItem::OnRemoved.connect(boost::bind(&ConvenienceComponent::ObjectRemovedHandler, this, _1));
 }
 
 template<typename TDict>
@@ -68,7 +68,7 @@ static void CopyServiceAttributes(const Host::Ptr& host, TDict serviceDesc,
 		    Service::ResolveDependencies(host, hostchecks));
 }
 
-void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
+void ConvenienceComponent::ObjectCommittedHandler(const ConfigItem::Ptr& item)
 {
 	if (item->GetType() != "Host")
 		return;
@@ -139,7 +139,7 @@ void ConvenienceComponent::HostCommittedHandler(const ConfigItem::Ptr& item)
 	host->Set("convenience_services", newServices);
 }
 
-void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
+void ConvenienceComponent::ObjectRemovedHandler(const ConfigItem::Ptr& item)
 {
 	if (item->GetType() != "Host")
 		return;
@@ -161,3 +161,4 @@ void ConvenienceComponent::HostRemovedHandler(const ConfigItem::Ptr& item)
 }
 
 EXPORT_COMPONENT(convenience, ConvenienceComponent);
+

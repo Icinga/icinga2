@@ -51,8 +51,10 @@ public:
 	void SendAnycastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
 	void SendMulticastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
 
+	typedef function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> APICallback;
+
 	void SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, RequestMessage& message,
-	    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, double timeout = 30);
+	    const APICallback& callback, double timeout = 30);
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 

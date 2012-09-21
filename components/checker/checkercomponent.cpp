@@ -30,7 +30,7 @@ void CheckerComponent::Start(void)
 	m_Endpoint->RegisterSubscription("checker");
 
 	Service::OnCheckerChanged.connect(bind(&CheckerComponent::CheckerChangedHandler, this, _1));
-	DynamicObject::OnUnregistered.connect(bind(&CheckerComponent::ServiceRemovedHandler, this, _1));
+	DynamicObject::OnUnregistered.connect(bind(&CheckerComponent::ObjectRemovedHandler, this, _1));
 
 	m_CheckTimer = boost::make_shared<Timer>();
 	m_CheckTimer->SetInterval(1);
@@ -184,7 +184,7 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 	}
 }
 
-void CheckerComponent::ServiceRemovedHandler(const DynamicObject::Ptr& object)
+void CheckerComponent::ObjectRemovedHandler(const DynamicObject::Ptr& object)
 {
 	Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
@@ -197,3 +197,4 @@ void CheckerComponent::ServiceRemovedHandler(const DynamicObject::Ptr& object)
 }
 
 EXPORT_COMPONENT(checker, CheckerComponent);
+
