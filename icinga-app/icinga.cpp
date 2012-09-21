@@ -62,8 +62,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	String componentDirectory = Utility::DirName(Application::GetExePath(argv[0])) + "/../lib/icinga2";
-	Component::AddSearchDir(componentDirectory);
+	String exeDirectory = Utility::DirName(Application::GetExePath(argv[0]));
+	Component::AddSearchDir(exeDirectory + "/../lib/icinga2");
+	Component::AddSearchDir(exeDirectory + "/../lib64/icinga2");
 
 	DynamicObject::BeginTx();
 
