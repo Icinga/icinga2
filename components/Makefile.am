@@ -4,7 +4,6 @@
 SUBDIRS = \
 	checker \
 	compat \
-	convenience \
 	delegation \
 	demo \
 	replication
