@@ -85,7 +85,6 @@
   <ItemGroup>
     <ClInclude Include="compatidocomponent.h" />
     <ClInclude Include="i2-compatido.h" />
-    <ClInclude Include="idoprotoapi.h" />
     <ClInclude Include="idosocket.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

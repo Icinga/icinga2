@@ -28,8 +28,5 @@
     <ClInclude Include="idosocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="idoprotoapi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

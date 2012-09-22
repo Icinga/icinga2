@@ -159,19 +159,19 @@ void CompatIdoComponent::SendHello(String instancename)
 	time_t now;
 	time(&now);
 
-	/* IDO_API_CONNECTION is always TCP */
-	/* IDO_API_CONNECTTYPE is always initial */
+	/* connection is always TCP */
+	/* connecttype is always initial */
 	stringstream message;
 	message << "\n\n"
-		<< IDO_API_HELLO << "\n"
-		<< IDO_API_PROTOCOL << ": " << IDO_API_PROTOVERSION << "\n"
-		<< IDO_API_AGENT << ": " << "I2 COMPAT-IDO" << "\n"
-		<< IDO_API_AGENTVERSION << ": " << "2.0" << "\n"
-		<< IDO_API_STARTTIME << ": " << now << "\n"
-		<< IDO_API_DISPOSITION << ": " << IDO_API_DISPOSITION_REALTIME << "\n"
-		<< IDO_API_CONNECTION << ": " << IDO_API_CONNECTION_TCPSOCKET << "\n"
-		<< IDO_API_INSTANCENAME << ": " << instancename << "\n"
-		<< IDO_API_STARTDATADUMP
+		<< "HELLO" << "\n"
+		<< "PROTOCOL" << ": " << 2 << "\n"
+		<< "AGENT" << ": " << "I2 COMPATIDO" << "\n"
+		<< "AGENTVERSION" << ": " << "2.0" << "\n"
+		<< "STARTTIME" << ": " << now << "\n"
+		<< "DISPOSITION" << ": " << "REALTIME" << "\n"
+		<< "CONNECTION" << ": " << "TCPSOCKET" << "\n"
+		<< "INSTANCENAME" << ": " << instancename << "\n"
+		<< "STARTDATADUMP"
 		<< "\n\n";
 
 	m_IdoSocket->SendMessage(message.str());
@@ -187,9 +187,9 @@ void CompatIdoComponent::GoodByeSink()
 
         stringstream message;
         message << "\n"
-                << IDO_API_ENDDATADUMP << "\n"
-                << IDO_API_ENDTIME << ": " << now << "\n"
-		<< IDO_API_GOODBYE
+                << 1000 << "\n" 				/* enddatadump */
+                << "ENDTIME" << ": " << now << "\n"		/* endtime */
+		<< "GOODBYE"					/* goodbye */
                 << "\n\n";
 
         m_IdoSocket->SendMessage(message.str());
@@ -214,10 +214,10 @@ void CompatIdoComponent::StartConfigDump()
 	/* IDOMOD_CONFIG_DUMP_ORIGINAL=1 is the default config type */
 	stringstream message;
 	message << "\n\n"
-		<< IDO_API_STARTCONFIGDUMP << ":" << "\n"
-		<< IDO_DATA_CONFIGDUMPTYPE << "=" << 1 << "\n"
-		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
-		<< IDO_API_ENDDATA
+		<< 900 << ":" << "\n"					/* startconfigdump */
+		<< 245 << "=" << 1 << "\n"				/* configdumptype */
+		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 999							/* enddata */
 		<< "\n\n";
 
 	m_IdoSocket->SendMessage(message.str());
@@ -233,9 +233,9 @@ void CompatIdoComponent::EndConfigDump()
 
         stringstream message;
         message << "\n\n"
-                << IDO_API_ENDCONFIGDUMP << ":" << "\n"
-                << IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
-                << IDO_API_ENDDATA
+                << 901 << ":" << "\n"					/* endconfigdump */
+                << 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+                << 999							/* enddata */
                 << "\n\n";
 
         m_IdoSocket->SendMessage(message.str());
@@ -251,71 +251,71 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 
 	stringstream message;
 	message << "\n"
-		<< IDO_API_HOSTDEFINITION << ":" << "\n"
-		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
-		<< IDO_DATA_HOSTNAME << "=" << host->GetName() << "\n"	
-		<< IDO_DATA_DISPLAYNAME << "=" << host->GetAlias() << "\n"	
-		<< IDO_DATA_HOSTALIAS << "=" << host->GetAlias() << "\n"	
-		<< IDO_DATA_HOSTADDRESS << "=" << "" << "\n"	
-		<< IDO_DATA_HOSTADDRESS6 << "=" << "" << "\n"	
-		<< IDO_DATA_HOSTCHECKCOMMAND << "=" << "" << "\n"	
-		<< IDO_DATA_HOSTEVENTHANDLER << "=" << "" << "\n"	
-		<< IDO_DATA_HOSTNOTIFICATIONPERIOD << "=" << "" << "\n"	
-		<< IDO_DATA_HOSTCHECKPERIOD << "=" << "" << "\n"	
-		<< IDO_DATA_HOSTFAILUREPREDICTIONOPTIONS << "=" << "" << "\n"	
-		<< IDO_DATA_HOSTCHECKINTERVAL << "=" << 1 << "\n"	
-		<< IDO_DATA_HOSTRETRYINTERVAL << "=" << 1 << "\n"	
-		<< IDO_DATA_HOSTMAXCHECKATTEMPTS << "=" << 1 << "\n"	
-		<< IDO_DATA_FIRSTNOTIFICATIONDELAY << "=" << 0 << "\n"	
-		<< IDO_DATA_HOSTNOTIFICATIONINTERVAL << "=" << 0 << "\n"	
-		<< IDO_DATA_NOTIFYHOSTDOWN << "=" << 0 << "\n"	
-		<< IDO_DATA_NOTIFYHOSTUNREACHABLE << "=" << 0 << "\n"	
-		<< IDO_DATA_NOTIFYHOSTRECOVERY << "=" << 0 << "\n"	
-		<< IDO_DATA_NOTIFYHOSTFLAPPING << "=" << 0 << "\n"	
-		<< IDO_DATA_NOTIFYHOSTDOWNTIME << "=" << 0 << "\n"	
-		<< IDO_DATA_HOSTFLAPDETECTIONENABLED << "=" << 0 << "\n"	
-		<< IDO_DATA_FLAPDETECTIONONUP << "=" << 0 << "\n"	
-		<< IDO_DATA_FLAPDETECTIONOIDOWN << "=" << 0 << "\n"	
-		<< IDO_DATA_FLAPDETECTIONONUNREACHABLE << "=" << 0 << "\n"	
-		<< IDO_DATA_LOWHOSTFLAPTHRESHOLD << "=" << 0 << "\n"	
-		<< IDO_DATA_HIGHHOSTFLAPTHRESHOLD << "=" << 0 << "\n"	
-		<< IDO_DATA_STALKHOSTONUP << "=" << 0 << "\n"	
-		<< IDO_DATA_STALKHOSTOIDOWN << "=" << 0 << "\n"	
-		<< IDO_DATA_STALKHOSTONUNREACHABLE << "=" << 0 << "\n"	
-		<< IDO_DATA_HOSTFRESHNESSCHECKSENABLED << "=" << 0 << "\n"	
-		<< IDO_DATA_HOSTFRESHNESSTHRESHOLD << "=" << 0 << "\n"	
-		<< IDO_DATA_PROCESSHOSTPERFORMANCEDATA << "=" << 1 << "\n"	
-		<< IDO_DATA_ACTIVEHOSTCHECKSENABLED << "=" << 1 << "\n"	
-		<< IDO_DATA_PASSIVEHOSTCHECKSENABLED << "=" << 1 << "\n"	
-		<< IDO_DATA_HOSTEVENTHANDLERENABLED << "=" << 0 << "\n"	
-		<< IDO_DATA_RETAINHOSTSTATUSINFORMATION << "=" << 1 << "\n"	
-		<< IDO_DATA_RETAINHOSTNONSTATUSINFORMATION << "=" << 1 << "\n"	
-		<< IDO_DATA_HOSTNOTIFICATIONSENABLED << "=" << 1 << "\n"	
-		<< IDO_DATA_HOSTFAILUREPREDICTIONENABLED << "=" << 0 << "\n"	
-		<< IDO_DATA_OBSESSOVERHOST << "=" << 0 << "\n"	
-		<< IDO_DATA_NOTES << "=" << "i2_notes" << "\n"	
-		<< IDO_DATA_NOTESURL << "=" << "" << "\n"	
-		<< IDO_DATA_ACTIONURL << "=" << "" << "\n"	
-		<< IDO_DATA_ICONIMAGE << "=" << "" << "\n"	
-		<< IDO_DATA_ICONIMAGEALT << "=" << "" << "\n"	
-		<< IDO_DATA_VRMLIMAGE << "=" << "" << "\n"	
-		<< IDO_DATA_STATUSMAPIMAGE << "=" << "" << "\n"	
-		<< IDO_DATA_HAVE2DCOORDS << "=" << 0 << "\n"	
-		<< IDO_DATA_X2D << "=" << 0.0 << "\n"	
-		<< IDO_DATA_Y2D << "=" << 0.0 << "\n"	
-		<< IDO_DATA_HAVE3DCOORDS << "=" << 0 << "\n"	
-		<< IDO_DATA_X3D << "=" << 0.0 << "\n"	
-		<< IDO_DATA_Y3D << "=" << 0.0 << "\n"	
-		<< IDO_DATA_Z3D<< "=" << 0.0 << "\n"
+		<< 400 << ":" << "\n"					/* hostdefinition */
+		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 174 << "=" << host->GetName() << "\n"		/* hostname */
+		<< 258 << "=" << host->GetAlias() << "\n"		/* displayname */
+		<< 159 << "=" << host->GetAlias() << "\n"		/* hostalias */
+		<< 158 << "=" << "" << "\n"				/* hostaddress */
+		<< 266 << "=" << "" << "\n"				/* hostaddress6 */
+		<< 160 << "=" << "" << "\n"				/* hostcheckcommand */
+		<< 163 << "=" << "" << "\n"				/* hosteventhandler */
+		<< 177 << "=" << "" << "\n"				/* hostnotificationperiod */
+		<< 162 << "=" << "" << "\n"				/* hostcheckperiod */
+		<< 166 << "=" << "" << "\n"				/* hostfailurepredictionoptions */
+		<< 161 << "=" << 1 << "\n"				/* hostcheckinterval */
+		<< 247 << "=" << 1 << "\n"				/* hostretryinterval */
+		<< 173 << "=" << 1 << "\n"				/* hostmaxcheckattempts */
+		<< 246 << "=" << 0 << "\n"				/* firstnotificationdelay */
+		<< 176 << "=" << 0 << "\n"				/* hostnotificationinterval */
+		<< 189 << "=" << 0 << "\n"				/* notifyhostdown */
+		<< 192 << "=" << 0 << "\n"				/* notifyhostunreachable */
+		<< 191 << "=" << 0 << "\n"				/* notifyhostrecovery */
+		<< 190 << "=" << 0 << "\n"				/* notifyhostflapping */
+		<< 248 << "=" << 0 << "\n"				/* notifyhostdowntime */
+		<< 167 << "=" << 0 << "\n"				/* hostflapdetectionenabled */
+		<< 251 << "=" << 0 << "\n"				/* flaptdetectiononup */
+		<< 252 << "=" << 0 << "\n"				/* flapdetectionoidown */
+		<< 253 << "=" << 0 << "\n"				/* flapdetectiononunreachable */
+		<< 183 << "=" << 0 << "\n"				/* lowhostflatthreshold */
+		<< 156 << "=" << 0 << "\n"				/* highhostflapthreshold */
+		<< 230 << "=" << 0 << "\n"				/* stalkhostonup */
+		<< 228 << "=" << 0 << "\n"				/* stalkhostoidown */
+		<< 229 << "=" << 0 << "\n"				/* stalkhostonunreachable */
+		<< 168 << "=" << 0 << "\n"				/* hostfreshnesschecksenable */
+		<< 169 << "=" << 0 << "\n"				/* hostfreshnessthreshold */
+		<< 201 << "=" << 1 << "\n"				/* processhostperformancedata */
+		<< 8 << "=" << 1 << "\n"				/* activehostchecksenabled */
+		<< 96 << "=" << 1 << "\n"				/* passivehostchecksenabled */
+		<< 164 << "=" << 0 << "\n"				/* hosteventhanderenabled */
+		<< 204 << "=" << 1 << "\n"				/* retainhoststatusinformation */
+		<< 203 << "=" << 1 << "\n"				/* retainnonhoststatusinformation */
+		<< 178 << "=" << 1 << "\n"				/* hostnotificationsenabled */
+		<< 165 << "=" << 0 << "\n"				/* hostfailurepredictionenabled */
+		<< 91 << "=" << 0 << "\n"				/* obsessoverhost */
+		<< 186 << "=" << "i2_notes" << "\n"			/* notes */
+		<< 187 << "=" << "" << "\n"				/* notesurl */
+		<< 126 << "=" << "" << "\n"				/* actionurl */
+		<< 179 << "=" << "" << "\n"				/* iconimage */
+		<< 180 << "=" << "" << "\n"				/* iconimagealt */
+		<< 239 << "=" << "" << "\n"				/* vrmlimage */
+		<< 235 << "=" << "" << "\n"				/* statusmapimage */
+		<< 154 << "=" << 0 << "\n"				/* have2dcoords */
+		<< 240 << "=" << 0.0 << "\n"				/* x2d */
+		<< 242 << "=" << 0.0 << "\n"				/* y2d */
+		<< 155 << "=" << 0 << "\n"				/* have3dcoords */
+		<< 241 << "=" << 0.0 << "\n"				/* x3d */
+		<< 243 << "=" << 0.0 << "\n"				/* y3d */
+		<< 244<< "=" << 0.0 << "\n"				/* z3d */
 		/* FIXME add more related config items
 	 	* parents, contactgroups, contacts, custom vars
 	 	* before sending the message
 	 	*/
-		<< IDO_DATA_PARENTHOST << "=" << "i2_parent" << "\n"
-		<< IDO_DATA_CONTACTGROUP << "=" << "i2_contactgroup" << "\n"
-		<< IDO_DATA_CONTACT << "=" << "i2_contact" << "\n"
-                << IDO_DATA_CUSTOMVARIABLE << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"
-                << IDO_API_ENDDATA << "\n\n";
+		<< 200 << "=" << "i2_parent" << "\n"			/* parenthost */
+		<< 130 << "=" << "i2_contactgroup" << "\n"		/* contactgroup */
+		<< 264 << "=" << "i2_contact" << "\n"			/* contact */
+                << 262 << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"	/* customvariable */
+                << 999 << "\n\n";					/* enddata */
 
 
 
@@ -341,58 +341,58 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 
         stringstream message;
         message << "\n"
-		<< IDO_API_HOSTSTATUSDATA << ":" << "\n"
-		<< IDO_DATA_TYPE << "=" << "" << "\n"
-		<< IDO_DATA_FLAGS << "=" << "" << "\n"
-		<< IDO_DATA_ATTRIBUTES << "=" << "" << "\n"
-		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
-		<< IDO_DATA_HOST << "=" << host->GetName() << "\n"
-		<< IDO_DATA_OUTPUT << "=" << "" << "\n"
-		<< IDO_DATA_LONGOUTPUT << "=" << "" << "\n"
-		<< IDO_DATA_PERFDATA << "=" << "" << "\n"
-		<< IDO_DATA_CURRENTSTATE << "=" << "" << "\n"
-		<< IDO_DATA_HASBEENCHECKED << "=" << 1 << "\n"
-		<< IDO_DATA_SHOULDBESCHEDULED << "=" << 1 << "\n"
-		<< IDO_DATA_CURRENTCHECKATTEMPT << "=" << 1 << "\n"
-		<< IDO_DATA_MAXCHECKATTEMPTS << "=" << 1 << "\n"
-		<< IDO_DATA_LASTHOSTCHECK << "=" << Utility::GetTime() << "\n"
-		<< IDO_DATA_NEXTHOSTCHECK << "=" << Utility::GetTime() << "\n"
-		<< IDO_DATA_CHECKTYPE << "=" << "" << "\n"
-		<< IDO_DATA_LASTSTATECHANGE << "=" << "" << "\n"
-		<< IDO_DATA_LASTHARDSTATECHANGE << "=" << "" << "\n"
-		<< IDO_DATA_LASTHARDSTATE << "=" << "" << "\n"
-		<< IDO_DATA_LASTTIMEUP << "=" << "" << "\n"
-		<< IDO_DATA_LASTTIMEDOWN << "=" << "" << "\n"
-		<< IDO_DATA_LASTTIMEUNREACHABLE << "=" << "" << "\n"
-		<< IDO_DATA_STATETYPE << "=" << "" << "\n"
-		<< IDO_DATA_LASTHOSTNOTIFICATION << "=" << "" << "\n"
-		<< IDO_DATA_NEXTHOSTNOTIFICATION << "=" << "" << "\n"
-		<< IDO_DATA_NOMORENOTIFICATIONS << "=" << 0 << "\n"
-		<< IDO_DATA_NOTIFICATIONSENABLED << "=" << 0 << "\n"
-		<< IDO_DATA_PROBLEMHASBEENACKNOWLEDGED << "=" << 0 << "\n"
-		<< IDO_DATA_ACKNOWLEDGEMENTTYPE << "=" << "" << "\n"
-		<< IDO_DATA_CURRENTNOTIFICATIONNUMBER << "=" << 0 << "\n"
-		<< IDO_DATA_PASSIVEHOSTCHECKSENABLED << "=" << 1 << "\n"
-		<< IDO_DATA_EVENTHANDLERENABLED << "=" << "" << "\n"
-		<< IDO_DATA_ACTIVEHOSTCHECKSENABLED << "=" << "" << "\n"
-		<< IDO_DATA_FLAPDETECTIONENABLED << "=" << "" << "\n"
-		<< IDO_DATA_ISFLAPPING << "=" << "" << "\n"
-		<< IDO_DATA_PERCENTSTATECHANGE << "=" << "" << "\n"
-		<< IDO_DATA_LATENCY << "=" << "" << "\n"
-		<< IDO_DATA_EXECUTIONTIME << "=" << "" << "\n"
-		<< IDO_DATA_SCHEDULEDDOWNTIMEDEPTH << "=" << 0 << "\n"
-		<< IDO_DATA_FAILUREPREDICTIONENABLED << "=" << "" << "\n"
-		<< IDO_DATA_PROCESSPERFORMANCEDATA << "=" << 1 << "\n"
-		<< IDO_DATA_OBSESSOVERHOST << "=" << 0 << "\n"
-		<< IDO_DATA_MODIFIEDHOSTATTRIBUTES << "=" << "" << "\n"
-		<< IDO_DATA_EVENTHANDLER << "=" << "" << "\n"
-		<< IDO_DATA_CHECKCOMMAND << "=" << "i2_virtual_check" << "\n"
-		<< IDO_DATA_NORMALCHECKINTERVAL << "=" << "" << "\n"
-		<< IDO_DATA_RETRYCHECKINTERVAL << "=" << "" << "\n"
-		<< IDO_DATA_HOSTCHECKPERIOD << "=" << "" << "\n"
+		<< 212 << ":" << "\n"					/* hoststatusdata */
+		<< 1 << "=" << "" << "\n"				/* type */
+		<< 2 << "=" << "" << "\n"				/* flags */
+		<< 3 << "=" << "" << "\n"				/* attributes */
+		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 53 << "=" << host->GetName() << "\n"			/* host */
+		<< 95 << "=" << "" << "\n"				/* output */
+		<< 125 << "=" << "" << "\n"				/* longout */
+		<< 99 << "=" << "" << "\n"				/* perfdata */
+		<< 27 << "=" << "" << "\n"				/* currentstate */
+		<< 51 << "=" << 1 << "\n"				/* hasbeenchecked */
+		<< 115 << "=" << 1 << "\n"				/* shouldbescheduled */
+		<< 25 << "=" << 1 << "\n"				/* currentcheckattempt */
+		<< 76 << "=" << 1 << "\n"				/* maxcheckattempts */
+		<< 58 << "=" << Utility::GetTime() << "\n"		/* lasthostcheck */
+		<< 81 << "=" << Utility::GetTime() << "\n"		/* nexthostcheck */
+		<< 12 << "=" << "" << "\n"				/* checktype */
+		<< 63 << "=" << "" << "\n"				/* laststatechange */
+		<< 57 << "=" << "" << "\n"				/* lasthardstatechange */
+		<< 56 << "=" << "" << "\n"				/* lasthardstate */
+		<< 69 << "=" << "" << "\n"				/* lasttimeup */
+		<< 65 << "=" << "" << "\n"				/* lasttimedown */
+		<< 68 << "=" << "" << "\n"				/* lastttimeunreachable */
+		<< 121 << "=" << "" << "\n"				/* statetype */
+		<< 59 << "=" << "" << "\n"				/* lasthostnotification */
+		<< 82 << "=" << "" << "\n"				/* nexthostnotification */
+		<< 85 << "=" << 0 << "\n"				/* nomorenotifications */
+		<< 88 << "=" << 0 << "\n"				/* notificationsenabled */
+		<< 101 << "=" << 0 << "\n"				/* problemhasbeenacknowledged */
+		<< 7 << "=" << "" << "\n"				/* acknowledgementtype */
+		<< 26 << "=" << 0 << "\n"				/* currentnotificationnumber */
+		<< 96 << "=" << 1 << "\n"				/* passivehostchecksenabled */
+		<< 38 << "=" << "" << "\n"				/* eventhandlerenabled */
+		<< 8 << "=" << "" << "\n"				/* activehostchecksenabled */
+		<< 47 << "=" << "" << "\n"				/* flapdetectionenabled */
+		<< 54 << "=" << "" << "\n"				/* isflapping */
+		<< 98 << "=" << "" << "\n"				/* percentstatechange */
+		<< 71 << "=" << "" << "\n"				/* latency */
+		<< 42 << "=" << "" << "\n"				/* executiontime */
+		<< 113 << "=" << 0 << "\n"				/* scheduleddowntimedepth */
+		<< 45 << "=" << "" << "\n"				/* failurepredictionsenabled */
+		<< 103 << "=" << 1 << "\n"				/* processperformancedata */
+		<< 91 << "=" << 0 << "\n"				/* obsessoverhost */
+		<< 78 << "=" << "" << "\n"				/* modifiedattributes */
+		<< 37 << "=" << "" << "\n"				/* eventhandler */
+		<< 11 << "=" << "i2_virtual_check" << "\n"		/* checkcommand */
+		<< 86 << "=" << "" << "\n"				/* normalcheckinterval */
+		<< 109 << "=" << "" << "\n"				/* retrycheckinterval */
+		<< 162 << "=" << "" << "\n"				/* hostcheckperiod */
 		/* FIXME dump all customvars in a loop */
-		<< IDO_DATA_CUSTOMVARIABLE << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"
-		<< IDO_API_ENDDATA << "\n\n";
+		<< 262 << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"	/* customvariable */
+		<< 999 << "\n\n";					/* enddata */
 
         m_IdoSocket->SendMessage(message.str());
 }
@@ -407,63 +407,63 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 
 	stringstream message;
 	message << "\n"
-		<< IDO_API_SERVICEDEFINITION << ":" << "\n"
-		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
-		<< IDO_DATA_HOSTNAME << "=" << service->GetHost()->GetName() << "\n"
-		<< IDO_DATA_DISPLAYNAME  << "=" << service->GetAlias() << "\n"
-		<< IDO_DATA_SERVICEDESCRIPTION << "=" << service->GetAlias() << "\n"
-		<< IDO_DATA_SERVICECHECKCOMMAND << "=" << "check_i2" << "\n"
-		<< IDO_DATA_SERVICEEVENTHANDLER << "=" << "" << "\n"
-		<< IDO_DATA_SERVICENOTIFICATIONPERIOD << "=" << "" << "\n"
-		<< IDO_DATA_SERVICECHECKPERIOD << "=" << "" << "\n"
-		<< IDO_DATA_SERVICEFAILUREPREDICTIONOPTIONS << "=" << "" << "\n"
-		<< IDO_DATA_SERVICECHECKINTERVAL << "=" << 1 << "\n"
-		<< IDO_DATA_SERVICERETRYINTERVAL << "=" << 1 << "\n"
-		<< IDO_DATA_MAXSERVICECHECKATTEMPTS << "=" << 1 << "\n"
-		<< IDO_DATA_FIRSTNOTIFICATIONDELAY << "=" << 0 << "\n"
-		<< IDO_DATA_SERVICENOTIFICATIONINTERVAL << "=" << 0 << "\n"
-		<< IDO_DATA_NOTIFYSERVICEUNKNOWN << "=" << 0 << "\n"
-		<< IDO_DATA_NOTIFYSERVICEWARNING << "=" << 0 << "\n"
-		<< IDO_DATA_NOTIFYSERVICECRITICAL << "=" << 0 << "\n"
-		<< IDO_DATA_NOTIFYSERVICERECOVERY << "=" << 0 << "\n"
-		<< IDO_DATA_NOTIFYSERVICEFLAPPING << "=" << 0 << "\n"
-		<< IDO_DATA_NOTIFYSERVICEDOWNTIME << "=" << 0 << "\n"
-		<< IDO_DATA_STALKSERVICEONOK << "=" << 0 << "\n"
-		<< IDO_DATA_STALKSERVICEONWARNING << "=" << 0 << "\n"
-		<< IDO_DATA_STALKSERVICEONUNKNOWN << "=" << 0 << "\n"
-		<< IDO_DATA_STALKSERVICEONCRITICAL << "=" << 0 << "\n"
-		<< IDO_DATA_SERVICEISVOLATILE << "=" << 0 << "\n"
-		<< IDO_DATA_SERVICEFLAPDETECTIONENABLED << "=" << 0 << "\n"
-		<< IDO_DATA_FLAPDETECTIONONOK << "=" << 0 << "\n"
-		<< IDO_DATA_FLAPDETECTIONONWARNING << "=" << 0 << "\n"
-		<< IDO_DATA_FLAPDETECTIONONUNKNOWN << "=" << 0 << "\n"
-		<< IDO_DATA_FLAPDETECTIONONCRITICAL << "=" << 0 << "\n"
-		<< IDO_DATA_LOWSERVICEFLAPTHRESHOLD << "=" << 0 << "\n"
-		<< IDO_DATA_HIGHSERVICEFLAPTHRESHOLD << "=" << 0 << "\n"
-		<< IDO_DATA_PROCESSSERVICEPERFORMANCEDATA << "=" << 1 << "\n"
-		<< IDO_DATA_SERVICEFRESHNESSCHECKSENABLED << "=" << 0 << "\n"
-		<< IDO_DATA_SERVICEFRESHNESSTHRESHOLD << "=" << 0 << "\n"
-		<< IDO_DATA_PASSIVESERVICECHECKSENABLED << "=" << 1 << "\n"
-		<< IDO_DATA_SERVICEEVENTHANDLERENABLED << "=" << 0 << "\n"
-		<< IDO_DATA_ACTIVESERVICECHECKSENABLED << "=" << 1 << "\n"
-		<< IDO_DATA_RETAINSERVICESTATUSINFORMATION << "=" << 1 << "\n"
-		<< IDO_DATA_RETAINSERVICENONSTATUSINFORMATION << "=" << 1 << "\n"
-		<< IDO_DATA_SERVICENOTIFICATIONSENABLED << "=" << 0 << "\n"
-		<< IDO_DATA_OBSESSOVERSERVICE << "=" << 0 << "\n"
-		<< IDO_DATA_SERVICEFAILUREPREDICTIONENABLED << "=" << 0 << "\n"
-		<< IDO_DATA_NOTES << "=" << "i2_notes" << "\n"
-		<< IDO_DATA_NOTESURL << "=" << "" << "\n"
-		<< IDO_DATA_ACTIONURL << "=" << "" << "\n"
-		<< IDO_DATA_ICONIMAGE << "=" << "" << "\n"
-		<< IDO_DATA_ICONIMAGEALT << "=" << "" << "\n"
+		<< 402 << ":" << "\n"					/* servicedefinition */
+		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 174 << "=" << service->GetHost()->GetName() << "\n"	/* hostname */
+		<< 258  << "=" << service->GetAlias() << "\n"		/* displayname */
+		<< 210 << "=" << service->GetAlias() << "\n"		/* servicedescription */
+		<< 207 << "=" << "check_i2" << "\n"			/* servicecheckcommand */
+		<< 211 << "=" << "" << "\n"				/* serviceeventhandler */
+		<< 224 << "=" << "" << "\n"				/* servicenotificationperiod */
+		<< 209 << "=" << "" << "\n"				/* servicecheckperiod */
+		<< 214 << "=" << "" << "\n"				/* servicefailurepredictionoptions */
+		<< 208 << "=" << 1 << "\n"				/* servicecheckinterval */
+		<< 226 << "=" << 1 << "\n"				/* serviceretryinterval */
+		<< 185 << "=" << 1 << "\n"				/* maxservicecheckattempts */
+		<< 246 << "=" << 0 << "\n"				/* firstnotificationdelay */
+		<< 223 << "=" << 0 << "\n"				/* servicenotificationinterval */
+		<< 196 << "=" << 0 << "\n"				/* notifyserviceunknown */
+		<< 197 << "=" << 0 << "\n"				/* notifyservicewarning */
+		<< 193 << "=" << 0 << "\n"				/* notifyservicecritical */
+		<< 195 << "=" << 0 << "\n"				/* notifyservicerecovery */
+		<< 194 << "=" << 0 << "\n"				/* notifyserviceflapping */
+		<< 249 << "=" << 0 << "\n"				/* notifyservicedowntime */
+		<< 232 << "=" << 0 << "\n"				/* stalkserviceonok */
+		<< 234 << "=" << 0 << "\n"				/* stalkserviceonwarning */
+		<< 233 << "=" << 0 << "\n"				/* stalkserviceonunknown */
+		<< 231 << "=" << 0 << "\n"				/* stalkserviceoncritical */
+		<< 221 << "=" << 0 << "\n"				/* serviceisvolatile */
+		<< 215 << "=" << 0 << "\n"				/* serviceflapdetectionenabled */
+		<< 254 << "=" << 0 << "\n"				/* flapdetectiononok */
+		<< 255 << "=" << 0 << "\n"				/* flapdetectiononwarning */
+		<< 256 << "=" << 0 << "\n"				/* flapdetectiononunknown */
+		<< 257 << "=" << 0 << "\n"				/* flapdetectiononcritical */
+		<< 184 << "=" << 0 << "\n"				/* lowserviceflapthreshold */
+		<< 157 << "=" << 0 << "\n"				/* highserviceflapthreshold */
+		<< 202 << "=" << 1 << "\n"				/* processserviceperformancedata */
+		<< 216 << "=" << 0 << "\n"				/* servicefreshnesschecksenabled */
+		<< 217 << "=" << 0 << "\n"				/* servicefreshnessthreshold */
+		<< 97 << "=" << 1 << "\n"				/* passiveservicechecksenabled */
+		<< 212 << "=" << 0 << "\n"				/* serviceeventhandlerenabled */
+		<< 9 << "=" << 1 << "\n"				/* activeservicechecksenabled */
+		<< 206 << "=" << 1 << "\n"				/* retainservicestatusinformation */
+		<< 205 << "=" << 1 << "\n"				/* retainservicenonstatusinformation */
+		<< 225 << "=" << 0 << "\n"				/* servicenotificationsenabled */
+		<< 93 << "=" << 0 << "\n"				/* obsessoverservice */
+		<< 213 << "=" << 0 << "\n"				/* servicefailurepredictionenabled */
+		<< 186 << "=" << "i2_notes" << "\n"			/* notes */
+		<< 187 << "=" << "" << "\n"				/* notesurl */
+		<< 126 << "=" << "" << "\n"				/* actionurl */
+		<< 179 << "=" << "" << "\n"				/* iconimage */
+		<< 180 << "=" << "" << "\n"				/* iconimagealt */
 		/* FIXME add more related config items
 	 	* contactgroups, contacts, custom vars
 	 	* before sending the message, in a loop
 	 	*/
-		<< IDO_DATA_CONTACTGROUP << "=" << "i2_contactgroup" << "\n"
-		<< IDO_DATA_CONTACT << "=" << "i2_contact" << "\n"
-		<< IDO_DATA_CUSTOMVARIABLE << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"
-		<< IDO_API_ENDDATA << "\n\n";
+		<< 130 << "=" << "i2_contactgroup" << "\n"		/* contactgroup */
+		<< 264 << "=" << "i2_contact" << "\n"			/* contact */
+		<< 262 << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"	/* customvariable */
+		<< 999 << "\n\n";					/* enddata */
 
         m_IdoSocket->SendMessage(message.str());
 }
@@ -501,60 +501,60 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 
         stringstream message;
         message << "\n"
-                << IDO_API_SERVICESTATUSDATA << ":" << "\n"
-		<< IDO_DATA_TYPE << "=" << "" << "\n"
-		<< IDO_DATA_FLAGS << "=" << "" << "\n"
-		<< IDO_DATA_ATTRIBUTES << "=" << "" << "\n"
-		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
-		<< IDO_DATA_HOST << "=" << service->GetHost()->GetName() << "\n"
-		<< IDO_DATA_SERVICE << "=" << service->GetAlias() << "\n"
-		<< IDO_DATA_OUTPUT << "=" << output << "\n"
-		<< IDO_DATA_LONGOUTPUT << "=" << "" << "\n"
-		<< IDO_DATA_PERFDATA << "=" << perfdata << "\n"
-		<< IDO_DATA_CURRENTSTATE << "=" << state << "\n"
-		<< IDO_DATA_HASBEENCHECKED << "=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
-		<< IDO_DATA_SHOULDBESCHEDULED << "=" << "1" << "\n"
-		<< IDO_DATA_CURRENTCHECKATTEMPT << "=" << service->GetCurrentCheckAttempt() << "\n"
-		<< IDO_DATA_MAXCHECKATTEMPTS << "=" << service->GetMaxCheckAttempts() << "\n"
-		<< IDO_DATA_LASTSERVICECHECK << "=" << schedule_end << "\n"
-		<< IDO_DATA_NEXTSERVICECHECK << "=" << service->GetNextCheck() << "\n"
-		<< IDO_DATA_CHECKTYPE << "=" << "" << "\n"
-		<< IDO_DATA_LASTSTATECHANGE << "=" << service->GetLastStateChange() << "\n"
-		<< IDO_DATA_LASTHARDSTATECHANGE << "=" << service->GetLastHardStateChange() << "\n"
-		<< IDO_DATA_LASTHARDSTATE << "=" << "" << "\n"
-		<< IDO_DATA_LASTTIMEOK << "=" << "" << "\n"
-		<< IDO_DATA_LASTTIMEWARNING << "=" << "" << "\n"
-		<< IDO_DATA_LASTTIMEUNKNOWN << "=" << "" << "\n"
-		<< IDO_DATA_LASTTIMECRITICAL << "=" << "" << "\n"
-		<< IDO_DATA_STATETYPE << "=" << service->GetStateType() << "\n"
-		<< IDO_DATA_LASTSERVICENOTIFICATION << "=" << "" << "\n"
-		<< IDO_DATA_NEXTSERVICENOTIFICATION << "=" << "" << "\n"
-		<< IDO_DATA_NOMORENOTIFICATIONS << "=" << 0 << "\n"
-		<< IDO_DATA_NOTIFICATIONSENABLED << "=" << 0 << "\n"
-		<< IDO_DATA_PROBLEMHASBEENACKNOWLEDGED << "=" << 0 << "\n"
-		<< IDO_DATA_ACKNOWLEDGEMENTTYPE << "=" << "" << "\n"
-		<< IDO_DATA_CURRENTNOTIFICATIONNUMBER << "=" << 0 << "\n"
-		<< IDO_DATA_PASSIVESERVICECHECKSENABLED << "=" << "" << "\n"
-		<< IDO_DATA_EVENTHANDLERENABLED << "=" << "" << "\n"
-		<< IDO_DATA_ACTIVESERVICECHECKSENABLED << "=" << "" << "\n"
-		<< IDO_DATA_FLAPDETECTIONENABLED << "=" << "" << "\n"
-		<< IDO_DATA_ISFLAPPING << "=" << "" << "\n"
-		<< IDO_DATA_PERCENTSTATECHANGE << "=" << "" << "\n"
-		<< IDO_DATA_LATENCY << "=" << latency << "\n"
-		<< IDO_DATA_EXECUTIONTIME << "=" << execution_time << "\n"
-		<< IDO_DATA_SCHEDULEDDOWNTIMEDEPTH << "=" << 0 << "\n"
-		<< IDO_DATA_FAILUREPREDICTIONENABLED << "=" << 0 << "\n"
-		<< IDO_DATA_PROCESSPERFORMANCEDATA << "=" << 1 << "\n"
-		<< IDO_DATA_OBSESSOVERSERVICE << "=" << 0 << "\n"
-		<< IDO_DATA_MODIFIEDSERVICEATTRIBUTES << "=" << 0 << "\n"
-		<< IDO_DATA_EVENTHANDLER << "=" << "" << "\n"
-		<< IDO_DATA_CHECKCOMMAND << "=" << "i2_check_service" << "\n"
-		<< IDO_DATA_NORMALCHECKINTERVAL << "=" << service->GetCheckInterval() / 60.0 << "\n"
-		<< IDO_DATA_RETRYCHECKINTERVAL << "=" << service->GetRetryInterval() / 60.0 << "\n"
-		<< IDO_DATA_SERVICECHECKPERIOD << "=" << "" << "\n"
+                << 213 << ":" << "\n"					/* servicestatusdata */
+		<< 1 << "=" << "" << "\n"				/* type */
+		<< 2 << "=" << "" << "\n"				/* flags */
+		<< 3 << "=" << "" << "\n"				/* attributes */
+		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 53 << "=" << service->GetHost()->GetName() << "\n"	/* host */
+		<< 114 << "=" << service->GetAlias() << "\n"		/* service */
+		<< 95 << "=" << output << "\n"				/* output */
+		<< 125 << "=" << "" << "\n"				/* longoutput */
+		<< 99 << "=" << perfdata << "\n"			/* perfdata */
+		<< 27 << "=" << state << "\n"				/* currentstate */
+		<< 51 << "=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"	/* hasbeenchecked */
+		<< 115 << "=" << "1" << "\n"				/* shouldbescheduled */
+		<< 25 << "=" << service->GetCurrentCheckAttempt() << "\n"	/* currentcheckattempt */
+		<< 76 << "=" << service->GetMaxCheckAttempts() << "\n"	/* maxcheckattempts */
+		<< 61 << "=" << schedule_end << "\n"			/* lastservicecheck */
+		<< 83 << "=" << service->GetNextCheck() << "\n"		/* nextservicecheck */
+		<< 12 << "=" << "" << "\n"				/* checktype */
+		<< 63 << "=" << service->GetLastStateChange() << "\n"	/* laststatechange */
+		<< 57 << "=" << service->GetLastHardStateChange() << "\n"	/* lasthardstatechange */
+		<< 56 << "=" << "" << "\n"				/* lasthardstate */
+		<< 66 << "=" << "" << "\n"				/* lasttimeok */
+		<< 70 << "=" << "" << "\n"				/* lasttimewarning */
+		<< 67 << "=" << "" << "\n"				/* lasttimeunknown */
+		<< 64 << "=" << "" << "\n"				/* lasttimecritical */
+		<< 121 << "=" << service->GetStateType() << "\n"	/* statetype */
+		<< 62 << "=" << "" << "\n"				/* lastservicenotification */
+		<< 84 << "=" << "" << "\n"				/* nextservicenotification */
+		<< 85 << "=" << 0 << "\n"				/* nomorenotifications */
+		<< 88 << "=" << 0 << "\n"				/* notificationsenabled */
+		<< 101 << "=" << 0 << "\n"				/* problemhasbeenacknowledged */
+		<< 7 << "=" << "" << "\n"				/* acknowledgementtype */
+		<< 26 << "=" << 0 << "\n"				/* currentnotifcationnumber */
+		<< 97 << "=" << "" << "\n"				/* passiveservicechecksenabled */
+		<< 38 << "=" << "" << "\n"				/* eventhandlerenabled */
+		<< 9 << "=" << "" << "\n"				/* activeservicechecksenabled */
+		<< 47 << "=" << "" << "\n"				/* flapdetectionenabled */
+		<< 54 << "=" << "" << "\n"				/* isflapping */
+		<< 98 << "=" << "" << "\n"				/* percentstatechange */
+		<< 71 << "=" << latency << "\n"				/* latency */
+		<< 42 << "=" << execution_time << "\n"			/* executiontime */
+		<< 113 << "=" << 0 << "\n"				/* scheduleddowntimedepth */
+		<< 45 << "=" << 0 << "\n"				/* failurepredictionsenabled */
+		<< 103 << "=" << 1 << "\n"				/* processperformancedata */
+		<< 93 << "=" << 0 << "\n"				/* obsessoverservice */
+		<< 80 << "=" << 0 << "\n"				/* modifiedserviceattributes */
+		<< 37 << "=" << "" << "\n"				/* eventhandler */
+		<< 11 << "=" << "i2_check_service" << "\n"		/* checkcommand */
+		<< 86 << "=" << service->GetCheckInterval() / 60.0 << "\n"	/* normalcheckinterval */
+		<< 109 << "=" << service->GetRetryInterval() / 60.0 << "\n"	/* retrycheckinterval */
+		<< 209 << "=" << "" << "\n"				/* servicecheckperiod */
 		/* FIXME dump customvars in a loop */
-		<< IDO_DATA_CUSTOMVARIABLE << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"
-		<< IDO_API_ENDDATA << "\n\n";
+		<< 262 << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"	/* customvariable */
+		<< 999 << "\n\n";					/* enddata */
 
         m_IdoSocket->SendMessage(message.str());
 }
@@ -572,33 +572,33 @@ void CompatIdoComponent::DumpProgramStatusData(void)
 
         stringstream message;
         message << "\n"
-                << IDO_API_PROGRAMSTATUSDATA << ":" << "\n"
-		<< IDO_DATA_TYPE << "=" << "" << "\n"
-		<< IDO_DATA_FLAGS << "=" << "" << "\n"
-		<< IDO_DATA_ATTRIBUTES << "=" << "" << "\n"
-		<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
-		<< IDO_DATA_PROGRAMSTARTTIME << "=" << static_cast<int>(start_time) << "\n"
-		<< IDO_DATA_PROCESSID << "=" << getpid() << "\n"
-		<< IDO_DATA_DAEMONMODE << "=" << "1" << "\n"
-		<< IDO_DATA_LASTCOMMANDCHECK << "=" << "" << "\n"
-		<< IDO_DATA_LASTLOGROTATION << "=" << "" << "\n"
-		<< IDO_DATA_NOTIFICATIONSENABLED << "=" << "" << "\n"
-		<< IDO_DATA_ACTIVESERVICECHECKSENABLED << "=" << "1" << "\n"
-		<< IDO_DATA_PASSIVESERVICECHECKSENABLED << "=" << "1" << "\n"
-		<< IDO_DATA_ACTIVEHOSTCHECKSENABLED << "=" << "0" << "\n"
-		<< IDO_DATA_PASSIVEHOSTCHECKSENABLED << "=" << "0" << "\n"
-		<< IDO_DATA_EVENTHANDLERSENABLED << "=" << "0" << "\n"
-		<< IDO_DATA_FLAPDETECTIONENABLED << "=" << "1" << "\n"
-		<< IDO_DATA_FAILUREPREDICTIONENABLED << "=" << "0" << "\n"
-		<< IDO_DATA_PROCESSPERFORMANCEDATA << "=" << "1" << "\n"
-		<< IDO_DATA_OBSESSOVERHOSTS << "=" << "0" << "\n"
-		<< IDO_DATA_OBSESSOVERSERVICES << "=" << "0" << "\n"
-		<< IDO_DATA_MODIFIEDHOSTATTRIBUTES << "=" << "0" << "\n"
-		<< IDO_DATA_MODIFIEDSERVICEATTRIBUTES << "=" << "0" << "\n"
-		<< IDO_DATA_GLOBALHOSTEVENTHANDLER << "=" << "" << "\n"
-		<< IDO_DATA_GLOBALSERVICEEVENTHANDLER << "=" << "" << "\n"
-		<< IDO_DATA_DISABLED_NOTIFICATIONS_EXPIRE_TIME << "=" << "" << "\n" //XXX supported in 1.8
-                << IDO_API_ENDDATA << "\n\n";
+                << 211 << ":" << "\n"					/* programstatusdata */
+		<< 1 << "=" << "" << "\n"				/* type */
+		<< 2 << "=" << "" << "\n"				/* flags */
+		<< 3 << "=" << "" << "\n"				/* attributes */
+		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 106 << "=" << static_cast<int>(start_time) << "\n"	/* programstarttime */
+		<< 102 << "=" << Utility::GetPid() << "\n"		/* processid */
+		<< 28 << "=" << "1" << "\n"				/* daemonmode */
+		<< 55 << "=" << "" << "\n"				/* lastcommandcheck */
+		<< 60 << "=" << "" << "\n"				/* lastlogrotation */
+		<< 88 << "=" << "" << "\n"				/* notificationsenabled */
+		<< 9 << "=" << "1" << "\n"				/* activeservicechecksenabled */
+		<< 97 << "=" << "1" << "\n"				/* passiveservicechecksenabled */
+		<< 8 << "=" << "0" << "\n"				/* activehostchecksenabled */
+		<< 96 << "=" << "0" << "\n"				/* passivehostchecksenabled */
+		<< 39 << "=" << "0" << "\n"				/* eventhandlersenabled */
+		<< 47 << "=" << "1" << "\n"				/* flaptdetectionenabled */
+		<< 45 << "=" << "0" << "\n"				/* failurepredictionenabled */
+		<< 103 << "=" << "1" << "\n"				/* processperformancedata */
+		<< 92 << "=" << "0" << "\n"				/* obsessoverhosts */
+		<< 94 << "=" << "0" << "\n"				/* obsessoverservices */
+		<< 78 << "=" << "0" << "\n"				/* modifiedhostattributes */
+		<< 80 << "=" << "0" << "\n"				/* modifiedserviceattributes */
+		<< 49 << "=" << "" << "\n"				/* globalhosteventhandler */
+		<< 50 << "=" << "" << "\n"				/* globalserviceeventhandler */
+		<< 270 << "=" << "" << "\n" 				/* disablednotificationsexpiretime - supported in 1.8 XXX */
+                << 999 << "\n\n";					/* enddata */
 
         m_IdoSocket->SendMessage(message.str());
 }
@@ -651,18 +651,14 @@ void CompatIdoComponent::DumpConfigObjects(void)
 
 			stringstream message;
 			message << "\n"
-				<< IDO_API_HOSTGROUPDEFINITION << ":" << "\n"
-				<< IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
-				<< IDO_DATA_HOSTGROUPNAME << "=" << name << "\n"
-				<< IDO_DATA_HOSTGROUPALIAS << "=" << hg->GetAlias() << "\n";
+				<< 401 << ":" << "\n"				/* hostgroupdefinition */
+				<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+				<< 172 << "=" << name << "\n"			/* hostgroupname */
+				<< 170 << "=" << hg->GetAlias() << "\n";	/* hostgroupalias */
 
-			CreateMessageList(message, hosts, IDO_DATA_HOSTGROUPMEMBER);
-			//vector<String>::iterator it;
-			//for (it = hosts.begin(); it != hosts.end(); it++) {
-			//	message << IDO_DATA_HOSTGROUPMEMBER << "=" << *it << "\n";
-			//}
+			CreateMessageList(message, hosts, 171);			/* hostgroupmember */
 				
-			message << IDO_API_ENDDATA << "\n\n";
+			message << 999 << "\n\n";				/* enddata */
 
         		m_IdoSocket->SendMessage(message.str());
 		}
@@ -702,10 +698,10 @@ void CompatIdoComponent::DumpConfigObjects(void)
 
                         stringstream message;
                         message << "\n"
-                                << IDO_API_SERVICEGROUPDEFINITION << ":" << "\n"
-                                << IDO_DATA_TIMESTAMP << "=" << now.tv_sec << "." << now.tv_usec << "\n"
-                                << IDO_DATA_SERVICEGROUPNAME << "=" << name << "\n"
-                                << IDO_DATA_SERVICEGROUPALIAS << "=" << sg->GetAlias() << "\n";
+                                << 403 << ":" << "\n"				/* servicegroupdefinition */
+                                << 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+                                << 220 << "=" << name << "\n"			/* servicegroupname */
+                                << 218 << "=" << sg->GetAlias() << "\n";	/* servicegroupalias */
 
 			vector<String> sglist;
 			vector<Service::Ptr>::iterator vt;
@@ -715,12 +711,9 @@ void CompatIdoComponent::DumpConfigObjects(void)
 				sglist.push_back(service->GetAlias());
 			}
 	
-			CreateMessageList(message, services, IDO_DATA_SERVICEGROUPMEMBER);
-                        //for (vt = sglist.begin(); vt != sglist.end(); vt++) { 
-                        //        message << IDO_DATA_SERVICEGROUPMEMBER << "=" << *vt << "\n";
-                        //}       
+			CreateMessageList(message, services, 219);		/* servicegroupmember */
 
-                        message << IDO_API_ENDDATA << "\n\n";
+                        message << 999 << "\n\n";				/* enddata */
 
         		m_IdoSocket->SendMessage(message.str());
 		}
