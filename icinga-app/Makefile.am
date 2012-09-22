@@ -1,5 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
+SUBDIRS = \
+	config
+
 bin_PROGRAMS = \
 	icinga
 
