@@ -36,6 +36,10 @@ String CompatIdoComponent::GetName(void) const
  */
 void CompatIdoComponent::Start(void)
 {
+	const int StatusTimerInterval = 60;
+	const int ConfigTimerInterval = 3600;
+	const int ProgramStatusTimerInterval = 15;
+
 	/* HINTS - XXX
 	 * - only tcp sockets
 	 * - only icinga idoutils 1.8
@@ -50,19 +54,19 @@ void CompatIdoComponent::Start(void)
 	 * - tcp socket+port
 	 */
 	m_StatusTimer = boost::make_shared<Timer>();
-	m_StatusTimer->SetInterval(15);
+	m_StatusTimer->SetInterval(StatusTimerInterval);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
 
 	m_ConfigTimer = boost::make_shared<Timer>();
-	m_ConfigTimer->SetInterval(15);
+	m_ConfigTimer->SetInterval(ConfigTimerInterval);
 	m_ConfigTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ConfigTimerHandler, this));
 	m_ConfigTimer->Start();
 	m_ConfigTimer->Reschedule(0);
 
 	m_ProgramStatusTimer = boost::make_shared<Timer>();
-	m_ProgramStatusTimer->SetInterval(15);
+	m_ProgramStatusTimer->SetInterval(ProgramStatusTimerInterval);
 	m_ProgramStatusTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ProgramStatusTimerHandler, this));
 	m_ProgramStatusTimer->Start();
 	m_ProgramStatusTimer->Reschedule(0);
