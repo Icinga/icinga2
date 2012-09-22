@@ -30,7 +30,8 @@ using namespace icinga;
 JsonRpcClient::JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
 	: TlsClient(role, sslContext)
 {
-	OnDataAvailable.connect(boost::bind(&JsonRpcClient::DataAvailableHandler, this));
+	OnDataAvailable.connect(boost::bind(&JsonRpcClient::DataAvailableHandler,
+	    this));
 }
 
 /**
@@ -59,12 +60,16 @@ void JsonRpcClient::DataAvailableHandler(void)
 		try {
 			Value value = Value::Deserialize(jsonString);
 
-			if (!value.IsObjectType<Dictionary>())
-				throw_exception(invalid_argument("JSON-RPC message must be a dictionary."));
+			if (!value.IsObjectType<Dictionary>()) {
+				throw_exception(invalid_argument("JSON-RPC"
+				    " message must be a dictionary."));
+			}
 
 			OnNewMessage(GetSelf(), MessagePart(value));
 		} catch (const exception& ex) {
-			Logger::Write(LogCritical, "jsonrpc", "Exception while processing message from JSON-RPC client: " + String(ex.what()));
+			Logger::Write(LogCritical, "remoting", "Exception"
+			    " while processing message from JSON-RPC client: " +
+			    String(ex.what()));
 		}
 	}
 }
@@ -77,9 +82,11 @@ void JsonRpcClient::DataAvailableHandler(void)
  * @param sslContext SSL context for the TLS connection.
  * @returns A new JSON-RPC client.
  */
-JsonRpcClient::Ptr icinga::JsonRpcClientFactory(SOCKET fd, TcpClientRole role, shared_ptr<SSL_CTX> sslContext)
+JsonRpcClient::Ptr icinga::JsonRpcClientFactory(SOCKET fd, TcpClientRole role,
+    shared_ptr<SSL_CTX> sslContext)
 {
-	JsonRpcClient::Ptr client = boost::make_shared<JsonRpcClient>(role, sslContext);
+	JsonRpcClient::Ptr client = boost::make_shared<JsonRpcClient>(role,
+	    sslContext);
 	client->SetFD(fd);
 	return client;
 }

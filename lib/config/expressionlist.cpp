@@ -21,16 +21,32 @@
 
 using namespace icinga;
 
+/**
+ * Adds an expression to an expression list.
+ *
+ * @param expression The expression that should be added.
+ */
 void ExpressionList::AddExpression(const Expression& expression)
 {
 	m_Expressions.push_back(expression);
 }
 
+/**
+ * Returns the number of items currently contained in the expression list.
+ *
+ * @returns The length of the list.
+ */
 size_t ExpressionList::GetLength(void) const
 {
 	return m_Expressions.size();
 }
 
+/**
+ * Executes the expression list.
+ *
+ * @param dictionary The dictionary that should be manipulated by the
+ *		     expressions.
+ */
 void ExpressionList::Execute(const Dictionary::Ptr& dictionary) const
 {
 	BOOST_FOREACH(const Expression& expression, m_Expressions) {

@@ -39,7 +39,7 @@ public:
 
 	TcpServer(void);
 
-	void SetClientFactory(const ClientFactory& function);
+	void SetClientFactory(const ClientFactory& clientFactory);
 	ClientFactory GetFactoryFunction(void) const;
 
 	void Listen(void);

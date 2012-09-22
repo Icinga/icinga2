@@ -23,6 +23,12 @@
 namespace icinga
 {
 
+/**
+ * A configuration item. Non-abstract configuration items can be used to
+ * create configuration objects at runtime.
+ *
+ * @ingroup config
+ */
 class I2_CONFIG_API ConfigItem : public Object {
 public:
 	typedef shared_ptr<ConfigItem> Ptr;
@@ -46,7 +52,8 @@ public:
 
 	DebugInfo GetDebugInfo(void) const;
 
-	static ConfigItem::Ptr GetObject(const String& type, const String& name);
+	static ConfigItem::Ptr GetObject(const String& type,
+	    const String& name);
 
 	static boost::signal<void (const ConfigItem::Ptr&)> OnCommitted;
 	static boost::signal<void (const ConfigItem::Ptr&)> OnRemoved;
@@ -54,17 +61,20 @@ public:
 private:
 	void CalculateProperties(const Dictionary::Ptr& dictionary) const;
 
-	String m_Type;
-	String m_Name;
+	String m_Type; /**< The object type. */
+	String m_Name; /**< The name. */
 
 	ExpressionList::Ptr m_ExpressionList;
-	vector<String> m_Parents;
-	DebugInfo m_DebugInfo;
+	vector<String> m_Parents; /**< The names of parent configuration
+				       items. */
+	DebugInfo m_DebugInfo; /**< Debug information. */
 
-	DynamicObject::WeakPtr m_DynamicObject;
+	DynamicObject::WeakPtr m_DynamicObject; /**< The instantiated version
+						     of this configuration
+						     item */
 
 	typedef map<pair<String, String>, ConfigItem::Ptr> ItemMap;
-	static ItemMap m_Items;
+	static ItemMap m_Items; /**< All registered configuration items. */
 };
 
 }

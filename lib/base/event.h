@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * A thread-safe event that can be posted to the main thread's event queue.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API Event
 {
 public:

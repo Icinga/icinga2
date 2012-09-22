@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * Debug information for a configuration element.
+ *
+ * @ingroup config
+ */
 struct DebugInfo
 {
 	String Path;
@@ -52,6 +57,13 @@ struct DebugInfo
 	};
 };
 
+/**
+ * Outputs a DebugInfo struct to a stream.
+ *
+ * @param out The output stream.
+ * @param val The DebugInfo struct.
+ * @returns The output stream.
+ */
 inline ostream& operator<<(ostream& out, const DebugInfo& val)
 {
 	out << "in " << val.Path << ": "

@@ -34,6 +34,9 @@ public:
 	typedef shared_ptr<Dictionary> Ptr;
 	typedef weak_ptr<Dictionary> WeakPtr;
 
+	/**
+	 * An iterator that can be used to iterate over dictionary elements.
+	 */
 	typedef map<String, Value>::iterator Iterator;
 
 	Value Get(const char *key) const;
@@ -56,7 +59,7 @@ public:
 	cJSON *ToJson(void) const;
 
 private:
-	map<String, Value> m_Data;
+	map<String, Value> m_Data; /**< The data for the dictionary. */
 };
 
 inline Dictionary::Iterator range_begin(Dictionary::Ptr x)

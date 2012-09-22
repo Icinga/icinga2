@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * A ring buffer that holds a pre-defined number of integers.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API RingBuffer
 {
 public:

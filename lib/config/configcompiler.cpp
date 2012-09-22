@@ -23,38 +23,78 @@ using std::ifstream;
 
 using namespace icinga;
 
-ConfigCompiler::ConfigCompiler(const String& path, istream *input, HandleIncludeFunc includeHandler)
+/**
+ * Constructor for the ConfigCompiler class.
+ *
+ * @param path The path of the configuration file (or another name that
+ *	       identifies the source of the configuration text).
+ * @param input Input stream for the configuration file.
+ * @param includeHandler Handler function for #include directives.
+ */
+ConfigCompiler::ConfigCompiler(const String& path, istream *input,
+    HandleIncludeFunc includeHandler)
 	: m_Path(path), m_Input(input), m_HandleInclude(includeHandler)
 {
 	InitializeScanner();
 }
 
+/**
+ * Destructor for the ConfigCompiler class.
+ */
 ConfigCompiler::~ConfigCompiler(void)
 {
 	DestroyScanner();
 }
 
+/**
+ * Reads data from the input stream. Used internally by the lexer.
+ *
+ * @param buffer Where to store data.
+ * @param max_size The maximum number of bytes to read from the stream.
+ * @returns The actual number of bytes read.
+ */
 size_t ConfigCompiler::ReadInput(char *buffer, size_t max_size)
 {
 	m_Input->read(buffer, max_size);
 	return static_cast<size_t>(m_Input->gcount());
 }
 
+/**
+ * Retrieves the scanner object.
+ *
+ * @returns The scanner object.
+ */
 void *ConfigCompiler::GetScanner(void) const
 {
 	return m_Scanner;
 }
 
+/**
+ * Retrieves the result from the compiler.
+ *
+ * @returns A list of configuration items.
+ */
 vector<ConfigItem::Ptr> ConfigCompiler::GetResult(void) const
 {
 	return m_Result;
 }
 
+/**
+ * Retrieves the path for the input file.
+ *
+ * @returns The path.
+ */
 String ConfigCompiler::GetPath(void) const
 {
 	return m_Path;
 }
 
+/**
+ * Handles an include directive by calling the include handler callback
+ * function.
+ *
+ * @param include The path from the include directive.
+ */
 void ConfigCompiler::HandleInclude(const String& include)
 {
 	String path = Utility::DirName(GetPath()) + "/" + include;
@@ -62,13 +102,27 @@ void ConfigCompiler::HandleInclude(const String& include)
 	std::copy(items.begin(), items.end(), back_inserter(m_Result));
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(const String& path, istream *stream)
+/**
+ * Compiles a stream.
+ *
+ * @param path A name identifying the stream.
+ * @param stream The input stream.
+ * @returns Configuration items.
+ */
+vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(const String& path,
+    istream *stream)
 {
 	ConfigCompiler ctx(path, stream);
 	ctx.Compile();
 	return ctx.GetResult();
 }
 
+/**
+ * Compiles a file.
+ *
+ * @param path The path.
+ * @returns Configuration items.
+ */
 vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const String& path)
 {
 	ifstream stream;
@@ -82,18 +136,38 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const String& path)
 	return CompileStream(path, &stream);
 }
 
-vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const String& path, const String& text)
+/**
+ * Compiles a snippet of text.
+ *
+ * @param path A name identifying the text.
+ * @param text The text.
+ * @returns Configuration items.
+ */
+vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const String& path,
+    const String& text)
 {
 	stringstream stream(text);
 	return CompileStream(path, &stream);
 }
 
+/**
+ * Default include handler. Includes the file and returns a list of
+ * configuration items.
+ *
+ * @param include The path from the include directive.
+ * @returns A list of configuration objects.
+ */
 vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include)
 {
 	/* TODO: implement wildcard includes */
 	return CompileFile(include);
 }
 
+/**
+ * Adds an object to the result.
+ *
+ * @param object The configuration item.
+ */
 void ConfigCompiler::AddObject(const ConfigItem::Ptr& object)
 {
 	m_Result.push_back(object);

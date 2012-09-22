@@ -45,7 +45,7 @@ public:
 	 * Retrieves a property's value.
 	 *
 	 * @param key The name of the property.
-	 * @param[out] The value.
+	 * @param[out] value The value.
 	 * @returns true if the value was retrieved, false otherwise.
 	 */
 	template<typename T>

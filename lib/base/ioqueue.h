@@ -25,6 +25,8 @@ namespace icinga
 
 /**
  * An I/O queue.
+ *
+ * @ingroup base
  */
 class IOQueue
 {
@@ -41,8 +43,8 @@ public:
 	 * to read more data than is available in the queue is a programming error.
 	 * Use GetBytesAvailable() to check how much data is available.
 	 *
-	 * @buffer The buffer where data should be stored. May be NULL if you're
-	 *		 not actually interested in the data.
+	 * @param buffer The buffer where data should be stored. May be NULL if
+	 *		 you're not actually interested in the data.
 	 * @param count The number of bytes to read from the queue.
 	 */
 	virtual void Peek(void *buffer, size_t count) = 0;

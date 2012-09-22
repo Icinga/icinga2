@@ -25,6 +25,11 @@ namespace icinga
 
 class ScriptTask;
 
+/**
+ * A script function that can be used to execute a script task.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API ScriptFunction : public Object
 {
 public:

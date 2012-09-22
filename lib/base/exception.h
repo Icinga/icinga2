@@ -86,6 +86,8 @@ DEFINE_EXCEPTION_CLASS(NotImplementedException);
 #ifdef _WIN32
 /**
  * A Win32 error encapsulated in an exception.
+ *
+ * @ingroup base
  */
 class Win32Exception : public Exception
 {
@@ -112,6 +114,8 @@ public:
 
 /**
  * A Posix error encapsulated in an exception.
+ *
+ * @ingroup base
  */
 class PosixException : public Exception
 {
@@ -137,6 +141,8 @@ public:
 
 /**
  * An OpenSSL error encapsulated in an exception.
+ *
+ * @ingroup base
  */
 class OpenSSLException : public Exception
 {

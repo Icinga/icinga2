@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * A list of configuration expressions.
+ *
+ * @ingroup config
+ */
 class I2_CONFIG_API ExpressionList : public Object
 {
 public:

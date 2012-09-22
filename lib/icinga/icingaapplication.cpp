@@ -28,19 +28,19 @@
 
 using namespace icinga;
 
-const String IcingaApplication::DefaultPidPath = "icinga.pid";
-const String IcingaApplication::DefaultStatePath = "icinga.state";
+const String IcingaApplication::DefaultPidPath = "icinga2.pid";
+const String IcingaApplication::DefaultStatePath = "icinga2.state";
 
 IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
 	: Application(serializedUpdate)
 {
-	/* load cibsync config component */
-	ConfigItemBuilder::Ptr cibsyncComponentConfig = boost::make_shared<ConfigItemBuilder>();
-	cibsyncComponentConfig->SetType("Component");
-	cibsyncComponentConfig->SetName("cibsync");
-	cibsyncComponentConfig->SetLocal(true);
-	cibsyncComponentConfig->Compile()->Commit();
-	cibsyncComponentConfig.reset();
+	/* load replication config component */
+	ConfigItemBuilder::Ptr replicationComponentConfig = boost::make_shared<ConfigItemBuilder>();
+	replicationComponentConfig->SetType("Component");
+	replicationComponentConfig->SetName("replication");
+	replicationComponentConfig->SetLocal(true);
+	replicationComponentConfig->Compile()->Commit();
+	replicationComponentConfig.reset();
 
 	/* load convenience config component */
 	ConfigItemBuilder::Ptr convenienceComponentConfig = boost::make_shared<ConfigItemBuilder>();

@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * Test class for additional check types. Implements the "null" check type.
+ *
+ * @ingroup icinga
+ */
 class I2_ICINGA_API NullCheckTask
 {
 public:

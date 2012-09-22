@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * Interface for application extensions.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API IComponent : public Object
 {
 public:
@@ -36,7 +41,8 @@ protected:
 	DynamicObject::Ptr GetConfig(void) const;
 
 private:
-	DynamicObject *m_Config;
+	DynamicObject *m_Config; /**< The configuration object for this
+				      component. */
 
 	friend class Component;
 };
@@ -59,7 +65,8 @@ public:
 	static void AddSearchDir(const String& componentDirectory);
 
 private:
-	IComponent::Ptr m_Impl;
+	IComponent::Ptr m_Impl; /**< The implementation object for this
+				     component. */
 };
 
 typedef IComponent *(*CreateComponentFunction)(void);

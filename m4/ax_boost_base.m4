@@ -108,7 +108,7 @@ if test "x$want_boost" = "xyes"; then
                 fi
         done
     elif test "$cross_compiling" != yes; then
-        for ac_boost_path_tmp in /usr /usr/local /opt /opt/local "`pwd`/compat" ; do
+        for ac_boost_path_tmp in /usr /usr/local /opt /opt/local /usr/g++ "`pwd`/compat" ; do
             if test -d "$ac_boost_path_tmp/include/boost" && test -r "$ac_boost_path_tmp/include/boost"; then
                 for libsubdir in $libsubdirs ; do
                     if ls "$ac_boost_path_tmp/$libsubdir/libboost_"* >/dev/null 2>&1 ; then break; fi

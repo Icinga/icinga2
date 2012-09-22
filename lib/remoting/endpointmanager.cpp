@@ -258,25 +258,9 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
 	}
 }
 
-/**
- * Calls the specified callback function for each registered endpoint.
- *
- * @param callback The callback function.
- */
-//void EndpointManager::ForEachEndpoint(function<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> callback)
-//{
-//	map<String, Endpoint::Ptr>::iterator prev, i;
-//	for (i = m_Endpoints.begin(); i != m_Endpoints.end(); ) {
-//		prev = i;
-//		i++;
-//
-//		callback(GetSelf(), prev->second);
-//	}
-//}
-
 void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient,
     RequestMessage& message,
-    function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> callback, double timeout)
+    const EndpointManager::APICallback& callback, double timeout)
 {
 	m_NextMessageID++;
 
@@ -322,7 +306,8 @@ void EndpointManager::SubscriptionTimerHandler(void)
 		}
 	}
 
-	m_Endpoint->SetSubscriptions(subscriptions);
+	if (m_Endpoint)
+		m_Endpoint->SetSubscriptions(subscriptions);
 }
 
 void EndpointManager::ReconnectTimerHandler(void)
@@ -354,7 +339,8 @@ void EndpointManager::RequestTimerHandler(void)
 	map<String, PendingRequest>::iterator it;
 	for (it = m_Requests.begin(); it != m_Requests.end(); it++) {
 		if (it->second.HasTimedOut()) {
-			it->second.Callback(GetSelf(), Endpoint::Ptr(), it->second.Request, ResponseMessage(), true);
+			it->second.Callback(GetSelf(), Endpoint::Ptr(),
+			    it->second.Request, ResponseMessage(), true);
 
 			m_Requests.erase(it);
 
@@ -363,7 +349,8 @@ void EndpointManager::RequestTimerHandler(void)
 	}
 }
 
-void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message)
+void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender,
+    const ResponseMessage& message)
 {
 	String id;
 	if (!message.GetID(&id))
@@ -379,16 +366,6 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender, const 
 
 	m_Requests.erase(it);
 }
-
-//EndpointManager::Iterator EndpointManager::Begin(void)
-//{
-//	return m_Endpoints.begin();
-//}
-
-//EndpointManager::Iterator EndpointManager::End(void)
-//{
-//	return m_Endpoints.end();
-//}
 
 EndpointManager::Ptr EndpointManager::GetInstance(void)
 {

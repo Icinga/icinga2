@@ -23,6 +23,12 @@
 namespace icinga
 {
 
+/**
+ * Config item builder. Used to dynamically build configuration objects
+ * at runtime.
+ *
+ * @ingroup config
+ */
 class I2_CONFIG_API ConfigItemBuilder : public Object
 {
 public:
@@ -40,19 +46,21 @@ public:
 	void AddParent(const String& parent);
 
 	void AddExpression(const Expression& expr);
-	void AddExpression(const String& key, ExpressionOperator op, const Value& value);
+	void AddExpression(const String& key, ExpressionOperator op,
+	    const Value& value);
 	void AddExpressionList(const ExpressionList::Ptr& exprl);
 
 	ConfigItem::Ptr Compile(void);
 
 private:
-	String m_Type;
-	String m_Name;
-	bool m_Local;
-	bool m_Abstract;
-	vector<String> m_Parents;
-	ExpressionList::Ptr m_ExpressionList;
-	DebugInfo m_DebugInfo;
+	String m_Type; /**< The object type. */
+	String m_Name; /**< The name. */
+	bool m_Local; /**< Whether the item is local. */
+	bool m_Abstract; /**< Whether the item is abstract. */
+	vector<String> m_Parents; /**< The names of parent configuration
+				       items. */
+	ExpressionList::Ptr m_ExpressionList; /**< Expressions for this item. */
+	DebugInfo m_DebugInfo; /**< Debug information. */
 };
 
 }

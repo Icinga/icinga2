@@ -68,7 +68,8 @@ void ConfigItemBuilder::AddExpression(const Expression& expr)
 	m_ExpressionList->AddExpression(expr);
 }
 
-void ConfigItemBuilder::AddExpression(const String& key, ExpressionOperator op, const Value& value)
+void ConfigItemBuilder::AddExpression(const String& key, ExpressionOperator op,
+    const Value& value)
 {
 	Expression expr(key, op, value, m_DebugInfo);
 	AddExpression(expr);
@@ -101,5 +102,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Expression abstractExpr("__abstract", OperatorSet, m_Abstract, m_DebugInfo);
 	exprl->AddExpression(abstractExpr);
 
-	return boost::make_shared<ConfigItem>(m_Type, m_Name, exprl, m_Parents, m_DebugInfo);
+	return boost::make_shared<ConfigItem>(m_Type, m_Name, exprl, m_Parents,
+	    m_DebugInfo);
 }

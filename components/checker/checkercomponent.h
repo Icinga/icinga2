@@ -23,6 +23,9 @@
 namespace icinga
 {
 
+/**
+ * @ingroup checker
+ */
 struct ServiceNextCheckExtractor
 {
 	typedef double result_type;
@@ -71,10 +74,7 @@ private:
 	void AdjustCheckTimer(void);
 
 	void CheckerChangedHandler(const Service::Ptr& service);
-	void ServiceRemovedHandler(const DynamicObject::Ptr& object);
-
-	//void AssignServiceRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
-	//void ClearServicesRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	void ObjectRemovedHandler(const DynamicObject::Ptr& object);
 };
 
 }

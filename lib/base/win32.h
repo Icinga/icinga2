@@ -35,6 +35,7 @@
 #endif /* __MINGW32__ */
 
 typedef int socklen_t;
+typedef DWORD pid_t;
 
 #define MAXPATHLEN MAX_PATH
 

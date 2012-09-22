@@ -28,7 +28,8 @@ void DemoComponent::Start(void)
 {
 	m_Endpoint = Endpoint::MakeEndpoint("demo", true);
 	m_Endpoint->RegisterTopicHandler("demo::HelloWorld",
-	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2, _3));
+	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2,
+	    _3));
 
 	m_DemoTimer = boost::make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);
@@ -51,20 +52,25 @@ void DemoComponent::Stop(void)
  */
 void DemoComponent::DemoTimerHandler(void)
 {
-	Logger::Write(LogInformation, "demo", "Sending multicast 'hello world' message.");
+	Logger::Write(LogInformation, "demo", "Sending multicast 'hello"
+	    " world' message.");
 
 	RequestMessage request;
 	request.SetMethod("demo::HelloWorld");
 
-	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
+	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
+	    request);
 }
 
 /**
  * Processes demo::HelloWorld messages.
  */
-void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender,
+    const RequestMessage& request)
 {
-	Logger::Write(LogInformation, "demo", "Got 'hello world' from address=" + sender->GetAddress() + ", identity=" + sender->GetName());
+	Logger::Write(LogInformation, "demo", "Got 'hello world' from"
+	    " address=" + sender->GetAddress() + ", identity=" +
+	    sender->GetName());
 }
 
 EXPORT_COMPONENT(demo, DemoComponent);

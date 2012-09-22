@@ -21,10 +21,10 @@
 #define I2ICINGA_H
 
 /**
- * @defgroup icinga Icinga application
+ * @defgroup icinga Icinga library
  *
- * The Icinga application is in charge of boot-strapping the Icinga
- * environment and loading additional components.
+ * The Icinga library implements all Icinga-specific functionality that is
+ * common to all components (e.g. hosts, services, etc.).
  */
 
 #include <i2-base.h>

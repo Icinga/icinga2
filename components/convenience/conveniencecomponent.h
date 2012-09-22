@@ -32,9 +32,8 @@ public:
 	virtual void Start(void);
 
 private:
-	void HostAddedHandler(const ConfigItem::Ptr& item);
-	void HostCommittedHandler(const ConfigItem::Ptr& item);
-	void HostRemovedHandler(const ConfigItem::Ptr& item);
+	void ObjectCommittedHandler(const ConfigItem::Ptr& item);
+	void ObjectRemovedHandler(const ConfigItem::Ptr& item);
 };
 
 }

@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * The type of an attribute for a DynamicObject.
+ *
+ * @ingroup base
+ */
 enum DynamicAttributeType
 {
 	Attribute_Transient = 1,
@@ -43,15 +48,21 @@ enum DynamicAttributeType
 	Attribute_All = Attribute_Transient | Attribute_Local | Attribute_Replicated | Attribute_Config
 };
 
+/**
+ * An attribute for a DynamicObject.
+ *
+ * @ingroup base
+ */
 struct DynamicAttribute
 {
-	Value Data;
-	DynamicAttributeType Type;
-	double Tx;
+	Value Data; /**< The current value of the attribute. */
+	DynamicAttributeType Type; /**< The type of the attribute. */
+	double Tx; /**< The timestamp of the last value change. */
 };
 
 /**
- * A dynamic object that can be instantiated from the configuration file.
+ * A dynamic object that can be instantiated from the configuration file
+ * and that supports attribute replication to remote application instances.
  *
  * @ingroup base
  */
@@ -85,9 +96,6 @@ public:
 	bool HasAttribute(const String& name) const;
 
 	void ClearAttributesByType(DynamicAttributeType type);
-
-	AttributeConstIterator AttributeBegin(void) const;
-	AttributeConstIterator AttributeEnd(void) const;
 
 	static boost::signal<void (const DynamicObject::Ptr&)> OnRegistered;
 	static boost::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
@@ -147,6 +155,11 @@ private:
 	void InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes, bool suppressEvents);
 };
 
+/**
+ * Helper class for registering DynamicObject implementation classes.
+ *
+ * @ingroup base
+ */
 class RegisterClassHelper
 {
 public:
@@ -157,6 +170,11 @@ public:
 	}
 };
 
+/**
+ * Factory function for DynamicObject-based classes.
+ *
+ * @ingroup base
+ */
 template<typename T>
 shared_ptr<T> DynamicObjectFactory(const Dictionary::Ptr& serializedUpdate)
 {

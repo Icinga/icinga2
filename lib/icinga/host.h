@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * An Icinga host.
+ * 
+ * @ingroup icinga
+ */
 class I2_ICINGA_API Host : public DynamicObject
 {
 public:

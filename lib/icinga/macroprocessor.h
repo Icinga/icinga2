@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * Resolves macros.
+ *
+ * @ingroup icinga
+ */
 class I2_ICINGA_API MacroProcessor
 {
 public:

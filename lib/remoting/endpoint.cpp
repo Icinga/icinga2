@@ -28,6 +28,11 @@ boost::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
 boost::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionRegistered;
 boost::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionUnregistered;
 
+/**
+ * Constructor for the Endpoint class.
+ *
+ * @param properties A serialized dictionary containing attributes.
+ */
 Endpoint::Endpoint(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
 {
@@ -38,11 +43,23 @@ Endpoint::Endpoint(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("client", Attribute_Transient);
 }
 
+/**
+ * Checks whether an endpoint with the specified name exists.
+ *
+ * @param name The name of the endpoint.
+ * @returns true if the endpoint exists, false otherwise.
+ */
 bool Endpoint::Exists(const String& name)
 {
 	return (DynamicObject::GetObject("Endpoint", name));
 }
 
+/**
+ * Retrieves an endpoint by name.
+ *
+ * @param name The name of the endpoint.
+ * @returns The endpoint.
+ */
 Endpoint::Ptr Endpoint::GetByName(const String& name)
 {
         DynamicObject::Ptr configObject = DynamicObject::GetObject("Endpoint", name);
@@ -53,6 +70,13 @@ Endpoint::Ptr Endpoint::GetByName(const String& name)
         return dynamic_pointer_cast<Endpoint>(configObject);
 }
 
+/**
+ * Helper function for creating new endpoint objects.
+ *
+ * @param name The name of the new endpoint.
+ * @param local Whether the new endpoint should be local.
+ * @returns The new endpoint.
+ */
 Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool local)
 {
 	ConfigItemBuilder::Ptr endpointConfig = boost::make_shared<ConfigItemBuilder>();
@@ -334,11 +358,21 @@ void Endpoint::ClientClosedHandler(void)
 	OnDisconnected(GetSelf());
 }
 
+/**
+ * Gets the node address for this endpoint.
+ *
+ * @returns The node address (hostname).
+ */
 String Endpoint::GetNode(void) const
 {
 	return Get("node");
 }
 
+/**
+ * Gets the service name for this endpoint.
+ *
+ * @returns The service name (port).
+ */
 String Endpoint::GetService(void) const
 {
 	return Get("service");

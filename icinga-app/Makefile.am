@@ -4,12 +4,12 @@ SUBDIRS = \
 	config
 
 bin_PROGRAMS = \
-	icinga
+	icinga2
 
-icinga_SOURCES = \
+icinga2_SOURCES = \
 	icinga.cpp
 
-icinga_CPPFLAGS = \
+icinga2_CPPFLAGS = \
 	-DI2_ICINGALAUNCHER_BUILD \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
@@ -19,10 +19,10 @@ icinga_CPPFLAGS = \
 	-I${top_srcdir}/lib/icinga \
 	-I${top_srcdir}
 
-icinga_LDFLAGS = \
+icinga2_LDFLAGS = \
 	$(BOOST_LDFLAGS)
 
-icinga_LDADD = \
+icinga2_LDADD = \
 	$(LIBLTDL) \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
@@ -38,6 +38,6 @@ icinga_LDADD = \
 	-dlopen ${top_builddir}/components/delegation/delegation.la \
 	-dlopen ${top_builddir}/components/demo/demo.la
 
-icinga_DEPENDENCIES = \
+icinga2_DEPENDENCIES = \
 	${top_builddir}/components/replication/replication.la \
 	${top_builddir}/components/convenience/convenience.la

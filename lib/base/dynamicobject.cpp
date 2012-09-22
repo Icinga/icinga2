@@ -85,15 +85,18 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 	return update;
 }
 
-void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes)
+void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
+    int allowedTypes)
 {
 	InternalApplyUpdate(serializedUpdate, allowedTypes, false);
 }
 
-void DynamicObject::InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes, bool suppressEvents)
+void DynamicObject::InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate,
+    int allowedTypes, bool suppressEvents)
 {
 	double configTx = 0;
-	if ((allowedTypes & Attribute_Config) != 0 && serializedUpdate->Contains("configTx")) {
+	if ((allowedTypes & Attribute_Config) != 0 &&
+	    serializedUpdate->Contains("configTx")) {
 		configTx = serializedUpdate->Get("configTx");
 
 		if (configTx > m_ConfigTx)
@@ -127,7 +130,8 @@ void DynamicObject::InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 	}
 }
 
-void DynamicObject::RegisterAttribute(const String& name, DynamicAttributeType type)
+void DynamicObject::RegisterAttribute(const String& name,
+    DynamicAttributeType type)
 {
 	DynamicAttribute attr;
 	attr.Type = type;
@@ -155,7 +159,8 @@ Value DynamicObject::Get(const String& name) const
 	return InternalGetAttribute(name);
 }
 
-void DynamicObject::InternalSetAttribute(const String& name, const Value& data, double tx, bool suppressEvent)
+void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
+    double tx, bool suppressEvent)
 {
 	DynamicAttribute attr;
 	attr.Type = Attribute_Transient;
@@ -212,16 +217,6 @@ void DynamicObject::ClearAttributesByType(DynamicAttributeType type)
 
 		at++;
 	}
-}
-
-DynamicObject::AttributeConstIterator DynamicObject::AttributeBegin(void) const
-{
-	return m_Attributes.begin();
-}
-
-DynamicObject::AttributeConstIterator DynamicObject::AttributeEnd(void) const
-{
-	return m_Attributes.end();
 }
 
 String DynamicObject::GetType(void) const
@@ -422,7 +417,8 @@ void DynamicObject::RestoreObjects(const String& filename)
 	std::ifstream fp;
 	fp.open(filename.CStr());
 
-	/* TODO: Fix this horrible mess. */
+	/* TODO: Fix this horrible mess by implementing a class that provides
+	 * IOQueue functionality for files. */
 	FIFO::Ptr fifo = boost::make_shared<FIFO>();
 	while (fp) {
 		char buffer[1024];

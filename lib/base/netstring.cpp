@@ -24,9 +24,9 @@ using namespace icinga;
 /**
  * Reads data from an IOQueue in netString format.
  *
- * @param fifo The IOQueue to read from.
- * @param[out] str The String that has been read from the FIFO.
- * @returns true if a complete String was read from the FIFO, false otherwise.
+ * @param queue The IOQueue to read from.
+ * @param[out] str The String that has been read from the IOQueue.
+ * @returns true if a complete String was read from the IOQueue, false otherwise.
  * @exception invalid_argument The input stream is invalid.
  * @see https://github.com/PeterScott/netString-c/blob/master/netString.c
  */
@@ -104,16 +104,16 @@ bool NetString::ReadStringFromIOQueue(IOQueue *queue, String *str)
 
 	free(buffer);
 
-	/* remove the data from the fifo */
+	/* remove the data from the IOQueue */
 	queue->Read(NULL, buffer_length);
 
 	return true;
 }
 
 /**
- * Writes data into a FIFO using the netString format.
+ * Writes data into an IOQueue using the netString format.
  *
- * @param fifo The FIFO.
+ * @param queue The IOQueue.
  * @param str The String that is to be written.
  */
 void NetString::WriteStringToIOQueue(IOQueue *queue, const String& str)

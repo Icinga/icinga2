@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * The result of a Process task.
+ *
+ * @ingroup base
+ */
 struct ProcessResult
 {
 	double ExecutionStart;
@@ -31,6 +36,12 @@ struct ProcessResult
 	String Output;
 };
 
+/**
+ * A process task. Executes an external application and returns the exit
+ * code and console output.
+ *
+ * @ingroup base
+ */
 class I2_BASE_API Process : public AsyncTask<Process, ProcessResult>
 {
 public:

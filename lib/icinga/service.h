@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * The state of a service.
+ *
+ * @ingroup icinga
+ */
 enum ServiceState
 {
 	StateOK,
@@ -32,6 +37,11 @@ enum ServiceState
 	StateUncheckable,
 };
 
+/**
+ * The state type of a service.
+ *
+ * @ingroup icinga
+ */
 enum ServiceStateType
 {
 	StateTypeSoft,
@@ -41,6 +51,11 @@ enum ServiceStateType
 class CheckResultMessage;
 class ServiceStatusMessage;
 
+/**
+ * An Icinga service.
+ *
+ * @ingroup icinga
+ */
 class I2_ICINGA_API Service : public DynamicObject
 {
 public:

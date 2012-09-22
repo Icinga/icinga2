@@ -35,6 +35,9 @@ public:
 	typedef shared_ptr<AsyncTask<TClass, TResult> > Ptr;
 	typedef weak_ptr<AsyncTask<TClass, TResult> > WeakPtr;
 
+	/**
+	 * A completion callback for an AsyncTask.
+	 */
 	typedef function<void (const shared_ptr<TClass>&)> CompletionCallback;
 
 	/**
@@ -118,6 +121,11 @@ public:
 	}
 
 protected:
+	/**
+	 * Begins executing the task. The Run method must ensure
+	 * that one of the Finish*() functions is executed on the task
+	 * object (possibly after the Run method has returned).
+	 */
 	virtual void Run(void) = 0;
 
 private:

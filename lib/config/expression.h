@@ -23,6 +23,11 @@
 namespace icinga
 {
 
+/**
+ * The operator in a configuration expression.
+ *
+ * @ingroup config
+ */
 enum ExpressionOperator
 {
 	OperatorExecute,
@@ -33,10 +38,16 @@ enum ExpressionOperator
 	OperatorDivide
 };
 
+/**
+ * A configuration expression.
+ *
+ * @ingroup config
+ */
 struct I2_CONFIG_API Expression
 {
 public:
-	Expression(const String& key, ExpressionOperator op, const Value& value, const DebugInfo& debuginfo);
+	Expression(const String& key, ExpressionOperator op, const Value& value,
+	    const DebugInfo& debuginfo);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
 

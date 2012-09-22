@@ -34,9 +34,6 @@
     <ClCompile Include="tcpsocket.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="threadpool.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="timer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -127,9 +124,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="tcpsocket.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="threadpool.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="timer.h">
