@@ -58,7 +58,7 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 	time_t ts = entry.Timestamp;
 	tm tmnow = *localtime(&ts);
 
-	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S", &tmnow);
+	strftime(timestamp, sizeof(timestamp), "%a, %d %b %Y %T %z", &tmnow);
 
 	stream << "[" << timestamp << "] "
 		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "

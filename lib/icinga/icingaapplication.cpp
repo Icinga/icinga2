@@ -41,14 +41,6 @@ IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
 	replicationComponentConfig->SetLocal(true);
 	replicationComponentConfig->Compile()->Commit();
 	replicationComponentConfig.reset();
-
-	/* load convenience config component */
-	ConfigItemBuilder::Ptr convenienceComponentConfig = boost::make_shared<ConfigItemBuilder>();
-	convenienceComponentConfig->SetType("Component");
-	convenienceComponentConfig->SetName("convenience");
-	convenienceComponentConfig->SetLocal(true);
-	convenienceComponentConfig->Compile()->Commit();
-	convenienceComponentConfig.reset();
 }
 
 /**
@@ -163,7 +155,7 @@ int IcingaApplication::Main(const vector<String>& args)
 
 	DumpProgramState();
 
-	Logger::Write(LogInformation, "icinga", "Icinga shutting down.");
+	Logger::Write(LogInformation, "icinga", "Icinga has shut down.");
 
 	return EXIT_SUCCESS;
 }

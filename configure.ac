@@ -71,7 +71,6 @@ components/Makefile
 components/checker/Makefile
 components/compat/Makefile
 components/compatido/Makefile
-components/convenience/Makefile
 components/delegation/Makefile
 components/demo/Makefile
 components/replication/Makefile

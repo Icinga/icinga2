@@ -34,10 +34,8 @@ icinga2_LDADD = \
 	-dlopen ${top_builddir}/components/checker/checker.la \
 	-dlopen ${top_builddir}/components/replication/replication.la \
 	-dlopen ${top_builddir}/components/compat/compat.la \
-	-dlopen ${top_builddir}/components/convenience/convenience.la \
 	-dlopen ${top_builddir}/components/delegation/delegation.la \
 	-dlopen ${top_builddir}/components/demo/demo.la
 
 icinga2_DEPENDENCIES = \
-	${top_builddir}/components/replication/replication.la \
-	${top_builddir}/components/convenience/convenience.la
+	${top_builddir}/components/replication/replication.la

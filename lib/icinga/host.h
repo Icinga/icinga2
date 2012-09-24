@@ -46,6 +46,12 @@ public:
 
 	bool IsReachable(void);
 	bool IsUp(void);
+
+private:
+	static bool m_InitializerDone;
+
+	void ObjectCommittedHandler(const ConfigItem::Ptr& item);
+	void ObjectRemovedHandler(const ConfigItem::Ptr& item);
 };
 
 }
