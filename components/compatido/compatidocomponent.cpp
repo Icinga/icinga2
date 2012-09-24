@@ -211,11 +211,11 @@ void CompatIdoComponent::StartConfigDump()
 	struct timeval now;
 	gettimeofday(&now, NULL);
 
-	/* IDOMOD_CONFIG_DUMP_ORIGINAL=1 is the default config type */
+	/* configtype =1 (original), =2 (retained == default) */
 	stringstream message;
 	message << "\n\n"
 		<< 900 << ":" << "\n"					/* startconfigdump */
-		<< 245 << "=" << 1 << "\n"				/* configdumptype */
+		<< 245 << "=" << "RETAINED" << "\n"			/* configdumptype */
 		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
 		<< 999							/* enddata */
 		<< "\n\n";
