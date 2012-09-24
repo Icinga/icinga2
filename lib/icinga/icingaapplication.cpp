@@ -155,7 +155,7 @@ int IcingaApplication::Main(const vector<String>& args)
 
 	DumpProgramState();
 
-	Logger::Write(LogInformation, "icinga", "Icinga shutting down.");
+	Logger::Write(LogInformation, "icinga", "Icinga has shut down.");
 
 	return EXIT_SUCCESS;
 }
