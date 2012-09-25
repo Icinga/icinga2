@@ -21,11 +21,11 @@
 
 using namespace icinga;
 
-NagiosCheckTask::NagiosCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process)
+PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process)
 	: m_Task(task), m_Process(process)
 { }
 
-void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Missing argument: Service must be specified."));
@@ -46,15 +46,15 @@ void NagiosCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 
 	Process::Ptr process = boost::make_shared<Process>(command);
 
-	NagiosCheckTask ct(task, process);
+	PluginCheckTask ct(task, process);
 
 	ct.m_Result = boost::make_shared<Dictionary>();
 	ct.m_Result->Set("schedule_start", Utility::GetTime());
 
-	process->Start(boost::bind(&NagiosCheckTask::ProcessFinishedHandler, ct));
+	process->Start(boost::bind(&PluginCheckTask::ProcessFinishedHandler, ct));
 }
 
-void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct)
+void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 {
 	ProcessResult pr;
 
@@ -96,7 +96,7 @@ void NagiosCheckTask::ProcessFinishedHandler(NagiosCheckTask ct)
 	ct.m_Task->FinishResult(ct.m_Result);
 }
 
-void NagiosCheckTask::ProcessCheckOutput(const Dictionary::Ptr& result, String& output)
+void PluginCheckTask::ProcessCheckOutput(const Dictionary::Ptr& result, String& output)
 {
 	String text;
 	String perfdata;
@@ -125,8 +125,8 @@ void NagiosCheckTask::ProcessCheckOutput(const Dictionary::Ptr& result, String& 
 	result->Set("performance_data_raw", perfdata);
 }
 
-void NagiosCheckTask::Register(void)
+void PluginCheckTask::Register(void)
 {
-	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&NagiosCheckTask::ScriptFunc);
-	ScriptFunction::Register("native::NagiosCheck", func);
+	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&PluginCheckTask::ScriptFunc);
+	ScriptFunction::Register("native::PluginCheck", func);
 }

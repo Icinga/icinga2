@@ -17,18 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef NAGIOSCHECKTASK_H
-#define NAGIOSCHECKTASK_H
+#ifndef PLUGINCHECKTASK_H
+#define PLUGINCHECKTASK_H
 
 namespace icinga
 {
 
 /**
- * Implements Nagios(TM)-style checks.
+ * Implements service checks based on external plugins.
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API NagiosCheckTask
+class I2_ICINGA_API PluginCheckTask
 {
 public:
 	static void Register(void);
@@ -36,10 +36,10 @@ public:
 private:
 	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
 
-	static void ProcessFinishedHandler(NagiosCheckTask ct);
+	static void ProcessFinishedHandler(PluginCheckTask ct);
 	static void ProcessCheckOutput(const Dictionary::Ptr& result, String& output);
 
-	NagiosCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process);
+	PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process);
 
 	ScriptTask::Ptr m_Task;
 	Process::Ptr m_Process;
@@ -48,4 +48,4 @@ private:
 
 }
 
-#endif /* NAGIOSCHECKTASK_H */
+#endif /* PLUGINCHECKTASK_H */

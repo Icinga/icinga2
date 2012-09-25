@@ -16,10 +16,10 @@ libicinga_la_SOURCES =  \
 	icingaapplication.h \
 	macroprocessor.cpp \
 	macroprocessor.h \
-	nagioschecktask.cpp \
-	nagioschecktask.h \
 	nullchecktask.cpp \
 	nullchecktask.h \
+	pluginchecktask.cpp \
+	pluginchecktask.h \
 	service.cpp \
 	servicegroup.cpp \
 	servicegroup.h \
