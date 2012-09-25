@@ -147,7 +147,7 @@ void Application::TimeWatchThreadProc(void)
 			/* We made a significant jump in time. */
 			stringstream msgbuf;
 			msgbuf << "We jumped "
-			       << (timeDiff < 0 ? "forwards" : "backwards")
+			       << (timeDiff < 0 ? "forward" : "backward")
 			       << " in time: " << abs(timeDiff) << " seconds";
 			Logger::Write(LogInformation, "base", msgbuf.str());
 
