@@ -523,8 +523,8 @@ supported ("native::PluginCheck").
 Attribute: check_command
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Optional when not using check_type == "nagios". The check command. This command
-may use macros.
+Optional when not using the "external plugin" check type. The check command.
+This command may use macros.
 
 Attribute: check_interval
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -731,9 +731,9 @@ local object Component "delegation" {
 
 }
 
-abstract object Service "nagios-service" {
+abstract object Service "icinga-service" {
   methods = {
-    check = "native::NagiosCheck"
+    check = "native::PluginCheck"
   },
 
   macros = {
@@ -741,7 +741,7 @@ abstract object Service "nagios-service" {
   }
 }
 
-abstract object Service "ping" inherits "nagios-service" {
+abstract object Service "ping" inherits "icinga-service" {
   check_command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
 
   macros += {

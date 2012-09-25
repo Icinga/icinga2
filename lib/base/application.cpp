@@ -99,7 +99,9 @@ void Application::RunEventLoop(void)
 	double nextProfile = 0;
 #endif /* _DEBUG */
 
-	double lastLoop = Utility::GetTime();
+	/* Start the system time watch thread. */
+	thread t(&Application::TimeWatchThreadProc);
+	t.detach();
 
 	while (!m_ShuttingDown) {
 		Object::ClearHeldObjects();
@@ -109,7 +111,7 @@ void Application::RunEventLoop(void)
 		if (m_ShuttingDown)
 			break;
 
-		Event::ProcessEvents(boost::get_system_time() + boost::posix_time::milliseconds(sleep * 1000));
+		Event::ProcessEvents(boost::posix_time::milliseconds(sleep * 1000));
 
 		DynamicObject::FinishTx();
 		DynamicObject::BeginTx();
@@ -125,17 +127,36 @@ void Application::RunEventLoop(void)
 			nextProfile = Utility::GetTime() + 15.0;
 		}
 #endif /* _DEBUG */
+	}
+}
+
+/**
+ * Watches for changes to the system time. Adjusts timers if necessary.
+ */
+void Application::TimeWatchThreadProc(void)
+{
+	double lastLoop = Utility::GetTime();
+
+	for (;;) {
+		Sleep(5);
 
 		double now = Utility::GetTime();
+		double timeDiff = lastLoop - now;
 
-		if (now < lastLoop) {
-			/* We moved backwards in time - cool. */
-			double lostTime = lastLoop - now;
+		if (abs(timeDiff) > 15) {
+			/* We made a significant jump in time. */
 			stringstream msgbuf;
-			msgbuf << "We moved backwards in time: " << lostTime
-			       << " seconds";
+			msgbuf << "We jumped "
+			       << (timeDiff < 0 ? "forwards" : "backwards")
+			       << " in time: " << abs(timeDiff) << " seconds";
 			Logger::Write(LogInformation, "base", msgbuf.str());
-			Timer::AdjustTimers(-lostTime);
+
+			/* in addition to rescheduling the timers this
+			 * causes the event loop to wake up thereby
+			 * solving the problem that timed_wait()
+			 * uses an absolute timestamp for the timeout */
+			Event::Post(boost::bind(&Timer::AdjustTimers,
+			    -timeDiff));
 		}
 
 		lastLoop = now;

@@ -38,9 +38,9 @@ Event::Event(const Event::Callback& callback)
  * Waits for events using the specified timeout value and processes
  * them.
  *
- * @param wait_until The wait timeout.
+ * @param timeout The wait timeout.
  */
-void Event::ProcessEvents(const system_time& wait_until)
+void Event::ProcessEvents(millisec timeout)
 {
 	vector<Event> events;
 
@@ -50,7 +50,7 @@ void Event::ProcessEvents(const system_time& wait_until)
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		while (m_Events.empty()) {
-			if (!m_EventAvailable.timed_wait(lock, wait_until))
+			if (!m_EventAvailable.timed_wait(lock, timeout))
 				return;
 		}
 

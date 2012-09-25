@@ -139,6 +139,7 @@ using boost::thread;
 using boost::thread_group;
 using boost::condition_variable;
 using boost::system_time;
+using boost::posix_time::millisec;
 using boost::tie;
 using boost::throw_exception;
 using boost::rethrow_exception;

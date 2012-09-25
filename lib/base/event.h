@@ -33,7 +33,7 @@ class I2_BASE_API Event
 public:
 	typedef function<void ()> Callback;
 
-	static void ProcessEvents(const system_time& wait_until);
+	static void ProcessEvents(millisec timeout);
 	static void Post(const Callback& callback);
 
 private:

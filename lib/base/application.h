@@ -79,6 +79,8 @@ private:
 #else /* _WIN32 */
 	static BOOL WINAPI CtrlHandler(DWORD type);
 #endif /* _WIN32 */
+
+	static void TimeWatchThreadProc(void);
 };
 
 }
