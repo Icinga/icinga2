@@ -30,7 +30,7 @@
     </ClCompile>
     <ClCompile Include="icingaapplication.cpp" />
     <ClCompile Include="macroprocessor.cpp" />
-    <ClCompile Include="nagioschecktask.cpp" />
+    <ClCompile Include="pluginchecktask.cpp" />
     <ClCompile Include="nullchecktask.cpp" />
     <ClCompile Include="service.cpp" />
     <ClCompile Include="servicegroup.cpp" />
@@ -43,7 +43,7 @@
     <ClInclude Include="i2-icinga.h" />
     <ClInclude Include="icingaapplication.h" />
     <ClInclude Include="macroprocessor.h" />
-    <ClInclude Include="nagioschecktask.h" />
+    <ClInclude Include="pluginchecktask.h" />
     <ClInclude Include="nullchecktask.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />

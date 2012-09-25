@@ -37,7 +37,8 @@ void CheckerComponent::Start(void)
 	m_CheckTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::CheckTimerHandler, this));
 	m_CheckTimer->Start();
 
-	NagiosCheckTask::Register();
+	/* TODO: figure out a way to register check types */
+	PluginCheckTask::Register();
 	NullCheckTask::Register();
 
 	m_ResultTimer = boost::make_shared<Timer>();

@@ -50,7 +50,7 @@ using boost::algorithm::is_any_of;
 #include "servicegroup.h"
 
 #include "macroprocessor.h"
-#include "nagioschecktask.h"
+#include "pluginchecktask.h"
 #include "nullchecktask.h"
 
 #include "servicestatechangemessage.h"

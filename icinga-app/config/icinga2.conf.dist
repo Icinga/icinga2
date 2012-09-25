@@ -16,7 +16,7 @@ local object Component "compat" {
 
 abstract object Service "nagios-service" {
   methods = {
-    check = "native::NagiosCheck"
+    check = "native::PluginCheck"
   },
 
   macros = {
