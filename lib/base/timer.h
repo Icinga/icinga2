@@ -43,6 +43,7 @@ public:
 	double GetInterval(void) const;
 
 	static double ProcessTimers(void);
+	static void AdjustTimers(double adjustment);
 
 	void Start(void);
 	void Stop(void);
