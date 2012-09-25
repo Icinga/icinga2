@@ -524,7 +524,7 @@ Attribute: check_command
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Optional when not using the "external plugin" check type. The check command.
-This command may use macros.
+May contain macros.
 
 Attribute: check_interval
 ^^^^^^^^^^^^^^^^^^^^^^^^^
