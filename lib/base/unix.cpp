@@ -20,19 +20,8 @@
 #include "i2-base.h"
 
 #ifndef _WIN32
-#include <ltdl.h>
 
 using namespace icinga;
-
-/**
- * Sleeps for the specified amount of time.
- *
- * @param milliseconds The amount of time in milliseconds.
- */
-void Sleep(unsigned long milliseconds)
-{
-	usleep(milliseconds * 1000);
-}
 
 /**
  * Closes a socket.

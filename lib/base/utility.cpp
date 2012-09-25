@@ -309,3 +309,18 @@ pid_t Utility::GetPid(void)
 	return GetCurrentProcessId();
 #endif /* _WIN32 */
 }
+
+/**
+ * Sleeps for the specified amount of time.
+ *
+ * @param timeout The timeout in seconds.
+ */
+void Utility::Sleep(double timeout)
+{
+#ifndef _WIN32
+	usleep(timeout * 1000 * 1000);
+#else /* _WIN32 */
+	Sleep(timeout * 1000);
+#endif /* _WIN32 */
+}
+

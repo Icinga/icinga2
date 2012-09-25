@@ -50,6 +50,8 @@ public:
 
 	static pid_t GetPid(void);
 
+	static void Sleep(double timeout);
+
 private:
 	static bool m_SSLInitialized;
 

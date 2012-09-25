@@ -138,7 +138,7 @@ void Application::TimeWatchThreadProc(void)
 	double lastLoop = Utility::GetTime();
 
 	for (;;) {
-		Sleep(5000);
+		Utility::Sleep(5);
 
 		double now = Utility::GetTime();
 		double timeDiff = lastLoop - now;
