@@ -44,6 +44,20 @@ Example:
 -27.3
 -------------------------------------------------------------------------------
 
+Duration Literal
+^^^^^^^^^^^^^^^^
+
+Similar to floating-point numbers except for that fact that they support
+suffixes to help with specifying time durations.
+
+Example:
+
+-------------------------------------------------------------------------------
+2.5m
+-------------------------------------------------------------------------------
+
+Supported suffixes include s (seconds), m (minutes) and h (hours).
+
 String Literals
 ^^^^^^^^^^^^^^^
 

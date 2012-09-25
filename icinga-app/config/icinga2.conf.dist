@@ -42,6 +42,6 @@ object Host "localhost" {
     address = "127.0.0.1"
   },
 
-  check_interval = 10
+  check_interval = 1m
 }
 
