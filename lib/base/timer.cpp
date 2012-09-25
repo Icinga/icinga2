@@ -37,7 +37,7 @@ Timer::Timer(void)
  */
 double Timer::ProcessTimers(void)
 {
-	double wakeup = 30;
+	double wakeup = 30; /* wake up at least once after this many seconds */
 
 	double st = Utility::GetTime();
 
@@ -164,7 +164,14 @@ void Timer::Reschedule(double next)
  */
 void Timer::AdjustTimers(double adjustment)
 {
-	BOOST_FOREACH(Timer::Ptr timer, m_Timers) {
-		timer->m_Next += adjustment;
+	double now = Utility::GetTime();
+
+	Timer::CollectionType::iterator i;
+        for (i = m_Timers.begin(); i != m_Timers.end(); i++) {
+		Timer::Ptr timer = i->lock();
+
+		if (abs(now - (timer->m_Next + adjustment)) <
+		    abs(now - timer->m_Next))
+			timer->m_Next += adjustment;
 	}
 }
