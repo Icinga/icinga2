@@ -467,7 +467,7 @@ object Service "localhost-uptime" {
   alias = "localhost Uptime",
 
   methods = {
-    check = "native::NagiosCheck"
+    check = "native::PluginCheck"
   },
 
   check_command = "$plugindir$/check_snmp -H $address$ -C $community$ -o $oid$",
@@ -503,8 +503,8 @@ Optional. A short description of the service.
 Attribute: methods - check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The check type of the service. For now only Nagios-compatible plugins are
-supported ("native::NagiosCheck").
+The check type of the service. For now only external check plugins are
+supported ("native::PluginCheck").
 
 Attribute: check_command
 ^^^^^^^^^^^^^^^^^^^^^^^^
