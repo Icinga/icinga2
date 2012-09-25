@@ -41,6 +41,17 @@ local object Component "compat" {
 }
 
 /**
+ * The compatido component works as idomod connector to a running ido2db
+ * daemon, connected via tcp socket only. It will dump config and status
+ * information periodically for now. By default, this remains disabled.
+ */
+/*
+local object Component "compatido" {
+
+}
+*/
+
+/**
  * This template defines some basic parameters for services that use
  * external plugins for their checks.
  */
