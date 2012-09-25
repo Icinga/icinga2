@@ -1,29 +1,59 @@
+/**
+ * Icinga 2 configuration file
+ * - this is where you define settings for the Icinga application including
+ * which hosts/services to check.
+ *
+ * The docs/icinga2-config.txt file in the source tarball has a detailed
+ * description of what configuration options are available.
+ */
+
+/**
+ * Global configuration settings
+ */
 local object IcingaApplication "icinga" {
-
-}
-
-local object Component "checker" {
-
-}
-
-local object Component "delegation" {
-
-}
-
-local object Component "compat" {
-
-}
-
-abstract object Service "nagios-service" {
-  methods = {
-    check = "native::PluginCheck"
-  },
-
   macros = {
     plugindir = "/usr/lib/nagios/plugins"
   }
 }
 
+/**
+ * The checker component takes care of executing service checks.
+ */
+local object Component "checker" {
+
+}
+
+/**
+ * The delegation component assigns services to checkers. You need to load
+ * this component even if your Icinga setup only consists of a single instance.
+ */
+local object Component "delegation" {
+
+}
+
+/**
+ * The compat component periodically updates the status.dat and objects.cache
+ * files. These are used by the Icinga 1.x CGIs to display the state of
+ * hosts and services.
+ */
+local object Component "compat" {
+
+}
+
+/**
+ * This template defines some basic parameters for services that use
+ * external plugins for their checks.
+ */
+abstract object Service "nagios-service" {
+  methods = {
+    check = "native::PluginCheck"
+  }
+}
+
+/**
+ * The service template for ping checks. In an Icinga 1.x environment
+ * this would be defined as a check command.
+ */
 abstract object Service "ping" inherits "nagios-service" {
   check_command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
 
@@ -35,6 +65,9 @@ abstract object Service "ping" inherits "nagios-service" {
   }
 }
 
+/**
+ * And finally we define some host that should be checked.
+ */
 object Host "localhost" {
   services = { "ping" },
 
