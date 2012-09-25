@@ -155,3 +155,16 @@ void Timer::Reschedule(double next)
 {
 	m_Next = next;
 }
+
+/**
+ * Adjusts all timers by adding the specified amount of time to their
+ * next scheduled timestamp.
+ *
+ * @param adjustment The adjustment.
+ */
+void Timer::AdjustTimers(double adjustment)
+{
+	BOOST_FOREACH(Timer::Ptr timer, m_Timers) {
+		timer->m_Next += adjustment;
+	}
+}

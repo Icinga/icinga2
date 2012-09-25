@@ -207,7 +207,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 	objectfp << std::fixed;
 
-	objectfp << "# Icinga object cache file" << "\n"
+	objectfp << "# Icinga objects cache file" << "\n"
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
 

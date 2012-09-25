@@ -99,6 +99,8 @@ void Application::RunEventLoop(void)
 	double nextProfile = 0;
 #endif /* _DEBUG */
 
+	double lastLoop = Utility::GetTime();
+
 	while (!m_ShuttingDown) {
 		Object::ClearHeldObjects();
 
@@ -123,6 +125,20 @@ void Application::RunEventLoop(void)
 			nextProfile = Utility::GetTime() + 15.0;
 		}
 #endif /* _DEBUG */
+
+		double now = Utility::GetTime();
+
+		if (now < lastLoop) {
+			/* We moved backwards in time - cool. */
+			double lostTime = lastLoop - now;
+			stringstream msgbuf;
+			msgbuf << "We moved backwards in time: " << lostTime
+			       << " seconds";
+			Logger::Write(LogInformation, "base", msgbuf.str());
+			Timer::AdjustTimers(-lostTime);
+		}
+
+		lastLoop = now;
 	}
 }
 
