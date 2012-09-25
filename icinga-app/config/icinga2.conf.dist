@@ -44,7 +44,7 @@ local object Component "compat" {
  * This template defines some basic parameters for services that use
  * external plugins for their checks.
  */
-abstract object Service "nagios-service" {
+abstract object Service "icinga-service" {
   methods = {
     check = "native::PluginCheck"
   }
@@ -54,7 +54,7 @@ abstract object Service "nagios-service" {
  * The service template for ping checks. In an Icinga 1.x environment
  * this would be defined as a check command.
  */
-abstract object Service "ping" inherits "nagios-service" {
+abstract object Service "ping" inherits "icinga-service" {
   check_command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
 
   macros += {
