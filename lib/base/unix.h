@@ -39,8 +39,8 @@
 
 typedef int SOCKET;
 #define INVALID_SOCKET (-1)
-void closesocket(SOCKET fd);
 
+#define closesocket close
 #define ioctlsocket ioctl
 
 #ifndef MAXPATHLEN

@@ -48,10 +48,8 @@
     <ClCompile Include="tcpsocket.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="tlsclient.cpp" />
-    <ClCompile Include="unix.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="value.cpp" />
-    <ClCompile Include="win32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h" />
