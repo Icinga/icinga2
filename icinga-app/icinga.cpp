@@ -66,6 +66,10 @@ int main(int argc, char **argv)
 	Component::AddSearchDir(exeDirectory + "/../lib/icinga2");
 	Component::AddSearchDir(exeDirectory + "/../lib64/icinga2");
 
+#ifdef ICINGA_LIBDIR
+	Component::AddSearchDir(ICINGA_LIBDIR);
+#endif /* ICINGA_LIBDIR */
+
 	DynamicObject::BeginTx();
 
 	/* load config file */
