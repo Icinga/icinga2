@@ -3,7 +3,7 @@
 SUBDIRS = \
 	config
 
-bin_PROGRAMS = \
+sbin_PROGRAMS = \
 	icinga2
 
 icinga2_SOURCES = \
