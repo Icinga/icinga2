@@ -107,6 +107,7 @@ AC_DEFUN([AX_BOOST_SIGNALS],
 				AC_MSG_ERROR(Could not link against $ax_lib !)
 			fi
 		fi
+        ax_lib=""
 
 		CPPFLAGS="$CPPFLAGS_SAVED"
 	LDFLAGS="$LDFLAGS_SAVED"
