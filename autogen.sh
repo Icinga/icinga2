@@ -30,7 +30,7 @@ fi
   DIE=1
 }
 
-(grep "^AM_PROG_LEX" $srcdir/configure.ac >/dev/null) && {
+(grep "^AC_PROG_LEX" $srcdir/configure.ac >/dev/null) && {
   (lex --version) < /dev/null > /dev/null 2>&1 || {
     echo
     echo "**Error**: You must have \`lex' installed."
@@ -40,7 +40,7 @@ fi
   }
 }
 
-(grep "^AM_PROG_YACC" $srcdir/configure.ac >/dev/null) && {
+(grep "^AC_PROG_YACC" $srcdir/configure.ac >/dev/null) && {
   (yacc --version) < /dev/null > /dev/null 2>&1 || {
     echo
     echo "**Error**: You must have \`yacc' installed."
