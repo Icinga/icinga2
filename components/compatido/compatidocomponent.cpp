@@ -45,13 +45,6 @@ void CompatIdoComponent::Start(void)
 	 * - only icinga idoutils 1.8
 	 * - only "retained" config
 	 * - instance_name is i2-default
-	 * TODO
-	 * we should have configs for 
-	 * - data_processing_options
-	 * - config_output_options - 0..orig, 1..retained (chose retained for icinga-web preferred)
-	 * - INSTANCE_NAME ?
-	 * - update interval ?
-	 * - tcp socket+port
 	 */
 	m_StatusTimer = boost::make_shared<Timer>();
 	m_StatusTimer->SetInterval(StatusTimerInterval);
@@ -72,7 +65,7 @@ void CompatIdoComponent::Start(void)
 	m_ProgramStatusTimer->Reschedule(0);
 
 	/*
-	 * open ido socket once, send the updates via timer then
+	 * open ido socket once
 	 */
 	OpenSink("127.0.0.1", "5668");
 	SendHello("i2-default");
@@ -83,8 +76,6 @@ void CompatIdoComponent::Start(void)
  */
 void CompatIdoComponent::Stop(void)
 {
-
-	//FIXME cleanly close ido socket
 	GoodByeSink();
 	CloseSink();
 }
@@ -92,45 +83,31 @@ void CompatIdoComponent::Stop(void)
 /* TODO
  * subscribe to all status updates and checkresults and dump them
  * should remove the periodic statusdata dump
+ * subscribe to config update events, and send insert/update/delete for configs to ido2db
  */
 
 /**
  * Periodically dumps status information
- *
- * @param - Event arguments for the timer.
  */
 void CompatIdoComponent::StatusTimerHandler(void)
 {
 	Logger::Write(LogInformation, "compatido", "Writing compat ido status information");
-	/*
-	 * TODO 
-	 * - fetch status data, dump it periodically
-	 * - subscribe to check events and status updates, dump it	
-	 */
+
 	DumpStatusData();
 }
 
 /**
  * Periodically dumps config information
- *
- * @param - Event arguments for the timer.
  */
 void CompatIdoComponent::ConfigTimerHandler(void)
 {
 	Logger::Write(LogInformation, "compatido", "Writing compat ido config information");
-	/*
-	 * TODO 
-	 * - fetch config, dump it
-	 * - subscribe to config update events, and send insert/update/delete for configs to ido2db
-	 */
 
 	DumpConfigObjects();
 }
 
 /**
  * Periodically dumps program status information
- *
- * @param - Event arguments for the timer.
  */
 void CompatIdoComponent::ProgramStatusTimerHandler(void)
 {
@@ -140,9 +117,8 @@ void CompatIdoComponent::ProgramStatusTimerHandler(void)
 }
 
 
-
 /**
- * opens a tcp connection to the socket
+ * opens a tcp connection to the ido socket
  */
 void CompatIdoComponent::OpenSink(String node, String service)
 {
@@ -152,7 +128,7 @@ void CompatIdoComponent::OpenSink(String node, String service)
 }
 
 /**
- * sends hello msg to ido
+ * sends hello msg to ido2b
  */
 void CompatIdoComponent::SendHello(String instancename)
 {
@@ -180,7 +156,7 @@ void CompatIdoComponent::SendHello(String instancename)
 /**
  * sends goodbye msg to ido
  */
-void CompatIdoComponent::GoodByeSink()
+void CompatIdoComponent::GoodByeSink(void)
 {
         time_t now;
         time(&now);
@@ -196,9 +172,9 @@ void CompatIdoComponent::GoodByeSink()
 }
 
 /**
- * closes sink
+ * closes ido socket
  */
-void CompatIdoComponent::CloseSink()
+void CompatIdoComponent::CloseSink(void)
 {
 	m_IdoSocket->Close();
 }
@@ -206,7 +182,7 @@ void CompatIdoComponent::CloseSink()
 /**
  * sends config dump start signal to ido
  */
-void CompatIdoComponent::StartConfigDump()
+void CompatIdoComponent::StartConfigDump(void)
 {
 	struct timeval now;
 	gettimeofday(&now, NULL);
@@ -226,7 +202,7 @@ void CompatIdoComponent::StartConfigDump()
 /**
  * sends config dump end signal to ido
  */
-void CompatIdoComponent::EndConfigDump()
+void CompatIdoComponent::EndConfigDump(void)
 {
         struct timeval now;
         gettimeofday(&now, NULL);
@@ -243,6 +219,8 @@ void CompatIdoComponent::EndConfigDump()
 
 /**
  * dump host config to ido
+ *
+ * @param host Pointer to the Host object
  */
 void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 {
@@ -317,13 +295,13 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
                 << 262 << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"	/* customvariable */
                 << 999 << "\n\n";					/* enddata */
 
-
-
         m_IdoSocket->SendMessage(message.str());
 }
 
 /**
  * dump host status to ido
+ *
+ * @param host Pointer to Host object
  */
 void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 {
@@ -399,6 +377,8 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 
 /**
  * dump service config to ido
+ *
+ * @param service Pointer to Service object
  */
 void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 {
@@ -470,6 +450,8 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 
 /**
  * dump service status to ido
+ *
+ * @param service Pointer to Service object
  */ 
 void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 {
@@ -479,6 +461,7 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
         double execution_start = -1, execution_end = -1;
 
         Dictionary::Ptr cr = service->GetLastCheckResult();
+
         if (cr) {
                 output = cr->Get("output");
                 schedule_start = cr->Get("schedule_start");

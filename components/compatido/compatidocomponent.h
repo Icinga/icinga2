@@ -39,12 +39,16 @@ private:
 	Timer::Ptr m_ProgramStatusTimer;
 	IdoSocket::Ptr m_IdoSocket;
 
+	void ConfigTimerHandler(void);
+	void StatusTimerHandler(void);
+	void ProgramStatusTimerHandler(void);
+
 	void OpenSink(String node, String service );
 	void SendHello(String instancename);
-	void GoodByeSink();
-	void CloseSink();
-	void StartConfigDump();
-	void EndConfigDump();
+	void GoodByeSink(void);
+	void CloseSink(void);
+	void StartConfigDump(void);
+	void EndConfigDump(void);
 
 	void DumpConfigObjects(void);
 	void DumpHostObject(const Host::Ptr& host);
@@ -62,13 +66,6 @@ private:
 			msg << type << "=" << *it << "\n";
 		}
 	}
-
-	//void DemoTimerHandler(void);
-	//void HelloWorldRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
-
-	void ConfigTimerHandler(void);
-	void StatusTimerHandler(void);
-	void ProgramStatusTimerHandler(void);
 };
 
 }
