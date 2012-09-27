@@ -132,19 +132,24 @@ int main(int argc, char **argv)
 	Component::AddSearchDir(ICINGA_LIBDIR);
 #endif /* ICINGA_LIBDIR */
 
-	DynamicObject::BeginTx();
+	try {
+		DynamicObject::BeginTx();
 
-	/* load config file */
-	String configFile = argv[2];
-	vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
+		/* load config file */
+		String configFile = argv[2];
+		vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
 
-	Logger::Write(LogInformation, "icinga", "Executing config items...");  
+		Logger::Write(LogInformation, "icinga", "Executing config items...");  
 
-	BOOST_FOREACH(const ConfigItem::Ptr& item, configItems) {
-		item->Commit();
+		BOOST_FOREACH(const ConfigItem::Ptr& item, configItems) {
+			item->Commit();
+		}
+
+		DynamicObject::FinishTx();
+	} catch (const exception& ex) {
+		Logger::Write(LogCritical, "icinga", "Configuration error: " + String(ex.what()));
+		return EXIT_FAILURE;
 	}
-
-	DynamicObject::FinishTx();
 
 	Application::Ptr app = Application::GetInstance();
 

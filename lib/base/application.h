@@ -49,7 +49,8 @@ public:
 	 */
 	virtual int Main(const vector<String>& args) = 0;
 
-	static void Shutdown(void);
+	static void RequestShutdown(void);
+	static void Terminate(int exitCode);
 
 	static bool IsDebugging(void);
 

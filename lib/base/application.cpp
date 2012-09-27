@@ -167,9 +167,17 @@ void Application::TimeWatchThreadProc(void)
  * Signals the application to shut down during the next
  * execution of the event loop.
  */
-void Application::Shutdown(void)
+void Application::RequestShutdown(void)
 {
 	m_ShuttingDown = true;
+}
+
+/**
+ * Terminates the application.
+ */
+void Application::Terminate(int exitCode)
+{
+	_exit(exitCode);
 }
 
 /**
@@ -283,7 +291,7 @@ void Application::SigIntHandler(int signum)
 	if (!instance)
 		return;
 
-	instance->Shutdown();
+	instance->RequestShutdown();
 
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -302,7 +310,7 @@ BOOL WINAPI Application::CtrlHandler(DWORD type)
 	if (!instance)
 		return TRUE;
 
-	instance->GetInstance()->Shutdown();
+	instance->GetInstance()->RequestShutdown();
 
 	SetConsoleCtrlHandler(NULL, FALSE);
 	return TRUE;
@@ -347,7 +355,8 @@ int Application::Run(int argc, char **argv)
 }
 
 /**
- * Grabs the PID file lock and updates the PID.
+ * Grabs the PID file lock and updates the PID. Terminates the application
+ * if the PID file is already locked by another instance of the application.
  *
  * @param filename The name of the PID file.
  */
@@ -366,9 +375,11 @@ void Application::UpdatePidFile(const String& filename)
 	if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {
 		ClosePidFile();
 
-		throw_exception(runtime_error("Another instance of the application is "
+		Logger::Write(LogCritical, "base",
+		    "Another instance of the application is "
 		    "already running. Remove the '" + filename + "' file if "
-		    "you're certain that this is not the case."));
+		    "you're certain that this is not the case.");
+		Terminate(EXIT_FAILURE);
 	}
 #endif /* _WIN32 */
 
