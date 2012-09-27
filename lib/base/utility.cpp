@@ -61,7 +61,7 @@ void Utility::Daemonize(void) {
 		throw_exception(PosixException("fork() failed", errno));
 
 	if (pid)
-		exit(0);
+		_exit(0);
 
 	fd = open("/dev/null", O_RDWR);
 
