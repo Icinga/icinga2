@@ -21,7 +21,8 @@ icinga2_CPPFLAGS = \
 	-DICINGA_LIBDIR="\"$(pkglibdir)\""
 
 icinga2_LDFLAGS = \
-	$(BOOST_LDFLAGS)
+	$(BOOST_LDFLAGS) \
+	-export-dynamic
 
 icinga2_LDADD = \
 	$(LIBLTDL) \

@@ -31,6 +31,7 @@ namespace icinga
 class I2_BASE_API Utility
 {
 public:
+	static String DemangleSymbolName(const String& sym);
 	static String GetTypeName(const type_info& ti);
 
 	static void Daemonize(void);

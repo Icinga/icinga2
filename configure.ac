@@ -64,6 +64,7 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
+AC_CHECK_FUNCS([backtrace_symbols])
 
 AC_CONFIG_FILES([
 Makefile

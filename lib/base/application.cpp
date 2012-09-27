@@ -338,19 +338,7 @@ int Application::Run(int argc, char **argv)
 
 	DynamicObject::BeginTx();
 
-	if (IsDebugging()) {
-		result = Main(m_Arguments);
-	} else {
-		try {
-			result = Main(m_Arguments);
-		} catch (const exception& ex) {
-			Logger::Write(LogCritical, "base", "---");
-			Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(typeid(ex)));
-			Logger::Write(LogCritical, "base", "Message: " + String(ex.what()));
-
-			result = EXIT_FAILURE;
-		}
-	}
+	result = Main(m_Arguments);
 
 	DynamicObject::FinishTx();
 	DynamicObject::DeactivateObjects();

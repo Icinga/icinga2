@@ -25,6 +25,29 @@ using namespace icinga;
 bool I2_EXPORT Utility::m_SSLInitialized = false;
 
 /**
+ * Demangles a symbol name.
+ *
+ * @param sym The symbol name.
+ * @returns A human-readable version of the symbol name.
+ */
+String Utility::DemangleSymbolName(const String& sym)
+{
+	String result = sym;
+
+#ifdef HAVE_GCC_ABI_DEMANGLE
+	int status;
+	char *realname = abi::__cxa_demangle(sym.CStr(), 0, 0, &status);
+
+	if (realname != NULL) {
+		result = String(realname);
+		free(realname);
+	}
+#endif /* HAVE_GCC_ABI_DEMANGLE */
+
+	return result;
+}
+
+/**
  * Returns a human-readable type name of a type_info object.
  *
  * @param ti A type_info object.
@@ -32,21 +55,8 @@ bool I2_EXPORT Utility::m_SSLInitialized = false;
  */
 String Utility::GetTypeName(const type_info& ti)
 {
-	String klass = ti.name();
-
-#ifdef HAVE_GCC_ABI_DEMANGLE
-	int status;
-	char *realname = abi::__cxa_demangle(klass.CStr(), 0, 0, &status);
-
-	if (realname != NULL) {
-		klass = String(realname);
-		free(realname);
-	}
-#endif /* HAVE_GCC_ABI_DEMANGLE */
-
-	return klass;
+	return DemangleSymbolName(ti.name());
 }
-
 
 /**
  * Detaches from the controlling terminal.
