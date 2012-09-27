@@ -18,7 +18,9 @@
  ******************************************************************************/
 
 #include <i2-icinga.h>
-#include <execinfo.h>
+#ifdef HAVE_BACKTRACE_SYMBOLS
+#	include <execinfo.h>
+#endif /* HAVE_BACKTRACE_SYMBOLS */
 
 #ifndef _WIN32
 #	include "icinga-version.h"
