@@ -330,7 +330,7 @@ void Utility::Sleep(double timeout)
 #ifndef _WIN32
 	usleep(timeout * 1000 * 1000);
 #else /* _WIN32 */
-	Sleep(timeout * 1000);
+	::Sleep(timeout * 1000);
 #endif /* _WIN32 */
 }
 
