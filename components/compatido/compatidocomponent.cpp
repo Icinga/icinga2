@@ -132,8 +132,7 @@ void CompatIdoComponent::OpenSink(String node, String service)
  */
 void CompatIdoComponent::SendHello(String instancename)
 {
-	time_t now;
-	time(&now);
+	time_t now = static_cast<int>(Utility::GetTime());
 
 	/* connection is always TCP */
 	/* connecttype is always initial */
@@ -184,15 +183,12 @@ void CompatIdoComponent::CloseSink(void)
  */
 void CompatIdoComponent::StartConfigDump(void)
 {
-	struct timeval now;
-	gettimeofday(&now, NULL);
-
 	/* configtype =1 (original), =2 (retained == default) */
 	stringstream message;
 	message << "\n\n"
 		<< 900 << ":" << "\n"					/* startconfigdump */
 		<< 245 << "=" << "RETAINED" << "\n"			/* configdumptype */
-		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 999							/* enddata */
 		<< "\n\n";
 
@@ -204,13 +200,10 @@ void CompatIdoComponent::StartConfigDump(void)
  */
 void CompatIdoComponent::EndConfigDump(void)
 {
-        struct timeval now;
-        gettimeofday(&now, NULL);
-
         stringstream message;
         message << "\n\n"
                 << 901 << ":" << "\n"					/* endconfigdump */
-                << 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
                 << 999							/* enddata */
                 << "\n\n";
 
@@ -224,13 +217,10 @@ void CompatIdoComponent::EndConfigDump(void)
  */
 void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 {
-        struct timeval now;
-        gettimeofday(&now, NULL);
-
 	stringstream message;
 	message << "\n"
 		<< 400 << ":" << "\n"					/* hostdefinition */
-		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 174 << "=" << host->GetName() << "\n"		/* hostname */
 		<< 258 << "=" << host->GetAlias() << "\n"		/* displayname */
 		<< 159 << "=" << host->GetAlias() << "\n"		/* hostalias */
@@ -314,16 +304,13 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
         else   
                 state = 0; /* up */
 
-        struct timeval now;
-        gettimeofday(&now, NULL);
-
         stringstream message;
         message << "\n"
 		<< 212 << ":" << "\n"					/* hoststatusdata */
 		<< 1 << "=" << "" << "\n"				/* type */
 		<< 2 << "=" << "" << "\n"				/* flags */
 		<< 3 << "=" << "" << "\n"				/* attributes */
-		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 53 << "=" << host->GetName() << "\n"			/* host */
 		<< 95 << "=" << "" << "\n"				/* output */
 		<< 125 << "=" << "" << "\n"				/* longout */
@@ -333,8 +320,8 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 		<< 115 << "=" << 1 << "\n"				/* shouldbescheduled */
 		<< 25 << "=" << 1 << "\n"				/* currentcheckattempt */
 		<< 76 << "=" << 1 << "\n"				/* maxcheckattempts */
-		<< 58 << "=" << Utility::GetTime() << "\n"		/* lasthostcheck */
-		<< 81 << "=" << Utility::GetTime() << "\n"		/* nexthostcheck */
+		<< 58 << "=" << static_cast<int>(Utility::GetTime()) << "\n"		/* lasthostcheck (seconds only) */
+		<< 81 << "=" << static_cast<int>(Utility::GetTime()) << "\n"		/* nexthostcheck (seconds only) */
 		<< 12 << "=" << "" << "\n"				/* checktype */
 		<< 63 << "=" << "" << "\n"				/* laststatechange */
 		<< 57 << "=" << "" << "\n"				/* lasthardstatechange */
@@ -382,13 +369,10 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
  */
 void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 {
-        struct timeval now;
-        gettimeofday(&now, NULL);
-
 	stringstream message;
 	message << "\n"
 		<< 402 << ":" << "\n"					/* servicedefinition */
-		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 174 << "=" << service->GetHost()->GetName() << "\n"	/* hostname */
 		<< 258  << "=" << service->GetAlias() << "\n"		/* displayname */
 		<< 210 << "=" << service->GetAlias() << "\n"		/* servicedescription */
@@ -479,16 +463,13 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
         if (state > StateUnknown)
                 state = StateUnknown;
 
-        struct timeval now;
-        gettimeofday(&now, NULL);
-
         stringstream message;
         message << "\n"
                 << 213 << ":" << "\n"					/* servicestatusdata */
 		<< 1 << "=" << "" << "\n"				/* type */
 		<< 2 << "=" << "" << "\n"				/* flags */
 		<< 3 << "=" << "" << "\n"				/* attributes */
-		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 53 << "=" << service->GetHost()->GetName() << "\n"	/* host */
 		<< 114 << "=" << service->GetAlias() << "\n"		/* service */
 		<< 95 << "=" << output << "\n"				/* output */
@@ -499,11 +480,11 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 		<< 115 << "=" << "1" << "\n"				/* shouldbescheduled */
 		<< 25 << "=" << service->GetCurrentCheckAttempt() << "\n"	/* currentcheckattempt */
 		<< 76 << "=" << service->GetMaxCheckAttempts() << "\n"	/* maxcheckattempts */
-		<< 61 << "=" << schedule_end << "\n"			/* lastservicecheck */
-		<< 83 << "=" << service->GetNextCheck() << "\n"		/* nextservicecheck */
+		<< 61 << "=" << static_cast<int>(schedule_end) << "\n"	/* lastservicecheck (seconds only) */
+		<< 83 << "=" << static_cast<int>(service->GetNextCheck()) << "\n"	/* nextservicecheck (seconds only) */
 		<< 12 << "=" << "" << "\n"				/* checktype */
-		<< 63 << "=" << service->GetLastStateChange() << "\n"	/* laststatechange */
-		<< 57 << "=" << service->GetLastHardStateChange() << "\n"	/* lasthardstatechange */
+		<< 63 << "=" << static_cast<int>(service->GetLastStateChange()) << "\n"	/* laststatechange (seconds only) */
+		<< 57 << "=" << static_cast<int>(service->GetLastHardStateChange()) << "\n"	/* lasthardstatechange (seconds only) */
 		<< 56 << "=" << "" << "\n"				/* lasthardstate */
 		<< 66 << "=" << "" << "\n"				/* lasttimeok */
 		<< 70 << "=" << "" << "\n"				/* lasttimewarning */
@@ -548,9 +529,6 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
  */
 void CompatIdoComponent::DumpProgramStatusData(void)
 {
-        struct timeval now;
-        gettimeofday(&now, NULL);
-
 	double start_time = IcingaApplication::GetInstance()->GetStartTime();
 
         stringstream message;
@@ -559,7 +537,7 @@ void CompatIdoComponent::DumpProgramStatusData(void)
 		<< 1 << "=" << "" << "\n"				/* type */
 		<< 2 << "=" << "" << "\n"				/* flags */
 		<< 3 << "=" << "" << "\n"				/* attributes */
-		<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 106 << "=" << static_cast<int>(start_time) << "\n"	/* programstarttime */
 		<< 102 << "=" << Utility::GetPid() << "\n"		/* processid */
 		<< 28 << "=" << "1" << "\n"				/* daemonmode */
@@ -629,13 +607,10 @@ void CompatIdoComponent::DumpConfigObjects(void)
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			/* dump the hostgroup and its attributes/members to ido */
-        		struct timeval now;
-        		gettimeofday(&now, NULL);
-
 			stringstream message;
 			message << "\n"
 				<< 401 << ":" << "\n"				/* hostgroupdefinition */
-				<< 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+				<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
 				<< 172 << "=" << name << "\n"			/* hostgroupname */
 				<< 170 << "=" << hg->GetAlias() << "\n";	/* hostgroupalias */
 
@@ -676,13 +651,10 @@ void CompatIdoComponent::DumpConfigObjects(void)
 			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
 
 			/* dump the servicegroup and its attributes/members to ido */
-                        struct timeval now;
-                        gettimeofday(&now, NULL);
-
                         stringstream message;
                         message << "\n"
                                 << 403 << ":" << "\n"				/* servicegroupdefinition */
-                                << 4 << "=" << now.tv_sec << "." << now.tv_usec << "\n"	/* timestamp */
+                                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
                                 << 220 << "=" << name << "\n"			/* servicegroupname */
                                 << 218 << "=" << sg->GetAlias() << "\n";	/* servicegroupalias */
 
