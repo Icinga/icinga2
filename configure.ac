@@ -47,7 +47,7 @@ DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN([icinga], [docs/Doxyfile], [docs/dev])
 
 AC_PROG_INSTALL
-AM_PROG_LEX
+AC_PROG_LEX
 AC_PROG_YACC
 AC_PROG_LIBTOOL
 AX_CXX_GCC_ABI_DEMANGLE
@@ -64,6 +64,7 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
+AC_CHECK_FUNCS([backtrace_symbols])
 
 AC_CONFIG_FILES([
 Makefile

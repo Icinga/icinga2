@@ -142,6 +142,7 @@ AC_DEFUN([AX_BOOST_THREAD],
 
 			fi
 		fi
+        ax_lib=""
 
 		CPPFLAGS="$CPPFLAGS_SAVED"
 	LDFLAGS="$LDFLAGS_SAVED"

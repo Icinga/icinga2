@@ -3,7 +3,7 @@
 SUBDIRS = \
 	config
 
-bin_PROGRAMS = \
+sbin_PROGRAMS = \
 	icinga2
 
 icinga2_SOURCES = \
@@ -17,10 +17,12 @@ icinga2_CPPFLAGS = \
 	-I${top_srcdir}/lib/config \
 	-I${top_srcdir}/lib/remoting \
 	-I${top_srcdir}/lib/icinga \
-	-I${top_srcdir}
+	-I${top_srcdir} \
+	-DICINGA_LIBDIR="\"$(pkglibdir)\""
 
 icinga2_LDFLAGS = \
-	$(BOOST_LDFLAGS)
+	$(BOOST_LDFLAGS) \
+	-export-dynamic
 
 icinga2_LDADD = \
 	$(LIBLTDL) \

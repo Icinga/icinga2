@@ -81,7 +81,7 @@ void Process::WorkerThreadProc(void)
 			tv.tv_usec = 0;
 			select(nfds + 1, &readfds, NULL, NULL, &tv);
 #else /* _MSC_VER */
-			Sleep(1000);
+			Utility::Sleep(1);
 #endif /* _MSC_VER */
 
 			for (it = tasks.begin(); it != tasks.end(); ) {

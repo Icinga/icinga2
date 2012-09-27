@@ -25,6 +25,29 @@ using namespace icinga;
 bool I2_EXPORT Utility::m_SSLInitialized = false;
 
 /**
+ * Demangles a symbol name.
+ *
+ * @param sym The symbol name.
+ * @returns A human-readable version of the symbol name.
+ */
+String Utility::DemangleSymbolName(const String& sym)
+{
+	String result = sym;
+
+#ifdef HAVE_GCC_ABI_DEMANGLE
+	int status;
+	char *realname = abi::__cxa_demangle(sym.CStr(), 0, 0, &status);
+
+	if (realname != NULL) {
+		result = String(realname);
+		free(realname);
+	}
+#endif /* HAVE_GCC_ABI_DEMANGLE */
+
+	return result;
+}
+
+/**
  * Returns a human-readable type name of a type_info object.
  *
  * @param ti A type_info object.
@@ -32,21 +55,8 @@ bool I2_EXPORT Utility::m_SSLInitialized = false;
  */
 String Utility::GetTypeName(const type_info& ti)
 {
-	String klass = ti.name();
-
-#ifdef HAVE_GCC_ABI_DEMANGLE
-	int status;
-	char *realname = abi::__cxa_demangle(klass.CStr(), 0, 0, &status);
-
-	if (realname != NULL) {
-		klass = String(realname);
-		free(realname);
-	}
-#endif /* HAVE_GCC_ABI_DEMANGLE */
-
-	return klass;
+	return DemangleSymbolName(ti.name());
 }
-
 
 /**
  * Detaches from the controlling terminal.
@@ -61,7 +71,7 @@ void Utility::Daemonize(void) {
 		throw_exception(PosixException("fork() failed", errno));
 
 	if (pid)
-		exit(0);
+		_exit(0);
 
 	fd = open("/dev/null", O_RDWR);
 
@@ -309,3 +319,18 @@ pid_t Utility::GetPid(void)
 	return GetCurrentProcessId();
 #endif /* _WIN32 */
 }
+
+/**
+ * Sleeps for the specified amount of time.
+ *
+ * @param timeout The timeout in seconds.
+ */
+void Utility::Sleep(double timeout)
+{
+#ifndef _WIN32
+	usleep(timeout * 1000 * 1000);
+#else /* _WIN32 */
+	::Sleep(timeout * 1000);
+#endif /* _WIN32 */
+}
+

@@ -54,13 +54,11 @@ libbase_la_SOURCES =  \
 	timer.h \
 	tlsclient.cpp \
 	tlsclient.h \
-	unix.cpp \
 	unix.h \
 	utility.cpp \
 	utility.h \
 	value.cpp \
 	value.h \
-	win32.cpp \
 	win32.h
 
 libbase_la_CPPFLAGS = \

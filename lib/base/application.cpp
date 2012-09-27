@@ -138,7 +138,7 @@ void Application::TimeWatchThreadProc(void)
 	double lastLoop = Utility::GetTime();
 
 	for (;;) {
-		Sleep(5);
+		Utility::Sleep(5);
 
 		double now = Utility::GetTime();
 		double timeDiff = lastLoop - now;
@@ -147,7 +147,7 @@ void Application::TimeWatchThreadProc(void)
 			/* We made a significant jump in time. */
 			stringstream msgbuf;
 			msgbuf << "We jumped "
-			       << (timeDiff < 0 ? "forwards" : "backwards")
+			       << (timeDiff < 0 ? "forward" : "backward")
 			       << " in time: " << abs(timeDiff) << " seconds";
 			Logger::Write(LogInformation, "base", msgbuf.str());
 
@@ -167,9 +167,17 @@ void Application::TimeWatchThreadProc(void)
  * Signals the application to shut down during the next
  * execution of the event loop.
  */
-void Application::Shutdown(void)
+void Application::RequestShutdown(void)
 {
 	m_ShuttingDown = true;
+}
+
+/**
+ * Terminates the application.
+ */
+void Application::Terminate(int exitCode)
+{
+	_exit(exitCode);
 }
 
 /**
@@ -283,7 +291,7 @@ void Application::SigIntHandler(int signum)
 	if (!instance)
 		return;
 
-	instance->Shutdown();
+	instance->RequestShutdown();
 
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -302,7 +310,7 @@ BOOL WINAPI Application::CtrlHandler(DWORD type)
 	if (!instance)
 		return TRUE;
 
-	instance->GetInstance()->Shutdown();
+	instance->GetInstance()->RequestShutdown();
 
 	SetConsoleCtrlHandler(NULL, FALSE);
 	return TRUE;
@@ -338,19 +346,7 @@ int Application::Run(int argc, char **argv)
 
 	DynamicObject::BeginTx();
 
-	if (IsDebugging()) {
-		result = Main(m_Arguments);
-	} else {
-		try {
-			result = Main(m_Arguments);
-		} catch (const exception& ex) {
-			Logger::Write(LogCritical, "base", "---");
-			Logger::Write(LogCritical, "base", "Exception: " + Utility::GetTypeName(typeid(ex)));
-			Logger::Write(LogCritical, "base", "Message: " + String(ex.what()));
-
-			result = EXIT_FAILURE;
-		}
-	}
+	result = Main(m_Arguments);
 
 	DynamicObject::FinishTx();
 	DynamicObject::DeactivateObjects();
@@ -359,7 +355,8 @@ int Application::Run(int argc, char **argv)
 }
 
 /**
- * Grabs the PID file lock and updates the PID.
+ * Grabs the PID file lock and updates the PID. Terminates the application
+ * if the PID file is already locked by another instance of the application.
  *
  * @param filename The name of the PID file.
  */
@@ -378,9 +375,11 @@ void Application::UpdatePidFile(const String& filename)
 	if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {
 		ClosePidFile();
 
-		throw_exception(runtime_error("Another instance of the application is "
+		Logger::Write(LogCritical, "base",
+		    "Another instance of the application is "
 		    "already running. Remove the '" + filename + "' file if "
-		    "you're certain that this is not the case."));
+		    "you're certain that this is not the case.");
+		Terminate(EXIT_FAILURE);
 	}
 #endif /* _WIN32 */
 

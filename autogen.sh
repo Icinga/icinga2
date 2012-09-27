@@ -30,6 +30,26 @@ fi
   DIE=1
 }
 
+(grep "^AC_PROG_LEX" $srcdir/configure.ac >/dev/null) && {
+  (lex --version) < /dev/null > /dev/null 2>&1 || {
+    echo
+    echo "**Error**: You must have \`lex' installed."
+    echo "Download the appropriate package for your distribution,"
+    echo "or get the source tarball for flex at http://flex.sourceforge.net/"
+    DIE=1
+  }
+}
+
+(grep "^AC_PROG_YACC" $srcdir/configure.ac >/dev/null) && {
+  (yacc --version) < /dev/null > /dev/null 2>&1 || {
+    echo
+    echo "**Error**: You must have \`yacc' installed."
+    echo "Download the appropriate package for your distribution,"
+    echo "or get the source tarball for bison at http://ftp.gnu.org/gnu/bison/"
+    DIE=1
+  }
+}
+
 (grep "^IT_PROG_INTLTOOL" $srcdir/configure.ac >/dev/null) && {
   (intltoolize --version) < /dev/null > /dev/null 2>&1 || {
     echo 

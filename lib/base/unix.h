@@ -37,12 +37,10 @@
 #include <sys/file.h>
 #include <sys/wait.h>
 
-void Sleep(unsigned long milliseconds);
-
 typedef int SOCKET;
 #define INVALID_SOCKET (-1)
-void closesocket(SOCKET fd);
 
+#define closesocket close
 #define ioctlsocket ioctl
 
 #ifndef MAXPATHLEN
