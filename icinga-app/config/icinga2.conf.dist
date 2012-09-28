@@ -47,7 +47,9 @@ local object Component "compat" {
  */
 /*
 local object Component "compatido" {
-
+        socket_address = "127.0.0.1",
+        socket_port = "5668",
+        instance_name = "i2-default",
 }
 */
 

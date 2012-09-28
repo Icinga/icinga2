@@ -38,6 +38,10 @@ private:
 	Timer::Ptr m_ProgramStatusTimer;
 	IdoSocket::Ptr m_IdoSocket;
 
+	String GetSocketAddress(void) const;
+	String GetSocketPort(void) const;
+	String GetInstanceName(void) const;
+
 	void ConfigTimerHandler(void);
 	void StatusTimerHandler(void);
 	void ProgramStatusTimerHandler(void);
