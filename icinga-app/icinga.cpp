@@ -113,6 +113,14 @@ int main(int argc, char **argv)
 	 * in the base library. */
 	Application::SetMainThread();
 
+#ifdef ICINGA_PREFIX
+	Application::SetPrefixDir(ICINGA_PREFIX);
+#endif /* ICINGA_PREFIX */
+
+#ifdef ICINGA_LOCALSTATEDIR
+	Application::SetLocalStateDir(ICINGA_LOCALSTATEDIR);
+#endif /* ICINGA_LOCALSTATEDIR */
+
 	Logger::Write(LogInformation, "icinga", "Icinga application loader"
 #ifndef _WIN32
 		" (version: " ICINGA_VERSION ")"

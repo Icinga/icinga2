@@ -62,6 +62,12 @@ public:
 
 	static String GetExePath(const String& argv0);
 
+	static String GetPrefixDir(void);
+	static void SetPrefixDir(const String& path);
+
+	static String GetLocalStateDir(void);
+	static void SetLocalStateDir(const String& path);
+
 protected:
 	void RunEventLoop(void);
 
@@ -74,6 +80,8 @@ private:
 	FILE *m_PidFile; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
 	static boost::thread::id m_MainThreadID; /**< ID of the main thread. */
+	static String m_PrefixDir; /**< The installation prefix. */
+	static String m_LocalStateDir; /**< The local state dir. */
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);

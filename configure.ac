@@ -66,6 +66,12 @@ AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 AC_CHECK_FUNCS([backtrace_symbols])
 
+AS_AC_EXPAND([ICINGA_PREFIX], $prefix)
+AC_DEFINE_UNQUOTED([ICINGA_PREFIX], "$ICINGA_PREFIX", [The installation prefix.])
+
+AS_AC_EXPAND([ICINGA_LOCALSTATEDIR], $localstatedir)
+AC_DEFINE_UNQUOTED([ICINGA_LOCALSTATEDIR], "$ICINGA_LOCALSTATEDIR", [The local state dir.])
+
 AC_CONFIG_FILES([
 Makefile
 components/Makefile
