@@ -21,9 +21,9 @@
 
 using namespace icinga;
 
-const String DefaultSocketAddress = "127.0.0.1";
-const String DefaultSocketPort = "5668";
-const String DefaultInstanceName = "i2-default";
+const String CompatIdoComponent::DefaultSocketAddress = "127.0.0.1";
+const String CompatIdoComponent::DefaultSocketPort = "5668";
+const String CompatIdoComponent::DefaultInstanceName = "i2-default";
 
 /**
  * Reads the socket address from the config
