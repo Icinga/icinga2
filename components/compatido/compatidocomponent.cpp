@@ -22,16 +22,6 @@
 using namespace icinga;
 
 /**
- * Returns the name of the component.
- *
- * @returns The name.
- */
-String CompatIdoComponent::GetName(void) const
-{
-	return "compatido";
-}
-
-/**
  * Starts the component.
  */
 void CompatIdoComponent::Start(void)

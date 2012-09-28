@@ -29,7 +29,6 @@ namespace icinga
 class CompatIdoComponent : public IComponent
 {
 public:
-	virtual String GetName(void) const;
 	virtual void Start(void);
 	virtual void Stop(void);
 
