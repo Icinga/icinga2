@@ -21,6 +21,50 @@
 
 using namespace icinga;
 
+const String DefaultSocketAddress = "127.0.0.1";
+const String DefaultSocketPort = "5668";
+const String DefaultInstanceName = "i2-default";
+
+/**
+ * Reads the socket address from the config
+ * @returns address The config option, or static default
+ */
+String CompatIdoComponent::GetSocketAddress(void) const
+{
+	Value address = GetConfig()->Get("socket_address");
+	if(address.IsEmpty())
+		return DefaultSocketAddress;
+	else
+		return address;
+}
+
+
+/**
+ * Reads the socket port from the config
+ * @returns port The config option, or static default
+ */
+String CompatIdoComponent::GetSocketPort(void) const
+{
+	Value port = GetConfig()->Get("socket_port");
+	if(port.IsEmpty())
+		return DefaultSocketPort;
+	else
+		return port;
+}
+
+/**
+ * Reads the instance name from the config
+ * @returns instance The config option, or static default
+ */
+String CompatIdoComponent::GetInstanceName(void) const
+{
+	Value instance = GetConfig()->Get("instance_name");
+	if(instance.IsEmpty())
+		return DefaultInstanceName;
+	else
+		return instance;
+}
+
 /**
  * Starts the component.
  */
@@ -34,7 +78,6 @@ void CompatIdoComponent::Start(void)
 	 * - only tcp sockets
 	 * - only icinga idoutils 1.8
 	 * - only "retained" config
-	 * - instance_name is i2-default
 	 */
 	m_StatusTimer = boost::make_shared<Timer>();
 	m_StatusTimer->SetInterval(StatusTimerInterval);
@@ -57,8 +100,8 @@ void CompatIdoComponent::Start(void)
 	/*
 	 * open ido socket once
 	 */
-	OpenSink("127.0.0.1", "5668");
-	SendHello("i2-default");
+	OpenSink(GetSocketAddress(), GetSocketPort());
+	SendHello(GetInstanceName());
 }
 
 /**
