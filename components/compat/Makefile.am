@@ -1,4 +1,8 @@
 ## Process this file with automake to produce Makefile.in
+icinga2localstatedir = $(localstatedir)
+icinga2localstate_DATA = 
+
+EXTRA_DIST = $(icinga2localstate_DATA)
 
 pkglib_LTLIBRARIES = \
 	compat.la

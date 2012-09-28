@@ -37,7 +37,10 @@ local object Component "delegation" {
  * hosts and services.
  */
 local object Component "compat" {
-
+/*
+	statuspath = "/var/icinga2/status.dat",
+	objectspath = "/var/icinga2/objects.cache",
+*/
 }
 
 /**

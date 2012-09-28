@@ -35,6 +35,9 @@ public:
 private:
 	Timer::Ptr m_StatusTimer;
 
+	String GetStatusPath(void) const;
+	String GetObjectsPath(void) const;
+
 	void DumpHostStatus(ofstream& fp, const Host::Ptr& host);
 	void DumpHostObject(ofstream& fp, const Host::Ptr& host);
 
@@ -58,6 +61,9 @@ private:
 	void DumpServiceObject(ofstream& fp, const Service::Ptr& service);
 
 	void StatusTimerHandler(void);
+
+	static const String DefaultStatusPath;
+	static const String DefaultObjectsPath;
 };
 
 }

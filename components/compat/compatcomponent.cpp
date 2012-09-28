@@ -27,6 +27,35 @@ using namespace icinga;
  * performance (see http://gcc.gnu.org/onlinedocs/libstdc++/manual/bk01pt11ch25s02.html).
  */
 
+const String CompatComponent::DefaultStatusPath = Application::GetLocalStateDir() + "/status.dat";
+const String CompatComponent::DefaultObjectsPath = Application::GetLocalStateDir() + "/objects.cache";
+
+/**
+ * Reads status path from config
+ * @returns statuspath from config, or static default
+ */
+String CompatComponent::GetStatusPath(void) const
+{
+	Value statuspath = GetConfig()->Get("statuspath");
+	if(statuspath.IsEmpty())
+		return DefaultStatusPath;
+	else
+		return statuspath;
+}
+
+/**
+ * Reads objects path from config
+ * @returns objectspath from config, or static default
+ */
+String CompatComponent::GetObjectsPath(void) const
+{
+        Value objectspath = GetConfig()->Get("objectspath");
+        if(objectspath.IsEmpty())
+                return DefaultObjectsPath;
+        else
+                return objectspath;
+}
+
 /**
  * Starts the component.
  */
@@ -171,8 +200,13 @@ void CompatComponent::StatusTimerHandler(void)
 {
 	Logger::Write(LogInformation, "compat", "Writing compat status information");
 
+	String statuspath = GetStatusPath();
+	String objectspath = GetObjectsPath();
+	String statuspathtmp = statuspath + ".tmp"; /* XXX make this a global definition */
+	String objectspathtmp = objectspath + ".tmp";
+
 	ofstream statusfp;
-	statusfp.open("status.dat.tmp", ofstream::out | ofstream::trunc);
+	statusfp.open(statuspathtmp.CStr(), ofstream::out | ofstream::trunc);
 
 	statusfp << std::fixed;
 
@@ -203,7 +237,7 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\n";
 
 	ofstream objectfp;
-	objectfp.open("objects.cache.tmp", ofstream::out | ofstream::trunc);
+	objectfp.open(objectspathtmp.CStr(), ofstream::out | ofstream::trunc);
 
 	objectfp << std::fixed;
 
@@ -306,10 +340,10 @@ void CompatComponent::StatusTimerHandler(void)
 	}
 
 	statusfp.close();
-	rename("status.dat.tmp", "status.dat");
+	rename(statuspathtmp.CStr(), statuspath.CStr());
 
 	objectfp.close();
-	rename("objects.cache.tmp", "objects.cache");
+	rename(objectspathtmp.CStr(), objectspath.CStr());
 }
 
 EXPORT_COMPONENT(compat, CompatComponent);
