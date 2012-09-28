@@ -272,6 +272,13 @@ void DynamicObject::Register(void)
 	ti.first->second.insert(make_pair(GetName(), GetSelf()));
 
 	OnRegistered(GetSelf());
+
+	Start();
+}
+
+void DynamicObject::Start(void)
+{
+	/* Nothing to do here. */
 }
 
 void DynamicObject::Unregister(void)

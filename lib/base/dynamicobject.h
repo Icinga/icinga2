@@ -119,6 +119,8 @@ public:
 	void Register(void);
 	void Unregister(void);
 
+	virtual void Start(void);
+
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 	static pair<TypeMap::iterator, TypeMap::iterator> GetTypes(void);
 	static pair<NameMap::iterator, NameMap::iterator> GetObjects(const String& type);
