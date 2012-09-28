@@ -1,0 +1,6 @@
+Icinga 2 Contrib files
+======================
+
+This directory contains various unsupported scripts. Chances are that they're
+either completely broken or at least need some changes to work with the most
+recent version of Icinga 2.
