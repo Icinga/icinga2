@@ -94,8 +94,6 @@ Component::Component(const Dictionary::Ptr& properties)
 		throw;
 	}
 
-	impl->m_Config = this;
-	impl->Start();
 	m_Impl = impl;
 }
 
@@ -106,6 +104,16 @@ Component::~Component(void)
 {
 	if (m_Impl)
 		m_Impl->Stop();
+}
+
+/**
+ * Starts the component. Called when the DynamicObject is fully
+ * constructed/registered.
+ */
+void Component::Start(void)
+{
+	m_Impl->m_Config = GetSelf();
+	m_Impl->Start();
 }
 
 /**
@@ -129,7 +137,7 @@ void Component::AddSearchDir(const String& componentDirectory)
  */
 DynamicObject::Ptr IComponent::GetConfig(void) const
 {
-	return m_Config->GetSelf();
+	return m_Config.lock();
 }
 
 /**

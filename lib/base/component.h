@@ -41,7 +41,7 @@ protected:
 	DynamicObject::Ptr GetConfig(void) const;
 
 private:
-	DynamicObject *m_Config; /**< The configuration object for this
+	DynamicObject::WeakPtr m_Config; /**< The configuration object for this
 				      component. */
 
 	friend class Component;
@@ -61,6 +61,8 @@ public:
 
 	Component(const Dictionary::Ptr& properties);
 	~Component(void);
+
+	virtual void Start(void);
 
 	static void AddSearchDir(const String& componentDirectory);
 
