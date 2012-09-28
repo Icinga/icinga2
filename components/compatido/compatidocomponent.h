@@ -69,6 +69,10 @@ private:
 			msg << type << "=" << *it << "\n";
 		}
 	}
+
+	static const String DefaultSocketAddress;
+	static const String DefaultSocketPort;
+	static const String DefaultInstanceName;
 };
 
 }
