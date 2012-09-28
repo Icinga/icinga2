@@ -29,6 +29,8 @@ Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_Debugging = false;
 boost::thread::id Application::m_MainThreadID;
+String Application::m_PrefixDir;
+String Application::m_LocalStateDir;
 
 /**
  * Constructor for the Application class.
@@ -396,5 +398,51 @@ void Application::ClosePidFile(void)
 		fclose(m_PidFile);
 
 	m_PidFile = NULL;
+}
+
+/**
+ * Retrieves the path of the installation prefix.
+ *
+ * @returns The path.
+ */
+String Application::GetPrefixDir(void)
+{
+	if (m_PrefixDir.IsEmpty())
+		return "./";
+	else
+		return m_PrefixDir;
+}
+
+/**
+ * Sets the path for the installation prefix.
+ *
+ * @param path The new path.
+ */
+void Application::SetPrefixDir(const String& path)
+{
+	m_PrefixDir = path;
+}
+
+/**
+ * Retrieves the path for the local state dir.
+ *
+ * @returns The path.
+ */
+String Application::GetLocalStateDir(void)
+{
+	if (m_LocalStateDir.IsEmpty())
+		return "./var/";
+	else
+		return m_LocalStateDir;
+}
+
+/**
+ * Sets the path for the local state dir.
+ *
+ * @param path The new path.
+ */
+void Application::SetLocalStateDir(const String& path)
+{
+	m_LocalStateDir = path;
 }
 

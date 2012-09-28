@@ -17,8 +17,7 @@ icinga2_CPPFLAGS = \
 	-I${top_srcdir}/lib/config \
 	-I${top_srcdir}/lib/remoting \
 	-I${top_srcdir}/lib/icinga \
-	-I${top_srcdir} \
-	-DICINGA_LIBDIR="\"$(pkglibdir)\""
+	-I${top_srcdir}
 
 icinga2_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
