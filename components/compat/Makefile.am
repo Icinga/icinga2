@@ -1,5 +1,5 @@
 ## Process this file with automake to produce Makefile.in
-icinga2localstatedir = $(localstatedir)
+icinga2localstatedir = $(localstatedir)/icinga2
 icinga2localstate_DATA = 
 
 EXTRA_DIST = $(icinga2localstate_DATA)
