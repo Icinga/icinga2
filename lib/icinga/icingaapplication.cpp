@@ -90,8 +90,8 @@ int IcingaApplication::Main(const vector<String>& args)
 		}
 	}
 
-	m_CertificateFile = Get("cert");
-	m_CAFile = Get("ca");
+	m_CertificateFile = Get("cert_path");
+	m_CAFile = Get("ca_path");
 	m_Node = Get("node");
 	m_Service = Get("service");
 
