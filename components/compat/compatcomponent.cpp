@@ -36,7 +36,7 @@ const String CompatComponent::DefaultObjectsPath = Application::GetLocalStateDir
  */
 String CompatComponent::GetStatusPath(void) const
 {
-	Value statuspath = GetConfig()->Get("statuspath");
+	Value statuspath = GetConfig()->Get("status_path");
 	if(statuspath.IsEmpty())
 		return DefaultStatusPath;
 	else
@@ -49,7 +49,7 @@ String CompatComponent::GetStatusPath(void) const
  */
 String CompatComponent::GetObjectsPath(void) const
 {
-        Value objectspath = GetConfig()->Get("objectspath");
+        Value objectspath = GetConfig()->Get("objects_path");
         if(objectspath.IsEmpty())
                 return DefaultObjectsPath;
         else

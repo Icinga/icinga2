@@ -332,9 +332,9 @@ local object IcingaApplication "icinga" {
   node = "192.168.0.1",
   service = 7777,
 
-  pidpath = "/var/run/icinga2.pid",
-  logpath = "/var/log/icinga2.log",
-  statepath = "/var/lib/icinga2.state",
+  pid_path = "./var/run/icinga2.pid",
+  log_path = "./var/log/icinga2.log",
+  state_path = "./var/lib/icinga2.state",
 
   macros = {
     plugindir = "/usr/local/icinga/libexec"
@@ -371,23 +371,23 @@ Attribute: service
 The port this Icinga 2 instance should listen on. This property is optional
 when you're setting up a non-networked Icinga 2 instance.
 
-Attribute: pidpath
-^^^^^^^^^^^^^^^^^^
+Attribute: pid_path
+^^^^^^^^^^^^^^^^^^^
 
 Optional. The path to the PID file. Defaults to "icinga.pid" in the current
 working directory.
 
-Attribute: logpath
-^^^^^^^^^^^^^^^^^^
+Attribute: log_path
+^^^^^^^^^^^^^^^^^^^
 
 Optional. The path to the logfile. This is a shortcut for creating a Logger
 object of type "file" with the specified log path.
 
-Attribute: statepath
-^^^^^^^^^^^^^^^^^^^^
+Attribute: state_path
+^^^^^^^^^^^^^^^^^^^^^
 
 Optional. The path of the state file. This is the file Icinga 2 uses to persist
-objects between program runs. Defaults to "icinga.state" in the current working
+objects between program runs. Defaults to "icinga2.state" in the current working
 directory.
 
 Attribute: macros
@@ -399,8 +399,10 @@ Optional. Global macros that are used for service checks and notifications.
 Type: Component
 ~~~~~~~~~~~~~~~
 
-The "Component" type is used to specify independent tasks which can be loaded on
-demand at runtime. The typical components to be loaded in the default configuration
+Icinga 2 uses a number of components to implement its feature-set. The
+"Component" configuration object is used to load these components and specify
+additional parameters for them. "Component" objects must have the "local"
+specifier. The typical components to be loaded in the default configuration
 would be "checker", "delegation" and more.
 There are optional components which may not run on every operating system, such as
 "compat" or "compatido".
@@ -409,20 +411,20 @@ Example:
 
 -------------------------------------------------------------------------------
 local object Component "compat" {
-  statuspath = "status.dat",
-  objectspath = "objects.cache",
+  status_path = "./var/cache/icinga2/status.dat",
+  objects_path = "./var/cache/icinga2/objects.cache",
 }
 -------------------------------------------------------------------------------
 
-Attribute: statuspath
-^^^^^^^^^^^^^^^^^^^^^
+Attribute: status_path
+^^^^^^^^^^^^^^^^^^^^^^
 
 Specifies where Icinga 2 Compat component will put the status.dat file, which can
 be read by Icinga 1.x Classic UI and other addons. If not set, it defaults to the
 localstatedir location.
 
-Attribute: objectspath
-^^^^^^^^^^^^^^^^^^^^^^
+Attribute: objects_path
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Specifies where Icinga 2 Compat component will put the objects.cache file, which can
 be read by Icinga 1.x Classic UI and other addons. If not set, it defaults to the
@@ -471,7 +473,7 @@ Example:
 -------------------------------------------------------------------------------
 local object Logger "my-debug-log" {
   type = "file",
-  path = "/var/log/icinga2.log",
+  path = "./var/log/icinga2/icinga2.log",
   severity = "debug"
 }
 -------------------------------------------------------------------------------
@@ -491,22 +493,6 @@ Attribute: severity
 
 The minimum severity for this log. Can be "debug", "information", "warning" or
 "critical". Defaults to "information".
-
-Type: Component
-~~~~~~~~~~~~~~~
-
-Icinga 2 uses a number of components to implement its feature-set. The
-"Component" configuration object is used to load these components and specify
-additional parameters for them. "component" objects must have the "local"
-specifier.
-
-Example:
-
--------------------------------------------------------------------------------
-local object Component "discovery" {
-  broker = 1
-}
--------------------------------------------------------------------------------
 
 Type: Endpoint
 ~~~~~~~~~~~~~~

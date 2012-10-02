@@ -95,17 +95,17 @@ int IcingaApplication::Main(const vector<String>& args)
 	m_Node = Get("node");
 	m_Service = Get("service");
 
-	m_PidPath = Get("pidpath");
+	m_PidPath = Get("pid_path");
 	if (m_PidPath.IsEmpty())
 		m_PidPath = DefaultPidPath;
 
-	m_StatePath = Get("statepath");
+	m_StatePath = Get("state_path");
 	if (m_StatePath.IsEmpty())
 		m_StatePath = DefaultStatePath;
 
 	m_Macros = Get("macros");
 
-	String logpath = Get("logpath");
+	String logpath = Get("log_path");
 	if (!logpath.IsEmpty()) {
 		ConfigItemBuilder::Ptr fileLogConfig = boost::make_shared<ConfigItemBuilder>();
 		fileLogConfig->SetType("Logger");

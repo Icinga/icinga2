@@ -11,8 +11,12 @@
  * Global configuration settings
  */
 local object IcingaApplication "icinga" {
+  pid_path = "./var/run/icinga2.pid",
+  log_path = "./var/log/icinga2/icinga2.log",
+  state_path = "./var/lib/icinga2/icinga2.state",
+
   macros = {
-    plugindir = "/usr/lib/nagios/plugins"
+    plugindir = "/usr/local/icinga/libexec"
   }
 }
 
@@ -37,10 +41,8 @@ local object Component "delegation" {
  * hosts and services.
  */
 local object Component "compat" {
-/*
-	statuspath = "/var/icinga2/status.dat",
-	objectspath = "/var/icinga2/objects.cache",
-*/
+  status_path = "./var/cache/icinga2/status.dat",
+  objects_path = "./var/cache/icinga2/objects.cache",
 }
 
 /**
@@ -50,9 +52,9 @@ local object Component "compat" {
  */
 /*
 local object Component "compatido" {
-        socket_address = "127.0.0.1",
-        socket_port = "5668",
-        instance_name = "i2-default",
+  socket_address = "127.0.0.1",
+  socket_port = "5668",
+  instance_name = "i2-default",
 }
 */
 
