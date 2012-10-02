@@ -408,7 +408,7 @@ There are optional components which may not run on every operating system, such 
 Example:
 
 -------------------------------------------------------------------------------
-local object component "compat" {
+local object Component "compat" {
   statuspath = "status.dat",
   objectspath = "objects.cache",
 }
@@ -431,7 +431,7 @@ localstatedir location.
 Example:
 
 -------------------------------------------------------------------------------
-local object component "compatido" {
+local object Component "compatido" {
   socket_address = "127.0.0.1",
   socket_port = "5668",
   instance_name = "i2-default",
