@@ -395,6 +395,71 @@ Attribute: macros
 
 Optional. Global macros that are used for service checks and notifications.
 
+
+Type: Component
+~~~~~~~~~~~~~~~
+
+The "Component" type is used to specify independent tasks which can be loaded on
+demand at runtime. The typical components to be loaded in the default configuration
+would be "checker", "delegation" and more.
+There are optional components which may not run on every operating system, such as
+"compat" or "compatido".
+
+Example:
+
+-------------------------------------------------------------------------------
+local object component "compat" {
+  statuspath = "status.dat",
+  objectspath = "objects.cache",
+}
+-------------------------------------------------------------------------------
+
+Attribute: statuspath
+^^^^^^^^^^^^^^^^^^^^^
+
+Specifies where Icinga 2 Compat component will put the status.dat file, which can
+be read by Icinga 1.x Classic UI and other addons. If not set, it defaults to the
+localstatedir location.
+
+Attribute: objectspath
+^^^^^^^^^^^^^^^^^^^^^^
+
+Specifies where Icinga 2 Compat component will put the objects.cache file, which can
+be read by Icinga 1.x Classic UI and other addons. If not set, it defaults to the
+localstatedir location.
+
+Example:
+
+-------------------------------------------------------------------------------
+local object component "compatido" {
+  socket_address = "127.0.0.1",
+  socket_port = "5668",
+  instance_name = "i2-default",
+}
+-------------------------------------------------------------------------------
+
+Attribute: socket_address
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Specifies the tcp socket address of ido2db where Icinga 2 CompatIDO component will
+try to connect to. ido2db must be running and listening there already. The default
+is set to "127.0.0.1" if missing.
+
+Attribute: socket_port
+^^^^^^^^^^^^^^^^^^^^^^
+
+Specifies the tcp socket port of ido2db where Icinga 2 CompatIDO component will try
+to connect to. ido2db must be running and listening there already. The default is
+set to "5668" if missing.
+
+Attribute: instance_name
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is the instance name which Icinga 2 CompatIDO will use to identify itsself to
+ido2db (same as idomod would use). Once set, do not change that unless knowing the
+consequences of data inconsistency. If not set, this will default to "i2-default".
+
+
 Type: Logger
 ~~~~~~~~~~~~
 
@@ -711,6 +776,9 @@ Attribute: action_url
 ^^^^^^^^^^^^^^^^^^^^^
 
 Optional. Action URL. Used by the CGIs.
+
+
+
 
 Configuration Examples
 ----------------------
