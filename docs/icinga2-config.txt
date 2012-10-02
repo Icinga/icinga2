@@ -822,3 +822,5 @@ write status.dat and objects.cache files.
 If you require an idomod connector for ido2db, outputting into idoutils database,
 you may also load the "compatido" component (default: tcpsocket, 127.0.0.1:5668).
 Make sure that ido2db is running and listening to the tcpsocket!
+
+/* vim: set syntax=asciidoc filetype=asciidoc: */
