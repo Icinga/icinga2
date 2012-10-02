@@ -31,7 +31,8 @@ fi
 }
 
 (grep "^AC_PROG_LEX" $srcdir/configure.ac >/dev/null) && {
-  (lex --version) < /dev/null > /dev/null 2>&1 || {
+  (lex --version) < /dev/null > /dev/null 2>&1 || 
+  (flex --version) < /dev/null > /dev/null 2>&1 || {
     echo
     echo "**Error**: You must have \`lex' installed."
     echo "Download the appropriate package for your distribution,"
@@ -41,7 +42,8 @@ fi
 }
 
 (grep "^AC_PROG_YACC" $srcdir/configure.ac >/dev/null) && {
-  (yacc --version) < /dev/null > /dev/null 2>&1 || {
+  (yacc --version) < /dev/null > /dev/null 2>&1 ||
+  (bison --version) < /dev/null > /dev/null 2>&1 || {
     echo
     echo "**Error**: You must have \`yacc' installed."
     echo "Download the appropriate package for your distribution,"
