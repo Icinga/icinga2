@@ -121,6 +121,10 @@ int main(int argc, char **argv)
 	Application::SetLocalStateDir(ICINGA_LOCALSTATEDIR);
 #endif /* ICINGA_LOCALSTATEDIR */
 
+#ifdef ICINGA_PKGLIBDIR
+	Application::SetPkgLibDir(ICINGA_PKGLIBDIR);
+#endif /* ICINGA_PKGLIBDIR */
+
 	Logger::Write(LogInformation, "icinga", "Icinga application loader"
 #ifndef _WIN32
 		" (version: " ICINGA_VERSION ")"
@@ -134,13 +138,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	String exeDirectory = Utility::DirName(Application::GetExePath(argv[0]));
-	Component::AddSearchDir(exeDirectory + "/../lib/icinga2");
-	Component::AddSearchDir(exeDirectory + "/../lib64/icinga2");
-
-#ifdef ICINGA_LIBDIR
-	Component::AddSearchDir(ICINGA_LIBDIR);
-#endif /* ICINGA_LIBDIR */
+	Component::AddSearchDir(Application::GetPkgLibDir());
 
 	try {
 		DynamicObject::BeginTx();

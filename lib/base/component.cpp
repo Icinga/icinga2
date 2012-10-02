@@ -123,6 +123,9 @@ void Component::Start(void)
  */
 void Component::AddSearchDir(const String& componentDirectory)
 {
+	Logger::Write(LogInformation, "base", "Adding library search dir: " +
+	    componentDirectory);
+
 #ifdef _WIN32
 	SetDllDirectory(componentDirectory.CStr());
 #else /* _WIN32 */

@@ -31,6 +31,7 @@ bool Application::m_Debugging = false;
 boost::thread::id Application::m_MainThreadID;
 String Application::m_PrefixDir;
 String Application::m_LocalStateDir;
+String Application::m_PkgLibDir;
 
 /**
  * Constructor for the Application class.
@@ -408,7 +409,7 @@ void Application::ClosePidFile(void)
 String Application::GetPrefixDir(void)
 {
 	if (m_PrefixDir.IsEmpty())
-		return "./";
+		return ".";
 	else
 		return m_PrefixDir;
 }
@@ -431,7 +432,7 @@ void Application::SetPrefixDir(const String& path)
 String Application::GetLocalStateDir(void)
 {
 	if (m_LocalStateDir.IsEmpty())
-		return "./var/";
+		return "./var";
 	else
 		return m_LocalStateDir;
 }
@@ -446,3 +447,25 @@ void Application::SetLocalStateDir(const String& path)
 	m_LocalStateDir = path;
 }
 
+/**
+ * Retrives the path for the package lib dir.
+ *
+ * @returns The path.
+ */
+String Application::GetPkgLibDir(void)
+{
+	if (m_PkgLibDir.IsEmpty())
+		return ".";
+	else
+		return m_PkgLibDir;
+}
+
+/**
+ * Sets the path for the package lib dir.
+ *
+ * @param path The new path.
+ */
+void Application::SetPkgLibDir(const String& path)
+{
+	m_PkgLibDir = path;
+}

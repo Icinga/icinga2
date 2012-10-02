@@ -68,6 +68,9 @@ public:
 	static String GetLocalStateDir(void);
 	static void SetLocalStateDir(const String& path);
 
+	static String GetPkgLibDir(void);
+	static void SetPkgLibDir(const String& path);
+
 protected:
 	void RunEventLoop(void);
 
@@ -82,6 +85,7 @@ private:
 	static boost::thread::id m_MainThreadID; /**< ID of the main thread. */
 	static String m_PrefixDir; /**< The installation prefix. */
 	static String m_LocalStateDir; /**< The local state dir. */
+	static String m_PkgLibDir; /**< The package lib dir. */
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);
