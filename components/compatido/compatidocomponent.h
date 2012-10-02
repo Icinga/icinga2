@@ -53,6 +53,11 @@ private:
 	void StartConfigDump(void);
 	void EndConfigDump(void);
 
+	void EnableHostObject(const Host::Ptr& host);
+	void EnableServiceObject(const Service::Ptr& service);
+	void DisableHostObject(const Host::Ptr& host);
+	void DisableServiceObject(const Service::Ptr& service);
+
 	void DumpConfigObjects(void);
 	void DumpHostObject(const Host::Ptr& host);
 	void DumpServiceObject(const Service::Ptr& service);
