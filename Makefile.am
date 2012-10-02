@@ -9,8 +9,8 @@ SUBDIRS = \
 	components \
 	icinga-app \
 	test
-
-icinga2docdir = ${prefix}/share/doc/icinga2
+#doc
+icinga2docdir = ${docdir}
 icinga2doc_DATA = \
 	README \
 	COPYING \
@@ -20,8 +20,32 @@ icinga2doc_DATA = \
 	INSTALL \
 	NEWS
 
+#log
+icinga2logdir = ${localstatedir}/log/${PACKAGE}
+icinga2log_DATA =
 
-EXTRA_DIST = $(icinga2doc_DATA) git_version.sh icinga2.spec
+#cache
+icinga2cachedir = ${localstatedir}/cache/${PACKAGE}
+icinga2cache_DATA =
+
+#variablestate
+icinga2varstatedir = ${localstatedir}/lib/${PACKAGE}
+icinga2varstate_DATA =
+
+#run
+icinga2rundir = ${localstatedir}/run
+icinga2run_DATA =
+
+#bin
+icinga2sbindir = ${sbindir}
+icinga2sbin_DATA =
+
+#lib
+icinga2libdir = ${libdir}/${PACKAGE}
+icinga2lib_DATA =
+
+
+EXTRA_DIST = $(icinga2doc_DATA) $(icinga2logdir) $(icinga2cachedir) $(icinga2varstatedir) $(icinga2rundir) $(icinga2sbindir) $(icinga2libdir) git_version.sh icinga2.spec
 
 
 # Remove doc directory on uninstall
