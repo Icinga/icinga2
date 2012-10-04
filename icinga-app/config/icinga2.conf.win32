@@ -1,0 +1,100 @@
+/**
+ * Icinga 2 configuration file
+ * - this is where you define settings for the Icinga application including
+ * which hosts/services to check.
+ *
+ * The docs/icinga2-config.txt file in the source tarball has a detailed
+ * description of what configuration options are available.
+ */
+
+/**
+ * Global configuration settings
+ */
+local object IcingaApplication "icinga" {
+  pid_path = "icinga2.pid",
+  log_path = "icinga2.log",
+  state_path = "icinga2.state",
+
+  macros = {
+    plugindir = "C:\Plugins"
+  }
+}
+
+/**
+ * The checker component takes care of executing service checks.
+ */
+local object Component "checker" {
+
+}
+
+/**
+ * The delegation component assigns services to checkers. You need to load
+ * this component even if your Icinga setup only consists of a single instance.
+ */
+local object Component "delegation" {
+
+}
+
+/**
+ * The compat component periodically updates the status.dat and objects.cache
+ * files. These are used by the Icinga 1.x CGIs to display the state of
+ * hosts and services.
+ */
+local object Component "compat" {
+  status_path = "status.dat",
+  objects_path = "objects.cache",
+}
+
+/**
+ * The compatido component works as idomod connector to a running ido2db
+ * daemon, connected via tcp socket only. It will dump config and status
+ * information periodically for now. By default, this remains disabled.
+ */
+/*
+local object Component "compatido" {
+  socket_address = "127.0.0.1",
+  socket_port = "5668",
+  instance_name = "i2-default",
+}
+*/
+
+/**
+ * This template defines some basic parameters for services that use
+ * external plugins for their checks.
+ */
+abstract object Service "icinga-service" {
+  methods = {
+    check = "native::PluginCheck"
+  }
+}
+
+/**
+ * The service template for ping checks. In an Icinga 1.x environment
+ * this would be defined as a check command.
+ */
+abstract object Service "ping" inherits "icinga-service" {
+
+  /* using check_winping from https://www.itefix.no/i2/check_winping */
+  check_command = "$plugindir$\check_ping.exe -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
+
+  macros += {
+    wrta = 100,
+    wpl = 80,
+    crta = 250,
+    cpl = 100
+  }
+}
+
+/**
+ * And finally we define some host that should be checked.
+ */
+object Host "localhost" {
+  services = { "ping" },
+
+  macros = {
+    address = "127.0.0.1"
+  },
+
+  check_interval = 1m
+}
+
