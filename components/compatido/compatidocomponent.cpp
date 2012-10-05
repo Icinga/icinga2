@@ -117,6 +117,7 @@ void CompatIdoComponent::Stop(void)
  * subscribe to all status updates and checkresults and dump them
  * should remove the periodic statusdata dump
  * subscribe to config update events, and send insert/update/delete for configs to ido2db
+ * detect if socket disconnected, add timer for reconnect
  */
 
 /**
@@ -165,8 +166,6 @@ void CompatIdoComponent::OpenSink(String node, String service)
  */
 void CompatIdoComponent::SendHello(String instancename)
 {
-	time_t now = static_cast<int>(Utility::GetTime());
-
 	/* connection is always TCP */
 	/* connecttype is always initial */
 	stringstream message;
@@ -175,7 +174,7 @@ void CompatIdoComponent::SendHello(String instancename)
 		<< "PROTOCOL" << ": " << 2 << "\n"
 		<< "AGENT" << ": " << "I2 COMPATIDO" << "\n"
 		<< "AGENTVERSION" << ": " << "2.0" << "\n"
-		<< "STARTTIME" << ": " << now << "\n"
+		<< "STARTTIME" << ": " << static_cast<int>(Utility::GetTime()) << "\n"
 		<< "DISPOSITION" << ": " << "REALTIME" << "\n"
 		<< "CONNECTION" << ": " << "TCPSOCKET" << "\n"
 		<< "INSTANCENAME" << ": " << instancename << "\n"
@@ -190,13 +189,10 @@ void CompatIdoComponent::SendHello(String instancename)
  */
 void CompatIdoComponent::GoodByeSink(void)
 {
-        time_t now;
-        time(&now);
-
         stringstream message;
         message << "\n"
                 << 1000 << "\n" 				/* enddatadump */
-                << "ENDTIME" << ": " << now << "\n"		/* endtime */
+                << "ENDTIME" << ": " << static_cast<int>(Utility::GetTime()) << "\n"		/* endtime */
 		<< "GOODBYE"					/* goodbye */
                 << "\n\n";
 
@@ -322,8 +318,8 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 		<< 174 << "=" << host->GetName() << "\n"		/* hostname */
 		<< 258 << "=" << host->GetAlias() << "\n"		/* displayname */
 		<< 159 << "=" << host->GetAlias() << "\n"		/* hostalias */
-		<< 158 << "=" << "" << "\n"				/* hostaddress */
-		<< 266 << "=" << "" << "\n"				/* hostaddress6 */
+		<< 158 << "=" << host->GetName() << "\n"		/* hostaddress */
+		<< 266 << "=" << host->GetName() << "\n"		/* hostaddress6 */
 		<< 160 << "=" << "" << "\n"				/* hostcheckcommand */
 		<< 163 << "=" << "" << "\n"				/* hosteventhandler */
 		<< 177 << "=" << "" << "\n"				/* hostnotificationperiod */
@@ -410,48 +406,48 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 		<< 3 << "=" << "" << "\n"				/* attributes */
 		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 53 << "=" << host->GetName() << "\n"			/* host */
-		<< 95 << "=" << "" << "\n"				/* output */
+		<< 95 << "=" << "i2 static" << "\n"				/* output */
 		<< 125 << "=" << "" << "\n"				/* longout */
 		<< 99 << "=" << "" << "\n"				/* perfdata */
-		<< 27 << "=" << "" << "\n"				/* currentstate */
+		<< 27 << "=" << 0 << "\n"				/* currentstate */
 		<< 51 << "=" << 1 << "\n"				/* hasbeenchecked */
 		<< 115 << "=" << 1 << "\n"				/* shouldbescheduled */
 		<< 25 << "=" << 1 << "\n"				/* currentcheckattempt */
 		<< 76 << "=" << 1 << "\n"				/* maxcheckattempts */
 		<< 58 << "=" << static_cast<int>(Utility::GetTime()) << "\n"		/* lasthostcheck (seconds only) */
 		<< 81 << "=" << static_cast<int>(Utility::GetTime()) << "\n"		/* nexthostcheck (seconds only) */
-		<< 12 << "=" << "" << "\n"				/* checktype */
-		<< 63 << "=" << "" << "\n"				/* laststatechange */
-		<< 57 << "=" << "" << "\n"				/* lasthardstatechange */
-		<< 56 << "=" << "" << "\n"				/* lasthardstate */
-		<< 69 << "=" << "" << "\n"				/* lasttimeup */
-		<< 65 << "=" << "" << "\n"				/* lasttimedown */
-		<< 68 << "=" << "" << "\n"				/* lastttimeunreachable */
-		<< 121 << "=" << "" << "\n"				/* statetype */
-		<< 59 << "=" << "" << "\n"				/* lasthostnotification */
-		<< 82 << "=" << "" << "\n"				/* nexthostnotification */
+		<< 12 << "=" << 0 << "\n"				/* checktype */
+		<< 63 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* laststatechange */
+		<< 57 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasthardstatechange */
+		<< 56 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasthardstate */
+		<< 69 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasttimeup */
+		<< 65 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasttimedown */
+		<< 68 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lastttimeunreachable */
+		<< 121 << "=" << 0 << "\n"				/* statetype */
+		<< 59 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasthostnotification */
+		<< 82 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* nexthostnotification */
 		<< 85 << "=" << 0 << "\n"				/* nomorenotifications */
 		<< 88 << "=" << 0 << "\n"				/* notificationsenabled */
 		<< 101 << "=" << 0 << "\n"				/* problemhasbeenacknowledged */
-		<< 7 << "=" << "" << "\n"				/* acknowledgementtype */
+		<< 7 << "=" << 0 << "\n"				/* acknowledgementtype */
 		<< 26 << "=" << 0 << "\n"				/* currentnotificationnumber */
 		<< 96 << "=" << 1 << "\n"				/* passivehostchecksenabled */
-		<< 38 << "=" << "" << "\n"				/* eventhandlerenabled */
-		<< 8 << "=" << "" << "\n"				/* activehostchecksenabled */
-		<< 47 << "=" << "" << "\n"				/* flapdetectionenabled */
-		<< 54 << "=" << "" << "\n"				/* isflapping */
-		<< 98 << "=" << "" << "\n"				/* percentstatechange */
-		<< 71 << "=" << "" << "\n"				/* latency */
-		<< 42 << "=" << "" << "\n"				/* executiontime */
+		<< 38 << "=" << 0 << "\n"				/* eventhandlerenabled */
+		<< 8 << "=" << 0 << "\n"				/* activehostchecksenabled */
+		<< 47 << "=" << 0 << "\n"				/* flapdetectionenabled */
+		<< 54 << "=" << 0 << "\n"				/* isflapping */
+		<< 98 << "=" << 0.0 << "\n"				/* percentstatechange */
+		<< 71 << "=" << 0.0 << "\n"				/* latency */
+		<< 42 << "=" << 0.0 << "\n"				/* executiontime */
 		<< 113 << "=" << 0 << "\n"				/* scheduleddowntimedepth */
-		<< 45 << "=" << "" << "\n"				/* failurepredictionsenabled */
+		<< 45 << "=" << 0 << "\n"				/* failurepredictionsenabled */
 		<< 103 << "=" << 1 << "\n"				/* processperformancedata */
 		<< 91 << "=" << 0 << "\n"				/* obsessoverhost */
-		<< 78 << "=" << "" << "\n"				/* modifiedattributes */
+		<< 78 << "=" << 0 << "\n"				/* modifiedattributes */
 		<< 37 << "=" << "" << "\n"				/* eventhandler */
 		<< 11 << "=" << "i2_virtual_check" << "\n"		/* checkcommand */
 		<< 86 << "=" << "" << "\n"				/* normalcheckinterval */
-		<< 109 << "=" << "" << "\n"				/* retrycheckinterval */
+		<< 109 << "=" << 0 << "\n"				/* retrycheckinterval */
 		<< 162 << "=" << "" << "\n"				/* hostcheckperiod */
 		/* FIXME dump all customvars in a loop */
 		<< 262 << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"	/* customvariable */
@@ -575,33 +571,33 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 		<< 99 << "=" << perfdata << "\n"			/* perfdata */
 		<< 27 << "=" << state << "\n"				/* currentstate */
 		<< 51 << "=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"	/* hasbeenchecked */
-		<< 115 << "=" << "1" << "\n"				/* shouldbescheduled */
+		<< 115 << "=" << 1 << "\n"				/* shouldbescheduled */
 		<< 25 << "=" << service->GetCurrentCheckAttempt() << "\n"	/* currentcheckattempt */
 		<< 76 << "=" << service->GetMaxCheckAttempts() << "\n"	/* maxcheckattempts */
 		<< 61 << "=" << static_cast<int>(schedule_end) << "\n"	/* lastservicecheck (seconds only) */
 		<< 83 << "=" << static_cast<int>(service->GetNextCheck()) << "\n"	/* nextservicecheck (seconds only) */
-		<< 12 << "=" << "" << "\n"				/* checktype */
+		<< 12 << "=" << 0 << "\n"				/* checktype */
 		<< 63 << "=" << static_cast<int>(service->GetLastStateChange()) << "\n"	/* laststatechange (seconds only) */
 		<< 57 << "=" << static_cast<int>(service->GetLastHardStateChange()) << "\n"	/* lasthardstatechange (seconds only) */
-		<< 56 << "=" << "" << "\n"				/* lasthardstate */
-		<< 66 << "=" << "" << "\n"				/* lasttimeok */
-		<< 70 << "=" << "" << "\n"				/* lasttimewarning */
-		<< 67 << "=" << "" << "\n"				/* lasttimeunknown */
-		<< 64 << "=" << "" << "\n"				/* lasttimecritical */
+		<< 56 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasthardstate */
+		<< 66 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasttimeok */
+		<< 70 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasttimewarning */
+		<< 67 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasttimeunknown */
+		<< 64 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lasttimecritical */
 		<< 121 << "=" << service->GetStateType() << "\n"	/* statetype */
-		<< 62 << "=" << "" << "\n"				/* lastservicenotification */
-		<< 84 << "=" << "" << "\n"				/* nextservicenotification */
+		<< 62 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lastservicenotification */
+		<< 84 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* nextservicenotification */
 		<< 85 << "=" << 0 << "\n"				/* nomorenotifications */
 		<< 88 << "=" << 0 << "\n"				/* notificationsenabled */
 		<< 101 << "=" << 0 << "\n"				/* problemhasbeenacknowledged */
-		<< 7 << "=" << "" << "\n"				/* acknowledgementtype */
+		<< 7 << "=" << 0 << "\n"				/* acknowledgementtype */
 		<< 26 << "=" << 0 << "\n"				/* currentnotifcationnumber */
-		<< 97 << "=" << "" << "\n"				/* passiveservicechecksenabled */
-		<< 38 << "=" << "" << "\n"				/* eventhandlerenabled */
-		<< 9 << "=" << "" << "\n"				/* activeservicechecksenabled */
-		<< 47 << "=" << "" << "\n"				/* flapdetectionenabled */
-		<< 54 << "=" << "" << "\n"				/* isflapping */
-		<< 98 << "=" << "" << "\n"				/* percentstatechange */
+		<< 97 << "=" << 1 << "\n"				/* passiveservicechecksenabled */
+		<< 38 << "=" << 0 << "\n"				/* eventhandlerenabled */
+		<< 9 << "=" << 1 << "\n"				/* activeservicechecksenabled */
+		<< 47 << "=" << 0 << "\n"				/* flapdetectionenabled */
+		<< 54 << "=" << 0 << "\n"				/* isflapping */
+		<< 98 << "=" << 0.0 << "\n"				/* percentstatechange */
 		<< 71 << "=" << latency << "\n"				/* latency */
 		<< 42 << "=" << execution_time << "\n"			/* executiontime */
 		<< 113 << "=" << 0 << "\n"				/* scheduleddowntimedepth */
@@ -639,24 +635,24 @@ void CompatIdoComponent::DumpProgramStatusData(void)
 		<< 106 << "=" << static_cast<int>(start_time) << "\n"	/* programstarttime */
 		<< 102 << "=" << Utility::GetPid() << "\n"		/* processid */
 		<< 28 << "=" << "1" << "\n"				/* daemonmode */
-		<< 55 << "=" << "" << "\n"				/* lastcommandcheck */
-		<< 60 << "=" << "" << "\n"				/* lastlogrotation */
-		<< 88 << "=" << "" << "\n"				/* notificationsenabled */
-		<< 9 << "=" << "1" << "\n"				/* activeservicechecksenabled */
-		<< 97 << "=" << "1" << "\n"				/* passiveservicechecksenabled */
-		<< 8 << "=" << "0" << "\n"				/* activehostchecksenabled */
-		<< 96 << "=" << "0" << "\n"				/* passivehostchecksenabled */
-		<< 39 << "=" << "0" << "\n"				/* eventhandlersenabled */
-		<< 47 << "=" << "1" << "\n"				/* flaptdetectionenabled */
-		<< 45 << "=" << "0" << "\n"				/* failurepredictionenabled */
-		<< 103 << "=" << "1" << "\n"				/* processperformancedata */
-		<< 92 << "=" << "0" << "\n"				/* obsessoverhosts */
-		<< 94 << "=" << "0" << "\n"				/* obsessoverservices */
-		<< 78 << "=" << "0" << "\n"				/* modifiedhostattributes */
-		<< 80 << "=" << "0" << "\n"				/* modifiedserviceattributes */
+		<< 55 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lastcommandcheck */
+		<< 60 << "=" << static_cast<int>(Utility::GetTime()) << "\n"				/* lastlogrotation */
+		<< 88 << "=" << 0 << "\n"				/* notificationsenabled */
+		<< 9 << "=" << 1 << "\n"				/* activeservicechecksenabled */
+		<< 97 << "=" << 1 << "\n"				/* passiveservicechecksenabled */
+		<< 8 << "=" << 0 << "\n"				/* activehostchecksenabled */
+		<< 96 << "=" << 0 << "\n"				/* passivehostchecksenabled */
+		<< 39 << "=" << 0 << "\n"				/* eventhandlersenabled */
+		<< 47 << "=" << 1 << "\n"				/* flaptdetectionenabled */
+		<< 45 << "=" << 0 << "\n"				/* failurepredictionenabled */
+		<< 103 << "=" << 1 << "\n"				/* processperformancedata */
+		<< 92 << "=" << 0 << "\n"				/* obsessoverhosts */
+		<< 94 << "=" << 0 << "\n"				/* obsessoverservices */
+		<< 78 << "=" << 0 << "\n"				/* modifiedhostattributes */
+		<< 80 << "=" << 0 << "\n"				/* modifiedserviceattributes */
 		<< 49 << "=" << "" << "\n"				/* globalhosteventhandler */
 		<< 50 << "=" << "" << "\n"				/* globalserviceeventhandler */
-		<< 270 << "=" << "" << "\n" 				/* disablednotificationsexpiretime - supported in 1.8 XXX */
+		<< 270 << "=" << static_cast<int>(Utility::GetTime()) << "\n" 				/* disablednotificationsexpiretime - supported in 1.8 XXX */
                 << 999 << "\n\n";					/* enddata */
 
         m_IdoSocket->SendMessage(message.str());
