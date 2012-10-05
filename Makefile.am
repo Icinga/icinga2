@@ -45,7 +45,7 @@ icinga2libdir = ${libdir}/${PACKAGE}
 icinga2lib_DATA =
 
 
-EXTRA_DIST = $(icinga2doc_DATA) $(icinga2logdir) $(icinga2cachedir) $(icinga2varstatedir) $(icinga2rundir) $(icinga2sbindir) $(icinga2libdir) git_version.sh icinga2.spec
+EXTRA_DIST = $(icinga2doc_DATA) git_version.sh icinga2.spec
 
 
 # Remove doc directory on uninstall

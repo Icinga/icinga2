@@ -326,8 +326,8 @@ Example:
 
 -------------------------------------------------------------------------------
 local object IcingaApplication "icinga" {
-  cert = "my-cert.pem",
-  ca = "ca.crt",
+  cert_path = "my-cert.pem",
+  ca_path = "ca.crt",
 
   node = "192.168.0.1",
   service = 7777,
@@ -342,15 +342,15 @@ local object IcingaApplication "icinga" {
 }
 -------------------------------------------------------------------------------
 
-Attribute: cert
-^^^^^^^^^^^^^^^
+Attribute: cert_path
+^^^^^^^^^^^^^^^^^^^^
 
 This is used to specify the SSL client certificate Icinga 2 will use when
 connecting to other Icinga 2 instances. This property is optional when you're
 setting up a non-networked Icinga 2 instance.
 
-Attribute: ca
-^^^^^^^^^^^^^
+Attribute: ca_path
+^^^^^^^^^^^^^^^^^^
 
 This is the public CA certificate that is used to verify connections from other
 Icinga 2 instances. This property is optional when you're setting up a
@@ -822,3 +822,5 @@ write status.dat and objects.cache files.
 If you require an idomod connector for ido2db, outputting into idoutils database,
 you may also load the "compatido" component (default: tcpsocket, 127.0.0.1:5668).
 Make sure that ido2db is running and listening to the tcpsocket!
+
+/* vim: set syntax=asciidoc filetype=asciidoc: */

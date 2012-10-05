@@ -244,6 +244,71 @@ void CompatIdoComponent::EndConfigDump(void)
 }
 
 /**
+ * enables host config object in ido
+ */
+void CompatIdoComponent::EnableHostObject(const Host::Ptr& host)
+{
+	stringstream message;
+	message << "\n"
+		<< 500 << ":" << "\n"					/* enableobject */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
+		<< 53 << "=" << host->GetName() << "\n"			/* host */
+                << 999 << "\n\n";					/* enddata */
+
+        m_IdoSocket->SendMessage(message.str());
+}
+
+/**
+ * enables service config object in ido
+ */
+void CompatIdoComponent::EnableServiceObject(const Service::Ptr& service)
+{
+        stringstream message;
+        message << "\n"
+                << 500 << ":" << "\n"                                   /* enableobject */
+                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
+                << 53 << "=" << service->GetHost()->GetName() << "\n"   /* host */
+                << 114 << "=" << service->GetAlias() << "\n"            /* service */
+                << 999 << "\n\n";                                       /* enddata */
+
+        m_IdoSocket->SendMessage(message.str());
+}
+
+/**
+ * disables host config object in ido
+ */
+void CompatIdoComponent::DisableHostObject(const Host::Ptr& host)
+{
+        stringstream message;
+        message << "\n"
+                << 501 << ":" << "\n"                                   /* disableobject */
+                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
+                << 53 << "=" << host->GetName() << "\n"                 /* host */
+                << 999 << "\n\n";                                       /* enddata */
+
+        m_IdoSocket->SendMessage(message.str());
+}
+
+/**
+ * disables service config object in ido
+ */
+void CompatIdoComponent::DisableServiceObject(const Service::Ptr& service)
+{
+        stringstream message;
+        message << "\n"
+                << 501 << ":" << "\n"                                   /* disableobject */
+                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
+                << 53 << "=" << service->GetHost()->GetName() << "\n"   /* host */
+                << 114 << "=" << service->GetAlias() << "\n"            /* service */
+                << 999 << "\n\n";                                       /* enddata */
+ 
+        m_IdoSocket->SendMessage(message.str());
+}
+
+
+
+
+/**
  * dump host config to ido
  *
  * @param host Pointer to the Host object
@@ -629,6 +694,8 @@ void CompatIdoComponent::DumpConfigObjects(void)
 		}
 
 		DumpHostObject(host);
+		//FIXME remove me, debug only XXX
+		//DisableHostObject(host);
 	}
 
 	pair<String, vector<String > > hgt;
@@ -673,6 +740,8 @@ void CompatIdoComponent::DumpConfigObjects(void)
 		}
 
 		DumpServiceObject(service);
+		//FIXME remove me, debug only XXX
+		//DisableServiceObject(service);
 	}
 
 	pair<String, vector<Service::Ptr> > sgt;
