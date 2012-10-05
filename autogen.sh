@@ -140,22 +140,22 @@ do
 	echo "Creating $dr/aclocal.m4 ..."
 	test -r $dr/aclocal.m4 || touch $dr/aclocal.m4
 	echo "Running glib-gettextize...  Ignore non-fatal messages."
-	echo "no" | glib-gettextize --force --copy
+	echo "no" | glib-gettextize --force
 	echo "Making $dr/aclocal.m4 writable ..."
 	test -r $dr/aclocal.m4 && chmod u+w $dr/aclocal.m4
       fi
       if grep "^IT_PROG_INTLTOOL" configure.ac >/dev/null; then
         echo "Running intltoolize..."
-	intltoolize --copy --force --automake
+	intltoolize --force --automake
       fi
       if grep "^AM_PROG_XML_I18N_TOOLS" configure.ac >/dev/null; then
         echo "Running xml-i18n-toolize..."
-	xml-i18n-toolize --copy --force --automake
+	xml-i18n-toolize --force --automake
       fi
       if grep "^LT_INIT" configure.ac >/dev/null; then
 	if test -z "$NO_LIBTOOLIZE" ; then 
 	  echo "Running libtoolize..."
-	  libtoolize --force --copy
+	  libtoolize --force
 	fi
       fi
       echo "Running aclocal $aclocalinclude ..."
