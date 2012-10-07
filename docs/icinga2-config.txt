@@ -407,7 +407,7 @@ would be "checker", "delegation" and more.
 There are optional components which may not run on every operating system, such as
 "compat" or "compatido".
 
-Example:
+Example "compat":
 
 -------------------------------------------------------------------------------
 local object Component "compat" {
@@ -430,13 +430,14 @@ Specifies where Icinga 2 Compat component will put the objects.cache file, which
 be read by Icinga 1.x Classic UI and other addons. If not set, it defaults to the
 localstatedir location.
 
-Example:
+Example "compatido":
 
 -------------------------------------------------------------------------------
 local object Component "compatido" {
   socket_address = "127.0.0.1",
   socket_port = "5668",
   instance_name = "i2-default",
+  reconnect_interval = 15,
 }
 -------------------------------------------------------------------------------
 
@@ -460,6 +461,13 @@ Attribute: instance_name
 This is the instance name which Icinga 2 CompatIDO will use to identify itsself to
 ido2db (same as idomod would use). Once set, do not change that unless knowing the
 consequences of data inconsistency. If not set, this will default to "i2-default".
+
+Attribute: reconnect_interval
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Specifies the interval compatido will try to reconnect, if the connection to the
+ido socket fails (ido2db drops out, and will require a reconnect handshake,
+opening the socket and saying hello again).
 
 
 Type: Logger
