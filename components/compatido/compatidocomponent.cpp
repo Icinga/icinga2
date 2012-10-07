@@ -81,6 +81,24 @@ int CompatIdoComponent::GetReconnectInterval(void) const
 }
 
 /**
+ * Sets config dump in progress state
+ */
+void CompatIdoComponent::SetConfigDumpInProgress(bool state)
+{
+	m_ConfigDumpInProgress = state;
+}
+
+/**
+ * Get state of config in progress
+ *
+ * @returns state bis config dump in progress.
+ */
+bool CompatIdoComponent::GetConfigDumpInProgress(void)
+{
+	return m_ConfigDumpInProgress;
+}
+
+/**
  * Starts the component.
  */
 void CompatIdoComponent::Start(void)
@@ -100,12 +118,20 @@ void CompatIdoComponent::Start(void)
 	 */
 	OpenIdoSocket();
 
-	/*
-	 * full config dump at startup, wait for it
+	/* 
+	 * tell ido2db that we just started
 	 */
-	Logger::Write(LogInformation, "compatido", "Writing compat ido config information");
+	SendStartProcess();
 
-	DumpConfigObjects();
+	/*
+	 * ddump the config later (can't do that within start of the component)
+	 */
+	m_ConfigTimer = boost::make_shared<Timer>();
+	m_ConfigTimer->SetInterval(ConfigTimerInterval);
+	m_ConfigTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ConfigTimerHandler, this));
+	m_ConfigTimer->Start();
+	m_ConfigTimer->Reschedule(0);
+
 
 	/*
 	 * initialize timers
@@ -114,18 +140,6 @@ void CompatIdoComponent::Start(void)
 	m_StatusTimer->SetInterval(StatusTimerInterval);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
-	m_StatusTimer->Reschedule(0);
-
-	/*
-	 * do not dump configs in intervals, only on startup
-	 * TODO trigger dynaamic config updates later
-	 */
-	/*
-	m_ConfigTimer = boost::make_shared<Timer>();
-	m_ConfigTimer->SetInterval(ConfigTimerInterval);
-	m_ConfigTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ConfigTimerHandler, this));
-	m_ConfigTimer->Start();
-	*/
 
 	/*
 	 * do not dummp that asynchronous
@@ -211,7 +225,10 @@ void CompatIdoComponent::ConfigTimerHandler(void)
 {
 	Logger::Write(LogInformation, "compatido", "Writing compat ido config information");
 
+	/* protect the dump of status update messages */
+	SetConfigDumpInProgress(true);
 	DumpConfigObjects();
+	SetConfigDumpInProgress(false);
 }
 
 /**
@@ -219,6 +236,10 @@ void CompatIdoComponent::ConfigTimerHandler(void)
  */
 void CompatIdoComponent::ProgramStatusTimerHandler(void)
 {
+	/* do not dump any data if config dump is still in progress */
+	if(GetConfigDumpInProgress())
+		return;
+
         Logger::Write(LogInformation, "compatido", "Writing compat ido program status information");
 
         DumpProgramStatusData();
@@ -307,6 +328,31 @@ void CompatIdoComponent::GoodByeSink(void)
 void CompatIdoComponent::CloseSink(void)
 {
 	m_IdoSocket->Close();
+}
+
+/**
+ * tell ido2db that we are starting up (must be called before config dump)
+ */
+void CompatIdoComponent::SendStartProcess(void)
+{
+/* TODO */
+#define PROGRAM_MODIFICATION_DATE "10-17-2012"
+
+        stringstream message;
+        message << "\n"
+                << 200 << "\n" 						/* processdata */
+		<< 1 << "=" << 104 << "\n"				/* type = pprocess prelaunch */
+		<< 2 << "=" << "" << "\n"				/* flags */
+		<< 3 << "=" << "" << "\n"				/* attributes */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
+		<< 105 << "=" << "Icinga2" << "\n"			/* progranname */
+		<< 107 << "=" << VERSION << "\n"			/*  programversion */
+		<< 104 << "=" << PROGRAM_MODIFICATION_DATE << "\n"			/* programdata */
+		<< 102 << "=" << Utility::GetPid() << "\n"			/* process id */
+		<< 999 << "\n\n";					/* enddata */
+
+        m_IdoSocket->SendMessage(message.str());
+
 }
 
 /**
@@ -413,6 +459,11 @@ void CompatIdoComponent::DisableServiceObject(const Service::Ptr& service)
  */
 void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 {
+	//FIXME DEBUG only
+	stringstream log;
+	log << "Dumping Host Config: " << host->GetName();
+        Logger::Write(LogInformation, "compatido", log.str());
+
 	stringstream message;
 	message << "\n"
 		<< 400 << ":" << "\n"					/* hostdefinition */
@@ -565,6 +616,11 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
  */
 void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 {
+	//FIXME DEBUG only
+	stringstream log;
+	log << "Dumping Service Config: " << service->GetHost()->GetName() << "->" << service->GetAlias();
+        Logger::Write(LogInformation, "compatido", log.str());
+
 	stringstream message;
 	message << "\n"
 		<< 402 << ":" << "\n"					/* servicedefinition */

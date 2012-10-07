@@ -40,10 +40,15 @@ private:
 
 	IdoSocket::Ptr m_IdoSocket;
 
+	bool m_ConfigDumpInProgress;
+
 	String GetSocketAddress(void) const;
 	String GetSocketPort(void) const;
 	String GetInstanceName(void) const;
 	int GetReconnectInterval(void) const;
+
+	void SetConfigDumpInProgress(bool state);
+	bool GetConfigDumpInProgress(void);
 
 	void ConfigTimerHandler(void);
 	void StatusTimerHandler(void);
@@ -57,6 +62,7 @@ private:
 	void SendHello(String instancename);
 	void GoodByeSink(void);
 	void CloseSink(void);
+	void SendStartProcess(void);
 	void StartConfigDump(void);
 	void EndConfigDump(void);
 
