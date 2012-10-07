@@ -39,11 +39,19 @@ public:
 	IdoSocket(TcpClientRole role);
 
 	void SendMessage(const String& message);
+	void SetReconnect(bool reconnect);
+	bool GetReconnect(void);
 
 	boost::signal<void (const IdoSocket::Ptr&, const stringstream&)> OnNewMessage;
 
+        boost::signal<void (const IdoSocket::Ptr&)> OnConnected;
+	boost::signal<void (const IdoSocket::Ptr&)> OnDisconnected;
+
 private:
 	void DataAvailableHandler(void);
+	void ClientClosedHandler(void);
+
+	bool m_Reconnect;
 
 	friend IdoSocket::Ptr IdoSocketFactory(SOCKET fd, TcpClientRole role);
 };

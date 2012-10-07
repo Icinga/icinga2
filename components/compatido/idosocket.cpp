@@ -36,6 +36,12 @@ IdoSocket::IdoSocket(TcpClientRole role)
 	 * signal telling about new data
 	 */
 	OnDataAvailable.connect(boost::bind(&IdoSocket::DataAvailableHandler, this));
+
+	/* 
+	 * what to do on disconnect
+	 */
+	OnClosed.connect(boost::bind(&IdoSocket::ClientClosedHandler, this));
+
 }
 
 /**
@@ -51,6 +57,49 @@ void IdoSocket::SendMessage(const String& message)
 	 * of the tcpclient class
 	 */
 	Write(message.CStr(), message.GetLength());
+}
+
+
+/**
+ *  Handles closed client connect
+ */
+void IdoSocket::ClientClosedHandler(void)
+{
+        try {  
+                CheckException();
+        } catch (const exception& ex) {
+                stringstream message;
+                message << "Error occured for ido socket: " << ex.what();
+
+                Logger::Write(LogWarning, "compatido", message.str());
+        }
+
+        Logger::Write(LogWarning, "compatido", "Lost connection to ido socket");
+
+	SetReconnect(true);
+
+        OnDisconnected(GetSelf());
+}
+
+
+/**
+ * Set reconnect vstate
+ *
+ * @aparam enable Enables the reconnect.
+ */
+void IdoSocket::SetReconnect(bool reconnect)
+{
+	m_Reconnect = reconnect;
+}
+
+/**
+ * Get reconnect state
+ *
+ * @returns reconnect  The reconnect variable
+ */
+bool IdoSocket::GetReconnect(void)
+{
+	return m_Reconnect;
 }
 
 /**

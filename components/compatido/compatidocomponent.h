@@ -36,17 +36,24 @@ private:
 	Timer::Ptr m_StatusTimer;
 	Timer::Ptr m_ConfigTimer;
 	Timer::Ptr m_ProgramStatusTimer;
+	Timer::Ptr m_ReconnectTimer;
+
 	IdoSocket::Ptr m_IdoSocket;
 
 	String GetSocketAddress(void) const;
 	String GetSocketPort(void) const;
 	String GetInstanceName(void) const;
+	int GetReconnectInterval(void) const;
 
 	void ConfigTimerHandler(void);
 	void StatusTimerHandler(void);
 	void ProgramStatusTimerHandler(void);
+	void ReconnectTimerHandler(void);
 
-	void OpenSink(String node, String service );
+	void OpenIdoSocket(void);
+	void CloseIdoSocket(void);
+
+	void OpenSink(String node, String service);
 	void SendHello(String instancename);
 	void GoodByeSink(void);
 	void CloseSink(void);
@@ -78,6 +85,8 @@ private:
 	static const String DefaultSocketAddress;
 	static const String DefaultSocketPort;
 	static const String DefaultInstanceName;
+	static const int DefaultReconnectInterval;
+
 };
 
 }

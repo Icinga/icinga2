@@ -24,6 +24,8 @@ using namespace icinga;
 const String CompatIdoComponent::DefaultSocketAddress = "127.0.0.1";
 const String CompatIdoComponent::DefaultSocketPort = "5668";
 const String CompatIdoComponent::DefaultInstanceName = "i2-default";
+const int CompatIdoComponent::DefaultReconnectInterval = 15;
+
 
 /**
  * Reads the socket address from the config
@@ -66,6 +68,19 @@ String CompatIdoComponent::GetInstanceName(void) const
 }
 
 /**
+ * Reads the reconnect interval from the config
+ * @returns reconnect_interval The config option, or static default
+ */
+int CompatIdoComponent::GetReconnectInterval(void) const
+{
+        Value interval = GetConfig()->Get("reconnect_interval");
+        if(interval.IsEmpty())
+                return DefaultReconnectInterval;
+        else   
+                return interval;
+}
+
+/**
  * Starts the component.
  */
 void CompatIdoComponent::Start(void)
@@ -73,6 +88,7 @@ void CompatIdoComponent::Start(void)
 	const int StatusTimerInterval = 60;
 	const int ConfigTimerInterval = 3600;
 	const int ProgramStatusTimerInterval = 15;
+	const int ReconnectTimerInterval = GetReconnectInterval();
 
 	/* HINTS - XXX
 	 * - only tcp sockets
@@ -98,20 +114,57 @@ void CompatIdoComponent::Start(void)
 	m_ProgramStatusTimer->Reschedule(0);
 
 	/*
+	 * scheck for reconnect once in a while
+	 */
+	m_ReconnectTimer = boost::make_shared<Timer>();
+	m_ReconnectTimer->SetInterval(ReconnectTimerInterval);
+	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ReconnectTimerHandler, this));
+	m_ReconnectTimer->Start();
+	/*
 	 * open ido socket once
 	 */
-	OpenSink(GetSocketAddress(), GetSocketPort());
-	SendHello(GetInstanceName());
+	OpenIdoSocket();
 }
+
 
 /**
  * Stops the component.
  */
 void CompatIdoComponent::Stop(void)
 {
+	CloseIdoSocket();
+}
+
+
+/**
+ * Opens the ido socket, and sends hello to ido2db
+ */
+void CompatIdoComponent::OpenIdoSocket(void)
+{
+	OpenSink(GetSocketAddress(), GetSocketPort());
+
+	/* 
+	 * if we're connected, do not reconnecte
+	 */
+	if(m_IdoSocket->IsConnected()) {
+		m_IdoSocket->SetReconnect(false);
+
+		/* connected means we can greet ido2db */
+		SendHello(GetInstanceName());
+	} else {
+		m_IdoSocket->SetReconnect(true);
+	}
+}
+
+/*
+ * Sends goodbye to ido2db, and closes ido socket
+ */
+void CompatIdoComponent::CloseIdoSocket(void)
+{
 	GoodByeSink();
 	CloseSink();
 }
+
 
 /* TODO
  * subscribe to all status updates and checkresults and dump them
@@ -148,6 +201,34 @@ void CompatIdoComponent::ProgramStatusTimerHandler(void)
         Logger::Write(LogInformation, "compatido", "Writing compat ido program status information");
 
         DumpProgramStatusData();
+}
+
+/**
+ * Periodically check if idosocket requires a reconnect
+ */
+void CompatIdoComponent::ReconnectTimerHandler(void)
+{
+        Logger::Write(LogInformation, "compatido", "Checking if ido socket requires reconnect");
+
+	if(m_IdoSocket->GetReconnect()) {
+
+		/* check if we aren't already connected */
+		if(m_IdoSocket->IsConnected()) {
+        		Logger::Write(LogInformation, "compatido", "Already connected to ido socket ... no reconnect necessary.");
+			return;
+		}
+
+		/* socket was disconnected, recconnect */
+		OpenIdoSocket();
+
+		if(m_IdoSocket->IsConnected()) {
+        		Logger::Write(LogInformation, "compatido", "Successfully reconnected to ido socket");
+		} else {
+			stringstream message;
+			message << "Unable to reconnect to ido socket. Trying again in " << GetReconnectInterval() << " sec.";
+        		Logger::Write(LogWarning, "compatido", message.str());
+		}
+	}
 }
 
 
