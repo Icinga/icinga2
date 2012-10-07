@@ -95,23 +95,49 @@ void CompatIdoComponent::Start(void)
 	 * - only icinga idoutils 1.8
 	 * - only "retained" config
 	 */
+	/*
+	 * open ido socket once
+	 */
+	OpenIdoSocket();
+
+	/*
+	 * full config dump at startup, wait for it
+	 */
+	Logger::Write(LogInformation, "compatido", "Writing compat ido config information");
+
+	DumpConfigObjects();
+
+	/*
+	 * initialize timers
+	 */
 	m_StatusTimer = boost::make_shared<Timer>();
 	m_StatusTimer->SetInterval(StatusTimerInterval);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
 
+	/*
+	 * do not dump configs in intervals, only on startup
+	 * TODO trigger dynaamic config updates later
+	 */
+	/*
 	m_ConfigTimer = boost::make_shared<Timer>();
 	m_ConfigTimer->SetInterval(ConfigTimerInterval);
 	m_ConfigTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ConfigTimerHandler, this));
 	m_ConfigTimer->Start();
-	m_ConfigTimer->Reschedule(0);
+	*/
 
+	/*
+	 * do not dummp that asynchronous
+	 * TODO do that on dynamic updates for objects
+	 */
+	/*
 	m_ProgramStatusTimer = boost::make_shared<Timer>();
 	m_ProgramStatusTimer->SetInterval(ProgramStatusTimerInterval);
 	m_ProgramStatusTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ProgramStatusTimerHandler, this));
 	m_ProgramStatusTimer->Start();
 	m_ProgramStatusTimer->Reschedule(0);
+	*/
 
 	/*
 	 * scheck for reconnect once in a while
@@ -120,10 +146,6 @@ void CompatIdoComponent::Start(void)
 	m_ReconnectTimer->SetInterval(ReconnectTimerInterval);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&CompatIdoComponent::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
-	/*
-	 * open ido socket once
-	 */
-	OpenIdoSocket();
 }
 
 
@@ -142,15 +164,13 @@ void CompatIdoComponent::Stop(void)
 void CompatIdoComponent::OpenIdoSocket(void)
 {
 	OpenSink(GetSocketAddress(), GetSocketPort());
+	SendHello(GetInstanceName());
 
 	/* 
 	 * if we're connected, do not reconnecte
 	 */
 	if(m_IdoSocket->IsConnected()) {
 		m_IdoSocket->SetReconnect(false);
-
-		/* connected means we can greet ido2db */
-		SendHello(GetInstanceName());
 	} else {
 		m_IdoSocket->SetReconnect(true);
 	}
@@ -181,6 +201,7 @@ void CompatIdoComponent::StatusTimerHandler(void)
 	Logger::Write(LogInformation, "compatido", "Writing compat ido status information");
 
 	DumpStatusData();
+        DumpProgramStatusData();
 }
 
 /**
