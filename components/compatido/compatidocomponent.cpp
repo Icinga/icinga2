@@ -26,6 +26,10 @@ const String CompatIdoComponent::DefaultSocketPort = "5668";
 const String CompatIdoComponent::DefaultInstanceName = "i2-default";
 const int CompatIdoComponent::DefaultReconnectInterval = 15;
 
+#define PROGRAM_MODIFICATION_DATE "10-17-2012"
+#ifndef VERSION
+#	define VERSION "2.0"
+#endif /* VERSION */
 
 /**
  * Reads the socket address from the config
@@ -313,7 +317,7 @@ void CompatIdoComponent::SendHello(String instancename, bool sockettype)
 		<< "HELLO" << "\n"
 		<< "PROTOCOL" << ": " << COMPATIDO_PROTOCOL<< "\n"
 		<< "AGENT" << ": " << COMPATIDO_NAME << "\n"
-		<< "AGENTVERSION" << ": " << COMPATIDO_RELEASE_VERSION << "\n"
+		<< "AGENTVERSION" << ": " << VERSION << "\n"
 		<< "STARTTIME" << ": " << static_cast<int>(Utility::GetTime()) << "\n"
 		<< "DISPOSITION" << ": " << "REALTIME" << "\n"
 		<< "CONNECTION" << ": " << connection << "\n"
