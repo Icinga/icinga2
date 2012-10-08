@@ -337,6 +337,7 @@ void CompatIdoComponent::SendStartProcess(void)
 {
 /* TODO */
 #define PROGRAM_MODIFICATION_DATE "10-17-2012"
+#define VERSION "2.0"
 
         stringstream message;
         message << "\n"
