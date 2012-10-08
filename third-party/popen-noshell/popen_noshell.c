@@ -253,7 +253,7 @@ static int popen_noshell_add_token(char ***argv, int *count, char *start, char *
 	return 0;
 }
 
-#define popen_noshell_split_return_NULL { if (argv != NULL) free(argv); if (command != NULL) free(command); return NULL; }
+#define popen_noshell_split_return_NULL { if (argv != NULL) free(argv); if (command != NULL) free(command); *free_this_buf = NULL; return NULL; }
 char ** popen_noshell_split_command_to_argv(const char *command_original, char **free_this_buf) {
 	char *command;
 	size_t i, len;
