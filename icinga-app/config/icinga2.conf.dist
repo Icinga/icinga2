@@ -12,12 +12,21 @@
  */
 local object IcingaApplication "icinga" {
   pid_path = "./var/run/icinga2.pid",
-  log_path = "./var/log/icinga2/icinga2.log",
+  //log_path = "./var/log/icinga2/icinga2.log",
   state_path = "./var/lib/icinga2/icinga2.state",
 
   macros = {
     plugindir = "/usr/local/icinga/libexec"
   }
+}
+
+/**
+ * Advanced logging settings
+ */
+local object Logger "my-debug-log" {
+  type = "console",
+  path = "./var/log/icinga2/icinga2.log",
+  severity = "debug"
 }
 
 /**
