@@ -44,6 +44,27 @@ IdoSocket::IdoSocket(TcpClientRole role)
 
 }
 
+
+/**
+ *  * Set the ido socket type
+ *   *
+ *    * @param type true=tcp, false=unix
+ *     */
+void IdoSocket::SetSocketType(bool type)
+{
+        m_SocketType = type;
+}
+
+/*
+ *  * Get the ido socket type
+ *   *
+ *    * @returns type true=tcp, false=unix
+ *     */
+bool IdoSocket::GetSocketType(void)
+{
+        return m_SocketType;
+}
+
 /**
  * Sends a message to the ido socket
  *

@@ -38,7 +38,11 @@ public:
 
 	IdoSocket(TcpClientRole role);
 
+	void SetSocketType(bool);
+	bool GetSocketType(void);
+
 	void SendMessage(const String& message);
+
 	void SetReconnect(bool reconnect);
 	bool GetReconnect(void);
 
@@ -52,6 +56,7 @@ private:
 	void ClientClosedHandler(void);
 
 	bool m_Reconnect;
+	bool m_SocketType;
 
 	friend IdoSocket::Ptr IdoSocketFactory(SOCKET fd, TcpClientRole role);
 };

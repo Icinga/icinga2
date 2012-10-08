@@ -98,6 +98,7 @@ bool CompatIdoComponent::GetConfigDumpInProgress(void)
 	return m_ConfigDumpInProgress;
 }
 
+
 /**
  * Starts the component.
  */
@@ -108,6 +109,10 @@ void CompatIdoComponent::Start(void)
 	const int ProgramStatusTimerInterval = 15;
 	const int ReconnectTimerInterval = GetReconnectInterval();
 
+	/* FIXME - make this a config option when unix sockets are realdy */
+
+	bool IdoSocketType = true;
+
 	/* HINTS - XXX
 	 * - only tcp sockets
 	 * - only icinga idoutils 1.8
@@ -116,7 +121,7 @@ void CompatIdoComponent::Start(void)
 	/*
 	 * open ido socket once
 	 */
-	OpenIdoSocket();
+	OpenIdoSocket(IdoSocketType);
 
 	/* 
 	 * tell ido2db that we just started
@@ -175,11 +180,12 @@ void CompatIdoComponent::Stop(void)
 /**
  * Opens the ido socket, and sends hello to ido2db
  */
-void CompatIdoComponent::OpenIdoSocket(void)
+void CompatIdoComponent::OpenIdoSocket(bool sockettype)
 {
 	OpenSink(GetSocketAddress(), GetSocketPort());
-	SendHello(GetInstanceName());
+	SendHello(GetInstanceName(), sockettype);
 
+	m_IdoSocket->SetSocketType(sockettype);
 	/* 
 	 * if we're connected, do not reconnecte
 	 */
@@ -261,7 +267,7 @@ void CompatIdoComponent::ReconnectTimerHandler(void)
 		}
 
 		/* socket was disconnected, recconnect */
-		OpenIdoSocket();
+		OpenIdoSocket(m_IdoSocket->GetSocketType());
 
 		if(m_IdoSocket->IsConnected()) {
         		Logger::Write(LogInformation, "compatido", "Successfully reconnected to ido socket");
@@ -287,19 +293,30 @@ void CompatIdoComponent::OpenSink(String node, String service)
 /**
  * sends hello msg to ido2b
  */
-void CompatIdoComponent::SendHello(String instancename)
+void CompatIdoComponent::SendHello(String instancename, bool sockettype)
 {
+	/* FIXME */
+#define COMPATIDO_PROTOCOL 2
+#define COMPATIDO_NAME "ICINGA2 COMPATIDO"
+#define COMPATIDO_RELEASE_VERSION "2.0"
+
+	String connection;
+	if(sockettype)
+		connection = "TCPSOCKET";
+	else
+		connection = "UNIXSOCKET";
+	
 	/* connection is always TCP */
 	/* connecttype is always initial */
 	stringstream message;
 	message << "\n\n"
 		<< "HELLO" << "\n"
-		<< "PROTOCOL" << ": " << 2 << "\n"
-		<< "AGENT" << ": " << "I2 COMPATIDO" << "\n"
-		<< "AGENTVERSION" << ": " << "2.0" << "\n"
+		<< "PROTOCOL" << ": " << COMPATIDO_PROTOCOL<< "\n"
+		<< "AGENT" << ": " << COMPATIDO_NAME << "\n"
+		<< "AGENTVERSION" << ": " << COMPATIDO_RELEASE_VERSION << "\n"
 		<< "STARTTIME" << ": " << static_cast<int>(Utility::GetTime()) << "\n"
 		<< "DISPOSITION" << ": " << "REALTIME" << "\n"
-		<< "CONNECTION" << ": " << "TCPSOCKET" << "\n"
+		<< "CONNECTION" << ": " << connection << "\n"
 		<< "INSTANCENAME" << ": " << instancename << "\n"
 		<< "STARTDATADUMP"
 		<< "\n\n";
@@ -337,7 +354,7 @@ void CompatIdoComponent::SendStartProcess(void)
 {
 /* TODO */
 #define PROGRAM_MODIFICATION_DATE "10-17-2012"
-#define VERSION "2.0"
+#define PROGRAM_RELEASE_VERSION "2.0"
 
         stringstream message;
         message << "\n"
@@ -347,7 +364,7 @@ void CompatIdoComponent::SendStartProcess(void)
 		<< 3 << "=" << "" << "\n"				/* attributes */
 		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 105 << "=" << "Icinga2" << "\n"			/* progranname */
-		<< 107 << "=" << VERSION << "\n"			/*  programversion */
+		<< 107 << "=" << PROGRAM_RELEASE_VERSION << "\n"			/*  programversion */
 		<< 104 << "=" << PROGRAM_MODIFICATION_DATE << "\n"			/* programdata */
 		<< 102 << "=" << Utility::GetPid() << "\n"			/* process id */
 		<< 999 << "\n\n";					/* enddata */

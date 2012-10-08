@@ -55,11 +55,11 @@ private:
 	void ProgramStatusTimerHandler(void);
 	void ReconnectTimerHandler(void);
 
-	void OpenIdoSocket(void);
+	void OpenIdoSocket(bool sockettype);
 	void CloseIdoSocket(void);
 
 	void OpenSink(String node, String service);
-	void SendHello(String instancename);
+	void SendHello(String instancename, bool sockettype);
 	void GoodByeSink(void);
 	void CloseSink(void);
 	void SendStartProcess(void);
