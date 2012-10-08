@@ -260,13 +260,13 @@ void CompatIdoComponent::ProgramStatusTimerHandler(void)
  */
 void CompatIdoComponent::ReconnectTimerHandler(void)
 {
-        Logger::Write(LogInformation, "compatido", "Checking if ido socket requires reconnect");
+        Logger::Write(LogDebug, "compatido", "Checking if ido socket requires reconnect");
 
 	if(m_IdoSocket->GetReconnect()) {
 
 		/* check if we aren't already connected */
 		if(m_IdoSocket->IsConnected()) {
-        		Logger::Write(LogInformation, "compatido", "Already connected to ido socket ... no reconnect necessary.");
+        		Logger::Write(LogDebug, "compatido", "Already connected to ido socket ... no reconnect necessary");
 			return;
 		}
 
@@ -277,7 +277,7 @@ void CompatIdoComponent::ReconnectTimerHandler(void)
         		Logger::Write(LogInformation, "compatido", "Successfully reconnected to ido socket");
 		} else {
 			stringstream message;
-			message << "Unable to reconnect to ido socket. Trying again in " << GetReconnectInterval() << " sec.";
+			message << "Unable to reconnect to ido socket. Trying again in " << GetReconnectInterval() << " sec";
         		Logger::Write(LogWarning, "compatido", message.str());
 		}
 	}
@@ -481,10 +481,9 @@ void CompatIdoComponent::DisableServiceObject(const Service::Ptr& service)
  */
 void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 {
-	//FIXME DEBUG only
 	stringstream log;
 	log << "Dumping Host Config: " << host->GetName();
-        Logger::Write(LogInformation, "compatido", log.str());
+        Logger::Write(LogDebug, "compatido", log.str());
 
 	stringstream message;
 	message << "\n"
@@ -565,6 +564,10 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 {
 
+	stringstream log;
+	log << "Dumping Host Status: " << host->GetName();
+        Logger::Write(LogDebug, "compatido", log.str());
+
         int state;
         if (!host->IsReachable())
                 state = 2; /* unreachable */
@@ -638,10 +641,9 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
  */
 void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 {
-	//FIXME DEBUG only
 	stringstream log;
 	log << "Dumping Service Config: " << service->GetHost()->GetName() << "->" << service->GetAlias();
-        Logger::Write(LogInformation, "compatido", log.str());
+        Logger::Write(LogDebug, "compatido", log.str());
 
 	stringstream message;
 	message << "\n"
@@ -713,6 +715,10 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
  */ 
 void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 {
+	stringstream log;
+	log << "Dumping Service Status: " << service->GetHost()->GetName() << "->" << service->GetAlias();
+        Logger::Write(LogDebug, "compatido", log.str());
+
         String output;
         String perfdata;
         double schedule_start = -1, schedule_end = -1;
