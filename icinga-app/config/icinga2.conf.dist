@@ -112,7 +112,7 @@ object Host "localhost" {
  * Below, an advanced example of checking a host and its services
  */
 
-/*
+/**
  * ping
  */
 abstract object Service "ping4" inherits "icinga-service" {
@@ -135,21 +135,21 @@ abstract object Service "ping6" inherits "icinga-service" {
   }
 }
 
-/*
+/**
  * http
  */
 abstract object Service "http" inherits "icinga-service" {
   check_command = "$plugindir$/check_http -H '$address$' -I '$address$'",
 }
 
-/*
+/**
  * ssh
  */
 abstract object Service "ssh" inherits "icinga-service" {
   check_command = "$plugindir$/check_ssh '$address$'",
 }
 
-/*
+/**
  * local checks
  */
 abstract object Service "disk space" inherits "icinga-service" {
@@ -188,8 +188,15 @@ abstract object Service "current load" inherits "icinga-service" {
   }
 }
 
+/**
+ * demo check
+ */
+abstract object Service "demo" inherits "icinga-service" {
+  check_command = "$plugindir$/check_dummy 1 'strawberry. yummy! | i=2'",
+}
 
-/*
+
+/**
  * one advanced icinga2 localhost
  */
 object Host "localhost-i2" {
@@ -198,6 +205,7 @@ object Host "localhost-i2" {
     "http", "ssh",
     "current load", "total processes",
     "current users", "disk space",
+    "demo",
   },
   macros = {
     address = "127.0.0.1",
