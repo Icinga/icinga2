@@ -25,7 +25,6 @@ local object IcingaApplication "icinga" {
  */
 local object Logger "my-debug-log" {
   type = "console",
-  path = "./var/log/icinga2/icinga2.log",
   severity = "debug"
 }
 
