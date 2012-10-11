@@ -21,6 +21,14 @@ local object IcingaApplication "icinga" {
 }
 
 /**
+ * Advanced logging settings
+ */
+local object Logger "my-debug-log" {
+  type = "console",
+  severity = "debug"
+}
+
+/**
  * The checker component takes care of executing service checks.
  */
 local object Component "checker" {
