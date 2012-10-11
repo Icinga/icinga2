@@ -147,8 +147,6 @@ void EndpointManager::NewClientHandler(const TcpClient::Ptr& client)
 {
 	JsonRpcClient::Ptr jclient = static_pointer_cast<JsonRpcClient>(client);
 
-	Logger::Write(LogInformation, "icinga", "New client connection from " + jclient->GetPeerAddress());
-
 	m_PendingClients.insert(jclient);
 	jclient->OnConnected.connect(boost::bind(&EndpointManager::ClientConnectedHandler, this, _1));
 	jclient->Start();
@@ -157,6 +155,8 @@ void EndpointManager::NewClientHandler(const TcpClient::Ptr& client)
 void EndpointManager::ClientConnectedHandler(const TcpClient::Ptr& client)
 {
 	JsonRpcClient::Ptr jclient = static_pointer_cast<JsonRpcClient>(client);
+
+	Logger::Write(LogInformation, "icinga", "New client connection for " + jclient->GetPeerAddress());
 
 	m_PendingClients.erase(jclient);
 
