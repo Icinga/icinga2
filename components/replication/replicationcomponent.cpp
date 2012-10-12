@@ -110,6 +110,13 @@ RequestMessage ReplicationComponent::MakeObjectMessage(const DynamicObject::Ptr&
 	params.Set("name", object->GetName());
 	params.Set("type", object->GetType());
 
+	String source = object->GetSource();
+
+	if (source.IsEmpty())
+		source = EndpointManager::GetInstance()->GetIdentity();
+
+	params.Set("source", source);
+
 	if (includeProperties)
 		params.Set("update", object->BuildUpdate(sinceTx, Attribute_Replicated | Attribute_Config));
 
@@ -171,6 +178,10 @@ void ReplicationComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender
 	if (!params.Get("type", &type))
 		return;
 
+	String source;
+	if (!params.Get("source", &source))
+		return;
+
 	Dictionary::Ptr update;
 	if (!params.Get("update", &update))
 		return;
@@ -182,7 +193,7 @@ void ReplicationComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender
 	if (!object) {
 		object = DynamicObject::Create(type, update);
 
-		if (object->GetSource() == EndpointManager::GetInstance()->GetIdentity()) {
+		if (source == EndpointManager::GetInstance()->GetIdentity()) {
 			/* the peer sent us an object that was originally created by us - 
 			 * however it was deleted locally so we have to tell the peer to destroy
 			 * its copy of the object. */
@@ -192,9 +203,9 @@ void ReplicationComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender
 			return;
 		}
 
-		if (object->GetSource().IsEmpty())
-			object->SetSource(sender->GetName());
+		Logger::Write(LogInformation, "replication", "Received object from source: " + source);
 
+		object->SetSource(source);
 		object->Register();
 	} else {
 		if (object->IsLocal())
