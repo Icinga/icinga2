@@ -169,8 +169,7 @@ abstract object Service "demo" inherits "icinga-service" {
 /**
  * And finally we define some host that should be checked.
  */
-
-object Host "localhost-i2" {
+object Host "localhost" {
   services = {
     "ping", "ping6",
     "http", "ssh",
