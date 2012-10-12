@@ -375,6 +375,9 @@ void DynamicObject::DumpObjects(const String& filename)
 		for (nt = tt->second.begin(); nt != tt->second.end(); nt++) {
 			DynamicObject::Ptr object = nt->second;
 
+			if (object->IsLocal())
+				continue;
+
 			Dictionary::Ptr persistentObject = boost::make_shared<Dictionary>();
 
 			persistentObject->Set("type", object->GetType());
