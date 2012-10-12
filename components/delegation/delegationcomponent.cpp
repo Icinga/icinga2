@@ -44,13 +44,14 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::P
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
-		/* ignore local-only endpoints */
-		if (endpoint->IsLocal())
+		String myIdentity = EndpointManager::GetInstance()->GetIdentity();
+
+		/* ignore local-only endpoints (unless this is a local-only instance) */
+		if (endpoint->IsLocal() && !myIdentity.IsEmpty())
 			continue;
 
 		/* ignore disconnected endpoints */
-		if (!endpoint->IsConnected() &&
-		    endpoint->GetName() != EndpointManager::GetInstance()->GetIdentity())
+		if (!endpoint->IsConnected() && endpoint->GetName() != myIdentity)
 			continue;
 
 		/* ignore endpoints that aren't running the checker component */
@@ -74,9 +75,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
-
-		if (endpoint->IsLocal())
-			continue;
 
 		histogram[endpoint] = 0;
 	}
