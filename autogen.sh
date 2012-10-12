@@ -156,6 +156,7 @@ do
 	if test -z "$NO_LIBTOOLIZE" ; then 
 	  echo "Running libtoolize..."
 	  libtoolize --force --copy
+          find third-party/ltdl \! -perm u=w -exec chmod u+w '{}' ';'
 	fi
       fi
       echo "Running aclocal $aclocalinclude ..."
