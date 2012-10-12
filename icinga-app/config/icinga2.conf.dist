@@ -78,37 +78,8 @@ abstract object Service "icinga-service" {
 }
 
 /**
- * The service template for ping checks. In an Icinga 1.x environment
+ * The service templates for checks. In an Icinga 1.x environment
  * this would be defined as a check command.
- */
-abstract object Service "ping" inherits "icinga-service" {
-  check_command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
-
-  macros += {
-    wrta = 50,
-    wpl = 5,
-    crta = 100,
-    cpl = 10
-  }
-}
-
-/**
- * And finally we define some host that should be checked.
- */
-object Host "localhost" {
-  services = { "ping" },
-
-  macros = {
-    address = "127.0.0.1"
-  },
-
-  check_interval = 1m
-}
-
-
-
-/**
- * Below, an advanced example of checking a host and its services
  */
 
 /**
@@ -196,8 +167,9 @@ abstract object Service "demo" inherits "icinga-service" {
 
 
 /**
- * one advanced icinga2 localhost
+ * And finally we define some host that should be checked.
  */
+
 object Host "localhost-i2" {
   services = {
     "ping", "ping6",

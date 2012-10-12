@@ -80,7 +80,7 @@ abstract object Service "icinga-service" {
  * The service template for ping checks. In an Icinga 1.x environment
  * this would be defined as a check command.
  */
-abstract object Service "ping" inherits "icinga-service" {
+abstract object Service "ping4" inherits "icinga-service" {
 
   /* using check_winping from https://www.itefix.no/i2/check_winping */
   check_command = "$plugindir$\check_ping.exe -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
@@ -96,8 +96,8 @@ abstract object Service "ping" inherits "icinga-service" {
 /**
  * And finally we define some host that should be checked.
  */
-object Host "localhost" {
-  services = { "ping" },
+object Host "localhost-i2" {
+  services = { "ping4" },
 
   macros = {
     address = "127.0.0.1"
