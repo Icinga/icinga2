@@ -203,7 +203,7 @@ void ReplicationComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender
 			return;
 		}
 
-		Logger::Write(LogInformation, "replication", "Received object from source: " + source);
+		Logger::Write(LogDebug, "replication", "Received object from source: " + source);
 
 		object->SetSource(source);
 		object->Register();
