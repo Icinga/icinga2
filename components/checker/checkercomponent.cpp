@@ -110,7 +110,7 @@ void CheckerComponent::CheckTimerHandler(void)
 
 	if (tasks > 0) {
 		stringstream msgbuf;
-		msgbuf << "CheckTimerHandler: created " << tasks << " tasks";
+		msgbuf << "CheckTimerHandler: created " << tasks << " task(s)";
 		Logger::Write(LogInformation, "checker", msgbuf.str());
 	}
 }
