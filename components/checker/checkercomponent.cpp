@@ -108,9 +108,11 @@ void CheckerComponent::CheckTimerHandler(void)
 		Logger::Write(LogWarning, "checker", msgbuf.str());
 	}
 
-	stringstream msgbuf;
-	msgbuf << "CheckTimerHandler: created " << tasks << " tasks";
-	Logger::Write(LogInformation, "checker", msgbuf.str());
+	if (tasks > 0) {
+		stringstream msgbuf;
+		msgbuf << "CheckTimerHandler: created " << tasks << " tasks";
+		Logger::Write(LogInformation, "checker", msgbuf.str());
+	}
 }
 
 void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const ScriptTask::Ptr& task)
