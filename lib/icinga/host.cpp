@@ -29,8 +29,8 @@ Host::Host(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
 	if (!m_InitializerDone) {
-		ConfigItem::OnCommitted.connect(boost::bind(&Host::ObjectCommittedHandler, this, _1));
-		ConfigItem::OnRemoved.connect(boost::bind(&Host::ObjectRemovedHandler, this, _1));
+		ConfigItem::OnCommitted.connect(boost::bind(&Host::ObjectCommittedHandler, _1));
+		ConfigItem::OnRemoved.connect(boost::bind(&Host::ObjectRemovedHandler, _1));
 
 		m_InitializerDone = true;
 	}

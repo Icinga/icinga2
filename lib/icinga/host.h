@@ -50,8 +50,8 @@ public:
 private:
 	static bool m_InitializerDone;
 
-	void ObjectCommittedHandler(const ConfigItem::Ptr& item);
-	void ObjectRemovedHandler(const ConfigItem::Ptr& item);
+	static void ObjectCommittedHandler(const ConfigItem::Ptr& item);
+	static void ObjectRemovedHandler(const ConfigItem::Ptr& item);
 };
 
 }
