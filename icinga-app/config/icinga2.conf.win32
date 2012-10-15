@@ -12,7 +12,6 @@
  */
 local object IcingaApplication "icinga" {
   pid_path = "icinga2.pid",
-  log_path = "icinga2.log",
   state_path = "icinga2.state",
 
   macros = {
