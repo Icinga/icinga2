@@ -170,7 +170,7 @@ abstract object Service "demo" inherits "icinga-service" {
  */
 object Host "localhost" {
   services = {
-    "ping", "ping6",
+    "ping4", "ping6",
     "http", "ssh",
     "current load", "total processes",
     "current users", "disk space",
