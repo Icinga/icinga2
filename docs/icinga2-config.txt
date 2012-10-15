@@ -333,7 +333,6 @@ local object IcingaApplication "icinga" {
   service = 7777,
 
   pid_path = "./var/run/icinga2.pid",
-  log_path = "./var/log/icinga2.log",
   state_path = "./var/lib/icinga2.state",
 
   macros = {
@@ -376,12 +375,6 @@ Attribute: pid_path
 
 Optional. The path to the PID file. Defaults to "icinga.pid" in the current
 working directory.
-
-Attribute: log_path
-^^^^^^^^^^^^^^^^^^^
-
-Optional. The path to the logfile. This is a shortcut for creating a Logger
-object of type "file" with the specified log path.
 
 Attribute: state_path
 ^^^^^^^^^^^^^^^^^^^^^
