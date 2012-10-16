@@ -109,4 +109,9 @@ fi
 echo "
 Libraries:
      ltdl: $ltdl_msg
+
+*** Please note that at this point Icinga 2 is highly experimental software
+*** and is missing a significant portion of the planned features. This
+*** is merely a technology preview and if you're planning to set up
+*** a production environment for Icinga you should use Icinga 1.x instead.
 "
