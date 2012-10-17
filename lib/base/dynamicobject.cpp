@@ -416,6 +416,12 @@ void DynamicObject::DumpObjects(const String& filename)
 		}
 	}
 
+	fp.close();
+
+#ifdef _WIN32
+	_unlink(filename.CStr());
+#endif /* _WIN32 */
+
 	if (rename(tempFilename.CStr(), filename.CStr()) < 0)
 		throw_exception(PosixException("rename() failed", errno));
 }

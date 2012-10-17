@@ -116,6 +116,10 @@ void Object::PrintMemoryProfile(void)
 		}
 	}
 
+#ifdef _WIN32
+	_unlink("dictionaries.dump");
+#endif /* _WIN32 */
+
 	dictfp.close();
 	if (rename("dictionaries.dump.tmp", "dictionaries.dump") < 0)
 		throw_exception(PosixException("rename() failed", errno));

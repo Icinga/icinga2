@@ -340,10 +340,20 @@ void CompatComponent::StatusTimerHandler(void)
 	}
 
 	statusfp.close();
-	rename(statuspathtmp.CStr(), statuspath.CStr());
+	objectfp.close();
+
+#ifdef _WIN32
+	_unlink(statuspath.CStr());
+	_unlink(objectspath.CStr());
+#endif /* _WIN32 */
+
+	statusfp.close();
+	if (rename(statuspathtmp.CStr(), statuspath.CStr()) < 0)
+		throw_exception(PosixException("rename() failed", errno));
 
 	objectfp.close();
-	rename(objectspathtmp.CStr(), objectspath.CStr());
+	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0)
+		throw_exception(PosixException("rename() failed", errno));	
 }
 
 EXPORT_COMPONENT(compat, CompatComponent);
