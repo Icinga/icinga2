@@ -89,7 +89,7 @@ DEFINE_EXCEPTION_CLASS(NotImplementedException);
  *
  * @ingroup base
  */
-class Win32Exception : public Exception
+class I2_BASE_API Win32Exception : public Exception
 {
 public:
 	/**
@@ -117,7 +117,7 @@ public:
  *
  * @ingroup base
  */
-class PosixException : public Exception
+class I2_BASE_API PosixException : public Exception
 {
 public:
 	/**
@@ -144,7 +144,7 @@ public:
  *
  * @ingroup base
  */
-class OpenSSLException : public Exception
+class I2_BASE_API OpenSSLException : public Exception
 {
 public:
 	/**
