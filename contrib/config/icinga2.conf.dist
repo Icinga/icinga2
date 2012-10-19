@@ -1,0 +1,185 @@
+/**
+ * Icinga 2 configuration file
+ * - this is where you define settings for the Icinga application including
+ * which hosts/services to check.
+ *
+ * The docs/icinga2-config.txt file in the source tarball has a detailed
+ * description of what configuration options are available.
+ */
+
+/**
+ * Global configuration settings
+ */
+local object IcingaApplication "icinga" {
+  pid_path = "./var/run/icinga2.pid",
+  state_path = "./var/lib/icinga2/icinga2.state",
+
+  macros = {
+    plugindir = "/usr/local/icinga/libexec"
+  }
+}
+
+/**
+ * Advanced logging settings
+ */
+local object Logger "my-debug-log" {
+  type = "console",
+  severity = "debug"
+}
+
+/**
+ * The checker component takes care of executing service checks.
+ */
+local object Component "checker" {
+
+}
+
+/**
+ * The delegation component assigns services to checkers. You need to load
+ * this component even if your Icinga setup only consists of a single instance.
+ */
+local object Component "delegation" {
+
+}
+
+/**
+ * The compat component periodically updates the status.dat and objects.cache
+ * files. These are used by the Icinga 1.x CGIs to display the state of
+ * hosts and services.
+ */
+local object Component "compat" {
+  status_path = "./var/cache/icinga2/status.dat",
+  objects_path = "./var/cache/icinga2/objects.cache",
+}
+
+/**
+ * The compatido component works as idomod connector to a running ido2db
+ * daemon, connected via tcp socket only. It will dump config and status
+ * information periodically for now. By default, this remains disabled.
+ */
+/*
+local object Component "compatido" {
+  socket_address = "127.0.0.1",
+  socket_port = "5668",
+  instance_name = "i2-default",
+  reconnect_interval = 15,
+}
+*/
+
+/**
+ * This template defines some basic parameters for services that use
+ * external plugins for their checks.
+ */
+abstract object Service "icinga-service" {
+  methods = {
+    check = "native::PluginCheck"
+  }
+}
+
+/**
+ * The service templates for checks. In an Icinga 1.x environment
+ * this would be defined as a check command.
+ */
+
+/**
+ * ping
+ */
+abstract object Service "ping4" inherits "icinga-service" {
+  check_command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
+  macros += {
+    wrta = 50,
+    wpl = 5,
+    crta = 100,
+    cpl = 10
+  }
+}
+
+abstract object Service "ping6" inherits "icinga-service" {
+  check_command = "$plugindir$/check_ping -6 -H $address6$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
+  macros += {
+    wrta = 50,
+    wpl = 5,
+    crta = 100,
+    cpl = 10
+  }
+}
+
+/**
+ * http
+ */
+abstract object Service "http" inherits "icinga-service" {
+  check_command = "$plugindir$/check_http -H '$address$' -I '$address$'",
+}
+
+/**
+ * ssh
+ */
+abstract object Service "ssh" inherits "icinga-service" {
+  check_command = "$plugindir$/check_ssh '$address$'",
+}
+
+/**
+ * local checks
+ */
+abstract object Service "disk space" inherits "icinga-service" {
+  check_command = "$plugindir$/check_disk -w '$wfree$' -c '$cfree$'",
+  macros += {
+    wfree = "20%",
+    cfree = "10%",
+  }
+}
+
+abstract object Service "current users" inherits "icinga-service" {
+  check_command = "$plugindir$/check_users -w '$wgreater$' -c '$cgreater$'",
+  macros += {
+    wgreater = 20,
+    cgreater = 50,
+  }
+}
+
+abstract object Service "total processes" inherits "icinga-service" {
+  check_command = "$plugindir$/check_procs -w '$wgreater$' -c '$cgreater$'",
+  macros += {
+    wgreater = 250,
+    cgreater = 400,
+  }
+}
+
+abstract object Service "current load" inherits "icinga-service" {
+  check_command = "$plugindir$/check_load --warning='$wload1$,$wload5$,$wload15$' --critical='$cload1$,$cload5$,$cload15$'",
+  macros += {
+    wload1 = 5.0,
+    wload5 = 4.0,
+    wload15 = 3.0,
+    cload1 = 10.0,
+    cload5 = 6.0,
+    cload15 = 4.0,
+  }
+}
+
+/**
+ * demo check
+ */
+abstract object Service "demo" inherits "icinga-service" {
+  check_command = "$plugindir$/check_dummy 1 'strawberry. yummy! | i=2'",
+}
+
+
+/**
+ * And finally we define some host that should be checked.
+ */
+object Host "localhost" {
+  services = {
+    "ping4", "ping6",
+    "http", "ssh",
+    "current load", "total processes",
+    "current users", "disk space",
+    "demo",
+  },
+  macros = {
+    address = "127.0.0.1",
+    address6 = "::1",
+  },
+  check_interval = 1m
+}
+
