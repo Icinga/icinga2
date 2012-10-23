@@ -123,6 +123,7 @@ using std::type_info;
 #include <boost/signal.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/compare.hpp>
 #include <boost/thread.hpp>
 #include <boost/variant.hpp>
 #include <boost/lexical_cast.hpp>
