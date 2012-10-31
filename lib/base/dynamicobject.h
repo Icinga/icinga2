@@ -74,11 +74,11 @@ public:
 
 	typedef function<DynamicObject::Ptr (const Dictionary::Ptr&)> Factory;
 
-	typedef map<String, Factory, boost::algorithm::is_iless> ClassMap;
-	typedef map<String, DynamicObject::Ptr, boost::algorithm::is_iless> NameMap;
-	typedef map<String, NameMap, boost::algorithm::is_iless> TypeMap;
+	typedef map<String, Factory, string_iless> ClassMap;
+	typedef map<String, DynamicObject::Ptr, string_iless> NameMap;
+	typedef map<String, NameMap, string_iless> TypeMap;
 
-	typedef map<String, DynamicAttribute, boost::algorithm::is_iless> AttributeMap;
+	typedef map<String, DynamicAttribute, string_iless> AttributeMap;
 	typedef AttributeMap::iterator AttributeIterator;
 	typedef AttributeMap::const_iterator AttributeConstIterator;
 

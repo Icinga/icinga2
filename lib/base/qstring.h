@@ -118,6 +118,15 @@ I2_BASE_API String::ConstIterator range_begin(const String& x);
 I2_BASE_API String::Iterator range_end(String& x);
 I2_BASE_API String::ConstIterator range_end(const String& x);
 
+struct string_iless : std::binary_function<String, String, bool>
+{
+	bool operator()(const String& s1, const String& s2) const
+	{
+		return lexicographical_compare(s1.Begin(), s1.End(),
+		    s2.Begin(), s2.End(), boost::algorithm::is_iless());
+	}
+};
+
 }
 
 namespace boost
