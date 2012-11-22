@@ -17,44 +17,55 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TCPSERVER_H
-#define TCPSERVER_H
+#include "i2-remoting.h"
 
-namespace icinga
-{
+using namespace icinga;
 
 /**
- * A TCP server that listens on a TCP port and accepts incoming
- * client connections.
+ * Constructor for the JsonRpcConnection class.
  *
- * @ingroup base
+ * @param stream The stream.
  */
-class I2_BASE_API TcpServer : public TcpSocket
+JsonRpcConnection::JsonRpcConnection(const Stream::Ptr& stream)
+	: Connection(stream)
+{ }
+
+/**
+ * Sends a message to the connected peer.
+ *
+ * @param message The message.
+ */
+void JsonRpcConnection::SendMessage(const MessagePart& message)
 {
-public:
-	typedef shared_ptr<TcpServer> Ptr;
-	typedef weak_ptr<TcpServer> WeakPtr;
-
-	typedef function<TcpClient::Ptr(SOCKET)> ClientFactory;
-
-	TcpServer(void);
-
-	void SetClientFactory(const ClientFactory& clientFactory);
-	ClientFactory GetFactoryFunction(void) const;
-
-	void Listen(void);
-
-	boost::signal<void (const TcpServer::Ptr&, const TcpClient::Ptr&)> OnNewClient;
-
-protected:
-	virtual bool WantsToRead(void) const;
-
-	virtual void HandleReadable(void);
-
-private:
-	ClientFactory m_ClientFactory;
-};
-
+	Value value = message.GetDictionary();
+	String json = value.Serialize();
+	//std::cerr << ">> " << json << std::endl;
+	NetString::WriteStringToStream(GetStream(), json);
 }
 
-#endif /* TCPSERVER_H */
+/**
+ * Processes inbound data.
+ */
+void JsonRpcConnection::ProcessData(void)
+{
+	String jsonString;
+
+	while (NetString::ReadStringFromStream(GetStream(), &jsonString)) {
+		//std::cerr << "<< " << jsonString << std::endl;
+
+		try {
+			Value value = Value::Deserialize(jsonString);
+
+			if (!value.IsObjectType<Dictionary>()) {
+				throw_exception(invalid_argument("JSON-RPC"
+				    " message must be a dictionary."));
+			}
+
+			OnNewMessage(GetSelf(), MessagePart(value));
+		} catch (const exception& ex) {
+			Logger::Write(LogCritical, "remoting", "Exception"
+			    " while processing message from JSON-RPC client: " +
+			    String(ex.what()));
+		}
+	}
+}

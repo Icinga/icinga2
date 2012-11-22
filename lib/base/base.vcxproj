@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="application.cpp" />
     <ClCompile Include="component.cpp" />
+    <ClCompile Include="connection.cpp" />
     <ClCompile Include="dynamicobject.cpp" />
     <ClCompile Include="dictionary.cpp" />
     <ClCompile Include="event.cpp" />
@@ -41,13 +42,13 @@
     <ClCompile Include="scriptfunction.cpp" />
     <ClCompile Include="scripttask.cpp" />
     <ClCompile Include="socket.cpp" />
+    <ClCompile Include="stream.cpp" />
     <ClCompile Include="streamlogger.cpp" />
+    <ClCompile Include="stream_bio.cpp" />
     <ClCompile Include="sysloglogger.cpp" />
-    <ClCompile Include="tcpclient.cpp" />
-    <ClCompile Include="tcpserver.cpp" />
     <ClCompile Include="tcpsocket.cpp" />
     <ClCompile Include="timer.cpp" />
-    <ClCompile Include="tlsclient.cpp" />
+    <ClCompile Include="tlsstream.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="value.cpp" />
   </ItemGroup>
@@ -55,11 +56,12 @@
     <ClInclude Include="application.h" />
     <ClInclude Include="asynctask.h" />
     <ClInclude Include="component.h" />
+    <ClInclude Include="connection.h" />
     <ClInclude Include="dynamicobject.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="fifo.h" />
-    <ClInclude Include="ioqueue.h" />
+    <ClInclude Include="stream.h" />
     <ClInclude Include="netstring.h" />
     <ClInclude Include="qstring.h" />
     <ClInclude Include="scriptfunction.h" />
@@ -72,12 +74,11 @@
     <ClInclude Include="ringbuffer.h" />
     <ClInclude Include="socket.h" />
     <ClInclude Include="streamlogger.h" />
+    <ClInclude Include="stream_bio.h" />
     <ClInclude Include="sysloglogger.h" />
-    <ClInclude Include="tcpclient.h" />
-    <ClInclude Include="tcpserver.h" />
     <ClInclude Include="tcpsocket.h" />
     <ClInclude Include="timer.h" />
-    <ClInclude Include="tlsclient.h" />
+    <ClInclude Include="tlsstream.h" />
     <ClInclude Include="unix.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="value.h" />

@@ -38,33 +38,24 @@ private:
 	Timer::Ptr m_ProgramStatusTimer;
 	Timer::Ptr m_ReconnectTimer;
 
-	IdoSocket::Ptr m_IdoSocket;
-
-	bool m_ConfigDumpInProgress;
+	IdoConnection::Ptr m_IdoConnection;
 
 	String GetSocketAddress(void) const;
 	String GetSocketPort(void) const;
 	String GetInstanceName(void) const;
-	int GetReconnectInterval(void) const;
+	double GetReconnectInterval(void) const;
 
-	void SetConfigDumpInProgress(bool state);
-	bool GetConfigDumpInProgress(void);
+	void SocketDisconnectHandler(void);
 
 	void ConfigTimerHandler(void);
 	void StatusTimerHandler(void);
 	void ProgramStatusTimerHandler(void);
 	void ReconnectTimerHandler(void);
 
-	void OpenIdoSocket(bool sockettype);
+	void OpenIdoSocket(void);
 	void CloseIdoSocket(void);
 
-	void OpenSink(String node, String service);
-	void SendHello(String instancename, bool sockettype);
-	void GoodByeSink(void);
-	void CloseSink(void);
 	void SendStartProcess(void);
-	void StartConfigDump(void);
-	void EndConfigDump(void);
 
 	void EnableHostObject(const Host::Ptr& host);
 	void EnableServiceObject(const Service::Ptr& service);
@@ -80,7 +71,7 @@ private:
 	void DumpProgramStatusData(void);
 
 	template<typename T>
-	void CreateMessageList(stringstream& msg, const T& list, int type)
+	void SendMessageList(stringstream& msg, const T& list, int type)
 	{
 		typename T::const_iterator it;
 		for (it = list.begin(); it != list.end(); it++) {

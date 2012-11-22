@@ -17,37 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPCCLIENT_H
-#define JSONRPCCLIENT_H
+#include "i2-base.h"
 
-namespace icinga
+using namespace icinga;
+
+Connection::Connection(const Stream::Ptr& stream)
+	: m_Stream(stream)
 {
-
-/**
- * A JSON-RPC client.
- *
- * @ingroup remoting
- */
-class I2_REMOTING_API JsonRpcClient : public TlsClient
-{
-public:
-	typedef shared_ptr<JsonRpcClient> Ptr;
-	typedef weak_ptr<JsonRpcClient> WeakPtr;
-
-	JsonRpcClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
-
-	void SendMessage(const MessagePart& message);
-
-	boost::signal<void (const JsonRpcClient::Ptr&, const MessagePart&)> OnNewMessage;
-
-private:
-	void DataAvailableHandler(void);
-
-	friend JsonRpcClient::Ptr JsonRpcClientFactory(SOCKET fd, TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
-};
-
-JsonRpcClient::Ptr JsonRpcClientFactory(SOCKET fd, TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
-
+	m_Stream->OnDataAvailable.connect(boost::bind(&Connection::ProcessData, this));
+	m_Stream->OnClosed.connect(boost::bind(&Connection::ClosedHandler, this));
 }
 
-#endif /* JSONRPCCLIENT_H */
+Stream::Ptr Connection::GetStream(void) const
+{
+	return m_Stream;
+}
+
+void Connection::ClosedHandler(void)
+{
+	OnClosed(GetSelf());
+}
+
+void Connection::Close(void)
+{
+	m_Stream->Close();
+}

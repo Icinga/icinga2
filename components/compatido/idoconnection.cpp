@@ -17,52 +17,43 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef IDOSOCKET_H
-#define IDOSOCKET_H
-
 #include "i2-compatido.h"
 
-namespace icinga
-{
+using namespace icinga;
 
 /**
- * An IDO socket client.
+ * Constructor for the IdoSocket class.
  *
- * @ingroup compatido
+ * @param role The role of the underlying TCP client.
  */
-class IdoSocket : public TcpClient
+IdoConnection::IdoConnection(const Stream::Ptr& stream)
+	: Connection(stream)
+{ }
+
+/**
+ * Sends a message to the ido socket
+ *
+ * @param message The message.
+ */
+void IdoConnection::SendMessage(const String& message)
 {
-public:
-	typedef shared_ptr<IdoSocket> Ptr;
-	typedef weak_ptr<IdoSocket> WeakPtr;
-
-	IdoSocket(TcpClientRole role);
-
-	void SetSocketType(bool);
-	bool GetSocketType(void);
-
-	void SendMessage(const String& message);
-
-	void SetReconnect(bool reconnect);
-	bool GetReconnect(void);
-
-	boost::signal<void (const IdoSocket::Ptr&, const stringstream&)> OnNewMessage;
-
-        boost::signal<void (const IdoSocket::Ptr&)> OnConnected;
-	boost::signal<void (const IdoSocket::Ptr&)> OnDisconnected;
-
-private:
-	void DataAvailableHandler(void);
-	void ClientClosedHandler(void);
-
-	bool m_Reconnect;
-	bool m_SocketType;
-
-	friend IdoSocket::Ptr IdoSocketFactory(SOCKET fd, TcpClientRole role);
-};
-
-IdoSocket::Ptr IdoSocketFactory(SOCKET fd, TcpClientRole role);
-
+	/* 
+	 * write our message to the send queue
+	 * as we inherit all the functionality
+	 * of the tcpclient class
+	 */
+	GetStream()->Write(message.CStr(), message.GetLength());
 }
 
-#endif /* JSONRPCCLIENT_H */
+
+/**
+ * Processes inbound data.
+ * Currently not used, as we do not receive data from ido sockets
+ */
+void IdoConnection::ProcessData(void)
+{
+	// Just ignore whatever data the other side is sending
+	GetStream()->Read(NULL, GetStream()->GetAvailableBytes());
+
+	return;
+}

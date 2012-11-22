@@ -368,6 +368,7 @@ void DynamicObject::DumpObjects(const String& filename)
 		throw_exception(runtime_error("Could not open '" + filename + "' file"));
 
 	FIFO::Ptr fifo = boost::make_shared<FIFO>();
+	fifo->Start();
 
 	DynamicObject::TypeMap::iterator tt;
 	for (tt = GetAllObjects().begin(); tt != GetAllObjects().end(); tt++) {
@@ -401,7 +402,7 @@ void DynamicObject::DumpObjects(const String& filename)
 			String json = value.Serialize();
 
 			/* This is quite ugly, unfortunatelly NetString requires an IOQueue object */
-			NetString::WriteStringToIOQueue(fifo.get(), json);
+			NetString::WriteStringToStream(fifo, json);
 
 			size_t count;
 			while ((count = fifo->GetAvailableBytes()) > 0) {
@@ -415,6 +416,8 @@ void DynamicObject::DumpObjects(const String& filename)
 			}
 		}
 	}
+
+	fifo->Close();
 
 	fp.close();
 
@@ -436,6 +439,8 @@ void DynamicObject::RestoreObjects(const String& filename)
 	/* TODO: Fix this horrible mess by implementing a class that provides
 	 * IOQueue functionality for files. */
 	FIFO::Ptr fifo = boost::make_shared<FIFO>();
+	fifo->Start();
+
 	while (fp) {
 		char buffer[1024];
 
@@ -444,7 +449,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 	}
 
 	String message;
-	while (NetString::ReadStringFromIOQueue(fifo.get(), &message)) {
+	while (NetString::ReadStringFromStream(fifo, &message)) {
 		Dictionary::Ptr persistentObject = Value::Deserialize(message);
 
 		String type = persistentObject->Get("type");
@@ -462,6 +467,8 @@ void DynamicObject::RestoreObjects(const String& filename)
 			object->ApplyUpdate(update, Attribute_All);
 		}
 	}
+
+	fifo->Close();
 }
 
 void DynamicObject::DeactivateObjects(void)

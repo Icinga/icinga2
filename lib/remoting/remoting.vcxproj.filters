@@ -1,13 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="jsonrpcclient.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="responsemessage.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="jsonrpcserver.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="messagepart.cpp">
@@ -25,14 +19,11 @@
     <ClCompile Include="endpointmanager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="jsonrpcconnection.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="jsonrpcclient.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="jsonrpcserver.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="messagepart.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -49,6 +40,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="endpointmanager.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="jsonrpcconnection.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

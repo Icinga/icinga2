@@ -110,11 +110,11 @@ void EndpointManager::AddListener(const String& service)
 	s << "Adding new listener: port " << service;
 	Logger::Write(LogInformation, "icinga", s.str());
 
-	JsonRpcServer::Ptr server = boost::make_shared<JsonRpcServer>(sslContext);
+	TcpSocket::Ptr server = boost::make_shared<TcpSocket>();
 
 	m_Servers.insert(server);
 	server->OnNewClient.connect(boost::bind(&EndpointManager::NewClientHandler,
-	   this, _2));
+	   this, _2, TlsRoleServer));
 
 	server->Bind(service, AF_INET6);
 	server->Listen();
@@ -133,9 +133,9 @@ void EndpointManager::AddConnection(const String& node, const String& service) {
 	if (!sslContext)
 		throw_exception(logic_error("SSL context is required for AddConnection()"));
 
-	JsonRpcClient::Ptr client = boost::make_shared<JsonRpcClient>(RoleOutbound, sslContext);
+	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
 	client->Connect(node, service);
-	NewClientHandler(client);
+	NewClientHandler(client, TlsRoleClient);
 }
 
 /**
@@ -143,26 +143,29 @@ void EndpointManager::AddConnection(const String& node, const String& service) {
  *
  * @param client The new client.
  */
-void EndpointManager::NewClientHandler(const TcpClient::Ptr& client)
+void EndpointManager::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 {
-	JsonRpcClient::Ptr jclient = static_pointer_cast<JsonRpcClient>(client);
+	String peerAddress = client->GetPeerAddress();
+	TlsStream::Ptr tlsStream = boost::make_shared<TlsStream>(client, role, GetSSLContext());
+	tlsStream->Start();
 
-	m_PendingClients.insert(jclient);
-	jclient->OnConnected.connect(boost::bind(&EndpointManager::ClientConnectedHandler, this, _1));
-	jclient->Start();
+	m_PendingClients.insert(tlsStream);
+	tlsStream->OnConnected.connect(boost::bind(&EndpointManager::ClientConnectedHandler, this, _1, peerAddress));
+
+	client->Start();
 }
 
-void EndpointManager::ClientConnectedHandler(const TcpClient::Ptr& client)
+void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const String& peerAddress)
 {
-	JsonRpcClient::Ptr jclient = static_pointer_cast<JsonRpcClient>(client);
+	TlsStream::Ptr tlsStream = static_pointer_cast<TlsStream>(client);
+	JsonRpcConnection::Ptr jclient = boost::make_shared<JsonRpcConnection>(tlsStream);
 
-	Logger::Write(LogInformation, "icinga", "New client connection for " + jclient->GetPeerAddress());
+	m_PendingClients.erase(tlsStream);
 
-	m_PendingClients.erase(jclient);
-
-	shared_ptr<X509> cert = jclient->GetPeerCertificate();
-
+	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity = Utility::GetCertificateCN(cert);
+
+	Logger::Write(LogInformation, "icinga", "New client connection at " + peerAddress + " for identity '" + identity + "'");
 
 	Endpoint::Ptr endpoint;
 

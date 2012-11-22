@@ -38,12 +38,12 @@ const int CompatIdoComponent::DefaultReconnectInterval = 15;
 String CompatIdoComponent::GetSocketAddress(void) const
 {
 	Value address = GetConfig()->Get("socket_address");
-	if(address.IsEmpty())
+
+	if (address.IsEmpty())
 		return DefaultSocketAddress;
 	else
 		return address;
 }
-
 
 /**
  * Reads the socket port from the config
@@ -52,7 +52,8 @@ String CompatIdoComponent::GetSocketAddress(void) const
 String CompatIdoComponent::GetSocketPort(void) const
 {
 	Value port = GetConfig()->Get("socket_port");
-	if(port.IsEmpty())
+
+	if (port.IsEmpty())
 		return DefaultSocketPort;
 	else
 		return port;
@@ -65,7 +66,8 @@ String CompatIdoComponent::GetSocketPort(void) const
 String CompatIdoComponent::GetInstanceName(void) const
 {
 	Value instance = GetConfig()->Get("instance_name");
-	if(instance.IsEmpty())
+
+	if (instance.IsEmpty())
 		return DefaultInstanceName;
 	else
 		return instance;
@@ -75,33 +77,15 @@ String CompatIdoComponent::GetInstanceName(void) const
  * Reads the reconnect interval from the config
  * @returns reconnect_interval The config option, or static default
  */
-int CompatIdoComponent::GetReconnectInterval(void) const
+double CompatIdoComponent::GetReconnectInterval(void) const
 {
-        Value interval = GetConfig()->Get("reconnect_interval");
-        if(interval.IsEmpty())
-                return DefaultReconnectInterval;
-        else   
-                return interval;
-}
+	Value interval = GetConfig()->Get("reconnect_interval");
 
-/**
- * Sets config dump in progress state
- */
-void CompatIdoComponent::SetConfigDumpInProgress(bool state)
-{
-	m_ConfigDumpInProgress = state;
+	if (interval.IsEmpty())
+		return DefaultReconnectInterval;
+	else   
+		return interval;
 }
-
-/**
- * Get state of config in progress
- *
- * @returns state bis config dump in progress.
- */
-bool CompatIdoComponent::GetConfigDumpInProgress(void)
-{
-	return m_ConfigDumpInProgress;
-}
-
 
 /**
  * Starts the component.
@@ -111,7 +95,7 @@ void CompatIdoComponent::Start(void)
 	const int StatusTimerInterval = 60;
 	const int ConfigTimerInterval = 3600;
 	const int ProgramStatusTimerInterval = 15;
-	const int ReconnectTimerInterval = GetReconnectInterval();
+	const double ReconnectTimerInterval = GetReconnectInterval();
 
 	/* FIXME - make this a config option when unix sockets are realdy */
 
@@ -125,12 +109,7 @@ void CompatIdoComponent::Start(void)
 	/*
 	 * open ido socket once
 	 */
-	OpenIdoSocket(IdoSocketType);
-
-	/* 
-	 * tell ido2db that we just started
-	 */
-	SendStartProcess();
+	OpenIdoSocket();
 
 	/*
 	 * ddump the config later (can't do that within start of the component)
@@ -171,7 +150,6 @@ void CompatIdoComponent::Start(void)
 	m_ReconnectTimer->Start();
 }
 
-
 /**
  * Stops the component.
  */
@@ -180,24 +158,58 @@ void CompatIdoComponent::Stop(void)
 	CloseIdoSocket();
 }
 
-
 /**
  * Opens the ido socket, and sends hello to ido2db
  */
-void CompatIdoComponent::OpenIdoSocket(bool sockettype)
+void CompatIdoComponent::OpenIdoSocket(void)
 {
-	OpenSink(GetSocketAddress(), GetSocketPort());
-	SendHello(GetInstanceName(), sockettype);
+	TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
+	socket->Connect(GetSocketAddress(), GetSocketPort());
+	socket->Start();
 
-	m_IdoSocket->SetSocketType(sockettype);
-	/* 
-	 * if we're connected, do not reconnecte
-	 */
-	if(m_IdoSocket->IsConnected()) {
-		m_IdoSocket->SetReconnect(false);
-	} else {
-		m_IdoSocket->SetReconnect(true);
-	}
+	m_IdoConnection = boost::make_shared<IdoConnection>(socket);
+	m_IdoConnection->OnClosed.connect(boost::bind(&CompatIdoComponent::SocketDisconnectHandler, this));
+
+	/* FIXME */
+#define COMPATIDO_PROTOCOL 2
+#define COMPATIDO_NAME "ICINGA2 COMPATIDO"
+#define COMPATIDO_RELEASE_VERSION "2.0"
+	
+	/* connection is always TCP */
+	/* connecttype is always initial */
+	stringstream msgHello;
+	msgHello << "\n\n"
+		<< "HELLO" << "\n"
+		<< "PROTOCOL" << ": " << COMPATIDO_PROTOCOL<< "\n"
+		<< "AGENT" << ": " << COMPATIDO_NAME << "\n"
+		<< "AGENTVERSION" << ": " << VERSION << "\n"
+		<< "STARTTIME" << ": " << static_cast<int>(Utility::GetTime()) << "\n"
+		<< "DISPOSITION" << ": " << "REALTIME" << "\n"
+		<< "CONNECTION" << ": " << "TCPSOCKET" << "\n"
+		<< "INSTANCENAME" << ": " << GetInstanceName() << "\n"
+		<< "STARTDATADUMP"
+		<< "\n\n";
+
+	m_IdoConnection->SendMessage(msgHello.str());
+
+/* TODO */
+#define PROGRAM_MODIFICATION_DATE "10-17-2012"
+#define PROGRAM_RELEASE_VERSION "2.0"
+
+	stringstream msgProcessData;
+	msgProcessData << "\n"
+		<< 200 << "\n" 						/* processdata */
+		<< 1 << "=" << 104 << "\n"				/* type = pprocess prelaunch */
+		<< 2 << "=" << "" << "\n"				/* flags */
+		<< 3 << "=" << "" << "\n"				/* attributes */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
+		<< 105 << "=" << "Icinga2" << "\n"			/* progranname */
+		<< 107 << "=" << PROGRAM_RELEASE_VERSION << "\n"			/*  programversion */
+		<< 104 << "=" << PROGRAM_MODIFICATION_DATE << "\n"			/* programdata */
+		<< 102 << "=" << Utility::GetPid() << "\n"			/* process id */
+		<< 999 << "\n\n";					/* enddata */
+
+	m_IdoConnection->SendMessage(msgProcessData.str());
 }
 
 /*
@@ -205,10 +217,20 @@ void CompatIdoComponent::OpenIdoSocket(bool sockettype)
  */
 void CompatIdoComponent::CloseIdoSocket(void)
 {
-	GoodByeSink();
-	CloseSink();
+	stringstream message;
+	message << "\n"
+		<< 1000 << "\n" 				/* enddatadump */
+		<< "ENDTIME" << ": " << static_cast<int>(Utility::GetTime()) << "\n"		/* endtime */
+		<< "GOODBYE"					/* goodbye */
+		<< "\n\n";
+
+	m_IdoConnection->SendMessage(message.str());
 }
 
+void CompatIdoComponent::SocketDisconnectHandler(void)
+{
+	m_IdoConnection.reset();
+}
 
 /* TODO
  * subscribe to all status updates and checkresults and dump them
@@ -225,7 +247,7 @@ void CompatIdoComponent::StatusTimerHandler(void)
 	Logger::Write(LogInformation, "compatido", "Writing compat ido status information");
 
 	DumpStatusData();
-        DumpProgramStatusData();
+	DumpProgramStatusData();
 }
 
 /**
@@ -235,10 +257,7 @@ void CompatIdoComponent::ConfigTimerHandler(void)
 {
 	Logger::Write(LogInformation, "compatido", "Writing compat ido config information");
 
-	/* protect the dump of status update messages */
-	SetConfigDumpInProgress(true);
 	DumpConfigObjects();
-	SetConfigDumpInProgress(false);
 }
 
 /**
@@ -246,13 +265,9 @@ void CompatIdoComponent::ConfigTimerHandler(void)
  */
 void CompatIdoComponent::ProgramStatusTimerHandler(void)
 {
-	/* do not dump any data if config dump is still in progress */
-	if(GetConfigDumpInProgress())
-		return;
+	Logger::Write(LogInformation, "compatido", "Writing compat ido program status information");
 
-        Logger::Write(LogInformation, "compatido", "Writing compat ido program status information");
-
-        DumpProgramStatusData();
+	DumpProgramStatusData();
 }
 
 /**
@@ -260,153 +275,11 @@ void CompatIdoComponent::ProgramStatusTimerHandler(void)
  */
 void CompatIdoComponent::ReconnectTimerHandler(void)
 {
-        Logger::Write(LogDebug, "compatido", "Checking if ido socket requires reconnect");
+	Logger::Write(LogDebug, "compatido", "Checking if ido socket requires reconnect");
 
-	if(m_IdoSocket->GetReconnect()) {
-
-		/* check if we aren't already connected */
-		if(m_IdoSocket->IsConnected()) {
-        		Logger::Write(LogDebug, "compatido", "Already connected to ido socket ... no reconnect necessary");
-			return;
-		}
-
+	if (!m_IdoConnection)
 		/* socket was disconnected, recconnect */
-		OpenIdoSocket(m_IdoSocket->GetSocketType());
-
-		if(m_IdoSocket->IsConnected()) {
-        		Logger::Write(LogInformation, "compatido", "Successfully reconnected to ido socket");
-		} else {
-			stringstream message;
-			message << "Unable to reconnect to ido socket. Trying again in " << GetReconnectInterval() << " sec";
-        		Logger::Write(LogWarning, "compatido", message.str());
-		}
-	}
-}
-
-
-/**
- * opens a tcp connection to the ido socket
- */
-void CompatIdoComponent::OpenSink(String node, String service)
-{
-	m_IdoSocket = boost::make_shared<IdoSocket>(RoleOutbound);
-	m_IdoSocket->Connect(node, service);
-	m_IdoSocket->Start();
-}
-
-/**
- * sends hello msg to ido2b
- */
-void CompatIdoComponent::SendHello(String instancename, bool sockettype)
-{
-	/* FIXME */
-#define COMPATIDO_PROTOCOL 2
-#define COMPATIDO_NAME "ICINGA2 COMPATIDO"
-#define COMPATIDO_RELEASE_VERSION "2.0"
-
-	String connection;
-	if(sockettype)
-		connection = "TCPSOCKET";
-	else
-		connection = "UNIXSOCKET";
-	
-	/* connection is always TCP */
-	/* connecttype is always initial */
-	stringstream message;
-	message << "\n\n"
-		<< "HELLO" << "\n"
-		<< "PROTOCOL" << ": " << COMPATIDO_PROTOCOL<< "\n"
-		<< "AGENT" << ": " << COMPATIDO_NAME << "\n"
-		<< "AGENTVERSION" << ": " << VERSION << "\n"
-		<< "STARTTIME" << ": " << static_cast<int>(Utility::GetTime()) << "\n"
-		<< "DISPOSITION" << ": " << "REALTIME" << "\n"
-		<< "CONNECTION" << ": " << connection << "\n"
-		<< "INSTANCENAME" << ": " << instancename << "\n"
-		<< "STARTDATADUMP"
-		<< "\n\n";
-
-	m_IdoSocket->SendMessage(message.str());
-}
-
-/**
- * sends goodbye msg to ido
- */
-void CompatIdoComponent::GoodByeSink(void)
-{
-        stringstream message;
-        message << "\n"
-                << 1000 << "\n" 				/* enddatadump */
-                << "ENDTIME" << ": " << static_cast<int>(Utility::GetTime()) << "\n"		/* endtime */
-		<< "GOODBYE"					/* goodbye */
-                << "\n\n";
-
-        m_IdoSocket->SendMessage(message.str());
-}
-
-/**
- * closes ido socket
- */
-void CompatIdoComponent::CloseSink(void)
-{
-	m_IdoSocket->Close();
-}
-
-/**
- * tell ido2db that we are starting up (must be called before config dump)
- */
-void CompatIdoComponent::SendStartProcess(void)
-{
-/* TODO */
-#define PROGRAM_MODIFICATION_DATE "10-17-2012"
-#define PROGRAM_RELEASE_VERSION "2.0"
-
-        stringstream message;
-        message << "\n"
-                << 200 << "\n" 						/* processdata */
-		<< 1 << "=" << 104 << "\n"				/* type = pprocess prelaunch */
-		<< 2 << "=" << "" << "\n"				/* flags */
-		<< 3 << "=" << "" << "\n"				/* attributes */
-		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
-		<< 105 << "=" << "Icinga2" << "\n"			/* progranname */
-		<< 107 << "=" << PROGRAM_RELEASE_VERSION << "\n"			/*  programversion */
-		<< 104 << "=" << PROGRAM_MODIFICATION_DATE << "\n"			/* programdata */
-		<< 102 << "=" << Utility::GetPid() << "\n"			/* process id */
-		<< 999 << "\n\n";					/* enddata */
-
-        m_IdoSocket->SendMessage(message.str());
-
-}
-
-/**
- * sends config dump start signal to ido
- */
-void CompatIdoComponent::StartConfigDump(void)
-{
-	/* configtype =1 (original), =2 (retained == default) */
-	stringstream message;
-	message << "\n\n"
-		<< 900 << ":" << "\n"					/* startconfigdump */
-		<< 245 << "=" << "RETAINED" << "\n"			/* configdumptype */
-		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
-		<< 999							/* enddata */
-		<< "\n\n";
-
-	m_IdoSocket->SendMessage(message.str());
-}
-
-/**
- * sends config dump end signal to ido
- */
-void CompatIdoComponent::EndConfigDump(void)
-{
-        stringstream message;
-        message << "\n\n"
-                << 901 << ":" << "\n"					/* endconfigdump */
-                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
-                << 999							/* enddata */
-                << "\n\n";
-
-        m_IdoSocket->SendMessage(message.str());
+		OpenIdoSocket();
 }
 
 /**
@@ -419,9 +292,9 @@ void CompatIdoComponent::EnableHostObject(const Host::Ptr& host)
 		<< 500 << ":" << "\n"					/* enableobject */
 		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 53 << "=" << host->GetName() << "\n"			/* host */
-                << 999 << "\n\n";					/* enddata */
+		<< 999 << "\n\n";					/* enddata */
 
-        m_IdoSocket->SendMessage(message.str());
+	m_IdoConnection->SendMessage(message.str());
 }
 
 /**
@@ -429,15 +302,15 @@ void CompatIdoComponent::EnableHostObject(const Host::Ptr& host)
  */
 void CompatIdoComponent::EnableServiceObject(const Service::Ptr& service)
 {
-        stringstream message;
-        message << "\n"
-                << 500 << ":" << "\n"                                   /* enableobject */
-                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
-                << 53 << "=" << service->GetHost()->GetName() << "\n"   /* host */
-                << 114 << "=" << service->GetAlias() << "\n"            /* service */
-                << 999 << "\n\n";                                       /* enddata */
+	stringstream message;
+	message << "\n"
+		<< 500 << ":" << "\n"                                   /* enableobject */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
+		<< 53 << "=" << service->GetHost()->GetName() << "\n"   /* host */
+		<< 114 << "=" << service->GetAlias() << "\n"            /* service */
+		<< 999 << "\n\n";                                       /* enddata */
 
-        m_IdoSocket->SendMessage(message.str());
+	m_IdoConnection->SendMessage(message.str());
 }
 
 /**
@@ -445,14 +318,14 @@ void CompatIdoComponent::EnableServiceObject(const Service::Ptr& service)
  */
 void CompatIdoComponent::DisableHostObject(const Host::Ptr& host)
 {
-        stringstream message;
-        message << "\n"
-                << 501 << ":" << "\n"                                   /* disableobject */
-                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
-                << 53 << "=" << host->GetName() << "\n"                 /* host */
-                << 999 << "\n\n";                                       /* enddata */
+	stringstream message;
+	message << "\n"
+		<< 501 << ":" << "\n"                                   /* disableobject */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
+		<< 53 << "=" << host->GetName() << "\n"                 /* host */
+		<< 999 << "\n\n";                                       /* enddata */
 
-        m_IdoSocket->SendMessage(message.str());
+	m_IdoConnection->SendMessage(message.str());
 }
 
 /**
@@ -460,19 +333,16 @@ void CompatIdoComponent::DisableHostObject(const Host::Ptr& host)
  */
 void CompatIdoComponent::DisableServiceObject(const Service::Ptr& service)
 {
-        stringstream message;
-        message << "\n"
-                << 501 << ":" << "\n"                                   /* disableobject */
-                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
-                << 53 << "=" << service->GetHost()->GetName() << "\n"   /* host */
-                << 114 << "=" << service->GetAlias() << "\n"            /* service */
-                << 999 << "\n\n";                                       /* enddata */
+	stringstream message;
+	message << "\n"
+		<< 501 << ":" << "\n"                                   /* disableobject */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
+		<< 53 << "=" << service->GetHost()->GetName() << "\n"   /* host */
+		<< 114 << "=" << service->GetAlias() << "\n"            /* service */
+		<< 999 << "\n\n";                                       /* enddata */
  
-        m_IdoSocket->SendMessage(message.str());
+	m_IdoConnection->SendMessage(message.str());
 }
-
-
-
 
 /**
  * dump host config to ido
@@ -483,7 +353,7 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 {
 	stringstream log;
 	log << "Dumping Host Config: " << host->GetName();
-        Logger::Write(LogDebug, "compatido", log.str());
+	Logger::Write(LogDebug, "compatido", log.str());
 
 	stringstream message;
 	message << "\n"
@@ -550,10 +420,10 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 		<< 200 << "=" << "i2_parent" << "\n"			/* parenthost */
 		<< 130 << "=" << "i2_contactgroup" << "\n"		/* contactgroup */
 		<< 264 << "=" << "i2_contact" << "\n"			/* contact */
-                << 262 << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"	/* customvariable */
-                << 999 << "\n\n";					/* enddata */
+		<< 262 << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"	/* customvariable */
+		<< 999 << "\n\n";					/* enddata */
 
-        m_IdoSocket->SendMessage(message.str());
+	m_IdoConnection->SendMessage(message.str());
 }
 
 /**
@@ -563,21 +433,20 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
  */
 void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 {
-
 	stringstream log;
 	log << "Dumping Host Status: " << host->GetName();
-        Logger::Write(LogDebug, "compatido", log.str());
+	Logger::Write(LogDebug, "compatido", log.str());
 
-        int state;
-        if (!host->IsReachable())
-                state = 2; /* unreachable */
-        else if (!host->IsUp())
-                state = 1; /* down */
-        else   
-                state = 0; /* up */
+    int state;
+    if (!host->IsReachable())
+		state = 2; /* unreachable */
+    else if (!host->IsUp())
+		state = 1; /* down */
+    else   
+		state = 0; /* up */
 
-        stringstream message;
-        message << "\n"
+    stringstream message;
+    message << "\n"
 		<< 212 << ":" << "\n"					/* hoststatusdata */
 		<< 1 << "=" << "" << "\n"				/* type */
 		<< 2 << "=" << "" << "\n"				/* flags */
@@ -631,7 +500,7 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 		<< 262 << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"	/* customvariable */
 		<< 999 << "\n\n";					/* enddata */
 
-        m_IdoSocket->SendMessage(message.str());
+    m_IdoConnection->SendMessage(message.str());
 }
 
 /**
@@ -643,7 +512,7 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 {
 	stringstream log;
 	log << "Dumping Service Config: " << service->GetHost()->GetName() << "->" << service->GetAlias();
-        Logger::Write(LogDebug, "compatido", log.str());
+	Logger::Write(LogDebug, "compatido", log.str());
 
 	stringstream message;
 	message << "\n"
@@ -705,7 +574,7 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 		<< 262 << "=" << "i2_customvar" << ":" << 1 << ":" << "i2_custom_var_mod" << "\n"	/* customvariable */
 		<< 999 << "\n\n";					/* enddata */
 
-        m_IdoSocket->SendMessage(message.str());
+	m_IdoConnection->SendMessage(message.str());
 }
 
 /**
@@ -717,35 +586,35 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 {
 	stringstream log;
 	log << "Dumping Service Status: " << service->GetHost()->GetName() << "->" << service->GetAlias();
-        Logger::Write(LogDebug, "compatido", log.str());
+	Logger::Write(LogDebug, "compatido", log.str());
 
-        String output;
-        String perfdata;
-        double schedule_start = -1, schedule_end = -1;
-        double execution_start = -1, execution_end = -1;
+	String output;
+	String perfdata;
+	double schedule_start = -1, schedule_end = -1;
+	double execution_start = -1, execution_end = -1;
 
-        Dictionary::Ptr cr = service->GetLastCheckResult();
+	Dictionary::Ptr cr = service->GetLastCheckResult();
 
-        if (cr) {
-                output = cr->Get("output");
-                schedule_start = cr->Get("schedule_start");
-                schedule_end = cr->Get("schedule_end");
-                execution_start = cr->Get("execution_start");
-                execution_end = cr->Get("execution_end");
-                perfdata = cr->Get("performance_data_raw");
-        }
+	if (cr) {
+			output = cr->Get("output");
+			schedule_start = cr->Get("schedule_start");
+			schedule_end = cr->Get("schedule_end");
+			execution_start = cr->Get("execution_start");
+			execution_end = cr->Get("execution_end");
+			perfdata = cr->Get("performance_data_raw");
+	}
 
-        double execution_time = (execution_end - execution_start);
-        double latency = (schedule_end - schedule_start) - execution_time;
+	double execution_time = (execution_end - execution_start);
+	double latency = (schedule_end - schedule_start) - execution_time;
 
-        int state = service->GetState();
+	int state = service->GetState();
 
-        if (state > StateUnknown)
-                state = StateUnknown;
+	if (state > StateUnknown)
+			state = StateUnknown;
 
-        stringstream message;
-        message << "\n"
-                << 213 << ":" << "\n"					/* servicestatusdata */
+	stringstream message;
+	message << "\n"
+		<< 213 << ":" << "\n"					/* servicestatusdata */
 		<< 1 << "=" << "" << "\n"				/* type */
 		<< 2 << "=" << "" << "\n"				/* flags */
 		<< 3 << "=" << "" << "\n"				/* attributes */
@@ -800,7 +669,7 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 		<< 262 << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"	/* customvariable */
 		<< 999 << "\n\n";					/* enddata */
 
-        m_IdoSocket->SendMessage(message.str());
+	m_IdoConnection->SendMessage(message.str());
 }
 
 
@@ -811,9 +680,9 @@ void CompatIdoComponent::DumpProgramStatusData(void)
 {
 	double start_time = IcingaApplication::GetInstance()->GetStartTime();
 
-        stringstream message;
-        message << "\n"
-                << 211 << ":" << "\n"					/* programstatusdata */
+	stringstream message;
+	message << "\n"
+		<< 211 << ":" << "\n"					/* programstatusdata */
 		<< 1 << "=" << "" << "\n"				/* type */
 		<< 2 << "=" << "" << "\n"				/* flags */
 		<< 3 << "=" << "" << "\n"				/* attributes */
@@ -839,9 +708,9 @@ void CompatIdoComponent::DumpProgramStatusData(void)
 		<< 49 << "=" << "" << "\n"				/* globalhosteventhandler */
 		<< 50 << "=" << "" << "\n"				/* globalserviceeventhandler */
 		<< 270 << "=" << static_cast<int>(Utility::GetTime()) << "\n" 				/* disablednotificationsexpiretime - supported in 1.8 XXX */
-                << 999 << "\n\n";					/* enddata */
+		<< 999 << "\n\n";					/* enddata */
 
-        m_IdoSocket->SendMessage(message.str());
+	m_IdoConnection->SendMessage(message.str());
 }
 
 /**
@@ -856,7 +725,16 @@ void CompatIdoComponent::DumpConfigObjects(void)
 	 */
 
 	/* tell ido2db that we start now */
-	StartConfigDump();
+	/* configtype =1 (original), =2 (retained == default) */
+	stringstream msgStartConfigDump;
+	msgStartConfigDump << "\n\n"
+		<< 900 << ":" << "\n"					/* startconfigdump */
+		<< 245 << "=" << "RETAINED" << "\n"			/* configdumptype */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
+		<< 999							/* enddata */
+		<< "\n\n";
+
+	m_IdoConnection->SendMessage(msgStartConfigDump.str());
 
 	/* hosts and hostgroups */
 	map<String, vector<String> > hostgroups;
@@ -885,7 +763,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 		const String& name = hgt.first;
 		const vector<String>& hosts = hgt.second;
 
-		if(HostGroup::Exists(name)) {
+		if (HostGroup::Exists(name)) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			/* dump the hostgroup and its attributes/members to ido */
@@ -896,11 +774,11 @@ void CompatIdoComponent::DumpConfigObjects(void)
 				<< 172 << "=" << name << "\n"			/* hostgroupname */
 				<< 170 << "=" << hg->GetAlias() << "\n";	/* hostgroupalias */
 
-			CreateMessageList(message, hosts, 171);			/* hostgroupmember */
+			SendMessageList(message, hosts, 171);			/* hostgroupmember */
 				
 			message << 999 << "\n\n";				/* enddata */
 
-        		m_IdoSocket->SendMessage(message.str());
+			m_IdoConnection->SendMessage(message.str());
 		}
 	}
 
@@ -935,12 +813,12 @@ void CompatIdoComponent::DumpConfigObjects(void)
 			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
 
 			/* dump the servicegroup and its attributes/members to ido */
-                        stringstream message;
-                        message << "\n"
-                                << 403 << ":" << "\n"				/* servicegroupdefinition */
-                                << 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
-                                << 220 << "=" << name << "\n"			/* servicegroupname */
-                                << 218 << "=" << sg->GetAlias() << "\n";	/* servicegroupalias */
+			stringstream message;
+			message << "\n"
+				<< 403 << ":" << "\n"				/* servicegroupdefinition */
+				<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
+				<< 220 << "=" << name << "\n"			/* servicegroupname */
+				<< 218 << "=" << sg->GetAlias() << "\n";	/* servicegroupalias */
 
 			vector<String> sglist;
 			vector<Service::Ptr>::iterator vt;
@@ -950,16 +828,23 @@ void CompatIdoComponent::DumpConfigObjects(void)
 				sglist.push_back(service->GetAlias());
 			}
 	
-			CreateMessageList(message, services, 219);		/* servicegroupmember */
+			SendMessageList(message, services, 219);		/* servicegroupmember */
 
-                        message << 999 << "\n\n";				/* enddata */
+			message << 999 << "\n\n";				/* enddata */
 
-        		m_IdoSocket->SendMessage(message.str());
+			m_IdoConnection->SendMessage(message.str());
 		}
 	}
 
 	/* tell ido2db that we ended dumping the config */
-	EndConfigDump();
+	stringstream msgEndConfigDump;
+	msgEndConfigDump << "\n\n"
+		<< 901 << ":" << "\n"					/* endconfigdump */
+		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
+		<< 999							/* enddata */
+		<< "\n\n";
+
+	m_IdoConnection->SendMessage(msgEndConfigDump.str());
 }
 
 /**
@@ -967,21 +852,21 @@ void CompatIdoComponent::DumpConfigObjects(void)
  */
 void CompatIdoComponent::DumpStatusData(void)
 {
-        /* hosts */
-        DynamicObject::Ptr object;
-        BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Host")) {
-                const Host::Ptr& host = static_pointer_cast<Host>(object);
+	/* hosts */
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Host")) {
+		const Host::Ptr& host = static_pointer_cast<Host>(object);
 
-                DumpHostStatus(host);
-        }
+		DumpHostStatus(host);
+	}
 
 
-        /* services */
-        BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
-                Service::Ptr service = static_pointer_cast<Service>(object);
+	/* services */
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
+		Service::Ptr service = static_pointer_cast<Service>(object);
 
-                DumpServiceStatus(service);
-        }
+		DumpServiceStatus(service);
+	}
 }
 
 

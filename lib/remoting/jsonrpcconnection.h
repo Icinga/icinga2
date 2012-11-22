@@ -17,53 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TLSCLIENT_H
-#define TLSCLIENT_H
+#ifndef JSONRPCCONNECTION_H
+#define JSONRPCCONNECTION_H
 
 namespace icinga
 {
 
 /**
- * A TLS client connection.
+ * A JSON-RPC connection.
  *
- * @ingroup base
+ * @ingroup remoting
  */
-class I2_BASE_API TlsClient : public TcpClient
+class I2_REMOTING_API JsonRpcConnection : public Connection
 {
 public:
-	TlsClient(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
+	typedef shared_ptr<JsonRpcConnection> Ptr;
+	typedef weak_ptr<JsonRpcConnection> WeakPtr;
 
-	virtual void Start(void);
+	JsonRpcConnection(const Stream::Ptr& stream);
 
-	shared_ptr<X509> GetClientCertificate(void) const;
-	shared_ptr<X509> GetPeerCertificate(void) const;
+	void SendMessage(const MessagePart& message);
+
+	boost::signal<void (const JsonRpcConnection::Ptr&, const MessagePart&)> OnNewMessage;
 
 protected:
-	void HandleSSLError(void);
-
-	virtual bool WantsToRead(void) const;
-	virtual bool WantsToWrite(void) const;
-
-	virtual void HandleReadable(void);
-	virtual void HandleWritable(void);
-
-private:
-	shared_ptr<SSL_CTX> m_SSLContext;
-	shared_ptr<SSL> m_SSL;
-
-	bool m_BlockRead;
-	bool m_BlockWrite;
-
-	static int m_SSLIndex;
-	static bool m_SSLIndexInitialized;
-
-	virtual void CloseInternal(bool from_dtor);
-
-	static void NullCertificateDeleter(X509 *certificate);
+	virtual void ProcessData(void);
 };
-
-TcpClient::Ptr TlsClientFactory(TcpClientRole role, shared_ptr<SSL_CTX> sslContext);
 
 }
 
-#endif /* TLSCLIENT_H */
+#endif /* JSONRPCCONNECTION_H */

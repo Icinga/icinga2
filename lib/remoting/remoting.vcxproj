@@ -22,10 +22,9 @@
     <ClInclude Include="endpoint.h" />
     <ClInclude Include="endpointmanager.h" />
     <ClInclude Include="i2-remoting.h" />
-    <ClInclude Include="jsonrpcclient.h" />
+    <ClInclude Include="jsonrpcconnection.h" />
     <ClInclude Include="requestmessage.h" />
     <ClInclude Include="responsemessage.h" />
-    <ClInclude Include="jsonrpcserver.h" />
     <ClInclude Include="messagepart.h" />
   </ItemGroup>
   <ItemGroup>
@@ -37,10 +36,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="jsonrpcclient.cpp" />
+    <ClCompile Include="jsonrpcconnection.cpp" />
     <ClCompile Include="requestmessage.cpp" />
     <ClCompile Include="responsemessage.cpp" />
-    <ClCompile Include="jsonrpcserver.cpp" />
     <ClCompile Include="messagepart.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

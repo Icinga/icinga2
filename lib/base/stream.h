@@ -17,20 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef IOQUEUE_H
-#define IOQUEUE_H
+#ifndef STREAM_H
+#define STREAM_H
 
 namespace icinga
 {
 
 /**
- * An I/O queue.
+ * A stream.
  *
  * @ingroup base
  */
-class IOQueue
+class I2_BASE_API Stream : public Object
 {
 public:
+	typedef shared_ptr<Stream> Ptr;
+	typedef weak_ptr<Stream> WeakPtr;
+
+	Stream(void);
+	~Stream(void);
+
+	virtual void Start(void);
+
 	/**
 	 * Retrieves the number of bytes available for reading.
 	 *
@@ -39,37 +47,61 @@ public:
 	virtual size_t GetAvailableBytes(void) const = 0;
 
 	/**
-	 * Reads data from the queue without advancing the read pointer. Trying
-	 * to read more data than is available in the queue is a programming error.
-	 * Use GetBytesAvailable() to check how much data is available.
+	 * Reads data from the stream without advancing the read pointer.
 	 *
 	 * @param buffer The buffer where data should be stored. May be NULL if
 	 *		 you're not actually interested in the data.
 	 * @param count The number of bytes to read from the queue.
+	 * @returns The number of bytes actually read.
 	 */
-	virtual void Peek(void *buffer, size_t count) = 0;
+	virtual size_t Peek(void *buffer, size_t count) = 0;
 
 	/**
-	 * Reads data from the queue. Trying to read more data than is
-	 * available in the queue is a programming error. Use GetBytesAvailable()
-	 * to check how much data is available.
+	 * Reads data from the stream.
 	 *
 	 * @param buffer The buffer where data should be stored. May be NULL if you're
 	 *		 not actually interested in the data.
 	 * @param count The number of bytes to read from the queue.
+	 * @returns The number of bytes actually read.
 	 */
-	virtual void Read(void *buffer, size_t count) = 0;
+	virtual size_t Read(void *buffer, size_t count) = 0;
 
 	/**
-	 * Writes data to the queue.
+	 * Writes data to the stream.
 	 *
 	 * @param buffer The data that is to be written.
 	 * @param count The number of bytes to write.
 	 * @returns The number of bytes written
 	 */
 	virtual void Write(const void *buffer, size_t count) = 0;
+
+	/**
+	 * Closes the stream and releases resources.
+	 */
+	virtual void Close(void);
+
+	bool IsConnected(void) const;
+
+	boost::exception_ptr GetException(void);
+	void CheckException(void);
+
+	boost::signal<void (const Stream::Ptr&)> OnConnected;
+	boost::signal<void (const Stream::Ptr&)> OnDataAvailable;
+	boost::signal<void (const Stream::Ptr&)> OnClosed;
+
+protected:
+	void SetConnected(bool connected);
+
+	void SetException(boost::exception_ptr exception);
+
+private:
+	bool m_Running;
+	bool m_Connected;
+	boost::exception_ptr m_Exception;
 };
+
+BIO *BIO_Stream_new(const Stream::Ptr& stream);
 
 }
 
-#endif /* IOQUEUE_H */
+#endif /* STREAM_H */

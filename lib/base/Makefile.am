@@ -10,6 +10,8 @@ libbase_la_SOURCES =  \
 	asynctask.h \
 	component.cpp \
 	component.h \
+	connection.cpp \
+	connection.h \
 	dictionary.cpp \
 	dictionary.h \
 	dynamicobject.cpp \
@@ -21,7 +23,6 @@ libbase_la_SOURCES =  \
 	fifo.cpp \
 	fifo.h \
 	i2-base.h \
-	ioqueue.h \
 	logger.cpp \
 	logger.h \
 	netstring.cpp \
@@ -40,20 +41,20 @@ libbase_la_SOURCES =  \
 	scripttask.h \
 	socket.cpp \
 	socket.h \
+	stream.cpp \
+	stream.h \
+	stream_bio.cpp \
+	stream_bio.h \
 	streamlogger.cpp \
 	streamlogger.h \
 	sysloglogger.cpp \
 	sysloglogger.h \
-	tcpclient.cpp \
-	tcpclient.h \
-	tcpserver.cpp \
-	tcpserver.h \
 	tcpsocket.cpp \
 	tcpsocket.h \
 	timer.cpp \
 	timer.h \
-	tlsclient.cpp \
-	tlsclient.h \
+	tlsstream.cpp \
+	tlsstream.h \
 	unix.h \
 	utility.cpp \
 	utility.h \

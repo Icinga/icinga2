@@ -37,8 +37,7 @@ public:
 	void Bind(String service, int family);
 	void Bind(String node, String service, int family);
 
-private:
-	void MakeSocket(int family);
+	void Connect(const String& node, const String& service);
 };
 
 }

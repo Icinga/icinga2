@@ -14,7 +14,7 @@
     <ClCompile Include="compatidocomponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="idosocket.cpp">
+    <ClCompile Include="idoconnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -25,7 +25,7 @@
     <ClInclude Include="i2-compatido.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="idosocket.h">
+    <ClInclude Include="idoconnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

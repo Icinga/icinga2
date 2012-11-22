@@ -39,8 +39,7 @@
 #include "messagepart.h"
 #include "requestmessage.h"
 #include "responsemessage.h"
-#include "jsonrpcclient.h"
-#include "jsonrpcserver.h"
+#include "jsonrpcconnection.h"
 #include "endpoint.h"
 #include "endpointmanager.h"
 

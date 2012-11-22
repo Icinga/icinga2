@@ -111,37 +111,18 @@ bool Endpoint::IsConnected(void) const
 	if (IsLocalEndpoint()) {
 		return true;
 	} else {
-		JsonRpcClient::Ptr client = GetClient();
+		JsonRpcConnection::Ptr client = GetClient();
 
-		return (client && client->IsConnected());
+		return (client && client->GetStream()->IsConnected());
 	}
 }
 
-/**
- * Retrieves the address for the endpoint.
- *
- * @returns The endpoint's address.
- */
-String Endpoint::GetAddress(void) const
-{
-	if (IsLocalEndpoint()) {
-		return "local:" + GetName();
-	} else {
-		JsonRpcClient::Ptr client = GetClient();
-
-		if (!client || !client->IsConnected())
-			return "<disconnected endpoint>";
-
-		return client->GetPeerAddress();
-	}
-}
-
-JsonRpcClient::Ptr Endpoint::GetClient(void) const
+JsonRpcConnection::Ptr Endpoint::GetClient(void) const
 {
 	return Get("client");
 }
 
-void Endpoint::SetClient(const JsonRpcClient::Ptr& client)
+void Endpoint::SetClient(const JsonRpcConnection::Ptr& client)
 {
 	Set("client", client);
 	client->OnNewMessage.connect(boost::bind(&Endpoint::NewMessageHandler, this, _2));
@@ -337,14 +318,14 @@ void Endpoint::NewMessageHandler(const MessagePart& message)
 
 void Endpoint::ClientClosedHandler(void)
 {
-	try {
+	/*try {
 		GetClient()->CheckException();
 	} catch (const exception& ex) {
 		stringstream message;
 		message << "Error occured for JSON-RPC socket: Message=" << ex.what();
 
 		Logger::Write(LogWarning, "jsonrpc", message.str());
-	}
+	}*/
 
 	Logger::Write(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetName());
 

@@ -33,7 +33,7 @@
 
 using std::stringstream;
 
-#include "idosocket.h"
+#include "idoconnection.h"
 #include "compatidocomponent.h"
 
 

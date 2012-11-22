@@ -70,8 +70,8 @@ private:
 
 	Timer::Ptr m_ReconnectTimer;
 
-	set<JsonRpcServer::Ptr> m_Servers;
-	set<JsonRpcClient::Ptr> m_PendingClients;
+	set<TcpSocket::Ptr> m_Servers;
+	set<TlsStream::Ptr> m_PendingClients;
 
 	/**
 	 * Information about a pending API request.
@@ -101,8 +101,8 @@ private:
 
 	void ReconnectTimerHandler(void);
 
-	void NewClientHandler(const TcpClient::Ptr& client);
-	void ClientConnectedHandler(const TcpClient::Ptr& client);
+	void NewClientHandler(const Socket::Ptr& client, TlsRole rol);
+	void ClientConnectedHandler(const Stream::Ptr& client, const String& peerAddress);
 };
 
 }

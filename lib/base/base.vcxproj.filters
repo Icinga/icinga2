@@ -25,28 +25,13 @@
     <ClCompile Include="socket.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="tcpclient.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="tcpserver.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="tcpsocket.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="timer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="tlsclient.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="unix.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="utility.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="win32.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="logger.cpp">
@@ -85,6 +70,18 @@
     <ClCompile Include="qstring.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="tlsstream.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="stream.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="stream_bio.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="connection.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -117,19 +114,10 @@
     <ClInclude Include="socket.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="tcpclient.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="tcpserver.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="tcpsocket.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="timer.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="tlsclient.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="unix.h">
@@ -159,9 +147,6 @@
     <ClInclude Include="scriptfunction.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="ioqueue.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="fifo.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -175,6 +160,18 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="qstring.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="stream.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="tlsstream.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="stream_bio.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="connection.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

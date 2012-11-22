@@ -151,12 +151,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="compatidocomponent.cpp" />
-    <ClCompile Include="idosocket.cpp" />
+    <ClCompile Include="idoconnection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="compatidocomponent.h" />
     <ClInclude Include="i2-compatido.h" />
-    <ClInclude Include="idosocket.h" />
+    <ClInclude Include="idoconnection.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

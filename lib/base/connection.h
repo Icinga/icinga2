@@ -17,26 +17,35 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPCSERVER_H
-#define JSONRPCSERVER_H
+#ifndef CONNECTION_H
+#define CONNECTION_H
 
 namespace icinga
 {
 
-/**
- * A JSON-RPC server.
- *
- * @ingroup remoting
- */
-class I2_REMOTING_API JsonRpcServer : public TcpServer
+class I2_BASE_API Connection : public Object
 {
 public:
-	typedef shared_ptr<JsonRpcServer> Ptr;
-	typedef weak_ptr<JsonRpcServer> WeakPtr;
+	typedef shared_ptr<Connection> Ptr;
+	typedef weak_ptr<Connection> WeakPtr;
 
-	JsonRpcServer(shared_ptr<SSL_CTX> sslContext);
+	Connection(const Stream::Ptr& stream);
+
+	Stream::Ptr GetStream(void) const;
+
+	void Close(void);
+
+	boost::signal<void (const Connection::Ptr&)> OnClosed;
+
+protected:
+	virtual void ProcessData(void) = 0;
+
+private:
+	Stream::Ptr m_Stream;
+
+	void ClosedHandler(void);
 };
 
 }
 
-#endif /* JSONRPCSERVER_H */
+#endif /* CONNECTION_H */

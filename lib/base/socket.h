@@ -23,11 +23,11 @@
 namespace icinga {
 
 /**
- * Base class for sockets.
+ * Base class for connection-oriented sockets.
  *
  * @ingroup base
  */
-class I2_BASE_API Socket : public Object
+class I2_BASE_API Socket : public Stream
 {
 public:
 	typedef shared_ptr<Socket> Ptr;
@@ -35,18 +35,23 @@ public:
 
 	~Socket(void);
 
-	boost::signal<void (const Socket::Ptr&)> OnClosed;
-
 	virtual void Start(void);
 
-	void Close(void);
+	virtual void Close(void);
 
 	String GetClientAddress(void);
 	String GetPeerAddress(void);
 
 	bool IsConnected(void) const;
 
-	void CheckException(void);
+	size_t GetAvailableBytes(void) const;
+	size_t Read(void *buffer, size_t size);
+	size_t Peek(void *buffer, size_t size);
+	void Write(const void *buffer, size_t size);
+
+	void Listen(void);
+
+	boost::signal<void (const Socket::Ptr&, const Socket::Ptr&)> OnNewClient;
 
 protected:
 	Socket(void);
@@ -59,27 +64,17 @@ protected:
 	int GetError(void) const;
 	static int GetLastSocketError(void);
 
-	virtual bool WantsToRead(void) const;
-	virtual bool WantsToWrite(void) const;
-
-	virtual void HandleReadable(void);
-	virtual void HandleWritable(void);
-	virtual void HandleException(void);
-
-	virtual void CloseInternal(bool from_dtor);
-
 	mutable boost::mutex m_SocketMutex;
 
 private:
 	SOCKET m_FD; /**< The socket descriptor. */
 	bool m_Connected;
+	bool m_Listening;
 
 	thread m_ReadThread;
 	thread m_WriteThread;
 
 	condition_variable m_WriteCV;
-
-	boost::exception_ptr m_Exception;
 
 	void ReadThreadProc(void);
 	void WriteThreadProc(void);
@@ -87,6 +82,31 @@ private:
 	void ExceptionEventHandler(void);
 
 	static String GetAddressFromSockaddr(sockaddr *address, socklen_t len);
+
+	mutable boost::mutex m_QueueMutex;
+	FIFO::Ptr m_SendQueue;
+	FIFO::Ptr m_RecvQueue;
+
+	void HandleWritableClient(void);
+	void HandleReadableClient(void);
+
+	void HandleWritableServer(void);
+	void HandleReadableServer(void);
+
+	void HandleReadable(void);
+	void HandleWritable(void);
+	void HandleException(void);
+
+	bool WantsToWriteClient(void) const;
+	bool WantsToReadClient(void) const;
+
+	bool WantsToWriteServer(void) const;
+	bool WantsToReadServer(void) const;
+
+	bool WantsToWrite(void) const;
+	bool WantsToRead(void) const;
+
+	void CloseUnlocked(void);
 };
 
 /**

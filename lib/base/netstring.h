@@ -33,8 +33,8 @@ namespace icinga
 class I2_BASE_API NetString
 {
 public:
-	static bool ReadStringFromIOQueue(IOQueue *queue, String *message);
-	static void WriteStringToIOQueue(IOQueue *queue, const String& message);
+	static bool ReadStringFromStream(const Stream::Ptr& stream, String *message);
+	static void WriteStringToStream(const Stream::Ptr& stream, const String& message);
 
 private:
 	NetString(void);

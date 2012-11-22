@@ -43,10 +43,8 @@ public:
 	static bool Exists(const String& name);
 	static Endpoint::Ptr GetByName(const String& name);
 
-	String GetAddress(void) const;
-
-	JsonRpcClient::Ptr GetClient(void) const;
-	void SetClient(const JsonRpcClient::Ptr& client);
+	JsonRpcConnection::Ptr GetClient(void) const;
+	void SetClient(const JsonRpcConnection::Ptr& client);
 
 	void RegisterSubscription(const String& topic);
 	void UnregisterSubscription(const String& topic);

@@ -17,59 +17,63 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-demo.h"
+#include "i2-base.h"
 
 using namespace icinga;
 
-/**
- * Starts the component.
- */
-void DemoComponent::Start(void)
-{
-	m_Endpoint = Endpoint::MakeEndpoint("demo", true);
-	m_Endpoint->RegisterTopicHandler("demo::HelloWorld",
-	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2,
-	    _3));
+Stream::Stream(void)
+	: m_Connected(false)
+{ }
 
-	m_DemoTimer = boost::make_shared<Timer>();
-	m_DemoTimer->SetInterval(5);
-	m_DemoTimer->OnTimerExpired.connect(boost::bind(&DemoComponent::DemoTimerHandler, this));
-	m_DemoTimer->Start();
+Stream::~Stream(void)
+{
+	assert(!m_Running);
+}
+
+bool Stream::IsConnected(void) const
+{
+	return m_Connected;
+}
+
+void Stream::SetConnected(bool connected)
+{
+	m_Connected = connected;
+
+	if (m_Connected)
+		Event::Post(boost::bind(boost::ref(OnConnected), GetSelf()));
+	else
+		Event::Post(boost::bind(boost::ref(OnClosed), GetSelf()));
 }
 
 /**
- * Stops the component.
+ * Checks whether an exception is available for this socket and re-throws
+ * the exception if there is one.
  */
-void DemoComponent::Stop(void)
+void Stream::CheckException(void)
 {
-	m_Endpoint->Unregister();
+	if (m_Exception)
+		rethrow_exception(m_Exception);
 }
 
-/**
- * Periodically sends a demo::HelloWorld message.
- *
- * @param - Event arguments for the timer.
- */
-void DemoComponent::DemoTimerHandler(void)
+void Stream::SetException(boost::exception_ptr exception)
 {
-	Logger::Write(LogInformation, "demo", "Sending multicast 'hello"
-	    " world' message.");
-
-	RequestMessage request;
-	request.SetMethod("demo::HelloWorld");
-
-	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
-	    request);
+	m_Exception = exception;
 }
 
-/**
- * Processes demo::HelloWorld messages.
- */
-void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender,
-    const RequestMessage& request)
+boost::exception_ptr Stream::GetException(void)
 {
-	Logger::Write(LogInformation, "demo", "Got 'hello world' from identity=" +
-	    sender->GetName());
+	return m_Exception;
 }
 
-EXPORT_COMPONENT(demo, DemoComponent);
+void Stream::Start(void)
+{
+	m_Running = true;
+}
+
+void Stream::Close(void)
+{
+	assert(m_Running);
+	m_Running = false;
+
+	SetConnected(false);
+}

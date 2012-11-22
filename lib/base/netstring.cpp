@@ -22,17 +22,17 @@
 using namespace icinga;
 
 /**
- * Reads data from an IOQueue in netString format.
+ * Reads data from a stream in netString format.
  *
- * @param queue The IOQueue to read from.
+ * @param stream The stream to read from.
  * @param[out] str The String that has been read from the IOQueue.
  * @returns true if a complete String was read from the IOQueue, false otherwise.
  * @exception invalid_argument The input stream is invalid.
  * @see https://github.com/PeterScott/netString-c/blob/master/netString.c
  */
-bool NetString::ReadStringFromIOQueue(IOQueue *queue, String *str)
+bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 {
-	size_t buffer_length = queue->GetAvailableBytes();
+	size_t buffer_length = stream->GetAvailableBytes();
 
 	/* minimum netString length is 3 */
 	if (buffer_length < 3)
@@ -47,7 +47,7 @@ bool NetString::ReadStringFromIOQueue(IOQueue *queue, String *str)
 	if (buffer == NULL && buffer_length > 0)
 		throw_exception(bad_alloc());
 
-	queue->Peek(buffer, buffer_length);
+	stream->Peek(buffer, buffer_length);
 
 	/* no leading zeros allowed */
 	if (buffer[0] == '0' && isdigit(buffer[1])) {
@@ -68,7 +68,7 @@ bool NetString::ReadStringFromIOQueue(IOQueue *queue, String *str)
 		len = len * 10 + (buffer[i] - '0');
 	}
 
-	buffer_length = queue->GetAvailableBytes();
+	buffer_length = stream->GetAvailableBytes();
 
 	/* make sure the buffer is large enough */
 	if (i + len + 1 >= buffer_length)
@@ -86,7 +86,7 @@ bool NetString::ReadStringFromIOQueue(IOQueue *queue, String *str)
 
 	buffer = new_buffer;
 
-	queue->Peek(buffer, buffer_length);
+	stream->Peek(buffer, buffer_length);
 
 	/* check for the colon delimiter */
 	if (buffer[i] != ':') {
@@ -104,25 +104,25 @@ bool NetString::ReadStringFromIOQueue(IOQueue *queue, String *str)
 
 	free(buffer);
 
-	/* remove the data from the IOQueue */
-	queue->Read(NULL, buffer_length);
+	/* remove the data from the stream */
+	stream->Read(NULL, buffer_length);
 
 	return true;
 }
 
 /**
- * Writes data into an IOQueue using the netString format.
+ * Writes data into a stream using the netString format.
  *
- * @param queue The IOQueue.
+ * @param stream The stream.
  * @param str The String that is to be written.
  */
-void NetString::WriteStringToIOQueue(IOQueue *queue, const String& str)
+void NetString::WriteStringToStream(const Stream::Ptr& stream, const String& str)
 {
 	stringstream prefixbuf;
 	prefixbuf << str.GetLength() << ":";
 
 	String prefix = prefixbuf.str();
-	queue->Write(prefix.CStr(), prefix.GetLength());
-	queue->Write(str.CStr(), str.GetLength());
-	queue->Write(",", 1);
+	stream->Write(prefix.CStr(), prefix.GetLength());
+	stream->Write(str.CStr(), str.GetLength());
+	stream->Write(",", 1);
 }

@@ -22,23 +22,6 @@
 using namespace icinga;
 
 /**
- * Creates a socket.
- *
- * @param family The socket family for the new socket.
- */
-void TcpSocket::MakeSocket(int family)
-{
-	assert(GetFD() == INVALID_SOCKET);
-
-	int fd = socket(family, SOCK_STREAM, 0);
-
-	if (fd == INVALID_SOCKET)
-		throw_exception(SocketException("socket() failed", GetLastSocketError()));
-
-	SetFD(fd);
-}
-
-/**
  * Creates a socket and binds it to the specified service.
  *
  * @param service The service.
@@ -100,6 +83,64 @@ void TcpSocket::Bind(String node, String service, int family)
 			SetFD(INVALID_SOCKET);
 
 			continue;
+		}
+
+		break;
+	}
+
+	freeaddrinfo(result);
+
+	if (fd == INVALID_SOCKET)
+		throw_exception(runtime_error("Could not create a suitable socket."));
+}
+
+/**
+ * Creates a socket and connects to the specified node and service.
+ *
+ * @param node The node.
+ * @param service The service.
+ */
+void TcpSocket::Connect(const String& node, const String& service)
+{
+	addrinfo hints;
+	addrinfo *result;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	int rc = getaddrinfo(node.CStr(), service.CStr(), &hints, &result);
+
+	if (rc < 0)
+		throw_exception(SocketException("getaddrinfo() failed", GetLastSocketError()));
+
+	int fd = INVALID_SOCKET;
+
+	for (addrinfo *info = result; info != NULL; info = info->ai_next) {
+		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+
+		if (fd == INVALID_SOCKET)
+			continue;
+
+		SetFD(fd);
+
+		rc = connect(fd, info->ai_addr, info->ai_addrlen);
+
+#ifdef _WIN32
+		if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
+#else /* _WIN32 */
+		if (rc < 0 && errno != EINPROGRESS) {
+#endif /* _WIN32 */
+			closesocket(fd);
+			SetFD(INVALID_SOCKET);
+
+			continue;
+		}
+
+		if (rc >= 0) {
+			SetConnected(true);
+			OnConnected(GetSelf());
 		}
 
 		break;

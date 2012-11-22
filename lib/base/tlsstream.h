@@ -17,16 +17,66 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-remoting.h"
+#ifndef TLSSTREAM_H
+#define TLSSTREAM_H
 
-using namespace icinga;
+namespace icinga
+{
+
+typedef enum
+{
+	TlsRoleClient,
+	TlsRoleServer
+} TlsRole;
 
 /**
- * Constructor for the JsonRpcServer class.
+ * A TLS stream.
  *
- * @param sslContext SSL context that should be used for client connections.
+ * @ingroup base
  */
-JsonRpcServer::JsonRpcServer(shared_ptr<SSL_CTX> sslContext)
+class I2_BASE_API TlsStream : public Stream
 {
-	SetClientFactory(boost::bind(&JsonRpcClientFactory, _1, RoleInbound, sslContext));
+public:
+	typedef shared_ptr<TlsStream> Ptr;
+	typedef weak_ptr<TlsStream> WeakPtr;
+
+	TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SSL_CTX> sslContext);
+
+	shared_ptr<X509> GetClientCertificate(void) const;
+	shared_ptr<X509> GetPeerCertificate(void) const;
+
+	void Start(void);
+	virtual void Close(void);
+
+	virtual size_t GetAvailableBytes(void) const;
+	virtual size_t Peek(void *buffer, size_t count);
+	virtual size_t Read(void *buffer, size_t count);
+	virtual void Write(const void *buffer, size_t count);
+
+protected:
+	void DataAvailableHandler(void);
+	void ClosedHandler(void);
+
+	void HandleIO(void);
+
+private:
+	shared_ptr<SSL_CTX> m_SSLContext;
+	shared_ptr<SSL> m_SSL;
+	BIO *m_BIO;
+
+	FIFO::Ptr m_SendQueue;
+	FIFO::Ptr m_RecvQueue;
+
+	Stream::Ptr m_InnerStream;
+	TlsRole m_Role;
+
+	static int m_SSLIndex;
+	static bool m_SSLIndexInitialized;
+
+	static void NullCertificateDeleter(X509 *certificate);
+
+};
+
 }
+
+#endif /* TLSSTREAM_H */

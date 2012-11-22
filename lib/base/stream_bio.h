@@ -17,73 +17,15 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#ifndef STREAMBIO_H
+#define STREAMBIO_H
 
-using namespace icinga;
-
-/**
- * Constructor for the TcpServer class.
- */
-TcpServer::TcpServer(void)
-	: m_ClientFactory(boost::bind(&TcpClientFactory, RoleInbound))
-{ }
-
-/**
- * Sets the client factory.
- *
- * @param clientFactory The client factory function.
- */
-void TcpServer::SetClientFactory(const TcpServer::ClientFactory& clientFactory)
+namespace icinga
 {
-	m_ClientFactory = clientFactory;
+
+BIO *BIO_new_I2Stream(const Stream::Ptr& stream);
+void I2Stream_check_exception(BIO *bi);
+
 }
 
-/**
- * Retrieves the client factory.
- *
- * @returns The client factory function.
- */
-TcpServer::ClientFactory TcpServer::GetFactoryFunction(void) const
-{
-	return m_ClientFactory;
-}
-
-/**
- * Starts listening for incoming client connections.
- */
-void TcpServer::Listen(void)
-{
-	if (listen(GetFD(), SOMAXCONN) < 0)
-		throw_exception(SocketException("listen() failed", GetError()));
-}
-
-/**
- * Checks whether the TCP server wants to read (i.e. accept new clients).
- *
- * @returns true
- */
-bool TcpServer::WantsToRead(void) const
-{
-	return true;
-}
-
-/**
- * Accepts a new client and creates a new client object for it
- * using the client factory function.
- */
-void TcpServer::HandleReadable(void)
-{
-	int fd;
-	sockaddr_storage addr;
-	socklen_t addrlen = sizeof(addr);
-
-	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
-
-	if (fd < 0)
-		throw_exception(SocketException("accept() failed", GetError()));
-
-	TcpClient::Ptr client = m_ClientFactory(fd);
-
-	Event::Post(boost::bind(boost::ref(OnNewClient), GetSelf(), client));
-}
-
+#endif /* STREAMBIO_H */

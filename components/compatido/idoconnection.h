@@ -17,74 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TCPCLIENT_H
-#define TCPCLIENT_H
+#ifndef IDOCONNECTION_H
+#define IDOCONNECTION_H
 
 namespace icinga
 {
 
 /**
- * The role of a TCP client object.
+ * An IDO socket client.
  *
- * @ingroup base
+ * @ingroup compatido
  */
-enum TcpClientRole
-{
-	RoleInbound, /**< Inbound socket, i.e. one that was returned
-			  from accept(). */
-	RoleOutbound /**< Outbound socket, i.e. one that is connect()'d to a
-			  remote socket. */
-};
-
-/**
- * A TCP client connection.
- *
- * @ingroup base
- */
-class I2_BASE_API TcpClient : public TcpSocket, public IOQueue
+class IdoConnection : public Connection
 {
 public:
-	typedef shared_ptr<TcpClient> Ptr;
-	typedef weak_ptr<TcpClient> WeakPtr;
+	typedef shared_ptr<IdoConnection> Ptr;
+	typedef weak_ptr<IdoConnection> WeakPtr;
 
-	TcpClient(TcpClientRole role);
+	IdoConnection(const Stream::Ptr& stream);
 
-	TcpClientRole GetRole(void) const;
-
-	void Connect(const String& node, const String& service);
-
-	boost::signal<void (const TcpClient::Ptr&)> OnConnected;
-	boost::signal<void (const TcpClient::Ptr&)> OnDataAvailable;
-
-	virtual size_t GetAvailableBytes(void) const;
-	virtual void Peek(void *buffer, size_t count);
-	virtual void Read(void *buffer, size_t count);
-	virtual void Write(const void *buffer, size_t count);
+	void SendMessage(const String& message);
 
 protected:
-	virtual bool WantsToRead(void) const;
-	virtual bool WantsToWrite(void) const;
-
-	virtual void HandleReadable(void);
-	virtual void HandleWritable(void);
-
-	mutable boost::mutex m_QueueMutex;
-	FIFO::Ptr m_SendQueue;
-	FIFO::Ptr m_RecvQueue;
-
-private:
-	TcpClientRole m_Role;
+	virtual void ProcessData(void);
 };
-
-/**
- * Returns a new unconnected TcpClient object that has the specified
- * connection role.
- *
- * @param role The role of the new object.
- * @returns A new TcpClient object.
- */
-TcpClient::Ptr TcpClientFactory(TcpClientRole role);
 
 }
 
-#endif /* TCPCLIENT_H */
+#endif /* IDOCONNECTION_H */

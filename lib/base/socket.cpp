@@ -25,16 +25,19 @@ using namespace icinga;
  * Constructor for the Socket class.
  */
 Socket::Socket(void)
-	: m_FD(INVALID_SOCKET), m_Connected(false)
-{ }
+	: m_FD(INVALID_SOCKET), m_Connected(false), m_Listening(false),
+	 m_SendQueue(boost::make_shared<FIFO>()), m_RecvQueue(boost::make_shared<FIFO>())
+{
+	m_SendQueue->Start();
+	m_RecvQueue->Start();
+}
 
 /**
  * Destructor for the Socket class.
  */
 Socket::~Socket(void)
 {
-	boost::mutex::scoped_lock lock(m_SocketMutex);
-	CloseInternal(true);
+	Close();
 }
 
 /**
@@ -50,6 +53,8 @@ void Socket::Start(void)
 
 	m_WriteThread = thread(boost::bind(&Socket::WriteThreadProc, static_cast<Socket::Ptr>(GetSelf())));
 	m_WriteThread.detach();
+
+	Stream::Start();
 }
 
 /**
@@ -88,35 +93,24 @@ SOCKET Socket::GetFD(void) const
 	return m_FD;
 }
 
+void Socket::CloseUnlocked(void)
+{
+	if (m_FD == INVALID_SOCKET)
+		return;
+
+	closesocket(m_FD);
+	m_FD = INVALID_SOCKET;
+
+	Stream::Close();
+}
+
 /**
  * Closes the socket.
  */
 void Socket::Close(void)
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
-
-	CloseInternal(false);
-}
-
-/**
- * Closes the socket.
- *
- * @param from_dtor Whether this method was called from the destructor.
- */
-void Socket::CloseInternal(bool from_dtor)
-{
-	if (m_FD == INVALID_SOCKET)
-		return;
-
-	SetConnected(false);
-
-	closesocket(m_FD);
-	m_FD = INVALID_SOCKET;
-
-	/* nobody can possibly have a valid event subscription when the
-		destructor has been called */
-	if (!from_dtor)
-		Event::Post(boost::bind(boost::ref(OnClosed), GetSelf()));
+	CloseUnlocked();
 }
 
 /**
@@ -158,32 +152,6 @@ void Socket::HandleException(void)
 {
 	throw_exception(SocketException("select() returned fd in except fdset", GetError()));
 }
-
-/**
- * Checks whether data should be read for this socket object.
- *
- * @returns true if the socket should be registered for reading, false otherwise.
- */
-bool Socket::WantsToRead(void) const
-{
-	return false;
-}
-
-void Socket::HandleReadable(void)
-{ }
-
-/**
- * Checks whether data should be written for this socket object.
- *
- * @returns true if the socket should be registered for writing, false otherwise.
- */
-bool Socket::WantsToWrite(void) const
-{
-	return false;
-}
-
-void Socket::HandleWritable(void)
-{ }
 
 /**
  * Formats a sockaddr in a human-readable way.
@@ -305,9 +273,9 @@ void Socket::ReadThreadProc(void)
 			if (FD_ISSET(fd, &exceptfds))
 				HandleException();
 		} catch (...) {
-			m_Exception = boost::current_exception();
+			SetException(boost::current_exception());
 
-			CloseInternal(false);
+			CloseUnlocked();
 
 			break;
 		}
@@ -360,9 +328,9 @@ void Socket::WriteThreadProc(void)
 			if (FD_ISSET(fd, &writefds))
 				HandleWritable();
 		} catch (...) {
-			m_Exception = boost::current_exception();
+			SetException(boost::current_exception());
 
-			CloseInternal(false);
+			CloseUnlocked();
 
 			break;
 		}
@@ -390,11 +358,281 @@ bool Socket::IsConnected(void) const
 }
 
 /**
- * Checks whether an exception is available for this socket. Should be called
- * by user-supplied handlers for the OnClosed signal.
+ * Returns how much data is available for reading.
+ *
+ * @returns The number of bytes available.
  */
-void Socket::CheckException(void)
+size_t Socket::GetAvailableBytes(void) const
 {
-	if (m_Exception)
-		rethrow_exception(m_Exception);
+	if (m_Listening)
+		throw new logic_error("Socket does not support GetAvailableBytes().");
+
+	{
+		boost::mutex::scoped_lock lock(m_QueueMutex);
+
+		return m_RecvQueue->GetAvailableBytes();
+	}
+}
+
+/**
+ * Reads data from the socket.
+ *
+ * @param buffer The buffer where the data should be stored.
+ * @param size The size of the buffer.
+ * @returns The number of bytes read.
+ */
+size_t Socket::Read(void *buffer, size_t size)
+{
+	if (m_Listening)
+		throw new logic_error("Socket does not support Read().");
+
+	{
+		boost::mutex::scoped_lock lock(m_QueueMutex);
+
+		if (m_RecvQueue->GetAvailableBytes() == 0)
+			CheckException();
+
+		return m_RecvQueue->Read(buffer, size);
+	}
+}
+
+/**
+ * Peeks at data for the socket.
+ *
+ * @param buffer The buffer where the data should be stored.
+ * @param size The size of the buffer.
+ * @returns The number of bytes read.
+ */
+size_t Socket::Peek(void *buffer, size_t size)
+{
+	if (m_Listening)
+		throw new logic_error("Socket does not support Peek().");
+
+	{
+		boost::mutex::scoped_lock lock(m_QueueMutex);
+
+		if (m_RecvQueue->GetAvailableBytes() == 0)
+			CheckException();
+
+		return m_RecvQueue->Peek(buffer, size);
+	}
+}
+
+/**
+ * Writes data to the socket.
+ *
+ * @param buffer The buffer that should be sent.
+ * @param size The size of the buffer.
+ */
+void Socket::Write(const void *buffer, size_t size)
+{
+	if (m_Listening)
+		throw new logic_error("Socket does not support Write().");
+
+	{
+		boost::mutex::scoped_lock lock(m_QueueMutex);
+
+		m_SendQueue->Write(buffer, size);
+	}
+}
+
+/**
+ * Starts listening for incoming client connections.
+ */
+void Socket::Listen(void)
+{
+	if (listen(GetFD(), SOMAXCONN) < 0)
+		throw_exception(SocketException("listen() failed", GetError()));
+
+	m_Listening = true;
+}
+
+void Socket::HandleWritable(void)
+{
+	if (m_Listening)
+		HandleWritableServer();
+	else
+		HandleWritableClient();
+}
+
+void Socket::HandleReadable(void)
+{
+	if (m_Listening)
+		HandleReadableServer();
+	else
+		HandleReadableClient();
+}
+
+/**
+ * Processes data that is available for this socket.
+ */
+void Socket::HandleWritableClient(void)
+{
+	int rc;
+	char data[1024];
+	size_t count;
+
+	if (!IsConnected())
+		SetConnected(true);
+
+	for (;;) {
+		{
+			boost::mutex::scoped_lock lock(m_QueueMutex);
+
+			count = m_SendQueue->GetAvailableBytes();
+
+			if (count == 0)
+				break;
+
+			if (count > sizeof(data))
+				count = sizeof(data);
+
+			m_SendQueue->Peek(data, count);
+		}
+
+		rc = send(GetFD(), data, count, 0);
+
+		if (rc <= 0)
+			throw_exception(SocketException("send() failed", GetError()));
+
+		{
+			boost::mutex::scoped_lock lock(m_QueueMutex);
+			m_SendQueue->Read(NULL, rc);
+		}
+	}
+}
+
+/**
+ * Processes data that can be written for this socket.
+ */
+void Socket::HandleReadableClient(void)
+{
+	if (!IsConnected())
+		SetConnected(true);
+
+	bool new_data = false;
+
+	for (;;) {
+		char data[1024];
+		int rc = recv(GetFD(), data, sizeof(data), 0);
+
+#ifdef _WIN32
+		if (rc < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
+#else /* _WIN32 */
+		if (rc < 0 && errno == EAGAIN)
+#endif /* _WIN32 */
+			break;
+
+		if (rc <= 0)
+			throw_exception(SocketException("recv() failed", GetError()));
+
+		{
+			boost::mutex::scoped_lock lock(m_QueueMutex);
+
+			m_RecvQueue->Write(data, rc);
+		}
+
+		new_data = true;
+	}
+
+	if (new_data)
+		Event::Post(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
+}
+
+void Socket::HandleWritableServer(void)
+{
+	throw logic_error("This should never happen.");
+}
+
+/**
+ * Accepts a new client and creates a new client object for it
+ * using the client factory function.
+ */
+void Socket::HandleReadableServer(void)
+{
+	int fd;
+	sockaddr_storage addr;
+	socklen_t addrlen = sizeof(addr);
+
+	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
+
+	if (fd < 0)
+		throw_exception(SocketException("accept() failed", GetError()));
+
+	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
+	client->SetFD(fd);
+	Event::Post(boost::bind(boost::ref(OnNewClient), GetSelf(), client));
+}
+
+/**
+ * Checks whether data should be written for this socket object.
+ *
+ * @returns true if the socket should be registered for writing, false otherwise.
+ */
+bool Socket::WantsToWrite(void) const
+{
+	if (m_Listening)
+		return WantsToWriteServer();
+	else
+		return WantsToWriteClient();
+}
+
+/**
+ * Checks whether data should be read for this socket object.
+ *
+ * @returns true if the socket should be registered for reading, false otherwise.
+ */
+bool Socket::WantsToRead(void) const
+{
+	if (m_Listening)
+		return WantsToReadServer();
+	else
+		return WantsToReadClient();
+}
+
+/**
+ * Checks whether data should be read for this socket.
+ *
+ * @returns true
+ */
+bool Socket::WantsToReadClient(void) const
+{
+	return true;
+}
+
+/**
+ * Checks whether data should be written for this socket.
+ *
+ * @returns true if data should be written, false otherwise.
+ */
+bool Socket::WantsToWriteClient(void) const
+{
+	{
+		boost::mutex::scoped_lock lock(m_QueueMutex);
+
+		if (m_SendQueue->GetAvailableBytes() > 0)
+			return true;
+	}
+
+	return (!IsConnected());
+}
+
+/**
+ * Checks whether the TCP server wants to write.
+ *
+ * @returns false
+ */
+bool Socket::WantsToWriteServer(void) const
+{
+	return false;
+}
+
+/**
+ * Checks whether the TCP server wants to read (i.e. accept new clients).
+ *
+ * @returns true
+ */
+bool Socket::WantsToReadServer(void) const
+{
+	return true;
 }
