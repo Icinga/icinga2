@@ -2,13 +2,13 @@
 
 using namespace icinga;
 
-int I2Stream_new(BIO *bi);
-int I2Stream_free(BIO *bi);
-int I2Stream_read(BIO *bi, char *out, int outl);
-int I2Stream_write(BIO *bi, const char *in, int inl);
-long I2Stream_ctrl(BIO *bi, int cmd, long num, void *ptr);
-int I2Stream_gets(BIO *bi, char *buf, int size);
-int I2Stream_puts(BIO *bi, const char *str);
+static int I2Stream_new(BIO *bi);
+static int I2Stream_free(BIO *bi);
+static int I2Stream_read(BIO *bi, char *out, int outl);
+static int I2Stream_write(BIO *bi, const char *in, int inl);
+static long I2Stream_ctrl(BIO *bi, int cmd, long num, void *ptr);
+static int I2Stream_gets(BIO *bi, char *buf, int size);
+static int I2Stream_puts(BIO *bi, const char *str);
 
 #define BIO_TYPE_I2STREAM		(99|0x0400|0x0100)
 
@@ -28,7 +28,7 @@ static BIO_METHOD I2Stream_method =
 
 typedef struct I2Stream_bio_s
 {
-	Stream::Ptr Stream;
+	Stream::Ptr StreamObj;
 	boost::exception_ptr Exception;
 } I2Stream_bio_t;
 
@@ -46,7 +46,7 @@ BIO *icinga::BIO_new_I2Stream(const Stream::Ptr& stream)
 
 	I2Stream_bio_t *bp = (I2Stream_bio_t *)bi->ptr;
 
-	bp->Stream = stream;
+	bp->StreamObj = stream;
 
 	return bi;
 }
@@ -88,7 +88,7 @@ static int I2Stream_read(BIO *bi, char *out, int outl)
 	BIO_clear_retry_flags(bi);
 
 	try {
-		data_read = bp->Stream->Read(out, outl);
+		data_read = bp->StreamObj->Read(out, outl);
 	} catch (...) {
 		bp->Exception = boost::current_exception();
 		return -1;
@@ -105,7 +105,7 @@ static int I2Stream_read(BIO *bi, char *out, int outl)
 static int I2Stream_write(BIO *bi, const char *in, int inl)
 {
 	I2Stream_bio_t *bp = (I2Stream_bio_t *)bi->ptr;
-	bp->Stream->Write(in, inl);
+	bp->StreamObj->Write(in, inl);
 
 	return inl;
 }
