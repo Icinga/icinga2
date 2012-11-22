@@ -437,16 +437,16 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 	log << "Dumping Host Status: " << host->GetName();
 	Logger::Write(LogDebug, "compatido", log.str());
 
-    int state;
-    if (!host->IsReachable())
+	int state;
+	if (!host->IsReachable())
 		state = 2; /* unreachable */
-    else if (!host->IsUp())
+	else if (!host->IsUp())
 		state = 1; /* down */
-    else   
+	else   
 		state = 0; /* up */
 
-    stringstream message;
-    message << "\n"
+	stringstream message;
+	message << "\n"
 		<< 212 << ":" << "\n"					/* hoststatusdata */
 		<< 1 << "=" << "" << "\n"				/* type */
 		<< 2 << "=" << "" << "\n"				/* flags */
@@ -500,7 +500,7 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 		<< 262 << "=" << "i2_customvar" << ":" << "1" << ":" << "i2_customvarmod" << "\n"	/* customvariable */
 		<< 999 << "\n\n";					/* enddata */
 
-    m_IdoConnection->SendMessage(message.str());
+	m_IdoConnection->SendMessage(message.str());
 }
 
 /**
