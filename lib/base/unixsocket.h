@@ -30,6 +30,8 @@ public:
 	typedef shared_ptr<UnixSocket> Ptr;
 	typedef weak_ptr<UnixSocket> WeakPtr;
 
+	UnixSocket(void);
+
 	void Bind(const String& path);
 
 	void Connect(const String& path);

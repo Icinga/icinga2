@@ -83,7 +83,7 @@ void StdioStream::Write(const void *buffer, size_t size)
 void StdioStream::Close(void)
 {
 	if (m_OwnsStream)
-		delete *m_InnerStream;
+		delete m_InnerStream;
 
 	Stream::Close();
 }

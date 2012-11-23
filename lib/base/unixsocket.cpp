@@ -41,8 +41,8 @@ void UnixSocket::Bind(const String& path)
 	strncpy(sun.sun_path, path.CStr(), sizeof(sun.sun_path));
 	sun.sun_path[sizeof(sun.sun_path) - 1] = '\0';
 
-	if (bind(GetFD(), (sockaddr *)&sun, SUN_LEN(sun)) < 0)
-		throw_exception(PosixException("bind() failed", errno);
+	if (bind(GetFD(), (sockaddr *)&sun, SUN_LEN(&sun)) < 0)
+		throw_exception(PosixException("bind() failed", errno));
 }
 
 void UnixSocket::Connect(const String& path)
@@ -52,7 +52,7 @@ void UnixSocket::Connect(const String& path)
 	strncpy(sun.sun_path, path.CStr(), sizeof(sun.sun_path));
 	sun.sun_path[sizeof(sun.sun_path) - 1] = '\0';
 
-	if (connect(GetFD(), (sockaddr *)&sun, SUN_LEN(sun)) < 0 && errno != EINPROGRESS)
-		throw_exception(PosixException("connect() failed", errno);
+	if (connect(GetFD(), (sockaddr *)&sun, SUN_LEN(&sun)) < 0 && errno != EINPROGRESS)
+		throw_exception(PosixException("connect() failed", errno));
 }
 #endif /* _WIN32 */
