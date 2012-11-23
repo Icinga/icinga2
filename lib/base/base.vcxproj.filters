@@ -82,6 +82,12 @@
     <ClCompile Include="connection.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="unixsocket.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="stdiostream.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -172,6 +178,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="connection.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="unixsocket.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="stdiostream.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

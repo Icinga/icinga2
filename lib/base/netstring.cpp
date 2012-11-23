@@ -47,7 +47,12 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 	if (buffer == NULL && buffer_length > 0)
 		throw_exception(bad_alloc());
 
-	stream->Peek(buffer, buffer_length);
+	buffer_length = stream->Peek(buffer, buffer_length);
+
+	if (buffer_length < 3) {
+		free(buffer);
+		return false;
+	}
 
 	/* no leading zeros allowed */
 	if (buffer[0] == '0' && isdigit(buffer[1])) {

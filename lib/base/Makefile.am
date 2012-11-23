@@ -41,6 +41,8 @@ libbase_la_SOURCES =  \
 	scripttask.h \
 	socket.cpp \
 	socket.h \
+	stdiostream.cpp \
+	stdiostream.h \
 	stream.cpp \
 	stream.h \
 	stream_bio.cpp \
@@ -56,6 +58,8 @@ libbase_la_SOURCES =  \
 	tlsstream.cpp \
 	tlsstream.h \
 	unix.h \
+	unixsocket.cpp \
+	unixsocket.h \
 	utility.cpp \
 	utility.h \
 	value.cpp \

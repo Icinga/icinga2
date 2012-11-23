@@ -103,8 +103,10 @@ using std::make_pair;
 using std::stringstream;
 using std::istream;
 using std::ostream;
+using std::fstream;
 using std::ifstream;
 using std::ofstream;
+using std::iostream;
 
 using std::exception;
 using std::bad_alloc;
@@ -180,8 +182,10 @@ namespace tuples = boost::tuples;
 #include "connection.h"
 #include "netstring.h"
 #include "fifo.h"
+#include "stdiostream.h"
 #include "socket.h"
 #include "tcpsocket.h"
+#include "unixsocket.h"
 #include "tlsstream.h"
 #include "asynctask.h"
 #include "process.h"

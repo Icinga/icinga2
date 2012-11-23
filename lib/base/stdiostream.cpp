@@ -21,76 +21,69 @@
 
 using namespace icinga;
 
-/**
- * Constructor for the StreamLogger class.
- */
-StreamLogger::StreamLogger(void)
-	: ILogger(), m_Stream(NULL), m_OwnsStream(false)
-{ }
+StdioStream::StdioStream(iostream *innerStream, bool ownsStream)
+	: m_InnerStream(innerStream), m_OwnsStream(ownsStream),
+	  m_ReadAheadBuffer(boost::make_shared<FIFO>())
+{
+	m_ReadAheadBuffer->Start();
+}
 
-/**
- * Constructor for the StreamLogger class.
- *
- * @param stream The stream.
- */
-StreamLogger::StreamLogger(ostream *stream)
-	: ILogger(), m_Stream(stream), m_OwnsStream(false)
-{ }
+StdioStream::~StdioStream(void)
+{
+	m_ReadAheadBuffer->Close();
+}
 
-/**
- * Destructor for the StreamLogger class.
- */
-StreamLogger::~StreamLogger(void)
+void StdioStream::Start(void)
+{
+	SetConnected(true);
+
+	Stream::Start();
+}
+
+size_t StdioStream::GetAvailableBytes(void) const
+{
+	if (m_InnerStream->eof() && m_ReadAheadBuffer->GetAvailableBytes() == 0)
+		return 0;
+	else
+		return 1024; /* doesn't have to be accurate */
+}
+
+size_t StdioStream::Read(void *buffer, size_t size)
+{
+	size_t peek_len, read_len;
+
+	peek_len = m_ReadAheadBuffer->GetAvailableBytes();
+	peek_len = m_ReadAheadBuffer->Read(buffer, peek_len);
+
+	m_InnerStream->read(static_cast<char *>(buffer) + peek_len, size - peek_len);
+	read_len = m_InnerStream->gcount();
+
+	return peek_len + read_len;
+}
+
+size_t StdioStream::Peek(void *buffer, size_t size)
+{
+	size_t peek_len, read_len;
+
+	peek_len = m_ReadAheadBuffer->GetAvailableBytes();
+	peek_len = m_ReadAheadBuffer->Peek(buffer, peek_len);
+
+	m_InnerStream->read(static_cast<char *>(buffer) + peek_len, size - peek_len);
+	read_len = m_InnerStream->gcount();
+
+	m_ReadAheadBuffer->Write(static_cast<char *>(buffer) + peek_len, read_len);
+	return peek_len + read_len;
+}
+
+void StdioStream::Write(const void *buffer, size_t size)
+{
+	m_InnerStream->write(static_cast<const char *>(buffer), size);
+}
+
+void StdioStream::Close(void)
 {
 	if (m_OwnsStream)
-		delete m_Stream;
+		delete *m_InnerStream;
+
+	Stream::Close();
 }
-
-void StreamLogger::OpenFile(const String& filename)
-{
-	ofstream *stream = new ofstream();
-
-	try {
-		stream->open(filename.CStr(), fstream::out | fstream::trunc);
-
-		if (!stream->good())
-			throw_exception(runtime_error("Could not open logfile '" + filename + "'"));
-	} catch (...) {
-		delete stream;
-		throw;
-	}
-
-	m_Stream = stream;
-	m_OwnsStream = true;
-}
-
-/**
- * Processes a log entry and outputs it to a stream.
- *
- * @param stream The output stream.
- * @param entry The log entry.
- */
-void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
-{
-	char timestamp[100];
-
-	time_t ts = entry.Timestamp;
-	tm tmnow = *localtime(&ts);
-
-	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S %z", &tmnow);
-
-	stream << "[" << timestamp << "] "
-		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "
-		 << entry.Message << std::endl;
-}
-
-/**
- * Processes a log entry and outputs it to a stream.
- *
- * @param entry The log entry.
- */
-void StreamLogger::ProcessLogEntry(const LogEntry& entry)
-{
-	ProcessLogEntry(*m_Stream, entry);
-}
-

@@ -42,6 +42,7 @@
     <ClCompile Include="scriptfunction.cpp" />
     <ClCompile Include="scripttask.cpp" />
     <ClCompile Include="socket.cpp" />
+    <ClCompile Include="stdiostream.cpp" />
     <ClCompile Include="stream.cpp" />
     <ClCompile Include="streamlogger.cpp" />
     <ClCompile Include="stream_bio.cpp" />
@@ -49,6 +50,7 @@
     <ClCompile Include="tcpsocket.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="tlsstream.cpp" />
+    <ClCompile Include="unixsocket.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="value.cpp" />
   </ItemGroup>
@@ -61,6 +63,7 @@
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="fifo.h" />
+    <ClInclude Include="stdiostream.h" />
     <ClInclude Include="stream.h" />
     <ClInclude Include="netstring.h" />
     <ClInclude Include="qstring.h" />
@@ -80,6 +83,7 @@
     <ClInclude Include="timer.h" />
     <ClInclude Include="tlsstream.h" />
     <ClInclude Include="unix.h" />
+    <ClInclude Include="unixsocket.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="win32.h" />

@@ -361,14 +361,14 @@ void DynamicObject::DumpObjects(const String& filename)
 
 	String tempFilename = filename + ".tmp";
 
-	ofstream fp;
-	fp.open(tempFilename.CStr());
+	fstream fp;
+	fp.open(tempFilename.CStr(), std::ios_base::out);
 
 	if (!fp)
 		throw_exception(runtime_error("Could not open '" + filename + "' file"));
 
-	FIFO::Ptr fifo = boost::make_shared<FIFO>();
-	fifo->Start();
+	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
+	sfp->Start();
 
 	DynamicObject::TypeMap::iterator tt;
 	for (tt = GetAllObjects().begin(); tt != GetAllObjects().end(); tt++) {
@@ -402,22 +402,22 @@ void DynamicObject::DumpObjects(const String& filename)
 			String json = value.Serialize();
 
 			/* This is quite ugly, unfortunatelly NetString requires an IOQueue object */
-			NetString::WriteStringToStream(fifo, json);
+			NetString::WriteStringToStream(sfp, json);
 
 			size_t count;
-			while ((count = fifo->GetAvailableBytes()) > 0) {
+			while ((count = sfp->GetAvailableBytes()) > 0) {
 				char buffer[1024];
 			
 				if (count > sizeof(buffer))
 					count = sizeof(buffer);
 
-				fifo->Read(buffer, count);
+				sfp->Read(buffer, count);
 				fp.write(buffer, count);
 			}
 		}
 	}
 
-	fifo->Close();
+	sfp->Close();
 
 	fp.close();
 
@@ -433,23 +433,14 @@ void DynamicObject::RestoreObjects(const String& filename)
 {
 	Logger::Write(LogInformation, "base", "Restoring program state from file '" + filename + "'");
 
-	std::ifstream fp;
-	fp.open(filename.CStr());
+	std::fstream fp;
+	fp.open(filename.CStr(), std::ios_base::in);
 
-	/* TODO: Fix this horrible mess by implementing a class that provides
-	 * IOQueue functionality for files. */
-	FIFO::Ptr fifo = boost::make_shared<FIFO>();
-	fifo->Start();
-
-	while (fp) {
-		char buffer[1024];
-
-		fp.read(buffer, sizeof(buffer));
-		fifo->Write(buffer, fp.gcount());
-	}
+	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
+	sfp->Start();
 
 	String message;
-	while (NetString::ReadStringFromStream(fifo, &message)) {
+	while (NetString::ReadStringFromStream(sfp, &message)) {
 		Dictionary::Ptr persistentObject = Value::Deserialize(message);
 
 		String type = persistentObject->Get("type");
@@ -468,7 +459,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 		}
 	}
 
-	fifo->Close();
+	sfp->Close();
 }
 
 void DynamicObject::DeactivateObjects(void)
