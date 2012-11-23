@@ -23,11 +23,11 @@
 namespace icinga
 {
 
-typedef enum
+enum TlsRole
 {
 	TlsRoleClient,
 	TlsRoleServer
-} TlsRole;
+};
 
 /**
  * A TLS stream.
@@ -45,19 +45,13 @@ public:
 	shared_ptr<X509> GetClientCertificate(void) const;
 	shared_ptr<X509> GetPeerCertificate(void) const;
 
-	void Start(void);
+	virtual void Start(void);
 	virtual void Close(void);
 
 	virtual size_t GetAvailableBytes(void) const;
 	virtual size_t Peek(void *buffer, size_t count);
 	virtual size_t Read(void *buffer, size_t count);
 	virtual void Write(const void *buffer, size_t count);
-
-protected:
-	void DataAvailableHandler(void);
-	void ClosedHandler(void);
-
-	void HandleIO(void);
 
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
@@ -73,8 +67,12 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
-	static void NullCertificateDeleter(X509 *certificate);
+	void DataAvailableHandler(void);
+	void ClosedHandler(void);
 
+	void HandleIO(void);
+
+	static void NullCertificateDeleter(X509 *certificate);
 };
 
 }

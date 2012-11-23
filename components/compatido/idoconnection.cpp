@@ -24,7 +24,7 @@ using namespace icinga;
 /**
  * Constructor for the IdoSocket class.
  *
- * @param role The role of the underlying TCP client.
+ * @param stream The stream this connection should use.
  */
 IdoConnection::IdoConnection(const Stream::Ptr& stream)
 	: Connection(stream)
@@ -37,11 +37,6 @@ IdoConnection::IdoConnection(const Stream::Ptr& stream)
  */
 void IdoConnection::SendMessage(const String& message)
 {
-	/* 
-	 * write our message to the send queue
-	 * as we inherit all the functionality
-	 * of the tcpclient class
-	 */
 	GetStream()->Write(message.CStr(), message.GetLength());
 }
 
