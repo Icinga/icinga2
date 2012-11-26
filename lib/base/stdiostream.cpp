@@ -21,6 +21,13 @@
 
 using namespace icinga;
 
+/**
+ * Constructor for the StdioStream class.
+ *
+ * @param innerStream The inner stream.
+ * @param ownsStream Whether the new object owns the inner stream. If true
+ *					 the stream's destructor deletes the inner stream.
+ */
 StdioStream::StdioStream(iostream *innerStream, bool ownsStream)
 	: m_InnerStream(innerStream), m_OwnsStream(ownsStream),
 	  m_ReadAheadBuffer(boost::make_shared<FIFO>())
@@ -28,6 +35,9 @@ StdioStream::StdioStream(iostream *innerStream, bool ownsStream)
 	m_ReadAheadBuffer->Start();
 }
 
+/**
+ * Destructor for the StdioStream class.
+ */
 StdioStream::~StdioStream(void)
 {
 	m_ReadAheadBuffer->Close();
