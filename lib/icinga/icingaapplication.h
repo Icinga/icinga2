@@ -55,13 +55,6 @@ public:
 	static const String DefaultStatePath;
 
 private:
-	String m_CertificateFile;
-	String m_CAFile;
-	String m_Node;
-	String m_Service;
-	String m_PidPath;
-	String m_StatePath;
-	Dictionary::Ptr m_Macros;
 	shared_ptr<SSL_CTX> m_SSLContext;
 
 	double m_StartTime;

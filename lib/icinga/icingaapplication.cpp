@@ -90,32 +90,6 @@ int IcingaApplication::Main(const vector<String>& args)
 		}
 	}
 
-	m_CertificateFile = Get("cert_path");
-	m_CAFile = Get("ca_path");
-	m_Node = Get("node");
-	m_Service = Get("service");
-
-	m_PidPath = Get("pid_path");
-	if (m_PidPath.IsEmpty())
-		m_PidPath = DefaultPidPath;
-
-	m_StatePath = Get("state_path");
-	if (m_StatePath.IsEmpty())
-		m_StatePath = DefaultStatePath;
-
-	m_Macros = Get("macros");
-
-	String logpath = Get("log_path");
-	if (!logpath.IsEmpty()) {
-		ConfigItemBuilder::Ptr fileLogConfig = boost::make_shared<ConfigItemBuilder>();
-		fileLogConfig->SetType("Logger");
-		fileLogConfig->SetName("main");
-		fileLogConfig->SetLocal(true);
-		fileLogConfig->AddExpression("type", OperatorSet, "file");
-		fileLogConfig->AddExpression("path", OperatorSet, logpath);
-		fileLogConfig->Compile()->Commit();
-	}
-
 	UpdatePidFile(GetPidPath());
 
 	if (!GetCertificateFile().IsEmpty() && !GetCAFile().IsEmpty()) {
@@ -131,9 +105,8 @@ int IcingaApplication::Main(const vector<String>& args)
 	}
 
 	/* create the primary RPC listener */
-	String service = GetService();
-	if (!service.IsEmpty())
-		EndpointManager::GetInstance()->AddListener(service);
+	if (!GetService().IsEmpty())
+		EndpointManager::GetInstance()->AddListener(GetService());
 
 	if (daemonize) {
 		Logger::Write(LogInformation, "icinga", "Daemonizing.");
@@ -171,37 +144,47 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 
 String IcingaApplication::GetCertificateFile(void) const
 {
-	return m_CertificateFile;
+	return Get("cert_path");
 }
 
 String IcingaApplication::GetCAFile(void) const
 {
-	return m_CAFile;
+	return Get("ca_path");
 }
 
 String IcingaApplication::GetNode(void) const
 {
-	return m_Node;
+	return Get("node");
 }
 
 String IcingaApplication::GetService(void) const
 {
-	return m_Service;
+	return Get("service");
 }
 
 String IcingaApplication::GetPidPath(void) const
 {
-	return m_PidPath;
+	Value pidPath = Get("pid_path");
+
+	if (pidPath.IsEmpty())
+		pidPath = DefaultPidPath;
+
+	return pidPath;
 }
 
 String IcingaApplication::GetStatePath(void) const
 {
-	return m_StatePath;
+	Value statePath = Get("state_path");
+
+	if (statePath.IsEmpty())
+		statePath = DefaultStatePath;
+
+	return statePath;
 }
 
 Dictionary::Ptr IcingaApplication::GetMacros(void) const
 {
-	return m_Macros;
+	return Get("macros");
 }
 
 double IcingaApplication::GetStartTime(void) const
