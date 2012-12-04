@@ -103,6 +103,7 @@ private:
 
 	void NewClientHandler(const Socket::Ptr& client, TlsRole rol);
 	void ClientConnectedHandler(const Stream::Ptr& client, const String& peerAddress);
+	void ClientClosedHandler(const Stream::Ptr& client);
 };
 
 }

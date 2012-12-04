@@ -21,7 +21,12 @@
 
 using namespace icinga;
 
-REGISTER_CLASS(Host);
+static AttributeDescription hostAttributes[] = {
+	{ "alias", Attribute_Config },
+	{ "hostgroups", Attribute_Config }
+};
+
+REGISTER_TYPE(Host, hostAttributes);
 
 bool Host::m_InitializerDone = false;
 
@@ -34,9 +39,6 @@ Host::Host(const Dictionary::Ptr& properties)
 
 		m_InitializerDone = true;
 	}
-
-	RegisterAttribute("alias", Attribute_Config);
-	RegisterAttribute("hostgroups", Attribute_Config);
 }
 
 String Host::GetAlias(void) const

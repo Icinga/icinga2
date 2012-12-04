@@ -215,6 +215,9 @@ void TlsStream::Close(void)
 	if (m_SSL)
 		SSL_shutdown(m_SSL.get());
 
+	m_SendQueue->Close();
+	m_RecvQueue->Close();
+
 	Stream::Close();
 }
 

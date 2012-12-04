@@ -219,9 +219,10 @@ void DynamicObject::ClearAttributesByType(DynamicAttributeType type)
 	}
 }
 
-String DynamicObject::GetType(void) const
+DynamicType::Ptr DynamicObject::GetType(void) const
 {
-	return Get("__type");
+	String name = Get("__type");
+	return DynamicType::GetByName(name);
 }
 
 String DynamicObject::GetName(void) const
@@ -263,13 +264,11 @@ void DynamicObject::Register(void)
 {
 	assert(Application::IsMainThread());
 
-	DynamicObject::Ptr dobj = GetObject(GetType(), GetName());
+	DynamicObject::Ptr dobj = GetType()->GetObject(GetName());
 	DynamicObject::Ptr self = GetSelf();
 	assert(!dobj || dobj == self);
 
-	pair<DynamicObject::TypeMap::iterator, bool> ti;
-	ti = GetAllObjects().insert(make_pair(GetType(), DynamicObject::NameMap()));
-	ti.first->second.insert(make_pair(GetName(), GetSelf()));
+	GetType()->RegisterObject(self);
 
 	OnRegistered(GetSelf());
 
@@ -285,49 +284,12 @@ void DynamicObject::Unregister(void)
 {
 	assert(Application::IsMainThread());
 
-	DynamicObject::TypeMap::iterator tt;
-	tt = GetAllObjects().find(GetType());
-
-	if (tt == GetAllObjects().end())
+	if (GetType()->GetObject(GetName()))
 		return;
 
-	DynamicObject::NameMap::iterator nt = tt->second.find(GetName());
-
-	if (nt == tt->second.end())
-		return;
-
-	tt->second.erase(nt);
+	GetType()->UnregisterObject(GetSelf());
 
 	OnUnregistered(GetSelf());
-}
-
-DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& name)
-{
-	DynamicObject::TypeMap::iterator tt;
-	tt = GetAllObjects().find(type);
-
-	if (tt == GetAllObjects().end())
-		return DynamicObject::Ptr();
-
-	DynamicObject::NameMap::iterator nt = tt->second.find(name);              
-
-	if (nt == tt->second.end())
-		return DynamicObject::Ptr();
-
-	return nt->second;
-}
-
-pair<DynamicObject::TypeMap::iterator, DynamicObject::TypeMap::iterator> DynamicObject::GetTypes(void)
-{
-	return make_pair(GetAllObjects().begin(), GetAllObjects().end());
-}
-
-pair<DynamicObject::NameMap::iterator, DynamicObject::NameMap::iterator> DynamicObject::GetObjects(const String& type)
-{
-	pair<DynamicObject::TypeMap::iterator, bool> ti;
-	ti = GetAllObjects().insert(make_pair(type, DynamicObject::NameMap()));
-
-	return make_pair(ti.first->second.begin(), ti.first->second.end());
 }
 
 ScriptTask::Ptr DynamicObject::InvokeMethod(const String& method,
@@ -370,12 +332,10 @@ void DynamicObject::DumpObjects(const String& filename)
 	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
 	sfp->Start();
 
-	DynamicObject::TypeMap::iterator tt;
-	for (tt = GetAllObjects().begin(); tt != GetAllObjects().end(); tt++) {
-		DynamicObject::NameMap::iterator nt;
-		for (nt = tt->second.begin(); nt != tt->second.end(); nt++) {
-			DynamicObject::Ptr object = nt->second;
-
+	DynamicType::Ptr type;
+	BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
+		DynamicObject::Ptr object;
+		BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
 			if (object->IsLocal())
 				continue;
 
@@ -449,10 +409,15 @@ void DynamicObject::RestoreObjects(const String& filename)
 
 		bool hasConfig = update->Contains("configTx");
 
-		DynamicObject::Ptr object = GetObject(type, name);
+		DynamicType::Ptr dt = DynamicType::GetByName(type);
+
+		if (!dt)
+			throw_exception(invalid_argument("Invalid type: " + type));
+
+		DynamicObject::Ptr object = dt->GetObject(name);
 
 		if (hasConfig && !object) {
-			object = Create(type, update);
+			object = dt->CreateObject(update);
 			object->Register();
 		} else if (object) {
 			object->ApplyUpdate(update, Attribute_All);
@@ -464,62 +429,16 @@ void DynamicObject::RestoreObjects(const String& filename)
 
 void DynamicObject::DeactivateObjects(void)
 {
-	DynamicObject::TypeMap::iterator tt;
-	for (tt = GetAllObjects().begin(); tt != GetAllObjects().end(); tt++) {
-		DynamicObject::NameMap::iterator nt;
+	DynamicType::TypeMap::iterator tt;
+	for (tt = DynamicType::GetTypes().begin(); tt != DynamicType::GetTypes().end(); tt++) {
+		DynamicType::NameMap::iterator nt;
 
-		while ((nt = tt->second.begin()) != tt->second.end()) {
+		while ((nt = tt->second->GetObjects().begin()) != tt->second->GetObjects().end()) {
 			DynamicObject::Ptr object = nt->second;
 
 			object->Unregister();
 		}
 	}
-}
-
-DynamicObject::TypeMap& DynamicObject::GetAllObjects(void)
-{
-	static TypeMap objects;
-	return objects;
-}
-
-DynamicObject::ClassMap& DynamicObject::GetClasses(void)
-{
-	static ClassMap classes;
-	return classes;
-}
-
-bool DynamicObject::ClassExists(const String& name)
-{
-	return (GetClasses().find(name) != GetClasses().end());
-}
-
-void DynamicObject::RegisterClass(const String& type, DynamicObject::Factory factory)
-{
-	if (GetObjects(type).first != GetObjects(type).second)
-		throw_exception(runtime_error("Cannot register class for type '" +
-		    type + "': Objects of this type already exist."));
-
-	GetClasses()[type] = factory;
-}
-
-DynamicObject::Ptr DynamicObject::Create(const String& type, const Dictionary::Ptr& serializedUpdate)
-{
-	DynamicObject::ClassMap::iterator ct;
-	ct = GetClasses().find(type);
-
-	DynamicObject::Ptr obj;
-	if (ct != GetClasses().end()) {
-		obj = ct->second(serializedUpdate);
-	} else {
-		obj = boost::make_shared<DynamicObject>(serializedUpdate);
-
-		Logger::Write(LogCritical, "base", "Creating generic DynamicObject for type '" + type + "'");
-	}
-
-	/* apply the object's non-config attributes */
-	obj->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
-
-	return obj;
 }
 
 double DynamicObject::GetCurrentTx(void)
@@ -545,3 +464,8 @@ void DynamicObject::FinishTx(void)
 void DynamicObject::OnAttributeChanged(const String&, const Value&)
 { }
 
+DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& name)
+{
+	DynamicType::Ptr dtype = DynamicType::GetByName(type);
+	return dtype->GetObject(name);
+}

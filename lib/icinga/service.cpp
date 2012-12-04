@@ -21,7 +21,30 @@
 
 using namespace icinga;
 
-REGISTER_CLASS(Service);
+static AttributeDescription serviceAttributes[] = {
+	{ "alias", Attribute_Config },
+	{ "host_name", Attribute_Config },
+	{ "macros", Attribute_Config },
+	{ "check_command", Attribute_Config },
+	{ "max_check_attempts", Attribute_Config },
+	{ "check_interval", Attribute_Config },
+	{ "retry_interval", Attribute_Config },
+	{ "dependencies", Attribute_Config },
+	{ "servicegroups", Attribute_Config },
+	{ "checkers", Attribute_Config },
+
+	{ "scheduling_offset", Attribute_Transient },
+	{ "next_check", Attribute_Replicated },
+	{ "checker", Attribute_Replicated },
+	{ "check_attempt", Attribute_Replicated },
+	{ "state", Attribute_Replicated },
+	{ "state_type", Attribute_Replicated },
+	{ "last_result", Attribute_Replicated },
+	{ "last_state_change", Attribute_Replicated },
+	{ "last_hard_state_change", Attribute_Replicated }
+};
+
+REGISTER_TYPE(Service, serviceAttributes);
 
 const int Service::DefaultMaxCheckAttempts = 3;
 const int Service::DefaultCheckInterval = 5 * 60;
@@ -33,28 +56,7 @@ boost::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChang
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
-{
-	RegisterAttribute("alias", Attribute_Config);
-	RegisterAttribute("host_name", Attribute_Config);
-	RegisterAttribute("macros", Attribute_Config);
-	RegisterAttribute("check_command", Attribute_Config);
-	RegisterAttribute("max_check_attempts", Attribute_Config);
-	RegisterAttribute("check_interval", Attribute_Config);
-	RegisterAttribute("retry_interval", Attribute_Config);
-	RegisterAttribute("dependencies", Attribute_Config);
-	RegisterAttribute("servicegroups", Attribute_Config);
-	RegisterAttribute("checkers", Attribute_Config);
-
-	RegisterAttribute("scheduling_offset", Attribute_Transient);
-	RegisterAttribute("next_check", Attribute_Replicated);
-	RegisterAttribute("checker", Attribute_Replicated);
-	RegisterAttribute("check_attempt", Attribute_Replicated);
-	RegisterAttribute("state", Attribute_Replicated);
-	RegisterAttribute("state_type", Attribute_Replicated);
-	RegisterAttribute("last_result", Attribute_Replicated);
-	RegisterAttribute("last_state_change", Attribute_Replicated);
-	RegisterAttribute("last_hard_state_change", Attribute_Replicated);
-}
+{ }
 
 String Service::GetAlias(void) const
 {

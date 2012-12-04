@@ -192,6 +192,7 @@ namespace tuples = boost::tuples;
 #include "scriptfunction.h"
 #include "scripttask.h"
 #include "dynamicobject.h"
+#include "dynamictype.h"
 #include "logger.h"
 #include "application.h"
 #include "component.h"

@@ -21,7 +21,13 @@
 
 using namespace icinga;
 
-REGISTER_CLASS(HostGroup);
+static AttributeDescription hostGroupAttributes[] = {
+	{ "alias", Attribute_Config },
+	{ "notes_url", Attribute_Config },
+	{ "action_url", Attribute_Config }
+};
+
+REGISTER_TYPE(HostGroup, hostGroupAttributes);
 
 String HostGroup::GetAlias(void) const
 {

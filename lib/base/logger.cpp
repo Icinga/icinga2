@@ -21,7 +21,13 @@
 
 using namespace icinga;
 
-REGISTER_CLASS(Logger);
+static AttributeDescription loggerAttributes[] = {
+	{ "type", Attribute_Config },
+	{ "path", Attribute_Config },
+	{ "severity", Attribute_Config }
+};
+
+REGISTER_TYPE(Logger, loggerAttributes);
 
 /**
  * Constructor for the Logger class.
@@ -31,10 +37,6 @@ REGISTER_CLASS(Logger);
 Logger::Logger(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
-	RegisterAttribute("type", Attribute_Config);
-	RegisterAttribute("path", Attribute_Config);
-	RegisterAttribute("severity", Attribute_Config);
-
 	if (!IsLocal())
 		throw_exception(runtime_error("Logger objects must be local."));
 
@@ -111,8 +113,10 @@ void Logger::ForwardLogEntry(const LogEntry& entry)
 {
 	bool processed = false;
 
+	DynamicType::Ptr dt = DynamicType::GetByName("Logger");
+
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Logger")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
 		Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
 
 		if (entry.Severity >= logger->GetMinSeverity())

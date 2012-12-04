@@ -21,12 +21,24 @@
 #include <iostream>
 #include "i2-icinga.h"
 
+using namespace icinga;
+
+static AttributeDescription icingaApplicationAttributes[] = {
+	{ "cert_path", Attribute_Config },
+	{ "ca_path", Attribute_Config },
+	{ "node", Attribute_Config },
+	{ "service", Attribute_Config },
+	{ "pid_path", Attribute_Config },
+	{ "state_path", Attribute_Config },
+	{ "macros", Attribute_Config }
+};
+
+REGISTER_TYPE(IcingaApplication, icingaApplicationAttributes);
+
 #ifndef _WIN32
 #	include "icinga-version.h"
 #	define ICINGA_VERSION GIT_MESSAGE
 #endif /* _WIN32 */
-
-using namespace icinga;
 
 const String IcingaApplication::DefaultPidPath = "icinga2.pid";
 const String IcingaApplication::DefaultStatePath = "icinga2.state";

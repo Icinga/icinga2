@@ -41,7 +41,7 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::P
 	vector<Endpoint::Ptr> candidates;
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
 		String myIdentity = EndpointManager::GetInstance()->GetIdentity();
@@ -73,7 +73,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 	map<Endpoint::Ptr, int> histogram;
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
 		histogram[endpoint] = 0;
@@ -82,7 +82,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 	vector<Service::Ptr> services;
 
 	/* build "checker -> service count" histogram */
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
 		if (!service)

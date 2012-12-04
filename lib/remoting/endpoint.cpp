@@ -21,7 +21,15 @@
 
 using namespace icinga;
 
-REGISTER_CLASS(Endpoint);
+static AttributeDescription endpointAttributes[] = {
+	{ "node", Attribute_Replicated },
+	{ "service", Attribute_Replicated },
+	{ "local", Attribute_Config },
+	{ "subscriptions", Attribute_Replicated },
+	{ "client", Attribute_Transient }
+};
+
+REGISTER_TYPE(Endpoint, endpointAttributes);
 
 boost::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
 boost::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
@@ -35,13 +43,7 @@ boost::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubs
  */
 Endpoint::Endpoint(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("node", Attribute_Replicated);
-	RegisterAttribute("service", Attribute_Replicated);
-	RegisterAttribute("local", Attribute_Config);
-	RegisterAttribute("subscriptions", Attribute_Replicated);
-	RegisterAttribute("client", Attribute_Transient);
-}
+{ }
 
 /**
  * Checks whether an endpoint with the specified name exists.

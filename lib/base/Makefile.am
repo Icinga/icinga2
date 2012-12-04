@@ -16,6 +16,8 @@ libbase_la_SOURCES =  \
 	dictionary.h \
 	dynamicobject.cpp \
 	dynamicobject.h \
+	dynamictype.cpp \
+	dynamictype.h \
 	event.cpp \
 	event.h \
 	exception.cpp \

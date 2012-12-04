@@ -97,7 +97,7 @@ public:
 	SharedPtrHolder GetSelf(void);
 
 #ifdef _DEBUG
-	static int GetAliveObjects(void);
+	static int GetAliveObjectsCount(void);
 	static void PrintMemoryProfile(void);
 #endif /* _DEBUG */
 
@@ -109,14 +109,9 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	static boost::mutex m_Mutex; /**< Mutex which protects static members
-					  of the Object class. */
-	static vector<Object::Ptr> m_HeldObjects; /**< Currently held
-						       objects. */
-#ifdef _DEBUG
-	static set<Object *> m_AliveObjects; /**< Currently alive objects -
-						  for debugging purposes. */
-#endif /* _DEBUG */
+	static boost::mutex& GetMutex(void);
+	static set<Object *>& GetAliveObjects(void);
+	static vector<Object::Ptr>& GetHeldObjects(void);
 };
 
 /**

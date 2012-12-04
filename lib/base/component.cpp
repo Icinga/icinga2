@@ -24,7 +24,7 @@
 
 using namespace icinga;
 
-REGISTER_CLASS(Component);
+REGISTER_TYPE(Component, NULL);
 
 /**
  * Constructor for the component class.

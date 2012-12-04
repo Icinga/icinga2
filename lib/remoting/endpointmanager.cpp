@@ -151,6 +151,7 @@ void EndpointManager::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 
 	m_PendingClients.insert(tlsStream);
 	tlsStream->OnConnected.connect(boost::bind(&EndpointManager::ClientConnectedHandler, this, _1, peerAddress));
+	tlsStream->OnClosed.connect(boost::bind(&EndpointManager::ClientClosedHandler, this, _1));
 
 	client->Start();
 }
@@ -175,6 +176,12 @@ void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const St
 		endpoint = Endpoint::MakeEndpoint(identity, false);
 
 	endpoint->SetClient(jclient);
+}
+
+void EndpointManager::ClientClosedHandler(const Stream::Ptr& client)
+{
+	TlsStream::Ptr tlsStream = static_pointer_cast<TlsStream>(client);
+	m_PendingClients.erase(tlsStream);
 }
 
 /**
@@ -213,7 +220,7 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 
 	vector<Endpoint::Ptr> candidates;
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 		/* don't forward messages between non-local endpoints */
 		if (!sender->IsLocal() && !endpoint->IsLocal())
@@ -249,7 +256,7 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
 		throw_exception(invalid_argument("Message is missing the 'method' property."));
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
 		Endpoint::Ptr recipient = dynamic_pointer_cast<Endpoint>(object);
 
 		/* don't forward messages back to the sender */
@@ -297,7 +304,7 @@ void EndpointManager::SubscriptionTimerHandler(void)
 	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
 		if (!endpoint->IsLocalEndpoint())
@@ -316,7 +323,7 @@ void EndpointManager::SubscriptionTimerHandler(void)
 void EndpointManager::ReconnectTimerHandler(void)
 {
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Endpoint")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
 		if (endpoint->IsConnected() || endpoint == m_Endpoint)

@@ -37,6 +37,9 @@ Socket::Socket(void)
  */
 Socket::~Socket(void)
 {
+	m_SendQueue->Close();
+	m_RecvQueue->Close();
+
 	Close();
 }
 

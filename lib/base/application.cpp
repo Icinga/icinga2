@@ -122,7 +122,7 @@ void Application::RunEventLoop(void)
 #ifdef _DEBUG
 		if (nextProfile < Utility::GetTime()) {
 			stringstream msgbuf;
-			msgbuf << "Active objects: " << Object::GetAliveObjects();
+			msgbuf << "Active objects: " << Object::GetAliveObjectsCount();
 			Logger::Write(LogInformation, "base", msgbuf.str());
 
 			Object::PrintMemoryProfile();

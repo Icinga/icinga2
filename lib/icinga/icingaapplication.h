@@ -64,8 +64,6 @@ private:
 	void DumpProgramState(void);
 };
 
-REGISTER_CLASS(IcingaApplication);
-
 }
 
 #endif /* ICINGAAPPLICATION_H */

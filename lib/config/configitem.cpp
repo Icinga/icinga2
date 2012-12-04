@@ -148,11 +148,13 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	update->Set("attrs", attrs);
 	update->Set("configTx", DynamicObject::GetCurrentTx());
 
-	if (!dobj)
-		dobj = DynamicObject::GetObject(GetType(), GetName());
+	DynamicType::Ptr dtype = DynamicType::GetByName(GetType());
 
 	if (!dobj)
-		dobj = DynamicObject::Create(GetType(), update);
+		dobj = dtype->GetObject(GetName());
+
+	if (!dobj)
+		dobj = dtype->CreateObject(update);
 	else
 		dobj->ApplyUpdate(update, Attribute_Config);
 

@@ -85,11 +85,10 @@ void ReplicationComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoin
 	endpoint->RegisterSubscription("config::ObjectUpdate");
 	endpoint->RegisterSubscription("config::ObjectRemoved");
 
-	pair<DynamicObject::TypeMap::iterator, DynamicObject::TypeMap::iterator> trange = DynamicObject::GetTypes();
-	DynamicObject::TypeMap::iterator tt;
-	for (tt = trange.first; tt != trange.second; tt++) {
+	DynamicType::Ptr type;
+	BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
 		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), tt->second) {
+		BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
 			if (!ShouldReplicateObject(object))
 				continue;
 
@@ -186,12 +185,13 @@ void ReplicationComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender
 	if (!params.Get("update", &update))
 		return;
 
-	DynamicObject::Ptr object = DynamicObject::GetObject(type, name);
+	DynamicType::Ptr dtype = DynamicType::GetByName(type);
+	DynamicObject::Ptr object = dtype->GetObject(name);
 
 	// TODO: sanitize update, disallow __local
 
 	if (!object) {
-		object = DynamicObject::Create(type, update);
+		object = dtype->CreateObject(update);
 
 		if (source == EndpointManager::GetInstance()->GetIdentity()) {
 			/* the peer sent us an object that was originally created by us - 

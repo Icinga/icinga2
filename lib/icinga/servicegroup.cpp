@@ -21,7 +21,13 @@
 
 using namespace icinga;
 
-REGISTER_CLASS(ServiceGroup);
+static AttributeDescription serviceGroupAttributes[] = {
+	{ "alias", Attribute_Config },
+	{ "notes_url", Attribute_Config },
+	{ "action_url",  Attribute_Config }
+};
+
+REGISTER_TYPE(ServiceGroup, serviceGroupAttributes);
 
 String ServiceGroup::GetAlias(void) const
 {

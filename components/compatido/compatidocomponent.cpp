@@ -740,7 +740,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 	map<String, vector<String> > hostgroups;
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Host")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
 
 		Dictionary::Ptr dict;
@@ -785,7 +785,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 	/* services and servicegroups */
 	map<String, vector<Service::Ptr> > servicegroups;
 
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
 
 		Dictionary::Ptr dict;
@@ -854,7 +854,7 @@ void CompatIdoComponent::DumpStatusData(void)
 {
 	/* hosts */
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Host")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
 
 		DumpHostStatus(host);
@@ -862,7 +862,7 @@ void CompatIdoComponent::DumpStatusData(void)
 
 
 	/* services */
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicObject::GetObjects("Service")) {
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
 
 		DumpServiceStatus(service);

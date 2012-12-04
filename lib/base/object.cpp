@@ -21,20 +21,14 @@
 
 using namespace icinga;
 
-boost::mutex Object::m_Mutex;
-vector<Object::Ptr> Object::m_HeldObjects;
-#ifdef _DEBUG
-set<Object *> Object::m_AliveObjects;
-#endif /* _DEBUG */
-
 /**
  * Default constructor for the Object class.
  */
 Object::Object(void)
 {
 #ifdef _DEBUG
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_AliveObjects.insert(this);
+	boost::mutex::scoped_lock lock(GetMutex());
+	GetAliveObjects().insert(this);
 #endif /* _DEBUG */
 }
 
@@ -44,8 +38,8 @@ Object::Object(void)
 Object::~Object(void)
 {
 #ifdef _DEBUG
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_AliveObjects.erase(this);
+	boost::mutex::scoped_lock lock(GetMutex());
+	GetAliveObjects().erase(this);
 #endif /* _DEBUG */
 }
 
@@ -56,8 +50,8 @@ Object::~Object(void)
  */
 void Object::Hold(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_HeldObjects.push_back(GetSelf());
+	boost::mutex::scoped_lock lock(GetMutex());
+	GetHeldObjects().push_back(GetSelf());
 }
 
 /**
@@ -65,8 +59,8 @@ void Object::Hold(void)
  */
 void Object::ClearHeldObjects(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_HeldObjects.clear();
+	boost::mutex::scoped_lock lock(GetMutex());
+	GetHeldObjects().clear();
 }
 
 /**
@@ -85,10 +79,10 @@ Object::SharedPtrHolder Object::GetSelf(void)
  *
  * @returns The number of alive objects.
  */
-int Object::GetAliveObjects(void)
+int Object::GetAliveObjectsCount(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-	return m_AliveObjects.size();
+	boost::mutex::scoped_lock lock(GetMutex());
+	return GetAliveObjects().size();
 }
 
 /**
@@ -101,9 +95,9 @@ void Object::PrintMemoryProfile(void)
 	ofstream dictfp("dictionaries.dump.tmp");
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(GetMutex());
 		set<Object *>::iterator it;
-		BOOST_FOREACH(Object *obj, m_AliveObjects) {
+		BOOST_FOREACH(Object *obj, GetAliveObjects()) {
 			pair<map<String, int>::iterator, bool> tt;
 			tt = types.insert(make_pair(Utility::GetTypeName(typeid(*obj)), 1));
 			if (!tt.second)
@@ -130,4 +124,40 @@ void Object::PrintMemoryProfile(void)
 		std::cerr << type << ": " << count << std::endl;
 	}
 }
+
+/**
+ * Returns currently active objects.
+ *
+ * @returns currently active objects
+ */
+set<Object *>& Object::GetAliveObjects(void)
+{
+	static set<Object *> aliveObjects;
+	return aliveObjects;
+}
 #endif /* _DEBUG */
+
+/**
+ * Returns the mutex used for accessing static members.
+ *
+ * @returns a mutex
+ */
+boost::mutex& Object::GetMutex(void)
+{
+	static boost::mutex mutex;
+	return mutex;
+}
+
+/**
+ * Returns currently held objects. The caller must be
+ * holding the mutex returned by GetMutex().
+ *
+ * @returns currently held objects
+ */
+vector<Object::Ptr>& Object::GetHeldObjects(void)
+{
+	static vector<Object::Ptr> heldObjects;
+	return heldObjects;
+}
+
+
