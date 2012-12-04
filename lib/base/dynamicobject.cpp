@@ -362,17 +362,6 @@ void DynamicObject::DumpObjects(const String& filename)
 			String json = value.Serialize();
 
 			NetString::WriteStringToStream(sfp, json);
-
-			size_t count;
-			while ((count = sfp->GetAvailableBytes()) > 0) {
-				char buffer[1024];
-			
-				if (count > sizeof(buffer))
-					count = sizeof(buffer);
-
-				sfp->Read(buffer, count);
-				fp.write(buffer, count);
-			}
 		}
 	}
 
