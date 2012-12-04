@@ -361,7 +361,6 @@ void DynamicObject::DumpObjects(const String& filename)
 			Value value = persistentObject;
 			String json = value.Serialize();
 
-			/* This is quite ugly, unfortunatelly NetString requires an IOQueue object */
 			NetString::WriteStringToStream(sfp, json);
 
 			size_t count;
