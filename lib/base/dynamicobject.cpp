@@ -341,7 +341,7 @@ void DynamicObject::DumpObjects(const String& filename)
 
 			Dictionary::Ptr persistentObject = boost::make_shared<Dictionary>();
 
-			persistentObject->Set("type", object->GetType());
+			persistentObject->Set("type", object->GetType()->GetName());
 			persistentObject->Set("name", object->GetName());
 
 			int types = Attribute_Local | Attribute_Replicated;
