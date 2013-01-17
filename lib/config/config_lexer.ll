@@ -51,6 +51,7 @@ abstract			return T_ABSTRACT;
 local				return T_LOCAL;
 object				return T_OBJECT;
 #include			return T_INCLUDE;
+#library			return T_LIBRARY;
 inherits			return T_INHERITS;
 null				return T_NULL;
 [a-zA-Z_][a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }

@@ -31,7 +31,7 @@ icinga2_LDADD = \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
 	${top_builddir}/lib/remoting/libremoting.la \
-	${top_builddir}/lib/icinga/libicinga.la \
+	-dlopen ${top_builddir}/lib/icinga/libicinga.la \
 	-dlopen ${top_builddir}/components/checker/checker.la \
 	-dlopen ${top_builddir}/components/replication/replication.la \
 	-dlopen ${top_builddir}/components/compat/compat.la \

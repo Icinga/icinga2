@@ -55,6 +55,7 @@ using namespace icinga;
 %token T_LOCAL
 %token T_OBJECT
 %token T_INCLUDE
+%token T_LIBRARY
 %token T_INHERITS
 %type <variant> simplevalue
 %type <variant> value
@@ -95,12 +96,17 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: object | include
+statement: object | include | library
 	;
 
 include: T_INCLUDE T_STRING
 	{
 		context->HandleInclude($2);
+	}
+
+library: T_LIBRARY T_STRING
+	{
+		context->HandleLibrary($2);
 	}
 
 object: 

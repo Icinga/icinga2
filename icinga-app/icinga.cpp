@@ -140,6 +140,8 @@ int main(int argc, char **argv)
 
 	Component::AddSearchDir(Application::GetPkgLibDir());
 
+	Utility::LoadIcingaLibrary("icinga", false);
+
 	try {
 		DynamicObject::BeginTx();
 

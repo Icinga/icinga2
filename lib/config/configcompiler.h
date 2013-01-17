@@ -54,6 +54,7 @@ public:
 
 	/* internally used methods */
 	void HandleInclude(const String& include);
+	void HandleLibrary(const String& library);
 	void AddObject(const ConfigItem::Ptr& object);
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;

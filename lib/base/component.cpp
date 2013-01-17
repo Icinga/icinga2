@@ -18,9 +18,6 @@
  ******************************************************************************/
 
 #include "i2-base.h"
-#ifndef _WIN32
-#	include <ltdl.h>
-#endif /* _WIN32 */
 
 using namespace icinga;
 
@@ -37,27 +34,16 @@ Component::Component(const Dictionary::Ptr& properties)
 	if (!IsLocal())
 		throw_exception(runtime_error("Component objects must be local."));
 
-	String path;
 #ifdef _WIN32
-	path = GetName() + ".dll";
+	HMODULE
 #else /* _WIN32 */
-	path = GetName() + ".la";
+	lt_dlhandle
 #endif /* _WIN32 */
+	hModule;
 
-	Logger::Write(LogInformation, "base", "Loading component '" + GetName() + "' (using library '" + path + "')");
+	Logger::Write(LogInformation, "base", "Loading component '" + GetName() + "'");
 
-#ifdef _WIN32
-	HMODULE hModule = LoadLibrary(path.CStr());
-
-	if (hModule == NULL)
-		throw_exception(Win32Exception("LoadLibrary('" + path + "') failed", GetLastError()));
-#else /* _WIN32 */
-	lt_dlhandle hModule = lt_dlopen(path.CStr());
-
-	if (hModule == NULL) {
-		throw_exception(runtime_error("Could not load module '" + path + "': " +  lt_dlerror()));
-	}
-#endif /* _WIN32 */
+	hModule = Utility::LoadIcingaLibrary(GetName(), true);
 
 	CreateComponentFunction pCreateComponent;
 

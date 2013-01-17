@@ -334,3 +334,45 @@ void Utility::Sleep(double timeout)
 #endif /* _WIN32 */
 }
 
+/**
+ * Loads the specified library and invokes an Icinga-specific init
+ * function if available.
+ *
+ * @param library The name of the library.
+ * @param module Whether the library is a module (non-module libraries have a
+ *						  "lib" prefix on *NIX).
+ */
+#ifdef _WIN32
+HMODULE
+#else /* _WIN32 */
+lt_dlhandle
+#endif /* _WIN32 */
+Utility::LoadIcingaLibrary(const String& library, bool module)
+{
+	String path;
+#ifdef _WIN32
+	path = library + ".dll";
+#else /* _WIN32 */
+	path = (module ? "" : "lib") + library + ".la";
+#endif /* _WIN32 */
+
+	Logger::Write(LogInformation, "base", "Loading library '" + path + "'");
+
+#ifdef _WIN32
+	HMODULE hModule = LoadLibrary(path.CStr());
+
+	if (hModule == NULL)
+		throw_exception(Win32Exception("LoadLibrary('" + path + "') failed", GetLastError()));
+#else /* _WIN32 */
+	lt_dlhandle hModule = lt_dlopen(path.CStr());
+
+	if (hModule == NULL) {
+		throw_exception(runtime_error("Could not load library '" + path + "': " +  lt_dlerror()));
+	}
+#endif /* _WIN32 */
+
+	// TODO: call InitializeLibrary
+
+	return hModule;
+}
+

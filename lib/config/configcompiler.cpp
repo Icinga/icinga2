@@ -103,6 +103,16 @@ void ConfigCompiler::HandleInclude(const String& include)
 }
 
 /**
+ * Handles the library directive.
+ *
+ * @param library The name of the library.
+ */
+void ConfigCompiler::HandleLibrary(const String& library)
+{
+	Utility::LoadIcingaLibrary(library, false);
+}
+
+/**
  * Compiles a stream.
  *
  * @param path A name identifying the stream.

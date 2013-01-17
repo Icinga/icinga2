@@ -37,6 +37,7 @@
 #include <syslog.h>
 #include <sys/file.h>
 #include <sys/wait.h>
+#include <ltdl.h>
 
 typedef int SOCKET;
 #define INVALID_SOCKET (-1)

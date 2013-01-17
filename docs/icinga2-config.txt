@@ -312,6 +312,20 @@ Example:
 
 NOTE: Wildcard includes are not currently implemented.
 
+Library directive
+~~~~~~~~~~~~~~~~~
+
+The "#library" directive can be used to manually load additional libraries.
+Upon loading these libraries may provide additional classes or methods.
+
+Example:
+
+-------------------------------------------------------------------------------
+#library "snmphelper"
+-------------------------------------------------------------------------------
+
+NOTE: The "icinga" library is automatically loaded by Icinga.
+
 Configuration Objects
 ---------------------
 

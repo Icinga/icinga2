@@ -85,7 +85,8 @@ using namespace icinga;
      T_LOCAL = 268,
      T_OBJECT = 269,
      T_INCLUDE = 270,
-     T_INHERITS = 271
+     T_LIBRARY = 271,
+     T_INHERITS = 272
    };
 #endif
 /* Tokens.  */
@@ -102,7 +103,8 @@ using namespace icinga;
 #define T_LOCAL 268
 #define T_OBJECT 269
 #define T_INCLUDE 270
-#define T_INHERITS 271
+#define T_LIBRARY 271
+#define T_INHERITS 272
 
 
 
@@ -122,7 +124,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 126 "config_parser.h"
+#line 128 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

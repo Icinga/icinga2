@@ -53,6 +53,14 @@ public:
 
 	static void Sleep(double timeout);
 
+	static
+#ifdef _WIN32
+	HMODULE
+#else /* _WIN32 */
+	lt_dlhandle
+#endif /* _WIN32 */
+	LoadIcingaLibrary(const String& library, bool module);
+
 private:
 	static bool m_SSLInitialized;
 
