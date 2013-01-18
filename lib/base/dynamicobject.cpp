@@ -284,7 +284,7 @@ void DynamicObject::Unregister(void)
 {
 	assert(Application::IsMainThread());
 
-	if (GetType()->GetObject(GetName()))
+	if (!GetType()->GetObject(GetName()))
 		return;
 
 	GetType()->UnregisterObject(GetSelf());
