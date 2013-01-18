@@ -84,7 +84,7 @@ Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool replicated, bool l
 {
 	ConfigItemBuilder::Ptr endpointConfig = boost::make_shared<ConfigItemBuilder>();
 	endpointConfig->SetType("Endpoint");
-	endpointConfig->SetName(local ? "local:" + name : name);
+	endpointConfig->SetName((!replicated && local) ? "local:" + name : name);
 	endpointConfig->SetLocal(!replicated);
 	endpointConfig->AddExpression("local", OperatorSet, local);
 
