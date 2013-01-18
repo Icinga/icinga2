@@ -69,7 +69,7 @@ public:
 	String GetNode(void) const;
 	String GetService(void) const;
 
-	static Endpoint::Ptr MakeEndpoint(const String& name, bool local);
+	static Endpoint::Ptr MakeEndpoint(const String& name, bool replicated, bool local = true);
 
 	static boost::signal<void (const Endpoint::Ptr&)> OnConnected;
 	static boost::signal<void (const Endpoint::Ptr&)> OnDisconnected;

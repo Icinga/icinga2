@@ -81,7 +81,7 @@ void EndpointManager::SetIdentity(const String& identity)
 	if (object)
 		m_Endpoint = dynamic_pointer_cast<Endpoint>(object);
 	else
-		m_Endpoint = Endpoint::MakeEndpoint(identity, false);
+		m_Endpoint = Endpoint::MakeEndpoint(identity, true, true);
 }
 
 /**
@@ -173,7 +173,7 @@ void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const St
 	if (Endpoint::Exists(identity))
 		endpoint = Endpoint::GetByName(identity);
 	else
-		endpoint = Endpoint::MakeEndpoint(identity, false);
+		endpoint = Endpoint::MakeEndpoint(identity, true);
 
 	endpoint->SetClient(jclient);
 }
@@ -310,9 +310,11 @@ void EndpointManager::SubscriptionTimerHandler(void)
 		if (!endpoint->IsLocalEndpoint())
 			continue;
 
-		String topic;
-		BOOST_FOREACH(tie(tuples::ignore, topic), endpoint->GetSubscriptions()) {
-			subscriptions->Set(topic, topic);
+		if (endpoint->GetSubscriptions()) {
+			String topic;
+			BOOST_FOREACH(tie(tuples::ignore, topic), endpoint->GetSubscriptions()) {
+				subscriptions->Set(topic, topic);
+			}
 		}
 	}
 

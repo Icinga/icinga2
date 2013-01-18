@@ -26,7 +26,7 @@ using namespace icinga;
  */
 void DemoComponent::Start(void)
 {
-	m_Endpoint = Endpoint::MakeEndpoint("demo", true);
+	m_Endpoint = Endpoint::MakeEndpoint("demo", false);
 	m_Endpoint->RegisterTopicHandler("demo::HelloWorld",
 	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2,
 	    _3));

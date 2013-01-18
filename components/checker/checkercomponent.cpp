@@ -23,7 +23,7 @@ using namespace icinga;
 
 void CheckerComponent::Start(void)
 {
-	m_Endpoint = Endpoint::MakeEndpoint("checker", true);
+	m_Endpoint = Endpoint::MakeEndpoint("checker", false);
 
 	/* dummy registration so the delegation module knows this is a checker
 	   TODO: figure out a better way for this */

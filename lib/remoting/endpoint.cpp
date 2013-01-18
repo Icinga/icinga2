@@ -76,15 +76,16 @@ Endpoint::Ptr Endpoint::GetByName(const String& name)
  * Helper function for creating new endpoint objects.
  *
  * @param name The name of the new endpoint.
+ * @param replicated Whether replication is enabled for the endpoint object.
  * @param local Whether the new endpoint should be local.
  * @returns The new endpoint.
  */
-Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool local)
+Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool replicated, bool local)
 {
 	ConfigItemBuilder::Ptr endpointConfig = boost::make_shared<ConfigItemBuilder>();
 	endpointConfig->SetType("Endpoint");
 	endpointConfig->SetName(local ? "local:" + name : name);
-	endpointConfig->SetLocal(local ? 1 : 0);
+	endpointConfig->SetLocal(!replicated);
 	endpointConfig->AddExpression("local", OperatorSet, local);
 
 	DynamicObject::Ptr object = endpointConfig->Compile()->Commit();

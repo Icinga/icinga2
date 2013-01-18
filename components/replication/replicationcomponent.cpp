@@ -26,7 +26,7 @@ using namespace icinga;
  */
 void ReplicationComponent::Start(void)
 {
-	m_Endpoint = Endpoint::MakeEndpoint("replication", true);
+	m_Endpoint = Endpoint::MakeEndpoint("replication", false);
 
 	DynamicObject::OnRegistered.connect(boost::bind(&ReplicationComponent::LocalObjectRegisteredHandler, this, _1));
 	DynamicObject::OnUnregistered.connect(boost::bind(&ReplicationComponent::LocalObjectUnregisteredHandler, this, _1));
