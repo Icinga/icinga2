@@ -135,7 +135,38 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 
 void CompatComponent::ProcessCommand(const String& command)
 {
-	Logger::Write(LogInformation, "compat", "Received command: " + command);
+	if (command.IsEmpty())
+		return;
+
+	if (command[0] != '[') {
+		Logger::Write(LogWarning, "compat", "Missing timestamp in command: " + command);
+
+		return;
+	}
+
+	size_t pos = command.FindFirstOf("]");
+
+	if (pos == String::NPos) {
+		Logger::Write(LogWarning, "compat", "Missing timestamp in command: " + command);
+
+		return;
+	}
+
+	String timestamp = command.SubStr(1, pos - 1);
+	String args = command.SubStr(pos + 2, String::NPos);
+
+	double ts = strtod(timestamp.CStr(), NULL);
+	vector<String> argv = args.Split(is_any_of(";"));
+
+	if (argv.size() == 0) {
+		Logger::Write(LogWarning, "compat", "Missing arguments in command: " + command);
+
+		return;
+	}
+
+	stringstream msgbuf;
+	msgbuf << "Received command (@" << ts << "), command: " << argv[0] << ", " << argv.size() - 1 << " arguments; raw: " << command;
+	Logger::Write(LogInformation, "compat", msgbuf.str());
 }
 
 void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
