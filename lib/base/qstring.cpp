@@ -114,9 +114,9 @@ size_t String::FindFirstOf(const char *s, size_t pos) const
 	return m_Data.find_first_of(s, pos);
 }
 
-String String::SubStr(size_t first, size_t second) const
+String String::SubStr(size_t first, size_t len) const
 {
-	return m_Data.substr(first, second);
+	return m_Data.substr(first, len);
 }
 
 void String::Replace(size_t first, size_t second, const String& str)

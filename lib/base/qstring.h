@@ -66,7 +66,7 @@ public:
 	size_t GetLength(void) const;
 
 	size_t FindFirstOf(const char *s, size_t pos = 0) const;
-	String SubStr(size_t first, size_t second) const;
+	String SubStr(size_t first, size_t len) const;
 	void Replace(size_t first, size_t second, const String& str);
 
 	template<typename Predicate>
