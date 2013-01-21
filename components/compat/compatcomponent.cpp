@@ -155,7 +155,14 @@ void CompatComponent::ProcessCommand(const String& command)
 	String timestamp = command.SubStr(1, pos - 1);
 	String args = command.SubStr(pos + 2, String::NPos);
 
-	double ts = strtod(timestamp.CStr(), NULL);
+	double ts = timestamp.ToDouble();
+
+	if (ts == 0) {
+		Logger::Write(LogWarning, "compat", "Invalid timestamp in command: " + command);
+
+		return;
+	}
+
 	vector<String> argv = args.Split(is_any_of(";"));
 
 	if (argv.size() == 0) {
