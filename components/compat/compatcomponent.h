@@ -34,9 +34,14 @@ public:
 
 private:
 	Timer::Ptr m_StatusTimer;
+	thread m_CommandThread;
 
 	String GetStatusPath(void) const;
 	String GetObjectsPath(void) const;
+	String GetCommandPath(void) const;
+
+	void CommandPipeThread(const String& commandPath);
+	void ProcessCommand(const String& command);
 
 	void DumpHostStatus(ofstream& fp, const Host::Ptr& host);
 	void DumpHostObject(ofstream& fp, const Host::Ptr& host);
@@ -64,6 +69,7 @@ private:
 
 	static const String DefaultStatusPath;
 	static const String DefaultObjectsPath;
+	static const String DefaultCommandPath;
 };
 
 }

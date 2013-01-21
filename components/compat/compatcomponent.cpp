@@ -29,31 +29,48 @@ using namespace icinga;
 
 const String CompatComponent::DefaultStatusPath = Application::GetLocalStateDir() + "/status.dat";
 const String CompatComponent::DefaultObjectsPath = Application::GetLocalStateDir() + "/objects.cache";
+const String CompatComponent::DefaultCommandPath = Application::GetLocalStateDir() + "/icinga.cmd";
 
 /**
- * Reads status path from config
+ * Retrieves the status.dat path.
+ *
  * @returns statuspath from config, or static default
  */
 String CompatComponent::GetStatusPath(void) const
 {
-	Value statuspath = GetConfig()->Get("status_path");
-	if(statuspath.IsEmpty())
+	Value statusPath = GetConfig()->Get("status_path");
+	if (statusPath.IsEmpty())
 		return DefaultStatusPath;
 	else
-		return statuspath;
+		return statusPath;
 }
 
 /**
- * Reads objects path from config
+ * Retrieves the objects.cache path.
+ *
  * @returns objectspath from config, or static default
  */
 String CompatComponent::GetObjectsPath(void) const
 {
-        Value objectspath = GetConfig()->Get("objects_path");
-        if(objectspath.IsEmpty())
-                return DefaultObjectsPath;
-        else
-                return objectspath;
+	Value objectsPath = GetConfig()->Get("objects_path");
+	if (objectsPath.IsEmpty())
+		return DefaultObjectsPath;
+	else
+		return objectsPath;
+}
+
+/**
+ * Retrieves the icinga.cmd path.
+ *
+ * @returns icinga.cmd path
+ */
+String CompatComponent::GetCommandPath(void) const
+{
+	Value commandPath = GetConfig()->Get("command_path");
+	if (commandPath.IsEmpty())
+		return DefaultCommandPath;
+	else
+		return commandPath;
 }
 
 /**
@@ -66,6 +83,9 @@ void CompatComponent::Start(void)
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
+
+	m_CommandThread = thread(boost::bind(&CompatComponent::CommandPipeThread, this, GetCommandPath()));
+	m_CommandThread.detach();
 }
 
 /**
@@ -73,6 +93,49 @@ void CompatComponent::Start(void)
  */
 void CompatComponent::Stop(void)
 {
+}
+
+void CompatComponent::CommandPipeThread(const String& commandPath)
+{
+	(void) unlink(commandPath.CStr());
+
+	int rc = mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+
+	if (rc < 0)
+		throw_exception(PosixException("mkfifo() failed", errno));
+
+	for (;;) {
+		int fd = open(commandPath.CStr(), O_RDONLY);
+
+		if (fd < 0)
+			throw_exception(PosixException("open() failed", errno));
+
+		FILE *fp = fdopen(fd, "r");
+
+		if (fp == NULL) {
+			close(fd);
+			throw_exception(PosixException("fdopen() failed", errno));
+		}
+
+		char line[2048];
+
+		while (fgets(line, sizeof(line), fp) != NULL) {
+			// remove trailing new-line
+			while (strlen(line) > 0 &&
+			    (line[strlen(line) - 1] == '\r' || line[strlen(line) - 1] == '\n'))
+				line[strlen(line) - 1] = '\0';
+
+			String command = line;
+			Event::Post(boost::bind(&CompatComponent::ProcessCommand, this, command));
+		}
+
+		fclose(fp);
+	}
+}
+
+void CompatComponent::ProcessCommand(const String& command)
+{
+	Logger::Write(LogInformation, "compat", "Received command: " + command);
 }
 
 void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)

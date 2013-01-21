@@ -51,6 +51,7 @@ void Socket::Start(void)
 	assert(!m_ReadThread.joinable() && !m_WriteThread.joinable());
 	assert(GetFD() != INVALID_SOCKET);
 
+	// TODO: figure out why we're not using "this" here
 	m_ReadThread = thread(boost::bind(&Socket::ReadThreadProc, static_cast<Socket::Ptr>(GetSelf())));
 	m_ReadThread.detach();
 
