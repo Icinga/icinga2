@@ -159,6 +159,11 @@ String::ConstIterator String::End(void) const
 	return m_Data.end();
 }
 
+double String::ToDouble(void) const
+{
+	return strtod(CStr(), NULL);
+}
+
 ostream& icinga::operator<<(ostream& stream, const String& str)
 {
 	stream << static_cast<std::string>(str);
