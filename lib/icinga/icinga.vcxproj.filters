@@ -34,6 +34,9 @@
     <ClCompile Include="pluginchecktask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="timeperiod.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="i2-icinga.h">
@@ -67,6 +70,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="pluginchecktask.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="timeperiod.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

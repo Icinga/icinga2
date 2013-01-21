@@ -17,46 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2ICINGA_H
-#define I2ICINGA_H
+#ifndef TIMEPERIOD_H
+#define TIMEPERIOD_H
 
-/**
- * @defgroup icinga Icinga library
- *
- * The Icinga library implements all Icinga-specific functionality that is
- * common to all components (e.g. hosts, services, etc.).
- */
+namespace icinga
+{
+	
+class TimePeriod : public DynamicObject {
+public:
+	typedef shared_ptr<TimePeriod> Ptr;
+	typedef weak_ptr<TimePeriod> WeakPtr;
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-remoting.h>
+	TimePeriod(const Dictionary::Ptr& properties)
+		: DynamicObject(properties)
+	{ }
 
-using boost::iterator_range;
-using boost::algorithm::is_any_of;
+	static bool Exists(const String& name);
+	static TimePeriod::Ptr GetByName(const String& name);
 
-#ifdef I2_ICINGA_BUILD
-#	define I2_ICINGA_API I2_EXPORT
-#else /* I2_ICINGA_BUILD */
-#	define I2_ICINGA_API I2_IMPORT
-#endif /* I2_ICINGA_BUILD */
+	String GetAlias(void) const;
 
-#include "endpoint.h"
-#include "endpointmanager.h"
-#include "icingaapplication.h"
+	bool IsActive(void);
+	double GetNextChange(void);
+};
 
-#include "timeperiod.h"
+}
 
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
-
-#include "macroprocessor.h"
-#include "pluginchecktask.h"
-#include "nullchecktask.h"
-
-#include "servicestatechangemessage.h"
-
-#include "cib.h"
-
-#endif /* I2ICINGA_H */
+#endif /* TIMEPERIOD_H */

@@ -35,6 +35,7 @@
     <ClCompile Include="service.cpp" />
     <ClCompile Include="servicegroup.cpp" />
     <ClCompile Include="servicestatechangemessage.cpp" />
+    <ClCompile Include="timeperiod.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cib.h" />
@@ -48,6 +49,7 @@
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />
     <ClInclude Include="servicestatechangemessage.h" />
+    <ClInclude Include="timeperiod.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}</ProjectGuid>

@@ -25,7 +25,9 @@ libicinga_la_SOURCES =  \
 	servicegroup.h \
 	service.h \
 	servicestatechangemessage.cpp \
-	servicestatechangemessage.h
+	servicestatechangemessage.h \
+	timeperiod.cpp \
+	timeperiod.h
 
 libicinga_la_CPPFLAGS = \
 	-DI2_ICINGA_BUILD \

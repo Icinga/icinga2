@@ -75,6 +75,14 @@ public:
 	}
 
 	/**
+	 * Checks whether the task is finished.
+	 */
+	bool IsFinished(void) const
+	{
+		return m_Finished;
+	}
+
+	/**
 	 * Retrieves the result of the task. Throws an exception if one is stored in
 	 * the AsyncTask object.
 	 *
