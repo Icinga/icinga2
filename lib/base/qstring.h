@@ -70,7 +70,7 @@ public:
 	void Replace(size_t first, size_t second, const String& str);
 
 	template<typename Predicate>
-	vector<String> Split(const Predicate& predicate)
+	vector<String> Split(const Predicate& predicate) const
 	{
 		vector<String> tokens;
 		boost::algorithm::split(tokens, m_Data, predicate);
