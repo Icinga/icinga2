@@ -23,7 +23,7 @@
 namespace icinga
 {
 	
-class TimePeriod : public DynamicObject {
+class I2_ICINGA_API TimePeriod : public DynamicObject {
 public:
 	typedef shared_ptr<TimePeriod> Ptr;
 	typedef weak_ptr<TimePeriod> WeakPtr;
