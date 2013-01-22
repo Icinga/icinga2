@@ -371,8 +371,5 @@ Utility::LoadIcingaLibrary(const String& library, bool module)
 	}
 #endif /* _WIN32 */
 
-	// TODO: call InitializeLibrary
-
 	return hModule;
 }
-
