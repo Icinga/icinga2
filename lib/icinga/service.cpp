@@ -484,7 +484,7 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 void Service::BeginExecuteCheck(const function<void (void)>& callback)
 {
 	/* don't run another check if there is one pending */
-	if (Get("current_task")) {
+	if (!Get("current_task").IsEmpty()) {
 		/* we need to call the callback anyway */
 		callback();
 
