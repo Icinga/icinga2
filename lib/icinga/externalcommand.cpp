@@ -24,7 +24,7 @@ using namespace icinga;
 bool I2_EXPORT ExternalCommand::m_Initialized;
 map<String, ExternalCommand::Callback> I2_EXPORT ExternalCommand::m_Commands;
 
-int ExternalCommand::Execute(double time, const String& command, const vector<String>& arguments)
+void ExternalCommand::Execute(double time, const String& command, const vector<String>& arguments)
 {
 	if (!m_Initialized) {
 		RegisterCommand("HELLO_WORLD", &ExternalCommand::HelloWorld);
@@ -39,9 +39,9 @@ int ExternalCommand::Execute(double time, const String& command, const vector<St
 	it = m_Commands.find(command);
 
 	if (it == m_Commands.end())
-		return -1;
+		throw_exception(invalid_argument("The external command '" + command + "' does not exist."));
 
-	return it->second(time, arguments);
+	it->second(time, arguments);
 }
 
 void ExternalCommand::RegisterCommand(const String& command, const ExternalCommand::Callback& callback)
@@ -49,20 +49,18 @@ void ExternalCommand::RegisterCommand(const String& command, const ExternalComma
 	m_Commands[command] = callback;
 }
 
-int ExternalCommand::HelloWorld(double time, const vector<String>& arguments)
+void ExternalCommand::HelloWorld(double time, const vector<String>& arguments)
 {
 	Logger::Write(LogInformation, "icinga", "HelloWorld external command called.");
-
-	return 0;
 }
 
-int ExternalCommand::ProcessServiceCheckResult(double time, const vector<String>& arguments)
+void ExternalCommand::ProcessServiceCheckResult(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 4)
-		return -1;
+		throw_exception(invalid_argument("Expected 4 arguments."));
 
 	if (!Service::Exists(arguments[1]))
-		return -1;
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
@@ -76,43 +74,45 @@ int ExternalCommand::ProcessServiceCheckResult(double time, const vector<String>
 	result->Set("execution_start", time);
 	result->Set("execution_end", time);
 
+	Logger::Write(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
 	service->ProcessCheckResult(result);
-
-	return 0;
 }
 
-int ExternalCommand::ScheduleSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommand::ScheduleSvcCheck(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 3)
-		return -1;
+		throw_exception(invalid_argument("Expected 3 arguments."));
 
 	if (!Service::Exists(arguments[1]))
-		return -1;
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
 	double planned_check = arguments[2].ToDouble();
 
-	if (planned_check > service->GetNextCheck())
-		return -1;
+	if (planned_check > service->GetNextCheck()) {
+		Logger::Write(LogInformation, "icinga", "Ignoring reschedule request for service '" +
+		    arguments[1] + "' (next check is already sooner than requested check time)");
+		return;
+	}
 
+	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
 	service->SetNextCheck(planned_check);
-
-	return 0;
 }
 
-int ExternalCommand::ScheduleForcedSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommand::ScheduleForcedSvcCheck(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 3)
-		return -1;
+		throw_exception(invalid_argument("Expected 3 arguments."));
 
 	if (!Service::Exists(arguments[1]))
-		return -1;
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
 	// TODO: force checks (once we have time periods)
 
+	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
 	service->SetNextCheck(arguments[2].ToDouble());
 }
 

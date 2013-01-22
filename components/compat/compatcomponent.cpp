@@ -174,12 +174,17 @@ void CompatComponent::ProcessCommand(const String& command)
 		return;
 	}
 
-	stringstream msgbuf;
-	msgbuf << "Received command (@" << ts << "), command: " << argv[0] << ", " << argv.size() - 1 << " arguments; raw: " << command;
-	Logger::Write(LogInformation, "compat", msgbuf.str());
-
 	vector<String> argvExtra(argv.begin() + 1, argv.end());
-	ExternalCommand::Execute(ts, argv[0], argvExtra);
+
+	try {
+		Logger::Write(LogInformation, "compat", "Executing external command: " + command);
+
+		ExternalCommand::Execute(ts, argv[0], argvExtra);
+	} catch (const exception& ex) {
+		stringstream msgbuf;
+		msgbuf << "External command failed: " << ex.what();
+		Logger::Write(LogWarning, "compat", msgbuf.str());
+	}
 }
 #endif /* _WIN32 */
 
