@@ -29,6 +29,7 @@ public:
 	static int Execute(const String& command, const vector<String>& arguments);
 
 	static int HelloWorld(const vector<String>& arguments);
+	static int ProcessServiceCheckResult(const vector<String>& arguments);
 
 private:
 	typedef function<int (const vector<String>& arguments)> Callback;

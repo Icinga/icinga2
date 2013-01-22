@@ -64,38 +64,34 @@ void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 		return;
 	}
 
-	Dictionary::Ptr result = boost::make_shared<Dictionary>();
-	result->Set("execution_start", pr.ExecutionStart);
-	result->Set("execution_end", pr.ExecutionEnd);
-
 	String output = pr.Output;
 	output.Trim();
-	ProcessCheckOutput(result, output);
-
-	ServiceState state;
-
-	switch (pr.ExitStatus) {
-		case 0:
-			state = StateOK;
-			break;
-		case 1:
-			state = StateWarning;
-			break;
-		case 2:
-			state = StateCritical;
-			break;
-		default:
-			state = StateUnknown;
-			break;
-	}
-
-	result->Set("state", state);
+	Dictionary::Ptr result = ParseCheckOutput(output);
+	result->Set("state", ExitStatusToState(pr.ExitStatus));
+	result->Set("execution_start", pr.ExecutionStart);
+	result->Set("execution_end", pr.ExecutionEnd);
 
 	ct.m_Task->FinishResult(result);
 }
 
-void PluginCheckTask::ProcessCheckOutput(const Dictionary::Ptr& result, String& output)
+ServiceState PluginCheckTask::ExitStatusToState(int exitStatus)
 {
+	switch (exitStatus) {
+		case 0:
+			return StateOK;
+		case 1:
+			return StateWarning;
+		case 2:
+			return StateCritical;
+		default:
+			return StateUnknown;
+	}
+}
+
+Dictionary::Ptr PluginCheckTask::ParseCheckOutput(const String& output)
+{
+	Dictionary::Ptr result = boost::make_shared<Dictionary>();
+
 	String text;
 	String perfdata;
 
@@ -121,4 +117,6 @@ void PluginCheckTask::ProcessCheckOutput(const Dictionary::Ptr& result, String& 
 
 	result->Set("output", text);
 	result->Set("performance_data_raw", perfdata);
+
+	return result;
 }

@@ -28,6 +28,7 @@ int ExternalCommand::Execute(const String& command, const vector<String>& argume
 {
 	if (!m_Initialized) {
 		RegisterCommand("HELLO_WORLD", &ExternalCommand::HelloWorld);
+		RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommand::ProcessServiceCheckResult);
 
 		m_Initialized = true;
 	}
@@ -53,3 +54,27 @@ int ExternalCommand::HelloWorld(const vector<String>& arguments)
 	return 0;
 }
 
+int ExternalCommand::ProcessServiceCheckResult(const vector<String>& arguments)
+{
+	if (arguments.size() < 4)
+		return -1;
+
+	if (!Service::Exists(arguments[1]))
+		return -1;
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	int exitStatus = arguments[2].ToDouble();
+	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(arguments[3]);
+	result->Set("state", PluginCheckTask::ExitStatusToState(exitStatus));
+
+	double now = Utility::GetTime();
+	result->Set("schedule_start", now);
+	result->Set("schedule_end", now);
+	result->Set("execution_start", now);
+	result->Set("execution_end", now);
+
+	service->ProcessCheckResult(result);
+
+	return 0;
+}

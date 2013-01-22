@@ -33,10 +33,12 @@ class I2_ICINGA_API PluginCheckTask
 public:
 	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
 
+	static ServiceState ExitStatusToState(int exitStatus);
+	static Dictionary::Ptr ParseCheckOutput(const String& output);
+
 private:
 
 	static void ProcessFinishedHandler(PluginCheckTask ct);
-	static void ProcessCheckOutput(const Dictionary::Ptr& result, String& output);
 
 	PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process);
 
