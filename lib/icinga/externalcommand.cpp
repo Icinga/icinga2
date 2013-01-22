@@ -33,6 +33,7 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("SCHEDULE_FORCED_SVC_CHECK", &ExternalCommand::ScheduleForcedSvcCheck);
 		RegisterCommand("ENABLE_SVC_CHECK", &ExternalCommand::EnableSvcCheck);
 		RegisterCommand("DISABLE_SVC_CHECK", &ExternalCommand::DisableSvcCheck);
+		RegisterCommand("SHUTDOWN_PROCESS", &ExternalCommand::ShutdownProcess);
 
 		m_Initialized = true;
 	}
@@ -143,5 +144,11 @@ void ExternalCommand::DisableSvcCheck(double time, const vector<String>& argumen
 
 	Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + arguments[1] + "'");
 	service->SetEnableChecks(false);
+}
+
+void ExternalCommand::ShutdownProcess(double time, const vector<String>& arguments)
+{
+	Logger::Write(LogInformation, "icinga", "Shutting down Icinga via external command.");
+	Application::RequestShutdown();
 }
 
