@@ -74,6 +74,7 @@ private:
 	void AdjustCheckTimer(void);
 
 	void CheckerChangedHandler(const Service::Ptr& service);
+	void NextCheckChangedHandler(const Service::Ptr& service);
 	void ObjectRemovedHandler(const DynamicObject::Ptr& object);
 };
 

@@ -53,6 +53,7 @@ const int Service::CheckIntervalDivisor = 5;
 
 boost::signal<void (const Service::Ptr&, const CheckResultMessage&)> Service::OnCheckResultReceived;
 boost::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChanged;
+boost::signal<void (const Service::Ptr&, const Value&)> Service::OnNextCheckChanged;
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
@@ -479,6 +480,8 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 {
 	if (name == "checker")
 		OnCheckerChanged(GetSelf(), oldValue);
+	else if (name == "next_check")
+		OnNextCheckChanged(GetSelf(), oldValue);
 }
 
 void Service::BeginExecuteCheck(const function<void (void)>& callback)

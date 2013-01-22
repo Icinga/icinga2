@@ -30,6 +30,7 @@ void CheckerComponent::Start(void)
 	m_Endpoint->RegisterSubscription("checker");
 
 	Service::OnCheckerChanged.connect(bind(&CheckerComponent::CheckerChangedHandler, this, _1));
+	Service::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 	DynamicObject::OnUnregistered.connect(bind(&CheckerComponent::ObjectRemovedHandler, this, _1));
 
 	m_CheckTimer = boost::make_shared<Timer>();
@@ -142,6 +143,20 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 		m_IdleServices.erase(service);
 		m_PendingServices.erase(service);
 	}
+}
+
+void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
+{
+	/* remove and re-insert the service from the set in order to force an index update */
+	typedef nth_index<ServiceSet, 0>::type ServiceView;
+	ServiceView& idx = boost::get<0>(m_IdleServices);
+
+	ServiceView::iterator it = idx.find(service);
+	if (it == idx.end())
+		return;
+
+	idx.erase(it);
+	idx.insert(service);
 }
 
 void CheckerComponent::ObjectRemovedHandler(const DynamicObject::Ptr& object)

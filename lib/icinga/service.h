@@ -131,6 +131,7 @@ public:
 
 	static boost::signal<void (const Service::Ptr& service, const CheckResultMessage&)> OnCheckResultReceived;
 	static boost::signal<void (const Service::Ptr&, const String&)> OnCheckerChanged;
+	static boost::signal<void (const Service::Ptr&, const Value&)> OnNextCheckChanged;
 
 protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
