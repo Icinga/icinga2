@@ -84,8 +84,10 @@ void CompatComponent::Start(void)
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
 
+#ifndef _WIN32
 	m_CommandThread = thread(boost::bind(&CompatComponent::CommandPipeThread, this, GetCommandPath()));
 	m_CommandThread.detach();
+#endif /* _WIN32 */
 }
 
 /**
@@ -95,6 +97,7 @@ void CompatComponent::Stop(void)
 {
 }
 
+#ifndef _WIN32
 void CompatComponent::CommandPipeThread(const String& commandPath)
 {
 	(void) unlink(commandPath.CStr());
@@ -178,6 +181,7 @@ void CompatComponent::ProcessCommand(const String& command)
 	vector<String> argvExtra(argv.begin() + 1, argv.end());
 	ExternalCommand::Execute(argv[0], argvExtra);
 }
+#endif /* _WIN32 */
 
 void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 {

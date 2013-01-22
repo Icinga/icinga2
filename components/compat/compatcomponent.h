@@ -33,15 +33,18 @@ public:
 	virtual void Stop(void);
 
 private:
-	Timer::Ptr m_StatusTimer;
+#ifndef _WIN32
 	thread m_CommandThread;
+
+	void CommandPipeThread(const String& commandPath);
+	void ProcessCommand(const String& command);
+#endif /* _WIN32 */
+
+	Timer::Ptr m_StatusTimer;
 
 	String GetStatusPath(void) const;
 	String GetObjectsPath(void) const;
 	String GetCommandPath(void) const;
-
-	void CommandPipeThread(const String& commandPath);
-	void ProcessCommand(const String& command);
 
 	void DumpHostStatus(ofstream& fp, const Host::Ptr& host);
 	void DumpHostObject(ofstream& fp, const Host::Ptr& host);
