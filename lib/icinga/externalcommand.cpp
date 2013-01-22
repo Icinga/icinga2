@@ -29,6 +29,8 @@ int ExternalCommand::Execute(double time, const String& command, const vector<St
 	if (!m_Initialized) {
 		RegisterCommand("HELLO_WORLD", &ExternalCommand::HelloWorld);
 		RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommand::ProcessServiceCheckResult);
+		RegisterCommand("SCHEDULE_SVC_CHECK", &ExternalCommand::ScheduleSvcCheck);
+		RegisterCommand("SCHEDULE_FORCED_SVC_CHECK", &ExternalCommand::ScheduleForcedSvcCheck);
 
 		m_Initialized = true;
 	}
@@ -78,3 +80,39 @@ int ExternalCommand::ProcessServiceCheckResult(double time, const vector<String>
 
 	return 0;
 }
+
+int ExternalCommand::ScheduleSvcCheck(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		return -1;
+
+	if (!Service::Exists(arguments[1]))
+		return -1;
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	double planned_check = arguments[2].ToDouble();
+
+	if (planned_check > service->GetNextCheck())
+		return -1;
+
+	service->SetNextCheck(planned_check);
+
+	return 0;
+}
+
+int ExternalCommand::ScheduleForcedSvcCheck(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		return -1;
+
+	if (!Service::Exists(arguments[1]))
+		return -1;
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	// TODO: force checks (once we have time periods)
+
+	service->SetNextCheck(arguments[2].ToDouble());
+}
+

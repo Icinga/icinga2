@@ -30,6 +30,8 @@ public:
 
 	static int HelloWorld(double time, const vector<String>& arguments);
 	static int ProcessServiceCheckResult(double time, const vector<String>& arguments);
+	static int ScheduleSvcCheck(double time, const vector<String>& arguments);
+	static int ScheduleForcedSvcCheck(double time, const vector<String>& arguments);
 
 private:
 	typedef function<int (double time, const vector<String>& arguments)> Callback;
