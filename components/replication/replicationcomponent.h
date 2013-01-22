@@ -35,7 +35,7 @@ public:
 private:
 	Endpoint::Ptr m_Endpoint;
 
-	static void ServiceStateChangeRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	static void ServiceStateChangeRequestHandler(const RequestMessage& request);
 
 	void EndpointConnectedHandler(const Endpoint::Ptr& endpoint);
 
@@ -43,7 +43,7 @@ private:
 	void LocalObjectUnregisteredHandler(const DynamicObject::Ptr& object);
 	void TransactionClosingHandler(const set<DynamicObject::Ptr>& modifiedObjects);
 
-	void RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	void RemoteObjectUpdateHandler(const RequestMessage& request);
 	void RemoteObjectRemovedHandler(const RequestMessage& request);
 
 	static RequestMessage MakeObjectMessage(const DynamicObject::Ptr& object,

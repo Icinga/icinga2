@@ -47,8 +47,10 @@ public:
 	void AddListener(const String& service);
 	void AddConnection(const String& node, const String& service);
 
+	void SendUnicastMessage(const Endpoint::Ptr& recipient, const MessagePart& message);
 	void SendUnicastMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, const MessagePart& message);
 	void SendAnycastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
+	void SendMulticastMessage(const RequestMessage& message);
 	void SendMulticastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
 
 	typedef function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> APICallback;

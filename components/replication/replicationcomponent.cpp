@@ -35,13 +35,13 @@ void ReplicationComponent::Start(void)
 	Endpoint::OnConnected.connect(boost::bind(&ReplicationComponent::EndpointConnectedHandler, this, _1));
 	
 	m_Endpoint->RegisterTopicHandler("config::ObjectUpdate",
-	    boost::bind(&ReplicationComponent::RemoteObjectUpdateHandler, this, _2, _3));
+	    boost::bind(&ReplicationComponent::RemoteObjectUpdateHandler, this, _3));
 	m_Endpoint->RegisterTopicHandler("config::ObjectRemoved",
 	    boost::bind(&ReplicationComponent::RemoteObjectRemovedHandler, this, _3));
 
 	/* service status */
 	m_Endpoint->RegisterTopicHandler("checker::ServiceStateChange",
-	    boost::bind(&ReplicationComponent::ServiceStateChangeRequestHandler, _2, _3));
+	    boost::bind(&ReplicationComponent::ServiceStateChangeRequestHandler, _3));
 }
 
 /**
@@ -52,7 +52,7 @@ void ReplicationComponent::Stop(void)
 	m_Endpoint->Unregister();
 }
 
-void ReplicationComponent::ServiceStateChangeRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void ReplicationComponent::ServiceStateChangeRequestHandler(const RequestMessage& request)
 {
 	ServiceStateChangeMessage params;
 	if (!request.GetParams(&params))
@@ -163,7 +163,7 @@ void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject::Pt
 	}
 }
 
-void ReplicationComponent::RemoteObjectUpdateHandler(const Endpoint::Ptr& sender, const RequestMessage& request)
+void ReplicationComponent::RemoteObjectUpdateHandler(const RequestMessage& request)
 {
 	MessagePart params;
 	if (!request.GetParams(&params))

@@ -69,7 +69,7 @@ void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender,
     const RequestMessage& request)
 {
 	Logger::Write(LogInformation, "demo", "Got 'hello world' from identity=" +
-	    sender->GetName());
+	    (sender ? sender->GetName() : "(anonymous)"));
 }
 
 EXPORT_COMPONENT(demo, DemoComponent);

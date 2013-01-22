@@ -185,17 +185,30 @@ void EndpointManager::ClientClosedHandler(const Stream::Ptr& client)
 }
 
 /**
+ * Sends an anonymous unicast message to the specified recipient.
+ *
+ * @param recipient The recipient of the message.
+ * @param message The message.
+ */
+void EndpointManager::SendUnicastMessage(const Endpoint::Ptr& recipient,
+    const MessagePart& message)
+{
+	SendUnicastMessage(Endpoint::Ptr(), recipient, message);
+}
+
+/**
  * Sends a unicast message to the specified recipient.
  *
  * @param sender The sender of the message.
  * @param recipient The recipient of the message.
- * @param message The request.
+ * @param message The message.
  */
 void EndpointManager::SendUnicastMessage(const Endpoint::Ptr& sender,
     const Endpoint::Ptr& recipient, const MessagePart& message)
 {
-	/* don't forward messages between non-local endpoints */
-	if (!sender->IsLocal() && !recipient->IsLocal())
+	/* don't forward messages between non-local endpoints, assume that
+	 * anonymous senders (sender == null) are local */
+	if ((sender && !sender->IsLocal()) && !recipient->IsLocal())
 		return;
 
 	if (ResponseMessage::IsResponseMessage(message))
@@ -235,6 +248,17 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 
 	Endpoint::Ptr recipient = candidates[rand() % candidates.size()];
 	SendUnicastMessage(sender, recipient, message);
+}
+
+/**
+ * Sends an anonymous message to all recipients who have a subscription for the
+ * message#s topic.
+ *
+ * @param message The message.
+ */
+void EndpointManager::SendMulticastMessage(const RequestMessage& message)
+{
+	SendMulticastMessage(Endpoint::Ptr(), message);
 }
 
 /**
