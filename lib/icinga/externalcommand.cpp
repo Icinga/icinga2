@@ -17,48 +17,39 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2ICINGA_H
-#define I2ICINGA_H
+#include "i2-icinga.h"
 
-/**
- * @defgroup icinga Icinga library
- *
- * The Icinga library implements all Icinga-specific functionality that is
- * common to all components (e.g. hosts, services, etc.).
- */
+using namespace icinga;
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-remoting.h>
+bool I2_EXPORT ExternalCommand::m_Initialized;
+map<String, ExternalCommand::Callback> I2_EXPORT ExternalCommand::m_Commands;
 
-using boost::iterator_range;
-using boost::algorithm::is_any_of;
+int ExternalCommand::Execute(const String& command, const vector<String>& arguments)
+{
+	if (!m_Initialized) {
+		RegisterCommand("HELLO_WORLD", &ExternalCommand::HelloWorld);
 
-#ifdef I2_ICINGA_BUILD
-#	define I2_ICINGA_API I2_EXPORT
-#else /* I2_ICINGA_BUILD */
-#	define I2_ICINGA_API I2_IMPORT
-#endif /* I2_ICINGA_BUILD */
+		m_Initialized = true;
+	}
 
-#include "externalcommand.h"
+	map<String, ExternalCommand::Callback>::iterator it;
+	it = m_Commands.find(command);
 
-#include "endpoint.h"
-#include "endpointmanager.h"
-#include "icingaapplication.h"
+	if (it == m_Commands.end())
+		return -1;
 
-#include "timeperiod.h"
+	return it->second(arguments);
+}
 
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
+void ExternalCommand::RegisterCommand(const String& command, const ExternalCommand::Callback& callback)
+{
+	m_Commands[command] = callback;
+}
 
-#include "macroprocessor.h"
-#include "pluginchecktask.h"
-#include "nullchecktask.h"
+int ExternalCommand::HelloWorld(const vector<String>& arguments)
+{
+	Logger::Write(LogInformation, "icinga", "HelloWorld external command called.");
 
-#include "servicestatechangemessage.h"
+	return 0;
+}
 
-#include "cib.h"
-
-#endif /* I2ICINGA_H */

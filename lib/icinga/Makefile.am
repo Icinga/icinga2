@@ -7,6 +7,8 @@ pkglib_LTLIBRARIES =  \
 libicinga_la_SOURCES =  \
 	cib.cpp \
 	cib.h \
+	externalcommand.cpp \
+	externalcommand.h \
 	host.cpp \
 	hostgroup.cpp \
 	hostgroup.h \
