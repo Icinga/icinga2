@@ -480,3 +480,86 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 	if (name == "checker")
 		OnCheckerChanged(GetSelf(), oldValue);
 }
+
+void Service::BeginExecuteCheck(const function<void (void)>& callback)
+{
+	/* don't run another check if there is one pending */
+	if (Get("current_task")) {
+		/* we need to call the callback anyway */
+		callback();
+
+		return;
+	}
+
+	/* keep track of scheduling info in case the check type doesn't provide its own information */
+	Dictionary::Ptr scheduleInfo = boost::make_shared<Dictionary>();
+	scheduleInfo->Set("schedule_start", GetNextCheck());
+	scheduleInfo->Set("execution_start", Utility::GetTime());
+
+	vector<Value> arguments;
+	arguments.push_back(static_cast<Service::Ptr>(GetSelf()));
+	ScriptTask::Ptr task;
+	task = InvokeMethod("check", arguments, boost::bind(&Service::CheckCompletedHandler, this, scheduleInfo, _1, callback));
+	assert(task); /* TODO: gracefully handle missing methods */
+
+	Set("current_task", task);
+}
+
+void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
+    const ScriptTask::Ptr& task, const function<void (void)>& callback)
+{
+	Set("current_task", Empty);
+
+	scheduleInfo->Set("execution_end", Utility::GetTime());
+	scheduleInfo->Set("schedule_end", Utility::GetTime());
+
+	try {
+		Value vresult = task->GetResult();
+
+		if (vresult.IsObjectType<Dictionary>()) {
+			Dictionary::Ptr result = vresult;
+
+			if (!result->Contains("schedule_start"))
+				result->Set("schedule_start", scheduleInfo->Get("schedule_start"));
+
+			if (!result->Contains("schedule_end"))
+				result->Set("schedule_end", scheduleInfo->Get("schedule_end"));
+
+			if (!result->Contains("execution_start"))
+				result->Set("execution_start", scheduleInfo->Get("execution_start"));
+
+			if (!result->Contains("execution_end"))
+				result->Set("execution_end", scheduleInfo->Get("execution_end"));
+
+			ProcessCheckResult(result);
+		}
+	} catch (const exception& ex) {
+		stringstream msgbuf;
+		msgbuf << "Exception occured during check for service '"
+		       << GetName() << "': " << ex.what();
+		Logger::Write(LogWarning, "checker", msgbuf.str());
+	}
+
+	/* figure out when the next check is for this service; the call to
+	 * ApplyCheckResult() should've already done this but lets do it again
+	 * just in case there was no check result. */
+	UpdateNextCheck();
+
+	callback();
+}
+
+void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
+{
+	ApplyCheckResult(cr);
+
+	RequestMessage rm;
+	rm.SetMethod("checker::ServiceStateChange");
+
+	/* TODO: add _old_ state to message */
+	ServiceStateChangeMessage params;
+	params.SetService(GetName());
+
+	rm.SetParams(params);
+
+	EndpointManager::GetInstance()->SendMulticastMessage(rm);
+}

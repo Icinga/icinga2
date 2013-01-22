@@ -64,9 +64,7 @@ void CheckerComponent::CheckTimerHandler(void)
 		CheckTimeView::iterator it = idx.begin();
 		Service::Ptr service = *it;
 
-		double next_check = service->GetNextCheck();
-
-		if (next_check > now)
+		if (service->GetNextCheck() > now)
 			break;
 
 		idx.erase(it);
@@ -87,18 +85,7 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		m_PendingServices.insert(service);
 
-		/* keep track of scheduling info in case the check type doesn't provide its own information */
-		Dictionary::Ptr scheduleInfo = boost::make_shared<Dictionary>();
-		scheduleInfo->Set("schedule_start", next_check);
-		scheduleInfo->Set("execution_start", Utility::GetTime());
-
-		vector<Value> arguments;
-		arguments.push_back(service);
-		ScriptTask::Ptr task;
-		task = service->InvokeMethod("check", arguments, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service, scheduleInfo, _1));
-		assert(task); /* TODO: gracefully handle missing methods */
-
-		service->Set("current_task", task);
+		service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
 
 		tasks++;
 	}
@@ -118,56 +105,8 @@ void CheckerComponent::CheckTimerHandler(void)
 	}
 }
 
-void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service, const Dictionary::Ptr& scheduleInfo, const ScriptTask::Ptr& task)
+void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
 {
-	service->Set("current_task", Empty);
-
-	scheduleInfo->Set("execution_end", Utility::GetTime());
-	scheduleInfo->Set("schedule_end", Utility::GetTime());
-
-	try {
-		Value vresult = task->GetResult();
-
-		if (vresult.IsObjectType<Dictionary>()) {
-			Dictionary::Ptr result = vresult;
-
-			if (!result->Contains("schedule_start"))
-				result->Set("schedule_start", scheduleInfo->Get("schedule_start"));
-
-			if (!result->Contains("schedule_end"))
-				result->Set("schedule_end", scheduleInfo->Get("schedule_end"));
-
-			if (!result->Contains("execution_start"))
-				result->Set("execution_start", scheduleInfo->Get("execution_start"));
-
-			if (!result->Contains("execution_end"))
-				result->Set("execution_end", scheduleInfo->Get("execution_end"));
-
-			service->ApplyCheckResult(result);
-
-			RequestMessage rm;
-			rm.SetMethod("checker::ServiceStateChange");
-
-			/* TODO: add _old_ state to message */
-			ServiceStateChangeMessage params;
-			params.SetService(service->GetName());
-
-			rm.SetParams(params);
-
-			EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, rm);
-		}
-	} catch (const exception& ex) {
-		stringstream msgbuf;
-		msgbuf << "Exception occured during check for service '"
-		       << service->GetName() << "': " << ex.what();
-		Logger::Write(LogWarning, "checker", msgbuf.str());
-	}
-
-	/* figure out when the next check is for this service; the call to
-	 * ApplyCheckResult() should've already done this but lets do it again
-	 * just in case there was no check result. */
-	service->UpdateNextCheck();
-
 	/* remove the service from the list of pending services; if it's not in the
 	 * list this was a manual (i.e. forced) check and we must not re-add the
 	 * service to the services list because it's already there. */

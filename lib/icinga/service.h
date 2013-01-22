@@ -118,6 +118,9 @@ public:
 
 	void ApplyCheckResult(const Dictionary::Ptr& cr);
 
+	void BeginExecuteCheck(const function<void (void)>& callback);
+	void ProcessCheckResult(const Dictionary::Ptr& cr);
+
 	static ServiceState StateFromString(const String& state);
 	static String StateToString(ServiceState state);
 
@@ -131,6 +134,10 @@ public:
 
 protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
+
+private:
+	void CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
+	    const ScriptTask::Ptr& task, const function<void (void)>& callback);
 };
 
 }
