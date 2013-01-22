@@ -69,7 +69,7 @@ private:
 	void CheckTimerHandler(void);
 	void ResultTimerHandler(void);
 
-	void CheckCompletedHandler(const Service::Ptr& service, const ScriptTask::Ptr& task);
+	void CheckCompletedHandler(const Service::Ptr& service, const Dictionary::Ptr& scheduleInfo, const ScriptTask::Ptr& task);
 
 	void AdjustCheckTimer(void);
 

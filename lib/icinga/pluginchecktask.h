@@ -42,7 +42,6 @@ private:
 
 	ScriptTask::Ptr m_Task;
 	Process::Ptr m_Process;
-	Dictionary::Ptr m_Result;
 };
 
 }

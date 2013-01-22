@@ -50,9 +50,6 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 
 	PluginCheckTask ct(task, process);
 
-	ct.m_Result = boost::make_shared<Dictionary>();
-	ct.m_Result->Set("schedule_start", Utility::GetTime());
-
 	process->Start(boost::bind(&PluginCheckTask::ProcessFinishedHandler, ct));
 }
 
@@ -67,12 +64,13 @@ void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 		return;
 	}
 
-	ct.m_Result->Set("execution_start", pr.ExecutionStart);
-	ct.m_Result->Set("execution_end", pr.ExecutionEnd);
+	Dictionary::Ptr result = boost::make_shared<Dictionary>();
+	result->Set("execution_start", pr.ExecutionStart);
+	result->Set("execution_end", pr.ExecutionEnd);
 
 	String output = pr.Output;
 	output.Trim();
-	ProcessCheckOutput(ct.m_Result, output);
+	ProcessCheckOutput(result, output);
 
 	ServiceState state;
 
@@ -91,11 +89,9 @@ void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 			break;
 	}
 
-	ct.m_Result->Set("state", state);
+	result->Set("state", state);
 
-	ct.m_Result->Set("schedule_end", Utility::GetTime());
-
-	ct.m_Task->FinishResult(ct.m_Result);
+	ct.m_Task->FinishResult(result);
 }
 
 void PluginCheckTask::ProcessCheckOutput(const Dictionary::Ptr& result, String& output)

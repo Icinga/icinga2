@@ -31,10 +31,6 @@ void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>&
 	double now = Utility::GetTime();
 
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
-	cr->Set("schedule_start", now);
-	cr->Set("schedule_end", now);
-	cr->Set("execution_start", now);
-	cr->Set("execution_end", now);
 	cr->Set("state", StateUnknown);
 
 	task->FinishResult(cr);
