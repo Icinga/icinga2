@@ -100,7 +100,7 @@ shared_ptr<T> DynamicObjectFactory(const Dictionary::Ptr& serializedUpdate)
 }
 
 #define REGISTER_TYPE_ALIAS(type, alias, attributeDesc) \
-	static RegisterTypeHelper g_Register ## type(alias, DynamicObjectFactory<type>, attributeDesc, (attributeDesc == NULL) ? 0 : sizeof(attributeDesc) / sizeof((static_cast<AttributeDescription *>(attributeDesc))[0]))
+	static RegisterTypeHelper g_RegisterDT_ ## type(alias, DynamicObjectFactory<type>, attributeDesc, (attributeDesc == NULL) ? 0 : sizeof(attributeDesc) / sizeof((static_cast<AttributeDescription *>(attributeDesc))[0]))
 
 #define REGISTER_TYPE(type, attributeDesc) \
 	REGISTER_TYPE_ALIAS(type, #type, attributeDesc)

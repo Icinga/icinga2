@@ -52,7 +52,26 @@ private:
 	static map<String, ScriptFunction::Ptr> m_Functions;
 };
 
+/**
+ * Helper class for registering ScriptFunction implementation classes.
+ *
+ * @ingroup base
+ */
+class RegisterFunctionHelper
+{
+public:
+	RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
+	{
+		if (!ScriptFunction::GetByName(name)) {
+			ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(function);
+			ScriptFunction::Register(name, func);
+		}
+	}
+};
+
+#define REGISTER_SCRIPTFUNCTION(name, callback) \
+	static RegisterFunctionHelper g_RegisterSF_ ## type(name, callback)
+
 }
 
 #endif /* SCRIPTFUNCTION_H */
-

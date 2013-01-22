@@ -31,10 +31,9 @@ namespace icinga
 class I2_ICINGA_API PluginCheckTask
 {
 public:
-	static void Register(void);
+	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
 
 private:
-	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
 
 	static void ProcessFinishedHandler(PluginCheckTask ct);
 	static void ProcessCheckOutput(const Dictionary::Ptr& result, String& output);

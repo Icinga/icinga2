@@ -37,10 +37,6 @@ void CheckerComponent::Start(void)
 	m_CheckTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::CheckTimerHandler, this));
 	m_CheckTimer->Start();
 
-	/* TODO: figure out a way to register check types */
-	PluginCheckTask::Register();
-	NullCheckTask::Register();
-
 	m_ResultTimer = boost::make_shared<Timer>();
 	m_ResultTimer->SetInterval(5);
 	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));

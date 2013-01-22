@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+REGISTER_SCRIPTFUNCTION("native::PluginCheck",  &PluginCheckTask::ScriptFunc);
+
 PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process)
 	: m_Task(task), m_Process(process)
 { }
@@ -123,10 +125,4 @@ void PluginCheckTask::ProcessCheckOutput(const Dictionary::Ptr& result, String& 
 
 	result->Set("output", text);
 	result->Set("performance_data_raw", perfdata);
-}
-
-void PluginCheckTask::Register(void)
-{
-	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&PluginCheckTask::ScriptFunc);
-	ScriptFunction::Register("native::PluginCheck", func);
 }

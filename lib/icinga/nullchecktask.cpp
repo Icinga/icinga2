@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+REGISTER_SCRIPTFUNCTION("native::NullCheck",  &NullCheckTask::ScriptFunc);
+
 void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
@@ -36,10 +38,4 @@ void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>&
 	cr->Set("state", StateUnknown);
 
 	task->FinishResult(cr);
-}
-
-void NullCheckTask::Register(void)
-{
-	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(&NullCheckTask::ScriptFunc);
-	ScriptFunction::Register("native::NullCheck", func);
 }
