@@ -70,6 +70,20 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		idx.erase(it);
 
+		/* reschedule the service if checks are currently disabled
+		 * for it and this is not a forced check */
+		if (!service->GetEnableChecks()) {
+			if (!service->GetForceNextCheck()) {
+				service->UpdateNextCheck();
+
+				idx.insert(service);
+
+				return;
+			}
+
+			service->SetForceNextCheck(false);
+		}
+
 		Dictionary::Ptr cr = service->GetLastCheckResult();
 
 		if (cr) {

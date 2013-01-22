@@ -116,6 +116,12 @@ public:
 	void SetLastHardStateChange(double ts);
 	double GetLastHardStateChange(void) const;
 
+	bool GetEnableChecks(void) const;
+	void SetEnableChecks(bool enabled);
+
+	bool GetForceNextCheck(void) const;
+	void SetForceNextCheck(bool forced);
+
 	void ApplyCheckResult(const Dictionary::Ptr& cr);
 
 	void BeginExecuteCheck(const function<void (void)>& callback);

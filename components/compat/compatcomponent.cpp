@@ -285,7 +285,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	   << "\t" << "last_state_change=" << service->GetLastStateChange() << "\n"
 	   << "\t" << "last_hard_state_change=" << service->GetLastHardStateChange() << "\n"
 	   << "\t" << "last_update=" << time(NULL) << "\n"
-	   << "\t" << "active_checks_enabled=1" << "\n"
+	   << "\t" << "active_checks_enabled=" << (service->GetEnableChecks() ? 1 : 0) <<"\n"
 	   << "\t" << "passive_checks_enabled=1" << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
@@ -300,7 +300,7 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
 	   << "\t" << "check_interval" << "\t" << service->GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval" << "\t" << service->GetRetryInterval() / 60.0 << "\n"
 	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
-	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
+	   << "\t" << "active_checks_enabled" << "\t" << (service->GetEnableChecks() ? 1 : 0) << "\n"
 	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";

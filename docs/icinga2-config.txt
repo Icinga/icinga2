@@ -614,6 +614,12 @@ Attribute: checkers
 Optional. A list of remote endpoints that may check this service. Wildcards can
 be used here.
 
+Attribute: enable_checks
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. Whether active checks should be performed for this service. Defaults
+to 1 (true).
+
 Type: ServiceGroup
 ~~~~~~~~~~~~~~~~~~
 
@@ -745,6 +751,12 @@ Attribute: checkers
 ^^^^^^^^^^^^^^^^^^^
 
 Optional. Copied into inline service definitions. The host itself does not have
+any checks.
+
+Attribute: enable_checks
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. Copied into inline service definitions. The host itself does not have 
 any checks.
 
 Type: HostGroup

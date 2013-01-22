@@ -31,6 +31,8 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommand::ProcessServiceCheckResult);
 		RegisterCommand("SCHEDULE_SVC_CHECK", &ExternalCommand::ScheduleSvcCheck);
 		RegisterCommand("SCHEDULE_FORCED_SVC_CHECK", &ExternalCommand::ScheduleForcedSvcCheck);
+		RegisterCommand("ENABLE_SVC_CHECK", &ExternalCommand::EnableSvcCheck);
+		RegisterCommand("DISABLE_SVC_CHECK", &ExternalCommand::DisableSvcCheck);
 
 		m_Initialized = true;
 	}
@@ -110,9 +112,36 @@ void ExternalCommand::ScheduleForcedSvcCheck(double time, const vector<String>& 
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
-	// TODO: force checks (once we have time periods)
-
 	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
+	service->SetForceNextCheck(true);
 	service->SetNextCheck(arguments[2].ToDouble());
+}
+
+void ExternalCommand::EnableSvcCheck(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Enabling checks for service '" + arguments[1] + "'");
+	service->SetEnableChecks(true);
+}
+
+void ExternalCommand::DisableSvcCheck(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + arguments[1] + "'");
+	service->SetEnableChecks(false);
 }
 

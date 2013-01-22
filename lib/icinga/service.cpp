@@ -41,7 +41,9 @@ static AttributeDescription serviceAttributes[] = {
 	{ "state_type", Attribute_Replicated },
 	{ "last_result", Attribute_Replicated },
 	{ "last_state_change", Attribute_Replicated },
-	{ "last_hard_state_change", Attribute_Replicated }
+	{ "last_hard_state_change", Attribute_Replicated },
+	{ "enable_checks", Attribute_Replicated },
+	{ "force_next_check", Attribute_Replicated }
 };
 
 REGISTER_TYPE(Service, serviceAttributes);
@@ -351,6 +353,36 @@ double Service::GetLastHardStateChange(void) const
 		value = IcingaApplication::GetInstance()->GetStartTime();
 
 	return value;
+}
+
+bool Service::GetEnableChecks(void) const
+{
+	Value value = Get("enable_checks");
+
+	if (value.IsEmpty())
+		return true;
+
+	return static_cast<bool>(value);
+}
+
+void Service::SetEnableChecks(bool enabled)
+{
+	Set("enable_checks", enabled ? 1 : 0);
+}
+
+bool Service::GetForceNextCheck(void) const
+{
+	Value value = Get("force_next_check");
+
+	if (value.IsEmpty())
+		return false;
+
+	return static_cast<bool>(value);
+}
+
+void Service::SetForceNextCheck(bool forced)
+{
+	Set("force_next_check", forced ? 1 : 0);
 }
 
 void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
