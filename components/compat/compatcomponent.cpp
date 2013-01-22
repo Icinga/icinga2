@@ -179,7 +179,7 @@ void CompatComponent::ProcessCommand(const String& command)
 	Logger::Write(LogInformation, "compat", msgbuf.str());
 
 	vector<String> argvExtra(argv.begin() + 1, argv.end());
-	ExternalCommand::Execute(argv[0], argvExtra);
+	ExternalCommand::Execute(ts, argv[0], argvExtra);
 }
 #endif /* _WIN32 */
 

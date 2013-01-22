@@ -24,7 +24,7 @@ using namespace icinga;
 bool I2_EXPORT ExternalCommand::m_Initialized;
 map<String, ExternalCommand::Callback> I2_EXPORT ExternalCommand::m_Commands;
 
-int ExternalCommand::Execute(const String& command, const vector<String>& arguments)
+int ExternalCommand::Execute(double time, const String& command, const vector<String>& arguments)
 {
 	if (!m_Initialized) {
 		RegisterCommand("HELLO_WORLD", &ExternalCommand::HelloWorld);
@@ -39,7 +39,7 @@ int ExternalCommand::Execute(const String& command, const vector<String>& argume
 	if (it == m_Commands.end())
 		return -1;
 
-	return it->second(arguments);
+	return it->second(time, arguments);
 }
 
 void ExternalCommand::RegisterCommand(const String& command, const ExternalCommand::Callback& callback)
@@ -47,14 +47,14 @@ void ExternalCommand::RegisterCommand(const String& command, const ExternalComma
 	m_Commands[command] = callback;
 }
 
-int ExternalCommand::HelloWorld(const vector<String>& arguments)
+int ExternalCommand::HelloWorld(double time, const vector<String>& arguments)
 {
 	Logger::Write(LogInformation, "icinga", "HelloWorld external command called.");
 
 	return 0;
 }
 
-int ExternalCommand::ProcessServiceCheckResult(const vector<String>& arguments)
+int ExternalCommand::ProcessServiceCheckResult(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 4)
 		return -1;
@@ -69,10 +69,10 @@ int ExternalCommand::ProcessServiceCheckResult(const vector<String>& arguments)
 	result->Set("state", PluginCheckTask::ExitStatusToState(exitStatus));
 
 	double now = Utility::GetTime();
-	result->Set("schedule_start", now);
-	result->Set("schedule_end", now);
-	result->Set("execution_start", now);
-	result->Set("execution_end", now);
+	result->Set("schedule_start", time);
+	result->Set("schedule_end", time);
+	result->Set("execution_start", time);
+	result->Set("execution_end", time);
 
 	service->ProcessCheckResult(result);
 

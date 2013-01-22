@@ -26,13 +26,13 @@ namespace icinga
 class I2_ICINGA_API ExternalCommand {
 public:
 
-	static int Execute(const String& command, const vector<String>& arguments);
+	static int Execute(double time, const String& command, const vector<String>& arguments);
 
-	static int HelloWorld(const vector<String>& arguments);
-	static int ProcessServiceCheckResult(const vector<String>& arguments);
+	static int HelloWorld(double time, const vector<String>& arguments);
+	static int ProcessServiceCheckResult(double time, const vector<String>& arguments);
 
 private:
-	typedef function<int (const vector<String>& arguments)> Callback;
+	typedef function<int (double time, const vector<String>& arguments)> Callback;
 
 	static bool m_Initialized;
 	static map<String, Callback> m_Commands;
