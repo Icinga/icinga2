@@ -55,7 +55,7 @@ ConfigCompiler::~ConfigCompiler(void)
  */
 size_t ConfigCompiler::ReadInput(char *buffer, size_t max_size)
 {
-	m_Input->read(buffer, max_size);
+	m_Input->readsome(buffer, max_size);
 	return static_cast<size_t>(m_Input->gcount());
 }
 
@@ -122,6 +122,8 @@ void ConfigCompiler::HandleLibrary(const String& library)
 vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(const String& path,
     istream *stream)
 {
+	stream->exceptions(istream::failbit | istream::badbit);
+
 	ConfigCompiler ctx(path, stream);
 	ctx.Compile();
 	return ctx.GetResult();
