@@ -271,6 +271,9 @@ void ExternalCommand::AcknowledgeSvcProblem(double time, const vector<String>& a
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
+	if (service->GetState() == StateOK)
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' is OK."));
+
 	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for service '" + service->GetName() + "'");
 	service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 	service->SetAcknowledgementExpiry(0);
@@ -288,6 +291,9 @@ void ExternalCommand::AcknowledgeSvcProblemExpire(double time, const vector<Stri
 	double timestamp = arguments[5].ToDouble();
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	if (service->GetState() == StateOK)
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' is OK."));
 
 	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for service '" + service->GetName() + "'");
 	service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
