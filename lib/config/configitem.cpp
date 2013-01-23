@@ -150,6 +150,9 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 
 	DynamicType::Ptr dtype = DynamicType::GetByName(GetType());
 
+	if (!dtype)
+		throw_exception(runtime_error("Type '" + GetType() + "' does not exist."));
+
 	if (!dobj)
 		dobj = dtype->GetObject(GetName());
 
