@@ -206,8 +206,8 @@ void ExternalCommand::ScheduleHostSvcChecks(double time, const vector<String>& a
 
 		if (planned_check > service->GetNextCheck()) {
 			Logger::Write(LogInformation, "icinga", "Ignoring reschedule request for service '" +
-			    arguments[1] + "' (next check is already sooner than requested check time)");
-			return;
+			    service->GetName() + "' (next check is already sooner than requested check time)");
+			continue;
 		}
 
 		Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
