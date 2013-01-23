@@ -100,11 +100,20 @@ void CompatComponent::Stop(void)
 #ifndef _WIN32
 void CompatComponent::CommandPipeThread(const String& commandPath)
 {
-	(void) unlink(commandPath.CStr());
+	struct stat statbuf;
+	bool fifo_ok = false;
 
-	int rc = mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+	if (lstat(commandPath.CStr(), &statbuf) >= 0) {
+		if (S_ISFIFO(statbuf.st_mode) && access(commandPath.CStr(), R_OK) >= 0) {
+			fifo_ok = true;
+		} else {
+			if (unlink(commandPath.CStr()) < 0)
+				throw_exception(PosixException("unlink() failed", errno));
+		}
+	}
 
-	if (rc < 0)
+
+	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0)
 		throw_exception(PosixException("mkfifo() failed", errno));
 
 	for (;;) {
