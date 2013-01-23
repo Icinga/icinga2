@@ -36,6 +36,8 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("SHUTDOWN_PROCESS", &ExternalCommand::ShutdownProcess);
 		RegisterCommand("SCHEDULE_FORCED_HOST_SVC_CHECKS", &ExternalCommand::ScheduleForcedHostSvcChecks);
 		RegisterCommand("SCHEDULE_HOST_SVC_CHECKS", &ExternalCommand::ScheduleHostSvcChecks);
+		RegisterCommand("ENABLE_HOST_SVC_CHECKS", &ExternalCommand::EnableHostSvcChecks);
+		RegisterCommand("DISABLE_HOST_SVC_CHECKS", &ExternalCommand::DisableHostSvcChecks);
 
 		m_Initialized = true;
 	}
@@ -206,6 +208,50 @@ void ExternalCommand::ScheduleHostSvcChecks(double time, const vector<String>& a
 
 		Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
 		service->SetNextCheck(planned_check);
+	}
+}
+
+void ExternalCommand::EnableHostSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!Host::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+		Service::Ptr service = static_pointer_cast<Service>(object);
+
+		if (service->GetHost() != host)
+			continue;
+
+		Logger::Write(LogInformation, "icinga", "Enabling checks for service '" + service->GetName() + "'");
+		service->SetEnableChecks(true);
+	}
+}
+
+void ExternalCommand::DisableHostSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 arguments."));
+
+	if (!Host::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+		Service::Ptr service = static_pointer_cast<Service>(object);
+
+		if (service->GetHost() != host)
+			continue;
+
+		Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + service->GetName() + "'");
+		service->SetEnableChecks(false);
 	}
 }
 
