@@ -34,6 +34,8 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("ENABLE_SVC_CHECK", &ExternalCommand::EnableSvcCheck);
 		RegisterCommand("DISABLE_SVC_CHECK", &ExternalCommand::DisableSvcCheck);
 		RegisterCommand("SHUTDOWN_PROCESS", &ExternalCommand::ShutdownProcess);
+		RegisterCommand("SCHEDULE_FORCED_HOST_SVC_CHECKS", &ExternalCommand::ScheduleForcedHostSvcChecks);
+		RegisterCommand("SCHEDULE_HOST_SVC_CHECKS", &ExternalCommand::ScheduleHostSvcChecks);
 
 		m_Initialized = true;
 	}
@@ -150,5 +152,60 @@ void ExternalCommand::ShutdownProcess(double time, const vector<String>& argumen
 {
 	Logger::Write(LogInformation, "icinga", "Shutting down Icinga via external command.");
 	Application::RequestShutdown();
+}
+
+void ExternalCommand::ScheduleForcedHostSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	if (!Host::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
+
+	double planned_check = arguments[1].ToDouble();
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+		Service::Ptr service = static_pointer_cast<Service>(object);
+
+		if (service->GetHost() != host)
+			continue;
+
+		Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
+		service->SetNextCheck(planned_check);
+		service->SetForceNextCheck(true);
+	}
+}
+
+void ExternalCommand::ScheduleHostSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	if (!Host::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
+
+	double planned_check = arguments[1].ToDouble();
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+		Service::Ptr service = static_pointer_cast<Service>(object);
+
+		if (service->GetHost() != host)
+			continue;
+
+		if (planned_check > service->GetNextCheck()) {
+			Logger::Write(LogInformation, "icinga", "Ignoring reschedule request for service '" +
+			    arguments[1] + "' (next check is already sooner than requested check time)");
+			return;
+		}
+
+		Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
+		service->SetNextCheck(planned_check);
+	}
 }
 

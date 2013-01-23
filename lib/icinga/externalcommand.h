@@ -35,6 +35,8 @@ public:
 	static void EnableSvcCheck(double time, const vector<String>& arguments);
 	static void DisableSvcCheck(double time, const vector<String>& arguments);
 	static void ShutdownProcess(double time, const vector<String>& arguments);
+	static void ScheduleForcedHostSvcChecks(double time, const vector<String>& arguments);
+	static void ScheduleHostSvcChecks(double time, const vector<String>& arguments);
 
 private:
 	typedef function<void (double time, const vector<String>& arguments)> Callback;
