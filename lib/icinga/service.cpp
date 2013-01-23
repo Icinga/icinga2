@@ -402,7 +402,8 @@ AcknowledgementType Service::GetAcknowledgement(void)
 
 		if (expiry != 0 && expiry < Utility::GetTime()) {
 			avalue = AcknowledgementNone;
-			SetAcknowledgementExpiry(avalue);
+			SetAcknowledgement(avalue);
+			SetAcknowledgementExpiry(0);
 		}
 	}
 

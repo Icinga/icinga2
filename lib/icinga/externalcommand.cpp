@@ -271,6 +271,7 @@ void ExternalCommand::AcknowledgeSvcProblem(double time, const vector<String>& a
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
+	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for service '" + service->GetName() + "'");
 	service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 	service->SetAcknowledgementExpiry(0);
 }
@@ -284,10 +285,11 @@ void ExternalCommand::AcknowledgeSvcProblemExpire(double time, const vector<Stri
 		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
 	int sticky = arguments[2].ToDouble();
-	double timestamp = arguments[4].ToDouble();
+	double timestamp = arguments[5].ToDouble();
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
+	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for service '" + service->GetName() + "'");
 	service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 	service->SetAcknowledgementExpiry(timestamp);
 }
@@ -302,6 +304,7 @@ void ExternalCommand::RemoveSvcAcknowledgement(double time, const vector<String>
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
+	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
 	service->SetAcknowledgement(AcknowledgementNone);
 	service->SetAcknowledgementExpiry(0);
 }
