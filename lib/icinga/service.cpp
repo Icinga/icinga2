@@ -34,6 +34,7 @@ static AttributeDescription serviceAttributes[] = {
 	{ "checkers", Attribute_Config },
 
 	{ "scheduling_offset", Attribute_Transient },
+	{ "first_check", Attribute_Transient },
 	{ "next_check", Attribute_Replicated },
 	{ "checker", Attribute_Replicated },
 	{ "check_attempt", Attribute_Replicated },
@@ -224,6 +225,22 @@ long Service::GetSchedulingOffset(void)
 
 	return value;
 }
+
+void Service::SetFirstCheck(bool first)
+{
+	Set("first_check", first ? 1 : 0);
+}
+
+bool Service::GetFirstCheck(void) const
+{
+	Value value = Get("first_check");
+
+	if (value.IsEmpty())
+		return true;
+
+	return static_cast<long>(value);
+}
+
 
 void Service::SetNextCheck(double nextCheck)
 {

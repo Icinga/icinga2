@@ -90,11 +90,13 @@ void CheckerComponent::CheckTimerHandler(void)
 			double lastCheck = cr->Get("execution_end");
 			int missed = (Utility::GetTime() - lastCheck) / service->GetCheckInterval() - 1;
 
-			if (missed > 0) {
+			if (missed > 0 && !service->GetFirstCheck()) {
 				missedChecks += missed;
 				missedServices++;
 			}
 		}
+
+		service->SetFirstCheck(false);
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 

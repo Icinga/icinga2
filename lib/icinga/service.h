@@ -100,7 +100,10 @@ public:
 
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
-	
+
+	void SetFirstCheck(bool first);
+	bool GetFirstCheck(void) const;	
+
 	void SetNextCheck(double nextCheck);
 	double GetNextCheck(void);
 	void UpdateNextCheck(void);
