@@ -66,6 +66,18 @@ AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 AC_CHECK_FUNCS([backtrace_symbols])
 
+AC_MSG_CHECKING(whether to enable debugging)
+AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes]   turn on debugging (default=yes)],, enable_debug=yes)
+if test "x$enable_debug" = "xyes"; then
+        CFLAGS="$CFLAGS -g -O0"
+        CXXFLAGS="$CXXFLAGS -g -O0"
+        AC_MSG_RESULT(yes)
+else
+        CFLAGS="$CFLAGS -O2"
+        CXXFLAGS="$CFLAGS -O2"
+        AC_MSG_RESULT(no)
+fi
+
 AS_AC_EXPAND([ICINGA_PREFIX], $prefix)
 AC_DEFINE_UNQUOTED([ICINGA_PREFIX], "$ICINGA_PREFIX", [The installation prefix.])
 
