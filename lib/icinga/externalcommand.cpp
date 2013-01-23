@@ -38,6 +38,10 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("SCHEDULE_HOST_SVC_CHECKS", &ExternalCommand::ScheduleHostSvcChecks);
 		RegisterCommand("ENABLE_HOST_SVC_CHECKS", &ExternalCommand::EnableHostSvcChecks);
 		RegisterCommand("DISABLE_HOST_SVC_CHECKS", &ExternalCommand::DisableHostSvcChecks);
+		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM", &ExternalCommand::AcknowledgeSvcProblem);
+		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM_EXPIRE", &ExternalCommand::AcknowledgeSvcProblemExpire);
+		RegisterCommand("REMOVE_SVC_ACKNOWLEDGEMENT", &ExternalCommand::RemoveSvcAcknowledgement);
+
 
 		m_Initialized = true;
 	}
@@ -253,5 +257,52 @@ void ExternalCommand::DisableHostSvcChecks(double time, const vector<String>& ar
 		Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + service->GetName() + "'");
 		service->SetEnableChecks(false);
 	}
+}
+
+void ExternalCommand::AcknowledgeSvcProblem(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 7)
+		throw_exception(invalid_argument("Expected 7 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	int sticky = arguments[2].ToDouble();
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+	service->SetAcknowledgementExpiry(0);
+}
+
+void ExternalCommand::AcknowledgeSvcProblemExpire(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 8)
+		throw_exception(invalid_argument("Expected 8 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	int sticky = arguments[2].ToDouble();
+	double timestamp = arguments[4].ToDouble();
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+	service->SetAcknowledgementExpiry(timestamp);
+}
+
+void ExternalCommand::RemoveSvcAcknowledgement(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	service->SetAcknowledgement(AcknowledgementNone);
+	service->SetAcknowledgementExpiry(0);
 }
 

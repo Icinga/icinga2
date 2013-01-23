@@ -48,6 +48,18 @@ enum ServiceStateType
 	StateTypeHard
 };
 
+/**
+ * The acknowledgement type of a service.
+ *
+ * @ingroup icinga
+ */
+enum AcknowledgementType
+{
+	AcknowledgementNone = 0,
+	AcknowledgementNormal = 1,
+	AcknowledgementSticky = 2
+};
+
 class CheckResultMessage;
 class ServiceStatusMessage;
 
@@ -121,6 +133,12 @@ public:
 
 	bool GetForceNextCheck(void) const;
 	void SetForceNextCheck(bool forced);
+
+	AcknowledgementType GetAcknowledgement(void);
+	void SetAcknowledgement(AcknowledgementType acknowledgement);
+
+	double GetAcknowledgementExpiry(void) const;
+	void SetAcknowledgementExpiry(double timestamp);
 
 	void ApplyCheckResult(const Dictionary::Ptr& cr);
 

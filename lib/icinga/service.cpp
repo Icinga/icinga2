@@ -43,7 +43,9 @@ static AttributeDescription serviceAttributes[] = {
 	{ "last_state_change", Attribute_Replicated },
 	{ "last_hard_state_change", Attribute_Replicated },
 	{ "enable_checks", Attribute_Replicated },
-	{ "force_next_check", Attribute_Replicated }
+	{ "force_next_check", Attribute_Replicated },
+	{ "acknowledgement", Attribute_Replicated },
+	{ "acknowledgement_expiry", Attribute_Replicated }
 };
 
 REGISTER_TYPE(Service, serviceAttributes);
@@ -385,6 +387,48 @@ void Service::SetForceNextCheck(bool forced)
 	Set("force_next_check", forced ? 1 : 0);
 }
 
+AcknowledgementType Service::GetAcknowledgement(void)
+{
+	Value value = Get("acknowledgement");
+
+	if (value.IsEmpty())
+		return AcknowledgementNone;
+
+	int ivalue = static_cast<int>(value);
+	AcknowledgementType avalue = static_cast<AcknowledgementType>(ivalue);
+
+	if (avalue != AcknowledgementNone) {
+		double expiry = GetAcknowledgementExpiry();
+
+		if (expiry != 0 && expiry < Utility::GetTime()) {
+			avalue = AcknowledgementNone;
+			SetAcknowledgementExpiry(avalue);
+		}
+	}
+
+	return avalue;
+}
+
+void Service::SetAcknowledgement(AcknowledgementType acknowledgement)
+{
+	Set("acknowledgement", static_cast<long>(acknowledgement));
+}
+
+double Service::GetAcknowledgementExpiry(void) const
+{
+	Value value = Get("acknowledgement_expiry");
+
+	if (value.IsEmpty())
+		return 0;
+
+	return static_cast<double>(value);
+}
+
+void Service::SetAcknowledgementExpiry(double timestamp)
+{
+	Set("acknowledgement_expiry", timestamp);
+}
+
 void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 {
 	ServiceState old_state = GetState();
@@ -421,6 +465,13 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 
 		if (old_stateType != GetStateType())
 			SetLastHardStateChange(now);
+
+		/* remove acknowledgements */
+		if (GetAcknowledgement() == AcknowledgementNormal ||
+		    (GetAcknowledgement() == AcknowledgementSticky && GetStateType() == StateTypeHard && GetState() == StateOK)) {
+			SetAcknowledgement(AcknowledgementNone);
+			SetAcknowledgementExpiry(0);
+		}
 	}
 }
 

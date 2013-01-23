@@ -296,6 +296,9 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	   << "\t" << "last_update=" << time(NULL) << "\n"
 	   << "\t" << "active_checks_enabled=" << (service->GetEnableChecks() ? 1 : 0) <<"\n"
 	   << "\t" << "passive_checks_enabled=1" << "\n"
+	   << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
+	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
+	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
 }
