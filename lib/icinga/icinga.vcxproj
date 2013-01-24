@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cib.cpp" />
+    <ClCompile Include="externalcommand.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="hostgroup.cpp" />
     <ClCompile Include="i2-icinga.cpp">
@@ -39,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cib.h" />
+    <ClInclude Include="externalcommand.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="hostgroup.h" />
     <ClInclude Include="i2-icinga.h" />
