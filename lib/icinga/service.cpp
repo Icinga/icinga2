@@ -66,6 +66,11 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	ServiceGroup::InvalidateMembersCache();
 }
 
+Service::~Service(void)
+{
+	ServiceGroup::InvalidateMembersCache();
+}
+
 String Service::GetAlias(void) const
 {
 	String value = Get("alias");

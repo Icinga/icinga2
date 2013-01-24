@@ -43,6 +43,11 @@ Host::Host(const Dictionary::Ptr& properties)
 	HostGroup::InvalidateMembersCache();
 }
 
+Host::~Host(void)
+{
+	HostGroup::InvalidateMembersCache();
+}
+
 String Host::GetAlias(void) const
 {
 	String value = Get("alias");

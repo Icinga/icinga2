@@ -75,6 +75,7 @@ public:
 	typedef weak_ptr<Service> WeakPtr;
 
 	Service(const Dictionary::Ptr& properties);
+	~Service(void);
 
 	static bool Exists(const String& name);
 	static Service::Ptr GetByName(const String& name);

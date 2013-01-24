@@ -35,6 +35,7 @@ public:
 	typedef weak_ptr<Host> WeakPtr;
 
 	Host(const Dictionary::Ptr& properties);
+	~Host(void);
 
 	static bool Exists(const String& name);
 	static Host::Ptr GetByName(const String& name);
