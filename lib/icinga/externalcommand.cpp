@@ -533,7 +533,7 @@ void ExternalCommand::ProcessFile(double time, const vector<String>& arguments)
 	ifstream ifp;
 	ifp.exceptions(ifstream::badbit);
 
-	ifp.open(file, ifstream::in);
+	ifp.open(file.CStr(), ifstream::in);
 
 	while(ifp.good()) {
 		std::string line;
