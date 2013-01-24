@@ -132,8 +132,11 @@ public:
 	void SetLastHardStateChange(double ts);
 	double GetLastHardStateChange(void) const;
 
-	bool GetEnableChecks(void) const;
-	void SetEnableChecks(bool enabled);
+	bool GetEnableActiveChecks(void) const;
+	void SetEnableActiveChecks(bool enabled);
+
+	bool GetEnablePassiveChecks(void) const;
+	void SetEnablePassiveChecks(bool enabled);
 
 	bool GetForceNextCheck(void) const;
 	void SetForceNextCheck(bool forced);

@@ -43,7 +43,8 @@ static AttributeDescription serviceAttributes[] = {
 	{ "last_result", Attribute_Replicated },
 	{ "last_state_change", Attribute_Replicated },
 	{ "last_hard_state_change", Attribute_Replicated },
-	{ "enable_checks", Attribute_Replicated },
+	{ "enable_active_checks", Attribute_Replicated },
+	{ "enable_passive_checks", Attribute_Replicated },
 	{ "force_next_check", Attribute_Replicated },
 	{ "acknowledgement", Attribute_Replicated },
 	{ "acknowledgement_expiry", Attribute_Replicated }
@@ -383,9 +384,9 @@ double Service::GetLastHardStateChange(void) const
 	return value;
 }
 
-bool Service::GetEnableChecks(void) const
+bool Service::GetEnableActiveChecks(void) const
 {
-	Value value = Get("enable_checks");
+	Value value = Get("enable_active_checks");
 
 	if (value.IsEmpty())
 		return true;
@@ -393,9 +394,24 @@ bool Service::GetEnableChecks(void) const
 	return static_cast<bool>(value);
 }
 
-void Service::SetEnableChecks(bool enabled)
+void Service::SetEnablePassiveChecks(bool enabled)
 {
-	Set("enable_checks", enabled ? 1 : 0);
+	Set("enable_passive_checks", enabled ? 1 : 0);
+}
+
+bool Service::GetEnablePassiveChecks(void) const
+{
+	Value value = Get("enable_passive_checks");
+
+	if (value.IsEmpty())
+		return true;
+
+	return static_cast<bool>(value);
+}
+
+void Service::SetEnableActiveChecks(bool enabled)
+{
+	Set("enable_active_checks", enabled ? 1 : 0);
 }
 
 bool Service::GetForceNextCheck(void) const

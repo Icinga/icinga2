@@ -45,6 +45,12 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("DISABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommand::DisableHostgroupSvcChecks);
 		RegisterCommand("ENABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommand::EnableServicegroupSvcChecks);
 		RegisterCommand("DISABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommand::DisableServicegroupSvcChecks);
+		RegisterCommand("ENABLE_PASSIVE_SVC_CHECKS", &ExternalCommand::EnablePassiveSvcChecks);
+		RegisterCommand("DISABLE_PASSIVE_SVC_CHECKS", &ExternalCommand::DisablePassiveSvcChecks);
+		RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::EnableServicegroupPassiveSvcChecks);
+		RegisterCommand("DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::DisableServicegroupPassiveSvcChecks);
+		RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::EnableHostgroupPassiveSvcChecks);
+		RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::DisableHostgroupPassiveSvcChecks);
 
 		m_Initialized = true;
 	}
@@ -77,6 +83,9 @@ void ExternalCommand::ProcessServiceCheckResult(double time, const vector<String
 		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	if (!service->GetEnablePassiveChecks())
+		throw_exception(invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
 
 	int exitStatus = arguments[2].ToDouble();
 	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(arguments[3]);
@@ -139,8 +148,8 @@ void ExternalCommand::EnableSvcCheck(double time, const vector<String>& argument
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Enabling checks for service '" + arguments[1] + "'");
-	service->SetEnableChecks(true);
+	Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + arguments[1] + "'");
+	service->SetEnableActiveChecks(true);
 }
 
 void ExternalCommand::DisableSvcCheck(double time, const vector<String>& arguments)
@@ -153,8 +162,8 @@ void ExternalCommand::DisableSvcCheck(double time, const vector<String>& argumen
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + arguments[1] + "'");
-	service->SetEnableChecks(false);
+	Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + arguments[1] + "'");
+	service->SetEnableActiveChecks(false);
 }
 
 void ExternalCommand::ShutdownProcess(double time, const vector<String>& arguments)
@@ -235,8 +244,8 @@ void ExternalCommand::EnableHostSvcChecks(double time, const vector<String>& arg
 		if (service->GetHost() != host)
 			continue;
 
-		Logger::Write(LogInformation, "icinga", "Enabling checks for service '" + service->GetName() + "'");
-		service->SetEnableChecks(true);
+		Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
+		service->SetEnableActiveChecks(true);
 	}
 }
 
@@ -257,8 +266,8 @@ void ExternalCommand::DisableHostSvcChecks(double time, const vector<String>& ar
 		if (service->GetHost() != host)
 			continue;
 
-		Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + service->GetName() + "'");
-		service->SetEnableChecks(false);
+		Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
+		service->SetEnableActiveChecks(false);
 	}
 }
 
@@ -330,8 +339,8 @@ void ExternalCommand::EnableHostgroupSvcChecks(double time, const vector<String>
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-			Logger::Write(LogInformation, "icinga", "Enabling checks for service '" + service->GetName() + "'");
-			service->SetEnableChecks(true);
+			Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
+			service->SetEnableActiveChecks(true);
 		}
 	}
 }
@@ -348,8 +357,8 @@ void ExternalCommand::DisableHostgroupSvcChecks(double time, const vector<String
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-			Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + service->GetName() + "'");
-			service->SetEnableChecks(false);
+			Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
+			service->SetEnableActiveChecks(false);
 		}
 	}
 }
@@ -365,8 +374,8 @@ void ExternalCommand::EnableServicegroupSvcChecks(double time, const vector<Stri
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-		Logger::Write(LogInformation, "icinga", "Enabling checks for service '" + service->GetName() + "'");
-		service->SetEnableChecks(true);
+		Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
+		service->SetEnableActiveChecks(true);
 	}
 }
 
@@ -381,8 +390,103 @@ void ExternalCommand::DisableServicegroupSvcChecks(double time, const vector<Str
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-		Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + service->GetName() + "'");
-		service->SetEnableChecks(false);
+		Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
+		service->SetEnableActiveChecks(false);
 	}
 }
 
+void ExternalCommand::EnablePassiveSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + arguments[1] + "'");
+	service->SetEnablePassiveChecks(true);
+}
+
+void ExternalCommand::DisablePassiveSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + arguments[1] + "'");
+	service->SetEnablePassiveChecks(false);
+}
+
+void ExternalCommand::EnableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!ServiceGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The service group '" + arguments[0] + "' does not exist."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + service->GetName() + "'");
+		service->SetEnablePassiveChecks(true);
+	}
+}
+
+void ExternalCommand::DisableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!ServiceGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The service group '" + arguments[0] + "' does not exist."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + service->GetName() + "'");
+		service->SetEnablePassiveChecks(true);
+	}
+}
+
+void ExternalCommand::EnableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!HostGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+			Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + service->GetName() + "'");
+			service->SetEnablePassiveChecks(true);
+		}
+	}
+}
+
+void ExternalCommand::DisableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!HostGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+			Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + service->GetName() + "'");
+			service->SetEnablePassiveChecks(false);
+		}
+	}
+}

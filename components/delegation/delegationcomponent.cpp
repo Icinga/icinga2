@@ -164,7 +164,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 		}
 
 		if (candidates.size() == 0) {
-			if (service->GetState() != StateUncheckable && service->GetEnableChecks()) {
+			if (service->GetState() != StateUncheckable && service->GetEnableActiveChecks()) {
 				Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 
 				double now = Utility::GetTime();

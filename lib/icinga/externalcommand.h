@@ -46,6 +46,12 @@ public:
 	static void DisableHostgroupSvcChecks(double time, const vector<String>& arguments);
 	static void EnableServicegroupSvcChecks(double time, const vector<String>& arguments);
 	static void DisableServicegroupSvcChecks(double time, const vector<String>& arguments);
+	static void EnablePassiveSvcChecks(double time, const vector<String>& arguments);
+	static void DisablePassiveSvcChecks(double time, const vector<String>& arguments);
+	static void EnableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments);
+	static void DisableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments);
+	static void EnableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments);
+	static void DisableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments);
 
 private:
 	typedef function<void (double time, const vector<String>& arguments)> Callback;

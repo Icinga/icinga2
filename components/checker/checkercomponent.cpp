@@ -72,7 +72,7 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		/* reschedule the service if checks are currently disabled
 		 * for it and this is not a forced check */
-		if (!service->GetEnableChecks()) {
+		if (!service->GetEnableActiveChecks()) {
 			if (!service->GetForceNextCheck()) {
 				Logger::Write(LogDebug, "checker", "Ignoring service check for disabled service: " + service->GetName());
 
