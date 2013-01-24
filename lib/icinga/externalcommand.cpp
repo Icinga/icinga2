@@ -329,7 +329,10 @@ void ExternalCommand::EnableHostgroupSvcChecks(double time, const vector<String>
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
-		// TODO: finish implementing this (#3566)
+		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+			Logger::Write(LogInformation, "icinga", "Enabling checks for service '" + service->GetName() + "'");
+			service->SetEnableChecks(true);
+		}
 	}
 }
 
@@ -344,7 +347,10 @@ void ExternalCommand::DisableHostgroupSvcChecks(double time, const vector<String
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
-		// TODO: finish implementing this (#3566)
+		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+			Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + service->GetName() + "'");
+			service->SetEnableChecks(false);
+		}
 	}
 }
 
