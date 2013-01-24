@@ -737,103 +737,72 @@ void CompatIdoComponent::DumpConfigObjects(void)
 	m_IdoConnection->SendMessage(msgStartConfigDump.str());
 
 	/* hosts and hostgroups */
-	map<String, vector<String> > hostgroups;
-
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
-
-		Dictionary::Ptr dict;
-		dict = host->GetGroups();
-
-		if (dict) {
-			Value hostgroup;
-			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
-				hostgroups[hostgroup].push_back(host->GetName());
-			}
-		}
 
 		DumpHostObject(host);
 		//FIXME remove me, debug only XXX
 		//DisableHostObject(host);
 	}
 
-	pair<String, vector<String > > hgt;
-	BOOST_FOREACH(hgt, hostgroups) {
-		const String& name = hgt.first;
-		const vector<String>& hosts = hgt.second;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("HostGroup")->GetObjects()) {
+		const HostGroup::Ptr& hg = static_pointer_cast<HostGroup>(object);
 
-		if (HostGroup::Exists(name)) {
-			HostGroup::Ptr hg = HostGroup::GetByName(name);
+		/* dump the hostgroup and its attributes/members to ido */
+		stringstream message;
+		message << "\n"
+			<< 401 << ":" << "\n"				/* hostgroupdefinition */
+			<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
+			<< 172 << "=" << hg->GetName() << "\n"			/* hostgroupname */
+			<< 170 << "=" << hg->GetAlias() << "\n";	/* hostgroupalias */
 
-			/* dump the hostgroup and its attributes/members to ido */
-			stringstream message;
-			message << "\n"
-				<< 401 << ":" << "\n"				/* hostgroupdefinition */
-				<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
-				<< 172 << "=" << name << "\n"			/* hostgroupname */
-				<< 170 << "=" << hg->GetAlias() << "\n";	/* hostgroupalias */
+		vector<String> hglist;
 
-			SendMessageList(message, hosts, 171);			/* hostgroupmember */
-				
-			message << 999 << "\n\n";				/* enddata */
-
-			m_IdoConnection->SendMessage(message.str());
+		BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+			hglist.push_back(host->GetName());
 		}
+
+		SendMessageList(message, hglist, 171);			/* hostgroupmember */
+				
+		message << 999 << "\n\n";				/* enddata */
+
+		m_IdoConnection->SendMessage(message.str());
 	}
 
 	/* services and servicegroups */
-	map<String, vector<Service::Ptr> > servicegroups;
-
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
-
-		Dictionary::Ptr dict;
-
-		dict = service->GetGroups();
-
-		if (dict) {
-			Value servicegroup;
-			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
-				servicegroups[servicegroup].push_back(service);
-			}
-		}
 
 		DumpServiceObject(service);
 		//FIXME remove me, debug only XXX
 		//DisableServiceObject(service);
 	}
 
-	pair<String, vector<Service::Ptr> > sgt;
-	BOOST_FOREACH(sgt, servicegroups) {
-		const String& name = sgt.first;
-		const vector<Service::Ptr>& services = sgt.second;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("ServiceGroup")->GetObjects()) {
+		const ServiceGroup::Ptr& sg = static_pointer_cast<ServiceGroup>(object);
 
-		if (ServiceGroup::Exists(name)) {
-			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
+		/* dump the servicegroup and its attributes/members to ido */
+		stringstream message;
+		message << "\n"
+			<< 403 << ":" << "\n"				/* servicegroupdefinition */
+			<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
+			<< 220 << "=" << sg->GetName() << "\n"			/* servicegroupname */
+			<< 218 << "=" << sg->GetAlias() << "\n";	/* servicegroupalias */
 
-			/* dump the servicegroup and its attributes/members to ido */
-			stringstream message;
-			message << "\n"
-				<< 403 << ":" << "\n"				/* servicegroupdefinition */
-				<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
-				<< 220 << "=" << name << "\n"			/* servicegroupname */
-				<< 218 << "=" << sg->GetAlias() << "\n";	/* servicegroupalias */
+		vector<String> sglist;
+		vector<Service::Ptr>::iterator vt;
 
-			vector<String> sglist;
-			vector<Service::Ptr>::iterator vt;
-
-			BOOST_FOREACH(const Service::Ptr& service, services) {
-				sglist.push_back(service->GetHost()->GetName());
-				sglist.push_back(service->GetAlias());
-			}
-	
-			SendMessageList(message, services, 219);		/* servicegroupmember */
-
-			message << 999 << "\n\n";				/* enddata */
-
-			m_IdoConnection->SendMessage(message.str());
+		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+			sglist.push_back(service->GetHost()->GetName());
+			sglist.push_back(service->GetAlias());
 		}
+	
+		SendMessageList(message, sglist, 219);		/* servicegroupmember */
+
+		message << 999 << "\n\n";				/* enddata */
+
+		m_IdoConnection->SendMessage(message.str());
 	}
 
 	/* tell ido2db that we ended dumping the config */
