@@ -41,7 +41,10 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM", &ExternalCommand::AcknowledgeSvcProblem);
 		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM_EXPIRE", &ExternalCommand::AcknowledgeSvcProblemExpire);
 		RegisterCommand("REMOVE_SVC_ACKNOWLEDGEMENT", &ExternalCommand::RemoveSvcAcknowledgement);
-
+		RegisterCommand("ENABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommand::EnableHostgroupSvcChecks);
+		RegisterCommand("DISABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommand::DisableHostgroupSvcChecks);
+		RegisterCommand("ENABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommand::EnableServicegroupSvcChecks);
+		RegisterCommand("DISABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommand::DisableServicegroupSvcChecks);
 
 		m_Initialized = true;
 	}
@@ -313,5 +316,67 @@ void ExternalCommand::RemoveSvcAcknowledgement(double time, const vector<String>
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
 	service->SetAcknowledgement(AcknowledgementNone);
 	service->SetAcknowledgementExpiry(0);
+}
+
+void ExternalCommand::EnableHostgroupSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!HostGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		// TODO: finish implementing this (#3566)
+	}
+}
+
+void ExternalCommand::DisableHostgroupSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!HostGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		// TODO: finish implementing this (#3566)
+	}
+}
+
+void ExternalCommand::EnableServicegroupSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!ServiceGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The service group '" + arguments[0] + "' does not exist."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Logger::Write(LogInformation, "icinga", "Enabling checks for service '" + service->GetName() + "'");
+		service->SetEnableChecks(true);
+	}
+}
+
+void ExternalCommand::DisableServicegroupSvcChecks(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!ServiceGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The service group '" + arguments[0] + "' does not exist."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Logger::Write(LogInformation, "icinga", "Disabling checks for service '" + service->GetName() + "'");
+		service->SetEnableChecks(false);
+	}
 }
 
