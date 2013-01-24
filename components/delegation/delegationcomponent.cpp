@@ -163,7 +163,28 @@ void DelegationComponent::DelegationTimerHandler(void)
 			break;
 		}
 
-		assert(candidates.size() == 0 || !service->GetChecker().IsEmpty());
+		if (candidates.size() == 0) {
+			if (service->GetState() != StateUncheckable && service->GetEnableChecks()) {
+				Dictionary::Ptr cr = boost::make_shared<Dictionary>();
+
+				double now = Utility::GetTime();
+				cr->Set("schedule_start", now);
+				cr->Set("schedule_end", now);
+				cr->Set("execution_start", now);
+				cr->Set("execution_end", now);
+
+				cr->Set("state", StateUncheckable);
+				cr->Set("output", "No checker is available for this service.");
+
+				service->ProcessCheckResult(cr);
+
+				Logger::Write(LogWarning, "delegation", "Can't delegate service: " + service->GetName());
+			}
+
+			continue;
+		}
+
+		assert(!service->GetChecker().IsEmpty());
 	}
 
 	Endpoint::Ptr endpoint;
