@@ -102,6 +102,7 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
+		m_IdleServices.erase(service);
 		m_PendingServices.insert(service);
 
 		service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
