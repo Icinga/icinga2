@@ -24,6 +24,36 @@ using namespace icinga;
 bool I2_EXPORT ExternalCommand::m_Initialized;
 map<String, ExternalCommand::Callback> I2_EXPORT ExternalCommand::m_Commands;
 
+void ExternalCommand::Execute(const String& line)
+{
+	if (line.IsEmpty())
+		return;
+
+	if (line[0] != '[')
+		throw_exception(invalid_argument("Missing timestamp in command: " + line));
+
+	size_t pos = line.FindFirstOf("]");
+
+	if (pos == String::NPos)
+		throw_exception(invalid_argument("Missing timestamp in command: " + line));
+
+	String timestamp = line.SubStr(1, pos - 1);
+	String args = line.SubStr(pos + 2, String::NPos);
+
+	double ts = timestamp.ToDouble();
+
+	if (ts == 0)
+		throw_exception(invalid_argument("Invalid timestamp in command: " + line));
+
+	vector<String> argv = args.Split(is_any_of(";"));
+
+	if (argv.size() == 0)
+		throw_exception(invalid_argument("Missing arguments in command: " + line));
+
+	vector<String> argvExtra(argv.begin() + 1, argv.end());
+	Execute(ts, argv[0], argvExtra);
+}
+
 void ExternalCommand::Execute(double time, const String& command, const vector<String>& arguments)
 {
 	if (!m_Initialized) {
@@ -51,6 +81,7 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::DisableServicegroupPassiveSvcChecks);
 		RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::EnableHostgroupPassiveSvcChecks);
 		RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::DisableHostgroupPassiveSvcChecks);
+		RegisterCommand("PROCESS_FILE", &ExternalCommand::ProcessFile);
 
 		m_Initialized = true;
 	}
@@ -489,4 +520,38 @@ void ExternalCommand::DisableHostgroupPassiveSvcChecks(double time, const vector
 			service->SetEnablePassiveChecks(false);
 		}
 	}
+}
+
+void ExternalCommand::ProcessFile(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	String file = arguments[0];
+	int del = arguments[1].ToDouble();
+
+	ifstream ifp;
+	ifp.exceptions(ifstream::badbit);
+
+	ifp.open(file, ifstream::in);
+
+	while(ifp.good()) {
+		std::string line;
+		std::getline(ifp, line);
+
+		try {
+			Logger::Write(LogInformation, "compat", "Executing external command: " + line);
+
+			Execute(line);
+		} catch (const exception& ex) {
+			stringstream msgbuf;
+			msgbuf << "External command failed: " << ex.what();
+			Logger::Write(LogWarning, "icinga", msgbuf.str());
+		}
+	}
+
+	ifp.close();
+
+	if (del)
+		(void) unlink(file.CStr());
 }

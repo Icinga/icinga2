@@ -147,48 +147,10 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 
 void CompatComponent::ProcessCommand(const String& command)
 {
-	if (command.IsEmpty())
-		return;
-
-	if (command[0] != '[') {
-		Logger::Write(LogWarning, "compat", "Missing timestamp in command: " + command);
-
-		return;
-	}
-
-	size_t pos = command.FindFirstOf("]");
-
-	if (pos == String::NPos) {
-		Logger::Write(LogWarning, "compat", "Missing timestamp in command: " + command);
-
-		return;
-	}
-
-	String timestamp = command.SubStr(1, pos - 1);
-	String args = command.SubStr(pos + 2, String::NPos);
-
-	double ts = timestamp.ToDouble();
-
-	if (ts == 0) {
-		Logger::Write(LogWarning, "compat", "Invalid timestamp in command: " + command);
-
-		return;
-	}
-
-	vector<String> argv = args.Split(is_any_of(";"));
-
-	if (argv.size() == 0) {
-		Logger::Write(LogWarning, "compat", "Missing arguments in command: " + command);
-
-		return;
-	}
-
-	vector<String> argvExtra(argv.begin() + 1, argv.end());
-
 	try {
 		Logger::Write(LogInformation, "compat", "Executing external command: " + command);
 
-		ExternalCommand::Execute(ts, argv[0], argvExtra);
+		ExternalCommand::Execute(command);
 	} catch (const exception& ex) {
 		stringstream msgbuf;
 		msgbuf << "External command failed: " << ex.what();

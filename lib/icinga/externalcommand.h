@@ -25,7 +25,7 @@ namespace icinga
 	
 class I2_ICINGA_API ExternalCommand {
 public:
-
+	static void Execute(const String& line);
 	static void Execute(double time, const String& command, const vector<String>& arguments);
 
 	static void HelloWorld(double time, const vector<String>& arguments);
@@ -52,6 +52,7 @@ public:
 	static void DisableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments);
 	static void EnableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments);
 	static void DisableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments);
+	static void ProcessFile(double time, const vector<String>& arguments);
 
 private:
 	typedef function<void (double time, const vector<String>& arguments)> Callback;
