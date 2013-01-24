@@ -108,7 +108,7 @@ void ServiceGroup::ValidateMembersCache(void)
 			Value servicegroup;
 			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
 				if (!ServiceGroup::Exists(servicegroup))
-					Logger::Write(LogWarning, "icinga", "Service group '" + servicegroup + "' used but not defined.");
+					Logger::Write(LogWarning, "icinga", "Service group '" + static_cast<String>(servicegroup) + "' used but not defined.");
 
 				m_MembersCache[servicegroup].push_back(service->GetName());
 			}

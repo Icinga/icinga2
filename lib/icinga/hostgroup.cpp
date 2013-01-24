@@ -108,7 +108,7 @@ void HostGroup::ValidateMembersCache(void)
 			Value hostgroup;
 			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
 				if (!HostGroup::Exists(hostgroup))
-					Logger::Write(LogWarning, "icinga", "Host group '" + hostgroup + "' used but not defined.");
+					Logger::Write(LogWarning, "icinga", "Host group '" + static_cast<String>(hostgroup) + "' used but not defined.");
 
 				m_MembersCache[hostgroup].push_back(host->GetName());
 			}
