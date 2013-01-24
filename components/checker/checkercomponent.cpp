@@ -74,11 +74,13 @@ void CheckerComponent::CheckTimerHandler(void)
 		 * for it and this is not a forced check */
 		if (!service->GetEnableChecks()) {
 			if (!service->GetForceNextCheck()) {
+				Logger::Write(LogDebug, "checker", "Ignoring service check for disabled service: " + service->GetName());
+
 				service->UpdateNextCheck();
 
 				idx.insert(service);
 
-				return;
+				continue;
 			}
 
 			service->SetForceNextCheck(false);
