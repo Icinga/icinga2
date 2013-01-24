@@ -331,7 +331,8 @@ void EndpointManager::SubscriptionTimerHandler(void)
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
-		if (!endpoint->IsLocalEndpoint())
+		/* don't copy subscriptions from non-local endpoints or the identity endpoint */
+		if (!endpoint->IsLocalEndpoint() || endpoint == m_Endpoint)
 			continue;
 
 		if (endpoint->GetSubscriptions()) {
