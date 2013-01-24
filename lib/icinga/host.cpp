@@ -21,6 +21,9 @@
 
 using namespace icinga;
 
+map<String, vector<String> > Host::m_ServicesCache;
+bool Host::m_ServicesCacheValid = true;
+
 static AttributeDescription hostAttributes[] = {
 	{ "alias", Attribute_Config },
 	{ "hostgroups", Attribute_Config }
@@ -284,5 +287,45 @@ void Host::OnAttributeChanged(const String& name, const Value& oldValue)
 {
 	if (name == "hostgroups")
 		HostGroup::InvalidateMembersCache();
+}
+
+set<Service::Ptr> Host::GetServices(void) const
+{
+	set<Service::Ptr> services;
+
+	ValidateServicesCache();
+
+	BOOST_FOREACH(const String& svc, m_ServicesCache[GetName()]) {
+		if (!Service::Exists(svc))
+			continue;
+
+		Service::Ptr service = Service::GetByName(svc);
+		services.insert(service);
+	}
+
+	return services;
+}
+
+void Host::InvalidateServicesCache(void)
+{
+	m_ServicesCacheValid = false;
+	m_ServicesCache.clear();
+}
+
+void Host::ValidateServicesCache(void)
+{
+	if (m_ServicesCacheValid)
+		return;
+
+	m_ServicesCache.clear();
+
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+		const Service::Ptr& service = static_pointer_cast<Service>(object);
+
+		m_ServicesCache[service->GetHost()->GetName()].push_back(service->GetName());
+	}
+
+	m_ServicesCacheValid = true;
 }
 

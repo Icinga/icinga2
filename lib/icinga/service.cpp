@@ -64,11 +64,13 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
 {
 	ServiceGroup::InvalidateMembersCache();
+	Host::InvalidateServicesCache();
 }
 
 Service::~Service(void)
 {
 	ServiceGroup::InvalidateMembersCache();
+	Host::InvalidateServicesCache();
 }
 
 String Service::GetAlias(void) const
@@ -592,6 +594,8 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 		OnNextCheckChanged(GetSelf(), oldValue);
 	else if (name == "servicegroups")
 		ServiceGroup::InvalidateMembersCache();
+	else if (name == "host_name")
+		Host::InvalidateServicesCache();
 }
 
 void Service::BeginExecuteCheck(const function<void (void)>& callback)

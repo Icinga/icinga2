@@ -23,6 +23,8 @@
 namespace icinga
 {
 
+class Service;
+
 /**
  * An Icinga host.
  * 
@@ -48,14 +50,22 @@ public:
 	bool IsReachable(void);
 	bool IsUp(void);
 
+	set<shared_ptr<Service> > GetServices(void) const;
+	static void InvalidateServicesCache(void);
+
 protected:
 	void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
 	static bool m_InitializerDone;
 
+	static map<String, vector<String> > m_ServicesCache;
+	static bool m_ServicesCacheValid;
+
 	static void ObjectCommittedHandler(const ConfigItem::Ptr& item);
 	static void ObjectRemovedHandler(const ConfigItem::Ptr& item);
+
+	static void ValidateServicesCache(void);
 };
 
 }
