@@ -54,6 +54,8 @@ object				return T_OBJECT;
 #library			return T_LIBRARY;
 inherits			return T_INHERITS;
 null				return T_NULL;
+true				{ yylval->num = 1; return T_NUMBER; }
+false				{ yylval->num = 0; return T_NUMBER; }
 [a-zA-Z_][a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
 \"[^\"]*\"			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING; }
 -?[0-9]+(\.[0-9]+)?h		{ yylval->num = strtod(yytext, NULL) * 60 * 60; return T_NUMBER; }
