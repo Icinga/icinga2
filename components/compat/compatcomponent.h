@@ -50,6 +50,21 @@ private:
 	void DumpHostObject(ofstream& fp, const Host::Ptr& host);
 
 	template<typename T>
+	void DumpNameList(ofstream& fp, const T& list)
+	{
+		typename T::const_iterator it;
+		bool first = true;
+		for (it = list.begin(); it != list.end(); it++) {
+			if (!first)
+				fp << ",";
+			else
+				first = false;
+
+			fp << (*it)->GetName();
+		}
+	}
+
+	template<typename T>
 	void DumpStringList(ofstream& fp, const T& list)
 	{
 		typename T::const_iterator it;
@@ -63,7 +78,6 @@ private:
 			fp << *it;
 		}
 	}
-
 
 	void DumpServiceStatus(ofstream& fp, const Service::Ptr& service);
 	void DumpServiceObject(ofstream& fp, const Service::Ptr& service);

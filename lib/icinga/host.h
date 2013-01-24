@@ -41,11 +41,14 @@ public:
 
 	String GetAlias(void) const;
 	Dictionary::Ptr GetGroups(void) const;
-	set<String> GetParents(void);
+	set<Host::Ptr> GetParents(void);
 	Dictionary::Ptr GetMacros(void) const;
 
 	bool IsReachable(void);
 	bool IsUp(void);
+
+protected:
+	void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
 	static bool m_InitializerDone;

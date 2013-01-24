@@ -21,6 +21,9 @@
 
 using namespace icinga;
 
+map<String, vector<String> > ServiceGroup::m_MembersCache;
+bool ServiceGroup::m_MembersCacheValid;
+
 static AttributeDescription serviceGroupAttributes[] = {
 	{ "alias", Attribute_Config },
 	{ "notes_url", Attribute_Config },
@@ -62,5 +65,56 @@ ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 		throw_exception(invalid_argument("ServiceGroup '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<ServiceGroup>(configObject);
+}
+
+set<Service::Ptr> ServiceGroup::GetMembers(void) const
+{
+	set<Service::Ptr> services;
+
+	ValidateMembersCache();
+
+	BOOST_FOREACH(const String& svc, m_MembersCache[GetName()]) {
+		if (!Service::Exists(svc))
+			continue;
+
+		Service::Ptr service = Service::GetByName(svc);
+		services.insert(service);
+	}
+
+	return services;
+}
+
+void ServiceGroup::InvalidateMembersCache(void)
+{
+	m_MembersCacheValid = false;
+	m_MembersCache.clear();
+}
+
+void ServiceGroup::ValidateMembersCache(void)
+{
+	if (m_MembersCacheValid)
+		return;
+
+	m_MembersCache.clear();
+
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+		const Service::Ptr& service = static_pointer_cast<Service>(object);
+
+		Dictionary::Ptr dict;
+		dict = service->GetGroups();
+
+		if (dict) {
+			Value servicegroup;
+			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
+				if (!ServiceGroup::Exists(servicegroup))
+					Logger::Write(LogWarning, "icinga", "Service group '" + servicegroup + "' used but not defined.");
+
+				m_MembersCache[servicegroup].push_back(service->GetName());
+			}
+		}
+	}
+
+	m_MembersCacheValid = true;
 }
 

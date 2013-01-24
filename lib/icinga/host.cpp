@@ -39,6 +39,8 @@ Host::Host(const Dictionary::Ptr& properties)
 
 		m_InitializerDone = true;
 	}
+
+	HostGroup::InvalidateMembersCache();
 }
 
 String Host::GetAlias(void) const
@@ -70,9 +72,9 @@ Dictionary::Ptr Host::GetGroups(void) const
 	return Get("hostgroups");
 }
 
-set<String> Host::GetParents(void)
+set<Host::Ptr> Host::GetParents(void)
 {
-	set<String> parents;
+	set<Host::Ptr> parents;
 
 	Dictionary::Ptr dependencies = Get("dependencies");
 	if (dependencies) {
@@ -82,10 +84,10 @@ set<String> Host::GetParents(void)
 		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
 			Service::Ptr service = Service::GetByName(dependency);
 
-			String parent = service->GetHost()->GetName();
+			Host::Ptr parent = service->GetHost();
 
 			/* ignore ourselves */
-			if (parent == GetName())
+			if (parent->GetName() == GetName())
 				continue;
 
 			parents.insert(parent);
@@ -271,5 +273,11 @@ void Host::ObjectRemovedHandler(const ConfigItem::Ptr& item)
 	BOOST_FOREACH(tie(tuples::ignore, service), services) {
 		service->Unregister();
 	}
+}
+
+void Host::OnAttributeChanged(const String& name, const Value& oldValue)
+{
+	if (name == "hostgroups")
+		HostGroup::InvalidateMembersCache();
 }
 

@@ -62,7 +62,9 @@ boost::signal<void (const Service::Ptr&, const Value&)> Service::OnNextCheckChan
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
-{ }
+{
+	ServiceGroup::InvalidateMembersCache();
+}
 
 String Service::GetAlias(void) const
 {
@@ -583,6 +585,8 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 		OnCheckerChanged(GetSelf(), oldValue);
 	else if (name == "next_check")
 		OnNextCheckChanged(GetSelf(), oldValue);
+	else if (name == "servicegroups")
+		ServiceGroup::InvalidateMembersCache();
 }
 
 void Service::BeginExecuteCheck(const function<void (void)>& callback)

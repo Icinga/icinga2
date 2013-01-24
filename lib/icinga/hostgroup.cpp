@@ -21,6 +21,9 @@
 
 using namespace icinga;
 
+map<String, vector<String> > HostGroup::m_MembersCache;
+bool HostGroup::m_MembersCacheValid = true;
+
 static AttributeDescription hostGroupAttributes[] = {
 	{ "alias", Attribute_Config },
 	{ "notes_url", Attribute_Config },
@@ -62,5 +65,56 @@ HostGroup::Ptr HostGroup::GetByName(const String& name)
 		throw_exception(invalid_argument("HostGroup '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<HostGroup>(configObject);
+}
+
+set<Host::Ptr> HostGroup::GetMembers(void) const
+{
+	set<Host::Ptr> hosts;
+
+	ValidateMembersCache();
+
+	BOOST_FOREACH(const String& hst, m_MembersCache[GetName()]) {
+		if (!Host::Exists(hst))
+			continue;
+
+		Host::Ptr host = Host::GetByName(hst);
+		hosts.insert(host);
+	}
+
+	return hosts;
+}
+
+void HostGroup::InvalidateMembersCache(void)
+{
+	m_MembersCacheValid = false;
+	m_MembersCache.clear();
+}
+
+void HostGroup::ValidateMembersCache(void)
+{
+	if (m_MembersCacheValid)
+		return;
+
+	m_MembersCache.clear();
+
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
+		const Host::Ptr& host = static_pointer_cast<Host>(object);
+
+		Dictionary::Ptr dict;
+		dict = host->GetGroups();
+
+		if (dict) {
+			Value hostgroup;
+			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
+				if (!HostGroup::Exists(hostgroup))
+					Logger::Write(LogWarning, "icinga", "Host group '" + hostgroup + "' used but not defined.");
+
+				m_MembersCache[hostgroup].push_back(host->GetName());
+			}
+		}
+	}
+
+	m_MembersCacheValid = true;
 }
 

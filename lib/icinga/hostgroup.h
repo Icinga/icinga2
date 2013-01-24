@@ -44,6 +44,15 @@ public:
 	String GetAlias(void) const;
 	String GetNotesUrl(void) const;
 	String GetActionUrl(void) const;
+
+	set<Host::Ptr> GetMembers(void) const;
+	static void InvalidateMembersCache(void);
+
+private:
+	static map<String, vector<String> > m_MembersCache;
+	static bool m_MembersCacheValid;
+
+	static void ValidateMembersCache(void);
 };
 
 }

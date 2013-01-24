@@ -237,11 +237,11 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
 	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n";
 
-	set<String> parents = host->GetParents();
+	set<Host::Ptr> parents = host->GetParents();
 
 	if (!parents.empty()) {
 		fp << "\t" << "parents" << "\t";
-		DumpStringList(fp, parents);
+		DumpNameList(fp, parents);
 		fp << "\n";
 	}
 
@@ -370,90 +370,49 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
 
-	map<String, vector<String> > hostgroups;
-
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
-
-		Dictionary::Ptr dict;
-		dict = host->GetGroups();
-
-		if (dict) {
-			Value hostgroup;
-			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
-				hostgroups[hostgroup].push_back(host->GetName());
-			}
-		}
 
 		DumpHostStatus(statusfp, host);
 		DumpHostObject(objectfp, host);
 	}
 
-	pair<String, vector<String > > hgt;
-	BOOST_FOREACH(hgt, hostgroups) {
-		const String& name = hgt.first;
-		const vector<String>& hosts = hgt.second;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("HostGroup")->GetObjects()) {
+		const HostGroup::Ptr& hg = static_pointer_cast<HostGroup>(object);
 
 		objectfp << "define hostgroup {" << "\n"
-			 << "\t" << "hostgroup_name" << "\t" << name << "\n";
-
-		if (HostGroup::Exists(name)) {
-			HostGroup::Ptr hg = HostGroup::GetByName(name);
-			objectfp << "\t" << "alias" << "\t" << hg->GetAlias() << "\n"
-				 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
-				 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
-		}
+			 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
+			 << "\t" << "alias" << "\t" << hg->GetAlias() << "\n"
+			 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
+			 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
 
 		objectfp << "\t" << "members" << "\t";
-
-		DumpStringList(objectfp, hosts);
-
+		DumpNameList(objectfp, hg->GetMembers());
 		objectfp << "\n"
 			 << "}" << "\n";
 	}
 
-	map<String, vector<Service::Ptr> > servicegroups;
-
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		Service::Ptr service = static_pointer_cast<Service>(object);
-
-		Dictionary::Ptr dict;
-
-		dict = service->GetGroups();
-
-		if (dict) {
-			Value servicegroup;
-			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
-				servicegroups[servicegroup].push_back(service);
-			}
-		}
+		const Service::Ptr& service = static_pointer_cast<Service>(object);
 
 		DumpServiceStatus(statusfp, service);
 		DumpServiceObject(objectfp, service);
 	}
 
-	pair<String, vector<Service::Ptr> > sgt;
-	BOOST_FOREACH(sgt, servicegroups) {
-		const String& name = sgt.first;
-		const vector<Service::Ptr>& services = sgt.second;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("ServiceGroup")->GetObjects()) {
+		const ServiceGroup::Ptr& sg = static_pointer_cast<ServiceGroup>(object);
 
 		objectfp << "define servicegroup {" << "\n"
-			 << "\t" << "servicegroup_name" << "\t" << name << "\n";
-
-		if (ServiceGroup::Exists(name)) {
-			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
-			objectfp << "\t" << "alias" << "\t" << sg->GetAlias() << "\n"
-				 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
-				 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
-		}
+			 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
+			 << "\t" << "alias" << "\t" << sg->GetAlias() << "\n"
+			 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
+			 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
 
 		objectfp << "\t" << "members" << "\t";
 
 		vector<String> sglist;
-		vector<Service::Ptr>::iterator vt;
-
-		BOOST_FOREACH(const Service::Ptr& service, services) {
+		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 			sglist.push_back(service->GetHost()->GetName());
 			sglist.push_back(service->GetAlias());
 		}
