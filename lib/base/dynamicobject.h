@@ -145,7 +145,7 @@ protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
-	void InternalSetAttribute(const String& name, const Value& data, double tx, bool suppressEvent = false);
+	void InternalSetAttribute(const String& name, const Value& data, double tx, bool suppressEvent = false, bool allowEditConfig = false);
 	Value InternalGetAttribute(const String& name) const;
 
 	AttributeMap m_Attributes;

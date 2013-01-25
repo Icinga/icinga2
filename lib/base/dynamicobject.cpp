@@ -126,7 +126,7 @@ void DynamicObject::InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 		if (!HasAttribute(it->first))
 			RegisterAttribute(it->first, static_cast<DynamicAttributeType>(type));
 
-		InternalSetAttribute(it->first, data, tx, suppressEvents);
+		InternalSetAttribute(it->first, data, tx, suppressEvents, true);
 	}
 }
 
@@ -160,7 +160,7 @@ Value DynamicObject::Get(const String& name) const
 }
 
 void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
-    double tx, bool suppressEvent)
+    double tx, bool suppressEvent, bool allowEditConfig)
 {
 	DynamicAttribute attr;
 	attr.Type = Attribute_Transient;
@@ -171,6 +171,9 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 	tt = m_Attributes.insert(make_pair(name, attr));
 
 	Value oldValue;
+
+	if (!allowEditConfig && (tt.first->second.Type & Attribute_Config))
+		throw_exception(runtime_error("Config properties are immutable: '" + name + "'."));
 
 	if (!tt.second && tx >= tt.first->second.Tx) {
 		oldValue = tt.first->second.Data;
