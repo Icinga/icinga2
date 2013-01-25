@@ -158,6 +158,11 @@ void DelegationComponent::DelegationTimerHandler(void)
 			service->SetChecker(candidate->GetName());
 			histogram[candidate]++;
 
+			/* reschedule the service; this avoids "check floods"
+			 * when a lot of services are re-assigned that haven't
+			 * been checked recently. */
+			service->UpdateNextCheck();
+
 			delegated++;
 
 			break;
