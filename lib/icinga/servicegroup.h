@@ -49,7 +49,7 @@ public:
 	static void InvalidateMembersCache(void);
 
 private:
-	static map<String, vector<String> > m_MembersCache;
+	static map<String, vector<weak_ptr<Service> > > m_MembersCache;
 	static bool m_MembersCacheValid;
 
 	static void ValidateMembersCache(void);

@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-map<String, vector<String> > ServiceGroup::m_MembersCache;
+map<String, vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
 bool ServiceGroup::m_MembersCacheValid;
 
 static AttributeDescription serviceGroupAttributes[] = {
@@ -73,11 +73,12 @@ set<Service::Ptr> ServiceGroup::GetMembers(void) const
 
 	ValidateMembersCache();
 
-	BOOST_FOREACH(const String& svc, m_MembersCache[GetName()]) {
-		if (!Service::Exists(svc))
+	BOOST_FOREACH(const Service::WeakPtr& svc, m_MembersCache[GetName()]) {
+		Service::Ptr service = svc.lock();
+
+		if (!service)
 			continue;
 
-		Service::Ptr service = Service::GetByName(svc);
 		services.insert(service);
 	}
 
@@ -110,7 +111,7 @@ void ServiceGroup::ValidateMembersCache(void)
 				if (!ServiceGroup::Exists(servicegroup))
 					Logger::Write(LogWarning, "icinga", "Service group '" + static_cast<String>(servicegroup) + "' used but not defined.");
 
-				m_MembersCache[servicegroup].push_back(service->GetName());
+				m_MembersCache[servicegroup].push_back(service);
 			}
 		}
 	}

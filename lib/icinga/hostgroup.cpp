@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-map<String, vector<String> > HostGroup::m_MembersCache;
+map<String, vector<Host::WeakPtr> > HostGroup::m_MembersCache;
 bool HostGroup::m_MembersCacheValid = true;
 
 static AttributeDescription hostGroupAttributes[] = {
@@ -73,11 +73,12 @@ set<Host::Ptr> HostGroup::GetMembers(void) const
 
 	ValidateMembersCache();
 
-	BOOST_FOREACH(const String& hst, m_MembersCache[GetName()]) {
-		if (!Host::Exists(hst))
+	BOOST_FOREACH(const Host::WeakPtr& hst, m_MembersCache[GetName()]) {
+		Host::Ptr host = hst.lock();
+
+		if (!host)
 			continue;
 
-		Host::Ptr host = Host::GetByName(hst);
 		hosts.insert(host);
 	}
 
@@ -110,7 +111,7 @@ void HostGroup::ValidateMembersCache(void)
 				if (!HostGroup::Exists(hostgroup))
 					Logger::Write(LogWarning, "icinga", "Host group '" + static_cast<String>(hostgroup) + "' used but not defined.");
 
-				m_MembersCache[hostgroup].push_back(host->GetName());
+				m_MembersCache[hostgroup].push_back(host);
 			}
 		}
 	}

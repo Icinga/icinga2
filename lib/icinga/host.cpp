@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-map<String, vector<String> > Host::m_ServicesCache;
+map<String, vector<Service::WeakPtr> > Host::m_ServicesCache;
 bool Host::m_ServicesCacheValid = true;
 
 static AttributeDescription hostAttributes[] = {
@@ -295,11 +295,12 @@ set<Service::Ptr> Host::GetServices(void) const
 
 	ValidateServicesCache();
 
-	BOOST_FOREACH(const String& svc, m_ServicesCache[GetName()]) {
-		if (!Service::Exists(svc))
+	BOOST_FOREACH(const Service::WeakPtr& svc, m_ServicesCache[GetName()]) {
+		Service::Ptr service = svc.lock();
+
+		if (!service)
 			continue;
 
-		Service::Ptr service = Service::GetByName(svc);
 		services.insert(service);
 	}
 
@@ -323,7 +324,7 @@ void Host::ValidateServicesCache(void)
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
 
-		m_ServicesCache[service->GetHost()->GetName()].push_back(service->GetName());
+		m_ServicesCache[service->GetHost()->GetName()].push_back(service);
 	}
 
 	m_ServicesCacheValid = true;

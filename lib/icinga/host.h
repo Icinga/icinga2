@@ -59,7 +59,7 @@ protected:
 private:
 	static bool m_InitializerDone;
 
-	static map<String, vector<String> > m_ServicesCache;
+	static map<String, vector<weak_ptr<Service> > > m_ServicesCache;
 	static bool m_ServicesCacheValid;
 
 	static void ObjectCommittedHandler(const ConfigItem::Ptr& item);
