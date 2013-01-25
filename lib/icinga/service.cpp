@@ -515,6 +515,16 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 			SetAcknowledgement(AcknowledgementNone);
 			SetAcknowledgementExpiry(0);
 		}
+
+		/* reschedule dependencies */
+		String svc;
+		BOOST_FOREACH(tie(tuples::ignore, svc), GetDependencies()) {
+			if (!Service::Exists(svc))
+				continue;
+
+			Service::Ptr service = Service::GetByName(svc);
+			service->SetNextCheck(Utility::GetTime());
+		}
 	}
 }
 
