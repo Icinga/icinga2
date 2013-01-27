@@ -81,6 +81,9 @@
     <ClInclude Include="externalcommand.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="acknowledgement.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headerdateien">

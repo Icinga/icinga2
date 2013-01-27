@@ -42,6 +42,9 @@ public:
 	static void AcknowledgeSvcProblem(double time, const vector<String>& arguments);
 	static void AcknowledgeSvcProblemExpire(double time, const vector<String>& arguments);
 	static void RemoveSvcAcknowledgement(double time, const vector<String>& arguments);
+	static void AcknowledgeHostProblem(double time, const vector<String>& arguments);
+	static void AcknowledgeHostProblemExpire(double time, const vector<String>& arguments);
+	static void RemoveHostAcknowledgement(double time, const vector<String>& arguments);
 	static void EnableHostgroupSvcChecks(double time, const vector<String>& arguments);
 	static void DisableHostgroupSvcChecks(double time, const vector<String>& arguments);
 	static void EnableServicegroupSvcChecks(double time, const vector<String>& arguments);

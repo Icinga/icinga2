@@ -70,7 +70,10 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("DISABLE_HOST_SVC_CHECKS", &ExternalCommand::DisableHostSvcChecks);
 		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM", &ExternalCommand::AcknowledgeSvcProblem);
 		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM_EXPIRE", &ExternalCommand::AcknowledgeSvcProblemExpire);
-		RegisterCommand("REMOVE_SVC_ACKNOWLEDGEMENT", &ExternalCommand::RemoveSvcAcknowledgement);
+		RegisterCommand("REMOVE_SVC_ACKNOWLEDGEMENT", &ExternalCommand::RemoveHostAcknowledgement);
+		RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM", &ExternalCommand::AcknowledgeHostProblem);
+		RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM_EXPIRE", &ExternalCommand::AcknowledgeHostProblemExpire);
+		RegisterCommand("REMOVE_HOST_ACKNOWLEDGEMENT", &ExternalCommand::RemoveHostAcknowledgement);
 		RegisterCommand("ENABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommand::EnableHostgroupSvcChecks);
 		RegisterCommand("DISABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommand::DisableHostgroupSvcChecks);
 		RegisterCommand("ENABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommand::EnableServicegroupSvcChecks);
@@ -356,6 +359,62 @@ void ExternalCommand::RemoveSvcAcknowledgement(double time, const vector<String>
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
 	service->SetAcknowledgement(AcknowledgementNone);
 	service->SetAcknowledgementExpiry(0);
+}
+
+void ExternalCommand::AcknowledgeHostProblem(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 7)
+		throw_exception(invalid_argument("Expected 7 arguments."));
+
+	if (!Host::Exists(arguments[1]))
+		throw_exception(invalid_argument("The host '" + arguments[1] + "' does not exist."));
+
+	int sticky = arguments[2].ToDouble();
+
+	Host::Ptr host = Host::GetByName(arguments[1]);
+
+	if (host->IsUp())
+		throw_exception(invalid_argument("The host '" + arguments[1] + "' is OK."));
+
+	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for host '" + host->GetName() + "'");
+	host->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+	host->SetAcknowledgementExpiry(0);
+}
+
+void ExternalCommand::AcknowledgeHostProblemExpire(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 8)
+		throw_exception(invalid_argument("Expected 8 arguments."));
+
+	if (!Host::Exists(arguments[1]))
+		throw_exception(invalid_argument("The host '" + arguments[1] + "' does not exist."));
+
+	int sticky = arguments[2].ToDouble();
+	double timestamp = arguments[5].ToDouble();
+
+	Host::Ptr host = Host::GetByName(arguments[1]);
+
+	if (host->IsUp())
+		throw_exception(invalid_argument("The host '" + arguments[1] + "' is OK."));
+
+	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for host '" + host->GetName() + "'");
+	host->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+	host->SetAcknowledgementExpiry(timestamp);
+}
+
+void ExternalCommand::RemoveHostAcknowledgement(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	if (!Host::Exists(arguments[1]))
+		throw_exception(invalid_argument("The host '" + arguments[1] + "' does not exist."));
+
+	Host::Ptr host = Host::GetByName(arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
+	host->SetAcknowledgement(AcknowledgementNone);
+	host->SetAcknowledgementExpiry(0);
 }
 
 void ExternalCommand::EnableHostgroupSvcChecks(double time, const vector<String>& arguments)

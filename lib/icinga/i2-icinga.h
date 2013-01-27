@@ -48,6 +48,8 @@ using boost::algorithm::is_any_of;
 
 #include "timeperiod.h"
 
+#include "acknowledgement.h"
+
 #include "host.h"
 #include "hostgroup.h"
 #include "service.h"

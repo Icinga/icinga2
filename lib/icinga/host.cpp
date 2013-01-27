@@ -26,7 +26,9 @@ bool Host::m_ServicesCacheValid = true;
 
 static AttributeDescription hostAttributes[] = {
 	{ "alias", Attribute_Config },
-	{ "hostgroups", Attribute_Config }
+	{ "hostgroups", Attribute_Config },
+	{ "acknowledgement", Attribute_Replicated },
+	{ "acknowledgement_expiry", Attribute_Replicated }
 };
 
 REGISTER_TYPE(Host, hostAttributes);
@@ -305,6 +307,49 @@ set<Service::Ptr> Host::GetServices(void) const
 	}
 
 	return services;
+}
+
+AcknowledgementType Host::GetAcknowledgement(void)
+{
+	Value value = Get("acknowledgement");
+
+	if (value.IsEmpty())
+		return AcknowledgementNone;
+
+	int ivalue = static_cast<int>(value);
+	AcknowledgementType avalue = static_cast<AcknowledgementType>(ivalue);
+
+	if (avalue != AcknowledgementNone) {
+		double expiry = GetAcknowledgementExpiry();
+
+		if (expiry != 0 && expiry < Utility::GetTime()) {
+			avalue = AcknowledgementNone;
+			SetAcknowledgement(avalue);
+			SetAcknowledgementExpiry(0);
+		}
+	}
+
+	return avalue;
+}
+
+void Host::SetAcknowledgement(AcknowledgementType acknowledgement)
+{
+	Set("acknowledgement", static_cast<long>(acknowledgement));
+}
+
+double Host::GetAcknowledgementExpiry(void) const
+{
+	Value value = Get("acknowledgement_expiry");
+
+	if (value.IsEmpty())
+		return 0;
+
+	return static_cast<double>(value);
+}
+
+void Host::SetAcknowledgementExpiry(double timestamp)
+{
+	Set("acknowledgement_expiry", timestamp);
 }
 
 void Host::InvalidateServicesCache(void)

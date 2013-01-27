@@ -48,18 +48,6 @@ enum ServiceStateType
 	StateTypeHard
 };
 
-/**
- * The acknowledgement type of a service.
- *
- * @ingroup icinga
- */
-enum AcknowledgementType
-{
-	AcknowledgementNone = 0,
-	AcknowledgementNormal = 1,
-	AcknowledgementSticky = 2
-};
-
 class CheckResultMessage;
 class ServiceStatusMessage;
 

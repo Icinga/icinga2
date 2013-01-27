@@ -39,6 +39,7 @@
     <ClCompile Include="timeperiod.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="acknowledgement.h" />
     <ClInclude Include="cib.h" />
     <ClInclude Include="externalcommand.h" />
     <ClInclude Include="host.h" />

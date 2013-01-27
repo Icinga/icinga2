@@ -17,64 +17,24 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef HOST_H
-#define HOST_H
+#ifndef ACKNOWLEDGEMENT_H
+#define ACKNOWLEDGEMENT_H
 
 namespace icinga
 {
 
-class Service;
-
 /**
- * An Icinga host.
- * 
+ * The acknowledgement type of a host/service.
+ *
  * @ingroup icinga
  */
-class I2_ICINGA_API Host : public DynamicObject
+enum AcknowledgementType
 {
-public:
-	typedef shared_ptr<Host> Ptr;
-	typedef weak_ptr<Host> WeakPtr;
-
-	Host(const Dictionary::Ptr& properties);
-	~Host(void);
-
-	static bool Exists(const String& name);
-	static Host::Ptr GetByName(const String& name);
-
-	String GetAlias(void) const;
-	Dictionary::Ptr GetGroups(void) const;
-
-	set<Host::Ptr> GetParents(void);
-	Dictionary::Ptr GetMacros(void) const;
-
-	AcknowledgementType GetAcknowledgement(void);
-	void SetAcknowledgement(AcknowledgementType acknowledgement);
-
-	double GetAcknowledgementExpiry(void) const;
-	void SetAcknowledgementExpiry(double timestamp);
-
-	bool IsReachable(void);
-	bool IsUp(void);
-
-	set<shared_ptr<Service> > GetServices(void) const;
-	static void InvalidateServicesCache(void);
-
-protected:
-	void OnAttributeChanged(const String& name, const Value& oldValue);
-
-private:
-	static bool m_InitializerDone;
-
-	static map<String, vector<weak_ptr<Service> > > m_ServicesCache;
-	static bool m_ServicesCacheValid;
-
-	static void ObjectCommittedHandler(const ConfigItem::Ptr& item);
-	static void ObjectRemovedHandler(const ConfigItem::Ptr& item);
-
-	static void ValidateServicesCache(void);
+	AcknowledgementNone = 0,
+	AcknowledgementNormal = 1,
+	AcknowledgementSticky = 2
 };
 
 }
 
-#endif /* HOST_H */
+#endif /* ACKNOWLEDGEMENT_H */

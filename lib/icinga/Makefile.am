@@ -5,6 +5,7 @@ pkglib_LTLIBRARIES =  \
 	libicinga.la
 
 libicinga_la_SOURCES =  \
+	acknowledgement.h \
 	cib.cpp \
 	cib.h \
 	externalcommand.cpp \
