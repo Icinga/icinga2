@@ -133,6 +133,11 @@ void ExternalCommand::ProcessServiceCheckResult(double time, const vector<String
 
 	Logger::Write(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
 	service->ProcessCheckResult(result);
+
+	/* Reschedule the next check. The side effect of this is that for as long
+	 * as we receive passive results for a service we won't execute any
+	 * active checks. */
+	service->UpdateNextCheck();
 }
 
 void ExternalCommand::ScheduleSvcCheck(double time, const vector<String>& arguments)
