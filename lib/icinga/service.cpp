@@ -517,13 +517,17 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 		}
 
 		/* reschedule dependencies */
-		String svc;
-		BOOST_FOREACH(tie(tuples::ignore, svc), GetDependencies()) {
-			if (!Service::Exists(svc))
-				continue;
+		Dictionary::Ptr dependencies = GetDependencies();
 
-			Service::Ptr service = Service::GetByName(svc);
-			service->SetNextCheck(Utility::GetTime());
+		if (dependencies) {
+			String svc;
+			BOOST_FOREACH(tie(tuples::ignore, svc), dependencies) {
+				if (!Service::Exists(svc))
+					continue;
+
+				Service::Ptr service = Service::GetByName(svc);
+				service->SetNextCheck(Utility::GetTime());
+			}
 		}
 	}
 }
