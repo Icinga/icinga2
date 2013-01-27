@@ -184,6 +184,9 @@ void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 	   << "\t" << "active_checks_enabled=1" << "\n"
 	   << "\t" << "passive_checks_enabled=1" << "\n"
 	   << "\t" << "last_update=" << Utility::GetTime() << "\n"
+	   << "\t" << "problem_has_been_acknowledged=" << (host->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
+	   << "\t" << "acknowledgement_type=" << static_cast<int>(host->GetAcknowledgement()) << "\n"
+	   << "\t" << "acknowledgement_end_time=" << host->GetAcknowledgementExpiry() << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
 }
