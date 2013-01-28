@@ -82,9 +82,9 @@ void CheckerComponent::CheckTimerHandler(void)
 
 				continue;
 			}
-
-			service->SetForceNextCheck(false);
 		}
+
+		service->SetForceNextCheck(false);
 
 		Dictionary::Ptr cr = service->GetLastCheckResult();
 
