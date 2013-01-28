@@ -42,4 +42,6 @@ typedef DWORD pid_t;
 #define I2_EXPORT __declspec(dllexport)
 #define I2_IMPORT __declspec(dllimport)
 
+#define strcasecmp stricmp
+
 #endif /* WIN32_H */
