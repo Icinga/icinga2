@@ -137,7 +137,7 @@ void ExternalCommand::ProcessServiceCheckResult(double time, const vector<String
 	/* Reschedule the next check. The side effect of this is that for as long
 	 * as we receive passive results for a service we won't execute any
 	 * active checks. */
-	service->UpdateNextCheck();
+	service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
 }
 
 void ExternalCommand::ScheduleSvcCheck(double time, const vector<String>& arguments)
