@@ -71,8 +71,23 @@ void ReplicationComponent::ServiceStateChangeRequestHandler(const RequestMessage
 	//Service::OnCheckResultReceived(service, params);
 	//service->ApplyCheckResult(cr);
 
-	time_t now = static_cast<time_t>(Utility::GetTime());
-	CIB::UpdateTaskStatistics(now, 1);
+	Dictionary::Ptr cr = service->GetLastCheckResult();
+	if (cr) {
+		Value active = cr->Get("active");
+
+		time_t ts;
+		Value schedule_end = cr->Get("schedule_end");
+
+		if (!schedule_end.IsEmpty())
+			schedule_end = static_cast<time_t>(schedule_end);
+		else
+			schedule_end = static_cast<time_t>(Utility::GetTime());
+
+		if (active.IsEmpty() || static_cast<long>(active))
+			CIB::UpdateActiveChecksStatistics(ts, 1);
+		else
+			CIB::UpdatePassiveChecksStatistics(ts, 1);
+	}
 }
 
 void ReplicationComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoint)

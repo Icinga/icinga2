@@ -678,6 +678,9 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 			if (!result->Contains("execution_end"))
 				result->Set("execution_end", scheduleInfo->Get("execution_end"));
 
+			if (!result->Contains("active"))
+				result->Set("active", 1);
+
 			ProcessCheckResult(result);
 		}
 	} catch (const exception& ex) {
@@ -698,6 +701,10 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 {
 	ApplyCheckResult(cr);
+
+	/* flush the current transaction so other instances see the service's
+	 * new state when they receive the ServiceStateChange message */
+	DynamicObject::FlushTx();
 
 	RequestMessage rm;
 	rm.SetMethod("checker::ServiceStateChange");

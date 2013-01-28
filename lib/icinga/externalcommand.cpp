@@ -130,6 +130,7 @@ void ExternalCommand::ProcessServiceCheckResult(double time, const vector<String
 	result->Set("schedule_end", time);
 	result->Set("execution_start", time);
 	result->Set("execution_end", time);
+	result->Set("active", 0);
 
 	Logger::Write(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
 	service->ProcessCheckResult(result);

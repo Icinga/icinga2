@@ -32,11 +32,15 @@ namespace icinga
 class I2_ICINGA_API CIB
 {
 public:
-	static void UpdateTaskStatistics(long tv, int num);
-	static int GetTaskStatistics(long timespan);
+	static void UpdateActiveChecksStatistics(long tv, int num);
+	static int GetActiveChecksStatistics(long timespan);
+
+	static void UpdatePassiveChecksStatistics(long tv, int num);
+	static int GetPassiveChecksStatistics(long timespan);
 
 private:
-	static RingBuffer m_TaskStatistics;
+	static RingBuffer m_ActiveChecksStatistics;
+	static RingBuffer m_PassiveChecksStatistics;
 };
 
 }

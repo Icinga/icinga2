@@ -322,7 +322,8 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "check_host_freshness=0" << "\n"
 		 << "\t" << "enable_flap_detection=1" << "\n"
 		 << "\t" << "enable_failure_prediction=0" << "\n"
-		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetTaskStatistics(60) << "," << CIB::GetTaskStatistics(5 * 60) << "," << CIB::GetTaskStatistics(15 * 60) << "\n"
+		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
+		 << "\t" << "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
 		 << "\t" << "}" << "\n"
 		 << "\n";
 

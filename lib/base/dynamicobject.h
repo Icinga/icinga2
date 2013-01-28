@@ -140,6 +140,7 @@ public:
 	static double GetCurrentTx(void);
 	static void BeginTx(void);
 	static void FinishTx(void);
+	static void FlushTx(void);
 
 protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);

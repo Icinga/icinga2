@@ -21,14 +21,25 @@
 
 using namespace icinga;
 
-RingBuffer CIB::m_TaskStatistics(15 * 60);
+RingBuffer CIB::m_ActiveChecksStatistics(15 * 60);
+RingBuffer CIB::m_PassiveChecksStatistics(15 * 60);
 
-void CIB::UpdateTaskStatistics(long tv, int num)
+void CIB::UpdateActiveChecksStatistics(long tv, int num)
 {
-	m_TaskStatistics.InsertValue(tv, num);
+	m_ActiveChecksStatistics.InsertValue(tv, num);
 }
 
-int CIB::GetTaskStatistics(long timespan)
+int CIB::GetActiveChecksStatistics(long timespan)
 {
-	return m_TaskStatistics.GetValues(timespan);
+	return m_ActiveChecksStatistics.GetValues(timespan);
+}
+
+void CIB::UpdatePassiveChecksStatistics(long tv, int num)
+{
+	m_PassiveChecksStatistics.InsertValue(tv, num);
+}
+
+int CIB::GetPassiveChecksStatistics(long timespan)
+{
+	return m_PassiveChecksStatistics.GetValues(timespan);
 }
