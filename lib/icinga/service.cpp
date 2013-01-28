@@ -54,7 +54,7 @@ REGISTER_TYPE(Service, serviceAttributes);
 
 const int Service::DefaultMaxCheckAttempts = 3;
 const int Service::DefaultCheckInterval = 5 * 60;
-const int Service::MinCheckInterval = 15;
+const int Service::MinCheckInterval = 5;
 const int Service::CheckIntervalDivisor = 5;
 
 boost::signal<void (const Service::Ptr&, const CheckResultMessage&)> Service::OnCheckResultReceived;
