@@ -338,7 +338,7 @@ ServiceStateType Service::GetStateType(void) const
 	Value value = Get("state_type");
 
 	if (value.IsEmpty())
-		return StateTypeHard;
+		return StateTypeSoft;
 
 	int ivalue = static_cast<int>(value);
 	return static_cast<ServiceStateType>(ivalue);
