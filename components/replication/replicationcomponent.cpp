@@ -79,9 +79,9 @@ void ReplicationComponent::ServiceStateChangeRequestHandler(const RequestMessage
 		Value schedule_end = cr->Get("schedule_end");
 
 		if (!schedule_end.IsEmpty())
-			schedule_end = static_cast<time_t>(schedule_end);
+			ts = static_cast<time_t>(schedule_end);
 		else
-			schedule_end = static_cast<time_t>(Utility::GetTime());
+			ts = static_cast<time_t>(Utility::GetTime());
 
 		if (active.IsEmpty() || static_cast<long>(active))
 			CIB::UpdateActiveChecksStatistics(ts, 1);
