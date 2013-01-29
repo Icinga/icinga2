@@ -43,6 +43,9 @@
     <ClCompile Include="externalcommandprocessor.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="commentprocessor.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="i2-icinga.h">
@@ -88,6 +91,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="externalcommandprocessor.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="commentprocessor.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
