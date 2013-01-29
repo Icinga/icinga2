@@ -125,6 +125,17 @@ xlc )
   am_opt=--include-deps;;
 esac
 
+# verify that libtool-ltdl-devel is installed
+echo "Running libtoolize dry-run..."
+if ! libtoolize --dry-run --quiet --copy; then
+  echo ""
+  echo "**Error**: libtoolize cannot detect necessary files."
+  echo ""
+  echo "Make sure libtool-ltdl-devel (rpm) / libltdl-dev (deb) or an"
+  echo "appropriate package for your distribution is installed."
+  exit 1
+fi
+
 for coin in `find $srcdir -path $srcdir/CVS -prune -o -name configure.ac -print`
 do 
   dr=`dirname $coin`
