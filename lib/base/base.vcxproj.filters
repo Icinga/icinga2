@@ -91,6 +91,9 @@
     <ClCompile Include="dynamictype.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="convert.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -190,6 +193,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="dynamictype.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="convert.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

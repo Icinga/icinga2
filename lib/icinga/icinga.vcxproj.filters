@@ -37,7 +37,10 @@
     <ClCompile Include="timeperiod.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="externalcommand.cpp">
+    <ClCompile Include="downtimeprocessor.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="externalcommandprocessor.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -78,10 +81,13 @@
     <ClInclude Include="timeperiod.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="externalcommand.h">
+    <ClInclude Include="acknowledgement.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="acknowledgement.h">
+    <ClInclude Include="downtimeprocessor.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="externalcommandprocessor.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

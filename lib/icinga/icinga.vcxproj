@@ -20,7 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cib.cpp" />
-    <ClCompile Include="externalcommand.cpp" />
+    <ClCompile Include="downtimeprocessor.cpp" />
+    <ClCompile Include="externalcommandprocessor.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="hostgroup.cpp" />
     <ClCompile Include="i2-icinga.cpp">
@@ -41,7 +42,8 @@
   <ItemGroup>
     <ClInclude Include="acknowledgement.h" />
     <ClInclude Include="cib.h" />
-    <ClInclude Include="externalcommand.h" />
+    <ClInclude Include="downtimeprocessor.h" />
+    <ClInclude Include="externalcommandprocessor.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="hostgroup.h" />
     <ClInclude Include="i2-icinga.h" />
