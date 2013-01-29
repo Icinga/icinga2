@@ -56,6 +56,8 @@ int DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
 
 	downtimes->Set(Convert::ToString(id), downtime);
 	owner->Set("downtimes", downtimes);
+
+	return id;
 }
 
 void DowntimeProcessor::RemoveDowntime(int id)
