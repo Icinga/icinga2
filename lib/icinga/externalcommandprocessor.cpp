@@ -21,10 +21,10 @@
 
 using namespace icinga;
 
-bool I2_EXPORT ExternalCommand::m_Initialized;
-map<String, ExternalCommand::Callback> I2_EXPORT ExternalCommand::m_Commands;
+bool I2_EXPORT ExternalCommandProcessor::m_Initialized;
+map<String, ExternalCommandProcessor::Callback> I2_EXPORT ExternalCommandProcessor::m_Commands;
 
-void ExternalCommand::Execute(const String& line)
+void ExternalCommandProcessor::Execute(const String& line)
 {
 	if (line.IsEmpty())
 		return;
@@ -54,51 +54,51 @@ void ExternalCommand::Execute(const String& line)
 	Execute(ts, argv[0], argvExtra);
 }
 
-void ExternalCommand::Execute(double time, const String& command, const vector<String>& arguments)
+void ExternalCommandProcessor::Execute(double time, const String& command, const vector<String>& arguments)
 {
 	if (!m_Initialized) {
-		RegisterCommand("HELLO_WORLD", &ExternalCommand::HelloWorld);
-		RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommand::ProcessServiceCheckResult);
-		RegisterCommand("SCHEDULE_SVC_CHECK", &ExternalCommand::ScheduleSvcCheck);
-		RegisterCommand("SCHEDULE_FORCED_SVC_CHECK", &ExternalCommand::ScheduleForcedSvcCheck);
-		RegisterCommand("ENABLE_SVC_CHECK", &ExternalCommand::EnableSvcCheck);
-		RegisterCommand("DISABLE_SVC_CHECK", &ExternalCommand::DisableSvcCheck);
-		RegisterCommand("SHUTDOWN_PROCESS", &ExternalCommand::ShutdownProcess);
-		RegisterCommand("SCHEDULE_FORCED_HOST_SVC_CHECKS", &ExternalCommand::ScheduleForcedHostSvcChecks);
-		RegisterCommand("SCHEDULE_HOST_SVC_CHECKS", &ExternalCommand::ScheduleHostSvcChecks);
-		RegisterCommand("ENABLE_HOST_SVC_CHECKS", &ExternalCommand::EnableHostSvcChecks);
-		RegisterCommand("DISABLE_HOST_SVC_CHECKS", &ExternalCommand::DisableHostSvcChecks);
-		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM", &ExternalCommand::AcknowledgeSvcProblem);
-		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM_EXPIRE", &ExternalCommand::AcknowledgeSvcProblemExpire);
-		RegisterCommand("REMOVE_SVC_ACKNOWLEDGEMENT", &ExternalCommand::RemoveHostAcknowledgement);
-		RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM", &ExternalCommand::AcknowledgeHostProblem);
-		RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM_EXPIRE", &ExternalCommand::AcknowledgeHostProblemExpire);
-		RegisterCommand("REMOVE_HOST_ACKNOWLEDGEMENT", &ExternalCommand::RemoveHostAcknowledgement);
-		RegisterCommand("ENABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommand::EnableHostgroupSvcChecks);
-		RegisterCommand("DISABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommand::DisableHostgroupSvcChecks);
-		RegisterCommand("ENABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommand::EnableServicegroupSvcChecks);
-		RegisterCommand("DISABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommand::DisableServicegroupSvcChecks);
-		RegisterCommand("ENABLE_PASSIVE_SVC_CHECKS", &ExternalCommand::EnablePassiveSvcChecks);
-		RegisterCommand("DISABLE_PASSIVE_SVC_CHECKS", &ExternalCommand::DisablePassiveSvcChecks);
-		RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::EnableServicegroupPassiveSvcChecks);
-		RegisterCommand("DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::DisableServicegroupPassiveSvcChecks);
-		RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::EnableHostgroupPassiveSvcChecks);
-		RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::DisableHostgroupPassiveSvcChecks);
-		RegisterCommand("PROCESS_FILE", &ExternalCommand::ProcessFile);
-		RegisterCommand("SCHEDULE_SVC_DOWNTIME", &ExternalCommand::ScheduleSvcDowntime);
-		RegisterCommand("DEL_SVC_DOWNTIME", &ExternalCommand::DelSvcDowntime);
-		RegisterCommand("SCHEDULE_HOST_DOWNTIME", &ExternalCommand::ScheduleHostDowntime);
-		RegisterCommand("DEL_HOST_DOWNTIME", &ExternalCommand::DelHostDowntime);
-		RegisterCommand("SCHEDULE_HOST_SVC_DOWNTIME", &ExternalCommand::ScheduleHostSvcDowntime);
-		RegisterCommand("SCHEDULE_HOSTGROUP_HOST_DOWNTIME", &ExternalCommand::ScheduleHostgroupHostDowntime);
-		RegisterCommand("SCHEDULE_HOSTGROUP_SVC_DOWNTIME", &ExternalCommand::ScheduleHostgroupSvcDowntime);
-		RegisterCommand("SCHEDULE_SERVICEGROUP_HOST_DOWNTIME", &ExternalCommand::ScheduleServicegroupHostDowntime);
-		RegisterCommand("SCHEDULE_SERVICEGROUP_SVC_DOWNTIME", &ExternalCommand::ScheduleServicegroupSvcDowntime);
+		RegisterCommand("HELLO_WORLD", &ExternalCommandProcessor::HelloWorld);
+		RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult);
+		RegisterCommand("SCHEDULE_SVC_CHECK", &ExternalCommandProcessor::ScheduleSvcCheck);
+		RegisterCommand("SCHEDULE_FORCED_SVC_CHECK", &ExternalCommandProcessor::ScheduleForcedSvcCheck);
+		RegisterCommand("ENABLE_SVC_CHECK", &ExternalCommandProcessor::EnableSvcCheck);
+		RegisterCommand("DISABLE_SVC_CHECK", &ExternalCommandProcessor::DisableSvcCheck);
+		RegisterCommand("SHUTDOWN_PROCESS", &ExternalCommandProcessor::ShutdownProcess);
+		RegisterCommand("SCHEDULE_FORCED_HOST_SVC_CHECKS", &ExternalCommandProcessor::ScheduleForcedHostSvcChecks);
+		RegisterCommand("SCHEDULE_HOST_SVC_CHECKS", &ExternalCommandProcessor::ScheduleHostSvcChecks);
+		RegisterCommand("ENABLE_HOST_SVC_CHECKS", &ExternalCommandProcessor::EnableHostSvcChecks);
+		RegisterCommand("DISABLE_HOST_SVC_CHECKS", &ExternalCommandProcessor::DisableHostSvcChecks);
+		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM", &ExternalCommandProcessor::AcknowledgeSvcProblem);
+		RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM_EXPIRE", &ExternalCommandProcessor::AcknowledgeSvcProblemExpire);
+		RegisterCommand("REMOVE_SVC_ACKNOWLEDGEMENT", &ExternalCommandProcessor::RemoveHostAcknowledgement);
+		RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM", &ExternalCommandProcessor::AcknowledgeHostProblem);
+		RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM_EXPIRE", &ExternalCommandProcessor::AcknowledgeHostProblemExpire);
+		RegisterCommand("REMOVE_HOST_ACKNOWLEDGEMENT", &ExternalCommandProcessor::RemoveHostAcknowledgement);
+		RegisterCommand("ENABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommandProcessor::EnableHostgroupSvcChecks);
+		RegisterCommand("DISABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommandProcessor::DisableHostgroupSvcChecks);
+		RegisterCommand("ENABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommandProcessor::EnableServicegroupSvcChecks);
+		RegisterCommand("DISABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommandProcessor::DisableServicegroupSvcChecks);
+		RegisterCommand("ENABLE_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnablePassiveSvcChecks);
+		RegisterCommand("DISABLE_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisablePassiveSvcChecks);
+		RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks);
+		RegisterCommand("DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks);
+		RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks);
+		RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks);
+		RegisterCommand("PROCESS_FILE", &ExternalCommandProcessor::ProcessFile);
+		RegisterCommand("SCHEDULE_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleSvcDowntime);
+		RegisterCommand("DEL_SVC_DOWNTIME", &ExternalCommandProcessor::DelSvcDowntime);
+		RegisterCommand("SCHEDULE_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostDowntime);
+		RegisterCommand("DEL_HOST_DOWNTIME", &ExternalCommandProcessor::DelHostDowntime);
+		RegisterCommand("SCHEDULE_HOST_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostSvcDowntime);
+		RegisterCommand("SCHEDULE_HOSTGROUP_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupHostDowntime);
+		RegisterCommand("SCHEDULE_HOSTGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupSvcDowntime);
+		RegisterCommand("SCHEDULE_SERVICEGROUP_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleServicegroupHostDowntime);
+		RegisterCommand("SCHEDULE_SERVICEGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleServicegroupSvcDowntime);
 
 		m_Initialized = true;
 	}
 
-	map<String, ExternalCommand::Callback>::iterator it;
+	map<String, ExternalCommandProcessor::Callback>::iterator it;
 	it = m_Commands.find(command);
 
 	if (it == m_Commands.end())
@@ -107,17 +107,17 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 	it->second(time, arguments);
 }
 
-void ExternalCommand::RegisterCommand(const String& command, const ExternalCommand::Callback& callback)
+void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
 {
 	m_Commands[command] = callback;
 }
 
-void ExternalCommand::HelloWorld(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::HelloWorld(double time, const vector<String>& arguments)
 {
 	Logger::Write(LogInformation, "icinga", "HelloWorld external command called.");
 }
 
-void ExternalCommand::ProcessServiceCheckResult(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 4)
 		throw_exception(invalid_argument("Expected 4 arguments."));
@@ -150,7 +150,7 @@ void ExternalCommand::ProcessServiceCheckResult(double time, const vector<String
 	service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
 }
 
-void ExternalCommand::ScheduleSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleSvcCheck(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 3)
 		throw_exception(invalid_argument("Expected 3 arguments."));
@@ -172,7 +172,7 @@ void ExternalCommand::ScheduleSvcCheck(double time, const vector<String>& argume
 	service->SetNextCheck(planned_check);
 }
 
-void ExternalCommand::ScheduleForcedSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleForcedSvcCheck(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 3)
 		throw_exception(invalid_argument("Expected 3 arguments."));
@@ -187,7 +187,7 @@ void ExternalCommand::ScheduleForcedSvcCheck(double time, const vector<String>& 
 	service->SetNextCheck(Convert::ToDouble(arguments[2]));
 }
 
-void ExternalCommand::EnableSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableSvcCheck(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -201,7 +201,7 @@ void ExternalCommand::EnableSvcCheck(double time, const vector<String>& argument
 	service->SetEnableActiveChecks(true);
 }
 
-void ExternalCommand::DisableSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableSvcCheck(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -215,13 +215,13 @@ void ExternalCommand::DisableSvcCheck(double time, const vector<String>& argumen
 	service->SetEnableActiveChecks(false);
 }
 
-void ExternalCommand::ShutdownProcess(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ShutdownProcess(double time, const vector<String>& arguments)
 {
 	Logger::Write(LogInformation, "icinga", "Shutting down Icinga via external command.");
 	Application::RequestShutdown();
 }
 
-void ExternalCommand::ScheduleForcedHostSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -240,7 +240,7 @@ void ExternalCommand::ScheduleForcedHostSvcChecks(double time, const vector<Stri
 	}
 }
 
-void ExternalCommand::ScheduleHostSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -264,7 +264,7 @@ void ExternalCommand::ScheduleHostSvcChecks(double time, const vector<String>& a
 	}
 }
 
-void ExternalCommand::EnableHostSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -280,7 +280,7 @@ void ExternalCommand::EnableHostSvcChecks(double time, const vector<String>& arg
 	}
 }
 
-void ExternalCommand::DisableHostSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 arguments."));
@@ -296,7 +296,7 @@ void ExternalCommand::DisableHostSvcChecks(double time, const vector<String>& ar
 	}
 }
 
-void ExternalCommand::AcknowledgeSvcProblem(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeSvcProblem(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 7)
 		throw_exception(invalid_argument("Expected 7 arguments."));
@@ -316,7 +316,7 @@ void ExternalCommand::AcknowledgeSvcProblem(double time, const vector<String>& a
 	service->SetAcknowledgementExpiry(0);
 }
 
-void ExternalCommand::AcknowledgeSvcProblemExpire(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));
@@ -337,7 +337,7 @@ void ExternalCommand::AcknowledgeSvcProblemExpire(double time, const vector<Stri
 	service->SetAcknowledgementExpiry(timestamp);
 }
 
-void ExternalCommand::RemoveSvcAcknowledgement(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::RemoveSvcAcknowledgement(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -352,7 +352,7 @@ void ExternalCommand::RemoveSvcAcknowledgement(double time, const vector<String>
 	service->SetAcknowledgementExpiry(0);
 }
 
-void ExternalCommand::AcknowledgeHostProblem(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeHostProblem(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 6)
 		throw_exception(invalid_argument("Expected 6 arguments."));
@@ -372,7 +372,7 @@ void ExternalCommand::AcknowledgeHostProblem(double time, const vector<String>& 
 	host->SetAcknowledgementExpiry(0);
 }
 
-void ExternalCommand::AcknowledgeHostProblemExpire(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 7)
 		throw_exception(invalid_argument("Expected 7 arguments."));
@@ -393,7 +393,7 @@ void ExternalCommand::AcknowledgeHostProblemExpire(double time, const vector<Str
 	host->SetAcknowledgementExpiry(timestamp);
 }
 
-void ExternalCommand::RemoveHostAcknowledgement(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::RemoveHostAcknowledgement(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -408,7 +408,7 @@ void ExternalCommand::RemoveHostAcknowledgement(double time, const vector<String
 	host->SetAcknowledgementExpiry(0);
 }
 
-void ExternalCommand::EnableHostgroupSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostgroupSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -426,7 +426,7 @@ void ExternalCommand::EnableHostgroupSvcChecks(double time, const vector<String>
 	}
 }
 
-void ExternalCommand::DisableHostgroupSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostgroupSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -444,7 +444,7 @@ void ExternalCommand::DisableHostgroupSvcChecks(double time, const vector<String
 	}
 }
 
-void ExternalCommand::EnableServicegroupSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableServicegroupSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -460,7 +460,7 @@ void ExternalCommand::EnableServicegroupSvcChecks(double time, const vector<Stri
 	}
 }
 
-void ExternalCommand::DisableServicegroupSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableServicegroupSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -476,7 +476,7 @@ void ExternalCommand::DisableServicegroupSvcChecks(double time, const vector<Str
 	}
 }
 
-void ExternalCommand::EnablePassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnablePassiveSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -490,7 +490,7 @@ void ExternalCommand::EnablePassiveSvcChecks(double time, const vector<String>& 
 	service->SetEnablePassiveChecks(true);
 }
 
-void ExternalCommand::DisablePassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisablePassiveSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -504,7 +504,7 @@ void ExternalCommand::DisablePassiveSvcChecks(double time, const vector<String>&
 	service->SetEnablePassiveChecks(false);
 }
 
-void ExternalCommand::EnableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -520,7 +520,7 @@ void ExternalCommand::EnableServicegroupPassiveSvcChecks(double time, const vect
 	}
 }
 
-void ExternalCommand::DisableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -536,7 +536,7 @@ void ExternalCommand::DisableServicegroupPassiveSvcChecks(double time, const vec
 	}
 }
 
-void ExternalCommand::EnableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -554,7 +554,7 @@ void ExternalCommand::EnableHostgroupPassiveSvcChecks(double time, const vector<
 	}
 }
 
-void ExternalCommand::DisableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -572,7 +572,7 @@ void ExternalCommand::DisableHostgroupPassiveSvcChecks(double time, const vector
 	}
 }
 
-void ExternalCommand::ProcessFile(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ProcessFile(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -606,7 +606,7 @@ void ExternalCommand::ProcessFile(double time, const vector<String>& arguments)
 		(void) unlink(file.CStr());
 }
 
-void ExternalCommand::ScheduleSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleSvcDowntime(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 9)
 		throw_exception(invalid_argument("Expected 9 arguments."));
@@ -623,7 +623,7 @@ void ExternalCommand::ScheduleSvcDowntime(double time, const vector<String>& arg
 	    Convert::ToBool(arguments[4]), Convert::ToLong(arguments[5]), Convert::ToDouble(arguments[6]));
 }
 
-void ExternalCommand::DelSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelSvcDowntime(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -633,7 +633,7 @@ void ExternalCommand::DelSvcDowntime(double time, const vector<String>& argument
 	DowntimeProcessor::RemoveDowntime(Convert::ToLong(id));
 }
 
-void ExternalCommand::ScheduleHostDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostDowntime(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));
@@ -650,7 +650,7 @@ void ExternalCommand::ScheduleHostDowntime(double time, const vector<String>& ar
 	    Convert::ToBool(arguments[3]), Convert::ToLong(arguments[4]), Convert::ToDouble(arguments[5]));
 }
 
-void ExternalCommand::DelHostDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelHostDowntime(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -660,7 +660,7 @@ void ExternalCommand::DelHostDowntime(double time, const vector<String>& argumen
 	DowntimeProcessor::RemoveDowntime(Convert::ToLong(id));
 }
 
-void ExternalCommand::ScheduleHostSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostSvcDowntime(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 argument."));
@@ -683,7 +683,7 @@ void ExternalCommand::ScheduleHostSvcDowntime(double time, const vector<String>&
 	}
 }
 
-void ExternalCommand::ScheduleHostgroupHostDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));
@@ -701,17 +701,17 @@ void ExternalCommand::ScheduleHostgroupHostDowntime(double time, const vector<St
 	}
 }
 
-void ExternalCommand::ScheduleHostgroupSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double time, const vector<String>& arguments)
 {
 	// TODO: implement (#3582)
 }
 
-void ExternalCommand::ScheduleServicegroupHostDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double time, const vector<String>& arguments)
 {
 	// TODO: implement (#3582)
 }
 
-void ExternalCommand::ScheduleServicegroupSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));

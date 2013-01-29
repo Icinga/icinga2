@@ -17,13 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef EXTERNALCOMMAND_H
-#define EXTERNALCOMMAND_H
+#ifndef EXTERNALCOMMANDPROCESSOR_H
+#define EXTERNALCOMMANDPROCESSOR_H
 
 namespace icinga
 {
 	
-class I2_ICINGA_API ExternalCommand {
+class I2_ICINGA_API ExternalCommandProcessor {
 public:
 	static void Execute(const String& line);
 	static void Execute(double time, const String& command, const vector<String>& arguments);
@@ -72,11 +72,11 @@ private:
 	static bool m_Initialized;
 	static map<String, Callback> m_Commands;
 
-	ExternalCommand(void);
+	ExternalCommandProcessor(void);
 
 	static void RegisterCommand(const String& command, const Callback& callback);
 };
 
 }
 
-#endif /* EXTERNALCOMMAND_H */
+#endif /* EXTERNALCOMMANDPROCESSOR_H */

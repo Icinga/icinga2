@@ -10,8 +10,8 @@ libicinga_la_SOURCES =  \
 	cib.h \
 	downtimeprocessor.cpp \
 	downtimeprocessor.h \
-	externalcommand.cpp \
-	externalcommand.h \
+	externalcommandprocessor.cpp \
+	externalcommandprocessor.h \
 	host.cpp \
 	hostgroup.cpp \
 	hostgroup.h \

@@ -150,7 +150,7 @@ void CompatComponent::ProcessCommand(const String& command)
 	try {
 		Logger::Write(LogInformation, "compat", "Executing external command: " + command);
 
-		ExternalCommand::Execute(command);
+		ExternalCommandProcessor::Execute(command);
 	} catch (const exception& ex) {
 		stringstream msgbuf;
 		msgbuf << "External command failed: " << ex.what();

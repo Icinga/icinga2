@@ -40,7 +40,7 @@ using boost::algorithm::is_any_of;
 #	define I2_ICINGA_API I2_IMPORT
 #endif /* I2_ICINGA_BUILD */
 
-#include "externalcommand.h"
+#include "externalcommandprocessor.h"
 
 #include "endpoint.h"
 #include "endpointmanager.h"
