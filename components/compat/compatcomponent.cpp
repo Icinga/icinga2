@@ -198,7 +198,7 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owne
 		   << "\t" << "is_in_effect=" << (DowntimeProcessor::IsDowntimeActive(downtime) ? 1 : 0) << "\n"
 		   << "\t" << "author=" << static_cast<String>(downtime->Get("author")) << "\n"
 		   << "\t" << "comment=" << static_cast<String>(downtime->Get("comment")) << "\n"
-		   << "\t" << "trigger_time=" << 0 << "\n"
+		   << "\t" << "trigger_time=" << static_cast<double>(downtime->Get("trigger_time")) << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}
