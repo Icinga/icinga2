@@ -85,6 +85,15 @@ void ExternalCommand::Execute(double time, const String& command, const vector<S
 		RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::EnableHostgroupPassiveSvcChecks);
 		RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommand::DisableHostgroupPassiveSvcChecks);
 		RegisterCommand("PROCESS_FILE", &ExternalCommand::ProcessFile);
+		RegisterCommand("SCHEDULE_SVC_DOWNTIME", &ExternalCommand::ScheduleSvcDowntime);
+		RegisterCommand("DEL_SVC_DOWNTIME", &ExternalCommand::DelSvcDowntime);
+		RegisterCommand("SCHEDULE_HOST_DOWNTIME", &ExternalCommand::ScheduleHostDowntime);
+		RegisterCommand("DEL_HOST_DOWNTIME", &ExternalCommand::DelHostDowntime);
+		RegisterCommand("SCHEDULE_HOST_SVC_DOWNTIME", &ExternalCommand::ScheduleHostSvcDowntime);
+		RegisterCommand("SCHEDULE_HOSTGROUP_HOST_DOWNTIME", &ExternalCommand::ScheduleHostgroupHostDowntime);
+		RegisterCommand("SCHEDULE_HOSTGROUP_SVC_DOWNTIME", &ExternalCommand::ScheduleHostgroupSvcDowntime);
+		RegisterCommand("SCHEDULE_SERVICEGROUP_HOST_DOWNTIME", &ExternalCommand::ScheduleServicegroupHostDowntime);
+		RegisterCommand("SCHEDULE_SERVICEGROUP_SVC_DOWNTIME", &ExternalCommand::ScheduleServicegroupSvcDowntime);
 
 		m_Initialized = true;
 	}
@@ -224,13 +233,7 @@ void ExternalCommand::ScheduleForcedHostSvcChecks(double time, const vector<Stri
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		Service::Ptr service = static_pointer_cast<Service>(object);
-
-		if (service->GetHost() != host)
-			continue;
-
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
 		service->SetNextCheck(planned_check);
 		service->SetForceNextCheck(true);
@@ -249,13 +252,7 @@ void ExternalCommand::ScheduleHostSvcChecks(double time, const vector<String>& a
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		Service::Ptr service = static_pointer_cast<Service>(object);
-
-		if (service->GetHost() != host)
-			continue;
-
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (planned_check > service->GetNextCheck()) {
 			Logger::Write(LogInformation, "icinga", "Ignoring reschedule request for service '" +
 			    service->GetName() + "' (next check is already sooner than requested check time)");
@@ -277,13 +274,7 @@ void ExternalCommand::EnableHostSvcChecks(double time, const vector<String>& arg
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		Service::Ptr service = static_pointer_cast<Service>(object);
-
-		if (service->GetHost() != host)
-			continue;
-
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
 		service->SetEnableActiveChecks(true);
 	}
@@ -299,13 +290,7 @@ void ExternalCommand::DisableHostSvcChecks(double time, const vector<String>& ar
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		Service::Ptr service = static_pointer_cast<Service>(object);
-
-		if (service->GetHost() != host)
-			continue;
-
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
 		service->SetEnableActiveChecks(false);
 	}
@@ -620,3 +605,127 @@ void ExternalCommand::ProcessFile(double time, const vector<String>& arguments)
 	if (del)
 		(void) unlink(file.CStr());
 }
+
+void ExternalCommand::ScheduleSvcDowntime(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 9)
+		throw_exception(invalid_argument("Expected 9 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+
+	(void) DowntimeProcessor::AddDowntime(service, arguments[7], arguments[8],
+	    Convert::ToDouble(arguments[2]), Convert::ToDouble(arguments[3]),
+	    Convert::ToBool(arguments[4]), Convert::ToLong(arguments[5]), Convert::ToDouble(arguments[6]));
+}
+
+void ExternalCommand::DelSvcDowntime(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	String id = arguments[0];
+	Logger::Write(LogInformation, "icinga", "Removing downtime ID " + id);
+	DowntimeProcessor::RemoveDowntime(Convert::ToLong(id));
+}
+
+void ExternalCommand::ScheduleHostDowntime(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 8)
+		throw_exception(invalid_argument("Expected 8 arguments."));
+
+	if (!Host::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
+
+	(void) DowntimeProcessor::AddDowntime(host, arguments[6], arguments[7],
+	    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+	    Convert::ToBool(arguments[3]), Convert::ToLong(arguments[4]), Convert::ToDouble(arguments[5]));
+}
+
+void ExternalCommand::DelHostDowntime(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	String id = arguments[0];
+	Logger::Write(LogInformation, "icinga", "Removing downtime ID " + id);
+	DowntimeProcessor::RemoveDowntime(Convert::ToLong(id));
+}
+
+void ExternalCommand::ScheduleHostSvcDowntime(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 8)
+		throw_exception(invalid_argument("Expected 8 argument."));
+
+	if (!Host::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
+	(void) DowntimeProcessor::AddDowntime(host, arguments[6], arguments[7],
+	    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+	    Convert::ToBool(arguments[3]), Convert::ToLong(arguments[4]), Convert::ToDouble(arguments[5]));
+
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+		(void) DowntimeProcessor::AddDowntime(service, arguments[6], arguments[7],
+		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+		    Convert::ToBool(arguments[3]), Convert::ToLong(arguments[4]), Convert::ToDouble(arguments[5]));
+	}
+}
+
+void ExternalCommand::ScheduleHostgroupHostDowntime(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 8)
+		throw_exception(invalid_argument("Expected 8 arguments."));
+
+	if (!HostGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
+		(void) DowntimeProcessor::AddDowntime(host, arguments[6], arguments[7],
+		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+		    Convert::ToBool(arguments[3]), Convert::ToLong(arguments[4]), Convert::ToDouble(arguments[5]));
+	}
+}
+
+void ExternalCommand::ScheduleHostgroupSvcDowntime(double time, const vector<String>& arguments)
+{
+	// TODO: implement (#3582)
+}
+
+void ExternalCommand::ScheduleServicegroupHostDowntime(double time, const vector<String>& arguments)
+{
+	// TODO: implement (#3582)
+}
+
+void ExternalCommand::ScheduleServicegroupSvcDowntime(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 8)
+		throw_exception(invalid_argument("Expected 8 arguments."));
+
+	if (!ServiceGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+		(void) DowntimeProcessor::AddDowntime(service, arguments[6], arguments[7],
+		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+		    Convert::ToBool(arguments[3]), Convert::ToLong(arguments[4]), Convert::ToDouble(arguments[5]));
+	}
+}
+

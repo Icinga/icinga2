@@ -159,6 +159,51 @@ void CompatComponent::ProcessCommand(const String& command)
 }
 #endif /* _WIN32 */
 
+void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owner)
+{
+	Service::Ptr service;
+	Host::Ptr host;
+	Dictionary::Ptr downtimes;
+
+	if (owner->GetType() == DynamicType::GetByName("Service")) {
+		service = dynamic_pointer_cast<Service>(owner);
+		downtimes = service->GetDowntimes();
+
+		host = service->GetHost();
+	} else {
+		host = dynamic_pointer_cast<Host>(owner);
+		downtimes = host->GetDowntimes();
+	}
+
+	if (!downtimes)
+		return;
+
+	String id;
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(tie(id, downtime), downtimes) {
+		if (!service)
+			fp << "hostdowntime {" << "\n";
+		else
+			fp << "servicedowntime {" << "\n"
+			   << "\t" << "service_description=" << service->GetAlias() << "\n";
+
+		fp << "\t" << "host_name=" << host->GetName() << "\n"
+		   << "\t" << "downtime_id=" << id << "\n"
+		   << "\t" << "entry_time=" << static_cast<double>(downtime->Get("entry_time")) << "\n"
+		   << "\t" << "start_time=" << static_cast<double>(downtime->Get("start_time")) << "\n"
+		   << "\t" << "end_time=" << static_cast<double>(downtime->Get("end_time")) << "\n"
+		   << "\t" << "triggered_by=" << static_cast<long>(downtime->Get("triggered_by")) << "\n"
+		   << "\t" << "fixed=" << static_cast<long>(downtime->Get("fixed")) << "\n"
+		   << "\t" << "duration=" << static_cast<long>(downtime->Get("duration")) << "\n"
+		   << "\t" << "is_in_effect=" << (DowntimeProcessor::IsDowntimeActive(downtime) ? 1 : 0) << "\n"
+		   << "\t" << "author=" << static_cast<String>(downtime->Get("author")) << "\n"
+		   << "\t" << "comment=" << static_cast<String>(downtime->Get("comment")) << "\n"
+		   << "\t" << "trigger_time=" << 0 << "\n"
+		   << "\t" << "}" << "\n"
+		   << "\n";
+	}
+}
+
 void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 {
 	int state;
@@ -187,8 +232,11 @@ void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 	   << "\t" << "problem_has_been_acknowledged=" << (host->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
 	   << "\t" << "acknowledgement_type=" << static_cast<int>(host->GetAcknowledgement()) << "\n"
 	   << "\t" << "acknowledgement_end_time=" << host->GetAcknowledgementExpiry() << "\n"
+	   << "\t" << "scheduled_downtime_depth=" << (host->IsInDowntime() ? 1 : 0) << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
+
+	DumpDowntimes(fp, host);
 }
 
 void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
@@ -264,8 +312,11 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	   << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
 	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
 	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
+	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
+
+	DumpDowntimes(fp, service);
 }
 
 void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& service)
@@ -324,6 +375,7 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "enable_failure_prediction=0" << "\n"
 		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
 		 << "\t" << "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
+		 << "\t" << "next_downtime_id=" << DowntimeProcessor::GetNextDowntimeID() << "\n"
 		 << "\t" << "}" << "\n"
 		 << "\n";
 

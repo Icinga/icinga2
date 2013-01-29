@@ -76,6 +76,7 @@ public:
 	String GetAlias(void) const;
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
+	Dictionary::Ptr GetDowntimes(void) const;
 	String GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
 	long GetCheckInterval(void) const;
@@ -86,6 +87,7 @@ public:
 	Dictionary::Ptr GetCheckers(void) const;
 
 	bool IsReachable(void) const;
+	bool IsInDowntime(void) const;
 
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);

@@ -47,7 +47,8 @@ static AttributeDescription serviceAttributes[] = {
 	{ "enable_passive_checks", Attribute_Replicated },
 	{ "force_next_check", Attribute_Replicated },
 	{ "acknowledgement", Attribute_Replicated },
-	{ "acknowledgement_expiry", Attribute_Replicated }
+	{ "acknowledgement_expiry", Attribute_Replicated },
+	{ "downtimes", Attribute_Replicated }
 };
 
 REGISTER_TYPE(Service, serviceAttributes);
@@ -66,12 +67,14 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 {
 	ServiceGroup::InvalidateMembersCache();
 	Host::InvalidateServicesCache();
+	DowntimeProcessor::InvalidateDowntimeCache();
 }
 
 Service::~Service(void)
 {
 	ServiceGroup::InvalidateMembersCache();
 	Host::InvalidateServicesCache();
+	DowntimeProcessor::InvalidateDowntimeCache();
 }
 
 String Service::GetAlias(void) const
@@ -112,6 +115,11 @@ Host::Ptr Service::GetHost(void) const
 Dictionary::Ptr Service::GetMacros(void) const
 {
 	return Get("macros");
+}
+
+Dictionary::Ptr Service::GetDowntimes(void) const
+{
+	return Get("downtimes");
 }
 
 String Service::GetCheckCommand(void) const
@@ -217,6 +225,22 @@ bool Service::IsReachable(void) const
 	}
 
 	return true;
+}
+
+bool Service::IsInDowntime(void) const
+{
+	Dictionary::Ptr downtimes = GetDowntimes();
+
+	if (!downtimes)
+		return false;
+
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(tie(tuples::ignore, downtime), downtimes) {
+		if (DowntimeProcessor::IsDowntimeActive(downtime))
+			return true;
+	}
+
+	return false;
 }
 
 void Service::SetSchedulingOffset(long offset)
@@ -626,6 +650,8 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 		ServiceGroup::InvalidateMembersCache();
 	else if (name == "host_name")
 		Host::InvalidateServicesCache();
+	else if (name == "downtimes")
+		DowntimeProcessor::InvalidateDowntimeCache();
 }
 
 void Service::BeginExecuteCheck(const function<void (void)>& callback)

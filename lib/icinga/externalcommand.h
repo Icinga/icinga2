@@ -56,6 +56,15 @@ public:
 	static void EnableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments);
 	static void DisableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments);
 	static void ProcessFile(double time, const vector<String>& arguments);
+	static void ScheduleSvcDowntime(double time, const vector<String>& arguments);
+	static void DelSvcDowntime(double time, const vector<String>& arguments);
+	static void ScheduleHostDowntime(double time, const vector<String>& arguments);
+	static void DelHostDowntime(double time, const vector<String>& arguments);
+	static void ScheduleHostSvcDowntime(double time, const vector<String>& arguments);
+	static void ScheduleHostgroupHostDowntime(double time, const vector<String>& arguments);
+	static void ScheduleHostgroupSvcDowntime(double time, const vector<String>& arguments);
+	static void ScheduleServicegroupHostDowntime(double time, const vector<String>& arguments);
+	static void ScheduleServicegroupSvcDowntime(double time, const vector<String>& arguments);
 
 private:
 	typedef function<void (double time, const vector<String>& arguments)> Callback;

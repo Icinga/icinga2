@@ -30,7 +30,8 @@ static AttributeDescription hostAttributes[] = {
 	{ "dependencies", Attribute_Config },
 	{ "hostchecks", Attribute_Config },
 	{ "acknowledgement", Attribute_Replicated },
-	{ "acknowledgement_expiry", Attribute_Replicated }
+	{ "acknowledgement_expiry", Attribute_Replicated },
+	{ "downtimes", Attribute_Replicated }
 };
 
 REGISTER_TYPE(Host, hostAttributes);
@@ -48,11 +49,13 @@ Host::Host(const Dictionary::Ptr& properties)
 	}
 
 	HostGroup::InvalidateMembersCache();
+	DowntimeProcessor::InvalidateDowntimeCache();
 }
 
 Host::~Host(void)
 {
 	HostGroup::InvalidateMembersCache();
+	DowntimeProcessor::InvalidateDowntimeCache();
 }
 
 String Host::GetAlias(void) const
@@ -114,6 +117,11 @@ Dictionary::Ptr Host::GetMacros(void) const
 	return Get("macros");
 }
 
+Dictionary::Ptr Host::GetDowntimes(void) const
+{
+	return Get("downtimes");
+}
+
 bool Host::IsReachable(void)
 {
 	Dictionary::Ptr dependencies = Get("dependencies");
@@ -132,6 +140,22 @@ bool Host::IsReachable(void)
 	}
 
 	return true;
+}
+
+bool Host::IsInDowntime(void) const
+{
+	Dictionary::Ptr downtimes = GetDowntimes();
+
+	if (!downtimes)
+		return false;
+
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(tie(tuples::ignore, downtime), downtimes) {
+		if (DowntimeProcessor::IsDowntimeActive(downtime))
+			return true;
+	}
+
+	return false;
 }
 
 bool Host::IsUp(void)
@@ -291,6 +315,8 @@ void Host::OnAttributeChanged(const String& name, const Value& oldValue)
 {
 	if (name == "hostgroups")
 		HostGroup::InvalidateMembersCache();
+	else if (name == "downtimes")
+		DowntimeProcessor::InvalidateDowntimeCache();
 }
 
 set<Service::Ptr> Host::GetServices(void) const

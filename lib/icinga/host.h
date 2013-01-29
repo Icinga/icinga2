@@ -47,6 +47,7 @@ public:
 
 	set<Host::Ptr> GetParents(void);
 	Dictionary::Ptr GetMacros(void) const;
+	Dictionary::Ptr GetDowntimes(void) const;
 
 	AcknowledgementType GetAcknowledgement(void);
 	void SetAcknowledgement(AcknowledgementType acknowledgement);
@@ -55,6 +56,7 @@ public:
 	void SetAcknowledgementExpiry(double timestamp);
 
 	bool IsReachable(void);
+	bool IsInDowntime(void) const;
 	bool IsUp(void);
 
 	set<shared_ptr<Service> > GetServices(void) const;

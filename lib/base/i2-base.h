@@ -174,6 +174,7 @@ namespace tuples = boost::tuples;
 #include "exception.h"
 #include "event.h"
 #include "value.h"
+#include "convert.h"
 #include "dictionary.h"
 #include "ringbuffer.h"
 #include "timer.h"

@@ -46,6 +46,7 @@ private:
 	String GetObjectsPath(void) const;
 	String GetCommandPath(void) const;
 
+	void DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owner);
 	void DumpHostStatus(ofstream& fp, const Host::Ptr& host);
 	void DumpHostObject(ofstream& fp, const Host::Ptr& host);
 
