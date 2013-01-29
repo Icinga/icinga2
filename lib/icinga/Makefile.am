@@ -8,6 +8,8 @@ libicinga_la_SOURCES =  \
 	acknowledgement.h \
 	cib.cpp \
 	cib.h \
+	commentprocessor.cpp \
+	commentprocessor.h \
 	downtimeprocessor.cpp \
 	downtimeprocessor.h \
 	externalcommandprocessor.cpp \

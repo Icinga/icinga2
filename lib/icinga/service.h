@@ -77,6 +77,7 @@ public:
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 	Dictionary::Ptr GetDowntimes(void) const;
+	Dictionary::Ptr GetComments(void) const;
 	String GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
 	long GetCheckInterval(void) const;

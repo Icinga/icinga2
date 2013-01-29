@@ -159,6 +159,48 @@ void CompatComponent::ProcessCommand(const String& command)
 }
 #endif /* _WIN32 */
 
+void CompatComponent::DumpComments(ofstream& fp, const DynamicObject::Ptr& owner)
+{
+	Service::Ptr service;
+	Host::Ptr host;
+	Dictionary::Ptr comments;
+
+	if (owner->GetType() == DynamicType::GetByName("Service")) {
+		service = dynamic_pointer_cast<Service>(owner);
+		comments = service->GetComments();
+
+		host = service->GetHost();
+	} else {
+		host = dynamic_pointer_cast<Host>(owner);
+		comments = host->GetComments();
+	}
+
+	if (!comments)
+		return;
+
+	String id;
+	Dictionary::Ptr comment;
+	BOOST_FOREACH(tie(id, comment), comments) {
+		if (!service)
+			fp << "hostcomment {" << "\n";
+		else
+			fp << "servicecomment {" << "\n"
+			   << "\t" << "service_description=" << service->GetAlias() << "\n";
+
+		fp << "\t" << "host_name=" << host->GetName() << "\n"
+		   << "\t" << "comment_id=" << id << "\n"
+		   << "\t" << "entry_time=" << static_cast<double>(comment->Get("entry_time")) << "\n"
+		   << "\t" << "entry_type=" << static_cast<long>(comment->Get("entry_type")) << "\n"
+		   << "\t" << "persistent=" << 1 << "\n"
+		   << "\t" << "author=" << static_cast<String>(comment->Get("author")) << "\n"
+		   << "\t" << "comment_data=" << static_cast<String>(comment->Get("text")) << "\n"
+		   << "\t" << "expires=" << (static_cast<double>(comment->Get("expire_time")) != 0 ? 1 : 0) << "\n"
+		   << "\t" << "expire_time=" << static_cast<double>(comment->Get("expire_time")) << "\n"
+		   << "\t" << "}" << "\n"
+		   << "\n";
+	}
+}
+
 void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owner)
 {
 	Service::Ptr service;
@@ -237,6 +279,7 @@ void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 	   << "\n";
 
 	DumpDowntimes(fp, host);
+	DumpComments(fp, host);
 }
 
 void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
@@ -317,6 +360,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	   << "\n";
 
 	DumpDowntimes(fp, service);
+	DumpComments(fp, service);
 }
 
 void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& service)
@@ -376,6 +420,7 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
 		 << "\t" << "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
 		 << "\t" << "next_downtime_id=" << DowntimeProcessor::GetNextDowntimeID() << "\n"
+		 << "\t" << "next_comment_id=" << CommentProcessor::GetNextCommentID() << "\n"
 		 << "\t" << "}" << "\n"
 		 << "\n";
 

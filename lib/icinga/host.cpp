@@ -122,6 +122,11 @@ Dictionary::Ptr Host::GetDowntimes(void) const
 	return Get("downtimes");
 }
 
+Dictionary::Ptr Host::GetComments(void) const
+{
+	return Get("comments");
+}
+
 bool Host::IsReachable(void)
 {
 	Dictionary::Ptr dependencies = Get("dependencies");

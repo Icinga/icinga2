@@ -122,6 +122,11 @@ Dictionary::Ptr Service::GetDowntimes(void) const
 	return Get("downtimes");
 }
 
+Dictionary::Ptr Service::GetComments(void) const
+{
+	return Get("comments");
+}
+
 String Service::GetCheckCommand(void) const
 {
 	return Get("check_command");

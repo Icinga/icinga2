@@ -94,6 +94,12 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 		RegisterCommand("SCHEDULE_HOSTGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupSvcDowntime);
 		RegisterCommand("SCHEDULE_SERVICEGROUP_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleServicegroupHostDowntime);
 		RegisterCommand("SCHEDULE_SERVICEGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleServicegroupSvcDowntime);
+		RegisterCommand("ADD_HOST_COMMENT", &ExternalCommandProcessor::AddHostComment);
+		RegisterCommand("DEL_HOST_COMMENT", &ExternalCommandProcessor::DelHostComment);
+		RegisterCommand("ADD_SVC_COMMENT", &ExternalCommandProcessor::AddSvcComment);
+		RegisterCommand("DEL_SVC_COMMENT", &ExternalCommandProcessor::DelSvcComment);
+		RegisterCommand("DEL_ALL_HOST_COMMENTS", &ExternalCommandProcessor::DelAllHostComments);
+		RegisterCommand("DEL_ALL_SVC_COMMENTS", &ExternalCommandProcessor::DelAllSvcComments);
 
 		m_Initialized = true;
 	}
@@ -727,5 +733,81 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double time, cons
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), Convert::ToLong(arguments[4]), Convert::ToDouble(arguments[5]));
 	}
+}
+
+void ExternalCommandProcessor::AddHostComment(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 4)
+		throw_exception(invalid_argument("Expected 4 arguments."));
+
+	if (!Host::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Creating comment for host " + host->GetName());
+	(void) CommentProcessor::AddComment(host, Comment_User, arguments[2], arguments[3], 0);
+}
+
+void ExternalCommandProcessor::DelHostComment(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	String id = arguments[0];
+	Logger::Write(LogInformation, "icinga", "Removing comment ID " + id);
+	CommentProcessor::RemoveComment(Convert::ToLong(id));
+}
+
+void ExternalCommandProcessor::AddSvcComment(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 5)
+		throw_exception(invalid_argument("Expected 5 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Creating comment for service " + service->GetName());
+	(void) CommentProcessor::AddComment(service, Comment_User, arguments[3], arguments[4], 0);
+}
+
+void ExternalCommandProcessor::DelSvcComment(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	String id = arguments[0];
+	Logger::Write(LogInformation, "icinga", "Removing comment ID " + id);
+	CommentProcessor::RemoveComment(Convert::ToLong(id));
+}
+
+void ExternalCommandProcessor::DelAllHostComments(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Expected 1 argument."));
+
+	if (!Host::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Removing all comments for host " + host->GetName());
+	CommentProcessor::RemoveAllComments(host);
+}
+
+void ExternalCommandProcessor::DelAllSvcComments(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Expected 2 arguments."));
+
+	if (!Service::Exists(arguments[1]))
+		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
+
+	Service::Ptr service = Service::GetByName(arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Removing all comments for service " + service->GetName());
+	CommentProcessor::RemoveAllComments(service);
 }
 

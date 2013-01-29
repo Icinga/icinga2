@@ -65,6 +65,12 @@ public:
 	static void ScheduleHostgroupSvcDowntime(double time, const vector<String>& arguments);
 	static void ScheduleServicegroupHostDowntime(double time, const vector<String>& arguments);
 	static void ScheduleServicegroupSvcDowntime(double time, const vector<String>& arguments);
+	static void AddHostComment(double time, const vector<String>& arguments);
+	static void DelHostComment(double time, const vector<String>& arguments);
+	static void AddSvcComment(double time, const vector<String>& arguments);
+	static void DelSvcComment(double time, const vector<String>& arguments);
+	static void DelAllHostComments(double time, const vector<String>& arguments);
+	static void DelAllSvcComments(double time, const vector<String>& arguments);
 
 private:
 	typedef function<void (double time, const vector<String>& arguments)> Callback;

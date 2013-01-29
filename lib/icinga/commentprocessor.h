@@ -17,46 +17,52 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DOWNTIMEPROCESSOR_H
-#define DOWNTIMEPROCESSOR_H
+#ifndef COMMENTPROCESSOR_H
+#define COMMENTPROCESSOR_H
 
 namespace icinga
 {
 
+enum CommentType
+{
+	Comment_User = 1,
+	Comment_Downtime = 2,
+	Comment_Flapping = 3,
+	Comment_Acknowledgement = 4
+};
+
 /**
- * Downtime processor.
+ * Comment processor.
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API DowntimeProcessor
+class I2_ICINGA_API CommentProcessor
 {
 public:
-	static int GetNextDowntimeID(void);
+	static int GetNextCommentID(void);
 
-	static int AddDowntime(const DynamicObject::Ptr& owner,
-	    const String& author, const String& comment,
-	    double startTime, double endTime,
-	    bool fixed, int triggeredBy, double duration);
+	static int AddComment(const DynamicObject::Ptr& owner,
+	    CommentType entryType, const String& author, const String& text,
+	    double expireTime);
 
-	static void RemoveDowntime(int id);
+	static void RemoveAllComments(const DynamicObject::Ptr& owner);
+	static void RemoveComment(int id);
 
-	static DynamicObject::Ptr GetOwnerByDowntimeID(int id);
-	static Dictionary::Ptr GetDowntimeByID(int id);
+	static DynamicObject::Ptr GetOwnerByCommentID(int id);
+	static Dictionary::Ptr GetCommentByID(int id);
 
-	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
-
-	static void InvalidateDowntimeCache(void);
+	static void InvalidateCommentCache(void);
 
 private:
-	static int m_NextDowntimeID;
+	static int m_NextCommentID;
 
-	static map<int, DynamicObject::WeakPtr> m_DowntimeCache;
-	static bool m_DowntimeCacheValid;
+	static map<int, DynamicObject::WeakPtr> m_CommentCache;
+	static bool m_CommentCacheValid;
 
-	DowntimeProcessor(void);
+	CommentProcessor(void);
 
-	static void AddDowntimesToCache(const DynamicObject::Ptr& owner);
-	static void ValidateDowntimeCache(void);
+	static void AddCommentsToCache(const DynamicObject::Ptr& owner);
+	static void ValidateCommentCache(void);
 };
 
 }

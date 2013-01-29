@@ -48,6 +48,7 @@ public:
 	set<Host::Ptr> GetParents(void);
 	Dictionary::Ptr GetMacros(void) const;
 	Dictionary::Ptr GetDowntimes(void) const;
+	Dictionary::Ptr GetComments(void) const;
 
 	AcknowledgementType GetAcknowledgement(void);
 	void SetAcknowledgement(AcknowledgementType acknowledgement);

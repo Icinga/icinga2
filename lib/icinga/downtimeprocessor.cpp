@@ -62,13 +62,13 @@ int DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
 
 void DowntimeProcessor::RemoveDowntime(int id)
 {
-	DynamicObject::Ptr dto = GetOwnerByDowntimeID(id);
+	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
 
-	Dictionary::Ptr downtimes = dto->Get("downtimes");
+	Dictionary::Ptr downtimes = owner->Get("downtimes");
 
 	if (downtimes) {
 		downtimes->Remove(Convert::ToString(id));
-		dto->Touch("downtimes");
+		owner->Touch("downtimes");
 	}
 }
 
@@ -76,15 +76,17 @@ DynamicObject::Ptr DowntimeProcessor::GetOwnerByDowntimeID(int id)
 {
 	ValidateDowntimeCache();
 
-	DynamicObject::Ptr dto = m_DowntimeCache[id].lock();
-	return dto;
+	return m_DowntimeCache[id].lock();
 }
 
 Dictionary::Ptr DowntimeProcessor::GetDowntimeByID(int id)
 {
-	DynamicObject::Ptr dto = GetOwnerByDowntimeID(id);
+	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
 
-	Dictionary::Ptr downtimes = dto->Get("downtimes");
+	if (!owner)
+		throw_exception(invalid_argument("Downtime ID does not exist."));
+
+	Dictionary::Ptr downtimes = owner->Get("downtimes");
 
 	if (downtimes) {
 		Dictionary::Ptr downtime = downtimes->Get(Convert::ToString(id));

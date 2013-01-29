@@ -50,6 +50,7 @@ using boost::algorithm::is_any_of;
 
 #include "acknowledgement.h"
 #include "downtimeprocessor.h"
+#include "commentprocessor.h"
 
 #include "host.h"
 #include "hostgroup.h"
