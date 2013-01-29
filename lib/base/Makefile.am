@@ -12,6 +12,8 @@ libbase_la_SOURCES =  \
 	component.h \
 	connection.cpp \
 	connection.h \
+	convert.cpp \
+	convert.h \
 	dictionary.cpp \
 	dictionary.h \
 	dynamicobject.cpp \

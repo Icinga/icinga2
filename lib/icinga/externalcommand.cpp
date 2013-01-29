@@ -40,7 +40,7 @@ void ExternalCommand::Execute(const String& line)
 	String timestamp = line.SubStr(1, pos - 1);
 	String args = line.SubStr(pos + 2, String::NPos);
 
-	double ts = timestamp.ToDouble();
+	double ts = Convert::ToDouble(timestamp);
 
 	if (ts == 0)
 		throw_exception(invalid_argument("Invalid timestamp in command: " + line));
@@ -121,7 +121,7 @@ void ExternalCommand::ProcessServiceCheckResult(double time, const vector<String
 	if (!service->GetEnablePassiveChecks())
 		throw_exception(invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
 
-	int exitStatus = arguments[2].ToDouble();
+	int exitStatus = Convert::ToDouble(arguments[2]);
 	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(arguments[3]);
 	result->Set("state", PluginCheckTask::ExitStatusToState(exitStatus));
 
@@ -151,7 +151,7 @@ void ExternalCommand::ScheduleSvcCheck(double time, const vector<String>& argume
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
-	double planned_check = arguments[2].ToDouble();
+	double planned_check = Convert::ToDouble(arguments[2]);
 
 	if (planned_check > service->GetNextCheck()) {
 		Logger::Write(LogInformation, "icinga", "Ignoring reschedule request for service '" +
@@ -175,7 +175,7 @@ void ExternalCommand::ScheduleForcedSvcCheck(double time, const vector<String>& 
 
 	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
 	service->SetForceNextCheck(true);
-	service->SetNextCheck(arguments[2].ToDouble());
+	service->SetNextCheck(Convert::ToDouble(arguments[2]));
 }
 
 void ExternalCommand::EnableSvcCheck(double time, const vector<String>& arguments)
@@ -220,7 +220,7 @@ void ExternalCommand::ScheduleForcedHostSvcChecks(double time, const vector<Stri
 	if (!Host::Exists(arguments[0]))
 		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
 
-	double planned_check = arguments[1].ToDouble();
+	double planned_check = Convert::ToDouble(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -245,7 +245,7 @@ void ExternalCommand::ScheduleHostSvcChecks(double time, const vector<String>& a
 	if (!Host::Exists(arguments[0]))
 		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
 
-	double planned_check = arguments[1].ToDouble();
+	double planned_check = Convert::ToDouble(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -319,7 +319,7 @@ void ExternalCommand::AcknowledgeSvcProblem(double time, const vector<String>& a
 	if (!Service::Exists(arguments[1]))
 		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
-	int sticky = arguments[2].ToDouble();
+	bool sticky = Convert::ToBool(arguments[2]);
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
@@ -339,8 +339,8 @@ void ExternalCommand::AcknowledgeSvcProblemExpire(double time, const vector<Stri
 	if (!Service::Exists(arguments[1]))
 		throw_exception(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
-	int sticky = arguments[2].ToDouble();
-	double timestamp = arguments[5].ToDouble();
+	bool sticky = Convert::ToBool(arguments[2]);
+	double timestamp = Convert::ToDouble(arguments[5]);
 
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
@@ -375,7 +375,7 @@ void ExternalCommand::AcknowledgeHostProblem(double time, const vector<String>& 
 	if (!Host::Exists(arguments[0]))
 		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
 
-	int sticky = arguments[0].ToDouble();
+	bool sticky = Convert::ToBool(arguments[0]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -395,8 +395,8 @@ void ExternalCommand::AcknowledgeHostProblemExpire(double time, const vector<Str
 	if (!Host::Exists(arguments[0]))
 		throw_exception(invalid_argument("The host '" + arguments[0] + "' does not exist."));
 
-	int sticky = arguments[1].ToDouble();
-	double timestamp = arguments[4].ToDouble();
+	bool sticky = Convert::ToBool(arguments[1]);
+	double timestamp = Convert::ToDouble(arguments[4]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -593,7 +593,7 @@ void ExternalCommand::ProcessFile(double time, const vector<String>& arguments)
 		throw_exception(invalid_argument("Expected 2 arguments."));
 
 	String file = arguments[0];
-	int del = arguments[1].ToDouble();
+	bool del = Convert::ToBool(arguments[1]);
 
 	ifstream ifp;
 	ifp.exceptions(ifstream::badbit);

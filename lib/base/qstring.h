@@ -87,8 +87,6 @@ public:
 	Iterator End(void);
 	ConstIterator End(void) const;
 
-	double ToDouble(void) const;
-
 	static const size_t NPos;
 
 private:
