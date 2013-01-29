@@ -57,6 +57,7 @@ using namespace icinga;
 %token T_INCLUDE
 %token T_LIBRARY
 %token T_INHERITS
+%type <text> identifier
 %type <variant> simplevalue
 %type <variant> value
 %type <variant> expressionlist
@@ -109,12 +110,19 @@ library: T_LIBRARY T_STRING
 		context->HandleLibrary($2);
 	}
 
+identifier: T_IDENTIFIER
+	| T_STRING
+	{
+		$$ = $1;
+	}
+	;
+
 object: 
 	{
 		m_Abstract = false;
 		m_Local = false;
 	}
-attributes T_OBJECT T_IDENTIFIER T_STRING
+attributes T_OBJECT identifier T_STRING
 	{
 		m_Item = boost::make_shared<ConfigItemBuilder>(yylloc);
 		m_Item->SetType($4);
@@ -183,7 +191,7 @@ expressions_inner: /* empty */
 	| expressions_inner ',' expression
 	;
 
-expression: T_IDENTIFIER operator value
+expression: identifier operator value
 	{
 		Expression expr($1, $2, *$3, yylloc);
 		free($1);
@@ -191,7 +199,7 @@ expression: T_IDENTIFIER operator value
 
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
-	| T_IDENTIFIER '[' T_STRING ']' operator value
+	| identifier '[' T_STRING ']' operator value
 	{
 		Expression subexpr($3, $5, *$6, yylloc);
 		free($3);
