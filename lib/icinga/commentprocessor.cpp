@@ -42,6 +42,7 @@ String CommentProcessor::AddComment(const DynamicObject::Ptr& owner,
 	comment->Set("author", author);
 	comment->Set("text", text);
 	comment->Set("expire_time", expireTime);
+	comment->Set("legacy_id", m_NextCommentID++);
 
 	Dictionary::Ptr comments = owner->Get("comments");
 
@@ -133,15 +134,7 @@ void CommentProcessor::AddCommentsToCache(const DynamicObject::Ptr& owner)
 	String id;
 	Dictionary::Ptr comment;
 	BOOST_FOREACH(tie(id, comment), comments) {
-		int legacy_id;
-
-		if (!comment->Contains("legacy_id")) {
-			legacy_id = m_NextCommentID;
-			m_NextCommentID++;
-			comment->Set("legacy_id", legacy_id);
-		} else {
-			legacy_id = comment->Get("legacy_id");
-		}
+		int legacy_id = comment->Get("legacy_id");
 
 		if (legacy_id >= m_NextCommentID)
 			m_NextCommentID = legacy_id + 1;
@@ -150,9 +143,9 @@ void CommentProcessor::AddCommentsToCache(const DynamicObject::Ptr& owner)
 			/* The legacy_id is already in use by another comment;
 			 * this shouldn't usually happen - assign it a new ID */
 
-			legacy_id = m_NextCommentID;
-			m_NextCommentID++;
+			legacy_id = m_NextCommentID++;
 			comment->Set("legacy_id", legacy_id);
+			owner->Touch("comments");
 		}
 
 		m_LegacyCommentCache[legacy_id] = id;

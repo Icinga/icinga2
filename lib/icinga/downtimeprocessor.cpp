@@ -47,6 +47,7 @@ String DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
 	downtime->Set("duration", duration);
 	downtime->Set("triggered_by", triggeredBy);
 	downtime->Set("trigger_time", 0);
+	downtime->Set("legacy_id", m_NextDowntimeID++);
 
 	Dictionary::Ptr downtimes = owner->Get("downtimes");
 
@@ -149,15 +150,7 @@ void DowntimeProcessor::AddDowntimesToCache(const DynamicObject::Ptr& owner)
 	BOOST_FOREACH(tie(id, downtime), downtimes) {
 		double end_time = downtime->Get("end_time");
 
-		int legacy_id;
-
-		if (!downtime->Contains("legacy_id")) {
-			legacy_id = m_NextDowntimeID;
-			m_NextDowntimeID++;
-			downtime->Set("legacy_id", legacy_id);
-		} else {
-			legacy_id = downtime->Get("legacy_id");
-		}
+		int legacy_id = downtime->Get("legacy_id");
 
 		if (legacy_id >= m_NextDowntimeID)
 			m_NextDowntimeID = legacy_id + 1;
@@ -165,9 +158,9 @@ void DowntimeProcessor::AddDowntimesToCache(const DynamicObject::Ptr& owner)
 		if (m_LegacyDowntimeCache.find(legacy_id) != m_LegacyDowntimeCache.end()) {
 			/* The legacy_id is already in use by another downtime;
 			 * this shouldn't usually happen - assign it a new ID. */
-			legacy_id = m_NextDowntimeID;
-			m_NextDowntimeID++;
+			legacy_id = m_NextDowntimeID++;
 			downtime->Set("legacy_id", legacy_id);
+			owner->Touch("downtimes");
 		}
 
 		m_LegacyDowntimeCache[legacy_id] = id;
