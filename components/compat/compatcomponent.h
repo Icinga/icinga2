@@ -85,10 +85,6 @@ private:
 	void DumpServiceObject(ofstream& fp, const Service::Ptr& service);
 
 	void StatusTimerHandler(void);
-
-	static const String DefaultStatusPath;
-	static const String DefaultObjectsPath;
-	static const String DefaultCommandPath;
 };
 
 }

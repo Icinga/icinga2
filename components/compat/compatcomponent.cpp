@@ -27,10 +27,6 @@ using namespace icinga;
  * performance (see http://gcc.gnu.org/onlinedocs/libstdc++/manual/bk01pt11ch25s02.html).
  */
 
-const String CompatComponent::DefaultStatusPath = Application::GetLocalStateDir() + "/status.dat";
-const String CompatComponent::DefaultObjectsPath = Application::GetLocalStateDir() + "/objects.cache";
-const String CompatComponent::DefaultCommandPath = Application::GetLocalStateDir() + "/icinga.cmd";
-
 /**
  * Retrieves the status.dat path.
  *
@@ -40,7 +36,7 @@ String CompatComponent::GetStatusPath(void) const
 {
 	Value statusPath = GetConfig()->Get("status_path");
 	if (statusPath.IsEmpty())
-		return DefaultStatusPath;
+		return Application::GetLocalStateDir() + "/status.dat";
 	else
 		return statusPath;
 }
@@ -54,7 +50,7 @@ String CompatComponent::GetObjectsPath(void) const
 {
 	Value objectsPath = GetConfig()->Get("objects_path");
 	if (objectsPath.IsEmpty())
-		return DefaultObjectsPath;
+		return Application::GetLocalStateDir() + "/objects.cache";
 	else
 		return objectsPath;
 }
@@ -68,7 +64,7 @@ String CompatComponent::GetCommandPath(void) const
 {
 	Value commandPath = GetConfig()->Get("command_path");
 	if (commandPath.IsEmpty())
-		return DefaultCommandPath;
+		return Application::GetLocalStateDir() + "/icinga.cmd";
 	else
 		return commandPath;
 }

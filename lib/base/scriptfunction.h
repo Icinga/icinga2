@@ -49,7 +49,7 @@ public:
 private:
 	Callback m_Callback;
 
-	static map<String, ScriptFunction::Ptr> m_Functions;
+	static map<String, ScriptFunction::Ptr>& GetFunctions(void);
 };
 
 /**
