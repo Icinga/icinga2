@@ -53,6 +53,7 @@ public:
 	static Dictionary::Ptr GetCommentByID(const String& id);
 
 	static void InvalidateCommentCache(void);
+	static void ValidateCommentCache(void);
 
 private:
 	static int m_NextCommentID;
@@ -64,7 +65,6 @@ private:
 	CommentProcessor(void);
 
 	static void AddCommentsToCache(const DynamicObject::Ptr& owner);
-	static void ValidateCommentCache(void);
 };
 
 }

@@ -47,6 +47,7 @@ public:
 	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
 
 	static void InvalidateDowntimeCache(void);
+	static void ValidateDowntimeCache(void);
 
 private:
 	static int m_NextDowntimeID;
@@ -58,7 +59,6 @@ private:
 	DowntimeProcessor(void);
 
 	static void AddDowntimesToCache(const DynamicObject::Ptr& owner);
-	static void ValidateDowntimeCache(void);
 };
 
 }

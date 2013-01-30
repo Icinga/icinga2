@@ -47,10 +47,6 @@ String CommentProcessor::AddComment(const DynamicObject::Ptr& owner,
 	if (!comments)
 		comments = boost::make_shared<Dictionary>();
 
-	int legacy_id = m_NextCommentID;
-	m_NextCommentID++;
-	comment->Set("legacy_id", legacy_id);
-
 	String id = Utility::NewUUID();
 	comments->Set(id, comment);
 	owner->Set("comments", comments);
@@ -80,7 +76,12 @@ void CommentProcessor::RemoveComment(const String& id)
 
 String CommentProcessor::GetIDFromLegacyID(int id)
 {
-	return Convert::ToString(id);
+	map<int, String>::iterator it = m_LegacyCommentCache.find(id);
+
+	if (it == m_LegacyCommentCache.end())
+		throw_exception(invalid_argument("Invalid legacy comment ID specified."));
+
+	return it->second;
 }
 
 DynamicObject::Ptr CommentProcessor::GetOwnerByCommentID(const String& id)
@@ -124,15 +125,29 @@ void CommentProcessor::AddCommentsToCache(const DynamicObject::Ptr& owner)
 	String id;
 	Dictionary::Ptr comment;
 	BOOST_FOREACH(tie(id, comment), comments) {
-		if (comment->Contains("legacy_id")) {
-			int legacy_id = comment->Get("legacy_id");
+		int legacy_id;
 
-			m_LegacyCommentCache[legacy_id] = id;
-
-			if (legacy_id > m_NextCommentID)
-				m_NextCommentID = legacy_id;
+		if (!comment->Contains("legacy_id")) {
+			legacy_id = m_NextCommentID;
+			m_NextCommentID++;
+			comment->Set("legacy_id", legacy_id);
+		} else {
+			legacy_id = comment->Get("legacy_id");
 		}
 
+		if (legacy_id >= m_NextCommentID)
+			m_NextCommentID = legacy_id + 1;
+
+		if (m_LegacyCommentCache.find(legacy_id) != m_LegacyCommentCache.end()) {
+			/* The legacy_id is already in use by another comment;
+			 * this shouldn't usually happen - assign it a new ID */
+
+			legacy_id = m_NextCommentID;
+			m_NextCommentID++;
+			comment->Set("legacy_id", legacy_id);
+		}
+
+		m_LegacyCommentCache[legacy_id] = id;
 		m_CommentCache[id] = owner;
 	}
 }

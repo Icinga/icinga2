@@ -52,10 +52,6 @@ String DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
 	if (!downtimes)
 		downtimes = boost::make_shared<Dictionary>();
 
-	int legacy_id = m_NextDowntimeID;
-	m_NextDowntimeID++;
-	downtime->Set("legacy_id", legacy_id);
-
 	String id = Utility::NewUUID();
 	downtimes->Set(id, downtime);
 	owner->Set("downtimes", downtimes);
@@ -77,7 +73,12 @@ void DowntimeProcessor::RemoveDowntime(const String& id)
 
 String DowntimeProcessor::GetIDFromLegacyID(int id)
 {
-	return Convert::ToString(id);
+	map<int, String>::iterator it = m_LegacyDowntimeCache.find(id);
+
+	if (it == m_LegacyDowntimeCache.end())
+		throw_exception(invalid_argument("Invalid legacy downtime ID specified."));
+
+	return it->second;
 }
 
 DynamicObject::Ptr DowntimeProcessor::GetOwnerByDowntimeID(const String& id)
@@ -140,15 +141,28 @@ void DowntimeProcessor::AddDowntimesToCache(const DynamicObject::Ptr& owner)
 	String id;
 	Dictionary::Ptr downtime;
 	BOOST_FOREACH(tie(id, downtime), downtimes) {
-		if (downtime->Contains("legacy_id")) {
-			int legacy_id = downtime->Get("legacy_id");
+		int legacy_id;
 
-			m_LegacyDowntimeCache[legacy_id] = id;
-
-			if (legacy_id > m_NextDowntimeID)
-				m_NextDowntimeID = legacy_id;
+		if (!downtime->Contains("legacy_id")) {
+			legacy_id = m_NextDowntimeID;
+			m_NextDowntimeID++;
+			downtime->Set("legacy_id", legacy_id);
+		} else {
+			legacy_id = downtime->Get("legacy_id");
 		}
 
+		if (legacy_id >= m_NextDowntimeID)
+			m_NextDowntimeID = legacy_id + 1;
+
+		if (m_LegacyDowntimeCache.find(legacy_id) != m_LegacyDowntimeCache.end()) {
+			/* The legacy_id is already in use by another downtime;
+			 * this shouldn't usually happen - assign it a new ID. */
+			legacy_id = m_NextDowntimeID;
+			m_NextDowntimeID++;
+			downtime->Set("legacy_id", legacy_id);
+		}
+
+		m_LegacyDowntimeCache[legacy_id] = id;
 		m_DowntimeCache[id] = owner;
 	}
 }

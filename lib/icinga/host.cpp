@@ -120,11 +120,15 @@ Dictionary::Ptr Host::GetMacros(void) const
 
 Dictionary::Ptr Host::GetDowntimes(void) const
 {
+	DowntimeProcessor::ValidateDowntimeCache();
+
 	return Get("downtimes");
 }
 
 Dictionary::Ptr Host::GetComments(void) const
 {
+	CommentProcessor::ValidateCommentCache();
+
 	return Get("comments");
 }
 
