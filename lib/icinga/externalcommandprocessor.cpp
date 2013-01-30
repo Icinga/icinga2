@@ -729,12 +729,70 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double time, const 
 
 void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double time, const vector<String>& arguments)
 {
-	// TODO: implement (#3582)
+	if (arguments.size() < 8)
+		throw_exception(invalid_argument("Expected 8 arguments."));
+
+	if (!HostGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	String triggeredBy;
+	int triggeredByLegacy = Convert::ToLong(arguments[4]);
+	if (triggeredByLegacy != 0)
+		triggeredBy = DowntimeProcessor::GetIDFromLegacyID(triggeredByLegacy);
+
+	/* Note: we can't just directly create downtimes for all the services by iterating
+	 * over all hosts in the host group - otherwise we might end up creating multiple
+	 * downtimes for some services. */
+
+	set<Service::Ptr> services;
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+			services.insert(service);
+		}
+	}
+
+	BOOST_FOREACH(const Service::Ptr& service, services) {
+		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+		(void) DowntimeProcessor::AddDowntime(service, arguments[6], arguments[7],
+		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
+	}
 }
 
 void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double time, const vector<String>& arguments)
 {
-	// TODO: implement (#3582)
+	if (arguments.size() < 8)
+		throw_exception(invalid_argument("Expected 8 arguments."));
+
+	if (!ServiceGroup::Exists(arguments[0]))
+		throw_exception(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	String triggeredBy;
+	int triggeredByLegacy = Convert::ToLong(arguments[4]);
+	if (triggeredByLegacy != 0)
+		triggeredBy = DowntimeProcessor::GetIDFromLegacyID(triggeredByLegacy);
+
+	/* Note: we can't just directly create downtimes for all the hosts by iterating
+	 * over all services in the service group - otherwise we might end up creating multiple
+	 * downtimes for some hosts. */
+
+	set<Host::Ptr> hosts;
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		hosts.insert(service->GetHost());
+	}
+
+	BOOST_FOREACH(const Host::Ptr& host, hosts) {
+		Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
+		(void) DowntimeProcessor::AddDowntime(host, arguments[6], arguments[7],
+		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
+	}
 }
 
 void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double time, const vector<String>& arguments)
