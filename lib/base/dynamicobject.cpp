@@ -390,6 +390,8 @@ void DynamicObject::RestoreObjects(const String& filename)
 	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
 	sfp->Start();
 
+	unsigned long restored = 0;
+
 	String message;
 	while (NetString::ReadStringFromStream(sfp, &message)) {
 		Dictionary::Ptr persistentObject = Value::Deserialize(message);
@@ -413,9 +415,15 @@ void DynamicObject::RestoreObjects(const String& filename)
 		} else if (object) {
 			object->ApplyUpdate(update, Attribute_All);
 		}
+
+		restored++;
 	}
 
 	sfp->Close();
+
+	stringstream msgbuf;
+	msgbuf << "Restored " << restored << " objects";
+	Logger::Write(LogInformation, "base", msgbuf.str());
 }
 
 void DynamicObject::DeactivateObjects(void)

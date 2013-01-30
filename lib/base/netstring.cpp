@@ -32,24 +32,17 @@ using namespace icinga;
  */
 bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 {
-	size_t buffer_length = stream->GetAvailableBytes();
-
-	/* minimum netString length is 3 */
-	if (buffer_length < 3)
-		return false;
-
-	/* limit the number of bytes we're reading for the header */
-	if (buffer_length > 16)
-		buffer_length = 16;
-
+	/* 16 bytes are enough for the header */
+	size_t peek_length, buffer_length = 16;
 	char *buffer = static_cast<char *>(malloc(buffer_length));
 
-	if (buffer == NULL && buffer_length > 0)
+	if (buffer == NULL)
 		throw_exception(bad_alloc());
 
-	buffer_length = stream->Peek(buffer, buffer_length);
+	peek_length = stream->Peek(buffer, buffer_length);
 
-	if (buffer_length < 3) {
+	/* minimum netString length is 3 */
+	if (peek_length < 3) {
 		free(buffer);
 		return false;
 	}
@@ -63,7 +56,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 	size_t len, i;
 
 	len = 0;
-	for (i = 0; i < buffer_length && isdigit(buffer[i]); i++) {
+	for (i = 0; i < peek_length && isdigit(buffer[i]); i++) {
 		/* length specifier must have at most 9 characters */
 		if (i >= 9) {
 			free(buffer);
@@ -73,13 +66,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 		len = len * 10 + (buffer[i] - '0');
 	}
 
-	buffer_length = stream->GetAvailableBytes();
-
-	/* make sure the buffer is large enough */
-	if (i + len + 1 >= buffer_length)
-		return false;
-
-	/* limit the number of bytes we're reading to this message */
+	/* read the whole message */
 	buffer_length = i + 1 + len + 1;
 
 	char *new_buffer = static_cast<char *>(realloc(buffer, buffer_length));
@@ -91,7 +78,10 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 
 	buffer = new_buffer;
 
-	stream->Peek(buffer, buffer_length);
+	peek_length = stream->Peek(buffer, buffer_length);
+
+	if (peek_length < buffer_length)
+		return false;
 
 	/* check for the colon delimiter */
 	if (buffer[i] != ':') {
@@ -110,7 +100,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 	free(buffer);
 
 	/* remove the data from the stream */
-	stream->Read(NULL, buffer_length);
+	stream->Read(NULL, peek_length);
 
 	return true;
 }
