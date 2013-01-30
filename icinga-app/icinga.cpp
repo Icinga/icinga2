@@ -18,9 +18,7 @@
  ******************************************************************************/
 
 #include <i2-icinga.h>
-#ifdef HAVE_BACKTRACE_SYMBOLS
-#	include <execinfo.h>
-#endif /* HAVE_BACKTRACE_SYMBOLS */
+
 
 #ifndef _WIN32
 #	include "icinga-version.h"
@@ -32,65 +30,6 @@
 using namespace icinga;
 
 /**
- * Handler for unhandled exceptions.
- *
- */
-static void exception_handler(void)
-{
-	static bool rethrow = true;
-
-	try {
-		rethrow = false;
-		throw;
-	} catch (const std::exception& ex) {
-		std::cerr << std::endl;
-		std::cerr << "Unhandled exception of type "
-			  << Utility::GetTypeName(typeid(ex))
-			  << std::endl;
-		std::cerr << "Diagnostic Information: "
-			  << ex.what()
-			  << std::endl;
-	}
-
-#ifdef HAVE_BACKTRACE_SYMBOLS
-	void *frames[50];
-	int framecount = backtrace(frames, sizeof(frames) / sizeof(frames[0]));
-
-	char **messages = backtrace_symbols(frames, framecount);
-
-	std::cerr << std::endl << "Stacktrace:" << std::endl;
-
-	for (int i = 0; i < framecount && messages != NULL; ++i) {
-		String message = messages[i];
-
-		char *sym_begin = strchr(messages[i], '(');
-
-		if (sym_begin != NULL) {
-			char *sym_end = strchr(sym_begin, '+');
-
-			if (sym_end != NULL) {
-				String sym = String(sym_begin + 1, sym_end);
-				String sym_demangled = Utility::DemangleSymbolName(sym);
-
-				if (sym_demangled.IsEmpty())
-					sym_demangled = "<unknown function>";
-
-				message = String(messages[i], sym_begin) + ": " + sym_demangled + " (" + String(sym_end);
-			}
-		}
-
-        	std::cerr << "\t(" << i << ") " << message << std::endl;
-	}
-
-	free(messages);
-
-	std::cerr << std::endl;
-#endif /* HAVE_BACKTRACE_SYMBOLS */
-
-	abort();
-}
-
-/**
  * Entry point for the Icinga application.
  *
  * @params argc Number of command line arguments.
@@ -99,8 +38,6 @@ static void exception_handler(void)
  */
 int main(int argc, char **argv)
 {
-	std::set_terminate(exception_handler);
-
 #ifndef _WIN32
 	LTDL_SET_PRELOADED_SYMBOLS();
 #endif /* _WIN32 */
@@ -112,6 +49,9 @@ int main(int argc, char **argv)
 	/* This must be done before calling any other functions
 	 * in the base library. */
 	Application::SetMainThread();
+
+	/* Install exception handlers to make debugging easier. */
+	Application::InstallExceptionHandlers();
 
 #ifdef ICINGA_PREFIX
 	Application::SetPrefixDir(ICINGA_PREFIX);

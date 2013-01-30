@@ -19,6 +19,9 @@
 
 #include "i2-base.h"
 #include <mmatch.h>
+#ifdef HAVE_BACKTRACE_SYMBOLS
+#	include <execinfo.h>
+#endif /* HAVE_BACKTRACE_SYMBOLS */
 
 using namespace icinga;
 
@@ -56,6 +59,56 @@ String Utility::DemangleSymbolName(const String& sym)
 String Utility::GetTypeName(const type_info& ti)
 {
 	return DemangleSymbolName(ti.name());
+}
+
+/**
+ * Prints a stacktrace to the specified stream.
+ *
+ * @param fp The stream.
+ * @param ignoreFrames The number of stackframes to ignore (in addition to
+ *		       the one this function is executing in).
+ * @returns true if the stacktrace was printed, false otherwise.
+ */
+bool Utility::PrintStacktrace(ostream& fp, int ignoreFrames)
+{
+#ifdef HAVE_BACKTRACE_SYMBOLS
+	void *frames[50];
+	int framecount = backtrace(frames, sizeof(frames) / sizeof(frames[0]));
+
+	char **messages = backtrace_symbols(frames, framecount);
+
+	fp << std::endl << "Stacktrace:" << std::endl;
+
+	for (int i = ignoreFrames + 1; i < framecount && messages != NULL; ++i) {
+		String message = messages[i];
+
+		char *sym_begin = strchr(messages[i], '(');
+
+		if (sym_begin != NULL) {
+			char *sym_end = strchr(sym_begin, '+');
+
+			if (sym_end != NULL) {
+				String sym = String(sym_begin + 1, sym_end);
+				String sym_demangled = Utility::DemangleSymbolName(sym);
+
+				if (sym_demangled.IsEmpty())
+					sym_demangled = "<unknown function>";
+
+				message = String(messages[i], sym_begin) + ": " + sym_demangled + " (" + String(sym_end);
+			}
+		}
+
+        	fp << "\t(" << i - ignoreFrames - 1 << ") " << message << std::endl;
+	}
+
+	free(messages);
+
+	fp << std::endl;
+
+	return true;
+#else /* HAVE_BACKTRACE_SYMBOLS */
+	return false;
+#endif /* HAVE_BACKTRACE_SYMBOLS */
 }
 
 /**

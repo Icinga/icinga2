@@ -49,6 +49,8 @@ public:
 	 */
 	virtual int Main(const vector<String>& args) = 0;
 
+	static void InstallExceptionHandlers(void);
+
 	static void RequestShutdown(void);
 	static void Terminate(int exitCode);
 
@@ -89,9 +91,12 @@ private:
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);
+	static void SigAbrtHandler(int signum);
 #else /* _WIN32 */
 	static BOOL WINAPI CtrlHandler(DWORD type);
 #endif /* _WIN32 */
+
+	static void ExceptionHandler(void);
 
 	static void TimeWatchThreadProc(void);
 };

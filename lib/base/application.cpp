@@ -297,6 +297,20 @@ void Application::SigIntHandler(int signum)
 	sa.sa_handler = SIG_DFL;
 	sigaction(SIGINT, &sa, NULL);
 }
+
+/**
+ * Signal handler for SIGABRT. Helps with debugging assert()s.
+ *
+ * @param signum The signal number.
+ */
+void Application::SigAbrtHandler(int signum)
+{
+	assert(signum == SIGABRT);
+
+	std::cerr << "Caught SIGABRT." << std::endl;
+
+	Utility::PrintStacktrace(std::cerr, 1);
+}
 #else /* _WIN32 */
 /**
  * Console control handler. Prepares the application for cleanly
@@ -317,6 +331,54 @@ BOOL WINAPI Application::CtrlHandler(DWORD type)
 #endif /* _WIN32 */
 
 /**
+ * Handler for unhandled exceptions.
+ */
+void Application::ExceptionHandler(void)
+{
+	static bool rethrow = true;
+
+	try {
+		rethrow = false;
+		throw;
+	} catch (const std::exception& ex) {
+		std::cerr << std::endl;
+		std::cerr << "Unhandled exception of type "
+			  << Utility::GetTypeName(typeid(ex))
+			  << std::endl;
+		std::cerr << "Diagnostic Information: "
+			  << ex.what()
+			  << std::endl;
+	}
+
+	Utility::PrintStacktrace(std::cerr, 1);
+
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, sizeof(sa), 0);
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGABRT, &sa, NULL);
+#endif /* _WIN32 */
+
+	abort();
+}
+
+
+/**
+ * Installs the exception handlers.
+ */
+void Application::InstallExceptionHandlers(void)
+{
+	std::set_terminate(&Application::ExceptionHandler);
+
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = &Application::SigAbrtHandler;
+	sigaction(SIGABRT, &sa, NULL);
+#endif /* _WIN32 */
+}
+
+/**
  * Runs the application.
  *
  * @param argc The number of arguments.
@@ -335,7 +397,7 @@ int Application::Run(int argc, char **argv)
 
 	sa.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sa, NULL);
-#else
+#else /* _WIN32 */
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
