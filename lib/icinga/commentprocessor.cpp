@@ -25,6 +25,7 @@ int CommentProcessor::m_NextCommentID = 1;
 map<int, String> CommentProcessor::m_LegacyCommentCache;
 map<String, DynamicObject::WeakPtr> CommentProcessor::m_CommentCache;
 bool CommentProcessor::m_CommentCacheValid;
+Timer::Ptr CommentProcessor::m_CommentExpireTimer;
 
 int CommentProcessor::GetNextCommentID(void)
 {
@@ -108,6 +109,13 @@ Dictionary::Ptr CommentProcessor::GetCommentByID(const String& id)
 	return Dictionary::Ptr();
 }
 
+bool CommentProcessor::IsCommentExpired(const Dictionary::Ptr& comment)
+{
+	double expire_time = comment->Get("expire_time");
+
+	return (expire_time != 0 && expire_time < Utility::GetTime());
+}
+
 void CommentProcessor::InvalidateCommentCache(void)
 {
 	m_CommentCacheValid = false;
@@ -170,5 +178,49 @@ void CommentProcessor::ValidateCommentCache(void)
 	}
 
 	m_CommentCacheValid = true;
+
+	if (!m_CommentExpireTimer) {
+		m_CommentExpireTimer = boost::make_shared<Timer>();
+		m_CommentExpireTimer->SetInterval(300);
+		m_CommentExpireTimer->OnTimerExpired.connect(boost::bind(&CommentProcessor::CommentExpireTimerHandler));
+		m_CommentExpireTimer->Start();
+	}
+}
+
+void CommentProcessor::RemoveExpiredComments(const DynamicObject::Ptr& owner)
+{
+	Dictionary::Ptr comments = owner->Get("comments");
+
+	if (!comments)
+		return;
+
+	vector<String> expiredComments;
+
+	String id;
+	Dictionary::Ptr comment;
+	BOOST_FOREACH(tie(id, comment), comments) {
+		if (IsCommentExpired(comment))
+			expiredComments.push_back(id);
+	}
+
+	if (expiredComments.size() > 0) {
+		BOOST_FOREACH(id, expiredComments) {
+			comments->Remove(id);
+		}
+
+		owner->Touch("comments");
+	}
+}
+
+void CommentProcessor::CommentExpireTimerHandler(void)
+{
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
+		RemoveExpiredComments(object);
+	}
+
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+		RemoveExpiredComments(object);
+	}
 }
 

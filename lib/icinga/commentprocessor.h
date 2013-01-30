@@ -52,6 +52,8 @@ public:
 	static DynamicObject::Ptr GetOwnerByCommentID(const String& id);
 	static Dictionary::Ptr GetCommentByID(const String& id);
 
+	static bool IsCommentExpired(const Dictionary::Ptr& comment);
+
 	static void InvalidateCommentCache(void);
 	static void ValidateCommentCache(void);
 
@@ -61,10 +63,14 @@ private:
 	static map<int, String> m_LegacyCommentCache;
 	static map<String, DynamicObject::WeakPtr> m_CommentCache;
 	static bool m_CommentCacheValid;
+	static Timer::Ptr m_CommentExpireTimer;
 
 	CommentProcessor(void);
 
+	static void CommentExpireTimerHandler(void);
+
 	static void AddCommentsToCache(const DynamicObject::Ptr& owner);
+	static void RemoveExpiredComments(const DynamicObject::Ptr& owner);
 };
 
 }

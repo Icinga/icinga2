@@ -45,6 +45,7 @@ public:
 	static Dictionary::Ptr GetDowntimeByID(const String& id);
 
 	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
+	static bool IsDowntimeExpired(const Dictionary::Ptr& downtime);
 
 	static void InvalidateDowntimeCache(void);
 	static void ValidateDowntimeCache(void);
@@ -55,10 +56,14 @@ private:
 	static map<int, String> m_LegacyDowntimeCache;
 	static map<String, DynamicObject::WeakPtr> m_DowntimeCache;
 	static bool m_DowntimeCacheValid;
+	static Timer::Ptr m_DowntimeExpireTimer;
 
 	DowntimeProcessor(void);
 
+	static void DowntimeExpireTimerHandler(void);
+
 	static void AddDowntimesToCache(const DynamicObject::Ptr& owner);
+	static void RemoveExpiredDowntimes(const DynamicObject::Ptr& owner);
 };
 
 }

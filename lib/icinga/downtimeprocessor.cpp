@@ -25,6 +25,7 @@ int DowntimeProcessor::m_NextDowntimeID = 1;
 map<int, String> DowntimeProcessor::m_LegacyDowntimeCache;
 map<String, DynamicObject::WeakPtr> DowntimeProcessor::m_DowntimeCache;
 bool DowntimeProcessor::m_DowntimeCacheValid;
+Timer::Ptr DowntimeProcessor::m_DowntimeExpireTimer;
 
 int DowntimeProcessor::GetNextDowntimeID(void)
 {
@@ -109,19 +110,24 @@ bool DowntimeProcessor::IsDowntimeActive(const Dictionary::Ptr& downtime)
 {
 	double now = Utility::GetTime();
 
-	if (now < static_cast<double>(downtime->Get("start_time")) ||
-	    now > static_cast<double>(downtime->Get("end_time")))
+	if (now < downtime->Get("start_time") ||
+	    now > downtime->Get("end_time"))
 		return false;
 
 	if (static_cast<bool>(downtime->Get("fixed")))
 		return true;
 
-	double triggerTime = static_cast<double>(downtime->Get("trigger_time"));
+	double triggerTime = downtime->Get("trigger_time");
 
 	if (triggerTime == 0)
 		return false;
 
-	return (triggerTime + static_cast<double>(downtime->Get("duration")) < now);
+	return (triggerTime + downtime->Get("duration") < now);
+}
+
+bool DowntimeProcessor::IsDowntimeExpired(const Dictionary::Ptr& downtime)
+{
+	return (downtime->Get("end_time") < Utility::GetTime());
 }
 
 void DowntimeProcessor::InvalidateDowntimeCache(void)
@@ -141,6 +147,8 @@ void DowntimeProcessor::AddDowntimesToCache(const DynamicObject::Ptr& owner)
 	String id;
 	Dictionary::Ptr downtime;
 	BOOST_FOREACH(tie(id, downtime), downtimes) {
+		double end_time = downtime->Get("end_time");
+
 		int legacy_id;
 
 		if (!downtime->Contains("legacy_id")) {
@@ -185,5 +193,49 @@ void DowntimeProcessor::ValidateDowntimeCache(void)
 	}
 
 	m_DowntimeCacheValid = true;
+
+	if (!m_DowntimeExpireTimer) {
+		m_DowntimeExpireTimer = boost::make_shared<Timer>();
+		m_DowntimeExpireTimer->SetInterval(300);
+		m_DowntimeExpireTimer->OnTimerExpired.connect(boost::bind(&DowntimeProcessor::DowntimeExpireTimerHandler));
+		m_DowntimeExpireTimer->Start();
+	}
+}
+
+void DowntimeProcessor::RemoveExpiredDowntimes(const DynamicObject::Ptr& owner)
+{
+	Dictionary::Ptr downtimes = owner->Get("downtimes");
+
+	if (!downtimes)
+		return;
+
+	vector<String> expiredDowntimes;
+
+	String id;
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(tie(id, downtime), downtimes) {
+		if (IsDowntimeExpired(downtime))
+			expiredDowntimes.push_back(id);
+	}
+
+	if (expiredDowntimes.size() > 0) {
+		BOOST_FOREACH(id, expiredDowntimes) {
+			downtimes->Remove(id);
+		}
+
+		owner->Touch("downtimes");
+	}
+}
+
+void DowntimeProcessor::DowntimeExpireTimerHandler(void)
+{
+	DynamicObject::Ptr object;
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
+		RemoveExpiredDowntimes(object);
+	}
+
+	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+		RemoveExpiredDowntimes(object);
+	}
 }
 

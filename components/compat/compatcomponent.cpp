@@ -181,6 +181,9 @@ void CompatComponent::DumpComments(ofstream& fp, const DynamicObject::Ptr& owner
 	String id;
 	Dictionary::Ptr comment;
 	BOOST_FOREACH(tie(id, comment), comments) {
+		if (CommentProcessor::IsCommentExpired(comment))
+			continue;
+
 		/* There's no way for us to dump comments that haven't been
 		 * assigned a legacy ID yet. */
 		if (!comment->Contains("legacy_id"))
@@ -228,6 +231,9 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owne
 	String id;
 	Dictionary::Ptr downtime;
 	BOOST_FOREACH(tie(id, downtime), downtimes) {
+		if (DowntimeProcessor::IsDowntimeExpired(downtime))
+			continue;
+
 		/* There's no way for us to dump downtimes that haven't been
 		 * assigned a legacy ID yet. */
 		if (!downtime->Contains("legacy_id"))
