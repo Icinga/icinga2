@@ -117,8 +117,6 @@ void Expression::DumpValue(ostream& fp, int indent, const Value& value, bool inl
 		static_cast<ExpressionList::Ptr>(value)->Dump(fp, indent);
 
 		if (!inlineDict) {
-			fp << "\n";
-
 			for (int i = 0; i < indent - 1; i++)
 				fp << "\t";
 
@@ -135,13 +133,18 @@ void Expression::DumpValue(ostream& fp, int indent, const Value& value, bool inl
 		String k;
 		Value v;
 		BOOST_FOREACH(tie(k, v), static_cast<Dictionary::Ptr>(value)) {
+			for (int i = 0; i < indent; i++)
+				fp << "\t";
+
 			fp << "\"" << k << "\" = ";
 			DumpValue(fp, indent, v);
 			fp << "," << "\n";
+
+			fp << "}";
 		}
 
 		if (!inlineDict)
-			fp << "\n" << "}";
+			fp << "}";
 
 		return;
 	}
