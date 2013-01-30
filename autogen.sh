@@ -127,24 +127,16 @@ esac
 
 # verify that libtool-ltdl-devel is installed
 echo "Running libtoolize dry-run..."
-#create third-party/ltdl from configure.ac and cleanup afterwards
-tmp1=`grep "^LT_CONFIG_LTDL_DIR" configure.ac`
-tmp2=${tmp1##*\[}
 ltdldir=${tmp2%\]*}
-mkdir -p $ltdldir
 
 if ! libtoolize --quiet --copy --force ; then
   echo ""
   echo "**Error**: libtoolize cannot detect necessary files."
   echo ""
-  echo "Make sure libtool-ltdl-devel (rpm) / libltdl-dev (deb) or an"
+  echo "Make sure libtool-ltdl-devel (RHEL) / libltdl-dev (Debian) or an"
   echo "appropriate package for your distribution is installed."
-  rm -r $ltdldir
   exit 1
 fi
-
-#cleanup
-rm -r $ltdldir
 
 for coin in `find $srcdir -path $srcdir/CVS -prune -o -name configure.ac -print`
 do 
