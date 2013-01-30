@@ -354,7 +354,7 @@ void Application::ExceptionHandler(void)
 
 #ifndef _WIN32
 	struct sigaction sa;
-	memset(&sa, sizeof(sa), 0);
+	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
 	sigaction(SIGABRT, &sa, NULL);
 #endif /* _WIN32 */
