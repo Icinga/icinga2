@@ -22,7 +22,8 @@
 using namespace icinga;
 
 int DowntimeProcessor::m_NextDowntimeID = 1;
-map<int, DynamicObject::WeakPtr> DowntimeProcessor::m_DowntimeCache;
+map<int, String> DowntimeProcessor::m_LegacyDowntimeCache;
+map<String, DynamicObject::WeakPtr> DowntimeProcessor::m_DowntimeCache;
 bool DowntimeProcessor::m_DowntimeCacheValid;
 
 int DowntimeProcessor::GetNextDowntimeID(void)
@@ -30,10 +31,10 @@ int DowntimeProcessor::GetNextDowntimeID(void)
 	return m_NextDowntimeID;
 }
 
-int DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
+String DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
     const String& author, const String& comment,
     double startTime, double endTime,
-    bool fixed, int triggeredBy, double duration)
+    bool fixed, const String& triggeredBy, double duration)
 {
 	Dictionary::Ptr downtime = boost::make_shared<Dictionary>();
 	downtime->Set("entry_time", Utility::GetTime());
@@ -51,35 +52,42 @@ int DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
 	if (!downtimes)
 		downtimes = boost::make_shared<Dictionary>();
 
-	int id = m_NextDowntimeID;
+	int legacy_id = m_NextDowntimeID;
 	m_NextDowntimeID++;
+	downtime->Set("legacy_id", legacy_id);
 
-	downtimes->Set(Convert::ToString(id), downtime);
+	String id = Utility::NewUUID();
+	downtimes->Set(id, downtime);
 	owner->Set("downtimes", downtimes);
 
 	return id;
 }
 
-void DowntimeProcessor::RemoveDowntime(int id)
+void DowntimeProcessor::RemoveDowntime(const String& id)
 {
 	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
 
 	Dictionary::Ptr downtimes = owner->Get("downtimes");
 
 	if (downtimes) {
-		downtimes->Remove(Convert::ToString(id));
+		downtimes->Remove(id);
 		owner->Touch("downtimes");
 	}
 }
 
-DynamicObject::Ptr DowntimeProcessor::GetOwnerByDowntimeID(int id)
+String DowntimeProcessor::GetIDFromLegacyID(int id)
+{
+	return Convert::ToString(id);
+}
+
+DynamicObject::Ptr DowntimeProcessor::GetOwnerByDowntimeID(const String& id)
 {
 	ValidateDowntimeCache();
 
 	return m_DowntimeCache[id].lock();
 }
 
-Dictionary::Ptr DowntimeProcessor::GetDowntimeByID(int id)
+Dictionary::Ptr DowntimeProcessor::GetDowntimeByID(const String& id)
 {
 	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
 
@@ -89,7 +97,7 @@ Dictionary::Ptr DowntimeProcessor::GetDowntimeByID(int id)
 	Dictionary::Ptr downtimes = owner->Get("downtimes");
 
 	if (downtimes) {
-		Dictionary::Ptr downtime = downtimes->Get(Convert::ToString(id));
+		Dictionary::Ptr downtime = downtimes->Get(id);
 		return downtime;
 	}
 
@@ -119,6 +127,7 @@ void DowntimeProcessor::InvalidateDowntimeCache(void)
 {
 	m_DowntimeCacheValid = false;
 	m_DowntimeCache.clear();
+	m_LegacyDowntimeCache.clear();
 }
 
 void DowntimeProcessor::AddDowntimesToCache(const DynamicObject::Ptr& owner)
@@ -128,12 +137,17 @@ void DowntimeProcessor::AddDowntimesToCache(const DynamicObject::Ptr& owner)
 	if (!downtimes)
 		return;
 
-	String sid;
-	BOOST_FOREACH(tie(sid, tuples::ignore), downtimes) {
-		int id = Convert::ToLong(sid);
+	String id;
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(tie(id, downtime), downtimes) {
+		if (downtime->Contains("legacy_id")) {
+			int legacy_id = downtime->Get("legacy_id");
 
-		if (id > m_NextDowntimeID)
-			m_NextDowntimeID = id;
+			m_LegacyDowntimeCache[legacy_id] = id;
+
+			if (legacy_id > m_NextDowntimeID)
+				m_NextDowntimeID = legacy_id;
+		}
 
 		m_DowntimeCache[id] = owner;
 	}
@@ -145,6 +159,7 @@ void DowntimeProcessor::ValidateDowntimeCache(void)
 		return;
 
 	m_DowntimeCache.clear();
+	m_LegacyDowntimeCache.clear();
 
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {

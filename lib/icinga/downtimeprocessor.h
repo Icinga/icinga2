@@ -33,15 +33,16 @@ class I2_ICINGA_API DowntimeProcessor
 public:
 	static int GetNextDowntimeID(void);
 
-	static int AddDowntime(const DynamicObject::Ptr& owner,
+	static String AddDowntime(const DynamicObject::Ptr& owner,
 	    const String& author, const String& comment,
 	    double startTime, double endTime,
-	    bool fixed, int triggeredBy, double duration);
+	    bool fixed, const String& triggeredBy, double duration);
 
-	static void RemoveDowntime(int id);
+	static void RemoveDowntime(const String& id);
 
-	static DynamicObject::Ptr GetOwnerByDowntimeID(int id);
-	static Dictionary::Ptr GetDowntimeByID(int id);
+	static String GetIDFromLegacyID(int id);
+	static DynamicObject::Ptr GetOwnerByDowntimeID(const String& id);
+	static Dictionary::Ptr GetDowntimeByID(const String& id);
 
 	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
 
@@ -50,7 +51,8 @@ public:
 private:
 	static int m_NextDowntimeID;
 
-	static map<int, DynamicObject::WeakPtr> m_DowntimeCache;
+	static map<int, String> m_LegacyDowntimeCache;
+	static map<String, DynamicObject::WeakPtr> m_DowntimeCache;
 	static bool m_DowntimeCacheValid;
 
 	DowntimeProcessor(void);

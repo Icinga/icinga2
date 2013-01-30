@@ -181,6 +181,11 @@ void CompatComponent::DumpComments(ofstream& fp, const DynamicObject::Ptr& owner
 	String id;
 	Dictionary::Ptr comment;
 	BOOST_FOREACH(tie(id, comment), comments) {
+		/* There's no way for us to dump comments that haven't been
+		 * assigned a legacy ID yet. */
+		if (!comment->Contains("legacy_id"))
+			continue;
+
 		if (!service)
 			fp << "hostcomment {" << "\n";
 		else
@@ -188,7 +193,7 @@ void CompatComponent::DumpComments(ofstream& fp, const DynamicObject::Ptr& owner
 			   << "\t" << "service_description=" << service->GetAlias() << "\n";
 
 		fp << "\t" << "host_name=" << host->GetName() << "\n"
-		   << "\t" << "comment_id=" << id << "\n"
+		   << "\t" << "comment_id=" << static_cast<String>(comment->Get("legacy_id")) << "\n"
 		   << "\t" << "entry_time=" << static_cast<double>(comment->Get("entry_time")) << "\n"
 		   << "\t" << "entry_type=" << static_cast<long>(comment->Get("entry_type")) << "\n"
 		   << "\t" << "persistent=" << 1 << "\n"
@@ -223,6 +228,11 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owne
 	String id;
 	Dictionary::Ptr downtime;
 	BOOST_FOREACH(tie(id, downtime), downtimes) {
+		/* There's no way for us to dump downtimes that haven't been
+		 * assigned a legacy ID yet. */
+		if (!downtime->Contains("legacy_id"))
+			continue;
+
 		if (!service)
 			fp << "hostdowntime {" << "\n";
 		else
@@ -230,7 +240,7 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owne
 			   << "\t" << "service_description=" << service->GetAlias() << "\n";
 
 		fp << "\t" << "host_name=" << host->GetName() << "\n"
-		   << "\t" << "downtime_id=" << id << "\n"
+		   << "\t" << "downtime_id=" << static_cast<String>(downtime->Get("legacy_id")) << "\n"
 		   << "\t" << "entry_time=" << static_cast<double>(downtime->Get("entry_time")) << "\n"
 		   << "\t" << "start_time=" << static_cast<double>(downtime->Get("start_time")) << "\n"
 		   << "\t" << "end_time=" << static_cast<double>(downtime->Get("end_time")) << "\n"

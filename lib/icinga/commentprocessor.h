@@ -41,22 +41,24 @@ class I2_ICINGA_API CommentProcessor
 public:
 	static int GetNextCommentID(void);
 
-	static int AddComment(const DynamicObject::Ptr& owner,
+	static String AddComment(const DynamicObject::Ptr& owner,
 	    CommentType entryType, const String& author, const String& text,
 	    double expireTime);
 
 	static void RemoveAllComments(const DynamicObject::Ptr& owner);
-	static void RemoveComment(int id);
+	static void RemoveComment(const String& id);
 
-	static DynamicObject::Ptr GetOwnerByCommentID(int id);
-	static Dictionary::Ptr GetCommentByID(int id);
+	static String GetIDFromLegacyID(int id);
+	static DynamicObject::Ptr GetOwnerByCommentID(const String& id);
+	static Dictionary::Ptr GetCommentByID(const String& id);
 
 	static void InvalidateCommentCache(void);
 
 private:
 	static int m_NextCommentID;
 
-	static map<int, DynamicObject::WeakPtr> m_CommentCache;
+	static map<int, String> m_LegacyCommentCache;
+	static map<String, DynamicObject::WeakPtr> m_CommentCache;
 	static bool m_CommentCacheValid;
 
 	CommentProcessor(void);

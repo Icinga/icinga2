@@ -31,7 +31,8 @@ static AttributeDescription hostAttributes[] = {
 	{ "hostchecks", Attribute_Config },
 	{ "acknowledgement", Attribute_Replicated },
 	{ "acknowledgement_expiry", Attribute_Replicated },
-	{ "downtimes", Attribute_Replicated }
+	{ "downtimes", Attribute_Replicated },
+	{ "comments", Attribute_Replicated }
 };
 
 REGISTER_TYPE(Host, hostAttributes);
