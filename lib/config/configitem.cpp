@@ -224,3 +224,26 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 
 	return it->second;
 }
+
+void ConfigItem::Dump(ostream& fp) const
+{
+	fp << "object \"" << m_Type << "\" \"" << m_Name << "\"";
+	
+	if (m_Parents.size() > 0) {
+		fp << " inherits";
+
+		bool first = true;
+		BOOST_FOREACH(const String& name, m_Parents) {
+			if (!first)
+				fp << ",";
+			else
+				first = false;
+
+			fp << " \"" << name << "\"";
+		}
+	}
+	
+	fp << " {" << "\n";
+	m_ExpressionList->Dump(fp, 1);
+	fp << "}" << "\n";
+}

@@ -53,3 +53,16 @@ void ExpressionList::Execute(const Dictionary::Ptr& dictionary) const
 		expression.Execute(dictionary);
 	}
 }
+
+/**
+ * Dumps the expression list to the specified stream.
+ *
+ * @param fp The stream.
+ * @param indent The indentation level.
+ */
+void ExpressionList::Dump(ostream& fp, int indent) const
+{
+	BOOST_FOREACH(const Expression& expression, m_Expressions) {
+		expression.Dump(fp, indent);
+	}
+}

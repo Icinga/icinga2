@@ -48,6 +48,8 @@ public:
 	DynamicObject::Ptr Commit(void);
 	void Unregister(void);
 
+	void Dump(ostream& fp) const;
+
 	DynamicObject::Ptr GetDynamicObject(void) const;
 
 	DebugInfo GetDebugInfo(void) const;

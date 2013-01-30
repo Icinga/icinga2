@@ -105,3 +105,81 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 	dictionary->Set(m_Key, newValue);
 }
+
+void Expression::DumpValue(ostream& fp, int indent, const Value& value, bool inlineDict)
+{
+	ExpressionList::Ptr valueExprl;
+	Dictionary::Ptr valueDict;
+	if (value.IsObjectType<ExpressionList>()) {
+		if (!inlineDict)
+			fp << "{ " << "\n";
+
+		static_cast<ExpressionList::Ptr>(value)->Dump(fp, indent);
+
+		if (!inlineDict) {
+			fp << "\n";
+
+			for (int i = 0; i < indent - 1; i++)
+				fp << "\t";
+
+			fp << "}";
+		}
+
+		return;
+	}
+
+	if (value.IsObjectType<Dictionary>()) {
+		if (!inlineDict)
+			fp << "{ " << "\n";
+
+		String k;
+		Value v;
+		BOOST_FOREACH(tie(k, v), static_cast<Dictionary::Ptr>(value)) {
+			fp << "\"" << k << "\" = ";
+			DumpValue(fp, indent, v);
+			fp << "," << "\n";
+		}
+
+		if (!inlineDict)
+			fp << "\n" << "}";
+
+		return;
+	}
+
+	if (value.IsScalar()) {
+		fp << "\"" << static_cast<String>(value) << "\"";
+		return;
+	}
+
+	throw_exception(runtime_error("Encountered unknown type while dumping value."));
+}
+
+void Expression::Dump(ostream& fp, int indent) const
+{
+	if (m_Operator == OperatorExecute) {
+		DumpValue(fp, indent, m_Value, true);
+		return;
+	}
+
+	for (int i = 0; i < indent; i++)
+		fp << "\t";
+
+	fp << "\"" << m_Key << "\" ";
+
+	switch (m_Operator) {
+		case OperatorSet:
+			fp << "=";
+			break;
+		case OperatorPlus:
+			fp << "+=";
+			break;
+		default:
+			throw_exception(runtime_error("Not yet implemented."));
+	}
+
+	fp << " ";
+
+	DumpValue(fp, indent + 1, m_Value);
+
+	fp << ", " << "\n";
+}

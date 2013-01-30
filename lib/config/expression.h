@@ -50,12 +50,15 @@ public:
 	    const DebugInfo& debuginfo);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
+	void Dump(ostream& fp, int indent = 0) const;
 
 private:
 	String m_Key;
 	ExpressionOperator m_Operator;
 	Value m_Value;
 	DebugInfo m_DebugInfo;
+
+	static void DumpValue(ostream& fp, int indent, const Value& value, bool inlineDict = false);
 };
 
 }

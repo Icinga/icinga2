@@ -37,6 +37,7 @@ public:
 	void AddExpression(const Expression& expression);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
+	void Dump(ostream& fp, int indent) const;
 
 	size_t GetLength(void) const;
 
