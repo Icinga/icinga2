@@ -373,3 +373,19 @@ Utility::LoadIcingaLibrary(const String& library, bool module)
 
 	return hModule;
 }
+
+/**
+ * Generates a new UUID.
+ *
+ * @returns The new UUID in text form.
+ */
+String Utility::NewUUID(void)
+{
+	boost::uuids::uuid uuid = boost::uuids::random_generator()();
+
+	stringstream us;
+	us << uuid;
+
+	return us.str();
+}
+

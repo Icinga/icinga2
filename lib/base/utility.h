@@ -53,6 +53,8 @@ public:
 
 	static void Sleep(double timeout);
 
+	static String NewUUID(void);
+
 	static
 #ifdef _WIN32
 	HMODULE

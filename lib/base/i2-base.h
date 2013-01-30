@@ -131,6 +131,9 @@ using std::type_info;
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
