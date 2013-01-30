@@ -239,12 +239,20 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owne
 			fp << "servicedowntime {" << "\n"
 			   << "\t" << "service_description=" << service->GetAlias() << "\n";
 
+		String triggeredBy = downtime->Get("triggered_by");
+		int triggeredByLegacy = 0;
+		if (!triggeredBy.IsEmpty()) {
+			Dictionary::Ptr triggeredByObj = DowntimeProcessor::GetDowntimeByID(triggeredBy);
+			if (triggeredByObj->Contains("legacy_id"))
+				triggeredByLegacy = triggeredByObj->Get("legacy_id");
+		}
+
 		fp << "\t" << "host_name=" << host->GetName() << "\n"
 		   << "\t" << "downtime_id=" << static_cast<String>(downtime->Get("legacy_id")) << "\n"
 		   << "\t" << "entry_time=" << static_cast<double>(downtime->Get("entry_time")) << "\n"
 		   << "\t" << "start_time=" << static_cast<double>(downtime->Get("start_time")) << "\n"
 		   << "\t" << "end_time=" << static_cast<double>(downtime->Get("end_time")) << "\n"
-		   << "\t" << "triggered_by=" << static_cast<long>(downtime->Get("triggered_by")) << "\n"
+		   << "\t" << "triggered_by=" << triggeredByLegacy << "\n"
 		   << "\t" << "fixed=" << static_cast<long>(downtime->Get("fixed")) << "\n"
 		   << "\t" << "duration=" << static_cast<long>(downtime->Get("duration")) << "\n"
 		   << "\t" << "is_in_effect=" << (DowntimeProcessor::IsDowntimeActive(downtime) ? 1 : 0) << "\n"
