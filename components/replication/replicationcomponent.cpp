@@ -40,8 +40,8 @@ void ReplicationComponent::Start(void)
 	    boost::bind(&ReplicationComponent::RemoteObjectRemovedHandler, this, _3));
 
 	/* service status */
-	m_Endpoint->RegisterTopicHandler("checker::ServiceStateChange",
-	    boost::bind(&ReplicationComponent::ServiceStateChangeRequestHandler, _3));
+	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
+	    boost::bind(&ReplicationComponent::CheckResultRequestHandler, _3));
 }
 
 /**
@@ -52,42 +52,35 @@ void ReplicationComponent::Stop(void)
 	m_Endpoint->Unregister();
 }
 
-void ReplicationComponent::ServiceStateChangeRequestHandler(const RequestMessage& request)
+void ReplicationComponent::CheckResultRequestHandler(const RequestMessage& request)
 {
-	ServiceStateChangeMessage params;
+	CheckResultMessage params;
 	if (!request.GetParams(&params))
 		return;
 
-	String svcname;
-	if (!params.GetService(&svcname))
-		return;
-
+	String svcname = params.GetService();
 	Service::Ptr service = Service::GetByName(svcname);
 
-	//CheckResult cr;
-	//if (!params.GetCheckResult(&cr))
-	//	return;
+	Service::OnCheckResultReceived(service, params);
 
-	//Service::OnCheckResultReceived(service, params);
-	//service->ApplyCheckResult(cr);
+	Dictionary::Ptr cr = params.GetCheckResult();
+	if (!cr)
+		return;
 
-	Dictionary::Ptr cr = service->GetLastCheckResult();
-	if (cr) {
-		Value active = cr->Get("active");
+	Value active = cr->Get("active");
 
-		time_t ts;
-		Value schedule_end = cr->Get("schedule_end");
+	time_t ts;
+	Value schedule_end = cr->Get("schedule_end");
 
-		if (!schedule_end.IsEmpty())
-			ts = static_cast<time_t>(schedule_end);
-		else
-			ts = static_cast<time_t>(Utility::GetTime());
+	if (!schedule_end.IsEmpty())
+		ts = static_cast<time_t>(schedule_end);
+	else
+		ts = static_cast<time_t>(Utility::GetTime());
 
-		if (active.IsEmpty() || static_cast<long>(active))
-			CIB::UpdateActiveChecksStatistics(ts, 1);
-		else
-			CIB::UpdatePassiveChecksStatistics(ts, 1);
-	}
+	if (active.IsEmpty() || static_cast<long>(active))
+		CIB::UpdateActiveChecksStatistics(ts, 1);
+	else
+		CIB::UpdatePassiveChecksStatistics(ts, 1);
 }
 
 void ReplicationComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoint)

@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SERVICESTATECHANGEMESSAGE_H
-#define SERVICESTATECHANGEMESSAGE_H
+#ifndef CHECKRESULTMESSAGE_H
+#define CHECKRESULTMESSAGE_H
 
 namespace icinga
 {
@@ -28,16 +28,19 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API ServiceStateChangeMessage : public MessagePart
+class I2_ICINGA_API CheckResultMessage : public MessagePart
 {
 public:
-	ServiceStateChangeMessage(void) : MessagePart() { }
-	ServiceStateChangeMessage(const MessagePart& message) : MessagePart(message) { }
+	CheckResultMessage(void) : MessagePart() { }
+	CheckResultMessage(const MessagePart& message) : MessagePart(message) { }
 
-	bool GetService(String *service) const;
+	String GetService(void) const;
 	void SetService(const String& service);
+
+	Dictionary::Ptr GetCheckResult(void) const;
+	void SetCheckResult(const Dictionary::Ptr& result);
 };
 
 }
 
-#endif /* SERVICESTATECHANGEMESSAGE_H */
+#endif /* CHECKRESULTMESSAGE_H */

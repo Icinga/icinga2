@@ -21,13 +21,27 @@
 
 using namespace icinga;
 
-bool ServiceStateChangeMessage::GetService(String *service) const
+String CheckResultMessage::GetService(void) const
 {
-	return Get("service", service);
+	String service;
+	Get("service", &service);
+	return service;
 }
 
-void ServiceStateChangeMessage::SetService(const String& service)
+void CheckResultMessage::SetService(const String& service)
 {
 	Set("service", service);
+}
+
+Dictionary::Ptr CheckResultMessage::GetCheckResult(void) const
+{
+	Dictionary::Ptr cr;
+	Get("check_result", &cr);
+	return cr;
+}
+
+void CheckResultMessage::SetCheckResult(const Dictionary::Ptr& result)
+{
+	Set("check_result", result);
 }
 

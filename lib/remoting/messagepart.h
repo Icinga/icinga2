@@ -51,7 +51,7 @@ public:
 	template<typename T>
 	bool Get(String key, T *value) const
 	{
-		Value v =GetDictionary()->Get(key);
+		Value v = GetDictionary()->Get(key);
 
 		if (v.IsEmpty())
 			return false;

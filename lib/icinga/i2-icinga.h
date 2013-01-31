@@ -61,7 +61,7 @@ using boost::algorithm::is_any_of;
 #include "pluginchecktask.h"
 #include "nullchecktask.h"
 
-#include "servicestatechangemessage.h"
+#include "checkresultmessage.h"
 
 #include "cib.h"
 

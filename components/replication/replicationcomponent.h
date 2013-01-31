@@ -35,7 +35,7 @@ public:
 private:
 	Endpoint::Ptr m_Endpoint;
 
-	static void ServiceStateChangeRequestHandler(const RequestMessage& request);
+	static void CheckResultRequestHandler(const RequestMessage& request);
 
 	void EndpointConnectedHandler(const Endpoint::Ptr& endpoint);
 

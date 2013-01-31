@@ -6,6 +6,8 @@ pkglib_LTLIBRARIES =  \
 
 libicinga_la_SOURCES =  \
 	acknowledgement.h \
+	checkresultmessage.cpp \
+	checkresultmessage.h \
 	cib.cpp \
 	cib.h \
 	commentprocessor.cpp \
@@ -31,8 +33,6 @@ libicinga_la_SOURCES =  \
 	servicegroup.cpp \
 	servicegroup.h \
 	service.h \
-	servicestatechangemessage.cpp \
-	servicestatechangemessage.h \
 	timeperiod.cpp \
 	timeperiod.h
 

@@ -742,17 +742,19 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	ApplyCheckResult(cr);
 
 	/* flush the current transaction so other instances see the service's
-	 * new state when they receive the ServiceStateChange message */
+	 * new state when they receive the CheckResult message */
 	DynamicObject::FlushTx();
 
 	RequestMessage rm;
-	rm.SetMethod("checker::ServiceStateChange");
+	rm.SetMethod("checker::CheckResult");
 
 	/* TODO: add _old_ state to message */
-	ServiceStateChangeMessage params;
+	CheckResultMessage params;
 	params.SetService(GetName());
+	params.SetCheckResult(cr);
 
 	rm.SetParams(params);
 
 	EndpointManager::GetInstance()->SendMulticastMessage(rm);
 }
+

@@ -49,7 +49,6 @@ enum ServiceStateType
 };
 
 class CheckResultMessage;
-class ServiceStatusMessage;
 
 /**
  * An Icinga service.

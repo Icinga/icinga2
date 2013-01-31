@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="checkresultmessage.cpp" />
     <ClCompile Include="cib.cpp" />
     <ClCompile Include="commentprocessor.cpp" />
     <ClCompile Include="downtimeprocessor.cpp" />
@@ -37,11 +38,11 @@
     <ClCompile Include="nullchecktask.cpp" />
     <ClCompile Include="service.cpp" />
     <ClCompile Include="servicegroup.cpp" />
-    <ClCompile Include="servicestatechangemessage.cpp" />
     <ClCompile Include="timeperiod.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="acknowledgement.h" />
+    <ClInclude Include="checkresultmessage.h" />
     <ClInclude Include="cib.h" />
     <ClInclude Include="commentprocessor.h" />
     <ClInclude Include="downtimeprocessor.h" />
@@ -55,7 +56,6 @@
     <ClInclude Include="nullchecktask.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />
-    <ClInclude Include="servicestatechangemessage.h" />
     <ClInclude Include="timeperiod.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
