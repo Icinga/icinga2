@@ -125,6 +125,8 @@ void ConfigItem::CalculateProperties(const Dictionary::Ptr& dictionary) const
  */
 DynamicObject::Ptr ConfigItem::Commit(void)
 {
+	Logger::Write(LogDebug, "base", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
+
 	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
 	Dictionary::Ptr properties = boost::make_shared<Dictionary>();
@@ -168,10 +170,35 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	else
 		dobj->Register();
 
-	/* TODO: Figure out whether there are any child objects which inherit
-	 * from this config item and Commit() them as well */
+	pair<String, String> ikey = make_pair(GetType(), GetName());
+	ItemMap::iterator it = m_Items.find(ikey);
 
-	m_Items[make_pair(GetType(), GetName())] = GetSelf();
+	/* unregister the old item from its parents */
+	if (it != m_Items.end()) {
+		ConfigItem::Ptr oldItem = it->second;
+		oldItem->UnregisterFromParents();
+
+		/* steal the old item's children */
+		m_ChildObjects = oldItem->m_ChildObjects;
+	}
+
+	/* register this item with its parents */
+	BOOST_FOREACH(const String& parentName, m_Parents) {
+		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
+		parent->RegisterChild(GetSelf());
+	}
+
+	/* notify our children of the update */
+	BOOST_FOREACH(const ConfigItem::WeakPtr wchild, m_ChildObjects) {
+		const ConfigItem::Ptr& child = wchild.lock();
+
+		if (!child)
+			continue;
+
+		child->OnParentCommitted();
+	}
+
+	m_Items[ikey] = GetSelf();
 
 	OnCommitted(GetSelf());
 
@@ -194,7 +221,36 @@ void ConfigItem::Unregister(void)
 	if (it != m_Items.end())
 		m_Items.erase(it);
 
+	UnregisterFromParents();
+
 	OnRemoved(GetSelf());
+}
+
+void ConfigItem::RegisterChild(const ConfigItem::Ptr& child)
+{
+	m_ChildObjects.insert(child);
+}
+
+void ConfigItem::UnregisterChild(const ConfigItem::Ptr& child)
+{
+	m_ChildObjects.erase(child);
+}
+
+void ConfigItem::UnregisterFromParents(void)
+{
+	BOOST_FOREACH(const String& parentName, m_Parents) {
+		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
+		parent->UnregisterChild(GetSelf());
+	}
+}
+
+/*
+ * Notifies an item that one of its parents has been committed.
+ */
+void ConfigItem::OnParentCommitted(void)
+{
+	if (GetObject(GetType(), GetName()) == static_cast<ConfigItem::Ptr>(GetSelf()))
+		Commit();
 }
 
 /**

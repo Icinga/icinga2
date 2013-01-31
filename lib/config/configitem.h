@@ -63,6 +63,12 @@ public:
 private:
 	void CalculateProperties(const Dictionary::Ptr& dictionary) const;
 
+        void RegisterChild(const ConfigItem::Ptr& child);
+        void UnregisterChild(const ConfigItem::Ptr& child);
+        void UnregisterFromParents(void);
+
+        void OnParentCommitted(void);
+
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 
@@ -72,8 +78,10 @@ private:
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
 	DynamicObject::WeakPtr m_DynamicObject; /**< The instantiated version
-						     of this configuration
-						     item */
+                                                 * of this configuration
+						 * item */
+        set<ConfigItem::WeakPtr> m_ChildObjects; /**< Instantiated items
+                                                     * that inherit from this item */
 
 	typedef map<pair<String, String>, ConfigItem::Ptr> ItemMap;
 	static ItemMap m_Items; /**< All registered configuration items. */
