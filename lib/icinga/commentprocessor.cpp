@@ -66,7 +66,7 @@ void CommentProcessor::RemoveComment(const String& id)
 	DynamicObject::Ptr owner = GetOwnerByCommentID(id);
 
 	if (!owner)
-		throw_exception(invalid_argument("Comment ID does not exist."));
+		return;
 
 	Dictionary::Ptr comments = owner->Get("comments");
 
@@ -81,7 +81,7 @@ String CommentProcessor::GetIDFromLegacyID(int id)
 	map<int, String>::iterator it = m_LegacyCommentCache.find(id);
 
 	if (it == m_LegacyCommentCache.end())
-		throw_exception(invalid_argument("Invalid legacy comment ID specified."));
+		return Empty;
 
 	return it->second;
 }
@@ -98,7 +98,7 @@ Dictionary::Ptr CommentProcessor::GetCommentByID(const String& id)
 	DynamicObject::Ptr owner = GetOwnerByCommentID(id);
 
 	if (!owner)
-		throw_exception(invalid_argument("Comment ID does not exist."));
+		return Dictionary::Ptr();
 
 	Dictionary::Ptr comments = owner->Get("comments");
 
