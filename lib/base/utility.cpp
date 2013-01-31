@@ -435,10 +435,6 @@ Utility::LoadIcingaLibrary(const String& library, bool module)
 String Utility::NewUUID(void)
 {
 	boost::uuids::uuid uuid = boost::uuids::random_generator()();
-
-	stringstream us;
-	us << uuid;
-
-	return us.str();
+	return boost::lexical_cast<String>(uuid);
 }
 
