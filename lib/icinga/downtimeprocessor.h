@@ -40,6 +40,9 @@ public:
 
 	static void RemoveDowntime(const String& id);
 
+        static void TriggerDowntimes(const DynamicObject::Ptr& owner);
+	static void TriggerDowntime(const String& id);
+
 	static String GetIDFromLegacyID(int id);
 	static DynamicObject::Ptr GetOwnerByDowntimeID(const String& id);
 	static Dictionary::Ptr GetDowntimeByID(const String& id);

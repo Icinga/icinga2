@@ -564,6 +564,9 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 			}
 		}
 	}
+	
+	if (GetState() != StateOK)
+		DowntimeProcessor::TriggerDowntimes(GetSelf());
 }
 
 ServiceState Service::StateFromString(const String& state)

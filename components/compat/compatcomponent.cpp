@@ -231,13 +231,10 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owne
 			fp << "servicedowntime {" << "\n"
 			   << "\t" << "service_description=" << service->GetAlias() << "\n";
 
-		String triggeredBy = downtime->Get("triggered_by");
+		Dictionary::Ptr triggeredByObj = DowntimeProcessor::GetDowntimeByID(downtime->Get("triggered_by"));
 		int triggeredByLegacy = 0;
-		if (!triggeredBy.IsEmpty()) {
-			Dictionary::Ptr triggeredByObj = DowntimeProcessor::GetDowntimeByID(triggeredBy);
-			if (triggeredByObj->Contains("legacy_id"))
-				triggeredByLegacy = triggeredByObj->Get("legacy_id");
-		}
+		if (triggeredByObj)
+			triggeredByLegacy = triggeredByObj->Get("legacy_id");
 
 		fp << "\t" << "host_name=" << host->GetName() << "\n"
 		   << "\t" << "downtime_id=" << static_cast<String>(downtime->Get("legacy_id")) << "\n"

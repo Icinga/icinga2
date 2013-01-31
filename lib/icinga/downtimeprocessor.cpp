@@ -46,9 +46,19 @@ String DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
 	downtime->Set("fixed", fixed);
 	downtime->Set("duration", duration);
 	downtime->Set("triggered_by", triggeredBy);
+	downtime->Set("triggers", boost::make_shared<Dictionary>());
 	downtime->Set("trigger_time", 0);
 	downtime->Set("legacy_id", m_NextDowntimeID++);
 
+	if (!triggeredBy.IsEmpty()) {
+		DynamicObject::Ptr otherOwner = GetOwnerByDowntimeID(triggeredBy);
+		Dictionary::Ptr otherDowntimes = otherOwner->Get("downtimes");
+		Dictionary::Ptr otherDowntime = otherDowntimes->Get(triggeredBy);
+		Dictionary::Ptr triggers = otherDowntime->Get("triggers");
+		triggers->Set(triggeredBy, triggeredBy);
+		otherOwner->Touch("downtimes");
+	}
+	
 	Dictionary::Ptr downtimes = owner->Get("downtimes");
 
 	if (!downtimes)
@@ -65,12 +75,52 @@ void DowntimeProcessor::RemoveDowntime(const String& id)
 {
 	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
 
+	if (!owner)
+		return;
+	
 	Dictionary::Ptr downtimes = owner->Get("downtimes");
 
-	if (downtimes) {
-		downtimes->Remove(id);
-		owner->Touch("downtimes");
+	if (!downtimes)
+		return;
+
+	downtimes->Remove(id);
+	owner->Touch("downtimes");
+}
+
+void DowntimeProcessor::TriggerDowntimes(const DynamicObject::Ptr& owner)
+{
+	Dictionary::Ptr downtimes = owner->Get("downtimes");
+
+	if (!downtimes)
+		return;
+	
+	String id;
+	BOOST_FOREACH(tie(id, tuples::ignore), downtimes) {
+		TriggerDowntime(id);
 	}
+}
+
+void DowntimeProcessor::TriggerDowntime(const String& id)
+{
+	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
+	Dictionary::Ptr downtime = GetDowntimeByID(id);
+
+	double now = Utility::GetTime();
+
+	if (now < downtime->Get("start_time") ||
+	    now > downtime->Get("end_time"))
+		return;
+
+	if (downtime->Get("trigger_time") == 0)
+		downtime->Set("trigger_time", now);
+	
+	Dictionary::Ptr triggers = downtime->Get("triggers");
+	String tid;
+	BOOST_FOREACH(tie(tid, tuples::ignore), triggers) {
+		TriggerDowntime(tid);
+	}
+	
+	owner->Touch("downtimes");
 }
 
 String DowntimeProcessor::GetIDFromLegacyID(int id)
@@ -78,7 +128,7 @@ String DowntimeProcessor::GetIDFromLegacyID(int id)
 	map<int, String>::iterator it = m_LegacyDowntimeCache.find(id);
 
 	if (it == m_LegacyDowntimeCache.end())
-		throw_exception(invalid_argument("Invalid legacy downtime ID specified."));
+		return Empty;
 
 	return it->second;
 }
@@ -95,7 +145,7 @@ Dictionary::Ptr DowntimeProcessor::GetDowntimeByID(const String& id)
 	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
 
 	if (!owner)
-		throw_exception(invalid_argument("Downtime ID does not exist."));
+		return Dictionary::Ptr();
 
 	Dictionary::Ptr downtimes = owner->Get("downtimes");
 
