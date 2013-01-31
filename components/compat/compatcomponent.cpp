@@ -377,7 +377,7 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
 {
 	fp << "define service {" << "\n"
 	   << "\t" << "host_name" << "\t" << service->GetHost()->GetName() << "\n"
-	   << "\t" << "service_description" << "\t" << service->GetAlias() << "\n"
+	   << "\t" << "service_description" << "\t" << service->GetName() << "\n"
 	   << "\t" << "check_command" << "\t" << "check_i2" << "\n"
 	   << "\t" << "check_interval" << "\t" << service->GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval" << "\t" << service->GetRetryInterval() / 60.0 << "\n"
