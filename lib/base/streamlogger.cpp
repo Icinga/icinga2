@@ -85,10 +85,10 @@ void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& en
 		String colorCode;
 		switch (entry.Severity) {
 			case LogWarning:
-				colorCode = "\x1b[33m"; // yellow;
+				colorCode = "\x1b[1;33m"; // yellow;
 				break;
 			case LogCritical:
-				colorCode = "\x1b[31m"; // red
+				colorCode = "\x1b[1;31m"; // red
 				break;
 		}
 
