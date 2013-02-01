@@ -182,8 +182,13 @@ vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include,
 		BOOST_FOREACH(const String& dir, m_IncludeSearchDirs) {
 			String path = dir + "/" + include;
 
+#ifndef _WIN32
 			struct stat statbuf;
 			if (lstat(path.CStr(), &statbuf) >= 0) {
+#else /* _WIN32 */
+			struct _stat statbuf;
+			if (_stat(path.CStr(), &statbuf) >= 0) {
+#endif /* _WIN32 */
 				includePath = path;
 				break;
 			}

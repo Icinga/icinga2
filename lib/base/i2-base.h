@@ -75,6 +75,9 @@
 #include <cassert>
 #include <cerrno>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include <string>
 #include <exception>
 #include <stdexcept>
