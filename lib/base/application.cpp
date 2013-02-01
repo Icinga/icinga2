@@ -299,6 +299,18 @@ void Application::SigIntHandler(int signum)
 }
 
 /**
+ * Displays a message that tells users what to do when they encounter a bug.
+ */
+void Application::DisplayBugMessage(void)
+{
+	std::cerr << "***" << std::endl
+		  << "*** This would indicate a bug in Icinga 2. Please submit a bug report at https://dev.icinga.org/ and include" << std::endl
+		  << "*** this stack trace as well as any other information that might be useful in order to reproduce this problem." << std::endl
+		  << "***" << std::endl
+		  << std::endl;
+}
+
+/**
  * Signal handler for SIGABRT. Helps with debugging assert()s.
  *
  * @param signum The signal number.
@@ -311,11 +323,7 @@ void Application::SigAbrtHandler(int signum)
 
 	Utility::PrintStacktrace(std::cerr, 1);
 
-	std::cerr << "***" << std::endl
-		  << "*** This would indicate a bug in Icinga 2. Please submit a bug report at https://dev.icinga.org/ and include" << std::endl
-		  << "*** this stack trace as well as any other information that might be useful in order to reproduce this problem." << std::endl
-		  << "***" << std::endl
-		  << std::endl;
+	DisplayBugMessage();
 }
 #else /* _WIN32 */
 /**
@@ -357,6 +365,8 @@ void Application::ExceptionHandler(void)
 	}
 
 	Utility::PrintStacktrace(std::cerr, 1);
+
+	DisplayBugMessage();
 
 #ifndef _WIN32
 	struct sigaction sa;

@@ -96,6 +96,8 @@ private:
 	static BOOL WINAPI CtrlHandler(DWORD type);
 #endif /* _WIN32 */
 
+	static void DisplayBugMessage(void);
+
 	static void ExceptionHandler(void);
 
 	static void TimeWatchThreadProc(void);
