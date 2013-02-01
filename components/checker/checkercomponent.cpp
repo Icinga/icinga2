@@ -105,7 +105,11 @@ void CheckerComponent::CheckTimerHandler(void)
 		m_IdleServices.erase(service);
 		m_PendingServices.insert(service);
 
-		service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
+		try {
+			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
+		} catch (const exception& ex) {
+			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + ex.what());
+		}
 
 		tasks++;
 	}
