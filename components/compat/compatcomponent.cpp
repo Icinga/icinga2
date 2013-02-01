@@ -339,7 +339,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 
 	fp << "servicestatus {" << "\n"
 	   << "\t" << "host_name=" << service->GetHost()->GetName() << "\n"
-	   << "\t" << "service_description=" << service->GetAlias() << "\n"
+	   << "\t" << "service_description=" << service->GetName() << "\n"
 	   << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
 	   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
@@ -484,7 +484,7 @@ void CompatComponent::StatusTimerHandler(void)
 		vector<String> sglist;
 		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 			sglist.push_back(service->GetHost()->GetName());
-			sglist.push_back(service->GetAlias());
+			sglist.push_back(service->GetName());
 		}
 
 		DumpStringList(objectfp, sglist);
