@@ -267,11 +267,13 @@ void DynamicObject::Register(void)
 {
 	assert(Application::IsMainThread());
 
-	DynamicObject::Ptr dobj = GetType()->GetObject(GetName());
+	DynamicType::Ptr dtype = GetType();
+
+	DynamicObject::Ptr dobj = dtype->GetObject(GetName());
 	DynamicObject::Ptr self = GetSelf();
 	assert(!dobj || dobj == self);
 
-	GetType()->RegisterObject(self);
+	dtype->RegisterObject(self);
 
 	OnRegistered(GetSelf());
 
@@ -287,10 +289,12 @@ void DynamicObject::Unregister(void)
 {
 	assert(Application::IsMainThread());
 
-	if (!GetType()->GetObject(GetName()))
+	DynamicType::Ptr dtype = GetType();
+
+	if (!dtype || !dtype->GetObject(GetName()))
 		return;
 
-	GetType()->UnregisterObject(GetSelf());
+	dtype->UnregisterObject(GetSelf());
 
 	OnUnregistered(GetSelf());
 }
