@@ -215,17 +215,13 @@ bool DynamicObject::HasAttribute(const String& name) const
 
 void DynamicObject::ClearAttributesByType(DynamicAttributeType type)
 {
-	DynamicObject::AttributeIterator prev, at;
-	for (at = m_Attributes.begin(); at != m_Attributes.end(); ) {
-		if (at->second.Type == type) {
-			prev = at;
-			at++;
-			m_Attributes.erase(prev);
-
+	DynamicObject::AttributeIterator at;
+	for (at = m_Attributes.begin(); at != m_Attributes.end(); at++) {
+		if (at->second.Type != type)
 			continue;
-		}
 
-		at++;
+		at->second.Tx = 0;
+		at->second.Data = Empty;
 	}
 }
 
