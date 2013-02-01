@@ -73,38 +73,40 @@ using namespace icinga;
       know about them.  */
    enum yytokentype {
      T_STRING = 258,
-     T_NUMBER = 259,
-     T_NULL = 260,
-     T_IDENTIFIER = 261,
-     T_EQUAL = 262,
-     T_PLUS_EQUAL = 263,
-     T_MINUS_EQUAL = 264,
-     T_MULTIPLY_EQUAL = 265,
-     T_DIVIDE_EQUAL = 266,
-     T_ABSTRACT = 267,
-     T_LOCAL = 268,
-     T_OBJECT = 269,
-     T_INCLUDE = 270,
-     T_LIBRARY = 271,
-     T_INHERITS = 272
+     T_STRING_ANGLE = 259,
+     T_NUMBER = 260,
+     T_NULL = 261,
+     T_IDENTIFIER = 262,
+     T_EQUAL = 263,
+     T_PLUS_EQUAL = 264,
+     T_MINUS_EQUAL = 265,
+     T_MULTIPLY_EQUAL = 266,
+     T_DIVIDE_EQUAL = 267,
+     T_ABSTRACT = 268,
+     T_LOCAL = 269,
+     T_OBJECT = 270,
+     T_INCLUDE = 271,
+     T_LIBRARY = 272,
+     T_INHERITS = 273
    };
 #endif
 /* Tokens.  */
 #define T_STRING 258
-#define T_NUMBER 259
-#define T_NULL 260
-#define T_IDENTIFIER 261
-#define T_EQUAL 262
-#define T_PLUS_EQUAL 263
-#define T_MINUS_EQUAL 264
-#define T_MULTIPLY_EQUAL 265
-#define T_DIVIDE_EQUAL 266
-#define T_ABSTRACT 267
-#define T_LOCAL 268
-#define T_OBJECT 269
-#define T_INCLUDE 270
-#define T_LIBRARY 271
-#define T_INHERITS 272
+#define T_STRING_ANGLE 259
+#define T_NUMBER 260
+#define T_NULL 261
+#define T_IDENTIFIER 262
+#define T_EQUAL 263
+#define T_PLUS_EQUAL 264
+#define T_MINUS_EQUAL 265
+#define T_MULTIPLY_EQUAL 266
+#define T_DIVIDE_EQUAL 267
+#define T_ABSTRACT 268
+#define T_LOCAL 269
+#define T_OBJECT 270
+#define T_INCLUDE 271
+#define T_LIBRARY 272
+#define T_INHERITS 273
 
 
 
@@ -124,7 +126,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 128 "config_parser.h"
+#line 130 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -73,6 +73,9 @@ public:
 	static String GetPkgLibDir(void);
 	static void SetPkgLibDir(const String& path);
 
+	static String GetPkgDataDir(void);
+	static void SetPkgDataDir(const String& path);
+
 protected:
 	void RunEventLoop(void);
 
@@ -88,6 +91,7 @@ private:
 	static String m_PrefixDir; /**< The installation prefix. */
 	static String m_LocalStateDir; /**< The local state dir. */
 	static String m_PkgLibDir; /**< The package lib dir. */
+	static String m_PkgDataDir; /**< The package data dir. */
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);

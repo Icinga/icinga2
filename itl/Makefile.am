@@ -1,4 +1,4 @@
-icinga2itldir = ${datarootdir}/icinga2/itl
+icinga2itldir = ${pkgdatadir}/itl
 icinga2itl_DATA = \
 	itl.conf \
 	itl-host.conf \

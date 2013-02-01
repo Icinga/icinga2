@@ -32,7 +32,7 @@ namespace icinga
 class I2_CONFIG_API ConfigCompiler
 {
 public:
-	typedef function<vector<ConfigItem::Ptr> (const String& include)> HandleIncludeFunc;
+	typedef function<vector<ConfigItem::Ptr> (const String&, bool)> HandleIncludeFunc;
 
 	ConfigCompiler(const String& path, istream *input = &cin,
 	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
@@ -46,14 +46,15 @@ public:
 	static vector<ConfigItem::Ptr> CompileText(const String& path,
 	    const String& text);
 
-	static vector<ConfigItem::Ptr> HandleFileInclude(const String& include);
+	static vector<ConfigItem::Ptr> HandleFileInclude(const String& include, bool search);
+	static void AddIncludeSearchDir(const String& dir);
 
 	vector<ConfigItem::Ptr> GetResult(void) const;
 
 	String GetPath(void) const;
 
 	/* internally used methods */
-	void HandleInclude(const String& include);
+	void HandleInclude(const String& include, bool search);
 	void HandleLibrary(const String& library);
 	void AddObject(const ConfigItem::Ptr& object);
 	size_t ReadInput(char *buffer, size_t max_bytes);
@@ -67,6 +68,8 @@ private:
 
 	void *m_Scanner;
 	vector<ConfigItem::Ptr> m_Result;
+
+	static vector<String> m_IncludeSearchDirs;
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);

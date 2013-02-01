@@ -65,6 +65,10 @@ int main(int argc, char **argv)
 	Application::SetPkgLibDir(ICINGA_PKGLIBDIR);
 #endif /* ICINGA_PKGLIBDIR */
 
+#ifdef ICINGA_PKGDATADIR
+	Application::SetPkgDataDir(ICINGA_PKGDATADIR);
+#endif /* ICINGA_PKGDATADIR */
+
 	Logger::Write(LogInformation, "icinga", "Icinga application loader"
 #ifndef _WIN32
 		" (version: " ICINGA_VERSION ")"
@@ -81,6 +85,8 @@ int main(int argc, char **argv)
 	Component::AddSearchDir(Application::GetPkgLibDir());
 
 	Utility::LoadIcingaLibrary("icinga", false);
+
+	ConfigCompiler::AddIncludeSearchDir(Application::GetPkgDataDir());
 
 	try {
 		DynamicObject::BeginTx();

@@ -28,6 +28,7 @@ boost::thread::id Application::m_MainThreadID;
 String Application::m_PrefixDir;
 String Application::m_LocalStateDir;
 String Application::m_PkgLibDir;
+String Application::m_PkgDataDir;
 
 /**
  * Constructor for the Application class.
@@ -112,8 +113,7 @@ void Application::RunEventLoop(void)
 
 		Event::ProcessEvents(boost::posix_time::milliseconds(sleep * 1000));
 
-		DynamicObject::FinishTx();
-		DynamicObject::BeginTx();
+		DynamicObject::FlushTx();
 
 #ifdef _DEBUG
 		if (nextProfile < Utility::GetTime()) {
@@ -522,7 +522,7 @@ void Application::SetLocalStateDir(const String& path)
 }
 
 /**
- * Retrives the path for the package lib dir.
+ * Retrieves the path for the package lib dir.
  *
  * @returns The path.
  */
@@ -543,3 +543,27 @@ void Application::SetPkgLibDir(const String& path)
 {
 	m_PkgLibDir = path;
 }
+
+/**
+ * Retrieves the path for the package data dir.
+ *
+ * @returns The path.
+ */
+String Application::GetPkgDataDir(void)
+{
+        if (m_PkgDataDir.IsEmpty())
+                return ".";
+        else
+                return m_PkgDataDir;
+}
+
+/**
+ * Sets the path for the package data dir.
+ *
+ * @param path The new path.
+ */
+void Application::SetPkgDataDir(const String& path)
+{
+        m_PkgDataDir = path;
+}
+

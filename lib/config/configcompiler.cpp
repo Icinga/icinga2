@@ -23,6 +23,8 @@ using std::ifstream;
 
 using namespace icinga;
 
+vector<String> ConfigCompiler::m_IncludeSearchDirs;
+
 /**
  * Constructor for the ConfigCompiler class.
  *
@@ -94,11 +96,12 @@ String ConfigCompiler::GetPath(void) const
  * function.
  *
  * @param include The path from the include directive.
+ * @param search Whether to search global include dirs.
  */
-void ConfigCompiler::HandleInclude(const String& include)
+void ConfigCompiler::HandleInclude(const String& include, bool search)
 {
 	String path = Utility::DirName(GetPath()) + "/" + include;
-	vector<ConfigItem::Ptr> items = m_HandleInclude(path);
+	vector<ConfigItem::Ptr> items = m_HandleInclude(path, search);
 	std::copy(items.begin(), items.end(), back_inserter(m_Result));
 }
 
@@ -169,10 +172,26 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const String& path,
  * @param include The path from the include directive.
  * @returns A list of configuration objects.
  */
-vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include)
+vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include, bool search)
 {
+	String includePath = include;
+
+	if (search) {
+		String path;
+
+		BOOST_FOREACH(const String& dir, m_IncludeSearchDirs) {
+			String path = dir + "/" + include;
+
+			struct stat statbuf;
+			if (lstat(path.CStr(), &statbuf) >= 0) {
+				includePath = path;
+				break;
+			}
+		}
+	}
+
 	/* TODO: implement wildcard includes */
-	return CompileFile(include);
+	return CompileFile(includePath);
 }
 
 /**
@@ -184,3 +203,14 @@ void ConfigCompiler::AddObject(const ConfigItem::Ptr& object)
 {
 	m_Result.push_back(object);
 }
+
+/**
+ * Adds a directory to the list of include search dirs.
+ *
+ * @param dir The new dir.
+ */
+void ConfigCompiler::AddIncludeSearchDir(const String& dir)
+{
+	m_IncludeSearchDirs.push_back(dir);
+}
+

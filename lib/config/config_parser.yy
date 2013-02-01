@@ -43,6 +43,7 @@ using namespace icinga;
 }
 
 %token <text> T_STRING
+%token <text> T_STRING_ANGLE
 %token <num> T_NUMBER
 %token T_NULL
 %token <text> T_IDENTIFIER
@@ -102,7 +103,11 @@ statement: object | include | library
 
 include: T_INCLUDE T_STRING
 	{
-		context->HandleInclude($2);
+		context->HandleInclude($2, false);
+	}
+	| T_INCLUDE T_STRING_ANGLE
+	{
+		context->HandleInclude($2, true);
 	}
 
 library: T_LIBRARY T_STRING
