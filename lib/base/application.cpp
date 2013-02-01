@@ -274,6 +274,18 @@ void Application::SetMainThread(void)
 	m_MainThreadID = boost::this_thread::get_id();
 }
 
+/**
+ * Displays a message that tells users what to do when they encounter a bug.
+ */
+void Application::DisplayBugMessage(void)
+{
+	std::cerr << "***" << std::endl
+		  << "*** This would indicate a bug in Icinga 2. Please submit a bug report at https://dev.icinga.org/ and include" << std::endl
+		  << "*** this stack trace as well as any other information that might be useful in order to reproduce this problem." << std::endl
+		  << "***" << std::endl
+		  << std::endl;
+}
+
 #ifndef _WIN32
 /**
  * Signal handler for SIGINT. Prepares the application for cleanly
@@ -296,18 +308,6 @@ void Application::SigIntHandler(int signum)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
 	sigaction(SIGINT, &sa, NULL);
-}
-
-/**
- * Displays a message that tells users what to do when they encounter a bug.
- */
-void Application::DisplayBugMessage(void)
-{
-	std::cerr << "***" << std::endl
-		  << "*** This would indicate a bug in Icinga 2. Please submit a bug report at https://dev.icinga.org/ and include" << std::endl
-		  << "*** this stack trace as well as any other information that might be useful in order to reproduce this problem." << std::endl
-		  << "***" << std::endl
-		  << std::endl;
 }
 
 /**
