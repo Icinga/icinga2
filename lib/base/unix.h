@@ -35,6 +35,7 @@
 #include <syslog.h>
 #include <sys/file.h>
 #include <sys/wait.h>
+#include <glob.h>
 #include <ltdl.h>
 
 typedef int SOCKET;

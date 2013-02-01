@@ -56,6 +56,8 @@ public:
 
 	static String NewUUID(void);
 
+	static bool Glob(const String& pathSpec, const function<void (const String&)>& callback);
+
 	static
 #ifdef _WIN32
 	HMODULE

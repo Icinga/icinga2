@@ -73,6 +73,8 @@ private:
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);
+
+	static void CompileFileIncludeHelper(const String& path, vector<ConfigItem::Ptr>& resultItems);
 };
 
 }

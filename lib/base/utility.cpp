@@ -283,6 +283,9 @@ String Utility::DirName(const String& path)
 	}
 
 	result = dir;
+
+	if (result.IsEmpty())
+		result = ".";
 #endif /* _WIN32 */
 
 	free(dir);
@@ -438,3 +441,56 @@ String Utility::NewUUID(void)
 	return boost::lexical_cast<String>(uuid);
 }
 
+/**
+ * Calls the specified callback for each file matching the path specification.
+ *
+ * @param pathSpec The path specification.
+ */
+bool Utility::Glob(const String& pathSpec, const function<void (const String&)>& callback)
+{
+#ifdef _WIN32
+	HANDLE handle;
+	WIN32_FIND_DATA wfd;
+
+	handle = FindFirstFile(pathSpec.CStr(), &wfd);
+
+	if (handle == INVALID_HANDLE_VALUE) {
+		DWORD errorCode = GetLastError();
+
+		if (errorCode == ERROR_FILE_NOT_FOUND)
+			return false;
+
+		throw_exception(Win32Exception("FindFirstFile() failed", errorCode));
+	}
+
+	do {
+		callback(wfd.cFileName);
+	} while (FindNextFile(handle, &wfd));
+
+	if (!FindClose(handle))
+		throw_exception(Win32Exception("FindClose() failed", GetLastError()));
+
+	return true;
+#else /* _WIN32 */
+	glob_t gr;
+
+	int rc = glob(pathSpec.CStr(), GLOB_ERR | GLOB_NOSORT, NULL, &gr);
+
+	if (rc < 0) {
+		if (rc == GLOB_NOMATCH)
+			return false;
+
+		throw_exception(PosixException("glob() failed", errno));
+	}
+
+	size_t left;
+	char **gp;
+	for (gp = gr.gl_pathv, left = gr.gl_pathc; left > 0; gp++, left--) {
+		callback(*gp);
+	}
+
+	globfree(&gr);
+
+	return true;
+#endif /* _WIN32 */
+}

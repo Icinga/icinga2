@@ -166,6 +166,18 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const String& path,
 }
 
 /**
+ * Compiles the specified file and returns the resulting config items in the passed vector.
+ *
+ * @param path The file that should be compiled.
+ * @param resultItems The vector that should be used to store the config items.
+ */
+void ConfigCompiler::CompileFileIncludeHelper(const String& path, vector<ConfigItem::Ptr>& resultItems)
+{
+	vector<ConfigItem::Ptr> items = CompileFile(path);
+	std::copy(items.begin(), items.end(), std::back_inserter(resultItems));
+}
+
+/**
  * Default include handler. Includes the file and returns a list of
  * configuration items.
  *
@@ -195,8 +207,12 @@ vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include,
 		}
 	}
 
-	/* TODO: implement wildcard includes */
-	return CompileFile(includePath);
+	vector<ConfigItem::Ptr> items;
+
+	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFileIncludeHelper, _1, boost::ref(items))))
+		throw_exception(invalid_argument("Include file '" + include + "' does not exist (or no files found for pattern)."));
+
+	return items;
 }
 
 /**
