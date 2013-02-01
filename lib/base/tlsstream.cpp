@@ -31,8 +31,8 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param sslContext The SSL context for the client.
  */
 TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SSL_CTX> sslContext)
-	: m_InnerStream(innerStream), m_SSLContext(sslContext), m_Role(role),
-	  m_SendQueue(boost::make_shared<FIFO>()), m_RecvQueue(boost::make_shared<FIFO>())
+	: m_SSLContext(sslContext), m_SendQueue(boost::make_shared<FIFO>()), m_RecvQueue(boost::make_shared<FIFO>()),
+	  m_InnerStream(innerStream), m_Role(role)
 {
 	m_InnerStream->OnDataAvailable.connect(boost::bind(&TlsStream::DataAvailableHandler, this));
 	m_InnerStream->OnClosed.connect(boost::bind(&TlsStream::ClosedHandler, this));

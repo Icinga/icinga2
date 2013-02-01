@@ -89,6 +89,8 @@ void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& en
 			case LogCritical:
 				stream << "\x1b[1;31m"; // red
 				break;
+			default:
+				break;
 		}
 	}
 
