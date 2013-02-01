@@ -82,8 +82,17 @@ void ConfigItemBuilder::AddExpressionList(const ExpressionList::Ptr& exprl)
 
 ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 {
-	assert(!m_Type.IsEmpty());
-	assert(!m_Name.IsEmpty());
+	if (m_Type.IsEmpty()) {
+		stringstream msgbuf;
+		msgbuf << "The type name of an object may not be empty: " << m_DebugInfo;
+		throw_exception(invalid_argument(msgbuf.str()));
+	}
+
+	if (m_Name.IsEmpty()) {
+		stringstream msgbuf;
+		msgbuf << "The name of an object may not be empty: " << m_DebugInfo;
+		throw_exception(invalid_argument(msgbuf.str()));
+	}
 
 	ExpressionList::Ptr exprl = boost::make_shared<ExpressionList>();
 
