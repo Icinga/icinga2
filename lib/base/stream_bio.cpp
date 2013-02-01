@@ -26,8 +26,6 @@ static int I2Stream_free(BIO *bi);
 static int I2Stream_read(BIO *bi, char *out, int outl);
 static int I2Stream_write(BIO *bi, const char *in, int inl);
 static long I2Stream_ctrl(BIO *bi, int cmd, long num, void *ptr);
-static int I2Stream_gets(BIO *bi, char *buf, int size);
-static int I2Stream_puts(BIO *bi, const char *str);
 
 #define BIO_TYPE_I2STREAM		(99|0x0400|0x0100)
 

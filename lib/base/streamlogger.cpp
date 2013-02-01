@@ -82,17 +82,14 @@ void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& en
 	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S %z", &tmnow);
 
 	if (tty) {
-		String colorCode;
 		switch (entry.Severity) {
 			case LogWarning:
-				colorCode = "\x1b[1;33m"; // yellow;
+				stream << "\x1b[1;33m"; // yellow;
 				break;
 			case LogCritical:
-				colorCode = "\x1b[1;31m"; // red
+				stream << "\x1b[1;31m"; // red
 				break;
 		}
-
-		stream << colorCode;
 	}
 
 	stream << "[" << timestamp << "] "

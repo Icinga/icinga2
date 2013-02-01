@@ -28,8 +28,6 @@ void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>&
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Missing argument: Service must be specified."));
 
-	double now = Utility::GetTime();
-
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("state", StateUnknown);
 

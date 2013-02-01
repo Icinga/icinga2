@@ -198,8 +198,6 @@ void DowntimeProcessor::AddDowntimesToCache(const DynamicObject::Ptr& owner)
 	String id;
 	Dictionary::Ptr downtime;
 	BOOST_FOREACH(tie(id, downtime), downtimes) {
-		double end_time = downtime->Get("end_time");
-
 		int legacy_id = downtime->Get("legacy_id");
 
 		if (legacy_id >= m_NextDowntimeID)

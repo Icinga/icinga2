@@ -94,12 +94,10 @@ void CompatIdoComponent::Start(void)
 {
 	const int StatusTimerInterval = 60;
 	const int ConfigTimerInterval = 3600;
-	const int ProgramStatusTimerInterval = 15;
+	//const int ProgramStatusTimerInterval = 15;
 	const double ReconnectTimerInterval = GetReconnectInterval();
 
 	/* FIXME - make this a config option when unix sockets are realdy */
-
-	bool IdoSocketType = true;
 
 	/* HINTS - XXX
 	 * - only tcp sockets

@@ -141,10 +141,10 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vect
 	result->Set("state", PluginCheckTask::ExitStatusToState(exitStatus));
 
 	double now = Utility::GetTime();
-	result->Set("schedule_start", time);
-	result->Set("schedule_end", time);
-	result->Set("execution_start", time);
-	result->Set("execution_end", time);
+	result->Set("schedule_start", now);
+	result->Set("schedule_end", now);
+	result->Set("execution_start", now);
+	result->Set("execution_end", now);
 	result->Set("active", 0);
 
 	Logger::Write(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
