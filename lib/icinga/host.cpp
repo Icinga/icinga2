@@ -29,6 +29,8 @@ static AttributeDescription hostAttributes[] = {
 	{ "hostgroups", Attribute_Config },
 	{ "dependencies", Attribute_Config },
 	{ "hostchecks", Attribute_Config },
+	{ "macros", Attribute_Config },
+	{ "services", Attribute_Config },
 	{ "acknowledgement", Attribute_Replicated },
 	{ "acknowledgement_expiry", Attribute_Replicated },
 	{ "downtimes", Attribute_Replicated },

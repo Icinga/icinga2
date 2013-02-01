@@ -111,6 +111,11 @@ void DynamicType::RemoveAttribute(const String& name)
 	m_Attributes.erase(name);
 }
 
+bool DynamicType::HasAttribute(const String& name)
+{
+	return (m_Attributes.find(name) != m_Attributes.end());
+}
+
 void DynamicType::AddAttributes(const AttributeDescription *attributes, int attributeCount)
 {
 	for (int i = 0; i < attributeCount; i++)

@@ -120,6 +120,13 @@ void DynamicObject::InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 		Value data = attr->Get("data");
 		double tx = attr->Get("tx");
 
+		if (!HasAttribute(it->first)) {
+			DynamicType::Ptr dtype = GetType();
+			if (dtype && !dtype->HasAttribute(it->first))
+				Logger::Write(LogWarning, "base", "Adding unknown attribute '" +
+				    it->first + "' to object '" + GetName() + "' of type '" + dtype->GetName() + "'");
+		}
+
 		if (type & Attribute_Config)
 			RegisterAttribute(it->first, Attribute_Config);
 

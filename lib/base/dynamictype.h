@@ -59,6 +59,7 @@ public:
 
 	void AddAttribute(const String& name, DynamicAttributeType type);
 	void RemoveAttribute(const String& name);
+	bool HasAttribute(const String& name);
 
 	void AddAttributes(const AttributeDescription *attributes, int attributeCount);
 
