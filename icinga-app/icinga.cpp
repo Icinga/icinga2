@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 	Application::SetPkgDataDir(ICINGA_PKGDATADIR);
 #endif /* ICINGA_PKGDATADIR */
 
-	Logger::Write(LogInformation, "icinga", "Icinga application loader"
+	Logger::Write(LogInformation, "icinga-app", "Icinga application loader"
 #ifndef _WIN32
 		" (version: " ICINGA_VERSION ")"
 #endif /* _WIN32 */
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 	if (argc < 3 || strcmp(argv[1], "-c") != 0) {
 		stringstream msgbuf;
 		msgbuf << "Syntax: " << argv[0] << " -c <config-file> ...";    
-		Logger::Write(LogInformation, "base", msgbuf.str());
+		Logger::Write(LogInformation, "icinga-app", msgbuf.str());
 		return EXIT_FAILURE;
 	}
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 		String configFile = argv[2];
 		vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
 
-		Logger::Write(LogInformation, "icinga", "Executing config items...");  
+		Logger::Write(LogInformation, "icinga-app", "Executing config items...");  
 
 		BOOST_FOREACH(const ConfigItem::Ptr& item, configItems) {
 			item->Commit();
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
 		DynamicObject::FinishTx();
 	} catch (const exception& ex) {
-		Logger::Write(LogCritical, "icinga", "Configuration error: " + String(ex.what()));
+		Logger::Write(LogCritical, "icinga-app", "Configuration error: " + String(ex.what()));
 		return EXIT_FAILURE;
 	}
 
