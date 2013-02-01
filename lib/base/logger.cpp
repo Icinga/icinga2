@@ -125,8 +125,11 @@ void Logger::ForwardLogEntry(const LogEntry& entry)
 		processed = true;
 	}
 
-	if (!processed && entry.Severity >= LogInformation)
-		StreamLogger::ProcessLogEntry(std::cout, entry);
+	if (!processed && entry.Severity >= LogInformation) {
+		static bool tty = StreamLogger::IsTty(std::cout);
+
+		StreamLogger::ProcessLogEntry(std::cout, tty, entry);
+	}
 }
 
 /**

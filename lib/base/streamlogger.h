@@ -35,12 +35,13 @@ public:
 	typedef weak_ptr<StreamLogger> WeakPtr;
 
 	StreamLogger(void);
-	StreamLogger(std::ostream *stream);
+	StreamLogger(ostream *stream);
 	~StreamLogger(void);
 
 	void OpenFile(const String& filename);
 
-	static void ProcessLogEntry(std::ostream& stream, const LogEntry& entry);
+	static void ProcessLogEntry(ostream& stream, bool tty, const LogEntry& entry);
+        static bool IsTty(ostream& stream);
 
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);
@@ -48,6 +49,7 @@ protected:
 private:
 	ostream *m_Stream;
 	bool m_OwnsStream;
+        bool m_Tty;
 };
 
 }

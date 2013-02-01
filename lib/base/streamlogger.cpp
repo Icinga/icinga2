@@ -25,7 +25,7 @@ using namespace icinga;
  * Constructor for the StreamLogger class.
  */
 StreamLogger::StreamLogger(void)
-	: ILogger(), m_Stream(NULL), m_OwnsStream(false)
+	: ILogger(), m_Stream(NULL), m_OwnsStream(false), m_Tty(false)
 { }
 
 /**
@@ -34,7 +34,7 @@ StreamLogger::StreamLogger(void)
  * @param stream The stream.
  */
 StreamLogger::StreamLogger(ostream *stream)
-	: ILogger(), m_Stream(stream), m_OwnsStream(false)
+	: ILogger(), m_Stream(stream), m_OwnsStream(false), m_Tty(IsTty(*stream))
 { }
 
 /**
@@ -62,15 +62,17 @@ void StreamLogger::OpenFile(const String& filename)
 
 	m_Stream = stream;
 	m_OwnsStream = true;
+	m_Tty = false;
 }
 
 /**
  * Processes a log entry and outputs it to a stream.
  *
  * @param stream The output stream.
+ * @param tty Whether the output stream is a TTY.
  * @param entry The log entry.
  */
-void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
+void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& entry)
 {
 	char timestamp[100];
 
@@ -79,9 +81,26 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 
 	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S %z", &tmnow);
 
+	if (tty) {
+		String colorCode;
+		switch (entry.Severity) {
+			case LogWarning:
+				colorCode = "\x1b[33m"; // yellow;
+				break;
+			case LogCritical:
+				colorCode = "\x1b[31m"; // red
+				break;
+		}
+
+		stream << colorCode;
+	}
+
 	stream << "[" << timestamp << "] "
 		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "
 		 << entry.Message << std::endl;
+
+	if (tty)
+		stream << "\x1b[0m"; // clear colors
 }
 
 /**
@@ -91,6 +110,19 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
  */
 void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 {
-	ProcessLogEntry(*m_Stream, entry);
+	ProcessLogEntry(*m_Stream, m_Tty, entry);
 }
 
+bool StreamLogger::IsTty(ostream& stream)
+{
+#ifndef _WIN32
+	/* Eww... */
+	if (stream == std::cout)
+		return isatty(fileno(stdout));
+
+	if (stream == std::cerr)
+		return isatty(fileno(stderr));
+#endif /*_ WIN32 */
+
+	return false;
+}

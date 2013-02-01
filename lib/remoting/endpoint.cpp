@@ -252,7 +252,7 @@ void Endpoint::OnAttributeChanged(const String& name, const Value& oldValue)
 			String subscription;
 			BOOST_FOREACH(tie(tuples::ignore, subscription), newSubscriptions) {
 				if (!oldSubscriptions || !oldSubscriptions->Contains(subscription)) {
-					Logger::Write(LogInformation, "remoting", "New subscription for '" + GetName() + "': " + subscription);
+					Logger::Write(LogDebug, "remoting", "New subscription for '" + GetName() + "': " + subscription);
 					OnSubscriptionRegistered(GetSelf(), subscription);
 				}
 			}
