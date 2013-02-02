@@ -219,10 +219,6 @@ static void CopyServiceAttributes(const Host::Ptr& host, TDict serviceDesc,
 	if (!hostchecks.IsEmpty())
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, hostchecks));
-
-	Value enableChecks = serviceDesc->Get("enable_checks");
-	if (!enableChecks.IsEmpty())
-		builder->AddExpression("enable_checks", OperatorSet, enableChecks);
 }
 
 void Host::ObjectCommittedHandler(const ConfigItem::Ptr& item)
