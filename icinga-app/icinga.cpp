@@ -88,7 +88,16 @@ int main(int argc, char **argv)
 	;
 
 	po::variables_map vm;
-	po::store(po::parse_command_line(argc, argv, desc), vm);
+
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+	} catch (const po::unknown_option& ex) {
+		stringstream msgbuf;
+		msgbuf << "Error while parsing command-line options: " << ex.what();
+		Logger::Write(LogCritical, "icinga-app", msgbuf.str());
+		return EXIT_FAILURE;
+	}
+
 	po::notify(vm);
 
 	if (vm.count("debug"))
@@ -96,7 +105,6 @@ int main(int argc, char **argv)
 
 	if (vm.count("help")) {
 		std::cout << desc << "\n";
-
 		return EXIT_SUCCESS;
 	}
 
