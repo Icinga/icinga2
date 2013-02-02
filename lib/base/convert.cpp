@@ -23,12 +23,12 @@ using namespace icinga;
 
 long Convert::ToLong(const String& val)
 {
-	return strtol(val.CStr(), NULL, 10);
+	return boost::lexical_cast<long>(val);
 }
 
 double Convert::ToDouble(const String& val)
 {
-	return strtod(val.CStr(), NULL);
+	return boost::lexical_cast<double>(val);
 }
 
 bool Convert::ToBool(const String& val)
