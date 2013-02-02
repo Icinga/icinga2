@@ -47,6 +47,12 @@ do {							\
 %x IN_C_COMMENT
 
 %%
+type				return T_TYPE;
+dictionary			{ yylval->type = TypeDictionary; return T_TYPE_DICTIONARY; }
+number				{ yylval->type = TypeNumber; return T_TYPE_NUMBER; }
+string				{ yylval->type = TypeString; return T_TYPE_STRING; }
+scalar				{ yylval->type = TypeScalar; return T_TYPE_SCALAR; }
+any				{ yylval->type = TypeAny; return T_TYPE_ANY; }
 abstract			return T_ABSTRACT;
 local				return T_LOCAL;
 object				return T_OBJECT;
@@ -54,9 +60,10 @@ object				return T_OBJECT;
 #library			return T_LIBRARY;
 inherits			return T_INHERITS;
 null				return T_NULL;
+partial				return T_PARTIAL;
 true				{ yylval->num = 1; return T_NUMBER; }
 false				{ yylval->num = 0; return T_NUMBER; }
-[a-zA-Z_][a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
+[a-zA-Z_\*][:a-zA-Z0-9\-_\*]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
 \"[^\"]*\"			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING; }
 \<[^\>]*\>			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING_ANGLE; }
 -?[0-9]+(\.[0-9]+)?h		{ yylval->num = strtod(yytext, NULL) * 60 * 60; return T_NUMBER; }

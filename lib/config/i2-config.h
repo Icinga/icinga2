@@ -46,6 +46,9 @@ using std::endl;
 #endif /* I2_CONFIG_BUILD */
 
 #include "debuginfo.h"
+#include "typerulelist.h"
+#include "typerule.h"
+#include "configtype.h"
 #include "expression.h"
 #include "expressionlist.h"
 #include "configitem.h"

@@ -40,6 +40,7 @@ using namespace icinga;
 	double num;
 	icinga::Value *variant;
 	icinga::ExpressionOperator op;
+	icinga::TypeSpecifier type;
 }
 
 %token <text> T_STRING
@@ -52,17 +53,27 @@ using namespace icinga;
 %token <op> T_MINUS_EQUAL
 %token <op> T_MULTIPLY_EQUAL
 %token <op> T_DIVIDE_EQUAL
+%token <type> T_TYPE_DICTIONARY
+%token <type> T_TYPE_NUMBER
+%token <type> T_TYPE_STRING
+%token <type> T_TYPE_SCALAR
+%token <type> T_TYPE_ANY
+%token T_TYPE
 %token T_ABSTRACT
 %token T_LOCAL
 %token T_OBJECT
 %token T_INCLUDE
 %token T_LIBRARY
 %token T_INHERITS
+%token T_PARTIAL
 %type <text> identifier
 %type <variant> simplevalue
 %type <variant> value
 %type <variant> expressionlist
+%type <variant> typerulelist
 %type <op> operator
+%type <type> type
+%type <num> partial_specifier
 %left '+' '-'
 %left '*' '/'
 %{
@@ -82,7 +93,9 @@ static stack<ExpressionList::Ptr> m_ExpressionLists;
 static ConfigItemBuilder::Ptr m_Item;
 static bool m_Abstract;
 static bool m_Local;
-static Dictionary::Ptr m_Array;
+
+static stack<TypeRuleList::Ptr> m_RuleLists;
+static ConfigType::Ptr m_Type;
 
 void ConfigCompiler::Compile(void)
 {
@@ -98,7 +111,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: object | include | library
+statement: object | type | include | library
 	;
 
 include: T_INCLUDE T_STRING
@@ -122,6 +135,89 @@ identifier: T_IDENTIFIER
 	}
 	;
 
+type: partial_specifier T_TYPE identifier
+	{
+		String name = String($3);
+		m_Type = context->GetTypeByName(name);
+		
+		if (!m_Type) {
+			if ($1)
+				throw_exception(invalid_argument("partial type definition for unknown type '" + name + "'"));
+
+			m_Type = boost::make_shared<ConfigType>(name, yylloc);
+			context->AddType(m_Type);
+		}
+	}
+	type_inherits_specifier typerulelist
+	{
+		TypeRuleList::Ptr ruleList = *$6;
+		m_Type->GetRuleList()->AddRules(ruleList);
+		delete $6;
+		
+		std::cout << "Created ConfigType: " << m_Type->GetName() << " with " << m_Type->GetRuleList()->GetLength() << " top-level rules." << std::endl;
+	}
+	;
+
+partial_specifier: /* Empty */
+	{
+		$$ = 0;
+	}
+	| T_PARTIAL
+	{
+		$$ = 1;
+	}
+	;
+
+typerulelist: '{'
+	{
+		m_RuleLists.push(boost::make_shared<TypeRuleList>());
+	}
+	typerules
+	'}'
+	{
+		$$ = new Value(m_RuleLists.top());
+		m_RuleLists.pop();
+	}
+	;
+
+typerules: typerules_inner
+	| typerules_inner ','
+
+typerules_inner: /* empty */
+	| typerule
+	| typerules_inner ',' typerule
+	;
+
+typerule: type identifier
+	{
+		TypeRule rule($1, $2, TypeRuleList::Ptr(), yylloc);
+		m_RuleLists.top()->AddRule(rule);
+	}
+	| type identifier typerulelist
+	{
+		TypeRule rule($1, $2, *$3, yylloc);
+		delete $3;
+		m_RuleLists.top()->AddRule(rule);
+	}
+	;
+
+type_inherits_specifier: /* empty */
+	| T_INHERITS T_STRING
+	{
+		m_Type->SetParent($2);
+	}
+	;
+
+type: T_TYPE_DICTIONARY
+	| T_TYPE_NUMBER
+	| T_TYPE_STRING
+	| T_TYPE_SCALAR
+	| T_TYPE_ANY
+	{
+		$$ = $1;
+	}
+	;
+
 object: 
 	{
 		m_Abstract = false;
@@ -133,7 +229,7 @@ attributes T_OBJECT identifier T_STRING
 		m_Item->SetType($4);
 		m_Item->SetName($5);
 	}
-inherits_specifier expressionlist
+object_inherits_specifier expressionlist
 	{
 		ExpressionList::Ptr exprl = *$8;
 		delete $8;
@@ -161,19 +257,19 @@ attribute: T_ABSTRACT
 	}
 	;
 
-inherits_list: inherits_item
-	| inherits_list ',' inherits_item
+object_inherits_list: object_inherits_item
+	| object_inherits_list ',' object_inherits_item
 	;
 
-inherits_item: T_STRING
+object_inherits_item: T_STRING
 	{
 		m_Item->AddParent($1);
 		free($1);
 	}
 	;
 
-inherits_specifier: /* empty */
-	| T_INHERITS inherits_list
+object_inherits_specifier: /* empty */
+	| T_INHERITS object_inherits_list
 	;
 
 expressionlist: '{'

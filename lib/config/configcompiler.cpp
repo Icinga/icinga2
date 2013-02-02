@@ -76,9 +76,26 @@ void *ConfigCompiler::GetScanner(void) const
  *
  * @returns A list of configuration items.
  */
-vector<ConfigItem::Ptr> ConfigCompiler::GetResult(void) const
+vector<ConfigItem::Ptr> ConfigCompiler::GetResultObjects(void) const
 {
-	return m_Result;
+	return m_ResultObjects;
+}
+
+/**
+ * Retrieves the resulting type objects from the compiler.
+ *
+ * @returns A list of type objects.
+ */
+vector<ConfigType::Ptr> ConfigCompiler::GetResultTypes(void) const
+{
+	vector<ConfigType::Ptr> types;
+	
+	ConfigType::Ptr type;
+	BOOST_FOREACH(tie(tuples::ignore, type), m_ResultTypes) {
+		types.push_back(type);
+	}
+	
+	return types;
 }
 
 /**
@@ -101,8 +118,13 @@ String ConfigCompiler::GetPath(void) const
 void ConfigCompiler::HandleInclude(const String& include, bool search)
 {
 	String path = Utility::DirName(GetPath()) + "/" + include;
-	vector<ConfigItem::Ptr> items = m_HandleInclude(path, search);
-	std::copy(items.begin(), items.end(), back_inserter(m_Result));
+
+	vector<ConfigType::Ptr> types;
+	m_HandleInclude(path, search, &m_ResultObjects, &types);
+
+	BOOST_FOREACH(const ConfigType::Ptr& type, types) {
+		AddType(type);
+	}
 }
 
 /**
@@ -122,14 +144,23 @@ void ConfigCompiler::HandleLibrary(const String& library)
  * @param stream The input stream.
  * @returns Configuration items.
  */
-vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(const String& path,
-    istream *stream)
+void ConfigCompiler::CompileStream(const String& path,
+    istream *stream, vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes)
 {
 	stream->exceptions(istream::badbit);
 
 	ConfigCompiler ctx(path, stream);
 	ctx.Compile();
-	return ctx.GetResult();
+	
+	if (resultItems) {
+		vector<ConfigItem::Ptr> items = ctx.GetResultObjects();
+		std::copy(items.begin(), items.end(), std::back_inserter(*resultItems));
+	}
+
+	if (resultTypes) {	
+		vector<ConfigType::Ptr> types = ctx.GetResultTypes();
+		std::copy(types.begin(), types.end(), std::back_inserter(*resultTypes));
+	}
 }
 
 /**
@@ -138,7 +169,8 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileStream(const String& path,
  * @param path The path.
  * @returns Configuration items.
  */
-vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const String& path)
+void ConfigCompiler::CompileFile(const String& path,
+    vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes)
 {
 	ifstream stream;
 	stream.open(path.CStr(), ifstream::in);
@@ -148,7 +180,7 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const String& path)
 
 	Logger::Write(LogInformation, "config", "Compiling config file: " + path);
 
-	return CompileStream(path, &stream);
+	return CompileStream(path, &stream, resultItems, resultTypes);
 }
 
 /**
@@ -158,23 +190,11 @@ vector<ConfigItem::Ptr> ConfigCompiler::CompileFile(const String& path)
  * @param text The text.
  * @returns Configuration items.
  */
-vector<ConfigItem::Ptr> ConfigCompiler::CompileText(const String& path,
-    const String& text)
+void ConfigCompiler::CompileText(const String& path, const String& text,
+    vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes)
 {
 	stringstream stream(text);
-	return CompileStream(path, &stream);
-}
-
-/**
- * Compiles the specified file and returns the resulting config items in the passed vector.
- *
- * @param path The file that should be compiled.
- * @param resultItems The vector that should be used to store the config items.
- */
-void ConfigCompiler::CompileFileIncludeHelper(const String& path, vector<ConfigItem::Ptr>& resultItems)
-{
-	vector<ConfigItem::Ptr> items = CompileFile(path);
-	std::copy(items.begin(), items.end(), std::back_inserter(resultItems));
+	return CompileStream(path, &stream, resultItems, resultTypes);
 }
 
 /**
@@ -182,9 +202,9 @@ void ConfigCompiler::CompileFileIncludeHelper(const String& path, vector<ConfigI
  * configuration items.
  *
  * @param include The path from the include directive.
- * @returns A list of configuration objects.
  */
-vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include, bool search)
+void ConfigCompiler::HandleFileInclude(const String& include, bool search,
+    vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes)
 {
 	String includePath = include;
 
@@ -209,10 +229,8 @@ vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include,
 
 	vector<ConfigItem::Ptr> items;
 
-	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFileIncludeHelper, _1, boost::ref(items))))
+	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFile, _1, resultItems, resultTypes)))
 		throw_exception(invalid_argument("Include file '" + include + "' does not exist (or no files found for pattern)."));
-
-	return items;
 }
 
 /**
@@ -222,7 +240,7 @@ vector<ConfigItem::Ptr> ConfigCompiler::HandleFileInclude(const String& include,
  */
 void ConfigCompiler::AddObject(const ConfigItem::Ptr& object)
 {
-	m_Result.push_back(object);
+	m_ResultObjects.push_back(object);
 }
 
 /**
@@ -235,3 +253,19 @@ void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 	m_IncludeSearchDirs.push_back(dir);
 }
 
+void ConfigCompiler::AddType(const ConfigType::Ptr& type)
+{
+	m_ResultTypes[type->GetName()] = type;
+}
+
+ConfigType::Ptr ConfigCompiler::GetTypeByName(const String& name) const
+{
+	map<String, ConfigType::Ptr>::const_iterator it;
+	
+	it = m_ResultTypes.find(name);
+	
+	if (it == m_ResultTypes.end())
+		return ConfigType::Ptr();
+	
+	return it->second;
+}

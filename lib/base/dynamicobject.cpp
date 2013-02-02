@@ -481,3 +481,8 @@ DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& na
 	DynamicType::Ptr dtype = DynamicType::GetByName(type);
 	return dtype->GetObject(name);
 }
+
+const DynamicObject::AttributeMap& DynamicObject::GetAttributes(void) const
+{
+	return m_Attributes;
+}

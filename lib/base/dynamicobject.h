@@ -131,6 +131,8 @@ public:
 
 	virtual void Start(void);
 
+	const AttributeMap& GetAttributes(void) const;
+	
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 
 	static void DumpObjects(const String& filename);

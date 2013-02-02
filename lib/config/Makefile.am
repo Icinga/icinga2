@@ -18,11 +18,17 @@ libconfig_la_SOURCES = \
 	configitem.h \
 	configitembuilder.cpp \
 	configitembuilder.h \
+	configtype.cpp \
+	configtype.h \
 	debuginfo.h \
 	expression.cpp \
 	expression.h \
 	expressionlist.cpp \
-	expressionlist.h
+	expressionlist.h \
+	typerule.cpp \
+	typerule.h \
+	typerulelist.cpp \
+	typerulelist.h
 
 libconfig_la_CPPFLAGS = \
 	-DI2_CONFIG_BUILD \

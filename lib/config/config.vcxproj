@@ -22,16 +22,20 @@
     <ClInclude Include="configcompiler.h" />
     <ClInclude Include="configitem.h" />
     <ClInclude Include="configitembuilder.h" />
+    <ClInclude Include="configtype.h" />
     <ClInclude Include="config_parser.h" />
     <ClInclude Include="debuginfo.h" />
     <ClInclude Include="expression.h" />
     <ClInclude Include="expressionlist.h" />
     <ClInclude Include="i2-config.h" />
+    <ClInclude Include="typerule.h" />
+    <ClInclude Include="typerulelist.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="configcompiler.cpp" />
     <ClCompile Include="configitem.cpp" />
     <ClCompile Include="configitembuilder.cpp" />
+    <ClCompile Include="configtype.cpp" />
     <ClCompile Include="config_lexer.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -52,6 +56,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="typerule.cpp" />
+    <ClCompile Include="typerulelist.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="config_lexer.ll">

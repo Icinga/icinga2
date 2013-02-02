@@ -82,12 +82,19 @@ using namespace icinga;
      T_MINUS_EQUAL = 265,
      T_MULTIPLY_EQUAL = 266,
      T_DIVIDE_EQUAL = 267,
-     T_ABSTRACT = 268,
-     T_LOCAL = 269,
-     T_OBJECT = 270,
-     T_INCLUDE = 271,
-     T_LIBRARY = 272,
-     T_INHERITS = 273
+     T_TYPE_DICTIONARY = 268,
+     T_TYPE_NUMBER = 269,
+     T_TYPE_STRING = 270,
+     T_TYPE_SCALAR = 271,
+     T_TYPE_ANY = 272,
+     T_TYPE = 273,
+     T_ABSTRACT = 274,
+     T_LOCAL = 275,
+     T_OBJECT = 276,
+     T_INCLUDE = 277,
+     T_LIBRARY = 278,
+     T_INHERITS = 279,
+     T_PARTIAL = 280
    };
 #endif
 /* Tokens.  */
@@ -101,12 +108,19 @@ using namespace icinga;
 #define T_MINUS_EQUAL 265
 #define T_MULTIPLY_EQUAL 266
 #define T_DIVIDE_EQUAL 267
-#define T_ABSTRACT 268
-#define T_LOCAL 269
-#define T_OBJECT 270
-#define T_INCLUDE 271
-#define T_LIBRARY 272
-#define T_INHERITS 273
+#define T_TYPE_DICTIONARY 268
+#define T_TYPE_NUMBER 269
+#define T_TYPE_STRING 270
+#define T_TYPE_SCALAR 271
+#define T_TYPE_ANY 272
+#define T_TYPE 273
+#define T_ABSTRACT 274
+#define T_LOCAL 275
+#define T_OBJECT 276
+#define T_INCLUDE 277
+#define T_LIBRARY 278
+#define T_INHERITS 279
+#define T_PARTIAL 280
 
 
 
@@ -122,11 +136,12 @@ typedef union YYSTYPE
 	double num;
 	icinga::Value *variant;
 	icinga::ExpressionOperator op;
+	icinga::TypeSpecifier type;
 
 
 
 /* Line 2068 of yacc.c  */
-#line 130 "config_parser.h"
+#line 145 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

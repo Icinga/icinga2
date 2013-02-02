@@ -32,7 +32,7 @@ namespace icinga
 class I2_CONFIG_API ConfigCompiler
 {
 public:
-	typedef function<vector<ConfigItem::Ptr> (const String&, bool)> HandleIncludeFunc;
+	typedef function<void (const String&, bool, vector<ConfigItem::Ptr> *, vector<ConfigType::Ptr> *)> HandleIncludeFunc;
 
 	ConfigCompiler(const String& path, istream *input = &cin,
 	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
@@ -40,23 +40,31 @@ public:
 
 	void Compile(void);
 
-	static vector<ConfigItem::Ptr> CompileStream(const String& path,
-	    istream *stream);
-	static vector<ConfigItem::Ptr> CompileFile(const String& path);
-	static vector<ConfigItem::Ptr> CompileText(const String& path,
-	    const String& text);
+	static void CompileStream(const String& path,
+	    istream *stream, vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes);
+	static void CompileFile(const String& path, vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes);
+	static void CompileText(const String& path,
+	    const String& text, vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes);
 
-	static vector<ConfigItem::Ptr> HandleFileInclude(const String& include, bool search);
 	static void AddIncludeSearchDir(const String& dir);
 
-	vector<ConfigItem::Ptr> GetResult(void) const;
+	vector<ConfigItem::Ptr> GetResultObjects(void) const;
+	vector<ConfigType::Ptr> GetResultTypes(void) const;
 
 	String GetPath(void) const;
 
+	static void HandleFileInclude(const String& include, bool search,
+	    vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes);
+	
 	/* internally used methods */
 	void HandleInclude(const String& include, bool search);
 	void HandleLibrary(const String& library);
+	
 	void AddObject(const ConfigItem::Ptr& object);
+	void AddType(const ConfigType::Ptr& type);
+	
+	ConfigType::Ptr GetTypeByName(const String& name) const;
+	
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
 
@@ -67,14 +75,13 @@ private:
 	HandleIncludeFunc m_HandleInclude;
 
 	void *m_Scanner;
-	vector<ConfigItem::Ptr> m_Result;
+	vector<ConfigItem::Ptr> m_ResultObjects;
+	map<String, ConfigType::Ptr> m_ResultTypes;
 
 	static vector<String> m_IncludeSearchDirs;
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);
-
-	static void CompileFileIncludeHelper(const String& path, vector<ConfigItem::Ptr>& resultItems);
 };
 
 }

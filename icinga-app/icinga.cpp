@@ -93,14 +93,41 @@ int main(int argc, char **argv)
 
 		/* load config file */
 		String configFile = argv[2];
-		vector<ConfigItem::Ptr> configItems = ConfigCompiler::CompileFile(configFile);
+		vector<ConfigItem::Ptr> items;
+		vector<ConfigType::Ptr> types;
+		
+		ConfigCompiler::CompileFile(configFile, &items, &types);
 
+		Logger::Write(LogInformation, "icinga-app", "Registering config types...");
+		
+		BOOST_FOREACH(const ConfigType::Ptr& type, types) {
+			type->Commit();
+		}
+		
 		Logger::Write(LogInformation, "icinga-app", "Executing config items...");  
 
-		BOOST_FOREACH(const ConfigItem::Ptr& item, configItems) {
+		BOOST_FOREACH(const ConfigItem::Ptr& item, items) {
 			item->Commit();
 		}
 
+		Logger::Write(LogInformation, "icinga-app", "Validating config items...");
+		
+		DynamicType::Ptr type;
+		BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
+			ConfigType::Ptr ctype = ConfigType::GetByName(type->GetName());
+			
+			if (!ctype) {
+				Logger::Write(LogWarning, "icinga-app", "No config type found for type '" + type->GetName() + "'");
+				
+				continue;
+			}
+			
+			DynamicObject::Ptr object;
+			BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
+				ctype->ValidateObject(object);
+			}
+		}
+		
 		DynamicObject::FinishTx();
 	} catch (const exception& ex) {
 		Logger::Write(LogCritical, "icinga-app", "Configuration error: " + String(ex.what()));
