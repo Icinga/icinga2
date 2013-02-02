@@ -36,6 +36,9 @@ bool TypeRule::Matches(const String& name, const Value& value) const
 	if (!Utility::Match(m_NamePattern, name))
 		return false;
 
+	if (value.IsEmpty())
+		return true;
+
 	switch (m_Type) {
 		case TypeAny:
 			return true;

@@ -62,8 +62,8 @@ void ConfigType::ValidateObject(const DynamicObject::Ptr& object) const
 			continue;
 
 		if (!ValidateAttribute(it->first, it->second.Data))
-			Logger::Write(LogWarning, "base", "Configuration attribute '" + it->first +
-			    "' on object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' is unknown.");
+			Logger::Write(LogWarning, "config", "Configuration attribute '" + it->first +
+			    "' on object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' is unknown or contains an invalid type.");
 	}
 }
 
