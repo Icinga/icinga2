@@ -28,7 +28,6 @@ public:
 	static void Execute(const String& line);
 	static void Execute(double time, const String& command, const vector<String>& arguments);
 
-	static void HelloWorld(double time, const vector<String>& arguments);
 	static void ProcessServiceCheckResult(double time, const vector<String>& arguments);
 	static void ScheduleSvcCheck(double time, const vector<String>& arguments);
 	static void ScheduleForcedSvcCheck(double time, const vector<String>& arguments);

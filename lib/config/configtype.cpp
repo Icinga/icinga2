@@ -72,7 +72,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary, const Typ
 	String key;
 	Value value;
 	BOOST_FOREACH(tie(key, value), dictionary) {
-			
+		// TODO: implement (#3619)
 	}
 }
 

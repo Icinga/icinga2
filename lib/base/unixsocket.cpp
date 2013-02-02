@@ -36,7 +36,8 @@ void UnixSocket::Bind(const String& path)
 {
 	unlink(path.CStr());
 
-	sockaddr_un sun = {};
+	sockaddr_un sun;
+	memset(&sun, 0, sizeof(sun));
 	sun.sun_family = AF_UNIX;
 	strncpy(sun.sun_path, path.CStr(), sizeof(sun.sun_path));
 	sun.sun_path[sizeof(sun.sun_path) - 1] = '\0';
@@ -47,7 +48,8 @@ void UnixSocket::Bind(const String& path)
 
 void UnixSocket::Connect(const String& path)
 {
-	sockaddr_un sun = {};
+	sockaddr_un sun;
+	memset(&sun, 0, sizeof(sun));
 	sun.sun_family = AF_UNIX;
 	strncpy(sun.sun_path, path.CStr(), sizeof(sun.sun_path));
 	sun.sun_path[sizeof(sun.sun_path) - 1] = '\0';

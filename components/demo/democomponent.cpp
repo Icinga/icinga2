@@ -66,7 +66,7 @@ void DemoComponent::DemoTimerHandler(void)
  * Processes demo::HelloWorld messages.
  */
 void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender,
-    const RequestMessage& request)
+    const RequestMessage&)
 {
 	Logger::Write(LogInformation, "demo", "Got 'hello world' from identity=" +
 	    (sender ? sender->GetName() : "(anonymous)"));

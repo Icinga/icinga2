@@ -313,7 +313,7 @@ void Host::ObjectRemovedHandler(const ConfigItem::Ptr& item)
 	}
 }
 
-void Host::OnAttributeChanged(const String& name, const Value& oldValue)
+void Host::OnAttributeChanged(const String& name, const Value&)
 {
 	if (name == "hostgroups")
 		HostGroup::InvalidateMembersCache();

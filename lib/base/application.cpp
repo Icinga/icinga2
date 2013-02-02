@@ -349,10 +349,7 @@ BOOL WINAPI Application::CtrlHandler(DWORD type)
  */
 void Application::ExceptionHandler(void)
 {
-	static bool rethrow = true;
-
 	try {
-		rethrow = false;
 		throw;
 	} catch (const std::exception& ex) {
 		std::cerr << std::endl;

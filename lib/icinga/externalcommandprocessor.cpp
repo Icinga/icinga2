@@ -57,7 +57,6 @@ void ExternalCommandProcessor::Execute(const String& line)
 void ExternalCommandProcessor::Execute(double time, const String& command, const vector<String>& arguments)
 {
 	if (!m_Initialized) {
-		RegisterCommand("HELLO_WORLD", &ExternalCommandProcessor::HelloWorld);
 		RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult);
 		RegisterCommand("SCHEDULE_SVC_CHECK", &ExternalCommandProcessor::ScheduleSvcCheck);
 		RegisterCommand("SCHEDULE_FORCED_SVC_CHECK", &ExternalCommandProcessor::ScheduleForcedSvcCheck);
@@ -118,11 +117,6 @@ void ExternalCommandProcessor::RegisterCommand(const String& command, const Exte
 	m_Commands[command] = callback;
 }
 
-void ExternalCommandProcessor::HelloWorld(double time, const vector<String>& arguments)
-{
-	Logger::Write(LogInformation, "icinga", "HelloWorld external command called.");
-}
-
 void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 4)
@@ -140,11 +134,10 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vect
 	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(arguments[3]);
 	result->Set("state", PluginCheckTask::ExitStatusToState(exitStatus));
 
-	double now = Utility::GetTime();
-	result->Set("schedule_start", now);
-	result->Set("schedule_end", now);
-	result->Set("execution_start", now);
-	result->Set("execution_end", now);
+	result->Set("schedule_start", time);
+	result->Set("schedule_end", time);
+	result->Set("execution_start", time);
+	result->Set("execution_end", time);
 	result->Set("active", 0);
 
 	Logger::Write(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
@@ -156,7 +149,7 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vect
 	service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
 }
 
-void ExternalCommandProcessor::ScheduleSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleSvcCheck(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 3)
 		throw_exception(invalid_argument("Expected 3 arguments."));
@@ -178,7 +171,7 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double time, const vector<String
 	service->SetNextCheck(planned_check);
 }
 
-void ExternalCommandProcessor::ScheduleForcedSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 3)
 		throw_exception(invalid_argument("Expected 3 arguments."));
@@ -193,7 +186,7 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double time, const vector<
 	service->SetNextCheck(Convert::ToDouble(arguments[2]));
 }
 
-void ExternalCommandProcessor::EnableSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableSvcCheck(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -207,7 +200,7 @@ void ExternalCommandProcessor::EnableSvcCheck(double time, const vector<String>&
 	service->SetEnableActiveChecks(true);
 }
 
-void ExternalCommandProcessor::DisableSvcCheck(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableSvcCheck(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -221,13 +214,13 @@ void ExternalCommandProcessor::DisableSvcCheck(double time, const vector<String>
 	service->SetEnableActiveChecks(false);
 }
 
-void ExternalCommandProcessor::ShutdownProcess(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ShutdownProcess(double, const vector<String>&)
 {
 	Logger::Write(LogInformation, "icinga", "Shutting down Icinga via external command.");
 	Application::RequestShutdown();
 }
 
-void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -246,7 +239,7 @@ void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double time, const ve
 	}
 }
 
-void ExternalCommandProcessor::ScheduleHostSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -270,7 +263,7 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double time, const vector<S
 	}
 }
 
-void ExternalCommandProcessor::EnableHostSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -286,7 +279,7 @@ void ExternalCommandProcessor::EnableHostSvcChecks(double time, const vector<Str
 	}
 }
 
-void ExternalCommandProcessor::DisableHostSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 arguments."));
@@ -302,7 +295,7 @@ void ExternalCommandProcessor::DisableHostSvcChecks(double time, const vector<St
 	}
 }
 
-void ExternalCommandProcessor::AcknowledgeSvcProblem(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 7)
 		throw_exception(invalid_argument("Expected 7 arguments."));
@@ -322,7 +315,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double time, const vector<S
 	service->SetAcknowledgementExpiry(0);
 }
 
-void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));
@@ -343,7 +336,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double time, const ve
 	service->SetAcknowledgementExpiry(timestamp);
 }
 
-void ExternalCommandProcessor::RemoveSvcAcknowledgement(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -358,7 +351,7 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double time, const vecto
 	service->SetAcknowledgementExpiry(0);
 }
 
-void ExternalCommandProcessor::AcknowledgeHostProblem(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 6)
 		throw_exception(invalid_argument("Expected 6 arguments."));
@@ -378,7 +371,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double time, const vector<
 	host->SetAcknowledgementExpiry(0);
 }
 
-void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 7)
 		throw_exception(invalid_argument("Expected 7 arguments."));
@@ -399,7 +392,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double time, const v
 	host->SetAcknowledgementExpiry(timestamp);
 }
 
-void ExternalCommandProcessor::RemoveHostAcknowledgement(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -414,7 +407,7 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double time, const vect
 	host->SetAcknowledgementExpiry(0);
 }
 
-void ExternalCommandProcessor::EnableHostgroupSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -432,7 +425,7 @@ void ExternalCommandProcessor::EnableHostgroupSvcChecks(double time, const vecto
 	}
 }
 
-void ExternalCommandProcessor::DisableHostgroupSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostgroupSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -450,7 +443,7 @@ void ExternalCommandProcessor::DisableHostgroupSvcChecks(double time, const vect
 	}
 }
 
-void ExternalCommandProcessor::EnableServicegroupSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableServicegroupSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -466,7 +459,7 @@ void ExternalCommandProcessor::EnableServicegroupSvcChecks(double time, const ve
 	}
 }
 
-void ExternalCommandProcessor::DisableServicegroupSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -482,7 +475,7 @@ void ExternalCommandProcessor::DisableServicegroupSvcChecks(double time, const v
 	}
 }
 
-void ExternalCommandProcessor::EnablePassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -496,7 +489,7 @@ void ExternalCommandProcessor::EnablePassiveSvcChecks(double time, const vector<
 	service->SetEnablePassiveChecks(true);
 }
 
-void ExternalCommandProcessor::DisablePassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -510,7 +503,7 @@ void ExternalCommandProcessor::DisablePassiveSvcChecks(double time, const vector
 	service->SetEnablePassiveChecks(false);
 }
 
-void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -526,7 +519,7 @@ void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double time, c
 	}
 }
 
-void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -542,7 +535,7 @@ void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double time, 
 	}
 }
 
-void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -560,7 +553,7 @@ void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double time, cons
 	}
 }
 
-void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -578,7 +571,7 @@ void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double time, con
 	}
 }
 
-void ExternalCommandProcessor::ProcessFile(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ProcessFile(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));
@@ -612,7 +605,7 @@ void ExternalCommandProcessor::ProcessFile(double time, const vector<String>& ar
 		(void) unlink(file.CStr());
 }
 
-void ExternalCommandProcessor::ScheduleSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleSvcDowntime(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 9)
 		throw_exception(invalid_argument("Expected 9 arguments."));
@@ -633,7 +626,7 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double time, const vector<Str
 	    Convert::ToBool(arguments[4]), triggeredBy, Convert::ToDouble(arguments[6]));
 }
 
-void ExternalCommandProcessor::DelSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelSvcDowntime(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -644,7 +637,7 @@ void ExternalCommandProcessor::DelSvcDowntime(double time, const vector<String>&
 	DowntimeProcessor::RemoveDowntime(rid);
 }
 
-void ExternalCommandProcessor::ScheduleHostDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostDowntime(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));
@@ -665,7 +658,7 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double time, const vector<St
 	    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 }
 
-void ExternalCommandProcessor::DelHostDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelHostDowntime(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -676,7 +669,7 @@ void ExternalCommandProcessor::DelHostDowntime(double time, const vector<String>
 	DowntimeProcessor::RemoveDowntime(rid);
 }
 
-void ExternalCommandProcessor::ScheduleHostSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 argument."));
@@ -704,7 +697,7 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double time, const vector
 	}
 }
 
-void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));
@@ -727,7 +720,7 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double time, const 
 	}
 }
 
-void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));
@@ -762,7 +755,7 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double time, const v
 	}
 }
 
-void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));
@@ -795,7 +788,7 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double time, con
 	}
 }
 
-void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 8)
 		throw_exception(invalid_argument("Expected 8 arguments."));
@@ -818,7 +811,7 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double time, cons
 	}
 }
 
-void ExternalCommandProcessor::AddHostComment(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AddHostComment(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 4)
 		throw_exception(invalid_argument("Expected 4 arguments."));
@@ -832,7 +825,7 @@ void ExternalCommandProcessor::AddHostComment(double time, const vector<String>&
 	(void) CommentProcessor::AddComment(host, Comment_User, arguments[2], arguments[3], 0);
 }
 
-void ExternalCommandProcessor::DelHostComment(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelHostComment(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -843,7 +836,7 @@ void ExternalCommandProcessor::DelHostComment(double time, const vector<String>&
 	CommentProcessor::RemoveComment(rid);
 }
 
-void ExternalCommandProcessor::AddSvcComment(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::AddSvcComment(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 5)
 		throw_exception(invalid_argument("Expected 5 arguments."));
@@ -857,7 +850,7 @@ void ExternalCommandProcessor::AddSvcComment(double time, const vector<String>& 
 	(void) CommentProcessor::AddComment(service, Comment_User, arguments[3], arguments[4], 0);
 }
 
-void ExternalCommandProcessor::DelSvcComment(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelSvcComment(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -869,7 +862,7 @@ void ExternalCommandProcessor::DelSvcComment(double time, const vector<String>& 
 	CommentProcessor::RemoveComment(rid);
 }
 
-void ExternalCommandProcessor::DelAllHostComments(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelAllHostComments(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 1)
 		throw_exception(invalid_argument("Expected 1 argument."));
@@ -883,7 +876,7 @@ void ExternalCommandProcessor::DelAllHostComments(double time, const vector<Stri
 	CommentProcessor::RemoveAllComments(host);
 }
 
-void ExternalCommandProcessor::DelAllSvcComments(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelAllSvcComments(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Expected 2 arguments."));

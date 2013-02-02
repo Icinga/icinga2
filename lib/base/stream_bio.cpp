@@ -127,7 +127,7 @@ static int I2Stream_write(BIO *bi, const char *in, int inl)
 	return inl;
 }
 
-static long I2Stream_ctrl(BIO *bi, int cmd, long num, void *ptr)
+static long I2Stream_ctrl(BIO *, int cmd, long, void *)
 {
 	switch (cmd) {
 		case BIO_CTRL_FLUSH:
