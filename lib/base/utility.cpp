@@ -170,7 +170,7 @@ void Utility::InitializeOpenSSL(void)
  * @param cakey CA certificate chain file.
  * @returns An SSL context.
  */
-shared_ptr<SSL_CTX> Utility::MakeSSLContext(String pubkey, String privkey, String cakey)
+shared_ptr<SSL_CTX> Utility::MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey)
 {
 	InitializeOpenSSL();
 
@@ -224,7 +224,7 @@ String Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
  * @param pemfile The filename.
  * @returns An X509 certificate.
  */
-shared_ptr<X509> Utility::GetX509Certificate(String pemfile)
+shared_ptr<X509> Utility::GetX509Certificate(const String& pemfile)
 {
 	X509 *cert;
 	BIO *fpcert = BIO_new(BIO_s_file());
@@ -254,7 +254,7 @@ shared_ptr<X509> Utility::GetX509Certificate(String pemfile)
  * @param text The String that should be checked.
  * @returns true if the wildcard pattern matches, false otherwise.
  */
-bool Utility::Match(String pattern, String text)
+bool Utility::Match(const String& pattern, const String& text)
 {
 	return (match(pattern.CStr(), text.CStr()) == 0);
 }

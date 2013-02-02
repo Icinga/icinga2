@@ -37,11 +37,11 @@ public:
 
 	static void Daemonize(void);
 
-	static shared_ptr<SSL_CTX> MakeSSLContext(String pubkey, String privkey, String cakey);
+	static shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
 	static String GetCertificateCN(const shared_ptr<X509>& certificate);
-	static shared_ptr<X509> GetX509Certificate(String pemfile);
+	static shared_ptr<X509> GetX509Certificate(const String& pemfile);
 
-	static bool Match(String pattern, String text);
+	static bool Match(const String& pattern, const String& text);
 
 	static String DirName(const String& path);
 	static String BaseName(const String& path);
