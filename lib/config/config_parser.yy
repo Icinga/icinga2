@@ -153,8 +153,6 @@ type: partial_specifier T_TYPE identifier
 		TypeRuleList::Ptr ruleList = *$6;
 		m_Type->GetRuleList()->AddRules(ruleList);
 		delete $6;
-		
-		std::cout << "Created ConfigType: " << m_Type->GetName() << " with " << m_Type->GetRuleList()->GetLength() << " top-level rules." << std::endl;
 	}
 	;
 
