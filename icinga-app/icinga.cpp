@@ -137,11 +137,10 @@ int main(int argc, char **argv)
 
 		/* load config files */
 		BOOST_FOREACH(const String& configPath, vm["config"].as<vector<String> >()) {
-			String configFile = argv[2];
 			vector<ConfigItem::Ptr> items;
 			vector<ConfigType::Ptr> types;
-		
-			ConfigCompiler::CompileFile(configFile, &items, &types);
+
+			ConfigCompiler::CompileFile(configPath, &items, &types);
 
 			Logger::Write(LogInformation, "icinga-app", "Registering config types...");
 			BOOST_FOREACH(const ConfigType::Ptr& type, types) {
