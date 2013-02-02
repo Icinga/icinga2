@@ -24,13 +24,7 @@ using namespace icinga;
 map<String, vector<Host::WeakPtr> > HostGroup::m_MembersCache;
 bool HostGroup::m_MembersCacheValid = true;
 
-static AttributeDescription hostGroupAttributes[] = {
-	{ "alias", Attribute_Config },
-	{ "notes_url", Attribute_Config },
-	{ "action_url", Attribute_Config }
-};
-
-REGISTER_TYPE(HostGroup, hostGroupAttributes);
+REGISTER_TYPE(HostGroup, NULL);
 
 String HostGroup::GetAlias(void) const
 {

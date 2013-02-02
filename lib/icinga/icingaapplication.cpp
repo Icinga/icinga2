@@ -23,17 +23,7 @@
 
 using namespace icinga;
 
-static AttributeDescription icingaApplicationAttributes[] = {
-	{ "cert_path", Attribute_Config },
-	{ "ca_path", Attribute_Config },
-	{ "node", Attribute_Config },
-	{ "service", Attribute_Config },
-	{ "pid_path", Attribute_Config },
-	{ "state_path", Attribute_Config },
-	{ "macros", Attribute_Config }
-};
-
-REGISTER_TYPE(IcingaApplication, icingaApplicationAttributes);
+REGISTER_TYPE(IcingaApplication, NULL);
 
 #ifndef _WIN32
 #	include "icinga-version.h"

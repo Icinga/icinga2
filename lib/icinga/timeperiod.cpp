@@ -22,7 +22,6 @@
 using namespace icinga;
 
 static AttributeDescription timePeriodAttributes[] = {
-	{ "alias", Attribute_Config },
 	{ "cached_state", Attribute_Transient },
 	{ "cached_next_change", Attribute_Transient }
 };

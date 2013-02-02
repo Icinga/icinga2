@@ -22,17 +22,6 @@
 using namespace icinga;
 
 static AttributeDescription serviceAttributes[] = {
-	{ "alias", Attribute_Config },
-	{ "host_name", Attribute_Config },
-	{ "macros", Attribute_Config },
-	{ "check_command", Attribute_Config },
-	{ "max_check_attempts", Attribute_Config },
-	{ "check_interval", Attribute_Config },
-	{ "retry_interval", Attribute_Config },
-	{ "dependencies", Attribute_Config },
-	{ "servicegroups", Attribute_Config },
-	{ "checkers", Attribute_Config },
-
 	{ "scheduling_offset", Attribute_Transient },
 	{ "first_check", Attribute_Transient },
 	{ "next_check", Attribute_Replicated },

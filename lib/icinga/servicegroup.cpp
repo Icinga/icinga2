@@ -24,13 +24,7 @@ using namespace icinga;
 map<String, vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
 bool ServiceGroup::m_MembersCacheValid;
 
-static AttributeDescription serviceGroupAttributes[] = {
-	{ "alias", Attribute_Config },
-	{ "notes_url", Attribute_Config },
-	{ "action_url",  Attribute_Config }
-};
-
-REGISTER_TYPE(ServiceGroup, serviceGroupAttributes);
+REGISTER_TYPE(ServiceGroup, NULL);
 
 String ServiceGroup::GetAlias(void) const
 {

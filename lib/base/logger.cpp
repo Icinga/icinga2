@@ -21,13 +21,7 @@
 
 using namespace icinga;
 
-static AttributeDescription loggerAttributes[] = {
-	{ "type", Attribute_Config },
-	{ "path", Attribute_Config },
-	{ "severity", Attribute_Config }
-};
-
-REGISTER_TYPE(Logger, loggerAttributes);
+REGISTER_TYPE(Logger, NULL);
 
 /**
  * Constructor for the Logger class.

@@ -24,7 +24,6 @@ using namespace icinga;
 static AttributeDescription endpointAttributes[] = {
 	{ "node", Attribute_Replicated },
 	{ "service", Attribute_Replicated },
-	{ "local", Attribute_Config },
 	{ "subscriptions", Attribute_Replicated },
 	{ "client", Attribute_Transient }
 };
