@@ -137,6 +137,7 @@ using std::type_info;
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/program_options.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;

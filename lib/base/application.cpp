@@ -247,6 +247,16 @@ String Application::GetExePath(const String& argv0)
 }
 
 /**
+ * Sets whether debugging is enabled.
+ *
+ * @param debug Whether to enable debugging.
+ */
+void Application::SetDebugging(bool debug)
+{
+	m_Debugging = debug;
+}
+
+/**
  * Retrieves the debugging mode of the application.
  *
  * @returns true if the application is being debugged, false otherwise
@@ -394,11 +404,9 @@ void Application::InstallExceptionHandlers(void)
 /**
  * Runs the application.
  *
- * @param argc The number of arguments.
- * @param argv The arguments that should be passed to the application.
  * @returns The application's exit code.
  */
-int Application::Run(int argc, char **argv)
+int Application::Run(void)
 {
 	int result;
 
@@ -414,13 +422,9 @@ int Application::Run(int argc, char **argv)
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
-	m_Arguments.clear();
-	for (int i = 0; i < argc; i++)
-		m_Arguments.push_back(String(argv[i]));
-
 	DynamicObject::BeginTx();
 
-	result = Main(m_Arguments);
+	result = Main();
 
 	DynamicObject::FinishTx();
 	DynamicObject::DeactivateObjects();

@@ -28,6 +28,7 @@ icinga2_LDADD = \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_SYSTEM_LIB) \
+	$(BOOST_PROGRAM_OPTIONS_LIB) \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
 	${top_builddir}/lib/remoting/libremoting.la \

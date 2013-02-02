@@ -48,49 +48,13 @@ IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
 /**
  * The entry point for the Icinga application.
  *
- * @param args Command-line arguments.
  * @returns An exit status.
  */
-int IcingaApplication::Main(const vector<String>& args)
+int IcingaApplication::Main(void)
 {
 	Logger::Write(LogInformation, "icinga", "In IcingaApplication::Main()");
 
 	m_StartTime = Utility::GetTime();
-
-	if (args.size() == 1 && args[0] == "--help") {
-		stringstream msgbuf;
-		msgbuf << "Syntax: " << args[0] << " ... -d";
-		Logger::Write(LogInformation, "icinga", msgbuf.str());
-		return EXIT_FAILURE;
-	}
-
-	bool daemonize = false;
-	bool parseOpts = true;
-	String configFile;
-
-	/* TODO: clean up this mess; for now it will just have to do */
-	vector<String>::const_iterator it;
-	for (it = args.begin() + 1 ; it != args.end(); it++) {
-		String arg = *it;
-
-		/* ignore empty arguments */
-		if (arg.IsEmpty())
-			continue;
-
-		if (arg == "--") {
-			parseOpts = false;
-			continue;
-		}
-
-		if (parseOpts && arg[0] == '-') {
-			if (arg == "-d") {
-				daemonize = true;
-				continue;
-			} else {
-				throw_exception(invalid_argument("Unknown option: " + arg));
-			}
-		}
-	}
 
 	UpdatePidFile(GetPidPath());
 
@@ -109,13 +73,6 @@ int IcingaApplication::Main(const vector<String>& args)
 	/* create the primary RPC listener */
 	if (!GetService().IsEmpty())
 		EndpointManager::GetInstance()->AddListener(GetService());
-
-	if (daemonize) {
-		Logger::Write(LogInformation, "icinga", "Daemonizing.");
-		ClosePidFile();
-		Utility::Daemonize();
-		UpdatePidFile(GetPidPath());
-	}
 
 	/* restore the previous program state */
 	DynamicObject::RestoreObjects(GetStatePath());

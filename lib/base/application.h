@@ -39,21 +39,21 @@ public:
 
 	static Application::Ptr GetInstance(void);
 
-	int Run(int argc, char **argv);
+	int Run(void);
 
 	/**
 	 * Starts the application.
 	 *
-	 * @param args Arguments for the application.
 	 * @returns The exit code of the application.
 	 */
-	virtual int Main(const vector<String>& args) = 0;
+	virtual int Main(void) = 0;
 
 	static void InstallExceptionHandlers(void);
 
 	static void RequestShutdown(void);
 	static void Terminate(int exitCode);
 
+	static void SetDebugging(bool debug);
 	static bool IsDebugging(void);
 
 	static bool IsMainThread(void);

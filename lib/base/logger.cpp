@@ -119,7 +119,14 @@ void Logger::ForwardLogEntry(const LogEntry& entry)
 		processed = true;
 	}
 
-	if (!processed && entry.Severity >= LogInformation) {
+	LogSeverity defaultLogLevel;
+
+	if (Application::IsDebugging())
+		defaultLogLevel = LogDebug;
+	else
+		defaultLogLevel = LogInformation;
+
+	if (!processed && entry.Severity >= defaultLogLevel) {
 		static bool tty = StreamLogger::IsTty(std::cout);
 
 		StreamLogger::ProcessLogEntry(std::cout, tty, entry);

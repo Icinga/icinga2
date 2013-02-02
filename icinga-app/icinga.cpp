@@ -28,6 +28,7 @@
 #endif /* _WIN32 */
 
 using namespace icinga;
+namespace po = boost::program_options;
 
 /**
  * Entry point for the Icinga application.
@@ -75,56 +76,90 @@ int main(int argc, char **argv)
 #endif /* _WIN32 */
 	);
 
-	if (argc < 3 || strcmp(argv[1], "-c") != 0) {
-		stringstream msgbuf;
-		msgbuf << "Syntax: " << argv[0] << " -c <config-file> ...";    
-		Logger::Write(LogInformation, "icinga-app", msgbuf.str());
-		return EXIT_FAILURE;
+	po::options_description desc("Supported options");
+	desc.add_options()
+		("help,h", "show this help message")
+		("library,l", po::value<vector<String> >(), "load a library")
+		("include,I", po::value<vector<String> >(), "add include search directory")
+		("config,c", po::value<vector<String> >(), "parse a configuration file")
+		("validate,v", "exit after validating the configuration")
+		("debug", "enable debugging")
+		("daemonize,d", "daemonize after reading the configuration files")
+	;
+
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc, argv, desc), vm);
+	po::notify(vm);
+
+	if (vm.count("debug"))
+		Application::SetDebugging(true);
+
+	if (vm.count("help")) {
+		std::cout << desc << "\n";
+
+		return EXIT_SUCCESS;
 	}
 
 	Component::AddSearchDir(Application::GetPkgLibDir());
 
 	Utility::LoadIcingaLibrary("icinga", false);
 
+	if (vm.count("library")) {
+		BOOST_FOREACH(const String& libraryName, vm["library"].as<vector<String> >()) {
+			Utility::LoadIcingaLibrary(libraryName, false);
+		}
+	}
+
 	ConfigCompiler::AddIncludeSearchDir(Application::GetPkgDataDir());
+
+	if (vm.count("include")) {
+		BOOST_FOREACH(const String& includePath, vm["include"].as<vector<String> >()) {
+			ConfigCompiler::AddIncludeSearchDir(includePath);
+		}
+	}
+
+	if (vm.count("config") == 0) {
+		Logger::Write(LogCritical, "icinga-app", "You need to specify at least one config file (using the --config option).");
+
+		return EXIT_FAILURE;
+	}
 
 	try {
 		DynamicObject::BeginTx();
 
-		/* load config file */
-		String configFile = argv[2];
-		vector<ConfigItem::Ptr> items;
-		vector<ConfigType::Ptr> types;
+		/* load config files */
+		BOOST_FOREACH(const String& configPath, vm["config"].as<vector<String> >()) {
+			String configFile = argv[2];
+			vector<ConfigItem::Ptr> items;
+			vector<ConfigType::Ptr> types;
 		
-		ConfigCompiler::CompileFile(configFile, &items, &types);
+			ConfigCompiler::CompileFile(configFile, &items, &types);
 
-		Logger::Write(LogInformation, "icinga-app", "Registering config types...");
-		
-		BOOST_FOREACH(const ConfigType::Ptr& type, types) {
-			type->Commit();
-		}
-		
-		Logger::Write(LogInformation, "icinga-app", "Executing config items...");  
-
-		BOOST_FOREACH(const ConfigItem::Ptr& item, items) {
-			item->Commit();
-		}
-
-		Logger::Write(LogInformation, "icinga-app", "Validating config items...");
-		
-		DynamicType::Ptr type;
-		BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
-			ConfigType::Ptr ctype = ConfigType::GetByName(type->GetName());
-			
-			if (!ctype) {
-				Logger::Write(LogWarning, "icinga-app", "No config type found for type '" + type->GetName() + "'");
-				
-				continue;
+			Logger::Write(LogInformation, "icinga-app", "Registering config types...");
+			BOOST_FOREACH(const ConfigType::Ptr& type, types) {
+				type->Commit();
 			}
+		
+			Logger::Write(LogInformation, "icinga-app", "Executing config items...");  
+			BOOST_FOREACH(const ConfigItem::Ptr& item, items) {
+				item->Commit();
+			}
+
+			Logger::Write(LogInformation, "icinga-app", "Validating config items...");	
+			DynamicType::Ptr type;
+			BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
+				ConfigType::Ptr ctype = ConfigType::GetByName(type->GetName());
 			
-			DynamicObject::Ptr object;
-			BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
-				ctype->ValidateObject(object);
+				if (!ctype) {
+					Logger::Write(LogWarning, "icinga-app", "No config type found for type '" + type->GetName() + "'");
+
+					continue;
+				}
+
+				DynamicObject::Ptr object;
+				BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
+					ctype->ValidateObject(object);
+				}
 			}
 		}
 		
@@ -139,8 +174,16 @@ int main(int argc, char **argv)
 	if (!app)
 		throw_exception(runtime_error("Configuration must create an Application object."));
 
-	/* The application class doesn't need to know about the "-c configFile"
-	 * command-line arguments. */
-	return app->Run(argc - 2, &(argv[2]));
+	if (vm.count("validate")) {
+		Logger::Write(LogInformation, "icinga-app", "Terminating as requested by --validate.");
+		return EXIT_SUCCESS;
+	}
+
+	if (vm.count("daemonize")) {
+		Logger::Write(LogInformation, "icinga", "Daemonizing.");
+		Utility::Daemonize();
+	}
+
+	return app->Run();
 }
 

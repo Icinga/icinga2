@@ -250,6 +250,8 @@ void ConfigCompiler::AddObject(const ConfigItem::Ptr& object)
  */
 void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 {
+	Logger::Write(LogInformation, "config", "Adding include search dir: " + dir);
+
 	m_IncludeSearchDirs.push_back(dir);
 }
 

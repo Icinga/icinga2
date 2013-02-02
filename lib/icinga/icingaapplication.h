@@ -36,7 +36,7 @@ public:
 
 	IcingaApplication(const Dictionary::Ptr& serializedUpdate);
 
-	int Main(const vector<String>& args);
+	int Main(void);
 
 	static IcingaApplication::Ptr GetInstance(void);
 
