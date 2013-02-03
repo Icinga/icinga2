@@ -31,9 +31,12 @@ using namespace icinga;
 namespace po = boost::program_options;
 
 static po::variables_map g_AppParams;
+static vector<ConfigItem::WeakPtr> g_ConfigItems;
 
 static bool LoadConfigFiles(void)
 {
+	set<ConfigItem::Ptr> allItems;
+
 	try {
 		BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<vector<String> >()) {
 			vector<ConfigItem::Ptr> items;
@@ -67,7 +70,24 @@ static bool LoadConfigFiles(void)
 					ctype->ValidateObject(object);
 				}
 			}
+
+			std::copy(items.begin(), items.end(), std::inserter(allItems, allItems.begin()));
 		}
+
+		BOOST_FOREACH(const ConfigItem::WeakPtr& witem, g_ConfigItems) {
+			ConfigItem::Ptr item = witem.lock();
+
+			/* Ignore this item if it's not active anymore */
+			if (!item || ConfigItem::GetObject(item->GetType(), item->GetName()) != item)
+				continue;
+
+			/* Remove the object if it's not in the list of current items */
+			if (allItems.find(item) == allItems.end())
+				item->Unregister();
+		}
+
+		g_ConfigItems.clear();
+		std::copy(allItems.begin(), allItems.end(), std::back_inserter(g_ConfigItems));
 
 		return true;
 	} catch (const exception& ex) {
