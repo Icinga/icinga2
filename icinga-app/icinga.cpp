@@ -30,6 +30,62 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
+static po::variables_map g_AppParams;
+
+static bool LoadConfigFiles(void)
+{
+	try {
+		BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<vector<String> >()) {
+			vector<ConfigItem::Ptr> items;
+			vector<ConfigType::Ptr> types;
+
+			ConfigCompiler::CompileFile(configPath, &items, &types);
+
+			Logger::Write(LogInformation, "icinga-app", "Registering config types...");
+			BOOST_FOREACH(const ConfigType::Ptr& type, types) {
+				type->Commit();
+			}
+
+			Logger::Write(LogInformation, "icinga-app", "Executing config items...");
+			BOOST_FOREACH(const ConfigItem::Ptr& item, items) {
+				item->Commit();
+			}
+
+			Logger::Write(LogInformation, "icinga-app", "Validating config items...");
+			DynamicType::Ptr type;
+			BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
+				ConfigType::Ptr ctype = ConfigType::GetByName(type->GetName());
+
+				if (!ctype) {
+					Logger::Write(LogWarning, "icinga-app", "No config type found for type '" + type->GetName() + "'");
+
+					continue;
+				}
+
+				DynamicObject::Ptr object;
+				BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
+					ctype->ValidateObject(object);
+				}
+			}
+		}
+
+		return true;
+	} catch (const exception& ex) {
+		Logger::Write(LogCritical, "icinga-app", "Configuration error: " + String(ex.what()));
+		return false;
+	}
+
+}
+
+static void SigHupHandler(int signum)
+{
+	assert(signum == SIGHUP);
+
+	Logger::Write(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
+
+	Event::Post(boost::bind(&LoadConfigFiles));
+}
+
 /**
  * Entry point for the Icinga application.
  *
@@ -82,10 +138,8 @@ int main(int argc, char **argv)
 		("daemonize,d", "daemonize after reading the configuration files")
 	;
 
-	po::variables_map vm;
-
 	try {
-		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::store(po::parse_command_line(argc, argv, desc), g_AppParams);
 	} catch (const exception& ex) {
 		stringstream msgbuf;
 		msgbuf << "Error while parsing command-line options: " << ex.what();
@@ -93,12 +147,12 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	po::notify(vm);
+	po::notify(g_AppParams);
 
-	if (vm.count("debug"))
+	if (g_AppParams.count("debug"))
 		Application::SetDebugging(true);
 
-	if (vm.count("help") || vm.count("version")) {
+	if (g_AppParams.count("help") || g_AppParams.count("version")) {
 		std::cout << "Icinga application loader"
 #ifndef _WIN32
 			  << " (version: " << ICINGA_VERSION << ")"
@@ -109,11 +163,11 @@ int main(int argc, char **argv)
 			  << "This is free software: you are free to change and redistribute it." << std::endl
 			  << "There is NO WARRANTY, to the extent permitted by law." << std::endl;
 
-		if (vm.count("version"))
+		if (g_AppParams.count("version"))
 			return EXIT_SUCCESS;
 	}
 
-	if (vm.count("help")) {
+	if (g_AppParams.count("help")) {
 		std::cout << std::endl
 			  << desc << std::endl
 			  << "Report bugs at <https://dev.icinga.org/>" << std::endl
@@ -131,84 +185,54 @@ int main(int argc, char **argv)
 
 	Utility::LoadIcingaLibrary("icinga", false);
 
-	if (vm.count("library")) {
-		BOOST_FOREACH(const String& libraryName, vm["library"].as<vector<String> >()) {
+	if (g_AppParams.count("library")) {
+		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<vector<String> >()) {
 			Utility::LoadIcingaLibrary(libraryName, false);
 		}
 	}
 
 	ConfigCompiler::AddIncludeSearchDir(Application::GetPkgDataDir());
 
-	if (vm.count("include")) {
-		BOOST_FOREACH(const String& includePath, vm["include"].as<vector<String> >()) {
+	if (g_AppParams.count("include")) {
+		BOOST_FOREACH(const String& includePath, g_AppParams["include"].as<vector<String> >()) {
 			ConfigCompiler::AddIncludeSearchDir(includePath);
 		}
 	}
 
-	if (vm.count("config") == 0) {
+	if (g_AppParams.count("config") == 0) {
 		Logger::Write(LogCritical, "icinga-app", "You need to specify at least one config file (using the --config option).");
 
 		return EXIT_FAILURE;
 	}
 
-	try {
-		DynamicObject::BeginTx();
+	DynamicObject::BeginTx();
 
-		/* load config files */
-		BOOST_FOREACH(const String& configPath, vm["config"].as<vector<String> >()) {
-			vector<ConfigItem::Ptr> items;
-			vector<ConfigType::Ptr> types;
-
-			ConfigCompiler::CompileFile(configPath, &items, &types);
-
-			Logger::Write(LogInformation, "icinga-app", "Registering config types...");
-			BOOST_FOREACH(const ConfigType::Ptr& type, types) {
-				type->Commit();
-			}
-		
-			Logger::Write(LogInformation, "icinga-app", "Executing config items...");  
-			BOOST_FOREACH(const ConfigItem::Ptr& item, items) {
-				item->Commit();
-			}
-
-			Logger::Write(LogInformation, "icinga-app", "Validating config items...");	
-			DynamicType::Ptr type;
-			BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
-				ConfigType::Ptr ctype = ConfigType::GetByName(type->GetName());
-			
-				if (!ctype) {
-					Logger::Write(LogWarning, "icinga-app", "No config type found for type '" + type->GetName() + "'");
-
-					continue;
-				}
-
-				DynamicObject::Ptr object;
-				BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
-					ctype->ValidateObject(object);
-				}
-			}
-		}
-		
-		DynamicObject::FinishTx();
-	} catch (const exception& ex) {
-		Logger::Write(LogCritical, "icinga-app", "Configuration error: " + String(ex.what()));
+	if (!LoadConfigFiles())
 		return EXIT_FAILURE;
-	}
+
+	DynamicObject::FinishTx();
 
 	Application::Ptr app = Application::GetInstance();
 
 	if (!app)
 		throw_exception(runtime_error("Configuration must create an Application object."));
 
-	if (vm.count("validate")) {
+	if (g_AppParams.count("validate")) {
 		Logger::Write(LogInformation, "icinga-app", "Terminating as requested by --validate.");
 		return EXIT_SUCCESS;
 	}
 
-	if (vm.count("daemonize")) {
+	if (g_AppParams.count("daemonize")) {
 		Logger::Write(LogInformation, "icinga", "Daemonizing.");
 		Utility::Daemonize();
 	}
+
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = &SigHupHandler;
+	sigaction(SIGHUP, &sa, NULL);
+#endif /* _WIN32 */
 
 	return app->Run();
 }
