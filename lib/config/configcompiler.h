@@ -32,7 +32,8 @@ namespace icinga
 class I2_CONFIG_API ConfigCompiler
 {
 public:
-	typedef function<void (const String&, bool, vector<ConfigItem::Ptr> *, vector<ConfigType::Ptr> *)> HandleIncludeFunc;
+	typedef function<void (const String&, bool, vector<ConfigItem::Ptr> *,
+	    vector<ConfigType::Ptr> *, const DebugInfo&)> HandleIncludeFunc;
 
 	ConfigCompiler(const String& path, istream *input = &cin,
 	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
@@ -54,10 +55,11 @@ public:
 	String GetPath(void) const;
 
 	static void HandleFileInclude(const String& include, bool search,
-	    vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes);
+	    vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes,
+	    const DebugInfo& debuginfo);
 	
 	/* internally used methods */
-	void HandleInclude(const String& include, bool search);
+	void HandleInclude(const String& include, bool search, const DebugInfo& debuginfo);
 	void HandleLibrary(const String& library);
 	
 	void AddObject(const ConfigItem::Ptr& object);

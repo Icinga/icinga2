@@ -1618,7 +1618,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 118 "config_parser.yy"
     {
-		context->HandleInclude((yyvsp[(2) - (2)].text), false);
+		context->HandleInclude((yyvsp[(2) - (2)].text), false, yylloc);
 	}
     break;
 
@@ -1627,7 +1627,7 @@ yyreduce:
 /* Line 1806 of yacc.c  */
 #line 122 "config_parser.yy"
     {
-		context->HandleInclude((yyvsp[(2) - (2)].text), true);
+		context->HandleInclude((yyvsp[(2) - (2)].text), true, yylloc);
 	}
     break;
 

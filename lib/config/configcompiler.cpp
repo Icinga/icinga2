@@ -114,13 +114,14 @@ String ConfigCompiler::GetPath(void) const
  *
  * @param include The path from the include directive.
  * @param search Whether to search global include dirs.
+ * @param debuginfo Debug information.
  */
-void ConfigCompiler::HandleInclude(const String& include, bool search)
+void ConfigCompiler::HandleInclude(const String& include, bool search, const DebugInfo& debuginfo)
 {
 	String path = Utility::DirName(GetPath()) + "/" + include;
 
 	vector<ConfigType::Ptr> types;
-	m_HandleInclude(path, search, &m_ResultObjects, &types);
+	m_HandleInclude(path, search, &m_ResultObjects, &types, debuginfo);
 
 	BOOST_FOREACH(const ConfigType::Ptr& type, types) {
 		AddType(type);
@@ -202,9 +203,13 @@ void ConfigCompiler::CompileText(const String& path, const String& text,
  * configuration items.
  *
  * @param include The path from the include directive.
+ * @param search Whether to search include dirs.
+ * @param resultItems The resulting items.
+ * @param resultTypes The resulting types.
+ * @param debuginfo Debug information.
  */
 void ConfigCompiler::HandleFileInclude(const String& include, bool search,
-    vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes)
+    vector<ConfigItem::Ptr> *resultItems, vector<ConfigType::Ptr> *resultTypes, const DebugInfo& debuginfo)
 {
 	String includePath = include;
 
@@ -229,8 +234,11 @@ void ConfigCompiler::HandleFileInclude(const String& include, bool search,
 
 	vector<ConfigItem::Ptr> items;
 
-	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFile, _1, resultItems, resultTypes)))
-		throw_exception(invalid_argument("Include file '" + include + "' does not exist (or no files found for pattern)."));
+	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFile, _1, resultItems, resultTypes))) {
+		stringstream msgbuf;
+		msgbuf << "Include file '" + include + "' does not exist (or no files found for pattern): " << debuginfo;
+		throw_exception(invalid_argument(msgbuf.str()));
+	}
 }
 
 /**

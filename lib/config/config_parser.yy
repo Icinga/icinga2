@@ -116,11 +116,11 @@ statement: object | type | include | library
 
 include: T_INCLUDE T_STRING
 	{
-		context->HandleInclude($2, false);
+		context->HandleInclude($2, false, yylloc);
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
-		context->HandleInclude($2, true);
+		context->HandleInclude($2, true, yylloc);
 	}
 
 library: T_LIBRARY T_STRING
