@@ -483,6 +483,11 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 		throw_exception(PosixException("glob() failed", errno));
 	}
 
+	if (gr.gl_pathc == 0) {
+		globfree(&gr);
+		return false;
+	}
+
 	size_t left;
 	char **gp;
 	for (gp = gr.gl_pathv, left = gr.gl_pathc; left > 0; gp++, left--) {
