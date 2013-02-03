@@ -33,6 +33,11 @@ namespace po = boost::program_options;
 static po::variables_map g_AppParams;
 static vector<ConfigItem::WeakPtr> g_ConfigItems;
 
+#ifndef _WIN32
+static bool g_ReloadConfig = false;
+static Timer::Ptr g_ReloadConfigTimer;
+#endif /* _WIN32 */
+
 static bool LoadConfigFiles(void)
 {
 	set<ConfigItem::Ptr> allItems;
@@ -97,13 +102,20 @@ static bool LoadConfigFiles(void)
 
 }
 
+static void ReloadConfigTimerHandler(void)
+{
+	if (g_ReloadConfig) {
+		Logger::Write(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
+		LoadConfigFiles();
+		g_ReloadConfig = false;
+	}
+}
+
 static void SigHupHandler(int signum)
 {
 	assert(signum == SIGHUP);
 
-	Logger::Write(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
-
-	Event::Post(boost::bind(&LoadConfigFiles));
+	g_ReloadConfig = true;
 }
 
 /**
@@ -252,6 +264,11 @@ int main(int argc, char **argv)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &SigHupHandler;
 	sigaction(SIGHUP, &sa, NULL);
+
+	g_ReloadConfigTimer = boost::make_shared<Timer>();
+	g_ReloadConfigTimer->SetInterval(1);
+	g_ReloadConfigTimer->OnTimerExpired.connect(boost::bind(&ReloadConfigTimerHandler));
+	g_ReloadConfigTimer->Start();
 #endif /* _WIN32 */
 
 	return app->Run();
