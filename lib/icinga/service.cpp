@@ -697,34 +697,43 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 	scheduleInfo->Set("execution_end", Utility::GetTime());
 	scheduleInfo->Set("schedule_end", Utility::GetTime());
 
+	Dictionary::Ptr result;
+
 	try {
 		Value vresult = task->GetResult();
 
-		if (vresult.IsObjectType<Dictionary>()) {
-			Dictionary::Ptr result = vresult;
-
-			if (!result->Contains("schedule_start"))
-				result->Set("schedule_start", scheduleInfo->Get("schedule_start"));
-
-			if (!result->Contains("schedule_end"))
-				result->Set("schedule_end", scheduleInfo->Get("schedule_end"));
-
-			if (!result->Contains("execution_start"))
-				result->Set("execution_start", scheduleInfo->Get("execution_start"));
-
-			if (!result->Contains("execution_end"))
-				result->Set("execution_end", scheduleInfo->Get("execution_end"));
-
-			if (!result->Contains("active"))
-				result->Set("active", 1);
-
-			ProcessCheckResult(result);
-		}
+		if (vresult.IsObjectType<Dictionary>())
+			result = vresult;
 	} catch (const exception& ex) {
 		stringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"
 		       << GetName() << "': " << ex.what();
-		Logger::Write(LogWarning, "checker", msgbuf.str());
+		String message = msgbuf.str();
+
+		Logger::Write(LogWarning, "checker", message);
+
+		result = boost::make_shared<Dictionary>();
+		result->Set("state", StateUnknown);
+		result->Set("output", message);
+	}
+
+	if (result) {
+		if (!result->Contains("schedule_start"))
+			result->Set("schedule_start", scheduleInfo->Get("schedule_start"));
+
+		if (!result->Contains("schedule_end"))
+			result->Set("schedule_end", scheduleInfo->Get("schedule_end"));
+
+		if (!result->Contains("execution_start"))
+			result->Set("execution_start", scheduleInfo->Get("execution_start"));
+
+		if (!result->Contains("execution_end"))
+			result->Set("execution_end", scheduleInfo->Get("execution_end"));
+
+		if (!result->Contains("active"))
+			result->Set("active", 1);
+
+		ProcessCheckResult(result);
 	}
 
 	/* figure out when the next check is for this service; the call to
