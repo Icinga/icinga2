@@ -188,8 +188,12 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		parent->RegisterChild(GetSelf());
 	}
 
+	/* We need to make a copy of the child objects becauuse the
+	 * OnParentCommitted() handler is going to update the list. */
+	set<ConfigItem::WeakPtr> children = m_ChildObjects;
+
 	/* notify our children of the update */
-	BOOST_FOREACH(const ConfigItem::WeakPtr wchild, m_ChildObjects) {
+	BOOST_FOREACH(const ConfigItem::WeakPtr wchild, children) {
 		const ConfigItem::Ptr& child = wchild.lock();
 
 		if (!child)
@@ -240,7 +244,9 @@ void ConfigItem::UnregisterFromParents(void)
 {
 	BOOST_FOREACH(const String& parentName, m_Parents) {
 		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
-		parent->UnregisterChild(GetSelf());
+
+		if (parent)
+			parent->UnregisterChild(GetSelf());
 	}
 }
 
