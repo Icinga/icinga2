@@ -423,7 +423,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 
 	stringstream msgbuf;
 	msgbuf << "Restored " << restored << " objects";
-	Logger::Write(LogInformation, "base", msgbuf.str());
+	Logger::Write(LogDebug, "base", msgbuf.str());
 }
 
 void DynamicObject::DeactivateObjects(void)

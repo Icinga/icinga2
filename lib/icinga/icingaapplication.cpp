@@ -52,7 +52,7 @@ IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
  */
 int IcingaApplication::Main(void)
 {
-	Logger::Write(LogInformation, "icinga", "In IcingaApplication::Main()");
+	Logger::Write(LogDebug, "icinga", "In IcingaApplication::Main()");
 
 	m_StartTime = Utility::GetTime();
 

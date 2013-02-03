@@ -70,15 +70,10 @@ int main(int argc, char **argv)
 	Application::SetPkgDataDir(ICINGA_PKGDATADIR);
 #endif /* ICINGA_PKGDATADIR */
 
-	Logger::Write(LogInformation, "icinga-app", "Icinga application loader"
-#ifndef _WIN32
-		" (version: " ICINGA_VERSION ")"
-#endif /* _WIN32 */
-	);
-
 	po::options_description desc("Supported options");
 	desc.add_options()
 		("help,h", "show this help message")
+		("version,V", "show version information")
 		("library,l", po::value<vector<String> >(), "load a library")
 		("include,I", po::value<vector<String> >(), "add include search directory")
 		("config,c", po::value<vector<String> >(), "parse a configuration file")
@@ -91,7 +86,7 @@ int main(int argc, char **argv)
 
 	try {
 		po::store(po::parse_command_line(argc, argv, desc), vm);
-	} catch (const po::unknown_option& ex) {
+	} catch (const exception& ex) {
 		stringstream msgbuf;
 		msgbuf << "Error while parsing command-line options: " << ex.what();
 		Logger::Write(LogCritical, "icinga-app", msgbuf.str());
@@ -103,10 +98,34 @@ int main(int argc, char **argv)
 	if (vm.count("debug"))
 		Application::SetDebugging(true);
 
+	if (vm.count("help") || vm.count("version")) {
+		std::cout << "Icinga application loader"
+#ifndef _WIN32
+			  << " (version: " << ICINGA_VERSION << ")"
+#endif /* _WIN32 */
+			  << std::endl
+			  << "Copyright (c) 2012-2013 Icinga Development Team (http://www.icinga.org)" << std::endl
+			  << "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl
+			  << "This is free software: you are free to change and redistribute it." << std::endl
+			  << "There is NO WARRANTY, to the extent permitted by law." << std::endl;
+
+		if (vm.count("version"))
+			return EXIT_SUCCESS;
+	}
+
 	if (vm.count("help")) {
-		std::cout << desc << "\n";
+		std::cout << std::endl
+			  << desc << std::endl
+			  << "Report bugs at <https://dev.icinga.org/>" << std::endl
+			  << "Icinga home page: <http://www.icinga.org/>" << std::endl;
 		return EXIT_SUCCESS;
 	}
+
+	Logger::Write(LogInformation, "icinga-app", "Icinga application loader"
+#ifndef _WIN32
+	    " (version: " ICINGA_VERSION ")"
+#endif /* _WIN32 */
+	    );
 
 	Component::AddSearchDir(Application::GetPkgLibDir());
 
