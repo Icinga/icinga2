@@ -51,9 +51,6 @@ public:
 
 	double GetStartTime(void) const;
 
-	static const String DefaultPidPath;
-	static const String DefaultStatePath;
-
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 

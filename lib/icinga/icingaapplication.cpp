@@ -30,9 +30,6 @@ REGISTER_TYPE(IcingaApplication, NULL);
 #	define ICINGA_VERSION GIT_MESSAGE
 #endif /* _WIN32 */
 
-const String IcingaApplication::DefaultPidPath = "icinga2.pid";
-const String IcingaApplication::DefaultStatePath = "icinga2.state";
-
 IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
 	: Application(serializedUpdate)
 {
@@ -126,7 +123,7 @@ String IcingaApplication::GetPidPath(void) const
 	Value pidPath = Get("pid_path");
 
 	if (pidPath.IsEmpty())
-		pidPath = DefaultPidPath;
+		pidPath = Application::GetLocalStateDir() + "/run/icinga2.pid";
 
 	return pidPath;
 }
@@ -136,7 +133,7 @@ String IcingaApplication::GetStatePath(void) const
 	Value statePath = Get("state_path");
 
 	if (statePath.IsEmpty())
-		statePath = DefaultStatePath;
+		statePath = Application::GetLocalStateDir() + "/lib/icinga2.state";
 
 	return statePath;
 }
