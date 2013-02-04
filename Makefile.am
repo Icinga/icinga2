@@ -79,3 +79,8 @@ dist-hook: icinga-version.stamp
 		$(SED) -e 's|^#undef GIT_IS_DIST.*|#define GIT_IS_DIST 1|' \
 			"icinga-version.h" > "$(distdir)/icinga-version.h"; \
 	fi
+
+SRC_DOCS = "./docs"
+
+create-docs:
+	cd $(SRC_DOCS) && $(MAKE)

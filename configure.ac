@@ -99,6 +99,7 @@ components/delegation/Makefile
 components/demo/Makefile
 components/replication/Makefile
 docs/Doxyfile
+docs/Makefile
 etc/Makefile
 etc/icinga2/Makefile
 etc/init.d/Makefile
