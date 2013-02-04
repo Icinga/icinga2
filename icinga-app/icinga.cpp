@@ -102,6 +102,7 @@ static bool LoadConfigFiles(void)
 
 }
 
+#ifndef _WIN32
 static void ReloadConfigTimerHandler(void)
 {
 	if (g_ReloadConfig) {
@@ -117,6 +118,7 @@ static void SigHupHandler(int signum)
 
 	g_ReloadConfig = true;
 }
+#endif /* _WIN32 */
 
 /**
  * Entry point for the Icinga application.
