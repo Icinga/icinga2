@@ -99,8 +99,10 @@ components/delegation/Makefile
 components/demo/Makefile
 components/replication/Makefile
 docs/Doxyfile
+etc/Makefile
+etc/icinga2/Makefile
+etc/init.d/Makefile
 icinga-app/Makefile
-icinga-app/config/Makefile
 itl/Makefile
 lib/Makefile
 lib/base/Makefile
@@ -113,7 +115,9 @@ third-party/cJSON/Makefile
 third-party/mmatch/Makefile
 third-party/popen-noshell/Makefile
 ])
-AC_OUTPUT
+AC_OUTPUT([
+etc/init.d/icinga2
+])
 
 if ! test -z "$LTDLDEPS"; then
 	ltdl_msg="bundled"

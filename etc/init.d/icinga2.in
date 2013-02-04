@@ -1,0 +1,122 @@
+#!/bin/bash
+#
+# chkconfig: 35 90 12
+# description: Icinga 2
+#
+### BEGIN INIT INFO
+# Provides:          icinga2
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start Icinga 2 at boot time
+# Description:       Icinga 2
+### END INIT INFO
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+sbindir=@sbindir@
+sysconfdir=@sysconfdir@
+localstatedir=@localstatedir@
+
+DAEMON=$sbindir/icinga2
+ICINGA2_CONFIG_FILE=$sysconfdir/icinga2/icinga2.conf
+ICINGA2_PID_FILE=$localstatedir/run/icinga2.pid
+
+test -x $DAEMON || exit 0
+
+if [ ! -e $ICINGA2_CONFIG_FILE ]; then
+        echo "Config file '$ICINGA2_CONFIG_FILE' does not exist."
+        exit 1
+fi
+
+# Get function from functions library
+if [ -e /etc/init.d/functions ]; then
+        . /etc/init.d/functions
+fi
+
+# Start Icinga 2
+start() {
+        printf "Starting Icinga 2: "
+        $DAEMON -c $ICINGA2_CONFIG_FILE -d
+        echo "Done"
+        echo
+}
+
+# Restart Icinga 2
+stop() {
+        printf "Stopping Icinga 2: "
+        if [ ! -e $ICINGA2_PID_FILE ]; then
+                echo "The PID file '$ICINGA2_PID_FILE' does not exist."
+                exit 1
+        fi
+
+	pid=`cat $ICINGA2_PID_FILE`
+	
+        if kill -TERM $pid >/dev/null 2>&1; then
+		for i in 1 2 3 4 5 6 7 8 9 10; do
+			if ! kill -CHLD $pid >/dev/null 2&>1; then
+				break
+			fi
+		
+			printf '.'
+			
+			sleep 1
+		done
+	fi
+	
+	echo "Done"
+}
+
+# Reload Icinga 2
+reload() {
+        printf "Reloading Icinga 2: "
+        if [ ! -e $ICINGA2_PID_FILE ]; then
+                echo "The PID file '$ICINGA2_PID_FILE' does not exist."
+                exit 1
+        fi
+        
+	pid=`cat $ICINGA2_PID_FILE`
+	
+        if ! kill -HUP $pid >/dev/null 2>&1; then
+		echo "Failed - Icinga 2 is not running."
+	else
+		echo "Done"
+	fi
+}
+
+# Print status for Icinga 2
+status() {
+	printf "Icinga 2 status: "
+
+	pid=`cat $ICINGA2_PID_FILE`
+	if kill -CHLD $pid >/dev/null 2&>1; then
+		echo "Running"
+	else
+		echo "Not running"
+	fi
+}
+
+### main logic ###
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        status FOO
+        ;;
+  restart|condrestart)
+        stop
+        start
+        ;;
+  reload)
+        reload
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|reload|status}"
+        exit 1
+esac
+exit 0

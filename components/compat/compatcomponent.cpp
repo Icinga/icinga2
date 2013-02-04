@@ -36,7 +36,7 @@ String CompatComponent::GetStatusPath(void) const
 {
 	Value statusPath = GetConfig()->Get("status_path");
 	if (statusPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/status.dat";
+		return Application::GetLocalStateDir() + "/cache/status.dat";
 	else
 		return statusPath;
 }
@@ -50,7 +50,7 @@ String CompatComponent::GetObjectsPath(void) const
 {
 	Value objectsPath = GetConfig()->Get("objects_path");
 	if (objectsPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/objects.cache";
+		return Application::GetLocalStateDir() + "/cache/objects.cache";
 	else
 		return objectsPath;
 }
@@ -64,7 +64,7 @@ String CompatComponent::GetCommandPath(void) const
 {
 	Value commandPath = GetConfig()->Get("command_path");
 	if (commandPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/icinga.cmd";
+		return Application::GetLocalStateDir() + "/run/icinga.cmd";
 	else
 		return commandPath;
 }

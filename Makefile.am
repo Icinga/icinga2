@@ -9,7 +9,8 @@ SUBDIRS = \
 	components \
 	icinga-app \
 	test \
-	itl
+	itl \
+	etc
 #doc
 icinga2docdir = ${docdir}
 icinga2doc_DATA = \

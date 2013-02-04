@@ -118,7 +118,12 @@ String ConfigCompiler::GetPath(void) const
  */
 void ConfigCompiler::HandleInclude(const String& include, bool search, const DebugInfo& debuginfo)
 {
-	String path = Utility::DirName(GetPath()) + "/" + include;
+	String path;
+
+	if (search)
+		path = include;
+	else
+		path = Utility::DirName(GetPath()) + "/" + include;
 
 	vector<ConfigType::Ptr> types;
 	m_HandleInclude(path, search, &m_ResultObjects, &types, debuginfo);
