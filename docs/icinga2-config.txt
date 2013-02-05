@@ -314,7 +314,18 @@ Example:
 #include "conf.d/*.conf"
 -------------------------------------------------------------------------------
 
-NOTE: Wildcard includes are not currently implemented.
+Icinga also supports include search paths similar to how they work in a
+C/C++ compiler:
+
+-------------------------------------------------------------------------------
+#include <itl/itl.conf>
+-------------------------------------------------------------------------------
+
+Note the use of angle brackets instead of double quotes. This causes the
+config compiler to search the include search paths for the specified file.
+By default $PREFIX/icinga2 is included in the list of search paths.
+
+Wildcards are not permitted when using angle brackets.
 
 Library directive
 ~~~~~~~~~~~~~~~~~
@@ -329,6 +340,50 @@ Example:
 -------------------------------------------------------------------------------
 
 NOTE: The "icinga" library is automatically loaded by Icinga.
+
+Type Definition
+~~~~~~~~~~~~~~~
+
+By default Icinga has no way of semantically verifying its configuration
+objects. This is where type definitions come in. Using type definitions you
+can specify which attributes are allowed in an object definition.
+
+Example:
+
+-------------------------------------------------------------------------------
+type Pizza {
+	number radius,
+
+	dictionary ingredients {
+		string *,
+
+		dictionary * {
+			number quantity,
+			string name
+		}
+	},
+
+	any custom::*
+}
+-------------------------------------------------------------------------------
+
+The Pizza definition provides the following validation rules:
+
+* Pizza objects may contain an attribute "radius" which has to be a number.
+* Pizza objects may contain an attribute "ingredients" which has to be a
+dictionary.
+* Elements in the ingredients dictionary can be either a string or a dictionary.
+* If they're a dictionary they may contain attributes "quantity" (of type
+number) and "name" (of type string).
+* Pizza objects may contain attribute matching the pattern "custom::*" of any
+type.
+
+Valid types for type rules include:
+* any
+* number
+* string
+* scalar (an alias for string)
+* dictionary
 
 Configuration Objects
 ---------------------
