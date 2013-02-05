@@ -1,3 +1,5 @@
+.PHONY: clean
+
 EXTRA_DIST = \
 	icinga2-config.txt \
 	icinga2-intro.txt
@@ -9,3 +11,6 @@ icinga2doc_DATA = \
 
 %.html: %.txt
 	asciidoc -a toc -a numbered $^
+
+clean:
+	rm -f $(icinga2doc_DATA)
