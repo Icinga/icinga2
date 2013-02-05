@@ -34,12 +34,13 @@ public:
 	typedef shared_ptr<ConfigItem> Ptr;
 	typedef weak_ptr<ConfigItem> WeakPtr;
 
-	ConfigItem(const String& type, const String& name,
+	ConfigItem(const String& type, const String& name, const String& unit,
 	    const ExpressionList::Ptr& exprl, const vector<String>& parents,
 	    const DebugInfo& debuginfo);
 
 	String GetType(void) const;
 	String GetName(void) const;
+	String GetUnit(void) const;
 
 	vector<String> GetParents(void) const;
 
@@ -59,6 +60,8 @@ public:
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
 
+	static void UnloadUnit(const String& unit);
+
 	static boost::signal<void (const ConfigItem::Ptr&)> OnCommitted;
 	static boost::signal<void (const ConfigItem::Ptr&)> OnRemoved;
 
@@ -73,6 +76,7 @@ private:
 
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
+	String m_Unit; /**< The compilation unit. */
 
 	ExpressionList::Ptr m_ExpressionList;
 	vector<String> m_Parents; /**< The names of parent configuration

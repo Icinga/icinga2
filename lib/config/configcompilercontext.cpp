@@ -26,7 +26,7 @@ using namespace icinga;
 ConfigCompilerContext *ConfigCompilerContext::m_Context = NULL;
 
 ConfigCompilerContext::ConfigCompilerContext(void)
-	: m_Flags(0)
+	: m_Unit(Utility::NewUUID()), m_Flags(0)
 { }
 
 void ConfigCompilerContext::AddItem(const ConfigItem::Ptr& item)
@@ -101,6 +101,11 @@ ConfigCompilerContext *ConfigCompilerContext::GetContext(void)
 	return m_Context;
 }
 
+String ConfigCompilerContext::GetUnit(void) const
+{
+	return m_Unit;
+}
+
 void ConfigCompilerContext::Validate(void)
 {
 	SetContext(this);
@@ -108,8 +113,11 @@ void ConfigCompilerContext::Validate(void)
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
 		ConfigType::Ptr ctype = GetType(item->GetType());
 
-		if (!ctype)
+		if (!ctype) {
+			AddError(true, "No validation type found for object '" + item->GetName() + "' of type '" + item->GetType() + "'");
+
 			continue;
+		}
 
 		ctype->ValidateItem(item);
 	}
@@ -121,8 +129,9 @@ void ConfigCompilerContext::ActivateItems(void)
 {
 	assert(m_Context == NULL);
 
-	Logger::Write(LogInformation, "config", "Executing config items...");
+	Logger::Write(LogInformation, "config", "Activating config items in compilation unit '" + m_Unit + "'");
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
 		item->Commit();
 	}
 }
+

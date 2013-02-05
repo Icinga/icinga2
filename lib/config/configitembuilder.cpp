@@ -48,6 +48,11 @@ void ConfigItemBuilder::SetName(const String& name)
 	m_Name = name;
 }
 
+void ConfigItemBuilder::SetUnit(const String& unit)
+{
+	m_Unit = unit;
+}
+
 void ConfigItemBuilder::SetLocal(bool local)
 {
 	m_Local = local;
@@ -88,6 +93,12 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		throw_exception(invalid_argument(msgbuf.str()));
 	}
 
+	if (!DynamicType::GetByName(m_Type)) {
+		stringstream msgbuf;
+		msgbuf << "The type '" + m_Type + "' is unknown: " << m_DebugInfo;
+		throw_exception(invalid_argument(msgbuf.str()));
+	}
+
 	if (m_Name.IsEmpty()) {
 		stringstream msgbuf;
 		msgbuf << "The name of an object may not be empty: " << m_DebugInfo;
@@ -111,6 +122,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Expression abstractExpr("__abstract", OperatorSet, m_Abstract, m_DebugInfo);
 	exprl->AddExpression(abstractExpr);
 
-	return boost::make_shared<ConfigItem>(m_Type, m_Name, exprl, m_Parents,
+	return boost::make_shared<ConfigItem>(m_Type, m_Name, m_Unit, exprl, m_Parents,
 	    m_DebugInfo);
 }

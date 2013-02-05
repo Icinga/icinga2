@@ -63,6 +63,8 @@ public:
 	void SetFlags(int flags);
 	int GetFlags(void) const;
 
+	String GetUnit(void) const;
+
 	void Validate(void);
 	void ActivateItems(void);
 
@@ -70,6 +72,8 @@ public:
 	static ConfigCompilerContext *GetContext(void);
 
 private:
+	String m_Unit;
+
         int m_Flags;
 
 	vector<shared_ptr<ConfigItem> > m_Items;

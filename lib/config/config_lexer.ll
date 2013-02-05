@@ -53,6 +53,9 @@ number				{ yylval->type = TypeNumber; return T_TYPE_NUMBER; }
 string				{ yylval->type = TypeString; return T_TYPE_STRING; }
 scalar				{ yylval->type = TypeScalar; return T_TYPE_SCALAR; }
 any				{ yylval->type = TypeAny; return T_TYPE_ANY; }
+%validator			{ return T_VALIDATOR; }
+%require			{ return T_REQUIRE; }
+%attribute			{ return T_ATTRIBUTE; }
 abstract			return T_ABSTRACT;
 local				return T_LOCAL;
 object				return T_OBJECT;

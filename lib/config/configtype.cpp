@@ -50,12 +50,16 @@ DebugInfo ConfigType::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-void ConfigType::ValidateItem(const ConfigItem::Ptr& object) const
+void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 {
-	Dictionary::Ptr attrs = object->Link();
+	Dictionary::Ptr attrs = item->Link();
+
+	/* Don't validate abstract items. */
+	if (attrs->Get("__abstract"))
+		return;
 
 	vector<String> locations;
-	locations.push_back("Object '" + object->GetName() + "' (Type: '" + object->GetType() + "')");
+	locations.push_back("Object '" + item->GetName() + "' (Type: '" + item->GetType() + "')");
 
 	ConfigType::Ptr parent;
 	if (m_Parent.IsEmpty()) {
@@ -74,9 +78,38 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& object) const
 	ValidateDictionary(attrs, ruleLists, locations);
 }
 
+String ConfigType::LocationToString(const vector<String>& locations)
+{
+	bool first = true;
+	String stack;
+	BOOST_FOREACH(const String& location, locations) {
+		if (!first)
+			stack += " -> ";
+		else
+			first = false;
+
+		stack += location;
+	}
+
+	return stack;
+}
+
 void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
     const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations)
 {
+	BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
+		BOOST_FOREACH(const String& require, ruleList->GetRequires()) {
+			locations.push_back("Attribute '" + require + "'");
+
+			Value value = dictionary->Get(require);
+
+			if (value.IsEmpty())
+				ConfigCompilerContext::GetContext()->AddError(false, "Required attribute is missing: " + LocationToString(locations));
+
+			locations.pop_back();
+		}
+	}
+
 	String key;
 	Value value;
 	BOOST_FOREACH(tie(key, value), dictionary) {
@@ -87,7 +120,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 
 		BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 			TypeRuleList::Ptr subRuleList;
-			TypeValidationResult result = ruleList->Validate(key, value, &subRuleList);
+			TypeValidationResult result = ruleList->ValidateAttribute(key, value, &subRuleList);
 
 			if (subRuleList)
 				subRuleLists.push_back(subRuleList);
@@ -101,21 +134,10 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 				overallResult = result;
 		}
 
-		bool first = true;
-		String stack;
-		BOOST_FOREACH(const String& location, locations) {
-			if (!first)
-				stack += " -> ";
-			else
-				first = false;
-
-			stack += location;
-		}
-
 		if (overallResult == ValidationUnknownField)
-			ConfigCompilerContext::GetContext()->AddError(true, "Unknown attribute: " + stack);
+			ConfigCompilerContext::GetContext()->AddError(true, "Unknown attribute: " + LocationToString(locations));
 		else if (overallResult == ValidationInvalidType)
-			ConfigCompilerContext::GetContext()->AddError(false, "Invalid type for attribute: " + stack);
+			ConfigCompilerContext::GetContext()->AddError(false, "Invalid type for attribute: " + LocationToString(locations));
 
 		if (subRuleLists.size() > 0 && value.IsObjectType<Dictionary>())
 			ValidateDictionary(value, subRuleLists, locations);

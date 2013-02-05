@@ -22,6 +22,58 @@
 using namespace icinga;
 
 /**
+ * Sets the validator method for a rule list.
+ *
+ * @param validator The validator.
+ */
+void TypeRuleList::SetValidator(const String& validator)
+{
+	m_Validator = validator;
+}
+
+/**
+ * Retrieves the validator method.
+ *
+ * @returns The validator method.
+ */
+String TypeRuleList::GetValidator(void) const
+{
+	return m_Validator;
+}
+
+/**
+ * Adds an attribute to the list of required attributes.
+ *
+ * @param attr The new required attribute.
+ */
+void TypeRuleList::AddRequire(const String& attr)
+{
+	m_Requires.push_back(attr);
+}
+
+/**
+ * Retrieves the list of required attributes.
+ *
+ * @returns The list of required attributes.
+ */
+vector<String> TypeRuleList::GetRequires(void) const
+{
+	return m_Requires;
+}
+
+/**
+ * Adds all requires from the specified rule list.
+ *
+ * @param ruleList The rule list to copy requires from.
+ */
+void TypeRuleList::AddRequires(const TypeRuleList::Ptr& ruleList)
+{
+	BOOST_FOREACH(const String& require, ruleList->m_Requires) {
+		AddRequire(require);
+	}
+}
+
+/**
  * Adds a rule to a rule list.
  *
  * @param rule The rule that should be added.
@@ -61,7 +113,8 @@ size_t TypeRuleList::GetLength(void) const
  * @param[out] subRules The list of sub-rules for the matching rule.
  * @returns The validation result.
  */
-TypeValidationResult TypeRuleList::Validate(const String& name, const Value& value, TypeRuleList::Ptr *subRules) const
+TypeValidationResult TypeRuleList::ValidateAttribute(const String& name,
+    const Value& value, TypeRuleList::Ptr *subRules) const
 {
 	bool foundField = false;
 	BOOST_FOREACH(const TypeRule& rule, m_Rules) {

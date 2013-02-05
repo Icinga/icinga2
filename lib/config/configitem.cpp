@@ -35,9 +35,9 @@ boost::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
-    const ExpressionList::Ptr& exprl, const vector<String>& parents,
-    const DebugInfo& debuginfo)
-	: m_Type(type), m_Name(name), m_ExpressionList(exprl),
+    const String& unit, const ExpressionList::Ptr& exprl,
+    const vector<String>& parents, const DebugInfo& debuginfo)
+	: m_Type(type), m_Name(name), m_Unit(unit), m_ExpressionList(exprl),
 	  m_Parents(parents), m_DebugInfo(debuginfo)
 {
 }
@@ -60,6 +60,16 @@ String ConfigItem::GetType(void) const
 String ConfigItem::GetName(void) const
 {
 	return m_Name;
+}
+
+/**
+ * Retrieves the name of the compilation unit this item belongs to.
+ *
+ * @returns The unit name.
+ */
+String ConfigItem::GetUnit(void) const
+{
+	return m_Unit;
 }
 
 /**
@@ -308,6 +318,12 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 	return ConfigItem::Ptr();
 }
 
+/**
+ * Dumps the config item to the specified stream using Icinga's config item
+ * syntax.
+ *
+ * @param fp The stream.
+ */
 void ConfigItem::Dump(ostream& fp) const
 {
 	fp << "object \"" << m_Type << "\" \"" << m_Name << "\"";
@@ -329,4 +345,23 @@ void ConfigItem::Dump(ostream& fp) const
 	fp << " {" << "\n";
 	m_ExpressionList->Dump(fp, 1);
 	fp << "}" << "\n";
+}
+
+void ConfigItem::UnloadUnit(const String& unit)
+{
+	Logger::Write(LogInformation, "config", "Unloading config items from compilation unit '" + unit + "'");
+
+	vector<ConfigItem::Ptr> obsoleteItems;
+
+	ConfigItem::Ptr item;
+	BOOST_FOREACH(tie(tuples::ignore, item), m_Items) {
+		if (item->GetUnit() != unit)
+			continue;
+
+		obsoleteItems.push_back(item);
+	}
+
+	BOOST_FOREACH(item, obsoleteItems) {
+		item->Unregister();
+	}
 }

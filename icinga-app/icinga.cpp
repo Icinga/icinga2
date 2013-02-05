@@ -31,7 +31,7 @@ using namespace icinga;
 namespace po = boost::program_options;
 
 static po::variables_map g_AppParams;
-static vector<ConfigItem::WeakPtr> g_ConfigItems;
+static String g_ConfigUnit;
 
 #ifndef _WIN32
 static bool g_ReloadConfig = false;
@@ -88,20 +88,15 @@ static bool LoadConfigFiles(bool validateOnly)
 
 	context.ActivateItems();
 
-	BOOST_FOREACH(const ConfigItem::WeakPtr& witem, g_ConfigItems) {
-		ConfigItem::Ptr item = witem.lock();
-
-		/* Ignore this item if it's not active anymore */
-		if (!item || ConfigItem::GetObject(item->GetType(), item->GetName()) != item)
-			continue;
-
-		item->Unregister();
+	if (!g_ConfigUnit.IsEmpty()) {
+		/* ActivateItems has taken care of replacing all previous items
+		 * with new versions - which are automatically in a different
+		 * compilation unit. This UnloadUnit() call takes care of
+		 * removing all left-over items from the previous config. */
+		ConfigItem::UnloadUnit(g_ConfigUnit);
 	}
 
-	g_ConfigItems.clear();
-
-	vector<ConfigItem::Ptr> items = context.GetItems();
-	std::copy(items.begin(), items.end(), std::back_inserter(g_ConfigItems));
+	g_ConfigUnit = context.GetUnit();
 
 	return true;
 }

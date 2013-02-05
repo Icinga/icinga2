@@ -46,14 +46,23 @@ public:
 	typedef shared_ptr<TypeRuleList> Ptr;
 	typedef weak_ptr<TypeRuleList> WeakPtr;
 
+	void SetValidator(const String& validator);
+	String GetValidator(void) const;
+
+	void AddRequire(const String& attr);
+	void AddRequires(const TypeRuleList::Ptr& ruleList);
+	vector<String> GetRequires(void) const;
+
 	void AddRule(const TypeRule& rule);
 	void AddRules(const TypeRuleList::Ptr& ruleList);
 
-	TypeValidationResult Validate(const String& name, const Value& value, TypeRuleList::Ptr *subRules) const;
+	TypeValidationResult ValidateAttribute(const String& name, const Value& value, TypeRuleList::Ptr *subRules) const;
 
 	size_t GetLength(void) const;
 
 private:
+	String m_Validator;
+	vector<String> m_Requires;
 	vector<TypeRule> m_Rules;
 };
 

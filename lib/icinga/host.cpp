@@ -24,6 +24,8 @@ using namespace icinga;
 map<String, vector<Service::WeakPtr> > Host::m_ServicesCache;
 bool Host::m_ServicesCacheValid = true;
 
+REGISTER_SCRIPTFUNCTION("native::ValidateHostItem", &Host::ValidateHostItem);
+
 static AttributeDescription hostAttributes[] = {
 	{ "acknowledgement", Attribute_Replicated },
 	{ "acknowledgement_expiry", Attribute_Replicated },
@@ -405,3 +407,18 @@ void Host::ValidateServicesCache(void)
 	m_ServicesCacheValid = true;
 }
 
+void Host::ValidateHostItem(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+{
+	if (arguments.size() < 1)
+		throw_exception(invalid_argument("Missing argument: Host config item must be specified."));
+
+	if (arguments.size() < 2)
+		throw_exception(invalid_argument("Missing argument: Attribute dictionary must be specified."));
+
+	ConfigItem::Ptr item = arguments[0];
+	Dictionary::Ptr attrs = arguments[1];
+
+	// TODO: validate item
+
+	ConfigCompilerContext::GetContext()->AddError(false, "Hello World!");
+}

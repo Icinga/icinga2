@@ -58,6 +58,9 @@ using namespace icinga;
 %token <type> T_TYPE_STRING
 %token <type> T_TYPE_SCALAR
 %token <type> T_TYPE_ANY
+%token T_VALIDATOR
+%token T_REQUIRE
+%token T_ATTRIBUTE
 %token T_TYPE
 %token T_ABSTRACT
 %token T_LOCAL
@@ -158,6 +161,12 @@ type: partial_specifier T_TYPE identifier
 	{
 		TypeRuleList::Ptr ruleList = *$6;
 		m_Type->GetRuleList()->AddRules(ruleList);
+		m_Type->GetRuleList()->AddRequires(ruleList);
+
+		String validator = ruleList->GetValidator();
+		if (!validator.IsEmpty())
+			m_Type->GetRuleList()->SetValidator(validator);
+
 		delete $6;
 	}
 	;
@@ -192,15 +201,23 @@ typerules_inner: /* empty */
 	| typerules_inner ',' typerule
 	;
 
-typerule: type identifier
+typerule: T_REQUIRE T_STRING
 	{
-		TypeRule rule($1, $2, TypeRuleList::Ptr(), yylloc);
+		m_RuleLists.top()->AddRequire($2);
+	}
+	| T_VALIDATOR T_STRING
+	{
+		m_RuleLists.top()->SetValidator($2);
+	}
+	| T_ATTRIBUTE type T_STRING
+	{
+		TypeRule rule($2, $3, TypeRuleList::Ptr(), yylloc);
 		m_RuleLists.top()->AddRule(rule);
 	}
-	| type identifier typerulelist
+	| T_ATTRIBUTE type T_STRING typerulelist
 	{
-		TypeRule rule($1, $2, *$3, yylloc);
-		delete $3;
+		TypeRule rule($2, $3, *$4, yylloc);
+		delete $4;
 		m_RuleLists.top()->AddRule(rule);
 	}
 	;
