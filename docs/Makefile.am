@@ -9,8 +9,10 @@ icinga2doc_DATA = \
 	icinga2-config.html \
 	icinga2-intro.html
 
-%.html: %.txt
-	asciidoc -a toc -a numbered $^
+.SUFFIXES = .html .txt
+
+.txt.html:
+	asciidoc -a toc -a numbered $<
 
 clean:
 	rm -f $(icinga2doc_DATA)
