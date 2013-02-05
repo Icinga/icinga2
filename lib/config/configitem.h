@@ -54,6 +54,8 @@ public:
 
 	DebugInfo GetDebugInfo(void) const;
 
+	Dictionary::Ptr Link(void) const;
+
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
 
@@ -61,7 +63,7 @@ public:
 	static boost::signal<void (const ConfigItem::Ptr&)> OnRemoved;
 
 private:
-	void CalculateProperties(const Dictionary::Ptr& dictionary) const;
+	void InternalLink(const Dictionary::Ptr& dictionary) const;
 
         void RegisterChild(const ConfigItem::Ptr& child);
         void UnregisterChild(const ConfigItem::Ptr& child);

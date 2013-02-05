@@ -23,6 +23,8 @@
 namespace icinga
 {
 
+struct ConfigCompilerContext;
+
 /**
  * A configuration type. Used to validate config objects.
  *
@@ -40,16 +42,12 @@ public:
 	String GetParent(void) const;
 	void SetParent(const String& parent);
 
-	void Commit(void);
-	
 	TypeRuleList::Ptr GetRuleList(void) const;
 
 	DebugInfo GetDebugInfo(void) const;
 
-	void ValidateObject(const DynamicObject::Ptr& object) const;
+	void ValidateItem(const ConfigItem::Ptr& object) const;
 
-	static ConfigType::Ptr GetByName(const String& name);
-	
 private:
 	String m_Name; /**< The type name. */
 	String m_Parent; /**< The parent type. */
@@ -57,11 +55,8 @@ private:
 	TypeRuleList::Ptr m_RuleList;
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
-	typedef map<String, ConfigType::Ptr> TypeMap;
-	static TypeMap m_Types; /**< All registered configuration types. */
-
-	bool ValidateAttribute(const String& name, const Value& value) const;
-	static void ValidateDictionary(const Dictionary::Ptr& dictionary, const TypeRuleList::Ptr& ruleList);
+	static void ValidateDictionary(const Dictionary::Ptr& dictionary,
+	    const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations);
 
 };
 

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="configcompiler.h" />
+    <ClInclude Include="configcompilercontext.h" />
     <ClInclude Include="configitem.h" />
     <ClInclude Include="configitembuilder.h" />
     <ClInclude Include="configtype.h" />
@@ -33,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="configcompiler.cpp" />
+    <ClCompile Include="configcompilercontext.cpp" />
     <ClCompile Include="configitem.cpp" />
     <ClCompile Include="configitembuilder.cpp" />
     <ClCompile Include="configtype.cpp" />

@@ -11,6 +11,8 @@ AM_YFLAGS = -d
 libconfig_la_SOURCES = \
 	configcompiler.cpp \
 	configcompiler.h \
+	configcompilercontext.cpp \
+	configcompilercontext.h \
 	config_lexer.ll \
 	config_parser.yy \
 	i2-config.h \

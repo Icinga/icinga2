@@ -21,8 +21,6 @@
 
 using namespace icinga;
 
-ConfigType::TypeMap ConfigType::m_Types;
-
 ConfigType::ConfigType(const String& name, const DebugInfo& debuginfo)
 	: m_Name(name), m_RuleList(boost::make_shared<TypeRuleList>()), m_DebugInfo(debuginfo)
 { }
@@ -52,68 +50,77 @@ DebugInfo ConfigType::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-void ConfigType::ValidateObject(const DynamicObject::Ptr& object) const
+void ConfigType::ValidateItem(const ConfigItem::Ptr& object) const
 {
-	DynamicObject::AttributeConstIterator it;
-	const DynamicObject::AttributeMap& attributes = object->GetAttributes();
-	
-	for (it = attributes.begin(); it != attributes.end(); it++) {
-		if ((it->second.Type & Attribute_Config) == 0)
-			continue;
+	Dictionary::Ptr attrs = object->Link();
 
-		if (!ValidateAttribute(it->first, it->second.Data))
-			Logger::Write(LogWarning, "config", "Configuration attribute '" + it->first +
-			    "' on object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' is unknown or contains an invalid type.");
+	vector<String> locations;
+	locations.push_back("Object '" + object->GetName() + "' (Type: '" + object->GetType() + "')");
+
+	ConfigType::Ptr parent;
+	if (m_Parent.IsEmpty()) {
+		if (GetName() != "DynamicObject")
+			parent = ConfigCompilerContext::GetContext()->GetType("DynamicObject");
+	} else {
+		parent = ConfigCompilerContext::GetContext()->GetType(m_Parent);
 	}
+
+	vector<TypeRuleList::Ptr> ruleLists;
+	if (parent)
+		ruleLists.push_back(parent->m_RuleList);
+
+	ruleLists.push_back(m_RuleList);
+
+	ValidateDictionary(attrs, ruleLists, locations);
 }
 
-void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary, const TypeRuleList::Ptr& ruleList)
+void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
+    const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations)
 {
 	String key;
 	Value value;
 	BOOST_FOREACH(tie(key, value), dictionary) {
-		// TODO: implement (#3619)
+		TypeValidationResult overallResult = ValidationUnknownField;
+		vector<TypeRuleList::Ptr> subRuleLists;
+
+		locations.push_back("Attribute '" + key + "'");
+
+		BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
+			TypeRuleList::Ptr subRuleList;
+			TypeValidationResult result = ruleList->Validate(key, value, &subRuleList);
+
+			if (subRuleList)
+				subRuleLists.push_back(subRuleList);
+
+			if (result == ValidationOK) {
+				overallResult = result;
+				break;
+			}
+
+			if (result == ValidationInvalidType)
+				overallResult = result;
+		}
+
+		bool first = true;
+		String stack;
+		BOOST_FOREACH(const String& location, locations) {
+			if (!first)
+				stack += " -> ";
+			else
+				first = false;
+
+			stack += location;
+		}
+
+		if (overallResult == ValidationUnknownField)
+			ConfigCompilerContext::GetContext()->AddError(true, "Unknown attribute: " + stack);
+		else if (overallResult == ValidationInvalidType)
+			ConfigCompilerContext::GetContext()->AddError(false, "Invalid type for attribute: " + stack);
+
+		if (subRuleLists.size() > 0 && value.IsObjectType<Dictionary>())
+			ValidateDictionary(value, subRuleLists, locations);
+
+		locations.pop_back();
 	}
 }
 
-bool ConfigType::ValidateAttribute(const String& name, const Value& value) const
-{
-	ConfigType::Ptr parent;
-	
-	if (m_Parent.IsEmpty()) {
-		if (GetName() != "DynamicObject")
-			parent = ConfigType::GetByName("DynamicObject");
-	} else {
-		parent = ConfigType::GetByName(m_Parent);
-	}
-	
-	if (parent && parent->ValidateAttribute(name, value))
-	    return true;
-	
-	TypeRuleList::Ptr subRules;
-
-	if (!m_RuleList->FindMatch(name, value, &subRules))
-		return false;
-	
-	if (subRules && value.IsObjectType<Dictionary>())
-		ValidateDictionary(value, subRules);
-
-	return true;
-}
-
-void ConfigType::Commit(void)
-{
-	m_Types[GetName()] = GetSelf();
-}
-
-ConfigType::Ptr ConfigType::GetByName(const String& name)
-{
-	ConfigType::TypeMap::iterator it;
-	
-	it = m_Types.find(name);
-	
-	if (it == m_Types.end())
-		return ConfigType::Ptr();
-
-	return it->second;
-}

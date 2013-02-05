@@ -88,7 +88,7 @@ String Value::Serialize(void) const
 
 	char *jsonString;
 
-	if (Application::GetInstance()->IsDebugging())
+	if (Application::IsDebugging())
 		jsonString = cJSON_Print(json);
 	else
 		jsonString = cJSON_PrintUnformatted(json);

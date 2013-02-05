@@ -54,20 +54,31 @@ size_t TypeRuleList::GetLength(void) const
 }
 
 /**
- * Finds a matching rule.
+ * Validates a field.
  *
  * @param name The name of the attribute.
  * @param value The value of the attribute.
- * *@param[out] subRules The list of sub-rules for the matching rule.
+ * @param[out] subRules The list of sub-rules for the matching rule.
+ * @returns The validation result.
  */
-bool TypeRuleList::FindMatch(const String& name, const Value& value, TypeRuleList::Ptr *subRules)
+TypeValidationResult TypeRuleList::Validate(const String& name, const Value& value, TypeRuleList::Ptr *subRules) const
 {
+	bool foundField = false;
 	BOOST_FOREACH(const TypeRule& rule, m_Rules) {
-		if (rule.Matches(name, value)) {
+		if (!rule.MatchName(name))
+			continue;
+
+		foundField = true;
+
+		if (rule.MatchValue(value)) {
 			*subRules = rule.GetSubRules();
-			return true;
+			return ValidationOK;
 		}
 	}
-	
-	return false;
+
+	if (foundField)
+		return ValidationInvalidType;
+	else
+		return ValidationUnknownField;
 }
+

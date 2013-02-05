@@ -99,7 +99,13 @@ static ConfigType::Ptr m_Type;
 
 void ConfigCompiler::Compile(void)
 {
-	yyparse(this);
+	assert(ConfigCompilerContext::GetContext() != NULL);
+
+	try {
+		yyparse(this);
+	} catch (const exception& ex) {
+		ConfigCompilerContext::GetContext()->AddError(false, ex.what());
+	}
 }
 
 #define scanner (context->GetScanner())
@@ -138,14 +144,14 @@ identifier: T_IDENTIFIER
 type: partial_specifier T_TYPE identifier
 	{
 		String name = String($3);
-		m_Type = context->GetTypeByName(name);
+		m_Type = ConfigCompilerContext::GetContext()->GetType(name);
 		
 		if (!m_Type) {
 			if ($1)
 				throw_exception(invalid_argument("partial type definition for unknown type '" + name + "'"));
 
 			m_Type = boost::make_shared<ConfigType>(name, yylloc);
-			context->AddType(m_Type);
+			ConfigCompilerContext::GetContext()->AddType(m_Type);
 		}
 	}
 	type_inherits_specifier typerulelist
@@ -236,7 +242,7 @@ object_inherits_specifier expressionlist
 		m_Item->SetLocal(m_Local);
 		m_Item->SetAbstract(m_Abstract);
 
-		context->AddObject(m_Item->Compile());
+		ConfigCompilerContext::GetContext()->AddItem(m_Item->Compile());
 		m_Item.reset();
 	}
 	;

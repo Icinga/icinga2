@@ -48,11 +48,12 @@ using std::endl;
 #include "debuginfo.h"
 #include "typerulelist.h"
 #include "typerule.h"
-#include "configtype.h"
 #include "expression.h"
 #include "expressionlist.h"
 #include "configitem.h"
+#include "configtype.h"
 #include "configitembuilder.h"
 #include "configcompiler.h"
+#include "configcompilercontext.h"
 
 #endif /* I2CONFIG_H */

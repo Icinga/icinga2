@@ -17,61 +17,71 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGCOMPILER_H
-#define CONFIGCOMPILER_H
+#ifndef CONFIGCOMPILERCONTEXT_H
+#define CONFIGCOMPILERCONTEXT_H
 
 namespace icinga
 {
 
 /**
- * The configuration compiler can be used to compile a configuration file
- * into a number of configuration items.
- *
  * @ingroup config
  */
-class I2_CONFIG_API ConfigCompiler
+enum ConfigCompilerFlag
+{
+        CompilerStrict = 1, /**< Treat warnings as errors. */
+        CompilerLinkExisting = 2 /**< Link objects to existing config items. */
+};
+
+struct ConfigCompilerError
+{
+	bool Warning;
+	String Message;
+
+	ConfigCompilerError(bool warning, const String& message)
+		: Warning(warning), Message(message)
+	{ }
+};
+
+/*
+ * @ingroup config
+ */
+class ConfigCompilerContext
 {
 public:
-	typedef function<void (const String&, bool, const DebugInfo&)> HandleIncludeFunc;
+	ConfigCompilerContext(void);
 
-	ConfigCompiler(const String& path, istream *input = &cin,
-	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
-	virtual ~ConfigCompiler(void);
+	void AddItem(const ConfigItem::Ptr& item);
+	ConfigItem::Ptr GetItem(const String& type, const String& name) const;
+	vector<ConfigItem::Ptr> GetItems(void) const;
 
-	void Compile(void);
+	void AddType(const ConfigType::Ptr& type);
+	ConfigType::Ptr GetType(const String& name) const;
 
-	static void CompileStream(const String& path, istream *stream);
-	static void CompileFile(const String& path);
-	static void CompileText(const String& path, const String& text);
+	void AddError(bool warning, const String& message);
+	vector<ConfigCompilerError> GetErrors(void) const;
 
-	static void AddIncludeSearchDir(const String& dir);
+	void SetFlags(int flags);
+	int GetFlags(void) const;
 
-	String GetPath(void) const;
+	void Validate(void);
+	void ActivateItems(void);
 
-	static void HandleFileInclude(const String& include, bool search,
-	    const DebugInfo& debuginfo);
-	
-	/* internally used methods */
-	void HandleInclude(const String& include, bool search, const DebugInfo& debuginfo);
-	void HandleLibrary(const String& library);
-	
-	size_t ReadInput(char *buffer, size_t max_bytes);
-	void *GetScanner(void) const;
+	static void SetContext(ConfigCompilerContext *context);
+	static ConfigCompilerContext *GetContext(void);
 
 private:
-	String m_Path;
-	istream *m_Input;
+        int m_Flags;
 
-	HandleIncludeFunc m_HandleInclude;
+	vector<shared_ptr<ConfigItem> > m_Items;
+        map<pair<String, String>, shared_ptr<ConfigItem> > m_ItemsMap;
 
-	void *m_Scanner;
+        map<String, shared_ptr<ConfigType> > m_Types;
 
-	static vector<String> m_IncludeSearchDirs;
+        vector<ConfigCompilerError> m_Errors;
 
-	void InitializeScanner(void);
-	void DestroyScanner(void);
+	static ConfigCompilerContext *m_Context;
 };
 
 }
 
-#endif /* CONFIGCOMPILER_H */
+#endif /* CONFIGCOMPILERCONTEXT_H */

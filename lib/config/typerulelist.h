@@ -26,6 +26,16 @@ namespace icinga
 struct TypeRule;
 
 /**
+ * @ingroup config
+ */
+enum TypeValidationResult
+{
+	ValidationOK,
+	ValidationInvalidType,
+	ValidationUnknownField
+};
+
+/**
  * A list of configuration type rules.
  *
  * @ingroup config
@@ -39,7 +49,7 @@ public:
 	void AddRule(const TypeRule& rule);
 	void AddRules(const TypeRuleList::Ptr& ruleList);
 
-	bool FindMatch(const String& name, const Value& value, TypeRuleList::Ptr *subRules);
+	TypeValidationResult Validate(const String& name, const Value& value, TypeRuleList::Ptr *subRules) const;
 
 	size_t GetLength(void) const;
 

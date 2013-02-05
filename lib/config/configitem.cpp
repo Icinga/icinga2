@@ -92,6 +92,13 @@ vector<String> ConfigItem::GetParents(void) const
 	return m_Parents;
 }
 
+Dictionary::Ptr ConfigItem::Link(void) const
+{
+	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
+	InternalLink(attrs);
+	return attrs;
+}
+
 /**
  * Calculates the object's properties based on parent objects and the object's
  * expression list.
@@ -99,7 +106,7 @@ vector<String> ConfigItem::GetParents(void) const
  * @param dictionary The dictionary that should be used to store the
  *		     properties.
  */
-void ConfigItem::CalculateProperties(const Dictionary::Ptr& dictionary) const
+void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
 {
 	BOOST_FOREACH(const String& name, m_Parents) {
 		ConfigItem::Ptr parent = ConfigItem::GetObject(GetType(), name);
@@ -111,7 +118,7 @@ void ConfigItem::CalculateProperties(const Dictionary::Ptr& dictionary) const
 			throw_exception(domain_error(message.str()));
 		}
 
-		parent->CalculateProperties(dictionary);
+		parent->InternalLink(dictionary);
 	}
 
 	m_ExpressionList->Execute(dictionary);
@@ -129,8 +136,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 
 	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
-	Dictionary::Ptr properties = boost::make_shared<Dictionary>();
-	CalculateProperties(properties);
+	Dictionary::Ptr properties = Link();
 
 	/* Create a fake update in the format that
 	 * DynamicObject::ApplyUpdate expects. */
@@ -279,12 +285,27 @@ DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
 	ConfigItem::ItemMap::iterator it;
+
+	ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
+
+	if (context) {
+		ConfigItem::Ptr item = context->GetItem(type, name);
+
+		if (item)
+			return item;
+
+		/* ignore already active objects while we're in the compiler
+		 * context and linking to existing items is disabled. */
+		if ((context->GetFlags() & CompilerLinkExisting) == 0)
+			return ConfigItem::Ptr();
+	}
+
 	it = m_Items.find(make_pair(type, name));
 
-	if (it == m_Items.end())
-		return ConfigItem::Ptr();
+	if (it != m_Items.end())
+		return it->second;
 
-	return it->second;
+	return ConfigItem::Ptr();
 }
 
 void ConfigItem::Dump(ostream& fp) const

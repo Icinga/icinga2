@@ -50,7 +50,8 @@ public:
 
 	TypeRuleList::Ptr GetSubRules(void) const;
 	
-	bool Matches(const String& name, const Value& value) const;
+	bool MatchName(const String& name) const;
+	bool MatchValue(const Value& value) const;
 
 private:
 	TypeSpecifier m_Type;

@@ -31,11 +31,13 @@ TypeRuleList::Ptr TypeRule::GetSubRules(void) const
 	return m_SubRules;
 }
 
-bool TypeRule::Matches(const String& name, const Value& value) const
+bool TypeRule::MatchName(const String& name) const
 {
-	if (!Utility::Match(m_NamePattern, name))
-		return false;
+	return (Utility::Match(m_NamePattern, name));
+}
 
+bool TypeRule::MatchValue(const Value& value) const
+{
 	if (value.IsEmpty())
 		return true;
 
@@ -64,3 +66,4 @@ bool TypeRule::Matches(const String& name, const Value& value) const
 			assert(!"Type rule has invalid type specifier.");
 	}
 }
+

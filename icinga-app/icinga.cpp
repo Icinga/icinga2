@@ -38,28 +38,35 @@ static bool g_ReloadConfig = false;
 static Timer::Ptr g_ReloadConfigTimer;
 #endif /* _WIN32 */
 
-static bool LoadConfigFiles(void)
+static bool LoadConfigFiles(bool validateOnly)
 {
-	set<ConfigItem::Ptr> allItems;
+	ConfigCompilerContext context;
 
-	try {
-		BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<vector<String> >()) {
-			vector<ConfigItem::Ptr> items;
-			vector<ConfigType::Ptr> types;
+	ConfigCompilerContext::SetContext(&context);
 
-			ConfigCompiler::CompileFile(configPath, &items, &types);
+	BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<vector<String> >()) {
+		ConfigCompiler::CompileFile(configPath);
+	}
 
-			Logger::Write(LogInformation, "icinga-app", "Registering config types...");
-			BOOST_FOREACH(const ConfigType::Ptr& type, types) {
-				type->Commit();
-			}
+	ConfigCompilerContext::SetContext(NULL);
 
-			Logger::Write(LogInformation, "icinga-app", "Executing config items...");
-			BOOST_FOREACH(const ConfigItem::Ptr& item, items) {
-				item->Commit();
-			}
+	context.Validate();
 
-			Logger::Write(LogInformation, "icinga-app", "Validating config items...");
+	bool hasError = false;
+
+	BOOST_FOREACH(const ConfigCompilerError& error, context.GetErrors()) {
+		if (error.Warning) {
+			Logger::Write(LogWarning, "icinga-app", "Config warning: " + error.Message);
+		} else {
+			hasError = true;
+			Logger::Write(LogCritical, "icinga-app", "Config error: " + error.Message);
+		}
+	}
+
+	if (hasError)
+		return false;
+
+/*			Logger::Write(LogInformation, "icinga-app", "Validating config items...");
 			DynamicType::Ptr type;
 			BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
 				ConfigType::Ptr ctype = ConfigType::GetByName(type->GetName());
@@ -74,32 +81,26 @@ static bool LoadConfigFiles(void)
 				BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
 					ctype->ValidateObject(object);
 				}
-			}
+			}*/
 
-			std::copy(items.begin(), items.end(), std::inserter(allItems, allItems.begin()));
-		}
+	context.ActivateItems();
 
-		BOOST_FOREACH(const ConfigItem::WeakPtr& witem, g_ConfigItems) {
-			ConfigItem::Ptr item = witem.lock();
+	BOOST_FOREACH(const ConfigItem::WeakPtr& witem, g_ConfigItems) {
+		ConfigItem::Ptr item = witem.lock();
 
-			/* Ignore this item if it's not active anymore */
-			if (!item || ConfigItem::GetObject(item->GetType(), item->GetName()) != item)
-				continue;
+		/* Ignore this item if it's not active anymore */
+		if (!item || ConfigItem::GetObject(item->GetType(), item->GetName()) != item)
+			continue;
 
-			/* Remove the object if it's not in the list of current items */
-			if (allItems.find(item) == allItems.end())
-				item->Unregister();
-		}
-
-		g_ConfigItems.clear();
-		std::copy(allItems.begin(), allItems.end(), std::back_inserter(g_ConfigItems));
-
-		return true;
-	} catch (const exception& ex) {
-		Logger::Write(LogCritical, "icinga-app", "Configuration error: " + String(ex.what()));
-		return false;
+		item->Unregister();
 	}
 
+	g_ConfigItems.clear();
+
+	vector<ConfigItem::Ptr> items = context.GetItems();
+	std::copy(items.begin(), items.end(), std::back_inserter(g_ConfigItems));
+
+	return true;
 }
 
 #ifndef _WIN32
@@ -107,7 +108,7 @@ static void ReloadConfigTimerHandler(void)
 {
 	if (g_ReloadConfig) {
 		Logger::Write(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
-		LoadConfigFiles();
+		LoadConfigFiles(false);
 		g_ReloadConfig = false;
 	}
 }
@@ -241,20 +242,22 @@ int main(int argc, char **argv)
 
 	DynamicObject::BeginTx();
 
-	if (!LoadConfigFiles())
+	bool validateOnly = g_AppParams.count("validate");
+
+	if (!LoadConfigFiles(validateOnly))
 		return EXIT_FAILURE;
 
 	DynamicObject::FinishTx();
+
+	if (validateOnly) {
+		Logger::Write(LogInformation, "icinga-app", "Terminating as requested by --validate.");
+		return EXIT_SUCCESS;
+	}
 
 	Application::Ptr app = Application::GetInstance();
 
 	if (!app)
 		throw_exception(runtime_error("Configuration must create an Application object."));
-
-	if (g_AppParams.count("validate")) {
-		Logger::Write(LogInformation, "icinga-app", "Terminating as requested by --validate.");
-		return EXIT_SUCCESS;
-	}
 
 	if (g_AppParams.count("daemonize")) {
 		Logger::Write(LogInformation, "icinga", "Daemonizing.");
