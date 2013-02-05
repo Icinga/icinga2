@@ -271,7 +271,7 @@ object Host "localhost" inherits "test-host" {
 }
 -------------------------------------------------------------------------------
 
-NOTE: The "default-host" and "test-host" objects is marked as templates using
+NOTE: The "default-host" and "test-host" objects are marked as templates using
 the "abstract" keyword. Parent objects do not necessarily have to be "abstract"
 though in general they are.
 
