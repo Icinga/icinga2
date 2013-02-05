@@ -28,7 +28,6 @@ void DelegationComponent::Start(void)
 	m_DelegationTimer->SetInterval(30);
 	m_DelegationTimer->OnTimerExpired.connect(boost::bind(&DelegationComponent::DelegationTimerHandler, this));
 	m_DelegationTimer->Start();
-	m_DelegationTimer->Reschedule(0);
 }
 
 bool DelegationComponent::IsEndpointChecker(const Endpoint::Ptr& endpoint)
