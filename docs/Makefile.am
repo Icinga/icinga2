@@ -1,7 +1,11 @@
+EXTRA_DIST = \
+	icinga2-config.txt \
+	icinga2-intro.txt
 
-all: create-docs
+icinga2docdir = ${docdir}
+icinga2doc_DATA = \
+	icinga2-config.html \
+	icinga2-intro.html
 
-create-docs:
-	for file in *.txt; \
-	do asciidoc -a toc -a numbered $$file; \
-	done
+%.html: %.txt
+	asciidoc -a toc -a numbered $^
