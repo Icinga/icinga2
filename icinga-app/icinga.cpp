@@ -83,6 +83,9 @@ static bool LoadConfigFiles(bool validateOnly)
 				}
 			}*/
 
+	if (validateOnly)
+		return true;
+
 	context.ActivateItems();
 
 	BOOST_FOREACH(const ConfigItem::WeakPtr& witem, g_ConfigItems) {
