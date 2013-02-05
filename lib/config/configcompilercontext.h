@@ -32,7 +32,7 @@ enum ConfigCompilerFlag
         CompilerLinkExisting = 2 /**< Link objects to existing config items. */
 };
 
-struct ConfigCompilerError
+struct I2_CONFIG_API ConfigCompilerError
 {
 	bool Warning;
 	String Message;
@@ -45,7 +45,7 @@ struct ConfigCompilerError
 /*
  * @ingroup config
  */
-class ConfigCompilerContext
+class I2_CONFIG_API ConfigCompilerContext
 {
 public:
 	ConfigCompilerContext(void);

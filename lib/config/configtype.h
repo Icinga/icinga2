@@ -23,8 +23,6 @@
 namespace icinga
 {
 
-struct ConfigCompilerContext;
-
 /**
  * A configuration type. Used to validate config objects.
  *
