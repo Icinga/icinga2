@@ -133,7 +133,7 @@ String IcingaApplication::GetStatePath(void) const
 	Value statePath = Get("state_path");
 
 	if (statePath.IsEmpty())
-		statePath = Application::GetLocalStateDir() + "/lib/icinga2.state";
+		statePath = Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state";
 
 	return statePath;
 }
