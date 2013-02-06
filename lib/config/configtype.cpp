@@ -184,10 +184,16 @@ void ConfigType::ValidateMethods(const ScriptTask::Ptr& task,
 	Dictionary::Ptr attrs = arguments[1];
 
 	String key;
-	BOOST_FOREACH(tie(key, tuples::ignore), attrs) {
-		if (!ScriptFunction::GetByName(key)) {
+	Value value;
+	BOOST_FOREACH(tie(key, value), attrs) {
+		if (!value.IsScalar())
+			continue;
+
+		String method = value;
+
+		if (!ScriptFunction::GetByName(method)) {
 			ConfigCompilerContext::GetContext()->AddError(false, "Validation failed for " +
-			    location + ": Method '" + key + "' not found.");
+			    location + ": Script function '" + method + "' not found.");
 		}
 	}
 
