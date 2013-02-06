@@ -161,13 +161,13 @@ int main(int argc, char **argv)
 
 	po::options_description desc("Supported options");
 	desc.add_options()
-		("help,h", "show this help message")
+		("help", "show this help message")
 		("version,V", "show version information")
 		("library,l", po::value<vector<String> >(), "load a library")
 		("include,I", po::value<vector<String> >(), "add include search directory")
 		("config,c", po::value<vector<String> >(), "parse a configuration file")
 		("validate,v", "exit after validating the configuration")
-		("debug", "enable debugging")
+		("debug,x", "enable debugging")
 		("daemonize,d", "daemonize after reading the configuration files")
 	;
 
