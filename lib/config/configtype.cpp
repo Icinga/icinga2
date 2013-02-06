@@ -147,9 +147,12 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 			if (subRuleList)
 				subRuleLists.push_back(subRuleList);
 
+			if (overallResult == ValidationOK)
+				continue;
+
 			if (result == ValidationOK) {
 				overallResult = result;
-				break;
+				continue;
 			}
 
 			if (result == ValidationInvalidType)
