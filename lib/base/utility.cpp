@@ -507,7 +507,7 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
  */
 void Utility::WaitUntil(const function<bool (void)>& predicate)
 {
-	while (!predicate)
+	while (!predicate())
 		Application::GetInstance()->ProcessEvents();
 }
 
