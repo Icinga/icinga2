@@ -97,20 +97,6 @@ public:
 	static boost::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
 	static boost::signal<void (const set<DynamicObject::Ptr>&)> OnTransactionClosing;
 
-	/**
-	 * Synchronously invokes a method. The method must not return before it's finished.
-	 *
-	 * @param method The name of the method.
-	 * @param arguments Arguments for the method.
-	 */
-	template<typename T>
-	T InvokeMethodSync(const String& method, const vector<Value>& arguments)
-	{
-		ScriptTask::Ptr task = InvokeMethod(method, arguments, ScriptTask::CompletionCallback());
-		assert(task->IsFinished());
-		return task->GetResult();
-	}
-
 	ScriptTask::Ptr InvokeMethod(const String& method,
 	    const vector<Value>& arguments, ScriptTask::CompletionCallback callback);
 

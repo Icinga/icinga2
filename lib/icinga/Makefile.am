@@ -32,9 +32,7 @@ libicinga_la_SOURCES =  \
 	service.cpp \
 	servicegroup.cpp \
 	servicegroup.h \
-	service.h \
-	timeperiod.cpp \
-	timeperiod.h
+	service.h
 
 libicinga_la_CPPFLAGS = \
 	-DI2_ICINGA_BUILD \

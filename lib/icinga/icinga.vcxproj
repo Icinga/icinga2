@@ -38,7 +38,6 @@
     <ClCompile Include="nullchecktask.cpp" />
     <ClCompile Include="service.cpp" />
     <ClCompile Include="servicegroup.cpp" />
-    <ClCompile Include="timeperiod.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="acknowledgement.h" />
@@ -56,7 +55,6 @@
     <ClInclude Include="nullchecktask.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />
-    <ClInclude Include="timeperiod.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}</ProjectGuid>
