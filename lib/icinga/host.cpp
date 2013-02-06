@@ -217,7 +217,7 @@ static void CopyServiceAttributes(const Host::Ptr& host, TDict serviceDesc,
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, dependencies));
 
-	Value hostchecks = serviceDesc->Get("hostchecks");
+	Value hostchecks = host->Get("hostchecks");
 	if (!hostchecks.IsEmpty())
 		builder->AddExpression("dependencies", OperatorPlus,
 		    Service::ResolveDependencies(host, hostchecks));
