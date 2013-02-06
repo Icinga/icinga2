@@ -46,6 +46,9 @@ public:
 
 	void ValidateItem(const ConfigItem::Ptr& object) const;
 
+	static void ValidateMethods(const ScriptTask::Ptr& task,
+	    const vector<Value>& arguments);
+
 private:
 	String m_Name; /**< The type name. */
 	String m_Parent; /**< The parent type. */
