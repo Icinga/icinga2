@@ -352,29 +352,34 @@ Example:
 
 -------------------------------------------------------------------------------
 type Pizza {
-	number radius,
+	%require "radius",
+	%attribute number "radius",
 
-	dictionary ingredients {
-		string *,
+	%attribute dictionary "ingredients" {
+		%validator "native::ValidateIngredients",
 
-		dictionary * {
-			number quantity,
-			string name
+		%attribute string "*",
+
+		%attribute dictionary "*" {
+			%attribute number "quantity",
+			%attribute string "name"
 		}
 	},
 
-	any custom::*
+	%attribute any "custom::*"
 }
 -------------------------------------------------------------------------------
 
 The Pizza definition provides the following validation rules:
 
-* Pizza objects may contain an attribute "radius" which has to be a number.
+* Pizza objects must contain an attribute "radius" which has to be a number.
 * Pizza objects may contain an attribute "ingredients" which has to be a
 dictionary.
 * Elements in the ingredients dictionary can be either a string or a dictionary.
 * If they're a dictionary they may contain attributes "quantity" (of type
 number) and "name" (of type string).
+* The script function "native::ValidateIngredients" is run to perform further
+validation of the ingredients dictionary.
 * Pizza objects may contain attribute matching the pattern "custom::*" of any
 type.
 

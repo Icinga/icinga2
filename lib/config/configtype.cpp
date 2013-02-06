@@ -103,10 +103,30 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 
 			Value value = dictionary->Get(require);
 
-			if (value.IsEmpty())
-				ConfigCompilerContext::GetContext()->AddError(false, "Required attribute is missing: " + LocationToString(locations));
+			if (value.IsEmpty()) {
+				ConfigCompilerContext::GetContext()->AddError(false,
+				    "Required attribute is missing: " + LocationToString(locations));
+			}
 
 			locations.pop_back();
+		}
+
+		String validator = ruleList->GetValidator();
+
+		if (!validator.IsEmpty()) {
+			ScriptFunction::Ptr func = ScriptFunction::GetByName(validator);
+
+			if (!func)
+				throw_exception(invalid_argument("Validator function '" + validator + "' does not exist."));
+
+			vector<Value> arguments;
+			arguments.push_back(LocationToString(locations));
+			arguments.push_back(dictionary);
+
+			ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
+			task->Start();
+			task->Wait();
+			task->GetResult();
 		}
 	}
 

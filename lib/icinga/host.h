@@ -63,7 +63,7 @@ public:
 	set<shared_ptr<Service> > GetServices(void) const;
 	static void InvalidateServicesCache(void);
 
-	static void ValidateHostItem(const ScriptTask::Ptr& task,
+	static void ValidateServiceDictionary(const ScriptTask::Ptr& task,
 	    const std::vector<icinga::Value>& arguments);
 
 protected:

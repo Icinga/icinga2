@@ -24,7 +24,7 @@ using namespace icinga;
 map<String, vector<Service::WeakPtr> > Host::m_ServicesCache;
 bool Host::m_ServicesCacheValid = true;
 
-REGISTER_SCRIPTFUNCTION("native::ValidateHostItem", &Host::ValidateHostItem);
+REGISTER_SCRIPTFUNCTION("native::ValidateServiceDictionary", &Host::ValidateServiceDictionary);
 
 static AttributeDescription hostAttributes[] = {
 	{ "acknowledgement", Attribute_Replicated },
@@ -407,18 +407,40 @@ void Host::ValidateServicesCache(void)
 	m_ServicesCacheValid = true;
 }
 
-void Host::ValidateHostItem(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
-		throw_exception(invalid_argument("Missing argument: Host config item must be specified."));
+		throw_exception(invalid_argument("Missing argument: Location must be specified."));
 
 	if (arguments.size() < 2)
 		throw_exception(invalid_argument("Missing argument: Attribute dictionary must be specified."));
 
-	ConfigItem::Ptr item = arguments[0];
+	String location = arguments[0];
 	Dictionary::Ptr attrs = arguments[1];
 
-	// TODO: validate item
+	String key;
+	Value value;
+	BOOST_FOREACH(tie(key, value), attrs) {
+		String name;
 
-	ConfigCompilerContext::GetContext()->AddError(false, "Hello World!");
+		if (value.IsScalar()) {
+			name = value;
+		} else if (value.IsObjectType<Dictionary>()) {
+			Dictionary::Ptr serviceDesc = value;
+
+			if (serviceDesc->Contains("service"))
+				name = serviceDesc->Get("service");
+			else
+				name = key;
+		} else {
+			continue;
+		}
+
+		if (!ConfigItem::GetObject("Service", name)) {
+			ConfigCompilerContext::GetContext()->AddError(false, "Validation failed for " +
+			    location + ": Service '" + name + "' not found.");
+		}
+	}
+
+	task->FinishResult(Empty);
 }
