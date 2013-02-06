@@ -99,6 +99,12 @@ fi
   NO_AUTOMAKE=yes
 }
 
+(help2man --version) < /dev/null > /dev/null 2>&1 || {
+  echo
+  echo "**Error**: You must have \`html2man' installed."
+  echo "You can get it from: ftp://ftp.gnu.org/pub/gnu/"
+  DIE=1
+}
 
 # if no automake, don't bother testing for aclocal
 test -n "$NO_AUTOMAKE" || (aclocal --version) < /dev/null > /dev/null 2>&1 || {

@@ -186,15 +186,25 @@ int main(int argc, char **argv)
 		Application::SetDebugging(true);
 
 	if (g_AppParams.count("help") || g_AppParams.count("version")) {
-		std::cout << "Icinga application loader"
+		String appName = Utility::BaseName(argv[0]);
+
+		if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
+			appName = appName.SubStr(3, appName.GetLength() - 3);
+
+		std::cout << appName << " " << "- The Icinga 2 networking monitoring daemon.";
+
+		if (g_AppParams.count("version")) {
 #ifndef _WIN32
-			  << " (version: " << ICINGA_VERSION << ")"
+			std::cout  << " (Version: " << ICINGA_VERSION << ")";
 #endif /* _WIN32 */
-			  << std::endl
-			  << "Copyright (c) 2012-2013 Icinga Development Team (http://www.icinga.org)" << std::endl
-			  << "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl
-			  << "This is free software: you are free to change and redistribute it." << std::endl
-			  << "There is NO WARRANTY, to the extent permitted by law." << std::endl;
+			std::cout << std::endl
+				  << "Copyright (c) 2012-2013 Icinga Development Team (http://www.icinga.org)" << std::endl
+				  << "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl
+				  << "This is free software: you are free to change and redistribute it." << std::endl
+				  << "There is NO WARRANTY, to the extent permitted by law.";
+		}
+
+		std::cout << std::endl;
 
 		if (g_AppParams.count("version"))
 			return EXIT_SUCCESS;

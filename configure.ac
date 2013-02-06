@@ -46,6 +46,8 @@ DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN([icinga], [docs/Doxyfile], [docs/dev])
 
+AM_MISSING_PROG(HELP2MAN, help2man, $missing_dir)
+
 AC_PROG_INSTALL
 AC_PROG_LEX
 AC_PROG_YACC
