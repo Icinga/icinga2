@@ -36,7 +36,7 @@ String CompatComponent::GetStatusPath(void) const
 {
 	Value statusPath = GetConfig()->Get("status_path");
 	if (statusPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/cache/status.dat";
+		return Application::GetLocalStateDir() + "/cache/icinga2/status.dat";
 	else
 		return statusPath;
 }
@@ -50,7 +50,7 @@ String CompatComponent::GetObjectsPath(void) const
 {
 	Value objectsPath = GetConfig()->Get("objects_path");
 	if (objectsPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/cache/objects.cache";
+		return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache";
 	else
 		return objectsPath;
 }
@@ -384,6 +384,27 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
 	   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 	   << "\t" << "}" << "\n"
 	   << "\n";
+
+	Dictionary::Ptr dependencies = boost::make_shared<Dictionary>();
+	service->GetDependenciesRecursive(dependencies);
+
+	Value dependency;
+	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
+		Service::Ptr depService = Service::GetByName(dependency);
+
+		/* ignore ourselves */
+		if (depService->GetName() == service->GetName())
+			continue;
+
+		fp << "define servicedependency {" << "\n"
+		   << "\t" << "dependent_host_name" << "\t" << service->GetHost()->GetName() << "\n"
+		   << "\t" << "dependent_service_description" << "\t" << service->GetName() << "\n"
+		   << "\t" << "host_name" << "\t" << depService->GetHost()->GetName() << "\n"
+		   << "\t" << "service_description" << "\t" << depService->GetName() << "\n"
+		   << "\t" << "execution_failure_criteria" << "\t" << "n" << "\n"
+		   << "\t" << "}" << "\n"
+		   << "\n";
+	}
 }
 
 /**
