@@ -63,7 +63,7 @@ public:
 	 * Starts the async task. The caller must hold a reference to the AsyncTask
 	 * object until the completion callback is invoked.
 	 */
-	void Start(const CompletionCallback& completionCallback)
+	void Start(const CompletionCallback& completionCallback = CompletionCallback())
 	{
 		m_CompletionCallback = completionCallback;
 
@@ -128,6 +128,14 @@ public:
 		FinishInternal();
 	}
 
+	/**
+	 * Blocks until the task is completed.
+	 */
+	void Wait(void)
+	{
+		Utility::WaitUntil(boost::bind(&AsyncTask<TClass, TResult>::IsFinished, this));
+	}
+
 protected:
 	/**
 	 * Begins executing the task. The Run method must ensure
@@ -146,11 +154,14 @@ private:
 		assert(!m_Finished);
 
 		m_Finished = true;
-		m_CompletionCallback(GetSelf());
 
-		/* Clear callback because the bound function might hold a
-		 * reference to this task. */
-		m_CompletionCallback = CompletionCallback();
+		if (!m_CompletionCallback.empty()) {
+			m_CompletionCallback(GetSelf());
+
+			/* Clear callback because the bound function might hold a
+			 * reference to this task. */
+			m_CompletionCallback = CompletionCallback();
+		}
 	}
 
 	CompletionCallback m_CompletionCallback; /**< The completion callback. */

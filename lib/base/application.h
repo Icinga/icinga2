@@ -76,8 +76,10 @@ public:
 	static String GetPkgDataDir(void);
 	static void SetPkgDataDir(const String& path);
 
+	bool ProcessEvents(void) const;
+
 protected:
-	void RunEventLoop(void);
+	void RunEventLoop(void) const;
 
 private:
 	static Application *m_Instance; /**< The application instance. */

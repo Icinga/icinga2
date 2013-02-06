@@ -90,10 +90,31 @@ Application::Ptr Application::GetInstance(void)
 }
 
 /**
+ * Runs one iteration of the event loop.
+ *
+ * @returns false if we're shutting down, true otherwise.
+ */
+bool Application::ProcessEvents(void) const
+{
+	Object::ClearHeldObjects();
+
+	double sleep = Timer::ProcessTimers();
+
+	if (m_ShuttingDown)
+		return false;
+
+	Event::ProcessEvents(boost::posix_time::milliseconds(sleep * 1000));
+
+	DynamicObject::FlushTx();
+
+	return true;
+}
+
+/**
  * Processes events for registered sockets and timers and calls whatever
  * handlers have been set up for these events.
  */
-void Application::RunEventLoop(void)
+void Application::RunEventLoop(void) const
 {
 #ifdef _DEBUG
 	double nextProfile = 0;
@@ -104,16 +125,8 @@ void Application::RunEventLoop(void)
 	t.detach();
 
 	while (!m_ShuttingDown) {
-		Object::ClearHeldObjects();
-
-		double sleep = Timer::ProcessTimers();
-
-		if (m_ShuttingDown)
+		if (!ProcessEvents())
 			break;
-
-		Event::ProcessEvents(boost::posix_time::milliseconds(sleep * 1000));
-
-		DynamicObject::FlushTx();
 
 #ifdef _DEBUG
 		if (nextProfile < Utility::GetTime()) {

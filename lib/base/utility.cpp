@@ -499,3 +499,15 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 	return true;
 #endif /* _WIN32 */
 }
+
+/**
+ * Waits until the given predicate is true. Executes events while waiting.
+ *
+ * @param predicate The predicate.
+ */
+void Utility::WaitUntil(const function<bool (void)>& predicate)
+{
+	while (!predicate)
+		Application::GetInstance()->ProcessEvents();
+}
+
