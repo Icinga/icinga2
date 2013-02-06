@@ -60,7 +60,7 @@ void FIFO::ResizeBuffer(size_t newSize)
 	char *newBuffer = static_cast<char *>(realloc(m_Buffer, newSize));
 
 	if (newBuffer == NULL)
-		throw_exception(bad_alloc());
+		BOOST_THROW_EXCEPTION(bad_alloc());
 
 	m_Buffer = newBuffer;
 

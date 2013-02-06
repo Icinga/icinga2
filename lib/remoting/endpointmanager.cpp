@@ -104,7 +104,7 @@ void EndpointManager::AddListener(const String& service)
 	shared_ptr<SSL_CTX> sslContext = GetSSLContext();
 
 	if (!sslContext)
-		throw_exception(logic_error("SSL context is required for AddListener()"));
+		BOOST_THROW_EXCEPTION(logic_error("SSL context is required for AddListener()"));
 
 	stringstream s;
 	s << "Adding new listener: port " << service;
@@ -131,7 +131,7 @@ void EndpointManager::AddConnection(const String& node, const String& service) {
 	shared_ptr<SSL_CTX> sslContext = GetSSLContext();
 
 	if (!sslContext)
-		throw_exception(logic_error("SSL context is required for AddConnection()"));
+		BOOST_THROW_EXCEPTION(logic_error("SSL context is required for AddConnection()"));
 
 	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
 	client->Connect(node, service);
@@ -229,7 +229,7 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 {
 	String method;
 	if (!message.GetMethod(&method))
-		throw_exception(invalid_argument("Message is missing the 'method' property."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Message is missing the 'method' property."));
 
 	vector<Endpoint::Ptr> candidates;
 	DynamicObject::Ptr object;
@@ -273,11 +273,11 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
 {
 	String id;
 	if (message.GetID(&id))
-		throw_exception(invalid_argument("Multicast requests must not have an ID."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Multicast requests must not have an ID."));
 
 	String method;
 	if (!message.GetMethod(&method))
-		throw_exception(invalid_argument("Message is missing the 'method' property."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Message is missing the 'method' property."));
 
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
@@ -391,7 +391,7 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender,
 {
 	String id;
 	if (!message.GetID(&id))
-		throw_exception(invalid_argument("Response message must have a message ID."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Response message must have a message ID."));
 
 	map<String, PendingRequest>::iterator it;
 	it = m_Requests.find(id);

@@ -121,7 +121,7 @@ void Utility::Daemonize(void) {
 
 	pid = fork();
 	if (pid < 0)
-		throw_exception(PosixException("fork() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("fork() failed", errno));
 
 	if (pid)
 		_exit(0);
@@ -129,7 +129,7 @@ void Utility::Daemonize(void) {
 	fd = open("/dev/null", O_RDWR);
 
 	if (fd < 0)
-		throw_exception(PosixException("open() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("open() failed", errno));
 
 	if (fd != STDIN_FILENO)
 		dup2(fd, STDIN_FILENO);
@@ -144,7 +144,7 @@ void Utility::Daemonize(void) {
 		close(fd);
 
 	if (setsid() < 0)
-		throw_exception(PosixException("setsid() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("setsid() failed", errno));
 #endif
 }
 
@@ -179,19 +179,19 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(const String& pubkey, const String& 
 	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
 	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr()))
-		throw_exception(OpenSSLException("Could not load public X509 key file", ERR_get_error()));
+		BOOST_THROW_EXCEPTION(OpenSSLException("Could not load public X509 key file", ERR_get_error()));
 
 	if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.CStr(), SSL_FILETYPE_PEM))
-		throw_exception(OpenSSLException("Could not load private X509 key file", ERR_get_error()));
+		BOOST_THROW_EXCEPTION(OpenSSLException("Could not load private X509 key file", ERR_get_error()));
 
 	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), NULL))
-		throw_exception(OpenSSLException("Could not load public CA key file", ERR_get_error()));
+		BOOST_THROW_EXCEPTION(OpenSSLException("Could not load public CA key file", ERR_get_error()));
 
 	STACK_OF(X509_NAME) *cert_names;
 
 	cert_names = SSL_load_client_CA_file(cakey.CStr());
 	if (cert_names == NULL)
-		throw_exception(OpenSSLException("SSL_load_client_CA_file() failed", ERR_get_error()));
+		BOOST_THROW_EXCEPTION(OpenSSLException("SSL_load_client_CA_file() failed", ERR_get_error()));
 
 	SSL_CTX_set_client_CA_list(sslContext.get(), cert_names);
 
@@ -212,7 +212,7 @@ String Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 	    NID_commonName, buffer, sizeof(buffer));
 
 	if (rc == -1)
-		throw_exception(OpenSSLException("X509 certificate has no CN"
+		BOOST_THROW_EXCEPTION(OpenSSLException("X509 certificate has no CN"
 		    " attribute", ERR_get_error()));
 
 	return buffer;
@@ -230,16 +230,16 @@ shared_ptr<X509> Utility::GetX509Certificate(const String& pemfile)
 	BIO *fpcert = BIO_new(BIO_s_file());
 
 	if (fpcert == NULL)
-		throw_exception(OpenSSLException("BIO_new failed",
+		BOOST_THROW_EXCEPTION(OpenSSLException("BIO_new failed",
 		    ERR_get_error()));
 
 	if (BIO_read_filename(fpcert, pemfile.CStr()) < 0)
-		throw_exception(OpenSSLException("BIO_read_filename failed",
+		BOOST_THROW_EXCEPTION(OpenSSLException("BIO_read_filename failed",
 		    ERR_get_error()));
 
 	cert = PEM_read_bio_X509_AUX(fpcert, NULL, NULL, NULL);
 	if (cert == NULL)
-		throw_exception(OpenSSLException("PEM_read_bio_X509_AUX failed",
+		BOOST_THROW_EXCEPTION(OpenSSLException("PEM_read_bio_X509_AUX failed",
 		    ERR_get_error()));
 
 	BIO_free(fpcert);
@@ -271,14 +271,14 @@ String Utility::DirName(const String& path)
 	String result;
 
 	if (dir == NULL)
-		throw_exception(bad_alloc());
+		BOOST_THROW_EXCEPTION(bad_alloc());
 
 #ifndef _WIN32
 	result = dirname(dir);
 #else /* _WIN32 */
 	if (!PathRemoveFileSpec(dir)) {
 		free(dir);
-		throw_exception(Win32Exception("PathRemoveFileSpec() failed",
+		BOOST_THROW_EXCEPTION(Win32Exception("PathRemoveFileSpec() failed",
 		    GetLastError()));
 	}
 
@@ -305,7 +305,7 @@ String Utility::BaseName(const String& path)
 	String result;
 
 	if (dir == NULL)
-		throw_exception(bad_alloc());
+		BOOST_THROW_EXCEPTION(bad_alloc());
 
 #ifndef _WIN32
 	result = basename(dir);
@@ -356,7 +356,7 @@ double Utility::GetTime(void)
 	struct timeval tv;
 
 	if (gettimeofday(&tv, NULL) < 0)
-		throw_exception(PosixException("gettimeofday() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("gettimeofday() failed", errno));
 
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
 #endif /* _WIN32 */
@@ -418,12 +418,12 @@ Utility::LoadIcingaLibrary(const String& library, bool module)
 	HMODULE hModule = LoadLibrary(path.CStr());
 
 	if (hModule == NULL)
-		throw_exception(Win32Exception("LoadLibrary('" + path + "') failed", GetLastError()));
+		BOOST_THROW_EXCEPTION(Win32Exception("LoadLibrary('" + path + "') failed", GetLastError()));
 #else /* _WIN32 */
 	lt_dlhandle hModule = lt_dlopen(path.CStr());
 
 	if (hModule == NULL) {
-		throw_exception(runtime_error("Could not load library '" + path + "': " +  lt_dlerror()));
+		BOOST_THROW_EXCEPTION(runtime_error("Could not load library '" + path + "': " +  lt_dlerror()));
 	}
 #endif /* _WIN32 */
 
@@ -460,7 +460,7 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 		if (errorCode == ERROR_FILE_NOT_FOUND)
 			return false;
 
-		throw_exception(Win32Exception("FindFirstFile() failed", errorCode));
+		BOOST_THROW_EXCEPTION(Win32Exception("FindFirstFile() failed", errorCode));
 	}
 
 	do {
@@ -468,7 +468,7 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 	} while (FindNextFile(handle, &wfd));
 
 	if (!FindClose(handle))
-		throw_exception(Win32Exception("FindClose() failed", GetLastError()));
+		BOOST_THROW_EXCEPTION(Win32Exception("FindClose() failed", GetLastError()));
 
 	return true;
 #else /* _WIN32 */
@@ -480,7 +480,7 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 		if (rc == GLOB_NOMATCH)
 			return false;
 
-		throw_exception(PosixException("glob() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("glob() failed", errno));
 	}
 
 	if (gr.gl_pathc == 0) {
@@ -515,7 +515,7 @@ void Utility::WaitUntil(const function<bool (void)>& predicate)
 		 * (like spawning a process) until the application instance
 		 * has been initialized. */
 		if (!instance)
-			throw_exception(runtime_error("Waiting for predicate failed: Application instance is not initialized."));
+			BOOST_THROW_EXCEPTION(runtime_error("Waiting for predicate failed: Application instance is not initialized."));
 
 		instance->ProcessEvents();
 	}

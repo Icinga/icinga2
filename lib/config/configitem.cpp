@@ -125,7 +125,7 @@ void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
 			stringstream message;
 			message << "Parent object '" << name << "' does not"
 			    " exist (" << m_DebugInfo << ")";
-			throw_exception(domain_error(message.str()));
+			BOOST_THROW_EXCEPTION(domain_error(message.str()));
 		}
 
 		parent->InternalLink(dictionary);
@@ -169,7 +169,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	DynamicType::Ptr dtype = DynamicType::GetByName(GetType());
 
 	if (!dtype)
-		throw_exception(runtime_error("Type '" + GetType() + "' does not exist."));
+		BOOST_THROW_EXCEPTION(runtime_error("Type '" + GetType() + "' does not exist."));
 
 	if (!dobj)
 		dobj = dtype->GetObject(GetName());

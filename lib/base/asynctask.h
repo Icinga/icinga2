@@ -91,10 +91,10 @@ public:
 	TResult GetResult(void)
 	{
 		if (!m_Finished)
-			throw_exception(runtime_error("GetResult called on an unfinished AsyncTask"));
+			BOOST_THROW_EXCEPTION(runtime_error("GetResult called on an unfinished AsyncTask"));
 
 		if (m_ResultRetrieved)
-			throw_exception(runtime_error("GetResult called on an AsyncTask whose result was already retrieved."));
+			BOOST_THROW_EXCEPTION(runtime_error("GetResult called on an AsyncTask whose result was already retrieved."));
 
 		m_ResultRetrieved = true;
 

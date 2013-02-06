@@ -117,7 +117,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 			ScriptFunction::Ptr func = ScriptFunction::GetByName(validator);
 
 			if (!func)
-				throw_exception(invalid_argument("Validator function '" + validator + "' does not exist."));
+				BOOST_THROW_EXCEPTION(invalid_argument("Validator function '" + validator + "' does not exist."));
 
 			vector<Value> arguments;
 			arguments.push_back(LocationToString(locations));

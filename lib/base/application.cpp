@@ -37,7 +37,7 @@ Application::Application(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate), m_PidFile(NULL)
 {
 	if (!IsLocal())
-		throw_exception(runtime_error("Application objects must be local."));
+		BOOST_THROW_EXCEPTION(runtime_error("Application objects must be local."));
 
 #ifdef _WIN32
 	/* disable GUI-based error messages for LoadLibrary() */
@@ -45,7 +45,7 @@ Application::Application(const Dictionary::Ptr& serializedUpdate)
 
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
-		throw_exception(Win32Exception("WSAStartup failed", WSAGetLastError()));
+		BOOST_THROW_EXCEPTION(Win32Exception("WSAStartup failed", WSAGetLastError()));
 #endif /* _WIN32 */
 
 	char *debugging = getenv("_DEBUG");
@@ -205,7 +205,7 @@ String Application::GetExePath(const String& argv0)
 #ifndef _WIN32
 	char buffer[MAXPATHLEN];
 	if (getcwd(buffer, sizeof(buffer)) == NULL)
-		throw_exception(PosixException("getcwd failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("getcwd failed", errno));
 	String workingDirectory = buffer;
 
 	if (argv0[0] != '/')
@@ -240,20 +240,20 @@ String Application::GetExePath(const String& argv0)
 
 			if (!foundPath) {
 				executablePath.Clear();
-				throw_exception(runtime_error("Could not determine executable path."));
+				BOOST_THROW_EXCEPTION(runtime_error("Could not determine executable path."));
 			}
 		}
 	}
 
 	if (realpath(executablePath.CStr(), buffer) == NULL)
-		throw_exception(PosixException("realpath failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("realpath failed", errno));
 
 	return buffer;
 #else /* _WIN32 */
 	char FullExePath[MAXPATHLEN];
 
 	if (!GetModuleFileName(NULL, FullExePath, sizeof(FullExePath)))
-		throw_exception(Win32Exception("GetModuleFileName() failed", GetLastError()));
+		BOOST_THROW_EXCEPTION(Win32Exception("GetModuleFileName() failed", GetLastError()));
 
 	return FullExePath;
 #endif /* _WIN32 */
@@ -375,12 +375,8 @@ void Application::ExceptionHandler(void)
 	try {
 		throw;
 	} catch (const std::exception& ex) {
-		std::cerr << std::endl;
-		std::cerr << "Unhandled exception of type "
-			  << Utility::GetTypeName(typeid(ex))
-			  << std::endl;
-		std::cerr << "Diagnostic Information: "
-			  << ex.what()
+		std::cerr << std::endl
+			  << diagnostic_information(ex)
 			  << std::endl;
 	}
 
@@ -460,7 +456,7 @@ void Application::UpdatePidFile(const String& filename)
 	m_PidFile = fopen(filename.CStr(), "w");
 
 	if (m_PidFile == NULL)
-		throw_exception(runtime_error("Could not open PID file '" + filename + "'"));
+		BOOST_THROW_EXCEPTION(runtime_error("Could not open PID file '" + filename + "'"));
 
 #ifndef _WIN32
 	if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {

@@ -74,7 +74,7 @@ Value Value::FromJson(cJSON *json)
 	else if (json->type == cJSON_NULL)
 		return Value();
 	else
-		throw_exception(invalid_argument("Unsupported JSON type."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Unsupported JSON type."));
 }
 
 /**
@@ -126,7 +126,7 @@ cJSON *Value::ToJson(void) const
 	} else if (m_Value.type() == typeid(boost::blank)) {
 		return cJSON_CreateNull();
 	} else {
-		throw_exception(runtime_error("Invalid variant type."));
+		BOOST_THROW_EXCEPTION(runtime_error("Invalid variant type."));
 	}
 }
 
@@ -141,7 +141,7 @@ Value Value::Deserialize(const String& jsonString)
 	cJSON *json = cJSON_Parse(jsonString.CStr());
 
 	if (!json)
-		throw_exception(runtime_error("Invalid JSON String"));
+		BOOST_THROW_EXCEPTION(runtime_error("Invalid JSON String"));
 
 	Value value = FromJson(json);
 	cJSON_Delete(json);

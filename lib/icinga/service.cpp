@@ -87,7 +87,7 @@ Service::Ptr Service::GetByName(const String& name)
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Service", name);
 
 	if (!configObject)
-		throw_exception(invalid_argument("Service '" + name + "' does not exist."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Service '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<Service>(configObject);
 }
@@ -97,7 +97,7 @@ Host::Ptr Service::GetHost(void) const
 	String hostname = Get("host_name");
 
 	if (hostname.IsEmpty())
-		throw_exception(runtime_error("Service object is missing the 'host_name' property."));
+		BOOST_THROW_EXCEPTION(runtime_error("Service object is missing the 'host_name' property."));
 
 	return Host::GetByName(hostname);
 }
@@ -290,7 +290,7 @@ double Service::GetNextCheck(void)
 		value = Get("next_check");
 
 		if (value.IsEmpty())
-			throw_exception(runtime_error("Failed to schedule next check."));
+			BOOST_THROW_EXCEPTION(runtime_error("Failed to schedule next check."));
 	}
 
 	return value;
@@ -707,7 +707,7 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 	} catch (const exception& ex) {
 		stringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"
-		       << GetName() << "': " << ex.what();
+		       << GetName() << "': " << diagnostic_information(ex);
 		String message = msgbuf.str();
 
 		Logger::Write(LogWarning, "checker", message);

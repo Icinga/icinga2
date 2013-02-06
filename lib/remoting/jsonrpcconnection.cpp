@@ -57,7 +57,7 @@ void JsonRpcConnection::ProcessData(void)
 			Value value = Value::Deserialize(jsonString);
 
 			if (!value.IsObjectType<Dictionary>()) {
-				throw_exception(invalid_argument("JSON-RPC"
+				BOOST_THROW_EXCEPTION(invalid_argument("JSON-RPC"
 				    " message must be a dictionary."));
 			}
 
@@ -65,7 +65,7 @@ void JsonRpcConnection::ProcessData(void)
 		} catch (const exception& ex) {
 			Logger::Write(LogCritical, "remoting", "Exception"
 			    " while processing message from JSON-RPC client: " +
-			    String(ex.what()));
+			    diagnostic_information(ex));
 		}
 	}
 }

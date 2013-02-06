@@ -108,7 +108,7 @@ void CheckerComponent::CheckTimerHandler(void)
 		try {
 			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
 		} catch (const exception& ex) {
-			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + ex.what());
+			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + diagnostic_information(ex));
 		}
 
 		tasks++;

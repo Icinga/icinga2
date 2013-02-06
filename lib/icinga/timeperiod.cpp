@@ -48,7 +48,7 @@ TimePeriod::Ptr TimePeriod::GetByName(const String& name)
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("TimePeriod", name);
 
 	if (!configObject)
-		throw_exception(invalid_argument("TimePeriod '" + name + "' does not exist."));
+		BOOST_THROW_EXCEPTION(invalid_argument("TimePeriod '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<TimePeriod>(configObject);
 }

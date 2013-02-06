@@ -32,11 +32,11 @@ Logger::Logger(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
 	if (!IsLocal())
-		throw_exception(runtime_error("Logger objects must be local."));
+		BOOST_THROW_EXCEPTION(runtime_error("Logger objects must be local."));
 
 	String type = Get("type");
 	if (type.IsEmpty())
-		throw_exception(runtime_error("Logger objects must have a 'type' property."));
+		BOOST_THROW_EXCEPTION(runtime_error("Logger objects must have a 'type' property."));
 
 	ILogger::Ptr impl;
 
@@ -44,12 +44,12 @@ Logger::Logger(const Dictionary::Ptr& properties)
 #ifndef _WIN32
 		impl = boost::make_shared<SyslogLogger>();
 #else /* _WIN32 */
-		throw_exception(invalid_argument("Syslog is not supported on Windows."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Syslog is not supported on Windows."));
 #endif /* _WIN32 */
 	} else if (type == "file") {
 		String path = Get("path");
 		if (path.IsEmpty())
-			throw_exception(invalid_argument("'log' object of type 'file' must have a 'path' property"));
+			BOOST_THROW_EXCEPTION(invalid_argument("'log' object of type 'file' must have a 'path' property"));
 
 		StreamLogger::Ptr slogger = boost::make_shared<StreamLogger>();
 		slogger->OpenFile(path);
@@ -58,7 +58,7 @@ Logger::Logger(const Dictionary::Ptr& properties)
 	} else if (type == "console") {
 		impl = boost::make_shared<StreamLogger>(&std::cout);
 	} else {
-		throw_exception(runtime_error("Unknown log type: " + type));
+		BOOST_THROW_EXCEPTION(runtime_error("Unknown log type: " + type));
 	}
 
 	impl->m_Config = this;
@@ -150,7 +150,7 @@ String Logger::SeverityToString(LogSeverity severity)
 		case LogCritical:
 			return "critical";
 		default:
-			throw_exception(invalid_argument("Invalid severity."));
+			BOOST_THROW_EXCEPTION(invalid_argument("Invalid severity."));
 	}
 }
 
@@ -170,7 +170,7 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 	else if (severity == "critical")
 		return LogCritical;
 	else
-		throw_exception(invalid_argument("Invalid severity: " + severity));
+		BOOST_THROW_EXCEPTION(invalid_argument("Invalid severity: " + severity));
 }
 
 /**

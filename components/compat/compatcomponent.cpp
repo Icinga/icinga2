@@ -104,25 +104,25 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 			fifo_ok = true;
 		} else {
 			if (unlink(commandPath.CStr()) < 0)
-				throw_exception(PosixException("unlink() failed", errno));
+				BOOST_THROW_EXCEPTION(PosixException("unlink() failed", errno));
 		}
 	}
 
 
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0)
-		throw_exception(PosixException("mkfifo() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("mkfifo() failed", errno));
 
 	for (;;) {
 		int fd = open(commandPath.CStr(), O_RDONLY);
 
 		if (fd < 0)
-			throw_exception(PosixException("open() failed", errno));
+			BOOST_THROW_EXCEPTION(PosixException("open() failed", errno));
 
 		FILE *fp = fdopen(fd, "r");
 
 		if (fp == NULL) {
 			close(fd);
-			throw_exception(PosixException("fdopen() failed", errno));
+			BOOST_THROW_EXCEPTION(PosixException("fdopen() failed", errno));
 		}
 
 		char line[2048];
@@ -149,7 +149,7 @@ void CompatComponent::ProcessCommand(const String& command)
 		ExternalCommandProcessor::Execute(command);
 	} catch (const exception& ex) {
 		stringstream msgbuf;
-		msgbuf << "External command failed: " << ex.what();
+		msgbuf << "External command failed: " << diagnostic_information(ex);
 		Logger::Write(LogWarning, "compat", msgbuf.str());
 	}
 }
@@ -503,11 +503,11 @@ void CompatComponent::StatusTimerHandler(void)
 
 	statusfp.close();
 	if (rename(statuspathtmp.CStr(), statuspath.CStr()) < 0)
-		throw_exception(PosixException("rename() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));
 
 	objectfp.close();
 	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0)
-		throw_exception(PosixException("rename() failed", errno));	
+		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));	
 }
 
 EXPORT_COMPONENT(compat, CompatComponent);

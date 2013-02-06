@@ -152,7 +152,7 @@ void Process::InitTask(void)
 #endif /* _MSC_VER */
 
 	if (m_FP == NULL)
-		throw_exception(runtime_error("Could not create process."));
+		BOOST_THROW_EXCEPTION(runtime_error("Could not create process."));
 }
 
 bool Process::RunTask(void)

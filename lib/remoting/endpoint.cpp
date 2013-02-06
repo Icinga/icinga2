@@ -66,7 +66,7 @@ Endpoint::Ptr Endpoint::GetByName(const String& name)
         DynamicObject::Ptr configObject = DynamicObject::GetObject("Endpoint", name);
 
         if (!configObject)
-                throw_exception(invalid_argument("Endpoint '" + name + "' does not exist."));
+                BOOST_THROW_EXCEPTION(invalid_argument("Endpoint '" + name + "' does not exist."));
 
         return dynamic_pointer_cast<Endpoint>(configObject);
 }
@@ -224,7 +224,7 @@ void Endpoint::UnregisterTopicHandler(const String& topic, const function<Endpoi
 	//m_TopicHandlers[method] -= callback;
 	//UnregisterSubscription(method);
 
-	throw_exception(NotImplementedException());
+	BOOST_THROW_EXCEPTION(NotImplementedException());
 }
 
 void Endpoint::OnAttributeChanged(const String& name, const Value& oldValue)
@@ -324,7 +324,7 @@ void Endpoint::ClientClosedHandler(void)
 		GetClient()->CheckException();
 	} catch (const exception& ex) {
 		stringstream message;
-		message << "Error occured for JSON-RPC socket: Message=" << ex.what();
+		message << "Error occured for JSON-RPC socket: Message=" << diagnostic_information(ex);
 
 		Logger::Write(LogWarning, "jsonrpc", message.str());
 	}*/

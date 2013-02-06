@@ -46,7 +46,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 	switch (m_Operator) {
 		case OperatorExecute:
 			if (!valueExprl)
-				throw_exception(invalid_argument("Operand for OperatorExecute must be an ExpressionList."));
+				BOOST_THROW_EXCEPTION(invalid_argument("Operand for OperatorExecute must be an ExpressionList."));
 
 			valueExprl->Execute(dictionary);
 
@@ -74,7 +74,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 					    " += (non-dictionary and"
 					    " dictionary) ("
 					        << m_DebugInfo << ")";
-					throw_exception(domain_error(message.str()));
+					BOOST_THROW_EXCEPTION(domain_error(message.str()));
 				}
 
 				dict = boost::make_shared<Dictionary>();
@@ -94,13 +94,13 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				stringstream message;
 				message << "+= only works for dictionaries ("
 					<< m_DebugInfo << ")";
-				throw_exception(domain_error(message.str()));
+				BOOST_THROW_EXCEPTION(domain_error(message.str()));
 			}
 
 			break;
 
 		default:
-			throw_exception(runtime_error("Not yet implemented."));
+			BOOST_THROW_EXCEPTION(runtime_error("Not yet implemented."));
 	}
 
 	dictionary->Set(m_Key, newValue);
@@ -154,7 +154,7 @@ void Expression::DumpValue(ostream& fp, int indent, const Value& value, bool inl
 		return;
 	}
 
-	throw_exception(runtime_error("Encountered unknown type while dumping value."));
+	BOOST_THROW_EXCEPTION(runtime_error("Encountered unknown type while dumping value."));
 }
 
 void Expression::Dump(ostream& fp, int indent) const
@@ -177,7 +177,7 @@ void Expression::Dump(ostream& fp, int indent) const
 			fp << "+=";
 			break;
 		default:
-			throw_exception(runtime_error("Not yet implemented."));
+			BOOST_THROW_EXCEPTION(runtime_error("Not yet implemented."));
 	}
 
 	fp << " ";

@@ -255,7 +255,7 @@ int main(int argc, char **argv)
 	Application::Ptr app = Application::GetInstance();
 
 	if (!app)
-		throw_exception(runtime_error("Configuration must create an Application object."));
+		BOOST_THROW_EXCEPTION(runtime_error("Configuration must create an Application object."));
 
 	if (g_AppParams.count("daemonize")) {
 		Logger::Write(LogInformation, "icinga", "Daemonizing.");

@@ -90,19 +90,19 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	if (m_Type.IsEmpty()) {
 		stringstream msgbuf;
 		msgbuf << "The type name of an object may not be empty: " << m_DebugInfo;
-		throw_exception(invalid_argument(msgbuf.str()));
+		BOOST_THROW_EXCEPTION(invalid_argument(msgbuf.str()));
 	}
 
 	if (!DynamicType::GetByName(m_Type)) {
 		stringstream msgbuf;
 		msgbuf << "The type '" + m_Type + "' is unknown: " << m_DebugInfo;
-		throw_exception(invalid_argument(msgbuf.str()));
+		BOOST_THROW_EXCEPTION(invalid_argument(msgbuf.str()));
 	}
 
 	if (m_Name.IsEmpty()) {
 		stringstream msgbuf;
 		msgbuf << "The name of an object may not be empty: " << m_DebugInfo;
-		throw_exception(invalid_argument(msgbuf.str()));
+		BOOST_THROW_EXCEPTION(invalid_argument(msgbuf.str()));
 	}
 
 	ExpressionList::Ptr exprl = boost::make_shared<ExpressionList>();

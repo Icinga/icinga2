@@ -138,7 +138,7 @@ void ConfigCompiler::CompileFile(const String& path)
 	stream.open(path.CStr(), ifstream::in);
 
 	if (!stream)
-		throw_exception(invalid_argument("Could not open config file: " + path));
+		BOOST_THROW_EXCEPTION(invalid_argument("Could not open config file: " + path));
 
 	Logger::Write(LogInformation, "config", "Compiling config file: " + path);
 
@@ -195,7 +195,7 @@ void ConfigCompiler::HandleFileInclude(const String& include, bool search,
 	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFile, _1))) {
 		stringstream msgbuf;
 		msgbuf << "Include file '" + include + "' does not exist (or no files found for pattern): " << debuginfo;
-		throw_exception(invalid_argument(msgbuf.str()));
+		BOOST_THROW_EXCEPTION(invalid_argument(msgbuf.str()));
 	}
 }
 

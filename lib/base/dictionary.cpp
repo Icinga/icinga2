@@ -223,7 +223,7 @@ Dictionary::Ptr Dictionary::FromJson(cJSON *json)
 	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
 
 	if (json->type != cJSON_Object)
-		throw_exception(invalid_argument("JSON type must be cJSON_Object."));
+		BOOST_THROW_EXCEPTION(invalid_argument("JSON type must be cJSON_Object."));
 
 	for (cJSON *i = json->child; i != NULL; i = i->next) {
 		dictionary->Set(i->string, Value::FromJson(i));

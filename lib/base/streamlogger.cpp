@@ -54,7 +54,7 @@ void StreamLogger::OpenFile(const String& filename)
 		stream->open(filename.CStr(), fstream::out | fstream::trunc);
 
 		if (!stream->good())
-			throw_exception(runtime_error("Could not open logfile '" + filename + "'"));
+			BOOST_THROW_EXCEPTION(runtime_error("Could not open logfile '" + filename + "'"));
 	} catch (...) {
 		delete stream;
 		throw;

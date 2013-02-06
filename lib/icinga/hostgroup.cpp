@@ -56,7 +56,7 @@ HostGroup::Ptr HostGroup::GetByName(const String& name)
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("HostGroup", name);
 
 	if (!configObject)
-		throw_exception(invalid_argument("HostGroup '" + name + "' does not exist."));
+		BOOST_THROW_EXCEPTION(invalid_argument("HostGroup '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<HostGroup>(configObject);
 }

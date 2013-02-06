@@ -37,7 +37,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 	char *buffer = static_cast<char *>(malloc(buffer_length));
 
 	if (buffer == NULL)
-		throw_exception(bad_alloc());
+		BOOST_THROW_EXCEPTION(bad_alloc());
 
 	peek_length = stream->Peek(buffer, buffer_length);
 
@@ -50,7 +50,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 	/* no leading zeros allowed */
 	if (buffer[0] == '0' && isdigit(buffer[1])) {
 		free(buffer);
-		throw_exception(invalid_argument("Invalid netString (leading zero)"));
+		BOOST_THROW_EXCEPTION(invalid_argument("Invalid netString (leading zero)"));
 	}
 
 	size_t len, i;
@@ -60,7 +60,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 		/* length specifier must have at most 9 characters */
 		if (i >= 9) {
 			free(buffer);
-			throw_exception(invalid_argument("Length specifier must not exceed 9 characters"));
+			BOOST_THROW_EXCEPTION(invalid_argument("Length specifier must not exceed 9 characters"));
 		}
 
 		len = len * 10 + (buffer[i] - '0');
@@ -73,7 +73,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 
 	if (new_buffer == NULL) {
 		free(buffer);
-		throw_exception(bad_alloc());
+		BOOST_THROW_EXCEPTION(bad_alloc());
 	}
 
 	buffer = new_buffer;
@@ -86,13 +86,13 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 	/* check for the colon delimiter */
 	if (buffer[i] != ':') {
 		free(buffer);
-		throw_exception(invalid_argument("Invalid NetString (missing :)"));
+		BOOST_THROW_EXCEPTION(invalid_argument("Invalid NetString (missing :)"));
 	}
 
 	/* check for the comma delimiter after the String */
 	if (buffer[i + 1 + len] != ',') {
 		free(buffer);
-		throw_exception(invalid_argument("Invalid NetString (missing ,)"));
+		BOOST_THROW_EXCEPTION(invalid_argument("Invalid NetString (missing ,)"));
 	}
 
 	*str = String(&buffer[i + 1], &buffer[i + 1 + len]);

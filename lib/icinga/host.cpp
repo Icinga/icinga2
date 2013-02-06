@@ -76,7 +76,7 @@ Host::Ptr Host::GetByName(const String& name)
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Host", name);
 
 	if (!configObject)
-		throw_exception(invalid_argument("Host '" + name + "' does not exist."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Host '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<Host>(configObject);
 }
@@ -270,7 +270,7 @@ void Host::ObjectCommittedHandler(const ConfigItem::Ptr& item)
 
 				CopyServiceAttributes(host, service, builder);
 			} else {
-				throw_exception(invalid_argument("Service description must be either a string or a dictionary."));
+				BOOST_THROW_EXCEPTION(invalid_argument("Service description must be either a string or a dictionary."));
 			}
 
 			ConfigItem::Ptr serviceItem = builder->Compile();
@@ -410,10 +410,10 @@ void Host::ValidateServicesCache(void)
 void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
-		throw_exception(invalid_argument("Missing argument: Location must be specified."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Location must be specified."));
 
 	if (arguments.size() < 2)
-		throw_exception(invalid_argument("Missing argument: Attribute dictionary must be specified."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Attribute dictionary must be specified."));
 
 	String location = arguments[0];
 	Dictionary::Ptr attrs = arguments[1];

@@ -138,6 +138,7 @@ using std::type_info;
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/program_options.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
@@ -151,9 +152,9 @@ using boost::condition_variable;
 using boost::system_time;
 using boost::posix_time::millisec;
 using boost::tie;
-using boost::throw_exception;
 using boost::rethrow_exception;
 using boost::current_exception;
+using boost::diagnostic_information;
 
 namespace tuples = boost::tuples;
 

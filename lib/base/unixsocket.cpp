@@ -27,7 +27,7 @@ UnixSocket::UnixSocket(void)
 	int fd = socket(AF_UNIX, SOCK_STREAM, PF_UNIX);
 
 	if (fd < 0)
-		throw_exception(PosixException("socket() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("socket() failed", errno));
 
 	SetFD(fd);
 }
@@ -43,7 +43,7 @@ void UnixSocket::Bind(const String& path)
 	sun.sun_path[sizeof(sun.sun_path) - 1] = '\0';
 
 	if (bind(GetFD(), (sockaddr *)&sun, SUN_LEN(&sun)) < 0)
-		throw_exception(PosixException("bind() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("bind() failed", errno));
 }
 
 void UnixSocket::Connect(const String& path)
@@ -55,6 +55,6 @@ void UnixSocket::Connect(const String& path)
 	sun.sun_path[sizeof(sun.sun_path) - 1] = '\0';
 
 	if (connect(GetFD(), (sockaddr *)&sun, SUN_LEN(&sun)) < 0 && errno != EINPROGRESS)
-		throw_exception(PosixException("connect() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("connect() failed", errno));
 }
 #endif /* _WIN32 */

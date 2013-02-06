@@ -30,11 +30,11 @@ PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr
 void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
-		throw_exception(invalid_argument("Missing argument: Service must be specified."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Service must be specified."));
 
 	Value vservice = arguments[0];
 	if (!vservice.IsObjectType<DynamicObject>())
-		throw_exception(invalid_argument("Argument must be a config object."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Argument must be a config object."));
 
 	Service::Ptr service = static_cast<Service::Ptr>(vservice);
 

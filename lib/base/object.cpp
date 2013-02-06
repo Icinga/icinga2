@@ -116,7 +116,7 @@ void Object::PrintMemoryProfile(void)
 
 	dictfp.close();
 	if (rename("dictionaries.dump.tmp", "dictionaries.dump") < 0)
-		throw_exception(PosixException("rename() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));
 
 	String type;
 	int count;

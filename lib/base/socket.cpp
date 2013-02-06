@@ -74,10 +74,10 @@ void Socket::SetFD(SOCKET fd)
 		int flags;
 		flags = fcntl(fd, F_GETFL, 0);
 		if (flags < 0)
-			throw_exception(PosixException("fcntl failed", errno));
+			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
 		if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
-			throw_exception(PosixException("fcntl failed", errno));
+			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 #else /* F_GETFL */
 		unsigned long lTrue = 1;
 		ioctlsocket(fd, FIONBIO, &lTrue);
@@ -154,7 +154,7 @@ int Socket::GetLastSocketError(void)
  */
 void Socket::HandleException(void)
 {
-	throw_exception(SocketException("select() returned fd in except fdset", GetError()));
+	BOOST_THROW_EXCEPTION(SocketException("select() returned fd in except fdset", GetError()));
 }
 
 /**
@@ -169,7 +169,7 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 
 	if (getnameinfo(address, len, host, sizeof(host), service,
 	    sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0)
-		throw_exception(SocketException("getnameinfo() failed",
+		BOOST_THROW_EXCEPTION(SocketException("getnameinfo() failed",
 		    GetLastSocketError()));
 
 	stringstream s;
@@ -190,7 +190,7 @@ String Socket::GetClientAddress(void)
 	socklen_t len = sizeof(sin);
 
 	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0)
-		throw_exception(SocketException("getsockname() failed", GetError()));
+		BOOST_THROW_EXCEPTION(SocketException("getsockname() failed", GetError()));
 
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
 }
@@ -208,7 +208,7 @@ String Socket::GetPeerAddress(void)
 	socklen_t len = sizeof(sin);
 
 	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0)
-		throw_exception(SocketException("getpeername() failed", GetError()));
+		BOOST_THROW_EXCEPTION(SocketException("getpeername() failed", GetError()));
 
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
 }
@@ -269,7 +269,7 @@ void Socket::ReadThreadProc(void)
 
 		try {
 			if (rc < 0)
-				throw_exception(SocketException("select() failed", GetError()));
+				BOOST_THROW_EXCEPTION(SocketException("select() failed", GetError()));
 
 			if (FD_ISSET(fd, &readfds))
 				HandleReadable();
@@ -327,7 +327,7 @@ void Socket::WriteThreadProc(void)
 
 		try {
 			if (rc < 0)
-				throw_exception(SocketException("select() failed", GetError()));
+				BOOST_THROW_EXCEPTION(SocketException("select() failed", GetError()));
 
 			if (FD_ISSET(fd, &writefds))
 				HandleWritable();
@@ -446,7 +446,7 @@ void Socket::Write(const void *buffer, size_t size)
 void Socket::Listen(void)
 {
 	if (listen(GetFD(), SOMAXCONN) < 0)
-		throw_exception(SocketException("listen() failed", GetError()));
+		BOOST_THROW_EXCEPTION(SocketException("listen() failed", GetError()));
 
 	m_Listening = true;
 }
@@ -497,7 +497,7 @@ void Socket::HandleWritableClient(void)
 		rc = send(GetFD(), data, count, 0);
 
 		if (rc <= 0)
-			throw_exception(SocketException("send() failed", GetError()));
+			BOOST_THROW_EXCEPTION(SocketException("send() failed", GetError()));
 
 		{
 			boost::mutex::scoped_lock lock(m_QueueMutex);
@@ -528,7 +528,7 @@ void Socket::HandleReadableClient(void)
 			break;
 
 		if (rc <= 0)
-			throw_exception(SocketException("recv() failed", GetError()));
+			BOOST_THROW_EXCEPTION(SocketException("recv() failed", GetError()));
 
 		{
 			boost::mutex::scoped_lock lock(m_QueueMutex);
@@ -561,7 +561,7 @@ void Socket::HandleReadableServer(void)
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
 	if (fd < 0)
-		throw_exception(SocketException("accept() failed", GetError()));
+		BOOST_THROW_EXCEPTION(SocketException("accept() failed", GetError()));
 
 	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
 	client->SetFD(fd);

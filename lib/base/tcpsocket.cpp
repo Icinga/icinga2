@@ -52,7 +52,7 @@ void TcpSocket::Bind(String node, String service, int family)
 
 	if (getaddrinfo(node.IsEmpty() ? NULL : node.CStr(),
 	    service.CStr(), &hints, &result) < 0)
-		throw_exception(SocketException("getaddrinfo() failed", GetLastSocketError()));
+		BOOST_THROW_EXCEPTION(SocketException("getaddrinfo() failed", GetLastSocketError()));
 
 	int fd = INVALID_SOCKET;
 
@@ -91,7 +91,7 @@ void TcpSocket::Bind(String node, String service, int family)
 	freeaddrinfo(result);
 
 	if (fd == INVALID_SOCKET)
-		throw_exception(runtime_error("Could not create a suitable socket."));
+		BOOST_THROW_EXCEPTION(runtime_error("Could not create a suitable socket."));
 }
 
 /**
@@ -113,7 +113,7 @@ void TcpSocket::Connect(const String& node, const String& service)
 	int rc = getaddrinfo(node.CStr(), service.CStr(), &hints, &result);
 
 	if (rc < 0)
-		throw_exception(SocketException("getaddrinfo() failed", GetLastSocketError()));
+		BOOST_THROW_EXCEPTION(SocketException("getaddrinfo() failed", GetLastSocketError()));
 
 	int fd = INVALID_SOCKET;
 
@@ -149,5 +149,5 @@ void TcpSocket::Connect(const String& node, const String& service)
 	freeaddrinfo(result);
 
 	if (fd == INVALID_SOCKET)
-		throw_exception(runtime_error("Could not create a suitable socket."));
+		BOOST_THROW_EXCEPTION(runtime_error("Could not create a suitable socket."));
 }

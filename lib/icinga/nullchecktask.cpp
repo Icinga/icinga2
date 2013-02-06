@@ -26,7 +26,7 @@ REGISTER_SCRIPTFUNCTION("native::NullCheck",  &NullCheckTask::ScriptFunc);
 void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
-		throw_exception(invalid_argument("Missing argument: Service must be specified."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Service must be specified."));
 
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("state", StateUnknown);

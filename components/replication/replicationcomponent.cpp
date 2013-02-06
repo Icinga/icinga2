@@ -217,7 +217,7 @@ void ReplicationComponent::RemoteObjectUpdateHandler(const RequestMessage& reque
 		object->Register();
 	} else {
 		if (object->IsLocal())
-			throw_exception(invalid_argument("Replicated remote object is marked as local."));
+			BOOST_THROW_EXCEPTION(invalid_argument("Replicated remote object is marked as local."));
 
 		// TODO: disallow config updates depending on endpoint config
 

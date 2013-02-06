@@ -39,7 +39,7 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("methods", Attribute_Config);
 
 	if (!serializedObject->Contains("configTx"))
-		throw_exception(invalid_argument("Serialized object must contain a config snapshot."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Serialized object must contain a config snapshot."));
 
 	/* apply config state from the config item/remote update;
 	 * The DynamicObject::Create function takes care of restoring
@@ -173,7 +173,7 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 	Value oldValue;
 
 	if (!allowEditConfig && (tt.first->second.Type & Attribute_Config))
-		throw_exception(runtime_error("Config properties are immutable: '" + name + "'."));
+		BOOST_THROW_EXCEPTION(runtime_error("Config properties are immutable: '" + name + "'."));
 
 	if (!tt.second && tx >= tt.first->second.Tx) {
 		oldValue = tt.first->second.Data;
@@ -312,7 +312,7 @@ ScriptTask::Ptr DynamicObject::InvokeMethod(const String& method,
 	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
 
 	if (!func)
-		throw_exception(invalid_argument("Function '" + funcName + "' does not exist."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Function '" + funcName + "' does not exist."));
 
 	ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
 	task->Start(callback);
@@ -330,7 +330,7 @@ void DynamicObject::DumpObjects(const String& filename)
 	fp.open(tempFilename.CStr(), std::ios_base::out);
 
 	if (!fp)
-		throw_exception(runtime_error("Could not open '" + filename + "' file"));
+		BOOST_THROW_EXCEPTION(runtime_error("Could not open '" + filename + "' file"));
 
 	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
 	sfp->Start();
@@ -377,7 +377,7 @@ void DynamicObject::DumpObjects(const String& filename)
 #endif /* _WIN32 */
 
 	if (rename(tempFilename.CStr(), filename.CStr()) < 0)
-		throw_exception(PosixException("rename() failed", errno));
+		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));
 }
 
 void DynamicObject::RestoreObjects(const String& filename)
@@ -405,7 +405,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 		DynamicType::Ptr dt = DynamicType::GetByName(type);
 
 		if (!dt)
-			throw_exception(invalid_argument("Invalid type: " + type));
+			BOOST_THROW_EXCEPTION(invalid_argument("Invalid type: " + type));
 
 		DynamicObject::Ptr object = dt->GetObject(name);
 

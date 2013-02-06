@@ -237,7 +237,7 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
 {
 	stringstream message;
 	message << *locp << ": " << err;
-	throw_exception(runtime_error(message.str()));
+	ConfigCompilerContext::GetContext()->AddError(false, message.str());
 }
 
 int yyparse(ConfigCompiler *context);
@@ -257,7 +257,7 @@ void ConfigCompiler::Compile(void)
 	try {
 		yyparse(this);
 	} catch (const exception& ex) {
-		ConfigCompilerContext::GetContext()->AddError(false, ex.what());
+		ConfigCompilerContext::GetContext()->AddError(false, boost::diagnostic_information(ex));
 	}
 }
 
@@ -1671,7 +1671,7 @@ yyreduce:
 		
 		if (!m_Type) {
 			if ((yyvsp[(1) - (3)].num))
-				throw_exception(invalid_argument("partial type definition for unknown type '" + name + "'"));
+				BOOST_THROW_EXCEPTION(invalid_argument("Partial type definition for unknown type '" + name + "'"));
 
 			m_Type = boost::make_shared<ConfigType>(name, yylloc);
 			ConfigCompilerContext::GetContext()->AddType(m_Type);

@@ -32,7 +32,7 @@ String MacroProcessor::ResolveMacros(const String& str, const vector<Dictionary:
 		pos_second = result.FindFirstOf("$", pos_first + 1);
 
 		if (pos_second == String::NPos)
-			throw_exception(runtime_error("Closing $ not found in macro format String."));
+			BOOST_THROW_EXCEPTION(runtime_error("Closing $ not found in macro format String."));
 
 		String name = result.SubStr(pos_first + 1, pos_second - pos_first - 1);
 		String value;
@@ -51,7 +51,7 @@ String MacroProcessor::ResolveMacros(const String& str, const vector<Dictionary:
 		}
 
 		if (!resolved)
-			throw_exception(runtime_error("Macro '" + name + "' is not defined."));
+			BOOST_THROW_EXCEPTION(runtime_error("Macro '" + name + "' is not defined."));
 	}
 
 	return result;

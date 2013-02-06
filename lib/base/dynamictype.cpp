@@ -74,7 +74,7 @@ DynamicObject::Ptr DynamicType::GetObject(const String& name) const
 void DynamicType::RegisterType(const DynamicType::Ptr& type)
 {
 	if (GetByName(type->GetName()))
-		throw_exception(runtime_error("Cannot register class for type '" +
+		BOOST_THROW_EXCEPTION(runtime_error("Cannot register class for type '" +
 		    type->GetName() + "': Objects of this type already exist."));
 
 	GetTypes()[type->GetName()] = type;

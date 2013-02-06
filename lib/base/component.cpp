@@ -32,7 +32,7 @@ Component::Component(const Dictionary::Ptr& properties)
 	assert(Application::IsMainThread());
 
 	if (!IsLocal())
-		throw_exception(runtime_error("Component objects must be local."));
+		BOOST_THROW_EXCEPTION(runtime_error("Component objects must be local."));
 
 #ifdef _WIN32
 	HMODULE
@@ -63,14 +63,14 @@ Component::Component(const Dictionary::Ptr& properties)
 
 	try {
 		if (pCreateComponent == NULL)
-			throw_exception(runtime_error("Loadable module does not contain "
+			BOOST_THROW_EXCEPTION(runtime_error("Loadable module does not contain "
 			    "CreateComponent function"));
 
 		/* pCreateComponent returns a raw pointer which we must wrap in a shared_ptr */
 		impl = IComponent::Ptr(pCreateComponent());
 
 		if (!impl)
-			throw_exception(runtime_error("CreateComponent function returned NULL."));
+			BOOST_THROW_EXCEPTION(runtime_error("CreateComponent function returned NULL."));
 	} catch (...) {
 #ifdef _WIN32
 		FreeLibrary(hModule);
