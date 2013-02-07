@@ -53,3 +53,21 @@ BOOST_AUTO_TEST_CASE(unnamed)
 
 	BOOST_REQUIRE(distance(dictionary->Begin(), dictionary->End()) == 3);
 }
+
+BOOST_AUTO_TEST_CASE(unnamed_order)
+{
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+
+	for (int i = 0; i < 1000; i++)
+		dictionary->Add(i);
+
+	/* unnamed items are guaranteed to be in whatever order they were
+	 * inserted in. */
+	String key;
+	Value value;
+	int i = 0;
+	BOOST_FOREACH(tie(key, value), dictionary) {
+		BOOST_REQUIRE(value == i);
+		i++;
+	}
+}

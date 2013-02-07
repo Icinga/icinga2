@@ -115,7 +115,7 @@ String Dictionary::Add(const Value& value)
 	long index = GetLength();
 	do {
 		stringstream s;
-		s << "_" << index;
+		s << "_" << std::hex << std::setw(8) << std::setfill('0') << index;
 		index++;
 
 		key = s.str();
