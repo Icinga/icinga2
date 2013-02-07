@@ -56,6 +56,20 @@ String CompatComponent::GetObjectsPath(void) const
 }
 
 /**
+ * Retrieves the log path.
+ *
+ * @returns log path
+ */
+String CompatComponent::GetLogPath(void) const
+{
+	Value logPath = GetConfig()->Get("log_path");
+	if (logPath.IsEmpty())
+		return Application::GetLocalStateDir() + "/log/icinga2/compat";
+	else
+		return logPath;
+}
+
+/**
  * Retrieves the icinga.cmd path.
  *
  * @returns icinga.cmd path

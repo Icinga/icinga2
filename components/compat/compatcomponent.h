@@ -44,6 +44,7 @@ private:
 
 	String GetStatusPath(void) const;
 	String GetObjectsPath(void) const;
+	String GetLogPath(void) const;
 	String GetCommandPath(void) const;
 
 	void DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owner);
