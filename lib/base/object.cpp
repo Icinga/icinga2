@@ -27,8 +27,8 @@ using namespace icinga;
 Object::Object(void)
 {
 #ifdef _DEBUG
-	boost::mutex::scoped_lock lock(GetMutex());
-	GetAliveObjects().insert(this);
+	boost::mutex::scoped_lock lock(*GetMutex());
+	GetAliveObjects()->insert(this);
 #endif /* _DEBUG */
 }
 
@@ -38,8 +38,8 @@ Object::Object(void)
 Object::~Object(void)
 {
 #ifdef _DEBUG
-	boost::mutex::scoped_lock lock(GetMutex());
-	GetAliveObjects().erase(this);
+	boost::mutex::scoped_lock lock(*GetMutex());
+	GetAliveObjects()->erase(this);
 #endif /* _DEBUG */
 }
 
@@ -50,7 +50,7 @@ Object::~Object(void)
  */
 void Object::Hold(void)
 {
-	boost::mutex::scoped_lock lock(GetMutex());
+	boost::mutex::scoped_lock lock(*GetMutex());
 	GetHeldObjects().push_back(GetSelf());
 }
 
@@ -59,7 +59,7 @@ void Object::Hold(void)
  */
 void Object::ClearHeldObjects(void)
 {
-	boost::mutex::scoped_lock lock(GetMutex());
+	boost::mutex::scoped_lock lock(*GetMutex());
 	GetHeldObjects().clear();
 }
 
@@ -81,8 +81,8 @@ Object::SharedPtrHolder Object::GetSelf(void)
  */
 int Object::GetAliveObjectsCount(void)
 {
-	boost::mutex::scoped_lock lock(GetMutex());
-	return GetAliveObjects().size();
+	boost::mutex::scoped_lock lock(*GetMutex());
+	return GetAliveObjects()->size();
 }
 
 /**
@@ -95,9 +95,9 @@ void Object::PrintMemoryProfile(void)
 	ofstream dictfp("dictionaries.dump.tmp");
 
 	{
-		boost::mutex::scoped_lock lock(GetMutex());
+		boost::mutex::scoped_lock lock(*GetMutex());
 		set<Object *>::iterator it;
-		BOOST_FOREACH(Object *obj, GetAliveObjects()) {
+		BOOST_FOREACH(Object *obj, *GetAliveObjects()) {
 			pair<map<String, int>::iterator, bool> tt;
 			tt = types.insert(make_pair(Utility::GetTypeName(typeid(*obj)), 1));
 			if (!tt.second)
@@ -130,9 +130,9 @@ void Object::PrintMemoryProfile(void)
  *
  * @returns currently active objects
  */
-set<Object *>& Object::GetAliveObjects(void)
+set<Object *> *Object::GetAliveObjects(void)
 {
-	static set<Object *> aliveObjects;
+	static set<Object *> *aliveObjects = new set<Object *>();
 	return aliveObjects;
 }
 #endif /* _DEBUG */
@@ -142,9 +142,9 @@ set<Object *>& Object::GetAliveObjects(void)
  *
  * @returns a mutex
  */
-boost::mutex& Object::GetMutex(void)
+boost::mutex *Object::GetMutex(void)
 {
-	static boost::mutex mutex;
+	static boost::mutex *mutex = new boost::mutex();
 	return mutex;
 }
 

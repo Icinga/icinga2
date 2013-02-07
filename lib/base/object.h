@@ -109,8 +109,8 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	static boost::mutex& GetMutex(void);
-	static set<Object *>& GetAliveObjects(void);
+	static boost::mutex *GetMutex(void);
+	static set<Object *> *GetAliveObjects(void);
 	static vector<Object::Ptr>& GetHeldObjects(void);
 };
 
