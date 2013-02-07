@@ -8,7 +8,7 @@ using namespace icinga;
 BOOST_AUTO_TEST_CASE(construct)
 {
 	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	BOOST_REQUIRE(dictionary);
+	BOOST_CHECK(dictionary);
 }
 
 BOOST_AUTO_TEST_CASE(getproperty)
@@ -19,15 +19,15 @@ BOOST_AUTO_TEST_CASE(getproperty)
 
 	Value test1;
 	test1 = dictionary->Get("test1");
-	BOOST_REQUIRE(test1 == 7);
+	BOOST_CHECK(test1 == 7);
 
 	Value test2;
 	test2 = dictionary->Get("test2");
-	BOOST_REQUIRE(test2 == "hello world");
+	BOOST_CHECK(test2 == "hello world");
 
 	Value test3;
 	test3 = dictionary->Get("test3");
-	BOOST_REQUIRE(test3.IsEmpty());
+	BOOST_CHECK(test3.IsEmpty());
 }
 
 BOOST_AUTO_TEST_CASE(getproperty_dict)
@@ -38,10 +38,10 @@ BOOST_AUTO_TEST_CASE(getproperty_dict)
 	dictionary->Set("test1", other);
 
 	Dictionary::Ptr test1 = dictionary->Get("test1");
-	BOOST_REQUIRE(other == test1);
+	BOOST_CHECK(other == test1);
 
 	Dictionary::Ptr test2 = dictionary->Get("test2");
-	BOOST_REQUIRE(!test2);
+	BOOST_CHECK(!test2);
 }
 
 BOOST_AUTO_TEST_CASE(unnamed)
@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(unnamed)
 	dictionary->Add("test2");
 	dictionary->Add("test3");
 
-	BOOST_REQUIRE(distance(dictionary->Begin(), dictionary->End()) == 3);
+	BOOST_CHECK(distance(dictionary->Begin(), dictionary->End()) == 3);
 }
 
 BOOST_AUTO_TEST_CASE(unnamed_order)
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(unnamed_order)
 	Value value;
 	int i = 0;
 	BOOST_FOREACH(tie(tuples::ignore, value), dictionary) {
-		BOOST_REQUIRE(value == i);
+		BOOST_CHECK(value == i);
 		i++;
 	}
 }
