@@ -101,7 +101,7 @@ fi
 
 (help2man --version) < /dev/null > /dev/null 2>&1 || {
   echo
-  echo "**Error**: You must have \`html2man' installed."
+  echo "**Error**: You must have \`help2man' installed."
   echo "You can get it from: ftp://ftp.gnu.org/pub/gnu/"
   DIE=1
 }
