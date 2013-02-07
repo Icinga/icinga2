@@ -63,10 +63,9 @@ BOOST_AUTO_TEST_CASE(unnamed_order)
 
 	/* unnamed items are guaranteed to be in whatever order they were
 	 * inserted in. */
-	String key;
 	Value value;
 	int i = 0;
-	BOOST_FOREACH(tie(key, value), dictionary) {
+	BOOST_FOREACH(tie(tuples::ignore, value), dictionary) {
 		BOOST_REQUIRE(value == i);
 		i++;
 	}
