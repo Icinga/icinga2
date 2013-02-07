@@ -1,14 +1,10 @@
 .PHONY: clean
 
 EXTRA_DIST = \
-	icinga2-config.txt \
-	icinga2-intro.txt \
 	icinga2.8
 
 icinga2docdir = ${docdir}
-icinga2doc_DATA = \
-	icinga2-config.html \
-	icinga2-intro.html
+icinga2doc_DATA =
 
 man1_MANS = \
 	icinga2.8
@@ -16,6 +12,14 @@ man1_MANS = \
 .SUFFIXES = .html .txt
 
 if AD_COND_doc
+EXTRA_DIST += \
+	icinga2-config.txt \
+	icinga2-intro.txt 
+
+icinga2doc_DATA += \
+	icinga2-config.html \
+	icinga2-intro.html
+
 .txt.html:
 	$(AD_ENV) $(AD_ASCIIDOC) -a toc -a numbered $<
 endif AD_COND_doc
