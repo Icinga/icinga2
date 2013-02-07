@@ -16,7 +16,28 @@
  * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
- 
-local object Component "checker" {}
-local object Component "delegation" {}
-local object Component "notification" {}
+
+#ifndef NOTIFICATIONCOMPONENT_H
+#define NOTIFICATIONCOMPONENT_H
+
+namespace icinga
+{
+
+/**
+ * @ingroup notification
+ */
+class NotificationComponent : public IComponent
+{
+public:
+	virtual void Start(void);
+	virtual void Stop(void);
+
+private:
+	Timer::Ptr m_NotificationTimer;
+
+	void NotificationTimerHandler(void);
+};
+
+}
+
+#endif /* NOTIFICATIONCOMPONENT_H */

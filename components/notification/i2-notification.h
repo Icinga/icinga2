@@ -16,7 +16,20 @@
  * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
- 
-local object Component "checker" {}
-local object Component "delegation" {}
-local object Component "notification" {}
+
+#ifndef I2NOTIFICATION_H
+#define I2NOTIFICATION_H
+
+/**
+ * @defgroup notification Notification component
+ *
+ * The notification component is in charge of sending downtime notifications.
+ */
+
+#include <i2-base.h>
+#include <i2-remoting.h>
+#include <i2-icinga.h>
+
+#include "notificationcomponent.h"
+
+#endif /* I2NOTIFICATION_H */

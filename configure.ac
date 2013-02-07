@@ -100,6 +100,7 @@ components/compat/Makefile
 components/compatido/Makefile
 components/delegation/Makefile
 components/demo/Makefile
+components/notification/Makefile
 components/replication/Makefile
 docs/Doxyfile
 docs/Makefile

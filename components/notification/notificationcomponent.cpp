@@ -16,7 +16,37 @@
  * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
- 
-local object Component "checker" {}
-local object Component "delegation" {}
-local object Component "notification" {}
+
+#include "i2-notification.h"
+
+using namespace icinga;
+
+/**
+ * Starts the component.
+ */
+void NotificationComponent::Start(void)
+{
+	m_NotificationTimer = boost::make_shared<Timer>();
+	m_NotificationTimer->SetInterval(5);
+	m_NotificationTimer->OnTimerExpired.connect(boost::bind(&NotificationComponent::NotificationTimerHandler, this));
+	m_NotificationTimer->Start();
+}
+
+/**
+ * Stops the component.
+ */
+void NotificationComponent::Stop(void)
+{
+}
+
+/**
+ * Periodically sends a notification::HelloWorld message.
+ *
+ * @param - Event arguments for the timer.
+ */
+void NotificationComponent::NotificationTimerHandler(void)
+{
+	// TODO: implement
+}
+
+EXPORT_COMPONENT(notification, NotificationComponent);

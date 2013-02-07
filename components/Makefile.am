@@ -7,4 +7,5 @@ SUBDIRS = \
 	compatido \
 	delegation \
 	demo \
+	notification \
 	replication

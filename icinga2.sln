@@ -16,6 +16,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demo", "components\demo\dem
 		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8} = {C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "notification", "components\notification\notification.vcxproj", "{ebea7d10-66fb-4760-8aa8-81cd500d899e}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8} = {C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cJSON", "third-party\cJSON\cJSON.vcxproj", "{66BED474-C33F-48F9-90BA-BBCFEDC006B8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmatch", "third-party\mmatch\mmatch.vcxproj", "{19CBCE06-3F5C-479A-BD75-E2AB6215D345}"
