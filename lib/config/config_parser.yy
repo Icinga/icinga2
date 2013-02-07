@@ -249,6 +249,7 @@ attributes T_OBJECT identifier T_STRING
 		m_Item = boost::make_shared<ConfigItemBuilder>(yylloc);
 		m_Item->SetType($4);
 		m_Item->SetName($5);
+		m_Item->SetUnit(ConfigCompilerContext::GetContext()->GetUnit());
 	}
 object_inherits_specifier expressionlist
 	{
