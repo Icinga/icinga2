@@ -4,7 +4,7 @@
 #
 # SYNOPSIS
 #
-#   AD_INIT_ASCIIDOC(PROJECT-NAME, DOXYFILE-PATH, [OUTPUT-DIR])
+#   AD_INIT_ASCIIDOC(PROJECT-NAME, [OUTPUT-DIR])
 #   AD_ASCIIDOC_FEATURE(ON|OFF)
 #
 # DESCRIPTION
@@ -122,15 +122,14 @@ fi
 # -----------------------------
 AC_DEFUN([AD_ASCIIDOC_FEATURE], [AC_DEFUN([AD_FEATURE_asciidoc],  [$1])])
 
-# AD_INIT_ASCIIDOC(PROJECT, [CONFIG-FILE], [OUTPUT-DOC-DIR])
+# AD_INIT_ASCIIDOC(PROJECT, [OUTPUT-DOC-DIR])
 # ---------------------------------------------------------
 # PROJECT also serves as the base name for the documentation files.
 AC_DEFUN([AD_INIT_ASCIIDOC], [
 
 # Files:
 AC_SUBST([AD_PROJECT], [$1])
-AC_SUBST([AD_CONFIG], [ifelse([$2], [], [], [$2])])
-AC_SUBST([AD_DOCDIR], [ifelse([$3], [], docs, [$3])])
+AC_SUBST([AD_DOCDIR], [ifelse([$2], [], docs, [$2])])
 
 # Asciidoc itself:
 AD_ARG_ABLE(doc, [generate any asciidoc documentation],
