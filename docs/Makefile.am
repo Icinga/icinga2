@@ -15,8 +15,10 @@ man1_MANS = \
 
 .SUFFIXES = .html .txt
 
+if AD_COND_doc
 .txt.html:
-	asciidoc -a toc -a numbered $<
+	$(AD_ENV) $(AD_ASCIIDOC) -a toc -a numbered $<
+endif AD_COND_doc
 
 icinga2.8: $(top_srcdir)/icinga-app/icinga2
 	-$(HELP2MAN) --name='The Icinga 2 networking monitoring daemon.' --section=8 --no-info --output=$@ $(top_srcdir)/icinga-app/icinga2
