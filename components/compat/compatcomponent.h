@@ -23,6 +23,12 @@
 namespace icinga
 {
 
+enum CompatStateType
+{
+	CompatStateService,
+	CompatStateHost
+};
+
 /**
  * @ingroup compat
  */
@@ -51,6 +57,8 @@ private:
 	void DumpComments(ofstream& fp, const DynamicObject::Ptr& owner);
 	void DumpHostStatus(ofstream& fp, const Host::Ptr& host);
 	void DumpHostObject(ofstream& fp, const Host::Ptr& host);
+
+	void DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatStateType type);
 
 	template<typename T>
 	void DumpNameList(ofstream& fp, const T& list)

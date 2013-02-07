@@ -81,10 +81,13 @@ public:
 	long GetMaxCheckAttempts(void) const;
 	long GetCheckInterval(void) const;
 	long GetRetryInterval(void) const;
-	Dictionary::Ptr GetDependencies(void) const;
-	void GetDependenciesRecursive(const Dictionary::Ptr& result) const;
+	Dictionary::Ptr GetHostDependencies(void) const;
+	Dictionary::Ptr GetServiceDependencies(void) const;
 	Dictionary::Ptr GetGroups(void) const;
 	Dictionary::Ptr GetCheckers(void) const;
+
+	set<Host::Ptr> GetParentHosts(void) const;
+	set<Service::Ptr> GetParentServices(void) const;
 
 	bool IsReachable(void) const;
 	bool IsInDowntime(void) const;
@@ -93,7 +96,7 @@ public:
 	void SetSchedulingOffset(long offset);
 
 	void SetFirstCheck(bool first);
-	bool GetFirstCheck(void) const;	
+	bool GetFirstCheck(void) const;
 
 	void SetNextCheck(double nextCheck);
 	double GetNextCheck(void);

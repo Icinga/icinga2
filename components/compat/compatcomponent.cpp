@@ -278,21 +278,14 @@ void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 		state = 0; /* up */
 
 	fp << "hoststatus {" << "\n"
-	   << "\t" << "host_name=" << host->GetName() << "\n"
-	   << "\t" << "has_been_checked=1" << "\n"
-	   << "\t" << "should_be_scheduled=1" << "\n"
-	   << "\t" << "check_execution_time=0" << "\n"
-	   << "\t" << "check_latency=0" << "\n"
-	   << "\t" << "current_state=" << state << "\n"
-	   << "\t" << "state_type=1" << "\n"
-	   << "\t" << "last_check=" << Utility::GetTime() << "\n"
-	   << "\t" << "next_check=" << Utility::GetTime() << "\n"
-	   << "\t" << "current_attempt=1" << "\n"
-	   << "\t" << "max_attempts=1" << "\n"
-	   << "\t" << "active_checks_enabled=1" << "\n"
-	   << "\t" << "passive_checks_enabled=1" << "\n"
-	   << "\t" << "last_update=" << Utility::GetTime() << "\n"
-	   << "\t" << "problem_has_been_acknowledged=" << (host->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
+	   << "\t" << "host_name=" << host->GetName() << "\n";
+
+	Service::Ptr hostcheck = host->GetHostCheckService();
+
+	if (hostcheck)
+		DumpServiceStatusAttrs(fp, hostcheck, CompatStateHost);
+
+	fp << "\t" << "problem_has_been_acknowledged=" << (host->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
 	   << "\t" << "acknowledgement_type=" << static_cast<int>(host->GetAcknowledgement()) << "\n"
 	   << "\t" << "acknowledgement_end_time=" << host->GetAcknowledgementExpiry() << "\n"
 	   << "\t" << "scheduled_downtime_depth=" << (host->IsInDowntime() ? 1 : 0) << "\n"
@@ -314,7 +307,7 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
 	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n";
 
-	set<Host::Ptr> parents = host->GetParents();
+	set<Host::Ptr> parents = host->GetParentHosts();
 
 	if (!parents.empty()) {
 		fp << "\t" << "parents" << "\t";
@@ -326,7 +319,7 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 	   << "\n";
 }
 
-void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& service)
+void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatStateType type)
 {
 	String output;
 	String perfdata;
@@ -351,10 +344,17 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	if (state > StateUnknown)
 		state = StateUnknown;
 
-	fp << "servicestatus {" << "\n"
-	   << "\t" << "host_name=" << service->GetHost()->GetName() << "\n"
-	   << "\t" << "service_description=" << service->GetName() << "\n"
-	   << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
+	if (type == CompatStateHost) {
+		if (state == StateOK || state == StateWarning)
+			state = 0;
+		else
+			state = 1;
+
+		if (!service->GetHost()->IsReachable())
+			state = 2;
+	}
+
+	fp << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
 	   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
 	   << "\t" << "should_be_scheduled=1" << "\n"
@@ -372,8 +372,18 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	   << "\t" << "last_hard_state_change=" << service->GetLastHardStateChange() << "\n"
 	   << "\t" << "last_update=" << time(NULL) << "\n"
 	   << "\t" << "active_checks_enabled=" << (service->GetEnableActiveChecks() ? 1 : 0) <<"\n"
-	   << "\t" << "passive_checks_enabled=" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
-	   << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
+	   << "\t" << "passive_checks_enabled=" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n";
+}
+
+void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& service)
+{
+	fp << "servicestatus {" << "\n"
+	   << "\t" << "host_name=" << service->GetHost()->GetName() << "\n"
+	   << "\t" << "service_description=" << service->GetName() << "\n";
+
+	DumpServiceStatusAttrs(fp, service, CompatStateService);
+
+	fp << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
 	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
 	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
 	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
@@ -399,23 +409,14 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
 	   << "\t" << "}" << "\n"
 	   << "\n";
 
-	Dictionary::Ptr dependencies = boost::make_shared<Dictionary>();
-	service->GetDependenciesRecursive(dependencies);
-
-	Value dependency;
-	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-		Service::Ptr depService = Service::GetByName(dependency);
-
-		/* ignore ourselves */
-		if (depService->GetName() == service->GetName())
-			continue;
-
+	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
 		fp << "define servicedependency {" << "\n"
 		   << "\t" << "dependent_host_name" << "\t" << service->GetHost()->GetName() << "\n"
 		   << "\t" << "dependent_service_description" << "\t" << service->GetName() << "\n"
-		   << "\t" << "host_name" << "\t" << depService->GetHost()->GetName() << "\n"
-		   << "\t" << "service_description" << "\t" << depService->GetName() << "\n"
+		   << "\t" << "host_name" << "\t" << parent->GetHost()->GetName() << "\n"
+		   << "\t" << "service_description" << "\t" << parent->GetName() << "\n"
 		   << "\t" << "execution_failure_criteria" << "\t" << "n" << "\n"
+		   << "\t" << "notification_failure_criteria" << "\t" << "w,u,c" << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}
@@ -543,7 +544,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 	objectfp.close();
 	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));	
+		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));
 }
 
 EXPORT_COMPONENT(compat, CompatComponent);

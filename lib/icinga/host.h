@@ -27,7 +27,7 @@ class Service;
 
 /**
  * An Icinga host.
- * 
+ *
  * @ingroup icinga
  */
 class I2_ICINGA_API Host : public DynamicObject
@@ -45,10 +45,12 @@ public:
 	String GetAlias(void) const;
 	Dictionary::Ptr GetGroups(void) const;
 
-	set<Host::Ptr> GetParents(void);
 	Dictionary::Ptr GetMacros(void) const;
 	Dictionary::Ptr GetDowntimes(void) const;
 	Dictionary::Ptr GetComments(void) const;
+	Dictionary::Ptr GetHostDependencies(void) const;
+	Dictionary::Ptr GetServiceDependencies(void) const;
+	String GetHostCheck(void) const;
 
 	AcknowledgementType GetAcknowledgement(void);
 	void SetAcknowledgement(AcknowledgementType acknowledgement);
@@ -56,9 +58,15 @@ public:
 	double GetAcknowledgementExpiry(void) const;
 	void SetAcknowledgementExpiry(double timestamp);
 
+	shared_ptr<Service> GetHostCheckService(void) const;
+	set<Host::Ptr> GetParentHosts(void) const;
+	set<shared_ptr<Service> > GetParentServices(void) const;
+
 	bool IsReachable(void);
 	bool IsInDowntime(void) const;
 	bool IsUp(void);
+
+	shared_ptr<Service> ResolveService(const String& name) const;
 
 	set<shared_ptr<Service> > GetServices(void) const;
 	static void InvalidateServicesCache(void);

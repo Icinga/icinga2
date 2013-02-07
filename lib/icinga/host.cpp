@@ -86,31 +86,6 @@ Dictionary::Ptr Host::GetGroups(void) const
 	return Get("hostgroups");
 }
 
-set<Host::Ptr> Host::GetParents(void)
-{
-	set<Host::Ptr> parents;
-
-	Dictionary::Ptr dependencies = Get("dependencies");
-	if (dependencies) {
-		dependencies = Service::ResolveDependencies(GetSelf(), dependencies);
-
-		Value dependency;
-		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-			Service::Ptr service = Service::GetByName(dependency);
-
-			Host::Ptr parent = service->GetHost();
-
-			/* ignore ourselves */
-			if (parent->GetName() == GetName())
-				continue;
-
-			parents.insert(parent);
-		}
-	}
-
-	return parents;
-}
-
 Dictionary::Ptr Host::GetMacros(void) const
 {
 	return Get("macros");
@@ -130,21 +105,46 @@ Dictionary::Ptr Host::GetComments(void) const
 	return Get("comments");
 }
 
+Dictionary::Ptr Host::GetHostDependencies(void) const
+{
+	return Get("hostdependencies");
+}
+
+Dictionary::Ptr Host::GetServiceDependencies(void) const
+{
+	return Get("servicedependencies");
+}
+
+String Host::GetHostCheck(void) const
+{
+	return Get("hostcheck");
+}
+
 bool Host::IsReachable(void)
 {
-	Dictionary::Ptr dependencies = Get("dependencies");
-	if (dependencies) {
-		dependencies = Service::ResolveDependencies(GetSelf(), dependencies);
+	BOOST_FOREACH(const Service::Ptr& service, GetParentServices()) {
+		/* ignore pending services */
+		if (!service->GetLastCheckResult())
+			continue;
 
-		Value dependency;
-		BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-			Service::Ptr service = Service::GetByName(dependency);
+		/* ignore soft states */
+		if (service->GetStateType() == StateTypeSoft)
+			continue;
 
-			if (!service->IsReachable() ||
-			    (service->GetState() != StateOK && service->GetState() != StateWarning)) {
-				return false;
-			}
-		}
+		/* ignore services states OK and Warning */
+		if (service->GetState() == StateOK ||
+		    service->GetState() == StateWarning)
+			continue;
+
+		return false;
+	}
+
+	BOOST_FOREACH(const Host::Ptr& host, GetParentHosts()) {
+		/* ignore hosts that are up */
+		if (host->IsUp())
+			continue;
+
+		return false;
 	}
 
 	return true;
@@ -211,16 +211,6 @@ static void CopyServiceAttributes(const Host::Ptr& host, TDict serviceDesc,
 	Value checkers = serviceDesc->Get("checkers");
 	if (!checkers.IsEmpty())
 		builder->AddExpression("checkers", OperatorSet, checkers);
-
-	Value dependencies = serviceDesc->Get("dependencies");
-	if (!dependencies.IsEmpty())
-		builder->AddExpression("dependencies", OperatorPlus,
-		    Service::ResolveDependencies(host, dependencies));
-
-	Value hostchecks = host->Get("hostchecks");
-	if (!hostchecks.IsEmpty())
-		builder->AddExpression("dependencies", OperatorPlus,
-		    Service::ResolveDependencies(host, hostchecks));
 }
 
 void Host::ObjectCommittedHandler(const ConfigItem::Ptr& item)
@@ -444,3 +434,59 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 
 	task->FinishResult(Empty);
 }
+
+Service::Ptr Host::ResolveService(const String& name) const
+{
+	String combinedName = GetName() + "-" + name;
+
+	if (Service::Exists(combinedName))
+		return Service::GetByName(combinedName);
+	else
+		return Service::GetByName(name);
+}
+
+set<Host::Ptr> Host::GetParentHosts(void) const
+{
+	set<Host::Ptr> parents;
+
+	Dictionary::Ptr dependencies = GetHostDependencies();
+
+	if (dependencies) {
+		String key;
+		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
+			if (key == GetName())
+				continue;
+
+			parents.insert(Host::GetByName(key));
+		}
+	}
+
+	return parents;
+}
+
+Service::Ptr Host::GetHostCheckService(void) const
+{
+	String hostcheck = GetHostCheck();
+
+	if (hostcheck.IsEmpty())
+		return Service::Ptr();
+
+	return ResolveService(hostcheck);
+}
+
+set<Service::Ptr> Host::GetParentServices(void) const
+{
+	set<Service::Ptr> parents;
+
+	Dictionary::Ptr dependencies = GetServiceDependencies();
+
+	if (dependencies) {
+		String key;
+		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
+			parents.insert(ResolveService(key));
+		}
+	}
+
+	return parents;
+}
+

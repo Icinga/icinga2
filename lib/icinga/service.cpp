@@ -159,29 +159,14 @@ long Service::GetRetryInterval(void) const
 	return value;
 }
 
-Dictionary::Ptr Service::GetDependencies(void) const
+Dictionary::Ptr Service::GetHostDependencies(void) const
 {
-	return Get("dependencies");
+	return Get("hostdependencies");
 }
 
-void Service::GetDependenciesRecursive(const Dictionary::Ptr& result) const {
-	assert(result);
-
-	Dictionary::Ptr dependencies = GetDependencies();
-
-	if (!dependencies)
-		return;
-
-	Value dependency;
-	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-		if (result->Contains(dependency))
-			continue;
-
-		result->Set(dependency, dependency);
-
-		Service::Ptr service = Service::GetByName(dependency);
-		service->GetDependenciesRecursive(result);
-	}
+Dictionary::Ptr Service::GetServiceDependencies(void) const
+{
+	return Get("servicedependencies");
 }
 
 Dictionary::Ptr Service::GetGroups(void) const
@@ -196,17 +181,7 @@ Dictionary::Ptr Service::GetCheckers(void) const
 
 bool Service::IsReachable(void) const
 {
-	Dictionary::Ptr dependencies = boost::make_shared<Dictionary>();
-	GetDependenciesRecursive(dependencies);
-
-	Value dependency;
-	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-		Service::Ptr service = Service::GetByName(dependency);
-
-		/* ignore ourselves */
-		if (service->GetName() == GetName())
-			continue;
-
+	BOOST_FOREACH(const Service::Ptr& service, GetParentServices()) {
 		/* ignore pending services */
 		if (!service->GetLastCheckResult())
 			continue;
@@ -218,6 +193,14 @@ bool Service::IsReachable(void) const
 		/* ignore services states OK and Warning */
 		if (service->GetState() == StateOK ||
 		    service->GetState() == StateWarning)
+			continue;
+
+		return false;
+	}
+
+	BOOST_FOREACH(const Host::Ptr& host, GetParentHosts()) {
+		/* ignore hosts that are up */
+		if (host->IsUp())
 			continue;
 
 		return false;
@@ -539,21 +522,23 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 			SetAcknowledgementExpiry(0);
 		}
 
-		/* reschedule dependencies */
-		Dictionary::Ptr dependencies = GetDependencies();
+		/* reschedule service dependencies */
+		BOOST_FOREACH(const Service::Ptr& parent, GetParentServices()) {
+			parent->SetNextCheck(Utility::GetTime());
+		}
 
-		if (dependencies) {
-			String svc;
-			BOOST_FOREACH(tie(tuples::ignore, svc), dependencies) {
-				if (!Service::Exists(svc))
-					continue;
-
-				Service::Ptr service = Service::GetByName(svc);
+		/* reschedule host dependencies */
+		BOOST_FOREACH(const Host::Ptr& parent, GetParentHosts()) {
+			String hostcheck = parent->GetHostCheck();
+			if (!hostcheck.IsEmpty()) {
+				Service::Ptr service = parent->ResolveService(hostcheck);
 				service->SetNextCheck(Utility::GetTime());
 			}
 		}
+
+		// TODO: notify our child services/hosts that our state has changed
 	}
-	
+
 	if (GetState() != StateOK)
 		DowntimeProcessor::TriggerDowntimes(GetSelf());
 }
@@ -765,3 +750,42 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	EndpointManager::GetInstance()->SendMulticastMessage(rm);
 }
 
+set<Host::Ptr> Service::GetParentHosts(void) const
+{
+	set<Host::Ptr> parents;
+
+	/* The service's host is implicitly a parent. */
+	parents.insert(GetHost());
+
+	Dictionary::Ptr dependencies = GetHostDependencies();
+
+	if (dependencies) {
+		String key;
+		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
+			parents.insert(Host::GetByName(key));
+		}
+	}
+
+	return parents;
+}
+
+set<Service::Ptr> Service::GetParentServices(void) const
+{
+	set<Service::Ptr> parents;
+
+	Dictionary::Ptr dependencies = GetServiceDependencies();
+
+	if (dependencies) {
+		String key;
+		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
+			Service::Ptr service = GetHost()->ResolveService(key);
+
+			if (service->GetName() == GetName())
+				continue;
+
+			parents.insert(service);
+		}
+	}
+
+	return parents;
+}

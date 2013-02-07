@@ -626,8 +626,6 @@ object Service "localhost-uptime" {
   check_interval = 60,
   retry_interval = 15,
 
-  dependencies = { "localhost-ping" },
-
   servicegroups = { "all-services", "snmp" },
 
   checkers = { "*" },
@@ -722,7 +720,7 @@ object Host "localhost" {
 
   hostgroups = { "all-hosts" },
 
-  hostchecks = { "ping" },
+  hostcheck = "ping",
   dependencies = { "router-ping" }
 
   services = {
@@ -756,14 +754,19 @@ Attribute: hostgroups
 
 Optional. A list of host groups this host belongs to.
 
-Attribute: hostchecks
-^^^^^^^^^^^^^^^^^^^^^
+Attribute: hostcheck
+^^^^^^^^^^^^^^^^^^^^
 
-Optional. A list of services that are used to determine whether the host is up
-or down.
+Optional. A service that is used to determine whether the host is up or down.
 
-Attribute: dependencies
-^^^^^^^^^^^^^^^^^^^^^^^
+Attribute: hostdependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Optional. A list of hosts that are used to determine whether the host is
+unreachable.
+
+Attribute: servicedependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Optional. A list of services that are used to determine whether the host is
 unreachable.
