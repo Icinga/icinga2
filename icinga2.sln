@@ -81,6 +81,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "remoting", "lib\remoting\re
 		{B26AFFA6-2BDF-42E6-A224-2591FFD9BFB7} = {B26AFFA6-2BDF-42E6-A224-2591FFD9BFB7}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{5163C576-6AA1-4769-8396-9639C45BE124}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -259,6 +261,14 @@ Global
 		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}.Release|Win64.Build.0 = Release|x64
 		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}.Release|x64.ActiveCfg = Release|x64
 		{8DD52FAC-ECEE-48C2-B266-E7C47ED485F8}.Release|x64.Build.0 = Release|x64
+		{5163C576-6AA1-4769-8396-9639C45BE124}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5163C576-6AA1-4769-8396-9639C45BE124}.Debug|Win32.Build.0 = Debug|Win32
+		{5163C576-6AA1-4769-8396-9639C45BE124}.Debug|Win64.ActiveCfg = Debug|Win32
+		{5163C576-6AA1-4769-8396-9639C45BE124}.Debug|x64.ActiveCfg = Debug|Win32
+		{5163C576-6AA1-4769-8396-9639C45BE124}.Release|Win32.ActiveCfg = Release|Win32
+		{5163C576-6AA1-4769-8396-9639C45BE124}.Release|Win32.Build.0 = Release|Win32
+		{5163C576-6AA1-4769-8396-9639C45BE124}.Release|Win64.ActiveCfg = Release|Win32
+		{5163C576-6AA1-4769-8396-9639C45BE124}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
