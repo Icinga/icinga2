@@ -145,6 +145,8 @@ void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
 		m_IdleServices.insert(service);
 	}
 
+	RescheduleCheckTimer();
+
 	Logger::Write(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
 }
 
