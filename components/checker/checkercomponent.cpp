@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+EXPORT_COMPONENT(checker, CheckerComponent);
+
 void CheckerComponent::Start(void)
 {
 	m_Endpoint = Endpoint::MakeEndpoint("checker", false);
@@ -193,6 +195,3 @@ void CheckerComponent::ObjectRemovedHandler(const DynamicObject::Ptr& object)
 	m_IdleServices.erase(service);
 	m_PendingServices.erase(service);
 }
-
-EXPORT_COMPONENT(checker, CheckerComponent);
-

@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+EXPORT_COMPONENT(demo, DemoComponent);
+
 /**
  * Starts the component.
  */
@@ -71,5 +73,3 @@ void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender,
 	Logger::Write(LogInformation, "demo", "Got 'hello world' from identity=" +
 	    (sender ? sender->GetName() : "(anonymous)"));
 }
-
-EXPORT_COMPONENT(demo, DemoComponent);

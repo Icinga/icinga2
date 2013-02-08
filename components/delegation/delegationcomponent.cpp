@@ -22,6 +22,8 @@
 
 using namespace icinga;
 
+EXPORT_COMPONENT(delegation, DelegationComponent);
+
 void DelegationComponent::Start(void)
 {
 	m_DelegationTimer = boost::make_shared<Timer>();
@@ -203,5 +205,3 @@ void DelegationComponent::DelegationTimerHandler(void)
 	msgbuf << "Updated delegations for " << delegated << " services";
 	Logger::Write(LogInformation, "delegation", msgbuf.str());
 }
-
-EXPORT_COMPONENT(delegation, DelegationComponent);

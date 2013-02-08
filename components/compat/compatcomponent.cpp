@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+EXPORT_COMPONENT(compat, CompatComponent);
+
 /**
  * Hint: The reason why we're using "\n" rather than std::endl is because
  * std::endl also _flushes_ the output stream which severely degrades
@@ -546,5 +548,3 @@ void CompatComponent::StatusTimerHandler(void)
 	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));
 }
-
-EXPORT_COMPONENT(compat, CompatComponent);

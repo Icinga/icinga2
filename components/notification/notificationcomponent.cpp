@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+EXPORT_COMPONENT(notification, NotificationComponent);
+
 /**
  * Starts the component.
  */
@@ -48,5 +50,3 @@ void NotificationComponent::NotificationTimerHandler(void)
 {
 	// TODO: implement
 }
-
-EXPORT_COMPONENT(notification, NotificationComponent);

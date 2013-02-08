@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+EXPORT_COMPONENT(replication, ReplicationComponent);
+
 /**
  * Starts the component.
  */
@@ -248,5 +250,3 @@ void ReplicationComponent::RemoteObjectRemovedHandler(const RequestMessage& requ
 		object->Unregister();
 	}
 }
-
-EXPORT_COMPONENT(replication, ReplicationComponent);
