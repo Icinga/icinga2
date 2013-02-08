@@ -661,7 +661,9 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
 		arguments.push_back(static_cast<Service::Ptr>(GetSelf()));
 		ScriptTask::Ptr task;
 		task = InvokeMethod("check", arguments, boost::bind(&Service::CheckCompletedHandler, this, scheduleInfo, _1, callback));
-		Set("current_task", task);
+
+		if (!task->IsFinished())
+			Set("current_task", task);
 	} catch (...) {
 		/* something went wrong while setting up the method call -
 		 * reschedule the service and call the callback anyway. */
