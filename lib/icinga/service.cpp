@@ -777,9 +777,9 @@ set<Service::Ptr> Service::GetParentServices(void) const
 
 	if (dependencies) {
 		String key;
-		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
-			// TODO(#3660): look up { host = "name", service = "name" } pairs
-			Service::Ptr service = GetHost()->GetServiceByShortName(key);
+		Value value;
+		BOOST_FOREACH(tie(key, value), dependencies) {
+			Service::Ptr service = GetHost()->GetServiceByShortName(value);
 
 			if (service->GetName() == GetName())
 				continue;

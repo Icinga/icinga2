@@ -411,20 +411,27 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 	task->FinishResult(Empty);
 }
 
-Service::Ptr Host::GetServiceByShortName(const String& name) const
+Service::Ptr Host::GetServiceByShortName(const Value& name) const
 {
-	ValidateServicesCache();
+	if (name.IsScalar()) {
+		ValidateServicesCache();
 
-	map<String, weak_ptr<Service> >& services = m_ServicesCache[GetName()];
-	map<String, weak_ptr<Service> >::iterator it = services.find(name);
+		map<String, weak_ptr<Service> >& services = m_ServicesCache[GetName()];
+		map<String, weak_ptr<Service> >::iterator it = services.find(name);
 
-	if (it != services.end()) {
-		Service::Ptr service = it->second.lock();
-		assert(service);
-		return service;
+		if (it != services.end()) {
+			Service::Ptr service = it->second.lock();
+			assert(service);
+			return service;
+		}
+
+		return Service::GetByName(name);
+	} else if (name.IsObjectType<Dictionary>()) {
+		Dictionary::Ptr dict = name;
+		return GetByName(dict->Get("host"))->GetServiceByShortName(dict->Get("service"));
+	} else {
+		BOOST_THROW_EXCEPTION(invalid_argument("Host/Service name pair is invalid."));
 	}
-
-	return Service::GetByName(name);
 }
 
 set<Host::Ptr> Host::GetParentHosts(void) const
@@ -464,9 +471,9 @@ set<Service::Ptr> Host::GetParentServices(void) const
 
 	if (dependencies) {
 		String key;
-		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
-			// TODO(#3660): look up { host = "name", service = "name" } pairs
-			parents.insert(GetServiceByShortName(key));
+		Value value;
+		BOOST_FOREACH(tie(key, value), dependencies) {
+			parents.insert(GetServiceByShortName(value));
 		}
 	}
 

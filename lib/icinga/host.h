@@ -67,7 +67,7 @@ public:
 	bool IsInDowntime(void) const;
 	bool IsUp(void) const;
 
-	shared_ptr<Service> GetServiceByShortName(const String& name) const;
+	shared_ptr<Service> GetServiceByShortName(const Value& name) const;
 
 	set<shared_ptr<Service> > GetServices(void) const;
 	static void InvalidateServicesCache(void);
