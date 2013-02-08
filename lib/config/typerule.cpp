@@ -64,6 +64,8 @@ bool TypeRule::MatchValue(const Value& value) const
 
 		default:
 			assert(!"Type rule has invalid type specifier.");
+
+			return false;
 	}
 }
 
