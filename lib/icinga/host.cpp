@@ -30,31 +30,37 @@ static AttributeDescription hostAttributes[] = {
 	{ "acknowledgement", Attribute_Replicated },
 	{ "acknowledgement_expiry", Attribute_Replicated },
 	{ "downtimes", Attribute_Replicated },
-	{ "comments", Attribute_Replicated }
+	{ "comments", Attribute_Replicated },
+	{ "convenience_services", Attribute_Transient }
 };
 
 REGISTER_TYPE(Host, hostAttributes);
 
-bool Host::m_InitializerDone = false;
-
 Host::Host(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
+{ }
+
+void Host::OnInitCompleted(void)
 {
-	if (!m_InitializerDone) {
-		ConfigItem::OnCommitted.connect(boost::bind(&Host::ObjectCommittedHandler, _1));
-		ConfigItem::OnRemoved.connect(boost::bind(&Host::ObjectRemovedHandler, _1));
-
-		m_InitializerDone = true;
-	}
-
 	HostGroup::InvalidateMembersCache();
 	DowntimeProcessor::InvalidateDowntimeCache();
+
+	Event::Post(boost::bind(&Host::UpdateSlaveServices, this));
 }
 
 Host::~Host(void)
 {
 	HostGroup::InvalidateMembersCache();
 	DowntimeProcessor::InvalidateDowntimeCache();
+
+	Dictionary::Ptr services = Get("convenience_services");
+
+	if (services) {
+		ConfigItem::Ptr service;
+		BOOST_FOREACH(tie(tuples::ignore, service), services) {
+			service->Unregister();
+		}
+	}
 }
 
 String Host::GetAlias(void) const
@@ -199,30 +205,28 @@ static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Pt
 		builder->AddExpression("checkers", OperatorSet, checkers);
 }
 
-void Host::ObjectCommittedHandler(const ConfigItem::Ptr& item)
+void Host::UpdateSlaveServices(void)
 {
-	if (item->GetType() != "Host")
+	ConfigItem::Ptr item = ConfigItem::GetObject("Host", GetName());
+
+	/* Don't create slave services unless we own this object
+	 * and it's not a template. */
+	if (!item || IsAbstract())
 		return;
 
-	/* ignore abstract host objects */
-	if (!Host::Exists(item->GetName()))
-		return;
-
-	Host::Ptr host = Host::GetByName(item->GetName());
-
-	Dictionary::Ptr oldServices = host->Get("convenience_services");
+	Dictionary::Ptr oldServices = Get("convenience_services");
 
 	Dictionary::Ptr newServices;
 	newServices = boost::make_shared<Dictionary>();
 
-	Dictionary::Ptr serviceDescs = host->Get("services");
+	Dictionary::Ptr serviceDescs = Get("services");
 
 	if (serviceDescs) {
 		String svcname;
 		Value svcdesc;
 		BOOST_FOREACH(tie(svcname, svcdesc), serviceDescs) {
 			stringstream namebuf;
-			namebuf << item->GetName() << "-" << svcname;
+			namebuf << GetName() << "-" << svcname;
 			String name = namebuf.str();
 
 			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
@@ -232,7 +236,7 @@ void Host::ObjectCommittedHandler(const ConfigItem::Ptr& item)
 			builder->AddExpression("alias", OperatorSet, svcname);
 			builder->AddExpression("short_name", OperatorSet, svcname);
 
-			CopyServiceAttributes(host, builder);
+			CopyServiceAttributes(this, builder);
 
 			if (svcdesc.IsScalar()) {
 				builder->AddParent(svcdesc);
@@ -268,28 +272,7 @@ void Host::ObjectCommittedHandler(const ConfigItem::Ptr& item)
 		}
 	}
 
-	host->Set("convenience_services", newServices);
-}
-
-void Host::ObjectRemovedHandler(const ConfigItem::Ptr& item)
-{
-	if (item->GetType() != "Host")
-		return;
-
-	DynamicObject::Ptr host = item->GetDynamicObject();
-
-	if (!host)
-		return;
-
-	Dictionary::Ptr services = host->Get("convenience_services");
-
-	if (!services)
-		return;
-
-	ConfigItem::Ptr service;
-	BOOST_FOREACH(tie(tuples::ignore, service), services) {
-		service->Unregister();
-	}
+	Set("convenience_services", newServices);
 }
 
 void Host::OnAttributeChanged(const String& name, const Value&)
@@ -298,6 +281,8 @@ void Host::OnAttributeChanged(const String& name, const Value&)
 		HostGroup::InvalidateMembersCache();
 	else if (name == "downtimes")
 		DowntimeProcessor::InvalidateDowntimeCache();
+	else if (name == "services")
+		UpdateSlaveServices();
 }
 
 set<Service::Ptr> Host::GetServices(void) const

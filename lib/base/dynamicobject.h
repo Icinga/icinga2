@@ -118,7 +118,7 @@ public:
 	virtual void Start(void);
 
 	const AttributeMap& GetAttributes(void) const;
-	
+
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 
 	static void DumpObjects(const String& filename);
@@ -132,6 +132,7 @@ public:
 
 protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
+	virtual void OnInitCompleted(void);
 
 private:
 	void InternalSetAttribute(const String& name, const Value& data, double tx, bool suppressEvent = false, bool allowEditConfig = false);
@@ -145,6 +146,8 @@ private:
 	static set<DynamicObject::Ptr> m_ModifiedObjects;
 
 	void InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes, bool suppressEvents);
+
+	friend class DynamicType; /* for OnInitCompleted */
 };
 
 }

@@ -37,6 +37,7 @@ public:
 	typedef weak_ptr<Host> WeakPtr;
 
 	Host(const Dictionary::Ptr& properties);
+	void OnInitCompleted(void);
 	~Host(void);
 
 	static bool Exists(const String& name);
@@ -78,13 +79,10 @@ protected:
 	void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
-	static bool m_InitializerDone;
-
 	static map<String, map<String, weak_ptr<Service> > > m_ServicesCache;
 	static bool m_ServicesCacheValid;
 
-	static void ObjectCommittedHandler(const ConfigItem::Ptr& item);
-	static void ObjectRemovedHandler(const ConfigItem::Ptr& item);
+	void UpdateSlaveServices(void);
 
 	static void ValidateServicesCache(void);
 };

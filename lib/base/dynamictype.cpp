@@ -93,6 +93,9 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 	/* apply the object's non-config attributes */
 	obj->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
 
+	/* notify the object that it's "ready" */
+	obj->OnInitCompleted();
+
 	return obj;
 }
 

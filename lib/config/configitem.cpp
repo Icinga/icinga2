@@ -144,7 +144,33 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 {
 	Logger::Write(LogDebug, "base", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
 
-	DynamicObject::Ptr dobj = m_DynamicObject.lock();
+	/* Make sure the type is valid. */
+	DynamicType::Ptr dtype = DynamicType::GetByName(GetType());
+
+	if (!dtype)
+		BOOST_THROW_EXCEPTION(runtime_error("Type '" + GetType() + "' does not exist."));
+
+	/* Try to find an existing item with the same type and name. */
+	pair<String, String> ikey = make_pair(GetType(), GetName());
+	ItemMap::iterator it = m_Items.find(ikey);
+
+	if (it != m_Items.end()) {
+		/* Unregister the old item from its parents. */
+		ConfigItem::Ptr oldItem = it->second;
+		oldItem->UnregisterFromParents();
+
+		/* Steal the old item's children. */
+		m_ChildObjects = oldItem->m_ChildObjects;
+	}
+
+	/* Register this item with its parents. */
+	BOOST_FOREACH(const String& parentName, m_Parents) {
+		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
+		parent->RegisterChild(GetSelf());
+	}
+
+	/* Register this item. */
+	m_Items[ikey] = GetSelf();
 
 	Dictionary::Ptr properties = Link();
 
@@ -166,10 +192,8 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	update->Set("attrs", attrs);
 	update->Set("configTx", DynamicObject::GetCurrentTx());
 
-	DynamicType::Ptr dtype = DynamicType::GetByName(GetType());
-
-	if (!dtype)
-		BOOST_THROW_EXCEPTION(runtime_error("Type '" + GetType() + "' does not exist."));
+	/* Update or create the object and apply the configuration settings. */
+	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
 	if (!dobj)
 		dobj = dtype->GetObject(GetName());
@@ -186,25 +210,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	else
 		dobj->Register();
 
-	pair<String, String> ikey = make_pair(GetType(), GetName());
-	ItemMap::iterator it = m_Items.find(ikey);
-
-	/* unregister the old item from its parents */
-	if (it != m_Items.end()) {
-		ConfigItem::Ptr oldItem = it->second;
-		oldItem->UnregisterFromParents();
-
-		/* steal the old item's children */
-		m_ChildObjects = oldItem->m_ChildObjects;
-	}
-
-	/* register this item with its parents */
-	BOOST_FOREACH(const String& parentName, m_Parents) {
-		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
-		parent->RegisterChild(GetSelf());
-	}
-
-	/* We need to make a copy of the child objects becauuse the
+	/* We need to make a copy of the child objects because the
 	 * OnParentCommitted() handler is going to update the list. */
 	set<ConfigItem::WeakPtr> children = m_ChildObjects;
 
@@ -217,8 +223,6 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 
 		child->OnParentCommitted();
 	}
-
-	m_Items[ikey] = GetSelf();
 
 	OnCommitted(GetSelf());
 
@@ -327,7 +331,7 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 void ConfigItem::Dump(ostream& fp) const
 {
 	fp << "object \"" << m_Type << "\" \"" << m_Name << "\"";
-	
+
 	if (m_Parents.size() > 0) {
 		fp << " inherits";
 
@@ -341,7 +345,7 @@ void ConfigItem::Dump(ostream& fp) const
 			fp << " \"" << name << "\"";
 		}
 	}
-	
+
 	fp << " {" << "\n";
 	m_ExpressionList->Dump(fp, 1);
 	fp << "}" << "\n";
