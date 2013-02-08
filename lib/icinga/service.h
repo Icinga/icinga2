@@ -67,6 +67,8 @@ public:
 	static bool Exists(const String& name);
 	static Service::Ptr GetByName(const String& name);
 
+	static Service::Ptr GetByNamePair(const String& hostName, const String& serviceName);
+
 	static const int DefaultMaxCheckAttempts;
 	static const int DefaultCheckInterval;
 	static const int CheckIntervalDivisor;
@@ -84,6 +86,7 @@ public:
 	Dictionary::Ptr GetServiceDependencies(void) const;
 	Dictionary::Ptr GetGroups(void) const;
 	Dictionary::Ptr GetCheckers(void) const;
+	String GetShortName(void) const;
 
 	set<Host::Ptr> GetParentHosts(void) const;
 	set<Service::Ptr> GetParentServices(void) const;
@@ -149,8 +152,6 @@ public:
 
 	static ServiceStateType StateTypeFromString(const String& state);
 	static String StateTypeToString(ServiceStateType state);
-
-	static Dictionary::Ptr ResolveDependencies(const Host::Ptr& host, const Dictionary::Ptr& dependencies);
 
 	static boost::signal<void (const Service::Ptr& service, const CheckResultMessage&)> OnCheckResultReceived;
 	static boost::signal<void (const Service::Ptr&, const String&)> OnCheckerChanged;

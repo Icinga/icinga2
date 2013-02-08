@@ -200,7 +200,7 @@ void CompatComponent::DumpComments(ofstream& fp, const DynamicObject::Ptr& owner
 			fp << "hostcomment {" << "\n";
 		else
 			fp << "servicecomment {" << "\n"
-			   << "\t" << "service_description=" << service->GetAlias() << "\n";
+			   << "\t" << "service_description=" << service->GetShortName() << "\n";
 
 		fp << "\t" << "host_name=" << host->GetName() << "\n"
 		   << "\t" << "comment_id=" << static_cast<String>(comment->Get("legacy_id")) << "\n"
@@ -245,7 +245,7 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owne
 			fp << "hostdowntime {" << "\n";
 		else
 			fp << "servicedowntime {" << "\n"
-			   << "\t" << "service_description=" << service->GetAlias() << "\n";
+			   << "\t" << "service_description=" << service->GetShortName() << "\n";
 
 		Dictionary::Ptr triggeredByObj = DowntimeProcessor::GetDowntimeByID(downtime->Get("triggered_by"));
 		int triggeredByLegacy = 0;
@@ -381,7 +381,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 {
 	fp << "servicestatus {" << "\n"
 	   << "\t" << "host_name=" << service->GetHost()->GetName() << "\n"
-	   << "\t" << "service_description=" << service->GetName() << "\n";
+	   << "\t" << "service_description=" << service->GetShortName() << "\n";
 
 	DumpServiceStatusAttrs(fp, service, CompatStateService);
 
@@ -400,7 +400,7 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
 {
 	fp << "define service {" << "\n"
 	   << "\t" << "host_name" << "\t" << service->GetHost()->GetName() << "\n"
-	   << "\t" << "service_description" << "\t" << service->GetName() << "\n"
+	   << "\t" << "service_description" << "\t" << service->GetShortName() << "\n"
 	   << "\t" << "display_name" << "\t" << service->GetAlias() << "\n"
 	   << "\t" << "check_command" << "\t" << "check_i2" << "\n"
 	   << "\t" << "check_interval" << "\t" << service->GetCheckInterval() / 60.0 << "\n"
@@ -414,9 +414,9 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
 	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
 		fp << "define servicedependency {" << "\n"
 		   << "\t" << "dependent_host_name" << "\t" << service->GetHost()->GetName() << "\n"
-		   << "\t" << "dependent_service_description" << "\t" << service->GetName() << "\n"
+		   << "\t" << "dependent_service_description" << "\t" << service->GetShortName() << "\n"
 		   << "\t" << "host_name" << "\t" << parent->GetHost()->GetName() << "\n"
-		   << "\t" << "service_description" << "\t" << parent->GetName() << "\n"
+		   << "\t" << "service_description" << "\t" << parent->GetShortName() << "\n"
 		   << "\t" << "execution_failure_criteria" << "\t" << "n" << "\n"
 		   << "\t" << "notification_failure_criteria" << "\t" << "w,u,c" << "\n"
 		   << "\t" << "}" << "\n"

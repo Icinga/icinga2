@@ -122,10 +122,7 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vect
 	if (arguments.size() < 4)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 4 arguments."));
 
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
-
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service->GetEnablePassiveChecks())
 		BOOST_THROW_EXCEPTION(invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
@@ -154,10 +151,7 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double, const vector<String>& ar
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 3 arguments."));
 
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
-
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	double planned_check = Convert::ToDouble(arguments[2]);
 
@@ -176,10 +170,7 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const vector<Strin
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 3 arguments."));
 
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
-
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
 	service->SetForceNextCheck(true);
@@ -191,10 +182,7 @@ void ExternalCommandProcessor::EnableSvcCheck(double, const vector<String>& argu
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
 
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
-
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + arguments[1] + "'");
 	service->SetEnableActiveChecks(true);
@@ -205,10 +193,7 @@ void ExternalCommandProcessor::DisableSvcCheck(double, const vector<String>& arg
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
 
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
-
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + arguments[1] + "'");
 	service->SetEnableActiveChecks(false);
@@ -305,7 +290,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const vector<String
 
 	bool sticky = Convert::ToBool(arguments[2]);
 
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (service->GetState() == StateOK)
 		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' is OK."));
@@ -326,7 +311,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<
 	bool sticky = Convert::ToBool(arguments[2]);
 	double timestamp = Convert::ToDouble(arguments[5]);
 
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (service->GetState() == StateOK)
 		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' is OK."));
@@ -480,10 +465,7 @@ void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const vector<Strin
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
 
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
-
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + arguments[1] + "'");
 	service->SetEnablePassiveChecks(true);
@@ -494,10 +476,7 @@ void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const vector<Stri
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
 
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
-
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + arguments[1] + "'");
 	service->SetEnablePassiveChecks(false);
@@ -610,10 +589,7 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double, const vector<String>&
 	if (arguments.size() < 9)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 9 arguments."));
 
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
-
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	String triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[5]);
@@ -844,7 +820,7 @@ void ExternalCommandProcessor::AddSvcComment(double, const vector<String>& argum
 	if (!Service::Exists(arguments[1]))
 		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Creating comment for service " + service->GetName());
 	(void) CommentProcessor::AddComment(service, Comment_User, arguments[3], arguments[4], 0);
@@ -884,9 +860,8 @@ void ExternalCommandProcessor::DelAllSvcComments(double, const vector<String>& a
 	if (!Service::Exists(arguments[1]))
 		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Removing all comments for service " + service->GetName());
 	CommentProcessor::RemoveAllComments(service);
 }
-

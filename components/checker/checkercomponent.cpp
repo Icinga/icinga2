@@ -127,7 +127,7 @@ void CheckerComponent::CheckTimerHandler(void)
 	if (tasks > 0) {
 		stringstream msgbuf;
 		msgbuf << "CheckTimerHandler: created " << tasks << " task(s)";
-		Logger::Write(LogInformation, "checker", msgbuf.str());
+		Logger::Write(LogDebug, "checker", msgbuf.str());
 	}
 
 	RescheduleCheckTimer();

@@ -91,6 +91,16 @@ Service::Ptr Service::GetByName(const String& name)
 	return dynamic_pointer_cast<Service>(configObject);
 }
 
+Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)
+{
+	if (!hostName.IsEmpty()) {
+		Host::Ptr host = Host::GetByName(hostName);
+		return host->GetServiceByShortName(serviceName);
+	} else {
+		return Service::GetByName(serviceName);
+	}
+}
+
 Host::Ptr Service::GetHost(void) const
 {
 	String hostname = Get("host_name");
@@ -173,6 +183,16 @@ Dictionary::Ptr Service::GetGroups(void) const
 Dictionary::Ptr Service::GetCheckers(void) const
 {
 	return Get("checkers");
+}
+
+String Service::GetShortName(void) const
+{
+	Value value = Get("short_name");
+
+	if (value.IsEmpty())
+		return GetName();
+
+	return value;
 }
 
 bool Service::IsReachable(void) const
@@ -529,11 +549,10 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 
 		/* reschedule host dependencies */
 		BOOST_FOREACH(const Host::Ptr& parent, GetParentHosts()) {
-			String hostcheck = parent->GetHostCheck();
-			if (!hostcheck.IsEmpty()) {
-				Service::Ptr service = parent->ResolveService(hostcheck);
+			Service::Ptr service = parent->GetHostCheckService();
+
+			if (service)
 				service->SetNextCheck(Utility::GetTime());
-			}
 		}
 
 		// TODO: notify our child services/hosts that our state has changed
@@ -606,27 +625,6 @@ bool Service::IsAllowedChecker(const String& checker) const
 	return false;
 }
 
-Dictionary::Ptr Service::ResolveDependencies(const Host::Ptr& host, const Dictionary::Ptr& dependencies)
-{
-	Dictionary::Ptr services = host->Get("services");
-
-	Dictionary::Ptr result = boost::make_shared<Dictionary>();
-
-	Value dependency;
-	BOOST_FOREACH(tie(tuples::ignore, dependency), dependencies) {
-		String name;
-
-		if (services && services->Contains(dependency))
-			name = host->GetName() + "-" + static_cast<String>(dependency);
-		else
-			name = static_cast<String>(dependency);
-
-		result->Set(name, name);
-	}
-
-	return result;
-}
-
 void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 {
 	if (name == "checker")
@@ -635,7 +633,7 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 		OnNextCheckChanged(GetSelf(), oldValue);
 	else if (name == "servicegroups")
 		ServiceGroup::InvalidateMembersCache();
-	else if (name == "host_name")
+	else if (name == "host_name" || name == "short_name")
 		Host::InvalidateServicesCache();
 	else if (name == "downtimes")
 		DowntimeProcessor::InvalidateDowntimeCache();
@@ -780,7 +778,8 @@ set<Service::Ptr> Service::GetParentServices(void) const
 	if (dependencies) {
 		String key;
 		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
-			Service::Ptr service = GetHost()->ResolveService(key);
+			// TODO(#3660): look up { host = "name", service = "name" } pairs
+			Service::Ptr service = GetHost()->GetServiceByShortName(key);
 
 			if (service->GetName() == GetName())
 				continue;

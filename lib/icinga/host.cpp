@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-map<String, vector<Service::WeakPtr> > Host::m_ServicesCache;
+map<String, map<String, weak_ptr<Service> > > Host::m_ServicesCache;
 bool Host::m_ServicesCacheValid = true;
 
 REGISTER_SCRIPTFUNCTION("native::ValidateServiceDictionary", &Host::ValidateServiceDictionary);
@@ -166,28 +166,14 @@ bool Host::IsInDowntime(void) const
 	return false;
 }
 
-bool Host::IsUp(void)
+bool Host::IsUp(void) const
 {
-	Dictionary::Ptr hostchecks = Get("hostchecks");
-	if (hostchecks) {
-		hostchecks = Service::ResolveDependencies(GetSelf(), hostchecks);
-
-		Value hostcheck;
-		BOOST_FOREACH(tie(tuples::ignore, hostcheck), hostchecks) {
-			Service::Ptr service = Service::GetByName(hostcheck);
-
-			if (service->GetState() != StateOK && service->GetState() != StateWarning) {
-				return false;
-			}
-		}
-	}
-
-	return true;
+	Service::Ptr service = GetHostCheckService();
+	return (!service || service->GetState() == StateOK || service->GetState() == StateWarning);
 }
 
 template<typename TDict>
-static void CopyServiceAttributes(const Host::Ptr& host, TDict serviceDesc,
-    const ConfigItemBuilder::Ptr& builder)
+static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Ptr& builder)
 {
 	/* TODO: we only need to copy macros if this is an inline definition,
 	 * i.e. host->GetProperties() != service, however for now we just
@@ -244,8 +230,9 @@ void Host::ObjectCommittedHandler(const ConfigItem::Ptr& item)
 			builder->SetName(name);
 			builder->AddExpression("host_name", OperatorSet, item->GetName());
 			builder->AddExpression("alias", OperatorSet, svcname);
+			builder->AddExpression("short_name", OperatorSet, svcname);
 
-			CopyServiceAttributes(host, host, builder);
+			CopyServiceAttributes(host, builder);
 
 			if (svcdesc.IsScalar()) {
 				builder->AddParent(svcdesc);
@@ -258,7 +245,7 @@ void Host::ObjectCommittedHandler(const ConfigItem::Ptr& item)
 
 				builder->AddParent(parent);
 
-				CopyServiceAttributes(host, service, builder);
+				CopyServiceAttributes(service, builder);
 			} else {
 				BOOST_THROW_EXCEPTION(invalid_argument("Service description must be either a string or a dictionary."));
 			}
@@ -319,8 +306,10 @@ set<Service::Ptr> Host::GetServices(void) const
 
 	ValidateServicesCache();
 
-	BOOST_FOREACH(const Service::WeakPtr& svc, m_ServicesCache[GetName()]) {
-		Service::Ptr service = svc.lock();
+	String key;
+	Service::WeakPtr wservice;
+	BOOST_FOREACH(tie(key, wservice), m_ServicesCache[GetName()]) {
+		Service::Ptr service = wservice.lock();
 
 		if (!service)
 			continue;
@@ -391,7 +380,9 @@ void Host::ValidateServicesCache(void)
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
 
-		m_ServicesCache[service->GetHost()->GetName()].push_back(service);
+		// TODO: assert for duplicate short_names
+
+		m_ServicesCache[service->GetHost()->GetName()][service->GetShortName()] = service;
 	}
 
 	m_ServicesCacheValid = true;
@@ -435,14 +426,20 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 	task->FinishResult(Empty);
 }
 
-Service::Ptr Host::ResolveService(const String& name) const
+Service::Ptr Host::GetServiceByShortName(const String& name) const
 {
-	String combinedName = GetName() + "-" + name;
+	ValidateServicesCache();
 
-	if (Service::Exists(combinedName))
-		return Service::GetByName(combinedName);
-	else
-		return Service::GetByName(name);
+	map<String, weak_ptr<Service> >& services = m_ServicesCache[GetName()];
+	map<String, weak_ptr<Service> >::iterator it = services.find(name);
+
+	if (it != services.end()) {
+		Service::Ptr service = it->second.lock();
+		assert(service);
+		return service;
+	}
+
+	return Service::GetByName(name);
 }
 
 set<Host::Ptr> Host::GetParentHosts(void) const
@@ -471,7 +468,7 @@ Service::Ptr Host::GetHostCheckService(void) const
 	if (hostcheck.IsEmpty())
 		return Service::Ptr();
 
-	return ResolveService(hostcheck);
+	return GetServiceByShortName(hostcheck);
 }
 
 set<Service::Ptr> Host::GetParentServices(void) const
@@ -483,10 +480,10 @@ set<Service::Ptr> Host::GetParentServices(void) const
 	if (dependencies) {
 		String key;
 		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
-			parents.insert(ResolveService(key));
+			// TODO(#3660): look up { host = "name", service = "name" } pairs
+			parents.insert(GetServiceByShortName(key));
 		}
 	}
 
 	return parents;
 }
-

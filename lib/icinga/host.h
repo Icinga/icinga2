@@ -64,9 +64,9 @@ public:
 
 	bool IsReachable(void);
 	bool IsInDowntime(void) const;
-	bool IsUp(void);
+	bool IsUp(void) const;
 
-	shared_ptr<Service> ResolveService(const String& name) const;
+	shared_ptr<Service> GetServiceByShortName(const String& name) const;
 
 	set<shared_ptr<Service> > GetServices(void) const;
 	static void InvalidateServicesCache(void);
@@ -80,7 +80,7 @@ protected:
 private:
 	static bool m_InitializerDone;
 
-	static map<String, vector<weak_ptr<Service> > > m_ServicesCache;
+	static map<String, map<String, weak_ptr<Service> > > m_ServicesCache;
 	static bool m_ServicesCacheValid;
 
 	static void ObjectCommittedHandler(const ConfigItem::Ptr& item);
