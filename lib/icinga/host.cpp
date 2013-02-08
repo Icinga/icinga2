@@ -45,7 +45,7 @@ void Host::OnInitCompleted(void)
 	HostGroup::InvalidateMembersCache();
 	DowntimeProcessor::InvalidateDowntimeCache();
 
-	Event::Post(boost::bind(&Host::UpdateSlaveServices, this));
+	UpdateSlaveServices();
 }
 
 Host::~Host(void)

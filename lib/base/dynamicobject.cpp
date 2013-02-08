@@ -22,11 +22,11 @@
 using namespace icinga;
 
 double DynamicObject::m_CurrentTx = 0;
-set<DynamicObject::Ptr> DynamicObject::m_ModifiedObjects;
+set<DynamicObject *> DynamicObject::m_ModifiedObjects;
 
 boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
 boost::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
-boost::signal<void (const set<DynamicObject::Ptr>&)> DynamicObject::OnTransactionClosing;
+boost::signal<void (const set<DynamicObject *>&)> DynamicObject::OnTransactionClosing;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	: m_ConfigTx(0)
@@ -44,7 +44,22 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	/* apply config state from the config item/remote update;
 	 * The DynamicObject::Create function takes care of restoring
 	 * non-config state after the object has been fully constructed */
-	InternalApplyUpdate(serializedObject, Attribute_Config, true);
+	ApplyUpdate(serializedObject, Attribute_Config);
+}
+
+DynamicObject::~DynamicObject(void)
+{
+	m_ModifiedObjects.erase(this);
+}
+
+void DynamicObject::SendLocalUpdateEvents(void)
+{
+	map<String, Value, string_iless>::iterator it;
+	for (it = m_ModifiedAttributes.begin(); it != m_ModifiedAttributes.end(); it++) {
+		OnAttributeChanged(it->first, it->second);
+	}
+
+	m_ModifiedAttributes.clear();
 }
 
 Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) const
@@ -88,12 +103,6 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
     int allowedTypes)
 {
-	InternalApplyUpdate(serializedUpdate, allowedTypes, false);
-}
-
-void DynamicObject::InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate,
-    int allowedTypes, bool suppressEvents)
-{
 	double configTx = 0;
 	if ((allowedTypes & Attribute_Config) != 0 &&
 	    serializedUpdate->Contains("configTx")) {
@@ -126,7 +135,7 @@ void DynamicObject::InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 		if (!HasAttribute(it->first))
 			RegisterAttribute(it->first, static_cast<DynamicAttributeType>(type));
 
-		InternalSetAttribute(it->first, data, tx, suppressEvents, true);
+		InternalSetAttribute(it->first, data, tx, true);
 	}
 }
 
@@ -160,7 +169,7 @@ Value DynamicObject::Get(const String& name) const
 }
 
 void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
-    double tx, bool suppressEvent, bool allowEditConfig)
+    double tx, bool allowEditConfig)
 {
 	DynamicAttribute attr;
 	attr.Type = Attribute_Transient;
@@ -184,10 +193,12 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 	if (tt.first->second.Type & Attribute_Config)
 		m_ConfigTx = tx;
 
-	if (!suppressEvent) {
-		m_ModifiedObjects.insert(GetSelf());
-		OnAttributeChanged(name, oldValue);
-	}
+	m_ModifiedObjects.insert(this);
+
+	/* Use insert() rather than [] so we don't overwrite
+	 * an existing oldValue if the attribute was previously
+	 * changed in the same transaction */
+	m_ModifiedAttributes.insert(make_pair(name, oldValue));
 }
 
 Value DynamicObject::InternalGetAttribute(const String& name) const
@@ -454,6 +465,10 @@ void DynamicObject::BeginTx(void)
 
 void DynamicObject::FinishTx(void)
 {
+	BOOST_FOREACH(DynamicObject *object, m_ModifiedObjects) {
+		object->SendLocalUpdateEvents();
+	}
+
 	OnTransactionClosing(m_ModifiedObjects);
 	m_ModifiedObjects.clear();
 

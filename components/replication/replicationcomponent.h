@@ -41,7 +41,7 @@ private:
 
 	void LocalObjectRegisteredHandler(const DynamicObject::Ptr& object);
 	void LocalObjectUnregisteredHandler(const DynamicObject::Ptr& object);
-	void TransactionClosingHandler(const set<DynamicObject::Ptr>& modifiedObjects);
+	void TransactionClosingHandler(const set<DynamicObject *>& modifiedObjects);
 
 	void RemoteObjectUpdateHandler(const RequestMessage& request);
 	void RemoteObjectRemovedHandler(const RequestMessage& request);

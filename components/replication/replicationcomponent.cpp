@@ -35,7 +35,7 @@ void ReplicationComponent::Start(void)
 	DynamicObject::OnTransactionClosing.connect(boost::bind(&ReplicationComponent::TransactionClosingHandler, this, _1));
 
 	Endpoint::OnConnected.connect(boost::bind(&ReplicationComponent::EndpointConnectedHandler, this, _1));
-	
+
 	m_Endpoint->RegisterTopicHandler("config::ObjectUpdate",
 	    boost::bind(&ReplicationComponent::RemoteObjectUpdateHandler, this, _3));
 	m_Endpoint->RegisterTopicHandler("config::ObjectRemoved",
@@ -155,7 +155,7 @@ void ReplicationComponent::LocalObjectUnregisteredHandler(const DynamicObject::P
 	    MakeObjectMessage(object, "config::ObjectRemoved", 0, false));
 }
 
-void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject::Ptr>& modifiedObjects)
+void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject *>& modifiedObjects)
 {
 	if (modifiedObjects.empty())
 		return;
@@ -164,7 +164,9 @@ void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject::Pt
 	msgbuf << "Sending " << modifiedObjects.size() << " replication updates.";
 	Logger::Write(LogDebug, "replication", msgbuf.str());
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, modifiedObjects) {
+	BOOST_FOREACH(DynamicObject *robject, modifiedObjects) {
+		DynamicObject::Ptr object = robject->GetSelf();
+
 		if (!ShouldReplicateObject(object))
 				continue;
 
@@ -204,7 +206,7 @@ void ReplicationComponent::RemoteObjectUpdateHandler(const RequestMessage& reque
 		object = dtype->CreateObject(update);
 
 		if (source == EndpointManager::GetInstance()->GetIdentity()) {
-			/* the peer sent us an object that was originally created by us - 
+			/* the peer sent us an object that was originally created by us -
 			 * however it was deleted locally so we have to tell the peer to destroy
 			 * its copy of the object. */
 			EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,

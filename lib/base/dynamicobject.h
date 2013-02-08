@@ -79,6 +79,7 @@ public:
 	typedef AttributeMap::const_iterator AttributeConstIterator;
 
 	DynamicObject(const Dictionary::Ptr& serializedObject);
+	~DynamicObject(void);
 
 	Dictionary::Ptr BuildUpdate(double sinceTx, int attributeTypes) const;
 	void ApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes);
@@ -95,7 +96,7 @@ public:
 
 	static boost::signal<void (const DynamicObject::Ptr&)> OnRegistered;
 	static boost::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
-	static boost::signal<void (const set<DynamicObject::Ptr>&)> OnTransactionClosing;
+	static boost::signal<void (const set<DynamicObject *>&)> OnTransactionClosing;
 
 	ScriptTask::Ptr InvokeMethod(const String& method,
 	    const vector<Value>& arguments, ScriptTask::CompletionCallback callback);
@@ -135,17 +136,19 @@ protected:
 	virtual void OnInitCompleted(void);
 
 private:
-	void InternalSetAttribute(const String& name, const Value& data, double tx, bool suppressEvent = false, bool allowEditConfig = false);
+	void InternalSetAttribute(const String& name, const Value& data, double tx, bool allowEditConfig = false);
 	Value InternalGetAttribute(const String& name) const;
+	void SendLocalUpdateEvents(void);
 
 	AttributeMap m_Attributes;
+	map<String, Value, string_iless> m_ModifiedAttributes;
 	double m_ConfigTx;
 
 	static double m_CurrentTx;
 
-	static set<DynamicObject::Ptr> m_ModifiedObjects;
-
-	void InternalApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes, bool suppressEvents);
+	/* This has to be a set of raw pointers because the DynamicObject
+	 * constructor has to be able to insert objects into this list. */
+	static set<DynamicObject *> m_ModifiedObjects;
 
 	friend class DynamicType; /* for OnInitCompleted */
 };
