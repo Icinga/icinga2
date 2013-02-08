@@ -178,7 +178,7 @@ bool Host::IsUp(void) const
 	return (!service || service->GetState() == StateOK || service->GetState() == StateWarning);
 }
 
-template<typename TDict>
+template<bool copyServiceAttrs, typename TDict>
 static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Ptr& builder)
 {
 	/* TODO: we only need to copy macros if this is an inline definition,
@@ -203,6 +203,16 @@ static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Pt
 	Value checkers = serviceDesc->Get("checkers");
 	if (!checkers.IsEmpty())
 		builder->AddExpression("checkers", OperatorSet, checkers);
+
+	if (copyServiceAttrs) {
+		Value servicedependencies = serviceDesc->Get("servicedependencies");
+		if (!servicedependencies.IsEmpty())
+			builder->AddExpression("servicedependencies", OperatorPlus, servicedependencies);
+
+		Value hostdependencies = serviceDesc->Get("hostdependencies");
+		if (!hostdependencies.IsEmpty())
+			builder->AddExpression("hostdependencies", OperatorPlus, hostdependencies);
+	}
 }
 
 void Host::UpdateSlaveServices(void)
@@ -236,7 +246,7 @@ void Host::UpdateSlaveServices(void)
 			builder->AddExpression("alias", OperatorSet, svcname);
 			builder->AddExpression("short_name", OperatorSet, svcname);
 
-			CopyServiceAttributes(this, builder);
+			CopyServiceAttributes<false>(this, builder);
 
 			if (svcdesc.IsScalar()) {
 				builder->AddParent(svcdesc);
@@ -249,7 +259,7 @@ void Host::UpdateSlaveServices(void)
 
 				builder->AddParent(parent);
 
-				CopyServiceAttributes(service, builder);
+				CopyServiceAttributes<true>(service, builder);
 			} else {
 				BOOST_THROW_EXCEPTION(invalid_argument("Service description must be either a string or a dictionary."));
 			}
