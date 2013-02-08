@@ -210,9 +210,6 @@ void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const vector<
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
 
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
-
 	double planned_check = Convert::ToDouble(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
@@ -228,9 +225,6 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const vector<String
 {
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
-
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
 
 	double planned_check = Convert::ToDouble(arguments[1]);
 
@@ -253,9 +247,6 @@ void ExternalCommandProcessor::EnableHostSvcChecks(double, const vector<String>&
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
 
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
@@ -269,9 +260,6 @@ void ExternalCommandProcessor::DisableHostSvcChecks(double, const vector<String>
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 arguments."));
 
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
@@ -284,9 +272,6 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const vector<String
 {
 	if (arguments.size() < 7)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 7 arguments."));
-
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
 	bool sticky = Convert::ToBool(arguments[2]);
 
@@ -304,9 +289,6 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<
 {
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
-
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
 	bool sticky = Convert::ToBool(arguments[2]);
 	double timestamp = Convert::ToDouble(arguments[5]);
@@ -326,9 +308,6 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<Str
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
 
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
-
 	Service::Ptr service = Service::GetByName(arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
@@ -340,9 +319,6 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<Strin
 {
 	if (arguments.size() < 6)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 6 arguments."));
-
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
 
 	bool sticky = Convert::ToBool(arguments[0]);
 
@@ -360,9 +336,6 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector
 {
 	if (arguments.size() < 7)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 7 arguments."));
-
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
 
 	bool sticky = Convert::ToBool(arguments[1]);
 	double timestamp = Convert::ToDouble(arguments[4]);
@@ -382,9 +355,6 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const vector<St
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
 
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
@@ -396,9 +366,6 @@ void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const vector<Str
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
-
-	if (!HostGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -415,9 +382,6 @@ void ExternalCommandProcessor::DisableHostgroupSvcChecks(double, const vector<St
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
 
-	if (!HostGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
@@ -433,9 +397,6 @@ void ExternalCommandProcessor::EnableServicegroupSvcChecks(double, const vector<
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
 
-	if (!ServiceGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service group '" + arguments[0] + "' does not exist."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
@@ -448,9 +409,6 @@ void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const vector
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
-
-	if (!ServiceGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service group '" + arguments[0] + "' does not exist."));
 
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
@@ -487,9 +445,6 @@ void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const 
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
 
-	if (!ServiceGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service group '" + arguments[0] + "' does not exist."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
@@ -503,9 +458,6 @@ void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
 
-	if (!ServiceGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service group '" + arguments[0] + "' does not exist."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
@@ -518,9 +470,6 @@ void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double, const vec
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
-
-	if (!HostGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -536,9 +485,6 @@ void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const ve
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
-
-	if (!HostGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -618,9 +564,6 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const vector<String>
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
 
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	String triggeredBy;
@@ -650,9 +593,6 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const vector<Stri
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 argument."));
 
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	String triggeredBy;
@@ -678,9 +618,6 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const vecto
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
 
-	if (!HostGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	String triggeredBy;
@@ -700,9 +637,6 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const vector
 {
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
-
-	if (!HostGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -736,9 +670,6 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const ve
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
 
-	if (!ServiceGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	String triggeredBy;
@@ -769,9 +700,6 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const vec
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
 
-	if (!ServiceGroup::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host group '" + arguments[0] + "' does not exist."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	String triggeredBy;
@@ -791,9 +719,6 @@ void ExternalCommandProcessor::AddHostComment(double, const vector<String>& argu
 {
 	if (arguments.size() < 4)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 4 arguments."));
-
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -816,9 +741,6 @@ void ExternalCommandProcessor::AddSvcComment(double, const vector<String>& argum
 {
 	if (arguments.size() < 5)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 5 arguments."));
-
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -843,9 +765,6 @@ void ExternalCommandProcessor::DelAllHostComments(double, const vector<String>& 
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
 
-	if (!Host::Exists(arguments[0]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' does not exist."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Removing all comments for host " + host->GetName());
@@ -856,9 +775,6 @@ void ExternalCommandProcessor::DelAllSvcComments(double, const vector<String>& a
 {
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
-
-	if (!Service::Exists(arguments[1]))
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' does not exist."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
