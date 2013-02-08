@@ -460,11 +460,11 @@ void Application::UpdatePidFile(const String& filename)
 
 #ifdef F_GETFL
 		int flags;
-		flags = fcntl(fd, F_GETFL, 0);
+		flags = fcntl(fileno(m_PidFile), F_GETFL, 0);
 		if (flags < 0)
 			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-		if (fcntl(fd, F_SETFL, flags | FD_CLOEXEC) < 0)
+		if (fcntl(fileno(m_PidFile), F_SETFL, flags | FD_CLOEXEC) < 0)
 			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 #endif /* FD_CLOEXEC */
 
