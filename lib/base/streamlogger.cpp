@@ -96,10 +96,12 @@ void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& en
 
 	stream << "[" << timestamp << "] "
 		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "
-		 << entry.Message << std::endl;
+		 << entry.Message;
 
 	if (tty)
 		stream << "\x1b[0m"; // clear colors
+
+	stream << std::endl;
 }
 
 /**
