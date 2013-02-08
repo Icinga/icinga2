@@ -64,7 +64,7 @@ double Timer::ProcessTimers(void)
 
 			double next = now + timer->GetInterval();
 
-			if (timer->m_Next < now || next < timer->m_Next)
+			if (timer->m_Next <= now || next < timer->m_Next)
 				timer->Reschedule(next);
 		}
 
