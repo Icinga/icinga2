@@ -284,8 +284,13 @@ void Service::UpdateNextCheck(void)
 	else
 		interval = GetCheckInterval();
 
-	double now = Utility::GetTime();
-	double adj = fmod(now + GetSchedulingOffset(), interval);
+	double adj = 0;
+
+	if (interval > 1)
+		double now = Utility::GetTime();
+		adj = fmod(now + GetSchedulingOffset(), interval);
+	}
+
 	SetNextCheck(now - adj + interval);
 }
 
