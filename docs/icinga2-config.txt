@@ -56,7 +56,7 @@ Example:
 2.5m
 -------------------------------------------------------------------------------
 
-Supported suffixes include s (seconds), m (minutes) and h (hours).
+Supported suffixes include ms (milliseconds), s (seconds), m (minutes) and h (hours).
 
 String Literals
 ^^^^^^^^^^^^^^^

@@ -62,7 +62,10 @@ double Timer::ProcessTimers(void)
 			 * timer call took - we need to fetch the current time */
 			now = Utility::GetTime();
 
-			timer->Reschedule(now + timer->GetInterval());
+			double next = now + timer->GetInterval();
+
+			if (timer->m_Next < now || next < timer->m_Next)
+				timer->Reschedule(next);
 		}
 
 		assert(timer->m_Next > now);

@@ -36,7 +36,7 @@ void CheckerComponent::Start(void)
 	DynamicObject::OnUnregistered.connect(bind(&CheckerComponent::ObjectRemovedHandler, this, _1));
 
 	m_CheckTimer = boost::make_shared<Timer>();
-	m_CheckTimer->SetInterval(1);
+	m_CheckTimer->SetInterval(0.1);
 	m_CheckTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::CheckTimerHandler, this));
 	m_CheckTimer->Start();
 
@@ -129,6 +129,8 @@ void CheckerComponent::CheckTimerHandler(void)
 		msgbuf << "CheckTimerHandler: created " << tasks << " task(s)";
 		Logger::Write(LogInformation, "checker", msgbuf.str());
 	}
+
+	RescheduleCheckTimer();
 }
 
 void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
@@ -182,6 +184,8 @@ void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 
 	idx.erase(it);
 	idx.insert(service);
+
+	RescheduleCheckTimer();
 }
 
 void CheckerComponent::ObjectRemovedHandler(const DynamicObject::Ptr& object)
@@ -194,4 +198,18 @@ void CheckerComponent::ObjectRemovedHandler(const DynamicObject::Ptr& object)
 
 	m_IdleServices.erase(service);
 	m_PendingServices.erase(service);
+}
+
+void CheckerComponent::RescheduleCheckTimer(void)
+{
+	if (m_IdleServices.empty())
+		return;
+
+	typedef nth_index<ServiceSet, 1>::type CheckTimeView;
+	CheckTimeView& idx = boost::get<1>(m_IdleServices);
+
+	CheckTimeView::iterator it = idx.begin();
+	Service::Ptr service = *it;
+
+	m_CheckTimer->Reschedule(service->GetNextCheck());
 }

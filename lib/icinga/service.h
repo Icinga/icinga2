@@ -69,7 +69,6 @@ public:
 
 	static const int DefaultMaxCheckAttempts;
 	static const int DefaultCheckInterval;
-	static const int MinCheckInterval;
 	static const int CheckIntervalDivisor;
 
 	String GetAlias(void) const;
@@ -79,8 +78,8 @@ public:
 	Dictionary::Ptr GetComments(void) const;
 	String GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
-	long GetCheckInterval(void) const;
-	long GetRetryInterval(void) const;
+	double GetCheckInterval(void) const;
+	double GetRetryInterval(void) const;
 	Dictionary::Ptr GetHostDependencies(void) const;
 	Dictionary::Ptr GetServiceDependencies(void) const;
 	Dictionary::Ptr GetGroups(void) const;

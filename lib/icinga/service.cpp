@@ -45,7 +45,6 @@ REGISTER_TYPE(Service, serviceAttributes);
 
 const int Service::DefaultMaxCheckAttempts = 3;
 const int Service::DefaultCheckInterval = 5 * 60;
-const int Service::MinCheckInterval = 5;
 const int Service::CheckIntervalDivisor = 5;
 
 boost::signal<void (const Service::Ptr&, const CheckResultMessage&)> Service::OnCheckResultReceived;
@@ -136,20 +135,17 @@ long Service::GetMaxCheckAttempts(void) const
 	return value;
 }
 
-long Service::GetCheckInterval(void) const
+double Service::GetCheckInterval(void) const
 {
 	Value value = Get("check_interval");
 
 	if (value.IsEmpty())
 		return DefaultCheckInterval;
 
-	if (value < MinCheckInterval)
-		value = MinCheckInterval;
-
 	return value;
 }
 
-long Service::GetRetryInterval(void) const
+double Service::GetRetryInterval(void) const
 {
 	Value value = Get("retry_interval");
 
