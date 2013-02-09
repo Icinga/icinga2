@@ -17,50 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2ICINGA_H
-#define I2ICINGA_H
+#ifndef PLUGINNOTIFICATIONTASK_H
+#define PLUGINNOTIFICATIONTASK_H
+
+namespace icinga
+{
 
 /**
- * @defgroup icinga Icinga library
+ * Implements sending notifications based on external plugins.
  *
- * The Icinga library implements all Icinga-specific functionality that is
- * common to all components (e.g. hosts, services, etc.).
+ * @ingroup icinga
  */
+class I2_ICINGA_API PluginNotificationTask
+{
+public:
+	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-remoting.h>
+private:
 
-using boost::iterator_range;
-using boost::algorithm::is_any_of;
+	static void ProcessFinishedHandler(PluginNotificationTask ct);
 
-#ifdef I2_ICINGA_BUILD
-#	define I2_ICINGA_API I2_EXPORT
-#else /* I2_ICINGA_BUILD */
-#	define I2_ICINGA_API I2_IMPORT
-#endif /* I2_ICINGA_BUILD */
+	PluginNotificationTask(const ScriptTask::Ptr& task, const Process::Ptr& process);
 
-#include "externalcommandprocessor.h"
+	ScriptTask::Ptr m_Task;
+	Process::Ptr m_Process;
+};
 
-#include "endpoint.h"
-#include "endpointmanager.h"
-#include "icingaapplication.h"
+}
 
-#include "notification.h"
-
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
-
-#include "macroprocessor.h"
-#include "pluginchecktask.h"
-#include "nullchecktask.h"
-
-#include "pluginnotificationtask.h"
-
-#include "checkresultmessage.h"
-
-#include "cib.h"
-
-#endif /* I2ICINGA_H */
+#endif /* PLUGINNOTIFICATIONTASK_H */

@@ -529,6 +529,9 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 
 	SetLastCheckResult(cr);
 
+	// TODO(debug): remove this
+	SendNotifications();
+
 	if (old_state != GetState()) {
 		double now = Utility::GetTime();
 
@@ -641,6 +644,8 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 		Service::InvalidateDowntimeCache();
 	else if (name == "comments")
 		Service::InvalidateCommentCache();
+	else if (name == "notifications")
+		Service::InvalidateNotificationsCache();
 }
 
 void Service::BeginExecuteCheck(const function<void (void)>& callback)
@@ -699,7 +704,7 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 		       << GetName() << "': " << diagnostic_information(ex);
 		String message = msgbuf.str();
 
-		Logger::Write(LogWarning, "checker", message);
+		Logger::Write(LogWarning, "icinga", message);
 
 		result = boost::make_shared<Dictionary>();
 		result->Set("state", StateUnknown);

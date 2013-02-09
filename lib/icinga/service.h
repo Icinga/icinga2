@@ -222,10 +222,21 @@ public:
 	static void InvalidateCommentCache(void);
 	static void ValidateCommentCache(void);
 
+	/* Notifications */
+	void SendNotifications(void) const;
+
+	static void InvalidateNotificationsCache(void);
+	static void ValidateNotificationsCache(void);
+
+	set<Notification::Ptr> GetNotifications(void) const;
+
 protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
+	void CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
+	    const ScriptTask::Ptr& task, const function<void (void)>& callback);
+
 	/* Downtimes */
 	static int m_NextDowntimeID;
 
@@ -252,8 +263,9 @@ private:
 	void AddCommentsToCache(void);
 	void RemoveExpiredComments(void);
 
-	void CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
-	    const ScriptTask::Ptr& task, const function<void (void)>& callback);
+	/* Notifications */
+	static map<String, set<Notification::WeakPtr> > m_NotificationsCache;
+	static bool m_NotificationsCacheValid;
 };
 
 }

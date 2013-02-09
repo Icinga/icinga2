@@ -395,7 +395,12 @@ Service::Ptr Host::GetHostCheckService(void) const
 	if (hostcheck.IsEmpty())
 		return Service::Ptr();
 
-	return GetServiceByShortName(hostcheck);
+	Service::Ptr service = GetServiceByShortName(hostcheck);
+
+	if (service->GetHost()->GetName() != GetName())
+		BOOST_THROW_EXCEPTION(runtime_error("Hostcheck service refers to another host's service."));
+
+	return service;
 }
 
 set<Service::Ptr> Host::GetParentServices(void) const

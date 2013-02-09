@@ -20,13 +20,18 @@ libicinga_la_SOURCES =  \
 	icingaapplication.h \
 	macroprocessor.cpp \
 	macroprocessor.h \
+	notification.cpp \
+	notification.h \
 	nullchecktask.cpp \
 	nullchecktask.h \
 	pluginchecktask.cpp \
 	pluginchecktask.h \
+	pluginnotificationtask.cpp \
+	pluginnotificationtask.h \
 	service.cpp \
 	service-comment.cpp \
 	service-downtime.cpp \
+	service-notification.cpp \
 	service.h \
 	servicegroup.cpp \
 	servicegroup.h

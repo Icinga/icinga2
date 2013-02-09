@@ -17,50 +17,54 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2ICINGA_H
-#define I2ICINGA_H
+#ifndef NOTIFICATION_H
+#define NOTIFICATION_H
+
+namespace icinga
+{
 
 /**
- * @defgroup icinga Icinga library
+ * The notification type.
  *
- * The Icinga library implements all Icinga-specific functionality that is
- * common to all components (e.g. hosts, services, etc.).
+ * @ingroup icinga
  */
+enum NotificationType
+{
+	NotificationHost,
+	NotificationService
+};
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-remoting.h>
+class Service;
 
-using boost::iterator_range;
-using boost::algorithm::is_any_of;
+/**
+ * An Icinga notification specification.
+ *
+ * @ingroup icinga
+ */
+class I2_ICINGA_API Notification : public DynamicObject
+{
+public:
+	typedef shared_ptr<Notification> Ptr;
+	typedef weak_ptr<Notification> WeakPtr;
 
-#ifdef I2_ICINGA_BUILD
-#	define I2_ICINGA_API I2_EXPORT
-#else /* I2_ICINGA_BUILD */
-#	define I2_ICINGA_API I2_IMPORT
-#endif /* I2_ICINGA_BUILD */
+	Notification(const Dictionary::Ptr& properties);
+	~Notification(void);
 
-#include "externalcommandprocessor.h"
+	static bool Exists(const String& name);
+	static Notification::Ptr GetByName(const String& name);
 
-#include "endpoint.h"
-#include "endpointmanager.h"
-#include "icingaapplication.h"
+	shared_ptr<Service> GetService(void) const;
+	String GetNotificationCommand(void) const;
+	Dictionary::Ptr GetMacros(void) const;
 
-#include "notification.h"
+	void SendNotification(void);
 
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
+private:
+	set<ScriptTask::Ptr> m_Tasks;
 
-#include "macroprocessor.h"
-#include "pluginchecktask.h"
-#include "nullchecktask.h"
+	void NotificationCompletedHandler(const ScriptTask::Ptr& task);
+};
 
-#include "pluginnotificationtask.h"
+}
 
-#include "checkresultmessage.h"
-
-#include "cib.h"
-
-#endif /* I2ICINGA_H */
+#endif /* NOTIFICATION_H */

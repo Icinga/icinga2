@@ -37,7 +37,6 @@ public:
 	static Dictionary::Ptr ParseCheckOutput(const String& output);
 
 private:
-
 	static void ProcessFinishedHandler(PluginCheckTask ct);
 
 	PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process);

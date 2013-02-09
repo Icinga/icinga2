@@ -32,8 +32,11 @@
     </ClCompile>
     <ClCompile Include="icingaapplication.cpp" />
     <ClCompile Include="macroprocessor.cpp" />
+    <ClCompile Include="notification.cpp" />
     <ClCompile Include="pluginchecktask.cpp" />
     <ClCompile Include="nullchecktask.cpp" />
+    <ClCompile Include="pluginnotificationtask.cpp" />
+    <ClCompile Include="service-notifications.cpp" />
     <ClCompile Include="service.cpp" />
     <ClCompile Include="service-comment.cpp" />
     <ClCompile Include="service-downtime.cpp" />
@@ -48,8 +51,10 @@
     <ClInclude Include="i2-icinga.h" />
     <ClInclude Include="icingaapplication.h" />
     <ClInclude Include="macroprocessor.h" />
+    <ClInclude Include="notification.h" />
     <ClInclude Include="pluginchecktask.h" />
     <ClInclude Include="nullchecktask.h" />
+    <ClInclude Include="pluginnotificationtask.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />
   </ItemGroup>

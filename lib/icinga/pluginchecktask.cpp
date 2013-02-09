@@ -33,10 +33,10 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Service must be specified."));
 
 	Value vservice = arguments[0];
-	if (!vservice.IsObjectType<DynamicObject>())
-		BOOST_THROW_EXCEPTION(invalid_argument("Argument must be a config object."));
+	if (!vservice.IsObjectType<Service>())
+		BOOST_THROW_EXCEPTION(invalid_argument("Argument must be a service."));
 
-	Service::Ptr service = static_cast<Service::Ptr>(vservice);
+	Service::Ptr service = vservice;
 
 	String checkCommand = service->GetCheckCommand();
 

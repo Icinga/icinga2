@@ -43,6 +43,15 @@
     <ClCompile Include="service-downtime.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="pluginnotificationtask.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="notification.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="service-notifications.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="i2-icinga.h">
@@ -79,6 +88,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="checkresultmessage.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="pluginnotificationtask.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="notification.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
