@@ -308,7 +308,7 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<Str
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
 
-	Service::Ptr service = Service::GetByName(arguments[1]);
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
 	service->SetAcknowledgement(AcknowledgementNone);
