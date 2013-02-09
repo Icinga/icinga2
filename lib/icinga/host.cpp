@@ -437,9 +437,9 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 
 	if (hostcheck) {
 		macros->Set("HOSTSTATEID", 99);
-		macros->Set("HOSTSTATETYPE", Service::StateTypeToString(hostcheck->GetStateType());
-		macros->Set("HOSTATTEMPT", hostcheck->GetCurrentAttempt());
-		macros->Set("MAXHOSTATTEMPT", hostcheck->GetMaxAttempts());
+		macros->Set("HOSTSTATETYPE", Service::StateTypeToString(hostcheck->GetStateType()));
+		macros->Set("HOSTATTEMPT", hostcheck->GetCurrentCheckAttempt());
+		macros->Set("MAXHOSTATTEMPT", hostcheck->GetMaxCheckAttempts());
 	}
 
 	return macros;

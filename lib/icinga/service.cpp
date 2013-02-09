@@ -278,8 +278,8 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 	macros->Set("SERVICESTATE", StateToString(GetState()));
 	macros->Set("SERVICESTATEID", GetState());
 	macros->Set("SERVICESTATETYPE", StateTypeToString(GetStateType()));
-	macros->Set("SERVICEATTEMPT", GetCurrentAttempt());
-	macros->Set("MAXSERVICEATTEMPT", GetMaxAttempts());
+	macros->Set("SERVICEATTEMPT", GetCurrentCheckAttempt());
+	macros->Set("MAXSERVICEATTEMPT", GetMaxCheckAttempts());
 
 	return macros;
 }
