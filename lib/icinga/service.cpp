@@ -56,14 +56,16 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 {
 	ServiceGroup::InvalidateMembersCache();
 	Host::InvalidateServicesCache();
-	DowntimeProcessor::InvalidateDowntimeCache();
+	Service::InvalidateDowntimeCache();
+	Service::InvalidateCommentCache();
 }
 
 Service::~Service(void)
 {
 	ServiceGroup::InvalidateMembersCache();
 	Host::InvalidateServicesCache();
-	DowntimeProcessor::InvalidateDowntimeCache();
+	Service::InvalidateDowntimeCache();
+	Service::InvalidateCommentCache();
 }
 
 String Service::GetAlias(void) const
@@ -118,14 +120,14 @@ Dictionary::Ptr Service::GetMacros(void) const
 
 Dictionary::Ptr Service::GetDowntimes(void) const
 {
-	DowntimeProcessor::ValidateDowntimeCache();
+	Service::ValidateDowntimeCache();
 
 	return Get("downtimes");
 }
 
 Dictionary::Ptr Service::GetComments(void) const
 {
-	CommentProcessor::ValidateCommentCache();
+	Service::ValidateCommentCache();
 
 	return Get("comments");
 }
@@ -234,7 +236,7 @@ bool Service::IsInDowntime(void) const
 
 	Dictionary::Ptr downtime;
 	BOOST_FOREACH(tie(tuples::ignore, downtime), downtimes) {
-		if (DowntimeProcessor::IsDowntimeActive(downtime))
+		if (Service::IsDowntimeActive(downtime))
 			return true;
 	}
 
@@ -559,7 +561,7 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 	}
 
 	if (GetState() != StateOK)
-		DowntimeProcessor::TriggerDowntimes(GetSelf());
+		TriggerDowntimes();
 }
 
 ServiceState Service::StateFromString(const String& state)
@@ -636,7 +638,9 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 	else if (name == "host_name" || name == "short_name")
 		Host::InvalidateServicesCache();
 	else if (name == "downtimes")
-		DowntimeProcessor::InvalidateDowntimeCache();
+		Service::InvalidateDowntimeCache();
+	else if (name == "comments")
+		Service::InvalidateCommentCache();
 }
 
 void Service::BeginExecuteCheck(const function<void (void)>& callback)

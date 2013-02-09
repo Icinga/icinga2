@@ -21,20 +21,19 @@
 
 using namespace icinga;
 
-int CommentProcessor::m_NextCommentID = 1;
-map<int, String> CommentProcessor::m_LegacyCommentCache;
-map<String, DynamicObject::WeakPtr> CommentProcessor::m_CommentCache;
-bool CommentProcessor::m_CommentCacheValid;
-Timer::Ptr CommentProcessor::m_CommentExpireTimer;
+int Service::m_NextCommentID = 1;
+map<int, String> Service::m_LegacyCommentCache;
+map<String, Service::WeakPtr> Service::m_CommentCache;
+bool Service::m_CommentCacheValid;
+Timer::Ptr Service::m_CommentExpireTimer;
 
-int CommentProcessor::GetNextCommentID(void)
+int Service::GetNextCommentID(void)
 {
 	return m_NextCommentID;
 }
 
-String CommentProcessor::AddComment(const DynamicObject::Ptr& owner,
-    CommentType entryType, const String& author, const String& text,
-    double expireTime)
+String Service::AddComment(CommentType entryType, const String& author,
+    const String& text, double expireTime)
 {
 	Dictionary::Ptr comment = boost::make_shared<Dictionary>();
 	comment->Set("entry_time", Utility::GetTime());
@@ -44,26 +43,26 @@ String CommentProcessor::AddComment(const DynamicObject::Ptr& owner,
 	comment->Set("expire_time", expireTime);
 	comment->Set("legacy_id", m_NextCommentID++);
 
-	Dictionary::Ptr comments = owner->Get("comments");
+	Dictionary::Ptr comments = Get("comments");
 
 	if (!comments)
 		comments = boost::make_shared<Dictionary>();
 
 	String id = Utility::NewUUID();
 	comments->Set(id, comment);
-	owner->Set("comments", comments);
+	Set("comments", comments);
 
 	return id;
 }
 
-void CommentProcessor::RemoveAllComments(const DynamicObject::Ptr& owner)
+void Service::RemoveAllComments(void)
 {
-	owner->Set("comments", Empty);
+	Set("comments", Empty);
 }
 
-void CommentProcessor::RemoveComment(const String& id)
+void Service::RemoveComment(const String& id)
 {
-	DynamicObject::Ptr owner = GetOwnerByCommentID(id);
+	Service::Ptr owner = GetOwnerByCommentID(id);
 
 	if (!owner)
 		return;
@@ -76,7 +75,7 @@ void CommentProcessor::RemoveComment(const String& id)
 	}
 }
 
-String CommentProcessor::GetIDFromLegacyID(int id)
+String Service::GetCommentIDFromLegacyID(int id)
 {
 	map<int, String>::iterator it = m_LegacyCommentCache.find(id);
 
@@ -86,16 +85,16 @@ String CommentProcessor::GetIDFromLegacyID(int id)
 	return it->second;
 }
 
-DynamicObject::Ptr CommentProcessor::GetOwnerByCommentID(const String& id)
+Service::Ptr Service::GetOwnerByCommentID(const String& id)
 {
 	ValidateCommentCache();
 
 	return m_CommentCache[id].lock();
 }
 
-Dictionary::Ptr CommentProcessor::GetCommentByID(const String& id)
+Dictionary::Ptr Service::GetCommentByID(const String& id)
 {
-	DynamicObject::Ptr owner = GetOwnerByCommentID(id);
+	Service::Ptr owner = GetOwnerByCommentID(id);
 
 	if (!owner)
 		return Dictionary::Ptr();
@@ -110,23 +109,23 @@ Dictionary::Ptr CommentProcessor::GetCommentByID(const String& id)
 	return Dictionary::Ptr();
 }
 
-bool CommentProcessor::IsCommentExpired(const Dictionary::Ptr& comment)
+bool Service::IsCommentExpired(const Dictionary::Ptr& comment)
 {
 	double expire_time = comment->Get("expire_time");
 
 	return (expire_time != 0 && expire_time < Utility::GetTime());
 }
 
-void CommentProcessor::InvalidateCommentCache(void)
+void Service::InvalidateCommentCache(void)
 {
 	m_CommentCacheValid = false;
 	m_CommentCache.clear();
 	m_LegacyCommentCache.clear();
 }
 
-void CommentProcessor::AddCommentsToCache(const DynamicObject::Ptr& owner)
+void Service::AddCommentsToCache(void)
 {
-	Dictionary::Ptr comments = owner->Get("comments");
+	Dictionary::Ptr comments = Get("comments");
 
 	if (!comments)
 		return;
@@ -145,15 +144,15 @@ void CommentProcessor::AddCommentsToCache(const DynamicObject::Ptr& owner)
 
 			legacy_id = m_NextCommentID++;
 			comment->Set("legacy_id", legacy_id);
-			owner->Touch("comments");
+			Touch("comments");
 		}
 
 		m_LegacyCommentCache[legacy_id] = id;
-		m_CommentCache[id] = owner;
+		m_CommentCache[id] = GetSelf();
 	}
 }
 
-void CommentProcessor::ValidateCommentCache(void)
+void Service::ValidateCommentCache(void)
 {
 	if (m_CommentCacheValid)
 		return;
@@ -162,12 +161,9 @@ void CommentProcessor::ValidateCommentCache(void)
 	m_LegacyCommentCache.clear();
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
-		AddCommentsToCache(object);
-	}
-
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		AddCommentsToCache(object);
+		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+		service->AddCommentsToCache();
 	}
 
 	m_CommentCacheValid = true;
@@ -175,14 +171,14 @@ void CommentProcessor::ValidateCommentCache(void)
 	if (!m_CommentExpireTimer) {
 		m_CommentExpireTimer = boost::make_shared<Timer>();
 		m_CommentExpireTimer->SetInterval(300);
-		m_CommentExpireTimer->OnTimerExpired.connect(boost::bind(&CommentProcessor::CommentExpireTimerHandler));
+		m_CommentExpireTimer->OnTimerExpired.connect(boost::bind(&Service::CommentExpireTimerHandler));
 		m_CommentExpireTimer->Start();
 	}
 }
 
-void CommentProcessor::RemoveExpiredComments(const DynamicObject::Ptr& owner)
+void Service::RemoveExpiredComments(void)
 {
-	Dictionary::Ptr comments = owner->Get("comments");
+	Dictionary::Ptr comments = Get("comments");
 
 	if (!comments)
 		return;
@@ -201,19 +197,15 @@ void CommentProcessor::RemoveExpiredComments(const DynamicObject::Ptr& owner)
 			comments->Remove(id);
 		}
 
-		owner->Touch("comments");
+		Touch("comments");
 	}
 }
 
-void CommentProcessor::CommentExpireTimerHandler(void)
+void Service::CommentExpireTimerHandler(void)
 {
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
-		RemoveExpiredComments(object);
-	}
-
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		RemoveExpiredComments(object);
+		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+		service->RemoveExpiredComments();
 	}
 }
-

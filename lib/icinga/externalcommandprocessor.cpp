@@ -328,8 +328,11 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<Strin
 		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
 
 	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for host '" + host->GetName() + "'");
-	host->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
-	host->SetAcknowledgementExpiry(0);
+	Service::Ptr service = host->GetHostCheckService();
+	if (service) {
+		service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+		service->SetAcknowledgementExpiry(0);
+	}
 }
 
 void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector<String>& arguments)
@@ -346,8 +349,11 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector
 		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
 
 	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for host '" + host->GetName() + "'");
-	host->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
-	host->SetAcknowledgementExpiry(timestamp);
+	Service::Ptr service = host->GetHostCheckService();
+	if (service) {
+		service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+		service->SetAcknowledgementExpiry(timestamp);
+	}
 }
 
 void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const vector<String>& arguments)
@@ -358,8 +364,11 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const vector<St
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
-	host->SetAcknowledgement(AcknowledgementNone);
-	host->SetAcknowledgementExpiry(0);
+	Service::Ptr service = host->GetHostCheckService();
+	if (service) {
+		service->SetAcknowledgement(AcknowledgementNone);
+		service->SetAcknowledgementExpiry(0);
+	}
 }
 
 void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const vector<String>& arguments)
@@ -540,10 +549,10 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double, const vector<String>&
 	String triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[5]);
 	if (triggeredByLegacy != 0)
-		triggeredBy = DowntimeProcessor::GetIDFromLegacyID(triggeredByLegacy);
+		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-	(void) DowntimeProcessor::AddDowntime(service, arguments[7], arguments[8],
+	(void) service->AddDowntime(arguments[7], arguments[8],
 	    Convert::ToDouble(arguments[2]), Convert::ToDouble(arguments[3]),
 	    Convert::ToBool(arguments[4]), triggeredBy, Convert::ToDouble(arguments[6]));
 }
@@ -555,8 +564,8 @@ void ExternalCommandProcessor::DelSvcDowntime(double, const vector<String>& argu
 
 	int id = Convert::ToLong(arguments[0]);
 	Logger::Write(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
-	String rid = DowntimeProcessor::GetIDFromLegacyID(id);
-	DowntimeProcessor::RemoveDowntime(rid);
+	String rid = Service::GetDowntimeIDFromLegacyID(id);
+	Service::RemoveDowntime(rid);
 }
 
 void ExternalCommandProcessor::ScheduleHostDowntime(double, const vector<String>& arguments)
@@ -569,12 +578,15 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const vector<String>
 	String triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	if (triggeredByLegacy != 0)
-		triggeredBy = DowntimeProcessor::GetIDFromLegacyID(triggeredByLegacy);
+		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
-	(void) DowntimeProcessor::AddDowntime(host, arguments[6], arguments[7],
-	    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-	    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
+	Service::Ptr service = host->GetHostCheckService();
+	if (service) {
+		(void) service->AddDowntime(arguments[6], arguments[7],
+		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
+	}
 }
 
 void ExternalCommandProcessor::DelHostDowntime(double, const vector<String>& arguments)
@@ -584,8 +596,8 @@ void ExternalCommandProcessor::DelHostDowntime(double, const vector<String>& arg
 
 	int id = Convert::ToLong(arguments[0]);
 	Logger::Write(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
-	String rid = DowntimeProcessor::GetIDFromLegacyID(id);
-	DowntimeProcessor::RemoveDowntime(rid);
+	String rid = Service::GetDowntimeIDFromLegacyID(id);
+	Service::RemoveDowntime(rid);
 }
 
 void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const vector<String>& arguments)
@@ -598,16 +610,11 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const vector<Stri
 	String triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	if (triggeredByLegacy != 0)
-		triggeredBy = DowntimeProcessor::GetIDFromLegacyID(triggeredByLegacy);
-
-	Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
-	(void) DowntimeProcessor::AddDowntime(host, arguments[6], arguments[7],
-	    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-	    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
+		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		(void) DowntimeProcessor::AddDowntime(service, arguments[6], arguments[7],
+		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -623,13 +630,16 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const vecto
 	String triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	if (triggeredByLegacy != 0)
-		triggeredBy = DowntimeProcessor::GetIDFromLegacyID(triggeredByLegacy);
+		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
-		(void) DowntimeProcessor::AddDowntime(host, arguments[6], arguments[7],
-		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
+		Service::Ptr service = host->GetHostCheckService();
+		if (service) {
+			(void) service->AddDowntime(arguments[6], arguments[7],
+			    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+			    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
+		}
 	}
 }
 
@@ -643,7 +653,7 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const vector
 	String triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	if (triggeredByLegacy != 0)
-		triggeredBy = DowntimeProcessor::GetIDFromLegacyID(triggeredByLegacy);
+		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	/* Note: we can't just directly create downtimes for all the services by iterating
 	 * over all hosts in the host group - otherwise we might end up creating multiple
@@ -659,7 +669,7 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const vector
 
 	BOOST_FOREACH(const Service::Ptr& service, services) {
 		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		(void) DowntimeProcessor::AddDowntime(service, arguments[6], arguments[7],
+		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -675,21 +685,23 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const ve
 	String triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	if (triggeredByLegacy != 0)
-		triggeredBy = DowntimeProcessor::GetIDFromLegacyID(triggeredByLegacy);
+		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	/* Note: we can't just directly create downtimes for all the hosts by iterating
 	 * over all services in the service group - otherwise we might end up creating multiple
 	 * downtimes for some hosts. */
 
-	set<Host::Ptr> hosts;
+	set<Service::Ptr> services;
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-		hosts.insert(service->GetHost());
+		Service::Ptr hcService = service->GetHost()->GetHostCheckService();
+		if (hcService)
+			services.insert(hcService);
 	}
 
-	BOOST_FOREACH(const Host::Ptr& host, hosts) {
-		Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
-		(void) DowntimeProcessor::AddDowntime(host, arguments[6], arguments[7],
+	BOOST_FOREACH(const Service::Ptr& service, services) {
+		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -705,11 +717,11 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const vec
 	String triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	if (triggeredByLegacy != 0)
-		triggeredBy = DowntimeProcessor::GetIDFromLegacyID(triggeredByLegacy);
+		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		(void) DowntimeProcessor::AddDowntime(service, arguments[6], arguments[7],
+		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -723,7 +735,10 @@ void ExternalCommandProcessor::AddHostComment(double, const vector<String>& argu
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Creating comment for host " + host->GetName());
-	(void) CommentProcessor::AddComment(host, Comment_User, arguments[2], arguments[3], 0);
+	Service::Ptr service = host->GetHostCheckService();
+	if (service) {
+		(void) service->AddComment(CommentUser, arguments[2], arguments[3], 0);
+	}
 }
 
 void ExternalCommandProcessor::DelHostComment(double, const vector<String>& arguments)
@@ -733,8 +748,8 @@ void ExternalCommandProcessor::DelHostComment(double, const vector<String>& argu
 
 	int id = Convert::ToLong(arguments[0]);
 	Logger::Write(LogInformation, "icinga", "Removing comment ID " + arguments[0]);
-	String rid = CommentProcessor::GetIDFromLegacyID(id);
-	CommentProcessor::RemoveComment(rid);
+	String rid = Service::GetCommentIDFromLegacyID(id);
+	Service::RemoveComment(rid);
 }
 
 void ExternalCommandProcessor::AddSvcComment(double, const vector<String>& arguments)
@@ -745,7 +760,7 @@ void ExternalCommandProcessor::AddSvcComment(double, const vector<String>& argum
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Creating comment for service " + service->GetName());
-	(void) CommentProcessor::AddComment(service, Comment_User, arguments[3], arguments[4], 0);
+	(void) service->AddComment(CommentUser, arguments[3], arguments[4], 0);
 }
 
 void ExternalCommandProcessor::DelSvcComment(double, const vector<String>& arguments)
@@ -756,8 +771,8 @@ void ExternalCommandProcessor::DelSvcComment(double, const vector<String>& argum
 	int id = Convert::ToLong(arguments[0]);
 	Logger::Write(LogInformation, "icinga", "Removing comment ID " + arguments[0]);
 
-	String rid = CommentProcessor::GetIDFromLegacyID(id);
-	CommentProcessor::RemoveComment(rid);
+	String rid = Service::GetCommentIDFromLegacyID(id);
+	Service::RemoveComment(rid);
 }
 
 void ExternalCommandProcessor::DelAllHostComments(double, const vector<String>& arguments)
@@ -768,7 +783,10 @@ void ExternalCommandProcessor::DelAllHostComments(double, const vector<String>& 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Removing all comments for host " + host->GetName());
-	CommentProcessor::RemoveAllComments(host);
+	Service::Ptr service = host->GetHostCheckService();
+	if (service) {
+		service->RemoveAllComments();
+	}
 }
 
 void ExternalCommandProcessor::DelAllSvcComments(double, const vector<String>& arguments)
@@ -779,5 +797,5 @@ void ExternalCommandProcessor::DelAllSvcComments(double, const vector<String>& a
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Removing all comments for service " + service->GetName());
-	CommentProcessor::RemoveAllComments(service);
+	service->RemoveAllComments();
 }

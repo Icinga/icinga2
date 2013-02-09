@@ -171,21 +171,11 @@ void CompatComponent::ProcessCommand(const String& command)
 }
 #endif /* _WIN32 */
 
-void CompatComponent::DumpComments(ofstream& fp, const DynamicObject::Ptr& owner)
+void CompatComponent::DumpComments(ofstream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Service::Ptr service;
 	Host::Ptr host;
-	Dictionary::Ptr comments;
-
-	if (owner->GetType() == DynamicType::GetByName("Service")) {
-		service = dynamic_pointer_cast<Service>(owner);
-		comments = service->GetComments();
-
-		host = service->GetHost();
-	} else {
-		host = dynamic_pointer_cast<Host>(owner);
-		comments = host->GetComments();
-	}
+	Dictionary::Ptr comments = owner->GetComments();
 
 	if (!comments)
 		return;
@@ -193,16 +183,16 @@ void CompatComponent::DumpComments(ofstream& fp, const DynamicObject::Ptr& owner
 	String id;
 	Dictionary::Ptr comment;
 	BOOST_FOREACH(tie(id, comment), comments) {
-		if (CommentProcessor::IsCommentExpired(comment))
+		if (Service::IsCommentExpired(comment))
 			continue;
 
-		if (!service)
+		if (type == CompatTypeHost)
 			fp << "hostcomment {" << "\n";
 		else
 			fp << "servicecomment {" << "\n"
-			   << "\t" << "service_description=" << service->GetShortName() << "\n";
+			   << "\t" << "service_description=" << owner->GetShortName() << "\n";
 
-		fp << "\t" << "host_name=" << host->GetName() << "\n"
+		fp << "\t" << "host_name=" << owner->GetHost()->GetName() << "\n"
 		   << "\t" << "comment_id=" << static_cast<String>(comment->Get("legacy_id")) << "\n"
 		   << "\t" << "entry_time=" << static_cast<double>(comment->Get("entry_time")) << "\n"
 		   << "\t" << "entry_type=" << static_cast<long>(comment->Get("entry_type")) << "\n"
@@ -216,21 +206,9 @@ void CompatComponent::DumpComments(ofstream& fp, const DynamicObject::Ptr& owner
 	}
 }
 
-void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owner)
+void CompatComponent::DumpDowntimes(ofstream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
-	Service::Ptr service;
-	Host::Ptr host;
-	Dictionary::Ptr downtimes;
-
-	if (owner->GetType() == DynamicType::GetByName("Service")) {
-		service = dynamic_pointer_cast<Service>(owner);
-		downtimes = service->GetDowntimes();
-
-		host = service->GetHost();
-	} else {
-		host = dynamic_pointer_cast<Host>(owner);
-		downtimes = host->GetDowntimes();
-	}
+	Dictionary::Ptr downtimes = owner->GetDowntimes();
 
 	if (!downtimes)
 		return;
@@ -238,21 +216,21 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owne
 	String id;
 	Dictionary::Ptr downtime;
 	BOOST_FOREACH(tie(id, downtime), downtimes) {
-		if (DowntimeProcessor::IsDowntimeExpired(downtime))
+		if (Service::IsDowntimeExpired(downtime))
 			continue;
 
-		if (!service)
+		if (type == CompatTypeHost)
 			fp << "hostdowntime {" << "\n";
 		else
 			fp << "servicedowntime {" << "\n"
-			   << "\t" << "service_description=" << service->GetShortName() << "\n";
+			   << "\t" << "service_description=" << owner->GetShortName() << "\n";
 
-		Dictionary::Ptr triggeredByObj = DowntimeProcessor::GetDowntimeByID(downtime->Get("triggered_by"));
+		Dictionary::Ptr triggeredByObj = Service::GetDowntimeByID(downtime->Get("triggered_by"));
 		int triggeredByLegacy = 0;
 		if (triggeredByObj)
 			triggeredByLegacy = triggeredByObj->Get("legacy_id");
 
-		fp << "\t" << "host_name=" << host->GetName() << "\n"
+		fp << "\t" << "host_name=" << owner->GetHost()->GetName() << "\n"
 		   << "\t" << "downtime_id=" << static_cast<String>(downtime->Get("legacy_id")) << "\n"
 		   << "\t" << "entry_time=" << static_cast<double>(downtime->Get("entry_time")) << "\n"
 		   << "\t" << "start_time=" << static_cast<double>(downtime->Get("start_time")) << "\n"
@@ -260,7 +238,7 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owne
 		   << "\t" << "triggered_by=" << triggeredByLegacy << "\n"
 		   << "\t" << "fixed=" << static_cast<long>(downtime->Get("fixed")) << "\n"
 		   << "\t" << "duration=" << static_cast<long>(downtime->Get("duration")) << "\n"
-		   << "\t" << "is_in_effect=" << (DowntimeProcessor::IsDowntimeActive(downtime) ? 1 : 0) << "\n"
+		   << "\t" << "is_in_effect=" << (Service::IsDowntimeActive(downtime) ? 1 : 0) << "\n"
 		   << "\t" << "author=" << static_cast<String>(downtime->Get("author")) << "\n"
 		   << "\t" << "comment=" << static_cast<String>(downtime->Get("comment")) << "\n"
 		   << "\t" << "trigger_time=" << static_cast<double>(downtime->Get("trigger_time")) << "\n"
@@ -284,18 +262,17 @@ void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 
 	Service::Ptr hostcheck = host->GetHostCheckService();
 
-	if (hostcheck)
-		DumpServiceStatusAttrs(fp, hostcheck, CompatStateHost);
+	if (hostcheck) {
+		DumpServiceStatusAttrs(fp, hostcheck, CompatTypeHost);
+	}
 
-	fp << "\t" << "problem_has_been_acknowledged=" << (host->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
-	   << "\t" << "acknowledgement_type=" << static_cast<int>(host->GetAcknowledgement()) << "\n"
-	   << "\t" << "acknowledgement_end_time=" << host->GetAcknowledgementExpiry() << "\n"
-	   << "\t" << "scheduled_downtime_depth=" << (host->IsInDowntime() ? 1 : 0) << "\n"
-	   << "\t" << "}" << "\n"
+	fp << "\t" << "}" << "\n"
 	   << "\n";
 
-	DumpDowntimes(fp, host);
-	DumpComments(fp, host);
+	if (hostcheck) {
+		DumpDowntimes(fp, hostcheck, CompatTypeHost);
+		DumpComments(fp, hostcheck, CompatTypeHost);
+	}
 }
 
 void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
@@ -321,7 +298,7 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 	   << "\n";
 }
 
-void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatStateType type)
+void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatObjectType type)
 {
 	String output;
 	String perfdata;
@@ -346,7 +323,7 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 	if (state > StateUnknown)
 		state = StateUnknown;
 
-	if (type == CompatStateHost) {
+	if (type == CompatTypeHost) {
 		if (state == StateOK || state == StateWarning)
 			state = 0;
 		else
@@ -374,7 +351,11 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 	   << "\t" << "last_hard_state_change=" << service->GetLastHardStateChange() << "\n"
 	   << "\t" << "last_update=" << time(NULL) << "\n"
 	   << "\t" << "active_checks_enabled=" << (service->GetEnableActiveChecks() ? 1 : 0) <<"\n"
-	   << "\t" << "passive_checks_enabled=" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n";
+	   << "\t" << "passive_checks_enabled=" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
+	   << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
+	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
+	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
+	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n";
 }
 
 void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& service)
@@ -383,17 +364,13 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	   << "\t" << "host_name=" << service->GetHost()->GetName() << "\n"
 	   << "\t" << "service_description=" << service->GetShortName() << "\n";
 
-	DumpServiceStatusAttrs(fp, service, CompatStateService);
+	DumpServiceStatusAttrs(fp, service, CompatTypeService);
 
-	fp << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
-	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
-	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
-	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
-	   << "\t" << "}" << "\n"
+	fp << "\t" << "}" << "\n"
 	   << "\n";
 
-	DumpDowntimes(fp, service);
-	DumpComments(fp, service);
+	DumpDowntimes(fp, service, CompatTypeService);
+	DumpComments(fp, service, CompatTypeService);
 }
 
 void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& service)
@@ -465,8 +442,8 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "enable_failure_prediction=0" << "\n"
 		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
 		 << "\t" << "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
-		 << "\t" << "next_downtime_id=" << DowntimeProcessor::GetNextDowntimeID() << "\n"
-		 << "\t" << "next_comment_id=" << CommentProcessor::GetNextCommentID() << "\n"
+		 << "\t" << "next_downtime_id=" << Service::GetNextDowntimeID() << "\n"
+		 << "\t" << "next_comment_id=" << Service::GetNextCommentID() << "\n"
 		 << "\t" << "}" << "\n"
 		 << "\n";
 

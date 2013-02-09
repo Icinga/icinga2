@@ -48,6 +48,31 @@ enum ServiceStateType
 	StateTypeHard
 };
 
+/**
+ * The acknowledgement type of a service.
+ *
+ * @ingroup icinga
+ */
+enum AcknowledgementType
+{
+	AcknowledgementNone = 0,
+	AcknowledgementNormal = 1,
+	AcknowledgementSticky = 2
+};
+
+/**
+ * The type of a service comment.
+ *
+ * @ingroup icinga
+ */
+enum CommentType
+{
+	CommentUser = 1,
+	CommentDowntime = 2,
+	CommentFlapping = 3,
+	CommentAcknowledgement = 4
+};
+
 class CheckResultMessage;
 
 /**
@@ -157,10 +182,76 @@ public:
 	static boost::signal<void (const Service::Ptr&, const String&)> OnCheckerChanged;
 	static boost::signal<void (const Service::Ptr&, const Value&)> OnNextCheckChanged;
 
+	/* Downtimes */
+	static int GetNextDowntimeID(void);
+
+	String AddDowntime(const String& author, const String& comment,
+	    double startTime, double endTime, bool fixed,
+	    const String& triggeredBy, double duration);
+
+	static void RemoveDowntime(const String& id);
+
+        void TriggerDowntimes(void);
+	static void TriggerDowntime(const String& id);
+
+	static String GetDowntimeIDFromLegacyID(int id);
+	static Service::Ptr GetOwnerByDowntimeID(const String& id);
+	static Dictionary::Ptr GetDowntimeByID(const String& id);
+
+	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
+	static bool IsDowntimeExpired(const Dictionary::Ptr& downtime);
+
+	static void InvalidateDowntimeCache(void);
+	static void ValidateDowntimeCache(void);
+
+	/* Comments */
+	static int GetNextCommentID(void);
+
+	String AddComment(CommentType entryType, const String& author,
+	    const String& text, double expireTime);
+
+	void RemoveAllComments(void);
+	static void RemoveComment(const String& id);
+
+	static String GetCommentIDFromLegacyID(int id);
+	static Service::Ptr GetOwnerByCommentID(const String& id);
+	static Dictionary::Ptr GetCommentByID(const String& id);
+
+	static bool IsCommentExpired(const Dictionary::Ptr& comment);
+
+	static void InvalidateCommentCache(void);
+	static void ValidateCommentCache(void);
+
 protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
+	/* Downtimes */
+	static int m_NextDowntimeID;
+
+	static map<int, String> m_LegacyDowntimeCache;
+	static map<String, Service::WeakPtr> m_DowntimeCache;
+	static bool m_DowntimeCacheValid;
+	static Timer::Ptr m_DowntimeExpireTimer;
+
+	static void DowntimeExpireTimerHandler(void);
+
+	void AddDowntimesToCache(void);
+	void RemoveExpiredDowntimes(void);
+
+	/* Comments */
+	static int m_NextCommentID;
+
+	static map<int, String> m_LegacyCommentCache;
+	static map<String, Service::WeakPtr> m_CommentCache;
+	static bool m_CommentCacheValid;
+	static Timer::Ptr m_CommentExpireTimer;
+
+	static void CommentExpireTimerHandler(void);
+
+	void AddCommentsToCache(void);
+	void RemoveExpiredComments(void);
+
 	void CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 	    const ScriptTask::Ptr& task, const function<void (void)>& callback);
 };

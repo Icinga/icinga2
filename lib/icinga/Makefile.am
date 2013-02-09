@@ -5,15 +5,10 @@ pkglib_LTLIBRARIES =  \
 	libicinga.la
 
 libicinga_la_SOURCES =  \
-	acknowledgement.h \
 	checkresultmessage.cpp \
 	checkresultmessage.h \
 	cib.cpp \
 	cib.h \
-	commentprocessor.cpp \
-	commentprocessor.h \
-	downtimeprocessor.cpp \
-	downtimeprocessor.h \
 	externalcommandprocessor.cpp \
 	externalcommandprocessor.h \
 	host.cpp \
@@ -30,9 +25,11 @@ libicinga_la_SOURCES =  \
 	pluginchecktask.cpp \
 	pluginchecktask.h \
 	service.cpp \
+	service-comment.cpp \
+	service-downtime.cpp \
+	service.h \
 	servicegroup.cpp \
-	servicegroup.h \
-	service.h
+	servicegroup.h
 
 libicinga_la_CPPFLAGS = \
 	-DI2_ICINGA_BUILD \

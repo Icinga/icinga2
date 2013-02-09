@@ -23,10 +23,10 @@
 namespace icinga
 {
 
-enum CompatStateType
+enum CompatObjectType
 {
-	CompatStateService,
-	CompatStateHost
+	CompatTypeService,
+	CompatTypeHost
 };
 
 /**
@@ -53,12 +53,12 @@ private:
 	String GetLogPath(void) const;
 	String GetCommandPath(void) const;
 
-	void DumpDowntimes(ofstream& fp, const DynamicObject::Ptr& owner);
-	void DumpComments(ofstream& fp, const DynamicObject::Ptr& owner);
+	void DumpDowntimes(ofstream& fp, const Service::Ptr& owner, CompatObjectType type);
+	void DumpComments(ofstream& fp, const Service::Ptr& owner, CompatObjectType type);
 	void DumpHostStatus(ofstream& fp, const Host::Ptr& host);
 	void DumpHostObject(ofstream& fp, const Host::Ptr& host);
 
-	void DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatStateType type);
+	void DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatObjectType type);
 
 	template<typename T>
 	void DumpNameList(ofstream& fp, const T& list)

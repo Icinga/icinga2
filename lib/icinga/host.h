@@ -47,17 +47,9 @@ public:
 	Dictionary::Ptr GetGroups(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
-	Dictionary::Ptr GetDowntimes(void) const;
-	Dictionary::Ptr GetComments(void) const;
 	Dictionary::Ptr GetHostDependencies(void) const;
 	Dictionary::Ptr GetServiceDependencies(void) const;
 	String GetHostCheck(void) const;
-
-	AcknowledgementType GetAcknowledgement(void);
-	void SetAcknowledgement(AcknowledgementType acknowledgement);
-
-	double GetAcknowledgementExpiry(void) const;
-	void SetAcknowledgementExpiry(double timestamp);
 
 	shared_ptr<Service> GetHostCheckService(void) const;
 	set<Host::Ptr> GetParentHosts(void) const;

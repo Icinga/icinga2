@@ -27,10 +27,6 @@ bool Host::m_ServicesCacheValid = true;
 REGISTER_SCRIPTFUNCTION("native::ValidateServiceDictionary", &Host::ValidateServiceDictionary);
 
 static AttributeDescription hostAttributes[] = {
-	{ "acknowledgement", Attribute_Replicated },
-	{ "acknowledgement_expiry", Attribute_Replicated },
-	{ "downtimes", Attribute_Replicated },
-	{ "comments", Attribute_Replicated },
 	{ "convenience_services", Attribute_Transient }
 };
 
@@ -43,7 +39,6 @@ Host::Host(const Dictionary::Ptr& properties)
 void Host::OnInitCompleted(void)
 {
 	HostGroup::InvalidateMembersCache();
-	DowntimeProcessor::InvalidateDowntimeCache();
 
 	UpdateSlaveServices();
 }
@@ -51,7 +46,6 @@ void Host::OnInitCompleted(void)
 Host::~Host(void)
 {
 	HostGroup::InvalidateMembersCache();
-	DowntimeProcessor::InvalidateDowntimeCache();
 
 	Dictionary::Ptr services = Get("convenience_services");
 
@@ -95,20 +89,6 @@ Dictionary::Ptr Host::GetGroups(void) const
 Dictionary::Ptr Host::GetMacros(void) const
 {
 	return Get("macros");
-}
-
-Dictionary::Ptr Host::GetDowntimes(void) const
-{
-	DowntimeProcessor::ValidateDowntimeCache();
-
-	return Get("downtimes");
-}
-
-Dictionary::Ptr Host::GetComments(void) const
-{
-	CommentProcessor::ValidateCommentCache();
-
-	return Get("comments");
 }
 
 Dictionary::Ptr Host::GetHostDependencies(void) const
@@ -158,18 +138,8 @@ bool Host::IsReachable(void)
 
 bool Host::IsInDowntime(void) const
 {
-	Dictionary::Ptr downtimes = GetDowntimes();
-
-	if (!downtimes)
-		return false;
-
-	Dictionary::Ptr downtime;
-	BOOST_FOREACH(tie(tuples::ignore, downtime), downtimes) {
-		if (DowntimeProcessor::IsDowntimeActive(downtime))
-			return true;
-	}
-
-	return false;
+	Service::Ptr service = GetHostCheckService();
+	return (service || service->IsInDowntime());
 }
 
 bool Host::IsUp(void) const
@@ -289,8 +259,6 @@ void Host::OnAttributeChanged(const String& name, const Value&)
 {
 	if (name == "hostgroups")
 		HostGroup::InvalidateMembersCache();
-	else if (name == "downtimes")
-		DowntimeProcessor::InvalidateDowntimeCache();
 	else if (name == "services")
 		UpdateSlaveServices();
 }
@@ -313,49 +281,6 @@ set<Service::Ptr> Host::GetServices(void) const
 	}
 
 	return services;
-}
-
-AcknowledgementType Host::GetAcknowledgement(void)
-{
-	Value value = Get("acknowledgement");
-
-	if (value.IsEmpty())
-		return AcknowledgementNone;
-
-	int ivalue = static_cast<int>(value);
-	AcknowledgementType avalue = static_cast<AcknowledgementType>(ivalue);
-
-	if (avalue != AcknowledgementNone) {
-		double expiry = GetAcknowledgementExpiry();
-
-		if (expiry != 0 && expiry < Utility::GetTime()) {
-			avalue = AcknowledgementNone;
-			SetAcknowledgement(avalue);
-			SetAcknowledgementExpiry(0);
-		}
-	}
-
-	return avalue;
-}
-
-void Host::SetAcknowledgement(AcknowledgementType acknowledgement)
-{
-	Set("acknowledgement", static_cast<long>(acknowledgement));
-}
-
-double Host::GetAcknowledgementExpiry(void) const
-{
-	Value value = Get("acknowledgement_expiry");
-
-	if (value.IsEmpty())
-		return 0;
-
-	return static_cast<double>(value);
-}
-
-void Host::SetAcknowledgementExpiry(double timestamp)
-{
-	Set("acknowledgement_expiry", timestamp);
 }
 
 void Host::InvalidateServicesCache(void)

@@ -21,21 +21,20 @@
 
 using namespace icinga;
 
-int DowntimeProcessor::m_NextDowntimeID = 1;
-map<int, String> DowntimeProcessor::m_LegacyDowntimeCache;
-map<String, DynamicObject::WeakPtr> DowntimeProcessor::m_DowntimeCache;
-bool DowntimeProcessor::m_DowntimeCacheValid;
-Timer::Ptr DowntimeProcessor::m_DowntimeExpireTimer;
+int Service::m_NextDowntimeID = 1;
+map<int, String> Service::m_LegacyDowntimeCache;
+map<String, Service::WeakPtr> Service::m_DowntimeCache;
+bool Service::m_DowntimeCacheValid;
+Timer::Ptr Service::m_DowntimeExpireTimer;
 
-int DowntimeProcessor::GetNextDowntimeID(void)
+int Service::GetNextDowntimeID(void)
 {
 	return m_NextDowntimeID;
 }
 
-String DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
-    const String& author, const String& comment,
-    double startTime, double endTime,
-    bool fixed, const String& triggeredBy, double duration)
+String Service::AddDowntime(const String& author, const String& comment,
+    double startTime, double endTime, bool fixed,
+    const String& triggeredBy, double duration)
 {
 	Dictionary::Ptr downtime = boost::make_shared<Dictionary>();
 	downtime->Set("entry_time", Utility::GetTime());
@@ -51,33 +50,33 @@ String DowntimeProcessor::AddDowntime(const DynamicObject::Ptr& owner,
 	downtime->Set("legacy_id", m_NextDowntimeID++);
 
 	if (!triggeredBy.IsEmpty()) {
-		DynamicObject::Ptr otherOwner = GetOwnerByDowntimeID(triggeredBy);
+		Service::Ptr otherOwner = GetOwnerByDowntimeID(triggeredBy);
 		Dictionary::Ptr otherDowntimes = otherOwner->Get("downtimes");
 		Dictionary::Ptr otherDowntime = otherDowntimes->Get(triggeredBy);
 		Dictionary::Ptr triggers = otherDowntime->Get("triggers");
 		triggers->Set(triggeredBy, triggeredBy);
 		otherOwner->Touch("downtimes");
 	}
-	
-	Dictionary::Ptr downtimes = owner->Get("downtimes");
+
+	Dictionary::Ptr downtimes = Get("downtimes");
 
 	if (!downtimes)
 		downtimes = boost::make_shared<Dictionary>();
 
 	String id = Utility::NewUUID();
 	downtimes->Set(id, downtime);
-	owner->Set("downtimes", downtimes);
+	Set("downtimes", downtimes);
 
 	return id;
 }
 
-void DowntimeProcessor::RemoveDowntime(const String& id)
+void Service::RemoveDowntime(const String& id)
 {
-	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
+	Service::Ptr owner = GetOwnerByDowntimeID(id);
 
 	if (!owner)
 		return;
-	
+
 	Dictionary::Ptr downtimes = owner->Get("downtimes");
 
 	if (!downtimes)
@@ -87,22 +86,22 @@ void DowntimeProcessor::RemoveDowntime(const String& id)
 	owner->Touch("downtimes");
 }
 
-void DowntimeProcessor::TriggerDowntimes(const DynamicObject::Ptr& owner)
+void Service::TriggerDowntimes(void)
 {
-	Dictionary::Ptr downtimes = owner->Get("downtimes");
+	Dictionary::Ptr downtimes = Get("downtimes");
 
 	if (!downtimes)
 		return;
-	
+
 	String id;
 	BOOST_FOREACH(tie(id, tuples::ignore), downtimes) {
 		TriggerDowntime(id);
 	}
 }
 
-void DowntimeProcessor::TriggerDowntime(const String& id)
+void Service::TriggerDowntime(const String& id)
 {
-	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
+	Service::Ptr owner = GetOwnerByDowntimeID(id);
 	Dictionary::Ptr downtime = GetDowntimeByID(id);
 
 	double now = Utility::GetTime();
@@ -113,18 +112,20 @@ void DowntimeProcessor::TriggerDowntime(const String& id)
 
 	if (downtime->Get("trigger_time") == 0)
 		downtime->Set("trigger_time", now);
-	
+
 	Dictionary::Ptr triggers = downtime->Get("triggers");
 	String tid;
 	BOOST_FOREACH(tie(tid, tuples::ignore), triggers) {
 		TriggerDowntime(tid);
 	}
-	
+
 	owner->Touch("downtimes");
 }
 
-String DowntimeProcessor::GetIDFromLegacyID(int id)
+String Service::GetDowntimeIDFromLegacyID(int id)
 {
+	ValidateDowntimeCache();
+
 	map<int, String>::iterator it = m_LegacyDowntimeCache.find(id);
 
 	if (it == m_LegacyDowntimeCache.end())
@@ -133,16 +134,16 @@ String DowntimeProcessor::GetIDFromLegacyID(int id)
 	return it->second;
 }
 
-DynamicObject::Ptr DowntimeProcessor::GetOwnerByDowntimeID(const String& id)
+Service::Ptr Service::GetOwnerByDowntimeID(const String& id)
 {
 	ValidateDowntimeCache();
 
 	return m_DowntimeCache[id].lock();
 }
 
-Dictionary::Ptr DowntimeProcessor::GetDowntimeByID(const String& id)
+Dictionary::Ptr Service::GetDowntimeByID(const String& id)
 {
-	DynamicObject::Ptr owner = GetOwnerByDowntimeID(id);
+	Service::Ptr owner = GetOwnerByDowntimeID(id);
 
 	if (!owner)
 		return Dictionary::Ptr();
@@ -157,7 +158,7 @@ Dictionary::Ptr DowntimeProcessor::GetDowntimeByID(const String& id)
 	return Dictionary::Ptr();
 }
 
-bool DowntimeProcessor::IsDowntimeActive(const Dictionary::Ptr& downtime)
+bool Service::IsDowntimeActive(const Dictionary::Ptr& downtime)
 {
 	double now = Utility::GetTime();
 
@@ -176,21 +177,21 @@ bool DowntimeProcessor::IsDowntimeActive(const Dictionary::Ptr& downtime)
 	return (triggerTime + downtime->Get("duration") < now);
 }
 
-bool DowntimeProcessor::IsDowntimeExpired(const Dictionary::Ptr& downtime)
+bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
 {
 	return (downtime->Get("end_time") < Utility::GetTime());
 }
 
-void DowntimeProcessor::InvalidateDowntimeCache(void)
+void Service::InvalidateDowntimeCache(void)
 {
 	m_DowntimeCacheValid = false;
 	m_DowntimeCache.clear();
 	m_LegacyDowntimeCache.clear();
 }
 
-void DowntimeProcessor::AddDowntimesToCache(const DynamicObject::Ptr& owner)
+void Service::AddDowntimesToCache(void)
 {
-	Dictionary::Ptr downtimes = owner->Get("downtimes");
+	Dictionary::Ptr downtimes = Get("downtimes");
 
 	if (!downtimes)
 		return;
@@ -208,15 +209,15 @@ void DowntimeProcessor::AddDowntimesToCache(const DynamicObject::Ptr& owner)
 			 * this shouldn't usually happen - assign it a new ID. */
 			legacy_id = m_NextDowntimeID++;
 			downtime->Set("legacy_id", legacy_id);
-			owner->Touch("downtimes");
+			Touch("downtimes");
 		}
 
 		m_LegacyDowntimeCache[legacy_id] = id;
-		m_DowntimeCache[id] = owner;
+		m_DowntimeCache[id] = GetSelf();
 	}
 }
 
-void DowntimeProcessor::ValidateDowntimeCache(void)
+void Service::ValidateDowntimeCache(void)
 {
 	if (m_DowntimeCacheValid)
 		return;
@@ -225,12 +226,9 @@ void DowntimeProcessor::ValidateDowntimeCache(void)
 	m_LegacyDowntimeCache.clear();
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
-		AddDowntimesToCache(object);
-	}
-
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		AddDowntimesToCache(object);
+		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+		service->AddDowntimesToCache();
 	}
 
 	m_DowntimeCacheValid = true;
@@ -238,14 +236,14 @@ void DowntimeProcessor::ValidateDowntimeCache(void)
 	if (!m_DowntimeExpireTimer) {
 		m_DowntimeExpireTimer = boost::make_shared<Timer>();
 		m_DowntimeExpireTimer->SetInterval(300);
-		m_DowntimeExpireTimer->OnTimerExpired.connect(boost::bind(&DowntimeProcessor::DowntimeExpireTimerHandler));
+		m_DowntimeExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimeExpireTimerHandler));
 		m_DowntimeExpireTimer->Start();
 	}
 }
 
-void DowntimeProcessor::RemoveExpiredDowntimes(const DynamicObject::Ptr& owner)
+void Service::RemoveExpiredDowntimes(void)
 {
-	Dictionary::Ptr downtimes = owner->Get("downtimes");
+	Dictionary::Ptr downtimes = Get("downtimes");
 
 	if (!downtimes)
 		return;
@@ -264,19 +262,15 @@ void DowntimeProcessor::RemoveExpiredDowntimes(const DynamicObject::Ptr& owner)
 			downtimes->Remove(id);
 		}
 
-		owner->Touch("downtimes");
+		Touch("downtimes");
 	}
 }
 
-void DowntimeProcessor::DowntimeExpireTimerHandler(void)
+void Service::DowntimeExpireTimerHandler(void)
 {
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
-		RemoveExpiredDowntimes(object);
-	}
-
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		RemoveExpiredDowntimes(object);
+		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+		service->RemoveExpiredDowntimes();
 	}
 }
-

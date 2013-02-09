@@ -46,10 +46,6 @@ using boost::algorithm::is_any_of;
 #include "endpointmanager.h"
 #include "icingaapplication.h"
 
-#include "acknowledgement.h"
-#include "downtimeprocessor.h"
-#include "commentprocessor.h"
-
 #include "host.h"
 #include "hostgroup.h"
 #include "service.h"

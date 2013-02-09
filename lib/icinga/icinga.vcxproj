@@ -21,8 +21,6 @@
   <ItemGroup>
     <ClCompile Include="checkresultmessage.cpp" />
     <ClCompile Include="cib.cpp" />
-    <ClCompile Include="commentprocessor.cpp" />
-    <ClCompile Include="downtimeprocessor.cpp" />
     <ClCompile Include="externalcommandprocessor.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="hostgroup.cpp" />
@@ -37,14 +35,13 @@
     <ClCompile Include="pluginchecktask.cpp" />
     <ClCompile Include="nullchecktask.cpp" />
     <ClCompile Include="service.cpp" />
+    <ClCompile Include="service-comment.cpp" />
+    <ClCompile Include="service-downtime.cpp" />
     <ClCompile Include="servicegroup.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="acknowledgement.h" />
     <ClInclude Include="checkresultmessage.h" />
     <ClInclude Include="cib.h" />
-    <ClInclude Include="commentprocessor.h" />
-    <ClInclude Include="downtimeprocessor.h" />
     <ClInclude Include="externalcommandprocessor.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="hostgroup.h" />
