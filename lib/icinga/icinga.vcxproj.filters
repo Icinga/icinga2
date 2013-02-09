@@ -28,22 +28,19 @@
     <ClCompile Include="servicegroup.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="servicestatechangemessage.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="pluginchecktask.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="timeperiod.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="downtimeprocessor.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="externalcommandprocessor.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="commentprocessor.cpp">
+    <ClCompile Include="checkresultmessage.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="service-comment.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="service-downtime.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -55,9 +52,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="cib.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="servicestatechangemessage.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="host.h">
@@ -81,19 +75,10 @@
     <ClInclude Include="pluginchecktask.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="timeperiod.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="acknowledgement.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="downtimeprocessor.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="externalcommandprocessor.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="commentprocessor.h">
+    <ClInclude Include="checkresultmessage.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
