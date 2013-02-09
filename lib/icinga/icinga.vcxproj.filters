@@ -49,7 +49,13 @@
     <ClCompile Include="notification.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="service-notifications.cpp">
+    <ClCompile Include="notificationrequestmessage.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="service-check.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="service-notification.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -94,6 +100,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="notification.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="notificationrequestmessage.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
