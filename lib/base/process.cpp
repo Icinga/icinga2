@@ -65,7 +65,7 @@ void Process::WorkerThreadProc(void)
 #ifndef _MSC_VER
 			fd_set readfds;
 			int nfds = 0;
-			
+
 			FD_ZERO(&readfds);
 
 			int fd;
@@ -221,4 +221,3 @@ int Process::GetFD(void) const
 {
 	return fileno(m_FP);
 }
-

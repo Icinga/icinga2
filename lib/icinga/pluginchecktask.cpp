@@ -42,7 +42,9 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(service->GetMacros());
+	macroDicts.push_back(service->CalculateDynamicMacros());
 	macroDicts.push_back(service->GetHost()->GetMacros());
+	macroDicts.push_back(service->GetHost()->CalculateDynamicMacros());
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
 	String command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
 

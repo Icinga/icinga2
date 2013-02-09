@@ -31,6 +31,7 @@ libicinga_la_SOURCES =  \
 	pluginnotificationtask.cpp \
 	pluginnotificationtask.h \
 	service.cpp \
+	service-check.cpp \
 	service-comment.cpp \
 	service-downtime.cpp \
 	service-notification.cpp \

@@ -424,3 +424,23 @@ set<Service::Ptr> Host::GetParentServices(void) const
 
 	return parents;
 }
+
+Dynamic::Ptr Host::CalculateDynamicMacros(void) const
+{
+	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
+
+	macros->Set("HOSTNAME", GetName());
+	macros->Set("HOSTDISPLAYNAME", GetDisplayName());
+	macros->Set("HOSTSTATE", "DERP");
+
+	Service::Ptr hostcheck = GetHostCheckService();
+
+	if (hostcheck) {
+		macros->Set("HOSTSTATEID", 99);
+		macros->Set("HOSTSTATETYPE", Service::StateTypeToString(hostcheck->GetStateType());
+		macros->Set("HOSTATTEMPT", hostcheck->GetCurrentAttempt());
+		macros->Set("MAXHOSTATTEMPT", hostcheck->GetMaxAttempts());
+	}
+
+	return macros;
+}

@@ -32,6 +32,13 @@ int Service::GetNextDowntimeID(void)
 	return m_NextDowntimeID;
 }
 
+Dictionary::Ptr Service::GetDowntimes(void) const
+{
+	Service::ValidateDowntimeCache();
+
+	return Get("downtimes");
+}
+
 String Service::AddDowntime(const String& author, const String& comment,
     double startTime, double endTime, bool fixed,
     const String& triggeredBy, double duration)

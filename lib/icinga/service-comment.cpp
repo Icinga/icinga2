@@ -32,6 +32,13 @@ int Service::GetNextCommentID(void)
 	return m_NextCommentID;
 }
 
+Dictionary::Ptr Service::GetComments(void) const
+{
+	Service::ValidateCommentCache();
+
+	return Get("comments");
+}
+
 String Service::AddComment(CommentType entryType, const String& author,
     const String& text, double expireTime)
 {

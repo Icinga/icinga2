@@ -39,6 +39,7 @@
     <ClCompile Include="pluginnotificationtask.cpp" />
     <ClCompile Include="service-notification.cpp" />
     <ClCompile Include="service.cpp" />
+    <ClCompile Include="service-check.cpp" />
     <ClCompile Include="service-comment.cpp" />
     <ClCompile Include="service-downtime.cpp" />
     <ClCompile Include="servicegroup.cpp" />

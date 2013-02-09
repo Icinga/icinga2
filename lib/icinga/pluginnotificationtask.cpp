@@ -47,7 +47,9 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vecto
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(notification->GetMacros());
 	macroDicts.push_back(notification->GetService()->GetMacros());
+	macroDicts.push_back(notification->GetService()->CalculateDynamicMacros());
 	macroDicts.push_back(notification->GetService()->GetHost()->GetMacros());
+	macroDicts.push_back(notification->GetService()->GetHost()->CalculateDynamicMacros());
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
 	String command = MacroProcessor::ResolveMacros(notificationCommand, macroDicts);
 

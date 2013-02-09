@@ -101,23 +101,27 @@ public:
 	String GetDisplayName(void) const;
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
-	Dictionary::Ptr GetDowntimes(void) const;
-	Dictionary::Ptr GetComments(void) const;
-	String GetCheckCommand(void) const;
-	long GetMaxCheckAttempts(void) const;
-	double GetCheckInterval(void) const;
-	double GetRetryInterval(void) const;
 	Dictionary::Ptr GetHostDependencies(void) const;
 	Dictionary::Ptr GetServiceDependencies(void) const;
 	Dictionary::Ptr GetGroups(void) const;
-	Dictionary::Ptr GetCheckers(void) const;
 	String GetShortName(void) const;
+
+	Dynamic::Ptr CalculateDynamicMacros(void) const;
 
 	set<Host::Ptr> GetParentHosts(void) const;
 	set<Service::Ptr> GetParentServices(void) const;
 
 	bool IsReachable(void) const;
-	bool IsInDowntime(void) const;
+
+	AcknowledgementType GetAcknowledgement(void);
+	void SetAcknowledgement(AcknowledgementType acknowledgement);
+
+	/* Checks */
+	Dictionary::Ptr GetCheckers(void) const;
+	String GetCheckCommand(void) const;
+	long GetMaxCheckAttempts(void) const;
+	double GetCheckInterval(void) const;
+	double GetRetryInterval(void) const;
 
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
@@ -161,9 +165,6 @@ public:
 	bool GetForceNextCheck(void) const;
 	void SetForceNextCheck(bool forced);
 
-	AcknowledgementType GetAcknowledgement(void);
-	void SetAcknowledgement(AcknowledgementType acknowledgement);
-
 	double GetAcknowledgementExpiry(void) const;
 	void SetAcknowledgementExpiry(double timestamp);
 
@@ -185,6 +186,8 @@ public:
 	/* Downtimes */
 	static int GetNextDowntimeID(void);
 
+	Dictionary::Ptr GetDowntimes(void) const;
+
 	String AddDowntime(const String& author, const String& comment,
 	    double startTime, double endTime, bool fixed,
 	    const String& triggeredBy, double duration);
@@ -204,8 +207,12 @@ public:
 	static void InvalidateDowntimeCache(void);
 	static void ValidateDowntimeCache(void);
 
+	bool IsInDowntime(void) const;
+
 	/* Comments */
 	static int GetNextCommentID(void);
+
+	Dictionary::Ptr GetComments(void) const;
 
 	String AddComment(CommentType entryType, const String& author,
 	    const String& text, double expireTime);

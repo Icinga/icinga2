@@ -51,6 +51,8 @@ public:
 	Dictionary::Ptr GetServiceDependencies(void) const;
 	String GetHostCheck(void) const;
 
+	Dynamic::Ptr CalculateDynamicMacros(void) const;
+
 	shared_ptr<Service> GetHostCheckService(void) const;
 	set<Host::Ptr> GetParentHosts(void) const;
 	set<shared_ptr<Service> > GetParentServices(void) const;
