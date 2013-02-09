@@ -30,8 +30,11 @@ namespace icinga
  */
 enum NotificationType
 {
-	NotificationHost,
-	NotificationService
+	NotificationDowntimeStart,
+	NotificationDowntimeEnd,
+	NotificationDowntimeRemoved,
+	NotificationCustom,
+	NotificationStateChange
 };
 
 class Service;
@@ -57,7 +60,7 @@ public:
 	String GetNotificationCommand(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 
-	void SendNotification(void);
+	void SendNotification(NotificationType type);
 
 private:
 	set<ScriptTask::Ptr> m_Tasks;

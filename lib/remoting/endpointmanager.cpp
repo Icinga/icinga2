@@ -236,7 +236,7 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 		/* don't forward messages between non-local endpoints */
-		if (!sender->IsLocal() && !endpoint->IsLocal())
+		if ((sender && !sender->IsLocal()) && !endpoint->IsLocal())
 			continue;
 
 		if (endpoint->HasSubscription(method))

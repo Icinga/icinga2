@@ -28,6 +28,11 @@ EXPORT_COMPONENT(notification, NotificationComponent);
  */
 void NotificationComponent::Start(void)
 {
+	m_Endpoint = Endpoint::MakeEndpoint("notification", false);
+	m_Endpoint->RegisterTopicHandler("icinga::SendNotifications",
+	    boost::bind(&NotificationComponent::SendNotificationsRequestHandler, this, _2,
+	    _3));
+
 	m_NotificationTimer = boost::make_shared<Timer>();
 	m_NotificationTimer->SetInterval(5);
 	m_NotificationTimer->OnTimerExpired.connect(boost::bind(&NotificationComponent::NotificationTimerHandler, this));
@@ -49,4 +54,27 @@ void NotificationComponent::Stop(void)
 void NotificationComponent::NotificationTimerHandler(void)
 {
 	// TODO: implement
+}
+
+
+/**
+ * Processes icinga::SendNotifications messages.
+ */
+void NotificationComponent::SendNotificationsRequestHandler(const Endpoint::Ptr& sender,
+    const RequestMessage& request)
+{
+	MessagePart params;
+	if (!request.GetParams(&params))
+		return;
+
+	String svc;
+	if (!params.Get("service", &svc))
+		return;
+
+	int type;
+	if (!params.Get("type", &type))
+		return;
+
+	Service::Ptr service = Service::GetByName(svc);
+	service->SendNotifications(static_cast<NotificationType>(type));
 }

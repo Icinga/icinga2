@@ -37,10 +37,14 @@ private:
 
 	static void ProcessFinishedHandler(PluginNotificationTask ct);
 
-	PluginNotificationTask(const ScriptTask::Ptr& task, const Process::Ptr& process);
+	PluginNotificationTask(const ScriptTask::Ptr& task, const Process::Ptr& process,
+	    const String& service, const String& command);
 
 	ScriptTask::Ptr m_Task;
 	Process::Ptr m_Process;
+
+	String m_ServiceName;
+	String m_Command;
 };
 
 }

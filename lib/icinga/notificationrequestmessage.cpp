@@ -17,51 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2ICINGA_H
-#define I2ICINGA_H
+#include "i2-icinga.h"
 
-/**
- * @defgroup icinga Icinga library
- *
- * The Icinga library implements all Icinga-specific functionality that is
- * common to all components (e.g. hosts, services, etc.).
- */
+using namespace icinga;
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-remoting.h>
+String NotificationRequestMessage::GetService(void) const
+{
+	String service;
+	Get("service", &service);
+	return service;
+}
 
-using boost::iterator_range;
-using boost::algorithm::is_any_of;
+void NotificationRequestMessage::SetService(const String& service)
+{
+	Set("service", service);
+}
 
-#ifdef I2_ICINGA_BUILD
-#	define I2_ICINGA_API I2_EXPORT
-#else /* I2_ICINGA_BUILD */
-#	define I2_ICINGA_API I2_IMPORT
-#endif /* I2_ICINGA_BUILD */
+NotificationType NotificationRequestMessage::GetType(void) const
+{
+	int type;
+	Get("type", &type);
+	return static_cast<NotificationType>(type);
+}
 
-#include "externalcommandprocessor.h"
-
-#include "endpoint.h"
-#include "endpointmanager.h"
-#include "icingaapplication.h"
-
-#include "notification.h"
-#include "notificationrequestmessage.h"
-
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
-
-#include "macroprocessor.h"
-#include "pluginchecktask.h"
-#include "nullchecktask.h"
-
-#include "pluginnotificationtask.h"
-
-#include "checkresultmessage.h"
-
-#include "cib.h"
-
-#endif /* I2ICINGA_H */
+void NotificationRequestMessage::SetType(NotificationType type)
+{
+	Set("type", type);
+}

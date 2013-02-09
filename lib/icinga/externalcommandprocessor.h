@@ -22,7 +22,7 @@
 
 namespace icinga
 {
-	
+
 class I2_ICINGA_API ExternalCommandProcessor {
 public:
 	static void Execute(const String& line);
@@ -70,6 +70,8 @@ public:
 	static void DelSvcComment(double time, const vector<String>& arguments);
 	static void DelAllHostComments(double time, const vector<String>& arguments);
 	static void DelAllSvcComments(double time, const vector<String>& arguments);
+	static void SendCustomHostNotification(double time, const vector<String>& arguments);
+	static void SendCustomSvcNotification(double time, const vector<String>& arguments);
 
 private:
 	typedef function<void (double time, const vector<String>& arguments)> Callback;

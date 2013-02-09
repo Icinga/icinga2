@@ -152,7 +152,7 @@ template<bool copyServiceAttrs, typename TDict>
 static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Ptr& builder)
 {
 	/* TODO: we only need to copy macros if this is an inline definition,
-	 * i.e. host->GetProperties() != service, however for now we just
+	 * i.e. "typeid(serviceDesc)" != Service, however for now we just
 	 * copy them anyway. */
 	Value macros = serviceDesc->Get("macros");
 	if (!macros.IsEmpty())
@@ -194,7 +194,7 @@ void Host::UpdateSlaveServices(void)
 	if (!item || IsAbstract())
 		return;
 
-	Dictionary::Ptr oldServices = Get("convenience_services");
+	Dictionary::Ptr oldServices = Get("slave_services");
 
 	Dictionary::Ptr newServices;
 	newServices = boost::make_shared<Dictionary>();
@@ -212,7 +212,7 @@ void Host::UpdateSlaveServices(void)
 			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
 			builder->SetType("Service");
 			builder->SetName(name);
-			builder->AddExpression("host_name", OperatorSet, item->GetName());
+			builder->AddExpression("host_name", OperatorSet, GetName());
 			builder->AddExpression("alias", OperatorSet, svcname);
 			builder->AddExpression("short_name", OperatorSet, svcname);
 
@@ -252,7 +252,7 @@ void Host::UpdateSlaveServices(void)
 		}
 	}
 
-	Set("convenience_services", newServices);
+	Set("slave_services", newServices);
 }
 
 void Host::OnAttributeChanged(const String& name, const Value&)
@@ -261,6 +261,11 @@ void Host::OnAttributeChanged(const String& name, const Value&)
 		HostGroup::InvalidateMembersCache();
 	else if (name == "services")
 		UpdateSlaveServices();
+	else if (name == "notifications") {
+		BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
+			service->UpdateSlaveNotifications();
+		}
+	}
 }
 
 set<Service::Ptr> Host::GetServices(void) const

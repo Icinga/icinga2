@@ -529,16 +529,10 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 
 	SetLastCheckResult(cr);
 
-	// TODO(debug): remove this
-	SendNotifications();
+	double now = Utility::GetTime();
 
 	if (old_state != GetState()) {
-		double now = Utility::GetTime();
-
 		SetLastStateChange(now);
-
-		if (old_stateType != GetStateType())
-			SetLastHardStateChange(now);
 
 		/* remove acknowledgements */
 		if (GetAcknowledgement() == AcknowledgementNormal ||
@@ -560,11 +554,19 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 				service->SetNextCheck(Utility::GetTime());
 		}
 
-		// TODO: notify our child services/hosts that our state has changed
+		if (GetState() != StateOK)
+			TriggerDowntimes();
 	}
 
-	if (GetState() != StateOK)
-		TriggerDowntimes();
+	if (GetStateType() == StateTypeHard && (old_state != GetState() || old_stateType == StateTypeSoft)) {
+		SetLastHardStateChange(now);
+
+		/* Make sure the notification component sees the updated
+		 * state/state_type attributes. */
+		DynamicObject::FlushTx();
+
+		RequestNotifications(NotificationStateChange);
+	}
 }
 
 ServiceState Service::StateFromString(const String& state)
@@ -645,7 +647,7 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 	else if (name == "comments")
 		Service::InvalidateCommentCache();
 	else if (name == "notifications")
-		Service::InvalidateNotificationsCache();
+		UpdateSlaveNotifications();
 }
 
 void Service::BeginExecuteCheck(const function<void (void)>& callback)

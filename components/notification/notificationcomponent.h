@@ -34,8 +34,10 @@ public:
 
 private:
 	Timer::Ptr m_NotificationTimer;
+	Endpoint::Ptr m_Endpoint;
 
 	void NotificationTimerHandler(void);
+	void SendNotificationsRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
 
 }

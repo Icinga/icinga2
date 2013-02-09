@@ -17,57 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-icinga.h"
+#ifndef NOTIFICATIONREQUESTMESSAGE_H
+#define NOTIFICATIONREQUESTMESSAGE_H
 
-using namespace icinga;
-
-map<String, set<Notification::WeakPtr> > Service::m_NotificationsCache;
-bool Service::m_NotificationsCacheValid;
-
-void Service::SendNotifications(void) const
+namespace icinga
 {
-	BOOST_FOREACH(const Notification::Ptr& notification, GetNotifications()) {
-		notification->SendNotification();
-	}
+
+/**
+ * An API request for sending notifications.
+ *
+ * @ingroup icinga
+ */
+class I2_ICINGA_API NotificationRequestMessage : public MessagePart
+{
+public:
+	NotificationRequestMessage(void) : MessagePart() { }
+	NotificationRequestMessage(const MessagePart& message) : MessagePart(message) { }
+
+	String GetService(void) const;
+	void SetService(const String& service);
+
+	NotificationType GetType(void) const;
+	void SetType(NotificationType type);
+};
+
 }
 
-void Service::InvalidateNotificationsCache(void)
-{
-	m_NotificationsCacheValid = false;
-	m_NotificationsCache.clear();
-}
-
-void Service::ValidateNotificationsCache(void)
-{
-	if (m_NotificationsCacheValid)
-		return;
-
-	m_NotificationsCache.clear();
-
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Notification")->GetObjects()) {
-		const Notification::Ptr& notification = static_pointer_cast<Notification>(object);
-
-		m_NotificationsCache[notification->GetService()->GetName()].insert(notification);
-	}
-
-	m_NotificationsCacheValid = true;
-}
-
-set<Notification::Ptr> Service::GetNotifications(void) const
-{
-	set<Notification::Ptr> notifications;
-
-	ValidateNotificationsCache();
-
-	BOOST_FOREACH(const Notification::WeakPtr& wservice, m_NotificationsCache[GetName()]) {
-		Notification::Ptr notification = wservice.lock();
-
-		if (!notification)
-			continue;
-
-		notifications.insert(notification);
-	}
-
-	return notifications;
-}
+#endif /* NOTIFICATIONREQUESTMESSAGE_H */

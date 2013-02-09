@@ -22,6 +22,8 @@ libicinga_la_SOURCES =  \
 	macroprocessor.h \
 	notification.cpp \
 	notification.h \
+	notificationrequestmessage.cpp \
+	notificationrequestmessage.h \
 	nullchecktask.cpp \
 	nullchecktask.h \
 	pluginchecktask.cpp \

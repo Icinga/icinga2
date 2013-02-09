@@ -25,10 +25,14 @@ REGISTER_TYPE(Notification, NULL);
 
 Notification::Notification(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
-{ }
+{
+	Service::InvalidateNotificationsCache();
+}
 
 Notification::~Notification(void)
-{ }
+{
+	Service::InvalidateNotificationsCache();
+}
 
 bool Notification::Exists(const String& name)
 {
@@ -66,12 +70,19 @@ Dictionary::Ptr Notification::GetMacros(void) const
 	return Get("macros");
 }
 
-void Notification::SendNotification(void)
+void Notification::SendNotification(NotificationType type)
 {
 	vector<Value> arguments;
 	arguments.push_back(static_cast<Notification::Ptr>(GetSelf()));
+	arguments.push_back(type);
 	ScriptTask::Ptr task;
 	task = InvokeMethod("notify", arguments, boost::bind(&Notification::NotificationCompletedHandler, this, _1));
+
+	if (!task) {
+		Logger::Write(LogWarning, "icinga", "Notification object '" + GetName() + "' doesn't have a 'notify' method.");
+
+		return;
+	}
 
 	if (!task->IsFinished()) {
 		/* We need to keep the task object alive until the completion handler is called. */

@@ -223,12 +223,15 @@ public:
 	static void ValidateCommentCache(void);
 
 	/* Notifications */
-	void SendNotifications(void) const;
+	void RequestNotifications(NotificationType type) const;
+	void SendNotifications(NotificationType type) const;
 
 	static void InvalidateNotificationsCache(void);
 	static void ValidateNotificationsCache(void);
 
 	set<Notification::Ptr> GetNotifications(void) const;
+
+	void UpdateSlaveNotifications(void);
 
 protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);

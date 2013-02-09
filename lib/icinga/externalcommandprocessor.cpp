@@ -99,6 +99,8 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 		RegisterCommand("DEL_SVC_COMMENT", &ExternalCommandProcessor::DelSvcComment);
 		RegisterCommand("DEL_ALL_HOST_COMMENTS", &ExternalCommandProcessor::DelAllHostComments);
 		RegisterCommand("DEL_ALL_SVC_COMMENTS", &ExternalCommandProcessor::DelAllSvcComments);
+		RegisterCommand("SEND_CUSTOM_HOST_NOTIFICATION", &ExternalCommandProcessor::SendCustomHostNotification);
+		RegisterCommand("SEND_CUSTOM_SVC_NOTIFICATION", &ExternalCommandProcessor::SendCustomSvcNotification);
 
 		m_Initialized = true;
 	}
@@ -798,4 +800,29 @@ void ExternalCommandProcessor::DelAllSvcComments(double, const vector<String>& a
 
 	Logger::Write(LogInformation, "icinga", "Removing all comments for service " + service->GetName());
 	service->RemoveAllComments();
+}
+
+void ExternalCommandProcessor::SendCustomHostNotification(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 4)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 4 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Sending custom notification for host " + host->GetName());
+	Service::Ptr service = host->GetHostCheckService();
+	if (service) {
+		service->RequestNotifications(NotificationCustom);
+	}
+}
+
+void ExternalCommandProcessor::SendCustomSvcNotification(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 5)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 5 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Sending custom notification for service " + service->GetName());
+	service->RequestNotifications(NotificationCustom);
 }
