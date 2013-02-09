@@ -500,7 +500,7 @@ void CompatComponent::StatusTimerHandler(void)
 		vector<String> sglist;
 		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 			sglist.push_back(service->GetHost()->GetName());
-			sglist.push_back(service->GetName());
+			sglist.push_back(service->GetShortName());
 		}
 
 		DumpStringList(objectfp, sglist);
