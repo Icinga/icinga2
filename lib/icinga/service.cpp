@@ -38,7 +38,9 @@ static AttributeDescription serviceAttributes[] = {
 	{ "acknowledgement", Attribute_Replicated },
 	{ "acknowledgement_expiry", Attribute_Replicated },
 	{ "downtimes", Attribute_Replicated },
-	{ "comments", Attribute_Replicated }
+	{ "comments", Attribute_Replicated },
+	{ "last_notification", Attribute_Replicated },
+	{ "next_notification", Attribute_Replicated }
 };
 
 REGISTER_TYPE(Service, serviceAttributes);
@@ -225,22 +227,6 @@ bool Service::IsReachable(void) const
 	}
 
 	return true;
-}
-
-bool Service::IsInDowntime(void) const
-{
-	Dictionary::Ptr downtimes = GetDowntimes();
-
-	if (!downtimes)
-		return false;
-
-	Dictionary::Ptr downtime;
-	BOOST_FOREACH(tie(tuples::ignore, downtime), downtimes) {
-		if (Service::IsDowntimeActive(downtime))
-			return true;
-	}
-
-	return false;
 }
 
 void Service::SetSchedulingOffset(long offset)

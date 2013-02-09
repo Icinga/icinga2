@@ -39,7 +39,7 @@ void Service::RequestNotifications(NotificationType type) const
 	EndpointManager::GetInstance()->SendAnycastMessage(Endpoint::Ptr(), msg);
 }
 
-void Service::SendNotifications(NotificationType type) const
+void Service::SendNotifications(NotificationType type)
 {
 	Logger::Write(LogInformation, "icinga", "Sending notifications for service '" + GetName() + "'");
 
@@ -51,6 +51,8 @@ void Service::SendNotifications(NotificationType type) const
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		notification->SendNotification(type);
 	}
+
+	SetLastNotification(Utility::GetTime());
 }
 
 void Service::InvalidateNotificationsCache(void)
@@ -181,4 +183,34 @@ void Service::UpdateSlaveNotifications(void)
 	}
 
 	Set("slave_notifications", newNotifications);
+}
+
+double Service::GetLastNotification(void) const
+{
+	Value value = Get("last_notification");
+
+	if (value.IsEmpty())
+		value = 0;
+
+	return value;
+}
+
+void Service::SetLastNotification(double time)
+{
+	Set("last_notification", time);
+}
+
+double Service::GetNextNotification(void) const
+{
+	Value value = Get("next_notification");
+
+	if (value.IsEmpty())
+		value = 0;
+
+	return value;
+}
+
+void Service::SetNextNotification(double time)
+{
+	Set("next_notification", time);
 }

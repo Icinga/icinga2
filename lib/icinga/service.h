@@ -224,7 +224,7 @@ public:
 
 	/* Notifications */
 	void RequestNotifications(NotificationType type) const;
-	void SendNotifications(NotificationType type) const;
+	void SendNotifications(NotificationType type);
 
 	static void InvalidateNotificationsCache(void);
 	static void ValidateNotificationsCache(void);
@@ -232,6 +232,12 @@ public:
 	set<Notification::Ptr> GetNotifications(void) const;
 
 	void UpdateSlaveNotifications(void);
+
+	double GetLastNotification(void) const;
+	void SetLastNotification(double time);
+
+	double GetNextNotification(void) const;
+	void SetNextNotification(double time);
 
 protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);

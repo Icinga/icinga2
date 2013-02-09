@@ -355,7 +355,9 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 	   << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
 	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
 	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
-	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n";
+	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
+	   << "\t" << "last_notification=" << service->GetLastNotification() << "\n"
+	   << "\t" << "next_notification=" << service->GetNextNotification() << "\n";
 }
 
 void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& service)

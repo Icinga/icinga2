@@ -274,3 +274,19 @@ void Service::DowntimeExpireTimerHandler(void)
 		service->RemoveExpiredDowntimes();
 	}
 }
+
+bool Service::IsInDowntime(void) const
+{
+	Dictionary::Ptr downtimes = GetDowntimes();
+
+	if (!downtimes)
+		return false;
+
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(tie(tuples::ignore, downtime), downtimes) {
+		if (Service::IsDowntimeActive(downtime))
+			return true;
+	}
+
+	return false;
+}
