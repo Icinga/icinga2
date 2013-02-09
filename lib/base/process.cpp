@@ -213,7 +213,7 @@ bool Process::RunTask(void)
 }
 
 /**
- * Retrives the stdout file descriptor for the child process.
+ * Retrieves the stdout file descriptor for the child process.
  *
  * @returns The stdout file descriptor.
  */
