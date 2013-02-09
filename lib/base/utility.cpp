@@ -267,11 +267,26 @@ bool Utility::Match(const String& pattern, const String& text)
  */
 String Utility::DirName(const String& path)
 {
-	char *dir = strdup(path.CStr());
-	String result;
+	char *dir;
+
+#ifdef _WIN32
+	String dupPath = path;
+
+	/* PathRemoveFileSpec doesn't properly handle forward slashes. */
+	BOOST_FOREACH(char& ch, dupPath) {
+		if (ch == '/')
+			ch = '\\';
+	}
+
+	dir = strdup(dupPath.CStr());
+#else /* _WIN32 */
+	dir = strdup(path.CStr());
+#endif /* _WIN32 */
 
 	if (dir == NULL)
 		BOOST_THROW_EXCEPTION(bad_alloc());
+
+	String result;
 
 #ifndef _WIN32
 	result = dirname(dir);
@@ -464,7 +479,7 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 	}
 
 	do {
-		callback(wfd.cFileName);
+		callback(DirName(pathSpec) + "/" + wfd.cFileName);
 	} while (FindNextFile(handle, &wfd));
 
 	if (!FindClose(handle))
