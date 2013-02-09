@@ -32,6 +32,8 @@ AC_LANG_CPLUSPLUS
 AC_PROG_CC
 AC_LANG_C
 
+AC_FUNC_VFORK
+
 LT_INIT([dlopen disable-static win32-dll])
 LT_CONFIG_LTDL_DIR([third-party/ltdl])
 LTDL_INIT

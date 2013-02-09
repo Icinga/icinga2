@@ -19,10 +19,6 @@
 
 #include "i2-base.h"
 
-#ifndef _MSC_VER
-#	include "popen_noshell.h"
-#endif /* _MSC_VER */
-
 using namespace icinga;
 
 bool Process::m_ThreadCreated = false;
@@ -30,8 +26,9 @@ boost::mutex Process::m_Mutex;
 deque<Process::Ptr> Process::m_Tasks;
 condition_variable Process::m_TasksCV;
 
-Process::Process(const String& command)
-	: AsyncTask<Process, ProcessResult>(), m_Command(command), m_UsePopen(false)
+Process::Process(const String& command, const Dictionary::Ptr& environment)
+	: AsyncTask<Process, ProcessResult>(), m_Command(command),
+	  m_Environment(environment), m_FP(NULL)
 {
 	assert(Application::IsMainThread());
 
@@ -130,29 +127,127 @@ void Process::WorkerThreadProc(void)
 	}
 }
 
+void Process::Spawn(const String& command, const Dictionary::Ptr& env)
+{
+	vector<String> args;
+	args.push_back("sh");
+	args.push_back("-c");
+	args.push_back(command);
+
+	return Spawn(args, env);
+}
+
+void Process::Spawn(const vector<String>& args, const Dictionary::Ptr& extraEnv)
+{
+	assert(m_FP == NULL);
+
+#ifdef _MSC_VER
+#error "TODO: implement"
+#else /* _MSC_VER */
+	int fds[2];
+
+	if (pipe(fds) < 0)
+		BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
+
+	char **argv = new char *[args.size() + 1];
+
+	for (int i = 0; i < args.size(); i++)
+		argv[i] = strdup(args[i].CStr());
+
+	argv[args.size()] = NULL;
+
+	int envc = 0;
+
+	/* count existing environment variables */
+	while (environ[envc] != NULL)
+		envc++;
+
+	char **envp = new char *[envc + (extraEnv ? extraEnv->GetLength() : 0) + 1];
+
+	for (int i = 0; i < envc; i++)
+		envp[i] = environ[i];
+
+	if (extraEnv) {
+		String key;
+		Value value;
+		int index = envc;
+		BOOST_FOREACH(tie(key, value), extraEnv) {
+			String kv = key + "=" + Convert::ToString(value);
+			envp[index] = strdup(kv.CStr());
+			index++;
+		}
+	}
+
+	envp[envc + (extraEnv ? extraEnv->GetLength() : 0)] = NULL;
+
+#ifdef HAVE_VFORK
+	m_Pid = vfork();
+#else /* HAVE_VFORK */
+	m_Pid = fork();
+#endif /* HAVE_VFORK */
+
+	if (m_Pid < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fork() failed.", errno));
+
+	if (m_Pid == 0) {
+		/* child */
+		if (dup2(fds[1], STDOUT_FILENO) < 0 || dup2(fds[1], STDERR_FILENO) < 0) {
+			perror("dup2() failed.");
+			_exit(128);
+		}
+
+		(void) close(fds[1]);
+
+		if (execvpe(argv[0], argv, envp) < 0) {
+			perror("execvpe() failed.");
+			_exit(128);
+		}
+
+		_exit(128);
+	} else {
+		for (int i = 0; i < args.size(); i++)
+			free(argv[i]);
+
+		delete [] argv;
+
+		if (extraEnv) {
+			for (int i = envc; i < envc + extraEnv->GetLength(); i++)
+				free(envp[i]);
+		}
+
+		delete [] envp;
+
+		/* parent */
+		(void) close(fds[1]);
+
+		m_FP = fdopen(fds[0], "r");
+
+		if (m_FP == NULL)
+			BOOST_THROW_EXCEPTION(PosixException("fdopen() failed.", errno));
+	}
+#endif /* _MSC_VER */
+}
+
+int Process::WaitPid(void)
+{
+#ifdef _MSC_VER
+	return _pclose(m_FP);
+#else /* _MSC_VER */
+	fclose(m_FP);
+
+	int status;
+	if (waitpid(m_Pid, &status, 0) != m_Pid)
+		BOOST_THROW_EXCEPTION(PosixException("waitpid() failed.", errno));
+
+	return status;
+#endif /* _MSC_VER */
+}
+
 void Process::InitTask(void)
 {
 	m_Result.ExecutionStart = Utility::GetTime();
 
-#ifdef _MSC_VER
-	m_FP = _popen(m_Command.CStr(), "r");
-#else /* _MSC_VER */
-	if (!m_UsePopen) {
-		m_PCloseArg = new popen_noshell_pass_to_pclose;
-
-		m_FP = popen_noshell_compat(m_Command.CStr(), "r",
-		    (popen_noshell_pass_to_pclose *)m_PCloseArg);
-
-		if (m_FP == NULL)
-			m_UsePopen = true;
-	}
-
-	if (m_UsePopen)
-		m_FP = popen(m_Command.CStr(), "r");
-#endif /* _MSC_VER */
-
-	if (m_FP == NULL)
-		BOOST_THROW_EXCEPTION(runtime_error("Could not create process."));
+	Spawn(m_Command, m_Environment);
 }
 
 bool Process::RunTask(void)
@@ -169,18 +264,8 @@ bool Process::RunTask(void)
 	String output = m_OutputStream.str();
 
 	int status, exitcode;
-#ifdef _MSC_VER
-	status = _pclose(m_FP);
-#else /* _MSC_VER */
-	if (m_UsePopen) {
-		status = pclose(m_FP);
-	} else {
-		status = pclose_noshell((popen_noshell_pass_to_pclose *)m_PCloseArg);
-		delete (popen_noshell_pass_to_pclose *)m_PCloseArg;
-	}
-#endif /* _MSC_VER */
 
-	m_Result.ExecutionEnd = Utility::GetTime();
+	status = WaitPid();
 
 #ifndef _MSC_VER
 	if (WIFEXITED(status)) {
@@ -206,6 +291,7 @@ bool Process::RunTask(void)
 	}
 #endif /* _MSC_VER */
 
+	m_Result.ExecutionEnd = Utility::GetTime();
 	m_Result.ExitStatus = exitcode;
 	m_Result.Output = output;
 

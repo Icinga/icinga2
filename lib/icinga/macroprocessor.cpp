@@ -56,3 +56,21 @@ String MacroProcessor::ResolveMacros(const String& str, const vector<Dictionary:
 
 	return result;
 }
+
+Dictionary::Ptr MacroProcessor::MakeEnvironment(const vector<Dictionary::Ptr>& dicts)
+{
+	Dictionary::Ptr result = boost::make_shared<Dictionary>();
+
+	BOOST_REVERSE_FOREACH(const Dictionary::Ptr& dict, dicts) {
+		String key;
+		Value value;
+		BOOST_FOREACH(tie(key, value), dict) {
+			if (!value.IsScalar())
+				continue;
+
+			result->Set(key, value);
+		}
+	}
+
+	return result;
+}

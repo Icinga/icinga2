@@ -255,4 +255,3 @@ cJSON *Dictionary::ToJson(void) const
 
 	return json;
 }
-

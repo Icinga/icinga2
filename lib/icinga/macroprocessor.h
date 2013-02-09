@@ -32,6 +32,7 @@ class I2_ICINGA_API MacroProcessor
 {
 public:
 	static String ResolveMacros(const String& str, const vector<Dictionary::Ptr>& macroDicts);
+	static Dictionary::Ptr MakeEnvironment(const vector<Dictionary::Ptr>& macroDicts);
 };
 
 }

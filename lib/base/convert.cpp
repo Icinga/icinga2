@@ -43,3 +43,7 @@ String Convert::ToString(long val)
 	return cs.str();
 }
 
+String Convert::ToString(const Value& val)
+{
+	return static_cast<String>(val);
+}
