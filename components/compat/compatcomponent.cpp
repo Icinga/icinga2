@@ -471,7 +471,6 @@ void CompatComponent::StatusTimerHandler(void)
 
 		objectfp << "define hostgroup {" << "\n"
 			 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
-			 << "\t" << "display_name" << "\t" << hg->GetDisplayName() << "\n"
 			 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
 			 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
 
@@ -493,7 +492,6 @@ void CompatComponent::StatusTimerHandler(void)
 
 		objectfp << "define servicegroup {" << "\n"
 			 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
-			 << "\t" << "display_name" << "\t" << sg->GetDisplayName() << "\n"
 			 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
 			 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
 
