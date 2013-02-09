@@ -320,7 +320,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<Strin
 	if (arguments.size() < 6)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 6 arguments."));
 
-	bool sticky = Convert::ToBool(arguments[0]);
+	bool sticky = Convert::ToBool(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
