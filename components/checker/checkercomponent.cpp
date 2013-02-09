@@ -53,8 +53,6 @@ void CheckerComponent::Stop(void)
 
 void CheckerComponent::CheckTimerHandler(void)
 {
-	Logger::Write(LogDebug, "checker", "CheckTimerHandler entered.");
-
 	double now = Utility::GetTime();
 	long tasks = 0;
 
@@ -115,8 +113,6 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		tasks++;
 	}
-
-	Logger::Write(LogDebug, "checker", "CheckTimerHandler: past loop.");
 
 	if (missedServices > 0) {
 		stringstream msgbuf;

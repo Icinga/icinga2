@@ -78,9 +78,11 @@ double Timer::ProcessTimers(void)
 
 	double et = Utility::GetTime();
 
-	stringstream msgbuf;
-	msgbuf << "Timers took " << et - st << " seconds";
-	Logger::Write(LogDebug, "base", msgbuf.str());
+	if (et - st > 0.01) {
+		stringstream msgbuf;
+		msgbuf << "Timers took " << et - st << " seconds";
+		Logger::Write(LogDebug, "base", msgbuf.str());
+	}
 
 	return wakeup;
 }
