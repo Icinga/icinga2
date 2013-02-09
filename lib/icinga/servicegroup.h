@@ -41,7 +41,7 @@ public:
 	static bool Exists(const String& name);
 	static ServiceGroup::Ptr GetByName(const String& name);
 
-	String GetAlias(void) const;
+	String GetDisplayName(void) const;
 	String GetNotesUrl(void) const;
 	String GetActionUrl(void) const;
 

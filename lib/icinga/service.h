@@ -98,7 +98,7 @@ public:
 	static const int DefaultCheckInterval;
 	static const int CheckIntervalDivisor;
 
-	String GetAlias(void) const;
+	String GetDisplayName(void) const;
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 	Dictionary::Ptr GetDowntimes(void) const;

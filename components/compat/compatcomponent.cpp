@@ -279,7 +279,7 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 {
 	fp << "define host {" << "\n"
 	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
-	   << "\t" << "alias" << "\t" << host->GetAlias() << "\n"
+	   << "\t" << "display_name" << "\t" << host->GetDisplayName() << "\n"
 	   << "\t" << "check_interval" << "\t" << 1 << "\n"
 	   << "\t" << "retry_interval" << "\t" << 1 << "\n"
 	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
@@ -380,7 +380,7 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
 	fp << "define service {" << "\n"
 	   << "\t" << "host_name" << "\t" << service->GetHost()->GetName() << "\n"
 	   << "\t" << "service_description" << "\t" << service->GetShortName() << "\n"
-	   << "\t" << "display_name" << "\t" << service->GetAlias() << "\n"
+	   << "\t" << "display_name" << "\t" << service->GetDisplayName() << "\n"
 	   << "\t" << "check_command" << "\t" << "check_i2" << "\n"
 	   << "\t" << "check_interval" << "\t" << service->GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval" << "\t" << service->GetRetryInterval() / 60.0 << "\n"
@@ -471,7 +471,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 		objectfp << "define hostgroup {" << "\n"
 			 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
-			 << "\t" << "alias" << "\t" << hg->GetAlias() << "\n"
+			 << "\t" << "display_name" << "\t" << hg->GetDisplayName() << "\n"
 			 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
 			 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
 
@@ -493,7 +493,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 		objectfp << "define servicegroup {" << "\n"
 			 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
-			 << "\t" << "alias" << "\t" << sg->GetAlias() << "\n"
+			 << "\t" << "display_name" << "\t" << sg->GetDisplayName() << "\n"
 			 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
 			 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
 

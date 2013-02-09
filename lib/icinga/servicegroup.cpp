@@ -26,7 +26,7 @@ bool ServiceGroup::m_MembersCacheValid;
 
 REGISTER_TYPE(ServiceGroup, NULL);
 
-String ServiceGroup::GetAlias(void) const
+String ServiceGroup::GetDisplayName(void) const
 {
 	String value = Get("alias");
 

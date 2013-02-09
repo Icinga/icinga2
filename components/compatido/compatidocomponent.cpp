@@ -307,7 +307,7 @@ void CompatIdoComponent::EnableServiceObject(const Service::Ptr& service)
 		<< 500 << ":" << "\n"                                   /* enableobject */
 		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
 		<< 53 << "=" << service->GetHost()->GetName() << "\n"   /* host */
-		<< 114 << "=" << service->GetAlias() << "\n"            /* service */
+		<< 114 << "=" << service->GetShortName() << "\n"            /* service */
 		<< 999 << "\n\n";                                       /* enddata */
 
 	m_IdoConnection->SendMessage(message.str());
@@ -338,7 +338,7 @@ void CompatIdoComponent::DisableServiceObject(const Service::Ptr& service)
 		<< 501 << ":" << "\n"                                   /* disableobject */
 		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"              /* timestamp */
 		<< 53 << "=" << service->GetHost()->GetName() << "\n"   /* host */
-		<< 114 << "=" << service->GetAlias() << "\n"            /* service */
+		<< 114 << "=" << service->GetShortName() << "\n"            /* service */
 		<< 999 << "\n\n";                                       /* enddata */
  
 	m_IdoConnection->SendMessage(message.str());
@@ -360,8 +360,8 @@ void CompatIdoComponent::DumpHostObject(const Host::Ptr& host)
 		<< 400 << ":" << "\n"					/* hostdefinition */
 		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 174 << "=" << host->GetName() << "\n"		/* hostname */
-		<< 258 << "=" << host->GetAlias() << "\n"		/* displayname */
-		<< 159 << "=" << host->GetAlias() << "\n"		/* hostalias */
+		<< 258 << "=" << host->GetDisplayName() << "\n"		/* displayname */
+		<< 159 << "=" << host->GetName() << "\n"		/* hostalias */
 		<< 158 << "=" << host->GetName() << "\n"		/* hostaddress */
 		<< 266 << "=" << host->GetName() << "\n"		/* hostaddress6 */
 		<< 160 << "=" << "" << "\n"				/* hostcheckcommand */
@@ -511,7 +511,7 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 {
 	stringstream log;
-	log << "Dumping Service Config: " << service->GetHost()->GetName() << "->" << service->GetAlias();
+	log << "Dumping Service Config: " << service->GetHost()->GetName() << "->" << service->GetShortName();
 	Logger::Write(LogDebug, "compatido", log.str());
 
 	stringstream message;
@@ -519,8 +519,8 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 		<< 402 << ":" << "\n"					/* servicedefinition */
 		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 174 << "=" << service->GetHost()->GetName() << "\n"	/* hostname */
-		<< 258  << "=" << service->GetAlias() << "\n"		/* displayname */
-		<< 210 << "=" << service->GetAlias() << "\n"		/* servicedescription */
+		<< 258  << "=" << service->GetDisplayName() << "\n"		/* displayname */
+		<< 210 << "=" << service->GetShortName() << "\n"		/* servicedescription */
 		<< 207 << "=" << "check_i2" << "\n"			/* servicecheckcommand */
 		<< 211 << "=" << "" << "\n"				/* serviceeventhandler */
 		<< 224 << "=" << "" << "\n"				/* servicenotificationperiod */
@@ -585,7 +585,7 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
 void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 {
 	stringstream log;
-	log << "Dumping Service Status: " << service->GetHost()->GetName() << "->" << service->GetAlias();
+	log << "Dumping Service Status: " << service->GetHost()->GetName() << "->" << service->GetShortName();
 	Logger::Write(LogDebug, "compatido", log.str());
 
 	String output;
@@ -620,7 +620,7 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 		<< 3 << "=" << "" << "\n"				/* attributes */
 		<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"		/* timestamp */
 		<< 53 << "=" << service->GetHost()->GetName() << "\n"	/* host */
-		<< 114 << "=" << service->GetAlias() << "\n"		/* service */
+		<< 114 << "=" << service->GetShortName() << "\n"		/* service */
 		<< 95 << "=" << output << "\n"				/* output */
 		<< 125 << "=" << "" << "\n"				/* longoutput */
 		<< 99 << "=" << perfdata << "\n"			/* perfdata */
@@ -755,7 +755,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 			<< 401 << ":" << "\n"				/* hostgroupdefinition */
 			<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
 			<< 172 << "=" << hg->GetName() << "\n"			/* hostgroupname */
-			<< 170 << "=" << hg->GetAlias() << "\n";	/* hostgroupalias */
+			<< 170 << "=" << hg->GetName() << "\n";	/* hostgroupalias */
 
 		vector<String> hglist;
 
@@ -788,14 +788,14 @@ void CompatIdoComponent::DumpConfigObjects(void)
 			<< 403 << ":" << "\n"				/* servicegroupdefinition */
 			<< 4 << "=" << std::setprecision(17) << Utility::GetTime() << "\n"	/* timestamp */
 			<< 220 << "=" << sg->GetName() << "\n"			/* servicegroupname */
-			<< 218 << "=" << sg->GetAlias() << "\n";	/* servicegroupalias */
+			<< 218 << "=" << sg->GetName() << "\n";	/* servicegroupalias */
 
 		vector<String> sglist;
 		vector<Service::Ptr>::iterator vt;
 
 		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 			sglist.push_back(service->GetHost()->GetName());
-			sglist.push_back(service->GetAlias());
+			sglist.push_back(service->GetShortName());
 		}
 	
 		SendMessageList(message, sglist, 219);		/* servicegroupmember */

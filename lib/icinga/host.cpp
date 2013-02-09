@@ -57,7 +57,7 @@ Host::~Host(void)
 	}
 }
 
-String Host::GetAlias(void) const
+String Host::GetDisplayName(void) const
 {
 	String value = Get("alias");
 	if (!value.IsEmpty())

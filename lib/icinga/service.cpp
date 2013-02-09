@@ -70,7 +70,7 @@ Service::~Service(void)
 	Service::InvalidateCommentCache();
 }
 
-String Service::GetAlias(void) const
+String Service::GetDisplayName(void) const
 {
 	String value = Get("alias");
 

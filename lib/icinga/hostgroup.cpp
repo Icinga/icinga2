@@ -26,7 +26,7 @@ bool HostGroup::m_MembersCacheValid = true;
 
 REGISTER_TYPE(HostGroup, NULL);
 
-String HostGroup::GetAlias(void) const
+String HostGroup::GetDisplayName(void) const
 {
 	String value = Get("alias");
 

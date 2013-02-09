@@ -43,7 +43,7 @@ public:
 	static bool Exists(const String& name);
 	static Host::Ptr GetByName(const String& name);
 
-	String GetAlias(void) const;
+	String GetDisplayName(void) const;
 	Dictionary::Ptr GetGroups(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
