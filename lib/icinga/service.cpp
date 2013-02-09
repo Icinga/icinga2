@@ -553,10 +553,10 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 			if (service)
 				service->SetNextCheck(Utility::GetTime());
 		}
-
-		if (GetState() != StateOK)
-			TriggerDowntimes();
 	}
+
+	if (GetState() != StateOK)
+		TriggerDowntimes();
 
 	if (GetStateType() == StateTypeHard && (old_state != GetState() || old_stateType == StateTypeSoft)) {
 		SetLastHardStateChange(now);
