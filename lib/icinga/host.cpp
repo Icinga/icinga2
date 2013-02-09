@@ -425,7 +425,7 @@ set<Service::Ptr> Host::GetParentServices(void) const
 	return parents;
 }
 
-Dynamic::Ptr Host::CalculateDynamicMacros(void) const
+Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 

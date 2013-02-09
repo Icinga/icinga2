@@ -106,7 +106,7 @@ public:
 	Dictionary::Ptr GetGroups(void) const;
 	String GetShortName(void) const;
 
-	Dynamic::Ptr CalculateDynamicMacros(void) const;
+	Dictionary::Ptr CalculateDynamicMacros(void) const;
 
 	set<Host::Ptr> GetParentHosts(void) const;
 	set<Service::Ptr> GetParentServices(void) const;
