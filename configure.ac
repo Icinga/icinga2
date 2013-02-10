@@ -70,7 +70,7 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
-AC_CHECK_FUNCS([backtrace_symbols])
+AC_CHECK_FUNCS([backtrace_symbols execvpe])
 
 AC_MSG_CHECKING(whether to enable debugging)
 AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes]   turn on debugging (default=no)],, enable_debug=no)

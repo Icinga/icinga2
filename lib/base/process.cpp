@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <execvpe.h>
 
 using namespace icinga;
 
