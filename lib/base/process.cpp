@@ -26,9 +26,10 @@ boost::mutex Process::m_Mutex;
 deque<Process::Ptr> Process::m_Tasks;
 int Process::m_TaskFd;
 
-Process::Process(const String& command, const Dictionary::Ptr& environment)
-	: AsyncTask<Process, ProcessResult>(), m_Command(command),
-	  m_Environment(environment), m_FP(NULL)
+extern char **environ;
+
+Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
+	: AsyncTask<Process, ProcessResult>(), m_FP(NULL)
 {
 	assert(Application::IsMainThread());
 
@@ -45,6 +46,49 @@ Process::Process(const String& command, const Dictionary::Ptr& environment)
 
 		m_ThreadCreated = true;
 	}
+
+	// build argv
+	m_Arguments = new char *[arguments.size() + 1];
+
+	for (int i = 0; i < arguments.size(); i++)
+		m_Arguments[i] = strdup(arguments[i].CStr());
+
+	m_Arguments[arguments.size()] = NULL;
+
+	// build envp
+	int envc = 0;
+
+	/* count existing environment variables */
+	while (environ[envc] != NULL)
+		envc++;
+
+	m_Environment = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 1];
+
+	for (int i = 0; i < envc; i++)
+		m_Environment[i] = strdup(environ[i]);
+
+	if (extraEnvironment) {
+		String key;
+		Value value;
+		int index = envc;
+		BOOST_FOREACH(tie(key, value), extraEnvironment) {
+			String kv = key + "=" + Convert::ToString(value);
+			m_Environment[index] = strdup(kv.CStr());
+			index++;
+		}
+	}
+
+	m_Environment[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0)] = NULL;
+}
+
+vector<String> Process::ParseCommand(const String& command)
+{
+	// TODO: implement
+	vector<String> args;
+	args.push_back("sh");
+	args.push_back("-c");
+	args.push_back(command);
+	return args;
 }
 
 void Process::Run(void)
@@ -117,7 +161,7 @@ void Process::WorkerThreadProc(int taskFd)
 				try {
 					task->InitTask();
 
-					int fd = task->GetFD();
+					int fd = fileno(task->m_FP);
 					if (fd >= 0)
 						tasks[fd] = task;
 				} catch (...) {
@@ -150,18 +194,10 @@ void Process::WorkerThreadProc(int taskFd)
 	}
 }
 
-void Process::Spawn(const String& command, const Dictionary::Ptr& env)
+void Process::InitTask(void)
 {
-	vector<String> args;
-	args.push_back("sh");
-	args.push_back("-c");
-	args.push_back(command);
+	m_Result.ExecutionStart = Utility::GetTime();
 
-	return Spawn(args, env);
-}
-
-void Process::Spawn(const vector<String>& args, const Dictionary::Ptr& extraEnv)
-{
 	assert(m_FP == NULL);
 
 #ifdef _MSC_VER
@@ -171,37 +207,6 @@ void Process::Spawn(const vector<String>& args, const Dictionary::Ptr& extraEnv)
 
 	if (pipe(fds) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
-
-	char **argv = new char *[args.size() + 1];
-
-	for (int i = 0; i < args.size(); i++)
-		argv[i] = strdup(args[i].CStr());
-
-	argv[args.size()] = NULL;
-
-	int envc = 0;
-
-	/* count existing environment variables */
-	while (environ[envc] != NULL)
-		envc++;
-
-	char **envp = new char *[envc + (extraEnv ? extraEnv->GetLength() : 0) + 1];
-
-	for (int i = 0; i < envc; i++)
-		envp[i] = environ[i];
-
-	if (extraEnv) {
-		String key;
-		Value value;
-		int index = envc;
-		BOOST_FOREACH(tie(key, value), extraEnv) {
-			String kv = key + "=" + Convert::ToString(value);
-			envp[index] = strdup(kv.CStr());
-			index++;
-		}
-	}
-
-	envp[envc + (extraEnv ? extraEnv->GetLength() : 0)] = NULL;
 
 #ifdef HAVE_VFORK
 	m_Pid = vfork();
@@ -213,7 +218,8 @@ void Process::Spawn(const vector<String>& args, const Dictionary::Ptr& extraEnv)
 		BOOST_THROW_EXCEPTION(PosixException("fork() failed.", errno));
 
 	if (m_Pid == 0) {
-		/* child */
+		// child process
+
 		if (dup2(fds[1], STDOUT_FILENO) < 0 || dup2(fds[1], STDERR_FILENO) < 0) {
 			perror("dup2() failed.");
 			_exit(128);
@@ -221,26 +227,27 @@ void Process::Spawn(const vector<String>& args, const Dictionary::Ptr& extraEnv)
 
 		(void) close(fds[1]);
 
-		if (execvpe(argv[0], argv, envp) < 0) {
+		if (execvpe(m_Arguments[0], m_Arguments, m_Environment) < 0) {
 			perror("execvpe() failed.");
 			_exit(128);
 		}
 
 		_exit(128);
 	} else {
-		for (int i = 0; i < args.size(); i++)
-			free(argv[i]);
+		// parent process
 
-		delete [] argv;
+		// free arguments
+		for (int i = 0; m_Arguments[i] != NULL; i++)
+			free(m_Arguments[i]);
 
-		if (extraEnv) {
-			for (int i = envc; i < envc + extraEnv->GetLength(); i++)
-				free(envp[i]);
-		}
+		delete [] m_Arguments;
 
-		delete [] envp;
+		// free environment
+		for (int i = 0; m_Environment[i] != NULL; i++)
+			free(m_Environment[i]);
 
-		/* parent */
+		delete [] m_Environment;
+
 		(void) close(fds[1]);
 
 		m_FP = fdopen(fds[0], "r");
@@ -249,28 +256,6 @@ void Process::Spawn(const vector<String>& args, const Dictionary::Ptr& extraEnv)
 			BOOST_THROW_EXCEPTION(PosixException("fdopen() failed.", errno));
 	}
 #endif /* _MSC_VER */
-}
-
-int Process::WaitPid(void)
-{
-#ifdef _MSC_VER
-	return _pclose(m_FP);
-#else /* _MSC_VER */
-	fclose(m_FP);
-
-	int status;
-	if (waitpid(m_Pid, &status, 0) != m_Pid)
-		BOOST_THROW_EXCEPTION(PosixException("waitpid() failed.", errno));
-
-	return status;
-#endif /* _MSC_VER */
-}
-
-void Process::InitTask(void)
-{
-	m_Result.ExecutionStart = Utility::GetTime();
-
-	Spawn(m_Command, m_Environment);
 }
 
 bool Process::RunTask(void)
@@ -288,7 +273,14 @@ bool Process::RunTask(void)
 
 	int status, exitcode;
 
-	status = WaitPid();
+#ifdef _MSC_VER
+	status = _pclose(m_FP);
+#else /* _MSC_VER */
+	fclose(m_FP);
+
+	if (waitpid(m_Pid, &status, 0) != m_Pid)
+		BOOST_THROW_EXCEPTION(PosixException("waitpid() failed.", errno));
+#endif /* _MSC_VER */
 
 #ifndef _MSC_VER
 	if (WIFEXITED(status)) {
@@ -319,14 +311,4 @@ bool Process::RunTask(void)
 	m_Result.Output = output;
 
 	return false;
-}
-
-/**
- * Retrieves the stdout file descriptor for the child process.
- *
- * @returns The stdout file descriptor.
- */
-int Process::GetFD(void) const
-{
-	return fileno(m_FP);
 }

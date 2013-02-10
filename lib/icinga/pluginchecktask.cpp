@@ -48,7 +48,7 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
 	String command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
 
-	Process::Ptr process = boost::make_shared<Process>(command, MacroProcessor::MakeEnvironment(macroDicts));
+	Process::Ptr process = boost::make_shared<Process>(Process::ParseCommand(command), MacroProcessor::MakeEnvironment(macroDicts));
 
 	PluginCheckTask ct(task, process);
 

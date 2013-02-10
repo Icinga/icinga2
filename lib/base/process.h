@@ -50,13 +50,14 @@ public:
 
 	static const deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
-	Process(const String& command, const Dictionary::Ptr& environment = Dictionary::Ptr());
+	Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
 
+	static vector<String> ParseCommand(const String& command);
 private:
 	static bool m_ThreadCreated;
 
-	String m_Command;
-	Dictionary::Ptr m_Environment;
+	char **m_Arguments;
+	char **m_Environment;
 
 #ifndef _WIN32
 	pid_t m_Pid;
@@ -77,12 +78,6 @@ private:
 
 	void InitTask(void);
 	bool RunTask(void);
-
-	int GetFD(void) const;
-
-	void Spawn(const String& command, const Dictionary::Ptr& extraEnv);
-	void Spawn(const vector<String>& args, const Dictionary::Ptr& extraEnv);
-	int WaitPid(void);
 };
 
 }

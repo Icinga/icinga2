@@ -35,7 +35,7 @@ void Service::RequestNotifications(NotificationType type) const
 	params.SetService(GetName());
 	params.SetType(type);
 
-	Logger::Write(LogInformation, "icinga", "Sending notification anycast request for service '" + GetName() + "'");
+	Logger::Write(LogDebug, "icinga", "Sending notification anycast request for service '" + GetName() + "'");
 	EndpointManager::GetInstance()->SendAnycastMessage(Endpoint::Ptr(), msg);
 }
 
