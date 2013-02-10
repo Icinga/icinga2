@@ -129,7 +129,11 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 		BOOST_THROW_EXCEPTION(PosixException("mkfifo() failed", errno));
 
 	for (;;) {
-		int fd = open(commandPath.CStr(), O_RDONLY);
+		int fd;
+
+		do {
+			fd = open(commandPath.CStr(), O_RDONLY);
+		} while (fd < 0 && errno == EINTR);
 
 		if (fd < 0)
 			BOOST_THROW_EXCEPTION(PosixException("open() failed", errno));
