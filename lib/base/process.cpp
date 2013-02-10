@@ -34,7 +34,12 @@ extern char **environ;
 #endif /* _MSC_VER */
 
 Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
-	: AsyncTask<Process, ProcessResult>(), m_FP(NULL)
+	: AsyncTask<Process, ProcessResult>(),
+#ifndef _MSC_VER
+	m_FD(-1)
+#else /* _MSC_VER */
+	m_FP(NULL)
+#endif /* _MSC_VER */
 {
 	assert(Application::IsMainThread());
 
@@ -165,7 +170,7 @@ void Process::WorkerThreadProc(int taskFd)
 		int fd;
 		BOOST_FOREACH(tie(fd, tuples::ignore), tasks) {
 			pfds[idx].fd = fd;
-			pfds[idx].events = POLLIN;
+			pfds[idx].events = POLLIN | POLLHUP;
 			idx++;
 		}
 
@@ -183,7 +188,7 @@ void Process::WorkerThreadProc(int taskFd)
 
 #ifndef _MSC_VER
 		for (int i = 0; i < idx; i++) {
-			if ((pfds[i].revents & POLLIN) == 0)
+			if ((pfds[i].revents & (POLLIN|POLLHUP)) == 0)
 				continue;
 
 			if (pfds[i].fd == taskFd) {
@@ -220,7 +225,12 @@ void Process::WorkerThreadProc(int taskFd)
 					try {
 						task->InitTask();
 
+#ifdef _MSC_VER
 						int fd = fileno(task->m_FP);
+#else /* _MSC_VER */
+						int fd = task->m_FD;
+#endif /* _MSC_VER */
+
 						if (fd >= 0)
 							tasks[fd] = task;
 					} catch (...) {
@@ -267,7 +277,11 @@ void Process::InitTask(void)
 {
 	m_Result.ExecutionStart = Utility::GetTime();
 
+#ifdef _MSC_VER
 	assert(m_FP == NULL);
+#else /* _MSC_VER */
+	assert(m_FD == -1);
+#endif /* _MSC_VER */
 
 #ifdef _MSC_VER
 	String cmdLine;
@@ -340,10 +354,7 @@ void Process::InitTask(void)
 
 		(void) close(fds[1]);
 
-		m_FP = fdopen(fds[0], "r");
-
-		if (m_FP == NULL)
-			BOOST_THROW_EXCEPTION(PosixException("fdopen() failed.", errno));
+		m_FD = fds[0];
 	}
 #endif /* _MSC_VER */
 }
@@ -351,13 +362,22 @@ void Process::InitTask(void)
 bool Process::RunTask(void)
 {
 	char buffer[512];
-	size_t read = fread(buffer, 1, sizeof(buffer), m_FP);
+	int rc;
 
-	if (read > 0)
-		m_OutputStream.write(buffer, read);
-
+#ifndef _MSC_VER
+	rc = read(m_FD, buffer, sizeof(buffer));
+#else /* _MSC_VER */
 	if (!feof(m_FP))
+		rc =  fread(buffer, 1, sizeof(buffer), m_FP);
+	else
+		rc = 0;
+#endif /* _MSC_VER */
+
+	if (rc > 0) {
+		m_OutputStream.write(buffer, rc);
+
 		return true;
+	}
 
 	String output = m_OutputStream.str();
 
@@ -366,7 +386,7 @@ bool Process::RunTask(void)
 #ifdef _MSC_VER
 	status = _pclose(m_FP);
 #else /* _MSC_VER */
-	fclose(m_FP);
+	(void) close(m_FD);
 
 	if (waitpid(m_Pid, &status, 0) != m_Pid)
 		BOOST_THROW_EXCEPTION(PosixException("waitpid() failed.", errno));

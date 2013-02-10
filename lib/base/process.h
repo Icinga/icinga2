@@ -59,12 +59,12 @@ private:
 	char **m_Arguments;
 	char **m_Environment;
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 	pid_t m_Pid;
-#else /* _WIN32 */
-	HANDLE m_Pid;
-#endif /* _WIN32 */
+	int m_FD;
+#else /* _MSC_VER */
 	FILE *m_FP;
+#endif /* _MSC_VER */
 
 	stringstream m_OutputStream;
 
