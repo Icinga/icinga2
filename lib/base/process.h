@@ -71,9 +71,9 @@ private:
 
 	static boost::mutex m_Mutex;
 	static deque<Process::Ptr> m_Tasks;
-	static condition_variable m_TasksCV;
+	static int m_TaskFd;
 
-	static void WorkerThreadProc(void);
+	static void WorkerThreadProc(int taskFd);
 
 	void InitTask(void);
 	bool RunTask(void);
