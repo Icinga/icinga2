@@ -62,6 +62,9 @@ Dictionary::Ptr MacroProcessor::MakeEnvironment(const vector<Dictionary::Ptr>& d
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();
 
 	BOOST_REVERSE_FOREACH(const Dictionary::Ptr& dict, dicts) {
+		if (!dict)
+			continue;
+
 		String key;
 		Value value;
 		BOOST_FOREACH(tie(key, value), dict) {
