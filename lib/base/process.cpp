@@ -28,9 +28,10 @@ using namespace icinga;
 bool Process::m_ThreadCreated = false;
 boost::mutex Process::m_Mutex;
 deque<Process::Ptr> Process::m_Tasks;
+#ifndef _MSC_VER
 int Process::m_TaskFd;
-
 extern char **environ;
+#endif /* _MSC_VER */
 
 Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
 	: AsyncTask<Process, ProcessResult>(), m_FP(NULL)
@@ -38,14 +39,21 @@ Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEn
 	assert(Application::IsMainThread());
 
 	if (!m_ThreadCreated) {
+		int childTaskFd;
+
+#ifdef _MSC_VER
+		childTaskFd = 0;
+#else /* _MSC_VER */
 		int fds[2];
 
 		if (pipe(fds) < 0)
 			BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
 
+		childTaskFd = fds[0];
 		m_TaskFd = fds[1];
+#endif /* _MSC_VER */
 
-		thread t(&Process::WorkerThreadProc, fds[0]);
+		thread t(&Process::WorkerThreadProc, childTaskFd);
 		t.detach();
 
 		m_ThreadCreated = true;
@@ -89,9 +97,13 @@ vector<String> Process::ParseCommand(const String& command)
 {
 	// TODO: implement
 	vector<String> args;
+#ifdef _MSC_VER
+	args.push_back(command);
+#else /* MSC_VER */
 	args.push_back("sh");
 	args.push_back("-c");
 	args.push_back(command);
+#endif
 	return args;
 }
 
@@ -102,12 +114,14 @@ void Process::Run(void)
 		m_Tasks.push_back(GetSelf());
 	}
 
+#ifndef _MSC_VER
 	/**
 	 * This little gem which is commonly known as the "self-pipe trick"
 	 * takes care of waking up the select() call in the worker thread.
 	 */
 	if (write(m_TaskFd, "T", 1) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("write() failed.", errno));
+#endif /* _MSC_VER */
 }
 
 void Process::WorkerThreadProc(int taskFd)
@@ -143,11 +157,13 @@ void Process::WorkerThreadProc(int taskFd)
 		Utility::Sleep(1);
 #endif /* _MSC_VER */
 
+#ifndef _MSC_VER
 		if (FD_ISSET(taskFd, &readfds)) {
 			/* clear pipe */
 			char buffer[512];
 			int rc = read(taskFd, buffer, sizeof(buffer));
 			assert(rc >= 1);
+#endif /* _MSC_VER */
 
 			while (tasks.size() < MaxTasksPerThread) {
 				Process::Ptr task;
@@ -172,7 +188,9 @@ void Process::WorkerThreadProc(int taskFd)
 					Event::Post(boost::bind(&Process::FinishException, task, boost::current_exception()));
 				}
 			}
+#ifndef _MSC_VER
 		}
+#endif /* _MSC_VER */
 
 		for (it = tasks.begin(); it != tasks.end(); ) {
 			int fd = it->first;
@@ -205,7 +223,28 @@ void Process::InitTask(void)
 	assert(m_FP == NULL);
 
 #ifdef _MSC_VER
-#error "TODO: implement"
+	String cmdLine;
+
+	// This is almost certainly wrong, but will have to do for now. (#3684)
+	for (int i = 0; m_Arguments[i] != NULL ; i++) {
+		cmdLine += "\"";
+		cmdLine += m_Arguments[i];
+		cmdLine += "\" ";
+	}
+
+	// free arguments
+	for (int i = 0; m_Arguments[i] != NULL; i++)
+		free(m_Arguments[i]);
+
+	delete [] m_Arguments;
+
+	// free environment
+	for (int i = 0; m_Environment[i] != NULL; i++)
+		free(m_Environment[i]);
+
+	delete [] m_Environment;
+
+	m_FP = _popen(cmdLine.CStr(), "r");
 #else /* _MSC_VER */
 	int fds[2];
 

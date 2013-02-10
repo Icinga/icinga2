@@ -61,6 +61,8 @@ private:
 
 #ifndef _WIN32
 	pid_t m_Pid;
+#else /* _WIN32 */
+	HANDLE m_Pid;
 #endif /* _WIN32 */
 	FILE *m_FP;
 
@@ -72,7 +74,9 @@ private:
 
 	static boost::mutex m_Mutex;
 	static deque<Process::Ptr> m_Tasks;
+#ifndef _MSC_VER
 	static int m_TaskFd;
+#endif /* _MSC_VER */
 
 	static void WorkerThreadProc(int taskFd);
 
