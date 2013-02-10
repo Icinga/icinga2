@@ -3,5 +3,6 @@
 SUBDIRS = \
 	ltdl \
 	cJSON \
+	execvpe \
 	mmatch \
 	popen-noshell
