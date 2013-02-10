@@ -287,11 +287,15 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 {
 	ServiceState old_state = GetState();
 	ServiceStateType old_stateType = GetStateType();
+	bool hardChange = false;
 
 	long attempt = GetCurrentCheckAttempt();
 
 	if (cr->Get("state") == StateOK) {
-		if (GetState() == StateOK)
+		if (old_state != StateOK && old_stateType == StateTypeHard)
+			hardChange = true; // hard recovery
+
+		if (old_state == StateOK)
 			SetStateType(StateTypeHard);
 
 		attempt = 1;
@@ -299,6 +303,7 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 		if (attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
 			attempt = 1;
+			hardChange = true;
 		} else if (GetStateType() == StateTypeSoft || GetState() == StateOK) {
 			SetStateType(StateTypeSoft);
 			attempt++;
@@ -341,7 +346,7 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 	if (GetState() != StateOK)
 		TriggerDowntimes();
 
-	if (GetStateType() == StateTypeHard && (old_state != GetState() || old_stateType == StateTypeSoft)) {
+	if (hardChange) {
 		SetLastHardStateChange(now);
 
 		/* Make sure the notification component sees the updated
