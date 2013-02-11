@@ -221,6 +221,13 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 		Service::InvalidateCommentCache();
 	else if (name == "notifications")
 		UpdateSlaveNotifications();
+	else if (name == "check_interval") {
+		ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
+
+		/* update the next check timestamp if we're the owner of this service */
+		if (item && !IsAbstract())
+			UpdateNextCheck();
+	}
 }
 
 set<Host::Ptr> Service::GetParentHosts(void) const
