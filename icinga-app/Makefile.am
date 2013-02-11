@@ -37,6 +37,3 @@ icinga2_LDADD = \
 	-dlopen ${top_builddir}/components/delegation/delegation.la \
 	-dlopen ${top_builddir}/components/demo/demo.la \
 	-dlopen ${top_builddir}/components/notification/notification.la
-
-icinga2_DEPENDENCIES = \
-	${top_builddir}/components/replication/replication.la
