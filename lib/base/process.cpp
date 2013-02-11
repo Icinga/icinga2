@@ -148,7 +148,7 @@ void Process::Run(void)
 void Process::WorkerThreadProc(int taskFd)
 {
 	map<int, Process::Ptr> tasks;
-	pollfd *pfds;
+	pollfd *pfds = NULL;
 
 	for (;;) {
 		map<int, Process::Ptr>::iterator it, prev;
