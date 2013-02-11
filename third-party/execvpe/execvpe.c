@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <alloca.h>
 
 /*
  * We want the search semantics of execvp, but we want to provide our
