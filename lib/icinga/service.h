@@ -208,6 +208,7 @@ public:
 	static void ValidateDowntimeCache(void);
 
 	bool IsInDowntime(void) const;
+	bool IsAcknowledged(void);
 
 	/* Comments */
 	static int GetNextCommentID(void);

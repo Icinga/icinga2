@@ -353,7 +353,8 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 		 * state/state_type attributes. */
 		DynamicObject::FlushTx();
 
-		RequestNotifications(NotificationStateChange);
+		if (IsReachable() && !IsInDowntime() && !IsAcknowledged())
+			RequestNotifications(NotificationStateChange);
 	}
 }
 

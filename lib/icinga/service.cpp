@@ -190,6 +190,11 @@ void Service::SetAcknowledgement(AcknowledgementType acknowledgement)
 	Set("acknowledgement", static_cast<long>(acknowledgement));
 }
 
+bool Service::IsAcknowledged(void)
+{
+	return GetAcknowledgement() != AcknowledgementNone;
+}
+
 double Service::GetAcknowledgementExpiry(void) const
 {
 	Value value = Get("acknowledgement_expiry");
