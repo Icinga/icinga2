@@ -48,9 +48,6 @@ Application::Application(const Dictionary::Ptr& serializedUpdate)
 		BOOST_THROW_EXCEPTION(Win32Exception("WSAStartup failed", WSAGetLastError()));
 #endif /* _WIN32 */
 
-	char *debugging = getenv("_DEBUG");
-	m_Debugging = (debugging && strtol(debugging, NULL, 10) != 0);
-
 #ifdef _WIN32
 	if (IsDebuggerPresent())
 		m_Debugging = true;
