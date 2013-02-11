@@ -161,16 +161,16 @@ void Process::WorkerThreadProc(int taskFd)
 
 		int idx = 0;
 
-		if (tasks.size() < MaxTasksPerThread) {
-			pfds[idx].fd = taskFd;
-			pfds[idx].events = POLLIN;
-			idx++;
-		}
-
 		int fd;
 		BOOST_FOREACH(tie(fd, tuples::ignore), tasks) {
 			pfds[idx].fd = fd;
 			pfds[idx].events = POLLIN | POLLHUP;
+			idx++;
+		}
+
+		if (tasks.size() < MaxTasksPerThread) {
+			pfds[idx].fd = taskFd;
+			pfds[idx].events = POLLIN;
 			idx++;
 		}
 
