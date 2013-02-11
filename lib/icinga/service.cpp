@@ -284,5 +284,15 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 	macros->Set("SERVICEATTEMPT", GetCurrentCheckAttempt());
 	macros->Set("MAXSERVICEATTEMPT", GetMaxCheckAttempts());
 
+	Dictionary::Ptr cr = GetLastCheckResult();
+
+	if (cr) {
+		macros->Set("SERVICEOUTPUT", cr->Get("output"));
+		macros->Set("SERVICEPERFDATA", cr->Get("performance_data_raw"));
+	} else {
+		macros->Set("SERVICEOUTPUT", "");
+		macros->Set("SERVICEPERFDATA", "");
+	}
+
 	return macros;
 }

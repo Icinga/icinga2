@@ -423,6 +423,7 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 
 	macros->Set("HOSTNAME", GetName());
+	macros->Set("HOSTALIAS", GetName());
 	macros->Set("HOSTDISPLAYNAME", GetDisplayName());
 	macros->Set("HOSTSTATE", "DERP");
 
