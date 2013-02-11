@@ -137,12 +137,14 @@ include: T_INCLUDE T_STRING
 library: T_LIBRARY T_STRING
 	{
 		context->HandleLibrary($2);
+		free($2);
 	}
 
 identifier: T_IDENTIFIER
 	| T_STRING
 	{
 		$$ = $1;
+		free($1);
 	}
 	;
 
@@ -208,19 +210,24 @@ typerules_inner: /* empty */
 typerule: T_REQUIRE T_STRING
 	{
 		m_RuleLists.top()->AddRequire($2);
+		free($2);
 	}
 	| T_VALIDATOR T_STRING
 	{
 		m_RuleLists.top()->SetValidator($2);
+		free($2);
 	}
 	| T_ATTRIBUTE type T_STRING
 	{
 		TypeRule rule($2, $3, TypeRuleList::Ptr(), yylloc);
+		free($3);
+
 		m_RuleLists.top()->AddRule(rule);
 	}
 	| T_ATTRIBUTE type T_STRING typerulelist
 	{
 		TypeRule rule($2, $3, *$4, yylloc);
+		free($3);
 		delete $4;
 		m_RuleLists.top()->AddRule(rule);
 	}
@@ -230,6 +237,7 @@ type_inherits_specifier: /* empty */
 	| T_INHERITS T_STRING
 	{
 		m_Type->SetParent($2);
+		free($2);
 	}
 	;
 
