@@ -32,15 +32,7 @@ REGISTER_TYPE(IcingaApplication, NULL);
 
 IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
 	: Application(serializedUpdate)
-{
-	/* load replication config component */
-	ConfigItemBuilder::Ptr replicationComponentConfig = boost::make_shared<ConfigItemBuilder>();
-	replicationComponentConfig->SetType("Component");
-	replicationComponentConfig->SetName("replication");
-	replicationComponentConfig->SetLocal(true);
-	replicationComponentConfig->Compile()->Commit();
-	replicationComponentConfig.reset();
-}
+{ }
 
 /**
  * The entry point for the Icinga application.

@@ -169,6 +169,7 @@ public:
 	void SetAcknowledgementExpiry(double timestamp);
 
 	void ApplyCheckResult(const Dictionary::Ptr& cr);
+	static void UpdateStatistics(const Dictionary::Ptr& cr);
 
 	void BeginExecuteCheck(const function<void (void)>& callback);
 	void ProcessCheckResult(const Dictionary::Ptr& cr);
@@ -179,7 +180,6 @@ public:
 	static ServiceStateType StateTypeFromString(const String& state);
 	static String StateTypeToString(ServiceStateType state);
 
-	static boost::signal<void (const Service::Ptr& service, const CheckResultMessage&)> OnCheckResultReceived;
 	static boost::signal<void (const Service::Ptr&, const String&)> OnCheckerChanged;
 	static boost::signal<void (const Service::Ptr&, const Value&)> OnNextCheckChanged;
 

@@ -25,7 +25,6 @@ const int Service::DefaultMaxCheckAttempts = 3;
 const int Service::DefaultCheckInterval = 5 * 60;
 const int Service::CheckIntervalDivisor = 5;
 
-boost::signal<void (const Service::Ptr&, const CheckResultMessage&)> Service::OnCheckResultReceived;
 boost::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChanged;
 boost::signal<void (const Service::Ptr&, const Value&)> Service::OnNextCheckChanged;
 
@@ -500,6 +499,9 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 		if (!result->Contains("active"))
 			result->Set("active", 1);
 
+		if (!result->Contains("checker"))
+			result->Set("checker", EndpointManager::GetInstance()->GetIdentity());
+
 		ProcessCheckResult(result);
 	}
 
@@ -514,6 +516,8 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 {
 	ApplyCheckResult(cr);
+
+	Service::UpdateStatistics(cr);
 
 	/* flush the current transaction so other instances see the service's
 	 * new state when they receive the CheckResult message */
@@ -530,4 +534,20 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	rm.SetParams(params);
 
 	EndpointManager::GetInstance()->SendMulticastMessage(rm);
+}
+
+void Service::UpdateStatistics(const Dictionary::Ptr& cr)
+{
+	time_t ts;
+	Value schedule_end = cr->Get("schedule_end");
+	if (!schedule_end.IsEmpty())
+		ts = static_cast<time_t>(schedule_end);
+	else
+		ts = static_cast<time_t>(Utility::GetTime());
+
+	Value active = cr->Get("active");
+	if (active.IsEmpty() || static_cast<long>(active))
+		CIB::UpdateActiveChecksStatistics(ts, 1);
+	else
+		CIB::UpdatePassiveChecksStatistics(ts, 1);
 }

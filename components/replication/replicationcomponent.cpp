@@ -63,26 +63,14 @@ void ReplicationComponent::CheckResultRequestHandler(const RequestMessage& reque
 	String svcname = params.GetService();
 	Service::Ptr service = Service::GetByName(svcname);
 
-	Service::OnCheckResultReceived(service, params);
-
 	Dictionary::Ptr cr = params.GetCheckResult();
 	if (!cr)
 		return;
 
-	Value active = cr->Get("active");
+	if (cr->Contains("checker") && cr->Get("checker") == EndpointManager::GetInstance()->GetIdentity())
+		return;
 
-	time_t ts;
-	Value schedule_end = cr->Get("schedule_end");
-
-	if (!schedule_end.IsEmpty())
-		ts = static_cast<time_t>(schedule_end);
-	else
-		ts = static_cast<time_t>(Utility::GetTime());
-
-	if (active.IsEmpty() || static_cast<long>(active))
-		CIB::UpdateActiveChecksStatistics(ts, 1);
-	else
-		CIB::UpdatePassiveChecksStatistics(ts, 1);
+	Service::UpdateStatistics(cr);
 }
 
 void ReplicationComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoint)
