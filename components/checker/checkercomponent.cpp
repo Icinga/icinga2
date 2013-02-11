@@ -63,7 +63,12 @@ void CheckerComponent::CheckTimerHandler(void)
 		CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
 		CheckTimeView::iterator it = idx.begin();
-		Service::Ptr service = *it;
+		Service::Ptr service = it->lock();
+
+		if (!service) {
+			idx.erase(it);
+			continue;
+		}
 
 		if (service->GetNextCheck() > now)
 			break;
@@ -206,8 +211,19 @@ void CheckerComponent::RescheduleCheckTimer(void)
 	typedef nth_index<ServiceSet, 1>::type CheckTimeView;
 	CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
-	CheckTimeView::iterator it = idx.begin();
-	Service::Ptr service = *it;
+	Service::Ptr service;
+
+	do {
+		CheckTimeView::iterator it = idx.begin();
+
+		if (it == idx.end())
+			return;
+
+		service = it->lock();
+
+		if (!service)
+			idx.erase(it);
+	} while (!service);
 
 	m_CheckTimer->Reschedule(service->GetNextCheck());
 }
