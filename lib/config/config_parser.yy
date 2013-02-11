@@ -126,10 +126,12 @@ statement: object | type | include | library
 include: T_INCLUDE T_STRING
 	{
 		context->HandleInclude($2, false, yylloc);
+		free($2);
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
 		context->HandleInclude($2, true, yylloc);
+		free($2);
 	}
 
 library: T_LIBRARY T_STRING
@@ -147,8 +149,10 @@ identifier: T_IDENTIFIER
 type: partial_specifier T_TYPE identifier
 	{
 		String name = String($3);
+		free($3);
+
 		m_Type = ConfigCompilerContext::GetContext()->GetType(name);
-		
+
 		if (!m_Type) {
 			if ($1)
 				BOOST_THROW_EXCEPTION(invalid_argument("Partial type definition for unknown type '" + name + "'"));
@@ -239,7 +243,7 @@ type: T_TYPE_DICTIONARY
 	}
 	;
 
-object: 
+object:
 	{
 		m_Abstract = false;
 		m_Local = false;
@@ -247,8 +251,13 @@ object:
 attributes T_OBJECT identifier T_STRING
 	{
 		m_Item = boost::make_shared<ConfigItemBuilder>(yylloc);
+
 		m_Item->SetType($4);
+		free($4);
+
 		m_Item->SetName($5);
+		free($5);
+
 		m_Item->SetUnit(ConfigCompilerContext::GetContext()->GetUnit());
 	}
 object_inherits_specifier expressionlist
