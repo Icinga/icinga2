@@ -37,7 +37,6 @@ public:
 	typedef weak_ptr<Host> WeakPtr;
 
 	Host(const Dictionary::Ptr& properties);
-	void OnInitCompleted(void);
 	~Host(void);
 
 	static bool Exists(const String& name);

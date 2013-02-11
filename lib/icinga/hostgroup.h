@@ -34,9 +34,7 @@ public:
 	typedef shared_ptr<HostGroup> Ptr;
 	typedef weak_ptr<HostGroup> WeakPtr;
 
-	HostGroup(const Dictionary::Ptr& properties)
-		: DynamicObject(properties)
-	{ }
+	HostGroup(const Dictionary::Ptr& properties);;
 
 	static bool Exists(const String& name);
 	static HostGroup::Ptr GetByName(const String& name);

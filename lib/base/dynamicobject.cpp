@@ -484,9 +484,6 @@ void DynamicObject::FlushTx(void)
 void DynamicObject::OnAttributeChanged(const String&, const Value&)
 { }
 
-void DynamicObject::OnInitCompleted(void)
-{ }
-
 DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& name)
 {
 	DynamicType::Ptr dtype = DynamicType::GetByName(type);

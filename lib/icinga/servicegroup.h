@@ -34,9 +34,7 @@ public:
 	typedef shared_ptr<ServiceGroup> Ptr;
 	typedef weak_ptr<ServiceGroup> WeakPtr;
 
-	ServiceGroup(const Dictionary::Ptr& properties)
-		: DynamicObject(properties)
-	{ }
+	ServiceGroup(const Dictionary::Ptr& properties);
 
 	static bool Exists(const String& name);
 	static ServiceGroup::Ptr GetByName(const String& name);

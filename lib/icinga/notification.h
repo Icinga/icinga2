@@ -62,6 +62,9 @@ public:
 
 	void SendNotification(NotificationType type);
 
+protected:
+	void OnAttributeChanged(const String& name, const Value& oldValue);
+
 private:
 	set<ScriptTask::Ptr> m_Tasks;
 

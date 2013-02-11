@@ -133,7 +133,6 @@ public:
 
 protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
-	virtual void OnInitCompleted(void);
 
 private:
 	void InternalSetAttribute(const String& name, const Value& data, double tx, bool allowEditConfig = false);
@@ -149,8 +148,6 @@ private:
 	/* This has to be a set of raw pointers because the DynamicObject
 	 * constructor has to be able to insert objects into this list. */
 	static set<DynamicObject *> m_ModifiedObjects;
-
-	friend class DynamicType; /* for OnInitCompleted */
 };
 
 }

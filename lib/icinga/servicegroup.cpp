@@ -26,6 +26,10 @@ bool ServiceGroup::m_MembersCacheValid;
 
 REGISTER_TYPE(ServiceGroup, NULL);
 
+ServiceGroup::ServiceGroup(const Dictionary::Ptr& properties)
+	: DynamicObject(properties)
+{ }
+
 String ServiceGroup::GetDisplayName(void) const
 {
 	String value = Get("alias");
@@ -112,4 +116,3 @@ void ServiceGroup::ValidateMembersCache(void)
 
 	m_MembersCacheValid = true;
 }
-

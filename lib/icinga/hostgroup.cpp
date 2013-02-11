@@ -26,6 +26,10 @@ bool HostGroup::m_MembersCacheValid = true;
 
 REGISTER_TYPE(HostGroup, NULL);
 
+HostGroup::HostGroup(const Dictionary::Ptr& properties)
+	: DynamicObject(properties)
+{ }
+
 String HostGroup::GetDisplayName(void) const
 {
 	String value = Get("alias");
@@ -112,4 +116,3 @@ void HostGroup::ValidateMembersCache(void)
 
 	m_MembersCacheValid = true;
 }
-

@@ -47,12 +47,7 @@ REGISTER_TYPE(Service, serviceAttributes);
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
-{
-	ServiceGroup::InvalidateMembersCache();
-	Host::InvalidateServicesCache();
-	Service::InvalidateDowntimeCache();
-	Service::InvalidateCommentCache();
-}
+{ }
 
 Service::~Service(void)
 {

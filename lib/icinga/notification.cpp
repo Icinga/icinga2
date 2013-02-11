@@ -108,3 +108,9 @@ void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 		Logger::Write(LogWarning, "icinga", message);
 	}
 }
+
+void Notification::OnAttributeChanged(const String& name, const Value& oldValue)
+{
+	if (name == "host_name" || name == "service")
+		Service::InvalidateNotificationsCache();
+}

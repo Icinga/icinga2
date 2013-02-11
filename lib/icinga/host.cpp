@@ -27,7 +27,7 @@ bool Host::m_ServicesCacheValid = true;
 REGISTER_SCRIPTFUNCTION("native::ValidateServiceDictionary", &Host::ValidateServiceDictionary);
 
 static AttributeDescription hostAttributes[] = {
-	{ "convenience_services", Attribute_Transient }
+	{ "slave_services", Attribute_Transient }
 };
 
 REGISTER_TYPE(Host, hostAttributes);
@@ -36,18 +36,11 @@ Host::Host(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 { }
 
-void Host::OnInitCompleted(void)
-{
-	HostGroup::InvalidateMembersCache();
-
-	UpdateSlaveServices();
-}
-
 Host::~Host(void)
 {
 	HostGroup::InvalidateMembersCache();
 
-	Dictionary::Ptr services = Get("convenience_services");
+	Dictionary::Ptr services = Get("slave_services");
 
 	if (services) {
 		ConfigItem::Ptr service;
