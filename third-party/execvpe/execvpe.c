@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <alloca.h>
 
 /*
  * We want the search semantics of execvp, but we want to provide our
@@ -77,20 +78,23 @@ execvpe(char *name, char *const argv[], char **envp)
     if (!(path = getenv("PATH"))) {
 #ifdef HAVE_CONFSTR
         ln = confstr(_CS_PATH, NULL, 0);
-        if ((cur = path = malloc(ln + 1)) != NULL) {
+        if ((cur = path = alloca(ln + 1)) != NULL) {
 	    path[0] = ':';
 	    (void) confstr (_CS_PATH, path + 1, ln);
 	}
 #else
-        if ((cur = path = malloc(1 + 1)) != NULL) {
+        if ((cur = path = alloca(1 + 1)) != NULL) {
 	    path[0] = ':';
 	    path[1] = '\0';
 	}
 #endif
-    } else
-	cur = path = strdup(path);
+    } else {
+        cur = alloca(strlen(path) + 1);
+        strcpy(cur, path);
+        path = cur;
+    }
 
-    if (path == NULL || (bp = buf = malloc(strlen(path)+strlen(name)+2)) == NULL)
+    if (path == NULL || (bp = buf = alloca(strlen(path)+strlen(name)+2)) == NULL)
 	goto done;
 
     while (cur != NULL) {
@@ -129,13 +133,12 @@ execvpe(char *name, char *const argv[], char **envp)
 
 		for (cnt = 0, ap = (char **) argv; *ap; ++ap, ++cnt)
 		    ;
-		if ((ap = malloc((cnt + 2) * sizeof(char *))) != NULL) {
+		if ((ap = alloca((cnt + 2) * sizeof(char *))) != NULL) {
 		    memcpy(ap + 2, argv + 1, cnt * sizeof(char *));
 
 		    ap[0] = "sh";
 		    ap[1] = bp;
 		    (void) execve("/bin/sh", ap, envp);
-		    free(ap);
 		}
 		goto done;
 	    }
@@ -152,10 +155,6 @@ execvpe(char *name, char *const argv[], char **envp)
     else if (!errno)
 	errno = ENOENT;
   done:
-    if (path)
-	free(path);
-    if (buf)
-	free(buf);
     return (-1);
 }
 #endif
