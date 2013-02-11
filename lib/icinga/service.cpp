@@ -213,9 +213,10 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 		OnNextCheckChanged(GetSelf(), oldValue);
 	else if (name == "servicegroups")
 		ServiceGroup::InvalidateMembersCache();
-	else if (name == "host_name" || name == "short_name")
+	else if (name == "host_name" || name == "short_name") {
 		Host::InvalidateServicesCache();
-	else if (name == "downtimes")
+		UpdateSlaveNotifications();
+	} else if (name == "downtimes")
 		Service::InvalidateDowntimeCache();
 	else if (name == "comments")
 		Service::InvalidateCommentCache();
