@@ -9,7 +9,7 @@
 #include "Rts.h"
 #endif
 
-#if !(defined(_MSC_VER) || defined(__MINGW32__) || defined(_WIN32)) /* to the end */
+#if !(defined(_MSC_VER) || defined(__MINGW32__) || defined(_WIN32) || defined(HAVE_EXECVPE)) /* to the end */
 #ifndef __QNXNTO__
 
 /* Evidently non-Posix. */

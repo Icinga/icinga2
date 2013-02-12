@@ -4,6 +4,8 @@
    Interface for code in execvpe.c
    ------------------------------------------------------------------------- */
 
+#include "config.h"
+
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -11,19 +13,17 @@
 #include <sys/wait.h>
 #endif
 
-#ifndef HAVE_EXECVPE
-#	ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-#	endif /* __cplusplus */
+#endif /* __cplusplus */
 
-#	if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(_WIN32)
-#		ifndef __QNXNTO__
+#if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(_WIN32) && !defined(HAVE_EXECVPE)
+#	ifndef __QNXNTO__
 extern int execvpe(char *name, char *const argv[], char **envp);
 #	endif
 extern void pPrPr_disableITimers (void);
-#	endif
+#endif
 
-#	ifdef __cplusplus
+#ifdef __cplusplus
 }
-#	endif /* __cplusplus */
-#endif /* HAVE_EXECVPE */
+#endif /* __cplusplus */
