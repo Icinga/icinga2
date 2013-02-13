@@ -34,12 +34,12 @@ EndpointManager::EndpointManager(void)
 
 	m_SubscriptionTimer = boost::make_shared<Timer>();
 	m_SubscriptionTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::SubscriptionTimerHandler, this));
-	m_SubscriptionTimer->SetInterval(10);
+	m_SubscriptionTimer->SetInterval(5);
 	m_SubscriptionTimer->Start();
 
 	m_ReconnectTimer = boost::make_shared<Timer>();
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::ReconnectTimerHandler, this));
-	m_ReconnectTimer->SetInterval(10);
+	m_ReconnectTimer->SetInterval(5);
 	m_ReconnectTimer->Start();
 }
 
