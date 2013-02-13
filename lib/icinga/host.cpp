@@ -52,7 +52,7 @@ Host::~Host(void)
 
 String Host::GetDisplayName(void) const
 {
-	String value = Get("alias");
+	String value = Get("display_name");
 	if (!value.IsEmpty())
 		return value;
 	else
@@ -213,7 +213,7 @@ void Host::UpdateSlaveServices(void)
 			builder->SetType("Service");
 			builder->SetName(name);
 			builder->AddExpression("host_name", OperatorSet, GetName());
-			builder->AddExpression("alias", OperatorSet, svcname);
+			builder->AddExpression("display_name", OperatorSet, svcname);
 			builder->AddExpression("short_name", OperatorSet, svcname);
 
 			CopyServiceAttributes<false>(this, builder);

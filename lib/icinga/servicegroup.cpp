@@ -32,7 +32,7 @@ ServiceGroup::ServiceGroup(const Dictionary::Ptr& properties)
 
 String ServiceGroup::GetDisplayName(void) const
 {
-	String value = Get("alias");
+	String value = Get("display_name");
 
 	if (!value.IsEmpty())
 		return value;

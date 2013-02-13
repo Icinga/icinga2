@@ -32,7 +32,7 @@ HostGroup::HostGroup(const Dictionary::Ptr& properties)
 
 String HostGroup::GetDisplayName(void) const
 {
-	String value = Get("alias");
+	String value = Get("display_name");
 
 	if (!value.IsEmpty())
 		return value;
