@@ -52,7 +52,7 @@ public:
 
 	Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
 
-	static vector<String> ParseCommand(const String& command);
+	static vector<String> SplitCommand(const Value& command);
 private:
 	static bool m_WorkersCreated;
 

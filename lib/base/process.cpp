@@ -41,10 +41,21 @@ Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEn
 #endif /* _WIN32 */
 }
 
-vector<String> Process::ParseCommand(const String& command)
+vector<String> Process::SplitCommand(const Value& command)
 {
-	// TODO: implement
 	vector<String> args;
+
+	if (command.IsObjectType<Dictionary>()) {
+		Dictionary::Ptr dict = command;
+		Value arg;
+		BOOST_FOREACH(tie(tuples::ignore, arg), dict) {
+			args.push_back(arg);
+		}
+
+		return args;
+	}
+
+	// TODO: implement
 #ifdef _WIN32
 	args.push_back(command);
 #else /* _WIN32 */

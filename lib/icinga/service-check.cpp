@@ -28,7 +28,7 @@ const int Service::CheckIntervalDivisor = 5;
 boost::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChanged;
 boost::signal<void (const Service::Ptr&, const Value&)> Service::OnNextCheckChanged;
 
-String Service::GetCheckCommand(void) const
+Value Service::GetCheckCommand(void) const
 {
 	return Get("check_command");
 }

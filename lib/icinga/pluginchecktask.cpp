@@ -38,17 +38,17 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 
 	Service::Ptr service = vservice;
 
-	String checkCommand = service->GetCheckCommand();
-
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(service->GetMacros());
 	macroDicts.push_back(service->CalculateDynamicMacros());
 	macroDicts.push_back(service->GetHost()->GetMacros());
 	macroDicts.push_back(service->GetHost()->CalculateDynamicMacros());
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
-	String command = MacroProcessor::ResolveMacros(checkCommand, macroDicts);
+	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
-	Process::Ptr process = boost::make_shared<Process>(Process::ParseCommand(command), MacroProcessor::MakeEnvironment(macroDicts));
+	Value command = MacroProcessor::ResolveMacros(service->GetCheckCommand(), macros);
+
+	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
 
 	PluginCheckTask ct(task, process);
 

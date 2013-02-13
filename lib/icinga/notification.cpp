@@ -60,7 +60,7 @@ Service::Ptr Notification::GetService(void) const
 		return host->GetServiceByShortName(service);
 }
 
-String Notification::GetNotificationCommand(void) const
+Value Notification::GetNotificationCommand(void) const
 {
 	return Get("notification_command");
 }

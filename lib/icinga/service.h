@@ -118,7 +118,7 @@ public:
 
 	/* Checks */
 	Dictionary::Ptr GetCheckers(void) const;
-	String GetCheckCommand(void) const;
+	Value GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
 	double GetCheckInterval(void) const;
 	double GetRetryInterval(void) const;

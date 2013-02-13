@@ -31,8 +31,11 @@ namespace icinga
 class I2_ICINGA_API MacroProcessor
 {
 public:
-	static String ResolveMacros(const String& str, const vector<Dictionary::Ptr>& macroDicts);
-	static Dictionary::Ptr MakeEnvironment(const vector<Dictionary::Ptr>& macroDicts);
+	static Value ResolveMacros(const Value& str, const Dictionary::Ptr& macros);
+	static Dictionary::Ptr MergeMacroDicts(const vector<Dictionary::Ptr>& macroDicts);
+
+private:
+	static String InternalResolveMacros(const String& str, const Dictionary::Ptr& macros);
 };
 
 }

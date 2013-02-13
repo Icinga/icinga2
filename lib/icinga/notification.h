@@ -57,7 +57,7 @@ public:
 	static Notification::Ptr GetByName(const String& name);
 
 	shared_ptr<Service> GetService(void) const;
-	String GetNotificationCommand(void) const;
+	Value GetNotificationCommand(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 
 	void SendNotification(NotificationType type);

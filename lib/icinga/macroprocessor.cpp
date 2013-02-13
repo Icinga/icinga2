@@ -21,7 +21,28 @@
 
 using namespace icinga;
 
-String MacroProcessor::ResolveMacros(const String& str, const vector<Dictionary::Ptr>& macroDicts)
+Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& macros)
+{
+	Value result;
+
+	if (cmd.IsScalar()) {
+		result = InternalResolveMacros(cmd, macros);
+	} else {
+		Dictionary::Ptr resultDict = boost::make_shared<Dictionary>();
+		Dictionary::Ptr dict = cmd;
+
+		Value arg;
+		BOOST_FOREACH(tie(tuples::ignore, arg), dict) {
+			resultDict->Add(InternalResolveMacros(arg, macros));
+		}
+
+		result = resultDict;
+	}
+
+	return result;
+}
+
+String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary::Ptr& macros)
 {
 	size_t offset, pos_first, pos_second;
 
@@ -35,29 +56,19 @@ String MacroProcessor::ResolveMacros(const String& str, const vector<Dictionary:
 			BOOST_THROW_EXCEPTION(runtime_error("Closing $ not found in macro format String."));
 
 		String name = result.SubStr(pos_first + 1, pos_second - pos_first - 1);
-		String value;
-		bool resolved = false;
 
-		BOOST_FOREACH(const Dictionary::Ptr& macroDict, macroDicts) {
-			if (!macroDict || !macroDict->Contains(name))
-				continue;
-
-			String value = macroDict->Get(name);
-			result.Replace(pos_first, pos_second - pos_first + 1, value);
-			offset = pos_first + value.GetLength();
-
-			resolved = true;
-			break;
-		}
-
-		if (!resolved)
+		if (!macros || !macros->Contains(name))
 			BOOST_THROW_EXCEPTION(runtime_error("Macro '" + name + "' is not defined."));
+
+		String value = macros->Get(name);
+		result.Replace(pos_first, pos_second - pos_first + 1, value);
+		offset = pos_first + value.GetLength();
 	}
 
 	return result;
 }
 
-Dictionary::Ptr MacroProcessor::MakeEnvironment(const vector<Dictionary::Ptr>& dicts)
+Dictionary::Ptr MacroProcessor::MergeMacroDicts(const vector<Dictionary::Ptr>& dicts)
 {
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();
 

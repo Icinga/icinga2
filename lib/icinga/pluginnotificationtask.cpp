@@ -42,8 +42,6 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vecto
 	Notification::Ptr notification = arguments[0];
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[1]));
 
-	String notificationCommand = notification->GetNotificationCommand();
-
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(notification->GetMacros());
 	macroDicts.push_back(notification->GetService()->GetMacros());
@@ -51,9 +49,11 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vecto
 	macroDicts.push_back(notification->GetService()->GetHost()->GetMacros());
 	macroDicts.push_back(notification->GetService()->GetHost()->CalculateDynamicMacros());
 	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
-	String command = MacroProcessor::ResolveMacros(notificationCommand, macroDicts);
+	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
-	Process::Ptr process = boost::make_shared<Process>(Process::ParseCommand(command), MacroProcessor::MakeEnvironment(macroDicts));
+	Value command = MacroProcessor::ResolveMacros(notification->GetNotificationCommand(), macros);
+
+	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
 
 	PluginNotificationTask ct(task, process, notification->GetService()->GetName(), command);
 
