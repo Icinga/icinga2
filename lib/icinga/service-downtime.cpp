@@ -22,10 +22,10 @@
 using namespace icinga;
 
 int Service::m_NextDowntimeID = 1;
-map<int, String> Service::m_LegacyDowntimeCache;
-map<String, Service::WeakPtr> Service::m_DowntimeCache;
-bool Service::m_DowntimeCacheValid;
-Timer::Ptr Service::m_DowntimeExpireTimer;
+map<int, String> Service::m_LegacyDowntimesCache;
+map<String, Service::WeakPtr> Service::m_DowntimesCache;
+bool Service::m_DowntimesCacheValid;
+Timer::Ptr Service::m_DowntimesExpireTimer;
 
 int Service::GetNextDowntimeID(void)
 {
@@ -34,7 +34,7 @@ int Service::GetNextDowntimeID(void)
 
 Dictionary::Ptr Service::GetDowntimes(void) const
 {
-	Service::ValidateDowntimeCache();
+	Service::ValidateDowntimesCache();
 
 	return Get("downtimes");
 }
@@ -131,11 +131,11 @@ void Service::TriggerDowntime(const String& id)
 
 String Service::GetDowntimeIDFromLegacyID(int id)
 {
-	ValidateDowntimeCache();
+	ValidateDowntimesCache();
 
-	map<int, String>::iterator it = m_LegacyDowntimeCache.find(id);
+	map<int, String>::iterator it = m_LegacyDowntimesCache.find(id);
 
-	if (it == m_LegacyDowntimeCache.end())
+	if (it == m_LegacyDowntimesCache.end())
 		return Empty;
 
 	return it->second;
@@ -143,9 +143,9 @@ String Service::GetDowntimeIDFromLegacyID(int id)
 
 Service::Ptr Service::GetOwnerByDowntimeID(const String& id)
 {
-	ValidateDowntimeCache();
+	ValidateDowntimesCache();
 
-	return m_DowntimeCache[id].lock();
+	return m_DowntimesCache[id].lock();
 }
 
 Dictionary::Ptr Service::GetDowntimeByID(const String& id)
@@ -189,11 +189,11 @@ bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
 	return (downtime->Get("end_time") < Utility::GetTime());
 }
 
-void Service::InvalidateDowntimeCache(void)
+void Service::InvalidateDowntimesCache(void)
 {
-	m_DowntimeCacheValid = false;
-	m_DowntimeCache.clear();
-	m_LegacyDowntimeCache.clear();
+	m_DowntimesCacheValid = false;
+	m_DowntimesCache.clear();
+	m_LegacyDowntimesCache.clear();
 }
 
 void Service::AddDowntimesToCache(void)
@@ -211,7 +211,7 @@ void Service::AddDowntimesToCache(void)
 		if (legacy_id >= m_NextDowntimeID)
 			m_NextDowntimeID = legacy_id + 1;
 
-		if (m_LegacyDowntimeCache.find(legacy_id) != m_LegacyDowntimeCache.end()) {
+		if (m_LegacyDowntimesCache.find(legacy_id) != m_LegacyDowntimesCache.end()) {
 			/* The legacy_id is already in use by another downtime;
 			 * this shouldn't usually happen - assign it a new ID. */
 			legacy_id = m_NextDowntimeID++;
@@ -219,18 +219,18 @@ void Service::AddDowntimesToCache(void)
 			Touch("downtimes");
 		}
 
-		m_LegacyDowntimeCache[legacy_id] = id;
-		m_DowntimeCache[id] = GetSelf();
+		m_LegacyDowntimesCache[legacy_id] = id;
+		m_DowntimesCache[id] = GetSelf();
 	}
 }
 
-void Service::ValidateDowntimeCache(void)
+void Service::ValidateDowntimesCache(void)
 {
-	if (m_DowntimeCacheValid)
+	if (m_DowntimesCacheValid)
 		return;
 
-	m_DowntimeCache.clear();
-	m_LegacyDowntimeCache.clear();
+	m_DowntimesCache.clear();
+	m_LegacyDowntimesCache.clear();
 
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
@@ -238,13 +238,13 @@ void Service::ValidateDowntimeCache(void)
 		service->AddDowntimesToCache();
 	}
 
-	m_DowntimeCacheValid = true;
+	m_DowntimesCacheValid = true;
 
-	if (!m_DowntimeExpireTimer) {
-		m_DowntimeExpireTimer = boost::make_shared<Timer>();
-		m_DowntimeExpireTimer->SetInterval(300);
-		m_DowntimeExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimeExpireTimerHandler));
-		m_DowntimeExpireTimer->Start();
+	if (!m_DowntimesExpireTimer) {
+		m_DowntimesExpireTimer = boost::make_shared<Timer>();
+		m_DowntimesExpireTimer->SetInterval(300);
+		m_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimesExpireTimerHandler));
+		m_DowntimesExpireTimer->Start();
 	}
 }
 
@@ -273,7 +273,7 @@ void Service::RemoveExpiredDowntimes(void)
 	}
 }
 
-void Service::DowntimeExpireTimerHandler(void)
+void Service::DowntimesExpireTimerHandler(void)
 {
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {

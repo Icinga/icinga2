@@ -22,10 +22,10 @@
 using namespace icinga;
 
 int Service::m_NextCommentID = 1;
-map<int, String> Service::m_LegacyCommentCache;
-map<String, Service::WeakPtr> Service::m_CommentCache;
-bool Service::m_CommentCacheValid;
-Timer::Ptr Service::m_CommentExpireTimer;
+map<int, String> Service::m_LegacyCommentsCache;
+map<String, Service::WeakPtr> Service::m_CommentsCache;
+bool Service::m_CommentsCacheValid;
+Timer::Ptr Service::m_CommentsExpireTimer;
 
 int Service::GetNextCommentID(void)
 {
@@ -34,7 +34,7 @@ int Service::GetNextCommentID(void)
 
 Dictionary::Ptr Service::GetComments(void) const
 {
-	Service::ValidateCommentCache();
+	Service::ValidateCommentsCache();
 
 	return Get("comments");
 }
@@ -84,9 +84,9 @@ void Service::RemoveComment(const String& id)
 
 String Service::GetCommentIDFromLegacyID(int id)
 {
-	map<int, String>::iterator it = m_LegacyCommentCache.find(id);
+	map<int, String>::iterator it = m_LegacyCommentsCache.find(id);
 
-	if (it == m_LegacyCommentCache.end())
+	if (it == m_LegacyCommentsCache.end())
 		return Empty;
 
 	return it->second;
@@ -94,9 +94,9 @@ String Service::GetCommentIDFromLegacyID(int id)
 
 Service::Ptr Service::GetOwnerByCommentID(const String& id)
 {
-	ValidateCommentCache();
+	ValidateCommentsCache();
 
-	return m_CommentCache[id].lock();
+	return m_CommentsCache[id].lock();
 }
 
 Dictionary::Ptr Service::GetCommentByID(const String& id)
@@ -123,11 +123,11 @@ bool Service::IsCommentExpired(const Dictionary::Ptr& comment)
 	return (expire_time != 0 && expire_time < Utility::GetTime());
 }
 
-void Service::InvalidateCommentCache(void)
+void Service::InvalidateCommentsCache(void)
 {
-	m_CommentCacheValid = false;
-	m_CommentCache.clear();
-	m_LegacyCommentCache.clear();
+	m_CommentsCacheValid = false;
+	m_CommentsCache.clear();
+	m_LegacyCommentsCache.clear();
 }
 
 void Service::AddCommentsToCache(void)
@@ -145,7 +145,7 @@ void Service::AddCommentsToCache(void)
 		if (legacy_id >= m_NextCommentID)
 			m_NextCommentID = legacy_id + 1;
 
-		if (m_LegacyCommentCache.find(legacy_id) != m_LegacyCommentCache.end()) {
+		if (m_LegacyCommentsCache.find(legacy_id) != m_LegacyCommentsCache.end()) {
 			/* The legacy_id is already in use by another comment;
 			 * this shouldn't usually happen - assign it a new ID */
 
@@ -154,18 +154,18 @@ void Service::AddCommentsToCache(void)
 			Touch("comments");
 		}
 
-		m_LegacyCommentCache[legacy_id] = id;
-		m_CommentCache[id] = GetSelf();
+		m_LegacyCommentsCache[legacy_id] = id;
+		m_CommentsCache[id] = GetSelf();
 	}
 }
 
-void Service::ValidateCommentCache(void)
+void Service::ValidateCommentsCache(void)
 {
-	if (m_CommentCacheValid)
+	if (m_CommentsCacheValid)
 		return;
 
-	m_CommentCache.clear();
-	m_LegacyCommentCache.clear();
+	m_CommentsCache.clear();
+	m_LegacyCommentsCache.clear();
 
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
@@ -173,13 +173,13 @@ void Service::ValidateCommentCache(void)
 		service->AddCommentsToCache();
 	}
 
-	m_CommentCacheValid = true;
+	m_CommentsCacheValid = true;
 
-	if (!m_CommentExpireTimer) {
-		m_CommentExpireTimer = boost::make_shared<Timer>();
-		m_CommentExpireTimer->SetInterval(300);
-		m_CommentExpireTimer->OnTimerExpired.connect(boost::bind(&Service::CommentExpireTimerHandler));
-		m_CommentExpireTimer->Start();
+	if (!m_CommentsExpireTimer) {
+		m_CommentsExpireTimer = boost::make_shared<Timer>();
+		m_CommentsExpireTimer->SetInterval(300);
+		m_CommentsExpireTimer->OnTimerExpired.connect(boost::bind(&Service::CommentsExpireTimerHandler));
+		m_CommentsExpireTimer->Start();
 	}
 }
 
@@ -208,7 +208,7 @@ void Service::RemoveExpiredComments(void)
 	}
 }
 
-void Service::CommentExpireTimerHandler(void)
+void Service::CommentsExpireTimerHandler(void)
 {
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {

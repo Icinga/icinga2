@@ -53,8 +53,8 @@ Service::~Service(void)
 {
 	ServiceGroup::InvalidateMembersCache();
 	Host::InvalidateServicesCache();
-	Service::InvalidateDowntimeCache();
-	Service::InvalidateCommentCache();
+	Service::InvalidateDowntimesCache();
+	Service::InvalidateCommentsCache();
 }
 
 String Service::GetDisplayName(void) const
@@ -222,9 +222,9 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 		Host::InvalidateServicesCache();
 		UpdateSlaveNotifications();
 	} else if (name == "downtimes")
-		Service::InvalidateDowntimeCache();
+		Service::InvalidateDowntimesCache();
 	else if (name == "comments")
-		Service::InvalidateCommentCache();
+		Service::InvalidateCommentsCache();
 	else if (name == "notifications")
 		UpdateSlaveNotifications();
 	else if (name == "check_interval") {

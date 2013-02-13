@@ -204,8 +204,8 @@ public:
 	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
 	static bool IsDowntimeExpired(const Dictionary::Ptr& downtime);
 
-	static void InvalidateDowntimeCache(void);
-	static void ValidateDowntimeCache(void);
+	static void InvalidateDowntimesCache(void);
+	static void ValidateDowntimesCache(void);
 
 	bool IsInDowntime(void) const;
 	bool IsAcknowledged(void);
@@ -227,8 +227,8 @@ public:
 
 	static bool IsCommentExpired(const Dictionary::Ptr& comment);
 
-	static void InvalidateCommentCache(void);
-	static void ValidateCommentCache(void);
+	static void InvalidateCommentsCache(void);
+	static void ValidateCommentsCache(void);
 
 	/* Notifications */
 	void RequestNotifications(NotificationType type) const;
@@ -257,12 +257,12 @@ private:
 	/* Downtimes */
 	static int m_NextDowntimeID;
 
-	static map<int, String> m_LegacyDowntimeCache;
-	static map<String, Service::WeakPtr> m_DowntimeCache;
-	static bool m_DowntimeCacheValid;
-	static Timer::Ptr m_DowntimeExpireTimer;
+	static map<int, String> m_LegacyDowntimesCache;
+	static map<String, Service::WeakPtr> m_DowntimesCache;
+	static bool m_DowntimesCacheValid;
+	static Timer::Ptr m_DowntimesExpireTimer;
 
-	static void DowntimeExpireTimerHandler(void);
+	static void DowntimesExpireTimerHandler(void);
 
 	void AddDowntimesToCache(void);
 	void RemoveExpiredDowntimes(void);
@@ -270,12 +270,12 @@ private:
 	/* Comments */
 	static int m_NextCommentID;
 
-	static map<int, String> m_LegacyCommentCache;
-	static map<String, Service::WeakPtr> m_CommentCache;
-	static bool m_CommentCacheValid;
-	static Timer::Ptr m_CommentExpireTimer;
+	static map<int, String> m_LegacyCommentsCache;
+	static map<String, Service::WeakPtr> m_CommentsCache;
+	static bool m_CommentsCacheValid;
+	static Timer::Ptr m_CommentsExpireTimer;
 
-	static void CommentExpireTimerHandler(void);
+	static void CommentsExpireTimerHandler(void);
 
 	void AddCommentsToCache(void);
 	void RemoveExpiredComments(void);
