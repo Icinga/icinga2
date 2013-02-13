@@ -40,7 +40,7 @@ void Process::CreateWorkers(void)
 	if (flags < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-	if (fcntl(fds[1], F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
+	if (fcntl(fds[1], F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
 	for (int i = 0; i < thread::hardware_concurrency(); i++) {
@@ -56,7 +56,7 @@ void Process::CreateWorkers(void)
 		if (flags < 0)
 			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-		if (fcntl(childTaskFd, F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
+		if (fcntl(childTaskFd, F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
 			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
 		thread t(&Process::WorkerThreadProc, childTaskFd);
@@ -190,14 +190,14 @@ void Process::InitTask(void)
 	if (flags < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-	if (fcntl(fds[0], F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
+	if (fcntl(fds[0], F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
 	flags = fcntl(fds[1], F_GETFL, 0);
 	if (flags < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-	if (fcntl(fds[1], F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
+	if (fcntl(fds[1], F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 #endif /* HAVE_PIPE2 */
 
