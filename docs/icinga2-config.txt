@@ -88,6 +88,18 @@ NOTE: Identifiers may not contain certain characters (e.g. space) or start with
 certain characters (e.g. digits). If you want to use a dictionary key that is
 not a valid identifier you can put the key in double quotes.
 
+Array
+^^^^^
+
+Arrays are ordered lists of strings. This is unlike dictionary which are not
+guaranteed to be in any particular order.
+
+Example:
+
+-------------------------------------------------------------------------------
+[ "/usr/local/icinga/libexec/check_ping", "-H", "$address$" ]
+-------------------------------------------------------------------------------
+
 Operators
 ~~~~~~~~~
 
