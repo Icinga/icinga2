@@ -380,19 +380,27 @@ bool Process::RunTask(void)
 	int rc;
 
 #ifndef _MSC_VER
-	rc = read(m_FD, buffer, sizeof(buffer));
+	do {
+		rc = read(m_FD, buffer, sizeof(buffer));
 #else /* _MSC_VER */
-	if (!feof(m_FP))
-		rc =  fread(buffer, 1, sizeof(buffer), m_FP);
-	else
-		rc = 0;
+		if (!feof(m_FP))
+			rc =  fread(buffer, 1, sizeof(buffer), m_FP);
+		else
+			rc = 0;
 #endif /* _MSC_VER */
 
-	if (rc > 0) {
-		m_OutputStream.write(buffer, rc);
+		if (rc > 0) {
+			m_OutputStream.write(buffer, rc);
+#ifdef _MSC_VER
+			return true;
+#endif /* _MSC_VER */
+		}
+#ifndef _MSC_VER
+	} while (rc > 0);
 
+	if (rc < 0 && errno == EAGAIN)
 		return true;
-	}
+#endif /* _MSC_VER */
 
 	String output = m_OutputStream.str();
 
