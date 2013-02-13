@@ -37,10 +37,9 @@ void Process::CreateWorkers(void)
 	if (pipe(fds) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
 
-	/* Don't bother setting fds[1] to non-blocking/clo-exec as we'll only
+	/* Don't bother setting fds[1] to clo-exec as we'll only
 	 * use it in the following dup() call. */
 
-	Utility::SetNonBlocking(fds[1]);
 	Utility::SetCloExec(fds[1]);
 #endif /* HAVE_PIPE2 */
 
