@@ -27,9 +27,20 @@ EXPORT_COMPONENT(delegation, DelegationComponent);
 void DelegationComponent::Start(void)
 {
 	m_DelegationTimer = boost::make_shared<Timer>();
-	m_DelegationTimer->SetInterval(30);
+	// TODO: implement a handler for config changes for the delegation_interval variable
+	m_DelegationTimer->SetInterval(GetDelegationInterval());
+	m_DelegationTimer->Reschedule(Utility::GetTime() + 10);
 	m_DelegationTimer->OnTimerExpired.connect(boost::bind(&DelegationComponent::DelegationTimerHandler, this));
 	m_DelegationTimer->Start();
+}
+
+double DelegationComponent::GetDelegationInterval(void) const
+{
+	Value interval = GetConfig()->Get("delegation_interval");
+	if (interval.IsEmpty())
+		return 30;
+	else
+		return interval;
 }
 
 bool DelegationComponent::IsEndpointChecker(const Endpoint::Ptr& endpoint)

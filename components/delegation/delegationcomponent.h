@@ -39,6 +39,8 @@ private:
 	vector<Endpoint::Ptr> GetCheckerCandidates(const Service::Ptr& service) const;
 
 	static bool IsEndpointChecker(const Endpoint::Ptr& endpoint);
+
+	double GetDelegationInterval(void) const;
 };
 
 }
