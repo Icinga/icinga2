@@ -19,10 +19,6 @@
 
 #include "i2-base.h"
 
-#ifndef _MSC_VER
-#include <execvpe.h>
-#endif /* _MSC_VER */
-
 using namespace icinga;
 
 bool Process::m_WorkersCreated = false;
@@ -42,7 +38,7 @@ Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEn
 
 #ifndef _WIN32
 	m_FD = -1;
-#endif /* _MSC_VER */
+#endif /* _WIN32 */
 }
 
 vector<String> Process::ParseCommand(const String& command)

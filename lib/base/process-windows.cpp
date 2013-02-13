@@ -20,10 +20,6 @@
 #ifdef _WIN32
 #include "i2-base.h"
 
-#ifndef _MSC_VER
-#include <execvpe.h>
-#endif /* _MSC_VER */
-
 using namespace icinga;
 
 void Process::CreateWorkers(void)
