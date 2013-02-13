@@ -73,7 +73,6 @@ using namespace icinga;
 %type <variant> simplevalue
 %type <variant> value
 %type <variant> expressionlist
-%type <variant> array
 %type <variant> typerulelist
 %type <op> operator
 %type <type> type
@@ -355,10 +354,10 @@ expression: identifier operator value
 
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
-	| T_STRING
+	| value
 	{
-		Expression expr($1, OperatorSet, $1, yylloc);
-		free($1);
+		Expression expr(String(), OperatorSet, *$1, yylloc);
+		delete $1;
 
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
@@ -371,34 +370,6 @@ operator: T_EQUAL
 	| T_DIVIDE_EQUAL
 	{
 		$$ = $1;
-	}
-	;
-
-array: '['
-	{
-		m_Array = boost::make_shared<Dictionary>();
-	}
-	arrayitems
-	']'
-	{
-		$$ = new Value(m_Array);
-		m_Array.reset();
-	}
-	;
-
-arrayitems: arrayitems_inner
-	| arrayitems_inner ','
-
-arrayitems_inner: /* empty */
-	| T_STRING
-	{
-		m_Array->Add($1);
-		free($1);
-	}
-	| arrayitems_inner ',' T_STRING
-	{
-		m_Array->Add($3);
-		free($3);
 	}
 	;
 
@@ -419,7 +390,6 @@ simplevalue: T_STRING
 
 value: simplevalue
 	| expressionlist
-	| array
 	{
 		$$ = $1;
 	}

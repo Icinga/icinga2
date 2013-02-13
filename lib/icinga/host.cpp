@@ -167,6 +167,10 @@ static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Pt
 	if (!checkers.IsEmpty())
 		builder->AddExpression("checkers", OperatorSet, checkers);
 
+	Value short_name = serviceDesc->Get("short_name");
+	if (!short_name.IsEmpty())
+		builder->AddExpression("short_name", OperatorSet, short_name);
+
 	if (copyServiceAttrs) {
 		Value servicedependencies = serviceDesc->Get("servicedependencies");
 		if (!servicedependencies.IsEmpty())
@@ -198,6 +202,9 @@ void Host::UpdateSlaveServices(void)
 		String svcname;
 		Value svcdesc;
 		BOOST_FOREACH(tie(svcname, svcdesc), serviceDescs) {
+			if (svcdesc.IsScalar())
+				svcname = svcdesc;
+
 			stringstream namebuf;
 			namebuf << GetName() << "-" << svcname;
 			String name = namebuf.str();
@@ -267,9 +274,8 @@ set<Service::Ptr> Host::GetServices(void) const
 
 	ValidateServicesCache();
 
-	String key;
 	Service::WeakPtr wservice;
-	BOOST_FOREACH(tie(key, wservice), m_ServicesCache[GetName()]) {
+	BOOST_FOREACH(tie(tuples::ignore, wservice), m_ServicesCache[GetName()]) {
 		Service::Ptr service = wservice.lock();
 
 		if (!service)
@@ -374,12 +380,12 @@ set<Host::Ptr> Host::GetParentHosts(void) const
 	Dictionary::Ptr dependencies = GetHostDependencies();
 
 	if (dependencies) {
-		String key;
-		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
-			if (key == GetName())
+		Value value;
+		BOOST_FOREACH(tie(tuples::ignore, value), dependencies) {
+			if (value == GetName())
 				continue;
 
-			parents.insert(Host::GetByName(key));
+			parents.insert(Host::GetByName(value));
 		}
 	}
 
@@ -408,9 +414,8 @@ set<Service::Ptr> Host::GetParentServices(void) const
 	Dictionary::Ptr dependencies = GetServiceDependencies();
 
 	if (dependencies) {
-		String key;
 		Value value;
-		BOOST_FOREACH(tie(key, value), dependencies) {
+		BOOST_FOREACH(tie(tuples::ignore, value), dependencies) {
 			parents.insert(GetServiceByShortName(value));
 		}
 	}

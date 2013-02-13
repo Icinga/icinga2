@@ -136,6 +136,9 @@ void Service::UpdateSlaveNotifications(void)
 		String nfcname;
 		Value nfcdesc;
 		BOOST_FOREACH(tie(nfcname, nfcdesc), notificationDescs) {
+			if (nfcdesc.IsScalar())
+				nfcname = nfcdesc;
+
 			stringstream namebuf;
 			namebuf << GetName() << "-" << nfcname;
 			String name = namebuf.str();
