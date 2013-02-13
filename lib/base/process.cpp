@@ -318,11 +318,18 @@ void Process::InitTask(void)
 
 #ifndef HAVE_PIPE2
 	int flags;
-	flags = fcntl(childTaskFd, F_GETFL, 0);
+	flags = fcntl(fds[0], F_GETFL, 0);
 	if (flags < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-	if (fcntl(childTaskFd, F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
+	if (fcntl(fds[0], F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+
+	flags = fcntl(fds[1], F_GETFL, 0);
+	if (flags < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+
+	if (fcntl(fds[1], F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 #endif /* HAVE_PIPE2 */
 
