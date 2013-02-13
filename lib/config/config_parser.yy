@@ -73,6 +73,7 @@ using namespace icinga;
 %type <variant> simplevalue
 %type <variant> value
 %type <variant> expressionlist
+%type <variant> array
 %type <variant> typerulelist
 %type <op> operator
 %type <type> type
@@ -93,6 +94,7 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
 int yyparse(ConfigCompiler *context);
 
 static stack<ExpressionList::Ptr> m_ExpressionLists;
+static Dictionary::Ptr m_Array;
 static ConfigItemBuilder::Ptr m_Item;
 static bool m_Abstract;
 static bool m_Local;
@@ -372,6 +374,34 @@ operator: T_EQUAL
 	}
 	;
 
+array: '['
+	{
+		m_Array = boost::make_shared<Dictionary>();
+	}
+	arrayitems
+	']'
+	{
+		$$ = new Value(m_Array);
+		m_Array.reset();
+	}
+	;
+
+arrayitems: arrayitems_inner
+	| arrayitems_inner ','
+
+arrayitems_inner: /* empty */
+	| T_STRING
+	{
+		m_Array->Add($1);
+		free($1);
+	}
+	| arrayitems_inner ',' T_STRING
+	{
+		m_Array->Add($3);
+		free($3);
+	}
+	;
+
 simplevalue: T_STRING
 	{
 		$$ = new Value($1);
@@ -389,6 +419,7 @@ simplevalue: T_STRING
 
 value: simplevalue
 	| expressionlist
+	| array
 	{
 		$$ = $1;
 	}
