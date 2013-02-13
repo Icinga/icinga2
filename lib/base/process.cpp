@@ -69,7 +69,7 @@ Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEn
 			if (flags < 0)
 				BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-			if (fcntl(childTaskFd, F_SETFL, flags | O_NONBLOCK) < 0)
+			if (fcntl(childTaskFd, F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
 				BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 #endif /* _MSC_VER */
 
@@ -309,8 +309,22 @@ void Process::InitTask(void)
 #else /* _MSC_VER */
 	int fds[2];
 
+#ifdef HAVE_PIPE2
+	if (pipe2(fds, O_NONBLOCK | O_CLOEXEC) < 0)
+#else /* HAVE_PIPE2 */
 	if (pipe(fds) < 0)
+#endif /* HAVE_PIPE2 */
 		BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
+
+#ifndef HAVE_PIPE2
+	int flags;
+	flags = fcntl(childTaskFd, F_GETFL, 0);
+	if (flags < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+
+	if (fcntl(childTaskFd, F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+#endif /* HAVE_PIPE2 */
 
 #ifdef HAVE_VFORK
 	m_Pid = vfork();
@@ -329,6 +343,7 @@ void Process::InitTask(void)
 			_exit(128);
 		}
 
+		(void) close(fds[0]);
 		(void) close(fds[1]);
 
 		if (execvpe(m_Arguments[0], m_Arguments, m_Environment) < 0) {
@@ -337,25 +352,25 @@ void Process::InitTask(void)
 		}
 
 		_exit(128);
-	} else {
-		// parent process
-
-		// free arguments
-		for (int i = 0; m_Arguments[i] != NULL; i++)
-			free(m_Arguments[i]);
-
-		delete [] m_Arguments;
-
-		// free environment
-		for (int i = 0; m_Environment[i] != NULL; i++)
-			free(m_Environment[i]);
-
-		delete [] m_Environment;
-
-		(void) close(fds[1]);
-
-		m_FD = fds[0];
 	}
+
+	// parent process
+
+	// free arguments
+	for (int i = 0; m_Arguments[i] != NULL; i++)
+		free(m_Arguments[i]);
+
+	delete [] m_Arguments;
+
+	// free environment
+	for (int i = 0; m_Environment[i] != NULL; i++)
+		free(m_Environment[i]);
+
+	delete [] m_Environment;
+
+	(void) close(fds[1]);
+
+	m_FD = fds[0];
 #endif /* _MSC_VER */
 }
 
