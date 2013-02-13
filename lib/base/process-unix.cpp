@@ -31,7 +31,7 @@ void Process::CreateWorkers(void)
 	int fds[2];
 
 #ifdef HAVE_PIPE2
-	if (pipe2(fds, O_NONBLOCK | O_CLOEXEC) < 0)
+	if (pipe2(fds, O_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("pipe2() failed.", errno));
 #else /* HAVE_PIPE2 */
 	if (pipe(fds) < 0)
