@@ -35,6 +35,14 @@ void Process::CreateWorkers(void)
 
 	m_TaskFd = fds[1];
 
+	int flags;
+	flags = fcntl(fds[1], F_GETFL, 0);
+	if (flags < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+
+	if (fcntl(fds[1], F_SETFL, flags | O_NONBLOCK | O_CLOEXEC) < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+
 	for (int i = 0; i < thread::hardware_concurrency(); i++) {
 		int childTaskFd;
 
@@ -54,6 +62,8 @@ void Process::CreateWorkers(void)
 		thread t(&Process::WorkerThreadProc, childTaskFd);
 		t.detach();
 	}
+
+	(void) close(fds[0]);
 }
 
 void Process::WorkerThreadProc(int taskFd)
