@@ -522,17 +522,7 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
  */
 void Utility::WaitUntil(const function<bool (void)>& predicate)
 {
-	while (!predicate()) {
-		Application::Ptr instance = Application::GetInstance();
-
-		/* Waiting for a predicate requires an application instance.
-		 * This means we cannot do certain asynchronous things
-		 * (like spawning a process) until the application instance
-		 * has been initialized. */
-		if (!instance)
-			BOOST_THROW_EXCEPTION(runtime_error("Waiting for predicate failed: Application instance is not initialized."));
-
-		instance->ProcessEvents();
-	}
+	while (!predicate())
+		Application::ProcessEvents();
 }
 

@@ -91,7 +91,7 @@ Application::Ptr Application::GetInstance(void)
  *
  * @returns false if we're shutting down, true otherwise.
  */
-bool Application::ProcessEvents(void) const
+bool Application::ProcessEvents(void)
 {
 	Object::ClearHeldObjects();
 

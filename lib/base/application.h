@@ -76,7 +76,7 @@ public:
 	static String GetPkgDataDir(void);
 	static void SetPkgDataDir(const String& path);
 
-	bool ProcessEvents(void) const;
+	static bool ProcessEvents(void);
 
 protected:
 	void RunEventLoop(void) const;
