@@ -68,20 +68,20 @@ void Socket::Start(void)
  */
 void Socket::SetFD(SOCKET fd)
 {
-	/* mark the socket as non-blocking */
+	/* mark the socket as non-blocking and close-on-exec */
 	if (fd != INVALID_SOCKET) {
-#ifdef F_GETFL
+#ifndef _WIN32
 		int flags;
-		flags = fcntl(fd, F_GETFL, 0);
+		flags = fcntl(fd, F_GETFD, 0);
 		if (flags < 0)
 			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-		if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
+		if (fcntl(fd, F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
 			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-#else /* F_GETFL */
+#else /* _WIN32 */
 		unsigned long lTrue = 1;
 		ioctlsocket(fd, FIONBIO, &lTrue);
-#endif /* F_GETFL */
+#endif /* _WIN32 */
 	}
 
 	m_FD = fd;

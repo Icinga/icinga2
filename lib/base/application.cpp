@@ -455,17 +455,15 @@ void Application::UpdatePidFile(const String& filename)
 	if (m_PidFile == NULL)
 		BOOST_THROW_EXCEPTION(runtime_error("Could not open PID file '" + filename + "'"));
 
-#ifdef F_GETFL
-		int flags;
-		flags = fcntl(fileno(m_PidFile), F_GETFL, 0);
-		if (flags < 0)
-			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-
-		if (fcntl(fileno(m_PidFile), F_SETFL, flags | FD_CLOEXEC) < 0)
-			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-#endif /* FD_CLOEXEC */
-
 #ifndef _WIN32
+	int flags;
+	flags = fcntl(fileno(m_PidFile), F_GETFD, 0);
+	if (flags < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+
+	if (fcntl(fileno(m_PidFile), F_SETFD, flags | FD_CLOEXEC) < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+
 	if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {
 		ClosePidFile();
 

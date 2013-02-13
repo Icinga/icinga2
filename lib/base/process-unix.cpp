@@ -36,11 +36,11 @@ void Process::CreateWorkers(void)
 	m_TaskFd = fds[1];
 
 	int flags;
-	flags = fcntl(fds[1], F_GETFL, 0);
+	flags = fcntl(fds[1], F_GETFD, 0);
 	if (flags < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-	if (fcntl(fds[1], F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
+	if (fcntl(fds[1], F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
 	for (int i = 0; i < thread::hardware_concurrency(); i++) {
@@ -52,11 +52,11 @@ void Process::CreateWorkers(void)
 			BOOST_THROW_EXCEPTION(PosixException("dup() failed.", errno));
 
 		int flags;
-		flags = fcntl(childTaskFd, F_GETFL, 0);
+		flags = fcntl(childTaskFd, F_GETFD, 0);
 		if (flags < 0)
 			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-		if (fcntl(childTaskFd, F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
+		if (fcntl(childTaskFd, F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
 			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
 		thread t(&Process::WorkerThreadProc, childTaskFd);
@@ -186,18 +186,18 @@ void Process::InitTask(void)
 
 #ifndef HAVE_PIPE2
 	int flags;
-	flags = fcntl(fds[0], F_GETFL, 0);
+	flags = fcntl(fds[0], F_GETFD, 0);
 	if (flags < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-	if (fcntl(fds[0], F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
+	if (fcntl(fds[0], F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-	flags = fcntl(fds[1], F_GETFL, 0);
+	flags = fcntl(fds[1], F_GETFD, 0);
 	if (flags < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 
-	if (fcntl(fds[1], F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
+	if (fcntl(fds[1], F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 #endif /* HAVE_PIPE2 */
 
