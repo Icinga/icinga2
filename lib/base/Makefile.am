@@ -34,6 +34,8 @@ libbase_la_SOURCES =  \
 	object.cpp \
 	object.h \
 	process.cpp \
+	process-unix.cpp \
+	process-windows.cpp \
 	process.h \
 	qstring.cpp \
 	qstring.h \

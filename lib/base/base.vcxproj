@@ -39,6 +39,8 @@
     <ClCompile Include="netstring.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="process.cpp" />
+    <ClCompile Include="process-unix.cpp" />
+    <ClCompile Include="process-windows.cpp" />
     <ClCompile Include="qstring.cpp" />
     <ClCompile Include="ringbuffer.cpp" />
     <ClCompile Include="scriptfunction.cpp" />

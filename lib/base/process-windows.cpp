@@ -17,6 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#ifdef _WIN32
 #include "i2-base.h"
 
 #ifndef _MSC_VER
@@ -25,46 +26,29 @@
 
 using namespace icinga;
 
-bool Process::m_WorkersCreated = false;
-boost::mutex Process::m_Mutex;
-deque<Process::Ptr> Process::m_Tasks;
-
-Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
-	: AsyncTask<Process, ProcessResult>(), m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment)
-{
-	assert(Application::IsMainThread());
-
-	if (!m_WorkersCreated) {
-		CreateWorkers();
-
-		m_WorkersCreated = true;
-	}
-
-#ifndef _WIN32
-	m_FD = -1;
-#endif /* _MSC_VER */
-}
-
-vector<String> Process::ParseCommand(const String& command)
+void Process::CreateWorkers(void)
 {
 	// TODO: implement
-	vector<String> args;
-#ifdef _WIN32
-	args.push_back(command);
-#else /* _WIN32 */
-	args.push_back("sh");
-	args.push_back("-c");
-	args.push_back(command);
-#endif
-	return args;
 }
 
-void Process::Run(void)
+void Process::WorkerThreadProc(void)
 {
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Tasks.push_back(GetSelf());
-	}
-
-	NotifyWorker();
+	// TODO: implement
 }
+
+void Process::NotifyWorker(void)
+{
+	// TODO: implement
+}
+
+void Process::InitTask(void)
+{
+	// TODO: implement
+}
+
+bool Process::RunTask(void)
+{
+	// TODO: implement
+}
+
+#endif /* _WIN32 */

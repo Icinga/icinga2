@@ -54,17 +54,15 @@ public:
 
 	static vector<String> ParseCommand(const String& command);
 private:
-	static bool m_ThreadCreated;
+	static bool m_WorkersCreated;
 
-	char **m_Arguments;
-	char **m_Environment;
+	vector<String> m_Arguments;
+	Dictionary::Ptr m_ExtraEnvironment;
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 	pid_t m_Pid;
 	int m_FD;
-#else /* _MSC_VER */
-	FILE *m_FP;
-#endif /* _MSC_VER */
+#endif /* _WIN32 */
 
 	stringstream m_OutputStream;
 
@@ -74,11 +72,20 @@ private:
 
 	static boost::mutex m_Mutex;
 	static deque<Process::Ptr> m_Tasks;
-#ifndef _MSC_VER
+#ifndef _WIN32
 	static int m_TaskFd;
-#endif /* _MSC_VER */
+#endif /* _WIN32 */
 
+	static void CreateWorkers(void);
+	static void NotifyWorker(void);
+
+	void SpawnTask(void);
+
+#ifdef _WIN32
+	static void WorkerThreadProc(void);
+#else /* _WIN32 */
 	static void WorkerThreadProc(int taskFd);
+#endif /* _WIN32 */
 
 	void InitTask(void);
 	bool RunTask(void);
