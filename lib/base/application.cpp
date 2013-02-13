@@ -456,23 +456,7 @@ void Application::UpdatePidFile(const String& filename)
 		BOOST_THROW_EXCEPTION(runtime_error("Could not open PID file '" + filename + "'"));
 
 #ifndef _WIN32
-	int flags;
-	flags = fcntl(fileno(m_PidFile), F_GETFD, 0);
-	if (flags < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-
-	if (fcntl(fileno(m_PidFile), F_SETFD, flags | FD_CLOEXEC) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-
-	if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {
-		ClosePidFile();
-
-		Logger::Write(LogCritical, "base",
-		    "Another instance of the application is "
-		    "already running. Remove the '" + filename + "' file if "
-		    "you're certain that this is not the case.");
-		Terminate(EXIT_FAILURE);
-	}
+	Utility::SetCloExec(fileno(m_PidFile));
 #endif /* _WIN32 */
 
 	fprintf(m_PidFile, "%d", Utility::GetPid());

@@ -526,3 +526,35 @@ void Utility::WaitUntil(const function<bool (void)>& predicate)
 		Application::ProcessEvents();
 }
 
+void Utility::SetNonBlocking(int fd)
+{
+	int flags;
+	flags = fcntl(fd, F_GETFL, 0);
+	if (flags < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+}
+
+void Utility::SetCloExec(int fd)
+{
+	int flags;
+	flags = fcntl(fd, F_GETFD, 0);
+	if (flags < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+
+	if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0)
+		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+}
+
+void Utility::SetNonBlockingSocket(SOCKET s)
+{
+#ifndef _WIN32
+	SetNonBlocking(s);
+#else /* _WIN32 */
+	unsigned long lTrue = 1;
+	ioctlsocket(s, FIONBIO, &lTrue);
+#endif /* _WIN32 */
+}
+

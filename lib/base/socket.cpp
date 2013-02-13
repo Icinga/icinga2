@@ -70,17 +70,9 @@ void Socket::SetFD(SOCKET fd)
 {
 	/* mark the socket as non-blocking and close-on-exec */
 	if (fd != INVALID_SOCKET) {
+		Utility::SetNonBlockingSocket(fd);
 #ifndef _WIN32
-		int flags;
-		flags = fcntl(fd, F_GETFD, 0);
-		if (flags < 0)
-			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-
-		if (fcntl(fd, F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
-			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-#else /* _WIN32 */
-		unsigned long lTrue = 1;
-		ioctlsocket(fd, FIONBIO, &lTrue);
+		Utility::SetCloExec(fd);
 #endif /* _WIN32 */
 	}
 
@@ -219,7 +211,7 @@ String Socket::GetPeerAddress(void)
  * @param message The error message.
  * @param errorCode The error code.
  */
-SocketException::SocketException(const String& message, int errorCode)	
+SocketException::SocketException(const String& message, int errorCode)
 {
 #ifdef _WIN32
 	String details = Win32Exception::FormatErrorCode(errorCode);

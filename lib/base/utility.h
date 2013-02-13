@@ -68,6 +68,13 @@ public:
 #endif /* _WIN32 */
 	LoadIcingaLibrary(const String& library, bool module);
 
+#ifndef _WIN32
+	static void SetNonBlocking(int fd);
+	static void SetCloExec(int fd);
+#endif /* _WIN32 */
+
+	static void SetNonBlockingSocket(SOCKET s);
+
 private:
 	static bool m_SSLInitialized;
 

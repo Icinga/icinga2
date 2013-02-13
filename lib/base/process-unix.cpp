@@ -30,34 +30,30 @@ void Process::CreateWorkers(void)
 {
 	int fds[2];
 
+#ifdef HAVE_PIPE2
+	if (pipe2(fds, O_NONBLOCK | O_CLOEXEC) < 0)
+		BOOST_THROW_EXCEPTION(PosixException("pipe2() failed.", errno));
+#else /* HAVE_PIPE2 */
 	if (pipe(fds) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
 
+	/* Don't bother setting fds[1] to non-blocking/clo-exec as we'll only
+	 * use it in the following dup() call. */
+
+	Utility::SetNonBlocking(fds[1]);
+	Utility::SetCloExec(fds[1]);
+#endif /* HAVE_PIPE2 */
+
 	m_TaskFd = fds[1];
 
-	int flags;
-	flags = fcntl(fds[1], F_GETFD, 0);
-	if (flags < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-
-	if (fcntl(fds[1], F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-
 	for (int i = 0; i < thread::hardware_concurrency(); i++) {
-		int childTaskFd;
-
-		childTaskFd = dup(fds[0]);
+		int childTaskFd = dup(fds[0]);
 
 		if (childTaskFd < 0)
 			BOOST_THROW_EXCEPTION(PosixException("dup() failed.", errno));
 
-		int flags;
-		flags = fcntl(childTaskFd, F_GETFD, 0);
-		if (flags < 0)
-			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-
-		if (fcntl(childTaskFd, F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
-			BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+		Utility::SetNonBlocking(childTaskFd);
+		Utility::SetCloExec(childTaskFd);
 
 		thread t(&Process::WorkerThreadProc, childTaskFd);
 		t.detach();
@@ -179,26 +175,16 @@ void Process::InitTask(void)
 
 #ifdef HAVE_PIPE2
 	if (pipe2(fds, O_NONBLOCK | O_CLOEXEC) < 0)
+		BOOST_THROW_EXCEPTION(PosixException("pipe2() failed.", errno));
 #else /* HAVE_PIPE2 */
 	if (pipe(fds) < 0)
-#endif /* HAVE_PIPE2 */
 		BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
 
-#ifndef HAVE_PIPE2
-	int flags;
-	flags = fcntl(fds[0], F_GETFD, 0);
-	if (flags < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+	Utility::SetNonBlocking(fds[0]);
+	Utility::SetCloExec(fds[0]);
 
-	if (fcntl(fds[0], F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-
-	flags = fcntl(fds[1], F_GETFD, 0);
-	if (flags < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
-
-	if (fcntl(fds[1], F_SETFD, flags | O_NONBLOCK | FD_CLOEXEC) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+	Utility::SetNonBlocking(fds[1]);
+	Utility::SetCloExec(fds[1]);
 #endif /* HAVE_PIPE2 */
 
 	// build argv
