@@ -52,8 +52,11 @@ void Event::ProcessEvents(millisec timeout)
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		while (m_Events.empty()) {
-			if (!m_EventAvailable.timed_wait(lock, timeout))
+			if (!m_EventAvailable.timed_wait(lock, timeout)) {
+				Application::GetMutex().lock();
+
 				return;
+			}
 		}
 
 		events.swap(m_Events);
