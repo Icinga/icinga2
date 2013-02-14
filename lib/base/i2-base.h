@@ -166,7 +166,7 @@ namespace tuples = boost::tuples;
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#ifdef HAVE_GCC_ABI_DEMANGLE
+#if HAVE_GCC_ABI_DEMANGLE
 #	include <cxxabi.h>
 #endif /* HAVE_GCC_ABI_DEMANGLE */
 

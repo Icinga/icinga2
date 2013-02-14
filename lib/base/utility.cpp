@@ -19,7 +19,7 @@
 
 #include "i2-base.h"
 #include <mmatch.h>
-#ifdef HAVE_BACKTRACE_SYMBOLS
+#if HAVE_BACKTRACE_SYMBOLS
 #	include <execinfo.h>
 #endif /* HAVE_BACKTRACE_SYMBOLS */
 
@@ -37,7 +37,7 @@ String Utility::DemangleSymbolName(const String& sym)
 {
 	String result = sym;
 
-#ifdef HAVE_GCC_ABI_DEMANGLE
+#if HAVE_GCC_ABI_DEMANGLE
 	int status;
 	char *realname = abi::__cxa_demangle(sym.CStr(), 0, 0, &status);
 
@@ -71,7 +71,7 @@ String Utility::GetTypeName(const type_info& ti)
  */
 bool Utility::PrintStacktrace(ostream& fp, int ignoreFrames)
 {
-#ifdef HAVE_BACKTRACE_SYMBOLS
+#if HAVE_BACKTRACE_SYMBOLS
 	void *frames[50];
 	int framecount = backtrace(frames, sizeof(frames) / sizeof(frames[0]));
 

@@ -30,7 +30,7 @@ void Process::CreateWorkers(void)
 {
 	int fds[2];
 
-#ifdef HAVE_PIPE2
+#if HAVE_PIPE2
 	if (pipe2(fds, O_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("pipe2() failed.", errno));
 #else /* HAVE_PIPE2 */
@@ -172,7 +172,7 @@ void Process::InitTask(void)
 
 	int fds[2];
 
-#ifdef HAVE_PIPE2
+#if HAVE_PIPE2
 	if (pipe2(fds, O_NONBLOCK | O_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("pipe2() failed.", errno));
 #else /* HAVE_PIPE2 */
@@ -223,11 +223,11 @@ void Process::InitTask(void)
 
 	m_ExtraEnvironment.reset();
 
-#ifdef HAVE_VFORK
+#if HAVE_WORKING_VFORK
 	m_Pid = vfork();
-#else /* HAVE_VFORK */
+#else /* HAVE_WORKING_VFORK */
 	m_Pid = fork();
-#endif /* HAVE_VFORK */
+#endif /* HAVE_WORKING_VFORK */
 
 	if (m_Pid < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fork() failed.", errno));
