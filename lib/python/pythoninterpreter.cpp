@@ -40,6 +40,8 @@ PythonInterpreter::~PythonInterpreter(void)
 {
 	PyEval_AcquireLock();
 
+	(void) PyThreadState_Swap(NULL);
+
 	PyThreadState_Clear(m_ThreadState);
 	PyThreadState_Delete(m_ThreadState);
 
