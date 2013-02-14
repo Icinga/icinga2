@@ -37,11 +37,16 @@ public:
 	PythonInterpreter(const PythonLanguage::Ptr& language, const Script::Ptr& script);
 	~PythonInterpreter(void);
 
+	void RegisterFunction(const String& name, PyObject *function);
+	void UnregisterFunction(const String& name);
+
 protected:
 	PythonLanguage::Ptr m_Language;
 	PyThreadState *m_ThreadState;
+	map<String, PyObject *> m_Functions;
 
-	virtual void ProcessCall(const ScriptCall& call);
+	virtual void ProcessCall(const String& function, const ScriptTask::Ptr& task,
+	    const vector<Value>& arguments);
 };
 
 }

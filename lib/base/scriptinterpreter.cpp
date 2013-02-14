@@ -40,6 +40,8 @@ void ScriptInterpreter::Start(void)
 
 void ScriptInterpreter::Stop(void)
 {
+	assert(Application::IsMainThread());
+
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -48,6 +50,10 @@ void ScriptInterpreter::Stop(void)
 
 		m_Shutdown = true;
 		m_CallAvailable.notify_all();
+	}
+
+	BOOST_FOREACH(const String& function, m_SubscribedFunctions) {
+		ScriptFunction::Unregister(function);
 	}
 
 	m_Thread.join();
@@ -69,15 +75,35 @@ void ScriptInterpreter::ThreadWorkerProc(void)
 	}
 }
 
-
-void ScriptInterpreter::EnqueueCall(const ScriptCall& call)
+void ScriptInterpreter::ScriptFunctionThunk(const ScriptTask::Ptr& task,
+    const vector<Value>& arguments, const String& function)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Calls.push_back(call);
-	m_CallAvailable.notify_all();
+	ScriptCall call;
+	call.Function = function;
+	call.Arguments = arguments;
+	call.Task = task;
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_Calls.push_back(call);
+		m_CallAvailable.notify_all();
+	}
 }
 
-void ScriptInterpreter::RegisterMethod(const String& name)
+void ScriptInterpreter::SubscribeFunction(const String& name)
 {
-	// TODO: implement
+	assert(Application::IsMainThread());
+
+	m_SubscribedFunctions.insert(name);
+
+	ScriptFunction::Ptr sf = boost::make_shared<ScriptFunction>(boost::bind(&ScriptInterpreter::ScriptFunctionThunk, this, _1, _2, name));
+	ScriptFunction::Register(name, sf);
+}
+
+void ScriptInterpreter::UnsubscribeFunction(const String& name)
+{
+	assert(Application::IsMainThread());
+
+	m_SubscribedFunctions.erase(name);
+	ScriptFunction::Unregister(name);
 }

@@ -21,7 +21,8 @@
 
 using namespace icinga;
 
-PythonInterpreter::PythonInterpreter(const PythonLanguage::Ptr& language, const Script::Ptr& script)
+PythonInterpreter::PythonInterpreter(const PythonLanguage::Ptr& language,
+    const Script::Ptr& script)
 	: ScriptInterpreter(script), m_Language(language), m_ThreadState(NULL)
 {
 	PyEval_AcquireLock();
@@ -31,9 +32,11 @@ PythonInterpreter::PythonInterpreter(const PythonLanguage::Ptr& language, const 
 
 	(void) PyThreadState_Swap(m_ThreadState);
 	PyRun_SimpleString(script->GetCode().CStr());
-	(void) PyThreadState_Swap(m_Language->GetMainThreadState());
+	(void) PyThreadState_Swap(NULL);
 
 	PyEval_ReleaseLock();
+
+	SubscribeFunction("python::Test");
 }
 
 PythonInterpreter::~PythonInterpreter(void)
@@ -48,11 +51,27 @@ PythonInterpreter::~PythonInterpreter(void)
 	PyEval_ReleaseLock();
 }
 
-void PythonInterpreter::ProcessCall(const ScriptCall& call)
+void PythonInterpreter::RegisterFunction(const String& name, PyObject *function)
+{
+	SubscribeFunction(name);
+
+	Py_INCREF(function);
+	m_Functions[name] = function;
+}
+
+void PythonInterpreter::UnregisterFunction(const String& name)
+{
+	UnsubscribeFunction(name);
+
+	m_Functions.erase(name);
+}
+
+void PythonInterpreter::ProcessCall(const String& function, const ScriptTask::Ptr& task,
+    const vector<Value>& arguments)
 {
 	PyEval_AcquireThread(m_ThreadState);
-	PyRun_SimpleString("import antigravity");
+	std::cout << "Received call for method '" << function << "'" << std::endl;
 	PyEval_ReleaseThread(m_ThreadState);
 
-	call.Task->FinishResult(0);
+	task->FinishResult(0);
 }

@@ -25,8 +25,8 @@ namespace icinga
 
 struct ScriptCall
 {
-	String Method;
-	vector<String> Arguments;
+	String Function;
+	vector<Value> Arguments;
 	ScriptTask::Ptr Task;
 };
 
@@ -43,17 +43,17 @@ public:
 
 	~ScriptInterpreter(void);
 
-	void EnqueueCall(const ScriptCall& call);
-
 	void Start(void);
 	void Stop(void);
 
 protected:
 	ScriptInterpreter(const Script::Ptr& script);
 
-	virtual void ProcessCall(const ScriptCall& call) = 0;
+	virtual void ProcessCall(const String& function, const ScriptTask::Ptr& task,
+	    const vector<Value>& arguments) = 0;
 
-	void RegisterMethod(const String& name);
+	void SubscribeFunction(const String& name);
+	void UnsubscribeFunction(const String& name);
 
 private:
 	boost::mutex m_Mutex;
@@ -61,9 +61,14 @@ private:
 	deque<ScriptCall> m_Calls;
 	condition_variable m_CallAvailable;
 
+	set<String> m_SubscribedFunctions; /* Not protected by the mutex. */
+
 	boost::thread m_Thread;
 
 	void ThreadWorkerProc(void);
+
+	void ScriptFunctionThunk(const ScriptTask::Ptr& task,
+	    const vector<Value>& arguments, const String& function);
 };
 
 }
