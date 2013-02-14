@@ -532,6 +532,7 @@ void Utility::WaitUntil(const function<bool (void)>& predicate)
 		Application::ProcessEvents();
 }
 
+#ifndef _WIN32
 void Utility::SetNonBlocking(int fd)
 {
 	int flags;
@@ -553,6 +554,7 @@ void Utility::SetCloExec(int fd)
 	if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
 }
+#endif /* _WIN32 */
 
 void Utility::SetNonBlockingSocket(SOCKET s)
 {
