@@ -5,4 +5,5 @@ SUBDIRS = \
 	base \
 	config \
 	remoting \
-	icinga
+	icinga \
+	python

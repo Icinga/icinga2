@@ -22,12 +22,12 @@
 using namespace icinga;
 
 ScriptInterpreter::ScriptInterpreter(const Script::Ptr& script)
-	: m_Thread(&ScriptInterpreter::ThreadWorkerProc, this, script)
+	: m_Thread(&ScriptInterpreter::ThreadWorkerProc, this)
 {
 	m_Thread.detach();
 }
 
-void ScriptInterpreter::ThreadWorkerProc(const Script::Ptr& script)
+void ScriptInterpreter::ThreadWorkerProc(void)
 {
 	ScriptCall call;
 
@@ -55,3 +55,7 @@ bool ScriptInterpreter::WaitForCall(ScriptCall *call)
 	return true;
 }
 
+void ScriptInterpreter::RegisterMethod(const String& name)
+{
+	// TODO: implement
+}

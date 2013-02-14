@@ -17,46 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
-
-using namespace icinga;
-
-REGISTER_TYPE(Script, NULL);
+#ifndef I2PYTHON_H
+#define I2PYTHON_H
 
 /**
- * Constructor for the Script class.
+ * @defgroup python Icinga python support
  *
- * @param properties A serialized dictionary containing attributes.
+ * Lets you integrate Python scripts into Icinga.
  */
-Script::Script(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
-{ }
 
-void Script::OnInitCompleted(void)
-{
-	SpawnInterpreter();
-}
+#include <Python.h>
 
-String Script::GetLanguage(void) const
-{
-	return Get("language");
-}
+#include <i2-base.h>
+#include <i2-config.h>
+#include <i2-remoting.h>
 
-String Script::GetCode(void) const
-{
-	return Get("code");
-}
+#ifdef I2_PYTHON_BUILD
+#	define I2_PYTHON_API I2_EXPORT
+#else /* I2_PYTHON_BUILD */
+#	define I2_PYTHON_API I2_IMPORT
+#endif /* I2_PYTHON_BUILD */
 
-void Script::OnAttributeUpdate(const String& name, const Value& oldValue)
-{
-	if (name == "language" || name == "code")
-		SpawnInterpreter();
-}
+#include "pythonlanguage.h"
+#include "pythoninterpreter.h"
 
-void Script::SpawnInterpreter(void)
-{
-	Logger::Write(LogInformation, "base", "Reloading script '" + GetName() + "'");
-
-	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
-	m_Interpreter = language->CreateInterpreter(GetSelf());
-}
+#endif /* I2PYTHON_H */

@@ -28,8 +28,8 @@ icinga2_LDADD = \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
-	${top_builddir}/lib/remoting/libremoting.la \
 	-dlopen ${top_builddir}/lib/icinga/libicinga.la \
+	-dlopen ${top_builddir}/lib/python/libpython.la \
 	-dlopen ${top_builddir}/components/checker/checker.la \
 	-dlopen ${top_builddir}/components/replication/replication.la \
 	-dlopen ${top_builddir}/components/compat/compat.la \

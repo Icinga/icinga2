@@ -17,46 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#ifndef PYTHONINTERPRETER_H
+#define PYTHONINTERPRETER_H
 
-using namespace icinga;
-
-REGISTER_TYPE(Script, NULL);
+namespace icinga
+{
 
 /**
- * Constructor for the Script class.
+ * A Python script interpreter.
  *
- * @param properties A serialized dictionary containing attributes.
+ * @ingroup base
  */
-Script::Script(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
-{ }
-
-void Script::OnInitCompleted(void)
+class I2_PYTHON_API PythonInterpreter : public ScriptInterpreter
 {
-	SpawnInterpreter();
+public:
+	typedef shared_ptr<PythonInterpreter> Ptr;
+	typedef weak_ptr<PythonInterpreter> WeakPtr;
+
+	PythonInterpreter(const PythonLanguage::Ptr& language, const Script::Ptr& script);
+	~PythonInterpreter(void);
+
+protected:
+	PythonLanguage::Ptr m_Language;
+	PyThreadState *m_ThreadState;
+
+	virtual void ProcessCall(const ScriptCall& call);
+};
+
 }
 
-String Script::GetLanguage(void) const
-{
-	return Get("language");
-}
-
-String Script::GetCode(void) const
-{
-	return Get("code");
-}
-
-void Script::OnAttributeUpdate(const String& name, const Value& oldValue)
-{
-	if (name == "language" || name == "code")
-		SpawnInterpreter();
-}
-
-void Script::SpawnInterpreter(void)
-{
-	Logger::Write(LogInformation, "base", "Reloading script '" + GetName() + "'");
-
-	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
-	m_Interpreter = language->CreateInterpreter(GetSelf());
-}
+#endif /* PYTHONINTERPRETER_H */

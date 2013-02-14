@@ -15,6 +15,7 @@ libconfig_la_SOURCES = \
 	configcompilercontext.h \
 	config_lexer.ll \
 	config_parser.yy \
+	i2-config.cpp \
 	i2-config.h \
 	configitem.cpp \
 	configitem.h \

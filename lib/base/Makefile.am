@@ -26,6 +26,7 @@ libbase_la_SOURCES =  \
 	exception.h \
 	fifo.cpp \
 	fifo.h \
+	i2-base.cpp \
 	i2-base.h \
 	logger.cpp \
 	logger.h \

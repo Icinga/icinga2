@@ -47,6 +47,24 @@ private:
 	static map<String, ScriptLanguage::Ptr>& GetLanguages(void);
 };
 
+/**
+ * Helper class for registering ScriptLanguage implementation classes.
+ *
+ * @ingroup base
+ */
+class RegisterLanguageHelper
+{
+public:
+	RegisterLanguageHelper(const String& name, const ScriptLanguage::Ptr& language)
+	{
+		if (!ScriptLanguage::GetByName(name))
+			ScriptLanguage::Register(name, language);
+	}
+};
+
+#define REGISTER_SCRIPTLANGUAGE(name, klass) \
+	static RegisterLanguageHelper g_RegisterSL_ ## type(name, boost::make_shared<klass>())
+
 }
 
 #endif /* SCRIPTLANGUAGE_H */

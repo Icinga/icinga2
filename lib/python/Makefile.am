@@ -1,0 +1,35 @@
+## Process this file with automake to produce Makefile.in
+
+if PYTHON_USE
+pkglib_LTLIBRARIES =  \
+	libpython.la
+
+libpython_la_SOURCES =  \
+	i2-python.h \
+	pythoninterpreter.cpp \
+	pythoninterpreter.h \
+	pythonlanguage.cpp \
+	pythonlanguage.h
+
+libpython_la_CPPFLAGS = \
+	-DI2_PYTHON_BUILD \
+	$(BOOST_CPPFLAGS) \
+	@PYTHON_CSPEC@ \
+	-I${top_srcdir}/lib/base \
+	-I${top_srcdir}/lib/config \
+	-I${top_srcdir}/lib/remoting \
+	-I${top_srcdir}
+
+libpython_la_LDFLAGS = \
+	$(BOOST_LDFLAGS) \
+	@PYTHON_LSPEC@
+	-no-undefined \
+	@RELEASE_INFO@ \
+	@VERSION_INFO@
+
+libpython_la_LIBADD = \
+	$(BOOST_THREAD_LIB) \
+	${top_builddir}/lib/base/libbase.la \
+	${top_builddir}/lib/config/libconfig.la \
+	${top_builddir}/lib/remoting/libremoting.la
+endif

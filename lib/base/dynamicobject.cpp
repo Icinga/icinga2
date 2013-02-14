@@ -481,6 +481,9 @@ void DynamicObject::FlushTx(void)
 	BeginTx();
 }
 
+void DynamicObject::OnInitCompleted(void)
+{ }
+
 void DynamicObject::OnAttributeChanged(const String&, const Value&)
 { }
 

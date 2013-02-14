@@ -15,6 +15,7 @@ libicinga_la_SOURCES =  \
 	hostgroup.cpp \
 	hostgroup.h \
 	host.h \
+	i2-icinga.cpp \
 	i2-icinga.h \
 	icingaapplication.cpp \
 	icingaapplication.h \

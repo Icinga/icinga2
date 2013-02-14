@@ -21,6 +21,9 @@
 
 using namespace icinga;
 
+ScriptLanguage::ScriptLanguage(void)
+{ }
+
 void ScriptLanguage::Register(const String& name, const ScriptLanguage::Ptr& language)
 {
 	GetLanguages()[name] = language;

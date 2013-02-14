@@ -17,46 +17,40 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "i2-python.h"
 
 using namespace icinga;
 
-REGISTER_TYPE(Script, NULL);
-
-/**
- * Constructor for the Script class.
- *
- * @param properties A serialized dictionary containing attributes.
- */
-Script::Script(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
-{ }
-
-void Script::OnInitCompleted(void)
+PythonInterpreter::PythonInterpreter(const PythonLanguage::Ptr& language, const Script::Ptr& script)
+	: ScriptInterpreter(script), m_Language(language), m_ThreadState(NULL)
 {
-	SpawnInterpreter();
+	PyEval_AcquireLock();
+
+	PyInterpreterState *interp = m_Language->GetMainThreadState()->interp;
+	m_ThreadState = PyThreadState_New(interp);
+
+	PyEval_ReleaseLock();
+
+	PyEval_AcquireThread(m_ThreadState);
+	PyRun_SimpleString(script->GetCode().CStr());
+	PyEval_ReleaseThread(m_ThreadState);
 }
 
-String Script::GetLanguage(void) const
+PythonInterpreter::~PythonInterpreter(void)
 {
-	return Get("language");
+	PyEval_AcquireLock();
+
+	PyThreadState_Clear(m_ThreadState);
+	PyThreadState_Delete(m_ThreadState);
+
+	PyEval_ReleaseLock();
 }
 
-String Script::GetCode(void) const
+void PythonInterpreter::ProcessCall(const ScriptCall& call)
 {
-	return Get("code");
-}
+	PyEval_AcquireThread(m_ThreadState);
+	PyRun_SimpleString("import antigravity");
+	PyEval_ReleaseThread(m_ThreadState);
 
-void Script::OnAttributeUpdate(const String& name, const Value& oldValue)
-{
-	if (name == "language" || name == "code")
-		SpawnInterpreter();
-}
-
-void Script::SpawnInterpreter(void)
-{
-	Logger::Write(LogInformation, "base", "Reloading script '" + GetName() + "'");
-
-	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
-	m_Interpreter = language->CreateInterpreter(GetSelf());
+	call.Task->FinishResult(0);
 }

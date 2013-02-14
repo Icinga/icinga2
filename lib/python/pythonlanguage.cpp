@@ -17,46 +17,38 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "i2-python.h"
 
 using namespace icinga;
 
-REGISTER_TYPE(Script, NULL);
+REGISTER_SCRIPTLANGUAGE("Python", PythonLanguage);
 
-/**
- * Constructor for the Script class.
- *
- * @param properties A serialized dictionary containing attributes.
- */
-Script::Script(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
-{ }
-
-void Script::OnInitCompleted(void)
+PythonLanguage::PythonLanguage(void)
+	: ScriptLanguage()
 {
-	SpawnInterpreter();
+	Py_Initialize();
+	PyEval_InitThreads();
+
+	//PySys_SetArgv(argc, argv);
+
+	m_MainThreadState = PyThreadState_Get();
+
+	PyThreadState_Swap(NULL);
+
+	PyEval_ReleaseLock();
 }
 
-String Script::GetLanguage(void) const
+PythonLanguage::~PythonLanguage(void)
 {
-	return Get("language");
+	Py_Finalize();
 }
 
-String Script::GetCode(void) const
+ScriptInterpreter::Ptr PythonLanguage::CreateInterpreter(const Script::Ptr& script)
 {
-	return Get("code");
+	return boost::make_shared<PythonInterpreter>(GetSelf(), script);
 }
 
-void Script::OnAttributeUpdate(const String& name, const Value& oldValue)
+PyThreadState *PythonLanguage::GetMainThreadState(void) const
 {
-	if (name == "language" || name == "code")
-		SpawnInterpreter();
-}
-
-void Script::SpawnInterpreter(void)
-{
-	Logger::Write(LogInformation, "base", "Reloading script '" + GetName() + "'");
-
-	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
-	m_Interpreter = language->CreateInterpreter(GetSelf());
+	return m_MainThreadState;
 }

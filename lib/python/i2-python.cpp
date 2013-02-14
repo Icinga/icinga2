@@ -17,46 +17,6 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+/* This file is used by MSVC to generate the pre-compiled hedader. */
 
-using namespace icinga;
-
-REGISTER_TYPE(Script, NULL);
-
-/**
- * Constructor for the Script class.
- *
- * @param properties A serialized dictionary containing attributes.
- */
-Script::Script(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
-{ }
-
-void Script::OnInitCompleted(void)
-{
-	SpawnInterpreter();
-}
-
-String Script::GetLanguage(void) const
-{
-	return Get("language");
-}
-
-String Script::GetCode(void) const
-{
-	return Get("code");
-}
-
-void Script::OnAttributeUpdate(const String& name, const Value& oldValue)
-{
-	if (name == "language" || name == "code")
-		SpawnInterpreter();
-}
-
-void Script::SpawnInterpreter(void)
-{
-	Logger::Write(LogInformation, "base", "Reloading script '" + GetName() + "'");
-
-	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
-	m_Interpreter = language->CreateInterpreter(GetSelf());
-}
+#include "i2-python.h"

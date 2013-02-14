@@ -132,6 +132,7 @@ public:
 	static void FlushTx(void);
 
 protected:
+	virtual void OnInitCompleted(void);
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
@@ -148,6 +149,8 @@ private:
 	/* This has to be a set of raw pointers because the DynamicObject
 	 * constructor has to be able to insert objects into this list. */
 	static set<DynamicObject *> m_ModifiedObjects;
+
+	friend class DynamicType; /* for OnInitCompleted. */
 };
 
 }

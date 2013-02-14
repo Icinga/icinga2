@@ -78,6 +78,12 @@ if test "$ax_cv___attribute__" = "yes"; then
 	CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
 fi
 
+AX_PYTHON_DEFAULT
+AX_PYTHON_ENABLE
+AX_PYTHON_VERSION_ENSURE([2.5])
+AX_PYTHON_CSPEC
+AX_PYTHON_LSPEC
+
 AC_MSG_CHECKING(whether to enable debugging)
 AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes]   turn on debugging (default=no)],, enable_debug=no)
 if test "x$enable_debug" = "xyes"; then
@@ -121,6 +127,7 @@ lib/Makefile
 lib/base/Makefile
 lib/config/Makefile
 lib/icinga/Makefile
+lib/python/Makefile
 lib/remoting/Makefile
 test/Makefile
 third-party/Makefile

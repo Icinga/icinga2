@@ -9,6 +9,7 @@ libremoting_la_SOURCES = \
 	endpoint.h \
 	endpointmanager.cpp \
 	endpointmanager.h \
+	i2-remoting.cpp \
 	i2-remoting.h \
 	jsonrpcconnection.cpp \
 	jsonrpcconnection.h \
