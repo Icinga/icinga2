@@ -22,37 +22,59 @@
 using namespace icinga;
 
 ScriptInterpreter::ScriptInterpreter(const Script::Ptr& script)
-	: m_Thread(&ScriptInterpreter::ThreadWorkerProc, this)
+{ }
+
+ScriptInterpreter::~ScriptInterpreter(void)
 {
-	m_Thread.detach();
+	Stop();
+}
+
+void ScriptInterpreter::Start(void)
+{
+	/* We can't start the thread in the constructor because
+	 * the worker thread might end up calling one of the virtual
+	 * methods before the object is fully constructed. */
+
+	m_Thread = boost::thread(&ScriptInterpreter::ThreadWorkerProc, this);
+}
+
+void ScriptInterpreter::Stop(void)
+{
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		if (m_Shutdown)
+			return;
+
+		m_Shutdown = true;
+		m_CallAvailable.notify_all();
+	}
+
+	m_Thread.join();
 }
 
 void ScriptInterpreter::ThreadWorkerProc(void)
 {
-	ScriptCall call;
+	boost::mutex::scoped_lock lock(m_Mutex);
 
-	while (WaitForCall(&call))
-		ProcessCall(call);
+	for (;;) {
+		while (m_Calls.empty() && !m_Shutdown)
+			m_CallAvailable.wait(lock);
+
+		if (m_Shutdown)
+			break;
+
+		ScriptCall call = m_Calls.front();
+		m_Calls.pop_front();
+	}
 }
+
 
 void ScriptInterpreter::EnqueueCall(const ScriptCall& call)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Calls.push_back(call);
 	m_CallAvailable.notify_all();
-}
-
-bool ScriptInterpreter::WaitForCall(ScriptCall *call)
-{
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-	while (m_Calls.empty())
-		m_CallAvailable.wait(lock);
-
-	*call = m_Calls.front();
-	m_Calls.pop_front();
-
-	return true;
 }
 
 void ScriptInterpreter::RegisterMethod(const String& name)

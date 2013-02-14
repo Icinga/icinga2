@@ -41,19 +41,23 @@ public:
 	typedef shared_ptr<ScriptInterpreter> Ptr;
 	typedef weak_ptr<ScriptInterpreter> WeakPtr;
 
+	~ScriptInterpreter(void);
+
 	void EnqueueCall(const ScriptCall& call);
+
+	void Start(void);
+	void Stop(void);
 
 protected:
 	ScriptInterpreter(const Script::Ptr& script);
 
 	virtual void ProcessCall(const ScriptCall& call) = 0;
 
-	bool WaitForCall(ScriptCall *call);
-
 	void RegisterMethod(const String& name);
 
 private:
 	boost::mutex m_Mutex;
+	bool m_Shutdown;
 	deque<ScriptCall> m_Calls;
 	condition_variable m_CallAvailable;
 
