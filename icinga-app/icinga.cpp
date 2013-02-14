@@ -140,6 +140,10 @@ int main(int argc, char **argv)
 	 * in the base library. */
 	Application::SetMainThread();
 
+	/* Set command-line arguments. */
+	Application::SetArgC(argc);
+	Application::SetArgV(argv);
+
 	/* Install exception handlers to make debugging easier. */
 	Application::InstallExceptionHandlers();
 

@@ -30,6 +30,8 @@ String Application::m_PrefixDir;
 String Application::m_LocalStateDir;
 String Application::m_PkgLibDir;
 String Application::m_PkgDataDir;
+int Application::m_ArgC;
+char **Application::m_ArgV;
 
 /**
  * Constructor for the Application class.
@@ -85,6 +87,26 @@ Application::Ptr Application::GetInstance(void)
 		return m_Instance->GetSelf();
 	else
 		return Application::Ptr();
+}
+
+int Application::GetArgC(void)
+{
+	return m_ArgC;
+}
+
+void Application::SetArgC(int argc)
+{
+	m_ArgC = argc;
+}
+
+char **Application::GetArgV(void)
+{
+	return m_ArgV;
+}
+
+void Application::SetArgV(char **argv)
+{
+	m_ArgV = argv;
 }
 
 /**

@@ -48,6 +48,12 @@ public:
 	 */
 	virtual int Main(void) = 0;
 
+	static int GetArgC(void);
+	static void SetArgC(int argc);
+
+	static char **GetArgV(void);
+	static void SetArgV(char **argv);
+
 	static void InstallExceptionHandlers(void);
 
 	static void RequestShutdown(void);
@@ -89,7 +95,8 @@ private:
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */
-	vector<String> m_Arguments; /**< Command-line arguments */
+	static int m_ArgC; /**< The number of command-line arguments. */
+	static char **m_ArgV; /**< Command-line arguments. */
 	FILE *m_PidFile; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
 	static boost::thread::id m_MainThreadID; /**< ID of the main thread. */

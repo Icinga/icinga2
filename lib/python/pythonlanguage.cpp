@@ -29,7 +29,11 @@ PythonLanguage::PythonLanguage(void)
 	Py_Initialize();
 	PyEval_InitThreads();
 
-	//PySys_SetArgv(argc, argv);
+	Py_SetProgramName(Application::GetArgV()[0]);
+	PySys_SetArgv(Application::GetArgC(), Application::GetArgV());
+
+	// See http://docs.python.org/2/c-api/init.html for an explanation.
+	PyRun_SimpleString("import sys; sys.path.pop(0)\n");
 
 	m_MainThreadState = PyThreadState_Get();
 
