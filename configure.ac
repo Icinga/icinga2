@@ -72,6 +72,12 @@ AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 AC_CHECK_FUNCS([backtrace_symbols execvpe pipe2])
 
+AX_C___ATTRIBUTE__
+if test "$ax_cv___attribute__" = "yes"; then
+	CFLAGS="$CFLAGS -fvisibility=hidden"
+	CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+fi
+
 AC_MSG_CHECKING(whether to enable debugging)
 AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes]   turn on debugging (default=no)],, enable_debug=no)
 if test "x$enable_debug" = "xyes"; then

@@ -49,8 +49,12 @@ typedef int SOCKET;
 #	define MAXPATHLEN PATH_MAX
 #endif /* MAXPATHLEN */
 
-/* default visibility takes care of exported symbols */
-#define I2_EXPORT
-#define I2_IMPORT
-
+#if HAVE___ATTRIBUTE__
+#	define I2_EXPORT __attribute__ ((visibility ("default")))
+#	define I2_IMPORT __attribute__ ((visibility ("default")))
+#else /* HAVE___ATTRIBUTE__ */
+/* default visibility takes care of exported symbols if we don't have __attribute__ */
+#	define I2_EXPORT
+#	define I2_IMPORT
+#endif /* HAVE___ATTRIBUTE__ */
 #endif /* UNIX_H */
