@@ -40,7 +40,9 @@ PythonLanguage::PythonLanguage(void)
 
 PythonLanguage::~PythonLanguage(void)
 {
-	Py_Finalize();
+	/* Due to how we're destructing objects it might not be safe to
+	 * call Py_Finalize() when the Icinga instance is being shut
+	 * down - so don't bother calling it. */
 }
 
 ScriptInterpreter::Ptr PythonLanguage::CreateInterpreter(const Script::Ptr& script)

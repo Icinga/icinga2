@@ -29,11 +29,11 @@ PythonInterpreter::PythonInterpreter(const PythonLanguage::Ptr& language, const 
 	PyInterpreterState *interp = m_Language->GetMainThreadState()->interp;
 	m_ThreadState = PyThreadState_New(interp);
 
-	PyEval_ReleaseLock();
-
-	PyEval_AcquireThread(m_ThreadState);
+	(void) PyThreadState_Swap(m_ThreadState);
 	PyRun_SimpleString(script->GetCode().CStr());
-	PyEval_ReleaseThread(m_ThreadState);
+	(void) PyThreadState_Swap(m_Language->GetMainThreadState());
+
+	PyEval_ReleaseLock();
 }
 
 PythonInterpreter::~PythonInterpreter(void)
