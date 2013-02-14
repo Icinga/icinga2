@@ -37,6 +37,7 @@ public:
 	typedef weak_ptr<Script> WeakPtr;
 
 	Script(const Dictionary::Ptr& properties);
+	~Script(void);
 
 	String GetLanguage(void) const;
 	String GetCode(void) const;

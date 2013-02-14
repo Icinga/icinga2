@@ -32,6 +32,12 @@ Script::Script(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 { }
 
+Script::~Script(void)
+{
+	if (m_Interpreter)
+		m_Interpreter->Stop();
+}
+
 void Script::OnInitCompleted(void)
 {
 	SpawnInterpreter();
