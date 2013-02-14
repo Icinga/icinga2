@@ -41,8 +41,14 @@ libbase_la_SOURCES =  \
 	qstring.h \
 	ringbuffer.cpp \
 	ringbuffer.h \
+	script.cpp \
+	script.h \
 	scriptfunction.cpp \
 	scriptfunction.h \
+	scriptinterpreter.cpp \
+	scriptinterpreter.h \
+	scriptlanguage.cpp \
+	scriptlanguage.h \
 	scripttask.cpp \
 	scripttask.h \
 	socket.cpp \
