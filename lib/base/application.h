@@ -78,10 +78,13 @@ public:
 
 	static bool ProcessEvents(void);
 
+	static boost::mutex& GetMutex(void);
+
 protected:
 	void RunEventLoop(void) const;
 
 private:
+	static boost::mutex m_Mutex; /**< The main thread mutex. */
 	static Application *m_Instance; /**< The application instance. */
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of

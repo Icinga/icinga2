@@ -398,11 +398,17 @@ pid_t Utility::GetPid(void)
  */
 void Utility::Sleep(double timeout)
 {
+	if (Application::IsMainThread())
+		Application::GetMutex().unlock();
+
 #ifndef _WIN32
 	usleep(timeout * 1000 * 1000);
 #else /* _WIN32 */
 	::Sleep(timeout * 1000);
 #endif /* _WIN32 */
+
+	if (Application::IsMainThread())
+		Application::GetMutex().lock();
 }
 
 /**

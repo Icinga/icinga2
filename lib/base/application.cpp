@@ -21,6 +21,7 @@
 
 using namespace icinga;
 
+boost::mutex Application::m_Mutex;
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_Debugging = false;
@@ -113,6 +114,8 @@ bool Application::ProcessEvents(void)
  */
 void Application::RunEventLoop(void) const
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 #ifdef _DEBUG
 	double nextProfile = 0;
 #endif /* _DEBUG */
@@ -564,4 +567,14 @@ String Application::GetPkgDataDir(void)
 void Application::SetPkgDataDir(const String& path)
 {
         m_PkgDataDir = path;
+}
+
+/**
+ * Returns the global mutex for the main thread.
+ *
+ * @returns The mutex.
+ */
+boost::mutex& Application::GetMutex(void)
+{
+	return m_Mutex;
 }

@@ -46,6 +46,8 @@ void Event::ProcessEvents(millisec timeout)
 
 	assert(Application::IsMainThread());
 
+	Application::GetMutex().unlock();
+
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -56,6 +58,8 @@ void Event::ProcessEvents(millisec timeout)
 
 		events.swap(m_Events);
 	}
+
+	Application::GetMutex().lock();
 
 	BOOST_FOREACH(const Event& ev, events) {
 		double st = Utility::GetTime();
