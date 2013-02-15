@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION("native::PluginNotification",  &PluginNotificationTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION("PluginNotification",  &PluginNotificationTask::ScriptFunc);
 
 PluginNotificationTask::PluginNotificationTask(const ScriptTask::Ptr& task, const Process::Ptr& process,
     const String& service, const String& command)

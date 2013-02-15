@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION("native::ValidateMethods", &ConfigType::ValidateMethods);
+REGISTER_SCRIPTFUNCTION("ValidateMethods", &ConfigType::ValidateMethods);
 
 ConfigType::ConfigType(const String& name, const DebugInfo& debuginfo)
 	: m_Name(name), m_RuleList(boost::make_shared<TypeRuleList>()), m_DebugInfo(debuginfo)

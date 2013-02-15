@@ -24,7 +24,7 @@ using namespace icinga;
 map<String, map<String, weak_ptr<Service> > > Host::m_ServicesCache;
 bool Host::m_ServicesCacheValid = true;
 
-REGISTER_SCRIPTFUNCTION("native::ValidateServiceDictionary", &Host::ValidateServiceDictionary);
+REGISTER_SCRIPTFUNCTION("ValidateServiceDictionary", &Host::ValidateServiceDictionary);
 
 static AttributeDescription hostAttributes[] = {
 	{ "slave_services", Attribute_Transient }

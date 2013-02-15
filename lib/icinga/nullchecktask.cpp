@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION("native::NullCheck",  &NullCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION("NullCheck",  &NullCheckTask::ScriptFunc);
 
 void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
