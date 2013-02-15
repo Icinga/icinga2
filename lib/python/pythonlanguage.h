@@ -50,8 +50,8 @@ private:
 
 	static PyObject *CallNativeFunction(PyObject *self, PyObject *args);
 
-	static PyObject *MarshalToPython(const Value& value, const ScriptArgumentHint& hint);
-	static Value MarshalFromPython(PyObject *value, const ScriptArgumentHint& hint);
+	static PyObject *MarshalToPython(const Value& value);
+	static Value MarshalFromPython(PyObject *value);
 };
 
 }

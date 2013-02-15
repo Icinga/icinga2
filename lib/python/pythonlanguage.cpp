@@ -69,7 +69,7 @@ PyThreadState *PythonLanguage::GetMainThreadState(void) const
 	return m_MainThreadState;
 }
 
-PyObject *PythonLanguage::MarshalToPython(const Value& value, const ScriptArgumentHint& hint)
+PyObject *PythonLanguage::MarshalToPython(const Value& value)
 {
 	String svalue;
 
@@ -158,10 +158,10 @@ PyObject *PythonLanguage::CallNativeFunction(PyObject *self, PyObject *args)
 			for (Py_ssize_t i = 0; i < PyTuple_Size(args); i++) {
 				PyObject *arg = PyTuple_GetItem(args, i);
 
-				arguments.push_back(MarshalFromPython(arg, function->GetArgumentHint(i)));
+				arguments.push_back(MarshalFromPython(arg));
 			}
 		} else {
-			arguments.push_back(MarshalFromPython(args, function->GetArgumentHint(0)));
+			arguments.push_back(MarshalFromPython(args));
 		}
 	}
 
@@ -172,7 +172,7 @@ PyObject *PythonLanguage::CallNativeFunction(PyObject *self, PyObject *args)
 	try {
 		Value result = task->GetResult();
 
-		return MarshalToPython(result, function->GetReturnHint());
+		return MarshalToPython(result);
 	} catch (const std::exception& ex) {
 		String message = diagnostic_information(ex);
 		PyErr_SetString(PyExc_RuntimeError, message.CStr());
