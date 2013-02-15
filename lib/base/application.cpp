@@ -139,8 +139,6 @@ void Application::RunEventLoop(void) const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	GetEQ().SetOwner(boost::this_thread::get_id());
-
 #ifdef _DEBUG
 	double nextProfile = 0;
 #endif /* _DEBUG */
@@ -320,6 +318,7 @@ bool Application::IsMainThread(void)
 void Application::SetMainThread(void)
 {
 	m_MainThreadID = boost::this_thread::get_id();
+	m_EQ.SetOwner(m_MainThreadID);
 }
 
 /**
