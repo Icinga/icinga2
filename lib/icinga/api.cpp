@@ -17,43 +17,20 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef PYTHONLANGUAGE_H
-#define PYTHONLANGUAGE_H
+#include "i2-icinga.h"
 
-namespace icinga
+using namespace icinga;
+
+REGISTER_SCRIPTFUNCTION("GetAnswerToEverything", &API::GetAnswerToEverything);
+
+void API::GetAnswerToEverything(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(invalid_argument("Text argument required."));
 
-/**
- * The Python scripting language.
- *
- * @ingroup base
- */
-class I2_PYTHON_API PythonLanguage : public ScriptLanguage
-{
-public:
-	typedef shared_ptr<PythonLanguage> Ptr;
-	typedef weak_ptr<PythonLanguage> WeakPtr;
+	String text = arguments[0];
 
-	PythonLanguage(void);
-	~PythonLanguage(void);
+	Logger::Write(LogInformation, "icinga", "Hello from the Icinga 2 API: " + text);
 
-	virtual ScriptInterpreter::Ptr CreateInterpreter(const Script::Ptr& script);
-
-	PyThreadState *GetMainThreadState(void) const;
-
-private:
-	PyThreadState *m_MainThreadState;
-	PyObject *m_NativeModule;
-
-	void RegisterNativeFunction(const String& name, const ScriptFunction::Ptr& function);
-	void UnregisterNativeFunction(const String& name);
-
-	static PyObject *CallNativeFunction(PyObject *self, PyObject *args);
-
-	static PyObject *MarshalToPython(const Value& value, const ScriptArgumentHint& hint);
-	static Value MarshalFromPython(PyObject *value, const ScriptArgumentHint& hint);
-};
-
+	task->FinishResult(42);
 }
-
-#endif /* PYTHONLANGUAGE_H */

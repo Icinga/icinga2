@@ -25,7 +25,7 @@ boost::signal<void (const String&, const ScriptFunction::Ptr&)> ScriptFunction::
 boost::signal<void (const String&)> ScriptFunction::OnUnregistered;
 
 ScriptFunction::ScriptFunction(const Callback& function)
-	: m_Callback(function)
+	: m_Callback(function), m_ArgumentCount(-1)
 { }
 
 void ScriptFunction::Register(const String& name, const ScriptFunction::Ptr& function)
@@ -61,4 +61,44 @@ map<String, ScriptFunction::Ptr>& ScriptFunction::GetFunctions(void)
 {
 	static map<String, ScriptFunction::Ptr> functions;
 	return functions;
+}
+
+void ScriptFunction::SetArgumentCount(int count)
+{
+	if (m_ArgumentCount >= 0)
+		m_ArgumentHints.resize(count);
+
+	m_ArgumentCount = count;
+}
+
+int ScriptFunction::GetArgumentCount(void) const
+{
+	return m_ArgumentCount;
+}
+
+void ScriptFunction::SetArgumentHint(int index, const ScriptArgumentHint& hint)
+{
+	assert(index >= 0 && index < m_ArgumentCount);
+
+	m_ArgumentHints[index] = hint;
+}
+
+ScriptArgumentHint ScriptFunction::GetArgumentHint(int index) const
+{
+	if (m_ArgumentCount == -1 || index >= m_ArgumentCount)
+		return ScriptArgumentHint();
+
+	assert(index >= 0 && index < m_ArgumentHints.size());
+
+	return m_ArgumentHints[index];
+}
+
+void ScriptFunction::SetReturnHint(const ScriptArgumentHint& hint)
+{
+	m_ReturnHint = hint;
+}
+
+ScriptArgumentHint ScriptFunction::GetReturnHint(void) const
+{
+	return m_ReturnHint;
 }

@@ -51,7 +51,7 @@ PythonInterpreter::~PythonInterpreter(void)
 	PyEval_ReleaseLock();
 }
 
-void PythonInterpreter::RegisterFunction(const String& name, PyObject *function)
+void PythonInterpreter::RegisterPythonFunction(const String& name, PyObject *function)
 {
 	SubscribeFunction(name);
 
@@ -59,7 +59,7 @@ void PythonInterpreter::RegisterFunction(const String& name, PyObject *function)
 	m_Functions[name] = function;
 }
 
-void PythonInterpreter::UnregisterFunction(const String& name)
+void PythonInterpreter::UnregisterPythonFunction(const String& name)
 {
 	UnsubscribeFunction(name);
 

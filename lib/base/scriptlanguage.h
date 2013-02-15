@@ -40,6 +40,9 @@ public:
 
 	virtual ScriptInterpreter::Ptr CreateInterpreter(const Script::Ptr& script) = 0;
 
+	void SubscribeFunction(const String& name);
+	void UnsubscribeFunction(const String& name);
+
 protected:
 	ScriptLanguage(void);
 

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="api.cpp" />
     <ClCompile Include="checkresultmessage.cpp" />
     <ClCompile Include="cib.cpp" />
     <ClCompile Include="externalcommandprocessor.cpp" />
@@ -45,6 +46,7 @@
     <ClCompile Include="servicegroup.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="api.h" />
     <ClInclude Include="checkresultmessage.h" />
     <ClInclude Include="cib.h" />
     <ClInclude Include="externalcommandprocessor.h" />

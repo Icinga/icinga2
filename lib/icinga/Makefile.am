@@ -5,6 +5,8 @@ pkglib_LTLIBRARIES =  \
 	libicinga.la
 
 libicinga_la_SOURCES =  \
+	api.cpp \
+	api.h \
 	checkresultmessage.cpp \
 	checkresultmessage.h \
 	cib.cpp \

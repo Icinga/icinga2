@@ -17,43 +17,26 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef PYTHONLANGUAGE_H
-#define PYTHONLANGUAGE_H
+#ifndef API_H
+#define API_H
 
 namespace icinga
 {
 
 /**
- * The Python scripting language.
+ * A state change message for a service.
  *
- * @ingroup base
+ * @ingroup icinga
  */
-class I2_PYTHON_API PythonLanguage : public ScriptLanguage
+class I2_ICINGA_API API
 {
 public:
-	typedef shared_ptr<PythonLanguage> Ptr;
-	typedef weak_ptr<PythonLanguage> WeakPtr;
-
-	PythonLanguage(void);
-	~PythonLanguage(void);
-
-	virtual ScriptInterpreter::Ptr CreateInterpreter(const Script::Ptr& script);
-
-	PyThreadState *GetMainThreadState(void) const;
+	static void GetAnswerToEverything(const ScriptTask::Ptr& task, const vector<Value>& arguments);
 
 private:
-	PyThreadState *m_MainThreadState;
-	PyObject *m_NativeModule;
-
-	void RegisterNativeFunction(const String& name, const ScriptFunction::Ptr& function);
-	void UnregisterNativeFunction(const String& name);
-
-	static PyObject *CallNativeFunction(PyObject *self, PyObject *args);
-
-	static PyObject *MarshalToPython(const Value& value, const ScriptArgumentHint& hint);
-	static Value MarshalFromPython(PyObject *value, const ScriptArgumentHint& hint);
+	API(void);
 };
 
 }
 
-#endif /* PYTHONLANGUAGE_H */
+#endif /* API_H */

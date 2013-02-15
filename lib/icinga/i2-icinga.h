@@ -64,4 +64,6 @@ using boost::algorithm::is_any_of;
 
 #include "cib.h"
 
+#include "api.h"
+
 #endif /* I2ICINGA_H */

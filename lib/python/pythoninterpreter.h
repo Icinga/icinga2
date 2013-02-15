@@ -37,8 +37,8 @@ public:
 	PythonInterpreter(const PythonLanguage::Ptr& language, const Script::Ptr& script);
 	~PythonInterpreter(void);
 
-	void RegisterFunction(const String& name, PyObject *function);
-	void UnregisterFunction(const String& name);
+	void RegisterPythonFunction(const String& name, PyObject *function);
+	void UnregisterPythonFunction(const String& name);
 
 protected:
 	PythonLanguage::Ptr m_Language;

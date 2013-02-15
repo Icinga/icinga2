@@ -26,6 +26,20 @@ namespace icinga
 class ScriptTask;
 
 /**
+ * A type hint.
+ */
+struct ScriptArgumentHint
+{
+	bool RestrictType;
+	ValueType Type;
+	String Class;
+
+	ScriptArgumentHint(void)
+		: RestrictType(false), Type(ValueEmpty), Class()
+	{ }
+};
+
+/**
  * A script function that can be used to execute a script task.
  *
  * @ingroup base
@@ -46,6 +60,15 @@ public:
 
 	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Value>& arguments);
 
+	void SetArgumentCount(int count);
+	int GetArgumentCount(void) const;
+
+	void SetArgumentHint(int index, const ScriptArgumentHint& hint);
+	ScriptArgumentHint GetArgumentHint(int index) const;
+
+	void SetReturnHint(const ScriptArgumentHint& hint);
+	ScriptArgumentHint GetReturnHint(void) const;
+
 	static map<String, ScriptFunction::Ptr>& GetFunctions(void);
 
 	static boost::signal<void (const String&, const ScriptFunction::Ptr&)> OnRegistered;
@@ -53,6 +76,9 @@ public:
 
 private:
 	Callback m_Callback;
+	int m_ArgumentCount;
+	vector<ScriptArgumentHint> m_ArgumentHints;
+	ScriptArgumentHint m_ReturnHint;
 };
 
 /**
