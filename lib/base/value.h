@@ -26,6 +26,19 @@ namespace icinga
 {
 
 /**
+ * The type of a Value.
+ *
+ * @ingroup base
+ */
+enum ValueType
+{
+	ValueEmpty = 0,
+	ValueNumber = 1,
+	ValueString = 2,
+	ValueObject = 3
+};
+
+/**
  * A type that can hold an arbitrary value.
  *
  * @ingroup base
@@ -126,6 +139,8 @@ public:
 
 	String Serialize(void) const;
 	static Value Deserialize(const String& jsonString);
+
+	ValueType GetType(void) const;
 
 private:
 	mutable boost::variant<boost::blank, double, String, Object::Ptr> m_Value;

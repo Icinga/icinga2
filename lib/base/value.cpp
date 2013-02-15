@@ -109,24 +109,27 @@ String Value::Serialize(void) const
  */
 cJSON *Value::ToJson(void) const
 {
-	if (m_Value.type() == typeid(long)) {
-		return cJSON_CreateNumber(boost::get<long>(m_Value));
-	} else if (m_Value.type() == typeid(double)) {
-		return cJSON_CreateNumber(boost::get<double>(m_Value));
-	} else if (m_Value.type() == typeid(String)) {
-		return cJSON_CreateString(boost::get<String>(m_Value).CStr());
-	} else if (m_Value.type() == typeid(Object::Ptr)) {
-		if (IsObjectType<Dictionary>()) {
-			Dictionary::Ptr dictionary = *this;
-			return dictionary->ToJson();
-		} else {
-			Logger::Write(LogDebug, "base", "Ignoring unknown object while converting variant to JSON.");
+	switch (GetType()) {
+		case ValueNumber:
+			return cJSON_CreateNumber(boost::get<double>(m_Value));
+
+		case ValueString:
+			return cJSON_CreateString(boost::get<String>(m_Value).CStr());
+
+		case ValueObject:
+			if (IsObjectType<Dictionary>()) {
+				Dictionary::Ptr dictionary = *this;
+				return dictionary->ToJson();
+			} else {
+				Logger::Write(LogDebug, "base", "Ignoring unknown object while converting variant to JSON.");
+				return cJSON_CreateNull();
+			}
+
+		case ValueEmpty:
 			return cJSON_CreateNull();
-		}
-	} else if (m_Value.type() == typeid(boost::blank)) {
-		return cJSON_CreateNull();
-	} else {
-		BOOST_THROW_EXCEPTION(runtime_error("Invalid variant type."));
+
+		default:
+			BOOST_THROW_EXCEPTION(runtime_error("Invalid variant type."));
 	}
 }
 
@@ -147,4 +150,14 @@ Value Value::Deserialize(const String& jsonString)
 	cJSON_Delete(json);
 
 	return value;
+}
+
+/**
+ * Returns the type of the value.
+ *
+ * @returns The type.
+ */
+ValueType Value::GetType(void) const
+{
+	return static_cast<ValueType>(m_Value.which());
 }
