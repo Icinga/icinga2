@@ -71,7 +71,7 @@ local object Component "compatido" {
  */
 abstract object Service "icinga-service" {
   methods = {
-    check = "native::PluginCheck"
+    check = "PluginCheck"
   }
 }
 

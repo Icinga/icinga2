@@ -359,7 +359,7 @@ type Pizza {
 	%attribute number "radius",
 
 	%attribute dictionary "ingredients" {
-		%validator "native::ValidateIngredients",
+		%validator "ValidateIngredients",
 
 		%attribute string "*",
 
@@ -381,7 +381,7 @@ dictionary.
 * Elements in the ingredients dictionary can be either a string or a dictionary.
 * If they're a dictionary they may contain attributes "quantity" (of type
 number) and "name" (of type string).
-* The script function "native::ValidateIngredients" is run to perform further
+* The script function "ValidateIngredients" is run to perform further
 validation of the ingredients dictionary.
 * Pizza objects may contain attribute matching the pattern "custom::*" of any
 type.
@@ -614,7 +614,7 @@ object Service "localhost-uptime" {
   alias = "localhost Uptime",
 
   methods = {
-    check = "native::PluginCheck"
+    check = "PluginCheck"
   },
 
   check_command = "$plugindir$/check_snmp -H $address$ -C $community$ -o $oid$",
@@ -649,7 +649,7 @@ Attribute: methods - check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The check type of the service. For now only external check plugins are
-supported ("native::PluginCheck").
+supported ("PluginCheck").
 
 Attribute: check_command
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -869,7 +869,7 @@ local object Component "delegation" {
 
 abstract object Service "icinga-service" {
   methods = {
-    check = "native::PluginCheck"
+    check = "PluginCheck"
   },
 
   macros = {
