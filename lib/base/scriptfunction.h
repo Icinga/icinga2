@@ -46,10 +46,10 @@ public:
 
 	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Value>& arguments);
 
+	static map<String, ScriptFunction::Ptr>& GetFunctions(void);
+
 private:
 	Callback m_Callback;
-
-	static map<String, ScriptFunction::Ptr>& GetFunctions(void);
 };
 
 /**
