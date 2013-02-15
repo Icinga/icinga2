@@ -25,9 +25,9 @@ namespace icinga
 
 struct ScriptCall
 {
+	ScriptTask::Ptr Task;
 	String Function;
 	vector<Value> Arguments;
-	ScriptTask::Ptr Task;
 };
 
 /**
@@ -49,7 +49,7 @@ public:
 protected:
 	ScriptInterpreter(const Script::Ptr& script);
 
-	virtual void ProcessCall(const String& function, const ScriptTask::Ptr& task,
+	virtual void ProcessCall(const ScriptTask::Ptr& task, const String& function,
 	    const vector<Value>& arguments) = 0;
 
 	void SubscribeFunction(const String& name);
@@ -67,8 +67,8 @@ private:
 
 	void ThreadWorkerProc(void);
 
-	void ScriptFunctionThunk(const ScriptTask::Ptr& task,
-	    const vector<Value>& arguments, const String& function);
+	void ScriptFunctionThunk(const ScriptTask::Ptr& task, const String& function,
+	    const vector<Value>& arguments);
 };
 
 }

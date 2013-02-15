@@ -66,7 +66,7 @@ void PythonInterpreter::UnregisterFunction(const String& name)
 	m_Functions.erase(name);
 }
 
-void PythonInterpreter::ProcessCall(const String& function, const ScriptTask::Ptr& task,
+void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& function,
     const vector<Value>& arguments)
 {
 	PyEval_AcquireThread(m_ThreadState);

@@ -45,7 +45,7 @@ protected:
 	PyThreadState *m_ThreadState;
 	map<String, PyObject *> m_Functions;
 
-	virtual void ProcessCall(const String& function, const ScriptTask::Ptr& task,
+	virtual void ProcessCall(const ScriptTask::Ptr& task, const String& function,
 	    const vector<Value>& arguments);
 };
 

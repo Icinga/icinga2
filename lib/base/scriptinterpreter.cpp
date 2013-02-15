@@ -72,16 +72,18 @@ void ScriptInterpreter::ThreadWorkerProc(void)
 
 		ScriptCall call = m_Calls.front();
 		m_Calls.pop_front();
+
+		ProcessCall(call.Task, call.Function, call.Arguments);
 	}
 }
 
 void ScriptInterpreter::ScriptFunctionThunk(const ScriptTask::Ptr& task,
-    const vector<Value>& arguments, const String& function)
+    const String& function, const vector<Value>& arguments)
 {
 	ScriptCall call;
+	call.Task = task;
 	call.Function = function;
 	call.Arguments = arguments;
-	call.Task = task;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -96,7 +98,7 @@ void ScriptInterpreter::SubscribeFunction(const String& name)
 
 	m_SubscribedFunctions.insert(name);
 
-	ScriptFunction::Ptr sf = boost::make_shared<ScriptFunction>(boost::bind(&ScriptInterpreter::ScriptFunctionThunk, this, _1, _2, name));
+	ScriptFunction::Ptr sf = boost::make_shared<ScriptFunction>(boost::bind(&ScriptInterpreter::ScriptFunctionThunk, this, _1, name, _2));
 	ScriptFunction::Register(name, sf);
 }
 
