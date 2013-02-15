@@ -42,15 +42,7 @@ void ScriptInterpreter::Stop(void)
 {
 	assert(Application::IsMainThread());
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-
-		if (m_Shutdown)
-			return;
-
-		m_Shutdown = true;
-		m_CallAvailable.notify_all();
-	}
+	m_EQ.Stop();
 
 	BOOST_FOREACH(const String& function, m_SubscribedFunctions) {
 		ScriptFunction::Unregister(function);
@@ -61,35 +53,17 @@ void ScriptInterpreter::Stop(void)
 
 void ScriptInterpreter::ThreadWorkerProc(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	m_EQ.SetOwner(boost::this_thread::get_id());
 
-	for (;;) {
-		while (m_Calls.empty() && !m_Shutdown)
-			m_CallAvailable.wait(lock);
-
-		if (m_Shutdown)
-			break;
-
-		ScriptCall call = m_Calls.front();
-		m_Calls.pop_front();
-
-		ProcessCall(call.Task, call.Function, call.Arguments);
-	}
+	while (m_EQ.ProcessEvents())
+		; /* empty loop */
 }
 
 void ScriptInterpreter::ScriptFunctionThunk(const ScriptTask::Ptr& task,
     const String& function, const vector<Value>& arguments)
 {
-	ScriptCall call;
-	call.Task = task;
-	call.Function = function;
-	call.Arguments = arguments;
-
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Calls.push_back(call);
-		m_CallAvailable.notify_all();
-	}
+	m_EQ.Post(boost::bind(&ScriptInterpreter::ProcessCall, this,
+	    task, function, arguments));
 }
 
 void ScriptInterpreter::SubscribeFunction(const String& name)

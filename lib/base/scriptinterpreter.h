@@ -23,13 +23,6 @@
 namespace icinga
 {
 
-struct ScriptCall
-{
-	ScriptTask::Ptr Task;
-	String Function;
-	vector<Value> Arguments;
-};
-
 /**
  * A script interpreter.
  *
@@ -56,13 +49,8 @@ protected:
 	void UnsubscribeFunction(const String& name);
 
 private:
-	boost::mutex m_Mutex;
-	bool m_Shutdown;
-	deque<ScriptCall> m_Calls;
-	condition_variable m_CallAvailable;
-
-	set<String> m_SubscribedFunctions; /* Not protected by the mutex. */
-
+	EventQueue m_EQ;
+	set<String> m_SubscribedFunctions;
 	boost::thread m_Thread;
 
 	void ThreadWorkerProc(void);

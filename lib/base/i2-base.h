@@ -180,7 +180,7 @@ namespace tuples = boost::tuples;
 #include "utility.h"
 #include "object.h"
 #include "exception.h"
-#include "event.h"
+#include "eventqueue.h"
 #include "value.h"
 #include "convert.h"
 #include "dictionary.h"

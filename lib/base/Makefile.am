@@ -20,8 +20,8 @@ libbase_la_SOURCES =  \
 	dynamicobject.h \
 	dynamictype.cpp \
 	dynamictype.h \
-	event.cpp \
-	event.h \
+	eventqueue.cpp \
+	eventqueue.h \
 	exception.cpp \
 	exception.h \
 	fifo.cpp \

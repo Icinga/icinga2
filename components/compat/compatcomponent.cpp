@@ -154,7 +154,7 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 				line[strlen(line) - 1] = '\0';
 
 			String command = line;
-			Event::Post(boost::bind(&CompatComponent::ProcessCommand, this, command));
+			Application::GetEQ().Post(boost::bind(&CompatComponent::ProcessCommand, this, command));
 		}
 
 		fclose(fp);

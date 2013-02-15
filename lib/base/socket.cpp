@@ -532,7 +532,7 @@ void Socket::HandleReadableClient(void)
 	}
 
 	if (new_data)
-		Event::Post(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
+		Application::GetEQ().Post(boost::bind(boost::ref(OnDataAvailable), GetSelf()));
 }
 
 void Socket::HandleWritableServer(void)
@@ -557,7 +557,7 @@ void Socket::HandleReadableServer(void)
 
 	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
 	client->SetFD(fd);
-	Event::Post(boost::bind(boost::ref(OnNewClient), GetSelf(), client));
+	Application::GetEQ().Post(boost::bind(boost::ref(OnNewClient), GetSelf(), client));
 }
 
 /**

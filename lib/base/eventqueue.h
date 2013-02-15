@@ -17,35 +17,41 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef EVENTQUEUE_H
+#define EVENTQUEUE_H
 
 namespace icinga
 {
 
 /**
- * A thread-safe event that can be posted to the main thread's event queue.
+ * An event queue.
  *
  * @ingroup base
  */
-class I2_BASE_API Event
+class I2_BASE_API EventQueue
 {
 public:
 	typedef function<void ()> Callback;
 
-	static void ProcessEvents(millisec timeout);
-	static void Post(const Callback& callback);
+	EventQueue(void);
+
+	bool ProcessEvents(millisec timeout = boost::posix_time::milliseconds(30000));
+	void Post(const Callback& callback);
+
+	void Stop(void);
+
+	boost::thread::id GetOwner(void) const;
+	void SetOwner(boost::thread::id owner);
 
 private:
-	Event(const Callback& callback);
+	boost::thread::id m_Owner;
 
-	Callback m_Callback;
-
-	static vector<Event> m_Events;
-	static condition_variable m_EventAvailable;
-	static boost::mutex m_Mutex;
+	boost::mutex m_Mutex;
+	bool m_Stopped;
+	vector<Callback> m_Events;
+	condition_variable m_EventAvailable;
 };
 
 }
 
-#endif /* EVENT_H */
+#endif /* EVENTQUEUE_H */

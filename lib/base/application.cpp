@@ -32,6 +32,7 @@ String Application::m_PkgLibDir;
 String Application::m_PkgDataDir;
 int Application::m_ArgC;
 char **Application::m_ArgV;
+EventQueue Application::m_EQ;
 
 /**
  * Constructor for the Application class.
@@ -123,7 +124,7 @@ bool Application::ProcessEvents(void)
 	if (m_ShuttingDown)
 		return false;
 
-	Event::ProcessEvents(boost::posix_time::milliseconds(sleep * 1000));
+	GetEQ().ProcessEvents(boost::posix_time::milliseconds(sleep * 1000));
 
 	DynamicObject::FlushTx();
 
@@ -137,6 +138,8 @@ bool Application::ProcessEvents(void)
 void Application::RunEventLoop(void) const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
+
+	GetEQ().SetOwner(boost::this_thread::get_id());
 
 #ifdef _DEBUG
 	double nextProfile = 0;
@@ -189,7 +192,7 @@ void Application::TimeWatchThreadProc(void)
 			 * causes the event loop to wake up thereby
 			 * solving the problem that timed_wait()
 			 * uses an absolute timestamp for the timeout */
-			Event::Post(boost::bind(&Timer::AdjustTimers,
+			GetEQ().Post(boost::bind(&Timer::AdjustTimers,
 			    -timeDiff));
 		}
 
@@ -599,4 +602,14 @@ void Application::SetPkgDataDir(const String& path)
 boost::mutex& Application::GetMutex(void)
 {
 	return m_Mutex;
+}
+
+/**
+ * Returns the main thread's event queue.
+ *
+ * @returns The event queue.
+ */
+EventQueue& Application::GetEQ(void)
+{
+	return m_EQ;
 }

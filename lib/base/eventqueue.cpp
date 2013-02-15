@@ -21,53 +21,53 @@
 
 using namespace icinga;
 
-vector<Event> Event::m_Events;
-condition_variable Event::m_EventAvailable;
-boost::mutex Event::m_Mutex;
-
-/**
- * Constructor for the Event class
- *
- * @param callback The callback function for the new event object.
- */
-Event::Event(const Event::Callback& callback)
-	: m_Callback(callback)
+EventQueue::EventQueue(void)
+	: m_Stopped(false)
 { }
+
+boost::thread::id EventQueue::GetOwner(void) const
+{
+	return m_Owner;
+}
+
+void EventQueue::SetOwner(boost::thread::id owner)
+{
+	m_Owner = owner;
+}
+
+void EventQueue::Stop(void)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+	m_Stopped = true;
+	m_EventAvailable.notify_all();
+}
 
 /**
  * Waits for events using the specified timeout value and processes
  * them.
  *
  * @param timeout The wait timeout.
+ * @returns false if the queue has been stopped, true otherwise.
  */
-void Event::ProcessEvents(millisec timeout)
+bool EventQueue::ProcessEvents(millisec timeout)
 {
-	vector<Event> events;
-
-	assert(Application::IsMainThread());
-
-	Application::GetMutex().unlock();
+	vector<Callback> events;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		while (m_Events.empty()) {
-			if (!m_EventAvailable.timed_wait(lock, timeout)) {
-				Application::GetMutex().lock();
-
-				return;
-			}
+		while (m_Events.empty() && !m_Stopped) {
+			if (!m_EventAvailable.timed_wait(lock, timeout))
+				return !m_Stopped;
 		}
 
 		events.swap(m_Events);
 	}
 
-	Application::GetMutex().lock();
-
-	BOOST_FOREACH(const Event& ev, events) {
+	BOOST_FOREACH(const Callback& ev, events) {
 		double st = Utility::GetTime();
 
-		ev.m_Callback();
+		ev();
 
 		double et = Utility::GetTime();
 
@@ -77,6 +77,8 @@ void Event::ProcessEvents(millisec timeout)
 			Logger::Write(LogWarning, "base", msgbuf.str());
 		}
 	}
+
+	return !m_Stopped;
 }
 
 /**
@@ -85,18 +87,16 @@ void Event::ProcessEvents(millisec timeout)
  *
  * @param callback The callback function for the event.
  */
-void Event::Post(const Event::Callback& callback)
+void EventQueue::Post(const EventQueue::Callback& callback)
 {
-	if (Application::IsMainThread()) {
+	if (boost::this_thread::get_id() == m_Owner) {
 		callback();
 		return;
 	}
 
-	Event ev(callback);
-
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Events.push_back(ev);
+		m_Events.push_back(callback);
 		m_EventAvailable.notify_all();
 	}
 }

@@ -133,7 +133,7 @@ void Process::WorkerThreadProc(int taskFd)
 					if (fd >= 0)
 						tasks[fd] = task;
 				} catch (...) {
-					Event::Post(boost::bind(&Process::FinishException, task, boost::current_exception()));
+					Application::GetEQ().Post(boost::bind(&Process::FinishException, task, boost::current_exception()));
 				}
 			}
 
@@ -148,7 +148,7 @@ void Process::WorkerThreadProc(int taskFd)
 				prev = it;
 				tasks.erase(prev);
 
-				Event::Post(boost::bind(&Process::FinishResult, task, task->m_Result));
+				Application::GetEQ().Post(boost::bind(&Process::FinishResult, task, task->m_Result));
 			}
 		}
 	}

@@ -81,7 +81,7 @@ void Logger::Write(LogSeverity severity, const String& facility,
 	entry.Facility = facility;
 	entry.Message = message;
 
-	Event::Post(boost::bind(&Logger::ForwardLogEntry, entry));
+	Application::GetEQ().Post(boost::bind(&Logger::ForwardLogEntry, entry));
 }
 
 /**
