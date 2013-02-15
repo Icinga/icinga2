@@ -21,6 +21,9 @@
 
 using namespace icinga;
 
+boost::signal<void (const String&, const ScriptFunction::Ptr&)> ScriptFunction::OnRegistered;
+boost::signal<void (const String&)> ScriptFunction::OnUnregistered;
+
 ScriptFunction::ScriptFunction(const Callback& function)
 	: m_Callback(function)
 { }
@@ -28,11 +31,13 @@ ScriptFunction::ScriptFunction(const Callback& function)
 void ScriptFunction::Register(const String& name, const ScriptFunction::Ptr& function)
 {
 	GetFunctions()[name] = function;
+	Application::GetEQ().Post(boost::bind(boost::ref(OnRegistered), name, function));
 }
 
 void ScriptFunction::Unregister(const String& name)
 {
 	GetFunctions().erase(name);
+	Application::GetEQ().Post(boost::bind(boost::ref(OnUnregistered), name));
 }
 
 ScriptFunction::Ptr ScriptFunction::GetByName(const String& name)

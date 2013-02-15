@@ -48,6 +48,9 @@ public:
 
 	static map<String, ScriptFunction::Ptr>& GetFunctions(void);
 
+	static boost::signal<void (const String&, const ScriptFunction::Ptr&)> OnRegistered;
+	static boost::signal<void (const String&)> OnUnregistered;
+
 private:
 	Callback m_Callback;
 };
