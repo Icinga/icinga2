@@ -55,8 +55,12 @@ void ScriptInterpreter::ThreadWorkerProc(void)
 {
 	m_EQ.SetOwner(boost::this_thread::get_id());
 
-	while (m_EQ.ProcessEvents())
-		; /* empty loop */
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		while (m_EQ.ProcessEvents(m_Mutex))
+			; /* empty loop */
+	}
 }
 
 void ScriptInterpreter::ScriptFunctionThunk(const ScriptTask::Ptr& task,

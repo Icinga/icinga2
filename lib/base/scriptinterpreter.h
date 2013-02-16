@@ -49,6 +49,7 @@ protected:
 	void UnsubscribeFunction(const String& name);
 
 private:
+	boost::mutex m_Mutex;
 	EventQueue m_EQ;
 	set<String> m_SubscribedFunctions;
 	boost::thread m_Thread;

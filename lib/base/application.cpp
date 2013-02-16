@@ -124,7 +124,7 @@ bool Application::ProcessEvents(void)
 	if (m_ShuttingDown)
 		return false;
 
-	GetEQ().ProcessEvents(boost::posix_time::milliseconds(sleep * 1000));
+	GetEQ().ProcessEvents(m_Mutex, boost::posix_time::milliseconds(sleep * 1000));
 
 	DynamicObject::FlushTx();
 

@@ -35,13 +35,15 @@ public:
 
 	EventQueue(void);
 
-	bool ProcessEvents(millisec timeout = boost::posix_time::milliseconds(30000));
+	bool ProcessEvents(boost::mutex& mtx, millisec timeout = boost::posix_time::milliseconds(30000));
 	void Post(const Callback& callback);
 
 	void Stop(void);
 
 	boost::thread::id GetOwner(void) const;
 	void SetOwner(boost::thread::id owner);
+
+	boost::mutex& GetMutex(void);
 
 private:
 	boost::thread::id m_Owner;

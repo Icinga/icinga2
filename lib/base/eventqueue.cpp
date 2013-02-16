@@ -46,23 +46,32 @@ void EventQueue::Stop(void)
  * Waits for events using the specified timeout value and processes
  * them.
  *
+ * @param mtx The mutex that should be unlocked while waiting. Caller
+ * 	      must have this mutex locked.
  * @param timeout The wait timeout.
  * @returns false if the queue has been stopped, true otherwise.
  */
-bool EventQueue::ProcessEvents(millisec timeout)
+bool EventQueue::ProcessEvents(boost::mutex& mtx, millisec timeout)
 {
 	vector<Callback> events;
+
+	mtx.unlock();
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		while (m_Events.empty() && !m_Stopped) {
-			if (!m_EventAvailable.timed_wait(lock, timeout))
+			if (!m_EventAvailable.timed_wait(lock, timeout)) {
+				mtx.lock();
+
 				return !m_Stopped;
+			}
 		}
 
 		events.swap(m_Events);
 	}
+
+	mtx.lock();
 
 	BOOST_FOREACH(const Callback& ev, events) {
 		double st = Utility::GetTime();
@@ -100,4 +109,3 @@ void EventQueue::Post(const EventQueue::Callback& callback)
 		m_EventAvailable.notify_all();
 	}
 }
-
