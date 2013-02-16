@@ -94,8 +94,22 @@ void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& f
 
 		Py_DECREF(args);
 
-		if (result == NULL) {
-			// re-throw python exception
+		if (PyErr_Occurred()) {
+			PyObject *ptype, *pvalue, *ptraceback;
+
+			PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+			PyObject *pstr_msg = PyObject_Str(pvalue);
+			PyObject *pstr_tb = PyObject_Str(ptraceback);
+			Py_DECREF(pvalue);
+			PyErr_Clear();
+
+			String msg = PyString_AsString(pstr_msg);
+			Py_DECREF(pstr_msg);
+
+			String tb = PyString_AsString(pstr_tb);
+			Py_DECREF(pstr_tb);
+
+			BOOST_THROW_EXCEPTION(runtime_error("Error in Python script:" + msg + " at " + tb));
 		}
 
 		Value vresult = PythonLanguage::MarshalFromPython(result);
