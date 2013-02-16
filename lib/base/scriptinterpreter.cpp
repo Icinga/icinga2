@@ -72,8 +72,6 @@ void ScriptInterpreter::ScriptFunctionThunk(const ScriptTask::Ptr& task,
 
 void ScriptInterpreter::SubscribeFunction(const String& name)
 {
-	assert(Application::IsMainThread());
-
 	m_SubscribedFunctions.insert(name);
 
 	ScriptFunction::Ptr sf = boost::make_shared<ScriptFunction>(boost::bind(&ScriptInterpreter::ScriptFunctionThunk, this, _1, name, _2));
@@ -82,8 +80,6 @@ void ScriptInterpreter::SubscribeFunction(const String& name)
 
 void ScriptInterpreter::UnsubscribeFunction(const String& name)
 {
-	assert(Application::IsMainThread());
-
 	m_SubscribedFunctions.erase(name);
 	ScriptFunction::Unregister(name);
 }

@@ -26,17 +26,18 @@ PythonInterpreter::PythonInterpreter(const PythonLanguage::Ptr& language,
 	: ScriptInterpreter(script), m_Language(language), m_ThreadState(NULL)
 {
 	PyEval_AcquireLock();
+	PythonInterpreter *interp = m_Language->GetCurrentInterpreter();
+	m_Language->SetCurrentInterpreter(this);
 
-	PyInterpreterState *interp = m_Language->GetMainThreadState()->interp;
-	m_ThreadState = PyThreadState_New(interp);
+	PyInterpreterState *pinterp = m_Language->GetMainThreadState()->interp;
+	m_ThreadState = PyThreadState_New(pinterp);
 
 	(void) PyThreadState_Swap(m_ThreadState);
 	PyRun_SimpleString(script->GetCode().CStr());
 	(void) PyThreadState_Swap(NULL);
 
+	m_Language->SetCurrentInterpreter(interp);
 	PyEval_ReleaseLock();
-
-	SubscribeFunction("python::Test");
 }
 
 PythonInterpreter::~PythonInterpreter(void)
@@ -70,8 +71,41 @@ void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& f
     const vector<Value>& arguments)
 {
 	PyEval_AcquireThread(m_ThreadState);
-	std::cout << "Received call for method '" << function << "'" << std::endl;
-	PyEval_ReleaseThread(m_ThreadState);
+	PythonInterpreter *interp = m_Language->GetCurrentInterpreter();
+	m_Language->SetCurrentInterpreter(this);
 
-	task->FinishResult(0);
+	try {
+		map<String, PyObject *>::iterator it = m_Functions.find(function);
+
+		if (it == m_Functions.end())
+			BOOST_THROW_EXCEPTION(invalid_argument("Function '" + function + "' does not exist."));
+
+		PyObject *func = it->second;
+
+		PyObject *args = PyTuple_New(arguments.size());
+
+		int i = 0;
+		BOOST_FOREACH(const Value& argument, arguments) {
+			PyObject *arg = PythonLanguage::MarshalToPython(argument);
+			PyTuple_SetItem(args, i, arg);
+		}
+
+		PyObject *result = PyObject_CallObject(func, args);
+
+		Py_DECREF(args);
+
+		if (result == NULL) {
+			// re-throw python exception
+		}
+
+		Value vresult = PythonLanguage::MarshalFromPython(result);
+		Py_DECREF(result);
+
+		task->FinishResult(vresult);
+	} catch (...) {
+		task->FinishException(boost::current_exception());
+	}
+
+	m_Language->SetCurrentInterpreter(interp);
+	PyEval_ReleaseThread(m_ThreadState);
 }

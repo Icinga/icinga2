@@ -565,4 +565,3 @@ void Utility::SetNonBlockingSocket(SOCKET s)
 	ioctlsocket(s, FIONBIO, &lTrue);
 #endif /* _WIN32 */
 }
-

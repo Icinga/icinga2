@@ -21,7 +21,14 @@
 
 using namespace icinga;
 
+PythonInterpreter *PythonLanguage::m_CurrentInterpreter;
+
 REGISTER_SCRIPTLANGUAGE("Python", PythonLanguage);
+
+PyMethodDef PythonLanguage::m_NativeMethodDef[] = {
+	{ "RegisterFunction", &PythonLanguage::PyRegisterFunction, METH_VARARGS, NULL },
+	{ NULL, NULL } /* sentinel */
+};
 
 PythonLanguage::PythonLanguage(void)
 	: ScriptLanguage()
@@ -37,7 +44,7 @@ PythonLanguage::PythonLanguage(void)
 
 	m_MainThreadState = PyThreadState_Get();
 
-	m_NativeModule = Py_InitModule("ire", NULL);
+	m_NativeModule = Py_InitModule("ire", m_NativeMethodDef);
 
 	(void) PyThreadState_Swap(NULL);
 	PyEval_ReleaseLock();
@@ -128,12 +135,33 @@ PyObject *PythonLanguage::MarshalToPython(const Value& value)
 	}
 }
 
-Value PythonLanguage::MarshalFromPython(PyObject *value, const ScriptArgumentHint& hint)
+Value PythonLanguage::MarshalFromPython(PyObject *value)
 {
 	if (value == Py_None) {
 		return Empty;
-	} else if (PyTuple_Check(value)) {
-		// TODO: look up object
+	} else if (PyTuple_Check(value) && PyTuple_Size(value) == 2) {
+		PyObject *ptype, *pname;
+
+		ptype = PyTuple_GetItem(value, 0);
+
+		if (ptype == NULL || !PyString_Check(ptype))
+			BOOST_THROW_EXCEPTION(invalid_argument("Tuple must contain two strings."));
+
+		String type = PyString_AsString(ptype);
+
+		pname = PyTuple_GetItem(value, 1);
+
+		if (pname == NULL || !PyString_Check(pname))
+			BOOST_THROW_EXCEPTION(invalid_argument("Tuple must contain two strings."));
+
+		String name = PyString_AsString(pname);
+
+		DynamicObject::Ptr object = DynamicObject::GetObject(type, name);
+
+		if (!object)
+			BOOST_THROW_EXCEPTION(invalid_argument("Object '" + name + "' of type '" + type + "' does not exist."));
+
+		return object;
 	} else if (PyFloat_Check(value)) {
 		return PyFloat_AsDouble(value);
 	} else if (PyString_Check(value)) {
@@ -143,7 +171,7 @@ Value PythonLanguage::MarshalFromPython(PyObject *value, const ScriptArgumentHin
 	}
 }
 
-PyObject *PythonLanguage::CallNativeFunction(PyObject *self, PyObject *args)
+PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
 {
 	assert(PyString_Check(self));
 
@@ -165,20 +193,28 @@ PyObject *PythonLanguage::CallNativeFunction(PyObject *self, PyObject *args)
 		}
 	}
 
-	ScriptTask::Ptr task = boost::make_shared<ScriptTask>(function, arguments);
-	task->Start();
-	task->Wait();
+	PyThreadState *tstate = PyEval_SaveThread();
+
+	Value result;
 
 	try {
-		Value result = task->GetResult();
+		ScriptTask::Ptr task = boost::make_shared<ScriptTask>(function, arguments);
+		task->Start();
+		task->Wait();
 
-		return MarshalToPython(result);
+		result = task->GetResult();
 	} catch (const std::exception& ex) {
+		PyEval_RestoreThread(tstate);
+
 		String message = diagnostic_information(ex);
 		PyErr_SetString(PyExc_RuntimeError, message.CStr());
 
 		return NULL;
 	}
+
+	PyEval_RestoreThread(tstate);
+
+	return MarshalToPython(result);
 }
 
 /**
@@ -189,20 +225,20 @@ PyObject *PythonLanguage::CallNativeFunction(PyObject *self, PyObject *args)
  */
 void PythonLanguage::RegisterNativeFunction(const String& name, const ScriptFunction::Ptr& function)
 {
-	(void) PyThreadState_Swap(m_MainThreadState);
+	PyThreadState *tstate = PyThreadState_Swap(m_MainThreadState);
 
 	PyObject *pname = PyString_FromString(name.CStr());
 
 	PyMethodDef *md = new PyMethodDef;
 	md->ml_name = strdup(name.CStr());
-	md->ml_meth = &PythonLanguage::CallNativeFunction;
+	md->ml_meth = &PythonLanguage::PyCallNativeFunction;
 	md->ml_flags = METH_VARARGS;
 	md->ml_doc = NULL;
 
 	PyObject *pfunc = PyCFunction_NewEx(md, pname, m_NativeModule);
 	(void) PyModule_AddObject(m_NativeModule, name.CStr(), pfunc);
 
-	(void) PyThreadState_Swap(NULL);
+	(void) PyThreadState_Swap(tstate);
 }
 
 /**
@@ -212,7 +248,7 @@ void PythonLanguage::RegisterNativeFunction(const String& name, const ScriptFunc
  */
 void PythonLanguage::UnregisterNativeFunction(const String& name)
 {
-	(void) PyThreadState_Swap(m_MainThreadState);
+	PyThreadState *tstate = PyThreadState_Swap(m_MainThreadState);
 
 	PyObject *pdict = PyModule_GetDict(m_NativeModule);
 	PyObject *pname = PyString_FromString(name.CStr());
@@ -227,5 +263,55 @@ void PythonLanguage::UnregisterNativeFunction(const String& name)
 	(void) PyDict_DelItem(pdict, pname);
 	Py_DECREF(pname);
 
-	(void) PyThreadState_Swap(NULL);
+	(void) PyThreadState_Swap(tstate);
+}
+
+PyObject *PythonLanguage::PyRegisterFunction(PyObject *self, PyObject *args)
+{
+	char *name;
+	PyObject *object;
+
+	if (!PyArg_ParseTuple(args, "sO", &name, &object))
+		return NULL;
+
+	PythonInterpreter *interp = GetCurrentInterpreter();
+
+	if (interp == NULL) {
+		PyErr_SetString(PyExc_RuntimeError, "GetCurrentInterpreter() returned NULL.");
+		return NULL;
+	}
+
+	if (!PyCallable_Check(object)) {
+		PyErr_SetString(PyExc_RuntimeError, "Function object is not callable.");
+		return NULL;
+	}
+
+	{
+		boost::mutex::scoped_lock lock(Application::GetMutex());
+		interp->RegisterPythonFunction(name, object);
+	}
+
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+/**
+ * Retrieves the current interpreter object. Caller must hold the GIL.
+ *
+ * @returns The current interpreter.
+ */
+PythonInterpreter *PythonLanguage::GetCurrentInterpreter(void)
+{
+	return m_CurrentInterpreter;
+}
+
+/**
+ * Sets the current interpreter. Caller must hold the GIL.
+ *
+ * @param interpreter The interpreter.
+ */
+void PythonLanguage::SetCurrentInterpreter(PythonInterpreter *interpreter)
+{
+	m_CurrentInterpreter = interpreter;
 }

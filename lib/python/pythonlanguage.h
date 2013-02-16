@@ -23,6 +23,8 @@
 namespace icinga
 {
 
+class PythonInterpreter;
+
 /**
  * The Python scripting language.
  *
@@ -41,17 +43,24 @@ public:
 
 	PyThreadState *GetMainThreadState(void) const;
 
+	static PythonInterpreter *GetCurrentInterpreter(void);
+	static void SetCurrentInterpreter(PythonInterpreter *interpreter);
+
+	static PyObject *MarshalToPython(const Value& value);
+	static Value MarshalFromPython(PyObject *value);
+
 private:
 	PyThreadState *m_MainThreadState;
 	PyObject *m_NativeModule;
+	static PythonInterpreter *m_CurrentInterpreter;
 
 	void RegisterNativeFunction(const String& name, const ScriptFunction::Ptr& function);
 	void UnregisterNativeFunction(const String& name);
 
-	static PyObject *CallNativeFunction(PyObject *self, PyObject *args);
+	static PyObject *PyCallNativeFunction(PyObject *self, PyObject *args);
+	static PyObject *PyRegisterFunction(PyObject *self, PyObject *args);
 
-	static PyObject *MarshalToPython(const Value& value);
-	static Value MarshalFromPython(PyObject *value);
+	static PyMethodDef m_NativeMethodDef[];
 };
 
 }
