@@ -49,9 +49,11 @@ public:
 	static PyObject *MarshalToPython(const Value& value);
 	static Value MarshalFromPython(PyObject *value);
 
+	String ExceptionInfoToString(PyObject *type, PyObject *exc, PyObject *tb) const;
 private:
 	PyThreadState *m_MainThreadState;
 	PyObject *m_NativeModule;
+	PyObject *m_TracebackModule;
 	static PythonInterpreter *m_CurrentInterpreter;
 
 	void RegisterNativeFunction(const String& name, const ScriptFunction::Ptr& function);

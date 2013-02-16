@@ -98,18 +98,14 @@ void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& f
 			PyObject *ptype, *pvalue, *ptraceback;
 
 			PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-			PyObject *pstr_msg = PyObject_Str(pvalue);
-			PyObject *pstr_tb = PyObject_Str(ptraceback);
-			Py_DECREF(pvalue);
-			PyErr_Clear();
 
-			String msg = PyString_AsString(pstr_msg);
-			Py_DECREF(pstr_msg);
+			String msg = m_Language->ExceptionInfoToString(ptype, pvalue, ptraceback);
 
-			String tb = PyString_AsString(pstr_tb);
-			Py_DECREF(pstr_tb);
+			Py_XDECREF(ptype);
+			Py_XDECREF(pvalue);
+			Py_XDECREF(ptraceback);
 
-			BOOST_THROW_EXCEPTION(runtime_error("Error in Python script:" + msg + " at " + tb));
+			BOOST_THROW_EXCEPTION(runtime_error("Error in Python script:" + msg));
 		}
 
 		Value vresult = PythonLanguage::MarshalFromPython(result);

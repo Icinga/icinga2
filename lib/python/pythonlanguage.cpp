@@ -44,6 +44,8 @@ PythonLanguage::PythonLanguage(void)
 
 	m_MainThreadState = PyThreadState_Get();
 
+	m_TracebackModule = PyImport_ImportModule("traceback");
+
 	m_NativeModule = Py_InitModule("ire", m_NativeMethodDef);
 
 	(void) PyThreadState_Swap(NULL);
@@ -198,6 +200,32 @@ Value PythonLanguage::MarshalFromPython(PyObject *value)
 	} else {
 		return Empty;
 	}
+}
+
+String PythonLanguage::ExceptionInfoToString(PyObject *type, PyObject *exc, PyObject *tb) const
+{
+	PyObject *tb_dict = PyModule_GetDict(m_TracebackModule);
+	PyObject *format_exception = PyDict_GetItemString(tb_dict, "format_exception");
+
+	if (!PyCallable_Check(format_exception))
+		return "Failed to format exception information.";
+
+	PyObject *result = PyObject_CallFunctionObjArgs(format_exception, type, exc, tb);
+
+	Py_DECREF(format_exception);
+	Py_DECREF(tb_dict);
+
+	if (!result || !PyString_Check(result)) {
+		Py_XDECREF(result);
+
+		return "format_exception() returned something that is not a string.";
+	}
+
+	String msg = PyString_AsString(result);
+
+	Py_DECREF(result);
+
+	return msg;
 }
 
 PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
