@@ -223,11 +223,16 @@ void Host::UpdateSlaveServices(void)
 			} else if (svcdesc.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr service = svcdesc;
 
-				String parent = service->Get("service");
-				if (parent.IsEmpty())
-					parent = svcname;
+				Dictionary::Ptr templates = service->Get("templates");
 
-				builder->AddParent(parent);
+				if (templates) {
+					String tmpl;
+					BOOST_FOREACH(tie(tuples::ignore, tmpl), templates) {
+						builder->AddParent(tmpl);
+					}
+				} else {
+					builder->AddParent(svcname);
+				}
 
 				CopyServiceAttributes<true>(service, builder);
 			} else {

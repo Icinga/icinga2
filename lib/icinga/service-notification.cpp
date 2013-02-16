@@ -156,11 +156,16 @@ void Service::UpdateSlaveNotifications(void)
 			} else if (nfcdesc.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr notification = nfcdesc;
 
-				String parent = notification->Get("notification");
-				if (parent.IsEmpty())
-					parent = nfcname;
+				Dictionary::Ptr templates = notification->Get("templates");
 
-				builder->AddParent(parent);
+				if (templates) {
+					String tmpl;
+					BOOST_FOREACH(tie(tuples::ignore, tmpl), templates) {
+						builder->AddParent(tmpl);
+					}
+				} else {
+					builder->AddParent(nfcname);
+				}
 
 				CopyNotificationAttributes(notification, builder);
 			} else {
