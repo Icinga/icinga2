@@ -59,6 +59,7 @@ any				{ yylval->type = TypeAny; return T_TYPE_ANY; }
 abstract			return T_ABSTRACT;
 local				return T_LOCAL;
 object				return T_OBJECT;
+template			return T_TEMPLATE;
 #include			return T_INCLUDE;
 #library			return T_LIBRARY;
 inherits			return T_INHERITS;
@@ -107,4 +108,3 @@ void ConfigCompiler::DestroyScanner(void)
 {
 	yylex_destroy(m_Scanner);
 }
-

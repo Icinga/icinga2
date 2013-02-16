@@ -65,6 +65,7 @@ using namespace icinga;
 %token T_ABSTRACT
 %token T_LOCAL
 %token T_OBJECT
+%token T_TEMPLATE
 %token T_INCLUDE
 %token T_LIBRARY
 %token T_INHERITS
@@ -257,22 +258,22 @@ object:
 		m_Abstract = false;
 		m_Local = false;
 	}
-attributes T_OBJECT identifier T_STRING
+object_declaration identifier T_STRING
 	{
 		m_Item = boost::make_shared<ConfigItemBuilder>(yylloc);
 
-		m_Item->SetType($4);
-		free($4);
+		m_Item->SetType($3);
+		free($3);
 
-		m_Item->SetName($5);
-		free($5);
+		m_Item->SetName($4);
+		free($4);
 
 		m_Item->SetUnit(ConfigCompilerContext::GetContext()->GetUnit());
 	}
 object_inherits_specifier expressionlist
 	{
-		ExpressionList::Ptr exprl = *$8;
-		delete $8;
+		ExpressionList::Ptr exprl = *$7;
+		delete $7;
 
 		m_Item->AddExpressionList(exprl);
 		m_Item->SetLocal(m_Local);
@@ -282,6 +283,12 @@ object_inherits_specifier expressionlist
 		m_Item.reset();
 	}
 	;
+
+object_declaration: attributes T_OBJECT
+	| T_TEMPLATE
+	{
+		m_Abstract = true;
+	}
 
 attributes: /* empty */
 	| attributes attribute

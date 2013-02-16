@@ -238,6 +238,15 @@ Specifier "abstract"
 This specifier identifies the object as a template which can be used by other
 object definitions. The object will not be instantiated on its own.
 
+Instead of using the "abstract" specifier you can use the "template" keyword
+which is a shorthand for writing "abstract object":
+
+-------------------------------------------------------------------------------
+template Service "http" {
+  ...
+}
+-------------------------------------------------------------------------------
+
 Specifier "local"
 ^^^^^^^^^^^^^^^^^
 

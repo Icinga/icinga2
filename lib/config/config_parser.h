@@ -1,8 +1,10 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
 
-/* Bison interface for Yacc-like parsers in C
+/* A Bison parser, made by GNU Bison 2.4.1.  */
+
+/* Skeleton interface for Bison's Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,7 +34,7 @@
 
 /* "%code requires" blocks.  */
 
-/* Line 2068 of yacc.c  */
+/* Line 1676 of yacc.c  */
 #line 1 "config_parser.yy"
 
 /******************************************************************************
@@ -63,8 +65,8 @@ using namespace icinga;
 
 
 
-/* Line 2068 of yacc.c  */
-#line 68 "config_parser.h"
+/* Line 1676 of yacc.c  */
+#line 70 "config_parser.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -94,10 +96,11 @@ using namespace icinga;
      T_ABSTRACT = 277,
      T_LOCAL = 278,
      T_OBJECT = 279,
-     T_INCLUDE = 280,
-     T_LIBRARY = 281,
-     T_INHERITS = 282,
-     T_PARTIAL = 283
+     T_TEMPLATE = 280,
+     T_INCLUDE = 281,
+     T_LIBRARY = 282,
+     T_INHERITS = 283,
+     T_PARTIAL = 284
    };
 #endif
 /* Tokens.  */
@@ -123,10 +126,11 @@ using namespace icinga;
 #define T_ABSTRACT 277
 #define T_LOCAL 278
 #define T_OBJECT 279
-#define T_INCLUDE 280
-#define T_LIBRARY 281
-#define T_INHERITS 282
-#define T_PARTIAL 283
+#define T_TEMPLATE 280
+#define T_INCLUDE 281
+#define T_LIBRARY 282
+#define T_INHERITS 283
+#define T_PARTIAL 284
 
 
 
@@ -135,7 +139,7 @@ using namespace icinga;
 typedef union YYSTYPE
 {
 
-/* Line 2068 of yacc.c  */
+/* Line 1676 of yacc.c  */
 #line 38 "config_parser.yy"
 
 	char *text;
@@ -146,8 +150,8 @@ typedef union YYSTYPE
 
 
 
-/* Line 2068 of yacc.c  */
-#line 151 "config_parser.h"
+/* Line 1676 of yacc.c  */
+#line 155 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
