@@ -86,6 +86,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 
 %x C_COMMENT
 %x STRING
+%x HEREDOC
 
 %%
 	lex_buf string_buf;
@@ -147,6 +148,20 @@ static void lb_append_char(lex_buf *lb, char new_char)
 	while (*yptr)
 		lb_append_char(&string_buf, *yptr++);
 		       	       }
+
+\{\{\{				{ lb_init(&string_buf); BEGIN(HEREDOC); }
+
+<HEREDOC>\}\}\}			{
+	BEGIN(INITIAL);
+
+	lb_append_char(&string_buf, '\0');
+
+	yylval->text = lb_steal(&string_buf);
+
+	return T_STRING;
+				}
+
+<HEREDOC>(.|\n)			{ lb_append_char(&string_buf, yytext[0]); }
 
 <INITIAL>{
 "/*"				BEGIN(C_COMMENT);

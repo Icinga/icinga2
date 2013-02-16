@@ -30,6 +30,8 @@ PluginNotificationTask::PluginNotificationTask(const ScriptTask::Ptr& task, cons
 
 void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
+	assert(Application::IsMainThread());
+
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Notification target must be specified."));
 
