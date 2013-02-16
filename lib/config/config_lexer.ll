@@ -38,15 +38,130 @@ do {							\
 do {							\
 	result = yyextra->ReadInput(buf, max_size);	\
 } while (0)
+
+struct lex_buf {
+	char *buf;
+	size_t size;
+};
+
+static void lb_init(lex_buf *lb)
+{
+	lb->buf = NULL;
+	lb->size = 0;
+}
+
+static void lb_cleanup(lex_buf *lb)
+{
+	free(lb->buf);
+}
+
+static char *lb_steal(lex_buf *lb)
+{
+	char *buf = lb->buf;
+	lb->buf = NULL;
+	lb->size = 0;
+	return buf;
+}
+
+static void lb_append_char(lex_buf *lb, char new_char)
+{
+	/* round up new_len to the next multiple of 1024 */
+	size_t new_len = ((lb->size + 1) / 1024 + 1) * 1024;
+
+	char *new_buf = (char *)realloc(lb->buf, new_len);
+
+	if (new_buf == NULL && new_len > 0)
+		throw bad_alloc();
+
+	lb->buf = new_buf;
+	lb->size++;
+
+	lb->buf[lb->size - 1] = new_char;
+}
 %}
 
 %option reentrant noyywrap yylineno
 %option bison-bridge bison-locations
 %option never-interactive nounistd
 
-%x IN_C_COMMENT
+%x C_COMMENT
+%x STRING
 
 %%
+	lex_buf string_buf;
+
+\"				{ lb_init(&string_buf); BEGIN(STRING); }
+
+<STRING>\"			{
+	BEGIN(INITIAL);
+
+	lb_append_char(&string_buf, '\0');
+
+	yylval->text = lb_steal(&string_buf);
+
+	return T_STRING;
+				}
+
+<STRING>\n			{
+	stringstream msgbuf;
+	msgbuf << "Unterminated string found: " << *yylloc;
+	ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
+	BEGIN(INITIAL);
+				}
+
+<STRING>\\[0-7]{1,3}		{
+	/* octal escape sequence */
+	int result;
+
+	(void) sscanf(yytext + 1, "%o", &result);
+
+	if (result > 0xff) {
+		/* error, constant is out-of-bounds */
+		stringstream msgbuf;
+		msgbuf << "Constant is out-of-bounds: " << yytext << " " << *yylloc;
+		ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
+	}
+
+	lb_append_char(&string_buf, result);
+				}
+
+<STRING>\\[0-9]+		{
+	/* generate error - bad escape sequence; something
+	 * like '\48' or '\0777777'
+	 */
+	stringstream msgbuf;
+	msgbuf << "Bad escape sequence found: " << yytext << " " << *yylloc;
+	ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
+				}
+
+<STRING>\\n			{ lb_append_char(&string_buf, '\n'); }
+<STRING>\\t			{ lb_append_char(&string_buf, '\t'); }
+<STRING>\\r			{ lb_append_char(&string_buf, '\r'); }
+<STRING>\\b			{ lb_append_char(&string_buf, '\b'); }
+<STRING>\\f			{ lb_append_char(&string_buf, '\f'); }
+<STRING>\\(.|\n)		{ lb_append_char(&string_buf, yytext[1]); }
+
+<STRING>[^\\\n\"]+		{
+	char *yptr = yytext;
+
+	while (*yptr)
+		lb_append_char(&string_buf, *yptr++);
+		       	       }
+
+<INITIAL>{
+"/*"				BEGIN(C_COMMENT);
+}
+
+<C_COMMENT>{
+"*/"				BEGIN(INITIAL);
+[^*]+				/* ignore comment */
+"*"				/* ignore star */
+}
+
+\/\/[^\n]+			/* ignore C++-style comments */
+[ \t\r\n]+			/* ignore whitespace */
+
+<INITIAL>{
 type				return T_TYPE;
 dictionary			{ yylval->type = TypeDictionary; return T_TYPE_DICTIONARY; }
 number				{ yylval->type = TypeNumber; return T_TYPE_NUMBER; }
@@ -68,7 +183,6 @@ partial				return T_PARTIAL;
 true				{ yylval->num = 1; return T_NUMBER; }
 false				{ yylval->num = 0; return T_NUMBER; }
 [a-zA-Z_\*][:a-zA-Z0-9\-_\*]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
-\"[^\"]*\"			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING; }
 \<[^\>]*\>			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING_ANGLE; }
 -?[0-9]+(\.[0-9]+)?ms		{ yylval->num = strtod(yytext, NULL) / 1000; return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?h		{ yylval->num = strtod(yytext, NULL) * 60 * 60; return T_NUMBER; }
@@ -80,23 +194,11 @@ false				{ yylval->num = 0; return T_NUMBER; }
 -=				{ yylval->op = OperatorMinus; return T_MINUS_EQUAL; }
 \*=				{ yylval->op = OperatorMultiply; return T_MULTIPLY_EQUAL; }
 \/=				{ yylval->op = OperatorDivide; return T_DIVIDE_EQUAL; }
-
-<INITIAL>{
-"/*"				BEGIN(IN_C_COMMENT);
 }
-
-<IN_C_COMMENT>{
-"*/"				BEGIN(INITIAL);
-[^*]+				/* ignore comment */
-"*"				/* ignore star */
-}
-
-\/\/[^\n]+			/* ignore C++-style comments */
-[ \t\r\n]+			/* ignore whitespace */
 
 .				return yytext[0];
-%%
 
+%%
 
 void ConfigCompiler::InitializeScanner(void)
 {
