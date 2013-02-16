@@ -105,7 +105,7 @@ void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& f
 			Py_XDECREF(pvalue);
 			Py_XDECREF(ptraceback);
 
-			BOOST_THROW_EXCEPTION(runtime_error("Error in Python script:" + msg));
+			BOOST_THROW_EXCEPTION(runtime_error("Error in Python script: " + msg));
 		}
 
 		Value vresult = PythonLanguage::MarshalFromPython(result);

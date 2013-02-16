@@ -225,13 +225,25 @@ String PythonLanguage::ExceptionInfoToString(PyObject *type, PyObject *exc, PyOb
 	Py_DECREF(format_exception);
 	Py_DECREF(tb_dict);
 
-	if (!result || !PyString_Check(result)) {
+	if (!result || !PyList_Check(result)) {
 		Py_XDECREF(result);
 
-		return "format_exception() returned something that is not a string.";
+		return "format_exception() returned something that is not a list.";
 	}
 
-	String msg = PyString_AsString(result);
+	String msg;
+
+	for (Py_ssize_t i = 0; i < PyList_Size(result); i++) {
+		PyObject *li = PyList_GetItem(result, i);
+
+		if (!li || !PyString_Check(li)) {
+			Py_DECREF(result);
+
+			return "format_exception() returned something that is not a list of strings.";
+		}
+
+		msg += PyString_AsString(li);
+	}
 
 	Py_DECREF(result);
 
