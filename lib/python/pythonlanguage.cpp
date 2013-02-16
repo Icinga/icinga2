@@ -220,7 +220,7 @@ String PythonLanguage::ExceptionInfoToString(PyObject *type, PyObject *exc, PyOb
 	if (!PyCallable_Check(format_exception))
 		return "Failed to format exception information.";
 
-	PyObject *result = PyObject_CallFunctionObjArgs(format_exception, type, exc, tb);
+	PyObject *result = PyObject_CallFunctionObjArgs(format_exception, type, exc, tb, NULL);
 
 	Py_DECREF(format_exception);
 	Py_DECREF(tb_dict);
