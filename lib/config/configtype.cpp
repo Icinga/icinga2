@@ -21,8 +21,6 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION("ValidateMethods", &ConfigType::ValidateMethods);
-
 ConfigType::ConfigType(const String& name, const DebugInfo& debuginfo)
 	: m_Name(name), m_RuleList(boost::make_shared<TypeRuleList>()), m_DebugInfo(debuginfo)
 { }
@@ -171,31 +169,3 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 	}
 }
 
-void ConfigType::ValidateMethods(const ScriptTask::Ptr& task,
-    const vector<Value>& arguments)
-{
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Location must be specified."));
-
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Attribute dictionary must be specified."));
-
-	String location = arguments[0];
-	Dictionary::Ptr attrs = arguments[1];
-
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), attrs) {
-		if (!value.IsScalar())
-			continue;
-
-		String method = value;
-
-		if (!ScriptFunction::GetByName(method)) {
-			ConfigCompilerContext::GetContext()->AddError(false, "Validation failed for " +
-			    location + ": Script function '" + method + "' not found.");
-		}
-	}
-
-	task->FinishResult(Empty);
-}
