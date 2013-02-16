@@ -125,6 +125,19 @@ PyObject *PythonLanguage::MarshalToPython(const Value& value)
 				(void) PyTuple_SetItem(result, 1, pname);
 
 				return result;
+			} else if (value.IsObjectType<Dictionary>()) {
+				Dictionary::Ptr dict = value;
+				PyObject *pdict = PyDict_New();
+
+				String key;
+				Value value;
+				BOOST_FOREACH(tie(key, value), dict) {
+					PyObject *dv = MarshalToPython(value);
+
+					PyDict_SetItemString(pdict, key.CStr(), dv);
+				}
+
+				return pdict;
 			}
 
 			Py_INCREF(Py_None);
@@ -139,6 +152,20 @@ Value PythonLanguage::MarshalFromPython(PyObject *value)
 {
 	if (value == Py_None) {
 		return Empty;
+	} else if (PyDict_Check(value)) {
+		Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+
+		PyObject *dk, *dv;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(value, &pos, &dk, &dv)) {
+		    String ik = PyString_AsString(dk);
+		    Value iv = MarshalFromPython(dv);
+
+		    dict->Set(ik, iv);
+		}
+
+		return dict;
 	} else if (PyTuple_Check(value) && PyTuple_Size(value) == 2) {
 		PyObject *ptype, *pname;
 
@@ -164,6 +191,8 @@ Value PythonLanguage::MarshalFromPython(PyObject *value)
 		return object;
 	} else if (PyFloat_Check(value)) {
 		return PyFloat_AsDouble(value);
+	} else if (PyInt_Check(value)) {
+		return PyInt_AsLong(value);
 	} else if (PyString_Check(value)) {
 		return PyString_AsString(value);
 	} else {

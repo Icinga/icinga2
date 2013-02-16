@@ -115,9 +115,9 @@ void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& f
 		Value vresult = PythonLanguage::MarshalFromPython(result);
 		Py_DECREF(result);
 
-		task->FinishResult(vresult);
+		Application::GetEQ().Post(boost::bind(&ScriptTask::FinishResult, task, vresult));
 	} catch (...) {
-		task->FinishException(boost::current_exception());
+		Application::GetEQ().Post(boost::bind(&ScriptTask::FinishException, task, boost::current_exception()));
 	}
 
 	m_Language->SetCurrentInterpreter(interp);
