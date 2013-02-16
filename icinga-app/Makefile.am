@@ -29,7 +29,6 @@ icinga2_LDADD = \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
 	-dlopen ${top_builddir}/lib/icinga/libicinga.la \
-	-dlopen ${top_builddir}/lib/python/libpython.la \
 	-dlopen ${top_builddir}/components/checker/checker.la \
 	-dlopen ${top_builddir}/components/replication/replication.la \
 	-dlopen ${top_builddir}/components/compat/compat.la \
@@ -37,3 +36,8 @@ icinga2_LDADD = \
 	-dlopen ${top_builddir}/components/delegation/delegation.la \
 	-dlopen ${top_builddir}/components/demo/demo.la \
 	-dlopen ${top_builddir}/components/notification/notification.la
+
+if PYTHON_USE
+icinga2_LDADD += \
+	-dlopen ${top_builddir}/lib/python/libpython.la
+endif
