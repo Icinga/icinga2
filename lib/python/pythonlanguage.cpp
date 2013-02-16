@@ -31,8 +31,14 @@ PyMethodDef PythonLanguage::m_NativeMethodDef[] = {
 };
 
 PythonLanguage::PythonLanguage(void)
-	: ScriptLanguage()
+	: ScriptLanguage(), m_Initialized(false)
+{ }
+
+void PythonLanguage::InitializeOnce(void)
 {
+	if (m_Initialized)
+		return;
+
 	Py_Initialize();
 	PyEval_InitThreads();
 
@@ -59,6 +65,8 @@ PythonLanguage::PythonLanguage(void)
 
 	ScriptFunction::OnRegistered.connect(boost::bind(&PythonLanguage::RegisterNativeFunction, this, _1, _2));
 	ScriptFunction::OnUnregistered.connect(boost::bind(&PythonLanguage::UnregisterNativeFunction, this, _1));
+
+	m_Initialized = true;
 }
 
 PythonLanguage::~PythonLanguage(void)
@@ -70,6 +78,8 @@ PythonLanguage::~PythonLanguage(void)
 
 ScriptInterpreter::Ptr PythonLanguage::CreateInterpreter(const Script::Ptr& script)
 {
+	InitializeOnce();
+
 	return boost::make_shared<PythonInterpreter>(GetSelf(), script);
 }
 

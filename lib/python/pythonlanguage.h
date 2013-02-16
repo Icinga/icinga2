@@ -50,7 +50,9 @@ public:
 	static Value MarshalFromPython(PyObject *value);
 
 	String ExceptionInfoToString(PyObject *type, PyObject *exc, PyObject *tb) const;
+
 private:
+	bool m_Initialized;
 	PyThreadState *m_MainThreadState;
 	PyObject *m_NativeModule;
 	PyObject *m_TracebackModule;
@@ -63,6 +65,8 @@ private:
 	static PyObject *PyRegisterFunction(PyObject *self, PyObject *args);
 
 	static PyMethodDef m_NativeMethodDef[];
+
+	void InitializeOnce(void);
 };
 
 }
