@@ -60,7 +60,7 @@ public:
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
-	boost::signal<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
+	signals2::signal<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
 
 private:
 	String m_Identity;

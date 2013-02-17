@@ -27,7 +27,7 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 
 	if (cmd.IsScalar()) {
 		result = InternalResolveMacros(cmd, macros);
-	} else {
+	} else if (cmd.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr resultDict = boost::make_shared<Dictionary>();
 		Dictionary::Ptr dict = cmd;
 
@@ -37,6 +37,8 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 		}
 
 		result = resultDict;
+	} else {
+		BOOST_THROW_EXCEPTION(invalid_argument("Command is not a string or dictionary."));
 	}
 
 	return result;

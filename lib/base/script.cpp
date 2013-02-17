@@ -32,12 +32,6 @@ Script::Script(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 { }
 
-Script::~Script(void)
-{
-	if (m_Interpreter)
-		m_Interpreter->Stop();
-}
-
 void Script::OnInitCompleted(void)
 {
 	SpawnInterpreter();
@@ -63,10 +57,6 @@ void Script::SpawnInterpreter(void)
 {
 	Logger::Write(LogInformation, "base", "Reloading script '" + GetName() + "'");
 
-	if (m_Interpreter)
-		m_Interpreter->Stop();
-
 	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
 	m_Interpreter = language->CreateInterpreter(GetSelf());
-	m_Interpreter->Start();
 }

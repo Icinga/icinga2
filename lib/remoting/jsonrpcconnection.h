@@ -38,7 +38,7 @@ public:
 
 	void SendMessage(const MessagePart& message);
 
-	boost::signal<void (const JsonRpcConnection::Ptr&, const MessagePart&)> OnNewMessage;
+	signals2::signal<void (const JsonRpcConnection::Ptr&, const MessagePart&)> OnNewMessage;
 
 protected:
 	virtual void ProcessData(void);

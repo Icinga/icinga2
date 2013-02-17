@@ -34,24 +34,23 @@ public:
 	typedef function<void ()> Callback;
 
 	EventQueue(void);
+	~EventQueue(void);
 
-	bool ProcessEvents(boost::mutex& mtx, millisec timeout = boost::posix_time::milliseconds(30000));
+	void Run(void);
 	void Post(const Callback& callback);
 
 	void Stop(void);
-
-	boost::thread::id GetOwner(void) const;
-	void SetOwner(boost::thread::id owner);
-
-	boost::mutex& GetMutex(void);
 
 private:
 	boost::thread::id m_Owner;
 
 	boost::mutex m_Mutex;
+	condition_variable m_CV;
+
 	bool m_Stopped;
 	vector<Callback> m_Events;
-	condition_variable m_EventAvailable;
+
+	void QueueThreadProc(void);
 };
 
 }

@@ -398,17 +398,11 @@ pid_t Utility::GetPid(void)
  */
 void Utility::Sleep(double timeout)
 {
-	if (Application::IsMainThread())
-		Application::GetMutex().unlock();
-
 #ifndef _WIN32
 	usleep(timeout * 1000 * 1000);
 #else /* _WIN32 */
 	::Sleep(timeout * 1000);
 #endif /* _WIN32 */
-
-	if (Application::IsMainThread())
-		Application::GetMutex().lock();
 }
 
 /**
@@ -519,17 +513,6 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 
 	return true;
 #endif /* _WIN32 */
-}
-
-/**
- * Waits until the given predicate is true. Executes events while waiting.
- *
- * @param predicate The predicate.
- */
-void Utility::WaitUntil(const function<bool (void)>& predicate)
-{
-	while (!predicate())
-		Application::ProcessEvents();
 }
 
 #ifndef _WIN32

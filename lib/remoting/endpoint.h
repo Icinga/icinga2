@@ -71,11 +71,11 @@ public:
 
 	static Endpoint::Ptr MakeEndpoint(const String& name, bool replicated, bool local = true);
 
-	static boost::signal<void (const Endpoint::Ptr&)> OnConnected;
-	static boost::signal<void (const Endpoint::Ptr&)> OnDisconnected;
+	static signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
+	static signals2::signal<void (const Endpoint::Ptr&)> OnDisconnected;
 
-	static boost::signal<void (const Endpoint::Ptr&, const String& topic)> OnSubscriptionRegistered;
-	static boost::signal<void (const Endpoint::Ptr&, const String& topic)> OnSubscriptionUnregistered;
+	static signals2::signal<void (const Endpoint::Ptr&, const String& topic)> OnSubscriptionRegistered;
+	static signals2::signal<void (const Endpoint::Ptr&, const String& topic)> OnSubscriptionUnregistered;
 
 private:
 	bool m_ReceivedWelcome; /**< Have we received a welcome message
@@ -83,7 +83,7 @@ private:
 	bool m_SentWelcome; /**< Have we sent a welcome message to this
 			         endpoint? */
 
-	map<String, shared_ptr<boost::signal<Callback> > > m_TopicHandlers;
+	map<String, shared_ptr<signals2::signal<Callback> > > m_TopicHandlers;
 
 	void NewMessageHandler(const MessagePart& message);
 	void ClientClosedHandler(void);

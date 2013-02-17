@@ -67,11 +67,17 @@ String Service::GetDisplayName(void) const
 	return GetName();
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Service::Exists(const String& name)
 {
 	return (DynamicObject::GetObject("Service", name));
 }
 
+/**
+ * @threadsafety Always.
+ */
 Service::Ptr Service::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Service", name);
@@ -82,9 +88,14 @@ Service::Ptr Service::GetByName(const String& name)
 	return dynamic_pointer_cast<Service>(configObject);
 }
 
+/**
+ * @threadsafety Always.
+ */
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)
 {
 	if (!hostName.IsEmpty()) {
+		recursive_mutex::scoped_lock lock(Application::GetMutex());
+
 		Host::Ptr host = Host::GetByName(hostName);
 		return host->GetServiceByShortName(serviceName);
 	} else {

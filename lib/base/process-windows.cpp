@@ -22,7 +22,7 @@
 
 using namespace icinga;
 
-void Process::CreateWorkers(void)
+void Process::Initialize(void)
 {
 	// TODO: implement
 }

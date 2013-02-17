@@ -59,11 +59,17 @@ String Host::GetDisplayName(void) const
 		return GetName();
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Host::Exists(const String& name)
 {
 	return (DynamicObject::GetObject("Host", name));
 }
 
+/**
+ * @threadsafety Always.
+ */
 Host::Ptr Host::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Host", name);

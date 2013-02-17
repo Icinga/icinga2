@@ -210,6 +210,8 @@ void Service::RemoveExpiredComments(void)
 
 void Service::CommentsExpireTimerHandler(void)
 {
+	recursive_mutex::scoped_lock lock(Application::GetMutex());
+
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);

@@ -53,6 +53,8 @@ void NotificationComponent::Stop(void)
  */
 void NotificationComponent::NotificationTimerHandler(void)
 {
+	recursive_mutex::scoped_lock lock(Application::GetMutex());
+
 	// TODO: implement
 }
 

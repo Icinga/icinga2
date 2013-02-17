@@ -62,8 +62,8 @@ public:
 
 	static void UnloadUnit(const String& unit);
 
-	static boost::signal<void (const ConfigItem::Ptr&)> OnCommitted;
-	static boost::signal<void (const ConfigItem::Ptr&)> OnRemoved;
+	static signals2::signal<void (const ConfigItem::Ptr&)> OnCommitted;
+	static signals2::signal<void (const ConfigItem::Ptr&)> OnRemoved;
 
 private:
 	void InternalLink(const Dictionary::Ptr& dictionary) const;
@@ -88,6 +88,8 @@ private:
 						 * item */
         set<ConfigItem::WeakPtr> m_ChildObjects; /**< Instantiated items
                                                      * that inherit from this item */
+
+	static boost::mutex m_Mutex;
 
 	typedef map<pair<String, String>, ConfigItem::Ptr> ItemMap;
 	static ItemMap m_Items; /**< All registered configuration items. */

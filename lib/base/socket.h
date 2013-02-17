@@ -51,7 +51,7 @@ public:
 
 	void Listen(void);
 
-	boost::signal<void (const Socket::Ptr&, const Socket::Ptr&)> OnNewClient;
+	signals2::signal<void (const Socket::Ptr&, const Socket::Ptr&)> OnNewClient;
 
 protected:
 	Socket(void);

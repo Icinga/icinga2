@@ -29,8 +29,6 @@ REGISTER_TYPE(Component, NULL);
 Component::Component(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
-	assert(Application::IsMainThread());
-
 	if (!IsLocal())
 		BOOST_THROW_EXCEPTION(runtime_error("Component objects must be local."));
 

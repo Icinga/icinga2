@@ -78,6 +78,9 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 	ValidateDictionary(attrs, ruleLists, locations);
 }
 
+/**
+ * @threadsafety Always.
+ */
 String ConfigType::LocationToString(const vector<String>& locations)
 {
 	bool first = true;
@@ -94,6 +97,9 @@ String ConfigType::LocationToString(const vector<String>& locations)
 	return stack;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
     const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations)
 {
@@ -168,4 +174,3 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 		locations.pop_back();
 	}
 }
-

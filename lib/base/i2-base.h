@@ -125,7 +125,7 @@ using std::type_info;
 #include <boost/make_shared.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/compare.hpp>
@@ -139,6 +139,9 @@ using std::type_info;
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/program_options.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/key_extractors.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
@@ -148,6 +151,7 @@ using boost::static_pointer_cast;
 using boost::function;
 using boost::thread;
 using boost::thread_group;
+using boost::recursive_mutex;
 using boost::condition_variable;
 using boost::system_time;
 using boost::posix_time::millisec;
@@ -155,11 +159,18 @@ using boost::tie;
 using boost::rethrow_exception;
 using boost::current_exception;
 using boost::diagnostic_information;
+using boost::multi_index_container;
+using boost::multi_index::indexed_by;
+using boost::multi_index::identity;
+using boost::multi_index::ordered_unique;
+using boost::multi_index::ordered_non_unique;
+using boost::multi_index::nth_index;
 
 namespace tuples = boost::tuples;
+namespace signals2 = boost::signals2;
 
 #if defined(__APPLE__) && defined(__MACH__)
-#	pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
+#	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 #include <openssl/bio.h>

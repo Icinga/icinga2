@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #ifndef ASYNCTASK_H
-#define ASYNCTASK_H 
+#define ASYNCTASK_H
 
 namespace icinga
 {
@@ -79,6 +79,7 @@ public:
 	 */
 	bool IsFinished(void) const
 	{
+		boost::mutex::scoped_lock lock(m_Mutex);
 		return m_Finished;
 	}
 
@@ -133,7 +134,9 @@ public:
 	 */
 	void Wait(void)
 	{
-		Utility::WaitUntil(boost::bind(&AsyncTask<TClass, TResult>::IsFinished, this));
+		boost::mutex::scoped_lock lock(m_Mutex);
+		while (!m_Finished)
+			m_CV.wait(lock);
 	}
 
 protected:
@@ -151,9 +154,14 @@ private:
 	 */
 	void FinishInternal(void)
 	{
-		assert(!m_Finished);
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			assert(!m_Finished);
 
-		m_Finished = true;
+			m_Finished = true;
+
+			m_CV.notify_all();
+		}
 
 		if (!m_CompletionCallback.empty()) {
 			m_CompletionCallback(GetSelf());
@@ -164,6 +172,8 @@ private:
 		}
 	}
 
+	mutable boost::mutex m_Mutex;
+	boost::condition_variable m_CV;
 	CompletionCallback m_CompletionCallback; /**< The completion callback. */
 	TResult m_Result; /**< The task's result. */
 	boost::exception_ptr m_Exception; /**< The task's exception. */

@@ -28,9 +28,12 @@ PluginNotificationTask::PluginNotificationTask(const ScriptTask::Ptr& task, cons
 	: m_Task(task), m_Process(process), m_ServiceName(service), m_Command(command)
 { }
 
+/**
+ * @threadsafety Always.
+ */
 void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
-	assert(Application::IsMainThread());
+	recursive_mutex::scoped_lock lock(Application::GetMutex());
 
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Notification target must be specified."));
@@ -62,8 +65,13 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vecto
 	process->Start(boost::bind(&PluginNotificationTask::ProcessFinishedHandler, ct));
 }
 
+/**
+ * @threadsafety Always.
+ */
 void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
 {
+	recursive_mutex::scoped_lock lock(Application::GetMutex());
+
 	ProcessResult pr;
 
 	try {

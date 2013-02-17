@@ -54,6 +54,8 @@ void DemoComponent::Stop(void)
  */
 void DemoComponent::DemoTimerHandler(void)
 {
+	recursive_mutex::scoped_lock lock(Application::GetMutex());
+
 	Logger::Write(LogInformation, "demo", "Sending multicast 'hello"
 	    " world' message.");
 

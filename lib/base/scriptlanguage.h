@@ -47,6 +47,7 @@ protected:
 	ScriptLanguage(void);
 
 private:
+	static boost::mutex& GetMutex(void);
 	static map<String, ScriptLanguage::Ptr>& GetLanguages(void);
 };
 

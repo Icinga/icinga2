@@ -66,23 +66,6 @@ static bool LoadConfigFiles(bool validateOnly)
 	if (hasError)
 		return false;
 
-/*			Logger::Write(LogInformation, "icinga-app", "Validating config items...");
-			DynamicType::Ptr type;
-			BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
-				ConfigType::Ptr ctype = ConfigType::GetByName(type->GetName());
-
-				if (!ctype) {
-					Logger::Write(LogWarning, "icinga-app", "No config type found for type '" + type->GetName() + "'");
-
-					continue;
-				}
-
-				DynamicObject::Ptr object;
-				BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
-					ctype->ValidateObject(object);
-				}
-			}*/
-
 	if (validateOnly)
 		return true;
 
@@ -105,8 +88,13 @@ static bool LoadConfigFiles(bool validateOnly)
 static void ReloadConfigTimerHandler(void)
 {
 	if (g_ReloadConfig) {
-		Logger::Write(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
-		LoadConfigFiles(false);
+		{
+			recursive_mutex::scoped_lock lock(Application::GetMutex());
+
+			Logger::Write(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
+			LoadConfigFiles(false);
+		}
+
 		g_ReloadConfig = false;
 	}
 }
@@ -135,10 +123,6 @@ int main(int argc, char **argv)
 #ifndef _WIN32
 	lt_dlinit();
 #endif /* _WIN32 */
-
-	/* This must be done before calling any other functions
-	 * in the base library. */
-	Application::SetMainThread();
 
 	/* Set command-line arguments. */
 	Application::SetArgC(argc);
@@ -252,14 +236,14 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	DynamicObject::BeginTx();
+	DynamicObject::NewTx();
 
 	bool validateOnly = g_AppParams.count("validate");
 
 	if (!LoadConfigFiles(validateOnly))
 		return EXIT_FAILURE;
 
-	DynamicObject::FinishTx();
+	DynamicObject::NewTx();
 
 	if (validateOnly) {
 		Logger::Write(LogInformation, "icinga-app", "Terminating as requested by --validate.");
@@ -290,4 +274,3 @@ int main(int argc, char **argv)
 
 	return app->Run();
 }
-

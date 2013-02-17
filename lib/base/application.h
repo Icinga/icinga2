@@ -62,9 +62,6 @@ public:
 	static void SetDebugging(bool debug);
 	static bool IsDebugging(void);
 
-	static bool IsMainThread(void);
-	static void SetMainThread(void);
-
 	void UpdatePidFile(const String& filename);
 	void ClosePidFile(void);
 
@@ -82,9 +79,7 @@ public:
 	static String GetPkgDataDir(void);
 	static void SetPkgDataDir(const String& path);
 
-	static bool ProcessEvents(void);
-
-	static boost::mutex& GetMutex(void);
+	static recursive_mutex& GetMutex(void);
 
 	static EventQueue& GetEQ(void);
 
@@ -92,7 +87,7 @@ protected:
 	void RunEventLoop(void) const;
 
 private:
-	static boost::mutex m_Mutex; /**< The main thread mutex. */
+	static recursive_mutex m_Mutex; /**< The global mutex. */
 	static Application *m_Instance; /**< The application instance. */
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
@@ -120,6 +115,11 @@ private:
 	static void ExceptionHandler(void);
 
 	static void TimeWatchThreadProc(void);
+	static void NewTxTimerHandler(void);
+#ifdef _DEBUG
+	static void ProfileTimerHandler(void)
+#endif /* _DEBUG */
+	static void ShutdownTimerHandler(void);
 };
 
 }

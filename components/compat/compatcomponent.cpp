@@ -124,7 +124,6 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 		}
 	}
 
-
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("mkfifo() failed", errno));
 
@@ -154,7 +153,12 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 				line[strlen(line) - 1] = '\0';
 
 			String command = line;
-			Application::GetEQ().Post(boost::bind(&CompatComponent::ProcessCommand, this, command));
+
+			{
+				recursive_mutex::scoped_lock lock(Application::GetMutex());
+
+				ProcessCommand(command);
+			}
 		}
 
 		fclose(fp);
@@ -412,6 +416,8 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
  */
 void CompatComponent::StatusTimerHandler(void)
 {
+	recursive_mutex::scoped_lock lock(Application::GetMutex());
+
 	Logger::Write(LogInformation, "compat", "Writing compat status information");
 
 	String statuspath = GetStatusPath();

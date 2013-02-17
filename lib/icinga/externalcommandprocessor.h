@@ -28,6 +28,19 @@ public:
 	static void Execute(const String& line);
 	static void Execute(double time, const String& command, const vector<String>& arguments);
 
+private:
+	typedef function<void (double time, const vector<String>& arguments)> Callback;
+
+	static boost::once_flag m_InitializeOnce;
+	static boost::mutex m_Mutex;
+	static map<String, Callback> m_Commands;
+
+	ExternalCommandProcessor(void);
+
+	static void Initialize(void);
+
+	static void RegisterCommand(const String& command, const Callback& callback);
+
 	static void ProcessServiceCheckResult(double time, const vector<String>& arguments);
 	static void ScheduleSvcCheck(double time, const vector<String>& arguments);
 	static void ScheduleForcedSvcCheck(double time, const vector<String>& arguments);
@@ -72,16 +85,6 @@ public:
 	static void DelAllSvcComments(double time, const vector<String>& arguments);
 	static void SendCustomHostNotification(double time, const vector<String>& arguments);
 	static void SendCustomSvcNotification(double time, const vector<String>& arguments);
-
-private:
-	typedef function<void (double time, const vector<String>& arguments)> Callback;
-
-	static bool m_Initialized;
-	static map<String, Callback> m_Commands;
-
-	ExternalCommandProcessor(void);
-
-	static void RegisterCommand(const String& command, const Callback& callback);
 };
 
 }

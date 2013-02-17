@@ -47,15 +47,15 @@ public:
 
 	static void RegisterType(const DynamicType::Ptr& type);
 	static bool TypeExists(const String& name);
-	
+
 	DynamicObject::Ptr CreateObject(const Dictionary::Ptr& serializedUpdate) const;
 	DynamicObject::Ptr GetObject(const String& name) const;
 
 	void RegisterObject(const DynamicObject::Ptr& object);
 	void UnregisterObject(const DynamicObject::Ptr& object);
 
-	static TypeMap& GetTypes(void);
-	NameMap& GetObjects(void);
+	/* TODO(thread) make private */ static TypeMap& GetTypes(void);
+	/* TODO(thread) make private */ NameMap& GetObjects(void);
 
 	void AddAttribute(const String& name, DynamicAttributeType type);
 	void RemoveAttribute(const String& name);
@@ -64,6 +64,7 @@ public:
 	void AddAttributes(const AttributeDescription *attributes, int attributeCount);
 
 private:
+	static boost::mutex m_Mutex;
 	String m_Name;
 	ObjectFactory m_ObjectFactory;
 	map<String, DynamicAttributeType> m_Attributes;

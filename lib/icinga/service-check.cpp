@@ -25,8 +25,8 @@ const int Service::DefaultMaxCheckAttempts = 3;
 const int Service::DefaultCheckInterval = 5 * 60;
 const int Service::CheckIntervalDivisor = 5;
 
-boost::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChanged;
-boost::signal<void (const Service::Ptr&, const Value&)> Service::OnNextCheckChanged;
+signals2::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChanged;
+signals2::signal<void (const Service::Ptr&, const Value&)> Service::OnNextCheckChanged;
 
 Value Service::GetCheckCommand(void) const
 {
@@ -350,7 +350,7 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 
 		/* Make sure the notification component sees the updated
 		 * state/state_type attributes. */
-		DynamicObject::FlushTx();
+		DynamicObject::NewTx();
 
 		if (IsReachable() && !IsInDowntime() && !IsAcknowledged())
 			RequestNotifications(NotificationStateChange);
@@ -458,6 +458,8 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
 void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
     const ScriptTask::Ptr& task, const function<void (void)>& callback)
 {
+	ObjectLock olock(this);
+
 	Set("current_task", Empty);
 
 	scheduleInfo->Set("execution_end", Utility::GetTime());
@@ -521,7 +523,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	/* flush the current transaction so other instances see the service's
 	 * new state when they receive the CheckResult message */
-	DynamicObject::FlushTx();
+	DynamicObject::NewTx();
 
 	RequestMessage rm;
 	rm.SetMethod("checker::CheckResult");

@@ -21,9 +21,10 @@
 
 using namespace icinga;
 
+boost::mutex ConfigItem::m_Mutex;
 ConfigItem::ItemMap ConfigItem::m_Items;
-boost::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
-boost::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
+signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
+signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
 
 /**
  * Constructor for the ConfigItem class.
@@ -295,29 +296,38 @@ DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
  * @param type The type of the ConfigItem that is to be looked up.
  * @param name The name of the ConfigItem that is to be looked up.
  * @returns The configuration item.
+ * @threadsafety Always.
  */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
-	ConfigItem::ItemMap::iterator it;
+	{
+		recursive_mutex::scoped_lock lockg(Application::GetMutex());
 
-	ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
+		ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
 
-	if (context) {
-		ConfigItem::Ptr item = context->GetItem(type, name);
+		if (context) {
+			ConfigItem::Ptr item = context->GetItem(type, name);
 
-		if (item)
-			return item;
+			if (item)
+				return item;
 
-		/* ignore already active objects while we're in the compiler
-		 * context and linking to existing items is disabled. */
-		if ((context->GetFlags() & CompilerLinkExisting) == 0)
-			return ConfigItem::Ptr();
+			/* ignore already active objects while we're in the compiler
+			 * context and linking to existing items is disabled. */
+			if ((context->GetFlags() & CompilerLinkExisting) == 0)
+				return ConfigItem::Ptr();
+		}
 	}
 
-	it = m_Items.find(make_pair(type, name));
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
 
-	if (it != m_Items.end())
-		return it->second;
+		ConfigItem::ItemMap::iterator it;
+
+		it = m_Items.find(make_pair(type, name));
+
+		if (it != m_Items.end())
+			return it->second;
+	}
 
 	return ConfigItem::Ptr();
 }
@@ -351,8 +361,13 @@ void ConfigItem::Dump(ostream& fp) const
 	fp << "}" << "\n";
 }
 
+/**
+ * @threadsafety Caller must hold the global mutex.
+ */
 void ConfigItem::UnloadUnit(const String& unit)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	Logger::Write(LogInformation, "config", "Unloading config items from compilation unit '" + unit + "'");
 
 	vector<ConfigItem::Ptr> obsoleteItems;

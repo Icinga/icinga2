@@ -21,12 +21,19 @@
 
 using namespace icinga;
 
+boost::mutex DynamicType::m_Mutex;
+
 DynamicType::DynamicType(const String& name, const DynamicType::ObjectFactory& factory)
 	: m_Name(name), m_ObjectFactory(factory)
 { }
 
+/**
+ * @threadsafety Always.
+ */
 DynamicType::Ptr DynamicType::GetByName(const String& name)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	DynamicType::TypeMap::const_iterator tt = GetTypes().find(name);
 
 	if (tt == GetTypes().end())
@@ -35,12 +42,18 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 	return tt->second;
 }
 
+/**
+ * @threadsafety Caller must hold DynamicType::m_Mutex while using the map.
+ */
 DynamicType::TypeMap& DynamicType::GetTypes(void)
 {
 	static DynamicType::TypeMap types;
 	return types;
 }
 
+/**
+ * @threadsafety Caller must hold DynamicType::m_Mutex while using the map.
+ */
 DynamicType::NameMap& DynamicType::GetObjects(void)
 {
 	return m_Objects;
@@ -71,9 +84,16 @@ DynamicObject::Ptr DynamicType::GetObject(const String& name) const
 	return nt->second;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void DynamicType::RegisterType(const DynamicType::Ptr& type)
 {
-	if (GetByName(type->GetName()))
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	DynamicType::TypeMap::const_iterator tt = GetTypes().find(type->GetName());
+
+	if (tt != GetTypes().end())
 		BOOST_THROW_EXCEPTION(runtime_error("Cannot register class for type '" +
 		    type->GetName() + "': Objects of this type already exist."));
 
@@ -99,6 +119,9 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 	return obj;
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool DynamicType::TypeExists(const String& name)
 {
 	return (GetByName(name));

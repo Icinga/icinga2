@@ -81,7 +81,10 @@ void Logger::Write(LogSeverity severity, const String& facility,
 	entry.Facility = facility;
 	entry.Message = message;
 
-	Application::GetEQ().Post(boost::bind(&Logger::ForwardLogEntry, entry));
+	{
+		recursive_mutex::scoped_lock lock(Application::GetMutex());
+		ForwardLogEntry(entry);
+	}
 }
 
 /**
@@ -182,4 +185,3 @@ DynamicObject::Ptr ILogger::GetConfig(void) const
 {
 	return m_Config->GetSelf();
 }
-

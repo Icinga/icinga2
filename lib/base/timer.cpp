@@ -21,76 +21,52 @@
 
 using namespace icinga;
 
-Timer::CollectionType Timer::m_Timers;
+Timer::TimerSet Timer::m_Timers;
+boost::mutex Timer::m_Mutex;
+boost::condition_variable Timer::m_CV;
+boost::once_flag Timer::m_ThreadOnce = BOOST_ONCE_INIT;
 
 /**
- * Constructor for the Timer class.
- */
-Timer::Timer(void)
-	: m_Interval(0)
-{ }
-
-/**
- * Calls expired timers and returned when the next wake-up should happen.
+ * Extracts the next timestamp from a Timer.
  *
- * @returns Time when the next timer is due.
+ * @param wtimer Weak pointer to the timer.
+ * @returns The next timestamp
+ * @threadsafety Caller must hold Timer::m_Mutex.
  */
-double Timer::ProcessTimers(void)
+double TimerNextExtractor::operator()(const Timer::WeakPtr& wtimer)
 {
-	double wakeup = 30; /* wake up at least once after this many seconds */
+	Timer::Ptr timer = wtimer.lock();
 
-	double st = Utility::GetTime();
+	if (!timer)
+		return 0;
 
-	Timer::CollectionType::iterator prev, i;
-	for (i = m_Timers.begin(); i != m_Timers.end(); ) {
-		Timer::Ptr timer = i->lock();
-
-		prev = i;
-		i++;
-
-		if (!timer) {
-			m_Timers.erase(prev);
-			continue;
-		}
-
-		double now = Utility::GetTime();
-
-		if (timer->m_Next <= now) {
-			timer->Call();
-
-			/* time may have changed depending on how long the
-			 * timer call took - we need to fetch the current time */
-			now = Utility::GetTime();
-
-			double next = now + timer->GetInterval();
-
-			if (timer->m_Next <= now || next < timer->m_Next)
-				timer->Reschedule(next);
-		}
-
-		assert(timer->m_Next > now);
-
-		if (timer->m_Next - now < wakeup)
-			wakeup = timer->m_Next - now;
-	}
-
-	assert(wakeup > 0);
-
-	double et = Utility::GetTime();
-
-	if (et - st > 0.01) {
-		stringstream msgbuf;
-		msgbuf << "Timers took " << et - st << " seconds";
-		Logger::Write(LogDebug, "base", msgbuf.str());
-	}
-
-	return wakeup;
+	return timer->m_Next;
 }
 
 /**
- * Calls this timer. Note: the timer delegate must not call
- * Disable() on any other timers than the timer that originally
- * invoked the delegate.
+ * Constructor for the Timer class.
+ *
+ * @threadsafety Always.
+ */
+Timer::Timer(void)
+	: m_Interval(0), m_Next(0)
+{ }
+
+/**
+ * Initializes the timer sub-system.
+ *
+ * @threadsafety Always.
+ */
+void Timer::Initialize(void)
+{
+	thread worker(boost::bind(&Timer::TimerThreadProc));
+	worker.detach();
+}
+
+/**
+ * Calls this timer.
+ *
+ * @threadsafety Always.
  */
 void Timer::Call(void)
 {
@@ -105,15 +81,19 @@ void Timer::Call(void)
 		msgbuf << "Timer call took " << et - st << " seconds.";
 		Logger::Write(LogWarning, "base", msgbuf.str());
 	}
+
+	Reschedule();
 }
 
 /**
  * Sets the interval for this timer.
  *
  * @param interval The new interval.
+ * @threadsafety Always.
  */
 void Timer::SetInterval(double interval)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Interval = interval;
 }
 
@@ -121,44 +101,81 @@ void Timer::SetInterval(double interval)
  * Retrieves the interval for this timer.
  *
  * @returns The interval.
+ * @threadsafety Always.
  */
 double Timer::GetInterval(void) const
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_Interval;
 }
 
 /**
  * Registers the timer and starts processing events for it.
+ *
+ * @threadsafety Always.
  */
 void Timer::Start(void)
 {
-	assert(Application::IsMainThread());
+	boost::call_once(&Timer::Initialize, m_ThreadOnce);
 
-	Stop();
-
-	m_Timers.push_back(GetSelf());
-
-	Reschedule(Utility::GetTime() + m_Interval);
+	Reschedule();
 }
 
 /**
  * Unregisters the timer and stops processing events for it.
+ *
+ * @threadsafety Always.
  */
 void Timer::Stop(void)
 {
-	assert(Application::IsMainThread());
+	boost::mutex::scoped_lock lock(m_Mutex);
+	m_Timers.erase(GetSelf());
 
-	m_Timers.remove_if(WeakPtrEqual<Timer>(this));
+	/* Notify the worker thread that we've disabled a timer. */
+	m_CV.notify_all();
 }
 
 /**
  * Reschedules this timer.
  *
- * @param next The time when this timer should be called again.
+ * @param next The time when this timer should be called again. Use -1 to let
+ * 	       the timer figure out a suitable time based on the interval.
+ * @threadsafety Always.
  */
 void Timer::Reschedule(double next)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	if (next < 0) {
+		double now = Utility::GetTime();
+		next = m_Next + m_Interval;
+
+		if (next < now)
+			next = now + m_Interval;
+		else
+			next = next;
+	}
+
 	m_Next = next;
+
+	/* Remove and re-add the timer to update the index. */
+	m_Timers.erase(GetSelf());
+	m_Timers.insert(GetSelf());
+
+	/* Notify the worker that we've rescheduled a timer. */
+	m_CV.notify_all();
+}
+
+/**
+ * Retrieves when the timer is next due.
+ *
+ * @returns The timestamp.
+ * @threadsafety Always.
+ */
+double Timer::GetNext(void) const
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+	return m_Next;
 }
 
 /**
@@ -166,17 +183,76 @@ void Timer::Reschedule(double next)
  * next scheduled timestamp.
  *
  * @param adjustment The adjustment.
+ * @threadsafety Always.
  */
 void Timer::AdjustTimers(double adjustment)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	double now = Utility::GetTime();
 
-	Timer::CollectionType::iterator i;
-        for (i = m_Timers.begin(); i != m_Timers.end(); i++) {
-		Timer::Ptr timer = i->lock();
+	typedef nth_index<TimerSet, 1>::type TimerView;
+	TimerView& idx = boost::get<1>(m_Timers);
+
+	TimerView::iterator it;
+	for (it = idx.begin(); it != idx.end(); it++) {
+		Timer::Ptr timer = it->lock();
 
 		if (abs(now - (timer->m_Next + adjustment)) <
-		    abs(now - timer->m_Next))
+		    abs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
+			m_Timers.erase(timer);
+			m_Timers.insert(timer);
+		    }
+	}
+
+	/* Notify the worker that we've rescheduled some timers. */
+	m_CV.notify_all();
+}
+
+/**
+ * Worker thread proc for Timer objects.
+ *
+ * @threadsafety Always.
+ */
+void Timer::TimerThreadProc(void)
+{
+	for (;;) {
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		typedef nth_index<TimerSet, 1>::type NextTimerView;
+		NextTimerView& idx = boost::get<1>(m_Timers);
+
+		/* Wait until there is at least one timer. */
+		while (idx.empty())
+			m_CV.wait(lock);
+
+		NextTimerView::iterator it = idx.begin();
+		Timer::Ptr timer = it->lock();
+
+		if (!timer) {
+			/* Remove the timer from the list if it's not alive anymore. */
+			idx.erase(it);
+			continue;
+		}
+
+		double wait = timer->m_Next - Utility::GetTime();
+
+		if (wait > 0) {
+			/* Make sure the timer we just examined can be destroyed while we're waiting. */
+			timer.reset();
+
+			/* Wait for the next timer. */
+			m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+
+			continue;
+		}
+
+		/* Remove the timer from the list so it doesn't get called again
+		 * until the current call is completed. */
+		m_Timers.erase(timer);
+
+		/* Asynchronously call the timer. */
+		Application::GetEQ().Post(boost::bind(&Timer::Call, timer));
 	}
 }

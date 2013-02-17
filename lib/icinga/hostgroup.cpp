@@ -50,11 +50,17 @@ String HostGroup::GetActionUrl(void) const
 	return Get("action_url");
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool HostGroup::Exists(const String& name)
 {
 	return (DynamicObject::GetObject("HostGroup", name));
 }
 
+/**
+ * @threadsafety Always.
+ */
 HostGroup::Ptr HostGroup::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("HostGroup", name);

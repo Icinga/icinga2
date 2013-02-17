@@ -37,7 +37,10 @@ struct ServiceNextCheckExtractor
 		if (!service)
 			return 0;
 
-		return service->GetNextCheck();
+		{
+			ObjectLock olock(service);
+			return service->GetNextCheck();
+		}
 	}
 };
 
@@ -63,6 +66,8 @@ public:
 
 private:
 	Endpoint::Ptr m_Endpoint;
+
+	boost::mutex m_Mutex;
 
 	ServiceSet m_IdleServices;
 	ServiceSet m_PendingServices;

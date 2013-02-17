@@ -50,11 +50,17 @@ String ServiceGroup::GetActionUrl(void) const
 	return Get("action_url");
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool ServiceGroup::Exists(const String& name)
 {
 	return (DynamicObject::GetObject("ServiceGroup", name));
 }
 
+/**
+ * @threadsafety Always.
+ */
 ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("ServiceGroup", name);

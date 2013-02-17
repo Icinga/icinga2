@@ -30,10 +30,10 @@ static AttributeDescription endpointAttributes[] = {
 
 REGISTER_TYPE(Endpoint, endpointAttributes);
 
-boost::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
-boost::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
-boost::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionRegistered;
-boost::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionUnregistered;
+signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
+signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
+signals2::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionRegistered;
+signals2::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionUnregistered;
 
 /**
  * Constructor for the Endpoint class.
@@ -201,13 +201,13 @@ void Endpoint::SetSubscriptions(const Dictionary::Ptr& subscriptions)
 
 void Endpoint::RegisterTopicHandler(const String& topic, const function<Endpoint::Callback>& callback)
 {
-	map<String, shared_ptr<boost::signal<Endpoint::Callback> > >::iterator it;
+	map<String, shared_ptr<signals2::signal<Endpoint::Callback> > >::iterator it;
 	it = m_TopicHandlers.find(topic);
 
-	shared_ptr<boost::signal<Endpoint::Callback> > sig;
+	shared_ptr<signals2::signal<Endpoint::Callback> > sig;
 
 	if (it == m_TopicHandlers.end()) {
-		sig = boost::make_shared<boost::signal<Endpoint::Callback> >();
+		sig = boost::make_shared<signals2::signal<Endpoint::Callback> >();
 		m_TopicHandlers.insert(make_pair(topic, sig));
 	} else {
 		sig = it->second;
@@ -271,7 +271,7 @@ void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage&
 		if (!request.GetMethod(&method))
 			return;
 
-		map<String, shared_ptr<boost::signal<Endpoint::Callback> > >::iterator it;
+		map<String, shared_ptr<signals2::signal<Endpoint::Callback> > >::iterator it;
 		it = m_TopicHandlers.find(method);
 
 		if (it == m_TopicHandlers.end())

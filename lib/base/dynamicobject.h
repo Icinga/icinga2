@@ -94,9 +94,9 @@ public:
 
 	void ClearAttributesByType(DynamicAttributeType type);
 
-	static boost::signal<void (const DynamicObject::Ptr&)> OnRegistered;
-	static boost::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
-	static boost::signal<void (const set<DynamicObject *>&)> OnTransactionClosing;
+	static signals2::signal<void (const DynamicObject::Ptr&)> OnRegistered;
+	static signals2::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
+	static signals2::signal<void (double, const set<DynamicObject *>&)> OnTransactionClosing;
 
 	ScriptTask::Ptr InvokeMethod(const String& method,
 	    const vector<Value>& arguments, ScriptTask::CompletionCallback callback);
@@ -127,9 +127,7 @@ public:
 	static void DeactivateObjects(void);
 
 	static double GetCurrentTx(void);
-	static void BeginTx(void);
-	static void FinishTx(void);
-	static void FlushTx(void);
+	static void NewTx(void);
 
 protected:
 	virtual void OnInitCompleted(void);
@@ -149,6 +147,7 @@ private:
 	/* This has to be a set of raw pointers because the DynamicObject
 	 * constructor has to be able to insert objects into this list. */
 	static set<DynamicObject *> m_ModifiedObjects;
+	static boost::mutex m_ModifiedObjectsMutex;
 
 	friend class DynamicType; /* for OnInitCompleted. */
 };

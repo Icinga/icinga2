@@ -40,9 +40,9 @@ void Stream::SetConnected(bool connected)
 	m_Connected = connected;
 
 	if (m_Connected)
-		Application::GetEQ().Post(boost::bind(boost::ref(OnConnected), GetSelf()));
+		OnConnected(GetSelf());
 	else
-		Application::GetEQ().Post(boost::bind(boost::ref(OnClosed), GetSelf()));
+		OnClosed(GetSelf());
 }
 
 /**

@@ -85,9 +85,9 @@ public:
 	boost::exception_ptr GetException(void);
 	void CheckException(void);
 
-	boost::signal<void (const Stream::Ptr&)> OnConnected;
-	boost::signal<void (const Stream::Ptr&)> OnDataAvailable;
-	boost::signal<void (const Stream::Ptr&)> OnClosed;
+	signals2::signal<void (const Stream::Ptr&)> OnConnected;
+	signals2::signal<void (const Stream::Ptr&)> OnDataAvailable;
+	signals2::signal<void (const Stream::Ptr&)> OnClosed;
 
 protected:
 	void SetConnected(bool connected);

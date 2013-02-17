@@ -46,10 +46,10 @@ public:
 
 	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Value>& arguments);
 
-	static map<String, ScriptFunction::Ptr>& GetFunctions(void);
+	/* TODO(thread) make private */ static map<String, ScriptFunction::Ptr>& GetFunctions(void);
 
-	static boost::signal<void (const String&, const ScriptFunction::Ptr&)> OnRegistered;
-	static boost::signal<void (const String&)> OnUnregistered;
+	static signals2::signal<void (const String&, const ScriptFunction::Ptr&)> OnRegistered;
+	static signals2::signal<void (const String&)> OnUnregistered;
 
 private:
 	Callback m_Callback;

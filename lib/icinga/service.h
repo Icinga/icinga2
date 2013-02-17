@@ -180,8 +180,8 @@ public:
 	static ServiceStateType StateTypeFromString(const String& state);
 	static String StateTypeToString(ServiceStateType state);
 
-	static boost::signal<void (const Service::Ptr&, const String&)> OnCheckerChanged;
-	static boost::signal<void (const Service::Ptr&, const Value&)> OnNextCheckChanged;
+	static signals2::signal<void (const Service::Ptr&, const String&)> OnCheckerChanged;
+	static signals2::signal<void (const Service::Ptr&, const Value&)> OnNextCheckChanged;
 
 	/* Downtimes */
 	static int GetNextDowntimeID(void);

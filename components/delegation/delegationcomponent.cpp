@@ -82,6 +82,8 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::P
 
 void DelegationComponent::DelegationTimerHandler(void)
 {
+	recursive_mutex::scoped_lock lock(Application::GetMutex());
+
 	map<Endpoint::Ptr, int> histogram;
 
 	DynamicObject::Ptr object;

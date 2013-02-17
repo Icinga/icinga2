@@ -26,7 +26,7 @@ using namespace icinga;
 int Process::m_TaskFd;
 extern char **environ;
 
-void Process::CreateWorkers(void)
+void Process::Initialize(void)
 {
 	int fds[2];
 

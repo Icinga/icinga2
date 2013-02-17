@@ -366,7 +366,7 @@ PyObject *PythonLanguage::PyRegisterFunction(PyObject *self, PyObject *args)
 	}
 
 	{
-		boost::mutex::scoped_lock lock(Application::GetMutex());
+		recursive_mutex::scoped_lock lock(Application::GetMutex());
 		interp->RegisterPythonFunction(name, object);
 	}
 

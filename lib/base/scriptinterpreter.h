@@ -36,9 +36,6 @@ public:
 
 	~ScriptInterpreter(void);
 
-	void Start(void);
-	void Stop(void);
-
 protected:
 	ScriptInterpreter(const Script::Ptr& script);
 
@@ -49,15 +46,7 @@ protected:
 	void UnsubscribeFunction(const String& name);
 
 private:
-	boost::mutex m_Mutex;
-	EventQueue m_EQ;
 	set<String> m_SubscribedFunctions;
-	boost::thread m_Thread;
-
-	void ThreadWorkerProc(void);
-
-	void ScriptFunctionThunk(const ScriptTask::Ptr& task, const String& function,
-	    const vector<Value>& arguments);
 };
 
 }

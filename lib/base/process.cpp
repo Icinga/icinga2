@@ -21,20 +21,14 @@
 
 using namespace icinga;
 
-bool Process::m_WorkersCreated = false;
+boost::once_flag Process::m_ThreadOnce;
 boost::mutex Process::m_Mutex;
 deque<Process::Ptr> Process::m_Tasks;
 
 Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
 	: AsyncTask<Process, ProcessResult>(), m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment)
 {
-	assert(Application::IsMainThread());
-
-	if (!m_WorkersCreated) {
-		CreateWorkers();
-
-		m_WorkersCreated = true;
-	}
+	boost::call_once(&Process::Initialize, m_ThreadOnce);
 
 #ifndef _WIN32
 	m_FD = -1;

@@ -24,6 +24,18 @@
 
 namespace icinga {
 
+class Timer;
+
+/**
+ * @ingroup base
+ */
+struct TimerNextExtractor
+{
+	typedef double result_type;
+
+	double operator()(const weak_ptr<Timer>& wtimer);
+};
+
 /**
  * A timer that periodically triggers an event.
  *
@@ -42,23 +54,40 @@ public:
 	void SetInterval(double interval);
 	double GetInterval(void) const;
 
-	static double ProcessTimers(void);
 	static void AdjustTimers(double adjustment);
 
 	void Start(void);
 	void Stop(void);
 
-	void Reschedule(double next);
+	void Reschedule(double next = -1);
+	double GetNext(void) const;
 
-	boost::signal<void(const Timer::Ptr&)> OnTimerExpired;
+	signals2::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
 private:
 	double m_Interval; /**< The interval of the timer. */
 	double m_Next; /**< When the next event should happen. */
 
-	static Timer::CollectionType m_Timers;
+	typedef multi_index_container<
+		Timer::WeakPtr,
+		indexed_by<
+			ordered_unique<identity<Timer::WeakPtr> >,
+			ordered_non_unique<TimerNextExtractor>
+		>
+	> TimerSet;
+
+	static boost::mutex m_Mutex;
+	static boost::condition_variable m_CV;
+	static TimerSet m_Timers;
 
 	void Call(void);
+
+	static boost::once_flag m_ThreadOnce;
+	static void Initialize(void);
+
+	static void TimerThreadProc(void);
+
+	friend struct TimerNextExtractor;
 };
 
 }

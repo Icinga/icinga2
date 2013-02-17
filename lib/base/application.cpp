@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-boost::mutex Application::m_Mutex;
+recursive_mutex Application::m_Mutex;
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_Debugging = false;
@@ -110,25 +110,26 @@ void Application::SetArgV(char **argv)
 	m_ArgV = argv;
 }
 
-/**
- * Runs one iteration of the event loop.
- *
- * @returns false if we're shutting down, true otherwise.
- */
-bool Application::ProcessEvents(void)
+void Application::NewTxTimerHandler(void)
 {
-	Object::ClearHeldObjects();
+	DynamicObject::NewTx();
+}
 
-	double sleep = Timer::ProcessTimers();
+#ifdef _DEBUG
+void Application::ProfileTimerHandler(void)
+{
+	stringstream msgbuf;
+	msgbuf << "Active objects: " << Object::GetAliveObjectsCount();
+	Logger::Write(LogInformation, "base", msgbuf.str());
 
+	Object::PrintMemoryProfile();
+}
+#endif /* _DEBUG */
+
+void Application::ShutdownTimerHandler(void)
+{
 	if (m_ShuttingDown)
-		return false;
-
-	GetEQ().ProcessEvents(m_Mutex, boost::posix_time::milliseconds(sleep * 1000));
-
-	DynamicObject::FlushTx();
-
-	return true;
+		m_EQ.Stop();
 }
 
 /**
@@ -137,32 +138,31 @@ bool Application::ProcessEvents(void)
  */
 void Application::RunEventLoop(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-#ifdef _DEBUG
-	double nextProfile = 0;
-#endif /* _DEBUG */
-
 	/* Start the system time watch thread. */
 	thread t(&Application::TimeWatchThreadProc);
 	t.detach();
 
-	while (!m_ShuttingDown) {
-		if (!ProcessEvents())
-			break;
+	/* Set up a timer to periodically flush the tx. */
+	Timer::Ptr newTxTimer = boost::make_shared<Timer>();
+	newTxTimer->OnTimerExpired.connect(boost::bind(&Application::NewTxTimerHandler));
+	newTxTimer->SetInterval(0.5);
+	newTxTimer->Start();
+
+	/* Set up a timer that watches the m_Shutdown flag. */
+	Timer::Ptr shutdownTimer = boost::make_shared<Timer>();
+	shutdownTimer->OnTimerExpired.connect(boost::bind(&Application::ShutdownTimerHandler));
+	shutdownTimer->SetInterval(0.5);
+	shutdownTimer->Start();
 
 #ifdef _DEBUG
-		if (nextProfile < Utility::GetTime()) {
-			stringstream msgbuf;
-			msgbuf << "Active objects: " << Object::GetAliveObjectsCount();
-			Logger::Write(LogInformation, "base", msgbuf.str());
-
-			Object::PrintMemoryProfile();
-
-			nextProfile = Utility::GetTime() + 15.0;
-		}
+	/* Set up a timer that periodically prints some information about the object system. */
+	Timer::Ptr profileTimer = boost::make_shared<Timer>();
+	profileTimer->OnTimerExpired.connect(boost::bind(&Application::ProfileTimerHandler));
+	flushTxTimer->SetInterval(15);
+	flushTxTimer->Start();
 #endif /* _DEBUG */
-	}
+
+	GetEQ().Run();
 }
 
 /**
@@ -186,12 +186,7 @@ void Application::TimeWatchThreadProc(void)
 			       << " in time: " << abs(timeDiff) << " seconds";
 			Logger::Write(LogInformation, "base", msgbuf.str());
 
-			/* in addition to rescheduling the timers this
-			 * causes the event loop to wake up thereby
-			 * solving the problem that timed_wait()
-			 * uses an absolute timestamp for the timeout */
-			GetEQ().Post(boost::bind(&Timer::AdjustTimers,
-			    -timeDiff));
+			Timer::AdjustTimers(-timeDiff);
 		}
 
 		lastLoop = now;
@@ -300,25 +295,6 @@ void Application::SetDebugging(bool debug)
 bool Application::IsDebugging(void)
 {
 	return m_Debugging;
-}
-
-/**
- * Checks whether we're currently on the main thread.
- *
- * @returns true if this is the main thread, false otherwise
- */
-bool Application::IsMainThread(void)
-{
-	return (boost::this_thread::get_id() == m_MainThreadID);
-}
-
-/**
- * Sets the main thread to the currently running thread.
- */
-void Application::SetMainThread(void)
-{
-	m_MainThreadID = boost::this_thread::get_id();
-	m_EQ.SetOwner(m_MainThreadID);
 }
 
 /**
@@ -455,11 +431,11 @@ int Application::Run(void)
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
-	DynamicObject::BeginTx();
+	DynamicObject::NewTx();
 
 	result = Main();
 
-	DynamicObject::FinishTx();
+	DynamicObject::NewTx();
 	DynamicObject::DeactivateObjects();
 
 	return result;
@@ -594,11 +570,11 @@ void Application::SetPkgDataDir(const String& path)
 }
 
 /**
- * Returns the global mutex for the main thread.
+ * Returns the global mutex.
  *
  * @returns The mutex.
  */
-boost::mutex& Application::GetMutex(void)
+recursive_mutex& Application::GetMutex(void)
 {
 	return m_Mutex;
 }

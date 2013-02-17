@@ -54,8 +54,6 @@ public:
 
 	static vector<String> SplitCommand(const Value& command);
 private:
-	static bool m_WorkersCreated;
-
 	vector<String> m_Arguments;
 	Dictionary::Ptr m_ExtraEnvironment;
 
@@ -76,7 +74,6 @@ private:
 	static int m_TaskFd;
 #endif /* _WIN32 */
 
-	static void CreateWorkers(void);
 	static void NotifyWorker(void);
 
 	void SpawnTask(void);
@@ -89,6 +86,9 @@ private:
 
 	void InitTask(void);
 	bool RunTask(void);
+
+	static boost::once_flag m_ThreadOnce;
+	static void Initialize(void);
 };
 
 }

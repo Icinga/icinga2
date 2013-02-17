@@ -31,14 +31,11 @@ class SharedPtrHolder;
  *
  * @ingroup base
  */
-class I2_BASE_API Object : public enable_shared_from_this<Object>, public boost::signals::trackable
+class I2_BASE_API Object : public enable_shared_from_this<Object>
 {
 public:
 	typedef shared_ptr<Object> Ptr;
 	typedef weak_ptr<Object> WeakPtr;
-
-	void Hold(void);
-	static void ClearHeldObjects(void);
 
 	/**
 	 * Holds a shared pointer and provides support for implicit upcasts.
@@ -96,10 +93,7 @@ public:
 
 	SharedPtrHolder GetSelf(void);
 
-#ifdef _DEBUG
-	static int GetAliveObjectsCount(void);
-	static void PrintMemoryProfile(void);
-#endif /* _DEBUG */
+	recursive_mutex& GetMutex(void);
 
 protected:
 	Object(void);
@@ -109,9 +103,24 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	static boost::mutex *GetMutex(void);
-	static set<Object *> *GetAliveObjects(void);
-	static vector<Object::Ptr>& GetHeldObjects(void);
+	recursive_mutex m_Mutex;
+};
+
+/**
+ * A scoped lock for Objects.
+ */
+struct ObjectLock {
+public:
+	ObjectLock(const Object::Ptr& object)
+		: m_Lock(object->GetMutex())
+	{ }
+
+	ObjectLock(Object *object)
+		: m_Lock(object->GetMutex())
+	{ }
+
+private:
+	recursive_mutex::scoped_lock m_Lock;
 };
 
 /**

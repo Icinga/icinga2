@@ -27,9 +27,12 @@ PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr
 	: m_Task(task), m_Process(process)
 { }
 
+/**
+ * @threadsafety Always.
+ */
 void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
-	assert(Application::IsMainThread());
+	recursive_mutex::scoped_lock lock(Application::GetMutex());
 
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Service must be specified."));
@@ -57,8 +60,13 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 	process->Start(boost::bind(&PluginCheckTask::ProcessFinishedHandler, ct));
 }
 
+/**
+ * @threadsafety Always.
+ */
 void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 {
+	recursive_mutex::scoped_lock lock(Application::GetMutex());
+
 	ProcessResult pr;
 
 	try {

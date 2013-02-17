@@ -35,7 +35,7 @@ public:
 
 	void Close(void);
 
-	boost::signal<void (const Connection::Ptr&)> OnClosed;
+	signals2::signal<void (const Connection::Ptr&)> OnClosed;
 
 protected:
 	virtual void ProcessData(void) = 0;

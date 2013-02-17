@@ -24,18 +24,33 @@ using namespace icinga;
 ScriptLanguage::ScriptLanguage(void)
 { }
 
+/**
+ * @threadsafety Always.
+ */
 void ScriptLanguage::Register(const String& name, const ScriptLanguage::Ptr& language)
 {
+	boost::mutex::scoped_lock lock(GetMutex());
+
 	GetLanguages()[name] = language;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void ScriptLanguage::Unregister(const String& name)
 {
+	boost::mutex::scoped_lock lock(GetMutex());
+
 	GetLanguages().erase(name);
 }
 
+/**
+ * @threadsafety Always.
+ */
 ScriptLanguage::Ptr ScriptLanguage::GetByName(const String& name)
 {
+	boost::mutex::scoped_lock lock(GetMutex());
+
 	map<String, ScriptLanguage::Ptr>::iterator it;
 
 	it = GetLanguages().find(name);
@@ -44,6 +59,12 @@ ScriptLanguage::Ptr ScriptLanguage::GetByName(const String& name)
 		return ScriptLanguage::Ptr();
 
 	return it->second;
+}
+
+boost::mutex& ScriptLanguage::GetMutex(void)
+{
+	static boost::mutex mutex;
+	return mutex;
 }
 
 map<String, ScriptLanguage::Ptr>& ScriptLanguage::GetLanguages(void)

@@ -21,91 +21,95 @@
 
 using namespace icinga;
 
+/**
+ * @threadsafety Always.
+ */
 EventQueue::EventQueue(void)
 	: m_Stopped(false)
 { }
 
-boost::thread::id EventQueue::GetOwner(void) const
+/**
+ * @threadsafety Always.
+ */
+EventQueue::~EventQueue(void)
 {
-	return m_Owner;
+	Stop();
 }
 
-void EventQueue::SetOwner(boost::thread::id owner)
-{
-	m_Owner = owner;
-}
-
+/**
+ * @threadsafety Always.
+ */
 void EventQueue::Stop(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Stopped = true;
-	m_EventAvailable.notify_all();
+	m_CV.notify_all();
 }
 
 /**
- * Waits for events using the specified timeout value and processes
- * them.
+ * Spawns worker threads and waits for them to complete.
  *
- * @param mtx The mutex that should be unlocked while waiting. Caller
- * 	      must have this mutex locked.
- * @param timeout The wait timeout.
- * @returns false if the queue has been stopped, true otherwise.
+ * @threadsafety Always.
  */
-bool EventQueue::ProcessEvents(boost::mutex& mtx, millisec timeout)
+void EventQueue::Run(void)
 {
-	vector<Callback> events;
+	thread_group threads;
 
-	mtx.unlock();
+	int cpus = thread::hardware_concurrency();
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+	if (cpus == 0)
+		cpus = 4;
 
-		while (m_Events.empty() && !m_Stopped) {
-			if (!m_EventAvailable.timed_wait(lock, timeout)) {
-				mtx.lock();
+	for (int i = 0; i < cpus * 4; i++)
+		threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
 
-				return !m_Stopped;
+	threads.join_all();
+}
+
+/**
+ * Waits for events and processes them.
+ *
+ * @threadsafety Always.
+ */
+void EventQueue::QueueThreadProc(void)
+{
+	while (!m_Stopped) {
+		vector<Callback> events;
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+
+			while (m_Events.empty() && !m_Stopped)
+				m_CV.wait(lock);
+
+			events.swap(m_Events);
+		}
+
+		BOOST_FOREACH(const Callback& ev, events) {
+			double st = Utility::GetTime();
+
+			ev();
+
+			double et = Utility::GetTime();
+
+			if (et - st > 1.0) {
+				stringstream msgbuf;
+				msgbuf << "Event call took " << et - st << " seconds.";
+				Logger::Write(LogWarning, "base", msgbuf.str());
 			}
 		}
-
-		events.swap(m_Events);
 	}
-
-	mtx.lock();
-
-	BOOST_FOREACH(const Callback& ev, events) {
-		double st = Utility::GetTime();
-
-		ev();
-
-		double et = Utility::GetTime();
-
-		if (et - st > 1.0) {
-			stringstream msgbuf;
-			msgbuf << "Event call took " << et - st << " seconds.";
-			Logger::Write(LogWarning, "base", msgbuf.str());
-		}
-	}
-
-	return !m_Stopped;
 }
 
 /**
- * Appends an event to the event queue. Events will be processed in FIFO
- * order on the main thread.
+ * Appends an event to the event queue. Events will be processed in FIFO order.
  *
  * @param callback The callback function for the event.
+ * @threadsafety Always.
  */
 void EventQueue::Post(const EventQueue::Callback& callback)
 {
-	if (boost::this_thread::get_id() == m_Owner) {
-		callback();
-		return;
-	}
-
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Events.push_back(callback);
-		m_EventAvailable.notify_all();
-	}
+	boost::mutex::scoped_lock lock(m_Mutex);
+	m_Events.push_back(callback);
+	m_CV.notify_all();
 }
