@@ -311,8 +311,7 @@ void Host::ValidateServicesCache(void)
 
 	m_ServicesCache.clear();
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
 
 		// TODO: assert for duplicate short_names

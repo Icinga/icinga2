@@ -36,8 +36,6 @@ public:
 	typedef weak_ptr<DynamicType> WeakPtr;
 
 	typedef function<DynamicObject::Ptr (const Dictionary::Ptr&)> ObjectFactory;
-	typedef map<String, DynamicType::Ptr, string_iless> TypeMap;
-	typedef map<String, DynamicObject::Ptr, string_iless> NameMap;
 
 	DynamicType(const String& name, const ObjectFactory& factory);
 
@@ -54,8 +52,10 @@ public:
 	void RegisterObject(const DynamicObject::Ptr& object);
 	void UnregisterObject(const DynamicObject::Ptr& object);
 
-	/* TODO(thread) make private */ static TypeMap& GetTypes(void);
-	/* TODO(thread) make private */ NameMap& GetObjects(void);
+	static set<DynamicType::Ptr> GetTypes(void);
+	set<DynamicObject::Ptr> GetObjects(void) const;
+
+	static set<DynamicObject::Ptr> GetObjects(const String& type);
 
 	void AddAttribute(const String& name, DynamicAttributeType type);
 	void RemoveAttribute(const String& name);
@@ -68,8 +68,17 @@ private:
 	ObjectFactory m_ObjectFactory;
 	map<String, DynamicAttributeType> m_Attributes;
 
-	NameMap m_Objects;
+	typedef map<String, DynamicObject::Ptr, string_iless> ObjectMap;
+	typedef set<DynamicObject::Ptr> ObjectSet;
 
+	ObjectMap m_ObjectMap;
+	ObjectSet m_ObjectSet;
+
+	typedef map<String, DynamicType::Ptr, string_iless> TypeMap;
+	typedef set<DynamicType::Ptr> TypeSet;
+
+	static TypeMap& InternalGetTypeMap(void);
+	static TypeSet& InternalGetTypeSet(void);
 	static boost::mutex& GetStaticMutex(void);
 };
 

@@ -24,7 +24,6 @@ using namespace icinga;
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_Debugging = false;
-boost::thread::id Application::m_MainThreadID;
 String Application::m_PrefixDir;
 String Application::m_LocalStateDir;
 String Application::m_PkgLibDir;
@@ -402,6 +401,7 @@ void Application::InstallExceptionHandlers(void)
  * Runs the application.
  *
  * @returns The application's exit code.
+ * @threadsafety Always.
  */
 int Application::Run(void)
 {

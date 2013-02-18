@@ -68,8 +68,7 @@ void Service::ValidateNotificationsCache(void)
 
 	m_NotificationsCache.clear();
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Notification")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Notification")) {
 		const Notification::Ptr& notification = static_pointer_cast<Notification>(object);
 
 		m_NotificationsCache[notification->GetService()->GetName()].insert(notification);

@@ -32,7 +32,7 @@ signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered
 signals2::signal<void (double, const set<DynamicObject *>&)> DynamicObject::OnTransactionClosing;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
-	: m_ConfigTx(0)
+	: m_Events(false), m_ConfigTx(0)
 {
 	RegisterAttribute("__name", Attribute_Config);
 	RegisterAttribute("__type", Attribute_Config);
@@ -41,13 +41,20 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("__source", Attribute_Local);
 	RegisterAttribute("methods", Attribute_Config);
 
-	if (!serializedObject->Contains("configTx"))
-		BOOST_THROW_EXCEPTION(invalid_argument("Serialized object must contain a config snapshot."));
+	{
+		ObjectLock olock(serializedObject);
+
+		if (!serializedObject->Contains("configTx"))
+			BOOST_THROW_EXCEPTION(invalid_argument("Serialized object must contain a config snapshot."));
+	}
 
 	/* apply config state from the config item/remote update;
 	 * The DynamicObject::Create function takes care of restoring
 	 * non-config state after the object has been fully constructed */
-	ApplyUpdate(serializedObject, Attribute_Config);
+	{
+		ObjectLock olock(this);
+		ApplyUpdate(serializedObject, Attribute_Config);
+	}
 
 	boost::call_once(m_TransactionOnce, &DynamicObject::Initialize);
 }
@@ -75,9 +82,12 @@ void DynamicObject::Initialize(void)
  */
 void DynamicObject::SendLocalUpdateEvents(void)
 {
-	map<String, Value, string_iless>::iterator it;
-	for (it = m_ModifiedAttributes.begin(); it != m_ModifiedAttributes.end(); it++) {
-		OnAttributeChanged(it->first, it->second);
+	/* Check if it's safe to send events. */
+	if (GetEvents()) {
+		map<String, Value, string_iless>::iterator it;
+		for (it = m_ModifiedAttributes.begin(); it != m_ModifiedAttributes.end(); it++) {
+			OnAttributeChanged(it->first, it->second);
+		}
 	}
 
 	m_ModifiedAttributes.clear();
@@ -124,39 +134,50 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
     int allowedTypes)
 {
-	double configTx = 0;
-	if ((allowedTypes & Attribute_Config) != 0 &&
-	    serializedUpdate->Contains("configTx")) {
-		configTx = serializedUpdate->Get("configTx");
+	Dictionary::Ptr attrs;
 
-		if (configTx > m_ConfigTx)
-			ClearAttributesByType(Attribute_Config);
+	{
+		ObjectLock olock(serializedUpdate);
+
+		double configTx = 0;
+		if ((allowedTypes & Attribute_Config) != 0 &&
+		    serializedUpdate->Contains("configTx")) {
+			configTx = serializedUpdate->Get("configTx");
+
+			if (configTx > m_ConfigTx)
+				ClearAttributesByType(Attribute_Config);
+		}
+
+		attrs = serializedUpdate->Get("attrs");
 	}
 
-	Dictionary::Ptr attrs = serializedUpdate->Get("attrs");
+	{
+		ObjectLock olock(attrs);
 
-	Dictionary::Iterator it;
-	for (it = attrs->Begin(); it != attrs->End(); it++) {
-		if (!it->second.IsObjectType<Dictionary>())
-			continue;
+		Dictionary::Iterator it;
+		for (it = attrs->Begin(); it != attrs->End(); it++) {
+			if (!it->second.IsObjectType<Dictionary>())
+				continue;
 
-		Dictionary::Ptr attr = it->second;
+			Dictionary::Ptr attr = it->second;
+			ObjectLock alock(attr);
 
-		int type = attr->Get("type");
+			int type = attr->Get("type");
 
-		if ((type & ~allowedTypes) != 0)
-			continue;
+			if ((type & ~allowedTypes) != 0)
+				continue;
 
-		Value data = attr->Get("data");
-		double tx = attr->Get("tx");
+			Value data = attr->Get("data");
+			double tx = attr->Get("tx");
 
-		if (type & Attribute_Config)
-			RegisterAttribute(it->first, Attribute_Config);
+			if (type & Attribute_Config)
+				RegisterAttribute(it->first, Attribute_Config);
 
-		if (!HasAttribute(it->first))
-			RegisterAttribute(it->first, static_cast<DynamicAttributeType>(type));
+			if (!HasAttribute(it->first))
+				RegisterAttribute(it->first, static_cast<DynamicAttributeType>(type));
 
-		InternalSetAttribute(it->first, data, tx, true);
+			InternalSetAttribute(it->first, data, tx, true);
+		}
 	}
 }
 
@@ -296,13 +317,18 @@ String DynamicObject::GetSource(void) const
 
 void DynamicObject::Register(void)
 {
-	DynamicType::Ptr dtype = GetType();
+	{
+		DynamicType::Ptr dtype = GetType();
+		ObjectLock olock(dtype);
 
-	DynamicObject::Ptr dobj = dtype->GetObject(GetName());
-	DynamicObject::Ptr self = GetSelf();
-	assert(!dobj || dobj == self);
+		DynamicObject::Ptr dobj = dtype->GetObject(GetName());
 
-	dtype->RegisterObject(self);
+		DynamicObject::Ptr self = GetSelf();
+		assert(!dobj || dobj == self);
+
+		if (!dobj)
+			dtype->RegisterObject(self);
+	}
 
 	OnRegistered(GetSelf());
 
@@ -375,10 +401,9 @@ void DynamicObject::DumpObjects(const String& filename)
 	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
 	sfp->Start();
 
-	DynamicType::Ptr type;
-	BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
-		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
+	;
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			if (object->IsLocal())
 				continue;
 
@@ -472,13 +497,16 @@ void DynamicObject::RestoreObjects(const String& filename)
 
 void DynamicObject::DeactivateObjects(void)
 {
-	DynamicType::TypeMap::iterator tt;
-	for (tt = DynamicType::GetTypes().begin(); tt != DynamicType::GetTypes().end(); tt++) {
-		DynamicType::NameMap::iterator nt;
+	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
+		set<DynamicObject::Ptr> objects;
 
-		while ((nt = tt->second->GetObjects().begin()) != tt->second->GetObjects().end()) {
-			DynamicObject::Ptr object = nt->second;
+		{
+			ObjectLock olock(dt);
+			objects = dt->GetObjects();
+		}
 
+		BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
+			ObjectLock olock(object);
 			object->Unregister();
 		}
 	}
@@ -542,4 +570,14 @@ DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& na
 const DynamicObject::AttributeMap& DynamicObject::GetAttributes(void) const
 {
 	return m_Attributes;
+}
+
+void DynamicObject::SetEvents(bool events)
+{
+	m_Events = events;
+}
+
+bool DynamicObject::GetEvents(void) const
+{
+	return m_Events;
 }

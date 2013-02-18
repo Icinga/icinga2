@@ -52,11 +52,7 @@ set<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::Ptr&
 {
 	set<Endpoint::Ptr> candidates;
 
-	DynamicType::Ptr dt = DynamicType::GetByName("Endpoint");
-	ObjectLock dlock(dt);
-
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 		ObjectLock olock(endpoint);
 
@@ -88,46 +84,34 @@ void DelegationComponent::DelegationTimerHandler(void)
 {
 	map<Endpoint::Ptr, int> histogram;
 
-	{
-		DynamicType::Ptr dt = DynamicType::GetByName("Endpoint");
-		ObjectLock dlock(dt);
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
+		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
-		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
-			Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
-
-			histogram[endpoint] = 0;
-		}
+		histogram[endpoint] = 0;
 	}
 
 	vector<Service::Ptr> services;
 
-	{
-		/* build "checker -> service count" histogram */
-		DynamicType::Ptr dt = DynamicType::GetByName("Service");
-		ObjectLock dlock(dt);
+	/* build "checker -> service count" histogram */
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
+		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
-		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
-			Service::Ptr service = dynamic_pointer_cast<Service>(object);
+		if (!service)
+			continue;
 
-			if (!service)
-				continue;
+		services.push_back(service);
 
-			services.push_back(service);
+		ObjectLock olock(service);
+		String checker = service->GetChecker();
+		if (checker.IsEmpty())
+			continue;
 
-			ObjectLock olock(service);
-			String checker = service->GetChecker();
-			if (checker.IsEmpty())
-				continue;
+		if (!Endpoint::Exists(checker))
+			continue;
 
-			if (!Endpoint::Exists(checker))
-				continue;
+		Endpoint::Ptr endpoint = Endpoint::GetByName(checker);
 
-			Endpoint::Ptr endpoint = Endpoint::GetByName(checker);
-
-			histogram[endpoint]++;
-		}
+		histogram[endpoint]++;
 	}
 
 	//std::random_shuffle(services.begin(), services.end());

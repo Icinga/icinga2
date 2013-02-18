@@ -112,35 +112,22 @@ private:
 struct ObjectLock {
 public:
 	ObjectLock(const Object::Ptr& object)
-#ifdef _DEBUG
-		: m_Lock(), m_Object(object)
-#endif /* _DEBUG */
+		: m_Lock()
 	{
 		if (object)
 			m_Lock = recursive_mutex::scoped_lock(object->GetMutex());
 	}
 
 	ObjectLock(const Object *object)
-#ifdef _DEBUG
-		: m_Lock(), m_Object(object->GetSelf())
-#endif /* _DEBUG */
+		: m_Lock()
 	{
 		if (object)
 			m_Lock = recursive_mutex::scoped_lock(object->GetMutex());
 	}
 
-#ifdef _DEBUG
-	~ObjectLock(void)
-	{
-		assert(m_Object.lock());
-	}
-#endif /* _DEBUG */
 
 private:
 	recursive_mutex::scoped_lock m_Lock;
-#ifdef _DEBUG
-	Object::WeakPtr m_Object;
-#endif /* _DEBUG */
 };
 
 /**

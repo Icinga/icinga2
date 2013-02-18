@@ -13,7 +13,7 @@
  * GNU General Public License for more details.                               *
  *                                                                            *
  * You should have received a copy of the GNU General Public License          *
- * aRingBuffer::SizeType with this program; if not, write to the Free Software Foundation     *
+ * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
@@ -22,7 +22,7 @@
 using namespace icinga;
 
 RingBuffer::RingBuffer(RingBuffer::SizeType slots)
-	: m_Slots(slots, 0), m_Offset(0)
+	: m_Slots(slots, 0), m_TimeValue(0)
 { }
 
 RingBuffer::SizeType RingBuffer::GetLength(void) const
@@ -34,17 +34,23 @@ void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 {
 	vector<int>::size_type offsetTarget = tv % m_Slots.size();
 
-	/* walk towards the target offset, resetting slots to 0 */
-	while (m_Offset != offsetTarget) {
-		m_Offset++;
+	if (tv > m_TimeValue) {
+		vector<int>::size_type offset = m_TimeValue % m_Slots.size();
 
-		if (m_Offset >= m_Slots.size())
-			m_Offset = 0;
+		/* walk towards the target offset, resetting slots to 0 */
+		while (offset != offsetTarget) {
+			offset++;
 
-		m_Slots[m_Offset] = 0;
+			if (offset >= m_Slots.size())
+				offset = 0;
+
+			m_Slots[offset] = 0;
+		}
+
+		m_TimeValue = tv;
 	}
 
-	m_Slots[m_Offset] += num;
+	m_Slots[offsetTarget] += num;
 }
 
 int RingBuffer::GetValues(RingBuffer::SizeType span) const
@@ -52,7 +58,7 @@ int RingBuffer::GetValues(RingBuffer::SizeType span) const
 	if (span > m_Slots.size())
 		span = m_Slots.size();
 
-	int off = m_Offset;
+	int off = m_TimeValue % m_Slots.size();;
 	int sum = 0;
 	while (span > 0) {
 		sum += m_Slots[off];

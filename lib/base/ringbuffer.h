@@ -41,7 +41,7 @@ public:
 
 private:
 	vector<int> m_Slots;
-	SizeType m_Offset;
+	int m_TimeValue;
 };
 
 }

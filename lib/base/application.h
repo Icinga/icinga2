@@ -93,7 +93,6 @@ private:
 	static char **m_ArgV; /**< Command-line arguments. */
 	FILE *m_PidFile; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
-	static boost::thread::id m_MainThreadID; /**< ID of the main thread. */
 	static String m_PrefixDir; /**< The installation prefix. */
 	static String m_LocalStateDir; /**< The local state dir. */
 	static String m_PkgLibDir; /**< The package lib dir. */

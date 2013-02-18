@@ -232,8 +232,8 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 		BOOST_THROW_EXCEPTION(invalid_argument("Message is missing the 'method' property."));
 
 	vector<Endpoint::Ptr> candidates;
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 		/* don't forward messages between non-local endpoints */
 		if ((sender && !sender->IsLocal()) && !endpoint->IsLocal())
@@ -279,8 +279,7 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
 	if (!message.GetMethod(&method))
 		BOOST_THROW_EXCEPTION(invalid_argument("Message is missing the 'method' property."));
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr recipient = dynamic_pointer_cast<Endpoint>(object);
 
 		/* don't forward messages back to the sender */
@@ -327,8 +326,7 @@ void EndpointManager::SubscriptionTimerHandler(void)
 {
 	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
 		/* don't copy subscriptions from non-local endpoints or the identity endpoint */
@@ -349,8 +347,7 @@ void EndpointManager::SubscriptionTimerHandler(void)
 
 void EndpointManager::ReconnectTimerHandler(void)
 {
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
 		if (endpoint->IsConnected() || endpoint == m_Endpoint)

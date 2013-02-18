@@ -91,7 +91,7 @@ String CompatComponent::GetCommandPath(void) const
 void CompatComponent::Start(void)
 {
 	m_StatusTimer = boost::make_shared<Timer>();
-	m_StatusTimer->SetInterval(15);
+	m_StatusTimer->SetInterval(5);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
@@ -450,10 +450,18 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "}" << "\n"
 		 << "\n";
 
+	double startTime;
+
+	{
+		IcingaApplication::Ptr app = IcingaApplication::GetInstance();
+		ObjectLock olock(app);
+		startTime = app->GetStartTime();
+	}
+
 	statusfp << "programstatus {" << "\n"
 		 << "icinga_pid=" << Utility::GetPid() << "\n"
 		 << "\t" << "daemon_mode=1" << "\n"
-		 << "\t" << "program_start=" << IcingaApplication::GetInstance()->GetStartTime() << "\n"
+		 << "\t" << "program_start=" << startTime << "\n"
 		 << "\t" << "active_service_checks_enabled=1" << "\n"
 		 << "\t" << "passive_service_checks_enabled=1" << "\n"
 		 << "\t" << "active_host_checks_enabled=0" << "\n"
@@ -478,85 +486,61 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
 
-	{
-		DynamicType::Ptr dt = DynamicType::GetByName("Host");
-		ObjectLock dlock(dt);
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
+		Host::Ptr host = static_pointer_cast<Host>(object);
 
-		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
-			Host::Ptr host = static_pointer_cast<Host>(object);
-
-			DumpHostStatus(statusfp, host);
-			DumpHostObject(objectfp, host);
-		}
+		DumpHostStatus(statusfp, host);
+		DumpHostObject(objectfp, host);
 	}
 
-	{
-		DynamicType::Ptr dt = DynamicType::GetByName("Host");
-		ObjectLock dlock(dt);
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
+		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
+		ObjectLock olock(hg);
 
-		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
-			HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
-			ObjectLock olock(hg);
+		objectfp << "define hostgroup {" << "\n"
+			 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
+			 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
+			 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
 
-			objectfp << "define hostgroup {" << "\n"
-				 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
-				 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
-				 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
-
-			objectfp << "\t" << "members" << "\t";
-			DumpNameList(objectfp, hg->GetMembers());
-			objectfp << "\n"
-				 << "}" << "\n";
-		}
+		objectfp << "\t" << "members" << "\t";
+		DumpNameList(objectfp, hg->GetMembers());
+		objectfp << "\n"
+			 << "}" << "\n";
 	}
 
-	{
-		DynamicType::Ptr dt = DynamicType::GetByName("Service");
-		ObjectLock dlock(dt);
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
+		Service::Ptr service = static_pointer_cast<Service>(object);
 
-		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
-			Service::Ptr service = static_pointer_cast<Service>(object);
-
-			DumpServiceStatus(statusfp, service);
-			DumpServiceObject(objectfp, service);
-		}
+		DumpServiceStatus(statusfp, service);
+		DumpServiceObject(objectfp, service);
 	}
 
-	{
-		DynamicType::Ptr dt = DynamicType::GetByName("ServiceGroup");
-		ObjectLock dlock(dt);
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("ServiceGroup")) {
+		ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
+		ObjectLock olock(sg);
 
-		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
-			ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
-			ObjectLock olock(sg);
+		objectfp << "define servicegroup {" << "\n"
+			 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
+			 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
+			 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
 
-			objectfp << "define servicegroup {" << "\n"
-				 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
-				 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
-				 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
+		objectfp << "\t" << "members" << "\t";
 
-			objectfp << "\t" << "members" << "\t";
+		vector<String> sglist;
+		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+			ObjectLock slock(service);
+			Host::Ptr host = service->GetHost();
 
-			vector<String> sglist;
-			BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-				ObjectLock slock(service);
-				Host::Ptr host = service->GetHost();
+			ObjectLock hlock(host);
+			sglist.push_back(host->GetName());
 
-				ObjectLock hlock(host);
-				sglist.push_back(host->GetName());
-
-				sglist.push_back(service->GetShortName());
-			}
-
-			DumpStringList(objectfp, sglist);
-
-			objectfp << "\n"
-				 << "}" << "\n";
+			sglist.push_back(service->GetShortName());
 		}
+
+		DumpStringList(objectfp, sglist);
+
+		objectfp << "\n"
+			 << "}" << "\n";
 	}
 
 	statusfp.close();

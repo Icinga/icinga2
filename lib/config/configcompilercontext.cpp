@@ -111,14 +111,20 @@ void ConfigCompilerContext::Validate(void)
 	SetContext(this);
 
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
-		ConfigType::Ptr ctype = GetType(item->GetType());
+		ConfigType::Ptr ctype;
 
-		if (!ctype) {
-			AddError(true, "No validation type found for object '" + item->GetName() + "' of type '" + item->GetType() + "'");
+		{
+			ObjectLock olock(item);
+			ctype = GetType(item->GetType());
 
-			continue;
+			if (!ctype) {
+				AddError(true, "No validation type found for object '" + item->GetName() + "' of type '" + item->GetType() + "'");
+
+				continue;
+			}
 		}
 
+		ObjectLock olock(ctype);
 		ctype->ValidateItem(item);
 	}
 
@@ -131,7 +137,7 @@ void ConfigCompilerContext::ActivateItems(void)
 
 	Logger::Write(LogInformation, "config", "Activating config items in compilation unit '" + m_Unit + "'");
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
+		ObjectLock olock(item);
 		item->Commit();
 	}
 }
-

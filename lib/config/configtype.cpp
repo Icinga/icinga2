@@ -132,7 +132,11 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 			ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
 			task->Start();
 			task->Wait();
-			task->GetResult();
+
+			{
+				ObjectLock olock(task);
+				task->GetResult();
+			}
 		}
 	}
 

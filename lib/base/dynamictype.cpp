@@ -32,9 +32,9 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
 
-	DynamicType::TypeMap::const_iterator tt = GetTypes().find(name);
+	DynamicType::TypeMap::const_iterator tt = InternalGetTypeMap().find(name);
 
-	if (tt == GetTypes().end())
+	if (tt == InternalGetTypeMap().end())
 		return DynamicType::Ptr();
 
 	return tt->second;
@@ -43,18 +43,34 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 /**
  * @threadsafety Caller must hold DynamicType::GetStaticMutex() while using the map.
  */
-DynamicType::TypeMap& DynamicType::GetTypes(void)
+DynamicType::TypeMap& DynamicType::InternalGetTypeMap(void)
 {
-	static DynamicType::TypeMap types;
-	return types;
+	static DynamicType::TypeMap typemap;
+	return typemap;
 }
 
-/**
- * @threadsafety Caller must hold DynamicType::GetStaticMutex() while using the map.
- */
-DynamicType::NameMap& DynamicType::GetObjects(void)
+DynamicType::TypeSet& DynamicType::InternalGetTypeSet(void)
 {
-	return m_Objects;
+	static DynamicType::TypeSet typeset;
+	return typeset;
+}
+
+DynamicType::TypeSet DynamicType::GetTypes(void)
+{
+	boost::mutex::scoped_lock lock(GetStaticMutex());
+	return InternalGetTypeSet(); /* Making a copy of the set here. */
+}
+
+set<DynamicObject::Ptr> DynamicType::GetObjects(const String& type)
+{
+	DynamicType::Ptr dt = GetByName(type);
+	ObjectLock olock(dt);
+	return dt->GetObjects();
+}
+
+set<DynamicObject::Ptr> DynamicType::GetObjects(void) const
+{
+	return m_ObjectSet; /* Making a copy of the set here. */
 }
 
 String DynamicType::GetName(void) const
@@ -64,19 +80,30 @@ String DynamicType::GetName(void) const
 
 void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 {
-	m_Objects[object->GetName()] = object;
+	ObjectLock olock(object);
+	object->SetEvents(true);
+
+	if (m_ObjectMap.find(object->GetName()) != m_ObjectMap.end())
+		BOOST_THROW_EXCEPTION(runtime_error("RegisterObject() found existing object with the same name: " + object->GetName()));
+
+	m_ObjectMap[object->GetName()] = object;
+	m_ObjectSet.insert(object);
 }
 
 void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
 {
-	m_Objects.erase(object->GetName());
+	ObjectLock olock(object);
+	object->SetEvents(false);
+
+	m_ObjectMap.erase(object->GetName());
+	m_ObjectSet.erase(object);
 }
 
 DynamicObject::Ptr DynamicType::GetObject(const String& name) const
 {
-	DynamicType::NameMap::const_iterator nt = m_Objects.find(name);
+	DynamicType::ObjectMap::const_iterator nt = m_ObjectMap.find(name);
 
-	if (nt == m_Objects.end())
+	if (nt == m_ObjectMap.end())
 		return DynamicObject::Ptr();
 
 	return nt->second;
@@ -89,18 +116,20 @@ void DynamicType::RegisterType(const DynamicType::Ptr& type)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
 
-	DynamicType::TypeMap::const_iterator tt = GetTypes().find(type->GetName());
+	DynamicType::TypeMap::const_iterator tt = InternalGetTypeMap().find(type->GetName());
 
-	if (tt != GetTypes().end())
+	if (tt != InternalGetTypeMap().end())
 		BOOST_THROW_EXCEPTION(runtime_error("Cannot register class for type '" +
 		    type->GetName() + "': Objects of this type already exist."));
 
-	GetTypes()[type->GetName()] = type;
+	InternalGetTypeMap()[type->GetName()] = type;
+	InternalGetTypeSet().insert(type);
 }
 
 DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUpdate) const
 {
 	DynamicObject::Ptr obj = m_ObjectFactory(serializedUpdate);
+	ObjectLock olock(obj);
 
 	/* register attributes */
 	String name;

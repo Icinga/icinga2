@@ -75,23 +75,40 @@ void ReplicationComponent::CheckResultRequestHandler(const RequestMessage& reque
 
 void ReplicationComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoint)
 {
-	/* no need to sync the config with local endpoints */
-	if (endpoint->IsLocalEndpoint())
-		return;
+	{
+		ObjectLock olock(endpoint);
 
-	/* we just assume the other endpoint wants object updates */
-	endpoint->RegisterSubscription("config::ObjectUpdate");
-	endpoint->RegisterSubscription("config::ObjectRemoved");
+		/* no need to sync the config with local endpoints */
+		if (endpoint->IsLocalEndpoint())
+			return;
+
+		/* we just assume the other endpoint wants object updates */
+		endpoint->RegisterSubscription("config::ObjectUpdate");
+		endpoint->RegisterSubscription("config::ObjectRemoved");
+	}
 
 	DynamicType::Ptr type;
-	BOOST_FOREACH(tie(tuples::ignore, type), DynamicType::GetTypes()) {
-		DynamicObject::Ptr object;
-		BOOST_FOREACH(tie(tuples::ignore, object), type->GetObjects()) {
+	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
+		set<DynamicObject::Ptr> objects;
+
+		{
+			ObjectLock olock(dt);
+			objects = dt->GetObjects();
+		}
+
+		BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
 			if (!ShouldReplicateObject(object))
 				continue;
 
 			RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", 0, true);
-			EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, endpoint, request);
+
+			EndpointManager::Ptr em = EndpointManager::GetInstance();
+
+			{
+				ObjectLock elock(em);
+				em->SendUnicastMessage(m_Endpoint, endpoint, request);
+			}
+
 		}
 	}
 }

@@ -85,7 +85,7 @@ double CompatIdoComponent::GetReconnectInterval(void) const
 
 	if (interval.IsEmpty())
 		return DefaultReconnectInterval;
-	else   
+	else
 		return interval;
 }
 
@@ -174,7 +174,7 @@ void CompatIdoComponent::OpenIdoSocket(void)
 #define COMPATIDO_PROTOCOL 2
 #define COMPATIDO_NAME "ICINGA2 COMPATIDO"
 #define COMPATIDO_RELEASE_VERSION "2.0"
-	
+
 	/* connection is always TCP */
 	/* connecttype is always initial */
 	stringstream msgHello;
@@ -340,7 +340,7 @@ void CompatIdoComponent::DisableServiceObject(const Service::Ptr& service)
 		<< 53 << "=" << service->GetHost()->GetName() << "\n"   /* host */
 		<< 114 << "=" << service->GetShortName() << "\n"            /* service */
 		<< 999 << "\n\n";                                       /* enddata */
- 
+
 	m_IdoConnection->SendMessage(message.str());
 }
 
@@ -442,7 +442,7 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 		state = 2; /* unreachable */
 	else if (!host->IsUp())
 		state = 1; /* down */
-	else   
+	else
 		state = 0; /* up */
 
 	stringstream message;
@@ -581,7 +581,7 @@ void CompatIdoComponent::DumpServiceObject(const Service::Ptr& service)
  * dump service status to ido
  *
  * @param service Pointer to Service object
- */ 
+ */
 void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 {
 	stringstream log;
@@ -673,7 +673,7 @@ void CompatIdoComponent::DumpServiceStatus(const Service::Ptr& service)
 }
 
 
-/** 
+/**
  * dumps programstatus to ido
  */
 void CompatIdoComponent::DumpProgramStatusData(void)
@@ -738,7 +738,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 
 	/* hosts and hostgroups */
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
 
 		DumpHostObject(host);
@@ -746,7 +746,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 		//DisableHostObject(host);
 	}
 
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("HostGroup")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
 		const HostGroup::Ptr& hg = static_pointer_cast<HostGroup>(object);
 
 		/* dump the hostgroup and its attributes/members to ido */
@@ -764,14 +764,14 @@ void CompatIdoComponent::DumpConfigObjects(void)
 		}
 
 		SendMessageList(message, hglist, 171);			/* hostgroupmember */
-				
+
 		message << 999 << "\n\n";				/* enddata */
 
 		m_IdoConnection->SendMessage(message.str());
 	}
 
 	/* services and servicegroups */
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
 
 		DumpServiceObject(service);
@@ -779,7 +779,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 		//DisableServiceObject(service);
 	}
 
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("ServiceGroup")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("ServiceGroup")) {
 		const ServiceGroup::Ptr& sg = static_pointer_cast<ServiceGroup>(object);
 
 		/* dump the servicegroup and its attributes/members to ido */
@@ -797,7 +797,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 			sglist.push_back(service->GetHost()->GetName());
 			sglist.push_back(service->GetShortName());
 		}
-	
+
 		SendMessageList(message, sglist, 219);		/* servicegroupmember */
 
 		message << 999 << "\n\n";				/* enddata */
@@ -817,13 +817,13 @@ void CompatIdoComponent::DumpConfigObjects(void)
 }
 
 /**
- * process and dump all status data 
+ * process and dump all status data
  */
 void CompatIdoComponent::DumpStatusData(void)
 {
 	/* hosts */
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
 
 		DumpHostStatus(host);
@@ -831,7 +831,7 @@ void CompatIdoComponent::DumpStatusData(void)
 
 
 	/* services */
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
 
 		DumpServiceStatus(service);

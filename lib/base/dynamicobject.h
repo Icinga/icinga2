@@ -122,6 +122,9 @@ public:
 
 	const AttributeMap& GetAttributes(void) const;
 
+	void SetEvents(bool events);
+	bool GetEvents(void) const;
+
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 
 	static void DumpObjects(const String& filename);
@@ -143,6 +146,8 @@ private:
 	AttributeMap m_Attributes;
 	map<String, Value, string_iless> m_ModifiedAttributes;
 	double m_ConfigTx;
+
+	bool m_Events;
 
 	static double m_CurrentTx;
 

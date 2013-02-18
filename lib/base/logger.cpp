@@ -107,24 +107,17 @@ void Logger::ForwardLogEntry(const LogEntry& entry)
 {
 	bool processed = false;
 
-	DynamicType::Ptr dt = DynamicType::GetByName("Logger");
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Logger")) {
+		Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
 
-	DynamicObject::Ptr object;
+		{
+			ObjectLock llock(logger);
 
-	{
-		ObjectLock olock(dt);
-		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
-			Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
-
-			{
-				ObjectLock llock(logger);
-
-				if (entry.Severity >= logger->GetMinSeverity())
-					logger->m_Impl->ProcessLogEntry(entry);
-			}
-
-			processed = true;
+			if (entry.Severity >= logger->GetMinSeverity())
+				logger->m_Impl->ProcessLogEntry(entry);
 		}
+
+		processed = true;
 	}
 
 	LogSeverity defaultLogLevel;

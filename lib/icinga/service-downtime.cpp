@@ -232,8 +232,7 @@ void Service::ValidateDowntimesCache(void)
 	m_DowntimesCache.clear();
 	m_LegacyDowntimesCache.clear();
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 		service->AddDowntimesToCache();
 	}
@@ -275,11 +274,7 @@ void Service::RemoveExpiredDowntimes(void)
 
 void Service::DowntimesExpireTimerHandler(void)
 {
-	DynamicType::Ptr dt = DynamicType::GetByName("Service");
-	ObjectLock dlock(dt);
-
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 		ObjectLock slock(service);
 		service->RemoveExpiredDowntimes();

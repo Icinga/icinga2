@@ -21,6 +21,7 @@
 
 using namespace icinga;
 
+boost::mutex HostGroup::m_Mutex;
 map<String, vector<Host::WeakPtr> > HostGroup::m_MembersCache;
 bool HostGroup::m_MembersCacheValid = true;
 
@@ -77,13 +78,16 @@ set<Host::Ptr> HostGroup::GetMembers(void) const
 
 	ValidateMembersCache();
 
-	BOOST_FOREACH(const Host::WeakPtr& hst, m_MembersCache[GetName()]) {
-		Host::Ptr host = hst.lock();
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		BOOST_FOREACH(const Host::WeakPtr& hst, m_MembersCache[GetName()]) {
+			Host::Ptr host = hst.lock();
 
-		if (!host)
-			continue;
+			if (!host)
+				continue;
 
-		hosts.insert(host);
+			hosts.insert(host);
+		}
 	}
 
 	return hosts;
@@ -91,25 +95,29 @@ set<Host::Ptr> HostGroup::GetMembers(void) const
 
 void HostGroup::InvalidateMembersCache(void)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
 	m_MembersCacheValid = false;
 	m_MembersCache.clear();
 }
 
 void HostGroup::ValidateMembersCache(void)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	if (m_MembersCacheValid)
 		return;
 
 	m_MembersCache.clear();
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
+		ObjectLock olock(host);
 
 		Dictionary::Ptr dict;
 		dict = host->GetGroups();
 
 		if (dict) {
+			ObjectLock mlock(dict);
 			Value hostgroup;
 			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
 				if (!HostGroup::Exists(hostgroup))

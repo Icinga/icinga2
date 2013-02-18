@@ -21,6 +21,7 @@
 
 using namespace icinga;
 
+boost::mutex ServiceGroup::m_Mutex;
 map<String, vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
 bool ServiceGroup::m_MembersCacheValid;
 
@@ -77,13 +78,16 @@ set<Service::Ptr> ServiceGroup::GetMembers(void) const
 
 	ValidateMembersCache();
 
-	BOOST_FOREACH(const Service::WeakPtr& svc, m_MembersCache[GetName()]) {
-		Service::Ptr service = svc.lock();
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		BOOST_FOREACH(const Service::WeakPtr& svc, m_MembersCache[GetName()]) {
+			Service::Ptr service = svc.lock();
 
-		if (!service)
-			continue;
+			if (!service)
+				continue;
 
-		services.insert(service);
+			services.insert(service);
+		}
 	}
 
 	return services;
@@ -91,25 +95,29 @@ set<Service::Ptr> ServiceGroup::GetMembers(void) const
 
 void ServiceGroup::InvalidateMembersCache(void)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
 	m_MembersCacheValid = false;
 	m_MembersCache.clear();
 }
 
 void ServiceGroup::ValidateMembersCache(void)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	if (m_MembersCacheValid)
 		return;
 
 	m_MembersCache.clear();
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
+		ObjectLock olock(service);
 
 		Dictionary::Ptr dict;
 		dict = service->GetGroups();
 
 		if (dict) {
+			ObjectLock mlock(dict);
 			Value servicegroup;
 			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
 				if (!ServiceGroup::Exists(servicegroup))

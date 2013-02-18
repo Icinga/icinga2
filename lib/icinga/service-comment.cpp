@@ -167,8 +167,7 @@ void Service::ValidateCommentsCache(void)
 	m_CommentsCache.clear();
 	m_LegacyCommentsCache.clear();
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 		service->AddCommentsToCache();
 	}
@@ -210,11 +209,7 @@ void Service::RemoveExpiredComments(void)
 
 void Service::CommentsExpireTimerHandler(void)
 {
-	DynamicType::Ptr dt = DynamicType::GetByName("Service");
-	ObjectLock dlock(dt);
-
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 		ObjectLock olock(service);
 		service->RemoveExpiredComments();
