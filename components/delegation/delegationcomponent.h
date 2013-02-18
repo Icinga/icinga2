@@ -36,7 +36,7 @@ private:
 
 	void DelegationTimerHandler(void);
 
-	vector<Endpoint::Ptr> GetCheckerCandidates(const Service::Ptr& service) const;
+	set<Endpoint::Ptr> GetCheckerCandidates(const Service::Ptr& service) const;
 
 	static bool IsEndpointChecker(const Endpoint::Ptr& endpoint);
 

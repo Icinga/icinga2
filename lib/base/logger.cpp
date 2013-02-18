@@ -81,10 +81,7 @@ void Logger::Write(LogSeverity severity, const String& facility,
 	entry.Facility = facility;
 	entry.Message = message;
 
-	{
-		recursive_mutex::scoped_lock lock(Application::GetMutex());
-		ForwardLogEntry(entry);
-	}
+	ForwardLogEntry(entry);
 }
 
 /**
@@ -113,13 +110,21 @@ void Logger::ForwardLogEntry(const LogEntry& entry)
 	DynamicType::Ptr dt = DynamicType::GetByName("Logger");
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
-		Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
 
-		if (entry.Severity >= logger->GetMinSeverity())
-			logger->m_Impl->ProcessLogEntry(entry);
+	{
+		ObjectLock olock(dt);
+		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+			Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
 
-		processed = true;
+			{
+				ObjectLock llock(logger);
+
+				if (entry.Severity >= logger->GetMinSeverity())
+					logger->m_Impl->ProcessLogEntry(entry);
+			}
+
+			processed = true;
+		}
 	}
 
 	LogSeverity defaultLogLevel;

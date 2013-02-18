@@ -325,8 +325,6 @@ bool EndpointManager::RequestTimeoutLessComparer(const pair<String, PendingReque
 
 void EndpointManager::SubscriptionTimerHandler(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
 
 	DynamicObject::Ptr object;
@@ -351,8 +349,6 @@ void EndpointManager::SubscriptionTimerHandler(void)
 
 void EndpointManager::ReconnectTimerHandler(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	DynamicObject::Ptr object;
 	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
@@ -377,8 +373,6 @@ void EndpointManager::ReconnectTimerHandler(void)
 
 void EndpointManager::RequestTimerHandler(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	map<String, PendingRequest>::iterator it;
 	for (it = m_Requests.begin(); it != m_Requests.end(); it++) {
 		if (it->second.HasTimedOut()) {

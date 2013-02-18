@@ -26,7 +26,15 @@ using namespace icinga;
  */
 EventQueue::EventQueue(void)
 	: m_Stopped(false)
-{ }
+{
+	int cpus = thread::hardware_concurrency();
+
+	if (cpus < 4)
+		cpus = 4;
+
+	for (int i = 0; i < cpus; i++)
+		m_Threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
+}
 
 /**
  * @threadsafety Always.
@@ -34,6 +42,7 @@ EventQueue::EventQueue(void)
 EventQueue::~EventQueue(void)
 {
 	Stop();
+	Join();
 }
 
 /**
@@ -47,23 +56,13 @@ void EventQueue::Stop(void)
 }
 
 /**
- * Spawns worker threads and waits for them to complete.
+ * Waits for all worker threads to finish.
  *
  * @threadsafety Always.
  */
-void EventQueue::Run(void)
+void EventQueue::Join(void)
 {
-	thread_group threads;
-
-	int cpus = thread::hardware_concurrency();
-
-	if (cpus == 0)
-		cpus = 4;
-
-	for (int i = 0; i < cpus * 4; i++)
-		threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
-
-	threads.join_all();
+	m_Threads.join_all();
 }
 
 /**

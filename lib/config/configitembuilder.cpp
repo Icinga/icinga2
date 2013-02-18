@@ -106,7 +106,17 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	}
 
 	BOOST_FOREACH(const String& parent, m_Parents) {
-		ConfigItem::Ptr item = ConfigItem::GetObject(m_Type, parent);
+		ConfigItem::Ptr item;
+
+		ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
+
+		if (context)
+			item = context->GetItem(m_Type, parent);
+
+		/* ignore already active objects while we're in the compiler
+		 * context and linking to existing items is disabled. */
+		if (!item && (!context || (context->GetFlags() & CompilerLinkExisting)))
+			item = ConfigItem::GetObject(m_Type, parent);
 
 		if (!item) {
 			stringstream msgbuf;

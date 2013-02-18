@@ -535,7 +535,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	rm.SetParams(params);
 
-	EndpointManager::GetInstance()->SendMulticastMessage(rm);
+	EndpointManager::Ptr em = EndpointManager::GetInstance();
+	ObjectLock olock(em);
+	em->SendMulticastMessage(rm);
 }
 
 void Service::UpdateStatistics(const Dictionary::Ptr& cr)

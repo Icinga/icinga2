@@ -93,7 +93,7 @@ public:
 
 	SharedPtrHolder GetSelf(void);
 
-	recursive_mutex& GetMutex(void);
+	recursive_mutex& GetMutex(void) const;
 
 protected:
 	Object(void);
@@ -103,7 +103,7 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	recursive_mutex m_Mutex;
+	mutable recursive_mutex m_Mutex;
 };
 
 /**
@@ -112,15 +112,35 @@ private:
 struct ObjectLock {
 public:
 	ObjectLock(const Object::Ptr& object)
-		: m_Lock(object->GetMutex())
-	{ }
+#ifdef _DEBUG
+		: m_Lock(), m_Object(object)
+#endif /* _DEBUG */
+	{
+		if (object)
+			m_Lock = recursive_mutex::scoped_lock(object->GetMutex());
+	}
 
-	ObjectLock(Object *object)
-		: m_Lock(object->GetMutex())
-	{ }
+	ObjectLock(const Object *object)
+#ifdef _DEBUG
+		: m_Lock(), m_Object(object->GetSelf())
+#endif /* _DEBUG */
+	{
+		if (object)
+			m_Lock = recursive_mutex::scoped_lock(object->GetMutex());
+	}
+
+#ifdef _DEBUG
+	~ObjectLock(void)
+	{
+		assert(m_Object.lock());
+	}
+#endif /* _DEBUG */
 
 private:
 	recursive_mutex::scoped_lock m_Lock;
+#ifdef _DEBUG
+	Object::WeakPtr m_Object;
+#endif /* _DEBUG */
 };
 
 /**

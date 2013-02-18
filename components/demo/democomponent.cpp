@@ -54,16 +54,16 @@ void DemoComponent::Stop(void)
  */
 void DemoComponent::DemoTimerHandler(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	Logger::Write(LogInformation, "demo", "Sending multicast 'hello"
 	    " world' message.");
 
 	RequestMessage request;
 	request.SetMethod("demo::HelloWorld");
 
-	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint,
-	    request);
+	EndpointManager::Ptr em = EndpointManager::GetInstance();
+
+	ObjectLock olock(em);
+	em->SendMulticastMessage(m_Endpoint, request);
 }
 
 /**

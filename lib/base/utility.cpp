@@ -548,3 +548,8 @@ void Utility::SetNonBlockingSocket(SOCKET s)
 	ioctlsocket(s, FIONBIO, &lTrue);
 #endif /* _WIN32 */
 }
+
+void Utility::QueueAsyncCallback(const boost::function<void (void)>& callback)
+{
+	Application::GetEQ().Post(callback);
+}

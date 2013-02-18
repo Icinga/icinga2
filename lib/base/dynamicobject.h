@@ -81,6 +81,8 @@ public:
 	DynamicObject(const Dictionary::Ptr& serializedObject);
 	~DynamicObject(void);
 
+	static void Initialize(void);
+
 	Dictionary::Ptr BuildUpdate(double sinceTx, int attributeTypes) const;
 	void ApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes);
 
@@ -147,7 +149,9 @@ private:
 	/* This has to be a set of raw pointers because the DynamicObject
 	 * constructor has to be able to insert objects into this list. */
 	static set<DynamicObject *> m_ModifiedObjects;
-	static boost::mutex m_ModifiedObjectsMutex;
+	static boost::mutex m_TransactionMutex;
+	static boost::once_flag m_TransactionOnce;
+	static Timer::Ptr m_TransactionTimer;
 
 	friend class DynamicType; /* for OnInitCompleted. */
 };

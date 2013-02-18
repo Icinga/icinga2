@@ -30,6 +30,9 @@ struct ServiceNextCheckExtractor
 {
 	typedef double result_type;
 
+	/**
+	 * @threadsafety Caller must hold the mutex for the service.
+	 */
 	double operator()(const Service::WeakPtr& wservice)
 	{
 		Service::Ptr service = wservice.lock();
@@ -37,10 +40,7 @@ struct ServiceNextCheckExtractor
 		if (!service)
 			return 0;
 
-		{
-			ObjectLock olock(service);
-			return service->GetNextCheck();
-		}
+		return service->GetNextCheck();
 	}
 };
 
@@ -68,15 +68,14 @@ private:
 	Endpoint::Ptr m_Endpoint;
 
 	boost::mutex m_Mutex;
+	boost::condition_variable m_CV;
 
 	ServiceSet m_IdleServices;
 	ServiceSet m_PendingServices;
 
-	Timer::Ptr m_CheckTimer;
-
 	Timer::Ptr m_ResultTimer;
 
-	void CheckTimerHandler(void);
+	void CheckThreadProc(void);
 	void ResultTimerHandler(void);
 
 	void CheckCompletedHandler(const Service::Ptr& service);

@@ -21,7 +21,6 @@
 
 using namespace icinga;
 
-recursive_mutex Application::m_Mutex;
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_Debugging = false;
@@ -110,11 +109,6 @@ void Application::SetArgV(char **argv)
 	m_ArgV = argv;
 }
 
-void Application::NewTxTimerHandler(void)
-{
-	DynamicObject::NewTx();
-}
-
 #ifdef _DEBUG
 void Application::ProfileTimerHandler(void)
 {
@@ -142,12 +136,6 @@ void Application::RunEventLoop(void) const
 	thread t(&Application::TimeWatchThreadProc);
 	t.detach();
 
-	/* Set up a timer to periodically flush the tx. */
-	Timer::Ptr newTxTimer = boost::make_shared<Timer>();
-	newTxTimer->OnTimerExpired.connect(boost::bind(&Application::NewTxTimerHandler));
-	newTxTimer->SetInterval(0.5);
-	newTxTimer->Start();
-
 	/* Set up a timer that watches the m_Shutdown flag. */
 	Timer::Ptr shutdownTimer = boost::make_shared<Timer>();
 	shutdownTimer->OnTimerExpired.connect(boost::bind(&Application::ShutdownTimerHandler));
@@ -162,7 +150,7 @@ void Application::RunEventLoop(void) const
 	flushTxTimer->Start();
 #endif /* _DEBUG */
 
-	GetEQ().Run();
+	GetEQ().Join();
 }
 
 /**
@@ -567,16 +555,6 @@ String Application::GetPkgDataDir(void)
 void Application::SetPkgDataDir(const String& path)
 {
         m_PkgDataDir = path;
-}
-
-/**
- * Returns the global mutex.
- *
- * @returns The mutex.
- */
-recursive_mutex& Application::GetMutex(void)
-{
-	return m_Mutex;
 }
 
 /**

@@ -88,12 +88,8 @@ static bool LoadConfigFiles(bool validateOnly)
 static void ReloadConfigTimerHandler(void)
 {
 	if (g_ReloadConfig) {
-		{
-			recursive_mutex::scoped_lock lock(Application::GetMutex());
-
-			Logger::Write(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
-			LoadConfigFiles(false);
-		}
+		Logger::Write(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
+		LoadConfigFiles(false);
 
 		g_ReloadConfig = false;
 	}

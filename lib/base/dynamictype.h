@@ -64,12 +64,13 @@ public:
 	void AddAttributes(const AttributeDescription *attributes, int attributeCount);
 
 private:
-	static boost::mutex m_Mutex;
 	String m_Name;
 	ObjectFactory m_ObjectFactory;
 	map<String, DynamicAttributeType> m_Attributes;
 
 	NameMap m_Objects;
+
+	static boost::mutex& GetStaticMutex(void);
 };
 
 /**

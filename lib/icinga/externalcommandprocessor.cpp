@@ -79,11 +79,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 		callback = it->second;
 	}
 
-	{
-		recursive_mutex::scoped_lock lock(Application::GetMutex());
-		callback(time, arguments);
-	}
-
+	callback(time, arguments);
 }
 
 /**
@@ -723,7 +719,8 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const ve
 	set<Service::Ptr> services;
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-		Service::Ptr hcService = service->GetHost()->GetHostCheckService();
+		Host::Ptr host = service->GetHost();
+		Service::Ptr hcService = host->GetHostCheckService();
 		if (hcService)
 			services.insert(hcService);
 	}
@@ -765,9 +762,8 @@ void ExternalCommandProcessor::AddHostComment(double, const vector<String>& argu
 
 	Logger::Write(LogInformation, "icinga", "Creating comment for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
-	if (service) {
+	if (service)
 		(void) service->AddComment(CommentUser, arguments[2], arguments[3], 0);
-	}
 }
 
 void ExternalCommandProcessor::DelHostComment(double, const vector<String>& arguments)
@@ -813,9 +809,8 @@ void ExternalCommandProcessor::DelAllHostComments(double, const vector<String>& 
 
 	Logger::Write(LogInformation, "icinga", "Removing all comments for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
-	if (service) {
+	if (service)
 		service->RemoveAllComments();
-	}
 }
 
 void ExternalCommandProcessor::DelAllSvcComments(double, const vector<String>& arguments)

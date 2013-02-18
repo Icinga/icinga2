@@ -36,13 +36,13 @@ public:
 	EventQueue(void);
 	~EventQueue(void);
 
-	void Run(void);
+	void Stop(void);
+	void Join(void);
+
 	void Post(const Callback& callback);
 
-	void Stop(void);
-
 private:
-	boost::thread::id m_Owner;
+	thread_group m_Threads;
 
 	boost::mutex m_Mutex;
 	condition_variable m_CV;

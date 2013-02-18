@@ -37,9 +37,11 @@ Object::~Object(void)
  * Returns a reference-counted pointer to this object.
  *
  * @returns A shared_ptr object that points to this object
+ * @threadsafety Always.
  */
 Object::SharedPtrHolder Object::GetSelf(void)
 {
+	ObjectLock olock(this);
 	return Object::SharedPtrHolder(shared_from_this());
 }
 
@@ -50,7 +52,7 @@ Object::SharedPtrHolder Object::GetSelf(void)
  * @returns The object's mutex.
  * @threadsafety Always.
  */
-recursive_mutex& Object::GetMutex(void)
+recursive_mutex& Object::GetMutex(void) const
 {
 	return m_Mutex;
 }

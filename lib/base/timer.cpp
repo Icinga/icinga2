@@ -82,6 +82,8 @@ void Timer::Call(void)
 		Logger::Write(LogWarning, "base", msgbuf.str());
 	}
 
+	/* Re-enable the timer so it can be called again. */
+	m_Started = true;
 	Reschedule();
 }
 
@@ -118,6 +120,8 @@ void Timer::Start(void)
 {
 	boost::call_once(&Timer::Initialize, m_ThreadOnce);
 
+	m_Started = true;
+
 	Reschedule();
 }
 
@@ -129,6 +133,8 @@ void Timer::Start(void)
 void Timer::Stop(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
+
+	m_Started = false;
 	m_Timers.erase(GetSelf());
 
 	/* Notify the worker thread that we've disabled a timer. */
@@ -158,12 +164,14 @@ void Timer::Reschedule(double next)
 
 	m_Next = next;
 
-	/* Remove and re-add the timer to update the index. */
-	m_Timers.erase(GetSelf());
-	m_Timers.insert(GetSelf());
+	if (m_Started) {
+		/* Remove and re-add the timer to update the index. */
+		m_Timers.erase(GetSelf());
+		m_Timers.insert(GetSelf());
 
-	/* Notify the worker that we've rescheduled a timer. */
-	m_CV.notify_all();
+		/* Notify the worker that we've rescheduled a timer. */
+		m_CV.notify_all();
+	}
 }
 
 /**
@@ -250,6 +258,7 @@ void Timer::TimerThreadProc(void)
 
 		/* Remove the timer from the list so it doesn't get called again
 		 * until the current call is completed. */
+		timer->m_Started = false;
 		m_Timers.erase(timer);
 
 		/* Asynchronously call the timer. */

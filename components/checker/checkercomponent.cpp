@@ -35,10 +35,8 @@ void CheckerComponent::Start(void)
 	Service::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 	DynamicObject::OnUnregistered.connect(bind(&CheckerComponent::ObjectRemovedHandler, this, _1));
 
-	m_CheckTimer = boost::make_shared<Timer>();
-	m_CheckTimer->SetInterval(0.1);
-	m_CheckTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::CheckTimerHandler, this));
-	m_CheckTimer->Start();
+	boost::thread thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
+	thread.detach();
 
 	m_ResultTimer = boost::make_shared<Timer>();
 	m_ResultTimer->SetInterval(5);
@@ -51,15 +49,8 @@ void CheckerComponent::Stop(void)
 	m_Endpoint->Unregister();
 }
 
-void CheckerComponent::CheckTimerHandler(void)
+void CheckerComponent::CheckThreadProc(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
-	double now = Utility::GetTime();
-	long tasks = 0;
-
-	int missedServices = 0, missedChecks = 0;
-
 	for (;;) {
 		Service::Ptr service;
 
@@ -69,8 +60,8 @@ void CheckerComponent::CheckTimerHandler(void)
 			typedef nth_index<ServiceSet, 1>::type CheckTimeView;
 			CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
-			if (idx.begin() == idx.end())
-				break;
+			while (idx.begin() == idx.end())
+				m_CV.wait(lock);
 
 			CheckTimeView::iterator it = idx.begin();
 			service = it->lock();
@@ -79,18 +70,32 @@ void CheckerComponent::CheckTimerHandler(void)
 				idx.erase(it);
 				continue;
 			}
-
-			{
-				ObjectLock olock(service);
-
-				if (service->GetNextCheck() > now)
-					break;
-			}
-
-			idx.erase(it);
 		}
 
-		ObjectLock olock(service);
+		double wait;
+
+		{
+			ObjectLock olock(service);
+			wait = service->GetNextCheck() - Utility::GetTime();
+		}
+
+		if (wait > 0) {
+			/* Make sure the service we just examined can be destroyed while we're waiting. */
+			service.reset();
+
+			/* Wait for the next check. */
+			boost::mutex::scoped_lock lock(m_Mutex);
+			m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+
+			continue;
+		}
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			m_IdleServices.erase(service);
+		}
+
+		ObjectLock olock(service); /* also required for the key extractor */
 
 		/* reschedule the service if checks are currently disabled
 		 * for it and this is not a forced check */
@@ -115,51 +120,28 @@ void CheckerComponent::CheckTimerHandler(void)
 
 		service->SetForceNextCheck(false);
 
-		Dictionary::Ptr cr = service->GetLastCheckResult();
-
-		if (cr) {
-			double lastCheck = cr->Get("execution_end");
-			int missed = (Utility::GetTime() - lastCheck) / service->GetCheckInterval() - 1;
-
-			if (missed > 0 && !service->GetFirstCheck()) {
-				missedChecks += missed;
-				missedServices++;
-			}
-		}
-
 		service->SetFirstCheck(false);
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
-		m_IdleServices.erase(service);
-		m_PendingServices.insert(service);
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			m_IdleServices.erase(service);
+			m_PendingServices.insert(service);
+		}
 
 		try {
 			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
 		} catch (const exception& ex) {
 			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + diagnostic_information(ex));
 		}
-
-		tasks++;
 	}
-
-	if (missedServices > 0) {
-		stringstream msgbuf;
-		msgbuf << "Missed " << missedChecks << " checks for " << missedServices << " services";;
-		Logger::Write(LogWarning, "checker", msgbuf.str());
-	}
-
-	if (tasks > 0) {
-		stringstream msgbuf;
-		msgbuf << "CheckTimerHandler: created " << tasks << " task(s)";
-		Logger::Write(LogDebug, "checker", msgbuf.str());
-	}
-
-	RescheduleCheckTimer();
 }
 
 void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
 {
+	ObjectLock olock(service); /* required for the key extractor */
+
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -171,15 +153,11 @@ void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
 		if (it != m_PendingServices.end()) {
 			m_PendingServices.erase(it);
 			m_IdleServices.insert(service);
+			m_CV.notify_all();
 		}
 	}
 
-	RescheduleCheckTimer();
-
-	{
-		ObjectLock olock(service);
-		Logger::Write(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
-	}
+	Logger::Write(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
 }
 
 void CheckerComponent::ResultTimerHandler(void)
@@ -199,12 +177,8 @@ void CheckerComponent::ResultTimerHandler(void)
 
 void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 {
-	String checker;
-
-	{
-		ObjectLock olock(service);
-		checker = service->GetChecker();
-	}
+	ObjectLock olock(service); /* also required for the key extractor */
+	String checker = service->GetChecker();
 
 	if (checker == EndpointManager::GetInstance()->GetIdentity() || checker == m_Endpoint->GetName()) {
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -213,17 +187,20 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 			return;
 
 		m_IdleServices.insert(service);
+		m_CV.notify_all();
 	} else {
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		m_IdleServices.erase(service);
 		m_PendingServices.erase(service);
+		m_CV.notify_all();
 	}
 }
 
 void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 {
 	{
+		ObjectLock olock(service); /* required for the key extractor */
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		/* remove and re-insert the service from the set in order to force an index update */
@@ -234,11 +211,9 @@ void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 		if (it == idx.end())
 			return;
 
-		idx.erase(it);
-		idx.insert(service);
+		idx.replace(it, service);
+		m_CV.notify_all();
 	}
-
-	RescheduleCheckTimer();
 }
 
 void CheckerComponent::ObjectRemovedHandler(const DynamicObject::Ptr& object)
@@ -254,35 +229,6 @@ void CheckerComponent::ObjectRemovedHandler(const DynamicObject::Ptr& object)
 
 		m_IdleServices.erase(service);
 		m_PendingServices.erase(service);
+		m_CV.notify_all();
 	}
-}
-
-void CheckerComponent::RescheduleCheckTimer(void)
-{
-	Service::Ptr service;
-
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-
-		if (m_IdleServices.empty())
-			return;
-
-		typedef nth_index<ServiceSet, 1>::type CheckTimeView;
-		CheckTimeView& idx = boost::get<1>(m_IdleServices);
-
-		do {
-			CheckTimeView::iterator it = idx.begin();
-
-			if (it == idx.end())
-				return;
-
-			service = it->lock();
-
-			if (!service)
-				idx.erase(it);
-		} while (!service);
-	}
-
-	ObjectLock olock(service);
-	m_CheckTimer->Reschedule(service->GetNextCheck());
 }

@@ -120,7 +120,17 @@ Dictionary::Ptr ConfigItem::Link(void) const
 void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
 {
 	BOOST_FOREACH(const String& name, m_Parents) {
-		ConfigItem::Ptr parent = ConfigItem::GetObject(GetType(), name);
+		ConfigItem::Ptr parent;
+
+		ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
+
+		if (context)
+			parent = context->GetItem(GetType(), name);
+
+		/* ignore already active objects while we're in the compiler
+		 * context and linking to existing items is disabled. */
+		if (!parent && (!context || (context->GetFlags() & CompilerLinkExisting)))
+			parent = ConfigItem::GetObject(GetType(), name);
 
 		if (!parent) {
 			stringstream message;
@@ -158,6 +168,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	if (it != m_Items.end()) {
 		/* Unregister the old item from its parents. */
 		ConfigItem::Ptr oldItem = it->second;
+		ObjectLock olock(oldItem);
 		oldItem->UnregisterFromParents();
 
 		/* Steal the old item's children. */
@@ -167,6 +178,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	/* Register this item with its parents. */
 	BOOST_FOREACH(const String& parentName, m_Parents) {
 		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
+		ObjectLock olock(parent);
 		parent->RegisterChild(GetSelf());
 	}
 
@@ -196,20 +208,32 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	/* Update or create the object and apply the configuration settings. */
 	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
-	if (!dobj)
+	if (!dobj) {
+		ObjectLock dlock(dtype);
 		dobj = dtype->GetObject(GetName());
+	}
 
-	if (!dobj)
+	bool was_null = false;
+
+	if (!dobj) {
+		ObjectLock dlock(dtype);
 		dobj = dtype->CreateObject(update);
-	else
-		dobj->ApplyUpdate(update, Attribute_Config);
+		was_null = true;
+	}
 
-	m_DynamicObject = dobj;
+	{
+		ObjectLock olock(dobj);
 
-	if (dobj->IsAbstract())
-		dobj->Unregister();
-	else
-		dobj->Register();
+		if (!was_null)
+			dobj->ApplyUpdate(update, Attribute_Config);
+
+		m_DynamicObject = dobj;
+
+		if (dobj->IsAbstract())
+			dobj->Unregister();
+		else
+			dobj->Register();
+	}
 
 	/* We need to make a copy of the child objects because the
 	 * OnParentCommitted() handler is going to update the list. */
@@ -222,6 +246,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		if (!child)
 			continue;
 
+		ObjectLock olock(child);
 		child->OnParentCommitted();
 	}
 
@@ -237,8 +262,10 @@ void ConfigItem::Unregister(void)
 {
 	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
-	if (dobj)
+	if (dobj) {
+		ObjectLock olock(dobj);
 		dobj->Unregister();
+	}
 
 	ConfigItem::ItemMap::iterator it;
 	it = m_Items.find(make_pair(GetType(), GetName()));
@@ -266,8 +293,10 @@ void ConfigItem::UnregisterFromParents(void)
 	BOOST_FOREACH(const String& parentName, m_Parents) {
 		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
 
-		if (parent)
+		if (parent) {
+			ObjectLock olock(parent);
 			parent->UnregisterChild(GetSelf());
+		}
 	}
 }
 
@@ -300,24 +329,6 @@ DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
  */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
-	{
-		recursive_mutex::scoped_lock lockg(Application::GetMutex());
-
-		ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
-
-		if (context) {
-			ConfigItem::Ptr item = context->GetItem(type, name);
-
-			if (item)
-				return item;
-
-			/* ignore already active objects while we're in the compiler
-			 * context and linking to existing items is disabled. */
-			if ((context->GetFlags() & CompilerLinkExisting) == 0)
-				return ConfigItem::Ptr();
-		}
-	}
-
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -362,7 +373,7 @@ void ConfigItem::Dump(ostream& fp) const
 }
 
 /**
- * @threadsafety Caller must hold the global mutex.
+ * @threadsafety Always.
  */
 void ConfigItem::UnloadUnit(const String& unit)
 {
@@ -372,15 +383,22 @@ void ConfigItem::UnloadUnit(const String& unit)
 
 	vector<ConfigItem::Ptr> obsoleteItems;
 
-	ConfigItem::Ptr item;
-	BOOST_FOREACH(tie(tuples::ignore, item), m_Items) {
-		if (item->GetUnit() != unit)
-			continue;
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
 
-		obsoleteItems.push_back(item);
+		ConfigItem::Ptr item;
+		BOOST_FOREACH(tie(tuples::ignore, item), m_Items) {
+			ObjectLock olock(item);
+
+			if (item->GetUnit() != unit)
+				continue;
+
+			obsoleteItems.push_back(item);
+		}
 	}
 
-	BOOST_FOREACH(item, obsoleteItems) {
+	BOOST_FOREACH(const ConfigItem::Ptr& item, obsoleteItems) {
+		ObjectLock olock(item);
 		item->Unregister();
 	}
 }

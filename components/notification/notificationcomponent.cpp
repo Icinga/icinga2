@@ -29,6 +29,8 @@ EXPORT_COMPONENT(notification, NotificationComponent);
 void NotificationComponent::Start(void)
 {
 	m_Endpoint = Endpoint::MakeEndpoint("notification", false);
+
+	ObjectLock olock(m_Endpoint);
 	m_Endpoint->RegisterTopicHandler("icinga::SendNotifications",
 	    boost::bind(&NotificationComponent::SendNotificationsRequestHandler, this, _2,
 	    _3));
@@ -53,8 +55,6 @@ void NotificationComponent::Stop(void)
  */
 void NotificationComponent::NotificationTimerHandler(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	// TODO: implement
 }
 
@@ -78,5 +78,7 @@ void NotificationComponent::SendNotificationsRequestHandler(const Endpoint::Ptr&
 		return;
 
 	Service::Ptr service = Service::GetByName(svc);
+
+	ObjectLock olock(service);
 	service->SendNotifications(static_cast<NotificationType>(type));
 }

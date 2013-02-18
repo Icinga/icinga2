@@ -33,8 +33,6 @@ PluginNotificationTask::PluginNotificationTask(const ScriptTask::Ptr& task, cons
  */
 void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Notification target must be specified."));
 
@@ -44,23 +42,49 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vecto
 	if (!arguments[0].IsObjectType<Notification>())
 		BOOST_THROW_EXCEPTION(invalid_argument("Argument must be a service."));
 
-	Notification::Ptr notification = arguments[0];
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[1]));
 
 	vector<Dictionary::Ptr> macroDicts;
-	macroDicts.push_back(notification->GetMacros());
-	macroDicts.push_back(notification->GetService()->GetMacros());
-	macroDicts.push_back(notification->GetService()->CalculateDynamicMacros());
-	macroDicts.push_back(notification->GetService()->GetHost()->GetMacros());
-	macroDicts.push_back(notification->GetService()->GetHost()->CalculateDynamicMacros());
-	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
+	Value raw_command;
+	Service::Ptr service;
+	Host::Ptr host;
+	String service_name;
+
+	{
+		Notification::Ptr notification = arguments[0];
+		ObjectLock olock(notification);
+		macroDicts.push_back(notification->GetMacros());
+		raw_command = notification->GetNotificationCommand();
+		service = notification->GetService();
+	}
+
+	{
+		ObjectLock olock(service);
+		macroDicts.push_back(service->GetMacros());
+		macroDicts.push_back(service->CalculateDynamicMacros());
+		service_name = service->GetName();
+		host = service->GetHost();
+	}
+
+	{
+		ObjectLock olock(host);
+		macroDicts.push_back(host->GetMacros());
+		macroDicts.push_back(host->CalculateDynamicMacros());
+	}
+
+	{
+		IcingaApplication::Ptr app = IcingaApplication::GetInstance();
+		ObjectLock olock(app);
+		macroDicts.push_back(app->GetMacros());
+	}
+
 	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
-	Value command = MacroProcessor::ResolveMacros(notification->GetNotificationCommand(), macros);
+	Value command = MacroProcessor::ResolveMacros(raw_command, macros);
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
 
-	PluginNotificationTask ct(task, process, notification->GetService()->GetName(), command);
+	PluginNotificationTask ct(task, process, service_name, command);
 
 	process->Start(boost::bind(&PluginNotificationTask::ProcessFinishedHandler, ct));
 }
@@ -70,8 +94,6 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vecto
  */
 void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	ProcessResult pr;
 
 	try {

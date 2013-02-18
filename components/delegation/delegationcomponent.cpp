@@ -48,13 +48,17 @@ bool DelegationComponent::IsEndpointChecker(const Endpoint::Ptr& endpoint)
 	return (endpoint->HasSubscription("checker"));
 }
 
-vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::Ptr& service) const
+set<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::Ptr& service) const
 {
-	vector<Endpoint::Ptr> candidates;
+	set<Endpoint::Ptr> candidates;
+
+	DynamicType::Ptr dt = DynamicType::GetByName("Endpoint");
+	ObjectLock dlock(dt);
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
+	BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
+		ObjectLock olock(endpoint);
 
 		String myIdentity = EndpointManager::GetInstance()->GetIdentity();
 
@@ -74,7 +78,7 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::P
 		if (!service->IsAllowedChecker(endpoint->GetName()))
 			continue;
 
-		candidates.push_back(endpoint);
+		candidates.insert(endpoint);
 	}
 
 	return candidates;
@@ -82,59 +86,71 @@ vector<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::P
 
 void DelegationComponent::DelegationTimerHandler(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	map<Endpoint::Ptr, int> histogram;
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Endpoint")->GetObjects()) {
-		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
+	{
+		DynamicType::Ptr dt = DynamicType::GetByName("Endpoint");
+		ObjectLock dlock(dt);
 
-		histogram[endpoint] = 0;
+		DynamicObject::Ptr object;
+		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+			Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
+
+			histogram[endpoint] = 0;
+		}
 	}
 
 	vector<Service::Ptr> services;
 
-	/* build "checker -> service count" histogram */
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+	{
+		/* build "checker -> service count" histogram */
+		DynamicType::Ptr dt = DynamicType::GetByName("Service");
+		ObjectLock dlock(dt);
 
-		if (!service)
-			continue;
+		DynamicObject::Ptr object;
+		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+			Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
-		services.push_back(service);
+			if (!service)
+				continue;
 
-		String checker = service->GetChecker();
-		if (checker.IsEmpty())
-			continue;
+			services.push_back(service);
 
-		if (!Endpoint::Exists(checker))
-			continue;
+			ObjectLock olock(service);
+			String checker = service->GetChecker();
+			if (checker.IsEmpty())
+				continue;
 
-		Endpoint::Ptr endpoint = Endpoint::GetByName(checker);
+			if (!Endpoint::Exists(checker))
+				continue;
 
-		histogram[endpoint]++;
+			Endpoint::Ptr endpoint = Endpoint::GetByName(checker);
+
+			histogram[endpoint]++;
+		}
 	}
 
-	std::random_shuffle(services.begin(), services.end());
+	//std::random_shuffle(services.begin(), services.end());
 
 	int delegated = 0;
 
 	/* re-assign services */
 	BOOST_FOREACH(const Service::Ptr& service, services) {
+		ObjectLock olock(service);
+
 		String checker = service->GetChecker();
 
 		Endpoint::Ptr oldEndpoint;
 		if (Endpoint::Exists(checker))
 			oldEndpoint = Endpoint::GetByName(checker);
 
-		vector<Endpoint::Ptr> candidates = GetCheckerCandidates(service);
+		set<Endpoint::Ptr> candidates = GetCheckerCandidates(service);
 
 		int avg_services = 0, overflow_tolerance = 0;
 		vector<Endpoint::Ptr>::iterator cit;
 
 		if (candidates.size() > 0) {
-			std::random_shuffle(candidates.begin(), candidates.end());
+			//std::random_shuffle(candidates.begin(), candidates.end());
 
 			stringstream msgbuf;
 			msgbuf << "Service: " << service->GetName() << ", candidates: " << candidates.size();
@@ -150,8 +166,11 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		/* don't re-assign service if the checker is still valid
 		 * and doesn't have too many services */
+
+		ObjectLock elock(oldEndpoint);
+
 		if (oldEndpoint && oldEndpoint->IsConnected() &&
-		    find(candidates.begin(), candidates.end(), oldEndpoint) != candidates.end() &&
+		    candidates.find(oldEndpoint) != candidates.end() &&
 		    histogram[oldEndpoint] <= avg_services + overflow_tolerance)
 			continue;
 
@@ -169,6 +188,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 			if (histogram[candidate] > avg_services)
 				continue;
 
+			ObjectLock clock(candidate);
 			service->SetChecker(candidate->GetName());
 			histogram[candidate]++;
 

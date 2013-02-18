@@ -67,6 +67,7 @@ public:
 private:
 	double m_Interval; /**< The interval of the timer. */
 	double m_Next; /**< When the next event should happen. */
+	bool m_Started; /**< Whether the timer is enabled. */
 
 	typedef multi_index_container<
 		Timer::WeakPtr,

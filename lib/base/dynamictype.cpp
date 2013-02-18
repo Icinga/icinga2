@@ -21,8 +21,6 @@
 
 using namespace icinga;
 
-boost::mutex DynamicType::m_Mutex;
-
 DynamicType::DynamicType(const String& name, const DynamicType::ObjectFactory& factory)
 	: m_Name(name), m_ObjectFactory(factory)
 { }
@@ -32,7 +30,7 @@ DynamicType::DynamicType(const String& name, const DynamicType::ObjectFactory& f
  */
 DynamicType::Ptr DynamicType::GetByName(const String& name)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(GetStaticMutex());
 
 	DynamicType::TypeMap::const_iterator tt = GetTypes().find(name);
 
@@ -43,7 +41,7 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 }
 
 /**
- * @threadsafety Caller must hold DynamicType::m_Mutex while using the map.
+ * @threadsafety Caller must hold DynamicType::GetStaticMutex() while using the map.
  */
 DynamicType::TypeMap& DynamicType::GetTypes(void)
 {
@@ -52,7 +50,7 @@ DynamicType::TypeMap& DynamicType::GetTypes(void)
 }
 
 /**
- * @threadsafety Caller must hold DynamicType::m_Mutex while using the map.
+ * @threadsafety Caller must hold DynamicType::GetStaticMutex() while using the map.
  */
 DynamicType::NameMap& DynamicType::GetObjects(void)
 {
@@ -89,7 +87,7 @@ DynamicObject::Ptr DynamicType::GetObject(const String& name) const
  */
 void DynamicType::RegisterType(const DynamicType::Ptr& type)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(GetStaticMutex());
 
 	DynamicType::TypeMap::const_iterator tt = GetTypes().find(type->GetName());
 
@@ -146,4 +144,10 @@ void DynamicType::AddAttributes(const AttributeDescription *attributes, int attr
 {
 	for (int i = 0; i < attributeCount; i++)
 		AddAttribute(attributes[i].Name, attributes[i].Type);
+}
+
+boost::mutex& DynamicType::GetStaticMutex(void)
+{
+	static boost::mutex mutex;
+	return mutex;
 }

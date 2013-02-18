@@ -66,12 +66,7 @@ public:
 	void Start(const CompletionCallback& completionCallback = CompletionCallback())
 	{
 		m_CompletionCallback = completionCallback;
-
-		try {
-	  		Run();
-		} catch (...) {
-	     		FinishException(boost::current_exception());
-		}
+		Utility::QueueAsyncCallback(boost::bind(&AsyncTask<TClass, TResult>::Run, this));
 	}
 
 	/**

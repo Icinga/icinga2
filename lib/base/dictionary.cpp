@@ -59,9 +59,12 @@ struct DictionaryKeyLessComparer
  *
  * @param key The key whose value should be retrieved.
  * @returns The value of an empty value if the key was not found.
+ * @threadsafety Always.
  */
 Value Dictionary::Get(const char *key) const
 {
+	ObjectLock olock(this);
+
 	map<String, Value>::const_iterator it;
 
 	it = std::lower_bound(m_Data.begin(), m_Data.end(), key, DictionaryKeyLessComparer());
@@ -77,6 +80,7 @@ Value Dictionary::Get(const char *key) const
  *
  * @param key The key whose value should be retrieved.
  * @returns The value or an empty value if the key was not found.
+ * @threadsafety Always.
  */
 Value Dictionary::Get(const String& key) const
 {
@@ -88,9 +92,12 @@ Value Dictionary::Get(const String& key) const
  *
  * @param key The key.
  * @param value The value.
+ * @threadsafety Always.
  */
 void Dictionary::Set(const String& key, const Value& value)
 {
+	ObjectLock olock(this);
+
 	if (value.IsEmpty()) {
 		Remove(key);
 		return;
@@ -107,9 +114,12 @@ void Dictionary::Set(const String& key, const Value& value)
  *
  * @param value The value.
  * @returns The key that was used to add the new item.
+ * @threadsafety Always.
  */
 String Dictionary::Add(const Value& value)
 {
+	ObjectLock olock(this);
+
 	Dictionary::Iterator it;
 	String key;
 	long index = GetLength();
@@ -150,9 +160,12 @@ Dictionary::Iterator Dictionary::End(void)
  * Returns the number of elements in the dictionary.
  *
  * @returns Number of elements.
+ * @threadsafety Always.
  */
 size_t Dictionary::GetLength(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Data.size();
 }
 
@@ -161,9 +174,12 @@ size_t Dictionary::GetLength(void) const
  *
  * @param key The key.
  * @returns true if the dictionary contains the key, false otherwise.
+ * @threadsafety Always.
  */
 bool Dictionary::Contains(const String& key) const
 {
+	ObjectLock olock(this);
+
 	return (m_Data.find(key) != m_Data.end());
 }
 
@@ -171,9 +187,12 @@ bool Dictionary::Contains(const String& key) const
  * Removes the specified key from the dictionary.
  *
  * @param key The key.
+ * @threadsafety Always.
  */
 void Dictionary::Remove(const String& key)
 {
+	ObjectLock olock(this);
+
 	Dictionary::Iterator it;
 	it = m_Data.find(key);
 
@@ -198,9 +217,12 @@ void Dictionary::Remove(Dictionary::Iterator it)
  * Makes a shallow copy of a dictionary.
  *
  * @returns a copy of the dictionary.
+ * @threadsafety Always.
  */
 Dictionary::Ptr Dictionary::ShallowClone(void) const
 {
+	ObjectLock olock(this);
+
 	Dictionary::Ptr clone = boost::make_shared<Dictionary>();
 
 	String key;
@@ -217,6 +239,7 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
  *
  * @param json The JSON object.
  * @returns A dictionary that is equivalent to the JSON object.
+ * @threadsafety Always.
  */
 Dictionary::Ptr Dictionary::FromJson(cJSON *json)
 {
@@ -237,12 +260,15 @@ Dictionary::Ptr Dictionary::FromJson(cJSON *json)
  *
  * @returns A JSON object that is equivalent to the dictionary. Values that
  *	    cannot be represented in JSON are omitted.
+ * @threadsafety Always.
  */
 cJSON *Dictionary::ToJson(void) const
 {
 	cJSON *json = cJSON_CreateObject();
 
 	try {
+		ObjectLock olock(this);
+
 		String key;
 		Value value;
 		BOOST_FOREACH(tie(key, value), m_Data) {

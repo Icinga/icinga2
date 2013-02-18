@@ -365,11 +365,7 @@ PyObject *PythonLanguage::PyRegisterFunction(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	{
-		recursive_mutex::scoped_lock lock(Application::GetMutex());
-		interp->RegisterPythonFunction(name, object);
-	}
-
+	interp->RegisterPythonFunction(name, object);
 
 	Py_INCREF(Py_None);
 	return Py_None;

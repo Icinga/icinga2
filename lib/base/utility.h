@@ -58,6 +58,8 @@ public:
 
 	static bool Glob(const String& pathSpec, const function<void (const String&)>& callback);
 
+	static void QueueAsyncCallback(const boost::function<void (void)>& callback);
+
 	static
 #ifdef _WIN32
 	HMODULE

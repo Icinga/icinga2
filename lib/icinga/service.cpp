@@ -94,9 +94,8 @@ Service::Ptr Service::GetByName(const String& name)
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)
 {
 	if (!hostName.IsEmpty()) {
-		recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 		Host::Ptr host = Host::GetByName(hostName);
+		ObjectLock olock(host);
 		return host->GetServiceByShortName(serviceName);
 	} else {
 		return Service::GetByName(serviceName);

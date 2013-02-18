@@ -23,7 +23,9 @@ using namespace icinga;
 
 double DynamicObject::m_CurrentTx = 0;
 set<DynamicObject *> DynamicObject::m_ModifiedObjects;
-boost::mutex DynamicObject::m_ModifiedObjectsMutex;
+boost::mutex DynamicObject::m_TransactionMutex;
+boost::once_flag DynamicObject::m_TransactionOnce;
+Timer::Ptr DynamicObject::m_TransactionTimer;
 
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
@@ -46,6 +48,8 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	 * The DynamicObject::Create function takes care of restoring
 	 * non-config state after the object has been fully constructed */
 	ApplyUpdate(serializedObject, Attribute_Config);
+
+	boost::call_once(m_TransactionOnce, &DynamicObject::Initialize);
 }
 
 /*
@@ -53,10 +57,22 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
  */
 DynamicObject::~DynamicObject(void)
 {
-	boost::mutex::scoped_lock lock(m_ModifiedObjectsMutex);
+	boost::mutex::scoped_lock lock(m_TransactionMutex);
 	m_ModifiedObjects.erase(this);
 }
 
+void DynamicObject::Initialize(void)
+{
+	/* Set up a timer to periodically create a new transaction. */
+	m_TransactionTimer = boost::make_shared<Timer>();
+	m_TransactionTimer->SetInterval(0.5);
+	m_TransactionTimer->OnTimerExpired.connect(boost::bind(&DynamicObject::NewTx));
+	m_TransactionTimer->Start();
+}
+
+/**
+ * @threadsafety Always.
+ */
 void DynamicObject::SendLocalUpdateEvents(void)
 {
 	map<String, Value, string_iless>::iterator it;
@@ -199,7 +215,7 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 		m_ConfigTx = tx;
 
 	{
-		boost::mutex::scoped_lock lock(m_ModifiedObjectsMutex);
+		boost::mutex::scoped_lock lock(m_TransactionMutex);
 		m_ModifiedObjects.insert(this);
 	}
 
@@ -280,8 +296,6 @@ String DynamicObject::GetSource(void) const
 
 void DynamicObject::Register(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	DynamicType::Ptr dtype = GetType();
 
 	DynamicObject::Ptr dobj = dtype->GetObject(GetName());
@@ -302,9 +316,8 @@ void DynamicObject::Start(void)
 
 void DynamicObject::Unregister(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	DynamicType::Ptr dtype = GetType();
+	ObjectLock olock(dtype);
 
 	if (!dtype || !dtype->GetObject(GetName()))
 		return;
@@ -322,11 +335,16 @@ ScriptTask::Ptr DynamicObject::InvokeMethod(const String& method,
 	if (!value.IsObjectType<Dictionary>())
 		return ScriptTask::Ptr();
 
+	String funcName;
 	Dictionary::Ptr methods = value;
-	if (!methods->Contains(method))
-		return ScriptTask::Ptr();
 
-	String funcName = methods->Get(method);
+	{
+		ObjectLock olock(methods);
+		if (!methods->Contains(method))
+			return ScriptTask::Ptr();
+
+		funcName = methods->Get(method);
+	}
 
 	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
 
@@ -344,8 +362,6 @@ ScriptTask::Ptr DynamicObject::InvokeMethod(const String& method,
  */
 void DynamicObject::DumpObjects(const String& filename)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	Logger::Write(LogInformation, "base", "Dumping program state to file '" + filename + "'");
 
 	String tempFilename = filename + ".tmp";
@@ -409,8 +425,6 @@ void DynamicObject::DumpObjects(const String& filename)
  */
 void DynamicObject::RestoreObjects(const String& filename)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	Logger::Write(LogInformation, "base", "Restoring program state from file '" + filename + "'");
 
 	std::fstream fp;
@@ -432,6 +446,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 		bool hasConfig = update->Contains("configTx");
 
 		DynamicType::Ptr dt = DynamicType::GetByName(type);
+		ObjectLock dlock(dt);
 
 		if (!dt)
 			BOOST_THROW_EXCEPTION(invalid_argument("Invalid type: " + type));
@@ -455,13 +470,8 @@ void DynamicObject::RestoreObjects(const String& filename)
 	Logger::Write(LogDebug, "base", msgbuf.str());
 }
 
-/*
- * @threadsafety Always.
- */
 void DynamicObject::DeactivateObjects(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	DynamicType::TypeMap::iterator tt;
 	for (tt = DynamicType::GetTypes().begin(); tt != DynamicType::GetTypes().end(); tt++) {
 		DynamicType::NameMap::iterator nt;
@@ -479,7 +489,7 @@ void DynamicObject::DeactivateObjects(void)
  */
 double DynamicObject::GetCurrentTx(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
+	boost::mutex::scoped_lock lock(m_TransactionMutex);
 
 	assert(m_CurrentTx != 0);
 
@@ -487,29 +497,27 @@ double DynamicObject::GetCurrentTx(void)
 }
 
 /*
- * @threadsafety Always.
+ * @threadsafety Always. Caller must not hold any Object locks.
  */
 void DynamicObject::NewTx(void)
 {
+	double tx;
 	set<DynamicObject *> objects;
 
 	{
-		boost::mutex::scoped_lock lock(m_ModifiedObjectsMutex);
+		boost::mutex::scoped_lock lock(m_TransactionMutex);
 
-		/* Some objects may accidentally bleed into the next transaction because
-		 * we're not holding the global mutex while "stealing" the modified objects,
-		 * but that's entirely ok. */
+		tx = m_CurrentTx;
 		m_ModifiedObjects.swap(objects);
+		m_CurrentTx = Utility::GetTime();
 	}
 
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	BOOST_FOREACH(DynamicObject *object, objects) {
+		ObjectLock olock(object);
 		object->SendLocalUpdateEvents();
 	}
 
-	OnTransactionClosing(m_CurrentTx, objects);
-	m_CurrentTx = Utility::GetTime();
+	OnTransactionClosing(tx, objects);
 }
 
 void DynamicObject::OnInitCompleted(void)
@@ -523,10 +531,12 @@ void DynamicObject::OnAttributeChanged(const String&, const Value&)
  */
 DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& name)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	DynamicType::Ptr dtype = DynamicType::GetByName(type);
-	return dtype->GetObject(name);
+
+	{
+		ObjectLock olock(dtype);
+		return dtype->GetObject(name);
+	}
 }
 
 const DynamicObject::AttributeMap& DynamicObject::GetAttributes(void) const

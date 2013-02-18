@@ -79,15 +79,12 @@ public:
 	static String GetPkgDataDir(void);
 	static void SetPkgDataDir(const String& path);
 
-	static recursive_mutex& GetMutex(void);
-
 	static EventQueue& GetEQ(void);
 
 protected:
 	void RunEventLoop(void) const;
 
 private:
-	static recursive_mutex m_Mutex; /**< The global mutex. */
 	static Application *m_Instance; /**< The application instance. */
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of

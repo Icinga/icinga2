@@ -154,11 +154,7 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 
 			String command = line;
 
-			{
-				recursive_mutex::scoped_lock lock(Application::GetMutex());
-
-				ProcessCommand(command);
-			}
+			ProcessCommand(command);
 		}
 
 		fclose(fp);
@@ -181,6 +177,8 @@ void CompatComponent::ProcessCommand(const String& command)
 
 void CompatComponent::DumpComments(ofstream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
+	ObjectLock olock(owner);
+
 	Service::Ptr service;
 	Host::Ptr host;
 	Dictionary::Ptr comments = owner->GetComments();
@@ -216,6 +214,8 @@ void CompatComponent::DumpComments(ofstream& fp, const Service::Ptr& owner, Comp
 
 void CompatComponent::DumpDowntimes(ofstream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
+	ObjectLock olock(owner);
+
 	Dictionary::Ptr downtimes = owner->GetDowntimes();
 
 	if (!downtimes)
@@ -257,6 +257,8 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const Service::Ptr& owner, Com
 
 void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 {
+	ObjectLock olock(host);
+
 	int state;
 	if (!host->IsReachable())
 		state = 2; /* unreachable */
@@ -285,6 +287,8 @@ void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 
 void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 {
+	ObjectLock olock(host);
+
 	fp << "define host {" << "\n"
 	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
 	   << "\t" << "display_name" << "\t" << host->GetDisplayName() << "\n"
@@ -308,6 +312,8 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 
 void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatObjectType type)
 {
+	ObjectLock olock(service);
+
 	String output;
 	String perfdata;
 	double schedule_start = -1, schedule_end = -1;
@@ -370,6 +376,8 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 
 void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& service)
 {
+	ObjectLock olock(service);
+
 	fp << "servicestatus {" << "\n"
 	   << "\t" << "host_name=" << service->GetHost()->GetName() << "\n"
 	   << "\t" << "service_description=" << service->GetShortName() << "\n";
@@ -385,6 +393,8 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 
 void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& service)
 {
+	ObjectLock olock(service);
+
 	fp << "define service {" << "\n"
 	   << "\t" << "host_name" << "\t" << service->GetHost()->GetName() << "\n"
 	   << "\t" << "service_description" << "\t" << service->GetShortName() << "\n"
@@ -399,6 +409,8 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
 	   << "\n";
 
 	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
+		ObjectLock plock(parent);
+
 		fp << "define servicedependency {" << "\n"
 		   << "\t" << "dependent_host_name" << "\t" << service->GetHost()->GetName() << "\n"
 		   << "\t" << "dependent_service_description" << "\t" << service->GetShortName() << "\n"
@@ -416,8 +428,6 @@ void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& servic
  */
 void CompatComponent::StatusTimerHandler(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	Logger::Write(LogInformation, "compat", "Writing compat status information");
 
 	String statuspath = GetStatusPath();
@@ -468,55 +478,85 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
 
-	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Host")->GetObjects()) {
-		const Host::Ptr& host = static_pointer_cast<Host>(object);
+	{
+		DynamicType::Ptr dt = DynamicType::GetByName("Host");
+		ObjectLock dlock(dt);
 
-		DumpHostStatus(statusfp, host);
-		DumpHostObject(objectfp, host);
-	}
+		DynamicObject::Ptr object;
+		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+			Host::Ptr host = static_pointer_cast<Host>(object);
 
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("HostGroup")->GetObjects()) {
-		const HostGroup::Ptr& hg = static_pointer_cast<HostGroup>(object);
-
-		objectfp << "define hostgroup {" << "\n"
-			 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
-			 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
-			 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
-
-		objectfp << "\t" << "members" << "\t";
-		DumpNameList(objectfp, hg->GetMembers());
-		objectfp << "\n"
-			 << "}" << "\n";
-	}
-
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
-		const Service::Ptr& service = static_pointer_cast<Service>(object);
-
-		DumpServiceStatus(statusfp, service);
-		DumpServiceObject(objectfp, service);
-	}
-
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("ServiceGroup")->GetObjects()) {
-		const ServiceGroup::Ptr& sg = static_pointer_cast<ServiceGroup>(object);
-
-		objectfp << "define servicegroup {" << "\n"
-			 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
-			 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
-			 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
-
-		objectfp << "\t" << "members" << "\t";
-
-		vector<String> sglist;
-		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-			sglist.push_back(service->GetHost()->GetName());
-			sglist.push_back(service->GetShortName());
+			DumpHostStatus(statusfp, host);
+			DumpHostObject(objectfp, host);
 		}
+	}
 
-		DumpStringList(objectfp, sglist);
+	{
+		DynamicType::Ptr dt = DynamicType::GetByName("Host");
+		ObjectLock dlock(dt);
 
-		objectfp << "\n"
-			 << "}" << "\n";
+		DynamicObject::Ptr object;
+		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+			HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
+			ObjectLock olock(hg);
+
+			objectfp << "define hostgroup {" << "\n"
+				 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
+				 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
+				 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
+
+			objectfp << "\t" << "members" << "\t";
+			DumpNameList(objectfp, hg->GetMembers());
+			objectfp << "\n"
+				 << "}" << "\n";
+		}
+	}
+
+	{
+		DynamicType::Ptr dt = DynamicType::GetByName("Service");
+		ObjectLock dlock(dt);
+
+		DynamicObject::Ptr object;
+		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+			Service::Ptr service = static_pointer_cast<Service>(object);
+
+			DumpServiceStatus(statusfp, service);
+			DumpServiceObject(objectfp, service);
+		}
+	}
+
+	{
+		DynamicType::Ptr dt = DynamicType::GetByName("ServiceGroup");
+		ObjectLock dlock(dt);
+
+		DynamicObject::Ptr object;
+		BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
+			ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
+			ObjectLock olock(sg);
+
+			objectfp << "define servicegroup {" << "\n"
+				 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
+				 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
+				 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
+
+			objectfp << "\t" << "members" << "\t";
+
+			vector<String> sglist;
+			BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+				ObjectLock slock(service);
+				Host::Ptr host = service->GetHost();
+
+				ObjectLock hlock(host);
+				sglist.push_back(host->GetName());
+
+				sglist.push_back(service->GetShortName());
+			}
+
+			DumpStringList(objectfp, sglist);
+
+			objectfp << "\n"
+				 << "}" << "\n";
+		}
 	}
 
 	statusfp.close();

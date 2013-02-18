@@ -27,13 +27,8 @@ PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr
 	: m_Task(task), m_Process(process)
 { }
 
-/**
- * @threadsafety Always.
- */
 void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Service must be specified."));
 
@@ -41,17 +36,34 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 	if (!vservice.IsObjectType<Service>())
 		BOOST_THROW_EXCEPTION(invalid_argument("Argument must be a service."));
 
-	Service::Ptr service = vservice;
-
 	vector<Dictionary::Ptr> macroDicts;
-	macroDicts.push_back(service->GetMacros());
-	macroDicts.push_back(service->CalculateDynamicMacros());
-	macroDicts.push_back(service->GetHost()->GetMacros());
-	macroDicts.push_back(service->GetHost()->CalculateDynamicMacros());
-	macroDicts.push_back(IcingaApplication::GetInstance()->GetMacros());
+	Value raw_command;
+	Host::Ptr host;
+
+	{
+		Service::Ptr service = vservice;
+		ObjectLock olock(service);
+		macroDicts.push_back(service->GetMacros());
+		macroDicts.push_back(service->CalculateDynamicMacros());
+		raw_command = service->GetCheckCommand();
+		host = service->GetHost();
+	}
+
+	{
+		ObjectLock olock(host);
+		macroDicts.push_back(host->GetMacros());
+		macroDicts.push_back(host->CalculateDynamicMacros());
+	}
+
+	{
+		IcingaApplication::Ptr app = IcingaApplication::GetInstance();
+		ObjectLock olock(app);
+		macroDicts.push_back(app->GetMacros());
+	}
+
 	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
-	Value command = MacroProcessor::ResolveMacros(service->GetCheckCommand(), macros);
+	Value command = MacroProcessor::ResolveMacros(raw_command, macros);
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
 
@@ -60,13 +72,8 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 	process->Start(boost::bind(&PluginCheckTask::ProcessFinishedHandler, ct));
 }
 
-/**
- * @threadsafety Always.
- */
 void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
-
 	ProcessResult pr;
 
 	try {

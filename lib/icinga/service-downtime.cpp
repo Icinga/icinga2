@@ -275,11 +275,13 @@ void Service::RemoveExpiredDowntimes(void)
 
 void Service::DowntimesExpireTimerHandler(void)
 {
-	recursive_mutex::scoped_lock lock(Application::GetMutex());
+	DynamicType::Ptr dt = DynamicType::GetByName("Service");
+	ObjectLock dlock(dt);
 
 	DynamicObject::Ptr object;
-	BOOST_FOREACH(tie(tuples::ignore, object), DynamicType::GetByName("Service")->GetObjects()) {
+	BOOST_FOREACH(tie(tuples::ignore, object), dt->GetObjects()) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+		ObjectLock slock(service);
 		service->RemoveExpiredDowntimes();
 	}
 }

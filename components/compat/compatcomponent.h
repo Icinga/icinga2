@@ -71,6 +71,7 @@ private:
 			else
 				first = false;
 
+			ObjectLock olock(*it);
 			fp << (*it)->GetName();
 		}
 	}
