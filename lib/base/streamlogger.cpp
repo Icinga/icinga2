@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+boost::mutex StreamLogger::m_Mutex;
+
 /**
  * Constructor for the StreamLogger class.
  */
@@ -94,6 +96,7 @@ void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& en
 		}
 	}
 
+	boost::mutex::scoped_lock lock(m_Mutex);
 	stream << "[" << timestamp << "] "
 		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "
 		 << entry.Message;

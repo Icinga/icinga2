@@ -34,6 +34,8 @@ Script::Script(const Dictionary::Ptr& properties)
 
 void Script::OnInitCompleted(void)
 {
+	DynamicObject::OnInitCompleted();
+
 	SpawnInterpreter();
 }
 

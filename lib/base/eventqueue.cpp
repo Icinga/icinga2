@@ -27,12 +27,14 @@ using namespace icinga;
 EventQueue::EventQueue(void)
 	: m_Stopped(false)
 {
-	int cpus = thread::hardware_concurrency();
+	int thread_count = thread::hardware_concurrency();
 
-	if (cpus < 4)
-		cpus = 4;
+	if (thread_count < 4)
+		thread_count = 4;
 
-	for (int i = 0; i < cpus; i++)
+	thread_count *= 8;
+
+	for (int i = 0; i < thread_count; i++)
 		m_Threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
 }
 

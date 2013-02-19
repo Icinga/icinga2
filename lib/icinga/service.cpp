@@ -222,6 +222,8 @@ void Service::SetAcknowledgementExpiry(double timestamp)
 
 void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 {
+	ObjectLock olock(this);
+
 	if (name == "checker")
 		OnCheckerChanged(GetSelf(), oldValue);
 	else if (name == "next_check")

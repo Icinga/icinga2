@@ -98,7 +98,7 @@ public:
 
 	static signals2::signal<void (const DynamicObject::Ptr&)> OnRegistered;
 	static signals2::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
-	static signals2::signal<void (double, const set<DynamicObject *>&)> OnTransactionClosing;
+	static signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> OnTransactionClosing;
 
 	ScriptTask::Ptr MakeMethodTask(const String& method,
 	    const vector<Value>& arguments);
@@ -153,7 +153,7 @@ private:
 
 	/* This has to be a set of raw pointers because the DynamicObject
 	 * constructor has to be able to insert objects into this list. */
-	static set<DynamicObject *> m_ModifiedObjects;
+	static set<DynamicObject::WeakPtr> m_ModifiedObjects;
 	static boost::mutex m_TransactionMutex;
 	static boost::once_flag m_TransactionOnce;
 	static Timer::Ptr m_TransactionTimer;

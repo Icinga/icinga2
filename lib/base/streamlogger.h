@@ -47,6 +47,7 @@ protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);
 
 private:
+	static boost::mutex m_Mutex;
 	ostream *m_Stream;
 	bool m_OwnsStream;
         bool m_Tty;

@@ -160,7 +160,7 @@ void ReplicationComponent::LocalObjectUnregisteredHandler(const DynamicObject::P
 	    MakeObjectMessage(object, "config::ObjectRemoved", 0, false));
 }
 
-void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject *>& modifiedObjects)
+void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject::WeakPtr>& modifiedObjects)
 {
 	if (modifiedObjects.empty())
 		return;
@@ -169,11 +169,14 @@ void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject *>&
 	msgbuf << "Sending " << modifiedObjects.size() << " replication updates.";
 	Logger::Write(LogDebug, "replication", msgbuf.str());
 
-	BOOST_FOREACH(DynamicObject *robject, modifiedObjects) {
-		DynamicObject::Ptr object = robject->GetSelf();
+	BOOST_FOREACH(const DynamicObject::WeakPtr& wobject, modifiedObjects) {
+		DynamicObject::Ptr object = wobject.lock();
+
+		if (!object)
+			continue;
 
 		if (!ShouldReplicateObject(object))
-				continue;
+			continue;
 
 		RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", DynamicObject::GetCurrentTx(), true);
 		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);

@@ -138,13 +138,23 @@ bool Host::IsReachable(void)
 bool Host::IsInDowntime(void) const
 {
 	Service::Ptr service = GetHostCheckService();
+
+	if (!service)
+		return false;
+
+	ObjectLock olock(service);
 	return (service || service->IsInDowntime());
 }
 
 bool Host::IsUp(void) const
 {
 	Service::Ptr service = GetHostCheckService();
-	return (!service || service->GetState() == StateOK || service->GetState() == StateWarning);
+
+	if (!service)
+		return true;
+
+	ObjectLock olock(service);
+	return (service->GetState() == StateOK || service->GetState() == StateWarning);
 }
 
 template<bool copyServiceAttrs, typename TDict>

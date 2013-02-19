@@ -22,14 +22,14 @@
 using namespace icinga;
 
 double DynamicObject::m_CurrentTx = 0;
-set<DynamicObject *> DynamicObject::m_ModifiedObjects;
+set<DynamicObject::WeakPtr> DynamicObject::m_ModifiedObjects;
 boost::mutex DynamicObject::m_TransactionMutex;
 boost::once_flag DynamicObject::m_TransactionOnce;
 Timer::Ptr DynamicObject::m_TransactionTimer;
 
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
-signals2::signal<void (double, const set<DynamicObject *>&)> DynamicObject::OnTransactionClosing;
+signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> DynamicObject::OnTransactionClosing;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	: m_Events(false), m_ConfigTx(0)
@@ -63,10 +63,7 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
  * @threadsafety Always.
  */
 DynamicObject::~DynamicObject(void)
-{
-	boost::mutex::scoped_lock lock(m_TransactionMutex);
-	m_ModifiedObjects.erase(this);
-}
+{ }
 
 void DynamicObject::Initialize(void)
 {
@@ -82,15 +79,19 @@ void DynamicObject::Initialize(void)
  */
 void DynamicObject::SendLocalUpdateEvents(void)
 {
+	map<String, Value, string_iless> attrs;
+
+	{
+		ObjectLock olock(this);
+		attrs.swap(m_ModifiedAttributes);
+	}
+
 	/* Check if it's safe to send events. */
 	if (GetEvents()) {
 		map<String, Value, string_iless>::iterator it;
-		for (it = m_ModifiedAttributes.begin(); it != m_ModifiedAttributes.end(); it++) {
+		for (it = attrs.begin(); it != attrs.end(); it++)
 			OnAttributeChanged(it->first, it->second);
-		}
 	}
-
-	m_ModifiedAttributes.clear();
 }
 
 Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) const
@@ -235,9 +236,19 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 	if (tt.first->second.Type & Attribute_Config)
 		m_ConfigTx = tx;
 
-	{
+	DynamicObject::Ptr self;
+	try {
+		self = GetSelf();
+	} catch (const boost::bad_weak_ptr& ex) {
+		/* We're being called from the constructor. Ignore
+		 * the exception. The OnInitCompleted() function
+		 * will take care of adding this object to the list
+		 * of modified objects. */
+	}
+
+	if (self) {
 		boost::mutex::scoped_lock lock(m_TransactionMutex);
-		m_ModifiedObjects.insert(this);
+		m_ModifiedObjects.insert(self);
 	}
 
 	/* Use insert() rather than [] so we don't overwrite
@@ -527,7 +538,7 @@ double DynamicObject::GetCurrentTx(void)
 void DynamicObject::NewTx(void)
 {
 	double tx;
-	set<DynamicObject *> objects;
+	set<DynamicObject::WeakPtr> objects;
 
 	{
 		boost::mutex::scoped_lock lock(m_TransactionMutex);
@@ -537,8 +548,12 @@ void DynamicObject::NewTx(void)
 		m_CurrentTx = Utility::GetTime();
 	}
 
-	BOOST_FOREACH(DynamicObject *object, objects) {
-		ObjectLock olock(object);
+	BOOST_FOREACH(const DynamicObject::WeakPtr& wobject, objects) {
+		DynamicObject::Ptr object = wobject.lock();
+
+		if (!object)
+			continue;
+
 		object->SendLocalUpdateEvents();
 	}
 
@@ -546,7 +561,13 @@ void DynamicObject::NewTx(void)
 }
 
 void DynamicObject::OnInitCompleted(void)
-{ }
+{
+	/* Add this new object to the list of modified objects.
+	 * We're doing this here because we can't construct
+	 * a while WeakPtr from within the object's constructor. */
+	boost::mutex::scoped_lock lock(m_TransactionMutex);
+	m_ModifiedObjects.insert(GetSelf());
+}
 
 void DynamicObject::OnAttributeChanged(const String&, const Value&)
 { }
