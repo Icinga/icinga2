@@ -98,7 +98,7 @@ AC_DEFUN([AX_BOOST_THREAD],
 
 			LDFLAGS_SAVE=$LDFLAGS
                         case "x$host_os" in
-                          *bsd* )
+                          *bsd* | *linux* )
                                LDFLAGS="-pthread $LDFLAGS"
                           break;
                           ;;
@@ -134,7 +134,7 @@ AC_DEFUN([AX_BOOST_THREAD],
 				AC_MSG_ERROR(Could not link against $ax_lib !)
                         else
                            case "x$host_os" in
-                              *bsd* )
+                              *bsd* | *linux* )
 				BOOST_LDFLAGS="-pthread $BOOST_LDFLAGS"
                               break;
                               ;;
