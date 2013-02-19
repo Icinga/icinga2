@@ -435,24 +435,13 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
 	scheduleInfo->Set("schedule_start", GetNextCheck());
 	scheduleInfo->Set("execution_start", Utility::GetTime());
 
-	try {
-		vector<Value> arguments;
-		arguments.push_back(static_cast<Service::Ptr>(GetSelf()));
-		ScriptTask::Ptr task;
-		task = InvokeMethod("check", arguments, boost::bind(&Service::CheckCompletedHandler, this, scheduleInfo, _1, callback));
+	vector<Value> arguments;
+	arguments.push_back(static_cast<Service::Ptr>(GetSelf()));
 
-		if (!task->IsFinished())
-			Set("current_task", task);
-	} catch (...) {
-		/* something went wrong while setting up the method call -
-		 * reschedule the service and call the callback anyway. */
+	ScriptTask::Ptr task = MakeMethodTask("check", arguments);
+	Set("current_task", task);
 
-		UpdateNextCheck();
-
-		callback();
-
-		throw;
-	}
+	task->Start(boost::bind(&Service::CheckCompletedHandler, this, scheduleInfo, _1, callback));
 }
 
 void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,

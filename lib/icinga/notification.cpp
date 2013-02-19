@@ -75,8 +75,8 @@ void Notification::SendNotification(NotificationType type)
 	vector<Value> arguments;
 	arguments.push_back(static_cast<Notification::Ptr>(GetSelf()));
 	arguments.push_back(type);
-	ScriptTask::Ptr task;
-	task = InvokeMethod("notify", arguments, boost::bind(&Notification::NotificationCompletedHandler, this, _1));
+
+	ScriptTask::Ptr task = MakeMethodTask("notify", arguments);
 
 	if (!task) {
 		Logger::Write(LogWarning, "icinga", "Notification object '" + GetName() + "' doesn't have a 'notify' method.");
@@ -84,11 +84,10 @@ void Notification::SendNotification(NotificationType type)
 		return;
 	}
 
-	if (!task->IsFinished()) {
-		/* We need to keep the task object alive until the completion handler is called. */
+	/* We need to keep the task object alive until the completion handler is called. */
+	m_Tasks.insert(task);
 
-		m_Tasks.insert(task);
-	}
+	task->Start(boost::bind(&Notification::NotificationCompletedHandler, this, _1));
 }
 
 void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)

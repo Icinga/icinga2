@@ -353,8 +353,8 @@ void DynamicObject::Unregister(void)
 	OnUnregistered(GetSelf());
 }
 
-ScriptTask::Ptr DynamicObject::InvokeMethod(const String& method,
-    const vector<Value>& arguments, ScriptTask::CompletionCallback callback)
+ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
+    const vector<Value>& arguments)
 {
 	Value value = Get("methods");
 
@@ -377,10 +377,7 @@ ScriptTask::Ptr DynamicObject::InvokeMethod(const String& method,
 	if (!func)
 		BOOST_THROW_EXCEPTION(invalid_argument("Function '" + funcName + "' does not exist."));
 
-	ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
-	task->Start(callback);
-
-	return task;
+	return boost::make_shared<ScriptTask>(func, arguments);
 }
 
 /*

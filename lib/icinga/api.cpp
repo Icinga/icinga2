@@ -35,5 +35,8 @@ void API::GetAnswerToEverything(const ScriptTask::Ptr& task, const vector<Value>
 
 	Logger::Write(LogInformation, "icinga", "Hello from the Icinga 2 API: " + text);
 
-	task->FinishResult(42);
+	{
+		ObjectLock olock(task);
+		task->FinishResult(42);
+	}
 }

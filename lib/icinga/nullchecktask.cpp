@@ -31,5 +31,8 @@ void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>&
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("state", StateUnknown);
 
-	task->FinishResult(cr);
+	{
+		ObjectLock olock(task);
+		task->FinishResult(cr);
+	}
 }

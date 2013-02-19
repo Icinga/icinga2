@@ -100,8 +100,8 @@ public:
 	static signals2::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
 	static signals2::signal<void (double, const set<DynamicObject *>&)> OnTransactionClosing;
 
-	ScriptTask::Ptr InvokeMethod(const String& method,
-	    const vector<Value>& arguments, ScriptTask::CompletionCallback callback);
+	ScriptTask::Ptr MakeMethodTask(const String& method,
+	    const vector<Value>& arguments);
 
 	shared_ptr<DynamicType> GetType(void) const;
 	String GetName(void) const;

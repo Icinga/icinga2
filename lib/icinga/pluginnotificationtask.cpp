@@ -107,9 +107,16 @@ void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
 			Logger::Write(LogWarning, "icinga", msgbuf.str());
 		}
 
-		ct.m_Task->FinishResult(Empty);
+		{
+			ObjectLock olock(ct.m_Task);
+			ct.m_Task->FinishResult(Empty);
+		}
 	} catch (...) {
-		ct.m_Task->FinishException(boost::current_exception());
+		{
+			ObjectLock olock(ct.m_Task);
+			ct.m_Task->FinishException(boost::current_exception());
+		}
+
 		return;
 	}
 }
