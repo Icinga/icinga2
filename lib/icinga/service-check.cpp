@@ -350,9 +350,9 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 
 		/* Make sure the notification component sees the updated
 		 * state/state_type attributes. */
-		DynamicObject::NewTx();
+		Flush();
 
-		if (IsReachable() && !IsInDowntime() && !IsAcknowledged())
+		if (IsReachable(GetSelf()) && !IsInDowntime() && !IsAcknowledged())
 			RequestNotifications(NotificationStateChange);
 	}
 }
@@ -457,7 +457,12 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 	Dictionary::Ptr result;
 
 	try {
-		Value vresult = task->GetResult();
+		Value vresult;
+
+		{
+			ObjectLock tlock(task);
+			vresult = task->GetResult();
+		}
 
 		if (vresult.IsObjectType<Dictionary>())
 			result = vresult;
@@ -510,9 +515,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	Service::UpdateStatistics(cr);
 
-	/* flush the current transaction so other instances see the service's
+	/* Flush the object so other instances see the service's
 	 * new state when they receive the CheckResult message */
-	DynamicObject::NewTx();
+	Flush();
 
 	RequestMessage rm;
 	rm.SetMethod("checker::CheckResult");

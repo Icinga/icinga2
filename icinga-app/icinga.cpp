@@ -232,14 +232,10 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	DynamicObject::NewTx();
-
 	bool validateOnly = g_AppParams.count("validate");
 
 	if (!LoadConfigFiles(validateOnly))
 		return EXIT_FAILURE;
-
-	DynamicObject::NewTx();
 
 	if (validateOnly) {
 		Logger::Write(LogInformation, "icinga-app", "Terminating as requested by --validate.");

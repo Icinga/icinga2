@@ -47,7 +47,17 @@ REGISTER_TYPE(Service, serviceAttributes);
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
-{ }
+{
+	ServiceGroup::InvalidateMembersCache();
+	Host::InvalidateServicesCache();
+	Service::InvalidateDowntimesCache();
+	Service::InvalidateCommentsCache();
+}
+
+void Service::OnInitCompleted(void)
+{
+	UpdateSlaveNotifications();
+}
 
 Service::~Service(void)
 {
@@ -142,9 +152,18 @@ String Service::GetShortName(void) const
 	return value;
 }
 
-bool Service::IsReachable(void) const
+bool Service::IsReachable(const Service::Ptr& self)
 {
-	BOOST_FOREACH(const Service::Ptr& service, GetParentServices()) {
+	set<Service::Ptr> parentServices;
+
+	{
+		ObjectLock olock(self);
+		parentServices = self->GetParentServices();
+	}
+
+	BOOST_FOREACH(const Service::Ptr& service, parentServices) {
+		ObjectLock olock(service);
+
 		/* ignore pending services */
 		if (!service->GetLastCheckResult())
 			continue;
@@ -161,9 +180,23 @@ bool Service::IsReachable(void) const
 		return false;
 	}
 
-	BOOST_FOREACH(const Host::Ptr& host, GetParentHosts()) {
+	set<Host::Ptr> parentHosts;
+
+	{
+		ObjectLock olock(self);
+		parentHosts = self->GetParentHosts();
+	}
+
+	BOOST_FOREACH(const Host::Ptr& host, parentHosts) {
+		Service::Ptr hc;
+
+		{
+			ObjectLock olock(host);
+			hc = host->GetHostCheckService();
+		}
+
 		/* ignore hosts that are up */
-		if (host->IsUp())
+		if (hc && hc->GetState() == StateOK)
 			continue;
 
 		return false;
@@ -222,8 +255,6 @@ void Service::SetAcknowledgementExpiry(double timestamp)
 
 void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 {
-	ObjectLock olock(this);
-
 	if (name == "checker")
 		OnCheckerChanged(GetSelf(), oldValue);
 	else if (name == "next_check")
@@ -232,7 +263,11 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 		ServiceGroup::InvalidateMembersCache();
 	else if (name == "host_name" || name == "short_name") {
 		Host::InvalidateServicesCache();
-		UpdateSlaveNotifications();
+
+		{
+			ObjectLock olock(this);
+			UpdateSlaveNotifications();
+		}
 	} else if (name == "downtimes")
 		Service::InvalidateDowntimesCache();
 	else if (name == "comments")
@@ -240,6 +275,7 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 	else if (name == "notifications")
 		UpdateSlaveNotifications();
 	else if (name == "check_interval") {
+		ObjectLock(this);
 		ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
 
 		/* update the next check timestamp if we're the owner of this service */

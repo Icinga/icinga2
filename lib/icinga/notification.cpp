@@ -95,7 +95,10 @@ void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 	m_Tasks.erase(task);
 
 	try {
-		(void) task->GetResult();
+		{
+			ObjectLock tlock(task);
+			(void) task->GetResult();
+		}
 
 		Logger::Write(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
 	} catch (const exception& ex) {

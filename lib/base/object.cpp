@@ -41,7 +41,6 @@ Object::~Object(void)
  */
 Object::SharedPtrHolder Object::GetSelf(void)
 {
-	ObjectLock olock(this);
 	return Object::SharedPtrHolder(shared_from_this());
 }
 

@@ -97,7 +97,10 @@ void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
 	ProcessResult pr;
 
 	try {
-		pr = ct.m_Process->GetResult();
+		{
+			ObjectLock tlock(ct.m_Process);
+			pr = ct.m_Process->GetResult();
+		}
 
 		if (pr.ExitStatus != 0) {
 			stringstream msgbuf;

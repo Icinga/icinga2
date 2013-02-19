@@ -69,6 +69,8 @@ private:
 
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
+	bool m_Stopped;
+	thread m_Thread;
 
 	ServiceSet m_IdleServices;
 	ServiceSet m_PendingServices;
@@ -84,7 +86,6 @@ private:
 
 	void CheckerChangedHandler(const Service::Ptr& service);
 	void NextCheckChangedHandler(const Service::Ptr& service);
-	void ObjectRemovedHandler(const DynamicObject::Ptr& object);
 
 	void RescheduleCheckTimer(void);
 };

@@ -257,31 +257,40 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const Service::Ptr& owner, Com
 
 void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 {
-	ObjectLock olock(host);
+	Service::Ptr hc;
+
+	{
+		ObjectLock olock(host);
+		hc = host->GetHostCheckService();
+
+		fp << "hoststatus {" << "\n"
+		   << "\t" << "host_name=" << host->GetName() << "\n";
+	}
+
+	ServiceState hcState = StateOK;
+
+	if (hc) {
+		ObjectLock olock(hc);
+		hcState = hc->GetState();
+	}
 
 	int state;
-	if (!host->IsReachable())
+	if (!Host::IsReachable(host))
 		state = 2; /* unreachable */
-	else if (!host->IsUp())
+	else if (hcState != StateOK)
 		state = 1; /* down */
 	else
 		state = 0; /* up */
 
-	fp << "hoststatus {" << "\n"
-	   << "\t" << "host_name=" << host->GetName() << "\n";
-
-	Service::Ptr hostcheck = host->GetHostCheckService();
-
-	if (hostcheck) {
-		DumpServiceStatusAttrs(fp, hostcheck, CompatTypeHost);
-	}
+	if (hc)
+		DumpServiceStatusAttrs(fp, hc, CompatTypeHost);
 
 	fp << "\t" << "}" << "\n"
 	   << "\n";
 
-	if (hostcheck) {
-		DumpDowntimes(fp, hostcheck, CompatTypeHost);
-		DumpComments(fp, hostcheck, CompatTypeHost);
+	if (hc) {
+		DumpDowntimes(fp, hc, CompatTypeHost);
+		DumpComments(fp, hc, CompatTypeHost);
 	}
 }
 
@@ -312,14 +321,23 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 
 void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatObjectType type)
 {
-	ObjectLock olock(service);
-
 	String output;
 	String perfdata;
 	double schedule_start = -1, schedule_end = -1;
 	double execution_start = -1, execution_end = -1;
 
-	Dictionary::Ptr cr = service->GetLastCheckResult();
+	Dictionary::Ptr cr;
+	int state;
+	Host::Ptr host;
+
+	{
+		ObjectLock olock(service);
+
+		cr = service->GetLastCheckResult();
+		state = service->GetState();
+		host = service->GetHost();
+	}
+
 	if (cr) {
 		output = cr->Get("output");
 		schedule_start = cr->Get("schedule_start");
@@ -332,8 +350,6 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 	double execution_time = (execution_end - execution_start);
 	double latency = (schedule_end - schedule_start) - execution_time;
 
-	int state = service->GetState();
-
 	if (state > StateUnknown)
 		state = StateUnknown;
 
@@ -343,44 +359,60 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 		else
 			state = 1;
 
-		if (!service->GetHost()->IsReachable())
+		if (Host::IsReachable(host))
 			state = 2;
 	}
 
-	fp << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
-	   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
-	   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
-	   << "\t" << "should_be_scheduled=1" << "\n"
-	   << "\t" << "check_execution_time=" << execution_time << "\n"
-	   << "\t" << "check_latency=" << latency << "\n"
-	   << "\t" << "current_state=" << state << "\n"
-	   << "\t" << "state_type=" << service->GetStateType() << "\n"
-	   << "\t" << "plugin_output=" << output << "\n"
-	   << "\t" << "performance_data=" << perfdata << "\n"
-	   << "\t" << "last_check=" << schedule_end << "\n"
-	   << "\t" << "next_check=" << service->GetNextCheck() << "\n"
-	   << "\t" << "current_attempt=" << service->GetCurrentCheckAttempt() << "\n"
-	   << "\t" << "max_attempts=" << service->GetMaxCheckAttempts() << "\n"
-	   << "\t" << "last_state_change=" << service->GetLastStateChange() << "\n"
-	   << "\t" << "last_hard_state_change=" << service->GetLastHardStateChange() << "\n"
-	   << "\t" << "last_update=" << time(NULL) << "\n"
-	   << "\t" << "active_checks_enabled=" << (service->GetEnableActiveChecks() ? 1 : 0) <<"\n"
-	   << "\t" << "passive_checks_enabled=" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
-	   << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
-	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
-	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
-	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
-	   << "\t" << "last_notification=" << service->GetLastNotification() << "\n"
-	   << "\t" << "next_notification=" << service->GetNextNotification() << "\n";
+	{
+			ObjectLock olock(service);
+
+		fp << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
+		   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
+		   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
+		   << "\t" << "should_be_scheduled=1" << "\n"
+		   << "\t" << "check_execution_time=" << execution_time << "\n"
+		   << "\t" << "check_latency=" << latency << "\n"
+		   << "\t" << "current_state=" << state << "\n"
+		   << "\t" << "state_type=" << service->GetStateType() << "\n"
+		   << "\t" << "plugin_output=" << output << "\n"
+		   << "\t" << "performance_data=" << perfdata << "\n"
+		   << "\t" << "last_check=" << schedule_end << "\n"
+		   << "\t" << "next_check=" << service->GetNextCheck() << "\n"
+		   << "\t" << "current_attempt=" << service->GetCurrentCheckAttempt() << "\n"
+		   << "\t" << "max_attempts=" << service->GetMaxCheckAttempts() << "\n"
+		   << "\t" << "last_state_change=" << service->GetLastStateChange() << "\n"
+		   << "\t" << "last_hard_state_change=" << service->GetLastHardStateChange() << "\n"
+		   << "\t" << "last_update=" << time(NULL) << "\n"
+		   << "\t" << "active_checks_enabled=" << (service->GetEnableActiveChecks() ? 1 : 0) <<"\n"
+		   << "\t" << "passive_checks_enabled=" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
+		   << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
+		   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
+		   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
+		   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
+		   << "\t" << "last_notification=" << service->GetLastNotification() << "\n"
+		   << "\t" << "next_notification=" << service->GetNextNotification() << "\n";
+	}
 }
 
 void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& service)
 {
-	ObjectLock olock(service);
+	String host_name, short_name;
+	Host::Ptr host;
+
+	{
+		ObjectLock olock(service);
+		short_name = service->GetShortName();
+		host = service->GetHost();
+	}
+
+	{
+		ObjectLock olock(host);
+		host_name = host->GetName();
+	}
 
 	fp << "servicestatus {" << "\n"
-	   << "\t" << "host_name=" << service->GetHost()->GetName() << "\n"
-	   << "\t" << "service_description=" << service->GetShortName() << "\n";
+	   << "\t" << "host_name=" << host_name << "\n"
+	   << "\t" << "service_description=" << short_name << "\n";
 
 	DumpServiceStatusAttrs(fp, service, CompatTypeService);
 
@@ -393,29 +425,47 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 
 void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& service)
 {
-	ObjectLock olock(service);
+	set<Service::Ptr> parentServices;
+	Host::Ptr host;
+	String host_name, short_name;
 
-	fp << "define service {" << "\n"
-	   << "\t" << "host_name" << "\t" << service->GetHost()->GetName() << "\n"
-	   << "\t" << "service_description" << "\t" << service->GetShortName() << "\n"
-	   << "\t" << "display_name" << "\t" << service->GetDisplayName() << "\n"
-	   << "\t" << "check_command" << "\t" << "check_i2" << "\n"
-	   << "\t" << "check_interval" << "\t" << service->GetCheckInterval() / 60.0 << "\n"
-	   << "\t" << "retry_interval" << "\t" << service->GetRetryInterval() / 60.0 << "\n"
-	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
-	   << "\t" << "active_checks_enabled" << "\t" << (service->GetEnableActiveChecks() ? 1 : 0) << "\n"
-	   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
-	   << "\t" << "}" << "\n"
-	   << "\n";
+	{
+		ObjectLock olock(service);
+		parentServices = service->GetParentServices();
+		host = service->GetHost();
+		short_name = service->GetShortName();
+	}
 
-	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
+	{
+		ObjectLock olock(host);
+		host_name = host->GetName();
+	}
+
+	{
+		ObjectLock olock(service);
+
+		fp << "define service {" << "\n"
+		   << "\t" << "host_name" << "\t" << host_name << "\n"
+		   << "\t" << "service_description" << "\t" << short_name << "\n"
+		   << "\t" << "display_name" << "\t" << service->GetDisplayName() << "\n"
+		   << "\t" << "check_command" << "\t" << "check_i2" << "\n"
+		   << "\t" << "check_interval" << "\t" << service->GetCheckInterval() / 60.0 << "\n"
+		   << "\t" << "retry_interval" << "\t" << service->GetRetryInterval() / 60.0 << "\n"
+		   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
+		   << "\t" << "active_checks_enabled" << "\t" << (service->GetEnableActiveChecks() ? 1 : 0) << "\n"
+		   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
+		   << "\t" << "}" << "\n"
+		   << "\n";
+	}
+
+	BOOST_FOREACH(const Service::Ptr& parent, parentServices) {
 		ObjectLock plock(parent);
 
 		fp << "define servicedependency {" << "\n"
-		   << "\t" << "dependent_host_name" << "\t" << service->GetHost()->GetName() << "\n"
+		   << "\t" << "dependent_host_name" << "\t" << host_name << "\n"
 		   << "\t" << "dependent_service_description" << "\t" << service->GetShortName() << "\n"
 		   << "\t" << "host_name" << "\t" << parent->GetHost()->GetName() << "\n"
-		   << "\t" << "service_description" << "\t" << parent->GetShortName() << "\n"
+		   << "\t" << "service_description" << "\t" << short_name << "\n"
 		   << "\t" << "execution_failure_criteria" << "\t" << "n" << "\n"
 		   << "\t" << "notification_failure_criteria" << "\t" << "w,u,c" << "\n"
 		   << "\t" << "}" << "\n"
@@ -494,16 +544,22 @@ void CompatComponent::StatusTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
-		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
-		ObjectLock olock(hg);
+		set<Host::Ptr> members;
 
-		objectfp << "define hostgroup {" << "\n"
-			 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
-			 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
-			 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
+		{
+			HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
+			ObjectLock olock(hg);
+
+			objectfp << "define hostgroup {" << "\n"
+				 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
+				 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
+				 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
+
+			members = hg->GetMembers();
+		}
 
 		objectfp << "\t" << "members" << "\t";
-		DumpNameList(objectfp, hg->GetMembers());
+		DumpNameList(objectfp, members);
 		objectfp << "\n"
 			 << "}" << "\n";
 	}
@@ -516,25 +572,40 @@ void CompatComponent::StatusTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("ServiceGroup")) {
-		ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
-		ObjectLock olock(sg);
+		set<Service::Ptr> members;
 
-		objectfp << "define servicegroup {" << "\n"
-			 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
-			 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
-			 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
+		{
+			ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
+			ObjectLock olock(sg);
+
+			objectfp << "define servicegroup {" << "\n"
+				 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
+				 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
+				 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
+
+			members = sg->GetMembers();
+		}
 
 		objectfp << "\t" << "members" << "\t";
 
 		vector<String> sglist;
-		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-			ObjectLock slock(service);
-			Host::Ptr host = service->GetHost();
+		BOOST_FOREACH(const Service::Ptr& service, members) {
+			Host::Ptr host;
+			String host_name, short_name;
 
-			ObjectLock hlock(host);
-			sglist.push_back(host->GetName());
+			{
+				ObjectLock olock(service);
+				host = service->GetHost();
+				short_name = service->GetShortName();
+			}
 
-			sglist.push_back(service->GetShortName());
+			{
+				ObjectLock olock(host);
+				host_name = host->GetName();
+			}
+
+			sglist.push_back(host_name);
+			sglist.push_back(short_name);
 		}
 
 		DumpStringList(objectfp, sglist);

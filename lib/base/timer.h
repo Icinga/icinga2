@@ -64,6 +64,9 @@ public:
 
 	signals2::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
+	static void Initialize(void);
+	static void Uninitialize(void);
+
 private:
 	double m_Interval; /**< The interval of the timer. */
 	double m_Next; /**< When the next event should happen. */
@@ -79,12 +82,11 @@ private:
 
 	static boost::mutex m_Mutex;
 	static boost::condition_variable m_CV;
+	static thread m_Thread;
+	static bool m_StopThread;
 	static TimerSet m_Timers;
 
 	void Call(void);
-
-	static boost::once_flag m_ThreadOnce;
-	static void Initialize(void);
 
 	static void TimerThreadProc(void);
 

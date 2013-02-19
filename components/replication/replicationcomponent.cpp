@@ -33,6 +33,7 @@ void ReplicationComponent::Start(void)
 	DynamicObject::OnRegistered.connect(boost::bind(&ReplicationComponent::LocalObjectRegisteredHandler, this, _1));
 	DynamicObject::OnUnregistered.connect(boost::bind(&ReplicationComponent::LocalObjectUnregisteredHandler, this, _1));
 	DynamicObject::OnTransactionClosing.connect(boost::bind(&ReplicationComponent::TransactionClosingHandler, this, _2));
+	DynamicObject::OnFlushObject.connect(boost::bind(&ReplicationComponent::FlushObjectHandler, this, _1));
 
 	Endpoint::OnConnected.connect(boost::bind(&ReplicationComponent::EndpointConnectedHandler, this, _1));
 
@@ -175,11 +176,21 @@ void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject::We
 		if (!object)
 			continue;
 
-		if (!ShouldReplicateObject(object))
-			continue;
+		FlushObjectHandler(object);
+	}
+}
 
-		RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", DynamicObject::GetCurrentTx(), true);
-		EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
+void ReplicationComponent::FlushObjectHandler(const DynamicObject::Ptr& object)
+{
+	if (!ShouldReplicateObject(object))
+		return;
+
+	RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", DynamicObject::GetCurrentTx(), true);
+
+	EndpointManager::Ptr em = EndpointManager::GetInstance();
+	{
+		ObjectLock olock(em);
+		em->SendMulticastMessage(m_Endpoint, request);
 	}
 }
 

@@ -22,9 +22,10 @@
 using namespace icinga;
 
 Timer::TimerSet Timer::m_Timers;
+thread Timer::m_Thread;
 boost::mutex Timer::m_Mutex;
 boost::condition_variable Timer::m_CV;
-boost::once_flag Timer::m_ThreadOnce = BOOST_ONCE_INIT;
+bool Timer::m_StopThread;
 
 /**
  * Extracts the next timestamp from a Timer.
@@ -59,8 +60,25 @@ Timer::Timer(void)
  */
 void Timer::Initialize(void)
 {
-	thread worker(boost::bind(&Timer::TimerThreadProc));
-	worker.detach();
+	boost::mutex::scoped_lock lock(m_Mutex);
+	m_StopThread = false;
+	m_Thread = thread(boost::bind(&Timer::TimerThreadProc));
+}
+
+/**
+ * Disables the timer sub-system.
+ *
+ * @threadsafety Always.
+ */
+void Timer::Uninitialize(void)
+{
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_StopThread = true;
+		m_CV.notify_all();
+	}
+
+	m_Thread.join();
 }
 
 /**
@@ -70,17 +88,7 @@ void Timer::Initialize(void)
  */
 void Timer::Call(void)
 {
-	double st = Utility::GetTime();
-
 	OnTimerExpired(GetSelf());
-
-	double et = Utility::GetTime();
-
-	if (et - st > 1.0) {
-		stringstream msgbuf;
-		msgbuf << "Timer call took " << et - st << " seconds.";
-		Logger::Write(LogWarning, "base", msgbuf.str());
-	}
 
 	/* Re-enable the timer so it can be called again. */
 	m_Started = true;
@@ -118,8 +126,6 @@ double Timer::GetInterval(void) const
  */
 void Timer::Start(void)
 {
-	boost::call_once(&Timer::Initialize, m_ThreadOnce);
-
 	m_Started = true;
 
 	Reschedule();
@@ -232,8 +238,11 @@ void Timer::TimerThreadProc(void)
 		NextTimerView& idx = boost::get<1>(m_Timers);
 
 		/* Wait until there is at least one timer. */
-		while (idx.empty())
+		while (idx.empty() && !m_StopThread)
 			m_CV.wait(lock);
+
+		if (m_StopThread)
+			break;
 
 		NextTimerView::iterator it = idx.begin();
 		Timer::Ptr timer = it->lock();

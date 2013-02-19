@@ -32,7 +32,7 @@ EventQueue::EventQueue(void)
 	if (thread_count < 4)
 		thread_count = 4;
 
-	thread_count *= 8;
+	thread_count *= 4;
 
 	for (int i = 0; i < thread_count; i++)
 		m_Threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
@@ -74,7 +74,7 @@ void EventQueue::Join(void)
  */
 void EventQueue::QueueThreadProc(void)
 {
-	while (!m_Stopped) {
+	for (;;) {
 		vector<Callback> events;
 
 		{
@@ -82,6 +82,9 @@ void EventQueue::QueueThreadProc(void)
 
 			while (m_Events.empty() && !m_Stopped)
 				m_CV.wait(lock);
+
+			if (m_Stopped)
+				break;
 
 			events.swap(m_Events);
 		}
@@ -112,5 +115,5 @@ void EventQueue::Post(const EventQueue::Callback& callback)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Events.push_back(callback);
-	m_CV.notify_all();
+	m_CV.notify_one();
 }

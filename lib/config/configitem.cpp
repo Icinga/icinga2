@@ -383,18 +383,14 @@ void ConfigItem::UnloadUnit(const String& unit)
 
 	vector<ConfigItem::Ptr> obsoleteItems;
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+	ConfigItem::Ptr item;
+	BOOST_FOREACH(tie(tuples::ignore, item), m_Items) {
+		ObjectLock olock(item);
 
-		ConfigItem::Ptr item;
-		BOOST_FOREACH(tie(tuples::ignore, item), m_Items) {
-			ObjectLock olock(item);
+		if (item->GetUnit() != unit)
+			continue;
 
-			if (item->GetUnit() != unit)
-				continue;
-
-			obsoleteItems.push_back(item);
-		}
+		obsoleteItems.push_back(item);
 	}
 
 	BOOST_FOREACH(const ConfigItem::Ptr& item, obsoleteItems) {

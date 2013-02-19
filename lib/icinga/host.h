@@ -56,9 +56,7 @@ public:
 	set<Host::Ptr> GetParentHosts(void) const;
 	set<shared_ptr<Service> > GetParentServices(void) const;
 
-	bool IsReachable(void);
-	bool IsInDowntime(void) const;
-	bool IsUp(void) const;
+	static bool IsReachable(const Host::Ptr& self);
 
 	shared_ptr<Service> GetServiceByShortName(const Value& name) const;
 
@@ -69,6 +67,7 @@ public:
 	    const std::vector<icinga::Value>& arguments);
 
 protected:
+	void OnInitCompleted(void);
 	void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:

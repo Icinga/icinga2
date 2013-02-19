@@ -111,7 +111,7 @@ public:
 	set<Host::Ptr> GetParentHosts(void) const;
 	set<Service::Ptr> GetParentServices(void) const;
 
-	bool IsReachable(void) const;
+	bool IsReachable(const Service::Ptr& self);
 
 	AcknowledgementType GetAcknowledgement(void);
 	void SetAcknowledgement(AcknowledgementType acknowledgement);
@@ -248,6 +248,7 @@ public:
 	void SetNextNotification(double time);
 
 protected:
+	virtual void OnInitCompleted(void);
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:

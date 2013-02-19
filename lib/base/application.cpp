@@ -149,7 +149,11 @@ void Application::RunEventLoop(void) const
 	flushTxTimer->Start();
 #endif /* _DEBUG */
 
+	Timer::Initialize();
+
 	GetEQ().Join();
+
+	Timer::Uninitialize();
 }
 
 /**
@@ -419,11 +423,8 @@ int Application::Run(void)
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
-	DynamicObject::NewTx();
-
 	result = Main();
 
-	DynamicObject::NewTx();
 	DynamicObject::DeactivateObjects();
 
 	return result;

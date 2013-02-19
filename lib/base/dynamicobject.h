@@ -99,6 +99,7 @@ public:
 	static signals2::signal<void (const DynamicObject::Ptr&)> OnRegistered;
 	static signals2::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
 	static signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> OnTransactionClosing;
+	static signals2::signal<void (const DynamicObject::Ptr&)> OnFlushObject;
 
 	ScriptTask::Ptr MakeMethodTask(const String& method,
 	    const vector<Value>& arguments);
@@ -114,6 +115,8 @@ public:
 
 	void SetTx(double tx);
 	double GetTx(void) const;
+
+	void Flush(void);
 
 	void Register(void);
 	void Unregister(void);
@@ -132,7 +135,6 @@ public:
 	static void DeactivateObjects(void);
 
 	static double GetCurrentTx(void);
-	static void NewTx(void);
 
 protected:
 	virtual void OnInitCompleted(void);
@@ -150,6 +152,8 @@ private:
 	bool m_Events;
 
 	static double m_CurrentTx;
+
+	static void NewTx(void);
 
 	/* This has to be a set of raw pointers because the DynamicObject
 	 * constructor has to be able to insert objects into this list. */

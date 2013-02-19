@@ -125,7 +125,17 @@ void Service::UpdateSlaveNotifications(void)
 	newNotifications = boost::make_shared<Dictionary>();
 
 	vector<Dictionary::Ptr> notificationDescsList;
-	notificationDescsList.push_back(GetHost()->Get("notifications"));
+
+	String host_name;
+
+	{
+		Host::Ptr host = GetHost();
+		ObjectLock olock(host);
+
+		notificationDescsList.push_back(host->Get("notifications"));
+		host_name = host->GetName();
+	}
+
 	notificationDescsList.push_back(Get("notifications"));
 
 	BOOST_FOREACH(const Dictionary::Ptr& notificationDescs, notificationDescsList) {
@@ -145,7 +155,7 @@ void Service::UpdateSlaveNotifications(void)
 			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
 			builder->SetType("Notification");
 			builder->SetName(name);
-			builder->AddExpression("host_name", OperatorSet, GetHost()->GetName());
+			builder->AddExpression("host_name", OperatorSet, host_name);
 			builder->AddExpression("service", OperatorSet, GetName());
 
 			CopyNotificationAttributes(this, builder);

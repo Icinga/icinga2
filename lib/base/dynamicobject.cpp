@@ -30,6 +30,7 @@ Timer::Ptr DynamicObject::m_TransactionTimer;
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
 signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> DynamicObject::OnTransactionClosing;
+signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	: m_Events(false), m_ConfigTx(0)
@@ -527,9 +528,18 @@ double DynamicObject::GetCurrentTx(void)
 {
 	boost::mutex::scoped_lock lock(m_TransactionMutex);
 
-	assert(m_CurrentTx != 0);
+	if (m_CurrentTx == 0) {
+		/* Set the initial transaction ID. */
+		m_CurrentTx = Utility::GetTime();
+	}
 
 	return m_CurrentTx;
+}
+
+void DynamicObject::Flush(void)
+{
+	SendLocalUpdateEvents();
+	OnFlushObject(GetSelf());
 }
 
 /*

@@ -28,7 +28,10 @@ deque<Process::Ptr> Process::m_Tasks;
 Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
 	: AsyncTask<Process, ProcessResult>(), m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment)
 {
-	boost::call_once(&Process::Initialize, m_ThreadOnce);
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		boost::call_once(&Process::Initialize, m_ThreadOnce);
+	}
 
 #ifndef _WIN32
 	m_FD = -1;

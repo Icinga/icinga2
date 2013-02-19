@@ -349,12 +349,12 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<Strin
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	if (host->IsUp())
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
-
 	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
+		if (service->GetState() == StateOK)
+			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
+
 		service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 		service->SetAcknowledgementExpiry(0);
 	}
@@ -370,12 +370,12 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	if (host->IsUp())
-		BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
-
 	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
+		if (service->GetState() == StateOK)
+			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
+
 		service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 		service->SetAcknowledgementExpiry(timestamp);
 	}

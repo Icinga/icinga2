@@ -33,10 +33,10 @@ void CheckerComponent::Start(void)
 
 	Service::OnCheckerChanged.connect(bind(&CheckerComponent::CheckerChangedHandler, this, _1));
 	Service::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
-	DynamicObject::OnUnregistered.connect(bind(&CheckerComponent::ObjectRemovedHandler, this, _1));
 
-	boost::thread thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
-	thread.detach();
+	m_Stopped = false;
+
+	m_Thread = thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
 
 	m_ResultTimer = boost::make_shared<Timer>();
 	m_ResultTimer->SetInterval(5);
@@ -47,6 +47,14 @@ void CheckerComponent::Start(void)
 void CheckerComponent::Stop(void)
 {
 	m_Endpoint->Unregister();
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_Stopped = true;
+		m_CV.notify_all();
+	}
+
+	m_Thread.join();
 }
 
 void CheckerComponent::CheckThreadProc(void)
@@ -60,8 +68,11 @@ void CheckerComponent::CheckThreadProc(void)
 			typedef nth_index<ServiceSet, 1>::type CheckTimeView;
 			CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
-			while (idx.begin() == idx.end())
+			while (idx.begin() == idx.end() && !m_Stopped)
 				m_CV.wait(lock);
+
+			if (m_Stopped)
+				break;
 
 			CheckTimeView::iterator it = idx.begin();
 			service = it->lock();
@@ -85,7 +96,8 @@ void CheckerComponent::CheckThreadProc(void)
 
 			/* Wait for the next check. */
 			boost::mutex::scoped_lock lock(m_Mutex);
-			m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+			if (!m_Stopped)
+				m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
 
 			continue;
 		}
@@ -216,19 +228,3 @@ void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 	}
 }
 
-void CheckerComponent::ObjectRemovedHandler(const DynamicObject::Ptr& object)
-{
-	Service::Ptr service = dynamic_pointer_cast<Service>(object);
-
-	/* ignore it if the removed object is not a service */
-	if (!service)
-		return;
-
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-
-		m_IdleServices.erase(service);
-		m_PendingServices.erase(service);
-		m_CV.notify_all();
-	}
-}

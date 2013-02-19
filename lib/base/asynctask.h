@@ -86,7 +86,6 @@ public:
 	 */
 	TResult GetResult(void)
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
 		if (!m_Finished)
 			BOOST_THROW_EXCEPTION(runtime_error("GetResult called on an unfinished AsyncTask"));
 
@@ -110,7 +109,6 @@ public:
 	 */
 	void FinishException(const boost::exception_ptr& ex)
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Exception = ex;
 		FinishInternal();
 	}
@@ -122,7 +120,6 @@ public:
 	 */
 	void FinishResult(const TResult& result)
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Result = result;
 		FinishInternal();
 	}
@@ -149,24 +146,24 @@ private:
 	/**
 	 * Finishes the task and causes the completion callback to be invoked. This
 	 * function must be called before the object is destroyed.
-	 *
-	 * @threadsafety Caller must hold m_Mutex.
 	 */
 	void FinishInternal(void)
 	{
-		assert(!m_Finished);
+		CompletionCallback callback;
 
-		m_Finished = true;
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			assert(!m_Finished);
 
-		m_CV.notify_all();
+			m_Finished = true;
 
-		if (!m_CompletionCallback.empty()) {
-			Utility::QueueAsyncCallback(boost::bind(m_CompletionCallback, GetSelf()));
+			m_CV.notify_all();
 
-			/* Clear callback because the bound function might hold a
-			 * reference to this task. */
-			m_CompletionCallback = CompletionCallback();
+			m_CompletionCallback.swap(callback);
 		}
+
+		if (!callback.empty())
+			Utility::QueueAsyncCallback(boost::bind(callback, GetSelf()));
 	}
 
 	mutable boost::mutex m_Mutex;

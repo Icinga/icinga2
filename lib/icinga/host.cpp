@@ -34,7 +34,14 @@ REGISTER_TYPE(Host, hostAttributes);
 
 Host::Host(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
-{ }
+{
+	HostGroup::InvalidateMembersCache();
+}
+
+void Host::OnInitCompleted(void)
+{
+	UpdateSlaveServices();
+}
 
 Host::~Host(void)
 {
@@ -105,9 +112,18 @@ String Host::GetHostCheck(void) const
 	return Get("hostcheck");
 }
 
-bool Host::IsReachable(void)
+bool Host::IsReachable(const Host::Ptr& self)
 {
-	BOOST_FOREACH(const Service::Ptr& service, GetParentServices()) {
+	set<Service::Ptr> parentServices;
+
+	{
+		ObjectLock olock(self);
+		parentServices = self->GetParentServices();
+	}
+
+	BOOST_FOREACH(const Service::Ptr& service, parentServices) {
+		ObjectLock olock(service);
+
 		/* ignore pending services */
 		if (!service->GetLastCheckResult())
 			continue;
@@ -124,37 +140,29 @@ bool Host::IsReachable(void)
 		return false;
 	}
 
-	BOOST_FOREACH(const Host::Ptr& host, GetParentHosts()) {
+	set<Host::Ptr> parentHosts;
+
+	{
+		ObjectLock olock(self);
+		parentHosts = self->GetParentHosts();
+	}
+
+	BOOST_FOREACH(const Host::Ptr& host, parentHosts) {
+		Service::Ptr hc;
+
+		{
+			ObjectLock olock(host);
+			hc = host->GetHostCheckService();
+		}
+
 		/* ignore hosts that are up */
-		if (host->IsUp())
+		if (hc && hc->GetState() == StateOK)
 			continue;
 
 		return false;
 	}
 
 	return true;
-}
-
-bool Host::IsInDowntime(void) const
-{
-	Service::Ptr service = GetHostCheckService();
-
-	if (!service)
-		return false;
-
-	ObjectLock olock(service);
-	return (service || service->IsInDowntime());
-}
-
-bool Host::IsUp(void) const
-{
-	Service::Ptr service = GetHostCheckService();
-
-	if (!service)
-		return true;
-
-	ObjectLock olock(service);
-	return (service->GetState() == StateOK || service->GetState() == StateWarning);
 }
 
 template<bool copyServiceAttrs, typename TDict>
@@ -280,10 +288,19 @@ void Host::OnAttributeChanged(const String& name, const Value&)
 {
 	if (name == "hostgroups")
 		HostGroup::InvalidateMembersCache();
-	else if (name == "services")
+	else if (name == "services") {
+		ObjectLock olock(this);
 		UpdateSlaveServices();
-	else if (name == "notifications") {
-		BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
+	} else if (name == "notifications") {
+		set<Service::Ptr> services;
+
+		{
+			ObjectLock olock(this);
+			services = GetServices();
+		}
+
+		BOOST_FOREACH(const Service::Ptr& service, services) {
+			ObjectLock olock(service);
 			service->UpdateSlaveNotifications();
 		}
 	}

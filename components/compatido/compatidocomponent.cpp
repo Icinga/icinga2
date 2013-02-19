@@ -438,9 +438,9 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 	Logger::Write(LogDebug, "compatido", log.str());
 
 	int state;
-	if (!host->IsReachable())
+	if (!Host::IsReachable(host))
 		state = 2; /* unreachable */
-	else if (!host->IsUp())
+	else if (host->GetHostCheckService()->GetState() != StateOK)
 		state = 1; /* down */
 	else
 		state = 0; /* up */

@@ -83,11 +83,20 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 	ObjectLock olock(object);
 	object->SetEvents(true);
 
-	if (m_ObjectMap.find(object->GetName()) != m_ObjectMap.end())
+	ObjectMap::iterator it = m_ObjectMap.find(object->GetName());
+
+	if (it != m_ObjectMap.end()) {
+		if (it->second == object)
+			return;
+
 		BOOST_THROW_EXCEPTION(runtime_error("RegisterObject() found existing object with the same name: " + object->GetName()));
+	}
 
 	m_ObjectMap[object->GetName()] = object;
 	m_ObjectSet.insert(object);
+
+	/* notify the object that it's been fully initialized */
+	object->OnInitCompleted();
 }
 
 void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
@@ -128,22 +137,19 @@ void DynamicType::RegisterType(const DynamicType::Ptr& type)
 
 DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUpdate) const
 {
-	DynamicObject::Ptr obj = m_ObjectFactory(serializedUpdate);
-	ObjectLock olock(obj);
+	DynamicObject::Ptr object = m_ObjectFactory(serializedUpdate);
+	ObjectLock olock(object);
 
 	/* register attributes */
 	String name;
 	DynamicAttributeType type;
 	BOOST_FOREACH(tuples::tie(name, type), m_Attributes)
-		obj->RegisterAttribute(name, type);
+		object->RegisterAttribute(name, type);
 
 	/* apply the object's non-config attributes */
-	obj->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
+	object->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
 
-	/* notify the object that it's been fully initialized */
-	obj->OnInitCompleted();
-
-	return obj;
+	return object;
 }
 
 /**
