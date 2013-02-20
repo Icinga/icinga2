@@ -182,7 +182,7 @@ void Service::UpdateSlaveNotifications(void)
 			}
 
 			ConfigItem::Ptr notificationItem = builder->Compile();
-			notificationItem->Commit();
+			ConfigItem::Commit(notificationItem);
 
 			newNotifications->Set(name, notificationItem);
 		}

@@ -67,7 +67,7 @@ public:
 	    const std::vector<icinga::Value>& arguments);
 
 protected:
-	void OnInitCompleted(void);
+	void OnRegistrationCompleted(void);
 	void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:

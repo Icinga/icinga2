@@ -248,7 +248,7 @@ public:
 	void SetNextNotification(double time);
 
 protected:
-	virtual void OnInitCompleted(void);
+	virtual void OnRegistrationCompleted(void);
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:

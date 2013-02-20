@@ -759,7 +759,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 
 		vector<String> hglist;
 
-		BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		BOOST_FOREACH(const Host::Ptr& host, HostGroup::GetMembers(hg)) {
 			hglist.push_back(host->GetName());
 		}
 
@@ -793,7 +793,7 @@ void CompatIdoComponent::DumpConfigObjects(void)
 		vector<String> sglist;
 		vector<Service::Ptr>::iterator vt;
 
-		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		BOOST_FOREACH(const Service::Ptr& service, ServiceGroup::GetMembers(sg)) {
 			sglist.push_back(service->GetHost()->GetName());
 			sglist.push_back(service->GetShortName());
 		}

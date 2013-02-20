@@ -25,14 +25,12 @@ using namespace icinga;
  * @threadsafety Always.
  */
 EventQueue::EventQueue(void)
-	: m_Stopped(false)
+	: m_Stopped(false), m_LastReport(0)
 {
 	int thread_count = thread::hardware_concurrency();
 
 	if (thread_count < 4)
 		thread_count = 4;
-
-	thread_count *= 4;
 
 	for (int i = 0; i < thread_count; i++)
 		m_Threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
@@ -116,4 +114,11 @@ void EventQueue::Post(const EventQueue::Callback& callback)
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Events.push_back(callback);
 	m_CV.notify_one();
+
+	int pending = m_Events.size();
+	double now = Utility::GetTime();
+	if (pending > 1000 && now - m_LastReport > 5) {
+		Logger::Write(LogWarning, "base", "More than 1000 pending events: " + Convert::ToString(pending));
+		m_LastReport = now;
+	}
 }

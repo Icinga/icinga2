@@ -87,7 +87,7 @@ Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool replicated, bool l
 	endpointConfig->SetLocal(!replicated);
 	endpointConfig->AddExpression("local", OperatorSet, local);
 
-	DynamicObject::Ptr object = endpointConfig->Compile()->Commit();
+	DynamicObject::Ptr object = ConfigItem::Commit(endpointConfig->Compile());
 	return dynamic_pointer_cast<Endpoint>(object);
 }
 

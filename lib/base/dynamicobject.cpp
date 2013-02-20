@@ -33,7 +33,7 @@ signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> DynamicObjec
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
-	: m_Events(false), m_ConfigTx(0)
+	: m_EventSafe(false), m_ConfigTx(0)
 {
 	RegisterAttribute("__name", Attribute_Config);
 	RegisterAttribute("__type", Attribute_Config);
@@ -88,7 +88,7 @@ void DynamicObject::SendLocalUpdateEvents(void)
 	}
 
 	/* Check if it's safe to send events. */
-	if (GetEvents()) {
+	if (GetEventSafe()) {
 		map<String, Value, string_iless>::iterator it;
 		for (it = attrs.begin(); it != attrs.end(); it++)
 			OnAttributeChanged(it->first, it->second);
@@ -237,19 +237,14 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 	if (tt.first->second.Type & Attribute_Config)
 		m_ConfigTx = tx;
 
-	DynamicObject::Ptr self;
-	try {
-		self = GetSelf();
-	} catch (const boost::bad_weak_ptr& ex) {
-		/* We're being called from the constructor. Ignore
-		 * the exception. The OnInitCompleted() function
-		 * will take care of adding this object to the list
-		 * of modified objects. */
-	}
+	if (GetEventSafe()) {
+		/* We can't call GetSelf() in the constructor or destructor.
+		 * The OnConstructionCompleted() function will take care of adding this
+		 * object to the list of modified objects later on if we can't
+		 * do it here. */
 
-	if (self) {
 		boost::mutex::scoped_lock lock(m_TransactionMutex);
-		m_ModifiedObjects.insert(self);
+		m_ModifiedObjects.insert(GetSelf());
 	}
 
 	/* Use insert() rather than [] so we don't overwrite
@@ -570,14 +565,20 @@ void DynamicObject::NewTx(void)
 	OnTransactionClosing(tx, objects);
 }
 
-void DynamicObject::OnInitCompleted(void)
+void DynamicObject::OnConstructionCompleted(void)
 {
+	/* It's now safe to send us attribute events. */
+	SetEventSafe(true);
+
 	/* Add this new object to the list of modified objects.
 	 * We're doing this here because we can't construct
 	 * a while WeakPtr from within the object's constructor. */
 	boost::mutex::scoped_lock lock(m_TransactionMutex);
 	m_ModifiedObjects.insert(GetSelf());
 }
+
+void DynamicObject::OnRegistrationCompleted(void)
+{ }
 
 void DynamicObject::OnAttributeChanged(const String&, const Value&)
 { }
@@ -600,12 +601,12 @@ const DynamicObject::AttributeMap& DynamicObject::GetAttributes(void) const
 	return m_Attributes;
 }
 
-void DynamicObject::SetEvents(bool events)
+void DynamicObject::SetEventSafe(bool safe)
 {
-	m_Events = events;
+	m_EventSafe = safe;
 }
 
-bool DynamicObject::GetEvents(void) const
+bool DynamicObject::GetEventSafe(void) const
 {
-	return m_Events;
+	return m_EventSafe;
 }

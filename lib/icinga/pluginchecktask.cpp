@@ -77,12 +77,11 @@ void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 	ProcessResult pr;
 
 	try {
+		ObjectLock olock(ct.m_Process);
 		pr = ct.m_Process->GetResult();
 	} catch (...) {
-		{
-			ObjectLock olock(ct.m_Task);
-			ct.m_Task->FinishException(boost::current_exception());
-		}
+		ObjectLock olock(ct.m_Task);
+		ct.m_Task->FinishException(boost::current_exception());
 
 		return;
 	}
@@ -94,10 +93,8 @@ void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 	result->Set("execution_start", pr.ExecutionStart);
 	result->Set("execution_end", pr.ExecutionEnd);
 
-	{
-		ObjectLock olock(ct.m_Task);
-		ct.m_Task->FinishResult(result);
-	}
+	ObjectLock olock(ct.m_Task);
+	ct.m_Task->FinishResult(result);
 }
 
 ServiceState PluginCheckTask::ExitStatusToState(int exitStatus)

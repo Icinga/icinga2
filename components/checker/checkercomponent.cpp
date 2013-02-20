@@ -60,6 +60,7 @@ void CheckerComponent::Stop(void)
 void CheckerComponent::CheckThreadProc(void)
 {
 	for (;;) {
+		vector<Service::Ptr> services;
 		Service::Ptr service;
 
 		{
@@ -141,6 +142,11 @@ void CheckerComponent::CheckThreadProc(void)
 			m_IdleServices.erase(service);
 			m_PendingServices.insert(service);
 		}
+
+		double rwait = service->GetNextCheck() - Utility::GetTime();
+
+		if (abs(rwait - wait) > 5)
+			Logger::Write(LogWarning, "checker", "Check delayed: " + Convert::ToString(-rwait) + ",planned wait: " + Convert::ToString(-wait));
 
 		try {
 			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));

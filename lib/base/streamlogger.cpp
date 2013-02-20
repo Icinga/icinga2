@@ -79,7 +79,10 @@ void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& en
 	char timestamp[100];
 
 	time_t ts = entry.Timestamp;
-	tm tmnow = *localtime(&ts);
+	tm tmnow;
+
+	if (localtime_r(&ts, &tmnow) == NULL)
+		BOOST_THROW_EXCEPTION(PosixException("localtime_r() failed.", errno));
 
 	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S %z", &tmnow);
 
@@ -98,7 +101,7 @@ void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& en
 		}
 	}
 
-	stream << "[" << timestamp << "] "
+	stream << "[" << timestamp << "] <" << boost::this_thread::get_id() << "> "
 		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "
 		 << entry.Message;
 

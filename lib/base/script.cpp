@@ -32,9 +32,9 @@ Script::Script(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 { }
 
-void Script::OnInitCompleted(void)
+void Script::OnRegistrationCompleted(void)
 {
-	DynamicObject::OnInitCompleted();
+	DynamicObject::OnRegistrationCompleted();
 
 	SpawnInterpreter();
 }

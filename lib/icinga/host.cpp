@@ -34,13 +34,18 @@ REGISTER_TYPE(Host, hostAttributes);
 
 Host::Host(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
-{
-	HostGroup::InvalidateMembersCache();
-}
+{ }
 
-void Host::OnInitCompleted(void)
+void Host::OnRegistrationCompleted(void)
 {
-	UpdateSlaveServices();
+	DynamicObject::OnRegistrationCompleted();
+
+	HostGroup::InvalidateMembersCache();
+
+	{
+		ObjectLock olock(this);
+		UpdateSlaveServices();
+	}
 }
 
 Host::~Host(void)
@@ -264,7 +269,7 @@ void Host::UpdateSlaveServices(void)
 			}
 
 			ConfigItem::Ptr serviceItem = builder->Compile();
-			serviceItem->Commit();
+			ConfigItem::Commit(serviceItem);
 
 			newServices->Set(name, serviceItem);
 		}

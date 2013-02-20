@@ -47,6 +47,7 @@ private:
 	boost::mutex m_Mutex;
 	condition_variable m_CV;
 
+	double m_LastReport;
 	bool m_Stopped;
 	vector<Callback> m_Events;
 

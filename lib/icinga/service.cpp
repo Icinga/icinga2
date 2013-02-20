@@ -47,16 +47,21 @@ REGISTER_TYPE(Service, serviceAttributes);
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
+{ }
+
+void Service::OnRegistrationCompleted(void)
 {
+	DynamicObject::OnRegistrationCompleted();
+
 	ServiceGroup::InvalidateMembersCache();
 	Host::InvalidateServicesCache();
 	Service::InvalidateDowntimesCache();
 	Service::InvalidateCommentsCache();
-}
 
-void Service::OnInitCompleted(void)
-{
-	UpdateSlaveNotifications();
+	{
+		ObjectLock olock(this);
+		UpdateSlaveNotifications();
+	}
 }
 
 Service::~Service(void)

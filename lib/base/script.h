@@ -42,7 +42,7 @@ public:
 	String GetCode(void) const;
 
 protected:
-	virtual void OnInitCompleted(void);
+	virtual void OnRegistrationCompleted(void);
 	virtual void OnAttributeUpdate(const String& name, const Value& oldValue);
 
 private:

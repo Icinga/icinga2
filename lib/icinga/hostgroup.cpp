@@ -72,15 +72,23 @@ HostGroup::Ptr HostGroup::GetByName(const String& name)
 	return dynamic_pointer_cast<HostGroup>(configObject);
 }
 
-set<Host::Ptr> HostGroup::GetMembers(void) const
+set<Host::Ptr> HostGroup::GetMembers(const HostGroup::Ptr& self)
 {
-	set<Host::Ptr> hosts;
+	String name;
 
-	ValidateMembersCache();
+	{
+		ObjectLock olock(self);
+		name = self->GetName();
+	}
+
+	set<Host::Ptr> hosts;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
-		BOOST_FOREACH(const Host::WeakPtr& hst, m_MembersCache[GetName()]) {
+
+		ValidateMembersCache();
+
+		BOOST_FOREACH(const Host::WeakPtr& hst, m_MembersCache[name]) {
 			Host::Ptr host = hst.lock();
 
 			if (!host)
@@ -100,10 +108,11 @@ void HostGroup::InvalidateMembersCache(void)
 	m_MembersCache.clear();
 }
 
+/**
+ * @threadsafety Caller must hold m_Mutex.
+ */
 void HostGroup::ValidateMembersCache(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-
 	if (m_MembersCacheValid)
 		return;
 

@@ -91,7 +91,7 @@ String CompatComponent::GetCommandPath(void) const
 void CompatComponent::Start(void)
 {
 	m_StatusTimer = boost::make_shared<Timer>();
-	m_StatusTimer->SetInterval(5);
+	m_StatusTimer->SetInterval(30);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
@@ -544,22 +544,19 @@ void CompatComponent::StatusTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
-		set<Host::Ptr> members;
+		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
 
 		{
-			HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
 			ObjectLock olock(hg);
 
 			objectfp << "define hostgroup {" << "\n"
 				 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
 				 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
 				 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
-
-			members = hg->GetMembers();
 		}
 
 		objectfp << "\t" << "members" << "\t";
-		DumpNameList(objectfp, members);
+		DumpNameList(objectfp, HostGroup::GetMembers(hg));
 		objectfp << "\n"
 			 << "}" << "\n";
 	}
@@ -572,24 +569,21 @@ void CompatComponent::StatusTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("ServiceGroup")) {
-		set<Service::Ptr> members;
+		ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
 
 		{
-			ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
 			ObjectLock olock(sg);
 
 			objectfp << "define servicegroup {" << "\n"
 				 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
 				 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
 				 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
-
-			members = sg->GetMembers();
 		}
 
 		objectfp << "\t" << "members" << "\t";
 
 		vector<String> sglist;
-		BOOST_FOREACH(const Service::Ptr& service, members) {
+		BOOST_FOREACH(const Service::Ptr& service, ServiceGroup::GetMembers(sg)) {
 			Host::Ptr host;
 			String host_name, short_name;
 

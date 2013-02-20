@@ -125,8 +125,8 @@ public:
 
 	const AttributeMap& GetAttributes(void) const;
 
-	void SetEvents(bool events);
-	bool GetEvents(void) const;
+	void SetEventSafe(bool initialized);
+	bool GetEventSafe(void) const;
 
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 
@@ -137,7 +137,8 @@ public:
 	static double GetCurrentTx(void);
 
 protected:
-	virtual void OnInitCompleted(void);
+	virtual void OnConstructionCompleted(void);
+	virtual void OnRegistrationCompleted(void);
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
@@ -149,7 +150,7 @@ private:
 	map<String, Value, string_iless> m_ModifiedAttributes;
 	double m_ConfigTx;
 
-	bool m_Events;
+	bool m_EventSafe;
 
 	static double m_CurrentTx;
 

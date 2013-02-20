@@ -80,29 +80,33 @@ String DynamicType::GetName(void) const
 
 void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 {
-	ObjectLock olock(object);
-	object->SetEvents(true);
+	String name;
 
-	ObjectMap::iterator it = m_ObjectMap.find(object->GetName());
+	{
+		ObjectLock olock(object);
+		name = object->GetName();
+	}
+
+	ObjectMap::iterator it = m_ObjectMap.find(name);
 
 	if (it != m_ObjectMap.end()) {
 		if (it->second == object)
 			return;
 
-		BOOST_THROW_EXCEPTION(runtime_error("RegisterObject() found existing object with the same name: " + object->GetName()));
+		BOOST_THROW_EXCEPTION(runtime_error("RegisterObject() found existing object with the same name: " + name));
 	}
 
-	m_ObjectMap[object->GetName()] = object;
+	m_ObjectMap[name] = object;
 	m_ObjectSet.insert(object);
 
-	/* notify the object that it's been fully initialized */
-	object->OnInitCompleted();
+	/* notify the object that it's been registered */
+	object->OnRegistrationCompleted();
 }
 
 void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
 {
 	ObjectLock olock(object);
-	object->SetEvents(false);
+	object->SetEventSafe(false);
 
 	m_ObjectMap.erase(object->GetName());
 	m_ObjectSet.erase(object);
@@ -138,16 +142,21 @@ void DynamicType::RegisterType(const DynamicType::Ptr& type)
 DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUpdate) const
 {
 	DynamicObject::Ptr object = m_ObjectFactory(serializedUpdate);
-	ObjectLock olock(object);
 
-	/* register attributes */
-	String name;
-	DynamicAttributeType type;
-	BOOST_FOREACH(tuples::tie(name, type), m_Attributes)
-		object->RegisterAttribute(name, type);
+	{
+		ObjectLock olock(object);
 
-	/* apply the object's non-config attributes */
-	object->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
+		/* register attributes */
+		String name;
+		DynamicAttributeType type;
+		BOOST_FOREACH(tuples::tie(name, type), m_Attributes)
+			object->RegisterAttribute(name, type);
+
+		/* apply the object's non-config attributes */
+		object->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
+	}
+
+	object->OnConstructionCompleted();
 
 	return object;
 }

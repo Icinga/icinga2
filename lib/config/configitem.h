@@ -43,10 +43,11 @@ public:
 	String GetUnit(void) const;
 
 	vector<String> GetParents(void) const;
+	set<ConfigItem::WeakPtr> GetChildren(void) const;
 
 	ExpressionList::Ptr GetExpressionList(void) const;
 
-	DynamicObject::Ptr Commit(void);
+	static DynamicObject::Ptr Commit(const ConfigItem::Ptr& self);
 	void Unregister(void);
 
 	void Dump(ostream& fp) const;

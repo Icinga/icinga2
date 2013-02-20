@@ -72,15 +72,23 @@ ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 	return dynamic_pointer_cast<ServiceGroup>(configObject);
 }
 
-set<Service::Ptr> ServiceGroup::GetMembers(void) const
+set<Service::Ptr> ServiceGroup::GetMembers(const ServiceGroup::Ptr& self)
 {
-	set<Service::Ptr> services;
+	String name;
 
-	ValidateMembersCache();
+	{
+		ObjectLock olock(self);
+		name = self->GetName();
+	}
+
+	set<Service::Ptr> services;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
-		BOOST_FOREACH(const Service::WeakPtr& svc, m_MembersCache[GetName()]) {
+
+		ValidateMembersCache();
+
+		BOOST_FOREACH(const Service::WeakPtr& svc, m_MembersCache[name]) {
 			Service::Ptr service = svc.lock();
 
 			if (!service)
@@ -100,10 +108,11 @@ void ServiceGroup::InvalidateMembersCache(void)
 	m_MembersCache.clear();
 }
 
+/**
+ * @threadsafety Caller must hold m_Mutex.
+ */
 void ServiceGroup::ValidateMembersCache(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-
 	if (m_MembersCacheValid)
 		return;
 
