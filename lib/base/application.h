@@ -97,7 +97,6 @@ private:
 	static String m_LocalStateDir; /**< The local state dir. */
 	static String m_PkgLibDir; /**< The package lib dir. */
 	static String m_PkgDataDir; /**< The package data dir. */
-	static EventQueue m_EQ; /**< The main thread's event queue. */
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);

@@ -506,6 +506,8 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 	 * just in case there was no check result. */
 	UpdateNextCheck();
 
+	olock.Unlock();
+
 	callback();
 }
 

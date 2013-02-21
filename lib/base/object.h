@@ -111,6 +111,10 @@ private:
  */
 struct ObjectLock {
 public:
+	ObjectLock(void)
+		: m_Lock()
+	{ }
+
 	ObjectLock(const Object::Ptr& object)
 		: m_Lock()
 	{
@@ -125,6 +129,10 @@ public:
 			m_Lock = recursive_mutex::scoped_lock(object->GetMutex());
 	}
 
+	void Unlock(void)
+	{
+		m_Lock = recursive_mutex::scoped_lock();
+	}
 
 private:
 	recursive_mutex::scoped_lock m_Lock;

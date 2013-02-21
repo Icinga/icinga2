@@ -30,7 +30,6 @@ String Application::m_PkgLibDir;
 String Application::m_PkgDataDir;
 int Application::m_ArgC;
 char **Application::m_ArgV;
-EventQueue Application::m_EQ;
 
 /**
  * Constructor for the Application class.
@@ -122,7 +121,7 @@ void Application::ProfileTimerHandler(void)
 void Application::ShutdownTimerHandler(void)
 {
 	if (m_ShuttingDown)
-		m_EQ.Stop();
+		GetEQ().Stop();
 }
 
 /**
@@ -565,5 +564,6 @@ void Application::SetPkgDataDir(const String& path)
  */
 EventQueue& Application::GetEQ(void)
 {
-	return m_EQ;
+	static EventQueue queue;
+	return queue;
 }

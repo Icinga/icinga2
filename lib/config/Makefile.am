@@ -46,3 +46,17 @@ libconfig_la_LDFLAGS = \
 
 libconfig_la_LIBADD = \
 	${top_builddir}/lib/base/libbase.la
+
+if USE_PCH
+BUILT_SOURCES += i2-config.h.gch
+
+i2-config.h.gch: i2-config.h
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(libconfig_la_CPPFLAGS) -o $@ $^
+
+libconfig_la_DEPENDENCIES = \
+	i2-config.h.gch
+
+clean-local:
+	rm -f i2-config.h.gch
+endif
+

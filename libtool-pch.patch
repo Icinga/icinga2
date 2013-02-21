@@ -1,0 +1,26 @@
+--- m4/ltmain.sh	2013-02-21 11:23:30.000000000 +0100
++++ m4/ltmain.sh	2013-02-21 11:36:37.000000000 +0100
+@@ -2507,6 +2507,7 @@
+ 
+     case $libobj in
+     *.lo) func_lo2o "$libobj"; obj=$func_lo2o_result ;;
++    *.gch) obj=$libobj ;;
+     *)
+       func_fatal_error "cannot determine name of library object from \`$libobj'"
+       ;;
+@@ -2717,7 +2718,14 @@
+     fi
+ 
+     $opt_dry_run || {
+-      func_write_libtool_object "$libobj" "$objdir/$objname" "$objname"
++      case $libobj in
++      *.gch)
++        ln -sF "$objdir/$objname" "$libobj"
++        ;;
++      *)
++        func_write_libtool_object "$libobj" "$objdir/$objname" "$objname"
++        ;;
++      esac
+ 
+       # Unlock the critical section if it was locked
+       if test "$need_locks" != no; then

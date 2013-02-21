@@ -63,27 +63,26 @@ void CheckerComponent::CheckThreadProc(void)
 		vector<Service::Ptr> services;
 		Service::Ptr service;
 
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(m_Mutex);
 
-			typedef nth_index<ServiceSet, 1>::type CheckTimeView;
-			CheckTimeView& idx = boost::get<1>(m_IdleServices);
+		typedef nth_index<ServiceSet, 1>::type CheckTimeView;
+		CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
-			while (idx.begin() == idx.end() && !m_Stopped)
-				m_CV.wait(lock);
+		while (idx.begin() == idx.end() && !m_Stopped)
+			m_CV.wait(lock);
 
-			if (m_Stopped)
-				break;
+		if (m_Stopped)
+			break;
 
-			CheckTimeView::iterator it = idx.begin();
-			service = it->lock();
+		CheckTimeView::iterator it = idx.begin();
+		service = it->lock();
 
-			if (!service) {
-				idx.erase(it);
-				continue;
-			}
+		if (!service) {
+			idx.erase(it);
+			continue;
 		}
 
+		ObjectLock olock(service); /* also required for the key extractor. */
 		double wait;
 
 		{
@@ -92,23 +91,20 @@ void CheckerComponent::CheckThreadProc(void)
 		}
 
 		if (wait > 0) {
+			/* Release the object lock. */
+			olock.Unlock();
+
 			/* Make sure the service we just examined can be destroyed while we're waiting. */
 			service.reset();
 
 			/* Wait for the next check. */
-			boost::mutex::scoped_lock lock(m_Mutex);
 			if (!m_Stopped)
 				m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
 
 			continue;
 		}
 
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
-			m_IdleServices.erase(service);
-		}
-
-		ObjectLock olock(service); /* also required for the key extractor */
+		m_IdleServices.erase(service);
 
 		/* reschedule the service if checks are currently disabled
 		 * for it and this is not a forced check */
@@ -118,35 +114,27 @@ void CheckerComponent::CheckThreadProc(void)
 
 				service->UpdateNextCheck();
 
-				{
-					boost::mutex::scoped_lock lock(m_Mutex);
+				typedef nth_index<ServiceSet, 1>::type CheckTimeView;
+				CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
-					typedef nth_index<ServiceSet, 1>::type CheckTimeView;
-					CheckTimeView& idx = boost::get<1>(m_IdleServices);
-
-					idx.insert(service);
-				}
+				idx.insert(service);
 
 				continue;
 			}
 		}
 
 		service->SetForceNextCheck(false);
-
 		service->SetFirstCheck(false);
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
-			m_IdleServices.erase(service);
-			m_PendingServices.insert(service);
-		}
+		m_IdleServices.erase(service);
+		m_PendingServices.insert(service);
 
 		double rwait = service->GetNextCheck() - Utility::GetTime();
 
-		if (abs(rwait - wait) > 5)
-			Logger::Write(LogWarning, "checker", "Check delayed: " + Convert::ToString(-rwait) + ",planned wait: " + Convert::ToString(-wait));
+		if (rwait < -5)
+			Logger::Write(LogWarning, "checker", "Check delayed: " + Convert::ToString(-rwait));
 
 		try {
 			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
@@ -156,23 +144,21 @@ void CheckerComponent::CheckThreadProc(void)
 	}
 }
 
+
 void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
 	ObjectLock olock(service); /* required for the key extractor */
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-
-		/* remove the service from the list of pending services; if it's not in the
-		 * list this was a manual (i.e. forced) check and we must not re-add the
-		 * service to the services list because it's already there. */
-		CheckerComponent::ServiceSet::iterator it;
-		it = m_PendingServices.find(service);
-		if (it != m_PendingServices.end()) {
-			m_PendingServices.erase(it);
-			m_IdleServices.insert(service);
-			m_CV.notify_all();
-		}
+	/* remove the service from the list of pending services; if it's not in the
+	 * list this was a manual (i.e. forced) check and we must not re-add the
+	 * service to the services list because it's already there. */
+	CheckerComponent::ServiceSet::iterator it;
+	it = m_PendingServices.find(service);
+	if (it != m_PendingServices.end()) {
+		m_PendingServices.erase(it);
+		m_IdleServices.insert(service);
+		m_CV.notify_all();
 	}
 
 	Logger::Write(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
@@ -195,20 +181,18 @@ void CheckerComponent::ResultTimerHandler(void)
 
 void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	ObjectLock olock(service); /* also required for the key extractor */
 	String checker = service->GetChecker();
 
 	if (checker == EndpointManager::GetInstance()->GetIdentity() || checker == m_Endpoint->GetName()) {
-		boost::mutex::scoped_lock lock(m_Mutex);
-
 		if (m_PendingServices.find(service) != m_PendingServices.end())
 			return;
 
 		m_IdleServices.insert(service);
 		m_CV.notify_all();
 	} else {
-		boost::mutex::scoped_lock lock(m_Mutex);
-
 		m_IdleServices.erase(service);
 		m_PendingServices.erase(service);
 		m_CV.notify_all();
@@ -217,20 +201,20 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 
 void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 {
-	{
-		ObjectLock olock(service); /* required for the key extractor */
-		boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
-		/* remove and re-insert the service from the set in order to force an index update */
-		typedef nth_index<ServiceSet, 0>::type ServiceView;
-		ServiceView& idx = boost::get<0>(m_IdleServices);
+	ObjectLock olock(service); /* required for the key extractor */
 
-		ServiceView::iterator it = idx.find(service);
-		if (it == idx.end())
-			return;
+	/* remove and re-insert the service from the set in order to force an index update */
+	typedef nth_index<ServiceSet, 0>::type ServiceView;
+	ServiceView& idx = boost::get<0>(m_IdleServices);
 
-		idx.replace(it, service);
-		m_CV.notify_all();
-	}
+	ServiceView::iterator it = idx.find(service);
+	if (it == idx.end())
+		return;
+
+	idx.erase(service);
+	idx.insert(service);
+	m_CV.notify_all();
 }
 

@@ -106,3 +106,16 @@ libbase_la_LIBADD = \
 	${top_builddir}/third-party/mmatch/libmmatch.la \
 	${top_builddir}/third-party/cJSON/libcJSON.la \
 	${top_builddir}/third-party/popen-noshell/libpopen_noshell.la
+
+if USE_PCH
+BUILT_SOURCES = i2-base.h.gch
+
+i2-base.h.gch: i2-base.h
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(libbase_la_CPPFLAGS) -o $@ $^
+
+libbase_la_DEPENDENCIES = \
+	i2-base.h.gch
+
+clean-local:
+	rm -f i2-base.h.gch
+endif
