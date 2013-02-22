@@ -61,17 +61,3 @@ libicinga_la_LIBADD = \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
 	${top_builddir}/lib/remoting/libremoting.la
-
-if USE_PCH
-BUILT_SOURCES = i2-icinga.h.gch
-
-i2-icinga.h.gch: i2-icinga.h
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(libicinga_la_CPPFLAGS) -o $@ $^
-
-libicinga_la_DEPENDENCIES = \
-	i2-icinga.h.gch
-
-clean-local:
-	rm -f i2-icinga.h.gch
-endif
-

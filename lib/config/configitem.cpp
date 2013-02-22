@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-boost::mutex ConfigItem::m_Mutex;
+recursive_mutex ConfigItem::m_Mutex;
 ConfigItem::ItemMap ConfigItem::m_Items;
 signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
 signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
@@ -181,7 +181,7 @@ DynamicObject::Ptr ConfigItem::Commit(const ConfigItem::Ptr& self)
 		BOOST_THROW_EXCEPTION(runtime_error("Type '" + type + "' does not exist."));
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		recursive_mutex::scoped_lock lock(m_Mutex);
 
 		/* Try to find an existing item with the same type and name. */
 		pair<String, String> ikey = make_pair(type, name);
@@ -368,16 +368,14 @@ DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
  */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+	recursive_mutex::scoped_lock lock(m_Mutex);
 
-		ConfigItem::ItemMap::iterator it;
+	ConfigItem::ItemMap::iterator it;
 
-		it = m_Items.find(make_pair(type, name));
+	it = m_Items.find(make_pair(type, name));
 
-		if (it != m_Items.end())
-			return it->second;
-	}
+	if (it != m_Items.end())
+		return it->second;
 
 	return ConfigItem::Ptr();
 }
@@ -416,7 +414,7 @@ void ConfigItem::Dump(ostream& fp) const
  */
 void ConfigItem::UnloadUnit(const String& unit)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	recursive_mutex::scoped_lock lock(m_Mutex);
 
 	Logger::Write(LogInformation, "config", "Unloading config items from compilation unit '" + unit + "'");
 

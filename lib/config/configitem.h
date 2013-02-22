@@ -90,10 +90,13 @@ private:
         set<ConfigItem::WeakPtr> m_ChildObjects; /**< Instantiated items
                                                      * that inherit from this item */
 
-	static boost::mutex m_Mutex;
+	static recursive_mutex m_Mutex;
 
 	typedef map<pair<String, String>, ConfigItem::Ptr> ItemMap;
 	static ItemMap m_Items; /**< All registered configuration items. */
+
+	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
+	    const String& name);
 };
 
 }

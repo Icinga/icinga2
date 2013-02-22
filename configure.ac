@@ -92,15 +92,6 @@ if test "x$enable_debug" = "xyes"; then
 fi
 AC_MSG_RESULT($enable_debug)
 
-AC_MSG_CHECKING(whether to enable GCC precompiled headers)
-AC_ARG_ENABLE(pch, [  --enable-pch=[no/yes]    enable GCC precompiled headers (default=no)],, enable_pch=no)
-AM_CONDITIONAL([USE_PCH], [test "x$enable_pch" = "xyes"])
-if test "x$enable_pch" = "xyes"; then
-	CFLAGS="$CFLAGS -fpch-deps -fpch-preprocess -Winvalid-pch"
-	CXXFLAGS="$CXXFLAGS -fpch-deps -fpch-preprocess -Winvalid-pch"
-fi
-AC_MSG_RESULT($enable_pch)
-
 AS_AC_EXPAND([ICINGA_PREFIX], $prefix)
 AC_DEFINE_UNQUOTED([ICINGA_PREFIX], "$ICINGA_PREFIX", [The installation prefix.])
 

@@ -35,17 +35,3 @@ libremoting_la_LDFLAGS = \
 libremoting_la_LIBADD = \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la
-
-if USE_PCH
-BUILT_SOURCES = i2-remoting.h.gch
-
-i2-remoting.h.gch: i2-remoting.h
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(libremoting_la_CPPFLAGS) -o $@ $^
-
-libremoting_la_DEPENDENCIES = \
-	i2-remoting.h.gch
-
-clean-local:
-	rm -f i2-remoting.h.gch
-endif
-

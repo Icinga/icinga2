@@ -91,7 +91,7 @@ String CompatComponent::GetCommandPath(void) const
 void CompatComponent::Start(void)
 {
 	m_StatusTimer = boost::make_shared<Timer>();
-	m_StatusTimer->SetInterval(30);
+	m_StatusTimer->SetInterval(60);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
@@ -359,12 +359,12 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 		else
 			state = 1;
 
-		if (Host::IsReachable(host))
+		if (!Host::IsReachable(host))
 			state = 2;
 	}
 
 	{
-			ObjectLock olock(service);
+		ObjectLock olock(service);
 
 		fp << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
 		   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"

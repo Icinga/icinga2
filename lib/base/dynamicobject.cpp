@@ -24,7 +24,7 @@ using namespace icinga;
 double DynamicObject::m_CurrentTx = 0;
 set<DynamicObject::WeakPtr> DynamicObject::m_ModifiedObjects;
 boost::mutex DynamicObject::m_TransactionMutex;
-boost::once_flag DynamicObject::m_TransactionOnce;
+boost::once_flag DynamicObject::m_TransactionOnce = BOOST_ONCE_INIT;
 Timer::Ptr DynamicObject::m_TransactionTimer;
 
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;

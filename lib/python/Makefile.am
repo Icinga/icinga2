@@ -32,18 +32,4 @@ libpython_la_LIBADD = \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
 	${top_builddir}/lib/remoting/libremoting.la
-
-if USE_PCH
-BUILT_SOURCES = i2-python.h.gch
-
-i2-python.h.gch: i2-python.h
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(libpython_la_CPPFLAGS) -o $@ $^
-
-libpython_la_DEPENDENCIES = \
-	i2-python.h.gch
-
-clean-local:
-	rm -f i2-python.h.gch
-endif
-
 endif

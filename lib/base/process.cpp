@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-boost::once_flag Process::m_ThreadOnce;
+boost::once_flag Process::m_ThreadOnce = BOOST_ONCE_INIT;
 boost::mutex Process::m_Mutex;
 deque<Process::Ptr> Process::m_Tasks;
 double Process::m_LastReport = 0;

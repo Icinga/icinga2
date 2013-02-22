@@ -186,12 +186,6 @@ do
       automake --add-missing --gnu $am_opt
       echo "Running autoconf ..."
       autoconf
-
-      if ! patch --dry-run -p0 < libtool-pch.patch >/dev/null; then
-        echo "Warning: Libtool patch did not apply cleanly."
-      else
-        patch -p0 < libtool-pch.patch
-      fi
     )
   fi
 done

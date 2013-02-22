@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-boost::once_flag ExternalCommandProcessor::m_InitializeOnce;
+boost::once_flag ExternalCommandProcessor::m_InitializeOnce = BOOST_ONCE_INIT;
 boost::mutex ExternalCommandProcessor::m_Mutex;
 map<String, ExternalCommandProcessor::Callback> ExternalCommandProcessor::m_Commands;
 

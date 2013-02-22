@@ -160,6 +160,8 @@ bool Host::IsReachable(const Host::Ptr& self)
 			hc = host->GetHostCheckService();
 		}
 
+		ObjectLock olock(hc);
+
 		/* ignore hosts that are up */
 		if (hc && hc->GetState() == StateOK)
 			continue;
