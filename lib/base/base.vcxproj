@@ -38,6 +38,7 @@
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="netstring.cpp" />
     <ClCompile Include="object.cpp" />
+    <ClCompile Include="objectlock.cpp" />
     <ClCompile Include="process.cpp" />
     <ClCompile Include="process-unix.cpp" />
     <ClCompile Include="process-windows.cpp" />
@@ -79,6 +80,7 @@
     <ClInclude Include="exception.h" />
     <ClInclude Include="i2-base.h" />
     <ClInclude Include="object.h" />
+    <ClInclude Include="objectlock.h" />
     <ClInclude Include="process.h" />
     <ClInclude Include="ringbuffer.h" />
     <ClInclude Include="socket.h" />
