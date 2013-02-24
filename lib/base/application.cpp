@@ -107,17 +107,6 @@ void Application::SetArgV(char **argv)
 	m_ArgV = argv;
 }
 
-#ifdef _DEBUG
-void Application::ProfileTimerHandler(void)
-{
-	stringstream msgbuf;
-	msgbuf << "Active objects: " << Object::GetAliveObjectsCount();
-	Logger::Write(LogInformation, "base", msgbuf.str());
-
-	Object::PrintMemoryProfile();
-}
-#endif /* _DEBUG */
-
 void Application::ShutdownTimerHandler(void)
 {
 	if (m_ShuttingDown) {
@@ -143,14 +132,6 @@ void Application::RunEventLoop(void) const
 	shutdownTimer->OnTimerExpired.connect(boost::bind(&Application::ShutdownTimerHandler));
 	shutdownTimer->SetInterval(0.5);
 	shutdownTimer->Start();
-
-#ifdef _DEBUG
-	/* Set up a timer that periodically prints some information about the object system. */
-	Timer::Ptr profileTimer = boost::make_shared<Timer>();
-	profileTimer->OnTimerExpired.connect(boost::bind(&Application::ProfileTimerHandler));
-	flushTxTimer->SetInterval(15);
-	flushTxTimer->Start();
-#endif /* _DEBUG */
 
 	Timer::Initialize();
 

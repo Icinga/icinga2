@@ -10,9 +10,6 @@
     <ClCompile Include="dictionary.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="event.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="exception.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -94,6 +91,18 @@
     <ClCompile Include="convert.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="objectlock.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="process-unix.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="process-windows.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="eventqueue.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -106,9 +115,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="dictionary.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="event.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="exception.h">
@@ -196,6 +202,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="convert.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="objectlock.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="eventqueue.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

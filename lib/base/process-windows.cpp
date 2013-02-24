@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifdef _WIN32
 #include "i2-base.h"
 
+#ifdef _WIN32
 using namespace icinga;
 
 void Process::Initialize(void)
@@ -45,6 +45,7 @@ void Process::InitTask(void)
 bool Process::RunTask(void)
 {
 	// TODO: implement
+	return false;
 }
 
 #endif /* _WIN32 */

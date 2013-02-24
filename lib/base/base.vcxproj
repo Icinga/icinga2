@@ -26,7 +26,7 @@
     <ClCompile Include="dynamicobject.cpp" />
     <ClCompile Include="dictionary.cpp" />
     <ClCompile Include="dynamictype.cpp" />
-    <ClCompile Include="event.cpp" />
+    <ClCompile Include="eventqueue.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="fifo.cpp" />
     <ClCompile Include="i2-base.cpp">
@@ -68,7 +68,7 @@
     <ClInclude Include="dynamicobject.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="dynamictype.h" />
-    <ClInclude Include="event.h" />
+    <ClInclude Include="eventqueue.h" />
     <ClInclude Include="fifo.h" />
     <ClInclude Include="stdiostream.h" />
     <ClInclude Include="stream.h" />

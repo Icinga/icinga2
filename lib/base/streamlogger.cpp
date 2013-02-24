@@ -81,8 +81,17 @@ void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& en
 	time_t ts = entry.Timestamp;
 	tm tmnow;
 
+#ifdef _WIN32
+	tm *temp = localtime(&ts);
+
+	if (temp == NULL)
+		BOOST_THROW_EXCEPTION(PosixException("localtime() failed", errno));
+
+	tmnow = *temp;
+#else /* _WIN32 */
 	if (localtime_r(&ts, &tmnow) == NULL)
 		BOOST_THROW_EXCEPTION(PosixException("localtime_r() failed.", errno));
+#endif /* _WIN32 */
 
 	strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %H:%M:%S %z", &tmnow);
 

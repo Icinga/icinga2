@@ -113,9 +113,6 @@ private:
 
 	static void TimeWatchThreadProc(void);
 	static void NewTxTimerHandler(void);
-#ifdef _DEBUG
-	static void ProfileTimerHandler(void)
-#endif /* _DEBUG */
 	static void ShutdownTimerHandler(void);
 };
 
