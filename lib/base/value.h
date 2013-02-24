@@ -85,27 +85,8 @@ public:
 		m_Value = object;
 	}
 
-	operator double(void) const
-	{
-		if (m_Value.type() != typeid(double)) {
-			return boost::lexical_cast<double>(m_Value);
-		} else {
-			return boost::get<double>(m_Value);
-		}
-	}
-
-	operator String(void) const
-	{
-		if (IsEmpty())
-			return String();
-
-		if (m_Value.type() != typeid(String)) {
-			String result = boost::lexical_cast<String>(m_Value);
-			m_Value = result;
-		}
-
-		return boost::get<String>(m_Value);
-	}
+	operator double(void) const;
+	operator String(void) const;
 
 	template<typename T>
 	operator shared_ptr<T>(void) const

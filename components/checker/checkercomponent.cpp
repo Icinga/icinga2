@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-EXPORT_COMPONENT(checker, CheckerComponent);
+REGISTER_COMPONENT("checker", CheckerComponent);
 
 void CheckerComponent::Start(void)
 {
@@ -59,12 +59,9 @@ void CheckerComponent::Stop(void)
 
 void CheckerComponent::CheckThreadProc(void)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	for (;;) {
-		vector<Service::Ptr> services;
-		Service::Ptr service;
-
-		boost::mutex::scoped_lock lock(m_Mutex);
-
 		typedef nth_index<ServiceSet, 1>::type CheckTimeView;
 		CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
@@ -75,7 +72,7 @@ void CheckerComponent::CheckThreadProc(void)
 			break;
 
 		CheckTimeView::iterator it = idx.begin();
-		service = it->lock();
+		Service::Ptr service = it->lock();
 
 		if (!service) {
 			idx.erase(it);
@@ -131,19 +128,15 @@ void CheckerComponent::CheckThreadProc(void)
 		m_IdleServices.erase(service);
 		m_PendingServices.insert(service);
 
-		double rwait = service->GetNextCheck() - Utility::GetTime();
-
-		if (rwait < -5)
-			Logger::Write(LogWarning, "checker", "Check delayed: " + Convert::ToString(-rwait));
-
 		try {
-			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
+			olock.Unlock();
+			Service::BeginExecuteCheck(service, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
 		} catch (const exception& ex) {
+			olock.Lock();
 			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + diagnostic_information(ex));
 		}
 	}
 }
-
 
 void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
 {
@@ -217,4 +210,3 @@ void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 	idx.insert(service);
 	m_CV.notify_all();
 }
-

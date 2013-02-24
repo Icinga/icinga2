@@ -34,7 +34,8 @@ enum NotificationType
 	NotificationDowntimeEnd,
 	NotificationDowntimeRemoved,
 	NotificationCustom,
-	NotificationStateChange
+	NotificationProblem,
+	NotificationRecovery
 };
 
 class Service;
@@ -60,7 +61,9 @@ public:
 	Value GetNotificationCommand(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 
-	void SendNotification(NotificationType type);
+	static void BeginExecuteNotification(const Notification::Ptr& self, NotificationType type);
+
+	static String NotificationTypeToString(NotificationType type);
 
 protected:
 	void OnAttributeChanged(const String& name, const Value& oldValue);

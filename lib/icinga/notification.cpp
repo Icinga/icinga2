@@ -70,24 +70,94 @@ Dictionary::Ptr Notification::GetMacros(void) const
 	return Get("macros");
 }
 
-void Notification::SendNotification(NotificationType type)
+String Notification::NotificationTypeToString(NotificationType type)
 {
-	vector<Value> arguments;
-	arguments.push_back(static_cast<Notification::Ptr>(GetSelf()));
-	arguments.push_back(type);
+	switch (type) {
+		case NotificationDowntimeStart:
+			return "DOWNTIMESTART";
+		case NotificationDowntimeEnd:
+			return "DOWNTIMEEND";
+		case NotificationDowntimeRemoved:
+			return "DOWNTIMECANCELLED";
+		case NotificationCustom:
+			return "DOWNTIMECUSTOM";
+		case NotificationProblem:
+			return "PROBLEM";
+		case NotificationRecovery:
+			return "RECOVERY";
+		default:
+			return "UNKNOWN_NOTIFICATION";
+	}
+}
 
-	ScriptTask::Ptr task = MakeMethodTask("notify", arguments);
+void Notification::BeginExecuteNotification(const Notification::Ptr& self, NotificationType type)
+{
 
-	if (!task) {
-		Logger::Write(LogWarning, "icinga", "Notification object '" + GetName() + "' doesn't have a 'notify' method.");
+	vector<Dictionary::Ptr> macroDicts;
 
-		return;
+	Dictionary::Ptr notificationMacros = boost::make_shared<Dictionary>();
+	notificationMacros->Set("NOTIFICATIONTYPE", NotificationTypeToString(type));
+	macroDicts.push_back(notificationMacros);
+
+	Service::Ptr service;
+
+	{
+		ObjectLock olock(self);
+		macroDicts.push_back(self->GetMacros());
+		service = self->GetService();
 	}
 
-	/* We need to keep the task object alive until the completion handler is called. */
-	m_Tasks.insert(task);
+	Host::Ptr host;
+	String service_name;
 
-	task->Start(boost::bind(&Notification::NotificationCompletedHandler, this, _1));
+	{
+		ObjectLock olock(service);
+		macroDicts.push_back(service->GetMacros());
+		service_name = service->GetName();
+		host = service->GetHost();
+	}
+
+	macroDicts.push_back(Service::CalculateDynamicMacros(service));
+
+	{
+		ObjectLock olock(host);
+		macroDicts.push_back(host->GetMacros());
+		macroDicts.push_back(Host::CalculateDynamicMacros(host));
+	}
+
+	IcingaApplication::Ptr app = IcingaApplication::GetInstance();
+
+	{
+		ObjectLock olock(app);
+		macroDicts.push_back(app->GetMacros());
+	}
+
+	macroDicts.push_back(IcingaApplication::CalculateDynamicMacros(app));
+
+	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
+
+	vector<Value> arguments;
+	arguments.push_back(self);
+	arguments.push_back(macros);
+	arguments.push_back(type);
+
+	ScriptTask::Ptr task;
+
+	{
+		ObjectLock olock(self);
+		task = self->MakeMethodTask("notify", arguments);
+
+		if (!task) {
+			Logger::Write(LogWarning, "icinga", "Notification object '" + self->GetName() + "' doesn't have a 'notify' method.");
+
+			return;
+		}
+
+		/* We need to keep the task object alive until the completion handler is called. */
+		self->m_Tasks.insert(task);
+	}
+
+	task->Start(boost::bind(&Notification::NotificationCompletedHandler, self, _1));
 }
 
 void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)

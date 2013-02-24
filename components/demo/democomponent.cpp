@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-EXPORT_COMPONENT(demo, DemoComponent);
+REGISTER_COMPONENT("demo", DemoComponent);
 
 /**
  * Starts the component.

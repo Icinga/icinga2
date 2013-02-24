@@ -341,6 +341,8 @@ void EndpointManager::SubscriptionTimerHandler(void)
 		}
 	}
 
+	subscriptions->Seal();
+
 	if (m_Endpoint)
 		m_Endpoint->SetSubscriptions(subscriptions);
 }

@@ -24,7 +24,6 @@ using namespace icinga;
 boost::once_flag Process::m_ThreadOnce = BOOST_ONCE_INIT;
 boost::mutex Process::m_Mutex;
 deque<Process::Ptr> Process::m_Tasks;
-double Process::m_LastReport = 0;
 
 Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
 	: AsyncTask<Process, ProcessResult>(), m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment)
@@ -66,18 +65,9 @@ vector<String> Process::SplitCommand(const Value& command)
 
 void Process::Run(void)
 {
-	int count;
-
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Tasks.push_back(GetSelf());
-		count = m_Tasks.size();
-	}
-
-	if (count > 50 && Utility::GetTime() - m_LastReport > 5) {
-		Logger::Write(LogInformation, "base", "More than 50 pending Process tasks: " +
-		    Convert::ToString(count));
-		m_LastReport = Utility::GetTime();
 	}
 
 	NotifyWorker();

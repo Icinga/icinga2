@@ -386,7 +386,7 @@ static yyconst flex_int16_t yy_accept[193] =
        54,   49,   42,   42,   42,   42,   42,   42,   42,   42,
        42,   42,   42,   54,   18,   19,   12,    3,    2,   55,
        15,   15,   21,    0,    0,    0,    0,    0,   42,   52,
-       50,   48,   51,   16,    0,   53,    0,   45,   46,   47,
+       50,   48,   51,   16,   20,   53,    0,   45,   46,   47,
         0,   43,   42,   42,   42,   42,   42,   42,   42,   42,
        42,   42,   42,   42,   42,   42,    0,   18,   17,   12,
        11,    4,    5,    9,   10,    6,    8,    7,    0,    0,
@@ -793,6 +793,10 @@ int yyget_lineno (yyscan_t yyscanner );
 
 void yyset_lineno (int line_number ,yyscan_t yyscanner );
 
+int yyget_column  (yyscan_t yyscanner );
+
+void yyset_column (int column_no ,yyscan_t yyscanner );
+
 YYSTYPE * yyget_lval (yyscan_t yyscanner );
 
 void yyset_lval (YYSTYPE * yylval_param ,yyscan_t yyscanner );
@@ -948,7 +952,7 @@ YY_DECL
 
 	lex_buf string_buf;
 
-#line 952 "config_lexer.cc"
+#line 956 "config_lexer.cc"
 
     yylval = yylval_param;
 
@@ -1377,7 +1381,7 @@ YY_RULE_SETUP
 #line 216 "config_lexer.ll"
 ECHO;
 	YY_BREAK
-#line 1381 "config_lexer.cc"
+#line 1385 "config_lexer.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(C_COMMENT):
 case YY_STATE_EOF(STRING):

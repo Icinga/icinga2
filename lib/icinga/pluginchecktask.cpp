@@ -32,36 +32,18 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Service must be specified."));
 
-	Value vservice = arguments[0];
-	if (!vservice.IsObjectType<Service>())
-		BOOST_THROW_EXCEPTION(invalid_argument("Argument must be a service."));
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Macros must be specified."));
 
-	vector<Dictionary::Ptr> macroDicts;
+	Service::Ptr service = arguments[0];
+	Dictionary::Ptr macros = arguments[1];
+
 	Value raw_command;
-	Host::Ptr host;
 
 	{
-		Service::Ptr service = vservice;
 		ObjectLock olock(service);
-		macroDicts.push_back(service->GetMacros());
-		macroDicts.push_back(service->CalculateDynamicMacros());
 		raw_command = service->GetCheckCommand();
-		host = service->GetHost();
 	}
-
-	{
-		ObjectLock olock(host);
-		macroDicts.push_back(host->GetMacros());
-		macroDicts.push_back(host->CalculateDynamicMacros());
-	}
-
-	{
-		IcingaApplication::Ptr app = IcingaApplication::GetInstance();
-		ObjectLock olock(app);
-		macroDicts.push_back(app->GetMacros());
-	}
-
-	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
 	Value command = MacroProcessor::ResolveMacros(raw_command, macros);
 

@@ -37,48 +37,29 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vecto
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Notification target must be specified."));
 
 	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Macros must be specified."));
+
+	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Notification type must be specified."));
 
-	if (!arguments[0].IsObjectType<Notification>())
-		BOOST_THROW_EXCEPTION(invalid_argument("Argument must be a service."));
+	Notification::Ptr notification = arguments[0];
+	Dictionary::Ptr macros = arguments[1];
+	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[2]));
 
-	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[1]));
-
-	vector<Dictionary::Ptr> macroDicts;
 	Value raw_command;
-	Service::Ptr service;
-	Host::Ptr host;
 	String service_name;
+	Service::Ptr service;
 
 	{
-		Notification::Ptr notification = arguments[0];
 		ObjectLock olock(notification);
-		macroDicts.push_back(notification->GetMacros());
 		raw_command = notification->GetNotificationCommand();
 		service = notification->GetService();
 	}
 
 	{
 		ObjectLock olock(service);
-		macroDicts.push_back(service->GetMacros());
-		macroDicts.push_back(service->CalculateDynamicMacros());
 		service_name = service->GetName();
-		host = service->GetHost();
 	}
-
-	{
-		ObjectLock olock(host);
-		macroDicts.push_back(host->GetMacros());
-		macroDicts.push_back(host->CalculateDynamicMacros());
-	}
-
-	{
-		IcingaApplication::Ptr app = IcingaApplication::GetInstance();
-		ObjectLock olock(app);
-		macroDicts.push_back(app->GetMacros());
-	}
-
-	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
 	Value command = MacroProcessor::ResolveMacros(raw_command, macros);
 

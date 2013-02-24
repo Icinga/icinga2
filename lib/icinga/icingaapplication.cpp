@@ -72,14 +72,20 @@ int IcingaApplication::Main(void)
 
 	RunEventLoop();
 
-	DumpProgramState();
-
 	Logger::Write(LogInformation, "icinga", "Icinga has shut down.");
 
 	return EXIT_SUCCESS;
 }
 
-void IcingaApplication::DumpProgramState(void) {
+void IcingaApplication::OnShutdown(void)
+{
+	m_RetentionTimer->Stop();
+
+	DumpProgramState();
+}
+
+void IcingaApplication::DumpProgramState(void)
+{
 	DynamicObject::DumpObjects(GetStatePath());
 }
 
@@ -141,4 +147,13 @@ double IcingaApplication::GetStartTime(void) const
 shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
 {
 	return m_SSLContext;
+}
+
+Dictionary::Ptr IcingaApplication::CalculateDynamicMacros(const IcingaApplication::Ptr& self)
+{
+	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
+
+	macros->Set("TIMET", (long)Utility::GetTime());
+
+	return macros;
 }

@@ -81,7 +81,7 @@ void EventQueue::QueueThreadProc(void)
 			while (m_Events.empty() && !m_Stopped)
 				m_CV.wait(lock);
 
-			if (m_Stopped)
+			if (m_Events.empty() && m_Stopped)
 				break;
 
 			events.swap(m_Events);
@@ -94,7 +94,7 @@ void EventQueue::QueueThreadProc(void)
 
 			double et = Utility::GetTime();
 
-			if (et - st > 1.0) {
+			if (et - st > 0.25) {
 				stringstream msgbuf;
 				msgbuf << "Event call took " << et - st << " seconds.";
 				Logger::Write(LogWarning, "base", msgbuf.str());
@@ -118,7 +118,7 @@ void EventQueue::Post(const EventQueue::Callback& callback)
 	int pending = m_Events.size();
 	double now = Utility::GetTime();
 	if (pending > 1000 && now - m_LastReport > 5) {
-		Logger::Write(LogWarning, "base", "More than 1000 pending events: " + Convert::ToString(pending));
+		Logger::Write(LogCritical, "base", "More than 1000 pending events: " + Convert::ToString(pending));
 		m_LastReport = now;
 	}
 }

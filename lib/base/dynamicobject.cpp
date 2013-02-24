@@ -122,6 +122,8 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 		attrs->Set(it->first, attr);
 	}
 
+	attrs->Seal();
+
 	Dictionary::Ptr update = boost::make_shared<Dictionary>();
 	update->Set("attrs", attrs);
 
@@ -129,6 +131,8 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 		update->Set("configTx", m_ConfigTx);
 	else if (attrs->GetLength() == 0)
 		return Dictionary::Ptr();
+
+	update->Seal();
 
 	return update;
 }
@@ -243,8 +247,12 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 		 * object to the list of modified objects later on if we can't
 		 * do it here. */
 
-		boost::mutex::scoped_lock lock(m_TransactionMutex);
-		m_ModifiedObjects.insert(GetSelf());
+		DynamicObject::Ptr self = GetSelf();
+
+		{
+			boost::mutex::scoped_lock lock(m_TransactionMutex);
+			m_ModifiedObjects.insert(self);
+		}
 	}
 
 	/* Use insert() rather than [] so we don't overwrite
@@ -496,7 +504,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 
 	stringstream msgbuf;
 	msgbuf << "Restored " << restored << " objects";
-	Logger::Write(LogDebug, "base", msgbuf.str());
+	Logger::Write(LogInformation, "base", msgbuf.str());
 }
 
 void DynamicObject::DeactivateObjects(void)

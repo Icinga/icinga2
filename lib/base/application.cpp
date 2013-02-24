@@ -120,8 +120,12 @@ void Application::ProfileTimerHandler(void)
 
 void Application::ShutdownTimerHandler(void)
 {
-	if (m_ShuttingDown)
+	if (m_ShuttingDown) {
+		Application::GetInstance()->OnShutdown();
+		DynamicObject::DeactivateObjects();
 		GetEQ().Stop();
+		m_ShuttingDown = false;
+	}
 }
 
 /**
@@ -423,8 +427,6 @@ int Application::Run(void)
 #endif /* _WIN32 */
 
 	result = Main();
-
-	DynamicObject::DeactivateObjects();
 
 	return result;
 }

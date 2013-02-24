@@ -54,6 +54,38 @@ bool Value::IsObject(void) const
 	return !IsEmpty() && (m_Value.type() == typeid(Object::Ptr));
 }
 
+Value::operator double(void) const
+{
+	if (m_Value.type() != typeid(double)) {
+		return boost::lexical_cast<double>(m_Value);
+	} else {
+		return boost::get<double>(m_Value);
+	}
+}
+
+Value::operator String(void) const
+{
+	Object *object;
+	double integral, fractional;
+
+	switch (GetType()) {
+		case ValueEmpty:
+			return String();
+		case ValueNumber:
+			fractional = modf(boost::get<double>(m_Value), &integral);
+
+			if (fractional != 0)
+				return boost::lexical_cast<String>(m_Value);
+			else
+				return boost::lexical_cast<String>((long)integral);
+		case ValueString:
+			return boost::get<String>(m_Value);
+		case ValueObject:
+			object = boost::get<Object::Ptr>(m_Value).get();
+			return "Object of type '" + Utility::GetTypeName(typeid(*object)) + "'";
+	}
+}
+
 /**
  * Converts a JSON object into a variant.
  *

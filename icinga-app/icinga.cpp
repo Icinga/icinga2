@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 
 	Component::AddSearchDir(Application::GetPkgLibDir());
 
-	Utility::LoadIcingaLibrary("icinga", false);
+	(void) Utility::LoadIcingaLibrary("icinga", false);
 
 	if (g_AppParams.count("library")) {
 		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<vector<String> >()) {

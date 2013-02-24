@@ -49,7 +49,7 @@ void Service::SendNotifications(NotificationType type)
 		Logger::Write(LogInformation, "icinga", "Service '" + GetName() + "' does not have any notifications.");
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
-		notification->SendNotification(type);
+		Notification::BeginExecuteNotification(notification, type);
 	}
 
 	SetLastNotification(Utility::GetTime());

@@ -173,7 +173,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 "*"				/* ignore star */
 }
 
-\/\/[^\n]+			/* ignore C++-style comments */
+\/\/[^\n]*			/* ignore C++-style comments */
 [ \t\r\n]+			/* ignore whitespace */
 
 <INITIAL>{

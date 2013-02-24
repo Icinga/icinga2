@@ -76,10 +76,10 @@ String Service::GetDisplayName(void) const
 {
 	String value = Get("display_name");
 
-	if (!value.IsEmpty())
-		return value;
+	if (value.IsEmpty())
+		return GetShortName();
 
-	return GetName();
+	return value;
 }
 
 /**
@@ -330,27 +330,36 @@ set<Service::Ptr> Service::GetParentServices(void) const
 	return parents;
 }
 
-Dictionary::Ptr Service::CalculateDynamicMacros(void) const
+Dictionary::Ptr Service::CalculateDynamicMacros(const Service::Ptr& self)
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 
-	macros->Set("SERVICEDESC", GetShortName());
-	macros->Set("SERVICEDISPLAYNAME", GetDisplayName());
-	macros->Set("SERVICESTATE", StateToString(GetState()));
-	macros->Set("SERVICESTATEID", GetState());
-	macros->Set("SERVICESTATETYPE", StateTypeToString(GetStateType()));
-	macros->Set("SERVICEATTEMPT", GetCurrentCheckAttempt());
-	macros->Set("MAXSERVICEATTEMPT", GetMaxCheckAttempts());
+	Dictionary::Ptr cr;
 
-	Dictionary::Ptr cr = GetLastCheckResult();
+	{
+		ObjectLock olock(self);
+		macros->Set("SERVICEDESC", self->GetShortName());
+		macros->Set("SERVICEDISPLAYNAME", self->GetDisplayName());
+		macros->Set("SERVICESTATE", StateToString(self->GetState()));
+		macros->Set("SERVICESTATEID", self->GetState());
+		macros->Set("SERVICESTATETYPE", StateTypeToString(self->GetStateType()));
+		macros->Set("SERVICEATTEMPT", self->GetCurrentCheckAttempt());
+		macros->Set("MAXSERVICEATTEMPT", self->GetMaxCheckAttempts());
+
+		cr = self->GetLastCheckResult();
+	}
 
 	if (cr) {
+		macros->Set("SERVICELATENCY", Service::CalculateLatency(cr));
+		macros->Set("SERVICEEXECUTIONTIME", Service::CalculateExecutionTime(cr));
+
+		ObjectLock olock(cr);
+
 		macros->Set("SERVICEOUTPUT", cr->Get("output"));
 		macros->Set("SERVICEPERFDATA", cr->Get("performance_data_raw"));
-	} else {
-		macros->Set("SERVICEOUTPUT", "");
-		macros->Set("SERVICEPERFDATA", "");
 	}
+
+	macros->Seal();
 
 	return macros;
 }

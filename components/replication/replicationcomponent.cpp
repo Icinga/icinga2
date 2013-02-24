@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-EXPORT_COMPONENT(replication, ReplicationComponent);
+REGISTER_COMPONENT("replication", ReplicationComponent);
 
 /**
  * Starts the component.

@@ -66,7 +66,7 @@ public:
 	void Start(const CompletionCallback& completionCallback = CompletionCallback())
 	{
 		m_CompletionCallback = completionCallback;
-		Utility::QueueAsyncCallback(boost::bind(&AsyncTask<TClass, TResult>::Run, this));
+		Utility::QueueAsyncCallback(boost::bind(&AsyncTask<TClass, TResult>::RunInternal, this));
 	}
 
 	/**
@@ -164,6 +164,18 @@ private:
 
 		if (!callback.empty())
 			Utility::QueueAsyncCallback(boost::bind(callback, GetSelf()));
+	}
+
+	/**
+	 * Calls the Run() method and catches exceptions.
+	 */
+	void RunInternal(void)
+	{
+		try {
+			Run();
+		} catch (const exception& ex) {
+			FinishException(boost::current_exception());
+		}
 	}
 
 	mutable boost::mutex m_Mutex;

@@ -88,5 +88,7 @@ Dictionary::Ptr MacroProcessor::MergeMacroDicts(const vector<Dictionary::Ptr>& d
 		}
 	}
 
+	result->Seal();
+
 	return result;
 }

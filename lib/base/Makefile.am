@@ -34,6 +34,8 @@ libbase_la_SOURCES =  \
 	netstring.h \
 	object.cpp \
 	object.h \
+	objectlock.cpp \
+	objectlock.h \
 	process.cpp \
 	process-unix.cpp \
 	process-windows.cpp \

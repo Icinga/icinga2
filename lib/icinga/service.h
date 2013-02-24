@@ -106,7 +106,7 @@ public:
 	Dictionary::Ptr GetGroups(void) const;
 	String GetShortName(void) const;
 
-	Dictionary::Ptr CalculateDynamicMacros(void) const;
+	static Dictionary::Ptr CalculateDynamicMacros(const Service::Ptr& self);
 
 	set<Host::Ptr> GetParentHosts(void) const;
 	set<Service::Ptr> GetParentServices(void) const;
@@ -171,8 +171,11 @@ public:
 	void ApplyCheckResult(const Dictionary::Ptr& cr);
 	static void UpdateStatistics(const Dictionary::Ptr& cr);
 
-	void BeginExecuteCheck(const function<void (void)>& callback);
+	static void BeginExecuteCheck(const Service::Ptr& self, const function<void (void)>& callback);
 	void ProcessCheckResult(const Dictionary::Ptr& cr);
+
+	static double CalculateExecutionTime(const Dictionary::Ptr& cr);
+	static double CalculateLatency(const Dictionary::Ptr& cr);
 
 	static ServiceState StateFromString(const String& state);
 	static String StateToString(ServiceState state);
@@ -252,7 +255,7 @@ protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
-	void CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
+	void CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 	    const ScriptTask::Ptr& task, const function<void (void)>& callback);
 
 	/* Downtimes */

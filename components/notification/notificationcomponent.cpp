@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-EXPORT_COMPONENT(notification, NotificationComponent);
+REGISTER_COMPONENT("notification", NotificationComponent);
 
 /**
  * Starts the component.

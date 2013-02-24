@@ -22,7 +22,7 @@
 
 using namespace icinga;
 
-EXPORT_COMPONENT(delegation, DelegationComponent);
+REGISTER_COMPONENT("delegation", DelegationComponent);
 
 void DelegationComponent::Start(void)
 {

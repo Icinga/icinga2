@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-EXPORT_COMPONENT(compat, CompatComponent);
+REGISTER_COMPONENT("compat", CompatComponent);
 
 /**
  * Hint: The reason why we're using "\n" rather than std::endl is because
@@ -91,7 +91,7 @@ String CompatComponent::GetCommandPath(void) const
 void CompatComponent::Start(void)
 {
 	m_StatusTimer = boost::make_shared<Timer>();
-	m_StatusTimer->SetInterval(60);
+	m_StatusTimer->SetInterval(15);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
@@ -323,11 +323,10 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 {
 	String output;
 	String perfdata;
-	double schedule_start = -1, schedule_end = -1;
-	double execution_start = -1, execution_end = -1;
+	double schedule_end = -1;
 
 	Dictionary::Ptr cr;
-	int state;
+	int state, state_type;
 	Host::Ptr host;
 
 	{
@@ -335,20 +334,15 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 
 		cr = service->GetLastCheckResult();
 		state = service->GetState();
+		state_type = service->GetStateType();
 		host = service->GetHost();
 	}
 
 	if (cr) {
 		output = cr->Get("output");
-		schedule_start = cr->Get("schedule_start");
 		schedule_end = cr->Get("schedule_end");
-		execution_start = cr->Get("execution_start");
-		execution_end = cr->Get("execution_end");
 		perfdata = cr->Get("performance_data_raw");
 	}
-
-	double execution_time = (execution_end - execution_start);
-	double latency = (schedule_end - schedule_start) - execution_time;
 
 	if (state > StateUnknown)
 		state = StateUnknown;
@@ -370,10 +364,10 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 		   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
 		   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
 		   << "\t" << "should_be_scheduled=1" << "\n"
-		   << "\t" << "check_execution_time=" << execution_time << "\n"
-		   << "\t" << "check_latency=" << latency << "\n"
+		   << "\t" << "check_execution_time=" << Service::CalculateExecutionTime(cr) << "\n"
+		   << "\t" << "check_latency=" << Service::CalculateLatency(cr) << "\n"
 		   << "\t" << "current_state=" << state << "\n"
-		   << "\t" << "state_type=" << service->GetStateType() << "\n"
+		   << "\t" << "state_type=" << state_type << "\n"
 		   << "\t" << "plugin_output=" << output << "\n"
 		   << "\t" << "performance_data=" << perfdata << "\n"
 		   << "\t" << "last_check=" << schedule_end << "\n"
@@ -518,7 +512,8 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "passive_host_checks_enabled=0" << "\n"
 		 << "\t" << "check_service_freshness=0" << "\n"
 		 << "\t" << "check_host_freshness=0" << "\n"
-		 << "\t" << "enable_flap_detection=1" << "\n"
+		 << "\t" << "enable_notifications=1" << "\n"
+		 << "\t" << "enable_flap_detection=0" << "\n"
 		 << "\t" << "enable_failure_prediction=0" << "\n"
 		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
 		 << "\t" << "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"

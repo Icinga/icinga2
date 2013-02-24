@@ -190,6 +190,7 @@ namespace signals2 = boost::signals2;
 #include "qstring.h"
 #include "utility.h"
 #include "object.h"
+#include "objectlock.h"
 #include "exception.h"
 #include "eventqueue.h"
 #include "value.h"

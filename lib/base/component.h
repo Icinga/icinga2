@@ -59,6 +59,8 @@ public:
 	typedef shared_ptr<Component> Ptr;
 	typedef weak_ptr<Component> WeakPtr;
 
+	typedef function<IComponent::Ptr (void)> Factory;
+
 	Component(const Dictionary::Ptr& properties);
 	~Component(void);
 
@@ -66,30 +68,43 @@ public:
 
 	static void AddSearchDir(const String& componentDirectory);
 
+	static void Register(const String& name, const Factory& factory);
+
 private:
 	IComponent::Ptr m_Impl; /**< The implementation object for this
 				     component. */
+
+	static map<String, Factory> m_Factories;
 };
 
-typedef IComponent *(*CreateComponentFunction)(void);
-
-#ifdef _WIN32
-#	define SYM_CREATECOMPONENT(component) CreateComponent
-#else /* _WIN32 */
-#	define SYM_CREATECOMPONENT(component) component ## _LTX_CreateComponent
-#endif /* _WIN32 */
+/**
+ * Helper class for registering Component implementation classes.
+ *
+ * @ingroup base
+ */
+class RegisterComponentHelper
+{
+public:
+	RegisterComponentHelper(const String& name, const Component::Factory& factory)
+	{
+		Component::Register(name, factory);
+	}
+};
 
 /**
- * Implements the loader function for a component.
+ * Factory function for IComponent-based classes.
  *
- * @param component The name of the component.
- * @param klass The component class.
+ * @ingroup base
  */
-#define EXPORT_COMPONENT(component, klass) \
-	extern "C" I2_EXPORT icinga::IComponent *SYM_CREATECOMPONENT(component)(void) \
-	{								\
-		return new klass();					\
-	}
+template<typename T>
+IComponent::Ptr ComponentFactory(void)
+{
+	return boost::make_shared<T>();
+}
+
+
+#define REGISTER_COMPONENT(name, klass) \
+	static RegisterComponentHelper g_RegisterSF_ ## type(name, ComponentFactory<klass>)
 
 }
 

@@ -288,6 +288,8 @@ void Host::UpdateSlaveServices(void)
 		}
 	}
 
+	newServices->Seal();
+
 	Set("slave_services", newServices);
 }
 
@@ -479,23 +481,69 @@ set<Service::Ptr> Host::GetParentServices(void) const
 	return parents;
 }
 
-Dictionary::Ptr Host::CalculateDynamicMacros(void) const
+Dictionary::Ptr Host::CalculateDynamicMacros(const Host::Ptr& self)
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 
-	macros->Set("HOSTNAME", GetName());
-	macros->Set("HOSTALIAS", GetName());
-	macros->Set("HOSTDISPLAYNAME", GetDisplayName());
-	macros->Set("HOSTSTATE", "DERP");
+	Service::Ptr hc;
 
-	Service::Ptr hostcheck = GetHostCheckService();
+	{
+		ObjectLock olock(self);
 
-	if (hostcheck) {
-		macros->Set("HOSTSTATEID", 99);
-		macros->Set("HOSTSTATETYPE", Service::StateTypeToString(hostcheck->GetStateType()));
-		macros->Set("HOSTATTEMPT", hostcheck->GetCurrentCheckAttempt());
-		macros->Set("MAXHOSTATTEMPT", hostcheck->GetMaxCheckAttempts());
+		macros->Set("HOSTNAME", self->GetName());
+		macros->Set("HOSTDISPLAYNAME", self->GetDisplayName());
+		macros->Set("HOSTALIAS", self->GetName());
+
+		hc = self->GetHostCheckService();
 	}
+
+	bool reachable = Host::IsReachable(self);
+
+	Dictionary::Ptr cr;
+
+	if (hc) {
+		ObjectLock olock(hc);
+
+		String state;
+		int stateid;
+
+		switch (hc->GetState()) {
+			case StateOK:
+			case StateWarning:
+				state = "UP";
+				stateid = 0;
+				break;
+			default:
+				state = "DOWN";
+				stateid = 1;
+				break;
+		}
+
+		if (!reachable) {
+			state = "UNREACHABLE";
+			stateid = 2;
+		}
+
+		macros->Set("HOSTSTATE", state);
+		macros->Set("HOSTSTATEID", stateid);
+		macros->Set("HOSTSTATETYPE", Service::StateTypeToString(hc->GetStateType()));
+		macros->Set("HOSTATTEMPT", hc->GetCurrentCheckAttempt());
+		macros->Set("MAXHOSTATTEMPT", hc->GetMaxCheckAttempts());
+
+		cr = hc->GetLastCheckResult();
+	}
+
+	if (cr) {
+		macros->Set("HOSTLATENCY", Service::CalculateLatency(cr));
+		macros->Set("HOSTEXECUTIONTIME", Service::CalculateExecutionTime(cr));
+
+		ObjectLock olock(cr);
+
+		macros->Set("HOSTOUTPUT", cr->Get("output"));
+		macros->Set("HOSTPERFDATA", cr->Get("performance_data_raw"));
+	}
+
+	macros->Seal();
 
 	return macros;
 }

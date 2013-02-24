@@ -84,6 +84,8 @@ public:
 protected:
 	void RunEventLoop(void) const;
 
+	virtual void OnShutdown(void) = 0;
+
 private:
 	static Application *m_Instance; /**< The application instance. */
 

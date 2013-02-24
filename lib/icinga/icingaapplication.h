@@ -51,6 +51,8 @@ public:
 
 	double GetStartTime(void) const;
 
+	static Dictionary::Ptr CalculateDynamicMacros(const IcingaApplication::Ptr& self);
+
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 
@@ -59,6 +61,8 @@ private:
 	Timer::Ptr m_RetentionTimer;
 
 	void DumpProgramState(void);
+
+	virtual void OnShutdown(void);
 };
 
 }

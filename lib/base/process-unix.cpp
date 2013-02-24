@@ -24,6 +24,7 @@
 using namespace icinga;
 
 int Process::m_TaskFd;
+Timer::Ptr Process::m_StatusTimer;
 extern char **environ;
 
 void Process::Initialize(void)
@@ -37,7 +38,7 @@ void Process::Initialize(void)
 	if (pipe(fds) < 0)
 		BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
 
-	/* Don't bother setting fds[1] to clo-exec as we'll only
+	/* Don't bother setting fds[0] to clo-exec as we'll only
 	 * use it in the following dup() call. */
 
 	Utility::SetCloExec(fds[1]);
@@ -59,6 +60,11 @@ void Process::Initialize(void)
 	}
 
 	(void) close(fds[0]);
+
+	m_StatusTimer = boost::make_shared<Timer>();
+	m_StatusTimer->OnTimerExpired.connect(boost::bind(&Process::StatusTimerHandler));
+	m_StatusTimer->SetInterval(5);
+	m_StatusTimer->Start();
 }
 
 void Process::WorkerThreadProc(int taskFd)
@@ -312,6 +318,14 @@ bool Process::RunTask(void)
 	m_Result.Output = output;
 
 	return false;
+}
+
+void Process::StatusTimerHandler(void)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+	if (m_Tasks.size() > 50)
+		Logger::Write(LogCritical, "base", "More than 50 waiting Process tasks: " +
+		    Convert::ToString(m_Tasks.size()));
 }
 
 #endif /* _WIN32 */

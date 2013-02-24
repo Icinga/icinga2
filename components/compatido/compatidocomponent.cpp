@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-EXPORT_COMPONENT(compatido, CompatIdoComponent);
+REGISTER_COMPONENT("compatido", CompatIdoComponent);
 
 const String CompatIdoComponent::DefaultSocketAddress = "127.0.0.1";
 const String CompatIdoComponent::DefaultSocketPort = "5668";

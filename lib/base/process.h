@@ -69,10 +69,11 @@ private:
 	virtual void Run(void);
 
 	static boost::mutex m_Mutex;
-	static double m_LastReport;
 	static deque<Process::Ptr> m_Tasks;
 #ifndef _WIN32
 	static int m_TaskFd;
+
+	static Timer::Ptr m_StatusTimer;
 #endif /* _WIN32 */
 
 	static void NotifyWorker(void);
@@ -83,6 +84,8 @@ private:
 	static void WorkerThreadProc(void);
 #else /* _WIN32 */
 	static void WorkerThreadProc(int taskFd);
+
+	static void StatusTimerHandler(void);
 #endif /* _WIN32 */
 
 	void InitTask(void);

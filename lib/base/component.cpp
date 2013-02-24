@@ -23,6 +23,8 @@ using namespace icinga;
 
 REGISTER_TYPE(Component, NULL);
 
+map<String, Component::Factory> Component::m_Factories;
+
 /**
  * Constructor for the component class.
  */
@@ -32,51 +34,20 @@ Component::Component(const Dictionary::Ptr& properties)
 	if (!IsLocal())
 		BOOST_THROW_EXCEPTION(runtime_error("Component objects must be local."));
 
-#ifdef _WIN32
-	HMODULE
-#else /* _WIN32 */
-	lt_dlhandle
-#endif /* _WIN32 */
-	hModule;
-
 	Logger::Write(LogInformation, "base", "Loading component '" + GetName() + "'");
 
-	hModule = Utility::LoadIcingaLibrary(GetName(), true);
+	(void) Utility::LoadIcingaLibrary(GetName(), true);
 
-	CreateComponentFunction pCreateComponent;
+	map<String, Factory>::iterator it;
+	it = m_Factories.find(GetName());
 
-#ifdef _WIN32
-	pCreateComponent = reinterpret_cast<CreateComponentFunction>(GetProcAddress(hModule,
-	    "CreateComponent"));
-#else /* _WIN32 */
-#	ifdef __GNUC__
-	/* suppress compiler warning for void * cast */
-	__extension__
-#	endif
-	pCreateComponent = reinterpret_cast<CreateComponentFunction>(lt_dlsym(hModule,
-	    "CreateComponent"));
-#endif /* _WIN32 */
+	if (it == m_Factories.end())
+		BOOST_THROW_EXCEPTION(invalid_argument("Unknown component: " + GetName()));
 
-	IComponent::Ptr impl;
+	IComponent::Ptr impl = it->second();
 
-	try {
-		if (pCreateComponent == NULL)
-			BOOST_THROW_EXCEPTION(runtime_error("Loadable module does not contain "
-			    "CreateComponent function"));
-
-		/* pCreateComponent returns a raw pointer which we must wrap in a shared_ptr */
-		impl = IComponent::Ptr(pCreateComponent());
-
-		if (!impl)
-			BOOST_THROW_EXCEPTION(runtime_error("CreateComponent function returned NULL."));
-	} catch (...) {
-#ifdef _WIN32
-		FreeLibrary(hModule);
-#else /* _WIN32 */
-		lt_dlclose(hModule);
-#endif /* _WIN32 */
-		throw;
-	}
+	if (!impl)
+		BOOST_THROW_EXCEPTION(runtime_error("Component factory returned NULL."));
 
 	m_Impl = impl;
 }
@@ -141,4 +112,12 @@ void IComponent::Start(void)
 void IComponent::Stop(void)
 {
 	/* Nothing to do in the default implementation. */
+}
+
+/**
+ * Registers a component factory.
+ */
+void Component::Register(const String& name, const Component::Factory& factory)
+{
+	m_Factories[name] = factory;
 }

@@ -107,38 +107,6 @@ private:
 };
 
 /**
- * A scoped lock for Objects.
- */
-struct ObjectLock {
-public:
-	ObjectLock(void)
-		: m_Lock()
-	{ }
-
-	ObjectLock(const Object::Ptr& object)
-		: m_Lock()
-	{
-		if (object)
-			m_Lock = recursive_mutex::scoped_lock(object->GetMutex());
-	}
-
-	ObjectLock(const Object *object)
-		: m_Lock()
-	{
-		if (object)
-			m_Lock = recursive_mutex::scoped_lock(object->GetMutex());
-	}
-
-	void Unlock(void)
-	{
-		m_Lock = recursive_mutex::scoped_lock();
-	}
-
-private:
-	recursive_mutex::scoped_lock m_Lock;
-};
-
-/**
  * Compares a weak pointer with a raw pointer.
  *
  * @ingroup base

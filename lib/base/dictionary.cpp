@@ -55,6 +55,13 @@ struct DictionaryKeyLessComparer
 };
 
 /**
+ * Constructor for the Dictionary class.
+ */
+Dictionary::Dictionary(void)
+	: m_Sealed(false)
+{ }
+
+/**
  * Restrieves a value from a dictionary.
  *
  * @param key The key whose value should be retrieved.
@@ -97,6 +104,8 @@ Value Dictionary::Get(const String& key) const
 void Dictionary::Set(const String& key, const Value& value)
 {
 	ObjectLock olock(this);
+
+	assert(!m_Sealed);
 
 	if (value.IsEmpty()) {
 		Remove(key);
@@ -211,6 +220,15 @@ void Dictionary::Remove(Dictionary::Iterator it)
 {
 	String key = it->first;
 	m_Data.erase(it);
+}
+
+/**
+ * Marks the dictionary as read-only. Attempting to modify a sealed
+ * dictionary is an error.
+ */
+void Dictionary::Seal(void)
+{
+	m_Sealed = true;
 }
 
 /**

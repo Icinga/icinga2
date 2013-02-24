@@ -287,6 +287,7 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 	ServiceState old_state = GetState();
 	ServiceStateType old_stateType = GetStateType();
 	bool hardChange = false;
+	bool recovery;
 
 	long attempt = GetCurrentCheckAttempt();
 
@@ -298,6 +299,7 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 			SetStateType(StateTypeHard);
 
 		attempt = 1;
+		recovery = true;
 	} else {
 		if (attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
@@ -307,6 +309,8 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 			SetStateType(StateTypeSoft);
 			attempt++;
 		}
+
+		recovery = false;
 	}
 
 	SetCurrentCheckAttempt(attempt);
@@ -353,19 +357,19 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 		Flush();
 
 		if (IsReachable(GetSelf()) && !IsInDowntime() && !IsAcknowledged())
-			RequestNotifications(NotificationStateChange);
+			RequestNotifications(recovery ? NotificationRecovery : NotificationProblem);
 	}
 }
 
 ServiceState Service::StateFromString(const String& state)
 {
-	if (state == "ok")
+	if (state == "OK")
 		return StateOK;
-	else if (state == "warning")
+	else if (state == "WARNING")
 		return StateWarning;
-	else if (state == "critical")
+	else if (state == "CRITICAL")
 		return StateCritical;
-	else if (state == "uncheckable")
+	else if (state == "UNCHECKABLE")
 		return StateUncheckable;
 	else
 		return StateUnknown;
@@ -375,22 +379,22 @@ String Service::StateToString(ServiceState state)
 {
 	switch (state) {
 		case StateOK:
-			return "ok";
+			return "OK";
 		case StateWarning:
-			return "warning";
+			return "WARNING";
 		case StateCritical:
-			return "critical";
+			return "CRITICAL";
 		case StateUncheckable:
-			return "uncheckable";
+			return "UNCHECKABLE";
 		case StateUnknown:
 		default:
-			return "unknown";
+			return "UNKNOWN";
 	}
 }
 
 ServiceStateType Service::StateTypeFromString(const String& type)
 {
-	if (type == "soft")
+	if (type == "SOFT")
 		return StateTypeSoft;
 	else
 		return StateTypeHard;
@@ -399,9 +403,9 @@ ServiceStateType Service::StateTypeFromString(const String& type)
 String Service::StateTypeToString(ServiceStateType type)
 {
 	if (type == StateTypeSoft)
-		return "soft";
+		return "SOFT";
 	else
-		return "hard";
+		return "HARD";
 }
 
 bool Service::IsAllowedChecker(const String& checker) const
@@ -420,10 +424,14 @@ bool Service::IsAllowedChecker(const String& checker) const
 	return false;
 }
 
-void Service::BeginExecuteCheck(const function<void (void)>& callback)
+void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (void)>& callback)
 {
+	ObjectLock slock(self);
+
 	/* don't run another check if there is one pending */
-	if (!Get("current_task").IsEmpty()) {
+	if (!self->Get("current_task").IsEmpty()) {
+		slock.Unlock();
+
 		/* we need to call the callback anyway */
 		callback();
 
@@ -431,28 +439,59 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
 	}
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
-	Dictionary::Ptr scheduleInfo = boost::make_shared<Dictionary>();
-	scheduleInfo->Set("schedule_start", GetNextCheck());
-	scheduleInfo->Set("execution_start", Utility::GetTime());
+	Dictionary::Ptr checkInfo = boost::make_shared<Dictionary>();
+	checkInfo->Set("schedule_start", self->GetNextCheck());
+	checkInfo->Set("execution_start", Utility::GetTime());
+
+	vector<Dictionary::Ptr> macroDicts;
+	macroDicts.push_back(self->GetMacros());
+	macroDicts.push_back(Service::CalculateDynamicMacros(self));
+
+	Value raw_command = self->GetCheckCommand();
+
+	Host::Ptr host = self->GetHost();
+
+	slock.Unlock();
+
+	{
+		ObjectLock olock(host);
+		macroDicts.push_back(host->GetMacros());
+		macroDicts.push_back(Host::CalculateDynamicMacros(host));
+	}
+
+	IcingaApplication::Ptr app = IcingaApplication::GetInstance();
+
+	{
+		ObjectLock olock(app);
+		macroDicts.push_back(app->GetMacros());
+	}
+
+	macroDicts.push_back(IcingaApplication::CalculateDynamicMacros(app));
+
+	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
+
+	checkInfo->Set("macros", macros);
 
 	vector<Value> arguments;
-	arguments.push_back(static_cast<Service::Ptr>(GetSelf()));
+	arguments.push_back(self);
+	arguments.push_back(macros);
 
-	ScriptTask::Ptr task = MakeMethodTask("check", arguments);
-	Set("current_task", task);
+	ScriptTask::Ptr task;
 
-	task->Start(boost::bind(&Service::CheckCompletedHandler, this, scheduleInfo, _1, callback));
+	{
+		ObjectLock olock(self);
+		task = self->MakeMethodTask("check", arguments);
+		self->Set("current_task", task);
+	}
+
+	task->Start(boost::bind(&Service::CheckCompletedHandler, self, checkInfo, _1, callback));
 }
 
-void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
+void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
     const ScriptTask::Ptr& task, const function<void (void)>& callback)
 {
-	ObjectLock olock(this);
-
-	Set("current_task", Empty);
-
-	scheduleInfo->Set("execution_end", Utility::GetTime());
-	scheduleInfo->Set("schedule_end", Utility::GetTime());
+	checkInfo->Set("execution_end", Utility::GetTime());
+	checkInfo->Set("schedule_end", Utility::GetTime());
 
 	Dictionary::Ptr result;
 
@@ -481,32 +520,43 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& scheduleInfo,
 
 	if (result) {
 		if (!result->Contains("schedule_start"))
-			result->Set("schedule_start", scheduleInfo->Get("schedule_start"));
+			result->Set("schedule_start", checkInfo->Get("schedule_start"));
 
 		if (!result->Contains("schedule_end"))
-			result->Set("schedule_end", scheduleInfo->Get("schedule_end"));
+			result->Set("schedule_end", checkInfo->Get("schedule_end"));
 
 		if (!result->Contains("execution_start"))
-			result->Set("execution_start", scheduleInfo->Get("execution_start"));
+			result->Set("execution_start", checkInfo->Get("execution_start"));
 
 		if (!result->Contains("execution_end"))
-			result->Set("execution_end", scheduleInfo->Get("execution_end"));
+			result->Set("execution_end", checkInfo->Get("execution_end"));
+
+		if (!result->Contains("macros"))
+			result->Set("macros", checkInfo->Get("macros"));
 
 		if (!result->Contains("active"))
 			result->Set("active", 1);
 
-		if (!result->Contains("checker"))
-			result->Set("checker", EndpointManager::GetInstance()->GetIdentity());
+		if (!result->Contains("checker")) {
+			EndpointManager::Ptr em = EndpointManager::GetInstance();
+			ObjectLock olock(em);
 
-		ProcessCheckResult(result);
+			result->Set("checker", em->GetIdentity());
+		}
 	}
 
-	/* figure out when the next check is for this service; the call to
-	 * ApplyCheckResult() should've already done this but lets do it again
-	 * just in case there was no check result. */
-	UpdateNextCheck();
+	{
+		ObjectLock olock(this);
+		if (result)
+			ProcessCheckResult(result);
 
-	olock.Unlock();
+		Set("current_task", Empty);
+
+		/* figure out when the next check is for this service; the call to
+		 * ApplyCheckResult() should've already done this but lets do it again
+		 * just in case there was no check result. */
+		UpdateNextCheck();
+	}
 
 	callback();
 }
@@ -550,4 +600,41 @@ void Service::UpdateStatistics(const Dictionary::Ptr& cr)
 		CIB::UpdateActiveChecksStatistics(ts, 1);
 	else
 		CIB::UpdatePassiveChecksStatistics(ts, 1);
+}
+
+double Service::CalculateExecutionTime(const Dictionary::Ptr& cr)
+{
+	ObjectLock olock(cr);
+
+	double execution_start = 0, execution_end = 0;
+
+	if (cr) {
+		ObjectLock olock(cr);
+
+		if (!cr->Contains("execution_start") || !cr->Contains("execution_end"))
+			return 0;
+
+		execution_start = cr->Get("execution_start");
+		execution_end = cr->Get("execution_end");
+	}
+
+	return (execution_end - execution_start);
+}
+
+double Service::CalculateLatency(const Dictionary::Ptr& cr)
+{
+	double schedule_start = 0, schedule_end = 0;
+
+	if (cr) {
+		ObjectLock olock(cr);
+
+		if (!cr->Contains("schedule_start") || !cr->Contains("schedule_end"))
+			return 0;
+
+		schedule_start = cr->Get("schedule_start");
+		schedule_end = cr->Get("schedule_end");
+	}
+
+	return (schedule_end - schedule_start) - CalculateExecutionTime(cr);
+
 }

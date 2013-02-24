@@ -39,11 +39,14 @@ public:
 	 */
 	typedef map<String, Value>::iterator Iterator;
 
+	Dictionary(void);
+
 	Value Get(const char *key) const;
 	Value Get(const String& key) const;
 	void Set(const String& key, const Value& value);
 	String Add(const Value& value);
 	bool Contains(const String& key) const;
+	void Seal(void);
 
 	Iterator Begin(void);
 	Iterator End(void);
@@ -60,6 +63,7 @@ public:
 
 private:
 	map<String, Value> m_Data; /**< The data for the dictionary. */
+	bool m_Sealed; /**< Whether the dictionary is read-only. */
 };
 
 inline Dictionary::Iterator range_begin(Dictionary::Ptr x)
