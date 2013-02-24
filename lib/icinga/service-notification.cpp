@@ -49,7 +49,16 @@ void Service::SendNotifications(NotificationType type)
 		Logger::Write(LogInformation, "icinga", "Service '" + GetName() + "' does not have any notifications.");
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
-		Notification::BeginExecuteNotification(notification, type);
+		try {
+			Notification::BeginExecuteNotification(notification, type);
+		} catch (const exception& ex) {
+			stringstream msgbuf;
+			msgbuf << "Exception occured during notification for service '"
+			       << GetName() << "': " << diagnostic_information(ex);
+			String message = msgbuf.str();
+
+			Logger::Write(LogWarning, "icinga", message);
+		}
 	}
 
 	SetLastNotification(Utility::GetTime());
@@ -104,6 +113,10 @@ static void CopyNotificationAttributes(TDict notificationDesc, const ConfigItemB
 	Value macros = notificationDesc->Get("macros");
 	if (!macros.IsEmpty())
 		builder->AddExpression("macros", OperatorPlus, macros);
+
+	Value users = notificationDesc->Get("users");
+	if (!users.IsEmpty())
+		builder->AddExpression("users", OperatorPlus, users);
 
 	/*Value notificationInterval = notificationDesc->Get("notification_interval");
 	if (!notificationInterval.IsEmpty())

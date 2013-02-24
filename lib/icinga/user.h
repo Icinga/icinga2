@@ -17,67 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef NOTIFICATION_H
-#define NOTIFICATION_H
+#ifndef USER_H
+#define USER_H
 
 namespace icinga
 {
 
 /**
- * The notification type.
+ * A User.
  *
  * @ingroup icinga
  */
-enum NotificationType
-{
-	NotificationDowntimeStart,
-	NotificationDowntimeEnd,
-	NotificationDowntimeRemoved,
-	NotificationCustom,
-	NotificationProblem,
-	NotificationRecovery
-};
-
-class Service;
-
-/**
- * An Icinga notification specification.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API Notification : public DynamicObject
+class I2_ICINGA_API User : public DynamicObject
 {
 public:
-	typedef shared_ptr<Notification> Ptr;
-	typedef weak_ptr<Notification> WeakPtr;
+	typedef shared_ptr<User> Ptr;
+	typedef weak_ptr<User> WeakPtr;
 
-	Notification(const Dictionary::Ptr& properties);
-	~Notification(void);
+	User(const Dictionary::Ptr& properties);
 
 	static bool Exists(const String& name);
-	static Notification::Ptr GetByName(const String& name);
+	static User::Ptr GetByName(const String& name);
 
-	shared_ptr<Service> GetService(void) const;
-	Value GetNotificationCommand(void) const;
 	Dictionary::Ptr GetMacros(void) const;
-	set<User::Ptr> GetUsers(void) const;
-
-	static void BeginExecuteNotification(const Notification::Ptr& self, NotificationType type);
-
-	static String NotificationTypeToString(NotificationType type);
-
-protected:
-	void OnAttributeChanged(const String& name, const Value& oldValue);
-
-private:
-	set<ScriptTask::Ptr> m_Tasks;
-
-	void NotificationCompletedHandler(const ScriptTask::Ptr& task);
-
-	static void BeginExecuteNotificationHelper(const Notification::Ptr& self,
-	    const Dictionary::Ptr& notificationMacros, NotificationType type, const User::Ptr& user);
+	static Dictionary::Ptr CalculateDynamicMacros(const User::Ptr& self);
 };
 
 }
 
-#endif /* NOTIFICATION_H */
+#endif /* USER_H */

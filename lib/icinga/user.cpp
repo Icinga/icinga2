@@ -17,67 +17,47 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef NOTIFICATION_H
-#define NOTIFICATION_H
+#include "i2-icinga.h"
 
-namespace icinga
+using namespace icinga;
+
+REGISTER_TYPE(User, NULL);
+
+User::User(const Dictionary::Ptr& properties)
+	: DynamicObject(properties)
+{ }
+
+bool User::Exists(const String& name)
 {
-
-/**
- * The notification type.
- *
- * @ingroup icinga
- */
-enum NotificationType
-{
-	NotificationDowntimeStart,
-	NotificationDowntimeEnd,
-	NotificationDowntimeRemoved,
-	NotificationCustom,
-	NotificationProblem,
-	NotificationRecovery
-};
-
-class Service;
-
-/**
- * An Icinga notification specification.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API Notification : public DynamicObject
-{
-public:
-	typedef shared_ptr<Notification> Ptr;
-	typedef weak_ptr<Notification> WeakPtr;
-
-	Notification(const Dictionary::Ptr& properties);
-	~Notification(void);
-
-	static bool Exists(const String& name);
-	static Notification::Ptr GetByName(const String& name);
-
-	shared_ptr<Service> GetService(void) const;
-	Value GetNotificationCommand(void) const;
-	Dictionary::Ptr GetMacros(void) const;
-	set<User::Ptr> GetUsers(void) const;
-
-	static void BeginExecuteNotification(const Notification::Ptr& self, NotificationType type);
-
-	static String NotificationTypeToString(NotificationType type);
-
-protected:
-	void OnAttributeChanged(const String& name, const Value& oldValue);
-
-private:
-	set<ScriptTask::Ptr> m_Tasks;
-
-	void NotificationCompletedHandler(const ScriptTask::Ptr& task);
-
-	static void BeginExecuteNotificationHelper(const Notification::Ptr& self,
-	    const Dictionary::Ptr& notificationMacros, NotificationType type, const User::Ptr& user);
-};
-
+	return (DynamicObject::GetObject("User", name));
 }
 
-#endif /* NOTIFICATION_H */
+User::Ptr User::GetByName(const String& name)
+{
+	DynamicObject::Ptr configObject = DynamicObject::GetObject("User", name);
+
+	if (!configObject)
+		BOOST_THROW_EXCEPTION(invalid_argument("User '" + name + "' does not exist."));
+
+	return dynamic_pointer_cast<User>(configObject);
+}
+
+Dictionary::Ptr User::GetMacros(void) const
+{
+	return Get("macros");
+}
+
+Dictionary::Ptr User::CalculateDynamicMacros(const User::Ptr& self)
+{
+	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
+
+	{
+		ObjectLock olock(self);
+		macros->Set("CONTACTNAME", self->GetName());
+		macros->Set("CONTACTALIAS", self->GetName());
+	}
+
+	macros->Seal();
+
+	return macros;
+}

@@ -70,6 +70,22 @@ Dictionary::Ptr Notification::GetMacros(void) const
 	return Get("macros");
 }
 
+set<User::Ptr> Notification::GetUsers(void) const
+{
+	set<User::Ptr> result;
+
+	Dictionary::Ptr users = Get("users");
+
+	if (users) {
+		String name;
+		BOOST_FOREACH(tie(tuples::ignore, name), users) {
+			result.insert(User::GetByName(name));
+		}
+	}
+
+	return result;
+}
+
 String Notification::NotificationTypeToString(NotificationType type)
 {
 	switch (type) {
@@ -100,11 +116,13 @@ void Notification::BeginExecuteNotification(const Notification::Ptr& self, Notif
 	macroDicts.push_back(notificationMacros);
 
 	Service::Ptr service;
+	set<User::Ptr> users;
 
 	{
 		ObjectLock olock(self);
 		macroDicts.push_back(self->GetMacros());
 		service = self->GetService();
+		users = self->GetUsers();
 	}
 
 	Host::Ptr host;
@@ -136,15 +154,45 @@ void Notification::BeginExecuteNotification(const Notification::Ptr& self, Notif
 
 	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
-	vector<Value> arguments;
-	arguments.push_back(self);
-	arguments.push_back(macros);
-	arguments.push_back(type);
+	int count = 0;
+
+	BOOST_FOREACH(const User::Ptr& user, users) {
+		BeginExecuteNotificationHelper(self, macros, type, user);
+		count++;
+	}
+
+	if (count == 0) {
+		/* Send a notification even if there are no users specified. */
+		BeginExecuteNotificationHelper(self, macros, type, User::Ptr());
+	}
+}
+
+void Notification::BeginExecuteNotificationHelper(const Notification::Ptr& self, const Dictionary::Ptr& notificationMacros, NotificationType type, const User::Ptr& user)
+{
+	vector<Dictionary::Ptr> macroDicts;
+
+	if (user) {
+		{
+			ObjectLock olock(self);
+			macroDicts.push_back(user->GetMacros());
+		}
+
+		macroDicts.push_back(User::CalculateDynamicMacros(user));
+	}
+
+	macroDicts.push_back(notificationMacros);
+
+	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
 	ScriptTask::Ptr task;
 
 	{
 		ObjectLock olock(self);
+
+		vector<Value> arguments;
+		arguments.push_back(self);
+		arguments.push_back(macros);
+		arguments.push_back(type);
 		task = self->MakeMethodTask("notify", arguments);
 
 		if (!task) {

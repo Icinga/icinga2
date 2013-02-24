@@ -40,7 +40,9 @@ libicinga_la_SOURCES =  \
 	service-notification.cpp \
 	service.h \
 	servicegroup.cpp \
-	servicegroup.h
+	servicegroup.h \
+	user.cpp \
+	user.h
 
 libicinga_la_CPPFLAGS = \
 	-DI2_ICINGA_BUILD \
