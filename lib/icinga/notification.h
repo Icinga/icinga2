@@ -34,6 +34,7 @@ enum NotificationType
 	NotificationDowntimeEnd,
 	NotificationDowntimeRemoved,
 	NotificationCustom,
+	NotificationAcknowledgement,
 	NotificationProblem,
 	NotificationRecovery
 };

@@ -39,10 +39,11 @@ public:
 private:
 	static void ProcessFinishedHandler(PluginCheckTask ct);
 
-	PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process);
+	PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process, const Value& command);
 
 	ScriptTask::Ptr m_Task;
 	Process::Ptr m_Process;
+	Value m_Command;
 };
 
 }

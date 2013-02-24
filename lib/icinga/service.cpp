@@ -258,6 +258,20 @@ void Service::SetAcknowledgementExpiry(double timestamp)
 	Set("acknowledgement_expiry", timestamp);
 }
 
+void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
+{
+	SetAcknowledgement(type);
+	SetAcknowledgementExpiry(expiry);
+
+	RequestNotifications(NotificationAcknowledgement);
+}
+
+void Service::ClearAcknowledgement(void)
+{
+	SetAcknowledgement(AcknowledgementNone);
+	SetAcknowledgementExpiry(0);
+}
+
 void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 {
 	if (name == "checker")

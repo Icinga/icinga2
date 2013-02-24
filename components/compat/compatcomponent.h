@@ -53,15 +53,15 @@ private:
 	String GetLogPath(void) const;
 	String GetCommandPath(void) const;
 
-	void DumpDowntimes(ofstream& fp, const Service::Ptr& owner, CompatObjectType type);
-	void DumpComments(ofstream& fp, const Service::Ptr& owner, CompatObjectType type);
-	void DumpHostStatus(ofstream& fp, const Host::Ptr& host);
-	void DumpHostObject(ofstream& fp, const Host::Ptr& host);
+	void DumpDowntimes(ostream& fp, const Service::Ptr& owner, CompatObjectType type);
+	void DumpComments(ostream& fp, const Service::Ptr& owner, CompatObjectType type);
+	void DumpHostStatus(ostream& fp, const Host::Ptr& host);
+	void DumpHostObject(ostream& fp, const Host::Ptr& host);
 
-	void DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatObjectType type);
+	void DumpServiceStatusAttrs(ostream& fp, const Service::Ptr& service, CompatObjectType type);
 
 	template<typename T>
-	void DumpNameList(ofstream& fp, const T& list)
+	void DumpNameList(ostream& fp, const T& list)
 	{
 		typename T::const_iterator it;
 		bool first = true;
@@ -77,7 +77,7 @@ private:
 	}
 
 	template<typename T>
-	void DumpStringList(ofstream& fp, const T& list)
+	void DumpStringList(ostream& fp, const T& list)
 	{
 		typename T::const_iterator it;
 		bool first = true;
@@ -91,8 +91,8 @@ private:
 		}
 	}
 
-	void DumpServiceStatus(ofstream& fp, const Service::Ptr& service);
-	void DumpServiceObject(ofstream& fp, const Service::Ptr& service);
+	void DumpServiceStatus(ostream& fp, const Service::Ptr& service);
+	void DumpServiceObject(ostream& fp, const Service::Ptr& service);
 
 	void StatusTimerHandler(void);
 };

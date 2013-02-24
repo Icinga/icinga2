@@ -171,6 +171,9 @@ public:
 	void ApplyCheckResult(const Dictionary::Ptr& cr);
 	static void UpdateStatistics(const Dictionary::Ptr& cr);
 
+	void AcknowledgeProblem(AcknowledgementType type, double expiry = 0);
+	void ClearAcknowledgement(void);
+
 	static void BeginExecuteCheck(const Service::Ptr& self, const function<void (void)>& callback);
 	void ProcessCheckResult(const Dictionary::Ptr& cr);
 

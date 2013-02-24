@@ -306,8 +306,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const vector<String
 		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' is OK."));
 
 	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for service '" + service->GetName() + "'");
-	service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
-	service->SetAcknowledgementExpiry(0);
+	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 }
 
 void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<String>& arguments)
@@ -324,8 +323,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<
 		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' is OK."));
 
 	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for service '" + service->GetName() + "'");
-	service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
-	service->SetAcknowledgementExpiry(timestamp);
+	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
 }
 
 void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<String>& arguments)
@@ -336,8 +334,7 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<Str
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
-	service->SetAcknowledgement(AcknowledgementNone);
-	service->SetAcknowledgementExpiry(0);
+	service->ClearAcknowledgement();
 }
 
 void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<String>& arguments)
@@ -355,8 +352,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<Strin
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
 
-		service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
-		service->SetAcknowledgementExpiry(0);
+		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 	}
 }
 
@@ -376,8 +372,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
 
-		service->SetAcknowledgement(sticky ? AcknowledgementSticky : AcknowledgementNormal);
-		service->SetAcknowledgementExpiry(timestamp);
+		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
 	}
 }
 
@@ -391,8 +386,7 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const vector<St
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
-		service->SetAcknowledgement(AcknowledgementNone);
-		service->SetAcknowledgementExpiry(0);
+		service->ClearAcknowledgement();
 	}
 }
 

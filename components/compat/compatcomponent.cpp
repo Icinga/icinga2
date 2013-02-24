@@ -175,7 +175,7 @@ void CompatComponent::ProcessCommand(const String& command)
 }
 #endif /* _WIN32 */
 
-void CompatComponent::DumpComments(ofstream& fp, const Service::Ptr& owner, CompatObjectType type)
+void CompatComponent::DumpComments(ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	ObjectLock olock(owner);
 
@@ -212,7 +212,7 @@ void CompatComponent::DumpComments(ofstream& fp, const Service::Ptr& owner, Comp
 	}
 }
 
-void CompatComponent::DumpDowntimes(ofstream& fp, const Service::Ptr& owner, CompatObjectType type)
+void CompatComponent::DumpDowntimes(ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	ObjectLock olock(owner);
 
@@ -255,7 +255,7 @@ void CompatComponent::DumpDowntimes(ofstream& fp, const Service::Ptr& owner, Com
 	}
 }
 
-void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
+void CompatComponent::DumpHostStatus(ostream& fp, const Host::Ptr& host)
 {
 	Service::Ptr hc;
 
@@ -294,7 +294,7 @@ void CompatComponent::DumpHostStatus(ofstream& fp, const Host::Ptr& host)
 	}
 }
 
-void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
+void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 {
 	ObjectLock olock(host);
 
@@ -319,7 +319,7 @@ void CompatComponent::DumpHostObject(ofstream& fp, const Host::Ptr& host)
 	   << "\n";
 }
 
-void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& service, CompatObjectType type)
+void CompatComponent::DumpServiceStatusAttrs(ostream& fp, const Service::Ptr& service, CompatObjectType type)
 {
 	String output;
 	String perfdata;
@@ -388,7 +388,7 @@ void CompatComponent::DumpServiceStatusAttrs(ofstream& fp, const Service::Ptr& s
 	}
 }
 
-void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& service)
+void CompatComponent::DumpServiceStatus(ostream& fp, const Service::Ptr& service)
 {
 	String host_name, short_name;
 	Host::Ptr host;
@@ -417,7 +417,7 @@ void CompatComponent::DumpServiceStatus(ofstream& fp, const Service::Ptr& servic
 	DumpComments(fp, service, CompatTypeService);
 }
 
-void CompatComponent::DumpServiceObject(ofstream& fp, const Service::Ptr& service)
+void CompatComponent::DumpServiceObject(ostream& fp, const Service::Ptr& service)
 {
 	set<Service::Ptr> parentServices;
 	Host::Ptr host;
@@ -534,48 +534,64 @@ void CompatComponent::StatusTimerHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		Host::Ptr host = static_pointer_cast<Host>(object);
 
-		DumpHostStatus(statusfp, host);
-		DumpHostObject(objectfp, host);
+		stringstream tempstatusfp, tempobjectfp;
+
+		DumpHostStatus(tempstatusfp, host);
+		DumpHostObject(tempobjectfp, host);
+
+		statusfp << tempstatusfp.str();
+		objectfp << tempobjectfp.str();
 	}
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
 		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
 
+		stringstream tempobjectfp;
+
 		{
 			ObjectLock olock(hg);
 
-			objectfp << "define hostgroup {" << "\n"
+			tempobjectfp << "define hostgroup {" << "\n"
 				 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n"
 				 << "\t" << "notes_url" << "\t" << hg->GetNotesUrl() << "\n"
 				 << "\t" << "action_url" << "\t" << hg->GetActionUrl() << "\n";
 		}
 
-		objectfp << "\t" << "members" << "\t";
-		DumpNameList(objectfp, HostGroup::GetMembers(hg));
-		objectfp << "\n"
+		tempobjectfp << "\t" << "members" << "\t";
+		DumpNameList(tempobjectfp, HostGroup::GetMembers(hg));
+		tempobjectfp << "\n"
 			 << "}" << "\n";
+
+		objectfp << tempobjectfp.str();
 	}
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
 
+		stringstream tempstatusfp, tempobjectfp;
+
 		DumpServiceStatus(statusfp, service);
 		DumpServiceObject(objectfp, service);
+
+		statusfp << tempstatusfp.str();
+		objectfp << tempobjectfp.str();
 	}
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("ServiceGroup")) {
 		ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
 
+		stringstream tempobjectfp;
+
 		{
 			ObjectLock olock(sg);
 
-			objectfp << "define servicegroup {" << "\n"
+			tempobjectfp << "define servicegroup {" << "\n"
 				 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n"
 				 << "\t" << "notes_url" << "\t" << sg->GetNotesUrl() << "\n"
 				 << "\t" << "action_url" << "\t" << sg->GetActionUrl() << "\n";
 		}
 
-		objectfp << "\t" << "members" << "\t";
+		tempobjectfp << "\t" << "members" << "\t";
 
 		vector<String> sglist;
 		BOOST_FOREACH(const Service::Ptr& service, ServiceGroup::GetMembers(sg)) {
@@ -597,10 +613,12 @@ void CompatComponent::StatusTimerHandler(void)
 			sglist.push_back(short_name);
 		}
 
-		DumpStringList(objectfp, sglist);
+		DumpStringList(tempobjectfp, sglist);
 
-		objectfp << "\n"
+		tempobjectfp << "\n"
 			 << "}" << "\n";
+
+		objectfp << tempobjectfp.str();
 	}
 
 	statusfp.close();

@@ -23,8 +23,8 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION("PluginCheck",  &PluginCheckTask::ScriptFunc);
 
-PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process)
-	: m_Task(task), m_Process(process)
+PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process, const Value& command)
+	: m_Task(task), m_Process(process), m_Command(command)
 { }
 
 void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
@@ -49,7 +49,7 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
 
-	PluginCheckTask ct(task, process);
+	PluginCheckTask ct(task, process, command);
 
 	process->Start(boost::bind(&PluginCheckTask::ProcessFinishedHandler, ct));
 }
@@ -71,6 +71,7 @@ void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 	String output = pr.Output;
 	output.Trim();
 	Dictionary::Ptr result = ParseCheckOutput(output);
+	result->Set("command", ct.m_Command);
 	result->Set("state", ExitStatusToState(pr.ExitStatus));
 	result->Set("execution_start", pr.ExecutionStart);
 	result->Set("execution_end", pr.ExecutionEnd);

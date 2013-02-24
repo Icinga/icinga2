@@ -96,7 +96,9 @@ String Notification::NotificationTypeToString(NotificationType type)
 		case NotificationDowntimeRemoved:
 			return "DOWNTIMECANCELLED";
 		case NotificationCustom:
-			return "DOWNTIMECUSTOM";
+			return "CUSTOM";
+		case NotificationAcknowledgement:
+			return "ACKNOWLEDGEMENT";
 		case NotificationProblem:
 			return "PROBLEM";
 		case NotificationRecovery:
