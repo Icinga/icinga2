@@ -72,8 +72,16 @@ AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 AC_CHECK_FUNCS([backtrace_symbols execvpe pipe2])
 
+AC_MSG_CHECKING(whether to enable debugging)
+AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes]   turn on debugging (default=no)],, enable_debug=no)
+if test "x$enable_debug" = "xyes"; then
+	CFLAGS="$CFLAGS -g -O0 -rdynamic"
+	CXXFLAGS="$CXXFLAGS -g -O0 -rdynamic"
+fi
+AC_MSG_RESULT($enable_debug)
+
 AX_C___ATTRIBUTE__
-if test "$ax_cv___attribute__" = "yes"; then
+if test "$ax_cv___attribute__" = "yes" && test "x$enable_debug" = "xno"; then
 	CFLAGS="$CFLAGS -fvisibility=hidden"
 	CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
 fi
@@ -83,14 +91,6 @@ AX_PYTHON_ENABLE
 AX_PYTHON_VERSION_ENSURE([2.5])
 AX_PYTHON_CSPEC
 AX_PYTHON_LSPEC
-
-AC_MSG_CHECKING(whether to enable debugging)
-AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes]   turn on debugging (default=no)],, enable_debug=no)
-if test "x$enable_debug" = "xyes"; then
-        CFLAGS="$CFLAGS -g -O0"
-        CXXFLAGS="$CXXFLAGS -g -O0"
-fi
-AC_MSG_RESULT($enable_debug)
 
 AS_AC_EXPAND([ICINGA_PREFIX], $prefix)
 AC_DEFINE_UNQUOTED([ICINGA_PREFIX], "$ICINGA_PREFIX", [The installation prefix.])
