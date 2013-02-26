@@ -72,9 +72,9 @@ void CheckerComponent::CheckThreadProc(void)
 			break;
 
 		CheckTimeView::iterator it = idx.begin();
-		Service::Ptr service = it->lock();
+		Service::Ptr service = *it;
 
-		if (!service) {
+		if (!service->IsRegistered()) {
 			idx.erase(it);
 			continue;
 		}

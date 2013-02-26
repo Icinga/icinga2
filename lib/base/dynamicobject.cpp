@@ -33,7 +33,7 @@ signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> DynamicObjec
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
-	: m_EventSafe(false), m_ConfigTx(0)
+	: m_EventSafe(false), m_ConfigTx(0), m_Registered(false)
 {
 	RegisterAttribute("__name", Attribute_Config, &m_Name);
 	RegisterAttribute("__type", Attribute_Config, &m_Type);
@@ -309,6 +309,11 @@ bool DynamicObject::IsAbstract(void) const
 	return m_Abstract;
 }
 
+bool DynamicObject::IsRegistered(void) const
+{
+	return m_Registered;
+}
+
 void DynamicObject::SetSource(const String& value)
 {
 	m_Source = value;
@@ -572,7 +577,10 @@ void DynamicObject::OnConstructionCompleted(void)
 }
 
 void DynamicObject::OnRegistrationCompleted(void)
-{ }
+{
+	ObjectLock olock(this);
+	m_Registered = true;
+}
 
 void DynamicObject::OnAttributeChanged(const String&, const Value&)
 { }

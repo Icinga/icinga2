@@ -33,13 +33,8 @@ struct ServiceNextCheckExtractor
 	/**
 	 * @threadsafety Caller must hold the mutex for the service.
 	 */
-	double operator()(const Service::WeakPtr& wservice)
+	double operator()(const Service::Ptr& service)
 	{
-		Service::Ptr service = wservice.lock();
-
-		if (!service)
-			return 0;
-
 		return service->GetNextCheck();
 	}
 };
@@ -54,9 +49,9 @@ public:
 	typedef weak_ptr<CheckerComponent> WeakPtr;
 
 	typedef multi_index_container<
-		Service::WeakPtr,
+		Service::Ptr,
 		indexed_by<
-			ordered_unique<identity<Service::WeakPtr> >,
+			ordered_unique<identity<Service::Ptr> >,
 			ordered_non_unique<ServiceNextCheckExtractor>
 		>
 	> ServiceSet;

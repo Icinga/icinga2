@@ -238,6 +238,7 @@ public:
 
 	bool IsLocal(void) const;
 	bool IsAbstract(void) const;
+	bool IsRegistered(void) const;
 
 	void SetSource(const String& value);
 	String GetSource(void) const;
@@ -286,6 +287,7 @@ private:
 	Attribute<String> m_Source;
 	Attribute<Dictionary::Ptr> m_Methods;
 
+	bool m_Registered;
 	bool m_EventSafe;
 
 	static double m_CurrentTx;
