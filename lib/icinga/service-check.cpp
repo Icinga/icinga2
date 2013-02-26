@@ -418,8 +418,9 @@ void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (v
 	{
 		ObjectLock olock(host);
 		macroDicts.push_back(host->GetMacros());
-		macroDicts.push_back(Host::CalculateDynamicMacros(host));
 	}
+
+	macroDicts.push_back(Host::CalculateDynamicMacros(host));
 
 	IcingaApplication::Ptr app = IcingaApplication::GetInstance();
 
