@@ -296,23 +296,38 @@ void CompatComponent::DumpHostStatus(ostream& fp, const Host::Ptr& host)
 
 void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 {
-	ObjectLock olock(host);
+	Service::Ptr hc;
 
-	fp << "define host {" << "\n"
-	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
-	   << "\t" << "display_name" << "\t" << host->GetDisplayName() << "\n"
-	   << "\t" << "check_interval" << "\t" << 1 << "\n"
-	   << "\t" << "retry_interval" << "\t" << 1 << "\n"
-	   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
-	   << "\t" << "active_checks_enabled" << "\t" << 1 << "\n"
-	   << "\t" << "passive_checks_enabled" << "\t" << 1 << "\n";
+	{
+		ObjectLock olock(host);
 
-	set<Host::Ptr> parents = host->GetParentHosts();
+		fp << "define host {" << "\n"
+		   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
+		   << "\t" << "display_name" << "\t" << host->GetDisplayName() << "\n";
 
-	if (!parents.empty()) {
-		fp << "\t" << "parents" << "\t";
-		DumpNameList(fp, parents);
-		fp << "\n";
+		set<Host::Ptr> parents = host->GetParentHosts();
+
+		if (!parents.empty()) {
+			fp << "\t" << "parents" << "\t";
+			DumpNameList(fp, parents);
+			fp << "\n";
+		}
+
+		hc = host->GetHostCheckService();
+	}
+
+	if (hc) {
+		ObjectLock olock(hc);
+
+		fp << "\t" << "check_interval" << "\t" << hc->GetCheckInterval() << "\n"
+		   << "\t" << "retry_interval" << "\t" << hc->GetRetryInterval() << "\n"
+		   << "\t" << "max_check_attempts" << "\t" << hc->GetMaxCheckAttempts() << "\n"
+		   << "\t" << "active_checks_enabled" << "\t" << (hc->GetEnableActiveChecks() ? 1 : 0) << "\n"
+		   << "\t" << "passive_checks_enabled" << "\t" << (hc->GetEnablePassiveChecks() ? 1 : 0) << "\n"
+		   << "\t" << "notifications_enabled" << "\t" << (hc->GetEnableNotifications() ? 1 : 0) << "\n"
+		   << "\t" << "notification_options" << "\t" << "d,u,r" << "\n"
+		   << "\t" << "notification_interval" << "\t" << "60" << "\n"
+		   << "\t" << "notification_period" << "\t" << "24x7" << "\n";
 	}
 
 	fp << "\t" << "}" << "\n"
@@ -377,14 +392,14 @@ void CompatComponent::DumpServiceStatusAttrs(ostream& fp, const Service::Ptr& se
 		   << "\t" << "last_state_change=" << service->GetLastStateChange() << "\n"
 		   << "\t" << "last_hard_state_change=" << service->GetLastHardStateChange() << "\n"
 		   << "\t" << "last_update=" << time(NULL) << "\n"
+		   << "\t" << "notifications_enabled=" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "active_checks_enabled=" << (service->GetEnableActiveChecks() ? 1 : 0) <<"\n"
 		   << "\t" << "passive_checks_enabled=" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
 		   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
 		   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
 		   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
-		   << "\t" << "last_notification=" << service->GetLastNotification() << "\n"
-		   << "\t" << "next_notification=" << service->GetNextNotification() << "\n";
+		   << "\t" << "last_notification=" << service->GetLastNotification() << "\n";
 	}
 }
 
@@ -448,6 +463,10 @@ void CompatComponent::DumpServiceObject(ostream& fp, const Service::Ptr& service
 		   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
 		   << "\t" << "active_checks_enabled" << "\t" << (service->GetEnableActiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
+		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
+		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
+   		   << "\t" << "notification_interval" << "\t" << "60" << "\n"
+		   << "\t" << "notification_period" << "\t" << "24x7" << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}
@@ -508,8 +527,8 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "program_start=" << startTime << "\n"
 		 << "\t" << "active_service_checks_enabled=1" << "\n"
 		 << "\t" << "passive_service_checks_enabled=1" << "\n"
-		 << "\t" << "active_host_checks_enabled=0" << "\n"
-		 << "\t" << "passive_host_checks_enabled=0" << "\n"
+		 << "\t" << "active_host_checks_enabled=1" << "\n"
+		 << "\t" << "passive_host_checks_enabled=1" << "\n"
 		 << "\t" << "check_service_freshness=0" << "\n"
 		 << "\t" << "check_host_freshness=0" << "\n"
 		 << "\t" << "enable_notifications=1" << "\n"
@@ -530,6 +549,18 @@ void CompatComponent::StatusTimerHandler(void)
 	objectfp << "# Icinga objects cache file" << "\n"
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
+
+	objectfp << "define timeperiod {"
+		 << "\t" << "timeperiod_name" << "\t" << "24x7" << "\n"
+		 << "\t" << "sunday" << "\t" << "00:00-24:00" << "\n"
+		 << "\t" << "monday" << "\t" << "00:00-24:00" << "\n"
+		 << "\t" << "tuesday" << "\t" << "00:00-24:00" << "\n"
+		 << "\t" << "wednesday" << "\t" << "00:00-24:00" << "\n"
+		 << "\t" << "thursday" << "\t" << "00:00-24:00" << "\n"
+		 << "\t" << "friday" << "\t" << "00:00-24:00" << "\n"
+		 << "\t" << "saturday" << "\t" << "00:00-24:00" << "\n"
+		 << "\t" << "}" << "\n";
+
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		Host::Ptr host = static_pointer_cast<Host>(object);

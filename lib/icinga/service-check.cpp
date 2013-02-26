@@ -206,8 +206,8 @@ bool Service::GetEnableActiveChecks(void) const
 {
 	if (m_EnableActiveChecks.IsEmpty())
 		return true;
-
-	return static_cast<bool>(m_EnableActiveChecks);
+	else
+		return m_EnableActiveChecks;
 }
 
 void Service::SetEnableActiveChecks(bool enabled)
@@ -220,8 +220,8 @@ bool Service::GetEnablePassiveChecks(void) const
 {
 	if (m_EnablePassiveChecks.IsEmpty())
 		return true;
-
-	return static_cast<bool>(m_EnablePassiveChecks);
+	else
+		return m_EnablePassiveChecks;
 }
 
 void Service::SetEnablePassiveChecks(bool enabled)

@@ -41,6 +41,11 @@ void Service::RequestNotifications(NotificationType type) const
 
 void Service::SendNotifications(NotificationType type)
 {
+	if (!GetEnableNotifications()) {
+		Logger::Write(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
+		return;
+	}
+
 	Logger::Write(LogInformation, "icinga", "Sending notifications for service '" + GetName() + "'");
 
 	set<Notification::Ptr> notifications = GetNotifications();
@@ -239,12 +244,10 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 
 double Service::GetLastNotification(void) const
 {
-	Value value = m_LastNotification;
-
-	if (value.IsEmpty())
-		value = 0;
-
-	return value;
+	if (m_LastNotification.IsEmpty())
+		return 0;
+	else
+		return m_LastNotification;
 }
 
 void Service::SetLastNotification(double time)
@@ -253,18 +256,16 @@ void Service::SetLastNotification(double time)
 	Touch("last_notification");
 }
 
-double Service::GetNextNotification(void) const
+bool Service::GetEnableNotifications(void) const
 {
-	Value value = m_NextNotification;
-
-	if (value.IsEmpty())
-		value = 0;
-
-	return value;
+	if (m_EnableNotifications.IsEmpty())
+		return true;
+	else
+		return m_EnableNotifications;
 }
 
-void Service::SetNextNotification(double time)
+void Service::SetEnableNotifications(bool enabled)
 {
-	m_NextNotification = time;
-	Touch("next_notification");
+	m_EnableNotifications = enabled;
+	Touch("enable_notifications");
 }

@@ -61,8 +61,8 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 
 	RegisterAttribute("downtimes", Attribute_Replicated, &m_Downtimes);
 
+	RegisterAttribute("enable_notifications", Attribute_Replicated, &m_EnableNotifications);
 	RegisterAttribute("last_notification", Attribute_Replicated, &m_LastNotification);
-	RegisterAttribute("next_notification", Attribute_Replicated, &m_NextNotification);
 
 	SetSchedulingOffset(rand());
 }

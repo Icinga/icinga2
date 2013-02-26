@@ -235,6 +235,9 @@ public:
 	static void ValidateCommentsCache(void);
 
 	/* Notifications */
+	bool GetEnableNotifications(void) const;
+	void SetEnableNotifications(bool enabled);
+
 	void RequestNotifications(NotificationType type) const;
 	void SendNotifications(NotificationType type);
 
@@ -247,9 +250,6 @@ public:
 
 	double GetLastNotification(void) const;
 	void SetLastNotification(double time);
-
-	double GetNextNotification(void) const;
-	void SetNextNotification(double time);
 
 protected:
 	virtual void OnRegistrationCompleted(void);
@@ -324,8 +324,8 @@ private:
 	void RemoveExpiredComments(void);
 
 	/* Notifications */
+	Attribute<bool> m_EnableNotifications;
 	Attribute<double> m_LastNotification;
-	Attribute<double> m_NextNotification;
 
 	static map<String, set<Notification::WeakPtr> > m_NotificationsCache;
 	static bool m_NotificationsCacheValid;

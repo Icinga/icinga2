@@ -138,6 +138,12 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("DEL_ALL_SVC_COMMENTS", &ExternalCommandProcessor::DelAllSvcComments);
 	RegisterCommand("SEND_CUSTOM_HOST_NOTIFICATION", &ExternalCommandProcessor::SendCustomHostNotification);
 	RegisterCommand("SEND_CUSTOM_SVC_NOTIFICATION", &ExternalCommandProcessor::SendCustomSvcNotification);
+	RegisterCommand("DELAY_HOST_NOTIFICATION", &ExternalCommandProcessor::DelayHostNotification);
+	RegisterCommand("DELAY_SVC_NOTIFICATION", &ExternalCommandProcessor::DelaySvcNotification);
+	RegisterCommand("ENABLE_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostNotifications);
+	RegisterCommand("DISABLE_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostNotifications);
+	RegisterCommand("ENABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableSvcNotifications);
+	RegisterCommand("DISABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableSvcNotifications);
 }
 
 /**
@@ -970,4 +976,79 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double time, const vect
 
 	Logger::Write(LogInformation, "icinga", "Sending custom notification for service " + service->GetName());
 	service->RequestNotifications(NotificationCustom);
+}
+
+void ExternalCommandProcessor::DelayHostNotification(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Delaying notifications for host " + host->GetName());
+	Service::Ptr service = host->GetHostCheckService();
+	if (service) {
+		service->SetLastNotification(Convert::ToDouble(arguments[1]));
+	}
+}
+
+void ExternalCommandProcessor::DelaySvcNotification(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 3 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Delaying notifications for service " + service->GetName());
+	service->SetLastNotification(Convert::ToDouble(arguments[2]));
+}
+
+void ExternalCommandProcessor::EnableHostNotifications(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Enabling notifications for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetHostCheckService();
+
+	if (hc)
+		hc->SetEnableNotifications(true);
+}
+
+void ExternalCommandProcessor::DisableHostNotifications(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Disabling notifications for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetHostCheckService();
+
+	if (hc)
+		hc->SetEnableNotifications(false);
+}
+
+void ExternalCommandProcessor::EnableSvcNotifications(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Enabling notifications for service '" + arguments[1] + "'");
+	service->SetEnableNotifications(true);
+}
+
+void ExternalCommandProcessor::DisableSvcNotifications(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	Logger::Write(LogInformation, "icinga", "Disabling notifications for service '" + arguments[1] + "'");
+	service->SetEnableNotifications(false);
 }

@@ -92,6 +92,12 @@ private:
 	static void DelAllSvcComments(double time, const vector<String>& arguments);
 	static void SendCustomHostNotification(double time, const vector<String>& arguments);
 	static void SendCustomSvcNotification(double time, const vector<String>& arguments);
+	static void DelayHostNotification(double time, const vector<String>& arguments);
+	static void DelaySvcNotification(double time, const vector<String>& arguments);
+	static void EnableHostNotifications(double time, const vector<String>& arguments);
+	static void DisableHostNotifications(double time, const vector<String>& arguments);
+	static void EnableSvcNotifications(double time, const vector<String>& arguments);
+	static void DisableSvcNotifications(double time, const vector<String>& arguments);
 };
 
 }
