@@ -91,6 +91,7 @@ public:
 	Attribute<T>& operator=(const T& rhs)
 	{
 		Set(rhs);
+		return *this;
 	}
 
 	T Get(void) const
