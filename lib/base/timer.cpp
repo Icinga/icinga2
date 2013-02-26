@@ -270,6 +270,8 @@ void Timer::TimerThreadProc(void)
 		timer->m_Started = false;
 		m_Timers.erase(timer);
 
+		lock.unlock();
+
 		/* Asynchronously call the timer. */
 		Application::GetEQ().Post(boost::bind(&Timer::Call, timer));
 	}

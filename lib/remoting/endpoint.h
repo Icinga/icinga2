@@ -78,6 +78,13 @@ public:
 	static signals2::signal<void (const Endpoint::Ptr&, const String& topic)> OnSubscriptionUnregistered;
 
 private:
+	Attribute<bool> m_Local;
+	Attribute<Dictionary::Ptr> m_Subscriptions;
+	Attribute<String> m_Node;
+	Attribute<String> m_Service;
+
+	JsonRpcConnection::Ptr m_Client;
+
 	bool m_ReceivedWelcome; /**< Have we received a welcome message
 				     from this endpoint? */
 	bool m_SentWelcome; /**< Have we sent a welcome message to this

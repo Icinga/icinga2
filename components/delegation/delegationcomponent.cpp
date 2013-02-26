@@ -102,7 +102,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 		services.push_back(service);
 
 		ObjectLock olock(service);
-		String checker = service->GetChecker();
+		String checker = service->GetCurrentChecker();
 		if (checker.IsEmpty())
 			continue;
 
@@ -122,7 +122,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 	BOOST_FOREACH(const Service::Ptr& service, services) {
 		ObjectLock olock(service);
 
-		String checker = service->GetChecker();
+		String checker = service->GetCurrentChecker();
 
 		Endpoint::Ptr oldEndpoint;
 		if (Endpoint::Exists(checker))
@@ -160,7 +160,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		/* clear the service's current checker */
 		if (!checker.IsEmpty()) {
-			service->SetChecker("");
+			service->SetCurrentChecker("");
 
 			if (oldEndpoint)
 				histogram[oldEndpoint]--;
@@ -173,7 +173,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 				continue;
 
 			ObjectLock clock(candidate);
-			service->SetChecker(candidate->GetName());
+			service->SetCurrentChecker(candidate->GetName());
 			histogram[candidate]++;
 
 			/* reschedule the service; this avoids "check floods"
@@ -207,7 +207,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 			continue;
 		}
 
-		assert(!service->GetChecker().IsEmpty());
+		assert(!service->GetCurrentChecker().IsEmpty());
 	}
 
 	Endpoint::Ptr endpoint;

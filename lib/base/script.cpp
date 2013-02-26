@@ -30,7 +30,10 @@ REGISTER_TYPE(Script, NULL);
  */
 Script::Script(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
-{ }
+{
+	RegisterAttribute("language", Attribute_Config, &m_Language);
+	RegisterAttribute("code", Attribute_Config, &m_Code);
+}
 
 void Script::OnRegistrationCompleted(void)
 {
@@ -41,12 +44,12 @@ void Script::OnRegistrationCompleted(void)
 
 String Script::GetLanguage(void) const
 {
-	return Get("language");
+	return m_Language;
 }
 
 String Script::GetCode(void) const
 {
-	return Get("code");
+	return m_Code;
 }
 
 void Script::OnAttributeUpdate(const String& name, const Value& oldValue)

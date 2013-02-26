@@ -34,9 +34,7 @@ int Service::GetNextCommentID(void)
 
 Dictionary::Ptr Service::GetComments(void) const
 {
-	Service::ValidateCommentsCache();
-
-	return Get("comments");
+	return m_Comments;
 }
 
 String Service::AddComment(CommentType entryType, const String& author,
@@ -50,14 +48,16 @@ String Service::AddComment(CommentType entryType, const String& author,
 	comment->Set("expire_time", expireTime);
 	comment->Set("legacy_id", m_NextCommentID++);
 
-	Dictionary::Ptr comments = Get("comments");
+	Dictionary::Ptr comments = m_Comments;
 
 	if (!comments)
 		comments = boost::make_shared<Dictionary>();
 
 	String id = Utility::NewUUID();
 	comments->Set(id, comment);
-	Set("comments", comments);
+
+	m_Comments = comments;
+	Touch("comments");
 
 	return id;
 }
@@ -74,7 +74,7 @@ void Service::RemoveComment(const String& id)
 	if (!owner)
 		return;
 
-	Dictionary::Ptr comments = owner->Get("comments");
+	Dictionary::Ptr comments = owner->m_Comments;
 
 	if (comments) {
 		comments->Remove(id);
@@ -106,7 +106,7 @@ Dictionary::Ptr Service::GetCommentByID(const String& id)
 	if (!owner)
 		return Dictionary::Ptr();
 
-	Dictionary::Ptr comments = owner->Get("comments");
+	Dictionary::Ptr comments = owner->m_Comments;
 
 	if (comments) {
 		Dictionary::Ptr comment = comments->Get(id);
@@ -132,7 +132,7 @@ void Service::InvalidateCommentsCache(void)
 
 void Service::AddCommentsToCache(void)
 {
-	Dictionary::Ptr comments = Get("comments");
+	Dictionary::Ptr comments = m_Comments;
 
 	if (!comments)
 		return;
@@ -184,7 +184,7 @@ void Service::ValidateCommentsCache(void)
 
 void Service::RemoveExpiredComments(void)
 {
-	Dictionary::Ptr comments = Get("comments");
+	Dictionary::Ptr comments = m_Comments;
 
 	if (!comments)
 		return;

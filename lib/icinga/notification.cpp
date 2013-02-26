@@ -26,6 +26,12 @@ REGISTER_TYPE(Notification, NULL);
 Notification::Notification(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
+	RegisterAttribute("notification_command", Attribute_Config, &m_NotificationCommand);
+	RegisterAttribute("macros", Attribute_Config, &m_Macros);
+	RegisterAttribute("users", Attribute_Config, &m_Users);
+	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
+	RegisterAttribute("service", Attribute_Config, &m_Service);
+
 	Service::InvalidateNotificationsCache();
 }
 
@@ -51,30 +57,29 @@ Notification::Ptr Notification::GetByName(const String& name)
 
 Service::Ptr Notification::GetService(void) const
 {
-	Host::Ptr host = Host::GetByName(Get("host_name"));
-	String service = Get("service");
+	Host::Ptr host = Host::GetByName(m_HostName);
 
-	if (service.IsEmpty())
+	if (m_Service.IsEmpty())
 		return host->GetHostCheckService();
 	else
-		return host->GetServiceByShortName(service);
+		return host->GetServiceByShortName(m_Service);
 }
 
 Value Notification::GetNotificationCommand(void) const
 {
-	return Get("notification_command");
+	return m_NotificationCommand;
 }
 
 Dictionary::Ptr Notification::GetMacros(void) const
 {
-	return Get("macros");
+	return m_Macros;
 }
 
 set<User::Ptr> Notification::GetUsers(void) const
 {
 	set<User::Ptr> result;
 
-	Dictionary::Ptr users = Get("users");
+	Dictionary::Ptr users = m_Users;
 
 	if (users) {
 		String name;

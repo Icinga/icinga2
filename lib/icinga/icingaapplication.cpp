@@ -30,7 +30,15 @@ REGISTER_TYPE(IcingaApplication, NULL);
 
 IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
 	: Application(serializedUpdate)
-{ }
+{
+	RegisterAttribute("cert_path", Attribute_Config, &m_CertPath);
+	RegisterAttribute("ca_path", Attribute_Config, &m_CAPath);
+	RegisterAttribute("node", Attribute_Config, &m_Node);
+	RegisterAttribute("service", Attribute_Config, &m_Service);
+	RegisterAttribute("pid_path", Attribute_Config, &m_PidPath);
+	RegisterAttribute("state_path", Attribute_Config, &m_StatePath);
+	RegisterAttribute("macros", Attribute_Config, &m_Macros);
+}
 
 /**
  * The entry point for the Icinga application.
@@ -96,47 +104,43 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 
 String IcingaApplication::GetCertificateFile(void) const
 {
-	return Get("cert_path");
+	return m_CertPath;
 }
 
 String IcingaApplication::GetCAFile(void) const
 {
-	return Get("ca_path");
+	return m_CAPath;
 }
 
 String IcingaApplication::GetNode(void) const
 {
-	return Get("node");
+	return m_Node;
 }
 
 String IcingaApplication::GetService(void) const
 {
-	return Get("service");
+	return m_Service;
 }
 
 String IcingaApplication::GetPidPath(void) const
 {
-	Value pidPath = Get("pid_path");
-
-	if (pidPath.IsEmpty())
-		pidPath = Application::GetLocalStateDir() + "/run/icinga2.pid";
-
-	return pidPath;
+	if (m_PidPath.IsEmpty())
+		return Application::GetLocalStateDir() + "/run/icinga2.pid";
+	else
+		return m_PidPath;
 }
 
 String IcingaApplication::GetStatePath(void) const
 {
-	Value statePath = Get("state_path");
-
-	if (statePath.IsEmpty())
-		statePath = Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state";
-
-	return statePath;
+	if (m_PidPath.IsEmpty())
+		return Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state";
+	else
+		return m_PidPath;
 }
 
 Dictionary::Ptr IcingaApplication::GetMacros(void) const
 {
-	return Get("macros");
+	return m_Macros;
 }
 
 double IcingaApplication::GetStartTime(void) const

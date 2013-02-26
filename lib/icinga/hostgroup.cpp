@@ -29,26 +29,28 @@ REGISTER_TYPE(HostGroup, NULL);
 
 HostGroup::HostGroup(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
-{ }
+{
+	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
+	RegisterAttribute("notes_url", Attribute_Config, &m_NotesUrl);
+	RegisterAttribute("action_url", Attribute_Config, &m_ActionUrl);
+}
 
 String HostGroup::GetDisplayName(void) const
 {
-	String value = Get("display_name");
-
-	if (!value.IsEmpty())
-		return value;
+	if (!m_DisplayName.IsEmpty())
+		return m_DisplayName;
 	else
 		return GetName();
 }
 
 String HostGroup::GetNotesUrl(void) const
 {
-	return Get("notes_url");
+	return m_NotesUrl;
 }
 
 String HostGroup::GetActionUrl(void) const
 {
-	return Get("action_url");
+	return m_ActionUrl;
 }
 
 /**

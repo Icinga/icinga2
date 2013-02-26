@@ -34,9 +34,7 @@ int Service::GetNextDowntimeID(void)
 
 Dictionary::Ptr Service::GetDowntimes(void) const
 {
-	Service::ValidateDowntimesCache();
-
-	return Get("downtimes");
+	return m_Downtimes;
 }
 
 String Service::AddDowntime(const String& author, const String& comment,
@@ -65,14 +63,16 @@ String Service::AddDowntime(const String& author, const String& comment,
 		otherOwner->Touch("downtimes");
 	}
 
-	Dictionary::Ptr downtimes = Get("downtimes");
+	Dictionary::Ptr downtimes = m_Downtimes;
 
 	if (!downtimes)
 		downtimes = boost::make_shared<Dictionary>();
 
 	String id = Utility::NewUUID();
 	downtimes->Set(id, downtime);
-	Set("downtimes", downtimes);
+
+	m_Downtimes = downtimes;
+	Touch("downtimes");
 
 	return id;
 }
@@ -84,7 +84,7 @@ void Service::RemoveDowntime(const String& id)
 	if (!owner)
 		return;
 
-	Dictionary::Ptr downtimes = owner->Get("downtimes");
+	Dictionary::Ptr downtimes = owner->m_Downtimes;
 
 	if (!downtimes)
 		return;
@@ -95,7 +95,7 @@ void Service::RemoveDowntime(const String& id)
 
 void Service::TriggerDowntimes(void)
 {
-	Dictionary::Ptr downtimes = Get("downtimes");
+	Dictionary::Ptr downtimes = m_Downtimes;
 
 	if (!downtimes)
 		return;
@@ -155,7 +155,7 @@ Dictionary::Ptr Service::GetDowntimeByID(const String& id)
 	if (!owner)
 		return Dictionary::Ptr();
 
-	Dictionary::Ptr downtimes = owner->Get("downtimes");
+	Dictionary::Ptr downtimes = owner->m_Downtimes;
 
 	if (downtimes) {
 		Dictionary::Ptr downtime = downtimes->Get(id);
@@ -198,7 +198,7 @@ void Service::InvalidateDowntimesCache(void)
 
 void Service::AddDowntimesToCache(void)
 {
-	Dictionary::Ptr downtimes = Get("downtimes");
+	Dictionary::Ptr downtimes = m_Downtimes;
 
 	if (!downtimes)
 		return;
@@ -249,7 +249,7 @@ void Service::ValidateDowntimesCache(void)
 
 void Service::RemoveExpiredDowntimes(void)
 {
-	Dictionary::Ptr downtimes = Get("downtimes");
+	Dictionary::Ptr downtimes = m_Downtimes;
 
 	if (!downtimes)
 		return;

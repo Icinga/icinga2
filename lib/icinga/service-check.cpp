@@ -30,96 +30,64 @@ signals2::signal<void (const Service::Ptr&, const Value&)> Service::OnNextCheckC
 
 Value Service::GetCheckCommand(void) const
 {
-	return Get("check_command");
+	return m_CheckCommand;
 }
 
 long Service::GetMaxCheckAttempts(void) const
 {
-	Value value = Get("max_check_attempts");
-
-	if (value.IsEmpty())
+	if (m_MaxCheckAttempts.IsEmpty())
 		return DefaultMaxCheckAttempts;
 
-	return value;
+	return m_MaxCheckAttempts;
 }
 
 double Service::GetCheckInterval(void) const
 {
-	Value value = Get("check_interval");
-
-	if (value.IsEmpty())
+	if (m_CheckInterval.IsEmpty())
 		return DefaultCheckInterval;
 
-	return value;
+	return m_CheckInterval;
 }
 
 double Service::GetRetryInterval(void) const
 {
-	Value value = Get("retry_interval");
-
-	if (value.IsEmpty())
+	if (m_RetryInterval.IsEmpty())
 		return GetCheckInterval() / CheckIntervalDivisor;
 
-	return value;
+	return m_RetryInterval;
 }
 
 Dictionary::Ptr Service::GetCheckers(void) const
 {
-	return Get("checkers");
+	return m_Checkers;
 }
 
 void Service::SetSchedulingOffset(long offset)
 {
-	Set("scheduling_offset", offset);
+	m_SchedulingOffset = offset;
 }
 
 long Service::GetSchedulingOffset(void)
 {
-	Value value = Get("scheduling_offset");
-
-	if (value.IsEmpty()) {
-		value = rand();
-		SetSchedulingOffset(value);
-	}
-
-	return value;
+	return m_SchedulingOffset;
 }
-
-void Service::SetFirstCheck(bool first)
-{
-	Set("first_check", first ? 1 : 0);
-}
-
-bool Service::GetFirstCheck(void) const
-{
-	Value value = Get("first_check");
-
-	if (value.IsEmpty())
-		return true;
-
-	return static_cast<long>(value);
-}
-
 
 void Service::SetNextCheck(double nextCheck)
 {
-	Set("next_check", nextCheck);
+	m_NextCheck = nextCheck;
+	Touch("next_check");
 }
 
 double Service::GetNextCheck(void)
 {
-	Value value = Get("next_check");
-
-	if (value.IsEmpty()) {
+	if (m_NextCheck.IsEmpty()) {
 		UpdateNextCheck();
 
-		value = Get("next_check");
-
-		if (value.IsEmpty())
+		if (m_NextCheck.IsEmpty())
 			BOOST_THROW_EXCEPTION(runtime_error("Failed to schedule next check."));
 	}
 
-	return value;
+	return m_NextCheck;
 }
 
 void Service::UpdateNextCheck(void)
@@ -140,146 +108,140 @@ void Service::UpdateNextCheck(void)
 	SetNextCheck(now - adj + interval);
 }
 
-void Service::SetChecker(const String& checker)
+void Service::SetCurrentChecker(const String& checker)
 {
-	Set("checker", checker);
+	m_CurrentChecker = checker;
+	Touch("current_checker");
 }
 
-String Service::GetChecker(void) const
+String Service::GetCurrentChecker(void) const
 {
-	return Get("checker");
+	return m_CurrentChecker;
 }
 
 void Service::SetCurrentCheckAttempt(long attempt)
 {
-	Set("check_attempt", attempt);
+	m_CheckAttempt = attempt;
+	Touch("check_attempt");
 }
 
 long Service::GetCurrentCheckAttempt(void) const
 {
-	Value value = Get("check_attempt");
-
-	if (value.IsEmpty())
+	if (m_CheckAttempt.IsEmpty())
 		return 1;
 
-	return value;
+	return m_CheckAttempt;
 }
 
 void Service::SetState(ServiceState state)
 {
-	Set("state", static_cast<long>(state));
+	m_State = static_cast<long>(state);
+	Touch("state");
 }
 
 ServiceState Service::GetState(void) const
 {
-	Value value = Get("state");
-
-	if (value.IsEmpty())
+	if (m_State.IsEmpty())
 		return StateUnknown;
 
-	int ivalue = static_cast<int>(value);
+	int ivalue = static_cast<int>(m_State);
 	return static_cast<ServiceState>(ivalue);
 }
 
 void Service::SetStateType(ServiceStateType type)
 {
-	Set("state_type", static_cast<long>(type));
+	m_StateType = static_cast<long>(type);
+	Touch("state_type");
 }
 
 ServiceStateType Service::GetStateType(void) const
 {
-	Value value = Get("state_type");
-
-	if (value.IsEmpty())
+	if (m_StateType.IsEmpty())
 		return StateTypeSoft;
 
-	int ivalue = static_cast<int>(value);
+	int ivalue = static_cast<int>(m_StateType);
 	return static_cast<ServiceStateType>(ivalue);
 }
 
 void Service::SetLastCheckResult(const Dictionary::Ptr& result)
 {
-	Set("last_result", result);
+	m_LastResult = result;
+	Touch("last_result");
 }
 
 Dictionary::Ptr Service::GetLastCheckResult(void) const
 {
-	return Get("last_result");
+	return m_LastResult;
 }
 
 void Service::SetLastStateChange(double ts)
 {
-	Set("last_state_change", static_cast<long>(ts));
+	m_LastStateChange = ts;
+	Touch("last_state_change");
 }
 
 double Service::GetLastStateChange(void) const
 {
-	Value value = Get("last_state_change");
-
-	if (value.IsEmpty())
+	if (m_LastStateChange.IsEmpty())
 		return IcingaApplication::GetInstance()->GetStartTime();
 
-	return value;
+	return m_LastStateChange;
 }
 
 void Service::SetLastHardStateChange(double ts)
 {
-	Set("last_hard_state_change", ts);
+	m_LastHardStateChange = ts;
+	Touch("last_hard_state_change");
 }
 
 double Service::GetLastHardStateChange(void) const
 {
-	Value value = Get("last_hard_state_change");
+	if (m_LastHardStateChange.IsEmpty())
+		return IcingaApplication::GetInstance()->GetStartTime();
 
-	if (value.IsEmpty())
-		value = IcingaApplication::GetInstance()->GetStartTime();
-
-	return value;
+	return m_LastHardStateChange;
 }
 
 bool Service::GetEnableActiveChecks(void) const
 {
-	Value value = Get("enable_active_checks");
-
-	if (value.IsEmpty())
+	if (m_EnableActiveChecks.IsEmpty())
 		return true;
 
-	return static_cast<bool>(value);
+	return static_cast<bool>(m_EnableActiveChecks);
 }
 
 void Service::SetEnableActiveChecks(bool enabled)
 {
-	Set("enable_active_checks", enabled ? 1 : 0);
+	m_EnableActiveChecks = enabled ? 1 : 0;
+	Touch("enable_active_checks");
 }
 
 bool Service::GetEnablePassiveChecks(void) const
 {
-	Value value = Get("enable_passive_checks");
-
-	if (value.IsEmpty())
+	if (m_EnablePassiveChecks.IsEmpty())
 		return true;
 
-	return static_cast<bool>(value);
+	return static_cast<bool>(m_EnablePassiveChecks);
 }
 
 void Service::SetEnablePassiveChecks(bool enabled)
 {
-	Set("enable_passive_checks", enabled ? 1 : 0);
+	m_EnablePassiveChecks = enabled ? 1 : 0;
+	Touch("enable_passive_checks");
 }
 
 bool Service::GetForceNextCheck(void) const
 {
-	Value value = Get("force_next_check");
-
-	if (value.IsEmpty())
+	if (m_ForceNextCheck.IsEmpty())
 		return false;
 
-	return static_cast<bool>(value);
+	return static_cast<bool>(m_ForceNextCheck);
 }
 
 void Service::SetForceNextCheck(bool forced)
 {
-	Set("force_next_check", forced ? 1 : 0);
+	m_ForceNextCheck = forced ? 1 : 0;
+	Touch("force_next_check");
 }
 
 void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
@@ -429,7 +391,7 @@ void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (v
 	ObjectLock slock(self);
 
 	/* don't run another check if there is one pending */
-	if (!self->Get("current_task").IsEmpty()) {
+	if (self->m_CurrentTask) {
 		slock.Unlock();
 
 		/* we need to call the callback anyway */
@@ -481,7 +443,7 @@ void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (v
 	{
 		ObjectLock olock(self);
 		task = self->MakeMethodTask("check", arguments);
-		self->Set("current_task", task);
+		self->m_CurrentTask = task;
 	}
 
 	task->Start(boost::bind(&Service::CheckCompletedHandler, self, checkInfo, _1, callback));
@@ -537,11 +499,11 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 		if (!result->Contains("active"))
 			result->Set("active", 1);
 
-		if (!result->Contains("checker")) {
+		if (!result->Contains("current_checker")) {
 			EndpointManager::Ptr em = EndpointManager::GetInstance();
 			ObjectLock olock(em);
 
-			result->Set("checker", em->GetIdentity());
+			result->Set("current_checker", em->GetIdentity());
 		}
 	}
 
@@ -550,7 +512,7 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 		if (result)
 			ProcessCheckResult(result);
 
-		Set("current_task", Empty);
+		m_CurrentTask.reset();
 
 		/* figure out when the next check is for this service; the call to
 		 * ApplyCheckResult() should've already done this but lets do it again

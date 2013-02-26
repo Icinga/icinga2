@@ -121,7 +121,6 @@ void CheckerComponent::CheckThreadProc(void)
 		}
 
 		service->SetForceNextCheck(false);
-		service->SetFirstCheck(false);
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
@@ -177,7 +176,7 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	ObjectLock olock(service); /* also required for the key extractor */
-	String checker = service->GetChecker();
+	String checker = service->GetCurrentChecker();
 
 	if (checker == EndpointManager::GetInstance()->GetIdentity() || checker == m_Endpoint->GetName()) {
 		if (m_PendingServices.find(service) != m_PendingServices.end())

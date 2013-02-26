@@ -54,6 +54,14 @@ public:
 	static Dictionary::Ptr CalculateDynamicMacros(const IcingaApplication::Ptr& self);
 
 private:
+	Attribute<String> m_CertPath;
+	Attribute<String> m_CAPath;
+	Attribute<String> m_Node;
+	Attribute<String> m_Service;
+	Attribute<String> m_PidPath;
+	Attribute<String> m_StatePath;
+	Attribute<Dictionary::Ptr> m_Macros;
+
 	shared_ptr<SSL_CTX> m_SSLContext;
 
 	double m_StartTime;

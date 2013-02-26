@@ -21,14 +21,7 @@
 
 using namespace icinga;
 
-static AttributeDescription endpointAttributes[] = {
-	{ "node", Attribute_Replicated },
-	{ "service", Attribute_Replicated },
-	{ "subscriptions", Attribute_Replicated },
-	{ "client", Attribute_Transient }
-};
-
-REGISTER_TYPE(Endpoint, endpointAttributes);
+REGISTER_TYPE(Endpoint, NULL);
 
 signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
 signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
@@ -42,7 +35,13 @@ signals2::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnS
  */
 Endpoint::Endpoint(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
-{ }
+{
+	RegisterAttribute("local", Attribute_Config, &m_Local);
+
+	RegisterAttribute("node", Attribute_Replicated, &m_Node);
+	RegisterAttribute("service", Attribute_Replicated, &m_Service);
+	RegisterAttribute("subscriptions", Attribute_Replicated, &m_Subscriptions);
+}
 
 /**
  * Checks whether an endpoint with the specified name exists.
@@ -98,9 +97,7 @@ Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool replicated, bool l
  */
 bool Endpoint::IsLocalEndpoint(void) const
 {
-	Value value = Get("local");
-
-	return (!value.IsEmpty() && value);
+	return m_Local;
 }
 
 /**
@@ -121,12 +118,12 @@ bool Endpoint::IsConnected(void) const
 
 JsonRpcConnection::Ptr Endpoint::GetClient(void) const
 {
-	return Get("client");
+	return m_Client;
 }
 
 void Endpoint::SetClient(const JsonRpcConnection::Ptr& client)
 {
-	Set("client", client);
+	m_Client = client;
 	client->OnNewMessage.connect(boost::bind(&Endpoint::NewMessageHandler, this, _2));
 	client->OnClosed.connect(boost::bind(&Endpoint::ClientClosedHandler, this));
 
@@ -186,17 +183,19 @@ bool Endpoint::HasSubscription(const String& topic) const
  */
 void Endpoint::ClearSubscriptions(void)
 {
-	Set("subscriptions", Empty);
+	m_Subscriptions = Empty;
+	Touch("subscriptions");
 }
 
 Dictionary::Ptr Endpoint::GetSubscriptions(void) const
 {
-	return Get("subscriptions");
+	return m_Subscriptions;
 }
 
 void Endpoint::SetSubscriptions(const Dictionary::Ptr& subscriptions)
 {
-	Set("subscriptions", subscriptions);
+	m_Subscriptions = subscriptions;
+	Touch("subscriptions");
 }
 
 void Endpoint::RegisterTopicHandler(const String& topic, const function<Endpoint::Callback>& callback)
@@ -336,7 +335,7 @@ void Endpoint::ClientClosedHandler(void)
 	// timer for that, once we have a TTL property for the topics)
 	ClearSubscriptions();
 
-	Set("client", Empty);
+	m_Client.reset();
 
 	OnDisconnected(GetSelf());
 }
@@ -348,7 +347,7 @@ void Endpoint::ClientClosedHandler(void)
  */
 String Endpoint::GetNode(void) const
 {
-	return Get("node");
+	return m_Node;
 }
 
 /**
@@ -358,5 +357,5 @@ String Endpoint::GetNode(void) const
  */
 String Endpoint::GetService(void) const
 {
-	return Get("service");
+	return m_Service;
 }

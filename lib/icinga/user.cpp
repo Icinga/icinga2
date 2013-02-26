@@ -25,7 +25,9 @@ REGISTER_TYPE(User, NULL);
 
 User::User(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
-{ }
+{
+	RegisterAttribute("macros", Attribute_Config, &m_Macros);
+}
 
 bool User::Exists(const String& name)
 {
@@ -44,7 +46,7 @@ User::Ptr User::GetByName(const String& name)
 
 Dictionary::Ptr User::GetMacros(void) const
 {
-	return Get("macros");
+	return m_Macros;
 }
 
 Dictionary::Ptr User::CalculateDynamicMacros(const User::Ptr& self)

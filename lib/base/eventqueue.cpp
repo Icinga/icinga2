@@ -34,6 +34,11 @@ EventQueue::EventQueue(void)
 
 	for (int i = 0; i < thread_count; i++)
 		m_Threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
+
+	m_ReportTimer = boost::make_shared<Timer>();
+	m_ReportTimer->OnTimerExpired.connect(boost::bind(&EventQueue::ReportTimerHandler, this));
+	m_ReportTimer->SetInterval(5);
+	m_ReportTimer->Start();
 }
 
 /**
@@ -41,6 +46,8 @@ EventQueue::EventQueue(void)
  */
 EventQueue::~EventQueue(void)
 {
+	m_ReportTimer->Stop();
+
 	Stop();
 	Join();
 }
@@ -114,11 +121,17 @@ void EventQueue::Post(const EventQueue::Callback& callback)
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Events.push_back(callback);
 	m_CV.notify_one();
+}
 
-	int pending = m_Events.size();
-	double now = Utility::GetTime();
-	if (pending > 1000 && now - m_LastReport > 5) {
-		Logger::Write(LogCritical, "base", "More than 1000 pending events: " + Convert::ToString(pending));
-		m_LastReport = now;
+void EventQueue::ReportTimerHandler(void)
+{
+	int pending;
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		pending = m_Events.size();
 	}
+
+	if (pending > 1000)
+		Logger::Write(LogCritical, "base", "More than 1000 pending events: " + Convert::ToString(pending));
 }

@@ -41,6 +41,9 @@ public:
 
 	Dictionary::Ptr GetMacros(void) const;
 	static Dictionary::Ptr CalculateDynamicMacros(const User::Ptr& self);
+
+private:
+	Attribute<Dictionary::Ptr> m_Macros;
 };
 
 }

@@ -104,6 +104,7 @@ public:
 	Dictionary::Ptr GetHostDependencies(void) const;
 	Dictionary::Ptr GetServiceDependencies(void) const;
 	Dictionary::Ptr GetGroups(void) const;
+	String GetHostName(void) const;
 	String GetShortName(void) const;
 
 	static Dictionary::Ptr CalculateDynamicMacros(const Service::Ptr& self);
@@ -126,15 +127,12 @@ public:
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
 
-	void SetFirstCheck(bool first);
-	bool GetFirstCheck(void) const;
-
 	void SetNextCheck(double nextCheck);
 	double GetNextCheck(void);
 	void UpdateNextCheck(void);
 
-	void SetChecker(const String& checker);
-	String GetChecker(void) const;
+	void SetCurrentChecker(const String& checker);
+	String GetCurrentChecker(void) const;
 
 	bool IsAllowedChecker(const String& checker) const;
 
@@ -245,7 +243,7 @@ public:
 
 	set<Notification::Ptr> GetNotifications(void) const;
 
-	void UpdateSlaveNotifications(void);
+	static void UpdateSlaveNotifications(const Service::Ptr& self);
 
 	double GetLastNotification(void) const;
 	void SetLastNotification(double time);
@@ -258,10 +256,46 @@ protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
+	Host::Ptr m_Host;
+	Dictionary::Ptr m_SlaveNotifications;
+
+	Attribute<String> m_DisplayName;
+	Attribute<Dictionary::Ptr> m_Macros;
+	Attribute<Dictionary::Ptr> m_HostDependencies;
+	Attribute<Dictionary::Ptr> m_ServiceDependencies;
+	Attribute<Dictionary::Ptr> m_ServiceGroups;
+	Attribute<String> m_ShortName;
+	Attribute<long> m_Acknowledgement;
+	Attribute<double> m_AcknowledgementExpiry;
+	Attribute<String> m_HostName;
+
+	/* Checks */
+	Attribute<Value> m_CheckCommand;
+	Attribute<long> m_MaxCheckAttempts;
+	Attribute<double> m_CheckInterval;
+	Attribute<double> m_RetryInterval;
+	Attribute<double> m_NextCheck;
+	Attribute<Dictionary::Ptr> m_Checkers;
+	Attribute<String> m_CurrentChecker;
+	Attribute<long> m_CheckAttempt;
+	Attribute<long> m_State;
+	Attribute<long> m_StateType;
+	Attribute<Dictionary::Ptr> m_LastResult;
+	Attribute<double> m_LastStateChange;
+	Attribute<double> m_LastHardStateChange;
+	Attribute<bool> m_EnableActiveChecks;
+	Attribute<bool> m_EnablePassiveChecks;
+	Attribute<bool> m_ForceNextCheck;
+
+	ScriptTask::Ptr m_CurrentTask;
+	long m_SchedulingOffset;
+
 	void CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 	    const ScriptTask::Ptr& task, const function<void (void)>& callback);
 
 	/* Downtimes */
+	Attribute<Dictionary::Ptr> m_Downtimes;
+
 	static int m_NextDowntimeID;
 
 	static map<int, String> m_LegacyDowntimesCache;
@@ -275,6 +309,8 @@ private:
 	void RemoveExpiredDowntimes(void);
 
 	/* Comments */
+	Attribute<Dictionary::Ptr> m_Comments;
+
 	static int m_NextCommentID;
 
 	static map<int, String> m_LegacyCommentsCache;
@@ -288,6 +324,9 @@ private:
 	void RemoveExpiredComments(void);
 
 	/* Notifications */
+	Attribute<double> m_LastNotification;
+	Attribute<double> m_NextNotification;
+
 	static map<String, set<Notification::WeakPtr> > m_NotificationsCache;
 	static bool m_NotificationsCacheValid;
 };

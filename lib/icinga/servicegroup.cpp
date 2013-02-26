@@ -29,26 +29,28 @@ REGISTER_TYPE(ServiceGroup, NULL);
 
 ServiceGroup::ServiceGroup(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
-{ }
+{
+	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
+	RegisterAttribute("notes_url", Attribute_Config, &m_NotesUrl);
+	RegisterAttribute("action_url", Attribute_Config, &m_ActionUrl);
+}
 
 String ServiceGroup::GetDisplayName(void) const
 {
-	String value = Get("display_name");
-
-	if (!value.IsEmpty())
-		return value;
+	if (!m_DisplayName.Get().IsEmpty())
+		return m_DisplayName;
 	else
 		return GetName();
 }
 
 String ServiceGroup::GetNotesUrl(void) const
 {
-	return Get("notes_url");
+	return m_NotesUrl;
 }
 
 String ServiceGroup::GetActionUrl(void) const
 {
-	return Get("action_url");
+	return m_ActionUrl;
 }
 
 /**

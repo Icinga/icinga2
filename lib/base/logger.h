@@ -98,6 +98,10 @@ public:
 	LogSeverity GetMinSeverity(void) const;
 
 private:
+	Attribute<String> m_Type;
+	Attribute<String> m_Path;
+	Attribute<String> m_Severity;
+
 	LogSeverity m_MinSeverity;
 	ILogger::Ptr m_Impl;
 

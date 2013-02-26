@@ -21,33 +21,51 @@
 
 using namespace icinga;
 
-static AttributeDescription serviceAttributes[] = {
-	{ "scheduling_offset", Attribute_Transient },
-	{ "first_check", Attribute_Transient },
-	{ "next_check", Attribute_Replicated },
-	{ "checker", Attribute_Replicated },
-	{ "check_attempt", Attribute_Replicated },
-	{ "state", Attribute_Replicated },
-	{ "state_type", Attribute_Replicated },
-	{ "last_result", Attribute_Replicated },
-	{ "last_state_change", Attribute_Replicated },
-	{ "last_hard_state_change", Attribute_Replicated },
-	{ "enable_active_checks", Attribute_Replicated },
-	{ "enable_passive_checks", Attribute_Replicated },
-	{ "force_next_check", Attribute_Replicated },
-	{ "acknowledgement", Attribute_Replicated },
-	{ "acknowledgement_expiry", Attribute_Replicated },
-	{ "downtimes", Attribute_Replicated },
-	{ "comments", Attribute_Replicated },
-	{ "last_notification", Attribute_Replicated },
-	{ "next_notification", Attribute_Replicated }
-};
-
-REGISTER_TYPE(Service, serviceAttributes);
+REGISTER_TYPE(Service, NULL);
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
-{ }
+{
+
+	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
+	RegisterAttribute("macros", Attribute_Config, &m_Macros);
+	RegisterAttribute("hostdependencies", Attribute_Config, &m_HostDependencies);
+	RegisterAttribute("servicedependencies", Attribute_Config, &m_ServiceDependencies);
+	RegisterAttribute("servicegroups", Attribute_Config, &m_ServiceGroups);
+
+	RegisterAttribute("check_command", Attribute_Config, &m_CheckCommand);
+	RegisterAttribute("max_check_attempts", Attribute_Config, &m_MaxCheckAttempts);
+	RegisterAttribute("check_interval", Attribute_Config, &m_CheckInterval);
+	RegisterAttribute("retry_interval", Attribute_Config, &m_RetryInterval);
+	RegisterAttribute("checkers", Attribute_Config, &m_Checkers);
+
+	RegisterAttribute("next_check", Attribute_Replicated, &m_NextCheck);
+	RegisterAttribute("current_checker", Attribute_Replicated, &m_CurrentChecker);
+	RegisterAttribute("check_attempt", Attribute_Replicated, &m_CheckAttempt);
+	RegisterAttribute("state", Attribute_Replicated, &m_State);
+	RegisterAttribute("state_type", Attribute_Replicated, &m_StateType);
+	RegisterAttribute("last_result", Attribute_Replicated, &m_LastResult);
+	RegisterAttribute("last_state_change", Attribute_Replicated, &m_LastStateChange);
+	RegisterAttribute("last_hard_state_change", Attribute_Replicated, &m_LastHardStateChange);
+	RegisterAttribute("enable_active_checks", Attribute_Replicated, &m_EnableActiveChecks);
+	RegisterAttribute("enable_passive_checks", Attribute_Replicated, &m_EnablePassiveChecks);
+	RegisterAttribute("force_next_check", Attribute_Replicated, &m_ForceNextCheck);
+
+	RegisterAttribute("short_name", Attribute_Config, &m_ShortName);
+	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
+
+	RegisterAttribute("acknowledgement", Attribute_Replicated, &m_Acknowledgement);
+	RegisterAttribute("acknowledgement_expiry", Attribute_Replicated, &m_AcknowledgementExpiry);
+
+	RegisterAttribute("comments", Attribute_Replicated, &m_Comments);
+
+	RegisterAttribute("downtimes", Attribute_Replicated, &m_Downtimes);
+
+	RegisterAttribute("last_notification", Attribute_Replicated, &m_LastNotification);
+	RegisterAttribute("next_notification", Attribute_Replicated, &m_NextNotification);
+
+	SetSchedulingOffset(rand());
+}
 
 void Service::OnRegistrationCompleted(void)
 {
@@ -60,7 +78,7 @@ void Service::OnRegistrationCompleted(void)
 
 	{
 		ObjectLock olock(this);
-		UpdateSlaveNotifications();
+		m_Host = Host::GetByName(GetHostName());
 	}
 }
 
@@ -74,12 +92,10 @@ Service::~Service(void)
 
 String Service::GetDisplayName(void) const
 {
-	String value = Get("display_name");
-
-	if (value.IsEmpty())
+	if (m_DisplayName.IsEmpty())
 		return GetShortName();
-
-	return value;
+	else
+		return m_DisplayName;
 }
 
 /**
@@ -119,42 +135,40 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 
 Host::Ptr Service::GetHost(void) const
 {
-	String hostname = Get("host_name");
-
-	if (hostname.IsEmpty())
-		BOOST_THROW_EXCEPTION(runtime_error("Service object is missing the 'host_name' property."));
-
-	return Host::GetByName(hostname);
+	return m_Host;
 }
 
 Dictionary::Ptr Service::GetMacros(void) const
 {
-	return Get("macros");
+	return m_Macros;
 }
 
 Dictionary::Ptr Service::GetHostDependencies(void) const
 {
-	return Get("hostdependencies");
+	return m_HostDependencies;
 }
 
 Dictionary::Ptr Service::GetServiceDependencies(void) const
 {
-	return Get("servicedependencies");
+	return m_ServiceDependencies;
 }
 
 Dictionary::Ptr Service::GetGroups(void) const
 {
-	return Get("servicegroups");
+	return m_ServiceGroups;
+}
+
+String Service::GetHostName(void) const
+{
+	return m_HostName;
 }
 
 String Service::GetShortName(void) const
 {
-	Value value = Get("short_name");
-
-	if (value.IsEmpty())
+	if (m_ShortName.IsEmpty())
 		return GetName();
-
-	return value;
+	else
+		return m_ShortName;
 }
 
 bool Service::IsReachable(const Service::Ptr& self)
@@ -212,12 +226,10 @@ bool Service::IsReachable(const Service::Ptr& self)
 
 AcknowledgementType Service::GetAcknowledgement(void)
 {
-	Value value = Get("acknowledgement");
-
-	if (value.IsEmpty())
+	if (m_Acknowledgement.IsEmpty())
 		return AcknowledgementNone;
 
-	int ivalue = static_cast<int>(value);
+	int ivalue = static_cast<int>(m_Acknowledgement);
 	AcknowledgementType avalue = static_cast<AcknowledgementType>(ivalue);
 
 	if (avalue != AcknowledgementNone) {
@@ -235,7 +247,8 @@ AcknowledgementType Service::GetAcknowledgement(void)
 
 void Service::SetAcknowledgement(AcknowledgementType acknowledgement)
 {
-	Set("acknowledgement", static_cast<long>(acknowledgement));
+	m_Acknowledgement = acknowledgement;
+	Touch("acknowledgement");
 }
 
 bool Service::IsAcknowledged(void)
@@ -245,17 +258,16 @@ bool Service::IsAcknowledged(void)
 
 double Service::GetAcknowledgementExpiry(void) const
 {
-	Value value = Get("acknowledgement_expiry");
-
-	if (value.IsEmpty())
+	if (m_AcknowledgementExpiry.IsEmpty())
 		return 0;
 
-	return static_cast<double>(value);
+	return static_cast<double>(m_AcknowledgementExpiry);
 }
 
 void Service::SetAcknowledgementExpiry(double timestamp)
 {
-	Set("acknowledgement_expiry", timestamp);
+	m_AcknowledgementExpiry = timestamp;
+	Touch("acknowledgement_expiry");
 }
 
 void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
@@ -274,7 +286,7 @@ void Service::ClearAcknowledgement(void)
 
 void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 {
-	if (name == "checker")
+	if (name == "current_checker")
 		OnCheckerChanged(GetSelf(), oldValue);
 	else if (name == "next_check")
 		OnNextCheckChanged(GetSelf(), oldValue);
@@ -283,16 +295,16 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 	else if (name == "host_name" || name == "short_name") {
 		Host::InvalidateServicesCache();
 
-		{
-			ObjectLock olock(this);
-			UpdateSlaveNotifications();
-		}
+		UpdateSlaveNotifications(GetSelf());
+
+		if (name == "host_name")
+			m_Host = Host::GetByName(GetHostName());
 	} else if (name == "downtimes")
 		Service::InvalidateDowntimesCache();
 	else if (name == "comments")
 		Service::InvalidateCommentsCache();
 	else if (name == "notifications")
-		UpdateSlaveNotifications();
+		UpdateSlaveNotifications(GetSelf());
 	else if (name == "check_interval") {
 		ObjectLock(this);
 		ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());

@@ -47,6 +47,10 @@ public:
 	static void InvalidateMembersCache(void);
 
 private:
+	Attribute<String> m_DisplayName;
+	Attribute<String> m_NotesUrl;
+	Attribute<String> m_ActionUrl;
+
 	static boost::mutex m_Mutex;
 	static map<String, vector<weak_ptr<Service> > > m_MembersCache;
 	static bool m_MembersCacheValid;

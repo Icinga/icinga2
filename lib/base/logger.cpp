@@ -31,10 +31,14 @@ REGISTER_TYPE(Logger, NULL);
 Logger::Logger(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
+	RegisterAttribute("type", Attribute_Config, &m_Type);
+	RegisterAttribute("path", Attribute_Config, &m_Path);
+	RegisterAttribute("severity", Attribute_Config, &m_Severity);
+
 	if (!IsLocal())
 		BOOST_THROW_EXCEPTION(runtime_error("Logger objects must be local."));
 
-	String type = Get("type");
+	String type = m_Type;
 	if (type.IsEmpty())
 		BOOST_THROW_EXCEPTION(runtime_error("Logger objects must have a 'type' property."));
 
@@ -47,7 +51,7 @@ Logger::Logger(const Dictionary::Ptr& properties)
 		BOOST_THROW_EXCEPTION(invalid_argument("Syslog is not supported on Windows."));
 #endif /* _WIN32 */
 	} else if (type == "file") {
-		String path = Get("path");
+		String path = m_Path;
 		if (path.IsEmpty())
 			BOOST_THROW_EXCEPTION(invalid_argument("'log' object of type 'file' must have a 'path' property"));
 
@@ -91,7 +95,7 @@ void Logger::Write(LogSeverity severity, const String& facility,
  */
 LogSeverity Logger::GetMinSeverity(void) const
 {
-	String severity = Get("severity");
+	String severity = m_Severity;
 	if (severity.IsEmpty())
 		return LogInformation;
 	else

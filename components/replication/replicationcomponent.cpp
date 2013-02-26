@@ -68,7 +68,7 @@ void ReplicationComponent::CheckResultRequestHandler(const RequestMessage& reque
 	if (!cr)
 		return;
 
-	if (cr->Contains("checker") && cr->Get("checker") == EndpointManager::GetInstance()->GetIdentity())
+	if (cr->Contains("current_checker") && cr->Get("current_checker") == EndpointManager::GetInstance()->GetIdentity())
 		return;
 
 	Service::UpdateStatistics(cr);

@@ -35,12 +35,12 @@ signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	: m_EventSafe(false), m_ConfigTx(0)
 {
-	RegisterAttribute("__name", Attribute_Config);
-	RegisterAttribute("__type", Attribute_Config);
-	RegisterAttribute("__local", Attribute_Config);
-	RegisterAttribute("__abstract", Attribute_Config);
-	RegisterAttribute("__source", Attribute_Local);
-	RegisterAttribute("methods", Attribute_Config);
+	RegisterAttribute("__name", Attribute_Config, &m_Name);
+	RegisterAttribute("__type", Attribute_Config, &m_Type);
+	RegisterAttribute("__local", Attribute_Config, &m_Local);
+	RegisterAttribute("__abstract", Attribute_Config, &m_Abstract);
+	RegisterAttribute("__source", Attribute_Local, &m_Source);
+	RegisterAttribute("methods", Attribute_Config, &m_Methods);
 
 	{
 		ObjectLock olock(serializedObject);
@@ -50,7 +50,7 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	}
 
 	/* apply config state from the config item/remote update;
-	 * The DynamicObject::Create function takes care of restoring
+	 * The DynamicType::CreateObject function takes care of restoring
 	 * non-config state after the object has been fully constructed */
 	{
 		ObjectLock olock(this);
@@ -102,22 +102,22 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
 
 	for (it = m_Attributes.begin(); it != m_Attributes.end(); it++) {
-		if (it->second.Type == Attribute_Transient)
+		if (it->second.GetType() == Attribute_Transient)
 			continue;
 
-		if ((it->second.Type & attributeTypes) == 0)
+		if ((it->second.GetType() & attributeTypes) == 0)
 			continue;
 
-		if (it->second.Tx == 0)
+		if (it->second.GetTx() == 0)
 			continue;
 
-		if (it->second.Tx < sinceTx && !(it->second.Type == Attribute_Config && m_ConfigTx >= sinceTx))
+		if (it->second.GetTx() < sinceTx && !(it->second.GetType() == Attribute_Config && m_ConfigTx >= sinceTx))
 			continue;
 
 		Dictionary::Ptr attr = boost::make_shared<Dictionary>();
-		attr->Set("data", it->second.Data);
-		attr->Set("type", it->second.Type);
-		attr->Set("tx", it->second.Tx);
+		attr->Set("data", it->second.GetValue());
+		attr->Set("type", it->second.GetType());
+		attr->Set("tx", it->second.GetTx());
 
 		attrs->Set(it->first, attr);
 	}
@@ -180,7 +180,7 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 				RegisterAttribute(it->first, Attribute_Config);
 
 			if (!HasAttribute(it->first))
-				RegisterAttribute(it->first, static_cast<DynamicAttributeType>(type));
+				RegisterAttribute(it->first, static_cast<AttributeType>(type));
 
 			InternalSetAttribute(it->first, data, tx, true);
 		}
@@ -188,17 +188,19 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 }
 
 void DynamicObject::RegisterAttribute(const String& name,
-    DynamicAttributeType type)
+    AttributeType type, AttributeBase *boundAttribute)
 {
-	DynamicAttribute attr;
-	attr.Type = type;
-	attr.Tx = 0;
+	AttributeHolder attr(type, boundAttribute);
 
 	pair<DynamicObject::AttributeIterator, bool> tt;
 	tt = m_Attributes.insert(make_pair(name, attr));
 
-	if (!tt.second)
-		tt.first->second.Type = type;
+	if (!tt.second) {
+		tt.first->second.SetType(type);
+
+		if (boundAttribute)
+			tt.first->second.Bind(boundAttribute);
+	}
 }
 
 void DynamicObject::Set(const String& name, const Value& data)
@@ -219,27 +221,26 @@ Value DynamicObject::Get(const String& name) const
 void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
     double tx, bool allowEditConfig)
 {
-	DynamicAttribute attr;
-	attr.Type = Attribute_Transient;
-	attr.Data = data;
-	attr.Tx = tx;
-
-	pair<DynamicObject::AttributeIterator, bool> tt;
-	tt = m_Attributes.insert(make_pair(name, attr));
+	DynamicObject::AttributeIterator it;
+	it = m_Attributes.find(name);
 
 	Value oldValue;
 
-	if (!allowEditConfig && (tt.first->second.Type & Attribute_Config))
-		BOOST_THROW_EXCEPTION(runtime_error("Config properties are immutable: '" + name + "'."));
+	if (it == m_Attributes.end()) {
+		AttributeHolder attr(Attribute_Transient);
+		attr.SetValue(tx, data);
 
-	if (!tt.second && tx >= tt.first->second.Tx) {
-		oldValue = tt.first->second.Data;
-		tt.first->second.Data = data;
-		tt.first->second.Tx = tx;
+		m_Attributes.insert(make_pair(name, attr));
+	} else {
+		if (!allowEditConfig && (it->second.GetType() & Attribute_Config))
+			BOOST_THROW_EXCEPTION(runtime_error("Config properties are immutable: '" + name + "'."));
+
+		oldValue = it->second.GetValue();
+		it->second.SetValue(tx, data);
+
+		if (it->second.GetType() & Attribute_Config)
+			m_ConfigTx = tx;
 	}
-
-	if (tt.first->second.Type & Attribute_Config)
-		m_ConfigTx = tx;
 
 	if (GetEventSafe()) {
 		/* We can't call GetSelf() in the constructor or destructor.
@@ -269,7 +270,7 @@ Value DynamicObject::InternalGetAttribute(const String& name) const
 	if (it == m_Attributes.end())
 		return Empty;
 
-	return it->second.Data;
+	return it->second.GetValue();
 }
 
 bool DynamicObject::HasAttribute(const String& name) const
@@ -277,57 +278,46 @@ bool DynamicObject::HasAttribute(const String& name) const
 	return (m_Attributes.find(name) != m_Attributes.end());
 }
 
-void DynamicObject::ClearAttributesByType(DynamicAttributeType type)
+void DynamicObject::ClearAttributesByType(AttributeType type)
 {
 	DynamicObject::AttributeIterator at;
 	for (at = m_Attributes.begin(); at != m_Attributes.end(); at++) {
-		if (at->second.Type != type)
+		if (at->second.GetType() != type)
 			continue;
 
-		at->second.Tx = 0;
-		at->second.Data = Empty;
+		at->second.SetValue(0, Empty);
 	}
 }
 
 DynamicType::Ptr DynamicObject::GetType(void) const
 {
-	String name = Get("__type");
-	return DynamicType::GetByName(name);
+	return DynamicType::GetByName(m_Type);
 }
 
 String DynamicObject::GetName(void) const
 {
-	return Get("__name");
+	return m_Name;
 }
 
 bool DynamicObject::IsLocal(void) const
 {
-	Value value = Get("__local");
-
-	if (value.IsEmpty())
-		return false;
-
-	return (value != 0);
+	return m_Local;
 }
 
 bool DynamicObject::IsAbstract(void) const
 {
-	Value value = Get("__abstract");
-
-	if (value.IsEmpty())
-		return false;
-
-	return (value != 0);
+	return m_Abstract;
 }
 
 void DynamicObject::SetSource(const String& value)
 {
-	Set("__source", value);
+	m_Source = value;
+	Touch("__source");
 }
 
 String DynamicObject::GetSource(void) const
 {
-	return Get("__source");
+	return m_Source;
 }
 
 void DynamicObject::Register(void)
@@ -371,13 +361,9 @@ void DynamicObject::Unregister(void)
 ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
     const vector<Value>& arguments)
 {
-	Value value = Get("methods");
-
-	if (!value.IsObjectType<Dictionary>())
-		return ScriptTask::Ptr();
-
 	String funcName;
-	Dictionary::Ptr methods = value;
+
+	Dictionary::Ptr methods = m_Methods;
 
 	{
 		ObjectLock olock(methods);

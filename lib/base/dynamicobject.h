@@ -28,7 +28,7 @@ namespace icinga
  *
  * @ingroup base
  */
-enum DynamicAttributeType
+enum AttributeType
 {
 	Attribute_Transient = 1,
 
@@ -48,16 +48,142 @@ enum DynamicAttributeType
 	Attribute_All = Attribute_Transient | Attribute_Local | Attribute_Replicated | Attribute_Config
 };
 
+class AttributeBase
+{
+public:
+	AttributeBase(void)
+		: m_Value()
+	{ }
+
+	void InternalSet(const Value& value)
+	{
+		m_Value = value;
+	}
+
+	const Value& InternalGet(void) const
+	{
+		return m_Value;
+	}
+
+	operator Value(void) const
+	{
+		return InternalGet();
+	}
+
+	bool IsEmpty(void) const
+	{
+		return InternalGet().IsEmpty();
+	}
+
+private:
+	Value m_Value;
+};
+
+template<typename T>
+class Attribute : public AttributeBase
+{
+public:
+	void Set(const T& value)
+	{
+		InternalSet(value);
+	}
+
+	Attribute<T>& operator=(const T& rhs)
+	{
+		Set(rhs);
+	}
+
+	T Get(void) const
+	{
+		if (IsEmpty())
+			return T();
+
+		return InternalGet();
+	}
+
+	operator T(void) const
+	{
+		return Get();
+	}
+};
+
 /**
  * An attribute for a DynamicObject.
  *
  * @ingroup base
  */
-struct DynamicAttribute
+struct AttributeHolder
 {
-	Value Data; /**< The current value of the attribute. */
-	DynamicAttributeType Type; /**< The type of the attribute. */
-	double Tx; /**< The timestamp of the last value change. */
+	AttributeType m_Type; /**< The type of the attribute. */
+	double m_Tx; /**< The timestamp of the last value change. */
+	bool m_OwnsAttribute; /**< Whether we own the Data pointer. */
+	AttributeBase *m_Attribute; /**< The current value of the attribute. */
+
+	AttributeHolder(AttributeType type, AttributeBase *boundAttribute = NULL)
+		: m_Type(type), m_Tx(0)
+	{
+		if (boundAttribute) {
+			m_Attribute = boundAttribute;
+			m_OwnsAttribute = false;
+		} else {
+			m_Attribute = new Attribute<Value>();
+			m_OwnsAttribute = true;
+		}
+	}
+
+	AttributeHolder(const AttributeHolder& other)
+	{
+		m_Type = other.m_Type;
+		m_Tx = other.m_Tx;
+		m_OwnsAttribute = other.m_OwnsAttribute;
+
+		if (other.m_OwnsAttribute) {
+			m_Attribute = new Attribute<Value>();
+			m_Attribute->InternalSet(other.m_Attribute->InternalGet());
+		} else {
+			m_Attribute = other.m_Attribute;
+		}
+	}
+
+	~AttributeHolder(void)
+	{
+		if (m_OwnsAttribute)
+			delete m_Attribute;
+	}
+
+	void Bind(AttributeBase *boundAttribute)
+	{
+		assert(m_OwnsAttribute);
+		boundAttribute->InternalSet(m_Attribute->InternalGet());
+		m_Attribute = boundAttribute;
+		m_OwnsAttribute = false;
+	}
+
+	void SetValue(double tx, const Value& value)
+	{
+		m_Tx = tx;
+		m_Attribute->InternalSet(value);
+	}
+
+	Value GetValue(void) const
+	{
+		return m_Attribute->InternalGet();
+	}
+
+	void SetType(AttributeType type)
+	{
+		m_Type = type;
+	}
+
+	AttributeType GetType(void) const
+	{
+		return m_Type;
+	}
+
+	double GetTx(void) const
+	{
+		return m_Tx;
+	}
 };
 
 class DynamicType;
@@ -74,7 +200,7 @@ public:
 	typedef shared_ptr<DynamicObject> Ptr;
 	typedef weak_ptr<DynamicObject> WeakPtr;
 
-	typedef map<String, DynamicAttribute, string_iless> AttributeMap;
+	typedef map<String, AttributeHolder, string_iless> AttributeMap;
 	typedef AttributeMap::iterator AttributeIterator;
 	typedef AttributeMap::const_iterator AttributeConstIterator;
 
@@ -86,7 +212,7 @@ public:
 	Dictionary::Ptr BuildUpdate(double sinceTx, int attributeTypes) const;
 	void ApplyUpdate(const Dictionary::Ptr& serializedUpdate, int allowedTypes);
 
-	void RegisterAttribute(const String& name, DynamicAttributeType type);
+	void RegisterAttribute(const String& name, AttributeType type, AttributeBase *boundAttribute = NULL);
 
 	void Set(const String& name, const Value& data);
 	void Touch(const String& name);
@@ -94,7 +220,9 @@ public:
 
 	bool HasAttribute(const String& name) const;
 
-	void ClearAttributesByType(DynamicAttributeType type);
+	void BindAttribute(const String& name, Value *boundValue);
+
+	void ClearAttributesByType(AttributeType type);
 
 	static signals2::signal<void (const DynamicObject::Ptr&)> OnRegistered;
 	static signals2::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
@@ -149,6 +277,13 @@ private:
 	AttributeMap m_Attributes;
 	map<String, Value, string_iless> m_ModifiedAttributes;
 	double m_ConfigTx;
+
+	Attribute<String> m_Name;
+	Attribute<String> m_Type;
+	Attribute<bool> m_Local;
+	Attribute<bool> m_Abstract;
+	Attribute<String> m_Source;
+	Attribute<Dictionary::Ptr> m_Methods;
 
 	bool m_EventSafe;
 

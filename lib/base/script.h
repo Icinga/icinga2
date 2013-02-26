@@ -46,6 +46,9 @@ protected:
 	virtual void OnAttributeUpdate(const String& name, const Value& oldValue);
 
 private:
+	Attribute<String> m_Language;
+	Attribute<String> m_Code;
+
 	shared_ptr<ScriptInterpreter> m_Interpreter;
 
 	void SpawnInterpreter(void);

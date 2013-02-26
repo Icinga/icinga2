@@ -71,12 +71,23 @@ protected:
 	void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
+	Attribute<String> m_DisplayName;
+	Attribute<Dictionary::Ptr> m_HostGroups;
+	Attribute<Dictionary::Ptr> m_Macros;
+	Attribute<Dictionary::Ptr> m_HostDependencies;
+	Attribute<Dictionary::Ptr> m_ServiceDependencies;
+	Attribute<String> m_HostCheck;
+	Dictionary::Ptr m_SlaveServices;
+
+	static boost::mutex m_Mutex;
 	static map<String, map<String, weak_ptr<Service> > > m_ServicesCache;
 	static bool m_ServicesCacheValid;
 
-	void UpdateSlaveServices(void);
+	static void UpdateSlaveServices(const Host::Ptr& self);
 
 	static void ValidateServicesCache(void);
+
+	weak_ptr<Service> m_HostCheckService;
 };
 
 }

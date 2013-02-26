@@ -71,6 +71,12 @@ protected:
 	void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
+	Attribute<Value> m_NotificationCommand;
+	Attribute<Dictionary::Ptr> m_Macros;
+	Attribute<Dictionary::Ptr> m_Users;
+	Attribute<String> m_HostName;
+	Attribute<String> m_Service;
+
 	set<ScriptTask::Ptr> m_Tasks;
 
 	void NotificationCompletedHandler(const ScriptTask::Ptr& task);

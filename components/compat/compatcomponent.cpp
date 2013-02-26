@@ -534,12 +534,14 @@ void CompatComponent::StatusTimerHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		Host::Ptr host = static_pointer_cast<Host>(object);
 
-		stringstream tempstatusfp, tempobjectfp;
-
+		stringstream tempstatusfp;
+		tempstatusfp << std::fixed;
 		DumpHostStatus(tempstatusfp, host);
-		DumpHostObject(tempobjectfp, host);
-
 		statusfp << tempstatusfp.str();
+
+		stringstream tempobjectfp;
+		tempobjectfp << std::fixed;
+		DumpHostObject(tempobjectfp, host);
 		objectfp << tempobjectfp.str();
 	}
 
@@ -547,6 +549,7 @@ void CompatComponent::StatusTimerHandler(void)
 		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
 
 		stringstream tempobjectfp;
+		tempobjectfp << std::fixed;
 
 		{
 			ObjectLock olock(hg);
@@ -568,12 +571,14 @@ void CompatComponent::StatusTimerHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
 
-		stringstream tempstatusfp, tempobjectfp;
-
-		DumpServiceStatus(statusfp, service);
-		DumpServiceObject(objectfp, service);
-
+		stringstream tempstatusfp;
+		tempstatusfp << std::fixed;
+		DumpServiceStatus(tempstatusfp, service);
 		statusfp << tempstatusfp.str();
+
+		stringstream tempobjectfp;
+		tempobjectfp << std::fixed;
+		DumpServiceObject(tempobjectfp, service);
 		objectfp << tempobjectfp.str();
 	}
 
@@ -581,6 +586,7 @@ void CompatComponent::StatusTimerHandler(void)
 		ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
 
 		stringstream tempobjectfp;
+		tempobjectfp << std::fixed;
 
 		{
 			ObjectLock olock(sg);

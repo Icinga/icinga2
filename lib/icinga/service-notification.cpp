@@ -123,37 +123,55 @@ static void CopyNotificationAttributes(TDict notificationDesc, const ConfigItemB
 		builder->AddExpression("notification_interval", OperatorSet, notificationInterval);*/
 }
 
-void Service::UpdateSlaveNotifications(void)
+void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 {
-	ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
+	Dictionary::Ptr oldNotifications;
+	Host::Ptr host;
+	vector<Dictionary::Ptr> notificationDescsList;
+	String service_name;
+	ConfigItem::Ptr item;
 
-	/* Don't create slave notifications unless we own this object
-	 * and it's not a template. */
-	if (!item || IsAbstract())
-		return;
+	{
+		ObjectLock olock(self);
 
-	Dictionary::Ptr oldNotifications = Get("slave_notifications");
+		item = ConfigItem::GetObject("Service", self->GetName());
+
+		/* Don't create slave notifications unless we own this object
+		 * and it's not a template. */
+		if (!item || self->IsAbstract())
+			return;
+
+		service_name = self->GetName();
+		oldNotifications = self->m_SlaveNotifications;
+		host = self->GetHost();
+
+		notificationDescsList.push_back(self->Get("notifications"));
+	}
+
+	DebugInfo debug_info;
+
+	{
+		ObjectLock ilock(item);
+		debug_info = item->GetDebugInfo();
+	}
 
 	Dictionary::Ptr newNotifications;
 	newNotifications = boost::make_shared<Dictionary>();
 
-	vector<Dictionary::Ptr> notificationDescsList;
-
 	String host_name;
 
 	{
-		Host::Ptr host = GetHost();
 		ObjectLock olock(host);
 
 		notificationDescsList.push_back(host->Get("notifications"));
 		host_name = host->GetName();
 	}
 
-	notificationDescsList.push_back(Get("notifications"));
-
 	BOOST_FOREACH(const Dictionary::Ptr& notificationDescs, notificationDescsList) {
 		if (!notificationDescs)
 			continue;
+
+		ObjectLock olock(notificationDescs);
 
 		String nfcname;
 		Value nfcdesc;
@@ -162,21 +180,22 @@ void Service::UpdateSlaveNotifications(void)
 				nfcname = nfcdesc;
 
 			stringstream namebuf;
-			namebuf << GetName() << "-" << nfcname;
+			namebuf << service_name << "-" << nfcname;
 			String name = namebuf.str();
 
-			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
+			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(debug_info);
 			builder->SetType("Notification");
 			builder->SetName(name);
 			builder->AddExpression("host_name", OperatorSet, host_name);
-			builder->AddExpression("service", OperatorSet, GetName());
+			builder->AddExpression("service", OperatorSet, service_name);
 
-			CopyNotificationAttributes(this, builder);
+			CopyNotificationAttributes(self, builder);
 
 			if (nfcdesc.IsScalar()) {
 				builder->AddParent(nfcdesc);
 			} else if (nfcdesc.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr notification = nfcdesc;
+				ObjectLock nlock(notification);
 
 				Dictionary::Ptr templates = notification->Get("templates");
 
@@ -212,12 +231,15 @@ void Service::UpdateSlaveNotifications(void)
 		}
 	}
 
-	Set("slave_notifications", newNotifications);
+	{
+		ObjectLock olock(self);
+		self->m_SlaveNotifications = newNotifications;
+	}
 }
 
 double Service::GetLastNotification(void) const
 {
-	Value value = Get("last_notification");
+	Value value = m_LastNotification;
 
 	if (value.IsEmpty())
 		value = 0;
@@ -227,12 +249,13 @@ double Service::GetLastNotification(void) const
 
 void Service::SetLastNotification(double time)
 {
-	Set("last_notification", time);
+	m_LastNotification = time;
+	Touch("last_notification");
 }
 
 double Service::GetNextNotification(void) const
 {
-	Value value = Get("next_notification");
+	Value value = m_NextNotification;
 
 	if (value.IsEmpty())
 		value = 0;
@@ -242,5 +265,6 @@ double Service::GetNextNotification(void) const
 
 void Service::SetNextNotification(double time)
 {
-	Set("next_notification", time);
+	m_NextNotification = time;
+	Touch("next_notification");
 }

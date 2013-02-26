@@ -26,7 +26,7 @@ namespace icinga
 struct AttributeDescription
 {
 	String Name;
-	DynamicAttributeType Type;
+	AttributeType Type;
 };
 
 class I2_BASE_API DynamicType : public Object
@@ -57,7 +57,7 @@ public:
 
 	static set<DynamicObject::Ptr> GetObjects(const String& type);
 
-	void AddAttribute(const String& name, DynamicAttributeType type);
+	void AddAttribute(const String& name, AttributeType type);
 	void RemoveAttribute(const String& name);
 	bool HasAttribute(const String& name);
 
@@ -66,7 +66,7 @@ public:
 private:
 	String m_Name;
 	ObjectFactory m_ObjectFactory;
-	map<String, DynamicAttributeType> m_Attributes;
+	map<String, AttributeType> m_Attributes;
 
 	typedef map<String, DynamicObject::Ptr, string_iless> ObjectMap;
 	typedef set<DynamicObject::Ptr> ObjectSet;

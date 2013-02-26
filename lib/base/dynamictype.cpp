@@ -101,6 +101,12 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 
 	/* notify the object that it's been registered */
 	object->OnRegistrationCompleted();
+
+	{
+		ObjectLock olock(object);
+		object->Flush();
+	}
+
 }
 
 void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
@@ -148,7 +154,7 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 
 		/* register attributes */
 		String name;
-		DynamicAttributeType type;
+		AttributeType type;
 		BOOST_FOREACH(tuples::tie(name, type), m_Attributes)
 			object->RegisterAttribute(name, type);
 
@@ -169,7 +175,7 @@ bool DynamicType::TypeExists(const String& name)
 	return (GetByName(name));
 }
 
-void DynamicType::AddAttribute(const String& name, DynamicAttributeType type)
+void DynamicType::AddAttribute(const String& name, AttributeType type)
 {
 	m_Attributes[name] = type;
 }
