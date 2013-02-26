@@ -41,9 +41,14 @@ private:
 
 	static void RegisterCommand(const String& command, const Callback& callback);
 
+	static void ProcessHostCheckResult(double time, const vector<String>& arguments);
 	static void ProcessServiceCheckResult(double time, const vector<String>& arguments);
+	static void ScheduleHostCheck(double time, const vector<String>& arguments);
+	static void ScheduleForcedHostCheck(double time, const vector<String>& arguments);
 	static void ScheduleSvcCheck(double time, const vector<String>& arguments);
 	static void ScheduleForcedSvcCheck(double time, const vector<String>& arguments);
+	static void EnableHostCheck(double time, const vector<String>& arguments);
+	static void DisableHostCheck(double time, const vector<String>& arguments);
 	static void EnableSvcCheck(double time, const vector<String>& arguments);
 	static void DisableSvcCheck(double time, const vector<String>& arguments);
 	static void ShutdownProcess(double time, const vector<String>& arguments);
@@ -61,6 +66,8 @@ private:
 	static void DisableHostgroupSvcChecks(double time, const vector<String>& arguments);
 	static void EnableServicegroupSvcChecks(double time, const vector<String>& arguments);
 	static void DisableServicegroupSvcChecks(double time, const vector<String>& arguments);
+	static void EnablePassiveHostChecks(double time, const vector<String>& arguments);
+	static void DisablePassiveHostChecks(double time, const vector<String>& arguments);
 	static void EnablePassiveSvcChecks(double time, const vector<String>& arguments);
 	static void DisablePassiveSvcChecks(double time, const vector<String>& arguments);
 	static void EnableServicegroupPassiveSvcChecks(double time, const vector<String>& arguments);

@@ -87,9 +87,14 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
  */
 void ExternalCommandProcessor::Initialize(void)
 {
+	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult);
 	RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult);
+	RegisterCommand("SCHEDULE_HOST_CHECK", &ExternalCommandProcessor::ScheduleHostCheck);
+	RegisterCommand("SCHEDULE_FORCED_HOST_CHECK", &ExternalCommandProcessor::ScheduleForcedHostCheck);
 	RegisterCommand("SCHEDULE_SVC_CHECK", &ExternalCommandProcessor::ScheduleSvcCheck);
 	RegisterCommand("SCHEDULE_FORCED_SVC_CHECK", &ExternalCommandProcessor::ScheduleForcedSvcCheck);
+	RegisterCommand("ENABLE_HOST_CHECK", &ExternalCommandProcessor::EnableHostCheck);
+	RegisterCommand("DISABLE_HOST_CHECK", &ExternalCommandProcessor::DisableHostCheck);
 	RegisterCommand("ENABLE_SVC_CHECK", &ExternalCommandProcessor::EnableSvcCheck);
 	RegisterCommand("DISABLE_SVC_CHECK", &ExternalCommandProcessor::DisableSvcCheck);
 	RegisterCommand("SHUTDOWN_PROCESS", &ExternalCommandProcessor::ShutdownProcess);
@@ -107,6 +112,8 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("DISABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommandProcessor::DisableHostgroupSvcChecks);
 	RegisterCommand("ENABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommandProcessor::EnableServicegroupSvcChecks);
 	RegisterCommand("DISABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommandProcessor::DisableServicegroupSvcChecks);
+	RegisterCommand("ENABLE_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnablePassiveHostChecks);
+	RegisterCommand("DISABLE_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisablePassiveHostChecks);
 	RegisterCommand("ENABLE_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnablePassiveSvcChecks);
 	RegisterCommand("DISABLE_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisablePassiveSvcChecks);
 	RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks);
@@ -142,6 +149,37 @@ void ExternalCommandProcessor::RegisterCommand(const String& command, const Exte
 	m_Commands[command] = callback;
 }
 
+void ExternalCommandProcessor::ProcessHostCheckResult(double time, const vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 3 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Service::Ptr hc = host->GetHostCheckService();
+
+	if (!hc->GetEnablePassiveChecks())
+		BOOST_THROW_EXCEPTION(invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
+
+	int exitStatus = Convert::ToDouble(arguments[2]);
+	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(arguments[3]);
+	result->Set("state", PluginCheckTask::ExitStatusToState(exitStatus));
+
+	result->Set("schedule_start", time);
+	result->Set("schedule_end", time);
+	result->Set("execution_start", time);
+	result->Set("execution_end", time);
+	result->Set("active", 0);
+
+	Logger::Write(LogInformation, "icinga", "Processing passive check result for host '" + arguments[0] + "'");
+	hc->ProcessCheckResult(result);
+
+	/* Reschedule the next check. The side effect of this is that for as long
+	 * as we receive passive results for a service we won't execute any
+	 * active checks. */
+	hc->SetNextCheck(Utility::GetTime() + hc->GetCheckInterval());
+}
+
 void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vector<String>& arguments)
 {
 	if (arguments.size() < 4)
@@ -169,6 +207,41 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vect
 	 * as we receive passive results for a service we won't execute any
 	 * active checks. */
 	service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
+}
+
+void ExternalCommandProcessor::ScheduleHostCheck(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Service::Ptr hc = host->GetHostCheckService();
+
+	double planned_check = Convert::ToDouble(arguments[1]);
+
+	if (planned_check > hc->GetNextCheck()) {
+		Logger::Write(LogInformation, "icinga", "Ignoring reschedule request for host '" +
+		    arguments[0] + "' (next check is already sooner than requested check time)");
+		return;
+	}
+
+	Logger::Write(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
+	hc->SetNextCheck(planned_check);
+}
+
+void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Service::Ptr hc = host->GetHostCheckService();
+
+	Logger::Write(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
+	hc->SetForceNextCheck(true);
+	hc->SetNextCheck(Convert::ToDouble(arguments[1]));
 }
 
 void ExternalCommandProcessor::ScheduleSvcCheck(double, const vector<String>& arguments)
@@ -200,6 +273,34 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const vector<Strin
 	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
 	service->SetForceNextCheck(true);
 	service->SetNextCheck(Convert::ToDouble(arguments[2]));
+}
+
+void ExternalCommandProcessor::EnableHostCheck(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Enabling active checks for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetHostCheckService();
+
+	if (hc)
+		hc->SetEnableActiveChecks(true);
+}
+
+void ExternalCommandProcessor::DisableHostCheck(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Disabling active checks for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetHostCheckService();
+
+	if (hc)
+		hc->SetEnableActiveChecks(false);
 }
 
 void ExternalCommandProcessor::EnableSvcCheck(double, const vector<String>& arguments)
@@ -444,6 +545,34 @@ void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const vector
 		Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
 		service->SetEnableActiveChecks(false);
 	}
+}
+
+void ExternalCommandProcessor::EnablePassiveHostChecks(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Enabling passive checks for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetHostCheckService();
+
+	if (hc)
+		hc->SetEnablePassiveChecks(true);
+}
+
+void ExternalCommandProcessor::DisablePassiveHostChecks(double, const vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Logger::Write(LogInformation, "icinga", "Disabling passive checks for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetHostCheckService();
+
+	if (hc)
+		hc->SetEnablePassiveChecks(false);
 }
 
 void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const vector<String>& arguments)
