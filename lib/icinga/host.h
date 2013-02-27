@@ -39,7 +39,6 @@ public:
 	Host(const Dictionary::Ptr& properties);
 	~Host(void);
 
-	static bool Exists(const String& name);
 	static Host::Ptr GetByName(const String& name);
 
 	String GetDisplayName(void) const;
@@ -61,7 +60,7 @@ public:
 	static shared_ptr<Service> GetServiceByShortName(const Host::Ptr& self, const Value& name);
 
 	set<shared_ptr<Service> > GetServices(void) const;
-	static void RefreshServicesCache(void);
+	static void InvalidateServicesCache(void);
 
 	static void ValidateServiceDictionary(const ScriptTask::Ptr& task,
 	    const std::vector<icinga::Value>& arguments);
@@ -81,10 +80,11 @@ private:
 
 	static boost::mutex m_ServiceMutex;
 	static map<String, map<String, weak_ptr<Service> > > m_ServicesCache;
+	static bool m_ServicesCacheValid;
 
 	static void UpdateSlaveServices(const Host::Ptr& self);
 
-	static void ValidateServicesCache(void);
+	static void RefreshServicesCache(void);
 };
 
 }

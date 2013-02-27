@@ -44,17 +44,6 @@ Endpoint::Endpoint(const Dictionary::Ptr& serializedUpdate)
 }
 
 /**
- * Checks whether an endpoint with the specified name exists.
- *
- * @param name The name of the endpoint.
- * @returns true if the endpoint exists, false otherwise.
- */
-bool Endpoint::Exists(const String& name)
-{
-	return (DynamicObject::GetObject("Endpoint", name));
-}
-
-/**
  * Retrieves an endpoint by name.
  *
  * @param name The name of the endpoint.
@@ -63,9 +52,6 @@ bool Endpoint::Exists(const String& name)
 Endpoint::Ptr Endpoint::GetByName(const String& name)
 {
         DynamicObject::Ptr configObject = DynamicObject::GetObject("Endpoint", name);
-
-        if (!configObject)
-                BOOST_THROW_EXCEPTION(invalid_argument("Endpoint '" + name + "' does not exist."));
 
         return dynamic_pointer_cast<Endpoint>(configObject);
 }

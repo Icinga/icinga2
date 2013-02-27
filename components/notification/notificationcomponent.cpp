@@ -70,7 +70,8 @@ void NotificationComponent::NotificationTimerHandler(void)
 		if (service->GetLastNotification() > now - service->GetNotificationInterval())
 			continue;
 
-		service->RequestNotifications(NotificationProblem);
+		if (Service::IsReachable(service) && !service->IsInDowntime() && !service->IsAcknowledged())
+			service->RequestNotifications(NotificationProblem);
 	}
 }
 

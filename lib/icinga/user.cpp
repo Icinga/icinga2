@@ -29,11 +29,6 @@ User::User(const Dictionary::Ptr& properties)
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
 }
 
-bool User::Exists(const String& name)
-{
-	return (DynamicObject::GetObject("User", name));
-}
-
 User::Ptr User::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("User", name);

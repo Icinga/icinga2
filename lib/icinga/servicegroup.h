@@ -37,7 +37,6 @@ public:
 	ServiceGroup(const Dictionary::Ptr& properties);
 	~ServiceGroup(void);
 
-	static bool Exists(const String& name);
 	static ServiceGroup::Ptr GetByName(const String& name);
 
 	String GetDisplayName(void) const;
@@ -46,7 +45,7 @@ public:
 
 	static set<Service::Ptr> GetMembers(const ServiceGroup::Ptr& self);
 
-	static void RefreshMembersCache(void);
+	static void InvalidateMembersCache(void);
 
 protected:
 	virtual void OnRegistrationCompleted(void);
@@ -58,6 +57,9 @@ private:
 
 	static boost::mutex m_Mutex;
 	static map<String, vector<weak_ptr<Service> > > m_MembersCache;
+	static bool m_MembersCacheValid;
+
+	static void RefreshMembersCache(void);
 };
 
 }

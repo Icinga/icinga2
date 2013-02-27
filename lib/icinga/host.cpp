@@ -23,6 +23,7 @@ using namespace icinga;
 
 boost::mutex Host::m_ServiceMutex;
 map<String, map<String, weak_ptr<Service> > > Host::m_ServicesCache;
+bool Host::m_ServicesCacheValid = false;
 
 REGISTER_SCRIPTFUNCTION("ValidateServiceDictionary", &Host::ValidateServiceDictionary);
 
@@ -42,7 +43,7 @@ Host::Host(const Dictionary::Ptr& properties)
 
 Host::~Host(void)
 {
-	HostGroup::RefreshMembersCache();
+	HostGroup::InvalidateMembersCache();
 
 	if (m_SlaveServices) {
 		ConfigItem::Ptr service;
@@ -56,7 +57,6 @@ void Host::OnRegistrationCompleted(void)
 {
 	DynamicObject::OnRegistrationCompleted();
 
-	HostGroup::RefreshMembersCache();
 	Host::UpdateSlaveServices(GetSelf());
 }
 
@@ -66,14 +66,6 @@ String Host::GetDisplayName(void) const
 		return m_DisplayName;
 	else
 		return GetName();
-}
-
-/**
- * @threadsafety Always.
- */
-bool Host::Exists(const String& name)
-{
-	return (DynamicObject::GetObject("Host", name));
 }
 
 /**
@@ -292,7 +284,7 @@ void Host::UpdateSlaveServices(const Host::Ptr& self)
 void Host::OnAttributeChanged(const String& name, const Value&)
 {
 	if (name == "hostgroups")
-		HostGroup::RefreshMembersCache();
+		HostGroup::InvalidateMembersCache();
 	else if (name == "services") {
 		UpdateSlaveServices(GetSelf());
 	} else if (name == "notifications") {
@@ -328,8 +320,27 @@ set<Service::Ptr> Host::GetServices(void) const
 	return services;
 }
 
+void Host::InvalidateServicesCache(void)
+{
+	{
+		boost::mutex::scoped_lock lock(m_ServiceMutex);
+		m_ServicesCacheValid = false;
+	}
+
+	Utility::QueueAsyncCallback(boost::bind(&Host::RefreshServicesCache));
+}
+
 void Host::RefreshServicesCache(void)
 {
+	{
+		boost::mutex::scoped_lock lock(m_ServiceMutex);
+
+		if (m_ServicesCacheValid)
+			return;
+
+		m_ServicesCacheValid = true;
+	}
+
 	map<String, map<String, weak_ptr<Service> > > newServicesCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
@@ -433,10 +444,18 @@ Service::Ptr Host::GetServiceByShortName(const Host::Ptr& self, const Value& nam
 			}
 		}
 
-		return Service::GetByName(name);
+		return Service::Ptr();
 	} else if (name.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr dict = name;
-		return GetServiceByShortName(GetByName(dict->Get("host")), dict->Get("service"));
+		String short_name;
+
+		{
+			ObjectLock olock(dict);
+			host_name = dict->Get("host");
+			short_name = dict->Get("service");
+		}
+
+		return Service::GetByNamePair(host_name, short_name);
 	} else {
 		BOOST_THROW_EXCEPTION(invalid_argument("Host/Service name pair is invalid."));
 	}
@@ -461,7 +480,12 @@ set<Host::Ptr> Host::GetParentHosts(const Host::Ptr& self)
 			if (value == host_name)
 				continue;
 
-			parents.insert(Host::GetByName(value));
+			Host::Ptr host = GetByName(value);
+
+			if (!host)
+				continue;
+
+			parents.insert(host);
 		}
 	}
 
@@ -476,6 +500,9 @@ Service::Ptr Host::GetHostCheckService(const Host::Ptr& self)
 		ObjectLock olock(self);
 		host_check = self->GetHostCheck();
 	}
+
+	if (host_check.IsEmpty())
+		return Service::Ptr();
 
 	return GetServiceByShortName(self, host_check);
 }

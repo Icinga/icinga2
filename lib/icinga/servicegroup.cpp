@@ -23,6 +23,7 @@ using namespace icinga;
 
 boost::mutex ServiceGroup::m_Mutex;
 map<String, vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
+bool ServiceGroup::m_MembersCacheValid = true;
 
 REGISTER_TYPE(ServiceGroup, NULL);
 
@@ -65,14 +66,6 @@ String ServiceGroup::GetActionUrl(void) const
 /**
  * @threadsafety Always.
  */
-bool ServiceGroup::Exists(const String& name)
-{
-	return (DynamicObject::GetObject("ServiceGroup", name));
-}
-
-/**
- * @threadsafety Always.
- */
 ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("ServiceGroup", name);
@@ -110,8 +103,27 @@ set<Service::Ptr> ServiceGroup::GetMembers(const ServiceGroup::Ptr& self)
 	return services;
 }
 
+void ServiceGroup::InvalidateMembersCache(void)
+{
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_MembersCacheValid = false;
+	}
+
+	Utility::QueueAsyncCallback(boost::bind(&ServiceGroup::RefreshMembersCache));
+}
+
 void ServiceGroup::RefreshMembersCache(void)
 {
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		if (m_MembersCacheValid)
+			return;
+
+		m_MembersCacheValid = true;
+	}
+
 	map<String, vector<weak_ptr<Service> > > newMembersCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
@@ -125,9 +137,6 @@ void ServiceGroup::RefreshMembersCache(void)
 			ObjectLock mlock(dict);
 			Value servicegroup;
 			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
-				if (!ServiceGroup::Exists(servicegroup))
-					continue;
-
 				newMembersCache[servicegroup].push_back(service);
 			}
 		}
@@ -135,5 +144,4 @@ void ServiceGroup::RefreshMembersCache(void)
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_MembersCache.swap(newMembersCache);
-
 }

@@ -40,7 +40,6 @@ public:
 
 	Endpoint(const Dictionary::Ptr& serializedUpdate);
 
-	static bool Exists(const String& name);
 	static Endpoint::Ptr GetByName(const String& name);
 
 	JsonRpcConnection::Ptr GetClient(void) const;

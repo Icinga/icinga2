@@ -37,7 +37,6 @@ public:
 	HostGroup(const Dictionary::Ptr& properties);
 	~HostGroup(void);
 
-	static bool Exists(const String& name);
 	static HostGroup::Ptr GetByName(const String& name);
 
 	String GetDisplayName(void) const;
@@ -46,7 +45,7 @@ public:
 
 	static set<Host::Ptr> GetMembers(const HostGroup::Ptr& self);
 
-	static void RefreshMembersCache(void);
+	static void InvalidateMembersCache(void);
 
 protected:
 	virtual void OnRegistrationCompleted(void);
@@ -58,6 +57,9 @@ private:
 
 	static boost::mutex m_Mutex;
 	static map<String, vector<weak_ptr<Host> > > m_MembersCache;
+	static bool m_MembersCacheValid;
+
+	static void RefreshMembersCache(void);
 };
 
 }

@@ -106,10 +106,10 @@ void DelegationComponent::DelegationTimerHandler(void)
 		if (checker.IsEmpty())
 			continue;
 
-		if (!Endpoint::Exists(checker))
-			continue;
-
 		Endpoint::Ptr endpoint = Endpoint::GetByName(checker);
+
+		if (!endpoint)
+			continue;
 
 		histogram[endpoint]++;
 	}
@@ -124,9 +124,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		String checker = service->GetCurrentChecker();
 
-		Endpoint::Ptr oldEndpoint;
-		if (Endpoint::Exists(checker))
-			oldEndpoint = Endpoint::GetByName(checker);
+		Endpoint::Ptr oldEndpoint = Endpoint::GetByName(checker);
 
 		set<Endpoint::Ptr> candidates = GetCheckerCandidates(service);
 

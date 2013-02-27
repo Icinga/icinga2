@@ -168,11 +168,9 @@ void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const St
 
 	Logger::Write(LogInformation, "icinga", "New client connection at " + peerAddress + " for identity '" + identity + "'");
 
-	Endpoint::Ptr endpoint;
+	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
-	if (Endpoint::Exists(identity))
-		endpoint = Endpoint::GetByName(identity);
-	else
+	if (!endpoint)
 		endpoint = Endpoint::MakeEndpoint(identity, true);
 
 	endpoint->SetClient(jclient);

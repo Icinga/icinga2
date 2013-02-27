@@ -23,6 +23,7 @@ using namespace icinga;
 
 boost::mutex HostGroup::m_Mutex;
 map<String, vector<Host::WeakPtr> > HostGroup::m_MembersCache;
+bool HostGroup::m_MembersCacheValid = true;
 
 REGISTER_TYPE(HostGroup, NULL);
 
@@ -36,12 +37,12 @@ HostGroup::HostGroup(const Dictionary::Ptr& properties)
 
 HostGroup::~HostGroup(void)
 {
-	RefreshMembersCache();
+	InvalidateMembersCache();
 }
 
 void HostGroup::OnRegistrationCompleted(void)
 {
-	RefreshMembersCache();
+	InvalidateMembersCache();
 }
 
 String HostGroup::GetDisplayName(void) const
@@ -60,14 +61,6 @@ String HostGroup::GetNotesUrl(void) const
 String HostGroup::GetActionUrl(void) const
 {
 	return m_ActionUrl;
-}
-
-/**
- * @threadsafety Always.
- */
-bool HostGroup::Exists(const String& name)
-{
-	return (DynamicObject::GetObject("HostGroup", name));
 }
 
 /**
@@ -110,8 +103,27 @@ set<Host::Ptr> HostGroup::GetMembers(const HostGroup::Ptr& self)
 	return hosts;
 }
 
+void HostGroup::InvalidateMembersCache(void)
+{
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_MembersCacheValid = false;
+	}
+
+	Utility::QueueAsyncCallback(boost::bind(&HostGroup::RefreshMembersCache));
+}
+
 void HostGroup::RefreshMembersCache(void)
 {
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		if (m_MembersCacheValid)
+			return;
+
+		m_MembersCacheValid = true;
+	}
+
 	map<String, vector<weak_ptr<Host> > > newMembersCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
@@ -125,9 +137,6 @@ void HostGroup::RefreshMembersCache(void)
 			ObjectLock mlock(dict);
 			Value hostgroup;
 			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
-				if (!HostGroup::Exists(hostgroup))
-					continue;
-
 				newMembersCache[hostgroup].push_back(host);
 			}
 		}

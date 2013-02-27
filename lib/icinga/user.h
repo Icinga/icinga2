@@ -36,7 +36,6 @@ public:
 
 	User(const Dictionary::Ptr& properties);
 
-	static bool Exists(const String& name);
 	static User::Ptr GetByName(const String& name);
 
 	Dictionary::Ptr GetMacros(void) const;

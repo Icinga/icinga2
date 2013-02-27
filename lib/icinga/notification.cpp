@@ -31,18 +31,11 @@ Notification::Notification(const Dictionary::Ptr& properties)
 	RegisterAttribute("users", Attribute_Config, &m_Users);
 	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
 	RegisterAttribute("service", Attribute_Config, &m_Service);
-
-	Service::RefreshNotificationsCache();
 }
 
 Notification::~Notification(void)
 {
-	Service::RefreshNotificationsCache();
-}
-
-bool Notification::Exists(const String& name)
-{
-	return (DynamicObject::GetObject("Notification", name));
+	Service::InvalidateNotificationsCache();
 }
 
 Notification::Ptr Notification::GetByName(const String& name)
@@ -58,6 +51,9 @@ Notification::Ptr Notification::GetByName(const String& name)
 Service::Ptr Notification::GetService(void) const
 {
 	Host::Ptr host = Host::GetByName(m_HostName);
+
+	if (!host)
+		return Service::Ptr();
 
 	if (m_Service.IsEmpty())
 		return Host::GetHostCheckService(host);
@@ -239,5 +235,5 @@ void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 void Notification::OnAttributeChanged(const String& name, const Value& oldValue)
 {
 	if (name == "host_name" || name == "service")
-		Service::RefreshNotificationsCache();
+		Service::InvalidateNotificationsCache();
 }

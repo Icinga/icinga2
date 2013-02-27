@@ -25,6 +25,7 @@ int Service::m_NextDowntimeID = 1;
 boost::mutex Service::m_DowntimeMutex;
 map<int, String> Service::m_LegacyDowntimesCache;
 map<String, Service::WeakPtr> Service::m_DowntimesCache;
+bool Service::m_DowntimesCacheValid = true;
 Timer::Ptr Service::m_DowntimesExpireTimer;
 
 int Service::GetNextDowntimeID(void)
@@ -212,8 +213,27 @@ bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
 	return (downtime->Get("end_time") < Utility::GetTime());
 }
 
+void Service::InvalidateDowntimesCache(void)
+{
+	{
+		boost::mutex::scoped_lock lock(m_DowntimeMutex);
+		m_DowntimesCacheValid = false;
+	}
+
+	Utility::QueueAsyncCallback(boost::bind(&Service::RefreshDowntimesCache));
+}
+
 void Service::RefreshDowntimesCache(void)
 {
+	{
+		boost::mutex::scoped_lock lock(m_DowntimeMutex);
+
+		if (m_DowntimesCacheValid)
+			return;
+
+		m_DowntimesCacheValid = true;
+	}
+
 	map<int, String> newLegacyDowntimesCache;
 	map<String, Service::WeakPtr> newDowntimesCache;
 

@@ -55,7 +55,6 @@ public:
 	Notification(const Dictionary::Ptr& properties);
 	~Notification(void);
 
-	static bool Exists(const String& name);
 	static Notification::Ptr GetByName(const String& name);
 
 	shared_ptr<Service> GetService(void) const;

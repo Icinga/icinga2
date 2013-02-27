@@ -25,6 +25,7 @@ int Service::m_NextCommentID = 1;
 boost::mutex Service::m_CommentMutex;
 map<int, String> Service::m_LegacyCommentsCache;
 map<String, Service::WeakPtr> Service::m_CommentsCache;
+bool Service::m_CommentsCacheValid = true;
 Timer::Ptr Service::m_CommentsExpireTimer;
 
 int Service::GetNextCommentID(void)
@@ -135,8 +136,27 @@ bool Service::IsCommentExpired(const Dictionary::Ptr& comment)
 	return (expire_time != 0 && expire_time < Utility::GetTime());
 }
 
+void Service::InvalidateCommentsCache(void)
+{
+	{
+		boost::mutex::scoped_lock lock(m_CommentMutex);
+		m_CommentsCacheValid = false;
+	}
+
+	Utility::QueueAsyncCallback(boost::bind(&Service::RefreshCommentsCache));
+}
+
 void Service::RefreshCommentsCache(void)
 {
+	{
+		boost::mutex::scoped_lock lock(m_CommentMutex);
+
+		if (m_CommentsCacheValid)
+			return;
+
+		m_CommentsCacheValid = true;
+	}
+
 	map<int, String> newLegacyCommentsCache;
 	map<String, Service::WeakPtr> newCommentsCache;
 

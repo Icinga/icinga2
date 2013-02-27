@@ -23,6 +23,7 @@ using namespace icinga;
 
 boost::mutex Service::m_NotificationMutex;
 map<String, set<Notification::WeakPtr> > Service::m_NotificationsCache;
+bool Service::m_NotificationsCacheValid = true;
 
 void Service::RequestNotifications(NotificationType type)
 {
@@ -78,8 +79,27 @@ void Service::SendNotifications(const Service::Ptr& self, NotificationType type)
 	}
 }
 
+void Service::InvalidateNotificationsCache(void)
+{
+	{
+		boost::mutex::scoped_lock lock(m_NotificationMutex);
+		m_NotificationsCacheValid = false;
+	}
+
+	Utility::QueueAsyncCallback(boost::bind(&Service::RefreshNotificationsCache));
+}
+
 void Service::RefreshNotificationsCache(void)
 {
+	{
+		boost::mutex::scoped_lock lock(m_NotificationMutex);
+
+		if (m_NotificationsCacheValid)
+			return;
+
+		m_NotificationsCacheValid = true;
+	}
+
 	map<String, set<Notification::WeakPtr> > newNotificationsCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Notification")) {
@@ -157,7 +177,7 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 	Dictionary::Ptr oldNotifications;
 	Host::Ptr host;
 	vector<Dictionary::Ptr> notificationDescsList;
-	String service_name;
+	String service_name, short_name;
 	ConfigItem::Ptr item;
 
 	{
@@ -171,6 +191,7 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 			return;
 
 		service_name = self->GetName();
+		short_name = self->GetShortName();
 		oldNotifications = self->m_SlaveNotifications;
 		host = self->GetHost();
 
@@ -216,7 +237,7 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 			builder->SetType("Notification");
 			builder->SetName(name);
 			builder->AddExpression("host_name", OperatorSet, host_name);
-			builder->AddExpression("service", OperatorSet, service_name);
+			builder->AddExpression("service", OperatorSet, short_name);
 
 			CopyNotificationAttributes(self, builder);
 

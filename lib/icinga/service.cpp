@@ -70,18 +70,17 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 
 Service::~Service(void)
 {
-	ServiceGroup::RefreshMembersCache();
-	Host::RefreshServicesCache();
-	Service::RefreshDowntimesCache();
-	Service::RefreshCommentsCache();
+	ServiceGroup::InvalidateMembersCache();
+	Host::InvalidateServicesCache();
+	Service::InvalidateDowntimesCache();
+	Service::InvalidateCommentsCache();
 }
 
 void Service::OnRegistrationCompleted(void)
 {
 	DynamicObject::OnRegistrationCompleted();
 
-	ServiceGroup::RefreshMembersCache();
-	Host::RefreshServicesCache();
+	Host::InvalidateServicesCache();
 }
 
 String Service::GetDisplayName(void) const
@@ -90,14 +89,6 @@ String Service::GetDisplayName(void) const
 		return GetShortName();
 	else
 		return m_DisplayName;
-}
-
-/**
- * @threadsafety Always.
- */
-bool Service::Exists(const String& name)
-{
-	return (DynamicObject::GetObject("Service", name));
 }
 
 /**
@@ -120,6 +111,10 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 {
 	if (!hostName.IsEmpty()) {
 		Host::Ptr host = Host::GetByName(hostName);
+
+		if (!host)
+			return Service::Ptr();
+
 		return Host::GetServiceByShortName(host, serviceName);
 	} else {
 		return Service::GetByName(serviceName);
@@ -266,15 +261,15 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 	else if (name == "next_check")
 		OnNextCheckChanged(GetSelf(), oldValue);
 	else if (name == "servicegroups")
-		ServiceGroup::RefreshMembersCache();
+		ServiceGroup::InvalidateMembersCache();
 	else if (name == "host_name" || name == "short_name") {
-		Host::RefreshServicesCache();
+		Host::InvalidateServicesCache();
 
 		UpdateSlaveNotifications(GetSelf());
 	} else if (name == "downtimes")
-		Service::RefreshDowntimesCache();
+		Service::InvalidateDowntimesCache();
 	else if (name == "comments")
-		Service::RefreshCommentsCache();
+		Service::InvalidateCommentsCache();
 	else if (name == "notifications")
 		UpdateSlaveNotifications(GetSelf());
 	else if (name == "check_interval") {
@@ -306,7 +301,12 @@ set<Host::Ptr> Service::GetParentHosts(const Service::Ptr& self)
 	if (dependencies) {
 		String key;
 		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
-			parents.insert(Host::GetByName(key));
+			Host::Ptr host = Host::GetByName(key);
+
+			if (!host)
+				continue;
+
+			parents.insert(host);
 		}
 	}
 
