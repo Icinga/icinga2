@@ -173,6 +173,10 @@ static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Pt
 	if (!short_name.IsEmpty())
 		builder->AddExpression("short_name", OperatorSet, short_name);
 
+	Value notification_interval = serviceDesc->Get("notification_interval");
+	if (!notification_interval.IsEmpty())
+		builder->AddExpression("notification_interval", OperatorSet, notification_interval);
+
 	if (copyServiceAttrs) {
 		Value servicedependencies = serviceDesc->Get("servicedependencies");
 		if (!servicedependencies.IsEmpty())

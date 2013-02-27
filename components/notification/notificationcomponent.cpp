@@ -67,6 +67,9 @@ void NotificationComponent::NotificationTimerHandler(void)
 		if (service->GetState() == StateOK)
 			continue;
 
+		if (service->GetNotificationInterval() <= 0)
+			continue;
+
 		if (service->GetLastNotification() > now - service->GetNotificationInterval())
 			continue;
 
