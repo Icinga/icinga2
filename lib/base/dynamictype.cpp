@@ -99,14 +99,7 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 	m_ObjectMap[name] = object;
 	m_ObjectSet.insert(object);
 
-	/* notify the object that it's been registered */
 	object->OnRegistrationCompleted();
-
-	{
-		ObjectLock olock(object);
-		object->Flush();
-	}
-
 }
 
 void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
@@ -161,8 +154,6 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 		/* apply the object's non-config attributes */
 		object->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
 	}
-
-	object->OnConstructionCompleted();
 
 	return object;
 }

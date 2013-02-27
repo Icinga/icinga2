@@ -228,7 +228,7 @@ public:
 	static signals2::signal<void (const DynamicObject::Ptr&)> OnRegistered;
 	static signals2::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
 	static signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> OnTransactionClosing;
-	static signals2::signal<void (const DynamicObject::Ptr&)> OnFlushObject;
+	static signals2::signal<void (double, const DynamicObject::Ptr&)> OnFlushObject;
 
 	ScriptTask::Ptr MakeMethodTask(const String& method,
 	    const vector<Value>& arguments);
@@ -242,9 +242,6 @@ public:
 
 	void SetSource(const String& value);
 	String GetSource(void) const;
-
-	void SetTx(double tx);
-	double GetTx(void) const;
 
 	void Flush(void);
 
@@ -267,7 +264,6 @@ public:
 	static double GetCurrentTx(void);
 
 protected:
-	virtual void OnConstructionCompleted(void);
 	virtual void OnRegistrationCompleted(void);
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
@@ -301,7 +297,7 @@ private:
 	static boost::once_flag m_TransactionOnce;
 	static Timer::Ptr m_TransactionTimer;
 
-	friend class DynamicType; /* for OnInitCompleted. */
+	friend class DynamicType; /* for OnRegistrationCompleted. */
 };
 
 }

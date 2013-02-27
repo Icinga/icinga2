@@ -52,23 +52,23 @@ public:
 
 	static Dictionary::Ptr CalculateDynamicMacros(const Host::Ptr& self);
 
-	shared_ptr<Service> GetHostCheckService(void) const;
-	set<Host::Ptr> GetParentHosts(void) const;
-	set<shared_ptr<Service> > GetParentServices(void) const;
+	static shared_ptr<Service> GetHostCheckService(const Host::Ptr& self);
+	static set<Host::Ptr> GetParentHosts(const Host::Ptr& self);
+	static set<shared_ptr<Service> > GetParentServices(const Host::Ptr& self);
 
 	static bool IsReachable(const Host::Ptr& self);
 
-	shared_ptr<Service> GetServiceByShortName(const Value& name) const;
+	static shared_ptr<Service> GetServiceByShortName(const Host::Ptr& self, const Value& name);
 
 	set<shared_ptr<Service> > GetServices(void) const;
-	static void InvalidateServicesCache(void);
+	static void RefreshServicesCache(void);
 
 	static void ValidateServiceDictionary(const ScriptTask::Ptr& task,
 	    const std::vector<icinga::Value>& arguments);
 
 protected:
-	void OnRegistrationCompleted(void);
-	void OnAttributeChanged(const String& name, const Value& oldValue);
+	virtual void OnRegistrationCompleted(void);
+	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
 	Attribute<String> m_DisplayName;
@@ -79,15 +79,12 @@ private:
 	Attribute<String> m_HostCheck;
 	Dictionary::Ptr m_SlaveServices;
 
-	static boost::mutex m_Mutex;
+	static boost::mutex m_ServiceMutex;
 	static map<String, map<String, weak_ptr<Service> > > m_ServicesCache;
-	static bool m_ServicesCacheValid;
 
 	static void UpdateSlaveServices(const Host::Ptr& self);
 
 	static void ValidateServicesCache(void);
-
-	weak_ptr<Service> m_HostCheckService;
 };
 
 }

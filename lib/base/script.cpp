@@ -35,10 +35,8 @@ Script::Script(const Dictionary::Ptr& properties)
 	RegisterAttribute("code", Attribute_Config, &m_Code);
 }
 
-void Script::OnRegistrationCompleted(void)
+void Script::Start(void)
 {
-	DynamicObject::OnRegistrationCompleted();
-
 	SpawnInterpreter();
 }
 

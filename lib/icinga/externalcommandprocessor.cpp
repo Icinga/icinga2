@@ -162,7 +162,7 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const vector<
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = Host::GetHostCheckService(host);
 
 	if (!hc->GetEnablePassiveChecks())
 		BOOST_THROW_EXCEPTION(invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
@@ -222,7 +222,7 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const vector<String>& a
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = Host::GetHostCheckService(host);
 
 	double planned_check = Convert::ToDouble(arguments[1]);
 
@@ -243,7 +243,7 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const vector<Stri
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = Host::GetHostCheckService(host);
 
 	Logger::Write(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
 	hc->SetForceNextCheck(true);
@@ -289,7 +289,7 @@ void ExternalCommandProcessor::EnableHostCheck(double, const vector<String>& arg
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Enabling active checks for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = Host::GetHostCheckService(host);
 
 	if (hc)
 		hc->SetEnableActiveChecks(true);
@@ -303,7 +303,7 @@ void ExternalCommandProcessor::DisableHostCheck(double, const vector<String>& ar
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Disabling active checks for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = Host::GetHostCheckService(host);
 
 	if (hc)
 		hc->SetEnableActiveChecks(false);
@@ -454,7 +454,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<Strin
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for host '" + host->GetName() + "'");
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = Host::GetHostCheckService(host);
 	if (service) {
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
@@ -474,7 +474,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for host '" + host->GetName() + "'");
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = Host::GetHostCheckService(host);
 	if (service) {
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
@@ -491,7 +491,7 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const vector<St
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = Host::GetHostCheckService(host);
 	if (service) {
 		service->ClearAcknowledgement();
 	}
@@ -561,7 +561,7 @@ void ExternalCommandProcessor::EnablePassiveHostChecks(double, const vector<Stri
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Enabling passive checks for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = Host::GetHostCheckService(host);
 
 	if (hc)
 		hc->SetEnablePassiveChecks(true);
@@ -575,7 +575,7 @@ void ExternalCommandProcessor::DisablePassiveHostChecks(double, const vector<Str
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Disabling passive checks for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = Host::GetHostCheckService(host);
 
 	if (hc)
 		hc->SetEnablePassiveChecks(false);
@@ -735,7 +735,7 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const vector<String>
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = Host::GetHostCheckService(host);
 	if (service) {
 		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
@@ -788,7 +788,7 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const vecto
 
 	BOOST_FOREACH(const Host::Ptr& host, HostGroup::GetMembers(hg)) {
 		Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
-		Service::Ptr service = host->GetHostCheckService();
+		Service::Ptr service = Host::GetHostCheckService(host);
 		if (service) {
 			(void) service->AddDowntime(arguments[6], arguments[7],
 			    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
@@ -849,7 +849,7 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const ve
 
 	BOOST_FOREACH(const Service::Ptr& service, ServiceGroup::GetMembers(sg)) {
 		Host::Ptr host = service->GetHost();
-		Service::Ptr hcService = host->GetHostCheckService();
+		Service::Ptr hcService = Host::GetHostCheckService(host);
 		if (hcService)
 			services.insert(hcService);
 	}
@@ -890,7 +890,7 @@ void ExternalCommandProcessor::AddHostComment(double, const vector<String>& argu
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Creating comment for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = Host::GetHostCheckService(host);
 	if (service)
 		(void) service->AddComment(CommentUser, arguments[2], arguments[3], 0);
 }
@@ -937,7 +937,7 @@ void ExternalCommandProcessor::DelAllHostComments(double, const vector<String>& 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Removing all comments for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = Host::GetHostCheckService(host);
 	if (service)
 		service->RemoveAllComments();
 }
@@ -961,7 +961,7 @@ void ExternalCommandProcessor::SendCustomHostNotification(double time, const vec
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Sending custom notification for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = Host::GetHostCheckService(host);
 	if (service) {
 		service->RequestNotifications(NotificationCustom);
 	}
@@ -986,7 +986,7 @@ void ExternalCommandProcessor::DelayHostNotification(double time, const vector<S
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Delaying notifications for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = Host::GetHostCheckService(host);
 	if (service) {
 		service->SetLastNotification(Convert::ToDouble(arguments[1]));
 	}
@@ -1011,7 +1011,7 @@ void ExternalCommandProcessor::EnableHostNotifications(double, const vector<Stri
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Enabling notifications for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = Host::GetHostCheckService(host);
 
 	if (hc)
 		hc->SetEnableNotifications(true);
@@ -1025,7 +1025,7 @@ void ExternalCommandProcessor::DisableHostNotifications(double, const vector<Str
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Disabling notifications for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = Host::GetHostCheckService(host);
 
 	if (hc)
 		hc->SetEnableNotifications(false);

@@ -38,11 +38,12 @@ public:
 
 	Script(const Dictionary::Ptr& properties);
 
+	virtual void Start(void);
+
 	String GetLanguage(void) const;
 	String GetCode(void) const;
 
 protected:
-	virtual void OnRegistrationCompleted(void);
 	virtual void OnAttributeUpdate(const String& name, const Value& oldValue);
 
 private:

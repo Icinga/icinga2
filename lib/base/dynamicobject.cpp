@@ -30,7 +30,7 @@ Timer::Ptr DynamicObject::m_TransactionTimer;
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
 signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
 signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> DynamicObject::OnTransactionClosing;
-signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
+signals2::signal<void (double, const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	: m_EventSafe(false), m_ConfigTx(0), m_Registered(false)
@@ -73,26 +73,6 @@ void DynamicObject::Initialize(void)
 	m_TransactionTimer->SetInterval(0.5);
 	m_TransactionTimer->OnTimerExpired.connect(boost::bind(&DynamicObject::NewTx));
 	m_TransactionTimer->Start();
-}
-
-/**
- * @threadsafety Always.
- */
-void DynamicObject::SendLocalUpdateEvents(void)
-{
-	map<String, Value, string_iless> attrs;
-
-	{
-		ObjectLock olock(this);
-		attrs.swap(m_ModifiedAttributes);
-	}
-
-	/* Check if it's safe to send events. */
-	if (GetEventSafe()) {
-		map<String, Value, string_iless>::iterator it;
-		for (it = attrs.begin(); it != attrs.end(); it++)
-			OnAttributeChanged(it->first, it->second);
-	}
 }
 
 Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) const
@@ -244,7 +224,7 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 
 	if (GetEventSafe()) {
 		/* We can't call GetSelf() in the constructor or destructor.
-		 * The OnConstructionCompleted() function will take care of adding this
+		 * The Register() function will take care of adding this
 		 * object to the list of modified objects later on if we can't
 		 * do it here. */
 
@@ -327,6 +307,17 @@ String DynamicObject::GetSource(void) const
 
 void DynamicObject::Register(void)
 {
+	/* It's now safe to send us attribute events. */
+	SetEventSafe(true);
+
+	/* Add this new object to the list of modified objects.
+	 * We're doing this here because we can't construct
+	 * a while WeakPtr from within the object's constructor. */
+	{
+		boost::mutex::scoped_lock lock(m_TransactionMutex);
+		m_ModifiedObjects.insert(GetSelf());
+	}
+
 	{
 		DynamicType::Ptr dtype = GetType();
 		ObjectLock olock(dtype);
@@ -339,10 +330,24 @@ void DynamicObject::Register(void)
 		if (!dobj)
 			dtype->RegisterObject(self);
 	}
+}
 
-	OnRegistered(GetSelf());
+void DynamicObject::OnRegistrationCompleted(void)
+{
+	DynamicObject::Ptr object;
 
-	Start();
+	{
+		ObjectLock olock(this);
+		m_Registered = true;
+
+		Start();
+
+		Flush();
+
+		object = GetSelf();
+	}
+
+	OnRegistered(object);
 }
 
 void DynamicObject::Start(void)
@@ -532,8 +537,7 @@ double DynamicObject::GetCurrentTx(void)
 
 void DynamicObject::Flush(void)
 {
-	SendLocalUpdateEvents();
-	OnFlushObject(GetSelf());
+	OnFlushObject(GetCurrentTx(), GetSelf());
 }
 
 /*
@@ -558,28 +562,22 @@ void DynamicObject::NewTx(void)
 		if (!object)
 			continue;
 
-		object->SendLocalUpdateEvents();
+		map<String, Value, string_iless> attrs;
+
+		{
+			ObjectLock olock(object);
+			attrs.swap(object->m_ModifiedAttributes);
+		}
+
+		/* Check if it's safe to send events. */
+		if (object->GetEventSafe()) {
+			map<String, Value, string_iless>::iterator it;
+			for (it = attrs.begin(); it != attrs.end(); it++)
+				object->OnAttributeChanged(it->first, it->second);
+		}
 	}
 
 	OnTransactionClosing(tx, objects);
-}
-
-void DynamicObject::OnConstructionCompleted(void)
-{
-	/* It's now safe to send us attribute events. */
-	SetEventSafe(true);
-
-	/* Add this new object to the list of modified objects.
-	 * We're doing this here because we can't construct
-	 * a while WeakPtr from within the object's constructor. */
-	boost::mutex::scoped_lock lock(m_TransactionMutex);
-	m_ModifiedObjects.insert(GetSelf());
-}
-
-void DynamicObject::OnRegistrationCompleted(void)
-{
-	ObjectLock olock(this);
-	m_Registered = true;
 }
 
 void DynamicObject::OnAttributeChanged(const String&, const Value&)

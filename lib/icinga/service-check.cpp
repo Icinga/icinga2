@@ -254,10 +254,11 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 	long attempt = GetCurrentCheckAttempt();
 
 	if (cr->Get("state") == StateOK) {
-		if (old_state == StateOK && old_stateType == StateTypeSoft) {
+		if (old_state == StateOK && old_stateType == StateTypeSoft)
 			hardChange = true; // hard recovery
+
+		if (old_state == StateOK || old_stateType == StateTypeSoft)
 			SetStateType(StateTypeHard);
-		}
 
 		attempt = 1;
 		recovery = true;
@@ -294,16 +295,18 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 		}
 
 		/* reschedule service dependencies */
-		BOOST_FOREACH(const Service::Ptr& parent, GetParentServices()) {
+		BOOST_FOREACH(const Service::Ptr& parent, Service::GetParentServices(GetSelf())) {
 			parent->SetNextCheck(Utility::GetTime());
 		}
 
 		/* reschedule host dependencies */
-		BOOST_FOREACH(const Host::Ptr& parent, GetParentHosts()) {
-			Service::Ptr service = parent->GetHostCheckService();
+		BOOST_FOREACH(const Host::Ptr& parent, Service::GetParentHosts(GetSelf())) {
+			Service::Ptr service = Host::GetHostCheckService(parent);
 
-			if (service)
+			if (service) {
+				ObjectLock olock(service);
 				service->SetNextCheck(Utility::GetTime());
+			}
 		}
 	}
 

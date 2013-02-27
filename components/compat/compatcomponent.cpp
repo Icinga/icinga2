@@ -257,11 +257,8 @@ void CompatComponent::DumpDowntimes(ostream& fp, const Service::Ptr& owner, Comp
 
 void CompatComponent::DumpHostStatus(ostream& fp, const Host::Ptr& host)
 {
-	Service::Ptr hc;
-
 	{
 		ObjectLock olock(host);
-		hc = host->GetHostCheckService();
 
 		fp << "hoststatus {" << "\n"
 		   << "\t" << "host_name=" << host->GetName() << "\n";
@@ -269,6 +266,7 @@ void CompatComponent::DumpHostStatus(ostream& fp, const Host::Ptr& host)
 
 	ServiceState hcState = StateOK;
 
+	Service::Ptr hc = Host::GetHostCheckService(host);
 	if (hc) {
 		ObjectLock olock(hc);
 		hcState = hc->GetState();
@@ -296,26 +294,23 @@ void CompatComponent::DumpHostStatus(ostream& fp, const Host::Ptr& host)
 
 void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 {
-	Service::Ptr hc;
-
 	{
 		ObjectLock olock(host);
 
 		fp << "define host {" << "\n"
 		   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
 		   << "\t" << "display_name" << "\t" << host->GetDisplayName() << "\n";
-
-		set<Host::Ptr> parents = host->GetParentHosts();
-
-		if (!parents.empty()) {
-			fp << "\t" << "parents" << "\t";
-			DumpNameList(fp, parents);
-			fp << "\n";
-		}
-
-		hc = host->GetHostCheckService();
 	}
 
+	set<Host::Ptr> parents = Host::GetParentHosts(host);
+
+	if (!parents.empty()) {
+		fp << "\t" << "parents" << "\t";
+		DumpNameList(fp, parents);
+		fp << "\n";
+	}
+
+	Service::Ptr hc = Host::GetHostCheckService(host);
 	if (hc) {
 		ObjectLock olock(hc);
 
@@ -326,7 +321,7 @@ void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 		   << "\t" << "passive_checks_enabled" << "\t" << (hc->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (hc->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "d,u,r" << "\n"
-		   << "\t" << "notification_interval" << "\t" << "60" << "\n"
+		   << "\t" << "notification_interval" << "\t" << hc->GetNotificationInterval() << "\n"
 		   << "\t" << "notification_period" << "\t" << "24x7" << "\n";
 	}
 
@@ -434,13 +429,11 @@ void CompatComponent::DumpServiceStatus(ostream& fp, const Service::Ptr& service
 
 void CompatComponent::DumpServiceObject(ostream& fp, const Service::Ptr& service)
 {
-	set<Service::Ptr> parentServices;
 	Host::Ptr host;
 	String host_name, short_name;
 
 	{
 		ObjectLock olock(service);
-		parentServices = service->GetParentServices();
 		host = service->GetHost();
 		short_name = service->GetShortName();
 	}
@@ -465,13 +458,13 @@ void CompatComponent::DumpServiceObject(ostream& fp, const Service::Ptr& service
 		   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
-   		   << "\t" << "notification_interval" << "\t" << "60" << "\n"
+   		   << "\t" << "notification_interval" << "\t" << service->GetNotificationInterval() << "\n"
 		   << "\t" << "notification_period" << "\t" << "24x7" << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}
 
-	BOOST_FOREACH(const Service::Ptr& parent, parentServices) {
+	BOOST_FOREACH(const Service::Ptr& parent, Service::GetParentServices(service)) {
 		ObjectLock plock(parent);
 
 		fp << "define servicedependency {" << "\n"

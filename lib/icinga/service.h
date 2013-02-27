@@ -109,8 +109,8 @@ public:
 
 	static Dictionary::Ptr CalculateDynamicMacros(const Service::Ptr& self);
 
-	set<Host::Ptr> GetParentHosts(void) const;
-	set<Service::Ptr> GetParentServices(void) const;
+	static set<Host::Ptr> GetParentHosts(const Service::Ptr& self);
+	static set<Service::Ptr> GetParentServices(const Service::Ptr& self);
 
 	bool IsReachable(const Service::Ptr& self);
 
@@ -208,8 +208,7 @@ public:
 	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
 	static bool IsDowntimeExpired(const Dictionary::Ptr& downtime);
 
-	static void InvalidateDowntimesCache(void);
-	static void ValidateDowntimesCache(void);
+	static void RefreshDowntimesCache(void);
 
 	bool IsInDowntime(void) const;
 	bool IsAcknowledged(void);
@@ -231,20 +230,20 @@ public:
 
 	static bool IsCommentExpired(const Dictionary::Ptr& comment);
 
-	static void InvalidateCommentsCache(void);
-	static void ValidateCommentsCache(void);
+	static void RefreshCommentsCache(void);
 
 	/* Notifications */
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled);
 
-	void RequestNotifications(NotificationType type) const;
-	void SendNotifications(NotificationType type);
+	double GetNotificationInterval(void) const;
 
-	static void InvalidateNotificationsCache(void);
-	static void ValidateNotificationsCache(void);
+	void RequestNotifications(NotificationType type);
+	static void SendNotifications(const Service::Ptr& self, NotificationType type);
 
-	set<Notification::Ptr> GetNotifications(void) const;
+	static set<Notification::Ptr> GetNotifications(const Service::Ptr& self);
+
+	static void RefreshNotificationsCache(void);
 
 	static void UpdateSlaveNotifications(const Service::Ptr& self);
 
@@ -256,7 +255,6 @@ protected:
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
-	Host::Ptr m_Host;
 	Dictionary::Ptr m_SlaveNotifications;
 
 	Attribute<String> m_DisplayName;
@@ -298,14 +296,13 @@ private:
 
 	static int m_NextDowntimeID;
 
+	static boost::mutex m_DowntimeMutex;
 	static map<int, String> m_LegacyDowntimesCache;
 	static map<String, Service::WeakPtr> m_DowntimesCache;
-	static bool m_DowntimesCacheValid;
 	static Timer::Ptr m_DowntimesExpireTimer;
 
 	static void DowntimesExpireTimerHandler(void);
 
-	void AddDowntimesToCache(void);
 	void RemoveExpiredDowntimes(void);
 
 	/* Comments */
@@ -313,9 +310,9 @@ private:
 
 	static int m_NextCommentID;
 
+	static boost::mutex m_CommentMutex;
 	static map<int, String> m_LegacyCommentsCache;
 	static map<String, Service::WeakPtr> m_CommentsCache;
-	static bool m_CommentsCacheValid;
 	static Timer::Ptr m_CommentsExpireTimer;
 
 	static void CommentsExpireTimerHandler(void);
@@ -326,9 +323,10 @@ private:
 	/* Notifications */
 	Attribute<bool> m_EnableNotifications;
 	Attribute<double> m_LastNotification;
+	Attribute<double> m_NotificationInterval;
 
+	static boost::mutex m_NotificationMutex;
 	static map<String, set<Notification::WeakPtr> > m_NotificationsCache;
-	static bool m_NotificationsCacheValid;
 };
 
 }

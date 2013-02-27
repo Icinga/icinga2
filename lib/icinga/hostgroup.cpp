@@ -23,7 +23,6 @@ using namespace icinga;
 
 boost::mutex HostGroup::m_Mutex;
 map<String, vector<Host::WeakPtr> > HostGroup::m_MembersCache;
-bool HostGroup::m_MembersCacheValid = true;
 
 REGISTER_TYPE(HostGroup, NULL);
 
@@ -33,6 +32,16 @@ HostGroup::HostGroup(const Dictionary::Ptr& properties)
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("notes_url", Attribute_Config, &m_NotesUrl);
 	RegisterAttribute("action_url", Attribute_Config, &m_ActionUrl);
+}
+
+HostGroup::~HostGroup(void)
+{
+	RefreshMembersCache();
+}
+
+void HostGroup::OnRegistrationCompleted(void)
+{
+	RefreshMembersCache();
 }
 
 String HostGroup::GetDisplayName(void) const
@@ -88,10 +97,8 @@ set<Host::Ptr> HostGroup::GetMembers(const HostGroup::Ptr& self)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		ValidateMembersCache();
-
-		BOOST_FOREACH(const Host::WeakPtr& hst, m_MembersCache[name]) {
-			Host::Ptr host = hst.lock();
+		BOOST_FOREACH(const Host::WeakPtr& whost, m_MembersCache[name]) {
+			Host::Ptr host = whost.lock();
 
 			if (!host)
 				continue;
@@ -103,22 +110,9 @@ set<Host::Ptr> HostGroup::GetMembers(const HostGroup::Ptr& self)
 	return hosts;
 }
 
-void HostGroup::InvalidateMembersCache(void)
+void HostGroup::RefreshMembersCache(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_MembersCacheValid = false;
-	m_MembersCache.clear();
-}
-
-/**
- * @threadsafety Caller must hold m_Mutex.
- */
-void HostGroup::ValidateMembersCache(void)
-{
-	if (m_MembersCacheValid)
-		return;
-
-	m_MembersCache.clear();
+	map<String, vector<weak_ptr<Host> > > newMembersCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
@@ -132,12 +126,13 @@ void HostGroup::ValidateMembersCache(void)
 			Value hostgroup;
 			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
 				if (!HostGroup::Exists(hostgroup))
-					Logger::Write(LogWarning, "icinga", "Host group '" + static_cast<String>(hostgroup) + "' used but not defined.");
+					continue;
 
-				m_MembersCache[hostgroup].push_back(host);
+				newMembersCache[hostgroup].push_back(host);
 			}
 		}
 	}
 
-	m_MembersCacheValid = true;
+	boost::mutex::scoped_lock lock(m_Mutex);
+	m_MembersCache.swap(newMembersCache);
 }

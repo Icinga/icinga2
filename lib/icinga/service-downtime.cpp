@@ -22,9 +22,9 @@
 using namespace icinga;
 
 int Service::m_NextDowntimeID = 1;
+boost::mutex Service::m_DowntimeMutex;
 map<int, String> Service::m_LegacyDowntimesCache;
 map<String, Service::WeakPtr> Service::m_DowntimesCache;
-bool Service::m_DowntimesCacheValid;
 Timer::Ptr Service::m_DowntimesExpireTimer;
 
 int Service::GetNextDowntimeID(void)
@@ -52,7 +52,15 @@ String Service::AddDowntime(const String& author, const String& comment,
 	downtime->Set("triggered_by", triggeredBy);
 	downtime->Set("triggers", boost::make_shared<Dictionary>());
 	downtime->Set("trigger_time", 0);
-	downtime->Set("legacy_id", m_NextDowntimeID++);
+
+	int legacy_id;
+
+	{
+		boost::mutex::scoped_lock lock(m_DowntimeMutex);
+		legacy_id = m_NextDowntimeID++;
+	}
+
+	downtime->Set("legacy_id", legacy_id);
 
 	if (!triggeredBy.IsEmpty()) {
 		Service::Ptr otherOwner = GetOwnerByDowntimeID(triggeredBy);
@@ -89,7 +97,11 @@ void Service::RemoveDowntime(const String& id)
 	if (!downtimes)
 		return;
 
-	downtimes->Remove(id);
+	{
+		ObjectLock olock(downtimes);
+		downtimes->Remove(id);
+	}
+
 	owner->Touch("downtimes");
 }
 
@@ -99,6 +111,8 @@ void Service::TriggerDowntimes(void)
 
 	if (!downtimes)
 		return;
+
+	ObjectLock olock(downtimes);
 
 	String id;
 	BOOST_FOREACH(tie(id, tuples::ignore), downtimes) {
@@ -111,7 +125,12 @@ void Service::TriggerDowntime(const String& id)
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
 	Dictionary::Ptr downtime = GetDowntimeByID(id);
 
+	if (!downtime)
+		return;
+
 	double now = Utility::GetTime();
+
+	ObjectLock olock(downtime);
 
 	if (now < downtime->Get("start_time") ||
 	    now > downtime->Get("end_time"))
@@ -121,6 +140,7 @@ void Service::TriggerDowntime(const String& id)
 		downtime->Set("trigger_time", now);
 
 	Dictionary::Ptr triggers = downtime->Get("triggers");
+	ObjectLock tlock(triggers);
 	String tid;
 	BOOST_FOREACH(tie(tid, tuples::ignore), triggers) {
 		TriggerDowntime(tid);
@@ -131,7 +151,7 @@ void Service::TriggerDowntime(const String& id)
 
 String Service::GetDowntimeIDFromLegacyID(int id)
 {
-	ValidateDowntimesCache();
+	boost::mutex::scoped_lock lock(m_DowntimeMutex);
 
 	map<int, String>::iterator it = m_LegacyDowntimesCache.find(id);
 
@@ -143,8 +163,7 @@ String Service::GetDowntimeIDFromLegacyID(int id)
 
 Service::Ptr Service::GetOwnerByDowntimeID(const String& id)
 {
-	ValidateDowntimesCache();
-
+	boost::mutex::scoped_lock lock(m_DowntimeMutex);
 	return m_DowntimesCache[id].lock();
 }
 
@@ -158,6 +177,7 @@ Dictionary::Ptr Service::GetDowntimeByID(const String& id)
 	Dictionary::Ptr downtimes = owner->m_Downtimes;
 
 	if (downtimes) {
+		ObjectLock olock(downtimes);
 		Dictionary::Ptr downtime = downtimes->Get(id);
 		return downtime;
 	}
@@ -168,6 +188,8 @@ Dictionary::Ptr Service::GetDowntimeByID(const String& id)
 bool Service::IsDowntimeActive(const Dictionary::Ptr& downtime)
 {
 	double now = Utility::GetTime();
+
+	ObjectLock olock(downtime);
 
 	if (now < downtime->Get("start_time") ||
 	    now > downtime->Get("end_time"))
@@ -186,58 +208,56 @@ bool Service::IsDowntimeActive(const Dictionary::Ptr& downtime)
 
 bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
 {
+	ObjectLock olock(downtime);
 	return (downtime->Get("end_time") < Utility::GetTime());
 }
 
-void Service::InvalidateDowntimesCache(void)
+void Service::RefreshDowntimesCache(void)
 {
-	m_DowntimesCacheValid = false;
-	m_DowntimesCache.clear();
-	m_LegacyDowntimesCache.clear();
-}
-
-void Service::AddDowntimesToCache(void)
-{
-	Dictionary::Ptr downtimes = m_Downtimes;
-
-	if (!downtimes)
-		return;
-
-	String id;
-	Dictionary::Ptr downtime;
-	BOOST_FOREACH(tie(id, downtime), downtimes) {
-		int legacy_id = downtime->Get("legacy_id");
-
-		if (legacy_id >= m_NextDowntimeID)
-			m_NextDowntimeID = legacy_id + 1;
-
-		if (m_LegacyDowntimesCache.find(legacy_id) != m_LegacyDowntimesCache.end()) {
-			/* The legacy_id is already in use by another downtime;
-			 * this shouldn't usually happen - assign it a new ID. */
-			legacy_id = m_NextDowntimeID++;
-			downtime->Set("legacy_id", legacy_id);
-			Touch("downtimes");
-		}
-
-		m_LegacyDowntimesCache[legacy_id] = id;
-		m_DowntimesCache[id] = GetSelf();
-	}
-}
-
-void Service::ValidateDowntimesCache(void)
-{
-	if (m_DowntimesCacheValid)
-		return;
-
-	m_DowntimesCache.clear();
-	m_LegacyDowntimesCache.clear();
+	map<int, String> newLegacyDowntimesCache;
+	map<String, Service::WeakPtr> newDowntimesCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
-		service->AddDowntimesToCache();
+
+		Dictionary::Ptr downtimes;
+
+		{
+			ObjectLock olock(service);
+			downtimes = service->GetDowntimes();
+		}
+
+		if (!downtimes)
+			continue;
+
+		ObjectLock olock(downtimes);
+
+		String id;
+		Dictionary::Ptr downtime;
+		BOOST_FOREACH(tie(id, downtime), downtimes) {
+			ObjectLock dlock(downtime);
+			int legacy_id = downtime->Get("legacy_id");
+
+			if (legacy_id >= m_NextDowntimeID)
+				m_NextDowntimeID = legacy_id + 1;
+
+			if (newLegacyDowntimesCache.find(legacy_id) != newLegacyDowntimesCache.end()) {
+				/* The legacy_id is already in use by another downtime;
+				 * this shouldn't usually happen - assign it a new ID. */
+				legacy_id = m_NextDowntimeID++;
+				downtime->Set("legacy_id", legacy_id);
+				service->Touch("downtimes");
+			}
+
+			newLegacyDowntimesCache[legacy_id] = id;
+			newDowntimesCache[id] = service;
+		}
 	}
 
-	m_DowntimesCacheValid = true;
+	boost::mutex::scoped_lock lock(m_DowntimeMutex);
+
+	m_DowntimesCache.swap(newDowntimesCache);
+	m_LegacyDowntimesCache.swap(newLegacyDowntimesCache);
 
 	if (!m_DowntimesExpireTimer) {
 		m_DowntimesExpireTimer = boost::make_shared<Timer>();
@@ -255,6 +275,8 @@ void Service::RemoveExpiredDowntimes(void)
 		return;
 
 	vector<String> expiredDowntimes;
+
+	ObjectLock olock(downtimes);
 
 	String id;
 	Dictionary::Ptr downtime;
@@ -287,6 +309,8 @@ bool Service::IsInDowntime(void) const
 
 	if (!downtimes)
 		return false;
+
+	ObjectLock olock(downtimes);
 
 	Dictionary::Ptr downtime;
 	BOOST_FOREACH(tie(tuples::ignore, downtime), downtimes) {

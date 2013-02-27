@@ -23,7 +23,6 @@ using namespace icinga;
 
 boost::mutex ServiceGroup::m_Mutex;
 map<String, vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
-bool ServiceGroup::m_MembersCacheValid;
 
 REGISTER_TYPE(ServiceGroup, NULL);
 
@@ -33,6 +32,16 @@ ServiceGroup::ServiceGroup(const Dictionary::Ptr& properties)
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("notes_url", Attribute_Config, &m_NotesUrl);
 	RegisterAttribute("action_url", Attribute_Config, &m_ActionUrl);
+}
+
+ServiceGroup::~ServiceGroup(void)
+{
+	RefreshMembersCache();
+}
+
+void ServiceGroup::OnRegistrationCompleted(void)
+{
+	RefreshMembersCache();
 }
 
 String ServiceGroup::GetDisplayName(void) const
@@ -88,10 +97,8 @@ set<Service::Ptr> ServiceGroup::GetMembers(const ServiceGroup::Ptr& self)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		ValidateMembersCache();
-
-		BOOST_FOREACH(const Service::WeakPtr& svc, m_MembersCache[name]) {
-			Service::Ptr service = svc.lock();
+		BOOST_FOREACH(const Service::WeakPtr& wservice, m_MembersCache[name]) {
+			Service::Ptr service = wservice.lock();
 
 			if (!service)
 				continue;
@@ -103,22 +110,9 @@ set<Service::Ptr> ServiceGroup::GetMembers(const ServiceGroup::Ptr& self)
 	return services;
 }
 
-void ServiceGroup::InvalidateMembersCache(void)
+void ServiceGroup::RefreshMembersCache(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_MembersCacheValid = false;
-	m_MembersCache.clear();
-}
-
-/**
- * @threadsafety Caller must hold m_Mutex.
- */
-void ServiceGroup::ValidateMembersCache(void)
-{
-	if (m_MembersCacheValid)
-		return;
-
-	m_MembersCache.clear();
+	map<String, vector<weak_ptr<Service> > > newMembersCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
@@ -132,12 +126,14 @@ void ServiceGroup::ValidateMembersCache(void)
 			Value servicegroup;
 			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
 				if (!ServiceGroup::Exists(servicegroup))
-					Logger::Write(LogWarning, "icinga", "Service group '" + static_cast<String>(servicegroup) + "' used but not defined.");
+					continue;
 
-				m_MembersCache[servicegroup].push_back(service);
+				newMembersCache[servicegroup].push_back(service);
 			}
 		}
 	}
 
-	m_MembersCacheValid = true;
+	boost::mutex::scoped_lock lock(m_Mutex);
+	m_MembersCache.swap(newMembersCache);
+
 }

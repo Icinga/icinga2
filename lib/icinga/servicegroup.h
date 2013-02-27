@@ -35,6 +35,7 @@ public:
 	typedef weak_ptr<ServiceGroup> WeakPtr;
 
 	ServiceGroup(const Dictionary::Ptr& properties);
+	~ServiceGroup(void);
 
 	static bool Exists(const String& name);
 	static ServiceGroup::Ptr GetByName(const String& name);
@@ -44,7 +45,11 @@ public:
 	String GetActionUrl(void) const;
 
 	static set<Service::Ptr> GetMembers(const ServiceGroup::Ptr& self);
-	static void InvalidateMembersCache(void);
+
+	static void RefreshMembersCache(void);
+
+protected:
+	virtual void OnRegistrationCompleted(void);
 
 private:
 	Attribute<String> m_DisplayName;
@@ -53,9 +58,6 @@ private:
 
 	static boost::mutex m_Mutex;
 	static map<String, vector<weak_ptr<Service> > > m_MembersCache;
-	static bool m_MembersCacheValid;
-
-	static void ValidateMembersCache(void);
 };
 
 }

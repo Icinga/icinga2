@@ -34,7 +34,8 @@ public:
 	typedef shared_ptr<HostGroup> Ptr;
 	typedef weak_ptr<HostGroup> WeakPtr;
 
-	HostGroup(const Dictionary::Ptr& properties);;
+	HostGroup(const Dictionary::Ptr& properties);
+	~HostGroup(void);
 
 	static bool Exists(const String& name);
 	static HostGroup::Ptr GetByName(const String& name);
@@ -44,7 +45,11 @@ public:
 	String GetActionUrl(void) const;
 
 	static set<Host::Ptr> GetMembers(const HostGroup::Ptr& self);
-	static void InvalidateMembersCache(void);
+
+	static void RefreshMembersCache(void);
+
+protected:
+	virtual void OnRegistrationCompleted(void);
 
 private:
 	Attribute<String> m_DisplayName;
@@ -53,9 +58,6 @@ private:
 
 	static boost::mutex m_Mutex;
 	static map<String, vector<weak_ptr<Host> > > m_MembersCache;
-	static bool m_MembersCacheValid;
-
-	static void ValidateMembersCache(void);
 };
 
 }

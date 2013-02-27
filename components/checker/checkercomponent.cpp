@@ -129,7 +129,7 @@ void CheckerComponent::CheckThreadProc(void)
 
 		try {
 			olock.Unlock();
-			Service::BeginExecuteCheck(service, boost::bind(&CheckerComponent::CheckCompletedHandler, this, service));
+			Service::BeginExecuteCheck(service, boost::bind(&CheckerComponent::CheckCompletedHandler, static_cast<CheckerComponent::Ptr>(GetSelf()), service));
 		} catch (const exception& ex) {
 			olock.Lock();
 			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + diagnostic_information(ex));

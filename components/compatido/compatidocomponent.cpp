@@ -440,7 +440,7 @@ void CompatIdoComponent::DumpHostStatus(const Host::Ptr& host)
 	int state;
 	if (!Host::IsReachable(host))
 		state = 2; /* unreachable */
-	else if (host->GetHostCheckService()->GetState() != StateOK)
+	else if (Host::GetHostCheckService(host)->GetState() != StateOK)
 		state = 1; /* down */
 	else
 		state = 0; /* up */

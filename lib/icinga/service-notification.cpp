@@ -21,10 +21,10 @@
 
 using namespace icinga;
 
+boost::mutex Service::m_NotificationMutex;
 map<String, set<Notification::WeakPtr> > Service::m_NotificationsCache;
-bool Service::m_NotificationsCacheValid;
 
-void Service::RequestNotifications(NotificationType type) const
+void Service::RequestNotifications(NotificationType type)
 {
 	RequestMessage msg;
 	msg.SetMethod("icinga::SendNotifications");
@@ -37,21 +37,32 @@ void Service::RequestNotifications(NotificationType type) const
 
 	Logger::Write(LogDebug, "icinga", "Sending notification anycast request for service '" + GetName() + "'");
 	EndpointManager::GetInstance()->SendAnycastMessage(Endpoint::Ptr(), msg);
+
+	SetLastNotification(Utility::GetTime());
 }
 
-void Service::SendNotifications(NotificationType type)
+void Service::SendNotifications(const Service::Ptr& self, NotificationType type)
 {
-	if (!GetEnableNotifications()) {
-		Logger::Write(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
+	String service_name;
+	bool enable_notifications;
+
+	{
+		ObjectLock olock(self);
+		service_name = self->GetName();
+		enable_notifications = self->GetEnableNotifications();
+	}
+
+	if (!enable_notifications) {
+		Logger::Write(LogInformation, "icinga", "Notifications are disabled for service '" + service_name + "'.");
 		return;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Sending notifications for service '" + GetName() + "'");
+	Logger::Write(LogInformation, "icinga", "Sending notifications for service '" + service_name + "'");
 
-	set<Notification::Ptr> notifications = GetNotifications();
+	set<Notification::Ptr> notifications = GetNotifications(self);
 
 	if (notifications.size() == 0)
-		Logger::Write(LogInformation, "icinga", "Service '" + GetName() + "' does not have any notifications.");
+		Logger::Write(LogInformation, "icinga", "Service '" + service_name + "' does not have any notifications.");
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {
@@ -59,51 +70,64 @@ void Service::SendNotifications(NotificationType type)
 		} catch (const exception& ex) {
 			stringstream msgbuf;
 			msgbuf << "Exception occured during notification for service '"
-			       << GetName() << "': " << diagnostic_information(ex);
+			       << service_name << "': " << diagnostic_information(ex);
 			String message = msgbuf.str();
 
 			Logger::Write(LogWarning, "icinga", message);
 		}
 	}
-
-	SetLastNotification(Utility::GetTime());
 }
 
-void Service::InvalidateNotificationsCache(void)
+void Service::RefreshNotificationsCache(void)
 {
-	m_NotificationsCacheValid = false;
-	m_NotificationsCache.clear();
-}
-
-void Service::ValidateNotificationsCache(void)
-{
-	if (m_NotificationsCacheValid)
-		return;
-
-	m_NotificationsCache.clear();
+	map<String, set<Notification::WeakPtr> > newNotificationsCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Notification")) {
 		const Notification::Ptr& notification = static_pointer_cast<Notification>(object);
 
-		m_NotificationsCache[notification->GetService()->GetName()].insert(notification);
+		Service::Ptr service;
+
+		{
+			ObjectLock olock(notification);
+			service = notification->GetService();
+		}
+
+		String service_name;
+
+		{
+			ObjectLock olock(service);
+			service_name = service->GetName();
+		}
+
+		newNotificationsCache[service_name].insert(notification);
 	}
 
-	m_NotificationsCacheValid = true;
+	boost::mutex::scoped_lock lock(m_NotificationMutex);
+	m_NotificationsCache.swap(newNotificationsCache);
 }
 
-set<Notification::Ptr> Service::GetNotifications(void) const
+set<Notification::Ptr> Service::GetNotifications(const Service::Ptr& self)
 {
+	String name;
+
+	{
+		ObjectLock olock(self);
+		name = self->GetName();
+	}
+
 	set<Notification::Ptr> notifications;
 
-	ValidateNotificationsCache();
+	{
+		boost::mutex::scoped_lock lock(m_NotificationMutex);
 
-	BOOST_FOREACH(const Notification::WeakPtr& wservice, m_NotificationsCache[GetName()]) {
-		Notification::Ptr notification = wservice.lock();
+		BOOST_FOREACH(const Notification::WeakPtr& wservice, m_NotificationsCache[name]) {
+			Notification::Ptr notification = wservice.lock();
 
-		if (!notification)
-			continue;
+			if (!notification)
+				continue;
 
-		notifications.insert(notification);
+			notifications.insert(notification);
+		}
 	}
 
 	return notifications;
@@ -268,4 +292,12 @@ void Service::SetEnableNotifications(bool enabled)
 {
 	m_EnableNotifications = enabled;
 	Touch("enable_notifications");
+}
+
+double Service::GetNotificationInterval(void) const
+{
+	if (m_NotificationInterval.IsEmpty())
+		return 300;
+	else
+		return m_NotificationInterval;
 }

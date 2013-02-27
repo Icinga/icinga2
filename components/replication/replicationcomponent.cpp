@@ -32,8 +32,8 @@ void ReplicationComponent::Start(void)
 
 	DynamicObject::OnRegistered.connect(boost::bind(&ReplicationComponent::LocalObjectRegisteredHandler, this, _1));
 	DynamicObject::OnUnregistered.connect(boost::bind(&ReplicationComponent::LocalObjectUnregisteredHandler, this, _1));
-	DynamicObject::OnTransactionClosing.connect(boost::bind(&ReplicationComponent::TransactionClosingHandler, this, _2));
-	DynamicObject::OnFlushObject.connect(boost::bind(&ReplicationComponent::FlushObjectHandler, this, _1));
+	DynamicObject::OnTransactionClosing.connect(boost::bind(&ReplicationComponent::TransactionClosingHandler, this, _1, _2));
+	DynamicObject::OnFlushObject.connect(boost::bind(&ReplicationComponent::FlushObjectHandler, this, _1, _2));
 
 	Endpoint::OnConnected.connect(boost::bind(&ReplicationComponent::EndpointConnectedHandler, this, _1));
 
@@ -161,7 +161,7 @@ void ReplicationComponent::LocalObjectUnregisteredHandler(const DynamicObject::P
 	    MakeObjectMessage(object, "config::ObjectRemoved", 0, false));
 }
 
-void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject::WeakPtr>& modifiedObjects)
+void ReplicationComponent::TransactionClosingHandler(double tx, const set<DynamicObject::WeakPtr>& modifiedObjects)
 {
 	if (modifiedObjects.empty())
 		return;
@@ -176,16 +176,16 @@ void ReplicationComponent::TransactionClosingHandler(const set<DynamicObject::We
 		if (!object)
 			continue;
 
-		FlushObjectHandler(object);
+		FlushObjectHandler(tx, object);
 	}
 }
 
-void ReplicationComponent::FlushObjectHandler(const DynamicObject::Ptr& object)
+void ReplicationComponent::FlushObjectHandler(double tx, const DynamicObject::Ptr& object)
 {
 	if (!ShouldReplicateObject(object))
 		return;
 
-	RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", DynamicObject::GetCurrentTx(), true);
+	RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", tx, true);
 
 	EndpointManager::Ptr em = EndpointManager::GetInstance();
 	{

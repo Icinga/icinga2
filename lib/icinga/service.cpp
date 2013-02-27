@@ -63,31 +63,25 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 
 	RegisterAttribute("enable_notifications", Attribute_Replicated, &m_EnableNotifications);
 	RegisterAttribute("last_notification", Attribute_Replicated, &m_LastNotification);
+	RegisterAttribute("notification_interval", Attribute_Config, &m_NotificationInterval);
 
 	SetSchedulingOffset(rand());
+}
+
+Service::~Service(void)
+{
+	ServiceGroup::RefreshMembersCache();
+	Host::RefreshServicesCache();
+	Service::RefreshDowntimesCache();
+	Service::RefreshCommentsCache();
 }
 
 void Service::OnRegistrationCompleted(void)
 {
 	DynamicObject::OnRegistrationCompleted();
 
-	ServiceGroup::InvalidateMembersCache();
-	Host::InvalidateServicesCache();
-	Service::InvalidateDowntimesCache();
-	Service::InvalidateCommentsCache();
-
-	{
-		ObjectLock olock(this);
-		m_Host = Host::GetByName(GetHostName());
-	}
-}
-
-Service::~Service(void)
-{
-	ServiceGroup::InvalidateMembersCache();
-	Host::InvalidateServicesCache();
-	Service::InvalidateDowntimesCache();
-	Service::InvalidateCommentsCache();
+	ServiceGroup::RefreshMembersCache();
+	Host::RefreshServicesCache();
 }
 
 String Service::GetDisplayName(void) const
@@ -126,8 +120,7 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 {
 	if (!hostName.IsEmpty()) {
 		Host::Ptr host = Host::GetByName(hostName);
-		ObjectLock olock(host);
-		return host->GetServiceByShortName(serviceName);
+		return Host::GetServiceByShortName(host, serviceName);
 	} else {
 		return Service::GetByName(serviceName);
 	}
@@ -135,7 +128,7 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 
 Host::Ptr Service::GetHost(void) const
 {
-	return m_Host;
+	return Host::GetByName(m_HostName);
 }
 
 Dictionary::Ptr Service::GetMacros(void) const
@@ -173,14 +166,7 @@ String Service::GetShortName(void) const
 
 bool Service::IsReachable(const Service::Ptr& self)
 {
-	set<Service::Ptr> parentServices;
-
-	{
-		ObjectLock olock(self);
-		parentServices = self->GetParentServices();
-	}
-
-	BOOST_FOREACH(const Service::Ptr& service, parentServices) {
+	BOOST_FOREACH(const Service::Ptr& service, Service::GetParentServices(self)) {
 		ObjectLock olock(service);
 
 		/* ignore pending services */
@@ -199,20 +185,9 @@ bool Service::IsReachable(const Service::Ptr& self)
 		return false;
 	}
 
-	set<Host::Ptr> parentHosts;
-
-	{
-		ObjectLock olock(self);
-		parentHosts = self->GetParentHosts();
-	}
-
-	BOOST_FOREACH(const Host::Ptr& host, parentHosts) {
-		Service::Ptr hc;
-
-		{
-			ObjectLock olock(host);
-			hc = host->GetHostCheckService();
-		}
+	BOOST_FOREACH(const Host::Ptr& host, Service::GetParentHosts(self)) {
+		Service::Ptr hc = Host::GetHostCheckService(host);
+		ObjectLock olock(hc);
 
 		/* ignore hosts that are up */
 		if (hc && hc->GetState() == StateOK)
@@ -291,18 +266,15 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 	else if (name == "next_check")
 		OnNextCheckChanged(GetSelf(), oldValue);
 	else if (name == "servicegroups")
-		ServiceGroup::InvalidateMembersCache();
+		ServiceGroup::RefreshMembersCache();
 	else if (name == "host_name" || name == "short_name") {
-		Host::InvalidateServicesCache();
+		Host::RefreshServicesCache();
 
 		UpdateSlaveNotifications(GetSelf());
-
-		if (name == "host_name")
-			m_Host = Host::GetByName(GetHostName());
 	} else if (name == "downtimes")
-		Service::InvalidateDowntimesCache();
+		Service::RefreshDowntimesCache();
 	else if (name == "comments")
-		Service::InvalidateCommentsCache();
+		Service::RefreshCommentsCache();
 	else if (name == "notifications")
 		UpdateSlaveNotifications(GetSelf());
 	else if (name == "check_interval") {
@@ -315,14 +287,21 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 	}
 }
 
-set<Host::Ptr> Service::GetParentHosts(void) const
+set<Host::Ptr> Service::GetParentHosts(const Service::Ptr& self)
 {
 	set<Host::Ptr> parents;
 
-	/* The service's host is implicitly a parent. */
-	parents.insert(GetHost());
+	Dictionary::Ptr dependencies;
 
-	Dictionary::Ptr dependencies = GetHostDependencies();
+	{
+		ObjectLock olock(self);
+
+		/* The service's host is implicitly a parent. */
+		parents.insert(self->GetHost());
+
+		dependencies = self->GetHostDependencies();
+	}
+
 
 	if (dependencies) {
 		String key;
@@ -334,19 +313,29 @@ set<Host::Ptr> Service::GetParentHosts(void) const
 	return parents;
 }
 
-set<Service::Ptr> Service::GetParentServices(void) const
+set<Service::Ptr> Service::GetParentServices(const Service::Ptr& self)
 {
 	set<Service::Ptr> parents;
 
-	Dictionary::Ptr dependencies = GetServiceDependencies();
+	Dictionary::Ptr dependencies;
+	Host::Ptr host;
+	String service_name;
+
+	{
+		ObjectLock olock(self);
+		dependencies = self->GetServiceDependencies();
+		host = self->GetHost();
+		service_name = self->GetName();
+	}
 
 	if (dependencies) {
 		String key;
 		Value value;
 		BOOST_FOREACH(tie(key, value), dependencies) {
-			Service::Ptr service = GetHost()->GetServiceByShortName(value);
+			Service::Ptr service = Host::GetServiceByShortName(host, value);
+			ObjectLock olock(service);
 
-			if (service->GetName() == GetName())
+			if (service->GetName() == service_name)
 				continue;
 
 			parents.insert(service);

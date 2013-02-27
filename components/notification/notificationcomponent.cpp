@@ -55,9 +55,24 @@ void NotificationComponent::Stop(void)
  */
 void NotificationComponent::NotificationTimerHandler(void)
 {
-	// TODO: implement
-}
+	double now = Utility::GetTime();
 
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
+		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+		ObjectLock olock(service);
+
+		if (service->GetStateType() == StateTypeSoft)
+			continue;
+
+		if (service->GetState() == StateOK)
+			continue;
+
+		if (service->GetLastNotification() > now - service->GetNotificationInterval())
+			continue;
+
+		service->RequestNotifications(NotificationProblem);
+	}
+}
 
 /**
  * Processes icinga::SendNotifications messages.
@@ -79,6 +94,5 @@ void NotificationComponent::SendNotificationsRequestHandler(const Endpoint::Ptr&
 
 	Service::Ptr service = Service::GetByName(svc);
 
-	ObjectLock olock(service);
-	service->SendNotifications(static_cast<NotificationType>(type));
+	Service::SendNotifications(service, static_cast<NotificationType>(type));
 }
