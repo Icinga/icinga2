@@ -159,8 +159,19 @@ String Service::GetShortName(void) const
 
 bool Service::IsReachable(const Service::Ptr& self)
 {
+	String service_name;
+
+	{
+		ObjectLock olock(self);
+		service_name = self->GetName();
+	}
+
 	BOOST_FOREACH(const Service::Ptr& service, Service::GetParentServices(self)) {
 		ObjectLock olock(service);
+
+		/* ignore ourselves */
+		if (service->GetName() == service_name)
+			continue;
 
 		/* ignore pending services */
 		if (!service->GetLastCheckResult())
@@ -181,6 +192,10 @@ bool Service::IsReachable(const Service::Ptr& self)
 	BOOST_FOREACH(const Host::Ptr& host, Service::GetParentHosts(self)) {
 		Service::Ptr hc = Host::GetHostCheckService(host);
 		ObjectLock olock(hc);
+
+		/* ignore ourselves */
+		if (hc->GetName() == service_name)
+			continue;
 
 		/* ignore hosts that are up */
 		if (hc && hc->GetState() == StateOK)
