@@ -254,11 +254,14 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 	long attempt = GetCurrentCheckAttempt();
 
 	if (cr->Get("state") == StateOK) {
+		if (old_state != StateOK && old_stateType == StateTypeHard)
+			SetStateType(StateTypeSoft); // HARD NON-OK -> SOFT OK
+
 		if (old_state == StateOK && old_stateType == StateTypeSoft)
-			hardChange = true; // hard recovery
+			hardChange = true; // SOFT OK -> HARD OK
 
 		if (old_state == StateOK || old_stateType == StateTypeSoft)
-			SetStateType(StateTypeHard);
+			SetStateType(StateTypeHard); // SOFT OK -> HARD OK or SOFT NON-OK -> HARD OK
 
 		attempt = 1;
 		recovery = true;
