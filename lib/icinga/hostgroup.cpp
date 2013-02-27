@@ -107,10 +107,12 @@ void HostGroup::InvalidateMembersCache(void)
 {
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
+
+		if (m_MembersCacheValid)
+			Utility::QueueAsyncCallback(boost::bind(&HostGroup::RefreshMembersCache));
+
 		m_MembersCacheValid = false;
 	}
-
-	Utility::QueueAsyncCallback(boost::bind(&HostGroup::RefreshMembersCache));
 }
 
 void HostGroup::RefreshMembersCache(void)

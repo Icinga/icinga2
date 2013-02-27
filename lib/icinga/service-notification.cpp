@@ -83,10 +83,12 @@ void Service::InvalidateNotificationsCache(void)
 {
 	{
 		boost::mutex::scoped_lock lock(m_NotificationMutex);
+
+		if (m_NotificationsCacheValid)
+			Utility::QueueAsyncCallback(boost::bind(&Service::RefreshNotificationsCache));
+
 		m_NotificationsCacheValid = false;
 	}
-
-	Utility::QueueAsyncCallback(boost::bind(&Service::RefreshNotificationsCache));
 }
 
 void Service::RefreshNotificationsCache(void)

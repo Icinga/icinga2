@@ -23,7 +23,7 @@ using namespace icinga;
 
 boost::mutex Host::m_ServiceMutex;
 map<String, map<String, weak_ptr<Service> > > Host::m_ServicesCache;
-bool Host::m_ServicesCacheValid = false;
+bool Host::m_ServicesCacheValid = true;
 
 REGISTER_SCRIPTFUNCTION("ValidateServiceDictionary", &Host::ValidateServiceDictionary);
 
@@ -57,6 +57,7 @@ void Host::OnRegistrationCompleted(void)
 {
 	DynamicObject::OnRegistrationCompleted();
 
+	Host::InvalidateServicesCache();
 	Host::UpdateSlaveServices(GetSelf());
 }
 
@@ -74,9 +75,6 @@ String Host::GetDisplayName(void) const
 Host::Ptr Host::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Host", name);
-
-	if (!configObject)
-		BOOST_THROW_EXCEPTION(invalid_argument("Host '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<Host>(configObject);
 }
@@ -324,10 +322,12 @@ void Host::InvalidateServicesCache(void)
 {
 	{
 		boost::mutex::scoped_lock lock(m_ServiceMutex);
+
+		if (m_ServicesCacheValid)
+			Utility::QueueAsyncCallback(boost::bind(&Host::RefreshServicesCache));
+
 		m_ServicesCacheValid = false;
 	}
-
-	Utility::QueueAsyncCallback(boost::bind(&Host::RefreshServicesCache));
 }
 
 void Host::RefreshServicesCache(void)
@@ -354,6 +354,9 @@ void Host::RefreshServicesCache(void)
 			host = service->GetHost();
 			short_name = service->GetShortName();
 		}
+
+		if (!host)
+			continue;
 
 		String host_name;
 

@@ -438,6 +438,9 @@ void CompatComponent::DumpServiceObject(ostream& fp, const Service::Ptr& service
 		short_name = service->GetShortName();
 	}
 
+	if (!host)
+		return;
+
 	{
 		ObjectLock olock(host);
 		host_name = host->GetName();

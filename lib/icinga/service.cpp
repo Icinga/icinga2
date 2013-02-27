@@ -79,8 +79,6 @@ Service::~Service(void)
 void Service::OnRegistrationCompleted(void)
 {
 	DynamicObject::OnRegistrationCompleted();
-
-	Host::InvalidateServicesCache();
 }
 
 String Service::GetDisplayName(void) const

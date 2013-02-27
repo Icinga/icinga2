@@ -140,10 +140,12 @@ void Service::InvalidateCommentsCache(void)
 {
 	{
 		boost::mutex::scoped_lock lock(m_CommentMutex);
+
+		if (m_CommentsCacheValid)
+			Utility::QueueAsyncCallback(boost::bind(&Service::RefreshCommentsCache));
+
 		m_CommentsCacheValid = false;
 	}
-
-	Utility::QueueAsyncCallback(boost::bind(&Service::RefreshCommentsCache));
 }
 
 void Service::RefreshCommentsCache(void)

@@ -217,10 +217,12 @@ void Service::InvalidateDowntimesCache(void)
 {
 	{
 		boost::mutex::scoped_lock lock(m_DowntimeMutex);
+
+		if (m_DowntimesCacheValid)
+			Utility::QueueAsyncCallback(boost::bind(&Service::RefreshDowntimesCache));
+
 		m_DowntimesCacheValid = false;
 	}
-
-	Utility::QueueAsyncCallback(boost::bind(&Service::RefreshDowntimesCache));
 }
 
 void Service::RefreshDowntimesCache(void)

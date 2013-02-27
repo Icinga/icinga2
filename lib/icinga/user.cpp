@@ -33,9 +33,6 @@ User::Ptr User::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("User", name);
 
-	if (!configObject)
-		BOOST_THROW_EXCEPTION(invalid_argument("User '" + name + "' does not exist."));
-
 	return dynamic_pointer_cast<User>(configObject);
 }
 
