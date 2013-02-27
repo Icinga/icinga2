@@ -92,6 +92,7 @@
 #include <list>
 #include <algorithm>
 #include <deque>
+#include <iterator>
 
 using std::vector;
 using std::map;

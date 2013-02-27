@@ -126,7 +126,7 @@ void ServiceGroup::RefreshMembersCache(void)
 		m_MembersCacheValid = true;
 	}
 
-	map<String, vector<weak_ptr<Service> > > newMembersCache;
+	map<String, vector<Service::WeakPtr> > newMembersCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);

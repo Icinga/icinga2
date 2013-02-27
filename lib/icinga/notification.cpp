@@ -29,6 +29,7 @@ Notification::Notification(const Dictionary::Ptr& properties)
 	RegisterAttribute("notification_command", Attribute_Config, &m_NotificationCommand);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
 	RegisterAttribute("users", Attribute_Config, &m_Users);
+	RegisterAttribute("groups", Attribute_Config, &m_Groups);
 	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
 	RegisterAttribute("service", Attribute_Config, &m_Service);
 }
@@ -80,7 +81,33 @@ set<User::Ptr> Notification::GetUsers(void) const
 	if (users) {
 		String name;
 		BOOST_FOREACH(tie(tuples::ignore, name), users) {
-			result.insert(User::GetByName(name));
+			User::Ptr user = User::GetByName(name);
+
+			if (!user)
+				continue;
+
+			result.insert(user);
+		}
+	}
+
+	return result;
+}
+
+set<UserGroup::Ptr> Notification::GetGroups(void) const
+{
+	set<UserGroup::Ptr> result;
+
+	Dictionary::Ptr groups = m_Groups;
+
+	if (groups) {
+		String name;
+		BOOST_FOREACH(tie(tuples::ignore, name), groups) {
+			UserGroup::Ptr ug = UserGroup::GetByName(name);
+
+			if (!ug)
+				continue;
+
+			result.insert(ug);
 		}
 	}
 
@@ -120,12 +147,14 @@ void Notification::BeginExecuteNotification(const Notification::Ptr& self, Notif
 
 	Service::Ptr service;
 	set<User::Ptr> users;
+	set<UserGroup::Ptr> groups;
 
 	{
 		ObjectLock olock(self);
 		macroDicts.push_back(self->GetMacros());
 		service = self->GetService();
 		users = self->GetUsers();
+		groups = self->GetGroups();
 	}
 
 	Host::Ptr host;
@@ -157,14 +186,20 @@ void Notification::BeginExecuteNotification(const Notification::Ptr& self, Notif
 
 	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
-	int count = 0;
+	set<User::Ptr> allUsers;
 
-	BOOST_FOREACH(const User::Ptr& user, users) {
-		BeginExecuteNotificationHelper(self, macros, type, user);
-		count++;
+	std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
+
+	BOOST_FOREACH(const UserGroup::Ptr& ug, groups) {
+		set<User::Ptr> members = UserGroup::GetMembers(ug);
+		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
 
-	if (count == 0) {
+	BOOST_FOREACH(const User::Ptr& user, allUsers) {
+		BeginExecuteNotificationHelper(self, macros, type, user);
+	}
+
+	if (allUsers.size() == 0) {
 		/* Send a notification even if there are no users specified. */
 		BeginExecuteNotificationHelper(self, macros, type, User::Ptr());
 	}

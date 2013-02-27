@@ -169,6 +169,10 @@ static void CopyNotificationAttributes(TDict notificationDesc, const ConfigItemB
 	if (!users.IsEmpty())
 		builder->AddExpression("users", OperatorPlus, users);
 
+	Value groups = notificationDesc->Get("groups");
+	if (!groups.IsEmpty())
+		builder->AddExpression("groups", OperatorPlus, groups);
+
 	/*Value notificationInterval = notificationDesc->Get("notification_interval");
 	if (!notificationInterval.IsEmpty())
 		builder->AddExpression("notification_interval", OperatorSet, notificationInterval);*/

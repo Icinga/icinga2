@@ -61,6 +61,7 @@ public:
 	Value GetNotificationCommand(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 	set<User::Ptr> GetUsers(void) const;
+	set<UserGroup::Ptr> GetGroups(void) const;
 
 	static void BeginExecuteNotification(const Notification::Ptr& self, NotificationType type);
 
@@ -73,6 +74,7 @@ private:
 	Attribute<Value> m_NotificationCommand;
 	Attribute<Dictionary::Ptr> m_Macros;
 	Attribute<Dictionary::Ptr> m_Users;
+	Attribute<Dictionary::Ptr> m_Groups;
 	Attribute<String> m_HostName;
 	Attribute<String> m_Service;
 

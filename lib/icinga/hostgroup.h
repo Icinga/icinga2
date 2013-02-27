@@ -56,7 +56,7 @@ private:
 	Attribute<String> m_ActionUrl;
 
 	static boost::mutex m_Mutex;
-	static map<String, vector<weak_ptr<Host> > > m_MembersCache;
+	static map<String, vector<Host::WeakPtr> > m_MembersCache;
 	static bool m_MembersCacheValid;
 
 	static void RefreshMembersCache(void);

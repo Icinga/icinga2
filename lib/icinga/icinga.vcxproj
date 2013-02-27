@@ -45,6 +45,7 @@
     <ClCompile Include="service-downtime.cpp" />
     <ClCompile Include="servicegroup.cpp" />
     <ClCompile Include="user.cpp" />
+    <ClCompile Include="usergroup.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="api.h" />
@@ -64,6 +65,7 @@
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />
     <ClInclude Include="user.h" />
+    <ClInclude Include="usergroup.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}</ProjectGuid>

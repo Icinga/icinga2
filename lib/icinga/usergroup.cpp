@@ -21,13 +21,13 @@
 
 using namespace icinga;
 
-boost::mutex HostGroup::m_Mutex;
-map<String, vector<Host::WeakPtr> > HostGroup::m_MembersCache;
-bool HostGroup::m_MembersCacheValid = true;
+boost::mutex UserGroup::m_Mutex;
+map<String, vector<User::WeakPtr> > UserGroup::m_MembersCache;
+bool UserGroup::m_MembersCacheValid = true;
 
-REGISTER_TYPE(HostGroup, NULL);
+REGISTER_TYPE(UserGroup, NULL);
 
-HostGroup::HostGroup(const Dictionary::Ptr& properties)
+UserGroup::UserGroup(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
@@ -35,17 +35,17 @@ HostGroup::HostGroup(const Dictionary::Ptr& properties)
 	RegisterAttribute("action_url", Attribute_Config, &m_ActionUrl);
 }
 
-HostGroup::~HostGroup(void)
+UserGroup::~UserGroup(void)
 {
 	InvalidateMembersCache();
 }
 
-void HostGroup::OnRegistrationCompleted(void)
+void UserGroup::OnRegistrationCompleted(void)
 {
 	InvalidateMembersCache();
 }
 
-String HostGroup::GetDisplayName(void) const
+String UserGroup::GetDisplayName(void) const
 {
 	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
@@ -53,12 +53,12 @@ String HostGroup::GetDisplayName(void) const
 		return GetName();
 }
 
-String HostGroup::GetNotesUrl(void) const
+String UserGroup::GetNotesUrl(void) const
 {
 	return m_NotesUrl;
 }
 
-String HostGroup::GetActionUrl(void) const
+String UserGroup::GetActionUrl(void) const
 {
 	return m_ActionUrl;
 }
@@ -66,17 +66,17 @@ String HostGroup::GetActionUrl(void) const
 /**
  * @threadsafety Always.
  */
-HostGroup::Ptr HostGroup::GetByName(const String& name)
+UserGroup::Ptr UserGroup::GetByName(const String& name)
 {
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("HostGroup", name);
+	DynamicObject::Ptr configObject = DynamicObject::GetObject("UserGroup", name);
 
 	if (!configObject)
-		BOOST_THROW_EXCEPTION(invalid_argument("HostGroup '" + name + "' does not exist."));
+		BOOST_THROW_EXCEPTION(invalid_argument("UserGroup '" + name + "' does not exist."));
 
-	return dynamic_pointer_cast<HostGroup>(configObject);
+	return dynamic_pointer_cast<UserGroup>(configObject);
 }
 
-set<Host::Ptr> HostGroup::GetMembers(const HostGroup::Ptr& self)
+set<User::Ptr> UserGroup::GetMembers(const UserGroup::Ptr& self)
 {
 	String name;
 
@@ -85,37 +85,37 @@ set<Host::Ptr> HostGroup::GetMembers(const HostGroup::Ptr& self)
 		name = self->GetName();
 	}
 
-	set<Host::Ptr> hosts;
+	set<User::Ptr> users;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		BOOST_FOREACH(const Host::WeakPtr& whost, m_MembersCache[name]) {
-			Host::Ptr host = whost.lock();
+		BOOST_FOREACH(const User::WeakPtr& wuser, m_MembersCache[name]) {
+			User::Ptr user = wuser.lock();
 
-			if (!host)
+			if (!user)
 				continue;
 
-			hosts.insert(host);
+			users.insert(user);
 		}
 	}
 
-	return hosts;
+	return users;
 }
 
-void HostGroup::InvalidateMembersCache(void)
+void UserGroup::InvalidateMembersCache(void)
 {
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		if (m_MembersCacheValid)
-			Utility::QueueAsyncCallback(boost::bind(&HostGroup::RefreshMembersCache));
+			Utility::QueueAsyncCallback(boost::bind(&UserGroup::RefreshMembersCache));
 
 		m_MembersCacheValid = false;
 	}
 }
 
-void HostGroup::RefreshMembersCache(void)
+void UserGroup::RefreshMembersCache(void)
 {
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -126,20 +126,20 @@ void HostGroup::RefreshMembersCache(void)
 		m_MembersCacheValid = true;
 	}
 
-	map<String, vector<Host::WeakPtr> > newMembersCache;
+	map<String, vector<User::WeakPtr> > newMembersCache;
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
-		const Host::Ptr& host = static_pointer_cast<Host>(object);
-		ObjectLock olock(host);
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
+		const User::Ptr& user = static_pointer_cast<User>(object);
+		ObjectLock olock(user);
 
 		Dictionary::Ptr dict;
-		dict = host->GetGroups();
+		dict = user->GetGroups();
 
 		if (dict) {
 			ObjectLock mlock(dict);
-			Value hostgroup;
-			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
-				newMembersCache[hostgroup].push_back(host);
+			Value UserGroup;
+			BOOST_FOREACH(tie(tuples::ignore, UserGroup), dict) {
+				newMembersCache[UserGroup].push_back(user);
 			}
 		}
 	}

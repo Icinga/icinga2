@@ -17,33 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SERVICEGROUP_H
-#define SERVICEGROUP_H
+#ifndef USERGROUP_H
+#define USERGROUP_H
 
 namespace icinga
 {
 
 /**
- * An Icinga service group.
+ * An Icinga user group.
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API ServiceGroup : public DynamicObject
+class I2_ICINGA_API UserGroup : public DynamicObject
 {
 public:
-	typedef shared_ptr<ServiceGroup> Ptr;
-	typedef weak_ptr<ServiceGroup> WeakPtr;
+	typedef shared_ptr<UserGroup> Ptr;
+	typedef weak_ptr<UserGroup> WeakPtr;
 
-	ServiceGroup(const Dictionary::Ptr& properties);
-	~ServiceGroup(void);
+	UserGroup(const Dictionary::Ptr& properties);
+	~UserGroup(void);
 
-	static ServiceGroup::Ptr GetByName(const String& name);
+	static UserGroup::Ptr GetByName(const String& name);
 
 	String GetDisplayName(void) const;
 	String GetNotesUrl(void) const;
 	String GetActionUrl(void) const;
 
-	static set<Service::Ptr> GetMembers(const ServiceGroup::Ptr& self);
+	static set<User::Ptr> GetMembers(const UserGroup::Ptr& self);
 
 	static void InvalidateMembersCache(void);
 
@@ -56,7 +56,7 @@ private:
 	Attribute<String> m_ActionUrl;
 
 	static boost::mutex m_Mutex;
-	static map<String, vector<Service::WeakPtr> > m_MembersCache;
+	static map<String, vector<User::WeakPtr> > m_MembersCache;
 	static bool m_MembersCacheValid;
 
 	static void RefreshMembersCache(void);
@@ -64,4 +64,4 @@ private:
 
 }
 
-#endif /* SERVICEGROUP_H */
+#endif /* HOSTGROUP_H */

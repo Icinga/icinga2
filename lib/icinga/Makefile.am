@@ -42,7 +42,9 @@ libicinga_la_SOURCES =  \
 	servicegroup.cpp \
 	servicegroup.h \
 	user.cpp \
-	user.h
+	user.h \
+	usergroup.cpp \
+	usergroup.h
 
 libicinga_la_CPPFLAGS = \
 	-DI2_ICINGA_BUILD \

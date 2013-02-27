@@ -35,14 +35,21 @@ public:
 	typedef weak_ptr<User> WeakPtr;
 
 	User(const Dictionary::Ptr& properties);
+	~User(void);
 
 	static User::Ptr GetByName(const String& name);
+
+	Dictionary::Ptr GetGroups(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
 	static Dictionary::Ptr CalculateDynamicMacros(const User::Ptr& self);
 
+protected:
+	void OnAttributeChanged(const String& name, const Value& oldValue);
+
 private:
 	Attribute<Dictionary::Ptr> m_Macros;
+	Attribute<Dictionary::Ptr> m_Groups;
 };
 
 }

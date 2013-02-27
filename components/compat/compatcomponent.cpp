@@ -91,7 +91,7 @@ String CompatComponent::GetCommandPath(void) const
 void CompatComponent::Start(void)
 {
 	m_StatusTimer = boost::make_shared<Timer>();
-	m_StatusTimer->SetInterval(15);
+	m_StatusTimer->SetInterval(5);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatComponent::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);

@@ -47,6 +47,7 @@ using boost::algorithm::is_any_of;
 #include "icingaapplication.h"
 
 #include "user.h"
+#include "usergroup.h"
 
 #include "notification.h"
 #include "notificationrequestmessage.h"

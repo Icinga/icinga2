@@ -22,7 +22,7 @@
 using namespace icinga;
 
 boost::mutex Host::m_ServiceMutex;
-map<String, map<String, weak_ptr<Service> > > Host::m_ServicesCache;
+map<String, map<String, Service::WeakPtr> > Host::m_ServicesCache;
 bool Host::m_ServicesCacheValid = true;
 
 REGISTER_SCRIPTFUNCTION("ValidateServiceDictionary", &Host::ValidateServiceDictionary);
@@ -345,7 +345,7 @@ void Host::RefreshServicesCache(void)
 		m_ServicesCacheValid = true;
 	}
 
-	map<String, map<String, weak_ptr<Service> > > newServicesCache;
+	map<String, map<String, Service::WeakPtr> > newServicesCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
@@ -441,8 +441,8 @@ Service::Ptr Host::GetServiceByShortName(const Host::Ptr& self, const Value& nam
 		{
 			boost::mutex::scoped_lock lock(m_ServiceMutex);
 
-			map<String, weak_ptr<Service> >& services = m_ServicesCache[host_name];
-			map<String, weak_ptr<Service> >::iterator it = services.find(name);
+			map<String, Service::WeakPtr>& services = m_ServicesCache[host_name];
+			map<String, Service::WeakPtr>::iterator it = services.find(name);
 
 			if (it != services.end()) {
 				Service::Ptr service = it->second.lock();

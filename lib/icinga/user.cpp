@@ -27,6 +27,18 @@ User::User(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
+	RegisterAttribute("groups", Attribute_Config, &m_Groups);
+}
+
+User::~User(void)
+{
+	UserGroup::InvalidateMembersCache();
+}
+
+void User::OnAttributeChanged(const String& name, const Value& oldValue)
+{
+	if (name == "groups")
+		UserGroup::InvalidateMembersCache();
 }
 
 User::Ptr User::GetByName(const String& name)
@@ -34,6 +46,11 @@ User::Ptr User::GetByName(const String& name)
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("User", name);
 
 	return dynamic_pointer_cast<User>(configObject);
+}
+
+Dictionary::Ptr User::GetGroups(void) const
+{
+	return m_Groups;
 }
 
 Dictionary::Ptr User::GetMacros(void) const
