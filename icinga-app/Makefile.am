@@ -32,7 +32,6 @@ icinga2_LDADD = \
 	-dlopen ${top_builddir}/components/checker/checker.la \
 	-dlopen ${top_builddir}/components/replication/replication.la \
 	-dlopen ${top_builddir}/components/compat/compat.la \
-	-dlopen ${top_builddir}/components/compatido/compatido.la \
 	-dlopen ${top_builddir}/components/delegation/delegation.la \
 	-dlopen ${top_builddir}/components/demo/demo.la \
 	-dlopen ${top_builddir}/components/notification/notification.la

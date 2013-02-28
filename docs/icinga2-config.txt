@@ -487,8 +487,6 @@ Icinga 2 uses a number of components to implement its feature-set. The
 additional parameters for them. "Component" objects must have the "local"
 specifier. The typical components to be loaded in the default configuration
 would be "checker", "delegation" and more.
-There are optional components which may not run on every operating system, such as
-"compat" or "compatido".
 
 Example "compat":
 
@@ -512,46 +510,6 @@ Attribute: objects_path
 Specifies where Icinga 2 Compat component will put the objects.cache file, which can
 be read by Icinga 1.x Classic UI and other addons. If not set, it defaults to the
 localstatedir location.
-
-Example "compatido":
-
--------------------------------------------------------------------------------
-local object Component "compatido" {
-  socket_address = "127.0.0.1",
-  socket_port = "5668",
-  instance_name = "i2-default",
-  reconnect_interval = 15,
-}
--------------------------------------------------------------------------------
-
-Attribute: socket_address
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Specifies the tcp socket address of ido2db where Icinga 2 CompatIDO component will
-try to connect to. ido2db must be running and listening there already. The default
-is set to "127.0.0.1" if missing.
-
-Attribute: socket_port
-^^^^^^^^^^^^^^^^^^^^^^
-
-Specifies the tcp socket port of ido2db where Icinga 2 CompatIDO component will try
-to connect to. ido2db must be running and listening there already. The default is
-set to "5668" if missing.
-
-Attribute: instance_name
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-This is the instance name which Icinga 2 CompatIDO will use to identify itsself to
-ido2db (same as idomod would use). Once set, do not change that unless knowing the
-consequences of data inconsistency. If not set, this will default to "i2-default".
-
-Attribute: reconnect_interval
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Specifies the interval compatido will try to reconnect, if the connection to the
-ido socket fails (ido2db drops out, and will require a reconnect handshake,
-opening the socket and saying hello again).
-
 
 Type: Logger
 ~~~~~~~~~~~~
@@ -910,8 +868,5 @@ object Host "localhost" {
 
 NOTE: You may also want to load the "compat" component if you want Icinga 2 to
 write status.dat and objects.cache files.
-If you require an idomod connector for ido2db, outputting into idoutils database,
-you may also load the "compatido" component (default: tcpsocket, 127.0.0.1:5668).
-Make sure that ido2db is running and listening to the tcpsocket!
 
 /* vim: set syntax=asciidoc filetype=asciidoc: */
