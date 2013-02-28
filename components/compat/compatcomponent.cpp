@@ -663,6 +663,51 @@ void CompatComponent::StatusTimerHandler(void)
 		objectfp << tempobjectfp.str();
 	}
 
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
+		User::Ptr user = static_pointer_cast<User>(object);
+
+		stringstream tempobjectfp;
+		tempobjectfp << std::fixed;
+
+		{
+			ObjectLock olock(user);
+
+			tempobjectfp << "define contact {" << "\n"
+				 << "\t" << "contact_name" << "\t" << user->GetName() << "\n"
+				 << "\t" << "alias" << "\t" << user->GetDisplayName() << "\n"
+				 << "\t" << "service_notification_options" << "\t" << "w,u,c,r,f,s" << "\n"
+				 << "\t" << "host_notification_options" << "\t" << "d,u,r,f,s" << "\n"
+				 << "\t" << "host_notifications_enabled" << "\t" << 1 << "\n"
+				 << "\t" << "service_notifications_enabled" << "\t" << 1 << "\n"
+				 << "\t" << "}" << "\n"
+				 << "\n";
+		}
+
+		objectfp << tempobjectfp.str();
+	}
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("UserGroup")) {
+		UserGroup::Ptr ug = static_pointer_cast<UserGroup>(object);
+
+		stringstream tempobjectfp;
+		tempobjectfp << std::fixed;
+
+		{
+			ObjectLock olock(ug);
+
+			tempobjectfp << "define contactgroup {" << "\n"
+				 << "\t" << "contactgroup_name" << "\t" << ug->GetName() << "\n"
+				 << "\t" << "alias" << "\t" << ug->GetDisplayName() << "\n";
+		}
+
+		tempobjectfp << "\t" << "members" << "\t";
+		DumpNameList(tempobjectfp, UserGroup::GetMembers(ug));
+		tempobjectfp << "\n"
+			     << "\t" << "}" << "\n";
+
+		objectfp << tempobjectfp.str();
+	}
+
 	statusfp.close();
 	objectfp.close();
 

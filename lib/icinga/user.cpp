@@ -26,6 +26,7 @@ REGISTER_TYPE(User, NULL);
 User::User(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
+	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
 }
@@ -46,6 +47,14 @@ User::Ptr User::GetByName(const String& name)
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("User", name);
 
 	return dynamic_pointer_cast<User>(configObject);
+}
+
+String User::GetDisplayName(void) const
+{
+	if (!m_DisplayName.IsEmpty())
+		return m_DisplayName;
+	else
+		return GetName();
 }
 
 Dictionary::Ptr User::GetGroups(void) const

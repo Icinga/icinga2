@@ -31,8 +31,6 @@ UserGroup::UserGroup(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-	RegisterAttribute("notes_url", Attribute_Config, &m_NotesUrl);
-	RegisterAttribute("action_url", Attribute_Config, &m_ActionUrl);
 }
 
 UserGroup::~UserGroup(void)
@@ -51,16 +49,6 @@ String UserGroup::GetDisplayName(void) const
 		return m_DisplayName;
 	else
 		return GetName();
-}
-
-String UserGroup::GetNotesUrl(void) const
-{
-	return m_NotesUrl;
-}
-
-String UserGroup::GetActionUrl(void) const
-{
-	return m_ActionUrl;
 }
 
 /**

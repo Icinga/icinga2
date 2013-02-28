@@ -40,8 +40,6 @@ public:
 	static UserGroup::Ptr GetByName(const String& name);
 
 	String GetDisplayName(void) const;
-	String GetNotesUrl(void) const;
-	String GetActionUrl(void) const;
 
 	static set<User::Ptr> GetMembers(const UserGroup::Ptr& self);
 
@@ -52,8 +50,6 @@ protected:
 
 private:
 	Attribute<String> m_DisplayName;
-	Attribute<String> m_NotesUrl;
-	Attribute<String> m_ActionUrl;
 
 	static boost::mutex m_Mutex;
 	static map<String, vector<User::WeakPtr> > m_MembersCache;
