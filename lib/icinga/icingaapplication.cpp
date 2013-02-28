@@ -157,7 +157,13 @@ Dictionary::Ptr IcingaApplication::CalculateDynamicMacros(const IcingaApplicatio
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 
-	macros->Set("TIMET", (long)Utility::GetTime());
+	double now = Utility::GetTime();
+
+	macros->Set("TIMET", (long)now);
+	macros->Set("LONGDATETIME", Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", now));
+	macros->Set("SHORTDATETIME", Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", now));
+	macros->Set("DATE", Utility::FormatDateTime("%Y-%m-%d", now));
+	macros->Set("TIME", Utility::FormatDateTime("%H:%M:%S %z", now));
 
 	return macros;
 }

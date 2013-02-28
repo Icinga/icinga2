@@ -143,6 +143,7 @@ using std::type_info;
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;

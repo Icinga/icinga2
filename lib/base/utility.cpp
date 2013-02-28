@@ -553,3 +553,27 @@ void Utility::QueueAsyncCallback(const boost::function<void (void)>& callback)
 {
 	Application::GetEQ().Post(callback);
 }
+
+String Utility::FormatDateTime(const char *format, double ts)
+{
+	char timestamp[128];
+	time_t tempts = (time_t)ts; /* We don't handle sub-second timestamp here just yet. */
+	tm tmthen;
+
+#ifdef _MSC_VER
+	tm *temp = localtime(&tempts);
+
+	if (temp == NULL)
+		BOOST_THROW_EXCEPTION(PosixException("localtime() failed", errno));
+
+	tmthen = *temp;
+#else /* _MSC_VER */
+	if (localtime_r(&tempts, &tmthen) == NULL)
+		BOOST_THROW_EXCEPTION(PosixException("localtime_r() failed.", errno));
+#endif /* _MSC_VER */
+
+	strftime(timestamp, sizeof(timestamp), format, &tmthen);
+
+	return timestamp;
+}
+

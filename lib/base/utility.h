@@ -60,6 +60,8 @@ public:
 
 	static void QueueAsyncCallback(const boost::function<void (void)>& callback);
 
+	static String FormatDateTime(const char *format, double ts);
+
 	static
 #ifdef _WIN32
 	HMODULE
