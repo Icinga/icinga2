@@ -43,9 +43,6 @@ Notification::Ptr Notification::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Notification", name);
 
-	if (!configObject)
-		BOOST_THROW_EXCEPTION(invalid_argument("Notification '" + name + "' does not exist."));
-
 	return dynamic_pointer_cast<Notification>(configObject);
 }
 

@@ -17,58 +17,51 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2ICINGA_H
-#define I2ICINGA_H
+#ifndef PERFDATAWRITER_H
+#define PERFDATAWRITER_H
+
+namespace icinga
+{
 
 /**
- * @defgroup icinga Icinga library
+ * An Icinga perfdata writer.
  *
- * The Icinga library implements all Icinga-specific functionality that is
- * common to all components (e.g. hosts, services, etc.).
+ * @ingroup icinga
  */
+class I2_ICINGA_API PerfdataWriter : public DynamicObject
+{
+public:
+	typedef shared_ptr<PerfdataWriter> Ptr;
+	typedef weak_ptr<PerfdataWriter> WeakPtr;
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-remoting.h>
+	PerfdataWriter(const Dictionary::Ptr& properties);
+	~PerfdataWriter(void);
 
-using boost::iterator_range;
-using boost::algorithm::is_any_of;
+	static PerfdataWriter::Ptr GetByName(const String& name);
 
-#ifdef I2_ICINGA_BUILD
-#	define I2_ICINGA_API I2_EXPORT
-#else /* I2_ICINGA_BUILD */
-#	define I2_ICINGA_API I2_IMPORT
-#endif /* I2_ICINGA_BUILD */
+	String GetPathPrefix(void) const;
+	String GetFormatTemplate(void) const;
+	double GetRotationInterval(void) const;
 
-#include "externalcommandprocessor.h"
+protected:
+	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
+	virtual void Start(void);
 
-#include "endpoint.h"
-#include "endpointmanager.h"
-#include "icingaapplication.h"
+private:
+	Attribute<String> m_PathPrefix;
+	Attribute<String> m_FormatTemplate;
+	Attribute<double> m_RotationInterval;
 
-#include "user.h"
-#include "usergroup.h"
+	Endpoint::Ptr m_Endpoint;
+	void CheckResultRequestHandler(const RequestMessage& request);
 
-#include "notification.h"
-#include "notificationrequestmessage.h"
+	Timer::Ptr m_RotationTimer;
+	void RotationTimerHandler(void);
 
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
+	ofstream m_OutputFile;
+	void RotateFile(void);
+};
 
-#include "macroprocessor.h"
-#include "pluginchecktask.h"
-#include "nullchecktask.h"
+}
 
-#include "pluginnotificationtask.h"
-
-#include "checkresultmessage.h"
-
-#include "cib.h"
-
-#include "api.h"
-
-#include "perfdatawriter.h"
-
-#endif /* I2ICINGA_H */
+#endif /* PERFDATAWRITER_H */

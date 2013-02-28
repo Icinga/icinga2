@@ -29,6 +29,8 @@ libicinga_la_SOURCES =  \
 	notificationrequestmessage.h \
 	nullchecktask.cpp \
 	nullchecktask.h \
+	perfdatawriter.cpp \
+	perfdatawriter.h \
 	pluginchecktask.cpp \
 	pluginchecktask.h \
 	pluginnotificationtask.cpp \
