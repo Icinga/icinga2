@@ -191,6 +191,11 @@ bool Service::IsReachable(const Service::Ptr& self)
 
 	BOOST_FOREACH(const Host::Ptr& host, Service::GetParentHosts(self)) {
 		Service::Ptr hc = Host::GetHostCheckService(host);
+
+		/* ignore hosts that don't have a hostcheck */
+		if (!hc)
+			continue;
+
 		ObjectLock olock(hc);
 
 		/* ignore ourselves */
