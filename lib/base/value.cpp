@@ -105,7 +105,15 @@ Value Value::FromJson(cJSON *json)
 		return Dictionary::FromJson(json);
 	else if (json->type == cJSON_NULL)
 		return Value();
-	else
+	else if (json->type == cJSON_Array) {
+		Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+
+		for (cJSON *i = json->child; i != NULL; i = i->next) {
+			dict->Add(Value::FromJson(i));
+		}
+
+		return dict;
+	} else
 		BOOST_THROW_EXCEPTION(invalid_argument("Unsupported JSON type."));
 }
 
