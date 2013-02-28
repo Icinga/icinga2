@@ -196,6 +196,14 @@ void Notification::BeginExecuteNotification(const Notification::Ptr& self, Notif
 	}
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
+		String user_name;
+
+		{
+			ObjectLock olock(user);
+			user_name = user->GetName();
+		}
+
+		Logger::Write(LogDebug, "icinga", "Sending notification for user " + user_name);
 		BeginExecuteNotificationHelper(self, macros, type, user);
 	}
 
@@ -211,7 +219,7 @@ void Notification::BeginExecuteNotificationHelper(const Notification::Ptr& self,
 
 	if (user) {
 		{
-			ObjectLock olock(self);
+			ObjectLock olock(user);
 			macroDicts.push_back(user->GetMacros());
 		}
 
