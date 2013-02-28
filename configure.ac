@@ -112,7 +112,6 @@ Makefile
 components/Makefile
 components/checker/Makefile
 components/compat/Makefile
-components/compatido/Makefile
 components/delegation/Makefile
 components/demo/Makefile
 components/notification/Makefile

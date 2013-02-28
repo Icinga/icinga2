@@ -4,7 +4,6 @@
 SUBDIRS = \
 	checker \
 	compat \
-	compatido \
 	delegation \
 	demo \
 	notification \
