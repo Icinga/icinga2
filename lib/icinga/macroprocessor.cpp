@@ -31,6 +31,8 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 		Dictionary::Ptr resultDict = boost::make_shared<Dictionary>();
 		Dictionary::Ptr dict = cmd;
 
+		ObjectLock olock(dict);
+
 		Value arg;
 		BOOST_FOREACH(tie(tuples::ignore, arg), dict) {
 			resultDict->Add(InternalResolveMacros(arg, macros));
@@ -46,8 +48,9 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 
 String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary::Ptr& macros)
 {
-	size_t offset, pos_first, pos_second;
+	ObjectLock olock(macros);
 
+	size_t offset, pos_first, pos_second;
 	offset = 0;
 
 	String result = str;
@@ -77,6 +80,8 @@ Dictionary::Ptr MacroProcessor::MergeMacroDicts(const vector<Dictionary::Ptr>& d
 	BOOST_REVERSE_FOREACH(const Dictionary::Ptr& dict, dicts) {
 		if (!dict)
 			continue;
+
+		ObjectLock olock(dict);
 
 		String key;
 		Value value;
