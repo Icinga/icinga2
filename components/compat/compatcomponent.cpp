@@ -323,6 +323,14 @@ void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 		   << "\t" << "notification_options" << "\t" << "d,u,r" << "\n"
 		   << "\t" << "notification_interval" << "\t" << hc->GetNotificationInterval() << "\n"
 		   << "\t" << "notification_period" << "\t" << "24x7" << "\n";
+	} else {
+		fp << "\t" << "check_interval" << "\t" << 60 << "\n"
+		   << "\t" << "retry_interval" << "\t" << 60 << "\n"
+		   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
+		   << "\t" << "active_checks_enabled" << "\t" << 0 << "\n"
+		   << "\t" << "passive_checks_enabled" << "\t" << 0 << "\n"
+		   << "\t" << "notifications_enabled" << "\t" << 0 << "\n";
+
 	}
 
 	fp << "\t" << "}" << "\n"
@@ -555,7 +563,8 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "thursday" << "\t" << "00:00-24:00" << "\n"
 		 << "\t" << "friday" << "\t" << "00:00-24:00" << "\n"
 		 << "\t" << "saturday" << "\t" << "00:00-24:00" << "\n"
-		 << "\t" << "}" << "\n";
+		 << "\t" << "}" << "\n"
+		 << "\n";
 
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
@@ -590,7 +599,7 @@ void CompatComponent::StatusTimerHandler(void)
 		tempobjectfp << "\t" << "members" << "\t";
 		DumpNameList(tempobjectfp, HostGroup::GetMembers(hg));
 		tempobjectfp << "\n"
-			 << "}" << "\n";
+			     << "\t" << "}" << "\n";
 
 		objectfp << tempobjectfp.str();
 	}
