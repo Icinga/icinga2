@@ -62,32 +62,44 @@ public:
 	/**
 	 * Starts the async task. The caller must hold a reference to the AsyncTask
 	 * object until the completion callback is invoked.
+	 *
+	 * @threadsafety Always.
 	 */
 	void Start(const CompletionCallback& completionCallback = CompletionCallback())
 	{
+		assert(!OwnsLock());
+		boost::mutex::scoped_lock lock(m_Mutex);
+
 		m_CompletionCallback = completionCallback;
 		Utility::QueueAsyncCallback(boost::bind(&AsyncTask<TClass, TResult>::RunInternal, this));
 	}
 
 	/**
 	 * Checks whether the task is finished.
+	 *
+	 * @threadsafety Always.
 	 */
 	bool IsFinished(void) const
 	{
+		assert(!OwnsLock());
 		boost::mutex::scoped_lock lock(m_Mutex);
 		return m_Finished;
 	}
 
 	/**
-	 * Retrieves the result of the task. Throws an exception if one is stored in
+	 * Blocks until the task is completed and retrieves the result. Throws an exception if one is stored in
 	 * the AsyncTask object.
 	 *
 	 * @returns The task's result.
+	 * @threadsafety Always.
 	 */
 	TResult GetResult(void)
 	{
-		if (!m_Finished)
-			BOOST_THROW_EXCEPTION(runtime_error("GetResult called on an unfinished AsyncTask"));
+		assert(!OwnsLock());
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		while (!m_Finished)
+			m_CV.wait(lock);
 
 		if (m_ResultRetrieved)
 			BOOST_THROW_EXCEPTION(runtime_error("GetResult called on an AsyncTask whose result was already retrieved."));
@@ -106,9 +118,13 @@ public:
 	 * Finishes the task using an exception.
 	 *
 	 * @param ex The exception.
+	 * @threadsafety Always.
 	 */
 	void FinishException(const boost::exception_ptr& ex)
 	{
+		assert(!OwnsLock());
+		boost::mutex::scoped_lock lock(m_Mutex);
+
 		m_Exception = ex;
 		FinishInternal();
 	}
@@ -117,21 +133,15 @@ public:
 	 * Finishes the task using an ordinary result.
 	 *
 	 * @param result The result.
+	 * @threadsafety Always.
 	 */
 	void FinishResult(const TResult& result)
 	{
+		assert(!OwnsLock());
+		boost::mutex::scoped_lock lock(m_Mutex);
+
 		m_Result = result;
 		FinishInternal();
-	}
-
-	/**
-	 * Blocks until the task is completed.
-	 */
-	void Wait(void)
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		while (!m_Finished)
-			m_CV.wait(lock);
 	}
 
 protected:
@@ -146,24 +156,22 @@ private:
 	/**
 	 * Finishes the task and causes the completion callback to be invoked. This
 	 * function must be called before the object is destroyed.
+	 *
+	 * @threadsafety Caller must hold m_Mutex.
 	 */
 	void FinishInternal(void)
 	{
-		CompletionCallback callback;
+		assert(!m_Finished);
+		m_Finished = true;
+		m_CV.notify_all();
 
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
-			assert(!m_Finished);
 
-			m_Finished = true;
-
-			m_CV.notify_all();
-
+		if (!m_CompletionCallback.empty()) {
+			CompletionCallback callback;
 			m_CompletionCallback.swap(callback);
-		}
 
-		if (!callback.empty())
 			Utility::QueueAsyncCallback(boost::bind(callback, GetSelf()));
+		}
 	}
 
 	/**

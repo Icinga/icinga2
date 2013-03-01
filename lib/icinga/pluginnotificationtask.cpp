@@ -79,7 +79,6 @@ void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
 
 	try {
 		{
-			ObjectLock tlock(ct.m_Process);
 			pr = ct.m_Process->GetResult();
 		}
 
@@ -91,15 +90,9 @@ void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
 			Logger::Write(LogWarning, "icinga", msgbuf.str());
 		}
 
-		{
-			ObjectLock olock(ct.m_Task);
-			ct.m_Task->FinishResult(Empty);
-		}
+		ct.m_Task->FinishResult(Empty);
 	} catch (...) {
-		{
-			ObjectLock olock(ct.m_Task);
-			ct.m_Task->FinishException(boost::current_exception());
-		}
+		ct.m_Task->FinishException(boost::current_exception());
 
 		return;
 	}

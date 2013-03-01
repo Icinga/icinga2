@@ -21,10 +21,13 @@
 
 using namespace icinga;
 
+boost::mutex Object::m_DebugMutex;
+
 /**
  * Default constructor for the Object class.
  */
 Object::Object(void)
+	: m_LockCount(0)
 { }
 
 /**
@@ -41,17 +44,32 @@ Object::~Object(void)
  */
 Object::SharedPtrHolder Object::GetSelf(void)
 {
+	ObjectLock olock(this);
+
 	return Object::SharedPtrHolder(shared_from_this());
 }
 
 /**
- * Returns the mutex that must be held while calling non-static methods
- * which have not been explicitly marked as thread-safe.
+ * Checks if the calling thread owns the lock on this object or is currently
+ * in the constructor or destructor and therefore implicitly owns the lock.
  *
- * @returns The object's mutex.
- * @threadsafety Always.
+ * @returns True if the calling thread owns the lock, false otherwise.
  */
-recursive_mutex& Object::GetMutex(void) const
+bool Object::OwnsLock(void) const
 {
-	return m_Mutex;
+	boost::mutex::scoped_lock lock(m_DebugMutex);
+
+	if (m_LockCount == 0 || m_LockOwner != boost::this_thread::get_id()) {
+		try {
+			shared_from_this();
+		} catch (const boost::bad_weak_ptr& ex) {
+			/* There's no shared_ptr to this object. Either someone created the object
+			 * directly (e.g. on the stack) or we're in the constructor or destructor. Not holding the lock is ok here. */
+			return true;
+		}
+
+		return false;
+	}
+
+	return true;
 }

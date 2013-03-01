@@ -28,9 +28,12 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API RingBuffer
+class I2_BASE_API RingBuffer : public Object
 {
 public:
+	typedef shared_ptr<RingBuffer> Ptr;
+	typedef weak_ptr<RingBuffer> WeakPtr;
+
 	typedef vector<int>::size_type SizeType;
 
 	RingBuffer(SizeType slots);

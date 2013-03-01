@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(Endpoint, NULL);
+REGISTER_TYPE(Endpoint);
 
 signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
 signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
@@ -128,8 +128,11 @@ void Endpoint::RegisterSubscription(const String& topic)
 	if (!subscriptions)
 		subscriptions = boost::make_shared<Dictionary>();
 
+	ObjectLock olock(subscriptions);
+
 	if (!subscriptions->Contains(topic)) {
 		Dictionary::Ptr newSubscriptions = subscriptions->ShallowClone();
+		ObjectLock nlock(newSubscriptions);
 		newSubscriptions->Set(topic, topic);
 		SetSubscriptions(newSubscriptions);
 	}
@@ -144,8 +147,14 @@ void Endpoint::UnregisterSubscription(const String& topic)
 {
 	Dictionary::Ptr subscriptions = GetSubscriptions();
 
-	if (subscriptions && subscriptions->Contains(topic)) {
+	if (!subscriptions)
+		return;
+
+	ObjectLock olock(subscriptions);
+
+	if (subscriptions->Contains(topic)) {
 		Dictionary::Ptr newSubscriptions = subscriptions->ShallowClone();
+		ObjectLock nlock(newSubscriptions);
 		newSubscriptions->Remove(topic);
 		SetSubscriptions(newSubscriptions);
 	}
@@ -221,6 +230,9 @@ void Endpoint::OnAttributeChanged(const String& name, const Value& oldValue)
 			oldSubscriptions = oldValue;
 
 		newSubscriptions = GetSubscriptions();
+
+		ObjectLock olock(oldSubscriptions);
+		ObjectLock nlock(newSubscriptions);
 
 		if (oldSubscriptions) {
 			String subscription;

@@ -91,19 +91,28 @@ public:
 					   holder instance */
 	};
 
-	SharedPtrHolder GetSelf(void);
-
-	recursive_mutex& GetMutex(void) const;
+	void VerifyLocked(void) const;
+	void WarnIfLocked(void) const;
 
 protected:
 	Object(void);
 	virtual ~Object(void);
+
+	SharedPtrHolder GetSelf(void);
+
+	bool OwnsLock(void) const;
 
 private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
 	mutable recursive_mutex m_Mutex;
+	mutable unsigned int m_LockCount;
+	mutable boost::thread::id m_LockOwner;
+
+	static boost::mutex m_DebugMutex;
+
+	friend class ObjectLock;
 };
 
 /**

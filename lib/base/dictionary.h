@@ -46,7 +46,9 @@ public:
 	void Set(const String& key, const Value& value);
 	String Add(const Value& value);
 	bool Contains(const String& key) const;
+
 	void Seal(void);
+	bool IsSealed(void) const;
 
 	Iterator Begin(void);
 	Iterator End(void);

@@ -52,14 +52,24 @@ DebugInfo ConfigType::GetDebugInfo(void) const
 
 void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 {
-	Dictionary::Ptr attrs = item->Link();
+	String type, name;
+	Dictionary::Ptr attrs;
+
+	{
+		ObjectLock olock(item);
+		attrs = item->Link();
+		type = item->GetType();
+		name = item->GetName();
+	}
+
+	ObjectLock olock(attrs);
 
 	/* Don't validate abstract items. */
 	if (attrs->Get("__abstract"))
 		return;
 
 	vector<String> locations;
-	locations.push_back("Object '" + item->GetName() + "' (Type: '" + item->GetType() + "')");
+	locations.push_back("Object '" + name + "' (Type: '" + type + "')");
 
 	ConfigType::Ptr parent;
 	if (m_Parent.IsEmpty()) {
@@ -70,8 +80,10 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 	}
 
 	vector<TypeRuleList::Ptr> ruleLists;
-	if (parent)
+	if (parent) {
+		ObjectLock plock(parent);
 		ruleLists.push_back(parent->m_RuleList);
+	}
 
 	ruleLists.push_back(m_RuleList);
 
@@ -131,14 +143,11 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 
 			ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
 			task->Start();
-			task->Wait();
-
-			{
-				ObjectLock olock(task);
-				task->GetResult();
-			}
+			task->GetResult();
 		}
 	}
+
+	ObjectLock olock(dictionary);
 
 	String key;
 	Value value;

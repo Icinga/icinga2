@@ -86,13 +86,12 @@ void Timer::Uninitialize(void)
  *
  * @threadsafety Always.
  */
-void Timer::Call(void)
+void Timer::Call(const Timer::Ptr& self)
 {
-	OnTimerExpired(GetSelf());
+	self->OnTimerExpired(self);
 
 	/* Re-enable the timer so it can be called again. */
-	m_Started = true;
-	Reschedule();
+	self->Start();
 }
 
 /**
@@ -103,6 +102,8 @@ void Timer::Call(void)
  */
 void Timer::SetInterval(double interval)
 {
+	assert(!OwnsLock());
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Interval = interval;
 }
@@ -115,6 +116,8 @@ void Timer::SetInterval(double interval)
  */
 double Timer::GetInterval(void) const
 {
+	assert(!OwnsLock());
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_Interval;
 }
@@ -126,7 +129,12 @@ double Timer::GetInterval(void) const
  */
 void Timer::Start(void)
 {
-	m_Started = true;
+	assert(!OwnsLock());
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_Started = true;
+	}
 
 	Reschedule();
 }
@@ -138,6 +146,8 @@ void Timer::Start(void)
  */
 void Timer::Stop(void)
 {
+	assert(!OwnsLock());
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	m_Started = false;
@@ -156,6 +166,8 @@ void Timer::Stop(void)
  */
 void Timer::Reschedule(double next)
 {
+	assert(!OwnsLock());
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	if (next < 0) {
@@ -188,6 +200,8 @@ void Timer::Reschedule(double next)
  */
 double Timer::GetNext(void) const
 {
+	assert(!OwnsLock());
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_Next;
 }

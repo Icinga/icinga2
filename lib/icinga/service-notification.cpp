@@ -158,6 +158,8 @@ set<Notification::Ptr> Service::GetNotifications(const Service::Ptr& self)
 template<typename TDict>
 static void CopyNotificationAttributes(TDict notificationDesc, const ConfigItemBuilder::Ptr& builder)
 {
+	ObjectLock olock(notificationDesc);
+
 	/* TODO: we only need to copy macros if this is an inline definition,
 	 * i.e. "typeid(notificationDesc)" != Notification, however for now we just
 	 * copy them anyway. */
@@ -214,6 +216,8 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 	Dictionary::Ptr newNotifications;
 	newNotifications = boost::make_shared<Dictionary>();
 
+	ObjectLock nlock(newNotifications);
+
 	String host_name;
 
 	{
@@ -256,6 +260,8 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 				Dictionary::Ptr templates = notification->Get("templates");
 
 				if (templates) {
+					ObjectLock tlock(templates);
+
 					String tmpl;
 					BOOST_FOREACH(tie(tuples::ignore, tmpl), templates) {
 						builder->AddParent(tmpl);
@@ -277,6 +283,8 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 	}
 
 	if (oldNotifications) {
+		ObjectLock olock(oldNotifications);
+
 		ConfigItem::Ptr notification;
 		BOOST_FOREACH(tie(tuples::ignore, notification), oldNotifications) {
 			if (!notification)

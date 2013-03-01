@@ -31,6 +31,7 @@ public:
 	ObjectLock(void);
 	ObjectLock(const Object::Ptr& object);
 	ObjectLock(const Object *object);
+	~ObjectLock(void);
 
 	void Lock(void);
 	void Unlock(void);

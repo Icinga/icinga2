@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(Logger, NULL);
+REGISTER_TYPE(Logger);
 
 /**
  * Constructor for the Logger class.
@@ -37,7 +37,10 @@ Logger::Logger(const Dictionary::Ptr& properties)
 
 	if (!IsLocal())
 		BOOST_THROW_EXCEPTION(runtime_error("Logger objects must be local."));
+}
 
+void Logger::Start(void)
+{
 	String type = m_Type;
 	if (type.IsEmpty())
 		BOOST_THROW_EXCEPTION(runtime_error("Logger objects must have a 'type' property."));
@@ -65,8 +68,9 @@ Logger::Logger(const Dictionary::Ptr& properties)
 		BOOST_THROW_EXCEPTION(runtime_error("Unknown log type: " + type));
 	}
 
-	impl->m_Config = this;
+	impl->m_Config = GetSelf();
 	m_Impl = impl;
+
 }
 
 /**
@@ -185,5 +189,5 @@ LogSeverity Logger::StringToSeverity(const String& severity)
  */
 DynamicObject::Ptr ILogger::GetConfig(void) const
 {
-	return m_Config->GetSelf();
+	return m_Config.lock();
 }

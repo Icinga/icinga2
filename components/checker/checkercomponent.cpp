@@ -27,9 +27,13 @@ void CheckerComponent::Start(void)
 {
 	m_Endpoint = Endpoint::MakeEndpoint("checker", false);
 
-	/* dummy registration so the delegation module knows this is a checker
-	   TODO: figure out a better way for this */
-	m_Endpoint->RegisterSubscription("checker");
+	{
+		ObjectLock olock(m_Endpoint);
+
+		/* dummy registration so the delegation module knows this is a checker
+		   TODO: figure out a better way for this */
+		m_Endpoint->RegisterSubscription("checker");
+	}
 
 	Service::OnCheckerChanged.connect(bind(&CheckerComponent::CheckerChangedHandler, this, _1));
 	Service::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
@@ -46,7 +50,10 @@ void CheckerComponent::Start(void)
 
 void CheckerComponent::Stop(void)
 {
-	m_Endpoint->Unregister();
+	{
+		ObjectLock olock(m_Endpoint);
+		m_Endpoint->Unregister();
+	}
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -74,12 +81,13 @@ void CheckerComponent::CheckThreadProc(void)
 		CheckTimeView::iterator it = idx.begin();
 		Service::Ptr service = *it;
 
+		ObjectLock olock(service); /* also required for the key extractor. */
+
 		if (!service->IsRegistered()) {
 			idx.erase(it);
 			continue;
 		}
 
-		ObjectLock olock(service); /* also required for the key extractor. */
 		double wait;
 
 		{
@@ -129,7 +137,15 @@ void CheckerComponent::CheckThreadProc(void)
 
 		try {
 			olock.Unlock();
-			Service::BeginExecuteCheck(service, boost::bind(&CheckerComponent::CheckCompletedHandler, static_cast<CheckerComponent::Ptr>(GetSelf()), service));
+
+			CheckerComponent::Ptr self;
+
+			{
+				ObjectLock olock(this);
+				self = GetSelf();
+			}
+
+			Service::BeginExecuteCheck(service, boost::bind(&CheckerComponent::CheckCompletedHandler, static_cast<CheckerComponent::Ptr>(self), service));
 		} catch (const exception& ex) {
 			olock.Lock();
 			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + diagnostic_information(ex));
@@ -178,7 +194,16 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 	ObjectLock olock(service); /* also required for the key extractor */
 	String checker = service->GetCurrentChecker();
 
-	if (checker == EndpointManager::GetInstance()->GetIdentity() || checker == m_Endpoint->GetName()) {
+	EndpointManager::Ptr em = EndpointManager::GetInstance();
+
+	String identity;
+
+	{
+		ObjectLock elock(em);
+		identity = em->GetIdentity();
+	}
+
+	if (checker == identity || Endpoint::GetByName(checker) == m_Endpoint) {
 		if (m_PendingServices.find(service) != m_PendingServices.end())
 			return;
 

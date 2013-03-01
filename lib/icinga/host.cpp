@@ -27,7 +27,7 @@ bool Host::m_ServicesCacheValid = true;
 
 REGISTER_SCRIPTFUNCTION("ValidateServiceDictionary", &Host::ValidateServiceDictionary);
 
-REGISTER_TYPE(Host, NULL);
+REGISTER_TYPE(Host);
 
 Host::Host(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
@@ -146,6 +146,8 @@ bool Host::IsReachable(const Host::Ptr& self)
 template<bool copyServiceAttrs, typename TDict>
 static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Ptr& builder)
 {
+	ObjectLock olock(serviceDesc);
+
 	/* TODO: we only need to copy macros if this is an inline definition,
 	 * i.e. "typeid(serviceDesc)" != Service, however for now we just
 	 * copy them anyway. */
@@ -211,6 +213,7 @@ void Host::UpdateSlaveServices(const Host::Ptr& self)
 	}
 
 	newServices = boost::make_shared<Dictionary>();
+	ObjectLock nlock(newServices);
 
 	DebugInfo debug_info;
 
@@ -220,6 +223,7 @@ void Host::UpdateSlaveServices(const Host::Ptr& self)
 	}
 
 	if (serviceDescs) {
+		ObjectLock olock(serviceDescs);
 		String svcname;
 		Value svcdesc;
 		BOOST_FOREACH(tie(svcname, svcdesc), serviceDescs) {
@@ -244,9 +248,16 @@ void Host::UpdateSlaveServices(const Host::Ptr& self)
 			} else if (svcdesc.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr service = svcdesc;
 
-				Dictionary::Ptr templates = service->Get("templates");
+				Dictionary::Ptr templates;
+
+				{
+					ObjectLock olock(service);
+					templates = service->Get("templates");
+				}
 
 				if (templates) {
+					ObjectLock olock(templates);
+
 					String tmpl;
 					BOOST_FOREACH(tie(tuples::ignore, tmpl), templates) {
 						builder->AddParent(tmpl);
@@ -268,6 +279,8 @@ void Host::UpdateSlaveServices(const Host::Ptr& self)
 	}
 
 	if (oldServices) {
+		ObjectLock olock(oldServices);
+
 		ConfigItem::Ptr service;
 		BOOST_FOREACH(tie(tuples::ignore, service), oldServices) {
 			if (!service)
@@ -280,6 +293,7 @@ void Host::UpdateSlaveServices(const Host::Ptr& self)
 
 	newServices->Seal();
 
+	ObjectLock olock(self);
 	self->Set("slave_services", newServices);
 }
 
@@ -288,7 +302,14 @@ void Host::OnAttributeChanged(const String& name, const Value&)
 	if (name == "hostgroups")
 		HostGroup::InvalidateMembersCache();
 	else if (name == "services") {
-		UpdateSlaveServices(GetSelf());
+		Host::Ptr self;
+
+		{
+			ObjectLock olock(this);
+			self = GetSelf();
+		}
+
+		UpdateSlaveServices(self);
 	} else if (name == "notifications") {
 		set<Service::Ptr> services;
 
@@ -388,6 +409,7 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 
 	String location = arguments[0];
 	Dictionary::Ptr attrs = arguments[1];
+	ObjectLock olock(attrs);
 
 	String key;
 	Value value;
@@ -399,9 +421,9 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 		} else if (value.IsObjectType<Dictionary>()) {
 			Dictionary::Ptr serviceDesc = value;
 
-			if (serviceDesc->Contains("service"))
-				name = serviceDesc->Get("service");
-			else
+			name = serviceDesc->Get("service");
+
+			if (name.IsEmpty())
 				name = key;
 		} else {
 			continue;
@@ -538,6 +560,7 @@ set<Service::Ptr> Host::GetParentServices(const Host::Ptr& self)
 Dictionary::Ptr Host::CalculateDynamicMacros(const Host::Ptr& self)
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
+	ObjectLock mlock(macros);
 
 	{
 		ObjectLock olock(self);

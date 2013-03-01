@@ -52,6 +52,8 @@ void StdioStream::Start(void)
 
 size_t StdioStream::GetAvailableBytes(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_InnerStream->eof() && m_ReadAheadBuffer->GetAvailableBytes() == 0)
 		return 0;
 	else
@@ -60,6 +62,8 @@ size_t StdioStream::GetAvailableBytes(void) const
 
 size_t StdioStream::Read(void *buffer, size_t size)
 {
+	ObjectLock olock(this);
+
 	size_t peek_len, read_len;
 
 	peek_len = m_ReadAheadBuffer->GetAvailableBytes();
@@ -73,6 +77,8 @@ size_t StdioStream::Read(void *buffer, size_t size)
 
 size_t StdioStream::Peek(void *buffer, size_t size)
 {
+	ObjectLock olock(this);
+
 	size_t peek_len, read_len;
 
 	peek_len = m_ReadAheadBuffer->GetAvailableBytes();
@@ -87,11 +93,15 @@ size_t StdioStream::Peek(void *buffer, size_t size)
 
 void StdioStream::Write(const void *buffer, size_t size)
 {
+	ObjectLock olock(this);
+
 	m_InnerStream->write(static_cast<const char *>(buffer), size);
 }
 
 void StdioStream::Close(void)
 {
+	ObjectLock olock(this);
+
 	if (m_OwnsStream)
 		delete m_InnerStream;
 

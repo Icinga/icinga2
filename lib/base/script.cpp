@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(Script, NULL);
+REGISTER_TYPE(Script);
 
 /**
  * Constructor for the Script class.
@@ -37,16 +37,22 @@ Script::Script(const Dictionary::Ptr& properties)
 
 void Script::Start(void)
 {
+	assert(OwnsLock());
+
 	SpawnInterpreter();
 }
 
 String Script::GetLanguage(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Language;
 }
 
 String Script::GetCode(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Code;
 }
 

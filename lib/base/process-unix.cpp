@@ -140,7 +140,6 @@ void Process::WorkerThreadProc(int taskFd)
 					if (fd >= 0)
 						tasks[fd] = task;
 				} catch (...) {
-					ObjectLock olock(task);
 					task->FinishException(boost::current_exception());
 				}
 			}
@@ -156,7 +155,6 @@ void Process::WorkerThreadProc(int taskFd)
 				prev = it;
 				tasks.erase(prev);
 
-				ObjectLock olock(task);
 				task->FinishResult(task->m_Result);
 			}
 		}
@@ -218,6 +216,8 @@ void Process::InitTask(void)
 		envp[i] = strdup(environ[i]);
 
 	if (m_ExtraEnvironment) {
+		ObjectLock olock(m_ExtraEnvironment);
+
 		String key;
 		Value value;
 		int index = envc;

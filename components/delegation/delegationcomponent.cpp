@@ -27,20 +27,12 @@ REGISTER_COMPONENT("delegation", DelegationComponent);
 void DelegationComponent::Start(void)
 {
 	m_DelegationTimer = boost::make_shared<Timer>();
+
 	// TODO: implement a handler for config changes for the delegation_interval variable
-	m_DelegationTimer->SetInterval(GetDelegationInterval());
+	m_DelegationTimer->SetInterval(30);
 	m_DelegationTimer->OnTimerExpired.connect(boost::bind(&DelegationComponent::DelegationTimerHandler, this));
 	m_DelegationTimer->Start();
 	m_DelegationTimer->Reschedule(Utility::GetTime() + 10);
-}
-
-double DelegationComponent::GetDelegationInterval(void) const
-{
-	Value interval = GetConfig()->Get("delegation_interval");
-	if (interval.IsEmpty())
-		return 30;
-	else
-		return interval;
 }
 
 bool DelegationComponent::IsEndpointChecker(const Endpoint::Ptr& endpoint)
@@ -211,6 +203,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 	Endpoint::Ptr endpoint;
 	int count;
 	BOOST_FOREACH(tie(endpoint, count), histogram) {
+		ObjectLock olock(endpoint);
+
 		stringstream msgbuf;
 		msgbuf << "histogram: " << endpoint->GetName() << " - " << count;
 		Logger::Write(LogInformation, "delegation", msgbuf.str());

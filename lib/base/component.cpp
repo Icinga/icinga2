@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(Component, NULL);
+REGISTER_TYPE(Component);
 
 map<String, Component::Factory> Component::m_Factories;
 

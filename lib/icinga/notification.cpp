@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(Notification, NULL);
+REGISTER_TYPE(Notification);
 
 Notification::Notification(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
@@ -76,6 +76,8 @@ set<User::Ptr> Notification::GetUsers(void) const
 	Dictionary::Ptr users = m_Users;
 
 	if (users) {
+		ObjectLock olock(users);
+
 		String name;
 		BOOST_FOREACH(tie(tuples::ignore, name), users) {
 			User::Ptr user = User::GetByName(name);
@@ -97,6 +99,8 @@ set<UserGroup::Ptr> Notification::GetGroups(void) const
 	Dictionary::Ptr groups = m_Groups;
 
 	if (groups) {
+		ObjectLock olock(groups);
+
 		String name;
 		BOOST_FOREACH(tie(tuples::ignore, name), groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
@@ -256,10 +260,7 @@ void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 	m_Tasks.erase(task);
 
 	try {
-		{
-			ObjectLock tlock(task);
-			(void) task->GetResult();
-		}
+		task->GetResult();
 
 		Logger::Write(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
 	} catch (const exception& ex) {

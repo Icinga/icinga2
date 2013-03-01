@@ -25,6 +25,11 @@ ObjectLock::ObjectLock(void)
 	: m_Object(NULL), m_Lock()
 { }
 
+ObjectLock::~ObjectLock(void)
+{
+	Unlock();
+}
+
 ObjectLock::ObjectLock(const Object::Ptr& object)
 	: m_Object(object.get()), m_Lock()
 {
@@ -43,10 +48,23 @@ void ObjectLock::Lock(void)
 {
 	assert(!m_Lock.owns_lock() && m_Object != NULL);
 
-	m_Lock = recursive_mutex::scoped_lock(m_Object->GetMutex());
+	m_Lock = recursive_mutex::scoped_lock(m_Object->m_Mutex);
+
+	{
+		boost::mutex::scoped_lock lock(Object::m_DebugMutex);
+		m_Object->m_LockCount++;
+		m_Object->m_LockOwner = boost::this_thread::get_id();
+	}
 }
 
 void ObjectLock::Unlock(void)
 {
+	{
+		boost::mutex::scoped_lock lock(Object::m_DebugMutex);
+
+		if (m_Lock.owns_lock())
+			m_Object->m_LockCount--;
+	}
+
 	m_Lock = recursive_mutex::scoped_lock();
 }

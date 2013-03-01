@@ -23,12 +23,6 @@
 namespace icinga
 {
 
-struct AttributeDescription
-{
-	String Name;
-	AttributeType Type;
-};
-
 class I2_BASE_API DynamicType : public Object
 {
 public:
@@ -44,9 +38,8 @@ public:
 	static DynamicType::Ptr GetByName(const String& name);
 
 	static void RegisterType(const DynamicType::Ptr& type);
-	static bool TypeExists(const String& name);
 
-	DynamicObject::Ptr CreateObject(const Dictionary::Ptr& serializedUpdate) const;
+	static DynamicObject::Ptr CreateObject(const DynamicType::Ptr& self, const Dictionary::Ptr& serializedUpdate);
 	DynamicObject::Ptr GetObject(const String& name) const;
 
 	void RegisterObject(const DynamicObject::Ptr& object);
@@ -57,16 +50,9 @@ public:
 
 	static set<DynamicObject::Ptr> GetObjects(const String& type);
 
-	void AddAttribute(const String& name, AttributeType type);
-	void RemoveAttribute(const String& name);
-	bool HasAttribute(const String& name);
-
-	void AddAttributes(const AttributeDescription *attributes, int attributeCount);
-
 private:
 	String m_Name;
 	ObjectFactory m_ObjectFactory;
-	map<String, AttributeType> m_Attributes;
 
 	typedef map<String, DynamicObject::Ptr, string_iless> ObjectMap;
 	typedef set<DynamicObject::Ptr> ObjectSet;
@@ -90,13 +76,10 @@ private:
 class RegisterTypeHelper
 {
 public:
-	RegisterTypeHelper(const String& name, const DynamicType::ObjectFactory& factory, const AttributeDescription* attributes, int attributeCount)
+	RegisterTypeHelper(const String& name, const DynamicType::ObjectFactory& factory)
 	{
-		if (!DynamicType::TypeExists(name)) {
-			DynamicType::Ptr type = boost::make_shared<DynamicType>(name, factory);
-			type->AddAttributes(attributes, attributeCount);
-			DynamicType::RegisterType(type);
-		}
+		DynamicType::Ptr type = boost::make_shared<DynamicType>(name, factory);
+		DynamicType::RegisterType(type);
 	}
 };
 
@@ -111,11 +94,11 @@ shared_ptr<T> DynamicObjectFactory(const Dictionary::Ptr& serializedUpdate)
 	return boost::make_shared<T>(serializedUpdate);
 }
 
-#define REGISTER_TYPE_ALIAS(type, alias, attributeDesc) \
-	static RegisterTypeHelper g_RegisterDT_ ## type(alias, DynamicObjectFactory<type>, attributeDesc, (attributeDesc == NULL) ? 0 : sizeof(attributeDesc) / sizeof((static_cast<AttributeDescription *>(attributeDesc))[0]))
+#define REGISTER_TYPE_ALIAS(type, alias) \
+	static RegisterTypeHelper g_RegisterDT_ ## type(alias, DynamicObjectFactory<type>)
 
-#define REGISTER_TYPE(type, attributeDesc) \
-	REGISTER_TYPE_ALIAS(type, #type, attributeDesc)
+#define REGISTER_TYPE(type) \
+	REGISTER_TYPE_ALIAS(type, #type)
 
 }
 

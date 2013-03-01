@@ -152,6 +152,8 @@ String Dictionary::Add(const Value& value)
  */
 Dictionary::Iterator Dictionary::Begin(void)
 {
+	assert(OwnsLock());
+
 	return m_Data.begin();
 }
 
@@ -162,6 +164,8 @@ Dictionary::Iterator Dictionary::Begin(void)
  */
 Dictionary::Iterator Dictionary::End(void)
 {
+	assert(OwnsLock());
+
 	return m_Data.end();
 }
 
@@ -218,6 +222,8 @@ void Dictionary::Remove(const String& key)
  */
 void Dictionary::Remove(Dictionary::Iterator it)
 {
+	ObjectLock olock(this);
+
 	String key = it->first;
 	m_Data.erase(it);
 }
@@ -228,7 +234,21 @@ void Dictionary::Remove(Dictionary::Iterator it)
  */
 void Dictionary::Seal(void)
 {
+	ObjectLock olock(this);
+
 	m_Sealed = true;
+}
+
+/**
+ * Checks whether the dictionary is sealed.
+ *
+ * @returns true if the dictionary is sealed, false otherwise.
+ */
+bool Dictionary::IsSealed(void) const
+{
+	ObjectLock olock(this);
+
+	return m_Sealed;
 }
 
 /**
@@ -269,6 +289,8 @@ Dictionary::Ptr Dictionary::FromJson(cJSON *json)
 	for (cJSON *i = json->child; i != NULL; i = i->next) {
 		dictionary->Set(i->string, Value::FromJson(i));
 	}
+
+	dictionary->Seal();
 
 	return dictionary;
 }

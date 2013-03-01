@@ -222,7 +222,7 @@ void ReplicationComponent::RemoteObjectUpdateHandler(const RequestMessage& reque
 	// TODO: sanitize update, disallow __local
 
 	if (!object) {
-		object = dtype->CreateObject(update);
+		object = DynamicType::CreateObject(dtype, update);
 
 		if (source == EndpointManager::GetInstance()->GetIdentity()) {
 			/* the peer sent us an object that was originally created by us -

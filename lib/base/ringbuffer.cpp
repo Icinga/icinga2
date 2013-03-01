@@ -22,16 +22,26 @@
 using namespace icinga;
 
 RingBuffer::RingBuffer(RingBuffer::SizeType slots)
-	: m_Slots(slots, 0), m_TimeValue(0)
+	: Object(), m_Slots(slots, 0), m_TimeValue(0)
 { }
 
+/**
+ * @threadsafety Always.
+ */
 RingBuffer::SizeType RingBuffer::GetLength(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Slots.size();
 }
 
+/**
+ * @threadsafety Always.
+ */
 void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 {
+	ObjectLock olock(this);
+
 	vector<int>::size_type offsetTarget = tv % m_Slots.size();
 
 	if (tv > m_TimeValue) {
@@ -53,8 +63,13 @@ void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 	m_Slots[offsetTarget] += num;
 }
 
+/**
+ * @threadsafety Always.
+ */
 int RingBuffer::GetValues(RingBuffer::SizeType span) const
 {
+	ObjectLock olock(this);
+
 	if (span > m_Slots.size())
 		span = m_Slots.size();
 

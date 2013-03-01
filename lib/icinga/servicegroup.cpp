@@ -25,7 +25,7 @@ boost::mutex ServiceGroup::m_Mutex;
 map<String, vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
 bool ServiceGroup::m_MembersCacheValid = true;
 
-REGISTER_TYPE(ServiceGroup, NULL);
+REGISTER_TYPE(ServiceGroup);
 
 ServiceGroup::ServiceGroup(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)

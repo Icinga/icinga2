@@ -30,10 +30,12 @@ void NotificationComponent::Start(void)
 {
 	m_Endpoint = Endpoint::MakeEndpoint("notification", false);
 
-	ObjectLock olock(m_Endpoint);
-	m_Endpoint->RegisterTopicHandler("icinga::SendNotifications",
-	    boost::bind(&NotificationComponent::SendNotificationsRequestHandler, this, _2,
-	    _3));
+	{
+		ObjectLock olock(m_Endpoint);
+		m_Endpoint->RegisterTopicHandler("icinga::SendNotifications",
+		    boost::bind(&NotificationComponent::SendNotificationsRequestHandler, this, _2,
+		    _3));
+	}
 
 	m_NotificationTimer = boost::make_shared<Timer>();
 	m_NotificationTimer->SetInterval(5);

@@ -42,20 +42,13 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("__source", Attribute_Local, &m_Source);
 	RegisterAttribute("methods", Attribute_Config, &m_Methods);
 
-	{
-		ObjectLock olock(serializedObject);
-
-		if (!serializedObject->Contains("configTx"))
-			BOOST_THROW_EXCEPTION(invalid_argument("Serialized object must contain a config snapshot."));
-	}
+	if (!serializedObject->Contains("configTx"))
+		BOOST_THROW_EXCEPTION(invalid_argument("Serialized object must contain a config snapshot."));
 
 	/* apply config state from the config item/remote update;
 	 * The DynamicType::CreateObject function takes care of restoring
 	 * non-config state after the object has been fully constructed */
-	{
-		ObjectLock olock(this);
-		ApplyUpdate(serializedObject, Attribute_Config);
-	}
+	ApplyUpdate(serializedObject, Attribute_Config);
 
 	boost::call_once(m_TransactionOnce, &DynamicObject::Initialize);
 }
@@ -77,6 +70,8 @@ void DynamicObject::Initialize(void)
 
 Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) const
 {
+	assert(OwnsLock());
+
 	DynamicObject::AttributeConstIterator it;
 
 	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
@@ -120,22 +115,21 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
     int allowedTypes)
 {
-	Dictionary::Ptr attrs;
+	assert(OwnsLock());
+	assert(serializedUpdate->IsSealed());
 
-	{
-		ObjectLock olock(serializedUpdate);
+	Value configTxValue = serializedUpdate->Get("configTx");
 
-		double configTx = 0;
-		if ((allowedTypes & Attribute_Config) != 0 &&
-		    serializedUpdate->Contains("configTx")) {
-			configTx = serializedUpdate->Get("configTx");
+	if ((allowedTypes & Attribute_Config) != 0 && !configTxValue.IsEmpty()) {
+		double configTx = configTxValue;
 
-			if (configTx > m_ConfigTx)
-				ClearAttributesByType(Attribute_Config);
-		}
-
-		attrs = serializedUpdate->Get("attrs");
+		if (configTx > m_ConfigTx)
+			ClearAttributesByType(Attribute_Config);
 	}
+
+	Dictionary::Ptr attrs = serializedUpdate->Get("attrs");
+
+	assert(attrs->IsSealed());
 
 	{
 		ObjectLock olock(attrs);
@@ -146,7 +140,8 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 				continue;
 
 			Dictionary::Ptr attr = it->second;
-			ObjectLock alock(attr);
+
+			assert(attr->IsSealed());
 
 			int type = attr->Get("type");
 
@@ -170,6 +165,8 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 void DynamicObject::RegisterAttribute(const String& name,
     AttributeType type, AttributeBase *boundAttribute)
 {
+	assert(OwnsLock());
+
 	AttributeHolder attr(type, boundAttribute);
 
 	pair<DynamicObject::AttributeIterator, bool> tt;
@@ -183,24 +180,38 @@ void DynamicObject::RegisterAttribute(const String& name,
 	}
 }
 
+/**
+ * @threadsafety Always.
+ */
 void DynamicObject::Set(const String& name, const Value& data)
 {
 	InternalSetAttribute(name, data, GetCurrentTx());
 }
 
+/**
+ * @threadsafety Always.
+ */
 void DynamicObject::Touch(const String& name)
 {
 	InternalSetAttribute(name, InternalGetAttribute(name), GetCurrentTx());
 }
 
+/**
+ * @threadsafety Always.
+ */
 Value DynamicObject::Get(const String& name) const
 {
 	return InternalGetAttribute(name);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
     double tx, bool allowEditConfig)
 {
+	ObjectLock olock(this);
+
 	DynamicObject::AttributeIterator it;
 	it = m_Attributes.find(name);
 
@@ -242,8 +253,13 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 	m_ModifiedAttributes.insert(make_pair(name, oldValue));
 }
 
+/**
+ * @threadsafety Always.
+ */
 Value DynamicObject::InternalGetAttribute(const String& name) const
 {
+	ObjectLock olock(this);
+
 	DynamicObject::AttributeConstIterator it;
 	it = m_Attributes.find(name);
 
@@ -253,13 +269,20 @@ Value DynamicObject::InternalGetAttribute(const String& name) const
 	return it->second.GetValue();
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool DynamicObject::HasAttribute(const String& name) const
 {
+	ObjectLock olock(this);
+
 	return (m_Attributes.find(name) != m_Attributes.end());
 }
 
 void DynamicObject::ClearAttributesByType(AttributeType type)
 {
+	assert(OwnsLock());
+
 	DynamicObject::AttributeIterator at;
 	for (at = m_Attributes.begin(); at != m_Attributes.end(); at++) {
 		if (at->second.GetType() != type)
@@ -269,44 +292,81 @@ void DynamicObject::ClearAttributesByType(AttributeType type)
 	}
 }
 
+/**
+ * @threadsafety Always.
+ */
 DynamicType::Ptr DynamicObject::GetType(void) const
 {
+	ObjectLock olock(this);
+
 	return DynamicType::GetByName(m_Type);
 }
 
+/**
+ * @threadsafety Always.
+ */
 String DynamicObject::GetName(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Name;
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool DynamicObject::IsLocal(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Local;
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool DynamicObject::IsAbstract(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Abstract;
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool DynamicObject::IsRegistered(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Registered;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void DynamicObject::SetSource(const String& value)
 {
+	ObjectLock olock(this);
+
 	m_Source = value;
 	Touch("__source");
 }
 
+/**
+ * @threadsafety Always.
+ */
 String DynamicObject::GetSource(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Source;
 }
 
 void DynamicObject::Register(void)
 {
+	assert(OwnsLock());
+
 	/* It's now safe to send us attribute events. */
 	SetEventSafe(true);
 
@@ -352,11 +412,15 @@ void DynamicObject::OnRegistrationCompleted(void)
 
 void DynamicObject::Start(void)
 {
+	assert(OwnsLock());
+
 	/* Nothing to do here. */
 }
 
 void DynamicObject::Unregister(void)
 {
+	assert(OwnsLock());
+
 	DynamicType::Ptr dtype = GetType();
 	ObjectLock olock(dtype);
 
@@ -371,17 +435,14 @@ void DynamicObject::Unregister(void)
 ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
     const vector<Value>& arguments)
 {
-	String funcName;
+	assert(OwnsLock());
 
 	Dictionary::Ptr methods = m_Methods;
 
-	{
-		ObjectLock olock(methods);
-		if (!methods->Contains(method))
-			return ScriptTask::Ptr();
+	String funcName = methods->Get(method);
 
-		funcName = methods->Get(method);
-	}
+	if (funcName.IsEmpty())
+		return ScriptTask::Ptr();
 
 	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
 
@@ -409,15 +470,23 @@ void DynamicObject::DumpObjects(const String& filename)
 	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
 	sfp->Start();
 
-	;
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		String type_name;
+
+		{
+			ObjectLock olock(type);
+			type_name = type->GetName();
+		}
+
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+			ObjectLock olock(object);
+
 			if (object->IsLocal())
 				continue;
 
 			Dictionary::Ptr persistentObject = boost::make_shared<Dictionary>();
 
-			persistentObject->Set("type", object->GetType()->GetName());
+			persistentObject->Set("type", type_name);
 			persistentObject->Set("name", object->GetName());
 
 			int types = Attribute_Local | Attribute_Replicated;
@@ -472,6 +541,8 @@ void DynamicObject::RestoreObjects(const String& filename)
 	while (NetString::ReadStringFromStream(sfp, &message)) {
 		Dictionary::Ptr persistentObject = Value::Deserialize(message);
 
+		assert(persistentObject->IsSealed());
+
 		String type = persistentObject->Get("type");
 		String name = persistentObject->Get("name");
 		Dictionary::Ptr update = persistentObject->Get("update");
@@ -479,7 +550,6 @@ void DynamicObject::RestoreObjects(const String& filename)
 		bool hasConfig = update->Contains("configTx");
 
 		DynamicType::Ptr dt = DynamicType::GetByName(type);
-		ObjectLock dlock(dt);
 
 		if (!dt)
 			BOOST_THROW_EXCEPTION(invalid_argument("Invalid type: " + type));
@@ -487,9 +557,11 @@ void DynamicObject::RestoreObjects(const String& filename)
 		DynamicObject::Ptr object = dt->GetObject(name);
 
 		if (hasConfig && !object) {
-			object = dt->CreateObject(update);
+			object = DynamicType::CreateObject(dt, update);
+			ObjectLock olock(object);
 			object->Register();
 		} else if (object) {
+			ObjectLock olock(object);
 			object->ApplyUpdate(update, Attribute_All);
 		}
 
@@ -506,14 +578,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 void DynamicObject::DeactivateObjects(void)
 {
 	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
-		set<DynamicObject::Ptr> objects;
-
-		{
-			ObjectLock olock(dt);
-			objects = dt->GetObjects();
-		}
-
-		BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
 			ObjectLock olock(object);
 			object->Unregister();
 		}
@@ -563,14 +628,16 @@ void DynamicObject::NewTx(void)
 			continue;
 
 		map<String, Value, string_iless> attrs;
+		bool event_safe;
 
 		{
 			ObjectLock olock(object);
 			attrs.swap(object->m_ModifiedAttributes);
+			event_safe = object->GetEventSafe();
 		}
 
-		/* Check if it's safe to send events. */
-		if (object->GetEventSafe()) {
+		/* Send attribute events if it's safe to do so. */
+		if (event_safe) {
 			map<String, Value, string_iless>::iterator it;
 			for (it = attrs.begin(); it != attrs.end(); it++)
 				object->OnAttributeChanged(it->first, it->second);
@@ -589,24 +656,26 @@ void DynamicObject::OnAttributeChanged(const String&, const Value&)
 DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& name)
 {
 	DynamicType::Ptr dtype = DynamicType::GetByName(type);
-
-	{
-		ObjectLock olock(dtype);
-		return dtype->GetObject(name);
-	}
+	return dtype->GetObject(name);
 }
 
 const DynamicObject::AttributeMap& DynamicObject::GetAttributes(void) const
 {
+	assert(OwnsLock());
+
 	return m_Attributes;
 }
 
 void DynamicObject::SetEventSafe(bool safe)
 {
+	assert(OwnsLock());
+
 	m_EventSafe = safe;
 }
 
 bool DynamicObject::GetEventSafe(void) const
 {
+	assert(OwnsLock());
+
 	return m_EventSafe;
 }

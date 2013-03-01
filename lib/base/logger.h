@@ -71,7 +71,7 @@ protected:
 	DynamicObject::Ptr GetConfig(void) const;
 
 private:
-	DynamicObject *m_Config;
+	DynamicObject::WeakPtr m_Config;
 
 	friend class Logger;
 };
@@ -96,6 +96,9 @@ public:
 	static LogSeverity StringToSeverity(const String& severity);
 
 	LogSeverity GetMinSeverity(void) const;
+
+protected:
+	virtual void Start(void);
 
 private:
 	Attribute<String> m_Type;

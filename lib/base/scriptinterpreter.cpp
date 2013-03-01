@@ -33,6 +33,8 @@ ScriptInterpreter::~ScriptInterpreter(void)
 
 void ScriptInterpreter::SubscribeFunction(const String& name)
 {
+	ObjectLock olock(this);
+
 	m_SubscribedFunctions.insert(name);
 
 	ScriptFunction::Ptr sf = boost::make_shared<ScriptFunction>(boost::bind(&ScriptInterpreter::ProcessCall, this, _1, name, _2));
@@ -41,6 +43,8 @@ void ScriptInterpreter::SubscribeFunction(const String& name)
 
 void ScriptInterpreter::UnsubscribeFunction(const String& name)
 {
+	ObjectLock olock(this);
+
 	m_SubscribedFunctions.erase(name);
 	ScriptFunction::Unregister(name);
 }

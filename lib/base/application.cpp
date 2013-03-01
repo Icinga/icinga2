@@ -79,12 +79,9 @@ Application::~Application(void)
  *
  * @returns The application object.
  */
-Application::Ptr Application::GetInstance(void)
+Application *Application::GetInstance(void)
 {
-	if (m_Instance)
-		return m_Instance->GetSelf();
-	else
-		return Application::Ptr();
+	return m_Instance;
 }
 
 int Application::GetArgC(void)
@@ -110,6 +107,7 @@ void Application::SetArgV(char **argv)
 void Application::ShutdownTimerHandler(void)
 {
 	if (m_ShuttingDown) {
+		Logger::Write(LogInformation, "base", "Shutting down Icinga...");
 		Application::GetInstance()->OnShutdown();
 		DynamicObject::DeactivateObjects();
 		GetEQ().Stop();
@@ -175,14 +173,6 @@ void Application::TimeWatchThreadProc(void)
 void Application::RequestShutdown(void)
 {
 	m_ShuttingDown = true;
-}
-
-/**
- * Terminates the application.
- */
-void Application::Terminate(int exitCode)
-{
-	_exit(exitCode);
 }
 
 /**
@@ -295,7 +285,7 @@ void Application::SigIntHandler(int signum)
 {
 	assert(signum == SIGINT);
 
-	Application::Ptr instance = Application::GetInstance();
+	Application *instance = Application::GetInstance();
 
 	if (!instance)
 		return;
@@ -330,12 +320,12 @@ void Application::SigAbrtHandler(int signum)
  */
 BOOL WINAPI Application::CtrlHandler(DWORD type)
 {
-	Application::Ptr instance = Application::GetInstance();
+	Application *instance = Application::GetInstance();
 
 	if (!instance)
 		return TRUE;
 
-	instance->GetInstance()->RequestShutdown();
+	instance->RequestShutdown();
 
 	SetConsoleCtrlHandler(NULL, FALSE);
 	return TRUE;

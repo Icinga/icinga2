@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(User, NULL);
+REGISTER_TYPE(User);
 
 User::User(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)

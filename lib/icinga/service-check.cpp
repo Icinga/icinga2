@@ -407,8 +407,12 @@ void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (v
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	Dictionary::Ptr checkInfo = boost::make_shared<Dictionary>();
-	checkInfo->Set("schedule_start", self->GetNextCheck());
-	checkInfo->Set("execution_start", Utility::GetTime());
+
+	{
+		ObjectLock olock(checkInfo);
+		checkInfo->Set("schedule_start", self->GetNextCheck());
+		checkInfo->Set("execution_start", Utility::GetTime());
+	}
 
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(self->GetMacros());
@@ -460,16 +464,12 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 {
 	checkInfo->Set("execution_end", Utility::GetTime());
 	checkInfo->Set("schedule_end", Utility::GetTime());
+	checkInfo->Seal();
 
 	Dictionary::Ptr result;
 
 	try {
-		Value vresult;
-
-		{
-			ObjectLock tlock(task);
-			vresult = task->GetResult();
-		}
+		Value vresult = task->GetResult();
 
 		if (vresult.IsObjectType<Dictionary>())
 			result = vresult;
@@ -511,6 +511,8 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 
 			result->Set("current_checker", em->GetIdentity());
 		}
+
+		result->Seal();
 	}
 
 	{

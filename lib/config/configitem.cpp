@@ -144,6 +144,7 @@ void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
 			BOOST_THROW_EXCEPTION(domain_error(message.str()));
 		}
 
+		ObjectLock olock(parent);
 		parent->InternalLink(dictionary);
 	}
 
@@ -208,10 +209,8 @@ DynamicObject::Ptr ConfigItem::Commit(const ConfigItem::Ptr& self)
 		m_Items[ikey] = self;
 	}
 
-	if (!dobj) {
-		ObjectLock olock(dtype);
+	if (!dobj)
 		dobj = dtype->GetObject(name);
-	}
 
 	/* Register this item with its parents. */
 	BOOST_FOREACH(const String& parentName, parents) {
@@ -224,26 +223,36 @@ DynamicObject::Ptr ConfigItem::Commit(const ConfigItem::Ptr& self)
 	 * DynamicObject::ApplyUpdate expects. */
 	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
 
-	String key;
-	Value data;
-	BOOST_FOREACH(tie(key, data), properties) {
-		Dictionary::Ptr attr = boost::make_shared<Dictionary>();
-		attr->Set("data", data);
-		attr->Set("type", Attribute_Config);
-		attr->Set("tx", DynamicObject::GetCurrentTx());
-		attrs->Set(key, attr);
+	double tx = DynamicObject::GetCurrentTx();
+
+	{
+		ObjectLock olock(properties);
+
+		String key;
+		Value data;
+		BOOST_FOREACH(tie(key, data), properties) {
+			Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+			attr->Set("data", data);
+			attr->Set("type", Attribute_Config);
+			attr->Set("tx", tx);
+			attr->Seal();
+
+			attrs->Set(key, attr);
+		}
 	}
+
+	attrs->Seal();
 
 	Dictionary::Ptr update = boost::make_shared<Dictionary>();
 	update->Set("attrs", attrs);
 	update->Set("configTx", DynamicObject::GetCurrentTx());
+	update->Seal();
 
 	/* Update or create the object and apply the configuration settings. */
 	bool was_null = false;
 
 	if (!dobj) {
-		ObjectLock dlock(dtype);
-		dobj = dtype->CreateObject(update);
+		dobj = DynamicType::CreateObject(dtype, update);
 		was_null = true;
 	}
 

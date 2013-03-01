@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(Service, NULL);
+REGISTER_TYPE(Service);
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject)
@@ -274,28 +274,39 @@ void Service::ClearAcknowledgement(void)
 
 void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 {
+	Service::Ptr self;
+	String service_name;
+	bool abstract;
+
+	{
+		ObjectLock olock(this);
+		self = GetSelf();
+		service_name = GetName();
+		abstract = IsAbstract();
+	}
+
 	if (name == "current_checker")
-		OnCheckerChanged(GetSelf(), oldValue);
+		OnCheckerChanged(self, oldValue);
 	else if (name == "next_check")
-		OnNextCheckChanged(GetSelf(), oldValue);
+		OnNextCheckChanged(self, oldValue);
 	else if (name == "servicegroups")
 		ServiceGroup::InvalidateMembersCache();
 	else if (name == "host_name" || name == "short_name") {
 		Host::InvalidateServicesCache();
 
-		UpdateSlaveNotifications(GetSelf());
+		UpdateSlaveNotifications(self);
 	} else if (name == "downtimes")
 		Service::InvalidateDowntimesCache();
 	else if (name == "comments")
 		Service::InvalidateCommentsCache();
 	else if (name == "notifications")
-		UpdateSlaveNotifications(GetSelf());
+		UpdateSlaveNotifications(self);
 	else if (name == "check_interval") {
-		ObjectLock(this);
-		ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
+		ObjectLock olock(this);
+		ConfigItem::Ptr item = ConfigItem::GetObject("Service", service_name);
 
 		/* update the next check timestamp if we're the owner of this service */
-		if (item && !IsAbstract())
+		if (item && !abstract)
 			UpdateNextCheck();
 	}
 }
@@ -366,6 +377,7 @@ set<Service::Ptr> Service::GetParentServices(const Service::Ptr& self)
 Dictionary::Ptr Service::CalculateDynamicMacros(const Service::Ptr& self)
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
+	ObjectLock mlock(macros);
 
 	Dictionary::Ptr cr;
 

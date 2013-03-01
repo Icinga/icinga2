@@ -44,6 +44,8 @@ vector<String> Process::SplitCommand(const Value& command)
 
 	if (command.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr dict = command;
+		ObjectLock olock(dict);
+
 		Value arg;
 		BOOST_FOREACH(tie(tuples::ignore, arg), dict) {
 			args.push_back(arg);

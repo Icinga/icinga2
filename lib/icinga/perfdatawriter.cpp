@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(PerfdataWriter, NULL);
+REGISTER_TYPE(PerfdataWriter);
 
 PerfdataWriter::PerfdataWriter(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
@@ -49,6 +49,7 @@ void PerfdataWriter::Start(void)
 
 	{
 		ObjectLock olock(m_Endpoint);
+
 		m_Endpoint->RegisterTopicHandler("checker::CheckResult",
 		    boost::bind(&PerfdataWriter::CheckResultRequestHandler, this, _3));
 	}

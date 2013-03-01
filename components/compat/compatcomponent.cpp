@@ -36,7 +36,11 @@ REGISTER_COMPONENT("compat", CompatComponent);
  */
 String CompatComponent::GetStatusPath(void) const
 {
-	Value statusPath = GetConfig()->Get("status_path");
+	DynamicObject::Ptr config = GetConfig();
+
+	ObjectLock olock(config);
+
+	Value statusPath = config->Get("status_path");
 	if (statusPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/cache/icinga2/status.dat";
 	else
@@ -50,7 +54,11 @@ String CompatComponent::GetStatusPath(void) const
  */
 String CompatComponent::GetObjectsPath(void) const
 {
-	Value objectsPath = GetConfig()->Get("objects_path");
+	DynamicObject::Ptr config = GetConfig();
+
+	ObjectLock olock(config);
+
+	Value objectsPath = config->Get("objects_path");
 	if (objectsPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache";
 	else
@@ -64,7 +72,11 @@ String CompatComponent::GetObjectsPath(void) const
  */
 String CompatComponent::GetLogPath(void) const
 {
-	Value logPath = GetConfig()->Get("log_path");
+	DynamicObject::Ptr config = GetConfig();
+
+	ObjectLock olock(config);
+
+	Value logPath = config->Get("log_path");
 	if (logPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/log/icinga2/compat";
 	else
@@ -78,7 +90,11 @@ String CompatComponent::GetLogPath(void) const
  */
 String CompatComponent::GetCommandPath(void) const
 {
-	Value commandPath = GetConfig()->Get("command_path");
+	DynamicObject::Ptr config = GetConfig();
+
+	ObjectLock olock(config);
+
+	Value commandPath = config->Get("command_path");
 	if (commandPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/run/icinga.cmd";
 	else
@@ -214,12 +230,27 @@ void CompatComponent::DumpComments(ostream& fp, const Service::Ptr& owner, Compa
 
 void CompatComponent::DumpDowntimes(ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
-	ObjectLock olock(owner);
+	Dictionary::Ptr downtimes;
+	String short_name, host_name;
+	Host::Ptr host;
 
-	Dictionary::Ptr downtimes = owner->GetDowntimes();
+	{
+		ObjectLock olock(owner);
+
+		downtimes = owner->GetDowntimes();
+		short_name = owner->GetShortName();
+		host = owner->GetHost();
+	}
+
+	{
+		ObjectLock olock(host);
+		host_name = host->GetName();
+	}
 
 	if (!downtimes)
 		return;
+
+	ObjectLock dlock(downtimes);
 
 	String id;
 	Dictionary::Ptr downtime;
@@ -227,18 +258,20 @@ void CompatComponent::DumpDowntimes(ostream& fp, const Service::Ptr& owner, Comp
 		if (Service::IsDowntimeExpired(downtime))
 			continue;
 
+		ObjectLock olock(downtime);
+
 		if (type == CompatTypeHost)
 			fp << "hostdowntime {" << "\n";
 		else
 			fp << "servicedowntime {" << "\n"
-			   << "\t" << "service_description=" << owner->GetShortName() << "\n";
+			   << "\t" << "service_description=" << short_name << "\n";
 
 		Dictionary::Ptr triggeredByObj = Service::GetDowntimeByID(downtime->Get("triggered_by"));
 		int triggeredByLegacy = 0;
 		if (triggeredByObj)
 			triggeredByLegacy = triggeredByObj->Get("legacy_id");
 
-		fp << "\t" << "host_name=" << owner->GetHost()->GetName() << "\n"
+		fp << "\t" << "host_name=" << host_name << "\n"
 		   << "\t" << "downtime_id=" << static_cast<String>(downtime->Get("legacy_id")) << "\n"
 		   << "\t" << "entry_time=" << static_cast<double>(downtime->Get("entry_time")) << "\n"
 		   << "\t" << "start_time=" << static_cast<double>(downtime->Get("start_time")) << "\n"
@@ -357,6 +390,8 @@ void CompatComponent::DumpServiceStatusAttrs(ostream& fp, const Service::Ptr& se
 	}
 
 	if (cr) {
+		ObjectLock olock(cr);
+
 		output = cr->Get("output");
 		schedule_end = cr->Get("schedule_end");
 		perfdata = cr->Get("performance_data_raw");

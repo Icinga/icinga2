@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(IcingaApplication, NULL);
+REGISTER_TYPE(IcingaApplication);
 
 #ifndef _WIN32
 #	include "icinga-version.h"
@@ -156,6 +156,7 @@ shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
 Dictionary::Ptr IcingaApplication::CalculateDynamicMacros(const IcingaApplication::Ptr& self)
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
+	ObjectLock mlock(macros);
 
 	double now = Utility::GetTime();
 

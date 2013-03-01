@@ -25,7 +25,7 @@ boost::mutex UserGroup::m_Mutex;
 map<String, vector<User::WeakPtr> > UserGroup::m_MembersCache;
 bool UserGroup::m_MembersCacheValid = true;
 
-REGISTER_TYPE(UserGroup, NULL);
+REGISTER_TYPE(UserGroup);
 
 UserGroup::UserGroup(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)

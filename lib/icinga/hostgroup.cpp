@@ -25,7 +25,7 @@ boost::mutex HostGroup::m_Mutex;
 map<String, vector<Host::WeakPtr> > HostGroup::m_MembersCache;
 bool HostGroup::m_MembersCacheValid = true;
 
-REGISTER_TYPE(HostGroup, NULL);
+REGISTER_TYPE(HostGroup);
 
 HostGroup::HostGroup(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)

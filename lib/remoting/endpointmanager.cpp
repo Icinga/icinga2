@@ -331,7 +331,11 @@ void EndpointManager::SubscriptionTimerHandler(void)
 		if (!endpoint->IsLocalEndpoint() || endpoint == m_Endpoint)
 			continue;
 
-		if (endpoint->GetSubscriptions()) {
+		Dictionary::Ptr endpointSubscriptions = endpoint->GetSubscriptions();
+
+		if (endpointSubscriptions) {
+			ObjectLock olock(endpointSubscriptions);
+
 			String topic;
 			BOOST_FOREACH(tie(tuples::ignore, topic), endpoint->GetSubscriptions()) {
 				subscriptions->Set(topic, topic);

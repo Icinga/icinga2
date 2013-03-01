@@ -64,29 +64,28 @@ DynamicType::TypeSet DynamicType::GetTypes(void)
 set<DynamicObject::Ptr> DynamicType::GetObjects(const String& type)
 {
 	DynamicType::Ptr dt = GetByName(type);
-	ObjectLock olock(dt);
 	return dt->GetObjects();
 }
 
 set<DynamicObject::Ptr> DynamicType::GetObjects(void) const
 {
+	ObjectLock olock(this);
+
 	return m_ObjectSet; /* Making a copy of the set here. */
 }
 
 String DynamicType::GetName(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Name;
 }
 
 void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 {
-	String name;
+	String name = object->GetName();
 
-	{
-		ObjectLock olock(object);
-		name = object->GetName();
-	}
-
+	assert(OwnsLock());
 	ObjectMap::iterator it = m_ObjectMap.find(name);
 
 	if (it != m_ObjectMap.end()) {
@@ -107,12 +106,18 @@ void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
 	ObjectLock olock(object);
 	object->SetEventSafe(false);
 
+	assert(OwnsLock());
 	m_ObjectMap.erase(object->GetName());
 	m_ObjectSet.erase(object);
 }
 
+/**
+ * @threadsafety Always.
+ */
 DynamicObject::Ptr DynamicType::GetObject(const String& name) const
 {
+	ObjectLock olock(this);
+
 	DynamicType::ObjectMap::const_iterator nt = m_ObjectMap.find(name);
 
 	if (nt == m_ObjectMap.end())
@@ -138,53 +143,25 @@ void DynamicType::RegisterType(const DynamicType::Ptr& type)
 	InternalGetTypeSet().insert(type);
 }
 
-DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUpdate) const
+DynamicObject::Ptr DynamicType::CreateObject(const DynamicType::Ptr& self, const Dictionary::Ptr& serializedUpdate)
 {
-	DynamicObject::Ptr object = m_ObjectFactory(serializedUpdate);
+	ObjectFactory factory;
+
+	{
+		ObjectLock olock(self);
+		factory = self->m_ObjectFactory;
+	}
+
+	DynamicObject::Ptr object = factory(serializedUpdate);
 
 	{
 		ObjectLock olock(object);
-
-		/* register attributes */
-		String name;
-		AttributeType type;
-		BOOST_FOREACH(tuples::tie(name, type), m_Attributes)
-			object->RegisterAttribute(name, type);
 
 		/* apply the object's non-config attributes */
 		object->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
 	}
 
 	return object;
-}
-
-/**
- * @threadsafety Always.
- */
-bool DynamicType::TypeExists(const String& name)
-{
-	return (GetByName(name));
-}
-
-void DynamicType::AddAttribute(const String& name, AttributeType type)
-{
-	m_Attributes[name] = type;
-}
-
-void DynamicType::RemoveAttribute(const String& name)
-{
-	m_Attributes.erase(name);
-}
-
-bool DynamicType::HasAttribute(const String& name)
-{
-	return (m_Attributes.find(name) != m_Attributes.end());
-}
-
-void DynamicType::AddAttributes(const AttributeDescription *attributes, int attributeCount)
-{
-	for (int i = 0; i < attributeCount; i++)
-		AddAttribute(attributes[i].Name, attributes[i].Type);
 }
 
 boost::mutex& DynamicType::GetStaticMutex(void)

@@ -37,7 +37,7 @@ public:
 	Application(const Dictionary::Ptr& serializedUpdate);
 	~Application(void);
 
-	static Application::Ptr GetInstance(void);
+	static Application *GetInstance(void);
 
 	int Run(void);
 
@@ -57,7 +57,6 @@ public:
 	static void InstallExceptionHandlers(void);
 
 	static void RequestShutdown(void);
-	static void Terminate(int exitCode);
 
 	static void SetDebugging(bool debug);
 	static bool IsDebugging(void);

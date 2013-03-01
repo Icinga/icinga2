@@ -54,6 +54,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 		case OperatorSet:
 			if (valueExprl) {
+				ObjectLock olock(valueExprl);
 				dict = boost::make_shared<Dictionary>();
 				valueExprl->Execute(dict);
 				newValue = dict;
@@ -62,7 +63,10 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			break;
 
 		case OperatorPlus:
-			oldValue = dictionary->Get(m_Key);
+			{
+				ObjectLock olock(dictionary);
+				oldValue = dictionary->Get(m_Key);
+			}
 
 			if (oldValue.IsObjectType<Dictionary>())
 				dict = oldValue;
@@ -83,8 +87,13 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			newValue = dict;
 
 			if (valueExprl) {
+				ObjectLock olock(valueExprl);
+
 				valueExprl->Execute(dict);
 			} else if (valueDict) {
+				ObjectLock olock(valueDict);
+				ObjectLock dlock(dict);
+
 				String key;
 				Value value;
 				BOOST_FOREACH(tie(key, value), valueDict) {
@@ -103,6 +112,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			BOOST_THROW_EXCEPTION(runtime_error("Not yet implemented."));
 	}
 
+	ObjectLock olock(dictionary);
 	if (m_Key.IsEmpty())
 		dictionary->Add(newValue);
 	else
