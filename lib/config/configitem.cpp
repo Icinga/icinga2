@@ -217,11 +217,13 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		m_ChildObjects = children;
 	}
 
+	ConfigItem::Ptr self = GetSelf();
+
 	{
 		recursive_mutex::scoped_lock lock(m_Mutex);
 
 		/* Register this item. */
-		m_Items[ikey] = GetSelf();
+		m_Items[ikey] = self;
 	}
 
 	DynamicObject::Ptr dobj = GetDynamicObject();
@@ -232,8 +234,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	/* Register this item with its parents. */
 	BOOST_FOREACH(const String& parentName, GetParents()) {
 		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
-		ObjectLock olock(parent);
-		parent->RegisterChild(GetSelf());
+		parent->RegisterChild(self);
 	}
 
 	/* Create a fake update in the format that
