@@ -22,7 +22,11 @@
 using namespace icinga;
 
 #ifdef _DEBUG
+#	ifdef _MSC_VER
+static __declspec(thread) int g_LockCount;
+#	else /* _MSC_VER */
 static __thread int g_LockCount;
+#	endif /* _MSC_VER */
 #endif /* _DEBUG */
 
 ObjectLock::ObjectLock(void)
