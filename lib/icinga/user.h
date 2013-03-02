@@ -43,7 +43,7 @@ public:
 	Dictionary::Ptr GetGroups(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
-	static Dictionary::Ptr CalculateDynamicMacros(const User::Ptr& self);
+	Dictionary::Ptr CalculateDynamicMacros(void) const;
 
 protected:
 	void OnAttributeChanged(const String& name, const Value& oldValue);

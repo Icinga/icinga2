@@ -38,13 +38,23 @@ UserGroup::~UserGroup(void)
 	InvalidateMembersCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 void UserGroup::OnRegistrationCompleted(void)
 {
+	assert(!OwnsLock());
+
 	InvalidateMembersCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 String UserGroup::GetDisplayName(void) const
 {
+	ObjectLock olock(this);
+
 	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
 	else
@@ -64,21 +74,17 @@ UserGroup::Ptr UserGroup::GetByName(const String& name)
 	return dynamic_pointer_cast<UserGroup>(configObject);
 }
 
-set<User::Ptr> UserGroup::GetMembers(const UserGroup::Ptr& self)
+/**
+ * @threadsafety Always.
+ */
+set<User::Ptr> UserGroup::GetMembers(void) const
 {
-	String name;
-
-	{
-		ObjectLock olock(self);
-		name = self->GetName();
-	}
-
 	set<User::Ptr> users;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		BOOST_FOREACH(const User::WeakPtr& wuser, m_MembersCache[name]) {
+		BOOST_FOREACH(const User::WeakPtr& wuser, m_MembersCache[GetName()]) {
 			User::Ptr user = wuser.lock();
 
 			if (!user)
@@ -91,18 +97,22 @@ set<User::Ptr> UserGroup::GetMembers(const UserGroup::Ptr& self)
 	return users;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void UserGroup::InvalidateMembersCache(void)
 {
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
-		if (m_MembersCacheValid)
-			Utility::QueueAsyncCallback(boost::bind(&UserGroup::RefreshMembersCache));
+	if (m_MembersCacheValid)
+		Utility::QueueAsyncCallback(boost::bind(&UserGroup::RefreshMembersCache));
 
-		m_MembersCacheValid = false;
-	}
+	m_MembersCacheValid = false;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void UserGroup::RefreshMembersCache(void)
 {
 	{

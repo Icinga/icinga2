@@ -54,16 +54,12 @@ void DemoComponent::Stop(void)
  */
 void DemoComponent::DemoTimerHandler(void)
 {
-	Logger::Write(LogInformation, "demo", "Sending multicast 'hello"
-	    " world' message.");
+	Logger::Write(LogInformation, "demo", "Sending multicast 'hello world' message.");
 
 	RequestMessage request;
 	request.SetMethod("demo::HelloWorld");
 
-	EndpointManager::Ptr em = EndpointManager::GetInstance();
-
-	ObjectLock olock(em);
-	em->SendMulticastMessage(m_Endpoint, request);
+	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
 }
 
 /**

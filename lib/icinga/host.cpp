@@ -55,14 +55,18 @@ Host::~Host(void)
 
 void Host::OnRegistrationCompleted(void)
 {
+	assert(!OwnsLock());
+
 	DynamicObject::OnRegistrationCompleted();
 
 	Host::InvalidateServicesCache();
-	Host::UpdateSlaveServices(GetSelf());
+	UpdateSlaveServices();
 }
 
 String Host::GetDisplayName(void) const
 {
+	ObjectLock olock(this);
+
 	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
 	else
@@ -81,32 +85,44 @@ Host::Ptr Host::GetByName(const String& name)
 
 Dictionary::Ptr Host::GetGroups(void) const
 {
+	ObjectLock olock(this);
+
 	return m_HostGroups;;
 }
 
 Dictionary::Ptr Host::GetMacros(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Macros;
 }
 
 Dictionary::Ptr Host::GetHostDependencies(void) const
 {
+	ObjectLock olock(this);
+
 	return m_HostDependencies;;
 }
 
 Dictionary::Ptr Host::GetServiceDependencies(void) const
 {
+	ObjectLock olock(this);
+
 	return m_ServiceDependencies;
 }
 
 String Host::GetHostCheck(void) const
 {
+	ObjectLock olock(this);
+
 	return m_HostCheck;
 }
 
-bool Host::IsReachable(const Host::Ptr& self)
+bool Host::IsReachable(void) const
 {
-	set<Service::Ptr> parentServices = Host::GetParentServices(self);
+	assert(!OwnsLock());
+
+	set<Service::Ptr> parentServices = GetParentServices();
 
 	BOOST_FOREACH(const Service::Ptr& service, parentServices) {
 		ObjectLock olock(service);
@@ -127,14 +143,19 @@ bool Host::IsReachable(const Host::Ptr& self)
 		return false;
 	}
 
-	set<Host::Ptr> parentHosts = Host::GetParentHosts(self);
+	set<Host::Ptr> parentHosts = GetParentHosts();
 
 	BOOST_FOREACH(const Host::Ptr& host, parentHosts) {
-		Service::Ptr hc = Host::GetHostCheckService(host);
+		Service::Ptr hc = GetHostCheckService();
+
+		/* ignore hosts that don't have a hostcheck */
+		if (!hc)
+			continue;
+
 		ObjectLock olock(hc);
 
 		/* ignore hosts that are up */
-		if (hc && hc->GetState() == StateOK)
+		if (hc->GetState() == StateOK)
 			continue;
 
 		return false;
@@ -190,37 +211,21 @@ static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Pt
 	}
 }
 
-void Host::UpdateSlaveServices(const Host::Ptr& self)
+void Host::UpdateSlaveServices(void)
 {
-	ConfigItem::Ptr item;
-	Dictionary::Ptr oldServices, newServices, serviceDescs;
-	String host_name;
+	assert(!OwnsLock());
 
-	{
-		ObjectLock olock(self);
+	ConfigItem::Ptr item = ConfigItem::GetObject("Host", GetName());
 
-		host_name = self->GetName();
+	/* Don't create slave services unless we own this object
+	 * and it's not a template. */
+	if (!item || IsAbstract())
+		return;
 
-		item = ConfigItem::GetObject("Host", host_name);
+	Dictionary::Ptr oldServices = m_SlaveServices;
+	Dictionary::Ptr serviceDescs = Get("services");
 
-		/* Don't create slave services unless we own this object
-		 * and it's not a template. */
-		if (!item || self->IsAbstract())
-			return;
-
-		oldServices = self->m_SlaveServices;
-		serviceDescs = self->Get("services");
-	}
-
-	newServices = boost::make_shared<Dictionary>();
-	ObjectLock nlock(newServices);
-
-	DebugInfo debug_info;
-
-	{
-		ObjectLock olock(item);
-		debug_info = item->GetDebugInfo();
-	}
+	Dictionary::Ptr newServices = boost::make_shared<Dictionary>();
 
 	if (serviceDescs) {
 		ObjectLock olock(serviceDescs);
@@ -231,17 +236,17 @@ void Host::UpdateSlaveServices(const Host::Ptr& self)
 				svcname = svcdesc;
 
 			stringstream namebuf;
-			namebuf << host_name << "-" << svcname;
+			namebuf << GetName() << "-" << svcname;
 			String name = namebuf.str();
 
-			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(debug_info);
+			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
 			builder->SetType("Service");
 			builder->SetName(name);
-			builder->AddExpression("host_name", OperatorSet, host_name);
+			builder->AddExpression("host_name", OperatorSet, GetName());
 			builder->AddExpression("display_name", OperatorSet, svcname);
 			builder->AddExpression("short_name", OperatorSet, svcname);
 
-			CopyServiceAttributes<false>(self, builder);
+			CopyServiceAttributes<false>(this, builder);
 
 			if (svcdesc.IsScalar()) {
 				builder->AddParent(svcdesc);
@@ -272,7 +277,7 @@ void Host::UpdateSlaveServices(const Host::Ptr& self)
 			}
 
 			ConfigItem::Ptr serviceItem = builder->Compile();
-			DynamicObject::Ptr dobj = ConfigItem::Commit(serviceItem);
+			DynamicObject::Ptr dobj = serviceItem->Commit();
 
 			newServices->Set(name, serviceItem);
 		}
@@ -293,23 +298,18 @@ void Host::UpdateSlaveServices(const Host::Ptr& self)
 
 	newServices->Seal();
 
-	ObjectLock olock(self);
-	self->Set("slave_services", newServices);
+	ObjectLock olock(this);
+	Set("slave_services", newServices);
 }
 
 void Host::OnAttributeChanged(const String& name, const Value&)
 {
+	assert(!OwnsLock());
+
 	if (name == "hostgroups")
 		HostGroup::InvalidateMembersCache();
 	else if (name == "services") {
-		Host::Ptr self;
-
-		{
-			ObjectLock olock(this);
-			self = GetSelf();
-		}
-
-		UpdateSlaveServices(self);
+		UpdateSlaveServices();
 	} else if (name == "notifications") {
 		set<Service::Ptr> services;
 
@@ -450,20 +450,13 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 	task->FinishResult(Empty);
 }
 
-Service::Ptr Host::GetServiceByShortName(const Host::Ptr& self, const Value& name)
+Service::Ptr Host::GetServiceByShortName(const Value& name) const
 {
-	String host_name;
-
-	{
-		ObjectLock olock(self);
-		host_name = self->GetName();
-	}
-
 	if (name.IsScalar()) {
 		{
 			boost::mutex::scoped_lock lock(m_ServiceMutex);
 
-			map<String, Service::WeakPtr>& services = m_ServicesCache[host_name];
+			map<String, Service::WeakPtr>& services = m_ServicesCache[GetName()];
 			map<String, Service::WeakPtr>::iterator it = services.find(name);
 
 			if (it != services.end()) {
@@ -478,35 +471,26 @@ Service::Ptr Host::GetServiceByShortName(const Host::Ptr& self, const Value& nam
 		Dictionary::Ptr dict = name;
 		String short_name;
 
-		{
-			ObjectLock olock(dict);
-			host_name = dict->Get("host");
-			short_name = dict->Get("service");
-		}
+		assert(dict->IsSealed());
 
-		return Service::GetByNamePair(host_name, short_name);
+		return Service::GetByNamePair(dict->Get("host"), dict->Get("service"));
 	} else {
 		BOOST_THROW_EXCEPTION(invalid_argument("Host/Service name pair is invalid."));
 	}
 }
 
-set<Host::Ptr> Host::GetParentHosts(const Host::Ptr& self)
+set<Host::Ptr> Host::GetParentHosts(void) const
 {
 	set<Host::Ptr> parents;
 
-	Dictionary::Ptr dependencies;
-	String host_name;
-
-	{
-		ObjectLock olock(self);
-		dependencies = self->GetHostDependencies();
-		host_name = self->GetName();
-	}
+	Dictionary::Ptr dependencies = GetHostDependencies();
 
 	if (dependencies) {
+		ObjectLock olock(dependencies);
+
 		Value value;
 		BOOST_FOREACH(tie(tuples::ignore, value), dependencies) {
-			if (value == host_name)
+			if (value == GetName())
 				continue;
 
 			Host::Ptr host = GetByName(value);
@@ -521,60 +505,52 @@ set<Host::Ptr> Host::GetParentHosts(const Host::Ptr& self)
 	return parents;
 }
 
-Service::Ptr Host::GetHostCheckService(const Host::Ptr& self)
+Service::Ptr Host::GetHostCheckService(void) const
 {
-	String host_check;
-
-	{
-		ObjectLock olock(self);
-		host_check = self->GetHostCheck();
-	}
+	String host_check = GetHostCheck();
 
 	if (host_check.IsEmpty())
 		return Service::Ptr();
 
-	return GetServiceByShortName(self, host_check);
+	return GetServiceByShortName(host_check);
 }
 
-set<Service::Ptr> Host::GetParentServices(const Host::Ptr& self)
+set<Service::Ptr> Host::GetParentServices(void) const
 {
 	set<Service::Ptr> parents;
 
-	Dictionary::Ptr dependencies;
-
-	{
-		ObjectLock olock(self);
-		dependencies = self->GetServiceDependencies();
-	}
+	Dictionary::Ptr dependencies = GetServiceDependencies();
 
 	if (dependencies) {
+		ObjectLock olock(dependencies);
+
 		Value value;
 		BOOST_FOREACH(tie(tuples::ignore, value), dependencies) {
-			parents.insert(GetServiceByShortName(self, value));
+			parents.insert(GetServiceByShortName(value));
 		}
 	}
 
 	return parents;
 }
 
-Dictionary::Ptr Host::CalculateDynamicMacros(const Host::Ptr& self)
+Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 {
+	assert(!OwnsLock());
+
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 	ObjectLock mlock(macros);
 
 	{
-		ObjectLock olock(self);
+		ObjectLock olock(this);
 
-		macros->Set("HOSTNAME", self->GetName());
-		macros->Set("HOSTDISPLAYNAME", self->GetDisplayName());
-		macros->Set("HOSTALIAS", self->GetName());
+		macros->Set("HOSTNAME", GetName());
+		macros->Set("HOSTDISPLAYNAME", GetDisplayName());
+		macros->Set("HOSTALIAS", GetName());
 	}
-
-	bool reachable = Host::IsReachable(self);
 
 	Dictionary::Ptr cr;
 
-	Service::Ptr hc = Host::GetHostCheckService(self);
+	Service::Ptr hc = GetHostCheckService();
 
 	if (hc) {
 		ObjectLock olock(hc);
@@ -594,7 +570,7 @@ Dictionary::Ptr Host::CalculateDynamicMacros(const Host::Ptr& self)
 				break;
 		}
 
-		if (!reachable) {
+		if (!IsReachable()) {
 			state = "UNREACHABLE";
 			stateid = 2;
 		}

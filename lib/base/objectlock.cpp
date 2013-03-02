@@ -21,6 +21,10 @@
 
 using namespace icinga;
 
+#ifdef _DEBUG
+static __thread int g_LockCount;
+#endif /* _DEBUG */
+
 ObjectLock::ObjectLock(void)
 	: m_Object(NULL), m_Lock()
 { }
@@ -50,21 +54,42 @@ void ObjectLock::Lock(void)
 
 	m_Lock = recursive_mutex::scoped_lock(m_Object->m_Mutex);
 
+#ifdef _DEBUG
 	{
 		boost::mutex::scoped_lock lock(Object::m_DebugMutex);
 		m_Object->m_LockCount++;
 		m_Object->m_LockOwner = boost::this_thread::get_id();
+
+		if (m_Object->m_LockCount == 1) {
+			g_LockCount++;
+			m_TS = Utility::GetTime();
+		}
 	}
+#endif /* _DEBUG */
 }
 
 void ObjectLock::Unlock(void)
 {
+#ifdef _DEBUG
 	{
 		boost::mutex::scoped_lock lock(Object::m_DebugMutex);
 
-		if (m_Lock.owns_lock())
+		if (m_Lock.owns_lock()) {
+			if (m_Object->m_LockCount == 1) {
+				g_LockCount--;
+
+				double dt = Utility::GetTime() - m_TS;
+
+				if (dt > 0.05) {
+					std::cerr << "Held object lock for " << dt << " seconds at:";
+					Utility::PrintStacktrace(std::cerr);
+				}
+			}
+
 			m_Object->m_LockCount--;
+		}
 	}
+#endif /* _DEBUG */
 
 	m_Lock = recursive_mutex::scoped_lock();
 }

@@ -29,13 +29,9 @@ REGISTER_COMPONENT("notification", NotificationComponent);
 void NotificationComponent::Start(void)
 {
 	m_Endpoint = Endpoint::MakeEndpoint("notification", false);
-
-	{
-		ObjectLock olock(m_Endpoint);
-		m_Endpoint->RegisterTopicHandler("icinga::SendNotifications",
-		    boost::bind(&NotificationComponent::SendNotificationsRequestHandler, this, _2,
-		    _3));
-	}
+	m_Endpoint->RegisterTopicHandler("icinga::SendNotifications",
+	    boost::bind(&NotificationComponent::SendNotificationsRequestHandler, this, _2,
+	    _3));
 
 	m_NotificationTimer = boost::make_shared<Timer>();
 	m_NotificationTimer->SetInterval(5);
@@ -48,6 +44,7 @@ void NotificationComponent::Start(void)
  */
 void NotificationComponent::Stop(void)
 {
+	m_Endpoint->Unregister();
 }
 
 /**
@@ -61,6 +58,8 @@ void NotificationComponent::NotificationTimerHandler(void)
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+		bool reachable = service->IsReachable();
+
 		ObjectLock olock(service);
 
 		if (service->GetStateType() == StateTypeSoft)
@@ -75,7 +74,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 		if (service->GetLastNotification() > now - service->GetNotificationInterval())
 			continue;
 
-		if (Service::IsReachable(service) && !service->IsInDowntime() && !service->IsAcknowledged())
+		if (reachable && !service->IsInDowntime() && !service->IsAcknowledged())
 			service->RequestNotifications(NotificationProblem);
 	}
 }
@@ -100,5 +99,5 @@ void NotificationComponent::SendNotificationsRequestHandler(const Endpoint::Ptr&
 
 	Service::Ptr service = Service::GetByName(svc);
 
-	Service::SendNotifications(service, static_cast<NotificationType>(type));
+	service->SendNotifications(static_cast<NotificationType>(type));
 }

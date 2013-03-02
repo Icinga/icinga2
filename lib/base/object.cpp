@@ -21,7 +21,9 @@
 
 using namespace icinga;
 
+#ifdef _DEBUG
 boost::mutex Object::m_DebugMutex;
+#endif /* _DEBUG */
 
 /**
  * Default constructor for the Object class.
@@ -49,6 +51,7 @@ Object::SharedPtrHolder Object::GetSelf(void)
 	return Object::SharedPtrHolder(shared_from_this());
 }
 
+#ifdef _DEBUG
 /**
  * Checks if the calling thread owns the lock on this object or is currently
  * in the constructor or destructor and therefore implicitly owns the lock.
@@ -73,3 +76,4 @@ bool Object::OwnsLock(void) const
 
 	return true;
 }
+#endif /* _DEBUG */

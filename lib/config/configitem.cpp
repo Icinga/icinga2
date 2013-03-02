@@ -50,6 +50,8 @@ ConfigItem::ConfigItem(const String& type, const String& name,
  */
 String ConfigItem::GetType(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Type;
 }
 
@@ -60,6 +62,8 @@ String ConfigItem::GetType(void) const
  */
 String ConfigItem::GetName(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Name;
 }
 
@@ -70,6 +74,8 @@ String ConfigItem::GetName(void) const
  */
 String ConfigItem::GetUnit(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Unit;
 }
 
@@ -80,6 +86,8 @@ String ConfigItem::GetUnit(void) const
  */
 DebugInfo ConfigItem::GetDebugInfo(void) const
 {
+	ObjectLock olock(this);
+
 	return m_DebugInfo;
 }
 
@@ -90,6 +98,8 @@ DebugInfo ConfigItem::GetDebugInfo(void) const
  */
 ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 {
+	ObjectLock olock(this);
+
 	return m_ExpressionList;
 }
 
@@ -100,11 +110,15 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
  */
 vector<String> ConfigItem::GetParents(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Parents;
 }
 
 set<ConfigItem::WeakPtr> ConfigItem::GetChildren(void) const
 {
+	ObjectLock olock(this);
+
 	return m_ChildObjects;
 }
 
@@ -124,6 +138,8 @@ Dictionary::Ptr ConfigItem::Link(void) const
  */
 void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
 {
+	ObjectLock olock(this);
+
 	BOOST_FOREACH(const String& name, m_Parents) {
 		ConfigItem::Ptr parent;
 
@@ -157,66 +173,67 @@ void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
  *
  * @returns The DynamicObject that was created/updated.
  */
-DynamicObject::Ptr ConfigItem::Commit(const ConfigItem::Ptr& self)
+DynamicObject::Ptr ConfigItem::Commit(void)
 {
+	assert(!OwnsLock());
+
 	String type, name;
-	DynamicObject::Ptr dobj;
-	vector<String> parents;
-	Dictionary::Ptr properties;
 
-	{
-		ObjectLock olock(self);
-		type = self->GetType();
-		name = self->GetName();
-		dobj = self->GetDynamicObject();
-		parents = self->GetParents();
-		properties = self->Link();
-	}
-
-	Logger::Write(LogDebug, "base", "Commit called for ConfigItem Type=" + type + ", Name=" + name);
+	Logger::Write(LogDebug, "base", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
 
 	/* Make sure the type is valid. */
-	DynamicType::Ptr dtype = DynamicType::GetByName(type);
+	DynamicType::Ptr dtype = DynamicType::GetByName(GetType());
 
 	if (!dtype)
-		BOOST_THROW_EXCEPTION(runtime_error("Type '" + type + "' does not exist."));
+		BOOST_THROW_EXCEPTION(runtime_error("Type '" + GetType() + "' does not exist."));
+
+	/* Try to find an existing item with the same type and name. */
+	pair<String, String> ikey = make_pair(GetType(), GetName());
+	ConfigItem::Ptr oldItem;
 
 	{
 		recursive_mutex::scoped_lock lock(m_Mutex);
 
-		/* Try to find an existing item with the same type and name. */
-		pair<String, String> ikey = make_pair(type, name);
 		ItemMap::iterator it = m_Items.find(ikey);
 
-		set<ConfigItem::WeakPtr> children;
-
-		if (it != m_Items.end()) {
-			/* Unregister the old item from its parents. */
-			ConfigItem::Ptr oldItem = it->second;
-			ObjectLock olock(oldItem);
-			oldItem->UnregisterFromParents();
-
-			/* Steal the old item's children. */
-			children = oldItem->GetChildren();
-		}
-
-		{
-			ObjectLock olock(self);
-			self->m_ChildObjects = children;
-		}
-
-		/* Register this item. */
-		m_Items[ikey] = self;
+		if (it != m_Items.end())
+			oldItem = it->second;
 	}
 
+	set<ConfigItem::WeakPtr> children;
+
+	if (oldItem) {
+		ObjectLock olock(oldItem);
+
+		/* Unregister the old item from its parents. */
+		oldItem->UnregisterFromParents();
+
+		/* Steal the old item's children. */
+		children = oldItem->GetChildren();
+	}
+
+	{
+		ObjectLock olock(this);
+		m_ChildObjects = children;
+	}
+
+	{
+		recursive_mutex::scoped_lock lock(m_Mutex);
+
+		/* Register this item. */
+		m_Items[ikey] = GetSelf();
+	}
+
+	DynamicObject::Ptr dobj = GetDynamicObject();
+
 	if (!dobj)
-		dobj = dtype->GetObject(name);
+		dobj = dtype->GetObject(GetName());
 
 	/* Register this item with its parents. */
-	BOOST_FOREACH(const String& parentName, parents) {
-		ConfigItem::Ptr parent = GetObject(type, parentName);
+	BOOST_FOREACH(const String& parentName, GetParents()) {
+		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
 		ObjectLock olock(parent);
-		parent->RegisterChild(self);
+		parent->RegisterChild(GetSelf());
 	}
 
 	/* Create a fake update in the format that
@@ -224,6 +241,8 @@ DynamicObject::Ptr ConfigItem::Commit(const ConfigItem::Ptr& self)
 	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
 
 	double tx = DynamicObject::GetCurrentTx();
+
+	Dictionary::Ptr properties = Link();
 
 	{
 		ObjectLock olock(properties);
@@ -256,28 +275,19 @@ DynamicObject::Ptr ConfigItem::Commit(const ConfigItem::Ptr& self)
 		was_null = true;
 	}
 
-	{
-		ObjectLock olock(dobj);
-
-		if (!was_null)
-			dobj->ApplyUpdate(update, Attribute_Config);
-
-		self->m_DynamicObject = dobj;
-
-		if (dobj->IsAbstract())
-			dobj->Unregister();
-		else
-			dobj->Register();
-	}
-
-	/* We need to make a copy of the child objects because the
-	 * OnParentCommitted() handler is going to update the list. */
-	set<ConfigItem::WeakPtr> children;
+	if (!was_null)
+		dobj->ApplyUpdate(update, Attribute_Config);
 
 	{
-		ObjectLock olock(self);
-		children = self->m_ChildObjects;
+		ObjectLock olock(this);
+
+		m_DynamicObject = dobj;
 	}
+
+	if (dobj->IsAbstract())
+		dobj->Unregister();
+	else
+		dobj->Register();
 
 	/* notify our children of the update */
 	BOOST_FOREACH(const ConfigItem::WeakPtr wchild, children) {
@@ -289,7 +299,7 @@ DynamicObject::Ptr ConfigItem::Commit(const ConfigItem::Ptr& self)
 		child->OnParentCommitted();
 	}
 
-	OnCommitted(self);
+	OnCommitted(GetSelf());
 
 	return dobj;
 }
@@ -299,18 +309,22 @@ DynamicObject::Ptr ConfigItem::Commit(const ConfigItem::Ptr& self)
  */
 void ConfigItem::Unregister(void)
 {
-	DynamicObject::Ptr dobj = m_DynamicObject.lock();
+	assert(!OwnsLock());
 
-	if (dobj) {
-		ObjectLock olock(dobj);
+	DynamicObject::Ptr dobj = GetDynamicObject();
+
+	if (dobj)
 		dobj->Unregister();
+
+	{
+		ObjectLock olock(this);
+
+		ConfigItem::ItemMap::iterator it;
+		it = m_Items.find(make_pair(GetType(), GetName()));
+
+		if (it != m_Items.end())
+			m_Items.erase(it);
 	}
-
-	ConfigItem::ItemMap::iterator it;
-	it = m_Items.find(make_pair(GetType(), GetName()));
-
-	if (it != m_Items.end())
-		m_Items.erase(it);
 
 	UnregisterFromParents();
 
@@ -319,23 +333,27 @@ void ConfigItem::Unregister(void)
 
 void ConfigItem::RegisterChild(const ConfigItem::Ptr& child)
 {
+	ObjectLock olock(this);
+
 	m_ChildObjects.insert(child);
 }
 
 void ConfigItem::UnregisterChild(const ConfigItem::Ptr& child)
 {
+	ObjectLock olock(this);
+
 	m_ChildObjects.erase(child);
 }
 
 void ConfigItem::UnregisterFromParents(void)
 {
+	ObjectLock olock(this);
+
 	BOOST_FOREACH(const String& parentName, m_Parents) {
 		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
 
-		if (parent) {
-			ObjectLock olock(parent);
+		if (parent)
 			parent->UnregisterChild(GetSelf());
-		}
 	}
 }
 
@@ -344,6 +362,8 @@ void ConfigItem::UnregisterFromParents(void)
  */
 void ConfigItem::OnParentCommitted(void)
 {
+	assert(!OwnsLock());
+
 	ConfigItem::Ptr self;
 
 	{
@@ -354,7 +374,7 @@ void ConfigItem::OnParentCommitted(void)
 			return;
 	}
 
-	Commit(self);
+	Commit();
 }
 
 /**
@@ -364,6 +384,8 @@ void ConfigItem::OnParentCommitted(void)
  */
 DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
 {
+	ObjectLock olock(this);
+
 	return m_DynamicObject.lock();
 }
 
@@ -397,6 +419,8 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
  */
 void ConfigItem::Dump(ostream& fp) const
 {
+	ObjectLock olock(this);
+
 	fp << "object \"" << m_Type << "\" \"" << m_Name << "\"";
 
 	if (m_Parents.size() > 0) {
@@ -440,7 +464,6 @@ void ConfigItem::UnloadUnit(const String& unit)
 	}
 
 	BOOST_FOREACH(const ConfigItem::Ptr& item, obsoleteItems) {
-		ObjectLock olock(item);
 		item->Unregister();
 	}
 }

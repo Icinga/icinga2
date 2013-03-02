@@ -28,25 +28,37 @@ ScriptFunction::ScriptFunction(const Callback& function)
 	: m_Callback(function)
 { }
 
+/**
+ * @threadsafety Always.
+ */
 void ScriptFunction::Register(const String& name, const ScriptFunction::Ptr& function)
 {
 	boost::mutex::scoped_lock lock(GetMutex());
+
 	InternalGetFunctions()[name] = function;
 	OnRegistered(name, function);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void ScriptFunction::Unregister(const String& name)
 {
 	boost::mutex::scoped_lock lock(GetMutex());
+
 	InternalGetFunctions().erase(name);
 	OnUnregistered(name);
 }
 
+/**
+ * @threadsafety Always.
+ */
 ScriptFunction::Ptr ScriptFunction::GetByName(const String& name)
 {
+	boost::mutex::scoped_lock lock(GetMutex());
+
 	map<String, ScriptFunction::Ptr>::iterator it;
 
-	boost::mutex::scoped_lock lock(GetMutex());
 	it = InternalGetFunctions().find(name);
 
 	if (it == InternalGetFunctions().end())
@@ -55,6 +67,9 @@ ScriptFunction::Ptr ScriptFunction::GetByName(const String& name)
 	return it->second;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void ScriptFunction::Invoke(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	ObjectLock olock(this);
@@ -62,9 +77,13 @@ void ScriptFunction::Invoke(const ScriptTask::Ptr& task, const vector<Value>& ar
 	m_Callback(task, arguments);
 }
 
+/**
+ * @threadsafety Always.
+ */
 map<String, ScriptFunction::Ptr> ScriptFunction::GetFunctions(void)
 {
 	boost::mutex::scoped_lock lock(GetMutex());
+
 	return InternalGetFunctions(); /* makes a copy of the map */
 }
 
@@ -77,6 +96,9 @@ map<String, ScriptFunction::Ptr>& ScriptFunction::InternalGetFunctions(void)
 	return functions;
 }
 
+/**
+ * @threadsafety Always.
+ */
 boost::mutex& ScriptFunction::GetMutex(void)
 {
 	static boost::mutex mtx;

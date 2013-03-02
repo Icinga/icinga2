@@ -48,6 +48,9 @@ StreamLogger::~StreamLogger(void)
 		delete m_Stream;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void StreamLogger::OpenFile(const String& filename)
 {
 	ofstream *stream = new ofstream();
@@ -62,6 +65,8 @@ void StreamLogger::OpenFile(const String& filename)
 		throw;
 	}
 
+	ObjectLock olock(this);
+
 	m_Stream = stream;
 	m_OwnsStream = true;
 	m_Tty = false;
@@ -73,6 +78,7 @@ void StreamLogger::OpenFile(const String& filename)
  * @param stream The output stream.
  * @param tty Whether the output stream is a TTY.
  * @param entry The log entry.
+ * @threadsafety Always.
  */
 void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& entry)
 {
@@ -107,12 +113,18 @@ void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& en
  * Processes a log entry and outputs it to a stream.
  *
  * @param entry The log entry.
+ * @threadsafety Always.
  */
 void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 {
+	ObjectLock olock(this);
+
 	ProcessLogEntry(*m_Stream, m_Tty, entry);
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool StreamLogger::IsTty(ostream& stream)
 {
 #ifndef _WIN32

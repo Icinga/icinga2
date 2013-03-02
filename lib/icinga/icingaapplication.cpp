@@ -85,13 +85,24 @@ int IcingaApplication::Main(void)
 	return EXIT_SUCCESS;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void IcingaApplication::OnShutdown(void)
 {
-	m_RetentionTimer->Stop();
+	assert(!OwnsLock());
+
+	{
+		ObjectLock olock(this);
+		m_RetentionTimer->Stop();
+	}
 
 	DumpProgramState();
 }
 
+/**
+ * @threadsafety Always.
+ */
 void IcingaApplication::DumpProgramState(void)
 {
 	DynamicObject::DumpObjects(GetStatePath());
@@ -102,58 +113,106 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
 
+/**
+ * @threadsafety Always.
+ */
 String IcingaApplication::GetCertificateFile(void) const
 {
+	ObjectLock olock(this);
+
 	return m_CertPath;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String IcingaApplication::GetCAFile(void) const
 {
+	ObjectLock olock(this);
+
 	return m_CAPath;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String IcingaApplication::GetNode(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Node;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String IcingaApplication::GetService(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Service;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String IcingaApplication::GetPidPath(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_PidPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/run/icinga2.pid";
 	else
 		return m_PidPath;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String IcingaApplication::GetStatePath(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_PidPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state";
 	else
 		return m_PidPath;
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr IcingaApplication::GetMacros(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Macros;
 }
 
+/**
+ * @threadsafety Always.
+ */
 double IcingaApplication::GetStartTime(void) const
 {
+	ObjectLock olock(this);
+
 	return m_StartTime;
 }
 
+/**
+ * @threadsafety Always.
+ */
 shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
 {
+	ObjectLock olock(this);
+
 	return m_SSLContext;
 }
 
-Dictionary::Ptr IcingaApplication::CalculateDynamicMacros(const IcingaApplication::Ptr& self)
+/**
+ * @threadsafety Always.
+ */
+Dictionary::Ptr IcingaApplication::CalculateDynamicMacros(void)
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 	ObjectLock mlock(macros);

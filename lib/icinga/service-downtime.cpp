@@ -28,16 +28,27 @@ map<String, Service::WeakPtr> Service::m_DowntimesCache;
 bool Service::m_DowntimesCacheValid = true;
 Timer::Ptr Service::m_DowntimesExpireTimer;
 
+/**
+ * @threadsafety Always.
+ */
 int Service::GetNextDowntimeID(void)
 {
+	boost::mutex::scoped_lock lock(m_DowntimeMutex);
+
 	return m_NextDowntimeID;
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr Service::GetDowntimes(void) const
 {
 	return m_Downtimes;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Service::AddDowntime(const String& author, const String& comment,
     double startTime, double endTime, bool fixed,
     const String& triggeredBy, double duration)
@@ -86,6 +97,9 @@ String Service::AddDowntime(const String& author, const String& comment,
 	return id;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::RemoveDowntime(const String& id)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
@@ -93,22 +107,23 @@ void Service::RemoveDowntime(const String& id)
 	if (!owner)
 		return;
 
-	Dictionary::Ptr downtimes = owner->m_Downtimes;
+	ObjectLock olock(owner);
+
+	Dictionary::Ptr downtimes = owner->GetDowntimes();
 
 	if (!downtimes)
 		return;
 
-	{
-		ObjectLock olock(downtimes);
-		downtimes->Remove(id);
-	}
-
+	downtimes->Remove(id);
 	owner->Touch("downtimes");
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::TriggerDowntimes(void)
 {
-	Dictionary::Ptr downtimes = m_Downtimes;
+	Dictionary::Ptr downtimes = GetDowntimes();
 
 	if (!downtimes)
 		return;
@@ -121,6 +136,9 @@ void Service::TriggerDowntimes(void)
 	}
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::TriggerDowntime(const String& id)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
@@ -150,6 +168,9 @@ void Service::TriggerDowntime(const String& id)
 	owner->Touch("downtimes");
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Service::GetDowntimeIDFromLegacyID(int id)
 {
 	boost::mutex::scoped_lock lock(m_DowntimeMutex);
@@ -162,12 +183,18 @@ String Service::GetDowntimeIDFromLegacyID(int id)
 	return it->second;
 }
 
+/**
+ * @threadsafety Always.
+ */
 Service::Ptr Service::GetOwnerByDowntimeID(const String& id)
 {
 	boost::mutex::scoped_lock lock(m_DowntimeMutex);
 	return m_DowntimesCache[id].lock();
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr Service::GetDowntimeByID(const String& id)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
@@ -175,17 +202,17 @@ Dictionary::Ptr Service::GetDowntimeByID(const String& id)
 	if (!owner)
 		return Dictionary::Ptr();
 
-	Dictionary::Ptr downtimes = owner->m_Downtimes;
+	Dictionary::Ptr downtimes = owner->GetDowntimes();
 
-	if (downtimes) {
-		ObjectLock olock(downtimes);
-		Dictionary::Ptr downtime = downtimes->Get(id);
-		return downtime;
-	}
+	if (downtimes)
+		return downtimes->Get(id);
 
 	return Dictionary::Ptr();
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Service::IsDowntimeActive(const Dictionary::Ptr& downtime)
 {
 	double now = Utility::GetTime();
@@ -207,24 +234,30 @@ bool Service::IsDowntimeActive(const Dictionary::Ptr& downtime)
 	return (triggerTime + downtime->Get("duration") < now);
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
 {
-	ObjectLock olock(downtime);
 	return (downtime->Get("end_time") < Utility::GetTime());
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::InvalidateDowntimesCache(void)
 {
-	{
-		boost::mutex::scoped_lock lock(m_DowntimeMutex);
+	boost::mutex::scoped_lock lock(m_DowntimeMutex);
 
-		if (m_DowntimesCacheValid)
-			Utility::QueueAsyncCallback(boost::bind(&Service::RefreshDowntimesCache));
+	if (m_DowntimesCacheValid)
+		Utility::QueueAsyncCallback(boost::bind(&Service::RefreshDowntimesCache));
 
-		m_DowntimesCacheValid = false;
-	}
+	m_DowntimesCacheValid = false;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::RefreshDowntimesCache(void)
 {
 	{
@@ -289,16 +322,21 @@ void Service::RefreshDowntimesCache(void)
 	}
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::RemoveExpiredDowntimes(void)
 {
-	Dictionary::Ptr downtimes = m_Downtimes;
+	ObjectLock olock(this);
+
+	Dictionary::Ptr downtimes = GetDowntimes();
 
 	if (!downtimes)
 		return;
 
 	vector<String> expiredDowntimes;
 
-	ObjectLock olock(downtimes);
+	ObjectLock dlock(downtimes);
 
 	String id;
 	Dictionary::Ptr downtime;
@@ -316,15 +354,20 @@ void Service::RemoveExpiredDowntimes(void)
 	}
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::DowntimesExpireTimerHandler(void)
 {
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
-		ObjectLock slock(service);
 		service->RemoveExpiredDowntimes();
 	}
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Service::IsInDowntime(void) const
 {
 	Dictionary::Ptr downtimes = GetDowntimes();

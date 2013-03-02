@@ -27,13 +27,9 @@ void CheckerComponent::Start(void)
 {
 	m_Endpoint = Endpoint::MakeEndpoint("checker", false);
 
-	{
-		ObjectLock olock(m_Endpoint);
-
-		/* dummy registration so the delegation module knows this is a checker
-		   TODO: figure out a better way for this */
-		m_Endpoint->RegisterSubscription("checker");
-	}
+	/* dummy registration so the delegation module knows this is a checker
+	   TODO: figure out a better way for this */
+	m_Endpoint->RegisterSubscription("checker");
 
 	Service::OnCheckerChanged.connect(bind(&CheckerComponent::CheckerChangedHandler, this, _1));
 	Service::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
@@ -50,10 +46,7 @@ void CheckerComponent::Start(void)
 
 void CheckerComponent::Stop(void)
 {
-	{
-		ObjectLock olock(m_Endpoint);
-		m_Endpoint->Unregister();
-	}
+	m_Endpoint->Unregister();
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -81,24 +74,14 @@ void CheckerComponent::CheckThreadProc(void)
 		CheckTimeView::iterator it = idx.begin();
 		Service::Ptr service = *it;
 
-		ObjectLock olock(service); /* also required for the key extractor. */
-
 		if (!service->IsRegistered()) {
 			idx.erase(it);
 			continue;
 		}
 
-		double wait;
-
-		{
-			ObjectLock olock(service);
-			wait = service->GetNextCheck() - Utility::GetTime();
-		}
+		double wait = service->GetNextCheck() - Utility::GetTime();
 
 		if (wait > 0) {
-			/* Release the object lock. */
-			olock.Unlock();
-
 			/* Make sure the service we just examined can be destroyed while we're waiting. */
 			service.reset();
 
@@ -113,19 +96,17 @@ void CheckerComponent::CheckThreadProc(void)
 
 		/* reschedule the service if checks are currently disabled
 		 * for it and this is not a forced check */
-		if (!service->GetEnableActiveChecks()) {
-			if (!service->GetForceNextCheck()) {
-				Logger::Write(LogDebug, "checker", "Ignoring service check for disabled service: " + service->GetName());
+		if (!service->GetEnableActiveChecks() && !service->GetForceNextCheck()) {
+			Logger::Write(LogDebug, "checker", "Ignoring service check for disabled service: " + service->GetName());
 
-				service->UpdateNextCheck();
+			service->UpdateNextCheck();
 
-				typedef nth_index<ServiceSet, 1>::type CheckTimeView;
-				CheckTimeView& idx = boost::get<1>(m_IdleServices);
+			typedef nth_index<ServiceSet, 1>::type CheckTimeView;
+			CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
-				idx.insert(service);
+			idx.insert(service);
 
-				continue;
-			}
+			continue;
 		}
 
 		service->SetForceNextCheck(false);
@@ -136,18 +117,9 @@ void CheckerComponent::CheckThreadProc(void)
 		m_PendingServices.insert(service);
 
 		try {
-			olock.Unlock();
-
-			CheckerComponent::Ptr self;
-
-			{
-				ObjectLock olock(this);
-				self = GetSelf();
-			}
-
-			Service::BeginExecuteCheck(service, boost::bind(&CheckerComponent::CheckCompletedHandler, static_cast<CheckerComponent::Ptr>(self), service));
+			CheckerComponent::Ptr self = GetSelf();
+			Service::BeginExecuteCheck(service, boost::bind(&CheckerComponent::CheckCompletedHandler, self, service));
 		} catch (const exception& ex) {
-			olock.Lock();
 			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + diagnostic_information(ex));
 		}
 	}
@@ -156,7 +128,6 @@ void CheckerComponent::CheckThreadProc(void)
 void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	ObjectLock olock(service); /* required for the key extractor */
 
 	/* remove the service from the list of pending services; if it's not in the
 	 * list this was a manual (i.e. forced) check and we must not re-add the
@@ -191,19 +162,9 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	ObjectLock olock(service); /* also required for the key extractor */
 	String checker = service->GetCurrentChecker();
 
-	EndpointManager::Ptr em = EndpointManager::GetInstance();
-
-	String identity;
-
-	{
-		ObjectLock elock(em);
-		identity = em->GetIdentity();
-	}
-
-	if (checker == identity || Endpoint::GetByName(checker) == m_Endpoint) {
+	if (checker == EndpointManager::GetInstance()->GetIdentity() || Endpoint::GetByName(checker) == m_Endpoint) {
 		if (m_PendingServices.find(service) != m_PendingServices.end())
 			return;
 
@@ -219,8 +180,6 @@ void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
 void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-
-	ObjectLock olock(service); /* required for the key extractor */
 
 	/* remove and re-insert the service from the set in order to force an index update */
 	typedef nth_index<ServiceSet, 0>::type ServiceView;

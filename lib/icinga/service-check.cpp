@@ -28,58 +28,103 @@ const int Service::CheckIntervalDivisor = 5;
 signals2::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChanged;
 signals2::signal<void (const Service::Ptr&, const Value&)> Service::OnNextCheckChanged;
 
+/**
+ * @threadsafety Always.
+ */
 Value Service::GetCheckCommand(void) const
 {
+	ObjectLock olock(this);
+
 	return m_CheckCommand;
 }
 
+/**
+ * @threadsafety Always.
+ */
 long Service::GetMaxCheckAttempts(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_MaxCheckAttempts.IsEmpty())
 		return DefaultMaxCheckAttempts;
 
 	return m_MaxCheckAttempts;
 }
 
+/**
+ * @threadsafety Always.
+ */
 double Service::GetCheckInterval(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_CheckInterval.IsEmpty())
 		return DefaultCheckInterval;
 
 	return m_CheckInterval;
 }
 
+/**
+ * @threadsafety Always.
+ */
 double Service::GetRetryInterval(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_RetryInterval.IsEmpty())
 		return GetCheckInterval() / CheckIntervalDivisor;
 
 	return m_RetryInterval;
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr Service::GetCheckers(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Checkers;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetSchedulingOffset(long offset)
 {
+	ObjectLock olock(this);
+
 	m_SchedulingOffset = offset;
 }
 
+/**
+ * @threadsafety Always.
+ */
 long Service::GetSchedulingOffset(void)
 {
+	ObjectLock olock(this);
+
 	return m_SchedulingOffset;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetNextCheck(double nextCheck)
 {
+	ObjectLock olock(this);
+
 	m_NextCheck = nextCheck;
 	Touch("next_check");
 }
 
+/**
+ * @threadsafety Always.
+ */
 double Service::GetNextCheck(void)
 {
+	ObjectLock olock(this);
+
 	if (m_NextCheck.IsEmpty()) {
 		UpdateNextCheck();
 
@@ -90,8 +135,13 @@ double Service::GetNextCheck(void)
 	return m_NextCheck;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::UpdateNextCheck(void)
 {
+	ObjectLock olock(this);
+
 	double interval;
 
 	if (GetStateType() == StateTypeSoft)
@@ -108,39 +158,69 @@ void Service::UpdateNextCheck(void)
 	SetNextCheck(now - adj + interval);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetCurrentChecker(const String& checker)
 {
+	ObjectLock olock(this);
+
 	m_CurrentChecker = checker;
 	Touch("current_checker");
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Service::GetCurrentChecker(void) const
 {
+	ObjectLock olock(this);
+
 	return m_CurrentChecker;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetCurrentCheckAttempt(long attempt)
 {
+	ObjectLock olock(this);
+
 	m_CheckAttempt = attempt;
 	Touch("check_attempt");
 }
 
+/**
+ * @threadsafety Always.
+ */
 long Service::GetCurrentCheckAttempt(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_CheckAttempt.IsEmpty())
 		return 1;
 
 	return m_CheckAttempt;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetState(ServiceState state)
 {
+	ObjectLock olock(this);
+
 	m_State = static_cast<long>(state);
 	Touch("state");
 }
 
+/**
+ * @threadsafety Always.
+ */
 ServiceState Service::GetState(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_State.IsEmpty())
 		return StateUnknown;
 
@@ -148,14 +228,24 @@ ServiceState Service::GetState(void) const
 	return static_cast<ServiceState>(ivalue);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetStateType(ServiceStateType type)
 {
+	ObjectLock olock(this);
+
 	m_StateType = static_cast<long>(type);
 	Touch("state_type");
 }
 
+/**
+ * @threadsafety Always.
+ */
 ServiceStateType Service::GetStateType(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_StateType.IsEmpty())
 		return StateTypeSoft;
 
@@ -163,89 +253,155 @@ ServiceStateType Service::GetStateType(void) const
 	return static_cast<ServiceStateType>(ivalue);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetLastCheckResult(const Dictionary::Ptr& result)
 {
+	ObjectLock olock(this);
+
 	m_LastResult = result;
 	Touch("last_result");
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr Service::GetLastCheckResult(void) const
 {
+	ObjectLock olock(this);
+
 	return m_LastResult;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetLastStateChange(double ts)
 {
+	ObjectLock olock(this);
+
 	m_LastStateChange = ts;
 	Touch("last_state_change");
 }
 
+/**
+ * @threadsafety Always.
+ */
 double Service::GetLastStateChange(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_LastStateChange.IsEmpty())
 		return IcingaApplication::GetInstance()->GetStartTime();
 
 	return m_LastStateChange;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetLastHardStateChange(double ts)
 {
+	ObjectLock olock(this);
+
 	m_LastHardStateChange = ts;
 	Touch("last_hard_state_change");
 }
 
+/**
+ * @threadsafety Always.
+ */
 double Service::GetLastHardStateChange(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_LastHardStateChange.IsEmpty())
 		return IcingaApplication::GetInstance()->GetStartTime();
 
 	return m_LastHardStateChange;
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Service::GetEnableActiveChecks(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_EnableActiveChecks.IsEmpty())
 		return true;
 	else
 		return m_EnableActiveChecks;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetEnableActiveChecks(bool enabled)
 {
+	ObjectLock olock(this);
+
 	m_EnableActiveChecks = enabled ? 1 : 0;
 	Touch("enable_active_checks");
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Service::GetEnablePassiveChecks(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_EnablePassiveChecks.IsEmpty())
 		return true;
 	else
 		return m_EnablePassiveChecks;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetEnablePassiveChecks(bool enabled)
 {
+	ObjectLock olock(this);
+
 	m_EnablePassiveChecks = enabled ? 1 : 0;
 	Touch("enable_passive_checks");
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Service::GetForceNextCheck(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_ForceNextCheck.IsEmpty())
 		return false;
 
 	return static_cast<bool>(m_ForceNextCheck);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetForceNextCheck(bool forced)
 {
+	ObjectLock olock(this);
+
 	m_ForceNextCheck = forced ? 1 : 0;
 	Touch("force_next_check");
 }
 
-void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
+/**
+ * @threadsafety Always.
+ */
+void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 {
+	assert(!OwnsLock());
+	ObjectLock olock(this);
+
 	ServiceState old_state = GetState();
 	ServiceStateType old_stateType = GetStateType();
 	bool hardChange = false;
@@ -298,13 +454,13 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 		}
 
 		/* reschedule service dependencies */
-		BOOST_FOREACH(const Service::Ptr& parent, Service::GetParentServices(GetSelf())) {
+		BOOST_FOREACH(const Service::Ptr& parent, GetParentServices()) {
 			parent->SetNextCheck(Utility::GetTime());
 		}
 
 		/* reschedule host dependencies */
-		BOOST_FOREACH(const Host::Ptr& parent, Service::GetParentHosts(GetSelf())) {
-			Service::Ptr service = Host::GetHostCheckService(parent);
+		BOOST_FOREACH(const Host::Ptr& parent, GetParentHosts()) {
+			Service::Ptr service = parent->GetHostCheckService();
 
 			if (service) {
 				ObjectLock olock(service);
@@ -313,21 +469,39 @@ void Service::ApplyCheckResult(const Dictionary::Ptr& cr)
 		}
 	}
 
+	if (hardChange)
+		SetLastHardStateChange(now);
+
 	if (GetState() != StateOK)
 		TriggerDowntimes();
 
-	if (hardChange) {
-		SetLastHardStateChange(now);
+	Service::UpdateStatistics(cr);
 
-		/* Make sure the notification component sees the updated
-		 * state/state_type attributes. */
-		Flush();
+	olock.Unlock();
 
-		if (IsReachable(GetSelf()) && !IsInDowntime() && !IsAcknowledged())
-			RequestNotifications(recovery ? NotificationRecovery : NotificationProblem);
-	}
+	/* Flush the object so other instances see the service's
+	 * new state when they receive the CheckResult message */
+	Flush();
+
+	RequestMessage rm;
+	rm.SetMethod("checker::CheckResult");
+
+	/* TODO: add _old_ state to message */
+	CheckResultMessage params;
+	params.SetService(GetName());
+	params.SetCheckResult(cr);
+
+	rm.SetParams(params);
+
+	EndpointManager::GetInstance()->SendMulticastMessage(rm);
+
+	if (hardChange && IsReachable() && !IsInDowntime() && !IsAcknowledged())
+		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem);
 }
 
+/**
+ * @threadsafety Always.
+ */
 ServiceState Service::StateFromString(const String& state)
 {
 	if (state == "OK")
@@ -342,6 +516,9 @@ ServiceState Service::StateFromString(const String& state)
 		return StateUnknown;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Service::StateToString(ServiceState state)
 {
 	switch (state) {
@@ -359,6 +536,9 @@ String Service::StateToString(ServiceState state)
 	}
 }
 
+/**
+ * @threadsafety Always.
+ */
 ServiceStateType Service::StateTypeFromString(const String& type)
 {
 	if (type == "SOFT")
@@ -367,6 +547,9 @@ ServiceStateType Service::StateTypeFromString(const String& type)
 		return StateTypeHard;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Service::StateTypeToString(ServiceStateType type)
 {
 	if (type == StateTypeSoft)
@@ -375,12 +558,17 @@ String Service::StateTypeToString(ServiceStateType type)
 		return "HARD";
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Service::IsAllowedChecker(const String& checker) const
 {
 	Dictionary::Ptr checkers = GetCheckers();
 
 	if (!checkers)
 		return true;
+
+	ObjectLock olock(checkers);
 
 	Value pattern;
 	BOOST_FOREACH(tie(tuples::ignore, pattern), checkers) {
@@ -391,6 +579,9 @@ bool Service::IsAllowedChecker(const String& checker) const
 	return false;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (void)>& callback)
 {
 	ObjectLock slock(self);
@@ -407,16 +598,12 @@ void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (v
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	Dictionary::Ptr checkInfo = boost::make_shared<Dictionary>();
-
-	{
-		ObjectLock olock(checkInfo);
-		checkInfo->Set("schedule_start", self->GetNextCheck());
-		checkInfo->Set("execution_start", Utility::GetTime());
-	}
+	checkInfo->Set("schedule_start", self->GetNextCheck());
+	checkInfo->Set("execution_start", Utility::GetTime());
 
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(self->GetMacros());
-	macroDicts.push_back(Service::CalculateDynamicMacros(self));
+	macroDicts.push_back(self->CalculateDynamicMacros());
 
 	Value raw_command = self->GetCheckCommand();
 
@@ -424,21 +611,13 @@ void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (v
 
 	slock.Unlock();
 
-	{
-		ObjectLock olock(host);
-		macroDicts.push_back(host->GetMacros());
-	}
-
-	macroDicts.push_back(Host::CalculateDynamicMacros(host));
+	macroDicts.push_back(host->GetMacros());
+	macroDicts.push_back(host->CalculateDynamicMacros());
 
 	IcingaApplication::Ptr app = IcingaApplication::GetInstance();
+	macroDicts.push_back(app->GetMacros());
 
-	{
-		ObjectLock olock(app);
-		macroDicts.push_back(app->GetMacros());
-	}
-
-	macroDicts.push_back(IcingaApplication::CalculateDynamicMacros(app));
+	macroDicts.push_back(IcingaApplication::CalculateDynamicMacros());
 
 	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
 
@@ -459,9 +638,14 @@ void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (v
 	task->Start(boost::bind(&Service::CheckCompletedHandler, self, checkInfo, _1, callback));
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
     const ScriptTask::Ptr& task, const function<void (void)>& callback)
 {
+	assert(!OwnsLock());
+
 	checkInfo->Set("execution_end", Utility::GetTime());
 	checkInfo->Set("schedule_end", Utility::GetTime());
 	checkInfo->Seal();
@@ -515,47 +699,25 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 		result->Seal();
 	}
 
+	if (result)
+		ProcessCheckResult(result);
+
 	{
 		ObjectLock olock(this);
-		if (result)
-			ProcessCheckResult(result);
-
 		m_CurrentTask.reset();
-
-		/* figure out when the next check is for this service; the call to
-		 * ApplyCheckResult() should've already done this but lets do it again
-		 * just in case there was no check result. */
-		UpdateNextCheck();
 	}
+
+	/* figure out when the next check is for this service; the call to
+	 * ApplyCheckResult() should've already done this but lets do it again
+	 * just in case there was no check result. */
+	UpdateNextCheck();
 
 	callback();
 }
 
-void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
-{
-	ApplyCheckResult(cr);
-
-	Service::UpdateStatistics(cr);
-
-	/* Flush the object so other instances see the service's
-	 * new state when they receive the CheckResult message */
-	Flush();
-
-	RequestMessage rm;
-	rm.SetMethod("checker::CheckResult");
-
-	/* TODO: add _old_ state to message */
-	CheckResultMessage params;
-	params.SetService(GetName());
-	params.SetCheckResult(cr);
-
-	rm.SetParams(params);
-
-	EndpointManager::Ptr em = EndpointManager::GetInstance();
-	ObjectLock olock(em);
-	em->SendMulticastMessage(rm);
-}
-
+/**
+ * @threadsafety Always.
+ */
 void Service::UpdateStatistics(const Dictionary::Ptr& cr)
 {
 	time_t ts;
@@ -572,15 +734,14 @@ void Service::UpdateStatistics(const Dictionary::Ptr& cr)
 		CIB::UpdatePassiveChecksStatistics(ts, 1);
 }
 
+/**
+ * @threadsafety Always.
+ */
 double Service::CalculateExecutionTime(const Dictionary::Ptr& cr)
 {
-	ObjectLock olock(cr);
-
 	double execution_start = 0, execution_end = 0;
 
 	if (cr) {
-		ObjectLock olock(cr);
-
 		if (!cr->Contains("execution_start") || !cr->Contains("execution_end"))
 			return 0;
 
@@ -591,13 +752,14 @@ double Service::CalculateExecutionTime(const Dictionary::Ptr& cr)
 	return (execution_end - execution_start);
 }
 
+/**
+ * @threadsafety Always.
+ */
 double Service::CalculateLatency(const Dictionary::Ptr& cr)
 {
 	double schedule_start = 0, schedule_end = 0;
 
 	if (cr) {
-		ObjectLock olock(cr);
-
 		if (!cr->Contains("schedule_start") || !cr->Contains("schedule_end"))
 			return 0;
 

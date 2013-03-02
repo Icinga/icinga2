@@ -42,6 +42,8 @@ TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SS
 
 void TlsStream::Start(void)
 {
+	ObjectLock olock(this);
+
 	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
 	m_SSLContext.reset();
@@ -88,6 +90,8 @@ void TlsStream::Start(void)
  */
 shared_ptr<X509> TlsStream::GetClientCertificate(void) const
 {
+	ObjectLock olock(this);
+
 	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
 }
 
@@ -98,6 +102,8 @@ shared_ptr<X509> TlsStream::GetClientCertificate(void) const
  */
 shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
 {
+	ObjectLock olock(this);
+
 	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
 
@@ -114,6 +120,8 @@ void TlsStream::DataAvailableHandler(void)
 
 void TlsStream::ClosedHandler(void)
 {
+	ObjectLock olock(this);
+
 	SetException(m_InnerStream->GetException());
 	Close();
 }
@@ -123,6 +131,9 @@ void TlsStream::ClosedHandler(void)
  */
 void TlsStream::HandleIO(void)
 {
+	assert(!OwnsLock());
+	ObjectLock olock(this);
+
 	char data[16 * 1024];
 	int rc;
 
@@ -172,8 +183,11 @@ void TlsStream::HandleIO(void)
 		}
 	}
 
-	if (new_data)
+	if (new_data) {
+		olock.Unlock();
 		OnDataAvailable(GetSelf());
+		olock.Lock();
+	}
 
 	while (m_SendQueue->GetAvailableBytes() > 0) {
 		size_t count = m_SendQueue->GetAvailableBytes();
@@ -212,6 +226,8 @@ void TlsStream::HandleIO(void)
  */
 void TlsStream::Close(void)
 {
+	ObjectLock olock(this);
+
 	if (m_SSL)
 		SSL_shutdown(m_SSL.get());
 
@@ -223,22 +239,32 @@ void TlsStream::Close(void)
 
 size_t TlsStream::GetAvailableBytes(void) const
 {
+	ObjectLock olock(this);
+
 	return m_RecvQueue->GetAvailableBytes();
 }
 
 size_t TlsStream::Peek(void *buffer, size_t count)
 {
+	ObjectLock olock(this);
+
 	return m_RecvQueue->Peek(buffer, count);
 }
 
 size_t TlsStream::Read(void *buffer, size_t count)
 {
+	ObjectLock olock(this);
+
 	return m_RecvQueue->Read(buffer, count);
 }
 
 void TlsStream::Write(const void *buffer, size_t count)
 {
-	m_SendQueue->Write(buffer, count);
+	{
+		ObjectLock olock(this);
+
+		m_SendQueue->Write(buffer, count);
+	}
 
 	HandleIO();
 }

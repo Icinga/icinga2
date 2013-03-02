@@ -43,7 +43,7 @@ public:
 	String GetNotesUrl(void) const;
 	String GetActionUrl(void) const;
 
-	static set<Service::Ptr> GetMembers(const ServiceGroup::Ptr& self);
+	set<Service::Ptr> GetMembers(void) const;
 
 	static void InvalidateMembersCache(void);
 

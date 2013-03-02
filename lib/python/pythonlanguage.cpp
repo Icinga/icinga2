@@ -36,6 +36,8 @@ PythonLanguage::PythonLanguage(void)
 
 void PythonLanguage::InitializeOnce(void)
 {
+	ObjectLock olock(this);
+
 	if (m_Initialized)
 		return;
 
@@ -85,6 +87,8 @@ ScriptInterpreter::Ptr PythonLanguage::CreateInterpreter(const Script::Ptr& scri
 
 PyThreadState *PythonLanguage::GetMainThreadState(void) const
 {
+	ObjectLock olock(this);
+
 	return m_MainThreadState;
 }
 
@@ -139,6 +143,8 @@ PyObject *PythonLanguage::MarshalToPython(const Value& value)
 				return result;
 			} else if (value.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr dict = value;
+				ObjectLock olock(dict);
+
 				PyObject *pdict = PyDict_New();
 
 				String key;
@@ -214,6 +220,8 @@ Value PythonLanguage::MarshalFromPython(PyObject *value)
 
 String PythonLanguage::ExceptionInfoToString(PyObject *type, PyObject *exc, PyObject *tb) const
 {
+	ObjectLock olock(this);
+
 	PyObject *tb_dict = PyModule_GetDict(m_TracebackModule);
 	PyObject *format_exception = PyDict_GetItemString(tb_dict, "format_exception");
 
@@ -304,6 +312,8 @@ PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
  */
 void PythonLanguage::RegisterNativeFunction(const String& name, const ScriptFunction::Ptr& function)
 {
+	ObjectLock olock(this);
+
 	PyThreadState *tstate = PyThreadState_Swap(m_MainThreadState);
 
 	PyObject *pname = PyString_FromString(name.CStr());
@@ -327,6 +337,8 @@ void PythonLanguage::RegisterNativeFunction(const String& name, const ScriptFunc
  */
 void PythonLanguage::UnregisterNativeFunction(const String& name)
 {
+	ObjectLock olock(this);
+
 	PyThreadState *tstate = PyThreadState_Swap(m_MainThreadState);
 
 	PyObject *pdict = PyModule_GetDict(m_NativeModule);
@@ -378,6 +390,8 @@ PyObject *PythonLanguage::PyRegisterFunction(PyObject *self, PyObject *args)
  */
 PythonInterpreter *PythonLanguage::GetCurrentInterpreter(void)
 {
+	ObjectLock olock(this);
+
 	return m_CurrentInterpreter;
 }
 
@@ -388,5 +402,7 @@ PythonInterpreter *PythonLanguage::GetCurrentInterpreter(void)
  */
 void PythonLanguage::SetCurrentInterpreter(PythonInterpreter *interpreter)
 {
+	ObjectLock olock(this);
+
 	m_CurrentInterpreter = interpreter;
 }

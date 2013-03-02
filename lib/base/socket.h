@@ -83,7 +83,6 @@ private:
 
 	static String GetAddressFromSockaddr(sockaddr *address, socklen_t len);
 
-	mutable boost::mutex m_QueueMutex;
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
 
@@ -105,8 +104,6 @@ private:
 
 	bool WantsToWrite(void) const;
 	bool WantsToRead(void) const;
-
-	void CloseUnlocked(void);
 };
 
 /**

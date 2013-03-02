@@ -37,7 +37,7 @@ public:
 	Application(const Dictionary::Ptr& serializedUpdate);
 	~Application(void);
 
-	static Application *GetInstance(void);
+	static Application::Ptr GetInstance(void);
 
 	int Run(void);
 

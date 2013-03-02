@@ -63,7 +63,7 @@ public:
 	set<User::Ptr> GetUsers(void) const;
 	set<UserGroup::Ptr> GetGroups(void) const;
 
-	static void BeginExecuteNotification(const Notification::Ptr& self, NotificationType type);
+	void BeginExecuteNotification(NotificationType type);
 
 	static String NotificationTypeToString(NotificationType type);
 
@@ -82,8 +82,8 @@ private:
 
 	void NotificationCompletedHandler(const ScriptTask::Ptr& task);
 
-	static void BeginExecuteNotificationHelper(const Notification::Ptr& self,
-	    const Dictionary::Ptr& notificationMacros, NotificationType type, const User::Ptr& user);
+	void BeginExecuteNotificationHelper(const Dictionary::Ptr& notificationMacros,
+	    NotificationType type, const User::Ptr& user);
 };
 
 }

@@ -23,6 +23,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Component);
 
+boost::mutex Component::m_Mutex;
 map<String, Component::Factory> Component::m_Factories;
 
 /**
@@ -38,18 +39,24 @@ Component::Component(const Dictionary::Ptr& properties)
 
 	(void) Utility::LoadIcingaLibrary(GetName(), true);
 
-	map<String, Factory>::iterator it;
-	it = m_Factories.find(GetName());
+	Component::Factory factory;
 
-	if (it == m_Factories.end())
-		BOOST_THROW_EXCEPTION(invalid_argument("Unknown component: " + GetName()));
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
 
-	IComponent::Ptr impl = it->second();
+		map<String, Factory>::iterator it;
+		it = m_Factories.find(GetName());
 
-	if (!impl)
+		if (it == m_Factories.end())
+			BOOST_THROW_EXCEPTION(invalid_argument("Unknown component: " + GetName()));
+
+		factory = it->second;
+	}
+
+	m_Impl = factory();
+
+	if (!m_Impl)
 		BOOST_THROW_EXCEPTION(runtime_error("Component factory returned NULL."));
-
-	m_Impl = impl;
 }
 
 /**
@@ -67,7 +74,9 @@ Component::~Component(void)
  */
 void Component::Start(void)
 {
-	m_Impl->m_Config = GetSelf();
+	ObjectLock olock(this);
+
+	m_Impl->SetConfig(GetSelf());
 	m_Impl->Start();
 }
 
@@ -95,7 +104,19 @@ void Component::AddSearchDir(const String& componentDirectory)
  */
 DynamicObject::Ptr IComponent::GetConfig(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Config.lock();
+}
+
+/**
+ * Sets the configuration for this component.
+ */
+void IComponent::SetConfig(const DynamicObject::Ptr& config)
+{
+	ObjectLock olock(this);
+
+	m_Config = config;
 }
 
 /**
@@ -119,5 +140,7 @@ void IComponent::Stop(void)
  */
 void Component::Register(const String& name, const Component::Factory& factory)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	m_Factories[name] = factory;
 }

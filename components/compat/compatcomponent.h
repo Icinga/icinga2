@@ -43,7 +43,6 @@ private:
 	thread m_CommandThread;
 
 	void CommandPipeThread(const String& commandPath);
-	void ProcessCommand(const String& command);
 #endif /* _WIN32 */
 
 	Timer::Ptr m_StatusTimer;

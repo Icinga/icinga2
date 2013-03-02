@@ -41,7 +41,7 @@ public:
 
 	String GetDisplayName(void) const;
 
-	static set<User::Ptr> GetMembers(const UserGroup::Ptr& self);
+	set<User::Ptr> GetMembers(void) const;
 
 	static void InvalidateMembersCache(void);
 

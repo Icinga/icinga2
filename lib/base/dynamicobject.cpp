@@ -33,7 +33,7 @@ signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> DynamicObjec
 signals2::signal<void (double, const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
-	: m_EventSafe(false), m_ConfigTx(0), m_Registered(false)
+	: m_ConfigTx(0), m_Registered(false)
 {
 	RegisterAttribute("__name", Attribute_Config, &m_Name);
 	RegisterAttribute("__type", Attribute_Config, &m_Type);
@@ -115,7 +115,8 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
     int allowedTypes)
 {
-	assert(OwnsLock());
+	ObjectLock olock(this);
+
 	assert(serializedUpdate->IsSealed());
 
 	Value configTxValue = serializedUpdate->Get("configTx");
@@ -132,7 +133,7 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 	assert(attrs->IsSealed());
 
 	{
-		ObjectLock olock(attrs);
+		ObjectLock alock(attrs);
 
 		Dictionary::Iterator it;
 		for (it = attrs->Begin(); it != attrs->End(); it++) {
@@ -233,7 +234,7 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 			m_ConfigTx = tx;
 	}
 
-	if (GetEventSafe()) {
+	if (m_Registered) {
 		/* We can't call GetSelf() in the constructor or destructor.
 		 * The Register() function will take care of adding this
 		 * object to the list of modified objects later on if we can't
@@ -365,17 +366,16 @@ String DynamicObject::GetSource(void) const
 
 void DynamicObject::Register(void)
 {
-	assert(OwnsLock());
+	assert(!OwnsLock());
 
-	/* It's now safe to send us attribute events. */
-	SetEventSafe(true);
+	DynamicObject::Ptr self = GetSelf();
 
 	/* Add this new object to the list of modified objects.
 	 * We're doing this here because we can't construct
 	 * a while WeakPtr from within the object's constructor. */
 	{
 		boost::mutex::scoped_lock lock(m_TransactionMutex);
-		m_ModifiedObjects.insert(GetSelf());
+		m_ModifiedObjects.insert(self);
 	}
 
 	{
@@ -384,7 +384,6 @@ void DynamicObject::Register(void)
 
 		DynamicObject::Ptr dobj = dtype->GetObject(GetName());
 
-		DynamicObject::Ptr self = GetSelf();
 		assert(!dobj || dobj == self);
 
 		if (!dobj)
@@ -394,6 +393,8 @@ void DynamicObject::Register(void)
 
 void DynamicObject::OnRegistrationCompleted(void)
 {
+	assert(!OwnsLock());
+
 	DynamicObject::Ptr object;
 
 	{
@@ -402,12 +403,22 @@ void DynamicObject::OnRegistrationCompleted(void)
 
 		Start();
 
-		Flush();
-
 		object = GetSelf();
 	}
 
 	OnRegistered(object);
+}
+
+void DynamicObject::OnUnregistrationCompleted(void)
+{
+	assert(!OwnsLock());
+
+	{
+		ObjectLock olock(this);
+		m_Registered = false;
+	}
+
+	OnUnregistered(GetSelf());
 }
 
 void DynamicObject::Start(void)
@@ -419,25 +430,30 @@ void DynamicObject::Start(void)
 
 void DynamicObject::Unregister(void)
 {
-	assert(OwnsLock());
+	assert(!OwnsLock());
+
+	DynamicObject::Ptr self = GetSelf();
 
 	DynamicType::Ptr dtype = GetType();
-	ObjectLock olock(dtype);
 
-	if (!dtype || !dtype->GetObject(GetName()))
+	if (!dtype)
 		return;
 
-	dtype->UnregisterObject(GetSelf());
-
-	OnUnregistered(GetSelf());
+	{
+		ObjectLock olock(dtype);
+		dtype->UnregisterObject(self);
+	}
 }
 
 ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
     const vector<Value>& arguments)
 {
-	assert(OwnsLock());
+	Dictionary::Ptr methods;
 
-	Dictionary::Ptr methods = m_Methods;
+	{
+		ObjectLock olock(this);
+		methods = m_Methods;
+	}
 
 	String funcName = methods->Get(method);
 
@@ -471,13 +487,6 @@ void DynamicObject::DumpObjects(const String& filename)
 	sfp->Start();
 
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		String type_name;
-
-		{
-			ObjectLock olock(type);
-			type_name = type->GetName();
-		}
-
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			ObjectLock olock(object);
 
@@ -486,7 +495,7 @@ void DynamicObject::DumpObjects(const String& filename)
 
 			Dictionary::Ptr persistentObject = boost::make_shared<Dictionary>();
 
-			persistentObject->Set("type", type_name);
+			persistentObject->Set("type", type->GetName());
 			persistentObject->Set("name", object->GetName());
 
 			int types = Attribute_Local | Attribute_Replicated;
@@ -558,10 +567,8 @@ void DynamicObject::RestoreObjects(const String& filename)
 
 		if (hasConfig && !object) {
 			object = DynamicType::CreateObject(dt, update);
-			ObjectLock olock(object);
 			object->Register();
 		} else if (object) {
-			ObjectLock olock(object);
 			object->ApplyUpdate(update, Attribute_All);
 		}
 
@@ -579,7 +586,6 @@ void DynamicObject::DeactivateObjects(void)
 {
 	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
-			ObjectLock olock(object);
 			object->Unregister();
 		}
 	}
@@ -624,31 +630,28 @@ void DynamicObject::NewTx(void)
 	BOOST_FOREACH(const DynamicObject::WeakPtr& wobject, objects) {
 		DynamicObject::Ptr object = wobject.lock();
 
-		if (!object)
+		if (!object || !object->IsRegistered())
 			continue;
 
 		map<String, Value, string_iless> attrs;
-		bool event_safe;
 
 		{
 			ObjectLock olock(object);
 			attrs.swap(object->m_ModifiedAttributes);
-			event_safe = object->GetEventSafe();
 		}
 
-		/* Send attribute events if it's safe to do so. */
-		if (event_safe) {
-			map<String, Value, string_iless>::iterator it;
-			for (it = attrs.begin(); it != attrs.end(); it++)
-				object->OnAttributeChanged(it->first, it->second);
-		}
+		map<String, Value, string_iless>::iterator it;
+		for (it = attrs.begin(); it != attrs.end(); it++)
+			object->OnAttributeChanged(it->first, it->second);
 	}
 
 	OnTransactionClosing(tx, objects);
 }
 
 void DynamicObject::OnAttributeChanged(const String&, const Value&)
-{ }
+{
+	assert(!OwnsLock());
+}
 
 /*
  * @threadsafety Always.
@@ -664,18 +667,4 @@ const DynamicObject::AttributeMap& DynamicObject::GetAttributes(void) const
 	assert(OwnsLock());
 
 	return m_Attributes;
-}
-
-void DynamicObject::SetEventSafe(bool safe)
-{
-	assert(OwnsLock());
-
-	m_EventSafe = safe;
-}
-
-bool DynamicObject::GetEventSafe(void) const
-{
-	assert(OwnsLock());
-
-	return m_EventSafe;
 }

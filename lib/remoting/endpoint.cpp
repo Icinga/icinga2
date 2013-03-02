@@ -72,7 +72,8 @@ Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool replicated, bool l
 	endpointConfig->SetLocal(!replicated);
 	endpointConfig->AddExpression("local", OperatorSet, local);
 
-	DynamicObject::Ptr object = ConfigItem::Commit(endpointConfig->Compile());
+	ConfigItem::Ptr item = endpointConfig->Compile();
+	DynamicObject::Ptr object = item->Commit();
 	return dynamic_pointer_cast<Endpoint>(object);
 }
 
@@ -83,6 +84,8 @@ Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool replicated, bool l
  */
 bool Endpoint::IsLocalEndpoint(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Local;
 }
 
@@ -104,14 +107,21 @@ bool Endpoint::IsConnected(void) const
 
 JsonRpcConnection::Ptr Endpoint::GetClient(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Client;
 }
 
 void Endpoint::SetClient(const JsonRpcConnection::Ptr& client)
 {
-	m_Client = client;
 	client->OnNewMessage.connect(boost::bind(&Endpoint::NewMessageHandler, this, _2));
 	client->OnClosed.connect(boost::bind(&Endpoint::ClientClosedHandler, this));
+
+	{
+		ObjectLock olock(this);
+
+		m_Client = client;
+	}
 
 	OnConnected(GetSelf());
 }
@@ -128,11 +138,8 @@ void Endpoint::RegisterSubscription(const String& topic)
 	if (!subscriptions)
 		subscriptions = boost::make_shared<Dictionary>();
 
-	ObjectLock olock(subscriptions);
-
 	if (!subscriptions->Contains(topic)) {
 		Dictionary::Ptr newSubscriptions = subscriptions->ShallowClone();
-		ObjectLock nlock(newSubscriptions);
 		newSubscriptions->Set(topic, topic);
 		SetSubscriptions(newSubscriptions);
 	}
@@ -150,11 +157,8 @@ void Endpoint::UnregisterSubscription(const String& topic)
 	if (!subscriptions)
 		return;
 
-	ObjectLock olock(subscriptions);
-
 	if (subscriptions->Contains(topic)) {
 		Dictionary::Ptr newSubscriptions = subscriptions->ShallowClone();
-		ObjectLock nlock(newSubscriptions);
 		newSubscriptions->Remove(topic);
 		SetSubscriptions(newSubscriptions);
 	}
@@ -178,6 +182,8 @@ bool Endpoint::HasSubscription(const String& topic) const
  */
 void Endpoint::ClearSubscriptions(void)
 {
+	ObjectLock olock(this);
+
 	m_Subscriptions = Empty;
 	Touch("subscriptions");
 }
@@ -189,12 +195,17 @@ Dictionary::Ptr Endpoint::GetSubscriptions(void) const
 
 void Endpoint::SetSubscriptions(const Dictionary::Ptr& subscriptions)
 {
+	ObjectLock olock(this);
+
+	subscriptions->Seal();
 	m_Subscriptions = subscriptions;
 	Touch("subscriptions");
 }
 
 void Endpoint::RegisterTopicHandler(const String& topic, const function<Endpoint::Callback>& callback)
 {
+	ObjectLock olock(this);
+
 	map<String, shared_ptr<signals2::signal<Endpoint::Callback> > >::iterator it;
 	it = m_TopicHandlers.find(topic);
 
@@ -223,6 +234,8 @@ void Endpoint::UnregisterTopicHandler(const String& topic, const function<Endpoi
 
 void Endpoint::OnAttributeChanged(const String& name, const Value& oldValue)
 {
+	assert(!OwnsLock());
+
 	if (name == "subscriptions") {
 		Dictionary::Ptr oldSubscriptions, newSubscriptions;
 
@@ -231,10 +244,9 @@ void Endpoint::OnAttributeChanged(const String& name, const Value& oldValue)
 
 		newSubscriptions = GetSubscriptions();
 
-		ObjectLock olock(oldSubscriptions);
-		ObjectLock nlock(newSubscriptions);
-
 		if (oldSubscriptions) {
+			ObjectLock olock(oldSubscriptions);
+
 			String subscription;
 			BOOST_FOREACH(tie(tuples::ignore, subscription), oldSubscriptions) {
 				if (!newSubscriptions || !newSubscriptions->Contains(subscription)) {
@@ -245,6 +257,8 @@ void Endpoint::OnAttributeChanged(const String& name, const Value& oldValue)
 		}
 
 		if (newSubscriptions) {
+			ObjectLock olock(newSubscriptions);
+
 			String subscription;
 			BOOST_FOREACH(tie(tuples::ignore, subscription), newSubscriptions) {
 				if (!oldSubscriptions || !oldSubscriptions->Contains(subscription)) {
@@ -264,6 +278,8 @@ void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage&
 	}
 
 	if (IsLocalEndpoint()) {
+		ObjectLock olock(this);
+
 		String method;
 		if (!request.GetMethod(&method))
 			return;
@@ -317,6 +333,8 @@ void Endpoint::NewMessageHandler(const MessagePart& message)
 
 void Endpoint::ClientClosedHandler(void)
 {
+	assert(!OwnsLock());
+
 	/*try {
 		GetClient()->CheckException();
 	} catch (const exception& ex) {
@@ -328,12 +346,16 @@ void Endpoint::ClientClosedHandler(void)
 
 	Logger::Write(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetName());
 
-	// TODO: _only_ clear non-persistent subscriptions
-	// unregister ourselves if no persistent subscriptions are left (use a
-	// timer for that, once we have a TTL property for the topics)
-	ClearSubscriptions();
+	{
+		ObjectLock olock(this);
 
-	m_Client.reset();
+		// TODO: _only_ clear non-persistent subscriptions
+		// unregister ourselves if no persistent subscriptions are left (use a
+		// timer for that, once we have a TTL property for the topics)
+		ClearSubscriptions();
+
+		m_Client.reset();
+	}
 
 	OnDisconnected(GetSelf());
 }
@@ -345,6 +367,8 @@ void Endpoint::ClientClosedHandler(void)
  */
 String Endpoint::GetNode(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Node;
 }
 
@@ -355,5 +379,7 @@ String Endpoint::GetNode(void) const
  */
 String Endpoint::GetService(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Service;
 }

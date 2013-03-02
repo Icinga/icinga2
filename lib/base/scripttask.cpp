@@ -29,12 +29,5 @@ ScriptTask::ScriptTask(const ScriptFunction::Ptr& function,
 
 void ScriptTask::Run(void)
 {
-	ScriptTask::Ptr self;
-
-	{
-		ObjectLock olock(this);
-		self = GetSelf();
-	}
-
-	m_Function->Invoke(self, m_Arguments);
+	m_Function->Invoke(GetSelf(), m_Arguments);
 }

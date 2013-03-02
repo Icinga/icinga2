@@ -46,8 +46,6 @@ set<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::Ptr&
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
-		ObjectLock olock(endpoint);
-
 		String myIdentity = EndpointManager::GetInstance()->GetIdentity();
 
 		/* ignore local-only endpoints (unless this is a local-only instance) */
@@ -93,8 +91,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		services.push_back(service);
 
-		ObjectLock olock(service);
 		String checker = service->GetCurrentChecker();
+
 		if (checker.IsEmpty())
 			continue;
 
@@ -112,8 +110,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 	/* re-assign services */
 	BOOST_FOREACH(const Service::Ptr& service, services) {
-		ObjectLock olock(service);
-
 		String checker = service->GetCurrentChecker();
 
 		Endpoint::Ptr oldEndpoint = Endpoint::GetByName(checker);
@@ -141,8 +137,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 		/* don't re-assign service if the checker is still valid
 		 * and doesn't have too many services */
 
-		ObjectLock elock(oldEndpoint);
-
 		if (oldEndpoint && oldEndpoint->IsConnected() &&
 		    candidates.find(oldEndpoint) != candidates.end() &&
 		    histogram[oldEndpoint] <= avg_services + overflow_tolerance)
@@ -162,7 +156,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 			if (histogram[candidate] > avg_services)
 				continue;
 
-			ObjectLock clock(candidate);
 			service->SetCurrentChecker(candidate->GetName());
 			histogram[candidate]++;
 
@@ -189,6 +182,8 @@ void DelegationComponent::DelegationTimerHandler(void)
 				cr->Set("state", StateUncheckable);
 				cr->Set("output", "No checker is available for this service.");
 
+				cr->Seal();
+
 				service->ProcessCheckResult(cr);
 
 				Logger::Write(LogWarning, "delegation", "Can't delegate service: " + service->GetName());
@@ -203,8 +198,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 	Endpoint::Ptr endpoint;
 	int count;
 	BOOST_FOREACH(tie(endpoint, count), histogram) {
-		ObjectLock olock(endpoint);
-
 		stringstream msgbuf;
 		msgbuf << "histogram: " << endpoint->GetName() << " - " << count;
 		Logger::Write(LogInformation, "delegation", msgbuf.str());

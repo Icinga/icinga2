@@ -79,9 +79,9 @@ Application::~Application(void)
  *
  * @returns The application object.
  */
-Application *Application::GetInstance(void)
+Application::Ptr Application::GetInstance(void)
 {
-	return m_Instance;
+	return m_Instance->GetSelf();
 }
 
 int Application::GetArgC(void)
@@ -285,7 +285,7 @@ void Application::SigIntHandler(int signum)
 {
 	assert(signum == SIGINT);
 
-	Application *instance = Application::GetInstance();
+	Application::Ptr instance = Application::GetInstance();
 
 	if (!instance)
 		return;
@@ -320,7 +320,7 @@ void Application::SigAbrtHandler(int signum)
  */
 BOOL WINAPI Application::CtrlHandler(DWORD type)
 {
-	Application *instance = Application::GetInstance();
+	Application::Ptr instance = Application::GetInstance();
 
 	if (!instance)
 		return TRUE;
@@ -410,6 +410,8 @@ int Application::Run(void)
  */
 void Application::UpdatePidFile(const String& filename)
 {
+	ObjectLock olock(this);
+
 	ClosePidFile();
 
 	/* There's just no sane way of getting a file descriptor for a
@@ -420,7 +422,15 @@ void Application::UpdatePidFile(const String& filename)
 		BOOST_THROW_EXCEPTION(runtime_error("Could not open PID file '" + filename + "'"));
 
 #ifndef _WIN32
-	Utility::SetCloExec(fileno(m_PidFile));
+	int fd = fileno(m_PidFile);
+
+	Utility::SetCloExec(fd);
+
+	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+		Logger::Write(LogCritical, "base", "Could not lock PID file. Make sure that only one instance of the application is running.");
+
+		_exit(EXIT_FAILURE);
+	}
 #endif /* _WIN32 */
 
 	fprintf(m_PidFile, "%d", Utility::GetPid());
@@ -432,6 +442,8 @@ void Application::UpdatePidFile(const String& filename)
  */
 void Application::ClosePidFile(void)
 {
+	ObjectLock olock(this);
+
 	if (m_PidFile != NULL)
 		fclose(m_PidFile);
 

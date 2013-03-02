@@ -27,6 +27,9 @@ PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr
 	: m_Task(task), m_Process(process), m_Command(command)
 { }
 
+/**
+ * @threadsafety Always.
+ */
 void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
@@ -38,13 +41,7 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 	Service::Ptr service = arguments[0];
 	Dictionary::Ptr macros = arguments[1];
 
-	Value raw_command;
-
-	{
-		ObjectLock olock(service);
-		raw_command = service->GetCheckCommand();
-	}
-
+	Value raw_command = service->GetCheckCommand();
 	Value command = MacroProcessor::ResolveMacros(raw_command, macros);
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
@@ -54,6 +51,9 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value
 	process->Start(boost::bind(&PluginCheckTask::ProcessFinishedHandler, ct));
 }
 
+/**
+ * @threadsafety Always.
+ */
 void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 {
 	ProcessResult pr;
@@ -77,6 +77,9 @@ void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 	ct.m_Task->FinishResult(result);
 }
 
+/**
+ * @threadsafety Always.
+ */
 ServiceState PluginCheckTask::ExitStatusToState(int exitStatus)
 {
 	switch (exitStatus) {
@@ -91,6 +94,9 @@ ServiceState PluginCheckTask::ExitStatusToState(int exitStatus)
 	}
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr PluginCheckTask::ParseCheckOutput(const String& output)
 {
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();

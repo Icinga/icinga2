@@ -54,6 +54,8 @@ PythonInterpreter::~PythonInterpreter(void)
 
 void PythonInterpreter::RegisterPythonFunction(const String& name, PyObject *function)
 {
+	ObjectLock olock(this);
+
 	SubscribeFunction(name);
 
 	Py_INCREF(function);
@@ -62,6 +64,8 @@ void PythonInterpreter::RegisterPythonFunction(const String& name, PyObject *fun
 
 void PythonInterpreter::UnregisterPythonFunction(const String& name)
 {
+	ObjectLock olock(this);
+
 	UnsubscribeFunction(name);
 
 	m_Functions.erase(name);
@@ -70,6 +74,8 @@ void PythonInterpreter::UnregisterPythonFunction(const String& name)
 void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& function,
     const vector<Value>& arguments)
 {
+	ObjectLock olock(this);
+
 	PyEval_AcquireThread(m_ThreadState);
 	PythonInterpreter *interp = m_Language->GetCurrentInterpreter();
 	m_Language->SetCurrentInterpreter(this);

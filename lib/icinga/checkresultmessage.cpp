@@ -44,4 +44,3 @@ void CheckResultMessage::SetCheckResult(const Dictionary::Ptr& result)
 {
 	Set("check_result", result);
 }
-

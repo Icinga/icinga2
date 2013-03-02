@@ -106,12 +106,12 @@ public:
 	String GetHostName(void) const;
 	String GetShortName(void) const;
 
-	static Dictionary::Ptr CalculateDynamicMacros(const Service::Ptr& self);
+	Dictionary::Ptr CalculateDynamicMacros(void) const;
 
-	static set<Host::Ptr> GetParentHosts(const Service::Ptr& self);
-	static set<Service::Ptr> GetParentServices(const Service::Ptr& self);
+	set<Host::Ptr> GetParentHosts(void) const;
+	set<Service::Ptr> GetParentServices(void) const;
 
-	static bool IsReachable(const Service::Ptr& self);
+	bool IsReachable(void) const;
 
 	AcknowledgementType GetAcknowledgement(void);
 	void SetAcknowledgement(AcknowledgementType acknowledgement);
@@ -165,7 +165,6 @@ public:
 	double GetAcknowledgementExpiry(void) const;
 	void SetAcknowledgementExpiry(double timestamp);
 
-	void ApplyCheckResult(const Dictionary::Ptr& cr);
 	static void UpdateStatistics(const Dictionary::Ptr& cr);
 
 	void AcknowledgeProblem(AcknowledgementType type, double expiry = 0);
@@ -238,9 +237,9 @@ public:
 	double GetNotificationInterval(void) const;
 
 	void RequestNotifications(NotificationType type);
-	static void SendNotifications(const Service::Ptr& self, NotificationType type);
+	void SendNotifications(NotificationType type);
 
-	static set<Notification::Ptr> GetNotifications(const Service::Ptr& self);
+	set<Notification::Ptr> GetNotifications(void) const;
 
 	static void InvalidateNotificationsCache(void);
 

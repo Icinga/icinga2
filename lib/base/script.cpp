@@ -35,6 +35,9 @@ Script::Script(const Dictionary::Ptr& properties)
 	RegisterAttribute("code", Attribute_Config, &m_Code);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Script::Start(void)
 {
 	assert(OwnsLock());
@@ -42,6 +45,9 @@ void Script::Start(void)
 	SpawnInterpreter();
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Script::GetLanguage(void) const
 {
 	ObjectLock olock(this);
@@ -49,6 +55,9 @@ String Script::GetLanguage(void) const
 	return m_Language;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Script::GetCode(void) const
 {
 	ObjectLock olock(this);
@@ -56,12 +65,20 @@ String Script::GetCode(void) const
 	return m_Code;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Script::OnAttributeUpdate(const String& name, const Value& oldValue)
 {
+	assert(!OwnsLock());
+
 	if (name == "language" || name == "code")
 		SpawnInterpreter();
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Script::SpawnInterpreter(void)
 {
 	Logger::Write(LogInformation, "base", "Reloading script '" + GetName() + "'");

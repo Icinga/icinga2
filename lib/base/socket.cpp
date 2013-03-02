@@ -48,6 +48,8 @@ Socket::~Socket(void)
  */
 void Socket::Start(void)
 {
+	ObjectLock olock(this);
+
 	assert(!m_ReadThread.joinable() && !m_WriteThread.joinable());
 	assert(GetFD() != INVALID_SOCKET);
 
@@ -68,6 +70,8 @@ void Socket::Start(void)
  */
 void Socket::SetFD(SOCKET fd)
 {
+	ObjectLock olock(this);
+
 	/* mark the socket as non-blocking and close-on-exec */
 	if (fd != INVALID_SOCKET) {
 		Utility::SetNonBlockingSocket(fd);
@@ -86,18 +90,9 @@ void Socket::SetFD(SOCKET fd)
  */
 SOCKET Socket::GetFD(void) const
 {
+	ObjectLock olock(this);
+
 	return m_FD;
-}
-
-void Socket::CloseUnlocked(void)
-{
-	if (m_FD == INVALID_SOCKET)
-		return;
-
-	closesocket(m_FD);
-	m_FD = INVALID_SOCKET;
-
-	Stream::Close();
 }
 
 /**
@@ -105,8 +100,15 @@ void Socket::CloseUnlocked(void)
  */
 void Socket::Close(void)
 {
-	boost::mutex::scoped_lock lock(m_SocketMutex);
-	CloseUnlocked();
+	ObjectLock olock(this);
+
+	if (m_FD == INVALID_SOCKET)
+		return;
+
+	closesocket(m_FD);
+	m_FD = INVALID_SOCKET;
+
+	Stream::Close();
 }
 
 /**
@@ -146,6 +148,8 @@ int Socket::GetLastSocketError(void)
  */
 void Socket::HandleException(void)
 {
+	ObjectLock olock(this);
+
 	BOOST_THROW_EXCEPTION(SocketException("select() returned fd in except fdset", GetError()));
 }
 
@@ -271,7 +275,7 @@ void Socket::ReadThreadProc(void)
 		} catch (...) {
 			SetException(boost::current_exception());
 
-			CloseUnlocked();
+			Close();
 
 			break;
 		}
@@ -326,7 +330,7 @@ void Socket::WriteThreadProc(void)
 		} catch (...) {
 			SetException(boost::current_exception());
 
-			CloseUnlocked();
+			Close();
 
 			break;
 		}
@@ -340,6 +344,8 @@ void Socket::WriteThreadProc(void)
  */
 void Socket::SetConnected(bool connected)
 {
+	ObjectLock olock(this);
+
 	m_Connected = connected;
 }
 
@@ -350,6 +356,8 @@ void Socket::SetConnected(bool connected)
  */
 bool Socket::IsConnected(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Connected;
 }
 
@@ -360,14 +368,12 @@ bool Socket::IsConnected(void) const
  */
 size_t Socket::GetAvailableBytes(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_Listening)
 		throw new logic_error("Socket does not support GetAvailableBytes().");
 
-	{
-		boost::mutex::scoped_lock lock(m_QueueMutex);
-
-		return m_RecvQueue->GetAvailableBytes();
-	}
+	return m_RecvQueue->GetAvailableBytes();
 }
 
 /**
@@ -379,11 +385,13 @@ size_t Socket::GetAvailableBytes(void) const
  */
 size_t Socket::Read(void *buffer, size_t size)
 {
+	ObjectLock olock(this);
+
 	if (m_Listening)
 		throw new logic_error("Socket does not support Read().");
 
 	{
-		boost::mutex::scoped_lock lock(m_QueueMutex);
+		ObjectLock olock(m_RecvQueue);
 
 		if (m_RecvQueue->GetAvailableBytes() == 0)
 			CheckException();
@@ -401,11 +409,15 @@ size_t Socket::Read(void *buffer, size_t size)
  */
 size_t Socket::Peek(void *buffer, size_t size)
 {
-	if (m_Listening)
-		throw new logic_error("Socket does not support Peek().");
+	{
+		ObjectLock olock(this);
+
+		if (m_Listening)
+			throw new logic_error("Socket does not support Peek().");
+	}
 
 	{
-		boost::mutex::scoped_lock lock(m_QueueMutex);
+		ObjectLock olock(m_RecvQueue);
 
 		if (m_RecvQueue->GetAvailableBytes() == 0)
 			CheckException();
@@ -422,14 +434,14 @@ size_t Socket::Peek(void *buffer, size_t size)
  */
 void Socket::Write(const void *buffer, size_t size)
 {
-	if (m_Listening)
-		throw new logic_error("Socket does not support Write().");
-
 	{
-		boost::mutex::scoped_lock lock(m_QueueMutex);
+		ObjectLock olock(this);
 
-		m_SendQueue->Write(buffer, size);
+		if (m_Listening)
+			throw new logic_error("Socket does not support Write().");
 	}
+
+	m_SendQueue->Write(buffer, size);
 }
 
 /**
@@ -437,6 +449,8 @@ void Socket::Write(const void *buffer, size_t size)
  */
 void Socket::Listen(void)
 {
+	ObjectLock olock(this);
+
 	if (listen(GetFD(), SOMAXCONN) < 0)
 		BOOST_THROW_EXCEPTION(SocketException("listen() failed", GetError()));
 
@@ -472,29 +486,17 @@ void Socket::HandleWritableClient(void)
 		SetConnected(true);
 
 	for (;;) {
-		{
-			boost::mutex::scoped_lock lock(m_QueueMutex);
+		count = m_SendQueue->Peek(data, sizeof(data));
 
-			count = m_SendQueue->GetAvailableBytes();
-
-			if (count == 0)
-				break;
-
-			if (count > sizeof(data))
-				count = sizeof(data);
-
-			m_SendQueue->Peek(data, count);
-		}
+		if (count == 0)
+			break;
 
 		rc = send(GetFD(), data, count, 0);
 
 		if (rc <= 0)
 			BOOST_THROW_EXCEPTION(SocketException("send() failed", GetError()));
 
-		{
-			boost::mutex::scoped_lock lock(m_QueueMutex);
-			m_SendQueue->Read(NULL, rc);
-		}
+		m_SendQueue->Read(NULL, rc);
 	}
 }
 
@@ -522,11 +524,7 @@ void Socket::HandleReadableClient(void)
 		if (rc <= 0)
 			BOOST_THROW_EXCEPTION(SocketException("recv() failed", GetError()));
 
-		{
-			boost::mutex::scoped_lock lock(m_QueueMutex);
-
-			m_RecvQueue->Write(data, rc);
-		}
+		m_RecvQueue->Write(data, rc);
 
 		new_data = true;
 	}
@@ -603,12 +601,8 @@ bool Socket::WantsToReadClient(void) const
  */
 bool Socket::WantsToWriteClient(void) const
 {
-	{
-		boost::mutex::scoped_lock lock(m_QueueMutex);
-
-		if (m_SendQueue->GetAvailableBytes() > 0)
-			return true;
-	}
+	if (m_SendQueue->GetAvailableBytes() > 0)
+		return true;
 
 	return (!IsConnected());
 }

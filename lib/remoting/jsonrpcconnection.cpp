@@ -37,6 +37,8 @@ JsonRpcConnection::JsonRpcConnection(const Stream::Ptr& stream)
  */
 void JsonRpcConnection::SendMessage(const MessagePart& message)
 {
+	ObjectLock olock(this);
+
 	Value value = message.GetDictionary();
 	String json = value.Serialize();
 	//std::cerr << ">> " << json << std::endl;
@@ -48,6 +50,8 @@ void JsonRpcConnection::SendMessage(const MessagePart& message)
  */
 void JsonRpcConnection::ProcessData(void)
 {
+	ObjectLock olock(this);
+
 	String jsonString;
 
 	while (NetString::ReadStringFromStream(GetStream(), &jsonString)) {

@@ -37,29 +37,49 @@ ServiceGroup::ServiceGroup(const Dictionary::Ptr& properties)
 
 ServiceGroup::~ServiceGroup(void)
 {
-	RefreshMembersCache();
+	InvalidateMembersCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 void ServiceGroup::OnRegistrationCompleted(void)
 {
-	RefreshMembersCache();
+	assert(!OwnsLock());
+
+	InvalidateMembersCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 String ServiceGroup::GetDisplayName(void) const
 {
+	ObjectLock olock(this);
+
 	if (!m_DisplayName.Get().IsEmpty())
 		return m_DisplayName;
 	else
 		return GetName();
 }
 
+/**
+ * @threadsafety Always.
+ */
 String ServiceGroup::GetNotesUrl(void) const
 {
+	ObjectLock olock(this);
+
 	return m_NotesUrl;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String ServiceGroup::GetActionUrl(void) const
 {
+	ObjectLock olock(this);
+
 	return m_ActionUrl;
 }
 
@@ -76,21 +96,17 @@ ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 	return dynamic_pointer_cast<ServiceGroup>(configObject);
 }
 
-set<Service::Ptr> ServiceGroup::GetMembers(const ServiceGroup::Ptr& self)
+/**
+ * @threadsafety Always.
+ */
+set<Service::Ptr> ServiceGroup::GetMembers(void) const
 {
-	String name;
-
-	{
-		ObjectLock olock(self);
-		name = self->GetName();
-	}
-
 	set<Service::Ptr> services;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		BOOST_FOREACH(const Service::WeakPtr& wservice, m_MembersCache[name]) {
+		BOOST_FOREACH(const Service::WeakPtr& wservice, m_MembersCache[GetName()]) {
 			Service::Ptr service = wservice.lock();
 
 			if (!service)
@@ -103,18 +119,22 @@ set<Service::Ptr> ServiceGroup::GetMembers(const ServiceGroup::Ptr& self)
 	return services;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void ServiceGroup::InvalidateMembersCache(void)
 {
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
-		if (m_MembersCacheValid)
-			Utility::QueueAsyncCallback(boost::bind(&ServiceGroup::RefreshMembersCache));
+	if (m_MembersCacheValid)
+		Utility::QueueAsyncCallback(boost::bind(&ServiceGroup::RefreshMembersCache));
 
-		m_MembersCacheValid = false;
-	}
+	m_MembersCacheValid = false;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void ServiceGroup::RefreshMembersCache(void)
 {
 	{

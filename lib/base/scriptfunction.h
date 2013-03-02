@@ -44,8 +44,6 @@ public:
 	static void Unregister(const String& name);
 	static ScriptFunction::Ptr GetByName(const String& name);
 
-	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Value>& arguments);
-
 	static map<String, ScriptFunction::Ptr> GetFunctions(void);
 
 	static signals2::signal<void (const String&, const ScriptFunction::Ptr&)> OnRegistered;
@@ -56,6 +54,10 @@ private:
 
 	static map<String, ScriptFunction::Ptr>& InternalGetFunctions(void);
 	static boost::mutex& GetMutex(void);
+
+	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Value>& arguments);
+
+	friend class ScriptTask;
 };
 
 /**

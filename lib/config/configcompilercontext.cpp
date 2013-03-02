@@ -137,6 +137,6 @@ void ConfigCompilerContext::ActivateItems(void)
 
 	Logger::Write(LogInformation, "config", "Activating config items in compilation unit '" + m_Unit + "'");
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
-		ConfigItem::Commit(item);
+		item->Commit();
 	}
 }

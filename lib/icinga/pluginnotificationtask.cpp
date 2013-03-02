@@ -46,20 +46,13 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vecto
 	Dictionary::Ptr macros = arguments[1];
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[2]));
 
-	Value raw_command;
+	Value raw_command = notification->GetNotificationCommand();
+
 	String service_name;
-	Service::Ptr service;
 
-	{
-		ObjectLock olock(notification);
-		raw_command = notification->GetNotificationCommand();
-		service = notification->GetService();
-	}
-
-	{
-		ObjectLock olock(service);
+	Service::Ptr service = notification->GetService();
+	if (service)
 		service_name = service->GetName();
-	}
 
 	Value command = MacroProcessor::ResolveMacros(raw_command, macros);
 
@@ -78,9 +71,7 @@ void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
 	ProcessResult pr;
 
 	try {
-		{
-			pr = ct.m_Process->GetResult();
-		}
+		pr = ct.m_Process->GetResult();
 
 		if (pr.ExitStatus != 0) {
 			stringstream msgbuf;

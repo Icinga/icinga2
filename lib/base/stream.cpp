@@ -30,48 +30,81 @@ Stream::~Stream(void)
 	assert(!m_Running);
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Stream::IsConnected(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Connected;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Stream::SetConnected(bool connected)
 {
-	m_Connected = connected;
+	{
+		ObjectLock olock(this);
+		m_Connected = connected;
+	}
 
-	if (m_Connected)
+	if (connected)
 		OnConnected(GetSelf());
 	else
 		OnClosed(GetSelf());
 }
 
 /**
- * Checks whether an exception is available for this socket and re-throws
+ * Checks whether an exception is available for this stream and re-throws
  * the exception if there is one.
+ *
+ * @threadsafety Always.
  */
 void Stream::CheckException(void)
 {
+	ObjectLock olock(this);
+
 	if (m_Exception)
 		rethrow_exception(m_Exception);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Stream::SetException(boost::exception_ptr exception)
 {
+	ObjectLock olock(this);
+
 	m_Exception = exception;
 }
 
+/**
+ * @threadsafety Always.
+ */
 boost::exception_ptr Stream::GetException(void)
 {
 	return m_Exception;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Stream::Start(void)
 {
+	ObjectLock olock(this);
+
 	m_Running = true;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Stream::Close(void)
 {
+	ObjectLock olock(this);
+
 	assert(m_Running);
 	m_Running = false;
 

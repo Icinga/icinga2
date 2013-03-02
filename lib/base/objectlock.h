@@ -39,6 +39,9 @@ public:
 private:
 	const Object *m_Object;
 	recursive_mutex::scoped_lock m_Lock;
+#ifdef _DEBUG
+	double m_TS;
+#endif /* _DEBUG */
 };
 
 }

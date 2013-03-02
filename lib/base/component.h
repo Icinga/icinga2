@@ -44,6 +44,8 @@ private:
 	DynamicObject::WeakPtr m_Config; /**< The configuration object for this
 				      component. */
 
+	void SetConfig(const DynamicObject::Ptr& config);
+
 	friend class Component;
 };
 
@@ -74,6 +76,7 @@ private:
 	IComponent::Ptr m_Impl; /**< The implementation object for this
 				     component. */
 
+	static boost::mutex m_Mutex;
 	static map<String, Factory> m_Factories;
 };
 

@@ -76,13 +76,25 @@ Service::~Service(void)
 	Service::InvalidateCommentsCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::OnRegistrationCompleted(void)
 {
+	assert(!OwnsLock());
+
 	DynamicObject::OnRegistrationCompleted();
+
+	InvalidateNotificationsCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Service::GetDisplayName(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_DisplayName.IsEmpty())
 		return GetShortName();
 	else
@@ -113,65 +125,98 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 		if (!host)
 			return Service::Ptr();
 
-		return Host::GetServiceByShortName(host, serviceName);
+		return host->GetServiceByShortName(serviceName);
 	} else {
 		return Service::GetByName(serviceName);
 	}
 }
 
+/**
+ * @threadsafety Always.
+ */
 Host::Ptr Service::GetHost(void) const
 {
+	ObjectLock olock(this);
+
 	return Host::GetByName(m_HostName);
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr Service::GetMacros(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Macros;
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr Service::GetHostDependencies(void) const
 {
+	ObjectLock olock(this);
+
 	return m_HostDependencies;
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr Service::GetServiceDependencies(void) const
 {
+	ObjectLock olock(this);
+
 	return m_ServiceDependencies;
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr Service::GetGroups(void) const
 {
+	ObjectLock olock(this);
+
 	return m_ServiceGroups;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Service::GetHostName(void) const
 {
+	ObjectLock olock(this);
+
 	return m_HostName;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String Service::GetShortName(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_ShortName.IsEmpty())
 		return GetName();
 	else
 		return m_ShortName;
 }
 
-bool Service::IsReachable(const Service::Ptr& self)
+/**
+ * @threadsafety Always.
+ */
+bool Service::IsReachable(void) const
 {
-	String service_name;
+	assert(!OwnsLock());
 
-	{
-		ObjectLock olock(self);
-		service_name = self->GetName();
-	}
-
-	BOOST_FOREACH(const Service::Ptr& service, Service::GetParentServices(self)) {
-		ObjectLock olock(service);
-
+	BOOST_FOREACH(const Service::Ptr& service, GetParentServices()) {
 		/* ignore ourselves */
-		if (service->GetName() == service_name)
+		if (service->GetName() == GetName())
 			continue;
+
+		ObjectLock olock(service);
 
 		/* ignore pending services */
 		if (!service->GetLastCheckResult())
@@ -189,21 +234,25 @@ bool Service::IsReachable(const Service::Ptr& self)
 		return false;
 	}
 
-	BOOST_FOREACH(const Host::Ptr& host, Service::GetParentHosts(self)) {
-		Service::Ptr hc = Host::GetHostCheckService(host);
+	BOOST_FOREACH(const Host::Ptr& host, GetParentHosts()) {
+		Service::Ptr hc = host->GetHostCheckService();
 
 		/* ignore hosts that don't have a hostcheck */
 		if (!hc)
 			continue;
 
+		/* ignore ourselves */
+		if (hc->GetName() == GetName())
+			continue;
+
 		ObjectLock olock(hc);
 
-		/* ignore ourselves */
-		if (hc->GetName() == service_name)
+		/* ignore soft states */
+		if (hc->GetStateType() == StateTypeSoft)
 			continue;
 
 		/* ignore hosts that are up */
-		if (hc && hc->GetState() == StateOK)
+		if (hc->GetState() == StateOK)
 			continue;
 
 		return false;
@@ -212,8 +261,13 @@ bool Service::IsReachable(const Service::Ptr& self)
 	return true;
 }
 
+/**
+ * @threadsafety Always.
+ */
 AcknowledgementType Service::GetAcknowledgement(void)
 {
+	ObjectLock olock(this);
+
 	if (m_Acknowledgement.IsEmpty())
 		return AcknowledgementNone;
 
@@ -233,47 +287,78 @@ AcknowledgementType Service::GetAcknowledgement(void)
 	return avalue;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetAcknowledgement(AcknowledgementType acknowledgement)
 {
+	ObjectLock olock(this);
+
 	m_Acknowledgement = acknowledgement;
 	Touch("acknowledgement");
 }
 
+/**
+ * @threadsafety Always.
+ */
 bool Service::IsAcknowledged(void)
 {
 	return GetAcknowledgement() != AcknowledgementNone;
 }
 
+/**
+ * @threadsafety Always.
+ */
 double Service::GetAcknowledgementExpiry(void) const
 {
+	ObjectLock olock(this);
+
 	if (m_AcknowledgementExpiry.IsEmpty())
 		return 0;
 
 	return static_cast<double>(m_AcknowledgementExpiry);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::SetAcknowledgementExpiry(double timestamp)
 {
+	ObjectLock olock(this);
+
 	m_AcknowledgementExpiry = timestamp;
 	Touch("acknowledgement_expiry");
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
 {
+	ObjectLock olock(this);
+
 	SetAcknowledgement(type);
 	SetAcknowledgementExpiry(expiry);
 
 	RequestNotifications(NotificationAcknowledgement);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::ClearAcknowledgement(void)
 {
 	SetAcknowledgement(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 {
+	assert(!OwnsLock());
+
 	Service::Ptr self;
 	String service_name;
 	bool abstract;
@@ -311,23 +396,24 @@ void Service::OnAttributeChanged(const String& name, const Value& oldValue)
 	}
 }
 
-set<Host::Ptr> Service::GetParentHosts(const Service::Ptr& self)
+/**
+ * @threadsafety Always.
+ */
+set<Host::Ptr> Service::GetParentHosts(void) const
 {
 	set<Host::Ptr> parents;
 
-	Dictionary::Ptr dependencies;
+	Host::Ptr host = GetHost();
 
-	{
-		ObjectLock olock(self);
+	/* The service's host is implicitly a parent. */
+	if (host)
+		parents.insert(host);
 
-		/* The service's host is implicitly a parent. */
-		parents.insert(self->GetHost());
-
-		dependencies = self->GetHostDependencies();
-	}
-
+	Dictionary::Ptr dependencies = GetHostDependencies();
 
 	if (dependencies) {
+		ObjectLock olock(dependencies);
+
 		String key;
 		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
 			Host::Ptr host = Host::GetByName(key);
@@ -342,29 +428,26 @@ set<Host::Ptr> Service::GetParentHosts(const Service::Ptr& self)
 	return parents;
 }
 
-set<Service::Ptr> Service::GetParentServices(const Service::Ptr& self)
+/**
+ * @threadsafety Always.
+ */
+set<Service::Ptr> Service::GetParentServices(void) const
 {
 	set<Service::Ptr> parents;
 
-	Dictionary::Ptr dependencies;
-	Host::Ptr host;
-	String service_name;
+	Host::Ptr host = GetHost();
+	Dictionary::Ptr dependencies = GetServiceDependencies();
 
-	{
-		ObjectLock olock(self);
-		dependencies = self->GetServiceDependencies();
-		host = self->GetHost();
-		service_name = self->GetName();
-	}
-
-	if (dependencies) {
+	if (host && dependencies) {
 		String key;
 		Value value;
 		BOOST_FOREACH(tie(key, value), dependencies) {
-			Service::Ptr service = Host::GetServiceByShortName(host, value);
-			ObjectLock olock(service);
+			Service::Ptr service = host->GetServiceByShortName(value);
 
-			if (service->GetName() == service_name)
+			if (!service)
+				continue;
+
+			if (service->GetName() == GetName())
 				continue;
 
 			parents.insert(service);
@@ -374,25 +457,27 @@ set<Service::Ptr> Service::GetParentServices(const Service::Ptr& self)
 	return parents;
 }
 
-Dictionary::Ptr Service::CalculateDynamicMacros(const Service::Ptr& self)
+/**
+ * @threadsafety Always.
+ */
+Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
-	ObjectLock mlock(macros);
 
 	Dictionary::Ptr cr;
 
 	{
-		ObjectLock olock(self);
-		macros->Set("SERVICEDESC", self->GetShortName());
-		macros->Set("SERVICEDISPLAYNAME", self->GetDisplayName());
-		macros->Set("SERVICESTATE", StateToString(self->GetState()));
-		macros->Set("SERVICESTATEID", self->GetState());
-		macros->Set("SERVICESTATETYPE", StateTypeToString(self->GetStateType()));
-		macros->Set("SERVICEATTEMPT", self->GetCurrentCheckAttempt());
-		macros->Set("MAXSERVICEATTEMPT", self->GetMaxCheckAttempts());
+		ObjectLock olock(this);
+		macros->Set("SERVICEDESC", GetShortName());
+		macros->Set("SERVICEDISPLAYNAME", GetDisplayName());
+		macros->Set("SERVICESTATE", StateToString(GetState()));
+		macros->Set("SERVICESTATEID", GetState());
+		macros->Set("SERVICESTATETYPE", StateTypeToString(GetStateType()));
+		macros->Set("SERVICEATTEMPT", GetCurrentCheckAttempt());
+		macros->Set("MAXSERVICEATTEMPT", GetMaxCheckAttempts());
 		macros->Set("SERVICECHECKCOMMAND", "check_i2");
 
-		cr = self->GetLastCheckResult();
+		cr = GetLastCheckResult();
 	}
 
 	if (cr) {

@@ -103,12 +103,11 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 
 void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
 {
-	ObjectLock olock(object);
-	object->SetEventSafe(false);
-
 	assert(OwnsLock());
 	m_ObjectMap.erase(object->GetName());
 	m_ObjectSet.erase(object);
+
+	object->OnUnregistrationCompleted();
 }
 
 /**

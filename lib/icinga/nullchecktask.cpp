@@ -23,6 +23,9 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION("NullCheck",  &NullCheckTask::ScriptFunc);
 
+/**
+ * @threadsafety Always.
+ */
 void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
@@ -31,8 +34,5 @@ void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>&
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("state", StateUnknown);
 
-	{
-		ObjectLock olock(task);
-		task->FinishResult(cr);
-	}
+	task->FinishResult(cr);
 }

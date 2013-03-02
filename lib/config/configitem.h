@@ -47,7 +47,7 @@ public:
 
 	ExpressionList::Ptr GetExpressionList(void) const;
 
-	static DynamicObject::Ptr Commit(const ConfigItem::Ptr& self);
+	DynamicObject::Ptr Commit(void);
 	void Unregister(void);
 
 	void Dump(ostream& fp) const;

@@ -21,9 +21,14 @@
 
 using namespace icinga;
 
+/**
+ * @threadsafety Always.
+ */
 Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& macros)
 {
 	Value result;
+
+	assert(macros->IsSealed());
 
 	if (cmd.IsScalar()) {
 		result = InternalResolveMacros(cmd, macros);
@@ -46,6 +51,9 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 	return result;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary::Ptr& macros)
 {
 	ObjectLock olock(macros);
@@ -73,6 +81,9 @@ String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary
 	return result;
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr MacroProcessor::MergeMacroDicts(const vector<Dictionary::Ptr>& dicts)
 {
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();

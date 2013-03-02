@@ -36,12 +36,20 @@ User::~User(void)
 	UserGroup::InvalidateMembersCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 void User::OnAttributeChanged(const String& name, const Value& oldValue)
 {
+	assert(!OwnsLock());
+
 	if (name == "groups")
 		UserGroup::InvalidateMembersCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 User::Ptr User::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("User", name);
@@ -49,33 +57,48 @@ User::Ptr User::GetByName(const String& name)
 	return dynamic_pointer_cast<User>(configObject);
 }
 
+/**
+ * @threadsafety Always.
+ */
 String User::GetDisplayName(void) const
 {
+	ObjectLock olock(this);
+
 	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
 	else
 		return GetName();
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr User::GetGroups(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Groups;
 }
 
+/**
+ * @threadsafety Always.
+ */
 Dictionary::Ptr User::GetMacros(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Macros;
 }
 
-Dictionary::Ptr User::CalculateDynamicMacros(const User::Ptr& self)
+/**
+ * @threadsafety Always.
+ */
+Dictionary::Ptr User::CalculateDynamicMacros(void) const
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 
-	{
-		ObjectLock olock(self);
-		macros->Set("CONTACTNAME", self->GetName());
-		macros->Set("CONTACTALIAS", self->GetName());
-	}
+	macros->Set("CONTACTNAME", GetName());
+	macros->Set("CONTACTALIAS", GetName());
 
 	macros->Seal();
 

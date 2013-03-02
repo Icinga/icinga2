@@ -43,13 +43,21 @@ StdioStream::~StdioStream(void)
 	m_ReadAheadBuffer->Close();
 }
 
+/**
+ * @threadsafety Always.
+ */
 void StdioStream::Start(void)
 {
+	ObjectLock olock(this);
+
 	SetConnected(true);
 
 	Stream::Start();
 }
 
+/**
+ * @threadsafety Always.
+ */
 size_t StdioStream::GetAvailableBytes(void) const
 {
 	ObjectLock olock(this);
@@ -60,6 +68,9 @@ size_t StdioStream::GetAvailableBytes(void) const
 		return 1024; /* doesn't have to be accurate */
 }
 
+/**
+ * @threadsafety Always.
+ */
 size_t StdioStream::Read(void *buffer, size_t size)
 {
 	ObjectLock olock(this);
@@ -75,6 +86,9 @@ size_t StdioStream::Read(void *buffer, size_t size)
 	return peek_len + read_len;
 }
 
+/**
+ * @threadsafety Always.
+ */
 size_t StdioStream::Peek(void *buffer, size_t size)
 {
 	ObjectLock olock(this);
@@ -91,6 +105,9 @@ size_t StdioStream::Peek(void *buffer, size_t size)
 	return peek_len + read_len;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void StdioStream::Write(const void *buffer, size_t size)
 {
 	ObjectLock olock(this);
@@ -98,6 +115,9 @@ void StdioStream::Write(const void *buffer, size_t size)
 	m_InnerStream->write(static_cast<const char *>(buffer), size);
 }
 
+/**
+ * @threadsafety Always.
+ */
 void StdioStream::Close(void)
 {
 	ObjectLock olock(this);

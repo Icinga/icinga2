@@ -50,6 +50,8 @@ EndpointManager::EndpointManager(void)
  */
 void EndpointManager::SetSSLContext(const shared_ptr<SSL_CTX>& sslContext)
 {
+	ObjectLock olock(this);
+
 	m_SSLContext = sslContext;
 }
 
@@ -60,6 +62,8 @@ void EndpointManager::SetSSLContext(const shared_ptr<SSL_CTX>& sslContext)
  */
 shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
 {
+	ObjectLock olock(this);
+
 	return m_SSLContext;
 }
 
@@ -71,6 +75,8 @@ shared_ptr<SSL_CTX> EndpointManager::GetSSLContext(void) const
  */
 void EndpointManager::SetIdentity(const String& identity)
 {
+	ObjectLock olock(this);
+
 	m_Identity = identity;
 
 	if (m_Endpoint)
@@ -91,6 +97,8 @@ void EndpointManager::SetIdentity(const String& identity)
  */
 String EndpointManager::GetIdentity(void) const
 {
+	ObjectLock olock(this);
+
 	return m_Identity;
 }
 
@@ -101,6 +109,8 @@ String EndpointManager::GetIdentity(void) const
  */
 void EndpointManager::AddListener(const String& service)
 {
+	ObjectLock olock(this);
+
 	shared_ptr<SSL_CTX> sslContext = GetSSLContext();
 
 	if (!sslContext)
@@ -128,6 +138,8 @@ void EndpointManager::AddListener(const String& service)
  * @param service The remote port.
  */
 void EndpointManager::AddConnection(const String& node, const String& service) {
+	ObjectLock olock(this);
+
 	shared_ptr<SSL_CTX> sslContext = GetSSLContext();
 
 	if (!sslContext)
@@ -145,6 +157,8 @@ void EndpointManager::AddConnection(const String& node, const String& service) {
  */
 void EndpointManager::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 {
+	ObjectLock olock(this);
+
 	String peerAddress = client->GetPeerAddress();
 	TlsStream::Ptr tlsStream = boost::make_shared<TlsStream>(client, role, GetSSLContext());
 	tlsStream->Start();
@@ -158,6 +172,8 @@ void EndpointManager::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 
 void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const String& peerAddress)
 {
+	ObjectLock olock(this);
+
 	TlsStream::Ptr tlsStream = static_pointer_cast<TlsStream>(client);
 	JsonRpcConnection::Ptr jclient = boost::make_shared<JsonRpcConnection>(tlsStream);
 
@@ -178,6 +194,8 @@ void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const St
 
 void EndpointManager::ClientClosedHandler(const Stream::Ptr& client)
 {
+	ObjectLock olock(this);
+
 	TlsStream::Ptr tlsStream = static_pointer_cast<TlsStream>(client);
 	m_PendingClients.erase(tlsStream);
 }
@@ -293,6 +311,8 @@ void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint
     RequestMessage& message,
     const EndpointManager::APICallback& callback, double timeout)
 {
+	ObjectLock olock(this);
+
 	m_NextMessageID++;
 
 	stringstream idstream;
@@ -337,7 +357,7 @@ void EndpointManager::SubscriptionTimerHandler(void)
 			ObjectLock olock(endpointSubscriptions);
 
 			String topic;
-			BOOST_FOREACH(tie(tuples::ignore, topic), endpoint->GetSubscriptions()) {
+			BOOST_FOREACH(tie(tuples::ignore, topic), endpointSubscriptions) {
 				subscriptions->Set(topic, topic);
 			}
 		}
@@ -374,6 +394,8 @@ void EndpointManager::ReconnectTimerHandler(void)
 
 void EndpointManager::RequestTimerHandler(void)
 {
+	ObjectLock olock(this);
+
 	map<String, PendingRequest>::iterator it;
 	for (it = m_Requests.begin(); it != m_Requests.end(); it++) {
 		if (it->second.HasTimedOut()) {
@@ -390,6 +412,8 @@ void EndpointManager::RequestTimerHandler(void)
 void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender,
     const ResponseMessage& message)
 {
+	ObjectLock olock(this);
+
 	String id;
 	if (!message.GetID(&id))
 		BOOST_THROW_EXCEPTION(invalid_argument("Response message must have a message ID."));

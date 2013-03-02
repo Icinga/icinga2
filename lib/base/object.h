@@ -100,7 +100,9 @@ protected:
 
 	SharedPtrHolder GetSelf(void);
 
+#ifdef _DEBUG
 	bool OwnsLock(void) const;
+#endif /* _DEBUG */
 
 private:
 	Object(const Object& other);
@@ -110,7 +112,9 @@ private:
 	mutable unsigned int m_LockCount;
 	mutable boost::thread::id m_LockOwner;
 
+#ifdef _DEBUG
 	static boost::mutex m_DebugMutex;
+#endif /* _DEBUG */
 
 	friend class ObjectLock;
 };

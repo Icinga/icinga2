@@ -31,7 +31,7 @@ struct ServiceNextCheckExtractor
 	typedef double result_type;
 
 	/**
-	 * @threadsafety Caller must hold the mutex for the service.
+	 * @threadsafety Always.
 	 */
 	double operator()(const Service::Ptr& service)
 	{

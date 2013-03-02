@@ -51,7 +51,7 @@ public:
 
 	double GetStartTime(void) const;
 
-	static Dictionary::Ptr CalculateDynamicMacros(const IcingaApplication::Ptr& self);
+	static Dictionary::Ptr CalculateDynamicMacros(void);
 
 private:
 	Attribute<String> m_CertPath;

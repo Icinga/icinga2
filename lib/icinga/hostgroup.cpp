@@ -40,26 +40,46 @@ HostGroup::~HostGroup(void)
 	InvalidateMembersCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 void HostGroup::OnRegistrationCompleted(void)
 {
+	assert(!OwnsLock());
+
 	InvalidateMembersCache();
 }
 
+/**
+ * @threadsafety Always.
+ */
 String HostGroup::GetDisplayName(void) const
 {
+	ObjectLock olock(this);
+
 	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
 	else
 		return GetName();
 }
 
+/**
+ * @threadsafety Always.
+ */
 String HostGroup::GetNotesUrl(void) const
 {
+	ObjectLock olock(this);
+
 	return m_NotesUrl;
 }
 
+/**
+ * @threadsafety Always.
+ */
 String HostGroup::GetActionUrl(void) const
 {
+	ObjectLock olock(this);
+
 	return m_ActionUrl;
 }
 
@@ -76,21 +96,17 @@ HostGroup::Ptr HostGroup::GetByName(const String& name)
 	return dynamic_pointer_cast<HostGroup>(configObject);
 }
 
-set<Host::Ptr> HostGroup::GetMembers(const HostGroup::Ptr& self)
+/**
+ * @threadsafety Always.
+ */
+set<Host::Ptr> HostGroup::GetMembers(void) const
 {
-	String name;
-
-	{
-		ObjectLock olock(self);
-		name = self->GetName();
-	}
-
 	set<Host::Ptr> hosts;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		BOOST_FOREACH(const Host::WeakPtr& whost, m_MembersCache[name]) {
+		BOOST_FOREACH(const Host::WeakPtr& whost, m_MembersCache[GetName()]) {
 			Host::Ptr host = whost.lock();
 
 			if (!host)
@@ -103,18 +119,22 @@ set<Host::Ptr> HostGroup::GetMembers(const HostGroup::Ptr& self)
 	return hosts;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void HostGroup::InvalidateMembersCache(void)
 {
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
-		if (m_MembersCacheValid)
-			Utility::QueueAsyncCallback(boost::bind(&HostGroup::RefreshMembersCache));
+	if (m_MembersCacheValid)
+		Utility::QueueAsyncCallback(boost::bind(&HostGroup::RefreshMembersCache));
 
-		m_MembersCacheValid = false;
-	}
+	m_MembersCacheValid = false;
 }
 
+/**
+ * @threadsafety Always.
+ */
 void HostGroup::RefreshMembersCache(void)
 {
 	{

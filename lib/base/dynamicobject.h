@@ -252,9 +252,6 @@ public:
 
 	const AttributeMap& GetAttributes(void) const;
 
-	void SetEventSafe(bool initialized);
-	bool GetEventSafe(void) const;
-
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 
 	static void DumpObjects(const String& filename);
@@ -265,6 +262,8 @@ public:
 
 protected:
 	virtual void OnRegistrationCompleted(void);
+	virtual void OnUnregistrationCompleted(void);
+
 	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
 
 private:
@@ -284,7 +283,6 @@ private:
 	Attribute<Dictionary::Ptr> m_Methods;
 
 	bool m_Registered;
-	bool m_EventSafe;
 
 	static double m_CurrentTx;
 
