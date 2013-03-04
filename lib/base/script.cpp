@@ -68,7 +68,7 @@ String Script::GetCode(void) const
 /**
  * @threadsafety Always.
  */
-void Script::OnAttributeUpdate(const String& name, const Value& oldValue)
+void Script::OnAttributeUpdate(const String& name)
 {
 	assert(!OwnsLock());
 

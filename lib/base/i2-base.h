@@ -214,6 +214,7 @@ namespace signals2 = boost::signals2;
 #include "process.h"
 #include "scriptfunction.h"
 #include "scripttask.h"
+#include "attribute.h"
 #include "dynamicobject.h"
 #include "dynamictype.h"
 #include "script.h"

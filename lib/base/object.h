@@ -91,8 +91,9 @@ public:
 					   holder instance */
 	};
 
-	void VerifyLocked(void) const;
-	void WarnIfLocked(void) const;
+#ifdef _DEBUG
+	bool OwnsLock(void) const;
+#endif /* _DEBUG */
 
 protected:
 	Object(void);
@@ -100,21 +101,21 @@ protected:
 
 	SharedPtrHolder GetSelf(void);
 
-#ifdef _DEBUG
-	bool OwnsLock(void) const;
-#endif /* _DEBUG */
-
 private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	mutable recursive_mutex m_Mutex;
-	mutable unsigned int m_LockCount;
-	mutable boost::thread::id m_LockOwner;
+#ifndef _DEBUG
+	typedef boost::mutex MutexType;
+#else /* _DEBUG */
+	typedef boost::recursive_mutex MutexType;
 
-#ifdef _DEBUG
 	static boost::mutex m_DebugMutex;
+	mutable bool m_Locked;
+	mutable boost::thread::id m_LockOwner;
 #endif /* _DEBUG */
+
+	mutable MutexType m_Mutex;
 
 	friend class ObjectLock;
 };

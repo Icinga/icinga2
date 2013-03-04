@@ -21,14 +21,6 @@
 
 using namespace icinga;
 
-#ifdef _DEBUG
-#	ifdef _MSC_VER
-static __declspec(thread) int g_LockCount;
-#	else /* _MSC_VER */
-static __thread int g_LockCount;
-#	endif /* _MSC_VER */
-#endif /* _DEBUG */
-
 ObjectLock::ObjectLock(void)
 	: m_Object(NULL), m_Lock()
 { }
@@ -55,19 +47,16 @@ ObjectLock::ObjectLock(const Object *object)
 void ObjectLock::Lock(void)
 {
 	assert(!m_Lock.owns_lock() && m_Object != NULL);
+	assert(!m_Object->OwnsLock());
 
-	m_Lock = recursive_mutex::scoped_lock(m_Object->m_Mutex);
+	m_Lock = Object::MutexType::scoped_lock(m_Object->m_Mutex);
 
 #ifdef _DEBUG
 	{
 		boost::mutex::scoped_lock lock(Object::m_DebugMutex);
-		m_Object->m_LockCount++;
+		m_Object->m_Locked = true;
 		m_Object->m_LockOwner = boost::this_thread::get_id();
-
-		if (m_Object->m_LockCount == 1) {
-			g_LockCount++;
-			m_TS = Utility::GetTime();
-		}
+		m_TS = Utility::GetTime();
 	}
 #endif /* _DEBUG */
 }
@@ -79,21 +68,17 @@ void ObjectLock::Unlock(void)
 		boost::mutex::scoped_lock lock(Object::m_DebugMutex);
 
 		if (m_Lock.owns_lock()) {
-			if (m_Object->m_LockCount == 1) {
-				g_LockCount--;
+			double dt = Utility::GetTime() - m_TS;
 
-				double dt = Utility::GetTime() - m_TS;
-
-				if (dt > 0.05) {
-					std::cerr << "Held object lock for " << dt << " seconds at:";
-					Utility::PrintStacktrace(std::cerr);
-				}
+			if (dt > 0.05) {
+				std::cerr << "Held object lock for " << dt << " seconds at:";
+				Utility::PrintStacktrace(std::cerr);
 			}
 
-			m_Object->m_LockCount--;
+			m_Object->m_Locked = false;
 		}
 	}
 #endif /* _DEBUG */
 
-	m_Lock = recursive_mutex::scoped_lock();
+	m_Lock = Object::MutexType::scoped_lock();
 }

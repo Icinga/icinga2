@@ -70,6 +70,7 @@ Dictionary::Dictionary(void)
  */
 Value Dictionary::Get(const char *key) const
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	map<String, Value>::const_iterator it;
@@ -103,14 +104,15 @@ Value Dictionary::Get(const String& key) const
  */
 void Dictionary::Set(const String& key, const Value& value)
 {
-	ObjectLock olock(this);
-
-	assert(!m_Sealed);
-
 	if (value.IsEmpty()) {
 		Remove(key);
 		return;
 	}
+
+	assert(!OwnsLock());
+	ObjectLock olock(this);
+
+	assert(!m_Sealed);
 
 	pair<map<String, Value>::iterator, bool> ret;
 	ret = m_Data.insert(make_pair(key, value));
@@ -127,11 +129,12 @@ void Dictionary::Set(const String& key, const Value& value)
  */
 String Dictionary::Add(const Value& value)
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	Dictionary::Iterator it;
 	String key;
-	long index = GetLength();
+	long index = m_Data.size();
 	do {
 		stringstream s;
 		s << "_" << std::hex << std::setw(8) << std::setfill('0') << index;
@@ -141,7 +144,11 @@ String Dictionary::Add(const Value& value)
 		it = m_Data.find(key);
 	} while (it != m_Data.end());
 
-	Set(key, value);
+	pair<map<String, Value>::iterator, bool> ret;
+	ret = m_Data.insert(make_pair(key, value));
+	if (!ret.second)
+		ret.first->second = value;
+
 	return key;
 }
 
@@ -177,6 +184,7 @@ Dictionary::Iterator Dictionary::End(void)
  */
 size_t Dictionary::GetLength(void) const
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	return m_Data.size();
@@ -191,6 +199,7 @@ size_t Dictionary::GetLength(void) const
  */
 bool Dictionary::Contains(const String& key) const
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	return (m_Data.find(key) != m_Data.end());
@@ -204,6 +213,7 @@ bool Dictionary::Contains(const String& key) const
  */
 void Dictionary::Remove(const String& key)
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	Dictionary::Iterator it;
@@ -222,6 +232,7 @@ void Dictionary::Remove(const String& key)
  */
 void Dictionary::Remove(Dictionary::Iterator it)
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	String key = it->first;
@@ -234,6 +245,7 @@ void Dictionary::Remove(Dictionary::Iterator it)
  */
 void Dictionary::Seal(void)
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	m_Sealed = true;
@@ -246,6 +258,7 @@ void Dictionary::Seal(void)
  */
 bool Dictionary::IsSealed(void) const
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	return m_Sealed;
@@ -259,6 +272,7 @@ bool Dictionary::IsSealed(void) const
  */
 Dictionary::Ptr Dictionary::ShallowClone(void) const
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	Dictionary::Ptr clone = boost::make_shared<Dictionary>();

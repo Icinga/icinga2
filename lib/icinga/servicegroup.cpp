@@ -55,8 +55,6 @@ void ServiceGroup::OnRegistrationCompleted(void)
  */
 String ServiceGroup::GetDisplayName(void) const
 {
-	ObjectLock olock(this);
-
 	if (!m_DisplayName.Get().IsEmpty())
 		return m_DisplayName;
 	else
@@ -68,8 +66,6 @@ String ServiceGroup::GetDisplayName(void) const
  */
 String ServiceGroup::GetNotesUrl(void) const
 {
-	ObjectLock olock(this);
-
 	return m_NotesUrl;
 }
 
@@ -78,8 +74,6 @@ String ServiceGroup::GetNotesUrl(void) const
  */
 String ServiceGroup::GetActionUrl(void) const
 {
-	ObjectLock olock(this);
-
 	return m_ActionUrl;
 }
 
@@ -150,7 +144,6 @@ void ServiceGroup::RefreshMembersCache(void)
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
-		ObjectLock olock(service);
 
 		Dictionary::Ptr dict;
 		dict = service->GetGroups();

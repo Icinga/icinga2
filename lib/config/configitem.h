@@ -43,7 +43,6 @@ public:
 	String GetUnit(void) const;
 
 	vector<String> GetParents(void) const;
-	set<ConfigItem::WeakPtr> GetChildren(void) const;
 
 	ExpressionList::Ptr GetExpressionList(void) const;
 
@@ -69,8 +68,6 @@ public:
 private:
 	void InternalLink(const Dictionary::Ptr& dictionary) const;
 
-        void RegisterChild(const ConfigItem::Ptr& child);
-        void UnregisterChild(const ConfigItem::Ptr& child);
         void UnregisterFromParents(void);
 
         void OnParentCommitted(void);

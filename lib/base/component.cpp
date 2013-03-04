@@ -74,8 +74,6 @@ Component::~Component(void)
  */
 void Component::Start(void)
 {
-	ObjectLock olock(this);
-
 	m_Impl->SetConfig(GetSelf());
 	m_Impl->Start();
 }
@@ -104,8 +102,6 @@ void Component::AddSearchDir(const String& componentDirectory)
  */
 DynamicObject::Ptr IComponent::GetConfig(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Config.lock();
 }
 
@@ -114,8 +110,6 @@ DynamicObject::Ptr IComponent::GetConfig(void) const
  */
 void IComponent::SetConfig(const DynamicObject::Ptr& config)
 {
-	ObjectLock olock(this);
-
 	m_Config = config;
 }
 

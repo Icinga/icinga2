@@ -76,8 +76,6 @@ set<DynamicObject::Ptr> DynamicType::GetObjects(void) const
 
 String DynamicType::GetName(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Name;
 }
 
@@ -85,7 +83,8 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 {
 	String name = object->GetName();
 
-	assert(OwnsLock());
+	ObjectLock olock(this);
+
 	ObjectMap::iterator it = m_ObjectMap.find(name);
 
 	if (it != m_ObjectMap.end()) {
@@ -103,7 +102,8 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 
 void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
 {
-	assert(OwnsLock());
+	ObjectLock olock(this);
+
 	m_ObjectMap.erase(object->GetName());
 	m_ObjectSet.erase(object);
 
@@ -142,23 +142,21 @@ void DynamicType::RegisterType(const DynamicType::Ptr& type)
 	InternalGetTypeSet().insert(type);
 }
 
-DynamicObject::Ptr DynamicType::CreateObject(const DynamicType::Ptr& self, const Dictionary::Ptr& serializedUpdate)
+DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUpdate)
 {
+	assert(!OwnsLock());
+
 	ObjectFactory factory;
 
 	{
-		ObjectLock olock(self);
-		factory = self->m_ObjectFactory;
+		ObjectLock olock(this);
+		factory = m_ObjectFactory;
 	}
 
 	DynamicObject::Ptr object = factory(serializedUpdate);
 
-	{
-		ObjectLock olock(object);
-
-		/* apply the object's non-config attributes */
-		object->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
-	}
+	/* apply the object's non-config attributes */
+	object->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
 
 	return object;
 }

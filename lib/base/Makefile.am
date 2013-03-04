@@ -8,6 +8,8 @@ libbase_la_SOURCES =  \
 	application.cpp \
 	application.h \
 	asynctask.h \
+	attribute.cpp \
+	attribute.h \
 	component.cpp \
 	component.h \
 	connection.cpp \

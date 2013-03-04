@@ -25,16 +25,14 @@ const int Service::DefaultMaxCheckAttempts = 3;
 const int Service::DefaultCheckInterval = 5 * 60;
 const int Service::CheckIntervalDivisor = 5;
 
-signals2::signal<void (const Service::Ptr&, const String&)> Service::OnCheckerChanged;
-signals2::signal<void (const Service::Ptr&, const Value&)> Service::OnNextCheckChanged;
+signals2::signal<void (const Service::Ptr&)> Service::OnCheckerChanged;
+signals2::signal<void (const Service::Ptr&)> Service::OnNextCheckChanged;
 
 /**
  * @threadsafety Always.
  */
 Value Service::GetCheckCommand(void) const
 {
-	ObjectLock olock(this);
-
 	return m_CheckCommand;
 }
 
@@ -43,8 +41,6 @@ Value Service::GetCheckCommand(void) const
  */
 long Service::GetMaxCheckAttempts(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_MaxCheckAttempts.IsEmpty())
 		return DefaultMaxCheckAttempts;
 
@@ -56,8 +52,6 @@ long Service::GetMaxCheckAttempts(void) const
  */
 double Service::GetCheckInterval(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_CheckInterval.IsEmpty())
 		return DefaultCheckInterval;
 
@@ -69,8 +63,6 @@ double Service::GetCheckInterval(void) const
  */
 double Service::GetRetryInterval(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_RetryInterval.IsEmpty())
 		return GetCheckInterval() / CheckIntervalDivisor;
 
@@ -82,8 +74,6 @@ double Service::GetRetryInterval(void) const
  */
 Dictionary::Ptr Service::GetCheckers(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Checkers;
 }
 
@@ -92,8 +82,6 @@ Dictionary::Ptr Service::GetCheckers(void) const
  */
 void Service::SetSchedulingOffset(long offset)
 {
-	ObjectLock olock(this);
-
 	m_SchedulingOffset = offset;
 }
 
@@ -102,8 +90,6 @@ void Service::SetSchedulingOffset(long offset)
  */
 long Service::GetSchedulingOffset(void)
 {
-	ObjectLock olock(this);
-
 	return m_SchedulingOffset;
 }
 
@@ -112,8 +98,6 @@ long Service::GetSchedulingOffset(void)
  */
 void Service::SetNextCheck(double nextCheck)
 {
-	ObjectLock olock(this);
-
 	m_NextCheck = nextCheck;
 	Touch("next_check");
 }
@@ -123,15 +107,6 @@ void Service::SetNextCheck(double nextCheck)
  */
 double Service::GetNextCheck(void)
 {
-	ObjectLock olock(this);
-
-	if (m_NextCheck.IsEmpty()) {
-		UpdateNextCheck();
-
-		if (m_NextCheck.IsEmpty())
-			BOOST_THROW_EXCEPTION(runtime_error("Failed to schedule next check."));
-	}
-
 	return m_NextCheck;
 }
 
@@ -163,8 +138,6 @@ void Service::UpdateNextCheck(void)
  */
 void Service::SetCurrentChecker(const String& checker)
 {
-	ObjectLock olock(this);
-
 	m_CurrentChecker = checker;
 	Touch("current_checker");
 }
@@ -174,8 +147,6 @@ void Service::SetCurrentChecker(const String& checker)
  */
 String Service::GetCurrentChecker(void) const
 {
-	ObjectLock olock(this);
-
 	return m_CurrentChecker;
 }
 
@@ -184,8 +155,6 @@ String Service::GetCurrentChecker(void) const
  */
 void Service::SetCurrentCheckAttempt(long attempt)
 {
-	ObjectLock olock(this);
-
 	m_CheckAttempt = attempt;
 	Touch("check_attempt");
 }
@@ -195,8 +164,6 @@ void Service::SetCurrentCheckAttempt(long attempt)
  */
 long Service::GetCurrentCheckAttempt(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_CheckAttempt.IsEmpty())
 		return 1;
 
@@ -208,8 +175,6 @@ long Service::GetCurrentCheckAttempt(void) const
  */
 void Service::SetState(ServiceState state)
 {
-	ObjectLock olock(this);
-
 	m_State = static_cast<long>(state);
 	Touch("state");
 }
@@ -219,8 +184,6 @@ void Service::SetState(ServiceState state)
  */
 ServiceState Service::GetState(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_State.IsEmpty())
 		return StateUnknown;
 
@@ -233,8 +196,6 @@ ServiceState Service::GetState(void) const
  */
 void Service::SetStateType(ServiceStateType type)
 {
-	ObjectLock olock(this);
-
 	m_StateType = static_cast<long>(type);
 	Touch("state_type");
 }
@@ -244,8 +205,6 @@ void Service::SetStateType(ServiceStateType type)
  */
 ServiceStateType Service::GetStateType(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_StateType.IsEmpty())
 		return StateTypeSoft;
 
@@ -258,8 +217,6 @@ ServiceStateType Service::GetStateType(void) const
  */
 void Service::SetLastCheckResult(const Dictionary::Ptr& result)
 {
-	ObjectLock olock(this);
-
 	m_LastResult = result;
 	Touch("last_result");
 }
@@ -269,8 +226,6 @@ void Service::SetLastCheckResult(const Dictionary::Ptr& result)
  */
 Dictionary::Ptr Service::GetLastCheckResult(void) const
 {
-	ObjectLock olock(this);
-
 	return m_LastResult;
 }
 
@@ -279,8 +234,6 @@ Dictionary::Ptr Service::GetLastCheckResult(void) const
  */
 void Service::SetLastStateChange(double ts)
 {
-	ObjectLock olock(this);
-
 	m_LastStateChange = ts;
 	Touch("last_state_change");
 }
@@ -290,8 +243,6 @@ void Service::SetLastStateChange(double ts)
  */
 double Service::GetLastStateChange(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_LastStateChange.IsEmpty())
 		return IcingaApplication::GetInstance()->GetStartTime();
 
@@ -303,8 +254,6 @@ double Service::GetLastStateChange(void) const
  */
 void Service::SetLastHardStateChange(double ts)
 {
-	ObjectLock olock(this);
-
 	m_LastHardStateChange = ts;
 	Touch("last_hard_state_change");
 }
@@ -314,8 +263,6 @@ void Service::SetLastHardStateChange(double ts)
  */
 double Service::GetLastHardStateChange(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_LastHardStateChange.IsEmpty())
 		return IcingaApplication::GetInstance()->GetStartTime();
 
@@ -327,8 +274,6 @@ double Service::GetLastHardStateChange(void) const
  */
 bool Service::GetEnableActiveChecks(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_EnableActiveChecks.IsEmpty())
 		return true;
 	else
@@ -340,8 +285,6 @@ bool Service::GetEnableActiveChecks(void) const
  */
 void Service::SetEnableActiveChecks(bool enabled)
 {
-	ObjectLock olock(this);
-
 	m_EnableActiveChecks = enabled ? 1 : 0;
 	Touch("enable_active_checks");
 }
@@ -351,8 +294,6 @@ void Service::SetEnableActiveChecks(bool enabled)
  */
 bool Service::GetEnablePassiveChecks(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_EnablePassiveChecks.IsEmpty())
 		return true;
 	else
@@ -364,8 +305,6 @@ bool Service::GetEnablePassiveChecks(void) const
  */
 void Service::SetEnablePassiveChecks(bool enabled)
 {
-	ObjectLock olock(this);
-
 	m_EnablePassiveChecks = enabled ? 1 : 0;
 	Touch("enable_passive_checks");
 }
@@ -375,8 +314,6 @@ void Service::SetEnablePassiveChecks(bool enabled)
  */
 bool Service::GetForceNextCheck(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_ForceNextCheck.IsEmpty())
 		return false;
 
@@ -388,8 +325,6 @@ bool Service::GetForceNextCheck(void) const
  */
 void Service::SetForceNextCheck(bool forced)
 {
-	ObjectLock olock(this);
-
 	m_ForceNextCheck = forced ? 1 : 0;
 	Touch("force_next_check");
 }
@@ -455,6 +390,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 		/* reschedule service dependencies */
 		BOOST_FOREACH(const Service::Ptr& parent, GetParentServices()) {
+			ObjectLock olock(parent);
 			parent->SetNextCheck(Utility::GetTime());
 		}
 
@@ -462,7 +398,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		BOOST_FOREACH(const Host::Ptr& parent, GetParentHosts()) {
 			Service::Ptr service = parent->GetHostCheckService();
 
-			if (service) {
+			if (service && service->GetName() != GetName()) {
 				ObjectLock olock(service);
 				service->SetNextCheck(Utility::GetTime());
 			}
@@ -582,13 +518,14 @@ bool Service::IsAllowedChecker(const String& checker) const
 /**
  * @threadsafety Always.
  */
-void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (void)>& callback)
+void Service::BeginExecuteCheck(const function<void (void)>& callback)
 {
-	ObjectLock slock(self);
+	assert(!OwnsLock());
+	ObjectLock olock(this);
 
 	/* don't run another check if there is one pending */
-	if (self->m_CurrentTask) {
-		slock.Unlock();
+	if (m_CurrentTask) {
+		olock.Unlock();
 
 		/* we need to call the callback anyway */
 		callback();
@@ -598,18 +535,19 @@ void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (v
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	Dictionary::Ptr checkInfo = boost::make_shared<Dictionary>();
-	checkInfo->Set("schedule_start", self->GetNextCheck());
+	checkInfo->Set("schedule_start", GetNextCheck());
 	checkInfo->Set("execution_start", Utility::GetTime());
 
 	vector<Dictionary::Ptr> macroDicts;
-	macroDicts.push_back(self->GetMacros());
-	macroDicts.push_back(self->CalculateDynamicMacros());
+	macroDicts.push_back(GetMacros());
 
-	Value raw_command = self->GetCheckCommand();
+	Value raw_command = GetCheckCommand();
 
-	Host::Ptr host = self->GetHost();
+	Host::Ptr host = GetHost();
 
-	slock.Unlock();
+	olock.Unlock();
+
+	macroDicts.push_back(CalculateDynamicMacros());
 
 	macroDicts.push_back(host->GetMacros());
 	macroDicts.push_back(host->CalculateDynamicMacros());
@@ -623,15 +561,16 @@ void Service::BeginExecuteCheck(const Service::Ptr& self, const function<void (v
 
 	checkInfo->Set("macros", macros);
 
+	Service::Ptr self = GetSelf();
+
 	vector<Value> arguments;
 	arguments.push_back(self);
 	arguments.push_back(macros);
 
-	ScriptTask::Ptr task;
+	ScriptTask::Ptr task = MakeMethodTask("check", arguments);
 
 	{
-		ObjectLock olock(self);
-		task = self->MakeMethodTask("check", arguments);
+		ObjectLock slock(this);
 		self->m_CurrentTask = task;
 	}
 
@@ -691,8 +630,6 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 
 		if (!result->Contains("current_checker")) {
 			EndpointManager::Ptr em = EndpointManager::GetInstance();
-			ObjectLock olock(em);
-
 			result->Set("current_checker", em->GetIdentity());
 		}
 
@@ -768,5 +705,4 @@ double Service::CalculateLatency(const Dictionary::Ptr& cr)
 	}
 
 	return (schedule_end - schedule_start) - CalculateExecutionTime(cr);
-
 }

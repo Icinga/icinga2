@@ -39,7 +39,7 @@ public:
 
 	static void RegisterType(const DynamicType::Ptr& type);
 
-	static DynamicObject::Ptr CreateObject(const DynamicType::Ptr& self, const Dictionary::Ptr& serializedUpdate);
+	DynamicObject::Ptr CreateObject(const Dictionary::Ptr& serializedUpdate);
 	DynamicObject::Ptr GetObject(const String& name) const;
 
 	void RegisterObject(const DynamicObject::Ptr& object);

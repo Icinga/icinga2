@@ -149,8 +149,6 @@ set<Notification::Ptr> Service::GetNotifications(void) const
 template<typename TDict>
 static void CopyNotificationAttributes(TDict notificationDesc, const ConfigItemBuilder::Ptr& builder)
 {
-	ObjectLock olock(notificationDesc);
-
 	/* TODO: we only need to copy macros if this is an inline definition,
 	 * i.e. "typeid(notificationDesc)" != Notification, however for now we just
 	 * copy them anyway. */
@@ -171,52 +169,35 @@ static void CopyNotificationAttributes(TDict notificationDesc, const ConfigItemB
 		builder->AddExpression("notification_interval", OperatorSet, notificationInterval);*/
 }
 
-void Service::UpdateSlaveNotifications(const Service::Ptr& self)
+void Service::UpdateSlaveNotifications(void)
 {
 	Dictionary::Ptr oldNotifications;
-	Host::Ptr host;
 	vector<Dictionary::Ptr> notificationDescsList;
-	String service_name, short_name;
 	ConfigItem::Ptr item;
 
-	{
-		ObjectLock olock(self);
+	item = ConfigItem::GetObject("Service", GetName());
 
-		item = ConfigItem::GetObject("Service", self->GetName());
-
-		/* Don't create slave notifications unless we own this object
-		 * and it's not a template. */
-		if (!item || self->IsAbstract())
-			return;
-
-		service_name = self->GetName();
-		short_name = self->GetShortName();
-		oldNotifications = self->m_SlaveNotifications;
-		host = self->GetHost();
-
-		notificationDescsList.push_back(self->Get("notifications"));
-	}
-
-	DebugInfo debug_info;
+	/* Don't create slave notifications unless we own this object
+	 * and it's not a template. */
+	if (!item || IsAbstract())
+		return;
 
 	{
-		ObjectLock ilock(item);
-		debug_info = item->GetDebugInfo();
+		ObjectLock olock(this);
+		oldNotifications = m_SlaveNotifications;
 	}
+
+	notificationDescsList.push_back(Get("notifications"));
 
 	Dictionary::Ptr newNotifications;
 	newNotifications = boost::make_shared<Dictionary>();
 
-	ObjectLock nlock(newNotifications);
+	Host::Ptr host = GetHost();
 
-	String host_name;
+	if (!host)
+		return;
 
-	{
-		ObjectLock olock(host);
-
-		notificationDescsList.push_back(host->Get("notifications"));
-		host_name = host->GetName();
-	}
+	notificationDescsList.push_back(host->Get("notifications"));
 
 	BOOST_FOREACH(const Dictionary::Ptr& notificationDescs, notificationDescsList) {
 		if (!notificationDescs)
@@ -231,22 +212,21 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 				nfcname = nfcdesc;
 
 			stringstream namebuf;
-			namebuf << service_name << "-" << nfcname;
+			namebuf << GetName() << "-" << nfcname;
 			String name = namebuf.str();
 
-			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(debug_info);
+			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
 			builder->SetType("Notification");
 			builder->SetName(name);
-			builder->AddExpression("host_name", OperatorSet, host_name);
-			builder->AddExpression("service", OperatorSet, short_name);
+			builder->AddExpression("host_name", OperatorSet, host->GetName());
+			builder->AddExpression("service", OperatorSet, GetShortName());
 
-			CopyNotificationAttributes(self, builder);
+			CopyNotificationAttributes(this, builder);
 
 			if (nfcdesc.IsScalar()) {
 				builder->AddParent(nfcdesc);
 			} else if (nfcdesc.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr notification = nfcdesc;
-				ObjectLock nlock(notification);
 
 				Dictionary::Ptr templates = notification->Get("templates");
 
@@ -287,8 +267,8 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
 	}
 
 	{
-		ObjectLock olock(self);
-		self->m_SlaveNotifications = newNotifications;
+		ObjectLock olock(this);
+		m_SlaveNotifications = newNotifications;
 	}
 }
 
@@ -297,8 +277,6 @@ void Service::UpdateSlaveNotifications(const Service::Ptr& self)
  */
 double Service::GetLastNotification(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_LastNotification.IsEmpty())
 		return 0;
 	else
@@ -310,8 +288,6 @@ double Service::GetLastNotification(void) const
  */
 void Service::SetLastNotification(double time)
 {
-	ObjectLock olock(this);
-
 	m_LastNotification = time;
 	Touch("last_notification");
 }
@@ -321,8 +297,6 @@ void Service::SetLastNotification(double time)
  */
 bool Service::GetEnableNotifications(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_EnableNotifications.IsEmpty())
 		return true;
 	else
@@ -334,8 +308,6 @@ bool Service::GetEnableNotifications(void) const
  */
 void Service::SetEnableNotifications(bool enabled)
 {
-	ObjectLock olock(this);
-
 	m_EnableNotifications = enabled;
 	Touch("enable_notifications");
 }
@@ -345,8 +317,6 @@ void Service::SetEnableNotifications(bool enabled)
  */
 double Service::GetNotificationInterval(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_NotificationInterval.IsEmpty())
 		return 300;
 	else

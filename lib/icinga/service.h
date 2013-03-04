@@ -170,7 +170,7 @@ public:
 	void AcknowledgeProblem(AcknowledgementType type, double expiry = 0);
 	void ClearAcknowledgement(void);
 
-	static void BeginExecuteCheck(const Service::Ptr& self, const function<void (void)>& callback);
+	void BeginExecuteCheck(const function<void (void)>& callback);
 	void ProcessCheckResult(const Dictionary::Ptr& cr);
 
 	static double CalculateExecutionTime(const Dictionary::Ptr& cr);
@@ -182,8 +182,8 @@ public:
 	static ServiceStateType StateTypeFromString(const String& state);
 	static String StateTypeToString(ServiceStateType state);
 
-	static signals2::signal<void (const Service::Ptr&, const String&)> OnCheckerChanged;
-	static signals2::signal<void (const Service::Ptr&, const Value&)> OnNextCheckChanged;
+	static signals2::signal<void (const Service::Ptr&)> OnCheckerChanged;
+	static signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
 
 	/* Downtimes */
 	static int GetNextDowntimeID(void);
@@ -243,14 +243,14 @@ public:
 
 	static void InvalidateNotificationsCache(void);
 
-	static void UpdateSlaveNotifications(const Service::Ptr& self);
+	void UpdateSlaveNotifications(void);
 
 	double GetLastNotification(void) const;
 	void SetLastNotification(double time);
 
 protected:
 	virtual void OnRegistrationCompleted(void);
-	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
+	virtual void OnAttributeChanged(const String& name);
 
 private:
 	Dictionary::Ptr m_SlaveNotifications;

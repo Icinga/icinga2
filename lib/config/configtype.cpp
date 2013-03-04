@@ -52,24 +52,14 @@ DebugInfo ConfigType::GetDebugInfo(void) const
 
 void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 {
-	String type, name;
-	Dictionary::Ptr attrs;
-
-	{
-		ObjectLock olock(item);
-		attrs = item->Link();
-		type = item->GetType();
-		name = item->GetName();
-	}
-
-	ObjectLock olock(attrs);
+	Dictionary::Ptr attrs = item->Link();
 
 	/* Don't validate abstract items. */
 	if (attrs->Get("__abstract"))
 		return;
 
 	vector<String> locations;
-	locations.push_back("Object '" + name + "' (Type: '" + type + "')");
+	locations.push_back("Object '" + item->GetName() + "' (Type: '" + item->GetType() + "')");
 
 	ConfigType::Ptr parent;
 	if (m_Parent.IsEmpty()) {

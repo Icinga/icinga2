@@ -43,8 +43,6 @@ int Service::GetNextCommentID(void)
  */
 Dictionary::Ptr Service::GetComments(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Comments;
 }
 
@@ -70,17 +68,22 @@ String Service::AddComment(CommentType entryType, const String& author,
 
 	comment->Set("legacy_id", legacy_id);
 
-	ObjectLock olock(this);
+	Dictionary::Ptr comments;
 
-	Dictionary::Ptr comments = GetComments();
+	{
+		ObjectLock olock(this);
 
-	if (!comments)
-		comments = boost::make_shared<Dictionary>();
+		comments = GetComments();
+
+		if (!comments)
+			comments = boost::make_shared<Dictionary>();
+
+		m_Comments = comments;
+	}
 
 	String id = Utility::NewUUID();
 	comments->Set(id, comment);
 
-	m_Comments = comments;
 	Touch("comments");
 
 	return id;
@@ -91,8 +94,6 @@ String Service::AddComment(CommentType entryType, const String& author,
  */
 void Service::RemoveAllComments(void)
 {
-	ObjectLock olock(this);
-
 	m_Comments = Empty;
 	Touch("comments");
 }
@@ -106,8 +107,6 @@ void Service::RemoveComment(const String& id)
 
 	if (!owner)
 		return;
-
-	ObjectLock olock(owner);
 
 	Dictionary::Ptr comments = owner->GetComments();
 
@@ -203,12 +202,7 @@ void Service::RefreshCommentsCache(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
-		Dictionary::Ptr comments;
-
-		{
-			ObjectLock olock(service);
-			comments = service->GetComments();
-		}
+		Dictionary::Ptr comments = service->GetComments();
 
 		if (!comments)
 			continue;
@@ -218,8 +212,6 @@ void Service::RefreshCommentsCache(void)
 		String id;
 		Dictionary::Ptr comment;
 		BOOST_FOREACH(tie(id, comment), comments) {
-			ObjectLock clock(comment);
-
 			int legacy_id = comment->Get("legacy_id");
 
 			if (legacy_id >= m_NextCommentID)
@@ -257,8 +249,6 @@ void Service::RefreshCommentsCache(void)
  */
 void Service::RemoveExpiredComments(void)
 {
-	ObjectLock olock(this);
-
 	Dictionary::Ptr comments = GetComments();
 
 	if (!comments)
@@ -266,17 +256,19 @@ void Service::RemoveExpiredComments(void)
 
 	vector<String> expiredComments;
 
-	ObjectLock dlock(comments);
+	{
+		ObjectLock olock(comments);
 
-	String id;
-	Dictionary::Ptr comment;
-	BOOST_FOREACH(tie(id, comment), comments) {
-		if (IsCommentExpired(comment))
-			expiredComments.push_back(id);
+		String id;
+		Dictionary::Ptr comment;
+		BOOST_FOREACH(tie(id, comment), comments) {
+			if (IsCommentExpired(comment))
+				expiredComments.push_back(id);
+		}
 	}
 
 	if (expiredComments.size() > 0) {
-		BOOST_FOREACH(id, expiredComments) {
+		BOOST_FOREACH(const String& id, expiredComments) {
 			comments->Remove(id);
 		}
 

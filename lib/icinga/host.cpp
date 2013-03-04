@@ -65,8 +65,6 @@ void Host::OnRegistrationCompleted(void)
 
 String Host::GetDisplayName(void) const
 {
-	ObjectLock olock(this);
-
 	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
 	else
@@ -85,36 +83,26 @@ Host::Ptr Host::GetByName(const String& name)
 
 Dictionary::Ptr Host::GetGroups(void) const
 {
-	ObjectLock olock(this);
-
 	return m_HostGroups;;
 }
 
 Dictionary::Ptr Host::GetMacros(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Macros;
 }
 
 Dictionary::Ptr Host::GetHostDependencies(void) const
 {
-	ObjectLock olock(this);
-
 	return m_HostDependencies;;
 }
 
 Dictionary::Ptr Host::GetServiceDependencies(void) const
 {
-	ObjectLock olock(this);
-
 	return m_ServiceDependencies;
 }
 
 String Host::GetHostCheck(void) const
 {
-	ObjectLock olock(this);
-
 	return m_HostCheck;
 }
 
@@ -154,6 +142,10 @@ bool Host::IsReachable(void) const
 
 		ObjectLock olock(hc);
 
+		/* ignore soft states */
+		if (hc->GetStateType() == StateTypeSoft)
+			continue;
+
 		/* ignore hosts that are up */
 		if (hc->GetState() == StateOK)
 			continue;
@@ -167,8 +159,6 @@ bool Host::IsReachable(void) const
 template<bool copyServiceAttrs, typename TDict>
 static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Ptr& builder)
 {
-	ObjectLock olock(serviceDesc);
-
 	/* TODO: we only need to copy macros if this is an inline definition,
 	 * i.e. "typeid(serviceDesc)" != Service, however for now we just
 	 * copy them anyway. */
@@ -253,12 +243,7 @@ void Host::UpdateSlaveServices(void)
 			} else if (svcdesc.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr service = svcdesc;
 
-				Dictionary::Ptr templates;
-
-				{
-					ObjectLock olock(service);
-					templates = service->Get("templates");
-				}
+				Dictionary::Ptr templates = service->Get("templates");
 
 				if (templates) {
 					ObjectLock olock(templates);
@@ -298,11 +283,10 @@ void Host::UpdateSlaveServices(void)
 
 	newServices->Seal();
 
-	ObjectLock olock(this);
 	Set("slave_services", newServices);
 }
 
-void Host::OnAttributeChanged(const String& name, const Value&)
+void Host::OnAttributeChanged(const String& name)
 {
 	assert(!OwnsLock());
 
@@ -311,15 +295,8 @@ void Host::OnAttributeChanged(const String& name, const Value&)
 	else if (name == "services") {
 		UpdateSlaveServices();
 	} else if (name == "notifications") {
-		set<Service::Ptr> services;
-
-		{
-			ObjectLock olock(this);
-			services = GetServices();
-		}
-
-		BOOST_FOREACH(const Service::Ptr& service, services) {
-			Service::UpdateSlaveNotifications(service);
+		BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
+			service->UpdateSlaveNotifications();
 		}
 	}
 }
@@ -371,28 +348,14 @@ void Host::RefreshServicesCache(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
 
-		Host::Ptr host;
-		String short_name;
-
-		{
-			ObjectLock olock(service);
-			host = service->GetHost();
-			short_name = service->GetShortName();
-		}
+		Host::Ptr host = service->GetHost();
 
 		if (!host)
 			continue;
 
-		String host_name;
-
-		{
-			ObjectLock olock(host);
-			host_name = host->GetName();
-		}
-
 		// TODO: assert for duplicate short_names
 
-		newServicesCache[host_name][short_name] = service;
+		newServicesCache[host->GetName()][service->GetShortName()] = service;
 	}
 
 	boost::mutex::scoped_lock lock(m_ServiceMutex);
@@ -538,15 +501,10 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 	assert(!OwnsLock());
 
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
-	ObjectLock mlock(macros);
 
-	{
-		ObjectLock olock(this);
-
-		macros->Set("HOSTNAME", GetName());
-		macros->Set("HOSTDISPLAYNAME", GetDisplayName());
-		macros->Set("HOSTALIAS", GetName());
-	}
+	macros->Set("HOSTNAME", GetName());
+	macros->Set("HOSTDISPLAYNAME", GetDisplayName());
+	macros->Set("HOSTALIAS", GetName());
 
 	Dictionary::Ptr cr;
 
@@ -587,8 +545,6 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 	if (cr) {
 		macros->Set("HOSTLATENCY", Service::CalculateLatency(cr));
 		macros->Set("HOSTEXECUTIONTIME", Service::CalculateExecutionTime(cr));
-
-		ObjectLock olock(cr);
 
 		macros->Set("HOSTOUTPUT", cr->Get("output"));
 		macros->Set("HOSTPERFDATA", cr->Get("performance_data_raw"));

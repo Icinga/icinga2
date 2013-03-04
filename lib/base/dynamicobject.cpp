@@ -70,31 +70,35 @@ void DynamicObject::Initialize(void)
 
 Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) const
 {
-	assert(OwnsLock());
+	ObjectLock olock(this);
 
 	DynamicObject::AttributeConstIterator it;
 
 	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
 
-	for (it = m_Attributes.begin(); it != m_Attributes.end(); it++) {
-		if (it->second.GetType() == Attribute_Transient)
-			continue;
+	{
+		boost::mutex::scoped_lock lock(m_AttributeMutex);
 
-		if ((it->second.GetType() & attributeTypes) == 0)
-			continue;
+		for (it = m_Attributes.begin(); it != m_Attributes.end(); it++) {
+			if (it->second.GetType() == Attribute_Transient)
+				continue;
 
-		if (it->second.GetTx() == 0)
-			continue;
+			if ((it->second.GetType() & attributeTypes) == 0)
+				continue;
 
-		if (it->second.GetTx() < sinceTx && !(it->second.GetType() == Attribute_Config && m_ConfigTx >= sinceTx))
-			continue;
+			if (it->second.GetTx() == 0)
+				continue;
 
-		Dictionary::Ptr attr = boost::make_shared<Dictionary>();
-		attr->Set("data", it->second.GetValue());
-		attr->Set("type", it->second.GetType());
-		attr->Set("tx", it->second.GetTx());
+			if (it->second.GetTx() < sinceTx && !(it->second.GetType() == Attribute_Config && m_ConfigTx >= sinceTx))
+				continue;
 
-		attrs->Set(it->first, attr);
+			Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+			attr->Set("data", it->second.GetValue());
+			attr->Set("type", it->second.GetType());
+			attr->Set("tx", it->second.GetTx());
+
+			attrs->Set(it->first, attr);
+		}
 	}
 
 	attrs->Seal();
@@ -121,11 +125,20 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 
 	Value configTxValue = serializedUpdate->Get("configTx");
 
-	if ((allowedTypes & Attribute_Config) != 0 && !configTxValue.IsEmpty()) {
-		double configTx = configTxValue;
+	boost::mutex::scoped_lock lock(m_AttributeMutex);
 
-		if (configTx > m_ConfigTx)
-			ClearAttributesByType(Attribute_Config);
+	if ((allowedTypes & Attribute_Config) != 0 && !configTxValue.IsEmpty()) {
+		double oldConfigTx, configTx = configTxValue;
+
+		if (configTx > m_ConfigTx) {
+			DynamicObject::AttributeIterator at;
+			for (at = m_Attributes.begin(); at != m_Attributes.end(); at++) {
+				if ((at->second.GetType() & Attribute_Config) == 0)
+					continue;
+
+				at->second.SetValue(0, Empty);
+			}
+		}
 	}
 
 	Dictionary::Ptr attrs = serializedUpdate->Get("attrs");
@@ -153,10 +166,10 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 			double tx = attr->Get("tx");
 
 			if (type & Attribute_Config)
-				RegisterAttribute(it->first, Attribute_Config);
+				InternalRegisterAttribute(it->first, Attribute_Config);
 
-			if (!HasAttribute(it->first))
-				RegisterAttribute(it->first, static_cast<AttributeType>(type));
+			if (m_Attributes.find(it->first) == m_Attributes.end())
+				InternalRegisterAttribute(it->first, static_cast<AttributeType>(type));
 
 			InternalSetAttribute(it->first, data, tx, true);
 		}
@@ -164,6 +177,20 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 }
 
 void DynamicObject::RegisterAttribute(const String& name,
+    AttributeType type, AttributeBase *boundAttribute)
+{
+	assert(!OwnsLock());
+	ObjectLock olock(this);
+
+	boost::mutex::scoped_lock lock(m_AttributeMutex);
+
+	InternalRegisterAttribute(name, type, boundAttribute);
+}
+
+/**
+ * @threadsafety Caller must hold m_AttributeMutex.
+ */
+void DynamicObject::InternalRegisterAttribute(const String& name,
     AttributeType type, AttributeBase *boundAttribute)
 {
 	assert(OwnsLock());
@@ -186,6 +213,11 @@ void DynamicObject::RegisterAttribute(const String& name,
  */
 void DynamicObject::Set(const String& name, const Value& data)
 {
+	assert(!OwnsLock());
+	ObjectLock olock(this);
+
+	boost::mutex::scoped_lock lock(m_AttributeMutex);
+
 	InternalSetAttribute(name, data, GetCurrentTx());
 }
 
@@ -194,7 +226,23 @@ void DynamicObject::Set(const String& name, const Value& data)
  */
 void DynamicObject::Touch(const String& name)
 {
-	InternalSetAttribute(name, InternalGetAttribute(name), GetCurrentTx());
+	assert(!OwnsLock());
+
+	boost::mutex::scoped_lock lock(m_AttributeMutex);
+
+	AttributeIterator it = m_Attributes.find(name);
+
+	if (it == m_Attributes.end())
+		BOOST_THROW_EXCEPTION(runtime_error("Touch() called for unknown attribute: " + name));
+
+	it->second.SetTx(GetCurrentTx());
+
+	m_ModifiedAttributes.insert(name);
+
+	{
+		boost::mutex::scoped_lock lock(m_TransactionMutex);
+		m_ModifiedObjects.insert(GetSelf());
+	}
 }
 
 /**
@@ -202,21 +250,24 @@ void DynamicObject::Touch(const String& name)
  */
 Value DynamicObject::Get(const String& name) const
 {
+	assert(!OwnsLock());
+	ObjectLock olock(this);
+
+	boost::mutex::scoped_lock lock(m_AttributeMutex);
+
 	return InternalGetAttribute(name);
 }
 
 /**
- * @threadsafety Always.
+ * @threadsafety Caller must hold m_AttributeMutex.
  */
 void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
     double tx, bool allowEditConfig)
 {
-	ObjectLock olock(this);
+	assert(OwnsLock());
 
 	DynamicObject::AttributeIterator it;
 	it = m_Attributes.find(name);
-
-	Value oldValue;
 
 	if (it == m_Attributes.end()) {
 		AttributeHolder attr(Attribute_Transient);
@@ -227,7 +278,6 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 		if (!allowEditConfig && (it->second.GetType() & Attribute_Config))
 			BOOST_THROW_EXCEPTION(runtime_error("Config properties are immutable: '" + name + "'."));
 
-		oldValue = it->second.GetValue();
 		it->second.SetValue(tx, data);
 
 		if (it->second.GetType() & Attribute_Config)
@@ -240,26 +290,21 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 		 * object to the list of modified objects later on if we can't
 		 * do it here. */
 
-		DynamicObject::Ptr self = GetSelf();
-
 		{
 			boost::mutex::scoped_lock lock(m_TransactionMutex);
-			m_ModifiedObjects.insert(self);
+			m_ModifiedObjects.insert(GetSelf());
 		}
 	}
 
-	/* Use insert() rather than [] so we don't overwrite
-	 * an existing oldValue if the attribute was previously
-	 * changed in the same transaction */
-	m_ModifiedAttributes.insert(make_pair(name, oldValue));
+	m_ModifiedAttributes.insert(name);
 }
 
 /**
- * @threadsafety Always.
+ * @threadsafety Caller must hold m_AttributeMutex.
  */
 Value DynamicObject::InternalGetAttribute(const String& name) const
 {
-	ObjectLock olock(this);
+	assert(OwnsLock());
 
 	DynamicObject::AttributeConstIterator it;
 	it = m_Attributes.find(name);
@@ -273,33 +318,8 @@ Value DynamicObject::InternalGetAttribute(const String& name) const
 /**
  * @threadsafety Always.
  */
-bool DynamicObject::HasAttribute(const String& name) const
-{
-	ObjectLock olock(this);
-
-	return (m_Attributes.find(name) != m_Attributes.end());
-}
-
-void DynamicObject::ClearAttributesByType(AttributeType type)
-{
-	assert(OwnsLock());
-
-	DynamicObject::AttributeIterator at;
-	for (at = m_Attributes.begin(); at != m_Attributes.end(); at++) {
-		if (at->second.GetType() != type)
-			continue;
-
-		at->second.SetValue(0, Empty);
-	}
-}
-
-/**
- * @threadsafety Always.
- */
 DynamicType::Ptr DynamicObject::GetType(void) const
 {
-	ObjectLock olock(this);
-
 	return DynamicType::GetByName(m_Type);
 }
 
@@ -308,8 +328,6 @@ DynamicType::Ptr DynamicObject::GetType(void) const
  */
 String DynamicObject::GetName(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Name;
 }
 
@@ -318,8 +336,6 @@ String DynamicObject::GetName(void) const
  */
 bool DynamicObject::IsLocal(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Local;
 }
 
@@ -328,8 +344,6 @@ bool DynamicObject::IsLocal(void) const
  */
 bool DynamicObject::IsAbstract(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Abstract;
 }
 
@@ -338,8 +352,6 @@ bool DynamicObject::IsAbstract(void) const
  */
 bool DynamicObject::IsRegistered(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Registered;
 }
 
@@ -348,8 +360,6 @@ bool DynamicObject::IsRegistered(void) const
  */
 void DynamicObject::SetSource(const String& value)
 {
-	ObjectLock olock(this);
-
 	m_Source = value;
 	Touch("__source");
 }
@@ -359,8 +369,6 @@ void DynamicObject::SetSource(const String& value)
  */
 String DynamicObject::GetSource(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Source;
 }
 
@@ -368,45 +376,30 @@ void DynamicObject::Register(void)
 {
 	assert(!OwnsLock());
 
-	DynamicObject::Ptr self = GetSelf();
-
 	/* Add this new object to the list of modified objects.
 	 * We're doing this here because we can't construct
 	 * a while WeakPtr from within the object's constructor. */
 	{
 		boost::mutex::scoped_lock lock(m_TransactionMutex);
-		m_ModifiedObjects.insert(self);
+		m_ModifiedObjects.insert(GetSelf());
 	}
 
-	{
-		DynamicType::Ptr dtype = GetType();
-		ObjectLock olock(dtype);
-
-		DynamicObject::Ptr dobj = dtype->GetObject(GetName());
-
-		assert(!dobj || dobj == self);
-
-		if (!dobj)
-			dtype->RegisterObject(self);
-	}
+	DynamicType::Ptr dtype = GetType();
+	dtype->RegisterObject(GetSelf());
 }
 
 void DynamicObject::OnRegistrationCompleted(void)
 {
 	assert(!OwnsLock());
 
-	DynamicObject::Ptr object;
-
 	{
 		ObjectLock olock(this);
 		m_Registered = true;
-
-		Start();
-
-		object = GetSelf();
 	}
 
-	OnRegistered(object);
+	Start();
+
+	OnRegistered(GetSelf());
 }
 
 void DynamicObject::OnUnregistrationCompleted(void)
@@ -423,7 +416,7 @@ void DynamicObject::OnUnregistrationCompleted(void)
 
 void DynamicObject::Start(void)
 {
-	assert(OwnsLock());
+	assert(!OwnsLock());
 
 	/* Nothing to do here. */
 }
@@ -432,17 +425,12 @@ void DynamicObject::Unregister(void)
 {
 	assert(!OwnsLock());
 
-	DynamicObject::Ptr self = GetSelf();
-
 	DynamicType::Ptr dtype = GetType();
 
 	if (!dtype)
 		return;
 
-	{
-		ObjectLock olock(dtype);
-		dtype->UnregisterObject(self);
-	}
+	dtype->UnregisterObject(GetSelf());
 }
 
 ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
@@ -450,10 +438,7 @@ ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
 {
 	Dictionary::Ptr methods;
 
-	{
-		ObjectLock olock(this);
-		methods = m_Methods;
-	}
+	methods = m_Methods;
 
 	String funcName = methods->Get(method);
 
@@ -488,8 +473,6 @@ void DynamicObject::DumpObjects(const String& filename)
 
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
-			ObjectLock olock(object);
-
 			if (object->IsLocal())
 				continue;
 
@@ -566,7 +549,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 		DynamicObject::Ptr object = dt->GetObject(name);
 
 		if (hasConfig && !object) {
-			object = DynamicType::CreateObject(dt, update);
+			object = dt->DynamicType::CreateObject(update);
 			object->Register();
 		} else if (object) {
 			object->ApplyUpdate(update, Attribute_All);
@@ -633,22 +616,22 @@ void DynamicObject::NewTx(void)
 		if (!object || !object->IsRegistered())
 			continue;
 
-		map<String, Value, string_iless> attrs;
+		set<String, string_iless> attrs;
 
 		{
 			ObjectLock olock(object);
 			attrs.swap(object->m_ModifiedAttributes);
 		}
 
-		map<String, Value, string_iless>::iterator it;
-		for (it = attrs.begin(); it != attrs.end(); it++)
-			object->OnAttributeChanged(it->first, it->second);
+		BOOST_FOREACH(const String& attr, attrs) {
+			object->OnAttributeChanged(attr);
+		}
 	}
 
 	OnTransactionClosing(tx, objects);
 }
 
-void DynamicObject::OnAttributeChanged(const String&, const Value&)
+void DynamicObject::OnAttributeChanged(const String&)
 {
 	assert(!OwnsLock());
 }

@@ -86,12 +86,16 @@ void Timer::Uninitialize(void)
  *
  * @threadsafety Always.
  */
-void Timer::Call(const Timer::Ptr& self)
+void Timer::Call(void)
 {
-	self->OnTimerExpired(self);
+	assert(!OwnsLock());
+
+	Timer::Ptr self = GetSelf();
+
+	OnTimerExpired(self);
 
 	/* Re-enable the timer so it can be called again. */
-	self->Start();
+	Start();
 }
 
 /**

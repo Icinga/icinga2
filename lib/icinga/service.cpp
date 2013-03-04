@@ -93,8 +93,6 @@ void Service::OnRegistrationCompleted(void)
  */
 String Service::GetDisplayName(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_DisplayName.IsEmpty())
 		return GetShortName();
 	else
@@ -136,8 +134,6 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
  */
 Host::Ptr Service::GetHost(void) const
 {
-	ObjectLock olock(this);
-
 	return Host::GetByName(m_HostName);
 }
 
@@ -146,8 +142,6 @@ Host::Ptr Service::GetHost(void) const
  */
 Dictionary::Ptr Service::GetMacros(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Macros;
 }
 
@@ -156,8 +150,6 @@ Dictionary::Ptr Service::GetMacros(void) const
  */
 Dictionary::Ptr Service::GetHostDependencies(void) const
 {
-	ObjectLock olock(this);
-
 	return m_HostDependencies;
 }
 
@@ -166,8 +158,6 @@ Dictionary::Ptr Service::GetHostDependencies(void) const
  */
 Dictionary::Ptr Service::GetServiceDependencies(void) const
 {
-	ObjectLock olock(this);
-
 	return m_ServiceDependencies;
 }
 
@@ -176,8 +166,6 @@ Dictionary::Ptr Service::GetServiceDependencies(void) const
  */
 Dictionary::Ptr Service::GetGroups(void) const
 {
-	ObjectLock olock(this);
-
 	return m_ServiceGroups;
 }
 
@@ -186,8 +174,6 @@ Dictionary::Ptr Service::GetGroups(void) const
  */
 String Service::GetHostName(void) const
 {
-	ObjectLock olock(this);
-
 	return m_HostName;
 }
 
@@ -196,8 +182,6 @@ String Service::GetHostName(void) const
  */
 String Service::GetShortName(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_ShortName.IsEmpty())
 		return GetName();
 	else
@@ -266,8 +250,6 @@ bool Service::IsReachable(void) const
  */
 AcknowledgementType Service::GetAcknowledgement(void)
 {
-	ObjectLock olock(this);
-
 	if (m_Acknowledgement.IsEmpty())
 		return AcknowledgementNone;
 
@@ -292,8 +274,6 @@ AcknowledgementType Service::GetAcknowledgement(void)
  */
 void Service::SetAcknowledgement(AcknowledgementType acknowledgement)
 {
-	ObjectLock olock(this);
-
 	m_Acknowledgement = acknowledgement;
 	Touch("acknowledgement");
 }
@@ -311,8 +291,6 @@ bool Service::IsAcknowledged(void)
  */
 double Service::GetAcknowledgementExpiry(void) const
 {
-	ObjectLock olock(this);
-
 	if (m_AcknowledgementExpiry.IsEmpty())
 		return 0;
 
@@ -324,8 +302,6 @@ double Service::GetAcknowledgementExpiry(void) const
  */
 void Service::SetAcknowledgementExpiry(double timestamp)
 {
-	ObjectLock olock(this);
-
 	m_AcknowledgementExpiry = timestamp;
 	Touch("acknowledgement_expiry");
 }
@@ -348,6 +324,8 @@ void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
  */
 void Service::ClearAcknowledgement(void)
 {
+	ObjectLock olock(this);
+
 	SetAcknowledgement(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
 }
@@ -355,43 +333,33 @@ void Service::ClearAcknowledgement(void)
 /**
  * @threadsafety Always.
  */
-void Service::OnAttributeChanged(const String& name, const Value& oldValue)
+void Service::OnAttributeChanged(const String& name)
 {
 	assert(!OwnsLock());
 
-	Service::Ptr self;
-	String service_name;
-	bool abstract;
-
-	{
-		ObjectLock olock(this);
-		self = GetSelf();
-		service_name = GetName();
-		abstract = IsAbstract();
-	}
+	Service::Ptr self = GetSelf();
 
 	if (name == "current_checker")
-		OnCheckerChanged(self, oldValue);
+		OnCheckerChanged(self);
 	else if (name == "next_check")
-		OnNextCheckChanged(self, oldValue);
+		OnNextCheckChanged(self);
 	else if (name == "servicegroups")
 		ServiceGroup::InvalidateMembersCache();
 	else if (name == "host_name" || name == "short_name") {
 		Host::InvalidateServicesCache();
 
-		UpdateSlaveNotifications(self);
+		UpdateSlaveNotifications();
 	} else if (name == "downtimes")
 		Service::InvalidateDowntimesCache();
 	else if (name == "comments")
 		Service::InvalidateCommentsCache();
 	else if (name == "notifications")
-		UpdateSlaveNotifications(self);
+		UpdateSlaveNotifications();
 	else if (name == "check_interval") {
-		ObjectLock olock(this);
-		ConfigItem::Ptr item = ConfigItem::GetObject("Service", service_name);
+		ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
 
 		/* update the next check timestamp if we're the owner of this service */
-		if (item && !abstract)
+		if (item && !IsAbstract())
 			UpdateNextCheck();
 	}
 }
@@ -481,10 +449,10 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 	}
 
 	if (cr) {
+		assert(cr->IsSealed());
+
 		macros->Set("SERVICELATENCY", Service::CalculateLatency(cr));
 		macros->Set("SERVICEEXECUTIONTIME", Service::CalculateExecutionTime(cr));
-
-		ObjectLock olock(cr);
 
 		macros->Set("SERVICEOUTPUT", cr->Get("output"));
 		macros->Set("SERVICEPERFDATA", cr->Get("performance_data_raw"));

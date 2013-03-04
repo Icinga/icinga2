@@ -215,7 +215,6 @@ shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
 Dictionary::Ptr IcingaApplication::CalculateDynamicMacros(void)
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
-	ObjectLock mlock(macros);
 
 	double now = Utility::GetTime();
 

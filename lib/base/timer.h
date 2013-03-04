@@ -86,7 +86,7 @@ private:
 	static bool m_StopThread;
 	static TimerSet m_Timers;
 
-	static void Call(const Timer::Ptr& self);
+	void Call();
 
 	static void TimerThreadProc(void);
 

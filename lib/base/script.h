@@ -44,7 +44,7 @@ public:
 	String GetCode(void) const;
 
 protected:
-	virtual void OnAttributeUpdate(const String& name, const Value& oldValue);
+	virtual void OnAttributeUpdate(const String& name);
 
 private:
 	Attribute<String> m_Language;

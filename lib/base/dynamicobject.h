@@ -23,170 +23,6 @@
 namespace icinga
 {
 
-/**
- * The type of an attribute for a DynamicObject.
- *
- * @ingroup base
- */
-enum AttributeType
-{
-	Attribute_Transient = 1,
-
-	/* Unlike transient attributes local attributes are persisted
-	 * in the program state file. */
-	Attribute_Local = 2,
-
-	/* Replicated attributes are sent to other daemons for which
-	 * replication is enabled. */
-	Attribute_Replicated = 4,
-
-	/* Attributes read from the config file are implicitly marked
-	 * as config attributes. */
-	Attribute_Config = 8,
-
-	/* Combination of all attribute types */
-	Attribute_All = Attribute_Transient | Attribute_Local | Attribute_Replicated | Attribute_Config
-};
-
-class AttributeBase
-{
-public:
-	AttributeBase(void)
-		: m_Value()
-	{ }
-
-	void InternalSet(const Value& value)
-	{
-		m_Value = value;
-	}
-
-	const Value& InternalGet(void) const
-	{
-		return m_Value;
-	}
-
-	operator Value(void) const
-	{
-		return InternalGet();
-	}
-
-	bool IsEmpty(void) const
-	{
-		return InternalGet().IsEmpty();
-	}
-
-private:
-	Value m_Value;
-};
-
-template<typename T>
-class Attribute : public AttributeBase
-{
-public:
-	void Set(const T& value)
-	{
-		InternalSet(value);
-	}
-
-	Attribute<T>& operator=(const T& rhs)
-	{
-		Set(rhs);
-		return *this;
-	}
-
-	T Get(void) const
-	{
-		if (IsEmpty())
-			return T();
-
-		return InternalGet();
-	}
-
-	operator T(void) const
-	{
-		return Get();
-	}
-};
-
-/**
- * An attribute for a DynamicObject.
- *
- * @ingroup base
- */
-struct AttributeHolder
-{
-	AttributeType m_Type; /**< The type of the attribute. */
-	double m_Tx; /**< The timestamp of the last value change. */
-	bool m_OwnsAttribute; /**< Whether we own the Data pointer. */
-	AttributeBase *m_Attribute; /**< The current value of the attribute. */
-
-	AttributeHolder(AttributeType type, AttributeBase *boundAttribute = NULL)
-		: m_Type(type), m_Tx(0)
-	{
-		if (boundAttribute) {
-			m_Attribute = boundAttribute;
-			m_OwnsAttribute = false;
-		} else {
-			m_Attribute = new Attribute<Value>();
-			m_OwnsAttribute = true;
-		}
-	}
-
-	AttributeHolder(const AttributeHolder& other)
-	{
-		m_Type = other.m_Type;
-		m_Tx = other.m_Tx;
-		m_OwnsAttribute = other.m_OwnsAttribute;
-
-		if (other.m_OwnsAttribute) {
-			m_Attribute = new Attribute<Value>();
-			m_Attribute->InternalSet(other.m_Attribute->InternalGet());
-		} else {
-			m_Attribute = other.m_Attribute;
-		}
-	}
-
-	~AttributeHolder(void)
-	{
-		if (m_OwnsAttribute)
-			delete m_Attribute;
-	}
-
-	void Bind(AttributeBase *boundAttribute)
-	{
-		assert(m_OwnsAttribute);
-		boundAttribute->InternalSet(m_Attribute->InternalGet());
-		m_Attribute = boundAttribute;
-		m_OwnsAttribute = false;
-	}
-
-	void SetValue(double tx, const Value& value)
-	{
-		m_Tx = tx;
-		m_Attribute->InternalSet(value);
-	}
-
-	Value GetValue(void) const
-	{
-		return m_Attribute->InternalGet();
-	}
-
-	void SetType(AttributeType type)
-	{
-		m_Type = type;
-	}
-
-	AttributeType GetType(void) const
-	{
-		return m_Type;
-	}
-
-	double GetTx(void) const
-	{
-		return m_Tx;
-	}
-};
-
 class DynamicType;
 
 /**
@@ -218,8 +54,6 @@ public:
 	void Set(const String& name, const Value& data);
 	void Touch(const String& name);
 	Value Get(const String& name) const;
-
-	bool HasAttribute(const String& name) const;
 
 	void BindAttribute(const String& name, Value *boundValue);
 
@@ -264,15 +98,16 @@ protected:
 	virtual void OnRegistrationCompleted(void);
 	virtual void OnUnregistrationCompleted(void);
 
-	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
+	virtual void OnAttributeChanged(const String& name);
 
 private:
 	void InternalSetAttribute(const String& name, const Value& data, double tx, bool allowEditConfig = false);
 	Value InternalGetAttribute(const String& name) const;
-	void SendLocalUpdateEvents(void);
+	void InternalRegisterAttribute(const String& name, AttributeType type, AttributeBase *boundAttribute = NULL);
 
+	mutable boost::mutex m_AttributeMutex;
 	AttributeMap m_Attributes;
-	map<String, Value, string_iless> m_ModifiedAttributes;
+	set<String, string_iless> m_ModifiedAttributes;
 	double m_ConfigTx;
 
 	Attribute<String> m_Name;

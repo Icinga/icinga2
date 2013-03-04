@@ -341,7 +341,7 @@ void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 
 void CompatComponent::DumpServiceStatusAttrs(ostream& fp, const Service::Ptr& service, CompatObjectType type)
 {
-	ObjectLock olock(service);
+	assert(service->OwnsLock());
 
 	String output;
 	String perfdata;
@@ -413,7 +413,10 @@ void CompatComponent::DumpServiceStatus(ostream& fp, const Service::Ptr& service
 	   << "\t" << "host_name=" << host->GetName() << "\n"
 	   << "\t" << "service_description=" << service->GetShortName() << "\n";
 
-	DumpServiceStatusAttrs(fp, service, CompatTypeService);
+	{
+		ObjectLock olock(service);
+		DumpServiceStatusAttrs(fp, service, CompatTypeService);
+	}
 
 	fp << "\t" << "}" << "\n"
 	   << "\n";

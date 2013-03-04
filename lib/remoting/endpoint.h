@@ -39,6 +39,7 @@ public:
 	typedef void (Callback)(const Endpoint::Ptr&, const Endpoint::Ptr&, const RequestMessage&);
 
 	Endpoint(const Dictionary::Ptr& serializedUpdate);
+	~Endpoint(void);
 
 	static Endpoint::Ptr GetByName(const String& name);
 
@@ -63,8 +64,6 @@ public:
 	void RegisterTopicHandler(const String& topic, const function<Callback>& callback);
 	void UnregisterTopicHandler(const String& topic, const function<Callback>& callback);
 
-	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
-
 	String GetNode(void) const;
 	String GetService(void) const;
 
@@ -72,9 +71,6 @@ public:
 
 	static signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
 	static signals2::signal<void (const Endpoint::Ptr&)> OnDisconnected;
-
-	static signals2::signal<void (const Endpoint::Ptr&, const String& topic)> OnSubscriptionRegistered;
-	static signals2::signal<void (const Endpoint::Ptr&, const String& topic)> OnSubscriptionUnregistered;
 
 private:
 	Attribute<bool> m_Local;

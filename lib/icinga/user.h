@@ -46,7 +46,7 @@ public:
 	Dictionary::Ptr CalculateDynamicMacros(void) const;
 
 protected:
-	void OnAttributeChanged(const String& name, const Value& oldValue);
+	virtual void OnAttributeChanged(const String& name);
 
 private:
 	Attribute<String> m_DisplayName;

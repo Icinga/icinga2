@@ -83,15 +83,22 @@ String Service::AddDowntime(const String& author, const String& comment,
 		otherOwner->Touch("downtimes");
 	}
 
-	Dictionary::Ptr downtimes = m_Downtimes;
+	Dictionary::Ptr downtimes;
 
-	if (!downtimes)
-		downtimes = boost::make_shared<Dictionary>();
+	{
+		ObjectLock olock(this);
+
+		downtimes = m_Downtimes;
+
+		if (!downtimes)
+			downtimes = boost::make_shared<Dictionary>();
+
+		m_Downtimes = downtimes;
+	}
 
 	String id = Utility::NewUUID();
 	downtimes->Set(id, downtime);
 
-	m_Downtimes = downtimes;
 	Touch("downtimes");
 
 	return id;
@@ -106,8 +113,6 @@ void Service::RemoveDowntime(const String& id)
 
 	if (!owner)
 		return;
-
-	ObjectLock olock(owner);
 
 	Dictionary::Ptr downtimes = owner->GetDowntimes();
 
@@ -149,8 +154,6 @@ void Service::TriggerDowntime(const String& id)
 
 	double now = Utility::GetTime();
 
-	ObjectLock olock(downtime);
-
 	if (now < downtime->Get("start_time") ||
 	    now > downtime->Get("end_time"))
 		return;
@@ -159,7 +162,7 @@ void Service::TriggerDowntime(const String& id)
 		downtime->Set("trigger_time", now);
 
 	Dictionary::Ptr triggers = downtime->Get("triggers");
-	ObjectLock tlock(triggers);
+	ObjectLock olock(triggers);
 	String tid;
 	BOOST_FOREACH(tie(tid, tuples::ignore), triggers) {
 		TriggerDowntime(tid);
@@ -217,8 +220,6 @@ bool Service::IsDowntimeActive(const Dictionary::Ptr& downtime)
 {
 	double now = Utility::GetTime();
 
-	ObjectLock olock(downtime);
-
 	if (now < downtime->Get("start_time") ||
 	    now > downtime->Get("end_time"))
 		return false;
@@ -275,12 +276,7 @@ void Service::RefreshDowntimesCache(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 
-		Dictionary::Ptr downtimes;
-
-		{
-			ObjectLock olock(service);
-			downtimes = service->GetDowntimes();
-		}
+		Dictionary::Ptr downtimes = service->GetDowntimes();
 
 		if (!downtimes)
 			continue;
@@ -290,7 +286,6 @@ void Service::RefreshDowntimesCache(void)
 		String id;
 		Dictionary::Ptr downtime;
 		BOOST_FOREACH(tie(id, downtime), downtimes) {
-			ObjectLock dlock(downtime);
 			int legacy_id = downtime->Get("legacy_id");
 
 			if (legacy_id >= m_NextDowntimeID)
@@ -327,8 +322,6 @@ void Service::RefreshDowntimesCache(void)
  */
 void Service::RemoveExpiredDowntimes(void)
 {
-	ObjectLock olock(this);
-
 	Dictionary::Ptr downtimes = GetDowntimes();
 
 	if (!downtimes)
@@ -336,17 +329,19 @@ void Service::RemoveExpiredDowntimes(void)
 
 	vector<String> expiredDowntimes;
 
-	ObjectLock dlock(downtimes);
+	{
+		ObjectLock olock(downtimes);
 
-	String id;
-	Dictionary::Ptr downtime;
-	BOOST_FOREACH(tie(id, downtime), downtimes) {
-		if (IsDowntimeExpired(downtime))
-			expiredDowntimes.push_back(id);
+		String id;
+		Dictionary::Ptr downtime;
+		BOOST_FOREACH(tie(id, downtime), downtimes) {
+			if (IsDowntimeExpired(downtime))
+				expiredDowntimes.push_back(id);
+		}
 	}
 
 	if (expiredDowntimes.size() > 0) {
-		BOOST_FOREACH(id, expiredDowntimes) {
+		BOOST_FOREACH(const String& id, expiredDowntimes) {
 			downtimes->Remove(id);
 		}
 

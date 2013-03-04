@@ -48,8 +48,6 @@ StdioStream::~StdioStream(void)
  */
 void StdioStream::Start(void)
 {
-	ObjectLock olock(this);
-
 	SetConnected(true);
 
 	Stream::Start();
@@ -120,8 +118,6 @@ void StdioStream::Write(const void *buffer, size_t size)
  */
 void StdioStream::Close(void)
 {
-	ObjectLock olock(this);
-
 	if (m_OwnsStream)
 		delete m_InnerStream;
 

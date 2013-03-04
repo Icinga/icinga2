@@ -144,7 +144,10 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		/* clear the service's current checker */
 		if (!checker.IsEmpty()) {
-			service->SetCurrentChecker("");
+			{
+				ObjectLock olock(service);
+				service->SetCurrentChecker("");
+			}
 
 			if (oldEndpoint)
 				histogram[oldEndpoint]--;
@@ -156,7 +159,11 @@ void DelegationComponent::DelegationTimerHandler(void)
 			if (histogram[candidate] > avg_services)
 				continue;
 
-			service->SetCurrentChecker(candidate->GetName());
+			{
+				ObjectLock olock(service);
+				service->SetCurrentChecker(candidate->GetName());
+			}
+
 			histogram[candidate]++;
 
 			/* reschedule the service; this avoids "check floods"

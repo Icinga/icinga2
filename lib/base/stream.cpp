@@ -103,10 +103,12 @@ void Stream::Start(void)
  */
 void Stream::Close(void)
 {
-	ObjectLock olock(this);
+	{
+		ObjectLock olock(this);
 
-	assert(m_Running);
-	m_Running = false;
+		assert(m_Running);
+		m_Running = false;
+	}
 
 	SetConnected(false);
 }

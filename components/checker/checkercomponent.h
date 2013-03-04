@@ -35,7 +35,14 @@ struct ServiceNextCheckExtractor
 	 */
 	double operator()(const Service::Ptr& service)
 	{
-		return service->GetNextCheck();
+		double next = service->GetNextCheck();
+
+		while (next == 0) {
+			service->UpdateNextCheck();
+			next = service->GetNextCheck();
+		}
+
+		return next;
 	}
 };
 

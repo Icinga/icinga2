@@ -44,7 +44,7 @@ public:
 	double GetRotationInterval(void) const;
 
 protected:
-	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
+	virtual void OnAttributeChanged(const String& name);
 	virtual void Start(void);
 
 private:

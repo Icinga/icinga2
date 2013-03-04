@@ -29,7 +29,9 @@ boost::mutex Object::m_DebugMutex;
  * Default constructor for the Object class.
  */
 Object::Object(void)
-	: m_LockCount(0)
+#ifdef _DEBUG
+	: m_Locked(false)
+#endif /* _DEBUG */
 { }
 
 /**
@@ -46,15 +48,12 @@ Object::~Object(void)
  */
 Object::SharedPtrHolder Object::GetSelf(void)
 {
-	ObjectLock olock(this);
-
 	return Object::SharedPtrHolder(shared_from_this());
 }
 
 #ifdef _DEBUG
 /**
- * Checks if the calling thread owns the lock on this object or is currently
- * in the constructor or destructor and therefore implicitly owns the lock.
+ * Checks if the calling thread owns the lock on this object.
  *
  * @returns True if the calling thread owns the lock, false otherwise.
  */
@@ -62,18 +61,6 @@ bool Object::OwnsLock(void) const
 {
 	boost::mutex::scoped_lock lock(m_DebugMutex);
 
-	if (m_LockCount == 0 || m_LockOwner != boost::this_thread::get_id()) {
-		try {
-			shared_from_this();
-		} catch (const boost::bad_weak_ptr& ex) {
-			/* There's no shared_ptr to this object. Either someone created the object
-			 * directly (e.g. on the stack) or we're in the constructor or destructor. Not holding the lock is ok here. */
-			return true;
-		}
-
-		return false;
-	}
-
-	return true;
+	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
 }
 #endif /* _DEBUG */

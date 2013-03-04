@@ -56,8 +56,6 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
  */
 String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary::Ptr& macros)
 {
-	ObjectLock olock(macros);
-
 	size_t offset, pos_first, pos_second;
 	offset = 0;
 

@@ -67,7 +67,7 @@ public:
 
 protected:
 	virtual void OnRegistrationCompleted(void);
-	virtual void OnAttributeChanged(const String& name, const Value& oldValue);
+	virtual void OnAttributeChanged(const String& name);
 
 private:
 	Attribute<String> m_DisplayName;

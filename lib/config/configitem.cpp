@@ -50,8 +50,6 @@ ConfigItem::ConfigItem(const String& type, const String& name,
  */
 String ConfigItem::GetType(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Type;
 }
 
@@ -62,8 +60,6 @@ String ConfigItem::GetType(void) const
  */
 String ConfigItem::GetName(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Name;
 }
 
@@ -74,8 +70,6 @@ String ConfigItem::GetName(void) const
  */
 String ConfigItem::GetUnit(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Unit;
 }
 
@@ -86,8 +80,6 @@ String ConfigItem::GetUnit(void) const
  */
 DebugInfo ConfigItem::GetDebugInfo(void) const
 {
-	ObjectLock olock(this);
-
 	return m_DebugInfo;
 }
 
@@ -98,8 +90,6 @@ DebugInfo ConfigItem::GetDebugInfo(void) const
  */
 ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 {
-	ObjectLock olock(this);
-
 	return m_ExpressionList;
 }
 
@@ -110,16 +100,7 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
  */
 vector<String> ConfigItem::GetParents(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Parents;
-}
-
-set<ConfigItem::WeakPtr> ConfigItem::GetChildren(void) const
-{
-	ObjectLock olock(this);
-
-	return m_ChildObjects;
 }
 
 Dictionary::Ptr ConfigItem::Link(void) const
@@ -146,12 +127,12 @@ void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
 		ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
 
 		if (context)
-			parent = context->GetItem(GetType(), name);
+			parent = context->GetItem(m_Type, name);
 
 		/* ignore already active objects while we're in the compiler
 		 * context and linking to existing items is disabled. */
 		if (!parent && (!context || (context->GetFlags() & CompilerLinkExisting)))
-			parent = ConfigItem::GetObject(GetType(), name);
+			parent = ConfigItem::GetObject(m_Type, name);
 
 		if (!parent) {
 			stringstream message;
@@ -160,7 +141,6 @@ void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
 			BOOST_THROW_EXCEPTION(domain_error(message.str()));
 		}
 
-		ObjectLock olock(parent);
 		parent->InternalLink(dictionary);
 	}
 
@@ -209,7 +189,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		oldItem->UnregisterFromParents();
 
 		/* Steal the old item's children. */
-		children = oldItem->GetChildren();
+		children = oldItem->m_ChildObjects;
 	}
 
 	{
@@ -226,15 +206,15 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		m_Items[ikey] = self;
 	}
 
-	DynamicObject::Ptr dobj = GetDynamicObject();
+	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
 	if (!dobj)
-		dobj = dtype->GetObject(GetName());
+		dobj = dtype->GetObject(m_Name);
 
 	/* Register this item with its parents. */
-	BOOST_FOREACH(const String& parentName, GetParents()) {
-		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
-		parent->RegisterChild(self);
+	BOOST_FOREACH(const String& parentName, m_Parents) {
+		ConfigItem::Ptr parent = GetObject(m_Type, parentName);
+		parent->m_ChildObjects.insert(self);
 	}
 
 	/* Create a fake update in the format that
@@ -272,7 +252,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	bool was_null = false;
 
 	if (!dobj) {
-		dobj = DynamicType::CreateObject(dtype, update);
+		dobj = dtype->CreateObject(update);
 		was_null = true;
 	}
 
@@ -300,7 +280,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		child->OnParentCommitted();
 	}
 
-	OnCommitted(GetSelf());
+	OnCommitted(self);
 
 	return dobj;
 }
@@ -312,7 +292,7 @@ void ConfigItem::Unregister(void)
 {
 	assert(!OwnsLock());
 
-	DynamicObject::Ptr dobj = GetDynamicObject();
+	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
 	if (dobj)
 		dobj->Unregister();
@@ -321,40 +301,26 @@ void ConfigItem::Unregister(void)
 		ObjectLock olock(this);
 
 		ConfigItem::ItemMap::iterator it;
-		it = m_Items.find(make_pair(GetType(), GetName()));
+		it = m_Items.find(make_pair(m_Type, m_Name));
 
 		if (it != m_Items.end())
 			m_Items.erase(it);
-	}
 
-	UnregisterFromParents();
+		UnregisterFromParents();
+	}
 
 	OnRemoved(GetSelf());
 }
 
-void ConfigItem::RegisterChild(const ConfigItem::Ptr& child)
-{
-	ObjectLock olock(this);
-
-	m_ChildObjects.insert(child);
-}
-
-void ConfigItem::UnregisterChild(const ConfigItem::Ptr& child)
-{
-	ObjectLock olock(this);
-
-	m_ChildObjects.erase(child);
-}
-
 void ConfigItem::UnregisterFromParents(void)
 {
-	ObjectLock olock(this);
+	assert(OwnsLock());
 
 	BOOST_FOREACH(const String& parentName, m_Parents) {
 		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
 
 		if (parent)
-			parent->UnregisterChild(GetSelf());
+			parent->m_ChildObjects.erase(GetSelf());
 	}
 }
 
@@ -365,15 +331,10 @@ void ConfigItem::OnParentCommitted(void)
 {
 	assert(!OwnsLock());
 
-	ConfigItem::Ptr self;
+	ConfigItem::Ptr self = GetSelf();
 
-	{
-		ObjectLock olock(this);
-		self = GetSelf();
-
-		if (GetObject(self->GetType(), self->GetName()) != self)
-			return;
-	}
+	if (GetObject(m_Type, m_Name) != self)
+		return;
 
 	Commit();
 }
@@ -458,7 +419,7 @@ void ConfigItem::UnloadUnit(const String& unit)
 	BOOST_FOREACH(tie(tuples::ignore, item), m_Items) {
 		ObjectLock olock(item);
 
-		if (item->GetUnit() != unit)
+		if (item->m_Unit != unit)
 			continue;
 
 		obsoleteItems.push_back(item);

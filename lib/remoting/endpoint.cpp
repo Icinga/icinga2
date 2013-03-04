@@ -25,8 +25,6 @@ REGISTER_TYPE(Endpoint);
 
 signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
 signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
-signals2::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionRegistered;
-signals2::signal<void (const Endpoint::Ptr&, const String& topic)> Endpoint::OnSubscriptionUnregistered;
 
 /**
  * Constructor for the Endpoint class.
@@ -42,6 +40,9 @@ Endpoint::Endpoint(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("service", Attribute_Replicated, &m_Service);
 	RegisterAttribute("subscriptions", Attribute_Replicated, &m_Subscriptions);
 }
+
+Endpoint::~Endpoint(void)
+{ }
 
 /**
  * Retrieves an endpoint by name.
@@ -84,8 +85,6 @@ Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool replicated, bool l
  */
 bool Endpoint::IsLocalEndpoint(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Local;
 }
 
@@ -141,6 +140,8 @@ void Endpoint::RegisterSubscription(const String& topic)
 	if (!subscriptions->Contains(topic)) {
 		Dictionary::Ptr newSubscriptions = subscriptions->ShallowClone();
 		newSubscriptions->Set(topic, topic);
+
+		ObjectLock olock(this);
 		SetSubscriptions(newSubscriptions);
 	}
 }
@@ -182,8 +183,6 @@ bool Endpoint::HasSubscription(const String& topic) const
  */
 void Endpoint::ClearSubscriptions(void)
 {
-	ObjectLock olock(this);
-
 	m_Subscriptions = Empty;
 	Touch("subscriptions");
 }
@@ -195,8 +194,6 @@ Dictionary::Ptr Endpoint::GetSubscriptions(void) const
 
 void Endpoint::SetSubscriptions(const Dictionary::Ptr& subscriptions)
 {
-	ObjectLock olock(this);
-
 	subscriptions->Seal();
 	m_Subscriptions = subscriptions;
 	Touch("subscriptions");
@@ -220,6 +217,8 @@ void Endpoint::RegisterTopicHandler(const String& topic, const function<Endpoint
 
 	sig->connect(callback);
 
+	olock.Unlock();
+
 	RegisterSubscription(topic);
 }
 
@@ -230,44 +229,6 @@ void Endpoint::UnregisterTopicHandler(const String& topic, const function<Endpoi
 	//UnregisterSubscription(method);
 
 	BOOST_THROW_EXCEPTION(NotImplementedException());
-}
-
-void Endpoint::OnAttributeChanged(const String& name, const Value& oldValue)
-{
-	assert(!OwnsLock());
-
-	if (name == "subscriptions") {
-		Dictionary::Ptr oldSubscriptions, newSubscriptions;
-
-		if (oldValue.IsObjectType<Dictionary>())
-			oldSubscriptions = oldValue;
-
-		newSubscriptions = GetSubscriptions();
-
-		if (oldSubscriptions) {
-			ObjectLock olock(oldSubscriptions);
-
-			String subscription;
-			BOOST_FOREACH(tie(tuples::ignore, subscription), oldSubscriptions) {
-				if (!newSubscriptions || !newSubscriptions->Contains(subscription)) {
-					Logger::Write(LogInformation, "remoting", "Removed subscription for '" + GetName() + "': " + subscription);
-					OnSubscriptionUnregistered(GetSelf(), subscription);
-				}
-			}
-		}
-
-		if (newSubscriptions) {
-			ObjectLock olock(newSubscriptions);
-
-			String subscription;
-			BOOST_FOREACH(tie(tuples::ignore, subscription), newSubscriptions) {
-				if (!oldSubscriptions || !oldSubscriptions->Contains(subscription)) {
-					Logger::Write(LogDebug, "remoting", "New subscription for '" + GetName() + "': " + subscription);
-					OnSubscriptionRegistered(GetSelf(), subscription);
-				}
-			}
-		}
-	}
 }
 
 void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage& request)

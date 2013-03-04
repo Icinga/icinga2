@@ -114,7 +114,6 @@ void ConfigCompilerContext::Validate(void)
 		ConfigType::Ptr ctype;
 
 		{
-			ObjectLock olock(item);
 			ctype = GetType(item->GetType());
 
 			if (!ctype) {
@@ -124,7 +123,6 @@ void ConfigCompilerContext::Validate(void)
 			}
 		}
 
-		ObjectLock olock(ctype);
 		ctype->ValidateItem(item);
 	}
 

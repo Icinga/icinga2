@@ -41,13 +41,14 @@ class IcingaSignalPrinter:
         return '<SIGNAL>'
 
 def lookup_icinga_type(val):
-    if str(val.type) == 'icinga::String':
+    t = val.type.unqualified()
+    if str(t) == 'icinga::String':
         return IcingaStringPrinter(val)
-    elif str(val.type) == 'icinga::Value':
+    elif str(t) == 'icinga::Value':
         return IcingaValuePrinter(val)
-    elif str(val.type) == 'icinga::AttributeBase' or re.match('^icinga::Attribute<.*>$', str(val.type)):
+    elif str(t) == 'icinga::AttributeBase' or re.match('^icinga::Attribute<.*>$', str(t)):
         return IcingaAttributePrinter(val)
-    elif re.match('^boost::signals2::signal.*<.*>$', str(val.type)):
+    elif re.match('^boost::signals2::signal.*<.*>$', str(t)):
         return IcingaSignalPrinter(val)
 
     return None

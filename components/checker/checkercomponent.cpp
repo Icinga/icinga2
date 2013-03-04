@@ -109,7 +109,10 @@ void CheckerComponent::CheckThreadProc(void)
 			continue;
 		}
 
-		service->SetForceNextCheck(false);
+		{
+			ObjectLock olock(service);
+			service->SetForceNextCheck(false);
+		}
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
@@ -118,7 +121,7 @@ void CheckerComponent::CheckThreadProc(void)
 
 		try {
 			CheckerComponent::Ptr self = GetSelf();
-			Service::BeginExecuteCheck(service, boost::bind(&CheckerComponent::CheckCompletedHandler, self, service));
+			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, self, service));
 		} catch (const exception& ex) {
 			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + diagnostic_information(ex));
 		}

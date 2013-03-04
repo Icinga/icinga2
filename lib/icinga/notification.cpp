@@ -54,8 +54,6 @@ Notification::Ptr Notification::GetByName(const String& name)
  */
 Service::Ptr Notification::GetService(void) const
 {
-	ObjectLock olock(this);
-
 	Host::Ptr host = Host::GetByName(m_HostName);
 
 	if (!host)
@@ -72,8 +70,6 @@ Service::Ptr Notification::GetService(void) const
  */
 Value Notification::GetNotificationCommand(void) const
 {
-	ObjectLock olock(this);
-
 	return m_NotificationCommand;
 }
 
@@ -82,8 +78,6 @@ Value Notification::GetNotificationCommand(void) const
  */
 Dictionary::Ptr Notification::GetMacros(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Macros;
 }
 
@@ -94,12 +88,7 @@ set<User::Ptr> Notification::GetUsers(void) const
 {
 	set<User::Ptr> result;
 
-	Dictionary::Ptr users;
-
-	{
-		ObjectLock olock(this);
-		users = m_Users;
-	}
+	Dictionary::Ptr users = m_Users;
 
 	if (users) {
 		ObjectLock olock(users);
@@ -125,12 +114,7 @@ set<UserGroup::Ptr> Notification::GetGroups(void) const
 {
 	set<UserGroup::Ptr> result;
 
-	Dictionary::Ptr groups;
-
-	{
-		ObjectLock olock(this);
-		groups = m_Groups;
-	}
+	Dictionary::Ptr groups = m_Groups;
 
 	if (groups) {
 		ObjectLock olock(groups);
@@ -221,14 +205,7 @@ void Notification::BeginExecuteNotification(NotificationType type)
 	}
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
-		String user_name;
-
-		{
-			ObjectLock olock(user);
-			user_name = user->GetName();
-		}
-
-		Logger::Write(LogDebug, "icinga", "Sending notification for user " + user_name);
+		Logger::Write(LogDebug, "icinga", "Sending notification for user " + user->GetName());
 		BeginExecuteNotificationHelper(macros, type, user);
 	}
 
@@ -289,7 +266,11 @@ void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 {
 	assert(!OwnsLock());
 
-	m_Tasks.erase(task);
+	{
+		ObjectLock olock(this);
+
+		m_Tasks.erase(task);
+	}
 
 	try {
 		task->GetResult();
@@ -308,7 +289,7 @@ void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 /**
  * @threadsafety Always.
  */
-void Notification::OnAttributeChanged(const String& name, const Value& oldValue)
+void Notification::OnAttributeChanged(const String& name)
 {
 	assert(!OwnsLock());
 

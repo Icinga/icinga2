@@ -53,8 +53,6 @@ void UserGroup::OnRegistrationCompleted(void)
  */
 String UserGroup::GetDisplayName(void) const
 {
-	ObjectLock olock(this);
-
 	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
 	else
@@ -128,7 +126,6 @@ void UserGroup::RefreshMembersCache(void)
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
 		const User::Ptr& user = static_pointer_cast<User>(object);
-		ObjectLock olock(user);
 
 		Dictionary::Ptr dict;
 		dict = user->GetGroups();

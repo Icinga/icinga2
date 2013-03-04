@@ -55,8 +55,6 @@ void HostGroup::OnRegistrationCompleted(void)
  */
 String HostGroup::GetDisplayName(void) const
 {
-	ObjectLock olock(this);
-
 	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
 	else
@@ -68,8 +66,6 @@ String HostGroup::GetDisplayName(void) const
  */
 String HostGroup::GetNotesUrl(void) const
 {
-	ObjectLock olock(this);
-
 	return m_NotesUrl;
 }
 
@@ -78,8 +74,6 @@ String HostGroup::GetNotesUrl(void) const
  */
 String HostGroup::GetActionUrl(void) const
 {
-	ObjectLock olock(this);
-
 	return m_ActionUrl;
 }
 
@@ -150,7 +144,6 @@ void HostGroup::RefreshMembersCache(void)
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
-		ObjectLock olock(host);
 
 		Dictionary::Ptr dict;
 		dict = host->GetGroups();

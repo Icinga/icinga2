@@ -410,9 +410,11 @@ int Application::Run(void)
  */
 void Application::UpdatePidFile(const String& filename)
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
-	ClosePidFile();
+	if (m_PidFile != NULL)
+		fclose(m_PidFile);
 
 	/* There's just no sane way of getting a file descriptor for a
 	 * C++ ofstream which is why we're using FILEs here. */
@@ -442,6 +444,7 @@ void Application::UpdatePidFile(const String& filename)
  */
 void Application::ClosePidFile(void)
 {
+	assert(!OwnsLock());
 	ObjectLock olock(this);
 
 	if (m_PidFile != NULL)

@@ -38,12 +38,11 @@ PerfdataWriter::~PerfdataWriter(void)
 /**
  * @threadsafety Always.
  */
-void PerfdataWriter::OnAttributeChanged(const String& name, const Value& oldValue)
+void PerfdataWriter::OnAttributeChanged(const String& name)
 {
 	assert(!OwnsLock());
 
 	if (name == "rotation_interval") {
-		ObjectLock olock(this);
 		m_RotationTimer->SetInterval(GetRotationInterval());
 	}
 }
@@ -53,16 +52,9 @@ void PerfdataWriter::OnAttributeChanged(const String& name, const Value& oldValu
  */
 void PerfdataWriter::Start(void)
 {
-	ObjectLock olock(this);
-
 	m_Endpoint = Endpoint::MakeEndpoint("perfdata_" + GetName(), false);
-
-	{
-		ObjectLock olock(m_Endpoint);
-
-		m_Endpoint->RegisterTopicHandler("checker::CheckResult",
-		    boost::bind(&PerfdataWriter::CheckResultRequestHandler, this, _3));
-	}
+	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
+	    boost::bind(&PerfdataWriter::CheckResultRequestHandler, this, _3));
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&PerfdataWriter::RotationTimerHandler, this));
@@ -87,8 +79,6 @@ PerfdataWriter::Ptr PerfdataWriter::GetByName(const String& name)
  */
 String PerfdataWriter::GetPathPrefix(void) const
 {
-	ObjectLock olock(this);
-
 	if (!m_PathPrefix.IsEmpty())
 		return m_PathPrefix;
 	else
@@ -100,8 +90,6 @@ String PerfdataWriter::GetPathPrefix(void) const
  */
 String PerfdataWriter::GetFormatTemplate(void) const
 {
-	ObjectLock olock(this);
-
 	if (!m_FormatTemplate.IsEmpty()) {
 		return m_FormatTemplate;
 	} else {
@@ -123,8 +111,6 @@ String PerfdataWriter::GetFormatTemplate(void) const
  */
 double PerfdataWriter::GetRotationInterval(void) const
 {
-	ObjectLock olock(this);
-
 	if (!m_RotationInterval.IsEmpty())
 		return m_RotationInterval;
 	else

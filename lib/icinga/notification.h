@@ -68,7 +68,7 @@ public:
 	static String NotificationTypeToString(NotificationType type);
 
 protected:
-	void OnAttributeChanged(const String& name, const Value& oldValue);
+	void OnAttributeChanged(const String& name);
 
 private:
 	Attribute<Value> m_NotificationCommand;

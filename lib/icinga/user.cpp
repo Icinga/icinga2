@@ -39,7 +39,7 @@ User::~User(void)
 /**
  * @threadsafety Always.
  */
-void User::OnAttributeChanged(const String& name, const Value& oldValue)
+void User::OnAttributeChanged(const String& name)
 {
 	assert(!OwnsLock());
 
@@ -62,8 +62,6 @@ User::Ptr User::GetByName(const String& name)
  */
 String User::GetDisplayName(void) const
 {
-	ObjectLock olock(this);
-
 	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
 	else
@@ -75,8 +73,6 @@ String User::GetDisplayName(void) const
  */
 Dictionary::Ptr User::GetGroups(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Groups;
 }
 
@@ -85,8 +81,6 @@ Dictionary::Ptr User::GetGroups(void) const
  */
 Dictionary::Ptr User::GetMacros(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Macros;
 }
 
