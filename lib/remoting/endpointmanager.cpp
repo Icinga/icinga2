@@ -397,7 +397,7 @@ void EndpointManager::RequestTimerHandler(void)
 	ObjectLock olock(this);
 
 	map<String, PendingRequest>::iterator it;
-	for (it = m_Requests.begin(); it != m_Requests.end(); it++) {
+	for (it = m_Requests.begin(); it != m_Requests.end(); ++it) {
 		if (it->second.HasTimedOut()) {
 			it->second.Callback(GetSelf(), Endpoint::Ptr(),
 			    it->second.Request, ResponseMessage(), true);

@@ -209,7 +209,7 @@ void Notification::BeginExecuteNotification(NotificationType type)
 		BeginExecuteNotificationHelper(macros, type, user);
 	}
 
-	if (allUsers.size() == 0) {
+	if (allUsers.empty()) {
 		/* Send a notification even if there are no users specified. */
 		BeginExecuteNotificationHelper(macros, type, User::Ptr());
 	}

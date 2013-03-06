@@ -79,7 +79,7 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 	{
 		boost::mutex::scoped_lock lock(m_AttributeMutex);
 
-		for (it = m_Attributes.begin(); it != m_Attributes.end(); it++) {
+		for (it = m_Attributes.begin(); it != m_Attributes.end(); ++it) {
 			if (it->second.GetType() == Attribute_Transient)
 				continue;
 
@@ -132,7 +132,7 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 
 		if (configTx > m_ConfigTx) {
 			DynamicObject::AttributeIterator at;
-			for (at = m_Attributes.begin(); at != m_Attributes.end(); at++) {
+			for (at = m_Attributes.begin(); at != m_Attributes.end(); ++at) {
 				if ((at->second.GetType() & Attribute_Config) == 0)
 					continue;
 
@@ -149,7 +149,7 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 		ObjectLock alock(attrs);
 
 		Dictionary::Iterator it;
-		for (it = attrs->Begin(); it != attrs->End(); it++) {
+		for (it = attrs->Begin(); it != attrs->End(); ++it) {
 			if (!it->second.IsObjectType<Dictionary>())
 				continue;
 

@@ -171,7 +171,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 		else if (overallResult == ValidationInvalidType)
 			ConfigCompilerContext::GetContext()->AddError(false, "Invalid type for attribute: " + LocationToString(locations));
 
-		if (subRuleLists.size() > 0 && value.IsObjectType<Dictionary>())
+		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
 			ValidateDictionary(value, subRuleLists, locations);
 
 		locations.pop_back();

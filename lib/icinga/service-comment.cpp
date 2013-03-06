@@ -277,7 +277,7 @@ void Service::RemoveExpiredComments(void)
 		}
 	}
 
-	if (expiredComments.size() > 0) {
+	if (!expiredComments.empty()) {
 		BOOST_FOREACH(const String& id, expiredComments) {
 			comments->Remove(id);
 		}

@@ -63,7 +63,7 @@ void Service::SendNotifications(NotificationType type)
 
 	set<Notification::Ptr> notifications = GetNotifications();
 
-	if (notifications.size() == 0)
+	if (notifications.empty())
 		Logger::Write(LogInformation, "icinga", "Service '" + GetName() + "' does not have any notifications.");
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {

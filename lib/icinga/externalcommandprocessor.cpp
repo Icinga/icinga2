@@ -51,7 +51,7 @@ void ExternalCommandProcessor::Execute(const String& line)
 
 	vector<String> argv = args.Split(is_any_of(";"));
 
-	if (argv.size() == 0)
+	if (argv.empty())
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing arguments in command: " + line));
 
 	vector<String> argvExtra(argv.begin() + 1, argv.end());

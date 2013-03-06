@@ -104,8 +104,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 		histogram[endpoint]++;
 	}
 
-	//std::random_shuffle(services.begin(), services.end());
-
 	int delegated = 0;
 
 	/* re-assign services */
@@ -119,9 +117,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 		int avg_services = 0, overflow_tolerance = 0;
 		vector<Endpoint::Ptr>::iterator cit;
 
-		if (candidates.size() > 0) {
-			//std::random_shuffle(candidates.begin(), candidates.end());
-
+		if (!candidates.empty()) {
 			stringstream msgbuf;
 			msgbuf << "Service: " << service->GetName() << ", candidates: " << candidates.size();
 			Logger::Write(LogDebug, "delegation", msgbuf.str());
@@ -176,7 +172,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 			break;
 		}
 
-		if (candidates.size() == 0) {
+		if (candidates.empty()) {
 			if (service->GetState() != StateUncheckable && service->GetEnableActiveChecks()) {
 				Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 

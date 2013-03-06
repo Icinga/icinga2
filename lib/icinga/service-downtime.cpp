@@ -350,7 +350,7 @@ void Service::RemoveExpiredDowntimes(void)
 		}
 	}
 
-	if (expiredDowntimes.size() > 0) {
+	if (!expiredDowntimes.empty()) {
 		BOOST_FOREACH(const String& id, expiredDowntimes) {
 			downtimes->Remove(id);
 		}

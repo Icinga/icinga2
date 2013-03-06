@@ -270,21 +270,8 @@ void CompatComponent::DumpHostStatus(ostream& fp, const Host::Ptr& host)
 	fp << "hoststatus {" << "\n"
 	   << "\t" << "host_name=" << host->GetName() << "\n";
 
-	ServiceState hcState = StateOK;
-
 	Service::Ptr hc = host->GetHostCheckService();
 	ObjectLock olock(hc);
-
-	if (hc)
-		hcState = hc->GetState();
-
-	int state;
-	if (!host->IsReachable())
-		state = 2; /* unreachable */
-	else if (hcState != StateOK)
-		state = 1; /* down */
-	else
-		state = 0; /* up */
 
 	if (hc)
 		DumpServiceStatusAttrs(fp, hc, CompatTypeHost);
