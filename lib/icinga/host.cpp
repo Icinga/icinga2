@@ -333,9 +333,9 @@ void Host::InvalidateServicesCache(void)
 			m_ServicesCacheTimer = boost::make_shared<Timer>();
 			m_ServicesCacheTimer->SetInterval(0.5);
 			m_ServicesCacheTimer->OnTimerExpired.connect(boost::bind(&Host::RefreshServicesCache));
+			m_ServicesCacheTimer->Start();
 		}
 
-		m_ServicesCacheTimer->Start();
 		m_ServicesCacheNeedsUpdate = true;
 	}
 }
@@ -345,12 +345,13 @@ void Host::RefreshServicesCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_ServiceMutex);
 
-		assert(m_ServicesCacheNeedsUpdate);
-		m_ServicesCacheTimer->Stop();
+		if (!m_ServicesCacheNeedsUpdate)
+			return;
+
 		m_ServicesCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Updating services cache.");
+	Logger::Write(LogInformation, "icinga", "Updating Host services cache.");
 
 	map<String, map<String, Service::WeakPtr> > newServicesCache;
 

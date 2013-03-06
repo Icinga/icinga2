@@ -258,9 +258,9 @@ void Service::InvalidateDowntimesCache(void)
 		m_DowntimesCacheTimer = boost::make_shared<Timer>();
 		m_DowntimesCacheTimer->SetInterval(0.5);
 		m_DowntimesCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshNotificationsCache));
+		m_DowntimesCacheTimer->Start();
 	}
 
-	m_DowntimesCacheTimer->Start();
 	m_DowntimesCacheNeedsUpdate = true;
 }
 
@@ -272,10 +272,13 @@ void Service::RefreshDowntimesCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_DowntimeMutex);
 
-		assert(m_DowntimesCacheNeedsUpdate);
-		m_DowntimesCacheTimer->Stop();
+		if (!m_DowntimesCacheNeedsUpdate)
+			return;
+
 		m_DowntimesCacheNeedsUpdate = false;
 	}
+
+	Logger::Write(LogInformation, "icinga", "Updating Service downtimes cache.");
 
 	map<int, String> newLegacyDowntimesCache;
 	map<String, Service::WeakPtr> newDowntimesCache;

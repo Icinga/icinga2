@@ -23,7 +23,8 @@ using namespace icinga;
 
 boost::mutex UserGroup::m_Mutex;
 map<String, vector<User::WeakPtr> > UserGroup::m_MembersCache;
-bool UserGroup::m_MembersCacheValid = true;
+bool UserGroup::m_MembersCacheNeedsUpdate = false;
+Timer::Ptr UserGroup::m_MembersCacheTimer;
 
 REGISTER_TYPE(UserGroup);
 
@@ -102,10 +103,17 @@ void UserGroup::InvalidateMembersCache(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	if (m_MembersCacheValid)
-		Utility::QueueAsyncCallback(boost::bind(&UserGroup::RefreshMembersCache));
+	if (m_MembersCacheNeedsUpdate)
+		return; /* Someone else has already requested a refresh. */
 
-	m_MembersCacheValid = false;
+	if (!m_MembersCacheTimer) {
+		m_MembersCacheTimer = boost::make_shared<Timer>();
+		m_MembersCacheTimer->SetInterval(0.5);
+		m_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&UserGroup::RefreshMembersCache));
+		m_MembersCacheTimer->Start();
+	}
+
+	m_MembersCacheNeedsUpdate = true;
 }
 
 /**
@@ -116,11 +124,13 @@ void UserGroup::RefreshMembersCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		if (m_MembersCacheValid)
+		if (!m_MembersCacheNeedsUpdate)
 			return;
 
-		m_MembersCacheValid = true;
+		m_MembersCacheNeedsUpdate = false;
 	}
+
+	Logger::Write(LogInformation, "icinga", "Updating UserGroup members cache.");
 
 	map<String, vector<User::WeakPtr> > newMembersCache;
 

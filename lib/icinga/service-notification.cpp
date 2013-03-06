@@ -94,9 +94,9 @@ void Service::InvalidateNotificationsCache(void)
 		m_NotificationsCacheTimer = boost::make_shared<Timer>();
 		m_NotificationsCacheTimer->SetInterval(0.5);
 		m_NotificationsCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshNotificationsCache));
+		m_NotificationsCacheTimer->Start();
 	}
 
-	m_NotificationsCacheTimer->Start();
 	m_NotificationsCacheNeedsUpdate = true;
 }
 
@@ -108,10 +108,13 @@ void Service::RefreshNotificationsCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_NotificationMutex);
 
-		assert(m_NotificationsCacheNeedsUpdate);
-		m_NotificationsCacheTimer->Stop();
+		if (!m_NotificationsCacheNeedsUpdate)
+			return;
+
 		m_NotificationsCacheNeedsUpdate = false;
 	}
+
+	Logger::Write(LogInformation, "icinga", "Updating Service notifications cache.");
 
 	map<String, set<Notification::WeakPtr> > newNotificationsCache;
 

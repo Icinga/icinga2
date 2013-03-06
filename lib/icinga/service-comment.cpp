@@ -184,9 +184,9 @@ void Service::InvalidateCommentsCache(void)
 		m_CommentsCacheTimer = boost::make_shared<Timer>();
 		m_CommentsCacheTimer->SetInterval(0.5);
 		m_CommentsCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshCommentsCache));
+		m_CommentsCacheTimer->Start();
 	}
 
-	m_CommentsCacheTimer->Start();
 	m_CommentsCacheNeedsUpdate = true;
 }
 
@@ -198,10 +198,13 @@ void Service::RefreshCommentsCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_CommentMutex);
 
-		assert(m_CommentsCacheNeedsUpdate);
-		m_CommentsCacheTimer->Stop();
+		if (!m_CommentsCacheNeedsUpdate)
+			return;
+
 		m_CommentsCacheNeedsUpdate = false;
 	}
+
+	Logger::Write(LogInformation, "icinga", "Updating Service comments cache.");
 
 	map<int, String> newLegacyCommentsCache;
 	map<String, Service::WeakPtr> newCommentsCache;

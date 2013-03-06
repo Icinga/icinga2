@@ -109,6 +109,11 @@ void CheckerComponent::CheckThreadProc(void)
 			continue;
 		}
 
+		m_IdleServices.erase(service);
+		m_PendingServices.insert(service);
+
+		lock.unlock();
+
 		{
 			ObjectLock olock(service);
 			service->SetForceNextCheck(false);
@@ -116,15 +121,14 @@ void CheckerComponent::CheckThreadProc(void)
 
 		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
-		m_IdleServices.erase(service);
-		m_PendingServices.insert(service);
-
 		try {
 			CheckerComponent::Ptr self = GetSelf();
 			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, self, service));
 		} catch (const exception& ex) {
 			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + diagnostic_information(ex));
 		}
+
+		lock.lock();
 	}
 }
 

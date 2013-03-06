@@ -128,9 +128,9 @@ void ServiceGroup::InvalidateMembersCache(void)
 		m_MembersCacheTimer = boost::make_shared<Timer>();
 		m_MembersCacheTimer->SetInterval(0.5);
 		m_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&ServiceGroup::RefreshMembersCache));
+		m_MembersCacheTimer->Start();
 	}
 
-	m_MembersCacheTimer->Start();
 	m_MembersCacheNeedsUpdate = true;
 }
 
@@ -142,10 +142,13 @@ void ServiceGroup::RefreshMembersCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		assert(m_MembersCacheNeedsUpdate);
-		m_MembersCacheTimer->Stop();
+		if (!m_MembersCacheNeedsUpdate)
+			return;
+
 		m_MembersCacheNeedsUpdate = false;
 	}
+
+	Logger::Write(LogInformation, "icinga", "Updating ServiceGroup members cache.");
 
 	map<String, vector<Service::WeakPtr> > newMembersCache;
 

@@ -173,15 +173,8 @@ void Timer::Reschedule(double next)
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	if (next < 0) {
-		double now = Utility::GetTime();
-		next = m_Next + m_Interval;
-
-		if (next < now)
-			next = now + m_Interval;
-		else
-			next = next;
-	}
+	if (next < 0)
+		next = Utility::GetTime() + m_Interval;
 
 	m_Next = next;
 
