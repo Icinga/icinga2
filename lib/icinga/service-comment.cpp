@@ -25,7 +25,8 @@ int Service::m_NextCommentID = 1;
 boost::mutex Service::m_CommentMutex;
 map<int, String> Service::m_LegacyCommentsCache;
 map<String, Service::WeakPtr> Service::m_CommentsCache;
-bool Service::m_CommentsCacheValid = true;
+bool Service::m_CommentsCacheNeedsUpdate = false;
+Timer::Ptr Service::m_CommentsCacheTimer;
 Timer::Ptr Service::m_CommentsExpireTimer;
 
 /**
@@ -176,10 +177,17 @@ void Service::InvalidateCommentsCache(void)
 {
 	boost::mutex::scoped_lock lock(m_CommentMutex);
 
-	if (m_CommentsCacheValid)
-		Utility::QueueAsyncCallback(boost::bind(&Service::RefreshCommentsCache));
+	if (m_CommentsCacheNeedsUpdate)
+		return; /* Someone else has already requested a refresh. */
 
-	m_CommentsCacheValid = false;
+	if (!m_CommentsCacheTimer) {
+		m_CommentsCacheTimer = boost::make_shared<Timer>();
+		m_CommentsCacheTimer->SetInterval(0.5);
+		m_CommentsCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshCommentsCache));
+	}
+
+	m_CommentsCacheTimer->Start();
+	m_CommentsCacheNeedsUpdate = true;
 }
 
 /**
@@ -190,10 +198,9 @@ void Service::RefreshCommentsCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_CommentMutex);
 
-		if (m_CommentsCacheValid)
-			return;
-
-		m_CommentsCacheValid = true;
+		assert(m_CommentsCacheNeedsUpdate);
+		m_CommentsCacheTimer->Stop();
+		m_CommentsCacheNeedsUpdate = false;
 	}
 
 	map<int, String> newLegacyCommentsCache;

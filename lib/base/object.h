@@ -117,7 +117,7 @@ private:
 
 	mutable MutexType m_Mutex;
 
-	friend class ObjectLock;
+	friend struct ObjectLock;
 };
 
 /**

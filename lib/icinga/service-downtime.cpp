@@ -25,7 +25,8 @@ int Service::m_NextDowntimeID = 1;
 boost::mutex Service::m_DowntimeMutex;
 map<int, String> Service::m_LegacyDowntimesCache;
 map<String, Service::WeakPtr> Service::m_DowntimesCache;
-bool Service::m_DowntimesCacheValid = true;
+bool Service::m_DowntimesCacheNeedsUpdate = false;
+Timer::Ptr Service::m_DowntimesCacheTimer;
 Timer::Ptr Service::m_DowntimesExpireTimer;
 
 /**
@@ -250,10 +251,17 @@ void Service::InvalidateDowntimesCache(void)
 {
 	boost::mutex::scoped_lock lock(m_DowntimeMutex);
 
-	if (m_DowntimesCacheValid)
-		Utility::QueueAsyncCallback(boost::bind(&Service::RefreshDowntimesCache));
+	if (m_DowntimesCacheNeedsUpdate)
+		return; /* Someone else has already requested a refresh. */
 
-	m_DowntimesCacheValid = false;
+	if (!m_DowntimesCacheTimer) {
+		m_DowntimesCacheTimer = boost::make_shared<Timer>();
+		m_DowntimesCacheTimer->SetInterval(0.5);
+		m_DowntimesCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshNotificationsCache));
+	}
+
+	m_DowntimesCacheTimer->Start();
+	m_DowntimesCacheNeedsUpdate = true;
 }
 
 /**
@@ -264,10 +272,9 @@ void Service::RefreshDowntimesCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_DowntimeMutex);
 
-		if (m_DowntimesCacheValid)
-			return;
-
-		m_DowntimesCacheValid = true;
+		assert(m_DowntimesCacheNeedsUpdate);
+		m_DowntimesCacheTimer->Stop();
+		m_DowntimesCacheNeedsUpdate = false;
 	}
 
 	map<int, String> newLegacyDowntimesCache;

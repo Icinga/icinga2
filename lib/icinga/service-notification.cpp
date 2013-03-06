@@ -23,14 +23,18 @@ using namespace icinga;
 
 boost::mutex Service::m_NotificationMutex;
 map<String, set<Notification::WeakPtr> > Service::m_NotificationsCache;
-bool Service::m_NotificationsCacheValid = true;
+bool Service::m_NotificationsCacheNeedsUpdate = false;
+Timer::Ptr Service::m_NotificationsCacheTimer;
 
 /**
  * @threadsafety Always.
  */
 void Service::RequestNotifications(NotificationType type)
 {
-	SetLastNotification(Utility::GetTime());
+	{
+		ObjectLock olock(this);
+		SetLastNotification(Utility::GetTime());
+	}
 
 	RequestMessage msg;
 	msg.SetMethod("icinga::SendNotifications");
@@ -83,10 +87,17 @@ void Service::InvalidateNotificationsCache(void)
 {
 	boost::mutex::scoped_lock lock(m_NotificationMutex);
 
-	if (m_NotificationsCacheValid)
-		Utility::QueueAsyncCallback(boost::bind(&Service::RefreshNotificationsCache));
+	if (m_NotificationsCacheNeedsUpdate)
+		return; /* Someone else has already requested a refresh. */
 
-	m_NotificationsCacheValid = false;
+	if (!m_NotificationsCacheTimer) {
+		m_NotificationsCacheTimer = boost::make_shared<Timer>();
+		m_NotificationsCacheTimer->SetInterval(0.5);
+		m_NotificationsCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshNotificationsCache));
+	}
+
+	m_NotificationsCacheTimer->Start();
+	m_NotificationsCacheNeedsUpdate = true;
 }
 
 /**
@@ -97,10 +108,9 @@ void Service::RefreshNotificationsCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_NotificationMutex);
 
-		if (m_NotificationsCacheValid)
-			return;
-
-		m_NotificationsCacheValid = true;
+		assert(m_NotificationsCacheNeedsUpdate);
+		m_NotificationsCacheTimer->Stop();
+		m_NotificationsCacheNeedsUpdate = false;
 	}
 
 	map<String, set<Notification::WeakPtr> > newNotificationsCache;

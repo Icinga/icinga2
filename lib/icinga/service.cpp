@@ -24,7 +24,7 @@ using namespace icinga;
 REGISTER_TYPE(Service);
 
 Service::Service(const Dictionary::Ptr& serializedObject)
-	: DynamicObject(serializedObject)
+	: DynamicObject(serializedObject), m_CheckRunning(false)
 {
 
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
@@ -105,9 +105,6 @@ String Service::GetDisplayName(void) const
 Service::Ptr Service::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Service", name);
-
-	if (!configObject)
-		BOOST_THROW_EXCEPTION(invalid_argument("Service '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<Service>(configObject);
 }
@@ -250,6 +247,8 @@ bool Service::IsReachable(void) const
  */
 AcknowledgementType Service::GetAcknowledgement(void)
 {
+	assert(OwnsLock());
+
 	if (m_Acknowledgement.IsEmpty())
 		return AcknowledgementNone;
 

@@ -83,29 +83,37 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 {
 	String name = object->GetName();
 
-	ObjectLock olock(this);
+	{
+		ObjectLock olock(this);
 
-	ObjectMap::iterator it = m_ObjectMap.find(name);
+		ObjectMap::iterator it = m_ObjectMap.find(name);
 
-	if (it != m_ObjectMap.end()) {
-		if (it->second == object)
-			return;
+		if (it != m_ObjectMap.end()) {
+			if (it->second == object)
+				return;
 
-		BOOST_THROW_EXCEPTION(runtime_error("RegisterObject() found existing object with the same name: " + name));
+			BOOST_THROW_EXCEPTION(runtime_error("RegisterObject() found existing object with the same name: " + name));
+		}
+
+		m_ObjectMap[name] = object;
+		m_ObjectSet.insert(object);
+
+		object->m_Registered = true;
 	}
-
-	m_ObjectMap[name] = object;
-	m_ObjectSet.insert(object);
 
 	object->OnRegistrationCompleted();
 }
 
 void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
 {
-	ObjectLock olock(this);
+	{
+		ObjectLock olock(this);
 
-	m_ObjectMap.erase(object->GetName());
-	m_ObjectSet.erase(object);
+		m_ObjectMap.erase(object->GetName());
+		m_ObjectSet.erase(object);
+
+		object->m_Registered = false;
+	}
 
 	object->OnUnregistrationCompleted();
 }

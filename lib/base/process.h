@@ -48,7 +48,7 @@ public:
 	typedef shared_ptr<Process> Ptr;
 	typedef weak_ptr<Process> WeakPtr;
 
-	static const deque<Process::Ptr>::size_type MaxTasksPerThread = 128;
+	static const deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
 	Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
 
@@ -71,12 +71,13 @@ private:
 	static boost::mutex m_Mutex;
 	static deque<Process::Ptr> m_Tasks;
 #ifndef _WIN32
+	static condition_variable m_CV;
 	static int m_TaskFd;
 
 	static Timer::Ptr m_StatusTimer;
 #endif /* _WIN32 */
 
-	static void NotifyWorker(void);
+	void QueueTask(void);
 
 	void SpawnTask(void);
 

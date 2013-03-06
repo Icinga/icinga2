@@ -109,6 +109,7 @@ void Application::ShutdownTimerHandler(void)
 	if (m_ShuttingDown) {
 		Logger::Write(LogInformation, "base", "Shutting down Icinga...");
 		Application::GetInstance()->OnShutdown();
+
 		DynamicObject::DeactivateObjects();
 		GetEQ().Stop();
 		m_ShuttingDown = false;
@@ -285,17 +286,17 @@ void Application::SigIntHandler(int signum)
 {
 	assert(signum == SIGINT);
 
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGINT, &sa, NULL);
+
 	Application::Ptr instance = Application::GetInstance();
 
 	if (!instance)
 		return;
 
 	instance->RequestShutdown();
-
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = SIG_DFL;
-	sigaction(SIGINT, &sa, NULL);
 }
 
 /**
@@ -306,6 +307,11 @@ void Application::SigIntHandler(int signum)
 void Application::SigAbrtHandler(int signum)
 {
 	assert(signum == SIGABRT);
+
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGABRT, &sa, NULL);
 
 	std::cerr << "Caught SIGABRT." << std::endl;
 
@@ -337,6 +343,13 @@ BOOL WINAPI Application::CtrlHandler(DWORD type)
  */
 void Application::ExceptionHandler(void)
 {
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGABRT, &sa, NULL);
+#endif /* _WIN32 */
+
 	try {
 		throw;
 	} catch (const std::exception& ex) {
@@ -348,13 +361,6 @@ void Application::ExceptionHandler(void)
 	Utility::PrintStacktrace(std::cerr, 1);
 
 	DisplayBugMessage();
-
-#ifndef _WIN32
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = SIG_DFL;
-	sigaction(SIGABRT, &sa, NULL);
-#endif /* _WIN32 */
 
 	abort();
 }

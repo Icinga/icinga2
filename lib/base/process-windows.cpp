@@ -32,7 +32,7 @@ void Process::WorkerThreadProc(void)
 	// TODO: implement
 }
 
-void Process::NotifyWorker(void)
+void Process::QueueTask(void)
 {
 	// TODO: implement
 }

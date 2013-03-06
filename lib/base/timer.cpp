@@ -94,8 +94,7 @@ void Timer::Call(void)
 
 	OnTimerExpired(self);
 
-	/* Re-enable the timer so it can be called again. */
-	Start();
+	Reschedule();
 }
 
 /**
@@ -285,7 +284,6 @@ void Timer::TimerThreadProc(void)
 
 		/* Remove the timer from the list so it doesn't get called again
 		 * until the current call is completed. */
-		timer->m_Started = false;
 		m_Timers.erase(timer);
 
 		lock.unlock();

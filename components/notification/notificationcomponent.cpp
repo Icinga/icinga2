@@ -60,21 +60,27 @@ void NotificationComponent::NotificationTimerHandler(void)
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
 		bool reachable = service->IsReachable();
 
-		ObjectLock olock(service);
+		bool send_notification;
 
-		if (service->GetStateType() == StateTypeSoft)
-			continue;
+		{
+			ObjectLock olock(service);
 
-		if (service->GetState() == StateOK)
-			continue;
+			if (service->GetStateType() == StateTypeSoft)
+				continue;
 
-		if (service->GetNotificationInterval() <= 0)
-			continue;
+			if (service->GetState() == StateOK)
+				continue;
 
-		if (service->GetLastNotification() > now - service->GetNotificationInterval())
-			continue;
+			if (service->GetNotificationInterval() <= 0)
+				continue;
 
-		if (reachable && !service->IsInDowntime() && !service->IsAcknowledged())
+			if (service->GetLastNotification() > now - service->GetNotificationInterval())
+				continue;
+
+			send_notification = reachable && !service->IsInDowntime() && !service->IsAcknowledged();
+		}
+
+		if (send_notification)
 			service->RequestNotifications(NotificationProblem);
 	}
 }
@@ -98,6 +104,9 @@ void NotificationComponent::SendNotificationsRequestHandler(const Endpoint::Ptr&
 		return;
 
 	Service::Ptr service = Service::GetByName(svc);
+
+	if (!service)
+		return;
 
 	service->SendNotifications(static_cast<NotificationType>(type));
 }

@@ -42,10 +42,10 @@ void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 {
 	ObjectLock olock(this);
 
-	vector<int>::size_type offsetTarget = tv % m_Slots.size();
+	RingBuffer::SizeType offsetTarget = tv % m_Slots.size();
 
 	if (tv > m_TimeValue) {
-		vector<int>::size_type offset = m_TimeValue % m_Slots.size();
+		RingBuffer::SizeType offset = m_TimeValue % m_Slots.size();
 
 		/* walk towards the target offset, resetting slots to 0 */
 		while (offset != offsetTarget) {

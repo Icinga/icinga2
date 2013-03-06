@@ -56,7 +56,6 @@ void ObjectLock::Lock(void)
 		boost::mutex::scoped_lock lock(Object::m_DebugMutex);
 		m_Object->m_Locked = true;
 		m_Object->m_LockOwner = boost::this_thread::get_id();
-		m_TS = Utility::GetTime();
 	}
 #endif /* _DEBUG */
 }
@@ -67,16 +66,8 @@ void ObjectLock::Unlock(void)
 	{
 		boost::mutex::scoped_lock lock(Object::m_DebugMutex);
 
-		if (m_Lock.owns_lock()) {
-			double dt = Utility::GetTime() - m_TS;
-
-			if (dt > 0.05) {
-				std::cerr << "Held object lock for " << dt << " seconds at:";
-				Utility::PrintStacktrace(std::cerr);
-			}
-
+		if (m_Lock.owns_lock())
 			m_Object->m_Locked = false;
-		}
 	}
 #endif /* _DEBUG */
 

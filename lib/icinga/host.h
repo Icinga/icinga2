@@ -80,7 +80,8 @@ private:
 
 	static boost::mutex m_ServiceMutex;
 	static map<String, map<String, weak_ptr<Service> > > m_ServicesCache;
-	static bool m_ServicesCacheValid;
+	static bool m_ServicesCacheNeedsUpdate;
+	static Timer::Ptr m_ServicesCacheTimer;
 
 	void UpdateSlaveServices(void);
 

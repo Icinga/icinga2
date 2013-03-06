@@ -128,7 +128,7 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 	boost::mutex::scoped_lock lock(m_AttributeMutex);
 
 	if ((allowedTypes & Attribute_Config) != 0 && !configTxValue.IsEmpty()) {
-		double oldConfigTx, configTx = configTxValue;
+		double configTx = configTxValue;
 
 		if (configTx > m_ConfigTx) {
 			DynamicObject::AttributeIterator at;
@@ -226,7 +226,7 @@ void DynamicObject::Set(const String& name, const Value& data)
  */
 void DynamicObject::Touch(const String& name)
 {
-	assert(!OwnsLock());
+	assert(OwnsLock());
 
 	boost::mutex::scoped_lock lock(m_AttributeMutex);
 
@@ -284,7 +284,7 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 			m_ConfigTx = tx;
 	}
 
-	if (m_Registered) {
+	if (IsRegistered()) {
 		/* We can't call GetSelf() in the constructor or destructor.
 		 * The Register() function will take care of adding this
 		 * object to the list of modified objects later on if we can't
@@ -352,6 +352,7 @@ bool DynamicObject::IsAbstract(void) const
  */
 bool DynamicObject::IsRegistered(void) const
 {
+	ObjectLock olock(GetType());
 	return m_Registered;
 }
 
@@ -392,11 +393,6 @@ void DynamicObject::OnRegistrationCompleted(void)
 {
 	assert(!OwnsLock());
 
-	{
-		ObjectLock olock(this);
-		m_Registered = true;
-	}
-
 	Start();
 
 	OnRegistered(GetSelf());
@@ -405,11 +401,6 @@ void DynamicObject::OnRegistrationCompleted(void)
 void DynamicObject::OnUnregistrationCompleted(void)
 {
 	assert(!OwnsLock());
-
-	{
-		ObjectLock olock(this);
-		m_Registered = false;
-	}
 
 	OnUnregistered(GetSelf());
 }

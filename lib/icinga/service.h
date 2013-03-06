@@ -284,6 +284,7 @@ private:
 	Attribute<bool> m_ForceNextCheck;
 
 	ScriptTask::Ptr m_CurrentTask;
+	bool m_CheckRunning;
 	long m_SchedulingOffset;
 
 	void CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
@@ -297,7 +298,8 @@ private:
 	static boost::mutex m_DowntimeMutex;
 	static map<int, String> m_LegacyDowntimesCache;
 	static map<String, Service::WeakPtr> m_DowntimesCache;
-	static bool m_DowntimesCacheValid;
+	static bool m_DowntimesCacheNeedsUpdate;
+	static Timer::Ptr m_DowntimesCacheTimer;
 	static Timer::Ptr m_DowntimesExpireTimer;
 
 	static void DowntimesExpireTimerHandler(void);
@@ -314,7 +316,8 @@ private:
 	static boost::mutex m_CommentMutex;
 	static map<int, String> m_LegacyCommentsCache;
 	static map<String, Service::WeakPtr> m_CommentsCache;
-	static bool m_CommentsCacheValid;
+	static bool m_CommentsCacheNeedsUpdate;
+	static Timer::Ptr m_CommentsCacheTimer;
 	static Timer::Ptr m_CommentsExpireTimer;
 
 	static void CommentsExpireTimerHandler(void);
@@ -331,7 +334,8 @@ private:
 
 	static boost::mutex m_NotificationMutex;
 	static map<String, set<Notification::WeakPtr> > m_NotificationsCache;
-	static bool m_NotificationsCacheValid;
+	static bool m_NotificationsCacheNeedsUpdate;
+	static Timer::Ptr m_NotificationsCacheTimer;
 
 	static void RefreshNotificationsCache(void);
 };

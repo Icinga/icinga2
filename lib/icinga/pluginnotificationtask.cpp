@@ -44,7 +44,7 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vecto
 
 	Notification::Ptr notification = arguments[0];
 	Dictionary::Ptr macros = arguments[1];
-	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[2]));
+//	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[2]));
 
 	Value raw_command = notification->GetNotificationCommand();
 

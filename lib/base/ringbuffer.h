@@ -44,7 +44,7 @@ public:
 
 private:
 	vector<int> m_Slots;
-	int m_TimeValue;
+	SizeType m_TimeValue;
 };
 
 }

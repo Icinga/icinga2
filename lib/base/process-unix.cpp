@@ -24,6 +24,7 @@
 
 using namespace icinga;
 
+condition_variable Process::m_CV;
 int Process::m_TaskFd;
 Timer::Ptr Process::m_StatusTimer;
 extern char **environ;
@@ -47,7 +48,12 @@ void Process::Initialize(void)
 
 	m_TaskFd = fds[1];
 
-	for (int i = 0; i < thread::hardware_concurrency(); i++) {
+	unsigned int threads = thread::hardware_concurrency();
+
+	if (threads == 0)
+		threads = 2;
+
+	for (unsigned int i = 0; i < threads; i++) {
 		int childTaskFd = dup(fds[0]);
 
 		if (childTaskFd < 0)
@@ -104,44 +110,63 @@ void Process::WorkerThreadProc(int taskFd)
 		if (rc == 0)
 			continue;
 
-
 		for (int i = 0; i < idx; i++) {
 			if ((pfds[i].revents & (POLLIN|POLLHUP)) == 0)
 				continue;
 
-			while (pfds[i].fd == taskFd && tasks.size() < MaxTasksPerThread) {
-				Process::Ptr task;
+			if (pfds[i].fd == taskFd) {
+				vector<Process::Ptr> new_tasks;
 
-				{
+				int want = MaxTasksPerThread - tasks.size();
+
+				if (want > m_Tasks.size())
+					want = m_Tasks.size();
+
+				if (want > 0) {
 					boost::mutex::scoped_lock lock(m_Mutex);
 
 					/* Read one byte for every task we take from the pending tasks list. */
-					char buffer;
-					int rc = read(taskFd, &buffer, sizeof(buffer));
+					char buffer[MaxTasksPerThread];
 
-					if (rc < 0) {
+					assert(want =< sizeof(buffer));
+
+					int have = read(taskFd, &buffer, want);
+
+					if (have < 0) {
 						if (errno == EAGAIN)
 							break; /* Someone else was faster and took our task. */
 
 						BOOST_THROW_EXCEPTION(PosixException("read() failed.", errno));
 					}
 
-					assert(!m_Tasks.empty());
+					while (have > 0) {
+						assert(!m_Tasks.empty());
 
-					task = m_Tasks.front();
-					m_Tasks.pop_front();
+						Process::Ptr task = m_Tasks.front();
+						m_Tasks.pop_front();
+
+						new_tasks.push_back(task);
+
+						have--;
+					}
+
+					m_CV.notify_all();
 				}
 
-				try {
-					task->InitTask();
+				BOOST_FOREACH(const Process::Ptr& task, new_tasks) {
+					try {
+						task->InitTask();
 
-					int fd = task->m_FD;
+						int fd = task->m_FD;
 
-					if (fd >= 0)
-						tasks[fd] = task;
-				} catch (...) {
-					task->FinishException(boost::current_exception());
+						if (fd >= 0)
+							tasks[fd] = task;
+					} catch (...) {
+						task->FinishException(boost::current_exception());
+					}
 				}
+
+				continue;
 			}
 
 			it = tasks.find(pfds[i].fd);
@@ -161,14 +186,23 @@ void Process::WorkerThreadProc(int taskFd)
 	}
 }
 
-void Process::NotifyWorker(void)
+void Process::QueueTask(void)
 {
-	/**
-	 * This little gem which is commonly known as the "self-pipe trick"
-	 * takes care of waking up the select() call in the worker thread.
-	 */
-	if (write(m_TaskFd, "T", 1) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("write() failed.", errno));
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		while (m_Tasks.size() >= PIPE_BUF)
+			m_CV.wait(lock);
+
+		m_Tasks.push_back(GetSelf());
+
+		/**
+		 * This little gem which is commonly known as the "self-pipe trick"
+		 * takes care of waking up the select() call in the worker thread.
+		 */
+		if (write(m_TaskFd, "T", 1) < 0)
+			BOOST_THROW_EXCEPTION(PosixException("write() failed.", errno));
+	}
 }
 
 void Process::InitTask(void)
@@ -196,7 +230,7 @@ void Process::InitTask(void)
 	// build argv
 	char **argv = new char *[m_Arguments.size() + 1];
 
-	for (int i = 0; i < m_Arguments.size(); i++)
+	for (unsigned int i = 0; i < m_Arguments.size(); i++)
 		argv[i] = strdup(m_Arguments[i].CStr());
 
 	argv[m_Arguments.size()] = NULL;

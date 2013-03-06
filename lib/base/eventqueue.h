@@ -49,14 +49,11 @@ private:
 	boost::mutex m_Mutex;
 	condition_variable m_CV;
 
-	double m_LastReport;
-	shared_ptr<Timer> m_ReportTimer;
-
 	bool m_Stopped;
 	vector<Callback> m_Events;
 
 	void QueueThreadProc(void);
-	void ReportTimerHandler(void);
+	void ReportThreadProc(void);
 };
 
 }

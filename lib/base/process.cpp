@@ -67,10 +67,5 @@ vector<String> Process::SplitCommand(const Value& command)
 
 void Process::Run(void)
 {
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Tasks.push_back(GetSelf());
-	}
-
-	NotifyWorker();
+	QueueTask();
 }

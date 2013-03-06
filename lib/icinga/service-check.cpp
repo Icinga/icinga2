@@ -334,6 +334,8 @@ void Service::SetForceNextCheck(bool forced)
  */
 void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 {
+	bool reachable = IsReachable();
+
 	assert(!OwnsLock());
 	ObjectLock olock(this);
 
@@ -413,6 +415,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	Service::UpdateStatistics(cr);
 
+	bool send_notification = hardChange && reachable && !IsInDowntime() && !IsAcknowledged();
+
 	olock.Unlock();
 
 	/* Flush the object so other instances see the service's
@@ -431,7 +435,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	EndpointManager::GetInstance()->SendMulticastMessage(rm);
 
-	if (hardChange && IsReachable() && !IsInDowntime() && !IsAcknowledged())
+	if (send_notification)
 		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem);
 }
 
@@ -521,16 +525,21 @@ bool Service::IsAllowedChecker(const String& checker) const
 void Service::BeginExecuteCheck(const function<void (void)>& callback)
 {
 	assert(!OwnsLock());
-	ObjectLock olock(this);
 
-	/* don't run another check if there is one pending */
-	if (m_CurrentTask) {
-		olock.Unlock();
+	{
+		ObjectLock olock(this);
 
-		/* we need to call the callback anyway */
-		callback();
+		/* don't run another check if there is one pending */
+		if (m_CheckRunning) {
+			olock.Unlock();
 
-		return;
+			/* we need to call the callback anyway */
+			callback();
+
+			return;
+		}
+
+		m_CheckRunning = true;
 	}
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
@@ -545,12 +554,12 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
 
 	Host::Ptr host = GetHost();
 
-	olock.Unlock();
-
 	macroDicts.push_back(CalculateDynamicMacros());
 
-	macroDicts.push_back(host->GetMacros());
-	macroDicts.push_back(host->CalculateDynamicMacros());
+	if (host) {
+		macroDicts.push_back(host->GetMacros());
+		macroDicts.push_back(host->CalculateDynamicMacros());
+	}
 
 	IcingaApplication::Ptr app = IcingaApplication::GetInstance();
 	macroDicts.push_back(app->GetMacros());
@@ -570,7 +579,7 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
 	ScriptTask::Ptr task = MakeMethodTask("check", arguments);
 
 	{
-		ObjectLock slock(this);
+		ObjectLock olock(this);
 		self->m_CurrentTask = task;
 	}
 
@@ -642,6 +651,7 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 	{
 		ObjectLock olock(this);
 		m_CurrentTask.reset();
+		m_CheckRunning = false;
 	}
 
 	/* figure out when the next check is for this service; the call to

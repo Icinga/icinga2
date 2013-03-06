@@ -72,8 +72,6 @@ ScriptFunction::Ptr ScriptFunction::GetByName(const String& name)
  */
 void ScriptFunction::Invoke(const ScriptTask::Ptr& task, const vector<Value>& arguments)
 {
-	ObjectLock olock(this);
-
 	m_Callback(task, arguments);
 }
 

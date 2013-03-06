@@ -87,7 +87,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
  */
 void ExternalCommandProcessor::Initialize(void)
 {
-	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult);
+	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessHostCheckResult);
 	RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult);
 	RegisterCommand("SCHEDULE_HOST_CHECK", &ExternalCommandProcessor::ScheduleHostCheck);
 	RegisterCommand("SCHEDULE_FORCED_HOST_CHECK", &ExternalCommandProcessor::ScheduleForcedHostCheck);
@@ -167,8 +167,8 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const vector<
 	if (!hc->GetEnablePassiveChecks())
 		BOOST_THROW_EXCEPTION(invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
 
-	int exitStatus = Convert::ToDouble(arguments[2]);
-	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(arguments[3]);
+	int exitStatus = Convert::ToDouble(arguments[1]);
+	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(arguments[2]);
 	result->Set("state", PluginCheckTask::ExitStatusToState(exitStatus));
 
 	result->Set("schedule_start", time);
@@ -180,10 +180,14 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const vector<
 	Logger::Write(LogInformation, "icinga", "Processing passive check result for host '" + arguments[0] + "'");
 	hc->ProcessCheckResult(result);
 
-	/* Reschedule the next check. The side effect of this is that for as long
-	 * as we receive passive results for a service we won't execute any
-	 * active checks. */
-	hc->SetNextCheck(Utility::GetTime() + hc->GetCheckInterval());
+	{
+		ObjectLock olock(hc);
+
+		/* Reschedule the next check. The side effect of this is that for as long
+		 * as we receive passive results for a service we won't execute any
+		 * active checks. */
+		hc->SetNextCheck(Utility::GetTime() + hc->GetCheckInterval());
+	}
 }
 
 void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vector<String>& arguments)
@@ -209,10 +213,14 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vect
 	Logger::Write(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
 	service->ProcessCheckResult(result);
 
-	/* Reschedule the next check. The side effect of this is that for as long
-	 * as we receive passive results for a service we won't execute any
-	 * active checks. */
-	service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
+	{
+		ObjectLock olock(service);
+
+		/* Reschedule the next check. The side effect of this is that for as long
+		 * as we receive passive results for a service we won't execute any
+		 * active checks. */
+		service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
+	}
 }
 
 void ExternalCommandProcessor::ScheduleHostCheck(double, const vector<String>& arguments)
@@ -233,7 +241,12 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const vector<String>& a
 	}
 
 	Logger::Write(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
-	hc->SetNextCheck(planned_check);
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetNextCheck(planned_check);
+	}
 }
 
 void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const vector<String>& arguments)
@@ -246,8 +259,13 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const vector<Stri
 	Service::Ptr hc = host->GetHostCheckService();
 
 	Logger::Write(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
-	hc->SetForceNextCheck(true);
-	hc->SetNextCheck(Convert::ToDouble(arguments[1]));
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetForceNextCheck(true);
+		hc->SetNextCheck(Convert::ToDouble(arguments[1]));
+	}
 }
 
 void ExternalCommandProcessor::ScheduleSvcCheck(double, const vector<String>& arguments)
@@ -266,7 +284,12 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double, const vector<String>& ar
 	}
 
 	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
-	service->SetNextCheck(planned_check);
+
+	{
+		ObjectLock olock(service);
+
+		service->SetNextCheck(planned_check);
+	}
 }
 
 void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const vector<String>& arguments)
@@ -277,8 +300,13 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const vector<Strin
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
-	service->SetForceNextCheck(true);
-	service->SetNextCheck(Convert::ToDouble(arguments[2]));
+
+	{
+		ObjectLock olock(service);
+
+		service->SetForceNextCheck(true);
+		service->SetNextCheck(Convert::ToDouble(arguments[2]));
+	}
 }
 
 void ExternalCommandProcessor::EnableHostCheck(double, const vector<String>& arguments)
@@ -291,8 +319,14 @@ void ExternalCommandProcessor::EnableHostCheck(double, const vector<String>& arg
 	Logger::Write(LogInformation, "icinga", "Enabling active checks for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
-	if (hc)
+	if (!hc)
+		return;
+
+	{
+		ObjectLock olock(hc);
+
 		hc->SetEnableActiveChecks(true);
+	}
 }
 
 void ExternalCommandProcessor::DisableHostCheck(double, const vector<String>& arguments)
@@ -305,8 +339,14 @@ void ExternalCommandProcessor::DisableHostCheck(double, const vector<String>& ar
 	Logger::Write(LogInformation, "icinga", "Disabling active checks for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
-	if (hc)
+	if (!hc)
+		return;
+
+	{
+		ObjectLock olock(hc);
+
 		hc->SetEnableActiveChecks(false);
+	}
 }
 
 void ExternalCommandProcessor::EnableSvcCheck(double, const vector<String>& arguments)
@@ -317,7 +357,12 @@ void ExternalCommandProcessor::EnableSvcCheck(double, const vector<String>& argu
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + arguments[1] + "'");
-	service->SetEnableActiveChecks(true);
+
+	{
+		ObjectLock olock(service);
+
+		service->SetEnableActiveChecks(true);
+	}
 }
 
 void ExternalCommandProcessor::DisableSvcCheck(double, const vector<String>& arguments)
@@ -328,7 +373,12 @@ void ExternalCommandProcessor::DisableSvcCheck(double, const vector<String>& arg
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + arguments[1] + "'");
-	service->SetEnableActiveChecks(false);
+
+	{
+		ObjectLock olock(service);
+
+		service->SetEnableActiveChecks(false);
+	}
 }
 
 void ExternalCommandProcessor::ShutdownProcess(double, const vector<String>&)
@@ -348,8 +398,13 @@ void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const vector<
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
-		service->SetNextCheck(planned_check);
-		service->SetForceNextCheck(true);
+
+		{
+			ObjectLock olock(service);
+
+			service->SetNextCheck(planned_check);
+			service->SetForceNextCheck(true);
+		}
 	}
 }
 
@@ -370,7 +425,12 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const vector<String
 		}
 
 		Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
-		service->SetNextCheck(planned_check);
+
+		{
+			ObjectLock olock(service);
+
+			service->SetNextCheck(planned_check);
+		}
 	}
 }
 
@@ -396,7 +456,12 @@ void ExternalCommandProcessor::DisableHostSvcChecks(double, const vector<String>
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
-		service->SetEnableActiveChecks(false);
+
+		{
+			ObjectLock olock(service);
+
+			service->SetEnableActiveChecks(false);
+		}
 	}
 }
 
@@ -413,7 +478,12 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const vector<String
 		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' is OK."));
 
 	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for service '" + service->GetName() + "'");
-	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+
+	{
+		ObjectLock olock(service);
+
+		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+	}
 }
 
 void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<String>& arguments)
@@ -430,7 +500,12 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<
 		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' is OK."));
 
 	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for service '" + service->GetName() + "'");
-	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
+
+	{
+		ObjectLock olock(service);
+
+		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
+	}
 }
 
 void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<String>& arguments)
@@ -441,7 +516,12 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<Str
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
-	service->ClearAcknowledgement();
+
+	{
+		ObjectLock olock(service);
+
+		service->ClearAcknowledgement();
+	}
 }
 
 void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<String>& arguments)
@@ -456,6 +536,8 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<Strin
 	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
+		ObjectLock olock(service);
+
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
 
@@ -476,6 +558,8 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector
 	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
+		ObjectLock olock(service);
+
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
 
@@ -493,6 +577,8 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const vector<St
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
+		ObjectLock olock(service);
+
 		service->ClearAcknowledgement();
 	}
 }
@@ -507,7 +593,12 @@ void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const vector<Str
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 			Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
-			service->SetEnableActiveChecks(true);
+
+			{
+				ObjectLock olock(service);
+
+				service->SetEnableActiveChecks(true);
+			}
 		}
 	}
 }
@@ -522,7 +613,12 @@ void ExternalCommandProcessor::DisableHostgroupSvcChecks(double, const vector<St
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 			Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
-			service->SetEnableActiveChecks(false);
+
+			{
+				ObjectLock olock(service);
+
+				service->SetEnableActiveChecks(false);
+			}
 		}
 	}
 }
@@ -536,7 +632,12 @@ void ExternalCommandProcessor::EnableServicegroupSvcChecks(double, const vector<
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
-		service->SetEnableActiveChecks(true);
+
+		{
+			ObjectLock olock(service);
+
+			service->SetEnableActiveChecks(true);
+		}
 	}
 }
 
@@ -549,7 +650,12 @@ void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const vector
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
-		service->SetEnableActiveChecks(false);
+
+		{
+			ObjectLock olock(service);
+
+			service->SetEnableActiveChecks(false);
+		}
 	}
 }
 
@@ -563,8 +669,14 @@ void ExternalCommandProcessor::EnablePassiveHostChecks(double, const vector<Stri
 	Logger::Write(LogInformation, "icinga", "Enabling passive checks for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
-	if (hc)
+	if (!hc)
+		return;
+
+	{
+		ObjectLock olock(hc);
+
 		hc->SetEnablePassiveChecks(true);
+	}
 }
 
 void ExternalCommandProcessor::DisablePassiveHostChecks(double, const vector<String>& arguments)
@@ -577,8 +689,14 @@ void ExternalCommandProcessor::DisablePassiveHostChecks(double, const vector<Str
 	Logger::Write(LogInformation, "icinga", "Disabling passive checks for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
-	if (hc)
+	if (!hc)
+		return;
+
+	{
+		ObjectLock olock(hc);
+
 		hc->SetEnablePassiveChecks(false);
+	}
 }
 
 void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const vector<String>& arguments)
@@ -589,7 +707,12 @@ void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const vector<Strin
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + arguments[1] + "'");
-	service->SetEnablePassiveChecks(true);
+
+	{
+		ObjectLock olock(service);
+
+		service->SetEnablePassiveChecks(true);
+	}
 }
 
 void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const vector<String>& arguments)
@@ -600,7 +723,12 @@ void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const vector<Stri
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + arguments[1] + "'");
-	service->SetEnablePassiveChecks(false);
+
+	{
+		ObjectLock olock(service);
+
+		service->SetEnablePassiveChecks(false);
+	}
 }
 
 void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const vector<String>& arguments)
@@ -612,7 +740,12 @@ void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const 
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + service->GetName() + "'");
-		service->SetEnablePassiveChecks(true);
+
+		{
+			ObjectLock olock(service);
+
+			service->SetEnablePassiveChecks(true);
+		}
 	}
 }
 
@@ -625,7 +758,12 @@ void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + service->GetName() + "'");
-		service->SetEnablePassiveChecks(true);
+
+		{
+			ObjectLock olock(service);
+
+			service->SetEnablePassiveChecks(true);
+		}
 	}
 }
 
@@ -639,7 +777,12 @@ void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double, const vec
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 			Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + service->GetName() + "'");
-			service->SetEnablePassiveChecks(true);
+
+			{
+				ObjectLock olock(service);
+
+				service->SetEnablePassiveChecks(true);
+			}
 		}
 	}
 }
@@ -654,7 +797,12 @@ void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const ve
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 			Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + service->GetName() + "'");
-			service->SetEnablePassiveChecks(false);
+
+			{
+				ObjectLock olock(service);
+
+				service->SetEnablePassiveChecks(false);
+			}
 		}
 	}
 }
@@ -962,9 +1110,8 @@ void ExternalCommandProcessor::SendCustomHostNotification(double time, const vec
 
 	Logger::Write(LogInformation, "icinga", "Sending custom notification for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
-	if (service) {
+	if (service)
 		service->RequestNotifications(NotificationCustom);
-	}
 }
 
 void ExternalCommandProcessor::SendCustomSvcNotification(double time, const vector<String>& arguments)
@@ -986,9 +1133,14 @@ void ExternalCommandProcessor::DelayHostNotification(double time, const vector<S
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Logger::Write(LogInformation, "icinga", "Delaying notifications for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
-	if (service) {
-		service->SetLastNotification(Convert::ToDouble(arguments[1]));
+	Service::Ptr hc = host->GetHostCheckService();
+	if (!hc)
+		return;
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetLastNotification(Convert::ToDouble(arguments[1]));
 	}
 }
 
@@ -1000,7 +1152,12 @@ void ExternalCommandProcessor::DelaySvcNotification(double time, const vector<St
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Delaying notifications for service " + service->GetName());
-	service->SetLastNotification(Convert::ToDouble(arguments[2]));
+
+	{
+		ObjectLock olock(service);
+
+		service->SetLastNotification(Convert::ToDouble(arguments[2]));
+	}
 }
 
 void ExternalCommandProcessor::EnableHostNotifications(double, const vector<String>& arguments)
@@ -1013,8 +1170,14 @@ void ExternalCommandProcessor::EnableHostNotifications(double, const vector<Stri
 	Logger::Write(LogInformation, "icinga", "Enabling notifications for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
-	if (hc)
+	if (!hc)
+		return;
+
+	{
+		ObjectLock olock(hc);
+
 		hc->SetEnableNotifications(true);
+	}
 }
 
 void ExternalCommandProcessor::DisableHostNotifications(double, const vector<String>& arguments)
@@ -1027,8 +1190,14 @@ void ExternalCommandProcessor::DisableHostNotifications(double, const vector<Str
 	Logger::Write(LogInformation, "icinga", "Disabling notifications for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
-	if (hc)
+	if (!hc)
+		return;
+
+	{
+		ObjectLock olock(hc);
+
 		hc->SetEnableNotifications(false);
+	}
 }
 
 void ExternalCommandProcessor::EnableSvcNotifications(double, const vector<String>& arguments)
@@ -1039,7 +1208,12 @@ void ExternalCommandProcessor::EnableSvcNotifications(double, const vector<Strin
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Enabling notifications for service '" + arguments[1] + "'");
-	service->SetEnableNotifications(true);
+
+	{
+		ObjectLock olock(service);
+
+		service->SetEnableNotifications(true);
+	}
 }
 
 void ExternalCommandProcessor::DisableSvcNotifications(double, const vector<String>& arguments)
@@ -1050,5 +1224,10 @@ void ExternalCommandProcessor::DisableSvcNotifications(double, const vector<Stri
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Disabling notifications for service '" + arguments[1] + "'");
-	service->SetEnableNotifications(false);
+
+	{
+		ObjectLock olock(service);
+
+		service->SetEnableNotifications(false);
+	}
 }

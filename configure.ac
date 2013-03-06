@@ -75,8 +75,8 @@ AC_CHECK_FUNCS([backtrace_symbols execvpe pipe2])
 AC_MSG_CHECKING(whether to enable debugging)
 AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes]   turn on debugging (default=no)],, enable_debug=no)
 if test "x$enable_debug" = "xyes"; then
-	CFLAGS="$CFLAGS -g -O0 -D_DEBUG"
-	CXXFLAGS="$CXXFLAGS -g -O0 -D_DEBUG"
+	CFLAGS="$CFLAGS -g -O0 -D_DEBUG -Wall -Wextra"
+	CXXFLAGS="$CXXFLAGS -g -O0 -D_DEBUG -Wall -Wextra"
 else
 	CFLAGS="$CFLAGS -DNDEBUG"
 	CXXFLAGS="$CXXFLAGS -DNDEBUG"

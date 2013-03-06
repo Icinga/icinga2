@@ -23,7 +23,8 @@ using namespace icinga;
 
 boost::mutex Host::m_ServiceMutex;
 map<String, map<String, Service::WeakPtr> > Host::m_ServicesCache;
-bool Host::m_ServicesCacheValid = true;
+bool Host::m_ServicesCacheNeedsUpdate = false;
+Timer::Ptr Host::m_ServicesCacheTimer;
 
 REGISTER_SCRIPTFUNCTION("ValidateServiceDictionary", &Host::ValidateServiceDictionary);
 
@@ -134,7 +135,7 @@ bool Host::IsReachable(void) const
 	set<Host::Ptr> parentHosts = GetParentHosts();
 
 	BOOST_FOREACH(const Host::Ptr& host, parentHosts) {
-		Service::Ptr hc = GetHostCheckService();
+		Service::Ptr hc = host->GetHostCheckService();
 
 		/* ignore hosts that don't have a hostcheck */
 		if (!hc)
@@ -325,10 +326,17 @@ void Host::InvalidateServicesCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_ServiceMutex);
 
-		if (m_ServicesCacheValid)
-			Utility::QueueAsyncCallback(boost::bind(&Host::RefreshServicesCache));
+		if (m_ServicesCacheNeedsUpdate)
+			return; /* Someone else has already requested a refresh. */
 
-		m_ServicesCacheValid = false;
+		if (!m_ServicesCacheTimer) {
+			m_ServicesCacheTimer = boost::make_shared<Timer>();
+			m_ServicesCacheTimer->SetInterval(0.5);
+			m_ServicesCacheTimer->OnTimerExpired.connect(boost::bind(&Host::RefreshServicesCache));
+		}
+
+		m_ServicesCacheTimer->Start();
+		m_ServicesCacheNeedsUpdate = true;
 	}
 }
 
@@ -337,11 +345,12 @@ void Host::RefreshServicesCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_ServiceMutex);
 
-		if (m_ServicesCacheValid)
-			return;
-
-		m_ServicesCacheValid = true;
+		assert(m_ServicesCacheNeedsUpdate);
+		m_ServicesCacheTimer->Stop();
+		m_ServicesCacheNeedsUpdate = false;
 	}
+
+	Logger::Write(LogInformation, "icinga", "Updating services cache.");
 
 	map<String, map<String, Service::WeakPtr> > newServicesCache;
 

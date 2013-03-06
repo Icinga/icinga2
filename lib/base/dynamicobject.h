@@ -117,7 +117,7 @@ private:
 	Attribute<String> m_Source;
 	Attribute<Dictionary::Ptr> m_Methods;
 
-	bool m_Registered;
+	bool m_Registered;	/**< protected by the type mutex */
 
 	static double m_CurrentTx;
 

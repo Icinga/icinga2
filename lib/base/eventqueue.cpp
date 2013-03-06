@@ -25,20 +25,20 @@ using namespace icinga;
  * @threadsafety Always.
  */
 EventQueue::EventQueue(void)
-	: m_Stopped(false), m_LastReport(0)
+	: m_Stopped(false)
 {
-	int thread_count = thread::hardware_concurrency();
+	unsigned int threads = thread::hardware_concurrency();
 
-	if (thread_count < 4)
-		thread_count = 4;
+	if (threads == 0)
+		threads = 1;
 
-	for (int i = 0; i < thread_count; i++)
+	threads *= 8;
+
+	for (unsigned int i = 0; i < threads; i++)
 		m_Threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
 
-	m_ReportTimer = boost::make_shared<Timer>();
-	m_ReportTimer->OnTimerExpired.connect(boost::bind(&EventQueue::ReportTimerHandler, this));
-	m_ReportTimer->SetInterval(5);
-	m_ReportTimer->Start();
+	thread reportThread(boost::bind(&EventQueue::ReportThreadProc, this));
+	reportThread.detach();
 }
 
 /**
@@ -46,8 +46,6 @@ EventQueue::EventQueue(void)
  */
 EventQueue::~EventQueue(void)
 {
-	m_ReportTimer->Stop();
-
 	Stop();
 	Join();
 }
@@ -95,17 +93,39 @@ void EventQueue::QueueThreadProc(void)
 		}
 
 		BOOST_FOREACH(const Callback& ev, events) {
+#ifdef _DEBUG
+			struct rusage usage_start, usage_end;
+
 			double st = Utility::GetTime();
+			(void) getrusage(RUSAGE_THREAD, &usage_start);
+#endif /* _DEBUG */
 
 			ev();
 
+#ifdef _DEBUG
 			double et = Utility::GetTime();
+			(void) getrusage(RUSAGE_THREAD, &usage_end);
 
-			if (et - st > 0.25) {
+			double duser = (usage_end.ru_utime.tv_sec - usage_start.ru_utime.tv_sec) +
+			    (usage_end.ru_utime.tv_usec - usage_start.ru_utime.tv_usec) / 1000000.0;
+
+			double dsys = (usage_end.ru_stime.tv_sec - usage_start.ru_stime.tv_sec) +
+			    (usage_end.ru_stime.tv_usec - usage_start.ru_stime.tv_usec) / 1000000.0;
+
+			double dwait = (et - st) - (duser + dsys);
+
+			int dminfaults = usage_end.ru_minflt - usage_start.ru_minflt;
+			int dmajfaults = usage_end.ru_majflt - usage_start.ru_majflt;
+
+			int dvctx = usage_end.ru_nvcsw - usage_start.ru_nvcsw;
+			int divctx = usage_end.ru_nivcsw - usage_start.ru_nivcsw;
+
+			if (et - st > 0.5) {
 				stringstream msgbuf;
-				msgbuf << "Event call took " << et - st << " seconds.";
+				msgbuf << "Event call took user:" << duser << "s, system:" << dsys << "s, wait:" << dwait << "s, minor_faults:" << dminfaults << ", major_faults:" << dmajfaults << ", voluntary_csw:" << dvctx << ", involuntary_csw:" << divctx;
 				Logger::Write(LogWarning, "base", msgbuf.str());
 			}
+#endif /* _DEBUG */
 		}
 	}
 }
@@ -123,15 +143,18 @@ void EventQueue::Post(const EventQueue::Callback& callback)
 	m_CV.notify_one();
 }
 
-void EventQueue::ReportTimerHandler(void)
+void EventQueue::ReportThreadProc(void)
 {
-	int pending;
+	for (;;) {
+		Utility::Sleep(5);
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		pending = m_Events.size();
+		int pending;
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			pending = m_Events.size();
+		}
+
+		Logger::Write(LogInformation, "base", "Pending tasks: " + Convert::ToString(pending));
 	}
-
-	if (pending > 1000)
-		Logger::Write(LogCritical, "base", "More than 1000 pending events: " + Convert::ToString(pending));
 }

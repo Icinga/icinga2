@@ -23,7 +23,8 @@ using namespace icinga;
 
 boost::mutex ServiceGroup::m_Mutex;
 map<String, vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
-bool ServiceGroup::m_MembersCacheValid = true;
+bool ServiceGroup::m_MembersCacheNeedsUpdate = false;
+Timer::Ptr ServiceGroup::m_MembersCacheTimer;
 
 REGISTER_TYPE(ServiceGroup);
 
@@ -120,10 +121,17 @@ void ServiceGroup::InvalidateMembersCache(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	if (m_MembersCacheValid)
-		Utility::QueueAsyncCallback(boost::bind(&ServiceGroup::RefreshMembersCache));
+	if (m_MembersCacheNeedsUpdate)
+		return; /* Someone else has already requested a refresh. */
 
-	m_MembersCacheValid = false;
+	if (!m_MembersCacheTimer) {
+		m_MembersCacheTimer = boost::make_shared<Timer>();
+		m_MembersCacheTimer->SetInterval(0.5);
+		m_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&ServiceGroup::RefreshMembersCache));
+	}
+
+	m_MembersCacheTimer->Start();
+	m_MembersCacheNeedsUpdate = true;
 }
 
 /**
@@ -134,10 +142,9 @@ void ServiceGroup::RefreshMembersCache(void)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		if (m_MembersCacheValid)
-			return;
-
-		m_MembersCacheValid = true;
+		assert(m_MembersCacheNeedsUpdate);
+		m_MembersCacheTimer->Stop();
+		m_MembersCacheNeedsUpdate = false;
 	}
 
 	map<String, vector<Service::WeakPtr> > newMembersCache;
