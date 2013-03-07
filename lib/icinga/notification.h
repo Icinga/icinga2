@@ -63,7 +63,7 @@ public:
 	set<User::Ptr> GetUsers(void) const;
 	set<UserGroup::Ptr> GetGroups(void) const;
 
-	void BeginExecuteNotification(NotificationType type);
+	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr);
 
 	static String NotificationTypeToString(NotificationType type);
 

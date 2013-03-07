@@ -29,7 +29,7 @@ Timer::Ptr Service::m_NotificationsCacheTimer;
 /**
  * @threadsafety Always.
  */
-void Service::RequestNotifications(NotificationType type)
+void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr& cr)
 {
 	{
 		ObjectLock olock(this);
@@ -44,6 +44,7 @@ void Service::RequestNotifications(NotificationType type)
 
 	params.SetService(GetName());
 	params.SetType(type);
+	params.SetCheckResult(cr);
 
 	Logger::Write(LogDebug, "icinga", "Sending notification anycast request for service '" + GetName() + "'");
 	EndpointManager::GetInstance()->SendAnycastMessage(Endpoint::Ptr(), msg);
@@ -52,7 +53,7 @@ void Service::RequestNotifications(NotificationType type)
 /**
  * @threadsafety Always.
  */
-void Service::SendNotifications(NotificationType type)
+void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr)
 {
 	if (!GetEnableNotifications()) {
 		Logger::Write(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
@@ -68,7 +69,7 @@ void Service::SendNotifications(NotificationType type)
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {
-			notification->BeginExecuteNotification(type);
+			notification->BeginExecuteNotification(type, cr);
 		} catch (const exception& ex) {
 			stringstream msgbuf;
 			msgbuf << "Exception occured during notification for service '"

@@ -39,6 +39,9 @@ public:
 
 	NotificationType GetType(void) const;
 	void SetType(NotificationType type);
+
+	Dictionary::Ptr GetCheckResult(void) const;
+	void SetCheckResult(const Dictionary::Ptr& cr);
 };
 
 }

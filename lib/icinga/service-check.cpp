@@ -22,8 +22,8 @@
 using namespace icinga;
 
 const int Service::DefaultMaxCheckAttempts = 3;
-const int Service::DefaultCheckInterval = 5 * 60;
-const int Service::CheckIntervalDivisor = 5;
+const double Service::DefaultCheckInterval = 5 * 60;
+const double Service::CheckIntervalDivisor = 5.0;
 
 signals2::signal<void (const Service::Ptr&)> Service::OnCheckerChanged;
 signals2::signal<void (const Service::Ptr&)> Service::OnNextCheckChanged;
@@ -191,10 +191,26 @@ ServiceState Service::GetState(void) const
 	return static_cast<ServiceState>(ivalue);
 }
 
+void Service::SetLastState(ServiceState state)
+{
+	m_LastState = static_cast<long>(state);
+
+	Touch("last_state");
+}
+
+ServiceState Service::GetLastState(void) const
+{
+	if (m_LastState.IsEmpty())
+		return StateUnknown;
+
+	int ivalue = static_cast<int>(m_LastState);
+	return static_cast<ServiceState>(ivalue);
+}
+
 /**
  * @threadsafety Always.
  */
-void Service::SetStateType(ServiceStateType type)
+void Service::SetStateType(StateType type)
 {
 	m_StateType = static_cast<long>(type);
 	Touch("state_type");
@@ -203,13 +219,34 @@ void Service::SetStateType(ServiceStateType type)
 /**
  * @threadsafety Always.
  */
-ServiceStateType Service::GetStateType(void) const
+StateType Service::GetStateType(void) const
 {
 	if (m_StateType.IsEmpty())
 		return StateTypeSoft;
 
 	int ivalue = static_cast<int>(m_StateType);
-	return static_cast<ServiceStateType>(ivalue);
+	return static_cast<StateType>(ivalue);
+}
+
+/**
+ * @threadsafety Always.
+ */
+void Service::SetLastStateType(StateType type)
+{
+	m_LastStateType = static_cast<long>(type);
+	Touch("last_state_type");
+}
+
+/**
+ * @threadsafety Always.
+ */
+StateType Service::GetLastStateType(void) const
+{
+	if (m_LastStateType.IsEmpty())
+		return StateTypeSoft;
+
+	int ivalue = static_cast<int>(m_LastStateType);
+	return static_cast<StateType>(ivalue);
 }
 
 /**
@@ -340,9 +377,12 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	ObjectLock olock(this);
 
 	ServiceState old_state = GetState();
-	ServiceStateType old_stateType = GetStateType();
+	StateType old_stateType = GetStateType();
 	bool hardChange = false;
 	bool recovery;
+
+	SetLastState(old_state);
+	SetLastStateType(old_stateType);
 
 	long attempt = GetCurrentCheckAttempt();
 
@@ -423,6 +463,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	 * new state when they receive the CheckResult message */
 	Flush();
 
+	/* Update macros - these are used by event handlers and notifications. */
+	cr->Set("macros", CalculateAllMacros());
+
 	RequestMessage rm;
 	rm.SetMethod("checker::CheckResult");
 
@@ -436,7 +479,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	EndpointManager::GetInstance()->SendMulticastMessage(rm);
 
 	if (send_notification)
-		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem);
+		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem, cr);
 }
 
 /**
@@ -479,7 +522,7 @@ String Service::StateToString(ServiceState state)
 /**
  * @threadsafety Always.
  */
-ServiceStateType Service::StateTypeFromString(const String& type)
+StateType Service::StateTypeFromString(const String& type)
 {
 	if (type == "SOFT")
 		return StateTypeSoft;
@@ -490,7 +533,7 @@ ServiceStateType Service::StateTypeFromString(const String& type)
 /**
  * @threadsafety Always.
  */
-String Service::StateTypeToString(ServiceStateType type)
+String Service::StateTypeToString(StateType type)
 {
 	if (type == StateTypeSoft)
 		return "SOFT";
@@ -547,27 +590,7 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
 	checkInfo->Set("schedule_start", GetNextCheck());
 	checkInfo->Set("execution_start", Utility::GetTime());
 
-	vector<Dictionary::Ptr> macroDicts;
-	macroDicts.push_back(GetMacros());
-
-	Value raw_command = GetCheckCommand();
-
-	Host::Ptr host = GetHost();
-
-	macroDicts.push_back(CalculateDynamicMacros());
-
-	if (host) {
-		macroDicts.push_back(host->GetMacros());
-		macroDicts.push_back(host->CalculateDynamicMacros());
-	}
-
-	IcingaApplication::Ptr app = IcingaApplication::GetInstance();
-	macroDicts.push_back(app->GetMacros());
-
-	macroDicts.push_back(IcingaApplication::CalculateDynamicMacros());
-
-	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
-
+	Dictionary::Ptr macros = CalculateAllMacros();
 	checkInfo->Set("macros", macros);
 
 	Service::Ptr self = GetSelf();
@@ -648,16 +671,16 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 	if (result)
 		ProcessCheckResult(result);
 
+	/* figure out when the next check is for this service; the call to
+	 * ProcessCheckResult() should've already done this but lets do it again
+	 * just in case there was no check result. */
+	UpdateNextCheck();
+
 	{
 		ObjectLock olock(this);
 		m_CurrentTask.reset();
 		m_CheckRunning = false;
 	}
-
-	/* figure out when the next check is for this service; the call to
-	 * ApplyCheckResult() should've already done this but lets do it again
-	 * just in case there was no check result. */
-	UpdateNextCheck();
 
 	callback();
 }

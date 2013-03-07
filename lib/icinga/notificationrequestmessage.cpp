@@ -44,3 +44,15 @@ void NotificationRequestMessage::SetType(NotificationType type)
 {
 	Set("type", type);
 }
+
+Dictionary::Ptr NotificationRequestMessage::GetCheckResult(void) const
+{
+	Dictionary::Ptr cr;
+	Get("check_result", &cr);
+	return cr;
+}
+
+void NotificationRequestMessage::SetCheckResult(const Dictionary::Ptr& cr)
+{
+	Set("check_result", cr);
+}

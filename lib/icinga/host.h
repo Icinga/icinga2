@@ -26,6 +26,29 @@ namespace icinga
 class Service;
 
 /**
+ * The state of a host.
+ *
+ * @ingroup icinga
+ */
+enum HostState
+{
+	HostUp = 0,
+	HostDown = 1,
+	HostUnreachable = 2
+};
+
+/**
+ * The state type of a host or service.
+ *
+ * @ingroup icinga
+ */
+enum StateType
+{
+	StateTypeSoft = 0,
+	StateTypeHard = 1
+};
+
+/**
  * An Icinga host.
  *
  * @ingroup icinga
@@ -64,6 +87,14 @@ public:
 
 	static void ValidateServiceDictionary(const ScriptTask::Ptr& task,
 	    const std::vector<icinga::Value>& arguments);
+
+	HostState GetState(void) const;
+	StateType GetStateType(void) const;
+
+	HostState GetLastState(void) const;
+	StateType GetLastStateType(void) const;
+
+	static String HostStateToString(HostState state);
 
 protected:
 	virtual void OnRegistrationCompleted(void);

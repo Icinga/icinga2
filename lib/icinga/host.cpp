@@ -506,15 +506,107 @@ set<Service::Ptr> Host::GetParentServices(void) const
 	return parents;
 }
 
+HostState Host::GetState(void) const
+{
+	assert(!OwnsLock());
+
+	if (!IsReachable())
+		return HostUnreachable;
+
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return HostUp;
+
+	switch (hc->GetState()) {
+		case StateOK:
+		case StateWarning:
+			return HostUp;
+		default:
+			return HostDown;
+	}
+}
+
+StateType Host::GetStateType(void) const
+{
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return StateTypeHard;
+
+	return hc->GetStateType();
+}
+
+HostState Host::GetLastState(void) const
+{
+	assert(!OwnsLock());
+
+	if (!IsReachable())
+		return HostUnreachable;
+
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return HostUp;
+
+	switch (hc->GetLastState()) {
+		case StateOK:
+		case StateWarning:
+			return HostUp;
+		default:
+			return HostDown;
+	}
+}
+
+StateType Host::GetLastStateType(void) const
+{
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return StateTypeHard;
+
+	return hc->GetLastStateType();
+}
+
+String Host::HostStateToString(HostState state)
+{
+	switch (state) {
+		case HostUp:
+			return "UP";
+		case HostDown:
+			return "DOWN";
+		case HostUnreachable:
+			return "UNREACHABLE";
+		default:
+			return "INVALID";
+	}
+}
+
 Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 {
 	assert(!OwnsLock());
 
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 
-	macros->Set("HOSTNAME", GetName());
-	macros->Set("HOSTDISPLAYNAME", GetDisplayName());
-	macros->Set("HOSTALIAS", GetName());
+	{
+		ObjectLock olock(this);
+
+		macros->Set("HOSTNAME", GetName());
+		macros->Set("HOSTDISPLAYNAME", GetDisplayName());
+		macros->Set("HOSTALIAS", GetName());
+
+		HostState state = GetState();
+
+		macros->Set("HOSTSTATE", HostStateToString(GetState()));
+		macros->Set("HOSTSTATEID", GetState());
+
+		HostState lastState = GetLastState();
+		StateType lastStateType = GetLastStateType();
+
+		macros->Set("LASTHOSTSTATE", HostStateToString(lastState));
+		macros->Set("LASTHOSTSTATEID", lastState);
+		macros->Set("LASTHOSTSTATETYPE", Service::StateTypeToString(lastStateType));
+		}
 
 	Dictionary::Ptr cr;
 
@@ -523,31 +615,11 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 	if (hc) {
 		ObjectLock olock(hc);
 
-		String state;
-		int stateid;
-
-		switch (hc->GetState()) {
-			case StateOK:
-			case StateWarning:
-				state = "UP";
-				stateid = 0;
-				break;
-			default:
-				state = "DOWN";
-				stateid = 1;
-				break;
-		}
-
-		if (!IsReachable()) {
-			state = "UNREACHABLE";
-			stateid = 2;
-		}
-
-		macros->Set("HOSTSTATE", state);
-		macros->Set("HOSTSTATEID", stateid);
 		macros->Set("HOSTSTATETYPE", Service::StateTypeToString(hc->GetStateType()));
 		macros->Set("HOSTATTEMPT", hc->GetCurrentCheckAttempt());
 		macros->Set("MAXHOSTATTEMPT", hc->GetMaxCheckAttempts());
+
+		macros->Set("LASTHOSTSTATECHANGE", (time_t)hc->GetLastStateChange());
 
 		cr = hc->GetLastCheckResult();
 	}
@@ -558,6 +630,8 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 
 		macros->Set("HOSTOUTPUT", cr->Get("output"));
 		macros->Set("HOSTPERFDATA", cr->Get("performance_data_raw"));
+
+		macros->Set("LASTHOSTCHECK", (time_t)cr->Get("schedule_start"));
 	}
 
 	macros->Seal();

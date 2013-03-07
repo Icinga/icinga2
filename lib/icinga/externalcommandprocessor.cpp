@@ -1111,7 +1111,7 @@ void ExternalCommandProcessor::SendCustomHostNotification(double, const vector<S
 	Logger::Write(LogInformation, "icinga", "Sending custom notification for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
 	if (service)
-		service->RequestNotifications(NotificationCustom);
+		service->RequestNotifications(NotificationCustom, service->GetLastCheckResult());
 }
 
 void ExternalCommandProcessor::SendCustomSvcNotification(double, const vector<String>& arguments)
@@ -1122,7 +1122,7 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double, const vector<St
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	Logger::Write(LogInformation, "icinga", "Sending custom notification for service " + service->GetName());
-	service->RequestNotifications(NotificationCustom);
+	service->RequestNotifications(NotificationCustom, service->GetLastCheckResult());
 }
 
 void ExternalCommandProcessor::DelayHostNotification(double, const vector<String>& arguments)

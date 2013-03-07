@@ -81,7 +81,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 		}
 
 		if (send_notification)
-			service->RequestNotifications(NotificationProblem);
+			service->RequestNotifications(NotificationProblem, service->GetLastCheckResult());
 	}
 }
 
@@ -103,10 +103,14 @@ void NotificationComponent::SendNotificationsRequestHandler(const Endpoint::Ptr&
 	if (!params.Get("type", &type))
 		return;
 
+	Dictionary::Ptr cr;
+	if (!params.Get("check_result", &cr))
+		return;
+
 	Service::Ptr service = Service::GetByName(svc);
 
 	if (!service)
 		return;
 
-	service->SendNotifications(static_cast<NotificationType>(type));
+	service->SendNotifications(static_cast<NotificationType>(type), cr);
 }

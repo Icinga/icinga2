@@ -38,17 +38,6 @@ enum ServiceState
 };
 
 /**
- * The state type of a service.
- *
- * @ingroup icinga
- */
-enum ServiceStateType
-{
-	StateTypeSoft,
-	StateTypeHard
-};
-
-/**
  * The acknowledgement type of a service.
  *
  * @ingroup icinga
@@ -94,8 +83,8 @@ public:
 	static Service::Ptr GetByNamePair(const String& hostName, const String& serviceName);
 
 	static const int DefaultMaxCheckAttempts;
-	static const int DefaultCheckInterval;
-	static const int CheckIntervalDivisor;
+	static const double DefaultCheckInterval;
+	static const double CheckIntervalDivisor;
 
 	String GetDisplayName(void) const;
 	Host::Ptr GetHost(void) const;
@@ -107,6 +96,7 @@ public:
 	String GetShortName(void) const;
 
 	Dictionary::Ptr CalculateDynamicMacros(void) const;
+	Dictionary::Ptr CalculateAllMacros(void) const;
 
 	set<Host::Ptr> GetParentHosts(void) const;
 	set<Service::Ptr> GetParentServices(void) const;
@@ -141,8 +131,14 @@ public:
 	void SetState(ServiceState state);
 	ServiceState GetState(void) const;
 
-	void SetStateType(ServiceStateType type);
-	ServiceStateType GetStateType(void) const;
+	void SetStateType(StateType type);
+	StateType GetStateType(void) const;
+
+	void SetLastState(ServiceState state);
+	ServiceState GetLastState(void) const;
+
+	void SetLastStateType(StateType type);
+	StateType GetLastStateType(void) const;
 
 	void SetLastCheckResult(const Dictionary::Ptr& result);
 	Dictionary::Ptr GetLastCheckResult(void) const;
@@ -179,8 +175,8 @@ public:
 	static ServiceState StateFromString(const String& state);
 	static String StateToString(ServiceState state);
 
-	static ServiceStateType StateTypeFromString(const String& state);
-	static String StateTypeToString(ServiceStateType state);
+	static StateType StateTypeFromString(const String& state);
+	static String StateTypeToString(StateType state);
 
 	static signals2::signal<void (const Service::Ptr&)> OnCheckerChanged;
 	static signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
@@ -236,8 +232,8 @@ public:
 
 	double GetNotificationInterval(void) const;
 
-	void RequestNotifications(NotificationType type);
-	void SendNotifications(NotificationType type);
+	void RequestNotifications(NotificationType type, const Dictionary::Ptr& cr);
+	void SendNotifications(NotificationType type, const Dictionary::Ptr& cr);
 
 	set<Notification::Ptr> GetNotifications(void) const;
 
@@ -276,6 +272,8 @@ private:
 	Attribute<long> m_CheckAttempt;
 	Attribute<long> m_State;
 	Attribute<long> m_StateType;
+	Attribute<long> m_LastState;
+	Attribute<long> m_LastStateType;
 	Attribute<Dictionary::Ptr> m_LastResult;
 	Attribute<double> m_LastStateChange;
 	Attribute<double> m_LastHardStateChange;

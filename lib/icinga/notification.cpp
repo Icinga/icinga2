@@ -161,38 +161,11 @@ String Notification::NotificationTypeToString(NotificationType type)
 /**
  * @threadsafety Always.
  */
-void Notification::BeginExecuteNotification(NotificationType type)
+void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr)
 {
 	assert(!OwnsLock());
 
-	vector<Dictionary::Ptr> macroDicts;
-
-	Dictionary::Ptr notificationMacros = boost::make_shared<Dictionary>();
-	notificationMacros->Set("NOTIFICATIONTYPE", NotificationTypeToString(type));
-	macroDicts.push_back(notificationMacros);
-
-	macroDicts.push_back(GetMacros());
-
-	Service::Ptr service = GetService();
-
-	if (service) {
-		macroDicts.push_back(service->GetMacros());
-		macroDicts.push_back(service->CalculateDynamicMacros());
-
-		Host::Ptr host = service->GetHost();
-
-		if (host) {
-			macroDicts.push_back(host->GetMacros());
-			macroDicts.push_back(host->CalculateDynamicMacros());
-		}
-	}
-
-	IcingaApplication::Ptr app = IcingaApplication::GetInstance();
-	macroDicts.push_back(app->GetMacros());
-
-	macroDicts.push_back(IcingaApplication::CalculateDynamicMacros());
-
-	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
+	Dictionary::Ptr macros = cr->Get("macros");
 
 	set<User::Ptr> allUsers;
 

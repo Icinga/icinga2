@@ -44,6 +44,8 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("check_attempt", Attribute_Replicated, &m_CheckAttempt);
 	RegisterAttribute("state", Attribute_Replicated, &m_State);
 	RegisterAttribute("state_type", Attribute_Replicated, &m_StateType);
+	RegisterAttribute("last_state", Attribute_Replicated, &m_LastState);
+	RegisterAttribute("last_state_type", Attribute_Replicated, &m_LastStateType);
 	RegisterAttribute("last_result", Attribute_Replicated, &m_LastResult);
 	RegisterAttribute("last_state_change", Attribute_Replicated, &m_LastStateChange);
 	RegisterAttribute("last_hard_state_change", Attribute_Replicated, &m_LastHardStateChange);
@@ -315,7 +317,7 @@ void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
 	SetAcknowledgement(type);
 	SetAcknowledgementExpiry(expiry);
 
-	RequestNotifications(NotificationAcknowledgement);
+	RequestNotifications(NotificationAcknowledgement, GetLastCheckResult());
 }
 
 /**
@@ -443,6 +445,10 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 		macros->Set("SERVICEATTEMPT", GetCurrentCheckAttempt());
 		macros->Set("MAXSERVICEATTEMPT", GetMaxCheckAttempts());
 		macros->Set("SERVICECHECKCOMMAND", "check_i2");
+		macros->Set("LASTSERVICESTATE", StateToString(GetLastState()));
+		macros->Set("LASTSERVICESTATEID", GetLastState());
+		macros->Set("LASTSERVICESTATETYPE", StateTypeToString(GetLastStateType()));
+		macros->Set("LASTSERVICESTATECHANGE", (time_t)GetLastStateChange());
 
 		cr = GetLastCheckResult();
 	}
@@ -455,9 +461,33 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 
 		macros->Set("SERVICEOUTPUT", cr->Get("output"));
 		macros->Set("SERVICEPERFDATA", cr->Get("performance_data_raw"));
+
+		macros->Set("LASTSERVICECHECK", (time_t)cr->Get("schedule_start"));
 	}
 
 	macros->Seal();
 
 	return macros;
+}
+
+Dictionary::Ptr Service::CalculateAllMacros(void) const
+{
+	vector<Dictionary::Ptr> macroDicts;
+	macroDicts.push_back(GetMacros());
+
+	Host::Ptr host = GetHost();
+
+	macroDicts.push_back(CalculateDynamicMacros());
+
+	if (host) {
+		macroDicts.push_back(host->GetMacros());
+		macroDicts.push_back(host->CalculateDynamicMacros());
+	}
+
+	IcingaApplication::Ptr app = IcingaApplication::GetInstance();
+	macroDicts.push_back(app->GetMacros());
+
+	macroDicts.push_back(IcingaApplication::CalculateDynamicMacros());
+
+	return MacroProcessor::MergeMacroDicts(macroDicts);
 }
