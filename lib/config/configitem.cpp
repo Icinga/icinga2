@@ -155,7 +155,7 @@ void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
  */
 DynamicObject::Ptr ConfigItem::Commit(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	String type, name;
 
@@ -290,7 +290,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
  */
 void ConfigItem::Unregister(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	DynamicObject::Ptr dobj = m_DynamicObject.lock();
 
@@ -314,7 +314,7 @@ void ConfigItem::Unregister(void)
 
 void ConfigItem::UnregisterFromParents(void)
 {
-	assert(OwnsLock());
+	ASSERT(OwnsLock());
 
 	BOOST_FOREACH(const String& parentName, m_Parents) {
 		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
@@ -329,7 +329,7 @@ void ConfigItem::UnregisterFromParents(void)
  */
 void ConfigItem::OnParentCommitted(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	ConfigItem::Ptr self = GetSelf();
 

@@ -152,7 +152,7 @@ void DynamicType::RegisterType(const DynamicType::Ptr& type)
 
 DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUpdate)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	ObjectFactory factory;
 

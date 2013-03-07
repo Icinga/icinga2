@@ -118,7 +118,7 @@ size_t FIFO::GetAvailableBytes(void) const
  */
 size_t FIFO::Peek(void *buffer, size_t count)
 {
-	assert(IsConnected());
+	ASSERT(IsConnected());
 
 	if (count > m_DataSize)
 		count = m_DataSize;
@@ -149,7 +149,7 @@ size_t FIFO::Read(void *buffer, size_t count)
  */
 void FIFO::Write(const void *buffer, size_t count)
 {
-	assert(IsConnected());
+	ASSERT(IsConnected());
 
 	ResizeBuffer(m_Offset + m_DataSize + count);
 	memcpy(m_Buffer + m_Offset + m_DataSize, buffer, count);

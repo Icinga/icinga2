@@ -56,7 +56,7 @@ Host::~Host(void)
 
 void Host::OnRegistrationCompleted(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	DynamicObject::OnRegistrationCompleted();
 
@@ -109,7 +109,7 @@ String Host::GetHostCheck(void) const
 
 bool Host::IsReachable(void) const
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	set<Service::Ptr> parentServices = GetParentServices();
 
@@ -204,7 +204,7 @@ static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Pt
 
 void Host::UpdateSlaveServices(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	ConfigItem::Ptr item = ConfigItem::GetObject("Host", GetName());
 
@@ -289,7 +289,7 @@ void Host::UpdateSlaveServices(void)
 
 void Host::OnAttributeChanged(const String& name)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	if (name == "hostgroups")
 		HostGroup::InvalidateMembersCache();
@@ -434,7 +434,7 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 
 			if (it != services.end()) {
 				Service::Ptr service = it->second.lock();
-				assert(service);
+				ASSERT(service);
 				return service;
 			}
 		}
@@ -444,7 +444,7 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 		Dictionary::Ptr dict = name;
 		String short_name;
 
-		assert(dict->IsSealed());
+		ASSERT(dict->IsSealed());
 
 		return Service::GetByNamePair(dict->Get("host"), dict->Get("service"));
 	} else {
@@ -537,7 +537,7 @@ StateType Host::GetStateType(void) const
 
 HostState Host::GetLastState(void) const
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	if (!IsReachable())
 		return HostUnreachable;
@@ -582,7 +582,7 @@ String Host::HostStateToString(HostState state)
 
 Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 

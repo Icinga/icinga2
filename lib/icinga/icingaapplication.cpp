@@ -90,7 +90,7 @@ int IcingaApplication::Main(void)
  */
 void IcingaApplication::OnShutdown(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	{
 		ObjectLock olock(this);

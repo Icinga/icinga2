@@ -83,7 +83,7 @@ Service::~Service(void)
  */
 void Service::OnRegistrationCompleted(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	DynamicObject::OnRegistrationCompleted();
 
@@ -192,7 +192,7 @@ String Service::GetShortName(void) const
  */
 bool Service::IsReachable(void) const
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	BOOST_FOREACH(const Service::Ptr& service, GetParentServices()) {
 		/* ignore ourselves */
@@ -249,7 +249,7 @@ bool Service::IsReachable(void) const
  */
 AcknowledgementType Service::GetAcknowledgement(void)
 {
-	assert(OwnsLock());
+	ASSERT(OwnsLock());
 
 	if (m_Acknowledgement.IsEmpty())
 		return AcknowledgementNone;
@@ -336,7 +336,7 @@ void Service::ClearAcknowledgement(void)
  */
 void Service::OnAttributeChanged(const String& name)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	Service::Ptr self = GetSelf();
 
@@ -454,7 +454,7 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 	}
 
 	if (cr) {
-		assert(cr->IsSealed());
+		ASSERT(cr->IsSealed());
 
 		macros->Set("SERVICELATENCY", Service::CalculateLatency(cr));
 		macros->Set("SERVICEEXECUTIONTIME", Service::CalculateExecutionTime(cr));

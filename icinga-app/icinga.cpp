@@ -97,7 +97,7 @@ static void ReloadConfigTimerHandler(void)
 
 static void SigHupHandler(int signum)
 {
-	assert(signum == SIGHUP);
+	ASSERT(signum == SIGHUP);
 
 	g_ReloadConfig = true;
 }

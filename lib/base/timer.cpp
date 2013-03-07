@@ -88,7 +88,7 @@ void Timer::Uninitialize(void)
  */
 void Timer::Call(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	Timer::Ptr self = GetSelf();
 
@@ -105,7 +105,7 @@ void Timer::Call(void)
  */
 void Timer::SetInterval(double interval)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Interval = interval;
@@ -119,7 +119,7 @@ void Timer::SetInterval(double interval)
  */
 double Timer::GetInterval(void) const
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_Interval;
@@ -132,7 +132,7 @@ double Timer::GetInterval(void) const
  */
 void Timer::Start(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -149,7 +149,7 @@ void Timer::Start(void)
  */
 void Timer::Stop(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -169,7 +169,7 @@ void Timer::Stop(void)
  */
 void Timer::Reschedule(double next)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -196,7 +196,7 @@ void Timer::Reschedule(double next)
  */
 double Timer::GetNext(void) const
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_Next;

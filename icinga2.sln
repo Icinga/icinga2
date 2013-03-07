@@ -77,6 +77,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "remoting", "lib\remoting\re
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{5163C576-6AA1-4769-8396-9639C45BE124}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BE412865-FEBA-4259-AD41-58950D1F5432} = {BE412865-FEBA-4259-AD41-58950D1F5432}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -328,7 +328,7 @@ void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 
 void CompatComponent::DumpServiceStatusAttrs(ostream& fp, const Service::Ptr& service, CompatObjectType type)
 {
-	assert(service->OwnsLock());
+	ASSERT(service->OwnsLock());
 
 	String output;
 	String perfdata;

@@ -131,7 +131,7 @@ void TlsStream::ClosedHandler(void)
  */
 void TlsStream::HandleIO(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	char data[16 * 1024];

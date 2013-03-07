@@ -163,7 +163,7 @@ String Notification::NotificationTypeToString(NotificationType type)
  */
 void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	Dictionary::Ptr macros = cr->Get("macros");
 
@@ -193,7 +193,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
  */
 void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notificationMacros, NotificationType type, const User::Ptr& user)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	vector<Dictionary::Ptr> macroDicts;
 
@@ -237,7 +237,7 @@ void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notific
  */
 void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	{
 		ObjectLock olock(this);
@@ -264,7 +264,7 @@ void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
  */
 void Notification::OnAttributeChanged(const String& name)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	if (name == "host_name" || name == "service")
 		Service::InvalidateNotificationsCache();

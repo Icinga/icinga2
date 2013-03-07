@@ -152,10 +152,21 @@ void StackTrace::Print(ostream& fp, int ignoreFrames)
 		IMAGEHLP_LINE64 line;
 		line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
-		(void) SymGetLineFromAddr64(GetCurrentProcess(), dwAddress, &dwDisplacement, &line);
-		(void) SymFromAddr(GetCurrentProcess(), dwAddress, &dwDisplacement64, pSymbol);
+		fp << "\t(" << i - ignoreFrames - 1 << ") ";
+		
+		if (SymGetLineFromAddr64(GetCurrentProcess(), dwAddress, &dwDisplacement, &line))
+			fp << line.FileName << ":" << line.LineNumber;
+		else
+			fp << "(unknown file/line)";
 
-		fp << "\t(" << i - ignoreFrames - 1 << ") " << line.FileName << ":" << line.LineNumber << ": " << pSymbol->Name << "+" << dwDisplacement64 << std::endl;
+		fp << ": ";
+
+		if (SymFromAddr(GetCurrentProcess(), dwAddress, &dwDisplacement64, pSymbol))
+			fp << pSymbol->Name << "+" << dwDisplacement64;
+		else
+			fp << "(unknown function)";
+
+		 fp << std::endl;
 	}
 #endif /* _WIN32 */
 }

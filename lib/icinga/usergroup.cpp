@@ -44,7 +44,7 @@ UserGroup::~UserGroup(void)
  */
 void UserGroup::OnRegistrationCompleted(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	InvalidateMembersCache();
 }

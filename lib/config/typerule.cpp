@@ -63,7 +63,7 @@ bool TypeRule::MatchValue(const Value& value) const
 			return value.IsObjectType<Dictionary>();
 
 		default:
-			assert(!"Type rule has invalid type specifier.");
+			ASSERT(!"Type rule has invalid type specifier.");
 
 			return false;
 	}

@@ -121,7 +121,7 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 {
 	ObjectLock olock(this);
 
-	assert(serializedUpdate->IsSealed());
+	ASSERT(serializedUpdate->IsSealed());
 
 	Value configTxValue = serializedUpdate->Get("configTx");
 
@@ -143,7 +143,7 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 
 	Dictionary::Ptr attrs = serializedUpdate->Get("attrs");
 
-	assert(attrs->IsSealed());
+	ASSERT(attrs->IsSealed());
 
 	{
 		ObjectLock alock(attrs);
@@ -155,7 +155,7 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 
 			Dictionary::Ptr attr = it->second;
 
-			assert(attr->IsSealed());
+			ASSERT(attr->IsSealed());
 
 			int type = attr->Get("type");
 
@@ -179,7 +179,7 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 void DynamicObject::RegisterAttribute(const String& name,
     AttributeType type, AttributeBase *boundAttribute)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	boost::mutex::scoped_lock lock(m_AttributeMutex);
@@ -193,7 +193,7 @@ void DynamicObject::RegisterAttribute(const String& name,
 void DynamicObject::InternalRegisterAttribute(const String& name,
     AttributeType type, AttributeBase *boundAttribute)
 {
-	assert(OwnsLock());
+	ASSERT(OwnsLock());
 
 	AttributeHolder attr(type, boundAttribute);
 
@@ -213,7 +213,7 @@ void DynamicObject::InternalRegisterAttribute(const String& name,
  */
 void DynamicObject::Set(const String& name, const Value& data)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	boost::mutex::scoped_lock lock(m_AttributeMutex);
@@ -226,7 +226,7 @@ void DynamicObject::Set(const String& name, const Value& data)
  */
 void DynamicObject::Touch(const String& name)
 {
-	assert(OwnsLock());
+	ASSERT(OwnsLock());
 
 	boost::mutex::scoped_lock lock(m_AttributeMutex);
 
@@ -250,7 +250,7 @@ void DynamicObject::Touch(const String& name)
  */
 Value DynamicObject::Get(const String& name) const
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	boost::mutex::scoped_lock lock(m_AttributeMutex);
@@ -264,7 +264,7 @@ Value DynamicObject::Get(const String& name) const
 void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
     double tx, bool allowEditConfig)
 {
-	assert(OwnsLock());
+	ASSERT(OwnsLock());
 
 	DynamicObject::AttributeIterator it;
 	it = m_Attributes.find(name);
@@ -304,7 +304,7 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
  */
 Value DynamicObject::InternalGetAttribute(const String& name) const
 {
-	assert(OwnsLock());
+	ASSERT(OwnsLock());
 
 	DynamicObject::AttributeConstIterator it;
 	it = m_Attributes.find(name);
@@ -375,7 +375,7 @@ String DynamicObject::GetSource(void) const
 
 void DynamicObject::Register(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	/* Add this new object to the list of modified objects.
 	 * We're doing this here because we can't construct
@@ -391,7 +391,7 @@ void DynamicObject::Register(void)
 
 void DynamicObject::OnRegistrationCompleted(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	Start();
 
@@ -400,21 +400,21 @@ void DynamicObject::OnRegistrationCompleted(void)
 
 void DynamicObject::OnUnregistrationCompleted(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	OnUnregistered(GetSelf());
 }
 
 void DynamicObject::Start(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	/* Nothing to do here. */
 }
 
 void DynamicObject::Unregister(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	DynamicType::Ptr dtype = GetType();
 
@@ -524,7 +524,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 	while (NetString::ReadStringFromStream(sfp, &message)) {
 		Dictionary::Ptr persistentObject = Value::Deserialize(message);
 
-		assert(persistentObject->IsSealed());
+		ASSERT(persistentObject->IsSealed());
 
 		String type = persistentObject->Get("type");
 		String name = persistentObject->Get("name");
@@ -624,7 +624,7 @@ void DynamicObject::NewTx(void)
 
 void DynamicObject::OnAttributeChanged(const String&)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 }
 
 /*
@@ -638,7 +638,7 @@ DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& na
 
 const DynamicObject::AttributeMap& DynamicObject::GetAttributes(void) const
 {
-	assert(OwnsLock());
+	ASSERT(OwnsLock());
 
 	return m_Attributes;
 }

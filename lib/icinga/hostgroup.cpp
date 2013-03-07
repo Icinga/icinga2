@@ -46,7 +46,7 @@ HostGroup::~HostGroup(void)
  */
 void HostGroup::OnRegistrationCompleted(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	InvalidateMembersCache();
 }

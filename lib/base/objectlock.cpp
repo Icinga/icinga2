@@ -46,8 +46,8 @@ ObjectLock::ObjectLock(const Object *object)
 
 void ObjectLock::Lock(void)
 {
-	assert(!m_Lock.owns_lock() && m_Object != NULL);
-	assert(!m_Object->OwnsLock());
+	ASSERT(!m_Lock.owns_lock() && m_Object != NULL);
+	ASSERT(!m_Object->OwnsLock());
 
 	m_Lock = Object::MutexType::scoped_lock(m_Object->m_Mutex);
 

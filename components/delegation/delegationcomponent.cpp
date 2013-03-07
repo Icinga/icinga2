@@ -195,7 +195,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 			continue;
 		}
 
-		assert(!service->GetCurrentChecker().IsEmpty());
+		ASSERT(!service->GetCurrentChecker().IsEmpty());
 	}
 
 	Endpoint::Ptr endpoint;

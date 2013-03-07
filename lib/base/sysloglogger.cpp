@@ -45,7 +45,7 @@ void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
 			severity = LOG_CRIT;
 			break;
 		default:
-			assert(!"Invalid severity specified.");
+			ASSERT(!"Invalid severity specified.");
 	}
 
 	syslog(severity | LOG_USER, "%s", entry.Message.CStr());

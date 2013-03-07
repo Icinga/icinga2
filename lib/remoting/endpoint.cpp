@@ -294,7 +294,7 @@ void Endpoint::NewMessageHandler(const MessagePart& message)
 
 void Endpoint::ClientClosedHandler(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	/*try {
 		GetClient()->CheckException();

@@ -53,9 +53,9 @@ public:
 	~AsyncTask(void)
 	{
 		if (!m_Finished)
-			assert(!"Contract violation: AsyncTask was destroyed before its completion callback was invoked.");
+			ASSERT(!"Contract violation: AsyncTask was destroyed before its completion callback was invoked.");
 		else if (!m_ResultRetrieved)
-			assert(!"Contract violation: AsyncTask was destroyed before its result was retrieved.");
+			ASSERT(!"Contract violation: AsyncTask was destroyed before its result was retrieved.");
 	}
 
 
@@ -67,7 +67,7 @@ public:
 	 */
 	void Start(const CompletionCallback& completionCallback = CompletionCallback())
 	{
-		assert(!OwnsLock());
+		ASSERT(!OwnsLock());
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		m_CompletionCallback = completionCallback;
@@ -81,7 +81,7 @@ public:
 	 */
 	bool IsFinished(void) const
 	{
-		assert(!OwnsLock());
+		ASSERT(!OwnsLock());
 		boost::mutex::scoped_lock lock(m_Mutex);
 		return m_Finished;
 	}
@@ -95,7 +95,7 @@ public:
 	 */
 	TResult GetResult(void)
 	{
-		assert(!OwnsLock());
+		ASSERT(!OwnsLock());
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		while (!m_Finished)
@@ -122,7 +122,7 @@ public:
 	 */
 	void FinishException(const boost::exception_ptr& ex)
 	{
-		assert(!OwnsLock());
+		ASSERT(!OwnsLock());
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		m_Exception = ex;
@@ -137,7 +137,7 @@ public:
 	 */
 	void FinishResult(const TResult& result)
 	{
-		assert(!OwnsLock());
+		ASSERT(!OwnsLock());
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		m_Result = result;
@@ -161,7 +161,7 @@ private:
 	 */
 	void FinishInternal(void)
 	{
-		assert(!m_Finished);
+		ASSERT(!m_Finished);
 		m_Finished = true;
 		m_CV.notify_all();
 

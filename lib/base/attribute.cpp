@@ -113,7 +113,7 @@ AttributeHolder::~AttributeHolder(void)
 
 void AttributeHolder::Bind(AttributeBase *boundAttribute)
 {
-	assert(m_OwnsAttribute);
+	ASSERT(m_OwnsAttribute);
 	boundAttribute->Set(m_Attribute->Get());
 	m_Attribute = boundAttribute;
 	m_OwnsAttribute = false;

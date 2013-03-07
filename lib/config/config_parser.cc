@@ -257,7 +257,7 @@ static ConfigType::Ptr m_Type;
 
 void ConfigCompiler::Compile(void)
 {
-	assert(ConfigCompilerContext::GetContext() != NULL);
+	ASSERT(ConfigCompilerContext::GetContext() != NULL);
 
 	try {
 		yyparse(this);

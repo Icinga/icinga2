@@ -373,7 +373,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 {
 	bool reachable = IsReachable();
 
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	ServiceState old_state = GetState();
@@ -571,7 +571,7 @@ bool Service::IsAllowedChecker(const String& checker) const
  */
 void Service::BeginExecuteCheck(const function<void (void)>& callback)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	{
 		ObjectLock olock(this);
@@ -619,7 +619,7 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
 void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
     const ScriptTask::Ptr& task, const function<void (void)>& callback)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	checkInfo->Set("execution_end", Utility::GetTime());
 	checkInfo->Set("schedule_end", Utility::GetTime());

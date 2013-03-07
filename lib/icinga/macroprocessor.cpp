@@ -28,7 +28,7 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 {
 	Value result;
 
-	assert(macros->IsSealed());
+	ASSERT(macros->IsSealed());
 
 	if (cmd.IsScalar()) {
 		result = InternalResolveMacros(cmd, macros);

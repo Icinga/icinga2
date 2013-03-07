@@ -86,4 +86,10 @@ private:
 
 }
 
+#ifdef _DEBUG
+#	define ASSERT(expr) ASSERT(expr)
+#else /* _DEBUG */
+#	define ASSERT(expr)
+#endif /* _DEBUG */
+
 #endif /* UTILITY_H */

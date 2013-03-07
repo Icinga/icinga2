@@ -46,7 +46,7 @@ ServiceGroup::~ServiceGroup(void)
  */
 void ServiceGroup::OnRegistrationCompleted(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	InvalidateMembersCache();
 }

@@ -91,7 +91,7 @@ int ConfigCompilerContext::GetFlags(void) const
 
 void ConfigCompilerContext::SetContext(ConfigCompilerContext *context)
 {
-	assert(m_Context == NULL || context == NULL);
+	ASSERT(m_Context == NULL || context == NULL);
 
 	m_Context = context;
 }
@@ -131,7 +131,7 @@ void ConfigCompilerContext::Validate(void)
 
 void ConfigCompilerContext::ActivateItems(void)
 {
-	assert(m_Context == NULL);
+	ASSERT(m_Context == NULL);
 
 	Logger::Write(LogInformation, "config", "Activating config items in compilation unit '" + m_Unit + "'");
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {

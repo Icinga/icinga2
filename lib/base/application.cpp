@@ -54,7 +54,7 @@ Application::Application(const Dictionary::Ptr& serializedUpdate)
 		m_Debugging = true;
 #endif /* _WIN32 */
 
-	assert(m_Instance == NULL);
+	ASSERT(m_Instance == NULL);
 	m_Instance = this;
 }
 
@@ -284,7 +284,7 @@ void Application::DisplayBugMessage(void)
  */
 void Application::SigIntHandler(int signum)
 {
-	assert(signum == SIGINT);
+	ASSERT(signum == SIGINT);
 
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -300,13 +300,13 @@ void Application::SigIntHandler(int signum)
 }
 
 /**
- * Signal handler for SIGABRT. Helps with debugging assert()s.
+ * Signal handler for SIGABRT. Helps with debugging ASSERT()s.
  *
  * @param signum The signal number.
  */
 void Application::SigAbrtHandler(int signum)
 {
-	assert(signum == SIGABRT);
+	ASSERT(signum == SIGABRT);
 
 #ifndef _WIN32
 	struct sigaction sa;
@@ -435,7 +435,7 @@ int Application::Run(void)
  */
 void Application::UpdatePidFile(const String& filename)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	if (m_PidFile != NULL)
@@ -469,7 +469,7 @@ void Application::UpdatePidFile(const String& filename)
  */
 void Application::ClosePidFile(void)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	if (m_PidFile != NULL)

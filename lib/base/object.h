@@ -66,7 +66,7 @@ public:
 		{
 #ifdef _DEBUG
 			shared_ptr<T> other = dynamic_pointer_cast<T>(m_Object);
-			assert(other);
+			ASSERT(other);
 #else /* _DEBUG */
 			shared_ptr<T> other = static_pointer_cast<T>(m_Object);
 #endif /* _DEBUG */

@@ -50,8 +50,8 @@ void Socket::Start(void)
 {
 	ObjectLock olock(this);
 
-	assert(!m_ReadThread.joinable() && !m_WriteThread.joinable());
-	assert(GetFD() != INVALID_SOCKET);
+	ASSERT(!m_ReadThread.joinable() && !m_WriteThread.joinable());
+	ASSERT(GetFD() != INVALID_SOCKET);
 
 	// TODO: figure out why we're not using "this" here
 	m_ReadThread = thread(boost::bind(&Socket::ReadThreadProc, static_cast<Socket::Ptr>(GetSelf())));

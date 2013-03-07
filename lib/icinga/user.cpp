@@ -41,7 +41,7 @@ User::~User(void)
  */
 void User::OnAttributeChanged(const String& name)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	if (name == "groups")
 		UserGroup::InvalidateMembersCache();

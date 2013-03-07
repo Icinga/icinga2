@@ -128,7 +128,7 @@ void Process::WorkerThreadProc(int taskFd)
 					/* Read one byte for every task we take from the pending tasks list. */
 					char buffer[MaxTasksPerThread];
 
-					assert(want <= sizeof(buffer));
+					ASSERT(want <= sizeof(buffer));
 
 					int have = read(taskFd, &buffer, want);
 
@@ -140,7 +140,7 @@ void Process::WorkerThreadProc(int taskFd)
 					}
 
 					while (have > 0) {
-						assert(!m_Tasks.empty());
+						ASSERT(!m_Tasks.empty());
 
 						Process::Ptr task = m_Tasks.front();
 						m_Tasks.pop_front();
@@ -209,7 +209,7 @@ void Process::InitTask(void)
 {
 	m_Result.ExecutionStart = Utility::GetTime();
 
-	assert(m_FD == -1);
+	ASSERT(m_FD == -1);
 
 	int fds[2];
 

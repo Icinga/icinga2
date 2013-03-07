@@ -27,7 +27,7 @@ Stream::Stream(void)
 
 Stream::~Stream(void)
 {
-	assert(!m_Running);
+	ASSERT(!m_Running);
 }
 
 /**
@@ -106,7 +106,7 @@ void Stream::Close(void)
 	{
 		ObjectLock olock(this);
 
-		assert(m_Running);
+		ASSERT(m_Running);
 		m_Running = false;
 	}
 
