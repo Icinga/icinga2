@@ -88,8 +88,10 @@ StackTrace::StackTrace(PEXCEPTION_POINTERS exi)
 
 void StackTrace::Initialize(void)
 {
+#ifdef _WIN32
 	(void) SymSetOptions(SYMOPT_UNDNAME | SYMOPT_LOAD_LINES);
 	(void) SymInitialize(GetCurrentProcess(), NULL, TRUE);
+#endif /* _WIN32 */
 }
 
 /**
@@ -133,8 +135,6 @@ void StackTrace::Print(ostream& fp, int ignoreFrames)
 	free(messages);
 
 	fp << std::endl;
-
-	return true;
 #	else /* HAVE_BACKTRACE_SYMBOLS */
 	fp << "(not available)" << std::endl;
 #	endif /* HAVE_BACKTRACE_SYMBOLS */

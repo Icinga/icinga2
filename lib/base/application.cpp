@@ -317,7 +317,8 @@ void Application::SigAbrtHandler(int signum)
 
 	std::cerr << "Caught SIGABRT." << std::endl;
 
-	Utility::PrintStacktrace(std::cerr, 1);
+	StackTrace trace;
+	trace.Print(std::cerr, 1);
 
 	DisplayBugMessage();
 }
