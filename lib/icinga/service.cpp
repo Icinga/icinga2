@@ -448,7 +448,7 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 		macros->Set("LASTSERVICESTATE", StateToString(GetLastState()));
 		macros->Set("LASTSERVICESTATEID", GetLastState());
 		macros->Set("LASTSERVICESTATETYPE", StateTypeToString(GetLastStateType()));
-		macros->Set("LASTSERVICESTATECHANGE", (time_t)GetLastStateChange());
+		macros->Set("LASTSERVICESTATECHANGE", (long)GetLastStateChange());
 
 		cr = GetLastCheckResult();
 	}
@@ -462,7 +462,7 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 		macros->Set("SERVICEOUTPUT", cr->Get("output"));
 		macros->Set("SERVICEPERFDATA", cr->Get("performance_data_raw"));
 
-		macros->Set("LASTSERVICECHECK", (time_t)cr->Get("schedule_start"));
+		macros->Set("LASTSERVICECHECK", (long)cr->Get("schedule_start"));
 	}
 
 	macros->Seal();

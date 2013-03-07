@@ -416,8 +416,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	int state = cr->Get("state");
 	SetState(static_cast<ServiceState>(state));
 
-	SetLastCheckResult(cr);
-
 	double now = Utility::GetTime();
 
 	if (old_state != GetState()) {
@@ -459,12 +457,18 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	olock.Unlock();
 
+	/* Update macros - these are used by event handlers and notifications. */
+	cr->Set("macros", CalculateAllMacros());
+
+	cr->Seal();
+
+	olock.Lock();
+	SetLastCheckResult(cr);
+	olock.Unlock();
+
 	/* Flush the object so other instances see the service's
 	 * new state when they receive the CheckResult message */
 	Flush();
-
-	/* Update macros - these are used by event handlers and notifications. */
-	cr->Set("macros", CalculateAllMacros());
 
 	RequestMessage rm;
 	rm.SetMethod("checker::CheckResult");
@@ -664,8 +668,6 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 			EndpointManager::Ptr em = EndpointManager::GetInstance();
 			result->Set("current_checker", em->GetIdentity());
 		}
-
-		result->Seal();
 	}
 
 	if (result)

@@ -101,13 +101,14 @@ private:
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);
-	static void SigAbrtHandler(int signum);
 #else /* _WIN32 */
 	static BOOL WINAPI CtrlHandler(DWORD type);
+	static LONG WINAPI SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
 
 	static void DisplayBugMessage(void);
 
+	static void SigAbrtHandler(int signum);
 	static void ExceptionHandler(void);
 
 	static void TimeWatchThreadProc(void);

@@ -94,16 +94,20 @@ void EventQueue::QueueThreadProc(void)
 
 		BOOST_FOREACH(const Callback& ev, events) {
 #ifdef _DEBUG
+			double st = Utility::GetTime();
+
+#	ifdef RUSAGE_THREAD
 			struct rusage usage_start, usage_end;
 
-			double st = Utility::GetTime();
 			(void) getrusage(RUSAGE_THREAD, &usage_start);
+#	endif /* RUSAGE_THREAD */
 #endif /* _DEBUG */
 
 			ev();
 
 #ifdef _DEBUG
 			double et = Utility::GetTime();
+#	ifdef RUSAGE_THREAD
 			(void) getrusage(RUSAGE_THREAD, &usage_end);
 
 			double duser = (usage_end.ru_utime.tv_sec - usage_start.ru_utime.tv_sec) +
@@ -119,10 +123,15 @@ void EventQueue::QueueThreadProc(void)
 
 			int dvctx = usage_end.ru_nvcsw - usage_start.ru_nvcsw;
 			int divctx = usage_end.ru_nivcsw - usage_start.ru_nivcsw;
-
+#	endif /* RUSAGE_THREAD */
 			if (et - st > 0.5) {
 				stringstream msgbuf;
+#	ifdef RUSAGE_THREAD
 				msgbuf << "Event call took user:" << duser << "s, system:" << dsys << "s, wait:" << dwait << "s, minor_faults:" << dminfaults << ", major_faults:" << dmajfaults << ", voluntary_csw:" << dvctx << ", involuntary_csw:" << divctx;
+#	else
+				msgbuf << "Event call took " << (et - st) << "s";
+#	endif /* RUSAGE_THREAD */
+
 				Logger::Write(LogWarning, "base", msgbuf.str());
 			}
 #endif /* _DEBUG */

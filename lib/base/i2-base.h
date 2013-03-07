@@ -77,6 +77,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <signal.h>
 
 #include <string>
 #include <exception>
@@ -191,6 +192,7 @@ namespace signals2 = boost::signals2;
 
 #include "qstring.h"
 #include "utility.h"
+#include "stacktrace.h"
 #include "object.h"
 #include "objectlock.h"
 #include "exception.h"

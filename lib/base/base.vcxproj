@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="application.cpp" />
+    <ClCompile Include="attribute.cpp" />
     <ClCompile Include="component.cpp" />
     <ClCompile Include="connection.cpp" />
     <ClCompile Include="convert.cpp" />
@@ -47,6 +48,7 @@
     <ClCompile Include="scriptfunction.cpp" />
     <ClCompile Include="scripttask.cpp" />
     <ClCompile Include="socket.cpp" />
+    <ClCompile Include="stacktrace.cpp" />
     <ClCompile Include="stdiostream.cpp" />
     <ClCompile Include="stream.cpp" />
     <ClCompile Include="streamlogger.cpp" />
@@ -62,6 +64,7 @@
   <ItemGroup>
     <ClInclude Include="application.h" />
     <ClInclude Include="asynctask.h" />
+    <ClInclude Include="attribute.h" />
     <ClInclude Include="component.h" />
     <ClInclude Include="connection.h" />
     <ClInclude Include="convert.h" />
@@ -70,6 +73,7 @@
     <ClInclude Include="dynamictype.h" />
     <ClInclude Include="eventqueue.h" />
     <ClInclude Include="fifo.h" />
+    <ClInclude Include="stacktrace.h" />
     <ClInclude Include="stdiostream.h" />
     <ClInclude Include="stream.h" />
     <ClInclude Include="netstring.h" />
@@ -177,7 +181,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MTd.lib;ssleay32MTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MTd.lib;ssleay32MTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
@@ -196,7 +200,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MTd.lib;ssleay32MTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MTd.lib;ssleay32MTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
@@ -220,7 +224,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
@@ -244,7 +248,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>

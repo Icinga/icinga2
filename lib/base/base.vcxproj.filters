@@ -103,6 +103,12 @@
     <ClCompile Include="eventqueue.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="attribute.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="stacktrace.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -208,6 +214,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="eventqueue.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="attribute.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="stacktrace.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

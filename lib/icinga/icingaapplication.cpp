@@ -74,7 +74,7 @@ int IcingaApplication::Main(void)
 
 	/* periodically dump the program state */
 	m_RetentionTimer = boost::make_shared<Timer>();
-	m_RetentionTimer->SetInterval(300);
+	m_RetentionTimer->SetInterval(3);
 	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
 	m_RetentionTimer->Start();
 

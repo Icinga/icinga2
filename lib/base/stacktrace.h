@@ -17,71 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef STACKTRACE_H
+#define STACKTRACE_H
 
 namespace icinga
 {
 
 /**
- * Helper functions.
+ * A stacktrace.
  *
  * @ingroup base
  */
-class I2_BASE_API Utility
+class StackTrace
 {
 public:
-	static String DemangleSymbolName(const String& sym);
-	static String GetTypeName(const type_info& ti);
-
-	static void Daemonize(void);
-
-	static shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
-	static String GetCertificateCN(const shared_ptr<X509>& certificate);
-	static shared_ptr<X509> GetX509Certificate(const String& pemfile);
-
-	static bool Match(const String& pattern, const String& text);
-
-	static String DirName(const String& path);
-	static String BaseName(const String& path);
-
-	static void NullDeleter(void *);
-
-	static double GetTime(void);
-
-	static pid_t GetPid(void);
-
-	static void Sleep(double timeout);
-
-	static String NewUUID(void);
-
-	static bool Glob(const String& pathSpec, const function<void (const String&)>& callback);
-
-	static void QueueAsyncCallback(const boost::function<void (void)>& callback);
-
-	static String FormatDateTime(const char *format, double ts);
-
-	static
+	StackTrace(void);
 #ifdef _WIN32
-	HMODULE
-#else /* _WIN32 */
-	lt_dlhandle
-#endif /* _WIN32 */
-	LoadIcingaLibrary(const String& library, bool module);
-
-#ifndef _WIN32
-	static void SetNonBlocking(int fd);
-	static void SetCloExec(int fd);
+	StackTrace(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
 
-	static void SetNonBlockingSocket(SOCKET s);
+	void Print(ostream& fp, int ignoreFrames = 0);
 
 private:
-	static bool m_SSLInitialized;
+	void *m_Frames[64];
+	int m_Count;
 
-	Utility(void);
+	static boost::once_flag m_OnceFlag;
 
-	static void InitializeOpenSSL(void);
+	static void Initialize(void);
 };
 
 }

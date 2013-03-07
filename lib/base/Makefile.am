@@ -58,6 +58,8 @@ libbase_la_SOURCES =  \
 	scripttask.h \
 	socket.cpp \
 	socket.h \
+	stacktrace.cpp \
+	stacktrace.h \
 	stdiostream.cpp \
 	stdiostream.h \
 	stream.cpp \

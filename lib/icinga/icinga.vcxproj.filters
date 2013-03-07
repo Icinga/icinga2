@@ -58,6 +58,15 @@
     <ClCompile Include="service-notification.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="api.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="user.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="usergroup.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="i2-icinga.h">
@@ -103,6 +112,15 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="notificationrequestmessage.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="api.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="user.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="usergroup.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

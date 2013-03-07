@@ -30,7 +30,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-#include <signal.h>
 #include <libgen.h>
 #include <syslog.h>
 #include <sys/file.h>

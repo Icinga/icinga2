@@ -308,10 +308,12 @@ void Application::SigAbrtHandler(int signum)
 {
 	assert(signum == SIGABRT);
 
+#ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
 	sigaction(SIGABRT, &sa, NULL);
+#endif /* _WIN32 */
 
 	std::cerr << "Caught SIGABRT." << std::endl;
 
@@ -358,13 +360,27 @@ void Application::ExceptionHandler(void)
 			  << std::endl;
 	}
 
-	Utility::PrintStacktrace(std::cerr, 1);
+	StackTrace trace;
+	trace.Print(std::cerr, 1);
 
 	DisplayBugMessage();
 
 	abort();
 }
 
+#ifdef _WIN32
+LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
+{
+	std::cerr << "Unhandled SEH exception." << std::endl;
+
+	StackTrace trace(exi);
+	trace.Print(std::cerr, 1);
+
+	DisplayBugMessage();
+
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+#endif /* _WIN32
 
 /**
  * Installs the exception handlers.
@@ -378,6 +394,8 @@ void Application::InstallExceptionHandlers(void)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &Application::SigAbrtHandler;
 	sigaction(SIGABRT, &sa, NULL);
+#else /* _WIN32 */
+	SetUnhandledExceptionFilter(&Application::SEHUnhandledExceptionFilter);
 #endif /* _WIN32 */
 }
 

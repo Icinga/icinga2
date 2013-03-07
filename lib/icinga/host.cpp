@@ -508,8 +508,6 @@ set<Service::Ptr> Host::GetParentServices(void) const
 
 HostState Host::GetState(void) const
 {
-	assert(!OwnsLock());
-
 	if (!IsReachable())
 		return HostUnreachable;
 
@@ -594,19 +592,7 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 		macros->Set("HOSTNAME", GetName());
 		macros->Set("HOSTDISPLAYNAME", GetDisplayName());
 		macros->Set("HOSTALIAS", GetName());
-
-		HostState state = GetState();
-
-		macros->Set("HOSTSTATE", HostStateToString(GetState()));
-		macros->Set("HOSTSTATEID", GetState());
-
-		HostState lastState = GetLastState();
-		StateType lastStateType = GetLastStateType();
-
-		macros->Set("LASTHOSTSTATE", HostStateToString(lastState));
-		macros->Set("LASTHOSTSTATEID", lastState);
-		macros->Set("LASTHOSTSTATETYPE", Service::StateTypeToString(lastStateType));
-		}
+	}
 
 	Dictionary::Ptr cr;
 
@@ -615,11 +601,16 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 	if (hc) {
 		ObjectLock olock(hc);
 
+		macros->Set("HOSTSTATE", HostStateToString(GetState()));
+		macros->Set("HOSTSTATEID", GetState());
 		macros->Set("HOSTSTATETYPE", Service::StateTypeToString(hc->GetStateType()));
 		macros->Set("HOSTATTEMPT", hc->GetCurrentCheckAttempt());
 		macros->Set("MAXHOSTATTEMPT", hc->GetMaxCheckAttempts());
 
-		macros->Set("LASTHOSTSTATECHANGE", (time_t)hc->GetLastStateChange());
+		macros->Set("LASTHOSTSTATE", HostStateToString(GetLastState()));
+		macros->Set("LASTHOSTSTATEID", GetLastState());
+		macros->Set("LASTHOSTSTATETYPE", Service::StateTypeToString(GetLastStateType()));
+		macros->Set("LASTHOSTSTATECHANGE", (long)hc->GetLastStateChange());
 
 		cr = hc->GetLastCheckResult();
 	}
@@ -631,7 +622,7 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 		macros->Set("HOSTOUTPUT", cr->Get("output"));
 		macros->Set("HOSTPERFDATA", cr->Get("performance_data_raw"));
 
-		macros->Set("LASTHOSTCHECK", (time_t)cr->Get("schedule_start"));
+		macros->Set("LASTHOSTCHECK", (long)cr->Get("schedule_start"));
 	}
 
 	macros->Seal();
