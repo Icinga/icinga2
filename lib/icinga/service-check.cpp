@@ -128,7 +128,7 @@ void Service::UpdateNextCheck(void)
 	double adj = 0;
 
 	if (interval > 1)
-		adj = fmod(now + GetSchedulingOffset(), interval);
+		adj = fmod(now * 1000 + GetSchedulingOffset(), interval * 1000) / 1000.0;
 
 	SetNextCheck(now - adj + interval);
 }
