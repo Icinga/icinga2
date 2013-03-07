@@ -117,7 +117,7 @@ void Process::WorkerThreadProc(int taskFd)
 			if (pfds[i].fd == taskFd) {
 				vector<Process::Ptr> new_tasks;
 
-				int want = MaxTasksPerThread - tasks.size();
+				unsigned int want = MaxTasksPerThread - tasks.size();
 
 				if (want > m_Tasks.size())
 					want = m_Tasks.size();
@@ -128,7 +128,7 @@ void Process::WorkerThreadProc(int taskFd)
 					/* Read one byte for every task we take from the pending tasks list. */
 					char buffer[MaxTasksPerThread];
 
-					assert(want =< sizeof(buffer));
+					assert(want <= sizeof(buffer));
 
 					int have = read(taskFd, &buffer, want);
 

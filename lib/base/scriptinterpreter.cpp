@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-ScriptInterpreter::ScriptInterpreter(const Script::Ptr& script)
+ScriptInterpreter::ScriptInterpreter(const Script::Ptr&)
 { }
 
 ScriptInterpreter::~ScriptInterpreter(void)
