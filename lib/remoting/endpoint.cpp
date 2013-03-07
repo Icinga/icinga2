@@ -222,7 +222,7 @@ void Endpoint::RegisterTopicHandler(const String& topic, const function<Endpoint
 	RegisterSubscription(topic);
 }
 
-void Endpoint::UnregisterTopicHandler(const String& topic, const function<Endpoint::Callback>& callback)
+void Endpoint::UnregisterTopicHandler(const String&, const function<Endpoint::Callback>&)
 {
 	// TODO: implement
 	//m_TopicHandlers[method] -= callback;

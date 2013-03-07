@@ -1101,7 +1101,7 @@ void ExternalCommandProcessor::DelAllSvcComments(double, const vector<String>& a
 	service->RemoveAllComments();
 }
 
-void ExternalCommandProcessor::SendCustomHostNotification(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::SendCustomHostNotification(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 4)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 4 arguments."));
@@ -1114,7 +1114,7 @@ void ExternalCommandProcessor::SendCustomHostNotification(double time, const vec
 		service->RequestNotifications(NotificationCustom);
 }
 
-void ExternalCommandProcessor::SendCustomSvcNotification(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::SendCustomSvcNotification(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 5)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 5 arguments."));
@@ -1125,7 +1125,7 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double time, const vect
 	service->RequestNotifications(NotificationCustom);
 }
 
-void ExternalCommandProcessor::DelayHostNotification(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelayHostNotification(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
@@ -1144,7 +1144,7 @@ void ExternalCommandProcessor::DelayHostNotification(double time, const vector<S
 	}
 }
 
-void ExternalCommandProcessor::DelaySvcNotification(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::DelaySvcNotification(double, const vector<String>& arguments)
 {
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(invalid_argument("Expected 3 arguments."));
