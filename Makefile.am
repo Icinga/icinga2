@@ -37,7 +37,7 @@ icinga2varstatedir = ${localstatedir}/lib/${PACKAGE}
 icinga2varstate_DATA =
 
 #run
-icinga2rundir = ${localstatedir}/run
+icinga2rundir = ${localstatedir}/run/${PACKAGE}
 icinga2run_DATA =
 
 #bin

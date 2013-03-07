@@ -161,7 +161,7 @@ String IcingaApplication::GetPidPath(void) const
 	ObjectLock olock(this);
 
 	if (m_PidPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2.pid";
+		return Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid";
 	else
 		return m_PidPath;
 }
