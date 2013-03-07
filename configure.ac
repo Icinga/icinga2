@@ -83,12 +83,6 @@ else
 fi
 AC_MSG_RESULT($enable_debug)
 
-AX_C___ATTRIBUTE__
-if test "$ax_cv___attribute__" = "yes" && test "x$enable_debug" = "xno"; then
-	CFLAGS="$CFLAGS -fvisibility=hidden"
-	CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
-fi
-
 AX_PYTHON_DEFAULT
 AX_PYTHON_ENABLE
 AX_PYTHON_VERSION_ENSURE([2.5])

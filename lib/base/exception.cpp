@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+StackTrace *Exception::m_StackTrace = NULL;
+
 /**
  * Retrieves the error code for the exception.
  *
@@ -125,3 +127,47 @@ String OpenSSLException::FormatErrorCode(int code)
 
 	return message;
 }
+
+#ifndef _WIN32
+extern "C"
+void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
+{
+	typedef void (*cxa_throw_fn)(void *, void *, void (*) (void *)) __attribute__((noreturn));
+	static cxa_throw_fn real_cxa_throw;
+
+	if (real_cxa_throw == 0)
+		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");
+
+	void *thrown_ptr = obj;
+	const type_info *tinfo = static_cast<type_info *>(pvtinfo);
+	const type_info *boost_exc = &typeid(boost::exception);
+
+	/* Check if the exception is a pointer type. */
+	if (tinfo->__is_pointer_p())
+		thrown_ptr = *(void **)thrown_ptr;
+
+	/* Check if thrown_ptr inherits from boost::exception. */
+	if (boost_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
+		boost::exception *ex = (boost::exception *)thrown_ptr;
+
+		StackTrace trace;
+		*ex << StackTraceErrorInfo(trace);
+	}
+
+	real_cxa_throw(obj, pvtinfo, dest);
+}
+#endif /* _WIN32 */
+
+StackTrace *Exception::GetLastStackTrace(void)
+{
+	return m_StackTrace;
+}
+
+void Exception::SetLastStackTrace(const StackTrace& trace)
+{
+	if (m_StackTrace)
+		delete m_StackTrace;
+
+	m_StackTrace = new StackTrace(trace);
+}
+

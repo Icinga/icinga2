@@ -36,7 +36,7 @@ public:
 	StackTrace(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
 
-	void Print(ostream& fp, int ignoreFrames = 0);
+	void Print(ostream& fp, int ignoreFrames = 0) const;
 
 private:
 	void *m_Frames[64];
@@ -46,6 +46,8 @@ private:
 
 	static void Initialize(void);
 };
+
+I2_BASE_API ostream& operator<<(ostream& stream, const StackTrace& trace);
 
 }
 

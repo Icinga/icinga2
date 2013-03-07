@@ -54,6 +54,9 @@ public:
 
 	virtual const char *what(void) const throw();
 
+	static StackTrace *GetLastStackTrace(void);
+	static void SetLastStackTrace(const StackTrace& trace);
+
 protected:
 	void SetCode(int code);
 	void SetMessage(String message);
@@ -61,7 +64,11 @@ protected:
 private:
 	String m_Message;
 	int m_Code;
+
+	static StackTrace *m_StackTrace;
 };
+
+typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
 
 #define DEFINE_EXCEPTION_CLASS(klass)					\
 	class klass : public Exception					\

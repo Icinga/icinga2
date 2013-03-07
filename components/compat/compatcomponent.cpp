@@ -88,7 +88,7 @@ String CompatComponent::GetCommandPath(void) const
 
 	Value commandPath = config->Get("command_path");
 	if (commandPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga/icinga2.cmd";
+		return Application::GetLocalStateDir() + "/run/icinga2/icinga2.cmd";
 	else
 		return commandPath;
 }

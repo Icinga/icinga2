@@ -102,7 +102,7 @@ void StackTrace::Initialize(void)
  *		       the one this function is executing in).
  * @returns true if the stacktrace was printed, false otherwise.
  */
-void StackTrace::Print(ostream& fp, int ignoreFrames)
+void StackTrace::Print(ostream& fp, int ignoreFrames) const
 {
 	fp << std::endl << "Stacktrace:" << std::endl;
 
@@ -170,3 +170,9 @@ void StackTrace::Print(ostream& fp, int ignoreFrames)
 	}
 #endif /* _WIN32 */
 }
+
+ostream& icinga::operator<<(ostream& stream, const StackTrace& trace)
+{
+	trace.Print(stream, 1);
+}
+

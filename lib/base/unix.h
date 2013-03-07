@@ -37,6 +37,7 @@
 #include <poll.h>
 #include <glob.h>
 #include <ltdl.h>
+#include <dlfcn.h>
 
 typedef int SOCKET;
 #define INVALID_SOCKET (-1)
