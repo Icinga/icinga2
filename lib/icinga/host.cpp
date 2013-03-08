@@ -387,36 +387,41 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 	String key;
 	Value value;
 	BOOST_FOREACH(tie(key, value), attrs) {
-		String name;
+		vector<String> templates;
 
 		if (value.IsScalar()) {
-			name = value;
+			templates.push_back(value);
 		} else if (value.IsObjectType<Dictionary>()) {
 			Dictionary::Ptr serviceDesc = value;
 
-			name = serviceDesc->Get("service");
+			Dictionary::Ptr templatesDict = serviceDesc->Get("templates");
+			ObjectLock tlock(templatesDict);
 
-			if (name.IsEmpty())
-				name = key;
+			Value tmpl;
+			BOOST_FOREACH(tie(tuples::ignore, tmpl), templatesDict) {
+				templates.push_back(tmpl);
+			}
 		} else {
 			continue;
 		}
 
-		ConfigItem::Ptr item;
+		BOOST_FOREACH(const String& name, templates) {
+			ConfigItem::Ptr item;
 
-		ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
+			ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
 
-		if (context)
-			item = context->GetItem("Service", name);
+			if (context)
+				item = context->GetItem("Service", name);
 
-		/* ignore already active objects while we're in the compiler
-		 * context and linking to existing items is disabled. */
-		if (!item && (!context || (context->GetFlags() & CompilerLinkExisting)))
-			item = ConfigItem::GetObject("Service", name);
+			/* ignore already active objects while we're in the compiler
+			 * context and linking to existing items is disabled. */
+			if (!item && (!context || (context->GetFlags() & CompilerLinkExisting)))
+				item = ConfigItem::GetObject("Service", name);
 
-		if (!item) {
-			ConfigCompilerContext::GetContext()->AddError(false, "Validation failed for " +
-			    location + ": Service '" + name + "' not found.");
+			if (!item) {
+				ConfigCompilerContext::GetContext()->AddError(false, "Validation failed for " +
+				    location + ": Template '" + name + "' not found.");
+			}
 		}
 	}
 
