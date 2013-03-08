@@ -103,7 +103,17 @@ void EventQueue::QueueThreadProc(void)
 #	endif /* RUSAGE_THREAD */
 #endif /* _DEBUG */
 
-			ev();
+			try {
+				ev();
+			} catch (const std::exception& ex) {
+				stringstream msgbuf;
+				msgbuf << "Exception thrown in event handler: " << std::endl
+				       << diagnostic_information(ex);
+
+				Logger::Write(LogCritical, "base", msgbuf.str());
+			} catch (...) {
+				Logger::Write(LogCritical, "base", "Exception of unknown type thrown in event handler.");
+			}
 
 #ifdef _DEBUG
 			double et = Utility::GetTime();
