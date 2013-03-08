@@ -479,11 +479,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const vector<String
 
 	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for service '" + service->GetName() + "'");
 
-	{
-		ObjectLock olock(service);
-
-		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
-	}
+	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 }
 
 void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<String>& arguments)
@@ -501,11 +497,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<
 
 	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for service '" + service->GetName() + "'");
 
-	{
-		ObjectLock olock(service);
-
-		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
-	}
+	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
 }
 
 void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<String>& arguments)
@@ -517,11 +509,7 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<Str
 
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
 
-	{
-		ObjectLock olock(service);
-
-		service->ClearAcknowledgement();
-	}
+	service->ClearAcknowledgement();
 }
 
 void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<String>& arguments)
@@ -536,8 +524,6 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<Strin
 	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
-		ObjectLock olock(service);
-
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
 
@@ -558,8 +544,6 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector
 	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
-		ObjectLock olock(service);
-
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
 
@@ -576,11 +560,8 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const vector<St
 
 	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
-	if (service) {
-		ObjectLock olock(service);
-
+	if (service)
 		service->ClearAcknowledgement();
-	}
 }
 
 void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const vector<String>& arguments)
