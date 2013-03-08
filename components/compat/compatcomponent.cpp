@@ -308,8 +308,7 @@ void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 		   << "\t" << "passive_checks_enabled" << "\t" << (hc->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (hc->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "d,u,r" << "\n"
-		   << "\t" << "notification_interval" << "\t" << hc->GetNotificationInterval() << "\n"
-		   << "\t" << "notification_period" << "\t" << "24x7" << "\n";
+		   << "\t" << "notification_interval" << "\t" << hc->GetNotificationInterval() << "\n";
 	} else {
 		fp << "\t" << "check_interval" << "\t" << 60 << "\n"
 		   << "\t" << "retry_interval" << "\t" << 60 << "\n"
@@ -433,7 +432,6 @@ void CompatComponent::DumpServiceObject(ostream& fp, const Service::Ptr& service
 		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
    		   << "\t" << "notification_interval" << "\t" << service->GetNotificationInterval() << "\n"
-		   << "\t" << "notification_period" << "\t" << "24x7" << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}
@@ -516,19 +514,6 @@ void CompatComponent::StatusTimerHandler(void)
 	objectfp << "# Icinga objects cache file" << "\n"
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
-
-	objectfp << "define timeperiod {"
-		 << "\t" << "timeperiod_name" << "\t" << "24x7" << "\n"
-		 << "\t" << "sunday" << "\t" << "00:00-24:00" << "\n"
-		 << "\t" << "monday" << "\t" << "00:00-24:00" << "\n"
-		 << "\t" << "tuesday" << "\t" << "00:00-24:00" << "\n"
-		 << "\t" << "wednesday" << "\t" << "00:00-24:00" << "\n"
-		 << "\t" << "thursday" << "\t" << "00:00-24:00" << "\n"
-		 << "\t" << "friday" << "\t" << "00:00-24:00" << "\n"
-		 << "\t" << "saturday" << "\t" << "00:00-24:00" << "\n"
-		 << "\t" << "}" << "\n"
-		 << "\n";
-
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		Host::Ptr host = static_pointer_cast<Host>(object);
