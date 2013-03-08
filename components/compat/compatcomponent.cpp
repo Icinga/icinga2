@@ -301,8 +301,8 @@ void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 	if (hc) {
 		ObjectLock olock(hc);
 
-		fp << "\t" << "check_interval" << "\t" << hc->GetCheckInterval() << "\n"
-		   << "\t" << "retry_interval" << "\t" << hc->GetRetryInterval() << "\n"
+		fp << "\t" << "check_interval" << "\t" << hc->GetCheckInterval() / 60.0 << "\n"
+		   << "\t" << "retry_interval" << "\t" << hc->GetRetryInterval() / 60.0 << "\n"
 		   << "\t" << "max_check_attempts" << "\t" << hc->GetMaxCheckAttempts() << "\n"
 		   << "\t" << "active_checks_enabled" << "\t" << (hc->GetEnableActiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "passive_checks_enabled" << "\t" << (hc->GetEnablePassiveChecks() ? 1 : 0) << "\n"
