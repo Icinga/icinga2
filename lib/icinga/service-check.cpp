@@ -381,6 +381,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	bool hardChange = false;
 	bool recovery;
 
+	/* The BeginExecuteCheck function already sets the old state, but we need to do it again
+	 * in case this was a passive check result. */
 	SetLastState(old_state);
 	SetLastStateType(old_stateType);
 
@@ -587,6 +589,9 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
 		}
 
 		m_CheckRunning = true;
+
+		SetLastState(GetState());
+		SetLastStateType(GetLastStateType());
 	}
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
