@@ -312,10 +312,12 @@ void Service::SetAcknowledgementExpiry(double timestamp)
  */
 void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
 {
-	ObjectLock olock(this);
+	{
+		ObjectLock olock(this);
 
-	SetAcknowledgement(type);
-	SetAcknowledgementExpiry(expiry);
+		SetAcknowledgement(type);
+		SetAcknowledgementExpiry(expiry);
+	}
 
 	RequestNotifications(NotificationAcknowledgement, GetLastCheckResult());
 }
