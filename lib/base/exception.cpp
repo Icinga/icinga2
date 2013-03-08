@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-StackTrace *Exception::m_StackTrace = NULL;
+boost::thread_specific_ptr<StackTrace> Exception::m_LastStackTrace;
 
 /**
  * Retrieves the error code for the exception.
@@ -146,11 +146,13 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 	if (tinfo->__is_pointer_p())
 		thrown_ptr = *(void **)thrown_ptr;
 
+	StackTrace trace;
+	Exception::SetLastStackTrace(trace);
+
 	/* Check if thrown_ptr inherits from boost::exception. */
 	if (boost_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
 		boost::exception *ex = (boost::exception *)thrown_ptr;
 
-		StackTrace trace;
 		*ex << StackTraceErrorInfo(trace);
 	}
 
@@ -160,14 +162,11 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 
 StackTrace *Exception::GetLastStackTrace(void)
 {
-	return m_StackTrace;
+	return m_LastStackTrace.get();
 }
 
 void Exception::SetLastStackTrace(const StackTrace& trace)
 {
-	if (m_StackTrace)
-		delete m_StackTrace;
-
-	m_StackTrace = new StackTrace(trace);
+	m_LastStackTrace.reset(new StackTrace(trace));
 }
 

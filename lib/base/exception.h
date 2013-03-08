@@ -65,7 +65,7 @@ private:
 	String m_Message;
 	int m_Code;
 
-	static StackTrace *m_StackTrace;
+	static boost::thread_specific_ptr<StackTrace> m_LastStackTrace;
 };
 
 typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
