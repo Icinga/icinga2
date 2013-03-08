@@ -235,8 +235,6 @@ void CompatComponent::DumpDowntimes(ostream& fp, const Service::Ptr& owner, Comp
 		if (Service::IsDowntimeExpired(downtime))
 			continue;
 
-		ObjectLock olock(downtime);
-
 		if (type == CompatTypeHost)
 			fp << "hostdowntime {" << "\n";
 		else
