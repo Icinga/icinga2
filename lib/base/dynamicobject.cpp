@@ -431,6 +431,9 @@ ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
 
 	methods = m_Methods;
 
+	if (!methods)
+		return ScriptTask::Ptr();
+
 	String funcName = methods->Get(method);
 
 	if (funcName.IsEmpty())

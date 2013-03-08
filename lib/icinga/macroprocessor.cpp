@@ -64,7 +64,7 @@ String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary
 		pos_second = result.FindFirstOf("$", pos_first + 1);
 
 		if (pos_second == String::NPos)
-			BOOST_THROW_EXCEPTION(runtime_error("Closing $ not found in macro format String."));
+			BOOST_THROW_EXCEPTION(runtime_error("Closing $ not found in macro format string."));
 
 		String name = result.SubStr(pos_first + 1, pos_second - pos_first - 1);
 
