@@ -216,12 +216,6 @@ void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notific
 	ScriptTask::Ptr task;
 	task = MakeMethodTask("notify", arguments);
 
-	if (!task) {
-		Logger::Write(LogWarning, "icinga", "Notification object '" + GetName() + "' doesn't have a 'notify' method.");
-
-		return;
-	}
-
 	{
 		ObjectLock olock(this);
 
