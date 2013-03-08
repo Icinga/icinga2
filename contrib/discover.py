@@ -4,16 +4,16 @@ import subprocess
 import socket
 from xml.dom.minidom import parseString
 
-if len(sys.argv) < 2:
-    print "Syntax: %s <host>" % (sys.argv[0])
-    sys.exit(1)
+service_templates = {
+  'ssh': 'ssh',
+  'http': 'http_ip',
+  'https': 'https_ip',
+  'smtp': 'smtp',
+  'ssmtp': 'ssmtp'
+}
 
-proc = subprocess.Popen(["nmap", "-oX", "-", sys.argv[1]], stdout=subprocess.PIPE)
-output = proc.communicate()
-
-dom = parseString(output[0])
-
-hostname = sys.argv[1]
+# Expects XML output from 'nmap -oX'
+dom = parseString(sys.stdin.read())
 
 def processHost(host):
     for element in host.getElementsByTagName("status"):
@@ -32,12 +32,10 @@ def processHost(host):
     for element in host.getElementsByTagName("hostname"):
         hostname = element.getAttribute("name")
 
-    print "object host \"%s\" {" % (hostname)
+    print "object Host \"%s\" inherits \"itl-host\" {" % (hostname)
     print "\tmacros = {"
     print "\t\taddress = \"%s\"" % (address)
     print "\t},"
-    print ""
-    print "\tservices += { \"ping\" },"
 
     for element in host.getElementsByTagName("port"):
         port = int(element.getAttribute("portid"))
@@ -48,9 +46,14 @@ def processHost(host):
         except:
             serv = str(port)
 
+        try:
+            template = service_templates[serv]
+        except:
+            template = protocol
+
         print ""
         print "\tservices[\"%s\"] = {" % (serv)
-        print "\t\tservice = \"%s\"," % (protocol)
+        print "\t\ttemplates = { \"%s\" }," % (template)
         print ""
         print "\t\tmacros = {"
         print "\t\t\tport = %s" % (port)
@@ -59,6 +62,8 @@ def processHost(host):
 
     print "}"
     print ""
+
+print "#include <itl/itl.conf>"
 
 for host in dom.getElementsByTagName("host"):
     processHost(host)
