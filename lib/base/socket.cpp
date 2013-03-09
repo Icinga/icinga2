@@ -48,8 +48,6 @@ Socket::~Socket(void)
  */
 void Socket::Start(void)
 {
-	ObjectLock olock(this);
-
 	ASSERT(!m_ReadThread.joinable() && !m_WriteThread.joinable());
 	ASSERT(GetFD() != INVALID_SOCKET);
 
@@ -100,13 +98,15 @@ SOCKET Socket::GetFD(void) const
  */
 void Socket::Close(void)
 {
-	ObjectLock olock(this);
+	{
+		ObjectLock olock(this);
 
-	if (m_FD == INVALID_SOCKET)
-		return;
+		if (m_FD == INVALID_SOCKET)
+			return;
 
-	closesocket(m_FD);
-	m_FD = INVALID_SOCKET;
+		closesocket(m_FD);
+		m_FD = INVALID_SOCKET;
+	}
 
 	Stream::Close();
 }
@@ -385,19 +385,17 @@ size_t Socket::GetAvailableBytes(void) const
  */
 size_t Socket::Read(void *buffer, size_t size)
 {
-	ObjectLock olock(this);
-
-	if (m_Listening)
-		throw new logic_error("Socket does not support Read().");
-
 	{
-		ObjectLock olock(m_RecvQueue);
+		ObjectLock olock(this);
 
-		if (m_RecvQueue->GetAvailableBytes() == 0)
-			CheckException();
-
-		return m_RecvQueue->Read(buffer, size);
+		if (m_Listening)
+			throw new logic_error("Socket does not support Read().");
 	}
+
+	if (m_RecvQueue->GetAvailableBytes() == 0)
+		CheckException();
+
+	return m_RecvQueue->Read(buffer, size);
 }
 
 /**
@@ -416,14 +414,10 @@ size_t Socket::Peek(void *buffer, size_t size)
 			throw new logic_error("Socket does not support Peek().");
 	}
 
-	{
-		ObjectLock olock(m_RecvQueue);
+	if (m_RecvQueue->GetAvailableBytes() == 0)
+		CheckException();
 
-		if (m_RecvQueue->GetAvailableBytes() == 0)
-			CheckException();
-
-		return m_RecvQueue->Peek(buffer, size);
-	}
+	return m_RecvQueue->Peek(buffer, size);
 }
 
 /**
@@ -449,12 +443,13 @@ void Socket::Write(const void *buffer, size_t size)
  */
 void Socket::Listen(void)
 {
-	ObjectLock olock(this);
-
 	if (listen(GetFD(), SOMAXCONN) < 0)
 		BOOST_THROW_EXCEPTION(SocketException("listen() failed", GetError()));
 
-	m_Listening = true;
+	{
+		ObjectLock olock(this);
+		m_Listening = true;
+	}
 }
 
 void Socket::HandleWritable(void)
@@ -553,7 +548,7 @@ void Socket::HandleReadableServer(void)
 	if (fd < 0)
 		BOOST_THROW_EXCEPTION(SocketException("accept() failed", GetError()));
 
-	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
+	Socket::Ptr client = boost::make_shared<Socket>();
 	client->SetFD(fd);
 	OnNewClient(GetSelf(), client);
 }

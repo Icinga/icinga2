@@ -33,6 +33,7 @@ public:
 	typedef shared_ptr<Socket> Ptr;
 	typedef weak_ptr<Socket> WeakPtr;
 
+	Socket(void);
 	~Socket(void);
 
 	virtual void Start(void);
@@ -54,8 +55,6 @@ public:
 	signals2::signal<void (const Socket::Ptr&, const Socket::Ptr&)> OnNewClient;
 
 protected:
-	Socket(void);
-
 	void SetFD(SOCKET fd);
 	SOCKET GetFD(void) const;
 

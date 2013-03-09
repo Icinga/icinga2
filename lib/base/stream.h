@@ -82,6 +82,8 @@ public:
 
 	bool IsConnected(void) const;
 
+	bool ReadLine(String *line, size_t maxLength = 4096);
+
 	boost::exception_ptr GetException(void);
 	void CheckException(void);
 

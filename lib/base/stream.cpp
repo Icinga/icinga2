@@ -112,3 +112,22 @@ void Stream::Close(void)
 
 	SetConnected(false);
 }
+
+bool Stream::ReadLine(String *line, size_t maxLength)
+{
+	char buffer[maxLength];
+
+	size_t rc = Peek(buffer, maxLength);
+
+	for (int i = 0; i < rc; i++) {
+		if (buffer[i] == '\n') {
+			*line = String(buffer, &(buffer[i]));
+
+			Read(NULL, rc);
+
+			return true;
+		}
+	}
+
+	return false;
+}
