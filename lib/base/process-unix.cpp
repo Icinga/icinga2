@@ -119,9 +119,6 @@ void Process::WorkerThreadProc(int taskFd)
 
 				unsigned int want = MaxTasksPerThread - tasks.size();
 
-				if (want > m_Tasks.size())
-					want = m_Tasks.size();
-
 				if (want > 0) {
 					boost::mutex::scoped_lock lock(m_Mutex);
 
