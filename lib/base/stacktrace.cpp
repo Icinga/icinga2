@@ -153,7 +153,7 @@ void StackTrace::Print(ostream& fp, int ignoreFrames) const
 		line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
 		fp << "\t(" << i - ignoreFrames - 1 << ") ";
-		
+
 		if (SymGetLineFromAddr64(GetCurrentProcess(), dwAddress, &dwDisplacement, &line))
 			fp << line.FileName << ":" << line.LineNumber;
 		else
@@ -174,5 +174,6 @@ void StackTrace::Print(ostream& fp, int ignoreFrames) const
 ostream& icinga::operator<<(ostream& stream, const StackTrace& trace)
 {
 	trace.Print(stream, 1);
-}
 
+	return stream;
+}
