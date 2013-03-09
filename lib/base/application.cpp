@@ -389,7 +389,7 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
-#endif /* _WIN32
+#endif /* _WIN32 */
 
 /**
  * Installs the exception handlers.
