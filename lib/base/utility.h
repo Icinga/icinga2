@@ -87,7 +87,7 @@ private:
 }
 
 #ifdef _DEBUG
-#	define ASSERT(expr) ASSERT(expr)
+#	define ASSERT(expr) assert(expr)
 #else /* _DEBUG */
 #	define ASSERT(expr)
 #endif /* _DEBUG */
