@@ -65,7 +65,7 @@ Query::Query(const vector<String>& lines)
 			m_Columns = params.Split(is_any_of(" "));
 		else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
-		else if (header == "Filter") {
+		else if (header == "Filter" || header == "Stats") {
 			vector<String> tokens = params.Split(is_any_of(" "));
 
 			if (tokens.size() < 3) {
@@ -97,29 +97,46 @@ Query::Query(const vector<String>& lines)
 			if (negate)
 				filter = boost::make_shared<NegateFilter>(filter);
 
-			filters.push_back(filter);
+			deque<Filter::Ptr>& deq = (header == "Filter") ? filters : stats;
+			deq.push_back(filter);
 		} else if (header == "Or" || header == "And") {
+			deque<Filter::Ptr>& deq = (header == "Or" || header == "And") ? filters : stats;
+
 			int num = Convert::ToLong(params);
 			CombinerFilter::Ptr filter;
 
-			if (header == "Or")
+			if (header == "Or" || header == "StatsOr")
 				filter = boost::make_shared<OrFilter>();
 			else
 				filter = boost::make_shared<AndFilter>();
 
-			while (!filters.empty() && num--) {
-				filter->AddSubFilter(filters.back());
-				filters.pop_back();
+			if (num > deq.size()) {
+				m_Verb = "ERROR";
+				m_ErrorCode = 451;
+				m_ErrorMessage = "Or/StatsOr is referencing " + Convert::ToString(num) + " filters; stack only contains " + Convert::ToString(deq.size()) + " filters";
+				return;
 			}
 
-			filters.push_back(filter);
-		} else if (header == "Negate") {
-			if (!filters.empty()) {
-				Filter::Ptr filter = filters.back();
-				filters.pop_back();
-
-				filters.push_back(boost::make_shared<NegateFilter>(filter));
+			while (num--) {
+				filter->AddSubFilter(deq.back());
+				deq.pop_back();
 			}
+
+			deq.push_back(filter);
+		} else if (header == "Negate" || header == "StatsNegate") {
+			deque<Filter::Ptr>& deq = (header == "Negate") ? filters : stats;
+
+			if (deq.empty()) {
+				m_Verb = "ERROR";
+				m_ErrorCode = 451;
+				m_ErrorMessage = "Negate/StatsNegate used, however the filter stack is empty";
+				return;
+			}
+
+			Filter::Ptr filter = deq.back();
+			filters.pop_back();
+
+			deq.push_back(boost::make_shared<NegateFilter>(filter));
 		}
 	}
 
@@ -196,22 +213,44 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 
 	Array::Ptr rs = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const Object::Ptr& object, objects) {
-		Array::Ptr row = boost::make_shared<Array>();
+	if (m_Stats.empty()) {
+		BOOST_FOREACH(const Object::Ptr& object, objects) {
+			Array::Ptr row = boost::make_shared<Array>();
 
-		BOOST_FOREACH(const String& column, columns) {
-			Table::ColumnAccessor accessor = table->GetColumn(column);
+			BOOST_FOREACH(const String& column, columns) {
+				Table::ColumnAccessor accessor = table->GetColumn(column);
 
-			if (accessor.empty()) {
-				SendResponse(stream, 450, "Column '" + column + "' does not exist.");
+				if (accessor.empty()) {
+					SendResponse(stream, 450, "Column '" + column + "' does not exist.");
 
-				return;
+					return;
+				}
+
+				row->Add(accessor(object));
 			}
 
-			row->Add(accessor(object));
+			rs->Add(row);
+		}
+	} else {
+		vector<int> stats(m_Stats.size(), 0);
+
+		BOOST_FOREACH(const Object::Ptr& object, objects) {
+			int index = 0;
+			BOOST_FOREACH(const Filter::Ptr filter, m_Stats) {
+				if (filter->Apply(table, object))
+					stats[index]++;
+
+				index++;
+			}
 		}
 
+		Array::Ptr row = boost::make_shared<Array>();
+		for (int i = 0; i < m_Stats.size(); i++)
+			row->Add(stats[i]);
+
 		rs->Add(row);
+
+		m_ColumnHeaders = false;
 	}
 
 	stringstream result;
@@ -229,7 +268,7 @@ void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
 
 void Query::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
-	PrintFixed16(stream, m_ErrorCode, m_ErrorMessage);
+	SendResponse(stream, m_ErrorCode, m_ErrorMessage);
 }
 
 void Query::SendResponse(const Stream::Ptr& stream, int code, const String& data)
