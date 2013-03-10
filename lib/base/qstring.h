@@ -34,9 +34,13 @@ public:
 	typedef std::string::iterator Iterator;
 	typedef std::string::const_iterator ConstIterator;
 
+	typedef std::string::iterator iterator;
+	typedef std::string::const_iterator const_iterator;
+
 	String(void);
 	String(const char *data);
 	String(const std::string& data);
+	String(size_t n, char c);
 
 	template<typename InputIterator>
 	String(InputIterator begin, InputIterator end)
@@ -66,7 +70,7 @@ public:
 	size_t GetLength(void) const;
 
 	size_t FindFirstOf(const char *s, size_t pos = 0) const;
-	String SubStr(size_t first, size_t len) const;
+	String SubStr(size_t first, size_t len = NPos) const;
 	void Replace(size_t first, size_t second, const String& str);
 
 	template<typename Predicate>
@@ -77,10 +81,18 @@ public:
 		return tokens;
 	}
 
+	static String Join(const vector<String>& strings, const char *delim);
+
 	void Trim(void);
 
 	void swap(String& str);
 	Iterator erase(Iterator first, Iterator last);
+
+	template<typename InputIterator>
+	void insert(Iterator p, InputIterator first, InputIterator last)
+	{
+		m_Data.insert(p, first, last);
+	}
 
 	Iterator Begin(void);
 	ConstIterator Begin(void) const;

@@ -108,6 +108,7 @@ components/checker/Makefile
 components/compat/Makefile
 components/delegation/Makefile
 components/demo/Makefile
+components/livestatus/Makefile
 components/notification/Makefile
 components/replication/Makefile
 docs/Doxyfile

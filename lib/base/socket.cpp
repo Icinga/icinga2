@@ -392,8 +392,12 @@ size_t Socket::Read(void *buffer, size_t size)
 			throw new logic_error("Socket does not support Read().");
 	}
 
-	if (m_RecvQueue->GetAvailableBytes() == 0)
+	if (m_RecvQueue->GetAvailableBytes() == 0) {
 		CheckException();
+
+		if (!IsConnected())
+			SetEOF(true);
+	}
 
 	return m_RecvQueue->Read(buffer, size);
 }
@@ -516,8 +520,11 @@ void Socket::HandleReadableClient(void)
 #endif /* _WIN32 */
 			break;
 
-		if (rc <= 0)
+		if (rc < 0)
 			BOOST_THROW_EXCEPTION(SocketException("recv() failed", GetError()));
+
+		if (rc == 0)
+			SetEOF(true);
 
 		m_RecvQueue->Write(data, rc);
 
@@ -586,7 +593,7 @@ bool Socket::WantsToRead(void) const
  */
 bool Socket::WantsToReadClient(void) const
 {
-	return true;
+	return !IsEOF();
 }
 
 /**

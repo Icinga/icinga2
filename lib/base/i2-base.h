@@ -130,6 +130,7 @@ using std::type_info;
 #include <boost/signals2.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/compare.hpp>
 #include <boost/thread.hpp>
 #include <boost/variant.hpp>

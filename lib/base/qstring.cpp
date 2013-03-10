@@ -35,6 +35,10 @@ String::String(const std::string& data)
 	: m_Data(data)
 { }
 
+String::String(size_t n, char c)
+	: m_Data(n, c)
+{ }
+
 String::String(const String& other)
 	: m_Data(other.m_Data)
 { }
@@ -122,6 +126,11 @@ String String::SubStr(size_t first, size_t len) const
 void String::Replace(size_t first, size_t second, const String& str)
 {
 	m_Data.replace(first, second, str);
+}
+
+String Join(const vector<String>& strings, const char *delim)
+{
+	return boost::algorithm::join(strings, delim);
 }
 
 void String::Trim(void)
@@ -257,4 +266,3 @@ String::ConstIterator icinga::range_end(const String& x)
 {
 	return x.End();
 }
-

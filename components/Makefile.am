@@ -6,5 +6,6 @@ SUBDIRS = \
 	compat \
 	delegation \
 	demo \
+	livestatus \
 	notification \
 	replication

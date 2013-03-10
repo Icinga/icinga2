@@ -22,7 +22,7 @@
 using namespace icinga;
 
 Stream::Stream(void)
-	: m_Connected(false)
+	: m_Connected(false), m_EOF(false)
 { }
 
 Stream::~Stream(void)
@@ -43,6 +43,16 @@ bool Stream::IsConnected(void) const
 /**
  * @threadsafety Always.
  */
+bool Stream::IsEOF(void) const
+{
+	ObjectLock olock(this);
+
+	return m_EOF;
+}
+
+/**
+ * @threadsafety Always.
+ */
 void Stream::SetConnected(bool connected)
 {
 	{
@@ -54,6 +64,17 @@ void Stream::SetConnected(bool connected)
 		OnConnected(GetSelf());
 	else
 		OnClosed(GetSelf());
+}
+
+/**
+ * @threadsafety Always.
+ */
+void Stream::SetEOF(bool eof)
+{
+	{
+		ObjectLock olock(this);
+		m_EOF = eof;
+	}
 }
 
 /**
@@ -119,9 +140,10 @@ bool Stream::ReadLine(String *line, size_t maxLength)
 
 	size_t rc = Peek(buffer, maxLength);
 
-	for (int i = 0; i < rc; i++) {
+	for (size_t i = 0; i < rc; i++) {
 		if (buffer[i] == '\n') {
 			*line = String(buffer, &(buffer[i]));
+			boost::algorithm::trim_right(*line);
 
 			Read(NULL, rc);
 
