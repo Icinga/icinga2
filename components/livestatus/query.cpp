@@ -116,7 +116,14 @@ Query::Query(const vector<String>& lines)
 		}
 	}
 
-	m_Filters.swap(filters);
+	/* Combine all top-level filters into a single filter. */
+	AndFilter::Ptr top_filter = boost::make_shared<AndFilter>();
+
+	BOOST_FOREACH(const Filter::Ptr& filter, filters) {
+		top_filter->AddSubFilter(filter);
+	}
+
+	m_Filter = top_filter;
 	m_Stats.swap(stats);
 }
 
@@ -172,15 +179,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		return;
 	}
 
-	if (m_Filters.size() > 1)
-		SendResponse(stream, 452, "There must not be more than one top-level filter expression.");
-
-	Filter::Ptr filter;
-
-	if (!m_Filters.empty())
-		filter = m_Filters[0];
-
-	vector<Object::Ptr> objects = table->FilterRows(filter);
+	vector<Object::Ptr> objects = table->FilterRows(m_Filter);
 	vector<String> columns;
 	
 	if (m_Columns.size() > 0)
