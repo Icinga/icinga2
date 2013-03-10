@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="application.cpp" />
+    <ClCompile Include="array.cpp" />
     <ClCompile Include="attribute.cpp" />
     <ClCompile Include="component.cpp" />
     <ClCompile Include="connection.cpp" />
@@ -63,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h" />
+    <ClInclude Include="array.h" />
     <ClInclude Include="asynctask.h" />
     <ClInclude Include="attribute.h" />
     <ClInclude Include="component.h" />

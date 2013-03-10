@@ -37,6 +37,9 @@ public:
 	typedef shared_ptr<Object> Ptr;
 	typedef weak_ptr<Object> WeakPtr;
 
+	Object(void);
+	virtual ~Object(void);
+
 	/**
 	 * Holds a shared pointer and provides support for implicit upcasts.
 	 *
@@ -96,9 +99,6 @@ public:
 #endif /* _DEBUG */
 
 protected:
-	Object(void);
-	virtual ~Object(void);
-
 	SharedPtrHolder GetSelf(void);
 
 private:

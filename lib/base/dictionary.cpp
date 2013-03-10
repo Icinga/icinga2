@@ -222,6 +222,7 @@ void Dictionary::Remove(const String& key)
 	if (it == m_Data.end())
 		return;
 
+	ASSERT(!m_Sealed);
 	m_Data.erase(it);
 }
 
@@ -235,7 +236,7 @@ void Dictionary::Remove(Dictionary::Iterator it)
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	String key = it->first;
+	ASSERT(!m_Sealed);
 	m_Data.erase(it);
 }
 

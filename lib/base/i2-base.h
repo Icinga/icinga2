@@ -201,6 +201,7 @@ namespace signals2 = boost::signals2;
 #include "value.h"
 #include "convert.h"
 #include "dictionary.h"
+#include "array.h"
 #include "ringbuffer.h"
 #include "timer.h"
 #include "stream.h"

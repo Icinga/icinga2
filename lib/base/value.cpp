@@ -105,17 +105,11 @@ Value Value::FromJson(cJSON *json)
 		return 0;
 	else if (json->type == cJSON_Object)
 		return Dictionary::FromJson(json);
+	else if (json->type == cJSON_Array)
+		return Array::FromJson(json);
 	else if (json->type == cJSON_NULL)
 		return Value();
-	else if (json->type == cJSON_Array) {
-		Dictionary::Ptr dict = boost::make_shared<Dictionary>();
-
-		for (cJSON *i = json->child; i != NULL; i = i->next) {
-			dict->Add(Value::FromJson(i));
-		}
-
-		return dict;
-	} else
+	else
 		BOOST_THROW_EXCEPTION(invalid_argument("Unsupported JSON type."));
 }
 
@@ -162,6 +156,9 @@ cJSON *Value::ToJson(void) const
 			if (IsObjectType<Dictionary>()) {
 				Dictionary::Ptr dictionary = *this;
 				return dictionary->ToJson();
+			} else if (IsObjectType<Array>()) {
+				Array::Ptr array = *this;
+				return array->ToJson();
 			} else {
 				Logger::Write(LogDebug, "base", "Ignoring unknown object while converting variant to JSON.");
 				return cJSON_CreateNull();

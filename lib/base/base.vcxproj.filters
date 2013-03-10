@@ -109,6 +109,9 @@
     <ClCompile Include="stacktrace.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="array.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -220,6 +223,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="stacktrace.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="array.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
