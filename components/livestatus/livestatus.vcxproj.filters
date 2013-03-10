@@ -51,6 +51,12 @@
     <ClInclude Include="combinerfilter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="hoststable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="column.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="component.cpp">
@@ -90,6 +96,12 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="combinerfilter.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="hoststable.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="column.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

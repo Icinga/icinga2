@@ -24,9 +24,15 @@ using namespace livestatus;
 
 ContactGroupsTable::ContactGroupsTable(void)
 {
-	AddColumn("name", &ContactGroupsTable::NameAccessor);
-	AddColumn("alias", &ContactGroupsTable::NameAccessor);
-	AddColumn("members", &ContactGroupsTable::MembersAccessor);
+	AddColumns(this);
+}
+
+void ContactGroupsTable::AddColumns(Table *table, const String& prefix,
+    const Column::ObjectAccessor& objectAccessor)
+{
+	table->AddColumn(prefix + "name", Column(&ContactGroupsTable::NameAccessor, objectAccessor));
+	table->AddColumn(prefix + "alias", Column(&ContactGroupsTable::NameAccessor, objectAccessor));
+	table->AddColumn(prefix + "members", Column(&ContactGroupsTable::MembersAccessor, objectAccessor));
 }
 
 String ContactGroupsTable::GetName(void) const

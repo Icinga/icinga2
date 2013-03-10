@@ -33,6 +33,7 @@
 using namespace icinga;
 
 #include "connection.h"
+#include "column.h"
 #include "table.h"
 #include "filter.h"
 #include "combinerfilter.h"
@@ -44,6 +45,7 @@ using namespace icinga;
 #include "statustable.h"
 #include "contactgroupstable.h"
 #include "contactstable.h"
+#include "hoststable.h"
 #include "component.h"
 
 #endif /* I2LIVESTATUS_H */

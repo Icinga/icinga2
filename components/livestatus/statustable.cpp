@@ -24,65 +24,71 @@ using namespace livestatus;
 
 StatusTable::StatusTable(void)
 {
-	AddColumn("neb_callbacks", &Table::ZeroAccessor);
-	AddColumn("neb_callbacks_rate", &Table::ZeroAccessor);
+	AddColumns(this);
+}
 
-	AddColumn("requests", &Table::ZeroAccessor);
-	AddColumn("requests_rate", &Table::ZeroAccessor);
+void StatusTable::AddColumns(Table *table, const String& prefix,
+    const Column::ObjectAccessor& objectAccessor)
+{
+	table->AddColumn(prefix + "neb_callbacks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "neb_callbacks_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
-	AddColumn("connections", &Table::ZeroAccessor);
-	AddColumn("connections_rate", &Table::ZeroAccessor);
+	table->AddColumn(prefix + "requests", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "requests_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
-	AddColumn("service_checks", &Table::ZeroAccessor);
-	AddColumn("service_checks_rate", &Table::ZeroAccessor);
+	table->AddColumn(prefix + "connections", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "connections_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
-	AddColumn("host_checks", &Table::ZeroAccessor);
-	AddColumn("host_checks_rate", &Table::ZeroAccessor);
+	table->AddColumn(prefix + "service_checks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "service_checks_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
-	AddColumn("forks", &Table::ZeroAccessor);
-	AddColumn("forks_rate", &Table::ZeroAccessor);
+	table->AddColumn(prefix + "host_checks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "host_checks_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
-	AddColumn("log_messages", &Table::ZeroAccessor);
-	AddColumn("log_messages_rate", &Table::ZeroAccessor);
+	table->AddColumn(prefix + "forks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "forks_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
-	AddColumn("external_commands", &Table::ZeroAccessor);
-	AddColumn("external_commands_rate", &Table::ZeroAccessor);
+	table->AddColumn(prefix + "log_messages", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "log_messages_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
-	AddColumn("livechecks", &Table::ZeroAccessor);
-	AddColumn("livechecks_rate", &Table::ZeroAccessor);
+	table->AddColumn(prefix + "external_commands", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "external_commands_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
-	AddColumn("livecheck_overflows", &Table::ZeroAccessor);
-	AddColumn("livecheck_overflows_rate", &Table::ZeroAccessor);
+	table->AddColumn(prefix + "livechecks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "livechecks_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
-	AddColumn("nagios_pid", &Table::ZeroAccessor);
-	AddColumn("enable_notifications", &Table::ZeroAccessor);
-	AddColumn("execute_service_checks", &Table::ZeroAccessor);
-	AddColumn("accept_passive_service_checks", &Table::ZeroAccessor);
-	AddColumn("execute_host_checks", &Table::ZeroAccessor);
-	AddColumn("accept_passive_host_checks", &Table::ZeroAccessor);
-	AddColumn("enable_event_handlers", &Table::ZeroAccessor);
-	AddColumn("obsess_over_services", &Table::ZeroAccessor);
-	AddColumn("obsess_over_hosts", &Table::ZeroAccessor);
-	AddColumn("check_service_freshness", &Table::ZeroAccessor);
-	AddColumn("check_host_freshness", &Table::ZeroAccessor);
-	AddColumn("enable_flap_detection", &Table::ZeroAccessor);
-	AddColumn("process_performance_data", &Table::ZeroAccessor);
-	AddColumn("check_external_commands", &Table::ZeroAccessor);
-	AddColumn("program_start", &Table::ZeroAccessor);
-	AddColumn("last_command_check", &Table::ZeroAccessor);
-	AddColumn("last_log_rotation", &Table::ZeroAccessor);
-	AddColumn("interval_length", &Table::ZeroAccessor);
-	AddColumn("num_hosts", &Table::ZeroAccessor);
-	AddColumn("num_services", &Table::ZeroAccessor);
-	AddColumn("program_version", &Table::ZeroAccessor);
-	AddColumn("external_command_buffer_slots", &Table::ZeroAccessor);
-	AddColumn("external_command_buffer_usage", &Table::ZeroAccessor);
-	AddColumn("external_command_buffer_max", &Table::ZeroAccessor);
-	AddColumn("cached_log_messages", &Table::ZeroAccessor);
-	AddColumn("livestatus_version", &Table::ZeroAccessor);
-	AddColumn("livestatus_active_connections", &Table::ZeroAccessor);
-	AddColumn("livestatus_queued_connections", &Table::ZeroAccessor);
-	AddColumn("livestatus_threads", &Table::ZeroAccessor);
+	table->AddColumn(prefix + "livecheck_overflows", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "livecheck_overflows_rate", Column(&Table::ZeroAccessor, objectAccessor));
+
+	table->AddColumn(prefix + "nagios_pid", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "enable_notifications", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "execute_service_checks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "accept_passive_service_checks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "execute_host_checks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "accept_passive_host_checks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "enable_event_handlers", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "obsess_over_services", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "obsess_over_hosts", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_service_freshness", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_host_freshness", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "enable_flap_detection", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "process_performance_data", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_external_commands", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "program_start", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "last_command_check", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "last_log_rotation", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "interval_length", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_hosts", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "program_version", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "external_command_buffer_slots", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "external_command_buffer_usage", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "external_command_buffer_max", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "cached_log_messages", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "livestatus_version", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "livestatus_active_connections", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "livestatus_queued_connections", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "livestatus_threads", Column(&Table::ZeroAccessor, objectAccessor));
 }
 
 String StatusTable::GetName(void) const

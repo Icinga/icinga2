@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONTACTSTABLE_H
-#define CONTACTSTABLE_H
+#ifndef HOSTSTABLE_H
+#define HOSTSTABLE_H
 
 namespace livestatus
 {
@@ -26,13 +26,13 @@ namespace livestatus
 /**
  * @ingroup livestatus
  */
-class ContactsTable : public Table
+class HostsTable : public Table
 {
 public:
-	typedef shared_ptr<ContactsTable> Ptr;
-	typedef weak_ptr<ContactsTable> WeakPtr;
+	typedef shared_ptr<HostsTable> Ptr;
+	typedef weak_ptr<HostsTable> WeakPtr;
 
-	ContactsTable(void);
+	HostsTable(void);
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
@@ -43,9 +43,9 @@ protected:
 	virtual void FetchRows(const function<void (const Object::Ptr&)>& addRowFn);
 
 	static Value NameAccessor(const Object::Ptr& object);
-	static Value MembersAccessor(const Object::Ptr& object);
+	static Value DisplayNameAccessor(const Object::Ptr& object);
 };
 
 }
 
-#endif /* CONTACTSTABLE_H */
+#endif /* HOSTSTABLE_H */

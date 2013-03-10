@@ -28,12 +28,9 @@ AttributeFilter::AttributeFilter(const String& column, const String& op, const S
 
 bool AttributeFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
 {
-	Table::ColumnAccessor accessor = table->GetColumn(m_Column);
+	Column column = table->GetColumn(m_Column);
 
-	if (accessor.empty())
-		BOOST_THROW_EXCEPTION(invalid_argument("Filter expression uses unknown column '" + m_Column + "'"));
-
-	Value value = accessor(object);
+	Value value = column.ExtractValue(object);
 
 	if (value.IsObjectType<Array>()) {
 		if (m_Operator == ">=") {

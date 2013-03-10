@@ -68,6 +68,9 @@ Query::Query(const vector<String>& lines)
 		else if (header == "Filter" || header == "Stats") {
 			vector<String> tokens = params.Split(is_any_of(" "));
 
+			if (tokens.size() == 2)
+				tokens.push_back("");
+
 			if (tokens.size() < 3) {
 				m_Verb = "ERROR";
 				m_ErrorCode = 452;
@@ -217,16 +220,10 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		BOOST_FOREACH(const Object::Ptr& object, objects) {
 			Array::Ptr row = boost::make_shared<Array>();
 
-			BOOST_FOREACH(const String& column, columns) {
-				Table::ColumnAccessor accessor = table->GetColumn(column);
+			BOOST_FOREACH(const String& columnName, columns) {
+				Column column = table->GetColumn(columnName);
 
-				if (accessor.empty()) {
-					SendResponse(stream, 450, "Column '" + column + "' does not exist.");
-
-					return;
-				}
-
-				row->Add(accessor(object));
+				row->Add(column.ExtractValue(object));
 			}
 
 			rs->Add(row);

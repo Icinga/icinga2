@@ -36,19 +36,17 @@ public:
 
 	static Table::Ptr GetByName(const String& name);
 
-	typedef function<Value (const Object::Ptr&)> ColumnAccessor;
 	
 	virtual String GetName(void) const = 0;
 
 	vector<Object::Ptr> FilterRows(const shared_ptr<Filter>& filter);
 
-	ColumnAccessor GetColumn(const String& name) const;
+	void AddColumn(const String& name, const Column& column);
+	Column GetColumn(const String& name) const;
 	vector<String> GetColumnNames(void) const;
 
 protected:
 	Table(void);
-
-	void AddColumn(const String& name, const ColumnAccessor& accessor);
 
 	virtual void FetchRows(const function<void (const Object::Ptr&)>& addRowFn) = 0;
 
@@ -59,7 +57,7 @@ protected:
 	static Value EmptyDictionaryAccessor(const Object::Ptr&);
 
 private:
-	map<String, ColumnAccessor> m_Columns;
+	map<String, Column> m_Columns;
 
 	void FilteredAddRow(vector<Object::Ptr>& rs, const shared_ptr<Filter>& filter, const Object::Ptr& object);
 };

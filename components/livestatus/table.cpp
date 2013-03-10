@@ -33,21 +33,28 @@ Table::Ptr Table::GetByName(const String& name)
 		return boost::make_shared<ContactGroupsTable>();
 	else if (name == "contacts")
 		return boost::make_shared<ContactsTable>();
+	else if (name == "hosts")
+		return boost::make_shared<HostsTable>();
 
 	return Table::Ptr();
 }
 
-void Table::AddColumn(const String& name, const ColumnAccessor& accessor)
+void Table::AddColumn(const String& name, const Column& column)
 {
-	m_Columns[name] = accessor;
+	pair<String, Column> item = make_pair(name, column);
+
+	pair<map<String, Column>::iterator, bool> ret = m_Columns.insert(item);
+
+	if (!ret.second)
+		ret.first->second = column;
 }
 
-Table::ColumnAccessor Table::GetColumn(const String& name) const
+Column Table::GetColumn(const String& name) const
 {
-	map<String, ColumnAccessor>::const_iterator it = m_Columns.find(name);
+	map<String, Column>::const_iterator it = m_Columns.find(name);
 
 	if (it == m_Columns.end())
-		return ColumnAccessor();
+		BOOST_THROW_EXCEPTION(invalid_argument("Column '" + name + "' does not exist."));
 
 	return it->second;
 }

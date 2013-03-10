@@ -24,22 +24,28 @@ using namespace livestatus;
 
 ContactsTable::ContactsTable(void)
 {
-	AddColumn("name", &ContactsTable::NameAccessor);
-	AddColumn("alias", &ContactsTable::NameAccessor);
-	AddColumn("email", &Table::EmptyStringAccessor);
-	AddColumn("pager", &Table::EmptyStringAccessor);
-	AddColumn("host_notification_period", &Table::EmptyStringAccessor);
-	AddColumn("service_notification_period", &Table::EmptyStringAccessor);
-	AddColumn("can_submit_commands", &Table::OneAccessor);
-	AddColumn("host_notifications_enabled", &Table::OneAccessor);
-	AddColumn("service_notifications_enabled", &Table::OneAccessor);
-	AddColumn("in_host_notification_period", &Table::OneAccessor);
-	AddColumn("in_service_notification_period", &Table::OneAccessor);
-	AddColumn("custom_variable_names", &Table::EmptyArrayAccessor);
-	AddColumn("custom_variable_values", &Table::EmptyArrayAccessor);
-	AddColumn("custom_variables", &Table::EmptyDictionaryAccessor);
-	AddColumn("modified_attributes", &Table::ZeroAccessor);
-	AddColumn("modified_attributes_list", &Table::EmptyArrayAccessor);
+	AddColumns(this);
+}
+
+void ContactsTable::AddColumns(Table *table, const String& prefix,
+	const Column::ObjectAccessor& objectAccessor)
+{
+	table->AddColumn(prefix + "name", Column(&ContactsTable::NameAccessor, objectAccessor));
+	table->AddColumn(prefix + "alias", Column(&ContactsTable::NameAccessor, objectAccessor));
+	table->AddColumn(prefix + "email", Column(&Table::EmptyStringAccessor, objectAccessor));
+	table->AddColumn(prefix + "pager", Column(&Table::EmptyStringAccessor, objectAccessor));
+	table->AddColumn(prefix + "host_notification_period", Column(&Table::EmptyStringAccessor, objectAccessor));
+	table->AddColumn(prefix + "service_notification_period", Column(&Table::EmptyStringAccessor, objectAccessor));
+	table->AddColumn(prefix + "can_submit_commands", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "host_notifications_enabled", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "service_notifications_enabled", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "in_host_notification_period", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "in_service_notification_period", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "custom_variable_names", Column(&Table::EmptyArrayAccessor, objectAccessor));
+	table->AddColumn(prefix + "custom_variable_values", Column(&Table::EmptyArrayAccessor, objectAccessor));
+	table->AddColumn(prefix + "custom_variables", Column(&Table::EmptyDictionaryAccessor, objectAccessor));
+	table->AddColumn(prefix + "modified_attributes", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "modified_attributes_list", Column(&Table::EmptyArrayAccessor, objectAccessor));
 }
 
 String ContactsTable::GetName(void) const

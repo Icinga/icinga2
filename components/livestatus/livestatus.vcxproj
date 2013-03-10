@@ -21,10 +21,12 @@
   <ItemGroup>
     <ClInclude Include="andfilter.h" />
     <ClInclude Include="attributefilter.h" />
+    <ClInclude Include="column.h" />
     <ClInclude Include="combinerfilter.h" />
     <ClInclude Include="contactgroupstable.h" />
     <ClInclude Include="contactstable.h" />
     <ClInclude Include="filter.h" />
+    <ClInclude Include="hoststable.h" />
     <ClInclude Include="i2-livestatus.h" />
     <ClInclude Include="component.h" />
     <ClInclude Include="connection.h" />
@@ -37,12 +39,14 @@
   <ItemGroup>
     <ClCompile Include="andfilter.cpp" />
     <ClCompile Include="attributefilter.cpp" />
+    <ClCompile Include="column.cpp" />
     <ClCompile Include="combinerfilter.cpp" />
     <ClCompile Include="component.cpp" />
     <ClCompile Include="connection.cpp" />
     <ClCompile Include="contactgroupstable.cpp" />
     <ClCompile Include="contactstable.cpp" />
     <ClCompile Include="filter.cpp" />
+    <ClCompile Include="hoststable.cpp" />
     <ClCompile Include="negatefilter.cpp" />
     <ClCompile Include="orfilter.cpp" />
     <ClCompile Include="query.cpp" />

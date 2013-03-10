@@ -6,6 +6,8 @@ pkglib_LTLIBRARIES = \
 livestatus_la_SOURCES = \
 	andfilter.cpp \
 	andfilter.h \
+	column.cpp \
+	column.h \
 	combinerfilter.cpp \
 	combinerfilter.h \
 	component.cpp \

@@ -17,35 +17,23 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONTACTSTABLE_H
-#define CONTACTSTABLE_H
+#include "i2-livestatus.h"
 
-namespace livestatus
+using namespace icinga;
+using namespace livestatus;
+
+Column::Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectAccessor)
+	: m_ValueAccessor(valueAccessor), m_ObjectAccessor(objectAccessor)
+{ }
+
+Value Column::ExtractValue(const Object::Ptr& uobject) const
 {
+	Object::Ptr object;
 
-/**
- * @ingroup livestatus
- */
-class ContactsTable : public Table
-{
-public:
-	typedef shared_ptr<ContactsTable> Ptr;
-	typedef weak_ptr<ContactsTable> WeakPtr;
+	if (!m_ObjectAccessor.empty())
+		object = m_ObjectAccessor(uobject);
+	else
+		object = uobject;
 
-	ContactsTable(void);
-
-	static void AddColumns(Table *table, const String& prefix = String(),
-	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
-
-	virtual String GetName(void) const;
-
-protected:
-	virtual void FetchRows(const function<void (const Object::Ptr&)>& addRowFn);
-
-	static Value NameAccessor(const Object::Ptr& object);
-	static Value MembersAccessor(const Object::Ptr& object);
-};
-
+	return m_ValueAccessor(object);
 }
-
-#endif /* CONTACTSTABLE_H */
