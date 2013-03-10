@@ -42,7 +42,7 @@ object Host "localhost" {
     address6 = "::1",
   },
   
-  hostchecks = { "ping4", "ping6" },
+  hostcheck = "ping4",
 
   check_interval = 1m
 }
