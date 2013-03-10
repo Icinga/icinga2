@@ -23,7 +23,7 @@ using namespace icinga;
 using namespace livestatus;
 
 Query::Query(const vector<String>& lines)
-	: m_OutputFormat("csv"), m_KeepAlive(false), m_ColumnHeaders(true), m_Limit(-1)
+	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1)
 {
 	String line = lines[0];
 

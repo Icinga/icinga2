@@ -6,12 +6,16 @@ pkglib_LTLIBRARIES = \
 livestatus_la_SOURCES = \
 	andfilter.cpp \
 	andfilter.h \
+	combinerfilter.cpp \
+	combinerfilter.h \
 	component.cpp \
 	component.h \
 	connection.cpp \
 	connection.h \
 	filter.cpp \
 	filter.h \
+	negatefilter.cpp \
+	negastefilter.h \
 	orfilter.cpp \
 	orfilter.h \
 	query.cpp \
