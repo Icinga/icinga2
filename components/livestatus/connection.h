@@ -17,38 +17,26 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-livestatus.h"
+#ifndef LIVESTATUSCONNECTION_H
+#define LIVESTATUSCONNECTION_H
 
-using namespace icinga;
-
-LivestatusConnection::LivestatusConnection(const Stream::Ptr& stream)
-	: Connection(stream)
-{ }
-
-void LivestatusConnection::ProcessData(void)
+namespace livestatus
 {
-	String line;
-	bool read_line = false;
 
-	while (GetStream()->ReadLine(&line)) {
-		read_line = true;
+class LivestatusConnection : public Connection
+{
+public:
+	typedef shared_ptr<LivestatusConnection> Ptr;
+	typedef weak_ptr<LivestatusConnection> WeakPtr;
 
-		if (line.GetLength() > 0)
-			m_Lines.push_back(line);
-		else
-			break;
-	}
+	LivestatusConnection(const Stream::Ptr& stream);
 
-	/* Return if we didn't at least read one line. */
-	if (!read_line)
-		return;
+protected:
+	vector<String> m_Lines;
 
-	/* Return if we haven't found the end of the query. */
-	if (line.GetLength() > 0 && !GetStream()->IsReadEOF())
-		return;
+	virtual void ProcessData(void);
+};
 
-	LivestatusQuery::Ptr query = boost::make_shared<LivestatusQuery>(m_Lines);
-	m_Lines.clear();
-
-	query->Execute(GetStream());
 }
+
+#endif /* LIVESTATUSCONNECTION_H */

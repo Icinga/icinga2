@@ -20,11 +20,10 @@
 #include "i2-livestatus.h"
 
 using namespace icinga;
+using namespace livestatus;
 
-
-
-LivestatusQuery::LivestatusQuery(const vector<String>& lines)
-	: m_KeepAlive(false), m_ColumnHeaders(true), m_Limit(-1)
+Query::Query(const vector<String>& lines)
+	: m_OutputFormat("csv"), m_KeepAlive(false), m_ColumnHeaders(true), m_Limit(-1)
 {
 	String line = lines[0];
 
@@ -55,15 +54,100 @@ LivestatusQuery::LivestatusQuery(const vector<String>& lines)
 
 		if (header == "ResponseHeader")
 			m_ResponseHeader = params;
+		else if (header == "OutputFormat")
+			m_OutputFormat = params;
+		else if (header == "Columns")
+			m_Columns = params.Split(is_any_of(" "));
 	}
 }
 
-void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
+void Query::PrintResultSet(ostream& fp, const vector<String>& columns, const Array::Ptr& rs)
 {
-	Logger::Write(LogInformation, "livestatus", "Table: " + m_Table);
+	if (m_OutputFormat == "csv" && m_Columns.size() == 0) {
+		bool first = true;
+
+		BOOST_FOREACH(const String& column, columns) {
+			if (first)
+				first = false;
+			else
+				fp << ";";
+
+			fp << column;
+		}
+
+		fp << "\n";
+	}
+
+	if (m_OutputFormat == "csv") {
+		ObjectLock olock(rs);
+
+		BOOST_FOREACH(const Array::Ptr& row, rs) {
+			bool first = true;
+
+			ObjectLock rlock(row);
+			BOOST_FOREACH(const Value& value, row) {
+				if (first)
+					first = false;
+				else
+					fp << ";";
+
+				fp << Convert::ToString(value);
+			}
+
+			fp << "\n";
+		}
+	} else if (m_OutputFormat == "json") {
+		fp << Value(rs).Serialize();
+	}
 }
 
-void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
+void Query::ExecuteGetHelper(const Stream::Ptr& stream)
+{
+	Logger::Write(LogInformation, "livestatus", "Table: " + m_Table);
+
+	Table::Ptr table = Table::GetByName(m_Table);
+
+	if (!table) {
+		SendResponse(stream, 404, "Table '" + m_Table + "' does not exist.");
+
+		return;
+	}
+
+	vector<Object::Ptr> objects = table->FilterRows(Filter::Ptr());
+	vector<String> columns;
+	
+	if (m_Columns.size() > 0)
+		columns = m_Columns;
+	else
+		columns = table->GetColumnNames();
+
+	Array::Ptr rs = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const Object::Ptr& object, objects) {
+		Array::Ptr row = boost::make_shared<Array>();
+
+		BOOST_FOREACH(const String& column, columns) {
+			Table::ColumnAccessor accessor = table->GetColumn(column);
+
+			if (accessor.empty()) {
+				SendResponse(stream, 450, "Column '" + column + "' does not exist.");
+
+				return;
+			}
+
+			row->Add(accessor(object));
+		}
+
+		rs->Add(row);
+	}
+
+	stringstream result;
+	PrintResultSet(result, columns, rs);
+
+	SendResponse(stream, 200, result.str());
+}
+
+void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
 {
 	try {
 		Logger::Write(LogInformation, "livestatus", "Executing command: " + m_Command);
@@ -74,12 +158,12 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 	}
 }
 
-void LivestatusQuery::ExecuteErrorHelper(const Stream::Ptr& stream)
+void Query::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
 	PrintFixed16(stream, m_ErrorCode, m_ErrorMessage);
 }
 
-void LivestatusQuery::SendResponse(const Stream::Ptr& stream, int code, const String& data)
+void Query::SendResponse(const Stream::Ptr& stream, int code, const String& data)
 {
 	if (m_ResponseHeader == "fixed16")
 		PrintFixed16(stream, code, data);
@@ -88,7 +172,7 @@ void LivestatusQuery::SendResponse(const Stream::Ptr& stream, int code, const St
 		stream->Write(data.CStr(), data.GetLength());
 }
 
-void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const String& data)
+void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data)
 {
 	ASSERT(code >= 100 && code <= 999);
 
@@ -99,7 +183,7 @@ void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const St
 	stream->Write(header.CStr(), header.GetLength());
 }
 
-void LivestatusQuery::Execute(const Stream::Ptr& stream)
+void Query::Execute(const Stream::Ptr& stream)
 {
 	Logger::Write(LogInformation, "livestatus", "Executing livestatus query: " + m_Verb);
 

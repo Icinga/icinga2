@@ -4,14 +4,18 @@ pkglib_LTLIBRARIES = \
 	livestatus.la
 
 livestatus_la_SOURCES = \
-	livestatuscomponent.cpp \
-	livestatuscomponent.h \
-	livestatusconnection.cpp \
-	livestatusconnection.h \
-	livestatusquery.cpp \
-	livestatusquery.h \
-	livestatustable.cpp \
-	livestatustable.h \
+	component.cpp \
+	component.h \
+	connection.cpp \
+	connection.h \
+	filter.cpp \
+	filter.h \
+	query.cpp \
+	query.h \
+	statustable.cpp \
+	statustable.h \
+	table.cpp \
+	table.h \
 	i2-livestatus.h
 
 livestatus_la_CPPFLAGS = \

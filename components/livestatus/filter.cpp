@@ -17,26 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2LIVESTATUS_H
-#define I2LIVESTATUS_H
-
-/**
- * @defgroup livestatus Livestatus component
- *
- * The livestatus component implements livestatus queries.
- */
-
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "i2-livestatus.h"
 
 using namespace icinga;
+using namespace livestatus;
 
-#include "connection.h"
-#include "query.h"
-#include "filter.h"
-#include "table.h"
-#include "statustable.h"
-#include "component.h"
-
-#endif /* I2LIVESTATUS_H */
+Filter::Filter(void)
+{ }

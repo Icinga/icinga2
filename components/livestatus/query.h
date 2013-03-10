@@ -17,26 +17,57 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2LIVESTATUS_H
-#define I2LIVESTATUS_H
+#ifndef QUERY_H
+#define QUERY_H
+
+namespace livestatus
+{
 
 /**
- * @defgroup livestatus Livestatus component
- *
- * The livestatus component implements livestatus queries.
+ * @ingroup livestatus
  */
+class Query : public Object
+{
+public:
+	typedef shared_ptr<Query> Ptr;
+	typedef weak_ptr<Query> WeakPtr;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+	Query(const vector<String>& lines);
 
-using namespace icinga;
+	void Execute(const Stream::Ptr& stream);
 
-#include "connection.h"
-#include "query.h"
-#include "filter.h"
-#include "table.h"
-#include "statustable.h"
-#include "component.h"
+private:
+	String m_Verb;
 
-#endif /* I2LIVESTATUS_H */
+	bool m_KeepAlive;
+
+	/* Parameters for GET queries. */
+	String m_Table;
+	vector<String> m_Columns;
+
+	String m_OutputFormat;
+	bool m_ColumnHeaders;
+	int m_Limit;
+
+	String m_ResponseHeader;
+
+	/* Parameters for COMMAND queries. */
+	String m_Command;
+
+	/* Parameters for invalid queries. */
+	int m_ErrorCode;
+	String m_ErrorMessage;
+
+	void PrintResultSet(ostream& fp, const vector<String>& columns, const Array::Ptr& rs);
+
+	void ExecuteGetHelper(const Stream::Ptr& stream);
+	void ExecuteCommandHelper(const Stream::Ptr& stream);
+	void ExecuteErrorHelper(const Stream::Ptr& stream);
+
+	void SendResponse(const Stream::Ptr& stream, int code, const String& data);
+	void PrintFixed16(const Stream::Ptr& stream, int code, const String& data);
+};
+
+}
+
+#endif /* QUERY_H */

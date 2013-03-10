@@ -17,26 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef LIVESTATUSCONNECTION_H
-#define LIVESTATUSCONNECTION_H
+#ifndef LIVESTATUSCOMPONENT_H
+#define LIVESTATUSCOMPONENT_H
 
-namespace icinga
+namespace livestatus
 {
 
-class LivestatusConnection : public Connection
+/**
+ * @ingroup livestatus
+ */
+class LivestatusComponent : public IComponent
 {
 public:
-	typedef shared_ptr<LivestatusConnection> Ptr;
-	typedef weak_ptr<LivestatusConnection> WeakPtr;
+	virtual void Start(void);
+	virtual void Stop(void);
 
-	LivestatusConnection(const Stream::Ptr& stream);
+	String GetSocketPath(void) const;
 
-protected:
-	vector<String> m_Lines;
+private:
+	Socket::Ptr m_Listener;
+	set<LivestatusConnection::Ptr> m_Connections;
 
-	virtual void ProcessData(void);
+	void NewClientHandler(const Socket::Ptr& client);
+	void ClientClosedHandler(const Connection::Ptr& connection);
 };
 
 }
 
-#endif /* LIVESTATUSCONNECTION_H */
+#endif /* LIVESTATUSCOMPONENT_H */

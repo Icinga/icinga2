@@ -19,17 +19,21 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="filter.h" />
     <ClInclude Include="i2-livestatus.h" />
-    <ClInclude Include="livestatuscomponent.h" />
-    <ClInclude Include="livestatusconnection.h" />
-    <ClInclude Include="livestatusquery.h" />
-    <ClInclude Include="livestatustable.h" />
+    <ClInclude Include="component.h" />
+    <ClInclude Include="connection.h" />
+    <ClInclude Include="query.h" />
+    <ClInclude Include="statustable.h" />
+    <ClInclude Include="table.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="livestatuscomponent.cpp" />
-    <ClCompile Include="livestatusconnection.cpp" />
-    <ClCompile Include="livestatusquery.cpp" />
-    <ClCompile Include="livestatustable.cpp" />
+    <ClCompile Include="component.cpp" />
+    <ClCompile Include="connection.cpp" />
+    <ClCompile Include="filter.cpp" />
+    <ClCompile Include="query.cpp" />
+    <ClCompile Include="statustable.cpp" />
+    <ClCompile Include="table.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{950E8743-BB34-4F8A-99EC-C87E8FC0EB3F}</ProjectGuid>

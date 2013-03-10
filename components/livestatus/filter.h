@@ -17,55 +17,27 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef LIVESTATUSQUERY_H
-#define LIVESTATUSQUERY_H
+#ifndef FILTER_H
+#define FILTER_H
 
-namespace icinga
+namespace livestatus
 {
 
 /**
  * @ingroup livestatus
  */
-class LivestatusQuery : public Object
+class Filter : public Object
 {
 public:
-	typedef shared_ptr<LivestatusQuery> Ptr;
-	typedef weak_ptr<LivestatusQuery> WeakPtr;
+	typedef shared_ptr<Filter> Ptr;
+	typedef weak_ptr<Filter> WeakPtr;
 
-	LivestatusQuery(const vector<String>& lines);
+	virtual bool Apply(const Object::Ptr& object) = 0;
 
-	void Execute(const Stream::Ptr& stream);
-
-private:
-	String m_Verb;
-
-	bool m_KeepAlive;
-
-	/* Parameters for GET queries. */
-	String m_Table;
-	vector<String> m_Columns;
-
-	String m_OutputFormat;
-	bool m_ColumnHeaders;
-	int m_Limit;
-
-	String m_ResponseHeader;
-
-	/* Parameters for COMMAND queries. */
-	String m_Command;
-
-	/* Parameters for invalid queries. */
-	int m_ErrorCode;
-	String m_ErrorMessage;
-
-	void ExecuteGetHelper(const Stream::Ptr& stream);
-	void ExecuteCommandHelper(const Stream::Ptr& stream);
-	void ExecuteErrorHelper(const Stream::Ptr& stream);
-
-	void SendResponse(const Stream::Ptr& stream, int code, const String& data);
-	void PrintFixed16(const Stream::Ptr& stream, int code, const String& data);
+protected:
+	Filter(void);
 };
 
 }
 
-#endif /* LIVESTATUSQUERY_H */
+#endif /* FILTER_H */

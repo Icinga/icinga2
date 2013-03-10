@@ -12,30 +12,42 @@
     <ClInclude Include="i2-livestatus.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="livestatuscomponent.h">
+    <ClInclude Include="connection.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="livestatusconnection.h">
+    <ClInclude Include="component.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="livestatusquery.h">
+    <ClInclude Include="query.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="livestatustable.h">
+    <ClInclude Include="table.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="statustable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="filter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="livestatuscomponent.cpp">
+    <ClCompile Include="component.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="livestatustable.cpp">
+    <ClCompile Include="connection.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="livestatusconnection.cpp">
+    <ClCompile Include="query.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="livestatusquery.cpp">
+    <ClCompile Include="table.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="statustable.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="filter.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

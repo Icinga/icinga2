@@ -17,26 +17,39 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2LIVESTATUS_H
-#define I2LIVESTATUS_H
-
-/**
- * @defgroup livestatus Livestatus component
- *
- * The livestatus component implements livestatus queries.
- */
-
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "i2-livestatus.h"
 
 using namespace icinga;
+using namespace livestatus;
 
-#include "connection.h"
-#include "query.h"
-#include "filter.h"
-#include "table.h"
-#include "statustable.h"
-#include "component.h"
+LivestatusConnection::LivestatusConnection(const Stream::Ptr& stream)
+	: Connection(stream)
+{ }
 
-#endif /* I2LIVESTATUS_H */
+void LivestatusConnection::ProcessData(void)
+{
+	String line;
+	bool read_line = false;
+
+	while (GetStream()->ReadLine(&line)) {
+		read_line = true;
+
+		if (line.GetLength() > 0)
+			m_Lines.push_back(line);
+		else
+			break;
+	}
+
+	/* Return if we didn't at least read one line. */
+	if (!read_line)
+		return;
+
+	/* Return if we haven't found the end of the query. */
+	if (line.GetLength() > 0 && !GetStream()->IsReadEOF())
+		return;
+
+	Query::Ptr query = boost::make_shared<Query>(m_Lines);
+	m_Lines.clear();
+
+	query->Execute(GetStream());
+}

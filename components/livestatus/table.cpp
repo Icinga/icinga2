@@ -20,61 +20,62 @@
 #include "i2-livestatus.h"
 
 using namespace icinga;
+using namespace livestatus;
 
-REGISTER_COMPONENT("livestatus", LivestatusComponent);
+Table::Table(void)
+{ }
 
-/**
- * Starts the component.
- */
-void LivestatusComponent::Start(void)
+Table::Ptr Table::GetByName(const String& name)
 {
-#ifndef _WIN32
-	UnixSocket::Ptr socket = boost::make_shared<UnixSocket>();
-	socket->Bind(GetSocketPath());
-#else /* _WIN32 */
-	TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
-	socket->Bind("6557", AF_INET);
-#endif /* _WIN32 */
+	if (name == "status")
+		return boost::make_shared<StatusTable>();
 
-	socket->OnNewClient.connect(boost::bind(&LivestatusComponent::NewClientHandler, this, _2));
-	socket->Listen();
-	socket->Start();
-	m_Listener = socket;
+	return Table::Ptr();
 }
 
-/**
- * Stops the component.
- */
-void LivestatusComponent::Stop(void)
+void Table::AddColumn(const String& name, const ColumnAccessor& accessor)
 {
+	m_Columns[name] = accessor;
 }
 
-String LivestatusComponent::GetSocketPath(void) const
+Table::ColumnAccessor Table::GetColumn(const String& name) const
 {
-	DynamicObject::Ptr config = GetConfig();
+	map<String, ColumnAccessor>::const_iterator it = m_Columns.find(name);
 
-	Value socketPath = config->Get("socket_path");
-	if (socketPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/livestatus";
-	else
-		return socketPath;
+	if (it == m_Columns.end())
+		return ColumnAccessor();
+
+	return it->second;
 }
 
-void LivestatusComponent::NewClientHandler(const Socket::Ptr& client)
+vector<String> Table::GetColumnNames(void) const
 {
-	Logger::Write(LogInformation, "livestatus", "Client connected");
+	vector<String> names;
 
-	LivestatusConnection::Ptr lconnection = boost::make_shared<LivestatusConnection>(client);
-	lconnection->OnClosed.connect(boost::bind(&LivestatusComponent::ClientClosedHandler, this, _1));
+	String name;
+	BOOST_FOREACH(tie(name, tuples::ignore), m_Columns) {
+		names.push_back(name);
+	}
 
-	m_Connections.insert(lconnection);
-	client->Start();
+	return names;
 }
 
-void LivestatusComponent::ClientClosedHandler(const Connection::Ptr& connection)
+vector<Object::Ptr> Table::FilterRows(const Filter::Ptr& filter)
 {
-	LivestatusConnection::Ptr lconnection = static_pointer_cast<LivestatusConnection>(connection);
+	vector<Object::Ptr> rs;
 
-	Logger::Write(LogInformation, "livestatus", "Client disconnected");
-	m_Connections.erase(lconnection);
+	FetchRows(boost::bind(&Table::FilteredAddRow, boost::ref(rs), filter, _1));
+
+	return rs;
+}
+
+void Table::FilteredAddRow(vector<Object::Ptr>& rs, const Filter::Ptr& filter, const Object::Ptr& object)
+{
+	if (!filter || filter->Apply(object))
+		rs.push_back(object);
+}
+
+Value Table::ZeroAccessor(const Object::Ptr&)
+{
+	return 0;
 }
