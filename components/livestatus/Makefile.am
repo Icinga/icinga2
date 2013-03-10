@@ -4,12 +4,16 @@ pkglib_LTLIBRARIES = \
 	livestatus.la
 
 livestatus_la_SOURCES = \
+	attributefilter.cpp \
+	attributefilter.h \
 	andfilter.cpp \
 	andfilter.h \
 	column.cpp \
 	column.h \
 	combinerfilter.cpp \
 	combinerfilter.h \
+	commentstable.cpp \
+	commentstable.h \
 	component.cpp \
 	component.h \
 	connection.cpp \
@@ -18,14 +22,20 @@ livestatus_la_SOURCES = \
 	contactgroupstable.h \
 	contactstable.cpp \
 	contactstable.h \
+	downtimestable.cpp \
+	downtimestable.h \
 	filter.cpp \
 	filter.h \
+	hoststable.cpp \
+	hoststable.h \
 	negatefilter.cpp \
 	negatefilter.h \
 	orfilter.cpp \
 	orfilter.h \
 	query.cpp \
 	query.h \
+	servicestable.cpp \
+	servicestable.h \
 	statustable.cpp \
 	statustable.h \
 	table.cpp \
