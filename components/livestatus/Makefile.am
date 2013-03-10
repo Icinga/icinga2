@@ -12,10 +12,14 @@ livestatus_la_SOURCES = \
 	component.h \
 	connection.cpp \
 	connection.h \
+	contactgroupstable.cpp \
+	contactgroupstable.h \
+	contactstable.cpp \
+	contactstable.h \
 	filter.cpp \
 	filter.h \
 	negatefilter.cpp \
-	negastefilter.h \
+	negatefilter.h \
 	orfilter.cpp \
 	orfilter.h \
 	query.cpp \
