@@ -21,7 +21,7 @@ localstatedir=@localstatedir@
 
 DAEMON=$sbindir/icinga2
 ICINGA2_CONFIG_FILE=$sysconfdir/icinga2/icinga2.conf
-ICINGA2_PID_FILE=$localstatedir/run/icinga2.pid
+ICINGA2_PID_FILE=$localstatedir/run/icinga2/icinga2.pid
 
 test -x $DAEMON || exit 0
 
