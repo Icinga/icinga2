@@ -68,14 +68,14 @@ vector<Object::Ptr> Table::FilterRows(const Filter::Ptr& filter)
 {
 	vector<Object::Ptr> rs;
 
-	FetchRows(boost::bind(&Table::FilteredAddRow, boost::ref(rs), filter, _1));
+	FetchRows(boost::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, _1));
 
 	return rs;
 }
 
 void Table::FilteredAddRow(vector<Object::Ptr>& rs, const Filter::Ptr& filter, const Object::Ptr& object)
 {
-	if (!filter || filter->Apply(object))
+	if (!filter || filter->Apply(GetSelf(), object))
 		rs.push_back(object);
 }
 

@@ -42,10 +42,15 @@ Query::Query(const vector<String>& lines)
 	} else if (m_Verb == "GET") {
 		m_Table = target;
 	} else {
-		BOOST_THROW_EXCEPTION(runtime_error("Unknown livestatus verb: " + m_Verb));
+		m_Verb = "ERROR";
+		m_ErrorCode = 452;
+		m_ErrorMessage = "Unknown livestatus verb: " + m_Verb;
+		return;
 	}
 
-	for (int i = 1; i < lines.size(); i++) {
+	deque<Filter::Ptr> filters, stats;
+
+	for (unsigned int i = 1; i < lines.size(); i++) {
 		line = lines[i];
 
 		size_t col_index = line.FindFirstOf(":");
@@ -58,12 +63,66 @@ Query::Query(const vector<String>& lines)
 			m_OutputFormat = params;
 		else if (header == "Columns")
 			m_Columns = params.Split(is_any_of(" "));
+		else if (header == "ColumnHeaders")
+			m_ColumnHeaders = (params == "on");
+		else if (header == "Filter") {
+			vector<String> tokens = params.Split(is_any_of(" "));
+
+			if (tokens.size() < 3) {
+				m_Verb = "ERROR";
+				m_ErrorCode = 452;
+				m_ErrorMessage = "Expected 3 parameters in the filter specification.";
+				return;
+			}
+
+			String op = tokens[1];
+			bool negate = false;
+
+			if (op == "!=") {
+				op = "=";
+				negate = true;
+			} else if (op == "!~") {
+				op = "~";
+				negate = true;
+			} else if (op == "!=~") {
+				op = "=~";
+				negate = true;
+			} else if (op == "!~~") {
+				op = "~~";
+				negate = true;
+			}
+
+			Filter::Ptr filter = boost::make_shared<AttributeFilter>(tokens[0], op, tokens[2]);
+
+			if (negate)
+				filter = boost::make_shared<NegateFilter>(filter);
+
+			filters.push_back(filter);
+		} else if (header == "Or" || header == "And") {
+			int num = Convert::ToLong(params);
+			CombinerFilter::Ptr filter;
+
+			if (header == "Or")
+				filter = boost::make_shared<OrFilter>();
+			else
+				filter = boost::make_shared<AndFilter>();
+
+			while (!filters.empty() && num--) {
+				filter->AddSubFilter(filters.back());
+				filters.pop_back();
+			}
+
+			filters.push_back(filter);
+		}
 	}
+
+	m_Filters.swap(filters);
+	m_Stats.swap(stats);
 }
 
 void Query::PrintResultSet(ostream& fp, const vector<String>& columns, const Array::Ptr& rs)
 {
-	if (m_OutputFormat == "csv" && m_Columns.size() == 0) {
+	if (m_OutputFormat == "csv" && m_Columns.size() == 0 && m_ColumnHeaders) {
 		bool first = true;
 
 		BOOST_FOREACH(const String& column, columns) {
@@ -113,7 +172,15 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		return;
 	}
 
-	vector<Object::Ptr> objects = table->FilterRows(Filter::Ptr());
+	if (m_Filters.size() > 1)
+		SendResponse(stream, 452, "There must not be more than one top-level filter expression.");
+
+	Filter::Ptr filter;
+
+	if (!m_Filters.empty())
+		filter = m_Filters[0];
+
+	vector<Object::Ptr> objects = table->FilterRows(filter);
 	vector<String> columns;
 	
 	if (m_Columns.size() > 0)
@@ -149,13 +216,9 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 
 void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
 {
-	try {
-		Logger::Write(LogInformation, "livestatus", "Executing command: " + m_Command);
-		ExternalCommandProcessor::Execute(m_Command);
-		SendResponse(stream, 200, "");
-	} catch (const std::exception& ex) {
-		SendResponse(stream, 452, diagnostic_information(ex));
-	}
+	Logger::Write(LogInformation, "livestatus", "Executing command: " + m_Command);
+	ExternalCommandProcessor::Execute(m_Command);
+	SendResponse(stream, 200, "");
 }
 
 void Query::ExecuteErrorHelper(const Stream::Ptr& stream)
@@ -185,6 +248,7 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 
 void Query::Execute(const Stream::Ptr& stream)
 {
+	try {
 	Logger::Write(LogInformation, "livestatus", "Executing livestatus query: " + m_Verb);
 
 	if (m_Verb == "GET")
@@ -195,6 +259,9 @@ void Query::Execute(const Stream::Ptr& stream)
 		ExecuteErrorHelper(stream);
 	else
 		BOOST_THROW_EXCEPTION(runtime_error("Invalid livestatus query verb."));
+	} catch (const std::exception& ex) {
+		SendResponse(stream, 452, boost::diagnostic_information(ex));
+	}
 
 	if (!m_KeepAlive)
 		stream->Close();

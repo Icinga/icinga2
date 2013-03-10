@@ -25,20 +25,15 @@ using namespace livestatus;
 OrFilter::OrFilter(void)
 { }
 
-bool OrFilter::Apply(const Object::Ptr& object)
+bool OrFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
 {
 	if (m_Filters.empty())
 		return true;
 
 	BOOST_FOREACH(const Filter::Ptr& filter, m_Filters) {
-		if (filter->Apply(object))
+		if (filter->Apply(table, object))
 			return true;
 	}
 
 	return false;
-}
-
-void OrFilter::AddSubFilter(const Filter::Ptr& filter)
-{
-	m_Filters.push_back(filter);
 }

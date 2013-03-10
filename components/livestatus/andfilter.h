@@ -26,7 +26,7 @@ namespace livestatus
 /**
  * @ingroup livestatus
  */
-class AndFilter : public Filter
+class AndFilter : public CombinerFilter
 {
 public:
 	typedef shared_ptr<AndFilter> Ptr;
@@ -34,12 +34,7 @@ public:
 
 	AndFilter(void);
 
-	virtual bool Apply(const Object::Ptr& object);
-
-	void AddSubFilter(const Filter::Ptr& filter);
-
-private:
-	vector<Filter::Ptr> m_Filters;
+	virtual bool Apply(const Table::Ptr& table, const Object::Ptr& object);
 };
 
 }

@@ -17,20 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-livestatus.h"
+#ifndef ATTRIBUTEFILTER_H
+#define ATTRIBUTEFILTER_H
 
-using namespace icinga;
-using namespace livestatus;
-
-AndFilter::AndFilter(void)
-{ }
-
-bool AndFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
+namespace livestatus
 {
-	BOOST_FOREACH(const Filter::Ptr& filter, m_Filters) {
-		if (!filter->Apply(table, object))
-			return false;
-	}
 
-	return true;
+/**
+ * @ingroup livestatus
+ */
+class AttributeFilter : public Filter
+{
+public:
+	typedef shared_ptr<AttributeFilter> Ptr;
+	typedef weak_ptr<AttributeFilter> WeakPtr;
+
+	AttributeFilter(const String& column, const String& op, const String& operand);
+
+	virtual bool Apply(const Table::Ptr& table, const Object::Ptr& object);
+
+protected:
+	String m_Column;
+	String m_Operator;
+	String m_Operand;
+};
+
 }
+
+#endif /* FILTER_H */

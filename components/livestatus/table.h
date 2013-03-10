@@ -23,6 +23,8 @@
 namespace livestatus
 {
 
+class Filter;
+
 /**
  * @ingroup livestatus
  */
@@ -38,7 +40,7 @@ public:
 	
 	virtual String GetName(void) const = 0;
 
-	vector<Object::Ptr> FilterRows(const Filter::Ptr& filter);
+	vector<Object::Ptr> FilterRows(const shared_ptr<Filter>& filter);
 
 	ColumnAccessor GetColumn(const String& name) const;
 	vector<String> GetColumnNames(void) const;
@@ -59,7 +61,7 @@ protected:
 private:
 	map<String, ColumnAccessor> m_Columns;
 
-	static void FilteredAddRow(vector<Object::Ptr>& rs, const Filter::Ptr& filter, const Object::Ptr& object);
+	void FilteredAddRow(vector<Object::Ptr>& rs, const shared_ptr<Filter>& filter, const Object::Ptr& object);
 };
 
 }

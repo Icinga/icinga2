@@ -45,6 +45,9 @@ private:
 	String m_Table;
 	vector<String> m_Columns;
 
+	deque<Filter::Ptr> m_Filters;
+	deque<Filter::Ptr> m_Stats;
+
 	String m_OutputFormat;
 	bool m_ColumnHeaders;
 	int m_Limit;

@@ -17,20 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-livestatus.h"
+#ifndef COMBINERFILTER_H
+#define COMBINERFILTER_H
 
-using namespace icinga;
-using namespace livestatus;
-
-AndFilter::AndFilter(void)
-{ }
-
-bool AndFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
+namespace livestatus
 {
-	BOOST_FOREACH(const Filter::Ptr& filter, m_Filters) {
-		if (!filter->Apply(table, object))
-			return false;
-	}
 
-	return true;
+/**
+ * @ingroup livestatus
+ */
+class CombinerFilter : public Filter
+{
+public:
+	typedef shared_ptr<CombinerFilter> Ptr;
+	typedef weak_ptr<CombinerFilter> WeakPtr;
+
+	CombinerFilter(void);
+
+	void AddSubFilter(const Filter::Ptr& filter);
+
+protected:
+	vector<Filter::Ptr> m_Filters;
+};
+
 }
+
+#endif /* COMBINERFILTER_H */

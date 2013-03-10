@@ -22,15 +22,11 @@
 using namespace icinga;
 using namespace livestatus;
 
-AndFilter::AndFilter(void)
+NegateFilter::NegateFilter(const Filter::Ptr& inner)
+	: m_Inner(inner)
 { }
 
-bool AndFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
+bool NegateFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
 {
-	BOOST_FOREACH(const Filter::Ptr& filter, m_Filters) {
-		if (!filter->Apply(table, object))
-			return false;
-	}
-
-	return true;
+	return !m_Inner->Apply(table, object);
 }

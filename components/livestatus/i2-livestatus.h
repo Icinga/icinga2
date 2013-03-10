@@ -33,11 +33,14 @@
 using namespace icinga;
 
 #include "connection.h"
-#include "query.h"
+#include "table.h"
 #include "filter.h"
+#include "combinerfilter.h"
 #include "orfilter.h"
 #include "andfilter.h"
-#include "table.h"
+#include "negatefilter.h"
+#include "attributefilter.h"
+#include "query.h"
 #include "statustable.h"
 #include "contactgroupstable.h"
 #include "contactstable.h"

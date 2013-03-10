@@ -32,7 +32,7 @@ public:
 	typedef shared_ptr<Filter> Ptr;
 	typedef weak_ptr<Filter> WeakPtr;
 
-	virtual bool Apply(const Object::Ptr& object) = 0;
+	virtual bool Apply(const Table::Ptr& table, const Object::Ptr& object) = 0;
 
 protected:
 	Filter(void);

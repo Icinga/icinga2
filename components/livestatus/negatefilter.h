@@ -17,20 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-livestatus.h"
+#ifndef NEGATEFILTER_H
+#define NEGATEFILTER_H
 
-using namespace icinga;
-using namespace livestatus;
-
-AndFilter::AndFilter(void)
-{ }
-
-bool AndFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
+namespace livestatus
 {
-	BOOST_FOREACH(const Filter::Ptr& filter, m_Filters) {
-		if (!filter->Apply(table, object))
-			return false;
-	}
 
-	return true;
+/**
+ * @ingroup livestatus
+ */
+class NegateFilter : public Filter
+{
+public:
+	typedef shared_ptr<NegateFilter> Ptr;
+	typedef weak_ptr<NegateFilter> WeakPtr;
+
+	NegateFilter(const Filter::Ptr& inner);
+
+	virtual bool Apply(const Table::Ptr& table, const Object::Ptr& object);
+
+private:
+	Filter::Ptr m_Inner;
+};
+
 }
+
+#endif /* NEGATEFILTER_H */
