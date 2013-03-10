@@ -113,6 +113,13 @@ Query::Query(const vector<String>& lines)
 			}
 
 			filters.push_back(filter);
+		} else if (header == "Negate") {
+			if (!filters.empty()) {
+				Filter::Ptr filter = filters.back();
+				filters.pop_back();
+
+				filters.push_back(boost::make_shared<NegateFilter>(filter));
+			}
 		}
 	}
 
