@@ -40,7 +40,7 @@ Socket::~Socket(void)
 	m_SendQueue->Close();
 	m_RecvQueue->Close();
 
-	Close();
+	CloseInternal();
 }
 
 /**
@@ -96,20 +96,28 @@ SOCKET Socket::GetFD(void) const
 /**
  * Closes the socket.
  */
-void Socket::Close(void)
+void Socket::CloseInternal(void)
 {
 	{
 		ObjectLock olock(this);
 
-		if (m_FD == INVALID_SOCKET)
-			return;
-
-		closesocket(m_FD);
-		m_FD = INVALID_SOCKET;
+		if (m_FD != INVALID_SOCKET) {
+			closesocket(m_FD);
+			m_FD = INVALID_SOCKET;
+		}
 	}
 
 	Stream::Close();
 }
+
+/**
+ * Shuts down the socket.
+ */
+void Socket::Close(void)
+{
+	SetWriteEOF(true);
+}
+
 
 /**
  * Retrieves the last error that occured for the socket.
@@ -275,7 +283,7 @@ void Socket::ReadThreadProc(void)
 		} catch (...) {
 			SetException(boost::current_exception());
 
-			Close();
+			CloseInternal();
 
 			break;
 		}
@@ -330,7 +338,7 @@ void Socket::WriteThreadProc(void)
 		} catch (...) {
 			SetException(boost::current_exception());
 
-			Close();
+			CloseInternal();
 
 			break;
 		}
@@ -392,12 +400,8 @@ size_t Socket::Read(void *buffer, size_t size)
 			throw new logic_error("Socket does not support Read().");
 	}
 
-	if (m_RecvQueue->GetAvailableBytes() == 0) {
+	if (m_RecvQueue->GetAvailableBytes() == 0)
 		CheckException();
-
-		if (!IsConnected())
-			SetEOF(true);
-	}
 
 	return m_RecvQueue->Read(buffer, size);
 }
@@ -487,8 +491,12 @@ void Socket::HandleWritableClient(void)
 	for (;;) {
 		count = m_SendQueue->Peek(data, sizeof(data));
 
-		if (count == 0)
+		if (count == 0) {
+			if (IsWriteEOF())
+				CloseInternal();
+
 			break;
+		}
 
 		rc = send(GetFD(), data, count, 0);
 
@@ -523,12 +531,15 @@ void Socket::HandleReadableClient(void)
 		if (rc < 0)
 			BOOST_THROW_EXCEPTION(SocketException("recv() failed", GetError()));
 
-		if (rc == 0)
-			SetEOF(true);
+		new_data = true;
+
+		if (rc == 0) {
+			SetReadEOF(true);
+
+			break;
+		}
 
 		m_RecvQueue->Write(data, rc);
-
-		new_data = true;
 	}
 
 	if (new_data)
@@ -593,7 +604,7 @@ bool Socket::WantsToRead(void) const
  */
 bool Socket::WantsToReadClient(void) const
 {
-	return !IsEOF();
+	return !IsReadEOF();
 }
 
 /**

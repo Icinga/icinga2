@@ -32,7 +32,7 @@ public:
 	typedef shared_ptr<LivestatusQuery> Ptr;
 	typedef weak_ptr<LivestatusQuery> WeakPtr;
 
-	static LivestatusQuery::Ptr ParseQuery(const Stream::Ptr& stream);
+	LivestatusQuery(const vector<String>& lines);
 
 	void Execute(const Stream::Ptr& stream);
 
@@ -58,16 +58,12 @@ private:
 	int m_ErrorCode;
 	String m_ErrorMessage;
 
-	LivestatusQuery(void);
-
 	void ExecuteGetHelper(const Stream::Ptr& stream);
 	void ExecuteCommandHelper(const Stream::Ptr& stream);
 	void ExecuteErrorHelper(const Stream::Ptr& stream);
 
 	void SendResponse(const Stream::Ptr& stream, int code, const String& data);
 	void PrintFixed16(const Stream::Ptr& stream, int code, const String& data);
-
-	friend Ptr boost::make_shared<LivestatusQuery>(void);
 };
 
 }

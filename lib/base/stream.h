@@ -81,7 +81,8 @@ public:
 	virtual void Close(void);
 
 	bool IsConnected(void) const;
-	bool IsEOF(void) const;
+	bool IsReadEOF(void) const;
+	bool IsWriteEOF(void) const;
 
 	bool ReadLine(String *line, size_t maxLength = 4096);
 
@@ -94,14 +95,16 @@ public:
 
 protected:
 	void SetConnected(bool connected);
-	void SetEOF(bool eof);
+	void SetReadEOF(bool eof);
+	void SetWriteEOF(bool eof);
 
 	void SetException(boost::exception_ptr exception);
 
 private:
 	bool m_Running;
 	bool m_Connected;
-	bool m_EOF;
+	bool m_ReadEOF;
+	bool m_WriteEOF;
 	boost::exception_ptr m_Exception;
 };
 

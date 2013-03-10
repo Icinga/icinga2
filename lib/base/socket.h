@@ -82,6 +82,8 @@ private:
 
 	static String GetAddressFromSockaddr(sockaddr *address, socklen_t len);
 
+	void CloseInternal(void);
+
 	FIFO::Ptr m_SendQueue;
 	FIFO::Ptr m_RecvQueue;
 

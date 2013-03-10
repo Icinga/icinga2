@@ -22,7 +22,7 @@
 using namespace icinga;
 
 Stream::Stream(void)
-	: m_Connected(false), m_EOF(false)
+	: m_Connected(false), m_ReadEOF(false), m_WriteEOF(false)
 { }
 
 Stream::~Stream(void)
@@ -43,11 +43,21 @@ bool Stream::IsConnected(void) const
 /**
  * @threadsafety Always.
  */
-bool Stream::IsEOF(void) const
+bool Stream::IsReadEOF(void) const
 {
 	ObjectLock olock(this);
 
-	return m_EOF;
+	return m_ReadEOF;
+}
+
+/**
+ * @threadsafety Always.
+ */
+bool Stream::IsWriteEOF(void) const
+{
+	ObjectLock olock(this);
+
+	return m_WriteEOF;
 }
 
 /**
@@ -55,26 +65,40 @@ bool Stream::IsEOF(void) const
  */
 void Stream::SetConnected(bool connected)
 {
+	bool changed;
+
 	{
 		ObjectLock olock(this);
+		changed = (m_Connected != connected);
 		m_Connected = connected;
 	}
 
-	if (connected)
-		OnConnected(GetSelf());
-	else
-		OnClosed(GetSelf());
+	if (changed) {
+		if (connected)
+			OnConnected(GetSelf());
+		else
+			OnClosed(GetSelf());
+	}
 }
 
 /**
  * @threadsafety Always.
  */
-void Stream::SetEOF(bool eof)
+void Stream::SetReadEOF(bool eof)
 {
-	{
-		ObjectLock olock(this);
-		m_EOF = eof;
-	}
+	ObjectLock olock(this);
+
+	m_ReadEOF = eof;
+}
+
+/**
+ * @threadsafety Always.
+ */
+void Stream::SetWriteEOF(bool eof)
+{
+	ObjectLock olock(this);
+
+	m_WriteEOF = eof;
 }
 
 /**
@@ -127,7 +151,6 @@ void Stream::Close(void)
 	{
 		ObjectLock olock(this);
 
-		ASSERT(m_Running);
 		m_Running = false;
 	}
 
@@ -136,20 +159,38 @@ void Stream::Close(void)
 
 bool Stream::ReadLine(String *line, size_t maxLength)
 {
-	char buffer[maxLength];
+	char *buffer = new char[maxLength];
 
 	size_t rc = Peek(buffer, maxLength);
+
+	if (rc == 0)
+		return false;
 
 	for (size_t i = 0; i < rc; i++) {
 		if (buffer[i] == '\n') {
 			*line = String(buffer, &(buffer[i]));
 			boost::algorithm::trim_right(*line);
 
-			Read(NULL, rc);
+			Read(NULL, i + 1);
+
+			delete buffer;
 
 			return true;
 		}
 	}
+
+	if (IsReadEOF()) {
+		*line = String(buffer, buffer + rc);
+		boost::algorithm::trim_right(*line);
+
+		Read(NULL, rc);
+
+		delete buffer;
+
+		return true;
+	}
+
+	delete buffer;
 
 	return false;
 }

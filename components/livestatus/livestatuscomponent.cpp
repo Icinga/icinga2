@@ -28,9 +28,15 @@ REGISTER_COMPONENT("livestatus", LivestatusComponent);
  */
 void LivestatusComponent::Start(void)
 {
+#ifndef _WIN32
 	UnixSocket::Ptr socket = boost::make_shared<UnixSocket>();
-	socket->OnNewClient.connect(boost::bind(&LivestatusComponent::NewClientHandler, this, _2));
 	socket->Bind(GetSocketPath());
+#else /* _WIN32 */
+	TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
+	socket->Bind("6557", AF_INET);
+#endif /* _WIN32 */
+
+	socket->OnNewClient.connect(boost::bind(&LivestatusComponent::NewClientHandler, this, _2));
 	socket->Listen();
 	socket->Start();
 	m_Listener = socket;

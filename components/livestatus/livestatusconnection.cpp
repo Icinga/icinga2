@@ -27,10 +27,28 @@ LivestatusConnection::LivestatusConnection(const Stream::Ptr& stream)
 
 void LivestatusConnection::ProcessData(void)
 {
-	LivestatusQuery::Ptr query = LivestatusQuery::ParseQuery(GetStream());
+	String line;
+	bool read_line = false;
 
-	if (!query)
+	while (GetStream()->ReadLine(&line)) {
+		read_line = true;
+
+		if (line.GetLength() > 0)
+			m_Lines.push_back(line);
+		else
+			break;
+	}
+
+	/* Return if we didn't at least read one line. */
+	if (!read_line)
 		return;
+
+	/* Return if we haven't found the end of the query. */
+	if (line.GetLength() > 0 && !GetStream()->IsReadEOF())
+		return;
+
+	LivestatusQuery::Ptr query = boost::make_shared<LivestatusQuery>(m_Lines);
+	m_Lines.clear();
 
 	query->Execute(GetStream());
 }

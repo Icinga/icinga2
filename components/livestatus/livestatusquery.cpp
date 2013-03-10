@@ -21,17 +21,12 @@
 
 using namespace icinga;
 
-LivestatusQuery::LivestatusQuery(void)
+
+
+LivestatusQuery::LivestatusQuery(const vector<String>& lines)
 	: m_KeepAlive(false), m_ColumnHeaders(true), m_Limit(-1)
-{ }
-
-LivestatusQuery::Ptr LivestatusQuery::ParseQuery(const Stream::Ptr& stream)
 {
-	LivestatusQuery::Ptr query = boost::make_shared<LivestatusQuery>();
-	String line;
-
-	if (!stream->ReadLine(&line))
-		return LivestatusQuery::Ptr();
+	String line = lines[0];
 
 	size_t sp_index = line.FindFirstOf(" ");
 
@@ -41,40 +36,31 @@ LivestatusQuery::Ptr LivestatusQuery::ParseQuery(const Stream::Ptr& stream)
 	String verb = line.SubStr(0, sp_index);
 	String target = line.SubStr(sp_index + 1);
 
-	query->m_Verb = verb;
+	m_Verb = verb;
 
-	if (query->m_Verb == "COMMAND") {
-		query->m_Command = target;
-	} else if (query->m_Verb == "GET") {
-		query->m_Table = target;
+	if (m_Verb == "COMMAND") {
+		m_Command = target;
+	} else if (m_Verb == "GET") {
+		m_Table = target;
 	} else {
-		BOOST_THROW_EXCEPTION(runtime_error("Unknown livestatus verb: " + query->m_Verb));
+		BOOST_THROW_EXCEPTION(runtime_error("Unknown livestatus verb: " + m_Verb));
 	}
 
-	while (!stream->IsEOF() && stream->ReadLine(&line)) {
-		/* Empty line means we've reached the end of this query. */
-		if (line.GetLength() == 0)
-			return query;
+	for (int i = 1; i < lines.size(); i++) {
+		line = lines[i];
 
 		size_t col_index = line.FindFirstOf(":");
 		String header = line.SubStr(0, col_index);
 		String params = line.SubStr(col_index + 2);
 
 		if (header == "ResponseHeader")
-			query->m_ResponseHeader = params;
+			m_ResponseHeader = params;
 	}
-
-	/* Check if we've reached EOF. */
-	if (!stream->IsConnected())
-		return query;
-
-	/* Query isn't complete yet. */
-	return LivestatusQuery::Ptr();
 }
 
 void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 {
-
+	Logger::Write(LogInformation, "livestatus", "Table: " + m_Table);
 }
 
 void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
@@ -82,6 +68,7 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 	try {
 		Logger::Write(LogInformation, "livestatus", "Executing command: " + m_Command);
 		ExternalCommandProcessor::Execute(m_Command);
+		SendResponse(stream, 200, "");
 	} catch (const std::exception& ex) {
 		SendResponse(stream, 452, diagnostic_information(ex));
 	}
@@ -96,7 +83,8 @@ void LivestatusQuery::SendResponse(const Stream::Ptr& stream, int code, const St
 {
 	if (m_ResponseHeader == "fixed16")
 		PrintFixed16(stream, code, data);
-	else if (code == 200)
+
+	if (m_ResponseHeader == "fixed16" || code == 200)
 		stream->Write(data.CStr(), data.GetLength());
 }
 
@@ -123,4 +111,7 @@ void LivestatusQuery::Execute(const Stream::Ptr& stream)
 		ExecuteErrorHelper(stream);
 	else
 		BOOST_THROW_EXCEPTION(runtime_error("Invalid livestatus query verb."));
+
+	if (!m_KeepAlive)
+		stream->Close();
 }
