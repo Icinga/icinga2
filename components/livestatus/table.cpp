@@ -35,6 +35,12 @@ Table::Ptr Table::GetByName(const String& name)
 		return boost::make_shared<ContactsTable>();
 	else if (name == "hosts")
 		return boost::make_shared<HostsTable>();
+	else if (name == "services")
+		return boost::make_shared<ServicesTable>();
+	else if (name == "comments")
+		return boost::make_shared<CommentsTable>();
+	else if (name == "downtimes")
+		return boost::make_shared<DowntimesTable>();
 
 	return Table::Ptr();
 }

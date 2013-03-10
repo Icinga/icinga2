@@ -17,38 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2LIVESTATUS_H
-#define I2LIVESTATUS_H
+#ifndef DOWNTIMESTABLE_H
+#define DOWNTIMESTABLE_H
+
+namespace livestatus
+{
 
 /**
- * @defgroup livestatus Livestatus component
- *
- * The livestatus component implements livestatus queries.
+ * @ingroup livestatus
  */
+class DowntimesTable : public Table
+{
+public:
+	typedef shared_ptr<DowntimesTable> Ptr;
+	typedef weak_ptr<DowntimesTable> WeakPtr;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+	DowntimesTable(void);
 
-using namespace icinga;
+	static void AddColumns(Table *table, const String& prefix = String(),
+	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
-#include "connection.h"
-#include "column.h"
-#include "table.h"
-#include "filter.h"
-#include "combinerfilter.h"
-#include "orfilter.h"
-#include "andfilter.h"
-#include "negatefilter.h"
-#include "attributefilter.h"
-#include "query.h"
-#include "statustable.h"
-#include "contactgroupstable.h"
-#include "contactstable.h"
-#include "hoststable.h"
-#include "servicestable.h"
-#include "commentstable.h"
-#include "downtimestable.h"
-#include "component.h"
+	virtual String GetName(void) const;
 
-#endif /* I2LIVESTATUS_H */
+protected:
+	virtual void FetchRows(const function<void (const Object::Ptr&)>& addRowFn);
+};
+
+}
+
+#endif /* DOWNTIMESTABLE_H */

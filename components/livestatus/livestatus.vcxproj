@@ -23,8 +23,10 @@
     <ClInclude Include="attributefilter.h" />
     <ClInclude Include="column.h" />
     <ClInclude Include="combinerfilter.h" />
+    <ClInclude Include="commentstable.h" />
     <ClInclude Include="contactgroupstable.h" />
     <ClInclude Include="contactstable.h" />
+    <ClInclude Include="downtimestable.h" />
     <ClInclude Include="filter.h" />
     <ClInclude Include="hoststable.h" />
     <ClInclude Include="i2-livestatus.h" />
@@ -33,6 +35,7 @@
     <ClInclude Include="negatefilter.h" />
     <ClInclude Include="orfilter.h" />
     <ClInclude Include="query.h" />
+    <ClInclude Include="servicestable.h" />
     <ClInclude Include="statustable.h" />
     <ClInclude Include="table.h" />
   </ItemGroup>
@@ -41,15 +44,18 @@
     <ClCompile Include="attributefilter.cpp" />
     <ClCompile Include="column.cpp" />
     <ClCompile Include="combinerfilter.cpp" />
+    <ClCompile Include="commentstable.cpp" />
     <ClCompile Include="component.cpp" />
     <ClCompile Include="connection.cpp" />
     <ClCompile Include="contactgroupstable.cpp" />
     <ClCompile Include="contactstable.cpp" />
+    <ClCompile Include="downtimestable.cpp" />
     <ClCompile Include="filter.cpp" />
     <ClCompile Include="hoststable.cpp" />
     <ClCompile Include="negatefilter.cpp" />
     <ClCompile Include="orfilter.cpp" />
     <ClCompile Include="query.cpp" />
+    <ClCompile Include="servicestable.cpp" />
     <ClCompile Include="statustable.cpp" />
     <ClCompile Include="table.cpp" />
   </ItemGroup>

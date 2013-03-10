@@ -57,6 +57,15 @@
     <ClInclude Include="column.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="servicestable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="commentstable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="downtimestable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="component.cpp">
@@ -102,6 +111,15 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="column.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="servicestable.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="commentstable.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="downtimestable.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
