@@ -30,6 +30,12 @@
     <ClInclude Include="filter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="contactgroupstable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="contactstable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="component.cpp">
@@ -48,6 +54,12 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="filter.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="contactgroupstable.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="contactstable.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

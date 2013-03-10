@@ -17,28 +17,51 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2LIVESTATUS_H
-#define I2LIVESTATUS_H
+#ifndef TABLE_H
+#define TABLE_H
+
+namespace livestatus
+{
 
 /**
- * @defgroup livestatus Livestatus component
- *
- * The livestatus component implements livestatus queries.
+ * @ingroup livestatus
  */
+class Table : public Object
+{
+public:
+	typedef shared_ptr<Table> Ptr;
+	typedef weak_ptr<Table> WeakPtr;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+	static Table::Ptr GetByName(const String& name);
 
-using namespace icinga;
+	typedef function<Value (const Object::Ptr&)> ColumnAccessor;
+	
+	virtual String GetName(void) const = 0;
 
-#include "connection.h"
-#include "query.h"
-#include "filter.h"
-#include "table.h"
-#include "statustable.h"
-#include "contactgroupstable.h"
-#include "contactstable.h"
-#include "component.h"
+	vector<Object::Ptr> FilterRows(const Filter::Ptr& filter);
 
-#endif /* I2LIVESTATUS_H */
+	ColumnAccessor GetColumn(const String& name) const;
+	vector<String> GetColumnNames(void) const;
+
+protected:
+	Table(void);
+
+	void AddColumn(const String& name, const ColumnAccessor& accessor);
+
+	virtual void FetchRows(const function<void (const Object::Ptr&)>& addRowFn) = 0;
+
+	static Value ZeroAccessor(const Object::Ptr&);
+	static Value OneAccessor(const Object::Ptr&);
+	static Value EmptyStringAccessor(const Object::Ptr&);
+	static Value EmptyArrayAccessor(const Object::Ptr&);
+	static Value EmptyDictionaryAccessor(const Object::Ptr&);
+
+private:
+	map<String, ColumnAccessor> m_Columns;
+
+	static void FilteredAddRow(vector<Object::Ptr>& rs, const Filter::Ptr& filter, const Object::Ptr& object);
+};
+
+}
+
+#endif /* TABLE_H */

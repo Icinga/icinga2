@@ -29,6 +29,10 @@ Table::Ptr Table::GetByName(const String& name)
 {
 	if (name == "status")
 		return boost::make_shared<StatusTable>();
+	else if (name == "contactgroups")
+		return boost::make_shared<ContactGroupsTable>();
+	else if (name == "contacts")
+		return boost::make_shared<ContactsTable>();
 
 	return Table::Ptr();
 }
@@ -78,4 +82,24 @@ void Table::FilteredAddRow(vector<Object::Ptr>& rs, const Filter::Ptr& filter, c
 Value Table::ZeroAccessor(const Object::Ptr&)
 {
 	return 0;
+}
+
+Value Table::OneAccessor(const Object::Ptr&)
+{
+	return 0;
+}
+
+Value Table::EmptyStringAccessor(const Object::Ptr&)
+{
+	return "";
+}
+
+Value Table::EmptyArrayAccessor(const Object::Ptr&)
+{
+	return boost::make_shared<Array>();
+}
+
+Value Table::EmptyDictionaryAccessor(const Object::Ptr&)
+{
+	return boost::make_shared<Dictionary>();
 }

@@ -17,28 +17,42 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2LIVESTATUS_H
-#define I2LIVESTATUS_H
-
-/**
- * @defgroup livestatus Livestatus component
- *
- * The livestatus component implements livestatus queries.
- */
-
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "i2-livestatus.h"
 
 using namespace icinga;
+using namespace livestatus;
 
-#include "connection.h"
-#include "query.h"
-#include "filter.h"
-#include "table.h"
-#include "statustable.h"
-#include "contactgroupstable.h"
-#include "contactstable.h"
-#include "component.h"
+ContactGroupsTable::ContactGroupsTable(void)
+{
+	AddColumn("name", &ContactGroupsTable::NameAccessor);
+	AddColumn("alias", &ContactGroupsTable::NameAccessor);
+	AddColumn("members", &ContactGroupsTable::MembersAccessor);
+}
 
-#endif /* I2LIVESTATUS_H */
+String ContactGroupsTable::GetName(void) const
+{
+	return "contactgroups";
+}
+
+void ContactGroupsTable::FetchRows(const function<void (const Object::Ptr&)>& addRowFn)
+{
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("UserGroup")) {
+		addRowFn(object);
+	}
+}
+
+Value ContactGroupsTable::NameAccessor(const Object::Ptr& object)
+{
+	return static_pointer_cast<UserGroup>(object)->GetName();
+}
+
+Value ContactGroupsTable::MembersAccessor(const Object::Ptr& object)
+{
+	Array::Ptr members = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const User::Ptr& user, static_pointer_cast<UserGroup>(object)->GetMembers()) {
+		members->Add(user->GetName());
+	}
+
+	return members;
+}

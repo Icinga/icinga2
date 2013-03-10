@@ -17,28 +17,44 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2LIVESTATUS_H
-#define I2LIVESTATUS_H
-
-/**
- * @defgroup livestatus Livestatus component
- *
- * The livestatus component implements livestatus queries.
- */
-
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "i2-livestatus.h"
 
 using namespace icinga;
+using namespace livestatus;
 
-#include "connection.h"
-#include "query.h"
-#include "filter.h"
-#include "table.h"
-#include "statustable.h"
-#include "contactgroupstable.h"
-#include "contactstable.h"
-#include "component.h"
+ContactsTable::ContactsTable(void)
+{
+	AddColumn("name", &ContactsTable::NameAccessor);
+	AddColumn("alias", &ContactsTable::NameAccessor);
+	AddColumn("email", &Table::EmptyStringAccessor);
+	AddColumn("pager", &Table::EmptyStringAccessor);
+	AddColumn("host_notification_period", &Table::EmptyStringAccessor);
+	AddColumn("service_notification_period", &Table::EmptyStringAccessor);
+	AddColumn("can_submit_commands", &Table::OneAccessor);
+	AddColumn("host_notifications_enabled", &Table::OneAccessor);
+	AddColumn("service_notifications_enabled", &Table::OneAccessor);
+	AddColumn("in_host_notification_period", &Table::OneAccessor);
+	AddColumn("in_service_notification_period", &Table::OneAccessor);
+	AddColumn("custom_variable_names", &Table::EmptyArrayAccessor);
+	AddColumn("custom_variable_values", &Table::EmptyArrayAccessor);
+	AddColumn("custom_variables", &Table::EmptyDictionaryAccessor);
+	AddColumn("modified_attributes", &Table::ZeroAccessor);
+	AddColumn("modified_attributes_list", &Table::EmptyArrayAccessor);
+}
 
-#endif /* I2LIVESTATUS_H */
+String ContactsTable::GetName(void) const
+{
+	return "contacts";
+}
+
+void ContactsTable::FetchRows(const function<void (const Object::Ptr&)>& addRowFn)
+{
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
+		addRowFn(object);
+	}
+}
+
+Value ContactsTable::NameAccessor(const Object::Ptr& object)
+{
+	return static_pointer_cast<User>(object)->GetName();
+}
