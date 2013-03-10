@@ -17,30 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2LIVESTATUS_H
-#define I2LIVESTATUS_H
+#ifndef ANDFILTER_H
+#define ANDFILTER_H
+
+namespace livestatus
+{
 
 /**
- * @defgroup livestatus Livestatus component
- *
- * The livestatus component implements livestatus queries.
+ * @ingroup livestatus
  */
+class AndFilter : public Filter
+{
+public:
+	typedef shared_ptr<AndFilter> Ptr;
+	typedef weak_ptr<AndFilter> WeakPtr;
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+	AndFilter(void);
 
-using namespace icinga;
+	virtual bool Apply(const Object::Ptr& object);
 
-#include "connection.h"
-#include "query.h"
-#include "filter.h"
-#include "orfilter.h"
-#include "andfilter.h"
-#include "table.h"
-#include "statustable.h"
-#include "contactgroupstable.h"
-#include "contactstable.h"
-#include "component.h"
+	void AddSubFilter(const Filter::Ptr& filter);
 
-#endif /* I2LIVESTATUS_H */
+private:
+	vector<Filter::Ptr> m_Filters;
+};
+
+}
+
+#endif /* ANDFILTER_H */

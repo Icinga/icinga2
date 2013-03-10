@@ -17,30 +17,25 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2LIVESTATUS_H
-#define I2LIVESTATUS_H
-
-/**
- * @defgroup livestatus Livestatus component
- *
- * The livestatus component implements livestatus queries.
- */
-
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "i2-livestatus.h"
 
 using namespace icinga;
+using namespace livestatus;
 
-#include "connection.h"
-#include "query.h"
-#include "filter.h"
-#include "orfilter.h"
-#include "andfilter.h"
-#include "table.h"
-#include "statustable.h"
-#include "contactgroupstable.h"
-#include "contactstable.h"
-#include "component.h"
+AndFilter::AndFilter(void)
+{ }
 
-#endif /* I2LIVESTATUS_H */
+bool AndFilter::Apply(const Object::Ptr& object)
+{
+	BOOST_FOREACH(const Filter::Ptr& filter, m_Filters) {
+		if (!filter->Apply(object))
+			return false;
+	}
+
+	return true;
+}
+
+void AndFilter::AddSubFilter(const Filter::Ptr& filter)
+{
+	m_Filters.push_back(filter);
+}
