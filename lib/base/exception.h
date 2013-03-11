@@ -28,150 +28,65 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Exception : public virtual exception
+class I2_BASE_API Exception //: public virtual exception
 {
 public:
-	Exception(void)
-	    : m_Message(), m_Code(0)
-	{ }
-
-	Exception(String message)
-	    : m_Message(message), m_Code(0)
-	{ }
-
-	Exception(String message, int code)
-	    : m_Message(message), m_Code(code)
-	{ }
-
-	/**
-	 * Destructor for the Exception class. Must be virtual for RTTI to work.
-	 */
-	virtual ~Exception(void) throw()
-	{ }
-
-	int GetCode(void) const;
-	String GetMessage(void) const;
-
-	virtual const char *what(void) const throw();
-
 	static StackTrace *GetLastStackTrace(void);
 	static void SetLastStackTrace(const StackTrace& trace);
 
-protected:
-	void SetCode(int code);
-	void SetMessage(String message);
-
 private:
-	String m_Message;
-	int m_Code;
-
 	static boost::thread_specific_ptr<StackTrace> m_LastStackTrace;
 };
 
 typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
 
-#define DEFINE_EXCEPTION_CLASS(klass)					\
-	class klass : public Exception					\
-	{								\
-	public:								\
-		inline klass(void) : Exception()			\
-		{ }							\
-									\
-		inline klass(String message)				\
-		    : Exception(message)				\
-		{ }							\
-	}
-
-/**
- * An exception that is thrown when a certain feature
- * is not implemented.
- *
- * @ingroup base
- */
-DEFINE_EXCEPTION_CLASS(NotImplementedException);
+class I2_BASE_API posix_error : virtual public std::exception, virtual public boost::exception { };
 
 #ifdef _WIN32
-/**
- * A Win32 error encapsulated in an exception.
- *
- * @ingroup base
- */
-class I2_BASE_API Win32Exception : public Exception
-{
-public:
-	/**
-	 * Constructor for the Win32Exception class.
-	 *
-	 * @param message An error message.
-	 * @param errorCode A Win32 error code.
-	 */
-	inline Win32Exception(const String& message, int errorCode)
-	    : Exception(message + ": " + FormatErrorCode(errorCode), errorCode)
-	{ }
+typedef boost::error_info<struct errinfo_win32_error_, int> errinfo_win32_error;
 
-	/**
-	 * Returns a String that describes the Win32 error.
-	 *
-	 * @param code The Win32 error code.
-	 * @returns A description of the error.
-	 */
-	static String FormatErrorCode(int code);
-};
+inline std::string to_string(const errinfo_win32_error& e)
+{
+	stringstream tmp;
+	int code = e.value();
+
+	char *message;
+	String result = "Unknown error.";
+
+	DWORD rc = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM, NULL, code, 0, (char *)&message,
+		0, NULL);
+
+	if (rc != 0) {
+		result = String(message);
+		LocalFree(message);
+
+		/* remove trailing new-line characters */
+		boost::algorithm::trim_right(result);
+	}
+
+	tmp << code << ", \"" << result << "\"";
+	return tmp.str();
+}
 #endif /* _WIN32 */
 
-/**
- * A Posix error encapsulated in an exception.
- *
- * @ingroup base
- */
-class I2_BASE_API PosixException : public Exception
+class openssl_error : virtual public std::exception, virtual public boost::exception { };
+
+typedef boost::error_info<struct errinfo_openssl_error_, int> errinfo_openssl_error;
+
+inline std::string to_string(const errinfo_openssl_error& e)
 {
-public:
-	/**
-	 * Constructor for the PosixException class.
-	 *
-	 * @param message An error message.
-	 * @param errorCode A Posix (errno) error code.
-	 */
-	inline PosixException(const String& message, int errorCode)
-	    : Exception(message + ": " + FormatErrorCode(errorCode), errorCode)
-	{ }
+	stringstream tmp;
+	int code = e.value();
 
-	/**
-	 * Returns a String that describes the Posix error.
-	 *
-	 * @param code The Posix error code.
-	 * @returns A description of the error.
-	 */
-	static String FormatErrorCode(int code);
-};
+	const char *message = ERR_error_string(code, NULL);
 
-/**
- * An OpenSSL error encapsulated in an exception.
- *
- * @ingroup base
- */
-class I2_BASE_API OpenSSLException : public Exception
-{
-public:
-	/**
-	 * Constructor for the OpenSSLException class.
-	 *
-	 * @param message An error message.
-	 * @param errorCode An OpenSSL error code.
-	 */
-	inline OpenSSLException(const String& message, int errorCode)
-	    : Exception(message + ": " + FormatErrorCode(errorCode), errorCode)
-	{ }
+	if (message == NULL)
+		message = "Unknown error.";
 
-	/**
-	 * Returns a String that describes the OpenSSL error.
-	 *
-	 * @param code The OpenSSL error code.
-	 * @returns A description of the error.
-	 */
-	static String FormatErrorCode(int code);
-};
+	tmp << code << ", \"" << message << "\"";
+	return tmp.str();
+}
 
 }
 

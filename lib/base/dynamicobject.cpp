@@ -495,8 +495,12 @@ void DynamicObject::DumpObjects(const String& filename)
 	_unlink(filename.CStr());
 #endif /* _WIN32 */
 
-	if (rename(tempFilename.CStr(), filename.CStr()) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));
+	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("rename")
+		    << errinfo_errno(errno)
+		    << errinfo_file_name(tempFilename));
+	}
 }
 
 /*

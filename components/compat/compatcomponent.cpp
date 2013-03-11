@@ -127,13 +127,21 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 		if (S_ISFIFO(statbuf.st_mode) && access(commandPath.CStr(), R_OK) >= 0) {
 			fifo_ok = true;
 		} else {
-			if (unlink(commandPath.CStr()) < 0)
-				BOOST_THROW_EXCEPTION(PosixException("unlink() failed", errno));
+			if (unlink(commandPath.CStr()) < 0) {
+				BOOST_THROW_EXCEPTION(posix_error()
+				    << errinfo_api_function("unlink")
+				    << errinfo_errno(errno)
+				    << errinfo_file_name(commandPath));
+			}
 		}
 	}
 
-	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("mkfifo() failed", errno));
+	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("mkfifo")
+		    << errinfo_errno(errno)
+		    << errinfo_file_name(commandPath));
+	}
 
 	for (;;) {
 		int fd;
@@ -142,14 +150,20 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 			fd = open(commandPath.CStr(), O_RDONLY);
 		} while (fd < 0 && errno == EINTR);
 
-		if (fd < 0)
-			BOOST_THROW_EXCEPTION(PosixException("open() failed", errno));
+		if (fd < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << errinfo_api_function("open")
+			    << errinfo_errno(errno)
+			    << errinfo_file_name(commandPath));
+		}
 
 		FILE *fp = fdopen(fd, "r");
 
 		if (fp == NULL) {
-			close(fd);
-			BOOST_THROW_EXCEPTION(PosixException("fdopen() failed", errno));
+			(void) close(fd);
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << errinfo_api_function("fdopen")
+			    << errinfo_errno(errno));
 		}
 
 		char line[2048];
@@ -640,10 +654,18 @@ void CompatComponent::StatusTimerHandler(void)
 #endif /* _WIN32 */
 
 	statusfp.close();
-	if (rename(statuspathtmp.CStr(), statuspath.CStr()) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));
+	if (rename(statuspathtmp.CStr(), statuspath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("rename")
+		    << errinfo_errno(errno)
+		    << errinfo_file_name(statuspathtmp));
+	}
 
 	objectfp.close();
-	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("rename() failed", errno));
+	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("rename")
+		    << errinfo_errno(errno)
+		    << errinfo_file_name(objectspathtmp));
+	}
 }

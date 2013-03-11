@@ -228,7 +228,7 @@ void Endpoint::UnregisterTopicHandler(const String&, const function<Endpoint::Ca
 	//m_TopicHandlers[method] -= callback;
 	//UnregisterSubscription(method);
 
-	BOOST_THROW_EXCEPTION(NotImplementedException());
+	BOOST_THROW_EXCEPTION(runtime_error("Not implemented."));
 }
 
 void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage& request)

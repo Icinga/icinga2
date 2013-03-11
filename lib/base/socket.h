@@ -61,7 +61,6 @@ protected:
 	void SetConnected(bool connected);
 
 	int GetError(void) const;
-	static int GetLastSocketError(void);
 
 	mutable boost::mutex m_SocketMutex;
 
@@ -107,14 +106,7 @@ private:
 	bool WantsToRead(void) const;
 };
 
-/**
- * A socket exception.
- */
-class SocketException : public Exception
-{
-public:
-	SocketException(const String& message, int errorCode);
-};
+class socket_error : virtual public std::exception, virtual public boost::exception { };
 
 }
 

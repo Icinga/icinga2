@@ -188,8 +188,12 @@ String Application::GetExePath(const String& argv0)
 
 #ifndef _WIN32
 	char buffer[MAXPATHLEN];
-	if (getcwd(buffer, sizeof(buffer)) == NULL)
-		BOOST_THROW_EXCEPTION(PosixException("getcwd failed", errno));
+	if (getcwd(buffer, sizeof(buffer)) == NULL) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("getcwd")
+		    << errinfo_errno(errno));
+	}
+
 	String workingDirectory = buffer;
 
 	if (argv0[0] != '/')
@@ -229,8 +233,12 @@ String Application::GetExePath(const String& argv0)
 		}
 	}
 
-	if (realpath(executablePath.CStr(), buffer) == NULL)
-		BOOST_THROW_EXCEPTION(PosixException("realpath failed", errno));
+	if (realpath(executablePath.CStr(), buffer) == NULL) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("realpath")
+		    << errinfo_errno(errno)
+		    << errinfo_file_name(executablePath));
+	}
 
 	return buffer;
 #else /* _WIN32 */

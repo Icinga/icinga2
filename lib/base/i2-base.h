@@ -142,6 +142,10 @@ using std::type_info;
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/program_options.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/exception/error_info.hpp>
+#include <boost/exception/errinfo_api_function.hpp>
+#include <boost/exception/errinfo_errno.hpp>
+#include <boost/exception/errinfo_file_name.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
@@ -163,6 +167,9 @@ using boost::tie;
 using boost::rethrow_exception;
 using boost::current_exception;
 using boost::diagnostic_information;
+using boost::errinfo_api_function;
+using boost::errinfo_errno;
+using boost::errinfo_file_name;
 using boost::multi_index_container;
 using boost::multi_index::indexed_by;
 using boost::multi_index::identity;

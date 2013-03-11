@@ -34,11 +34,17 @@ void Process::Initialize(void)
 	int fds[2];
 
 #if HAVE_PIPE2
-	if (pipe2(fds, O_CLOEXEC) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("pipe2() failed.", errno));
+	if (pipe2(fds, O_CLOEXEC) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("pipe2")
+		    << errinfo_errno(errno));
+	}
 #else /* HAVE_PIPE2 */
-	if (pipe(fds) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
+	if (pipe(fds) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("pipe")
+		    << errinfo_errno(errno));
+	}
 
 	/* Don't bother setting fds[0] to clo-exec as we'll only
 	 * use it in the following dup() call. */
@@ -56,8 +62,11 @@ void Process::Initialize(void)
 	for (unsigned int i = 0; i < threads; i++) {
 		int childTaskFd = dup(fds[0]);
 
-		if (childTaskFd < 0)
-			BOOST_THROW_EXCEPTION(PosixException("dup() failed.", errno));
+		if (childTaskFd < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << errinfo_api_function("dup")
+			    << errinfo_errno(errno));
+		}
 
 		Utility::SetNonBlocking(childTaskFd);
 		Utility::SetCloExec(childTaskFd);
@@ -84,8 +93,11 @@ void Process::WorkerThreadProc(int taskFd)
 
 		pfds = (pollfd *)realloc(pfds, (1 + tasks.size()) * sizeof(pollfd));
 
-		if (pfds == NULL)
-			BOOST_THROW_EXCEPTION(PosixException("realloc() failed.", errno));
+		if (pfds == NULL) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << errinfo_api_function("realloc")
+			    << errinfo_errno(errno));
+		}
 
 		int idx = 0;
 
@@ -104,8 +116,11 @@ void Process::WorkerThreadProc(int taskFd)
 
 		int rc = poll(pfds, idx, -1);
 
-		if (rc < 0 && errno != EINTR)
-			BOOST_THROW_EXCEPTION(PosixException("poll() failed.", errno));
+		if (rc < 0 && errno != EINTR) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << errinfo_api_function("poll")
+			    << errinfo_errno(errno));
+		}
 
 		if (rc == 0)
 			continue;
@@ -133,7 +148,9 @@ void Process::WorkerThreadProc(int taskFd)
 						if (errno == EAGAIN)
 							break; /* Someone else was faster and took our task. */
 
-						BOOST_THROW_EXCEPTION(PosixException("read() failed.", errno));
+						BOOST_THROW_EXCEPTION(posix_error()
+						    << errinfo_api_function("read")
+						    << errinfo_errno(errno));
 					}
 
 					while (have > 0) {
@@ -197,8 +214,11 @@ void Process::QueueTask(void)
 		 * This little gem which is commonly known as the "self-pipe trick"
 		 * takes care of waking up the select() call in the worker thread.
 		 */
-		if (write(m_TaskFd, "T", 1) < 0)
-			BOOST_THROW_EXCEPTION(PosixException("write() failed.", errno));
+		if (write(m_TaskFd, "T", 1) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << errinfo_api_function("write")
+			    << errinfo_errno(errno));
+		}
 	}
 }
 
@@ -211,11 +231,17 @@ void Process::InitTask(void)
 	int fds[2];
 
 #if HAVE_PIPE2
-	if (pipe2(fds, O_NONBLOCK | O_CLOEXEC) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("pipe2() failed.", errno));
+	if (pipe2(fds, O_NONBLOCK | O_CLOEXEC) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("pipe2")
+		    << errinfo_errno(errno));
+	}
 #else /* HAVE_PIPE2 */
-	if (pipe(fds) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("pipe() failed.", errno));
+	if (pipe(fds) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("pipe")
+		    << errinfo_errno(errno));
+	}
 
 	Utility::SetNonBlocking(fds[0]);
 	Utility::SetCloExec(fds[0]);
@@ -269,8 +295,11 @@ void Process::InitTask(void)
 	m_Pid = fork();
 #endif /* HAVE_WORKING_VFORK */
 
-	if (m_Pid < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fork() failed.", errno));
+	if (m_Pid < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("fork")
+		    << errinfo_errno(errno));
+	}
 
 	if (m_Pid == 0) {
 		// child process
@@ -331,8 +360,11 @@ bool Process::RunTask(void)
 
 	(void) close(m_FD);
 
-	if (waitpid(m_Pid, &status, 0) != m_Pid)
-		BOOST_THROW_EXCEPTION(PosixException("waitpid() failed.", errno));
+	if (waitpid(m_Pid, &status, 0) != m_Pid) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("waitpid")
+		    << errinfo_errno(errno));
+	}
 
 	if (WIFEXITED(status)) {
 		exitcode = WEXITSTATUS(status);

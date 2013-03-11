@@ -69,16 +69,24 @@ void Utility::Daemonize(void) {
 	int fd;
 
 	pid = fork();
-	if (pid < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fork() failed", errno));
+
+	if (pid < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("fork")
+		    << errinfo_errno(errno));
+	}
 
 	if (pid)
 		_exit(0);
 
 	fd = open("/dev/null", O_RDWR);
 
-	if (fd < 0)
-		BOOST_THROW_EXCEPTION(PosixException("open() failed", errno));
+	if (fd < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("open")
+		    << errinfo_errno(errno)
+		    << errinfo_file_name("/dev/null"));
+	}
 
 	if (fd != STDIN_FILENO)
 		dup2(fd, STDIN_FILENO);
@@ -92,8 +100,11 @@ void Utility::Daemonize(void) {
 	if (fd > STDERR_FILENO)
 		close(fd);
 
-	if (setsid() < 0)
-		BOOST_THROW_EXCEPTION(PosixException("setsid() failed", errno));
+	if (setsid() < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("setsid")
+		    << errinfo_errno(errno));
+	}
 #endif
 }
 
@@ -127,20 +138,36 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(const String& pubkey, const String& 
 
 	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
-	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr()))
-		BOOST_THROW_EXCEPTION(OpenSSLException("Could not load public X509 key file", ERR_get_error()));
+	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr())) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << errinfo_api_function("SSL_CTX_use_certificate_chain_file")
+		    << errinfo_openssl_error(ERR_get_error())
+		    << errinfo_file_name(pubkey));
+	}
 
-	if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.CStr(), SSL_FILETYPE_PEM))
-		BOOST_THROW_EXCEPTION(OpenSSLException("Could not load private X509 key file", ERR_get_error()));
+	if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.CStr(), SSL_FILETYPE_PEM)) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << errinfo_api_function("SSL_CTX_use_PrivateKey_file")
+		    << errinfo_openssl_error(ERR_get_error())
+		    << errinfo_file_name(privkey));
+	}
 
-	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), NULL))
-		BOOST_THROW_EXCEPTION(OpenSSLException("Could not load public CA key file", ERR_get_error()));
+	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), NULL)) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << errinfo_api_function("SSL_CTX_load_verify_locations")
+		    << errinfo_openssl_error(ERR_get_error())
+		    << errinfo_file_name(cakey));
+	}
 
 	STACK_OF(X509_NAME) *cert_names;
 
 	cert_names = SSL_load_client_CA_file(cakey.CStr());
-	if (cert_names == NULL)
-		BOOST_THROW_EXCEPTION(OpenSSLException("SSL_load_client_CA_file() failed", ERR_get_error()));
+	if (cert_names == NULL) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << errinfo_api_function("SSL_load_client_CA_file")
+		    << errinfo_openssl_error(ERR_get_error())
+		    << errinfo_file_name(cakey));
+	}
 
 	SSL_CTX_set_client_CA_list(sslContext.get(), cert_names);
 
@@ -160,9 +187,11 @@ String Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 	int rc = X509_NAME_get_text_by_NID(X509_get_subject_name(certificate.get()),
 	    NID_commonName, buffer, sizeof(buffer));
 
-	if (rc == -1)
-		BOOST_THROW_EXCEPTION(OpenSSLException("X509 certificate has no CN"
-		    " attribute", ERR_get_error()));
+	if (rc == -1) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << errinfo_api_function("X509_NAME_get_text_by_NID")
+		    << errinfo_openssl_error(ERR_get_error()));
+	}
 
 	return buffer;
 }
@@ -178,18 +207,25 @@ shared_ptr<X509> Utility::GetX509Certificate(const String& pemfile)
 	X509 *cert;
 	BIO *fpcert = BIO_new(BIO_s_file());
 
-	if (fpcert == NULL)
-		BOOST_THROW_EXCEPTION(OpenSSLException("BIO_new failed",
-		    ERR_get_error()));
+	if (fpcert == NULL) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << errinfo_api_function("BIO_new")
+		    << errinfo_openssl_error(ERR_get_error()));
+	}
 
-	if (BIO_read_filename(fpcert, pemfile.CStr()) < 0)
-		BOOST_THROW_EXCEPTION(OpenSSLException("BIO_read_filename failed",
-		    ERR_get_error()));
+	if (BIO_read_filename(fpcert, pemfile.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << errinfo_api_function("BIO_read_filename")
+		    << errinfo_openssl_error(ERR_get_error())
+		    << errinfo_file_name(pemfile));
+	}
 
 	cert = PEM_read_bio_X509_AUX(fpcert, NULL, NULL, NULL);
-	if (cert == NULL)
-		BOOST_THROW_EXCEPTION(OpenSSLException("PEM_read_bio_X509_AUX failed",
-		    ERR_get_error()));
+	if (cert == NULL) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << errinfo_api_function("PEM_read_bio_X509_AUX")
+		    << errinfo_openssl_error(ERR_get_error()));
+	}
 
 	BIO_free(fpcert);
 
@@ -319,8 +355,11 @@ double Utility::GetTime(void)
 #else /* _WIN32 */
 	struct timeval tv;
 
-	if (gettimeofday(&tv, NULL) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("gettimeofday() failed", errno));
+	if (gettimeofday(&tv, NULL) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("gettimeofday")
+		    << errinfo_errno(errno));
+	}
 
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
 #endif /* _WIN32 */
@@ -444,7 +483,10 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 		if (rc == GLOB_NOMATCH)
 			return false;
 
-		BOOST_THROW_EXCEPTION(PosixException("glob() failed", errno));
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("glob")
+		    << errinfo_errno(errno)
+		    << errinfo_file_name(pathSpec));
 	}
 
 	if (gr.gl_pathc == 0) {
@@ -467,24 +509,36 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 #ifndef _WIN32
 void Utility::SetNonBlocking(int fd)
 {
-	int flags;
-	flags = fcntl(fd, F_GETFL, 0);
-	if (flags < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+	int flags = fcntl(fd, F_GETFL, 0);
 
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+	if (flags < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("fcntl")
+		    << errinfo_errno(errno));
+	}
+
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("fcntl")
+		    << errinfo_errno(errno));
+	}
 }
 
 void Utility::SetCloExec(int fd)
 {
-	int flags;
-	flags = fcntl(fd, F_GETFD, 0);
-	if (flags < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+	int flags = fcntl(fd, F_GETFD, 0);
 
-	if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0)
-		BOOST_THROW_EXCEPTION(PosixException("fcntl failed", errno));
+	if (flags < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("fcntl")
+		    << errinfo_errno(errno));
+	}
+
+	if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("fcntl")
+		    << errinfo_errno(errno));
+	}
 }
 #endif /* _WIN32 */
 
@@ -512,13 +566,19 @@ String Utility::FormatDateTime(const char *format, double ts)
 #ifdef _MSC_VER
 	tm *temp = localtime(&tempts);
 
-	if (temp == NULL)
-		BOOST_THROW_EXCEPTION(PosixException("localtime() failed", errno));
+	if (temp == NULL) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("localtime")
+		    << errinfo_errno(errno));
+	}
 
 	tmthen = *temp;
 #else /* _MSC_VER */
-	if (localtime_r(&tempts, &tmthen) == NULL)
-		BOOST_THROW_EXCEPTION(PosixException("localtime_r() failed.", errno));
+	if (localtime_r(&tempts, &tmthen) == NULL) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << errinfo_api_function("localtime_r")
+		    << errinfo_errno(errno));
+	}
 #endif /* _MSC_VER */
 
 	strftime(timestamp, sizeof(timestamp), format, &tmthen);

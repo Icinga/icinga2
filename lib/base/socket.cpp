@@ -138,27 +138,20 @@ int Socket::GetError(void) const
 }
 
 /**
- * Retrieves the last socket error.
- *
- * @returns An error code.
- */
-int Socket::GetLastSocketError(void)
-{
-#ifdef _WIN32
-	return WSAGetLastError();
-#else /* _WIN32 */
-	return errno;
-#endif /* _WIN32 */
-}
-
-/**
  * Processes errors that have occured for the socket.
  */
 void Socket::HandleException(void)
 {
 	ObjectLock olock(this);
 
-	BOOST_THROW_EXCEPTION(SocketException("select() returned fd in except fdset", GetError()));
+	BOOST_THROW_EXCEPTION(socket_error()
+	    << errinfo_api_function("select")
+#ifndef _WIN32
+	    << errinfo_errno(GetError())
+#else /* _WIN32 */
+	    << errinfo_win32_error(GetError())
+#endif /* _WIN32 */
+	);
 }
 
 /**
@@ -172,9 +165,16 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 	char service[NI_MAXSERV];
 
 	if (getnameinfo(address, len, host, sizeof(host), service,
-	    sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0)
-		BOOST_THROW_EXCEPTION(SocketException("getnameinfo() failed",
-		    GetLastSocketError()));
+	    sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0) {
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("getnameinfo")
+	#ifndef _WIN32
+		    << errinfo_errno(errno)
+	#else /* _WIN32 */
+		    << errinfo_win32_error(WSAGetLastError())
+	#endif /* _WIN32 */
+		);
+	}
 
 	stringstream s;
 	s << "[" << host << "]:" << service;
@@ -193,8 +193,16 @@ String Socket::GetClientAddress(void)
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
 
-	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0)
-		BOOST_THROW_EXCEPTION(SocketException("getsockname() failed", GetError()));
+	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0) {
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("getsockname")
+	#ifndef _WIN32
+		    << errinfo_errno(errno)
+	#else /* _WIN32 */
+		    << errinfo_win32_error(WSAGetLastError())
+	#endif /* _WIN32 */
+		);
+	}
 
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
 }
@@ -211,28 +219,18 @@ String Socket::GetPeerAddress(void)
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
 
-	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0)
-		BOOST_THROW_EXCEPTION(SocketException("getpeername() failed", GetError()));
+	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0) {
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("getpeername")
+	#ifndef _WIN32
+		    << errinfo_errno(errno)
+	#else /* _WIN32 */
+		    << errinfo_win32_error(WSAGetLastError())
+	#endif /* _WIN32 */
+		);
+	}
 
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
-}
-
-/**
- * Constructor for the SocketException class.
- *
- * @param message The error message.
- * @param errorCode The error code.
- */
-SocketException::SocketException(const String& message, int errorCode)
-{
-#ifdef _WIN32
-	String details = Win32Exception::FormatErrorCode(errorCode);
-#else /* _WIN32 */
-	String details = PosixException::FormatErrorCode(errorCode);
-#endif /* _WIN32 */
-
-	String msg = message + ": " + details;
-	SetMessage(msg.CStr());
 }
 
 /**
@@ -272,8 +270,16 @@ void Socket::ReadThreadProc(void)
 			return;
 
 		try {
-			if (rc < 0)
-				BOOST_THROW_EXCEPTION(SocketException("select() failed", GetError()));
+			if (rc < 0) {
+				BOOST_THROW_EXCEPTION(socket_error()
+				    << errinfo_api_function("select")
+			#ifndef _WIN32
+				    << errinfo_errno(errno)
+			#else /* _WIN32 */
+				    << errinfo_win32_error(WSAGetLastError())
+			#endif /* _WIN32 */
+				);
+			}
 
 			if (FD_ISSET(fd, &readfds))
 				HandleReadable();
@@ -330,8 +336,16 @@ void Socket::WriteThreadProc(void)
 			return;
 
 		try {
-			if (rc < 0)
-				BOOST_THROW_EXCEPTION(SocketException("select() failed", GetError()));
+			if (rc < 0) {
+				BOOST_THROW_EXCEPTION(socket_error()
+				    << errinfo_api_function("select")
+			#ifndef _WIN32
+				    << errinfo_errno(errno)
+			#else /* _WIN32 */
+				    << errinfo_win32_error(WSAGetLastError())
+			#endif /* _WIN32 */
+				);
+			}
 
 			if (FD_ISSET(fd, &writefds))
 				HandleWritable();
@@ -451,8 +465,16 @@ void Socket::Write(const void *buffer, size_t size)
  */
 void Socket::Listen(void)
 {
-	if (listen(GetFD(), SOMAXCONN) < 0)
-		BOOST_THROW_EXCEPTION(SocketException("listen() failed", GetError()));
+	if (listen(GetFD(), SOMAXCONN) < 0) {
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("listen")
+	#ifndef _WIN32
+		    << errinfo_errno(errno)
+	#else /* _WIN32 */
+		    << errinfo_win32_error(WSAGetLastError())
+	#endif /* _WIN32 */
+		);
+	}
 
 	{
 		ObjectLock olock(this);
@@ -500,8 +522,16 @@ void Socket::HandleWritableClient(void)
 
 		rc = send(GetFD(), data, count, 0);
 
-		if (rc <= 0)
-			BOOST_THROW_EXCEPTION(SocketException("send() failed", GetError()));
+		if (rc <= 0) {
+			BOOST_THROW_EXCEPTION(socket_error()
+			    << errinfo_api_function("send")
+		#ifndef _WIN32
+			    << errinfo_errno(errno)
+		#else /* _WIN32 */
+			    << errinfo_win32_error(WSAGetLastError())
+		#endif /* _WIN32 */
+			);
+		}
 
 		m_SendQueue->Read(NULL, rc);
 	}
@@ -528,8 +558,16 @@ void Socket::HandleReadableClient(void)
 #endif /* _WIN32 */
 			break;
 
-		if (rc < 0)
-			BOOST_THROW_EXCEPTION(SocketException("recv() failed", GetError()));
+		if (rc < 0) {
+			BOOST_THROW_EXCEPTION(socket_error()
+			    << errinfo_api_function("recv")
+		#ifndef _WIN32
+			    << errinfo_errno(errno)
+		#else /* _WIN32 */
+			    << errinfo_win32_error(WSAGetLastError())
+		#endif /* _WIN32 */
+			);
+		}
 
 		new_data = true;
 
@@ -563,8 +601,16 @@ void Socket::HandleReadableServer(void)
 
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
-	if (fd < 0)
-		BOOST_THROW_EXCEPTION(SocketException("accept() failed", GetError()));
+	if (fd < 0) {
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("accept")
+	#ifndef _WIN32
+		    << errinfo_errno(errno)
+	#else /* _WIN32 */
+		    << errinfo_win32_error(WSAGetLastError())
+	#endif /* _WIN32 */
+		);
+	}
 
 	Socket::Ptr client = boost::make_shared<Socket>();
 	client->SetFD(fd);

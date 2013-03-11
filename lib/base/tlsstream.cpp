@@ -48,8 +48,11 @@ void TlsStream::Start(void)
 
 	m_SSLContext.reset();
 
-	if (!m_SSL)
-		BOOST_THROW_EXCEPTION(OpenSSLException("SSL_new failed", ERR_get_error()));
+	if (!m_SSL) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << errinfo_api_function("SSL_new")
+		    << errinfo_openssl_error(ERR_get_error()));
+	}
 
 	if (!GetClientCertificate())
 		BOOST_THROW_EXCEPTION(logic_error("No X509 client certificate was specified."));
@@ -153,7 +156,9 @@ void TlsStream::HandleIO(void)
 					return;
 				default:
 					I2Stream_check_exception(m_BIO);
-					BOOST_THROW_EXCEPTION(OpenSSLException("SSL_do_handshake failed", ERR_get_error()));
+					BOOST_THROW_EXCEPTION(openssl_error()
+					    << errinfo_api_function("SSL_do_handshake")
+					    << errinfo_openssl_error(ERR_get_error()));
 			}
 		}
 	}
@@ -178,7 +183,9 @@ void TlsStream::HandleIO(void)
 					return;
 				default:
 					I2Stream_check_exception(m_BIO);
-					BOOST_THROW_EXCEPTION(OpenSSLException("SSL_read failed", ERR_get_error()));
+					BOOST_THROW_EXCEPTION(openssl_error()
+					    << errinfo_api_function("SSL_read")
+					    << errinfo_openssl_error(ERR_get_error()));
 			}
 		}
 	}
@@ -215,7 +222,9 @@ void TlsStream::HandleIO(void)
 					return;
 				default:
 					I2Stream_check_exception(m_BIO);
-					BOOST_THROW_EXCEPTION(OpenSSLException("SSL_write failed", ERR_get_error()));
+					BOOST_THROW_EXCEPTION(openssl_error()
+					    << errinfo_api_function("SSL_write")
+					    << errinfo_openssl_error(ERR_get_error()));
 			}
 		}
 	}
