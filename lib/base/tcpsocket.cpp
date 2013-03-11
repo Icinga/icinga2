@@ -53,14 +53,15 @@ void TcpSocket::Bind(String node, String service, int family)
 
 	if (getaddrinfo(node.IsEmpty() ? NULL : node.CStr(),
 	    service.CStr(), &hints, &result) < 0) {
+#ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << errinfo_api_function("getaddrinfo")
-#ifndef _WIN32
-		    << errinfo_errno(errno)
+		    << errinfo_errno(errno));
 #else /* _WIN32 */
-		    << errinfo_win32_error(WSAGetLastError())
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("getaddrinfo")
+		    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
-		);
 	}
 
 	int fd = INVALID_SOCKET;
@@ -123,14 +124,15 @@ void TcpSocket::Connect(const String& node, const String& service)
 	int rc = getaddrinfo(node.CStr(), service.CStr(), &hints, &result);
 
 	if (rc < 0) {
+#ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << errinfo_api_function("getaddrinfo")
-#ifndef _WIN32
-		    << errinfo_errno(errno)
+		    << errinfo_errno(errno));
 #else /* _WIN32 */
-		    << errinfo_win32_error(WSAGetLastError())
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("getaddrinfo")
+		    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
-		);
 	}
 
 	int fd = INVALID_SOCKET;

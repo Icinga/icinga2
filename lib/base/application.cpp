@@ -45,8 +45,11 @@ Application::Application(const Dictionary::Ptr& serializedUpdate)
 	SetErrorMode(SEM_FAILCRITICALERRORS);
 
 	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
-		BOOST_THROW_EXCEPTION(Win32Exception("WSAStartup failed", WSAGetLastError()));
+	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
+		BOOST_THROW_EXCEPTION(win32_error()
+		    << errinfo_api_function("WSAStartup")
+			<< errinfo_win32_error(WSAGetLastError()));
+	}
 #endif /* _WIN32 */
 
 #ifdef _WIN32
@@ -245,7 +248,9 @@ String Application::GetExePath(const String& argv0)
 	char FullExePath[MAXPATHLEN];
 
 	if (!GetModuleFileName(NULL, FullExePath, sizeof(FullExePath)))
-		BOOST_THROW_EXCEPTION(Win32Exception("GetModuleFileName() failed", GetLastError()));
+		BOOST_THROW_EXCEPTION(win32_error()
+		    << errinfo_api_function("GetModuleFileName")
+			<< errinfo_win32_error(GetLastError()));
 
 	return FullExePath;
 #endif /* _WIN32 */

@@ -278,8 +278,10 @@ String Utility::DirName(const String& path)
 #else /* _WIN32 */
 	if (!PathRemoveFileSpec(dir)) {
 		free(dir);
-		BOOST_THROW_EXCEPTION(Win32Exception("PathRemoveFileSpec() failed",
-		    GetLastError()));
+
+		BOOST_THROW_EXCEPTION(win32_error()
+		    << errinfo_api_function("PathRemoveFileSpec")
+			<< errinfo_win32_error(GetLastError()));
 	}
 
 	result = dir;
@@ -420,8 +422,12 @@ Utility::LoadIcingaLibrary(const String& library, bool module)
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.CStr());
 
-	if (hModule == NULL)
-		BOOST_THROW_EXCEPTION(Win32Exception("LoadLibrary('" + path + "') failed", GetLastError()));
+	if (hModule == NULL) {
+		BOOST_THROW_EXCEPTION(win32_error()
+		    << errinfo_api_function("LoadLibrary")
+			<< errinfo_win32_error(GetLastError())
+			<< errinfo_file_name(path));
+	}
 #else /* _WIN32 */
 	lt_dlhandle hModule = lt_dlopen(path.CStr());
 
@@ -463,15 +469,21 @@ bool Utility::Glob(const String& pathSpec, const function<void (const String&)>&
 		if (errorCode == ERROR_FILE_NOT_FOUND)
 			return false;
 
-		BOOST_THROW_EXCEPTION(Win32Exception("FindFirstFile() failed", errorCode));
+		BOOST_THROW_EXCEPTION(win32_error()
+		    << errinfo_api_function("FindFirstFile")
+			<< errinfo_win32_error(errorCode)
+		    << errinfo_file_name(pathSpec));
 	}
 
 	do {
 		callback(DirName(pathSpec) + "/" + wfd.cFileName);
 	} while (FindNextFile(handle, &wfd));
 
-	if (!FindClose(handle))
-		BOOST_THROW_EXCEPTION(Win32Exception("FindClose() failed", GetLastError()));
+	if (!FindClose(handle)) {
+		BOOST_THROW_EXCEPTION(win32_error()
+		    << errinfo_api_function("FindClose")
+		    << errinfo_win32_error(GetLastError()));
+	}
 
 	return true;
 #else /* _WIN32 */

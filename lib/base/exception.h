@@ -43,6 +43,8 @@ typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
 class I2_BASE_API posix_error : virtual public std::exception, virtual public boost::exception { };
 
 #ifdef _WIN32
+class I2_BASE_API win32_error : virtual public std::exception, virtual public boost::exception { };
+
 typedef boost::error_info<struct errinfo_win32_error_, int> errinfo_win32_error;
 
 inline std::string to_string(const errinfo_win32_error& e)
@@ -70,7 +72,7 @@ inline std::string to_string(const errinfo_win32_error& e)
 }
 #endif /* _WIN32 */
 
-class openssl_error : virtual public std::exception, virtual public boost::exception { };
+class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
 
 typedef boost::error_info<struct errinfo_openssl_error_, int> errinfo_openssl_error;
 

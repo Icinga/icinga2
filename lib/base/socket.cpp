@@ -144,14 +144,15 @@ void Socket::HandleException(void)
 {
 	ObjectLock olock(this);
 
+#ifndef _WIN32
 	BOOST_THROW_EXCEPTION(socket_error()
 	    << errinfo_api_function("select")
-#ifndef _WIN32
-	    << errinfo_errno(GetError())
+	    << errinfo_errno(GetError()));
 #else /* _WIN32 */
-	    << errinfo_win32_error(GetError())
+	BOOST_THROW_EXCEPTION(socket_error()
+	    << errinfo_api_function("select")
+	    << errinfo_win32_error(GetError()));
 #endif /* _WIN32 */
-	);
 }
 
 /**
@@ -166,14 +167,15 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 
 	if (getnameinfo(address, len, host, sizeof(host), service,
 	    sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0) {
+#ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << errinfo_api_function("getnameinfo")
-	#ifndef _WIN32
-		    << errinfo_errno(errno)
-	#else /* _WIN32 */
-		    << errinfo_win32_error(WSAGetLastError())
-	#endif /* _WIN32 */
-		);
+		    << errinfo_errno(errno));
+#else /* _WIN32 */
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("getnameinfo")
+		    << errinfo_win32_error(WSAGetLastError()));
+#endif /* _WIN32 */
 	}
 
 	stringstream s;
@@ -194,14 +196,15 @@ String Socket::GetClientAddress(void)
 	socklen_t len = sizeof(sin);
 
 	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0) {
+#ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << errinfo_api_function("getsockname")
-	#ifndef _WIN32
-		    << errinfo_errno(errno)
-	#else /* _WIN32 */
-		    << errinfo_win32_error(WSAGetLastError())
-	#endif /* _WIN32 */
-		);
+		    << errinfo_errno(errno));
+#else /* _WIN32 */
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("getsockname")
+		    << errinfo_win32_error(WSAGetLastError()));
+#endif /* _WIN32 */
 	}
 
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
@@ -220,14 +223,15 @@ String Socket::GetPeerAddress(void)
 	socklen_t len = sizeof(sin);
 
 	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0) {
+#ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << errinfo_api_function("getpeername")
-	#ifndef _WIN32
-		    << errinfo_errno(errno)
-	#else /* _WIN32 */
-		    << errinfo_win32_error(WSAGetLastError())
-	#endif /* _WIN32 */
-		);
+		    << errinfo_errno(errno));
+#else /* _WIN32 */
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("getpeername")
+		    << errinfo_win32_error(WSAGetLastError()));
+#endif /* _WIN32 */
 	}
 
 	return GetAddressFromSockaddr((sockaddr *)&sin, len);
@@ -271,14 +275,15 @@ void Socket::ReadThreadProc(void)
 
 		try {
 			if (rc < 0) {
+#ifndef _WIN32
 				BOOST_THROW_EXCEPTION(socket_error()
 				    << errinfo_api_function("select")
-			#ifndef _WIN32
-				    << errinfo_errno(errno)
-			#else /* _WIN32 */
-				    << errinfo_win32_error(WSAGetLastError())
-			#endif /* _WIN32 */
-				);
+				    << errinfo_errno(errno));
+#else /* _WIN32 */
+				BOOST_THROW_EXCEPTION(socket_error()
+				    << errinfo_api_function("select")
+				    << errinfo_win32_error(WSAGetLastError()));
+#endif /* _WIN32 */
 			}
 
 			if (FD_ISSET(fd, &readfds))
@@ -337,14 +342,15 @@ void Socket::WriteThreadProc(void)
 
 		try {
 			if (rc < 0) {
+#ifndef _WIN32
 				BOOST_THROW_EXCEPTION(socket_error()
 				    << errinfo_api_function("select")
-			#ifndef _WIN32
-				    << errinfo_errno(errno)
-			#else /* _WIN32 */
-				    << errinfo_win32_error(WSAGetLastError())
-			#endif /* _WIN32 */
-				);
+				    << errinfo_errno(errno));
+#else /* _WIN32 */
+				BOOST_THROW_EXCEPTION(socket_error()
+				    << errinfo_api_function("select")
+				    << errinfo_win32_error(WSAGetLastError()));
+#endif /* _WIN32 */
 			}
 
 			if (FD_ISSET(fd, &writefds))
@@ -466,14 +472,15 @@ void Socket::Write(const void *buffer, size_t size)
 void Socket::Listen(void)
 {
 	if (listen(GetFD(), SOMAXCONN) < 0) {
+#ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << errinfo_api_function("listen")
-	#ifndef _WIN32
-		    << errinfo_errno(errno)
-	#else /* _WIN32 */
-		    << errinfo_win32_error(WSAGetLastError())
-	#endif /* _WIN32 */
-		);
+		    << errinfo_errno(errno));
+#else /* _WIN32 */
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("listen")
+		    << errinfo_win32_error(WSAGetLastError()));
+#endif /* _WIN32 */
 	}
 
 	{
@@ -523,14 +530,15 @@ void Socket::HandleWritableClient(void)
 		rc = send(GetFD(), data, count, 0);
 
 		if (rc <= 0) {
+#ifndef _WIN32
 			BOOST_THROW_EXCEPTION(socket_error()
 			    << errinfo_api_function("send")
-		#ifndef _WIN32
-			    << errinfo_errno(errno)
-		#else /* _WIN32 */
-			    << errinfo_win32_error(WSAGetLastError())
-		#endif /* _WIN32 */
-			);
+			    << errinfo_errno(errno));
+#else /* _WIN32 */
+			BOOST_THROW_EXCEPTION(socket_error()
+			    << errinfo_api_function("send")
+			    << errinfo_win32_error(WSAGetLastError()));
+#endif /* _WIN32 */
 		}
 
 		m_SendQueue->Read(NULL, rc);
@@ -559,14 +567,15 @@ void Socket::HandleReadableClient(void)
 			break;
 
 		if (rc < 0) {
+#ifndef _WIN32
 			BOOST_THROW_EXCEPTION(socket_error()
 			    << errinfo_api_function("recv")
-		#ifndef _WIN32
-			    << errinfo_errno(errno)
-		#else /* _WIN32 */
-			    << errinfo_win32_error(WSAGetLastError())
-		#endif /* _WIN32 */
-			);
+			    << errinfo_errno(errno));
+#else /* _WIN32 */
+			BOOST_THROW_EXCEPTION(socket_error()
+			    << errinfo_api_function("recv")
+			    << errinfo_win32_error(WSAGetLastError()));
+#endif /* _WIN32 */
 		}
 
 		new_data = true;
@@ -602,14 +611,15 @@ void Socket::HandleReadableServer(void)
 	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
 	if (fd < 0) {
+	#ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << errinfo_api_function("accept")
-	#ifndef _WIN32
-		    << errinfo_errno(errno)
+		    << errinfo_errno(errno));
 	#else /* _WIN32 */
-		    << errinfo_win32_error(WSAGetLastError())
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << errinfo_api_function("accept")
+		    << errinfo_win32_error(WSAGetLastError()));
 	#endif /* _WIN32 */
-		);
 	}
 
 	Socket::Ptr client = boost::make_shared<Socket>();
