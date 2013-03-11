@@ -263,8 +263,10 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	/* Update or create the object and apply the configuration settings. */
 	bool was_null = false;
 
-	if (!dobj && !IsAbstract()) {
-		dobj = dtype->CreateObject(update);
+	if (!dobj) {
+		if (!IsAbstract())
+			dobj = dtype->CreateObject(update);
+
 		was_null = true;
 	}
 
