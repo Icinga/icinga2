@@ -55,7 +55,7 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 	Dictionary::Ptr attrs = item->Link();
 
 	/* Don't validate abstract items. */
-	if (attrs->Get("__abstract"))
+	if (item->IsAbstract())
 		return;
 
 	vector<String> locations;
