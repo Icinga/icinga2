@@ -208,9 +208,8 @@ void Host::UpdateSlaveServices(void)
 
 	ConfigItem::Ptr item = ConfigItem::GetObject("Host", GetName());
 
-	/* Don't create slave services unless we own this object
-	 * and it's not a template. */
-	if (!item || IsAbstract())
+	/* Don't create slave services unless we own this object */
+	if (!item)
 		return;
 
 	Dictionary::Ptr oldServices = m_SlaveServices;

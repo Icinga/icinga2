@@ -38,7 +38,6 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("__name", Attribute_Config, &m_Name);
 	RegisterAttribute("__type", Attribute_Config, &m_Type);
 	RegisterAttribute("__local", Attribute_Config, &m_Local);
-	RegisterAttribute("__abstract", Attribute_Config, &m_Abstract);
 	RegisterAttribute("__source", Attribute_Local, &m_Source);
 	RegisterAttribute("methods", Attribute_Config, &m_Methods);
 
@@ -337,14 +336,6 @@ String DynamicObject::GetName(void) const
 bool DynamicObject::IsLocal(void) const
 {
 	return m_Local;
-}
-
-/**
- * @threadsafety Always.
- */
-bool DynamicObject::IsAbstract(void) const
-{
-	return m_Abstract;
 }
 
 /**

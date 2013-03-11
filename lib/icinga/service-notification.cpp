@@ -191,9 +191,8 @@ void Service::UpdateSlaveNotifications(void)
 
 	item = ConfigItem::GetObject("Service", GetName());
 
-	/* Don't create slave notifications unless we own this object
-	 * and it's not a template. */
-	if (!item || IsAbstract())
+	/* Don't create slave notifications unless we own this object */
+	if (!item)
 		return;
 
 	{

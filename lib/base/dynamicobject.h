@@ -71,7 +71,6 @@ public:
 	String GetName(void) const;
 
 	bool IsLocal(void) const;
-	bool IsAbstract(void) const;
 	bool IsRegistered(void) const;
 
 	void SetSource(const String& value);
@@ -113,7 +112,6 @@ private:
 	Attribute<String> m_Name;
 	Attribute<String> m_Type;
 	Attribute<bool> m_Local;
-	Attribute<bool> m_Abstract;
 	Attribute<String> m_Source;
 	Attribute<Dictionary::Ptr> m_Methods;
 

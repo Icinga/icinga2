@@ -362,7 +362,7 @@ void Service::OnAttributeChanged(const String& name)
 		ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
 
 		/* update the next check timestamp if we're the owner of this service */
-		if (item && !IsAbstract())
+		if (item)
 			UpdateNextCheck();
 	}
 }

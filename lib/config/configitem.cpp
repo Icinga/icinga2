@@ -31,15 +31,17 @@ signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
  *
  * @param type The object type.
  * @param name The name of the item.
+ * @param unit The unit of the item.
+ * @param abstract Whether the item is a template.
  * @param exprl Expression list for the item.
  * @param parents Parent objects for the item.
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
-    const String& unit, const ExpressionList::Ptr& exprl,
+    const String& unit, bool abstract, const ExpressionList::Ptr& exprl,
     const vector<String>& parents, const DebugInfo& debuginfo)
-	: m_Type(type), m_Name(name), m_Unit(unit), m_ExpressionList(exprl),
-	  m_Parents(parents), m_DebugInfo(debuginfo)
+	: m_Type(type), m_Name(name), m_Unit(unit), m_Abstract(abstract),
+	  m_ExpressionList(exprl), m_Parents(parents), m_DebugInfo(debuginfo)
 {
 }
 
@@ -71,6 +73,16 @@ String ConfigItem::GetName(void) const
 String ConfigItem::GetUnit(void) const
 {
 	return m_Unit;
+}
+
+/**
+ * Checks whether the item is abstract.
+ *
+ * @returns true if the item is abstract, false otherwise.
+ */
+bool ConfigItem::IsAbstract(void) const
+{
+	return m_Abstract;
 }
 
 /**
@@ -251,7 +263,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	/* Update or create the object and apply the configuration settings. */
 	bool was_null = false;
 
-	if (!dobj) {
+	if (!dobj && !IsAbstract()) {
 		dobj = dtype->CreateObject(update);
 		was_null = true;
 	}
@@ -265,10 +277,12 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		m_DynamicObject = dobj;
 	}
 
-	if (dobj->IsAbstract())
-		dobj->Unregister();
-	else
-		dobj->Register();
+	if (dobj) {
+		if (IsAbstract())
+			dobj->Unregister();
+		else
+			dobj->Register();
+	}
 
 	/* notify our children of the update */
 	BOOST_FOREACH(const ConfigItem::WeakPtr wchild, children) {

@@ -139,9 +139,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Expression localExpr("__local", OperatorSet, m_Local, m_DebugInfo);
 	exprl->AddExpression(localExpr);
 
-	Expression abstractExpr("__abstract", OperatorSet, m_Abstract, m_DebugInfo);
-	exprl->AddExpression(abstractExpr);
-
-	return boost::make_shared<ConfigItem>(m_Type, m_Name, m_Unit, exprl, m_Parents,
+	return boost::make_shared<ConfigItem>(m_Type, m_Name, m_Unit, m_Abstract, exprl, m_Parents,
 	    m_DebugInfo);
 }
