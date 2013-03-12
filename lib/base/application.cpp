@@ -463,9 +463,9 @@ void Application::UpdatePidFile(const String& filename)
 		fclose(m_PidFile);
 
 #ifndef _WIN32
-	char *mode = "r+";
+	const char *mode = "r+";
 #else /* _WIN32 */
-	char *mode = "w";
+	const char *mode = "w";
 #endif /* _WIN32 */
 
 	/* There's just no sane way of getting a file descriptor for a
