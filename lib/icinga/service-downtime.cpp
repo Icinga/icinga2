@@ -257,7 +257,7 @@ void Service::InvalidateDowntimesCache(void)
 	if (!m_DowntimesCacheTimer) {
 		m_DowntimesCacheTimer = boost::make_shared<Timer>();
 		m_DowntimesCacheTimer->SetInterval(0.5);
-		m_DowntimesCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshNotificationsCache));
+		m_DowntimesCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshDowntimesCache));
 		m_DowntimesCacheTimer->Start();
 	}
 
