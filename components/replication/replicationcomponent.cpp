@@ -21,7 +21,11 @@
 
 using namespace icinga;
 
-REGISTER_COMPONENT("replication", ReplicationComponent);
+REGISTER_TYPE(ReplicationComponent);
+
+ReplicationComponent::ReplicationComponent(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
+{ }
 
 /**
  * Starts the component.

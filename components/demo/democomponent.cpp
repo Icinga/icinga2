@@ -21,7 +21,11 @@
 
 using namespace icinga;
 
-REGISTER_COMPONENT("demo", DemoComponent);
+REGISTER_TYPE(DemoComponent);
+
+DemoComponent::DemoComponent(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
+{ }
 
 /**
  * Starts the component.

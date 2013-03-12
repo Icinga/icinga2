@@ -21,77 +21,13 @@
 
 using namespace icinga;
 
-REGISTER_COMPONENT("compat", CompatComponent);
+REGISTER_TYPE(CompatComponent);
 
 /**
  * Hint: The reason why we're using "\n" rather than std::endl is because
  * std::endl also _flushes_ the output stream which severely degrades
  * performance (see http://gcc.gnu.org/onlinedocs/libstdc++/manual/bk01pt11ch25s02.html).
  */
-
-/**
- * Retrieves the status.dat path.
- *
- * @returns statuspath from config, or static default
- */
-String CompatComponent::GetStatusPath(void) const
-{
-	DynamicObject::Ptr config = GetConfig();
-
-	Value statusPath = config->Get("status_path");
-	if (statusPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/cache/icinga2/status.dat";
-	else
-		return statusPath;
-}
-
-/**
- * Retrieves the objects.cache path.
- *
- * @returns objectspath from config, or static default
- */
-String CompatComponent::GetObjectsPath(void) const
-{
-	DynamicObject::Ptr config = GetConfig();
-
-	Value objectsPath = config->Get("objects_path");
-	if (objectsPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache";
-	else
-		return objectsPath;
-}
-
-/**
- * Retrieves the log path.
- *
- * @returns log path
- */
-String CompatComponent::GetLogPath(void) const
-{
-	DynamicObject::Ptr config = GetConfig();
-
-	Value logPath = config->Get("log_path");
-	if (logPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/log/icinga2/compat";
-	else
-		return logPath;
-}
-
-/**
- * Retrieves the icinga.cmd path.
- *
- * @returns icinga.cmd path
- */
-String CompatComponent::GetCommandPath(void) const
-{
-	DynamicObject::Ptr config = GetConfig();
-
-	Value commandPath = config->Get("command_path");
-	if (commandPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/icinga2.cmd";
-	else
-		return commandPath;
-}
 
 /**
  * Starts the component.
@@ -111,10 +47,68 @@ void CompatComponent::Start(void)
 }
 
 /**
- * Stops the component.
+ * Retrieves the status.dat path.
+ *
+ * @returns statuspath from config, or static default
  */
-void CompatComponent::Stop(void)
+String CompatComponent::GetStatusPath(void) const
 {
+	Value statusPath = m_StatusPath;
+	if (statusPath.IsEmpty())
+		return Application::GetLocalStateDir() + "/cache/icinga2/status.dat";
+	else
+		return statusPath;
+}
+
+/**
+ * Retrieves the objects.cache path.
+ *
+ * @returns objectspath from config, or static default
+ */
+String CompatComponent::GetObjectsPath(void) const
+{
+	Value objectsPath = m_ObjectsPath;
+	if (objectsPath.IsEmpty())
+		return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache";
+	else
+		return objectsPath;
+}
+
+/**
+ * Retrieves the log path.
+ *
+ * @returns log path
+ */
+String CompatComponent::GetLogPath(void) const
+{
+	Value logPath = m_LogPath;
+	if (logPath.IsEmpty())
+		return Application::GetLocalStateDir() + "/log/icinga2/compat";
+	else
+		return logPath;
+}
+
+/**
+ * Retrieves the icinga.cmd path.
+ *
+ * @returns icinga.cmd path
+ */
+String CompatComponent::GetCommandPath(void) const
+{
+	Value commandPath = m_CommandPath;
+	if (commandPath.IsEmpty())
+		return Application::GetLocalStateDir() + "/run/icinga2/icinga2.cmd";
+	else
+		return commandPath;
+}
+
+CompatComponent::CompatComponent(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
+{
+	RegisterAttribute("status_path", Attribute_Config, &m_StatusPath);
+	RegisterAttribute("objects_path", Attribute_Config, &m_ObjectsPath);
+	RegisterAttribute("log_path", Attribute_Config, &m_LogPath);
+	RegisterAttribute("command_path", Attribute_Config, &m_CommandPath);
 }
 
 #ifndef _WIN32

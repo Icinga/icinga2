@@ -21,7 +21,11 @@
 
 using namespace icinga;
 
-REGISTER_COMPONENT("notification", NotificationComponent);
+REGISTER_TYPE(NotificationComponent);
+
+NotificationComponent::NotificationComponent(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
+{ }
 
 /**
  * Starts the component.

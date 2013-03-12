@@ -346,25 +346,22 @@ void Utility::Sleep(double timeout)
 }
 
 /**
- * Loads the specified library and invokes an Icinga-specific init
- * function if available.
+ * Loads the specified library.
  *
  * @param library The name of the library.
- * @param module Whether the library is a module (non-module libraries have a
- *						  "lib" prefix on *NIX).
  */
 #ifdef _WIN32
 HMODULE
 #else /* _WIN32 */
 lt_dlhandle
 #endif /* _WIN32 */
-Utility::LoadIcingaLibrary(const String& library, bool module)
+Utility::LoadExtensionLibrary(const String& library)
 {
 	String path;
 #ifdef _WIN32
 	path = library + ".dll";
 #else /* _WIN32 */
-	path = (module ? "" : "lib") + library + ".la";
+	path = "lib" + library + ".la";
 #endif /* _WIN32 */
 
 	Logger::Write(LogInformation, "base", "Loading library '" + path + "'");
@@ -547,4 +544,3 @@ String Utility::FormatDateTime(const char *format, double ts)
 
 	return timestamp;
 }
-

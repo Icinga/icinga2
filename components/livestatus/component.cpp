@@ -22,7 +22,13 @@
 using namespace icinga;
 using namespace livestatus;
 
-REGISTER_COMPONENT("livestatus", LivestatusComponent);
+REGISTER_TYPE(LivestatusComponent);
+
+LivestatusComponent::LivestatusComponent(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
+{
+	RegisterAttribute("socket_path", Attribute_Config, &m_SocketPath);
+}
 
 /**
  * Starts the component.
@@ -43,18 +49,9 @@ void LivestatusComponent::Start(void)
 	m_Listener = socket;
 }
 
-/**
- * Stops the component.
- */
-void LivestatusComponent::Stop(void)
-{
-}
-
 String LivestatusComponent::GetSocketPath(void) const
 {
-	DynamicObject::Ptr config = GetConfig();
-
-	Value socketPath = config->Get("socket_path");
+	Value socketPath = m_SocketPath;
 	if (socketPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/run/icinga2/livestatus";
 	else

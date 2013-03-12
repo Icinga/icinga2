@@ -12,8 +12,6 @@ libbase_la_SOURCES =  \
 	asynctask.h \
 	attribute.cpp \
 	attribute.h \
-	component.cpp \
-	component.h \
 	connection.cpp \
 	connection.h \
 	convert.cpp \

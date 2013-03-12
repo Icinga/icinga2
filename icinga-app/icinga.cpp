@@ -48,6 +48,11 @@ static bool LoadConfigFiles(bool validateOnly)
 		ConfigCompiler::CompileFile(configPath);
 	}
 
+	String name, fragment;
+	BOOST_FOREACH(tie(name, fragment), ConfigCompiler::GetConfigFragments()) {
+		ConfigCompiler::CompileText(name, fragment);
+	}
+
 	ConfigCompilerContext::SetContext(NULL);
 
 	context.Validate();
@@ -207,13 +212,20 @@ int main(int argc, char **argv)
 #endif /* _WIN32 */
 	    );
 
-	Component::AddSearchDir(Application::GetPkgLibDir());
+	String searchDir = Application::GetPkgLibDir();
+	Logger::Write(LogInformation, "base", "Adding library search dir: " + searchDir);
 
-	(void) Utility::LoadIcingaLibrary("icinga", false);
+#ifdef _WIN32
+	SetDllDirectory(searchDir.CStr());
+#else /* _WIN32 */
+	lt_dladdsearchdir(searchDir.CStr());
+#endif /* _WIN32 */
+
+	(void) Utility::LoadExtensionLibrary("icinga");
 
 	if (g_AppParams.count("library")) {
 		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<vector<String> >()) {
-			Utility::LoadIcingaLibrary(libraryName, false);
+			(void) Utility::LoadExtensionLibrary(libraryName);
 		}
 	}
 

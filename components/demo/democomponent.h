@@ -26,9 +26,11 @@ namespace icinga
 /**
  * @ingroup demo
  */
-class DemoComponent : public IComponent
+class DemoComponent : public DynamicObject
 {
 public:
+	DemoComponent(const Dictionary::Ptr& serializedUpdate);
+
 	virtual void Start(void);
 	virtual void Stop(void);
 

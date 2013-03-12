@@ -26,9 +26,11 @@ namespace icinga
 /**
  * @ingroup replication
  */
-class ReplicationComponent : public IComponent
+class ReplicationComponent : public DynamicObject
 {
 public:
+	ReplicationComponent(const Dictionary::Ptr& serializedUpdate);
+
 	virtual void Start(void);
 	virtual void Stop(void);
 

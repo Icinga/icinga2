@@ -29,12 +29,12 @@ icinga2_LDADD = \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
 	-dlopen ${top_builddir}/lib/icinga/libicinga.la \
-	-dlopen ${top_builddir}/components/checker/checker.la \
-	-dlopen ${top_builddir}/components/replication/replication.la \
-	-dlopen ${top_builddir}/components/compat/compat.la \
-	-dlopen ${top_builddir}/components/delegation/delegation.la \
-	-dlopen ${top_builddir}/components/demo/demo.la \
-	-dlopen ${top_builddir}/components/notification/notification.la
+	-dlopen ${top_builddir}/components/checker/libchecker.la \
+	-dlopen ${top_builddir}/components/replication/libreplication.la \
+	-dlopen ${top_builddir}/components/compat/libcompat.la \
+	-dlopen ${top_builddir}/components/delegation/libdelegation.la \
+	-dlopen ${top_builddir}/components/demo/libdemo.la \
+	-dlopen ${top_builddir}/components/notification/libnotification.la
 
 if PYTHON_USE
 icinga2_LDADD += \

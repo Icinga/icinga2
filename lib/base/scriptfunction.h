@@ -78,7 +78,7 @@ public:
 };
 
 #define REGISTER_SCRIPTFUNCTION(name, callback) \
-	static RegisterFunctionHelper g_RegisterSF_ ## type(name, callback)
+	static icinga::RegisterFunctionHelper g_RegisterSF_ ## type(name, callback)
 
 }
 

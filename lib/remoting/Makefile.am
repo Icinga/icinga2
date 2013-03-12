@@ -4,6 +4,9 @@
 pkglib_LTLIBRARIES = \
 	libremoting.la
 
+.conf.cpp:
+	$(top_builddir)/tools/mkembedconfig $< $@
+
 libremoting_la_SOURCES = \
 	endpoint.cpp \
 	endpoint.h \
@@ -15,6 +18,7 @@ libremoting_la_SOURCES = \
 	jsonrpcconnection.h \
 	messagepart.cpp \
 	messagepart.h \
+	remoting-type.cpp \
 	requestmessage.cpp \
 	requestmessage.h \
 	responsemessage.cpp \

@@ -95,7 +95,7 @@ shared_ptr<T> DynamicObjectFactory(const Dictionary::Ptr& serializedUpdate)
 }
 
 #define REGISTER_TYPE_ALIAS(type, alias) \
-	static RegisterTypeHelper g_RegisterDT_ ## type(alias, DynamicObjectFactory<type>)
+	static icinga::RegisterTypeHelper g_RegisterDT_ ## type(alias, DynamicObjectFactory<type>)
 
 #define REGISTER_TYPE(type) \
 	REGISTER_TYPE_ALIAS(type, #type)

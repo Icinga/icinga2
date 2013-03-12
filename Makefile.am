@@ -5,6 +5,7 @@ include aminclude.am
 
 SUBDIRS = \
 	third-party \
+	tools \
 	lib \
 	components \
 	icinga-app \

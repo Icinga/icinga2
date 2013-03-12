@@ -233,7 +233,6 @@ namespace signals2 = boost::signals2;
 #include "scriptlanguage.h"
 #include "logger.h"
 #include "application.h"
-#include "component.h"
 #include "streamlogger.h"
 #include "sysloglogger.h"
 

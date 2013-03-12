@@ -49,7 +49,7 @@ struct ServiceNextCheckExtractor
 /**
  * @ingroup checker
  */
-class CheckerComponent : public IComponent
+class CheckerComponent : public DynamicObject
 {
 public:
 	typedef shared_ptr<CheckerComponent> Ptr;
@@ -62,6 +62,8 @@ public:
 			ordered_non_unique<ServiceNextCheckExtractor>
 		>
 	> ServiceSet;
+
+	CheckerComponent(const Dictionary::Ptr& serializedUpdate);
 
 	virtual void Start(void);
 	virtual void Stop(void);

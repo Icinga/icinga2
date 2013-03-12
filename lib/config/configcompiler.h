@@ -50,13 +50,16 @@ public:
 
 	static void HandleFileInclude(const String& include, bool search,
 	    const DebugInfo& debuginfo);
-	
+
 	/* internally used methods */
 	void HandleInclude(const String& include, bool search, const DebugInfo& debuginfo);
 	void HandleLibrary(const String& library);
-	
+
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
+
+	static void RegisterConfigFragment(const String& name, const String& fragment);
+	static map<String, String>& GetConfigFragments(void);
 
 private:
 	String m_Path;
@@ -71,6 +74,23 @@ private:
 	void InitializeScanner(void);
 	void DestroyScanner(void);
 };
+
+/**
+ * Helper class for registering config fragments.
+ *
+ * @ingroup base
+ */
+class RegisterConfigFragmentHelper
+{
+public:
+	RegisterConfigFragmentHelper(const String& name, const String& fragment)
+	{
+		ConfigCompiler::RegisterConfigFragment(name, fragment);
+	}
+};
+
+#define REGISTER_CONFIG_FRAGMENT(name, fragment) \
+	static icinga::RegisterConfigFragmentHelper g_RegisterCF_ ## type(name, fragment)
 
 }
 

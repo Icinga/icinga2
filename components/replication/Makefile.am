@@ -1,28 +1,35 @@
 ## Process this file with automake to produce Makefile.in
 
 pkglib_LTLIBRARIES = \
-	replication.la
+	libreplication.la
 
-replication_la_SOURCES = \
+EXTRA_DIST = \
+	replication-type.conf
+
+.conf.cpp:
+	$(top_builddir)/tools/mkembedconfig $< $@
+
+libreplication_la_SOURCES = \
 	replicationcomponent.cpp \
 	replicationcomponent.h \
+	replication-type.cpp \
 	i2-replication.h
 
-replication_la_CPPFLAGS = \
+libreplication_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib/base \
 	-I${top_srcdir}/lib/config \
 	-I${top_srcdir}/lib/remoting \
 	-I${top_srcdir}/lib/icinga
 
-replication_la_LDFLAGS = \
+libreplication_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
 	-module \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
-replication_la_LIBADD = \
+libreplication_la_LIBADD = \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	${top_builddir}/lib/base/libbase.la \

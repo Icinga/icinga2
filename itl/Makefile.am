@@ -5,5 +5,4 @@ icinga2itl_DATA = \
 	notification.conf \
 	service.conf \
 	service-common.conf \
-	standalone.conf \
-	types.conf
+	standalone.conf

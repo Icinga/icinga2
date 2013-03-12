@@ -26,9 +26,11 @@ namespace icinga
 /**
  * @ingroup delegation
  */
-class DelegationComponent : public IComponent
+class DelegationComponent : public DynamicObject
 {
 public:
+	DelegationComponent(const Dictionary::Ptr& serializedUpdate);
+
 	virtual void Start(void);
 
 private:

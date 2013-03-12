@@ -32,13 +32,19 @@ enum CompatObjectType
 /**
  * @ingroup compat
  */
-class CompatComponent : public IComponent
+class CompatComponent : public DynamicObject
 {
 public:
+	CompatComponent(const Dictionary::Ptr& serializedUpdate);
+
 	virtual void Start(void);
-	virtual void Stop(void);
 
 private:
+	Attribute<String> m_StatusPath;
+	Attribute<String> m_ObjectsPath;
+	Attribute<String> m_LogPath;
+	Attribute<String> m_CommandPath;
+
 #ifndef _WIN32
 	thread m_CommandThread;
 

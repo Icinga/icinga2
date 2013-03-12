@@ -65,7 +65,7 @@ public:
 #else /* _WIN32 */
 	lt_dlhandle
 #endif /* _WIN32 */
-	LoadIcingaLibrary(const String& library, bool module);
+	LoadExtensionLibrary(const String& library);
 
 #ifndef _WIN32
 	static void SetNonBlocking(int fd);

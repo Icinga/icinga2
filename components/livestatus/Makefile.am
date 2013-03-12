@@ -1,9 +1,15 @@
 ## Process this file with automake to produce Makefile.in
 
 pkglib_LTLIBRARIES = \
-	livestatus.la
+	liblivestatus.la
 
-livestatus_la_SOURCES = \
+EXTRA_DIST = \
+	livestatus-type.conf
+
+.conf.cpp:
+	$(top_builddir)/tools/mkembedconfig $< $@
+
+liblivestatus_la_SOURCES = \
 	attributefilter.cpp \
 	attributefilter.h \
 	andfilter.cpp \
@@ -28,6 +34,7 @@ livestatus_la_SOURCES = \
 	filter.h \
 	hoststable.cpp \
 	hoststable.h \
+	livestatus-type.cpp \
 	negatefilter.cpp \
 	negatefilter.h \
 	orfilter.cpp \
@@ -42,21 +49,21 @@ livestatus_la_SOURCES = \
 	table.h \
 	i2-livestatus.h
 
-livestatus_la_CPPFLAGS = \
+liblivestatus_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib/base \
 	-I${top_srcdir}/lib/config \
 	-I${top_srcdir}/lib/remoting \
 	-I${top_srcdir}/lib/icinga
 
-livestatus_la_LDFLAGS = \
+liblivestatus_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
 	-module \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
-livestatus_la_LIBADD = \
+liblivestatus_la_LIBADD = \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	${top_builddir}/lib/base/libbase.la \

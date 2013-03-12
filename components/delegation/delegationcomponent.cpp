@@ -22,13 +22,16 @@
 
 using namespace icinga;
 
-REGISTER_COMPONENT("delegation", DelegationComponent);
+REGISTER_TYPE(DelegationComponent);
+
+DelegationComponent::DelegationComponent(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
+{ }
 
 void DelegationComponent::Start(void)
 {
 	m_DelegationTimer = boost::make_shared<Timer>();
 
-	// TODO: implement a handler for config changes for the delegation_interval variable
 	m_DelegationTimer->SetInterval(30);
 	m_DelegationTimer->OnTimerExpired.connect(boost::bind(&DelegationComponent::DelegationTimerHandler, this));
 	m_DelegationTimer->Start();

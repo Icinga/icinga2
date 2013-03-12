@@ -4,6 +4,12 @@
 pkglib_LTLIBRARIES =  \
 	libicinga.la
 
+EXTRA_DIST = \
+	icinga-type.conf
+
+.conf.cpp:
+	$(top_builddir)/tools/mkembedconfig $< $@
+
 libicinga_la_SOURCES =  \
 	api.cpp \
 	api.h \
@@ -19,6 +25,7 @@ libicinga_la_SOURCES =  \
 	host.h \
 	i2-icinga.cpp \
 	i2-icinga.h \
+	icinga-type.cpp \
 	icingaapplication.cpp \
 	icingaapplication.h \
 	macroprocessor.cpp \

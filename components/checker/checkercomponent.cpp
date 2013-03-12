@@ -21,7 +21,11 @@
 
 using namespace icinga;
 
-REGISTER_COMPONENT("checker", CheckerComponent);
+REGISTER_TYPE(CheckerComponent);
+
+CheckerComponent::CheckerComponent(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
+{ }
 
 void CheckerComponent::Start(void)
 {

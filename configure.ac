@@ -131,6 +131,7 @@ third-party/cJSON/Makefile
 third-party/execvpe/Makefile
 third-party/mmatch/Makefile
 third-party/popen-noshell/Makefile
+tools/Makefile
 ])
 AC_OUTPUT([
 etc/init.d/icinga2
