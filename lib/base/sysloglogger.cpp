@@ -35,17 +35,16 @@ void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
 		case LogDebug:
 			severity = LOG_DEBUG;
 			break;
-		case LogInformation:
-			severity = LOG_INFO;
-			break;
 		case LogWarning:
 			severity = LOG_WARNING;
 			break;
 		case LogCritical:
 			severity = LOG_CRIT;
 			break;
+		case LogInformation:
 		default:
-			ASSERT(!"Invalid severity specified.");
+			severity = LOG_INFO;
+			break;
 	}
 
 	syslog(severity | LOG_USER, "%s", entry.Message.CStr());

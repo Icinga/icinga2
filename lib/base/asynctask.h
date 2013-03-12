@@ -52,10 +52,8 @@ public:
 	 */
 	~AsyncTask(void)
 	{
-		if (!m_Finished)
-			ASSERT(!"Contract violation: AsyncTask was destroyed before its completion callback was invoked.");
-		else if (!m_ResultRetrieved)
-			ASSERT(!"Contract violation: AsyncTask was destroyed before its result was retrieved.");
+		ASSERT(m_Finished);
+		ASSERT(m_ResultRetrieved);
 	}
 
 
