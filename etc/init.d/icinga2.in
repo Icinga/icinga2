@@ -67,7 +67,7 @@ stop() {
 	
         if kill -INT $pid >/dev/null 2>&1; then
 		for i in 1 2 3 4 5 6 7 8 9 10; do
-			if ! kill -CHLD $pid >/dev/null 2&>1; then
+			if ! kill -CHLD $pid >/dev/null 2>&1; then
 				break
 			fi
 		
@@ -77,7 +77,7 @@ stop() {
 		done
 	fi
 
-        if kill -CHLD $pid >/dev/null 2&>1; then
+        if kill -CHLD $pid >/dev/null 2>&1; then
                 kill -KILL $pid
         fi
 
