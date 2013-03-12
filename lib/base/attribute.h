@@ -105,7 +105,7 @@ public:
 		if (value.IsEmpty())
 			return T();
 
-		return value;
+		return static_cast<T>(value);
 	}
 
 	/**

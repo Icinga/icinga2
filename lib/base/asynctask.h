@@ -56,7 +56,6 @@ public:
 		ASSERT(m_ResultRetrieved);
 	}
 
-
 	/**
 	 * Starts the async task. The caller must hold a reference to the AsyncTask
 	 * object until the completion callback is invoked.
@@ -179,7 +178,7 @@ private:
 	{
 		try {
 			Run();
-		} catch (const exception& ex) {
+		} catch (const exception&) {
 			FinishException(boost::current_exception());
 		}
 	}
