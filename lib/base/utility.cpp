@@ -58,56 +58,6 @@ String Utility::GetTypeName(const type_info& ti)
 	return DemangleSymbolName(ti.name());
 }
 
-
-
-/**
- * Detaches from the controlling terminal.
- */
-void Utility::Daemonize(void) {
-#ifndef _WIN32
-	pid_t pid;
-	int fd;
-
-	pid = fork();
-
-	if (pid < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("fork")
-		    << errinfo_errno(errno));
-	}
-
-	if (pid)
-		_exit(0);
-
-	fd = open("/dev/null", O_RDWR);
-
-	if (fd < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("open")
-		    << errinfo_errno(errno)
-		    << errinfo_file_name("/dev/null"));
-	}
-
-	if (fd != STDIN_FILENO)
-		dup2(fd, STDIN_FILENO);
-
-	if (fd != STDOUT_FILENO)
-		dup2(fd, STDOUT_FILENO);
-
-	if (fd != STDERR_FILENO)
-		dup2(fd, STDERR_FILENO);
-
-	if (fd > STDERR_FILENO)
-		close(fd);
-
-	if (setsid() < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("setsid")
-		    << errinfo_errno(errno));
-	}
-#endif
-}
-
 /**
  * Initializes the OpenSSL library.
  */

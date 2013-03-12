@@ -152,7 +152,6 @@ int main(int argc, char **argv)
 		("config,c", po::value<vector<String> >(), "parse a configuration file")
 		("validate,v", "exit after validating the configuration")
 		("debug,x", "enable debugging")
-		("daemonize,d", "daemonize after reading the configuration files")
 	;
 
 	try {
@@ -238,7 +237,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 
 	if (validateOnly) {
-		Logger::Write(LogInformation, "icinga-app", "Terminating as requested by --validate.");
+		Logger::Write(LogInformation, "icinga-app", "Finished validating the configuration file(s).");
 		return EXIT_SUCCESS;
 	}
 
@@ -246,11 +245,6 @@ int main(int argc, char **argv)
 
 	if (!app)
 		BOOST_THROW_EXCEPTION(runtime_error("Configuration must create an Application object."));
-
-	if (g_AppParams.count("daemonize")) {
-		Logger::Write(LogInformation, "icinga", "Daemonizing.");
-		Utility::Daemonize();
-	}
 
 #ifndef _WIN32
 	struct sigaction sa;

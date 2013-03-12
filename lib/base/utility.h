@@ -34,8 +34,6 @@ public:
 	static String DemangleSymbolName(const String& sym);
 	static String GetTypeName(const type_info& ti);
 
-	static void Daemonize(void);
-
 	static shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
 	static String GetCertificateCN(const shared_ptr<X509>& certificate);
 	static shared_ptr<X509> GetX509Certificate(const String& pemfile);

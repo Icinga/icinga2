@@ -22,6 +22,7 @@ localstatedir=@localstatedir@
 DAEMON=$sbindir/icinga2
 ICINGA2_CONFIG_FILE=$sysconfdir/icinga2/icinga2.conf
 ICINGA2_PID_FILE=$localstatedir/run/icinga2/icinga2.pid
+ICINGA2_ERROR_LOG=$localstatedir/log/icinga2/error.log
 
 test -x $DAEMON || exit 0
 
@@ -38,9 +39,18 @@ fi
 # Start Icinga 2
 start() {
 	mkdir -p `dirname -- $ICINGA2_PID_FILE`
+	mkdir -p `dirname -- $ICINGA2_ERROR_LOG`
+
+        echo "Validating the configuration file:"
+        if ! $DAEMON -c $ICINGA2_CONFIG_FILE -v; then
+                echo "Not starting Icinga 2 due to configuration errors."
+                exit 1
+        fi
 
         printf "Starting Icinga 2: "
-        $DAEMON -c $ICINGA2_CONFIG_FILE -d
+        $DAEMON -c $ICINGA2_CONFIG_FILE </dev/null >/dev/null 2>$ICINGA2_ERROR_LOG &
+	disown
+
         echo "Done"
         echo
 }
@@ -55,7 +65,7 @@ stop() {
 
 	pid=`cat $ICINGA2_PID_FILE`
 	
-        if kill -TERM $pid >/dev/null 2>&1; then
+        if kill -INT $pid >/dev/null 2>&1; then
 		for i in 1 2 3 4 5 6 7 8 9 10; do
 			if ! kill -CHLD $pid >/dev/null 2&>1; then
 				break
@@ -66,7 +76,11 @@ stop() {
 			sleep 1
 		done
 	fi
-	
+
+        if kill -CHLD $pid >/dev/null 2&>1; then
+                kill -KILL $pid
+        fi
+
 	echo "Done"
 }
 

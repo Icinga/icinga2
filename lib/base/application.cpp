@@ -464,7 +464,7 @@ void Application::UpdatePidFile(const String& filename)
 
 	/* There's just no sane way of getting a file descriptor for a
 	 * C++ ofstream which is why we're using FILEs here. */
-	m_PidFile = fopen(filename.CStr(), "w");
+	m_PidFile = fopen(filename.CStr(), "r+");
 
 	if (m_PidFile == NULL)
 		BOOST_THROW_EXCEPTION(runtime_error("Could not open PID file '" + filename + "'"));
