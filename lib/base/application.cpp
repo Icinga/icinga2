@@ -462,15 +462,12 @@ void Application::UpdatePidFile(const String& filename)
 	if (m_PidFile != NULL)
 		fclose(m_PidFile);
 
-#ifndef _WIN32
-	const char *mode = "r+";
-#else /* _WIN32 */
-	const char *mode = "w";
-#endif /* _WIN32 */
-
 	/* There's just no sane way of getting a file descriptor for a
 	 * C++ ofstream which is why we're using FILEs here. */
-	m_PidFile = fopen(filename.CStr(), mode);
+	m_PidFile = fopen(filename.CStr(), "r+");
+
+	if (m_PidFile == NULL)
+		m_PidFile = fopen(filename.CStr(), "w");
 
 	if (m_PidFile == NULL)
 		BOOST_THROW_EXCEPTION(runtime_error("Could not open PID file '" + filename + "'"));
