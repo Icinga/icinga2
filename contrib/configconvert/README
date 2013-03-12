@@ -1,0 +1,50 @@
+ICINGA 2 CONVERSION SCRIPT FOR ICINGA 1.x CONFIGURATION
+=======================================================
+
+This config conversion script provides support for basic Icinga 1.x
+configuration format conversion.
+
+It won't just compile all objects and drop them at once, but keep your
+existing 1.x template structure.
+
+The script will also detect the "attach service to hostgroup and put
+hosts as members" trick from 1.x and convert that into Icinga2's template
+system. 
+
+Furthermore the old "service with contacts and notification commands" logic
+will be converted into Icinga2's logic with new notification objects,
+allowing to define notifications directly on the service definition then.
+
+All required templates will be inherited from Icinga2's Template Library (ITL).
+
+RUN
+# time ./icinga2_convert_v1_v2.pl -v -o conf/
+
+HELP
+# ./icinga2_convert_v1_v2.pl -h
+
+TEST
+There's a small icinga2 conversion test config available, including conf/ folder.
+# ~/i2/sbin/icinga2 -c icinga2-conv.conf
+
+REQUIREMENTS
+- Perl:
+	Data::Dumper
+	File::Find
+	Storable qw(dclone)
+	Getopt::Long qw(:config no_ignore_case bundling)
+	Pod::Usage
+
+- Icinga2 ITL
+
+NOTES
+- Excludes (will be ignored in member lists)
+- Wildcards (* means all)
+- additive + to += logic (only for the current object, does not work with users)
+- Dependencies (host deps and parents are merged)
+- Commands will be split into Check|Event|Notification Commands
+
+TODO
+- Escalations (transformed from notification counter to start/end time, new logic)
+- Dependency attributes: failure_criteria, inherits_parents, timeperiods
+- Notifications: notification_options conversion (not yet implemented)
