@@ -71,6 +71,7 @@ BOOST_AUTO_TEST_CASE(unnamed)
 	dictionary->Add("test2");
 	dictionary->Add("test3");
 
+	ObjectLock olock(dictionary);
 	BOOST_CHECK(distance(dictionary->Begin(), dictionary->End()) == 3);
 }
 
