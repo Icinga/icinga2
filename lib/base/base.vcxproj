@@ -22,7 +22,6 @@
     <ClCompile Include="application.cpp" />
     <ClCompile Include="array.cpp" />
     <ClCompile Include="attribute.cpp" />
-    <ClCompile Include="component.cpp" />
     <ClCompile Include="connection.cpp" />
     <ClCompile Include="convert.cpp" />
     <ClCompile Include="dynamicobject.cpp" />
@@ -67,7 +66,6 @@
     <ClInclude Include="array.h" />
     <ClInclude Include="asynctask.h" />
     <ClInclude Include="attribute.h" />
-    <ClInclude Include="component.h" />
     <ClInclude Include="connection.h" />
     <ClInclude Include="convert.h" />
     <ClInclude Include="dynamicobject.h" />

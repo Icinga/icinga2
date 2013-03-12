@@ -67,6 +67,9 @@
     <ClCompile Include="usergroup.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="icinga-type.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="i2-icinga.h">
@@ -131,5 +134,10 @@
     <Filter Include="Quelldateien">
       <UniqueIdentifier>{f206b9b0-3aa5-4a62-b844-3228f4ff4baf}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="icinga-type.conf">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

@@ -14,6 +14,9 @@
     <ClCompile Include="delegationcomponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="delegation-type.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="delegationcomponent.h">
@@ -22,5 +25,10 @@
     <ClInclude Include="i2-delegation.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="delegation-type.conf">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

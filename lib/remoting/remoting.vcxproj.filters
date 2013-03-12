@@ -22,6 +22,9 @@
     <ClCompile Include="jsonrpcconnection.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="remoting-type.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="messagepart.h">
@@ -53,5 +56,10 @@
     <Filter Include="Quelldateien">
       <UniqueIdentifier>{0457f937-d12b-4328-818b-77359de2425f}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="remoting-type.conf">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

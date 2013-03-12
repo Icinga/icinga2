@@ -4,9 +4,6 @@
     <ClCompile Include="application.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="component.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="dictionary.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -118,9 +115,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="win32.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="component.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="dictionary.h">

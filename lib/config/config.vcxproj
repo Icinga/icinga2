@@ -33,6 +33,12 @@
     <ClInclude Include="typerulelist.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="base-type.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="configcompiler.cpp" />
     <ClCompile Include="configcompilercontext.cpp" />
     <ClCompile Include="configitem.cpp" />
@@ -62,6 +68,21 @@
     <ClCompile Include="typerulelist.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="base-type.conf">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Preparing config fragment for embedding</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Preparing config fragment for embedding</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Preparing config fragment for embedding</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Preparing config fragment for embedding</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cpp;%(Outputs)</Outputs>
+    </CustomBuild>
     <None Include="config_lexer.ll">
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">config_lexer.cc</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">config_lexer.cc</Outputs>

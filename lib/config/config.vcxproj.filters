@@ -37,6 +37,9 @@
     <ClCompile Include="typerulelist.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="base-type.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config_parser.h">
@@ -91,5 +94,10 @@
     <Filter Include="Quelldateien">
       <UniqueIdentifier>{0504454a-6829-427c-b1d7-cbca722af0d9}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="base-type.conf">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
