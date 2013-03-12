@@ -111,7 +111,7 @@ void EndpointManager::AddListener(const String& service)
 {
 	ObjectLock olock(this);
 
-	shared_ptr<SSL_CTX> sslContext = GetSSLContext();
+	shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 	if (!sslContext)
 		BOOST_THROW_EXCEPTION(logic_error("SSL context is required for AddListener()"));
@@ -140,7 +140,7 @@ void EndpointManager::AddListener(const String& service)
 void EndpointManager::AddConnection(const String& node, const String& service) {
 	ObjectLock olock(this);
 
-	shared_ptr<SSL_CTX> sslContext = GetSSLContext();
+	shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 	if (!sslContext)
 		BOOST_THROW_EXCEPTION(logic_error("SSL context is required for AddConnection()"));
@@ -160,7 +160,7 @@ void EndpointManager::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 	ObjectLock olock(this);
 
 	String peerAddress = client->GetPeerAddress();
-	TlsStream::Ptr tlsStream = boost::make_shared<TlsStream>(client, role, GetSSLContext());
+	TlsStream::Ptr tlsStream = boost::make_shared<TlsStream>(client, role, m_SSLContext);
 	tlsStream->Start();
 
 	m_PendingClients.insert(tlsStream);

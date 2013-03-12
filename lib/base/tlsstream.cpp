@@ -42,8 +42,6 @@ TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SS
 
 void TlsStream::Start(void)
 {
-	ObjectLock olock(this);
-
 	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
 	m_SSLContext.reset();
@@ -54,7 +52,7 @@ void TlsStream::Start(void)
 		    << errinfo_openssl_error(ERR_get_error()));
 	}
 
-	if (!GetClientCertificate())
+	if (!m_SSL)
 		BOOST_THROW_EXCEPTION(logic_error("No X509 client certificate was specified."));
 
 	if (!m_SSLIndexInitialized) {
