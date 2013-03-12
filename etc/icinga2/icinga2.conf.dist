@@ -24,7 +24,8 @@ local object IcingaApplication "icinga" {
  * files. These are used by the Icinga 1.x CGIs to display the state of
  * hosts and services.
  */
-local object Component "compat" { }
+#library "compat"
+local object CompatComponent "compat" { }
 
 /**
  * And finally we define some host that should be checked.
