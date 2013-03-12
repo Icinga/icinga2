@@ -85,6 +85,7 @@ BOOST_AUTO_TEST_CASE(unnamed_order)
 	 * inserted in. */
 	Value value;
 	int i = 0;
+	ObjectLock olock(dictionary);
 	BOOST_FOREACH(tie(tuples::ignore, value), dictionary) {
 		BOOST_CHECK(value == i);
 		i++;
