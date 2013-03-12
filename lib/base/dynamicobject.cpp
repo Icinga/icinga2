@@ -393,6 +393,8 @@ void DynamicObject::OnUnregistrationCompleted(void)
 {
 	ASSERT(!OwnsLock());
 
+	Stop();
+
 	OnUnregistered(GetSelf());
 }
 

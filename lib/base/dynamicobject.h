@@ -82,6 +82,7 @@ public:
 	void Unregister(void);
 
 	virtual void Start(void);
+	virtual void Stop(void);
 
 	const AttributeMap& GetAttributes(void) const;
 
