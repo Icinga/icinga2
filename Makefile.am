@@ -24,30 +24,11 @@ icinga2doc_DATA = \
 	INSTALL \
 	NEWS
 
-#log
-icinga2logdir = ${localstatedir}/log/${PACKAGE}
-icinga2log_DATA =
-
-#cache
-icinga2cachedir = ${localstatedir}/cache/${PACKAGE}
-icinga2cache_DATA =
-
-#variablestate
-icinga2varstatedir = ${localstatedir}/lib/${PACKAGE}
-icinga2varstate_DATA =
-
-#run
-icinga2rundir = ${localstatedir}/run/${PACKAGE}
-icinga2run_DATA =
-
-#bin
-icinga2sbindir = ${sbindir}
-icinga2sbin_DATA =
-
-#lib
-icinga2libdir = ${libdir}/${PACKAGE}
-icinga2lib_DATA =
-
+install-data-local:
+	$(MKDIR_P) ${localstatedir}/log/${PACKAGE}
+	$(MKDIR_P) ${localstatedir}/cache/${PACKAGE}
+	$(MKDIR_P) ${localstatedir}/lib/${PACKAGE}
+	$(MKDIR_P) ${localstatedir}/run/${PACKAGE}
 
 EXTRA_DIST = $(icinga2doc_DATA) git_version.sh icinga2.spec
 

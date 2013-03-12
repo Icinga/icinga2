@@ -37,6 +37,8 @@ fi
 
 # Start Icinga 2
 start() {
+	mkdir -p `dirname -- $ICINGA2_PID_FILE`
+
         printf "Starting Icinga 2: "
         $DAEMON -c $ICINGA2_CONFIG_FILE -d
         echo "Done"
