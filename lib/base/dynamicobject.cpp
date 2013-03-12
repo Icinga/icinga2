@@ -405,6 +405,13 @@ void DynamicObject::Start(void)
 	/* Nothing to do here. */
 }
 
+void DynamicObject::Stop(void)
+{
+	ASSERT(!OwnsLock());
+
+	/* Nothing to do here. */
+}
+
 void DynamicObject::Unregister(void)
 {
 	ASSERT(!OwnsLock());
