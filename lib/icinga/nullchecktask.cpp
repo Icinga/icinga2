@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION("NullCheck",  &NullCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION(NullCheck,  &NullCheckTask::ScriptFunc);
 
 /**
  * @threadsafety Always.

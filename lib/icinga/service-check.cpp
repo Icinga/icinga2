@@ -50,6 +50,14 @@ long Service::GetMaxCheckAttempts(void) const
 /**
  * @threadsafety Always.
  */
+TimePeriod::Ptr Service::GetCheckPeriod(void) const
+{
+	return TimePeriod::GetByName(m_CheckPeriod);
+}
+
+/**
+ * @threadsafety Always.
+ */
 double Service::GetCheckInterval(void) const
 {
 	if (m_CheckInterval.IsEmpty())

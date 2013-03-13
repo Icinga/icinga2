@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION("PluginCheck",  &PluginCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 
 PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process, const Value& command)
 	: m_Task(task), m_Process(process), m_Command(command)

@@ -78,7 +78,9 @@ public:
 };
 
 #define REGISTER_SCRIPTFUNCTION(name, callback) \
-	static icinga::RegisterFunctionHelper g_RegisterSF_ ## type(name, callback)
+	static icinga::RegisterFunctionHelper g_RegisterSF_ ## name(#name, callback)
+
+#undef MKSYMBOL
 
 }
 

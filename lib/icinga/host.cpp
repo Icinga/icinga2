@@ -26,7 +26,7 @@ map<String, map<String, Service::WeakPtr> > Host::m_ServicesCache;
 bool Host::m_ServicesCacheNeedsUpdate = false;
 Timer::Ptr Host::m_ServicesCacheTimer;
 
-REGISTER_SCRIPTFUNCTION("ValidateServiceDictionary", &Host::ValidateServiceDictionary);
+REGISTER_SCRIPTFUNCTION(ValidateServiceDictionary, &Host::ValidateServiceDictionary);
 
 REGISTER_TYPE(Host);
 
@@ -190,6 +190,10 @@ static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Pt
 	Value notification_interval = serviceDesc->Get("notification_interval");
 	if (!notification_interval.IsEmpty())
 		builder->AddExpression("notification_interval", OperatorSet, notification_interval);
+
+	Value check_period = serviceDesc->Get("check_period");
+	if (!check_period.IsEmpty())
+		builder->AddExpression("check_period", OperatorSet, check_period);
 
 	if (copyServiceAttrs) {
 		Value servicedependencies = serviceDesc->Get("servicedependencies");

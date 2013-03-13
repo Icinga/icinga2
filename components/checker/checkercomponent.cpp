@@ -98,11 +98,24 @@ void CheckerComponent::CheckThreadProc(void)
 
 		m_IdleServices.erase(service);
 
-		/* reschedule the service if checks are currently disabled
-		 * for it and this is not a forced check */
-		if (!service->GetEnableActiveChecks() && !service->GetForceNextCheck()) {
-			Logger::Write(LogDebug, "checker", "Ignoring service check for disabled service: " + service->GetName());
+		bool check = true;
 
+		if (!service->GetForceNextCheck()) {
+			if (!service->GetEnableActiveChecks()) {
+				Logger::Write(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active checks are disabled");
+				check = false;
+			}
+
+			TimePeriod::Ptr tp = service->GetCheckPeriod();
+
+			if (tp && !tp->IsInside(Utility::GetTime())) {
+				Logger::Write(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': not in check_period");
+				check = false;
+			}
+		}
+
+		/* reschedule the service if checks are disabled */
+		if (!check) {
 			service->UpdateNextCheck();
 
 			typedef nth_index<ServiceSet, 1>::type CheckTimeView;

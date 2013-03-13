@@ -90,4 +90,6 @@ private:
 #	define ASSERT(expr)
 #endif /* _DEBUG */
 
+#define CONCAT(a, b) a ## b
+
 #endif /* UTILITY_H */

@@ -50,6 +50,8 @@ libicinga_la_SOURCES =  \
 	service.h \
 	servicegroup.cpp \
 	servicegroup.h \
+	timeperiod.cpp \
+	timeperiod.h \
 	user.cpp \
 	user.h \
 	usergroup.cpp \

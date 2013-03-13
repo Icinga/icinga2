@@ -17,58 +17,50 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef I2ICINGA_H
-#define I2ICINGA_H
+#ifndef TIMEPERIOD_H
+#define TIMEPERIOD_H
+
+namespace icinga
+{
 
 /**
- * @defgroup icinga Icinga library
+ * A time period.
  *
- * The Icinga library implements all Icinga-specific functionality that is
- * common to all components (e.g. hosts, services, etc.).
+ * @ingroup icinga
  */
+class I2_ICINGA_API TimePeriod : public DynamicObject
+{
+public:
+	typedef shared_ptr<TimePeriod> Ptr;
+	typedef weak_ptr<TimePeriod> WeakPtr;
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-remoting.h>
+	TimePeriod(const Dictionary::Ptr& serializedUpdate);
 
-using boost::iterator_range;
-using boost::algorithm::is_any_of;
+	static TimePeriod::Ptr GetByName(const String& name);
 
-#ifdef I2_ICINGA_BUILD
-#	define I2_ICINGA_API I2_EXPORT
-#else /* I2_ICINGA_BUILD */
-#	define I2_ICINGA_API I2_IMPORT
-#endif /* I2_ICINGA_BUILD */
+	virtual void Start(void);
 
-#include "externalcommandprocessor.h"
+	void AddSegment(double s, double end);
+	void RemoveSegment(double begin, double end);
+	void PurgeSegments(double end);
 
-#include "icingaapplication.h"
+	void UpdateRegion(double begin, double end);
 
-#include "timeperiod.h"
+	bool IsInside(double ts) const;
+	double FindNextTransition(double begin);
 
-#include "user.h"
-#include "usergroup.h"
+	static void EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const vector<Value>& arguments);
+	static void EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const vector<Value>& arguments);
 
-#include "notification.h"
-#include "notificationrequestmessage.h"
+private:
+	Attribute<double> m_ValidBegin;
+	Attribute<double> m_ValidEnd;
+	Attribute<Array::Ptr> m_Segments;
 
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
+	static Timer::Ptr m_UpdateTimer;
+	static void UpdateTimerHandler(void);
+};
 
-#include "macroprocessor.h"
-#include "pluginchecktask.h"
-#include "nullchecktask.h"
+}
 
-#include "pluginnotificationtask.h"
-
-#include "checkresultmessage.h"
-
-#include "cib.h"
-
-#include "api.h"
-
-#include "perfdatawriter.h"
-
-#endif /* I2ICINGA_H */
+#endif /* TIMEPERIOD_H */

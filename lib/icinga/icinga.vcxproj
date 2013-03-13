@@ -50,6 +50,7 @@
     <ClCompile Include="service-comment.cpp" />
     <ClCompile Include="service-downtime.cpp" />
     <ClCompile Include="servicegroup.cpp" />
+    <ClCompile Include="timeperiod.cpp" />
     <ClCompile Include="user.cpp" />
     <ClCompile Include="usergroup.cpp" />
   </ItemGroup>
@@ -70,6 +71,7 @@
     <ClInclude Include="pluginnotificationtask.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />
+    <ClInclude Include="timeperiod.h" />
     <ClInclude Include="user.h" />
     <ClInclude Include="usergroup.h" />
   </ItemGroup>

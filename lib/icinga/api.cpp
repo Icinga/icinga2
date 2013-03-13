@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION("GetAnswerToEverything", &API::GetAnswerToEverything);
+REGISTER_SCRIPTFUNCTION(GetAnswerToEverything, &API::GetAnswerToEverything);
 
 /**
  * @threadsafety Always.

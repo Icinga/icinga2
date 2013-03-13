@@ -35,6 +35,7 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 
 	RegisterAttribute("check_command", Attribute_Config, &m_CheckCommand);
 	RegisterAttribute("max_check_attempts", Attribute_Config, &m_MaxCheckAttempts);
+	RegisterAttribute("check_period", Attribute_Config, &m_CheckPeriod);
 	RegisterAttribute("check_interval", Attribute_Config, &m_CheckInterval);
 	RegisterAttribute("retry_interval", Attribute_Config, &m_RetryInterval);
 	RegisterAttribute("checkers", Attribute_Config, &m_Checkers);

@@ -110,6 +110,7 @@ public:
 	Dictionary::Ptr GetCheckers(void) const;
 	Value GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
+	TimePeriod::Ptr GetCheckPeriod(void) const;
 	double GetCheckInterval(void) const;
 	double GetRetryInterval(void) const;
 
@@ -264,6 +265,7 @@ private:
 	/* Checks */
 	Attribute<Value> m_CheckCommand;
 	Attribute<long> m_MaxCheckAttempts;
+	Attribute<String> m_CheckPeriod;
 	Attribute<double> m_CheckInterval;
 	Attribute<double> m_RetryInterval;
 	Attribute<double> m_NextCheck;
