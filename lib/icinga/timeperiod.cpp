@@ -255,7 +255,10 @@ void TimePeriod::UpdateTimerHandler(void)
 		if (!ConfigItem::GetObject("TimePeriod", tp->GetName()))
 			continue;
 
-		tp->PurgeSegments(now - 3600);
+		{
+			ObjectLock olock(tp);
+			tp->PurgeSegments(now - 3600);
+		}
 
 		if (tp->m_ValidEnd < now + 3 * 3600)
 			tp->UpdateRegion(tp->m_ValidEnd, tp->m_ValidEnd + 24 * 3600);
