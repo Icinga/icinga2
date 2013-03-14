@@ -6,3 +6,5 @@ icinga2itl_DATA = \
 	service.conf \
 	service-common.conf \
 	standalone.conf
+
+EXTRA_DIST = $(icinga2itl_DATA)

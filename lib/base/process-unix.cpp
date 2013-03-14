@@ -27,7 +27,13 @@ using namespace icinga;
 condition_variable Process::m_CV;
 int Process::m_TaskFd;
 Timer::Ptr Process::m_StatusTimer;
+
+#ifndef __APPLE__
 extern char **environ;
+#else /* __APPLE__ */
+#include <crt_externs.h>
+#define environ (*_NSGetEnviron())
+#endif /* __APPLE__ */
 
 void Process::Initialize(void)
 {

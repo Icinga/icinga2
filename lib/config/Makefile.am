@@ -52,4 +52,6 @@ libconfig_la_LDFLAGS = \
 	@VERSION_INFO@
 
 libconfig_la_LIBADD = \
+	$(BOOST_THREAD_LIB) \
+	$(BOOST_SYSTEM_LIB) \
 	${top_builddir}/lib/base/libbase.la

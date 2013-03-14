@@ -23,7 +23,7 @@ using namespace icinga;
 
 boost::thread_specific_ptr<StackTrace> Exception::m_LastStackTrace;
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__APPLE__)
 extern "C"
 void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 {
@@ -53,7 +53,7 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 
 	real_cxa_throw(obj, pvtinfo, dest);
 }
-#endif /* _WIN32 */
+#endif /* !_WIN32 && !__APPLE__ */
 
 StackTrace *Exception::GetLastStackTrace(void)
 {
