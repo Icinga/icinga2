@@ -72,8 +72,16 @@ fi
   }
 }
 
+LIBTOOL=libtool
+LIBTOOLIZE=libtoolize
+
+if glibtool --version < /dev/null > /dev/null 2>&1; then
+  LIBTOOL=glibtool
+  LIBTOOLIZE=glibtoolize
+fi
+
 (grep "^LT_INIT" $srcdir/configure.ac >/dev/null) && {
-  (libtool --version) < /dev/null > /dev/null 2>&1 || {
+  ($LIBTOOL --version) < /dev/null > /dev/null 2>&1 || {
     echo
     echo "**Error**: You must have \`libtool' installed."
     echo "You can get it from: ftp://ftp.gnu.org/pub/gnu/"
@@ -133,9 +141,9 @@ esac
 
 # verify that libtool-ltdl-devel is installed
 echo "Running libtoolize dry-run..."
-if ! libtoolize --quiet --copy --force ; then
+if ! $LIBTOOLIZE --quiet --copy --force ; then
   echo ""
-  echo "**Error**: libtoolize cannot detect necessary files."
+  echo "**Error**: $LIBTOOLIZE cannot detect necessary files."
   echo ""
   echo "Make sure libtool-ltdl-devel (RHEL) / libltdl-dev (Debian) or an"
   echo "appropriate package for your distribution is installed."
@@ -171,8 +179,8 @@ do
       fi
       if grep "^LT_INIT" configure.ac >/dev/null; then
 	if test -z "$NO_LIBTOOLIZE" ; then 
-	  echo "Running libtoolize..."
-	  libtoolize --force --copy
+	  echo "Running $LIBTOOLIZE..."
+	  $LIBTOOLIZE --force --copy
           find third-party/ltdl \! -perm u=w -exec chmod u+w '{}' ';'
 	fi
       fi
