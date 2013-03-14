@@ -8,7 +8,7 @@ EXTRA_DIST = \
 icinga2docdir = ${docdir}
 icinga2doc_DATA =
 
-man1_MANS = \
+man8_MANS = \
 	icinga2.8
 
 .SUFFIXES = .html .txt
