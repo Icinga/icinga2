@@ -34,7 +34,6 @@ public:
 	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
 
 private:
-
 	static void ProcessFinishedHandler(PluginNotificationTask ct);
 
 	PluginNotificationTask(const ScriptTask::Ptr& task, const Process::Ptr& process,

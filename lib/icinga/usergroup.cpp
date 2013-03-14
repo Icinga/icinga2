@@ -28,8 +28,8 @@ Timer::Ptr UserGroup::m_MembersCacheTimer;
 
 REGISTER_TYPE(UserGroup);
 
-UserGroup::UserGroup(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
+UserGroup::UserGroup(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 }

@@ -34,7 +34,7 @@ public:
 	typedef shared_ptr<JsonRpcConnection> Ptr;
 	typedef weak_ptr<JsonRpcConnection> WeakPtr;
 
-	JsonRpcConnection(const Stream::Ptr& stream);
+	explicit JsonRpcConnection(const Stream::Ptr& stream);
 
 	void SendMessage(const MessagePart& message);
 

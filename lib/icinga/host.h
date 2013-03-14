@@ -59,7 +59,7 @@ public:
 	typedef shared_ptr<Host> Ptr;
 	typedef weak_ptr<Host> WeakPtr;
 
-	Host(const Dictionary::Ptr& properties);
+	explicit Host(const Dictionary::Ptr& serializedUpdate);
 	~Host(void);
 
 	static Host::Ptr GetByName(const String& name);

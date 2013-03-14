@@ -38,7 +38,7 @@ public:
 
 	typedef function<void (const shared_ptr<ScriptTask>&, const vector<Value>& arguments)> Callback;
 
-	ScriptFunction(const Callback& function);
+	explicit ScriptFunction(const Callback& function);
 
 	static void Register(const String& name, const ScriptFunction::Ptr& function);
 	static void Unregister(const String& name);

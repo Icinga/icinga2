@@ -23,8 +23,8 @@ using namespace icinga;
 
 REGISTER_TYPE(User);
 
-User::User(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
+User::User(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);

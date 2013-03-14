@@ -75,7 +75,7 @@ public:
 	typedef shared_ptr<Service> Ptr;
 	typedef weak_ptr<Service> WeakPtr;
 
-	Service(const Dictionary::Ptr& properties);
+	explicit Service(const Dictionary::Ptr& serializedUpdate);
 	~Service(void);
 
 	static Service::Ptr GetByName(const String& name);

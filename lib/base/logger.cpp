@@ -26,10 +26,10 @@ REGISTER_TYPE(Logger);
 /**
  * Constructor for the Logger class.
  *
- * @param properties A serialized dictionary containing attributes.
+ * @param serializedUpdate A serialized dictionary containing attributes.
  */
-Logger::Logger(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
+Logger::Logger(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("type", Attribute_Config, &m_Type);
 	RegisterAttribute("path", Attribute_Config, &m_Path);

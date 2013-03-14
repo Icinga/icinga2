@@ -30,8 +30,8 @@ REGISTER_SCRIPTFUNCTION(ValidateServiceDictionary, &Host::ValidateServiceDiction
 
 REGISTER_TYPE(Host);
 
-Host::Host(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
+Host::Host(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("hostgroups", Attribute_Config, &m_HostGroups);

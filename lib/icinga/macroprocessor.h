@@ -35,6 +35,8 @@ public:
 	static Dictionary::Ptr MergeMacroDicts(const vector<Dictionary::Ptr>& macroDicts);
 
 private:
+	MacroProcessor(void);
+
 	static String InternalResolveMacros(const String& str, const Dictionary::Ptr& macros);
 };
 

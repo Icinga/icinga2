@@ -34,7 +34,7 @@ public:
 	typedef shared_ptr<TimePeriod> Ptr;
 	typedef weak_ptr<TimePeriod> WeakPtr;
 
-	TimePeriod(const Dictionary::Ptr& serializedUpdate);
+	explicit TimePeriod(const Dictionary::Ptr& serializedUpdate);
 
 	static TimePeriod::Ptr GetByName(const String& name);
 

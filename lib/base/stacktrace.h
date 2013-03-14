@@ -33,7 +33,7 @@ class StackTrace
 public:
 	StackTrace(void);
 #ifdef _WIN32
-	StackTrace(PEXCEPTION_POINTERS exi);
+	explicit StackTrace(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
 
 	void Print(ostream& fp, int ignoreFrames = 0) const;

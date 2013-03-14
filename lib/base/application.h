@@ -34,7 +34,7 @@ public:
 	typedef shared_ptr<Application> Ptr;
 	typedef weak_ptr<Application> WeakPtr;
 
-	Application(const Dictionary::Ptr& serializedUpdate);
+	explicit Application(const Dictionary::Ptr& serializedUpdate);
 	~Application(void);
 
 	static Application::Ptr GetInstance(void);

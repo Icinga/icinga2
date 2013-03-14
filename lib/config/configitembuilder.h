@@ -36,7 +36,7 @@ public:
 	typedef weak_ptr<ConfigItemBuilder> WeakPtr;
 
 	ConfigItemBuilder(void);
-	ConfigItemBuilder(const DebugInfo& debugInfo);
+	explicit ConfigItemBuilder(const DebugInfo& debugInfo);
 
 	void SetType(const String& type);
 	void SetName(const String& name);

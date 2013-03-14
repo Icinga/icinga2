@@ -32,6 +32,9 @@ class I2_ICINGA_API NullCheckTask
 {
 public:
 	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
+
+private:
+	NullCheckTask(void);
 };
 
 }

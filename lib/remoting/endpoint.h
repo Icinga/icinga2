@@ -38,7 +38,7 @@ public:
 
 	typedef void (Callback)(const Endpoint::Ptr&, const Endpoint::Ptr&, const RequestMessage&);
 
-	Endpoint(const Dictionary::Ptr& serializedUpdate);
+	explicit Endpoint(const Dictionary::Ptr& serializedUpdate);
 	~Endpoint(void);
 
 	static Endpoint::Ptr GetByName(const String& name);

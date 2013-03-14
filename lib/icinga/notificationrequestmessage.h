@@ -32,7 +32,7 @@ class I2_ICINGA_API NotificationRequestMessage : public MessagePart
 {
 public:
 	NotificationRequestMessage(void) : MessagePart() { }
-	NotificationRequestMessage(const MessagePart& message) : MessagePart(message) { }
+	explicit NotificationRequestMessage(const MessagePart& message) : MessagePart(message) { }
 
 	String GetService(void) const;
 	void SetService(const String& service);

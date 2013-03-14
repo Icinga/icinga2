@@ -32,7 +32,7 @@ class I2_ICINGA_API CheckResultMessage : public MessagePart
 {
 public:
 	CheckResultMessage(void) : MessagePart() { }
-	CheckResultMessage(const MessagePart& message) : MessagePart(message) { }
+	explicit CheckResultMessage(const MessagePart& message) : MessagePart(message) { }
 
 	String GetService(void) const;
 	void SetService(const String& service);

@@ -34,7 +34,7 @@ public:
 	typedef shared_ptr<User> Ptr;
 	typedef weak_ptr<User> WeakPtr;
 
-	User(const Dictionary::Ptr& properties);
+	explicit User(const Dictionary::Ptr& serializedUpdate);
 	~User(void);
 
 	static User::Ptr GetByName(const String& name);

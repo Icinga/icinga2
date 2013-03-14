@@ -29,7 +29,7 @@ public:
 	typedef shared_ptr<Connection> Ptr;
 	typedef weak_ptr<Connection> WeakPtr;
 
-	Connection(const Stream::Ptr& stream);
+	explicit Connection(const Stream::Ptr& stream);
 
 	Stream::Ptr GetStream(void) const;
 

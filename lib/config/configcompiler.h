@@ -34,7 +34,7 @@ class I2_CONFIG_API ConfigCompiler
 public:
 	typedef function<void (const String&, bool, const DebugInfo&)> HandleIncludeFunc;
 
-	ConfigCompiler(const String& path, istream *input = &cin,
+	explicit ConfigCompiler(const String& path, istream *input = &cin,
 	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
 	virtual ~ConfigCompiler(void);
 

@@ -23,8 +23,8 @@ using namespace icinga;
 
 REGISTER_TYPE(Notification);
 
-Notification::Notification(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
+Notification::Notification(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("notification_command", Attribute_Config, &m_NotificationCommand);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);

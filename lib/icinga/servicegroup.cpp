@@ -28,8 +28,8 @@ Timer::Ptr ServiceGroup::m_MembersCacheTimer;
 
 REGISTER_TYPE(ServiceGroup);
 
-ServiceGroup::ServiceGroup(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
+ServiceGroup::ServiceGroup(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("notes_url", Attribute_Config, &m_NotesUrl);

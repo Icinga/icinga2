@@ -41,9 +41,6 @@ public:
 
 	void Start(void);
 
-	/*const void *GetReadBuffer(void) const;
-	void *GetWriteBuffer(size_t *count);*/
-
 	size_t GetAvailableBytes(void) const;
 	size_t Peek(void *buffer, size_t count);
 	size_t Read(void *buffer, size_t count);

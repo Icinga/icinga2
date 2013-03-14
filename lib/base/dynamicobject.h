@@ -41,7 +41,6 @@ public:
 	typedef AttributeMap::iterator AttributeIterator;
 	typedef AttributeMap::const_iterator AttributeConstIterator;
 
-	DynamicObject(const Dictionary::Ptr& serializedObject);
 	~DynamicObject(void);
 
 	static void Initialize(void);
@@ -95,6 +94,8 @@ public:
 	static double GetCurrentTx(void);
 
 protected:
+	explicit DynamicObject(const Dictionary::Ptr& serializedObject);
+
 	virtual void OnRegistrationCompleted(void);
 	virtual void OnUnregistrationCompleted(void);
 

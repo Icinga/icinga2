@@ -34,7 +34,7 @@ public:
 	typedef shared_ptr<IcingaApplication> Ptr;
 	typedef weak_ptr<IcingaApplication> WeakPtr;
 
-	IcingaApplication(const Dictionary::Ptr& serializedUpdate);
+	explicit IcingaApplication(const Dictionary::Ptr& serializedUpdate);
 
 	int Main(void);
 

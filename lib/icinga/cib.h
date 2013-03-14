@@ -39,6 +39,8 @@ public:
 	static int GetPassiveChecksStatistics(long timespan);
 
 private:
+	CIB(void);
+
 	static boost::mutex m_Mutex;
 	static RingBuffer m_ActiveChecksStatistics;
 	static RingBuffer m_PassiveChecksStatistics;

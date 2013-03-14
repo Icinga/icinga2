@@ -28,8 +28,8 @@ Timer::Ptr HostGroup::m_MembersCacheTimer;
 
 REGISTER_TYPE(HostGroup);
 
-HostGroup::HostGroup(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
+HostGroup::HostGroup(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("notes_url", Attribute_Config, &m_NotesUrl);

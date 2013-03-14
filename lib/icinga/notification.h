@@ -52,7 +52,7 @@ public:
 	typedef shared_ptr<Notification> Ptr;
 	typedef weak_ptr<Notification> WeakPtr;
 
-	Notification(const Dictionary::Ptr& properties);
+	explicit Notification(const Dictionary::Ptr& serializedUpdate);
 	~Notification(void);
 
 	static Notification::Ptr GetByName(const String& name);

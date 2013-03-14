@@ -188,7 +188,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 {
 	BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 		BOOST_FOREACH(const String& require, ruleList->GetRequires()) {
-			long index = Convert::ToLong(require);
+			size_t index = Convert::ToLong(require);
 
 			locations.push_back("Attribute '" + require + "'");
 

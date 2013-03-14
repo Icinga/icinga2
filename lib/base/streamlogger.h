@@ -35,7 +35,7 @@ public:
 	typedef weak_ptr<StreamLogger> WeakPtr;
 
 	StreamLogger(void);
-	StreamLogger(ostream *stream);
+	explicit StreamLogger(ostream *stream);
 	~StreamLogger(void);
 
 	void OpenFile(const String& filename);

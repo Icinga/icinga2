@@ -34,7 +34,7 @@ public:
 	typedef shared_ptr<UserGroup> Ptr;
 	typedef weak_ptr<UserGroup> WeakPtr;
 
-	UserGroup(const Dictionary::Ptr& properties);
+	explicit UserGroup(const Dictionary::Ptr& serializedUpdate);
 	~UserGroup(void);
 
 	static UserGroup::Ptr GetByName(const String& name);

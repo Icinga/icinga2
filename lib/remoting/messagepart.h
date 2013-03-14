@@ -36,8 +36,8 @@ class I2_REMOTING_API MessagePart
 {
 public:
 	MessagePart(void);
-	MessagePart(const Dictionary::Ptr& dictionary);
-	MessagePart(const MessagePart& message);
+	explicit MessagePart(const Dictionary::Ptr& dictionary);
+	explicit MessagePart(const MessagePart& message);
 
 	Dictionary::Ptr GetDictionary(void) const;
 

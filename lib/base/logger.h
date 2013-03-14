@@ -87,7 +87,7 @@ public:
 	typedef shared_ptr<Logger> Ptr;
 	typedef weak_ptr<Logger> WeakPtr;
 
-	Logger(const Dictionary::Ptr& properties);
+	explicit Logger(const Dictionary::Ptr& serializedUpdate);
 
 	static void Write(LogSeverity severity, const String& facility,
 	    const String& message);

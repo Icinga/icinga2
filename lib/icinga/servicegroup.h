@@ -34,7 +34,7 @@ public:
 	typedef shared_ptr<ServiceGroup> Ptr;
 	typedef weak_ptr<ServiceGroup> WeakPtr;
 
-	ServiceGroup(const Dictionary::Ptr& properties);
+	explicit ServiceGroup(const Dictionary::Ptr& serializedUpdate);
 	~ServiceGroup(void);
 
 	static ServiceGroup::Ptr GetByName(const String& name);
