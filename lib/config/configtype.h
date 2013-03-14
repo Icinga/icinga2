@@ -55,6 +55,8 @@ private:
 
 	static void ValidateDictionary(const Dictionary::Ptr& dictionary,
 	    const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations);
+	static void ValidateArray(const Array::Ptr& array,
+	    const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations);
 
 	static String LocationToString(const vector<String>& locations);
 };

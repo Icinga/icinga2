@@ -173,6 +173,92 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 
 		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
 			ValidateDictionary(value, subRuleLists, locations);
+		else if (!subRuleLists.empty() && value.IsObjectType<Array>())
+			ValidateArray(value, subRuleLists, locations);
+
+		locations.pop_back();
+	}
+}
+
+/**
+ * @threadsafety Always.
+ */
+void ConfigType::ValidateArray(const Array::Ptr& array,
+    const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations)
+{
+	BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
+		BOOST_FOREACH(const String& require, ruleList->GetRequires()) {
+			long index = Convert::ToLong(require);
+
+			locations.push_back("Attribute '" + require + "'");
+
+			if (array->GetLength() < index) {
+				ConfigCompilerContext::GetContext()->AddError(false,
+				    "Required array index is missing: " + LocationToString(locations));
+			}
+
+			locations.pop_back();
+		}
+
+		String validator = ruleList->GetValidator();
+
+		if (!validator.IsEmpty()) {
+			ScriptFunction::Ptr func = ScriptFunction::GetByName(validator);
+
+			if (!func)
+				BOOST_THROW_EXCEPTION(invalid_argument("Validator function '" + validator + "' does not exist."));
+
+			vector<Value> arguments;
+			arguments.push_back(LocationToString(locations));
+			arguments.push_back(array);
+
+			ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
+			task->Start();
+			task->GetResult();
+		}
+	}
+
+	ObjectLock olock(array);
+
+	int index = 0;
+	String key;
+	BOOST_FOREACH(const Value& value, array) {
+		key = Convert::ToString(index);
+		index++;
+
+		TypeValidationResult overallResult = ValidationUnknownField;
+		vector<TypeRuleList::Ptr> subRuleLists;
+
+		locations.push_back("Attribute '" + key + "'");
+
+		BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
+			TypeRuleList::Ptr subRuleList;
+			TypeValidationResult result = ruleList->ValidateAttribute(key, value, &subRuleList);
+
+			if (subRuleList)
+				subRuleLists.push_back(subRuleList);
+
+			if (overallResult == ValidationOK)
+				continue;
+
+			if (result == ValidationOK) {
+				overallResult = result;
+				continue;
+			}
+
+			if (result == ValidationInvalidType)
+				overallResult = result;
+		}
+
+		if (overallResult == ValidationUnknownField)
+			ConfigCompilerContext::GetContext()->AddError(true, "Unknown attribute: " + LocationToString(locations));
+		else if (overallResult == ValidationInvalidType)
+			ConfigCompilerContext::GetContext()->AddError(false, "Invalid type for array index: " + LocationToString(locations));
+
+		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
+			ValidateDictionary(value, subRuleLists, locations);
+		else if (!subRuleLists.empty() && value.IsObjectType<Array>())
+			ValidateArray(value, subRuleLists, locations);
 
 		locations.pop_back();
 	}
