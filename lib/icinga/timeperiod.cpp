@@ -119,12 +119,32 @@ void TimePeriod::RemoveSegment(double begin, double end)
 	if (!segments)
 		return;
 
+	Array::Ptr newSegments = boost::make_shared<Array>();
+
 	/* Try to split or adjust an existing segment. */
 	ObjectLock dlock(segments);
 	BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
-		BOOST_THROW_EXCEPTION(runtime_error("Not implemented."));
+		/* Fully contained in the specified range? */
+		if (segment->Get("begin") >= begin && segment->Get("end") <= end)
+			continue;
+
+		/* Not overlapping at all? */
+		if (segment->Get("end") < begin || segment->Get("begin") > end) {
+			newSegments->Add(segment);
+
+			continue;
+		}
+
+		/* Create a new segment and adjust its begin/end timestamps
+		 * so as to not overlap with the specified range. */
+		Dictionary::Ptr newSegment = boost::make_shared<Dictionary>();
+		newSegment->Set("begin", (segment->Get("begin") < end) ? end : segment->Get("begin"));
+		newSegment->Set("end", (segment->Get("end") > begin) ? begin : segment->Get("end"));
+
+		newSegments->Add(newSegment);
 	}
 
+	m_Segments = newSegments;
 	Touch("segments");
 }
 
