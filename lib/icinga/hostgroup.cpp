@@ -155,14 +155,13 @@ void HostGroup::RefreshMembersCache(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);
 
-		Dictionary::Ptr dict;
-		dict = host->GetGroups();
+		Array::Ptr groups;
+		groups = host->GetGroups();
 
-		if (dict) {
-			ObjectLock mlock(dict);
-			Value hostgroup;
-			BOOST_FOREACH(tie(tuples::ignore, hostgroup), dict) {
-				newMembersCache[hostgroup].push_back(host);
+		if (groups) {
+			ObjectLock mlock(groups);
+			BOOST_FOREACH(const Value& group, groups) {
+				newMembersCache[group].push_back(host);
 			}
 		}
 	}

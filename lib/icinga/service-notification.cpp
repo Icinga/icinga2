@@ -221,9 +221,6 @@ void Service::UpdateSlaveNotifications(void)
 		String nfcname;
 		Value nfcdesc;
 		BOOST_FOREACH(tie(nfcname, nfcdesc), notificationDescs) {
-			if (nfcdesc.IsScalar())
-				nfcname = nfcdesc;
-
 			stringstream namebuf;
 			namebuf << GetName() << "-" << nfcname;
 			String name = namebuf.str();
@@ -236,28 +233,22 @@ void Service::UpdateSlaveNotifications(void)
 
 			CopyNotificationAttributes(this, builder);
 
-			if (nfcdesc.IsScalar()) {
-				builder->AddParent(nfcdesc);
-			} else if (nfcdesc.IsObjectType<Dictionary>()) {
-				Dictionary::Ptr notification = nfcdesc;
+			if (!nfcdesc.IsObjectType<Dictionary>())
+				BOOST_THROW_EXCEPTION(invalid_argument("Notification description must be a dictionary."));
 
-				Dictionary::Ptr templates = notification->Get("templates");
+			Dictionary::Ptr notification = nfcdesc;
 
-				if (templates) {
-					ObjectLock tlock(templates);
+			Array::Ptr templates = notification->Get("templates");
 
-					String tmpl;
-					BOOST_FOREACH(tie(tuples::ignore, tmpl), templates) {
-						builder->AddParent(tmpl);
-					}
-				} else {
-					builder->AddParent(nfcname);
+			if (templates) {
+				ObjectLock tlock(templates);
+
+				BOOST_FOREACH(const Value& tmpl, templates) {
+					builder->AddParent(tmpl);
 				}
-
-				CopyNotificationAttributes(notification, builder);
-			} else {
-				BOOST_THROW_EXCEPTION(invalid_argument("Notification description must be either a string or a dictionary."));
 			}
+
+			CopyNotificationAttributes(notification, builder);
 
 			ConfigItem::Ptr notificationItem = builder->Compile();
 			notificationItem->Commit();

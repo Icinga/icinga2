@@ -1,10 +1,8 @@
+/* A Bison parser, made by GNU Bison 2.5.  */
 
-/* A Bison parser, made by GNU Bison 2.4.1.  */
-
-/* Skeleton interface for Bison's Yacc-like parsers in C
+/* Bison interface for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,7 +32,7 @@
 
 /* "%code requires" blocks.  */
 
-/* Line 1676 of yacc.c  */
+/* Line 2068 of yacc.c  */
 #line 1 "config_parser.yy"
 
 /******************************************************************************
@@ -65,8 +63,8 @@ using namespace icinga;
 
 
 
-/* Line 1676 of yacc.c  */
-#line 70 "config_parser.h"
+/* Line 2068 of yacc.c  */
+#line 68 "config_parser.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -85,22 +83,23 @@ using namespace icinga;
      T_MULTIPLY_EQUAL = 266,
      T_DIVIDE_EQUAL = 267,
      T_TYPE_DICTIONARY = 268,
-     T_TYPE_NUMBER = 269,
-     T_TYPE_STRING = 270,
-     T_TYPE_SCALAR = 271,
-     T_TYPE_ANY = 272,
-     T_VALIDATOR = 273,
-     T_REQUIRE = 274,
-     T_ATTRIBUTE = 275,
-     T_TYPE = 276,
-     T_ABSTRACT = 277,
-     T_LOCAL = 278,
-     T_OBJECT = 279,
-     T_TEMPLATE = 280,
-     T_INCLUDE = 281,
-     T_LIBRARY = 282,
-     T_INHERITS = 283,
-     T_PARTIAL = 284
+     T_TYPE_ARRAY = 269,
+     T_TYPE_NUMBER = 270,
+     T_TYPE_STRING = 271,
+     T_TYPE_SCALAR = 272,
+     T_TYPE_ANY = 273,
+     T_VALIDATOR = 274,
+     T_REQUIRE = 275,
+     T_ATTRIBUTE = 276,
+     T_TYPE = 277,
+     T_ABSTRACT = 278,
+     T_LOCAL = 279,
+     T_OBJECT = 280,
+     T_TEMPLATE = 281,
+     T_INCLUDE = 282,
+     T_LIBRARY = 283,
+     T_INHERITS = 284,
+     T_PARTIAL = 285
    };
 #endif
 /* Tokens.  */
@@ -115,22 +114,23 @@ using namespace icinga;
 #define T_MULTIPLY_EQUAL 266
 #define T_DIVIDE_EQUAL 267
 #define T_TYPE_DICTIONARY 268
-#define T_TYPE_NUMBER 269
-#define T_TYPE_STRING 270
-#define T_TYPE_SCALAR 271
-#define T_TYPE_ANY 272
-#define T_VALIDATOR 273
-#define T_REQUIRE 274
-#define T_ATTRIBUTE 275
-#define T_TYPE 276
-#define T_ABSTRACT 277
-#define T_LOCAL 278
-#define T_OBJECT 279
-#define T_TEMPLATE 280
-#define T_INCLUDE 281
-#define T_LIBRARY 282
-#define T_INHERITS 283
-#define T_PARTIAL 284
+#define T_TYPE_ARRAY 269
+#define T_TYPE_NUMBER 270
+#define T_TYPE_STRING 271
+#define T_TYPE_SCALAR 272
+#define T_TYPE_ANY 273
+#define T_VALIDATOR 274
+#define T_REQUIRE 275
+#define T_ATTRIBUTE 276
+#define T_TYPE 277
+#define T_ABSTRACT 278
+#define T_LOCAL 279
+#define T_OBJECT 280
+#define T_TEMPLATE 281
+#define T_INCLUDE 282
+#define T_LIBRARY 283
+#define T_INHERITS 284
+#define T_PARTIAL 285
 
 
 
@@ -139,7 +139,7 @@ using namespace icinga;
 typedef union YYSTYPE
 {
 
-/* Line 1676 of yacc.c  */
+/* Line 2068 of yacc.c  */
 #line 38 "config_parser.yy"
 
 	char *text;
@@ -150,7 +150,7 @@ typedef union YYSTYPE
 
 
 
-/* Line 1676 of yacc.c  */
+/* Line 2068 of yacc.c  */
 #line 155 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1

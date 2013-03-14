@@ -137,14 +137,12 @@ void UserGroup::RefreshMembersCache(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
 		const User::Ptr& user = static_pointer_cast<User>(object);
 
-		Dictionary::Ptr dict;
-		dict = user->GetGroups();
+		Array::Ptr groups = user->GetGroups();
 
-		if (dict) {
-			ObjectLock mlock(dict);
-			Value UserGroup;
-			BOOST_FOREACH(tie(tuples::ignore, UserGroup), dict) {
-				newMembersCache[UserGroup].push_back(user);
+		if (groups) {
+			ObjectLock mlock(groups);
+			BOOST_FOREACH(const Value& group, groups) {
+				newMembersCache[group].push_back(user);
 			}
 		}
 	}

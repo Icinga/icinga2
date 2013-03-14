@@ -56,14 +56,16 @@ bool TypeRule::MatchValue(const Value& value) const
 			} catch (...) {
 				return false;
 			}
-			
+
 			return true;
 
 		case TypeDictionary:
 			return value.IsObjectType<Dictionary>();
 
+		case TypeArray:
+			return value.IsObjectType<Array>();
+
 		default:
 			return false;
 	}
 }
-

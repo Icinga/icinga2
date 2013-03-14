@@ -89,9 +89,9 @@ public:
 	String GetDisplayName(void) const;
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
-	Dictionary::Ptr GetHostDependencies(void) const;
-	Dictionary::Ptr GetServiceDependencies(void) const;
-	Dictionary::Ptr GetGroups(void) const;
+	Array::Ptr GetHostDependencies(void) const;
+	Array::Ptr GetServiceDependencies(void) const;
+	Array::Ptr GetGroups(void) const;
 	String GetHostName(void) const;
 	String GetShortName(void) const;
 
@@ -107,7 +107,7 @@ public:
 	void SetAcknowledgement(AcknowledgementType acknowledgement);
 
 	/* Checks */
-	Dictionary::Ptr GetCheckers(void) const;
+	Array::Ptr GetCheckers(void) const;
 	Value GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
 	TimePeriod::Ptr GetCheckPeriod(void) const;
@@ -254,9 +254,9 @@ private:
 
 	Attribute<String> m_DisplayName;
 	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Dictionary::Ptr> m_HostDependencies;
-	Attribute<Dictionary::Ptr> m_ServiceDependencies;
-	Attribute<Dictionary::Ptr> m_ServiceGroups;
+	Attribute<Array::Ptr> m_HostDependencies;
+	Attribute<Array::Ptr> m_ServiceDependencies;
+	Attribute<Array::Ptr> m_ServiceGroups;
 	Attribute<String> m_ShortName;
 	Attribute<long> m_Acknowledgement;
 	Attribute<double> m_AcknowledgementExpiry;
@@ -269,7 +269,7 @@ private:
 	Attribute<double> m_CheckInterval;
 	Attribute<double> m_RetryInterval;
 	Attribute<double> m_NextCheck;
-	Attribute<Dictionary::Ptr> m_Checkers;
+	Attribute<Array::Ptr> m_Checkers;
 	Attribute<String> m_CurrentChecker;
 	Attribute<long> m_CheckAttempt;
 	Attribute<long> m_State;

@@ -34,7 +34,8 @@ enum TypeSpecifier
 	TypeScalar,
 	TypeNumber,
 	TypeString,
-	TypeDictionary
+	TypeDictionary,
+	TypeArray
 };
 
 /**
@@ -49,7 +50,7 @@ public:
 	    const TypeRuleList::Ptr& subRules, const DebugInfo& debuginfo);
 
 	TypeRuleList::Ptr GetSubRules(void) const;
-	
+
 	bool MatchName(const String& name) const;
 	bool MatchValue(const Value& value) const;
 

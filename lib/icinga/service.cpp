@@ -148,7 +148,7 @@ Dictionary::Ptr Service::GetMacros(void) const
 /**
  * @threadsafety Always.
  */
-Dictionary::Ptr Service::GetHostDependencies(void) const
+Array::Ptr Service::GetHostDependencies(void) const
 {
 	return m_HostDependencies;
 }
@@ -156,7 +156,7 @@ Dictionary::Ptr Service::GetHostDependencies(void) const
 /**
  * @threadsafety Always.
  */
-Dictionary::Ptr Service::GetServiceDependencies(void) const
+Array::Ptr Service::GetServiceDependencies(void) const
 {
 	return m_ServiceDependencies;
 }
@@ -164,7 +164,7 @@ Dictionary::Ptr Service::GetServiceDependencies(void) const
 /**
  * @threadsafety Always.
  */
-Dictionary::Ptr Service::GetGroups(void) const
+Array::Ptr Service::GetGroups(void) const
 {
 	return m_ServiceGroups;
 }
@@ -381,14 +381,13 @@ set<Host::Ptr> Service::GetParentHosts(void) const
 	if (host)
 		parents.insert(host);
 
-	Dictionary::Ptr dependencies = GetHostDependencies();
+	Array::Ptr dependencies = GetHostDependencies();
 
 	if (dependencies) {
 		ObjectLock olock(dependencies);
 
-		String key;
-		BOOST_FOREACH(tie(key, tuples::ignore), dependencies) {
-			Host::Ptr host = Host::GetByName(key);
+		BOOST_FOREACH(const Value& dependency, dependencies) {
+			Host::Ptr host = Host::GetByName(dependency);
 
 			if (!host)
 				continue;
@@ -408,13 +407,11 @@ set<Service::Ptr> Service::GetParentServices(void) const
 	set<Service::Ptr> parents;
 
 	Host::Ptr host = GetHost();
-	Dictionary::Ptr dependencies = GetServiceDependencies();
+	Array::Ptr dependencies = GetServiceDependencies();
 
 	if (host && dependencies) {
-		String key;
-		Value value;
-		BOOST_FOREACH(tie(key, value), dependencies) {
-			Service::Ptr service = host->GetServiceByShortName(value);
+		BOOST_FOREACH(const Value& dependency, dependencies) {
+			Service::Ptr service = host->GetServiceByShortName(dependency);
 
 			if (!service)
 				continue;

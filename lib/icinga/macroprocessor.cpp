@@ -32,20 +32,19 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 
 	if (cmd.IsScalar()) {
 		result = InternalResolveMacros(cmd, macros);
-	} else if (cmd.IsObjectType<Dictionary>()) {
-		Dictionary::Ptr resultDict = boost::make_shared<Dictionary>();
-		Dictionary::Ptr dict = cmd;
+	} else if (cmd.IsObjectType<Array>()) {
+		Array::Ptr resultArr = boost::make_shared<Array>();
+		Array::Ptr arr = cmd;
 
-		ObjectLock olock(dict);
+		ObjectLock olock(arr);
 
-		Value arg;
-		BOOST_FOREACH(tie(tuples::ignore, arg), dict) {
-			resultDict->Add(InternalResolveMacros(arg, macros));
+		BOOST_FOREACH(const Value& arg, arr) {
+			resultArr->Add(InternalResolveMacros(arg, macros));
 		}
 
-		result = resultDict;
+		result = resultArr;
 	} else {
-		BOOST_THROW_EXCEPTION(invalid_argument("Command is not a string or dictionary."));
+		BOOST_THROW_EXCEPTION(invalid_argument("Command is not a string or array."));
 	}
 
 	return result;

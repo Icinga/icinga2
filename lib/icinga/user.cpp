@@ -71,7 +71,7 @@ String User::GetDisplayName(void) const
 /**
  * @threadsafety Always.
  */
-Dictionary::Ptr User::GetGroups(void) const
+Array::Ptr User::GetGroups(void) const
 {
 	return m_Groups;
 }

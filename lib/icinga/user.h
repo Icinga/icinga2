@@ -40,7 +40,7 @@ public:
 	static User::Ptr GetByName(const String& name);
 
 	String GetDisplayName(void) const;
-	Dictionary::Ptr GetGroups(void) const;
+	Array::Ptr GetGroups(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
 	Dictionary::Ptr CalculateDynamicMacros(void) const;
@@ -51,7 +51,7 @@ protected:
 private:
 	Attribute<String> m_DisplayName;
 	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Dictionary::Ptr> m_Groups;
+	Attribute<Array::Ptr> m_Groups;
 };
 
 }

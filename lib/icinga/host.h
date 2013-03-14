@@ -65,11 +65,11 @@ public:
 	static Host::Ptr GetByName(const String& name);
 
 	String GetDisplayName(void) const;
-	Dictionary::Ptr GetGroups(void) const;
+	Array::Ptr GetGroups(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
-	Dictionary::Ptr GetHostDependencies(void) const;
-	Dictionary::Ptr GetServiceDependencies(void) const;
+	Array::Ptr GetHostDependencies(void) const;
+	Array::Ptr GetServiceDependencies(void) const;
 	String GetHostCheck(void) const;
 
 	Dictionary::Ptr CalculateDynamicMacros(void) const;
@@ -102,10 +102,10 @@ protected:
 
 private:
 	Attribute<String> m_DisplayName;
-	Attribute<Dictionary::Ptr> m_HostGroups;
+	Attribute<Array::Ptr> m_HostGroups;
 	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Dictionary::Ptr> m_HostDependencies;
-	Attribute<Dictionary::Ptr> m_ServiceDependencies;
+	Attribute<Array::Ptr> m_HostDependencies;
+	Attribute<Array::Ptr> m_ServiceDependencies;
 	Attribute<String> m_HostCheck;
 	Dictionary::Ptr m_SlaveServices;
 

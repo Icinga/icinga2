@@ -54,6 +54,7 @@ using namespace icinga;
 %token <op> T_MULTIPLY_EQUAL
 %token <op> T_DIVIDE_EQUAL
 %token <type> T_TYPE_DICTIONARY
+%token <type> T_TYPE_ARRAY
 %token <type> T_TYPE_NUMBER
 %token <type> T_TYPE_STRING
 %token <type> T_TYPE_SCALAR
@@ -71,6 +72,7 @@ using namespace icinga;
 %token T_INHERITS
 %token T_PARTIAL
 %type <text> identifier
+%type <variant> array
 %type <variant> simplevalue
 %type <variant> value
 %type <variant> expressionlist
@@ -94,7 +96,7 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
 int yyparse(ConfigCompiler *context);
 
 static stack<ExpressionList::Ptr> m_ExpressionLists;
-static Dictionary::Ptr m_Array;
+static stack<Array::Ptr> m_Arrays;
 static ConfigItemBuilder::Ptr m_Item;
 static bool m_Abstract;
 static bool m_Local;
@@ -244,6 +246,7 @@ type_inherits_specifier: /* empty */
 	;
 
 type: T_TYPE_DICTIONARY
+	| T_TYPE_ARRAY
 	| T_TYPE_NUMBER
 	| T_TYPE_STRING
 	| T_TYPE_SCALAR
@@ -361,13 +364,6 @@ expression: identifier operator value
 
 		m_ExpressionLists.top()->AddExpression(expr);
 	}
-	| value
-	{
-		Expression expr(String(), OperatorSet, *$1, yylloc);
-		delete $1;
-
-		m_ExpressionLists.top()->AddExpression(expr);
-	}
 	;
 
 operator: T_EQUAL
@@ -377,6 +373,32 @@ operator: T_EQUAL
 	| T_DIVIDE_EQUAL
 	{
 		$$ = $1;
+	}
+	;
+
+array: '['
+	{
+		m_Arrays.push(boost::make_shared<Array>());
+	}
+	array_items
+	']'
+	{
+		$$ = new Value(m_Arrays.top());
+		m_Arrays.pop();
+	}
+	;
+
+array_items: array_items_inner
+	| array_items_inner ','
+
+array_items_inner: /* empty */
+	| value
+	{
+		m_Arrays.top()->Add(*$1);
+	}
+	| array_items_inner ',' value
+	{
+		m_Arrays.top()->Add(*$3);
 	}
 	;
 
@@ -392,6 +414,10 @@ simplevalue: T_STRING
 	| T_NULL
 	{
 		$$ = new Value();
+	}
+	| array
+	{
+		$$ = $1;
 	}
 	;
 

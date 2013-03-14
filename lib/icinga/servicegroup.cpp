@@ -155,14 +155,12 @@ void ServiceGroup::RefreshMembersCache(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
 
-		Dictionary::Ptr dict;
-		dict = service->GetGroups();
+		Array::Ptr groups = service->GetGroups();
 
-		if (dict) {
-			ObjectLock mlock(dict);
-			Value servicegroup;
-			BOOST_FOREACH(tie(tuples::ignore, servicegroup), dict) {
-				newMembersCache[servicegroup].push_back(service);
+		if (groups) {
+			ObjectLock mlock(groups);
+			BOOST_FOREACH(const Value& group, groups) {
+				newMembersCache[group].push_back(service);
 			}
 		}
 	}

@@ -179,6 +179,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 <INITIAL>{
 type				return T_TYPE;
 dictionary			{ yylval->type = TypeDictionary; return T_TYPE_DICTIONARY; }
+array				{ yylval->type = TypeArray; return T_TYPE_ARRAY; }
 number				{ yylval->type = TypeNumber; return T_TYPE_NUMBER; }
 string				{ yylval->type = TypeString; return T_TYPE_STRING; }
 scalar				{ yylval->type = TypeScalar; return T_TYPE_SCALAR; }

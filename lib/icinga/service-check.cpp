@@ -80,7 +80,7 @@ double Service::GetRetryInterval(void) const
 /**
  * @threadsafety Always.
  */
-Dictionary::Ptr Service::GetCheckers(void) const
+Array::Ptr Service::GetCheckers(void) const
 {
 	return m_Checkers;
 }
@@ -560,15 +560,14 @@ String Service::StateTypeToString(StateType type)
  */
 bool Service::IsAllowedChecker(const String& checker) const
 {
-	Dictionary::Ptr checkers = GetCheckers();
+	Array::Ptr checkers = GetCheckers();
 
 	if (!checkers)
 		return true;
 
 	ObjectLock olock(checkers);
 
-	Value pattern;
-	BOOST_FOREACH(tie(tuples::ignore, pattern), checkers) {
+	BOOST_FOREACH(const Value& pattern, checkers) {
 		if (Utility::Match(pattern, checker))
 			return true;
 	}

@@ -82,7 +82,7 @@ Host::Ptr Host::GetByName(const String& name)
 	return dynamic_pointer_cast<Host>(configObject);
 }
 
-Dictionary::Ptr Host::GetGroups(void) const
+Array::Ptr Host::GetGroups(void) const
 {
 	return m_HostGroups;;
 }
@@ -92,12 +92,12 @@ Dictionary::Ptr Host::GetMacros(void) const
 	return m_Macros;
 }
 
-Dictionary::Ptr Host::GetHostDependencies(void) const
+Array::Ptr Host::GetHostDependencies(void) const
 {
 	return m_HostDependencies;;
 }
 
-Dictionary::Ptr Host::GetServiceDependencies(void) const
+Array::Ptr Host::GetServiceDependencies(void) const
 {
 	return m_ServiceDependencies;
 }
@@ -242,28 +242,22 @@ void Host::UpdateSlaveServices(void)
 
 			CopyServiceAttributes<false>(this, builder);
 
-			if (svcdesc.IsScalar()) {
-				builder->AddParent(svcdesc);
-			} else if (svcdesc.IsObjectType<Dictionary>()) {
-				Dictionary::Ptr service = svcdesc;
-
-				Dictionary::Ptr templates = service->Get("templates");
-
-				if (templates) {
-					ObjectLock olock(templates);
-
-					String tmpl;
-					BOOST_FOREACH(tie(tuples::ignore, tmpl), templates) {
-						builder->AddParent(tmpl);
-					}
-				} else {
-					builder->AddParent(svcname);
-				}
-
-				CopyServiceAttributes<true>(service, builder);
-			} else {
+			if (!svcdesc.IsObjectType<Dictionary>())
 				BOOST_THROW_EXCEPTION(invalid_argument("Service description must be either a string or a dictionary."));
+
+			Dictionary::Ptr service = svcdesc;
+
+			Array::Ptr templates = service->Get("templates");
+
+			if (templates) {
+				ObjectLock olock(templates);
+
+				BOOST_FOREACH(const Value& tmpl, templates) {
+					builder->AddParent(tmpl);
+				}
 			}
+
+			CopyServiceAttributes<true>(service, builder);
 
 			ConfigItem::Ptr serviceItem = builder->Compile();
 			DynamicObject::Ptr dobj = serviceItem->Commit();
@@ -392,20 +386,19 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 	BOOST_FOREACH(tie(key, value), attrs) {
 		vector<String> templates;
 
-		if (value.IsScalar()) {
-			templates.push_back(value);
-		} else if (value.IsObjectType<Dictionary>()) {
-			Dictionary::Ptr serviceDesc = value;
+		if (!value.IsObjectType<Dictionary>())
+			BOOST_THROW_EXCEPTION(invalid_argument("Service description must be a dictionary."));
 
-			Dictionary::Ptr templatesDict = serviceDesc->Get("templates");
-			ObjectLock tlock(templatesDict);
+		Dictionary::Ptr serviceDesc = value;
 
-			Value tmpl;
-			BOOST_FOREACH(tie(tuples::ignore, tmpl), templatesDict) {
+		Array::Ptr templatesArray = serviceDesc->Get("templates");
+
+		if (templatesArray) {
+			ObjectLock tlock(templatesArray);
+
+			BOOST_FOREACH(const Value& tmpl, templatesArray) {
 				templates.push_back(tmpl);
 			}
-		} else {
-			continue;
 		}
 
 		BOOST_FOREACH(const String& name, templates) {
@@ -464,13 +457,12 @@ set<Host::Ptr> Host::GetParentHosts(void) const
 {
 	set<Host::Ptr> parents;
 
-	Dictionary::Ptr dependencies = GetHostDependencies();
+	Array::Ptr dependencies = GetHostDependencies();
 
 	if (dependencies) {
 		ObjectLock olock(dependencies);
 
-		Value value;
-		BOOST_FOREACH(tie(tuples::ignore, value), dependencies) {
+		BOOST_FOREACH(const Value& value, dependencies) {
 			if (value == GetName())
 				continue;
 
@@ -500,13 +492,12 @@ set<Service::Ptr> Host::GetParentServices(void) const
 {
 	set<Service::Ptr> parents;
 
-	Dictionary::Ptr dependencies = GetServiceDependencies();
+	Array::Ptr dependencies = GetServiceDependencies();
 
 	if (dependencies) {
 		ObjectLock olock(dependencies);
 
-		Value value;
-		BOOST_FOREACH(tie(tuples::ignore, value), dependencies) {
+		BOOST_FOREACH(const Value& value, dependencies) {
 			parents.insert(GetServiceByShortName(value));
 		}
 	}
