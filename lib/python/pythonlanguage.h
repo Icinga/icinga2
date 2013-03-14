@@ -58,7 +58,7 @@ private:
 	PyObject *m_TracebackModule;
 	static PythonInterpreter *m_CurrentInterpreter;
 
-	void RegisterNativeFunction(const String& name, const ScriptFunction::Ptr& function);
+	void RegisterNativeFunction(const String& name);
 	void UnregisterNativeFunction(const String& name);
 
 	static PyObject *PyCallNativeFunction(PyObject *self, PyObject *args);

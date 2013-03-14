@@ -27,7 +27,7 @@ REGISTER_SCRIPTLANGUAGE("Python", PythonLanguage);
 
 PyMethodDef PythonLanguage::m_NativeMethodDef[] = {
 	{ "RegisterFunction", &PythonLanguage::PyRegisterFunction, METH_VARARGS, NULL },
-	{ NULL, NULL } /* sentinel */
+	{ NULL, NULL, NULL, NULL } /* sentinel */
 };
 
 PythonLanguage::PythonLanguage(void)
@@ -60,12 +60,11 @@ void PythonLanguage::InitializeOnce(void)
 	PyEval_ReleaseLock();
 
 	String name;
-	ScriptFunction::Ptr function;
-	BOOST_FOREACH(tie(name, function), ScriptFunction::GetFunctions()) {
-		RegisterNativeFunction(name, function);
+	BOOST_FOREACH(tie(name, tuples::ignore), ScriptFunction::GetFunctions()) {
+		RegisterNativeFunction(name);
 	}
 
-	ScriptFunction::OnRegistered.connect(boost::bind(&PythonLanguage::RegisterNativeFunction, this, _1, _2));
+	ScriptFunction::OnRegistered.connect(boost::bind(&PythonLanguage::RegisterNativeFunction, this, _1));
 	ScriptFunction::OnUnregistered.connect(boost::bind(&PythonLanguage::UnregisterNativeFunction, this, _1));
 
 	m_Initialized = true;
@@ -153,9 +152,26 @@ PyObject *PythonLanguage::MarshalToPython(const Value& value)
 					PyObject *dv = MarshalToPython(value);
 
 					PyDict_SetItemString(pdict, key.CStr(), dv);
+
+					Py_DECREF(dv);
 				}
 
 				return pdict;
+			} else if (value.IsObjectType<Array>()) {
+				Array::Ptr arr = value;
+				ObjectLock olock(arr);
+
+				PyObject *plist = PyList_New(0);
+
+				BOOST_FOREACH(const Value& value, arr) {
+					PyObject *dv = MarshalToPython(value);
+
+					PyList_Append(plist, dv);
+
+					Py_DECREF(dv);
+				}
+
+				return plist;
 			}
 
 			Py_INCREF(Py_None);
@@ -177,13 +193,24 @@ Value PythonLanguage::MarshalFromPython(PyObject *value)
 		Py_ssize_t pos = 0;
 
 		while (PyDict_Next(value, &pos, &dk, &dv)) {
-		    String ik = PyString_AsString(dk);
-		    Value iv = MarshalFromPython(dv);
+			String ik = PyString_AsString(dk);
+			Value iv = MarshalFromPython(dv);
 
-		    dict->Set(ik, iv);
+			dict->Set(ik, iv);
 		}
 
 		return dict;
+	} else if (PyList_Check(value)) {
+		Array::Ptr arr = boost::make_shared<Array>();
+
+		for (Py_ssize_t pos = 0; pos < PyList_Size(value); pos++) {
+			PyObject *dv = PyList_GetItem(value, pos);
+			Value iv = MarshalFromPython(dv);
+
+			arr->Add(iv);
+		}
+
+		return arr;
 	} else if (PyTuple_Check(value) && PyTuple_Size(value) == 2) {
 		PyObject *ptype, *pname;
 
@@ -287,8 +314,6 @@ PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
 	try {
 		ScriptTask::Ptr task = boost::make_shared<ScriptTask>(function, arguments);
 		task->Start();
-		task->Wait();
-
 		result = task->GetResult();
 	} catch (const std::exception& ex) {
 		PyEval_RestoreThread(tstate);
@@ -308,9 +333,8 @@ PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
  * Registers a native function.
  *
  * @param name The name of the native function.
- * @param function The function.
  */
-void PythonLanguage::RegisterNativeFunction(const String& name, const ScriptFunction::Ptr& function)
+void PythonLanguage::RegisterNativeFunction(const String& name)
 {
 	ObjectLock olock(this);
 
@@ -357,7 +381,7 @@ void PythonLanguage::UnregisterNativeFunction(const String& name)
 	(void) PyThreadState_Swap(tstate);
 }
 
-PyObject *PythonLanguage::PyRegisterFunction(PyObject *self, PyObject *args)
+PyObject *PythonLanguage::PyRegisterFunction(PyObject *, PyObject *args)
 {
 	char *name;
 	PyObject *object;
@@ -390,8 +414,6 @@ PyObject *PythonLanguage::PyRegisterFunction(PyObject *self, PyObject *args)
  */
 PythonInterpreter *PythonLanguage::GetCurrentInterpreter(void)
 {
-	ObjectLock olock(this);
-
 	return m_CurrentInterpreter;
 }
 
@@ -402,7 +424,5 @@ PythonInterpreter *PythonLanguage::GetCurrentInterpreter(void)
  */
 void PythonLanguage::SetCurrentInterpreter(PythonInterpreter *interpreter)
 {
-	ObjectLock olock(this);
-
 	m_CurrentInterpreter = interpreter;
 }
