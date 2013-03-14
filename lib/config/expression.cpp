@@ -105,10 +105,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			BOOST_THROW_EXCEPTION(runtime_error("Not yet implemented."));
 	}
 
-	if (m_Key.IsEmpty())
-		dictionary->Add(newValue);
-	else
-		dictionary->Set(m_Key, newValue);
+	dictionary->Set(m_Key, newValue);
 }
 
 void Expression::DumpValue(ostream& fp, int indent, const Value& value, bool inlineDict)

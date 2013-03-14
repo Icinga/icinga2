@@ -121,38 +121,6 @@ void Dictionary::Set(const String& key, const Value& value)
 }
 
 /**
- * Adds an unnamed value to the dictionary.
- *
- * @param value The value.
- * @returns The key that was used to add the new item.
- * @threadsafety Always.
- */
-String Dictionary::Add(const Value& value)
-{
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
-
-	Dictionary::Iterator it;
-	String key;
-	long index = m_Data.size();
-	do {
-		stringstream s;
-		s << "_" << std::hex << std::setw(8) << std::setfill('0') << index;
-		index++;
-
-		key = s.str();
-		it = m_Data.find(key);
-	} while (it != m_Data.end());
-
-	pair<map<String, Value>::iterator, bool> ret;
-	ret = m_Data.insert(make_pair(key, value));
-	if (!ret.second)
-		ret.first->second = value;
-
-	return key;
-}
-
-/**
  * Returns an iterator to the beginning of the dictionary.
  *
  * @returns An iterator.

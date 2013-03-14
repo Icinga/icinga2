@@ -75,19 +75,6 @@ public:
 	bool Get(String key, MessagePart *value) const;
 	void Set(String key, const MessagePart& value);
 
-	/**
-	 * Adds an item to the message using an automatically generated property name.
-	 *
-	 * @param value The value.
-	 */
-	template<typename T>
-	void Add(const T& value)
-	{
-		GetDictionary()->Add(value);
-	}
-
-	void Add(const MessagePart& value);
-
 	bool Contains(const String& key) const;
 
 	Dictionary::Iterator Begin(void);

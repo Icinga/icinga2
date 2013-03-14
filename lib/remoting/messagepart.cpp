@@ -92,16 +92,6 @@ void MessagePart::Set(String key, const MessagePart& value)
 }
 
 /**
- * Adds an item to the message using an automatically generated property name.
- *
- * @param value The value.
- */
-void MessagePart::Add(const MessagePart& value)
-{
-	GetDictionary()->Add(value.GetDictionary());
-}
-
-/**
  * Returns an iterator that points to the first element of the dictionary
  * which holds the properties for the message.
  *

@@ -42,13 +42,12 @@ vector<String> Process::SplitCommand(const Value& command)
 {
 	vector<String> args;
 
-	if (command.IsObjectType<Dictionary>()) {
-		Dictionary::Ptr dict = command;
-		ObjectLock olock(dict);
+	if (command.IsObjectType<Array>()) {
+		Array::Ptr arguments = command;
 
-		Value arg;
-		BOOST_FOREACH(tie(tuples::ignore, arg), dict) {
-			args.push_back(arg);
+		ObjectLock olock(arguments);
+		BOOST_FOREACH(const Value& argument, arguments) {
+			args.push_back(argument);
 		}
 
 		return args;

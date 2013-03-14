@@ -64,33 +64,4 @@ BOOST_AUTO_TEST_CASE(getproperty_dict)
 	BOOST_CHECK(!test2);
 }
 
-BOOST_AUTO_TEST_CASE(unnamed)
-{
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	dictionary->Add("test1");
-	dictionary->Add("test2");
-	dictionary->Add("test3");
-
-	ObjectLock olock(dictionary);
-	BOOST_CHECK(distance(dictionary->Begin(), dictionary->End()) == 3);
-}
-
-BOOST_AUTO_TEST_CASE(unnamed_order)
-{
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-
-	for (int i = 0; i < 1000; i++)
-		dictionary->Add(i);
-
-	/* unnamed items are guaranteed to be in whatever order they were
-	 * inserted in. */
-	Value value;
-	int i = 0;
-	ObjectLock olock(dictionary);
-	BOOST_FOREACH(tie(tuples::ignore, value), dictionary) {
-		BOOST_CHECK(value == i);
-		i++;
-	}
-}
-
 BOOST_AUTO_TEST_SUITE_END()
