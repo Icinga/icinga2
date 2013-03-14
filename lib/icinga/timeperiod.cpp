@@ -135,13 +135,14 @@ void TimePeriod::RemoveSegment(double begin, double end)
 			continue;
 		}
 
-		/* Create a new segment and adjust its begin/end timestamps
-		 * so as to not overlap with the specified range. */
-		Dictionary::Ptr newSegment = boost::make_shared<Dictionary>();
-		newSegment->Set("begin", (segment->Get("begin") < end) ? end : segment->Get("begin"));
-		newSegment->Set("end", (segment->Get("end") > begin) ? begin : segment->Get("end"));
+		/* Adjust the begin/end timestamps so as to not overlap with the specified range. */
+		if (segment->Get("begin") < end)
+			segment->Set("begin", end);
 
-		newSegments->Add(newSegment);
+		if (segment->Get("end") > begin)
+			segment->Set("end", begin);
+
+		newSegments->Add(segment);
 	}
 
 	m_Segments = newSegments;
