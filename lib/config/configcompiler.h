@@ -32,7 +32,7 @@ namespace icinga
 class I2_CONFIG_API ConfigCompiler
 {
 public:
-	typedef function<void (const String&, bool, const DebugInfo&)> HandleIncludeFunc;
+	typedef boost::function<void (const String&, bool, const DebugInfo&)> HandleIncludeFunc;
 
 	explicit ConfigCompiler(const String& path, istream *input = &cin,
 	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
@@ -72,7 +72,7 @@ private:
 	void DestroyScanner(void);
 };
 
-class I2_CONFIG_API ConfigFragmentRegistry : public Registry<String>
+class ConfigFragmentRegistry : public Registry<String>
 { };
 
 /**

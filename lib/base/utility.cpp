@@ -19,6 +19,11 @@
 
 #include "i2-base.h"
 #include <mmatch.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/function.hpp>
 
 using namespace icinga;
 
@@ -402,7 +407,7 @@ String Utility::NewUUID(void)
  *
  * @param pathSpec The path specification.
  */
-bool Utility::Glob(const String& pathSpec, const function<void (const String&)>& callback)
+bool Utility::Glob(const String& pathSpec, const boost::function<void (const String&)>& callback)
 {
 #ifdef _WIN32
 	HANDLE handle;

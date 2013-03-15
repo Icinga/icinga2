@@ -18,6 +18,9 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/bind.hpp>
 
 using namespace icinga;
 
@@ -126,7 +129,7 @@ void Application::ShutdownTimerHandler(void)
 void Application::RunEventLoop(void) const
 {
 	/* Start the system time watch thread. */
-	thread t(&Application::TimeWatchThreadProc);
+	boost::thread t(&Application::TimeWatchThreadProc);
 	t.detach();
 
 	/* Set up a timer that watches the m_Shutdown flag. */

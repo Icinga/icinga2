@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-remoting.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -357,7 +358,7 @@ void EndpointManager::SubscriptionTimerHandler(void)
 			ObjectLock olock(endpointSubscriptions);
 
 			String topic;
-			BOOST_FOREACH(tie(tuples::ignore, topic), endpointSubscriptions) {
+			BOOST_FOREACH(boost::tie(boost::tuples::ignore, topic), endpointSubscriptions) {
 				subscriptions->Set(topic, topic);
 			}
 		}

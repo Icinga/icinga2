@@ -18,10 +18,11 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
-recursive_mutex ConfigItem::m_Mutex;
+boost::mutex ConfigItem::m_Mutex;
 ConfigItem::ItemMap ConfigItem::m_Items;
 signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
 signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
@@ -184,7 +185,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	ConfigItem::Ptr oldItem;
 
 	{
-		recursive_mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(m_Mutex);
 
 		ItemMap::iterator it = m_Items.find(ikey);
 
@@ -212,7 +213,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	ConfigItem::Ptr self = GetSelf();
 
 	{
-		recursive_mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(m_Mutex);
 
 		/* Register this item. */
 		m_Items[ikey] = self;
@@ -242,7 +243,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 
 		String key;
 		Value data;
-		BOOST_FOREACH(tie(key, data), properties) {
+		BOOST_FOREACH(boost::tie(key, data), properties) {
 			Dictionary::Ptr attr = boost::make_shared<Dictionary>();
 			attr->Set("data", data);
 			attr->Set("type", Attribute_Config);
@@ -377,7 +378,7 @@ DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
  */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
-	recursive_mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
 	ConfigItem::ItemMap::iterator it;
 
@@ -425,20 +426,22 @@ void ConfigItem::Dump(ostream& fp) const
  */
 void ConfigItem::UnloadUnit(const String& unit)
 {
-	recursive_mutex::scoped_lock lock(m_Mutex);
-
-	Logger::Write(LogInformation, "config", "Unloading config items from compilation unit '" + unit + "'");
-
 	vector<ConfigItem::Ptr> obsoleteItems;
 
-	ConfigItem::Ptr item;
-	BOOST_FOREACH(tie(tuples::ignore, item), m_Items) {
-		ObjectLock olock(item);
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
 
-		if (item->m_Unit != unit)
-			continue;
+		Logger::Write(LogInformation, "config", "Unloading config items from compilation unit '" + unit + "'");
 
-		obsoleteItems.push_back(item);
+		ConfigItem::Ptr item;
+		BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
+			ObjectLock olock(item);
+
+			if (item->m_Unit != unit)
+				continue;
+
+			obsoleteItems.push_back(item);
+		}
 	}
 
 	BOOST_FOREACH(const ConfigItem::Ptr& item, obsoleteItems) {

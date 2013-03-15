@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <boost/bind.hpp>
 
 using namespace icinga;
 
@@ -51,11 +52,11 @@ void Socket::Start(void)
 	ASSERT(!m_ReadThread.joinable() && !m_WriteThread.joinable());
 	ASSERT(GetFD() != INVALID_SOCKET);
 
-	// TODO: figure out why we're not using "this" here
-	m_ReadThread = thread(boost::bind(&Socket::ReadThreadProc, static_cast<Socket::Ptr>(GetSelf())));
+	// TODO: figure out why we're not using "this" here (hint: to keep the object alive until the threads are done)
+	m_ReadThread = boost::thread(boost::bind(&Socket::ReadThreadProc, static_cast<Socket::Ptr>(GetSelf())));
 	m_ReadThread.detach();
 
-	m_WriteThread = thread(boost::bind(&Socket::WriteThreadProc, static_cast<Socket::Ptr>(GetSelf())));
+	m_WriteThread = boost::thread(boost::bind(&Socket::WriteThreadProc, static_cast<Socket::Ptr>(GetSelf())));
 	m_WriteThread.detach();
 
 	Stream::Start();

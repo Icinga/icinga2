@@ -20,6 +20,10 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
+
 namespace icinga {
 
 /**
@@ -69,10 +73,10 @@ private:
 	bool m_Connected;
 	bool m_Listening;
 
-	thread m_ReadThread;
-	thread m_WriteThread;
+	boost::thread m_ReadThread;
+	boost::thread m_WriteThread;
 
-	condition_variable m_WriteCV;
+	boost::condition_variable m_WriteCV;
 
 	void ReadThreadProc(void);
 	void WriteThreadProc(void);

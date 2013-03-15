@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-livestatus.h"
+#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -62,11 +63,11 @@ Query::Query(const vector<String>& lines)
 		else if (header == "OutputFormat")
 			m_OutputFormat = params;
 		else if (header == "Columns")
-			m_Columns = params.Split(is_any_of(" "));
+			m_Columns = params.Split(boost::is_any_of(" "));
 		else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
 		else if (header == "Filter" || header == "Stats") {
-			vector<String> tokens = params.Split(is_any_of(" "));
+			vector<String> tokens = params.Split(boost::is_any_of(" "));
 
 			if (tokens.size() == 2)
 				tokens.push_back("");

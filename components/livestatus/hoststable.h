@@ -40,7 +40,7 @@ public:
 	virtual String GetName(void) const;
 
 protected:
-	virtual void FetchRows(const function<void (const Object::Ptr&)>& addRowFn);
+	virtual void FetchRows(const AddRowFunction& addRowFn);
 
 	static Value NameAccessor(const Object::Ptr& object);
 	static Value DisplayNameAccessor(const Object::Ptr& object);

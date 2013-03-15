@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -220,7 +221,7 @@ void Service::UpdateSlaveNotifications(void)
 
 		String nfcname;
 		Value nfcdesc;
-		BOOST_FOREACH(tie(nfcname, nfcdesc), notificationDescs) {
+		BOOST_FOREACH(boost::tie(nfcname, nfcdesc), notificationDescs) {
 			stringstream namebuf;
 			namebuf << GetName() << "-" << nfcname;
 			String name = namebuf.str();
@@ -261,7 +262,7 @@ void Service::UpdateSlaveNotifications(void)
 		ObjectLock olock(oldNotifications);
 
 		ConfigItem::Ptr notification;
-		BOOST_FOREACH(tie(tuples::ignore, notification), oldNotifications) {
+		BOOST_FOREACH(boost::tie(boost::tuples::ignore, notification), oldNotifications) {
 			if (!notification)
 				continue;
 

@@ -36,7 +36,7 @@ public:
 	typedef shared_ptr<Script> Ptr;
 	typedef weak_ptr<Script> WeakPtr;
 
-	Script(const Dictionary::Ptr& properties);
+	Script(const Dictionary::Ptr& serializedUpdate);
 
 	virtual void Start(void);
 

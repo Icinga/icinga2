@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -48,7 +49,7 @@ Host::~Host(void)
 
 	if (m_SlaveServices) {
 		ConfigItem::Ptr service;
-		BOOST_FOREACH(tie(tuples::ignore, service), m_SlaveServices) {
+		BOOST_FOREACH(boost::tie(boost::tuples::ignore, service), m_SlaveServices) {
 			service->Unregister();
 		}
 	}
@@ -225,7 +226,7 @@ void Host::UpdateSlaveServices(void)
 		ObjectLock olock(serviceDescs);
 		String svcname;
 		Value svcdesc;
-		BOOST_FOREACH(tie(svcname, svcdesc), serviceDescs) {
+		BOOST_FOREACH(boost::tie(svcname, svcdesc), serviceDescs) {
 			if (svcdesc.IsScalar())
 				svcname = svcdesc;
 
@@ -270,7 +271,7 @@ void Host::UpdateSlaveServices(void)
 		ObjectLock olock(oldServices);
 
 		ConfigItem::Ptr service;
-		BOOST_FOREACH(tie(tuples::ignore, service), oldServices) {
+		BOOST_FOREACH(boost::tie(boost::tuples::ignore, service), oldServices) {
 			if (!service)
 				continue;
 
@@ -306,7 +307,7 @@ set<Service::Ptr> Host::GetServices(void) const
 	boost::mutex::scoped_lock lock(m_ServiceMutex);
 
 	Service::WeakPtr wservice;
-	BOOST_FOREACH(tie(tuples::ignore, wservice), m_ServicesCache[GetName()]) {
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, wservice), m_ServicesCache[GetName()]) {
 		Service::Ptr service = wservice.lock();
 
 		if (!service)
@@ -383,7 +384,7 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 
 	String key;
 	Value value;
-	BOOST_FOREACH(tie(key, value), attrs) {
+	BOOST_FOREACH(boost::tie(key, value), attrs) {
 		vector<String> templates;
 
 		if (!value.IsObjectType<Dictionary>())

@@ -74,7 +74,7 @@ private:
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
 	bool m_Stopped;
-	thread m_Thread;
+	boost::thread m_Thread;
 
 	ServiceSet m_IdleServices;
 	ServiceSet m_PendingServices;

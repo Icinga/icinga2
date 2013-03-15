@@ -26,8 +26,8 @@ namespace livestatus
 class Column
 {
 public:
-	typedef function<Value (const Object::Ptr&)> ValueAccessor;
-	typedef function<Object::Ptr (const Object::Ptr&)> ObjectAccessor;
+	typedef boost::function<Value (const Object::Ptr&)> ValueAccessor;
+	typedef boost::function<Object::Ptr (const Object::Ptr&)> ObjectAccessor;
 
 	Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectAccessor);
 

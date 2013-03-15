@@ -20,6 +20,8 @@
 #ifndef VALUE_H
 #define VALUE_H
 
+#include <boost/variant.hpp>
+
 struct cJSON;
 
 namespace icinga

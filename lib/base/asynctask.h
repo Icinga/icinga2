@@ -20,6 +20,11 @@
 #ifndef ASYNCTASK_H
 #define ASYNCTASK_H
 
+#include <boost/function.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/bind.hpp>
+
 namespace icinga
 {
 
@@ -38,7 +43,7 @@ public:
 	/**
 	 * A completion callback for an AsyncTask.
 	 */
-	typedef function<void (const shared_ptr<TClass>&)> CompletionCallback;
+	typedef boost::function<void (const shared_ptr<TClass>&)> CompletionCallback;
 
 	/**
 	 * Constructor for the AsyncTask class.

@@ -18,11 +18,12 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <boost/bind.hpp>
 
 using namespace icinga;
 
 Timer::TimerSet Timer::m_Timers;
-thread Timer::m_Thread;
+boost::thread Timer::m_Thread;
 boost::mutex Timer::m_Mutex;
 boost::condition_variable Timer::m_CV;
 bool Timer::m_StopThread;
@@ -62,7 +63,7 @@ void Timer::Initialize(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_StopThread = false;
-	m_Thread = thread(boost::bind(&Timer::TimerThreadProc));
+	m_Thread = boost::thread(boost::bind(&Timer::TimerThreadProc));
 }
 
 /**

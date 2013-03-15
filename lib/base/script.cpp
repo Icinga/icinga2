@@ -26,10 +26,10 @@ REGISTER_TYPE(Script);
 /**
  * Constructor for the Script class.
  *
- * @param properties A serialized dictionary containing attributes.
+ * @param serializedUpdate A serialized dictionary containing attributes.
  */
-Script::Script(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
+Script::Script(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("language", Attribute_Config, &m_Language);
 	RegisterAttribute("code", Attribute_Config, &m_Code);

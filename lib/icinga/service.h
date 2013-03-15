@@ -167,7 +167,7 @@ public:
 	void AcknowledgeProblem(AcknowledgementType type, double expiry = 0);
 	void ClearAcknowledgement(void);
 
-	void BeginExecuteCheck(const function<void (void)>& callback);
+	void BeginExecuteCheck(const boost::function<void (void)>& callback);
 	void ProcessCheckResult(const Dictionary::Ptr& cr);
 
 	static double CalculateExecutionTime(const Dictionary::Ptr& cr);
@@ -288,7 +288,7 @@ private:
 	long m_SchedulingOffset;
 
 	void CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
-	    const ScriptTask::Ptr& task, const function<void (void)>& callback);
+	    const ScriptTask::Ptr& task, const boost::function<void (void)>& callback);
 
 	/* Downtimes */
 	Attribute<Dictionary::Ptr> m_Downtimes;

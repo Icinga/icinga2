@@ -19,6 +19,7 @@
 
 #include "i2-base.h"
 #include <cJSON.h>
+#include <boost/lexical_cast.hpp>
 
 using namespace icinga;
 

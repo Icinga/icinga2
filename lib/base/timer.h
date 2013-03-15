@@ -20,7 +20,9 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include <time.h>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 namespace icinga {
 
@@ -82,7 +84,7 @@ private:
 
 	static boost::mutex m_Mutex;
 	static boost::condition_variable m_CV;
-	static thread m_Thread;
+	static boost::thread m_Thread;
 	static bool m_StopThread;
 	static TimerSet m_Timers;
 

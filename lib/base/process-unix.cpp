@@ -18,13 +18,15 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <boost/bind.hpp>
+#include <boost/tuple/tuple.hpp>
 
 #ifndef _WIN32
 #include <execvpe.h>
 
 using namespace icinga;
 
-condition_variable Process::m_CV;
+boost::condition_variable Process::m_CV;
 int Process::m_TaskFd;
 Timer::Ptr Process::m_StatusTimer;
 
@@ -60,7 +62,7 @@ void Process::Initialize(void)
 
 	m_TaskFd = fds[1];
 
-	unsigned int threads = thread::hardware_concurrency();
+	unsigned int threads = boost::thread::hardware_concurrency();
 
 	if (threads == 0)
 		threads = 2;
@@ -77,7 +79,7 @@ void Process::Initialize(void)
 		Utility::SetNonBlocking(childTaskFd);
 		Utility::SetCloExec(childTaskFd);
 
-		thread t(&Process::WorkerThreadProc, childTaskFd);
+		boost::thread t(&Process::WorkerThreadProc, childTaskFd);
 		t.detach();
 	}
 
@@ -108,7 +110,7 @@ void Process::WorkerThreadProc(int taskFd)
 		int idx = 0;
 
 		int fd;
-		BOOST_FOREACH(tie(fd, tuples::ignore), tasks) {
+		BOOST_FOREACH(boost::tie(fd, boost::tuples::ignore), tasks) {
 			pfds[idx].fd = fd;
 			pfds[idx].events = POLLIN | POLLHUP;
 			idx++;
@@ -284,7 +286,7 @@ void Process::InitTask(void)
 		String key;
 		Value value;
 		int index = envc;
-		BOOST_FOREACH(tie(key, value), m_ExtraEnvironment) {
+		BOOST_FOREACH(boost::tie(key, value), m_ExtraEnvironment) {
 			String kv = key + "=" + Convert::ToString(value);
 			envp[index] = strdup(kv.CStr());
 			index++;

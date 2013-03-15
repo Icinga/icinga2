@@ -41,7 +41,7 @@ void CompatComponent::Start(void)
 	m_StatusTimer->Reschedule(0);
 
 #ifndef _WIN32
-	m_CommandThread = thread(boost::bind(&CompatComponent::CommandPipeThread, this, GetCommandPath()));
+	m_CommandThread = boost::thread(boost::bind(&CompatComponent::CommandPipeThread, this, GetCommandPath()));
 	m_CommandThread.detach();
 #endif /* _WIN32 */
 }

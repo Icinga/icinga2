@@ -18,6 +18,9 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/compare.hpp>
 
 using namespace icinga;
 

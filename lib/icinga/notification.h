@@ -73,8 +73,8 @@ protected:
 private:
 	Attribute<Value> m_NotificationCommand;
 	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Dictionary::Ptr> m_Users;
-	Attribute<Dictionary::Ptr> m_Groups;
+	Attribute<Array::Ptr> m_Users;
+	Attribute<Array::Ptr> m_Groups;
 	Attribute<String> m_HostName;
 	Attribute<String> m_Service;
 

@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-livestatus.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -70,7 +71,7 @@ vector<String> Table::GetColumnNames(void) const
 	vector<String> names;
 
 	String name;
-	BOOST_FOREACH(tie(name, tuples::ignore), m_Columns) {
+	BOOST_FOREACH(boost::tie(name, boost::tuples::ignore), m_Columns) {
 		names.push_back(name);
 	}
 

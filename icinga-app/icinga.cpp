@@ -18,7 +18,8 @@
  ******************************************************************************/
 
 #include <i2-icinga.h>
-
+#include <boost/program_options.hpp>
+#include <boost/tuple/tuple.hpp>
 
 #ifndef _WIN32
 #	include "icinga-version.h"
@@ -49,7 +50,7 @@ static bool LoadConfigFiles(bool validateOnly)
 	}
 
 	String name, fragment;
-	BOOST_FOREACH(tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
+	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
 		ConfigCompiler::CompileText(name, fragment);
 	}
 

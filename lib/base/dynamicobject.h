@@ -20,6 +20,8 @@
 #ifndef DYNAMICOBJECT_H
 #define DYNAMICOBJECT_H
 
+#include <boost/thread/once.hpp>
+
 namespace icinga
 {
 

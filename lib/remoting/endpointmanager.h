@@ -53,7 +53,7 @@ public:
 	void SendMulticastMessage(const RequestMessage& message);
 	void SendMulticastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
 
-	typedef function<void(const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> APICallback;
+	typedef boost::function<void(const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> APICallback;
 
 	void SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, RequestMessage& message,
 	    const APICallback& callback, double timeout = 30);
@@ -84,7 +84,7 @@ private:
 	{
 		double Timeout;
 		RequestMessage Request;
-		function<void(const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> Callback;
+		boost::function<void(const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> Callback;
 
 		bool HasTimedOut(void) const
 		{

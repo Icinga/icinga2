@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -141,7 +142,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 
 	String key;
 	Value value;
-	BOOST_FOREACH(tie(key, value), dictionary) {
+	BOOST_FOREACH(boost::tie(key, value), dictionary) {
 		TypeValidationResult overallResult = ValidationUnknownField;
 		vector<TypeRuleList::Ptr> subRuleLists;
 

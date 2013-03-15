@@ -19,6 +19,7 @@
 
 #include "i2-base.h"
 #include <cJSON.h>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -248,7 +249,7 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
 
 	String key;
 	Value value;
-	BOOST_FOREACH(tie(key, value), m_Data) {
+	BOOST_FOREACH(boost::tie(key, value), m_Data) {
 		clone->Set(key, value);
 	}
 
@@ -294,7 +295,7 @@ cJSON *Dictionary::ToJson(void) const
 
 		String key;
 		Value value;
-		BOOST_FOREACH(tie(key, value), m_Data) {
+		BOOST_FOREACH(boost::tie(key, value), m_Data) {
 			cJSON_AddItemToObject(json, key.CStr(), value.ToJson());
 		}
 	} catch (...) {

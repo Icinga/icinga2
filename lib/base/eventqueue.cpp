@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <boost/bind.hpp>
 
 using namespace icinga;
 
@@ -27,7 +28,7 @@ using namespace icinga;
 EventQueue::EventQueue(void)
 	: m_Stopped(false)
 {
-	unsigned int threads = thread::hardware_concurrency();
+	unsigned int threads = boost::thread::hardware_concurrency();
 
 	if (threads == 0)
 		threads = 1;
@@ -37,7 +38,7 @@ EventQueue::EventQueue(void)
 	for (unsigned int i = 0; i < threads; i++)
 		m_Threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
 
-	thread reportThread(boost::bind(&EventQueue::ReportThreadProc, this));
+	boost::thread reportThread(boost::bind(&EventQueue::ReportThreadProc, this));
 	reportThread.detach();
 }
 

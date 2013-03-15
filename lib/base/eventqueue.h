@@ -20,6 +20,11 @@
 #ifndef EVENTQUEUE_H
 #define EVENTQUEUE_H
 
+#include <boost/function.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
+
 namespace icinga
 {
 
@@ -33,7 +38,7 @@ class Timer;
 class I2_BASE_API EventQueue
 {
 public:
-	typedef function<void ()> Callback;
+	typedef boost::function<void ()> Callback;
 
 	EventQueue(void);
 	~EventQueue(void);
@@ -44,10 +49,10 @@ public:
 	void Post(const Callback& callback);
 
 private:
-	thread_group m_Threads;
+	boost::thread_group m_Threads;
 
 	boost::mutex m_Mutex;
-	condition_variable m_CV;
+	boost::condition_variable m_CV;
 
 	bool m_Stopped;
 	stack<Callback> m_Events;

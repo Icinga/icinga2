@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;
 

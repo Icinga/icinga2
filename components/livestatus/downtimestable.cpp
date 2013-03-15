@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-livestatus.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -50,7 +51,7 @@ String DowntimesTable::GetName(void) const
 	return "downtimes";
 }
 
-void DowntimesTable::FetchRows(const function<void (const Object::Ptr&)>& addRowFn)
+void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
@@ -62,7 +63,7 @@ void DowntimesTable::FetchRows(const function<void (const Object::Ptr&)>& addRow
 		ObjectLock olock(downtimes);
 
 		Value downtime;
-		BOOST_FOREACH(tie(tuples::ignore, downtime), downtimes) {
+		BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
 			addRowFn(downtime);
 		}
 	}

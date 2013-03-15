@@ -29,7 +29,7 @@ namespace icinga
  * @ingroup base
  */
 template<typename T>
-class Singleton
+class I2_BASE_API Singleton
 {
 public:
 	static T *GetInstance(void)
@@ -38,16 +38,19 @@ public:
 		static boost::mutex mutex;
 		boost::mutex::scoped_lock lock(mutex);
 
-		static T *instance = NULL;
+		if (!m_Instance)
+			m_Instance = new T();
 
-		if (!instance)
-			instance = new T();
-
-		return instance;
+		return m_Instance;
 	}
 private:
 	friend T *T::GetInstance(void);
+
+	static T *m_Instance;
 };
+
+template<typename T>
+T *Singleton<T>::m_Instance = NULL;
 
 }
 

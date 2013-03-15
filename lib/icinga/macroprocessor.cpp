@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -93,7 +94,7 @@ Dictionary::Ptr MacroProcessor::MergeMacroDicts(const vector<Dictionary::Ptr>& d
 
 		String key;
 		Value value;
-		BOOST_FOREACH(tie(key, value), dict) {
+		BOOST_FOREACH(boost::tie(key, value), dict) {
 			if (!value.IsScalar())
 				continue;
 

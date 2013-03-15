@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include <boost/bind.hpp>
 
 using namespace icinga;
 

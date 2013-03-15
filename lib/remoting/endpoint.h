@@ -61,8 +61,8 @@ public:
 
 	void ClearSubscriptions(void);
 
-	void RegisterTopicHandler(const String& topic, const function<Callback>& callback);
-	void UnregisterTopicHandler(const String& topic, const function<Callback>& callback);
+	void RegisterTopicHandler(const String& topic, const boost::function<Callback>& callback);
+	void UnregisterTopicHandler(const String& topic, const boost::function<Callback>& callback);
 
 	String GetNode(void) const;
 	String GetService(void) const;

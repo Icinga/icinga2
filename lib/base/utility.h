@@ -20,6 +20,8 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
+#include <boost/function.hpp>
+
 namespace icinga
 {
 
@@ -53,7 +55,7 @@ public:
 
 	static String NewUUID(void);
 
-	static bool Glob(const String& pathSpec, const function<void (const String&)>& callback);
+	static bool Glob(const String& pathSpec, const boost::function<void (const String&)>& callback);
 
 	static void QueueAsyncCallback(const boost::function<void (void)>& callback);
 

@@ -578,7 +578,7 @@ bool Service::IsAllowedChecker(const String& checker) const
 /**
  * @threadsafety Always.
  */
-void Service::BeginExecuteCheck(const function<void (void)>& callback)
+void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 {
 	ASSERT(!OwnsLock());
 
@@ -629,7 +629,7 @@ void Service::BeginExecuteCheck(const function<void (void)>& callback)
  * @threadsafety Always.
  */
 void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
-    const ScriptTask::Ptr& task, const function<void (void)>& callback)
+    const ScriptTask::Ptr& task, const boost::function<void (void)>& callback)
 {
 	ASSERT(!OwnsLock());
 

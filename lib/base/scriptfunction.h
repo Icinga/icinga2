@@ -20,6 +20,8 @@
 #ifndef SCRIPTFUNCTION_H
 #define SCRIPTFUNCTION_H
 
+#include <boost/function.hpp>
+
 namespace icinga
 {
 
@@ -36,7 +38,7 @@ public:
 	typedef shared_ptr<ScriptFunction> Ptr;
 	typedef weak_ptr<ScriptFunction> WeakPtr;
 
-	typedef function<void (const shared_ptr<ScriptTask>&, const vector<Value>& arguments)> Callback;
+	typedef boost::function<void (const shared_ptr<ScriptTask>&, const vector<Value>& arguments)> Callback;
 
 	explicit ScriptFunction(const Callback& function);
 

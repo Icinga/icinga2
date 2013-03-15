@@ -34,6 +34,8 @@ public:
 	typedef shared_ptr<Table> Ptr;
 	typedef weak_ptr<Table> WeakPtr;
 
+	typedef boost::function<void (const Object::Ptr&)> AddRowFunction;
+
 	static Table::Ptr GetByName(const String& name);
 
 	
@@ -48,7 +50,7 @@ public:
 protected:
 	Table(void);
 
-	virtual void FetchRows(const function<void (const Object::Ptr&)>& addRowFn) = 0;
+	virtual void FetchRows(const AddRowFunction& addRowFn) = 0;
 
 	static Value ZeroAccessor(const Object::Ptr&);
 	static Value OneAccessor(const Object::Ptr&);

@@ -121,7 +121,7 @@ String ServicesTable::GetName(void) const
 	return "services";
 }
 
-void ServicesTable::FetchRows(const function<void (const Object::Ptr&)>& addRowFn)
+void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		addRowFn(object);

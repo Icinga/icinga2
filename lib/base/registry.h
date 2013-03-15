@@ -29,7 +29,7 @@ namespace icinga
  * @ingroup base
  */
 template<typename T>
-class Registry
+class I2_BASE_API Registry
 {
 public:
 	typedef map<String, T, string_iless> ItemMap;

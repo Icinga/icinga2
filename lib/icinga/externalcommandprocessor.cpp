@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -49,7 +50,7 @@ void ExternalCommandProcessor::Execute(const String& line)
 	if (ts == 0)
 		BOOST_THROW_EXCEPTION(invalid_argument("Invalid timestamp in command: " + line));
 
-	vector<String> argv = args.Split(is_any_of(";"));
+	vector<String> argv = args.Split(boost::is_any_of(";"));
 
 	if (argv.empty())
 		BOOST_THROW_EXCEPTION(invalid_argument("Missing arguments in command: " + line));

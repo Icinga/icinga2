@@ -126,21 +126,8 @@ using std::type_info;
 #include <boost/smart_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/bind.hpp>
-#include <boost/function.hpp>
 #include <boost/signals2.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/compare.hpp>
-#include <boost/thread.hpp>
-#include <boost/variant.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/program_options.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception/error_info.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -149,23 +136,11 @@ using std::type_info;
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
-using boost::enable_shared_from_this;
 using boost::dynamic_pointer_cast;
 using boost::static_pointer_cast;
-using boost::function;
-using boost::thread;
-using boost::thread_group;
-using boost::recursive_mutex;
-using boost::condition_variable;
-using boost::system_time;
-using boost::posix_time::millisec;
-using boost::tie;
-using boost::rethrow_exception;
-using boost::current_exception;
 using boost::diagnostic_information;
 using boost::errinfo_api_function;
 using boost::errinfo_errno;
@@ -177,7 +152,6 @@ using boost::multi_index::ordered_unique;
 using boost::multi_index::ordered_non_unique;
 using boost::multi_index::nth_index;
 
-namespace tuples = boost::tuples;
 namespace signals2 = boost::signals2;
 
 #if defined(__APPLE__) && defined(__MACH__)

@@ -89,7 +89,7 @@ private:
         set<ConfigItem::WeakPtr> m_ChildObjects; /**< Instantiated items
                                                      * that inherit from this item */
 
-	static recursive_mutex m_Mutex;
+	static boost::mutex m_Mutex;
 
 	typedef map<pair<String, String>, ConfigItem::Ptr> ItemMap;
 	static ItemMap m_Items; /**< All registered configuration items. */

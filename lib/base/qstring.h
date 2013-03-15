@@ -20,6 +20,8 @@
 #ifndef STRING_H
 #define STRING_H
 
+#include <boost/algorithm/string/split.hpp>
+
 namespace icinga {
 
 /**

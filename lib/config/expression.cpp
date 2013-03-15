@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -89,7 +90,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 				String key;
 				Value value;
-				BOOST_FOREACH(tie(key, value), valueDict) {
+				BOOST_FOREACH(boost::tie(key, value), valueDict) {
 					dict->Set(key, value);
 				}
 			} else {
@@ -134,7 +135,7 @@ void Expression::DumpValue(ostream& fp, int indent, const Value& value, bool inl
 
 		String k;
 		Value v;
-		BOOST_FOREACH(tie(k, v), static_cast<Dictionary::Ptr>(value)) {
+		BOOST_FOREACH(boost::tie(k, v), static_cast<Dictionary::Ptr>(value)) {
 			for (int i = 0; i < indent; i++)
 				fp << "\t";
 

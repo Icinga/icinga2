@@ -40,7 +40,7 @@ void CheckerComponent::Start(void)
 
 	m_Stopped = false;
 
-	m_Thread = thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
+	m_Thread = boost::thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
 
 	m_ResultTimer = boost::make_shared<Timer>();
 	m_ResultTimer->SetInterval(5);

@@ -29,7 +29,7 @@ public:
 	static void Execute(double time, const String& command, const vector<String>& arguments);
 
 private:
-	typedef function<void (double time, const vector<String>& arguments)> Callback;
+	typedef boost::function<void (double time, const vector<String>& arguments)> Callback;
 
 	static boost::once_flag m_InitializeOnce;
 	static boost::mutex m_Mutex;

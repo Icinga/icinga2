@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -137,7 +138,7 @@ void Service::TriggerDowntimes(void)
 	ObjectLock olock(downtimes);
 
 	String id;
-	BOOST_FOREACH(tie(id, tuples::ignore), downtimes) {
+	BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), downtimes) {
 		TriggerDowntime(id);
 	}
 }
@@ -165,7 +166,7 @@ void Service::TriggerDowntime(const String& id)
 	Dictionary::Ptr triggers = downtime->Get("triggers");
 	ObjectLock olock(triggers);
 	String tid;
-	BOOST_FOREACH(tie(tid, tuples::ignore), triggers) {
+	BOOST_FOREACH(boost::tie(tid, boost::tuples::ignore), triggers) {
 		TriggerDowntime(tid);
 	}
 
@@ -295,7 +296,7 @@ void Service::RefreshDowntimesCache(void)
 
 		String id;
 		Dictionary::Ptr downtime;
-		BOOST_FOREACH(tie(id, downtime), downtimes) {
+		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 			int legacy_id = downtime->Get("legacy_id");
 
 			if (legacy_id >= m_NextDowntimeID)
@@ -344,7 +345,7 @@ void Service::RemoveExpiredDowntimes(void)
 
 		String id;
 		Dictionary::Ptr downtime;
-		BOOST_FOREACH(tie(id, downtime), downtimes) {
+		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 			if (IsDowntimeExpired(downtime))
 				expiredDowntimes.push_back(id);
 		}
@@ -383,7 +384,7 @@ bool Service::IsInDowntime(void) const
 	ObjectLock olock(downtimes);
 
 	Dictionary::Ptr downtime;
-	BOOST_FOREACH(tie(tuples::ignore, downtime), downtimes) {
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
 		if (Service::IsDowntimeActive(downtime))
 			return true;
 	}

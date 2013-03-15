@@ -20,6 +20,8 @@
 #ifndef DYNAMICTYPE_H
 #define DYNAMICTYPE_H
 
+#include <boost/function.hpp>
+
 namespace icinga
 {
 
@@ -29,7 +31,7 @@ public:
 	typedef shared_ptr<DynamicType> Ptr;
 	typedef weak_ptr<DynamicType> WeakPtr;
 
-	typedef function<DynamicObject::Ptr (const Dictionary::Ptr&)> ObjectFactory;
+	typedef boost::function<DynamicObject::Ptr (const Dictionary::Ptr&)> ObjectFactory;
 
 	DynamicType(const String& name, const ObjectFactory& factory);
 
@@ -73,7 +75,7 @@ private:
  *
  * @ingroup base
  */
-class I2_BASE_API DynamicTypeRegistry : public Registry<DynamicType::Ptr>
+class DynamicTypeRegistry : public Registry<DynamicType::Ptr>
 { };
 
 /**

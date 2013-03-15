@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -88,13 +89,12 @@ set<User::Ptr> Notification::GetUsers(void) const
 {
 	set<User::Ptr> result;
 
-	Dictionary::Ptr users = m_Users;
+	Array::Ptr users = m_Users;
 
 	if (users) {
 		ObjectLock olock(users);
 
-		String name;
-		BOOST_FOREACH(tie(tuples::ignore, name), users) {
+		BOOST_FOREACH(const String& name, users) {
 			User::Ptr user = User::GetByName(name);
 
 			if (!user)
@@ -114,13 +114,12 @@ set<UserGroup::Ptr> Notification::GetGroups(void) const
 {
 	set<UserGroup::Ptr> result;
 
-	Dictionary::Ptr groups = m_Groups;
+	Array::Ptr groups = m_Groups;
 
 	if (groups) {
 		ObjectLock olock(groups);
 
-		String name;
-		BOOST_FOREACH(tie(tuples::ignore, name), groups) {
+		BOOST_FOREACH(const String& name, groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (!ug)

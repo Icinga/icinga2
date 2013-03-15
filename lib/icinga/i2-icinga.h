@@ -31,9 +31,6 @@
 #include <i2-config.h>
 #include <i2-remoting.h>
 
-using boost::iterator_range;
-using boost::algorithm::is_any_of;
-
 #ifdef I2_ICINGA_BUILD
 #	define I2_ICINGA_API I2_EXPORT
 #else /* I2_ICINGA_BUILD */

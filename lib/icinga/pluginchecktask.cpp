@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -104,7 +105,7 @@ Dictionary::Ptr PluginCheckTask::ParseCheckOutput(const String& output)
 	String text;
 	String perfdata;
 
-	vector<String> lines = output.Split(is_any_of("\r\n"));
+	vector<String> lines = output.Split(boost::is_any_of("\r\n"));
 
 	BOOST_FOREACH (const String& line, lines) {
 		size_t delim = line.FindFirstOf("|");

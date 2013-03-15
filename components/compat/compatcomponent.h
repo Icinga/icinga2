@@ -46,7 +46,7 @@ private:
 	Attribute<String> m_CommandPath;
 
 #ifndef _WIN32
-	thread m_CommandThread;
+	boost::thread m_CommandThread;
 
 	void CommandPipeThread(const String& commandPath);
 #endif /* _WIN32 */

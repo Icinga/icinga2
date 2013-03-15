@@ -20,6 +20,10 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/once.hpp>
+
 namespace icinga
 {
 
@@ -71,7 +75,7 @@ private:
 	static boost::mutex m_Mutex;
 	static deque<Process::Ptr> m_Tasks;
 #ifndef _WIN32
-	static condition_variable m_CV;
+	static boost::condition_variable m_CV;
 	static int m_TaskFd;
 
 	static Timer::Ptr m_StatusTimer;

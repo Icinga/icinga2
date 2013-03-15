@@ -20,6 +20,8 @@
 #ifndef STREAM_H
 #define STREAM_H
 
+#include <boost/exception_ptr.hpp>
+
 namespace icinga
 {
 

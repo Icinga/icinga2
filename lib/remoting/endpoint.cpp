@@ -199,7 +199,7 @@ void Endpoint::SetSubscriptions(const Dictionary::Ptr& subscriptions)
 	Touch("subscriptions");
 }
 
-void Endpoint::RegisterTopicHandler(const String& topic, const function<Endpoint::Callback>& callback)
+void Endpoint::RegisterTopicHandler(const String& topic, const boost::function<Endpoint::Callback>& callback)
 {
 	ObjectLock olock(this);
 
@@ -222,7 +222,7 @@ void Endpoint::RegisterTopicHandler(const String& topic, const function<Endpoint
 	RegisterSubscription(topic);
 }
 
-void Endpoint::UnregisterTopicHandler(const String&, const function<Endpoint::Callback>&)
+void Endpoint::UnregisterTopicHandler(const String&, const boost::function<Endpoint::Callback>&)
 {
 	// TODO: implement
 	//m_TopicHandlers[method] -= callback;

@@ -20,6 +20,8 @@
 #ifndef STACKTRACE_H
 #define STACKTRACE_H
 
+#include <boost/thread/once.hpp>
+
 namespace icinga
 {
 

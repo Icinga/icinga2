@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-livestatus.h"
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -50,7 +51,7 @@ String CommentsTable::GetName(void) const
 	return "comments";
 }
 
-void CommentsTable::FetchRows(const function<void (const Object::Ptr&)>& addRowFn)
+void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
@@ -62,7 +63,7 @@ void CommentsTable::FetchRows(const function<void (const Object::Ptr&)>& addRowF
 		ObjectLock olock(comments);
 
 		Value comment;
-		BOOST_FOREACH(tie(tuples::ignore, comment), comments) {
+		BOOST_FOREACH(boost::tie(boost::tuples::ignore, comment), comments) {
 			addRowFn(comment);
 		}
 	}

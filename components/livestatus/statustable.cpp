@@ -96,7 +96,7 @@ String StatusTable::GetName(void) const
 	return "status";
 }
 
-void StatusTable::FetchRows(const function<void (const Object::Ptr&)>& addRowFn)
+void StatusTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	Object::Ptr obj = boost::make_shared<Object>();
 
