@@ -40,10 +40,6 @@ public:
 
 	virtual void Start(void);
 
-	void AddSegment(double s, double end);
-	void RemoveSegment(double begin, double end);
-	void PurgeSegments(double end);
-
 	void UpdateRegion(double begin, double end);
 
 	bool IsInside(double ts) const;
@@ -56,6 +52,11 @@ private:
 	Attribute<double> m_ValidBegin;
 	Attribute<double> m_ValidEnd;
 	Attribute<Array::Ptr> m_Segments;
+
+	void AddSegment(double s, double end);
+	void AddSegment(const Dictionary::Ptr& segment);
+	void RemoveSegment(double begin, double end);
+	void PurgeSegments(double end);
 
 	static Timer::Ptr m_UpdateTimer;
 	static void UpdateTimerHandler(void);

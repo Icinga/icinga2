@@ -104,6 +104,11 @@ void TimePeriod::AddSegment(double begin, double end)
 	Touch("segments");
 }
 
+void TimePeriod::AddSegment(const Dictionary::Ptr& segment)
+{
+	AddSegment(segment->Get("begin"), segment->Get("end"));
+}
+
 void TimePeriod::RemoveSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
@@ -199,7 +204,16 @@ void TimePeriod::UpdateRegion(double begin, double end)
 	}
 
 	task->Start();
-	task->GetResult();
+	Array::Ptr segments = task->GetResult();
+
+	{
+		ObjectLock olock(this);
+		RemoveSegment(begin, end);
+
+		BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
+			AddSegment(segment);
+		}
+	}
 }
 
 bool TimePeriod::IsInside(double ts) const
@@ -274,10 +288,8 @@ void TimePeriod::EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const vector
 	double begin = arguments[1];
 	double end = arguments[2];
 
-	ObjectLock olock(tp);
-	tp->RemoveSegment(begin, end);
-
-	task->FinishResult(Empty);
+	Array::Ptr segments = boost::make_shared<Array>();
+	task->FinishResult(segments);
 }
 
 void TimePeriod::EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const vector<Value>& arguments)
@@ -289,16 +301,17 @@ void TimePeriod::EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const 
 	double begin = arguments[1];
 	double end = arguments[2];
 
-	{
-		ObjectLock olock(tp);
+	Array::Ptr segments = boost::make_shared<Array>();
 
-		tp->RemoveSegment(begin, end);
+	for (long t = begin; t < end; t += 60) {
+		if ((t / 60) % 2 == 0) {
+			Dictionary::Ptr segment = boost::make_shared<Dictionary>();
+			segment->Set("begin", t);
+			segment->Set("end", t + 60);
 
-		for (long t = begin; t < end; t += 60) {
-			if ((t / 60) % 2 == 0)
-				tp->AddSegment(t, t + 60);
+			segments->Add(segment);
 		}
 	}
 
-	task->FinishResult(Empty);
+	task->FinishResult(segments);
 }
