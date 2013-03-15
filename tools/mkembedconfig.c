@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 	int cols;
 	FILE *infp, *outfp;
 	int i;
+	char id[32];
 
 	if (argc < 3) {
 		fprintf(stderr, "Syntax: %s <in-file> <out-file>\n", argv[0]);
@@ -67,11 +68,10 @@ int main(int argc, char **argv)
 		cols++;
 	}
 
-	char id[32];
 	strncpy(id, argv[1], sizeof(id));
 	id[sizeof(id) - 1] = '\0';
 
-	for (i = 0; i < sizeof(id) - 1; i++) {
+	for (i = 0; id[i]; i++) {
 		if ((id[i] < 'a' || id[i] > 'z') && (id[i] < 'A' || id[i] > 'Z'))
 			id[i] = '_';
 	}
