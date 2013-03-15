@@ -210,6 +210,7 @@ void TimePeriod::UpdateRegion(double begin, double end)
 		ObjectLock olock(this);
 		RemoveSegment(begin, end);
 
+		ObjectLock dlock(segments);
 		BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
 			AddSegment(segment);
 		}
@@ -284,9 +285,9 @@ void TimePeriod::EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const vector
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(runtime_error("Expected 3 arguments."));
 
-	TimePeriod::Ptr tp = arguments[0];
-	double begin = arguments[1];
-	double end = arguments[2];
+//	TimePeriod::Ptr tp = arguments[0];
+//	double begin = arguments[1];
+//	double end = arguments[2];
 
 	Array::Ptr segments = boost::make_shared<Array>();
 	task->FinishResult(segments);
