@@ -38,19 +38,16 @@ public:
 		static boost::mutex mutex;
 		boost::mutex::scoped_lock lock(mutex);
 
-		if (!m_Instance)
-			m_Instance = new T();
+		static T *instance = NULL;
 
-		return m_Instance;
+		if (!instance)
+			instance = new T();
+
+		return instance;
 	}
 private:
 	friend T *T::GetInstance(void);
-
-	static T *m_Instance;
 };
-
-template<typename T>
-T *Singleton<T>::m_Instance = NULL;
 
 }
 
