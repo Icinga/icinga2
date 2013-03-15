@@ -11,7 +11,7 @@ AM_YFLAGS = -d
 EXTRA_DIST = \
 	base-type.conf
 
-.conf.cpp: $(top_builddir)/tools/mkembedconfig
+.conf.cpp: $(top_builddir)/tools/mkembedconfig.c
 	$(top_builddir)/tools/mkembedconfig $< $@
 
 libconfig_la_SOURCES = \
