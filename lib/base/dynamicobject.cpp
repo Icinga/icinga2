@@ -439,7 +439,7 @@ ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
 	if (funcName.IsEmpty())
 		return ScriptTask::Ptr();
 
-	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
+	ScriptFunction::Ptr func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
 
 	if (!func)
 		BOOST_THROW_EXCEPTION(invalid_argument("Function '" + funcName + "' does not exist."));

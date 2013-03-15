@@ -34,6 +34,7 @@ icinga2_LDADD = \
 	-dlopen ${top_builddir}/components/compat/libcompat.la \
 	-dlopen ${top_builddir}/components/delegation/libdelegation.la \
 	-dlopen ${top_builddir}/components/demo/libdemo.la \
+	-dlopen ${top_builddir}/components/livestatus/liblivestatus.la \
 	-dlopen ${top_builddir}/components/notification/libnotification.la
 
 if PYTHON_USE

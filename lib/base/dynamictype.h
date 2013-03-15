@@ -69,6 +69,14 @@ private:
 };
 
 /**
+ * A registry for DynamicType objects.
+ *
+ * @ingroup base
+ */
+class DynamicTypeRegistry : public Registry<DynamicType::Ptr>
+{ };
+
+/**
  * Helper class for registering DynamicObject implementation classes.
  *
  * @ingroup base

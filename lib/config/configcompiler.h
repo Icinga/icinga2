@@ -58,9 +58,6 @@ public:
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
 
-	static void RegisterConfigFragment(const String& name, const String& fragment);
-	static map<String, String>& GetConfigFragments(void);
-
 private:
 	String m_Path;
 	istream *m_Input;
@@ -75,6 +72,9 @@ private:
 	void DestroyScanner(void);
 };
 
+class ConfigFragmentRegistry : public Registry<String>
+{ };
+
 /**
  * Helper class for registering config fragments.
  *
@@ -85,7 +85,7 @@ class RegisterConfigFragmentHelper
 public:
 	RegisterConfigFragmentHelper(const String& name, const String& fragment)
 	{
-		ConfigCompiler::RegisterConfigFragment(name, fragment);
+		ConfigFragmentRegistry::GetInstance()->Register(name, fragment);
 	}
 };
 

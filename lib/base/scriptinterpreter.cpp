@@ -27,7 +27,7 @@ ScriptInterpreter::ScriptInterpreter(const Script::Ptr&)
 ScriptInterpreter::~ScriptInterpreter(void)
 {
 	BOOST_FOREACH(const String& function, m_SubscribedFunctions) {
-		ScriptFunction::Unregister(function);
+		ScriptFunctionRegistry::GetInstance()->Unregister(function);
 	}
 }
 
@@ -38,7 +38,7 @@ void ScriptInterpreter::SubscribeFunction(const String& name)
 	m_SubscribedFunctions.insert(name);
 
 	ScriptFunction::Ptr sf = boost::make_shared<ScriptFunction>(boost::bind(&ScriptInterpreter::ProcessCall, this, _1, name, _2));
-	ScriptFunction::Register(name, sf);
+	ScriptFunctionRegistry::GetInstance()->Register(name, sf);
 }
 
 void ScriptInterpreter::UnsubscribeFunction(const String& name)
@@ -46,5 +46,5 @@ void ScriptInterpreter::UnsubscribeFunction(const String& name)
 	ObjectLock olock(this);
 
 	m_SubscribedFunctions.erase(name);
-	ScriptFunction::Unregister(name);
+	ScriptFunctionRegistry::GetInstance()->Unregister(name);
 }

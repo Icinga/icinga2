@@ -44,6 +44,7 @@ libbase_la_SOURCES =  \
 	process.h \
 	qstring.cpp \
 	qstring.h \
+	registry.h \
 	ringbuffer.cpp \
 	ringbuffer.h \
 	script.cpp \
@@ -56,6 +57,7 @@ libbase_la_SOURCES =  \
 	scriptlanguage.h \
 	scripttask.cpp \
 	scripttask.h \
+	singleton.h \
 	socket.cpp \
 	socket.h \
 	stacktrace.cpp \

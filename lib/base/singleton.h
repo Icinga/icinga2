@@ -17,65 +17,41 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SCRIPTFUNCTION_H
-#define SCRIPTFUNCTION_H
+#ifndef SINGLETON_H
+#define SINGLETON_H
 
 namespace icinga
 {
 
-class ScriptTask;
-
 /**
- * A script function that can be used to execute a script task.
+ * A singleton.
  *
  * @ingroup base
  */
-class I2_BASE_API ScriptFunction : public Object
+template<typename T>
+class I2_BASE_API Singleton
 {
 public:
-	typedef shared_ptr<ScriptFunction> Ptr;
-	typedef weak_ptr<ScriptFunction> WeakPtr;
-
-	typedef function<void (const shared_ptr<ScriptTask>&, const vector<Value>& arguments)> Callback;
-
-	explicit ScriptFunction(const Callback& function);
-
-private:
-	Callback m_Callback;
-
-	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Value>& arguments);
-
-	friend class ScriptTask;
-};
-
-/**
- * A registry for script functions.
- *
- * @ingroup base
- */
-class I2_BASE_API ScriptFunctionRegistry : public Registry<ScriptFunction::Ptr>
-{ };
-
-/**
- * Helper class for registering ScriptFunction implementation classes.
- *
- * @ingroup base
- */
-class RegisterFunctionHelper
-{
-public:
-	RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
+	static T *GetInstance(void)
 	{
-		ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(function);
-		ScriptFunctionRegistry::GetInstance()->Register(name, func);
+		/* FIXME: This relies on static initializers being atomic. */
+		static boost::mutex mutex;
+		boost::mutex::scoped_lock lock(mutex);
+
+		if (!m_Instance)
+			m_Instance = new T();
+
+		return m_Instance;
 	}
+private:
+	friend T *T::GetInstance(void);
+
+	static T *m_Instance;
 };
 
-#define REGISTER_SCRIPTFUNCTION(name, callback) \
-	static icinga::RegisterFunctionHelper g_RegisterSF_ ## name(#name, callback)
-
-#undef MKSYMBOL
+template<typename T>
+T *Singleton<T>::m_Instance = NULL;
 
 }
 
-#endif /* SCRIPTFUNCTION_H */
+#endif /* SINGLETON_H */

@@ -223,6 +223,8 @@ namespace signals2 = boost::signals2;
 #include "tlsstream.h"
 #include "asynctask.h"
 #include "process.h"
+#include "singleton.h"
+#include "registry.h"
 #include "scriptfunction.h"
 #include "scripttask.h"
 #include "attribute.h"

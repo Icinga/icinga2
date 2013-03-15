@@ -36,7 +36,7 @@ public:
 
 	EndpointManager(void);
 
-	static EndpointManager::Ptr GetInstance(void);
+	static EndpointManager *GetInstance(void);
 
 	void SetIdentity(const String& identity);
 	String GetIdentity(void) const;
@@ -53,14 +53,14 @@ public:
 	void SendMulticastMessage(const RequestMessage& message);
 	void SendMulticastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
 
-	typedef function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> APICallback;
+	typedef function<void(const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> APICallback;
 
 	void SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, RequestMessage& message,
 	    const APICallback& callback, double timeout = 30);
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
-	signals2::signal<void (const EndpointManager::Ptr&, const Endpoint::Ptr&)> OnNewEndpoint;
+	signals2::signal<void (const Endpoint::Ptr&)> OnNewEndpoint;
 
 private:
 	String m_Identity;
@@ -84,7 +84,7 @@ private:
 	{
 		double Timeout;
 		RequestMessage Request;
-		function<void(const EndpointManager::Ptr&, const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> Callback;
+		function<void(const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> Callback;
 
 		bool HasTimedOut(void) const
 		{

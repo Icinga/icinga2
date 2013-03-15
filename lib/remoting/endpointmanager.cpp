@@ -399,8 +399,8 @@ void EndpointManager::RequestTimerHandler(void)
 	map<String, PendingRequest>::iterator it;
 	for (it = m_Requests.begin(); it != m_Requests.end(); ++it) {
 		if (it->second.HasTimedOut()) {
-			it->second.Callback(GetSelf(), Endpoint::Ptr(),
-			    it->second.Request, ResponseMessage(), true);
+			it->second.Callback(Endpoint::Ptr(), it->second.Request,
+			    ResponseMessage(), true);
 
 			m_Requests.erase(it);
 
@@ -424,17 +424,12 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender,
 	if (it == m_Requests.end())
 		return;
 
-	it->second.Callback(GetSelf(), sender, it->second.Request, message, false);
+	it->second.Callback(sender, it->second.Request, message, false);
 
 	m_Requests.erase(it);
 }
 
-EndpointManager::Ptr EndpointManager::GetInstance(void)
+EndpointManager *EndpointManager::GetInstance(void)
 {
-	static EndpointManager::Ptr instance;
-
-	if (!instance)
-		instance = boost::make_shared<EndpointManager>();
-
-	return instance;
+	return Singleton<EndpointManager>::GetInstance();
 }

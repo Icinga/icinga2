@@ -210,14 +210,3 @@ void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 
 	m_IncludeSearchDirs.push_back(dir);
 }
-
-void ConfigCompiler::RegisterConfigFragment(const String& name, const String& fragment)
-{
-	GetConfigFragments()[name] = fragment;
-}
-
-map<String, String>& ConfigCompiler::GetConfigFragments(void)
-{
-	static map<String, String> fragments;
-	return fragments;
-}

@@ -17,65 +17,94 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SCRIPTFUNCTION_H
-#define SCRIPTFUNCTION_H
+#ifndef REGISTRY_H
+#define REGISTRY_H
 
 namespace icinga
 {
 
-class ScriptTask;
-
 /**
- * A script function that can be used to execute a script task.
+ * A registry.
  *
  * @ingroup base
  */
-class I2_BASE_API ScriptFunction : public Object
+template<typename T>
+class I2_BASE_API Registry
 {
 public:
-	typedef shared_ptr<ScriptFunction> Ptr;
-	typedef weak_ptr<ScriptFunction> WeakPtr;
+	typedef map<String, T, string_iless> ItemMap;
 
-	typedef function<void (const shared_ptr<ScriptTask>&, const vector<Value>& arguments)> Callback;
+	static Registry<T> *GetInstance(void)
+	{
+		return Singleton<Registry<T> >::GetInstance();
+	}
 
-	explicit ScriptFunction(const Callback& function);
+	void Register(const String& name, const T& item)
+	{
+		bool old_item = false;
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+
+			if (m_Items.erase(name) > 0)
+				old_item = true;
+
+			m_Items[name] = item;
+		}
+
+		if (old_item)
+			OnUnregistered(name);
+
+		OnRegistered(name, item);
+	}
+
+	void Unregister(const String& name)
+	{
+		int erased;
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			erased = m_Items.erase(name);
+		}
+
+		if (erased > 0)
+			OnUnregistered(name);
+	}
+
+	T GetItem(const String& name) const
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		typename ItemMap::const_iterator it;
+		it = m_Items.find(name);
+
+		if (it == m_Items.end())
+			return T();
+
+		return it->second;
+	}
+
+	ItemMap GetItems(void) const
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		return m_Items; /* Makes a copy of the map. */
+	}
+
+	static signals2::signal<void (const String&, const T&)> OnRegistered;
+	static signals2::signal<void (const String&)> OnUnregistered;
 
 private:
-	Callback m_Callback;
-
-	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Value>& arguments);
-
-	friend class ScriptTask;
+	mutable boost::mutex m_Mutex;
+	typename Registry<T>::ItemMap m_Items;
 };
 
-/**
- * A registry for script functions.
- *
- * @ingroup base
- */
-class I2_BASE_API ScriptFunctionRegistry : public Registry<ScriptFunction::Ptr>
-{ };
+template<typename T>
+signals2::signal<void (const String&, const T&)> Registry<T>::OnRegistered;
 
-/**
- * Helper class for registering ScriptFunction implementation classes.
- *
- * @ingroup base
- */
-class RegisterFunctionHelper
-{
-public:
-	RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
-	{
-		ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(function);
-		ScriptFunctionRegistry::GetInstance()->Register(name, func);
-	}
-};
-
-#define REGISTER_SCRIPTFUNCTION(name, callback) \
-	static icinga::RegisterFunctionHelper g_RegisterSF_ ## name(#name, callback)
-
-#undef MKSYMBOL
+template<typename T>
+signals2::signal<void (const String&)> Registry<T>::OnUnregistered;
 
 }
 
-#endif /* SCRIPTFUNCTION_H */
+#endif /* REGISTRY_H */

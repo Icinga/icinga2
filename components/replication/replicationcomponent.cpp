@@ -106,13 +106,7 @@ void ReplicationComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoin
 				continue;
 
 			RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", 0, true);
-
-			EndpointManager::Ptr em = EndpointManager::GetInstance();
-
-			{
-				ObjectLock elock(em);
-				em->SendUnicastMessage(m_Endpoint, endpoint, request);
-			}
+			EndpointManager::GetInstance()->SendUnicastMessage(m_Endpoint, endpoint, request);
 
 		}
 	}
@@ -190,12 +184,7 @@ void ReplicationComponent::FlushObjectHandler(double tx, const DynamicObject::Pt
 		return;
 
 	RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", tx, true);
-
-	EndpointManager::Ptr em = EndpointManager::GetInstance();
-	{
-		ObjectLock olock(em);
-		em->SendMulticastMessage(m_Endpoint, request);
-	}
+	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
 }
 
 void ReplicationComponent::RemoteObjectUpdateHandler(const RequestMessage& request)
