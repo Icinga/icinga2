@@ -204,7 +204,7 @@ void Service::RefreshCommentsCache(void)
 		m_CommentsCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Updating Service comments cache.");
+	Logger::Write(LogDebug, "icinga", "Updating Service comments cache.");
 
 	map<int, String> newLegacyCommentsCache;
 	map<String, Service::WeakPtr> newCommentsCache;

@@ -148,7 +148,7 @@ void HostGroup::RefreshMembersCache(void)
 		m_MembersCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Updating HostGroup members cache.");
+	Logger::Write(LogDebug, "icinga", "Updating HostGroup members cache.");
 
 	map<String, vector<Host::WeakPtr> > newMembersCache;
 

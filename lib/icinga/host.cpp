@@ -348,7 +348,7 @@ void Host::RefreshServicesCache(void)
 		m_ServicesCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Updating Host services cache.");
+	Logger::Write(LogDebug, "icinga", "Updating Host services cache.");
 
 	map<String, map<String, Service::WeakPtr> > newServicesCache;
 

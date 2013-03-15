@@ -130,7 +130,7 @@ void UserGroup::RefreshMembersCache(void)
 		m_MembersCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Updating UserGroup members cache.");
+	Logger::Write(LogDebug, "icinga", "Updating UserGroup members cache.");
 
 	map<String, vector<User::WeakPtr> > newMembersCache;
 

@@ -148,7 +148,7 @@ void ServiceGroup::RefreshMembersCache(void)
 		m_MembersCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Updating ServiceGroup members cache.");
+	Logger::Write(LogDebug, "icinga", "Updating ServiceGroup members cache.");
 
 	map<String, vector<Service::WeakPtr> > newMembersCache;
 

@@ -676,10 +676,8 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 		if (!result->Contains("active"))
 			result->Set("active", 1);
 
-		if (!result->Contains("current_checker")) {
-			EndpointManager::Ptr em = EndpointManager::GetInstance();
-			result->Set("current_checker", em->GetIdentity());
-		}
+		if (!result->Contains("current_checker"))
+			result->Set("current_checker", EndpointManager::GetInstance()->GetIdentity());
 	}
 
 	if (result)

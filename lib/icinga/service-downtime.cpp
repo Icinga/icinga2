@@ -278,7 +278,7 @@ void Service::RefreshDowntimesCache(void)
 		m_DowntimesCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Updating Service downtimes cache.");
+	Logger::Write(LogDebug, "icinga", "Updating Service downtimes cache.");
 
 	map<int, String> newLegacyDowntimesCache;
 	map<String, Service::WeakPtr> newDowntimesCache;

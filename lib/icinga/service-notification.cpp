@@ -115,7 +115,7 @@ void Service::RefreshNotificationsCache(void)
 		m_NotificationsCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Updating Service notifications cache.");
+	Logger::Write(LogDebug, "icinga", "Updating Service notifications cache.");
 
 	map<String, set<Notification::WeakPtr> > newNotificationsCache;
 
