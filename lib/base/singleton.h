@@ -29,7 +29,7 @@ namespace icinga
  * @ingroup base
  */
 template<typename T>
-class I2_BASE_API Singleton
+class Singleton
 {
 public:
 	static T *GetInstance(void)

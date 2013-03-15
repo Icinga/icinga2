@@ -73,7 +73,7 @@ private:
  *
  * @ingroup base
  */
-class DynamicTypeRegistry : public Registry<DynamicType::Ptr>
+class I2_BASE_API DynamicTypeRegistry : public Registry<DynamicType::Ptr>
 { };
 
 /**
