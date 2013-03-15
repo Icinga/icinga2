@@ -6,7 +6,7 @@ pkglib_LTLIBRARIES = \
 EXTRA_DIST = \
 	demo-type.conf
 
-.conf.cpp:
+.conf.cpp: $(top_builddir)/tools/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig $< $@
 
 libdemo_la_SOURCES = \

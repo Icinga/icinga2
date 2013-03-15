@@ -6,7 +6,7 @@ pkglib_LTLIBRARIES = \
 EXTRA_DIST = \
 	replication-type.conf
 
-.conf.cpp:
+.conf.cpp: $(top_builddir)/tools/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig $< $@
 
 libreplication_la_SOURCES = \

@@ -7,7 +7,7 @@ pkglib_LTLIBRARIES =  \
 EXTRA_DIST = \
 	icinga-type.conf
 
-.conf.cpp:
+.conf.cpp: $(top_builddir)/tools/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig $< $@
 
 libicinga_la_SOURCES =  \

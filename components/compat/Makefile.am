@@ -6,7 +6,7 @@ pkglib_LTLIBRARIES = \
 EXTRA_DIST = \
 	compat-type.conf
 
-.conf.cpp:
+.conf.cpp: $(top_builddir)/tools/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig $< $@
 
 libcompat_la_SOURCES = \
