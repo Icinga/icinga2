@@ -19,11 +19,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc, char **argv)
 {
 	int cols;
 	FILE *infp, *outfp;
+	int i;
 
 	if (argc < 3) {
 		fprintf(stderr, "Syntax: %s <in-file> <out-file>\n", argv[0]);
@@ -65,7 +67,16 @@ int main(int argc, char **argv)
 		cols++;
 	}
 
-	fprintf(outfp, "0\n};\n\nREGISTER_CONFIG_FRAGMENT(\"%s\", g_ConfigFragment);\n", argv[1]);
+	char id[32];
+	strncpy(id, argv[1], sizeof(id));
+	id[sizeof(id) - 1] = '\0';
+
+	for (i = 0; i < sizeof(id) - 1; i++) {
+		if ((id[i] < 'a' || id[i] > 'z') && (id[i] < 'A' || id[i] > 'Z'))
+			id[i] = '_';
+	}
+
+	fprintf(outfp, "0\n};\n\nREGISTER_CONFIG_FRAGMENT(%s, \"%s\", g_ConfigFragment);\n", id, argv[1]);
 
 	fclose(outfp);
 	fclose(infp);

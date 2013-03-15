@@ -91,19 +91,13 @@ public:
 		return m_Items; /* Makes a copy of the map. */
 	}
 
-	static signals2::signal<void (const String&, const T&)> OnRegistered;
-	static signals2::signal<void (const String&)> OnUnregistered;
+	signals2::signal<void (const String&, const T&)> OnRegistered;
+	signals2::signal<void (const String&)> OnUnregistered;
 
 private:
 	mutable boost::mutex m_Mutex;
 	typename Registry<T>::ItemMap m_Items;
 };
-
-template<typename T>
-signals2::signal<void (const String&, const T&)> Registry<T>::OnRegistered;
-
-template<typename T>
-signals2::signal<void (const String&)> Registry<T>::OnUnregistered;
 
 }
 

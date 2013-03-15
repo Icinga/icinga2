@@ -60,12 +60,12 @@ void PythonLanguage::InitializeOnce(void)
 	PyEval_ReleaseLock();
 
 	String name;
-	BOOST_FOREACH(tie(name, tuples::ignore), ScriptFunction::GetFunctions()) {
+	BOOST_FOREACH(tie(name, tuples::ignore), ScriptFunctionRegistry::GetInstance()->GetItems()) {
 		RegisterNativeFunction(name);
 	}
 
-	ScriptFunction::OnRegistered.connect(boost::bind(&PythonLanguage::RegisterNativeFunction, this, _1));
-	ScriptFunction::OnUnregistered.connect(boost::bind(&PythonLanguage::UnregisterNativeFunction, this, _1));
+	ScriptFunctionRegistry::GetInstance()->OnRegistered.connect(boost::bind(&PythonLanguage::RegisterNativeFunction, this, _1));
+	ScriptFunctionRegistry::GetInstance()->OnUnregistered.connect(boost::bind(&PythonLanguage::UnregisterNativeFunction, this, _1));
 
 	m_Initialized = true;
 }

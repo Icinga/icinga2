@@ -89,8 +89,8 @@ public:
 	}
 };
 
-#define REGISTER_CONFIG_FRAGMENT(name, fragment) \
-	static icinga::RegisterConfigFragmentHelper g_RegisterCF_ ## type(name, fragment)
+#define REGISTER_CONFIG_FRAGMENT(id, name, fragment) \
+	static icinga::RegisterConfigFragmentHelper g_RegisterCF_ ## id(name, fragment)
 
 }
 
