@@ -23,7 +23,7 @@ using namespace icinga;
 
 boost::thread_specific_ptr<StackTrace> Exception::m_LastStackTrace;
 
-#if !defined(_WIN32) && !defined(__APPLE__)
+#ifndef _WIN32
 extern "C"
 void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 {
@@ -33,6 +33,7 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 	if (real_cxa_throw == 0)
 		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");
 
+#ifndef __APPLE__
 	void *thrown_ptr = obj;
 	const type_info *tinfo = static_cast<type_info *>(pvtinfo);
 	const type_info *boost_exc = &typeid(boost::exception);
@@ -40,20 +41,23 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 	/* Check if the exception is a pointer type. */
 	if (tinfo->__is_pointer_p())
 		thrown_ptr = *(void **)thrown_ptr;
+#endif /* __APPLE__ */
 
 	StackTrace trace;
 	Exception::SetLastStackTrace(trace);
 
+#ifndef __APPLE__
 	/* Check if thrown_ptr inherits from boost::exception. */
 	if (boost_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
 		boost::exception *ex = (boost::exception *)thrown_ptr;
 
 		*ex << StackTraceErrorInfo(trace);
 	}
+#endif /* __APPLE__ */
 
 	real_cxa_throw(obj, pvtinfo, dest);
 }
-#endif /* !_WIN32 && !__APPLE__ */
+#endif /* _WIN32 */
 
 StackTrace *Exception::GetLastStackTrace(void)
 {
