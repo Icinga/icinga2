@@ -65,7 +65,8 @@ void JsonRpcConnection::ProcessData(void)
 				    " message must be a dictionary."));
 			}
 
-			OnNewMessage(GetSelf(), MessagePart(value));
+			MessagePart mp(value);
+			OnNewMessage(GetSelf(), mp);
 		} catch (const exception& ex) {
 			Logger::Write(LogCritical, "remoting", "Exception"
 			    " while processing message from JSON-RPC client: " +

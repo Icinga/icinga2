@@ -76,7 +76,8 @@ bool MessagePart::Get(String key, MessagePart *value) const
 
 	Dictionary::Ptr dictionary = v;
 
-	*value = MessagePart(dictionary);
+	MessagePart mp(dictionary);
+	*value = mp;
 	return true;
 }
 
