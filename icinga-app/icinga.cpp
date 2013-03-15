@@ -49,15 +49,26 @@ static bool LoadConfigFiles(bool validateOnly)
 	}
 
 	String name, fragment;
-	BOOST_FOREACH(tie(name, fragment), ConfigCompiler::GetConfigFragments()) {
+	BOOST_FOREACH(tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
 		ConfigCompiler::CompileText(name, fragment);
 	}
 
 	ConfigCompilerContext::SetContext(NULL);
 
-	context.Validate();
-
 	bool hasError = false;
+
+	BOOST_FOREACH(const ConfigCompilerError& error, context.GetErrors()) {
+		if (!error.Warning) {
+			hasError = true;
+			break;
+		}
+	}
+
+	/* Don't validate if we have already encountered at least one error. */
+	if (!hasError)
+		context.Validate();
+
+	hasError = false;
 
 	BOOST_FOREACH(const ConfigCompilerError& error, context.GetErrors()) {
 		if (error.Warning) {
