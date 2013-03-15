@@ -291,7 +291,7 @@ PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
 
 	char *name = PyString_AsString(self);
 
-	ScriptFunction::Ptr function = ScriptFunction::GetByName(name);
+	ScriptFunction::Ptr function = ScriptFunctionRegistry::GetInstance()->GetItem(name);
 
 	vector<Value> arguments;
 
