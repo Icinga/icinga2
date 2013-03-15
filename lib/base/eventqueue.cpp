@@ -78,7 +78,7 @@ void EventQueue::Join(void)
 void EventQueue::QueueThreadProc(void)
 {
 	for (;;) {
-		vector<Callback> events;
+		Callback event;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
@@ -89,63 +89,62 @@ void EventQueue::QueueThreadProc(void)
 			if (m_Events.empty() && m_Stopped)
 				break;
 
-			events.swap(m_Events);
+			event = m_Events.top();
+			m_Events.pop();
 		}
 
-		BOOST_FOREACH(const Callback& ev, events) {
 #ifdef _DEBUG
-			double st = Utility::GetTime();
+		double st = Utility::GetTime();
 
 #	ifdef RUSAGE_THREAD
-			struct rusage usage_start, usage_end;
+		struct rusage usage_start, usage_end;
 
-			(void) getrusage(RUSAGE_THREAD, &usage_start);
+		(void) getrusage(RUSAGE_THREAD, &usage_start);
 #	endif /* RUSAGE_THREAD */
 #endif /* _DEBUG */
 
-			try {
-				ev();
-			} catch (const std::exception& ex) {
-				stringstream msgbuf;
-				msgbuf << "Exception thrown in event handler: " << std::endl
-				       << diagnostic_information(ex);
+		try {
+			event();
+		} catch (const std::exception& ex) {
+			stringstream msgbuf;
+			msgbuf << "Exception thrown in event handler: " << std::endl
+			       << diagnostic_information(ex);
 
-				Logger::Write(LogCritical, "base", msgbuf.str());
-			} catch (...) {
-				Logger::Write(LogCritical, "base", "Exception of unknown type thrown in event handler.");
-			}
+			Logger::Write(LogCritical, "base", msgbuf.str());
+		} catch (...) {
+			Logger::Write(LogCritical, "base", "Exception of unknown type thrown in event handler.");
+		}
 
 #ifdef _DEBUG
-			double et = Utility::GetTime();
+		double et = Utility::GetTime();
 #	ifdef RUSAGE_THREAD
-			(void) getrusage(RUSAGE_THREAD, &usage_end);
+		(void) getrusage(RUSAGE_THREAD, &usage_end);
 
-			double duser = (usage_end.ru_utime.tv_sec - usage_start.ru_utime.tv_sec) +
-			    (usage_end.ru_utime.tv_usec - usage_start.ru_utime.tv_usec) / 1000000.0;
+		double duser = (usage_end.ru_utime.tv_sec - usage_start.ru_utime.tv_sec) +
+		    (usage_end.ru_utime.tv_usec - usage_start.ru_utime.tv_usec) / 1000000.0;
 
-			double dsys = (usage_end.ru_stime.tv_sec - usage_start.ru_stime.tv_sec) +
-			    (usage_end.ru_stime.tv_usec - usage_start.ru_stime.tv_usec) / 1000000.0;
+		double dsys = (usage_end.ru_stime.tv_sec - usage_start.ru_stime.tv_sec) +
+		    (usage_end.ru_stime.tv_usec - usage_start.ru_stime.tv_usec) / 1000000.0;
 
-			double dwait = (et - st) - (duser + dsys);
+		double dwait = (et - st) - (duser + dsys);
 
-			int dminfaults = usage_end.ru_minflt - usage_start.ru_minflt;
-			int dmajfaults = usage_end.ru_majflt - usage_start.ru_majflt;
+		int dminfaults = usage_end.ru_minflt - usage_start.ru_minflt;
+		int dmajfaults = usage_end.ru_majflt - usage_start.ru_majflt;
 
-			int dvctx = usage_end.ru_nvcsw - usage_start.ru_nvcsw;
-			int divctx = usage_end.ru_nivcsw - usage_start.ru_nivcsw;
+		int dvctx = usage_end.ru_nvcsw - usage_start.ru_nvcsw;
+		int divctx = usage_end.ru_nivcsw - usage_start.ru_nivcsw;
 #	endif /* RUSAGE_THREAD */
-			if (et - st > 0.5) {
-				stringstream msgbuf;
+		if (et - st > 0.5) {
+			stringstream msgbuf;
 #	ifdef RUSAGE_THREAD
-				msgbuf << "Event call took user:" << duser << "s, system:" << dsys << "s, wait:" << dwait << "s, minor_faults:" << dminfaults << ", major_faults:" << dmajfaults << ", voluntary_csw:" << dvctx << ", involuntary_csw:" << divctx;
+			msgbuf << "Event call took user:" << duser << "s, system:" << dsys << "s, wait:" << dwait << "s, minor_faults:" << dminfaults << ", major_faults:" << dmajfaults << ", voluntary_csw:" << dvctx << ", involuntary_csw:" << divctx;
 #	else
-				msgbuf << "Event call took " << (et - st) << "s";
+			msgbuf << "Event call took " << (et - st) << "s";
 #	endif /* RUSAGE_THREAD */
 
-				Logger::Write(LogWarning, "base", msgbuf.str());
-			}
-#endif /* _DEBUG */
+			Logger::Write(LogWarning, "base", msgbuf.str());
 		}
+#endif /* _DEBUG */
 	}
 }
 
@@ -158,7 +157,7 @@ void EventQueue::QueueThreadProc(void)
 void EventQueue::Post(const EventQueue::Callback& callback)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Events.push_back(callback);
+	m_Events.push(callback);
 	m_CV.notify_one();
 }
 

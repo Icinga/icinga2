@@ -91,6 +91,7 @@
 #include <list>
 #include <algorithm>
 #include <deque>
+#include <stack>
 #include <iterator>
 
 using std::vector;
@@ -101,6 +102,7 @@ using std::multimap;
 using std::multiset;
 using std::pair;
 using std::deque;
+using std::stack;
 using std::make_pair;
 
 using std::stringstream;

@@ -50,7 +50,7 @@ private:
 	condition_variable m_CV;
 
 	bool m_Stopped;
-	vector<Callback> m_Events;
+	stack<Callback> m_Events;
 
 	void QueueThreadProc(void);
 	void ReportThreadProc(void);
