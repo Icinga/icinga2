@@ -95,8 +95,8 @@ public:
 	String GetHostName(void) const;
 	String GetShortName(void) const;
 
-	Dictionary::Ptr CalculateDynamicMacros(void) const;
-	Dictionary::Ptr CalculateAllMacros(void) const;
+	Dictionary::Ptr CalculateDynamicMacros(const Dictionary::Ptr& crOverride = Dictionary::Ptr()) const;
+	Dictionary::Ptr CalculateAllMacros(const Dictionary::Ptr& crOverride = Dictionary::Ptr()) const;
 
 	set<Host::Ptr> GetParentHosts(void) const;
 	set<Service::Ptr> GetParentServices(void) const;

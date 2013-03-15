@@ -468,7 +468,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	olock.Unlock();
 
 	/* Update macros - these are used by event handlers and notifications. */
-	cr->Set("macros", CalculateAllMacros());
+	cr->Set("macros", CalculateAllMacros(cr));
 
 	cr->Seal();
 

@@ -429,7 +429,7 @@ set<Service::Ptr> Service::GetParentServices(void) const
 /**
  * @threadsafety Always.
  */
-Dictionary::Ptr Service::CalculateDynamicMacros(void) const
+Dictionary::Ptr Service::CalculateDynamicMacros(const Dictionary::Ptr& crOverride) const
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
 
@@ -453,8 +453,11 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 		cr = GetLastCheckResult();
 	}
 
+	if (crOverride)
+		cr = crOverride;
+
 	if (cr) {
-		ASSERT(cr->IsSealed());
+		ASSERT(crOverride || cr->IsSealed());
 
 		macros->Set("SERVICELATENCY", Service::CalculateLatency(cr));
 		macros->Set("SERVICEEXECUTIONTIME", Service::CalculateExecutionTime(cr));
@@ -470,14 +473,14 @@ Dictionary::Ptr Service::CalculateDynamicMacros(void) const
 	return macros;
 }
 
-Dictionary::Ptr Service::CalculateAllMacros(void) const
+Dictionary::Ptr Service::CalculateAllMacros(const Dictionary::Ptr& crOverride) const
 {
 	vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(GetMacros());
 
 	Host::Ptr host = GetHost();
 
-	macroDicts.push_back(CalculateDynamicMacros());
+	macroDicts.push_back(CalculateDynamicMacros(crOverride));
 
 	if (host) {
 		macroDicts.push_back(host->GetMacros());
