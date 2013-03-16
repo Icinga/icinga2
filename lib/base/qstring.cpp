@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/qstring.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/compare.hpp>
@@ -131,7 +131,7 @@ void String::Replace(size_t first, size_t second, const String& str)
 	m_Data.replace(first, second, str);
 }
 
-String Join(const vector<String>& strings, const char *delim)
+String Join(const std::vector<String>& strings, const char *delim)
 {
 	return boost::algorithm::join(strings, delim);
 }
@@ -171,13 +171,13 @@ String::ConstIterator String::End(void) const
 	return m_Data.end();
 }
 
-ostream& icinga::operator<<(ostream& stream, const String& str)
+std::ostream& icinga::operator<<(std::ostream& stream, const String& str)
 {
 	stream << static_cast<std::string>(str);
 	return stream;
 }
 
-istream& icinga::operator>>(istream& stream, String& str)
+std::istream& icinga::operator>>(std::istream& stream, String& str)
 {
 	std::string tstr;
 	stream >> tstr;

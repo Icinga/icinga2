@@ -20,6 +20,9 @@
 #ifndef PERFDATAWRITER_H
 #define PERFDATAWRITER_H
 
+#include "base/dynamicobject.h"
+#include <fstream>
+
 namespace icinga
 {
 
@@ -58,7 +61,7 @@ private:
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);
 
-	ofstream m_OutputFile;
+	std::ofstream m_OutputFile;
 	void RotateFile(void);
 };
 

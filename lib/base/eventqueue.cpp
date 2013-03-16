@@ -17,8 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/eventqueue.h"
+#include "base/logger_fwd.h"
+#include "base/convert.h"
+#include "base/utility.h"
+#include <sstream>
 #include <boost/bind.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -107,13 +112,13 @@ void EventQueue::QueueThreadProc(void)
 		try {
 			event();
 		} catch (const std::exception& ex) {
-			stringstream msgbuf;
+			std::ostringstream msgbuf;
 			msgbuf << "Exception thrown in event handler: " << std::endl
-			       << diagnostic_information(ex);
+			       << boost::diagnostic_information(ex);
 
-			Logger::Write(LogCritical, "base", msgbuf.str());
+			Log(LogCritical, "base", msgbuf.str());
 		} catch (...) {
-			Logger::Write(LogCritical, "base", "Exception of unknown type thrown in event handler.");
+			Log(LogCritical, "base", "Exception of unknown type thrown in event handler.");
 		}
 
 #ifdef _DEBUG
@@ -143,7 +148,7 @@ void EventQueue::QueueThreadProc(void)
 			msgbuf << "Event call took " << (et - st) << "s";
 #	endif /* RUSAGE_THREAD */
 
-			Logger::Write(LogWarning, "base", msgbuf.str());
+			Log(LogWarning, "base", msgbuf.str());
 		}
 #endif /* _DEBUG */
 	}
@@ -174,6 +179,6 @@ void EventQueue::ReportThreadProc(void)
 			pending = m_Events.size();
 		}
 
-		Logger::Write(LogInformation, "base", "Pending tasks: " + Convert::ToString(pending));
+		Log(LogInformation, "base", "Pending tasks: " + Convert::ToString(pending));
 	}
 }

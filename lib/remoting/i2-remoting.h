@@ -27,8 +27,8 @@
  * supports endpoint-based communication using messages.
  */
 
-#include <i2-base.h>
-#include <i2-config.h>
+#include "base/i2-base.h"
+#include "config/i2-config.h"
 
 #ifdef I2_REMOTING_BUILD
 #	define I2_REMOTING_API I2_EXPORT

@@ -20,6 +20,9 @@
 #ifndef CONFIGCOMPILER_H
 #define CONFIGCOMPILER_H
 
+#include "base/registry.h"
+#include <iostream>
+
 namespace icinga
 {
 
@@ -34,13 +37,13 @@ class I2_CONFIG_API ConfigCompiler
 public:
 	typedef boost::function<void (const String&, bool, const DebugInfo&)> HandleIncludeFunc;
 
-	explicit ConfigCompiler(const String& path, istream *input = &cin,
+	explicit ConfigCompiler(const String& path, std::istream *input,
 	    HandleIncludeFunc includeHandler = &ConfigCompiler::HandleFileInclude);
 	virtual ~ConfigCompiler(void);
 
 	void Compile(void);
 
-	static void CompileStream(const String& path, istream *stream);
+	static void CompileStream(const String& path, std::istream *stream);
 	static void CompileFile(const String& path);
 	static void CompileText(const String& path, const String& text);
 
@@ -60,13 +63,13 @@ public:
 
 private:
 	String m_Path;
-	istream *m_Input;
+	std::istream *m_Input;
 
 	HandleIncludeFunc m_HandleInclude;
 
 	void *m_Scanner;
 
-	static vector<String> m_IncludeSearchDirs;
+	static std::vector<String> m_IncludeSearchDirs;
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);

@@ -20,6 +20,12 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+#include "base/i2-base.h"
+#include "base/timer.h"
+#include "base/asynctask.h"
+#include "base/dictionary.h"
+#include <sstream>
+#include <deque>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/once.hpp>
@@ -52,13 +58,13 @@ public:
 	typedef shared_ptr<Process> Ptr;
 	typedef weak_ptr<Process> WeakPtr;
 
-	static const deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
+	static const std::deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
-	Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
+	Process(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
 
-	static vector<String> SplitCommand(const Value& command);
+	static std::vector<String> SplitCommand(const Value& command);
 private:
-	vector<String> m_Arguments;
+	std::vector<String> m_Arguments;
 	Dictionary::Ptr m_ExtraEnvironment;
 
 #ifndef _WIN32
@@ -66,14 +72,14 @@ private:
 	int m_FD;
 #endif /* _WIN32 */
 
-	stringstream m_OutputStream;
+	std::ostringstream m_OutputStream;
 
 	ProcessResult m_Result;
 
 	virtual void Run(void);
 
 	static boost::mutex m_Mutex;
-	static deque<Process::Ptr> m_Tasks;
+	static std::deque<Process::Ptr> m_Tasks;
 #ifndef _WIN32
 	static boost::condition_variable m_CV;
 	static int m_TaskFd;

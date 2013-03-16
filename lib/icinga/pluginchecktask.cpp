@@ -19,6 +19,8 @@
 
 #include "i2-icinga.h"
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -31,13 +33,13 @@ PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr
 /**
  * @threadsafety Always.
  */
-void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Service must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Service must be specified."));
 
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Macros must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Macros must be specified."));
 
 	Service::Ptr service = arguments[0];
 	Dictionary::Ptr macros = arguments[1];
@@ -105,7 +107,7 @@ Dictionary::Ptr PluginCheckTask::ParseCheckOutput(const String& output)
 	String text;
 	String perfdata;
 
-	vector<String> lines = output.Split(boost::is_any_of("\r\n"));
+	std::vector<String> lines = output.Split(boost::is_any_of("\r\n"));
 
 	BOOST_FOREACH (const String& line, lines) {
 		size_t delim = line.FindFirstOf("|");

@@ -18,14 +18,20 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "icinga/service.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <boost/tuple/tuple.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 int Service::m_NextDowntimeID = 1;
 boost::mutex Service::m_DowntimeMutex;
-map<int, String> Service::m_LegacyDowntimesCache;
-map<String, Service::WeakPtr> Service::m_DowntimesCache;
+std::map<int, String> Service::m_LegacyDowntimesCache;
+std::map<String, Service::WeakPtr> Service::m_DowntimesCache;
 bool Service::m_DowntimesCacheNeedsUpdate = false;
 Timer::Ptr Service::m_DowntimesCacheTimer;
 Timer::Ptr Service::m_DowntimesExpireTimer;
@@ -180,7 +186,7 @@ String Service::GetDowntimeIDFromLegacyID(int id)
 {
 	boost::mutex::scoped_lock lock(m_DowntimeMutex);
 
-	map<int, String>::iterator it = m_LegacyDowntimesCache.find(id);
+	std::map<int, String>::iterator it = m_LegacyDowntimesCache.find(id);
 
 	if (it == m_LegacyDowntimesCache.end())
 		return Empty;
@@ -279,10 +285,10 @@ void Service::RefreshDowntimesCache(void)
 		m_DowntimesCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogDebug, "icinga", "Updating Service downtimes cache.");
+	Log(LogDebug, "icinga", "Updating Service downtimes cache.");
 
-	map<int, String> newLegacyDowntimesCache;
-	map<String, Service::WeakPtr> newDowntimesCache;
+	std::map<int, String> newLegacyDowntimesCache;
+	std::map<String, Service::WeakPtr> newDowntimesCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
@@ -338,7 +344,7 @@ void Service::RemoveExpiredDowntimes(void)
 	if (!downtimes)
 		return;
 
-	vector<String> expiredDowntimes;
+	std::vector<String> expiredDowntimes;
 
 	{
 		ObjectLock olock(downtimes);

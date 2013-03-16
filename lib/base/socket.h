@@ -20,9 +20,12 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
+#include "base/i2-base.h"
+#include "base/fifo.h"
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <boost/signals2.hpp>
 
 namespace icinga {
 
@@ -56,7 +59,7 @@ public:
 
 	void Listen(void);
 
-	signals2::signal<void (const Socket::Ptr&, const Socket::Ptr&)> OnNewClient;
+	boost::signals2::signal<void (const Socket::Ptr&, const Socket::Ptr&)> OnNewClient;
 
 protected:
 	void SetFD(SOCKET fd);

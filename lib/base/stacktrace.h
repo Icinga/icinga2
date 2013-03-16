@@ -20,6 +20,8 @@
 #ifndef STACKTRACE_H
 #define STACKTRACE_H
 
+#include "base/i2-base.h"
+#include <ostream>
 #include <boost/thread/once.hpp>
 
 namespace icinga
@@ -38,7 +40,7 @@ public:
 	explicit StackTrace(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
 
-	void Print(ostream& fp, int ignoreFrames = 0) const;
+	void Print(std::ostream& fp, int ignoreFrames = 0) const;
 
 private:
 	void *m_Frames[64];
@@ -49,7 +51,7 @@ private:
 	static void Initialize(void);
 };
 
-I2_BASE_API ostream& operator<<(ostream& stream, const StackTrace& trace);
+I2_BASE_API std::ostream& operator<<(std::ostream& stream, const StackTrace& trace);
 
 }
 

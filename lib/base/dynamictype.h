@@ -20,7 +20,13 @@
 #ifndef DYNAMICTYPE_H
 #define DYNAMICTYPE_H
 
+#include "base/i2-base.h"
+#include "base/registry.h"
+#include "base/dynamicobject.h"
+#include <map>
+#include <set>
 #include <boost/function.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 
 namespace icinga
 {
@@ -47,23 +53,23 @@ public:
 	void RegisterObject(const DynamicObject::Ptr& object);
 	void UnregisterObject(const DynamicObject::Ptr& object);
 
-	static set<DynamicType::Ptr> GetTypes(void);
-	set<DynamicObject::Ptr> GetObjects(void) const;
+	static std::set<DynamicType::Ptr> GetTypes(void);
+	std::set<DynamicObject::Ptr> GetObjects(void) const;
 
-	static set<DynamicObject::Ptr> GetObjects(const String& type);
+	static std::set<DynamicObject::Ptr> GetObjects(const String& type);
 
 private:
 	String m_Name;
 	ObjectFactory m_ObjectFactory;
 
-	typedef map<String, DynamicObject::Ptr, string_iless> ObjectMap;
-	typedef set<DynamicObject::Ptr> ObjectSet;
+	typedef std::map<String, DynamicObject::Ptr, string_iless> ObjectMap;
+	typedef std::set<DynamicObject::Ptr> ObjectSet;
 
 	ObjectMap m_ObjectMap;
 	ObjectSet m_ObjectSet;
 
-	typedef map<String, DynamicType::Ptr, string_iless> TypeMap;
-	typedef set<DynamicType::Ptr> TypeSet;
+	typedef std::map<String, DynamicType::Ptr, string_iless> TypeMap;
+	typedef std::set<DynamicType::Ptr> TypeSet;
 
 	static TypeMap& InternalGetTypeMap(void);
 	static TypeSet& InternalGetTypeSet(void);

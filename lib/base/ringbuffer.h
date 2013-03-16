@@ -20,6 +20,10 @@
 #ifndef RINGBUFFER_H
 #define RINGBUFFER_H
 
+#include "base/i2-base.h"
+#include "base/object.h"
+#include <vector>
+
 namespace icinga
 {
 
@@ -34,7 +38,7 @@ public:
 	typedef shared_ptr<RingBuffer> Ptr;
 	typedef weak_ptr<RingBuffer> WeakPtr;
 
-	typedef vector<int>::size_type SizeType;
+	typedef std::vector<int>::size_type SizeType;
 
 	RingBuffer(SizeType slots);
 
@@ -43,7 +47,7 @@ public:
 	int GetValues(SizeType span) const;
 
 private:
-	vector<int> m_Slots;
+	std::vector<int> m_Slots;
 	SizeType m_TimeValue;
 };
 

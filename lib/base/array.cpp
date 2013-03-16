@@ -17,8 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/array.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
 #include <cJSON.h>
+#include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -197,7 +201,7 @@ Array::Ptr Array::FromJson(cJSON *json)
 	Array::Ptr array = boost::make_shared<Array>();
 
 	if (json->type != cJSON_Array)
-		BOOST_THROW_EXCEPTION(invalid_argument("JSON type must be cJSON_Array."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON type must be cJSON_Array."));
 
 	for (cJSON *i = json->child; i != NULL; i = i->next) {
 		array->Add(Value::FromJson(i));

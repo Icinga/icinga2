@@ -20,21 +20,12 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include "base/i2-base.h"
+#include "base/dynamicobject.h"
+#include "base/logger_fwd.h"
+
 namespace icinga
 {
-
-/**
- * Log severity.
- *
- * @ingroup base
- */
-enum LogSeverity
-{
-	LogDebug,
-	LogInformation,
-	LogWarning,
-	LogCritical
-};
 
 /**
  * A lot entry.
@@ -89,9 +80,6 @@ public:
 
 	explicit Logger(const Dictionary::Ptr& serializedUpdate);
 
-	static void Write(LogSeverity severity, const String& facility,
-	    const String& message);
-
 	static String SeverityToString(LogSeverity severity);
 	static LogSeverity StringToSeverity(const String& severity);
 
@@ -109,6 +97,9 @@ private:
 	ILogger::Ptr m_Impl;
 
 	static void ForwardLogEntry(const LogEntry& entry);
+
+	friend void Log(LogSeverity severity, const String& facility,
+	    const String& message);
 };
 
 }

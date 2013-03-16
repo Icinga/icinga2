@@ -26,9 +26,9 @@
  * The Delegation component delegates service checks to the checker component.
  */
 
-#include <i2-base.h>
-#include <i2-icinga.h>
+#include "base/i2-base.h"
+#include "icinga/i2-icinga.h"
 
-#include "delegationcomponent.h"
+#include "delegation/delegationcomponent.h"
 
 #endif /* I2DELEGATION_H */

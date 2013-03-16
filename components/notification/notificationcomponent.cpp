@@ -18,6 +18,10 @@
  ******************************************************************************/
 
 #include "i2-notification.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 

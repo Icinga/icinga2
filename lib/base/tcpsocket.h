@@ -20,6 +20,9 @@
 #ifndef TCPSOCKET_H
 #define TCPSOCKET_H
 
+#include "base/i2-base.h"
+#include "base/socket.h"
+
 namespace icinga
 {
 

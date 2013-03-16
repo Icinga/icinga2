@@ -17,9 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include <i2-icinga.h>
+#include "base/i2-base.h"
+#include "config/i2-config.h"
+#include "base/application.h"
+#include "base/logger_fwd.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 #ifndef _WIN32
 #	include "icinga-version.h"
@@ -45,7 +50,7 @@ static bool LoadConfigFiles(bool validateOnly)
 
 	ConfigCompilerContext::SetContext(&context);
 
-	BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<vector<String> >()) {
+	BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<std::vector<String> >()) {
 		ConfigCompiler::CompileFile(configPath);
 	}
 
@@ -73,10 +78,10 @@ static bool LoadConfigFiles(bool validateOnly)
 
 	BOOST_FOREACH(const ConfigCompilerError& error, context.GetErrors()) {
 		if (error.Warning) {
-			Logger::Write(LogWarning, "icinga-app", "Config warning: " + error.Message);
+			Log(LogWarning, "icinga-app", "Config warning: " + error.Message);
 		} else {
 			hasError = true;
-			Logger::Write(LogCritical, "icinga-app", "Config error: " + error.Message);
+			Log(LogCritical, "icinga-app", "Config error: " + error.Message);
 		}
 	}
 
@@ -105,7 +110,7 @@ static bool LoadConfigFiles(bool validateOnly)
 static void ReloadConfigTimerHandler(void)
 {
 	if (g_ReloadConfig) {
-		Logger::Write(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
+		Log(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
 		LoadConfigFiles(false);
 
 		g_ReloadConfig = false;
@@ -164,19 +169,19 @@ int main(int argc, char **argv)
 	desc.add_options()
 		("help", "show this help message")
 		("version,V", "show version information")
-		("library,l", po::value<vector<String> >(), "load a library")
-		("include,I", po::value<vector<String> >(), "add include search directory")
-		("config,c", po::value<vector<String> >(), "parse a configuration file")
+		("library,l", po::value<std::vector<String> >(), "load a library")
+		("include,I", po::value<std::vector<String> >(), "add include search directory")
+		("config,c", po::value<std::vector<String> >(), "parse a configuration file")
 		("validate,v", "exit after validating the configuration")
 		("debug,x", "enable debugging")
 	;
 
 	try {
 		po::store(po::parse_command_line(argc, argv, desc), g_AppParams);
-	} catch (const exception& ex) {
-		stringstream msgbuf;
+	} catch (const std::exception& ex) {
+		std::ostringstream msgbuf;
 		msgbuf << "Error while parsing command-line options: " << ex.what();
-		Logger::Write(LogCritical, "icinga-app", msgbuf.str());
+		Log(LogCritical, "icinga-app", msgbuf.str());
 		return EXIT_FAILURE;
 	}
 
@@ -218,14 +223,14 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
-	Logger::Write(LogInformation, "icinga-app", "Icinga application loader"
+	Log(LogInformation, "icinga-app", "Icinga application loader"
 #ifndef _WIN32
 	    " (version: " ICINGA_VERSION ")"
 #endif /* _WIN32 */
 	    );
 
 	String searchDir = Application::GetPkgLibDir();
-	Logger::Write(LogInformation, "base", "Adding library search dir: " + searchDir);
+	Log(LogInformation, "base", "Adding library search dir: " + searchDir);
 
 #ifdef _WIN32
 	SetDllDirectory(searchDir.CStr());
@@ -236,7 +241,7 @@ int main(int argc, char **argv)
 	(void) Utility::LoadExtensionLibrary("icinga");
 
 	if (g_AppParams.count("library")) {
-		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<vector<String> >()) {
+		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<std::vector<String> >()) {
 			(void) Utility::LoadExtensionLibrary(libraryName);
 		}
 	}
@@ -244,13 +249,13 @@ int main(int argc, char **argv)
 	ConfigCompiler::AddIncludeSearchDir(Application::GetPkgDataDir());
 
 	if (g_AppParams.count("include")) {
-		BOOST_FOREACH(const String& includePath, g_AppParams["include"].as<vector<String> >()) {
+		BOOST_FOREACH(const String& includePath, g_AppParams["include"].as<std::vector<String> >()) {
 			ConfigCompiler::AddIncludeSearchDir(includePath);
 		}
 	}
 
 	if (g_AppParams.count("config") == 0) {
-		Logger::Write(LogCritical, "icinga-app", "You need to specify at least one config file (using the --config option).");
+		Log(LogCritical, "icinga-app", "You need to specify at least one config file (using the --config option).");
 
 		return EXIT_FAILURE;
 	}
@@ -261,14 +266,14 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 
 	if (validateOnly) {
-		Logger::Write(LogInformation, "icinga-app", "Finished validating the configuration file(s).");
+		Log(LogInformation, "icinga-app", "Finished validating the configuration file(s).");
 		return EXIT_SUCCESS;
 	}
 
 	Application::Ptr app = Application::GetInstance();
 
 	if (!app)
-		BOOST_THROW_EXCEPTION(runtime_error("Configuration must create an Application object."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Configuration must create an Application object."));
 
 #ifndef _WIN32
 	struct sigaction sa;

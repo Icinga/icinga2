@@ -20,6 +20,8 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
+#include "base/dictionary.h"
+
 namespace icinga
 {
 
@@ -50,7 +52,7 @@ public:
 	    const DebugInfo& debuginfo);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
-	void Dump(ostream& fp, int indent = 0) const;
+	void Dump(std::ostream& fp, int indent = 0) const;
 
 private:
 	String m_Key;
@@ -58,7 +60,7 @@ private:
 	Value m_Value;
 	DebugInfo m_DebugInfo;
 
-	static void DumpValue(ostream& fp, int indent, const Value& value, bool inlineDict = false);
+	static void DumpValue(std::ostream& fp, int indent, const Value& value, bool inlineDict = false);
 };
 
 }

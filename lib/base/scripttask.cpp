@@ -17,12 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/scripttask.h"
 
 using namespace icinga;
 
 ScriptTask::ScriptTask(const ScriptFunction::Ptr& function,
-    const vector<Value>& arguments)
+    const std::vector<Value>& arguments)
 	: AsyncTask<ScriptTask, Value>(), m_Function(function),
 	  m_Arguments(arguments)
 { }

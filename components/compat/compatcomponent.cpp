@@ -18,6 +18,13 @@
  ******************************************************************************/
 
 #include "i2-compat.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include "base/exception.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -171,13 +178,13 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 			String command = line;
 
 			try {
-				Logger::Write(LogInformation, "compat", "Executing external command: " + command);
+				Log(LogInformation, "compat", "Executing external command: " + command);
 
 				ExternalCommandProcessor::Execute(command);
-			} catch (const exception& ex) {
-				stringstream msgbuf;
-				msgbuf << "External command failed: " << diagnostic_information(ex);
-				Logger::Write(LogWarning, "compat", msgbuf.str());
+			} catch (const std::exception& ex) {
+				std::ostringstream msgbuf;
+				msgbuf << "External command failed: " << boost::diagnostic_information(ex);
+				Log(LogWarning, "compat", msgbuf.str());
 			}
 		}
 
@@ -297,7 +304,7 @@ void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
 	   << "\t" << "display_name" << "\t" << host->GetDisplayName() << "\n";
 
-	set<Host::Ptr> parents = host->GetParentHosts();
+	std::set<Host::Ptr> parents = host->GetParentHosts();
 
 	if (!parents.empty()) {
 		fp << "\t" << "parents" << "\t";
@@ -472,7 +479,7 @@ void CompatComponent::DumpServiceObject(ostream& fp, const Service::Ptr& service
  */
 void CompatComponent::StatusTimerHandler(void)
 {
-	Logger::Write(LogInformation, "compat", "Writing compat status information");
+	Log(LogInformation, "compat", "Writing compat status information");
 
 	String statuspath = GetStatusPath();
 	String objectspath = GetObjectsPath();
@@ -526,12 +533,12 @@ void CompatComponent::StatusTimerHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		Host::Ptr host = static_pointer_cast<Host>(object);
 
-		stringstream tempstatusfp;
+		std::ostringstream tempstatusfp;
 		tempstatusfp << std::fixed;
 		DumpHostStatus(tempstatusfp, host);
 		statusfp << tempstatusfp.str();
 
-		stringstream tempobjectfp;
+		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 		DumpHostObject(tempobjectfp, host);
 		objectfp << tempobjectfp.str();
@@ -540,7 +547,7 @@ void CompatComponent::StatusTimerHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
 		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
 
-		stringstream tempobjectfp;
+		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
 		tempobjectfp << "define hostgroup {" << "\n"
@@ -559,12 +566,12 @@ void CompatComponent::StatusTimerHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = static_pointer_cast<Service>(object);
 
-		stringstream tempstatusfp;
+		std::ostringstream tempstatusfp;
 		tempstatusfp << std::fixed;
 		DumpServiceStatus(tempstatusfp, service);
 		statusfp << tempstatusfp.str();
 
-		stringstream tempobjectfp;
+		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 		DumpServiceObject(tempobjectfp, service);
 		objectfp << tempobjectfp.str();
@@ -573,7 +580,7 @@ void CompatComponent::StatusTimerHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("ServiceGroup")) {
 		ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
 
-		stringstream tempobjectfp;
+		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
 		tempobjectfp << "define servicegroup {" << "\n"
@@ -583,7 +590,7 @@ void CompatComponent::StatusTimerHandler(void)
 
 		tempobjectfp << "\t" << "members" << "\t";
 
-		vector<String> sglist;
+		std::vector<String> sglist;
 		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 			Host::Ptr host = service->GetHost();
 
@@ -605,7 +612,7 @@ void CompatComponent::StatusTimerHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
 		User::Ptr user = static_pointer_cast<User>(object);
 
-		stringstream tempobjectfp;
+		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
 		tempobjectfp << "define contact {" << "\n"
@@ -624,7 +631,7 @@ void CompatComponent::StatusTimerHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("UserGroup")) {
 		UserGroup::Ptr ug = static_pointer_cast<UserGroup>(object);
 
-		stringstream tempobjectfp;
+		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
 		tempobjectfp << "define contactgroup {" << "\n"

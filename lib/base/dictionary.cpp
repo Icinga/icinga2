@@ -17,9 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/dictionary.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
 #include <cJSON.h>
 #include <boost/tuple/tuple.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -36,7 +40,7 @@ struct DictionaryKeyLessComparer
 	 * @returns true if the first key is less than the second key, false
 	 *		 otherwise
 	 */
-	bool operator()(const pair<String, Value>& a, const char *b)
+	bool operator()(const std::pair<String, Value>& a, const char *b)
 	{
 		return a.first < b;
 	}
@@ -49,7 +53,7 @@ struct DictionaryKeyLessComparer
 	 * @returns true if the first key is less than the second key, false
 	 *		 otherwise
 	 */
-	bool operator()(const char *a, const pair<String, Value>& b)
+	bool operator()(const char *a, const std::pair<String, Value>& b)
 	{
 		return a < b.first;
 	}
@@ -74,7 +78,7 @@ Value Dictionary::Get(const char *key) const
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	map<String, Value>::const_iterator it;
+	std::map<String, Value>::const_iterator it;
 
 	it = std::lower_bound(m_Data.begin(), m_Data.end(), key, DictionaryKeyLessComparer());
 
@@ -115,8 +119,8 @@ void Dictionary::Set(const String& key, const Value& value)
 
 	ASSERT(!m_Sealed);
 
-	pair<map<String, Value>::iterator, bool> ret;
-	ret = m_Data.insert(make_pair(key, value));
+	std::pair<std::map<String, Value>::iterator, bool> ret;
+	ret = m_Data.insert(std::make_pair(key, value));
 	if (!ret.second)
 		ret.first->second = value;
 }
@@ -268,7 +272,7 @@ Dictionary::Ptr Dictionary::FromJson(cJSON *json)
 	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
 
 	if (json->type != cJSON_Object)
-		BOOST_THROW_EXCEPTION(invalid_argument("JSON type must be cJSON_Object."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON type must be cJSON_Object."));
 
 	for (cJSON *i = json->child; i != NULL; i = i->next) {
 		dictionary->Set(i->string, Value::FromJson(i));

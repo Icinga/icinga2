@@ -28,16 +28,7 @@
  * at runtime.
  */
 
-#include <i2-base.h>
-
-#include <stack>
-#include <fstream>
-
-using std::stack;
-using std::istream;
-using std::ostream;
-using std::cin;
-using std::endl;
+//#include "base/i2-base.h"
 
 #ifdef I2_CONFIG_BUILD
 #	define I2_CONFIG_API I2_EXPORT
@@ -45,7 +36,7 @@ using std::endl;
 #	define I2_CONFIG_API I2_IMPORT
 #endif /* I2_CONFIG_BUILD */
 
-#include "debuginfo.h"
+/*#include "debuginfo.h"
 #include "typerulelist.h"
 #include "typerule.h"
 #include "expression.h"
@@ -54,6 +45,6 @@ using std::endl;
 #include "configtype.h"
 #include "configitembuilder.h"
 #include "configcompiler.h"
-#include "configcompilercontext.h"
+#include "configcompilercontext.h"*/
 
 #endif /* I2CONFIG_H */

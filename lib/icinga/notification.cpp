@@ -18,7 +18,12 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <boost/tuple/tuple.hpp>
+#include <boost/foreach.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -85,9 +90,9 @@ Dictionary::Ptr Notification::GetMacros(void) const
 /**
  * @threadsafety Always.
  */
-set<User::Ptr> Notification::GetUsers(void) const
+std::set<User::Ptr> Notification::GetUsers(void) const
 {
-	set<User::Ptr> result;
+	std::set<User::Ptr> result;
 
 	Array::Ptr users = m_Users;
 
@@ -110,9 +115,9 @@ set<User::Ptr> Notification::GetUsers(void) const
 /**
  * @threadsafety Always.
  */
-set<UserGroup::Ptr> Notification::GetGroups(void) const
+std::set<UserGroup::Ptr> Notification::GetGroups(void) const
 {
-	set<UserGroup::Ptr> result;
+	std::set<UserGroup::Ptr> result;
 
 	Array::Ptr groups = m_Groups;
 
@@ -166,18 +171,18 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 
 	Dictionary::Ptr macros = cr->Get("macros");
 
-	set<User::Ptr> allUsers;
+	std::set<User::Ptr> allUsers;
 
-	set<User::Ptr> users = GetUsers();
+	std::set<User::Ptr> users = GetUsers();
 	std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
 
 	BOOST_FOREACH(const UserGroup::Ptr& ug, GetGroups()) {
-		set<User::Ptr> members = ug->GetMembers();
+		std::set<User::Ptr> members = ug->GetMembers();
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
-		Logger::Write(LogDebug, "icinga", "Sending notification for user " + user->GetName());
+		Log(LogDebug, "icinga", "Sending notification for user " + user->GetName());
 		BeginExecuteNotificationHelper(macros, type, user);
 	}
 
@@ -194,7 +199,7 @@ void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notific
 {
 	ASSERT(!OwnsLock());
 
-	vector<Dictionary::Ptr> macroDicts;
+	std::vector<Dictionary::Ptr> macroDicts;
 
 	if (user) {
 		macroDicts.push_back(user->GetMacros());
@@ -207,7 +212,7 @@ void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notific
 
 	Notification::Ptr self = GetSelf();
 
-	vector<Value> arguments;
+	std::vector<Value> arguments;
 	arguments.push_back(self);
 	arguments.push_back(macros);
 	arguments.push_back(type);
@@ -215,7 +220,7 @@ void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notific
 	ScriptTask::Ptr task = MakeMethodTask("notify", arguments);
 
 	if (!task) {
-		Logger::Write(LogWarning, "icinga", "Notification object '" + GetName() + "' doesn't have a 'notify' method.");
+		Log(LogWarning, "icinga", "Notification object '" + GetName() + "' doesn't have a 'notify' method.");
 
 		return;
 	}
@@ -246,14 +251,14 @@ void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 	try {
 		task->GetResult();
 
-		Logger::Write(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
-	} catch (const exception& ex) {
-		stringstream msgbuf;
+		Log(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
+	} catch (const std::exception& ex) {
+		std::ostringstream msgbuf;
 		msgbuf << "Exception occured during notification for service '"
-		       << GetService()->GetName() << "': " << diagnostic_information(ex);
+		       << GetService()->GetName() << "': " << boost::diagnostic_information(ex);
 		String message = msgbuf.str();
 
-		Logger::Write(LogWarning, "icinga", message);
+		Log(LogWarning, "icinga", message);
 	}
 }
 

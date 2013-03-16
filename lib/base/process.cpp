@@ -18,14 +18,18 @@
  ******************************************************************************/
 
 #include "i2-base.h"
+#include "base/process.h"
+#include "base/array.h"
+#include "base/objectlock.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 boost::once_flag Process::m_ThreadOnce = BOOST_ONCE_INIT;
 boost::mutex Process::m_Mutex;
-deque<Process::Ptr> Process::m_Tasks;
+std::deque<Process::Ptr> Process::m_Tasks;
 
-Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
+Process::Process(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
 	: AsyncTask<Process, ProcessResult>(), m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment)
 {
 	{
@@ -38,9 +42,9 @@ Process::Process(const vector<String>& arguments, const Dictionary::Ptr& extraEn
 #endif /* _WIN32 */
 }
 
-vector<String> Process::SplitCommand(const Value& command)
+std::vector<String> Process::SplitCommand(const Value& command)
 {
-	vector<String> args;
+	std::vector<String> args;
 
 	if (command.IsObjectType<Array>()) {
 		Array::Ptr arguments = command;

@@ -20,6 +20,10 @@
 #ifndef SCRIPTFUNCTION_H
 #define SCRIPTFUNCTION_H
 
+#include "base/i2-base.h"
+#include "base/registry.h"
+#include "base/value.h"
+#include <vector>
 #include <boost/function.hpp>
 
 namespace icinga
@@ -38,14 +42,14 @@ public:
 	typedef shared_ptr<ScriptFunction> Ptr;
 	typedef weak_ptr<ScriptFunction> WeakPtr;
 
-	typedef boost::function<void (const shared_ptr<ScriptTask>&, const vector<Value>& arguments)> Callback;
+	typedef boost::function<void (const shared_ptr<ScriptTask>&, const std::vector<Value>& arguments)> Callback;
 
 	explicit ScriptFunction(const Callback& function);
 
 private:
 	Callback m_Callback;
 
-	void Invoke(const shared_ptr<ScriptTask>& task, const vector<Value>& arguments);
+	void Invoke(const shared_ptr<ScriptTask>& task, const std::vector<Value>& arguments);
 
 	friend class ScriptTask;
 };
@@ -63,14 +67,10 @@ class I2_BASE_API ScriptFunctionRegistry : public Registry<ScriptFunction::Ptr>
  *
  * @ingroup base
  */
-class RegisterFunctionHelper
+class I2_BASE_API RegisterFunctionHelper
 {
 public:
-	RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
-	{
-		ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(function);
-		ScriptFunctionRegistry::GetInstance()->Register(name, func);
-	}
+	RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function);
 };
 
 #define REGISTER_SCRIPTFUNCTION(name, callback) \

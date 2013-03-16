@@ -17,7 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
 
 using namespace icinga;
 
@@ -61,13 +62,13 @@ DynamicType::TypeSet DynamicType::GetTypes(void)
 	return InternalGetTypeSet(); /* Making a copy of the set here. */
 }
 
-set<DynamicObject::Ptr> DynamicType::GetObjects(const String& type)
+std::set<DynamicObject::Ptr> DynamicType::GetObjects(const String& type)
 {
 	DynamicType::Ptr dt = GetByName(type);
 	return dt->GetObjects();
 }
 
-set<DynamicObject::Ptr> DynamicType::GetObjects(void) const
+std::set<DynamicObject::Ptr> DynamicType::GetObjects(void) const
 {
 	ObjectLock olock(this);
 
@@ -92,7 +93,7 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 			if (it->second == object)
 				return;
 
-			BOOST_THROW_EXCEPTION(runtime_error("RegisterObject() found existing object with the same name: " + name));
+			BOOST_THROW_EXCEPTION(std::runtime_error("RegisterObject() found existing object with the same name: " + name));
 		}
 
 		m_ObjectMap[name] = object;
@@ -143,7 +144,7 @@ void DynamicType::RegisterType(const DynamicType::Ptr& type)
 	DynamicType::TypeMap::const_iterator tt = InternalGetTypeMap().find(type->GetName());
 
 	if (tt != InternalGetTypeMap().end())
-		BOOST_THROW_EXCEPTION(runtime_error("Cannot register class for type '" +
+		BOOST_THROW_EXCEPTION(std::runtime_error("Cannot register class for type '" +
 		    type->GetName() + "': Objects of this type already exist."));
 
 	InternalGetTypeMap()[type->GetName()] = type;

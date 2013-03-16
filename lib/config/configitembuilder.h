@@ -59,7 +59,7 @@ private:
 	String m_Unit; /**< The compilation unit. */
 	bool m_Local; /**< Whether the item is local. */
 	bool m_Abstract; /**< Whether the item is abstract. */
-	vector<String> m_Parents; /**< The names of parent configuration
+	std::vector<String> m_Parents; /**< The names of parent configuration
 				       items. */
 	ExpressionList::Ptr m_ExpressionList; /**< Expressions for this item. */
 	DebugInfo m_DebugInfo; /**< Debug information. */

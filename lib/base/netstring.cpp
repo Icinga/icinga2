@@ -17,7 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/netstring.h"
+#include <sstream>
 
 using namespace icinga;
 
@@ -38,7 +39,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 	char *buffer = static_cast<char *>(malloc(buffer_length));
 
 	if (buffer == NULL)
-		BOOST_THROW_EXCEPTION(bad_alloc());
+		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 	peek_length = stream->Peek(buffer, buffer_length);
 
@@ -51,7 +52,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 	/* no leading zeros allowed */
 	if (buffer[0] == '0' && isdigit(buffer[1])) {
 		free(buffer);
-		BOOST_THROW_EXCEPTION(invalid_argument("Invalid netString (leading zero)"));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid netString (leading zero)"));
 	}
 
 	size_t len, i;
@@ -61,7 +62,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 		/* length specifier must have at most 9 characters */
 		if (i >= 9) {
 			free(buffer);
-			BOOST_THROW_EXCEPTION(invalid_argument("Length specifier must not exceed 9 characters"));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Length specifier must not exceed 9 characters"));
 		}
 
 		len = len * 10 + (buffer[i] - '0');
@@ -74,7 +75,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 
 	if (new_buffer == NULL) {
 		free(buffer);
-		BOOST_THROW_EXCEPTION(bad_alloc());
+		BOOST_THROW_EXCEPTION(std::bad_alloc());
 	}
 
 	buffer = new_buffer;
@@ -87,13 +88,13 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 	/* check for the colon delimiter */
 	if (buffer[i] != ':') {
 		free(buffer);
-		BOOST_THROW_EXCEPTION(invalid_argument("Invalid NetString (missing :)"));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing :)"));
 	}
 
 	/* check for the comma delimiter after the String */
 	if (buffer[i + 1 + len] != ',') {
 		free(buffer);
-		BOOST_THROW_EXCEPTION(invalid_argument("Invalid NetString (missing ,)"));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing ,)"));
 	}
 
 	*str = String(&buffer[i + 1], &buffer[i + 1 + len]);
@@ -115,7 +116,7 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
  */
 void NetString::WriteStringToStream(const Stream::Ptr& stream, const String& str)
 {
-	stringstream prefixbuf;
+	std::ostringstream prefixbuf;
 	prefixbuf << str.GetLength() << ":";
 
 	String prefix = prefixbuf.str();

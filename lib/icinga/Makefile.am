@@ -5,7 +5,8 @@ pkglib_LTLIBRARIES =  \
 	libicinga.la
 
 EXTRA_DIST = \
-	icinga-type.conf
+	icinga-type.conf \
+	i2-icinga.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig.c
 	$(top_builddir)/tools/mkembedconfig $< $@
@@ -23,7 +24,6 @@ libicinga_la_SOURCES =  \
 	hostgroup.cpp \
 	hostgroup.h \
 	host.h \
-	i2-icinga.cpp \
 	i2-icinga.h \
 	icinga-type.cpp \
 	icingaapplication.cpp \
@@ -60,10 +60,7 @@ libicinga_la_SOURCES =  \
 libicinga_la_CPPFLAGS = \
 	-DI2_ICINGA_BUILD \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/lib/base \
-	-I${top_srcdir}/lib/config \
-	-I${top_srcdir}/lib/remoting \
-	-I${top_srcdir}
+	-I${top_srcdir}/lib
 
 libicinga_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \

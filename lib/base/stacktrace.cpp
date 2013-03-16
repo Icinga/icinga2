@@ -17,7 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/stacktrace.h"
+#include "base/qstring.h"
+#include "base/utility.h"
+
 #if HAVE_BACKTRACE_SYMBOLS
 #	include <execinfo.h>
 #endif /* HAVE_BACKTRACE_SYMBOLS */
@@ -102,7 +105,7 @@ void StackTrace::Initialize(void)
  *		       the one this function is executing in).
  * @returns true if the stacktrace was printed, false otherwise.
  */
-void StackTrace::Print(ostream& fp, int ignoreFrames) const
+void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 {
 	fp << std::endl << "Stacktrace:" << std::endl;
 
@@ -171,7 +174,7 @@ void StackTrace::Print(ostream& fp, int ignoreFrames) const
 #endif /* _WIN32 */
 }
 
-ostream& icinga::operator<<(ostream& stream, const StackTrace& trace)
+std::ostream& icinga::operator<<(std::ostream& stream, const StackTrace& trace)
 {
 	trace.Print(stream, 1);
 

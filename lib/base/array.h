@@ -20,6 +20,10 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
+#include "base/i2-base.h"
+#include "base/value.h"
+#include <vector>
+
 namespace icinga
 {
 
@@ -37,7 +41,7 @@ public:
 	/**
 	 * An iterator that can be used to iterate over array elements.
 	 */
-	typedef vector<Value>::iterator Iterator;
+	typedef std::vector<Value>::iterator Iterator;
 
 	Array(void);
 
@@ -62,7 +66,7 @@ public:
 	cJSON *ToJson(void) const;
 
 private:
-	vector<Value> m_Data; /**< The data for the array. */
+	std::vector<Value> m_Data; /**< The data for the array. */
 	bool m_Sealed; /**< Whether the array is read-only. */
 };
 

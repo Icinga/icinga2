@@ -19,6 +19,8 @@
 
 #include "i2-livestatus.h"
 #include <boost/tuple/tuple.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -48,9 +50,9 @@ Table::Ptr Table::GetByName(const String& name)
 
 void Table::AddColumn(const String& name, const Column& column)
 {
-	pair<String, Column> item = make_pair(name, column);
+	std::pair<String, Column> item = std::make_pair(name, column);
 
-	pair<map<String, Column>::iterator, bool> ret = m_Columns.insert(item);
+	std::pair<std::map<String, Column>::iterator, bool> ret = m_Columns.insert(item);
 
 	if (!ret.second)
 		ret.first->second = column;
@@ -58,17 +60,17 @@ void Table::AddColumn(const String& name, const Column& column)
 
 Column Table::GetColumn(const String& name) const
 {
-	map<String, Column>::const_iterator it = m_Columns.find(name);
+	std::map<String, Column>::const_iterator it = m_Columns.find(name);
 
 	if (it == m_Columns.end())
-		BOOST_THROW_EXCEPTION(invalid_argument("Column '" + name + "' does not exist."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Column '" + name + "' does not exist."));
 
 	return it->second;
 }
 
-vector<String> Table::GetColumnNames(void) const
+std::vector<String> Table::GetColumnNames(void) const
 {
-	vector<String> names;
+	std::vector<String> names;
 
 	String name;
 	BOOST_FOREACH(boost::tie(name, boost::tuples::ignore), m_Columns) {
@@ -78,16 +80,16 @@ vector<String> Table::GetColumnNames(void) const
 	return names;
 }
 
-vector<Object::Ptr> Table::FilterRows(const Filter::Ptr& filter)
+std::vector<Object::Ptr> Table::FilterRows(const Filter::Ptr& filter)
 {
-	vector<Object::Ptr> rs;
+	std::vector<Object::Ptr> rs;
 
 	FetchRows(boost::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, _1));
 
 	return rs;
 }
 
-void Table::FilteredAddRow(vector<Object::Ptr>& rs, const Filter::Ptr& filter, const Object::Ptr& object)
+void Table::FilteredAddRow(std::vector<Object::Ptr>& rs, const Filter::Ptr& filter, const Object::Ptr& object)
 {
 	if (!filter || filter->Apply(GetSelf(), object))
 		rs.push_back(object);

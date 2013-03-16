@@ -17,7 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/stream.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;

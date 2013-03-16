@@ -4,6 +4,9 @@
 pkglib_LTLIBRARIES =  \
 	libbase.la
 
+EXTRA_DIST = \
+	i2-base.cpp
+
 libbase_la_SOURCES =  \
 	application.cpp \
 	application.h \
@@ -28,10 +31,10 @@ libbase_la_SOURCES =  \
 	exception.h \
 	fifo.cpp \
 	fifo.h \
-	i2-base.cpp \
 	i2-base.h \
 	logger.cpp \
 	logger.h \
+	logger_fwd.h \
 	netstring.cpp \
 	netstring.h \
 	object.cpp \
@@ -92,6 +95,7 @@ libbase_la_CPPFLAGS = \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	$(OPENSSL_INCLUDES) \
+	-I${top_srcdir}/lib \
 	-I${top_srcdir}/third-party/execvpe \
 	-I${top_srcdir}/third-party/mmatch \
 	-I${top_srcdir}/third-party/cJSON

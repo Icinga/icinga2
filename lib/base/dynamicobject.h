@@ -20,6 +20,14 @@
 #ifndef DYNAMICOBJECT_H
 #define DYNAMICOBJECT_H
 
+#include "base/i2-base.h"
+#include "base/timer.h"
+#include "base/attribute.h"
+#include "base/scripttask.h"
+#include "base/object.h"
+#include "base/dictionary.h"
+#include <map>
+#include <set>
 #include <boost/thread/once.hpp>
 
 namespace icinga
@@ -39,7 +47,7 @@ public:
 	typedef shared_ptr<DynamicObject> Ptr;
 	typedef weak_ptr<DynamicObject> WeakPtr;
 
-	typedef map<String, AttributeHolder, string_iless> AttributeMap;
+	typedef std::map<String, AttributeHolder, string_iless> AttributeMap;
 	typedef AttributeMap::iterator AttributeIterator;
 	typedef AttributeMap::const_iterator AttributeConstIterator;
 
@@ -60,13 +68,13 @@ public:
 
 	void ClearAttributesByType(AttributeType type);
 
-	static signals2::signal<void (const DynamicObject::Ptr&)> OnRegistered;
-	static signals2::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
-	static signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> OnTransactionClosing;
-	static signals2::signal<void (double, const DynamicObject::Ptr&)> OnFlushObject;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnRegistered;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
+	static boost::signals2::signal<void (double, const std::set<DynamicObject::WeakPtr>&)> OnTransactionClosing;
+	static boost::signals2::signal<void (double, const DynamicObject::Ptr&)> OnFlushObject;
 
 	ScriptTask::Ptr MakeMethodTask(const String& method,
-	    const vector<Value>& arguments);
+	    const std::vector<Value>& arguments);
 
 	shared_ptr<DynamicType> GetType(void) const;
 	String GetName(void) const;
@@ -110,7 +118,7 @@ private:
 
 	mutable boost::mutex m_AttributeMutex;
 	AttributeMap m_Attributes;
-	set<String, string_iless> m_ModifiedAttributes;
+	std::set<String, string_iless> m_ModifiedAttributes;
 	double m_ConfigTx;
 
 	Attribute<String> m_Name;
@@ -127,7 +135,7 @@ private:
 
 	/* This has to be a set of raw pointers because the DynamicObject
 	 * constructor has to be able to insert objects into this list. */
-	static set<DynamicObject::WeakPtr> m_ModifiedObjects;
+	static std::set<DynamicObject::WeakPtr> m_ModifiedObjects;
 	static boost::mutex m_TransactionMutex;
 	static boost::once_flag m_TransactionOnce;
 	static Timer::Ptr m_TransactionTimer;

@@ -18,12 +18,18 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "icinga/service.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <boost/tuple/tuple.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
 boost::mutex Service::m_NotificationMutex;
-map<String, set<Notification::WeakPtr> > Service::m_NotificationsCache;
+std::map<String, std::set<Notification::WeakPtr> > Service::m_NotificationsCache;
 bool Service::m_NotificationsCacheNeedsUpdate = false;
 Timer::Ptr Service::m_NotificationsCacheTimer;
 
@@ -47,7 +53,7 @@ void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr&
 	params.SetType(type);
 	params.SetCheckResult(cr);
 
-	Logger::Write(LogDebug, "icinga", "Sending notification anycast request for service '" + GetName() + "'");
+	Log(LogDebug, "icinga", "Sending notification anycast request for service '" + GetName() + "'");
 	EndpointManager::GetInstance()->SendAnycastMessage(Endpoint::Ptr(), msg);
 }
 
@@ -57,27 +63,27 @@ void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr&
 void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr)
 {
 	if (!GetEnableNotifications()) {
-		Logger::Write(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
+		Log(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
 		return;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Sending notifications for service '" + GetName() + "'");
+	Log(LogInformation, "icinga", "Sending notifications for service '" + GetName() + "'");
 
-	set<Notification::Ptr> notifications = GetNotifications();
+	std::set<Notification::Ptr> notifications = GetNotifications();
 
 	if (notifications.empty())
-		Logger::Write(LogInformation, "icinga", "Service '" + GetName() + "' does not have any notifications.");
+		Log(LogInformation, "icinga", "Service '" + GetName() + "' does not have any notifications.");
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {
 			notification->BeginExecuteNotification(type, cr);
-		} catch (const exception& ex) {
-			stringstream msgbuf;
+		} catch (const std::exception& ex) {
+			std::ostringstream msgbuf;
 			msgbuf << "Exception occured during notification for service '"
-			       << GetName() << "': " << diagnostic_information(ex);
+			       << GetName() << "': " << boost::diagnostic_information(ex);
 			String message = msgbuf.str();
 
-			Logger::Write(LogWarning, "icinga", message);
+			Log(LogWarning, "icinga", message);
 		}
 	}
 }
@@ -116,9 +122,9 @@ void Service::RefreshNotificationsCache(void)
 		m_NotificationsCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogDebug, "icinga", "Updating Service notifications cache.");
+	Log(LogDebug, "icinga", "Updating Service notifications cache.");
 
-	map<String, set<Notification::WeakPtr> > newNotificationsCache;
+	std::map<String, std::set<Notification::WeakPtr> > newNotificationsCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Notification")) {
 		const Notification::Ptr& notification = static_pointer_cast<Notification>(object);
@@ -138,9 +144,9 @@ void Service::RefreshNotificationsCache(void)
 /**
  * @threadsafety Always.
  */
-set<Notification::Ptr> Service::GetNotifications(void) const
+std::set<Notification::Ptr> Service::GetNotifications(void) const
 {
-	set<Notification::Ptr> notifications;
+	std::set<Notification::Ptr> notifications;
 
 	{
 		boost::mutex::scoped_lock lock(m_NotificationMutex);
@@ -187,7 +193,7 @@ static void CopyNotificationAttributes(TDict notificationDesc, const ConfigItemB
 void Service::UpdateSlaveNotifications(void)
 {
 	Dictionary::Ptr oldNotifications;
-	vector<Dictionary::Ptr> notificationDescsList;
+	std::vector<Dictionary::Ptr> notificationDescsList;
 	ConfigItem::Ptr item;
 
 	item = ConfigItem::GetObject("Service", GetName());
@@ -222,7 +228,7 @@ void Service::UpdateSlaveNotifications(void)
 		String nfcname;
 		Value nfcdesc;
 		BOOST_FOREACH(boost::tie(nfcname, nfcdesc), notificationDescs) {
-			stringstream namebuf;
+			std::ostringstream namebuf;
 			namebuf << GetName() << "-" << nfcname;
 			String name = namebuf.str();
 
@@ -235,7 +241,7 @@ void Service::UpdateSlaveNotifications(void)
 			CopyNotificationAttributes(this, builder);
 
 			if (!nfcdesc.IsObjectType<Dictionary>())
-				BOOST_THROW_EXCEPTION(invalid_argument("Notification description must be a dictionary."));
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Notification description must be a dictionary."));
 
 			Dictionary::Ptr notification = nfcdesc;
 

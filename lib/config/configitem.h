@@ -20,6 +20,8 @@
 #ifndef CONFIGITEM_H
 #define CONFIGITEM_H
 
+#include "base/dynamicobject.h"
+
 namespace icinga
 {
 
@@ -35,7 +37,7 @@ public:
 	typedef weak_ptr<ConfigItem> WeakPtr;
 
 	ConfigItem(const String& type, const String& name, const String& unit,
-	    bool abstract, const ExpressionList::Ptr& exprl, const vector<String>& parents,
+	    bool abstract, const ExpressionList::Ptr& exprl, const std::vector<String>& parents,
 	    const DebugInfo& debuginfo);
 
 	String GetType(void) const;
@@ -43,14 +45,14 @@ public:
 	String GetUnit(void) const;
 	bool IsAbstract(void) const;
 
-	vector<String> GetParents(void) const;
+	std::vector<String> GetParents(void) const;
 
 	ExpressionList::Ptr GetExpressionList(void) const;
 
 	DynamicObject::Ptr Commit(void);
 	void Unregister(void);
 
-	void Dump(ostream& fp) const;
+	void Dump(std::ostream& fp) const;
 
 	DynamicObject::Ptr GetDynamicObject(void) const;
 
@@ -63,8 +65,8 @@ public:
 
 	static void UnloadUnit(const String& unit);
 
-	static signals2::signal<void (const ConfigItem::Ptr&)> OnCommitted;
-	static signals2::signal<void (const ConfigItem::Ptr&)> OnRemoved;
+	static boost::signals2::signal<void (const ConfigItem::Ptr&)> OnCommitted;
+	static boost::signals2::signal<void (const ConfigItem::Ptr&)> OnRemoved;
 
 private:
 	void InternalLink(const Dictionary::Ptr& dictionary) const;
@@ -79,19 +81,19 @@ private:
 	bool m_Abstract; /**< Whether this is a template. */
 
 	ExpressionList::Ptr m_ExpressionList;
-	vector<String> m_Parents; /**< The names of parent configuration
+	std::vector<String> m_Parents; /**< The names of parent configuration
 				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
 	DynamicObject::WeakPtr m_DynamicObject; /**< The instantiated version
                                                  * of this configuration
 						 * item */
-        set<ConfigItem::WeakPtr> m_ChildObjects; /**< Instantiated items
+        std::set<ConfigItem::WeakPtr> m_ChildObjects; /**< Instantiated items
                                                      * that inherit from this item */
 
 	static boost::mutex m_Mutex;
 
-	typedef map<pair<String, String>, ConfigItem::Ptr> ItemMap;
+	typedef std::map<std::pair<String, String>, ConfigItem::Ptr> ItemMap;
 	static ItemMap m_Items; /**< All registered configuration items. */
 
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,

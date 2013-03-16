@@ -18,13 +18,18 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/convert.h"
+#include "base/logger_fwd.h"
+#include "base/objectlock.h"
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/foreach.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
 boost::once_flag ExternalCommandProcessor::m_InitializeOnce = BOOST_ONCE_INIT;
 boost::mutex ExternalCommandProcessor::m_Mutex;
-map<String, ExternalCommandProcessor::Callback> ExternalCommandProcessor::m_Commands;
+std::map<String, ExternalCommandProcessor::Callback> ExternalCommandProcessor::m_Commands;
 
 /**
  * @threadsafety Always.
@@ -35,12 +40,12 @@ void ExternalCommandProcessor::Execute(const String& line)
 		return;
 
 	if (line[0] != '[')
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing timestamp in command: " + line));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing timestamp in command: " + line));
 
 	size_t pos = line.FindFirstOf("]");
 
 	if (pos == String::NPos)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing timestamp in command: " + line));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing timestamp in command: " + line));
 
 	String timestamp = line.SubStr(1, pos - 1);
 	String args = line.SubStr(pos + 2, String::NPos);
@@ -48,21 +53,21 @@ void ExternalCommandProcessor::Execute(const String& line)
 	double ts = Convert::ToDouble(timestamp);
 
 	if (ts == 0)
-		BOOST_THROW_EXCEPTION(invalid_argument("Invalid timestamp in command: " + line));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timestamp in command: " + line));
 
-	vector<String> argv = args.Split(boost::is_any_of(";"));
+	std::vector<String> argv = args.Split(boost::is_any_of(";"));
 
 	if (argv.empty())
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing arguments in command: " + line));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing arguments in command: " + line));
 
-	vector<String> argvExtra(argv.begin() + 1, argv.end());
+	std::vector<String> argvExtra(argv.begin() + 1, argv.end());
 	Execute(ts, argv[0], argvExtra);
 }
 
 /**
  * @threadsafety Always.
  */
-void ExternalCommandProcessor::Execute(double time, const String& command, const vector<String>& arguments)
+void ExternalCommandProcessor::Execute(double time, const String& command, const std::vector<String>& arguments)
 {
 	boost::call_once(m_InitializeOnce, &ExternalCommandProcessor::Initialize);
 
@@ -71,11 +76,11 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		map<String, ExternalCommandProcessor::Callback>::iterator it;
+		std::map<String, ExternalCommandProcessor::Callback>::iterator it;
 		it = m_Commands.find(command);
 
 		if (it == m_Commands.end())
-			BOOST_THROW_EXCEPTION(invalid_argument("The external command '" + command + "' does not exist."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("The external command '" + command + "' does not exist."));
 
 		callback = it->second;
 	}
@@ -156,17 +161,17 @@ void ExternalCommandProcessor::RegisterCommand(const String& command, const Exte
 	m_Commands[command] = callback;
 }
 
-void ExternalCommandProcessor::ProcessHostCheckResult(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 3 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Service::Ptr hc = host->GetHostCheckService();
 
 	if (!hc->GetEnablePassiveChecks())
-		BOOST_THROW_EXCEPTION(invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[1]);
 	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(arguments[2]);
@@ -178,7 +183,7 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const vector<
 	result->Set("execution_end", time);
 	result->Set("active", 0);
 
-	Logger::Write(LogInformation, "icinga", "Processing passive check result for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Processing passive check result for host '" + arguments[0] + "'");
 	hc->ProcessCheckResult(result);
 
 	{
@@ -191,15 +196,15 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const vector<
 	}
 }
 
-void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vector<String>& arguments)
+void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 4)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 4 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 4 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service->GetEnablePassiveChecks())
-		BOOST_THROW_EXCEPTION(invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[2]);
 	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(arguments[3]);
@@ -211,7 +216,7 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vect
 	result->Set("execution_end", time);
 	result->Set("active", 0);
 
-	Logger::Write(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
+	Log(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
 	service->ProcessCheckResult(result);
 
 	{
@@ -224,10 +229,10 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const vect
 	}
 }
 
-void ExternalCommandProcessor::ScheduleHostCheck(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -236,12 +241,12 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const vector<String>& a
 	double planned_check = Convert::ToDouble(arguments[1]);
 
 	if (planned_check > hc->GetNextCheck()) {
-		Logger::Write(LogInformation, "icinga", "Ignoring reschedule request for host '" +
+		Log(LogInformation, "icinga", "Ignoring reschedule request for host '" +
 		    arguments[0] + "' (next check is already sooner than requested check time)");
 		return;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
 
 	{
 		ObjectLock olock(hc);
@@ -250,16 +255,16 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const vector<String>& a
 	}
 }
 
-void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Service::Ptr hc = host->GetHostCheckService();
 
-	Logger::Write(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
 
 	{
 		ObjectLock olock(hc);
@@ -269,22 +274,22 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const vector<Stri
 	}
 }
 
-void ExternalCommandProcessor::ScheduleSvcCheck(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 3 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	double planned_check = Convert::ToDouble(arguments[2]);
 
 	if (planned_check > service->GetNextCheck()) {
-		Logger::Write(LogInformation, "icinga", "Ignoring reschedule request for service '" +
+		Log(LogInformation, "icinga", "Ignoring reschedule request for service '" +
 		    arguments[1] + "' (next check is already sooner than requested check time)");
 		return;
 	}
 
-	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
+	Log(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
 
 	{
 		ObjectLock olock(service);
@@ -293,14 +298,14 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double, const vector<String>& ar
 	}
 }
 
-void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 3 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
+	Log(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
 
 	{
 		ObjectLock olock(service);
@@ -310,14 +315,14 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const vector<Strin
 	}
 }
 
-void ExternalCommandProcessor::EnableHostCheck(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostCheck(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Enabling active checks for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Enabling active checks for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
 	if (!hc)
@@ -330,14 +335,14 @@ void ExternalCommandProcessor::EnableHostCheck(double, const vector<String>& arg
 	}
 }
 
-void ExternalCommandProcessor::DisableHostCheck(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostCheck(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Disabling active checks for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Disabling active checks for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
 	if (!hc)
@@ -350,14 +355,14 @@ void ExternalCommandProcessor::DisableHostCheck(double, const vector<String>& ar
 	}
 }
 
-void ExternalCommandProcessor::EnableSvcCheck(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableSvcCheck(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + arguments[1] + "'");
+	Log(LogInformation, "icinga", "Enabling active checks for service '" + arguments[1] + "'");
 
 	{
 		ObjectLock olock(service);
@@ -366,14 +371,14 @@ void ExternalCommandProcessor::EnableSvcCheck(double, const vector<String>& argu
 	}
 }
 
-void ExternalCommandProcessor::DisableSvcCheck(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableSvcCheck(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + arguments[1] + "'");
+	Log(LogInformation, "icinga", "Disabling active checks for service '" + arguments[1] + "'");
 
 	{
 		ObjectLock olock(service);
@@ -382,23 +387,23 @@ void ExternalCommandProcessor::DisableSvcCheck(double, const vector<String>& arg
 	}
 }
 
-void ExternalCommandProcessor::ShutdownProcess(double, const vector<String>&)
+void ExternalCommandProcessor::ShutdownProcess(double, const std::vector<String>&)
 {
-	Logger::Write(LogInformation, "icinga", "Shutting down Icinga via external command.");
+	Log(LogInformation, "icinga", "Shutting down Icinga via external command.");
 	Application::RequestShutdown();
 }
 
-void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	double planned_check = Convert::ToDouble(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
+		Log(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
 
 		{
 			ObjectLock olock(service);
@@ -409,10 +414,10 @@ void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const vector<
 	}
 }
 
-void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	double planned_check = Convert::ToDouble(arguments[1]);
 
@@ -420,12 +425,12 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const vector<String
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (planned_check > service->GetNextCheck()) {
-			Logger::Write(LogInformation, "icinga", "Ignoring reschedule request for service '" +
+			Log(LogInformation, "icinga", "Ignoring reschedule request for service '" +
 			    service->GetName() + "' (next check is already sooner than requested check time)");
 			continue;
 		}
 
-		Logger::Write(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
+		Log(LogInformation, "icinga", "Rescheduling next check for service '" + service->GetName() + "'");
 
 		{
 			ObjectLock olock(service);
@@ -435,28 +440,28 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const vector<String
 	}
 }
 
-void ExternalCommandProcessor::EnableHostSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
+		Log(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
 		service->SetEnableActiveChecks(true);
 	}
 }
 
-void ExternalCommandProcessor::DisableHostSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
+		Log(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
 
 		{
 			ObjectLock olock(service);
@@ -466,27 +471,27 @@ void ExternalCommandProcessor::DisableHostSvcChecks(double, const vector<String>
 	}
 }
 
-void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 7)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 7 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 7 arguments."));
 
 	bool sticky = Convert::ToBool(arguments[2]);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (service->GetState() == StateOK)
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' is OK."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is OK."));
 
-	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for service '" + service->GetName() + "'");
+	Log(LogInformation, "icinga", "Setting acknowledgement for service '" + service->GetName() + "'");
 
 	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 }
 
-void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
 
 	bool sticky = Convert::ToBool(arguments[2]);
 	double timestamp = Convert::ToDouble(arguments[5]);
@@ -494,87 +499,87 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const vector<
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (service->GetState() == StateOK)
-		BOOST_THROW_EXCEPTION(invalid_argument("The service '" + arguments[1] + "' is OK."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is OK."));
 
-	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for service '" + service->GetName() + "'");
+	Log(LogInformation, "icinga", "Setting timed acknowledgement for service '" + service->GetName() + "'");
 
 	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
 }
 
-void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const vector<String>& arguments)
+void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
+	Log(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
 
 	service->ClearAcknowledgement();
 }
 
-void ExternalCommandProcessor::AcknowledgeHostProblem(double, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 6)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 6 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 6 arguments."));
 
 	bool sticky = Convert::ToBool(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Setting acknowledgement for host '" + host->GetName() + "'");
+	Log(LogInformation, "icinga", "Setting acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
 		if (service->GetState() == StateOK)
-			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
 
 		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
 	}
 }
 
-void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const vector<String>& arguments)
+void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 7)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 7 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 7 arguments."));
 
 	bool sticky = Convert::ToBool(arguments[1]);
 	double timestamp = Convert::ToDouble(arguments[4]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Setting timed acknowledgement for host '" + host->GetName() + "'");
+	Log(LogInformation, "icinga", "Setting timed acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
 		if (service->GetState() == StateOK)
-			BOOST_THROW_EXCEPTION(invalid_argument("The host '" + arguments[0] + "' is OK."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
 
 		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
 	}
 }
 
-void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const vector<String>& arguments)
+void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
+	Log(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetHostCheckService();
 	if (service)
 		service->ClearAcknowledgement();
 }
 
-void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-			Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
+			Log(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
 
 			{
 				ObjectLock olock(service);
@@ -585,16 +590,16 @@ void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const vector<Str
 	}
 }
 
-void ExternalCommandProcessor::DisableHostgroupSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostgroupSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-			Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
+			Log(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
 
 			{
 				ObjectLock olock(service);
@@ -605,15 +610,15 @@ void ExternalCommandProcessor::DisableHostgroupSvcChecks(double, const vector<St
 	}
 }
 
-void ExternalCommandProcessor::EnableServicegroupSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableServicegroupSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-		Logger::Write(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
+		Log(LogInformation, "icinga", "Enabling active checks for service '" + service->GetName() + "'");
 
 		{
 			ObjectLock olock(service);
@@ -623,15 +628,15 @@ void ExternalCommandProcessor::EnableServicegroupSvcChecks(double, const vector<
 	}
 }
 
-void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-		Logger::Write(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
+		Log(LogInformation, "icinga", "Disabling active checks for service '" + service->GetName() + "'");
 
 		{
 			ObjectLock olock(service);
@@ -641,14 +646,14 @@ void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const vector
 	}
 }
 
-void ExternalCommandProcessor::EnablePassiveHostChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnablePassiveHostChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Enabling passive checks for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Enabling passive checks for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
 	if (!hc)
@@ -661,14 +666,14 @@ void ExternalCommandProcessor::EnablePassiveHostChecks(double, const vector<Stri
 	}
 }
 
-void ExternalCommandProcessor::DisablePassiveHostChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisablePassiveHostChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Disabling passive checks for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Disabling passive checks for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
 	if (!hc)
@@ -681,14 +686,14 @@ void ExternalCommandProcessor::DisablePassiveHostChecks(double, const vector<Str
 	}
 }
 
-void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + arguments[1] + "'");
+	Log(LogInformation, "icinga", "Enabling passive checks for service '" + arguments[1] + "'");
 
 	{
 		ObjectLock olock(service);
@@ -697,14 +702,14 @@ void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const vector<Strin
 	}
 }
 
-void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + arguments[1] + "'");
+	Log(LogInformation, "icinga", "Disabling passive checks for service '" + arguments[1] + "'");
 
 	{
 		ObjectLock olock(service);
@@ -713,15 +718,15 @@ void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const vector<Stri
 	}
 }
 
-void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-		Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + service->GetName() + "'");
+		Log(LogInformation, "icinga", "Enabling passive checks for service '" + service->GetName() + "'");
 
 		{
 			ObjectLock olock(service);
@@ -731,15 +736,15 @@ void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const 
 	}
 }
 
-void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-		Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + service->GetName() + "'");
+		Log(LogInformation, "icinga", "Disabling passive checks for service '" + service->GetName() + "'");
 
 		{
 			ObjectLock olock(service);
@@ -749,16 +754,16 @@ void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const
 	}
 }
 
-void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-			Logger::Write(LogInformation, "icinga", "Enabling passive checks for service '" + service->GetName() + "'");
+			Log(LogInformation, "icinga", "Enabling passive checks for service '" + service->GetName() + "'");
 
 			{
 				ObjectLock olock(service);
@@ -769,16 +774,16 @@ void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double, const vec
 	}
 }
 
-void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-			Logger::Write(LogInformation, "icinga", "Disabling passive checks for service '" + service->GetName() + "'");
+			Log(LogInformation, "icinga", "Disabling passive checks for service '" + service->GetName() + "'");
 
 			{
 				ObjectLock olock(service);
@@ -789,31 +794,31 @@ void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const ve
 	}
 }
 
-void ExternalCommandProcessor::ProcessFile(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	String file = arguments[0];
 	bool del = Convert::ToBool(arguments[1]);
 
-	ifstream ifp;
-	ifp.exceptions(ifstream::badbit);
+	std::ifstream ifp;
+	ifp.exceptions(std::ifstream::badbit);
 
-	ifp.open(file.CStr(), ifstream::in);
+	ifp.open(file.CStr(), std::ifstream::in);
 
 	while(ifp.good()) {
 		std::string line;
 		std::getline(ifp, line);
 
 		try {
-			Logger::Write(LogInformation, "compat", "Executing external command: " + line);
+			Log(LogInformation, "compat", "Executing external command: " + line);
 
 			Execute(line);
-		} catch (const exception& ex) {
-			stringstream msgbuf;
-			msgbuf << "External command failed: " << diagnostic_information(ex);
-			Logger::Write(LogWarning, "icinga", msgbuf.str());
+		} catch (const std::exception& ex) {
+			std::ostringstream msgbuf;
+			msgbuf << "External command failed: " << boost::diagnostic_information(ex);
+			Log(LogWarning, "icinga", msgbuf.str());
 		}
 	}
 
@@ -823,10 +828,10 @@ void ExternalCommandProcessor::ProcessFile(double, const vector<String>& argumen
 		(void) unlink(file.CStr());
 }
 
-void ExternalCommandProcessor::ScheduleSvcDowntime(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleSvcDowntime(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 9)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 9 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 9 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -835,27 +840,27 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double, const vector<String>&
 	if (triggeredByLegacy != 0)
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
-	Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+	Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
 	(void) service->AddDowntime(arguments[7], arguments[8],
 	    Convert::ToDouble(arguments[2]), Convert::ToDouble(arguments[3]),
 	    Convert::ToBool(arguments[4]), triggeredBy, Convert::ToDouble(arguments[6]));
 }
 
-void ExternalCommandProcessor::DelSvcDowntime(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DelSvcDowntime(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	int id = Convert::ToLong(arguments[0]);
-	Logger::Write(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
+	Log(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
 	String rid = Service::GetDowntimeIDFromLegacyID(id);
 	Service::RemoveDowntime(rid);
 }
 
-void ExternalCommandProcessor::ScheduleHostDowntime(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -864,7 +869,7 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const vector<String>
 	if (triggeredByLegacy != 0)
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
-	Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
+	Log(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
 		(void) service->AddDowntime(arguments[6], arguments[7],
@@ -873,21 +878,21 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const vector<String>
 	}
 }
 
-void ExternalCommandProcessor::DelHostDowntime(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DelHostDowntime(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	int id = Convert::ToLong(arguments[0]);
-	Logger::Write(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
+	Log(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
 	String rid = Service::GetDowntimeIDFromLegacyID(id);
 	Service::RemoveDowntime(rid);
 }
 
-void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 argument."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -897,17 +902,17 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const vector<Stri
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
 		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
 }
 
-void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -917,7 +922,7 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const vecto
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
-		Logger::Write(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
+		Log(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
 		Service::Ptr service = host->GetHostCheckService();
 		if (service) {
 			(void) service->AddDowntime(arguments[6], arguments[7],
@@ -927,10 +932,10 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const vecto
 	}
 }
 
-void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
 
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -943,7 +948,7 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const vector
 	 * over all hosts in the host group - otherwise we might end up creating multiple
 	 * downtimes for some services. */
 
-	set<Service::Ptr> services;
+	std::set<Service::Ptr> services;
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
@@ -952,17 +957,17 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const vector
 	}
 
 	BOOST_FOREACH(const Service::Ptr& service, services) {
-		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
 		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
 }
 
-void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
 
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
@@ -975,7 +980,7 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const ve
 	 * over all services in the service group - otherwise we might end up creating multiple
 	 * downtimes for some hosts. */
 
-	set<Service::Ptr> services;
+	std::set<Service::Ptr> services;
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
@@ -985,17 +990,17 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const ve
 	}
 
 	BOOST_FOREACH(const Service::Ptr& service, services) {
-		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
 		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
 }
 
-void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const vector<String>& arguments)
+void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 8 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
 
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
@@ -1005,116 +1010,116 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const vec
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
-		Logger::Write(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
+		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
 		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
 }
 
-void ExternalCommandProcessor::AddHostComment(double, const vector<String>& arguments)
+void ExternalCommandProcessor::AddHostComment(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 4)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 4 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 4 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Creating comment for host " + host->GetName());
+	Log(LogInformation, "icinga", "Creating comment for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
 	if (service)
 		(void) service->AddComment(CommentUser, arguments[2], arguments[3], 0);
 }
 
-void ExternalCommandProcessor::DelHostComment(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DelHostComment(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	int id = Convert::ToLong(arguments[0]);
-	Logger::Write(LogInformation, "icinga", "Removing comment ID " + arguments[0]);
+	Log(LogInformation, "icinga", "Removing comment ID " + arguments[0]);
 	String rid = Service::GetCommentIDFromLegacyID(id);
 	Service::RemoveComment(rid);
 }
 
-void ExternalCommandProcessor::AddSvcComment(double, const vector<String>& arguments)
+void ExternalCommandProcessor::AddSvcComment(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 5)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 5 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 5 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Creating comment for service " + service->GetName());
+	Log(LogInformation, "icinga", "Creating comment for service " + service->GetName());
 	(void) service->AddComment(CommentUser, arguments[3], arguments[4], 0);
 }
 
-void ExternalCommandProcessor::DelSvcComment(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DelSvcComment(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	int id = Convert::ToLong(arguments[0]);
-	Logger::Write(LogInformation, "icinga", "Removing comment ID " + arguments[0]);
+	Log(LogInformation, "icinga", "Removing comment ID " + arguments[0]);
 
 	String rid = Service::GetCommentIDFromLegacyID(id);
 	Service::RemoveComment(rid);
 }
 
-void ExternalCommandProcessor::DelAllHostComments(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DelAllHostComments(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Removing all comments for host " + host->GetName());
+	Log(LogInformation, "icinga", "Removing all comments for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
 	if (service)
 		service->RemoveAllComments();
 }
 
-void ExternalCommandProcessor::DelAllSvcComments(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DelAllSvcComments(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Removing all comments for service " + service->GetName());
+	Log(LogInformation, "icinga", "Removing all comments for service " + service->GetName());
 	service->RemoveAllComments();
 }
 
-void ExternalCommandProcessor::SendCustomHostNotification(double, const vector<String>& arguments)
+void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 4)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 4 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 4 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Sending custom notification for host " + host->GetName());
+	Log(LogInformation, "icinga", "Sending custom notification for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
 	if (service)
 		service->RequestNotifications(NotificationCustom, service->GetLastCheckResult());
 }
 
-void ExternalCommandProcessor::SendCustomSvcNotification(double, const vector<String>& arguments)
+void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 5)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 5 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 5 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Sending custom notification for service " + service->GetName());
+	Log(LogInformation, "icinga", "Sending custom notification for service " + service->GetName());
 	service->RequestNotifications(NotificationCustom, service->GetLastCheckResult());
 }
 
-void ExternalCommandProcessor::DelayHostNotification(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Delaying notifications for host " + host->GetName());
+	Log(LogInformation, "icinga", "Delaying notifications for host " + host->GetName());
 	Service::Ptr hc = host->GetHostCheckService();
 	if (!hc)
 		return;
@@ -1126,14 +1131,14 @@ void ExternalCommandProcessor::DelayHostNotification(double, const vector<String
 	}
 }
 
-void ExternalCommandProcessor::DelaySvcNotification(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DelaySvcNotification(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 3 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Delaying notifications for service " + service->GetName());
+	Log(LogInformation, "icinga", "Delaying notifications for service " + service->GetName());
 
 	{
 		ObjectLock olock(service);
@@ -1142,14 +1147,14 @@ void ExternalCommandProcessor::DelaySvcNotification(double, const vector<String>
 	}
 }
 
-void ExternalCommandProcessor::EnableHostNotifications(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostNotifications(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Enabling notifications for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Enabling notifications for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
 	if (!hc)
@@ -1162,14 +1167,14 @@ void ExternalCommandProcessor::EnableHostNotifications(double, const vector<Stri
 	}
 }
 
-void ExternalCommandProcessor::DisableHostNotifications(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostNotifications(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 1 argument."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Logger::Write(LogInformation, "icinga", "Disabling notifications for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Disabling notifications for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetHostCheckService();
 
 	if (!hc)
@@ -1182,14 +1187,14 @@ void ExternalCommandProcessor::DisableHostNotifications(double, const vector<Str
 	}
 }
 
-void ExternalCommandProcessor::EnableSvcNotifications(double, const vector<String>& arguments)
+void ExternalCommandProcessor::EnableSvcNotifications(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Enabling notifications for service '" + arguments[1] + "'");
+	Log(LogInformation, "icinga", "Enabling notifications for service '" + arguments[1] + "'");
 
 	{
 		ObjectLock olock(service);
@@ -1198,14 +1203,14 @@ void ExternalCommandProcessor::EnableSvcNotifications(double, const vector<Strin
 	}
 }
 
-void ExternalCommandProcessor::DisableSvcNotifications(double, const vector<String>& arguments)
+void ExternalCommandProcessor::DisableSvcNotifications(double, const std::vector<String>& arguments)
 {
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Expected 2 arguments."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
-	Logger::Write(LogInformation, "icinga", "Disabling notifications for service '" + arguments[1] + "'");
+	Log(LogInformation, "icinga", "Disabling notifications for service '" + arguments[1] + "'");
 
 	{
 		ObjectLock olock(service);

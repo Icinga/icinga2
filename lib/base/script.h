@@ -20,6 +20,9 @@
 #ifndef SCRIPT_H
 #define SCRIPT_H
 
+#include "base/i2-base.h"
+#include "base/dynamicobject.h"
+
 namespace icinga
 {
 

@@ -20,6 +20,8 @@
 #ifndef COMPATCOMPONENT_H
 #define COMPATCOMPONENT_H
 
+#include "base/objectlock.h"
+
 namespace icinga
 {
 
@@ -58,12 +60,12 @@ private:
 	String GetLogPath(void) const;
 	String GetCommandPath(void) const;
 
-	void DumpDowntimes(ostream& fp, const Service::Ptr& owner, CompatObjectType type);
-	void DumpComments(ostream& fp, const Service::Ptr& owner, CompatObjectType type);
-	void DumpHostStatus(ostream& fp, const Host::Ptr& host);
-	void DumpHostObject(ostream& fp, const Host::Ptr& host);
+	void DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
+	void DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
+	void DumpHostStatus(std::ostream& fp, const Host::Ptr& host);
+	void DumpHostObject(std::ostream& fp, const Host::Ptr& host);
 
-	void DumpServiceStatusAttrs(ostream& fp, const Service::Ptr& service, CompatObjectType type);
+	void DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type);
 
 	template<typename T>
 	void DumpNameList(ostream& fp, const T& list)
@@ -96,8 +98,8 @@ private:
 		}
 	}
 
-	void DumpServiceStatus(ostream& fp, const Service::Ptr& service);
-	void DumpServiceObject(ostream& fp, const Service::Ptr& service);
+	void DumpServiceStatus(std::ostream& fp, const Service::Ptr& service);
+	void DumpServiceObject(std::ostream& fp, const Service::Ptr& service);
 
 	void StatusTimerHandler(void);
 };

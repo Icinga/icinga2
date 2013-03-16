@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -56,7 +57,7 @@ void TypeRuleList::AddRequire(const String& attr)
  *
  * @returns The list of required attributes.
  */
-vector<String> TypeRuleList::GetRequires(void) const
+std::vector<String> TypeRuleList::GetRequires(void) const
 {
 	return m_Requires;
 }

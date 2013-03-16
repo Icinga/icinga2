@@ -18,13 +18,18 @@
  ******************************************************************************/
 
 #include "i2-remoting.h"
+#include "base/application.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(Endpoint);
 
-signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
-signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
+boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
+boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
 
 /**
  * Constructor for the Endpoint class.
@@ -203,13 +208,13 @@ void Endpoint::RegisterTopicHandler(const String& topic, const boost::function<E
 {
 	ObjectLock olock(this);
 
-	map<String, shared_ptr<signals2::signal<Endpoint::Callback> > >::iterator it;
+	std::map<String, shared_ptr<boost::signals2::signal<Endpoint::Callback> > >::iterator it;
 	it = m_TopicHandlers.find(topic);
 
-	shared_ptr<signals2::signal<Endpoint::Callback> > sig;
+	shared_ptr<boost::signals2::signal<Endpoint::Callback> > sig;
 
 	if (it == m_TopicHandlers.end()) {
-		sig = boost::make_shared<signals2::signal<Endpoint::Callback> >();
+		sig = boost::make_shared<boost::signals2::signal<Endpoint::Callback> >();
 		m_TopicHandlers.insert(make_pair(topic, sig));
 	} else {
 		sig = it->second;
@@ -228,7 +233,7 @@ void Endpoint::UnregisterTopicHandler(const String&, const boost::function<Endpo
 	//m_TopicHandlers[method] -= callback;
 	//UnregisterSubscription(method);
 
-	BOOST_THROW_EXCEPTION(runtime_error("Not implemented."));
+	BOOST_THROW_EXCEPTION(std::runtime_error("Not implemented."));
 }
 
 void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage& request)
@@ -245,7 +250,7 @@ void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage&
 		if (!request.GetMethod(&method))
 			return;
 
-		map<String, shared_ptr<signals2::signal<Endpoint::Callback> > >::iterator it;
+		std::map<String, shared_ptr<boost::signals2::signal<Endpoint::Callback> > >::iterator it;
 		it = m_TopicHandlers.find(method);
 
 		if (it == m_TopicHandlers.end())
@@ -302,10 +307,10 @@ void Endpoint::ClientClosedHandler(void)
 		stringstream message;
 		message << "Error occured for JSON-RPC socket: Message=" << diagnostic_information(ex);
 
-		Logger::Write(LogWarning, "jsonrpc", message.str());
+		Log(LogWarning, "jsonrpc", message.str());
 	}*/
 
-	Logger::Write(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetName());
+	Log(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetName());
 
 	{
 		ObjectLock olock(this);

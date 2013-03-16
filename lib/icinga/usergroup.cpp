@@ -18,11 +18,16 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 boost::mutex UserGroup::m_Mutex;
-map<String, vector<User::WeakPtr> > UserGroup::m_MembersCache;
+std::map<String, std::vector<User::WeakPtr> > UserGroup::m_MembersCache;
 bool UserGroup::m_MembersCacheNeedsUpdate = false;
 Timer::Ptr UserGroup::m_MembersCacheTimer;
 
@@ -68,7 +73,7 @@ UserGroup::Ptr UserGroup::GetByName(const String& name)
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("UserGroup", name);
 
 	if (!configObject)
-		BOOST_THROW_EXCEPTION(invalid_argument("UserGroup '" + name + "' does not exist."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("UserGroup '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<UserGroup>(configObject);
 }
@@ -76,9 +81,9 @@ UserGroup::Ptr UserGroup::GetByName(const String& name)
 /**
  * @threadsafety Always.
  */
-set<User::Ptr> UserGroup::GetMembers(void) const
+std::set<User::Ptr> UserGroup::GetMembers(void) const
 {
-	set<User::Ptr> users;
+	std::set<User::Ptr> users;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -130,9 +135,9 @@ void UserGroup::RefreshMembersCache(void)
 		m_MembersCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogDebug, "icinga", "Updating UserGroup members cache.");
+	Log(LogDebug, "icinga", "Updating UserGroup members cache.");
 
-	map<String, vector<User::WeakPtr> > newMembersCache;
+	std::map<String, std::vector<User::WeakPtr> > newMembersCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
 		const User::Ptr& user = static_pointer_cast<User>(object);

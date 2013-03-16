@@ -18,13 +18,19 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "icinga/service.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 int Service::m_NextCommentID = 1;
 boost::mutex Service::m_CommentMutex;
-map<int, String> Service::m_LegacyCommentsCache;
-map<String, Service::WeakPtr> Service::m_CommentsCache;
+std::map<int, String> Service::m_LegacyCommentsCache;
+std::map<String, Service::WeakPtr> Service::m_CommentsCache;
 bool Service::m_CommentsCacheNeedsUpdate = false;
 Timer::Ptr Service::m_CommentsCacheTimer;
 Timer::Ptr Service::m_CommentsExpireTimer;
@@ -124,7 +130,7 @@ String Service::GetCommentIDFromLegacyID(int id)
 {
 	boost::mutex::scoped_lock lock(m_CommentMutex);
 
-	map<int, String>::iterator it = m_LegacyCommentsCache.find(id);
+	std::map<int, String>::iterator it = m_LegacyCommentsCache.find(id);
 
 	if (it == m_LegacyCommentsCache.end())
 		return Empty;
@@ -204,10 +210,10 @@ void Service::RefreshCommentsCache(void)
 		m_CommentsCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogDebug, "icinga", "Updating Service comments cache.");
+	Log(LogDebug, "icinga", "Updating Service comments cache.");
 
-	map<int, String> newLegacyCommentsCache;
-	map<String, Service::WeakPtr> newCommentsCache;
+	std::map<int, String> newLegacyCommentsCache;
+	std::map<String, Service::WeakPtr> newCommentsCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		Service::Ptr service = dynamic_pointer_cast<Service>(object);
@@ -264,7 +270,7 @@ void Service::RemoveExpiredComments(void)
 	if (!comments)
 		return;
 
-	vector<String> expiredComments;
+	std::vector<String> expiredComments;
 
 	{
 		ObjectLock olock(comments);

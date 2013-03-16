@@ -20,6 +20,8 @@
 #ifndef CIB_H
 #define CIB_H
 
+#include "base/ringbuffer.h"
+
 namespace icinga
 {
 

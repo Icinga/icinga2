@@ -18,12 +18,17 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <boost/tuple/tuple.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 boost::mutex Host::m_ServiceMutex;
-map<String, map<String, Service::WeakPtr> > Host::m_ServicesCache;
+std::map<String, std::map<String, Service::WeakPtr> > Host::m_ServicesCache;
 bool Host::m_ServicesCacheNeedsUpdate = false;
 Timer::Ptr Host::m_ServicesCacheTimer;
 
@@ -112,7 +117,7 @@ bool Host::IsReachable(void) const
 {
 	ASSERT(!OwnsLock());
 
-	set<Service::Ptr> parentServices = GetParentServices();
+	std::set<Service::Ptr> parentServices = GetParentServices();
 
 	BOOST_FOREACH(const Service::Ptr& service, parentServices) {
 		ObjectLock olock(service);
@@ -133,7 +138,7 @@ bool Host::IsReachable(void) const
 		return false;
 	}
 
-	set<Host::Ptr> parentHosts = GetParentHosts();
+	std::set<Host::Ptr> parentHosts = GetParentHosts();
 
 	BOOST_FOREACH(const Host::Ptr& host, parentHosts) {
 		Service::Ptr hc = host->GetHostCheckService();
@@ -230,7 +235,7 @@ void Host::UpdateSlaveServices(void)
 			if (svcdesc.IsScalar())
 				svcname = svcdesc;
 
-			stringstream namebuf;
+			std::ostringstream namebuf;
 			namebuf << GetName() << "-" << svcname;
 			String name = namebuf.str();
 
@@ -244,7 +249,7 @@ void Host::UpdateSlaveServices(void)
 			CopyServiceAttributes<false>(this, builder);
 
 			if (!svcdesc.IsObjectType<Dictionary>())
-				BOOST_THROW_EXCEPTION(invalid_argument("Service description must be either a string or a dictionary."));
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
 
 			Dictionary::Ptr service = svcdesc;
 
@@ -300,9 +305,9 @@ void Host::OnAttributeChanged(const String& name)
 	}
 }
 
-set<Service::Ptr> Host::GetServices(void) const
+std::set<Service::Ptr> Host::GetServices(void) const
 {
-	set<Service::Ptr> services;
+	std::set<Service::Ptr> services;
 
 	boost::mutex::scoped_lock lock(m_ServiceMutex);
 
@@ -349,9 +354,9 @@ void Host::RefreshServicesCache(void)
 		m_ServicesCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogDebug, "icinga", "Updating Host services cache.");
+	Log(LogDebug, "icinga", "Updating Host services cache.");
 
-	map<String, map<String, Service::WeakPtr> > newServicesCache;
+	std::map<String, std::map<String, Service::WeakPtr> > newServicesCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);
@@ -370,13 +375,13 @@ void Host::RefreshServicesCache(void)
 	m_ServicesCache.swap(newServicesCache);
 }
 
-void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Location must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Location must be specified."));
 
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Attribute dictionary must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Attribute dictionary must be specified."));
 
 	String location = arguments[0];
 	Dictionary::Ptr attrs = arguments[1];
@@ -385,10 +390,10 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const vector<V
 	String key;
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), attrs) {
-		vector<String> templates;
+		std::vector<String> templates;
 
 		if (!value.IsObjectType<Dictionary>())
-			BOOST_THROW_EXCEPTION(invalid_argument("Service description must be a dictionary."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be a dictionary."));
 
 		Dictionary::Ptr serviceDesc = value;
 
@@ -431,8 +436,8 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 		{
 			boost::mutex::scoped_lock lock(m_ServiceMutex);
 
-			map<String, Service::WeakPtr>& services = m_ServicesCache[GetName()];
-			map<String, Service::WeakPtr>::iterator it = services.find(name);
+			std::map<String, Service::WeakPtr>& services = m_ServicesCache[GetName()];
+			std::map<String, Service::WeakPtr>::iterator it = services.find(name);
 
 			if (it != services.end()) {
 				Service::Ptr service = it->second.lock();
@@ -450,13 +455,13 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 
 		return Service::GetByNamePair(dict->Get("host"), dict->Get("service"));
 	} else {
-		BOOST_THROW_EXCEPTION(invalid_argument("Host/Service name pair is invalid."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Host/Service name pair is invalid."));
 	}
 }
 
-set<Host::Ptr> Host::GetParentHosts(void) const
+std::set<Host::Ptr> Host::GetParentHosts(void) const
 {
-	set<Host::Ptr> parents;
+	std::set<Host::Ptr> parents;
 
 	Array::Ptr dependencies = GetHostDependencies();
 
@@ -489,9 +494,9 @@ Service::Ptr Host::GetHostCheckService(void) const
 	return GetServiceByShortName(host_check);
 }
 
-set<Service::Ptr> Host::GetParentServices(void) const
+std::set<Service::Ptr> Host::GetParentServices(void) const
 {
-	set<Service::Ptr> parents;
+	std::set<Service::Ptr> parents;
 
 	Array::Ptr dependencies = GetServiceDependencies();
 

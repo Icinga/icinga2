@@ -26,10 +26,10 @@
  * Replicates Icinga 2 objects to remote instances.
  */
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "base/i2-base.h"
+#include "remoting/i2-remoting.h"
+#include "icinga/i2-icinga.h"
 
-#include "replicationcomponent.h"
+#include "replication/replicationcomponent.h"
 
 #endif /* I2REPLICATION_H */

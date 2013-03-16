@@ -20,6 +20,8 @@
 #ifndef SERVICEGROUP_H
 #define SERVICEGROUP_H
 
+#include "base/dynamictype.h"
+
 namespace icinga
 {
 
@@ -43,7 +45,7 @@ public:
 	String GetNotesUrl(void) const;
 	String GetActionUrl(void) const;
 
-	set<Service::Ptr> GetMembers(void) const;
+	std::set<Service::Ptr> GetMembers(void) const;
 
 	static void InvalidateMembersCache(void);
 
@@ -56,7 +58,7 @@ private:
 	Attribute<String> m_ActionUrl;
 
 	static boost::mutex m_Mutex;
-	static map<String, vector<Service::WeakPtr> > m_MembersCache;
+	static std::map<String, std::vector<Service::WeakPtr> > m_MembersCache;
 	static bool m_MembersCacheNeedsUpdate;
 	static Timer::Ptr m_MembersCacheTimer;
 

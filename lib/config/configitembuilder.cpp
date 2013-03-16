@@ -18,6 +18,10 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include "base/dynamictype.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <sstream>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -88,21 +92,21 @@ void ConfigItemBuilder::AddExpressionList(const ExpressionList::Ptr& exprl)
 ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 {
 	if (m_Type.IsEmpty()) {
-		stringstream msgbuf;
+		std::ostringstream msgbuf;
 		msgbuf << "The type name of an object may not be empty: " << m_DebugInfo;
-		BOOST_THROW_EXCEPTION(invalid_argument(msgbuf.str()));
+		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
 	if (!DynamicType::GetByName(m_Type)) {
-		stringstream msgbuf;
+		std::ostringstream msgbuf;
 		msgbuf << "The type '" + m_Type + "' is unknown: " << m_DebugInfo;
-		BOOST_THROW_EXCEPTION(invalid_argument(msgbuf.str()));
+		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
 	if (m_Name.IsEmpty()) {
-		stringstream msgbuf;
+		std::ostringstream msgbuf;
 		msgbuf << "The name of an object may not be empty: " << m_DebugInfo;
-		BOOST_THROW_EXCEPTION(invalid_argument(msgbuf.str()));
+		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
 	BOOST_FOREACH(const String& parent, m_Parents) {
@@ -119,9 +123,9 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 			item = ConfigItem::GetObject(m_Type, parent);
 
 		if (!item) {
-			stringstream msgbuf;
+			std::ostringstream msgbuf;
 			msgbuf << "The parent config item '" + parent + "' does not exist: " << m_DebugInfo;
-			BOOST_THROW_EXCEPTION(invalid_argument(msgbuf.str()));
+			BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 		}
 	}
 

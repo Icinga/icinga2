@@ -20,6 +20,8 @@
 #ifndef TYPERULELIST_H
 #define TYPERULELIST_H
 
+#include "base/value.h"
+
 namespace icinga
 {
 
@@ -51,7 +53,7 @@ public:
 
 	void AddRequire(const String& attr);
 	void AddRequires(const TypeRuleList::Ptr& ruleList);
-	vector<String> GetRequires(void) const;
+	std::vector<String> GetRequires(void) const;
 
 	void AddRule(const TypeRule& rule);
 	void AddRules(const TypeRuleList::Ptr& ruleList);
@@ -62,8 +64,8 @@ public:
 
 private:
 	String m_Validator;
-	vector<String> m_Requires;
-	vector<TypeRule> m_Rules;
+	std::vector<String> m_Requires;
+	std::vector<TypeRule> m_Rules;
 };
 
 }

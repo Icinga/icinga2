@@ -17,7 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/script.h"
+#include "base/scriptlanguage.h"
+#include "base/dynamictype.h"
+#include "base/logger_fwd.h"
+#include "base/objectlock.h"
 
 using namespace icinga;
 
@@ -81,7 +85,7 @@ void Script::OnAttributeUpdate(const String& name)
  */
 void Script::SpawnInterpreter(void)
 {
-	Logger::Write(LogInformation, "base", "Reloading script '" + GetName() + "'");
+	Log(LogInformation, "base", "Reloading script '" + GetName() + "'");
 
 	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
 	m_Interpreter = language->CreateInterpreter(GetSelf());

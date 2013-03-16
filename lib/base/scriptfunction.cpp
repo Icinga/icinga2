@@ -17,7 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/registry.h"
+#include "base/scriptfunction.h"
+#include "base/scripttask.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -28,7 +31,13 @@ ScriptFunction::ScriptFunction(const Callback& function)
 /**
  * @threadsafety Always.
  */
-void ScriptFunction::Invoke(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+void ScriptFunction::Invoke(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	m_Callback(task, arguments);
+}
+
+RegisterFunctionHelper::RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
+{
+	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(function);
+	ScriptFunctionRegistry::GetInstance()->Register(name, func);
 }

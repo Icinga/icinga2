@@ -17,13 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/utility.h"
+#include "base/application.h"
+#include "base/logger_fwd.h"
+#include "base/exception.h"
 #include <mmatch.h>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/function.hpp>
+#include <boost/foreach.hpp>
+
+#if HAVE_GCC_ABI_DEMANGLE
+#	include <cxxabi.h>
+#endif /* HAVE_GCC_ABI_DEMANGLE */
 
 using namespace icinga;
 
@@ -58,7 +66,7 @@ String Utility::DemangleSymbolName(const String& sym)
  * @param ti A type_info object.
  * @returns The type name of the object.
  */
-String Utility::GetTypeName(const type_info& ti)
+String Utility::GetTypeName(const std::type_info& ti)
 {
 	return DemangleSymbolName(ti.name());
 }
@@ -224,7 +232,7 @@ String Utility::DirName(const String& path)
 #endif /* _WIN32 */
 
 	if (dir == NULL)
-		BOOST_THROW_EXCEPTION(bad_alloc());
+		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 	String result;
 
@@ -262,7 +270,7 @@ String Utility::BaseName(const String& path)
 	String result;
 
 	if (dir == NULL)
-		BOOST_THROW_EXCEPTION(bad_alloc());
+		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 #ifndef _WIN32
 	result = basename(dir);
@@ -369,7 +377,7 @@ Utility::LoadExtensionLibrary(const String& library)
 	path = "lib" + library + ".la";
 #endif /* _WIN32 */
 
-	Logger::Write(LogInformation, "base", "Loading library '" + path + "'");
+	Log(LogInformation, "base", "Loading library '" + path + "'");
 
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.CStr());
@@ -384,7 +392,7 @@ Utility::LoadExtensionLibrary(const String& library)
 	lt_dlhandle hModule = lt_dlopen(path.CStr());
 
 	if (hModule == NULL) {
-		BOOST_THROW_EXCEPTION(runtime_error("Could not load library '" + path + "': " +  lt_dlerror()));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not load library '" + path + "': " +  lt_dlerror()));
 	}
 #endif /* _WIN32 */
 

@@ -17,8 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/socket.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
+#include <sstream>
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 using namespace icinga;
 
@@ -179,7 +183,7 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 #endif /* _WIN32 */
 	}
 
-	stringstream s;
+	std::ostringstream s;
 	s << "[" << host << "]:" << service;
 	return s.str();
 }
@@ -400,7 +404,7 @@ size_t Socket::GetAvailableBytes(void) const
 	ObjectLock olock(this);
 
 	if (m_Listening)
-		throw new logic_error("Socket does not support GetAvailableBytes().");
+		throw new std::logic_error("Socket does not support GetAvailableBytes().");
 
 	return m_RecvQueue->GetAvailableBytes();
 }
@@ -418,7 +422,7 @@ size_t Socket::Read(void *buffer, size_t size)
 		ObjectLock olock(this);
 
 		if (m_Listening)
-			throw new logic_error("Socket does not support Read().");
+			throw new std::logic_error("Socket does not support Read().");
 	}
 
 	if (m_RecvQueue->GetAvailableBytes() == 0)
@@ -440,7 +444,7 @@ size_t Socket::Peek(void *buffer, size_t size)
 		ObjectLock olock(this);
 
 		if (m_Listening)
-			throw new logic_error("Socket does not support Peek().");
+			throw new std::logic_error("Socket does not support Peek().");
 	}
 
 	if (m_RecvQueue->GetAvailableBytes() == 0)
@@ -461,7 +465,7 @@ void Socket::Write(const void *buffer, size_t size)
 		ObjectLock olock(this);
 
 		if (m_Listening)
-			throw new logic_error("Socket does not support Write().");
+			throw new std::logic_error("Socket does not support Write().");
 	}
 
 	m_SendQueue->Write(buffer, size);
@@ -596,7 +600,7 @@ void Socket::HandleReadableClient(void)
 
 void Socket::HandleWritableServer(void)
 {
-	throw logic_error("This should never happen.");
+	throw std::logic_error("This should never happen.");
 }
 
 /**

@@ -18,6 +18,10 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/dynamictype.h"
+#include "base/logger_fwd.h"
+#include "base/objectlock.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -47,7 +51,7 @@ IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
  */
 int IcingaApplication::Main(void)
 {
-	Logger::Write(LogDebug, "icinga", "In IcingaApplication::Main()");
+	Log(LogDebug, "icinga", "In IcingaApplication::Main()");
 
 	m_StartTime = Utility::GetTime();
 
@@ -57,7 +61,7 @@ int IcingaApplication::Main(void)
 		/* set up SSL context */
 		shared_ptr<X509> cert = Utility::GetX509Certificate(GetCertificateFile());
 		String identity = Utility::GetCertificateCN(cert);
-		Logger::Write(LogInformation, "icinga", "My identity: " + identity);
+		Log(LogInformation, "icinga", "My identity: " + identity);
 		EndpointManager::GetInstance()->SetIdentity(identity);
 
 		m_SSLContext = Utility::MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
@@ -80,7 +84,7 @@ int IcingaApplication::Main(void)
 
 	RunEventLoop();
 
-	Logger::Write(LogInformation, "icinga", "Icinga has shut down.");
+	Log(LogInformation, "icinga", "Icinga has shut down.");
 
 	return EXIT_SUCCESS;
 }

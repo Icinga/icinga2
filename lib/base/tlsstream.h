@@ -20,6 +20,10 @@
 #ifndef TLSSTREAM_H
 #define TLSSTREAM_H
 
+#include "base/i2-base.h"
+#include "base/stream.h"
+#include "base/fifo.h"
+
 namespace icinga
 {
 

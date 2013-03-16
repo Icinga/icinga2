@@ -32,7 +32,7 @@ public:
 	LivestatusConnection(const Stream::Ptr& stream);
 
 protected:
-	vector<String> m_Lines;
+	std::vector<String> m_Lines;
 
 	virtual void ProcessData(void);
 };

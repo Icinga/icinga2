@@ -18,6 +18,11 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "icinga/service.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -371,9 +376,9 @@ void Service::OnAttributeChanged(const String& name)
 /**
  * @threadsafety Always.
  */
-set<Host::Ptr> Service::GetParentHosts(void) const
+std::set<Host::Ptr> Service::GetParentHosts(void) const
 {
-	set<Host::Ptr> parents;
+	std::set<Host::Ptr> parents;
 
 	Host::Ptr host = GetHost();
 
@@ -402,9 +407,9 @@ set<Host::Ptr> Service::GetParentHosts(void) const
 /**
  * @threadsafety Always.
  */
-set<Service::Ptr> Service::GetParentServices(void) const
+std::set<Service::Ptr> Service::GetParentServices(void) const
 {
-	set<Service::Ptr> parents;
+	std::set<Service::Ptr> parents;
 
 	Host::Ptr host = GetHost();
 	Array::Ptr dependencies = GetServiceDependencies();
@@ -475,7 +480,7 @@ Dictionary::Ptr Service::CalculateDynamicMacros(const Dictionary::Ptr& crOverrid
 
 Dictionary::Ptr Service::CalculateAllMacros(const Dictionary::Ptr& crOverride) const
 {
-	vector<Dictionary::Ptr> macroDicts;
+	std::vector<Dictionary::Ptr> macroDicts;
 	macroDicts.push_back(GetMacros());
 
 	Host::Ptr host = GetHost();

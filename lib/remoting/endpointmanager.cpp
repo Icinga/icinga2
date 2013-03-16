@@ -18,7 +18,12 @@
  ******************************************************************************/
 
 #include "i2-remoting.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include "base/convert.h"
 #include <boost/tuple/tuple.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -115,11 +120,11 @@ void EndpointManager::AddListener(const String& service)
 	shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 	if (!sslContext)
-		BOOST_THROW_EXCEPTION(logic_error("SSL context is required for AddListener()"));
+		BOOST_THROW_EXCEPTION(std::logic_error("SSL context is required for AddListener()"));
 
-	stringstream s;
+	std::ostringstream s;
 	s << "Adding new listener: port " << service;
-	Logger::Write(LogInformation, "icinga", s.str());
+	Log(LogInformation, "icinga", s.str());
 
 	TcpSocket::Ptr server = boost::make_shared<TcpSocket>();
 
@@ -144,7 +149,7 @@ void EndpointManager::AddConnection(const String& node, const String& service) {
 	shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 	if (!sslContext)
-		BOOST_THROW_EXCEPTION(logic_error("SSL context is required for AddConnection()"));
+		BOOST_THROW_EXCEPTION(std::logic_error("SSL context is required for AddConnection()"));
 
 	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
 	client->Connect(node, service);
@@ -183,7 +188,7 @@ void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const St
 	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity = Utility::GetCertificateCN(cert);
 
-	Logger::Write(LogInformation, "icinga", "New client connection at " + peerAddress + " for identity '" + identity + "'");
+	Log(LogInformation, "icinga", "New client connection at " + peerAddress + " for identity '" + identity + "'");
 
 	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
@@ -246,9 +251,9 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 {
 	String method;
 	if (!message.GetMethod(&method))
-		BOOST_THROW_EXCEPTION(invalid_argument("Message is missing the 'method' property."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Message is missing the 'method' property."));
 
-	vector<Endpoint::Ptr> candidates;
+	std::vector<Endpoint::Ptr> candidates;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
@@ -290,11 +295,11 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
 {
 	String id;
 	if (message.GetID(&id))
-		BOOST_THROW_EXCEPTION(invalid_argument("Multicast requests must not have an ID."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Multicast requests must not have an ID."));
 
 	String method;
 	if (!message.GetMethod(&method))
-		BOOST_THROW_EXCEPTION(invalid_argument("Message is missing the 'method' property."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Message is missing the 'method' property."));
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr recipient = dynamic_pointer_cast<Endpoint>(object);
@@ -316,10 +321,7 @@ void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint
 
 	m_NextMessageID++;
 
-	stringstream idstream;
-	idstream << m_NextMessageID;
-
-	String id = idstream.str();
+	String id = Convert::ToString(m_NextMessageID);
 	message.SetID(id);
 
 	PendingRequest pr;
@@ -335,8 +337,8 @@ void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint
 		SendUnicastMessage(sender, recipient, message);
 }
 
-bool EndpointManager::RequestTimeoutLessComparer(const pair<String, PendingRequest>& a,
-    const pair<String, PendingRequest>& b)
+bool EndpointManager::RequestTimeoutLessComparer(const std::pair<String, PendingRequest>& a,
+    const std::pair<String, PendingRequest>& b)
 {
 	return a.second.Timeout < b.second.Timeout;
 }
@@ -383,7 +385,7 @@ void EndpointManager::ReconnectTimerHandler(void)
 		service = endpoint->GetService();
 
 		if (node.IsEmpty() || service.IsEmpty()) {
-			Logger::Write(LogWarning, "icinga", "Can't reconnect "
+			Log(LogWarning, "icinga", "Can't reconnect "
 			    "to endpoint '" + endpoint->GetName() + "': No "
 			    "node/service information.");
 			continue;
@@ -397,7 +399,7 @@ void EndpointManager::RequestTimerHandler(void)
 {
 	ObjectLock olock(this);
 
-	map<String, PendingRequest>::iterator it;
+	std::map<String, PendingRequest>::iterator it;
 	for (it = m_Requests.begin(); it != m_Requests.end(); ++it) {
 		if (it->second.HasTimedOut()) {
 			it->second.Callback(Endpoint::Ptr(), it->second.Request,
@@ -417,9 +419,9 @@ void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender,
 
 	String id;
 	if (!message.GetID(&id))
-		BOOST_THROW_EXCEPTION(invalid_argument("Response message must have a message ID."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Response message must have a message ID."));
 
-	map<String, PendingRequest>::iterator it;
+	std::map<String, PendingRequest>::iterator it;
 	it = m_Requests.find(id);
 
 	if (it == m_Requests.end())

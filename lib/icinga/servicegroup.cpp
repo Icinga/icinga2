@@ -18,11 +18,17 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "icinga/servicegroup.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 boost::mutex ServiceGroup::m_Mutex;
-map<String, vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
+std::map<String, std::vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
 bool ServiceGroup::m_MembersCacheNeedsUpdate = false;
 Timer::Ptr ServiceGroup::m_MembersCacheTimer;
 
@@ -86,7 +92,7 @@ ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("ServiceGroup", name);
 
 	if (!configObject)
-		BOOST_THROW_EXCEPTION(invalid_argument("ServiceGroup '" + name + "' does not exist."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("ServiceGroup '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<ServiceGroup>(configObject);
 }
@@ -94,9 +100,9 @@ ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 /**
  * @threadsafety Always.
  */
-set<Service::Ptr> ServiceGroup::GetMembers(void) const
+std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
 {
-	set<Service::Ptr> services;
+	std::set<Service::Ptr> services;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -148,9 +154,9 @@ void ServiceGroup::RefreshMembersCache(void)
 		m_MembersCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogDebug, "icinga", "Updating ServiceGroup members cache.");
+	Log(LogDebug, "icinga", "Updating ServiceGroup members cache.");
 
-	map<String, vector<Service::WeakPtr> > newMembersCache;
+	std::map<String, std::vector<Service::WeakPtr> > newMembersCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 		const Service::Ptr& service = static_pointer_cast<Service>(object);

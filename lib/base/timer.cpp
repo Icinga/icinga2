@@ -17,7 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/timer.h"
+#include "base/application.h"
 #include <boost/bind.hpp>
 
 using namespace icinga;
@@ -216,7 +217,7 @@ void Timer::AdjustTimers(double adjustment)
 
 	double now = Utility::GetTime();
 
-	typedef nth_index<TimerSet, 1>::type TimerView;
+	typedef boost::multi_index::nth_index<TimerSet, 1>::type TimerView;
 	TimerView& idx = boost::get<1>(m_Timers);
 
 	TimerView::iterator it;
@@ -245,7 +246,7 @@ void Timer::TimerThreadProc(void)
 	for (;;) {
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		typedef nth_index<TimerSet, 1>::type NextTimerView;
+		typedef boost::multi_index::nth_index<TimerSet, 1>::type NextTimerView;
 		NextTimerView& idx = boost::get<1>(m_Timers);
 
 		/* Wait until there is at least one timer. */

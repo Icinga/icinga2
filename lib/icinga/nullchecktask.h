@@ -20,6 +20,8 @@
 #ifndef NULLCHECKTASK_H
 #define NULLCHECKTASK_H
 
+#include "base/scripttask.h"
+
 namespace icinga
 {
 
@@ -31,7 +33,7 @@ namespace icinga
 class I2_ICINGA_API NullCheckTask
 {
 public:
-	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
+	static void ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
 
 private:
 	NullCheckTask(void);

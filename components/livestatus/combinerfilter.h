@@ -37,7 +37,7 @@ public:
 	void AddSubFilter(const Filter::Ptr& filter);
 
 protected:
-	vector<Filter::Ptr> m_Filters;
+	std::vector<Filter::Ptr> m_Filters;
 };
 
 }

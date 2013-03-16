@@ -26,9 +26,9 @@
  * The Checker component executes service checks.
  */
 
-#include <i2-base.h>
-#include <i2-icinga.h>
+#include "base/i2-base.h"
+#include "icinga/i2-icinga.h"
 
-#include "checkercomponent.h"
+#include "checker/checkercomponent.h"
 
 #endif /* I2CHECKER_H */

@@ -26,9 +26,9 @@
  * The compat component implements compatibility functionality for Icinga 1.x.
  */
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "base/i2-base.h"
+#include "remoting/i2-remoting.h"
+#include "icinga/i2-icinga.h"
 
 #include <fstream>
 

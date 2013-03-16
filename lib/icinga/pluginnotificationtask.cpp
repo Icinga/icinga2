@@ -18,6 +18,8 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -31,16 +33,16 @@ PluginNotificationTask::PluginNotificationTask(const ScriptTask::Ptr& task, cons
 /**
  * @threadsafety Always.
  */
-void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Notification target must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Notification target must be specified."));
 
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Macros must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Macros must be specified."));
 
 	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(invalid_argument("Missing argument: Notification type must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Notification type must be specified."));
 
 	Notification::Ptr notification = arguments[0];
 	Dictionary::Ptr macros = arguments[1];
@@ -74,11 +76,11 @@ void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
 		pr = ct.m_Process->GetResult();
 
 		if (pr.ExitStatus != 0) {
-			stringstream msgbuf;
+			std::ostringstream msgbuf;
 			msgbuf << "Notification command '" << ct.m_Command << "' for service '"
 			       << ct.m_ServiceName << "' failed; exit status: "
 			       << pr.ExitStatus << ", output: " << pr.Output;
-			Logger::Write(LogWarning, "icinga", msgbuf.str());
+			Log(LogWarning, "icinga", msgbuf.str());
 		}
 
 		ct.m_Task->FinishResult(Empty);

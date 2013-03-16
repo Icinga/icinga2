@@ -20,6 +20,8 @@
 #ifndef DEBUGINFO_H
 #define DEBUGINFO_H
 
+#include "base/qstring.h"
+
 namespace icinga
 {
 
@@ -64,7 +66,7 @@ struct DebugInfo
  * @param val The DebugInfo struct.
  * @returns The output stream.
  */
-inline ostream& operator<<(ostream& out, const DebugInfo& val)
+inline std::ostream& operator<<(std::ostream& out, const DebugInfo& val)
 {
 	out << "in " << val.Path << ": "
 	    << val.FirstLine << ":" << val.FirstColumn

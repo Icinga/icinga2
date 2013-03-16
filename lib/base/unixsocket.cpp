@@ -17,7 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/unixsocket.h"
+#include "base/exception.h"
 
 #ifndef _WIN32
 using namespace icinga;

@@ -17,7 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/streamlogger.h"
+#include "base/objectlock.h"
+#include <fstream>
 
 using namespace icinga;
 
@@ -35,7 +37,7 @@ StreamLogger::StreamLogger(void)
  *
  * @param stream The stream.
  */
-StreamLogger::StreamLogger(ostream *stream)
+StreamLogger::StreamLogger(std::ostream *stream)
 	: ILogger(), m_Stream(stream), m_OwnsStream(false), m_Tty(IsTty(*stream))
 { }
 
@@ -53,13 +55,13 @@ StreamLogger::~StreamLogger(void)
  */
 void StreamLogger::OpenFile(const String& filename)
 {
-	ofstream *stream = new ofstream();
+	std::ofstream *stream = new std::ofstream();
 
 	try {
-		stream->open(filename.CStr(), fstream::out | fstream::trunc);
+		stream->open(filename.CStr(), std::fstream::out | std::fstream::trunc);
 
 		if (!stream->good())
-			BOOST_THROW_EXCEPTION(runtime_error("Could not open logfile '" + filename + "'"));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Could not open logfile '" + filename + "'"));
 	} catch (...) {
 		delete stream;
 		throw;
@@ -80,7 +82,7 @@ void StreamLogger::OpenFile(const String& filename)
  * @param entry The log entry.
  * @threadsafety Always.
  */
-void StreamLogger::ProcessLogEntry(ostream& stream, bool tty, const LogEntry& entry)
+void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntry& entry)
 {
 	String timestamp = Utility::FormatDateTime("%Y/%m/%d %H:%M:%S %z", entry.Timestamp);
 
@@ -125,7 +127,7 @@ void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 /**
  * @threadsafety Always.
  */
-bool StreamLogger::IsTty(ostream& stream)
+bool StreamLogger::IsTty(std::ostream& stream)
 {
 #ifndef _WIN32
 	/* Eww... */

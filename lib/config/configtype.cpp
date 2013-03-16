@@ -18,7 +18,11 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include "base/objectlock.h"
+#include "base/convert.h"
 #include <boost/tuple/tuple.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -59,7 +63,7 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 	if (item->IsAbstract())
 		return;
 
-	vector<String> locations;
+	std::vector<String> locations;
 	locations.push_back("Object '" + item->GetName() + "' (Type: '" + item->GetType() + "')");
 
 	ConfigType::Ptr parent;
@@ -70,7 +74,7 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 		parent = ConfigCompilerContext::GetContext()->GetType(m_Parent);
 	}
 
-	vector<TypeRuleList::Ptr> ruleLists;
+	std::vector<TypeRuleList::Ptr> ruleLists;
 	if (parent) {
 		ObjectLock plock(parent);
 		ruleLists.push_back(parent->m_RuleList);
@@ -84,7 +88,7 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 /**
  * @threadsafety Always.
  */
-String ConfigType::LocationToString(const vector<String>& locations)
+String ConfigType::LocationToString(const std::vector<String>& locations)
 {
 	bool first = true;
 	String stack;
@@ -104,7 +108,7 @@ String ConfigType::LocationToString(const vector<String>& locations)
  * @threadsafety Always.
  */
 void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
-    const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations)
+    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations)
 {
 	BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 		BOOST_FOREACH(const String& require, ruleList->GetRequires()) {
@@ -126,9 +130,9 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 			ScriptFunction::Ptr func = ScriptFunctionRegistry::GetInstance()->GetItem(validator);
 
 			if (!func)
-				BOOST_THROW_EXCEPTION(invalid_argument("Validator function '" + validator + "' does not exist."));
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Validator function '" + validator + "' does not exist."));
 
-			vector<Value> arguments;
+			std::vector<Value> arguments;
 			arguments.push_back(LocationToString(locations));
 			arguments.push_back(dictionary);
 
@@ -144,7 +148,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), dictionary) {
 		TypeValidationResult overallResult = ValidationUnknownField;
-		vector<TypeRuleList::Ptr> subRuleLists;
+		std::vector<TypeRuleList::Ptr> subRuleLists;
 
 		locations.push_back("Attribute '" + key + "'");
 
@@ -185,7 +189,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
  * @threadsafety Always.
  */
 void ConfigType::ValidateArray(const Array::Ptr& array,
-    const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations)
+    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations)
 {
 	BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 		BOOST_FOREACH(const String& require, ruleList->GetRequires()) {
@@ -207,9 +211,9 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 			ScriptFunction::Ptr func = ScriptFunctionRegistry::GetInstance()->GetItem(validator);
 
 			if (!func)
-				BOOST_THROW_EXCEPTION(invalid_argument("Validator function '" + validator + "' does not exist."));
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Validator function '" + validator + "' does not exist."));
 
-			vector<Value> arguments;
+			std::vector<Value> arguments;
 			arguments.push_back(LocationToString(locations));
 			arguments.push_back(array);
 
@@ -228,7 +232,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 		index++;
 
 		TypeValidationResult overallResult = ValidationUnknownField;
-		vector<TypeRuleList::Ptr> subRuleLists;
+		std::vector<TypeRuleList::Ptr> subRuleLists;
 
 		locations.push_back("Attribute '" + key + "'");
 

@@ -20,6 +20,10 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include "base/i2-base.h"
+#include "base/eventqueue.h"
+#include "base/dynamicobject.h"
+
 namespace icinga {
 
 class Component;

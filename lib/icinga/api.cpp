@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/logger_fwd.h"
 
 using namespace icinga;
 
@@ -26,14 +27,14 @@ REGISTER_SCRIPTFUNCTION(GetAnswerToEverything, &API::GetAnswerToEverything);
 /**
  * @threadsafety Always.
  */
-void API::GetAnswerToEverything(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+void API::GetAnswerToEverything(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(invalid_argument("Text argument required."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Text argument required."));
 
 	String text = arguments[0];
 
-	Logger::Write(LogInformation, "icinga", "Hello from the Icinga 2 API: " + text);
+	Log(LogInformation, "icinga", "Hello from the Icinga 2 API: " + text);
 
 	task->FinishResult(42);
 }

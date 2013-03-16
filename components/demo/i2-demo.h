@@ -26,10 +26,10 @@
  * The demo component periodically sends demo messages.
  */
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "base/i2-base.h"
+#include "remoting/i2-remoting.h"
+#include "icinga/i2-icinga.h"
 
-#include "democomponent.h"
+#include "demo/democomponent.h"
 
 #endif /* I2DEMO_H */

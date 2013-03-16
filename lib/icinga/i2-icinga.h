@@ -27,9 +27,9 @@
  * common to all components (e.g. hosts, services, etc.).
  */
 
-#include <i2-base.h>
-#include <i2-config.h>
-#include <i2-remoting.h>
+#include "base/i2-base.h"
+#include "config/i2-config.h"
+#include "remoting/i2-remoting.h"
 
 #ifdef I2_ICINGA_BUILD
 #	define I2_ICINGA_API I2_EXPORT

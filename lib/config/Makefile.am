@@ -9,7 +9,8 @@ BUILT_SOURCES = config_parser.h
 AM_YFLAGS = -d
 
 EXTRA_DIST = \
-	base-type.conf
+	base-type.conf \
+	i2-config.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig.c
 	$(top_builddir)/tools/mkembedconfig $< $@
@@ -22,7 +23,6 @@ libconfig_la_SOURCES = \
 	configcompilercontext.h \
 	config_lexer.ll \
 	config_parser.yy \
-	i2-config.cpp \
 	i2-config.h \
 	configitem.cpp \
 	configitem.h \
@@ -43,7 +43,7 @@ libconfig_la_SOURCES = \
 libconfig_la_CPPFLAGS = \
 	-DI2_CONFIG_BUILD \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/lib/base
+	-I${top_srcdir}/lib
 
 libconfig_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \

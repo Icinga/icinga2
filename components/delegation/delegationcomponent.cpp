@@ -18,7 +18,11 @@
  ******************************************************************************/
 
 #include "i2-delegation.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <algorithm>
+#include "base/dynamictype.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -43,9 +47,9 @@ bool DelegationComponent::IsEndpointChecker(const Endpoint::Ptr& endpoint)
 	return (endpoint->HasSubscription("checker"));
 }
 
-set<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::Ptr& service) const
+std::set<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::Ptr& service) const
 {
-	set<Endpoint::Ptr> candidates;
+	std::set<Endpoint::Ptr> candidates;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
@@ -75,7 +79,7 @@ set<Endpoint::Ptr> DelegationComponent::GetCheckerCandidates(const Service::Ptr&
 
 void DelegationComponent::DelegationTimerHandler(void)
 {
-	map<Endpoint::Ptr, int> histogram;
+	std::map<Endpoint::Ptr, int> histogram;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
 		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
@@ -83,7 +87,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 		histogram[endpoint] = 0;
 	}
 
-	vector<Service::Ptr> services;
+	std::vector<Service::Ptr> services;
 
 	/* build "checker -> service count" histogram */
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
@@ -115,15 +119,15 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 		Endpoint::Ptr oldEndpoint = Endpoint::GetByName(checker);
 
-		set<Endpoint::Ptr> candidates = GetCheckerCandidates(service);
+		std::set<Endpoint::Ptr> candidates = GetCheckerCandidates(service);
 
 		int avg_services = 0, overflow_tolerance = 0;
-		vector<Endpoint::Ptr>::iterator cit;
+		std::vector<Endpoint::Ptr>::iterator cit;
 
 		if (!candidates.empty()) {
-			stringstream msgbuf;
+			std::ostringstream msgbuf;
 			msgbuf << "Service: " << service->GetName() << ", candidates: " << candidates.size();
-			Logger::Write(LogDebug, "delegation", msgbuf.str());
+			Log(LogDebug, "delegation", msgbuf.str());
 
 			BOOST_FOREACH(const Endpoint::Ptr& candidate, candidates) {
 				avg_services += histogram[candidate];
@@ -192,7 +196,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 				service->ProcessCheckResult(cr);
 
-				Logger::Write(LogWarning, "delegation", "Can't delegate service: " + service->GetName());
+				Log(LogWarning, "delegation", "Can't delegate service: " + service->GetName());
 			}
 
 			continue;
@@ -204,12 +208,12 @@ void DelegationComponent::DelegationTimerHandler(void)
 	Endpoint::Ptr endpoint;
 	int count;
 	BOOST_FOREACH(tie(endpoint, count), histogram) {
-		stringstream msgbuf;
+		std::ostringstream msgbuf;
 		msgbuf << "histogram: " << endpoint->GetName() << " - " << count;
-		Logger::Write(LogInformation, "delegation", msgbuf.str());
+		Log(LogInformation, "delegation", msgbuf.str());
 	}
 
-	stringstream msgbuf;
+	std::ostringstream msgbuf;
 	msgbuf << "Updated delegations for " << delegated << " services";
-	Logger::Write(LogInformation, "delegation", msgbuf.str());
+	Log(LogInformation, "delegation", msgbuf.str());
 }

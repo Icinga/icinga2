@@ -20,6 +20,8 @@
 #ifndef USERGROUP_H
 #define USERGROUP_H
 
+#include "base/dynamicobject.h"
+
 namespace icinga
 {
 
@@ -41,7 +43,7 @@ public:
 
 	String GetDisplayName(void) const;
 
-	set<User::Ptr> GetMembers(void) const;
+	std::set<User::Ptr> GetMembers(void) const;
 
 	static void InvalidateMembersCache(void);
 
@@ -52,7 +54,7 @@ private:
 	Attribute<String> m_DisplayName;
 
 	static boost::mutex m_Mutex;
-	static map<String, vector<User::WeakPtr> > m_MembersCache;
+	static std::map<String, std::vector<User::WeakPtr> > m_MembersCache;
 	static bool m_MembersCacheNeedsUpdate;
 	static Timer::Ptr m_MembersCacheTimer;
 

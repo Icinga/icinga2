@@ -20,6 +20,10 @@
 #ifndef STDIOSTREAM_H
 #define STDIOSTREAM_H
 
+#include "base/i2-base.h"
+#include "base/fifo.h"
+#include <iostream>
+
 namespace icinga {
 
 class StdioStream : public Stream
@@ -28,7 +32,7 @@ public:
 	typedef shared_ptr<StdioStream> Ptr;
 	typedef weak_ptr<StdioStream> WeakPtr;
 
-	StdioStream(iostream *innerStream, bool ownsStream);
+	StdioStream(std::iostream *innerStream, bool ownsStream);
 	~StdioStream(void);
 
 	virtual void Start(void);
@@ -41,7 +45,7 @@ public:
 	virtual void Close(void);
 
 private:
-	iostream *m_InnerStream;
+	std::iostream *m_InnerStream;
 	bool m_OwnsStream;
 	FIFO::Ptr m_ReadAheadBuffer;
 };

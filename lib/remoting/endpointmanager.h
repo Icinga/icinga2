@@ -20,6 +20,10 @@
 #ifndef ENDPOINTMANAGER_H
 #define ENDPOINTMANAGER_H
 
+#include "base/tcpsocket.h"
+#include "base/tlsstream.h"
+#include <boost/signals2.hpp>
+
 namespace icinga
 {
 
@@ -60,7 +64,7 @@ public:
 
 	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
 
-	signals2::signal<void (const Endpoint::Ptr&)> OnNewEndpoint;
+	boost::signals2::signal<void (const Endpoint::Ptr&)> OnNewEndpoint;
 
 private:
 	String m_Identity;
@@ -72,8 +76,8 @@ private:
 
 	Timer::Ptr m_ReconnectTimer;
 
-	set<TcpSocket::Ptr> m_Servers;
-	set<TlsStream::Ptr> m_PendingClients;
+	std::set<TcpSocket::Ptr> m_Servers;
+	std::set<TlsStream::Ptr> m_PendingClients;
 
 	/**
 	 * Information about a pending API request.
@@ -93,10 +97,10 @@ private:
 	};
 
 	long m_NextMessageID;
-	map<String, PendingRequest> m_Requests;
+	std::map<String, PendingRequest> m_Requests;
 	Timer::Ptr m_RequestTimer;
 
-	static bool RequestTimeoutLessComparer(const pair<String, PendingRequest>& a, const pair<String, PendingRequest>& b);
+	static bool RequestTimeoutLessComparer(const std::pair<String, PendingRequest>& a, const std::pair<String, PendingRequest>& b);
 	void RequestTimerHandler(void);
 
 	void SubscriptionTimerHandler(void);

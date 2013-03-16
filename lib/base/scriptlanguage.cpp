@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/scriptlanguage.h"
 
 using namespace icinga;
 
@@ -51,7 +51,7 @@ ScriptLanguage::Ptr ScriptLanguage::GetByName(const String& name)
 {
 	boost::mutex::scoped_lock lock(GetMutex());
 
-	map<String, ScriptLanguage::Ptr>::iterator it;
+	std::map<String, ScriptLanguage::Ptr>::iterator it;
 
 	it = GetLanguages().find(name);
 
@@ -67,8 +67,8 @@ boost::mutex& ScriptLanguage::GetMutex(void)
 	return mutex;
 }
 
-map<String, ScriptLanguage::Ptr>& ScriptLanguage::GetLanguages(void)
+std::map<String, ScriptLanguage::Ptr>& ScriptLanguage::GetLanguages(void)
 {
-	static map<String, ScriptLanguage::Ptr> languages;
+	static std::map<String, ScriptLanguage::Ptr> languages;
 	return languages;
 }

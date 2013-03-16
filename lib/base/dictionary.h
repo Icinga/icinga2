@@ -20,6 +20,11 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
+#include "base/i2-base.h"
+#include "base/object.h"
+#include "base/value.h"
+#include <map>
+
 namespace icinga
 {
 
@@ -37,7 +42,7 @@ public:
 	/**
 	 * An iterator that can be used to iterate over dictionary elements.
 	 */
-	typedef map<String, Value>::iterator Iterator;
+	typedef std::map<String, Value>::iterator Iterator;
 
 	Dictionary(void);
 
@@ -63,7 +68,7 @@ public:
 	cJSON *ToJson(void) const;
 
 private:
-	map<String, Value> m_Data; /**< The data for the dictionary. */
+	std::map<String, Value> m_Data; /**< The data for the dictionary. */
 	bool m_Sealed; /**< Whether the dictionary is read-only. */
 };
 

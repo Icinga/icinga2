@@ -17,7 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/application.h"
+#include "base/array.h"
+#include "base/logger_fwd.h"
 #include <cJSON.h>
 #include <boost/lexical_cast.hpp>
 
@@ -85,7 +87,7 @@ Value::operator String(void) const
 			object = boost::get<Object::Ptr>(m_Value).get();
 			return "Object of type '" + Utility::GetTypeName(typeid(*object)) + "'";
 		default:
-			BOOST_THROW_EXCEPTION(runtime_error("Unknown value type."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Unknown value type."));
 	}
 }
 
@@ -111,7 +113,7 @@ Value Value::FromJson(cJSON *json)
 	else if (json->type == cJSON_NULL)
 		return Value();
 	else
-		BOOST_THROW_EXCEPTION(invalid_argument("Unsupported JSON type."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Unsupported JSON type."));
 }
 
 /**
@@ -161,7 +163,7 @@ cJSON *Value::ToJson(void) const
 				Array::Ptr array = *this;
 				return array->ToJson();
 			} else {
-				Logger::Write(LogDebug, "base", "Ignoring unknown object while converting variant to JSON.");
+				Log(LogDebug, "base", "Ignoring unknown object while converting variant to JSON.");
 				return cJSON_CreateNull();
 			}
 
@@ -169,7 +171,7 @@ cJSON *Value::ToJson(void) const
 			return cJSON_CreateNull();
 
 		default:
-			BOOST_THROW_EXCEPTION(runtime_error("Invalid variant type."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid variant type."));
 	}
 }
 
@@ -184,7 +186,7 @@ Value Value::Deserialize(const String& jsonString)
 	cJSON *json = cJSON_Parse(jsonString.CStr());
 
 	if (!json)
-		BOOST_THROW_EXCEPTION(runtime_error("Invalid JSON String"));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid JSON String"));
 
 	Value value = FromJson(json);
 	cJSON_Delete(json);

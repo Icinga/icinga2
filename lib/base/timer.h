@@ -20,9 +20,16 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include "base/i2-base.h"
+#include "base/object.h"
+#include <list>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/key_extractors.hpp>
+#include <boost/signals2.hpp>
 
 namespace icinga {
 
@@ -49,7 +56,7 @@ public:
 	typedef shared_ptr<Timer> Ptr;
 	typedef weak_ptr<Timer> WeakPtr;
 
-	typedef list<Timer::WeakPtr> CollectionType;
+	typedef std::list<Timer::WeakPtr> CollectionType;
 
 	Timer(void);
 
@@ -64,7 +71,7 @@ public:
 	void Reschedule(double next = -1);
 	double GetNext(void) const;
 
-	signals2::signal<void(const Timer::Ptr&)> OnTimerExpired;
+	boost::signals2::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
 	static void Initialize(void);
 	static void Uninitialize(void);
@@ -74,11 +81,11 @@ private:
 	double m_Next; /**< When the next event should happen. */
 	bool m_Started; /**< Whether the timer is enabled. */
 
-	typedef multi_index_container<
+	typedef boost::multi_index_container<
 		Timer::WeakPtr,
-		indexed_by<
-			ordered_unique<identity<Timer::WeakPtr> >,
-			ordered_non_unique<TimerNextExtractor>
+		boost::multi_index::indexed_by<
+			boost::multi_index::ordered_unique<boost::multi_index::identity<Timer::WeakPtr> >,
+			boost::multi_index::ordered_non_unique<TimerNextExtractor>
 		>
 	> TimerSet;
 

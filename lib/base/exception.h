@@ -20,7 +20,14 @@
 #ifndef EXCEPTION_H
 #define EXCEPTION_H
 
+#include "base/i2-base.h"
+#include "base/stacktrace.h"
+#include <sstream>
 #include <boost/thread/tss.hpp>
+
+#ifdef _WIN32
+#	include <boost/algorithm/string/trim.hpp>
+#endif /* _WIN32 */
 
 namespace icinga
 {
@@ -30,7 +37,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Exception //: public virtual exception
+class I2_BASE_API Exception
 {
 public:
 	static StackTrace *GetLastStackTrace(void);
@@ -51,7 +58,7 @@ typedef boost::error_info<struct errinfo_win32_error_, int> errinfo_win32_error;
 
 inline std::string to_string(const errinfo_win32_error& e)
 {
-	stringstream tmp;
+	std::ostringstream tmp;
 	int code = e.value();
 
 	char *message;
@@ -80,7 +87,7 @@ typedef boost::error_info<struct errinfo_openssl_error_, int> errinfo_openssl_er
 
 inline std::string to_string(const errinfo_openssl_error& e)
 {
-	stringstream tmp;
+	std::ostringstream tmp;
 	int code = e.value();
 
 	const char *message = ERR_error_string(code, NULL);

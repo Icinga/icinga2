@@ -17,9 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
-
-using std::bad_alloc;
+#include "base/fifo.h"
+#include "base/utility.h"
 
 using namespace icinga;
 
@@ -60,7 +59,7 @@ void FIFO::ResizeBuffer(size_t newSize)
 	char *newBuffer = static_cast<char *>(realloc(m_Buffer, newSize));
 
 	if (newBuffer == NULL)
-		BOOST_THROW_EXCEPTION(bad_alloc());
+		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 	m_Buffer = newBuffer;
 

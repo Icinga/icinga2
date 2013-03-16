@@ -20,6 +20,8 @@
 #ifndef VALUE_H
 #define VALUE_H
 
+#include "base/object.h"
+#include "base/qstring.h"
 #include <boost/variant.hpp>
 
 struct cJSON;
@@ -82,7 +84,7 @@ public:
 		Object::Ptr object = dynamic_pointer_cast<Object>(value);
 
 		if (!object)
-			BOOST_THROW_EXCEPTION(invalid_argument("shared_ptr value type must inherit from Object class."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("shared_ptr value type must inherit from Object class."));
 
 		m_Value = object;
 	}
@@ -99,7 +101,7 @@ public:
 		shared_ptr<T> object = dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value));
 
 		if (!object)
-			BOOST_THROW_EXCEPTION(bad_cast());
+			BOOST_THROW_EXCEPTION(std::bad_cast());
 
 		return object;
 	}

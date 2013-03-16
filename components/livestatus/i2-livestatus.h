@@ -26,29 +26,29 @@
  * The livestatus component implements livestatus queries.
  */
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "base/i2-base.h"
+#include "remoting/i2-remoting.h"
+#include "icinga/i2-icinga.h"
 
 using namespace icinga;
 
-#include "connection.h"
-#include "column.h"
-#include "table.h"
-#include "filter.h"
-#include "combinerfilter.h"
-#include "orfilter.h"
-#include "andfilter.h"
-#include "negatefilter.h"
-#include "attributefilter.h"
-#include "query.h"
-#include "statustable.h"
-#include "contactgroupstable.h"
-#include "contactstable.h"
-#include "hoststable.h"
-#include "servicestable.h"
-#include "commentstable.h"
-#include "downtimestable.h"
-#include "component.h"
+#include "livestatus/connection.h"
+#include "livestatus/column.h"
+#include "livestatus/table.h"
+#include "livestatus/filter.h"
+#include "livestatus/combinerfilter.h"
+#include "livestatus/orfilter.h"
+#include "livestatus/andfilter.h"
+#include "livestatus/negatefilter.h"
+#include "livestatus/attributefilter.h"
+#include "livestatus/query.h"
+#include "livestatus/statustable.h"
+#include "livestatus/contactgroupstable.h"
+#include "livestatus/contactstable.h"
+#include "livestatus/hoststable.h"
+#include "livestatus/servicestable.h"
+#include "livestatus/commentstable.h"
+#include "livestatus/downtimestable.h"
+#include "livestatus/component.h"
 
 #endif /* I2LIVESTATUS_H */

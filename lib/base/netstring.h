@@ -20,6 +20,9 @@
 #ifndef NETSTRING_H
 #define NETSTRING_H
 
+#include "base/i2-base.h"
+#include "base/stream.h"
+
 namespace icinga
 {
 

@@ -18,6 +18,8 @@
  ******************************************************************************/
 
 #include "i2-livestatus.h"
+#include "base/convert.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -42,7 +44,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
 
 			return false; /* Item not found in list. */
 		} else {
-			BOOST_THROW_EXCEPTION(invalid_argument("Invalid operator for column '" + m_Column + "': " + m_Operator + " (expected '>=')."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid operator for column '" + m_Column + "': " + m_Operator + " (expected '>=')."));
 		}
 	} else {
 		if (m_Operator == "=") {
@@ -77,7 +79,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
 			else
 				return (static_cast<String>(value) >= m_Operand);
 		} else {
-			BOOST_THROW_EXCEPTION(invalid_argument("Unknown operator for column '" + m_Column + "': " + m_Operator));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Unknown operator for column '" + m_Column + "': " + m_Operator));
 		}
 	}
 

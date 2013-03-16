@@ -20,6 +20,9 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
+#include "base/i2-base.h"
+#include "base/qstring.h"
+#include <typeinfo>
 #include <boost/function.hpp>
 
 namespace icinga
@@ -34,7 +37,7 @@ class I2_BASE_API Utility
 {
 public:
 	static String DemangleSymbolName(const String& sym);
-	static String GetTypeName(const type_info& ti);
+	static String GetTypeName(const std::type_info& ti);
 
 	static shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
 	static String GetCertificateCN(const shared_ptr<X509>& certificate);

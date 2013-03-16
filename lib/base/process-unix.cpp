@@ -17,9 +17,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/process.h"
+#include "base/exception.h"
+#include "base/convert.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <map>
 #include <boost/bind.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 #ifndef _WIN32
 #include <execvpe.h>
@@ -93,11 +100,11 @@ void Process::Initialize(void)
 
 void Process::WorkerThreadProc(int taskFd)
 {
-	map<int, Process::Ptr> tasks;
+	std::map<int, Process::Ptr> tasks;
 	pollfd *pfds = NULL;
 
 	for (;;) {
-		map<int, Process::Ptr>::iterator it, prev;
+		std::map<int, Process::Ptr>::iterator it, prev;
 
 		pfds = (pollfd *)realloc(pfds, (1 + tasks.size()) * sizeof(pollfd));
 
@@ -138,7 +145,7 @@ void Process::WorkerThreadProc(int taskFd)
 				continue;
 
 			if (pfds[i].fd == taskFd) {
-				vector<Process::Ptr> new_tasks;
+				std::vector<Process::Ptr> new_tasks;
 
 				unsigned int want = MaxTasksPerThread - tasks.size();
 
@@ -377,7 +384,7 @@ bool Process::RunTask(void)
 	if (WIFEXITED(status)) {
 		exitcode = WEXITSTATUS(status);
 	} else if (WIFSIGNALED(status)) {
-		stringstream outputbuf;
+		std::ostringstream outputbuf;
 		outputbuf << "Process was terminated by signal " << WTERMSIG(status);
 		output = outputbuf.str();
 		exitcode = 128;
@@ -396,7 +403,7 @@ void Process::StatusTimerHandler(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	if (m_Tasks.size() > 50)
-		Logger::Write(LogCritical, "base", "More than 50 waiting Process tasks: " +
+		Log(LogCritical, "base", "More than 50 waiting Process tasks: " +
 		    Convert::ToString(m_Tasks.size()));
 }
 

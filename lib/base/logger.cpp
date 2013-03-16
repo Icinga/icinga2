@@ -17,7 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/application.h"
+#include "base/streamlogger.h"
+#include "base/sysloglogger.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -36,14 +42,14 @@ Logger::Logger(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("severity", Attribute_Config, &m_Severity);
 
 	if (!IsLocal())
-		BOOST_THROW_EXCEPTION(runtime_error("Logger objects must be local."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Logger objects must be local."));
 }
 
 void Logger::Start(void)
 {
 	String type = m_Type;
 	if (type.IsEmpty())
-		BOOST_THROW_EXCEPTION(runtime_error("Logger objects must have a 'type' property."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Logger objects must have a 'type' property."));
 
 	ILogger::Ptr impl;
 
@@ -51,12 +57,12 @@ void Logger::Start(void)
 #ifndef _WIN32
 		impl = boost::make_shared<SyslogLogger>();
 #else /* _WIN32 */
-		BOOST_THROW_EXCEPTION(invalid_argument("Syslog is not supported on Windows."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Syslog is not supported on Windows."));
 #endif /* _WIN32 */
 	} else if (type == "file") {
 		String path = m_Path;
 		if (path.IsEmpty())
-			BOOST_THROW_EXCEPTION(invalid_argument("'log' object of type 'file' must have a 'path' property"));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("'log' object of type 'file' must have a 'path' property"));
 
 		StreamLogger::Ptr slogger = boost::make_shared<StreamLogger>();
 		slogger->OpenFile(path);
@@ -65,7 +71,7 @@ void Logger::Start(void)
 	} else if (type == "console") {
 		impl = boost::make_shared<StreamLogger>(&std::cout);
 	} else {
-		BOOST_THROW_EXCEPTION(runtime_error("Unknown log type: " + type));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Unknown log type: " + type));
 	}
 
 	impl->m_Config = GetSelf();
@@ -80,7 +86,7 @@ void Logger::Start(void)
  * @param facility The log facility.
  * @param message The message.
  */
-void Logger::Write(LogSeverity severity, const String& facility,
+void icinga::Log(LogSeverity severity, const String& facility,
     const String& message)
 {
 	LogEntry entry;
@@ -89,7 +95,7 @@ void Logger::Write(LogSeverity severity, const String& facility,
 	entry.Facility = facility;
 	entry.Message = message;
 
-	ForwardLogEntry(entry);
+	Logger::ForwardLogEntry(entry);
 }
 
 /**
@@ -159,7 +165,7 @@ String Logger::SeverityToString(LogSeverity severity)
 		case LogCritical:
 			return "critical";
 		default:
-			BOOST_THROW_EXCEPTION(invalid_argument("Invalid severity."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity."));
 	}
 }
 
@@ -179,7 +185,7 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 	else if (severity == "critical")
 		return LogCritical;
 	else
-		BOOST_THROW_EXCEPTION(invalid_argument("Invalid severity: " + severity));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity: " + severity));
 }
 
 /**

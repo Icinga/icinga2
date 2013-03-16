@@ -31,7 +31,7 @@ namespace icinga
 class I2_ICINGA_API API
 {
 public:
-	static void GetAnswerToEverything(const ScriptTask::Ptr& task, const vector<Value>& arguments);
+	static void GetAnswerToEverything(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
 
 private:
 	API(void);

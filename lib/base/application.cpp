@@ -17,10 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/application.h"
+#include "base/stacktrace.h"
+#include "base/timer.h"
+#include "base/logger_fwd.h"
+#include "base/exception.h"
+#include "base/objectlock.h"
+#include <sstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -41,7 +50,7 @@ Application::Application(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate), m_PidFile(NULL)
 {
 	if (!IsLocal())
-		BOOST_THROW_EXCEPTION(runtime_error("Application objects must be local."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Application objects must be local."));
 
 #ifdef _WIN32
 	/* disable GUI-based error messages for LoadLibrary() */
@@ -113,7 +122,7 @@ void Application::SetArgV(char **argv)
 void Application::ShutdownTimerHandler(void)
 {
 	if (m_ShuttingDown) {
-		Logger::Write(LogInformation, "base", "Shutting down Icinga...");
+		Log(LogInformation, "base", "Shutting down Icinga...");
 		Application::GetInstance()->OnShutdown();
 
 		DynamicObject::DeactivateObjects();
@@ -160,11 +169,11 @@ void Application::TimeWatchThreadProc(void)
 
 		if (abs(timeDiff) > 15) {
 			/* We made a significant jump in time. */
-			stringstream msgbuf;
+			std::ostringstream msgbuf;
 			msgbuf << "We jumped "
 			       << (timeDiff < 0 ? "forward" : "backward")
 			       << " in time: " << abs(timeDiff) << " seconds";
-			Logger::Write(LogInformation, "base", msgbuf.str());
+			Log(LogInformation, "base", msgbuf.str());
 
 			Timer::AdjustTimers(-timeDiff);
 		}
@@ -218,7 +227,7 @@ String Application::GetExePath(const String& argv0)
 	if (!foundSlash) {
 		const char *pathEnv = getenv("PATH");
 		if (pathEnv != NULL) {
-			vector<String> paths;
+			std::vector<String> paths;
 			boost::algorithm::split(paths, pathEnv, boost::is_any_of(":"));
 
 			bool foundPath = false;
@@ -234,7 +243,7 @@ String Application::GetExePath(const String& argv0)
 
 			if (!foundPath) {
 				executablePath.Clear();
-				BOOST_THROW_EXCEPTION(runtime_error("Could not determine executable path."));
+				BOOST_THROW_EXCEPTION(std::runtime_error("Could not determine executable path."));
 			}
 		}
 	}
@@ -375,7 +384,7 @@ void Application::ExceptionHandler(void)
 		throw;
 	} catch (const std::exception& ex) {
 		std::cerr << std::endl
-			  << diagnostic_information(ex)
+			  << boost::diagnostic_information(ex)
 			  << std::endl;
 
 		has_trace = (boost::get_error_info<StackTraceErrorInfo>(ex) != NULL);
@@ -473,7 +482,7 @@ void Application::UpdatePidFile(const String& filename)
 		m_PidFile = fopen(filename.CStr(), "w");
 
 	if (m_PidFile == NULL)
-		BOOST_THROW_EXCEPTION(runtime_error("Could not open PID file '" + filename + "'"));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open PID file '" + filename + "'"));
 
 #ifndef _WIN32
 	int fd = fileno(m_PidFile);
@@ -481,7 +490,7 @@ void Application::UpdatePidFile(const String& filename)
 	Utility::SetCloExec(fd);
 
 	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
-		Logger::Write(LogCritical, "base", "Could not lock PID file. Make sure that only one instance of the application is running.");
+		Log(LogCritical, "base", "Could not lock PID file. Make sure that only one instance of the application is running.");
 
 		_exit(EXIT_FAILURE);
 	}

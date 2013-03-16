@@ -18,6 +18,10 @@
  ******************************************************************************/
 
 #include "i2-checker.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -66,7 +70,7 @@ void CheckerComponent::CheckThreadProc(void)
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	for (;;) {
-		typedef nth_index<ServiceSet, 1>::type CheckTimeView;
+		typedef boost::multi_index::nth_index<ServiceSet, 1>::type CheckTimeView;
 		CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
 		while (idx.begin() == idx.end() && !m_Stopped)
@@ -102,14 +106,14 @@ void CheckerComponent::CheckThreadProc(void)
 
 		if (!service->GetForceNextCheck()) {
 			if (!service->GetEnableActiveChecks()) {
-				Logger::Write(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active checks are disabled");
+				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active checks are disabled");
 				check = false;
 			}
 
 			TimePeriod::Ptr tp = service->GetCheckPeriod();
 
 			if (tp && !tp->IsInside(Utility::GetTime())) {
-				Logger::Write(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': not in check_period");
+				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': not in check_period");
 				check = false;
 			}
 		}
@@ -118,7 +122,7 @@ void CheckerComponent::CheckThreadProc(void)
 		if (!check) {
 			service->UpdateNextCheck();
 
-			typedef nth_index<ServiceSet, 1>::type CheckTimeView;
+			typedef boost::multi_index::nth_index<ServiceSet, 1>::type CheckTimeView;
 			CheckTimeView& idx = boost::get<1>(m_IdleServices);
 
 			idx.insert(service);
@@ -136,13 +140,13 @@ void CheckerComponent::CheckThreadProc(void)
 			service->SetForceNextCheck(false);
 		}
 
-		Logger::Write(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
+		Log(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
 		try {
 			CheckerComponent::Ptr self = GetSelf();
 			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, self, service));
-		} catch (const exception& ex) {
-			Logger::Write(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + diagnostic_information(ex));
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + boost::diagnostic_information(ex));
 		}
 
 		lock.lock();
@@ -164,14 +168,14 @@ void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
 		m_CV.notify_all();
 	}
 
-	Logger::Write(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
+	Log(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
 }
 
 void CheckerComponent::ResultTimerHandler(void)
 {
-	Logger::Write(LogDebug, "checker", "ResultTimerHandler entered.");
+	Log(LogDebug, "checker", "ResultTimerHandler entered.");
 
-	stringstream msgbuf;
+	std::ostringstream msgbuf;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -179,7 +183,7 @@ void CheckerComponent::ResultTimerHandler(void)
 		msgbuf << "Pending services: " << m_PendingServices.size() << "; Idle services: " << m_IdleServices.size();
 	}
 
-	Logger::Write(LogInformation, "checker", msgbuf.str());
+	Log(LogInformation, "checker", msgbuf.str());
 }
 
 void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
@@ -206,7 +210,7 @@ void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	/* remove and re-insert the service from the set in order to force an index update */
-	typedef nth_index<ServiceSet, 0>::type ServiceView;
+	typedef boost::multi_index::nth_index<ServiceSet, 0>::type ServiceView;
 	ServiceView& idx = boost::get<0>(m_IdleServices);
 
 	ServiceView::iterator it = idx.find(service);

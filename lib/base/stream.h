@@ -20,7 +20,11 @@
 #ifndef STREAM_H
 #define STREAM_H
 
+#include "base/i2-base.h"
+#include "base/object.h"
+#include "base/qstring.h"
 #include <boost/exception_ptr.hpp>
+#include <boost/signals2.hpp>
 
 namespace icinga
 {
@@ -91,9 +95,9 @@ public:
 	boost::exception_ptr GetException(void);
 	void CheckException(void);
 
-	signals2::signal<void (const Stream::Ptr&)> OnConnected;
-	signals2::signal<void (const Stream::Ptr&)> OnDataAvailable;
-	signals2::signal<void (const Stream::Ptr&)> OnClosed;
+	boost::signals2::signal<void (const Stream::Ptr&)> OnConnected;
+	boost::signals2::signal<void (const Stream::Ptr&)> OnDataAvailable;
+	boost::signals2::signal<void (const Stream::Ptr&)> OnClosed;
 
 protected:
 	void SetConnected(bool connected);

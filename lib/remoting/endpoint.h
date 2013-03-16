@@ -20,6 +20,9 @@
 #ifndef ENDPOINT_H
 #define ENDPOINT_H
 
+#include "base/dynamicobject.h"
+#include <boost/signals2.hpp>
+
 namespace icinga
 {
 
@@ -69,8 +72,8 @@ public:
 
 	static Endpoint::Ptr MakeEndpoint(const String& name, bool replicated, bool local = true);
 
-	static signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
-	static signals2::signal<void (const Endpoint::Ptr&)> OnDisconnected;
+	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
+	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnDisconnected;
 
 private:
 	Attribute<bool> m_Local;
@@ -85,7 +88,7 @@ private:
 	bool m_SentWelcome; /**< Have we sent a welcome message to this
 			         endpoint? */
 
-	map<String, shared_ptr<signals2::signal<Callback> > > m_TopicHandlers;
+	std::map<String, shared_ptr<boost::signals2::signal<Callback> > > m_TopicHandlers;
 
 	void NewMessageHandler(const MessagePart& message);
 	void ClientClosedHandler(void);

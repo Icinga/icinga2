@@ -20,6 +20,9 @@
 #ifndef PLUGINCHECKTASK_H
 #define PLUGINCHECKTASK_H
 
+#include "base/scripttask.h"
+#include "base/process.h"
+
 namespace icinga
 {
 
@@ -31,7 +34,7 @@ namespace icinga
 class I2_ICINGA_API PluginCheckTask
 {
 public:
-	static void ScriptFunc(const ScriptTask::Ptr& task, const vector<Value>& arguments);
+	static void ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
 
 	static ServiceState ExitStatusToState(int exitStatus);
 	static Dictionary::Ptr ParseCheckOutput(const String& output);

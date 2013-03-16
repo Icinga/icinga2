@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/tcpsocket.h"
 
 using namespace icinga;
 
@@ -101,7 +101,7 @@ void TcpSocket::Bind(String node, String service, int family)
 	freeaddrinfo(result);
 
 	if (fd == INVALID_SOCKET)
-		BOOST_THROW_EXCEPTION(runtime_error("Could not create a suitable socket."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create a suitable socket."));
 }
 
 /**
@@ -169,5 +169,5 @@ void TcpSocket::Connect(const String& node, const String& service)
 	freeaddrinfo(result);
 
 	if (fd == INVALID_SOCKET)
-		BOOST_THROW_EXCEPTION(runtime_error("Could not create a suitable socket."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create a suitable socket."));
 }

@@ -20,6 +20,9 @@
 #ifndef FIFO_H
 #define FIFO_H
 
+#include "base/i2-base.h"
+#include "base/stream.h"
+
 namespace icinga
 {
 

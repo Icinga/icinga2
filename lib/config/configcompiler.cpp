@@ -18,12 +18,16 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include "base/logger_fwd.h"
+#include <sstream>
+#include <fstream>
+#include <boost/foreach.hpp>
 
 using std::ifstream;
 
 using namespace icinga;
 
-vector<String> ConfigCompiler::m_IncludeSearchDirs;
+std::vector<String> ConfigCompiler::m_IncludeSearchDirs;
 
 /**
  * Constructor for the ConfigCompiler class.
@@ -33,7 +37,7 @@ vector<String> ConfigCompiler::m_IncludeSearchDirs;
  * @param input Input stream for the configuration file.
  * @param includeHandler Handler function for #include directives.
  */
-ConfigCompiler::ConfigCompiler(const String& path, istream *input,
+ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
     HandleIncludeFunc includeHandler)
 	: m_Path(path), m_Input(input), m_HandleInclude(includeHandler)
 {
@@ -118,9 +122,9 @@ void ConfigCompiler::HandleLibrary(const String& library)
  * @param stream The input stream.
  * @returns Configuration items.
  */
-void ConfigCompiler::CompileStream(const String& path, istream *stream)
+void ConfigCompiler::CompileStream(const String& path, std::istream *stream)
 {
-	stream->exceptions(istream::badbit);
+	stream->exceptions(std::istream::badbit);
 
 	ConfigCompiler ctx(path, stream);
 	ctx.Compile();
@@ -134,13 +138,13 @@ void ConfigCompiler::CompileStream(const String& path, istream *stream)
  */
 void ConfigCompiler::CompileFile(const String& path)
 {
-	ifstream stream;
-	stream.open(path.CStr(), ifstream::in);
+	std::ifstream stream;
+	stream.open(path.CStr(), std::ifstream::in);
 
 	if (!stream)
-		BOOST_THROW_EXCEPTION(invalid_argument("Could not open config file: " + path));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Could not open config file: " + path));
 
-	Logger::Write(LogInformation, "config", "Compiling config file: " + path);
+	Log(LogInformation, "config", "Compiling config file: " + path);
 
 	return CompileStream(path, &stream);
 }
@@ -154,7 +158,7 @@ void ConfigCompiler::CompileFile(const String& path)
  */
 void ConfigCompiler::CompileText(const String& path, const String& text)
 {
-	stringstream stream(text);
+	std::stringstream stream(text);
 	return CompileStream(path, &stream);
 }
 
@@ -190,12 +194,12 @@ void ConfigCompiler::HandleFileInclude(const String& include, bool search,
 		}
 	}
 
-	vector<ConfigItem::Ptr> items;
+	std::vector<ConfigItem::Ptr> items;
 
 	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFile, _1))) {
-		stringstream msgbuf;
+		std::ostringstream msgbuf;
 		msgbuf << "Include file '" + include + "' does not exist (or no files found for pattern): " << debuginfo;
-		BOOST_THROW_EXCEPTION(invalid_argument(msgbuf.str()));
+		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 }
 
@@ -206,7 +210,7 @@ void ConfigCompiler::HandleFileInclude(const String& include, bool search,
  */
 void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 {
-	Logger::Write(LogInformation, "config", "Adding include search dir: " + dir);
+	Log(LogInformation, "config", "Adding include search dir: " + dir);
 
 	m_IncludeSearchDirs.push_back(dir);
 }

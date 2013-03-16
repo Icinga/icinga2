@@ -17,7 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/scriptinterpreter.h"
+#include "base/objectlock.h"
+#include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 

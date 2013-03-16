@@ -43,7 +43,7 @@ public:
 	String GetNotesUrl(void) const;
 	String GetActionUrl(void) const;
 
-	set<Host::Ptr> GetMembers(void) const;
+	std::set<Host::Ptr> GetMembers(void) const;
 
 	static void InvalidateMembersCache(void);
 
@@ -56,7 +56,7 @@ private:
 	Attribute<String> m_ActionUrl;
 
 	static boost::mutex m_Mutex;
-	static map<String, vector<Host::WeakPtr> > m_MembersCache;
+	static std::map<String, std::vector<Host::WeakPtr> > m_MembersCache;
 	static bool m_MembersCacheNeedsUpdate;
 	static Timer::Ptr m_MembersCacheTimer;
 

@@ -20,6 +20,8 @@
 #ifndef ATTRIBUTE_H
 #define ATTRIBUTE_H
 
+#include "base/value.h"
+
 namespace icinga
 {
 

@@ -20,6 +20,8 @@
 #ifndef EXPRESSIONLIST_H
 #define EXPRESSIONLIST_H
 
+#include "base/dictionary.h"
+
 namespace icinga
 {
 
@@ -37,12 +39,12 @@ public:
 	void AddExpression(const Expression& expression);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
-	void Dump(ostream& fp, int indent) const;
+	void Dump(std::ostream& fp, int indent) const;
 
 	size_t GetLength(void) const;
 
 private:
-	vector<Expression> m_Expressions;
+	std::vector<Expression> m_Expressions;
 };
 
 }

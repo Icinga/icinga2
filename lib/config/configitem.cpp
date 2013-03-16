@@ -18,14 +18,20 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <sstream>
 #include <boost/tuple/tuple.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::ItemMap ConfigItem::m_Items;
-signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
-signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
+boost::signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
+boost::signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
 
 /**
  * Constructor for the ConfigItem class.
@@ -40,7 +46,7 @@ signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
     const String& unit, bool abstract, const ExpressionList::Ptr& exprl,
-    const vector<String>& parents, const DebugInfo& debuginfo)
+    const std::vector<String>& parents, const DebugInfo& debuginfo)
 	: m_Type(type), m_Name(name), m_Unit(unit), m_Abstract(abstract),
 	  m_ExpressionList(exprl), m_Parents(parents), m_DebugInfo(debuginfo)
 {
@@ -111,7 +117,7 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
  *
  * @returns The list of parents.
  */
-vector<String> ConfigItem::GetParents(void) const
+std::vector<String> ConfigItem::GetParents(void) const
 {
 	return m_Parents;
 }
@@ -148,10 +154,10 @@ void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
 			parent = ConfigItem::GetObject(m_Type, name);
 
 		if (!parent) {
-			stringstream message;
+			std::ostringstream message;
 			message << "Parent object '" << name << "' does not"
 			    " exist (" << m_DebugInfo << ")";
-			BOOST_THROW_EXCEPTION(domain_error(message.str()));
+			BOOST_THROW_EXCEPTION(std::invalid_argument(message.str()));
 		}
 
 		parent->InternalLink(dictionary);
@@ -172,16 +178,16 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 
 	String type, name;
 
-	Logger::Write(LogDebug, "base", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
+	Log(LogDebug, "base", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
 
 	/* Make sure the type is valid. */
 	DynamicType::Ptr dtype = DynamicType::GetByName(GetType());
 
 	if (!dtype)
-		BOOST_THROW_EXCEPTION(runtime_error("Type '" + GetType() + "' does not exist."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Type '" + GetType() + "' does not exist."));
 
 	/* Try to find an existing item with the same type and name. */
-	pair<String, String> ikey = make_pair(GetType(), GetName());
+	std::pair<String, String> ikey = std::make_pair(GetType(), GetName());
 	ConfigItem::Ptr oldItem;
 
 	{
@@ -193,7 +199,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 			oldItem = it->second;
 	}
 
-	set<ConfigItem::WeakPtr> children;
+	std::set<ConfigItem::WeakPtr> children;
 
 	if (oldItem) {
 		ObjectLock olock(oldItem);
@@ -318,7 +324,7 @@ void ConfigItem::Unregister(void)
 		ObjectLock olock(this);
 
 		ConfigItem::ItemMap::iterator it;
-		it = m_Items.find(make_pair(m_Type, m_Name));
+		it = m_Items.find(std::make_pair(m_Type, m_Name));
 
 		if (it != m_Items.end())
 			m_Items.erase(it);
@@ -382,7 +388,7 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 
 	ConfigItem::ItemMap::iterator it;
 
-	it = m_Items.find(make_pair(type, name));
+	it = m_Items.find(std::make_pair(type, name));
 
 	if (it != m_Items.end())
 		return it->second;
@@ -396,7 +402,7 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
  *
  * @param fp The stream.
  */
-void ConfigItem::Dump(ostream& fp) const
+void ConfigItem::Dump(std::ostream& fp) const
 {
 	ObjectLock olock(this);
 
@@ -426,12 +432,12 @@ void ConfigItem::Dump(ostream& fp) const
  */
 void ConfigItem::UnloadUnit(const String& unit)
 {
-	vector<ConfigItem::Ptr> obsoleteItems;
+	std::vector<ConfigItem::Ptr> obsoleteItems;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		Logger::Write(LogInformation, "config", "Unloading config items from compilation unit '" + unit + "'");
+		Log(LogInformation, "config", "Unloading config items from compilation unit '" + unit + "'");
 
 		ConfigItem::Ptr item;
 		BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {

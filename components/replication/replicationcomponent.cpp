@@ -18,6 +18,10 @@
  ******************************************************************************/
 
 #include "i2-replication.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -94,7 +98,7 @@ void ReplicationComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoin
 
 	DynamicType::Ptr type;
 	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
-		set<DynamicObject::Ptr> objects;
+		std::set<DynamicObject::Ptr> objects;
 
 		{
 			ObjectLock olock(dt);
@@ -159,14 +163,14 @@ void ReplicationComponent::LocalObjectUnregisteredHandler(const DynamicObject::P
 	    MakeObjectMessage(object, "config::ObjectRemoved", 0, false));
 }
 
-void ReplicationComponent::TransactionClosingHandler(double tx, const set<DynamicObject::WeakPtr>& modifiedObjects)
+void ReplicationComponent::TransactionClosingHandler(double tx, const std::set<DynamicObject::WeakPtr>& modifiedObjects)
 {
 	if (modifiedObjects.empty())
 		return;
 
-	stringstream msgbuf;
+	std::ostringstream msgbuf;
 	msgbuf << "Sending " << modifiedObjects.size() << " replication updates.";
-	Logger::Write(LogDebug, "replication", msgbuf.str());
+	Log(LogDebug, "replication", msgbuf.str());
 
 	BOOST_FOREACH(const DynamicObject::WeakPtr& wobject, modifiedObjects) {
 		DynamicObject::Ptr object = wobject.lock();
@@ -227,13 +231,13 @@ void ReplicationComponent::RemoteObjectUpdateHandler(const RequestMessage& reque
 			return;
 		}
 
-		Logger::Write(LogDebug, "replication", "Received object from source: " + source);
+		Log(LogDebug, "replication", "Received object from source: " + source);
 
 		object->SetSource(source);
 		object->Register();
 	} else {
 		if (object->IsLocal())
-			BOOST_THROW_EXCEPTION(invalid_argument("Replicated remote object is marked as local."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Replicated remote object is marked as local."));
 
 		// TODO: disallow config updates depending on endpoint config
 

@@ -45,8 +45,8 @@ public:
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);
 
-	static void EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const vector<Value>& arguments);
-	static void EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const vector<Value>& arguments);
+	static void EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
+	static void EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
 
 private:
 	Attribute<double> m_ValidBegin;

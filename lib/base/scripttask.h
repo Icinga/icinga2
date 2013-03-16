@@ -20,6 +20,11 @@
 #ifndef SCRIPTTASK_H
 #define SCRIPTTASK_H
 
+#include "base/i2-base.h"
+#include "base/asynctask.h"
+#include "base/scriptfunction.h"
+#include <vector>
+
 namespace icinga
 {
 
@@ -34,14 +39,14 @@ public:
 	typedef shared_ptr<ScriptTask> Ptr;
 	typedef weak_ptr<ScriptTask> WeakPtr;
 
-	ScriptTask(const ScriptFunction::Ptr& function, const vector<Value>& arguments);
+	ScriptTask(const ScriptFunction::Ptr& function, const std::vector<Value>& arguments);
 
 protected:
 	virtual void Run(void);
 
 private:
 	ScriptFunction::Ptr m_Function;
-	vector<Value> m_Arguments;
+	std::vector<Value> m_Arguments;
 };
 
 }

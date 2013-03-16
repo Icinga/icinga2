@@ -20,6 +20,9 @@
 #ifndef CONVERT_H
 #define CONVERT_H
 
+#include "base/i2-base.h"
+#include "base/value.h"
+
 namespace icinga
 {
 

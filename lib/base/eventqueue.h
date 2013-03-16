@@ -20,6 +20,8 @@
 #ifndef EVENTQUEUE_H
 #define EVENTQUEUE_H
 
+#include "base/i2-base.h"
+#include <stack>
 #include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -27,8 +29,6 @@
 
 namespace icinga
 {
-
-class Timer;
 
 /**
  * An event queue.
@@ -55,7 +55,7 @@ private:
 	boost::condition_variable m_CV;
 
 	bool m_Stopped;
-	stack<Callback> m_Events;
+	std::stack<Callback> m_Events;
 
 	void QueueThreadProc(void);
 	void ReportThreadProc(void);

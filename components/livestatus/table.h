@@ -41,11 +41,11 @@ public:
 	
 	virtual String GetName(void) const = 0;
 
-	vector<Object::Ptr> FilterRows(const shared_ptr<Filter>& filter);
+	std::vector<Object::Ptr> FilterRows(const shared_ptr<Filter>& filter);
 
 	void AddColumn(const String& name, const Column& column);
 	Column GetColumn(const String& name) const;
-	vector<String> GetColumnNames(void) const;
+	std::vector<String> GetColumnNames(void) const;
 
 protected:
 	Table(void);
@@ -59,9 +59,9 @@ protected:
 	static Value EmptyDictionaryAccessor(const Object::Ptr&);
 
 private:
-	map<String, Column> m_Columns;
+	std::map<String, Column> m_Columns;
 
-	void FilteredAddRow(vector<Object::Ptr>& rs, const shared_ptr<Filter>& filter, const Object::Ptr& object);
+	void FilteredAddRow(std::vector<Object::Ptr>& rs, const shared_ptr<Filter>& filter, const Object::Ptr& object);
 };
 
 }

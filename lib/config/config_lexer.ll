@@ -20,6 +20,7 @@
 
 #include "i2-config.h"
 #include "config_parser.h"
+#include <sstream>
 
 using namespace icinga;
 
@@ -71,7 +72,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 	char *new_buf = (char *)realloc(lb->buf, new_len);
 
 	if (new_buf == NULL && new_len > 0)
-		throw bad_alloc();
+		throw std::bad_alloc();
 
 	lb->buf = new_buf;
 	lb->size++;
@@ -104,7 +105,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 				}
 
 <STRING>\n			{
-	stringstream msgbuf;
+	std::ostringstream msgbuf;
 	msgbuf << "Unterminated string found: " << *yylloc;
 	ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
 	BEGIN(INITIAL);
@@ -118,7 +119,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 
 	if (result > 0xff) {
 		/* error, constant is out-of-bounds */
-		stringstream msgbuf;
+		std::ostringstream msgbuf;
 		msgbuf << "Constant is out-of-bounds: " << yytext << " " << *yylloc;
 		ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
 	}
@@ -130,7 +131,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 	/* generate error - bad escape sequence; something
 	 * like '\48' or '\0777777'
 	 */
-	stringstream msgbuf;
+	std::ostringstream msgbuf;
 	msgbuf << "Bad escape sequence found: " << yytext << " " << *yylloc;
 	ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
 				}

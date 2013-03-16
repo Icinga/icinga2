@@ -19,6 +19,9 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include <sstream>
+#include <stack>
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -88,20 +91,20 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
 {
-	stringstream message;
+	std::ostringstream message;
 	message << *locp << ": " << err;
 	ConfigCompilerContext::GetContext()->AddError(false, message.str());
 }
 
 int yyparse(ConfigCompiler *context);
 
-static stack<ExpressionList::Ptr> m_ExpressionLists;
-static stack<Array::Ptr> m_Arrays;
+static std::stack<ExpressionList::Ptr> m_ExpressionLists;
+static std::stack<Array::Ptr> m_Arrays;
 static ConfigItemBuilder::Ptr m_Item;
 static bool m_Abstract;
 static bool m_Local;
 
-static stack<TypeRuleList::Ptr> m_RuleLists;
+static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
 void ConfigCompiler::Compile(void)
@@ -110,7 +113,7 @@ void ConfigCompiler::Compile(void)
 
 	try {
 		yyparse(this);
-	} catch (const exception& ex) {
+	} catch (const std::exception& ex) {
 		ConfigCompilerContext::GetContext()->AddError(false, boost::diagnostic_information(ex));
 	}
 }
@@ -161,7 +164,7 @@ type: partial_specifier T_TYPE identifier
 
 		if (!m_Type) {
 			if ($1)
-				BOOST_THROW_EXCEPTION(invalid_argument("Partial type definition for unknown type '" + name + "'"));
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Partial type definition for unknown type '" + name + "'"));
 
 			m_Type = boost::make_shared<ConfigType>(name, yylloc);
 			ConfigCompilerContext::GetContext()->AddType(m_Type);

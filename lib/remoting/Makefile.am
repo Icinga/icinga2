@@ -27,8 +27,7 @@ libremoting_la_SOURCES = \
 libremoting_la_CPPFLAGS = \
 	-DI2_REMOTING_BUILD \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/lib/base \
-	-I${top_srcdir}/lib/config
+	-I${top_srcdir}/lib
 
 libremoting_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \

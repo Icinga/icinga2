@@ -20,6 +20,9 @@
 #ifndef STREAMBIO_H
 #define STREAMBIO_H
 
+#include "base/i2-base.h"
+#include "base/stream.h"
+
 namespace icinga
 {
 

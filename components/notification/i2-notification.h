@@ -26,10 +26,10 @@
  * The notification component is in charge of sending downtime notifications.
  */
 
-#include <i2-base.h>
-#include <i2-remoting.h>
-#include <i2-icinga.h>
+#include "base/i2-base.h"
+#include "remoting/i2-remoting.h"
+#include "icinga/i2-icinga.h"
 
-#include "notificationcomponent.h"
+#include "notification/notificationcomponent.h"
 
 #endif /* I2NOTIFICATION_H */

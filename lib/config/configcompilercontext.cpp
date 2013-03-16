@@ -18,6 +18,8 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include "base/logger_fwd.h"
+#include <boost/foreach.hpp>
 
 using std::ifstream;
 
@@ -32,14 +34,14 @@ ConfigCompilerContext::ConfigCompilerContext(void)
 void ConfigCompilerContext::AddItem(const ConfigItem::Ptr& item)
 {
 	m_Items.push_back(item);
-	m_ItemsMap[make_pair(item->GetType(), item->GetName())] = item;
+	m_ItemsMap[std::make_pair(item->GetType(), item->GetName())] = item;
 }
 
 ConfigItem::Ptr ConfigCompilerContext::GetItem(const String& type, const String& name) const
 {
-	map<pair<String, String>, ConfigItem::Ptr>::const_iterator it;
+	std::map<std::pair<String, String>, ConfigItem::Ptr>::const_iterator it;
 
-	it = m_ItemsMap.find(make_pair(type, name));
+	it = m_ItemsMap.find(std::make_pair(type, name));
 
 	if (it == m_ItemsMap.end())
 		return ConfigItem::Ptr();
@@ -47,7 +49,7 @@ ConfigItem::Ptr ConfigCompilerContext::GetItem(const String& type, const String&
 	return it->second;
 }
 
-vector<ConfigItem::Ptr> ConfigCompilerContext::GetItems(void) const
+std::vector<ConfigItem::Ptr> ConfigCompilerContext::GetItems(void) const
 {
 	return m_Items;
 }
@@ -59,7 +61,7 @@ void ConfigCompilerContext::AddType(const ConfigType::Ptr& type)
 
 ConfigType::Ptr ConfigCompilerContext::GetType(const String& name) const
 {
-	map<String, ConfigType::Ptr>::const_iterator it;
+	std::map<String, ConfigType::Ptr>::const_iterator it;
 
 	it = m_Types.find(name);
 
@@ -74,7 +76,7 @@ void ConfigCompilerContext::AddError(bool warning, const String& message)
 	m_Errors.push_back(ConfigCompilerError(warning, message));
 }
 
-vector<ConfigCompilerError> ConfigCompilerContext::GetErrors(void) const
+std::vector<ConfigCompilerError> ConfigCompilerContext::GetErrors(void) const
 {
 	return m_Errors;
 }
@@ -133,7 +135,7 @@ void ConfigCompilerContext::ActivateItems(void)
 {
 	ASSERT(m_Context == NULL);
 
-	Logger::Write(LogInformation, "config", "Activating config items in compilation unit '" + m_Unit + "'");
+	Log(LogInformation, "config", "Activating config items in compilation unit '" + m_Unit + "'");
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
 		item->Commit();
 	}

@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include "base/convert.h"
 
 using namespace icinga;
 

@@ -8,7 +8,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 35
+#define YY_FLEX_SUBMINOR_VERSION 37
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -158,15 +158,7 @@ typedef void* yyscan_t;
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k.
- * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
- * Ditto for the __ia64__ case accordingly.
- */
-#define YY_BUF_SIZE 32768
-#else
 #define YY_BUF_SIZE 16384
-#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -176,6 +168,11 @@ typedef void* yyscan_t;
 #ifndef YY_TYPEDEF_YY_BUFFER_STATE
 #define YY_TYPEDEF_YY_BUFFER_STATE
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
+#endif
+
+#ifndef YY_TYPEDEF_YY_SIZE_T
+#define YY_TYPEDEF_YY_SIZE_T
+typedef size_t yy_size_t;
 #endif
 
 #define EOB_ACT_CONTINUE_SCAN 0
@@ -213,11 +210,6 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
 
 #define unput(c) yyunput( c, yyg->yytext_ptr , yyscanner )
 
-#ifndef YY_TYPEDEF_YY_SIZE_T
-#define YY_TYPEDEF_YY_SIZE_T
-typedef size_t yy_size_t;
-#endif
-
 #ifndef YY_STRUCT_YY_BUFFER_STATE
 #define YY_STRUCT_YY_BUFFER_STATE
 struct yy_buffer_state
@@ -235,7 +227,7 @@ struct yy_buffer_state
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
 	 */
-	int yy_n_chars;
+	yy_size_t yy_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -314,7 +306,7 @@ static void yy_init_buffer (YY_BUFFER_STATE b,FILE *file ,yyscan_t yyscanner );
 
 YY_BUFFER_STATE yy_scan_buffer (char *base,yy_size_t size ,yyscan_t yyscanner );
 YY_BUFFER_STATE yy_scan_string (yyconst char *yy_str ,yyscan_t yyscanner );
-YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,int len ,yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,yy_size_t len ,yyscan_t yyscanner );
 
 void *yyalloc (yy_size_t ,yyscan_t yyscanner );
 void *yyrealloc (void *,yy_size_t ,yyscan_t yyscanner );
@@ -346,7 +338,7 @@ void yyfree (void * ,yyscan_t yyscanner );
 
 /* Begin user sect3 */
 
-#define yywrap(n) 1
+#define yywrap(yyscanner) 1
 #define YY_SKIP_YYWRAP
 
 typedef unsigned char YY_CHAR;
@@ -635,6 +627,7 @@ static yyconst flex_int32_t yy_rule_can_match_eol[57] =
 
 #include "i2-config.h"
 #include "config_parser.h"
+#include <sstream>
 
 using namespace icinga;
 
@@ -686,7 +679,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 	char *new_buf = (char *)realloc(lb->buf, new_len);
 
 	if (new_buf == NULL && new_len > 0)
-		throw bad_alloc();
+		throw std::bad_alloc();
 
 	lb->buf = new_buf;
 	lb->size++;
@@ -697,7 +690,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 
 
 
-#line 701 "config_lexer.cc"
+#line 694 "config_lexer.cc"
 
 #define INITIAL 0
 #define C_COMMENT 1
@@ -729,8 +722,8 @@ struct yyguts_t
     size_t yy_buffer_stack_max; /**< capacity of stack. */
     YY_BUFFER_STATE * yy_buffer_stack; /**< Stack as an array. */
     char yy_hold_char;
-    int yy_n_chars;
-    int yyleng_r;
+    yy_size_t yy_n_chars;
+    yy_size_t yyleng_r;
     char *yy_c_buf_p;
     int yy_init;
     int yy_start;
@@ -787,7 +780,7 @@ FILE *yyget_out (yyscan_t yyscanner );
 
 void yyset_out  (FILE * out_str ,yyscan_t yyscanner );
 
-int yyget_leng (yyscan_t yyscanner );
+yy_size_t yyget_leng (yyscan_t yyscanner );
 
 char *yyget_text (yyscan_t yyscanner );
 
@@ -841,12 +834,7 @@ static int input (yyscan_t yyscanner );
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k */
-#define YY_READ_BUF_SIZE 16384
-#else
 #define YY_READ_BUF_SIZE 8192
-#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -950,11 +938,11 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 91 "config_lexer.ll"
+#line 92 "config_lexer.ll"
 
 	lex_buf string_buf;
 
-#line 958 "config_lexer.cc"
+#line 946 "config_lexer.cc"
 
     yylval = yylval_param;
 
@@ -1051,12 +1039,12 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 94 "config_lexer.ll"
+#line 95 "config_lexer.ll"
 { lb_init(&string_buf); BEGIN(STRING); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 96 "config_lexer.ll"
+#line 97 "config_lexer.ll"
 {
 	BEGIN(INITIAL);
 
@@ -1070,9 +1058,9 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 106 "config_lexer.ll"
+#line 107 "config_lexer.ll"
 {
-	stringstream msgbuf;
+	std::ostringstream msgbuf;
 	msgbuf << "Unterminated string found: " << *yylloc;
 	ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
 	BEGIN(INITIAL);
@@ -1080,7 +1068,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 113 "config_lexer.ll"
+#line 114 "config_lexer.ll"
 {
 	/* octal escape sequence */
 	int result;
@@ -1089,7 +1077,7 @@ YY_RULE_SETUP
 
 	if (result > 0xff) {
 		/* error, constant is out-of-bounds */
-		stringstream msgbuf;
+		std::ostringstream msgbuf;
 		msgbuf << "Constant is out-of-bounds: " << yytext << " " << *yylloc;
 		ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
 	}
@@ -1099,50 +1087,50 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 129 "config_lexer.ll"
+#line 130 "config_lexer.ll"
 {
 	/* generate error - bad escape sequence; something
 	 * like '\48' or '\0777777'
 	 */
-	stringstream msgbuf;
+	std::ostringstream msgbuf;
 	msgbuf << "Bad escape sequence found: " << yytext << " " << *yylloc;
 	ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
 				}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 138 "config_lexer.ll"
+#line 139 "config_lexer.ll"
 { lb_append_char(&string_buf, '\n'); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 139 "config_lexer.ll"
+#line 140 "config_lexer.ll"
 { lb_append_char(&string_buf, '\t'); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 140 "config_lexer.ll"
+#line 141 "config_lexer.ll"
 { lb_append_char(&string_buf, '\r'); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 141 "config_lexer.ll"
+#line 142 "config_lexer.ll"
 { lb_append_char(&string_buf, '\b'); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 142 "config_lexer.ll"
+#line 143 "config_lexer.ll"
 { lb_append_char(&string_buf, '\f'); }
 	YY_BREAK
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 143 "config_lexer.ll"
+#line 144 "config_lexer.ll"
 { lb_append_char(&string_buf, yytext[1]); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 145 "config_lexer.ll"
+#line 146 "config_lexer.ll"
 {
 	char *yptr = yytext;
 
@@ -1152,12 +1140,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 152 "config_lexer.ll"
+#line 153 "config_lexer.ll"
 { lb_init(&string_buf); BEGIN(HEREDOC); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 154 "config_lexer.ll"
+#line 155 "config_lexer.ll"
 {
 	BEGIN(INITIAL);
 
@@ -1171,224 +1159,224 @@ YY_RULE_SETUP
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 164 "config_lexer.ll"
+#line 165 "config_lexer.ll"
 { lb_append_char(&string_buf, yytext[0]); }
 	YY_BREAK
 
 case 16:
 YY_RULE_SETUP
-#line 167 "config_lexer.ll"
+#line 168 "config_lexer.ll"
 BEGIN(C_COMMENT);
 	YY_BREAK
 
 
 case 17:
 YY_RULE_SETUP
-#line 171 "config_lexer.ll"
+#line 172 "config_lexer.ll"
 BEGIN(INITIAL);
 	YY_BREAK
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 172 "config_lexer.ll"
+#line 173 "config_lexer.ll"
 /* ignore comment */
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 173 "config_lexer.ll"
+#line 174 "config_lexer.ll"
 /* ignore star */
 	YY_BREAK
 
 case 20:
 YY_RULE_SETUP
-#line 176 "config_lexer.ll"
+#line 177 "config_lexer.ll"
 /* ignore C++-style comments */
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 177 "config_lexer.ll"
+#line 178 "config_lexer.ll"
 /* ignore whitespace */
 	YY_BREAK
 
 case 22:
 YY_RULE_SETUP
-#line 180 "config_lexer.ll"
+#line 181 "config_lexer.ll"
 return T_TYPE;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 181 "config_lexer.ll"
+#line 182 "config_lexer.ll"
 { yylval->type = TypeDictionary; return T_TYPE_DICTIONARY; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 182 "config_lexer.ll"
+#line 183 "config_lexer.ll"
 { yylval->type = TypeArray; return T_TYPE_ARRAY; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 183 "config_lexer.ll"
+#line 184 "config_lexer.ll"
 { yylval->type = TypeNumber; return T_TYPE_NUMBER; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 184 "config_lexer.ll"
+#line 185 "config_lexer.ll"
 { yylval->type = TypeString; return T_TYPE_STRING; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 185 "config_lexer.ll"
+#line 186 "config_lexer.ll"
 { yylval->type = TypeScalar; return T_TYPE_SCALAR; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 186 "config_lexer.ll"
+#line 187 "config_lexer.ll"
 { yylval->type = TypeAny; return T_TYPE_ANY; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 187 "config_lexer.ll"
+#line 188 "config_lexer.ll"
 { return T_VALIDATOR; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 188 "config_lexer.ll"
+#line 189 "config_lexer.ll"
 { return T_REQUIRE; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 189 "config_lexer.ll"
+#line 190 "config_lexer.ll"
 { return T_ATTRIBUTE; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 190 "config_lexer.ll"
+#line 191 "config_lexer.ll"
 return T_ABSTRACT;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 191 "config_lexer.ll"
+#line 192 "config_lexer.ll"
 return T_LOCAL;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 192 "config_lexer.ll"
+#line 193 "config_lexer.ll"
 return T_OBJECT;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 193 "config_lexer.ll"
+#line 194 "config_lexer.ll"
 return T_TEMPLATE;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 194 "config_lexer.ll"
+#line 195 "config_lexer.ll"
 return T_INCLUDE;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 195 "config_lexer.ll"
+#line 196 "config_lexer.ll"
 return T_LIBRARY;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 196 "config_lexer.ll"
+#line 197 "config_lexer.ll"
 return T_INHERITS;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 197 "config_lexer.ll"
+#line 198 "config_lexer.ll"
 return T_NULL;
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 198 "config_lexer.ll"
+#line 199 "config_lexer.ll"
 return T_PARTIAL;
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 199 "config_lexer.ll"
+#line 200 "config_lexer.ll"
 { yylval->num = 1; return T_NUMBER; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 200 "config_lexer.ll"
+#line 201 "config_lexer.ll"
 { yylval->num = 0; return T_NUMBER; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 201 "config_lexer.ll"
+#line 202 "config_lexer.ll"
 { yylval->text = strdup(yytext); return T_IDENTIFIER; }
 	YY_BREAK
 case 44:
 /* rule 44 can match eol */
 YY_RULE_SETUP
-#line 202 "config_lexer.ll"
+#line 203 "config_lexer.ll"
 { yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING_ANGLE; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 203 "config_lexer.ll"
+#line 204 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL) / 1000; return T_NUMBER; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 204 "config_lexer.ll"
+#line 205 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL) * 60 * 60; return T_NUMBER; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 205 "config_lexer.ll"
+#line 206 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL) * 60; return T_NUMBER; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 206 "config_lexer.ll"
+#line 207 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 207 "config_lexer.ll"
+#line 208 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 208 "config_lexer.ll"
+#line 209 "config_lexer.ll"
 { yylval->op = OperatorSet; return T_EQUAL; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 209 "config_lexer.ll"
+#line 210 "config_lexer.ll"
 { yylval->op = OperatorPlus; return T_PLUS_EQUAL; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 210 "config_lexer.ll"
+#line 211 "config_lexer.ll"
 { yylval->op = OperatorMinus; return T_MINUS_EQUAL; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 211 "config_lexer.ll"
+#line 212 "config_lexer.ll"
 { yylval->op = OperatorMultiply; return T_MULTIPLY_EQUAL; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 212 "config_lexer.ll"
+#line 213 "config_lexer.ll"
 { yylval->op = OperatorDivide; return T_DIVIDE_EQUAL; }
 	YY_BREAK
 
 case 55:
 YY_RULE_SETUP
-#line 215 "config_lexer.ll"
+#line 216 "config_lexer.ll"
 return yytext[0];
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 217 "config_lexer.ll"
+#line 218 "config_lexer.ll"
 ECHO;
 	YY_BREAK
-#line 1392 "config_lexer.cc"
+#line 1380 "config_lexer.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(C_COMMENT):
 case YY_STATE_EOF(STRING):
@@ -1579,21 +1567,21 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 	else
 		{
-			int num_to_read =
+			yy_size_t num_to_read =
 			YY_CURRENT_BUFFER_LVALUE->yy_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )
 			{ /* Not enough room in the buffer - grow it. */
 
 			/* just a shorter name for the current buffer */
-			YY_BUFFER_STATE b = YY_CURRENT_BUFFER;
+			YY_BUFFER_STATE b = YY_CURRENT_BUFFER_LVALUE;
 
 			int yy_c_buf_p_offset =
 				(int) (yyg->yy_c_buf_p - b->yy_ch_buf);
 
 			if ( b->yy_is_our_buffer )
 				{
-				int new_size = b->yy_buf_size * 2;
+				yy_size_t new_size = b->yy_buf_size * 2;
 
 				if ( new_size <= 0 )
 					b->yy_buf_size += b->yy_buf_size / 8;
@@ -1624,7 +1612,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 		/* Read in more data. */
 		YY_INPUT( (&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move]),
-			yyg->yy_n_chars, (size_t) num_to_read );
+			yyg->yy_n_chars, num_to_read );
 
 		YY_CURRENT_BUFFER_LVALUE->yy_n_chars = yyg->yy_n_chars;
 		}
@@ -1721,6 +1709,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 	yy_is_jam = (yy_current_state == 196);
 
+	(void)yyg;
 	return yy_is_jam ? 0 : yy_current_state;
 }
 
@@ -1737,7 +1726,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
 		{ /* need to shift things up to make room */
 		/* +2 for EOB chars. */
-		register int number_to_move = yyg->yy_n_chars + 2;
+		register yy_size_t number_to_move = yyg->yy_n_chars + 2;
 		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
 					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
 		register char *source =
@@ -1791,7 +1780,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 		else
 			{ /* need more input */
-			int offset = yyg->yy_c_buf_p - yyg->yytext_ptr;
+			yy_size_t offset = yyg->yy_c_buf_p - yyg->yytext_ptr;
 			++yyg->yy_c_buf_p;
 
 			switch ( yy_get_next_buffer( yyscanner ) )
@@ -2078,7 +2067,7 @@ void yypop_buffer_state (yyscan_t yyscanner)
  */
 static void yyensure_buffer_stack (yyscan_t yyscanner)
 {
-	int num_to_alloc;
+	yy_size_t num_to_alloc;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
 	if (!yyg->yy_buffer_stack) {
@@ -2176,7 +2165,7 @@ YY_BUFFER_STATE yy_scan_string (yyconst char * yystr , yyscan_t yyscanner)
  * @param yyscanner The scanner object.
  * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, int  _yybytes_len , yyscan_t yyscanner)
+YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len , yyscan_t yyscanner)
 {
 	YY_BUFFER_STATE b;
 	char *buf;
@@ -2291,7 +2280,7 @@ FILE *yyget_out  (yyscan_t yyscanner)
 /** Get the length of the current token.
  * @param yyscanner The scanner object.
  */
-int yyget_leng  (yyscan_t yyscanner)
+yy_size_t yyget_leng  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     return yyleng;
@@ -2327,7 +2316,7 @@ void yyset_lineno (int  line_number , yyscan_t yyscanner)
 
         /* lineno is only valid if an input buffer exists. */
         if (! YY_CURRENT_BUFFER )
-           yy_fatal_error( "yyset_lineno called with no buffer" , yyscanner); 
+           YY_FATAL_ERROR( "yyset_lineno called with no buffer" );
     
     yylineno = line_number;
 }
@@ -2342,7 +2331,7 @@ void yyset_column (int  column_no , yyscan_t yyscanner)
 
         /* column is only valid if an input buffer exists. */
         if (! YY_CURRENT_BUFFER )
-           yy_fatal_error( "yyset_column called with no buffer" , yyscanner); 
+           YY_FATAL_ERROR( "yyset_column called with no buffer" );
     
     yycolumn = column_no;
 }
@@ -2578,7 +2567,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 217 "config_lexer.ll"
+#line 218 "config_lexer.ll"
 
 
 

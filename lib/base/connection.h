@@ -20,6 +20,10 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
+#include "base/i2-base.h"
+#include "base/stream.h"
+#include <boost/signals2.hpp>
+
 namespace icinga
 {
 
@@ -35,7 +39,7 @@ public:
 
 	void Close(void);
 
-	signals2::signal<void (const Connection::Ptr&)> OnClosed;
+	boost::signals2::signal<void (const Connection::Ptr&)> OnClosed;
 
 protected:
 	virtual void ProcessData(void) = 0;

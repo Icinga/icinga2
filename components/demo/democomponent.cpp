@@ -18,6 +18,9 @@
  ******************************************************************************/
 
 #include "i2-demo.h"
+#include "base/dynamictype.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -58,7 +61,7 @@ void DemoComponent::Stop(void)
  */
 void DemoComponent::DemoTimerHandler(void)
 {
-	Logger::Write(LogInformation, "demo", "Sending multicast 'hello world' message.");
+	Log(LogInformation, "demo", "Sending multicast 'hello world' message.");
 
 	RequestMessage request;
 	request.SetMethod("demo::HelloWorld");
@@ -72,6 +75,6 @@ void DemoComponent::DemoTimerHandler(void)
 void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender,
     const RequestMessage&)
 {
-	Logger::Write(LogInformation, "demo", "Got 'hello world' from identity=" +
+	Log(LogInformation, "demo", "Got 'hello world' from identity=" +
 	    (sender ? sender->GetName() : "(anonymous)"));
 }

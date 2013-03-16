@@ -18,6 +18,13 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "icinga/service.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -25,8 +32,8 @@ const int Service::DefaultMaxCheckAttempts = 3;
 const double Service::DefaultCheckInterval = 5 * 60;
 const double Service::CheckIntervalDivisor = 5.0;
 
-signals2::signal<void (const Service::Ptr&)> Service::OnCheckerChanged;
-signals2::signal<void (const Service::Ptr&)> Service::OnNextCheckChanged;
+boost::signals2::signal<void (const Service::Ptr&)> Service::OnCheckerChanged;
+boost::signals2::signal<void (const Service::Ptr&)> Service::OnNextCheckChanged;
 
 /**
  * @threadsafety Always.
@@ -611,7 +618,7 @@ void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 
 	Service::Ptr self = GetSelf();
 
-	vector<Value> arguments;
+	std::vector<Value> arguments;
 	arguments.push_back(self);
 	arguments.push_back(macros);
 
@@ -644,13 +651,13 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 
 		if (vresult.IsObjectType<Dictionary>())
 			result = vresult;
-	} catch (const exception& ex) {
-		stringstream msgbuf;
+	} catch (const std::exception& ex) {
+		std::ostringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"
-		       << GetName() << "': " << diagnostic_information(ex);
+		       << GetName() << "': " << boost::diagnostic_information(ex);
 		String message = msgbuf.str();
 
-		Logger::Write(LogWarning, "icinga", message);
+		Log(LogWarning, "icinga", message);
 
 		result = boost::make_shared<Dictionary>();
 		result->Set("state", StateUnknown);

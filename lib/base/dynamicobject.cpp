@@ -17,20 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/dynamicobject.h"
+#include "base/dynamictype.h"
+#include "base/netstring.h"
+#include "base/registry.h"
+#include "base/stdiostream.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include "base/exception.h"
+#include <fstream>
+#include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 double DynamicObject::m_CurrentTx = 0;
-set<DynamicObject::WeakPtr> DynamicObject::m_ModifiedObjects;
+std::set<DynamicObject::WeakPtr> DynamicObject::m_ModifiedObjects;
 boost::mutex DynamicObject::m_TransactionMutex;
 boost::once_flag DynamicObject::m_TransactionOnce = BOOST_ONCE_INIT;
 Timer::Ptr DynamicObject::m_TransactionTimer;
 
-signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
-signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
-signals2::signal<void (double, const set<DynamicObject::WeakPtr>&)> DynamicObject::OnTransactionClosing;
-signals2::signal<void (double, const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
+boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
+boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
+boost::signals2::signal<void (double, const std::set<DynamicObject::WeakPtr>&)> DynamicObject::OnTransactionClosing;
+boost::signals2::signal<void (double, const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	: m_ConfigTx(0), m_Registered(false)
@@ -42,7 +52,7 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("methods", Attribute_Config, &m_Methods);
 
 	if (!serializedObject->Contains("configTx"))
-		BOOST_THROW_EXCEPTION(invalid_argument("Serialized object must contain a config snapshot."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Serialized object must contain a config snapshot."));
 
 	/* apply config state from the config item/remote update;
 	 * The DynamicType::CreateObject function takes care of restoring
@@ -196,8 +206,8 @@ void DynamicObject::InternalRegisterAttribute(const String& name,
 
 	AttributeHolder attr(type, boundAttribute);
 
-	pair<DynamicObject::AttributeIterator, bool> tt;
-	tt = m_Attributes.insert(make_pair(name, attr));
+	std::pair<DynamicObject::AttributeIterator, bool> tt;
+	tt = m_Attributes.insert(std::make_pair(name, attr));
 
 	if (!tt.second) {
 		tt.first->second.SetType(type);
@@ -232,7 +242,7 @@ void DynamicObject::Touch(const String& name)
 	AttributeIterator it = m_Attributes.find(name);
 
 	if (it == m_Attributes.end())
-		BOOST_THROW_EXCEPTION(runtime_error("Touch() called for unknown attribute: " + name));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Touch() called for unknown attribute: " + name));
 
 	it->second.SetTx(GetCurrentTx());
 
@@ -272,10 +282,10 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 		AttributeHolder attr(Attribute_Transient);
 		attr.SetValue(tx, data);
 
-		m_Attributes.insert(make_pair(name, attr));
+		m_Attributes.insert(std::make_pair(name, attr));
 	} else {
 		if (!allowEditConfig && (it->second.GetType() & Attribute_Config))
-			BOOST_THROW_EXCEPTION(runtime_error("Config properties are immutable: '" + name + "'."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Config properties are immutable: '" + name + "'."));
 
 		it->second.SetValue(tx, data);
 
@@ -425,7 +435,7 @@ void DynamicObject::Unregister(void)
 }
 
 ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
-    const vector<Value>& arguments)
+    const std::vector<Value>& arguments)
 {
 	Dictionary::Ptr methods;
 
@@ -442,7 +452,7 @@ ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
 	ScriptFunction::Ptr func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
 
 	if (!func)
-		BOOST_THROW_EXCEPTION(invalid_argument("Function '" + funcName + "' does not exist."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + funcName + "' does not exist."));
 
 	return boost::make_shared<ScriptTask>(func, arguments);
 }
@@ -452,15 +462,15 @@ ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
  */
 void DynamicObject::DumpObjects(const String& filename)
 {
-	Logger::Write(LogInformation, "base", "Dumping program state to file '" + filename + "'");
+	Log(LogInformation, "base", "Dumping program state to file '" + filename + "'");
 
 	String tempFilename = filename + ".tmp";
 
-	fstream fp;
+	std::fstream fp;
 	fp.open(tempFilename.CStr(), std::ios_base::out);
 
 	if (!fp)
-		BOOST_THROW_EXCEPTION(runtime_error("Could not open '" + filename + "' file"));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + filename + "' file"));
 
 	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
 	sfp->Start();
@@ -517,7 +527,7 @@ void DynamicObject::DumpObjects(const String& filename)
  */
 void DynamicObject::RestoreObjects(const String& filename)
 {
-	Logger::Write(LogInformation, "base", "Restoring program state from file '" + filename + "'");
+	Log(LogInformation, "base", "Restoring program state from file '" + filename + "'");
 
 	std::fstream fp;
 	fp.open(filename.CStr(), std::ios_base::in);
@@ -542,7 +552,7 @@ void DynamicObject::RestoreObjects(const String& filename)
 		DynamicType::Ptr dt = DynamicType::GetByName(type);
 
 		if (!dt)
-			BOOST_THROW_EXCEPTION(invalid_argument("Invalid type: " + type));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type: " + type));
 
 		DynamicObject::Ptr object = dt->GetObject(name);
 
@@ -558,9 +568,9 @@ void DynamicObject::RestoreObjects(const String& filename)
 
 	sfp->Close();
 
-	stringstream msgbuf;
+	std::ostringstream msgbuf;
 	msgbuf << "Restored " << restored << " objects";
-	Logger::Write(LogInformation, "base", msgbuf.str());
+	Log(LogInformation, "base", msgbuf.str());
 }
 
 void DynamicObject::DeactivateObjects(void)
@@ -598,7 +608,7 @@ void DynamicObject::Flush(void)
 void DynamicObject::NewTx(void)
 {
 	double tx;
-	set<DynamicObject::WeakPtr> objects;
+	std::set<DynamicObject::WeakPtr> objects;
 
 	{
 		boost::mutex::scoped_lock lock(m_TransactionMutex);
@@ -614,7 +624,7 @@ void DynamicObject::NewTx(void)
 		if (!object || !object->IsRegistered())
 			continue;
 
-		set<String, string_iless> attrs;
+		std::set<String, string_iless> attrs;
 
 		{
 			ObjectLock olock(object);

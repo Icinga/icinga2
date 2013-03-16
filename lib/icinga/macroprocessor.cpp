@@ -18,7 +18,10 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/objectlock.h"
 #include <boost/tuple/tuple.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -45,7 +48,7 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 
 		result = resultArr;
 	} else {
-		BOOST_THROW_EXCEPTION(invalid_argument("Command is not a string or array."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Command is not a string or array."));
 	}
 
 	return result;
@@ -64,12 +67,12 @@ String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary
 		pos_second = result.FindFirstOf("$", pos_first + 1);
 
 		if (pos_second == String::NPos)
-			BOOST_THROW_EXCEPTION(runtime_error("Closing $ not found in macro format string."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Closing $ not found in macro format string."));
 
 		String name = result.SubStr(pos_first + 1, pos_second - pos_first - 1);
 
 		if (!macros || !macros->Contains(name))
-			BOOST_THROW_EXCEPTION(runtime_error("Macro '" + name + "' is not defined."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Macro '" + name + "' is not defined."));
 
 		String value = macros->Get(name);
 		result.Replace(pos_first, pos_second - pos_first + 1, value);
@@ -82,7 +85,7 @@ String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary
 /**
  * @threadsafety Always.
  */
-Dictionary::Ptr MacroProcessor::MergeMacroDicts(const vector<Dictionary::Ptr>& dicts)
+Dictionary::Ptr MacroProcessor::MergeMacroDicts(const std::vector<Dictionary::Ptr>& dicts)
 {
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();
 

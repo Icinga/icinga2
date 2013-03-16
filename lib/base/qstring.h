@@ -20,6 +20,10 @@
 #ifndef STRING_H
 #define STRING_H
 
+#include "base/i2-base.h"
+#include <ostream>
+#include <istream>
+#include <vector>
 #include <boost/algorithm/string/split.hpp>
 
 namespace icinga {
@@ -76,14 +80,14 @@ public:
 	void Replace(size_t first, size_t second, const String& str);
 
 	template<typename Predicate>
-	vector<String> Split(const Predicate& predicate) const
+	std::vector<String> Split(const Predicate& predicate) const
 	{
-		vector<String> tokens;
+		std::vector<String> tokens;
 		boost::algorithm::split(tokens, m_Data, predicate);
 		return tokens;
 	}
 
-	static String Join(const vector<String>& strings, const char *delim);
+	static String Join(const std::vector<String>& strings, const char *delim);
 
 	void Trim(void);
 
@@ -107,8 +111,8 @@ private:
 	std::string m_Data;
 };
 
-I2_BASE_API ostream& operator<<(ostream& stream, const String& str);
-I2_BASE_API istream& operator>>(istream& stream, String& str);
+I2_BASE_API std::ostream& operator<<(std::ostream& stream, const String& str);
+I2_BASE_API std::istream& operator>>(std::istream& stream, String& str);
 
 I2_BASE_API String operator+(const String& lhs, const String& rhs);
 I2_BASE_API String operator+(const String& lhs, const char *rhs);

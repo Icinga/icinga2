@@ -32,7 +32,7 @@ class I2_ICINGA_API MacroProcessor
 {
 public:
 	static Value ResolveMacros(const Value& str, const Dictionary::Ptr& macros);
-	static Dictionary::Ptr MergeMacroDicts(const vector<Dictionary::Ptr>& macroDicts);
+	static Dictionary::Ptr MergeMacroDicts(const std::vector<Dictionary::Ptr>& macroDicts);
 
 private:
 	MacroProcessor(void);

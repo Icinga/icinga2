@@ -18,12 +18,17 @@
  ******************************************************************************/
 
 #include "i2-livestatus.h"
+#include "base/convert.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 using namespace livestatus;
 
-Query::Query(const vector<String>& lines)
+Query::Query(const std::vector<String>& lines)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1)
 {
 	String line = lines[0];
@@ -31,7 +36,7 @@ Query::Query(const vector<String>& lines)
 	size_t sp_index = line.FindFirstOf(" ");
 
 	if (sp_index == String::NPos)
-		BOOST_THROW_EXCEPTION(runtime_error("Livestatus header must contain a verb."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Livestatus header must contain a verb."));
 
 	String verb = line.SubStr(0, sp_index);
 	String target = line.SubStr(sp_index + 1);
@@ -49,7 +54,7 @@ Query::Query(const vector<String>& lines)
 		return;
 	}
 
-	deque<Filter::Ptr> filters, stats;
+	std::deque<Filter::Ptr> filters, stats;
 
 	for (unsigned int i = 1; i < lines.size(); i++) {
 		line = lines[i];
@@ -67,7 +72,7 @@ Query::Query(const vector<String>& lines)
 		else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
 		else if (header == "Filter" || header == "Stats") {
-			vector<String> tokens = params.Split(boost::is_any_of(" "));
+			std::vector<String> tokens = params.Split(boost::is_any_of(" "));
 
 			if (tokens.size() == 2)
 				tokens.push_back("");
@@ -101,10 +106,10 @@ Query::Query(const vector<String>& lines)
 			if (negate)
 				filter = boost::make_shared<NegateFilter>(filter);
 
-			deque<Filter::Ptr>& deq = (header == "Filter") ? filters : stats;
+			std::deque<Filter::Ptr>& deq = (header == "Filter") ? filters : stats;
 			deq.push_back(filter);
 		} else if (header == "Or" || header == "And") {
-			deque<Filter::Ptr>& deq = (header == "Or" || header == "And") ? filters : stats;
+			std::deque<Filter::Ptr>& deq = (header == "Or" || header == "And") ? filters : stats;
 
 			int num = Convert::ToLong(params);
 			CombinerFilter::Ptr filter;
@@ -128,7 +133,7 @@ Query::Query(const vector<String>& lines)
 
 			deq.push_back(filter);
 		} else if (header == "Negate" || header == "StatsNegate") {
-			deque<Filter::Ptr>& deq = (header == "Negate") ? filters : stats;
+			std::deque<Filter::Ptr>& deq = (header == "Negate") ? filters : stats;
 
 			if (deq.empty()) {
 				m_Verb = "ERROR";
@@ -155,7 +160,7 @@ Query::Query(const vector<String>& lines)
 	m_Stats.swap(stats);
 }
 
-void Query::PrintResultSet(ostream& fp, const vector<String>& columns, const Array::Ptr& rs)
+void Query::PrintResultSet(ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs)
 {
 	if (m_OutputFormat == "csv" && m_Columns.size() == 0 && m_ColumnHeaders) {
 		bool first = true;
@@ -197,7 +202,7 @@ void Query::PrintResultSet(ostream& fp, const vector<String>& columns, const Arr
 
 void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 {
-	Logger::Write(LogInformation, "livestatus", "Table: " + m_Table);
+	Log(LogInformation, "livestatus", "Table: " + m_Table);
 
 	Table::Ptr table = Table::GetByName(m_Table);
 
@@ -207,8 +212,8 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		return;
 	}
 
-	vector<Object::Ptr> objects = table->FilterRows(m_Filter);
-	vector<String> columns;
+	std::vector<Object::Ptr> objects = table->FilterRows(m_Filter);
+	std::vector<String> columns;
 	
 	if (m_Columns.size() > 0)
 		columns = m_Columns;
@@ -230,7 +235,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 			rs->Add(row);
 		}
 	} else {
-		vector<int> stats(m_Stats.size(), 0);
+		std::vector<int> stats(m_Stats.size(), 0);
 
 		BOOST_FOREACH(const Object::Ptr& object, objects) {
 			int index = 0;
@@ -251,7 +256,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		m_ColumnHeaders = false;
 	}
 
-	stringstream result;
+	std::ostringstream result;
 	PrintResultSet(result, columns, rs);
 
 	SendResponse(stream, 200, result.str());
@@ -259,7 +264,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 
 void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
 {
-	Logger::Write(LogInformation, "livestatus", "Executing command: " + m_Command);
+	Log(LogInformation, "livestatus", "Executing command: " + m_Command);
 	ExternalCommandProcessor::Execute(m_Command);
 	SendResponse(stream, 200, "");
 }
@@ -292,7 +297,7 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 void Query::Execute(const Stream::Ptr& stream)
 {
 	try {
-	Logger::Write(LogInformation, "livestatus", "Executing livestatus query: " + m_Verb);
+	Log(LogInformation, "livestatus", "Executing livestatus query: " + m_Verb);
 
 	if (m_Verb == "GET")
 		ExecuteGetHelper(stream);
@@ -301,7 +306,7 @@ void Query::Execute(const Stream::Ptr& stream)
 	else if (m_Verb == "ERROR")
 		ExecuteErrorHelper(stream);
 	else
-		BOOST_THROW_EXCEPTION(runtime_error("Invalid livestatus query verb."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid livestatus query verb."));
 	} catch (const std::exception& ex) {
 		SendResponse(stream, 452, boost::diagnostic_information(ex));
 	}

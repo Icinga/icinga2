@@ -20,6 +20,11 @@
 #ifndef SCRIPTINTERPRETER_H
 #define SCRIPTINTERPRETER_H
 
+#include "base/i2-base.h"
+#include "base/script.h"
+#include <vector>
+#include <set>
+
 namespace icinga
 {
 
@@ -40,13 +45,13 @@ protected:
 	ScriptInterpreter(const Script::Ptr& script);
 
 	virtual void ProcessCall(const ScriptTask::Ptr& task, const String& function,
-	    const vector<Value>& arguments) = 0;
+	    const std::vector<Value>& arguments) = 0;
 
 	void SubscribeFunction(const String& name);
 	void UnsubscribeFunction(const String& name);
 
 private:
-	set<String> m_SubscribedFunctions;
+	std::set<String> m_SubscribedFunctions;
 };
 
 }

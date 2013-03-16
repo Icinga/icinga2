@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
 	fprintf(outfp, "/* This file has been automatically generated\n"
 	    "   from the input file \"%s\". */\n\n", argv[1]);
-	fputs("#include \"i2-config.h\"\n\nstatic const char g_ConfigFragment[] = {\n", outfp);
+	fputs("#include \"config/configcompiler.h\"\n\nstatic const char g_ConfigFragment[] = {\n", outfp);
 	fputc('\t', outfp);
 
 	cols = 0;

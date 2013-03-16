@@ -20,6 +20,8 @@
 #ifndef OBJECTLOCK_H
 #define OBJECTLOCK_H
 
+#include "base/object.h"
+
 namespace icinga
 {
 

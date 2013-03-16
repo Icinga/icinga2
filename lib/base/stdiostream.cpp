@@ -17,7 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/stdiostream.h"
+#include "base/objectlock.h"
+#include <boost/make_shared.hpp>
 
 using namespace icinga;
 
@@ -28,7 +30,7 @@ using namespace icinga;
  * @param ownsStream Whether the new object owns the inner stream. If true
  *					 the stream's destructor deletes the inner stream.
  */
-StdioStream::StdioStream(iostream *innerStream, bool ownsStream)
+StdioStream::StdioStream(std::iostream *innerStream, bool ownsStream)
 	: m_InnerStream(innerStream), m_OwnsStream(ownsStream),
 	  m_ReadAheadBuffer(boost::make_shared<FIFO>())
 {

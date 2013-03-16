@@ -20,6 +20,9 @@
 #ifndef UNIXSOCKET_H
 #define UNIXSOCKET_H
 
+#include "base/i2-base.h"
+#include "base/socket.h"
+
 #ifndef _WIN32
 namespace icinga
 {

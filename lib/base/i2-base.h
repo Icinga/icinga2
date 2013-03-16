@@ -77,82 +77,23 @@
 #include <sys/stat.h>
 #include <signal.h>
 
-#include <string>
 #include <exception>
 #include <stdexcept>
-#include <sstream>
-#include <vector>
-#include <set>
-#include <iostream>
-#include <fstream>
-#include <list>
-#include <typeinfo>
-#include <map>
-#include <list>
-#include <algorithm>
-#include <deque>
-#include <stack>
-#include <iterator>
 
-using std::vector;
-using std::map;
-using std::list;
-using std::set;
-using std::multimap;
-using std::multiset;
-using std::pair;
-using std::deque;
-using std::stack;
-using std::make_pair;
-
-using std::stringstream;
-using std::istream;
-using std::ostream;
-using std::fstream;
-using std::ifstream;
-using std::ofstream;
-using std::iostream;
-
-using std::exception;
-using std::bad_alloc;
-using std::bad_cast;
-using std::runtime_error;
-using std::logic_error;
-using std::invalid_argument;
-using std::domain_error;
-
-using std::type_info;
-
-#include <boost/smart_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/bind.hpp>
-#include <boost/signals2.hpp>
-#include <boost/foreach.hpp>
-#include <boost/exception/diagnostic_information.hpp>
+#include <boost/smart_ptr/shared_ptr.hpp>
+#include <boost/smart_ptr/weak_ptr.hpp>
 #include <boost/exception/error_info.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/key_extractors.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
 using boost::dynamic_pointer_cast;
 using boost::static_pointer_cast;
-using boost::diagnostic_information;
 using boost::errinfo_api_function;
 using boost::errinfo_errno;
 using boost::errinfo_file_name;
-using boost::multi_index_container;
-using boost::multi_index::indexed_by;
-using boost::multi_index::identity;
-using boost::multi_index::ordered_unique;
-using boost::multi_index::ordered_non_unique;
-using boost::multi_index::nth_index;
-
-namespace signals2 = boost::signals2;
 
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -162,54 +103,10 @@ namespace signals2 = boost::signals2;
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#if HAVE_GCC_ABI_DEMANGLE
-#	include <cxxabi.h>
-#endif /* HAVE_GCC_ABI_DEMANGLE */
-
 #ifdef I2_BASE_BUILD
 #	define I2_BASE_API I2_EXPORT
 #else /* I2_BASE_BUILD */
 #	define I2_BASE_API I2_IMPORT
 #endif /* I2_BASE_BUILD */
-
-#include "qstring.h"
-#include "utility.h"
-#include "stacktrace.h"
-#include "object.h"
-#include "objectlock.h"
-#include "exception.h"
-#include "eventqueue.h"
-#include "value.h"
-#include "convert.h"
-#include "dictionary.h"
-#include "array.h"
-#include "ringbuffer.h"
-#include "timer.h"
-#include "stream.h"
-#include "stream_bio.h"
-#include "connection.h"
-#include "netstring.h"
-#include "fifo.h"
-#include "stdiostream.h"
-#include "socket.h"
-#include "tcpsocket.h"
-#include "unixsocket.h"
-#include "tlsstream.h"
-#include "asynctask.h"
-#include "process.h"
-#include "singleton.h"
-#include "registry.h"
-#include "scriptfunction.h"
-#include "scripttask.h"
-#include "attribute.h"
-#include "dynamicobject.h"
-#include "dynamictype.h"
-#include "script.h"
-#include "scriptinterpreter.h"
-#include "scriptlanguage.h"
-#include "logger.h"
-#include "application.h"
-#include "streamlogger.h"
-#include "sysloglogger.h"
 
 #endif /* I2BASE_H */

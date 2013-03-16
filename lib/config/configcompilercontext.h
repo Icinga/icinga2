@@ -52,13 +52,13 @@ public:
 
 	void AddItem(const ConfigItem::Ptr& item);
 	ConfigItem::Ptr GetItem(const String& type, const String& name) const;
-	vector<ConfigItem::Ptr> GetItems(void) const;
+	std::vector<ConfigItem::Ptr> GetItems(void) const;
 
 	void AddType(const ConfigType::Ptr& type);
 	ConfigType::Ptr GetType(const String& name) const;
 
 	void AddError(bool warning, const String& message);
-	vector<ConfigCompilerError> GetErrors(void) const;
+	std::vector<ConfigCompilerError> GetErrors(void) const;
 
 	void SetFlags(int flags);
 	int GetFlags(void) const;
@@ -76,12 +76,12 @@ private:
 
         int m_Flags;
 
-	vector<shared_ptr<ConfigItem> > m_Items;
-        map<pair<String, String>, shared_ptr<ConfigItem> > m_ItemsMap;
+	std::vector<shared_ptr<ConfigItem> > m_Items;
+        std::map<std::pair<String, String>, shared_ptr<ConfigItem> > m_ItemsMap;
 
-        map<String, shared_ptr<ConfigType> > m_Types;
+        std::map<String, shared_ptr<ConfigType> > m_Types;
 
-        vector<ConfigCompilerError> m_Errors;
+        std::vector<ConfigCompilerError> m_Errors;
 
 	static ConfigCompilerContext *m_Context;
 };

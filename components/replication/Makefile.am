@@ -17,10 +17,8 @@ libreplication_la_SOURCES = \
 
 libreplication_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/lib/base \
-	-I${top_srcdir}/lib/config \
-	-I${top_srcdir}/lib/remoting \
-	-I${top_srcdir}/lib/icinga
+	-I${top_srcdir}/lib \
+	-I${top_srcdir}/components
 
 libreplication_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \

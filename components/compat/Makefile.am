@@ -17,10 +17,8 @@ libcompat_la_SOURCES = \
 
 libcompat_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/lib/base \
-	-I${top_srcdir}/lib/config \
-	-I${top_srcdir}/lib/remoting \
-	-I${top_srcdir}/lib/icinga
+	-I${top_srcdir}/lib \
+	-I${top_srcdir}/components
 
 libcompat_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \

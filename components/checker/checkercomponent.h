@@ -20,6 +20,11 @@
 #ifndef CHECKERCOMPONENT_H
 #define CHECKERCOMPONENT_H
 
+#include "base/dynamicobject.h"
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/key_extractors.hpp>
+
 namespace icinga
 {
 
@@ -55,11 +60,11 @@ public:
 	typedef shared_ptr<CheckerComponent> Ptr;
 	typedef weak_ptr<CheckerComponent> WeakPtr;
 
-	typedef multi_index_container<
+	typedef boost::multi_index_container<
 		Service::Ptr,
-		indexed_by<
-			ordered_unique<identity<Service::Ptr> >,
-			ordered_non_unique<ServiceNextCheckExtractor>
+		boost::multi_index::indexed_by<
+			boost::multi_index::ordered_unique<boost::multi_index::identity<Service::Ptr> >,
+			boost::multi_index::ordered_non_unique<ServiceNextCheckExtractor>
 		>
 	> ServiceSet;
 

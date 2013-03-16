@@ -20,6 +20,9 @@
 #ifndef JSONRPCCONNECTION_H
 #define JSONRPCCONNECTION_H
 
+#include "base/connection.h"
+#include <boost/signals2.hpp>
+
 namespace icinga
 {
 
@@ -38,7 +41,7 @@ public:
 
 	void SendMessage(const MessagePart& message);
 
-	signals2::signal<void (const JsonRpcConnection::Ptr&, const MessagePart&)> OnNewMessage;
+	boost::signals2::signal<void (const JsonRpcConnection::Ptr&, const MessagePart&)> OnNewMessage;
 
 protected:
 	virtual void ProcessData(void);

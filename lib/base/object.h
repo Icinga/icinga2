@@ -20,7 +20,9 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include "base/i2-base.h"
 #include <boost/thread/mutex.hpp>
+#include <boost/smart_ptr/enable_shared_from_this.hpp>
 
 namespace icinga
 {

@@ -20,6 +20,9 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
+#include "base/dynamictype.h"
+#include <boost/signals2.hpp>
+
 namespace icinga
 {
 
@@ -98,8 +101,8 @@ public:
 	Dictionary::Ptr CalculateDynamicMacros(const Dictionary::Ptr& crOverride = Dictionary::Ptr()) const;
 	Dictionary::Ptr CalculateAllMacros(const Dictionary::Ptr& crOverride = Dictionary::Ptr()) const;
 
-	set<Host::Ptr> GetParentHosts(void) const;
-	set<Service::Ptr> GetParentServices(void) const;
+	std::set<Host::Ptr> GetParentHosts(void) const;
+	std::set<Service::Ptr> GetParentServices(void) const;
 
 	bool IsReachable(void) const;
 
@@ -179,8 +182,8 @@ public:
 	static StateType StateTypeFromString(const String& state);
 	static String StateTypeToString(StateType state);
 
-	static signals2::signal<void (const Service::Ptr&)> OnCheckerChanged;
-	static signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
+	static boost::signals2::signal<void (const Service::Ptr&)> OnCheckerChanged;
+	static boost::signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
 
 	/* Downtimes */
 	static int GetNextDowntimeID(void);
@@ -236,7 +239,7 @@ public:
 	void RequestNotifications(NotificationType type, const Dictionary::Ptr& cr);
 	void SendNotifications(NotificationType type, const Dictionary::Ptr& cr);
 
-	set<Notification::Ptr> GetNotifications(void) const;
+	std::set<Notification::Ptr> GetNotifications(void) const;
 
 	static void InvalidateNotificationsCache(void);
 
@@ -296,8 +299,8 @@ private:
 	static int m_NextDowntimeID;
 
 	static boost::mutex m_DowntimeMutex;
-	static map<int, String> m_LegacyDowntimesCache;
-	static map<String, Service::WeakPtr> m_DowntimesCache;
+	static std::map<int, String> m_LegacyDowntimesCache;
+	static std::map<String, Service::WeakPtr> m_DowntimesCache;
 	static bool m_DowntimesCacheNeedsUpdate;
 	static Timer::Ptr m_DowntimesCacheTimer;
 	static Timer::Ptr m_DowntimesExpireTimer;
@@ -314,8 +317,8 @@ private:
 	static int m_NextCommentID;
 
 	static boost::mutex m_CommentMutex;
-	static map<int, String> m_LegacyCommentsCache;
-	static map<String, Service::WeakPtr> m_CommentsCache;
+	static std::map<int, String> m_LegacyCommentsCache;
+	static std::map<String, Service::WeakPtr> m_CommentsCache;
 	static bool m_CommentsCacheNeedsUpdate;
 	static Timer::Ptr m_CommentsCacheTimer;
 	static Timer::Ptr m_CommentsExpireTimer;
@@ -333,7 +336,7 @@ private:
 	Attribute<double> m_NotificationInterval;
 
 	static boost::mutex m_NotificationMutex;
-	static map<String, set<Notification::WeakPtr> > m_NotificationsCache;
+	static std::map<String, std::set<Notification::WeakPtr> > m_NotificationsCache;
 	static bool m_NotificationsCacheNeedsUpdate;
 	static Timer::Ptr m_NotificationsCacheTimer;
 

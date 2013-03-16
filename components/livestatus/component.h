@@ -39,7 +39,7 @@ private:
 	Attribute<String> m_SocketPath;
 
 	Socket::Ptr m_Listener;
-	set<LivestatusConnection::Ptr> m_Connections;
+	std::set<LivestatusConnection::Ptr> m_Connections;
 
 	void NewClientHandler(const Socket::Ptr& client);
 	void ClientClosedHandler(const Connection::Ptr& connection);

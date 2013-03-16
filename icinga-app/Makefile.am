@@ -10,11 +10,8 @@ icinga2_CPPFLAGS = \
 	-DI2_ICINGALAUNCHER_BUILD \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/lib/base \
-	-I${top_srcdir}/lib/config \
-	-I${top_srcdir}/lib/remoting \
-	-I${top_srcdir}/lib/icinga \
-	-I${top_srcdir}
+	-I${top_srcdir}/lib \
+	-I${top_srcdir}/components
 
 icinga2_LDFLAGS = \
 	$(BOOST_LDFLAGS) \

@@ -18,7 +18,11 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include "base/objectlock.h"
+#include <sstream>
 #include <boost/tuple/tuple.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -47,7 +51,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 	switch (m_Operator) {
 		case OperatorExecute:
 			if (!valueExprl)
-				BOOST_THROW_EXCEPTION(invalid_argument("Operand for OperatorExecute must be an ExpressionList."));
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Operand for OperatorExecute must be an ExpressionList."));
 
 			valueExprl->Execute(dictionary);
 
@@ -70,12 +74,12 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 			if (!dict) {
 				if (!oldValue.IsEmpty()) {
-					stringstream message;
+					std::ostringstream message;
 					message << "Wrong argument types for"
 					    " += (non-dictionary and"
 					    " dictionary) ("
 					        << m_DebugInfo << ")";
-					BOOST_THROW_EXCEPTION(domain_error(message.str()));
+					BOOST_THROW_EXCEPTION(std::invalid_argument(message.str()));
 				}
 
 				dict = boost::make_shared<Dictionary>();
@@ -94,22 +98,22 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 					dict->Set(key, value);
 				}
 			} else {
-				stringstream message;
+				std::ostringstream message;
 				message << "+= only works for dictionaries ("
 					<< m_DebugInfo << ")";
-				BOOST_THROW_EXCEPTION(domain_error(message.str()));
+				BOOST_THROW_EXCEPTION(std::invalid_argument(message.str()));
 			}
 
 			break;
 
 		default:
-			BOOST_THROW_EXCEPTION(runtime_error("Not yet implemented."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Not yet implemented."));
 	}
 
 	dictionary->Set(m_Key, newValue);
 }
 
-void Expression::DumpValue(ostream& fp, int indent, const Value& value, bool inlineDict)
+void Expression::DumpValue(std::ostream& fp, int indent, const Value& value, bool inlineDict)
 {
 	ExpressionList::Ptr valueExprl;
 	Dictionary::Ptr valueDict;
@@ -157,13 +161,13 @@ void Expression::DumpValue(ostream& fp, int indent, const Value& value, bool inl
 		return;
 	}
 
-	BOOST_THROW_EXCEPTION(runtime_error("Encountered unknown type while dumping value."));
+	BOOST_THROW_EXCEPTION(std::runtime_error("Encountered unknown type while dumping value."));
 }
 
 /**
  * @threadsafety Always.
  */
-void Expression::Dump(ostream& fp, int indent) const
+void Expression::Dump(std::ostream& fp, int indent) const
 {
 	if (m_Operator == OperatorExecute) {
 		DumpValue(fp, indent, m_Value, true);
@@ -183,7 +187,7 @@ void Expression::Dump(ostream& fp, int indent) const
 			fp << "+=";
 			break;
 		default:
-			BOOST_THROW_EXCEPTION(runtime_error("Not yet implemented."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Not yet implemented."));
 	}
 
 	fp << " ";

@@ -18,11 +18,16 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/dynamictype.h"
+#include "base/logger_fwd.h"
+#include "base/objectlock.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 boost::mutex HostGroup::m_Mutex;
-map<String, vector<Host::WeakPtr> > HostGroup::m_MembersCache;
+std::map<String, std::vector<Host::WeakPtr> > HostGroup::m_MembersCache;
 bool HostGroup::m_MembersCacheNeedsUpdate = false;
 Timer::Ptr HostGroup::m_MembersCacheTimer;
 
@@ -86,7 +91,7 @@ HostGroup::Ptr HostGroup::GetByName(const String& name)
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("HostGroup", name);
 
 	if (!configObject)
-		BOOST_THROW_EXCEPTION(invalid_argument("HostGroup '" + name + "' does not exist."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("HostGroup '" + name + "' does not exist."));
 
 	return dynamic_pointer_cast<HostGroup>(configObject);
 }
@@ -94,9 +99,9 @@ HostGroup::Ptr HostGroup::GetByName(const String& name)
 /**
  * @threadsafety Always.
  */
-set<Host::Ptr> HostGroup::GetMembers(void) const
+std::set<Host::Ptr> HostGroup::GetMembers(void) const
 {
-	set<Host::Ptr> hosts;
+	std::set<Host::Ptr> hosts;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -148,9 +153,9 @@ void HostGroup::RefreshMembersCache(void)
 		m_MembersCacheNeedsUpdate = false;
 	}
 
-	Logger::Write(LogDebug, "icinga", "Updating HostGroup members cache.");
+	Log(LogDebug, "icinga", "Updating HostGroup members cache.");
 
-	map<String, vector<Host::WeakPtr> > newMembersCache;
+	std::map<String, std::vector<Host::WeakPtr> > newMembersCache;
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
 		const Host::Ptr& host = static_pointer_cast<Host>(object);

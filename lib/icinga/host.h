@@ -75,14 +75,14 @@ public:
 	Dictionary::Ptr CalculateDynamicMacros(void) const;
 
 	shared_ptr<Service> GetHostCheckService(void) const;
-	set<Host::Ptr> GetParentHosts(void) const;
-	set<shared_ptr<Service> > GetParentServices(void) const;
+	std::set<Host::Ptr> GetParentHosts(void) const;
+	std::set<shared_ptr<Service> > GetParentServices(void) const;
 
 	bool IsReachable() const;
 
 	shared_ptr<Service> GetServiceByShortName(const Value& name) const;
 
-	set<shared_ptr<Service> > GetServices(void) const;
+	std::set<shared_ptr<Service> > GetServices(void) const;
 	static void InvalidateServicesCache(void);
 
 	static void ValidateServiceDictionary(const ScriptTask::Ptr& task,
@@ -110,7 +110,7 @@ private:
 	Dictionary::Ptr m_SlaveServices;
 
 	static boost::mutex m_ServiceMutex;
-	static map<String, map<String, weak_ptr<Service> > > m_ServicesCache;
+	static std::map<String, std::map<String, weak_ptr<Service> > > m_ServicesCache;
 	static bool m_ServicesCacheNeedsUpdate;
 	static Timer::Ptr m_ServicesCacheTimer;
 

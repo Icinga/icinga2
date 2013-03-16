@@ -20,10 +20,14 @@
 #ifndef ASYNCTASK_H
 #define ASYNCTASK_H
 
+#include "base/i2-base.h"
+#include "base/object.h"
+#include "base/utility.h"
 #include <boost/function.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/bind.hpp>
+#include <boost/exception_ptr.hpp>
 
 namespace icinga
 {
@@ -104,7 +108,7 @@ public:
 			m_CV.wait(lock);
 
 		if (m_ResultRetrieved)
-			BOOST_THROW_EXCEPTION(runtime_error("GetResult called on an AsyncTask whose result was already retrieved."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("GetResult called on an AsyncTask whose result was already retrieved."));
 
 		m_ResultRetrieved = true;
 
@@ -183,7 +187,7 @@ private:
 	{
 		try {
 			Run();
-		} catch (const exception&) {
+		} catch (...) {
 			FinishException(boost::current_exception());
 		}
 	}

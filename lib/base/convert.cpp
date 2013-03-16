@@ -17,7 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/convert.h"
+#include <sstream>
 #include <boost/lexical_cast.hpp>
 
 using namespace icinga;
@@ -39,7 +40,7 @@ bool Convert::ToBool(const String& val)
 
 String Convert::ToString(long val)
 {
-	stringstream cs;
+	std::ostringstream cs;
 	cs << val;
 	return cs.str();
 }

@@ -18,6 +18,12 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/dynamictype.h"
+#include "base/scriptfunction.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -191,14 +197,14 @@ void TimePeriod::UpdateRegion(double begin, double end)
 
 	TimePeriod::Ptr self = GetSelf();
 
-	vector<Value> arguments;
+	std::vector<Value> arguments;
 	arguments.push_back(self);
 	arguments.push_back(begin);
 	arguments.push_back(end);
 	ScriptTask::Ptr task = MakeMethodTask("update", arguments);
 
 	if (!task) {
-		Logger::Write(LogWarning, "icinga", "TimePeriod object '" + GetName() + "' doesn't have an 'update' method.");
+		Log(LogWarning, "icinga", "TimePeriod object '" + GetName() + "' doesn't have an 'update' method.");
 
 		return;
 	}
@@ -280,10 +286,10 @@ void TimePeriod::UpdateTimerHandler(void)
 	}
 }
 
-void TimePeriod::EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+void TimePeriod::EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(runtime_error("Expected 3 arguments."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Expected 3 arguments."));
 
 //	TimePeriod::Ptr tp = arguments[0];
 //	double begin = arguments[1];
@@ -293,10 +299,10 @@ void TimePeriod::EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const vector
 	task->FinishResult(segments);
 }
 
-void TimePeriod::EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const vector<Value>& arguments)
+void TimePeriod::EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(runtime_error("Expected 3 arguments."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Expected 3 arguments."));
 
 	TimePeriod::Ptr tp = arguments[0];
 	double begin = arguments[1];

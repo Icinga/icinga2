@@ -18,6 +18,11 @@
  ******************************************************************************/
 
 #include "i2-icinga.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include "base/convert.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -162,7 +167,7 @@ void PerfdataWriter::RotateFile(void)
 	m_OutputFile.open(tempFile.CStr());
 
 	if (!m_OutputFile.good())
-		Logger::Write(LogWarning, "icinga", "Could not open perfdata file '" + tempFile + "' for writing. Perfdata will be lost.");
+		Log(LogWarning, "icinga", "Could not open perfdata file '" + tempFile + "' for writing. Perfdata will be lost.");
 }
 
 /**

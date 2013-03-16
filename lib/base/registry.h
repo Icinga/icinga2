@@ -20,6 +20,13 @@
 #ifndef REGISTRY_H
 #define REGISTRY_H
 
+#include "base/i2-base.h"
+#include "base/singleton.h"
+#include "base/qstring.h"
+#include <map>
+#include <boost/thread/mutex.hpp>
+#include <boost/signals2.hpp>
+
 namespace icinga
 {
 
@@ -32,7 +39,7 @@ template<typename T>
 class I2_BASE_API Registry
 {
 public:
-	typedef map<String, T, string_iless> ItemMap;
+	typedef std::map<String, T, string_iless> ItemMap;
 
 	static Registry<T> *GetInstance(void)
 	{
@@ -91,8 +98,8 @@ public:
 		return m_Items; /* Makes a copy of the map. */
 	}
 
-	signals2::signal<void (const String&, const T&)> OnRegistered;
-	signals2::signal<void (const String&)> OnUnregistered;
+	boost::signals2::signal<void (const String&, const T&)> OnRegistered;
+	boost::signals2::signal<void (const String&)> OnUnregistered;
 
 private:
 	mutable boost::mutex m_Mutex;

@@ -17,8 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
+#include "base/tlsstream.h"
+#include "base/stream_bio.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
+#include "base/exception.h"
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 using namespace icinga;
 
@@ -54,7 +59,7 @@ void TlsStream::Start(void)
 	}
 
 	if (!m_SSL)
-		BOOST_THROW_EXCEPTION(logic_error("No X509 client certificate was specified."));
+		BOOST_THROW_EXCEPTION(std::logic_error("No X509 client certificate was specified."));
 
 	if (!m_SSLIndexInitialized) {
 		m_SSLIndex = SSL_get_ex_new_index(0, const_cast<char *>("TlsStream"), NULL, NULL, NULL);

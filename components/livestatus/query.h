@@ -32,7 +32,7 @@ public:
 	typedef shared_ptr<Query> Ptr;
 	typedef weak_ptr<Query> WeakPtr;
 
-	Query(const vector<String>& lines);
+	Query(const std::vector<String>& lines);
 
 	void Execute(const Stream::Ptr& stream);
 
@@ -43,10 +43,10 @@ private:
 
 	/* Parameters for GET queries. */
 	String m_Table;
-	vector<String> m_Columns;
+	std::vector<String> m_Columns;
 
 	Filter::Ptr m_Filter;
-	deque<Filter::Ptr> m_Stats;
+	std::deque<Filter::Ptr> m_Stats;
 
 	String m_OutputFormat;
 	bool m_ColumnHeaders;
@@ -61,7 +61,7 @@ private:
 	int m_ErrorCode;
 	String m_ErrorMessage;
 
-	void PrintResultSet(ostream& fp, const vector<String>& columns, const Array::Ptr& rs);
+	void PrintResultSet(ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs);
 
 	void ExecuteGetHelper(const Stream::Ptr& stream);
 	void ExecuteCommandHelper(const Stream::Ptr& stream);

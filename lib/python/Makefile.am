@@ -15,10 +15,7 @@ libpython_la_CPPFLAGS = \
 	-DI2_PYTHON_BUILD \
 	$(BOOST_CPPFLAGS) \
 	@PYTHON_CSPEC@ \
-	-I${top_srcdir}/lib/base \
-	-I${top_srcdir}/lib/config \
-	-I${top_srcdir}/lib/remoting \
-	-I${top_srcdir}
+	-I${top_srcdir}/lib
 
 libpython_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \

@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-livestatus.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 using namespace livestatus;

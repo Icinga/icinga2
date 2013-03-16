@@ -20,6 +20,10 @@
 #ifndef SCRIPTLANGUAGE_H
 #define SCRIPTLANGUAGE_H
 
+#include "base/i2-base.h"
+#include "base/scriptinterpreter.h"
+#include <map>
+
 namespace icinga
 {
 
@@ -48,7 +52,7 @@ protected:
 
 private:
 	static boost::mutex& GetMutex(void);
-	static map<String, ScriptLanguage::Ptr>& GetLanguages(void);
+	static std::map<String, ScriptLanguage::Ptr>& GetLanguages(void);
 };
 
 /**

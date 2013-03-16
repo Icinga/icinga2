@@ -20,6 +20,9 @@
 #ifndef SYSLOGLOGGER_H
 #define SYSLOGLOGGER_H
 
+#include "base/i2-base.h"
+#include "base/logger.h"
+
 #ifndef _WIN32
 namespace icinga
 {

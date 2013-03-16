@@ -18,6 +18,10 @@
  ******************************************************************************/
 
 #include "i2-remoting.h"
+#include "base/netstring.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -61,16 +65,16 @@ void JsonRpcConnection::ProcessData(void)
 			Value value = Value::Deserialize(jsonString);
 
 			if (!value.IsObjectType<Dictionary>()) {
-				BOOST_THROW_EXCEPTION(invalid_argument("JSON-RPC"
+				BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"
 				    " message must be a dictionary."));
 			}
 
 			MessagePart mp(value);
 			OnNewMessage(GetSelf(), mp);
-		} catch (const exception& ex) {
-			Logger::Write(LogCritical, "remoting", "Exception"
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "remoting", "Exception"
 			    " while processing message from JSON-RPC client: " +
-			    diagnostic_information(ex));
+			    boost::diagnostic_information(ex));
 		}
 	}
 }

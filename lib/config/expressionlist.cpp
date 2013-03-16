@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -60,7 +61,7 @@ void ExpressionList::Execute(const Dictionary::Ptr& dictionary) const
  * @param fp The stream.
  * @param indent The indentation level.
  */
-void ExpressionList::Dump(ostream& fp, int indent) const
+void ExpressionList::Dump(std::ostream& fp, int indent) const
 {
 	BOOST_FOREACH(const Expression& expression, m_Expressions) {
 		expression.Dump(fp, indent);

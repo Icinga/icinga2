@@ -60,8 +60,8 @@ public:
 	shared_ptr<Service> GetService(void) const;
 	Value GetNotificationCommand(void) const;
 	Dictionary::Ptr GetMacros(void) const;
-	set<User::Ptr> GetUsers(void) const;
-	set<UserGroup::Ptr> GetGroups(void) const;
+	std::set<User::Ptr> GetUsers(void) const;
+	std::set<UserGroup::Ptr> GetGroups(void) const;
 
 	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr);
 
@@ -78,7 +78,7 @@ private:
 	Attribute<String> m_HostName;
 	Attribute<String> m_Service;
 
-	set<ScriptTask::Ptr> m_Tasks;
+	std::set<ScriptTask::Ptr> m_Tasks;
 
 	void NotificationCompletedHandler(const ScriptTask::Ptr& task);
 

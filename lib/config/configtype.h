@@ -20,6 +20,8 @@
 #ifndef CONFIGTYPE_H
 #define CONFIGTYPE_H
 
+#include "base/array.h"
+
 namespace icinga
 {
 
@@ -54,11 +56,11 @@ private:
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
 	static void ValidateDictionary(const Dictionary::Ptr& dictionary,
-	    const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations);
+	    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations);
 	static void ValidateArray(const Array::Ptr& array,
-	    const vector<TypeRuleList::Ptr>& ruleLists, vector<String>& locations);
+	    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations);
 
-	static String LocationToString(const vector<String>& locations);
+	static String LocationToString(const std::vector<String>& locations);
 };
 
 }

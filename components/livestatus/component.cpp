@@ -18,6 +18,9 @@
  ******************************************************************************/
 
 #include "i2-livestatus.h"
+#include "base/dynamictype.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -60,7 +63,7 @@ String LivestatusComponent::GetSocketPath(void) const
 
 void LivestatusComponent::NewClientHandler(const Socket::Ptr& client)
 {
-	Logger::Write(LogInformation, "livestatus", "Client connected");
+	Log(LogInformation, "livestatus", "Client connected");
 
 	LivestatusConnection::Ptr lconnection = boost::make_shared<LivestatusConnection>(client);
 	lconnection->OnClosed.connect(boost::bind(&LivestatusComponent::ClientClosedHandler, this, _1));
@@ -73,6 +76,6 @@ void LivestatusComponent::ClientClosedHandler(const Connection::Ptr& connection)
 {
 	LivestatusConnection::Ptr lconnection = static_pointer_cast<LivestatusConnection>(connection);
 
-	Logger::Write(LogInformation, "livestatus", "Client disconnected");
+	Log(LogInformation, "livestatus", "Client disconnected");
 	m_Connections.erase(lconnection);
 }
