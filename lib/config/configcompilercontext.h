@@ -20,6 +20,10 @@
 #ifndef CONFIGCOMPILERCONTEXT_H
 #define CONFIGCOMPILERCONTEXT_H
 
+#include "config/i2-config.h"
+#include "config/configitem.h"
+#include "config/configtype.h"
+
 namespace icinga
 {
 
@@ -76,8 +80,8 @@ private:
 
         int m_Flags;
 
-	std::vector<shared_ptr<ConfigItem> > m_Items;
-        std::map<std::pair<String, String>, shared_ptr<ConfigItem> > m_ItemsMap;
+	std::vector<ConfigItem::Ptr> m_Items;
+        std::map<std::pair<String, String>, ConfigItem::Ptr> m_ItemsMap;
 
         std::map<String, shared_ptr<ConfigType> > m_Types;
 

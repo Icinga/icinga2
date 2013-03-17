@@ -20,6 +20,10 @@
 #ifndef CONTACTGROUPSTABLE_H
 #define CONTACTGROUPSTABLE_H
 
+#include "livestatus/table.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

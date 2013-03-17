@@ -20,6 +20,9 @@
 #ifndef TABLE_H
 #define TABLE_H
 
+#include "livestatus/column.h"
+#include "base/object.h"
+
 namespace livestatus
 {
 

@@ -20,7 +20,10 @@
 #ifndef SERVICEGROUP_H
 #define SERVICEGROUP_H
 
+#include "icinga/i2-icinga.h"
+#include "icinga/service.h"
 #include "base/dynamictype.h"
+#include <set>
 
 namespace icinga
 {

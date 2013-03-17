@@ -20,6 +20,8 @@
 #ifndef CONFIGITEM_H
 #define CONFIGITEM_H
 
+#include "config/i2-config.h"
+#include "config/expressionlist.h"
 #include "base/dynamicobject.h"
 
 namespace icinga

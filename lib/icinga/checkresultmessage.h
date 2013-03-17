@@ -20,6 +20,9 @@
 #ifndef CHECKRESULTMESSAGE_H
 #define CHECKRESULTMESSAGE_H
 
+#include "icinga/i2-icinga.h"
+#include "remoting/messagepart.h"
+
 namespace icinga
 {
 

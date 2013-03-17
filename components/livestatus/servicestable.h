@@ -20,6 +20,10 @@
 #ifndef SERVICESTABLE_H
 #define SERVICESTABLE_H
 
+#include "livestatus/table.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

@@ -17,7 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-delegation.h"
+#include "delegation/delegationcomponent.h"
+#include "remoting/endpointmanager.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include <algorithm>

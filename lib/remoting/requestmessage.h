@@ -20,6 +20,9 @@
 #ifndef REQUESTMESSAGE_H
 #define REQUESTMESSAGE_H
 
+#include "remoting/i2-remoting.h"
+#include "remoting/messagepart.h"
+
 namespace icinga
 {
 

@@ -20,6 +20,10 @@
 #ifndef MACROPROCESSOR_H
 #define MACROPROCESSOR_H
 
+#include "icinga/i2-icinga.h"
+#include "base/dictionary.h"
+#include <vector>
+
 namespace icinga
 {
 

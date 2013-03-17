@@ -20,8 +20,11 @@
 #ifndef CONFIGCOMPILER_H
 #define CONFIGCOMPILER_H
 
+#include "config/i2-config.h"
+#include "config/debuginfo.h"
 #include "base/registry.h"
 #include <iostream>
+#include <boost/function.hpp>
 
 namespace icinga
 {

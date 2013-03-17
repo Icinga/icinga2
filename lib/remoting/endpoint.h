@@ -20,6 +20,10 @@
 #ifndef ENDPOINT_H
 #define ENDPOINT_H
 
+#include "remoting/i2-remoting.h"
+#include "remoting/requestmessage.h"
+#include "remoting/responsemessage.h"
+#include "remoting/jsonrpcconnection.h"
 #include "base/dynamicobject.h"
 #include <boost/signals2.hpp>
 

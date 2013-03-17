@@ -17,7 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-config.h"
+#include "config/configitembuilder.h"
+#include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <sstream>

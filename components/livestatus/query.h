@@ -20,6 +20,13 @@
 #ifndef QUERY_H
 #define QUERY_H
 
+#include "livestatus/filter.h"
+#include "base/object.h"
+#include "base/array.h"
+#include "base/stream.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 
@@ -61,7 +68,7 @@ private:
 	int m_ErrorCode;
 	String m_ErrorMessage;
 
-	void PrintResultSet(ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs);
+	void PrintResultSet(std::ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs);
 
 	void ExecuteGetHelper(const Stream::Ptr& stream);
 	void ExecuteCommandHelper(const Stream::Ptr& stream);

@@ -17,14 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-compat.h"
+#include "compat/compatcomponent.h"
+#include "icinga/externalcommandprocessor.h"
+#include "icinga/icingaapplication.h"
+#include "icinga/cib.h"
+#include "icinga/hostgroup.h"
+#include "icinga/servicegroup.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
+#include "base/application.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <fstream>
 
 using namespace icinga;
 
@@ -193,7 +200,7 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 }
 #endif /* _WIN32 */
 
-void CompatComponent::DumpComments(ostream& fp, const Service::Ptr& owner, CompatObjectType type)
+void CompatComponent::DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Service::Ptr service;
 	Host::Ptr host;
@@ -230,7 +237,7 @@ void CompatComponent::DumpComments(ostream& fp, const Service::Ptr& owner, Compa
 	}
 }
 
-void CompatComponent::DumpDowntimes(ostream& fp, const Service::Ptr& owner, CompatObjectType type)
+void CompatComponent::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Host::Ptr host = owner->GetHost();
 
@@ -278,7 +285,7 @@ void CompatComponent::DumpDowntimes(ostream& fp, const Service::Ptr& owner, Comp
 	}
 }
 
-void CompatComponent::DumpHostStatus(ostream& fp, const Host::Ptr& host)
+void CompatComponent::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 {
 	fp << "hoststatus {" << "\n"
 	   << "\t" << "host_name=" << host->GetName() << "\n";
@@ -298,7 +305,7 @@ void CompatComponent::DumpHostStatus(ostream& fp, const Host::Ptr& host)
 	}
 }
 
-void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
+void CompatComponent::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 {
 	fp << "define host {" << "\n"
 	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
@@ -338,7 +345,7 @@ void CompatComponent::DumpHostObject(ostream& fp, const Host::Ptr& host)
 	   << "\n";
 }
 
-void CompatComponent::DumpServiceStatusAttrs(ostream& fp, const Service::Ptr& service, CompatObjectType type)
+void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type)
 {
 	ASSERT(service->OwnsLock());
 
@@ -401,7 +408,7 @@ void CompatComponent::DumpServiceStatusAttrs(ostream& fp, const Service::Ptr& se
 	   << "\t" << "last_notification=" << service->GetLastNotification() << "\n";
 }
 
-void CompatComponent::DumpServiceStatus(ostream& fp, const Service::Ptr& service)
+void CompatComponent::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -424,7 +431,7 @@ void CompatComponent::DumpServiceStatus(ostream& fp, const Service::Ptr& service
 	DumpComments(fp, service, CompatTypeService);
 }
 
-void CompatComponent::DumpServiceObject(ostream& fp, const Service::Ptr& service)
+void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -486,8 +493,8 @@ void CompatComponent::StatusTimerHandler(void)
 	String statuspathtmp = statuspath + ".tmp"; /* XXX make this a global definition */
 	String objectspathtmp = objectspath + ".tmp";
 
-	ofstream statusfp;
-	statusfp.open(statuspathtmp.CStr(), ofstream::out | ofstream::trunc);
+	std::ofstream statusfp;
+	statusfp.open(statuspathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
 
 	statusfp << std::fixed;
 
@@ -521,8 +528,8 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\t" << "}" << "\n"
 		 << "\n";
 
-	ofstream objectfp;
-	objectfp.open(objectspathtmp.CStr(), ofstream::out | ofstream::trunc);
+	std::ofstream objectfp;
+	objectfp.open(objectspathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
 
 	objectfp << std::fixed;
 

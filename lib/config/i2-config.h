@@ -28,23 +28,12 @@
  * at runtime.
  */
 
-//#include "base/i2-base.h"
+#include "base/i2-base.h"
 
 #ifdef I2_CONFIG_BUILD
 #	define I2_CONFIG_API I2_EXPORT
 #else /* I2_CONFIG_BUILD */
 #	define I2_CONFIG_API I2_IMPORT
 #endif /* I2_CONFIG_BUILD */
-
-/*#include "debuginfo.h"
-#include "typerulelist.h"
-#include "typerule.h"
-#include "expression.h"
-#include "expressionlist.h"
-#include "configitem.h"
-#include "configtype.h"
-#include "configitembuilder.h"
-#include "configcompiler.h"
-#include "configcompilercontext.h"*/
 
 #endif /* I2CONFIG_H */

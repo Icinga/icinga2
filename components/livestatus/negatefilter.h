@@ -20,6 +20,10 @@
 #ifndef NEGATEFILTER_H
 #define NEGATEFILTER_H
 
+#include "livestatus/filter.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

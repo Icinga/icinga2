@@ -20,6 +20,10 @@
 #ifndef COMBINERFILTER_H
 #define COMBINERFILTER_H
 
+#include "livestatus/filter.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

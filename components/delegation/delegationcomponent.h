@@ -20,6 +20,10 @@
 #ifndef DELEGATIONCOMPONENT_H
 #define DELEGATIONCOMPONENT_H
 
+#include "icinga/service.h"
+#include "remoting/endpoint.h"
+#include "base/dynamicobject.h"
+
 namespace icinga
 {
 

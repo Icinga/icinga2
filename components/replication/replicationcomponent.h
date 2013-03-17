@@ -17,8 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CIBSYNCCOMPONENT_H
-#define CIBSYNCCOMPONENT_H
+#ifndef REPLICATIONCOMPONENT_H
+#define REPLICATIONCOMPONENT_H
+
+#include "base/dynamicobject.h"
+#include "remoting/endpoint.h"
 
 namespace icinga
 {
@@ -57,4 +60,4 @@ private:
 
 }
 
-#endif /* CIBSYNCCOMPONENT_H */
+#endif /* REPLICATIONCOMPONENT_H */

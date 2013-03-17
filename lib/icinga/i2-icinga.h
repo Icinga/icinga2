@@ -28,44 +28,11 @@
  */
 
 #include "base/i2-base.h"
-#include "config/i2-config.h"
-#include "remoting/i2-remoting.h"
 
 #ifdef I2_ICINGA_BUILD
 #	define I2_ICINGA_API I2_EXPORT
 #else /* I2_ICINGA_BUILD */
 #	define I2_ICINGA_API I2_IMPORT
 #endif /* I2_ICINGA_BUILD */
-
-#include "externalcommandprocessor.h"
-
-#include "icingaapplication.h"
-
-#include "timeperiod.h"
-
-#include "user.h"
-#include "usergroup.h"
-
-#include "notification.h"
-#include "notificationrequestmessage.h"
-
-#include "host.h"
-#include "hostgroup.h"
-#include "service.h"
-#include "servicegroup.h"
-
-#include "macroprocessor.h"
-#include "pluginchecktask.h"
-#include "nullchecktask.h"
-
-#include "pluginnotificationtask.h"
-
-#include "checkresultmessage.h"
-
-#include "cib.h"
-
-#include "api.h"
-
-#include "perfdatawriter.h"
 
 #endif /* I2ICINGA_H */

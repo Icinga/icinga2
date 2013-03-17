@@ -20,6 +20,12 @@
 #ifndef EXTERNALCOMMANDPROCESSOR_H
 #define EXTERNALCOMMANDPROCESSOR_H
 
+#include "icinga/i2-icinga.h"
+#include "base/qstring.h"
+#include <vector>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/once.hpp>
+
 namespace icinga
 {
 

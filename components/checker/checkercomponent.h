@@ -20,6 +20,8 @@
 #ifndef CHECKERCOMPONENT_H
 #define CHECKERCOMPONENT_H
 
+#include "icinga/service.h"
+#include "remoting/endpoint.h"
 #include "base/dynamicobject.h"
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>

@@ -20,6 +20,10 @@
 #ifndef USER_H
 #define USER_H
 
+#include "icinga/i2-icinga.h"
+#include "base/dynamicobject.h"
+#include "base/array.h"
+
 namespace icinga
 {
 

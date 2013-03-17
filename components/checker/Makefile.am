@@ -12,8 +12,7 @@ EXTRA_DIST = \
 libchecker_la_SOURCES = \
 	checkercomponent.cpp \
 	checkercomponent.h \
-	checker-type.cpp \
-	i2-checker.h
+	checker-type.cpp
 
 libchecker_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \

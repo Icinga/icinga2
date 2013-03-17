@@ -20,6 +20,9 @@
 #ifndef NOTIFICATIONCOMPONENT_H
 #define NOTIFICATIONCOMPONENT_H
 
+#include "remoting/endpoint.h"
+#include "base/dynamicobject.h"
+
 namespace icinga
 {
 

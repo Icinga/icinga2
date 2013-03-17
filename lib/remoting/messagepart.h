@@ -20,6 +20,9 @@
 #ifndef MESSAGEPART_H
 #define MESSAGEPART_H
 
+#include "remoting/i2-remoting.h"
+#include "base/dictionary.h"
+
 struct cJSON;
 
 namespace icinga

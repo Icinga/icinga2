@@ -20,6 +20,10 @@
 #ifndef COMMENTSTABLE_H
 #define COMMENTSTABLE_H
 
+#include "livestatus/table.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

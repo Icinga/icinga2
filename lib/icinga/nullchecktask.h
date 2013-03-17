@@ -20,6 +20,7 @@
 #ifndef NULLCHECKTASK_H
 #define NULLCHECKTASK_H
 
+#include "icinga/i2-icinga.h"
 #include "base/scripttask.h"
 
 namespace icinga

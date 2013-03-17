@@ -20,6 +20,12 @@
 #ifndef CONFIGITEMBUILDER_H
 #define CONFIGITEMBUILDER_H
 
+#include "config/debuginfo.h"
+#include "config/expression.h"
+#include "config/expressionlist.h"
+#include "config/configitem.h"
+#include "base/object.h"
+
 namespace icinga
 {
 

@@ -20,6 +20,8 @@
 #ifndef PERFDATAWRITER_H
 #define PERFDATAWRITER_H
 
+#include "icinga/i2-icinga.h"
+#include "remoting/endpoint.h"
 #include "base/dynamicobject.h"
 #include <fstream>
 

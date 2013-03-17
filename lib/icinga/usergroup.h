@@ -20,6 +20,8 @@
 #ifndef USERGROUP_H
 #define USERGROUP_H
 
+#include "icinga/i2-icinga.h"
+#include "icinga/user.h"
 #include "base/dynamicobject.h"
 
 namespace icinga

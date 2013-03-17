@@ -17,10 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-icinga.h"
+#include "icinga/host.h"
+#include "icinga/service.h"
+#include "icinga/hostgroup.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "config/configitembuilder.h"
+#include "config/configcompilercontext.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>

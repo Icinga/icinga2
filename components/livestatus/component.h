@@ -20,6 +20,12 @@
 #ifndef LIVESTATUSCOMPONENT_H
 #define LIVESTATUSCOMPONENT_H
 
+#include "livestatus/connection.h"
+#include "base/dynamicobject.h"
+#include "base/socket.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

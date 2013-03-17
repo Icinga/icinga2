@@ -20,6 +20,10 @@
 #ifndef HOSTSTABLE_H
 #define HOSTSTABLE_H
 
+#include "livestatus/table.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

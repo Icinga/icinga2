@@ -20,6 +20,7 @@
 #ifndef ICINGAAPPLICATION_H
 #define ICINGAAPPLICATION_H
 
+#include "icinga/i2-icinga.h"
 #include "base/application.h"
 
 namespace icinga

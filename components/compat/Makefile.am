@@ -12,8 +12,7 @@ EXTRA_DIST = \
 libcompat_la_SOURCES = \
 	compatcomponent.cpp \
 	compatcomponent.h \
-	compat-type.cpp \
-	i2-compat.h
+	compat-type.cpp
 
 libcompat_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \

@@ -20,6 +20,11 @@
 #ifndef COLUMN_H
 #define COLUMN_H
 
+#include "base/value.h"
+#include <boost/function.hpp>
+
+using namespace icinga;
+
 namespace livestatus
 {
 

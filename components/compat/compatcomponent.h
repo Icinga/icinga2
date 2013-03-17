@@ -20,7 +20,11 @@
 #ifndef COMPATCOMPONENT_H
 #define COMPATCOMPONENT_H
 
+#include "icinga/host.h"
+#include "icinga/service.h"
+#include "base/dynamicobject.h"
 #include "base/objectlock.h"
+#include <iostream>
 
 namespace icinga
 {
@@ -68,7 +72,7 @@ private:
 	void DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type);
 
 	template<typename T>
-	void DumpNameList(ostream& fp, const T& list)
+	void DumpNameList(std::ostream& fp, const T& list)
 	{
 		typename T::const_iterator it;
 		bool first = true;
@@ -84,7 +88,7 @@ private:
 	}
 
 	template<typename T>
-	void DumpStringList(ostream& fp, const T& list)
+	void DumpStringList(std::ostream& fp, const T& list)
 	{
 		typename T::const_iterator it;
 		bool first = true;

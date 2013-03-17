@@ -20,6 +20,9 @@
 #ifndef DEMOCOMPONENT_H
 #define DEMOCOMPONENT_H
 
+#include "remoting/endpoint.h"
+#include "base/dynamicobject.h"
+
 namespace icinga
 {
 

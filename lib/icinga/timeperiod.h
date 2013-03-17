@@ -20,6 +20,10 @@
 #ifndef TIMEPERIOD_H
 #define TIMEPERIOD_H
 
+#include "icinga/i2-icinga.h"
+#include "base/dynamicobject.h"
+#include "base/array.h"
+
 namespace icinga
 {
 

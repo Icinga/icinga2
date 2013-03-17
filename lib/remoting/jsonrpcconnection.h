@@ -20,6 +20,8 @@
 #ifndef JSONRPCCONNECTION_H
 #define JSONRPCCONNECTION_H
 
+#include "remoting/i2-remoting.h"
+#include "remoting/messagepart.h"
 #include "base/connection.h"
 #include <boost/signals2.hpp>
 

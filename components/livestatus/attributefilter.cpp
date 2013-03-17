@@ -17,8 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-livestatus.h"
+#include "livestatus/attributefilter.h"
 #include "base/convert.h"
+#include "base/array.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

@@ -17,7 +17,6 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-icinga.h"
 #include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"

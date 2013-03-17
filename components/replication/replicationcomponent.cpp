@@ -17,7 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-replication.h"
+#include "replication/replicationcomponent.h"
+#include "icinga/service.h"
+#include "icinga/checkresultmessage.h"
+#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"

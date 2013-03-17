@@ -20,6 +20,10 @@
 #ifndef NOTIFICATIONREQUESTMESSAGE_H
 #define NOTIFICATIONREQUESTMESSAGE_H
 
+#include "icinga/i2-icinga.h"
+#include "icinga/notification.h"
+#include "remoting/messagepart.h"
+
 namespace icinga
 {
 

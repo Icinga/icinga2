@@ -17,10 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-livestatus.h"
+#include "livestatus/table.h"
+#include "livestatus/statustable.h"
+#include "livestatus/contactgroupstable.h"
+#include "livestatus/contactstable.h"
+#include "livestatus/hoststable.h"
+#include "livestatus/servicestable.h"
+#include "livestatus/commentstable.h"
+#include "livestatus/downtimestable.h"
+#include "livestatus/filter.h"
+#include "base/array.h"
+#include "base/dictionary.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 
 using namespace icinga;
 using namespace livestatus;

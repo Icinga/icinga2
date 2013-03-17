@@ -20,6 +20,8 @@
 #ifndef PLUGINCHECKTASK_H
 #define PLUGINCHECKTASK_H
 
+#include "icinga/i2-icinga.h"
+#include "icinga/service.h"
 #include "base/scripttask.h"
 #include "base/process.h"
 

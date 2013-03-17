@@ -20,6 +20,10 @@
 #ifndef DOWNTIMESTABLE_H
 #define DOWNTIMESTABLE_H
 
+#include "livestatus/table.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

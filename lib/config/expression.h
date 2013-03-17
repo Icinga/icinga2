@@ -20,7 +20,10 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
+#include "config/i2-config.h"
+#include "config/debuginfo.h"
 #include "base/dictionary.h"
+#include <iostream>
 
 namespace icinga
 {

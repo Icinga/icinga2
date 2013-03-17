@@ -17,8 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-config.h"
+#include "config/typerule.h"
 #include "base/convert.h"
+#include "base/utility.h"
+#include "base/dictionary.h"
+#include "base/array.h"
 
 using namespace icinga;
 

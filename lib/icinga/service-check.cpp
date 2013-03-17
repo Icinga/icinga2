@@ -17,8 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-icinga.h"
 #include "icinga/service.h"
+#include "icinga/icingaapplication.h"
+#include "icinga/checkresultmessage.h"
+#include "icinga/cib.h"
+#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"

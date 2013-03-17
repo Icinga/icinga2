@@ -20,6 +20,10 @@
 #ifndef TYPERULE_H
 #define TYPERULE_H
 
+#include "config/i2-config.h"
+#include "config/typerulelist.h"
+#include "config/debuginfo.h"
+
 namespace icinga
 {
 

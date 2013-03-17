@@ -20,6 +20,11 @@
 #ifndef HOSTGROUP_H
 #define HOSTGROUP_H
 
+#include "icinga/i2-icinga.h"
+#include "icinga/host.h"
+#include "base/dynamicobject.h"
+#include <set>
+
 namespace icinga
 {
 

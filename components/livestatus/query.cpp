@@ -17,7 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-livestatus.h"
+#include "livestatus/query.h"
+#include "livestatus/attributefilter.h"
+#include "livestatus/negatefilter.h"
+#include "livestatus/orfilter.h"
+#include "livestatus/andfilter.h"
+#include "icinga/externalcommandprocessor.h"
+#include "base/utility.h"
 #include "base/convert.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -160,7 +166,7 @@ Query::Query(const std::vector<String>& lines)
 	m_Stats.swap(stats);
 }
 
-void Query::PrintResultSet(ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs)
+void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs)
 {
 	if (m_OutputFormat == "csv" && m_Columns.size() == 0 && m_ColumnHeaders) {
 		bool first = true;

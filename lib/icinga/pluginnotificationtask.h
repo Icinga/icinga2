@@ -20,6 +20,7 @@
 #ifndef PLUGINNOTIFICATIONTASK_H
 #define PLUGINNOTIFICATIONTASK_H
 
+#include "icinga/i2-icinga.h"
 #include "base/scripttask.h"
 #include "base/process.h"
 

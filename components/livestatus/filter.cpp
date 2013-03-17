@@ -17,9 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-livestatus.h"
+#include "livestatus/filter.h"
 
-using namespace icinga;
 using namespace livestatus;
 
 Filter::Filter(void)

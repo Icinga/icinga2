@@ -20,6 +20,10 @@
 #ifndef STATUSTABLE_H
 #define STATUSTABLE_H
 
+#include "livestatus/table.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

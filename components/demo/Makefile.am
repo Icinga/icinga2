@@ -12,8 +12,7 @@ EXTRA_DIST = \
 libdemo_la_SOURCES = \
 	democomponent.cpp \
 	democomponent.h \
-	demo-type.cpp \
-	i2-demo.h
+	demo-type.cpp
 
 libdemo_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \

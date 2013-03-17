@@ -20,6 +20,10 @@
 #ifndef LIVESTATUSCONNECTION_H
 #define LIVESTATUSCONNECTION_H
 
+#include "base/connection.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

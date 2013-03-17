@@ -20,6 +20,11 @@
 #ifndef HOST_H
 #define HOST_H
 
+#include "icinga/i2-icinga.h"
+#include "base/array.h"
+#include "base/dynamicobject.h"
+#include "base/dictionary.h"
+
 namespace icinga
 {
 

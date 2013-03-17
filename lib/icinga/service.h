@@ -20,7 +20,12 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
-#include "base/dynamictype.h"
+#include "icinga/i2-icinga.h"
+#include "icinga/host.h"
+#include "icinga/timeperiod.h"
+#include "icinga/notification.h"
+#include "base/dynamicobject.h"
+#include "base/array.h"
 #include <boost/signals2.hpp>
 
 namespace icinga

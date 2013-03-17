@@ -17,11 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-remoting.h"
+#include "remoting/endpoint.h"
+#include "remoting/endpointmanager.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "config/configitembuilder.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;

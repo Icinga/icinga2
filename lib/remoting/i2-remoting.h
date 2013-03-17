@@ -28,19 +28,11 @@
  */
 
 #include "base/i2-base.h"
-#include "config/i2-config.h"
 
 #ifdef I2_REMOTING_BUILD
 #	define I2_REMOTING_API I2_EXPORT
 #else /* I2_REMOTING_BUILD */
 #	define I2_REMOTING_API I2_IMPORT
 #endif /* I2_REMOTING_BUILD */
-
-#include "messagepart.h"
-#include "requestmessage.h"
-#include "responsemessage.h"
-#include "jsonrpcconnection.h"
-#include "endpoint.h"
-#include "endpointmanager.h"
 
 #endif /* I2REMOTING_H */

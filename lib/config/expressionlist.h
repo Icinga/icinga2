@@ -20,7 +20,10 @@
 #ifndef EXPRESSIONLIST_H
 #define EXPRESSIONLIST_H
 
+#include "config/i2-config.h"
+#include "config/expression.h"
 #include "base/dictionary.h"
+#include <vector>
 
 namespace icinga
 {

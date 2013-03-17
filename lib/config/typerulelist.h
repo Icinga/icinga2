@@ -20,6 +20,7 @@
 #ifndef TYPERULELIST_H
 #define TYPERULELIST_H
 
+#include "config/i2-config.h"
 #include "base/value.h"
 
 namespace icinga

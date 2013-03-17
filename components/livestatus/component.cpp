@@ -17,9 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-livestatus.h"
+#include "livestatus/component.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
+#include "base/tcpsocket.h"
+#include "base/application.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;

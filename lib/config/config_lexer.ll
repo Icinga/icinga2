@@ -18,8 +18,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-config.h"
-#include "config_parser.h"
+#include "config/configcompiler.h"
+#include "config/expression.h"
+#include "config/typerule.h"
+#include "config/configcompilercontext.h"
+#include "config/config_parser.h"
 #include <sstream>
 
 using namespace icinga;

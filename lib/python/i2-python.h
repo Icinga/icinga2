@@ -29,16 +29,11 @@
 #include <Python.h>
 
 #include <i2-base.h>
-#include <i2-config.h>
-#include <i2-remoting.h>
 
 #ifdef I2_PYTHON_BUILD
 #	define I2_PYTHON_API I2_EXPORT
 #else /* I2_PYTHON_BUILD */
 #	define I2_PYTHON_API I2_IMPORT
 #endif /* I2_PYTHON_BUILD */
-
-#include "pythonlanguage.h"
-#include "pythoninterpreter.h"
 
 #endif /* I2PYTHON_H */

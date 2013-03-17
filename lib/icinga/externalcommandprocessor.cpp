@@ -17,10 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-icinga.h"
+#include "icinga/externalcommandprocessor.h"
+#include "icinga/host.h"
+#include "icinga/service.h"
+#include "icinga/user.h"
+#include "icinga/hostgroup.h"
+#include "icinga/servicegroup.h"
+#include "icinga/pluginchecktask.h"
 #include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
+#include "base/application.h"
+#include <fstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>

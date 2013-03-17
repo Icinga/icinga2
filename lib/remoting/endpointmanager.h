@@ -20,6 +20,8 @@
 #ifndef ENDPOINTMANAGER_H
 #define ENDPOINTMANAGER_H
 
+#include "remoting/i2-remoting.h"
+#include "remoting/endpoint.h"
 #include "base/tcpsocket.h"
 #include "base/tlsstream.h"
 #include <boost/signals2.hpp>

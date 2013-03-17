@@ -20,6 +20,8 @@
 #ifndef FILTER_H
 #define FILTER_H
 
+#include "livestatus/table.h"
+
 namespace livestatus
 {
 

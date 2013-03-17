@@ -20,6 +20,11 @@
 #ifndef NOTIFICATION_H
 #define NOTIFICATION_H
 
+#include "icinga/i2-icinga.h"
+#include "icinga/user.h"
+#include "icinga/usergroup.h"
+#include "base/array.h"
+
 namespace icinga
 {
 

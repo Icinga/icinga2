@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/i2-base.h"
-#include "config/i2-config.h"
+#include "config/configcompilercontext.h"
+#include "config/configcompiler.h"
 #include "base/application.h"
 #include "base/logger_fwd.h"
 #include <boost/program_options.hpp>

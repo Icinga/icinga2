@@ -17,8 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-config.h"
+#include "config/configcompiler.h"
+#include "config/configitem.h"
 #include "base/logger_fwd.h"
+#include "base/utility.h"
 #include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>

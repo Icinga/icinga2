@@ -46,8 +46,7 @@ liblivestatus_la_SOURCES = \
 	statustable.cpp \
 	statustable.h \
 	table.cpp \
-	table.h \
-	i2-livestatus.h
+	table.h
 
 liblivestatus_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \

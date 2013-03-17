@@ -17,11 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-icinga.h"
+#include "icinga/timeperiod.h"
 #include "base/dynamictype.h"
 #include "base/scriptfunction.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "config/configitem.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -69,11 +70,15 @@ void TimePeriod::AddSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
-	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin)
+	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin) {
 		m_ValidBegin = begin;
+		Touch("valid_begin");
+	}
 
-	if (m_ValidEnd.IsEmpty() || end > m_ValidEnd)
+	if (m_ValidEnd.IsEmpty() || end > m_ValidEnd) {
 		m_ValidEnd = end;
+		Touch("valid_end");
+	}
 
 	Array::Ptr segments = m_Segments;
 
@@ -119,11 +124,15 @@ void TimePeriod::RemoveSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
-	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin)
+	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin) {
 		m_ValidBegin = begin;
+		Touch("valid_begin");
+	}
 
-	if (m_ValidEnd.IsEmpty() || end > m_ValidEnd)
+	if (m_ValidEnd.IsEmpty() || end > m_ValidEnd) {
 		m_ValidEnd = end;
+		Touch("valid_end");
+	}
 
 	Array::Ptr segments = m_Segments;
 
@@ -168,6 +177,7 @@ void TimePeriod::PurgeSegments(double end)
 		return;
 
 	m_ValidBegin = end;
+	Touch("valid_begin");
 
 	Array::Ptr segments = m_Segments;
 
@@ -276,13 +286,17 @@ void TimePeriod::UpdateTimerHandler(void)
 		if (!ConfigItem::GetObject("TimePeriod", tp->GetName()))
 			continue;
 
+		double valid_end;
+
 		{
 			ObjectLock olock(tp);
 			tp->PurgeSegments(now - 3600);
+
+			valid_end = tp->m_ValidEnd;
 		}
 
-		if (tp->m_ValidEnd < now + 3 * 3600)
-			tp->UpdateRegion(tp->m_ValidEnd, tp->m_ValidEnd + 24 * 3600);
+		if (valid_end < now + 3 * 3600)
+			tp->UpdateRegion(valid_end, now + 24 * 3600);
 	}
 }
 

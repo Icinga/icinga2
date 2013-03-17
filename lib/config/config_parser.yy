@@ -19,13 +19,22 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include "config/expression.h"
+#include "config/expressionlist.h"
+#include "config/configitembuilder.h"
+#include "config/configcompiler.h"
+#include "config/configcompilercontext.h"
+#include "config/typerule.h"
+#include "config/typerulelist.h"
+#include "base/value.h"
+#include "base/array.h"
 #include <sstream>
 #include <stack>
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
-#define YYLTYPE DebugInfo
+#define YYLTYPE icinga::DebugInfo
 
 }
 

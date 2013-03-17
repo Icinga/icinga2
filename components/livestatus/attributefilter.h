@@ -20,6 +20,10 @@
 #ifndef ATTRIBUTEFILTER_H
 #define ATTRIBUTEFILTER_H
 
+#include "livestatus/filter.h"
+
+using namespace icinga;
+
 namespace livestatus
 {
 

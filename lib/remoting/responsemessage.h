@@ -20,6 +20,9 @@
 #ifndef RESPONSEMESSAGE_H
 #define RESPONSEMESSAGE_H
 
+#include "remoting/i2-remoting.h"
+#include "remoting/messagepart.h"
+
 namespace icinga
 {
 
