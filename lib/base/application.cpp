@@ -30,6 +30,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <iostream>
 
 using namespace icinga;
 

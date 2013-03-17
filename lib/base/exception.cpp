@@ -35,8 +35,8 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 
 #ifndef __APPLE__
 	void *thrown_ptr = obj;
-	const type_info *tinfo = static_cast<type_info *>(pvtinfo);
-	const type_info *boost_exc = &typeid(boost::exception);
+	const std::type_info *tinfo = static_cast<std::type_info *>(pvtinfo);
+	const std::type_info *boost_exc = &typeid(boost::exception);
 
 	/* Check if the exception is a pointer type. */
 	if (tinfo->__is_pointer_p())

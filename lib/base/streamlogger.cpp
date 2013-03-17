@@ -20,6 +20,7 @@
 #include "base/streamlogger.h"
 #include "base/objectlock.h"
 #include <fstream>
+#include <iostream>
 
 using namespace icinga;
 
