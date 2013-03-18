@@ -49,7 +49,7 @@ PerfdataWriter::~PerfdataWriter(void)
  */
 void PerfdataWriter::OnAttributeChanged(const String& name)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	if (name == "rotation_interval") {
 		m_RotationTimer->SetInterval(GetRotationInterval());

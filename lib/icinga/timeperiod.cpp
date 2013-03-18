@@ -329,7 +329,7 @@ void TimePeriod::EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const 
 		if ((t % 2) == 0) {
 			Dictionary::Ptr segment = boost::make_shared<Dictionary>();
 			segment->Set("begin", t * 60);
-			segment->Set("end", t * 61);
+			segment->Set("end", (t + 1) * 60);
 
 			segments->Add(segment);
 		}

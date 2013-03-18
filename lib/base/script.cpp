@@ -22,6 +22,7 @@
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
+#include "base/utility.h"
 
 using namespace icinga;
 
@@ -44,7 +45,7 @@ Script::Script(const Dictionary::Ptr& serializedUpdate)
  */
 void Script::Start(void)
 {
-	assert(OwnsLock());
+	ASSERT(OwnsLock());
 
 	SpawnInterpreter();
 }
@@ -74,7 +75,7 @@ String Script::GetCode(void) const
  */
 void Script::OnAttributeUpdate(const String& name)
 {
-	assert(!OwnsLock());
+	ASSERT(!OwnsLock());
 
 	if (name == "language" || name == "code")
 		SpawnInterpreter();
