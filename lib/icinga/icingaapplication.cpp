@@ -63,12 +63,12 @@ int IcingaApplication::Main(void)
 
 	if (!GetCertificateFile().IsEmpty() && !GetCAFile().IsEmpty()) {
 		/* set up SSL context */
-		shared_ptr<X509> cert = Utility::GetX509Certificate(GetCertificateFile());
-		String identity = Utility::GetCertificateCN(cert);
+		shared_ptr<X509> cert = GetX509Certificate(GetCertificateFile());
+		String identity = GetCertificateCN(cert);
 		Log(LogInformation, "icinga", "My identity: " + identity);
 		EndpointManager::GetInstance()->SetIdentity(identity);
 
-		m_SSLContext = Utility::MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
+		m_SSLContext = MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
 
 		EndpointManager::GetInstance()->SetSSLContext(m_SSLContext);
 	}

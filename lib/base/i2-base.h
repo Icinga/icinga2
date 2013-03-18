@@ -80,21 +80,9 @@
 #include <exception>
 #include <stdexcept>
 
-#include <boost/smart_ptr/shared_ptr.hpp>
-#include <boost/smart_ptr/weak_ptr.hpp>
-
-using boost::shared_ptr;
-using boost::weak_ptr;
-using boost::dynamic_pointer_cast;
-using boost::static_pointer_cast;
-
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-
-#include <openssl/bio.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 
 #ifdef I2_BASE_BUILD
 #	define I2_BASE_API I2_EXPORT

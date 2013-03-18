@@ -21,6 +21,7 @@
 #define UTILITY_H
 
 #include "base/i2-base.h"
+#include "base/object.h"
 #include "base/qstring.h"
 #include <typeinfo>
 #include <boost/function.hpp>
@@ -38,10 +39,6 @@ class I2_BASE_API Utility
 public:
 	static String DemangleSymbolName(const String& sym);
 	static String GetTypeName(const std::type_info& ti);
-
-	static shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
-	static String GetCertificateCN(const shared_ptr<X509>& certificate);
-	static shared_ptr<X509> GetX509Certificate(const String& pemfile);
 
 	static bool Match(const String& pattern, const String& text);
 
@@ -80,11 +77,7 @@ public:
 	static void SetNonBlockingSocket(SOCKET s);
 
 private:
-	static bool m_SSLInitialized;
-
 	Utility(void);
-
-	static void InitializeOpenSSL(void);
 };
 
 }

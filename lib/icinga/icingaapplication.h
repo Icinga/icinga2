@@ -22,6 +22,7 @@
 
 #include "icinga/i2-icinga.h"
 #include "base/application.h"
+#include "base/tlsutility.h"
 
 namespace icinga
 {

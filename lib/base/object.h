@@ -22,7 +22,14 @@
 
 #include "base/i2-base.h"
 #include <boost/thread/mutex.hpp>
+#include <boost/smart_ptr/shared_ptr.hpp>
+#include <boost/smart_ptr/weak_ptr.hpp>
 #include <boost/smart_ptr/enable_shared_from_this.hpp>
+
+using boost::shared_ptr;
+using boost::weak_ptr;
+using boost::dynamic_pointer_cast;
+using boost::static_pointer_cast;
 
 namespace icinga
 {

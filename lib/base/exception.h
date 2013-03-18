@@ -85,25 +85,6 @@ inline std::string to_string(const errinfo_win32_error& e)
 }
 #endif /* _WIN32 */
 
-class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
-
-struct errinfo_openssl_error_;
-typedef boost::error_info<struct errinfo_openssl_error_, int> errinfo_openssl_error;
-
-inline std::string to_string(const errinfo_openssl_error& e)
-{
-	std::ostringstream tmp;
-	int code = e.value();
-
-	const char *message = ERR_error_string(code, NULL);
-
-	if (message == NULL)
-		message = "Unknown error.";
-
-	tmp << code << ", \"" << message << "\"";
-	return tmp.str();
-}
-
 }
 
 #endif /* EXCEPTION_H */

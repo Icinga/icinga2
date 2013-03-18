@@ -114,8 +114,6 @@ private:
 	boost::exception_ptr m_Exception;
 };
 
-BIO *BIO_Stream_new(const Stream::Ptr& stream);
-
 }
 
 #endif /* STREAM_H */

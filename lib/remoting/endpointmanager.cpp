@@ -23,6 +23,7 @@
 #include "base/logger_fwd.h"
 #include "base/convert.h"
 #include "base/utility.h"
+#include "base/tlsutility.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
@@ -187,7 +188,7 @@ void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const St
 	m_PendingClients.erase(tlsStream);
 
 	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
-	String identity = Utility::GetCertificateCN(cert);
+	String identity = GetCertificateCN(cert);
 
 	Log(LogInformation, "icinga", "New client connection at " + peerAddress + " for identity '" + identity + "'");
 

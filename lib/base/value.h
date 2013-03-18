@@ -22,7 +22,8 @@
 
 #include "base/object.h"
 #include "base/qstring.h"
-#include <boost/variant.hpp>
+#include <boost/variant/variant.hpp>
+#include <boost/variant/get.hpp>
 
 struct cJSON;
 
@@ -50,29 +51,12 @@ enum ValueType
 class I2_BASE_API Value
 {
 public:
-	inline Value(void)
-		: m_Value()
-	{ }
-
-	inline Value(int value)
-		: m_Value(value)
-	{ }
-
-	inline Value(long value)
-		: m_Value(double(value))
-	{ }
-
-	inline Value(double value)
-		: m_Value(value)
-	{ }
-
-	inline Value(const String& value)
-		: m_Value(value)
-	{ }
-
-	inline Value(const char *value)
-		: m_Value(String(value))
-	{ }
+	Value(void);
+	Value(int value);
+	Value(long value);
+	Value(double value);
+	Value(const String& value);
+	Value(const char *value);
 
 	template<typename T>
 	inline Value(const shared_ptr<T>& value)
@@ -81,12 +65,7 @@ public:
 		if (!value)
 			return;
 
-		Object::Ptr object = dynamic_pointer_cast<Object>(value);
-
-		if (!object)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("shared_ptr value type must inherit from Object class."));
-
-		m_Value = object;
+		m_Value = static_pointer_cast<Object>(value);
 	}
 
 	operator double(void) const;
@@ -106,7 +85,7 @@ public:
 		return object;
 	}
 
-	bool IsEmpty(void) const;
+bool IsEmpty(void) const;
 	bool IsScalar(void) const;
 	bool IsObject(void) const;
 

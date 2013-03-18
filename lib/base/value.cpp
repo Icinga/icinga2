@@ -28,6 +28,30 @@ using namespace icinga;
 
 Value Empty;
 
+Value::Value(void)
+    : m_Value()
+{ }
+
+Value::Value(int value)
+    : m_Value(value)
+{ }
+
+Value::Value(long value)
+    : m_Value(double(value))
+{ }
+
+Value::Value(double value)
+    : m_Value(value)
+{ }
+
+Value::Value(const String& value)
+    : m_Value(value)
+{ }
+
+Value::Value(const char *value)
+    : m_Value(String(value))
+{ }
+
 /**
  * Checks whether the variant is empty.
  *

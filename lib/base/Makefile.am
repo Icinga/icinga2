@@ -81,6 +81,8 @@ libbase_la_SOURCES =  \
 	timer.h \
 	tlsstream.cpp \
 	tlsstream.h \
+	tlsutility.cpp \
+	tlsutility.h \
 	unix.h \
 	unixsocket.cpp \
 	unixsocket.h \
