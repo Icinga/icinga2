@@ -52,14 +52,14 @@ void Process::Initialize(void)
 #if HAVE_PIPE2
 	if (pipe2(fds, O_CLOEXEC) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("pipe2")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("pipe2")
+		    << boost::errinfo_errno(errno));
 	}
 #else /* HAVE_PIPE2 */
 	if (pipe(fds) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("pipe")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("pipe")
+		    << boost::errinfo_errno(errno));
 	}
 
 	/* Don't bother setting fds[0] to clo-exec as we'll only
@@ -80,8 +80,8 @@ void Process::Initialize(void)
 
 		if (childTaskFd < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << errinfo_api_function("dup")
-			    << errinfo_errno(errno));
+			    << boost::errinfo_api_function("dup")
+			    << boost::errinfo_errno(errno));
 		}
 
 		Utility::SetNonBlocking(childTaskFd);
@@ -111,8 +111,8 @@ void Process::WorkerThreadProc(int taskFd)
 
 		if (pfds == NULL) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << errinfo_api_function("realloc")
-			    << errinfo_errno(errno));
+			    << boost::errinfo_api_function("realloc")
+			    << boost::errinfo_errno(errno));
 		}
 
 		int idx = 0;
@@ -134,8 +134,8 @@ void Process::WorkerThreadProc(int taskFd)
 
 		if (rc < 0 && errno != EINTR) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << errinfo_api_function("poll")
-			    << errinfo_errno(errno));
+			    << boost::errinfo_api_function("poll")
+			    << boost::errinfo_errno(errno));
 		}
 
 		if (rc == 0)
@@ -165,8 +165,8 @@ void Process::WorkerThreadProc(int taskFd)
 							break; /* Someone else was faster and took our task. */
 
 						BOOST_THROW_EXCEPTION(posix_error()
-						    << errinfo_api_function("read")
-						    << errinfo_errno(errno));
+						    << boost::errinfo_api_function("read")
+						    << boost::errinfo_errno(errno));
 					}
 
 					while (have > 0) {
@@ -232,8 +232,8 @@ void Process::QueueTask(void)
 		 */
 		if (write(m_TaskFd, "T", 1) < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << errinfo_api_function("write")
-			    << errinfo_errno(errno));
+			    << boost::errinfo_api_function("write")
+			    << boost::errinfo_errno(errno));
 		}
 	}
 }
@@ -249,14 +249,14 @@ void Process::InitTask(void)
 #if HAVE_PIPE2
 	if (pipe2(fds, O_NONBLOCK | O_CLOEXEC) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("pipe2")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("pipe2")
+		    << boost::errinfo_errno(errno));
 	}
 #else /* HAVE_PIPE2 */
 	if (pipe(fds) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("pipe")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("pipe")
+		    << boost::errinfo_errno(errno));
 	}
 
 	Utility::SetNonBlocking(fds[0]);
@@ -313,8 +313,8 @@ void Process::InitTask(void)
 
 	if (m_Pid < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("fork")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("fork")
+		    << boost::errinfo_errno(errno));
 	}
 
 	if (m_Pid == 0) {
@@ -378,8 +378,8 @@ bool Process::RunTask(void)
 
 	if (waitpid(m_Pid, &status, 0) != m_Pid) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("waitpid")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("waitpid")
+		    << boost::errinfo_errno(errno));
 	}
 
 	if (WIFEXITED(status)) {

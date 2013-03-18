@@ -18,6 +18,9 @@
  ******************************************************************************/
 
 #include "base/tcpsocket.h"
+#include <boost/exception/errinfo_api_function.hpp>
+#include <boost/exception/errinfo_errno.hpp>
+#include <boost/exception/errinfo_file_name.hpp>
 
 using namespace icinga;
 
@@ -55,12 +58,12 @@ void TcpSocket::Bind(String node, String service, int family)
 	    service.CStr(), &hints, &result) < 0) {
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getaddrinfo")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("getaddrinfo")
+		    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getaddrinfo")
-		    << errinfo_win32_error(WSAGetLastError()));
+		    << boost::errinfo_api_function("getaddrinfo")
+		    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -126,12 +129,12 @@ void TcpSocket::Connect(const String& node, const String& service)
 	if (rc < 0) {
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getaddrinfo")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("getaddrinfo")
+		    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getaddrinfo")
-		    << errinfo_win32_error(WSAGetLastError()));
+		    << boost::errinfo_api_function("getaddrinfo")
+		    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 

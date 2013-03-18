@@ -103,23 +103,23 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(const String& pubkey, const String& 
 
 	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr())) {
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << errinfo_api_function("SSL_CTX_use_certificate_chain_file")
+		    << boost::errinfo_api_function("SSL_CTX_use_certificate_chain_file")
 		    << errinfo_openssl_error(ERR_get_error())
-		    << errinfo_file_name(pubkey));
+		    << boost::errinfo_file_name(pubkey));
 	}
 
 	if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.CStr(), SSL_FILETYPE_PEM)) {
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << errinfo_api_function("SSL_CTX_use_PrivateKey_file")
+		    << boost::errinfo_api_function("SSL_CTX_use_PrivateKey_file")
 		    << errinfo_openssl_error(ERR_get_error())
-		    << errinfo_file_name(privkey));
+		    << boost::errinfo_file_name(privkey));
 	}
 
 	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), NULL)) {
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << errinfo_api_function("SSL_CTX_load_verify_locations")
+		    << boost::errinfo_api_function("SSL_CTX_load_verify_locations")
 		    << errinfo_openssl_error(ERR_get_error())
-		    << errinfo_file_name(cakey));
+		    << boost::errinfo_file_name(cakey));
 	}
 
 	STACK_OF(X509_NAME) *cert_names;
@@ -127,9 +127,9 @@ shared_ptr<SSL_CTX> Utility::MakeSSLContext(const String& pubkey, const String& 
 	cert_names = SSL_load_client_CA_file(cakey.CStr());
 	if (cert_names == NULL) {
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << errinfo_api_function("SSL_load_client_CA_file")
+		    << boost::errinfo_api_function("SSL_load_client_CA_file")
 		    << errinfo_openssl_error(ERR_get_error())
-		    << errinfo_file_name(cakey));
+		    << boost::errinfo_file_name(cakey));
 	}
 
 	SSL_CTX_set_client_CA_list(sslContext.get(), cert_names);
@@ -152,7 +152,7 @@ String Utility::GetCertificateCN(const shared_ptr<X509>& certificate)
 
 	if (rc == -1) {
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << errinfo_api_function("X509_NAME_get_text_by_NID")
+		    << boost::errinfo_api_function("X509_NAME_get_text_by_NID")
 		    << errinfo_openssl_error(ERR_get_error()));
 	}
 
@@ -172,21 +172,21 @@ shared_ptr<X509> Utility::GetX509Certificate(const String& pemfile)
 
 	if (fpcert == NULL) {
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << errinfo_api_function("BIO_new")
+		    << boost::errinfo_api_function("BIO_new")
 		    << errinfo_openssl_error(ERR_get_error()));
 	}
 
 	if (BIO_read_filename(fpcert, pemfile.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << errinfo_api_function("BIO_read_filename")
+		    << boost::errinfo_api_function("BIO_read_filename")
 		    << errinfo_openssl_error(ERR_get_error())
-		    << errinfo_file_name(pemfile));
+		    << boost::errinfo_file_name(pemfile));
 	}
 
 	cert = PEM_read_bio_X509_AUX(fpcert, NULL, NULL, NULL);
 	if (cert == NULL) {
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << errinfo_api_function("PEM_read_bio_X509_AUX")
+		    << boost::errinfo_api_function("PEM_read_bio_X509_AUX")
 		    << errinfo_openssl_error(ERR_get_error()));
 	}
 
@@ -243,8 +243,8 @@ String Utility::DirName(const String& path)
 		free(dir);
 
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << errinfo_api_function("PathRemoveFileSpec")
-			<< errinfo_win32_error(GetLastError()));
+		    << boost::errinfo_api_function("PathRemoveFileSpec")
+		    << errinfo_win32_error(GetLastError()));
 	}
 
 	result = dir;
@@ -322,8 +322,8 @@ double Utility::GetTime(void)
 
 	if (gettimeofday(&tv, NULL) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("gettimeofday")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("gettimeofday")
+		    << boost::errinfo_errno(errno));
 	}
 
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
@@ -384,9 +384,9 @@ Utility::LoadExtensionLibrary(const String& library)
 
 	if (hModule == NULL) {
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << errinfo_api_function("LoadLibrary")
-			<< errinfo_win32_error(GetLastError())
-			<< errinfo_file_name(path));
+		    << boost::errinfo_api_function("LoadLibrary")
+		    << errinfo_win32_error(GetLastError())
+		    << boost::errinfo_file_name(path));
 	}
 #else /* _WIN32 */
 	lt_dlhandle hModule = lt_dlopen(path.CStr());
@@ -430,9 +430,9 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 			return false;
 
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << errinfo_api_function("FindFirstFile")
-			<< errinfo_win32_error(errorCode)
-		    << errinfo_file_name(pathSpec));
+		    << boost::errinfo_api_function("FindFirstFile")
+			<< boost::errinfo_win32_error(errorCode)
+		    << boost::errinfo_file_name(pathSpec));
 	}
 
 	do {
@@ -441,7 +441,7 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 
 	if (!FindClose(handle)) {
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << errinfo_api_function("FindClose")
+		    << boost::errinfo_api_function("FindClose")
 		    << errinfo_win32_error(GetLastError()));
 	}
 
@@ -456,9 +456,9 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 			return false;
 
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("glob")
-		    << errinfo_errno(errno)
-		    << errinfo_file_name(pathSpec));
+		    << boost::errinfo_api_function("glob")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(pathSpec));
 	}
 
 	if (gr.gl_pathc == 0) {
@@ -485,14 +485,14 @@ void Utility::SetNonBlocking(int fd)
 
 	if (flags < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("fcntl")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("fcntl")
+		    << boost::errinfo_errno(errno));
 	}
 
 	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("fcntl")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("fcntl")
+		    << boost::errinfo_errno(errno));
 	}
 }
 
@@ -502,14 +502,14 @@ void Utility::SetCloExec(int fd)
 
 	if (flags < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("fcntl")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("fcntl")
+		    << boost::errinfo_errno(errno));
 	}
 
 	if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("fcntl")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("fcntl")
+		    << boost::errinfo_errno(errno));
 	}
 }
 #endif /* _WIN32 */
@@ -540,16 +540,16 @@ String Utility::FormatDateTime(const char *format, double ts)
 
 	if (temp == NULL) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("localtime")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("localtime")
+		    << boost::errinfo_errno(errno));
 	}
 
 	tmthen = *temp;
 #else /* _MSC_VER */
 	if (localtime_r(&tempts, &tmthen) == NULL) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("localtime_r")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("localtime_r")
+		    << boost::errinfo_errno(errno));
 	}
 #endif /* _MSC_VER */
 

@@ -31,6 +31,9 @@
 #include <fstream>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/exception/errinfo_api_function.hpp>
+#include <boost/exception/errinfo_errno.hpp>
+#include <boost/exception/errinfo_file_name.hpp>
 
 using namespace icinga;
 
@@ -519,9 +522,9 @@ void DynamicObject::DumpObjects(const String& filename)
 
 	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("rename")
-		    << errinfo_errno(errno)
-		    << errinfo_file_name(tempFilename));
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempFilename));
 	}
 }
 

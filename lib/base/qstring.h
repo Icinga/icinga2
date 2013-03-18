@@ -21,6 +21,7 @@
 #define STRING_H
 
 #include "base/i2-base.h"
+#include <boost/range/iterator.hpp>
 #include <ostream>
 #include <istream>
 

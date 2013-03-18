@@ -138,18 +138,18 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 		} else {
 			if (unlink(commandPath.CStr()) < 0) {
 				BOOST_THROW_EXCEPTION(posix_error()
-				    << errinfo_api_function("unlink")
-				    << errinfo_errno(errno)
-				    << errinfo_file_name(commandPath));
+				    << boost::errinfo_api_function("unlink")
+				    << boost::errinfo_errno(errno)
+				    << boost::errinfo_file_name(commandPath));
 			}
 		}
 	}
 
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("mkfifo")
-		    << errinfo_errno(errno)
-		    << errinfo_file_name(commandPath));
+		    << boost::errinfo_api_function("mkfifo")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(commandPath));
 	}
 
 	for (;;) {
@@ -161,9 +161,9 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 
 		if (fd < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << errinfo_api_function("open")
-			    << errinfo_errno(errno)
-			    << errinfo_file_name(commandPath));
+			    << boost::errinfo_api_function("open")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(commandPath));
 		}
 
 		FILE *fp = fdopen(fd, "r");
@@ -171,8 +171,8 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 		if (fp == NULL) {
 			(void) close(fd);
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << errinfo_api_function("fdopen")
-			    << errinfo_errno(errno));
+			    << boost::errinfo_api_function("fdopen")
+			    << boost::errinfo_errno(errno));
 		}
 
 		char line[2048];
@@ -665,16 +665,16 @@ void CompatComponent::StatusTimerHandler(void)
 	statusfp.close();
 	if (rename(statuspathtmp.CStr(), statuspath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("rename")
-		    << errinfo_errno(errno)
-		    << errinfo_file_name(statuspathtmp));
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(statuspathtmp));
 	}
 
 	objectfp.close();
 	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("rename")
-		    << errinfo_errno(errno)
-		    << errinfo_file_name(objectspathtmp));
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(objectspathtmp));
 	}
 }

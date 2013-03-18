@@ -24,6 +24,9 @@
 #include "base/stacktrace.h"
 #include <sstream>
 #include <boost/thread/tss.hpp>
+#include <boost/exception/errinfo_api_function.hpp>
+#include <boost/exception/errinfo_errno.hpp>
+#include <boost/exception/errinfo_file_name.hpp>
 
 #ifdef _WIN32
 #	include <boost/algorithm/string/trim.hpp>
@@ -54,6 +57,7 @@ class I2_BASE_API posix_error : virtual public std::exception, virtual public bo
 #ifdef _WIN32
 class I2_BASE_API win32_error : virtual public std::exception, virtual public boost::exception { };
 
+struct errinfo_win32_error_;
 typedef boost::error_info<struct errinfo_win32_error_, int> errinfo_win32_error;
 
 inline std::string to_string(const errinfo_win32_error& e)
@@ -83,6 +87,7 @@ inline std::string to_string(const errinfo_win32_error& e)
 
 class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
 
+struct errinfo_openssl_error_;
 typedef boost::error_info<struct errinfo_openssl_error_, int> errinfo_openssl_error;
 
 inline std::string to_string(const errinfo_openssl_error& e)

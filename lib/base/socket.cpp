@@ -23,6 +23,9 @@
 #include <sstream>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/exception/errinfo_api_function.hpp>
+#include <boost/exception/errinfo_errno.hpp>
+#include <boost/exception/errinfo_file_name.hpp>
 
 using namespace icinga;
 
@@ -151,12 +154,12 @@ void Socket::HandleException(void)
 
 #ifndef _WIN32
 	BOOST_THROW_EXCEPTION(socket_error()
-	    << errinfo_api_function("select")
-	    << errinfo_errno(GetError()));
+	    << boost::errinfo_api_function("select")
+	    << boost::errinfo_errno(GetError()));
 #else /* _WIN32 */
 	BOOST_THROW_EXCEPTION(socket_error()
-	    << errinfo_api_function("select")
-	    << errinfo_win32_error(GetError()));
+	    << boost::errinfo_api_function("select")
+	    << boost::errinfo_win32_error(GetError()));
 #endif /* _WIN32 */
 }
 
@@ -174,12 +177,12 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 	    sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0) {
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getnameinfo")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("getnameinfo")
+		    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getnameinfo")
-		    << errinfo_win32_error(WSAGetLastError()));
+		    << boost::errinfo_api_function("getnameinfo")
+		    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -203,12 +206,12 @@ String Socket::GetClientAddress(void)
 	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0) {
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getsockname")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("getsockname")
+		    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getsockname")
-		    << errinfo_win32_error(WSAGetLastError()));
+		    << boost::errinfo_api_function("getsockname")
+		    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -230,12 +233,12 @@ String Socket::GetPeerAddress(void)
 	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0) {
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getpeername")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("getpeername")
+		    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("getpeername")
-		    << errinfo_win32_error(WSAGetLastError()));
+		    << boost::errinfo_api_function("getpeername")
+		    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -282,12 +285,12 @@ void Socket::ReadThreadProc(void)
 			if (rc < 0) {
 #ifndef _WIN32
 				BOOST_THROW_EXCEPTION(socket_error()
-				    << errinfo_api_function("select")
-				    << errinfo_errno(errno));
+				    << boost::errinfo_api_function("select")
+				    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 				BOOST_THROW_EXCEPTION(socket_error()
-				    << errinfo_api_function("select")
-				    << errinfo_win32_error(WSAGetLastError()));
+				    << boost::errinfo_api_function("select")
+				    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 			}
 
@@ -349,12 +352,12 @@ void Socket::WriteThreadProc(void)
 			if (rc < 0) {
 #ifndef _WIN32
 				BOOST_THROW_EXCEPTION(socket_error()
-				    << errinfo_api_function("select")
-				    << errinfo_errno(errno));
+				    << boost::errinfo_api_function("select")
+				    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 				BOOST_THROW_EXCEPTION(socket_error()
-				    << errinfo_api_function("select")
-				    << errinfo_win32_error(WSAGetLastError()));
+				    << boost::errinfo_api_function("select")
+				    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 			}
 
@@ -479,12 +482,12 @@ void Socket::Listen(void)
 	if (listen(GetFD(), SOMAXCONN) < 0) {
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("listen")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("listen")
+		    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("listen")
-		    << errinfo_win32_error(WSAGetLastError()));
+		    << boost::errinfo_api_function("listen")
+		    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -537,12 +540,12 @@ void Socket::HandleWritableClient(void)
 		if (rc <= 0) {
 #ifndef _WIN32
 			BOOST_THROW_EXCEPTION(socket_error()
-			    << errinfo_api_function("send")
-			    << errinfo_errno(errno));
+			    << boost::errinfo_api_function("send")
+			    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 			BOOST_THROW_EXCEPTION(socket_error()
-			    << errinfo_api_function("send")
-			    << errinfo_win32_error(WSAGetLastError()));
+			    << boost::errinfo_api_function("send")
+			    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 		}
 
@@ -574,12 +577,12 @@ void Socket::HandleReadableClient(void)
 		if (rc < 0) {
 #ifndef _WIN32
 			BOOST_THROW_EXCEPTION(socket_error()
-			    << errinfo_api_function("recv")
-			    << errinfo_errno(errno));
+			    << boost::errinfo_api_function("recv")
+			    << boost::errinfo_errno(errno));
 #else /* _WIN32 */
 			BOOST_THROW_EXCEPTION(socket_error()
-			    << errinfo_api_function("recv")
-			    << errinfo_win32_error(WSAGetLastError()));
+			    << boost::errinfo_api_function("recv")
+			    << boost::errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 		}
 
@@ -618,12 +621,12 @@ void Socket::HandleReadableServer(void)
 	if (fd < 0) {
 	#ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("accept")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("accept")
+		    << boost::errinfo_errno(errno));
 	#else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << errinfo_api_function("accept")
-		    << errinfo_win32_error(WSAGetLastError()));
+		    << boost::errinfo_api_function("accept")
+		    << boost::errinfo_win32_error(WSAGetLastError()));
 	#endif /* _WIN32 */
 	}
 

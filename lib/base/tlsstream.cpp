@@ -54,7 +54,7 @@ void TlsStream::Start(void)
 
 	if (!m_SSL) {
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << errinfo_api_function("SSL_new")
+		    << boost::errinfo_api_function("SSL_new")
 		    << errinfo_openssl_error(ERR_get_error()));
 	}
 
@@ -161,7 +161,7 @@ void TlsStream::HandleIO(void)
 				default:
 					I2Stream_check_exception(m_BIO);
 					BOOST_THROW_EXCEPTION(openssl_error()
-					    << errinfo_api_function("SSL_do_handshake")
+					    << boost::errinfo_api_function("SSL_do_handshake")
 					    << errinfo_openssl_error(ERR_get_error()));
 			}
 		}
@@ -188,7 +188,7 @@ void TlsStream::HandleIO(void)
 				default:
 					I2Stream_check_exception(m_BIO);
 					BOOST_THROW_EXCEPTION(openssl_error()
-					    << errinfo_api_function("SSL_read")
+					    << boost::errinfo_api_function("SSL_read")
 					    << errinfo_openssl_error(ERR_get_error()));
 			}
 		}
@@ -227,7 +227,7 @@ void TlsStream::HandleIO(void)
 				default:
 					I2Stream_check_exception(m_BIO);
 					BOOST_THROW_EXCEPTION(openssl_error()
-					    << errinfo_api_function("SSL_write")
+					    << boost::errinfo_api_function("SSL_write")
 					    << errinfo_openssl_error(ERR_get_error()));
 			}
 		}

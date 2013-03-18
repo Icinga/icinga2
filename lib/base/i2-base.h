@@ -82,18 +82,11 @@
 
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/smart_ptr/weak_ptr.hpp>
-#include <boost/exception/error_info.hpp>
-#include <boost/exception/errinfo_api_function.hpp>
-#include <boost/exception/errinfo_errno.hpp>
-#include <boost/exception/errinfo_file_name.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
 using boost::dynamic_pointer_cast;
 using boost::static_pointer_cast;
-using boost::errinfo_api_function;
-using boost::errinfo_errno;
-using boost::errinfo_file_name;
 
 #if defined(__APPLE__) && defined(__MACH__)
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations"

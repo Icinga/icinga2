@@ -32,6 +32,9 @@
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/exception/errinfo_api_function.hpp>
+#include <boost/exception/errinfo_errno.hpp>
+#include <boost/exception/errinfo_file_name.hpp>
 #include <iostream>
 
 using namespace icinga;
@@ -62,8 +65,8 @@ Application::Application(const Dictionary::Ptr& serializedUpdate)
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << errinfo_api_function("WSAStartup")
-			<< errinfo_win32_error(WSAGetLastError()));
+		    << boost::errinfo_api_function("WSAStartup")
+		    << boost::errinfo_win32_error(WSAGetLastError()));
 	}
 #endif /* _WIN32 */
 
@@ -208,8 +211,8 @@ String Application::GetExePath(const String& argv0)
 	char buffer[MAXPATHLEN];
 	if (getcwd(buffer, sizeof(buffer)) == NULL) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("getcwd")
-		    << errinfo_errno(errno));
+		    << boost::errinfo_api_function("getcwd")
+		    << boost::errinfo_errno(errno));
 	}
 
 	String workingDirectory = buffer;
@@ -253,9 +256,9 @@ String Application::GetExePath(const String& argv0)
 
 	if (realpath(executablePath.CStr(), buffer) == NULL) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << errinfo_api_function("realpath")
-		    << errinfo_errno(errno)
-		    << errinfo_file_name(executablePath));
+		    << boost::errinfo_api_function("realpath")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(executablePath));
 	}
 
 	return buffer;
@@ -264,8 +267,8 @@ String Application::GetExePath(const String& argv0)
 
 	if (!GetModuleFileName(NULL, FullExePath, sizeof(FullExePath)))
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << errinfo_api_function("GetModuleFileName")
-			<< errinfo_win32_error(GetLastError()));
+		    << boost::errinfo_api_function("GetModuleFileName")
+		    << boost::errinfo_win32_error(GetLastError()));
 
 	return FullExePath;
 #endif /* _WIN32 */
