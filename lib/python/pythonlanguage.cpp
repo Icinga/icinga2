@@ -35,7 +35,7 @@ REGISTER_SCRIPTLANGUAGE("Python", PythonLanguage);
 
 PyMethodDef PythonLanguage::m_NativeMethodDef[] = {
 	{ "RegisterFunction", &PythonLanguage::PyRegisterFunction, METH_VARARGS, NULL },
-	{ NULL, NULL, NULL, 0 } /* sentinel */
+	{ NULL, NULL, 0, NULL } /* sentinel */
 };
 
 PythonLanguage::PythonLanguage(void)
