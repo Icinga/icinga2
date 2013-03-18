@@ -20,6 +20,7 @@
 #include "config/expression.h"
 #include "config/expressionlist.h"
 #include "base/objectlock.h"
+#include "base/array.h"
 #include <sstream>
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -39,15 +40,20 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 	ExpressionList::Ptr valueExprl;
 	Dictionary::Ptr valueDict;
+	Array::Ptr valueArray;
 	if (m_Value.IsObjectType<ExpressionList>())
 		valueExprl = m_Value;
 
 	if (m_Value.IsObjectType<Dictionary>())
 		valueDict = m_Value;
 
+	if (m_Value.IsObjectType<Array>())
+		valueArray = m_Value;
+
 	newValue = m_Value;
 
 	Dictionary::Ptr dict;
+	Array::Ptr array;
 
 	switch (m_Operator) {
 		case OperatorExecute:
@@ -73,24 +79,20 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 			if (oldValue.IsObjectType<Dictionary>())
 				dict = oldValue;
 
-			if (!dict) {
-				if (!oldValue.IsEmpty()) {
-					std::ostringstream message;
-					message << "Wrong argument types for"
-					    " += (non-dictionary and"
-					    " dictionary) ("
-					        << m_DebugInfo << ")";
-					BOOST_THROW_EXCEPTION(std::invalid_argument(message.str()));
-				}
-
-				dict = boost::make_shared<Dictionary>();
-			}
-
-			newValue = dict;
+			if (oldValue.IsObjectType<Array>())
+				array = oldValue;
 
 			if (valueExprl) {
+				if (!dict)
+					dict = boost::make_shared<Dictionary>();
+
 				valueExprl->Execute(dict);
+
+				newValue = dict;
 			} else if (valueDict) {
+				if (!dict)
+					dict = boost::make_shared<Dictionary>();
+
 				ObjectLock olock(valueDict);
 
 				String key;
@@ -98,9 +100,23 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				BOOST_FOREACH(boost::tie(key, value), valueDict) {
 					dict->Set(key, value);
 				}
+
+				newValue = dict;
+			} else if (valueArray) {
+				if (!array)
+					array = boost::make_shared<Array>();
+
+
+				ObjectLock olock(valueArray);
+
+				BOOST_FOREACH(const Value& value, valueArray) {
+					array->Add(value);
+				}
+
+				newValue = array;
 			} else {
 				std::ostringstream message;
-				message << "+= only works for dictionaries ("
+				message << "+= only works for dictionaries and arrays ("
 					<< m_DebugInfo << ")";
 				BOOST_THROW_EXCEPTION(std::invalid_argument(message.str()));
 			}
