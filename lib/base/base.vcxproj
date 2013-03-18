@@ -30,12 +30,6 @@
     <ClCompile Include="eventqueue.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="fifo.cpp" />
-    <ClCompile Include="i2-base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="netstring.cpp" />
     <ClCompile Include="object.cpp" />
@@ -57,6 +51,7 @@
     <ClCompile Include="tcpsocket.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="tlsstream.cpp" />
+    <ClCompile Include="tlsutility.cpp" />
     <ClCompile Include="unixsocket.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="value.cpp" />
@@ -73,6 +68,9 @@
     <ClInclude Include="dynamictype.h" />
     <ClInclude Include="eventqueue.h" />
     <ClInclude Include="fifo.h" />
+    <ClInclude Include="logger_fwd.h" />
+    <ClInclude Include="registry.h" />
+    <ClInclude Include="singleton.h" />
     <ClInclude Include="stacktrace.h" />
     <ClInclude Include="stdiostream.h" />
     <ClInclude Include="stream.h" />
@@ -94,6 +92,7 @@
     <ClInclude Include="tcpsocket.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="tlsstream.h" />
+    <ClInclude Include="tlsutility.h" />
     <ClInclude Include="unix.h" />
     <ClInclude Include="unixsocket.h" />
     <ClInclude Include="utility.h" />
@@ -145,25 +144,25 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib;$(SolutionDir)\components;$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib;$(SolutionDir)\components;$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib;$(SolutionDir)\components;$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\lib;$(SolutionDir)\components;$(SolutionDir)\third-party\mmatch;$(SolutionDir)\third-party\cJSON;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
@@ -175,7 +174,7 @@
       <WarningLevel>Level3</WarningLevel>
       <MinimalRebuild>false</MinimalRebuild>
       <PrecompiledHeaderFile>i2-base.h</PrecompiledHeaderFile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -194,7 +193,7 @@
       <WarningLevel>Level3</WarningLevel>
       <MinimalRebuild>false</MinimalRebuild>
       <PrecompiledHeaderFile>i2-base.h</PrecompiledHeaderFile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -208,7 +207,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -232,7 +231,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>

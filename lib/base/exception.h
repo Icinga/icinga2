@@ -21,6 +21,7 @@
 #define EXCEPTION_H
 
 #include "base/i2-base.h"
+#include "base/qstring.h"
 #include "base/stacktrace.h"
 #include <sstream>
 #include <boost/thread/tss.hpp>

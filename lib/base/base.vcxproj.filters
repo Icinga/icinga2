@@ -46,9 +46,6 @@
     <ClCompile Include="scripttask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="i2-base.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="fifo.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -107,6 +104,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="array.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="tlsutility.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -220,6 +220,18 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="array.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="tlsutility.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="logger_fwd.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="registry.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="singleton.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

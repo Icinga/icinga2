@@ -21,7 +21,15 @@
 #define OBJECT_H
 
 #include "base/i2-base.h"
+#include <boost/thread/thread.hpp>
+
+#ifndef _DEBUG
 #include <boost/thread/mutex.hpp>
+#else /* _DEBUG */
+#include "base/utility.h"
+#include <boost/thread/recursive_mutex.hpp>
+#endif /* _DEBUG */
+
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/smart_ptr/weak_ptr.hpp>
 #include <boost/smart_ptr/enable_shared_from_this.hpp>

@@ -19,7 +19,8 @@
 
 #include "base/tlsutility.h"
 
-using namespace icinga;
+namespace icinga
+{
 
 static bool l_SSLInitialized = false;
 
@@ -147,3 +148,4 @@ shared_ptr<X509> GetX509Certificate(const String& pemfile)
 	return shared_ptr<X509>(cert, X509_free);
 }
 
+}

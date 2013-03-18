@@ -24,6 +24,7 @@
 #include "base/object.h"
 #include "base/array.h"
 #include "base/stream.h"
+#include <deque>
 
 using namespace icinga;
 

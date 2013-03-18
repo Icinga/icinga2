@@ -21,7 +21,6 @@
 #define UTILITY_H
 
 #include "base/i2-base.h"
-#include "base/object.h"
 #include "base/qstring.h"
 #include <typeinfo>
 #include <boost/function.hpp>
@@ -83,6 +82,7 @@ private:
 }
 
 #ifdef _DEBUG
+#	include <cassert>
 #	define ASSERT(expr) assert(expr)
 #else /* _DEBUG */
 #	define ASSERT(expr)

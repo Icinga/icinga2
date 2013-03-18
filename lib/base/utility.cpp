@@ -305,7 +305,7 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 
 		BOOST_THROW_EXCEPTION(win32_error()
 		    << boost::errinfo_api_function("FindFirstFile")
-			<< boost::errinfo_win32_error(errorCode)
+			<< errinfo_win32_error(errorCode)
 		    << boost::errinfo_file_name(pathSpec));
 	}
 

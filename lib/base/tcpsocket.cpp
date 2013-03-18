@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/tcpsocket.h"
+#include "base/exception.h"
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
@@ -63,7 +64,7 @@ void TcpSocket::Bind(String node, String service, int family)
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("getaddrinfo")
-		    << boost::errinfo_win32_error(WSAGetLastError()));
+		    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -134,7 +135,7 @@ void TcpSocket::Connect(const String& node, const String& service)
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("getaddrinfo")
-		    << boost::errinfo_win32_error(WSAGetLastError()));
+		    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 

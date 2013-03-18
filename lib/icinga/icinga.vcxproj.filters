@@ -4,9 +4,6 @@
     <ClCompile Include="icingaapplication.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="i2-icinga.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="cib.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>

@@ -141,7 +141,7 @@ void EventQueue::QueueThreadProc(void)
 		int divctx = usage_end.ru_nivcsw - usage_start.ru_nivcsw;
 #	endif /* RUSAGE_THREAD */
 		if (et - st > 0.5) {
-			stringstream msgbuf;
+			std::ostringstream msgbuf;
 #	ifdef RUSAGE_THREAD
 			msgbuf << "Event call took user:" << duser << "s, system:" << dsys << "s, wait:" << dwait << "s, minor_faults:" << dminfaults << ", major_faults:" << dmajfaults << ", voluntary_csw:" << dvctx << ", involuntary_csw:" << divctx;
 #	else

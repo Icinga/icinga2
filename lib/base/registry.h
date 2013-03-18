@@ -36,7 +36,7 @@ namespace icinga
  * @ingroup base
  */
 template<typename T>
-class I2_BASE_API Registry
+class Registry
 {
 public:
 	typedef std::map<String, T, string_iless> ItemMap;

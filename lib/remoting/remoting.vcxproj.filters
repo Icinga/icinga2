@@ -10,9 +10,6 @@
     <ClCompile Include="requestmessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="i2-remoting.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="endpoint.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>

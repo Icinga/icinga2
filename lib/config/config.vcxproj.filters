@@ -22,9 +22,6 @@
     <ClCompile Include="expressionlist.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="i2-config.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="configcompilercontext.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>

@@ -66,7 +66,7 @@ Application::Application(const Dictionary::Ptr& serializedUpdate)
 	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
 		BOOST_THROW_EXCEPTION(win32_error()
 		    << boost::errinfo_api_function("WSAStartup")
-		    << boost::errinfo_win32_error(WSAGetLastError()));
+		    << errinfo_win32_error(WSAGetLastError()));
 	}
 #endif /* _WIN32 */
 
@@ -268,7 +268,7 @@ String Application::GetExePath(const String& argv0)
 	if (!GetModuleFileName(NULL, FullExePath, sizeof(FullExePath)))
 		BOOST_THROW_EXCEPTION(win32_error()
 		    << boost::errinfo_api_function("GetModuleFileName")
-		    << boost::errinfo_win32_error(GetLastError()));
+		    << errinfo_win32_error(GetLastError()));
 
 	return FullExePath;
 #endif /* _WIN32 */

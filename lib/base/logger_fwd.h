@@ -39,7 +39,7 @@ enum LogSeverity
 	LogCritical
 };
 
-void Log(LogSeverity severity, const String& facility,
+void I2_BASE_API Log(LogSeverity severity, const String& facility,
     const String& message);
 
 }

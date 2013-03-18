@@ -20,6 +20,7 @@
 #include "base/socket.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
+#include "base/exception.h"
 #include <sstream>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -159,7 +160,7 @@ void Socket::HandleException(void)
 #else /* _WIN32 */
 	BOOST_THROW_EXCEPTION(socket_error()
 	    << boost::errinfo_api_function("select")
-	    << boost::errinfo_win32_error(GetError()));
+	    << errinfo_win32_error(GetError()));
 #endif /* _WIN32 */
 }
 
@@ -182,7 +183,7 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("getnameinfo")
-		    << boost::errinfo_win32_error(WSAGetLastError()));
+		    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -211,7 +212,7 @@ String Socket::GetClientAddress(void)
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("getsockname")
-		    << boost::errinfo_win32_error(WSAGetLastError()));
+		    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -238,7 +239,7 @@ String Socket::GetPeerAddress(void)
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("getpeername")
-		    << boost::errinfo_win32_error(WSAGetLastError()));
+		    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -290,7 +291,7 @@ void Socket::ReadThreadProc(void)
 #else /* _WIN32 */
 				BOOST_THROW_EXCEPTION(socket_error()
 				    << boost::errinfo_api_function("select")
-				    << boost::errinfo_win32_error(WSAGetLastError()));
+				    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 			}
 
@@ -357,7 +358,7 @@ void Socket::WriteThreadProc(void)
 #else /* _WIN32 */
 				BOOST_THROW_EXCEPTION(socket_error()
 				    << boost::errinfo_api_function("select")
-				    << boost::errinfo_win32_error(WSAGetLastError()));
+				    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 			}
 
@@ -487,7 +488,7 @@ void Socket::Listen(void)
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("listen")
-		    << boost::errinfo_win32_error(WSAGetLastError()));
+		    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -545,7 +546,7 @@ void Socket::HandleWritableClient(void)
 #else /* _WIN32 */
 			BOOST_THROW_EXCEPTION(socket_error()
 			    << boost::errinfo_api_function("send")
-			    << boost::errinfo_win32_error(WSAGetLastError()));
+			    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 		}
 
@@ -582,7 +583,7 @@ void Socket::HandleReadableClient(void)
 #else /* _WIN32 */
 			BOOST_THROW_EXCEPTION(socket_error()
 			    << boost::errinfo_api_function("recv")
-			    << boost::errinfo_win32_error(WSAGetLastError()));
+			    << errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 		}
 
@@ -626,7 +627,7 @@ void Socket::HandleReadableServer(void)
 	#else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("accept")
-		    << boost::errinfo_win32_error(WSAGetLastError()));
+		    << errinfo_win32_error(WSAGetLastError()));
 	#endif /* _WIN32 */
 	}
 

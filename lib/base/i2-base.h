@@ -70,7 +70,6 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <cassert>
 #include <cerrno>
 
 #include <sys/types.h>
