@@ -12,9 +12,7 @@ icinga2_test_SOURCES = \
 
 icinga2_test_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/lib/base \
-	-I${top_srcdir}/lib/icinga \
-	-I${top_srcdir}
+	-I${top_srcdir}/lib
 
 icinga2_test_LDADD = \
 	$(BOOST_LDFLAGS) \

@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "base/dictionary.h"
 #include <boost/test/unit_test.hpp>
-
-#include <i2-base.h>
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
