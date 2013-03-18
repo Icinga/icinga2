@@ -23,8 +23,6 @@
 #include "base/i2-base.h"
 #include <ostream>
 #include <istream>
-#include <vector>
-#include <boost/algorithm/string/split.hpp>
 
 namespace icinga {
 
@@ -78,16 +76,6 @@ public:
 	size_t FindFirstOf(const char *s, size_t pos = 0) const;
 	String SubStr(size_t first, size_t len = NPos) const;
 	void Replace(size_t first, size_t second, const String& str);
-
-	template<typename Predicate>
-	std::vector<String> Split(const Predicate& predicate) const
-	{
-		std::vector<String> tokens;
-		boost::algorithm::split(tokens, m_Data, predicate);
-		return tokens;
-	}
-
-	static String Join(const std::vector<String>& strings, const char *delim);
 
 	void Trim(void);
 

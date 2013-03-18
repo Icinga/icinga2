@@ -18,11 +18,12 @@
  ******************************************************************************/
 
 #include "icinga/timeperiod.h"
+#include "config/configitem.h"
 #include "base/dynamictype.h"
 #include "base/scriptfunction.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
-#include "config/configitem.h"
+#include "base/timer.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -32,7 +33,7 @@ REGISTER_TYPE(TimePeriod);
 REGISTER_SCRIPTFUNCTION(EmptyTimePeriod, &TimePeriod::EmptyTimePeriodUpdate);
 REGISTER_SCRIPTFUNCTION(EvenMinutesTimePeriod, &TimePeriod::EvenMinutesTimePeriodUpdate);
 
-Timer::Ptr TimePeriod::m_UpdateTimer;
+static Timer::Ptr l_UpdateTimer;
 
 TimePeriod::TimePeriod(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
@@ -41,11 +42,11 @@ TimePeriod::TimePeriod(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("valid_end", Attribute_Replicated, &m_ValidEnd);
 	RegisterAttribute("segments", Attribute_Replicated, &m_Segments);
 
-	if (!m_UpdateTimer) {
-		m_UpdateTimer = boost::make_shared<Timer>();
-		m_UpdateTimer->SetInterval(300);
-		m_UpdateTimer->OnTimerExpired.connect(boost::bind(&TimePeriod::UpdateTimerHandler));
-		m_UpdateTimer->Start();
+	if (!l_UpdateTimer) {
+		l_UpdateTimer = boost::make_shared<Timer>();
+		l_UpdateTimer->SetInterval(300);
+		l_UpdateTimer->OnTimerExpired.connect(boost::bind(&TimePeriod::UpdateTimerHandler));
+		l_UpdateTimer->Start();
 	}
 }
 
@@ -324,11 +325,11 @@ void TimePeriod::EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const 
 
 	Array::Ptr segments = boost::make_shared<Array>();
 
-	for (long t = begin; t < end; t += 60) {
-		if ((t / 60) % 2 == 0) {
+	for (long t = begin / 60 - 1; t * 60 < end; t++) {
+		if ((t % 2) == 0) {
 			Dictionary::Ptr segment = boost::make_shared<Dictionary>();
-			segment->Set("begin", t);
-			segment->Set("end", t + 60);
+			segment->Set("begin", t * 60);
+			segment->Set("end", t * 61);
 
 			segments->Add(segment);
 		}

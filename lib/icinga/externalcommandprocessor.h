@@ -22,9 +22,10 @@
 
 #include "icinga/i2-icinga.h"
 #include "base/qstring.h"
-#include <vector>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/once.hpp>
+#include <boost/function.hpp>
+#include <vector>
 
 namespace icinga
 {

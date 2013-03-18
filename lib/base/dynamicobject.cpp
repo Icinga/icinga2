@@ -22,20 +22,23 @@
 #include "base/netstring.h"
 #include "base/registry.h"
 #include "base/stdiostream.h"
+#include "base/utility.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
+#include "base/timer.h"
+#include "base/scripttask.h"
 #include <fstream>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-double DynamicObject::m_CurrentTx = 0;
-std::set<DynamicObject::WeakPtr> DynamicObject::m_ModifiedObjects;
-boost::mutex DynamicObject::m_TransactionMutex;
-boost::once_flag DynamicObject::m_TransactionOnce = BOOST_ONCE_INIT;
-Timer::Ptr DynamicObject::m_TransactionTimer;
+static double l_CurrentTx = 0;
+static std::set<DynamicObject::WeakPtr> l_ModifiedObjects;
+static boost::mutex l_TransactionMutex;
+static boost::once_flag l_TransactionOnce = BOOST_ONCE_INIT;
+static Timer::Ptr l_TransactionTimer;
 
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegistered;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
@@ -59,7 +62,7 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	 * non-config state after the object has been fully constructed */
 	ApplyUpdate(serializedObject, Attribute_Config);
 
-	boost::call_once(m_TransactionOnce, &DynamicObject::Initialize);
+	boost::call_once(l_TransactionOnce, &DynamicObject::Initialize);
 }
 
 /*
@@ -71,10 +74,10 @@ DynamicObject::~DynamicObject(void)
 void DynamicObject::Initialize(void)
 {
 	/* Set up a timer to periodically create a new transaction. */
-	m_TransactionTimer = boost::make_shared<Timer>();
-	m_TransactionTimer->SetInterval(0.5);
-	m_TransactionTimer->OnTimerExpired.connect(boost::bind(&DynamicObject::NewTx));
-	m_TransactionTimer->Start();
+	l_TransactionTimer = boost::make_shared<Timer>();
+	l_TransactionTimer->SetInterval(0.5);
+	l_TransactionTimer->OnTimerExpired.connect(boost::bind(&DynamicObject::NewTx));
+	l_TransactionTimer->Start();
 }
 
 Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) const
@@ -249,8 +252,8 @@ void DynamicObject::Touch(const String& name)
 	m_ModifiedAttributes.insert(name);
 
 	{
-		boost::mutex::scoped_lock lock(m_TransactionMutex);
-		m_ModifiedObjects.insert(GetSelf());
+		boost::mutex::scoped_lock lock(l_TransactionMutex);
+		l_ModifiedObjects.insert(GetSelf());
 	}
 }
 
@@ -300,8 +303,8 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 		 * do it here. */
 
 		{
-			boost::mutex::scoped_lock lock(m_TransactionMutex);
-			m_ModifiedObjects.insert(GetSelf());
+			boost::mutex::scoped_lock lock(l_TransactionMutex);
+			l_ModifiedObjects.insert(GetSelf());
 		}
 	}
 
@@ -382,8 +385,8 @@ void DynamicObject::Register(void)
 	 * We're doing this here because we can't construct
 	 * a while WeakPtr from within the object's constructor. */
 	{
-		boost::mutex::scoped_lock lock(m_TransactionMutex);
-		m_ModifiedObjects.insert(GetSelf());
+		boost::mutex::scoped_lock lock(l_TransactionMutex);
+		l_ModifiedObjects.insert(GetSelf());
 	}
 
 	DynamicType::Ptr dtype = GetType();
@@ -587,14 +590,14 @@ void DynamicObject::DeactivateObjects(void)
  */
 double DynamicObject::GetCurrentTx(void)
 {
-	boost::mutex::scoped_lock lock(m_TransactionMutex);
+	boost::mutex::scoped_lock lock(l_TransactionMutex);
 
-	if (m_CurrentTx == 0) {
+	if (l_CurrentTx == 0) {
 		/* Set the initial transaction ID. */
-		m_CurrentTx = Utility::GetTime();
+		l_CurrentTx = Utility::GetTime();
 	}
 
-	return m_CurrentTx;
+	return l_CurrentTx;
 }
 
 void DynamicObject::Flush(void)
@@ -611,11 +614,11 @@ void DynamicObject::NewTx(void)
 	std::set<DynamicObject::WeakPtr> objects;
 
 	{
-		boost::mutex::scoped_lock lock(m_TransactionMutex);
+		boost::mutex::scoped_lock lock(l_TransactionMutex);
 
-		tx = m_CurrentTx;
-		m_ModifiedObjects.swap(objects);
-		m_CurrentTx = Utility::GetTime();
+		tx = l_CurrentTx;
+		l_ModifiedObjects.swap(objects);
+		l_CurrentTx = Utility::GetTime();
 	}
 
 	BOOST_FOREACH(const DynamicObject::WeakPtr& wobject, objects) {

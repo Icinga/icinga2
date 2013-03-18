@@ -22,15 +22,16 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/timer.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-boost::mutex ServiceGroup::m_Mutex;
-std::map<String, std::vector<Service::WeakPtr> > ServiceGroup::m_MembersCache;
-bool ServiceGroup::m_MembersCacheNeedsUpdate = false;
-Timer::Ptr ServiceGroup::m_MembersCacheTimer;
+static boost::mutex l_Mutex;
+static std::map<String, std::vector<Service::WeakPtr> > l_MembersCache;
+static bool l_MembersCacheNeedsUpdate = false;
+static Timer::Ptr l_MembersCacheTimer;
 
 REGISTER_TYPE(ServiceGroup);
 
@@ -105,9 +106,9 @@ std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
 	std::set<Service::Ptr> services;
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(l_Mutex);
 
-		BOOST_FOREACH(const Service::WeakPtr& wservice, m_MembersCache[GetName()]) {
+		BOOST_FOREACH(const Service::WeakPtr& wservice, l_MembersCache[GetName()]) {
 			Service::Ptr service = wservice.lock();
 
 			if (!service)
@@ -125,19 +126,19 @@ std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
  */
 void ServiceGroup::InvalidateMembersCache(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 
-	if (m_MembersCacheNeedsUpdate)
+	if (l_MembersCacheNeedsUpdate)
 		return; /* Someone else has already requested a refresh. */
 
-	if (!m_MembersCacheTimer) {
-		m_MembersCacheTimer = boost::make_shared<Timer>();
-		m_MembersCacheTimer->SetInterval(0.5);
-		m_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&ServiceGroup::RefreshMembersCache));
-		m_MembersCacheTimer->Start();
+	if (!l_MembersCacheTimer) {
+		l_MembersCacheTimer = boost::make_shared<Timer>();
+		l_MembersCacheTimer->SetInterval(0.5);
+		l_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&ServiceGroup::RefreshMembersCache));
+		l_MembersCacheTimer->Start();
 	}
 
-	m_MembersCacheNeedsUpdate = true;
+	l_MembersCacheNeedsUpdate = true;
 }
 
 /**
@@ -146,12 +147,12 @@ void ServiceGroup::InvalidateMembersCache(void)
 void ServiceGroup::RefreshMembersCache(void)
 {
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(l_Mutex);
 
-		if (!m_MembersCacheNeedsUpdate)
+		if (!l_MembersCacheNeedsUpdate)
 			return;
 
-		m_MembersCacheNeedsUpdate = false;
+		l_MembersCacheNeedsUpdate = false;
 	}
 
 	Log(LogDebug, "icinga", "Updating ServiceGroup members cache.");
@@ -171,6 +172,6 @@ void ServiceGroup::RefreshMembersCache(void)
 		}
 	}
 
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_MembersCache.swap(newMembersCache);
+	boost::mutex::scoped_lock lock(l_Mutex);
+	l_MembersCache.swap(newMembersCache);
 }

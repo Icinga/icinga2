@@ -23,6 +23,7 @@
 #include "icinga/i2-icinga.h"
 #include "remoting/endpoint.h"
 #include "base/dynamicobject.h"
+#include "base/timer.h"
 #include <fstream>
 
 namespace icinga

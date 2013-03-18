@@ -31,10 +31,10 @@
 
 using namespace icinga;
 
-boost::mutex Service::m_NotificationMutex;
-std::map<String, std::set<Notification::WeakPtr> > Service::m_NotificationsCache;
-bool Service::m_NotificationsCacheNeedsUpdate = false;
-Timer::Ptr Service::m_NotificationsCacheTimer;
+static boost::mutex l_NotificationMutex;
+static std::map<String, std::set<Notification::WeakPtr> > l_NotificationsCache;
+static bool l_NotificationsCacheNeedsUpdate = false;
+static Timer::Ptr l_NotificationsCacheTimer;
 
 /**
  * @threadsafety Always.
@@ -96,19 +96,19 @@ void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr
  */
 void Service::InvalidateNotificationsCache(void)
 {
-	boost::mutex::scoped_lock lock(m_NotificationMutex);
+	boost::mutex::scoped_lock lock(l_NotificationMutex);
 
-	if (m_NotificationsCacheNeedsUpdate)
+	if (l_NotificationsCacheNeedsUpdate)
 		return; /* Someone else has already requested a refresh. */
 
-	if (!m_NotificationsCacheTimer) {
-		m_NotificationsCacheTimer = boost::make_shared<Timer>();
-		m_NotificationsCacheTimer->SetInterval(0.5);
-		m_NotificationsCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshNotificationsCache));
-		m_NotificationsCacheTimer->Start();
+	if (!l_NotificationsCacheTimer) {
+		l_NotificationsCacheTimer = boost::make_shared<Timer>();
+		l_NotificationsCacheTimer->SetInterval(0.5);
+		l_NotificationsCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshNotificationsCache));
+		l_NotificationsCacheTimer->Start();
 	}
 
-	m_NotificationsCacheNeedsUpdate = true;
+	l_NotificationsCacheNeedsUpdate = true;
 }
 
 /**
@@ -117,12 +117,12 @@ void Service::InvalidateNotificationsCache(void)
 void Service::RefreshNotificationsCache(void)
 {
 	{
-		boost::mutex::scoped_lock lock(m_NotificationMutex);
+		boost::mutex::scoped_lock lock(l_NotificationMutex);
 
-		if (!m_NotificationsCacheNeedsUpdate)
+		if (!l_NotificationsCacheNeedsUpdate)
 			return;
 
-		m_NotificationsCacheNeedsUpdate = false;
+		l_NotificationsCacheNeedsUpdate = false;
 	}
 
 	Log(LogDebug, "icinga", "Updating Service notifications cache.");
@@ -140,8 +140,8 @@ void Service::RefreshNotificationsCache(void)
 		newNotificationsCache[service->GetName()].insert(notification);
 	}
 
-	boost::mutex::scoped_lock lock(m_NotificationMutex);
-	m_NotificationsCache.swap(newNotificationsCache);
+	boost::mutex::scoped_lock lock(l_NotificationMutex);
+	l_NotificationsCache.swap(newNotificationsCache);
 }
 
 /**
@@ -152,9 +152,9 @@ std::set<Notification::Ptr> Service::GetNotifications(void) const
 	std::set<Notification::Ptr> notifications;
 
 	{
-		boost::mutex::scoped_lock lock(m_NotificationMutex);
+		boost::mutex::scoped_lock lock(l_NotificationMutex);
 
-		BOOST_FOREACH(const Notification::WeakPtr& wservice, m_NotificationsCache[GetName()]) {
+		BOOST_FOREACH(const Notification::WeakPtr& wservice, l_NotificationsCache[GetName()]) {
 			Notification::Ptr notification = wservice.lock();
 
 			if (!notification)

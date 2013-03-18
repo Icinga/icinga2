@@ -62,7 +62,6 @@ private:
 	void RemoveSegment(double begin, double end);
 	void PurgeSegments(double end);
 
-	static Timer::Ptr m_UpdateTimer;
 	static void UpdateTimerHandler(void);
 };
 

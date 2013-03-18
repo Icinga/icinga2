@@ -21,28 +21,29 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/timer.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-int Service::m_NextDowntimeID = 1;
-boost::mutex Service::m_DowntimeMutex;
-std::map<int, String> Service::m_LegacyDowntimesCache;
-std::map<String, Service::WeakPtr> Service::m_DowntimesCache;
-bool Service::m_DowntimesCacheNeedsUpdate = false;
-Timer::Ptr Service::m_DowntimesCacheTimer;
-Timer::Ptr Service::m_DowntimesExpireTimer;
+static int l_NextDowntimeID = 1;
+static boost::mutex l_DowntimeMutex;
+static std::map<int, String> l_LegacyDowntimesCache;
+static std::map<String, Service::WeakPtr> l_DowntimesCache;
+static bool l_DowntimesCacheNeedsUpdate = false;
+static Timer::Ptr l_DowntimesCacheTimer;
+static Timer::Ptr l_DowntimesExpireTimer;
 
 /**
  * @threadsafety Always.
  */
 int Service::GetNextDowntimeID(void)
 {
-	boost::mutex::scoped_lock lock(m_DowntimeMutex);
+	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
-	return m_NextDowntimeID;
+	return l_NextDowntimeID;
 }
 
 /**
@@ -75,8 +76,8 @@ String Service::AddDowntime(const String& author, const String& comment,
 	int legacy_id;
 
 	{
-		boost::mutex::scoped_lock lock(m_DowntimeMutex);
-		legacy_id = m_NextDowntimeID++;
+		boost::mutex::scoped_lock lock(l_DowntimeMutex);
+		legacy_id = l_NextDowntimeID++;
 	}
 
 	downtime->Set("legacy_id", legacy_id);
@@ -183,11 +184,11 @@ void Service::TriggerDowntime(const String& id)
  */
 String Service::GetDowntimeIDFromLegacyID(int id)
 {
-	boost::mutex::scoped_lock lock(m_DowntimeMutex);
+	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
-	std::map<int, String>::iterator it = m_LegacyDowntimesCache.find(id);
+	std::map<int, String>::iterator it = l_LegacyDowntimesCache.find(id);
 
-	if (it == m_LegacyDowntimesCache.end())
+	if (it == l_LegacyDowntimesCache.end())
 		return Empty;
 
 	return it->second;
@@ -198,8 +199,8 @@ String Service::GetDowntimeIDFromLegacyID(int id)
  */
 Service::Ptr Service::GetOwnerByDowntimeID(const String& id)
 {
-	boost::mutex::scoped_lock lock(m_DowntimeMutex);
-	return m_DowntimesCache[id].lock();
+	boost::mutex::scoped_lock lock(l_DowntimeMutex);
+	return l_DowntimesCache[id].lock();
 }
 
 /**
@@ -255,19 +256,19 @@ bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
  */
 void Service::InvalidateDowntimesCache(void)
 {
-	boost::mutex::scoped_lock lock(m_DowntimeMutex);
+	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
-	if (m_DowntimesCacheNeedsUpdate)
+	if (l_DowntimesCacheNeedsUpdate)
 		return; /* Someone else has already requested a refresh. */
 
-	if (!m_DowntimesCacheTimer) {
-		m_DowntimesCacheTimer = boost::make_shared<Timer>();
-		m_DowntimesCacheTimer->SetInterval(0.5);
-		m_DowntimesCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshDowntimesCache));
-		m_DowntimesCacheTimer->Start();
+	if (!l_DowntimesCacheTimer) {
+		l_DowntimesCacheTimer = boost::make_shared<Timer>();
+		l_DowntimesCacheTimer->SetInterval(0.5);
+		l_DowntimesCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshDowntimesCache));
+		l_DowntimesCacheTimer->Start();
 	}
 
-	m_DowntimesCacheNeedsUpdate = true;
+	l_DowntimesCacheNeedsUpdate = true;
 }
 
 /**
@@ -276,12 +277,12 @@ void Service::InvalidateDowntimesCache(void)
 void Service::RefreshDowntimesCache(void)
 {
 	{
-		boost::mutex::scoped_lock lock(m_DowntimeMutex);
+		boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
-		if (!m_DowntimesCacheNeedsUpdate)
+		if (!l_DowntimesCacheNeedsUpdate)
 			return;
 
-		m_DowntimesCacheNeedsUpdate = false;
+		l_DowntimesCacheNeedsUpdate = false;
 	}
 
 	Log(LogDebug, "icinga", "Updating Service downtimes cache.");
@@ -304,13 +305,13 @@ void Service::RefreshDowntimesCache(void)
 		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 			int legacy_id = downtime->Get("legacy_id");
 
-			if (legacy_id >= m_NextDowntimeID)
-				m_NextDowntimeID = legacy_id + 1;
+			if (legacy_id >= l_NextDowntimeID)
+				l_NextDowntimeID = legacy_id + 1;
 
 			if (newLegacyDowntimesCache.find(legacy_id) != newLegacyDowntimesCache.end()) {
 				/* The legacy_id is already in use by another downtime;
 				 * this shouldn't usually happen - assign it a new ID. */
-				legacy_id = m_NextDowntimeID++;
+				legacy_id = l_NextDowntimeID++;
 				downtime->Set("legacy_id", legacy_id);
 				service->Touch("downtimes");
 			}
@@ -320,16 +321,16 @@ void Service::RefreshDowntimesCache(void)
 		}
 	}
 
-	boost::mutex::scoped_lock lock(m_DowntimeMutex);
+	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
-	m_DowntimesCache.swap(newDowntimesCache);
-	m_LegacyDowntimesCache.swap(newLegacyDowntimesCache);
+	l_DowntimesCache.swap(newDowntimesCache);
+	l_LegacyDowntimesCache.swap(newLegacyDowntimesCache);
 
-	if (!m_DowntimesExpireTimer) {
-		m_DowntimesExpireTimer = boost::make_shared<Timer>();
-		m_DowntimesExpireTimer->SetInterval(300);
-		m_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimesExpireTimerHandler));
-		m_DowntimesExpireTimer->Start();
+	if (!l_DowntimesExpireTimer) {
+		l_DowntimesExpireTimer = boost::make_shared<Timer>();
+		l_DowntimesExpireTimer->SetInterval(300);
+		l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimesExpireTimerHandler));
+		l_DowntimesExpireTimer->Start();
 	}
 }
 

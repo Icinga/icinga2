@@ -21,15 +21,16 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/timer.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-boost::mutex UserGroup::m_Mutex;
-std::map<String, std::vector<User::WeakPtr> > UserGroup::m_MembersCache;
-bool UserGroup::m_MembersCacheNeedsUpdate = false;
-Timer::Ptr UserGroup::m_MembersCacheTimer;
+static boost::mutex l_Mutex;
+static std::map<String, std::vector<User::WeakPtr> > l_MembersCache;
+static bool l_MembersCacheNeedsUpdate = false;
+static Timer::Ptr l_MembersCacheTimer;
 
 REGISTER_TYPE(UserGroup);
 
@@ -86,9 +87,9 @@ std::set<User::Ptr> UserGroup::GetMembers(void) const
 	std::set<User::Ptr> users;
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(l_Mutex);
 
-		BOOST_FOREACH(const User::WeakPtr& wuser, m_MembersCache[GetName()]) {
+		BOOST_FOREACH(const User::WeakPtr& wuser, l_MembersCache[GetName()]) {
 			User::Ptr user = wuser.lock();
 
 			if (!user)
@@ -106,19 +107,19 @@ std::set<User::Ptr> UserGroup::GetMembers(void) const
  */
 void UserGroup::InvalidateMembersCache(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 
-	if (m_MembersCacheNeedsUpdate)
+	if (l_MembersCacheNeedsUpdate)
 		return; /* Someone else has already requested a refresh. */
 
-	if (!m_MembersCacheTimer) {
-		m_MembersCacheTimer = boost::make_shared<Timer>();
-		m_MembersCacheTimer->SetInterval(0.5);
-		m_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&UserGroup::RefreshMembersCache));
-		m_MembersCacheTimer->Start();
+	if (!l_MembersCacheTimer) {
+		l_MembersCacheTimer = boost::make_shared<Timer>();
+		l_MembersCacheTimer->SetInterval(0.5);
+		l_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&UserGroup::RefreshMembersCache));
+		l_MembersCacheTimer->Start();
 	}
 
-	m_MembersCacheNeedsUpdate = true;
+	l_MembersCacheNeedsUpdate = true;
 }
 
 /**
@@ -127,12 +128,12 @@ void UserGroup::InvalidateMembersCache(void)
 void UserGroup::RefreshMembersCache(void)
 {
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(l_Mutex);
 
-		if (!m_MembersCacheNeedsUpdate)
+		if (!l_MembersCacheNeedsUpdate)
 			return;
 
-		m_MembersCacheNeedsUpdate = false;
+		l_MembersCacheNeedsUpdate = false;
 	}
 
 	Log(LogDebug, "icinga", "Updating UserGroup members cache.");
@@ -152,6 +153,6 @@ void UserGroup::RefreshMembersCache(void)
 		}
 	}
 
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_MembersCache.swap(newMembersCache);
+	boost::mutex::scoped_lock lock(l_Mutex);
+	l_MembersCache.swap(newMembersCache);
 }

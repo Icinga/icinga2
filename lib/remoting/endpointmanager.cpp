@@ -22,6 +22,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/convert.h"
+#include "base/utility.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 

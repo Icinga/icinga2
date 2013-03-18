@@ -24,6 +24,7 @@
 #include <algorithm>
 #include "base/dynamictype.h"
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -208,7 +209,7 @@ void DelegationComponent::DelegationTimerHandler(void)
 
 	Endpoint::Ptr endpoint;
 	int count;
-	BOOST_FOREACH(tie(endpoint, count), histogram) {
+	BOOST_FOREACH(boost::tie(endpoint, count), histogram) {
 		std::ostringstream msgbuf;
 		msgbuf << "histogram: " << endpoint->GetName() << " - " << count;
 		Log(LogInformation, "delegation", msgbuf.str());

@@ -60,11 +60,6 @@ private:
 	Attribute<String> m_NotesUrl;
 	Attribute<String> m_ActionUrl;
 
-	static boost::mutex m_Mutex;
-	static std::map<String, std::vector<Host::WeakPtr> > m_MembersCache;
-	static bool m_MembersCacheNeedsUpdate;
-	static Timer::Ptr m_MembersCacheTimer;
-
 	static void RefreshMembersCache(void);
 };
 

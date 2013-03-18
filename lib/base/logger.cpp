@@ -21,6 +21,7 @@
 #include "base/streamlogger.h"
 #include "base/sysloglogger.h"
 #include "base/dynamictype.h"
+#include "base/utility.h"
 #include "base/objectlock.h"
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>

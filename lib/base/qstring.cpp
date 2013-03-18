@@ -131,11 +131,6 @@ void String::Replace(size_t first, size_t second, const String& str)
 	m_Data.replace(first, second, str);
 }
 
-String Join(const std::vector<String>& strings, const char *delim)
-{
-	return boost::algorithm::join(strings, delim);
-}
-
 void String::Trim(void)
 {
 	boost::algorithm::trim(m_Data);

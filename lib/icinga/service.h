@@ -301,15 +301,6 @@ private:
 	/* Downtimes */
 	Attribute<Dictionary::Ptr> m_Downtimes;
 
-	static int m_NextDowntimeID;
-
-	static boost::mutex m_DowntimeMutex;
-	static std::map<int, String> m_LegacyDowntimesCache;
-	static std::map<String, Service::WeakPtr> m_DowntimesCache;
-	static bool m_DowntimesCacheNeedsUpdate;
-	static Timer::Ptr m_DowntimesCacheTimer;
-	static Timer::Ptr m_DowntimesExpireTimer;
-
 	static void DowntimesExpireTimerHandler(void);
 
 	void RemoveExpiredDowntimes(void);
@@ -318,15 +309,6 @@ private:
 
 	/* Comments */
 	Attribute<Dictionary::Ptr> m_Comments;
-
-	static int m_NextCommentID;
-
-	static boost::mutex m_CommentMutex;
-	static std::map<int, String> m_LegacyCommentsCache;
-	static std::map<String, Service::WeakPtr> m_CommentsCache;
-	static bool m_CommentsCacheNeedsUpdate;
-	static Timer::Ptr m_CommentsCacheTimer;
-	static Timer::Ptr m_CommentsExpireTimer;
 
 	static void CommentsExpireTimerHandler(void);
 
@@ -339,11 +321,6 @@ private:
 	Attribute<bool> m_EnableNotifications;
 	Attribute<double> m_LastNotification;
 	Attribute<double> m_NotificationInterval;
-
-	static boost::mutex m_NotificationMutex;
-	static std::map<String, std::set<Notification::WeakPtr> > m_NotificationsCache;
-	static bool m_NotificationsCacheNeedsUpdate;
-	static Timer::Ptr m_NotificationsCacheTimer;
 
 	static void RefreshNotificationsCache(void);
 };

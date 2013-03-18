@@ -20,6 +20,9 @@
 #ifndef PYTHONLANGUAGE_H
 #define PYTHONLANGUAGE_H
 
+#include <Python.h>
+#include "base/scriptlanguage.h"
+
 namespace icinga
 {
 
@@ -30,7 +33,7 @@ class PythonInterpreter;
  *
  * @ingroup base
  */
-class I2_PYTHON_API PythonLanguage : public ScriptLanguage
+class PythonLanguage : public ScriptLanguage
 {
 public:
 	typedef shared_ptr<PythonLanguage> Ptr;

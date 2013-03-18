@@ -114,11 +114,6 @@ private:
 	Attribute<String> m_HostCheck;
 	Dictionary::Ptr m_SlaveServices;
 
-	static boost::mutex m_ServiceMutex;
-	static std::map<String, std::map<String, weak_ptr<Service> > > m_ServicesCache;
-	static bool m_ServicesCacheNeedsUpdate;
-	static Timer::Ptr m_ServicesCacheTimer;
-
 	void UpdateSlaveServices(void);
 
 	static void RefreshServicesCache(void);

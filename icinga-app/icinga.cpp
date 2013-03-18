@@ -21,6 +21,7 @@
 #include "config/configcompiler.h"
 #include "base/application.h"
 #include "base/logger_fwd.h"
+#include "base/timer.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -40,8 +41,8 @@ static po::variables_map g_AppParams;
 static String g_ConfigUnit;
 
 #ifndef _WIN32
-static bool g_ReloadConfig = false;
-static Timer::Ptr g_ReloadConfigTimer;
+static bool l_ReloadConfig = false;
+static Timer::Ptr l_ReloadConfigTimer;
 #endif /* _WIN32 */
 
 static bool LoadConfigFiles(bool validateOnly)
@@ -109,11 +110,11 @@ static bool LoadConfigFiles(bool validateOnly)
 #ifndef _WIN32
 static void ReloadConfigTimerHandler(void)
 {
-	if (g_ReloadConfig) {
+	if (l_ReloadConfig) {
 		Log(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
 		LoadConfigFiles(false);
 
-		g_ReloadConfig = false;
+		l_ReloadConfig = false;
 	}
 }
 
@@ -121,7 +122,7 @@ static void SigHupHandler(int signum)
 {
 	ASSERT(signum == SIGHUP);
 
-	g_ReloadConfig = true;
+	l_ReloadConfig = true;
 }
 #endif /* _WIN32 */
 
@@ -281,10 +282,10 @@ int main(int argc, char **argv)
 	sa.sa_handler = &SigHupHandler;
 	sigaction(SIGHUP, &sa, NULL);
 
-	g_ReloadConfigTimer = boost::make_shared<Timer>();
-	g_ReloadConfigTimer->SetInterval(1);
-	g_ReloadConfigTimer->OnTimerExpired.connect(boost::bind(&ReloadConfigTimerHandler));
-	g_ReloadConfigTimer->Start();
+	l_ReloadConfigTimer = boost::make_shared<Timer>();
+	l_ReloadConfigTimer->SetInterval(1);
+	l_ReloadConfigTimer->OnTimerExpired.connect(boost::bind(&ReloadConfigTimerHandler));
+	l_ReloadConfigTimer->Start();
 #endif /* _WIN32 */
 
 	return app->Run();

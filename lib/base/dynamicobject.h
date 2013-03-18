@@ -21,14 +21,13 @@
 #define DYNAMICOBJECT_H
 
 #include "base/i2-base.h"
-#include "base/timer.h"
 #include "base/attribute.h"
 #include "base/scripttask.h"
 #include "base/object.h"
 #include "base/dictionary.h"
+#include <boost/signals2.hpp>
 #include <map>
 #include <set>
-#include <boost/thread/once.hpp>
 
 namespace icinga
 {
@@ -132,13 +131,6 @@ private:
 	static double m_CurrentTx;
 
 	static void NewTx(void);
-
-	/* This has to be a set of raw pointers because the DynamicObject
-	 * constructor has to be able to insert objects into this list. */
-	static std::set<DynamicObject::WeakPtr> m_ModifiedObjects;
-	static boost::mutex m_TransactionMutex;
-	static boost::once_flag m_TransactionOnce;
-	static Timer::Ptr m_TransactionTimer;
 
 	friend class DynamicType; /* for OnRegistrationCompleted. */
 };

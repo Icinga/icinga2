@@ -64,8 +64,6 @@ protected:
 	void InternalSet(const Value& value);
 	const Value& InternalGet(void) const;
 
-	static boost::mutex m_Mutex;
-
 private:
 	Value m_Value;
 
@@ -82,8 +80,7 @@ public:
 	 */
 	void Set(const T& value)
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		InternalSet(value);
+		AttributeBase::Set(value);
 	}
 
 	/**
@@ -97,12 +94,7 @@ public:
 
 	T Get(void) const
 	{
-		Value value;
-
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
-			value = InternalGet();
-		}
+		Value value = AttributeBase::Get();
 
 		if (value.IsEmpty())
 			return T();

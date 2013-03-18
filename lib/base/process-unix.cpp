@@ -27,6 +27,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/thread/thread.hpp>
 
 #ifndef _WIN32
 #include <execvpe.h>

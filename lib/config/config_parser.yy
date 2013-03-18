@@ -27,10 +27,12 @@
 #include "config/typerule.h"
 #include "config/typerulelist.h"
 #include "base/value.h"
+#include "base/utility.h"
 #include "base/array.h"
 #include <sstream>
 #include <stack>
 #include <boost/smart_ptr/make_shared.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 

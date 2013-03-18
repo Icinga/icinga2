@@ -23,6 +23,10 @@
 #include "icinga/service.h"
 #include "remoting/endpoint.h"
 #include "base/dynamicobject.h"
+#include "base/timer.h"
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>

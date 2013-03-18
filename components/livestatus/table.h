@@ -22,6 +22,7 @@
 
 #include "livestatus/column.h"
 #include "base/object.h"
+#include <vector>
 
 namespace livestatus
 {
@@ -41,7 +42,7 @@ public:
 
 	static Table::Ptr GetByName(const String& name);
 
-	
+
 	virtual String GetName(void) const = 0;
 
 	std::vector<Object::Ptr> FilterRows(const shared_ptr<Filter>& filter);

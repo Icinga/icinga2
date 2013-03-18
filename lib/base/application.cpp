@@ -23,6 +23,7 @@
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/objectlock.h"
+#include "base/utility.h"
 #include <sstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/thread/thread.hpp>
@@ -30,6 +31,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <iostream>
 
 using namespace icinga;

@@ -22,28 +22,11 @@
 
 #include "base/i2-base.h"
 #include "base/object.h"
-#include <list>
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/key_extractors.hpp>
 #include <boost/signals2.hpp>
 
 namespace icinga {
 
-class Timer;
-
-/**
- * @ingroup base
- */
-struct TimerNextExtractor
-{
-	typedef double result_type;
-
-	double operator()(const weak_ptr<Timer>& wtimer);
-};
+struct TimerNextExtractor;
 
 /**
  * A timer that periodically triggers an event.
@@ -55,8 +38,6 @@ class I2_BASE_API Timer : public Object
 public:
 	typedef shared_ptr<Timer> Ptr;
 	typedef weak_ptr<Timer> WeakPtr;
-
-	typedef std::list<Timer::WeakPtr> CollectionType;
 
 	Timer(void);
 
@@ -80,20 +61,6 @@ private:
 	double m_Interval; /**< The interval of the timer. */
 	double m_Next; /**< When the next event should happen. */
 	bool m_Started; /**< Whether the timer is enabled. */
-
-	typedef boost::multi_index_container<
-		Timer::WeakPtr,
-		boost::multi_index::indexed_by<
-			boost::multi_index::ordered_unique<boost::multi_index::identity<Timer::WeakPtr> >,
-			boost::multi_index::ordered_non_unique<TimerNextExtractor>
-		>
-	> TimerSet;
-
-	static boost::mutex m_Mutex;
-	static boost::condition_variable m_CV;
-	static boost::thread m_Thread;
-	static bool m_StopThread;
-	static TimerSet m_Timers;
 
 	void Call();
 

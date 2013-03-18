@@ -30,6 +30,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -74,11 +75,12 @@ Query::Query(const std::vector<String>& lines)
 		else if (header == "OutputFormat")
 			m_OutputFormat = params;
 		else if (header == "Columns")
-			m_Columns = params.Split(boost::is_any_of(" "));
+			boost::algorithm::split(m_Columns, params, boost::is_any_of(" "));
 		else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
 		else if (header == "Filter" || header == "Stats") {
-			std::vector<String> tokens = params.Split(boost::is_any_of(" "));
+			std::vector<String> tokens;
+			boost::algorithm::split(tokens, params, boost::is_any_of(" "));
 
 			if (tokens.size() == 2)
 				tokens.push_back("");

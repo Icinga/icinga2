@@ -23,6 +23,7 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/timer.h"
 #include "config/configitembuilder.h"
 #include "config/configcompilercontext.h"
 #include <boost/tuple/tuple.hpp>
@@ -31,10 +32,10 @@
 
 using namespace icinga;
 
-boost::mutex Host::m_ServiceMutex;
-std::map<String, std::map<String, Service::WeakPtr> > Host::m_ServicesCache;
-bool Host::m_ServicesCacheNeedsUpdate = false;
-Timer::Ptr Host::m_ServicesCacheTimer;
+static boost::mutex l_ServiceMutex;
+static std::map<String, std::map<String, Service::WeakPtr> > l_ServicesCache;
+static bool l_ServicesCacheNeedsUpdate = false;
+static Timer::Ptr l_ServicesCacheTimer;
 
 REGISTER_SCRIPTFUNCTION(ValidateServiceDictionary, &Host::ValidateServiceDictionary);
 
@@ -313,10 +314,10 @@ std::set<Service::Ptr> Host::GetServices(void) const
 {
 	std::set<Service::Ptr> services;
 
-	boost::mutex::scoped_lock lock(m_ServiceMutex);
+	boost::mutex::scoped_lock lock(l_ServiceMutex);
 
 	Service::WeakPtr wservice;
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, wservice), m_ServicesCache[GetName()]) {
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, wservice), l_ServicesCache[GetName()]) {
 		Service::Ptr service = wservice.lock();
 
 		if (!service)
@@ -331,31 +332,31 @@ std::set<Service::Ptr> Host::GetServices(void) const
 void Host::InvalidateServicesCache(void)
 {
 	{
-		boost::mutex::scoped_lock lock(m_ServiceMutex);
+		boost::mutex::scoped_lock lock(l_ServiceMutex);
 
-		if (m_ServicesCacheNeedsUpdate)
+		if (l_ServicesCacheNeedsUpdate)
 			return; /* Someone else has already requested a refresh. */
 
-		if (!m_ServicesCacheTimer) {
-			m_ServicesCacheTimer = boost::make_shared<Timer>();
-			m_ServicesCacheTimer->SetInterval(0.5);
-			m_ServicesCacheTimer->OnTimerExpired.connect(boost::bind(&Host::RefreshServicesCache));
-			m_ServicesCacheTimer->Start();
+		if (!l_ServicesCacheTimer) {
+			l_ServicesCacheTimer = boost::make_shared<Timer>();
+			l_ServicesCacheTimer->SetInterval(0.5);
+			l_ServicesCacheTimer->OnTimerExpired.connect(boost::bind(&Host::RefreshServicesCache));
+			l_ServicesCacheTimer->Start();
 		}
 
-		m_ServicesCacheNeedsUpdate = true;
+		l_ServicesCacheNeedsUpdate = true;
 	}
 }
 
 void Host::RefreshServicesCache(void)
 {
 	{
-		boost::mutex::scoped_lock lock(m_ServiceMutex);
+		boost::mutex::scoped_lock lock(l_ServiceMutex);
 
-		if (!m_ServicesCacheNeedsUpdate)
+		if (!l_ServicesCacheNeedsUpdate)
 			return;
 
-		m_ServicesCacheNeedsUpdate = false;
+		l_ServicesCacheNeedsUpdate = false;
 	}
 
 	Log(LogDebug, "icinga", "Updating Host services cache.");
@@ -375,8 +376,8 @@ void Host::RefreshServicesCache(void)
 		newServicesCache[host->GetName()][service->GetShortName()] = service;
 	}
 
-	boost::mutex::scoped_lock lock(m_ServiceMutex);
-	m_ServicesCache.swap(newServicesCache);
+	boost::mutex::scoped_lock lock(l_ServiceMutex);
+	l_ServicesCache.swap(newServicesCache);
 }
 
 void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
@@ -438,9 +439,9 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 {
 	if (name.IsScalar()) {
 		{
-			boost::mutex::scoped_lock lock(m_ServiceMutex);
+			boost::mutex::scoped_lock lock(l_ServiceMutex);
 
-			std::map<String, Service::WeakPtr>& services = m_ServicesCache[GetName()];
+			std::map<String, Service::WeakPtr>& services = l_ServicesCache[GetName()];
 			std::map<String, Service::WeakPtr>::iterator it = services.find(name);
 
 			if (it != services.end()) {

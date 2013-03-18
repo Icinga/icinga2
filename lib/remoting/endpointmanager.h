@@ -24,6 +24,8 @@
 #include "remoting/endpoint.h"
 #include "base/tcpsocket.h"
 #include "base/tlsstream.h"
+#include "base/timer.h"
+#include "base/utility.h"
 #include <boost/signals2.hpp>
 
 namespace icinga

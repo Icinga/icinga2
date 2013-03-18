@@ -20,6 +20,10 @@
 #ifndef PYTHONINTERPRETER_H
 #define PYTHONINTERPRETER_H
 
+#include <Python.h>
+#include "python/pythonlanguage.h"
+#include "base/scriptinterpreter.h"
+
 namespace icinga
 {
 
@@ -28,7 +32,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_PYTHON_API PythonInterpreter : public ScriptInterpreter
+class PythonInterpreter : public ScriptInterpreter
 {
 public:
 	typedef shared_ptr<PythonInterpreter> Ptr;
@@ -43,10 +47,10 @@ public:
 protected:
 	PythonLanguage::Ptr m_Language;
 	PyThreadState *m_ThreadState;
-	map<String, PyObject *> m_Functions;
+	std::map<String, PyObject *> m_Functions;
 
 	virtual void ProcessCall(const ScriptTask::Ptr& task, const String& function,
-	    const vector<Value>& arguments);
+	    const std::vector<Value>& arguments);
 };
 
 }

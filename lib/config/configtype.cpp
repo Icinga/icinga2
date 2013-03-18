@@ -21,6 +21,7 @@
 #include "config/configcompilercontext.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
+#include "base/scripttask.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>

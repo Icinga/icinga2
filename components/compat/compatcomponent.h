@@ -24,6 +24,8 @@
 #include "icinga/service.h"
 #include "base/dynamicobject.h"
 #include "base/objectlock.h"
+#include "base/timer.h"
+#include <boost/thread/thread.hpp>
 #include <iostream>
 
 namespace icinga

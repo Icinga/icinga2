@@ -5,7 +5,6 @@ pkglib_LTLIBRARIES =  \
 	libpython.la
 
 libpython_la_SOURCES =  \
-	i2-python.h \
 	pythoninterpreter.cpp \
 	pythoninterpreter.h \
 	pythonlanguage.cpp \

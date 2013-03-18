@@ -17,7 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-python.h"
+#include "python/pythoninterpreter.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -72,7 +75,7 @@ void PythonInterpreter::UnregisterPythonFunction(const String& name)
 }
 
 void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& function,
-    const vector<Value>& arguments)
+    const std::vector<Value>& arguments)
 {
 	ObjectLock olock(this);
 
@@ -81,10 +84,10 @@ void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& f
 	m_Language->SetCurrentInterpreter(this);
 
 	try {
-		map<String, PyObject *>::iterator it = m_Functions.find(function);
+		std::map<String, PyObject *>::iterator it = m_Functions.find(function);
 
 		if (it == m_Functions.end())
-			BOOST_THROW_EXCEPTION(invalid_argument("Function '" + function + "' does not exist."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + function + "' does not exist."));
 
 		PyObject *func = it->second;
 
@@ -111,15 +114,15 @@ void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& f
 			Py_XDECREF(pvalue);
 			Py_XDECREF(ptraceback);
 
-			BOOST_THROW_EXCEPTION(runtime_error("Error in Python script: " + msg));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Error in Python script: " + msg));
 		}
 
 		Value vresult = PythonLanguage::MarshalFromPython(result);
 		Py_DECREF(result);
 
-		Application::GetEQ().Post(boost::bind(&ScriptTask::FinishResult, task, vresult));
+		Utility::QueueAsyncCallback(boost::bind(&ScriptTask::FinishResult, task, vresult));
 	} catch (...) {
-		Application::GetEQ().Post(boost::bind(&ScriptTask::FinishException, task, boost::current_exception()));
+		Utility::QueueAsyncCallback(boost::bind(&ScriptTask::FinishException, task, boost::current_exception()));
 	}
 
 	m_Language->SetCurrentInterpreter(interp);

@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/dynamictype.h"
+#include "base/utility.h"
 #include "base/objectlock.h"
 
 using namespace icinga;

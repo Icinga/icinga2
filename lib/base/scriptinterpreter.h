@@ -22,6 +22,7 @@
 
 #include "base/i2-base.h"
 #include "base/script.h"
+#include "base/scripttask.h"
 #include <vector>
 #include <set>
 

@@ -55,11 +55,6 @@ protected:
 private:
 	Attribute<String> m_DisplayName;
 
-	static boost::mutex m_Mutex;
-	static std::map<String, std::vector<User::WeakPtr> > m_MembersCache;
-	static bool m_MembersCacheNeedsUpdate;
-	static Timer::Ptr m_MembersCacheTimer;
-
 	static void RefreshMembersCache(void);
 };
 

@@ -22,9 +22,12 @@
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
+#include "base/timer.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
+
+static Timer::Ptr l_RetentionTimer;
 
 REGISTER_TYPE(IcingaApplication);
 
@@ -78,10 +81,10 @@ int IcingaApplication::Main(void)
 	DynamicObject::RestoreObjects(GetStatePath());
 
 	/* periodically dump the program state */
-	m_RetentionTimer = boost::make_shared<Timer>();
-	m_RetentionTimer->SetInterval(300);
-	m_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
-	m_RetentionTimer->Start();
+	l_RetentionTimer = boost::make_shared<Timer>();
+	l_RetentionTimer->SetInterval(300);
+	l_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
+	l_RetentionTimer->Start();
 
 	RunEventLoop();
 
@@ -99,7 +102,7 @@ void IcingaApplication::OnShutdown(void)
 
 	{
 		ObjectLock olock(this);
-		m_RetentionTimer->Stop();
+		l_RetentionTimer->Stop();
 	}
 
 	DumpProgramState();

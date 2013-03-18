@@ -69,8 +69,6 @@ private:
 
 	double m_StartTime;
 
-	Timer::Ptr m_RetentionTimer;
-
 	void DumpProgramState(void);
 
 	virtual void OnShutdown(void);

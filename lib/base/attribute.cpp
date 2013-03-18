@@ -22,7 +22,7 @@
 
 using namespace icinga;
 
-boost::mutex AttributeBase::m_Mutex;
+static boost::mutex l_Mutex;
 
 AttributeBase::AttributeBase(void)
 	: m_Value()
@@ -33,7 +33,7 @@ AttributeBase::AttributeBase(void)
  */
 void AttributeBase::Set(const Value& value)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 	InternalSet(value);
 }
 
@@ -42,7 +42,7 @@ void AttributeBase::Set(const Value& value)
  */
 Value AttributeBase::Get(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 	return InternalGet();
 }
 
@@ -51,7 +51,7 @@ Value AttributeBase::Get(void) const
  */
 AttributeBase::operator Value(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 	return InternalGet();
 }
 
@@ -60,12 +60,12 @@ AttributeBase::operator Value(void) const
  */
 bool AttributeBase::IsEmpty(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 	return InternalGet().IsEmpty();
 }
 
 /**
- * @threadsafety Caller must hold m_Mutex;
+ * @threadsafety Caller must hold l_Mutex;
  */
 void AttributeBase::InternalSet(const Value& value)
 {
@@ -73,7 +73,7 @@ void AttributeBase::InternalSet(const Value& value)
 }
 
 /**
- * @threadsafety Caller must hold m_Mutex.
+ * @threadsafety Caller must hold l_Mutex.
  */
 const Value& AttributeBase::InternalGet(void) const
 {

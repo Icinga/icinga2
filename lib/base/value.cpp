@@ -20,6 +20,7 @@
 #include "base/application.h"
 #include "base/array.h"
 #include "base/logger_fwd.h"
+#include "base/utility.h"
 #include <cJSON.h>
 #include <boost/lexical_cast.hpp>
 

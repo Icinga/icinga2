@@ -19,32 +19,55 @@
 
 #include "base/timer.h"
 #include "base/application.h"
+#include "base/utility.h"
 #include <boost/bind.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/key_extractors.hpp>
 
 using namespace icinga;
 
-Timer::TimerSet Timer::m_Timers;
-boost::thread Timer::m_Thread;
-boost::mutex Timer::m_Mutex;
-boost::condition_variable Timer::m_CV;
-bool Timer::m_StopThread;
-
 /**
- * Extracts the next timestamp from a Timer.
- *
- * @param wtimer Weak pointer to the timer.
- * @returns The next timestamp
- * @threadsafety Caller must hold Timer::m_Mutex.
+ * @ingroup base
  */
-double TimerNextExtractor::operator()(const Timer::WeakPtr& wtimer)
+struct icinga::TimerNextExtractor
 {
-	Timer::Ptr timer = wtimer.lock();
+	typedef double result_type;
 
-	if (!timer)
-		return 0;
+	/**
+	 * Extracts the next timestamp from a Timer.
+	 *
+	 * @param wtimer Weak pointer to the timer.
+	 * @returns The next timestamp
+	 * @threadsafety Caller must hold l_Mutex.
+	 */
+	double operator()(const weak_ptr<Timer>& wtimer)
+	{
+		Timer::Ptr timer = wtimer.lock();
 
-	return timer->m_Next;
-}
+		if (!timer)
+			return 0;
+
+		return timer->m_Next;
+	}
+};
+
+typedef boost::multi_index_container<
+	Timer::WeakPtr,
+	boost::multi_index::indexed_by<
+		boost::multi_index::ordered_unique<boost::multi_index::identity<Timer::WeakPtr> >,
+		boost::multi_index::ordered_non_unique<TimerNextExtractor>
+	>
+> TimerSet;
+
+static boost::mutex l_Mutex;
+static boost::condition_variable l_CV;
+static boost::thread l_Thread;
+static bool l_StopThread;
+static TimerSet l_Timers;
 
 /**
  * Constructor for the Timer class.
@@ -62,9 +85,9 @@ Timer::Timer(void)
  */
 void Timer::Initialize(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_StopThread = false;
-	m_Thread = boost::thread(boost::bind(&Timer::TimerThreadProc));
+	boost::mutex::scoped_lock lock(l_Mutex);
+	l_StopThread = false;
+	l_Thread = boost::thread(boost::bind(&Timer::TimerThreadProc));
 }
 
 /**
@@ -75,12 +98,12 @@ void Timer::Initialize(void)
 void Timer::Uninitialize(void)
 {
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_StopThread = true;
-		m_CV.notify_all();
+		boost::mutex::scoped_lock lock(l_Mutex);
+		l_StopThread = true;
+		l_CV.notify_all();
 	}
 
-	m_Thread.join();
+	l_Thread.join();
 }
 
 /**
@@ -109,7 +132,7 @@ void Timer::SetInterval(double interval)
 {
 	ASSERT(!OwnsLock());
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 	m_Interval = interval;
 }
 
@@ -123,7 +146,7 @@ double Timer::GetInterval(void) const
 {
 	ASSERT(!OwnsLock());
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 	return m_Interval;
 }
 
@@ -137,7 +160,7 @@ void Timer::Start(void)
 	ASSERT(!OwnsLock());
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(l_Mutex);
 		m_Started = true;
 	}
 
@@ -153,13 +176,13 @@ void Timer::Stop(void)
 {
 	ASSERT(!OwnsLock());
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 
 	m_Started = false;
-	m_Timers.erase(GetSelf());
+	l_Timers.erase(GetSelf());
 
 	/* Notify the worker thread that we've disabled a timer. */
-	m_CV.notify_all();
+	l_CV.notify_all();
 }
 
 /**
@@ -173,7 +196,7 @@ void Timer::Reschedule(double next)
 {
 	ASSERT(!OwnsLock());
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 
 	if (next < 0)
 		next = Utility::GetTime() + m_Interval;
@@ -182,11 +205,11 @@ void Timer::Reschedule(double next)
 
 	if (m_Started) {
 		/* Remove and re-add the timer to update the index. */
-		m_Timers.erase(GetSelf());
-		m_Timers.insert(GetSelf());
+		l_Timers.erase(GetSelf());
+		l_Timers.insert(GetSelf());
 
 		/* Notify the worker that we've rescheduled a timer. */
-		m_CV.notify_all();
+		l_CV.notify_all();
 	}
 }
 
@@ -200,7 +223,7 @@ double Timer::GetNext(void) const
 {
 	ASSERT(!OwnsLock());
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 	return m_Next;
 }
 
@@ -213,12 +236,12 @@ double Timer::GetNext(void) const
  */
 void Timer::AdjustTimers(double adjustment)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(l_Mutex);
 
 	double now = Utility::GetTime();
 
 	typedef boost::multi_index::nth_index<TimerSet, 1>::type TimerView;
-	TimerView& idx = boost::get<1>(m_Timers);
+	TimerView& idx = boost::get<1>(l_Timers);
 
 	TimerView::iterator it;
 	for (it = idx.begin(); it != idx.end(); it++) {
@@ -227,13 +250,13 @@ void Timer::AdjustTimers(double adjustment)
 		if (abs(now - (timer->m_Next + adjustment)) <
 		    abs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
-			m_Timers.erase(timer);
-			m_Timers.insert(timer);
+			l_Timers.erase(timer);
+			l_Timers.insert(timer);
 		    }
 	}
 
 	/* Notify the worker that we've rescheduled some timers. */
-	m_CV.notify_all();
+	l_CV.notify_all();
 }
 
 /**
@@ -244,16 +267,16 @@ void Timer::AdjustTimers(double adjustment)
 void Timer::TimerThreadProc(void)
 {
 	for (;;) {
-		boost::mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(l_Mutex);
 
 		typedef boost::multi_index::nth_index<TimerSet, 1>::type NextTimerView;
-		NextTimerView& idx = boost::get<1>(m_Timers);
+		NextTimerView& idx = boost::get<1>(l_Timers);
 
 		/* Wait until there is at least one timer. */
-		while (idx.empty() && !m_StopThread)
-			m_CV.wait(lock);
+		while (idx.empty() && !l_StopThread)
+			l_CV.wait(lock);
 
-		if (m_StopThread)
+		if (l_StopThread)
 			break;
 
 		NextTimerView::iterator it = idx.begin();
@@ -272,14 +295,14 @@ void Timer::TimerThreadProc(void)
 			timer.reset();
 
 			/* Wait for the next timer. */
-			m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+			l_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
 
 			continue;
 		}
 
 		/* Remove the timer from the list so it doesn't get called again
 		 * until the current call is completed. */
-		m_Timers.erase(timer);
+		l_Timers.erase(timer);
 
 		lock.unlock();
 

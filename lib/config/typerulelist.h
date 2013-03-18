@@ -22,6 +22,7 @@
 
 #include "config/i2-config.h"
 #include "base/value.h"
+#include <vector>
 
 namespace icinga
 {

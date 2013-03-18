@@ -22,6 +22,7 @@
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
+#include "base/utility.h"
 #include "base/logger_fwd.h"
 #include "config/configitembuilder.h"
 #include <boost/smart_ptr/make_shared.hpp>

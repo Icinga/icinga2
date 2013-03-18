@@ -55,16 +55,30 @@
  ******************************************************************************/
 
 #include "i2-config.h"
+#include "config/expression.h"
+#include "config/expressionlist.h"
+#include "config/configitembuilder.h"
+#include "config/configcompiler.h"
+#include "config/configcompilercontext.h"
+#include "config/typerule.h"
+#include "config/typerulelist.h"
+#include "base/value.h"
+#include "base/utility.h"
+#include "base/array.h"
+#include <sstream>
+#include <stack>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
-#define YYLTYPE DebugInfo
+#define YYLTYPE icinga::DebugInfo
 
 
 
 
 /* Line 2068 of yacc.c  */
-#line 68 "config_parser.h"
+#line 82 "config_parser.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -140,7 +154,7 @@ typedef union YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 38 "config_parser.yy"
+#line 52 "config_parser.yy"
 
 	char *text;
 	double num;
@@ -151,7 +165,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 155 "config_parser.h"
+#line 169 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

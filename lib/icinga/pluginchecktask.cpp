@@ -21,6 +21,7 @@
 #include "icinga/macroprocessor.h"
 #include "base/dynamictype.h"
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -109,7 +110,8 @@ Dictionary::Ptr PluginCheckTask::ParseCheckOutput(const String& output)
 	String text;
 	String perfdata;
 
-	std::vector<String> lines = output.Split(boost::is_any_of("\r\n"));
+	std::vector<String> lines;
+	boost::algorithm::split(lines, output, boost::is_any_of("\r\n"));
 
 	BOOST_FOREACH (const String& line, lines) {
 		size_t delim = line.FindFirstOf("|");

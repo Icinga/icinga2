@@ -17,7 +17,15 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-python.h"
+#include "python/pythonlanguage.h"
+#include "python/pythoninterpreter.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/application.h"
+#include "base/array.h"
+#include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -60,7 +68,7 @@ void PythonLanguage::InitializeOnce(void)
 	PyEval_ReleaseLock();
 
 	String name;
-	BOOST_FOREACH(tie(name, tuples::ignore), ScriptFunctionRegistry::GetInstance()->GetItems()) {
+	BOOST_FOREACH(boost::tie(name, boost::tuples::ignore), ScriptFunctionRegistry::GetInstance()->GetItems()) {
 		RegisterNativeFunction(name);
 	}
 
@@ -148,7 +156,7 @@ PyObject *PythonLanguage::MarshalToPython(const Value& value)
 
 				String key;
 				Value value;
-				BOOST_FOREACH(tie(key, value), dict) {
+				BOOST_FOREACH(boost::tie(key, value), dict) {
 					PyObject *dv = MarshalToPython(value);
 
 					PyDict_SetItemString(pdict, key.CStr(), dv);
@@ -178,7 +186,7 @@ PyObject *PythonLanguage::MarshalToPython(const Value& value)
 			return Py_None;
 
 		default:
-			BOOST_THROW_EXCEPTION(invalid_argument("Unexpected variant type."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected variant type."));
 	}
 }
 
@@ -217,21 +225,21 @@ Value PythonLanguage::MarshalFromPython(PyObject *value)
 		ptype = PyTuple_GetItem(value, 0);
 
 		if (ptype == NULL || !PyString_Check(ptype))
-			BOOST_THROW_EXCEPTION(invalid_argument("Tuple must contain two strings."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Tuple must contain two strings."));
 
 		String type = PyString_AsString(ptype);
 
 		pname = PyTuple_GetItem(value, 1);
 
 		if (pname == NULL || !PyString_Check(pname))
-			BOOST_THROW_EXCEPTION(invalid_argument("Tuple must contain two strings."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Tuple must contain two strings."));
 
 		String name = PyString_AsString(pname);
 
 		DynamicObject::Ptr object = DynamicObject::GetObject(type, name);
 
 		if (!object)
-			BOOST_THROW_EXCEPTION(invalid_argument("Object '" + name + "' of type '" + type + "' does not exist."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Object '" + name + "' of type '" + type + "' does not exist."));
 
 		return object;
 	} else if (PyFloat_Check(value)) {
@@ -293,7 +301,7 @@ PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
 
 	ScriptFunction::Ptr function = ScriptFunctionRegistry::GetInstance()->GetItem(name);
 
-	vector<Value> arguments;
+	std::vector<Value> arguments;
 
 	if (args != NULL) {
 		if (PyTuple_Check(args)) {
@@ -318,7 +326,7 @@ PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
 	} catch (const std::exception& ex) {
 		PyEval_RestoreThread(tstate);
 
-		String message = diagnostic_information(ex);
+		String message = boost::diagnostic_information(ex);
 		PyErr_SetString(PyExc_RuntimeError, message.CStr());
 
 		return NULL;

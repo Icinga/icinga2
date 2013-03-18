@@ -30,6 +30,7 @@
 #include "base/application.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <fstream>
 
@@ -213,7 +214,7 @@ void CompatComponent::DumpComments(std::ostream& fp, const Service::Ptr& owner, 
 
 	String id;
 	Dictionary::Ptr comment;
-	BOOST_FOREACH(tie(id, comment), comments) {
+	BOOST_FOREACH(boost::tie(id, comment), comments) {
 		if (Service::IsCommentExpired(comment))
 			continue;
 
@@ -253,7 +254,7 @@ void CompatComponent::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner,
 
 	String id;
 	Dictionary::Ptr downtime;
-	BOOST_FOREACH(tie(id, downtime), downtimes) {
+	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 		if (Service::IsDowntimeExpired(downtime))
 			continue;
 
