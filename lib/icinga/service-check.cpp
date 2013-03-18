@@ -473,7 +473,12 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	Service::UpdateStatistics(cr);
 
-	bool send_notification = hardChange && reachable && !IsInDowntime() && !IsAcknowledged();
+	bool in_downtime = IsInDowntime();
+	bool send_notification = hardChange && reachable && !in_downtime && !IsAcknowledged();
+
+	bool send_downtime_notification = m_LastInDowntime != in_downtime;
+	m_LastInDowntime = in_downtime;
+	Touch("last_in_downtime");
 
 	olock.Unlock();
 
@@ -501,6 +506,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	rm.SetParams(params);
 
 	EndpointManager::GetInstance()->SendMulticastMessage(rm);
+
+	if (send_downtime_notification)
+		RequestNotifications(in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr);
 
 	if (send_notification)
 		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem, cr);

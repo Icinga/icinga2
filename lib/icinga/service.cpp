@@ -58,6 +58,7 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("last_result", Attribute_Replicated, &m_LastResult);
 	RegisterAttribute("last_state_change", Attribute_Replicated, &m_LastStateChange);
 	RegisterAttribute("last_hard_state_change", Attribute_Replicated, &m_LastHardStateChange);
+	RegisterAttribute("last_in_downtime", Attribute_Replicated, &m_LastInDowntime);
 	RegisterAttribute("enable_active_checks", Attribute_Replicated, &m_EnableActiveChecks);
 	RegisterAttribute("enable_passive_checks", Attribute_Replicated, &m_EnablePassiveChecks);
 	RegisterAttribute("force_next_check", Attribute_Replicated, &m_ForceNextCheck);

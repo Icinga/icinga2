@@ -50,7 +50,7 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::
 
 	Notification::Ptr notification = arguments[0];
 	Dictionary::Ptr macros = arguments[1];
-//	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[2]));
+	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[2]));
 
 	Value raw_command = notification->GetNotificationCommand();
 
@@ -60,7 +60,16 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::
 	if (service)
 		service_name = service->GetName();
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, macros);
+	Dictionary::Ptr notificationMacros = boost::make_shared<Dictionary>();
+	notificationMacros->Set("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));
+
+	std::vector<Dictionary::Ptr> macroDicts;
+	macroDicts.push_back(notificationMacros);
+	macroDicts.push_back(macros);
+
+	Dictionary::Ptr allMacros = MacroProcessor::MergeMacroDicts(macroDicts);
+
+	Value command = MacroProcessor::ResolveMacros(raw_command, allMacros);
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
 

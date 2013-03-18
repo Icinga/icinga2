@@ -287,6 +287,7 @@ private:
 	Attribute<Dictionary::Ptr> m_LastResult;
 	Attribute<double> m_LastStateChange;
 	Attribute<double> m_LastHardStateChange;
+	Attribute<bool> m_LastInDowntime;
 	Attribute<bool> m_EnableActiveChecks;
 	Attribute<bool> m_EnablePassiveChecks;
 	Attribute<bool> m_ForceNextCheck;

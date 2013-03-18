@@ -141,10 +141,19 @@ void Service::TriggerDowntimes(void)
 	if (!downtimes)
 		return;
 
-	ObjectLock olock(downtimes);
+	std::vector<String> ids;
 
-	String id;
-	BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), downtimes) {
+	{
+		ObjectLock olock(downtimes);
+
+		String id;
+		BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), downtimes) {
+			ids.push_back(id);
+
+		}
+	}
+
+	BOOST_FOREACH(const String& id, ids) {
 		TriggerDowntime(id);
 	}
 }
