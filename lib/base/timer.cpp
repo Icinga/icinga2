@@ -117,7 +117,13 @@ void Timer::Call(void)
 
 	Timer::Ptr self = GetSelf();
 
-	OnTimerExpired(self);
+	try {
+		OnTimerExpired(self);
+	} catch (...) {
+		Reschedule();
+
+		throw;
+	}
 
 	Reschedule();
 }
