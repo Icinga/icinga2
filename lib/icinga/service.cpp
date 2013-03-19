@@ -475,7 +475,7 @@ Dictionary::Ptr Service::CalculateDynamicMacros(const Dictionary::Ptr& crOverrid
 		macros->Set("SERVICEOUTPUT", cr->Get("output"));
 		macros->Set("SERVICEPERFDATA", cr->Get("performance_data_raw"));
 
-		macros->Set("LASTSERVICECHECK", (long)cr->Get("schedule_start"));
+		macros->Set("LASTSERVICECHECK", (long)cr->Get("execution_end"));
 	}
 
 	macros->Seal();

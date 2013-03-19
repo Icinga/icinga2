@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef COMPATLOG_H
-#define COMPATLOG_H
+#ifndef CHECKRESULTREADER_H
+#define CHECKRESULTREADER_H
 
 #include "remoting/endpoint.h"
 #include "base/dynamicobject.h"
@@ -29,45 +29,33 @@ namespace icinga
 {
 
 /**
- * An Icinga compat log writer.
+ * An Icinga checkresult reader.
  *
  * @ingroup compat
  */
-class CompatLog : public DynamicObject
+class CheckResultReader : public DynamicObject
 {
 public:
-	typedef shared_ptr<CompatLog> Ptr;
-	typedef weak_ptr<CompatLog> WeakPtr;
+	typedef shared_ptr<CheckResultReader> Ptr;
+	typedef weak_ptr<CheckResultReader> WeakPtr;
 
-	CompatLog(const Dictionary::Ptr& properties);
-	~CompatLog(void);
+	CheckResultReader(const Dictionary::Ptr& properties);
 
-	static CompatLog::Ptr GetByName(const String& name);
+	static CheckResultReader::Ptr GetByName(const String& name);
 
-	String GetLogDir(void) const;
-	double GetRotationInterval(void) const;
+	String GetSpoolDir(void) const;
 
 protected:
-	virtual void OnAttributeChanged(const String& name);
 	virtual void Start(void);
 
 private:
-	Attribute<String> m_LogDir;
-	Attribute<double> m_RotationInterval;
+	Attribute<String> m_SpoolDir;
 
-	void WriteLine(const String& line);
-	void Flush(void);
-
-	Endpoint::Ptr m_Endpoint;
-	void CheckResultRequestHandler(const RequestMessage& request);
-
-	Timer::Ptr m_RotationTimer;
-	void RotationTimerHandler(void);
-
-	std::ofstream m_OutputFile;
-	void RotateFile(void);
+	Timer::Ptr m_ReadTimer;
+	void ReadTimerHandler(void) const;
+	void ProcessCheckResultFile(const String& path) const;
 };
 
 }
 
-#endif /* COMPATLOG_H */
+#endif /* CHECKRESULTREADER_H */

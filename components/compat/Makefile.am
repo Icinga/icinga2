@@ -10,6 +10,8 @@ EXTRA_DIST = \
 	$(top_builddir)/tools/mkembedconfig $< $@
 
 libcompat_la_SOURCES = \
+	checkresultreader.cpp \
+	checkresultreader.h \
 	compatcomponent.cpp \
 	compatcomponent.h \
 	compatlog.cpp \

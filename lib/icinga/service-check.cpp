@@ -409,6 +409,20 @@ void Service::SetForceNextCheck(bool forced)
  */
 void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 {
+	double now = Utility::GetTime();
+
+	if (!cr->Contains("schedule_start"))
+		cr->Set("schedule_start", now);
+
+	if (!cr->Contains("schedule_end"))
+		cr->Set("schedule_end", now);
+
+	if (!cr->Contains("execution_start"))
+		cr->Set("execution_start", now);
+
+	if (!cr->Contains("execution_end"))
+		cr->Set("execution_end", now);
+
 	bool reachable = IsReachable();
 
 	Host::Ptr host = GetHost();
@@ -466,8 +480,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	int state = cr->Get("state");
 	SetState(static_cast<ServiceState>(state));
-
-	double now = Utility::GetTime();
 
 	if (old_state != GetState()) {
 		SetLastStateChange(now);
