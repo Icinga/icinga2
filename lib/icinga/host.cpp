@@ -251,10 +251,18 @@ void Host::UpdateSlaveServices(void)
 			builder->AddExpression("display_name", OperatorSet, svcname);
 			builder->AddExpression("short_name", OperatorSet, svcname);
 
-			CopyServiceAttributes<false>(this, builder);
+			std::vector<String> path;
+			path.push_back("services");
+			path.push_back(svcname);
+
+			ExpressionList::Ptr exprl = boost::make_shared<ExpressionList>();
+			item->GetLinkedExpressionList()->Extract(path, exprl);
+			builder->AddExpressionList(exprl);
+
+			/*CopyServiceAttributes<false>(this, builder);
 
 			if (!svcdesc.IsObjectType<Dictionary>())
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));*/
 
 			Dictionary::Ptr service = svcdesc;
 
@@ -268,7 +276,7 @@ void Host::UpdateSlaveServices(void)
 				}
 			}
 
-			CopyServiceAttributes<true>(service, builder);
+			//CopyServiceAttributes<true>(service, builder);
 
 			ConfigItem::Ptr serviceItem = builder->Compile();
 			DynamicObject::Ptr dobj = serviceItem->Commit();
