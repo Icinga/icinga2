@@ -643,6 +643,8 @@ void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 {
 	ASSERT(!OwnsLock());
 
+	bool reachable = IsReachable();
+
 	{
 		ObjectLock olock(this);
 
@@ -660,9 +662,8 @@ void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 
 		SetLastState(GetState());
 		SetLastStateType(GetLastStateType());
+		SetLastReachable(reachable);
 	}
-
-	SetLastReachable(IsReachable());
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	Dictionary::Ptr checkInfo = boost::make_shared<Dictionary>();

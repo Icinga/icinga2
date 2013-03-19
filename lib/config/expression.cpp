@@ -220,16 +220,17 @@ void Expression::Extract(const std::vector<String>& path, const ExpressionList::
 	ASSERT(!path.empty());
 
 	if (path[0] == m_Key) {
-		if (path.size() == 1) {
-			result->AddExpression(*this);
-
-			return;
-		}
-
 		if (!m_Value.IsObjectType<ExpressionList>())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Specified path does not exist."));
 
 		ExpressionList::Ptr exprl = m_Value;
+
+		if (path.size() == 1) {
+			result->AddExpression(Expression("", OperatorExecute, exprl, m_DebugInfo));
+
+			return;
+		}
+
 		std::vector<String> sub_path(path.begin() + 1, path.end());
 		exprl->Extract(sub_path, result);
 	} else if (m_Operator == OperatorExecute) {
