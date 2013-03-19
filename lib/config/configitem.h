@@ -47,11 +47,15 @@ public:
 	String GetUnit(void) const;
 	bool IsAbstract(void) const;
 
-	std::vector<String> GetParents(void) const;
+	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
-	ExpressionList::Ptr GetExpressionList(void) const;
+	void Link(void);
+	ExpressionList::Ptr GetLinkedExpressionList(void) const;
+
+	void GetProperties(void);
 
 	DynamicObject::Ptr Commit(void);
+	void Register(void);
 	void Unregister(void);
 
 	void Dump(std::ostream& fp) const;
@@ -59,8 +63,6 @@ public:
 	DynamicObject::Ptr GetDynamicObject(void) const;
 
 	DebugInfo GetDebugInfo(void) const;
-
-	Dictionary::Ptr Link(void) const;
 
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
@@ -71,11 +73,11 @@ public:
 	static boost::signals2::signal<void (const ConfigItem::Ptr&)> OnRemoved;
 
 private:
-	void InternalLink(const Dictionary::Ptr& dictionary) const;
+	ExpressionList::Ptr GetExpressionList(void) const;
 
-        void UnregisterFromParents(void);
+	void UnregisterFromParents(void);
 
-        void OnParentCommitted(void);
+	void OnParentCommitted(void);
 
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
@@ -83,14 +85,16 @@ private:
 	bool m_Abstract; /**< Whether this is a template. */
 
 	ExpressionList::Ptr m_ExpressionList;
-	std::vector<String> m_Parents; /**< The names of parent configuration
+	std::vector<String> m_ParentNames; /**< The names of parent configuration
 				       items. */
+	std::vector<ConfigItem::Ptr> m_Parents;
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
+	ExpressionList::Ptr m_LinkedExpressionList;
+
 	DynamicObject::WeakPtr m_DynamicObject; /**< The instantiated version
-                                                 * of this configuration
-						 * item */
-        std::set<ConfigItem::WeakPtr> m_ChildObjects; /**< Instantiated items
+                                                 * of this configuration item */
+	std::set<ConfigItem::WeakPtr> m_ChildObjects; /**< Instantiated items
                                                      * that inherit from this item */
 
 	static boost::mutex m_Mutex;

@@ -69,7 +69,8 @@ public:
 
 	String GetUnit(void) const;
 
-	void Validate(void);
+	void LinkItems(void);
+	void ValidateItems(void);
 	void ActivateItems(void);
 
 	static void SetContext(ConfigCompilerContext *context);

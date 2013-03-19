@@ -109,7 +109,18 @@ String ConfigCompilerContext::GetUnit(void) const
 	return m_Unit;
 }
 
-void ConfigCompilerContext::Validate(void)
+void ConfigCompilerContext::LinkItems(void)
+{
+	SetContext(this);
+
+	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
+		item->Link();
+	}
+
+	SetContext(NULL);
+}
+
+void ConfigCompilerContext::ValidateItems(void)
 {
 	SetContext(this);
 
@@ -137,6 +148,10 @@ void ConfigCompilerContext::ActivateItems(void)
 	ASSERT(m_Context == NULL);
 
 	Log(LogInformation, "config", "Activating config items in compilation unit '" + m_Unit + "'");
+	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
+		item->Register();
+	}
+
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
 		item->Commit();
 	}

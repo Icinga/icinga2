@@ -110,26 +110,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
-	BOOST_FOREACH(const String& parent, m_Parents) {
-		ConfigItem::Ptr item;
-
-		ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
-
-		if (context)
-			item = context->GetItem(m_Type, parent);
-
-		/* ignore already active objects while we're in the compiler
-		 * context and linking to existing items is disabled. */
-		if (!item && (!context || (context->GetFlags() & CompilerLinkExisting)))
-			item = ConfigItem::GetObject(m_Type, parent);
-
-		if (!item) {
-			std::ostringstream msgbuf;
-			msgbuf << "The parent config item '" + parent + "' does not exist: " << m_DebugInfo;
-			BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
-		}
-	}
-
 	ExpressionList::Ptr exprl = boost::make_shared<ExpressionList>();
 
 	Expression execExpr("", OperatorExecute, m_ExpressionList, m_DebugInfo);

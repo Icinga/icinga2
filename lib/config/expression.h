@@ -43,6 +43,8 @@ enum ExpressionOperator
 	OperatorDivide
 };
 
+class ExpressionList;
+
 /**
  * A configuration expression.
  *
@@ -56,6 +58,8 @@ public:
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
 	void Dump(std::ostream& fp, int indent = 0) const;
+
+	void Extract(const std::vector<String>& path, const shared_ptr<ExpressionList>& result) const;
 
 private:
 	String m_Key;

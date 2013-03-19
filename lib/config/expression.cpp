@@ -213,3 +213,18 @@ void Expression::Dump(std::ostream& fp, int indent) const
 
 	fp << ", " << "\n";
 }
+
+void Expression::Extract(const std::vector<String>& path, const ExpressionList::Ptr& result) const
+{
+	ASSERT(!path.empty());
+
+	if (path[0] == m_Key) {
+		if (path.size() > 1)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Specified path does not exist."));
+		else
+			result->AddExpression(*this);
+	} else if (m_Operator == OperatorExecute) {
+		ExpressionList::Ptr exprl = m_Value;
+		exprl->Extract(path, result);
+	}
+}

@@ -59,11 +59,12 @@ DebugInfo ConfigType::GetDebugInfo(void) const
 
 void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 {
-	Dictionary::Ptr attrs = item->Link();
-
 	/* Don't validate abstract items. */
 	if (item->IsAbstract())
 		return;
+
+	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
+	item->GetLinkedExpressionList()->Execute(attrs);
 
 	std::vector<String> locations;
 	locations.push_back("Object '" + item->GetName() + "' (Type: '" + item->GetType() + "')");

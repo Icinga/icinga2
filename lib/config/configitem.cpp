@@ -50,7 +50,7 @@ ConfigItem::ConfigItem(const String& type, const String& name,
     const String& unit, bool abstract, const ExpressionList::Ptr& exprl,
     const std::vector<String>& parents, const DebugInfo& debuginfo)
 	: m_Type(type), m_Name(name), m_Unit(unit), m_Abstract(abstract),
-	  m_ExpressionList(exprl), m_Parents(parents), m_DebugInfo(debuginfo)
+	  m_ExpressionList(exprl), m_ParentNames(parents), m_DebugInfo(debuginfo)
 {
 }
 
@@ -119,30 +119,20 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
  *
  * @returns The list of parents.
  */
-std::vector<String> ConfigItem::GetParents(void) const
+std::vector<ConfigItem::Ptr> ConfigItem::GetParents(void) const
 {
 	return m_Parents;
 }
 
-Dictionary::Ptr ConfigItem::Link(void) const
-{
-	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
-	InternalLink(attrs);
-	return attrs;
-}
-
-/**
- * Calculates the object's properties based on parent objects and the object's
- * expression list.
- *
- * @param dictionary The dictionary that should be used to store the
- *		     properties.
- */
-void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
+void ConfigItem::Link(void)
 {
 	ObjectLock olock(this);
 
-	BOOST_FOREACH(const String& name, m_Parents) {
+	m_LinkedExpressionList = boost::make_shared<ExpressionList>();
+
+	m_Parents.clear();
+
+	BOOST_FOREACH(const String& name, m_ParentNames) {
 		ConfigItem::Ptr parent;
 
 		ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
@@ -162,10 +152,22 @@ void ConfigItem::InternalLink(const Dictionary::Ptr& dictionary) const
 			BOOST_THROW_EXCEPTION(std::invalid_argument(message.str()));
 		}
 
-		parent->InternalLink(dictionary);
+		parent->Link();
+
+		ExpressionList::Ptr pexprl = parent->GetLinkedExpressionList();
+		m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, pexprl, m_DebugInfo));
+
+		m_Parents.push_back(parent);
 	}
 
-	m_ExpressionList->Execute(dictionary);
+	m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, m_ExpressionList, m_DebugInfo));
+}
+
+ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void) const
+{
+	ObjectLock olock(this);
+
+	return m_LinkedExpressionList;
 }
 
 /**
@@ -233,8 +235,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		dobj = dtype->GetObject(m_Name);
 
 	/* Register this item with its parents. */
-	BOOST_FOREACH(const String& parentName, m_Parents) {
-		ConfigItem::Ptr parent = GetObject(m_Type, parentName);
+	BOOST_FOREACH(const ConfigItem::Ptr& parent, m_Parents) {
 		parent->m_ChildObjects.insert(self);
 	}
 
@@ -244,7 +245,10 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 
 	double tx = DynamicObject::GetCurrentTx();
 
-	Dictionary::Ptr properties = Link();
+	Link();
+
+	Dictionary::Ptr properties = boost::make_shared<Dictionary>();
+	GetLinkedExpressionList()->Execute(properties);
 
 	{
 		ObjectLock olock(properties);
@@ -311,6 +315,20 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 }
 
 /**
+ * Registers the configuration item.
+ */
+void ConfigItem::Register(void)
+{
+	ASSERT(!OwnsLock());
+
+	{
+		ObjectLock olock(this);
+
+		m_Items[std::make_pair(m_Type, m_Name)] = GetSelf();
+	}
+}
+
+/**
  * Unregisters the configuration item.
  */
 void ConfigItem::Unregister(void)
@@ -341,11 +359,8 @@ void ConfigItem::UnregisterFromParents(void)
 {
 	ASSERT(OwnsLock());
 
-	BOOST_FOREACH(const String& parentName, m_Parents) {
-		ConfigItem::Ptr parent = GetObject(GetType(), parentName);
-
-		if (parent)
-			parent->m_ChildObjects.erase(GetSelf());
+	BOOST_FOREACH(const ConfigItem::Ptr& parent, m_Parents) {
+		parent->m_ChildObjects.erase(GetSelf());
 	}
 }
 
@@ -414,7 +429,7 @@ void ConfigItem::Dump(std::ostream& fp) const
 		fp << " inherits";
 
 		bool first = true;
-		BOOST_FOREACH(const String& name, m_Parents) {
+		BOOST_FOREACH(const String& name, m_ParentNames) {
 			if (!first)
 				fp << ",";
 			else

@@ -46,6 +46,8 @@ public:
 
 	size_t GetLength(void) const;
 
+	void Extract(const std::vector<String>& path, const ExpressionList::Ptr& result) const;
+
 private:
 	std::vector<Expression> m_Expressions;
 };

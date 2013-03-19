@@ -67,3 +67,10 @@ void ExpressionList::Dump(std::ostream& fp, int indent) const
 		expression.Dump(fp, indent);
 	}
 }
+
+void ExpressionList::Extract(const std::vector<String>& path, const ExpressionList::Ptr& result) const
+{
+	BOOST_FOREACH(const Expression& expression, m_Expressions) {
+		expression.Extract(path, result);
+	}	
+}
