@@ -170,13 +170,23 @@ std::set<Notification::Ptr> Service::GetNotifications(void) const
 void Service::UpdateSlaveNotifications(void)
 {
 	Dictionary::Ptr oldNotifications;
-	std::vector<Dictionary::Ptr> notificationDescsList;
-	ConfigItem::Ptr item;
+	ConfigItem::Ptr serviceItem, hostItem;
 
-	item = ConfigItem::GetObject("Service", GetName());
+	serviceItem = ConfigItem::GetObject("Service", GetName());
 
 	/* Don't create slave notifications unless we own this object */
-	if (!item)
+	if (!serviceItem)
+		return;
+
+	Host::Ptr host = GetHost();
+
+	if (!host)
+		return;
+
+	hostItem = ConfigItem::GetObject("Host", host->GetName());
+
+	/* Don't create slave notifications unless we own the host */
+	if (!hostItem)
 		return;
 
 	{
@@ -184,27 +194,37 @@ void Service::UpdateSlaveNotifications(void)
 		oldNotifications = m_SlaveNotifications;
 	}
 
-	notificationDescsList.push_back(Get("notifications"));
+	std::vector<Dictionary::Ptr> descLists;
+
+	descLists.push_back(Get("notifications"));
 
 	Dictionary::Ptr newNotifications;
 	newNotifications = boost::make_shared<Dictionary>();
 
-	Host::Ptr host = GetHost();
+	descLists.push_back(host->Get("notifications"));
 
-	if (!host)
-		return;
+	for (int i = 0; i < 2; i++) {
+		Dictionary::Ptr descs;
+		ConfigItem::Ptr item;
 
-	notificationDescsList.push_back(host->Get("notifications"));
+		if (i == 0) {
+			/* Host notification descs */
+			descs = host->Get("notifications");
+			item = hostItem;
+		} else {
+			/* Service notification descs */
+			descs = Get("notifications");
+			item = serviceItem;
+		}
 
-	BOOST_FOREACH(const Dictionary::Ptr& notificationDescs, notificationDescsList) {
-		if (!notificationDescs)
+		if (!descs)
 			continue;
 
-		ObjectLock olock(notificationDescs);
+		ObjectLock olock(descs);
 
 		String nfcname;
 		Value nfcdesc;
-		BOOST_FOREACH(boost::tie(nfcname, nfcdesc), notificationDescs) {
+		BOOST_FOREACH(boost::tie(nfcname, nfcdesc), descs) {
 			std::ostringstream namebuf;
 			namebuf << GetName() << "-" << nfcname;
 			String name = namebuf.str();
