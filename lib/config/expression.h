@@ -24,6 +24,7 @@
 #include "config/debuginfo.h"
 #include "base/dictionary.h"
 #include <iostream>
+#include <vector>
 
 namespace icinga
 {

@@ -20,6 +20,7 @@
 #include "config/expression.h"
 #include "config/expressionlist.h"
 #include "base/objectlock.h"
+#include "base/utility.h"
 #include "base/array.h"
 #include <sstream>
 #include <boost/tuple/tuple.hpp>
