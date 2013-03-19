@@ -46,7 +46,8 @@ public:
 
 	size_t GetLength(void) const;
 
-	void Extract(const std::vector<String>& path, const ExpressionList::Ptr& result) const;
+	void ExtractPath(const std::vector<String>& path, const ExpressionList::Ptr& result) const;
+	void ExtractFiltered(const std::set<String, string_iless>& keys, const ExpressionList::Ptr& result) const;
 
 private:
 	std::vector<Expression> m_Expressions;

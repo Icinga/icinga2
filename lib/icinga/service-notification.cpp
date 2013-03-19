@@ -167,32 +167,6 @@ std::set<Notification::Ptr> Service::GetNotifications(void) const
 	return notifications;
 }
 
-/**
- * @threadsafety Always.
- */
-template<typename TDict>
-static void CopyNotificationAttributes(TDict notificationDesc, const ConfigItemBuilder::Ptr& builder)
-{
-	/* TODO: we only need to copy macros if this is an inline definition,
-	 * i.e. "typeid(notificationDesc)" != Notification, however for now we just
-	 * copy them anyway. */
-	Value macros = notificationDesc->Get("macros");
-	if (!macros.IsEmpty())
-		builder->AddExpression("macros", OperatorPlus, macros);
-
-	Value users = notificationDesc->Get("users");
-	if (!users.IsEmpty())
-		builder->AddExpression("users", OperatorPlus, users);
-
-	Value groups = notificationDesc->Get("groups");
-	if (!groups.IsEmpty())
-		builder->AddExpression("groups", OperatorPlus, groups);
-
-	/*Value notificationInterval = notificationDesc->Get("notification_interval");
-	if (!notificationInterval.IsEmpty())
-		builder->AddExpression("notification_interval", OperatorSet, notificationInterval);*/
-}
-
 void Service::UpdateSlaveNotifications(void)
 {
 	Dictionary::Ptr oldNotifications;
@@ -241,8 +215,6 @@ void Service::UpdateSlaveNotifications(void)
 			builder->AddExpression("host_name", OperatorSet, host->GetName());
 			builder->AddExpression("service", OperatorSet, GetShortName());
 
-			CopyNotificationAttributes(this, builder);
-
 			if (!nfcdesc.IsObjectType<Dictionary>())
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Notification description must be a dictionary."));
 
@@ -258,7 +230,24 @@ void Service::UpdateSlaveNotifications(void)
 				}
 			}
 
-			CopyNotificationAttributes(notification, builder);
+			/* Clone attributes from the service object. */
+			std::set<String, string_iless> keys;
+			keys.insert("users");
+			keys.insert("groups");
+			keys.insert("notification_interval");
+
+			ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();
+			item->GetLinkedExpressionList()->ExtractFiltered(keys, svc_exprl);
+			builder->AddExpressionList(svc_exprl);
+
+			/* Clone attributes from the notification expression list. */
+			std::vector<String> path;
+			path.push_back("notifications");
+			path.push_back(nfcname);
+
+			ExpressionList::Ptr nfc_exprl = boost::make_shared<ExpressionList>();
+			item->GetLinkedExpressionList()->ExtractPath(path, nfc_exprl);
+			builder->AddExpressionList(nfc_exprl);
 
 			ConfigItem::Ptr notificationItem = builder->Compile();
 			notificationItem->Commit();

@@ -215,7 +215,7 @@ void Expression::Dump(std::ostream& fp, int indent) const
 	fp << ", " << "\n";
 }
 
-void Expression::Extract(const std::vector<String>& path, const ExpressionList::Ptr& result) const
+void Expression::ExtractPath(const std::vector<String>& path, const ExpressionList::Ptr& result) const
 {
 	ASSERT(!path.empty());
 
@@ -232,9 +232,19 @@ void Expression::Extract(const std::vector<String>& path, const ExpressionList::
 		}
 
 		std::vector<String> sub_path(path.begin() + 1, path.end());
-		exprl->Extract(sub_path, result);
+		exprl->ExtractPath(sub_path, result);
 	} else if (m_Operator == OperatorExecute) {
 		ExpressionList::Ptr exprl = m_Value;
-		exprl->Extract(path, result);
+		exprl->ExtractPath(path, result);
+	}
+}
+
+void Expression::ExtractFiltered(const std::set<String, string_iless>& keys, const shared_ptr<ExpressionList>& result) const
+{
+	if (keys.find(m_Key) != keys.end()) {
+		result->AddExpression(*this);
+	} else if (m_Operator == OperatorExecute) {
+		ExpressionList::Ptr exprl = m_Value;
+		exprl->ExtractFiltered(keys, result);
 	}
 }

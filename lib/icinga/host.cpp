@@ -168,55 +168,6 @@ bool Host::IsReachable(void) const
 	return true;
 }
 
-template<bool copyServiceAttrs, typename TDict>
-static void CopyServiceAttributes(TDict serviceDesc, const ConfigItemBuilder::Ptr& builder)
-{
-	/* TODO: we only need to copy macros if this is an inline definition,
-	 * i.e. "typeid(serviceDesc)" != Service, however for now we just
-	 * copy them anyway. */
-	Value macros = serviceDesc->Get("macros");
-	if (!macros.IsEmpty())
-		builder->AddExpression("macros", OperatorPlus, macros);
-
-	Value checkInterval = serviceDesc->Get("check_interval");
-	if (!checkInterval.IsEmpty())
-		builder->AddExpression("check_interval", OperatorSet, checkInterval);
-
-	Value retryInterval = serviceDesc->Get("retry_interval");
-	if (!retryInterval.IsEmpty())
-		builder->AddExpression("retry_interval", OperatorSet, retryInterval);
-
-	Value sgroups = serviceDesc->Get("servicegroups");
-	if (!sgroups.IsEmpty())
-		builder->AddExpression("servicegroups", OperatorPlus, sgroups);
-
-	Value checkers = serviceDesc->Get("checkers");
-	if (!checkers.IsEmpty())
-		builder->AddExpression("checkers", OperatorSet, checkers);
-
-	Value short_name = serviceDesc->Get("short_name");
-	if (!short_name.IsEmpty())
-		builder->AddExpression("short_name", OperatorSet, short_name);
-
-	Value notification_interval = serviceDesc->Get("notification_interval");
-	if (!notification_interval.IsEmpty())
-		builder->AddExpression("notification_interval", OperatorSet, notification_interval);
-
-	Value check_period = serviceDesc->Get("check_period");
-	if (!check_period.IsEmpty())
-		builder->AddExpression("check_period", OperatorSet, check_period);
-
-	if (copyServiceAttrs) {
-		Value servicedependencies = serviceDesc->Get("servicedependencies");
-		if (!servicedependencies.IsEmpty())
-			builder->AddExpression("servicedependencies", OperatorPlus, servicedependencies);
-
-		Value hostdependencies = serviceDesc->Get("hostdependencies");
-		if (!hostdependencies.IsEmpty())
-			builder->AddExpression("hostdependencies", OperatorPlus, hostdependencies);
-	}
-}
-
 void Host::UpdateSlaveServices(void)
 {
 	ASSERT(!OwnsLock());
@@ -251,18 +202,8 @@ void Host::UpdateSlaveServices(void)
 			builder->AddExpression("display_name", OperatorSet, svcname);
 			builder->AddExpression("short_name", OperatorSet, svcname);
 
-			std::vector<String> path;
-			path.push_back("services");
-			path.push_back(svcname);
-
-			ExpressionList::Ptr exprl = boost::make_shared<ExpressionList>();
-			item->GetLinkedExpressionList()->Extract(path, exprl);
-			builder->AddExpressionList(exprl);
-
-			/*CopyServiceAttributes<false>(this, builder);
-
 			if (!svcdesc.IsObjectType<Dictionary>())
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));*/
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
 
 			Dictionary::Ptr service = svcdesc;
 
@@ -276,7 +217,29 @@ void Host::UpdateSlaveServices(void)
 				}
 			}
 
-			//CopyServiceAttributes<true>(service, builder);
+			/* Clone attributes from the host object. */
+			std::set<String, string_iless> keys;
+			keys.insert("check_interval");
+			keys.insert("retry_interval");
+			keys.insert("servicegroups");
+			keys.insert("checkers");
+			keys.insert("notification_interval");
+			keys.insert("check_period");
+			keys.insert("servicedependencies");
+			keys.insert("hostdependencies");
+
+			ExpressionList::Ptr host_exprl = boost::make_shared<ExpressionList>();
+			item->GetLinkedExpressionList()->ExtractFiltered(keys, host_exprl);
+			builder->AddExpressionList(host_exprl);
+
+			/* Clone attributes from the service expression list. */
+			std::vector<String> path;
+			path.push_back("services");
+			path.push_back(svcname);
+
+			ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();
+			item->GetLinkedExpressionList()->ExtractPath(path, svc_exprl);
+			builder->AddExpressionList(svc_exprl);
 
 			ConfigItem::Ptr serviceItem = builder->Compile();
 			DynamicObject::Ptr dobj = serviceItem->Commit();

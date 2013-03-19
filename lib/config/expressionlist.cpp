@@ -68,9 +68,16 @@ void ExpressionList::Dump(std::ostream& fp, int indent) const
 	}
 }
 
-void ExpressionList::Extract(const std::vector<String>& path, const ExpressionList::Ptr& result) const
+void ExpressionList::ExtractPath(const std::vector<String>& path, const ExpressionList::Ptr& result) const
 {
 	BOOST_FOREACH(const Expression& expression, m_Expressions) {
-		expression.Extract(path, result);
-	}	
+		expression.ExtractPath(path, result);
+	}
+}
+
+void ExpressionList::ExtractFiltered(const std::set<String, string_iless>& keys, const ExpressionList::Ptr& result) const
+{
+	BOOST_FOREACH(const Expression& expression, m_Expressions) {
+		expression.ExtractFiltered(keys, result);
+	}
 }

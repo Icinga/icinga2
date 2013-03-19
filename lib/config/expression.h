@@ -25,6 +25,7 @@
 #include "base/dictionary.h"
 #include <iostream>
 #include <vector>
+#include <set>
 
 namespace icinga
 {
@@ -60,7 +61,8 @@ public:
 	void Execute(const Dictionary::Ptr& dictionary) const;
 	void Dump(std::ostream& fp, int indent = 0) const;
 
-	void Extract(const std::vector<String>& path, const shared_ptr<ExpressionList>& result) const;
+	void ExtractPath(const std::vector<String>& path, const shared_ptr<ExpressionList>& result) const;
+	void ExtractFiltered(const std::set<String, string_iless>& keys, const shared_ptr<ExpressionList>& result) const;
 
 private:
 	String m_Key;
