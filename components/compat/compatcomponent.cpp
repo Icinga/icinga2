@@ -90,20 +90,6 @@ String CompatComponent::GetObjectsPath(void) const
 }
 
 /**
- * Retrieves the log path.
- *
- * @returns log path
- */
-String CompatComponent::GetLogPath(void) const
-{
-	Value logPath = m_LogPath;
-	if (logPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/log/icinga2/compat";
-	else
-		return logPath;
-}
-
-/**
  * Retrieves the icinga.cmd path.
  *
  * @returns icinga.cmd path
@@ -122,7 +108,6 @@ CompatComponent::CompatComponent(const Dictionary::Ptr& serializedUpdate)
 {
 	RegisterAttribute("status_path", Attribute_Config, &m_StatusPath);
 	RegisterAttribute("objects_path", Attribute_Config, &m_ObjectsPath);
-	RegisterAttribute("log_path", Attribute_Config, &m_LogPath);
 	RegisterAttribute("command_path", Attribute_Config, &m_CommandPath);
 }
 

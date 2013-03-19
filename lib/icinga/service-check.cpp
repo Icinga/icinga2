@@ -270,6 +270,26 @@ StateType Service::GetLastStateType(void) const
 /**
  * @threadsafety Always.
  */
+void Service::SetLastReachable(bool reachable)
+{
+	m_LastReachable = reachable;
+	Touch("last_reachable");
+}
+
+/**
+ * @threadsafety Always.
+ */
+bool Service::GetLastReachable(void) const
+{
+	if (m_LastReachable.IsEmpty())
+		return true;
+
+	return m_LastReachable;
+}
+
+/**
+ * @threadsafety Always.
+ */
 void Service::SetLastCheckResult(const Dictionary::Ptr& result)
 {
 	m_LastResult = result;
@@ -391,11 +411,19 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 {
 	bool reachable = IsReachable();
 
+	Host::Ptr host = GetHost();
+	bool host_reachable = true;
+
+	if (host)
+		host_reachable = host->IsReachable();
+
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
+	Dictionary::Ptr old_cr = GetLastCheckResult();
 	ServiceState old_state = GetState();
 	StateType old_stateType = GetStateType();
+	long old_attempt = GetCurrentCheckAttempt();
 	bool hardChange = false;
 	bool recovery;
 
@@ -403,8 +431,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	 * in case this was a passive check result. */
 	SetLastState(old_state);
 	SetLastStateType(old_stateType);
+	SetLastReachable(reachable);
 
-	long attempt = GetCurrentCheckAttempt();
+	long attempt;
 
 	if (cr->Get("state") == StateOK) {
 		if (old_state != StateOK && old_stateType == StateTypeHard)
@@ -419,13 +448,15 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		attempt = 1;
 		recovery = true;
 	} else {
-		if (attempt >= GetMaxCheckAttempts()) {
+		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
 			attempt = 1;
 			hardChange = true;
 		} else if (GetStateType() == StateTypeSoft || GetState() == StateOK) {
 			SetStateType(StateTypeSoft);
-			attempt++;
+			attempt = old_attempt + 1;
+		} else {
+			attempt = old_attempt;
 		}
 
 		recovery = false;
@@ -481,6 +512,18 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	Touch("last_in_downtime");
 
 	olock.Unlock();
+
+	Dictionary::Ptr vars_after = boost::make_shared<Dictionary>();
+	vars_after->Set("state", GetState());
+	vars_after->Set("state_type", GetStateType());
+	vars_after->Set("attempt", GetCurrentCheckAttempt());
+	vars_after->Set("reachable", reachable);
+	vars_after->Set("host_reachable", host_reachable);
+
+	if (old_cr)
+		cr->Set("vars_before", old_cr->Get("vars_after"));
+
+	cr->Set("vars_after", vars_after);
 
 	/* Update macros - these are used by event handlers and notifications. */
 	cr->Set("macros", CalculateAllMacros(cr));
@@ -618,6 +661,8 @@ void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 		SetLastState(GetState());
 		SetLastStateType(GetLastStateType());
 	}
+
+	SetLastReachable(IsReachable());
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	Dictionary::Ptr checkInfo = boost::make_shared<Dictionary>();

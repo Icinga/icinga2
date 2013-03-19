@@ -50,7 +50,6 @@ public:
 private:
 	Attribute<String> m_StatusPath;
 	Attribute<String> m_ObjectsPath;
-	Attribute<String> m_LogPath;
 	Attribute<String> m_CommandPath;
 
 #ifndef _WIN32
@@ -63,7 +62,6 @@ private:
 
 	String GetStatusPath(void) const;
 	String GetObjectsPath(void) const;
-	String GetLogPath(void) const;
 	String GetCommandPath(void) const;
 
 	void DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);

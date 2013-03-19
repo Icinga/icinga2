@@ -17,13 +17,58 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-type CompatComponent {
-	%attribute string "status_path",
-	%attribute string "objects_path",
-	%attribute string "command_path"
+#ifndef COMPATLOG_H
+#define COMPATLOG_H
+
+#include "icinga/i2-icinga.h"
+#include "remoting/endpoint.h"
+#include "base/dynamicobject.h"
+#include "base/timer.h"
+#include <fstream>
+
+namespace icinga
+{
+
+/**
+ * An Icinga compat log writer.
+ *
+ * @ingroup compat
+ */
+class I2_ICINGA_API CompatLog : public DynamicObject
+{
+public:
+	typedef shared_ptr<CompatLog> Ptr;
+	typedef weak_ptr<CompatLog> WeakPtr;
+
+	CompatLog(const Dictionary::Ptr& properties);
+	~CompatLog(void);
+
+	static CompatLog::Ptr GetByName(const String& name);
+
+	String GetLogDir(void) const;
+	double GetRotationInterval(void) const;
+
+protected:
+	virtual void OnAttributeChanged(const String& name);
+	virtual void Start(void);
+
+private:
+	Attribute<String> m_LogDir;
+	Attribute<double> m_RotationInterval;
+
+	void WriteLine(const String& line);
+	void Flush(void);
+
+	Endpoint::Ptr m_Endpoint;
+	void CheckResultRequestHandler(const RequestMessage& request);
+
+	Timer::Ptr m_RotationTimer;
+	void RotationTimerHandler(void);
+
+	std::ofstream m_OutputFile;
+	void RotateFile(void);
+};
+
 }
 
-type CompatLog {
-	%attribute string "path_prefix",
-	%attribute number "rotation_interval"
-}
+#endif /* COMPATLOG_H */

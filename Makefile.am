@@ -26,7 +26,7 @@ icinga2doc_DATA = \
 	NEWS
 
 install-data-local:
-	$(MKDIR_P) ${localstatedir}/log/${PACKAGE}
+	$(MKDIR_P) ${localstatedir}/log/${PACKAGE}/compat/archives
 	$(MKDIR_P) ${localstatedir}/cache/${PACKAGE}
 	$(MKDIR_P) ${localstatedir}/lib/${PACKAGE}
 	$(MKDIR_P) ${localstatedir}/run/${PACKAGE}

@@ -43,6 +43,20 @@ enum HostState
 };
 
 /**
+ * The state of a service.
+ *
+ * @ingroup icinga
+ */
+enum ServiceState
+{
+	StateOK = 0,
+	StateWarning = 1,
+	StateCritical = 2,
+	StateUnknown = 3,
+	StateUncheckable = 4,
+};
+
+/**
  * The state type of a host or service.
  *
  * @ingroup icinga
@@ -93,13 +107,12 @@ public:
 	static void ValidateServiceDictionary(const ScriptTask::Ptr& task,
 	    const std::vector<icinga::Value>& arguments);
 
-	HostState GetState(void) const;
-	StateType GetStateType(void) const;
+	static HostState CalculateState(ServiceState state, bool reachable);
 
 	HostState GetLastState(void) const;
 	StateType GetLastStateType(void) const;
 
-	static String HostStateToString(HostState state);
+	static String StateToString(HostState state);
 
 protected:
 	virtual void OnRegistrationCompleted(void);

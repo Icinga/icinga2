@@ -516,33 +516,18 @@ std::set<Service::Ptr> Host::GetParentServices(void) const
 	return parents;
 }
 
-HostState Host::GetState(void) const
+HostState Host::CalculateState(ServiceState state, bool reachable)
 {
-	if (!IsReachable())
+	if (!reachable)
 		return HostUnreachable;
 
-	Service::Ptr hc = GetHostCheckService();
-
-	if (!hc)
-		return HostUp;
-
-	switch (hc->GetState()) {
+	switch (state) {
 		case StateOK:
 		case StateWarning:
 			return HostUp;
 		default:
 			return HostDown;
 	}
-}
-
-StateType Host::GetStateType(void) const
-{
-	Service::Ptr hc = GetHostCheckService();
-
-	if (!hc)
-		return StateTypeHard;
-
-	return hc->GetStateType();
 }
 
 HostState Host::GetLastState(void) const
@@ -576,7 +561,7 @@ StateType Host::GetLastStateType(void) const
 	return hc->GetLastStateType();
 }
 
-String Host::HostStateToString(HostState state)
+String Host::StateToString(HostState state)
 {
 	switch (state) {
 		case HostUp:
@@ -611,13 +596,16 @@ Dictionary::Ptr Host::CalculateDynamicMacros(void) const
 	if (hc) {
 		ObjectLock olock(hc);
 
-		macros->Set("HOSTSTATE", HostStateToString(GetState()));
-		macros->Set("HOSTSTATEID", GetState());
+		ServiceState state = hc->GetState();
+		bool reachable = IsReachable();
+
+		macros->Set("HOSTSTATE", CalculateState(state, reachable));
+		macros->Set("HOSTSTATEID", state);
 		macros->Set("HOSTSTATETYPE", Service::StateTypeToString(hc->GetStateType()));
 		macros->Set("HOSTATTEMPT", hc->GetCurrentCheckAttempt());
 		macros->Set("MAXHOSTATTEMPT", hc->GetMaxCheckAttempts());
 
-		macros->Set("LASTHOSTSTATE", HostStateToString(GetLastState()));
+		macros->Set("LASTHOSTSTATE", StateToString(GetLastState()));
 		macros->Set("LASTHOSTSTATEID", GetLastState());
 		macros->Set("LASTHOSTSTATETYPE", Service::StateTypeToString(GetLastStateType()));
 		macros->Set("LASTHOSTSTATECHANGE", (long)hc->GetLastStateChange());

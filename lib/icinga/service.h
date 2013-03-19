@@ -32,20 +32,6 @@ namespace icinga
 {
 
 /**
- * The state of a service.
- *
- * @ingroup icinga
- */
-enum ServiceState
-{
-	StateOK,
-	StateWarning,
-	StateCritical,
-	StateUnknown,
-	StateUncheckable,
-};
-
-/**
  * The acknowledgement type of a service.
  *
  * @ingroup icinga
@@ -157,6 +143,9 @@ public:
 
 	void SetLastHardStateChange(double ts);
 	double GetLastHardStateChange(void) const;
+
+	void SetLastReachable(bool reachable);
+	bool GetLastReachable(void) const;
 
 	bool GetEnableActiveChecks(void) const;
 	void SetEnableActiveChecks(bool enabled);
@@ -284,6 +273,7 @@ private:
 	Attribute<long> m_StateType;
 	Attribute<long> m_LastState;
 	Attribute<long> m_LastStateType;
+	Attribute<bool> m_LastReachable;
 	Attribute<Dictionary::Ptr> m_LastResult;
 	Attribute<double> m_LastStateChange;
 	Attribute<double> m_LastHardStateChange;

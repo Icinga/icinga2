@@ -12,6 +12,8 @@ EXTRA_DIST = \
 libcompat_la_SOURCES = \
 	compatcomponent.cpp \
 	compatcomponent.h \
+	compatlog.cpp \
+	compatlog.h \
 	compat-type.cpp
 
 libcompat_la_CPPFLAGS = \
