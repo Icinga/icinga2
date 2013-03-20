@@ -516,6 +516,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	if (old_state == StateOK && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
 
+	if (old_state != StateOK && GetState() == StateOK && old_stateType == StateTypeHard && GetState() == StateTypeHard)
+		send_notification = true; /* Send notifications for hard recoveries. (HARD-NON-OK -> HARD-OK) */
+
 	bool send_downtime_notification = m_LastInDowntime != in_downtime;
 	m_LastInDowntime = in_downtime;
 	Touch("last_in_downtime");
