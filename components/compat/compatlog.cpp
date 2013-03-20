@@ -21,9 +21,11 @@
 #include "icinga/checkresultmessage.h"
 #include "icinga/service.h"
 #include "icinga/macroprocessor.h"
+#include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/exception.h"
 #include "base/convert.h"
 #include "base/application.h"
 #include <boost/smart_ptr/make_shared.hpp>
@@ -32,16 +34,13 @@
 using namespace icinga;
 
 REGISTER_TYPE(CompatLog);
+REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLog::ValidateRotationMethod);
 
-CompatLog::CompatLog(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
+CompatLog::CompatLog(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate), m_LastRotation(0)
 {
 	RegisterAttribute("log_dir", Attribute_Config, &m_LogDir);
-	RegisterAttribute("rotation_interval", Attribute_Config, &m_RotationInterval);
-}
-
-CompatLog::~CompatLog(void)
-{
+	RegisterAttribute("rotation_method", Attribute_Config, &m_RotationMethod);
 }
 
 /**
@@ -51,9 +50,8 @@ void CompatLog::OnAttributeChanged(const String& name)
 {
 	ASSERT(!OwnsLock());
 
-	if (name == "rotation_interval") {
-		m_RotationTimer->SetInterval(GetRotationInterval());
-	}
+	if (name == "rotation_method")
+		ScheduleNextRotation();
 }
 
 /**
@@ -67,10 +65,10 @@ void CompatLog::Start(void)
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLog::RotationTimerHandler, this));
-	m_RotationTimer->SetInterval(GetRotationInterval());
 	m_RotationTimer->Start();
 
-	RotateFile();
+	ReopenFile(false);
+	ScheduleNextRotation();
 }
 
 /**
@@ -91,18 +89,18 @@ String CompatLog::GetLogDir(void) const
 	if (!m_LogDir.IsEmpty())
 		return m_LogDir;
 	else
-		return Application::GetLocalStateDir() + "/log/icinga2/compat/";
+		return Application::GetLocalStateDir() + "/log/icinga2/compat";
 }
 
 /**
  * @threadsafety Always.
  */
-double CompatLog::GetRotationInterval(void) const
+String CompatLog::GetRotationMethod(void) const
 {
-	if (!m_RotationInterval.IsEmpty())
-		return m_RotationInterval;
+	if (!m_RotationMethod.IsEmpty())
+		return m_RotationMethod;
 	else
-		return 3600;
+		return "HOURLY";
 }
 
 /**
@@ -196,20 +194,24 @@ void CompatLog::Flush(void)
 /**
  * @threadsafety Always.
  */
-void CompatLog::RotateFile(void)
+void CompatLog::ReopenFile(bool rotate)
 {
 	ObjectLock olock(this);
 
 	String tempFile = GetLogDir() + "/icinga.log";
 
-	if (m_OutputFile.good()) {
+	if (m_OutputFile) {
 		m_OutputFile.close();
 
-		String finalFile = GetLogDir() + "/archives/icinga-" + Convert::ToString((long)Utility::GetTime()) + ".log";
-		(void) rename(tempFile.CStr(), finalFile.CStr());
+		if (rotate) {
+			String archiveFile = GetLogDir() + "/archives/icinga-" + Utility::FormatDateTime("%m-%d-%Y-%H", Utility::GetTime()) + ".log";
+
+			Log(LogInformation, "compat", "Rotating compat log file '" + tempFile + "' -> '" + archiveFile + "'");
+			(void) rename(tempFile.CStr(), archiveFile.CStr());
+		}
 	}
 
-	m_OutputFile.open(tempFile.CStr());
+	m_OutputFile.open(tempFile.CStr(), std::ofstream::app);
 
 	if (!m_OutputFile.good()) {
 		Log(LogWarning, "icinga", "Could not open compat log file '" + tempFile + "' for writing. Log output will be lost.");
@@ -217,6 +219,7 @@ void CompatLog::RotateFile(void)
 		return;
 	}
 
+	WriteLine("LOG ROTATION: " + GetRotationMethod());
 	WriteLine("LOG VERSION: 2.0");
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
@@ -265,10 +268,89 @@ void CompatLog::RotateFile(void)
 	Flush();
 }
 
+void CompatLog::ScheduleNextRotation(void)
+{
+	time_t now = (time_t)Utility::GetTime();
+	String method = GetRotationMethod();
+
+	tm tmthen;
+
+#ifdef _MSC_VER
+	tm *temp = localtime(&now);
+
+	if (temp == NULL) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("localtime")
+		    << boost::errinfo_errno(errno));
+	}
+
+	tmthen = *temp;
+#else /* _MSC_VER */
+	if (localtime_r(&now, &tmthen) == NULL) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("localtime_r")
+		    << boost::errinfo_errno(errno));
+	}
+#endif /* _MSC_VER */
+
+	tmthen.tm_min = 0;
+	tmthen.tm_sec = 0;
+
+	if (method == "HOURLY") {
+		tmthen.tm_hour++;
+	} else if (method == "DAILY") {
+		tmthen.tm_mday++;
+		tmthen.tm_hour = 0;
+	} else if (method == "WEEKLY") {
+		tmthen.tm_mday += 7 - tmthen.tm_wday;
+		tmthen.tm_hour = 0;
+	} else if (method == "MONTHLY") {
+		tmthen.tm_mon++;
+		tmthen.tm_mday = 1;
+		tmthen.tm_hour = 0;
+	}
+
+	time_t ts = mktime(&tmthen);
+
+	Log(LogInformation, "compat", "Rescheduling rotation timer for compat log '"
+	    + GetName() + "' to '" + Utility::FormatDateTime("%Y/%m/%d %H:%M:%S %z", ts) + "'");
+	m_RotationTimer->Reschedule(ts);
+}
+
 /**
  * @threadsafety Always.
  */
 void CompatLog::RotationTimerHandler(void)
 {
-	RotateFile();
+	try {
+		ReopenFile(true);
+	} catch (...) {
+		ScheduleNextRotation();
+
+		throw;
+	}
+
+	ScheduleNextRotation();
+}
+
+void CompatLog::ValidateRotationMethod(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Location must be specified."));
+
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Attribute dictionary must be specified."));
+
+	String location = arguments[0];
+	Dictionary::Ptr attrs = arguments[1];
+
+	Value rotation_method = attrs->Get("rotation_method");
+
+	if (!rotation_method.IsEmpty() && rotation_method != "HOURLY" && rotation_method != "DAILY" &&
+	    rotation_method != "WEEKLY" && rotation_method != "MONTHLY" && rotation_method != "NONE") {
+		ConfigCompilerContext::GetContext()->AddError(false, "Validation failed for " +
+		    location + ": Rotation method '" + rotation_method + "' is invalid.");
+	}
+
+	task->FinishResult(Empty);
 }

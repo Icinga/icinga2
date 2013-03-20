@@ -39,13 +39,14 @@ public:
 	typedef shared_ptr<CompatLog> Ptr;
 	typedef weak_ptr<CompatLog> WeakPtr;
 
-	CompatLog(const Dictionary::Ptr& properties);
-	~CompatLog(void);
+	CompatLog(const Dictionary::Ptr& serializedUpdate);
 
 	static CompatLog::Ptr GetByName(const String& name);
 
 	String GetLogDir(void) const;
-	double GetRotationInterval(void) const;
+	String GetRotationMethod(void) const;
+
+	static void ValidateRotationMethod(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
 
 protected:
 	virtual void OnAttributeChanged(const String& name);
@@ -53,7 +54,9 @@ protected:
 
 private:
 	Attribute<String> m_LogDir;
-	Attribute<double> m_RotationInterval;
+	Attribute<String> m_RotationMethod;
+
+	double m_LastRotation;
 
 	void WriteLine(const String& line);
 	void Flush(void);
@@ -63,9 +66,10 @@ private:
 
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);
+	void ScheduleNextRotation(void);
 
 	std::ofstream m_OutputFile;
-	void RotateFile(void);
+	void ReopenFile(bool rotate);
 };
 
 }

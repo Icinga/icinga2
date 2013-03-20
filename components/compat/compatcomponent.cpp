@@ -436,6 +436,9 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 			notification_interval = notification->GetNotificationInterval();
 	}
 
+	if (notification_interval == -1)
+		notification_interval = 60;
+
 	{
 		ObjectLock olock(service);
 
@@ -451,7 +454,7 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
-   		   << "\t" << "notification_interval" << "\t" << notification_interval << "\n"
+   		   << "\t" << "notification_interval" << "\t" << notification_interval / 60.0 << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}

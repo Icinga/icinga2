@@ -204,8 +204,13 @@ void Timer::Reschedule(double next)
 
 	boost::mutex::scoped_lock lock(l_Mutex);
 
-	if (next < 0)
+	if (next < 0) {
+		/* Don't schedule the next call if this is not a periodic timer. */
+		if (m_Interval <= 0)
+			return;
+
 		next = Utility::GetTime() + m_Interval;
+	}
 
 	m_Next = next;
 
