@@ -228,8 +228,6 @@ public:
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled);
 
-	double GetNotificationInterval(void) const;
-
 	void RequestNotifications(NotificationType type, const Dictionary::Ptr& cr);
 	void SendNotifications(NotificationType type, const Dictionary::Ptr& cr);
 
@@ -238,9 +236,6 @@ public:
 	static void InvalidateNotificationsCache(void);
 
 	void UpdateSlaveNotifications(void);
-
-	double GetLastNotification(void) const;
-	void SetLastNotification(double time);
 
 protected:
 	virtual void OnRegistrationCompleted(void);
@@ -310,8 +305,6 @@ private:
 
 	/* Notifications */
 	Attribute<bool> m_EnableNotifications;
-	Attribute<double> m_LastNotification;
-	Attribute<double> m_NotificationInterval;
 
 	static void RefreshNotificationsCache(void);
 };

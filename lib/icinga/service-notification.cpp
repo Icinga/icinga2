@@ -41,11 +41,6 @@ static Timer::Ptr l_NotificationsCacheTimer;
  */
 void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr& cr)
 {
-	{
-		ObjectLock olock(this);
-		SetLastNotification(Utility::GetTime());
-	}
-
 	RequestMessage msg;
 	msg.SetMethod("icinga::SendNotifications");
 
@@ -250,7 +245,7 @@ void Service::UpdateSlaveNotifications(void)
 				}
 			}
 
-			/* Clone attributes from the service object. */
+			/* Clone attributes from the host/service object. */
 			std::set<String, string_iless> keys;
 			keys.insert("users");
 			keys.insert("groups");
@@ -298,26 +293,6 @@ void Service::UpdateSlaveNotifications(void)
 /**
  * @threadsafety Always.
  */
-double Service::GetLastNotification(void) const
-{
-	if (m_LastNotification.IsEmpty())
-		return 0;
-	else
-		return m_LastNotification;
-}
-
-/**
- * @threadsafety Always.
- */
-void Service::SetLastNotification(double time)
-{
-	m_LastNotification = time;
-	Touch("last_notification");
-}
-
-/**
- * @threadsafety Always.
- */
 bool Service::GetEnableNotifications(void) const
 {
 	if (m_EnableNotifications.IsEmpty())
@@ -333,15 +308,4 @@ void Service::SetEnableNotifications(bool enabled)
 {
 	m_EnableNotifications = enabled;
 	Touch("enable_notifications");
-}
-
-/**
- * @threadsafety Always.
- */
-double Service::GetNotificationInterval(void) const
-{
-	if (m_NotificationInterval.IsEmpty())
-		return 300;
-	else
-		return m_NotificationInterval;
 }

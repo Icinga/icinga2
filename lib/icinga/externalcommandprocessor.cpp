@@ -1134,10 +1134,10 @@ void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<S
 	if (!hc)
 		return;
 
-	{
-		ObjectLock olock(hc);
+	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
+		ObjectLock olock(notification);
 
-		hc->SetLastNotification(Convert::ToDouble(arguments[1]));
+		notification->SetNextNotification(Convert::ToDouble(arguments[1]));
 	}
 }
 
@@ -1150,10 +1150,10 @@ void ExternalCommandProcessor::DelaySvcNotification(double, const std::vector<St
 
 	Log(LogInformation, "icinga", "Delaying notifications for service " + service->GetName());
 
-	{
-		ObjectLock olock(service);
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		ObjectLock olock(notification);
 
-		service->SetLastNotification(Convert::ToDouble(arguments[2]));
+		notification->SetNextNotification(Convert::ToDouble(arguments[2]));
 	}
 }
 

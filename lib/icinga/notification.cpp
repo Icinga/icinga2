@@ -35,6 +35,9 @@ Notification::Notification(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("notification_command", Attribute_Config, &m_NotificationCommand);
+	RegisterAttribute("notification_interval", Attribute_Config, &m_NotificationInterval);
+	RegisterAttribute("last_notification", Attribute_Replicated, &m_LastNotification);
+	RegisterAttribute("next_notification", Attribute_Replicated, &m_NextNotification);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
 	RegisterAttribute("users", Attribute_Config, &m_Users);
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
@@ -142,6 +145,58 @@ std::set<UserGroup::Ptr> Notification::GetGroups(void) const
 /**
  * @threadsafety Always.
  */
+double Notification::GetNotificationInterval(void) const
+{
+	if (m_NotificationInterval.IsEmpty())
+		return 300;
+	else
+		return m_NotificationInterval;
+}
+
+/**
+ * @threadsafety Always.
+ */
+double Notification::GetLastNotification(void) const
+{
+	if (m_LastNotification.IsEmpty())
+		return 0;
+	else
+		return m_LastNotification;
+}
+
+/**
+ * Sets the timestamp when the last notification was sent.
+ */
+void Notification::SetLastNotification(double time)
+{
+	m_LastNotification = time;
+	Touch("last_notification");
+}
+
+/**
+ * @threadsafety Always.
+ */
+double Notification::GetNextNotification(void) const
+{
+	if (m_NextNotification.IsEmpty())
+		return 0;
+	else
+		return m_NextNotification;
+}
+
+/**
+ * Sets the timestamp when the next periodical notification should be sent.
+ * This does not affect notifications that are sent for state changes.
+ */
+void Notification::SetNextNotification(double time)
+{
+	m_NextNotification = time;
+	Touch("next_notification");
+}
+
+/**
+ * @threadsafety Always.
+ */
 String Notification::NotificationTypeToString(NotificationType type)
 {
 	switch (type) {
@@ -170,6 +225,12 @@ String Notification::NotificationTypeToString(NotificationType type)
 void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr)
 {
 	ASSERT(!OwnsLock());
+
+	{
+		ObjectLock olock(this);
+
+		SetLastNotification(Utility::GetTime());
+	}
 
 	Dictionary::Ptr macros = cr->Get("macros");
 

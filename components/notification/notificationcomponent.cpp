@@ -21,6 +21,7 @@
 #include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -57,7 +58,7 @@ void NotificationComponent::Stop(void)
 }
 
 /**
- * Periodically sends a notification::HelloWorld message.
+ * Periodically sends notifications.
  *
  * @param - Event arguments for the timer.
  */
@@ -65,8 +66,16 @@ void NotificationComponent::NotificationTimerHandler(void)
 {
 	double now = Utility::GetTime();
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Notification")) {
+		Notification::Ptr notification = dynamic_pointer_cast<Notification>(object);
+
+		if (notification->GetNotificationInterval() <= 0)
+			continue;
+
+		if (notification->GetNextNotification() > now)
+			continue;
+
+		Service::Ptr service = notification->GetService();
 		bool reachable = service->IsReachable();
 
 		bool send_notification;
@@ -80,17 +89,25 @@ void NotificationComponent::NotificationTimerHandler(void)
 			if (service->GetState() == StateOK)
 				continue;
 
-			if (service->GetNotificationInterval() <= 0)
-				continue;
-
-			if (service->GetLastNotification() > now - service->GetNotificationInterval())
-				continue;
-
 			send_notification = reachable && !service->IsInDowntime() && !service->IsAcknowledged();
 		}
 
-		if (send_notification)
-			service->RequestNotifications(NotificationProblem, service->GetLastCheckResult());
+		if (!send_notification)
+			continue;
+
+		try {
+			Log(LogInformation, "notification", "Sending reminder notification for service '" + service->GetName() + "'");
+			notification->BeginExecuteNotification(NotificationProblem, service->GetLastCheckResult());
+		} catch (const std::exception& ex) {
+			std::ostringstream msgbuf;
+			msgbuf << "Exception occured during notification for service '"
+			       << GetName() << "': " << boost::diagnostic_information(ex);
+			String message = msgbuf.str();
+
+			Log(LogWarning, "icinga", message);
+		}
+
+		notification->SetNextNotification(Utility::GetTime() + notification->GetNotificationInterval());
 	}
 }
 

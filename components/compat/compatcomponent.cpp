@@ -316,7 +316,7 @@ void CompatComponent::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 		   << "\t" << "passive_checks_enabled" << "\t" << (hc->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (hc->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "d,u,r" << "\n"
-		   << "\t" << "notification_interval" << "\t" << hc->GetNotificationInterval() << "\n";
+		   << "\t" << "notification_interval" << "\t" << 1 << "\n";
 	} else {
 		fp << "\t" << "check_interval" << "\t" << 60 << "\n"
 		   << "\t" << "retry_interval" << "\t" << 60 << "\n"
@@ -367,6 +367,12 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 			state = 2; /* UNREACHABLE */
 	}
 
+	double last_notification = 0;
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		if (notification->GetLastNotification() > last_notification)
+			last_notification = notification->GetLastNotification();
+	}
+
 	fp << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
 	   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
@@ -391,7 +397,7 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
 	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
 	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
-	   << "\t" << "last_notification=" << service->GetLastNotification() << "\n";
+	   << "\t" << "last_notification=" << last_notification << "\n";
 }
 
 void CompatComponent::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)
@@ -424,6 +430,12 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 	if (!host)
 		return;
 
+	double notification_interval = -1;
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
+			notification_interval = notification->GetNotificationInterval();
+	}
+
 	{
 		ObjectLock olock(service);
 
@@ -439,7 +451,7 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
-   		   << "\t" << "notification_interval" << "\t" << service->GetNotificationInterval() << "\n"
+   		   << "\t" << "notification_interval" << "\t" << notification_interval << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}

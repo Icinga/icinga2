@@ -64,9 +64,16 @@ public:
 
 	shared_ptr<Service> GetService(void) const;
 	Value GetNotificationCommand(void) const;
+	double GetNotificationInterval(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 	std::set<User::Ptr> GetUsers(void) const;
 	std::set<UserGroup::Ptr> GetGroups(void) const;
+
+	double GetLastNotification(void) const;
+	void SetLastNotification(double time);
+
+	double GetNextNotification(void) const;
+	void SetNextNotification(double time);
 
 	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr);
 
@@ -77,6 +84,9 @@ protected:
 
 private:
 	Attribute<Value> m_NotificationCommand;
+	Attribute<double> m_NotificationInterval;
+	Attribute<double> m_LastNotification;
+	Attribute<double> m_NextNotification;
 	Attribute<Dictionary::Ptr> m_Macros;
 	Attribute<Array::Ptr> m_Users;
 	Attribute<Array::Ptr> m_Groups;
