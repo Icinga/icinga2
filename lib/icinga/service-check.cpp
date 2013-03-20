@@ -146,7 +146,7 @@ void Service::UpdateNextCheck(void)
 	double adj = 0;
 
 	if (interval > 1)
-		adj = fmod(now * 1000 + GetSchedulingOffset(), interval * 1000) / 1000.0;
+		adj = fmod(now * 100 + GetSchedulingOffset(), interval * 100) / 100.0;
 
 	SetNextCheck(now - adj + interval);
 }
@@ -438,7 +438,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	ServiceState old_state = GetState();
 	StateType old_stateType = GetStateType();
 	long old_attempt = GetCurrentCheckAttempt();
-	bool hardChange = false;
 	bool recovery;
 
 	/* The BeginExecuteCheck function already sets the old state, but we need to do it again
@@ -450,14 +449,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	long attempt;
 
 	if (cr->Get("state") == StateOK) {
-		if (old_state != StateOK && old_stateType == StateTypeHard)
-			SetStateType(StateTypeSoft); // HARD NON-OK -> SOFT OK
-
 		if (old_state == StateOK && old_stateType == StateTypeSoft)
-			hardChange = true; // SOFT OK -> HARD OK
-
-		if (old_state == StateOK || old_stateType == StateTypeSoft)
-			SetStateType(StateTypeHard); // SOFT OK -> HARD OK or SOFT NON-OK -> HARD OK
+			SetStateType(StateTypeHard); // SOFT OK -> HARD OK
 
 		attempt = 1;
 		recovery = true;
@@ -465,7 +458,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
 			attempt = 1;
-			hardChange = true;
 		} else if (GetStateType() == StateTypeSoft || GetState() == StateOK) {
 			SetStateType(StateTypeSoft);
 			attempt = old_attempt + 1;
@@ -508,6 +500,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		}
 	}
 
+	bool hardChange = (GetStateType() == StateTypeHard && old_stateType == StateTypeSoft);
+
 	if (hardChange)
 		SetLastHardStateChange(now);
 
@@ -518,6 +512,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	bool in_downtime = IsInDowntime();
 	bool send_notification = hardChange && reachable && !in_downtime && !IsAcknowledged();
+
+	if (old_state == StateOK && old_stateType == StateTypeSoft)
+		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
 
 	bool send_downtime_notification = m_LastInDowntime != in_downtime;
 	m_LastInDowntime = in_downtime;
