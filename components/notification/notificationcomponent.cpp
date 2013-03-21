@@ -92,12 +92,14 @@ void NotificationComponent::NotificationTimerHandler(void)
 			send_notification = reachable && !service->IsInDowntime() && !service->IsAcknowledged();
 		}
 
+		notification->SetNextNotification(Utility::GetTime() + notification->GetNotificationInterval());
+
 		if (!send_notification)
 			continue;
 
 		try {
 			Log(LogInformation, "notification", "Sending reminder notification for service '" + service->GetName() + "'");
-			notification->BeginExecuteNotification(NotificationProblem, service->GetLastCheckResult());
+			notification->BeginExecuteNotification(NotificationProblem, service->GetLastCheckResult(), false);
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
 			msgbuf << "Exception occured during notification for service '"
@@ -106,8 +108,6 @@ void NotificationComponent::NotificationTimerHandler(void)
 
 			Log(LogWarning, "icinga", message);
 		}
-
-		notification->SetNextNotification(Utility::GetTime() + notification->GetNotificationInterval());
 	}
 }
 

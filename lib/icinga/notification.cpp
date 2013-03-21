@@ -36,6 +36,7 @@ Notification::Notification(const Dictionary::Ptr& serializedUpdate)
 {
 	RegisterAttribute("notification_command", Attribute_Config, &m_NotificationCommand);
 	RegisterAttribute("notification_interval", Attribute_Config, &m_NotificationInterval);
+	RegisterAttribute("notification_period", Attribute_Config, &m_NotificationPeriod);
 	RegisterAttribute("last_notification", Attribute_Replicated, &m_LastNotification);
 	RegisterAttribute("next_notification", Attribute_Replicated, &m_NextNotification);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
@@ -156,6 +157,14 @@ double Notification::GetNotificationInterval(void) const
 /**
  * @threadsafety Always.
  */
+TimePeriod::Ptr Notification::GetNotificationPeriod(void) const
+{
+	return TimePeriod::GetByName(m_NotificationPeriod);
+}
+
+/**
+ * @threadsafety Always.
+ */
 double Notification::GetLastNotification(void) const
 {
 	if (m_LastNotification.IsEmpty())
@@ -222,9 +231,18 @@ String Notification::NotificationTypeToString(NotificationType type)
 /**
  * @threadsafety Always.
  */
-void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr)
+void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool ignore_timeperiod)
 {
 	ASSERT(!OwnsLock());
+
+	if (!ignore_timeperiod) {
+		TimePeriod::Ptr tp = GetNotificationPeriod();
+
+		if (tp && !tp->IsInside(Utility::GetTime())) {
+			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': not in timeperiod");
+			return;
+		}
+	}
 
 	{
 		ObjectLock olock(this);
@@ -246,28 +264,32 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
 		Log(LogDebug, "icinga", "Sending notification for user " + user->GetName());
-		BeginExecuteNotificationHelper(macros, type, user);
-	}
-
-	if (allUsers.empty()) {
-		/* Send a notification even if there are no users specified. */
-		BeginExecuteNotificationHelper(macros, type, User::Ptr());
+		BeginExecuteNotificationHelper(macros, type, user, ignore_timeperiod);
 	}
 }
 
 /**
  * @threadsafety Always.
  */
-void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notificationMacros, NotificationType type, const User::Ptr& user)
+void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notificationMacros,
+    NotificationType type, const User::Ptr& user, bool ignore_timeperiod)
 {
 	ASSERT(!OwnsLock());
 
+	if (!ignore_timeperiod) {
+		TimePeriod::Ptr tp = user->GetNotificationPeriod();
+
+		if (tp && !tp->IsInside(Utility::GetTime())) {
+			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
+			    GetName() + " and user '" + user->GetName() + "': user not in timeperiod");
+			return;
+		}
+	}
+
 	std::vector<Dictionary::Ptr> macroDicts;
 
-	if (user) {
-		macroDicts.push_back(user->GetMacros());
-		macroDicts.push_back(user->CalculateDynamicMacros());
-	}
+	macroDicts.push_back(user->GetMacros());
+	macroDicts.push_back(user->CalculateDynamicMacros());
 
 	macroDicts.push_back(notificationMacros);
 

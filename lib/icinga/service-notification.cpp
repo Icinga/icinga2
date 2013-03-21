@@ -60,12 +60,15 @@ void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr&
  */
 void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr)
 {
+	bool force = false;
+
 	if (!GetEnableNotifications()) {
 		if (!GetForceNextNotification()) {
 			Log(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
 			return;
 		}
 
+		force = true;
 		SetForceNextNotification(false);
 	}
 
@@ -78,7 +81,7 @@ void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {
-			notification->BeginExecuteNotification(type, cr);
+			notification->BeginExecuteNotification(type, cr, force);
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
 			msgbuf << "Exception occured during notification for service '"
@@ -254,6 +257,7 @@ void Service::UpdateSlaveNotifications(void)
 			keys.insert("users");
 			keys.insert("groups");
 			keys.insert("notification_interval");
+			keys.insert("notification_period");
 
 			ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();
 			item->GetLinkedExpressionList()->ExtractFiltered(keys, svc_exprl);

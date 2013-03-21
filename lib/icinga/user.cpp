@@ -32,6 +32,7 @@ User::User(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
+	RegisterAttribute("notification_period", Attribute_Config, &m_NotificationPeriod);
 }
 
 User::~User(void)
@@ -85,6 +86,11 @@ Array::Ptr User::GetGroups(void) const
 Dictionary::Ptr User::GetMacros(void) const
 {
 	return m_Macros;
+}
+
+TimePeriod::Ptr User::GetNotificationPeriod(void) const
+{
+	return TimePeriod::GetByName(m_NotificationPeriod);
 }
 
 /**

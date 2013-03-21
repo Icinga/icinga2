@@ -23,6 +23,7 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/user.h"
 #include "icinga/usergroup.h"
+#include "icinga/timeperiod.h"
 #include "base/array.h"
 
 namespace icinga
@@ -65,6 +66,7 @@ public:
 	shared_ptr<Service> GetService(void) const;
 	Value GetNotificationCommand(void) const;
 	double GetNotificationInterval(void) const;
+	TimePeriod::Ptr GetNotificationPeriod(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 	std::set<User::Ptr> GetUsers(void) const;
 	std::set<UserGroup::Ptr> GetGroups(void) const;
@@ -75,7 +77,7 @@ public:
 	double GetNextNotification(void) const;
 	void SetNextNotification(double time);
 
-	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr);
+	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool ignore_timeperiod);
 
 	static String NotificationTypeToString(NotificationType type);
 
@@ -85,6 +87,7 @@ protected:
 private:
 	Attribute<Value> m_NotificationCommand;
 	Attribute<double> m_NotificationInterval;
+	Attribute<String> m_NotificationPeriod;
 	Attribute<double> m_LastNotification;
 	Attribute<double> m_NextNotification;
 	Attribute<Dictionary::Ptr> m_Macros;
@@ -98,7 +101,7 @@ private:
 	void NotificationCompletedHandler(const ScriptTask::Ptr& task);
 
 	void BeginExecuteNotificationHelper(const Dictionary::Ptr& notificationMacros,
-	    NotificationType type, const User::Ptr& user);
+	    NotificationType type, const User::Ptr& user, bool ignore_timeperiod);
 };
 
 }
