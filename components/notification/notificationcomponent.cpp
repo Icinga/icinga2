@@ -78,6 +78,8 @@ void NotificationComponent::NotificationTimerHandler(void)
 		Service::Ptr service = notification->GetService();
 		bool reachable = service->IsReachable();
 
+		notification->SetNextNotification(Utility::GetTime() + notification->GetNotificationInterval());
+
 		bool send_notification;
 
 		{
@@ -89,13 +91,9 @@ void NotificationComponent::NotificationTimerHandler(void)
 			if (service->GetState() == StateOK)
 				continue;
 
-			send_notification = reachable && !service->IsInDowntime() && !service->IsAcknowledged();
+			if (!reachable || service->IsInDowntime() || service->IsAcknowledged())
+				continue;
 		}
-
-		notification->SetNextNotification(Utility::GetTime() + notification->GetNotificationInterval());
-
-		if (!send_notification)
-			continue;
 
 		try {
 			Log(LogInformation, "notification", "Sending reminder notification for service '" + service->GetName() + "'");
