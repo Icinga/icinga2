@@ -7,8 +7,8 @@
  * description of what configuration options are available.
  */
 
-#include <itl/itl.conf>
-#include <itl/standalone.conf>
+include <itl/itl.conf>
+include <itl/standalone.conf>
 
 /**
  * Global configuration settings
@@ -24,7 +24,7 @@ local object IcingaApplication "icinga" {
  * files. These are used by the Icinga 1.x CGIs to display the state of
  * hosts and services.
  */
-#library "compat"
+library "compat"
 local object CompatComponent "compat" { }
 
 /**
