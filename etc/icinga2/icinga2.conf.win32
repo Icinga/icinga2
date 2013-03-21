@@ -18,7 +18,7 @@ local object IcingaApplication "icinga" {
   state_path = "icinga2.state",
 
   macros = {
-    plugindir = "C:\Plugins"
+    plugindir = "C:\\Plugins"
   }
 }
 
@@ -27,7 +27,7 @@ local object IcingaApplication "icinga" {
  * files. These are used by the Icinga 1.x CGIs to display the state of
  * hosts and services.
  */
-#library "compat"
+library "compat"
 local object Component "compat" {
   status_path = "status.dat",
   objects_path = "objects.cache",
