@@ -233,6 +233,9 @@ public:
 
 	std::set<Notification::Ptr> GetNotifications(void) const;
 
+	void SetForceNextNotification(bool force);
+	bool GetForceNextNotification(void) const;
+
 	static void InvalidateNotificationsCache(void);
 
 	void UpdateSlaveNotifications(void);
@@ -305,6 +308,7 @@ private:
 
 	/* Notifications */
 	Attribute<bool> m_EnableNotifications;
+	Attribute<bool> m_ForceNextNotification;
 
 	static void RefreshNotificationsCache(void);
 };

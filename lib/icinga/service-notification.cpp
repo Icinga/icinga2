@@ -61,8 +61,12 @@ void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr&
 void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr)
 {
 	if (!GetEnableNotifications()) {
-		Log(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
-		return;
+		if (!GetForceNextNotification()) {
+			Log(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
+			return;
+		}
+
+		SetForceNextNotification(false);
 	}
 
 	Log(LogInformation, "icinga", "Sending notifications for service '" + GetName() + "'");
@@ -308,4 +312,24 @@ void Service::SetEnableNotifications(bool enabled)
 {
 	m_EnableNotifications = enabled;
 	Touch("enable_notifications");
+}
+
+/**
+ * @threadsafety Always.
+ */
+bool Service::GetForceNextNotification(void) const
+{
+	if (m_ForceNextNotification.IsEmpty())
+		return false;
+
+	return static_cast<bool>(m_ForceNextNotification);
+}
+
+/**
+ * @threadsafety Always.
+ */
+void Service::SetForceNextNotification(bool forced)
+{
+	m_ForceNextNotification = forced ? 1 : 0;
+	Touch("force_next_notification");
 }

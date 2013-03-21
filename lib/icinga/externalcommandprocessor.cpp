@@ -1104,11 +1104,19 @@ void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vec
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 4 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
+	int options = Convert::ToLong(arguments[1]);
 
 	Log(LogInformation, "icinga", "Sending custom notification for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
-	if (service)
+	if (service) {
+		if (options & 2) {
+			ObjectLock olock(service);
+			service->SetForceNextNotification(true);
+			service->Flush();
+		}
+
 		service->RequestNotifications(NotificationCustom, service->GetLastCheckResult());
+	}
 }
 
 void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vector<String>& arguments)
@@ -1117,8 +1125,16 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vect
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 5 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+	int options = Convert::ToLong(arguments[2]);
 
 	Log(LogInformation, "icinga", "Sending custom notification for service " + service->GetName());
+
+	if (options & 2) {
+		ObjectLock olock(service);
+		service->SetForceNextNotification(true);
+		service->Flush();
+	}
+
 	service->RequestNotifications(NotificationCustom, service->GetLastCheckResult());
 }
 
