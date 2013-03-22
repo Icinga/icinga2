@@ -24,21 +24,28 @@
 #include <sstream>
 #include <boost/bind.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 EventQueue::EventQueue(void)
 	: m_Stopped(false)
 {
-	unsigned int threads = boost::thread::hardware_concurrency();
+	m_ThreadCount = boost::thread::hardware_concurrency();
 
-	if (threads == 0)
-		threads = 1;
+	if (m_ThreadCount == 0)
+		m_ThreadCount = 1;
 
-	threads *= 8;
+	m_ThreadCount *= 8;
 
-	for (unsigned int i = 0; i < threads; i++)
-		m_Threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this));
+	m_ThreadCount = 128;
+
+	m_States = new ThreadState[m_ThreadCount];
+
+	for (int i = 0; i < m_ThreadCount; i++) {
+		m_States[i] = ThreadIdle;
+		m_Threads.create_thread(boost::bind(&EventQueue::QueueThreadProc, this, i));
+	}
 
 	boost::thread reportThread(boost::bind(&EventQueue::ReportThreadProc, this));
 	reportThread.detach();
@@ -68,13 +75,15 @@ void EventQueue::Join(void)
 /**
  * Waits for events and processes them.
  */
-void EventQueue::QueueThreadProc(void)
+void EventQueue::QueueThreadProc(int tid)
 {
 	for (;;) {
-		Callback event;
+		EventQueueWorkItem event;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
+
+			m_States[tid] = ThreadIdle;
 
 			while (m_Events.empty() && !m_Stopped)
 				m_CV.wait(lock);
@@ -82,8 +91,10 @@ void EventQueue::QueueThreadProc(void)
 			if (m_Events.empty() && m_Stopped)
 				break;
 
-			event = m_Events.top();
-			m_Events.pop();
+			event = m_Events.front();
+			m_Events.pop_front();
+
+			m_States[tid] = ThreadBusy;
 		}
 
 #ifdef _DEBUG
@@ -97,7 +108,7 @@ void EventQueue::QueueThreadProc(void)
 #endif /* _DEBUG */
 
 		try {
-			event();
+			event.Callback();
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
 			msgbuf << "Exception thrown in event handler: " << std::endl
@@ -146,10 +157,15 @@ void EventQueue::QueueThreadProc(void)
  *
  * @param callback The callback function for the event.
  */
-void EventQueue::Post(const EventQueue::Callback& callback)
+void EventQueue::Post(const EventQueueCallback& callback)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Events.push(callback);
+
+	EventQueueWorkItem event;
+	event.Callback = callback;
+	event.Timestamp = Utility::GetTime();
+
+	m_Events.push_back(event);
 	m_CV.notify_one();
 }
 
@@ -158,13 +174,40 @@ void EventQueue::ReportThreadProc(void)
 	for (;;) {
 		Utility::Sleep(5);
 
-		int pending;
+		double now = Utility::GetTime();
+
+		int pending, busy;
+		double max_latency, avg_latency;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
 			pending = m_Events.size();
+
+			busy = 0;
+
+			for (int i = 0; i < m_ThreadCount; i++) {
+				if (m_States[i] == ThreadBusy)
+					busy++;
+			}
+
+			max_latency = 0;
+			avg_latency = 0;
+
+			BOOST_FOREACH(const EventQueueWorkItem& event, m_Events) {
+				double latency = now - event.Timestamp;
+
+				avg_latency += latency;
+
+				if (latency > max_latency)
+					max_latency = latency;
+			}
+
+			avg_latency /= pending;
 		}
 
-		Log(LogInformation, "base", "Pending tasks: " + Convert::ToString(pending));
+		Log(LogInformation, "base", "Pending tasks: " + Convert::ToString(pending) + "; Busy threads: " +
+		    Convert::ToString(busy) + "; Idle threads: " + Convert::ToString(m_ThreadCount - busy) +
+		    "; Maximum latency: " + Convert::ToString((long)max_latency * 1000) + "ms"
+		    "; Average latency: " + Convert::ToString((long)avg_latency * 1000) + "ms");
 	}
 }

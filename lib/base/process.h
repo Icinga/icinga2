@@ -69,41 +69,9 @@ private:
 
 #ifndef _WIN32
 	pid_t m_Pid;
-	int m_FD;
 #endif /* _WIN32 */
-
-	std::ostringstream m_OutputStream;
-
-	ProcessResult m_Result;
 
 	virtual void Run(void);
-
-	static boost::mutex m_Mutex;
-	static std::deque<Process::Ptr> m_Tasks;
-#ifndef _WIN32
-	static boost::condition_variable m_CV;
-	static int m_TaskFd;
-
-	static Timer::Ptr m_StatusTimer;
-#endif /* _WIN32 */
-
-	void QueueTask(void);
-
-	void SpawnTask(void);
-
-#ifdef _WIN32
-	static void WorkerThreadProc(void);
-#else /* _WIN32 */
-	static void WorkerThreadProc(int taskFd);
-
-	static void StatusTimerHandler(void);
-#endif /* _WIN32 */
-
-	void InitTask(void);
-	bool RunTask(void);
-
-	static boost::once_flag m_ThreadOnce;
-	static void Initialize(void);
 };
 
 }

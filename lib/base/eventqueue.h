@@ -30,6 +30,20 @@
 namespace icinga
 {
 
+enum ThreadState
+{
+	ThreadIdle,
+	ThreadBusy
+};
+
+typedef boost::function<void ()> EventQueueCallback;
+
+struct EventQueueWorkItem
+{
+	EventQueueCallback Callback;
+	double Timestamp;
+};
+
 /**
  * An event queue.
  *
@@ -38,26 +52,26 @@ namespace icinga
 class I2_BASE_API EventQueue
 {
 public:
-	typedef boost::function<void ()> Callback;
-
 	EventQueue(void);
 	~EventQueue(void);
 
 	void Stop(void);
 	void Join(void);
 
-	void Post(const Callback& callback);
+	void Post(const EventQueueCallback& callback);
 
 private:
 	boost::thread_group m_Threads;
+	ThreadState *m_States;
+	int m_ThreadCount;
 
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
 
 	bool m_Stopped;
-	std::stack<Callback> m_Events;
+	std::deque<EventQueueWorkItem> m_Events;
 
-	void QueueThreadProc(void);
+	void QueueThreadProc(int tid);
 	void ReportThreadProc(void);
 };
 

@@ -22,30 +22,9 @@
 #ifdef _WIN32
 using namespace icinga;
 
-void Process::Initialize(void)
+void Process::Run(void)
 {
 	// TODO: implement
-}
-
-void Process::WorkerThreadProc(void)
-{
-	// TODO: implement
-}
-
-void Process::QueueTask(void)
-{
-	// TODO: implement
-}
-
-void Process::InitTask(void)
-{
-	// TODO: implement
-}
-
-bool Process::RunTask(void)
-{
-	// TODO: implement
-	return false;
 }
 
 #endif /* _WIN32 */

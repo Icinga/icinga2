@@ -25,22 +25,9 @@
 
 using namespace icinga;
 
-boost::once_flag Process::m_ThreadOnce = BOOST_ONCE_INIT;
-boost::mutex Process::m_Mutex;
-std::deque<Process::Ptr> Process::m_Tasks;
-
 Process::Process(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
 	: AsyncTask<Process, ProcessResult>(), m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment)
-{
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		boost::call_once(&Process::Initialize, m_ThreadOnce);
-	}
-
-#ifndef _WIN32
-	m_FD = -1;
-#endif /* _WIN32 */
-}
+{ }
 
 std::vector<String> Process::SplitCommand(const Value& command)
 {
@@ -66,9 +53,4 @@ std::vector<String> Process::SplitCommand(const Value& command)
 	args.push_back(command);
 #endif
 	return args;
-}
-
-void Process::Run(void)
-{
-	QueueTask();
 }
