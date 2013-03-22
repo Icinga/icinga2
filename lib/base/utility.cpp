@@ -436,7 +436,7 @@ String Utility::EscapeShellCmd(const String& s)
 {
 	String result;
 	int prev_quote = String::NPos;
-	ssize_t index = -1;
+	int index = -1;
 
 	BOOST_FOREACH(char ch, s) {
 		bool escape = false;
