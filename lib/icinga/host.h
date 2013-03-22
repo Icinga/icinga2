@@ -21,6 +21,7 @@
 #define HOST_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/macroresolver.h"
 #include "base/array.h"
 #include "base/dynamicobject.h"
 #include "base/dictionary.h"
@@ -72,7 +73,7 @@ enum StateType
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Host : public DynamicObject
+class I2_ICINGA_API Host : public DynamicObject, public MacroResolver
 {
 public:
 	typedef shared_ptr<Host> Ptr;
@@ -90,8 +91,6 @@ public:
 	Array::Ptr GetHostDependencies(void) const;
 	Array::Ptr GetServiceDependencies(void) const;
 	String GetHostCheck(void) const;
-
-	Dictionary::Ptr CalculateDynamicMacros(void) const;
 
 	shared_ptr<Service> GetHostCheckService(void) const;
 	std::set<Host::Ptr> GetParentHosts(void) const;
@@ -113,6 +112,8 @@ public:
 	StateType GetLastStateType(void) const;
 
 	static String StateToString(HostState state);
+
+	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
 protected:
 	virtual void OnRegistrationCompleted(void);

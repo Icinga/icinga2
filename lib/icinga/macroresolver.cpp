@@ -17,65 +17,26 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ICINGAAPPLICATION_H
-#define ICINGAAPPLICATION_H
-
-#include "icinga/i2-icinga.h"
 #include "icinga/macroresolver.h"
-#include "base/application.h"
-#include "base/tlsutility.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
-namespace icinga
+using namespace icinga;
+
+StaticMacroResolver::StaticMacroResolver(void)
+	: m_Macros(boost::make_shared<Dictionary>())
+{ }
+
+void StaticMacroResolver::Add(const String& macro, const String& value)
 {
-
-/**
- * The Icinga application.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API IcingaApplication : public Application, public MacroResolver
-{
-public:
-	typedef shared_ptr<IcingaApplication> Ptr;
-	typedef weak_ptr<IcingaApplication> WeakPtr;
-
-	explicit IcingaApplication(const Dictionary::Ptr& serializedUpdate);
-
-	int Main(void);
-
-	static IcingaApplication::Ptr GetInstance(void);
-
-	String GetCertificateFile(void) const;
-	String GetCAFile(void) const;
-	String GetNode(void) const;
-	String GetService(void) const;
-	String GetPidPath(void) const;
-	String GetStatePath(void) const;
-	Dictionary::Ptr GetMacros(void) const;
-	shared_ptr<SSL_CTX> GetSSLContext(void) const;
-
-	double GetStartTime(void) const;
-
-	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
-
-private:
-	Attribute<String> m_CertPath;
-	Attribute<String> m_CAPath;
-	Attribute<String> m_Node;
-	Attribute<String> m_Service;
-	Attribute<String> m_PidPath;
-	Attribute<String> m_StatePath;
-	Attribute<Dictionary::Ptr> m_Macros;
-
-	shared_ptr<SSL_CTX> m_SSLContext;
-
-	double m_StartTime;
-
-	void DumpProgramState(void);
-
-	virtual void OnShutdown(void);
-};
-
+	m_Macros->Set(macro, value);
 }
 
-#endif /* ICINGAAPPLICATION_H */
+bool StaticMacroResolver::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
+{
+	if (m_Macros->Contains(macro)) {
+		*result = m_Macros->Get(macro);
+		return true;
+	}
+
+	return false;
+}

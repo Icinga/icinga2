@@ -52,7 +52,7 @@ class Service;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Notification : public DynamicObject
+class I2_ICINGA_API Notification : public DynamicObject, public MacroResolver
 {
 public:
 	typedef shared_ptr<Notification> Ptr;
@@ -68,6 +68,7 @@ public:
 	double GetNotificationInterval(void) const;
 	TimePeriod::Ptr GetNotificationPeriod(void) const;
 	Dictionary::Ptr GetMacros(void) const;
+	Array::Ptr GetExportMacros(void) const;
 	std::set<User::Ptr> GetUsers(void) const;
 	std::set<UserGroup::Ptr> GetGroups(void) const;
 
@@ -81,6 +82,8 @@ public:
 
 	static String NotificationTypeToString(NotificationType type);
 
+	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+
 protected:
 	void OnAttributeChanged(const String& name);
 
@@ -91,6 +94,7 @@ private:
 	Attribute<double> m_LastNotification;
 	Attribute<double> m_NextNotification;
 	Attribute<Dictionary::Ptr> m_Macros;
+	Attribute<Array::Ptr> m_ExportMacros;
 	Attribute<Array::Ptr> m_Users;
 	Attribute<Array::Ptr> m_Groups;
 	Attribute<String> m_HostName;
@@ -100,8 +104,7 @@ private:
 
 	void NotificationCompletedHandler(const ScriptTask::Ptr& task);
 
-	void BeginExecuteNotificationHelper(const Dictionary::Ptr& notificationMacros,
-	    NotificationType type, const User::Ptr& user, bool ignore_timeperiod);
+	void BeginExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool ignore_timeperiod);
 };
 
 }

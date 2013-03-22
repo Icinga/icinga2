@@ -22,6 +22,7 @@
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
+#include "base/convert.h"
 #include "base/timer.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
@@ -184,17 +185,33 @@ shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
 	return m_SSLContext;
 }
 
-Dictionary::Ptr IcingaApplication::CalculateDynamicMacros(void)
+bool IcingaApplication::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
 {
-	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
-
 	double now = Utility::GetTime();
 
-	macros->Set("TIMET", (long)now);
-	macros->Set("LONGDATETIME", Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", now));
-	macros->Set("SHORTDATETIME", Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", now));
-	macros->Set("DATE", Utility::FormatDateTime("%Y-%m-%d", now));
-	macros->Set("TIME", Utility::FormatDateTime("%H:%M:%S %z", now));
+	if (macro == "TIMET") {
+		*result = Convert::ToString((long)now);
+		return true;
+	} else if (macro == "LONGDATETIME") {
+		*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", now);
+		return true;
+	} else if (macro == "SHORTDATETIME") {
+		*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", now);
+		return true;
+	} else if (macro == "DATE") {
+		*result = Utility::FormatDateTime("%Y-%m-%d", now);
+		return true;
+	} else if (macro == "TIME") {
+		*result = Utility::FormatDateTime("%H:%M:%S %z", now);
+		return true;
+	}
 
-	return macros;
+	Dictionary::Ptr macros = GetMacros();
+
+	if (macros && macros->Contains(macro)) {
+		*result = macros->Get(macro);
+		return true;
+	}
+
+	return false;
 }

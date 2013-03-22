@@ -21,6 +21,7 @@
 #define MACROPROCESSOR_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/macroresolver.h"
 #include "base/dictionary.h"
 #include <boost/function.hpp>
 #include <vector>
@@ -38,15 +39,17 @@ class I2_ICINGA_API MacroProcessor
 public:
 	typedef boost::function<String (const String&)> EscapeCallback;
 
-	static Value ResolveMacros(const Value& str, const Dictionary::Ptr& macros,
-	    const EscapeCallback& escapeFn = EscapeCallback());
-	static Dictionary::Ptr MergeMacroDicts(const std::vector<Dictionary::Ptr>& macroDicts);
+	static Value ResolveMacros(const Value& str, const std::vector<MacroResolver::Ptr>& resolvers,
+	    const Dictionary::Ptr& cr, const EscapeCallback& escapeFn = EscapeCallback());
+	static bool ResolveMacro(const String& macro, const std::vector<MacroResolver::Ptr>& resolvers,
+	    const Dictionary::Ptr& cr, String *result);
 
 private:
 	MacroProcessor(void);
 
 	static String InternalResolveMacros(const String& str,
-	    const Dictionary::Ptr& macros, const EscapeCallback& escapeFn);
+	    const std::vector<MacroResolver::Ptr>& resolvers, const Dictionary::Ptr& cr,
+	    const EscapeCallback& escapeFn);
 };
 
 }

@@ -21,6 +21,7 @@
 #include "icinga/checkresultmessage.h"
 #include "icinga/service.h"
 #include "icinga/macroprocessor.h"
+#include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -117,8 +118,12 @@ void PerfdataWriter::CheckResultRequestHandler(const RequestMessage& request)
 	if (!cr)
 		return;
 
-	Dictionary::Ptr macros = cr->Get("macros");
-	String line = MacroProcessor::ResolveMacros(GetFormatTemplate(), macros);
+	std::vector<MacroResolver::Ptr> resolvers;
+	resolvers.push_back(service);
+	resolvers.push_back(service->GetHost());
+	resolvers.push_back(IcingaApplication::GetInstance());
+
+	String line = MacroProcessor::ResolveMacros(GetFormatTemplate(), resolvers, cr);
 
 	ObjectLock olock(this);
 	if (!m_OutputFile.good())

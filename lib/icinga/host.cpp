@@ -24,6 +24,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/timer.h"
+#include "base/convert.h"
 #include "config/configitembuilder.h"
 #include "config/configcompilercontext.h"
 #include <boost/tuple/tuple.hpp>
@@ -224,6 +225,7 @@ void Host::UpdateSlaveServices(void)
 			keys.insert("check_period");
 			keys.insert("servicedependencies");
 			keys.insert("hostdependencies");
+			keys.insert("export_macros");
 
 			ExpressionList::Ptr host_exprl = boost::make_shared<ExpressionList>();
 			item->GetLinkedExpressionList()->ExtractFiltered(keys, host_exprl);
@@ -543,55 +545,81 @@ String Host::StateToString(HostState state)
 	}
 }
 
-Dictionary::Ptr Host::CalculateDynamicMacros(void) const
+bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
 {
-	ASSERT(!OwnsLock());
-
-	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
-
-	{
-		ObjectLock olock(this);
-
-		macros->Set("HOSTNAME", GetName());
-		macros->Set("HOSTDISPLAYNAME", GetDisplayName());
-		macros->Set("HOSTALIAS", GetName());
+	if (macro == "HOSTNAME" || macro == "HOSTALIAS") {
+		*result = GetName();
+		return true;
+	}
+	else if (macro == "HOSTDISPLAYNAME") {
+		*result = GetDisplayName();
+		return true;
 	}
 
-	Dictionary::Ptr cr;
-
 	Service::Ptr hc = GetHostCheckService();
+	Dictionary::Ptr hccr;
 
 	if (hc) {
-		ObjectLock olock(hc);
-
 		ServiceState state = hc->GetState();
 		bool reachable = IsReachable();
 
-		macros->Set("HOSTSTATE", CalculateState(state, reachable));
-		macros->Set("HOSTSTATEID", state);
-		macros->Set("HOSTSTATETYPE", Service::StateTypeToString(hc->GetStateType()));
-		macros->Set("HOSTATTEMPT", hc->GetCurrentCheckAttempt());
-		macros->Set("MAXHOSTATTEMPT", hc->GetMaxCheckAttempts());
+		if (macro == "HOSTSTATE") {
+			*result = Convert::ToString(CalculateState(state, reachable));
+			return true;
+		} else if (macro == "HOSTSTATEID") {
+			*result = Convert::ToString(state);
+			return true;
+		} else if (macro == "HOSTSTATETYPE") {
+			*result = Service::StateTypeToString(hc->GetStateType());
+			return true;
+		} else if (macro == "HOSTATTEMPT") {
+			*result = Convert::ToString(hc->GetCurrentCheckAttempt());
+			return true;
+		} else if (macro == "MAXHOSTATTEMPT") {
+			*result = Convert::ToString(hc->GetMaxCheckAttempts());
+			return true;
+		} else if (macro == "LASTHOSTSTATE") {
+			*result = StateToString(GetLastState());
+			return true;
+		} else if (macro == "LASTHOSTSTATEID") {
+			*result = Convert::ToString(GetLastState());
+			return true;
+		} else if (macro == "LASTHOSTSTATETYPE") {
+			*result = Service::StateTypeToString(GetLastStateType());
+			return true;
+		} else if (macro == "LASTHOSTSTATECHANGE") {
+			*result = Convert::ToString((long)hc->GetLastStateChange());
+			return true;
+		}
 
-		macros->Set("LASTHOSTSTATE", StateToString(GetLastState()));
-		macros->Set("LASTHOSTSTATEID", GetLastState());
-		macros->Set("LASTHOSTSTATETYPE", Service::StateTypeToString(GetLastStateType()));
-		macros->Set("LASTHOSTSTATECHANGE", (long)hc->GetLastStateChange());
-
-		cr = hc->GetLastCheckResult();
+		hccr = hc->GetLastCheckResult();
 	}
 
-	if (cr) {
-		macros->Set("HOSTLATENCY", Service::CalculateLatency(cr));
-		macros->Set("HOSTEXECUTIONTIME", Service::CalculateExecutionTime(cr));
-
-		macros->Set("HOSTOUTPUT", cr->Get("output"));
-		macros->Set("HOSTPERFDATA", cr->Get("performance_data_raw"));
-
-		macros->Set("LASTHOSTCHECK", (long)cr->Get("schedule_start"));
+	if (hccr) {
+		if (macro == "HOSTLATENCY") {
+			*result = Convert::ToString(Service::CalculateLatency(hccr));
+			return true;
+		} else if (macro == "HOSTEXECUTIONTIME") {
+			*result = Convert::ToString(Service::CalculateExecutionTime(hccr));
+			return true;
+		} else if (macro == "HOSTOUTPUT") {
+			*result = hccr->Get("output");
+			return true;
+		} else if (macro == "HOSTPERFDATA") {
+			*result = hccr->Get("performance_data_raw");
+			return true;
+		} else if (macro == "LASTHOSTCHECK") {
+			*result = Convert::ToString((long)hccr->Get("schedule_start"));
+			return true;
+		}
 	}
 
-	macros->Seal();
+	Dictionary::Ptr macros = GetMacros();
 
-	return macros;
+	if (macros && macros->Contains(macro)) {
+		*result = macros->Get(macro);
+		return true;
+	}
+
+	return false;
 }

@@ -33,6 +33,7 @@
     </ClCompile>
     <ClCompile Include="icingaapplication.cpp" />
     <ClCompile Include="macroprocessor.cpp" />
+    <ClCompile Include="macroresolver.cpp" />
     <ClCompile Include="notification.cpp" />
     <ClCompile Include="notificationrequestmessage.cpp" />
     <ClCompile Include="pluginchecktask.cpp" />
@@ -58,6 +59,7 @@
     <ClInclude Include="i2-icinga.h" />
     <ClInclude Include="icingaapplication.h" />
     <ClInclude Include="macroprocessor.h" />
+    <ClInclude Include="macroresolver.h" />
     <ClInclude Include="notification.h" />
     <ClInclude Include="notificationrequestmessage.h" />
     <ClInclude Include="pluginchecktask.h" />

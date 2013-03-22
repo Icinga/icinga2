@@ -81,6 +81,11 @@ Dictionary::Ptr Notification::GetMacros(void) const
 	return m_Macros;
 }
 
+Array::Ptr Notification::GetExportMacros(void) const
+{
+	return m_ExportMacros;
+}
+
 std::set<User::Ptr> Notification::GetUsers(void) const
 {
 	std::set<User::Ptr> result;
@@ -214,8 +219,6 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 		SetLastNotification(Utility::GetTime());
 	}
 
-	Dictionary::Ptr macros = cr->Get("macros");
-
 	std::set<User::Ptr> allUsers;
 
 	std::set<User::Ptr> users = GetUsers();
@@ -228,12 +231,11 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
 		Log(LogDebug, "icinga", "Sending notification for user " + user->GetName());
-		BeginExecuteNotificationHelper(macros, type, user, ignore_timeperiod);
+		BeginExecuteNotificationHelper(type, user, cr, ignore_timeperiod);
 	}
 }
 
-void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notificationMacros,
-    NotificationType type, const User::Ptr& user, bool ignore_timeperiod)
+void Notification::BeginExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool ignore_timeperiod)
 {
 	ASSERT(!OwnsLock());
 
@@ -247,20 +249,12 @@ void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notific
 		}
 	}
 
-	std::vector<Dictionary::Ptr> macroDicts;
-
-	macroDicts.push_back(user->GetMacros());
-	macroDicts.push_back(user->CalculateDynamicMacros());
-
-	macroDicts.push_back(notificationMacros);
-
-	Dictionary::Ptr macros = MacroProcessor::MergeMacroDicts(macroDicts);
-
 	Notification::Ptr self = GetSelf();
 
 	std::vector<Value> arguments;
 	arguments.push_back(self);
-	arguments.push_back(macros);
+	arguments.push_back(user);
+	arguments.push_back(cr);
 	arguments.push_back(type);
 
 	ScriptTask::Ptr task = MakeMethodTask("notify", arguments);
@@ -311,4 +305,16 @@ void Notification::OnAttributeChanged(const String& name)
 
 	if (name == "host_name" || name == "service")
 		Service::InvalidateNotificationsCache();
+}
+
+bool Notification::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
+{
+	Dictionary::Ptr macros = GetMacros();
+
+	if (macros && macros->Contains(macro)) {
+		*result = macros->Get(macro);
+		return true;
+	}
+
+	return false;
 }

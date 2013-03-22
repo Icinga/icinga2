@@ -19,7 +19,9 @@
 
 #include "icinga/pluginchecktask.h"
 #include "icinga/macroprocessor.h"
+#include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
+#include "base/logger_fwd.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -38,16 +40,35 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Service must be specified."));
 
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Macros must be specified."));
-
 	Service::Ptr service = arguments[0];
-	Dictionary::Ptr macros = arguments[1];
 
 	Value raw_command = service->GetCheckCommand();
-	Value command = MacroProcessor::ResolveMacros(raw_command, macros, Utility::EscapeShellCmd);
 
-	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
+	std::vector<MacroResolver::Ptr> resolvers;
+	resolvers.push_back(service);
+	resolvers.push_back(service->GetHost());
+	resolvers.push_back(IcingaApplication::GetInstance());
+
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd);
+
+	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
+
+	Array::Ptr export_macros = service->GetExportMacros();
+
+	if (export_macros) {
+		BOOST_FOREACH(const String& macro, export_macros) {
+			String value;
+
+			if (!MacroProcessor::ResolveMacro(macro, resolvers, Dictionary::Ptr(), &value)) {
+				Log(LogWarning, "icinga", "export_macros for service '" + service->GetName() + "' refers to unknown macro '" + macro + "'");
+				continue;
+			}
+
+			envMacros->Set(macro, value);
+		}
+	}
+
+	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), envMacros);
 
 	PluginCheckTask ct(task, process, command);
 

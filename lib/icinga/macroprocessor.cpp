@@ -18,24 +18,24 @@
  ******************************************************************************/
 
 #include "icinga/macroprocessor.h"
+#include "icinga/macroresolver.h"
 #include "base/utility.h"
 #include "base/array.h"
 #include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& macros,
-    const MacroProcessor::EscapeCallback& escapeFn)
+Value MacroProcessor::ResolveMacros(const Value& cmd, const std::vector<MacroResolver::Ptr>& resolvers,
+    const Dictionary::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn)
 {
 	Value result;
 
-	ASSERT(macros->IsSealed());
-
 	if (cmd.IsScalar()) {
-		result = InternalResolveMacros(cmd, macros, escapeFn);
+		result = InternalResolveMacros(cmd, resolvers, cr, escapeFn);
 	} else if (cmd.IsObjectType<Array>()) {
 		Array::Ptr resultArr = boost::make_shared<Array>();
 		Array::Ptr arr = cmd;
@@ -44,7 +44,7 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 
 		BOOST_FOREACH(const Value& arg, arr) {
 			/* Note: don't escape macros here. */
-			resultArr->Add(InternalResolveMacros(arg, macros, EscapeCallback()));
+			resultArr->Add(InternalResolveMacros(arg, resolvers, cr, EscapeCallback()));
 		}
 
 		result = resultArr;
@@ -55,8 +55,20 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 	return result;
 }
 
-String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary::Ptr& macros,
-    const MacroProcessor::EscapeCallback& escapeFn)
+bool MacroProcessor::ResolveMacro(const String& macro, const std::vector<MacroResolver::Ptr>& resolvers,
+    const Dictionary::Ptr& cr, String *result)
+{
+	BOOST_FOREACH(const MacroResolver::Ptr& resolver, resolvers) {
+		if (resolver->ResolveMacro(macro, cr, result))
+			return true;
+	}
+
+	return false;
+}
+
+
+String MacroProcessor::InternalResolveMacros(const String& str, const std::vector<MacroResolver::Ptr>& resolvers,
+    const Dictionary::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn)
 {
 	size_t offset, pos_first, pos_second;
 	offset = 0;
@@ -70,38 +82,21 @@ String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary
 
 		String name = result.SubStr(pos_first + 1, pos_second - pos_first - 1);
 
-		if (!macros || !macros->Contains(name))
-			BOOST_THROW_EXCEPTION(std::runtime_error("Macro '" + name + "' is not defined."));
+		String resolved_macro;
+		bool found = ResolveMacro(name, resolvers, cr, &resolved_macro);
 
-		String value = macros->Get(name);
-		result.Replace(pos_first, pos_second - pos_first + 1, value);
-		offset = pos_first + value.GetLength();
-	}
-
-	return result;
-}
-
-Dictionary::Ptr MacroProcessor::MergeMacroDicts(const std::vector<Dictionary::Ptr>& dicts)
-{
-	Dictionary::Ptr result = boost::make_shared<Dictionary>();
-
-	BOOST_REVERSE_FOREACH(const Dictionary::Ptr& dict, dicts) {
-		if (!dict)
-			continue;
-
-		ObjectLock olock(dict);
-
-		String key;
-		Value value;
-		BOOST_FOREACH(boost::tie(key, value), dict) {
-			if (!value.IsScalar())
-				continue;
-
-			result->Set(key, value);
+		/* $$ is an escape sequence for $. */
+		if (name.IsEmpty()) {
+			resolved_macro = "$";
+			found = true;
 		}
-	}
 
-	result->Seal();
+		if (!found)
+			Log(LogWarning, "icinga", "Macro '" + name + "' is not defined.");
+
+		result.Replace(pos_first, pos_second - pos_first + 1, resolved_macro);
+		offset = pos_first + resolved_macro.GetLength();
+	}
 
 	return result;
 }

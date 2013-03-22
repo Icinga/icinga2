@@ -21,9 +21,10 @@
 #include "icinga/servicegroup.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/macroprocessor.h"
+#include "config/configitembuilder.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
-#include "config/configitembuilder.h"
+#include "base/convert.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -37,6 +38,7 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
+	RegisterAttribute("export_macros", Attribute_Config, &m_ExportMacros);
 	RegisterAttribute("hostdependencies", Attribute_Config, &m_HostDependencies);
 	RegisterAttribute("servicedependencies", Attribute_Config, &m_ServiceDependencies);
 	RegisterAttribute("servicegroups", Attribute_Config, &m_ServiceGroups);
@@ -134,6 +136,11 @@ Host::Ptr Service::GetHost(void) const
 Dictionary::Ptr Service::GetMacros(void) const
 {
 	return m_Macros;
+}
+
+Array::Ptr Service::GetExportMacros(void) const
+{
+	return m_ExportMacros;
 }
 
 Array::Ptr Service::GetHostDependencies(void) const
@@ -369,68 +376,73 @@ std::set<Service::Ptr> Service::GetParentServices(void) const
 	return parents;
 }
 
-Dictionary::Ptr Service::CalculateDynamicMacros(const Dictionary::Ptr& crOverride) const
+bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
 {
-	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
-
-	Dictionary::Ptr cr;
-
-	{
-		ObjectLock olock(this);
-		macros->Set("SERVICEDESC", GetShortName());
-		macros->Set("SERVICEDISPLAYNAME", GetDisplayName());
-		macros->Set("SERVICESTATE", StateToString(GetState()));
-		macros->Set("SERVICESTATEID", GetState());
-		macros->Set("SERVICESTATETYPE", StateTypeToString(GetStateType()));
-		macros->Set("SERVICEATTEMPT", GetCurrentCheckAttempt());
-		macros->Set("MAXSERVICEATTEMPT", GetMaxCheckAttempts());
-		macros->Set("SERVICECHECKCOMMAND", "check_i2");
-		macros->Set("LASTSERVICESTATE", StateToString(GetLastState()));
-		macros->Set("LASTSERVICESTATEID", GetLastState());
-		macros->Set("LASTSERVICESTATETYPE", StateTypeToString(GetLastStateType()));
-		macros->Set("LASTSERVICESTATECHANGE", (long)GetLastStateChange());
-
-		cr = GetLastCheckResult();
+	if (macro == "SERVICEDESC") {
+		*result = GetShortName();
+		return true;
+	} else if (macro == "SERVICEDISPLAYNAME") {
+		*result = GetDisplayName();
+		return true;
+	} else if (macro == "SERVICECHECKCOMMAND") {
+		*result = "check_i2";
+		return true;
 	}
 
-	if (crOverride)
-		cr = crOverride;
+	if (macro == "SERVICESTATE") {
+		*result = StateToString(GetState());
+		return true;
+	} else if (macro == "SERVICESTATEID") {
+		*result = Convert::ToString(GetState());
+		return true;
+	} else if (macro == "SERVICESTATETYPE") {
+		*result = StateTypeToString(GetStateType());
+		return true;
+	} else if (macro == "SERVICEATTEMPT") {
+		*result = Convert::ToString(GetCurrentCheckAttempt());
+		return true;
+	} else if (macro == "MAXSERVICEATTEMPT") {
+		*result = Convert::ToString(GetMaxCheckAttempts());
+		return true;
+	} else if (macro == "LASTSERVICESTATE") {
+		*result = StateToString(GetLastState());
+		return true;
+	} else if (macro == "LASTSERVICESTATEID") {
+		*result = Convert::ToString(GetLastState());
+		return true;
+	} else if (macro == "LASTSERVICESTATETYPE") {
+		*result = StateTypeToString(GetLastStateType());
+		return true;
+	} else if (macro == "LASTSERVICESTATECHANGE") {
+		*result = Convert::ToString((long)GetLastStateChange());
+		return true;
+	}
 
 	if (cr) {
-		ASSERT(crOverride || cr->IsSealed());
-
-		macros->Set("SERVICELATENCY", Service::CalculateLatency(cr));
-		macros->Set("SERVICEEXECUTIONTIME", Service::CalculateExecutionTime(cr));
-
-		macros->Set("SERVICEOUTPUT", cr->Get("output"));
-		macros->Set("SERVICEPERFDATA", cr->Get("performance_data_raw"));
-
-		macros->Set("LASTSERVICECHECK", (long)cr->Get("execution_end"));
+		if (macro == "SERVICELATENCY") {
+			*result = Convert::ToString(Service::CalculateLatency(cr));
+			return true;
+		} else if (macro == "SERVICEEXECUTIONTIME") {
+			*result = Convert::ToString(Service::CalculateExecutionTime(cr));
+			return true;
+		} else if (macro == "SERVICEOUTPUT") {
+			*result = cr->Get("output");
+			return true;
+		} else if (macro == "SERVICEPERFDATA") {
+			*result = cr->Get("performance_data_raw");
+			return true;
+		} else if (macro == "LASTSERVICECHECK") {
+			*result = Convert::ToString((long)cr->Get("execution_end"));
+			return true;
+		}
 	}
 
-	macros->Seal();
+	Dictionary::Ptr macros = GetMacros();
 
-	return macros;
-}
-
-Dictionary::Ptr Service::CalculateAllMacros(const Dictionary::Ptr& crOverride) const
-{
-	std::vector<Dictionary::Ptr> macroDicts;
-	macroDicts.push_back(GetMacros());
-
-	Host::Ptr host = GetHost();
-
-	macroDicts.push_back(CalculateDynamicMacros(crOverride));
-
-	if (host) {
-		macroDicts.push_back(host->GetMacros());
-		macroDicts.push_back(host->CalculateDynamicMacros());
+	if (macros && macros->Contains(macro)) {
+		*result = macros->Get(macro);
+		return true;
 	}
 
-	IcingaApplication::Ptr app = IcingaApplication::GetInstance();
-	macroDicts.push_back(app->GetMacros());
-
-	macroDicts.push_back(IcingaApplication::CalculateDynamicMacros());
-
-	return MacroProcessor::MergeMacroDicts(macroDicts);
+	return false;
 }

@@ -30,6 +30,8 @@ libicinga_la_SOURCES =  \
 	icingaapplication.h \
 	macroprocessor.cpp \
 	macroprocessor.h \
+	macroresolver.cpp \
+	macroresolver.h \
 	notification.cpp \
 	notification.h \
 	notificationrequestmessage.cpp \

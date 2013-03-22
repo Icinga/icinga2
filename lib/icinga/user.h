@@ -21,6 +21,7 @@
 #define USER_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/macroresolver.h"
 #include "icinga/timeperiod.h"
 #include "base/dynamicobject.h"
 #include "base/array.h"
@@ -33,7 +34,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API User : public DynamicObject
+class I2_ICINGA_API User : public DynamicObject, public MacroResolver
 {
 public:
 	typedef shared_ptr<User> Ptr;
@@ -49,7 +50,8 @@ public:
 	TimePeriod::Ptr GetNotificationPeriod(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
-	Dictionary::Ptr CalculateDynamicMacros(void) const;
+
+	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
 protected:
 	virtual void OnAttributeChanged(const String& name);

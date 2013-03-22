@@ -429,9 +429,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	cr->Set("vars_after", vars_after);
 
-	/* Update macros - these are used by event handlers and notifications. */
-	cr->Set("macros", CalculateAllMacros(cr));
-
 	cr->Seal();
 
 	olock.Lock();
@@ -556,14 +553,10 @@ void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 	checkInfo->Set("schedule_start", GetNextCheck());
 	checkInfo->Set("execution_start", Utility::GetTime());
 
-	Dictionary::Ptr macros = CalculateAllMacros();
-	checkInfo->Set("macros", macros);
-
 	Service::Ptr self = GetSelf();
 
 	std::vector<Value> arguments;
 	arguments.push_back(self);
-	arguments.push_back(macros);
 
 	ScriptTask::Ptr task = MakeMethodTask("check", arguments);
 

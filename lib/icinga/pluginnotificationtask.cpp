@@ -21,9 +21,11 @@
 #include "icinga/notification.h"
 #include "icinga/service.h"
 #include "icinga/macroprocessor.h"
+#include "icinga/icingaapplication.h"
 #include "base/scriptfunction.h"
 #include "base/logger_fwd.h"
 #include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -40,14 +42,18 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Notification target must be specified."));
 
 	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Macros must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: User must be specified."));
 
 	if (arguments.size() < 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: CheckResult must be specified."));
+
+	if (arguments.size() < 4)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Notification type must be specified."));
 
 	Notification::Ptr notification = arguments[0];
-	Dictionary::Ptr macros = arguments[1];
-	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[2]));
+	User::Ptr user = arguments[1];
+	Dictionary::Ptr cr = arguments[2];
+	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[3]));
 
 	Value raw_command = notification->GetNotificationCommand();
 
@@ -57,18 +63,37 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::
 	if (service)
 		service_name = service->GetName();
 
-	Dictionary::Ptr notificationMacros = boost::make_shared<Dictionary>();
-	notificationMacros->Set("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));
+	StaticMacroResolver::Ptr notificationMacroResolver = boost::make_shared<StaticMacroResolver>();
+	notificationMacroResolver->Add("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));
 
-	std::vector<Dictionary::Ptr> macroDicts;
-	macroDicts.push_back(notificationMacros);
-	macroDicts.push_back(macros);
+	std::vector<MacroResolver::Ptr> resolvers;
+	resolvers.push_back(user);
+	resolvers.push_back(notificationMacroResolver);
+	resolvers.push_back(notification);
+	resolvers.push_back(service);
+	resolvers.push_back(service->GetHost());
+	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Dictionary::Ptr allMacros = MacroProcessor::MergeMacroDicts(macroDicts);
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd);
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, allMacros, Utility::EscapeShellCmd);
+	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
 
-	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
+	Array::Ptr export_macros = notification->GetExportMacros();
+
+	if (export_macros) {
+		BOOST_FOREACH(const String& macro, export_macros) {
+			String value;
+
+			if (!MacroProcessor::ResolveMacro(macro, resolvers, cr, &value)) {
+				Log(LogWarning, "icinga", "export_macros for notification '" + notification->GetName() + "' refers to unknown macro '" + macro + "'");
+				continue;
+			}
+
+			envMacros->Set(macro, value);
+		}
+	}
+
+	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), envMacros);
 
 	PluginNotificationTask ct(task, process, service_name, command);
 

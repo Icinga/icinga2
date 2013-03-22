@@ -78,14 +78,22 @@ TimePeriod::Ptr User::GetNotificationPeriod(void) const
 	return TimePeriod::GetByName(m_NotificationPeriod);
 }
 
-Dictionary::Ptr User::CalculateDynamicMacros(void) const
+bool User::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
 {
-	Dictionary::Ptr macros = boost::make_shared<Dictionary>();
+	if (macro == "CONTACTNAME") {
+		*result = GetName();
+		return true;
+	} else if (macro == "CONTACTALIAS") {
+		*result = GetName();
+		return true;
+	} else {
+		Dictionary::Ptr macros = GetMacros();
 
-	macros->Set("CONTACTNAME", GetName());
-	macros->Set("CONTACTALIAS", GetName());
+		if (macros && macros->Contains(macro)) {
+			*result = macros->Get(macro);
+			return true;
+		}
 
-	macros->Seal();
-
-	return macros;
+		return false;
+	}
 }

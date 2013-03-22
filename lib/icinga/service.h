@@ -21,6 +21,7 @@
 #define SERVICE_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/macroresolver.h"
 #include "icinga/host.h"
 #include "icinga/timeperiod.h"
 #include "icinga/notification.h"
@@ -63,7 +64,7 @@ class CheckResultMessage;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Service : public DynamicObject
+class I2_ICINGA_API Service : public DynamicObject, public MacroResolver
 {
 public:
 	typedef shared_ptr<Service> Ptr;
@@ -83,14 +84,12 @@ public:
 	String GetDisplayName(void) const;
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
+	Array::Ptr GetExportMacros(void) const;
 	Array::Ptr GetHostDependencies(void) const;
 	Array::Ptr GetServiceDependencies(void) const;
 	Array::Ptr GetGroups(void) const;
 	String GetHostName(void) const;
 	String GetShortName(void) const;
-
-	Dictionary::Ptr CalculateDynamicMacros(const Dictionary::Ptr& crOverride = Dictionary::Ptr()) const;
-	Dictionary::Ptr CalculateAllMacros(const Dictionary::Ptr& crOverride = Dictionary::Ptr()) const;
 
 	std::set<Host::Ptr> GetParentHosts(void) const;
 	std::set<Service::Ptr> GetParentServices(void) const;
@@ -179,6 +178,8 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&)> OnCheckerChanged;
 	static boost::signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
 
+	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+
 	/* Downtimes */
 	static int GetNextDowntimeID(void);
 
@@ -249,6 +250,7 @@ private:
 
 	Attribute<String> m_DisplayName;
 	Attribute<Dictionary::Ptr> m_Macros;
+	Attribute<Array::Ptr> m_ExportMacros;
 	Attribute<Array::Ptr> m_HostDependencies;
 	Attribute<Array::Ptr> m_ServiceDependencies;
 	Attribute<Array::Ptr> m_ServiceGroups;
