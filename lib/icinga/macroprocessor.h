@@ -22,6 +22,7 @@
 
 #include "icinga/i2-icinga.h"
 #include "base/dictionary.h"
+#include <boost/function.hpp>
 #include <vector>
 
 namespace icinga
@@ -35,13 +36,17 @@ namespace icinga
 class I2_ICINGA_API MacroProcessor
 {
 public:
-	static Value ResolveMacros(const Value& str, const Dictionary::Ptr& macros);
+	typedef boost::function<String (const String&)> EscapeCallback;
+
+	static Value ResolveMacros(const Value& str, const Dictionary::Ptr& macros,
+	    const EscapeCallback& escapeFn = EscapeCallback());
 	static Dictionary::Ptr MergeMacroDicts(const std::vector<Dictionary::Ptr>& macroDicts);
 
 private:
 	MacroProcessor(void);
 
-	static String InternalResolveMacros(const String& str, const Dictionary::Ptr& macros);
+	static String InternalResolveMacros(const String& str,
+	    const Dictionary::Ptr& macros, const EscapeCallback& escapeFn);
 };
 
 }

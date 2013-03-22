@@ -48,7 +48,7 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<
 	Dictionary::Ptr macros = arguments[1];
 
 	Value raw_command = service->GetCheckCommand();
-	Value command = MacroProcessor::ResolveMacros(raw_command, macros);
+	Value command = MacroProcessor::ResolveMacros(raw_command, macros, Utility::EscapeShellCmd);
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
 

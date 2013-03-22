@@ -8,7 +8,8 @@ check_PROGRAMS = \
 
 icinga2_test_SOURCES = \
 	test.cpp \
-	base-dictionary.cpp
+	base-dictionary.cpp \
+	base-shellescape.cpp
 
 icinga2_test_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \

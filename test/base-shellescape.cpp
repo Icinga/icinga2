@@ -17,77 +17,35 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#include "base/utility.h"
+#include <boost/test/unit_test.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <iostream>
 
-#include "base/i2-base.h"
-#include "base/qstring.h"
-#include <typeinfo>
-#include <boost/function.hpp>
+using namespace icinga;
 
-namespace icinga
+BOOST_AUTO_TEST_SUITE(base_shellescape)
+
+BOOST_AUTO_TEST_CASE(escape_basic)
 {
-
-/**
- * Helper functions.
- *
- * @ingroup base
- */
-class I2_BASE_API Utility
-{
-public:
-	static String DemangleSymbolName(const String& sym);
-	static String GetTypeName(const std::type_info& ti);
-
-	static bool Match(const String& pattern, const String& text);
-
-	static String DirName(const String& path);
-	static String BaseName(const String& path);
-
-	static void NullDeleter(void *);
-
-	static double GetTime(void);
-
-	static pid_t GetPid(void);
-
-	static void Sleep(double timeout);
-
-	static String NewUUID(void);
-
-	static bool Glob(const String& pathSpec, const boost::function<void (const String&)>& callback);
-
-	static void QueueAsyncCallback(const boost::function<void (void)>& callback);
-
-	static String FormatDateTime(const char *format, double ts);
-
-	static
 #ifdef _WIN32
-	HMODULE
-#else /* _WIN32 */
-	lt_dlhandle
-#endif /* _WIN32 */
-	LoadExtensionLibrary(const String& library);
-
-#ifndef _WIN32
-	static void SetNonBlocking(int fd);
-	static void SetCloExec(int fd);
+	BOOST_CHECK(Utility::EscapeShellCmd("%PATH%") == "^%PATH^%");
 #endif /* _WIN32 */
 
-	static void SetNonBlockingSocket(SOCKET s);
-
-	static String EscapeShellCmd(const String& s);
-
-private:
-	Utility(void);
-};
+	BOOST_CHECK(Utility::EscapeShellCmd("$PATH") == "\\$PATH");
+	BOOST_CHECK(Utility::EscapeShellCmd("\\$PATH") == "\\\\\\$PATH");
 
 }
 
-#ifdef _DEBUG
-#	include <cassert>
-#	define ASSERT(expr) assert(expr)
-#else /* _DEBUG */
-#	define ASSERT(expr)
-#endif /* _DEBUG */
+BOOST_AUTO_TEST_CASE(escape_quoted)
+{
+#ifdef _WIN32
+	BOOST_CHECK(Utility::EscapeShellCmd("'hello'") == "\\'hello\\'");
+	BOOST_CHECK(Utility::EscapeShellCmd("\"hello\"") == "\\\"hello\\\"");
+#else /* _WIN32 */
+	BOOST_CHECK(Utility::EscapeShellCmd("'hello'") == "'hello'");
+	BOOST_CHECK(Utility::EscapeShellCmd("'hello") == "\\'hello");
+#endif /* _WIN32 */
+}
 
-#endif /* UTILITY_H */
+BOOST_AUTO_TEST_SUITE_END()

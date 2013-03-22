@@ -30,14 +30,15 @@ using namespace icinga;
 /**
  * @threadsafety Always.
  */
-Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& macros)
+Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& macros,
+    const MacroProcessor::EscapeCallback& escapeFn)
 {
 	Value result;
 
 	ASSERT(macros->IsSealed());
 
 	if (cmd.IsScalar()) {
-		result = InternalResolveMacros(cmd, macros);
+		result = InternalResolveMacros(cmd, macros, escapeFn);
 	} else if (cmd.IsObjectType<Array>()) {
 		Array::Ptr resultArr = boost::make_shared<Array>();
 		Array::Ptr arr = cmd;
@@ -45,7 +46,8 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 		ObjectLock olock(arr);
 
 		BOOST_FOREACH(const Value& arg, arr) {
-			resultArr->Add(InternalResolveMacros(arg, macros));
+			/* Note: don't escape macros here. */
+			resultArr->Add(InternalResolveMacros(arg, macros, EscapeCallback()));
 		}
 
 		result = resultArr;
@@ -59,7 +61,8 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 /**
  * @threadsafety Always.
  */
-String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary::Ptr& macros)
+String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary::Ptr& macros,
+    const MacroProcessor::EscapeCallback& escapeFn)
 {
 	size_t offset, pos_first, pos_second;
 	offset = 0;

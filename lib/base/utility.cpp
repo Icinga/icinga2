@@ -431,3 +431,49 @@ String Utility::FormatDateTime(const char *format, double ts)
 
 	return timestamp;
 }
+
+String Utility::EscapeShellCmd(const String& s)
+{
+	String result;
+	int prev_quote = String::NPos;
+	ssize_t index = -1;
+
+	BOOST_FOREACH(char ch, s) {
+		bool escape = false;
+
+		index++;
+
+#ifdef _WIN32
+		if (ch == '%' || ch == '"' || ch == '\'')
+			escape = true;
+#else /* _WIN32 */
+		if (ch == '"' || ch == '\'') {
+			/* Find a matching closing quotation character. */
+			if (prev_quote == String::NPos && (prev_quote = s.FindFirstOf(ch, index + 1)) != String::NPos)
+				; /* Empty statement. */
+			else if (prev_quote != String::NPos && s[prev_quote] == ch)
+				prev_quote = String::NPos;
+			else
+				escape = true;
+		}
+#endif /* _WIN32 */
+
+		if (ch == '#' || ch == '&' || ch == ';' || ch == '`' || ch == '|' ||
+		    ch == '*' || ch == '?' || ch == '~' || ch == '<' || ch == '>' ||
+		    ch == '^' || ch == '(' || ch == ')' || ch == '[' || ch == ']' ||
+		    ch == '{' || ch == '}' || ch == '$' || ch == '\\' || ch == '\x0A' ||
+		    ch == '\xFF')
+			escape = true;
+
+		if (escape)
+#ifdef _WIN32
+			result += '%';
+#else /* _WIN32 */
+			result += '\\';
+#endif /* _WIN32 */
+
+		result += ch;
+	}
+
+	return result;
+}

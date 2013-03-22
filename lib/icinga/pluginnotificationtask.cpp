@@ -69,7 +69,7 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::
 
 	Dictionary::Ptr allMacros = MacroProcessor::MergeMacroDicts(macroDicts);
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, allMacros);
+	Value command = MacroProcessor::ResolveMacros(raw_command, allMacros, Utility::EscapeShellCmd);
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), macros);
 
