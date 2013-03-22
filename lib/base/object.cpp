@@ -44,7 +44,6 @@ Object::~Object(void)
  * Returns a reference-counted pointer to this object.
  *
  * @returns A shared_ptr object that points to this object
- * @threadsafety Always.
  */
 Object::SharedPtrHolder Object::GetSelf(void)
 {

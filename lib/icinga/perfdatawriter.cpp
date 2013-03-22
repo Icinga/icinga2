@@ -40,13 +40,6 @@ PerfdataWriter::PerfdataWriter(const Dictionary::Ptr& properties)
 	RegisterAttribute("rotation_interval", Attribute_Config, &m_RotationInterval);
 }
 
-PerfdataWriter::~PerfdataWriter(void)
-{
-}
-
-/**
- * @threadsafety Always.
- */
 void PerfdataWriter::OnAttributeChanged(const String& name)
 {
 	ASSERT(!OwnsLock());
@@ -56,9 +49,6 @@ void PerfdataWriter::OnAttributeChanged(const String& name)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void PerfdataWriter::Start(void)
 {
 	m_Endpoint = Endpoint::MakeEndpoint("perfdata_" + GetName(), false);
@@ -73,9 +63,6 @@ void PerfdataWriter::Start(void)
 	RotateFile();
 }
 
-/**
- * @threadsafety Always.
- */
 PerfdataWriter::Ptr PerfdataWriter::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("PerfdataWriter", name);
@@ -83,9 +70,6 @@ PerfdataWriter::Ptr PerfdataWriter::GetByName(const String& name)
 	return dynamic_pointer_cast<PerfdataWriter>(configObject);
 }
 
-/**
- * @threadsafety Always.
- */
 String PerfdataWriter::GetPathPrefix(void) const
 {
 	if (!m_PathPrefix.IsEmpty())
@@ -94,9 +78,6 @@ String PerfdataWriter::GetPathPrefix(void) const
 		return Application::GetLocalStateDir() + "/cache/icinga2/perfdata/perfdata";
 }
 
-/**
- * @threadsafety Always.
- */
 String PerfdataWriter::GetFormatTemplate(void) const
 {
 	if (!m_FormatTemplate.IsEmpty()) {
@@ -115,9 +96,6 @@ String PerfdataWriter::GetFormatTemplate(void) const
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 double PerfdataWriter::GetRotationInterval(void) const
 {
 	if (!m_RotationInterval.IsEmpty())
@@ -126,9 +104,6 @@ double PerfdataWriter::GetRotationInterval(void) const
 		return 30;
 }
 
-/**
- * @threadsafety Always.
- */
 void PerfdataWriter::CheckResultRequestHandler(const RequestMessage& request)
 {
 	CheckResultMessage params;
@@ -152,9 +127,6 @@ void PerfdataWriter::CheckResultRequestHandler(const RequestMessage& request)
 	m_OutputFile << line << "\n";
 }
 
-/**
- * @threadsafety Always.
- */
 void PerfdataWriter::RotateFile(void)
 {
 	ObjectLock olock(this);
@@ -174,9 +146,6 @@ void PerfdataWriter::RotateFile(void)
 		Log(LogWarning, "icinga", "Could not open perfdata file '" + tempFile + "' for writing. Perfdata will be lost.");
 }
 
-/**
- * @threadsafety Always.
- */
 void PerfdataWriter::RotationTimerHandler(void)
 {
 	RotateFile();

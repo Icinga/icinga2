@@ -26,7 +26,6 @@ using namespace icinga;
  * Processes a log entry and outputs it to syslog.
  *
  * @param entry The log entry.
- * @threadsafety Always.
  */
 void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
 {

@@ -36,9 +36,6 @@ static std::map<String, std::set<Notification::WeakPtr> > l_NotificationsCache;
 static bool l_NotificationsCacheNeedsUpdate = false;
 static Timer::Ptr l_NotificationsCacheTimer;
 
-/**
- * @threadsafety Always.
- */
 void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr& cr)
 {
 	RequestMessage msg;
@@ -55,9 +52,6 @@ void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr&
 	EndpointManager::GetInstance()->SendAnycastMessage(Endpoint::Ptr(), msg);
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr)
 {
 	bool force = false;
@@ -93,9 +87,6 @@ void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::InvalidateNotificationsCache(void)
 {
 	boost::mutex::scoped_lock lock(l_NotificationMutex);
@@ -113,9 +104,6 @@ void Service::InvalidateNotificationsCache(void)
 	l_NotificationsCacheNeedsUpdate = true;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::RefreshNotificationsCache(void)
 {
 	{
@@ -146,9 +134,6 @@ void Service::RefreshNotificationsCache(void)
 	l_NotificationsCache.swap(newNotificationsCache);
 }
 
-/**
- * @threadsafety Always.
- */
 std::set<Notification::Ptr> Service::GetNotifications(void) const
 {
 	std::set<Notification::Ptr> notifications;
@@ -298,9 +283,6 @@ void Service::UpdateSlaveNotifications(void)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::GetEnableNotifications(void) const
 {
 	if (m_EnableNotifications.IsEmpty())
@@ -309,18 +291,12 @@ bool Service::GetEnableNotifications(void) const
 		return m_EnableNotifications;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetEnableNotifications(bool enabled)
 {
 	m_EnableNotifications = enabled;
 	Touch("enable_notifications");
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::GetForceNextNotification(void) const
 {
 	if (m_ForceNextNotification.IsEmpty())
@@ -329,9 +305,6 @@ bool Service::GetForceNextNotification(void) const
 	return static_cast<bool>(m_ForceNextNotification);
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetForceNextNotification(bool forced)
 {
 	m_ForceNextNotification = forced ? 1 : 0;

@@ -397,7 +397,6 @@ DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
  * @param type The type of the ConfigItem that is to be looked up.
  * @param name The name of the ConfigItem that is to be looked up.
  * @returns The configuration item.
- * @threadsafety Always.
  */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
@@ -444,9 +443,6 @@ void ConfigItem::Dump(std::ostream& fp) const
 	fp << "}" << "\n";
 }
 
-/**
- * @threadsafety Always.
- */
 void ConfigItem::UnloadUnit(const String& unit)
 {
 	std::vector<ConfigItem::Ptr> obsoleteItems;

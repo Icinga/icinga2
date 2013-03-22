@@ -57,9 +57,6 @@ void TimePeriod::Start(void)
 	UpdateRegion(now, now + 24 * 3600);
 }
 
-/**
- * @threadsafety Always.
- */
 TimePeriod::Ptr TimePeriod::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("TimePeriod", name);

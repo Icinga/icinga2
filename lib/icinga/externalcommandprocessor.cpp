@@ -40,9 +40,6 @@ boost::once_flag ExternalCommandProcessor::m_InitializeOnce = BOOST_ONCE_INIT;
 boost::mutex ExternalCommandProcessor::m_Mutex;
 std::map<String, ExternalCommandProcessor::Callback> ExternalCommandProcessor::m_Commands;
 
-/**
- * @threadsafety Always.
- */
 void ExternalCommandProcessor::Execute(const String& line)
 {
 	if (line.IsEmpty())
@@ -74,9 +71,6 @@ void ExternalCommandProcessor::Execute(const String& line)
 	Execute(ts, argv[0], argvExtra);
 }
 
-/**
- * @threadsafety Always.
- */
 void ExternalCommandProcessor::Execute(double time, const String& command, const std::vector<String>& arguments)
 {
 	boost::call_once(m_InitializeOnce, &ExternalCommandProcessor::Initialize);
@@ -98,9 +92,6 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 	callback(time, arguments);
 }
 
-/**
- * @threadsafety Always.
- */
 void ExternalCommandProcessor::Initialize(void)
 {
 	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessHostCheckResult);
@@ -162,9 +153,6 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("DISABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableSvcNotifications);
 }
 
-/**
- * @threadsafety Always.
- */
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);

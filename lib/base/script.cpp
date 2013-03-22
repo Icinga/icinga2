@@ -40,9 +40,6 @@ Script::Script(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("code", Attribute_Config, &m_Code);
 }
 
-/**
- * @threadsafety Always.
- */
 void Script::Start(void)
 {
 	ASSERT(OwnsLock());
@@ -50,9 +47,6 @@ void Script::Start(void)
 	SpawnInterpreter();
 }
 
-/**
- * @threadsafety Always.
- */
 String Script::GetLanguage(void) const
 {
 	ObjectLock olock(this);
@@ -60,9 +54,6 @@ String Script::GetLanguage(void) const
 	return m_Language;
 }
 
-/**
- * @threadsafety Always.
- */
 String Script::GetCode(void) const
 {
 	ObjectLock olock(this);
@@ -70,9 +61,6 @@ String Script::GetCode(void) const
 	return m_Code;
 }
 
-/**
- * @threadsafety Always.
- */
 void Script::OnAttributeUpdate(const String& name)
 {
 	ASSERT(!OwnsLock());
@@ -81,9 +69,6 @@ void Script::OnAttributeUpdate(const String& name)
 		SpawnInterpreter();
 }
 
-/**
- * @threadsafety Always.
- */
 void Script::SpawnInterpreter(void)
 {
 	Log(LogInformation, "base", "Reloading script '" + GetName() + "'");

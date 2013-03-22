@@ -28,9 +28,6 @@ ScriptFunction::ScriptFunction(const Callback& function)
 	: m_Callback(function)
 { }
 
-/**
- * @threadsafety Always.
- */
 void ScriptFunction::Invoke(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	m_Callback(task, arguments);

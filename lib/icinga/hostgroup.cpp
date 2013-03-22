@@ -47,9 +47,6 @@ HostGroup::~HostGroup(void)
 	InvalidateMembersCache();
 }
 
-/**
- * @threadsafety Always.
- */
 void HostGroup::OnRegistrationCompleted(void)
 {
 	ASSERT(!OwnsLock());
@@ -57,9 +54,6 @@ void HostGroup::OnRegistrationCompleted(void)
 	InvalidateMembersCache();
 }
 
-/**
- * @threadsafety Always.
- */
 String HostGroup::GetDisplayName(void) const
 {
 	if (!m_DisplayName.IsEmpty())
@@ -68,25 +62,16 @@ String HostGroup::GetDisplayName(void) const
 		return GetName();
 }
 
-/**
- * @threadsafety Always.
- */
 String HostGroup::GetNotesUrl(void) const
 {
 	return m_NotesUrl;
 }
 
-/**
- * @threadsafety Always.
- */
 String HostGroup::GetActionUrl(void) const
 {
 	return m_ActionUrl;
 }
 
-/**
- * @threadsafety Always.
- */
 HostGroup::Ptr HostGroup::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("HostGroup", name);
@@ -97,9 +82,6 @@ HostGroup::Ptr HostGroup::GetByName(const String& name)
 	return dynamic_pointer_cast<HostGroup>(configObject);
 }
 
-/**
- * @threadsafety Always.
- */
 std::set<Host::Ptr> HostGroup::GetMembers(void) const
 {
 	std::set<Host::Ptr> hosts;
@@ -120,9 +102,6 @@ std::set<Host::Ptr> HostGroup::GetMembers(void) const
 	return hosts;
 }
 
-/**
- * @threadsafety Always.
- */
 void HostGroup::InvalidateMembersCache(void)
 {
 	boost::mutex::scoped_lock lock(l_Mutex);
@@ -140,9 +119,6 @@ void HostGroup::InvalidateMembersCache(void)
 	l_MembersCacheNeedsUpdate = true;
 }
 
-/**
- * @threadsafety Always.
- */
 void HostGroup::RefreshMembersCache(void)
 {
 	{

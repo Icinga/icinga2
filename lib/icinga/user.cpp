@@ -40,9 +40,6 @@ User::~User(void)
 	UserGroup::InvalidateMembersCache();
 }
 
-/**
- * @threadsafety Always.
- */
 void User::OnAttributeChanged(const String& name)
 {
 	ASSERT(!OwnsLock());
@@ -51,9 +48,6 @@ void User::OnAttributeChanged(const String& name)
 		UserGroup::InvalidateMembersCache();
 }
 
-/**
- * @threadsafety Always.
- */
 User::Ptr User::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("User", name);
@@ -61,9 +55,6 @@ User::Ptr User::GetByName(const String& name)
 	return dynamic_pointer_cast<User>(configObject);
 }
 
-/**
- * @threadsafety Always.
- */
 String User::GetDisplayName(void) const
 {
 	if (!m_DisplayName.IsEmpty())
@@ -72,17 +63,11 @@ String User::GetDisplayName(void) const
 		return GetName();
 }
 
-/**
- * @threadsafety Always.
- */
 Array::Ptr User::GetGroups(void) const
 {
 	return m_Groups;
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr User::GetMacros(void) const
 {
 	return m_Macros;
@@ -93,9 +78,6 @@ TimePeriod::Ptr User::GetNotificationPeriod(void) const
 	return TimePeriod::GetByName(m_NotificationPeriod);
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr User::CalculateDynamicMacros(void) const
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();

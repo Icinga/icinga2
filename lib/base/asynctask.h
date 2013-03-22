@@ -68,8 +68,6 @@ public:
 	/**
 	 * Starts the async task. The caller must hold a reference to the AsyncTask
 	 * object until the completion callback is invoked.
-	 *
-	 * @threadsafety Always.
 	 */
 	void Start(const CompletionCallback& completionCallback = CompletionCallback())
 	{
@@ -82,8 +80,6 @@ public:
 
 	/**
 	 * Checks whether the task is finished.
-	 *
-	 * @threadsafety Always.
 	 */
 	bool IsFinished(void) const
 	{
@@ -97,7 +93,6 @@ public:
 	 * the AsyncTask object.
 	 *
 	 * @returns The task's result.
-	 * @threadsafety Always.
 	 */
 	TResult GetResult(void)
 	{
@@ -124,7 +119,6 @@ public:
 	 * Finishes the task using an exception.
 	 *
 	 * @param ex The exception.
-	 * @threadsafety Always.
 	 */
 	void FinishException(const boost::exception_ptr& ex)
 	{
@@ -139,7 +133,6 @@ public:
 	 * Finishes the task using an ordinary result.
 	 *
 	 * @param result The result.
-	 * @threadsafety Always.
 	 */
 	void FinishResult(const TResult& result)
 	{
@@ -162,8 +155,6 @@ private:
 	/**
 	 * Finishes the task and causes the completion callback to be invoked. This
 	 * function must be called before the object is destroyed.
-	 *
-	 * @threadsafety Caller must hold m_Mutex.
 	 */
 	void FinishInternal(void)
 	{

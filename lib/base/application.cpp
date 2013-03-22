@@ -443,7 +443,6 @@ void Application::InstallExceptionHandlers(void)
  * Runs the application.
  *
  * @returns The application's exit code.
- * @threadsafety Always.
  */
 int Application::Run(void)
 {

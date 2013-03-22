@@ -88,9 +88,6 @@ Service::~Service(void)
 	Service::InvalidateCommentsCache();
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::OnRegistrationCompleted(void)
 {
 	ASSERT(!OwnsLock());
@@ -100,9 +97,6 @@ void Service::OnRegistrationCompleted(void)
 	InvalidateNotificationsCache();
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::GetDisplayName(void) const
 {
 	if (m_DisplayName.IsEmpty())
@@ -111,9 +105,6 @@ String Service::GetDisplayName(void) const
 		return m_DisplayName;
 }
 
-/**
- * @threadsafety Always.
- */
 Service::Ptr Service::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Service", name);
@@ -121,9 +112,6 @@ Service::Ptr Service::GetByName(const String& name)
 	return dynamic_pointer_cast<Service>(configObject);
 }
 
-/**
- * @threadsafety Always.
- */
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)
 {
 	if (!hostName.IsEmpty()) {
@@ -138,57 +126,36 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 Host::Ptr Service::GetHost(void) const
 {
 	return Host::GetByName(m_HostName);
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr Service::GetMacros(void) const
 {
 	return m_Macros;
 }
 
-/**
- * @threadsafety Always.
- */
 Array::Ptr Service::GetHostDependencies(void) const
 {
 	return m_HostDependencies;
 }
 
-/**
- * @threadsafety Always.
- */
 Array::Ptr Service::GetServiceDependencies(void) const
 {
 	return m_ServiceDependencies;
 }
 
-/**
- * @threadsafety Always.
- */
 Array::Ptr Service::GetGroups(void) const
 {
 	return m_ServiceGroups;
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::GetHostName(void) const
 {
 	return m_HostName;
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::GetShortName(void) const
 {
 	if (m_ShortName.IsEmpty())
@@ -197,9 +164,6 @@ String Service::GetShortName(void) const
 		return m_ShortName;
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::IsReachable(void) const
 {
 	ASSERT(!OwnsLock());
@@ -254,9 +218,6 @@ bool Service::IsReachable(void) const
 	return true;
 }
 
-/**
- * @threadsafety Always.
- */
 AcknowledgementType Service::GetAcknowledgement(void)
 {
 	ASSERT(OwnsLock());
@@ -280,26 +241,17 @@ AcknowledgementType Service::GetAcknowledgement(void)
 	return avalue;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetAcknowledgement(AcknowledgementType acknowledgement)
 {
 	m_Acknowledgement = acknowledgement;
 	Touch("acknowledgement");
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::IsAcknowledged(void)
 {
 	return GetAcknowledgement() != AcknowledgementNone;
 }
 
-/**
- * @threadsafety Always.
- */
 double Service::GetAcknowledgementExpiry(void) const
 {
 	if (m_AcknowledgementExpiry.IsEmpty())
@@ -308,18 +260,12 @@ double Service::GetAcknowledgementExpiry(void) const
 	return static_cast<double>(m_AcknowledgementExpiry);
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetAcknowledgementExpiry(double timestamp)
 {
 	m_AcknowledgementExpiry = timestamp;
 	Touch("acknowledgement_expiry");
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
 {
 	{
@@ -332,9 +278,6 @@ void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
 	RequestNotifications(NotificationAcknowledgement, GetLastCheckResult());
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::ClearAcknowledgement(void)
 {
 	ObjectLock olock(this);
@@ -343,9 +286,6 @@ void Service::ClearAcknowledgement(void)
 	SetAcknowledgementExpiry(0);
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::OnAttributeChanged(const String& name)
 {
 	ASSERT(!OwnsLock());
@@ -377,9 +317,6 @@ void Service::OnAttributeChanged(const String& name)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 std::set<Host::Ptr> Service::GetParentHosts(void) const
 {
 	std::set<Host::Ptr> parents;
@@ -408,9 +345,6 @@ std::set<Host::Ptr> Service::GetParentHosts(void) const
 	return parents;
 }
 
-/**
- * @threadsafety Always.
- */
 std::set<Service::Ptr> Service::GetParentServices(void) const
 {
 	std::set<Service::Ptr> parents;
@@ -435,9 +369,6 @@ std::set<Service::Ptr> Service::GetParentServices(void) const
 	return parents;
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr Service::CalculateDynamicMacros(const Dictionary::Ptr& crOverride) const
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();

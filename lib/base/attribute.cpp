@@ -28,36 +28,24 @@ AttributeBase::AttributeBase(void)
 	: m_Value()
 { }
 
-/**
- * @threadsafety Always.
- */
 void AttributeBase::Set(const Value& value)
 {
 	boost::mutex::scoped_lock lock(l_Mutex);
 	InternalSet(value);
 }
 
-/**
- * @threadsafety Always.
- */
 Value AttributeBase::Get(void) const
 {
 	boost::mutex::scoped_lock lock(l_Mutex);
 	return InternalGet();
 }
 
-/**
- * @threadsafety Always.
- */
 AttributeBase::operator Value(void) const
 {
 	boost::mutex::scoped_lock lock(l_Mutex);
 	return InternalGet();
 }
 
-/**
- * @threadsafety Always.
- */
 bool AttributeBase::IsEmpty(void) const
 {
 	boost::mutex::scoped_lock lock(l_Mutex);
@@ -65,7 +53,7 @@ bool AttributeBase::IsEmpty(void) const
 }
 
 /**
- * @threadsafety Caller must hold l_Mutex;
+ * Note: Caller must hold l_Mutex;
  */
 void AttributeBase::InternalSet(const Value& value)
 {
@@ -73,7 +61,7 @@ void AttributeBase::InternalSet(const Value& value)
 }
 
 /**
- * @threadsafety Caller must hold l_Mutex.
+ * Note: Caller must hold l_Mutex.
  */
 const Value& AttributeBase::InternalGet(void) const
 {

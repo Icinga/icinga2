@@ -24,33 +24,21 @@ using namespace icinga;
 RingBuffer CIB::m_ActiveChecksStatistics(15 * 60);
 RingBuffer CIB::m_PassiveChecksStatistics(15 * 60);
 
-/**
- * @threadsafety Always.
- */
 void CIB::UpdateActiveChecksStatistics(long tv, int num)
 {
 	m_ActiveChecksStatistics.InsertValue(tv, num);
 }
 
-/**
- * @threadsafety Always.
- */
 int CIB::GetActiveChecksStatistics(long timespan)
 {
 	return m_ActiveChecksStatistics.GetValues(timespan);
 }
 
-/**
- * @threadsafety Always.
- */
 void CIB::UpdatePassiveChecksStatistics(long tv, int num)
 {
 	m_PassiveChecksStatistics.InsertValue(tv, num);
 }
 
-/**
- * @threadsafety Always.
- */
 int CIB::GetPassiveChecksStatistics(long timespan)
 {
 	return m_PassiveChecksStatistics.GetValues(timespan);

@@ -45,9 +45,6 @@ UserGroup::~UserGroup(void)
 	InvalidateMembersCache();
 }
 
-/**
- * @threadsafety Always.
- */
 void UserGroup::OnRegistrationCompleted(void)
 {
 	ASSERT(!OwnsLock());
@@ -55,9 +52,6 @@ void UserGroup::OnRegistrationCompleted(void)
 	InvalidateMembersCache();
 }
 
-/**
- * @threadsafety Always.
- */
 String UserGroup::GetDisplayName(void) const
 {
 	if (!m_DisplayName.IsEmpty())
@@ -66,9 +60,6 @@ String UserGroup::GetDisplayName(void) const
 		return GetName();
 }
 
-/**
- * @threadsafety Always.
- */
 UserGroup::Ptr UserGroup::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("UserGroup", name);
@@ -79,9 +70,6 @@ UserGroup::Ptr UserGroup::GetByName(const String& name)
 	return dynamic_pointer_cast<UserGroup>(configObject);
 }
 
-/**
- * @threadsafety Always.
- */
 std::set<User::Ptr> UserGroup::GetMembers(void) const
 {
 	std::set<User::Ptr> users;
@@ -102,9 +90,6 @@ std::set<User::Ptr> UserGroup::GetMembers(void) const
 	return users;
 }
 
-/**
- * @threadsafety Always.
- */
 void UserGroup::InvalidateMembersCache(void)
 {
 	boost::mutex::scoped_lock lock(l_Mutex);
@@ -122,9 +107,6 @@ void UserGroup::InvalidateMembersCache(void)
 	l_MembersCacheNeedsUpdate = true;
 }
 
-/**
- * @threadsafety Always.
- */
 void UserGroup::RefreshMembersCache(void)
 {
 	{

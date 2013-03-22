@@ -30,7 +30,6 @@ using namespace icinga;
  * @returns true if a complete String was read from the IOQueue, false otherwise.
  * @exception invalid_argument The input stream is invalid.
  * @see https://github.com/PeterScott/netString-c/blob/master/netString.c
- * @threadsafety Always.
  */
 bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 {
@@ -112,7 +111,6 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
  *
  * @param stream The stream.
  * @param str The String that is to be written.
- * @threadsafety Always.
  */
 void NetString::WriteStringToStream(const Stream::Ptr& stream, const String& str)
 {

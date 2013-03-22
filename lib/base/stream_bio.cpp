@@ -49,17 +49,11 @@ typedef struct I2Stream_bio_s
 	boost::exception_ptr Exception;
 } I2Stream_bio_t;
 
-/**
- * @threadsafety Always.
- */
 BIO_METHOD *BIO_s_I2Stream(void)
 {
 	return &I2Stream_method;
 }
 
-/**
- * @threadsafety Always.
- */
 BIO *icinga::BIO_new_I2Stream(const Stream::Ptr& stream)
 {
 	BIO *bi = BIO_new(BIO_s_I2Stream());
@@ -74,9 +68,6 @@ BIO *icinga::BIO_new_I2Stream(const Stream::Ptr& stream)
 	return bi;
 }
 
-/**
- * @threadsafety Always.
- */
 void icinga::I2Stream_check_exception(BIO *bi) {
 	I2Stream_bio_t *bp = (I2Stream_bio_t *)bi->ptr;
 
@@ -87,9 +78,6 @@ void icinga::I2Stream_check_exception(BIO *bi) {
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 static int I2Stream_new(BIO *bi)
 {
 	bi->shutdown = 0;
@@ -100,9 +88,6 @@ static int I2Stream_new(BIO *bi)
 	return 1;
 }
 
-/**
- * @threadsafety Always.
- */
 static int I2Stream_free(BIO *bi)
 {
 	I2Stream_bio_t *bp = (I2Stream_bio_t *)bi->ptr;
@@ -111,9 +96,6 @@ static int I2Stream_free(BIO *bi)
 	return 1;
 }
 
-/**
- * @threadsafety Always.
- */
 static int I2Stream_read(BIO *bi, char *out, int outl)
 {
 	I2Stream_bio_t *bp = (I2Stream_bio_t *)bi->ptr;
@@ -137,9 +119,6 @@ static int I2Stream_read(BIO *bi, char *out, int outl)
 	return data_read;
 }
 
-/**
- * @threadsafety Always.
- */
 static int I2Stream_write(BIO *bi, const char *in, int inl)
 {
 	I2Stream_bio_t *bp = (I2Stream_bio_t *)bi->ptr;
@@ -148,9 +127,6 @@ static int I2Stream_write(BIO *bi, const char *in, int inl)
 	return inl;
 }
 
-/**
- * @threadsafety Always.
- */
 static long I2Stream_ctrl(BIO *, int cmd, long, void *)
 {
 	switch (cmd) {

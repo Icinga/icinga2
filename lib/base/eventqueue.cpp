@@ -27,9 +27,6 @@
 
 using namespace icinga;
 
-/**
- * @threadsafety Always.
- */
 EventQueue::EventQueue(void)
 	: m_Stopped(false)
 {
@@ -47,18 +44,12 @@ EventQueue::EventQueue(void)
 	reportThread.detach();
 }
 
-/**
- * @threadsafety Always.
- */
 EventQueue::~EventQueue(void)
 {
 	Stop();
 	Join();
 }
 
-/**
- * @threadsafety Always.
- */
 void EventQueue::Stop(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
@@ -68,8 +59,6 @@ void EventQueue::Stop(void)
 
 /**
  * Waits for all worker threads to finish.
- *
- * @threadsafety Always.
  */
 void EventQueue::Join(void)
 {
@@ -78,8 +67,6 @@ void EventQueue::Join(void)
 
 /**
  * Waits for events and processes them.
- *
- * @threadsafety Always.
  */
 void EventQueue::QueueThreadProc(void)
 {
@@ -158,7 +145,6 @@ void EventQueue::QueueThreadProc(void)
  * Appends an event to the event queue. Events will be processed in FIFO order.
  *
  * @param callback The callback function for the event.
- * @threadsafety Always.
  */
 void EventQueue::Post(const EventQueue::Callback& callback)
 {

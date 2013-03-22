@@ -68,9 +68,6 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	boost::call_once(l_TransactionOnce, &DynamicObject::Initialize);
 }
 
-/*
- * @threadsafety Always.
- */
 DynamicObject::~DynamicObject(void)
 { }
 
@@ -203,7 +200,7 @@ void DynamicObject::RegisterAttribute(const String& name,
 }
 
 /**
- * @threadsafety Caller must hold m_AttributeMutex.
+ * Note: Caller must hold m_AttributeMutex.
  */
 void DynamicObject::InternalRegisterAttribute(const String& name,
     AttributeType type, AttributeBase *boundAttribute)
@@ -223,9 +220,6 @@ void DynamicObject::InternalRegisterAttribute(const String& name,
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void DynamicObject::Set(const String& name, const Value& data)
 {
 	ASSERT(!OwnsLock());
@@ -236,9 +230,6 @@ void DynamicObject::Set(const String& name, const Value& data)
 	InternalSetAttribute(name, data, GetCurrentTx());
 }
 
-/**
- * @threadsafety Always.
- */
 void DynamicObject::Touch(const String& name)
 {
 	ASSERT(OwnsLock());
@@ -260,9 +251,6 @@ void DynamicObject::Touch(const String& name)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 Value DynamicObject::Get(const String& name) const
 {
 	ASSERT(!OwnsLock());
@@ -274,7 +262,7 @@ Value DynamicObject::Get(const String& name) const
 }
 
 /**
- * @threadsafety Caller must hold m_AttributeMutex.
+ * Note: Caller must hold m_AttributeMutex.
  */
 void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
     double tx, bool allowEditConfig)
@@ -315,7 +303,7 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 }
 
 /**
- * @threadsafety Caller must hold m_AttributeMutex.
+ * Note: Caller must hold m_AttributeMutex.
  */
 Value DynamicObject::InternalGetAttribute(const String& name) const
 {
@@ -330,51 +318,33 @@ Value DynamicObject::InternalGetAttribute(const String& name) const
 	return it->second.GetValue();
 }
 
-/**
- * @threadsafety Always.
- */
 DynamicType::Ptr DynamicObject::GetType(void) const
 {
 	return DynamicType::GetByName(m_Type);
 }
 
-/**
- * @threadsafety Always.
- */
 String DynamicObject::GetName(void) const
 {
 	return m_Name;
 }
 
-/**
- * @threadsafety Always.
- */
 bool DynamicObject::IsLocal(void) const
 {
 	return m_Local;
 }
 
-/**
- * @threadsafety Always.
- */
 bool DynamicObject::IsRegistered(void) const
 {
 	ObjectLock olock(GetType());
 	return m_Registered;
 }
 
-/**
- * @threadsafety Always.
- */
 void DynamicObject::SetSource(const String& value)
 {
 	m_Source = value;
 	Touch("__source");
 }
 
-/**
- * @threadsafety Always.
- */
 String DynamicObject::GetSource(void) const
 {
 	return m_Source;
@@ -463,9 +433,6 @@ ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
 	return boost::make_shared<ScriptTask>(func, arguments);
 }
 
-/*
- * @threadsafety Always.
- */
 void DynamicObject::DumpObjects(const String& filename)
 {
 	Log(LogInformation, "base", "Dumping program state to file '" + filename + "'");
@@ -528,9 +495,6 @@ void DynamicObject::DumpObjects(const String& filename)
 	}
 }
 
-/*
- * @threadsafety Always.
- */
 void DynamicObject::RestoreObjects(const String& filename)
 {
 	Log(LogInformation, "base", "Restoring program state from file '" + filename + "'");
@@ -588,9 +552,6 @@ void DynamicObject::DeactivateObjects(void)
 	}
 }
 
-/*
- * @threadsafety Always.
- */
 double DynamicObject::GetCurrentTx(void)
 {
 	boost::mutex::scoped_lock lock(l_TransactionMutex);
@@ -608,9 +569,6 @@ void DynamicObject::Flush(void)
 	OnFlushObject(GetCurrentTx(), GetSelf());
 }
 
-/*
- * @threadsafety Always. Caller must not hold any Object locks.
- */
 void DynamicObject::NewTx(void)
 {
 	double tx;
@@ -650,9 +608,6 @@ void DynamicObject::OnAttributeChanged(const String&)
 	ASSERT(!OwnsLock());
 }
 
-/*
- * @threadsafety Always.
- */
 DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& name)
 {
 	DynamicType::Ptr dtype = DynamicType::GetByName(type);

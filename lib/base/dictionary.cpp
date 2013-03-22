@@ -71,7 +71,6 @@ Dictionary::Dictionary(void)
  *
  * @param key The key whose value should be retrieved.
  * @returns The value of an empty value if the key was not found.
- * @threadsafety Always.
  */
 Value Dictionary::Get(const char *key) const
 {
@@ -93,7 +92,6 @@ Value Dictionary::Get(const char *key) const
  *
  * @param key The key whose value should be retrieved.
  * @returns The value or an empty value if the key was not found.
- * @threadsafety Always.
  */
 Value Dictionary::Get(const String& key) const
 {
@@ -105,7 +103,6 @@ Value Dictionary::Get(const String& key) const
  *
  * @param key The key.
  * @param value The value.
- * @threadsafety Always.
  */
 void Dictionary::Set(const String& key, const Value& value)
 {
@@ -128,6 +125,8 @@ void Dictionary::Set(const String& key, const Value& value)
 /**
  * Returns an iterator to the beginning of the dictionary.
  *
+ * Note: Caller must hold the object lock while using the iterator.
+ *
  * @returns An iterator.
  */
 Dictionary::Iterator Dictionary::Begin(void)
@@ -139,6 +138,8 @@ Dictionary::Iterator Dictionary::Begin(void)
 
 /**
  * Returns an iterator to the end of the dictionary.
+ *
+ * Note: Caller must hold the object lock while using the iterator.
  *
  * @returns An iterator.
  */
@@ -153,7 +154,6 @@ Dictionary::Iterator Dictionary::End(void)
  * Returns the number of elements in the dictionary.
  *
  * @returns Number of elements.
- * @threadsafety Always.
  */
 size_t Dictionary::GetLength(void) const
 {
@@ -168,7 +168,6 @@ size_t Dictionary::GetLength(void) const
  *
  * @param key The key.
  * @returns true if the dictionary contains the key, false otherwise.
- * @threadsafety Always.
  */
 bool Dictionary::Contains(const String& key) const
 {
@@ -182,7 +181,6 @@ bool Dictionary::Contains(const String& key) const
  * Removes the specified key from the dictionary.
  *
  * @param key The key.
- * @threadsafety Always.
  */
 void Dictionary::Remove(const String& key)
 {
@@ -242,7 +240,6 @@ bool Dictionary::IsSealed(void) const
  * Makes a shallow copy of a dictionary.
  *
  * @returns a copy of the dictionary.
- * @threadsafety Always.
  */
 Dictionary::Ptr Dictionary::ShallowClone(void) const
 {
@@ -265,7 +262,6 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
  *
  * @param json The JSON object.
  * @returns A dictionary that is equivalent to the JSON object.
- * @threadsafety Always.
  */
 Dictionary::Ptr Dictionary::FromJson(cJSON *json)
 {
@@ -288,7 +284,6 @@ Dictionary::Ptr Dictionary::FromJson(cJSON *json)
  *
  * @returns A JSON object that is equivalent to the dictionary. Values that
  *	    cannot be represented in JSON are omitted.
- * @threadsafety Always.
  */
 cJSON *Dictionary::ToJson(void) const
 {

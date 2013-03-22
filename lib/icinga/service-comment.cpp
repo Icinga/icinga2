@@ -36,9 +36,6 @@ static bool l_CommentsCacheNeedsUpdate = false;
 static Timer::Ptr l_CommentsCacheTimer;
 static Timer::Ptr l_CommentsExpireTimer;
 
-/**
- * @threadsafety Always.
- */
 int Service::GetNextCommentID(void)
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
@@ -46,17 +43,11 @@ int Service::GetNextCommentID(void)
 	return l_NextCommentID;
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr Service::GetComments(void) const
 {
 	return m_Comments;
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::AddComment(CommentType entryType, const String& author,
     const String& text, double expireTime)
 {
@@ -97,18 +88,12 @@ String Service::AddComment(CommentType entryType, const String& author,
 	return id;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::RemoveAllComments(void)
 {
 	m_Comments = Empty;
 	Touch("comments");
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::RemoveComment(const String& id)
 {
 	Service::Ptr owner = GetOwnerByCommentID(id);
@@ -124,9 +109,6 @@ void Service::RemoveComment(const String& id)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::GetCommentIDFromLegacyID(int id)
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
@@ -139,9 +121,6 @@ String Service::GetCommentIDFromLegacyID(int id)
 	return it->second;
 }
 
-/**
- * @threadsafety Always.
- */
 Service::Ptr Service::GetOwnerByCommentID(const String& id)
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
@@ -149,9 +128,6 @@ Service::Ptr Service::GetOwnerByCommentID(const String& id)
 	return l_CommentsCache[id].lock();
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr Service::GetCommentByID(const String& id)
 {
 	Service::Ptr owner = GetOwnerByCommentID(id);
@@ -167,9 +143,6 @@ Dictionary::Ptr Service::GetCommentByID(const String& id)
 	return Dictionary::Ptr();
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::IsCommentExpired(const Dictionary::Ptr& comment)
 {
 	double expire_time = comment->Get("expire_time");
@@ -177,9 +150,6 @@ bool Service::IsCommentExpired(const Dictionary::Ptr& comment)
 	return (expire_time != 0 && expire_time < Utility::GetTime());
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::InvalidateCommentsCache(void)
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
@@ -197,9 +167,6 @@ void Service::InvalidateCommentsCache(void)
 	l_CommentsCacheNeedsUpdate = true;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::RefreshCommentsCache(void)
 {
 	{
@@ -261,9 +228,6 @@ void Service::RefreshCommentsCache(void)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::RemoveExpiredComments(void)
 {
 	Dictionary::Ptr comments = GetComments();
@@ -293,9 +257,6 @@ void Service::RemoveExpiredComments(void)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::CommentsExpireTimerHandler(void)
 {
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {

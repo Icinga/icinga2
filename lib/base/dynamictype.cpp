@@ -27,9 +27,6 @@ DynamicType::DynamicType(const String& name, const DynamicType::ObjectFactory& f
 	: m_Name(name), m_ObjectFactory(factory)
 { }
 
-/**
- * @threadsafety Always.
- */
 DynamicType::Ptr DynamicType::GetByName(const String& name)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
@@ -43,7 +40,7 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 }
 
 /**
- * @threadsafety Caller must hold DynamicType::GetStaticMutex() while using the map.
+ * Note: Caller must hold DynamicType::GetStaticMutex() while using the map.
  */
 DynamicType::TypeMap& DynamicType::InternalGetTypeMap(void)
 {
@@ -120,9 +117,6 @@ void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
 	object->OnUnregistrationCompleted();
 }
 
-/**
- * @threadsafety Always.
- */
 DynamicObject::Ptr DynamicType::GetObject(const String& name) const
 {
 	ObjectLock olock(this);
@@ -135,9 +129,6 @@ DynamicObject::Ptr DynamicType::GetObject(const String& name) const
 	return nt->second;
 }
 
-/**
- * @threadsafety Always.
- */
 void DynamicType::RegisterType(const DynamicType::Ptr& type)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());

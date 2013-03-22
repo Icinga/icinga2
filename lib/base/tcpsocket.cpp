@@ -42,7 +42,6 @@ void TcpSocket::Bind(String service, int family)
  * @param node The node.
  * @param service The service.
  * @param family The address family for the socket.
- * @threadsafety Always.
  */
 void TcpSocket::Bind(String node, String service, int family)
 {
@@ -113,7 +112,6 @@ void TcpSocket::Bind(String node, String service, int family)
  *
  * @param node The node.
  * @param service The service.
- * @threadsafety Always.
  */
 void TcpSocket::Connect(const String& node, const String& service)
 {

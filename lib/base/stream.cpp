@@ -33,9 +33,6 @@ Stream::~Stream(void)
 	ASSERT(!m_Running);
 }
 
-/**
- * @threadsafety Always.
- */
 bool Stream::IsConnected(void) const
 {
 	ObjectLock olock(this);
@@ -43,9 +40,6 @@ bool Stream::IsConnected(void) const
 	return m_Connected;
 }
 
-/**
- * @threadsafety Always.
- */
 bool Stream::IsReadEOF(void) const
 {
 	ObjectLock olock(this);
@@ -53,9 +47,6 @@ bool Stream::IsReadEOF(void) const
 	return m_ReadEOF;
 }
 
-/**
- * @threadsafety Always.
- */
 bool Stream::IsWriteEOF(void) const
 {
 	ObjectLock olock(this);
@@ -63,9 +54,6 @@ bool Stream::IsWriteEOF(void) const
 	return m_WriteEOF;
 }
 
-/**
- * @threadsafety Always.
- */
 void Stream::SetConnected(bool connected)
 {
 	bool changed;
@@ -84,9 +72,6 @@ void Stream::SetConnected(bool connected)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Stream::SetReadEOF(bool eof)
 {
 	ObjectLock olock(this);
@@ -94,9 +79,6 @@ void Stream::SetReadEOF(bool eof)
 	m_ReadEOF = eof;
 }
 
-/**
- * @threadsafety Always.
- */
 void Stream::SetWriteEOF(bool eof)
 {
 	ObjectLock olock(this);
@@ -107,8 +89,6 @@ void Stream::SetWriteEOF(bool eof)
 /**
  * Checks whether an exception is available for this stream and re-throws
  * the exception if there is one.
- *
- * @threadsafety Always.
  */
 void Stream::CheckException(void)
 {
@@ -118,9 +98,6 @@ void Stream::CheckException(void)
 		rethrow_exception(m_Exception);
 }
 
-/**
- * @threadsafety Always.
- */
 void Stream::SetException(boost::exception_ptr exception)
 {
 	ObjectLock olock(this);
@@ -128,17 +105,11 @@ void Stream::SetException(boost::exception_ptr exception)
 	m_Exception = exception;
 }
 
-/**
- * @threadsafety Always.
- */
 boost::exception_ptr Stream::GetException(void)
 {
 	return m_Exception;
 }
 
-/**
- * @threadsafety Always.
- */
 void Stream::Start(void)
 {
 	ObjectLock olock(this);
@@ -146,9 +117,6 @@ void Stream::Start(void)
 	m_Running = true;
 }
 
-/**
- * @threadsafety Always.
- */
 void Stream::Close(void)
 {
 	{

@@ -34,9 +34,6 @@ PluginNotificationTask::PluginNotificationTask(const ScriptTask::Ptr& task, cons
 	: m_Task(task), m_Process(process), m_ServiceName(service), m_Command(command)
 { }
 
-/**
- * @threadsafety Always.
- */
 void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
@@ -78,9 +75,6 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::
 	process->Start(boost::bind(&PluginNotificationTask::ProcessFinishedHandler, ct));
 }
 
-/**
- * @threadsafety Always.
- */
 void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
 {
 	ProcessResult pr;

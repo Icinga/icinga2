@@ -75,17 +75,11 @@ template<typename T>
 class Attribute : public AttributeBase
 {
 public:
-	/**
-	 * @threadsafety Always.
-	 */
 	void Set(const T& value)
 	{
 		AttributeBase::Set(value);
 	}
 
-	/**
-	 * @threadsafety Always.
-	 */
 	Attribute<T>& operator=(const T& rhs)
 	{
 		Set(rhs);
@@ -102,9 +96,6 @@ public:
 		return static_cast<T>(value);
 	}
 
-	/**
-	 * @threadsafety Always.
-	 */
 	operator T(void) const
 	{
 		return Get();

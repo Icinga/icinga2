@@ -36,9 +36,6 @@ static bool l_DowntimesCacheNeedsUpdate = false;
 static Timer::Ptr l_DowntimesCacheTimer;
 static Timer::Ptr l_DowntimesExpireTimer;
 
-/**
- * @threadsafety Always.
- */
 int Service::GetNextDowntimeID(void)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
@@ -46,17 +43,11 @@ int Service::GetNextDowntimeID(void)
 	return l_NextDowntimeID;
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr Service::GetDowntimes(void) const
 {
 	return m_Downtimes;
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::AddDowntime(const String& author, const String& comment,
     double startTime, double endTime, bool fixed,
     const String& triggeredBy, double duration)
@@ -112,9 +103,6 @@ String Service::AddDowntime(const String& author, const String& comment,
 	return id;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::RemoveDowntime(const String& id)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
@@ -131,9 +119,6 @@ void Service::RemoveDowntime(const String& id)
 	owner->Touch("downtimes");
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::TriggerDowntimes(void)
 {
 	Dictionary::Ptr downtimes = GetDowntimes();
@@ -158,9 +143,6 @@ void Service::TriggerDowntimes(void)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::TriggerDowntime(const String& id)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
@@ -188,9 +170,6 @@ void Service::TriggerDowntime(const String& id)
 	owner->Touch("downtimes");
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::GetDowntimeIDFromLegacyID(int id)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
@@ -203,18 +182,12 @@ String Service::GetDowntimeIDFromLegacyID(int id)
 	return it->second;
 }
 
-/**
- * @threadsafety Always.
- */
 Service::Ptr Service::GetOwnerByDowntimeID(const String& id)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 	return l_DowntimesCache[id].lock();
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr Service::GetDowntimeByID(const String& id)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
@@ -230,9 +203,6 @@ Dictionary::Ptr Service::GetDowntimeByID(const String& id)
 	return Dictionary::Ptr();
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::IsDowntimeActive(const Dictionary::Ptr& downtime)
 {
 	double now = Utility::GetTime();
@@ -252,17 +222,11 @@ bool Service::IsDowntimeActive(const Dictionary::Ptr& downtime)
 	return (triggerTime + downtime->Get("duration") < now);
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
 {
 	return (downtime->Get("end_time") < Utility::GetTime());
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::InvalidateDowntimesCache(void)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
@@ -280,9 +244,6 @@ void Service::InvalidateDowntimesCache(void)
 	l_DowntimesCacheNeedsUpdate = true;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::RefreshDowntimesCache(void)
 {
 	{
@@ -343,9 +304,6 @@ void Service::RefreshDowntimesCache(void)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::RemoveExpiredDowntimes(void)
 {
 	Dictionary::Ptr downtimes = GetDowntimes();
@@ -375,9 +333,6 @@ void Service::RemoveExpiredDowntimes(void)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::DowntimesExpireTimerHandler(void)
 {
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
@@ -386,9 +341,6 @@ void Service::DowntimesExpireTimerHandler(void)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::IsInDowntime(void) const
 {
 	Dictionary::Ptr downtimes = GetDowntimes();

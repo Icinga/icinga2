@@ -93,9 +93,6 @@ int IcingaApplication::Main(void)
 	return EXIT_SUCCESS;
 }
 
-/**
- * @threadsafety Always.
- */
 void IcingaApplication::OnShutdown(void)
 {
 	ASSERT(!OwnsLock());
@@ -108,9 +105,6 @@ void IcingaApplication::OnShutdown(void)
 	DumpProgramState();
 }
 
-/**
- * @threadsafety Always.
- */
 void IcingaApplication::DumpProgramState(void)
 {
 	DynamicObject::DumpObjects(GetStatePath());
@@ -121,9 +115,6 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
 
-/**
- * @threadsafety Always.
- */
 String IcingaApplication::GetCertificateFile(void) const
 {
 	ObjectLock olock(this);
@@ -131,9 +122,6 @@ String IcingaApplication::GetCertificateFile(void) const
 	return m_CertPath;
 }
 
-/**
- * @threadsafety Always.
- */
 String IcingaApplication::GetCAFile(void) const
 {
 	ObjectLock olock(this);
@@ -141,9 +129,6 @@ String IcingaApplication::GetCAFile(void) const
 	return m_CAPath;
 }
 
-/**
- * @threadsafety Always.
- */
 String IcingaApplication::GetNode(void) const
 {
 	ObjectLock olock(this);
@@ -151,9 +136,6 @@ String IcingaApplication::GetNode(void) const
 	return m_Node;
 }
 
-/**
- * @threadsafety Always.
- */
 String IcingaApplication::GetService(void) const
 {
 	ObjectLock olock(this);
@@ -161,9 +143,6 @@ String IcingaApplication::GetService(void) const
 	return m_Service;
 }
 
-/**
- * @threadsafety Always.
- */
 String IcingaApplication::GetPidPath(void) const
 {
 	ObjectLock olock(this);
@@ -174,9 +153,6 @@ String IcingaApplication::GetPidPath(void) const
 		return m_PidPath;
 }
 
-/**
- * @threadsafety Always.
- */
 String IcingaApplication::GetStatePath(void) const
 {
 	ObjectLock olock(this);
@@ -187,9 +163,6 @@ String IcingaApplication::GetStatePath(void) const
 		return m_PidPath;
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr IcingaApplication::GetMacros(void) const
 {
 	ObjectLock olock(this);
@@ -197,9 +170,6 @@ Dictionary::Ptr IcingaApplication::GetMacros(void) const
 	return m_Macros;
 }
 
-/**
- * @threadsafety Always.
- */
 double IcingaApplication::GetStartTime(void) const
 {
 	ObjectLock olock(this);
@@ -207,9 +177,6 @@ double IcingaApplication::GetStartTime(void) const
 	return m_StartTime;
 }
 
-/**
- * @threadsafety Always.
- */
 shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
 {
 	ObjectLock olock(this);
@@ -217,9 +184,6 @@ shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
 	return m_SSLContext;
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr IcingaApplication::CalculateDynamicMacros(void)
 {
 	Dictionary::Ptr macros = boost::make_shared<Dictionary>();

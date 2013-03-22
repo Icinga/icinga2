@@ -33,9 +33,6 @@ PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr
 	: m_Task(task), m_Process(process), m_Command(command)
 { }
 
-/**
- * @threadsafety Always.
- */
 void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
@@ -57,9 +54,6 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<
 	process->Start(boost::bind(&PluginCheckTask::ProcessFinishedHandler, ct));
 }
 
-/**
- * @threadsafety Always.
- */
 void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 {
 	ProcessResult pr;
@@ -83,9 +77,6 @@ void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
 	ct.m_Task->FinishResult(result);
 }
 
-/**
- * @threadsafety Always.
- */
 ServiceState PluginCheckTask::ExitStatusToState(int exitStatus)
 {
 	switch (exitStatus) {
@@ -100,9 +91,6 @@ ServiceState PluginCheckTask::ExitStatusToState(int exitStatus)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr PluginCheckTask::ParseCheckOutput(const String& output)
 {
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();

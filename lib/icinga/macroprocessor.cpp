@@ -27,9 +27,6 @@
 
 using namespace icinga;
 
-/**
- * @threadsafety Always.
- */
 Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& macros,
     const MacroProcessor::EscapeCallback& escapeFn)
 {
@@ -58,9 +55,6 @@ Value MacroProcessor::ResolveMacros(const Value& cmd, const Dictionary::Ptr& mac
 	return result;
 }
 
-/**
- * @threadsafety Always.
- */
 String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary::Ptr& macros,
     const MacroProcessor::EscapeCallback& escapeFn)
 {
@@ -87,9 +81,6 @@ String MacroProcessor::InternalResolveMacros(const String& str, const Dictionary
 	return result;
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr MacroProcessor::MergeMacroDicts(const std::vector<Dictionary::Ptr>& dicts)
 {
 	Dictionary::Ptr result = boost::make_shared<Dictionary>();

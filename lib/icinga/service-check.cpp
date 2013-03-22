@@ -38,17 +38,11 @@ const double Service::CheckIntervalDivisor = 5.0;
 boost::signals2::signal<void (const Service::Ptr&)> Service::OnCheckerChanged;
 boost::signals2::signal<void (const Service::Ptr&)> Service::OnNextCheckChanged;
 
-/**
- * @threadsafety Always.
- */
 Value Service::GetCheckCommand(void) const
 {
 	return m_CheckCommand;
 }
 
-/**
- * @threadsafety Always.
- */
 long Service::GetMaxCheckAttempts(void) const
 {
 	if (m_MaxCheckAttempts.IsEmpty())
@@ -57,17 +51,11 @@ long Service::GetMaxCheckAttempts(void) const
 	return m_MaxCheckAttempts;
 }
 
-/**
- * @threadsafety Always.
- */
 TimePeriod::Ptr Service::GetCheckPeriod(void) const
 {
 	return TimePeriod::GetByName(m_CheckPeriod);
 }
 
-/**
- * @threadsafety Always.
- */
 double Service::GetCheckInterval(void) const
 {
 	if (m_CheckInterval.IsEmpty())
@@ -76,9 +64,6 @@ double Service::GetCheckInterval(void) const
 	return m_CheckInterval;
 }
 
-/**
- * @threadsafety Always.
- */
 double Service::GetRetryInterval(void) const
 {
 	if (m_RetryInterval.IsEmpty())
@@ -87,50 +72,32 @@ double Service::GetRetryInterval(void) const
 	return m_RetryInterval;
 }
 
-/**
- * @threadsafety Always.
- */
 Array::Ptr Service::GetCheckers(void) const
 {
 	return m_Checkers;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetSchedulingOffset(long offset)
 {
 	m_SchedulingOffset = offset;
 }
 
-/**
- * @threadsafety Always.
- */
 long Service::GetSchedulingOffset(void)
 {
 	return m_SchedulingOffset;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetNextCheck(double nextCheck)
 {
 	m_NextCheck = nextCheck;
 	Touch("next_check");
 }
 
-/**
- * @threadsafety Always.
- */
 double Service::GetNextCheck(void)
 {
 	return m_NextCheck;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::UpdateNextCheck(void)
 {
 	ObjectLock olock(this);
@@ -151,35 +118,23 @@ void Service::UpdateNextCheck(void)
 	SetNextCheck(now - adj + interval);
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetCurrentChecker(const String& checker)
 {
 	m_CurrentChecker = checker;
 	Touch("current_checker");
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::GetCurrentChecker(void) const
 {
 	return m_CurrentChecker;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetCurrentCheckAttempt(long attempt)
 {
 	m_CheckAttempt = attempt;
 	Touch("check_attempt");
 }
 
-/**
- * @threadsafety Always.
- */
 long Service::GetCurrentCheckAttempt(void) const
 {
 	if (m_CheckAttempt.IsEmpty())
@@ -188,18 +143,12 @@ long Service::GetCurrentCheckAttempt(void) const
 	return m_CheckAttempt;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetState(ServiceState state)
 {
 	m_State = static_cast<long>(state);
 	Touch("state");
 }
 
-/**
- * @threadsafety Always.
- */
 ServiceState Service::GetState(void) const
 {
 	if (m_State.IsEmpty())
@@ -225,18 +174,12 @@ ServiceState Service::GetLastState(void) const
 	return static_cast<ServiceState>(ivalue);
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetStateType(StateType type)
 {
 	m_StateType = static_cast<long>(type);
 	Touch("state_type");
 }
 
-/**
- * @threadsafety Always.
- */
 StateType Service::GetStateType(void) const
 {
 	if (m_StateType.IsEmpty())
@@ -246,18 +189,12 @@ StateType Service::GetStateType(void) const
 	return static_cast<StateType>(ivalue);
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetLastStateType(StateType type)
 {
 	m_LastStateType = static_cast<long>(type);
 	Touch("last_state_type");
 }
 
-/**
- * @threadsafety Always.
- */
 StateType Service::GetLastStateType(void) const
 {
 	if (m_LastStateType.IsEmpty())
@@ -267,18 +204,12 @@ StateType Service::GetLastStateType(void) const
 	return static_cast<StateType>(ivalue);
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetLastReachable(bool reachable)
 {
 	m_LastReachable = reachable;
 	Touch("last_reachable");
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::GetLastReachable(void) const
 {
 	if (m_LastReachable.IsEmpty())
@@ -287,35 +218,23 @@ bool Service::GetLastReachable(void) const
 	return m_LastReachable;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetLastCheckResult(const Dictionary::Ptr& result)
 {
 	m_LastResult = result;
 	Touch("last_result");
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr Service::GetLastCheckResult(void) const
 {
 	return m_LastResult;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetLastStateChange(double ts)
 {
 	m_LastStateChange = ts;
 	Touch("last_state_change");
 }
 
-/**
- * @threadsafety Always.
- */
 double Service::GetLastStateChange(void) const
 {
 	if (m_LastStateChange.IsEmpty())
@@ -324,18 +243,12 @@ double Service::GetLastStateChange(void) const
 	return m_LastStateChange;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetLastHardStateChange(double ts)
 {
 	m_LastHardStateChange = ts;
 	Touch("last_hard_state_change");
 }
 
-/**
- * @threadsafety Always.
- */
 double Service::GetLastHardStateChange(void) const
 {
 	if (m_LastHardStateChange.IsEmpty())
@@ -344,9 +257,6 @@ double Service::GetLastHardStateChange(void) const
 	return m_LastHardStateChange;
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::GetEnableActiveChecks(void) const
 {
 	if (m_EnableActiveChecks.IsEmpty())
@@ -355,18 +265,12 @@ bool Service::GetEnableActiveChecks(void) const
 		return m_EnableActiveChecks;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetEnableActiveChecks(bool enabled)
 {
 	m_EnableActiveChecks = enabled ? 1 : 0;
 	Touch("enable_active_checks");
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::GetEnablePassiveChecks(void) const
 {
 	if (m_EnablePassiveChecks.IsEmpty())
@@ -375,18 +279,12 @@ bool Service::GetEnablePassiveChecks(void) const
 		return m_EnablePassiveChecks;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetEnablePassiveChecks(bool enabled)
 {
 	m_EnablePassiveChecks = enabled ? 1 : 0;
 	Touch("enable_passive_checks");
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::GetForceNextCheck(void) const
 {
 	if (m_ForceNextCheck.IsEmpty())
@@ -395,18 +293,12 @@ bool Service::GetForceNextCheck(void) const
 	return static_cast<bool>(m_ForceNextCheck);
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::SetForceNextCheck(bool forced)
 {
 	m_ForceNextCheck = forced ? 1 : 0;
 	Touch("force_next_check");
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 {
 	double now = Utility::GetTime();
@@ -569,9 +461,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem, cr);
 }
 
-/**
- * @threadsafety Always.
- */
 ServiceState Service::StateFromString(const String& state)
 {
 	if (state == "OK")
@@ -586,9 +475,6 @@ ServiceState Service::StateFromString(const String& state)
 		return StateUnknown;
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::StateToString(ServiceState state)
 {
 	switch (state) {
@@ -606,9 +492,6 @@ String Service::StateToString(ServiceState state)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 StateType Service::StateTypeFromString(const String& type)
 {
 	if (type == "SOFT")
@@ -617,9 +500,6 @@ StateType Service::StateTypeFromString(const String& type)
 		return StateTypeHard;
 }
 
-/**
- * @threadsafety Always.
- */
 String Service::StateTypeToString(StateType type)
 {
 	if (type == StateTypeSoft)
@@ -628,9 +508,6 @@ String Service::StateTypeToString(StateType type)
 		return "HARD";
 }
 
-/**
- * @threadsafety Always.
- */
 bool Service::IsAllowedChecker(const String& checker) const
 {
 	Array::Ptr checkers = GetCheckers();
@@ -648,9 +525,6 @@ bool Service::IsAllowedChecker(const String& checker) const
 	return false;
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 {
 	ASSERT(!OwnsLock());
@@ -701,9 +575,6 @@ void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 	task->Start(boost::bind(&Service::CheckCompletedHandler, self, checkInfo, _1, callback));
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
     const ScriptTask::Ptr& task, const boost::function<void (void)>& callback)
 {
@@ -773,9 +644,6 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 	callback();
 }
 
-/**
- * @threadsafety Always.
- */
 void Service::UpdateStatistics(const Dictionary::Ptr& cr)
 {
 	time_t ts;
@@ -792,9 +660,6 @@ void Service::UpdateStatistics(const Dictionary::Ptr& cr)
 		CIB::UpdatePassiveChecksStatistics(ts, 1);
 }
 
-/**
- * @threadsafety Always.
- */
 double Service::CalculateExecutionTime(const Dictionary::Ptr& cr)
 {
 	double execution_start = 0, execution_end = 0;
@@ -810,9 +675,6 @@ double Service::CalculateExecutionTime(const Dictionary::Ptr& cr)
 	return (execution_end - execution_start);
 }
 
-/**
- * @threadsafety Always.
- */
 double Service::CalculateLatency(const Dictionary::Ptr& cr)
 {
 	double schedule_start = 0, schedule_end = 0;

@@ -26,9 +26,6 @@ RingBuffer::RingBuffer(RingBuffer::SizeType slots)
 	: Object(), m_Slots(slots, 0), m_TimeValue(0)
 { }
 
-/**
- * @threadsafety Always.
- */
 RingBuffer::SizeType RingBuffer::GetLength(void) const
 {
 	ObjectLock olock(this);
@@ -36,9 +33,6 @@ RingBuffer::SizeType RingBuffer::GetLength(void) const
 	return m_Slots.size();
 }
 
-/**
- * @threadsafety Always.
- */
 void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 {
 	ObjectLock olock(this);
@@ -64,9 +58,6 @@ void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 	m_Slots[offsetTarget] += num;
 }
 
-/**
- * @threadsafety Always.
- */
 int RingBuffer::GetValues(RingBuffer::SizeType span) const
 {
 	ObjectLock olock(this);

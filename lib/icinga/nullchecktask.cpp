@@ -26,9 +26,6 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(NullCheck,  &NullCheckTask::ScriptFunc);
 
-/**
- * @threadsafety Always.
- */
 void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)

@@ -53,9 +53,6 @@ StreamLogger::~StreamLogger(void)
 		delete m_Stream;
 }
 
-/**
- * @threadsafety Always.
- */
 void StreamLogger::OpenFile(const String& filename)
 {
 	std::ofstream *stream = new std::ofstream();
@@ -83,7 +80,6 @@ void StreamLogger::OpenFile(const String& filename)
  * @param stream The output stream.
  * @param tty Whether the output stream is a TTY.
  * @param entry The log entry.
- * @threadsafety Always.
  */
 void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntry& entry)
 {
@@ -118,7 +114,6 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
  * Processes a log entry and outputs it to a stream.
  *
  * @param entry The log entry.
- * @threadsafety Always.
  */
 void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 {
@@ -128,7 +123,10 @@ void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 }
 
 /**
- * @threadsafety Always.
+ * Checks whether the specified stream is a terminal.
+ *
+ * @param stream The stream.
+ * @returns true if the stream is a terminal, false otherwise.
  */
 bool StreamLogger::IsTty(std::ostream& stream)
 {

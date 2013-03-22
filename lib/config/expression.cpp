@@ -182,9 +182,6 @@ void Expression::DumpValue(std::ostream& fp, int indent, const Value& value, boo
 	BOOST_THROW_EXCEPTION(std::runtime_error("Encountered unknown type while dumping value."));
 }
 
-/**
- * @threadsafety Always.
- */
 void Expression::Dump(std::ostream& fp, int indent) const
 {
 	if (m_Operator == OperatorExecute) {

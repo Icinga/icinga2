@@ -51,9 +51,6 @@ Notification::~Notification(void)
 	Service::InvalidateNotificationsCache();
 }
 
-/**
- * @threadsafety Always.
- */
 Notification::Ptr Notification::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("Notification", name);
@@ -61,9 +58,6 @@ Notification::Ptr Notification::GetByName(const String& name)
 	return dynamic_pointer_cast<Notification>(configObject);
 }
 
-/**
- * @threadsafety Always.
- */
 Service::Ptr Notification::GetService(void) const
 {
 	Host::Ptr host = Host::GetByName(m_HostName);
@@ -77,25 +71,16 @@ Service::Ptr Notification::GetService(void) const
 		return host->GetServiceByShortName(m_Service);
 }
 
-/**
- * @threadsafety Always.
- */
 Value Notification::GetNotificationCommand(void) const
 {
 	return m_NotificationCommand;
 }
 
-/**
- * @threadsafety Always.
- */
 Dictionary::Ptr Notification::GetMacros(void) const
 {
 	return m_Macros;
 }
 
-/**
- * @threadsafety Always.
- */
 std::set<User::Ptr> Notification::GetUsers(void) const
 {
 	std::set<User::Ptr> result;
@@ -118,9 +103,6 @@ std::set<User::Ptr> Notification::GetUsers(void) const
 	return result;
 }
 
-/**
- * @threadsafety Always.
- */
 std::set<UserGroup::Ptr> Notification::GetGroups(void) const
 {
 	std::set<UserGroup::Ptr> result;
@@ -143,9 +125,6 @@ std::set<UserGroup::Ptr> Notification::GetGroups(void) const
 	return result;
 }
 
-/**
- * @threadsafety Always.
- */
 double Notification::GetNotificationInterval(void) const
 {
 	if (m_NotificationInterval.IsEmpty())
@@ -154,17 +133,11 @@ double Notification::GetNotificationInterval(void) const
 		return m_NotificationInterval;
 }
 
-/**
- * @threadsafety Always.
- */
 TimePeriod::Ptr Notification::GetNotificationPeriod(void) const
 {
 	return TimePeriod::GetByName(m_NotificationPeriod);
 }
 
-/**
- * @threadsafety Always.
- */
 double Notification::GetLastNotification(void) const
 {
 	if (m_LastNotification.IsEmpty())
@@ -182,9 +155,6 @@ void Notification::SetLastNotification(double time)
 	Touch("last_notification");
 }
 
-/**
- * @threadsafety Always.
- */
 double Notification::GetNextNotification(void) const
 {
 	if (m_NextNotification.IsEmpty())
@@ -203,9 +173,6 @@ void Notification::SetNextNotification(double time)
 	Touch("next_notification");
 }
 
-/**
- * @threadsafety Always.
- */
 String Notification::NotificationTypeToString(NotificationType type)
 {
 	switch (type) {
@@ -228,9 +195,6 @@ String Notification::NotificationTypeToString(NotificationType type)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool ignore_timeperiod)
 {
 	ASSERT(!OwnsLock());
@@ -268,9 +232,6 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notificationMacros,
     NotificationType type, const User::Ptr& user, bool ignore_timeperiod)
 {
@@ -320,9 +281,6 @@ void Notification::BeginExecuteNotificationHelper(const Dictionary::Ptr& notific
 	task->Start(boost::bind(&Notification::NotificationCompletedHandler, self, _1));
 }
 
-/**
- * @threadsafety Always.
- */
 void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 {
 	ASSERT(!OwnsLock());
@@ -347,9 +305,6 @@ void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
 	}
 }
 
-/**
- * @threadsafety Always.
- */
 void Notification::OnAttributeChanged(const String& name)
 {
 	ASSERT(!OwnsLock());

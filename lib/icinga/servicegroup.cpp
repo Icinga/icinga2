@@ -48,9 +48,6 @@ ServiceGroup::~ServiceGroup(void)
 	InvalidateMembersCache();
 }
 
-/**
- * @threadsafety Always.
- */
 void ServiceGroup::OnRegistrationCompleted(void)
 {
 	ASSERT(!OwnsLock());
@@ -58,9 +55,6 @@ void ServiceGroup::OnRegistrationCompleted(void)
 	InvalidateMembersCache();
 }
 
-/**
- * @threadsafety Always.
- */
 String ServiceGroup::GetDisplayName(void) const
 {
 	if (!m_DisplayName.Get().IsEmpty())
@@ -69,25 +63,16 @@ String ServiceGroup::GetDisplayName(void) const
 		return GetName();
 }
 
-/**
- * @threadsafety Always.
- */
 String ServiceGroup::GetNotesUrl(void) const
 {
 	return m_NotesUrl;
 }
 
-/**
- * @threadsafety Always.
- */
 String ServiceGroup::GetActionUrl(void) const
 {
 	return m_ActionUrl;
 }
 
-/**
- * @threadsafety Always.
- */
 ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 {
 	DynamicObject::Ptr configObject = DynamicObject::GetObject("ServiceGroup", name);
@@ -98,9 +83,6 @@ ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
 	return dynamic_pointer_cast<ServiceGroup>(configObject);
 }
 
-/**
- * @threadsafety Always.
- */
 std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
 {
 	std::set<Service::Ptr> services;
@@ -121,9 +103,6 @@ std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
 	return services;
 }
 
-/**
- * @threadsafety Always.
- */
 void ServiceGroup::InvalidateMembersCache(void)
 {
 	boost::mutex::scoped_lock lock(l_Mutex);
@@ -141,9 +120,6 @@ void ServiceGroup::InvalidateMembersCache(void)
 	l_MembersCacheNeedsUpdate = true;
 }
 
-/**
- * @threadsafety Always.
- */
 void ServiceGroup::RefreshMembersCache(void)
 {
 	{

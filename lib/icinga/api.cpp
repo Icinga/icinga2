@@ -25,9 +25,6 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(GetAnswerToEverything, &API::GetAnswerToEverything);
 
-/**
- * @threadsafety Always.
- */
 void API::GetAnswerToEverything(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)

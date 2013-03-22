@@ -40,9 +40,10 @@ struct icinga::TimerNextExtractor
 	/**
 	 * Extracts the next timestamp from a Timer.
 	 *
+	 * Note: Caller must hold l_Mutex.
+	 *
 	 * @param wtimer Weak pointer to the timer.
 	 * @returns The next timestamp
-	 * @threadsafety Caller must hold l_Mutex.
 	 */
 	double operator()(const weak_ptr<Timer>& wtimer)
 	{
@@ -71,8 +72,6 @@ static TimerSet l_Timers;
 
 /**
  * Constructor for the Timer class.
- *
- * @threadsafety Always.
  */
 Timer::Timer(void)
 	: m_Interval(0), m_Next(0)
@@ -80,8 +79,6 @@ Timer::Timer(void)
 
 /**
  * Initializes the timer sub-system.
- *
- * @threadsafety Always.
  */
 void Timer::Initialize(void)
 {
@@ -92,8 +89,6 @@ void Timer::Initialize(void)
 
 /**
  * Disables the timer sub-system.
- *
- * @threadsafety Always.
  */
 void Timer::Uninitialize(void)
 {
@@ -108,8 +103,6 @@ void Timer::Uninitialize(void)
 
 /**
  * Calls this timer.
- *
- * @threadsafety Always.
  */
 void Timer::Call(void)
 {
@@ -132,7 +125,6 @@ void Timer::Call(void)
  * Sets the interval for this timer.
  *
  * @param interval The new interval.
- * @threadsafety Always.
  */
 void Timer::SetInterval(double interval)
 {
@@ -146,7 +138,6 @@ void Timer::SetInterval(double interval)
  * Retrieves the interval for this timer.
  *
  * @returns The interval.
- * @threadsafety Always.
  */
 double Timer::GetInterval(void) const
 {
@@ -158,8 +149,6 @@ double Timer::GetInterval(void) const
 
 /**
  * Registers the timer and starts processing events for it.
- *
- * @threadsafety Always.
  */
 void Timer::Start(void)
 {
@@ -175,8 +164,6 @@ void Timer::Start(void)
 
 /**
  * Unregisters the timer and stops processing events for it.
- *
- * @threadsafety Always.
  */
 void Timer::Stop(void)
 {
@@ -196,7 +183,6 @@ void Timer::Stop(void)
  *
  * @param next The time when this timer should be called again. Use -1 to let
  * 	       the timer figure out a suitable time based on the interval.
- * @threadsafety Always.
  */
 void Timer::Reschedule(double next)
 {
@@ -228,7 +214,6 @@ void Timer::Reschedule(double next)
  * Retrieves when the timer is next due.
  *
  * @returns The timestamp.
- * @threadsafety Always.
  */
 double Timer::GetNext(void) const
 {
@@ -243,7 +228,6 @@ double Timer::GetNext(void) const
  * next scheduled timestamp.
  *
  * @param adjustment The adjustment.
- * @threadsafety Always.
  */
 void Timer::AdjustTimers(double adjustment)
 {
@@ -272,8 +256,6 @@ void Timer::AdjustTimers(double adjustment)
 
 /**
  * Worker thread proc for Timer objects.
- *
- * @threadsafety Always.
  */
 void Timer::TimerThreadProc(void)
 {

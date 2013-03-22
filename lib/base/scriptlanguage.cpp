@@ -24,9 +24,6 @@ using namespace icinga;
 ScriptLanguage::ScriptLanguage(void)
 { }
 
-/**
- * @threadsafety Always.
- */
 void ScriptLanguage::Register(const String& name, const ScriptLanguage::Ptr& language)
 {
 	boost::mutex::scoped_lock lock(GetMutex());
@@ -34,9 +31,6 @@ void ScriptLanguage::Register(const String& name, const ScriptLanguage::Ptr& lan
 	GetLanguages()[name] = language;
 }
 
-/**
- * @threadsafety Always.
- */
 void ScriptLanguage::Unregister(const String& name)
 {
 	boost::mutex::scoped_lock lock(GetMutex());
@@ -44,9 +38,6 @@ void ScriptLanguage::Unregister(const String& name)
 	GetLanguages().erase(name);
 }
 
-/**
- * @threadsafety Always.
- */
 ScriptLanguage::Ptr ScriptLanguage::GetByName(const String& name)
 {
 	boost::mutex::scoped_lock lock(GetMutex());

@@ -41,7 +41,6 @@ public:
 	typedef weak_ptr<PerfdataWriter> WeakPtr;
 
 	PerfdataWriter(const Dictionary::Ptr& properties);
-	~PerfdataWriter(void);
 
 	static PerfdataWriter::Ptr GetByName(const String& name);
 

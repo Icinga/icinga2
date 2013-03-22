@@ -38,7 +38,6 @@ Array::Array(void)
  *
  * @param index The index..
  * @returns The value.
- * @threadsafety Always.
  */
 Value Array::Get(unsigned int index) const
 {
@@ -53,7 +52,6 @@ Value Array::Get(unsigned int index) const
  *
  * @param index The index.
  * @param value The value.
- * @threadsafety Always.
  */
 void Array::Set(unsigned int index, const Value& value)
 {
@@ -68,7 +66,6 @@ void Array::Set(unsigned int index, const Value& value)
  * Adds a value to the array.
  *
  * @param value The value.
- * @threadsafety Always.
  */
 void Array::Add(const Value& value)
 {
@@ -82,6 +79,8 @@ void Array::Add(const Value& value)
 /**
  * Returns an iterator to the beginning of the array.
  *
+ * Note: Caller must hold the object lock while using the iterator.
+ *
  * @returns An iterator.
  */
 Array::Iterator Array::Begin(void)
@@ -93,6 +92,8 @@ Array::Iterator Array::Begin(void)
 
 /**
  * Returns an iterator to the end of the array.
+ *
+ * Note: Caller must hold the object lock while using the iterator.
  *
  * @returns An iterator.
  */
@@ -107,7 +108,6 @@ Array::Iterator Array::End(void)
  * Returns the number of elements in the array.
  *
  * @returns Number of elements.
- * @threadsafety Always.
  */
 size_t Array::GetLength(void) const
 {
@@ -121,7 +121,6 @@ size_t Array::GetLength(void) const
  * Removes the specified index from the array.
  *
  * @param index The index.
- * @threadsafety Always.
  */
 void Array::Remove(unsigned int index)
 {
@@ -175,7 +174,6 @@ bool Array::IsSealed(void) const
  * Makes a shallow copy of an array.
  *
  * @returns a copy of the array.
- * @threadsafety Always.
  */
 Array::Ptr Array::ShallowClone(void) const
 {
@@ -194,7 +192,6 @@ Array::Ptr Array::ShallowClone(void) const
  *
  * @param json The JSON object.
  * @returns An array that is equivalent to the JSON object.
- * @threadsafety Always.
  */
 Array::Ptr Array::FromJson(cJSON *json)
 {
@@ -217,7 +214,6 @@ Array::Ptr Array::FromJson(cJSON *json)
  *
  * @returns A JSON object that is equivalent to the array. Values that
  *	    cannot be represented in JSON are omitted.
- * @threadsafety Always.
  */
 cJSON *Array::ToJson(void) const
 {
