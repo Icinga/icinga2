@@ -34,7 +34,7 @@ EventQueue::EventQueue(void)
 	for (int i = 0; i < sizeof(m_ThreadStates) / sizeof(m_ThreadStates[0]); i++)
 		m_ThreadStates[i] = ThreadDead;
 
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 2; i++)
 		SpawnWorker();
 
 	boost::thread reportThread(boost::bind(&EventQueue::ReportThreadProc, this));
@@ -215,7 +215,7 @@ void EventQueue::ReportThreadProc(void)
 				/* Spawn a few additional workers. */
 				for (int i = 0; i < 8; i++)
 					SpawnWorker();
-			} else {
+			} else if (alive > busy + 2) {
 				KillWorker();
 			}
 		}
