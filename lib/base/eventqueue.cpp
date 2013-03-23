@@ -37,8 +37,8 @@ EventQueue::EventQueue(void)
 	for (int i = 0; i < 2; i++)
 		SpawnWorker();
 
-	boost::thread reportThread(boost::bind(&EventQueue::ReportThreadProc, this));
-	reportThread.detach();
+	boost::thread managerThread(boost::bind(&EventQueue::ManagerThreadProc, this));
+	managerThread.detach();
 }
 
 EventQueue::~EventQueue(void)
@@ -97,8 +97,13 @@ void EventQueue::QueueThreadProc(int tid)
 
 			m_ThreadStates[tid] = ThreadBusy;
 
-			m_Latency += Utility::GetTime() - event.Timestamp;
+			double latency = Utility::GetTime() - event.Timestamp;
+
+			m_Latency += latency;
 			m_LatencyCount++;
+
+			if (latency > m_MaxLatency)
+				m_MaxLatency = latency;
 		}
 
 #ifdef _DEBUG
@@ -178,7 +183,7 @@ void EventQueue::Post(const EventQueueCallback& callback)
 	m_CV.notify_one();
 }
 
-void EventQueue::ReportThreadProc(void)
+void EventQueue::ManagerThreadProc(void)
 {
 	for (;;) {
 		Utility::Sleep(5);
@@ -186,7 +191,7 @@ void EventQueue::ReportThreadProc(void)
 		double now = Utility::GetTime();
 
 		int pending, alive, busy;
-		double avg_latency;
+		double avg_latency, max_latency;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
@@ -211,7 +216,10 @@ void EventQueue::ReportThreadProc(void)
 			m_Latency = 0;
 			m_LatencyCount = 0;
 
-			if (pending > alive - busy) {
+			max_latency = m_MaxLatency;
+			m_MaxLatency = 0;
+
+			if (max_latency > 0.1) {
 				/* Spawn a few additional workers. */
 				for (int i = 0; i < 8; i++)
 					SpawnWorker();
@@ -221,7 +229,9 @@ void EventQueue::ReportThreadProc(void)
 		}
 
 		std::ostringstream msgbuf;
-		msgbuf << "Pending tasks: " << pending << "; Busy threads: " << busy << "; Idle threads: " << alive - busy << "; Average latency: " << (long)(avg_latency * 1000) << "ms";
+		msgbuf << "Pending tasks: " << pending << "; Busy threads: " << busy
+		    << "; Idle threads: " << alive - busy << "; Average latency: " << (long)(avg_latency * 1000) << "ms"
+		    << "; Max latency: " << (long)(max_latency * 1000) << "ms";
 		Log(LogInformation, "base", msgbuf.str());
 	}
 }
@@ -233,7 +243,7 @@ void EventQueue::SpawnWorker(void)
 {
 	for (int i = 0; i < sizeof(m_ThreadStates) / sizeof(m_ThreadStates[0]); i++) {
 		if (m_ThreadStates[i] == ThreadDead) {
-			Log(LogInformation, "debug", "Spawning worker thread.");
+			Log(LogDebug, "debug", "Spawning worker thread.");
 
 			m_ThreadStates[i] = ThreadIdle;
 			boost::thread worker(boost::bind(&EventQueue::QueueThreadProc, this, i));
@@ -249,7 +259,7 @@ void EventQueue::SpawnWorker(void)
  */
 void EventQueue::KillWorker(void)
 {
-	Log(LogInformation, "base", "Killing worker thread.");
+	Log(LogDebug, "base", "Killing worker thread.");
 
 	m_ThreadDeaths++;
 }

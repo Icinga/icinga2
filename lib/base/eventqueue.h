@@ -68,6 +68,8 @@ private:
 	double m_Latency;
 	int m_LatencyCount;
 
+	double m_MaxLatency;
+
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
 
@@ -75,7 +77,7 @@ private:
 	std::deque<EventQueueWorkItem> m_Events;
 
 	void QueueThreadProc(int tid);
-	void ReportThreadProc(void);
+	void ManagerThreadProc(void);
 
 	void SpawnWorker(void);
 	void KillWorker(void);
