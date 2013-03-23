@@ -32,6 +32,7 @@ namespace icinga
 
 enum ThreadState
 {
+	ThreadDead,
 	ThreadIdle,
 	ThreadBusy
 };
@@ -61,9 +62,11 @@ public:
 	void Post(const EventQueueCallback& callback);
 
 private:
-	boost::thread_group m_Threads;
-	ThreadState *m_States;
-	int m_ThreadCount;
+	ThreadState m_ThreadStates[512];
+	int m_ThreadDeaths;
+
+	double m_Latency;
+	int m_LatencyCount;
 
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
@@ -73,6 +76,9 @@ private:
 
 	void QueueThreadProc(int tid);
 	void ReportThreadProc(void);
+
+	void SpawnWorker(void);
+	void KillWorker(void);
 };
 
 }
