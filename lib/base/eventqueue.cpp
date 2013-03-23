@@ -180,8 +180,6 @@ void EventQueue::Post(const EventQueueCallback& callback)
 
 void EventQueue::ReportThreadProc(void)
 {
-	double last_adjustment = 0;
-
 	for (;;) {
 		Utility::Sleep(5);
 
@@ -213,13 +211,12 @@ void EventQueue::ReportThreadProc(void)
 			m_Latency = 0;
 			m_LatencyCount = 0;
 
-			if (pending > 0) {
+			if (pending > alive - busy) {
 				/* Spawn a few additional workers. */
 				for (int i = 0; i < 2; i++)
 					SpawnWorker();
-			} else if (last_adjustment < now - 30) {
+			} else {
 				KillWorker();
-				last_adjustment = now;
 			}
 		}
 
