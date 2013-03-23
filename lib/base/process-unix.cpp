@@ -52,7 +52,7 @@ void Process::Run(void)
 	int fds[2];
 
 #if HAVE_PIPE2
-	if (pipe2(fds, O_NONBLOCK | O_CLOEXEC) < 0) {
+	if (pipe2(fds, O_CLOEXEC) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("pipe2")
 		    << boost::errinfo_errno(errno));
