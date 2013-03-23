@@ -213,7 +213,7 @@ void EventQueue::ReportThreadProc(void)
 
 			if (pending > alive - busy) {
 				/* Spawn a few additional workers. */
-				for (int i = 0; i < 2; i++)
+				for (int i = 0; i < 8; i++)
 					SpawnWorker();
 			} else {
 				KillWorker();
