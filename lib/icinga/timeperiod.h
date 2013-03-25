@@ -49,8 +49,8 @@ public:
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);
 
-	static Value EmptyTimePeriodUpdate(const std::vector<Value>& arguments);
-	static Value EvenMinutesTimePeriodUpdate(const std::vector<Value>& arguments);
+	static Array::Ptr EmptyTimePeriodUpdate(const TimePeriod::Ptr tp, double begin, double end);
+	static Array::Ptr EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr tp, double begin, double end);
 
 private:
 	Attribute<double> m_ValidBegin;

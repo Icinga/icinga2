@@ -22,7 +22,6 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/service.h"
-#include "base/process.h"
 
 namespace icinga
 {
@@ -35,7 +34,7 @@ namespace icinga
 class I2_ICINGA_API PluginCheckTask
 {
 public:
-	static Value ScriptFunc(const std::vector<Value>& arguments);
+	static Value ScriptFunc(const Service::Ptr& service);
 
 	static ServiceState ExitStatusToState(int exitStatus);
 	static Dictionary::Ptr ParseCheckOutput(const String& output);

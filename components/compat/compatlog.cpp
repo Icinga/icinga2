@@ -335,17 +335,8 @@ void CompatLog::RotationTimerHandler(void)
 	ScheduleNextRotation();
 }
 
-Value CompatLog::ValidateRotationMethod(const std::vector<Value>& arguments)
+void CompatLog::ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Location must be specified."));
-
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Attribute dictionary must be specified."));
-
-	String location = arguments[0];
-	Dictionary::Ptr attrs = arguments[1];
-
 	Value rotation_method = attrs->Get("rotation_method");
 
 	if (!rotation_method.IsEmpty() && rotation_method != "HOURLY" && rotation_method != "DAILY" &&
@@ -353,6 +344,4 @@ Value CompatLog::ValidateRotationMethod(const std::vector<Value>& arguments)
 		ConfigCompilerContext::GetContext()->AddError(false, "Validation failed for " +
 		    location + ": Rotation method '" + rotation_method + "' is invalid.");
 	}
-
-	return Empty;
 }

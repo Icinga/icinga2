@@ -24,6 +24,7 @@
 #include "base/logger_fwd.h"
 #include "base/scriptfunction.h"
 #include "base/utility.h"
+#include "base/process.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -33,13 +34,8 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 
-Value PluginCheckTask::ScriptFunc(const std::vector<Value>& arguments)
+Value PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Service must be specified."));
-
-	Service::Ptr service = arguments[0];
-
 	Value raw_command = service->GetCheckCommand();
 
 	std::vector<MacroResolver::Ptr> resolvers;

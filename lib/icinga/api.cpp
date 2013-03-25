@@ -25,13 +25,8 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(GetAnswerToEverything, &API::GetAnswerToEverything);
 
-Value API::GetAnswerToEverything(const std::vector<Value>& arguments)
+int API::GetAnswerToEverything(const String& text)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Text argument required."));
-
-	String text = arguments[0];
-
 	Log(LogInformation, "icinga", "Hello from the Icinga 2 API: " + text);
 
 	return 42;

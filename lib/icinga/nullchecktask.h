@@ -21,7 +21,8 @@
 #define NULLCHECKTASK_H
 
 #include "icinga/i2-icinga.h"
-#include "base/value.h"
+#include "icinga/service.h"
+#include "base/dictionary.h"
 
 namespace icinga
 {
@@ -34,7 +35,7 @@ namespace icinga
 class I2_ICINGA_API NullCheckTask
 {
 public:
-	static Value ScriptFunc(const std::vector<Value>& arguments);
+	static Dictionary::Ptr ScriptFunc(const Service::Ptr& service);
 
 private:
 	NullCheckTask(void);

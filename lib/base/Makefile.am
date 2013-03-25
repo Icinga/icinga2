@@ -51,6 +51,8 @@ libbase_la_SOURCES =  \
 	script.h \
 	scriptfunction.cpp \
 	scriptfunction.h \
+	scriptfunctionwrapper.cpp \
+	scriptfunctionwrapper.h \
 	scriptinterpreter.cpp \
 	scriptinterpreter.h \
 	scriptlanguage.cpp \

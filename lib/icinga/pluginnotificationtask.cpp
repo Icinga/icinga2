@@ -26,31 +26,17 @@
 #include "base/logger_fwd.h"
 #include "base/utility.h"
 #include "base/convert.h"
+#include "base/process.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(PluginNotification,  &PluginNotificationTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION(PluginNotification, &PluginNotificationTask::ScriptFunc);
 
-Value PluginNotificationTask::ScriptFunc(const std::vector<Value>& arguments)
+void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, const User::Ptr& user, const Dictionary::Ptr& cr, int itype)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Notification target must be specified."));
-
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: User must be specified."));
-
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: CheckResult must be specified."));
-
-	if (arguments.size() < 4)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Notification type must be specified."));
-
-	Notification::Ptr notification = arguments[0];
-	User::Ptr user = arguments[1];
-	Dictionary::Ptr cr = arguments[2];
-	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[3]));
+	NotificationType type = static_cast<NotificationType>(itype);
 
 	Service::Ptr service = notification->GetService();
 
@@ -97,6 +83,4 @@ Value PluginNotificationTask::ScriptFunc(const std::vector<Value>& arguments)
 		       << pr.ExitStatus << ", output: " << pr.Output;
 		Log(LogWarning, "icinga", msgbuf.str());
 	}
-
-	return Empty;
 }

@@ -35,7 +35,7 @@ namespace icinga
 class I2_ICINGA_API API
 {
 public:
-	static Value GetAnswerToEverything(const std::vector<Value>& arguments);
+	static int GetAnswerToEverything(const String& text);
 
 private:
 	API(void);

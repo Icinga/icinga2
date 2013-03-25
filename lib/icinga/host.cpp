@@ -352,16 +352,8 @@ void Host::RefreshServicesCache(void)
 	l_ServicesCache.swap(newServicesCache);
 }
 
-Value Host::ValidateServiceDictionary(const std::vector<Value>& arguments)
+Value Host::ValidateServiceDictionary(const String& location, const Dictionary::Ptr& attrs)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Location must be specified."));
-
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Attribute dictionary must be specified."));
-
-	String location = arguments[0];
-	Dictionary::Ptr attrs = arguments[1];
 	ObjectLock olock(attrs);
 
 	String key;

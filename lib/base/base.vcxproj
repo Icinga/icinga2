@@ -40,6 +40,7 @@
     <ClCompile Include="qstring.cpp" />
     <ClCompile Include="ringbuffer.cpp" />
     <ClCompile Include="scriptfunction.cpp" />
+    <ClCompile Include="scriptfunctionwrapper.cpp" />
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="stacktrace.cpp" />
     <ClCompile Include="stdiostream.cpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="netstring.h" />
     <ClInclude Include="qstring.h" />
     <ClInclude Include="scriptfunction.h" />
+    <ClInclude Include="scriptfunctionwrapper.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="i2-base.h" />

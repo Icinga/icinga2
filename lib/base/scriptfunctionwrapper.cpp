@@ -17,62 +17,23 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SCRIPTFUNCTION_H
-#define SCRIPTFUNCTION_H
-
-#include "base/i2-base.h"
-#include "base/registry.h"
-#include "base/value.h"
 #include "base/scriptfunctionwrapper.h"
-#include <vector>
-#include <boost/function.hpp>
 
-namespace icinga
+using namespace icinga;
+
+Value icinga::ScriptFunctionWrapperVV(void (*function)(void), const std::vector<Value>& arguments)
 {
+	function();
 
-/**
- * A script function that can be used to execute a script task.
- *
- * @ingroup base
- */
-class I2_BASE_API ScriptFunction : public Object
-{
-public:
-	typedef shared_ptr<ScriptFunction> Ptr;
-	typedef weak_ptr<ScriptFunction> WeakPtr;
-
-	typedef boost::function<Value (const std::vector<Value>& arguments)> Callback;
-
-	explicit ScriptFunction(const Callback& function);
-
-	Value Invoke(const std::vector<Value>& arguments);
-
-private:
-	Callback m_Callback;
-};
-
-/**
- * A registry for script functions.
- *
- * @ingroup base
- */
-class I2_BASE_API ScriptFunctionRegistry : public Registry<ScriptFunction::Ptr>
-{ };
-
-/**
- * Helper class for registering ScriptFunction implementation classes.
- *
- * @ingroup base
- */
-class I2_BASE_API RegisterFunctionHelper
-{
-public:
-	RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function);
-};
-
-#define REGISTER_SCRIPTFUNCTION(name, callback) \
-	I2_EXPORT icinga::RegisterFunctionHelper g_RegisterSF_ ## name(#name, WrapScriptFunction(callback))
-
+	return Empty;
 }
 
-#endif /* SCRIPTFUNCTION_H */
+boost::function<Value (const std::vector<Value>& arguments)> icinga::WrapScriptFunction(void (*function)(void))
+{
+	return boost::bind(&ScriptFunctionWrapperVV, function, _1);
+}
+
+boost::function<Value (const std::vector<Value>& arguments)> icinga::WrapScriptFunction(Value (*function)(const std::vector<Value>&))
+{
+	return boost::bind(function, _1);
+}

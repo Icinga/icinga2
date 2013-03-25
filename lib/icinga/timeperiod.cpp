@@ -217,9 +217,11 @@ void TimePeriod::UpdateRegion(double begin, double end)
 		ObjectLock olock(this);
 		RemoveSegment(begin, end);
 
-		ObjectLock dlock(segments);
-		BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
-			AddSegment(segment);
+		if (segments) {
+			ObjectLock dlock(segments);
+			BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
+				AddSegment(segment);
+			}
 		}
 	}
 }
@@ -291,28 +293,14 @@ void TimePeriod::UpdateTimerHandler(void)
 	}
 }
 
-Value TimePeriod::EmptyTimePeriodUpdate(const std::vector<Value>& arguments)
+Array::Ptr TimePeriod::EmptyTimePeriodUpdate(const TimePeriod::Ptr tp, double begin, double end)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Expected 3 arguments."));
-
-//	TimePeriod::Ptr tp = arguments[0];
-//	double begin = arguments[1];
-//	double end = arguments[2];
-
 	Array::Ptr segments = boost::make_shared<Array>();
 	return segments;
 }
 
-Value TimePeriod::EvenMinutesTimePeriodUpdate(const std::vector<Value>& arguments)
+Array::Ptr TimePeriod::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr tp, double begin, double end)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Expected 3 arguments."));
-
-	TimePeriod::Ptr tp = arguments[0];
-	double begin = arguments[1];
-	double end = arguments[2];
-
 	Array::Ptr segments = boost::make_shared<Array>();
 
 	for (long t = begin / 60 - 1; t * 60 < end; t++) {
