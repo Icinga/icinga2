@@ -34,7 +34,7 @@ namespace icinga
 class I2_ICINGA_API PluginCheckTask
 {
 public:
-	static Value ScriptFunc(const Service::Ptr& service);
+	static Dictionary::Ptr ScriptFunc(const Service::Ptr& service);
 
 	static ServiceState ExitStatusToState(int exitStatus);
 	static Dictionary::Ptr ParseCheckOutput(const String& output);

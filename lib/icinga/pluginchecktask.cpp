@@ -34,7 +34,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 
-Value PluginCheckTask::ScriptFunc(const Service::Ptr& service)
+Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 {
 	Value raw_command = service->GetCheckCommand();
 
