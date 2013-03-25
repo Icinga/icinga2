@@ -100,11 +100,7 @@ private:
 	Attribute<String> m_HostName;
 	Attribute<String> m_Service;
 
-	std::set<ScriptTask::Ptr> m_Tasks;
-
-	void NotificationCompletedHandler(const ScriptTask::Ptr& task);
-
-	void BeginExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool ignore_timeperiod);
+	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool ignore_timeperiod);
 };
 
 }

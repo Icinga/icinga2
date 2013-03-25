@@ -100,7 +100,7 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
 		}
 	}
 
-	stream << "[" << timestamp << "] <" << boost::this_thread::get_id() << "> "
+	stream << "[" << timestamp << "] <" << Utility::GetThreadName() << "> "
 		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "
 		 << entry.Message;
 

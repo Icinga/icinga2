@@ -22,6 +22,7 @@
 #include "base/convert.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/utility.h"
 #include <map>
 #include <boost/bind.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -41,13 +42,11 @@ extern char **environ;
 #define environ (*_NSGetEnviron())
 #endif /* __APPLE__ */
 
-void Process::Run(void)
+ProcessResult Process::Run(void)
 {
 	ProcessResult result;
 
 	result.ExecutionStart = Utility::GetTime();
-
-	ASSERT(m_FD == -1);
 
 	int fds[2];
 
@@ -195,7 +194,7 @@ void Process::Run(void)
 	result.ExitStatus = exitcode;
 	result.Output = output;
 
-	FinishResult(result);
+	return result;
 }
 
 #endif /* _WIN32 */

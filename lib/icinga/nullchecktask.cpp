@@ -20,13 +20,14 @@
 #include "icinga/nullchecktask.h"
 #include "icinga/service.h"
 #include "base/dictionary.h"
+#include "base/scriptfunction.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(NullCheck,  &NullCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 
-void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
+Value NullCheckTask::ScriptFunc(const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Service must be specified."));
@@ -34,5 +35,5 @@ void NullCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Va
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("state", StateUnknown);
 
-	task->FinishResult(cr);
+	return cr;
 }

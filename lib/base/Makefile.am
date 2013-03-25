@@ -12,7 +12,6 @@ libbase_la_SOURCES =  \
 	application.h \
 	array.cpp \
 	array.h \
-	asynctask.h \
 	attribute.cpp \
 	attribute.h \
 	connection.cpp \
@@ -25,8 +24,6 @@ libbase_la_SOURCES =  \
 	dynamicobject.h \
 	dynamictype.cpp \
 	dynamictype.h \
-	eventqueue.cpp \
-	eventqueue.h \
 	exception.cpp \
 	exception.h \
 	fifo.cpp \
@@ -58,8 +55,6 @@ libbase_la_SOURCES =  \
 	scriptinterpreter.h \
 	scriptlanguage.cpp \
 	scriptlanguage.h \
-	scripttask.cpp \
-	scripttask.h \
 	singleton.h \
 	socket.cpp \
 	socket.h \
@@ -77,6 +72,8 @@ libbase_la_SOURCES =  \
 	sysloglogger.h \
 	tcpsocket.cpp \
 	tcpsocket.h \
+	threadpool.cpp \
+	threadpool.h \
 	timer.cpp \
 	timer.h \
 	tlsstream.cpp \

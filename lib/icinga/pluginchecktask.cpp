@@ -22,6 +22,8 @@
 #include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
+#include "base/scriptfunction.h"
+#include "base/utility.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -31,11 +33,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 
-PluginCheckTask::PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process, const Value& command)
-	: m_Task(task), m_Process(process), m_Command(command)
-{ }
-
-void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
+Value PluginCheckTask::ScriptFunc(const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Service must be specified."));
@@ -70,32 +68,17 @@ void PluginCheckTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), envMacros);
 
-	PluginCheckTask ct(task, process, command);
-
-	process->Start(boost::bind(&PluginCheckTask::ProcessFinishedHandler, ct));
-}
-
-void PluginCheckTask::ProcessFinishedHandler(PluginCheckTask ct)
-{
-	ProcessResult pr;
-
-	try {
-		pr = ct.m_Process->GetResult();
-	} catch (...) {
-		ct.m_Task->FinishException(boost::current_exception());
-
-		return;
-	}
+	ProcessResult pr = process->Run();
 
 	String output = pr.Output;
 	output.Trim();
 	Dictionary::Ptr result = ParseCheckOutput(output);
-	result->Set("command", ct.m_Command);
+	result->Set("command", command);
 	result->Set("state", ExitStatusToState(pr.ExitStatus));
 	result->Set("execution_start", pr.ExecutionStart);
 	result->Set("execution_end", pr.ExecutionEnd);
 
-	ct.m_Task->FinishResult(result);
+	return result;
 }
 
 ServiceState PluginCheckTask::ExitStatusToState(int exitStatus)

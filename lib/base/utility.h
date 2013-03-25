@@ -24,6 +24,7 @@
 #include "base/qstring.h"
 #include <typeinfo>
 #include <boost/function.hpp>
+#include <boost/thread/tss.hpp>
 
 namespace icinga
 {
@@ -77,8 +78,13 @@ public:
 
 	static String EscapeShellCmd(const String& s);
 
+	static void SetThreadName(const String& name);
+	static String GetThreadName(void);
+
 private:
 	Utility(void);
+
+	static boost::thread_specific_ptr<String> m_ThreadName;
 };
 
 }

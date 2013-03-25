@@ -21,7 +21,7 @@
 #define APPLICATION_H
 
 #include "base/i2-base.h"
-#include "base/eventqueue.h"
+#include "base/threadpool.h"
 #include "base/dynamicobject.h"
 
 namespace icinga {
@@ -82,7 +82,7 @@ public:
 	static String GetPkgDataDir(void);
 	static void SetPkgDataDir(const String& path);
 
-	static EventQueue& GetEQ(void);
+	static ThreadPool& GetTP(void);
 
 protected:
 	void RunEventLoop(void) const;

@@ -22,7 +22,6 @@
 
 #include "base/i2-base.h"
 #include "base/script.h"
-#include "base/scripttask.h"
 #include <vector>
 #include <set>
 
@@ -45,8 +44,7 @@ public:
 protected:
 	ScriptInterpreter(const Script::Ptr& script);
 
-	virtual void ProcessCall(const ScriptTask::Ptr& task, const String& function,
-	    const std::vector<Value>& arguments) = 0;
+	virtual Value ProcessCall(const String& function, const std::vector<Value>& arguments) = 0;
 
 	void SubscribeFunction(const String& name);
 	void UnsubscribeFunction(const String& name);

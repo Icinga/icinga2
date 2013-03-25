@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/scriptinterpreter.h"
+#include "base/scriptfunction.h"
 #include "base/objectlock.h"
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -41,7 +42,7 @@ void ScriptInterpreter::SubscribeFunction(const String& name)
 
 	m_SubscribedFunctions.insert(name);
 
-	ScriptFunction::Ptr sf = boost::make_shared<ScriptFunction>(boost::bind(&ScriptInterpreter::ProcessCall, this, _1, name, _2));
+	ScriptFunction::Ptr sf = boost::make_shared<ScriptFunction>(boost::bind(&ScriptInterpreter::ProcessCall, this, name, _1));
 	ScriptFunctionRegistry::GetInstance()->Register(name, sf);
 }
 

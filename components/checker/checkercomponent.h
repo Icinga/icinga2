@@ -95,7 +95,7 @@ private:
 	void CheckThreadProc(void);
 	void ResultTimerHandler(void);
 
-	void CheckCompletedHandler(const Service::Ptr& service);
+	void ExecuteCheckHelper(const Service::Ptr& service);
 
 	void AdjustCheckTimer(void);
 

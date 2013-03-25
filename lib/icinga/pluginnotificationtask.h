@@ -21,7 +21,6 @@
 #define PLUGINNOTIFICATIONTASK_H
 
 #include "icinga/i2-icinga.h"
-#include "base/scripttask.h"
 #include "base/process.h"
 
 namespace icinga
@@ -35,19 +34,10 @@ namespace icinga
 class I2_ICINGA_API PluginNotificationTask
 {
 public:
-	static void ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
+	static Value ScriptFunc(const std::vector<Value>& arguments);
 
 private:
-	static void ProcessFinishedHandler(PluginNotificationTask ct);
-
-	PluginNotificationTask(const ScriptTask::Ptr& task, const Process::Ptr& process,
-	    const String& service, const String& command);
-
-	ScriptTask::Ptr m_Task;
-	Process::Ptr m_Process;
-
-	String m_ServiceName;
-	String m_Command;
+	PluginNotificationTask(void);
 };
 
 }

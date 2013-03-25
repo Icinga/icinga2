@@ -20,6 +20,7 @@
 #include "icinga/user.h"
 #include "icinga/usergroup.h"
 #include "base/dynamictype.h"
+#include "base/utility.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;

@@ -42,16 +42,14 @@ public:
 	typedef shared_ptr<ScriptFunction> Ptr;
 	typedef weak_ptr<ScriptFunction> WeakPtr;
 
-	typedef boost::function<void (const shared_ptr<ScriptTask>&, const std::vector<Value>& arguments)> Callback;
+	typedef boost::function<Value (const std::vector<Value>& arguments)> Callback;
 
 	explicit ScriptFunction(const Callback& function);
 
+	Value Invoke(const std::vector<Value>& arguments);
+
 private:
 	Callback m_Callback;
-
-	void Invoke(const shared_ptr<ScriptTask>& task, const std::vector<Value>& arguments);
-
-	friend class ScriptTask;
 };
 
 /**

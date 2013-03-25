@@ -22,7 +22,6 @@
 
 #include "base/i2-base.h"
 #include "base/attribute.h"
-#include "base/scripttask.h"
 #include "base/object.h"
 #include "base/dictionary.h"
 #include <boost/signals2.hpp>
@@ -72,8 +71,7 @@ public:
 	static boost::signals2::signal<void (double, const std::set<DynamicObject::WeakPtr>&)> OnTransactionClosing;
 	static boost::signals2::signal<void (double, const DynamicObject::Ptr&)> OnFlushObject;
 
-	ScriptTask::Ptr MakeMethodTask(const String& method,
-	    const std::vector<Value>& arguments);
+	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
 
 	shared_ptr<DynamicType> GetType(void) const;
 	String GetName(void) const;

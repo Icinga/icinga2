@@ -26,7 +26,7 @@
 using namespace icinga;
 
 Process::Process(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
-	: AsyncTask<Process, ProcessResult>(), m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment)
+	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment)
 { }
 
 std::vector<String> Process::SplitCommand(const Value& command)

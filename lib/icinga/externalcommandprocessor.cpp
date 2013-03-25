@@ -28,6 +28,7 @@
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
 #include "base/application.h"
+#include "base/utility.h"
 #include <fstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>

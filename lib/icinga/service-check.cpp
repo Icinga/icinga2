@@ -332,7 +332,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	long old_attempt = GetCurrentCheckAttempt();
 	bool recovery;
 
-	/* The BeginExecuteCheck function already sets the old state, but we need to do it again
+	/* The ExecuteCheck function already sets the old state, but we need to do it again
 	 * in case this was a passive check result. */
 	SetLastState(old_state);
 	SetLastStateType(old_stateType);
@@ -522,7 +522,7 @@ bool Service::IsAllowedChecker(const String& checker) const
 	return false;
 }
 
-void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
+void Service::ExecuteCheck(void)
 {
 	ASSERT(!OwnsLock());
 
@@ -532,14 +532,8 @@ void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 		ObjectLock olock(this);
 
 		/* don't run another check if there is one pending */
-		if (m_CheckRunning) {
-			olock.Unlock();
-
-			/* we need to call the callback anyway */
-			callback();
-
+		if (m_CheckRunning)
 			return;
-		}
 
 		m_CheckRunning = true;
 
@@ -558,32 +552,10 @@ void Service::BeginExecuteCheck(const boost::function<void (void)>& callback)
 	std::vector<Value> arguments;
 	arguments.push_back(self);
 
-	ScriptTask::Ptr task = MakeMethodTask("check", arguments);
-
-	{
-		ObjectLock olock(this);
-		self->m_CurrentTask = task;
-	}
-
-	task->Start(boost::bind(&Service::CheckCompletedHandler, self, checkInfo, _1, callback));
-}
-
-void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
-    const ScriptTask::Ptr& task, const boost::function<void (void)>& callback)
-{
-	ASSERT(!OwnsLock());
-
-	checkInfo->Set("execution_end", Utility::GetTime());
-	checkInfo->Set("schedule_end", Utility::GetTime());
-	checkInfo->Seal();
-
 	Dictionary::Ptr result;
 
 	try {
-		Value vresult = task->GetResult();
-
-		if (vresult.IsObjectType<Dictionary>())
-			result = vresult;
+		result = InvokeMethod("check", arguments);
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"
@@ -596,6 +568,10 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 		result->Set("state", StateUnknown);
 		result->Set("output", message);
 	}
+
+	checkInfo->Set("execution_end", Utility::GetTime());
+	checkInfo->Set("schedule_end", Utility::GetTime());
+	checkInfo->Seal();
 
 	if (result) {
 		if (!result->Contains("schedule_start"))
@@ -630,11 +606,8 @@ void Service::CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
 
 	{
 		ObjectLock olock(this);
-		m_CurrentTask.reset();
 		m_CheckRunning = false;
 	}
-
-	callback();
 }
 
 void Service::UpdateStatistics(const Dictionary::Ptr& cr)

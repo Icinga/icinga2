@@ -27,7 +27,7 @@
     <ClCompile Include="dynamicobject.cpp" />
     <ClCompile Include="dictionary.cpp" />
     <ClCompile Include="dynamictype.cpp" />
-    <ClCompile Include="eventqueue.cpp" />
+    <ClCompile Include="threadpool.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="fifo.cpp" />
     <ClCompile Include="logger.cpp" />
@@ -40,7 +40,6 @@
     <ClCompile Include="qstring.cpp" />
     <ClCompile Include="ringbuffer.cpp" />
     <ClCompile Include="scriptfunction.cpp" />
-    <ClCompile Include="scripttask.cpp" />
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="stacktrace.cpp" />
     <ClCompile Include="stdiostream.cpp" />
@@ -59,14 +58,13 @@
   <ItemGroup>
     <ClInclude Include="application.h" />
     <ClInclude Include="array.h" />
-    <ClInclude Include="asynctask.h" />
     <ClInclude Include="attribute.h" />
     <ClInclude Include="connection.h" />
     <ClInclude Include="convert.h" />
     <ClInclude Include="dynamicobject.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="dynamictype.h" />
-    <ClInclude Include="eventqueue.h" />
+    <ClInclude Include="threadpool.h" />
     <ClInclude Include="fifo.h" />
     <ClInclude Include="logger_fwd.h" />
     <ClInclude Include="registry.h" />
@@ -77,7 +75,6 @@
     <ClInclude Include="netstring.h" />
     <ClInclude Include="qstring.h" />
     <ClInclude Include="scriptfunction.h" />
-    <ClInclude Include="scripttask.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="i2-base.h" />

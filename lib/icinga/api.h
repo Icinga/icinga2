@@ -21,7 +21,8 @@
 #define API_H
 
 #include "icinga/i2-icinga.h"
-#include "base/scripttask.h"
+#include "base/value.h"
+#include <vector>
 
 namespace icinga
 {
@@ -34,7 +35,7 @@ namespace icinga
 class I2_ICINGA_API API
 {
 public:
-	static void GetAnswerToEverything(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
+	static Value GetAnswerToEverything(const std::vector<Value>& arguments);
 
 private:
 	API(void);

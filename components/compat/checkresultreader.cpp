@@ -25,6 +25,7 @@
 #include "base/logger_fwd.h"
 #include "base/convert.h"
 #include "base/application.h"
+#include "base/utility.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <fstream>
 

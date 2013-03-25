@@ -24,6 +24,8 @@
 #include "icinga/icingaapplication.h"
 #include "base/scriptfunction.h"
 #include "base/logger_fwd.h"
+#include "base/utility.h"
+#include "base/convert.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -31,12 +33,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginNotification,  &PluginNotificationTask::ScriptFunc);
 
-PluginNotificationTask::PluginNotificationTask(const ScriptTask::Ptr& task, const Process::Ptr& process,
-    const String& service, const String& command)
-	: m_Task(task), m_Process(process), m_ServiceName(service), m_Command(command)
-{ }
-
-void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
+Value PluginNotificationTask::ScriptFunc(const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Notification target must be specified."));
@@ -55,13 +52,9 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::
 	Dictionary::Ptr cr = arguments[2];
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(arguments[3]));
 
-	Value raw_command = notification->GetNotificationCommand();
-
-	String service_name;
-
 	Service::Ptr service = notification->GetService();
-	if (service)
-		service_name = service->GetName();
+
+	Value raw_command = notification->GetNotificationCommand();
 
 	StaticMacroResolver::Ptr notificationMacroResolver = boost::make_shared<StaticMacroResolver>();
 	notificationMacroResolver->Add("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));
@@ -95,30 +88,15 @@ void PluginNotificationTask::ScriptFunc(const ScriptTask::Ptr& task, const std::
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), envMacros);
 
-	PluginNotificationTask ct(task, process, service_name, command);
+	ProcessResult pr = process->Run();
 
-	process->Start(boost::bind(&PluginNotificationTask::ProcessFinishedHandler, ct));
-}
-
-void PluginNotificationTask::ProcessFinishedHandler(PluginNotificationTask ct)
-{
-	ProcessResult pr;
-
-	try {
-		pr = ct.m_Process->GetResult();
-
-		if (pr.ExitStatus != 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "Notification command '" << ct.m_Command << "' for service '"
-			       << ct.m_ServiceName << "' failed; exit status: "
-			       << pr.ExitStatus << ", output: " << pr.Output;
-			Log(LogWarning, "icinga", msgbuf.str());
-		}
-
-		ct.m_Task->FinishResult(Empty);
-	} catch (...) {
-		ct.m_Task->FinishException(boost::current_exception());
-
-		return;
+	if (pr.ExitStatus != 0) {
+		std::ostringstream msgbuf;
+		msgbuf << "Notification command '" << Convert::ToString(command) << "' for service '"
+		       << service->GetName() << "' failed; exit status: "
+		       << pr.ExitStatus << ", output: " << pr.Output;
+		Log(LogWarning, "icinga", msgbuf.str());
 	}
+
+	return Empty;
 }

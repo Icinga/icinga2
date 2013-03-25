@@ -25,6 +25,7 @@
 #include "base/dynamicobject.h"
 #include "base/objectlock.h"
 #include "base/timer.h"
+#include "base/utility.h"
 #include <boost/thread/thread.hpp>
 #include <iostream>
 

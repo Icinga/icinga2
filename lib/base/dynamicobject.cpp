@@ -27,7 +27,7 @@
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/timer.h"
-#include "base/scripttask.h"
+#include "base/scriptfunction.h"
 #include <fstream>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -410,7 +410,7 @@ void DynamicObject::Unregister(void)
 	dtype->UnregisterObject(GetSelf());
 }
 
-ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
+Value DynamicObject::InvokeMethod(const String& method,
     const std::vector<Value>& arguments)
 {
 	Dictionary::Ptr methods;
@@ -418,19 +418,19 @@ ScriptTask::Ptr DynamicObject::MakeMethodTask(const String& method,
 	methods = m_Methods;
 
 	if (!methods)
-		return ScriptTask::Ptr();
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Method '" + method + "' does not exist."));
 
 	String funcName = methods->Get(method);
 
 	if (funcName.IsEmpty())
-		return ScriptTask::Ptr();
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Method '" + method + "' does not exist."));
 
 	ScriptFunction::Ptr func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
 
 	if (!func)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + funcName + "' does not exist."));
 
-	return boost::make_shared<ScriptTask>(func, arguments);
+	return func->Invoke(arguments);
 }
 
 void DynamicObject::DumpObjects(const String& filename)

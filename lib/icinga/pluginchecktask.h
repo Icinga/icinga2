@@ -22,7 +22,6 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/service.h"
-#include "base/scripttask.h"
 #include "base/process.h"
 
 namespace icinga
@@ -36,19 +35,13 @@ namespace icinga
 class I2_ICINGA_API PluginCheckTask
 {
 public:
-	static void ScriptFunc(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
+	static Value ScriptFunc(const std::vector<Value>& arguments);
 
 	static ServiceState ExitStatusToState(int exitStatus);
 	static Dictionary::Ptr ParseCheckOutput(const String& output);
 
 private:
-	static void ProcessFinishedHandler(PluginCheckTask ct);
-
-	PluginCheckTask(const ScriptTask::Ptr& task, const Process::Ptr& process, const Value& command);
-
-	ScriptTask::Ptr m_Task;
-	Process::Ptr m_Process;
-	Value m_Command;
+	PluginCheckTask(void);
 };
 
 }

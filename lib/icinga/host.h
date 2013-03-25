@@ -103,8 +103,7 @@ public:
 	std::set<shared_ptr<Service> > GetServices(void) const;
 	static void InvalidateServicesCache(void);
 
-	static void ValidateServiceDictionary(const ScriptTask::Ptr& task,
-	    const std::vector<icinga::Value>& arguments);
+	static Value ValidateServiceDictionary(const std::vector<icinga::Value>& arguments);
 
 	static HostState CalculateState(ServiceState state, bool reachable);
 

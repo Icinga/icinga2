@@ -22,6 +22,7 @@
 #include "base/application.h"
 #include "base/logger_fwd.h"
 #include "base/timer.h"
+#include "base/utility.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -144,6 +145,9 @@ int main(int argc, char **argv)
 #ifndef _WIN32
 	lt_dlinit();
 #endif /* _WIN32 */
+
+	/* Set thread title. */
+	Utility::SetThreadName("Main Thread");
 
 	/* Set command-line arguments. */
 	Application::SetArgC(argc);

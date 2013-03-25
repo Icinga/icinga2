@@ -132,7 +132,7 @@ void Application::ShutdownTimerHandler(void)
 		Application::GetInstance()->OnShutdown();
 
 		DynamicObject::DeactivateObjects();
-		GetEQ().Stop();
+		GetTP().Stop();
 		m_ShuttingDown = false;
 	}
 }
@@ -155,7 +155,7 @@ void Application::RunEventLoop(void) const
 
 	Timer::Initialize();
 
-	GetEQ().Join();
+	GetTP().Join();
 
 	Timer::Uninitialize();
 }
@@ -614,12 +614,12 @@ void Application::SetPkgDataDir(const String& path)
 }
 
 /**
- * Returns the main thread's event queue.
+ * Returns the global thread pool.
  *
- * @returns The event queue.
+ * @returns The global thread pool.
  */
-EventQueue& Application::GetEQ(void)
+ThreadPool& Application::GetTP(void)
 {
-	static EventQueue queue;
-	return queue;
+	static ThreadPool tp;
+	return tp;
 }

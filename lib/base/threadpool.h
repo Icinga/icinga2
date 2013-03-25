@@ -17,17 +17,78 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/scripttask.h"
+#ifndef THREADPOOL_H
+#define THREADPOOL_H
 
-using namespace icinga;
+#include "base/i2-base.h"
+#include <stack>
+#include <boost/function.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
-ScriptTask::ScriptTask(const ScriptFunction::Ptr& function,
-    const std::vector<Value>& arguments)
-	: AsyncTask<ScriptTask, Value>(), m_Function(function),
-	  m_Arguments(arguments)
-{ }
-
-void ScriptTask::Run(void)
+namespace icinga
 {
-	m_Function->Invoke(GetSelf(), m_Arguments);
+
+/**
+ * A thread pool.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API ThreadPool
+{
+public:
+	typedef boost::function<void ()> WorkFunction;
+
+	ThreadPool(void);
+	~ThreadPool(void);
+
+	void Stop(void);
+	void Join(void);
+
+	void Post(const WorkFunction& callback);
+
+private:
+	enum ThreadState
+	{
+		ThreadDead,
+		ThreadIdle,
+		ThreadBusy
+	};
+
+	ThreadState m_ThreadStates[512];
+	double m_ThreadUtilization[512];
+	int m_ThreadDeaths;
+
+	double m_WaitTime;
+	double m_ServiceTime;
+	int m_TaskCount;
+
+	double m_MaxLatency;
+
+	boost::mutex m_Mutex;
+	boost::condition_variable m_CV;
+
+	bool m_Stopped;
+
+	struct WorkItem
+	{
+		WorkFunction Callback;
+		double Timestamp;
+	};
+
+
+	std::deque<WorkItem> m_WorkItems;
+
+	void QueueThreadProc(int tid);
+	void ManagerThreadProc(void);
+
+	void SpawnWorker(void);
+	void KillWorker(void);
+
+	void UpdateThreadUtilization(int tid, double time, double utilization);
+};
+
 }
+
+#endif /* EVENTQUEUE_H */

@@ -46,7 +46,7 @@ public:
 	String GetLogDir(void) const;
 	String GetRotationMethod(void) const;
 
-	static void ValidateRotationMethod(const ScriptTask::Ptr& task, const std::vector<Value>& arguments);
+	static Value ValidateRotationMethod(const std::vector<Value>& arguments);
 
 protected:
 	virtual void OnAttributeChanged(const String& name);

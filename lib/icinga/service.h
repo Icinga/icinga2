@@ -163,7 +163,7 @@ public:
 	void AcknowledgeProblem(AcknowledgementType type, double expiry = 0);
 	void ClearAcknowledgement(void);
 
-	void BeginExecuteCheck(const boost::function<void (void)>& callback);
+	void ExecuteCheck(void);
 	void ProcessCheckResult(const Dictionary::Ptr& cr);
 
 	static double CalculateExecutionTime(const Dictionary::Ptr& cr);
@@ -282,12 +282,8 @@ private:
 	Attribute<bool> m_EnablePassiveChecks;
 	Attribute<bool> m_ForceNextCheck;
 
-	ScriptTask::Ptr m_CurrentTask;
 	bool m_CheckRunning;
 	long m_SchedulingOffset;
-
-	void CheckCompletedHandler(const Dictionary::Ptr& checkInfo,
-	    const ScriptTask::Ptr& task, const boost::function<void (void)>& callback);
 
 	/* Downtimes */
 	Attribute<Dictionary::Ptr> m_Downtimes;

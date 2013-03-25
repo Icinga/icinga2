@@ -25,6 +25,8 @@
 #include "base/logger_fwd.h"
 #include "base/timer.h"
 #include "base/convert.h"
+#include "base/scriptfunction.h"
+#include "base/utility.h"
 #include "config/configitembuilder.h"
 #include "config/configcompilercontext.h"
 #include <boost/tuple/tuple.hpp>
@@ -350,7 +352,7 @@ void Host::RefreshServicesCache(void)
 	l_ServicesCache.swap(newServicesCache);
 }
 
-void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
+Value Host::ValidateServiceDictionary(const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Location must be specified."));
@@ -402,7 +404,7 @@ void Host::ValidateServiceDictionary(const ScriptTask::Ptr& task, const std::vec
 		}
 	}
 
-	task->FinishResult(Empty);
+	return Empty;
 }
 
 Service::Ptr Host::GetServiceByShortName(const Value& name) const

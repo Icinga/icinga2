@@ -143,19 +143,21 @@ void CheckerComponent::CheckThreadProc(void)
 
 		Log(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
-		try {
-			CheckerComponent::Ptr self = GetSelf();
-			service->BeginExecuteCheck(boost::bind(&CheckerComponent::CheckCompletedHandler, self, service));
-		} catch (const std::exception& ex) {
-			Log(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + boost::diagnostic_information(ex));
-		}
+		CheckerComponent::Ptr self = GetSelf();
+		Utility::QueueAsyncCallback(boost::bind(&CheckerComponent::ExecuteCheckHelper, self, service));
 
 		lock.lock();
 	}
 }
 
-void CheckerComponent::CheckCompletedHandler(const Service::Ptr& service)
+void CheckerComponent::ExecuteCheckHelper(const Service::Ptr& service)
 {
+	try {
+		service->ExecuteCheck();
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + boost::diagnostic_information(ex));
+	}
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	/* remove the service from the list of pending services; if it's not in the

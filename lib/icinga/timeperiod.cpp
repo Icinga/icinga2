@@ -24,6 +24,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/timer.h"
+#include "base/utility.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -209,16 +210,8 @@ void TimePeriod::UpdateRegion(double begin, double end)
 	arguments.push_back(self);
 	arguments.push_back(begin);
 	arguments.push_back(end);
-	ScriptTask::Ptr task = MakeMethodTask("update", arguments);
 
-	if (!task) {
-		Log(LogWarning, "icinga", "TimePeriod object '" + GetName() + "' doesn't have an 'update' method.");
-
-		return;
-	}
-
-	task->Start();
-	Array::Ptr segments = task->GetResult();
+	Array::Ptr segments = InvokeMethod("update", arguments);
 
 	{
 		ObjectLock olock(this);
@@ -298,7 +291,7 @@ void TimePeriod::UpdateTimerHandler(void)
 	}
 }
 
-void TimePeriod::EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
+Value TimePeriod::EmptyTimePeriodUpdate(const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Expected 3 arguments."));
@@ -308,10 +301,10 @@ void TimePeriod::EmptyTimePeriodUpdate(const ScriptTask::Ptr& task, const std::v
 //	double end = arguments[2];
 
 	Array::Ptr segments = boost::make_shared<Array>();
-	task->FinishResult(segments);
+	return segments;
 }
 
-void TimePeriod::EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
+Value TimePeriod::EvenMinutesTimePeriodUpdate(const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Expected 3 arguments."));
@@ -332,5 +325,5 @@ void TimePeriod::EvenMinutesTimePeriodUpdate(const ScriptTask::Ptr& task, const 
 		}
 	}
 
-	task->FinishResult(segments);
+	return segments;
 }

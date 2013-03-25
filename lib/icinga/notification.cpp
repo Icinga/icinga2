@@ -23,6 +23,7 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/utility.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
@@ -231,11 +232,11 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
 		Log(LogDebug, "icinga", "Sending notification for user " + user->GetName());
-		BeginExecuteNotificationHelper(type, user, cr, ignore_timeperiod);
+		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, ignore_timeperiod));
 	}
 }
 
-void Notification::BeginExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool ignore_timeperiod)
+void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool ignore_timeperiod)
 {
 	ASSERT(!OwnsLock());
 
@@ -257,36 +258,8 @@ void Notification::BeginExecuteNotificationHelper(NotificationType type, const U
 	arguments.push_back(cr);
 	arguments.push_back(type);
 
-	ScriptTask::Ptr task = MakeMethodTask("notify", arguments);
-
-	if (!task) {
-		Log(LogWarning, "icinga", "Notification object '" + GetName() + "' doesn't have a 'notify' method.");
-
-		return;
-	}
-
-	{
-		ObjectLock olock(this);
-
-		/* We need to keep the task object alive until the completion handler is called. */
-		m_Tasks.insert(task);
-	}
-
-	task->Start(boost::bind(&Notification::NotificationCompletedHandler, self, _1));
-}
-
-void Notification::NotificationCompletedHandler(const ScriptTask::Ptr& task)
-{
-	ASSERT(!OwnsLock());
-
-	{
-		ObjectLock olock(this);
-
-		m_Tasks.erase(task);
-	}
-
 	try {
-		task->GetResult();
+		InvokeMethod("notify", arguments);
 
 		Log(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
 	} catch (const std::exception& ex) {

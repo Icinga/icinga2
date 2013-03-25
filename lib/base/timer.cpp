@@ -300,6 +300,6 @@ void Timer::TimerThreadProc(void)
 		lock.unlock();
 
 		/* Asynchronously call the timer. */
-		Application::GetEQ().Post(boost::bind(&Timer::Call, timer));
+		Application::GetTP().Post(boost::bind(&Timer::Call, timer));
 	}
 }

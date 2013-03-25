@@ -259,7 +259,7 @@ void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage&
 		if (it == m_TopicHandlers.end())
 			return;
 
-		Application::GetEQ().Post(boost::bind(boost::ref(*it->second), GetSelf(), sender, request));
+		Utility::QueueAsyncCallback(boost::bind(boost::ref(*it->second), GetSelf(), sender, request));
 	} else {
 		GetClient()->SendMessage(request);
 	}

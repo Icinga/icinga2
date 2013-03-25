@@ -35,6 +35,8 @@
 
 using namespace icinga;
 
+boost::thread_specific_ptr<String> Utility::m_ThreadName;
+
 /**
  * Demangles a symbol name.
  *
@@ -400,7 +402,7 @@ void Utility::SetNonBlockingSocket(SOCKET s)
 
 void Utility::QueueAsyncCallback(const boost::function<void (void)>& callback)
 {
-	Application::GetEQ().Post(callback);
+	Application::GetTP().Post(callback);
 }
 
 String Utility::FormatDateTime(const char *format, double ts)
@@ -476,4 +478,22 @@ String Utility::EscapeShellCmd(const String& s)
 	}
 
 	return result;
+}
+
+void Utility::SetThreadName(const String& name)
+{
+	m_ThreadName.reset(new String(name));
+}
+
+String Utility::GetThreadName(void)
+{
+	String *name = m_ThreadName.get();
+
+	if (!name) {
+		std::ostringstream idbuf;
+		idbuf << boost::this_thread::get_id();
+		return idbuf.str();
+	}
+
+	return *name;
 }

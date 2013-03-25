@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/eventqueue.h"
+#include "base/threadpool.h"
 #include "base/logger_fwd.h"
 #include "base/convert.h"
 #include "base/utility.h"
@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-EventQueue::EventQueue(void)
+ThreadPool::ThreadPool(void)
 	: m_Stopped(false), m_ThreadDeaths(0), m_WaitTime(0), m_ServiceTime(0), m_TaskCount(0)
 {
 	for (int i = 0; i < sizeof(m_ThreadStates) / sizeof(m_ThreadStates[0]); i++)
@@ -38,17 +38,17 @@ EventQueue::EventQueue(void)
 	for (int i = 0; i < 2; i++)
 		SpawnWorker();
 
-	boost::thread managerThread(boost::bind(&EventQueue::ManagerThreadProc, this));
+	boost::thread managerThread(boost::bind(&ThreadPool::ManagerThreadProc, this));
 	managerThread.detach();
 }
 
-EventQueue::~EventQueue(void)
+ThreadPool::~ThreadPool(void)
 {
 	Stop();
 	Join();
 }
 
-void EventQueue::Stop(void)
+void ThreadPool::Stop(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Stopped = true;
@@ -58,11 +58,11 @@ void EventQueue::Stop(void)
 /**
  * Waits for all worker threads to finish.
  */
-void EventQueue::Join(void)
+void ThreadPool::Join(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	while (!m_Stopped || !m_Events.empty()) {
+	while (!m_Stopped || !m_WorkItems.empty()) {
 		lock.unlock();
 		Utility::Sleep(0.5);
 		lock.lock();
@@ -70,12 +70,16 @@ void EventQueue::Join(void)
 }
 
 /**
- * Waits for events and processes them.
+ * Waits for work items and processes them.
  */
-void EventQueue::QueueThreadProc(int tid)
+void ThreadPool::QueueThreadProc(int tid)
 {
+	std::ostringstream idbuf;
+	idbuf << "TP " << this << " Worker #" << tid;
+	Utility::SetThreadName(idbuf.str());
+
 	for (;;) {
-		EventQueueWorkItem event;
+		WorkItem wi;
 
 		double ws = Utility::GetTime();
 		double st;
@@ -85,7 +89,7 @@ void EventQueue::QueueThreadProc(int tid)
 
 			m_ThreadStates[tid] = ThreadIdle;
 
-			while (m_Events.empty() && !m_Stopped && m_ThreadDeaths == 0)
+			while (m_WorkItems.empty() && !m_Stopped && m_ThreadDeaths == 0)
 				m_CV.wait(lock);
 
 			if (m_ThreadDeaths > 0) {
@@ -93,11 +97,11 @@ void EventQueue::QueueThreadProc(int tid)
 				break;
 			}
 
-			if (m_Events.empty() && m_Stopped)
+			if (m_WorkItems.empty() && m_Stopped)
 				break;
 
-			event = m_Events.front();
-			m_Events.pop_front();
+			wi = m_WorkItems.front();
+			m_WorkItems.pop_front();
 
 			m_ThreadStates[tid] = ThreadBusy;
 			st = Utility::GetTime();
@@ -113,7 +117,7 @@ void EventQueue::QueueThreadProc(int tid)
 #endif /* _DEBUG */
 
 		try {
-			event.Callback();
+			wi.Callback();
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
 			msgbuf << "Exception thrown in event handler: " << std::endl
@@ -125,7 +129,7 @@ void EventQueue::QueueThreadProc(int tid)
 		}
 
 		double et = Utility::GetTime();
-		double latency = st - event.Timestamp;
+		double latency = st - wi.Timestamp;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
@@ -175,27 +179,31 @@ void EventQueue::QueueThreadProc(int tid)
 }
 
 /**
- * Appends an event to the event queue. Events will be processed in FIFO order.
+ * Appends a work item to the work queue. Work items will be processed in FIFO order.
  *
- * @param callback The callback function for the event.
+ * @param callback The callback function for the work item.
  */
-void EventQueue::Post(const EventQueueCallback& callback)
+void ThreadPool::Post(const ThreadPool::WorkFunction& callback)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	if (m_Stopped)
-		BOOST_THROW_EXCEPTION(std::runtime_error("EventQueue has been stopped."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("ThreadPool has been stopped."));
 
-	EventQueueWorkItem event;
-	event.Callback = callback;
-	event.Timestamp = Utility::GetTime();
+	WorkItem wi;
+	wi.Callback = callback;
+	wi.Timestamp = Utility::GetTime();
 
-	m_Events.push_back(event);
+	m_WorkItems.push_back(wi);
 	m_CV.notify_one();
 }
 
-void EventQueue::ManagerThreadProc(void)
+void ThreadPool::ManagerThreadProc(void)
 {
+	std::ostringstream idbuf;
+	idbuf << "TP " << this << " Manager";
+	Utility::SetThreadName(idbuf.str());
+
 	for (;;) {
 		Utility::Sleep(5);
 
@@ -203,46 +211,38 @@ void EventQueue::ManagerThreadProc(void)
 
 		int pending, alive;
 		double avg_latency, max_latency;
+		double utilization = 0;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
-			pending = m_Events.size();
+			pending = m_WorkItems.size();
 
 			alive = 0;
-
-			double util = 0;
-			int hg = 0;
 
 			for (int i = 0; i < sizeof(m_ThreadStates) / sizeof(m_ThreadStates[0]); i++) {
 				if (m_ThreadStates[i] != ThreadDead) {
 					alive++;
-					util += m_ThreadUtilization[i] * 100;
-					std::cout << (int)(m_ThreadUtilization[i] * 100) << "\t";
-					hg++;
-					if (hg % 25 == 0)
-						std::cout << std::endl;
+					utilization += m_ThreadUtilization[i] * 100;
 				}
 			}
 
-			util /= alive;
-
-			std::cout << std::endl;
+			utilization /= alive;
 
 			if (m_TaskCount > 0)
 				avg_latency = m_WaitTime / (m_TaskCount * 1.0);
 			else
 				avg_latency = 0;
 
-			std::cout << "Wait time: " << m_WaitTime << "; Service time: " << m_ServiceTime << "; tasks: " << m_TaskCount << std::endl;
-			std::cout << "Thread util: " << util << std::endl;
+			if (utilization < 60 || utilization > 80) {
+				int tthreads = ceil((utilization * alive) / 80.0) - alive;
 
-			if (util < 60 || util > 80) {
-				int tthreads = ceil((util * alive) / 80.0) - alive;
-
+				/* Don't ever kill the last 2 threads. */
 				if (alive + tthreads < 2)
 					tthreads = 2 - alive;
 
-				std::cout << "Target threads: " << tthreads << "; Alive: " << alive << std::endl;
+				/* Spawn more workers if there are outstanding work items. */
+				if (tthreads > 0 && pending > 0)
+					tthreads = 8;
 
 				for (int i = 0; i < -tthreads; i++)
 					KillWorker();
@@ -260,8 +260,11 @@ void EventQueue::ManagerThreadProc(void)
 		}
 
 		std::ostringstream msgbuf;
-		msgbuf << "Pending tasks: " << pending << "; Average latency: " << (long)(avg_latency * 1000) << "ms"
-		    << "; Max latency: " << (long)(max_latency * 1000) << "ms";
+		msgbuf << "Pending tasks: " << pending << "; Average latency: "
+		    << (long)(avg_latency * 1000) << "ms"
+		    << "; Max latency: " << (long)(max_latency * 1000) << "ms"
+		    << "; Threads: " << alive
+		    << "; Pool utilization: " << utilization << "%";
 		Log(LogInformation, "base", msgbuf.str());
 	}
 }
@@ -269,7 +272,7 @@ void EventQueue::ManagerThreadProc(void)
 /**
  * Note: Caller must hold m_Mutex
  */
-void EventQueue::SpawnWorker(void)
+void ThreadPool::SpawnWorker(void)
 {
 	for (int i = 0; i < sizeof(m_ThreadStates) / sizeof(m_ThreadStates[0]); i++) {
 		if (m_ThreadStates[i] == ThreadDead) {
@@ -277,7 +280,7 @@ void EventQueue::SpawnWorker(void)
 
 			m_ThreadStates[i] = ThreadIdle;
 			m_ThreadUtilization[i] = 0;
-			boost::thread worker(boost::bind(&EventQueue::QueueThreadProc, this, i));
+			boost::thread worker(boost::bind(&ThreadPool::QueueThreadProc, this, i));
 			worker.detach();
 
 			break;
@@ -288,7 +291,7 @@ void EventQueue::SpawnWorker(void)
 /**
  * Note: Caller must hold m_Mutex.
  */
-void EventQueue::KillWorker(void)
+void ThreadPool::KillWorker(void)
 {
 	Log(LogDebug, "base", "Killing worker thread.");
 
@@ -298,7 +301,7 @@ void EventQueue::KillWorker(void)
 /**
  * Note: Caller must hold m_Mutex.
  */
-void EventQueue::UpdateThreadUtilization(int tid, double time, double utilization)
+void ThreadPool::UpdateThreadUtilization(int tid, double time, double utilization)
 {
 	const double avg_time = 5.0;
 

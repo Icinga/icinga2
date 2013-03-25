@@ -22,7 +22,6 @@
 
 #include "base/i2-base.h"
 #include "base/timer.h"
-#include "base/asynctask.h"
 #include "base/dictionary.h"
 #include <sstream>
 #include <deque>
@@ -52,7 +51,7 @@ struct ProcessResult
  *
  * @ingroup base
  */
-class I2_BASE_API Process : public AsyncTask<Process, ProcessResult>
+class I2_BASE_API Process : public Object
 {
 public:
 	typedef shared_ptr<Process> Ptr;
@@ -62,6 +61,8 @@ public:
 
 	Process(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
 
+	ProcessResult Run(void);
+
 	static std::vector<String> SplitCommand(const Value& command);
 private:
 	std::vector<String> m_Arguments;
@@ -69,9 +70,8 @@ private:
 
 #ifndef _WIN32
 	pid_t m_Pid;
-#endif /* _WIN32 */
 
-	virtual void Run(void);
+#endif /* _WIN32 */
 };
 
 }

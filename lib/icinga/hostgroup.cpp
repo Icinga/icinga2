@@ -21,6 +21,7 @@
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
+#include "base/utility.h"
 #include "base/timer.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>

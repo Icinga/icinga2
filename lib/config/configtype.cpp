@@ -21,7 +21,7 @@
 #include "config/configcompilercontext.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
-#include "base/scripttask.h"
+#include "base/scriptfunction.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -133,9 +133,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 			arguments.push_back(LocationToString(locations));
 			arguments.push_back(dictionary);
 
-			ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
-			task->Start();
-			task->GetResult();
+			func->Invoke(arguments);
 		}
 	}
 
@@ -211,9 +209,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 			arguments.push_back(LocationToString(locations));
 			arguments.push_back(array);
 
-			ScriptTask::Ptr task = boost::make_shared<ScriptTask>(func, arguments);
-			task->Start();
-			task->GetResult();
+			func->Invoke(arguments);
 		}
 	}
 

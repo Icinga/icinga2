@@ -28,6 +28,8 @@
 #include "base/exception.h"
 #include "base/convert.h"
 #include "base/application.h"
+#include "base/utility.h"
+#include "base/scriptfunction.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -333,7 +335,7 @@ void CompatLog::RotationTimerHandler(void)
 	ScheduleNextRotation();
 }
 
-void CompatLog::ValidateRotationMethod(const ScriptTask::Ptr& task, const std::vector<Value>& arguments)
+Value CompatLog::ValidateRotationMethod(const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing argument: Location must be specified."));
@@ -352,5 +354,5 @@ void CompatLog::ValidateRotationMethod(const ScriptTask::Ptr& task, const std::v
 		    location + ": Rotation method '" + rotation_method + "' is invalid.");
 	}
 
-	task->FinishResult(Empty);
+	return Empty;
 }
