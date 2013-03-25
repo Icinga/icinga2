@@ -120,9 +120,9 @@ void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& f
 		Value vresult = PythonLanguage::MarshalFromPython(result);
 		Py_DECREF(result);
 
-		Utility::QueueAsyncCallback(boost::bind(&ScriptTask::FinishResult, task, vresult));
+		task->FinishResult(vresult);
 	} catch (...) {
-		Utility::QueueAsyncCallback(boost::bind(&ScriptTask::FinishException, task, boost::current_exception()));
+		task->FinishException(boost::current_exception());
 	}
 
 	m_Language->SetCurrentInterpreter(interp);

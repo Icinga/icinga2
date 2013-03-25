@@ -63,10 +63,12 @@ public:
 
 private:
 	ThreadState m_ThreadStates[512];
+	double m_ThreadUtilization[512];
 	int m_ThreadDeaths;
 
-	double m_Latency;
-	int m_LatencyCount;
+	double m_WaitTime;
+	double m_ServiceTime;
+	int m_TaskCount;
 
 	double m_MaxLatency;
 
@@ -81,6 +83,8 @@ private:
 
 	void SpawnWorker(void);
 	void KillWorker(void);
+
+	void UpdateThreadUtilization(int tid, double time, double utilization);
 };
 
 }
