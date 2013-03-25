@@ -22,9 +22,13 @@
 #ifdef _WIN32
 using namespace icinga;
 
-void Process::Run(void)
+ProcessResult Process::Run(void)
 {
+	ProcessResult pr;
+
 	// TODO: implement
+
+	return pr;
 }
 
 #endif /* _WIN32 */
