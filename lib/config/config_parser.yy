@@ -162,7 +162,6 @@ identifier: T_IDENTIFIER
 	| T_STRING
 	{
 		$$ = $1;
-		free($1);
 	}
 	;
 
