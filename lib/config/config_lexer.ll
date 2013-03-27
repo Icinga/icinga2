@@ -177,12 +177,12 @@ static void lb_append_char(lex_buf *lb, char new_char)
 
 <C_COMMENT>{
 "*/"				BEGIN(INITIAL);
-[^*]+				/* ignore comment */
+[^*]				/* ignore comment */
 "*"				/* ignore star */
 }
 
 \/\/[^\n]*			/* ignore C++-style comments */
-[ \t\r\n]+			/* ignore whitespace */
+[ \t\r\n]			/* ignore whitespace */
 
 <INITIAL>{
 type				return T_TYPE;
