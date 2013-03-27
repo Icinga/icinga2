@@ -33,6 +33,7 @@
 #include <stack>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -55,6 +56,10 @@ using namespace icinga;
 	icinga::Value *variant;
 	icinga::ExpressionOperator op;
 	icinga::TypeSpecifier type;
+	std::vector<String> *slist;
+	Expression *expr;
+	ExpressionList *exprl;
+	Array *array;
 }
 
 %token <text> T_STRING
@@ -62,38 +67,45 @@ using namespace icinga;
 %token <num> T_NUMBER
 %token T_NULL
 %token <text> T_IDENTIFIER
-%token <op> T_EQUAL
-%token <op> T_PLUS_EQUAL
-%token <op> T_MINUS_EQUAL
-%token <op> T_MULTIPLY_EQUAL
-%token <op> T_DIVIDE_EQUAL
-%token <type> T_TYPE_DICTIONARY
-%token <type> T_TYPE_ARRAY
-%token <type> T_TYPE_NUMBER
-%token <type> T_TYPE_STRING
-%token <type> T_TYPE_SCALAR
-%token <type> T_TYPE_ANY
-%token T_VALIDATOR
-%token T_REQUIRE
-%token T_ATTRIBUTE
-%token T_TYPE
-%token T_ABSTRACT
-%token T_LOCAL
-%token T_OBJECT
-%token T_TEMPLATE
-%token T_INCLUDE
-%token T_LIBRARY
-%token T_INHERITS
-%token T_PARTIAL
+%token <op> T_EQUAL "= (T_EQUAL)"
+%token <op> T_PLUS_EQUAL "+= (T_PLUS_EQUAL)"
+%token <op> T_MINUS_EQUAL "-= (T_MINUS_EQUAL)"
+%token <op> T_MULTIPLY_EQUAL "*= (T_MULTIPLY_EQUAL)"
+%token <op> T_DIVIDE_EQUAL "/= (T_DIVIDE_EQUAL)"
+%token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
+%token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
+%token <type> T_TYPE_NUMBER "number (T_TYPE_NUMBER)"
+%token <type> T_TYPE_STRING "string (T_TYPE_STRING)"
+%token <type> T_TYPE_SCALAR "scalar (T_TYPE_SCALAR)"
+%token <type> T_TYPE_ANY "any (T_TYPE_ANY)"
+%token T_VALIDATOR "%validator (T_VALIDATOR)"
+%token T_REQUIRE "%require (T_REQUIRE)"
+%token T_ATTRIBUTE "%attribute (T_ATTRIBUTE)"
+%token T_TYPE "type (T_TYPE)"
+%token T_ABSTRACT "abstract (T_ABSTRACT)"
+%token T_LOCAL "local (T_LOCAL)"
+%token T_OBJECT "object (T_OBJECT)"
+%token T_TEMPLATE "template (T_TEMPLATE)"
+%token T_INCLUDE "include (T_INCLUDE)"
+%token T_LIBRARY "library (T_LIBRARY)"
+%token T_INHERITS "inherits (T_INHERITS)"
+%token T_PARTIAL "partial (T_PARTIAL)"
 %type <text> identifier
-%type <variant> array
+%type <array> array
+%type <array> array_items
+%type <array> array_items_inner
 %type <variant> simplevalue
 %type <variant> value
-%type <variant> expressionlist
+%type <expr> expression
+%type <exprl> expressions
+%type <exprl> expressions_inner
+%type <exprl> expressionlist
 %type <variant> typerulelist
 %type <op> operator
 %type <type> type
 %type <num> partial_specifier
+%type <slist> object_inherits_list
+%type <slist> object_inherits_specifier
 %left '+' '-'
 %left '*' '/'
 %{
@@ -109,9 +121,7 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
 
 int yyparse(ConfigCompiler *context);
 
-static std::stack<ExpressionList::Ptr> m_ExpressionLists;
 static std::stack<Array::Ptr> m_Arrays;
-static ConfigItemBuilder::Ptr m_Item;
 static bool m_Abstract;
 static bool m_Local;
 
@@ -274,29 +284,36 @@ object:
 		m_Abstract = false;
 		m_Local = false;
 	}
-object_declaration identifier T_STRING
+object_declaration identifier T_STRING object_inherits_specifier expressionlist
 	{
-		m_Item = boost::make_shared<ConfigItemBuilder>(yylloc);
+		ConfigItemBuilder::Ptr item = boost::make_shared<ConfigItemBuilder>(yylloc);
 
-		m_Item->SetType($3);
+		item->SetType($3);
 		free($3);
 
-		m_Item->SetName($4);
+		item->SetName($4);
 		free($4);
 
-		m_Item->SetUnit(ConfigCompilerContext::GetContext()->GetUnit());
-	}
-object_inherits_specifier expressionlist
-	{
-		ExpressionList::Ptr exprl = *$7;
-		delete $7;
+		item->SetUnit(ConfigCompilerContext::GetContext()->GetUnit());
 
-		m_Item->AddExpressionList(exprl);
-		m_Item->SetLocal(m_Local);
-		m_Item->SetAbstract(m_Abstract);
+		if ($5) {
+			BOOST_FOREACH(const String& parent, *$5) {
+				item->AddParent(parent);
+			}
 
-		ConfigCompilerContext::GetContext()->AddItem(m_Item->Compile());
-		m_Item.reset();
+			delete $5;
+		}
+
+		if ($6) {
+			ExpressionList::Ptr exprl = ExpressionList::Ptr($6);
+			item->AddExpressionList(exprl);
+		}
+
+		item->SetLocal(m_Local);
+		item->SetAbstract(m_Abstract);
+
+		ConfigCompilerContext::GetContext()->AddItem(item->Compile());
+		item.reset();
 	}
 	;
 
@@ -320,48 +337,76 @@ attribute: T_ABSTRACT
 	}
 	;
 
-object_inherits_list: object_inherits_item
-	| object_inherits_list ',' object_inherits_item
-	;
-
-object_inherits_item: T_STRING
+object_inherits_list:
 	{
-		m_Item->AddParent($1);
-		free($1);
+		$$ = NULL;
+	}
+	| T_STRING
+	{
+		$$ = new std::vector<String>();
+		$$->push_back($1);
+	}
+	| object_inherits_list ',' T_STRING
+	{
+		if ($1)
+			$$ = $1;
+		else
+			$$ = new std::vector<String>();
+
+		$$->push_back($3);
 	}
 	;
 
-object_inherits_specifier: /* empty */
+object_inherits_specifier:
+	{
+		$$ = NULL;
+	}
 	| T_INHERITS object_inherits_list
+	{
+		$$ = $2;
+	}
 	;
 
-expressionlist: '{'
+expressionlist: '{' expressions	'}'
 	{
-		m_ExpressionLists.push(boost::make_shared<ExpressionList>());
-	}
-	expressions
-	'}'
-	{
-		$$ = new Value(m_ExpressionLists.top());
-		m_ExpressionLists.pop();
+		$$ = $2;
 	}
 	;
 
 expressions: expressions_inner
+	{
+		$$ = $1;
+	}
 	| expressions_inner ','
+	{
+		$$ = $1;
+	}
 
 expressions_inner: /* empty */
+	{
+		$$ = NULL;
+	}
 	| expression
+	{
+		$$ = new ExpressionList();
+		$$->AddExpression(*$1);
+	}
 	| expressions_inner ',' expression
+	{
+		if ($1)
+			$$ = $1;
+		else
+			$$ = new ExpressionList();
+
+		$$->AddExpression(*$3);
+	}
 	;
 
 expression: identifier operator value
 	{
-		Expression expr($1, $2, *$3, yylloc);
+		$$ = new Expression($1, $2, *$3, yylloc);
 		free($1);
 		delete $3;
-
-		m_ExpressionLists.top()->AddExpression(expr);
 	}
 	| identifier '[' T_STRING ']' operator value
 	{
@@ -372,10 +417,8 @@ expression: identifier operator value
 		ExpressionList::Ptr subexprl = boost::make_shared<ExpressionList>();
 		subexprl->AddExpression(subexpr);
 
-		Expression expr($1, OperatorPlus, subexprl, yylloc);
+		$$ = new Expression($1, OperatorPlus, subexprl, yylloc);
 		free($1);
-
-		m_ExpressionLists.top()->AddExpression(expr);
 	}
 	;
 
@@ -389,29 +432,38 @@ operator: T_EQUAL
 	}
 	;
 
-array: '['
+array: '[' array_items ']'
 	{
-		m_Arrays.push(boost::make_shared<Array>());
-	}
-	array_items
-	']'
-	{
-		$$ = new Value(m_Arrays.top());
-		m_Arrays.pop();
+		$$ = $2;
 	}
 	;
 
 array_items: array_items_inner
+	{
+		$$ = $1;
+	}
 	| array_items_inner ','
+	{
+		$$ = $1;
+	}
 
 array_items_inner: /* empty */
+	{
+		$$ = NULL;
+	}
 	| value
 	{
-		m_Arrays.top()->Add(*$1);
+		$$ = new Array();
+		$$->Add(*$1);
 	}
 	| array_items_inner ',' value
 	{
-		m_Arrays.top()->Add(*$3);
+		if ($1)
+			$$ = $1;
+		else
+			$$ = new Array();
+
+		$$->Add(*$3);
 	}
 	;
 
@@ -430,14 +482,19 @@ simplevalue: T_STRING
 	}
 	| array
 	{
-		$$ = $1;
+		if ($1 == NULL)
+			$1 = new Array();
+
+		Array::Ptr array = Array::Ptr($1);
+		$$ = new Value(array);
 	}
 	;
 
 value: simplevalue
 	| expressionlist
 	{
-		$$ = $1;
+		ExpressionList::Ptr exprl = ExpressionList::Ptr($1);
+		$$ = new Value(exprl);
 	}
 	;
 %%
