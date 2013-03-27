@@ -59,7 +59,7 @@ Value::Value(const char *value)
  */
 bool Value::IsEmpty(void) const
 {
-	return (m_Value.type() == typeid(boost::blank));
+	return (GetType() == ValueEmpty);
 }
 
 /**
@@ -79,16 +79,17 @@ bool Value::IsScalar(void) const
  */
 bool Value::IsObject(void) const
 {
-	return !IsEmpty() && (m_Value.type() == typeid(Object::Ptr));
+	return !IsEmpty() && (GetType() == ValueObject);
 }
 
 Value::operator double(void) const
 {
-	if (m_Value.type() != typeid(double)) {
-		return boost::lexical_cast<double>(m_Value);
-	} else {
-		return boost::get<double>(m_Value);
-	}
+	const double *value = boost::get<double>(&m_Value);
+
+	if (value)
+		return *value;
+
+	return boost::lexical_cast<double>(m_Value);
 }
 
 Value::operator String(void) const

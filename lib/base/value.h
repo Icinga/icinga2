@@ -85,7 +85,7 @@ public:
 		return object;
 	}
 
-bool IsEmpty(void) const;
+	bool IsEmpty(void) const;
 	bool IsScalar(void) const;
 	bool IsObject(void) const;
 
@@ -107,7 +107,7 @@ bool IsEmpty(void) const;
 	ValueType GetType(void) const;
 
 private:
-	mutable boost::variant<boost::blank, double, String, Object::Ptr> m_Value;
+	boost::variant<boost::blank, double, String, Object::Ptr> m_Value;
 };
 
 static Value Empty;
