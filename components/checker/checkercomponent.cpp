@@ -158,17 +158,19 @@ void CheckerComponent::ExecuteCheckHelper(const Service::Ptr& service)
 		Log(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + boost::diagnostic_information(ex));
 	}
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
 
-	/* remove the service from the list of pending services; if it's not in the
-	 * list this was a manual (i.e. forced) check and we must not re-add the
-	 * service to the services list because it's already there. */
-	CheckerComponent::ServiceSet::iterator it;
-	it = m_PendingServices.find(service);
-	if (it != m_PendingServices.end()) {
-		m_PendingServices.erase(it);
-		m_IdleServices.insert(service);
-		m_CV.notify_all();
+		/* remove the service from the list of pending services; if it's not in the
+		 * list this was a manual (i.e. forced) check and we must not re-add the
+		 * service to the services list because it's already there. */
+		CheckerComponent::ServiceSet::iterator it;
+		it = m_PendingServices.find(service);
+		if (it != m_PendingServices.end()) {
+			m_PendingServices.erase(it);
+			m_IdleServices.insert(service);
+			m_CV.notify_all();
+		}
 	}
 
 	Log(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
