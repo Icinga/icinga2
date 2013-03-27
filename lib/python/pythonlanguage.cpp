@@ -19,6 +19,7 @@
 
 #include "python/pythonlanguage.h"
 #include "python/pythoninterpreter.h"
+#include "base/scriptfunction.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/application.h"
@@ -320,9 +321,7 @@ PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
 	Value result;
 
 	try {
-		ScriptTask::Ptr task = boost::make_shared<ScriptTask>(function, arguments);
-		task->Start();
-		result = task->GetResult();
+		result = function->Invoke(arguments);
 	} catch (const std::exception& ex) {
 		PyEval_RestoreThread(tstate);
 

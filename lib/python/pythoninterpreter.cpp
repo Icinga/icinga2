@@ -74,8 +74,7 @@ void PythonInterpreter::UnregisterPythonFunction(const String& name)
 	m_Functions.erase(name);
 }
 
-void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& function,
-    const std::vector<Value>& arguments)
+Value PythonInterpreter::ProcessCall(const String& function, const std::vector<Value>& arguments)
 {
 	ObjectLock olock(this);
 
@@ -120,11 +119,14 @@ void PythonInterpreter::ProcessCall(const ScriptTask::Ptr& task, const String& f
 		Value vresult = PythonLanguage::MarshalFromPython(result);
 		Py_DECREF(result);
 
-		task->FinishResult(vresult);
-	} catch (...) {
-		task->FinishException(boost::current_exception());
-	}
+		m_Language->SetCurrentInterpreter(interp);
+		PyEval_ReleaseThread(m_ThreadState);
 
-	m_Language->SetCurrentInterpreter(interp);
-	PyEval_ReleaseThread(m_ThreadState);
+		return vresult;
+	} catch (...) {
+		m_Language->SetCurrentInterpreter(interp);
+		PyEval_ReleaseThread(m_ThreadState);
+
+		throw;
+	}
 }
