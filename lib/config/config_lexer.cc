@@ -674,7 +674,7 @@ static void lb_append_char(lex_buf *lb, char new_char)
 	if (old_blocks != new_blocks) {
 		char *new_buf = (char *)realloc(lb->buf, new_blocks * block_size);
 
-		if (new_buf == NULL && new_alloc > 0)
+		if (new_buf == NULL && new_blocks > 0)
 			throw std::bad_alloc();
 
 		lb->buf = new_buf;
