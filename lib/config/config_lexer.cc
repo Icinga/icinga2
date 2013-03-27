@@ -684,24 +684,28 @@ static char *lb_steal(lex_buf *lb)
 
 static void lb_append_char(lex_buf *lb, char new_char)
 {
-	/* round up new_len to the next multiple of 1024 */
-	size_t new_len = ((lb->size + 1) / 1024 + 1) * 1024;
+	const size_t block_size = 64;
 
-	char *new_buf = (char *)realloc(lb->buf, new_len);
+	size_t old_alloc = (lb->size + (block_size - 1)) / block_size;
+	size_t new_alloc = ((lb->size + 1) + (block_size - 1)) / block_size;
 
-	if (new_buf == NULL && new_len > 0)
-		throw std::bad_alloc();
+	if (old_alloc != new_alloc) {
+		char *new_buf = (char *)realloc(lb->buf, new_alloc);
 
-	lb->buf = new_buf;
+		if (new_buf == NULL && new_alloc > 0)
+			throw std::bad_alloc();
+
+		lb->buf = new_buf;
+	}
+
 	lb->size++;
-
 	lb->buf[lb->size - 1] = new_char;
 }
 #define YY_NO_UNISTD_H 1
 
 
 
-#line 705 "config_lexer.cc"
+#line 709 "config_lexer.cc"
 
 #define INITIAL 0
 #define C_COMMENT 1
@@ -954,11 +958,11 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 95 "config_lexer.ll"
+#line 99 "config_lexer.ll"
 
 	lex_buf string_buf;
 
-#line 962 "config_lexer.cc"
+#line 966 "config_lexer.cc"
 
     yylval = yylval_param;
 
@@ -1055,12 +1059,12 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 98 "config_lexer.ll"
+#line 102 "config_lexer.ll"
 { lb_init(&string_buf); BEGIN(STRING); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 100 "config_lexer.ll"
+#line 104 "config_lexer.ll"
 {
 	BEGIN(INITIAL);
 
@@ -1074,7 +1078,7 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 110 "config_lexer.ll"
+#line 114 "config_lexer.ll"
 {
 	std::ostringstream msgbuf;
 	msgbuf << "Unterminated string found: " << *yylloc;
@@ -1084,7 +1088,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 117 "config_lexer.ll"
+#line 121 "config_lexer.ll"
 {
 	/* octal escape sequence */
 	int result;
@@ -1103,7 +1107,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 133 "config_lexer.ll"
+#line 137 "config_lexer.ll"
 {
 	/* generate error - bad escape sequence; something
 	 * like '\48' or '\0777777'
@@ -1115,38 +1119,38 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 142 "config_lexer.ll"
+#line 146 "config_lexer.ll"
 { lb_append_char(&string_buf, '\n'); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 143 "config_lexer.ll"
+#line 147 "config_lexer.ll"
 { lb_append_char(&string_buf, '\t'); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 144 "config_lexer.ll"
+#line 148 "config_lexer.ll"
 { lb_append_char(&string_buf, '\r'); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 145 "config_lexer.ll"
+#line 149 "config_lexer.ll"
 { lb_append_char(&string_buf, '\b'); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 146 "config_lexer.ll"
+#line 150 "config_lexer.ll"
 { lb_append_char(&string_buf, '\f'); }
 	YY_BREAK
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 147 "config_lexer.ll"
+#line 151 "config_lexer.ll"
 { lb_append_char(&string_buf, yytext[1]); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 149 "config_lexer.ll"
+#line 153 "config_lexer.ll"
 {
 	char *yptr = yytext;
 
@@ -1156,12 +1160,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 156 "config_lexer.ll"
+#line 160 "config_lexer.ll"
 { lb_init(&string_buf); BEGIN(HEREDOC); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 158 "config_lexer.ll"
+#line 162 "config_lexer.ll"
 {
 	BEGIN(INITIAL);
 
@@ -1175,224 +1179,224 @@ YY_RULE_SETUP
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 168 "config_lexer.ll"
+#line 172 "config_lexer.ll"
 { lb_append_char(&string_buf, yytext[0]); }
 	YY_BREAK
 
 case 16:
 YY_RULE_SETUP
-#line 171 "config_lexer.ll"
+#line 175 "config_lexer.ll"
 BEGIN(C_COMMENT);
 	YY_BREAK
 
 
 case 17:
 YY_RULE_SETUP
-#line 175 "config_lexer.ll"
+#line 179 "config_lexer.ll"
 BEGIN(INITIAL);
 	YY_BREAK
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 176 "config_lexer.ll"
+#line 180 "config_lexer.ll"
 /* ignore comment */
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 177 "config_lexer.ll"
+#line 181 "config_lexer.ll"
 /* ignore star */
 	YY_BREAK
 
 case 20:
 YY_RULE_SETUP
-#line 180 "config_lexer.ll"
+#line 184 "config_lexer.ll"
 /* ignore C++-style comments */
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 181 "config_lexer.ll"
+#line 185 "config_lexer.ll"
 /* ignore whitespace */
 	YY_BREAK
 
 case 22:
 YY_RULE_SETUP
-#line 184 "config_lexer.ll"
+#line 188 "config_lexer.ll"
 return T_TYPE;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 185 "config_lexer.ll"
+#line 189 "config_lexer.ll"
 { yylval->type = TypeDictionary; return T_TYPE_DICTIONARY; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 186 "config_lexer.ll"
+#line 190 "config_lexer.ll"
 { yylval->type = TypeArray; return T_TYPE_ARRAY; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 187 "config_lexer.ll"
+#line 191 "config_lexer.ll"
 { yylval->type = TypeNumber; return T_TYPE_NUMBER; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 188 "config_lexer.ll"
+#line 192 "config_lexer.ll"
 { yylval->type = TypeString; return T_TYPE_STRING; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 189 "config_lexer.ll"
+#line 193 "config_lexer.ll"
 { yylval->type = TypeScalar; return T_TYPE_SCALAR; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 190 "config_lexer.ll"
+#line 194 "config_lexer.ll"
 { yylval->type = TypeAny; return T_TYPE_ANY; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 191 "config_lexer.ll"
+#line 195 "config_lexer.ll"
 { return T_VALIDATOR; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 192 "config_lexer.ll"
+#line 196 "config_lexer.ll"
 { return T_REQUIRE; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 193 "config_lexer.ll"
+#line 197 "config_lexer.ll"
 { return T_ATTRIBUTE; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 194 "config_lexer.ll"
+#line 198 "config_lexer.ll"
 return T_ABSTRACT;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 195 "config_lexer.ll"
+#line 199 "config_lexer.ll"
 return T_LOCAL;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 196 "config_lexer.ll"
+#line 200 "config_lexer.ll"
 return T_OBJECT;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 197 "config_lexer.ll"
+#line 201 "config_lexer.ll"
 return T_TEMPLATE;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 198 "config_lexer.ll"
+#line 202 "config_lexer.ll"
 return T_INCLUDE;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 199 "config_lexer.ll"
+#line 203 "config_lexer.ll"
 return T_LIBRARY;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 200 "config_lexer.ll"
+#line 204 "config_lexer.ll"
 return T_INHERITS;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 201 "config_lexer.ll"
+#line 205 "config_lexer.ll"
 return T_NULL;
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 202 "config_lexer.ll"
+#line 206 "config_lexer.ll"
 return T_PARTIAL;
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 203 "config_lexer.ll"
+#line 207 "config_lexer.ll"
 { yylval->num = 1; return T_NUMBER; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 204 "config_lexer.ll"
+#line 208 "config_lexer.ll"
 { yylval->num = 0; return T_NUMBER; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 205 "config_lexer.ll"
+#line 209 "config_lexer.ll"
 { yylval->text = strdup(yytext); return T_IDENTIFIER; }
 	YY_BREAK
 case 44:
 /* rule 44 can match eol */
 YY_RULE_SETUP
-#line 206 "config_lexer.ll"
+#line 210 "config_lexer.ll"
 { yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING_ANGLE; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 207 "config_lexer.ll"
+#line 211 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL) / 1000; return T_NUMBER; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 208 "config_lexer.ll"
+#line 212 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL) * 60 * 60; return T_NUMBER; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 209 "config_lexer.ll"
+#line 213 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL) * 60; return T_NUMBER; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 210 "config_lexer.ll"
+#line 214 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 211 "config_lexer.ll"
+#line 215 "config_lexer.ll"
 { yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 212 "config_lexer.ll"
+#line 216 "config_lexer.ll"
 { yylval->op = OperatorSet; return T_EQUAL; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 213 "config_lexer.ll"
+#line 217 "config_lexer.ll"
 { yylval->op = OperatorPlus; return T_PLUS_EQUAL; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 214 "config_lexer.ll"
+#line 218 "config_lexer.ll"
 { yylval->op = OperatorMinus; return T_MINUS_EQUAL; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 215 "config_lexer.ll"
+#line 219 "config_lexer.ll"
 { yylval->op = OperatorMultiply; return T_MULTIPLY_EQUAL; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 216 "config_lexer.ll"
+#line 220 "config_lexer.ll"
 { yylval->op = OperatorDivide; return T_DIVIDE_EQUAL; }
 	YY_BREAK
 
 case 55:
 YY_RULE_SETUP
-#line 219 "config_lexer.ll"
+#line 223 "config_lexer.ll"
 return yytext[0];
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 221 "config_lexer.ll"
+#line 225 "config_lexer.ll"
 ECHO;
 	YY_BREAK
-#line 1396 "config_lexer.cc"
+#line 1400 "config_lexer.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(C_COMMENT):
 case YY_STATE_EOF(STRING):
@@ -2582,7 +2586,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 221 "config_lexer.ll"
+#line 225 "config_lexer.ll"
 
 
 

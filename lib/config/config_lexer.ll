@@ -69,17 +69,21 @@ static char *lb_steal(lex_buf *lb)
 
 static void lb_append_char(lex_buf *lb, char new_char)
 {
-	/* round up new_len to the next multiple of 1024 */
-	size_t new_len = ((lb->size + 1) / 1024 + 1) * 1024;
+	const size_t block_size = 64;
 
-	char *new_buf = (char *)realloc(lb->buf, new_len);
+	size_t old_blocks = (lb->size + (block_size - 1)) / block_size;
+	size_t new_blocks = ((lb->size + 1) + (block_size - 1)) / block_size;
 
-	if (new_buf == NULL && new_len > 0)
-		throw std::bad_alloc();
+	if (old_blocks != new_blocks) {
+		char *new_buf = (char *)realloc(lb->buf, new_blocks * block_size);
 
-	lb->buf = new_buf;
+		if (new_buf == NULL && new_blocks > 0)
+			throw std::bad_alloc();
+
+		lb->buf = new_buf;
+	}
+
 	lb->size++;
-
 	lb->buf[lb->size - 1] = new_char;
 }
 %}
