@@ -59,14 +59,6 @@ static void lb_cleanup(lex_buf *lb)
 	free(lb->buf);
 }
 
-static char *lb_steal(lex_buf *lb)
-{
-	char *buf = lb->buf;
-	lb->buf = NULL;
-	lb->size = 0;
-	return buf;
-}
-
 static void lb_append_char(lex_buf *lb, char new_char)
 {
 	const size_t block_size = 64;
@@ -85,6 +77,16 @@ static void lb_append_char(lex_buf *lb, char new_char)
 
 	lb->size++;
 	lb->buf[lb->size - 1] = new_char;
+}
+
+static char *lb_steal(lex_buf *lb)
+{
+	lb_append_char(lb, '\0');
+
+	char *buf = lb->buf;
+	lb->buf = NULL;
+	lb->size = 0;
+	return buf;
 }
 %}
 
