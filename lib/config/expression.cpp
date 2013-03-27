@@ -33,6 +33,7 @@ Expression::Expression(const String& key, ExpressionOperator op,
     const Value& value, const DebugInfo& debuginfo)
 	: m_Key(key), m_Operator(op), m_Value(value), m_DebugInfo(debuginfo)
 {
+	ASSERT(op != OperatorExecute || value.IsObjectType<ExpressionList>());
 }
 
 void Expression::Execute(const Dictionary::Ptr& dictionary) const

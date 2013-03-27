@@ -113,6 +113,8 @@ void ConfigCompilerContext::LinkItems(void)
 {
 	SetContext(this);
 
+	Log(LogInformation, "config", "Linking config items...");
+
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
 		item->Link();
 	}
@@ -123,6 +125,8 @@ void ConfigCompilerContext::LinkItems(void)
 void ConfigCompilerContext::ValidateItems(void)
 {
 	SetContext(this);
+
+	Log(LogInformation, "config", "Validating config items...");
 
 	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
 		ConfigType::Ptr ctype;
