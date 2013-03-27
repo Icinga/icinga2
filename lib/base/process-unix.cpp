@@ -155,17 +155,17 @@ ProcessResult Process::Run(void)
 	(void) close(fds[1]);
 
 		char buffer[512];
-	int rc;
 
 	std::ostringstream outputStream;
 
-	do {
-		rc = read(fd, buffer, sizeof(buffer));
+	for (;;) {
+		int rc = read(fd, buffer, sizeof(buffer));
 
-		if (rc > 0) {
-			outputStream.write(buffer, rc);
-		}
-	} while (rc > 0);
+		if (rc <= 0)
+			break;
+
+		outputStream.write(buffer, rc);
+	}
 
 	String output = outputStream.str();
 

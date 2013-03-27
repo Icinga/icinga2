@@ -127,9 +127,11 @@ void DelegationComponent::DelegationTimerHandler(void)
 		std::vector<Endpoint::Ptr>::iterator cit;
 
 		if (!candidates.empty()) {
+#ifdef _DEBUG
 			std::ostringstream msgbuf;
 			msgbuf << "Service: " << service->GetName() << ", candidates: " << candidates.size();
 			Log(LogDebug, "delegation", msgbuf.str());
+#endif /* _DEBUG */
 
 			BOOST_FOREACH(const Endpoint::Ptr& candidate, candidates) {
 				avg_services += histogram[candidate];
