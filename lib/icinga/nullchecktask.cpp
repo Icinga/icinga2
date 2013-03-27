@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "icinga/nullchecktask.h"
-#include "icinga/service.h"
 #include "base/scriptfunction.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
