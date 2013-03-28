@@ -32,14 +32,14 @@ using namespace icinga;
 ThreadPool::ThreadPool(void)
 	: m_Stopped(false), m_ThreadDeaths(0), m_WaitTime(0), m_ServiceTime(0), m_TaskCount(0)
 {
-	for (int i = 0; i < sizeof(m_ThreadStates) / sizeof(m_ThreadStates[0]); i++)
-		m_ThreadStates[i] = ThreadDead;
-
 	for (int i = 0; i < 2; i++)
 		SpawnWorker();
 
 	boost::thread managerThread(boost::bind(&ThreadPool::ManagerThreadProc, this));
 	managerThread.detach();
+
+	boost::thread statsThread(boost::bind(&ThreadPool::StatsThreadProc, this));
+	statsThread.detach();
 }
 
 ThreadPool::~ThreadPool(void)
@@ -81,13 +81,10 @@ void ThreadPool::QueueThreadProc(int tid)
 	for (;;) {
 		WorkItem wi;
 
-		double ws = Utility::GetTime();
-		double st;
-
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
 
-			m_ThreadStates[tid] = ThreadIdle;
+			UpdateThreadUtilization(tid, ThreadIdle);
 
 			while (m_WorkItems.empty() && !m_Stopped && m_ThreadDeaths == 0)
 				m_CV.wait(lock);
@@ -103,10 +100,10 @@ void ThreadPool::QueueThreadProc(int tid)
 			wi = m_WorkItems.front();
 			m_WorkItems.pop_front();
 
-			m_ThreadStates[tid] = ThreadBusy;
-			st = Utility::GetTime();
-			UpdateThreadUtilization(tid, st - ws, 0);
+			UpdateThreadUtilization(tid, ThreadBusy);
 		}
+
+		double st = Utility::GetTime();;
 
 #ifdef _DEBUG
 #	ifdef RUSAGE_THREAD
@@ -140,8 +137,6 @@ void ThreadPool::QueueThreadProc(int tid)
 
 			if (latency > m_MaxLatency)
 				m_MaxLatency = latency;
-
-			UpdateThreadUtilization(tid, et - st, 1);
 		}
 
 #ifdef _DEBUG
@@ -175,7 +170,7 @@ void ThreadPool::QueueThreadProc(int tid)
 #endif /* _DEBUG */
 	}
 
-	m_ThreadStates[tid] = ThreadDead;
+	UpdateThreadUtilization(tid, ThreadDead);
 }
 
 /**
@@ -219,10 +214,10 @@ void ThreadPool::ManagerThreadProc(void)
 
 			alive = 0;
 
-			for (int i = 0; i < sizeof(m_ThreadStates) / sizeof(m_ThreadStates[0]); i++) {
-				if (m_ThreadStates[i] != ThreadDead) {
+			for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
+				if (m_ThreadStats[i].State != ThreadDead) {
 					alive++;
-					utilization += m_ThreadUtilization[i] * 100;
+					utilization += m_ThreadStats[i].Utilization * 100;
 				}
 			}
 
@@ -274,12 +269,11 @@ void ThreadPool::ManagerThreadProc(void)
  */
 void ThreadPool::SpawnWorker(void)
 {
-	for (int i = 0; i < sizeof(m_ThreadStates) / sizeof(m_ThreadStates[0]); i++) {
-		if (m_ThreadStates[i] == ThreadDead) {
+	for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
+		if (m_ThreadStats[i].State == ThreadDead) {
 			Log(LogDebug, "debug", "Spawning worker thread.");
 
-			m_ThreadStates[i] = ThreadIdle;
-			m_ThreadUtilization[i] = 0;
+			m_ThreadStats[i] = ThreadStats(ThreadIdle);
 			boost::thread worker(boost::bind(&ThreadPool::QueueThreadProc, this, i));
 			worker.detach();
 
@@ -298,15 +292,55 @@ void ThreadPool::KillWorker(void)
 	m_ThreadDeaths++;
 }
 
+void ThreadPool::StatsThreadProc(void)
+{
+	std::ostringstream idbuf;
+	idbuf << "TP " << this << " Stats";
+	Utility::SetThreadName(idbuf.str());
+
+	for (;;) {
+		Utility::Sleep(0.25);
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+
+			for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++)
+				UpdateThreadUtilization(i);
+		}
+	}
+}
+
 /**
  * Note: Caller must hold m_Mutex.
  */
-void ThreadPool::UpdateThreadUtilization(int tid, double time, double utilization)
+void ThreadPool::UpdateThreadUtilization(int tid, ThreadState state)
 {
+	double utilization;
+
+	switch (m_ThreadStats[tid].State) {
+		case ThreadDead:
+			return;
+		case ThreadIdle:
+			utilization = 0;
+			break;
+		case ThreadBusy:
+			utilization = 1;
+			break;
+		default:
+			ASSERT(0);
+	}
+
+	double now = Utility::GetTime();
+	double time = now - m_ThreadStats[tid].LastUpdate;
+
 	const double avg_time = 5.0;
 
 	if (time > avg_time)
 		time = avg_time;
 
-	m_ThreadUtilization[tid] = (m_ThreadUtilization[tid] * (avg_time - time) + utilization * time) / avg_time;
+	m_ThreadStats[tid].Utilization = (m_ThreadStats[tid].Utilization * (avg_time - time) + utilization * time) / avg_time;
+	m_ThreadStats[tid].LastUpdate = now;
+
+	if (state != ThreadUnspecified)
+		m_ThreadStats[tid].State = state;
 }

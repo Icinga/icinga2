@@ -51,13 +51,24 @@ public:
 private:
 	enum ThreadState
 	{
+		ThreadUnspecified,
 		ThreadDead,
 		ThreadIdle,
 		ThreadBusy
 	};
 
-	ThreadState m_ThreadStates[512];
-	double m_ThreadUtilization[512];
+	struct ThreadStats
+	{
+		ThreadState State;
+		double Utilization;
+		double LastUpdate;
+
+		ThreadStats(ThreadState state = ThreadDead)
+			: State(state), Utilization(0), LastUpdate(0)
+		{ }
+	};
+
+	ThreadStats m_ThreadStats[512];
 	int m_ThreadDeaths;
 
 	double m_WaitTime;
@@ -82,11 +93,12 @@ private:
 
 	void QueueThreadProc(int tid);
 	void ManagerThreadProc(void);
+	void StatsThreadProc(void);
 
 	void SpawnWorker(void);
 	void KillWorker(void);
 
-	void UpdateThreadUtilization(int tid, double time, double utilization);
+	void UpdateThreadUtilization(int tid, ThreadState state = ThreadUnspecified);
 };
 
 }
