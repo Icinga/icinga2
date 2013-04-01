@@ -87,28 +87,19 @@ void ReplicationComponent::CheckResultRequestHandler(const RequestMessage& reque
 
 void ReplicationComponent::EndpointConnectedHandler(const Endpoint::Ptr& endpoint)
 {
-	{
-		ObjectLock olock(endpoint);
+	/* no need to sync the config with local endpoints */
+	if (endpoint->IsLocalEndpoint())
+		return;
 
-		/* no need to sync the config with local endpoints */
-		if (endpoint->IsLocalEndpoint())
-			return;
-
-		/* we just assume the other endpoint wants object updates */
-		endpoint->RegisterSubscription("config::ObjectUpdate");
-		endpoint->RegisterSubscription("config::ObjectRemoved");
-	}
+	/* we just assume the other endpoint wants object updates */
+	endpoint->RegisterSubscription("config::ObjectUpdate");
+	endpoint->RegisterSubscription("config::ObjectRemoved");
 
 	DynamicType::Ptr type;
 	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
 		std::set<DynamicObject::Ptr> objects;
 
-		{
-			ObjectLock olock(dt);
-			objects = dt->GetObjects();
-		}
-
-		BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
 			if (!ShouldReplicateObject(object))
 				continue;
 
