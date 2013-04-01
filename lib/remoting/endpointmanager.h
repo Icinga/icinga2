@@ -111,8 +111,8 @@ private:
 
 	void ReconnectTimerHandler(void);
 
-	void NewClientHandler(const Socket::Ptr& client, TlsRole rol);
-	void ClientConnectedHandler(const Stream::Ptr& client, const String& peerAddress);
+	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
+	void ClientConnectedHandler(const Stream::Ptr& client);
 	void ClientClosedHandler(const Stream::Ptr& client);
 };
 

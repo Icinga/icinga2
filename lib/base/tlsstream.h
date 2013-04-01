@@ -61,6 +61,7 @@ public:
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	shared_ptr<SSL> m_SSL;
+	mutable boost::mutex m_SSLMutex;
 	BIO *m_BIO;
 
 	FIFO::Ptr m_SendQueue;

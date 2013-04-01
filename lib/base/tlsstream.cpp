@@ -48,42 +48,36 @@ TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SS
 
 void TlsStream::Start(void)
 {
-	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
+	{
+		boost::mutex::scoped_lock lock(m_SSLMutex);
 
-	m_SSLContext.reset();
+		m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
-	if (!m_SSL) {
-		BOOST_THROW_EXCEPTION(openssl_error()
-		    << boost::errinfo_api_function("SSL_new")
-		    << errinfo_openssl_error(ERR_get_error()));
+		m_SSLContext.reset();
+
+		if (!m_SSL) {
+			BOOST_THROW_EXCEPTION(openssl_error()
+				<< boost::errinfo_api_function("SSL_new")
+				<< errinfo_openssl_error(ERR_get_error()));
+		}
+
+		if (!m_SSLIndexInitialized) {
+			m_SSLIndex = SSL_get_ex_new_index(0, const_cast<char *>("TlsStream"), NULL, NULL, NULL);
+			m_SSLIndexInitialized = true;
+		}
+
+		SSL_set_ex_data(m_SSL.get(), m_SSLIndex, this);
+
+		SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+
+		m_BIO = BIO_new_I2Stream(m_InnerStream);
+		SSL_set_bio(m_SSL.get(), m_BIO, m_BIO);
+
+		if (m_Role == TlsRoleServer)
+			SSL_set_accept_state(m_SSL.get());
+		else
+			SSL_set_connect_state(m_SSL.get());
 	}
-
-	if (!m_SSL)
-		BOOST_THROW_EXCEPTION(std::logic_error("No X509 client certificate was specified."));
-
-	if (!m_SSLIndexInitialized) {
-		m_SSLIndex = SSL_get_ex_new_index(0, const_cast<char *>("TlsStream"), NULL, NULL, NULL);
-		m_SSLIndexInitialized = true;
-	}
-
-	SSL_set_ex_data(m_SSL.get(), m_SSLIndex, this);
-
-	SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
-
-	m_BIO = BIO_new_I2Stream(m_InnerStream);
-	SSL_set_bio(m_SSL.get(), m_BIO, m_BIO);
-
-	if (m_Role == TlsRoleServer)
-		SSL_set_accept_state(m_SSL.get());
-	else
-		SSL_set_connect_state(m_SSL.get());
-
-	/*int rc = SSL_do_handshake(m_SSL.get());
-
-	if (rc == 1) {
-		SetConnected(true);
-		OnConnected(GetSelf());
-	}*/
 
 	Stream::Start();
 
@@ -97,7 +91,7 @@ void TlsStream::Start(void)
  */
 shared_ptr<X509> TlsStream::GetClientCertificate(void) const
 {
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock lock(m_SSLMutex);
 
 	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
 }
@@ -109,7 +103,7 @@ shared_ptr<X509> TlsStream::GetClientCertificate(void) const
  */
 shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
 {
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock lock(m_SSLMutex);
 
 	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
@@ -139,15 +133,18 @@ void TlsStream::ClosedHandler(void)
 void TlsStream::HandleIO(void)
 {
 	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
 
 	char data[16 * 1024];
 	int rc;
 
 	if (!IsConnected()) {
+		boost::mutex::scoped_lock lock(m_SSLMutex);
+
 		rc = SSL_do_handshake(m_SSL.get());
 
 		if (rc == 1) {
+			lock.unlock();
+
 			SetConnected(true);
 		} else {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
@@ -170,9 +167,14 @@ void TlsStream::HandleIO(void)
 	bool new_data = false, read_ok = true;
 
 	while (read_ok) {
+		boost::mutex::scoped_lock lock(m_SSLMutex);
+
 		rc = SSL_read(m_SSL.get(), data, sizeof(data));
 
 		if (rc > 0) {
+			lock.unlock();
+
+			ObjectLock olock(this);
 			m_RecvQueue->Write(data, rc);
 			new_data = true;
 		} else {
@@ -194,11 +196,10 @@ void TlsStream::HandleIO(void)
 		}
 	}
 
-	if (new_data) {
-		olock.Unlock();
+	if (new_data)
 		OnDataAvailable(GetSelf());
-		olock.Lock();
-	}
+
+	ObjectLock olock(this);
 
 	while (m_SendQueue->GetAvailableBytes() > 0) {
 		size_t count = m_SendQueue->GetAvailableBytes();
@@ -211,9 +212,16 @@ void TlsStream::HandleIO(void)
 
 		m_SendQueue->Peek(data, count);
 
+		olock.Unlock();
+
+		boost::mutex::scoped_lock lock(m_SSLMutex);
+
 		rc = SSL_write(m_SSL.get(), (const char *)data, count);
 
 		if (rc > 0) {
+			lock.unlock();
+
+			olock.Lock();
 			m_SendQueue->Read(NULL, rc);
 		} else {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
@@ -239,13 +247,19 @@ void TlsStream::HandleIO(void)
  */
 void TlsStream::Close(void)
 {
-	ObjectLock olock(this);
+	{
+		boost::mutex::scoped_lock lock(m_SSLMutex);
+	
+		if (m_SSL)
+			SSL_shutdown(m_SSL.get());
+	}
 
-	if (m_SSL)
-		SSL_shutdown(m_SSL.get());
+	{
+		ObjectLock olock(this);
 
-	m_SendQueue->Close();
-	m_RecvQueue->Close();
+		m_SendQueue->Close();
+		m_RecvQueue->Close();
+	}
 
 	Stream::Close();
 }

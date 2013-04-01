@@ -165,32 +165,30 @@ void EndpointManager::AddConnection(const String& node, const String& service) {
  */
 void EndpointManager::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 {
-	ObjectLock olock(this);
-
-	String peerAddress = client->GetPeerAddress();
 	TlsStream::Ptr tlsStream = boost::make_shared<TlsStream>(client, role, m_SSLContext);
-	tlsStream->Start();
 
 	m_PendingClients.insert(tlsStream);
-	tlsStream->OnConnected.connect(boost::bind(&EndpointManager::ClientConnectedHandler, this, _1, peerAddress));
+	tlsStream->OnConnected.connect(boost::bind(&EndpointManager::ClientConnectedHandler, this, _1));
 	tlsStream->OnClosed.connect(boost::bind(&EndpointManager::ClientClosedHandler, this, _1));
 
 	client->Start();
+	tlsStream->Start();
 }
 
-void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const String& peerAddress)
+void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client)
 {
-	ObjectLock olock(this);
-
 	TlsStream::Ptr tlsStream = static_pointer_cast<TlsStream>(client);
 	JsonRpcConnection::Ptr jclient = boost::make_shared<JsonRpcConnection>(tlsStream);
 
-	m_PendingClients.erase(tlsStream);
+	{
+		ObjectLock olock(this);
+		m_PendingClients.erase(tlsStream);
+	}
 
 	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity = GetCertificateCN(cert);
 
-	Log(LogInformation, "icinga", "New client connection at " + peerAddress + " for identity '" + identity + "'");
+	Log(LogInformation, "icinga", "New client connection for identity '" + identity + "'");
 
 	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
@@ -202,10 +200,12 @@ void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client, const St
 
 void EndpointManager::ClientClosedHandler(const Stream::Ptr& client)
 {
-	ObjectLock olock(this);
-
 	TlsStream::Ptr tlsStream = static_pointer_cast<TlsStream>(client);
-	m_PendingClients.erase(tlsStream);
+
+	{
+		ObjectLock olock(this);
+		m_PendingClients.erase(tlsStream);
+	}
 }
 
 /**
@@ -370,8 +370,10 @@ void EndpointManager::SubscriptionTimerHandler(void)
 
 	subscriptions->Seal();
 
-	if (m_Endpoint)
+	if (m_Endpoint) {
+		ObjectLock olock(m_Endpoint);
 		m_Endpoint->SetSubscriptions(subscriptions);
+	}
 }
 
 void EndpointManager::ReconnectTimerHandler(void)
