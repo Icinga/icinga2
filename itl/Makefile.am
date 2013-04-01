@@ -1,5 +1,6 @@
 icinga2itldir = ${pkgdatadir}/itl
 icinga2itl_DATA = \
+	cluster.conf \
 	itl.conf \
 	host.conf \
 	notification.conf \
