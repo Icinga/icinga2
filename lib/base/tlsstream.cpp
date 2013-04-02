@@ -293,5 +293,5 @@ void TlsStream::Write(const void *buffer, size_t count)
 		m_SendQueue->Write(buffer, count);
 	}
 
-	HandleIO();
+	Utility::QueueAsyncCallback(boost::bind(&TlsStream::HandleIO, this));
 }

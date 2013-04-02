@@ -538,6 +538,13 @@ void Socket::HandleWritableClient(void)
 
 		rc = send(GetFD(), data, count, 0);
 
+#ifdef _WIN32
+		if (rc < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
+#else /* _WIN32 */
+		if (rc < 0 && errno == EAGAIN)
+#endif /* _WIN32 */
+			break;
+
 		if (rc <= 0) {
 #ifndef _WIN32
 			BOOST_THROW_EXCEPTION(socket_error()
