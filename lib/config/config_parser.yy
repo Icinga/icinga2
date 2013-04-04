@@ -345,6 +345,7 @@ object_inherits_list:
 	{
 		$$ = new std::vector<String>();
 		$$->push_back($1);
+		free($1);
 	}
 	| object_inherits_list ',' T_STRING
 	{
@@ -354,6 +355,7 @@ object_inherits_list:
 			$$ = new std::vector<String>();
 
 		$$->push_back($3);
+		free($3);
 	}
 	;
 
@@ -390,6 +392,7 @@ expressions_inner: /* empty */
 	{
 		$$ = new ExpressionList();
 		$$->AddExpression(*$1);
+		delete $1;
 	}
 	| expressions_inner ',' expression
 	{
@@ -399,6 +402,7 @@ expressions_inner: /* empty */
 			$$ = new ExpressionList();
 
 		$$->AddExpression(*$3);
+		delete $3;
 	}
 	;
 
@@ -455,6 +459,7 @@ array_items_inner: /* empty */
 	{
 		$$ = new Array();
 		$$->Add(*$1);
+		delete $1;
 	}
 	| array_items_inner ',' value
 	{
@@ -464,6 +469,7 @@ array_items_inner: /* empty */
 			$$ = new Array();
 
 		$$->Add(*$3);
+		delete $3;
 	}
 	;
 

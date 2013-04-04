@@ -69,6 +69,7 @@
 #include <stack>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -78,7 +79,7 @@ using namespace icinga;
 
 
 /* Line 2068 of yacc.c  */
-#line 82 "config_parser.h"
+#line 83 "config_parser.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -154,18 +155,22 @@ typedef union YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 52 "config_parser.yy"
+#line 53 "config_parser.yy"
 
 	char *text;
 	double num;
 	icinga::Value *variant;
 	icinga::ExpressionOperator op;
 	icinga::TypeSpecifier type;
+	std::vector<String> *slist;
+	Expression *expr;
+	ExpressionList *exprl;
+	Array *array;
 
 
 
 /* Line 2068 of yacc.c  */
-#line 169 "config_parser.h"
+#line 174 "config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

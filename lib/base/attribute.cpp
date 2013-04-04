@@ -104,6 +104,8 @@ void AttributeHolder::Bind(AttributeBase *boundAttribute)
 {
 	ASSERT(m_OwnsAttribute);
 	boundAttribute->Set(m_Attribute->Get());
+	if (m_OwnsAttribute)
+		delete m_Attribute;
 	m_Attribute = boundAttribute;
 	m_OwnsAttribute = false;
 }
