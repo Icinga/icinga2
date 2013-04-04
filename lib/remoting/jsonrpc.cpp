@@ -17,30 +17,41 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef LIVESTATUSCONNECTION_H
-#define LIVESTATUSCONNECTION_H
-
-#include "base/connection.h"
+#include "remoting/jsonrpc.h"
+#include "base/netstring.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/exception/diagnostic_information.hpp>
+#include <iostream>
 
 using namespace icinga;
 
-namespace livestatus
+/**
+ * Sends a message to the connected peer.
+ *
+ * @param message The message.
+ */
+void JsonRpc::SendMessage(const Stream::Ptr& stream, const MessagePart& message)
 {
-
-class LivestatusConnection : public Connection
-{
-public:
-	typedef shared_ptr<LivestatusConnection> Ptr;
-	typedef weak_ptr<LivestatusConnection> WeakPtr;
-
-	LivestatusConnection(const Stream::Ptr& stream);
-
-protected:
-	std::vector<String> m_Lines;
-
-	virtual void ProcessData(void);
-};
-
+	Value value = message.GetDictionary();
+	String json = value.Serialize();
+	//std::cerr << ">> " << json << std::endl;
+	NetString::WriteStringToStream(stream, json);
 }
 
-#endif /* LIVESTATUSCONNECTION_H */
+MessagePart JsonRpc::ReadMessage(const Stream::Ptr& stream)
+{
+	String jsonString;
+	if (!NetString::ReadStringFromStream(stream, &jsonString))
+		BOOST_THROW_EXCEPTION(std::runtime_error("ReadStringFromStream signalled EOF."));
+
+	//std::cerr << "<< " << jsonString << std::endl;
+	Value value = Value::Deserialize(jsonString);
+
+	if (!value.IsObjectType<Dictionary>()) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"
+		    " message must be a dictionary."));
+	}
+
+	return MessagePart(value);
+}

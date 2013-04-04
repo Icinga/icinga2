@@ -37,13 +37,6 @@ FIFO::~FIFO(void)
 	free(m_Buffer);
 }
 
-void FIFO::Start(void)
-{
-	SetConnected(true);
-
-	Stream::Start();
-}
-
 /**
  * Resizes the FIFO's buffer so that it is at least newSize bytes long.
  *
@@ -95,45 +88,15 @@ void FIFO::Optimize(void)
 }
 
 /**
- * Implements IOQueue::GetAvailableBytes().
+ * Implements IOQueue::Read.
  */
-size_t FIFO::GetAvailableBytes(void) const
+size_t FIFO::Read(void *buffer, size_t count)
 {
-	return m_DataSize;
-}
-
-/**
- * Returns a pointer to the start of the read buffer.
- *
- * @returns Pointer to the read buffer.
- */
-/*const void *FIFO::GetReadBuffer(void) const
-{
-	return m_Buffer + m_Offset;
-}*/
-
-/**
- * Implements IOQueue::Peek.
- */
-size_t FIFO::Peek(void *buffer, size_t count)
-{
-	ASSERT(IsConnected());
-
 	if (count > m_DataSize)
 		count = m_DataSize;
 
 	if (buffer != NULL)
 		memcpy(buffer, m_Buffer + m_Offset, count);
-
-	return count;
-}
-
-/**
- * Implements IOQueue::Read.
- */
-size_t FIFO::Read(void *buffer, size_t count)
-{
-	count = Peek(buffer, count);
 
 	m_DataSize -= count;
 	m_Offset += count;
@@ -148,9 +111,15 @@ size_t FIFO::Read(void *buffer, size_t count)
  */
 void FIFO::Write(const void *buffer, size_t count)
 {
-	ASSERT(IsConnected());
-
 	ResizeBuffer(m_Offset + m_DataSize + count);
 	memcpy(m_Buffer + m_Offset + m_DataSize, buffer, count);
 	m_DataSize += count;
+}
+
+void FIFO::Close(void)
+{ }
+
+size_t FIFO::GetAvailableBytes(void) const
+{
+	return m_DataSize;
 }

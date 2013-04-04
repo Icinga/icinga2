@@ -21,6 +21,7 @@
 #define TLSSTREAM_H
 
 #include "base/i2-base.h"
+#include "base/bufferedstream.h"
 #include "base/stream.h"
 #include "base/fifo.h"
 #include "base/tlsutility.h"
@@ -50,33 +51,23 @@ public:
 	shared_ptr<X509> GetClientCertificate(void) const;
 	shared_ptr<X509> GetPeerCertificate(void) const;
 
-	virtual void Start(void);
+	void Handshake(void);
+
 	virtual void Close(void);
 
-	virtual size_t GetAvailableBytes(void) const;
-	virtual size_t Peek(void *buffer, size_t count);
 	virtual size_t Read(void *buffer, size_t count);
 	virtual void Write(const void *buffer, size_t count);
 
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	shared_ptr<SSL> m_SSL;
-	mutable boost::mutex m_SSLMutex;
 	BIO *m_BIO;
 
-	FIFO::Ptr m_SendQueue;
-	FIFO::Ptr m_RecvQueue;
-
-	Stream::Ptr m_InnerStream;
+	BufferedStream::Ptr m_InnerStream;
 	TlsRole m_Role;
 
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
-
-	void DataAvailableHandler(void);
-	void ClosedHandler(void);
-
-	void HandleIO(void);
 
 	static void NullCertificateDeleter(X509 *certificate);
 };

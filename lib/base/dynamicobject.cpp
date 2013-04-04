@@ -446,7 +446,6 @@ void DynamicObject::DumpObjects(const String& filename)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + filename + "' file"));
 
 	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
-	sfp->Start();
 
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
@@ -503,7 +502,6 @@ void DynamicObject::RestoreObjects(const String& filename)
 	fp.open(filename.CStr(), std::ios_base::in);
 
 	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
-	sfp->Start();
 
 	unsigned long restored = 0;
 

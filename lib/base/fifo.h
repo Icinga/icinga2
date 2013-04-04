@@ -42,12 +42,11 @@ public:
 	FIFO(void);
 	~FIFO(void);
 
-	void Start(void);
+	virtual size_t Read(void *buffer, size_t count);
+	virtual void Write(const void *buffer, size_t count);
+	virtual void Close(void);
 
 	size_t GetAvailableBytes(void) const;
-	size_t Peek(void *buffer, size_t count);
-	size_t Read(void *buffer, size_t count);
-	void Write(const void *buffer, size_t count);
 
 private:
 	char *m_Buffer;

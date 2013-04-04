@@ -23,8 +23,8 @@
 #include "remoting/i2-remoting.h"
 #include "remoting/requestmessage.h"
 #include "remoting/responsemessage.h"
-#include "remoting/jsonrpcconnection.h"
 #include "base/dynamicobject.h"
+#include "base/stream.h"
 #include <boost/signals2.hpp>
 
 namespace icinga
@@ -50,8 +50,8 @@ public:
 
 	static Endpoint::Ptr GetByName(const String& name);
 
-	JsonRpcConnection::Ptr GetClient(void) const;
-	void SetClient(const JsonRpcConnection::Ptr& client);
+	Stream::Ptr GetClient(void) const;
+	void SetClient(const Stream::Ptr& client);
 
 	void RegisterSubscription(const String& topic);
 	void UnregisterSubscription(const String& topic);
@@ -85,7 +85,7 @@ private:
 	Attribute<String> m_Node;
 	Attribute<String> m_Service;
 
-	JsonRpcConnection::Ptr m_Client;
+	Stream::Ptr m_Client;
 
 	bool m_ReceivedWelcome; /**< Have we received a welcome message
 				     from this endpoint? */
@@ -94,8 +94,7 @@ private:
 
 	std::map<String, shared_ptr<boost::signals2::signal<Callback> > > m_TopicHandlers;
 
-	void NewMessageHandler(const MessagePart& message);
-	void ClientClosedHandler(void);
+	void MessageThreadProc(const Stream::Ptr& stream);
 };
 
 }

@@ -17,39 +17,45 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONNECTION_H
-#define CONNECTION_H
+#include "base/networkstream.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
+#include <boost/algorithm/string/trim.hpp>
 
-#include "base/i2-base.h"
-#include "base/stream.h"
-#include <boost/signals2.hpp>
+using namespace icinga;
 
-namespace icinga
+NetworkStream::NetworkStream(const Socket::Ptr& socket)
+	: m_Socket(socket)
+{ }
+
+void NetworkStream::Close(void)
 {
-
-class I2_BASE_API Connection : public Object
-{
-public:
-	typedef shared_ptr<Connection> Ptr;
-	typedef weak_ptr<Connection> WeakPtr;
-
-	explicit Connection(const Stream::Ptr& stream);
-
-	Stream::Ptr GetStream(void) const;
-
-	void Close(void);
-
-	boost::signals2::signal<void (const Connection::Ptr&)> OnClosed;
-
-protected:
-	virtual void ProcessData(void) = 0;
-
-private:
-	Stream::Ptr m_Stream;
-
-	void ClosedHandler(void);
-};
-
+	m_Socket->Close();
 }
 
-#endif /* CONNECTION_H */
+/**
+ * Reads data from the stream.
+ *
+ * @param buffer The buffer where data should be stored. May be NULL if you're
+ *		 not actually interested in the data.
+ * @param count The number of bytes to read from the queue.
+ * @returns The number of bytes actually read.
+ */
+size_t NetworkStream::Read(void *buffer, size_t count)
+{
+	return m_Socket->Read(buffer, count);
+}
+
+/**
+ * Writes data to the stream.
+ *
+ * @param buffer The data that is to be written.
+ * @param count The number of bytes to write.
+ * @returns The number of bytes written
+ */
+void NetworkStream::Write(const void *buffer, size_t count)
+{
+	size_t rc = m_Socket->Write(buffer, count);
+	if (rc < count)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Short write for socket."));
+}

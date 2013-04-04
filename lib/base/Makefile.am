@@ -14,8 +14,8 @@ libbase_la_SOURCES =  \
 	array.h \
 	attribute.cpp \
 	attribute.h \
-	connection.cpp \
-	connection.h \
+	bufferedstream.cpp \
+	bufferedstream.h \
 	convert.cpp \
 	convert.h \
 	dictionary.cpp \
@@ -34,6 +34,8 @@ libbase_la_SOURCES =  \
 	logger_fwd.h \
 	netstring.cpp \
 	netstring.h \
+	networkstream.cpp \
+	networkstream.h \
 	object.cpp \
 	object.h \
 	objectlock.cpp \

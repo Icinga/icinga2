@@ -18,107 +18,117 @@
  ******************************************************************************/
 
 #include "base/netstring.h"
+#include "base/utility.h"
 #include <sstream>
 
 using namespace icinga;
 
 /**
- * Reads data from a stream in netString format.
+ * Reads data from a stream in netstring format.
  *
  * @param stream The stream to read from.
  * @param[out] str The String that has been read from the IOQueue.
  * @returns true if a complete String was read from the IOQueue, false otherwise.
  * @exception invalid_argument The input stream is invalid.
- * @see https://github.com/PeterScott/netString-c/blob/master/netString.c
+ * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
 bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 {
 	/* 16 bytes are enough for the header */
-	size_t peek_length, buffer_length = 16;
-	char *buffer = static_cast<char *>(malloc(buffer_length));
+	const size_t header_length = 16;
+	size_t read_length;
+	char *header = static_cast<char *>(malloc(header_length));
 
-	if (buffer == NULL)
+	if (header == NULL)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
-	peek_length = stream->Peek(buffer, buffer_length);
+	read_length = 0;
 
-	/* minimum netString length is 3 */
-	if (peek_length < 3) {
-		free(buffer);
-		return false;
+	while (read_length < header_length) {
+		/* Read one byte. */
+		int rc = stream->Read(header + read_length, 1);
+
+		if (rc == 0) {
+			if (read_length == 0)
+				return false;
+
+			BOOST_THROW_EXCEPTION(std::runtime_error("Read() failed."));
+		}
+
+		ASSERT(rc == 1);
+
+		read_length++;
+
+		if (header[read_length - 1] == ':') {
+			break;
+		} else if (header_length == read_length) {
+			free(header);
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing :)"));
+		}
+	}
+
+	/* minimum netstring length is 3 */
+	if (read_length < 3) {
+		free(header);
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (short header)"));
 	}
 
 	/* no leading zeros allowed */
-	if (buffer[0] == '0' && isdigit(buffer[1])) {
-		free(buffer);
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid netString (leading zero)"));
+	if (header[0] == '0' && isdigit(header[1])) {
+		free(header);
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (leading zero)"));
 	}
 
 	size_t len, i;
 
 	len = 0;
-	for (i = 0; i < peek_length && isdigit(buffer[i]); i++) {
+	for (i = 0; i < read_length && isdigit(header[i]); i++) {
 		/* length specifier must have at most 9 characters */
 		if (i >= 9) {
-			free(buffer);
+			free(header);
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Length specifier must not exceed 9 characters"));
 		}
 
-		len = len * 10 + (buffer[i] - '0');
+		len = len * 10 + (header[i] - '0');
 	}
 
+	free(header);
+
 	/* read the whole message */
-	buffer_length = i + 1 + len + 1;
+	size_t data_length = len + 1;
 
-	char *new_buffer = static_cast<char *>(realloc(buffer, buffer_length));
+	char *data = static_cast<char *>(malloc(data_length));
 
-	if (new_buffer == NULL) {
-		free(buffer);
+	if (data == NULL) {
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 	}
 
-	buffer = new_buffer;
+	size_t rc = stream->Read(data, data_length);
+	
+	if (rc != data_length)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Read() failed."));
 
-	peek_length = stream->Peek(buffer, buffer_length);
-
-	if (peek_length < buffer_length)
-		return false;
-
-	/* check for the colon delimiter */
-	if (buffer[i] != ':') {
-		free(buffer);
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing :)"));
-	}
-
-	/* check for the comma delimiter after the String */
-	if (buffer[i + 1 + len] != ',') {
-		free(buffer);
+	if (data[len] != ',')
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing ,)"));
-	}
+	
+	*str = String(&data[0], &data[len]);
 
-	*str = String(&buffer[i + 1], &buffer[i + 1 + len]);
-
-	free(buffer);
-
-	/* remove the data from the stream */
-	stream->Read(NULL, peek_length);
+	free(data);
 
 	return true;
 }
 
 /**
- * Writes data into a stream using the netString format.
+ * Writes data into a stream using the netstring format.
  *
  * @param stream The stream.
  * @param str The String that is to be written.
  */
 void NetString::WriteStringToStream(const Stream::Ptr& stream, const String& str)
 {
-	std::ostringstream prefixbuf;
-	prefixbuf << str.GetLength() << ":";
+	std::ostringstream msgbuf;
+	msgbuf << str.GetLength() << ":" << str << ",";
 
-	String prefix = prefixbuf.str();
-	stream->Write(prefix.CStr(), prefix.GetLength());
-	stream->Write(str.CStr(), str.GetLength());
-	stream->Write(",", 1);
+	String msg = msgbuf.str();
+	stream->Write(msg.CStr(), msg.GetLength());
 }

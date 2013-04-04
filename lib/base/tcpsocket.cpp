@@ -31,7 +31,7 @@ using namespace icinga;
  * @param service The service.
  * @param family The address family for the socket.
  */
-void TcpSocket::Bind(String service, int family)
+void TcpSocket::Bind(const String& service, int family)
 {
 	Bind(String(), service, family);
 }
@@ -43,7 +43,7 @@ void TcpSocket::Bind(String service, int family)
  * @param service The service.
  * @param family The address family for the socket.
  */
-void TcpSocket::Bind(String node, String service, int family)
+void TcpSocket::Bind(const String& node, const String& service, int family)
 {
 	addrinfo hints;
 	addrinfo *result;
@@ -75,8 +75,6 @@ void TcpSocket::Bind(String node, String service, int family)
 		if (fd == INVALID_SOCKET)
 			continue;
 
-		SetFD(fd);
-
 		const int optFalse = 0;
 		setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&optFalse), sizeof(optFalse));
 
@@ -87,23 +85,20 @@ void TcpSocket::Bind(String node, String service, int family)
 
 		int rc = bind(fd, info->ai_addr, info->ai_addrlen);
 
-#ifdef _WIN32
-		if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
-#else /* _WIN32 */
-		if (rc < 0 && errno != EINPROGRESS) {
-#endif /* _WIN32 */
+		if (rc < 0) {
 			closesocket(fd);
-			SetFD(INVALID_SOCKET);
 
 			continue;
 		}
+
+		SetFD(fd);
 
 		break;
 	}
 
 	freeaddrinfo(result);
 
-	if (fd == INVALID_SOCKET)
+	if (GetFD() == INVALID_SOCKET)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create a suitable socket."));
 }
 
@@ -145,31 +140,21 @@ void TcpSocket::Connect(const String& node, const String& service)
 		if (fd == INVALID_SOCKET)
 			continue;
 
-		SetFD(fd);
-
 		rc = connect(fd, info->ai_addr, info->ai_addrlen);
 
-#ifdef _WIN32
-		if (rc < 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
-#else /* _WIN32 */
-		if (rc < 0 && errno != EINPROGRESS) {
-#endif /* _WIN32 */
+		if (rc < 0) {
 			closesocket(fd);
-			SetFD(INVALID_SOCKET);
 
 			continue;
 		}
 
-		if (rc >= 0) {
-			SetConnected(true);
-			OnConnected(GetSelf());
-		}
+		SetFD(fd);
 
 		break;
 	}
 
 	freeaddrinfo(result);
 
-	if (fd == INVALID_SOCKET)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create a suitable socket."));
+	if (GetFD() == INVALID_SOCKET)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not connect to remote host."));
 }

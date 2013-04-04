@@ -17,29 +17,38 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/connection.h"
-#include <boost/bind.hpp>
+#ifndef NETWORKSTREAM_H
+#define NETWORKSTREAM_H
 
-using namespace icinga;
+#include "base/i2-base.h"
+#include "base/stream.h"
+#include "base/socket.h"
 
-Connection::Connection(const Stream::Ptr& stream)
-	: m_Stream(stream)
+namespace icinga
 {
-	m_Stream->OnDataAvailable.connect(boost::bind(&Connection::ProcessData, this));
-	m_Stream->OnClosed.connect(boost::bind(&Connection::ClosedHandler, this));
+
+/**
+ * A network stream.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API NetworkStream : public Stream
+{
+public:
+	typedef shared_ptr<NetworkStream> Ptr;
+	typedef weak_ptr<NetworkStream> WeakPtr;
+
+	NetworkStream(const Socket::Ptr& socket);
+
+	virtual size_t Read(void *buffer, size_t count);
+	virtual void Write(const void *buffer, size_t count);
+
+	virtual void Close(void);
+
+private:
+	Socket::Ptr m_Socket;
+};
+
 }
 
-Stream::Ptr Connection::GetStream(void) const
-{
-	return m_Stream;
-}
-
-void Connection::ClosedHandler(void)
-{
-	OnClosed(GetSelf());
-}
-
-void Connection::Close(void)
-{
-	m_Stream->Close();
-}
+#endif /* NETWORKSTREAM_H */

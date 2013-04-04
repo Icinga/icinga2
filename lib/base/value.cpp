@@ -212,7 +212,7 @@ Value Value::Deserialize(const String& jsonString)
 	cJSON *json = cJSON_Parse(jsonString.CStr());
 
 	if (!json)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid JSON String"));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid JSON String: " + jsonString));
 
 	Value value = FromJson(json);
 	cJSON_Delete(json);

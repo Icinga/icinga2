@@ -24,6 +24,7 @@
 #include "base/convert.h"
 #include "base/utility.h"
 #include "base/tlsutility.h"
+#include "base/networkstream.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
@@ -129,14 +130,29 @@ void EndpointManager::AddListener(const String& service)
 	Log(LogInformation, "icinga", s.str());
 
 	TcpSocket::Ptr server = boost::make_shared<TcpSocket>();
+	server->Bind(service, AF_INET6);
+
+	boost::thread thread(boost::bind(&EndpointManager::ListenerThreadProc, this, server));
+	thread.detach();
 
 	m_Servers.insert(server);
-	server->OnNewClient.connect(boost::bind(&EndpointManager::NewClientHandler,
-	   this, _2, TlsRoleServer));
+}
 
-	server->Bind(service, AF_INET6);
+void EndpointManager::ListenerThreadProc(const Socket::Ptr& server)
+{
 	server->Listen();
-	server->Start();
+
+	for (;;) {
+		Socket::Ptr client = server->Accept();
+
+		try {
+			NewClientHandler(client, TlsRoleServer);
+		} catch (const std::exception& ex) {
+			std::stringstream message;
+			message << "Error for new JSON-RPC socket: " << boost::diagnostic_information(ex);
+			Log(LogInformation, "remoting", message.str());
+		}
+	}
 }
 
 /**
@@ -146,16 +162,23 @@ void EndpointManager::AddListener(const String& service)
  * @param service The remote port.
  */
 void EndpointManager::AddConnection(const String& node, const String& service) {
-	ObjectLock olock(this);
+	{
+		ObjectLock olock(this);
 
-	shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+		shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
-	if (!sslContext)
-		BOOST_THROW_EXCEPTION(std::logic_error("SSL context is required for AddConnection()"));
+		if (!sslContext)
+			BOOST_THROW_EXCEPTION(std::logic_error("SSL context is required for AddConnection()"));
+	}
 
 	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
-	client->Connect(node, service);
-	NewClientHandler(client, TlsRoleClient);
+
+	try {
+		client->Connect(node, service);
+		NewClientHandler(client, TlsRoleClient);
+	} catch (const std::exception& ex) {
+		Log(LogInformation, "remoting", "Could not connect to " + node + ":" + service + ": " + ex.what());
+	}
 }
 
 /**
@@ -165,25 +188,10 @@ void EndpointManager::AddConnection(const String& node, const String& service) {
  */
 void EndpointManager::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 {
-	TlsStream::Ptr tlsStream = boost::make_shared<TlsStream>(client, role, m_SSLContext);
+	NetworkStream::Ptr netStream = boost::make_shared<NetworkStream>(client);
 
-	m_PendingClients.insert(tlsStream);
-	tlsStream->OnConnected.connect(boost::bind(&EndpointManager::ClientConnectedHandler, this, _1));
-	tlsStream->OnClosed.connect(boost::bind(&EndpointManager::ClientClosedHandler, this, _1));
-
-	client->Start();
-	tlsStream->Start();
-}
-
-void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client)
-{
-	TlsStream::Ptr tlsStream = static_pointer_cast<TlsStream>(client);
-	JsonRpcConnection::Ptr jclient = boost::make_shared<JsonRpcConnection>(tlsStream);
-
-	{
-		ObjectLock olock(this);
-		m_PendingClients.erase(tlsStream);
-	}
+	TlsStream::Ptr tlsStream = boost::make_shared<TlsStream>(netStream, role, m_SSLContext);
+	tlsStream->Handshake();
 
 	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity = GetCertificateCN(cert);
@@ -195,17 +203,7 @@ void EndpointManager::ClientConnectedHandler(const Stream::Ptr& client)
 	if (!endpoint)
 		endpoint = Endpoint::MakeEndpoint(identity, true);
 
-	endpoint->SetClient(jclient);
-}
-
-void EndpointManager::ClientClosedHandler(const Stream::Ptr& client)
-{
-	TlsStream::Ptr tlsStream = static_pointer_cast<TlsStream>(client);
-
-	{
-		ObjectLock olock(this);
-		m_PendingClients.erase(tlsStream);
-	}
+	endpoint->SetClient(tlsStream);
 }
 
 /**

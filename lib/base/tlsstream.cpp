@@ -37,51 +37,39 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param sslContext The SSL context for the client.
  */
 TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SSL_CTX> sslContext)
-	: m_SSLContext(sslContext), m_SendQueue(boost::make_shared<FIFO>()), m_RecvQueue(boost::make_shared<FIFO>()),
-	  m_InnerStream(innerStream), m_Role(role)
+	: m_SSLContext(sslContext), m_Role(role)
 {
-	m_InnerStream->OnDataAvailable.connect(boost::bind(&TlsStream::DataAvailableHandler, this));
-	m_InnerStream->OnClosed.connect(boost::bind(&TlsStream::ClosedHandler, this));
-	m_SendQueue->Start();
-	m_RecvQueue->Start();
-}
+	m_InnerStream = dynamic_pointer_cast<BufferedStream>(innerStream);
+	
+	if (!m_InnerStream)
+		m_InnerStream = boost::make_shared<BufferedStream>(innerStream);
+	
+	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
-void TlsStream::Start(void)
-{
-	{
-		boost::mutex::scoped_lock lock(m_SSLMutex);
+	m_SSLContext.reset();
 
-		m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
-
-		m_SSLContext.reset();
-
-		if (!m_SSL) {
-			BOOST_THROW_EXCEPTION(openssl_error()
-				<< boost::errinfo_api_function("SSL_new")
-				<< errinfo_openssl_error(ERR_get_error()));
-		}
-
-		if (!m_SSLIndexInitialized) {
-			m_SSLIndex = SSL_get_ex_new_index(0, const_cast<char *>("TlsStream"), NULL, NULL, NULL);
-			m_SSLIndexInitialized = true;
-		}
-
-		SSL_set_ex_data(m_SSL.get(), m_SSLIndex, this);
-
-		SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
-
-		m_BIO = BIO_new_I2Stream(m_InnerStream);
-		SSL_set_bio(m_SSL.get(), m_BIO, m_BIO);
-
-		if (m_Role == TlsRoleServer)
-			SSL_set_accept_state(m_SSL.get());
-		else
-			SSL_set_connect_state(m_SSL.get());
+	if (!m_SSL) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("SSL_new")
+			<< errinfo_openssl_error(ERR_get_error()));
 	}
 
-	Stream::Start();
+	if (!m_SSLIndexInitialized) {
+		m_SSLIndex = SSL_get_ex_new_index(0, const_cast<char *>("TlsStream"), NULL, NULL, NULL);
+		m_SSLIndexInitialized = true;
+	}
 
-	HandleIO();
+	SSL_set_ex_data(m_SSL.get(), m_SSLIndex, this);
+
+	SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+
+	m_BIO = BIO_new_I2Stream(m_InnerStream);
+	SSL_set_bio(m_SSL.get(), m_BIO, m_BIO);
+
+	if (m_Role == TlsRoleServer)
+		SSL_set_accept_state(m_SSL.get());
+	else
+		SSL_set_connect_state(m_SSL.get());
 }
 
 /**
@@ -91,8 +79,6 @@ void TlsStream::Start(void)
  */
 shared_ptr<X509> TlsStream::GetClientCertificate(void) const
 {
-	boost::mutex::scoped_lock lock(m_SSLMutex);
-
 	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
 }
 
@@ -103,90 +89,70 @@ shared_ptr<X509> TlsStream::GetClientCertificate(void) const
  */
 shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
 {
-	boost::mutex::scoped_lock lock(m_SSLMutex);
-
 	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
 
-void TlsStream::DataAvailableHandler(void)
+void TlsStream::Handshake(void)
 {
-	try {
-		HandleIO();
-	} catch (...) {
-		SetException(boost::current_exception());
+	ASSERT(!OwnsLock());
 
-		Close();
-	}
-}
+	int rc;
 
-void TlsStream::ClosedHandler(void)
-{
 	ObjectLock olock(this);
 
-	SetException(m_InnerStream->GetException());
-	Close();
+	while ((rc = SSL_do_handshake(m_SSL.get())) <= 0) {
+		switch (SSL_get_error(m_SSL.get(), rc)) {
+			case SSL_ERROR_WANT_READ:
+				olock.Unlock();
+				m_InnerStream->WaitReadable(1);
+				olock.Lock();
+				continue;
+			case SSL_ERROR_WANT_WRITE:
+				olock.Unlock();
+				m_InnerStream->WaitWritable(1);
+				olock.Lock();
+				continue;
+			case SSL_ERROR_ZERO_RETURN:
+				Close();
+				return;
+			default:
+				I2Stream_check_exception(m_BIO);
+				BOOST_THROW_EXCEPTION(openssl_error()
+				    << boost::errinfo_api_function("SSL_read")
+				    << errinfo_openssl_error(ERR_get_error()));
+		}
+	}
 }
 
 /**
  * Processes data for the stream.
  */
-void TlsStream::HandleIO(void)
+size_t TlsStream::Read(void *buffer, size_t count)
 {
 	ASSERT(!OwnsLock());
 
-	char data[16 * 1024];
-	int rc;
+	size_t left = count;
 
-	if (!IsConnected()) {
-		boost::mutex::scoped_lock lock(m_SSLMutex);
+	ObjectLock olock(this);
 
-		rc = SSL_do_handshake(m_SSL.get());
+	while (left > 0) {
+		int rc = SSL_read(m_SSL.get(), ((char *)buffer) + (count - left), left);
 
-		if (rc == 1) {
-			lock.unlock();
-
-			SetConnected(true);
-		} else {
+		if (rc <= 0) {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
-				case SSL_ERROR_WANT_WRITE:
-					/* fall through */
 				case SSL_ERROR_WANT_READ:
-					return;
+					olock.Unlock();
+					m_InnerStream->WaitReadable(1);
+					olock.Lock();
+					continue;
+				case SSL_ERROR_WANT_WRITE:
+					olock.Unlock();
+					m_InnerStream->WaitWritable(1);
+					olock.Lock();
+					continue;
 				case SSL_ERROR_ZERO_RETURN:
 					Close();
-					return;
-				default:
-					I2Stream_check_exception(m_BIO);
-					BOOST_THROW_EXCEPTION(openssl_error()
-					    << boost::errinfo_api_function("SSL_do_handshake")
-					    << errinfo_openssl_error(ERR_get_error()));
-			}
-		}
-	}
-
-	bool new_data = false, read_ok = true;
-
-	while (read_ok) {
-		boost::mutex::scoped_lock lock(m_SSLMutex);
-
-		rc = SSL_read(m_SSL.get(), data, sizeof(data));
-
-		if (rc > 0) {
-			lock.unlock();
-
-			ObjectLock olock(this);
-			m_RecvQueue->Write(data, rc);
-			new_data = true;
-		} else {
-			switch (SSL_get_error(m_SSL.get(), rc)) {
-				case SSL_ERROR_WANT_WRITE:
-					/* fall through */
-				case SSL_ERROR_WANT_READ:
-					read_ok = false;
-					break;
-				case SSL_ERROR_ZERO_RETURN:
-					Close();
-					return;
+					return count - left;
 				default:
 					I2Stream_check_exception(m_BIO);
 					BOOST_THROW_EXCEPTION(openssl_error()
@@ -194,41 +160,36 @@ void TlsStream::HandleIO(void)
 					    << errinfo_openssl_error(ERR_get_error()));
 			}
 		}
+
+		left -= rc;
 	}
 
-	if (new_data)
-		OnDataAvailable(GetSelf());
+	return count;
+}
+
+void TlsStream::Write(const void *buffer, size_t count)
+{
+	ASSERT(!OwnsLock());
+
+	size_t left = count;
 
 	ObjectLock olock(this);
 
-	while (m_SendQueue->GetAvailableBytes() > 0) {
-		size_t count = m_SendQueue->GetAvailableBytes();
+	while (left > 0) {
+		int rc = SSL_write(m_SSL.get(), ((const char *)buffer) + (count - left), left);
 
-		if (count == 0)
-			break;
-
-		if (count > sizeof(data))
-			count = sizeof(data);
-
-		m_SendQueue->Peek(data, count);
-
-		olock.Unlock();
-
-		boost::mutex::scoped_lock lock(m_SSLMutex);
-
-		rc = SSL_write(m_SSL.get(), (const char *)data, count);
-
-		if (rc > 0) {
-			lock.unlock();
-
-			olock.Lock();
-			m_SendQueue->Read(NULL, rc);
-		} else {
+		if (rc <= 0) {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
 				case SSL_ERROR_WANT_READ:
-					/* fall through */
+					olock.Unlock();
+					m_InnerStream->WaitReadable(1);
+					olock.Lock();
+					continue;
 				case SSL_ERROR_WANT_WRITE:
-					return;
+					olock.Unlock();
+					m_InnerStream->WaitWritable(1);
+					olock.Lock();
+					continue;
 				case SSL_ERROR_ZERO_RETURN:
 					Close();
 					return;
@@ -239,6 +200,8 @@ void TlsStream::HandleIO(void)
 					    << errinfo_openssl_error(ERR_get_error()));
 			}
 		}
+
+		left -= rc;
 	}
 }
 
@@ -247,51 +210,5 @@ void TlsStream::HandleIO(void)
  */
 void TlsStream::Close(void)
 {
-	{
-		boost::mutex::scoped_lock lock(m_SSLMutex);
-	
-		if (m_SSL)
-			SSL_shutdown(m_SSL.get());
-	}
-
-	{
-		ObjectLock olock(this);
-
-		m_SendQueue->Close();
-		m_RecvQueue->Close();
-	}
-
-	Stream::Close();
-}
-
-size_t TlsStream::GetAvailableBytes(void) const
-{
-	ObjectLock olock(this);
-
-	return m_RecvQueue->GetAvailableBytes();
-}
-
-size_t TlsStream::Peek(void *buffer, size_t count)
-{
-	ObjectLock olock(this);
-
-	return m_RecvQueue->Peek(buffer, count);
-}
-
-size_t TlsStream::Read(void *buffer, size_t count)
-{
-	ObjectLock olock(this);
-
-	return m_RecvQueue->Read(buffer, count);
-}
-
-void TlsStream::Write(const void *buffer, size_t count)
-{
-	{
-		ObjectLock olock(this);
-
-		m_SendQueue->Write(buffer, count);
-	}
-
-	Utility::QueueAsyncCallback(boost::bind(&TlsStream::HandleIO, this));
+	m_InnerStream->Close();
 }

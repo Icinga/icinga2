@@ -22,8 +22,6 @@ liblivestatus_la_SOURCES = \
 	commentstable.h \
 	component.cpp \
 	component.h \
-	connection.cpp \
-	connection.h \
 	contactgroupstable.cpp \
 	contactgroupstable.h \
 	contactstable.cpp \

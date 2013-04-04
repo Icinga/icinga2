@@ -40,28 +40,6 @@ public:
 	typedef shared_ptr<Stream> Ptr;
 	typedef weak_ptr<Stream> WeakPtr;
 
-	Stream(void);
-	~Stream(void);
-
-	virtual void Start(void);
-
-	/**
-	 * Retrieves the number of bytes available for reading.
-	 *
-	 * @returns The number of available bytes.
-	 */
-	virtual size_t GetAvailableBytes(void) const = 0;
-
-	/**
-	 * Reads data from the stream without advancing the read pointer.
-	 *
-	 * @param buffer The buffer where data should be stored. May be NULL if
-	 *		 you're not actually interested in the data.
-	 * @param count The number of bytes to read from the queue.
-	 * @returns The number of bytes actually read.
-	 */
-	virtual size_t Peek(void *buffer, size_t count) = 0;
-
 	/**
 	 * Reads data from the stream.
 	 *
@@ -84,34 +62,9 @@ public:
 	/**
 	 * Closes the stream and releases resources.
 	 */
-	virtual void Close(void);
-
-	bool IsConnected(void) const;
-	bool IsReadEOF(void) const;
-	bool IsWriteEOF(void) const;
+	virtual void Close(void) = 0;
 
 	bool ReadLine(String *line, size_t maxLength = 4096);
-
-	boost::exception_ptr GetException(void);
-	void CheckException(void);
-
-	boost::signals2::signal<void (const Stream::Ptr&)> OnConnected;
-	boost::signals2::signal<void (const Stream::Ptr&)> OnDataAvailable;
-	boost::signals2::signal<void (const Stream::Ptr&)> OnClosed;
-
-protected:
-	void SetConnected(bool connected);
-	void SetReadEOF(bool eof);
-	void SetWriteEOF(bool eof);
-
-	void SetException(boost::exception_ptr exception);
-
-private:
-	bool m_Running;
-	bool m_Connected;
-	bool m_ReadEOF;
-	bool m_WriteEOF;
-	boost::exception_ptr m_Exception;
 };
 
 }

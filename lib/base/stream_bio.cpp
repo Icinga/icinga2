@@ -123,7 +123,6 @@ static int I2Stream_write(BIO *bi, const char *in, int inl)
 {
 	I2Stream_bio_t *bp = (I2Stream_bio_t *)bi->ptr;
 	bp->StreamObj->Write(in, inl);
-
 	return inl;
 }
 

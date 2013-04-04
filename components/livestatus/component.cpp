@@ -21,6 +21,7 @@
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/tcpsocket.h"
+#include "base/networkstream.h"
 #include "base/application.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
@@ -48,10 +49,10 @@ void LivestatusComponent::Start(void)
 	socket->Bind("6558", AF_INET);
 //#endif /* _WIN32 */
 
-	socket->OnNewClient.connect(boost::bind(&LivestatusComponent::NewClientHandler, this, _2));
-	socket->Listen();
-	socket->Start();
 	m_Listener = socket;
+
+	boost::thread thread(boost::bind(&LivestatusComponent::ServerThreadProc, this, socket));
+	thread.detach();
 }
 
 String LivestatusComponent::GetSocketPath(void) const
@@ -63,21 +64,40 @@ String LivestatusComponent::GetSocketPath(void) const
 		return socketPath;
 }
 
-void LivestatusComponent::NewClientHandler(const Socket::Ptr& client)
+void LivestatusComponent::ServerThreadProc(const Socket::Ptr& server)
 {
-	Log(LogInformation, "livestatus", "Client connected");
+	server->Listen();
 
-	LivestatusConnection::Ptr lconnection = boost::make_shared<LivestatusConnection>(client);
-	lconnection->OnClosed.connect(boost::bind(&LivestatusComponent::ClientClosedHandler, this, _1));
+	for (;;) {
+		Socket::Ptr client = server->Accept();
 
-	m_Connections.insert(lconnection);
-	client->Start();
+		Log(LogInformation, "livestatus", "Client connected");
+
+		boost::thread thread(boost::bind(&LivestatusComponent::ClientThreadProc, this, client));
+		thread.detach();
+	}
 }
 
-void LivestatusComponent::ClientClosedHandler(const Connection::Ptr& connection)
+void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
 {
-	LivestatusConnection::Ptr lconnection = static_pointer_cast<LivestatusConnection>(connection);
+	Stream::Ptr stream = boost::make_shared<NetworkStream>(client);
 
-	Log(LogInformation, "livestatus", "Client disconnected");
-	m_Connections.erase(lconnection);
+	for (;;) {
+		String line;
+		bool read_line = false;
+
+		std::vector<String> lines;
+
+		while (stream->ReadLine(&line)) {
+			read_line = true;
+
+			if (line.GetLength() > 0)
+				lines.push_back(line);
+			else
+				break;
+		}
+
+		Query::Ptr query = boost::make_shared<Query>(lines);
+		query->Execute(stream);
+	}
 }

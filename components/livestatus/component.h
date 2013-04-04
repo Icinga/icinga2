@@ -20,7 +20,7 @@
 #ifndef LIVESTATUSCOMPONENT_H
 #define LIVESTATUSCOMPONENT_H
 
-#include "livestatus/connection.h"
+#include "livestatus/query.h"
 #include "base/dynamicobject.h"
 #include "base/socket.h"
 
@@ -45,10 +45,9 @@ private:
 	Attribute<String> m_SocketPath;
 
 	Socket::Ptr m_Listener;
-	std::set<LivestatusConnection::Ptr> m_Connections;
 
-	void NewClientHandler(const Socket::Ptr& client);
-	void ClientClosedHandler(const Connection::Ptr& connection);
+	void ServerThreadProc(const Socket::Ptr& server);
+	void ClientThreadProc(const Socket::Ptr& client);
 };
 
 }

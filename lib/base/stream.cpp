@@ -24,112 +24,10 @@
 
 using namespace icinga;
 
-Stream::Stream(void)
-	: m_Connected(false), m_ReadEOF(false), m_WriteEOF(false)
-{ }
-
-Stream::~Stream(void)
-{
-	ASSERT(!m_Running);
-}
-
-bool Stream::IsConnected(void) const
-{
-	ObjectLock olock(this);
-
-	return m_Connected;
-}
-
-bool Stream::IsReadEOF(void) const
-{
-	ObjectLock olock(this);
-
-	return m_ReadEOF;
-}
-
-bool Stream::IsWriteEOF(void) const
-{
-	ObjectLock olock(this);
-
-	return m_WriteEOF;
-}
-
-void Stream::SetConnected(bool connected)
-{
-	bool changed;
-
-	{
-		ObjectLock olock(this);
-		changed = (m_Connected != connected);
-		m_Connected = connected;
-	}
-
-	if (changed) {
-		if (connected)
-			OnConnected(GetSelf());
-		else
-			OnClosed(GetSelf());
-	}
-}
-
-void Stream::SetReadEOF(bool eof)
-{
-	ObjectLock olock(this);
-
-	m_ReadEOF = eof;
-}
-
-void Stream::SetWriteEOF(bool eof)
-{
-	ObjectLock olock(this);
-
-	m_WriteEOF = eof;
-}
-
-/**
- * Checks whether an exception is available for this stream and re-throws
- * the exception if there is one.
- */
-void Stream::CheckException(void)
-{
-	ObjectLock olock(this);
-
-	if (m_Exception)
-		rethrow_exception(m_Exception);
-}
-
-void Stream::SetException(boost::exception_ptr exception)
-{
-	ObjectLock olock(this);
-
-	m_Exception = exception;
-}
-
-boost::exception_ptr Stream::GetException(void)
-{
-	return m_Exception;
-}
-
-void Stream::Start(void)
-{
-	ObjectLock olock(this);
-
-	m_Running = true;
-}
-
-void Stream::Close(void)
-{
-	{
-		ObjectLock olock(this);
-
-		m_Running = false;
-	}
-
-	SetConnected(false);
-}
-
 bool Stream::ReadLine(String *line, size_t maxLength)
 {
+	BOOST_THROW_EXCEPTION(std::runtime_error("Not implemented."));
+	/*
 	char *buffer = new char[maxLength];
 
 	size_t rc = Peek(buffer, maxLength);
@@ -161,7 +59,7 @@ bool Stream::ReadLine(String *line, size_t maxLength)
 		return true;
 	}
 
-	delete buffer;
+	delete buffer;*/
 
 	return false;
 }

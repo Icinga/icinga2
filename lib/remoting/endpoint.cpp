@@ -19,6 +19,7 @@
 
 #include "remoting/endpoint.h"
 #include "remoting/endpointmanager.h"
+#include "remoting/jsonrpc.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -106,29 +107,27 @@ bool Endpoint::IsConnected(void) const
 	if (IsLocalEndpoint()) {
 		return true;
 	} else {
-		JsonRpcConnection::Ptr client = GetClient();
-
-		return (client && client->GetStream()->IsConnected());
+		return GetClient();
 	}
 }
 
-JsonRpcConnection::Ptr Endpoint::GetClient(void) const
+Stream::Ptr Endpoint::GetClient(void) const
 {
 	ObjectLock olock(this);
 
 	return m_Client;
 }
 
-void Endpoint::SetClient(const JsonRpcConnection::Ptr& client)
+void Endpoint::SetClient(const Stream::Ptr& client)
 {
-	client->OnNewMessage.connect(boost::bind(&Endpoint::NewMessageHandler, this, _2));
-	client->OnClosed.connect(boost::bind(&Endpoint::ClientClosedHandler, this));
-
 	{
 		ObjectLock olock(this);
 
 		m_Client = client;
 	}
+
+	boost::thread thread(boost::bind(&Endpoint::MessageThreadProc, this, client));
+	thread.detach();
 
 	OnConnected(GetSelf());
 }
@@ -261,7 +260,7 @@ void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage&
 
 		Utility::QueueAsyncCallback(boost::bind(boost::ref(*it->second), GetSelf(), sender, request));
 	} else {
-		GetClient()->SendMessage(request);
+		JsonRpc::SendMessage(GetClient(), request);
 	}
 }
 
@@ -272,61 +271,53 @@ void Endpoint::ProcessResponse(const Endpoint::Ptr& sender, const ResponseMessag
 
 	if (IsLocalEndpoint())
 		EndpointManager::GetInstance()->ProcessResponseMessage(sender, response);
-	else
-		GetClient()->SendMessage(response);
+	else {
+		JsonRpc::SendMessage(GetClient(), response);
+	}
 }
 
-void Endpoint::NewMessageHandler(const MessagePart& message)
+void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 {
-	Endpoint::Ptr sender = GetSelf();
+	try {
+		for (;;) {
+			MessagePart message = JsonRpc::ReadMessage(stream);
+			Endpoint::Ptr sender = GetSelf();
 
-	if (ResponseMessage::IsResponseMessage(message)) {
-		/* rather than routing the message to the right virtual
-		 * endpoint we just process it here right away. */
-		EndpointManager::GetInstance()->ProcessResponseMessage(sender, message);
-		return;
+			if (ResponseMessage::IsResponseMessage(message)) {
+				/* rather than routing the message to the right virtual
+				 * endpoint we just process it here right away. */
+				EndpointManager::GetInstance()->ProcessResponseMessage(sender, message);
+				return;
+			}
+
+			RequestMessage request = message;
+
+			String method;
+			if (!request.GetMethod(&method))
+				return;
+
+			String id;
+			if (request.GetID(&id))
+				EndpointManager::GetInstance()->SendAnycastMessage(sender, request);
+			else
+				EndpointManager::GetInstance()->SendMulticastMessage(sender, request);
+		}
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "jsonrpc", "Lost connection to endpoint '" + GetName() + "': " + boost::diagnostic_information(ex));
+
+		{
+			ObjectLock olock(this);
+
+			// TODO: _only_ clear non-persistent subscriptions
+			// unregister ourselves if no persistent subscriptions are left (use a
+			// timer for that, once we have a TTL property for the topics)
+			ClearSubscriptions();
+
+			m_Client.reset();
+		}
+
+		OnDisconnected(GetSelf());
 	}
-
-	RequestMessage request = message;
-
-	String method;
-	if (!request.GetMethod(&method))
-		return;
-
-	String id;
-	if (request.GetID(&id))
-		EndpointManager::GetInstance()->SendAnycastMessage(sender, request);
-	else
-		EndpointManager::GetInstance()->SendMulticastMessage(sender, request);
-}
-
-void Endpoint::ClientClosedHandler(void)
-{
-	ASSERT(!OwnsLock());
-
-	/*try {
-		GetClient()->CheckException();
-	} catch (const exception& ex) {
-		stringstream message;
-		message << "Error occured for JSON-RPC socket: Message=" << diagnostic_information(ex);
-
-		Log(LogWarning, "jsonrpc", message.str());
-	}*/
-
-	Log(LogWarning, "jsonrpc", "Lost connection to endpoint: identity=" + GetName());
-
-	{
-		ObjectLock olock(this);
-
-		// TODO: _only_ clear non-persistent subscriptions
-		// unregister ourselves if no persistent subscriptions are left (use a
-		// timer for that, once we have a TTL property for the topics)
-		ClearSubscriptions();
-
-		m_Client.reset();
-	}
-
-	OnDisconnected(GetSelf());
 }
 
 /**

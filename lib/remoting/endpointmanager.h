@@ -81,7 +81,6 @@ private:
 	Timer::Ptr m_ReconnectTimer;
 
 	std::set<TcpSocket::Ptr> m_Servers;
-	std::set<TlsStream::Ptr> m_PendingClients;
 
 	/**
 	 * Information about a pending API request.
@@ -112,8 +111,8 @@ private:
 	void ReconnectTimerHandler(void);
 
 	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
-	void ClientConnectedHandler(const Stream::Ptr& client);
-	void ClientClosedHandler(const Stream::Ptr& client);
+
+	void ListenerThreadProc(const Socket::Ptr& server);
 };
 
 }

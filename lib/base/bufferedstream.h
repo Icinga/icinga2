@@ -17,64 +17,53 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remoting/jsonrpcconnection.h"
-#include "base/netstring.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include <boost/exception/diagnostic_information.hpp>
+#ifndef BUFFEREDSTREAM_H
+#define BUFFEREDSTREAM_H
 
-using namespace icinga;
+#include "base/i2-base.h"
+#include "base/stream.h"
+#include "base/fifo.h"
 
-/**
- * Constructor for the JsonRpcConnection class.
- *
- * @param stream The stream.
- */
-JsonRpcConnection::JsonRpcConnection(const Stream::Ptr& stream)
-	: Connection(stream)
-{ }
-
-/**
- * Sends a message to the connected peer.
- *
- * @param message The message.
- */
-void JsonRpcConnection::SendMessage(const MessagePart& message)
+namespace icinga
 {
-	ObjectLock olock(this);
 
-	Value value = message.GetDictionary();
-	String json = value.Serialize();
-	//std::cerr << ">> " << json << std::endl;
-	NetString::WriteStringToStream(GetStream(), json);
+/**
+ * A buffered stream.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API BufferedStream : public Stream
+{
+public:
+	typedef shared_ptr<BufferedStream> Ptr;
+	typedef weak_ptr<BufferedStream> WeakPtr;
+
+	BufferedStream(const Stream::Ptr& innerStream);
+
+	virtual size_t Read(void *buffer, size_t count);
+	virtual void Write(const void *buffer, size_t count);
+
+	virtual void Close(void);
+
+	void WaitReadable(size_t count);
+	void WaitWritable(size_t count);
+
+private:
+	Stream::Ptr m_InnerStream;
+	
+	FIFO::Ptr m_RecvQ;
+	FIFO::Ptr m_SendQ;
+	
+	boost::exception_ptr m_Exception;
+	
+	boost::mutex m_Mutex;
+	boost::condition_variable m_ReadCV;
+	boost::condition_variable m_WriteCV;
+	
+	void ReadThreadProc(void);
+	void WriteThreadProc(void);
+};
+
 }
 
-/**
- * Processes inbound data.
- */
-void JsonRpcConnection::ProcessData(void)
-{
-	ObjectLock olock(this);
-
-	String jsonString;
-
-	while (NetString::ReadStringFromStream(GetStream(), &jsonString)) {
-		//std::cerr << "<< " << jsonString << std::endl;
-
-		try {
-			Value value = Value::Deserialize(jsonString);
-
-			if (!value.IsObjectType<Dictionary>()) {
-				BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"
-				    " message must be a dictionary."));
-			}
-
-			MessagePart mp(value);
-			OnNewMessage(GetSelf(), mp);
-		} catch (const std::exception& ex) {
-			Log(LogCritical, "remoting", "Exception"
-			    " while processing message from JSON-RPC client: " +
-			    boost::diagnostic_information(ex));
-		}
-	}
-}
+#endif /* BUFFEREDSTREAM_H */

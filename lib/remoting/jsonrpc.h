@@ -17,13 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPCCONNECTION_H
-#define JSONRPCCONNECTION_H
+#ifndef JSONRPC_H
+#define JSONRPC_H
 
 #include "remoting/i2-remoting.h"
 #include "remoting/messagepart.h"
-#include "base/connection.h"
-#include <boost/signals2.hpp>
+#include "base/stream.h"
 
 namespace icinga
 {
@@ -33,22 +32,16 @@ namespace icinga
  *
  * @ingroup remoting
  */
-class I2_REMOTING_API JsonRpcConnection : public Connection
+class I2_REMOTING_API JsonRpc
 {
 public:
-	typedef shared_ptr<JsonRpcConnection> Ptr;
-	typedef weak_ptr<JsonRpcConnection> WeakPtr;
+	static void SendMessage(const Stream::Ptr& stream, const MessagePart& message);
+	static MessagePart ReadMessage(const Stream::Ptr& stream);
 
-	explicit JsonRpcConnection(const Stream::Ptr& stream);
-
-	void SendMessage(const MessagePart& message);
-
-	boost::signals2::signal<void (const JsonRpcConnection::Ptr&, const MessagePart&)> OnNewMessage;
-
-protected:
-	virtual void ProcessData(void);
+private:
+	JsonRpc(void);
 };
 
 }
 
-#endif /* JSONRPCCONNECTION_H */
+#endif /* JSONRPC_H */

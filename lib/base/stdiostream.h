@@ -33,13 +33,8 @@ public:
 	typedef weak_ptr<StdioStream> WeakPtr;
 
 	StdioStream(std::iostream *innerStream, bool ownsStream);
-	~StdioStream(void);
 
-	virtual void Start(void);
-
-	virtual size_t GetAvailableBytes(void) const;
 	virtual size_t Read(void *buffer, size_t size);
-	virtual size_t Peek(void *buffer, size_t size);
 	virtual void Write(const void *buffer, size_t size);
 
 	virtual void Close(void);
@@ -47,7 +42,6 @@ public:
 private:
 	std::iostream *m_InnerStream;
 	bool m_OwnsStream;
-	FIFO::Ptr m_ReadAheadBuffer;
 };
 
 }

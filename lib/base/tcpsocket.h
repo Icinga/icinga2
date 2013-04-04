@@ -37,8 +37,8 @@ public:
 	typedef shared_ptr<TcpSocket> Ptr;
 	typedef weak_ptr<TcpSocket> WeakPtr;
 
-	void Bind(String service, int family);
-	void Bind(String node, String service, int family);
+	void Bind(const String& service, int family);
+	void Bind(const String& node, const String& service, int family);
 
 	void Connect(const String& node, const String& service);
 };
