@@ -228,7 +228,7 @@ void ThreadPool::ManagerThreadProc(void)
 			else
 				avg_latency = 0;
 
-			if (utilization < 60 || utilization > 80) {
+			if (utilization < 60 || utilization > 80 || alive < 2) {
 				int tthreads = ceil((utilization * alive) / 80.0) - alive;
 
 				/* Don't ever kill the last 2 threads. */
