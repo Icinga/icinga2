@@ -90,6 +90,8 @@ public:
 	virtual void Start(void);
 	virtual void Stop(void);
 
+	double GetLocalTx(void) const;
+
 	const AttributeMap& GetAttributes(void) const;
 
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
@@ -117,6 +119,7 @@ private:
 	AttributeMap m_Attributes;
 	std::set<String, string_iless> m_ModifiedAttributes;
 	double m_ConfigTx;
+	double m_LocalTx;
 
 	Attribute<String> m_Name;
 	Attribute<String> m_Type;

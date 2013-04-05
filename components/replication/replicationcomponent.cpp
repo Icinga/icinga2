@@ -181,6 +181,10 @@ void ReplicationComponent::FlushObjectHandler(double tx, const DynamicObject::Pt
 	if (!ShouldReplicateObject(object))
 		return;
 
+	/* Don't replicate objects that haven't had any local updates. */
+	if (object->GetLocalTx() < tx)
+		return;
+
 	RequestMessage request = MakeObjectMessage(object, "config::ObjectUpdate", tx, true);
 	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
 }

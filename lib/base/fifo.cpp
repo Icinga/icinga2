@@ -65,26 +65,14 @@ void FIFO::ResizeBuffer(size_t newSize)
  */
 void FIFO::Optimize(void)
 {
-	//char *newBuffer;
-
 	if (m_DataSize < m_Offset) {
 		memcpy(m_Buffer, m_Buffer + m_Offset, m_DataSize);
 		m_Offset = 0;
 
+		ResizeBuffer(m_DataSize);
+
 		return;
 	}
-
-	/*newBuffer = (char *)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
-
-	if (newBuffer == NULL)
-		return;
-
-	memcpy(newBuffer, m_Buffer + m_Offset, m_BufferSize - m_Offset);
-
-	free(m_Buffer);
-	m_Buffer = newBuffer;
-	m_BufferSize -= m_Offset;
-	m_Offset = 0;*/
 }
 
 /**

@@ -49,7 +49,7 @@ boost::signals2::signal<void (double, const std::set<DynamicObject::WeakPtr>&)> 
 boost::signals2::signal<void (double, const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
-	: m_ConfigTx(0), m_Registered(false)
+	: m_ConfigTx(0), m_LocalTx(0), m_Registered(false)
 {
 	RegisterAttribute("__name", Attribute_Config, &m_Name);
 	RegisterAttribute("__type", Attribute_Config, &m_Type);
@@ -241,7 +241,9 @@ void DynamicObject::Touch(const String& name)
 	if (it == m_Attributes.end())
 		BOOST_THROW_EXCEPTION(std::runtime_error("Touch() called for unknown attribute: " + name));
 
-	it->second.SetTx(GetCurrentTx());
+	double tx = GetCurrentTx();
+	it->second.SetTx(tx);
+	m_LocalTx = tx;
 
 	m_ModifiedAttributes.insert(name);
 
@@ -249,6 +251,12 @@ void DynamicObject::Touch(const String& name)
 		boost::mutex::scoped_lock lock(l_TransactionMutex);
 		l_ModifiedObjects.insert(GetSelf());
 	}
+}
+
+double DynamicObject::GetLocalTx(void) const
+{
+	boost::mutex::scoped_lock lock(m_AttributeMutex);
+	return m_LocalTx;
 }
 
 Value DynamicObject::Get(const String& name) const
