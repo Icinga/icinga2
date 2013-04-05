@@ -33,7 +33,6 @@ using namespace icinga;
 REGISTER_TYPE(Endpoint);
 
 boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
-boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
 
 /**
  * Constructor for the Endpoint class.
@@ -229,15 +228,6 @@ void Endpoint::RegisterTopicHandler(const String& topic, const boost::function<E
 	RegisterSubscription(topic);
 }
 
-void Endpoint::UnregisterTopicHandler(const String&, const boost::function<Endpoint::Callback>&)
-{
-	// TODO: implement
-	//m_TopicHandlers[method] -= callback;
-	//UnregisterSubscription(method);
-
-	BOOST_THROW_EXCEPTION(std::runtime_error("Not implemented."));
-}
-
 void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage& request)
 {
 	if (!IsConnected()) {
@@ -260,7 +250,15 @@ void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage&
 
 		Utility::QueueAsyncCallback(boost::bind(boost::ref(*it->second), GetSelf(), sender, request));
 	} else {
-		JsonRpc::SendMessage(GetClient(), request);
+		try {
+			JsonRpc::SendMessage(GetClient(), request);
+		} catch (const std::exception& ex) {
+			std::ostringstream msgbuf;
+			msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << boost::diagnostic_information(ex);
+			Log(LogWarning, "remoting", msgbuf.str());
+
+			m_Client.reset();
+		}
 	}
 }
 
@@ -272,51 +270,53 @@ void Endpoint::ProcessResponse(const Endpoint::Ptr& sender, const ResponseMessag
 	if (IsLocalEndpoint())
 		EndpointManager::GetInstance()->ProcessResponseMessage(sender, response);
 	else {
-		JsonRpc::SendMessage(GetClient(), response);
+		try {
+			JsonRpc::SendMessage(GetClient(), response);
+		} catch (const std::exception& ex) {
+			std::ostringstream msgbuf;
+			msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << boost::diagnostic_information(ex);
+			Log(LogWarning, "remoting", msgbuf.str());
+
+			m_Client.reset();
+		}
 	}
 }
 
 void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 {
-	try {
-		for (;;) {
-			MessagePart message = JsonRpc::ReadMessage(stream);
-			Endpoint::Ptr sender = GetSelf();
+	for (;;) {
+		MessagePart message;
 
-			if (ResponseMessage::IsResponseMessage(message)) {
-				/* rather than routing the message to the right virtual
-				 * endpoint we just process it here right away. */
-				EndpointManager::GetInstance()->ProcessResponseMessage(sender, message);
-				return;
-			}
+		try {
+			message = JsonRpc::ReadMessage(stream);
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "jsonrpc", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + boost::diagnostic_information(ex));
 
-			RequestMessage request = message;
-
-			String method;
-			if (!request.GetMethod(&method))
-				return;
-
-			String id;
-			if (request.GetID(&id))
-				EndpointManager::GetInstance()->SendAnycastMessage(sender, request);
-			else
-				EndpointManager::GetInstance()->SendMulticastMessage(sender, request);
-		}
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "jsonrpc", "Lost connection to endpoint '" + GetName() + "': " + boost::diagnostic_information(ex));
-
-		{
-			ObjectLock olock(this);
-
-			// TODO: _only_ clear non-persistent subscriptions
-			// unregister ourselves if no persistent subscriptions are left (use a
-			// timer for that, once we have a TTL property for the topics)
-			ClearSubscriptions();
+			GetClient()->Close();
 
 			m_Client.reset();
 		}
 
-		OnDisconnected(GetSelf());
+		Endpoint::Ptr sender = GetSelf();
+
+		if (ResponseMessage::IsResponseMessage(message)) {
+			/* rather than routing the message to the right virtual
+			 * endpoint we just process it here right away. */
+			EndpointManager::GetInstance()->ProcessResponseMessage(sender, message);
+			return;
+		}
+
+		RequestMessage request = message;
+
+		String method;
+		if (!request.GetMethod(&method))
+			return;
+
+		String id;
+		if (request.GetID(&id))
+			EndpointManager::GetInstance()->SendAnycastMessage(sender, request);
+		else
+			EndpointManager::GetInstance()->SendMulticastMessage(sender, request);
 	}
 }
 

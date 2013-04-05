@@ -48,11 +48,15 @@ public:
 	void WaitReadable(size_t count);
 	void WaitWritable(size_t count);
 
+	void MakeNonBlocking(void);
+
 private:
 	Stream::Ptr m_InnerStream;
 	
 	FIFO::Ptr m_RecvQ;
 	FIFO::Ptr m_SendQ;
+
+	bool m_Blocking;
 	
 	boost::exception_ptr m_Exception;
 	
@@ -62,6 +66,8 @@ private:
 	
 	void ReadThreadProc(void);
 	void WriteThreadProc(void);
+
+	void InternalWaitReadable(size_t count, boost::mutex::scoped_lock& lock);
 };
 
 }

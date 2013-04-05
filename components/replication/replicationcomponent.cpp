@@ -119,7 +119,7 @@ RequestMessage ReplicationComponent::MakeObjectMessage(const DynamicObject::Ptr&
 	msg.SetParams(params);
 
 	params.Set("name", object->GetName());
-	params.Set("type", object->GetType());
+	params.Set("type", object->GetType()->GetName());
 
 	String source = object->GetSource();
 
@@ -164,7 +164,7 @@ void ReplicationComponent::TransactionClosingHandler(double tx, const std::set<D
 
 	std::ostringstream msgbuf;
 	msgbuf << "Sending " << modifiedObjects.size() << " replication updates.";
-	Log(LogDebug, "replication", msgbuf.str());
+	Log(LogInformation, "replication", msgbuf.str());
 
 	BOOST_FOREACH(const DynamicObject::WeakPtr& wobject, modifiedObjects) {
 		DynamicObject::Ptr object = wobject.lock();

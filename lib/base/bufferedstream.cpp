@@ -27,7 +27,8 @@
 using namespace icinga;
 
 BufferedStream::BufferedStream(const Stream::Ptr& innerStream)
-	: m_InnerStream(innerStream), m_RecvQ(boost::make_shared<FIFO>()), m_SendQ(boost::make_shared<FIFO>())
+	: m_InnerStream(innerStream), m_RecvQ(boost::make_shared<FIFO>()), m_SendQ(boost::make_shared<FIFO>()),
+	  m_Exception(), m_Blocking(true)
 {
 	boost::thread readThread(boost::bind(&BufferedStream::ReadThreadProc, this));
 	readThread.detach();
@@ -52,11 +53,14 @@ void BufferedStream::ReadThreadProc(void)
 			m_ReadCV.notify_all();
 		}
 	} catch (const std::exception& ex) {
-		std::ostringstream msgbuf;
-		msgbuf << "Error for buffered stream (Read): " << boost::diagnostic_information(ex);
-		Log(LogWarning, "base", msgbuf.str());
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
 
-		Close();
+			if (!m_Exception)
+				m_Exception = boost::current_exception();
+
+			m_ReadCV.notify_all();
+		}
 	}
 }
 
@@ -80,11 +84,14 @@ void BufferedStream::WriteThreadProc(void)
 			m_InnerStream->Write(buffer, rc);
 		}
 	} catch (const std::exception& ex) {
-		std::ostringstream msgbuf;
-		msgbuf << "Error for buffered stream (Write): " << boost::diagnostic_information(ex);
-		Log(LogWarning, "base", msgbuf.str());
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
 
-		Close();
+			if (!m_Exception)
+				m_Exception = boost::current_exception();
+
+			m_WriteCV.notify_all();
+		}
 	}
 }
 
@@ -104,6 +111,13 @@ void BufferedStream::Close(void)
 size_t BufferedStream::Read(void *buffer, size_t count)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
+
+	if (m_Blocking)
+		InternalWaitReadable(count, lock);
+
+	if (m_Exception)
+		boost::rethrow_exception(m_Exception);
+
 	return m_RecvQ->Read(buffer, count);
 }
 
@@ -117,6 +131,10 @@ size_t BufferedStream::Read(void *buffer, size_t count)
 void BufferedStream::Write(const void *buffer, size_t count)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
+
+	if (m_Exception)
+		boost::rethrow_exception(m_Exception);
+
 	m_SendQ->Write(buffer, count);
 	m_WriteCV.notify_all();	
 }
@@ -125,9 +143,22 @@ void BufferedStream::WaitReadable(size_t count)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	while (m_RecvQ->GetAvailableBytes() < count)
+	InternalWaitReadable(count, lock);
+}
+
+void BufferedStream::InternalWaitReadable(size_t count, boost::mutex::scoped_lock& lock)
+{
+	while (m_RecvQ->GetAvailableBytes() < count && !m_Exception)
 		m_ReadCV.wait(lock);
 }
 
 void BufferedStream::WaitWritable(size_t count)
 { /* Nothing to do here. */ }
+
+void BufferedStream::MakeNonBlocking(void)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	m_Blocking = false;
+}
+

@@ -43,6 +43,8 @@ TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SS
 	
 	if (!m_InnerStream)
 		m_InnerStream = boost::make_shared<BufferedStream>(innerStream);
+
+	m_InnerStream->MakeNonBlocking();
 	
 	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 

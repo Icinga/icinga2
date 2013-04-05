@@ -69,7 +69,6 @@ public:
 	void ClearSubscriptions(void);
 
 	void RegisterTopicHandler(const String& topic, const boost::function<Callback>& callback);
-	void UnregisterTopicHandler(const String& topic, const boost::function<Callback>& callback);
 
 	String GetNode(void) const;
 	String GetService(void) const;
@@ -77,7 +76,6 @@ public:
 	static Endpoint::Ptr MakeEndpoint(const String& name, bool replicated, bool local = true);
 
 	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
-	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnDisconnected;
 
 private:
 	Attribute<bool> m_Local;
