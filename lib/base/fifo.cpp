@@ -42,12 +42,15 @@ FIFO::~FIFO(void)
  *
  * @param newSize The minimum new size of the FIFO buffer.
  */
-void FIFO::ResizeBuffer(size_t newSize)
+void FIFO::ResizeBuffer(size_t newSize, bool decrease)
 {
-	if (m_AllocSize >= newSize)
+	if (m_AllocSize >= newSize && !decrease)
 		return;
 
 	newSize = (newSize / FIFO::BlockSize + 1) * FIFO::BlockSize;
+
+	if (newSize == m_AllocSize)
+		return;
 
 	char *newBuffer = static_cast<char *>(realloc(m_Buffer, newSize));
 
@@ -69,7 +72,8 @@ void FIFO::Optimize(void)
 		memcpy(m_Buffer, m_Buffer + m_Offset, m_DataSize);
 		m_Offset = 0;
 
-		ResizeBuffer(m_DataSize);
+		if (m_DataSize > 0)
+			ResizeBuffer(m_DataSize, true);
 
 		return;
 	}
@@ -99,7 +103,7 @@ size_t FIFO::Read(void *buffer, size_t count)
  */
 void FIFO::Write(const void *buffer, size_t count)
 {
-	ResizeBuffer(m_Offset + m_DataSize + count);
+	ResizeBuffer(m_Offset + m_DataSize + count, false);
 	memcpy(m_Buffer + m_Offset + m_DataSize, buffer, count);
 	m_DataSize += count;
 }

@@ -54,7 +54,7 @@ private:
 	size_t m_AllocSize;
 	size_t m_Offset;
 
-	void ResizeBuffer(size_t newSize);
+	void ResizeBuffer(size_t newSize, bool decrease);
 	void Optimize(void);
 };
 

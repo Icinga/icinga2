@@ -203,9 +203,7 @@ void EndpointManager::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 	if (!endpoint)
 		endpoint = Endpoint::MakeEndpoint(identity, true);
 
-	BufferedStream::Ptr bufferedStream = boost::make_shared<BufferedStream>(tlsStream);
-
-	endpoint->SetClient(bufferedStream);
+	endpoint->SetClient(tlsStream);
 }
 
 /**

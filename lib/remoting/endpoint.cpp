@@ -292,8 +292,6 @@ void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "jsonrpc", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + boost::diagnostic_information(ex));
 
-			GetClient()->Close();
-
 			m_Client.reset();
 		}
 
