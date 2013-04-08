@@ -34,6 +34,9 @@ ConfigCompilerContext::ConfigCompilerContext(void)
 
 void ConfigCompilerContext::AddItem(const ConfigItem::Ptr& item)
 {
+	Log(LogDebug, "config", "Adding item to compiler context: type=" +
+	    item->GetType() + "; name=" + item->GetName());
+
 	m_Items.push_back(item);
 	m_ItemsMap[std::make_pair(item->GetType(), item->GetName())] = item;
 }

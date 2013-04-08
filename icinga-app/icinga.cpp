@@ -72,11 +72,11 @@ static bool LoadConfigFiles(bool validateOnly)
 		}
 	}
 
-	context.LinkItems();
-
-	/* Don't validate if we have already encountered at least one error. */
-	if (!hasError)
+	/* Don't link or validate if we have already encountered at least one error. */
+	if (!hasError) {
+		context.LinkItems();
 		context.ValidateItems();
+	}
 
 	hasError = false;
 
