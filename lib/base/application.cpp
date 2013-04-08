@@ -102,6 +102,9 @@ Application::~Application(void)
  */
 Application::Ptr Application::GetInstance(void)
 {
+	if (!m_Instance)
+		return Application::Ptr();
+
 	return m_Instance->GetSelf();
 }
 
