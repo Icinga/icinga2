@@ -33,7 +33,6 @@
 #include <syslog.h>
 #include <sys/file.h>
 #include <sys/wait.h>
-#include <poll.h>
 #include <glob.h>
 #include <ltdl.h>
 #include <dlfcn.h>
