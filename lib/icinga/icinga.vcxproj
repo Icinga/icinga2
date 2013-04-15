@@ -32,6 +32,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="icingaapplication.cpp" />
+    <ClCompile Include="legacytimeperiod.cpp" />
     <ClCompile Include="macroprocessor.cpp" />
     <ClCompile Include="macroresolver.cpp" />
     <ClCompile Include="notification.cpp" />
@@ -58,6 +59,7 @@
     <ClInclude Include="hostgroup.h" />
     <ClInclude Include="i2-icinga.h" />
     <ClInclude Include="icingaapplication.h" />
+    <ClInclude Include="legacytimeperiod.h" />
     <ClInclude Include="macroprocessor.h" />
     <ClInclude Include="macroresolver.h" />
     <ClInclude Include="notification.h" />

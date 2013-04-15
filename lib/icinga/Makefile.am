@@ -28,6 +28,8 @@ libicinga_la_SOURCES =  \
 	icinga-type.cpp \
 	icingaapplication.cpp \
 	icingaapplication.h \
+	legacytimeperiod.cpp \
+	legacytimeperiod.h \
 	macroprocessor.cpp \
 	macroprocessor.h \
 	macroresolver.cpp \
