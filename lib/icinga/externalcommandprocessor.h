@@ -105,6 +105,14 @@ private:
 	static void DisableHostNotifications(double time, const std::vector<String>& arguments);
 	static void EnableSvcNotifications(double time, const std::vector<String>& arguments);
 	static void DisableSvcNotifications(double time, const std::vector<String>& arguments);
+	static void DisableHostgroupHostChecks(double, const std::vector<String>& arguments);
+	static void DisableHostgroupPassiveHostChecks(double, const std::vector<String>& arguments);
+	static void DisableServicegroupHostChecks(double, const std::vector<String>& arguments);
+	static void DisableServicegroupPassiveHostChecks(double, const std::vector<String>& arguments);
+	static void EnableHostgroupHostChecks(double, const std::vector<String>& arguments);
+	static void EnableHostgroupPassiveHostChecks(double, const std::vector<String>& arguments);
+	static void EnableServicegroupHostChecks(double, const std::vector<String>& arguments);
+	static void EnableServicegroupPassiveHostChecks(double, const std::vector<String>& arguments);
 };
 
 }

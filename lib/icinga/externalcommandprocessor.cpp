@@ -152,6 +152,14 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("DISABLE_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostNotifications);
 	RegisterCommand("ENABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableSvcNotifications);
 	RegisterCommand("DISABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableSvcNotifications);
+	RegisterCommand("DISABLE_HOSTGROUP_HOST_CHECKS", &ExternalCommandProcessor::DisableHostgroupHostChecks);
+	RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisableHostgroupPassiveHostChecks);
+	RegisterCommand("DISABLE_SERVICEGROUP_HOST_CHECKS", &ExternalCommandProcessor::DisableServicegroupHostChecks);
+	RegisterCommand("DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisableServicegroupPassiveHostChecks);
+	RegisterCommand("ENABLE_HOSTGROUP_HOST_CHECKS", &ExternalCommandProcessor::EnableHostgroupHostChecks);
+	RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnableHostgroupPassiveHostChecks);
+	RegisterCommand("ENABLE_SERVICEGROUP_HOST_CHECKS", &ExternalCommandProcessor::EnableServicegroupHostChecks);
+	RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnableServicegroupPassiveHostChecks);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
@@ -1231,5 +1239,193 @@ void ExternalCommandProcessor::DisableSvcNotifications(double, const std::vector
 		ObjectLock olock(service);
 
 		service->SetEnableNotifications(false);
+	}
+}
+
+void ExternalCommandProcessor::DisableHostgroupHostChecks(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		Service::Ptr hc = host->GetHostCheckService();
+
+		if (!hc)
+			continue;
+
+		Log(LogInformation, "icinga", "Disabling active checks for host '" + host->GetName() + "'");
+
+		{
+			ObjectLock olock(hc);
+
+			hc->SetEnableActiveChecks(false);
+		}
+	}
+}
+
+void ExternalCommandProcessor::DisableHostgroupPassiveHostChecks(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		Service::Ptr hc = host->GetHostCheckService();
+
+		if (!hc)
+			continue;
+
+		Log(LogInformation, "icinga", "Disabling active checks for host '" + host->GetName() + "'");
+
+		{
+			ObjectLock olock(hc);
+
+			hc->SetEnablePassiveChecks(false);
+		}
+	}
+}
+
+void ExternalCommandProcessor::DisableServicegroupHostChecks(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Host::Ptr host = service->GetHost();
+
+		if (!host)
+			continue;
+
+		Service::Ptr hc = host->GetHostCheckService();
+
+		if (!hc)
+			continue;
+
+		Log(LogInformation, "icinga", "Disabling active checks for host '" + host->GetName() + "'");
+
+		{
+			ObjectLock olock(hc);
+
+			hc->SetEnableActiveChecks(false);
+		}
+	}
+}
+
+void ExternalCommandProcessor::DisableServicegroupPassiveHostChecks(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Host::Ptr host = service->GetHost();
+
+		if (!host)
+			continue;
+
+		Service::Ptr hc = host->GetHostCheckService();
+
+		if (!hc)
+			continue;
+
+		Log(LogInformation, "icinga", "Disabling active checks for host '" + host->GetName() + "'");
+
+		{
+			ObjectLock olock(hc);
+
+			hc->SetEnablePassiveChecks(false);
+		}
+	}
+}
+
+void ExternalCommandProcessor::EnableHostgroupHostChecks(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		Service::Ptr hc = host->GetHostCheckService();
+
+		if (!hc)
+			continue;
+
+		Log(LogInformation, "icinga", "Enabling active checks for host '" + host->GetName() + "'");
+
+		{
+			ObjectLock olock(hc);
+
+			hc->SetEnableActiveChecks(true);
+		}
+	}
+}
+
+void ExternalCommandProcessor::EnableHostgroupPassiveHostChecks(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+}
+
+void ExternalCommandProcessor::EnableServicegroupHostChecks(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Host::Ptr host = service->GetHost();
+
+		if (!host)
+			continue;
+
+		Service::Ptr hc = host->GetHostCheckService();
+
+		if (!hc)
+			continue;
+
+		Log(LogInformation, "icinga", "Enabling active checks for host '" + host->GetName() + "'");
+
+		{
+			ObjectLock olock(hc);
+
+			hc->SetEnableActiveChecks(true);
+		}
+	}
+}
+
+void ExternalCommandProcessor::EnableServicegroupPassiveHostChecks(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Host::Ptr host = service->GetHost();
+
+		if (!host)
+			continue;
+
+		Service::Ptr hc = host->GetHostCheckService();
+
+		if (!hc)
+			continue;
+
+		Log(LogInformation, "icinga", "Enabling active checks for host '" + host->GetName() + "'");
+
+		{
+			ObjectLock olock(hc);
+
+			hc->SetEnablePassiveChecks(false);
+		}
 	}
 }
