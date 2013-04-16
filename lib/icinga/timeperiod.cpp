@@ -55,7 +55,8 @@ void TimePeriod::Start(void)
 {
 	/* Pre-fill the time period for the next 24 hours. */
 	double now = Utility::GetTime();
-	UpdateRegion(now, now + 24 * 3600);
+	UpdateRegion(now, now + 24 * 3600, true);
+	Dump();
 }
 
 TimePeriod::Ptr TimePeriod::GetByName(const String& name)
@@ -196,13 +197,15 @@ void TimePeriod::PurgeSegments(double end)
 	Touch("segments");
 }
 
-void TimePeriod::UpdateRegion(double begin, double end)
+void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 {
-	if (begin < m_ValidEnd)
-		begin = m_ValidEnd;
+	if (!clearExisting) {
+		if (begin < m_ValidEnd)
+			begin = m_ValidEnd;
 
-	if (end < m_ValidEnd)
-		return;
+		if (end < m_ValidEnd)
+			return;
+	}
 
 	TimePeriod::Ptr self = GetSelf();
 
@@ -288,18 +291,18 @@ void TimePeriod::UpdateTimerHandler(void)
 			valid_end = tp->m_ValidEnd;
 		}
 
-		if (valid_end < now + 3 * 3600)
-			tp->UpdateRegion(valid_end, now + 24 * 3600);
+		tp->UpdateRegion(valid_end, now + 24 * 3600, false);
+		tp->Dump();
 	}
 }
 
-Array::Ptr TimePeriod::EmptyTimePeriodUpdate(const TimePeriod::Ptr tp, double begin, double end)
+Array::Ptr TimePeriod::EmptyTimePeriodUpdate(const TimePeriod::Ptr&, double, double)
 {
 	Array::Ptr segments = boost::make_shared<Array>();
 	return segments;
 }
 
-Array::Ptr TimePeriod::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr tp, double begin, double end)
+Array::Ptr TimePeriod::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr&, double begin, double end)
 {
 	Array::Ptr segments = boost::make_shared<Array>();
 
@@ -314,4 +317,22 @@ Array::Ptr TimePeriod::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr tp, dou
 	}
 
 	return segments;
+}
+
+void TimePeriod::Dump(void)
+{
+	Array::Ptr segments = m_Segments;
+
+	Log(LogDebug, "icinga", "Dumping TimePeriod '" + GetName() + "'");
+
+	if (segments) {
+		ObjectLock dlock(segments);
+		BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
+			Log(LogDebug, "icinga", "Segment: " +
+			    Utility::FormatDateTime("%c", segment->Get("begin")) + " <-> " +
+			    Utility::FormatDateTime("%c", segment->Get("end")));
+		}
+	}
+
+	Log(LogDebug, "icinga", "---");
 }

@@ -44,13 +44,13 @@ public:
 
 	virtual void Start(void);
 
-	void UpdateRegion(double begin, double end);
+	void UpdateRegion(double begin, double end, bool clearExisting);
 
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);
 
-	static Array::Ptr EmptyTimePeriodUpdate(const TimePeriod::Ptr tp, double begin, double end);
-	static Array::Ptr EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr tp, double begin, double end);
+	static Array::Ptr EmptyTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
+	static Array::Ptr EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
 
 private:
 	Attribute<double> m_ValidBegin;
@@ -61,6 +61,8 @@ private:
 	void AddSegment(const Dictionary::Ptr& segment);
 	void RemoveSegment(double begin, double end);
 	void PurgeSegments(double end);
+
+	void Dump(void);
 
 	static void UpdateTimerHandler(void);
 };

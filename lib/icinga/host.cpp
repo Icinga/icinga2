@@ -539,7 +539,7 @@ String Host::StateToString(HostState state)
 	}
 }
 
-bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
+bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
 	if (macro == "HOSTNAME" || macro == "HOSTALIAS") {
 		*result = GetName();

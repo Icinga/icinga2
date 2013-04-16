@@ -21,6 +21,7 @@
 #include "base/scriptfunction.h"
 #include "base/convert.h"
 #include "base/exception.h"
+#include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -140,6 +141,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 
 	if (ranges) {
 		for (int i = 0; i <= (end - begin) / (24 * 60 * 60); i++) {
+			ObjectLock olock(ranges);
 			String key;
 			Value value;
 			BOOST_FOREACH(boost::tie(key, value), ranges) {
@@ -149,7 +151,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 				ProcessTimeRanges(value, &reference, segments);
 			}
 
-			reference.tm_wday++;
+			reference.tm_mday++;
 		}
 	}
 

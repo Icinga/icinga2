@@ -280,7 +280,7 @@ void Notification::OnAttributeChanged(const String& name)
 		Service::InvalidateNotificationsCache();
 }
 
-bool Notification::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
+bool Notification::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
 	Dictionary::Ptr macros = GetMacros();
 
