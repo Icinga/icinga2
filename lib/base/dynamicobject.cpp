@@ -289,10 +289,12 @@ void DynamicObject::InternalSetAttribute(const String& name, const Value& data,
 		if (!allowEditConfig && (it->second.GetType() & Attribute_Config))
 			BOOST_THROW_EXCEPTION(std::runtime_error("Config properties are immutable: '" + name + "'."));
 
-		it->second.SetValue(tx, data);
+		if (tx > it->second.GetTx()) {
+			it->second.SetValue(tx, data);
 
-		if (it->second.GetType() & Attribute_Config)
-			m_ConfigTx = tx;
+			if (it->second.GetType() & Attribute_Config)
+				m_ConfigTx = tx;
+		}
 	}
 
 	if (IsRegistered()) {

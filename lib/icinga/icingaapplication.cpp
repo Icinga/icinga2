@@ -185,7 +185,7 @@ shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
 	return m_SSLContext;
 }
 
-bool IcingaApplication::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
+bool IcingaApplication::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
 	double now = Utility::GetTime();
 

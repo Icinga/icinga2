@@ -118,29 +118,31 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 
 	Dictionary::Ptr ranges = tp->Get("ranges");
 
-	time_t tempts = begin;
-	tm reference;
 
-#ifdef _MSC_VER
-	tm *temp = localtime(&tempts);
-
-	if (temp == NULL) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime")
-		    << boost::errinfo_errno(errno));
-	}
-
-	reference = *temp;
-#else /* _MSC_VER */
-	if (localtime_r(&tempts, &reference) == NULL) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime_r")
-		    << boost::errinfo_errno(errno));
-	}
-#endif /* _MSC_VER */
 
 	if (ranges) {
 		for (int i = 0; i <= (end - begin) / (24 * 60 * 60); i++) {
+			time_t refts = begin + i * 24 * 60 * 60;
+			tm reference;
+
+#ifdef _MSC_VER
+			tm *temp = localtime(&refts);
+
+			if (temp == NULL) {
+				BOOST_THROW_EXCEPTION(posix_error()
+				    << boost::errinfo_api_function("localtime")
+				    << boost::errinfo_errno(errno));
+			}
+
+			reference = *temp;
+#else /* _MSC_VER */
+			if (localtime_r(&refts, &reference) == NULL) {
+				BOOST_THROW_EXCEPTION(posix_error()
+				    << boost::errinfo_api_function("localtime_r")
+				    << boost::errinfo_errno(errno));
+			}
+#endif /* _MSC_VER */
+
 			ObjectLock olock(ranges);
 			String key;
 			Value value;
@@ -150,8 +152,6 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 
 				ProcessTimeRanges(value, &reference, segments);
 			}
-
-			reference.tm_mday++;
 		}
 	}
 
@@ -159,4 +159,3 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 
 	return segments;
 }
-
