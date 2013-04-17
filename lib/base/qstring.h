@@ -75,6 +75,7 @@ public:
 	void Clear(void);
 	size_t GetLength(void) const;
 
+	size_t Find(const String& str, size_t pos = 0) const;
 	size_t FindFirstOf(const char *s, size_t pos = 0) const;
 	size_t FindFirstOf(char ch, size_t pos = 0) const;
 	String SubStr(size_t first, size_t len = NPos) const;
