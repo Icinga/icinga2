@@ -17,77 +17,75 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dictionary.h"
+#include "base/array.h"
+#include "base/objectlock.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
-BOOST_AUTO_TEST_SUITE(base_dictionary)
+BOOST_AUTO_TEST_SUITE(base_array)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	BOOST_CHECK(dictionary);
+	Array::Ptr array = boost::make_shared<Array>();
+	BOOST_CHECK(array);
+	BOOST_CHECK(array->GetLength() == 0);
 }
 
-BOOST_AUTO_TEST_CASE(getproperty)
+BOOST_AUTO_TEST_CASE(getset)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	dictionary->Set("test1", 7);
-	dictionary->Set("test2", "hello world");
+	Array::Ptr array = boost::make_shared<Array>();
+	array->Add(7);
+	array->Add(2);
+	array->Add(5);
+	BOOST_CHECK(array->GetLength() == 3);
+	BOOST_CHECK(array->Get(0) == 7);
+	BOOST_CHECK(array->Get(1) == 2);
+	BOOST_CHECK(array->Get(2) == 5);
 
-	BOOST_CHECK(dictionary->GetLength() == 2);
+	array->Set(1, 9);
+	BOOST_CHECK(array->Get(1) == 9);
 
-	Value test1;
-	test1 = dictionary->Get("test1");
-	BOOST_CHECK(test1 == 7);
-
-	Value test2;
-	test2 = dictionary->Get("test2");
-	BOOST_CHECK(test2 == "hello world");
-
-	String key3 = "test3";
-	Value test3;
-	test3 = dictionary->Get(key3);
-	BOOST_CHECK(test3.IsEmpty());
+	array->Remove(1);
+	BOOST_CHECK(array->GetLength() == 2);
+	BOOST_CHECK(array->Get(1) == 5);
 }
 
-BOOST_AUTO_TEST_CASE(getproperty_dict)
+BOOST_AUTO_TEST_CASE(foreach)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	Dictionary::Ptr other = boost::make_shared<Dictionary>();
+	Array::Ptr array = boost::make_shared<Array>();
+	array->Add(7);
+	array->Add(2);
+	array->Add(5);
 
-	dictionary->Set("test1", other);
+	ObjectLock olock(array);
 
-	BOOST_CHECK(dictionary->GetLength() == 1);
+	int n = 0;
 
-	Dictionary::Ptr test1 = dictionary->Get("test1");
-	BOOST_CHECK(other == test1);
+	BOOST_FOREACH(const Value& item, array) {
+		BOOST_CHECK(n != 0 || item == 7);
+		BOOST_CHECK(n != 1 || item == 2);
+		BOOST_CHECK(n != 2 || item == 5);
 
-	Dictionary::Ptr test2 = dictionary->Get("test2");
-	BOOST_CHECK(!test2);
+		n++;
+	}
 }
 
-BOOST_AUTO_TEST_CASE(remove_dict)
+BOOST_AUTO_TEST_CASE(clone)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	Array::Ptr array = boost::make_shared<Array>();
+	array->Add(7);
+	array->Add(2);
+	array->Add(5);
 
-	dictionary->Set("test1", 7);
-	dictionary->Set("test2", "hello world");
+	Array::Ptr clone = array->ShallowClone();
 
-	BOOST_CHECK(dictionary->Contains("test1"));
-	BOOST_CHECK(dictionary->GetLength() == 2);
-
-	dictionary->Set("test1", Empty);
-
-	BOOST_CHECK(!dictionary->Contains("test1"));
-	BOOST_CHECK(dictionary->GetLength() == 1);
-
-	dictionary->Remove("test2");
-
-	BOOST_CHECK(!dictionary->Contains("test2"));
-	BOOST_CHECK(dictionary->GetLength() == 0);
+	BOOST_CHECK(clone->GetLength() == 3);
+	BOOST_CHECK(clone->Get(0) == 7);
+	BOOST_CHECK(clone->Get(1) == 2);
+	BOOST_CHECK(clone->Get(2) == 5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

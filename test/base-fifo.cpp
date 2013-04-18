@@ -17,77 +17,39 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dictionary.h"
+#include "base/fifo.h"
+#include "base/objectlock.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
-BOOST_AUTO_TEST_SUITE(base_dictionary)
+BOOST_AUTO_TEST_SUITE(base_fifo)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	BOOST_CHECK(dictionary);
+	FIFO::Ptr fifo = boost::make_shared<FIFO>();
+	BOOST_CHECK(fifo);
+	BOOST_CHECK(fifo->GetAvailableBytes() == 0);
 }
 
-BOOST_AUTO_TEST_CASE(getproperty)
+BOOST_AUTO_TEST_CASE(io)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	dictionary->Set("test1", 7);
-	dictionary->Set("test2", "hello world");
+	FIFO::Ptr fifo = boost::make_shared<FIFO>();
 
-	BOOST_CHECK(dictionary->GetLength() == 2);
+	fifo->Write("hello", 5);
+	BOOST_CHECK(fifo->GetAvailableBytes() == 5);
 
-	Value test1;
-	test1 = dictionary->Get("test1");
-	BOOST_CHECK(test1 == 7);
+	char buffer1[2];
+	fifo->Read(buffer1, 2);
+	BOOST_CHECK(memcmp(buffer1, "he", 2) == 0);
+	BOOST_CHECK(fifo->GetAvailableBytes() == 3);
 
-	Value test2;
-	test2 = dictionary->Get("test2");
-	BOOST_CHECK(test2 == "hello world");
-
-	String key3 = "test3";
-	Value test3;
-	test3 = dictionary->Get(key3);
-	BOOST_CHECK(test3.IsEmpty());
-}
-
-BOOST_AUTO_TEST_CASE(getproperty_dict)
-{
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	Dictionary::Ptr other = boost::make_shared<Dictionary>();
-
-	dictionary->Set("test1", other);
-
-	BOOST_CHECK(dictionary->GetLength() == 1);
-
-	Dictionary::Ptr test1 = dictionary->Get("test1");
-	BOOST_CHECK(other == test1);
-
-	Dictionary::Ptr test2 = dictionary->Get("test2");
-	BOOST_CHECK(!test2);
-}
-
-BOOST_AUTO_TEST_CASE(remove_dict)
-{
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-
-	dictionary->Set("test1", 7);
-	dictionary->Set("test2", "hello world");
-
-	BOOST_CHECK(dictionary->Contains("test1"));
-	BOOST_CHECK(dictionary->GetLength() == 2);
-
-	dictionary->Set("test1", Empty);
-
-	BOOST_CHECK(!dictionary->Contains("test1"));
-	BOOST_CHECK(dictionary->GetLength() == 1);
-
-	dictionary->Remove("test2");
-
-	BOOST_CHECK(!dictionary->Contains("test2"));
-	BOOST_CHECK(dictionary->GetLength() == 0);
+	char buffer2[3];
+	fifo->Read(buffer2, 3);
+	BOOST_CHECK(memcmp(buffer2, "llo", 3) == 0);
+	BOOST_CHECK(fifo->GetAvailableBytes() == 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

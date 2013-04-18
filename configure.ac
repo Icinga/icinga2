@@ -73,16 +73,27 @@ AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 AC_CHECK_FUNCS([backtrace_symbols execvpe pipe2])
 
+CFLAGS="$CFLAGS -Wall -Wextra"
+CXXFLAGS="$CXXFLAGS -Wall -Wextra"
+
 AC_MSG_CHECKING(whether to enable debugging)
 AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes]   turn on debugging (default=no)],, enable_debug=no)
 if test "x$enable_debug" = "xyes"; then
-	CFLAGS="$CFLAGS -g -O0 -D_DEBUG -Wall -Wextra"
-	CXXFLAGS="$CXXFLAGS -g -O0 -D_DEBUG -Wall -Wextra"
+	CFLAGS="$CFLAGS -g -O0 -D_DEBUG"
+	CXXFLAGS="$CXXFLAGS -g -O0 -D_DEBUG"
 else
 	CFLAGS="$CFLAGS -DNDEBUG"
 	CXXFLAGS="$CXXFLAGS -DNDEBUG"
 fi
 AC_MSG_RESULT($enable_debug)
+
+AC_MSG_CHECKING(whether to enable coverage)
+AC_ARG_ENABLE(coverage, [ --enable-coverage=[no/yes]   turn on profiling (default=no)],, enable_coverage=no)
+if test "x$enable_coverage" = "xyes"; then
+	CFLAGS="$CFLAGS -g -O0 -fprofile-arcs -ftest-coverage -lgcov"
+	CXXFLAGS="$CXXFLAGS -g -O0 -fprofile-arcs -ftest-coverage -lgcov"
+fi
+AC_MSG_RESULT($enable_coverage)
 
 AX_PYTHON_DEFAULT
 AX_PYTHON_ENABLE

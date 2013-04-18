@@ -8,7 +8,11 @@ check_PROGRAMS = \
 
 icinga2_test_SOURCES = \
 	test.cpp \
+	base-array.cpp \
+	base-convert.cpp \
 	base-dictionary.cpp \
+	base-fifo.cpp \
+	base-object.cpp \
 	base-shellescape.cpp
 
 icinga2_test_CPPFLAGS = \
