@@ -23,6 +23,7 @@
 #include "base/exception.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/utility.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -191,7 +192,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 
 	int wday;
 
-	if (tokens.size() > 1 && (wday = WeekdayFromString(tokens[0])) != -1) {
+	if (tokens.size() >= 1 && (wday = WeekdayFromString(tokens[0])) != -1) {
 		tm myref = *reference;
 
 		if (tokens.size() > 2) {
@@ -203,11 +204,19 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			myref.tm_mon = mon;
 		}
 
-		int n = Convert::ToLong(tokens[1]);
+		int n;
+
+		if (tokens.size() > 1)
+			n = Convert::ToLong(tokens[1]);
 
 		if (begin) {
 			*begin = myref;
-			FindNthWeekday(wday, n, begin);
+
+			if (tokens.size() > 1)
+				FindNthWeekday(wday, n, begin);
+			else
+				begin->tm_mday += - begin->tm_wday + wday;
+
 			begin->tm_hour = 0;
 			begin->tm_min = 0;
 			begin->tm_sec = 0;
@@ -215,7 +224,12 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 
 		if (end) {
 			*end = myref;
-			FindNthWeekday(wday, n, end);
+
+			if (tokens.size() > 1)
+				FindNthWeekday(wday, n, end);
+			else
+				end->tm_mday += - begin->tm_wday + wday;
+
 			end->tm_hour = 0;
 			end->tm_min = 0;
 			end->tm_sec = 0;
@@ -287,12 +301,6 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 
 bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 {
-	/* Week specifications are special in that they don't have a reference frame. */
-	int wday = WeekdayFromString(daydef);
-
-	if (wday != -1)
-		return reference->tm_wday == wday;
-
 	tm begin, end;
 	int stride;
 
