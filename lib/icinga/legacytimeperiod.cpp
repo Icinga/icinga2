@@ -263,8 +263,6 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 	/* Figure out whether the user has specified two dates. */
 	pos = def.Find("- ");
 
-	std::cout << "XXX: " << def << std::endl;
-
 	if (pos != String::NPos) {
 		String first = def.SubStr(0, pos);
 		first.Trim();
