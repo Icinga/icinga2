@@ -68,7 +68,7 @@ check-coverage: all
 	lcov -d . -z
 	make check
 	lcov -d . -c -o icinga2.info
-	lcov -e icinga2.info -o icinga2-filtered.info `pwd`\*
+	lcov -e icinga2.info -o icinga2-filtered.info "`readlink -f $(top_srcdir)`/*"
 	mkdir -p docs/lcov
 	genhtml -o docs/lcov icinga2-filtered.info
 

@@ -12,6 +12,7 @@ icinga2_test_SOURCES = \
 	base-convert.cpp \
 	base-dictionary.cpp \
 	base-fifo.cpp \
+	base-match.cpp \
 	base-object.cpp \
 	base-shellescape.cpp \
 	base-timer.cpp
