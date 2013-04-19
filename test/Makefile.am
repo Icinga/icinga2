@@ -13,7 +13,8 @@ icinga2_test_SOURCES = \
 	base-dictionary.cpp \
 	base-fifo.cpp \
 	base-object.cpp \
-	base-shellescape.cpp
+	base-shellescape.cpp \
+	base-timer.cpp
 
 icinga2_test_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \

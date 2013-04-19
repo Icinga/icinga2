@@ -26,20 +26,19 @@
 #include <boost/bind.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/foreach.hpp>
+#include <boost/chrono/duration.hpp>
 
 using namespace icinga;
 
 ThreadPool::ThreadPool(void)
-	: m_Stopped(false), m_ThreadDeaths(0), m_WaitTime(0), m_ServiceTime(0), m_TaskCount(0)
+	: m_Stopped(false), m_ThreadDeaths(0), m_WaitTime(0),
+	  m_ServiceTime(0), m_TaskCount(0)
 {
 	for (int i = 0; i < 2; i++)
 		SpawnWorker();
 
-	boost::thread managerThread(boost::bind(&ThreadPool::ManagerThreadProc, this));
-	managerThread.detach();
-
-	boost::thread statsThread(boost::bind(&ThreadPool::StatsThreadProc, this));
-	statsThread.detach();
+	m_ManagerThread = boost::thread(boost::bind(&ThreadPool::ManagerThreadProc, this));
+	m_StatsThread = boost::thread(boost::bind(&ThreadPool::StatsThreadProc, this));
 }
 
 ThreadPool::~ThreadPool(void)
@@ -52,7 +51,8 @@ void ThreadPool::Stop(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Stopped = true;
-	m_CV.notify_all();
+	m_WorkCV.notify_all();
+	m_MgmtCV.notify_all();
 }
 
 /**
@@ -67,6 +67,27 @@ void ThreadPool::Join(void)
 		Utility::Sleep(0.5);
 		lock.lock();
 	}
+
+	int alive;
+
+	do {
+		alive = 0;
+		for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
+			if (m_ThreadStats[i].State != ThreadDead) {
+				alive++;
+				KillWorker();
+			}
+		}
+
+		if (alive > 0) {
+			lock.unlock();
+			Utility::Sleep(0.5);
+			lock.lock();
+		}
+	} while (alive > 0);
+
+	m_ManagerThread.join();
+	m_StatsThread.join();
 }
 
 /**
@@ -87,7 +108,7 @@ void ThreadPool::QueueThreadProc(int tid)
 			UpdateThreadUtilization(tid, ThreadIdle);
 
 			while (m_WorkItems.empty() && !m_Stopped && m_ThreadDeaths == 0)
-				m_CV.wait(lock);
+				m_WorkCV.wait(lock);
 
 			if (m_ThreadDeaths > 0) {
 				m_ThreadDeaths--;
@@ -190,7 +211,7 @@ void ThreadPool::Post(const ThreadPool::WorkFunction& callback)
 	wi.Timestamp = Utility::GetTime();
 
 	m_WorkItems.push_back(wi);
-	m_CV.notify_one();
+	m_WorkCV.notify_one();
 }
 
 void ThreadPool::ManagerThreadProc(void)
@@ -200,16 +221,18 @@ void ThreadPool::ManagerThreadProc(void)
 	Utility::SetThreadName(idbuf.str());
 
 	for (;;) {
-		Utility::Sleep(5);
-
-		double now = Utility::GetTime();
-
 		int pending, alive;
 		double avg_latency, max_latency;
 		double utilization = 0;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
+
+			m_MgmtCV.timed_wait(lock, boost::posix_time::seconds(5));
+
+			if (m_Stopped)
+				break;
+
 			pending = m_WorkItems.size();
 
 			alive = 0;
@@ -299,14 +322,15 @@ void ThreadPool::StatsThreadProc(void)
 	Utility::SetThreadName(idbuf.str());
 
 	for (;;) {
-		Utility::Sleep(0.25);
+		boost::mutex::scoped_lock lock(m_Mutex);
 
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
+		m_MgmtCV.timed_wait(lock, boost::posix_time::milliseconds(250));
 
-			for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++)
-				UpdateThreadUtilization(i);
-		}
+		if (m_Stopped)
+			break;
+
+		for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++)
+			UpdateThreadUtilization(i);
 	}
 }
 

@@ -71,6 +71,9 @@ private:
 	ThreadStats m_ThreadStats[512];
 	int m_ThreadDeaths;
 
+	boost::thread m_ManagerThread;
+	boost::thread m_StatsThread;
+
 	double m_WaitTime;
 	double m_ServiceTime;
 	int m_TaskCount;
@@ -78,7 +81,8 @@ private:
 	double m_MaxLatency;
 
 	boost::mutex m_Mutex;
-	boost::condition_variable m_CV;
+	boost::condition_variable m_WorkCV;
+	boost::condition_variable m_MgmtCV;
 
 	bool m_Stopped;
 

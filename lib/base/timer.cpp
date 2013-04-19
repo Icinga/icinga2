@@ -20,6 +20,7 @@
 #include "base/timer.h"
 #include "base/application.h"
 #include "base/utility.h"
+#include "base/logger_fwd.h"
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -300,6 +301,6 @@ void Timer::TimerThreadProc(void)
 		lock.unlock();
 
 		/* Asynchronously call the timer. */
-		Application::GetTP().Post(boost::bind(&Timer::Call, timer));
+		Utility::QueueAsyncCallback(boost::bind(&Timer::Call, timer));
 	}
 }
