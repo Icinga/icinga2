@@ -45,6 +45,7 @@
  * And last but not least, '\?' and '\*' in `new_mask' now become one character.
  */
 
+#if 0
 int mmatch(const char *old_mask, const char *new_mask)
 {
   const char *m = old_mask;
@@ -145,6 +146,7 @@ int mmatch(const char *old_mask, const char *new_mask)
     }
   }
 }
+#endif
 
 /*
  * Compare if a given string (name) matches the given
@@ -261,6 +263,7 @@ break_while:
  * Note that this new optimized alghoritm can *only* work in place.
  */
 
+#if 0
 char *collapse(char *pattern)
 {
   int star = 0;
@@ -303,4 +306,4 @@ char *collapse(char *pattern)
   };
   return pattern;
 }
-
+#endif

@@ -39,6 +39,7 @@ public:
 	typedef weak_ptr<BufferedStream> WeakPtr;
 
 	BufferedStream(const Stream::Ptr& innerStream);
+	~BufferedStream(void);
 
 	virtual size_t Read(void *buffer, size_t count);
 	virtual void Write(const void *buffer, size_t count);
@@ -52,20 +53,25 @@ public:
 
 private:
 	Stream::Ptr m_InnerStream;
-	
+
+	bool m_Stopped;
+
 	FIFO::Ptr m_RecvQ;
 	FIFO::Ptr m_SendQ;
 
 	bool m_Blocking;
-	
+
 	boost::exception_ptr m_Exception;
-	
+
 	boost::mutex m_Mutex;
 	boost::condition_variable m_ReadCV;
 	boost::condition_variable m_WriteCV;
-	
+
 	void ReadThreadProc(void);
 	void WriteThreadProc(void);
+
+	boost::thread m_ReadThread;
+	boost::thread m_WriteThread;
 
 	void InternalWaitReadable(size_t count, boost::mutex::scoped_lock& lock);
 };

@@ -27,30 +27,52 @@
 using namespace icinga;
 
 BufferedStream::BufferedStream(const Stream::Ptr& innerStream)
-	: m_InnerStream(innerStream), m_RecvQ(boost::make_shared<FIFO>()), m_SendQ(boost::make_shared<FIFO>()),
-	  m_Exception(), m_Blocking(true)
+	: m_InnerStream(innerStream), m_Stopped(false),
+	  m_RecvQ(boost::make_shared<FIFO>()), m_SendQ(boost::make_shared<FIFO>()),
+	  m_Blocking(true), m_Exception()
 {
-	boost::thread readThread(boost::bind(&BufferedStream::ReadThreadProc, this));
-	readThread.detach();
-	
-	boost::thread writeThread(boost::bind(&BufferedStream::WriteThreadProc, this));
-	writeThread.detach();
+	m_ReadThread = boost::thread(boost::bind(&BufferedStream::ReadThreadProc, this));
+	m_WriteThread = boost::thread(boost::bind(&BufferedStream::WriteThreadProc, this));
+}
+
+BufferedStream::~BufferedStream(void)
+{
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		m_Stopped = true;
+	}
+
+	m_InnerStream->Close();
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		m_ReadCV.notify_all();
+		m_WriteCV.notify_all();
+	}
+
+	m_ReadThread.join();
+	m_WriteThread.join();
 }
 
 void BufferedStream::ReadThreadProc(void)
 {
 	char buffer[512];
-	
+
 	try {
 		for (;;) {
 			size_t rc = m_InnerStream->Read(buffer, sizeof(buffer));
-			
+
 			if (rc == 0)
 				break;
-			
+
 			boost::mutex::scoped_lock lock(m_Mutex);
 			m_RecvQ->Write(buffer, rc);
 			m_ReadCV.notify_all();
+
+			if (m_Stopped)
+				break;
 		}
 	} catch (const std::exception& ex) {
 		{
@@ -68,19 +90,22 @@ void BufferedStream::WriteThreadProc(void)
 {
 	char buffer[512];
 
-	try {	
+	try {
 		for (;;) {
 			size_t rc;
-	
+
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
-				
-				while (m_SendQ->GetAvailableBytes() == 0)
+
+				while (m_SendQ->GetAvailableBytes() == 0 && !m_Stopped)
 					m_WriteCV.wait(lock);
-					
+
+				if (m_Stopped)
+					break;
+
 				rc = m_SendQ->Read(buffer, sizeof(buffer));
-			}		
-			
+			}
+
 			m_InnerStream->Write(buffer, rc);
 		}
 	} catch (const std::exception& ex) {
@@ -136,7 +161,7 @@ void BufferedStream::Write(const void *buffer, size_t count)
 		boost::rethrow_exception(m_Exception);
 
 	m_SendQ->Write(buffer, count);
-	m_WriteCV.notify_all();	
+	m_WriteCV.notify_all();
 }
 
 void BufferedStream::WaitReadable(size_t count)
@@ -152,7 +177,7 @@ void BufferedStream::InternalWaitReadable(size_t count, boost::mutex::scoped_loc
 		m_ReadCV.wait(lock);
 }
 
-void BufferedStream::WaitWritable(size_t count)
+void BufferedStream::WaitWritable(size_t)
 { /* Nothing to do here. */ }
 
 void BufferedStream::MakeNonBlocking(void)
@@ -161,4 +186,3 @@ void BufferedStream::MakeNonBlocking(void)
 
 	m_Blocking = false;
 }
-
