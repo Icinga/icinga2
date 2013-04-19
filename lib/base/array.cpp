@@ -58,7 +58,9 @@ void Array::Set(unsigned int index, const Value& value)
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	ASSERT(!m_Sealed);
+	if (m_Sealed)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be sealed."));
+
 	m_Data.at(index) = value;
 }
 
@@ -72,7 +74,9 @@ void Array::Add(const Value& value)
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	ASSERT(!m_Sealed);
+	if (m_Sealed)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be sealed."));
+
 	m_Data.push_back(value);
 }
 
@@ -127,7 +131,9 @@ void Array::Remove(unsigned int index)
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	ASSERT(!m_Sealed);
+	if (m_Sealed)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be sealed."));
+
 	m_Data.erase(m_Data.begin() + index);
 }
 
@@ -138,10 +144,11 @@ void Array::Remove(unsigned int index)
  */
 void Array::Remove(Array::Iterator it)
 {
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
+	ASSERT(OwnsLock());
 
-	ASSERT(!m_Sealed);
+	if (m_Sealed)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be sealed."));
+
 	m_Data.erase(it);
 }
 
@@ -197,8 +204,7 @@ Array::Ptr Array::FromJson(cJSON *json)
 {
 	Array::Ptr array = boost::make_shared<Array>();
 
-	if (json->type != cJSON_Array)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON type must be cJSON_Array."));
+	ASSERT(json->type == cJSON_Array);
 
 	for (cJSON *i = json->child; i != NULL; i = i->next) {
 		array->Add(Value::FromJson(i));

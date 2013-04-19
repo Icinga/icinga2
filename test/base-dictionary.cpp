@@ -18,8 +18,11 @@
  ******************************************************************************/
 
 #include "base/dictionary.h"
+#include "base/objectlock.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
+#include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -31,7 +34,7 @@ BOOST_AUTO_TEST_CASE(construct)
 	BOOST_CHECK(dictionary);
 }
 
-BOOST_AUTO_TEST_CASE(getproperty)
+BOOST_AUTO_TEST_CASE(get1)
 {
 	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
 	dictionary->Set("test1", 7);
@@ -53,7 +56,7 @@ BOOST_AUTO_TEST_CASE(getproperty)
 	BOOST_CHECK(test3.IsEmpty());
 }
 
-BOOST_AUTO_TEST_CASE(getproperty_dict)
+BOOST_AUTO_TEST_CASE(get2)
 {
 	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
 	Dictionary::Ptr other = boost::make_shared<Dictionary>();
@@ -69,7 +72,41 @@ BOOST_AUTO_TEST_CASE(getproperty_dict)
 	BOOST_CHECK(!test2);
 }
 
-BOOST_AUTO_TEST_CASE(remove_dict)
+BOOST_AUTO_TEST_CASE(foreach)
+{
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	dictionary->Set("test1", 7);
+	dictionary->Set("test2", "hello world");
+
+	ObjectLock olock(dictionary);
+
+	bool seen_test1 = false, seen_test2 = false;
+
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), dictionary) {
+		BOOST_CHECK(key == "test1" || key == "test2");
+
+		if (key == "test1") {
+			BOOST_CHECK(!seen_test1);
+			seen_test1 = true;
+
+			BOOST_CHECK(value == 7);
+
+			continue;
+		} else if (key == "test2") {
+			BOOST_CHECK(!seen_test2);
+			seen_test2 = true;
+
+			BOOST_CHECK(value == "hello world");
+		}
+	}
+
+	BOOST_CHECK(seen_test1);
+	BOOST_CHECK(seen_test2);
+}
+
+BOOST_AUTO_TEST_CASE(remove)
 {
 	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
 
@@ -88,6 +125,85 @@ BOOST_AUTO_TEST_CASE(remove_dict)
 
 	BOOST_CHECK(!dictionary->Contains("test2"));
 	BOOST_CHECK(dictionary->GetLength() == 0);
+
+	dictionary->Set("test1", 7);
+	dictionary->Set("test2", "hello world");
+
+	{
+		ObjectLock olock(dictionary);
+
+		Dictionary::Iterator it = dictionary->Begin();
+		dictionary->Remove(it);
+	}
+
+	BOOST_CHECK(dictionary->GetLength() == 1);
+}
+
+BOOST_AUTO_TEST_CASE(clone)
+{
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+
+	dictionary->Set("test1", 7);
+	dictionary->Set("test2", "hello world");
+
+	Dictionary::Ptr clone = dictionary->ShallowClone();
+
+	BOOST_CHECK(dictionary != clone);
+
+	BOOST_CHECK(clone->GetLength() == 2);
+	BOOST_CHECK(clone->Get("test1") == 7);
+	BOOST_CHECK(clone->Get("test2") == "hello world");
+
+	clone->Set("test3", 5);
+	BOOST_CHECK(!dictionary->Contains("test3"));
+	BOOST_CHECK(dictionary->GetLength() == 2);
+
+	clone->Set("test2", "test");
+	BOOST_CHECK(dictionary->Get("test2") == "hello world");
+}
+
+BOOST_AUTO_TEST_CASE(seal)
+{
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	dictionary->Set("test1", 7);
+
+	BOOST_CHECK(!dictionary->IsSealed());
+	dictionary->Seal();
+	BOOST_CHECK(dictionary->IsSealed());
+
+	BOOST_CHECK_THROW(dictionary->Set("test2", "hello world"), boost::exception);
+	BOOST_CHECK(dictionary->GetLength() == 1);
+
+	BOOST_CHECK_THROW(dictionary->Set("test1", 8), boost::exception);
+	BOOST_CHECK(dictionary->Get("test1") == 7);
+
+	BOOST_CHECK_THROW(dictionary->Remove("test1"), boost::exception);
+	BOOST_CHECK(dictionary->GetLength() == 1);
+	BOOST_CHECK(dictionary->Get("test1") == 7);
+
+	{
+		ObjectLock olock(dictionary);
+		Dictionary::Iterator it = dictionary->Begin();
+		BOOST_CHECK_THROW(dictionary->Remove(it), boost::exception);
+	}
+
+	BOOST_CHECK(dictionary->GetLength() == 1);
+	BOOST_CHECK(dictionary->Get("test1") == 7);
+}
+
+BOOST_AUTO_TEST_CASE(serialize)
+{
+	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+
+	dictionary->Set("test1", 7);
+	dictionary->Set("test2", "hello world");
+
+	String json = Value(dictionary).Serialize();
+	BOOST_CHECK(json.GetLength() > 0);
+	Dictionary::Ptr deserialized = Value::Deserialize(json);
+	BOOST_CHECK(deserialized->GetLength() == 2);
+	BOOST_CHECK(deserialized->Get("test1") == 7);
+	BOOST_CHECK(deserialized->Get("test2") == "hello world");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

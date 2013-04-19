@@ -114,7 +114,8 @@ void Dictionary::Set(const String& key, const Value& value)
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	ASSERT(!m_Sealed);
+	if (m_Sealed)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be sealed."));
 
 	std::pair<std::map<String, Value>::iterator, bool> ret;
 	ret = m_Data.insert(std::make_pair(key, value));
@@ -193,7 +194,9 @@ void Dictionary::Remove(const String& key)
 	if (it == m_Data.end())
 		return;
 
-	ASSERT(!m_Sealed);
+	if (m_Sealed)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be sealed."));
+
 	m_Data.erase(it);
 }
 
@@ -204,10 +207,11 @@ void Dictionary::Remove(const String& key)
  */
 void Dictionary::Remove(Dictionary::Iterator it)
 {
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
+	ASSERT(OwnsLock());
 
-	ASSERT(!m_Sealed);
+	if (m_Sealed)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be sealed."));
+
 	m_Data.erase(it);
 }
 

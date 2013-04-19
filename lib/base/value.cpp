@@ -33,10 +33,18 @@ Value::Value(void)
 { }
 
 Value::Value(int value)
-    : m_Value(value)
+    : m_Value(double(value))
+{ }
+
+Value::Value(unsigned int value)
+    : m_Value(double(value))
 { }
 
 Value::Value(long value)
+    : m_Value(double(value))
+{ }
+
+Value::Value(unsigned long value)
     : m_Value(double(value))
 { }
 

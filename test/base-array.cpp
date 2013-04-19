@@ -53,6 +53,23 @@ BOOST_AUTO_TEST_CASE(getset)
 	BOOST_CHECK(array->Get(1) == 5);
 }
 
+BOOST_AUTO_TEST_CASE(remove)
+{
+	Array::Ptr array = boost::make_shared<Array>();
+	array->Add(7);
+	array->Add(2);
+	array->Add(5);
+
+	{
+		ObjectLock olock(array);
+		Array::Iterator it = array->Begin();
+		array->Remove(it);
+	}
+
+	BOOST_CHECK(array->GetLength() == 2);
+	BOOST_CHECK(array->Get(0) == 2);
+}
+
 BOOST_AUTO_TEST_CASE(foreach)
 {
 	Array::Ptr array = boost::make_shared<Array>();
@@ -86,6 +103,53 @@ BOOST_AUTO_TEST_CASE(clone)
 	BOOST_CHECK(clone->Get(0) == 7);
 	BOOST_CHECK(clone->Get(1) == 2);
 	BOOST_CHECK(clone->Get(2) == 5);
+}
+
+BOOST_AUTO_TEST_CASE(seal)
+{
+	Array::Ptr array = boost::make_shared<Array>();
+	array->Add(7);
+
+	BOOST_CHECK(!array->IsSealed());
+	array->Seal();
+	BOOST_CHECK(array->IsSealed());
+
+	BOOST_CHECK_THROW(array->Add(2), boost::exception);
+	BOOST_CHECK(array->GetLength() == 1);
+
+	BOOST_CHECK_THROW(array->Set(0, 8), boost::exception);
+	BOOST_CHECK(array->Get(0) == 7);
+
+	BOOST_CHECK_THROW(array->Remove(0), boost::exception);
+	BOOST_CHECK(array->GetLength() == 1);
+	BOOST_CHECK(array->Get(0) == 7);
+
+	{
+		ObjectLock olock(array);
+		Array::Iterator it = array->Begin();
+		BOOST_CHECK_THROW(array->Remove(it), boost::exception);
+	}
+
+	BOOST_CHECK(array->GetLength() == 1);
+	BOOST_CHECK(array->Get(0) == 7);
+}
+
+BOOST_AUTO_TEST_CASE(serialize)
+{
+	Array::Ptr array = boost::make_shared<Array>();
+	array->Add(7);
+	array->Add(2);
+	array->Add(5);
+
+	String json = Value(array).Serialize();
+	BOOST_CHECK(json.GetLength() > 0);
+
+	Array::Ptr deserialized = Value::Deserialize(json);
+	BOOST_CHECK(deserialized);
+	BOOST_CHECK(deserialized->GetLength() == 3);
+	BOOST_CHECK(deserialized->Get(0) == 7);
+	BOOST_CHECK(deserialized->Get(1) == 2);
+	BOOST_CHECK(deserialized->Get(2) == 5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -18,8 +18,10 @@
  ******************************************************************************/
 
 #include "base/convert.h"
+#include "base/object.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
+#include <iostream>
 
 using namespace icinga;
 
@@ -28,8 +30,33 @@ BOOST_AUTO_TEST_SUITE(base_convert)
 BOOST_AUTO_TEST_CASE(tolong)
 {
 	BOOST_CHECK_THROW(Convert::ToLong(" 7"), boost::exception);
-	BOOST_CHECK(Convert::ToLong("7") == 7);
+	BOOST_CHECK(Convert::ToLong("-7") == -7);
 	BOOST_CHECK_THROW(Convert::ToLong("7a"), boost::exception);
+}
+
+BOOST_AUTO_TEST_CASE(todouble)
+{
+	BOOST_CHECK_THROW(Convert::ToDouble(" 7.3"), boost::exception);
+	BOOST_CHECK(Convert::ToDouble("-7.3") == -7.3);
+	BOOST_CHECK_THROW(Convert::ToDouble("7.3a"), boost::exception);
+}
+
+BOOST_AUTO_TEST_CASE(tostring)
+{
+	BOOST_CHECK(Convert::ToString(7) == "7");
+	BOOST_CHECK(Convert::ToString(7.3) == "7.3");
+	BOOST_CHECK(Convert::ToString("hello") == "hello");
+
+	Object::Ptr object = boost::make_shared<Object>();
+	BOOST_CHECK(Convert::ToString(object) == "Object of type 'icinga::Object'");
+}
+
+BOOST_AUTO_TEST_CASE(tobool)
+{
+	BOOST_CHECK_THROW(Convert::ToBool("a"), boost::exception);
+	BOOST_CHECK(Convert::ToBool("0") == false);
+	BOOST_CHECK(Convert::ToBool("1") == true);
+	BOOST_CHECK(Convert::ToBool("2") == true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

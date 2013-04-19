@@ -38,13 +38,6 @@ bool Convert::ToBool(const String& val)
 	return (ToLong(val) != 0);
 }
 
-String Convert::ToString(long val)
-{
-	std::ostringstream cs;
-	cs << val;
-	return cs.str();
-}
-
 String Convert::ToString(const Value& val)
 {
 	return static_cast<String>(val);

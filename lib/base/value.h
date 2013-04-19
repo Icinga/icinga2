@@ -53,7 +53,9 @@ class I2_BASE_API Value
 public:
 	Value(void);
 	Value(int value);
+	Value(unsigned int value);
 	Value(long value);
+	Value(unsigned long value);
 	Value(double value);
 	Value(const String& value);
 	Value(const char *value);

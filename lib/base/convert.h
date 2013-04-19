@@ -37,7 +37,6 @@ public:
 	static long ToLong(const String& val);
 	static double ToDouble(const String& val);
 	static bool ToBool(const String& val);
-	static String ToString(long val);
 	static String ToString(const Value& val);
 
 private:

@@ -90,8 +90,8 @@ AC_MSG_RESULT($enable_debug)
 AC_MSG_CHECKING(whether to enable coverage)
 AC_ARG_ENABLE(coverage, [ --enable-coverage=[no/yes]   turn on profiling (default=no)],, enable_coverage=no)
 if test "x$enable_coverage" = "xyes"; then
-	CFLAGS="$CFLAGS -g -O0 -fprofile-arcs -ftest-coverage -lgcov"
-	CXXFLAGS="$CXXFLAGS -g -O0 -fprofile-arcs -ftest-coverage -lgcov"
+	CFLAGS="$CFLAGS -g -O0 -DNDEBUG -fprofile-arcs -ftest-coverage -lgcov"
+	CXXFLAGS="$CXXFLAGS -g -O0 -DNDEBUG -fprofile-arcs -ftest-coverage -lgcov"
 fi
 AC_MSG_RESULT($enable_coverage)
 
