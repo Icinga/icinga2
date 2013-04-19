@@ -43,9 +43,6 @@
     <ClCompile Include="scriptfunction.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="scripttask.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="fifo.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -70,9 +67,6 @@
     <ClCompile Include="stream_bio.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="connection.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="unixsocket.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -94,9 +88,6 @@
     <ClCompile Include="process-windows.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="eventqueue.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="attribute.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -109,6 +100,10 @@
     <ClCompile Include="tlsutility.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="threadpool.cpp" />
+    <ClCompile Include="scriptfunctionwrapper.cpp" />
+    <ClCompile Include="bufferedstream.cpp" />
+    <ClCompile Include="networkstream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -156,13 +151,7 @@
     <ClInclude Include="sysloglogger.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="asynctask.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="process.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="scripttask.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="scriptfunction.h">
@@ -192,9 +181,6 @@
     <ClInclude Include="stream_bio.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="connection.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="unixsocket.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -208,9 +194,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="objectlock.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="eventqueue.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="attribute.h">
@@ -234,6 +217,10 @@
     <ClInclude Include="singleton.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="threadpool.h" />
+    <ClInclude Include="scriptfunctionwrapper.h" />
+    <ClInclude Include="bufferedstream.h" />
+    <ClInclude Include="networkstream.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Quelldateien">

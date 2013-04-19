@@ -12,9 +12,6 @@
     <ClInclude Include="i2-livestatus.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="connection.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="component.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -69,9 +66,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="component.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="connection.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="query.cpp">

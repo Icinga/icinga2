@@ -220,7 +220,7 @@ void Socket::Listen(void)
  */
 size_t Socket::Write(const void *buffer, size_t count)
 {
-	int rc = send(GetFD(), buffer, count, 0);
+	int rc = send(GetFD(), (const char *)buffer, count, 0);
 
 	if (rc < 0) {
 #ifndef _WIN32
@@ -242,7 +242,7 @@ size_t Socket::Write(const void *buffer, size_t count)
  */
 size_t Socket::Read(void *buffer, size_t count)
 {
-	int rc = recv(GetFD(), buffer, count, 0);
+	int rc = recv(GetFD(), (char *)buffer, count, 0);
 
 	if (rc < 0) {
 #ifndef _WIN32

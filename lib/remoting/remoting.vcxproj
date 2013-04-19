@@ -22,7 +22,7 @@
     <ClInclude Include="endpoint.h" />
     <ClInclude Include="endpointmanager.h" />
     <ClInclude Include="i2-remoting.h" />
-    <ClInclude Include="jsonrpcconnection.h" />
+    <ClInclude Include="jsonrpc.h" />
     <ClInclude Include="requestmessage.h" />
     <ClInclude Include="responsemessage.h" />
     <ClInclude Include="messagepart.h" />
@@ -30,7 +30,7 @@
   <ItemGroup>
     <ClCompile Include="endpoint.cpp" />
     <ClCompile Include="endpointmanager.cpp" />
-    <ClCompile Include="jsonrpcconnection.cpp" />
+    <ClCompile Include="jsonrpc.cpp" />
     <ClCompile Include="remoting-type.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>

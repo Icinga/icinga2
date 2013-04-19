@@ -22,11 +22,12 @@
     <ClCompile Include="application.cpp" />
     <ClCompile Include="array.cpp" />
     <ClCompile Include="attribute.cpp" />
-    <ClCompile Include="connection.cpp" />
+    <ClCompile Include="bufferedstream.cpp" />
     <ClCompile Include="convert.cpp" />
     <ClCompile Include="dynamicobject.cpp" />
     <ClCompile Include="dictionary.cpp" />
     <ClCompile Include="dynamictype.cpp" />
+    <ClCompile Include="networkstream.cpp" />
     <ClCompile Include="threadpool.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="fifo.cpp" />
@@ -60,11 +61,12 @@
     <ClInclude Include="application.h" />
     <ClInclude Include="array.h" />
     <ClInclude Include="attribute.h" />
-    <ClInclude Include="connection.h" />
+    <ClInclude Include="bufferedstream.h" />
     <ClInclude Include="convert.h" />
     <ClInclude Include="dynamicobject.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="dynamictype.h" />
+    <ClInclude Include="networkstream.h" />
     <ClInclude Include="threadpool.h" />
     <ClInclude Include="fifo.h" />
     <ClInclude Include="logger_fwd.h" />

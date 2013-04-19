@@ -340,8 +340,8 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timerange, tm *
 	end.tm_hour = Convert::ToLong(hd2[0]);
 
 	Dictionary::Ptr segment = boost::make_shared<Dictionary>();
-	segment->Set("begin", mktime(&begin));
-	segment->Set("end", mktime(&end));
+	segment->Set("begin", (long)mktime(&begin));
+	segment->Set("end", (long)mktime(&end));
 
 	return segment;
 }

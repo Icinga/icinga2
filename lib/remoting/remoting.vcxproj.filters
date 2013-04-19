@@ -16,12 +16,10 @@
     <ClCompile Include="endpointmanager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="jsonrpcconnection.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="remoting-type.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="jsonrpc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="messagepart.h">
@@ -42,9 +40,7 @@
     <ClInclude Include="endpointmanager.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="jsonrpcconnection.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
+    <ClInclude Include="jsonrpc.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headerdateien">

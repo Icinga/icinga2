@@ -159,7 +159,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="base-array.cpp" />
+    <ClCompile Include="base-convert.cpp" />
     <ClCompile Include="base-dictionary.cpp" />
+    <ClCompile Include="base-fifo.cpp" />
+    <ClCompile Include="base-match.cpp" />
+    <ClCompile Include="base-object.cpp" />
+    <ClCompile Include="base-shellescape.cpp" />
+    <ClCompile Include="base-timer.cpp" />
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -31,7 +31,6 @@
     <ClInclude Include="hoststable.h" />
     <ClInclude Include="i2-livestatus.h" />
     <ClInclude Include="component.h" />
-    <ClInclude Include="connection.h" />
     <ClInclude Include="negatefilter.h" />
     <ClInclude Include="orfilter.h" />
     <ClInclude Include="query.h" />
@@ -46,7 +45,6 @@
     <ClCompile Include="combinerfilter.cpp" />
     <ClCompile Include="commentstable.cpp" />
     <ClCompile Include="component.cpp" />
-    <ClCompile Include="connection.cpp" />
     <ClCompile Include="contactgroupstable.cpp" />
     <ClCompile Include="contactstable.cpp" />
     <ClCompile Include="downtimestable.cpp" />
