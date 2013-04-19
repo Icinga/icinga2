@@ -12,8 +12,7 @@ EXTRA_DIST = \
 libnotification_la_SOURCES = \
 	notificationcomponent.cpp \
 	notificationcomponent.h \
-	notification-type.cpp \
-	i2-notification.h
+	notification-type.cpp
 
 libnotification_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \

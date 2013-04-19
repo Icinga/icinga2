@@ -12,8 +12,7 @@ EXTRA_DIST = \
 libdelegation_la_SOURCES = \
 	delegationcomponent.cpp \
 	delegationcomponent.h \
-	delegation-type.cpp \
-	i2-delegation.h
+	delegation-type.cpp
 
 libdelegation_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \

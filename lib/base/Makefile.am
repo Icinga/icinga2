@@ -4,9 +4,6 @@
 pkglib_LTLIBRARIES =  \
 	libbase.la
 
-EXTRA_DIST = \
-	i2-base.cpp
-
 libbase_la_SOURCES =  \
 	application.cpp \
 	application.h \

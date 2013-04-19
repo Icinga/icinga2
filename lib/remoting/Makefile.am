@@ -7,9 +7,6 @@ pkglib_LTLIBRARIES = \
 .conf.cpp: $(top_builddir)/tools/mkembedconfig.c
 	$(top_builddir)/tools/mkembedconfig $< $@
 
-EXTRA_DIST = \
-	i2-remoting.cpp
-
 libremoting_la_SOURCES = \
 	endpoint.cpp \
 	endpoint.h \

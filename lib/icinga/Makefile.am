@@ -5,8 +5,7 @@ pkglib_LTLIBRARIES =  \
 	libicinga.la
 
 EXTRA_DIST = \
-	icinga-type.conf \
-	i2-icinga.cpp
+	icinga-type.conf
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig.c
 	$(top_builddir)/tools/mkembedconfig $< $@

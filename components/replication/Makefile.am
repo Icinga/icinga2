@@ -12,8 +12,7 @@ EXTRA_DIST = \
 libreplication_la_SOURCES = \
 	replicationcomponent.cpp \
 	replicationcomponent.h \
-	replication-type.cpp \
-	i2-replication.h
+	replication-type.cpp
 
 libreplication_la_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \

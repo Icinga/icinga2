@@ -9,8 +9,7 @@ BUILT_SOURCES = config_parser.h
 AM_YFLAGS = -d
 
 EXTRA_DIST = \
-	base-type.conf \
-	i2-config.cpp
+	base-type.conf
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig.c
 	$(top_builddir)/tools/mkembedconfig $< $@
