@@ -64,7 +64,7 @@ dist-hook: icinga-version.stamp
 			"icinga-version.h" > "$(distdir)/icinga-version.h"; \
 	fi
 
-check-coverage:
+check-coverage: all
 	lcov -d . -z
 	make check
 	lcov -d . -c -o icinga2.info

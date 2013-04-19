@@ -23,7 +23,6 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
-#include <iostream>
 
 using namespace icinga;
 
@@ -72,7 +71,6 @@ BOOST_AUTO_TEST_CASE(invoke)
 	Utility::Sleep(5.5);
 	timer->Stop();
 
-	std::cout << counter << std::endl;
 	BOOST_CHECK(counter >= 4 && counter <= 6);
 }
 
@@ -89,7 +87,6 @@ BOOST_AUTO_TEST_CASE(scope)
 	timer.reset();
 	Utility::Sleep(5.5);
 
-	std::cout << counter << std::endl;
 	BOOST_CHECK(counter >= 4 && counter <= 6);
 }
 
