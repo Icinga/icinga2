@@ -22,8 +22,8 @@ icinga2doc_DATA += \
 	$(AD_ENV) $(AD_ASCIIDOC) -a toc -a numbered $<
 endif AD_COND_doc
 
-icinga2.8: $(top_srcdir)/icinga-app/icinga2
-	-$(HELP2MAN) --name='The Icinga 2 networking monitoring daemon.' --section=8 --no-info --output=$@ $(top_srcdir)/icinga-app/icinga2
+icinga2.8: $(top_builddir)/icinga-app/icinga2
+	-$(HELP2MAN) --name='The Icinga 2 networking monitoring daemon.' --section=8 --no-info --output=$@ $(top_builddir)/icinga-app/icinga2
 
 distclean:
 	rm -f $(icinga2doc_DATA)

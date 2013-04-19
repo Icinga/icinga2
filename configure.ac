@@ -73,7 +73,7 @@ AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 AC_CHECK_FUNCS([backtrace_symbols execvpe pipe2])
 
-CFLAGS="$CFLAGS -Wall -Wextra -Weffc++"
+CFLAGS="$CFLAGS -Wall -Wextra"
 CXXFLAGS="$CXXFLAGS -Wall -Wextra -Weffc++"
 
 AC_MSG_CHECKING(whether to enable debugging)
