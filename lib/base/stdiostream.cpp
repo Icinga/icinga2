@@ -34,6 +34,11 @@ StdioStream::StdioStream(std::iostream *innerStream, bool ownsStream)
 	: m_InnerStream(innerStream), m_OwnsStream(ownsStream)
 { }
 
+StdioStream::~StdioStream(void)
+{
+	Close();
+}
+
 size_t StdioStream::Read(void *buffer, size_t size)
 {
 	ObjectLock olock(this);
@@ -51,6 +56,8 @@ void StdioStream::Write(const void *buffer, size_t size)
 
 void StdioStream::Close(void)
 {
-	if (m_OwnsStream)
+	if (m_OwnsStream) {
 		delete m_InnerStream;
+		m_OwnsStream = false;
+	}
 }

@@ -33,6 +33,7 @@ public:
 	typedef weak_ptr<StdioStream> WeakPtr;
 
 	StdioStream(std::iostream *innerStream, bool ownsStream);
+	~StdioStream(void);
 
 	virtual size_t Read(void *buffer, size_t size);
 	virtual void Write(const void *buffer, size_t size);
