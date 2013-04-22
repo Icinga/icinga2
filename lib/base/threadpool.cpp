@@ -26,7 +26,6 @@
 #include <boost/bind.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/foreach.hpp>
-#include <boost/chrono/duration.hpp>
 
 using namespace icinga;
 
