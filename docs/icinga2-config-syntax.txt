@@ -1,0 +1,449 @@
+Icinga 2 Configuration
+======================
+
+:keywords:	Icinga, documentation, configuration
+:description:	Description of the Icinga 2 config
+
+Configuration Syntax
+--------------------
+
+Object Definition
+~~~~~~~~~~~~~~~~~
+
+Icinga 2 features an object-based configuration format. In order to define
+objects the 'object' keyword is used:
+
+-------------------------------------------------------------------------------
+object Host "host1.example.org" {
+  display_name = "host1",
+
+  check_interval = 30,
+  retry_interval = 15,
+
+  macros = {
+    address = "192.168.0.1"
+  }
+}
+-------------------------------------------------------------------------------
+
+NOTE: The Icinga 2 configuration format is agnostic to whitespaces and
+new-lines.
+
+Each object is uniquely identified by its type ('Host') and name
+('host1.example.org'). Objects can contain a comma-separated list of property
+declarations. The following data types are available for property values:
+
+Numeric Literals
+^^^^^^^^^^^^^^^^
+
+A floating-point number.
+
+Example:
+
+-------------------------------------------------------------------------------
+-27.3
+-------------------------------------------------------------------------------
+
+Duration Literal
+^^^^^^^^^^^^^^^^
+
+Similar to floating-point numbers except for that fact that they support
+suffixes to help with specifying time durations.
+
+Example:
+
+-------------------------------------------------------------------------------
+2.5m
+-------------------------------------------------------------------------------
+
+Supported suffixes include ms (milliseconds), s (seconds), m (minutes) and h (hours).
+
+String Literals
+^^^^^^^^^^^^^^^
+
+A string.
+
+Example:
+
+-------------------------------------------------------------------------------
+"Hello World!"
+-------------------------------------------------------------------------------
+
+Certain characters need to be escaped. The following escape sequences are supported:
+
+|===================================
+|Character          |Escape sequence
+|"                  |\"
+|<TAB>              |\t
+|<CARRIAGE-RETURN>  |\r
+|<LINE-FEED>        |\n
+|<BEL>              |\b
+|<FORM-FEED>        |\f
+|===================================
+
+In addition to these pre-defined escape sequences you can specify arbitrary ASCII
+characters using the backslash character (\) followed by an ASCII character in
+octal encoding.
+
+Multiline String Literals
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Strings spanning multiple lines can be specified by enclosing them in {{{ and }}}.
+
+Example.
+
+-------------------------------------------------------------------------------
+{{{This
+is
+a multi-line
+string.}}}
+-------------------------------------------------------------------------------
+
+Boolean Literals
+^^^^^^^^^^^^^^^^
+
+The keywords 'true' and 'false' are equivalent to 1 and 0 respectively.
+
+Null Value
+^^^^^^^^^^
+
+The 'null' keyword can be used to specify an empty value.
+
+Dictionary
+^^^^^^^^^^
+
+An unordered list of key-value pairs. Keys must be unique and are compared in
+a case-insensitive manner.
+
+Individual key-value pairs must be separated from each other with a comma. The
+comma after the last key-value pair is optional.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  address = "192.168.0.1",
+  port = 443
+}
+-------------------------------------------------------------------------------
+
+NOTE: Identifiers may not contain certain characters (e.g. space) or start with
+certain characters (e.g. digits). If you want to use a dictionary key that is
+not a valid identifier you can put the key in double quotes.
+
+NOTE: Setting a dictionary key to null causes the key to be removed from the
+dictionary.
+
+Array
+^^^^^
+
+An ordered list of values.
+
+Individual array elements must be separated from each other with a comma. The
+comma after the last element is optional.
+
+Example:
+
+-------------------------------------------------------------------------------
+[
+  "hello",
+  "world",
+  42,
+  [ "a", "nested", "array" ]
+]
+-------------------------------------------------------------------------------
+
+NOTE: An array may simultaneously contain values of different types, e.g.
+strings and numbers.
+
+Operators
+~~~~~~~~~
+
+In addition to the '=' operator shown above a number of other operators to
+manipulate configuration objects are supported. Here's a list of all available
+operators:
+
+Operator '='
+^^^^^^^^^^^^
+
+Sets a dictionary element to the specified value.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = 5,
+  a = 7
+}
+-------------------------------------------------------------------------------
+
+In this example a has the value 7 after both instructions are executed.
+
+Operator '+='
+^^^^^^^^^^^^^
+
+Modifies a dictionary or array by adding new elements to it.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = [ "hello" ],
+  a += [ "world" ]
+}
+-------------------------------------------------------------------------------
+
+In this example a contains both '"hello"' and '"world"'. This currently only works
+for dictionaries and arrays. Support for numbers might be added later on.
+
+Operator '-='
+^^^^^^^^^^^^^
+
+Removes elements from a dictionary.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = { "hello", "world" },
+  a -= { "world" }
+}
+-------------------------------------------------------------------------------
+
+In this example a contains '"hello"'. Trying to remove an item that does not
+exist is not an error. Not implemented yet.
+
+Operator '*='
+^^^^^^^^^^^^^
+
+Multiplies an existing dictionary element with the specified number. If the
+dictionary element does not already exist 0 is used as its value.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = 60,
+  a *= 5
+}
+-------------------------------------------------------------------------------
+
+In this example a is 300. This only works for numbers. Not implemented yet.
+
+Operator '/='
+^^^^^^^^^^^^^
+
+Divides an existing dictionary element by the specified number. If the
+dictionary element does not already exist 0 is used as its value.
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  a = 300,
+  a /= 5
+}
+-------------------------------------------------------------------------------
+
+In this example a is 60. This only works for numbers. Not implemented yet.
+
+Attribute Shortcuts
+~~~~~~~~~~~~~~~~~~~
+
+Indexer Shortcut
+^^^^^^^^^^^^^^^^
+
+Example:
+
+-------------------------------------------------------------------------------
+{
+  hello["key"] = "world"
+}
+-------------------------------------------------------------------------------
+
+This is equivalent to writing:
+
+-------------------------------------------------------------------------------
+{
+  hello += {
+    key = "world"
+  }
+}
+-------------------------------------------------------------------------------
+
+Specifiers
+~~~~~~~~~~
+
+Objects can have specifiers that have special meaning. The following specifiers
+can be used (prefacing the 'object' keyword):
+
+Specifier 'abstract'
+^^^^^^^^^^^^^^^^^^^^
+
+This specifier identifies the object as a template which can be used by other
+object definitions. The object will not be instantiated on its own.
+
+Instead of using the 'abstract' specifier you can use the 'template' keyword
+which is a shorthand for writing 'abstract object':
+
+-------------------------------------------------------------------------------
+template Service "http" {
+  ...
+}
+-------------------------------------------------------------------------------
+
+Specifier 'local'
+^^^^^^^^^^^^^^^^^
+
+This specifier disables replication for this object. The object will not be
+sent to remote Icinga instances.
+
+Inheritance
+~~~~~~~~~~~
+
+Objects can inherit attributes from one or more other objects.
+
+Example:
+
+-------------------------------------------------------------------------------
+template Host "default-host" {
+  check_interval = 30,
+
+  macros = {
+    color = "red"
+  }
+}
+
+template Host "test-host" inherits "default-host" {
+  macros += {
+    color = "blue"
+  }
+}
+
+object Host "localhost" inherits "test-host" {
+  macros += {
+    address = "127.0.0.1",
+    address6 = "::1"
+  }
+}
+-------------------------------------------------------------------------------
+
+NOTE: The '"default-host"' and '"test-host"' objects are marked as templates using
+the 'abstract' keyword. Parent objects do not necessarily have to be 'abstract'
+though in general they are.
+
+NOTE: The += operator is used to insert additional properties into the macros
+dictionary. The final dictionary contains all 3 macros and the property 'color'
+has the value '"blue"'.
+
+Parent objects are resolved in the order they're specified using the 'inherits'
+keyword.
+
+Comments
+~~~~~~~~
+
+The Icinga 2 configuration format supports C/C++-style comments.
+
+Example:
+
+-------------------------------------------------------------------------------
+/*
+ This is a comment.
+ */
+object Host "localhost" {
+  check_interval = 30, // this is also a comment.
+  retry_interval = 15
+}
+-------------------------------------------------------------------------------
+
+Includes
+~~~~~~~~
+
+Other configuration files can be included using the 'include' directive. Paths
+must be relative to the configuration file that contains the 'include'
+directive.
+
+Example:
+
+-------------------------------------------------------------------------------
+include "some/other/file.conf"
+include "conf.d/*.conf"
+-------------------------------------------------------------------------------
+
+NOTE: Wildcard includes are not recursive.
+
+Icinga also supports include search paths similar to how they work in a
+C/C++ compiler:
+
+-------------------------------------------------------------------------------
+include <itl/itl.conf>
+-------------------------------------------------------------------------------
+
+Note the use of angle brackets instead of double quotes. This causes the
+config compiler to search the include search paths for the specified file.
+By default $PREFIX/icinga2 is included in the list of search paths.
+
+Wildcards are not permitted when using angle brackets.
+
+Library directive
+~~~~~~~~~~~~~~~~~
+
+The 'library' directive can be used to manually load additional libraries.
+Upon loading these libraries may provide additional types or methods.
+
+Example:
+
+-------------------------------------------------------------------------------
+library "snmphelper"
+-------------------------------------------------------------------------------
+
+NOTE: The 'icinga' library is automatically loaded at startup.
+
+Type Definition
+~~~~~~~~~~~~~~~
+
+By default Icinga has no way of semantically verifying its configuration
+objects. This is where type definitions come in. Using type definitions you
+can specify which attributes are allowed in an object definition.
+
+Example:
+
+-------------------------------------------------------------------------------
+type Pizza {
+	%require "radius",
+	%attribute number "radius",
+
+	%attribute dictionary "ingredients" {
+		%validator "ValidateIngredients",
+
+		%attribute string "*",
+
+		%attribute dictionary "*" {
+			%attribute number "quantity",
+			%attribute string "name"
+		}
+	},
+
+	%attribute any "custom::*"
+}
+-------------------------------------------------------------------------------
+
+The Pizza definition provides the following validation rules:
+
+* Pizza objects must contain an attribute 'radius' which has to be a number.
+* Pizza objects may contain an attribute 'ingredients' which has to be a
+dictionary.
+* Elements in the ingredients dictionary can be either a string or a dictionary.
+* If they're a dictionary they may contain attributes 'quantity' (of type
+number) and 'name' (of type string).
+* The script function 'ValidateIngredients' is run to perform further
+validation of the ingredients dictionary.
+* Pizza objects may contain attribute matching the pattern 'custom::*' of any
+type.
+
+Valid types for type rules include:
+* any
+* number
+* string
+* scalar (an alias for string)
+* dictionary
