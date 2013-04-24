@@ -45,6 +45,7 @@ Notification::Notification(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
 	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
 	RegisterAttribute("service", Attribute_Config, &m_Service);
+	RegisterAttribute("export_macros", Attribute_Config, &m_ExportMacros);
 }
 
 Notification::~Notification(void)
