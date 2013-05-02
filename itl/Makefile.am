@@ -4,6 +4,7 @@ icinga2itl_DATA = \
 	itl.conf \
 	host.conf \
 	notification.conf \
+	timeperiod.conf \
 	service.conf \
 	service-common.conf \
 	standalone.conf
