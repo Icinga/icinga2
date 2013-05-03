@@ -159,11 +159,17 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 	std::vector<String> tokens;
 	boost::algorithm::split(tokens, timespec, boost::is_any_of(" "));
 
-	if (tokens.size() > 1 && tokens[0] == "day") {
+	int mon;
+
+	if (tokens.size() > 1 && (tokens[0] == "day" || (mon = MonthFromString(tokens[0])) != -1)) {
+		if (mon == -1)
+			mon = reference->tm_mon;
+
 		int mday = Convert::ToLong(tokens[1]);
 
 		if (begin) {
 			*begin = *reference;
+			begin->tm_mon = mon;
 			begin->tm_mday = mday;
 			begin->tm_hour = 0;
 			begin->tm_min = 0;
@@ -178,6 +184,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 
 		if (end) {
 			*end = *reference;
+			end->tm_mon = mon;
 			end->tm_mday = mday;
 			end->tm_hour = 24;
 			end->tm_min = 0;
@@ -199,7 +206,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 		tm myref = *reference;
 
 		if (tokens.size() > 2) {
-			int mon = MonthFromString(tokens[2]);
+			mon = MonthFromString(tokens[2]);
 
 			if (mon == -1)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid month in time specification: " + timespec));
