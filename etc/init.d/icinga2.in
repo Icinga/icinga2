@@ -105,7 +105,7 @@ status() {
 	printf "Icinga 2 status: "
 
 	pid=`cat $ICINGA2_PID_FILE`
-	if kill -CHLD $pid >/dev/null 2&>1; then
+	if kill -CHLD $pid >/dev/null 2>&1; then
 		echo "Running"
 	else
 		echo "Not running"
