@@ -60,7 +60,7 @@ public:
 	void AddRule(const TypeRule& rule);
 	void AddRules(const TypeRuleList::Ptr& ruleList);
 
-	TypeValidationResult ValidateAttribute(const String& name, const Value& value, TypeRuleList::Ptr *subRules) const;
+	TypeValidationResult ValidateAttribute(const String& name, const Value& value, TypeRuleList::Ptr *subRules, String *hint) const;
 
 	size_t GetLength(void) const;
 

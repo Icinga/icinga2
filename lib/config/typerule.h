@@ -39,7 +39,8 @@ enum TypeSpecifier
 	TypeNumber,
 	TypeString,
 	TypeDictionary,
-	TypeArray
+	TypeArray,
+	TypeName
 };
 
 /**
@@ -50,16 +51,18 @@ enum TypeSpecifier
 struct I2_CONFIG_API TypeRule
 {
 public:
-	TypeRule(TypeSpecifier type, const String& namePattern,
-	    const TypeRuleList::Ptr& subRules, const DebugInfo& debuginfo);
+	TypeRule(TypeSpecifier type, const String& nameType,
+	    const String& namePattern, const TypeRuleList::Ptr& subRules,
+	    const DebugInfo& debuginfo);
 
 	TypeRuleList::Ptr GetSubRules(void) const;
 
 	bool MatchName(const String& name) const;
-	bool MatchValue(const Value& value) const;
+	bool MatchValue(const Value& value, String *hint) const;
 
 private:
 	TypeSpecifier m_Type;
+	String m_NameType;
 	String m_NamePattern;
 	TypeRuleList::Ptr m_SubRules;
 	DebugInfo m_DebugInfo;

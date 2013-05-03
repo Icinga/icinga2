@@ -18,6 +18,8 @@
  ******************************************************************************/
 
 #include "config/typerule.h"
+#include "config/configitem.h"
+#include "config/configcompilercontext.h"
 #include "base/convert.h"
 #include "base/utility.h"
 #include "base/dictionary.h"
@@ -25,9 +27,10 @@
 
 using namespace icinga;
 
-TypeRule::TypeRule(TypeSpecifier type, const String& namePattern,
-    const TypeRuleList::Ptr& subRules, const DebugInfo& debuginfo)
-	: m_Type(type), m_NamePattern(namePattern), m_SubRules(subRules), m_DebugInfo(debuginfo)
+TypeRule::TypeRule(TypeSpecifier type, const String& nameType,
+    const String& namePattern, const TypeRuleList::Ptr& subRules,
+    const DebugInfo& debuginfo)
+	: m_Type(type), m_NameType(nameType), m_NamePattern(namePattern), m_SubRules(subRules), m_DebugInfo(debuginfo)
 { }
 
 TypeRuleList::Ptr TypeRule::GetSubRules(void) const
@@ -40,8 +43,11 @@ bool TypeRule::MatchName(const String& name) const
 	return (Utility::Match(m_NamePattern, name));
 }
 
-bool TypeRule::MatchValue(const Value& value) const
+bool TypeRule::MatchValue(const Value& value, String *hint) const
 {
+	ConfigCompilerContext *context;
+	ConfigItem::Ptr item;
+
 	if (value.IsEmpty())
 		return true;
 
@@ -68,6 +74,25 @@ bool TypeRule::MatchValue(const Value& value) const
 
 		case TypeArray:
 			return value.IsObjectType<Array>();
+
+		case TypeName:
+			if (!value.IsScalar())
+				return false;
+
+			context = ConfigCompilerContext::GetContext();
+
+			if (context)
+				item = context->GetItem(m_NameType, value);
+
+			if (!item && (!context || (context->GetFlags() & CompilerLinkExisting)))
+				item = ConfigItem::GetObject(m_NameType, value);
+
+			if (!item) {
+				*hint = "Object '" + value + "' of type '" + m_NameType + "' does not exist.";
+				return false;
+			}
+
+			return true;
 
 		default:
 			return false;

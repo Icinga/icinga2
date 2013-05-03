@@ -67,7 +67,8 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 	item->GetLinkedExpressionList()->Execute(attrs);
 
 	std::vector<String> locations;
-	locations.push_back("Object '" + item->GetName() + "' (Type: '" + item->GetType() + "')");
+	DebugInfo debugInfo  = item->GetDebugInfo();
+	locations.push_back("Object '" + item->GetName() + "' (Type: '" + item->GetType() + "') at " + debugInfo.Path + ":" + Convert::ToString(debugInfo.FirstLine));
 
 	ConfigType::Ptr parent;
 	if (m_Parent.IsEmpty()) {
@@ -144,12 +145,13 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 	BOOST_FOREACH(boost::tie(key, value), dictionary) {
 		TypeValidationResult overallResult = ValidationUnknownField;
 		std::vector<TypeRuleList::Ptr> subRuleLists;
+		String hint;
 
 		locations.push_back("Attribute '" + key + "'");
 
 		BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 			TypeRuleList::Ptr subRuleList;
-			TypeValidationResult result = ruleList->ValidateAttribute(key, value, &subRuleList);
+			TypeValidationResult result = ruleList->ValidateAttribute(key, value, &subRuleList, &hint);
 
 			if (subRuleList)
 				subRuleLists.push_back(subRuleList);
@@ -168,8 +170,14 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 
 		if (overallResult == ValidationUnknownField)
 			ConfigCompilerContext::GetContext()->AddError(true, "Unknown attribute: " + LocationToString(locations));
-		else if (overallResult == ValidationInvalidType)
-			ConfigCompilerContext::GetContext()->AddError(false, "Invalid type for attribute: " + LocationToString(locations));
+		else if (overallResult == ValidationInvalidType) {
+			String message = "Invalid value for attribute: " + LocationToString(locations);
+
+			if (!hint.IsEmpty())
+				message += ": " + hint;
+
+			ConfigCompilerContext::GetContext()->AddError(false, message);
+		}
 
 		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
 			ValidateDictionary(value, subRuleLists, locations);
@@ -223,12 +231,13 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 
 		TypeValidationResult overallResult = ValidationUnknownField;
 		std::vector<TypeRuleList::Ptr> subRuleLists;
+		String hint;
 
-		locations.push_back("Attribute '" + key + "'");
+		locations.push_back("Index " + key);
 
 		BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 			TypeRuleList::Ptr subRuleList;
-			TypeValidationResult result = ruleList->ValidateAttribute(key, value, &subRuleList);
+			TypeValidationResult result = ruleList->ValidateAttribute(key, value, &subRuleList, &hint);
 
 			if (subRuleList)
 				subRuleLists.push_back(subRuleList);
@@ -247,8 +256,14 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 
 		if (overallResult == ValidationUnknownField)
 			ConfigCompilerContext::GetContext()->AddError(true, "Unknown attribute: " + LocationToString(locations));
-		else if (overallResult == ValidationInvalidType)
-			ConfigCompilerContext::GetContext()->AddError(false, "Invalid type for array index: " + LocationToString(locations));
+		else if (overallResult == ValidationInvalidType) {
+			String message = "Invalid value for array index: " + LocationToString(locations);
+
+			if (!hint.IsEmpty())
+				message += ": " + hint;
+
+			ConfigCompilerContext::GetContext()->AddError(false, message);
+		}
 
 		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
 			ValidateDictionary(value, subRuleLists, locations);

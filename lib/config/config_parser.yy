@@ -78,6 +78,7 @@ using namespace icinga;
 %token <type> T_TYPE_STRING "string (T_TYPE_STRING)"
 %token <type> T_TYPE_SCALAR "scalar (T_TYPE_SCALAR)"
 %token <type> T_TYPE_ANY "any (T_TYPE_ANY)"
+%token <type> T_TYPE_NAME "name (T_TYPE_NAME)"
 %token T_VALIDATOR "%validator (T_VALIDATOR)"
 %token T_REQUIRE "%require (T_REQUIRE)"
 %token T_ATTRIBUTE "%attribute (T_ATTRIBUTE)"
@@ -246,14 +247,22 @@ typerule: T_REQUIRE T_STRING
 	}
 	| T_ATTRIBUTE type T_STRING
 	{
-		TypeRule rule($2, $3, TypeRuleList::Ptr(), yylloc);
+		TypeRule rule($2, String(), $3, TypeRuleList::Ptr(), yylloc);
 		free($3);
+
+		m_RuleLists.top()->AddRule(rule);
+	}
+	| T_ATTRIBUTE T_TYPE_NAME '(' identifier ')' T_STRING
+	{
+		TypeRule rule($2, $4, $6, TypeRuleList::Ptr(), yylloc);
+		free($4);
+		free($6);
 
 		m_RuleLists.top()->AddRule(rule);
 	}
 	| T_ATTRIBUTE type T_STRING typerulelist
 	{
-		TypeRule rule($2, $3, *$4, yylloc);
+		TypeRule rule($2, String(), $3, *$4, yylloc);
 		free($3);
 		delete $4;
 		m_RuleLists.top()->AddRule(rule);
@@ -274,6 +283,7 @@ type: T_TYPE_DICTIONARY
 	| T_TYPE_STRING
 	| T_TYPE_SCALAR
 	| T_TYPE_ANY
+	| T_TYPE_NAME
 	{
 		$$ = $1;
 	}

@@ -79,7 +79,7 @@ using namespace icinga;
 
 
 /* Line 2068 of yacc.c  */
-#line 83 "config_parser.h"
+#line 83 "../../../lib/config/config_parser.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -103,18 +103,19 @@ using namespace icinga;
      T_TYPE_STRING = 271,
      T_TYPE_SCALAR = 272,
      T_TYPE_ANY = 273,
-     T_VALIDATOR = 274,
-     T_REQUIRE = 275,
-     T_ATTRIBUTE = 276,
-     T_TYPE = 277,
-     T_ABSTRACT = 278,
-     T_LOCAL = 279,
-     T_OBJECT = 280,
-     T_TEMPLATE = 281,
-     T_INCLUDE = 282,
-     T_LIBRARY = 283,
-     T_INHERITS = 284,
-     T_PARTIAL = 285
+     T_TYPE_NAME = 274,
+     T_VALIDATOR = 275,
+     T_REQUIRE = 276,
+     T_ATTRIBUTE = 277,
+     T_TYPE = 278,
+     T_ABSTRACT = 279,
+     T_LOCAL = 280,
+     T_OBJECT = 281,
+     T_TEMPLATE = 282,
+     T_INCLUDE = 283,
+     T_LIBRARY = 284,
+     T_INHERITS = 285,
+     T_PARTIAL = 286
    };
 #endif
 /* Tokens.  */
@@ -134,18 +135,19 @@ using namespace icinga;
 #define T_TYPE_STRING 271
 #define T_TYPE_SCALAR 272
 #define T_TYPE_ANY 273
-#define T_VALIDATOR 274
-#define T_REQUIRE 275
-#define T_ATTRIBUTE 276
-#define T_TYPE 277
-#define T_ABSTRACT 278
-#define T_LOCAL 279
-#define T_OBJECT 280
-#define T_TEMPLATE 281
-#define T_INCLUDE 282
-#define T_LIBRARY 283
-#define T_INHERITS 284
-#define T_PARTIAL 285
+#define T_TYPE_NAME 274
+#define T_VALIDATOR 275
+#define T_REQUIRE 276
+#define T_ATTRIBUTE 277
+#define T_TYPE 278
+#define T_ABSTRACT 279
+#define T_LOCAL 280
+#define T_OBJECT 281
+#define T_TEMPLATE 282
+#define T_INCLUDE 283
+#define T_LIBRARY 284
+#define T_INHERITS 285
+#define T_PARTIAL 286
 
 
 
@@ -170,7 +172,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 174 "config_parser.h"
+#line 176 "../../../lib/config/config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
