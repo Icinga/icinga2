@@ -129,6 +129,56 @@ static void SigHupHandler(int signum)
 }
 #endif /* _WIN32 */
 
+static bool Daemonize(const String& stderrFile)
+{
+#ifndef _WIN32
+	pid_t pid = fork();
+	if (pid == -1) {
+		return false;
+	}
+
+	if (pid)
+		exit(0);
+
+	int fdnull = open("/dev/null", O_RDWR);
+	if (fdnull > 0) {
+		if (fdnull != 0)
+			dup2(fdnull, 0);
+
+		if (fdnull != 1)
+			dup2(fdnull, 1);
+
+		if (fdnull > 2)
+			close(fdnull);
+	}
+
+	const char *errPath = "/dev/null";
+
+	if (!stderrFile.IsEmpty())
+		errPath = stderrFile.CStr();
+
+	int fderr = open(errPath, O_WRONLY | O_APPEND);
+
+	if (fderr < 0 && errno == ENOENT)
+		fderr = open(errPath, O_CREAT | O_WRONLY | O_APPEND, 0600);
+
+	if (fderr > 0) {
+		if (fderr != 2)
+			dup2(fderr, 2);
+
+		if (fderr > 2)
+			close(fderr);
+	}
+
+	pid_t sid = setsid();
+	if (sid == -1) {
+		return false;
+	}
+#endif
+
+	return true;
+}
+
 /**
  * Entry point for the Icinga application.
  *
@@ -181,6 +231,8 @@ int main(int argc, char **argv)
 		("config,c", po::value<std::vector<String> >(), "parse a configuration file")
 		("validate,v", "exit after validating the configuration")
 		("debug,x", "enable debugging")
+		("daemonize,d", "detach from the controlling terminal")
+		("errorlog,e", po::value<String>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
 	;
 
 	try {
@@ -265,6 +317,15 @@ int main(int argc, char **argv)
 		Log(LogCritical, "icinga-app", "You need to specify at least one config file (using the --config option).");
 
 		return EXIT_FAILURE;
+	}
+
+	if (g_AppParams.count("daemonize")) {
+		String errorLog;
+
+		if (g_AppParams.count("errorlog"))
+			errorLog = g_AppParams["errorlog"].as<String>();
+
+		Daemonize(errorLog);
 	}
 
 	bool validateOnly = g_AppParams.count("validate");

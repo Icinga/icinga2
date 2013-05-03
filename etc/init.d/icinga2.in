@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # chkconfig: 35 90 12
 # description: Icinga 2
@@ -48,8 +48,7 @@ start() {
         fi
 
         printf "Starting Icinga 2: "
-        $DAEMON -c $ICINGA2_CONFIG_FILE </dev/null >/dev/null 2>$ICINGA2_ERROR_LOG &
-	disown
+        $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG
 
         echo "Done"
         echo
