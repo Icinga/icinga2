@@ -17,7 +17,11 @@ In order to get started with Icinga 2 we will have to install it. The preferred 
 of doing this is to use the official Debian or RPM packages depending on which Linux
 distribution you are running.
 
-<INSERT LIST OF PACKAGES HERE>
+|===
+|Distribution          | Package URL
+|Debian                | http://icingabuild.dus.dg-i.net:8080/job/icinga2/
+|RHEL                  | TBD
+|===
 
 In case you're running a distribution for which Icinga 2 packages are not yet available
 you will have to check out the Icinga 2 Git repository from git://git.icinga.org/icinga2
@@ -488,7 +492,54 @@ information about how to do that in the documentation.
 Time Periods
 ------------
 
-TODO
+Time periods allow you to specify when certain services should be checked and when notifications
+should be sent.
+
+Here is an example time period definition:
+
+----
+object TimePeriod "work-hours" inherits "legacy-timeperiod" {
+	ranges = {
+		monday = "9:00-17:00",
+		tuesday = "9:00-17:00",
+		wednesday = "9:00-17:00",
+		thursday = "9:00-17:00",
+		friday = "9:00-17:00",
+	}
+}
+----
+
+The 'legacy-timeperiod' template is defined in the Icinga Template Library and supports Icinga 1.x
+time periods. A complete definition of the time Icinga 1.x time period syntax can be found at
+http://docs.icinga.org/latest/en/objectdefinitions.html#timeperiod.
+
+Using the 'check_period' attribute you can define when services should be checked:
+
+----
+	...
+	services["ping"] = {
+		templates = [ "ping4", "mail-notification-service" ],
+		check_period = "work-hours"
+	},
+	...
+----
+
+Also, using the 'notification_period' attribute you can define when notifications should be sent:
+
+----
+template Service "mail-notification-service" {
+	notifications["mail"] = {
+		templates = [ "mail-notification" ],
+
+		users = [ "tutorial-user" ]
+	},
+
+	notification_interval = 1m
+	notification_period = "work-hours"
+}
+----
+
+The 'notification_period' attribute is also valid in 'User' and 'Notification' objects.
 
 Dependencies
 ------------
