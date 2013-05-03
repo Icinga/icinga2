@@ -159,7 +159,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 	std::vector<String> tokens;
 	boost::algorithm::split(tokens, timespec, boost::is_any_of(" "));
 
-	int mon;
+	int mon = -1;
 
 	if (tokens.size() > 1 && (tokens[0] == "day" || (mon = MonthFromString(tokens[0])) != -1)) {
 		if (mon == -1)
@@ -214,7 +214,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			myref.tm_mon = mon;
 		}
 
-		int n;
+		int n = 0;
 
 		if (tokens.size() > 1)
 			n = Convert::ToLong(tokens[1]);
