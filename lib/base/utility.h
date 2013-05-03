@@ -53,7 +53,7 @@ public:
 
 	static void Sleep(double timeout);
 
-	static String NewUUID(void);
+	static String NewUniqueID(void);
 
 	static bool Glob(const String& pathSpec, const boost::function<void (const String&)>& callback);
 

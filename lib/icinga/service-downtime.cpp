@@ -96,7 +96,7 @@ String Service::AddDowntime(const String& author, const String& comment,
 		m_Downtimes = downtimes;
 	}
 
-	String id = Utility::NewUUID();
+	String id = Utility::NewUniqueID();
 	downtimes->Set(id, downtime);
 
 	Touch("downtimes");

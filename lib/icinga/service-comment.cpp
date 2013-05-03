@@ -81,7 +81,7 @@ String Service::AddComment(CommentType entryType, const String& author,
 		m_Comments = comments;
 	}
 
-	String id = Utility::NewUUID();
+	String id = Utility::NewUniqueID();
 	comments->Set(id, comment);
 
 	Touch("comments");

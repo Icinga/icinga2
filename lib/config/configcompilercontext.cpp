@@ -29,7 +29,7 @@ using namespace icinga;
 ConfigCompilerContext *ConfigCompilerContext::m_Context = NULL;
 
 ConfigCompilerContext::ConfigCompilerContext(void)
-	: m_Unit(Utility::NewUUID()), m_Flags(0)
+	: m_Unit(Utility::NewUniqueID()), m_Flags(0)
 { }
 
 void ConfigCompilerContext::AddItem(const ConfigItem::Ptr& item)

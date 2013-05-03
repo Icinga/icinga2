@@ -18,13 +18,11 @@
  ******************************************************************************/
 
 #include "base/utility.h"
+#include "base/convert.h"
 #include "base/application.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include <mmatch.h>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/function.hpp>
 #include <boost/foreach.hpp>
@@ -276,14 +274,33 @@ Utility::LoadExtensionLibrary(const String& library)
 }
 
 /**
- * Generates a new UUID.
+ * Generates a new unique ID.
  *
- * @returns The new UUID in text form.
+ * @returns The new unique ID.
  */
-String Utility::NewUUID(void)
+String Utility::NewUniqueID(void)
 {
-	boost::uuids::uuid uuid = boost::uuids::random_generator()();
-	return boost::lexical_cast<String>(uuid);
+	static boost::mutex mutex;
+	static int next_id = 0;
+
+	/* I'd much rather use UUIDs but RHEL is way too cool to have
+	 * a semi-recent version of boost. Yay. */
+
+	String id;
+
+	char buf[128];
+	if (gethostname(buf, sizeof(buf)) == 0)
+		id = String(buf) + "-";
+
+	id += Convert::ToString((long)Utility::GetTime()) + "-";
+
+	{
+		boost::mutex::scoped_lock lock(mutex);
+		id += Convert::ToString(next_id);
+		next_id++;
+	}
+
+	return id;
 }
 
 /**
