@@ -534,7 +534,7 @@ template Service "mail-notification-service" {
 		users = [ "tutorial-user" ]
 	},
 
-	notification_interval = 1m
+	notification_interval = 1m,
 	notification_period = "work-hours"
 }
 ----
