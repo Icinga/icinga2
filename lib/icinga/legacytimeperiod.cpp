@@ -126,6 +126,9 @@ int LegacyTimePeriod::MonthFromString(const String& monthdef)
 
 void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end, tm *reference)
 {
+	/* Let mktime() figure out whether we're in DST or not. */
+	reference->tm_isdst = -1;
+
 	/* YYYY-MM-DD */
 	if (timespec.GetLength() == 10 && timespec[4] == '-' && timespec[7] == '-') {
 		int year = Convert::ToLong(timespec.SubStr(0, 4));
