@@ -1,10 +1,10 @@
 .PHONY: clean
 
 EXTRA_DIST = \
-	icinga2-config-syntax.txt \
-	icinga2-config-types.txt \
-	icinga2-intro.txt \
-	icinga2-tutorial.txt \
+	icinga2-config-syntax.adoc \
+	icinga2-config-types.adoc \
+	icinga2-intro.adoc \
+	icinga2-tutorial.adoc \
 	icinga2.8
 
 icinga2docdir = ${docdir}
@@ -13,7 +13,7 @@ icinga2doc_DATA =
 man8_MANS = \
 	icinga2.8
 
-.SUFFIXES = .html .txt
+.SUFFIXES = .html .adoc
 
 if AD_COND_doc
 icinga2doc_DATA += \
@@ -22,7 +22,7 @@ icinga2doc_DATA += \
 	icinga2-intro.html \
 	icinga2-tutorial.html
 
-.txt.html:
+.adoc.html:
 	$(AD_ENV) $(AD_ASCIIDOC) -a toc -a numbered -o $@ $<
 endif AD_COND_doc
 
