@@ -110,6 +110,11 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
+	BOOST_FOREACH(const String& parent, m_Parents) {
+		if (parent == m_Name)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Configuration item '" + m_Name + "' of type '" + m_Type + "' must not inherit from itself."));
+	}
+
 	ExpressionList::Ptr exprl = boost::make_shared<ExpressionList>();
 
 	Expression execExpr("", OperatorExecute, m_ExpressionList, m_DebugInfo);
