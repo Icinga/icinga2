@@ -192,7 +192,7 @@ void Host::UpdateSlaveServices(void)
 				svcname = svcdesc;
 
 			std::ostringstream namebuf;
-			namebuf << GetName() << "-" << svcname;
+			namebuf << GetName() << ":" << svcname;
 			String name = namebuf.str();
 
 			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());

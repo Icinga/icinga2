@@ -301,6 +301,9 @@ object_declaration identifier T_STRING object_inherits_specifier expressionlist
 		item->SetType($3);
 		free($3);
 
+		if (strchr($4, ':') != NULL)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Object names may not contain ':'"));
+
 		item->SetName($4);
 		free($4);
 

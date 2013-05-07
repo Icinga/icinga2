@@ -29,6 +29,8 @@ object Host "host1.example.org" {
 NOTE: The Icinga 2 configuration format is agnostic to whitespaces and
 new-lines.
 
+NOTE: Colons (:) are not permitted in object names.
+
 Each object is uniquely identified by its type ('Host') and name
 ('host1.example.org'). Objects can contain a comma-separated list of property
 declarations. The following data types are available for property values:

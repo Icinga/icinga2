@@ -213,7 +213,7 @@ void Service::UpdateSlaveNotifications(void)
 		Value nfcdesc;
 		BOOST_FOREACH(boost::tie(nfcname, nfcdesc), descs) {
 			std::ostringstream namebuf;
-			namebuf << GetName() << "-" << nfcname;
+			namebuf << GetName() << ":" << nfcname;
 			String name = namebuf.str();
 
 			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
