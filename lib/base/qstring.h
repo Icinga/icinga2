@@ -24,6 +24,7 @@
 #include <boost/range/iterator.hpp>
 #include <ostream>
 #include <istream>
+#include <utility>
 
 namespace icinga {
 
@@ -152,6 +153,20 @@ struct string_iless : std::binary_function<String, String, bool>
 		    s2.Begin(), s2.End(), boost::algorithm::is_iless());
 
 		 */
+	}
+};
+
+struct pair_string_iless : std::binary_function<std::pair<String, String>, std::pair<String, String>, bool>
+{
+	bool operator()(const std::pair<String, String>& p1, const std::pair<String, String>& p2) const
+	{
+		if (string_iless()(p1.first, p2.first))
+			return true;
+
+		if (string_iless()(p2.first, p1.first))
+			return false;
+
+		return string_iless()(p1.second, p2.second);
 	}
 };
 

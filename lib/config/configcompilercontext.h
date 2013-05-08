@@ -82,9 +82,9 @@ private:
         int m_Flags;
 
 	std::vector<ConfigItem::Ptr> m_Items;
-        std::map<std::pair<String, String>, ConfigItem::Ptr> m_ItemsMap;
+        std::map<std::pair<String, String>, ConfigItem::Ptr, pair_string_iless> m_ItemsMap;
 
-        std::map<String, shared_ptr<ConfigType> > m_Types;
+        std::map<String, shared_ptr<ConfigType>, string_iless> m_Types;
 
         std::vector<ConfigCompilerError> m_Errors;
 

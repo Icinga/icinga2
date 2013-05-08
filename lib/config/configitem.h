@@ -99,7 +99,7 @@ private:
 
 	static boost::mutex m_Mutex;
 
-	typedef std::map<std::pair<String, String>, ConfigItem::Ptr> ItemMap;
+	typedef std::map<std::pair<String, String>, ConfigItem::Ptr, pair_string_iless> ItemMap;
 	static ItemMap m_Items; /**< All registered configuration items. */
 
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
