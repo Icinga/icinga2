@@ -54,7 +54,17 @@ bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *referen
 
 void LegacyTimePeriod::FindNthWeekday(int wday, int n, tm *reference)
 {
-	int seen = 0;
+	int dir, seen = 0;
+
+	if (n > 0) {
+		dir = 1;
+	} else {
+		n *= -1;
+		dir = -1;
+
+		/* Negative days are relative to the next month. */
+		reference->tm_mon++;
+	}
 
 	ASSERT(n > 0);
 
@@ -70,7 +80,7 @@ void LegacyTimePeriod::FindNthWeekday(int wday, int n, tm *reference)
 				return;
 		}
 
-		reference->tm_mday++;
+		reference->tm_mday += dir;
 	}
 }
 
