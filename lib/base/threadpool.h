@@ -46,7 +46,7 @@ public:
 	void Stop(void);
 	void Join(void);
 
-	void Post(const WorkFunction& callback);
+	bool Post(const WorkFunction& callback);
 
 private:
 	enum ThreadState

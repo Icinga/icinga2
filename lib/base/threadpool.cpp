@@ -197,13 +197,14 @@ void ThreadPool::QueueThreadProc(int tid)
  * Appends a work item to the work queue. Work items will be processed in FIFO order.
  *
  * @param callback The callback function for the work item.
+ * @returns true if the item was queued, false otherwise.
  */
-void ThreadPool::Post(const ThreadPool::WorkFunction& callback)
+bool ThreadPool::Post(const ThreadPool::WorkFunction& callback)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	if (m_Stopped)
-		BOOST_THROW_EXCEPTION(std::runtime_error("ThreadPool has been stopped."));
+		return false;
 
 	WorkItem wi;
 	wi.Callback = callback;
@@ -211,6 +212,8 @@ void ThreadPool::Post(const ThreadPool::WorkFunction& callback)
 
 	m_WorkItems.push_back(wi);
 	m_WorkCV.notify_one();
+
+	return true;
 }
 
 void ThreadPool::ManagerThreadProc(void)
