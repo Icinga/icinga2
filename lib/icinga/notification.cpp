@@ -43,6 +43,7 @@ Notification::Notification(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
 	RegisterAttribute("users", Attribute_Config, &m_Users);
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
+	RegisterAttribute("times", Attribute_Config, &m_Times);
 	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
 	RegisterAttribute("service", Attribute_Config, &m_Service);
 	RegisterAttribute("export_macros", Attribute_Config, &m_ExportMacros);
@@ -132,6 +133,11 @@ std::set<UserGroup::Ptr> Notification::GetGroups(void) const
 	return result;
 }
 
+Dictionary::Ptr Notification::GetTimes(void) const
+{
+	return m_Times;
+}
+
 double Notification::GetNotificationInterval(void) const
 {
 	if (m_NotificationInterval.IsEmpty())
@@ -202,15 +208,29 @@ String Notification::NotificationTypeToString(NotificationType type)
 	}
 }
 
-void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool ignore_timeperiod)
+void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool force)
 {
 	ASSERT(!OwnsLock());
 
-	if (!ignore_timeperiod) {
+	if (!force) {
 		TimePeriod::Ptr tp = GetNotificationPeriod();
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': not in timeperiod");
+			return;
+		}
+
+		double now = Utility::GetTime();
+		Dictionary::Ptr times = GetTimes();
+		Service::Ptr service = GetService();
+
+		if (times && times->Contains("begin") && now < service->GetLastHardStateChange() + times->Get("begin")) {
+			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': before escalation range");
+			return;
+		}
+
+		if (times && times->Contains("end") && now > service->GetLastHardStateChange() + times->Get("end")) {
+			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': after escalation range");
 			return;
 		}
 	}
@@ -233,7 +253,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
 		Log(LogDebug, "icinga", "Sending notification for user " + user->GetName());
-		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, ignore_timeperiod));
+		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force));
 	}
 }
 

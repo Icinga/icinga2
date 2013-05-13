@@ -71,6 +71,7 @@ public:
 	Array::Ptr GetExportMacros(void) const;
 	std::set<User::Ptr> GetUsers(void) const;
 	std::set<UserGroup::Ptr> GetGroups(void) const;
+	Dictionary::Ptr GetTimes(void) const;
 
 	double GetLastNotification(void) const;
 	void SetLastNotification(double time);
@@ -78,7 +79,7 @@ public:
 	double GetNextNotification(void) const;
 	void SetNextNotification(double time);
 
-	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool ignore_timeperiod);
+	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool force);
 
 	static String NotificationTypeToString(NotificationType type);
 
@@ -97,10 +98,11 @@ private:
 	Attribute<Array::Ptr> m_ExportMacros;
 	Attribute<Array::Ptr> m_Users;
 	Attribute<Array::Ptr> m_Groups;
+	Attribute<Dictionary::Ptr> m_Times;
 	Attribute<String> m_HostName;
 	Attribute<String> m_Service;
 
-	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool ignore_timeperiod);
+	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force);
 };
 
 }
