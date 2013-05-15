@@ -185,7 +185,7 @@ Setting up the Icinga 1.x CGIs
 ------------------------------
 
 Icinga 2 can write status.dat and objects.cache files in the format that is supported
-by the Icinga 1.x CGIs.
+by the Icinga 1.x CGIs. External commands (a.k.a. the "command pipe") are also supported.
 
 In order to enable this feature you will need to load the library 'compat' by adding the following lines
 to your configuration file:
@@ -194,20 +194,35 @@ to your configuration file:
 library "compat"
 
 local object CompatComponent "compat" { }
+local object CompatLog "my-log" { }
 ----
 
 After restarting Icinga 2 you should be able to find the status.dat and objects.cache files in
-/var/cache/icinga2.
+/var/cache/icinga2. The log files can be found in /var/log/icinga2/compat. The command pipe can
+be found in /var/run/icinga2.
 
-You can create symlinks in your Icinga 1.x installation directory to make the CGIs use
-Icinga 2's status files and its command pipe:
+You can install the Icinga 1.x CGIs in standalone mode using the following commands:
 
 ----
-cd /usr/local/icinga # Change this to your Icinga 1.x installation directory
-ln -sf /var/cache/icinga2/status.dat var/status.dat
-ln -sf /var/cache/icinga2/objects.cache var/objects.cache
-ln -sf /var/run/icinga2/icinga2.cmd var/rw/icinga.cmd
+$ wget http://downloads.sourceforge.net/project/icinga/icinga/1.9.0/icinga-1.9.0.tar.gz
+$ tar xzf icinga-1.9.0.tar.gz ; cd icinga-1.9.0
+$ ./configure --enable-classicui-standalone --prefix=/usr/local/icinga2-classicui
+$ make classicui-standalone
+$ sudo make install classicui-standalone install-webconf-auth
+$ sudo service apache2 restart
 ----
+
+After installing the CGIs you will need to update the following settings in your cgi.cfg configuration file:
+
+|===
+|Configuration Setting | Value
+|object_cache_file     | /var/cache/icinga2/objects.cache
+|status_file           | /var/cache/icinga2/status.dat
+|command_file          | /var/run/icinga2/icinga2.cmd
+|log_file              | /var/log/icinga2/compat/icinga.log
+|===
+
+Depending on how you installed Icinga 2 some of those paths might be different.
 
 Verify that your Icinga 1.x CGIs work by browsing to your CGI's installation URL.
 
