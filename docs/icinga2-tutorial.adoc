@@ -224,7 +224,7 @@ After installing the CGIs you will need to update the following settings in your
 
 Depending on how you installed Icinga 2 some of those paths might be different.
 
-Verify that your Icinga 1.x CGIs work by browsing to your CGI's installation URL.
+Verify that your Icinga 1.x CGIs work by browsing to your CGIs' installation URL.
 
 Some More Templates
 -------------------
