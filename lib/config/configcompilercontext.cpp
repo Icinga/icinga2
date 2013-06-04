@@ -43,7 +43,7 @@ void ConfigCompilerContext::AddItem(const ConfigItem::Ptr& item)
 
 ConfigItem::Ptr ConfigCompilerContext::GetItem(const String& type, const String& name) const
 {
-	std::map<std::pair<String, String>, ConfigItem::Ptr>::const_iterator it;
+	std::map<std::pair<String, String>, ConfigItem::Ptr, pair_string_iless>::const_iterator it;
 
 	it = m_ItemsMap.find(std::make_pair(type, name));
 
@@ -65,7 +65,7 @@ void ConfigCompilerContext::AddType(const ConfigType::Ptr& type)
 
 ConfigType::Ptr ConfigCompilerContext::GetType(const String& name) const
 {
-	std::map<String, ConfigType::Ptr>::const_iterator it;
+	std::map<String, ConfigType::Ptr, string_iless>::const_iterator it;
 
 	it = m_Types.find(name);
 
