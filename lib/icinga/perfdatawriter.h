@@ -44,7 +44,7 @@ public:
 
 	static PerfdataWriter::Ptr GetByName(const String& name);
 
-	String GetPathPrefix(void) const;
+	String GetPerfdataPath(void) const;
 	String GetFormatTemplate(void) const;
 	double GetRotationInterval(void) const;
 
@@ -53,7 +53,7 @@ protected:
 	virtual void Start(void);
 
 private:
-	Attribute<String> m_PathPrefix;
+	Attribute<String> m_PerfdataPath;
 	Attribute<String> m_FormatTemplate;
 	Attribute<double> m_RotationInterval;
 

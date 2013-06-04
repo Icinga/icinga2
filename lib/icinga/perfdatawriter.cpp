@@ -37,7 +37,7 @@ REGISTER_TYPE(PerfdataWriter);
 PerfdataWriter::PerfdataWriter(const Dictionary::Ptr& properties)
 	: DynamicObject(properties)
 {
-	RegisterAttribute("path_prefix", Attribute_Config, &m_PathPrefix);
+	RegisterAttribute("perfdata_path", Attribute_Config, &m_PerfdataPath);
 	RegisterAttribute("format_template", Attribute_Config, &m_FormatTemplate);
 	RegisterAttribute("rotation_interval", Attribute_Config, &m_RotationInterval);
 }
@@ -72,10 +72,10 @@ PerfdataWriter::Ptr PerfdataWriter::GetByName(const String& name)
 	return dynamic_pointer_cast<PerfdataWriter>(configObject);
 }
 
-String PerfdataWriter::GetPathPrefix(void) const
+String PerfdataWriter::GetPerfdataPath(void) const
 {
-	if (!m_PathPrefix.IsEmpty())
-		return m_PathPrefix;
+	if (!m_PerfdataPath.IsEmpty())
+		return m_PerfdataPath;
 	else
 		return Application::GetLocalStateDir() + "/cache/icinga2/perfdata/perfdata";
 }
@@ -137,12 +137,12 @@ void PerfdataWriter::RotateFile(void)
 {
 	ObjectLock olock(this);
 
-	String tempFile = GetPathPrefix();
+	String tempFile = GetPerfdataPath();
 
 	if (m_OutputFile.good()) {
 		m_OutputFile.close();
 
-		String finalFile = GetPathPrefix() + "." + Convert::ToString((long)Utility::GetTime());
+		String finalFile = GetPerfdataPath() + "." + Convert::ToString((long)Utility::GetTime());
 		(void) rename(tempFile.CStr(), finalFile.CStr());
 	}
 
