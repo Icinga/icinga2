@@ -57,7 +57,25 @@ DebugInfo ConfigType::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
+void ConfigType::AddParentRules(std::vector<TypeRuleList::Ptr>& ruleLists, const ConfigType::Ptr& item)
+{
+	ConfigType::Ptr parent;
+	if (item->m_Parent.IsEmpty()) {
+		if (item->GetName() != "DynamicObject")
+			parent = ConfigCompilerContext::GetContext()->GetType("DynamicObject");
+	} else {
+		parent = ConfigCompilerContext::GetContext()->GetType(item->m_Parent);
+	}
+
+	if (parent) {
+		AddParentRules(ruleLists, parent);
+
+		ObjectLock plock(parent);
+		ruleLists.push_back(parent->m_RuleList);
+	}
+}
+
+void ConfigType::ValidateItem(const ConfigItem::Ptr& item)
 {
 	/* Don't validate abstract items. */
 	if (item->IsAbstract())
@@ -70,20 +88,8 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item) const
 	DebugInfo debugInfo  = item->GetDebugInfo();
 	locations.push_back("Object '" + item->GetName() + "' (Type: '" + item->GetType() + "') at " + debugInfo.Path + ":" + Convert::ToString(debugInfo.FirstLine));
 
-	ConfigType::Ptr parent;
-	if (m_Parent.IsEmpty()) {
-		if (GetName() != "DynamicObject")
-			parent = ConfigCompilerContext::GetContext()->GetType("DynamicObject");
-	} else {
-		parent = ConfigCompilerContext::GetContext()->GetType(m_Parent);
-	}
-
 	std::vector<TypeRuleList::Ptr> ruleLists;
-	if (parent) {
-		ObjectLock plock(parent);
-		ruleLists.push_back(parent->m_RuleList);
-	}
-
+	AddParentRules(ruleLists, GetSelf());
 	ruleLists.push_back(m_RuleList);
 
 	ValidateDictionary(attrs, ruleLists, locations);

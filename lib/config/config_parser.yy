@@ -270,7 +270,7 @@ typerule: T_REQUIRE T_STRING
 	;
 
 type_inherits_specifier: /* empty */
-	| T_INHERITS T_STRING
+	| T_INHERITS identifier
 	{
 		m_Type->SetParent($2);
 		free($2);

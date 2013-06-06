@@ -50,7 +50,7 @@ public:
 
 	DebugInfo GetDebugInfo(void) const;
 
-	void ValidateItem(const ConfigItem::Ptr& object) const;
+	void ValidateItem(const ConfigItem::Ptr& object);
 
 private:
 	String m_Name; /**< The type name. */
@@ -65,6 +65,8 @@ private:
 	    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations);
 
 	static String LocationToString(const std::vector<String>& locations);
+
+	static void AddParentRules(std::vector<TypeRuleList::Ptr>& ruleLists, const ConfigType::Ptr& item);
 };
 
 }
