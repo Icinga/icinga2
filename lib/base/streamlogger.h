@@ -32,17 +32,16 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API StreamLogger : public ILogger
+class I2_BASE_API StreamLogger : public Logger
 {
 public:
 	typedef shared_ptr<StreamLogger> Ptr;
 	typedef weak_ptr<StreamLogger> WeakPtr;
 
-	StreamLogger(void);
-	explicit StreamLogger(std::ostream *stream);
+	StreamLogger(const Dictionary::Ptr& serializedUpdate);
 	~StreamLogger(void);
 
-	void OpenFile(const String& filename);
+	void BindStream(std::ostream *stream, bool ownsStream);
 
 	static void ProcessLogEntry(std::ostream& stream, bool tty, const LogEntry& entry);
         static bool IsTty(std::ostream& stream);

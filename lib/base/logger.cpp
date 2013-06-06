@@ -29,7 +29,8 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(Logger);
+std::set<Logger::Ptr> Logger::m_Loggers;
+boost::mutex Logger::m_Mutex;
 
 /**
  * Constructor for the Logger class.
@@ -39,8 +40,6 @@ REGISTER_TYPE(Logger);
 Logger::Logger(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
 {
-	RegisterAttribute("type", Attribute_Config, &m_Type);
-	RegisterAttribute("path", Attribute_Config, &m_Path);
 	RegisterAttribute("severity", Attribute_Config, &m_Severity);
 
 	if (!IsLocal())
@@ -49,36 +48,20 @@ Logger::Logger(const Dictionary::Ptr& serializedUpdate)
 
 void Logger::Start(void)
 {
-	String type = m_Type;
-	if (type.IsEmpty())
-		BOOST_THROW_EXCEPTION(std::runtime_error("Logger objects must have a 'type' property."));
+	boost::mutex::scoped_lock(m_Mutex);
+	m_Loggers.insert(GetSelf());
+}
 
-	ILogger::Ptr impl;
+void Logger::Stop(void)
+{
+	boost::mutex::scoped_lock(m_Mutex);
+	m_Loggers.erase(GetSelf());
+}
 
-	if (type == "syslog") {
-#ifndef _WIN32
-		impl = boost::make_shared<SyslogLogger>();
-#else /* _WIN32 */
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Syslog is not supported on Windows."));
-#endif /* _WIN32 */
-	} else if (type == "file") {
-		String path = m_Path;
-		if (path.IsEmpty())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("'log' object of type 'file' must have a 'path' property"));
-
-		StreamLogger::Ptr slogger = boost::make_shared<StreamLogger>();
-		slogger->OpenFile(path);
-
-		impl = slogger;
-	} else if (type == "console") {
-		impl = boost::make_shared<StreamLogger>(&std::cout);
-	} else {
-		BOOST_THROW_EXCEPTION(std::runtime_error("Unknown log type: " + type));
-	}
-
-	impl->m_Config = GetSelf();
-	m_Impl = impl;
-
+std::set<Logger::Ptr> Logger::GetLoggers(void)
+{
+	boost::mutex::scoped_lock(m_Mutex);
+	return m_Loggers;
 }
 
 /**
@@ -97,40 +80,14 @@ void icinga::Log(LogSeverity severity, const String& facility,
 	entry.Facility = facility;
 	entry.Message = message;
 
-	Logger::ForwardLogEntry(entry);
-}
-
-/**
- * Retrieves the minimum severity for this logger.
- *
- * @returns The minimum severity.
- */
-LogSeverity Logger::GetMinSeverity(void) const
-{
-	String severity = m_Severity;
-	if (severity.IsEmpty())
-		return LogInformation;
-	else
-		return Logger::StringToSeverity(severity);
-}
-
-/**
- * Forwards a log entry to the registered loggers.
- *
- * @param entry The log entry.
- */
-void Logger::ForwardLogEntry(const LogEntry& entry)
-{
 	bool processed = false;
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Logger")) {
-		Logger::Ptr logger = dynamic_pointer_cast<Logger>(object);
-
+	BOOST_FOREACH(const Logger::Ptr& logger, Logger::GetLoggers()) {
 		{
 			ObjectLock llock(logger);
 
 			if (entry.Severity >= logger->GetMinSeverity())
-				logger->m_Impl->ProcessLogEntry(entry);
+				logger->ProcessLogEntry(entry);
 		}
 
 		processed = true;
@@ -148,6 +105,20 @@ void Logger::ForwardLogEntry(const LogEntry& entry)
 
 		StreamLogger::ProcessLogEntry(std::cout, tty, entry);
 	}
+}
+
+/**
+ * Retrieves the minimum severity for this logger.
+ *
+ * @returns The minimum severity.
+ */
+LogSeverity Logger::GetMinSeverity(void) const
+{
+	String severity = m_Severity;
+	if (severity.IsEmpty())
+		return LogInformation;
+	else
+		return Logger::StringToSeverity(severity);
 }
 
 /**
@@ -190,12 +161,12 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity: " + severity));
 }
 
-/**
- * Retrieves the configuration object that belongs to this logger.
- *
- * @returns The configuration object.
- */
-DynamicObject::Ptr ILogger::GetConfig(void) const
-{
-	return m_Config.lock();
-}
+///**
+// * Retrieves the configuration object that belongs to this logger.
+// *
+// * @returns The configuration object.
+// */
+//DynamicObject::Ptr ILogger::GetConfig(void) const
+//{
+//	return m_Config.lock();
+//}

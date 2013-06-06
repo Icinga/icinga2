@@ -17,34 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SYSLOGLOGGER_H
-#define SYSLOGLOGGER_H
+#ifndef CONSOLELOGGER_H
+#define CONSOLELOGGER_H
 
 #include "base/i2-base.h"
-#include "base/logger.h"
+#include "base/streamlogger.h"
 
-#ifndef _WIN32
 namespace icinga
 {
 
 /**
- * A logger that logs to syslog.
+ * A logger that logs to the console.
  *
  * @ingroup base
  */
-class I2_BASE_API SyslogLogger : public Logger
+class I2_BASE_API ConsoleLogger : public StreamLogger
 {
 public:
-	typedef shared_ptr<SyslogLogger> Ptr;
-	typedef weak_ptr<SyslogLogger> WeakPtr;
+	typedef shared_ptr<ConsoleLogger> Ptr;
+	typedef weak_ptr<ConsoleLogger> WeakPtr;
 
-	explicit SyslogLogger(const Dictionary::Ptr& serializedUpdate);
-
-protected:
-	virtual void ProcessLogEntry(const LogEntry& entry);
+	explicit ConsoleLogger(const Dictionary::Ptr& serializedUpdate);
 };
 
 }
-#endif /* _WIN32 */
 
-#endif /* SYSLOGLOGGER_H */
+#endif /* CONSOLELOGGER_H */

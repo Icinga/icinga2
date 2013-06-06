@@ -17,42 +17,35 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/sysloglogger.h"
+#include "base/filelogger.h"
+#include "base/dynamictype.h"
+#include <fstream>
 
-#ifndef _WIN32
 using namespace icinga;
 
-/**
- * Constructor for the SyslogLogger class.
- */
-SyslogLogger::SyslogLogger(const Dictionary::Ptr& serializedUpdate)
-	: Logger(serializedUpdate)
-{ }
+REGISTER_TYPE(FileLogger);
 
 /**
- * Processes a log entry and outputs it to syslog.
- *
- * @param entry The log entry.
+ * Constructor for the FileLogger class.
  */
-void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
+FileLogger::FileLogger(const Dictionary::Ptr& serializedUpdate)
+	: StreamLogger(serializedUpdate)
 {
-	int severity;
-	switch (entry.Severity) {
-		case LogDebug:
-			severity = LOG_DEBUG;
-			break;
-		case LogWarning:
-			severity = LOG_WARNING;
-			break;
-		case LogCritical:
-			severity = LOG_CRIT;
-			break;
-		case LogInformation:
-		default:
-			severity = LOG_INFO;
-			break;
+	RegisterAttribute("path", Attribute_Config, &m_Path);
+
+	std::ofstream *stream = new std::ofstream();
+
+	String path = m_Path;
+
+	try {
+		stream->open(path.CStr(), std::fstream::out | std::fstream::trunc);
+
+		if (!stream->good())
+			BOOST_THROW_EXCEPTION(std::runtime_error("Could not open logfile '" + path + "'"));
+	} catch (...) {
+		delete stream;
+		throw;
 	}
 
-	syslog(severity | LOG_USER, "%s", entry.Message.CStr());
+	BindStream(stream, true);
 }
-#endif /* _WIN32 */

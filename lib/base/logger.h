@@ -23,6 +23,7 @@
 #include "base/i2-base.h"
 #include "base/dynamicobject.h"
 #include "base/logger_fwd.h"
+#include <set>
 
 namespace icinga
 {
@@ -40,35 +41,7 @@ struct LogEntry {
 };
 
 /**
- * Base class for all loggers.
- *
- * @ingroup base
- */
-class I2_BASE_API ILogger : public Object
-{
-public:
-	typedef shared_ptr<ILogger> Ptr;
-	typedef weak_ptr<ILogger> WeakPtr;
-
-	/**
-	 * Processes the log entry and writes it to the log that is
-	 * represented by this ILogger object.
-	 *
-	 * @param entry The log entry that is to be processed.
-	 */
-	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
-
-protected:
-	DynamicObject::Ptr GetConfig(void) const;
-
-private:
-	DynamicObject::WeakPtr m_Config;
-
-	friend class Logger;
-};
-
-/**
- * A log provider. Can be instantiated from the config.
+ * A log provider.
  *
  * @ingroup base
  */
@@ -85,18 +58,27 @@ public:
 
 	LogSeverity GetMinSeverity(void) const;
 
+	/**
+	 * Processes the log entry and writes it to the log that is
+	 * represented by this ILogger object.
+	 *
+	 * @param entry The log entry that is to be processed.
+	 */
+	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
+
+	static std::set<Logger::Ptr> GetLoggers(void);
+
 protected:
 	virtual void Start(void);
+	virtual void Stop(void);
 
 private:
-	Attribute<String> m_Type;
-	Attribute<String> m_Path;
 	Attribute<String> m_Severity;
 
 	LogSeverity m_MinSeverity;
-	ILogger::Ptr m_Impl;
 
-	static void ForwardLogEntry(const LogEntry& entry);
+	static boost::mutex m_Mutex;
+	static std::set<Logger::Ptr> m_Loggers;
 
 	friend void Log(LogSeverity severity, const String& facility,
 	    const String& message);

@@ -17,42 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/sysloglogger.h"
+#include "base/consolelogger.h"
+#include "base/dynamictype.h"
+#include <iostream>
 
-#ifndef _WIN32
 using namespace icinga;
 
-/**
- * Constructor for the SyslogLogger class.
- */
-SyslogLogger::SyslogLogger(const Dictionary::Ptr& serializedUpdate)
-	: Logger(serializedUpdate)
-{ }
+REGISTER_TYPE(ConsoleLogger);
 
 /**
- * Processes a log entry and outputs it to syslog.
- *
- * @param entry The log entry.
+ * Constructor for the ConsoleLogger class.
  */
-void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
+ConsoleLogger::ConsoleLogger(const Dictionary::Ptr& serializedUpdate)
+	: StreamLogger(serializedUpdate)
 {
-	int severity;
-	switch (entry.Severity) {
-		case LogDebug:
-			severity = LOG_DEBUG;
-			break;
-		case LogWarning:
-			severity = LOG_WARNING;
-			break;
-		case LogCritical:
-			severity = LOG_CRIT;
-			break;
-		case LogInformation:
-		default:
-			severity = LOG_INFO;
-			break;
-	}
-
-	syslog(severity | LOG_USER, "%s", entry.Message.CStr());
+	BindStream(&std::cout, false);
 }
-#endif /* _WIN32 */

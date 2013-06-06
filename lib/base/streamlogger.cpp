@@ -31,17 +31,8 @@ boost::mutex StreamLogger::m_Mutex;
 /**
  * Constructor for the StreamLogger class.
  */
-StreamLogger::StreamLogger(void)
-	: ILogger(), m_Stream(NULL), m_OwnsStream(false), m_Tty(false)
-{ }
-
-/**
- * Constructor for the StreamLogger class.
- *
- * @param stream The stream.
- */
-StreamLogger::StreamLogger(std::ostream *stream)
-	: ILogger(), m_Stream(stream), m_OwnsStream(false), m_Tty(IsTty(*stream))
+StreamLogger::StreamLogger(const Dictionary::Ptr& serializedUpdate)
+	: Logger(serializedUpdate), m_Stream(NULL), m_OwnsStream(false), m_Tty(false)
 { }
 
 /**
@@ -53,25 +44,13 @@ StreamLogger::~StreamLogger(void)
 		delete m_Stream;
 }
 
-void StreamLogger::OpenFile(const String& filename)
+void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
 {
-	std::ofstream *stream = new std::ofstream();
-
-	try {
-		stream->open(filename.CStr(), std::fstream::out | std::fstream::trunc);
-
-		if (!stream->good())
-			BOOST_THROW_EXCEPTION(std::runtime_error("Could not open logfile '" + filename + "'"));
-	} catch (...) {
-		delete stream;
-		throw;
-	}
-
 	ObjectLock olock(this);
 
 	m_Stream = stream;
-	m_OwnsStream = true;
-	m_Tty = false;
+	m_OwnsStream = ownsStream;
+	m_Tty = IsTty(*stream);
 }
 
 /**
@@ -117,8 +96,6 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
  */
 void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 {
-	ObjectLock olock(this);
-
 	ProcessLogEntry(*m_Stream, m_Tty, entry);
 }
 

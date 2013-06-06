@@ -13,6 +13,8 @@ libbase_la_SOURCES =  \
 	attribute.h \
 	bufferedstream.cpp \
 	bufferedstream.h \
+	consolelogger.cpp \
+	consolelogger.h \
 	convert.cpp \
 	convert.h \
 	dictionary.cpp \
@@ -25,6 +27,8 @@ libbase_la_SOURCES =  \
 	exception.h \
 	fifo.cpp \
 	fifo.h \
+	filelogger.cpp \
+	filelogger.h \
 	i2-base.h \
 	logger.cpp \
 	logger.h \

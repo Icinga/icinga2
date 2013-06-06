@@ -32,11 +32,13 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API SyslogLogger : public ILogger
+class I2_BASE_API SyslogLogger : public Logger
 {
 public:
 	typedef shared_ptr<SyslogLogger> Ptr;
 	typedef weak_ptr<SyslogLogger> WeakPtr;
+
+	explicit SyslogLogger(const Dictionary::Ptr& serializedUpdate);
 
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);

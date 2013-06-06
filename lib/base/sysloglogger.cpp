@@ -18,9 +18,19 @@
  ******************************************************************************/
 
 #include "base/sysloglogger.h"
+#include "base/dynamictype.h"
 
 #ifndef _WIN32
 using namespace icinga;
+
+REGISTER_TYPE(SyslogLogger);
+
+/**
+ * Constructor for the SyslogLogger class.
+ */
+SyslogLogger::SyslogLogger(const Dictionary::Ptr& serializedUpdate)
+	: Logger(serializedUpdate)
+{ }
 
 /**
  * Processes a log entry and outputs it to syslog.
