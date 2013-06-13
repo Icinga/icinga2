@@ -402,6 +402,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	if (old_state != GetState() && old_stateType == StateTypeHard && GetStateType() == StateTypeHard)
 		hardChange = true;
 
+	if (IsVolatile())
+		hardChange = true;
+
 	if (hardChange)
 		SetLastHardStateChange(now);
 

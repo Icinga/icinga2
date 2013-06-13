@@ -52,6 +52,7 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("checkers", Attribute_Config, &m_Checkers);
 
 	RegisterAttribute("event_command", Attribute_Config, &m_EventCommand);
+	RegisterAttribute("volatile", Attribute_Config, &m_Volatile);
 
 	RegisterAttribute("next_check", Attribute_Replicated, &m_NextCheck);
 	RegisterAttribute("current_checker", Attribute_Replicated, &m_CurrentChecker);
@@ -221,6 +222,14 @@ bool Service::IsReachable(void) const
 	}
 
 	return true;
+}
+
+bool Service::IsVolatile(void) const
+{
+	if (m_Volatile.IsEmpty())
+		return false;
+
+	return m_Volatile;
 }
 
 AcknowledgementType Service::GetAcknowledgement(void)

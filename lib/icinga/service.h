@@ -94,6 +94,8 @@ public:
 	std::set<Host::Ptr> GetParentHosts(void) const;
 	std::set<Service::Ptr> GetParentServices(void) const;
 
+	bool IsVolatile(void) const;
+
 	bool IsReachable(void) const;
 
 	AcknowledgementType GetAcknowledgement(void);
@@ -261,6 +263,7 @@ private:
 	Attribute<long> m_Acknowledgement;
 	Attribute<double> m_AcknowledgementExpiry;
 	Attribute<String> m_HostName;
+	Attribute<bool> m_Volatile;
 
 	/* Checks */
 	Attribute<String> m_CheckCommand;
