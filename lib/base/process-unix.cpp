@@ -32,6 +32,7 @@
 
 #ifndef _WIN32
 #include <execvpe.h>
+#include <poll.h>
 
 using namespace icinga;
 
@@ -158,13 +159,36 @@ ProcessResult Process::Run(void)
 
 	std::ostringstream outputStream;
 
+	pollfd pfd;
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	pfd.revents = 0;
+
 	for (;;) {
-		int rc = read(fd, buffer, sizeof(buffer));
+		int rc1, timeout;
 
-		if (rc <= 0)
-			break;
+		timeout = 0;
 
-		outputStream.write(buffer, rc);
+		if (m_Timeout != 0) {
+			timeout = m_Timeout - (Utility::GetTime() - result.ExecutionStart);
+
+			if (timeout < 0) {
+				outputStream << "<Timeout exceeded.>";
+				kill(m_Pid, SIGKILL);
+				break;
+			}
+		}
+
+		rc1 = poll(&pfd, 1, timeout * 1000);
+
+		if (rc1 > 0) {
+			int rc2 = read(fd, buffer, sizeof(buffer));
+
+			if (rc2 <= 0)
+				break;
+
+			outputStream.write(buffer, rc2);
+		}
 	}
 
 	String output = outputStream.str();
@@ -183,8 +207,8 @@ ProcessResult Process::Run(void)
 		exitcode = WEXITSTATUS(status);
 	} else if (WIFSIGNALED(status)) {
 		std::ostringstream outputbuf;
-		outputbuf << "Process was terminated by signal " << WTERMSIG(status);
-		output = outputbuf.str();
+		outputbuf << "<Terminated by signal " << WTERMSIG(status) << ".>";
+		output = output + outputbuf.str();
 		exitcode = 128;
 	} else {
 		exitcode = 128;

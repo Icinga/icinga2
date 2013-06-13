@@ -61,12 +61,17 @@ public:
 
 	Process(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
 
+	void SetTimeout(double timeout);
+	double GetTimeout(void) const;
+
 	ProcessResult Run(void);
 
 	static std::vector<String> SplitCommand(const Value& command);
 private:
 	std::vector<String> m_Arguments;
 	Dictionary::Ptr m_ExtraEnvironment;
+
+	double m_Timeout;
 
 #ifndef _WIN32
 	pid_t m_Pid;

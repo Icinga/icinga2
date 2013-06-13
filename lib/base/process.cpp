@@ -26,7 +26,7 @@
 using namespace icinga;
 
 Process::Process(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
-	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment)
+	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment), m_Timeout(600)
 { }
 
 std::vector<String> Process::SplitCommand(const Value& command)
@@ -53,4 +53,14 @@ std::vector<String> Process::SplitCommand(const Value& command)
 	args.push_back(command);
 #endif
 	return args;
+}
+
+void Process::SetTimeout(double timeout)
+{
+	m_Timeout = timeout;
+}
+
+double Process::GetTimeout(void) const
+{
+	return m_Timeout;
 }
