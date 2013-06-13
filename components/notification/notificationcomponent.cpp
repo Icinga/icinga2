@@ -79,7 +79,10 @@ void NotificationComponent::NotificationTimerHandler(void)
 		Service::Ptr service = notification->GetService();
 		bool reachable = service->IsReachable();
 
-		notification->SetNextNotification(Utility::GetTime() + notification->GetNotificationInterval());
+		{
+			ObjectLock olock(notification);
+			notification->SetNextNotification(Utility::GetTime() + notification->GetNotificationInterval());
+		}
 
 		bool send_notification;
 

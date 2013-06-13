@@ -42,7 +42,7 @@ using boost::static_pointer_cast;
 namespace icinga
 {
 
-class SharedPtrHolder;
+class Value;
 
 /**
  * Base class for all heap-allocated objects. At least one of its methods
@@ -107,6 +107,8 @@ public:
 		{
 			return static_cast<shared_ptr<T> >(*this);
 		}
+
+		operator Value(void) const;
 
 	private:
 		Object::Ptr m_Object; /**< The object that belongs to this

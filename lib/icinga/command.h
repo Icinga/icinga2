@@ -17,55 +17,43 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/object.h"
-#include "base/value.h"
+#ifndef COMMAND_H
+#define COMMAND_H
 
-using namespace icinga;
+#include "icinga/macroresolver.h"
+#include "base/i2-base.h"
+#include "base/array.h"
+#include "base/dynamicobject.h"
+#include "base/logger_fwd.h"
+#include <set>
 
-#ifdef _DEBUG
-boost::mutex Object::m_DebugMutex;
-#endif /* _DEBUG */
-
-/**
- * Default constructor for the Object class.
- */
-Object::Object(void)
-#ifdef _DEBUG
-	: m_Locked(false)
-#endif /* _DEBUG */
-{ }
+namespace icinga
+{
 
 /**
- * Destructor for the Object class.
- */
-Object::~Object(void)
-{ }
-
-/**
- * Returns a reference-counted pointer to this object.
+ * A command.
  *
- * @returns A shared_ptr object that points to this object
+ * @ingroup base
  */
-Object::SharedPtrHolder Object::GetSelf(void)
+class I2_BASE_API Command : public DynamicObject, public MacroResolver
 {
-	return Object::SharedPtrHolder(shared_from_this());
+public:
+	typedef shared_ptr<Command> Ptr;
+	typedef weak_ptr<Command> WeakPtr;
+
+	explicit Command(const Dictionary::Ptr& serializedUpdate);
+
+	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
+
+	Dictionary::Ptr GetMacros(void) const;
+	Array::Ptr GetExportMacros(void) const;
+	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+
+private:
+	Attribute<Dictionary::Ptr> m_Macros;
+	Attribute<Array::Ptr> m_ExportMacros;
+};
+
 }
 
-#ifdef _DEBUG
-/**
- * Checks if the calling thread owns the lock on this object.
- *
- * @returns True if the calling thread owns the lock, false otherwise.
- */
-bool Object::OwnsLock(void) const
-{
-	boost::mutex::scoped_lock lock(m_DebugMutex);
-
-	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
-}
-#endif /* _DEBUG */
-
-Object::SharedPtrHolder::operator Value(void) const
-{
-	return m_Object;
-}
+#endif /* COMMAND_H */

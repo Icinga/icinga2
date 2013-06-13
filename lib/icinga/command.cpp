@@ -17,55 +17,40 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/object.h"
-#include "base/value.h"
+#include "icinga/command.h"
 
 using namespace icinga;
 
-#ifdef _DEBUG
-boost::mutex Object::m_DebugMutex;
-#endif /* _DEBUG */
-
 /**
- * Default constructor for the Object class.
- */
-Object::Object(void)
-#ifdef _DEBUG
-	: m_Locked(false)
-#endif /* _DEBUG */
-{ }
-
-/**
- * Destructor for the Object class.
- */
-Object::~Object(void)
-{ }
-
-/**
- * Returns a reference-counted pointer to this object.
+ * Constructor for the Command class.
  *
- * @returns A shared_ptr object that points to this object
+ * @param serializedUpdate A serialized dictionary containing attributes.
  */
-Object::SharedPtrHolder Object::GetSelf(void)
+Command::Command(const Dictionary::Ptr& serializedUpdate)
+	: DynamicObject(serializedUpdate)
 {
-	return Object::SharedPtrHolder(shared_from_this());
+	RegisterAttribute("macros", Attribute_Config, &m_Macros);
+	RegisterAttribute("export_macros", Attribute_Config, &m_ExportMacros);
 }
 
-#ifdef _DEBUG
-/**
- * Checks if the calling thread owns the lock on this object.
- *
- * @returns True if the calling thread owns the lock, false otherwise.
- */
-bool Object::OwnsLock(void) const
+Dictionary::Ptr Command::GetMacros(void) const
 {
-	boost::mutex::scoped_lock lock(m_DebugMutex);
-
-	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
+	return m_Macros;
 }
-#endif /* _DEBUG */
 
-Object::SharedPtrHolder::operator Value(void) const
+Array::Ptr Command::GetExportMacros(void) const
 {
-	return m_Object;
+	return m_ExportMacros;
+}
+
+bool Command::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
+{
+	Dictionary::Ptr macros = GetMacros();
+
+	if (macros && macros->Contains(macro)) {
+		*result = macros->Get(macro);
+		return true;
+	}
+
+	return false;
 }

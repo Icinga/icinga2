@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
+#include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/checkresultmessage.h"
 #include "icinga/cib.h"
@@ -38,9 +39,9 @@ const double Service::CheckIntervalDivisor = 5.0;
 boost::signals2::signal<void (const Service::Ptr&)> Service::OnCheckerChanged;
 boost::signals2::signal<void (const Service::Ptr&)> Service::OnNextCheckChanged;
 
-Value Service::GetCheckCommand(void) const
+CheckCommand::Ptr Service::GetCheckCommand(void) const
 {
-	return m_CheckCommand;
+	return CheckCommand::GetByName(m_CheckCommand);
 }
 
 long Service::GetMaxCheckAttempts(void) const
@@ -365,6 +366,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	int state = cr->Get("state");
 	SetState(static_cast<ServiceState>(state));
 
+	bool call_eventhandler = false;
+
 	if (old_state != GetState()) {
 		SetLastStateChange(now);
 
@@ -390,6 +393,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 				service->SetNextCheck(Utility::GetTime());
 			}
 		}
+
+		call_eventhandler = true;
 	}
 
 	bool hardChange = (GetStateType() == StateTypeHard && old_stateType == StateTypeSoft);
@@ -450,6 +455,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	rm.SetParams(params);
 
 	EndpointManager::GetInstance()->SendMulticastMessage(rm);
+
+	if (call_eventhandler)
+		ExecuteEventHandler();
 
 	if (send_downtime_notification)
 		RequestNotifications(in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr);
@@ -549,13 +557,10 @@ void Service::ExecuteCheck(void)
 
 	Service::Ptr self = GetSelf();
 
-	std::vector<Value> arguments;
-	arguments.push_back(self);
-
 	Dictionary::Ptr result;
 
 	try {
-		result = InvokeMethod("check", arguments);
+		result = GetCheckCommand()->Execute(GetSelf());
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"

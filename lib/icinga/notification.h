@@ -46,6 +46,7 @@ enum NotificationType
 };
 
 class Service;
+class NotificationCommand;
 
 /**
  * An Icinga notification specification.
@@ -64,7 +65,7 @@ public:
 	static Notification::Ptr GetByName(const String& name);
 
 	shared_ptr<Service> GetService(void) const;
-	Value GetNotificationCommand(void) const;
+	shared_ptr<NotificationCommand> GetNotificationCommand(void) const;
 	double GetNotificationInterval(void) const;
 	TimePeriod::Ptr GetNotificationPeriod(void) const;
 	Dictionary::Ptr GetMacros(void) const;
@@ -89,7 +90,7 @@ protected:
 	void OnAttributeChanged(const String& name);
 
 private:
-	Attribute<Value> m_NotificationCommand;
+	Attribute<String> m_NotificationCommand;
 	Attribute<double> m_NotificationInterval;
 	Attribute<String> m_NotificationPeriod;
 	Attribute<double> m_LastNotification;

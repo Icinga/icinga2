@@ -17,55 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/object.h"
-#include "base/value.h"
+#ifndef NULLEVENTTASK_H
+#define NULLEVENTTASK_H
 
-using namespace icinga;
+#include "icinga/i2-icinga.h"
+#include "icinga/service.h"
+#include "base/dictionary.h"
 
-#ifdef _DEBUG
-boost::mutex Object::m_DebugMutex;
-#endif /* _DEBUG */
-
-/**
- * Default constructor for the Object class.
- */
-Object::Object(void)
-#ifdef _DEBUG
-	: m_Locked(false)
-#endif /* _DEBUG */
-{ }
+namespace icinga
+{
 
 /**
- * Destructor for the Object class.
- */
-Object::~Object(void)
-{ }
-
-/**
- * Returns a reference-counted pointer to this object.
+ * Test class for additional event handler types. Implements the "null" event handler type.
  *
- * @returns A shared_ptr object that points to this object
+ * @ingroup icinga
  */
-Object::SharedPtrHolder Object::GetSelf(void)
+class I2_ICINGA_API NullEventTask
 {
-	return Object::SharedPtrHolder(shared_from_this());
+public:
+	static void ScriptFunc(const Service::Ptr& service);
+
+private:
+	NullEventTask(void);
+};
+
 }
 
-#ifdef _DEBUG
-/**
- * Checks if the calling thread owns the lock on this object.
- *
- * @returns True if the calling thread owns the lock, false otherwise.
- */
-bool Object::OwnsLock(void) const
-{
-	boost::mutex::scoped_lock lock(m_DebugMutex);
-
-	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
-}
-#endif /* _DEBUG */
-
-Object::SharedPtrHolder::operator Value(void) const
-{
-	return m_Object;
-}
+#endif /* NULLEVENTTASK_H */

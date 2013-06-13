@@ -57,7 +57,8 @@ enum CommentType
 	CommentAcknowledgement = 4
 };
 
-class CheckResultMessage;
+class CheckCommand;
+class EventCommand;
 
 /**
  * An Icinga service.
@@ -84,7 +85,6 @@ public:
 	String GetDisplayName(void) const;
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
-	Array::Ptr GetExportMacros(void) const;
 	Array::Ptr GetHostDependencies(void) const;
 	Array::Ptr GetServiceDependencies(void) const;
 	Array::Ptr GetGroups(void) const;
@@ -101,7 +101,7 @@ public:
 
 	/* Checks */
 	Array::Ptr GetCheckers(void) const;
-	Value GetCheckCommand(void) const;
+	shared_ptr<CheckCommand> GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
 	TimePeriod::Ptr GetCheckPeriod(void) const;
 	double GetCheckInterval(void) const;
@@ -241,6 +241,10 @@ public:
 
 	void UpdateSlaveNotifications(void);
 
+	/* Event Handler */
+	void ExecuteEventHandler(void);
+	shared_ptr<EventCommand> GetEventCommand(void) const;
+
 protected:
 	virtual void OnRegistrationCompleted(void);
 	virtual void OnAttributeChanged(const String& name);
@@ -250,7 +254,6 @@ private:
 
 	Attribute<String> m_DisplayName;
 	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Array::Ptr> m_ExportMacros;
 	Attribute<Array::Ptr> m_HostDependencies;
 	Attribute<Array::Ptr> m_ServiceDependencies;
 	Attribute<Array::Ptr> m_ServiceGroups;
@@ -260,7 +263,7 @@ private:
 	Attribute<String> m_HostName;
 
 	/* Checks */
-	Attribute<Value> m_CheckCommand;
+	Attribute<String> m_CheckCommand;
 	Attribute<long> m_MaxCheckAttempts;
 	Attribute<String> m_CheckPeriod;
 	Attribute<double> m_CheckInterval;
@@ -309,6 +312,9 @@ private:
 	Attribute<bool> m_ForceNextNotification;
 
 	static void RefreshNotificationsCache(void);
+
+	/* Event Handler */
+	Attribute<String> m_EventCommand;
 };
 
 }

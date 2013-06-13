@@ -384,8 +384,6 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 
 	Dictionary::Ptr ranges = tp->Get("ranges");
 
-
-
 	if (ranges) {
 		for (int i = 0; i <= (end - begin) / (24 * 60 * 60); i++) {
 			time_t refts = begin + i * 24 * 60 * 60;

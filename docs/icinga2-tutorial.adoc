@@ -107,13 +107,17 @@ So far our Icinga 2 setup doesn't do much. Lets change that by setting up a serv
 check for localhost. Modify your 'icinga2.conf' configuration file by adding the following lines:
 
 ----
-template Service "my-ping" inherits "plugin-service" {
-	check_command = [
+object CheckCommand "my-ping" inherits "plugin-check-command" {
+	command = [
 		"$plugindir$/check_ping",
 		"-H", "$address$",
 		"-w", "10,5%",
 		"-c", "25,10%"
 	]
+}
+
+template Service "my-ping" inherits "plugin-service" {
+	check_command = "my-ping"
 }
 
 object Host "localhost" {
@@ -133,9 +137,9 @@ object Host "localhost" {
 }
 ----
 
-We're defining a service template called "my-ping" which inherits from the
-'plugin-service' template. The 'plugin-service' template is provided as part of
-the Icinga Template Library and describes how services are checked.
+We're defining a command object called "my-ping" which inherits from the
+'plugin-check-command' template. The 'plugin-check-command' template is provided as part of
+the Icinga Template Library and describes how checks are performed.
 In the case of plugin-based services this means that the command specified by
 the 'check_command' property is executed.
 
@@ -154,8 +158,11 @@ By convention the following macros are usually used:
 |address6    |The IPv6 address of the host.
 |===
 
-Note that the 'my-ping' template does not define a value for the 'address' macro. This
+Note that the 'my-ping' command object does not define a value for the 'address' macro. This
 is perfectly fine as long as that macro is defined somewhere else (e.g. in the host).
+
+We're also defining a service template called 'my-ping' which uses the command object
+we just created.
 
 Next we're defining a 'Host' object called 'localhost'. We're setting an optional
 display_name which is used by the CGIs when showing that host in the host overview.
@@ -252,7 +259,7 @@ object Host "icinga.org" {
 
 Restart your Icinga 2 instance and check the CGIs for your new service's state. Unless
 you have a low-latency network connection you will note that the service's state is 'CRITICAL'.
-This is because in the 'my-ping' template we have hard-coded the timeout as 25 milliseconds.
+This is because in the 'my-ping' command object we have hard-coded the timeout as 25 milliseconds.
 
 Ideally we'd be able to specify different timeouts for our new service. Using macros we
 can easily do this.
@@ -260,11 +267,11 @@ can easily do this.
 NOTE: If you've used Icinga 1.x before you're probably familiar with doing this by passing
 ARGx macros to your check commands.
 
-Start by replacing your 'my-ping' service template with this:
+Start by replacing your 'my-ping' command object with this:
 
 ----
-template Service "my-ping" inherits "plugin-service" {
-	check_command = [
+object CheckCommand "my-ping" inherits "plugin-check-command" {
+	command = [
 		"$plugindir$/check_ping",
 		"-H", "$address$",
 		"-w", "$wrta$,$wpl$%",
@@ -329,12 +336,12 @@ NOTE: Ordinarily you'd use double-quotes for the include path. This way only pat
 relative to the current configuration file are considered. The angle brackets tell
 Icinga 2 to search its list of global include directories.
 
-One of the templates in the ITL is the 'ping4' template which is quite similar
-to our own 'my-ping' template:
+One of the templates in the ITL is the 'ping4' service template which is quite similar
+to our example objects:
 
 ----
-template Service "ping4" inherits "plugin-service" {
-	check_command = [
+object CheckCommand "ping4" inherits "plugin-check-command" {
+	command = [
 		"$plugindir$/check_ping",
 		"-4",
 		"-H", "$address$",
@@ -354,6 +361,10 @@ template Service "ping4" inherits "plugin-service" {
 		packets = 5,
 		timeout = 0
 	}
+}
+
+template Service "ping4" {
+	check_command = "ping4"
 }
 ----
 
@@ -434,8 +445,8 @@ Next we're going to create a 'Notification' template which tells Icinga how to i
 the shell script:
 
 ----
-template Notification "mail-notification" inherits "plugin-notification" {
-	notification_command = [
+object NotificationCommand "mail-notification" inherits "plugin-notification-command" {
+	command = [
 		"/etc/icinga2/mail-notification.sh",
 		"$email$"
 	],
@@ -450,6 +461,10 @@ template Notification "mail-notification" inherits "plugin-notification" {
 		"LONGDATETIME",
 		"SERVICEOUTPUT"
 	]
+}
+
+template Notification "mail-notification" inherits "plugin-notification" {
+	notification_command = "mail-notification"
 }
 ----
 

@@ -13,10 +13,16 @@ EXTRA_DIST = \
 libicinga_la_SOURCES =  \
 	api.cpp \
 	api.h \
+	checkcommand.cpp \
+	checkcommand.h \
 	checkresultmessage.cpp \
 	checkresultmessage.h \
 	cib.cpp \
 	cib.h \
+	command.cpp \
+	command.h \
+	eventcommand.cpp \
+	eventcommand.h \
 	externalcommandprocessor.cpp \
 	externalcommandprocessor.h \
 	host.cpp \
@@ -35,20 +41,27 @@ libicinga_la_SOURCES =  \
 	macroresolver.h \
 	notification.cpp \
 	notification.h \
+	notificationcommand.cpp \
+	notificationcommand.h \
 	notificationrequestmessage.cpp \
 	notificationrequestmessage.h \
 	nullchecktask.cpp \
 	nullchecktask.h \
+	nulleventtask.cpp \
+	nulleventtask.h \
 	perfdatawriter.cpp \
 	perfdatawriter.h \
 	pluginchecktask.cpp \
 	pluginchecktask.h \
+	plugineventtask.cpp \
+	plugineventtask.h \
 	pluginnotificationtask.cpp \
 	pluginnotificationtask.h \
 	service.cpp \
 	service-check.cpp \
 	service-comment.cpp \
 	service-downtime.cpp \
+	service-event.cpp \
 	service-notification.cpp \
 	service.h \
 	servicegroup.cpp \

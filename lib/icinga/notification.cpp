@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/notification.h"
+#include "icinga/notificationcommand.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/service.h"
 #include "base/dynamictype.h"
@@ -74,9 +75,9 @@ Service::Ptr Notification::GetService(void) const
 		return host->GetServiceByShortName(m_Service);
 }
 
-Value Notification::GetNotificationCommand(void) const
+NotificationCommand::Ptr Notification::GetNotificationCommand(void) const
 {
-	return m_NotificationCommand;
+	return NotificationCommand::GetByName(m_NotificationCommand);
 }
 
 Dictionary::Ptr Notification::GetMacros(void) const
@@ -252,7 +253,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 	}
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
-		Log(LogDebug, "icinga", "Sending notification for user " + user->GetName());
+		Log(LogDebug, "icinga", "Sending notification for user '" + user->GetName() + "'");
 		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force));
 	}
 }
@@ -271,16 +272,8 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		}
 	}
 
-	Notification::Ptr self = GetSelf();
-
-	std::vector<Value> arguments;
-	arguments.push_back(self);
-	arguments.push_back(user);
-	arguments.push_back(cr);
-	arguments.push_back(type);
-
 	try {
-		InvokeMethod("notify", arguments);
+		GetNotificationCommand()->Execute(GetSelf(), user, cr, type);
 
 		Log(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
 	} catch (const std::exception& ex) {

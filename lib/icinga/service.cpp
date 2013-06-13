@@ -19,6 +19,7 @@
 
 #include "icinga/service.h"
 #include "icinga/servicegroup.h"
+#include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/macroprocessor.h"
 #include "config/configitembuilder.h"
@@ -39,7 +40,6 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
-	RegisterAttribute("export_macros", Attribute_Config, &m_ExportMacros);
 	RegisterAttribute("hostdependencies", Attribute_Config, &m_HostDependencies);
 	RegisterAttribute("servicedependencies", Attribute_Config, &m_ServiceDependencies);
 	RegisterAttribute("servicegroups", Attribute_Config, &m_ServiceGroups);
@@ -50,6 +50,8 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("check_interval", Attribute_Config, &m_CheckInterval);
 	RegisterAttribute("retry_interval", Attribute_Config, &m_RetryInterval);
 	RegisterAttribute("checkers", Attribute_Config, &m_Checkers);
+
+	RegisterAttribute("event_command", Attribute_Config, &m_EventCommand);
 
 	RegisterAttribute("next_check", Attribute_Replicated, &m_NextCheck);
 	RegisterAttribute("current_checker", Attribute_Replicated, &m_CurrentChecker);
@@ -137,11 +139,6 @@ Host::Ptr Service::GetHost(void) const
 Dictionary::Ptr Service::GetMacros(void) const
 {
 	return m_Macros;
-}
-
-Array::Ptr Service::GetExportMacros(void) const
-{
-	return m_ExportMacros;
 }
 
 Array::Ptr Service::GetHostDependencies(void) const
@@ -386,7 +383,13 @@ bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, Strin
 		*result = GetDisplayName();
 		return true;
 	} else if (macro == "SERVICECHECKCOMMAND") {
-		*result = "check_i2";
+		CheckCommand::Ptr commandObj = GetCheckCommand();
+
+		if (commandObj)
+			*result = commandObj->GetName();
+		else
+			*result = "";
+
 		return true;
 	}
 

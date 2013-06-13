@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/pluginchecktask.h"
+#include "icinga/checkcommand.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
@@ -36,9 +37,11 @@ REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 
 Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 {
-	Value raw_command = service->GetCheckCommand();
+	CheckCommand::Ptr commandObj = service->GetCheckCommand();
+	Value raw_command = commandObj->Get("command");
 
 	std::vector<MacroResolver::Ptr> resolvers;
+	resolvers.push_back(commandObj);
 	resolvers.push_back(service);
 	resolvers.push_back(service->GetHost());
 	resolvers.push_back(IcingaApplication::GetInstance());
@@ -47,7 +50,7 @@ Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 
 	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
 
-	Array::Ptr export_macros = service->GetExportMacros();
+	Array::Ptr export_macros = commandObj->GetExportMacros();
 
 	if (export_macros) {
 		BOOST_FOREACH(const String& macro, export_macros) {

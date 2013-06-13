@@ -17,55 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/object.h"
-#include "base/value.h"
+#ifndef NOTIFICATIONCOMMAND_H
+#define NOTIFICATIONCOMMAND_H
 
-using namespace icinga;
+#include "icinga/command.h"
+#include "icinga/notification.h"
 
-#ifdef _DEBUG
-boost::mutex Object::m_DebugMutex;
-#endif /* _DEBUG */
+namespace icinga
+{
 
-/**
- * Default constructor for the Object class.
- */
-Object::Object(void)
-#ifdef _DEBUG
-	: m_Locked(false)
-#endif /* _DEBUG */
-{ }
+class Notification;
 
 /**
- * Destructor for the Object class.
- */
-Object::~Object(void)
-{ }
-
-/**
- * Returns a reference-counted pointer to this object.
+ * A notification command.
  *
- * @returns A shared_ptr object that points to this object
+ * @ingroup base
  */
-Object::SharedPtrHolder Object::GetSelf(void)
+class I2_BASE_API NotificationCommand : public Command
 {
-	return Object::SharedPtrHolder(shared_from_this());
+public:
+	typedef shared_ptr<NotificationCommand> Ptr;
+	typedef weak_ptr<NotificationCommand> WeakPtr;
+
+	explicit NotificationCommand(const Dictionary::Ptr& serializedUpdate);
+
+	static NotificationCommand::Ptr GetByName(const String& name);
+
+	virtual Dictionary::Ptr Execute(const shared_ptr<Notification>& notification,
+	    const User::Ptr& user, const Dictionary::Ptr& cr, const NotificationType& type);
+};
+
 }
 
-#ifdef _DEBUG
-/**
- * Checks if the calling thread owns the lock on this object.
- *
- * @returns True if the calling thread owns the lock, false otherwise.
- */
-bool Object::OwnsLock(void) const
-{
-	boost::mutex::scoped_lock lock(m_DebugMutex);
-
-	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
-}
-#endif /* _DEBUG */
-
-Object::SharedPtrHolder::operator Value(void) const
-{
-	return m_Object;
-}
+#endif /* NOTIFICATIONCOMMAND_H */

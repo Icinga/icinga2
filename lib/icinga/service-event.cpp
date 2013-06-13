@@ -17,55 +17,23 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/object.h"
-#include "base/value.h"
+#include "icinga/service.h"
+#include "icinga/eventcommand.h"
 
 using namespace icinga;
 
-#ifdef _DEBUG
-boost::mutex Object::m_DebugMutex;
-#endif /* _DEBUG */
-
-/**
- * Default constructor for the Object class.
- */
-Object::Object(void)
-#ifdef _DEBUG
-	: m_Locked(false)
-#endif /* _DEBUG */
-{ }
-
-/**
- * Destructor for the Object class.
- */
-Object::~Object(void)
-{ }
-
-/**
- * Returns a reference-counted pointer to this object.
- *
- * @returns A shared_ptr object that points to this object
- */
-Object::SharedPtrHolder Object::GetSelf(void)
+EventCommand::Ptr Service::GetEventCommand(void) const
 {
-	return Object::SharedPtrHolder(shared_from_this());
+	return EventCommand::GetByName(m_EventCommand);
 }
 
-#ifdef _DEBUG
-/**
- * Checks if the calling thread owns the lock on this object.
- *
- * @returns True if the calling thread owns the lock, false otherwise.
- */
-bool Object::OwnsLock(void) const
+void Service::ExecuteEventHandler(void)
 {
-	boost::mutex::scoped_lock lock(m_DebugMutex);
+	EventCommand::Ptr ec = GetEventCommand();
 
-	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
-}
-#endif /* _DEBUG */
+	if (!ec)
+		return;
 
-Object::SharedPtrHolder::operator Value(void) const
-{
-	return m_Object;
+	Log(LogDebug, "icinga", "Executing event handler for service '" + GetName() + "'");
+	ec->Execute(GetSelf());
 }

@@ -17,55 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/object.h"
-#include "base/value.h"
+#include "icinga/notificationcommand.h"
+#include "base/dynamictype.h"
 
 using namespace icinga;
 
-#ifdef _DEBUG
-boost::mutex Object::m_DebugMutex;
-#endif /* _DEBUG */
+REGISTER_TYPE(NotificationCommand);
 
 /**
- * Default constructor for the Object class.
+ * Constructor for the NotificationCommand class.
+ *
+ * @param serializedUpdate A serialized dictionary containing attributes.
  */
-Object::Object(void)
-#ifdef _DEBUG
-	: m_Locked(false)
-#endif /* _DEBUG */
+NotificationCommand::NotificationCommand(const Dictionary::Ptr& serializedUpdate)
+	: Command(serializedUpdate)
 { }
 
-/**
- * Destructor for the Object class.
- */
-Object::~Object(void)
-{ }
-
-/**
- * Returns a reference-counted pointer to this object.
- *
- * @returns A shared_ptr object that points to this object
- */
-Object::SharedPtrHolder Object::GetSelf(void)
+NotificationCommand::Ptr NotificationCommand::GetByName(const String& name)
 {
-	return Object::SharedPtrHolder(shared_from_this());
+	DynamicObject::Ptr configObject = DynamicObject::GetObject("NotificationCommand", name);
+
+	return dynamic_pointer_cast<NotificationCommand>(configObject);
 }
 
-#ifdef _DEBUG
-/**
- * Checks if the calling thread owns the lock on this object.
- *
- * @returns True if the calling thread owns the lock, false otherwise.
- */
-bool Object::OwnsLock(void) const
+Dictionary::Ptr NotificationCommand::Execute(const Notification::Ptr& notification,
+    const User::Ptr& user, const Dictionary::Ptr& cr, const NotificationType& type)
 {
-	boost::mutex::scoped_lock lock(m_DebugMutex);
-
-	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
-}
-#endif /* _DEBUG */
-
-Object::SharedPtrHolder::operator Value(void) const
-{
-	return m_Object;
+	std::vector<Value> arguments;
+	arguments.push_back(notification);
+	arguments.push_back(user);
+	arguments.push_back(cr);
+	arguments.push_back(type);
+	return InvokeMethod("execute", arguments);
 }

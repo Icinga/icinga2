@@ -19,6 +19,7 @@
 
 #include "icinga/pluginnotificationtask.h"
 #include "icinga/notification.h"
+#include "icinga/notificationcommand.h"
 #include "icinga/service.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/icingaapplication.h"
@@ -36,11 +37,13 @@ REGISTER_SCRIPTFUNCTION(PluginNotification, &PluginNotificationTask::ScriptFunc)
 
 void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, const User::Ptr& user, const Dictionary::Ptr& cr, int itype)
 {
+	NotificationCommand::Ptr commandObj = notification->GetNotificationCommand();
+
 	NotificationType type = static_cast<NotificationType>(itype);
 
 	Service::Ptr service = notification->GetService();
 
-	Value raw_command = notification->GetNotificationCommand();
+	Value raw_command = commandObj->Get("command");
 
 	StaticMacroResolver::Ptr notificationMacroResolver = boost::make_shared<StaticMacroResolver>();
 	notificationMacroResolver->Add("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));
@@ -48,6 +51,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(user);
 	resolvers.push_back(notificationMacroResolver);
+	resolvers.push_back(commandObj);
 	resolvers.push_back(notification);
 	resolvers.push_back(service);
 	resolvers.push_back(service->GetHost());
