@@ -5,7 +5,6 @@ icinga2itl_DATA = \
 	command-common.conf \
 	itl.conf \
 	host.conf \
-	notification.conf \
 	timeperiod.conf \
 	service.conf \
 	service-common.conf \
