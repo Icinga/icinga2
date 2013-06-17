@@ -463,7 +463,7 @@ object NotificationCommand "mail-notification" inherits "plugin-notification-com
 	]
 }
 
-template Notification "mail-notification" inherits "plugin-notification" {
+template Notification "mail-notification" {
 	notification_command = "mail-notification"
 }
 ----
