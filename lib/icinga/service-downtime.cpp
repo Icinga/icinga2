@@ -342,7 +342,10 @@ void Service::RemoveExpiredDowntimes(void)
 			downtimes->Remove(id);
 		}
 
-		Touch("downtimes");
+		{
+			ObjectLock olock(this);
+			Touch("downtimes");
+		}
 	}
 }
 
