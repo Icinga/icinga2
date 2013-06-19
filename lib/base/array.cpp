@@ -210,8 +210,6 @@ Array::Ptr Array::FromJson(cJSON *json)
 		array->Add(Value::FromJson(i));
 	}
 
-	array->Seal();
-
 	return array;
 }
 

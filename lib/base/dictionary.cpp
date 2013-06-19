@@ -277,8 +277,6 @@ Dictionary::Ptr Dictionary::FromJson(cJSON *json)
 		dictionary->Set(i->string, Value::FromJson(i));
 	}
 
-	dictionary->Seal();
-
 	return dictionary;
 }
 

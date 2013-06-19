@@ -113,8 +113,6 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 		}
 	}
 
-	attrs->Seal();
-
 	Dictionary::Ptr update = boost::make_shared<Dictionary>();
 	update->Set("attrs", attrs);
 
@@ -123,8 +121,6 @@ Dictionary::Ptr DynamicObject::BuildUpdate(double sinceTx, int attributeTypes) c
 	else if (attrs->GetLength() == 0)
 		return Dictionary::Ptr();
 
-	update->Seal();
-
 	return update;
 }
 
@@ -132,8 +128,6 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
     int allowedTypes)
 {
 	ObjectLock olock(this);
-
-	ASSERT(serializedUpdate->IsSealed());
 
 	Value configTxValue = serializedUpdate->Get("configTx");
 
@@ -155,8 +149,6 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 
 	Dictionary::Ptr attrs = serializedUpdate->Get("attrs");
 
-	ASSERT(attrs->IsSealed());
-
 	{
 		ObjectLock alock(attrs);
 
@@ -166,8 +158,6 @@ void DynamicObject::ApplyUpdate(const Dictionary::Ptr& serializedUpdate,
 				continue;
 
 			Dictionary::Ptr attr = it->second;
-
-			ASSERT(attr->IsSealed());
 
 			int type = attr->Get("type");
 
@@ -518,8 +508,6 @@ void DynamicObject::RestoreObjects(const String& filename)
 	String message;
 	while (NetString::ReadStringFromStream(sfp, &message)) {
 		Dictionary::Ptr persistentObject = Value::Deserialize(message);
-
-		ASSERT(persistentObject->IsSealed());
 
 		String type = persistentObject->Get("type");
 		String name = persistentObject->Get("name");
