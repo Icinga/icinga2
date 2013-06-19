@@ -79,8 +79,12 @@ String Service::AddDowntime(const String& author, const String& comment,
 		Dictionary::Ptr otherDowntimes = otherOwner->Get("downtimes");
 		Dictionary::Ptr otherDowntime = otherDowntimes->Get(triggeredBy);
 		Dictionary::Ptr triggers = otherDowntime->Get("triggers");
-		triggers->Set(triggeredBy, triggeredBy);
-		otherOwner->Touch("downtimes");
+
+		{
+			ObjectLock olock(otherOwner);
+			triggers->Set(triggeredBy, triggeredBy);
+			otherOwner->Touch("downtimes");
+		}
 	}
 
 	Dictionary::Ptr downtimes;
@@ -99,7 +103,12 @@ String Service::AddDowntime(const String& author, const String& comment,
 	String id = Utility::NewUniqueID();
 	downtimes->Set(id, downtime);
 
-	Touch("downtimes");
+	{
+		ObjectLock olock(this);
+		Touch("downtimes");
+	}
+
+	(void) AddComment(CommentDowntime, author, comment, endTime);
 
 	return id;
 }
@@ -116,8 +125,11 @@ void Service::RemoveDowntime(const String& id)
 	if (!downtimes)
 		return;
 
-	downtimes->Remove(id);
-	owner->Touch("downtimes");
+	{
+		ObjectLock olock(owner);
+		downtimes->Remove(id);
+		owner->Touch("downtimes");
+	}
 }
 
 void Service::TriggerDowntimes(void)

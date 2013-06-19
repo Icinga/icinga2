@@ -82,9 +82,13 @@ String Service::AddComment(CommentType entryType, const String& author,
 	}
 
 	String id = Utility::NewUniqueID();
-	comments->Set(id, comment);
 
-	Touch("comments");
+	{
+		ObjectLock olock(this);
+
+		comments->Set(id, comment);
+		Touch("comments");
+	}
 
 	return id;
 }
@@ -105,6 +109,8 @@ void Service::RemoveComment(const String& id)
 	Dictionary::Ptr comments = owner->GetComments();
 
 	if (comments) {
+		ObjectLock olock(owner);
+
 		comments->Remove(id);
 		owner->Touch("comments");
 	}
@@ -208,7 +214,11 @@ void Service::RefreshCommentsCache(void)
 
 				legacy_id = l_NextCommentID++;
 				comment->Set("legacy_id", legacy_id);
-				service->Touch("comments");
+
+				{
+					ObjectLock olock(service);
+					service->Touch("comments");
+				}
 			}
 
 			newLegacyCommentsCache[legacy_id] = id;
@@ -254,6 +264,7 @@ void Service::RemoveExpiredComments(void)
 			comments->Remove(id);
 		}
 
+		ObjectLock olock(this);
 		Touch("comments");
 	}
 }
