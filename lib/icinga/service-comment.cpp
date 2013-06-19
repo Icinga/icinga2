@@ -239,6 +239,36 @@ void Service::RefreshCommentsCache(void)
 	}
 }
 
+void Service::RemoveCommentsByType(int type)
+{
+	Dictionary::Ptr comments = GetComments();
+
+	if (!comments)
+		return;
+
+	std::vector<String> removedComments;
+
+	{
+		ObjectLock olock(comments);
+
+		String id;
+		Dictionary::Ptr comment;
+		BOOST_FOREACH(tie(id, comment), comments) {
+			if (comment->Get("entry_type") == type)
+				removedComments.push_back(id);
+		}
+	}
+
+	if (!removedComments.empty()) {
+		BOOST_FOREACH(const String& id, removedComments) {
+			comments->Remove(id);
+		}
+
+		ObjectLock olock(this);
+		Touch("comments");
+	}
+}
+
 void Service::RemoveExpiredComments(void)
 {
 	Dictionary::Ptr comments = GetComments();

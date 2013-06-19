@@ -492,7 +492,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 
 	Log(LogInformation, "icinga", "Setting acknowledgement for service '" + service->GetName() + "'");
 
-	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+	service->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal);
 }
 
 void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::vector<String>& arguments)
@@ -510,7 +510,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 
 	Log(LogInformation, "icinga", "Setting timed acknowledgement for service '" + service->GetName() + "'");
 
-	service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
+	service->AcknowledgeProblem(arguments[6], arguments[7], sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
 }
 
 void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vector<String>& arguments)
@@ -540,7 +540,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
 
-		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal);
+		service->AcknowledgeProblem(arguments[4], arguments[5], sticky ? AcknowledgementSticky : AcknowledgementNormal);
 	}
 }
 
@@ -560,7 +560,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
 
-		service->AcknowledgeProblem(sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
+		service->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
 	}
 }
 

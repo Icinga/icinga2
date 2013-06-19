@@ -162,7 +162,7 @@ public:
 
 	static void UpdateStatistics(const Dictionary::Ptr& cr);
 
-	void AcknowledgeProblem(AcknowledgementType type, double expiry = 0);
+	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry = 0);
 	void ClearAcknowledgement(void);
 
 	void ExecuteCheck(void);
@@ -217,6 +217,7 @@ public:
 	    const String& text, double expireTime);
 
 	void RemoveAllComments(void);
+	void RemoveCommentsByType(int type);
 	static void RemoveComment(const String& id);
 
 	static String GetCommentIDFromLegacyID(int id);

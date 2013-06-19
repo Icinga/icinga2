@@ -397,6 +397,11 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		call_eventhandler = true;
 	}
 
+	bool remove_acknowledgement_comments = false;
+
+	if (GetAcknowledgement() == AcknowledgementNone)
+		remove_acknowledgement_comments = true;
+
 	bool hardChange = (GetStateType() == StateTypeHard && old_stateType == StateTypeSoft);
 
 	if (old_state != GetState() && old_stateType == StateTypeHard && GetStateType() == StateTypeHard)
@@ -424,6 +429,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	Touch("last_in_downtime");
 
 	olock.Unlock();
+
+	if (remove_acknowledgement_comments)
+		RemoveCommentsByType(CommentAcknowledgement);
 
 	Dictionary::Ptr vars_after = boost::make_shared<Dictionary>();
 	vars_after->Set("state", GetState());

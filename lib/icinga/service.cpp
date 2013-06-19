@@ -280,7 +280,7 @@ void Service::SetAcknowledgementExpiry(double timestamp)
 	Touch("acknowledgement_expiry");
 }
 
-void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
+void Service::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry)
 {
 	{
 		ObjectLock olock(this);
@@ -288,6 +288,8 @@ void Service::AcknowledgeProblem(AcknowledgementType type, double expiry)
 		SetAcknowledgement(type);
 		SetAcknowledgementExpiry(expiry);
 	}
+
+	(void) AddComment(CommentAcknowledgement, author, comment, 0);
 
 	RequestNotifications(NotificationAcknowledgement, GetLastCheckResult());
 }
