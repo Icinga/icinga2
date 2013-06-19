@@ -23,12 +23,8 @@
 #include "remoting/i2-remoting.h"
 #include "base/dictionary.h"
 
-struct cJSON;
-
 namespace icinga
 {
-
-typedef ::cJSON json_t;
 
 /**
  * A part of an RPC message.
