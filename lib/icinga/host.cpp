@@ -424,7 +424,7 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 
 		return Service::GetByNamePair(dict->Get("host"), dict->Get("service"));
 	} else {
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Host/Service name pair is invalid."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Host/Service name pair is invalid: " + name.Serialize()));
 	}
 }
 
