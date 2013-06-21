@@ -367,8 +367,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	SetState(static_cast<ServiceState>(state));
 
 	bool call_eventhandler = false;
-
-	if (old_state != GetState()) {
+	bool stateChange = (old_state != GetState());
+	if (stateChange) {
 		SetLastStateChange(now);
 
 		/* remove acknowledgements */
@@ -449,6 +449,13 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	olock.Lock();
 	SetLastCheckResult(cr);
+
+	bool was_flapping, is_flapping;
+
+	was_flapping = IsFlapping();
+	UpdateFlappingStatus(stateChange);
+	is_flapping = IsFlapping();
+
 	olock.Unlock();
 
 	/* Flush the object so other instances see the service's
@@ -473,7 +480,11 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	if (send_downtime_notification)
 		RequestNotifications(in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr);
 
-	if (send_notification)
+	if (!was_flapping && is_flapping)
+		RequestNotifications(NotificationFlappingStart, cr);
+	else if (was_flapping && !is_flapping)
+		RequestNotifications(NotificationFlappingEnd, cr);
+	else if (send_notification)
 		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem, cr);
 }
 

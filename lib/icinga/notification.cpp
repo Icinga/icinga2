@@ -204,6 +204,10 @@ String Notification::NotificationTypeToString(NotificationType type)
 			return "PROBLEM";
 		case NotificationRecovery:
 			return "RECOVERY";
+		case NotificationFlappingStart:
+			return "FLAPPINGSTART";
+		case NotificationFlappingEnd:
+			return "FLAPPINGEND";
 		default:
 			return "UNKNOWN_NOTIFICATION";
 	}

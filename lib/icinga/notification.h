@@ -42,7 +42,9 @@ enum NotificationType
 	NotificationCustom,
 	NotificationAcknowledgement,
 	NotificationProblem,
-	NotificationRecovery
+	NotificationRecovery,
+	NotificationFlappingStart,
+	NotificationFlappingEnd,
 };
 
 class Service;

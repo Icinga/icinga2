@@ -248,6 +248,10 @@ public:
 	void ExecuteEventHandler(void);
 	shared_ptr<EventCommand> GetEventCommand(void) const;
 
+	/* Flapping Detection */
+	bool IsFlapping(void) const;
+	void UpdateFlappingStatus(bool stateChange);
+
 protected:
 	virtual void OnRegistrationCompleted(void);
 	virtual void OnAttributeChanged(const String& name);
@@ -319,6 +323,11 @@ private:
 
 	/* Event Handler */
 	Attribute<String> m_EventCommand;
+
+	/* Flapping */
+	Attribute<long> m_FlappingCounter;
+	Attribute<double> m_FlappingLastChange;
+	Attribute<double> m_FlappingThreshold;
 };
 
 }

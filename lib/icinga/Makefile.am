@@ -62,6 +62,7 @@ libicinga_la_SOURCES =  \
 	service-comment.cpp \
 	service-downtime.cpp \
 	service-event.cpp \
+	service-flapping.cpp \
 	service-notification.cpp \
 	service.h \
 	servicegroup.cpp \
