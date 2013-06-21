@@ -1429,3 +1429,75 @@ void ExternalCommandProcessor::EnableServicegroupPassiveHostChecks(double, const
 		}
 	}
 }
+
+void ExternalCommandProcessor::EnableHostFlapping(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Log(LogInformation, "icinga", "Enabling flapping detection for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetHostCheckService();
+
+	if (!hc)
+		return;
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetEnableFlapping(true);
+	}
+}
+
+void ExternalCommandProcessor::DisableHostFlapping(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	Log(LogInformation, "icinga", "Disabling flapping detection for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetHostCheckService();
+
+	if (!hc)
+		return;
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetEnableFlapping(false);
+	}
+}
+
+void ExternalCommandProcessor::EnableSvcFlapping(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	Log(LogInformation, "icinga", "Enabling flapping detection for service '" + arguments[1] + "'");
+
+	{
+		ObjectLock olock(service);
+
+		service->SetEnableFlapping(true);
+	}
+}
+
+void ExternalCommandProcessor::DisableSvcFlapping(double, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	Log(LogInformation, "icinga", "Disabling flapping detection for service '" + arguments[1] + "'");
+
+	{
+		ObjectLock olock(service);
+
+		service->SetEnableFlapping(false);
+	}
+}

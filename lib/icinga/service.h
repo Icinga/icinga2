@@ -249,6 +249,9 @@ public:
 	shared_ptr<EventCommand> GetEventCommand(void) const;
 
 	/* Flapping Detection */
+	bool GetEnableFlapping(void) const;
+	void SetEnableFlapping(bool enabled);
+
 	bool IsFlapping(void) const;
 	void UpdateFlappingStatus(bool stateChange);
 
@@ -325,6 +328,7 @@ private:
 	Attribute<String> m_EventCommand;
 
 	/* Flapping */
+	Attribute<bool> m_EnableFlapping;
 	Attribute<long> m_FlappingCounter;
 	Attribute<double> m_FlappingLastChange;
 	Attribute<double> m_FlappingThreshold;

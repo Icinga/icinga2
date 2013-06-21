@@ -113,6 +113,10 @@ private:
 	static void EnableHostgroupPassiveHostChecks(double, const std::vector<String>& arguments);
 	static void EnableServicegroupHostChecks(double, const std::vector<String>& arguments);
 	static void EnableServicegroupPassiveHostChecks(double, const std::vector<String>& arguments);
+	static void EnableSvcFlapping(double time, const std::vector<String>& arguments);
+	static void DisableSvcFlapping(double time, const std::vector<String>& arguments);
+	static void EnableHostFlapping(double time, const std::vector<String>& arguments);
+	static void DisableHostFlapping(double time, const std::vector<String>& arguments);
 };
 
 }

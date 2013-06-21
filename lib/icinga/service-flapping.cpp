@@ -31,6 +31,21 @@ using namespace icinga;
 
 #define FLAPPING_INTERVAL (30 * 60)
 
+bool Service::GetEnableFlapping(void) const
+{
+	if (m_EnableFlapping.IsEmpty())
+		return true;
+	else
+		return m_EnableFlapping;
+
+}
+
+void Service::SetEnableFlapping(bool enabled)
+{
+	m_EnableFlapping = enabled ? 1 : 0;
+	Touch("enable_flapping");
+}
+
 void Service::UpdateFlappingStatus(bool stateChange)
 {
 	double ts, now;

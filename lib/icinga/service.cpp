@@ -86,6 +86,7 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("flapping_counter", Attribute_Replicated, &m_FlappingCounter);
 	RegisterAttribute("flapping_lastchange", Attribute_Replicated, &m_FlappingLastChange);
 	RegisterAttribute("flapping_threshold", Attribute_Config, &m_FlappingThreshold);
+	RegisterAttribute("enable_flapping", Attribute_Config, &m_EnableFlapping);
 
 	SetSchedulingOffset(rand());
 }
