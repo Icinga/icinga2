@@ -476,6 +476,15 @@ array_items_inner: /* empty */
 	| value
 	{
 		$$ = new Array();
+
+		if ($1->IsObjectType<ExpressionList>()) {
+			ExpressionList::Ptr exprl = *$1;
+			Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+			exprl->Execute(dict);
+			delete $1;
+			$1 = new Value(dict);
+		}
+
 		$$->Add(*$1);
 		delete $1;
 	}
@@ -485,6 +494,14 @@ array_items_inner: /* empty */
 			$$ = $1;
 		else
 			$$ = new Array();
+
+		if ($3->IsObjectType<ExpressionList>()) {
+			ExpressionList::Ptr exprl = *$3;
+			Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+			exprl->Execute(dict);
+			delete $3;
+			$3 = new Value(dict);
+		}
 
 		$$->Add(*$3);
 		delete $3;

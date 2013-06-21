@@ -612,8 +612,8 @@ static const yytype_uint16 yyrline[] =
      273,   280,   281,   282,   283,   284,   285,   286,   293,   293,
      338,   339,   344,   345,   348,   352,   359,   362,   368,   381,
      384,   390,   396,   400,   406,   409,   415,   427,   433,   447,
-     448,   449,   450,   451,   457,   463,   467,   473,   476,   482,
-     494,   499,   503,   507,   517,   518
+     448,   449,   450,   451,   457,   463,   467,   473,   476,   491,
+     511,   516,   520,   524,   534,   535
 };
 #endif
 
@@ -2136,6 +2136,15 @@ yyreduce:
 #line 477 "config_parser.yy"
     {
 		(yyval.array) = new Array();
+
+		if ((yyvsp[(1) - (1)].variant)->IsObjectType<ExpressionList>()) {
+			ExpressionList::Ptr exprl = *(yyvsp[(1) - (1)].variant);
+			Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+			exprl->Execute(dict);
+			delete (yyvsp[(1) - (1)].variant);
+			(yyvsp[(1) - (1)].variant) = new Value(dict);
+		}
+
 		(yyval.array)->Add(*(yyvsp[(1) - (1)].variant));
 		delete (yyvsp[(1) - (1)].variant);
 	}
@@ -2144,12 +2153,20 @@ yyreduce:
   case 69:
 
 /* Line 1806 of yacc.c  */
-#line 483 "config_parser.yy"
+#line 492 "config_parser.yy"
     {
 		if ((yyvsp[(1) - (3)].array))
 			(yyval.array) = (yyvsp[(1) - (3)].array);
 		else
 			(yyval.array) = new Array();
+
+		if ((yyvsp[(3) - (3)].variant)->IsObjectType<ExpressionList>()) {
+			ExpressionList::Ptr exprl = *(yyvsp[(3) - (3)].variant);
+			Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+			exprl->Execute(dict);
+			delete (yyvsp[(3) - (3)].variant);
+			(yyvsp[(3) - (3)].variant) = new Value(dict);
+		}
 
 		(yyval.array)->Add(*(yyvsp[(3) - (3)].variant));
 		delete (yyvsp[(3) - (3)].variant);
@@ -2159,7 +2176,7 @@ yyreduce:
   case 70:
 
 /* Line 1806 of yacc.c  */
-#line 495 "config_parser.yy"
+#line 512 "config_parser.yy"
     {
 		(yyval.variant) = new Value((yyvsp[(1) - (1)].text));
 		free((yyvsp[(1) - (1)].text));
@@ -2169,7 +2186,7 @@ yyreduce:
   case 71:
 
 /* Line 1806 of yacc.c  */
-#line 500 "config_parser.yy"
+#line 517 "config_parser.yy"
     {
 		(yyval.variant) = new Value((yyvsp[(1) - (1)].num));
 	}
@@ -2178,7 +2195,7 @@ yyreduce:
   case 72:
 
 /* Line 1806 of yacc.c  */
-#line 504 "config_parser.yy"
+#line 521 "config_parser.yy"
     {
 		(yyval.variant) = new Value();
 	}
@@ -2187,7 +2204,7 @@ yyreduce:
   case 73:
 
 /* Line 1806 of yacc.c  */
-#line 508 "config_parser.yy"
+#line 525 "config_parser.yy"
     {
 		if ((yyvsp[(1) - (1)].array) == NULL)
 			(yyvsp[(1) - (1)].array) = new Array();
@@ -2200,7 +2217,7 @@ yyreduce:
   case 75:
 
 /* Line 1806 of yacc.c  */
-#line 519 "config_parser.yy"
+#line 536 "config_parser.yy"
     {
 		ExpressionList::Ptr exprl = ExpressionList::Ptr((yyvsp[(1) - (1)].exprl));
 		(yyval.variant) = new Value(exprl);
@@ -2210,7 +2227,7 @@ yyreduce:
 
 
 /* Line 1806 of yacc.c  */
-#line 2214 "../../../lib/config/config_parser.cc"
+#line 2231 "../../../lib/config/config_parser.cc"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2448,6 +2465,6 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 524 "config_parser.yy"
+#line 541 "config_parser.yy"
 
 
