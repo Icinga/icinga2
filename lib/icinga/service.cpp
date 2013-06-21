@@ -83,7 +83,8 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("enable_notifications", Attribute_Replicated, &m_EnableNotifications);
 	RegisterAttribute("force_next_notification", Attribute_Replicated, &m_ForceNextNotification);
 
-	RegisterAttribute("flapping_counter", Attribute_Replicated, &m_FlappingCounter);
+	RegisterAttribute("flapping_positive", Attribute_Replicated, &m_FlappingPositive);
+	RegisterAttribute("flapping_negative", Attribute_Replicated, &m_FlappingNegative);
 	RegisterAttribute("flapping_lastchange", Attribute_Replicated, &m_FlappingLastChange);
 	RegisterAttribute("flapping_threshold", Attribute_Config, &m_FlappingThreshold);
 	RegisterAttribute("enable_flapping", Attribute_Config, &m_EnableFlapping);

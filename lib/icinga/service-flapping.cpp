@@ -23,6 +23,7 @@
 #include "base/logger_fwd.h"
 #include "base/timer.h"
 #include "base/utility.h"
+#include "base/convert.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -49,28 +50,40 @@ void Service::SetEnableFlapping(bool enabled)
 void Service::UpdateFlappingStatus(bool stateChange)
 {
 	double ts, now;
-	long counter;
+	long positive, negative;
 
 	now = Utility::GetTime();
 
 	if (m_FlappingLastChange.IsEmpty()) {
 		ts = now;
-		counter = 0;
+		positive = 0;
+		negative = 0;
 	} else {
 		ts = m_FlappingLastChange;
-		counter = m_FlappingCounter;
+		positive = m_FlappingPositive;
+		negative = m_FlappingNegative;
 	}
 
 	double diff = now - ts;
 
-	if (diff > 0)
-		counter -= 0.5 * m_FlappingCounter / (diff / FLAPPING_INTERVAL);
+	if (positive + negative > FLAPPING_INTERVAL) {
+		double pct = (positive + negative - FLAPPING_INTERVAL) / FLAPPING_INTERVAL;
+		positive -= pct * positive;
+		negative -= pct * negative;
+	}
 
 	if (stateChange)
-		counter += diff;
+		positive += diff;
+	else
+		negative += diff;
 
-	m_FlappingCounter = counter;
-	Touch("flapping_counter");
+	Log(LogDebug, "icinga", "Flapping counter for '" + GetName() + "' is positive=" + Convert::ToString(positive) + ", negative=" + Convert::ToString(negative));
+
+	m_FlappingPositive = positive;
+	Touch("flapping_positive");
+
+	m_FlappingNegative = negative;
+	Touch("flapping_negative");
 
 	m_FlappingLastChange = now;
 	Touch("flapping_lastchange");
@@ -78,16 +91,14 @@ void Service::UpdateFlappingStatus(bool stateChange)
 
 bool Service::IsFlapping(void) const
 {
-	double threshold = 30;
+	double threshold = 20;
 
 	if (!m_FlappingThreshold.IsEmpty())
 		threshold = m_FlappingThreshold;
 
-	if (m_FlappingCounter.IsEmpty())
+	if (m_FlappingNegative.IsEmpty() || m_FlappingPositive.IsEmpty())
 		return false;
 
-	long counter = m_FlappingCounter;
-
-	return (counter > threshold * FLAPPING_INTERVAL / 100);
+	return (m_FlappingPositive > threshold * (m_FlappingPositive + m_FlappingNegative) / 100);
 
 }

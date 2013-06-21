@@ -329,7 +329,8 @@ private:
 
 	/* Flapping */
 	Attribute<bool> m_EnableFlapping;
-	Attribute<long> m_FlappingCounter;
+	Attribute<long> m_FlappingPositive;
+	Attribute<long> m_FlappingNegative;
 	Attribute<double> m_FlappingLastChange;
 	Attribute<double> m_FlappingThreshold;
 };
