@@ -369,6 +369,8 @@ std::set<Service::Ptr> Service::GetParentServices(void) const
 	Array::Ptr dependencies = GetServiceDependencies();
 
 	if (host && dependencies) {
+		ObjectLock olock(dependencies);
+
 		BOOST_FOREACH(const Value& dependency, dependencies) {
 			Service::Ptr service = host->GetServiceByShortName(dependency);
 
