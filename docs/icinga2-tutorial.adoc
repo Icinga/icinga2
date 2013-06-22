@@ -141,9 +141,9 @@ We're defining a command object called "my-ping" which inherits from the
 'plugin-check-command' template. The 'plugin-check-command' template is provided as part of
 the Icinga Template Library and describes how checks are performed.
 In the case of plugin-based services this means that the command specified by
-the 'check_command' property is executed.
+the 'command' property is executed.
 
-The 'check_command' property is an array or command-line arguments for the check
+The 'command' property is an array or command-line arguments for the check
 plugin. Alternatively you can specify the check command as a string.
 
 The check command can make use of macros. Unlike in Icinga 1.x we have free-form
@@ -165,7 +165,7 @@ We're also defining a service template called 'my-ping' which uses the command o
 we just created.
 
 Next we're defining a 'Host' object called 'localhost'. We're setting an optional
-display_name which is used by the CGIs when showing that host in the host overview.
+display_name which is used by the Icinga Classic UI when showing that host in the host overview.
 
 The services dictionary defines which services belong to a host. Using the [] indexing
 operator we can manipulate individual items in this dictionary. In this case we're creating
@@ -174,9 +174,9 @@ a new service called 'ping'.
 The templates array inside the service definition lists all the templates we want to use
 for this particular service. For now we're just listing our 'my-ping' template.
 
-Remember how we used the 'address' macro in the 'check_command' setting earlier? Now we're
-defining a value for this macro which is used for all services which belong to the 'localhost'
-Host object.
+Remember how we used the 'address' macro in the 'command' setting earlier? Now we're
+defining a value for this macro which is used for all services and their commands which belong
+to the 'localhost' Host object.
 
 We're also setting the check_interval for all services belonging to this host to
 10 seconds.
@@ -188,11 +188,11 @@ And finally we're specifying which of the services we've created before is used 
 the host's state. Note that unlike in Icinga 1.x this just "clones" the service's state
 and does not cause any additional checks to be performed.
 
-Setting up the Icinga 1.x CGIs
-------------------------------
+Setting up the Icinga 1.x Classic UI
+------------------------------------
 
 Icinga 2 can write status.dat and objects.cache files in the format that is supported
-by the Icinga 1.x CGIs. External commands (a.k.a. the "command pipe") are also supported.
+by the Icinga 1.x Classic UI. External commands (a.k.a. the "command pipe") are also supported.
 
 In order to enable this feature you will need to load the library 'compat' by adding the following lines
 to your configuration file:
@@ -208,7 +208,7 @@ After restarting Icinga 2 you should be able to find the status.dat and objects.
 /var/cache/icinga2. The log files can be found in /var/log/icinga2/compat. The command pipe can
 be found in /var/run/icinga2.
 
-You can install the Icinga 1.x CGIs in standalone mode using the following commands:
+You can install the Icinga 1.x Classic UI in standalone mode using the following commands:
 
 ----
 $ wget http://downloads.sourceforge.net/project/icinga/icinga/1.9.0/icinga-1.9.0.tar.gz
@@ -219,7 +219,7 @@ $ sudo make install classicui-standalone install-webconf-auth
 $ sudo service apache2 restart
 ----
 
-After installing the CGIs you will need to update the following settings in your cgi.cfg configuration file:
+After installing the Classic UI you will need to update the following settings in your cgi.cfg configuration file:
 
 |===
 |Configuration Setting | Value
@@ -231,12 +231,12 @@ After installing the CGIs you will need to update the following settings in your
 
 Depending on how you installed Icinga 2 some of those paths might be different.
 
-Verify that your Icinga 1.x CGIs work by browsing to your CGIs' installation URL.
+Verify that your Icinga 1.x Classic UI work by browsing to your Classic UI installation URL e.g. http://localhost/icinga
 
 Some More Templates
 -------------------
 
-Now that we've got our basic monitoring setup as well as the Icinga 1.x CGIs to work
+Now that we've got our basic monitoring setup as well as the Icinga 1.x Classic UI to work
 we can define a second host. Add the following lines to your configuration file:
 
 ----
@@ -257,7 +257,7 @@ object Host "icinga.org" {
 }
 ----
 
-Restart your Icinga 2 instance and check the CGIs for your new service's state. Unless
+Restart your Icinga 2 instance and check the Classic UI for your new service's state. Unless
 you have a low-latency network connection you will note that the service's state is 'CRITICAL'.
 This is because in the 'my-ping' command object we have hard-coded the timeout as 25 milliseconds.
 
