@@ -920,7 +920,7 @@ sub convert_2x {
             # XXX make sure to always add the service specific command arguments, since we have a n .. 1 relation here
             # add the command macros to the command 2x object
             if(defined($service_check_command_2x->{'command_macros'})) {
-                @$cfg_obj_2x{'service'}->{$service_cnt}->{command_macros} = dclone($service_check_command_2x->{'command_macros'});
+                @$cfg_obj_2x{'service'}->{$service_cnt}->{'__I2CONVERT_MACROS'} = dclone($service_check_command_2x->{'command_macros'});
             }
 
             # our PK
@@ -1004,6 +1004,16 @@ sub convert_2x {
         # remove:
         # - check_command
         ####################################################
+
+        ##########################################
+        # macros (address*, etc)  
+        ##########################################
+        if(defined($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'address'})) {
+            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_MACROS'}->{'address'} = $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'address'};
+        }
+        if(defined($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'address6'})) {
+            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_MACROS'}->{'address6'} = $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'address6'};
+        }
 
         ##########################################
         # escape strings in attributes
@@ -1161,6 +1171,22 @@ sub convert_2x {
         # set our own __I2CONVERT_TYPE
         $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'__I2CONVERT_TYPE'} = "user";
 
+        ##########################################
+        # macros (email, pager, address1..6)  
+        ##########################################
+        if(defined($obj_1x_contact->{'email'})) {
+            $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'__I2CONVERT_MACROS'}->{'email'} = $obj_1x_contact->{'email'};
+        }
+        if(defined($obj_1x_contact->{'pager'})) {
+            $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'__I2CONVERT_MACROS'}->{'pager'} = $obj_1x_contact->{'pager'};
+        }
+        for(my $i=1;$i<=6;$i++) {
+            my $address = "address$i";
+            if(defined($obj_1x_contact->{$address})) {
+                $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'__I2CONVERT_MACROS'}->{$address} = $obj_1x_contact->{$address};
+            }
+        }
+
         ####################################################
         # migrate renamed attributes
         ####################################################
@@ -1182,6 +1208,7 @@ sub convert_2x {
             push @{$cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'usergroups'}}, Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_contact->{'contactgroups'}, ',', 1);
             #print "DEBUG: usergroups " . join (" ", @{$cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'usergroups'}});
         }
+
 
         # we need to rebuild that notification logic entirely for 2.x
         # do that later when all objects are processed and prepared (all relations?)

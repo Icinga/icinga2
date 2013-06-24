@@ -277,10 +277,10 @@ sub dump_service_2x {
     # macros
     ####################################################
 
-    if(defined($service_2x->{'command_macros'}) && $service_2x->{'command_macros'} != 0) {
+    if(defined($service_2x->{'__I2CONVERT_MACROS'}) && $service_2x->{'__I2CONVERT_MACROS'} != 0) {
         dump_config_line($icinga2_cfg, "\tmacros = {");
-        foreach my $cmd_arg (keys %{$service_2x->{'command_macros'}}) {
-            dump_config_line($icinga2_cfg, "\t\t$cmd_arg = \"$service_2x->{'command_macros'}->{$cmd_arg}\",");
+        foreach my $macro_key (keys %{$service_2x->{'__I2CONVERT_MACROS'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$macro_key = \"$service_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
         }
         dump_config_line($icinga2_cfg, "\t},");
     }
@@ -444,9 +444,13 @@ sub dump_host_2x {
     ####################################################
     # macros 
     ####################################################
-    if(defined($host_2x->{'address'})) {
+    dump_config_line($icinga2_cfg, "");
+
+    if(defined($host_2x->{'__I2CONVERT_MACROS'}) && $host_2x->{'__I2CONVERT_MACROS'} != 0) {
         dump_config_line($icinga2_cfg, "\tmacros = {");
-        dump_config_line($icinga2_cfg, "\t\taddress = \"$host_2x->{'address'}\",");
+        foreach my $macro_key (keys %{$host_2x->{'__I2CONVERT_MACROS'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$macro_key = \"$host_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
+        }
         dump_config_line($icinga2_cfg, "\t},");
     }
     dump_config_line($icinga2_cfg, "");
@@ -594,10 +598,10 @@ sub dump_host_2x {
         ####################################################
         # macros 
         ####################################################
-        if(defined($service_2x->{'command_macros'}) && $service_2x->{'command_macros'} != 0) {
+        if(defined($service_2x->{'__I2CONVERT_MACROS'}) && $service_2x->{'__I2CONVERT_MACROS'} != 0) {
             dump_config_line($icinga2_cfg, "\t\tmacros = {");
-            foreach my $cmd_arg (keys %{$service_2x->{'command_macros'}}) {
-                dump_config_line($icinga2_cfg, "\t\t\t$cmd_arg = \"$service_2x->{'command_macros'}->{$cmd_arg}\",");
+            foreach my $cmd_arg (keys %{$service_2x->{'__I2CONVERT_MACROS'}}) {
+                dump_config_line($icinga2_cfg, "\t\t\t$cmd_arg = \"$service_2x->{'__I2CONVERT_MACROS'}->{$cmd_arg}\",");
             }
             dump_config_line($icinga2_cfg, "\t\t},");
         }
@@ -730,6 +734,20 @@ sub dump_user_2x {
     if(defined($user_2x->{'display_name'})) {
         dump_config_line($icinga2_cfg, "\tdisplay_name = \"$user_2x->{'display_name'}\",");
     }
+
+    ####################################################
+    # macros
+    ####################################################
+
+    if(defined($user_2x->{'__I2CONVERT_MACROS'}) && $user_2x->{'__I2CONVERT_MACROS'} != 0) {
+        dump_config_line($icinga2_cfg, "\tmacros = {");
+        foreach my $macro_key (keys %{$user_2x->{'__I2CONVERT_MACROS'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$macro_key = \"$user_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
+    dump_config_line($icinga2_cfg, "");
 
     ####################################################
     # usergroups 
