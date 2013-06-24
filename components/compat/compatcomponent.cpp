@@ -32,6 +32,7 @@
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -343,8 +344,12 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 
 	if (cr) {
 		output = cr->Get("output");
+		boost::algorithm::replace_all(output, "\n", "\\n");
+
 		schedule_end = cr->Get("schedule_end");
+
 		perfdata = cr->Get("performance_data_raw");
+		boost::algorithm::replace_all(perfdata, "\n", "\\n");
 	}
 
 	int state = service->GetState();
