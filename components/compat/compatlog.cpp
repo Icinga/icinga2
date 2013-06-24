@@ -156,7 +156,10 @@ void CompatLog::CheckResultRequestHandler(const RequestMessage& request)
 	       << attempt_after << ";"
 	       << "";
 
-	WriteLine(msgbuf.str());
+	{
+		ObjectLock olock(this);
+		WriteLine(msgbuf.str());
+	}
 
 	if (service == host->GetHostCheckService()) {
 		std::ostringstream msgbuf;
@@ -167,10 +170,17 @@ void CompatLog::CheckResultRequestHandler(const RequestMessage& request)
 		       << attempt_after << ";"
 		       << "";
 
-		WriteLine(msgbuf.str());
+		{
+			ObjectLock olock(this);
+			WriteLine(msgbuf.str());
+		}
+
 	}
 
-	Flush();
+	{
+		ObjectLock olock(this);
+		Flush();
+	}
 }
 
 void CompatLog::WriteLine(const String& line)
