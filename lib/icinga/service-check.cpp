@@ -582,7 +582,12 @@ void Service::ExecuteCheck(void)
 	Dictionary::Ptr result;
 
 	try {
-		result = GetCheckCommand()->Execute(GetSelf());
+		CheckCommand::Ptr command = GetCheckCommand();
+
+		if (!command)
+			return;
+
+		result = command->Execute(GetSelf());
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"
