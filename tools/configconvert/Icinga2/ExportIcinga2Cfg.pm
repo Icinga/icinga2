@@ -346,19 +346,27 @@ sub dump_service_2x {
                 # skip everything not related to service notifications
                 next if ($service_notification->{'type'} ne 'service');
 
-                dump_config_line($icinga2_cfg, "\t\tnotifications[\"$service_notification->{'name'}\"] = {");
+                dump_config_line($icinga2_cfg, "\tnotifications[\"$service_notification->{'name'}\"] = {");
 
                 if (defined ($service_notification->{'templates'}) && @{$service_notification->{'templates'}} > 0) {
                     my $service_notification_templates = join '", "', @{$service_notification->{'templates'}};
-                    dump_config_line($icinga2_cfg, "\t\t\ttemplates = [ \"$service_notification_templates\" ],");
+                    dump_config_line($icinga2_cfg, "\t\ttemplates = [ \"$service_notification_templates\" ],");
                 }
 
                 if(defined($service_notification->{'users'}) && @{$service_notification->{'users'}} > 0) {
                     my $service_users = join '", "', @{$service_notification->{'users'}};
-                    dump_config_line($icinga2_cfg, "\t\t\tusers = [ \"$service_users\" ],");
+                    dump_config_line($icinga2_cfg, "\t\tusers = [ \"$service_users\" ],");
                 }
 
-                dump_config_line($icinga2_cfg, "\t\t},");
+                # this is set for escalations
+                if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}) && $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'} != 0) {
+                    dump_config_line($icinga2_cfg, "\t\ttimes = {");
+                    dump_config_line($icinga2_cfg, "\t\t\tbegin = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'},");
+                    dump_config_line($icinga2_cfg, "\t\t\tend = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'}");
+                    dump_config_line($icinga2_cfg, "\t\t},");
+                }
+
+                dump_config_line($icinga2_cfg, "\t},");
             }
         }
     }
@@ -656,6 +664,14 @@ sub dump_host_2x {
                         dump_config_line($icinga2_cfg, "\t\t\tusers = [ \"$service_users\" ],");
                     }
 
+                    # this is set for escalations
+                    if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}) && $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'} != 0) {
+                        dump_config_line($icinga2_cfg, "\t\t\ttimes = {");
+                        dump_config_line($icinga2_cfg, "\t\t\t\tbegin = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'},");
+                        dump_config_line($icinga2_cfg, "\t\t\t\tend = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'}");
+                        dump_config_line($icinga2_cfg, "\t\t\t},");
+                    }
+
                     dump_config_line($icinga2_cfg, "\t\t},");
                 }
             }
@@ -779,6 +795,8 @@ sub dump_notification_2x {
         $notification_name = $notification_2x->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'};
     }
 
+    return if (!defined($notification_name));
+
     ####################################################
     # start, inherit from template? 
     ####################################################
@@ -802,6 +820,19 @@ sub dump_notification_2x {
         #say Dumper($notification_2x->{'export_macros'});
         my $export_macros = join '",\n"', @{$notification_2x->{'export_macros'}};
         dump_config_line($icinga2_cfg, "\texport_macros = [ \"$export_macros\" ],");
+    }
+
+    if(defined($notification_2x->{'users'}) && @{$notification_2x->{'users'}} > 0) {
+        my $service_users = join '", "', @{$notification_2x->{'users'}};
+        dump_config_line($icinga2_cfg, "\tusers = [ \"$service_users\" ],");
+    }
+
+    # this is set for escalations
+    if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_TIMES'}) && $notification_2x->{'__I2CONVERT_NOTIFICATION_TIMES'} != 0) {
+        dump_config_line($icinga2_cfg, "\ttimes = {");
+        dump_config_line($icinga2_cfg, "\t\tbegin = $notification_2x->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'},");
+        dump_config_line($icinga2_cfg, "\t\tend = $notification_2x->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'}");
+        dump_config_line($icinga2_cfg, "\t},");
     }
 
     dump_config_line($icinga2_cfg, "");

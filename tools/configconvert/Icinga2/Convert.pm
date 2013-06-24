@@ -62,7 +62,7 @@ sub obj_1x_uses_template {
 sub obj_2x_notification_exists {
     my $objs = shift;
     my $obj_type = 'notification';
-    my $obj_attr = '__I2CONVERT_NOTIFICATION_NAME';
+    my $obj_attr = '__I2CONVERT_NOTIFICATION_NAME'; # this must be set outside, no matter if template or not XXX
     my $obj_val = shift;
 
     #debug("My objects hive: ".Dumper($objs));
@@ -500,28 +500,144 @@ sub obj_1x_get_service_service_description {
     return undef;
 }
 
+# get service_description from object
+sub obj_1x_get_service_attr {
+    my $objs_1x = shift;
+    my $obj_1x = shift;
+    my $host_name = shift;
+    my $search_attr = shift;
+    my $service_attr = "";
+
+    # if this object is invalid, bail early
+    return undef if !defined($obj_1x);
+
+    # first, check if we already got a service_description here in our struct (recursion safety)
+    return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} if defined($obj_1x->{'__I2CONVERT_SEARCH_ATTR'});
+    delete $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+
+    # if this object got what we want, return (it can be recursion and a template!)
+    if(defined($obj_1x->{$search_attr})) {
+        $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $obj_1x->{$search_attr};
+        return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+    }
+
+    # we don't have the attribute, should we look into a template?
+    # make sure _not_ to use 
+    if (defined($obj_1x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_1x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        # get the object referenced as template - this is an array of templates, loop (funny recursion here)
+        foreach my $obj_1x_template (@{$obj_1x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
+
+            # get the template object associated with by its unique 'name' attr
+            my $obj_1x_tmpl = obj_get_tmpl_obj_by_tmpl_name($objs_1x, 'service', $obj_1x_template);
+
+            # now recurse into ourselves and look for a possible service_description
+            $service_attr = obj_1x_get_service_attr($objs_1x,$obj_1x_tmpl,$host_name,$search_attr); # we must pass the host_name and search_attr
+            # bail here if search did not unveil anything
+            next if(!defined($service_attr));
+
+            # get the service attr and return - first template wins
+            $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $service_attr;
+            return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+        }
+    }
+    # no template used, and not service description - broken object, ignore it
+    else {
+        return undef;
+    }
+
+    # we should never hit here
+    return undef;
+}
+
+# get service_description from object
+sub obj_1x_get_contact_attr {
+    my $objs_1x = shift;
+    my $obj_1x = shift;
+    my $search_attr = shift;
+    my $contact_attr = "";
+
+    # if this object is invalid, bail early
+    return undef if !defined($obj_1x);
+
+    # first, check if we already got a attr here in our struct (recursion safety)
+    return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} if defined($obj_1x->{'__I2CONVERT_SEARCH_ATTR'});
+    delete $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+
+    # if this object got what we want, return (it can be recursion and a template!)
+    if(defined($obj_1x->{$search_attr})) {
+        $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $obj_1x->{$search_attr};
+        return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+    }
+
+    # we don't have the attribute, should we look into a template?
+    # make sure _not_ to use 
+    if (defined($obj_1x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_1x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        # get the object referenced as template - this is an array of templates, loop (funny recursion here)
+        foreach my $obj_1x_template (@{$obj_1x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
+
+            # get the template object associated with by its unique 'name' attr
+            my $obj_1x_tmpl = obj_get_tmpl_obj_by_tmpl_name($objs_1x, 'contact', $obj_1x_template);
+
+            # now recurse into ourselves and look for a possible contact attr
+            $contact_attr = obj_1x_get_contact_attr($objs_1x,$obj_1x_tmpl,$search_attr); # we must pass the search_attr
+            # bail here if search did not unveil anything
+            next if(!defined($contact_attr));
+
+            # get the contact attr and return - first template wins
+            $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $contact_attr;
+            return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+        }
+    }
+    # no template used, and attr - broken object, ignore it
+    else {
+        return undef;
+    }
+
+    # we should never hit here
+    return undef;
+}
+
+
 ################################################################################
 # Conversion 
 #################################################################################
 
 # host|service_notification_commands are a comma seperated list w/o arguments
 sub convert_notificationcommand {
+    my $objs_1x = shift;
     my $commands_1x = shift;
     my $obj_1x = shift;
     my $user_macros_1x = shift;
     my $command_name_1x;
     my @commands = ();
     my $notification_commands_2x = ();
+    my $host_notification_commands;
+    my $service_notification_commands;
 
     # bail early if this is not a valid contact object
-    return if (!defined($obj_1x->{'contact_name'}));
+    return undef if (!defined($obj_1x->{'contact_name'}));
+
     # bail early if required commands not available (not a valid 1.x object either)
-    return if (!defined($obj_1x->{'host_notification_commands'}) && !defined($obj_1x->{'service_notification_commands'}));
+    if (defined($obj_1x->{'host_notification_commands'})) {
+        $host_notification_commands = $obj_1x->{'host_notification_commands'};
+    }
+    else {
+        # look in the template
+        $host_notification_commands = obj_1x_get_contact_attr($objs_1x,$obj_1x,'host_notification_commands');
+    }
+    if (defined($obj_1x->{'service_notification_commands'})) {
+        $service_notification_commands = $obj_1x->{'service_notification_commands'};
+    }
+    else {
+        # look in the template
+        $service_notification_commands = obj_1x_get_contact_attr($objs_1x,$obj_1x,'service_notification_commands');
+    }
+
 
     # a contact has a comma seperated list of notification commands by host and service
     my $all_notification_commands = {};
-    push @{$all_notification_commands->{'host'}}, split /,\s+/, $obj_1x->{'host_notification_commands'};
-    push @{$all_notification_commands->{'service'}}, split /,\s+/, $obj_1x->{'service_notification_commands'};
+    push @{$all_notification_commands->{'host'}}, split /,\s+/, $host_notification_commands;
+    push @{$all_notification_commands->{'service'}}, split /,\s+/, $service_notification_commands;
 
 
     foreach my $obj_notification_command_key ( keys %{$all_notification_commands}) {
@@ -539,6 +655,7 @@ sub convert_notificationcommand {
                 if ($commands_1x->{$command_1x_key}->{'command_name'} eq $notification_command) {
                     # save the type (host, service) and then by command name
                     $notification_commands_2x->{$notification_command_type}->{$notification_command} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
+                    #say Dumper($commands_1x->{$command_1x_key});
                 }
             }
 
@@ -1163,7 +1280,10 @@ sub convert_2x {
         ####################################################
         # get all notification commands
         ####################################################
-        my $notification_commands_2x = Icinga2::Convert::convert_notificationcommand(@$cfg_obj_1x{'command'}, $obj_1x_contact, $user_macros_1x);
+        my $notification_commands_2x = Icinga2::Convert::convert_notificationcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_contact, $user_macros_1x);
+        #say Dumper($obj_1x_contact);
+        #say Dumper($notification_commands_2x);
+        #say Dumper("======================================");
 
         # clone it into our users hash
         $cfg_obj_2x->{'user'}->{$contact_obj_1x_key} = dclone(@$cfg_obj_1x{'contact'}->{$contact_obj_1x_key});
@@ -1526,27 +1646,6 @@ sub convert_2x {
     SKIP_SVCDEPS:
 
     ######################################
-    # ESCALATIONS - XXX handled differently
-    ######################################
-    #foreach my $hostescalation_obj_1x_key (keys %{@$cfg_obj_1x{'hostescalation'}}) {
-    #my $obj_1x_hostescalation = @$cfg_obj_1x{'hostescalation'}->{$hostescalation_obj_1x_key};
-        # clone it into our hash
-        #    $cfg_obj_2x->{'hostescalation'}->{$hostescalation_obj_1x_key} = dclone(@$cfg_obj_1x{'hostescalation'}->{$hostescalation_obj_1x_key});
-    #}
-
-    if (!@$cfg_obj_1x{'serviceescalation'}) {
-        goto SKIP_SVCESCAL;
-    }
-    foreach my $serviceescalation_obj_1x_key (keys %{@$cfg_obj_1x{'serviceescalation'}}) {
-        my $obj_1x_serviceescalation = @$cfg_obj_1x{'serviceescalation'}->{$serviceescalation_obj_1x_key};
-        # clone it into our hash
-        $cfg_obj_2x->{'serviceescalation'}->{$serviceescalation_obj_1x_key} = dclone(@$cfg_obj_1x{'serviceescalation'}->{$serviceescalation_obj_1x_key});
-    }
-
-    SKIP_SVCESCAL:
-
-
-    ######################################
     # SERVICE->HG<-HOSTMEMBERS MAGIC
     # we've skipped services without
     # host_name before, now deal with them
@@ -1718,7 +1817,14 @@ sub convert_2x {
                 $user_notification->{$notification_name_2x}->{'type'} = $notification_command_type;
 
                 # XXX do not add duplicate notifications, they must remain unique by their notification_command origin!
-                next if (obj_2x_notification_exists($cfg_obj_2x, $notification_command_name_2x) == 1);
+                say Dumper("checking existing $notification_command_name_2x");
+                say Dumper($user_notification);
+                if (obj_2x_notification_exists($cfg_obj_2x, $notification_command_name_2x) == 1) {
+                    #say Dumper("already existing $notification_command_name_2x");
+                    next;
+                }
+
+                next if (!defined($notification_command_name_2x));
 
                 # create a new NotificationCommand 2x object with the original name
                 $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
@@ -1739,8 +1845,12 @@ sub convert_2x {
 
                 # create a new notification template object
                 $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
+                $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_NAME'} = $notification_command_name_2x; 
                 $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                 $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
+
+                # more reference
+                $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'users'} = $user_notification->{$notification_name_2x}->{'users'};
 
                 # add dependency to ITL template to objects
                 if(defined($icinga2_cfg->{'itl'}->{'notification-template'}) && $icinga2_cfg->{'itl'}->{'notification-template'} ne "") {
@@ -1768,7 +1878,7 @@ sub convert_2x {
 
         # convert users and usergroupmembers into a unique list of users
         my @users = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_host->{'contacts'}, ',', 1);
-        my @usergroups = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_host->{'contacts'}, ',', 1);
+        my @usergroups = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_host->{'contact_groups'}, ',', 1);
 
         # get all members of the usergroups
         foreach my $usergroup (@usergroups) {
@@ -1799,7 +1909,7 @@ sub convert_2x {
 
         # convert users and usergroupmembers into a unique list of users
         my @users = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_service->{'contacts'}, ',', 1);
-        my @usergroups = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_service->{'contacts'}, ',', 1);
+        my @usergroups = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_service->{'contact_groups'}, ',', 1);
         
         # get all members of the usergroups
         foreach my $usergroup (@usergroups) {
@@ -1820,6 +1930,247 @@ sub convert_2x {
 
     }
     #exit(0);
+
+    ######################################
+    # NEW: ESCALATION TO NOTIFICATION
+    ######################################
+
+    my $obj_notification_escal_cnt = 0;
+    if (!@$cfg_obj_1x{'serviceescalation'}) {
+        goto SKIP_SVCESCAL;
+    }
+    foreach my $serviceescalation_obj_1x_key (keys %{@$cfg_obj_1x{'serviceescalation'}}) {
+        my $obj_1x_serviceescalation = @$cfg_obj_1x{'serviceescalation'}->{$serviceescalation_obj_1x_key};
+
+        ######################################
+        # create a unique users list
+        ######################################
+        # we need to get all notification_commands and create a notification escalation item from that source
+        my $notification_prefix = 'serviceescalation';
+
+        # convert users and usergroupmembers into a unique list of users
+        my @users = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_serviceescalation->{'contacts'}, ',', 1);
+        my @usergroups = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_serviceescalation->{'contact_groups'}, ',', 1);
+
+        # get all members of the usergroups
+        foreach my $usergroup (@usergroups) {
+            my @users_ug = obj_get_usernames_arr_by_usergroup_name($cfg_obj_2x, $usergroup);
+            push @users, @users_ug;
+        }
+        # create a unique array of users (XXX important! XXX)
+        my @uniq_users = Icinga2::Utils::uniq(@users);
+
+        ######################################
+        # link users to this notification
+        ######################################
+        foreach my $uniq_user (@uniq_users) {
+            my $obj_2x_user = obj_get_user_obj_by_user_name($cfg_obj_2x, $uniq_user);
+            #say Dumper($obj_2x_user);
+
+            my $user_notification;
+
+            my $notification_commands = $obj_2x_user->{'__I2CONVERT_NOTIFICATION_COMMANDS'};
+            #say Dumper($notification_commands);
+
+            foreach my $notification_command_type (keys %{$notification_commands}) {
+                foreach my $notification_command_name (keys %{$notification_commands->{$notification_command_type}}) {
+                    my $notification_command_line = $notification_commands->{$notification_command_type}->{$notification_command_name};
+                    #print "type: $notification_command_type name: $notification_command_name line: $notification_command_line\n";
+
+                    my $notification_command_name_2x = $notification_prefix."-".$notification_command_type."-".$notification_command_name;
+
+                    my $notification_name_2x = $notification_command_name_2x.$obj_notification_escal_cnt;
+                    $obj_notification_escal_cnt++;
+
+                    # save a relation to this user and which notification templates are now linked ( ["name"] = { templates = "template" } )
+                    # we'll use that later on when processing hosts/services and linking to users and notifications
+                    $user_notification->{$notification_name_2x}->{'name'} = $notification_name_2x;
+
+                    push @{$user_notification->{$notification_name_2x}->{'templates'}}, $notification_command_name_2x;
+                    push @{$user_notification->{$notification_name_2x}->{'users'}}, $obj_2x_user->{'user_name'};
+
+                    # save the type for later objects (host or service)
+                    $user_notification->{$notification_name_2x}->{'type'} = $notification_command_type;
+
+                    ######################################
+                    # create a unique services list, and
+                    # link that to the notification
+                    # - host_name/service_description
+                    # - hostgroup_name/service_description
+                    # - servicegroup_name
+                    ######################################
+                    my $notification_interval = 60; # assume some default if everything goes wrong
+
+                    ######################################
+                    # get the obj by host_name/service_description
+                    ######################################
+                    if (defined($obj_1x_serviceescalation->{'host_name'}) && defined($obj_1x_serviceescalation->{'service_description'})) {
+                        my $serviceescalation_service_obj = obj_get_service_obj_by_host_name_service_description($cfg_obj_2x, "__I2CONVERT_SERVICE_HOSTNAME", "__I2CONVERT_SERVICEDESCRIPTION", $obj_1x_serviceescalation->{'host_name'}, $obj_1x_serviceescalation->{'service_description'});
+                        push @{$serviceescalation_service_obj->{'__I2CONVERT_NOTIFICATIONS'}}, $user_notification;
+
+                        #say Dumper($serviceescalation_service_obj);
+                        # we need to calculate begin/end based on service->notification_interval
+                        # if notification_interval is not defined, we need to look it up in the template tree!
+                        if (defined($serviceescalation_service_obj->{'notification_interval'})) {
+                            $notification_interval = $serviceescalation_service_obj->{'notification_interval'};
+                        } else {
+                            $notification_interval = obj_1x_get_service_attr($cfg_obj_1x, $serviceescalation_service_obj, $serviceescalation_service_obj->{'__I2CONVERT_SERVICE_HOSTNAME'}, 'notification_interval');
+                        }
+                        #say Dumper($notification_interval);
+                        $user_notification->{$notification_name_2x}->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'} = $obj_1x_serviceescalation->{'first_notification'} * $notification_interval;
+                        $user_notification->{$notification_name_2x}->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'} = $obj_1x_serviceescalation->{'last_notification'} * $notification_interval;
+
+                        # save a reference to more infos
+                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TIMES'} = $user_notification->{$notification_name_2x}->{'__I2CONVERT_NOTIFICATION_TIMES'};
+                        #say Dumper($obj_1x_serviceescalation);
+                        #say Dumper($user_notification);
+
+                        ######################################
+                        # now ADD the new escalation notification
+                        ######################################
+
+                        # XXX do not add duplicate notifications, they must remain unique by their notification_command origin!
+                        next if (obj_2x_notification_exists($cfg_obj_2x, $notification_command_name_2x) == 1);
+
+                        next if (!defined($notification_command_name_2x));
+
+                        # create a new NotificationCommand 2x object with the original name
+                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
+                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
+                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+
+                        # use the ITL plugin notification command template
+                        if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
+                            push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                        }
+
+                        # the check command name of 1.x is still the unique command object name, so we just keep it
+                        # in __I2CONVERT_NOTIFICATION_COMMAND
+
+                        # our global PK
+                        $command_obj_cnt++;
+
+                        # create a new notification template object
+                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
+                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_NAME'} = $notification_command_name_2x; 
+                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
+                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
+
+                        # more reference
+                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'users'} = $user_notification->{$notification_name_2x}->{'users'};
+
+                        # add dependency to ITL template to objects
+                        if(defined($icinga2_cfg->{'itl'}->{'notification-template'}) && $icinga2_cfg->{'itl'}->{'notification-template'} ne "") {
+                            @{$cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}} = ();
+                            push @{$cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notification-template'};
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1; # we now use a template, otherwise it won't be dumped
+                        }
+
+
+                        #say Dumper($cfg_obj_2x->{'notification'}->{$notification_obj_cnt});
+                        # our PK
+                        $notification_obj_cnt++;
+
+                    }
+
+                    ######################################
+                    # get all hosts in hostgroup, with service_description
+                    ######################################
+                    if (defined($obj_1x_serviceescalation->{'hostgroup_name'}) && defined($obj_1x_serviceescalation->{'service_description'})) {
+                        my @serviceescalation_hostgroup_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_serviceescalation->{'hostgroup_name'}, ',', 1);
+
+                        foreach my $serviceescalation_hostgroup_name (@serviceescalation_hostgroup_names) {
+                            # get hg members
+                            my @serviceescalation_hostgroup_hostnames = obj_get_hostnames_arr_by_hostgroup_name($cfg_obj_2x, $serviceescalation_hostgroup_name);
+
+                            foreach my $serviceescalation_hostgroup_hostname (@serviceescalation_hostgroup_hostnames) {
+
+                                if (defined($obj_1x_serviceescalation->{'service_description'})) {
+                                    my $serviceescalation_service_obj = obj_get_service_obj_by_host_name_service_description($cfg_obj_2x, "__I2CONVERT_SERVICE_HOSTNAME", "__I2CONVERT_SERVICEDESCRIPTION", $obj_1x_serviceescalation->{'host_name'}, $obj_1x_serviceescalation->{'service_description'});
+                                    push @{$serviceescalation_service_obj->{'__I2CONVERT_NOTIFICATIONS'}}, $user_notification;
+
+                                    # we need to calculate begin/end based on service->notification_interval
+                                    # if notification_interval is not defined, we need to look it up in the template tree!
+                                    if (defined($serviceescalation_service_obj->{'notification_interval'})) {
+                                        $notification_interval = $serviceescalation_service_obj->{'notification_interval'};
+                                    } else {
+                                        $notification_interval = obj_1x_get_service_attr($cfg_obj_1x, $serviceescalation_service_obj, $serviceescalation_service_obj->{'__I2CONVERT_SERVICE_HOSTNAME'}, 'notification_interval');
+                                    }
+                                    $user_notification->{$notification_name_2x}->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'} = $obj_1x_serviceescalation->{'first_notification'} * $notification_interval;
+                                    $user_notification->{$notification_name_2x}->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'} = $obj_1x_serviceescalation->{'last_notification'} * $notification_interval;
+                                    # save a reference to more infos
+                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TIMES'} = $user_notification->{$notification_name_2x}->{'__I2CONVERT_NOTIFICATION_TIMES'};
+
+
+                                    ######################################
+                                    # now ADD the new escalation notification
+                                    ######################################
+
+                                    # XXX do not add duplicate notifications, they must remain unique by their notification_command origin!
+                                    next if (obj_2x_notification_exists($cfg_obj_2x, $notification_command_name_2x) == 1);
+
+                                    next if (!defined($notification_command_name_2x));
+
+                                    # create a new NotificationCommand 2x object with the original name
+                                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
+                                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
+                                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+
+                                    # use the ITL plugin notification command template
+                                    if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
+                                        push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
+                                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                                    }
+
+                                    # the check command name of 1.x is still the unique command object name, so we just keep it
+                                    # in __I2CONVERT_NOTIFICATION_COMMAND
+
+                                    # our global PK
+                                    $command_obj_cnt++;
+
+                                    # create a new notification template object
+                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
+                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_NAME'} = $notification_command_name_2x; 
+                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
+                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
+
+                                    # more reference
+                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'users'} = $user_notification->{$notification_name_2x}->{'users'};
+
+                                    # add dependency to ITL template to objects
+                                    if(defined($icinga2_cfg->{'itl'}->{'notification-template'}) && $icinga2_cfg->{'itl'}->{'notification-template'} ne "") {
+                                        @{$cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}} = ();
+                                            push @{$cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notification-template'};
+                                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1; # we now use a template, otherwise it won't be dumped
+                                    }
+                                    # our PK
+                                    $notification_obj_cnt++;
+                                }
+                            }
+                        }
+                    }
+
+                    #say Dumper($cfg_obj_2x->{'notification'}->{$notification_obj_cnt});
+
+                    ######################################
+                    # get all hosts and services from servicegroup definition and link them
+                    ######################################
+                    # XXX FIXME
+                    if (defined($obj_1x_serviceescalation->{'servicegroup_name'})) {
+
+                    }
+
+                }
+            }
+
+            $obj_2x_user->{'__I2CONVERT_NOTIFICATIONS'} = $user_notification;
+        }
+    }
+
+    SKIP_SVCESCAL:
+
+
 
     ######################################
     # HOST->SERVICE MAGIC
