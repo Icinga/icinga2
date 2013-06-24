@@ -144,6 +144,7 @@ third-party/cJSON/Makefile
 third-party/execvpe/Makefile
 third-party/mmatch/Makefile
 tools/Makefile
+tools/mkembedconfig/Makefile
 ])
 AC_OUTPUT([
 etc/init.d/icinga2

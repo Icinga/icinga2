@@ -6,8 +6,8 @@ pkglib_LTLIBRARIES = \
 EXTRA_DIST = \
 	compat-type.conf
 
-.conf.cpp: $(top_builddir)/tools/mkembedconfig.c
-	$(top_builddir)/tools/mkembedconfig $< $@
+.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig.c
+	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libcompat_la_SOURCES = \
 	checkresultreader.cpp \

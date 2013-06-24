@@ -4,8 +4,8 @@
 pkglib_LTLIBRARIES = \
 	libremoting.la
 
-.conf.cpp: $(top_builddir)/tools/mkembedconfig.c
-	$(top_builddir)/tools/mkembedconfig $< $@
+.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig.c
+	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libremoting_la_SOURCES = \
 	endpoint.cpp \
