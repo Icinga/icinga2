@@ -121,7 +121,7 @@ $icinga2_cfg->{'timeperiods'}= "$conf_prefix/timeperiods.conf";
 $icinga2_cfg->{'commands'}= "$conf_prefix/commands.conf";
 
 $icinga2_cfg->{'itl'}->{'host-template'} = "";
-$icinga2_cfg->{'itl'}->{'service-template'} = "plugin-service";
+$icinga2_cfg->{'itl'}->{'service-template'} = "";
 $icinga2_cfg->{'itl'}->{'user-template'} = "";
 $icinga2_cfg->{'itl'}->{'notification-template'} = "";
 $icinga2_cfg->{'itl'}->{'timeperiod-template'} = "legacy-timeperiod";
