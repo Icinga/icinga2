@@ -46,7 +46,7 @@ bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *referen
 
 	int daynumber = (tsref - tsbegin) / (24 * 60 * 60);
 
-	if (daynumber % stride == 0)
+	if (stride > 1 && daynumber % stride == 0)
 		return false;
 
 	return true;
@@ -324,6 +324,8 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
+	Log(LogDebug, "icinga", "ParseTimeRange: '" + daydef + "' => " + Convert::ToString(mktime(&begin)) + " -> " + Convert::ToString(mktime(&end)) + ", stride: " + Convert::ToString(stride));
+
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
 
@@ -389,6 +391,8 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 			time_t refts = begin + i * 24 * 60 * 60;
 			tm reference;
 
+			Log(LogDebug, "icinga", "Checking reference time " + Convert::ToString(refts));
+
 #ifdef _MSC_VER
 			tm *temp = localtime(&refts);
 
@@ -411,8 +415,12 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 			String key;
 			Value value;
 			BOOST_FOREACH(boost::tie(key, value), ranges) {
-				if (!IsInDayDefinition(key, &reference))
+				if (!IsInDayDefinition(key, &reference)) {
+					Log(LogDebug, "icinga", "Not in day definition '" + key + "'.");
 					continue;
+				}
+
+				Log(LogDebug, "icinga", "In day definition '" + key + "'.");
 
 				ProcessTimeRanges(value, &reference, segments);
 			}
