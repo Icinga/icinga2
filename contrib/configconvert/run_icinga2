@@ -3,4 +3,4 @@
 ICINGA2BIN="$HOME/i2/sbin/icinga2"
 ICINGA2CONF="./icinga2-conv.conf"
 
-$ICINGA2BIN -x -c $ICINGA2CONF
+$ICINGA2BIN -c $ICINGA2CONF
