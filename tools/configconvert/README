@@ -18,14 +18,18 @@ allowing to define notifications directly on the service definition then.
 All required templates will be inherited from Icinga2's Template Library (ITL).
 
 RUN
-# time ./icinga2_convert_v1_v2.pl -v -o conf/
+# ./icinga2_convert_v1_v2.pl -v -o conf/
 
 HELP
 # ./icinga2_convert_v1_v2.pl -h
 
 TEST
 There's a small icinga2 conversion test config available, including conf/ folder.
+
 # ~/i2/sbin/icinga2 -c icinga2-conv.conf
+
+(or if icinga2 binary is located in $HOME/i2/sbin/icinga2, simply use run_icinga2)
+
 
 REQUIREMENTS
 - Perl:
@@ -37,6 +41,16 @@ REQUIREMENTS
 
 - Icinga2 ITL
 
+
+DEBUG
+Compile Icinga2 with --enable-debug=yes and start it with -x. Alternatively, define the
+ConsoleLogger Object and set severity to "debug".
+
+local object ConsoleLogger "my-debug-log" {
+    severity = "debug"
+}
+
+
 NOTES
 - Excludes (will be ignored in member lists)
 - Wildcards (* means all)
@@ -47,4 +61,6 @@ NOTES
 TODO
 - Escalations (transformed from notification counter to start/end time, new logic)
 - Dependency attributes: failure_criteria, inherits_parents, timeperiods
-- Notifications: notification_options conversion (not yet implemented)
+- Notifications: notification_options conversion
+- Flapping Thresholds: old vs new logic
+- some special object tricks, regex
