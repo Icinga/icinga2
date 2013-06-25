@@ -96,7 +96,7 @@ sub end_object_type_config_dump {
 }
 
 ################################################################################
-# DUMP ALL OBJECTS 2.x 
+# DUMP ALL OBJECTS 2.x
 ################################################################################
 
 
@@ -127,7 +127,7 @@ sub dump_hosts_2x {
         # function decides itsself if object or template
         Icinga2::ExportIcinga2Cfg::dump_host_2x($icinga2_cfg, $host_2x);
     }
-    
+
     end_object_type_config_dump($icinga2_cfg);
 }
 
@@ -142,7 +142,7 @@ sub dump_services_2x {
 
         Icinga2::ExportIcinga2Cfg::dump_service_2x($icinga2_cfg, $service_2x);
     }
-    
+
     end_object_type_config_dump($icinga2_cfg);
 }
 
@@ -157,7 +157,7 @@ sub dump_users_2x {
 
         Icinga2::ExportIcinga2Cfg::dump_user_2x($icinga2_cfg, $user_2x);
     }
-    
+
     end_object_type_config_dump($icinga2_cfg);
 }
 
@@ -172,7 +172,7 @@ sub dump_notifications_2x {
 
         Icinga2::ExportIcinga2Cfg::dump_notification_2x($icinga2_cfg, $notification_2x);
     }
-    
+
     end_object_type_config_dump($icinga2_cfg);
 }
 
@@ -188,7 +188,7 @@ sub dump_timeperiods_2x {
 
         Icinga2::ExportIcinga2Cfg::dump_timeperiod_2x($icinga2_cfg, $timeperiod_2x);
     }
-    
+
     end_object_type_config_dump($icinga2_cfg);
 }
 
@@ -231,12 +231,12 @@ sub dump_commands_2x {
 
         Icinga2::ExportIcinga2Cfg::dump_command_2x($icinga2_cfg, $command_2x);
     }
-    
+
     end_object_type_config_dump($icinga2_cfg);
 }
 
 ################################################################################
-# DUMP OBJECT 2.x 
+# DUMP OBJECT 2.x
 ################################################################################
 
 
@@ -302,7 +302,7 @@ sub dump_service_2x {
     }
 
     ####################################################
-    # servicegroups 
+    # servicegroups
     ####################################################
     if(defined($service_2x->{'servicegroups'}) && scalar(@{$service_2x->{'servicegroups'}}) > 0) {
         #say Dumper($service_2x->{'servicegroups'});
@@ -317,7 +317,7 @@ sub dump_service_2x {
     }
 
     ####################################################
-    # servicedependencies (1.x deps) 
+    # servicedependencies (1.x deps)
     ####################################################
     if(defined($service_2x->{'__I2CONVERT_PARENT_SERVICES'})) {
         dump_config_line($icinga2_cfg, "\tservicedependencies = [");
@@ -329,10 +329,10 @@ sub dump_service_2x {
             dump_config_line($icinga2_cfg, "\t\t{ host = \"$servicedep->{'host'}\", service = \"$servicedep->{'service'}\" },");
         }
         dump_config_line($icinga2_cfg, "\t],");
-    }    
+    }
 
     ####################################################
-    # notifications 
+    # notifications
     ####################################################
     if(defined($service_2x->{'__I2CONVERT_NOTIFICATIONS'})) {
         #say Dumper ($service_2x->{'__I2CONVERT_NOTIFICATIONS'});
@@ -436,9 +436,9 @@ sub dump_host_2x {
     }
 
     ####################################################
-    # start, inherit from template? 
+    # start, inherit from template?
     ####################################################
-    if (defined($host_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $host_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) { 
+    if (defined($host_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $host_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         my $host_2x_templates = join '", "', @{$host_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
         dump_config_line($icinga2_cfg, "$object_type Host \"$host_name\" inherits \"$host_2x_templates\" {");
     } else {
@@ -453,7 +453,7 @@ sub dump_host_2x {
     }
 
     ####################################################
-    # macros 
+    # macros
     ####################################################
     dump_config_line($icinga2_cfg, "");
 
@@ -467,7 +467,7 @@ sub dump_host_2x {
     dump_config_line($icinga2_cfg, "");
 
     ####################################################
-    # hostcheck 
+    # hostcheck
     ####################################################
     # this is magic, and must be set during conversion
     if(defined($host_2x->{'__I2CONVERT_HOSTCHECK'})) {
@@ -475,7 +475,7 @@ sub dump_host_2x {
     }
 
     ####################################################
-    # hostgroups 
+    # hostgroups
     ####################################################
     if(defined($host_2x->{'hostgroups'})) {
         my $hostgroups = join '", "', @{$host_2x->{'hostgroups'}};
@@ -487,15 +487,15 @@ sub dump_host_2x {
     }
 
     ####################################################
-    # hostdependencies (1.x deps and parents combined) 
+    # hostdependencies (1.x deps and parents combined)
     ####################################################
     if(defined($host_2x->{'__I2CONVERT_PARENT_HOSTNAMES'})) {
         my $hostdependency_hosts = join '", "', @{$host_2x->{'__I2CONVERT_PARENT_HOSTNAMES'}};
         dump_config_line($icinga2_cfg, "\thostdependencies = [ \"$hostdependency_hosts\" ],");
-    }    
+    }
 
     ####################################################
-    # notifications 
+    # notifications
     ####################################################
     if(defined($host_2x->{'__I2CONVERT_NOTIFICATIONS'})) {
         #say Dumper ($host_2x->{'__I2CONVERT_NOTIFICATIONS'});
@@ -599,7 +599,7 @@ sub dump_host_2x {
             dump_config_line($icinga2_cfg, "\t\ttemplates = [ \"$service_2x_templates\" ],")
         }
         ####################################################
-        # display_name 
+        # display_name
         ####################################################
         if(defined($service_2x->{'display_name'})) {
             dump_config_line($icinga2_cfg, "\t\tdisplay_name = \"$service_2x->{'display_name'}\",");
@@ -607,7 +607,7 @@ sub dump_host_2x {
 
         dump_config_line($icinga2_cfg, "");
         ####################################################
-        # macros 
+        # macros
         ####################################################
         if(defined($service_2x->{'__I2CONVERT_MACROS'}) && $service_2x->{'__I2CONVERT_MACROS'} != 0) {
             dump_config_line($icinga2_cfg, "\t\tmacros = {");
@@ -618,14 +618,14 @@ sub dump_host_2x {
         }
 
         ####################################################
-        # check_command 
+        # check_command
         ####################################################
         if(defined($service_2x->{'check_command'})) {
             dump_config_line($icinga2_cfg, "\t\tcheck_command = \"$service_2x->{'check_command'}\",");
         }
 
         ####################################################
-        # servicegroups 
+        # servicegroups
         ####################################################
         if(defined($service_2x->{'servicegroups'}) && scalar(@{$service_2x->{'servicegroups'}}) > 0) {
             #say Dumper($service_2x->{'servicegroups'});
@@ -638,13 +638,13 @@ sub dump_host_2x {
         }
 
         ####################################################
-        # notifications 
+        # notifications
         ####################################################
         if(defined($service_2x->{'__I2CONVERT_NOTIFICATIONS'})) {
             #say Dumper ($service_2x->{'__I2CONVERT_NOTIFICATIONS'});
             # this is an array of notification objects
             foreach my $service_notification_hash (@{$service_2x->{'__I2CONVERT_NOTIFICATIONS'}}) {
-    
+
                 #say Dumper($service_notification_hash);
 
                 # this is a hash by unique key of the notification template, but all further attributes are seperatedly available too
@@ -741,7 +741,7 @@ sub dump_user_2x {
     }
 
     ####################################################
-    # start, inherit from template? 
+    # start, inherit from template?
     ####################################################
     if (defined($user_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $user_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         my $user_2x_templates = join '", "', @{$user_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
@@ -769,7 +769,7 @@ sub dump_user_2x {
     dump_config_line($icinga2_cfg, "");
 
     ####################################################
-    # usergroups 
+    # usergroups
     ####################################################
     if(defined($user_2x->{'usergroups'})) {
         #say Dumper($user_2x->{'usergroups'});
@@ -801,7 +801,7 @@ sub dump_notification_2x {
     return if (!defined($notification_name));
 
     ####################################################
-    # start, inherit from template? 
+    # start, inherit from template?
     ####################################################
     if (defined($notification_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $notification_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         my $notification_2x_templates = join '", "', @{$notification_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
@@ -857,7 +857,7 @@ sub dump_timeperiod_2x {
     }
 
     ####################################################
-    # start, inherit from template? 
+    # start, inherit from template?
     ####################################################
     if (defined($timeperiod_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $timeperiod_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         my $timeperiod_2x_templates = join '", "', @{$timeperiod_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
@@ -898,7 +898,7 @@ sub dump_group_2x {
     my $group_name_attr = $group_2x->{__I2CONVERT_TYPE} . "_name";
     my $group_name = $group_2x->{$group_name_attr};
     my $group_type = ucfirst("$group_2x->{__I2CONVERT_TYPE}");
-    $group_type =~ s/group/Group/; 
+    $group_type =~ s/group/Group/;
 
     #say Dumper($group_2x);
 

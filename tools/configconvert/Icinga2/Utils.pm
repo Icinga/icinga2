@@ -29,7 +29,7 @@ use strict;
 our $dbg_lvl = 1;
 
 ################################################################################
-# HELPER FUNCTIONS 
+# HELPER FUNCTIONS
 ################################################################################
 
 sub strip {
@@ -51,7 +51,7 @@ sub errlog {
     } else {
         print "$log_str\n";
     }
-    
+
 }
 
 sub escape_str {

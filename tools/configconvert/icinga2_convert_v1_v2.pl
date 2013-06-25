@@ -99,7 +99,7 @@ $icinga2_cfg->{'__I2EXPORT_DEBUG'} = 0;
 
 if(defined($opt->{icinga1xcfg})) {
     $icinga1_cfg = $opt->{icinga1xcfg};
-} 
+}
 if(defined($opt->{icinga2xoutputprefix})) {
     $conf_prefix = $opt->{icinga2xoutputprefix};
 }
@@ -133,14 +133,14 @@ $icinga2_cfg->{'itl'}->{'eventcommand-template'} = "plugin-event-command";
 my $type_cnt;
 
 ################################################################################
-# MAIN 
+# MAIN
 ################################################################################
 
 # TODO import/export files in parallel?
 
 # the import
-my $icinga1_cfg_obj = Icinga2::ImportIcinga1Cfg::parse_icinga1_objects($icinga1_cfg); 
-my $icinga1_cfg_obj_cache = Icinga2::ImportIcinga1Cfg::parse_icinga1_objects_cache($icinga1_cfg); 
+my $icinga1_cfg_obj = Icinga2::ImportIcinga1Cfg::parse_icinga1_objects($icinga1_cfg);
+my $icinga1_cfg_obj_cache = Icinga2::ImportIcinga1Cfg::parse_icinga1_objects_cache($icinga1_cfg);
 my $icinga1_user_macros = Icinga2::ImportIcinga1Cfg::parse_icinga1_user_macros($icinga1_cfg);
 
 # the conversion magic inside
@@ -149,4 +149,4 @@ my $icinga2_cfg_obj = Icinga2::Convert::convert_2x($icinga2_cfg, $icinga1_cfg_ob
 # the export
 Icinga2::ExportIcinga2Cfg::dump_cfg_obj_2x($icinga2_cfg, $icinga2_cfg_obj);
 
-# vi: sw=4 ts=4 expandtab : 
+# vi: sw=4 ts=4 expandtab :

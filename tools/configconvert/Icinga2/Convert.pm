@@ -106,12 +106,12 @@ sub obj_2x_command_exists {
 
 
 ################################################################################
-# Migration 
+# Migration
 #################################################################################
 
 
 #################################################################################
-# Get Object Helpers 
+# Get Object Helpers
 #################################################################################
 
 # get host object by attr 'host_name'
@@ -159,7 +159,7 @@ sub obj_get_service_obj_by_host_name_service_description {
             return $obj;
         }
     }
-   
+
     return undef;
 }
 
@@ -256,7 +256,7 @@ sub obj_get_hostgroup_obj_by_hostgroup_name {
 }
 
 #################################################################################
-# Get Object Attribute Helpers 
+# Get Object Attribute Helpers
 #################################################################################
 
 
@@ -416,7 +416,7 @@ sub obj_1x_get_host_host_name {
     }
 
     # we don't have a host name, should we look into a template?
-    # make sure _not_ to use 
+    # make sure _not_ to use
     if (defined($obj_1x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_1x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         # get the object referenced as template - this is an array of templates, loop (funny recursion here)
         foreach my $obj_1x_template (@{$obj_1x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
@@ -474,12 +474,12 @@ sub obj_1x_get_service_host_name_arr {
         }
         push @{$obj_1x->{'__I2CONVERT_HOSTNAMES'}}, @host_name;
 
-        #print "DEBUG: @{$obj_1x->{'__I2CONVERT_HOSTNAMES'}}"; 
+        #print "DEBUG: @{$obj_1x->{'__I2CONVERT_HOSTNAMES'}}";
         return @host_name;
     }
 
     # we don't have a host name, should we look into a template?
-    # make sure _not_ to use 
+    # make sure _not_ to use
     if (defined($obj_1x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_1x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         # get the object referenced as template - this is an array of templates, loop (funny recursion here)
         foreach my $obj_1x_template (@{$obj_1x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
@@ -489,7 +489,7 @@ sub obj_1x_get_service_host_name_arr {
             # get the template object associated with by its unique 'name' attr
             my $obj_1x_tmpl = obj_get_tmpl_obj_by_tmpl_name($objs_1x, 'service', $obj_1x_template);
 
-            # now recurse into ourselves and look for all possible hostnames in array 
+            # now recurse into ourselves and look for all possible hostnames in array
             @host_name = obj_1x_get_service_host_name_arr($objs_1x,$obj_1x_tmpl);
             #print "DEBUG: from tmpl $obj_1x_template: " . join(" ", @host_name) . "\n";
 
@@ -533,7 +533,7 @@ sub obj_1x_get_service_service_description {
     }
 
     # we don't have a service description, should we look into a template?
-    # make sure _not_ to use 
+    # make sure _not_ to use
     if (defined($obj_1x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_1x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         # get the object referenced as template - this is an array of templates, loop (funny recursion here)
         foreach my $obj_1x_template (@{$obj_1x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
@@ -583,7 +583,7 @@ sub obj_1x_get_service_attr {
     }
 
     # we don't have the attribute, should we look into a template?
-    # make sure _not_ to use 
+    # make sure _not_ to use
     if (defined($obj_1x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_1x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         # get the object referenced as template - this is an array of templates, loop (funny recursion here)
         foreach my $obj_1x_template (@{$obj_1x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
@@ -633,7 +633,7 @@ sub obj_1x_get_contact_attr {
     }
 
     # we don't have the attribute, should we look into a template?
-    # make sure _not_ to use 
+    # make sure _not_ to use
     if (defined($obj_1x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_1x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         # get the object referenced as template - this is an array of templates, loop (funny recursion here)
         foreach my $obj_1x_template (@{$obj_1x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
@@ -680,7 +680,7 @@ sub obj_2x_get_service_servicegroups {
     }
 
     # we don't have the attribute, should we look into a template?
-    # make sure _not_ to use 
+    # make sure _not_ to use
     if (defined($obj_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
         # get the object referenced as template - this is an array of templates, loop (funny recursion here)
         foreach my $obj_2x_template (@{$obj_2x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
@@ -712,7 +712,7 @@ sub obj_2x_get_service_servicegroups {
 
 
 ################################################################################
-# Conversion 
+# Conversion
 #################################################################################
 
 # host|service_notification_commands are a comma seperated list w/o arguments
@@ -777,7 +777,7 @@ sub convert_notificationcommand {
 
     return $notification_commands_2x;
 
-} 
+}
 
 # event_handler
 sub convert_eventhandler {
@@ -818,8 +818,8 @@ sub convert_checkcommand {
 
     my $command_1x;
     my $command_2x = {};
-    #say Dumper($commands_1x); 
-    #say Dumper($obj_1x); 
+    #say Dumper($commands_1x);
+    #say Dumper($obj_1x);
 
     # ignore objects without check_command (may defined in template!)
     return if (!defined($obj_1x->{'check_command'}));
@@ -914,7 +914,7 @@ sub convert_2x {
         if(defined($obj_1x_service->{'use'})) {
             @service_templates = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_service->{'use'}, ',', 1);
         }
-        
+
         push @{$obj_1x_service->{'__I2CONVERT_TEMPLATE_NAMES'}}, @service_templates;
 
         # add dependency to ITL template to objects
@@ -931,7 +931,7 @@ sub convert_2x {
         ####################################################
         # XXX even if the service object uses templates, we need to figure out its host_name/service_description in order to safely link hosts towards it
         my @host_names = obj_1x_get_service_host_name_arr($cfg_obj_1x, $obj_1x_service);
-       
+
         #print "DEBUG: service @host_names\n";
 
         delete($obj_1x_service->{'__I2CONVERT_HOSTNAMES'});
@@ -986,7 +986,7 @@ sub convert_2x {
             # - check_period - XXX TODO
             # - notification_period - XXX TODO
             # - contacts => users XXX DO NOT DELETE contacts and contactgroups, they will be assembled later for notifications!
-            # - 
+            # -
             ####################################################
 
             ##########################################
@@ -1034,10 +1034,10 @@ sub convert_2x {
             my $service_check_interval = undef;
             if(defined($obj_1x_service->{'normal_check_interval'})) {
                 $service_check_interval = $obj_1x_service->{'normal_check_interval'};
-            } 
+            }
             if(defined($obj_1x_service->{'check_interval'})) {
                 $service_check_interval = $obj_1x_service->{'check_interval'};
-            } 
+            }
             # we assume that 1.x kept 1m default interval, and map it
             if (defined($service_check_interval)) {
                 $cfg_obj_2x->{'service'}->{$service_cnt}->{'check_interval'} = $service_check_interval."m";
@@ -1049,10 +1049,10 @@ sub convert_2x {
             my $service_retry_interval = undef;
             if(defined($obj_1x_service->{'retry_check_interval'})) {
                 $service_retry_interval = $obj_1x_service->{'retry_check_interval'};
-            } 
+            }
             if(defined($obj_1x_service->{'retry_interval'})) {
                 $service_retry_interval = $obj_1x_service->{'retry_interval'};
-            } 
+            }
             # we assume that 1.x kept 1m default interval, and map it
             if (defined($service_retry_interval)) {
                 $cfg_obj_2x->{'service'}->{$service_cnt}->{'retry_interval'} = $service_retry_interval."m";
@@ -1080,7 +1080,7 @@ sub convert_2x {
 
                 # XXX do not add duplicate event commands, they must remain unique by their check_command origin!
                 if ((obj_2x_command_exists($cfg_obj_2x, $obj_1x_service->{'event_handler'}) != 1)) {
-                
+
                     # create a new EventCommand 2x object with the original name
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Event';
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $service_event_command_2x->{'command_name'};
@@ -1095,8 +1095,8 @@ sub convert_2x {
                     # our PK
                     $command_obj_cnt++;
                 }
-                    
-                # the event_handler name of 1.x is still the unique command object name, so we just keep 
+
+                # the event_handler name of 1.x is still the unique command object name, so we just keep
                 # in __I2_CONVERT_EVENTCOMMAND_NAME in our service object
                 $cfg_obj_2x->{'service'}->{$service_cnt}->{'__I2_CONVERT_EVENTCOMMAND_NAME'} = $service_event_command_2x->{'command_name'};
 
@@ -1143,7 +1143,7 @@ sub convert_2x {
                 }
 
                 # make sure service object still got the checkcommand assigned
-                # the check command name of 1.x is still the unique command object name, so we just keep 
+                # the check command name of 1.x is still the unique command object name, so we just keep
                 # in $service_check_command_2x->{'check_command'} the cut real check_command_name_1x
                 delete($service_check_command_2x->{'check_command'});
                 $cfg_obj_2x->{'service'}->{$service_cnt}->{'__I2_CONVERT_CHECKCOMMAND_NAME'} = $service_check_command_2x->{'check_command_name_1x'};
@@ -1165,10 +1165,10 @@ sub convert_2x {
     # HOST
     # use => inherit template
     # register 0 => template
-    # check_command => create a new service? 
+    # check_command => create a new service?
     ######################################
 
-    # "get all 'host' hashref as array in hashmap, and their keys to access it"    
+    # "get all 'host' hashref as array in hashmap, and their keys to access it"
     foreach my $host_obj_1x_key (keys %{@$cfg_obj_1x{'host'}}) {
 
         #say Dumper(@$cfg_obj_1x{'host'}->{$host_obj_1x_key});
@@ -1186,7 +1186,7 @@ sub convert_2x {
         if(defined($obj_1x_host->{'use'})) {
             @host_templates = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_host->{'use'}, ',', 1);
         }
-        
+
         push @{$obj_1x_host->{'__I2CONVERT_TEMPLATE_NAMES'}}, @host_templates;
 
         ####################################################
@@ -1233,13 +1233,13 @@ sub convert_2x {
         # - check_period - XXX TODO
         # - notification_period - XXX TODO
         # - contacts => users XXX DO NOT DELETE contacts and contactgroups - they will be assembled later for notifications!
-        # - 
+        # -
         # remove:
         # - check_command
         ####################################################
 
         ##########################################
-        # macros (address*, etc)  
+        # macros (address*, etc)
         ##########################################
         if(defined($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'address'})) {
             $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_MACROS'}->{'address'} = $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'address'};
@@ -1390,7 +1390,7 @@ sub convert_2x {
         if(defined($obj_1x_contact->{'use'})) {
             @contact_templates = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_contact->{'use'}, ',', 1);
         }
-        
+
         push @{$obj_1x_contact->{'__I2CONVERT_TEMPLATE_NAMES'}}, @contact_templates;
 
         ####################################################
@@ -1408,7 +1408,7 @@ sub convert_2x {
         $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'__I2CONVERT_TYPE'} = "user";
 
         ##########################################
-        # macros (email, pager, address1..6)  
+        # macros (email, pager, address1..6)
         ##########################################
         if(defined($obj_1x_contact->{'email'})) {
             $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'__I2CONVERT_MACROS'}->{'email'} = $obj_1x_contact->{'email'};
@@ -1431,7 +1431,7 @@ sub convert_2x {
         if(defined($obj_1x_contact->{'alias'})) {
             $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'display_name'} = Icinga2::Utils::escape_str($obj_1x_contact->{'alias'});
         }
-        
+
         delete($cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'usergroups'});
         if(defined($obj_1x_contact->{'contactgroups'})) {
 
@@ -1455,14 +1455,14 @@ sub convert_2x {
     SKIP_CONTACTS:
 
     ######################################
-    # GROUPS 
+    # GROUPS
     ######################################
 
     if (!@$cfg_obj_1x{'hostgroup'}) {
         goto SKIP_HOSTGROUPS;
     }
 
-    # host->hostgroups and hostgroup-members relinked together 
+    # host->hostgroups and hostgroup-members relinked together
     foreach my $hostgroup_obj_1x_key (keys %{@$cfg_obj_1x{'hostgroup'}}) {
         my $obj_1x_hostgroup = @$cfg_obj_1x{'hostgroup'}->{$hostgroup_obj_1x_key};
         # clone it into our hash
@@ -1497,7 +1497,7 @@ sub convert_2x {
             }
 
             foreach my $hg_member (@hg_members) {
-                my $obj_2x_hg_member = obj_get_host_obj_by_host_name($cfg_obj_2x, $hg_member);           
+                my $obj_2x_hg_member = obj_get_host_obj_by_host_name($cfg_obj_2x, $hg_member);
                 #print "DEBUG: $hg_member found.\n";
                 push @{$obj_2x_hg_member->{'hostgroups'}}, $obj_1x_hostgroup->{'hostgroup_name'};
             }
@@ -1592,7 +1592,7 @@ sub convert_2x {
         if(defined($obj_1x_contactgroup->{'members'})) {
             my @cg_members = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_contactgroup->{'members'}, ',', 1);
             foreach my $cg_member (@cg_members) {
-                my $obj_2x_cg_member = obj_get_contact_obj_by_contact_name($cfg_obj_2x, "user", "user_name", $cg_member);           
+                my $obj_2x_cg_member = obj_get_contact_obj_by_contact_name($cfg_obj_2x, "user", "user_name", $cg_member);
                 #print "DEBUG: $cg_member found.\n";
                 push @{$obj_2x_cg_member->{'usergroups'}}, $obj_1x_contactgroup->{'contactgroup_name'};
             }
@@ -1670,10 +1670,10 @@ sub convert_2x {
         # get all hosts as array for the master host groups
         foreach my $master_hostgroup_name (@master_hostgroup_names) {
             my @host_master_hostgroup_hostnames = obj_get_hostnames_arr_by_hostgroup_name($cfg_obj_2x, $master_hostgroup_name);
-            push @all_master_hostgroup_hostnames, @host_master_hostgroup_hostnames;        
+            push @all_master_hostgroup_hostnames, @host_master_hostgroup_hostnames;
         }
 
-        # go through all child hostgroups and fetch their host objects, setting 
+        # go through all child hostgroups and fetch their host objects, setting
         foreach my $child_hostgroup_name (@child_hostgroup_names) {
             my @host_child_hostgroup_hostnames = obj_get_hostnames_arr_by_hostgroup_name($cfg_obj_2x, $child_hostgroup_name);
             foreach my $host_child_hostgroup_hostname (@host_child_hostgroup_hostnames) {
@@ -1709,7 +1709,7 @@ sub convert_2x {
 
         # go through all child hosts, and get the service object by host_name and our single service_description
         foreach my $child_host_name (@child_host_names) {
-            my $child_service_obj = obj_get_service_obj_by_host_name_service_description($cfg_obj_2x, "__I2CONVERT_SERVICE_HOSTNAME", "__I2CONVERT_SERVICEDESCRIPTION", $child_host_name, $child_service_description); 
+            my $child_service_obj = obj_get_service_obj_by_host_name_service_description($cfg_obj_2x, "__I2CONVERT_SERVICE_HOSTNAME", "__I2CONVERT_SERVICEDESCRIPTION", $child_host_name, $child_service_description);
             # stash all master dependencies onto the child service
             foreach my $master_host_name (@master_host_names) {
                 # use some calculated unique key here (no, i will not split the string later! we are perl, we can do hashes)
@@ -1734,7 +1734,7 @@ sub convert_2x {
         #say Dumper($obj_1x_servicedependency);
         #say " DEBUG: all master hg hostnames: ".Dumper(@all_master_hostgroup_hostnames);
 
-        # go through all child hostgroups and fetch their host objects, setting 
+        # go through all child hostgroups and fetch their host objects, setting
         foreach my $child_hostgroup_name (@child_hostgroup_names) {
             my @host_child_hostgroup_hostnames = obj_get_hostnames_arr_by_hostgroup_name($cfg_obj_2x, $child_hostgroup_name); # child hostgroup members
             #say " DEBUG: child hg hostnames: ".Dumper(@host_child_hostgroup_hostnames);
@@ -1824,14 +1824,14 @@ sub convert_2x {
             #print " DEBUG: no members found, skipping $hg_name\n";
             next;
         }
-        
+
         # we've got:
-        # * n services linked to hostgroups, 
-        # * a hostgroup 
+        # * n services linked to hostgroups,
+        # * a hostgroup
         # * an array of hosts as hostgroup members
-        # we'll create: 
-        # * n service templates, 
-        # * a hg-host template referencing the service templates, 
+        # we'll create:
+        # * n service templates,
+        # * a hg-host template referencing the service templates,
         # * host objects inheriting from it
         #
         my $svc_count = 0;
@@ -1851,7 +1851,7 @@ sub convert_2x {
             # set the service as template.
             $obj_2x_service->{'__I2CONVERT_IS_TEMPLATE'} = 1;
             $obj_2x_service->{'__I2CONVERT_TEMPLATE_NAME'} = $obj_2x_service->{'service_description'}."-group-".$svc_count; # XXX hardcode it for now
-        
+
             # create a dummy service inheriting the service template
             my $obj_2x_service_inherit;
             $obj_2x_service_inherit->{__I2CONVERT_USES_TEMPLATE} = 1;
@@ -1869,7 +1869,7 @@ sub convert_2x {
         foreach my $hostgroup_member_host_name (@service_hostgroup_hostnames) {
             # get the host obj
             my $obj_2x_host = obj_get_host_obj_by_host_name($cfg_obj_2x, $hostgroup_member_host_name); # this is a reference in memory, not a copy!
-            
+
             # push the template used
             # (override __I2CONVERT_USES_TEMPLATE too)
             $obj_2x_host->{__I2CONVERT_USES_TEMPLATE} = 1;
@@ -1887,7 +1887,7 @@ sub convert_2x {
     }
 
     ######################################
-    # NEW: NOTIFICATION MAPPING 
+    # NEW: NOTIFICATION MAPPING
     # old:  contact->notification_commands->commands
     #       contact->email/etc
     #       host/service -> contact
@@ -1902,7 +1902,7 @@ sub convert_2x {
 
     # go through all users and build notifications based on the notification_command
     foreach my $user_obj_2x_key (keys %{@$cfg_obj_2x{'user'}}) {
-        
+
         my $obj_2x_user = @$cfg_obj_2x{'user'}->{$user_obj_2x_key};
 
         my $user_notification;
@@ -1925,7 +1925,7 @@ sub convert_2x {
                 # save a relation to this user and which notification templates are now linked ( ["name"] = { templates = "template" } )
                 # we'll use that later on when processing hosts/services and linking to users and notifications
                 $user_notification->{$notification_name_2x}->{'name'} = $notification_name_2x;
-                
+
                 push @{$user_notification->{$notification_name_2x}->{'templates'}}, $notification_command_name_2x;
                 push @{$user_notification->{$notification_name_2x}->{'users'}}, $obj_2x_user->{'user_name'};
 
@@ -1960,8 +1960,8 @@ sub convert_2x {
                 $command_obj_cnt++;
 
                 # create a new notification template object
-                $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
-                $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x; 
+                $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x;
+                $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x;
                 $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                 $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
 
@@ -2005,7 +2005,7 @@ sub convert_2x {
         my @uniq_users = Icinga2::Utils::uniq(@users);
 
         # now loop and fetch objects, and their needed notification values as array
-        # (prepared above - look for $user_notification->{$notification_command_name_2x}...) 
+        # (prepared above - look for $user_notification->{$notification_command_name_2x}...)
         foreach my $uniq_user (@uniq_users) {
             my $obj_2x_user = obj_get_user_obj_by_user_name($cfg_obj_2x, $uniq_user);
             push @{$cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'__I2CONVERT_NOTIFICATIONS'}}, $obj_2x_user->{'__I2CONVERT_NOTIFICATIONS'};
@@ -2017,7 +2017,7 @@ sub convert_2x {
 
     # XXX services
     foreach my $service_obj_2x_key (keys %{@$cfg_obj_2x{'service'}}) {
-        
+
         my $obj_2x_service = @$cfg_obj_2x{'service'}->{$service_obj_2x_key};
         # make sure there are none
         delete($cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATIONS'});
@@ -2026,7 +2026,7 @@ sub convert_2x {
         # convert users and usergroupmembers into a unique list of users
         my @users = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_service->{'contacts'}, ',', 1);
         my @usergroups = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_service->{'contact_groups'}, ',', 1);
-        
+
         # get all members of the usergroups
         foreach my $usergroup (@usergroups) {
             my @users_ug = obj_get_usernames_arr_by_usergroup_name($cfg_obj_2x, $usergroup);
@@ -2036,10 +2036,10 @@ sub convert_2x {
         my @uniq_users = Icinga2::Utils::uniq(@users);
 
         # now loop and fetch objects, and their needed notification values as array
-        # (prepared above - look for $user_notification->{$notification_command_name_2x}...) 
+        # (prepared above - look for $user_notification->{$notification_command_name_2x}...)
         foreach my $uniq_user (@uniq_users) {
             my $obj_2x_user = obj_get_user_obj_by_user_name($cfg_obj_2x, $uniq_user);
-            push @{$cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATIONS'}}, $obj_2x_user->{'__I2CONVERT_NOTIFICATIONS'};      
+            push @{$cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATIONS'}}, $obj_2x_user->{'__I2CONVERT_NOTIFICATIONS'};
             # we'll add a reference to all notifications here. decide on dump which object type is given, and dump only those notifications!
         }
         #say Dumper($obj_2x_service);
@@ -2168,8 +2168,8 @@ sub convert_2x {
                         $command_obj_cnt++;
 
                         # create a new notification template object
-                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
-                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x; 
+                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x;
+                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x;
                         $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                         $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
 
@@ -2247,8 +2247,8 @@ sub convert_2x {
                                     $command_obj_cnt++;
 
                                     # create a new notification template object
-                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
-                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x; 
+                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x;
+                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x;
                                     $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                                     $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
 
@@ -2327,8 +2327,8 @@ sub convert_2x {
                             $command_obj_cnt++;
 
                             # create a new notification template object
-                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
-                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x; 
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x;
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x;
                             $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                             $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
 
@@ -2362,7 +2362,7 @@ sub convert_2x {
     # manipulated all service objects!
     ######################################
 
-    # "get all 'host' hashref as array in hashmap, and their keys to access it"    
+    # "get all 'host' hashref as array in hashmap, and their keys to access it"
     foreach my $host_obj_2x_key (keys %{@$cfg_obj_2x{'host'}}) {
 
         #say Dumper(@$cfg_obj_2x{'host'}->{$host_obj_2x_key});
@@ -2388,7 +2388,7 @@ sub convert_2x {
             my $obj_2x_service_service_description = $obj_2x_service->{'__I2CONVERT_SERVICEDESCRIPTION'};
 
             ######################################
-            # skip service templates 
+            # skip service templates
             ######################################
             if ($obj_2x_service->{'__I2CONVERT_IS_TEMPLATE'} == 1) {
                 #Icinga2::Utils::debug("WARNING: Skipping service template '$obj_2x_service->{'__I2CONVERT_TEMPLATE_NAMES'}' for linking to host '$obj_2x_host->{'__I2CONVERT_HOSTNAME'}'.");
@@ -2399,7 +2399,7 @@ sub convert_2x {
             # XXX if host_name can't be located in the service template tree, check if hostgroup is set somewhere
             # we then need to check if the service -> hostgroup <- hostmember applies (ugly) FIXME
 
-            # XXX if host_name can't be determined, log an error XXX templates MUST be skipped before (they cannot look down, only up in use tree) 
+            # XXX if host_name can't be determined, log an error XXX templates MUST be skipped before (they cannot look down, only up in use tree)
             if (!defined($obj_2x_service_host_name)) {
                 #print "ERROR: No host_name for service given " . Dumper($obj_2x_service);
                 next;
@@ -2421,7 +2421,7 @@ sub convert_2x {
                 # 3. use the template name as reference for the host->service
                 $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
                 push @{$cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $service_template_name;
-                
+
                 # 4. define the service description for the service
                 $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj_2x_service_service_description;
 

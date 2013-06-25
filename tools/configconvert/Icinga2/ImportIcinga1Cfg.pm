@@ -37,7 +37,7 @@ use Icinga2::Utils;
 
 
 ################################################################################
-# PARSE 1.x 
+# PARSE 1.x
 ################################################################################
 
 sub get_key_from_icinga1_main_cfg {
@@ -76,7 +76,7 @@ sub parse_icinga1_resource_cfg {
         # skip comments and empty lines
         next if ($line eq "" || !defined($line) || $line =~ /^\s+$/);
         next if ($line =~ /^[#;]/ || $line =~ /;.*/);
-        
+
         #debug($line);
         my ($macro_name, $macro_value) = split /=/, $line, 2;
         $macro_name =~ /\$(.*)\$/;
@@ -125,7 +125,7 @@ sub parse_icinga1_object_cfg {
         # skip comments and empty lines
         next if ($line eq "" || !defined($line) || $line =~ /^\s+$/);
         next if ($line =~ /^[#;]/);
-       
+
         # || $line =~ /;.*/);
         $line =~ s/[\r\n\s]+$//;
         $line =~ s/^\s+//;
@@ -164,7 +164,7 @@ sub parse_icinga1_object_cfg {
             $inline_comment = $1;
 
             # then split it and save it by type->cnt->attr->val
-            #($attr, $val) = split (/\s+/, $line, 2); # important - only split into 2 elements 
+            #($attr, $val) = split (/\s+/, $line, 2); # important - only split into 2 elements
 
             # timeperiods require special parser
             if ($in_timeperiod == 1) {
@@ -190,12 +190,12 @@ sub parse_icinga1_object_cfg {
             #Icinga2::Utils::debug("\n");
 
             # strip illegal object name characters, replace with _
-            if ( ($attr =~ /name/ && $attr !~ /display_name/) || 
+            if ( ($attr =~ /name/ && $attr !~ /display_name/) ||
                     $attr =~ /description/ ||
                     $attr =~ /contact/ ||
                     $attr =~ /groups/ ||
                     $attr =~ /members/ ||
-                    $attr =~ /use/ || 
+                    $attr =~ /use/ ||
                     $attr =~ /parents/
                 ) {
                 $val = Icinga2::Utils::strip_object_name($val);
@@ -240,7 +240,7 @@ sub parse_icinga1_objects_cache {
     }
 
     my $cfg_obj_cache = {};
-    
+
     $cfg_obj_cache = parse_icinga1_object_cfg($cfg_obj_cache, $object_cache_file);
 
     #say Dumper($cfg_obj_cache);
