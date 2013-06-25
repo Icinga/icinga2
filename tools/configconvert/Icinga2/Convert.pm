@@ -62,7 +62,7 @@ sub obj_1x_uses_template {
 sub obj_2x_notification_exists {
     my $objs = shift;
     my $obj_type = 'notification';
-    my $obj_attr = '__I2CONVERT_NOTIFICATION_NAME'; # this must be set outside, no matter if template or not XXX
+    my $obj_attr = '__I2CONVERT_NOTIFICATION_OBJECT_NAME'; # this must be set outside, no matter if template or not XXX
     my $obj_val = shift;
 
     #debug("My objects hive: ".Dumper($objs));
@@ -1961,7 +1961,7 @@ sub convert_2x {
 
                 # create a new notification template object
                 $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
-                $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_NAME'} = $notification_command_name_2x; 
+                $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x; 
                 $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                 $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
 
@@ -2169,7 +2169,7 @@ sub convert_2x {
 
                         # create a new notification template object
                         $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
-                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_NAME'} = $notification_command_name_2x; 
+                        $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x; 
                         $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                         $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
 
@@ -2248,7 +2248,7 @@ sub convert_2x {
 
                                     # create a new notification template object
                                     $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
-                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_NAME'} = $notification_command_name_2x; 
+                                    $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x; 
                                     $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                                     $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
 
@@ -2328,7 +2328,7 @@ sub convert_2x {
 
                             # create a new notification template object
                             $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
-                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_NAME'} = $notification_command_name_2x; 
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_OBJECT_NAME'} = $notification_command_name_2x; 
                             $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                             $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
 
