@@ -304,13 +304,16 @@ sub dump_service_2x {
     ####################################################
     # servicegroups 
     ####################################################
-    if(defined($service_2x->{'servicegroups'})) {
+    if(defined($service_2x->{'servicegroups'}) && scalar(@{$service_2x->{'servicegroups'}}) > 0) {
+        #say Dumper($service_2x->{'servicegroups'});
         my $servicegroups = join '", "', @{$service_2x->{'servicegroups'}};
         if ($service_2x->{'__I2_CONVERT_SG_ADD'} == 1) {
             dump_config_line($icinga2_cfg, "\tservicegroups += [ \"$servicegroups\" ],");
         } else {
             dump_config_line($icinga2_cfg, "\tservicegroups = [ \"$servicegroups\" ],");
         }
+        #say Dumper($service_description);
+        #say Dumper($service_2x->{'servicegroups'});
     }
 
     ####################################################
@@ -624,7 +627,7 @@ sub dump_host_2x {
         ####################################################
         # servicegroups 
         ####################################################
-        if(defined($service_2x->{'servicegroups'})) {
+        if(defined($service_2x->{'servicegroups'}) && scalar(@{$service_2x->{'servicegroups'}}) > 0) {
             #say Dumper($service_2x->{'servicegroups'});
             my $servicegroups = join '", "', @{$service_2x->{'servicegroups'}};
             if ($service_2x->{'__I2_CONVERT_SG_ADD'} == 1) {
