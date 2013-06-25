@@ -380,6 +380,12 @@ sub dump_service_2x {
     if(defined($service_2x->{'notification_interval'})) {
         dump_config_line($icinga2_cfg, "\tnotification_interval = $service_2x->{'notification_interval'},");
     }
+    if(defined($service_2x->{'notifications_enabled'})) {
+        dump_config_line($icinga2_cfg, "\tnotifications_enabled = $service_2x->{'notifications_enabled'},");
+    }
+    if(defined($service_2x->{'notification_options'})) {
+        dump_config_line($icinga2_cfg, "\tnotification_options = \"$service_2x->{'notification_options'}\",");
+    }
 
     ####################################################
     # other service attributes, if set
@@ -536,6 +542,12 @@ sub dump_host_2x {
     if(defined($host_2x->{'notification_interval'})) {
         dump_config_line($icinga2_cfg, "\tnotification_interval = $host_2x->{'notification_interval'},");
     }
+    if(defined($host_2x->{'notifications_enabled'})) {
+        dump_config_line($icinga2_cfg, "\tnotifications_enabled = $host_2x->{'notifications_enabled'},");
+    }
+    if(defined($host_2x->{'notification_options'})) {
+        dump_config_line($icinga2_cfg, "\tnotification_options = \"$host_2x->{'notification_options'}\",");
+    }
 
     ####################################################
     # other host attributes, if set
@@ -686,6 +698,12 @@ sub dump_host_2x {
         if(defined($service_2x->{'notification_interval'})) {
             dump_config_line($icinga2_cfg, "\t\tnotification_interval = $service_2x->{'notification_interval'},");
         }
+        if(defined($service_2x->{'notifications_enabled'})) {
+            dump_config_line($icinga2_cfg, "\tnotifications_enabled = $service_2x->{'notifications_enabled'},");
+        }
+        if(defined($service_2x->{'notification_options'})) {
+            dump_config_line($icinga2_cfg, "\tnotification_options = \"$service_2x->{'notification_options'}\",");
+        }
 
         ####################################################
         # other service attributes, if set
@@ -767,6 +785,17 @@ sub dump_user_2x {
     }
 
     dump_config_line($icinga2_cfg, "");
+
+    ####################################################
+    # notifications
+    ####################################################
+
+    if(defined($user_2x->{'notification_options'})) {
+        dump_config_line($icinga2_cfg, "\tnotification_options = \"$user_2x->{'notification_options'}\",");
+    }
+    if(defined($user_2x->{'notification_period'})) {
+        dump_config_line($icinga2_cfg, "\tnotification_period = \"$user_2x->{'notification_period'}\",");
+    }
 
     ####################################################
     # usergroups
