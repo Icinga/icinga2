@@ -29,6 +29,7 @@
 #include "base/value.h"
 #include "base/utility.h"
 #include "base/array.h"
+#include "base/scriptvariable.h"
 #include <sstream>
 #include <stack>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -72,6 +73,7 @@ using namespace icinga;
 %token <op> T_MINUS_EQUAL "-= (T_MINUS_EQUAL)"
 %token <op> T_MULTIPLY_EQUAL "*= (T_MULTIPLY_EQUAL)"
 %token <op> T_DIVIDE_EQUAL "/= (T_DIVIDE_EQUAL)"
+%token T_SET "set (T_SET)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
 %token <type> T_TYPE_NUMBER "number (T_TYPE_NUMBER)"
@@ -107,8 +109,12 @@ using namespace icinga;
 %type <num> partial_specifier
 %type <slist> object_inherits_list
 %type <slist> object_inherits_specifier
+%type <num> constterm
+%type <num> constexpression
 %left '+' '-'
 %left '*' '/'
+%left '&'
+%left '|'
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
@@ -149,7 +155,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: object | type | include | library
+statement: object | type | include | library | variable
 	;
 
 include: T_INCLUDE T_STRING
@@ -167,6 +173,13 @@ library: T_LIBRARY T_STRING
 	{
 		context->HandleLibrary($2);
 		free($2);
+	}
+
+variable: T_SET identifier T_EQUAL value
+	{
+		ScriptVariable::Set($2, *$4);
+		free($2);
+		delete $4;
 	}
 
 identifier: T_IDENTIFIER
@@ -531,11 +544,59 @@ simplevalue: T_STRING
 	}
 	;
 
+constterm: '(' constexpression ')'
+	{
+		$$ = $2;
+	}
+
+constexpression: T_NUMBER
+	{
+		$$ = $1;
+	}
+	| identifier
+	{
+		$$ = ScriptVariable::Get($1);
+		free($1);
+	}
+	| constexpression '+' constexpression
+	{
+		$$ = $1 + $3;
+	}
+	| constexpression '-' constexpression
+	{
+		$$ = $1 - $3;
+	}
+	| constexpression '*' constexpression
+	{
+		$$ = $1 * $3;
+	}
+	| constexpression '/' constexpression
+	{
+		$$ = $1 / $3;
+	}
+	| constexpression '&' constexpression
+	{
+		$$ = (long)$1 & (long)$3;
+	}
+	| constexpression '|' constexpression
+	{
+		$$ = (long)$1 | (long)$3;
+	}
+	| '(' constexpression ')'
+	{
+		$$ = $2;
+	}
+	;
+
 value: simplevalue
 	| expressionlist
 	{
 		ExpressionList::Ptr exprl = ExpressionList::Ptr($1);
 		$$ = new Value(exprl);
+	}
+	| constterm
+	{
+		$$ = new Value($1);
 	}
 	;
 %%

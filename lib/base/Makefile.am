@@ -60,6 +60,8 @@ libbase_la_SOURCES =  \
 	scriptinterpreter.h \
 	scriptlanguage.cpp \
 	scriptlanguage.h \
+	scriptvariable.cpp \
+	scriptvariable.h \
 	singleton.h \
 	socket.cpp \
 	socket.h \

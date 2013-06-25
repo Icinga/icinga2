@@ -65,6 +65,7 @@
 #include "base/value.h"
 #include "base/utility.h"
 #include "base/array.h"
+#include "base/scriptvariable.h"
 #include <sstream>
 #include <stack>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -79,7 +80,7 @@ using namespace icinga;
 
 
 /* Line 2068 of yacc.c  */
-#line 83 "../../../lib/config/config_parser.h"
+#line 84 "../../../lib/config/config_parser.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -97,25 +98,26 @@ using namespace icinga;
      T_MINUS_EQUAL = 265,
      T_MULTIPLY_EQUAL = 266,
      T_DIVIDE_EQUAL = 267,
-     T_TYPE_DICTIONARY = 268,
-     T_TYPE_ARRAY = 269,
-     T_TYPE_NUMBER = 270,
-     T_TYPE_STRING = 271,
-     T_TYPE_SCALAR = 272,
-     T_TYPE_ANY = 273,
-     T_TYPE_NAME = 274,
-     T_VALIDATOR = 275,
-     T_REQUIRE = 276,
-     T_ATTRIBUTE = 277,
-     T_TYPE = 278,
-     T_ABSTRACT = 279,
-     T_LOCAL = 280,
-     T_OBJECT = 281,
-     T_TEMPLATE = 282,
-     T_INCLUDE = 283,
-     T_LIBRARY = 284,
-     T_INHERITS = 285,
-     T_PARTIAL = 286
+     T_SET = 268,
+     T_TYPE_DICTIONARY = 269,
+     T_TYPE_ARRAY = 270,
+     T_TYPE_NUMBER = 271,
+     T_TYPE_STRING = 272,
+     T_TYPE_SCALAR = 273,
+     T_TYPE_ANY = 274,
+     T_TYPE_NAME = 275,
+     T_VALIDATOR = 276,
+     T_REQUIRE = 277,
+     T_ATTRIBUTE = 278,
+     T_TYPE = 279,
+     T_ABSTRACT = 280,
+     T_LOCAL = 281,
+     T_OBJECT = 282,
+     T_TEMPLATE = 283,
+     T_INCLUDE = 284,
+     T_LIBRARY = 285,
+     T_INHERITS = 286,
+     T_PARTIAL = 287
    };
 #endif
 /* Tokens.  */
@@ -129,25 +131,26 @@ using namespace icinga;
 #define T_MINUS_EQUAL 265
 #define T_MULTIPLY_EQUAL 266
 #define T_DIVIDE_EQUAL 267
-#define T_TYPE_DICTIONARY 268
-#define T_TYPE_ARRAY 269
-#define T_TYPE_NUMBER 270
-#define T_TYPE_STRING 271
-#define T_TYPE_SCALAR 272
-#define T_TYPE_ANY 273
-#define T_TYPE_NAME 274
-#define T_VALIDATOR 275
-#define T_REQUIRE 276
-#define T_ATTRIBUTE 277
-#define T_TYPE 278
-#define T_ABSTRACT 279
-#define T_LOCAL 280
-#define T_OBJECT 281
-#define T_TEMPLATE 282
-#define T_INCLUDE 283
-#define T_LIBRARY 284
-#define T_INHERITS 285
-#define T_PARTIAL 286
+#define T_SET 268
+#define T_TYPE_DICTIONARY 269
+#define T_TYPE_ARRAY 270
+#define T_TYPE_NUMBER 271
+#define T_TYPE_STRING 272
+#define T_TYPE_SCALAR 273
+#define T_TYPE_ANY 274
+#define T_TYPE_NAME 275
+#define T_VALIDATOR 276
+#define T_REQUIRE 277
+#define T_ATTRIBUTE 278
+#define T_TYPE 279
+#define T_ABSTRACT 280
+#define T_LOCAL 281
+#define T_OBJECT 282
+#define T_TEMPLATE 283
+#define T_INCLUDE 284
+#define T_LIBRARY 285
+#define T_INHERITS 286
+#define T_PARTIAL 287
 
 
 
@@ -157,7 +160,7 @@ typedef union YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 53 "config_parser.yy"
+#line 54 "config_parser.yy"
 
 	char *text;
 	double num;
@@ -172,7 +175,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 176 "../../../lib/config/config_parser.h"
+#line 179 "../../../lib/config/config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
