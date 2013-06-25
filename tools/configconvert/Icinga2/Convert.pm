@@ -313,6 +313,66 @@ sub obj_get_usernames_arr_by_usergroup_name {
     return @user_names;
 }
 
+# used after relinking all services with servicegroups
+sub obj_2x_get_service_arr_by_servicegroup_name {
+    my $objs_2x = shift;
+    my $objs = $objs_2x;
+    my $obj_type = 'service';
+    my $obj_attr = 'servicegroups';
+    my $obj_val = shift;
+    my @service_names = ();
+
+    #debug("My objects hive: ".Dumper($objs));
+
+    #debug("Checking for type=$obj_type attr=$obj_attr val=$obj_val ");
+    foreach my $obj_key (keys %{@$objs{$obj_type}}) {
+        my $obj = @$objs{$obj_type}->{$obj_key};
+        # this there's no attr, try template tree
+        my @servicegroups = ();
+        my $host_name = $obj->{'__I2CONVERT_SERVICE_HOSTNAME'};
+
+        # skip invalid resolved objects
+        if (!defined($host_name)) {
+            #say Dumper("missing host name...");
+            next;
+        }
+
+        if (defined($obj->{$obj_attr}) && scalar(@{$obj->{$obj_attr}} > 0)) {
+            push @servicegroups, @{$obj->{$obj_attr}};
+            #say Dumper("$obj_attr ========== found in object $obj->{'__I2CONVERT_SERVICE_HOSTNAME'}:$obj->{'__I2CONVERT_SERVICEDESCRIPTION'}");
+            #say Dumper(@servicegroups);
+        } else {
+            #say Dumper("START ------------------------");
+            #say Dumper($obj);
+            my @service_sgs = obj_2x_get_service_servicegroups($objs_2x,$obj,$host_name,$obj_attr);
+            #say Dumper(@service_sgs);
+            if (scalar @service_sgs > 0) {
+                push @servicegroups, @service_sgs;
+                #say Dumper("$obj_attr ========== found in template tree $obj->{'__I2CONVERT_SERVICE_HOSTNAME'}:$obj->{'__I2CONVERT_SERVICEDESCRIPTION'}");
+                #say Dumper(@servicegroups);
+                #say Dumper($obj);
+            }
+            #say Dumper("END ------------------------");
+        }
+        #debug("Getting attr $obj_attr and val $obj_val");
+
+        # check if servicegroup_name is in the array of servicegroups for this processed service
+        foreach my $servicegroup (@servicegroups) {
+            # skip templates
+            next if ($obj->{'__I2CONVERT_SERVICE_IS_TEMPLATE'} == 1);
+            if ($servicegroup eq $obj_val) {
+                #debug("Found object: ".Dumper($obj));
+                my $service_name;
+                $service_name->{'__I2CONVERT_SERVICE_HOSTNAME'} = $obj->{'__I2CONVERT_SERVICE_HOSTNAME'};
+                $service_name->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj->{'__I2CONVERT_SERVICEDESCRIPTION'};
+                push @service_names, $service_name;
+            }
+        }
+    }
+
+    return @service_names;
+}
+
 sub obj_1x_get_all_hostnames_arr {
     my $objs = shift;
     my $obj_type = 'host';
@@ -518,7 +578,8 @@ sub obj_1x_get_service_attr {
     # if this object got what we want, return (it can be recursion and a template!)
     if(defined($obj_1x->{$search_attr})) {
         $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $obj_1x->{$search_attr};
-        return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+        return $obj_1x->{$search_attr};
+        #return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
     }
 
     # we don't have the attribute, should we look into a template?
@@ -532,12 +593,14 @@ sub obj_1x_get_service_attr {
 
             # now recurse into ourselves and look for a possible service_description
             $service_attr = obj_1x_get_service_attr($objs_1x,$obj_1x_tmpl,$host_name,$search_attr); # we must pass the host_name and search_attr
+            #say Dumper($service_attr);
             # bail here if search did not unveil anything
             next if(!defined($service_attr));
 
             # get the service attr and return - first template wins
             $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $service_attr;
-            return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+            return $service_attr;
+            #return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
         }
     }
     # no template used, and not service description - broken object, ignore it
@@ -589,6 +652,56 @@ sub obj_1x_get_contact_attr {
         }
     }
     # no template used, and attr - broken object, ignore it
+    else {
+        return undef;
+    }
+
+    # we should never hit here
+    return undef;
+}
+
+# get servicegroups  from object (already 2x and _array_ XXX)
+sub obj_2x_get_service_servicegroups {
+    my $objs_2x = shift;
+    my $obj_2x = shift;
+    my $host_name = shift;
+    my $search_attr = shift;
+    my @service_groups;
+
+    #say Dumper("in obj_2x_get_service_attr");
+    # if this object is invalid, bail early
+    return undef if !defined($obj_2x);
+
+    # if this object got what we want, return (it can be recursion and a template!)
+    if(defined($obj_2x->{$search_attr}) && scalar(@{$obj_2x->{$search_attr}}) > 0) {
+        #say Dumper("in obj_2x_get_service_attr. found ");
+        #say Dumper($obj_2x->{$search_attr});
+        return @{$obj_2x->{$search_attr}};
+    }
+
+    # we don't have the attribute, should we look into a template?
+    # make sure _not_ to use 
+    if (defined($obj_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        # get the object referenced as template - this is an array of templates, loop (funny recursion here)
+        foreach my $obj_2x_template (@{$obj_2x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
+
+            #say Dumper("in obj_2x_get_service_attr template");
+            #say Dumper($obj_2x_template);
+            # get the template object associated with by its unique 'name' attr
+            my $obj_2x_tmpl = obj_get_tmpl_obj_by_tmpl_name($objs_2x, 'service', $obj_2x_template);
+            #say Dumper($obj_2x_tmpl);
+
+            # now recurse into ourselves and look for a possible service_description
+            push @service_groups, obj_2x_get_service_servicegroups($objs_2x,$obj_2x_tmpl,$host_name,$search_attr); # we must pass the host_name and search_attr
+            #say Dumper($service_attr);
+            # bail here if search did not unveil anything
+            next if(scalar(@service_groups) == 0);
+
+            # get the service attr and return - first template wins
+            return @service_groups;
+        }
+    }
+    # no template used, and not service description - broken object, ignore it
     else {
         return undef;
     }
@@ -899,8 +1012,9 @@ sub convert_2x {
             # servicegroups
             ##########################################
             delete($cfg_obj_2x->{'service'}->{$service_cnt}->{'servicegroups'});
-            # debug # @{$cfg_obj_2x->{'service'}->{$service_cnt}->{'servicegroups'}} = ();
-        
+            # debug #
+            @{$cfg_obj_2x->{'service'}->{$service_cnt}->{'servicegroups'}} = ();
+
             if(defined($obj_1x_service->{'servicegroups'})) {
                 # check if there's additive inheritance required, and save a flag
                 if ($obj_1x_service->{'servicegroups'} =~ /^\+/) {
@@ -911,6 +1025,8 @@ sub convert_2x {
                 push @{$cfg_obj_2x->{'service'}->{$service_cnt}->{'servicegroups'}}, Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_service->{'servicegroups'}, ',', 1);
                 #print "DEBUG: servicegroups " . join (" ", @{$cfg_obj_2x->{'service'}->{$service_cnt}->{'servicegroups'}});
             }
+            #say Dumper($cfg_obj_2x->{'service'}->{$service_cnt}->{__I2CONVERT_SERVICE_HOSTNAME});
+            #say Dumper($cfg_obj_2x->{'service'}->{$service_cnt}->{'servicegroups'});
 
             ##########################################
             # check_interval
@@ -1817,8 +1933,8 @@ sub convert_2x {
                 $user_notification->{$notification_name_2x}->{'type'} = $notification_command_type;
 
                 # XXX do not add duplicate notifications, they must remain unique by their notification_command origin!
-                say Dumper("checking existing $notification_command_name_2x");
-                say Dumper($user_notification);
+                #say Dumper("checking existing $notification_command_name_2x");
+                #say Dumper($user_notification);
                 if (obj_2x_notification_exists($cfg_obj_2x, $notification_command_name_2x) == 1) {
                     #say Dumper("already existing $notification_command_name_2x");
                     next;
@@ -2088,6 +2204,7 @@ sub convert_2x {
 
                                 if (defined($obj_1x_serviceescalation->{'service_description'})) {
                                     my $serviceescalation_service_obj = obj_get_service_obj_by_host_name_service_description($cfg_obj_2x, "__I2CONVERT_SERVICE_HOSTNAME", "__I2CONVERT_SERVICEDESCRIPTION", $obj_1x_serviceescalation->{'host_name'}, $obj_1x_serviceescalation->{'service_description'});
+
                                     push @{$serviceescalation_service_obj->{'__I2CONVERT_NOTIFICATIONS'}}, $user_notification;
 
                                     # we need to calculate begin/end based on service->notification_interval
@@ -2135,7 +2252,7 @@ sub convert_2x {
                                     $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
                                     $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
 
-                                    # more reference
+                                    # more references (this is why code duplication happens
                                     $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'users'} = $user_notification->{$notification_name_2x}->{'users'};
 
                                     # add dependency to ITL template to objects
@@ -2158,9 +2275,76 @@ sub convert_2x {
                     ######################################
                     # XXX FIXME
                     if (defined($obj_1x_serviceescalation->{'servicegroup_name'})) {
+                        say Dumper($obj_1x_serviceescalation);
+                        my @service_names = obj_2x_get_service_arr_by_servicegroup_name($cfg_obj_2x, $obj_1x_serviceescalation->{'servicegroup_name'});
 
+                        foreach my $serviceescalation_service_name (@service_names) {
+                            my $serviceescalation_service_obj = obj_get_service_obj_by_host_name_service_description($cfg_obj_2x, "__I2CONVERT_SERVICE_HOSTNAME", "__I2CONVERT_SERVICEDESCRIPTION", $serviceescalation_service_name->{'__I2CONVERT_SERVICE_HOSTNAME'}, $serviceescalation_service_name->{'__I2CONVERT_SERVICEDESCRIPTION'});
+
+                            #say Dumper($serviceescalation_service_obj);
+                            # skip any templates which would create duplicates
+                            next if ($serviceescalation_service_obj->{'__I2CONVERT_IS_TEMPLATE'} == 1);
+                            say Dumper($serviceescalation_service_name);
+
+                            push @{$serviceescalation_service_obj->{'__I2CONVERT_NOTIFICATIONS'}}, $user_notification;
+
+                            # we need to calculate begin/end based on service->notification_interval
+                            # if notification_interval is not defined, we need to look it up in the template tree!
+                            if (defined($serviceescalation_service_obj->{'notification_interval'})) {
+                                $notification_interval = $serviceescalation_service_obj->{'notification_interval'};
+                            } else {
+                                $notification_interval = obj_1x_get_service_attr($cfg_obj_1x, $serviceescalation_service_obj, $serviceescalation_service_obj->{'__I2CONVERT_SERVICE_HOSTNAME'}, 'notification_interval');
+                            }
+                            $user_notification->{$notification_name_2x}->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'} = $obj_1x_serviceescalation->{'first_notification'} * $notification_interval;
+                            $user_notification->{$notification_name_2x}->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'} = $obj_1x_serviceescalation->{'last_notification'} * $notification_interval;
+                            # save a reference to more infos
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TIMES'} = $user_notification->{$notification_name_2x}->{'__I2CONVERT_NOTIFICATION_TIMES'};
+
+                            ######################################
+                            # now ADD the new escalation notification
+                            ######################################
+
+                            # XXX do not add duplicate notifications, they must remain unique by their notification_command origin!
+                            next if (obj_2x_notification_exists($cfg_obj_2x, $notification_command_name_2x) == 1);
+
+                            next if (!defined($notification_command_name_2x));
+
+                            # create a new NotificationCommand 2x object with the original name
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+
+                            # use the ITL plugin notification command template
+                            if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
+                                push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
+                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                            }
+
+                            # the check command name of 1.x is still the unique command object name, so we just keep it
+                            # in __I2CONVERT_NOTIFICATION_COMMAND
+
+                            # our global PK
+                            $command_obj_cnt++;
+
+                            # create a new notification template object
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x; 
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_NAME'} = $notification_command_name_2x; 
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_COMMAND'} = $notification_command_name;
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1; # this is a template, used in hosts/services then
+
+                            # more references (this is why code duplication happens
+                            $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'users'} = $user_notification->{$notification_name_2x}->{'users'};
+
+                            # add dependency to ITL template to objects
+                            if(defined($icinga2_cfg->{'itl'}->{'notification-template'}) && $icinga2_cfg->{'itl'}->{'notification-template'} ne "") {
+                                @{$cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}} = ();
+                                push @{$cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notification-template'};
+                                $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1; # we now use a template, otherwise it won't be dumped
+                            }
+                            # our PK
+                            $notification_obj_cnt++;
+                        }
                     }
-
                 }
             }
 
