@@ -74,6 +74,8 @@ using namespace icinga;
 %token <op> T_MULTIPLY_EQUAL "*= (T_MULTIPLY_EQUAL)"
 %token <op> T_DIVIDE_EQUAL "/= (T_DIVIDE_EQUAL)"
 %token T_SET "set (T_SET)"
+%token T_SHIFT_LEFT "<< (T_SHIFT_LEFT)"
+%token T_SHIFT_RIGHT ">> (T_SHIFT_RIGHT)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
 %token <type> T_TYPE_NUMBER "number (T_TYPE_NUMBER)"
@@ -581,6 +583,14 @@ constexpression: T_NUMBER
 	| constexpression '|' constexpression
 	{
 		$$ = (long)$1 | (long)$3;
+	}
+	| constexpression T_SHIFT_LEFT constexpression
+	{
+		$$ = (long)$1 << (long)$3;
+	}
+	| constexpression T_SHIFT_RIGHT constexpression
+	{
+		$$ = (long)$1 >> (long)$3;
 	}
 	| '(' constexpression ')'
 	{

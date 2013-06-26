@@ -99,25 +99,27 @@ using namespace icinga;
      T_MULTIPLY_EQUAL = 266,
      T_DIVIDE_EQUAL = 267,
      T_SET = 268,
-     T_TYPE_DICTIONARY = 269,
-     T_TYPE_ARRAY = 270,
-     T_TYPE_NUMBER = 271,
-     T_TYPE_STRING = 272,
-     T_TYPE_SCALAR = 273,
-     T_TYPE_ANY = 274,
-     T_TYPE_NAME = 275,
-     T_VALIDATOR = 276,
-     T_REQUIRE = 277,
-     T_ATTRIBUTE = 278,
-     T_TYPE = 279,
-     T_ABSTRACT = 280,
-     T_LOCAL = 281,
-     T_OBJECT = 282,
-     T_TEMPLATE = 283,
-     T_INCLUDE = 284,
-     T_LIBRARY = 285,
-     T_INHERITS = 286,
-     T_PARTIAL = 287
+     T_SHIFT_LEFT = 269,
+     T_SHIFT_RIGHT = 270,
+     T_TYPE_DICTIONARY = 271,
+     T_TYPE_ARRAY = 272,
+     T_TYPE_NUMBER = 273,
+     T_TYPE_STRING = 274,
+     T_TYPE_SCALAR = 275,
+     T_TYPE_ANY = 276,
+     T_TYPE_NAME = 277,
+     T_VALIDATOR = 278,
+     T_REQUIRE = 279,
+     T_ATTRIBUTE = 280,
+     T_TYPE = 281,
+     T_ABSTRACT = 282,
+     T_LOCAL = 283,
+     T_OBJECT = 284,
+     T_TEMPLATE = 285,
+     T_INCLUDE = 286,
+     T_LIBRARY = 287,
+     T_INHERITS = 288,
+     T_PARTIAL = 289
    };
 #endif
 /* Tokens.  */
@@ -132,25 +134,27 @@ using namespace icinga;
 #define T_MULTIPLY_EQUAL 266
 #define T_DIVIDE_EQUAL 267
 #define T_SET 268
-#define T_TYPE_DICTIONARY 269
-#define T_TYPE_ARRAY 270
-#define T_TYPE_NUMBER 271
-#define T_TYPE_STRING 272
-#define T_TYPE_SCALAR 273
-#define T_TYPE_ANY 274
-#define T_TYPE_NAME 275
-#define T_VALIDATOR 276
-#define T_REQUIRE 277
-#define T_ATTRIBUTE 278
-#define T_TYPE 279
-#define T_ABSTRACT 280
-#define T_LOCAL 281
-#define T_OBJECT 282
-#define T_TEMPLATE 283
-#define T_INCLUDE 284
-#define T_LIBRARY 285
-#define T_INHERITS 286
-#define T_PARTIAL 287
+#define T_SHIFT_LEFT 269
+#define T_SHIFT_RIGHT 270
+#define T_TYPE_DICTIONARY 271
+#define T_TYPE_ARRAY 272
+#define T_TYPE_NUMBER 273
+#define T_TYPE_STRING 274
+#define T_TYPE_SCALAR 275
+#define T_TYPE_ANY 276
+#define T_TYPE_NAME 277
+#define T_VALIDATOR 278
+#define T_REQUIRE 279
+#define T_ATTRIBUTE 280
+#define T_TYPE 281
+#define T_ABSTRACT 282
+#define T_LOCAL 283
+#define T_OBJECT 284
+#define T_TEMPLATE 285
+#define T_INCLUDE 286
+#define T_LIBRARY 287
+#define T_INHERITS 288
+#define T_PARTIAL 289
 
 
 
@@ -175,7 +179,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 179 "../../../lib/config/config_parser.h"
+#line 183 "../../../lib/config/config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
