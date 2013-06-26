@@ -47,8 +47,12 @@ sub open_cfg_file {
     my $file = shift;
     my $FH;
 
-    say "opening file '$file'...\n";
+    say "writing file '$file'...\n";
     open($FH, ">".$file);
+
+    if (!-w $FH) {
+        print "ERROR: cannot write file '$file'. Check permissions!\n";
+    }
 
     return $FH;
 }
@@ -383,8 +387,13 @@ sub dump_service_2x {
     if(defined($service_2x->{'notifications_enabled'})) {
         dump_config_line($icinga2_cfg, "\tnotifications_enabled = $service_2x->{'notifications_enabled'},");
     }
-    if(defined($service_2x->{'notification_options'})) {
-        dump_config_line($icinga2_cfg, "\tnotification_options = \"$service_2x->{'notification_options'}\",");
+
+    if(defined($service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+        say Dumper($service_2x);
+        foreach my $by (keys %{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+            my $notification_filter = "notification_".$by."_filter = (". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+            dump_config_line($icinga2_cfg, "\t$notification_filter,");
+        }
     }
 
     ####################################################
@@ -503,6 +512,13 @@ sub dump_host_2x {
     ####################################################
     # notifications
     ####################################################
+    if(defined($host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+        foreach my $by (keys %{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+            my $notification_filter = "notification_".$by."_filter = (". (join ' | ', @{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+            dump_config_line($icinga2_cfg, "\t$notification_filter,");
+        }
+    }
+
     if(defined($host_2x->{'__I2CONVERT_NOTIFICATIONS'})) {
         #say Dumper ($host_2x->{'__I2CONVERT_NOTIFICATIONS'});
         # this is an array of notification objects
@@ -544,9 +560,6 @@ sub dump_host_2x {
     }
     if(defined($host_2x->{'notifications_enabled'})) {
         dump_config_line($icinga2_cfg, "\tnotifications_enabled = $host_2x->{'notifications_enabled'},");
-    }
-    if(defined($host_2x->{'notification_options'})) {
-        dump_config_line($icinga2_cfg, "\tnotification_options = \"$host_2x->{'notification_options'}\",");
     }
 
     ####################################################
@@ -652,6 +665,13 @@ sub dump_host_2x {
         ####################################################
         # notifications
         ####################################################
+        if(defined($service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+            foreach my $by (keys %{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+                my $notification_filter = "notification_".$by."_filter = (". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+                dump_config_line($icinga2_cfg, "\t$notification_filter,");
+            }
+        }
+
         if(defined($service_2x->{'__I2CONVERT_NOTIFICATIONS'})) {
             #say Dumper ($service_2x->{'__I2CONVERT_NOTIFICATIONS'});
             # this is an array of notification objects
@@ -700,9 +720,6 @@ sub dump_host_2x {
         }
         if(defined($service_2x->{'notifications_enabled'})) {
             dump_config_line($icinga2_cfg, "\tnotifications_enabled = $service_2x->{'notifications_enabled'},");
-        }
-        if(defined($service_2x->{'notification_options'})) {
-            dump_config_line($icinga2_cfg, "\tnotification_options = \"$service_2x->{'notification_options'}\",");
         }
 
         ####################################################
@@ -790,11 +807,15 @@ sub dump_user_2x {
     # notifications
     ####################################################
 
-    if(defined($user_2x->{'notification_options'})) {
-        dump_config_line($icinga2_cfg, "\tnotification_options = \"$user_2x->{'notification_options'}\",");
-    }
     if(defined($user_2x->{'notification_period'})) {
         dump_config_line($icinga2_cfg, "\tnotification_period = \"$user_2x->{'notification_period'}\",");
+    }
+
+    if(defined($user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+        foreach my $by (keys %{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+            my $notification_filter = "notification_".$by."_filter = (". (join ' | ', @{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+            dump_config_line($icinga2_cfg, "\t$notification_filter,");
+        }
     }
 
     ####################################################

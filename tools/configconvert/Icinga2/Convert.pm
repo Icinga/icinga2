@@ -105,7 +105,7 @@ sub obj_2x_command_exists {
 }
 
 
-################################################################################
+#################################################################################
 # Migration
 #################################################################################
 
@@ -715,6 +715,57 @@ sub obj_2x_get_service_servicegroups {
 # Conversion
 #################################################################################
 
+# convert notification_options to state|type_filter
+sub convert_notification_options_to_filter {
+    my $notification_options = shift;
+    my $filter = ();
+    @{$filter->{'state'}} = ();
+    @{$filter->{'type'}} = ();
+
+    # define all types
+    my $filter_names = {
+        'o' => 'StateFilterOK',
+        'w' => 'StateFilterWarning',
+        'c' => 'StateFilterCritical',
+        'u' => 'StateFilterUnknown',
+        'd' => 'StateFilterCritical', # down, treated as critical
+        's' => 'NotificationFilterDowntimeStart | NotificationFilterDowntimeEnd | NotificationFilterDowntimeRemoved',
+        'r' => 'NotificationFilterRecovery',
+        'f' => 'NotificationFilterFlappingStart | NotificationFilterFlappingEnd'
+    };
+    my $filter_by = {
+        'o' => 'state',
+        'w' => 'state',
+        'c' => 'state',
+        'u' => 'state',
+        'd' => 'state',
+        's' => 'type',
+        'r' => 'type',
+        'f' => 'type'
+    };
+
+    # split the string
+    my @options = Icinga2::Utils::str2arr_by_delim_without_excludes($notification_options, ',', 1);
+
+    # verify if there's 'n' (none) or 'a' (all) and ignore the rest then
+    if (grep /n/, @options) {
+        return $filter;
+    }
+    if (grep /a/, @options) {
+        foreach my $by (keys %{$filter_by}) {
+            push @{$filter->{$by}}, $filter_names->{$by};
+        }
+        return $filter;
+    }
+
+    # the selective way
+    foreach my $option (@options) {
+        push @{$filter->{$filter_by->{$option}}}, $filter_names->{$option};
+    }
+
+    return $filter;
+}
+
 # host|service_notification_commands are a comma seperated list w/o arguments
 sub convert_notificationcommand {
     my $objs_1x = shift;
@@ -1059,7 +1110,7 @@ sub convert_2x {
             }
 
             ##########################################
-            # notification_interval
+            # notification_*
             ##########################################
             my $service_notification_interval = undef;
             if(defined($obj_1x_service->{'notification_interval'})) {
@@ -1068,6 +1119,11 @@ sub convert_2x {
             # we assume that 1.x kept 1m default interval, and map it
             if (defined($service_notification_interval)) {
                 $cfg_obj_2x->{'service'}->{$service_cnt}->{'notification_interval'} = $service_notification_interval."m";
+            }
+
+            if(defined($obj_1x_service->{'notification_options'})) {
+                $cfg_obj_2x->{'service'}->{$service_cnt}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = convert_notification_options_to_filter($obj_1x_service->{'notification_options'});
+                #say Dumper($cfg_obj_2x->{'service'}->{$service_cnt});
             }
 
             ##########################################
@@ -1334,6 +1390,11 @@ sub convert_2x {
             $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'notification_interval'} = $host_notification_interval."m";
         }
 
+        if(defined($obj_1x_host->{'notification_options'})) {
+            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = convert_notification_options_to_filter($obj_1x_host->{'notification_options'});
+            #say Dumper($cfg_obj_2x->{'host'}->{$host_obj_1x_key});
+        }
+
         if(defined($obj_1x_host->{'parents'})) {
             my @host_parents = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_host->{'parents'}, ',', 1);
             push @{$cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_PARENT_HOSTNAMES'}}, @host_parents;
@@ -1421,6 +1482,13 @@ sub convert_2x {
             if(defined($obj_1x_contact->{$address})) {
                 $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'__I2CONVERT_MACROS'}->{$address} = $obj_1x_contact->{$address};
             }
+        }
+
+        ##########################################
+        # notification_options (service only XXX)
+        ##########################################
+        if(defined($obj_1x_contact->{'service_notification_options'})) {
+            $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = convert_notification_options_to_filter($obj_1x_contact->{'service_notification_options'});
         }
 
         ####################################################

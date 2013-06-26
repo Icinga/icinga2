@@ -62,6 +62,12 @@ sub escape_str {
 
     return $str;
 }
+sub escape_shell_meta {
+    my $str = shift;
+
+    $str =~ s/([;<>`'":&!#\$\[\]\{\}\(\)\*\|])/\\$1/g;
+    return $str;
+}
 
 sub debug {
     my $dbg_str = shift;
