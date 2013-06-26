@@ -200,6 +200,10 @@ sub parse_icinga1_object_cfg {
                 ) {
                 $val = Icinga2::Utils::strip_object_name($val);
             }
+            # treat 'null' (disable) as '0'
+            if ($val eq "null") {
+                $val = 0;
+            }
 
             $cfg_obj->{$type}->{$cfg_obj->{'type_cnt'}->{$type}}->{$attr} = $val;
 
