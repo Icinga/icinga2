@@ -46,8 +46,8 @@ Notification::Notification(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("users", Attribute_Config, &m_Users);
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
 	RegisterAttribute("times", Attribute_Config, &m_Times);
-	RegisterAttribute("type_filter", Attribute_Config, &m_TypeFilter);
-	RegisterAttribute("state_filter", Attribute_Config, &m_StateFilter);
+	RegisterAttribute("notification_type_filter", Attribute_Config, &m_NotificationTypeFilter);
+	RegisterAttribute("notification_state_filter", Attribute_Config, &m_NotificationStateFilter);
 	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
 	RegisterAttribute("service", Attribute_Config, &m_Service);
 	RegisterAttribute("export_macros", Attribute_Config, &m_ExportMacros);
@@ -142,20 +142,20 @@ Dictionary::Ptr Notification::GetTimes(void) const
 	return m_Times;
 }
 
-unsigned long Notification::GetTypeFilter(void) const
+unsigned long Notification::GetNotificationTypeFilter(void) const
 {
-	if (m_TypeFilter.IsEmpty())
+	if (m_NotificationTypeFilter.IsEmpty())
 		return ~(unsigned long)0; /* All states. */
 	else
-		return m_TypeFilter;
+		return m_NotificationTypeFilter;
 }
 
-unsigned long Notification::GetStateFilter(void) const
+unsigned long Notification::GetNotificationStateFilter(void) const
 {
-	if (m_StateFilter.IsEmpty())
+	if (m_NotificationStateFilter.IsEmpty())
 		return ~(unsigned long)0; /* All states. */
 	else
-		return m_StateFilter;
+		return m_NotificationStateFilter;
 }
 
 double Notification::GetNotificationInterval(void) const
@@ -260,18 +260,16 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 
 		unsigned long ftype = 1 << type;
 
-		Log(LogDebug, "icinga", "FType=" + Convert::ToString(ftype) + ", TypeFilter=" + Convert::ToString(GetTypeFilter()));
+		Log(LogDebug, "icinga", "FType=" + Convert::ToString(ftype) + ", TypeFilter=" + Convert::ToString(GetNotificationTypeFilter()));
 
-		if (!(ftype & GetTypeFilter())) {
+		if (!(ftype & GetNotificationTypeFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': type filter does not match");
 			return;
 		}
 
 		unsigned long fstate = 1 << GetService()->GetState();
 
-		Log(LogDebug, "icinga", "FState=" + Convert::ToString(fstate) + ", StateFilter=" + Convert::ToString(GetStateFilter()));
-
-		if (!(fstate & GetStateFilter())) {
+		if (!(fstate & GetNotificationStateFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': state filter does not match");
 			return;
 		}
@@ -314,7 +312,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 
 		unsigned long ftype = 1 << type;
 
-		if (!(ftype & user->GetTypeFilter())) {
+		if (!(ftype & user->GetNotificationTypeFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': type filter does not match");
 			return;
@@ -322,7 +320,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 
 		unsigned long fstate = 1 << GetService()->GetState();
 
-		if (!(fstate & user->GetStateFilter())) {
+		if (!(fstate & user->GetNotificationStateFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': state filter does not match");
 			return;

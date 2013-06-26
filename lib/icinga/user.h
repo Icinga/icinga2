@@ -48,8 +48,8 @@ public:
 	String GetDisplayName(void) const;
 	Array::Ptr GetGroups(void) const;
 	TimePeriod::Ptr GetNotificationPeriod(void) const;
- 	unsigned long GetTypeFilter(void) const;
-	unsigned long GetStateFilter(void) const;
+ 	unsigned long GetNotificationTypeFilter(void) const;
+	unsigned long GetNotificationStateFilter(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
 
@@ -63,8 +63,8 @@ private:
 	Attribute<Dictionary::Ptr> m_Macros;
 	Attribute<String> m_NotificationPeriod;
 	Attribute<Array::Ptr> m_Groups;
-	Attribute<long> m_TypeFilter;
-	Attribute<long> m_StateFilter;
+	Attribute<long> m_NotificationTypeFilter;
+	Attribute<long> m_NotificationStateFilter;
 };
 
 }

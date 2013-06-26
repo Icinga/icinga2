@@ -224,6 +224,8 @@ void Host::UpdateSlaveServices(void)
 			keys.insert("servicegroups");
 			keys.insert("checkers");
 			keys.insert("notification_interval");
+			keys.insert("notification_type_filter");
+			keys.insert("notification_state_filter");
 			keys.insert("check_period");
 			keys.insert("servicedependencies");
 			keys.insert("hostdependencies");

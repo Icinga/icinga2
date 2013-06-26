@@ -243,6 +243,8 @@ void Service::UpdateSlaveNotifications(void)
 			keys.insert("groups");
 			keys.insert("notification_interval");
 			keys.insert("notification_period");
+			keys.insert("notification_type_filter");
+			keys.insert("notification_state_filter");
 			keys.insert("export_macros");
 
 			ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();

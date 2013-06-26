@@ -32,7 +32,7 @@ local object CompatComponent "compat" { }
  */
 object Host "localhost" {
   services["ping4"] = { templates = [ "ping4" ] },
-  services["ping4"] = { templates = [ "ping4" ] }, 
+  services["ping6"] = { templates = [ "ping6" ] }, 
   services["http"] = { templates = [ "http_ip" ] }, 
   services["ssh"] = { templates = [ "ssh" ] }, 
   services["load"] = { templates = [ "load" ] }, 

@@ -34,8 +34,8 @@ User::User(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
 	RegisterAttribute("notification_period", Attribute_Config, &m_NotificationPeriod);
-	RegisterAttribute("type_filter", Attribute_Config, &m_TypeFilter);
-	RegisterAttribute("state_filter", Attribute_Config, &m_StateFilter);
+	RegisterAttribute("notification_type_filter", Attribute_Config, &m_NotificationTypeFilter);
+	RegisterAttribute("notification_state_filter", Attribute_Config, &m_NotificationStateFilter);
 }
 
 User::~User(void)
@@ -81,20 +81,20 @@ TimePeriod::Ptr User::GetNotificationPeriod(void) const
 	return TimePeriod::GetByName(m_NotificationPeriod);
 }
 
-unsigned long User::GetTypeFilter(void) const
+unsigned long User::GetNotificationTypeFilter(void) const
 {
-	if (m_TypeFilter.IsEmpty())
+	if (m_NotificationTypeFilter.IsEmpty())
 		return ~(unsigned long)0; /* All states. */
 	else
-		return m_TypeFilter;
+		return m_NotificationTypeFilter;
 }
 
-unsigned long User::GetStateFilter(void) const
+unsigned long User::GetNotificationStateFilter(void) const
 {
-	if (m_StateFilter.IsEmpty())
+	if (m_NotificationStateFilter.IsEmpty())
 		return ~(unsigned long)0; /* All states. */
 	else
-		return m_StateFilter;
+		return m_NotificationStateFilter;
 }
 
 bool User::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
