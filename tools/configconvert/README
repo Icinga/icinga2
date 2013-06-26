@@ -2,18 +2,37 @@ ICINGA 2 CONVERSION SCRIPT FOR ICINGA 1.x CONFIGURATION
 =======================================================
 
 This config conversion script provides support for basic Icinga 1.x
-configuration format conversion.
+configuration format conversion to native Icinga 2.x configuration syntax.
 
 It won't just compile all objects and drop them at once, but keep your
-existing 1.x template structure.
+existing 1.x template structure, only adding a new host->service link relation.
 
 The script will also detect the "attach service to hostgroup and put
 hosts as members" trick from 1.x and convert that into Icinga2's template
-system. 
+system.
 
 Furthermore the old "service with contacts and notification commands" logic
 will be converted into Icinga2's logic with new notification objects,
 allowing to define notifications directly on the service definition then.
+
+Commands will be split by type (Check, Event, Notification) and relinked where
+possible. The host's check_command is dropped, and a possible service hostcheck
+looked up, if possible.
+
+Notifications will be built based on the service->contact relations, and
+escalations will also be merged into notifications, having times begin/end as
+additional attributes. Notification options will be converted into the new Icinga2
+logic.
+
+Dependencies and Parents are resolved into host and service dependencies with
+many objects tricks as well.
+
+Timeperiods will be converted as is, because Icinga2's ITL provides the legacy-timeperiod
+template which supports that format for compatibility reasons.
+
+Custom attributes like custom variables, *_urls, etc will be collected into the
+custom dictionary, while possible macros are automagically converted into the macro
+dictionary (freely definable macros in Icinga 2.x).
 
 All required templates will be inherited from Icinga2's Template Library (ITL).
 
@@ -62,6 +81,8 @@ NOTES
   notification_{state,type}_filter = (StateFilterWarning | StateFilterUnknown | NotificationFilterFlapping)
 - service escalations are converted into notifications with times = begin/end
   begin = first_notification * notification_interval (now a time, not a counter)
+- custom variables, *_url, *image*, notes, 2d_coords will be collected and stashed into the "custom" dictionary
+  similar to the macros dictionary. note: attributes starting with a number must be quoted.
 
 TODO
 - Dependency attributes: failure_criteria, inherits_parents, timeperiods
