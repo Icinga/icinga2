@@ -336,14 +336,25 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 {
 	ASSERT(service->OwnsLock());
 
+	String raw_output;
 	String output;
+	String long_output;
 	String perfdata;
 	double schedule_end = -1;
 
 	Dictionary::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
-		output = cr->Get("output");
+		raw_output = cr->Get("output");
+		size_t line_end = raw_output.Find("\n");
+
+		output = raw_output.SubStr(0, line_end);
+
+		if (line_end > 0 && line_end != String::NPos) {
+			long_output = raw_output.SubStr(line_end+1, raw_output.GetLength());
+			boost::algorithm::replace_all(long_output, "\n", "\\n");
+		}
+
 		boost::algorithm::replace_all(output, "\n", "\\n");
 
 		schedule_end = cr->Get("schedule_end");
@@ -387,6 +398,7 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 	   << "\t" << "current_state=" << state << "\n"
 	   << "\t" << "state_type=" << service->GetStateType() << "\n"
 	   << "\t" << "plugin_output=" << output << "\n"
+	   << "\t" << "long_plugin_output=" << long_output << "\n"
 	   << "\t" << "performance_data=" << perfdata << "\n"
 	   << "\t" << "last_check=" << schedule_end << "\n"
 	   << "\t" << "next_check=" << service->GetNextCheck() << "\n"

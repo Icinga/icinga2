@@ -147,6 +147,18 @@ void CompatLog::CheckResultRequestHandler(const RequestMessage& request)
 			return; /* Nothing changed, ignore this checkresult. */
 	}
 
+        String raw_output;
+        String output;
+
+        if (cr) {
+                raw_output = cr->Get("output");
+                size_t line_end = raw_output.Find("\n");
+
+                output = raw_output.SubStr(0, line_end);
+
+                boost::algorithm::replace_all(output, "\n", "\\n");
+        }
+
 	std::ostringstream msgbuf;
 	msgbuf << "SERVICE ALERT: "
 	       << host->GetName() << ";"
@@ -154,6 +166,7 @@ void CompatLog::CheckResultRequestHandler(const RequestMessage& request)
 	       << Service::StateToString(static_cast<ServiceState>(state_after)) << ";"
 	       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
 	       << attempt_after << ";"
+	       << output << ""
 	       << "";
 
 	{
@@ -168,6 +181,7 @@ void CompatLog::CheckResultRequestHandler(const RequestMessage& request)
 		       << Host::StateToString(Host::CalculateState(static_cast<ServiceState>(state_after), host_reachable_after)) << ";"
 		       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
 		       << attempt_after << ";"
+		       << output << ""
 		       << "";
 
 		{
