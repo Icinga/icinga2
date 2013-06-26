@@ -715,6 +715,23 @@ sub obj_2x_get_service_servicegroups {
 # Conversion
 #################################################################################
 
+# convert CVs, *_url, etc into custom hash
+sub obj_convert_custom_attr_to_custom_hash {
+    my $obj = shift;
+    my $custom;
+
+    foreach my $key (keys %{$obj}) {
+        if ($key =~ /^_|_url$|notes|image|coords/ && $key !~ /__I2CONVERT/) {
+            my $new_key = ($key =~ /^\d/) ? "\"$key\"" : $key;
+            $custom->{$new_key} = Icinga2::Utils::escape_str($obj->{$key});
+        }
+    }
+
+    $obj->{'__I2CONVERT_CUSTOM_ATTR'} = $custom;
+
+    return $custom;
+}
+
 # convert notification_options to state|type_filter
 sub convert_notification_options_to_filter {
     my $notification_options = shift;
@@ -979,6 +996,11 @@ sub convert_2x {
         }
 
         ####################################################
+        # migrate custom attributes
+        ####################################################
+        my $custom = obj_convert_custom_attr_to_custom_hash($obj_1x_service);
+
+        ####################################################
         # get related host_name/service_description
         # used later in host->service resolval
         ####################################################
@@ -1025,41 +1047,28 @@ sub convert_2x {
             # same:
             # - display_name
             # - max_check_attempts
+            # - check_period
+            # - notification_period
+            # custom:
+            # - _CV
             # - action_url
             # - notes_url
             # - notes
             # - icon_image
-            # - notes
             # change:
             # - servicegroups (commaseperated strings to array)
             # - check_command
             # - check_interval (X min -> Xm) + normal_check_interval
             # - retry_interval (X min -> Xm) + retry_check_interval
             # - notification_interval (X min -> Xm)
-            # - check_period - XXX TODO
-            # - notification_period - XXX TODO
             # - contacts => users XXX DO NOT DELETE contacts and contactgroups, they will be assembled later for notifications!
-            # -
             ####################################################
 
-            ##########################################
-            # escape strings in attributes
-            ##########################################
-            if(defined($cfg_obj_2x->{'service'}->{$service_cnt}->{'action_url'})) {
-                $cfg_obj_2x->{'service'}->{$service_cnt}->{'action_url'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'service'}->{$service_cnt}->{'action_url'});
-            }
-            if(defined($cfg_obj_2x->{'service'}->{$service_cnt}->{'notes_url'})) {
-                $cfg_obj_2x->{'service'}->{$service_cnt}->{'notes_url'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'service'}->{$service_cnt}->{'notes_url'});
-            }
-            if(defined($cfg_obj_2x->{'service'}->{$service_cnt}->{'notes'})) {
-                $cfg_obj_2x->{'service'}->{$service_cnt}->{'notes'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'service'}->{$service_cnt}->{'notes'});
-            }
-            if(defined($cfg_obj_2x->{'service'}->{$service_cnt}->{'icon_image'})) {
-                $cfg_obj_2x->{'service'}->{$service_cnt}->{'icon_image'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'service'}->{$service_cnt}->{'icon_image'});
-            }
-            if(defined($cfg_obj_2x->{'service'}->{$service_cnt}->{'icon_image_alt'})) {
-                $cfg_obj_2x->{'service'}->{$service_cnt}->{'icon_image_alt'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'service'}->{$service_cnt}->{'icon_image_alt'});
-            }
+            ####################################################
+            # migrate custom attributes
+            ####################################################
+            $cfg_obj_2x->{'service'}->{$service_cnt}->{'__I2CONVERT_CUSTOM_ATTR'} = obj_convert_custom_attr_to_custom_hash($cfg_obj_2x->{'service'}->{$service_cnt});
+            #say Dumper($cfg_obj_2x->{'service'}->{$service_cnt}->{'__I2CONVERT_CUSTOM_ATTR'});
 
             ##########################################
             # servicegroups
@@ -1276,24 +1285,23 @@ sub convert_2x {
         # map existing host attributes
         # same:
         # - max_check_attempts
+        # - check_period
+        # - notification_period
+        # custom:
+        # - _CVs
         # - action_url
         # - notes_url
         # - notes
         # - icon_image
         # - statusmap_image
-        # - notes
         # change:
         # - display_name (if alias is set, overwrites it)
         # - hostgroups (commaseperated strings to array)
         # - check_interval (X min -> Xm) + normal_check_interval
         # - retry_interval (X min -> Xm) + retry_check_interval
         # - notification_interval (X min -> Xm)
-        # - check_period - XXX TODO
-        # - notification_period - XXX TODO
         # - contacts => users XXX DO NOT DELETE contacts and contactgroups - they will be assembled later for notifications!
         # -
-        # remove:
-        # - check_command
         ####################################################
 
         ##########################################
@@ -1306,24 +1314,10 @@ sub convert_2x {
             $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_MACROS'}->{'address6'} = $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'address6'};
         }
 
-        ##########################################
-        # escape strings in attributes
-        ##########################################
-        if(defined($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'action_url'})) {
-            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'action_url'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'action_url'});
-        }
-        if(defined($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'notes_url'})) {
-            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'notes_url'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'notes_url'});
-        }
-        if(defined($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'notes'})) {
-            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'notes'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'notes'});
-        }
-        if(defined($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'icon_image'})) {
-            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'icon_image'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'icon_image'});
-        }
-        if(defined($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'icon_image_alt'})) {
-            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'icon_image_alt'} = Icinga2::Utils::escape_str($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'icon_image_alt'});
-        }
+        ####################################################
+        # migrate custom attributes
+        ####################################################
+        $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_CUSTOM_ATTR'} = obj_convert_custom_attr_to_custom_hash($cfg_obj_2x->{'host'}->{$host_obj_1x_key});
 
         ####################################################
         # display_name -> alias mapping
@@ -1552,6 +1546,11 @@ sub convert_2x {
         }
 
         ####################################################
+        # migrate custom attributes
+        ####################################################
+        $cfg_obj_2x->{'hostgroup'}->{$hostgroup_obj_1x_key}->{'__I2CONVERT_CUSTOM_ATTR'} = obj_convert_custom_attr_to_custom_hash($cfg_obj_2x->{'hostgroup'}->{$hostgroup_obj_1x_key});
+
+        ####################################################
         # check if there are members defined, we must re-link them in their host object again
         ####################################################
         if(defined($obj_1x_hostgroup->{'members'})) {
@@ -1598,6 +1597,11 @@ sub convert_2x {
                 $cfg_obj_2x->{'servicegroup'}->{$servicegroup_obj_1x_key}->{'servicegroup_name'} = $obj_1x_servicegroup->{'name'};
             }
         }
+
+        ####################################################
+        # migrate custom attributes
+        ####################################################
+        $cfg_obj_2x->{'servicegroup'}->{$servicegroup_obj_1x_key}->{'__I2CONVERT_CUSTOM_ATTR'} = obj_convert_custom_attr_to_custom_hash($cfg_obj_2x->{'servicegroup'}->{$servicegroup_obj_1x_key});
 
         ####################################################
         # check if there are members defined, we must re-link them in their service object again
@@ -1655,6 +1659,11 @@ sub convert_2x {
                 $cfg_obj_2x->{'usergroup'}->{$contactgroup_obj_1x_key}->{'usergroup_name'} = $obj_1x_contactgroup->{'name'};
             }
         }
+
+        ####################################################
+        # migrate custom attributes
+        ####################################################
+        $cfg_obj_2x->{'usergroup'}->{$contactgroup_obj_1x_key}->{'__I2CONVERT_CUSTOM_ATTR'} = obj_convert_custom_attr_to_custom_hash($cfg_obj_2x->{'usergroup'}->{$contactgroup_obj_1x_key});
 
         ####################################################
         # check if there are members defined, we must re-link them in their host object again

@@ -419,26 +419,22 @@ sub dump_service_2x {
         dump_config_line($icinga2_cfg, "\tcheck_period = \"$service_2x->{'check_period'}\",");
     }
 
-    if(defined($service_2x->{'action_url'})) {
-        dump_config_line($icinga2_cfg, "\taction_url = \"$service_2x->{'action_url'}\",");
-    }
-
-    if(defined($service_2x->{'notes_url'})) {
-        dump_config_line($icinga2_cfg, "\tnotes_url = \"$service_2x->{'notes_url'}\",");
-    }
-
-    if(defined($service_2x->{'notes'})) {
-        dump_config_line($icinga2_cfg, "\tnotes = \"$service_2x->{'notes'}\",");
-    }
-
-    if(defined($service_2x->{'icon_image'})) {
-        dump_config_line($icinga2_cfg, "\ticon_image = \"$service_2x->{'icon_image'}\",");
-    }
-
     if(defined($service_2x->{'volatile'})) {
         dump_config_line($icinga2_cfg, "\tvolatile = $service_2x->{'volatile'},");
     }
 
+    ####################################################
+    # custom attr
+    ####################################################
+    if(defined($service_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $service_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+        dump_config_line($icinga2_cfg, "\tcustom = {");
+        foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
+    dump_config_line($icinga2_cfg, "");
 
     dump_config_line($icinga2_cfg, "}");
     dump_config_line($icinga2_cfg, "\n");
@@ -586,32 +582,25 @@ sub dump_host_2x {
     if(defined($host_2x->{'max_check_attempts'})) {
         dump_config_line($icinga2_cfg, "\tmax_check_attempts = $host_2x->{'max_check_attempts'},");
     }
-
     if(defined($host_2x->{'check_period'})) {
         dump_config_line($icinga2_cfg, "\tcheck_period = \"$host_2x->{'check_period'}\",");
     }
 
-    if(defined($host_2x->{'action_url'})) {
-        dump_config_line($icinga2_cfg, "\taction_url = \"$host_2x->{'action_url'}\",");
+    ####################################################
+    # custom attr
+    ####################################################
+
+    if(defined($host_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $host_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+        dump_config_line($icinga2_cfg, "\tcustom = {");
+        foreach my $custom_key (keys %{$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
     }
 
-    if(defined($host_2x->{'notes_url'})) {
-        dump_config_line($icinga2_cfg, "\tnotes_url = \"$host_2x->{'notes_url'}\",");
-    }
-
-    if(defined($host_2x->{'notes'})) {
-        dump_config_line($icinga2_cfg, "\tnotes = \"$host_2x->{'notes'}\",");
-    }
-
-    if(defined($host_2x->{'icon_image'})) {
-        dump_config_line($icinga2_cfg, "\ticon_image = \"$host_2x->{'icon_image'}\",");
-    }
-
-    if(defined($host_2x->{'statusmap_image'})) {
-        dump_config_line($icinga2_cfg, "\tstatusmap_image = $host_2x->{'statusmap_image'},");
-    }
-
+    ####################################################
     # host with no services - valid configuration
+    ####################################################
     if (!defined($host_2x->{'SERVICE'})) {
         dump_config_line($icinga2_cfg, "}");
         dump_config_line($icinga2_cfg, "\n");
@@ -752,27 +741,21 @@ sub dump_host_2x {
         if(defined($service_2x->{'max_check_attempts'})) {
             dump_config_line($icinga2_cfg, "\t\tmax_check_attempts = $service_2x->{'max_check_attempts'},");
         }
-
         if(defined($service_2x->{'check_period'})) {
             dump_config_line($icinga2_cfg, "\tcheck_period = \"$service_2x->{'check_period'}\",");
         }
 
-        if(defined($service_2x->{'action_url'})) {
-            dump_config_line($icinga2_cfg, "\t\taction_url = \"$service_2x->{'action_url'}\",");
-        }
+        ####################################################
+        # custom attr
+        ####################################################
 
-        if(defined($service_2x->{'notes_url'})) {
-            dump_config_line($icinga2_cfg, "\t\tnotes_url = \"$service_2x->{'notes_url'}\",");
+        if(defined($service_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $service_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+            dump_config_line($icinga2_cfg, "\t\tcustom = {");
+            foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+                dump_config_line($icinga2_cfg, "\t\t\t$custom_key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+            }
+            dump_config_line($icinga2_cfg, "\t\t},");
         }
-
-        if(defined($service_2x->{'notes'})) {
-            dump_config_line($icinga2_cfg, "\t\tnotes = \"$service_2x->{'notes'}\",");
-        }
-
-        if(defined($service_2x->{'icon_image'})) {
-            dump_config_line($icinga2_cfg, "\t\ticon_image = \"$service_2x->{'icon_image'}\",");
-        }
-
 
         dump_config_line($icinga2_cfg, "\t},");
         dump_config_line($icinga2_cfg, "");
@@ -853,6 +836,18 @@ sub dump_user_2x {
         } else {
             dump_config_line($icinga2_cfg, "\tgroups = [ \"$usergroups\" ],");
         }
+    }
+
+    ####################################################
+    # custom attr
+    ####################################################
+
+    if(defined($user_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $user_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+        dump_config_line($icinga2_cfg, "\tcustom = {");
+        foreach my $custom_key (keys %{$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
     }
 
     dump_config_line($icinga2_cfg, "");
@@ -980,6 +975,19 @@ sub dump_group_2x {
     if(defined($group_2x->{'display_name'})) {
         dump_config_line($icinga2_cfg, "\tdisplay_name = \"$group_2x->{'display_name'}\",");
     }
+
+    ####################################################
+    # custom attr
+    ####################################################
+
+    if(defined($group_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $group_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+        dump_config_line($icinga2_cfg, "\tcustom = {");
+        foreach my $custom_key (keys %{$group_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$group_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
     dump_config_line($icinga2_cfg, "");
     dump_config_line($icinga2_cfg, "}");
     dump_config_line($icinga2_cfg, "\n");
