@@ -57,10 +57,13 @@ NOTES
 - additive + to += logic (only for the current object, does not work with users)
 - Dependencies (host deps and parents are merged)
 - Commands will be split into Check|Event|Notification Commands
+- null (disable inheritance) only works non-converted values (not on contacts, commands, etc) being 0
+- notification_options string w,u,f is converted to
+  notification_{state,type}_filter = (StateFilterWarning | StateFilterUnknown | NotificationFilterFlapping)
+- service escalations are converted into notifications with times = begin/end
+  begin = first_notification * notification_interval (now a time, not a counter)
 
 TODO
-- Escalations (transformed from notification counter to start/end time, new logic)
 - Dependency attributes: failure_criteria, inherits_parents, timeperiods
-- Notifications: notification_options conversion
 - Flapping Thresholds: old vs new logic
 - some special object tricks, regex
