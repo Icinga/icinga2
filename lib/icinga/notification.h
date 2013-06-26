@@ -36,15 +36,15 @@ namespace icinga
  */
 enum NotificationType
 {
-	NotificationDowntimeStart,
-	NotificationDowntimeEnd,
-	NotificationDowntimeRemoved,
-	NotificationCustom,
-	NotificationAcknowledgement,
-	NotificationProblem,
-	NotificationRecovery,
-	NotificationFlappingStart,
-	NotificationFlappingEnd,
+	NotificationDowntimeStart = 0,
+	NotificationDowntimeEnd = 1,
+	NotificationDowntimeRemoved = 2,
+	NotificationCustom = 3,
+	NotificationAcknowledgement = 4,
+	NotificationProblem = 5,
+	NotificationRecovery = 6,
+	NotificationFlappingStart = 7 ,
+	NotificationFlappingEnd = 8,
 };
 
 class Service;
@@ -75,6 +75,8 @@ public:
 	std::set<User::Ptr> GetUsers(void) const;
 	std::set<UserGroup::Ptr> GetGroups(void) const;
 	Dictionary::Ptr GetTimes(void) const;
+ 	unsigned long GetTypeFilter(void) const;
+	unsigned long GetStateFilter(void) const;
 
 	double GetLastNotification(void) const;
 	void SetLastNotification(double time);
@@ -102,6 +104,8 @@ private:
 	Attribute<Array::Ptr> m_Users;
 	Attribute<Array::Ptr> m_Groups;
 	Attribute<Dictionary::Ptr> m_Times;
+	Attribute<long> m_TypeFilter;
+	Attribute<long> m_StateFilter;
 	Attribute<String> m_HostName;
 	Attribute<String> m_Service;
 

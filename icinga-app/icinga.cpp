@@ -52,13 +52,13 @@ static bool LoadConfigFiles(bool validateOnly)
 
 	ConfigCompilerContext::SetContext(&context);
 
-	BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<std::vector<String> >()) {
-		ConfigCompiler::CompileFile(configPath);
-	}
-
 	String name, fragment;
 	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
 		ConfigCompiler::CompileText(name, fragment);
+	}
+
+	BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<std::vector<String> >()) {
+		ConfigCompiler::CompileFile(configPath);
 	}
 
 	ConfigCompilerContext::SetContext(NULL);

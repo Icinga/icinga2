@@ -25,6 +25,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"
+#include "base/convert.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
@@ -45,6 +46,8 @@ Notification::Notification(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("users", Attribute_Config, &m_Users);
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
 	RegisterAttribute("times", Attribute_Config, &m_Times);
+	RegisterAttribute("type_filter", Attribute_Config, &m_TypeFilter);
+	RegisterAttribute("state_filter", Attribute_Config, &m_StateFilter);
 	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
 	RegisterAttribute("service", Attribute_Config, &m_Service);
 	RegisterAttribute("export_macros", Attribute_Config, &m_ExportMacros);
@@ -137,6 +140,22 @@ std::set<UserGroup::Ptr> Notification::GetGroups(void) const
 Dictionary::Ptr Notification::GetTimes(void) const
 {
 	return m_Times;
+}
+
+unsigned long Notification::GetTypeFilter(void) const
+{
+	if (m_TypeFilter.IsEmpty())
+		return ~(unsigned long)0; /* All states. */
+	else
+		return m_TypeFilter;
+}
+
+unsigned long Notification::GetStateFilter(void) const
+{
+	if (m_StateFilter.IsEmpty())
+		return ~(unsigned long)0; /* All states. */
+	else
+		return m_StateFilter;
 }
 
 double Notification::GetNotificationInterval(void) const
@@ -238,6 +257,24 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': after escalation range");
 			return;
 		}
+
+		unsigned long ftype = 1 << type;
+
+		Log(LogDebug, "icinga", "FType=" + Convert::ToString(ftype) + ", TypeFilter=" + Convert::ToString(GetTypeFilter()));
+
+		if (!(ftype & GetTypeFilter())) {
+			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': type filter does not match");
+			return;
+		}
+
+		unsigned long fstate = 1 << GetService()->GetState();
+
+		Log(LogDebug, "icinga", "FState=" + Convert::ToString(fstate) + ", StateFilter=" + Convert::ToString(GetStateFilter()));
+
+		if (!(fstate & GetStateFilter())) {
+			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': state filter does not match");
+			return;
+		}
 	}
 
 	{
@@ -262,16 +299,32 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 	}
 }
 
-void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool ignore_timeperiod)
+void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force)
 {
 	ASSERT(!OwnsLock());
 
-	if (!ignore_timeperiod) {
+	if (!force) {
 		TimePeriod::Ptr tp = user->GetNotificationPeriod();
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': user not in timeperiod");
+			return;
+		}
+
+		unsigned long ftype = 1 << type;
+
+		if (!(ftype & user->GetTypeFilter())) {
+			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
+			    GetName() + " and user '" + user->GetName() + "': type filter does not match");
+			return;
+		}
+
+		unsigned long fstate = 1 << GetService()->GetState();
+
+		if (!(fstate & user->GetStateFilter())) {
+			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
+			    GetName() + " and user '" + user->GetName() + "': state filter does not match");
 			return;
 		}
 	}

@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/scriptvariable.h"
+#include "base/logger_fwd.h"
 
 using namespace icinga;
 
@@ -25,7 +26,11 @@ Registry<String> ScriptVariable::m_Registry;
 
 Value ScriptVariable::Get(const String& name)
 {
-	return m_Registry.GetItem(name);
+	Value value = m_Registry.GetItem(name);
+	if (value.IsEmpty())
+		Log(LogWarning, "icinga", "Tried to access empty variable: " + name);
+
+	return value;
 }
 
 void ScriptVariable::Set(const String& name, const Value& value)
