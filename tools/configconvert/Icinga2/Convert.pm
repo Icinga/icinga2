@@ -2343,7 +2343,7 @@ sub convert_2x {
                     ######################################
                     # XXX FIXME
                     if (defined($obj_1x_serviceescalation->{'servicegroup_name'})) {
-                        say Dumper($obj_1x_serviceescalation);
+                        #say Dumper($obj_1x_serviceescalation);
                         my @service_names = obj_2x_get_service_arr_by_servicegroup_name($cfg_obj_2x, $obj_1x_serviceescalation->{'servicegroup_name'});
 
                         foreach my $serviceescalation_service_name (@service_names) {
@@ -2352,7 +2352,7 @@ sub convert_2x {
                             #say Dumper($serviceescalation_service_obj);
                             # skip any templates which would create duplicates
                             next if ($serviceescalation_service_obj->{'__I2CONVERT_IS_TEMPLATE'} == 1);
-                            say Dumper($serviceescalation_service_name);
+                            #say Dumper($serviceescalation_service_name);
 
                             push @{$serviceescalation_service_obj->{'__I2CONVERT_NOTIFICATIONS'}}, $user_notification;
 

@@ -389,7 +389,7 @@ sub dump_service_2x {
     }
 
     if(defined($service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
-        say Dumper($service_2x);
+        #say Dumper($service_2x);
         foreach my $by (keys %{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
             my $notification_filter = "notification_".$by."_filter = (". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
             dump_config_line($icinga2_cfg, "\t$notification_filter,");
