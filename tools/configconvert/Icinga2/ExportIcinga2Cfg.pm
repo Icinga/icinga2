@@ -392,8 +392,13 @@ sub dump_service_2x {
         #say Dumper($service_2x);
         foreach my $by (keys %{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
             next if !@{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
-            my $notification_filter = "notification_".$by."_filter = (". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
-            dump_config_line($icinga2_cfg, "\t$notification_filter,");
+            my $notification_filter;
+            if (grep /0/, @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                $notification_filter = 0;
+            } else {
+                $notification_filter = "(". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+            }
+            dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
         }
     }
 
@@ -516,8 +521,13 @@ sub dump_host_2x {
     if(defined($host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
         foreach my $by (keys %{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
             next if !@{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
-            my $notification_filter = "notification_".$by."_filter = (". (join ' | ', @{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
-            dump_config_line($icinga2_cfg, "\t$notification_filter,");
+            my $notification_filter;
+            if (grep /0/, @{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                $notification_filter = 0;
+            } else {
+                $notification_filter = "(". (join ' | ', @{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+            }
+            dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
         }
     }
 
@@ -670,8 +680,13 @@ sub dump_host_2x {
         if(defined($service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
             foreach my $by (keys %{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
                 next if !@{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
-                my $notification_filter = "notification_".$by."_filter = (". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
-                dump_config_line($icinga2_cfg, "\t$notification_filter,");
+                my $notification_filter;
+                if (grep /0/, @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                    $notification_filter = 0;
+                } else {
+                    $notification_filter = "(". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+                }
+                dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
             }
         }
 
@@ -817,8 +832,13 @@ sub dump_user_2x {
     if(defined($user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
         foreach my $by (keys %{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
             next if !@{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
-            my $notification_filter = "notification_".$by."_filter = (". (join ' | ', @{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
-            dump_config_line($icinga2_cfg, "\t$notification_filter,");
+            my $notification_filter;
+            if (grep /0/, @{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                $notification_filter = 0;
+            } else {
+                $notification_filter = "(". (join ' | ', @{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+            }
+            dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
         }
     }
 

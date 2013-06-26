@@ -749,11 +749,13 @@ sub convert_notification_options_to_filter {
 
     # verify if there's 'n' (none) or 'a' (all) and ignore the rest then
     if (grep /n/, @options) {
+        push @{$filter->{'state'}}, 0;
+        push @{$filter->{'type'}}, 0;
         return $filter;
     }
     if (grep /a/, @options) {
         foreach my $by (keys %{$filter_by}) {
-            push @{$filter->{$by}}, $filter_names->{$by};
+            push @{$filter->{$filter_by->{$by}}}, $filter_names->{$by};
         }
         return $filter;
     }
