@@ -57,8 +57,8 @@ sub errlog {
 sub escape_str {
     my $str = shift;
 
-    $str =~ s/\\/\\\\"/g;
     $str =~ s/"/\\"/g;
+    $str =~ s/\\\\"/\\"/g;
 
     return $str;
 }
