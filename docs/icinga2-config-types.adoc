@@ -511,37 +511,73 @@ Specifies where Icinga 2 Compat component will put the objects.cache file, which
 be read by Icinga 1.x Classic UI and other addons. If not set, it defaults to the
 localstatedir location.
 
-Type: Logger
-~~~~~~~~~~~~
+Type: ConsoleLogger
+~~~~~~~~~~~~~~~~~~~
 
-Specifies where Icinga 2 should be logging. Objects of this type must have the
+Specifies Icinga 2 logging to the console. Objects of this type must have the
 "local" specifier.
 
 Example:
 
 -------------------------------------------------------------------------------
-local object Logger "my-debug-log" {
-  type = "file",
-  path = "./var/log/icinga2/icinga2.log",
+local object ConsoleLogger "my-debug-console" {
   severity = "debug"
 }
 -------------------------------------------------------------------------------
-
-Attribute: type
-^^^^^^^^^^^^^^^
-
-The type of the log. Can be "console", "syslog" or "file".
-
-Attribute: path
-^^^^^^^^^^^^^^^
-
-The log path. Ignored if the log type is not "file".
 
 Attribute: severity
 ^^^^^^^^^^^^^^^^^^^
 
 The minimum severity for this log. Can be "debug", "information", "warning" or
 "critical". Defaults to "information".
+
+Type: FileLogger
+~~~~~~~~~~~~~~~~
+
+Specifies Icinga 2 logging to a file. Objects of this type must have the "local"
+specifier.
+
+Example:
+
+-------------------------------------------------------------------------------
+local object FileLogger "my-debug-file" {
+  severity = "debug",
+  path = "/var/log/icinga2/icinga2-debug.log"
+}
+-------------------------------------------------------------------------------
+
+
+Attribute: path
+^^^^^^^^^^^^^^^
+
+The log path.
+
+Attribute: severity
+^^^^^^^^^^^^^^^^^^^
+
+The minimum severity for this log. Can be "debug", "information", "warning" or
+"critical". Defaults to "information".
+
+Type: SyslogLogger
+~~~~~~~~~~~~~~~~~~
+
+Specifies Icinga 2 logging to syslog. Objects of this type must have the "local"
+specifier.
+
+Example:
+
+-------------------------------------------------------------------------------
+local object SyslogLogger "my-crit-syslog" {
+  severity = "critical"
+}
+-------------------------------------------------------------------------------
+
+Attribute: severity
+^^^^^^^^^^^^^^^^^^^
+
+The minimum severity for this log. Can be "debug", "information", "warning" or
+"critical". Defaults to "information".
+
 
 Type: Endpoint
 ~~~~~~~~~~~~~~
@@ -566,11 +602,62 @@ Attribute: service
 
 The service name/port of the remote Icinga 2 instance.
 
+Type: CheckCommand
+~~~~~~~~~~~~~~~~~~
+
+A check command definition. Additional default command macros can be defined here.
+
+Example:
+
+-------------------------------------------------------------------------------
+object CheckCommand "check_snmp" inherits "plugin-check-command" {
+  command = "$plugindir$/check_snmp -H $address$ -C $community$ -o $oid$",
+
+  macros = {2yy
+    plugindir = "/usr/lib/nagios/plugins",
+    address = "127.0.0.1",
+    community = "public",
+  }
+}
+-------------------------------------------------------------------------------
+
+Type: NotificationCommand
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A notification command definition.
+
+Example:
+
+-------------------------------------------------------------------------------
+object NotificationCommand "mail-service-notification" inherits "plugin-notification-command" {
+  command = "/usr/bin/printf \"%b\" \"***** Icinga  *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $LONGDATETIME$\n\nAdditional Info: $SERVICEOUTPUT$\n\nComment: [$NOTIFICATIONAUTHORNAME$] $NOTIFICATIONCOMMENT$\n\n\" | /usr/bin/mail -s \"$NOTIFICATIONTYPE$ - $HOSTNAME$ - $SERVICEDESC$ - $SERVICESTATE$\" $CONTACTEMAIL$",
+}
+-------------------------------------------------------------------------------
+
+Type: NotificationCommand
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An event command definition.
+
+NOTE: Similar to Icinga 1.x event handlers.
+
+Example:
+
+-------------------------------------------------------------------------------
+object EventCommand "restart-httpd-event" inherits "plugin-event-command" {
+  command = "/usr/local/icinga/libexec/restart-httpd.sh",
+}
+-------------------------------------------------------------------------------
+
+
 Type: Service
 ~~~~~~~~~~~~~
 
 Service objects describe network services and how they should be checked by
 Icinga 2.
+
+NOTE: Better create a service template and use that reference on the host
+definition as shown below.
 
 Example:
 
@@ -584,17 +671,17 @@ object Service "localhost-uptime" {
     check = "PluginCheck"
   },
 
-  check_command = "$plugindir$/check_snmp -H $address$ -C $community$ -o $oid$",
+  check_command = "check_snmp",
 
   macros = {
     plugindir = "/usr/lib/nagios/plugins",
     address = "127.0.0.1",
-    community = "public" ,A hos
+    community = "public",
     oid = "DISMAN-EVENT-MIB::sysUpTimeInstance"
   }
 
-  check_interval = 60,
-  retry_interval = 15,
+  check_interval = 60s,
+  retry_interval = 15s,
 
   servicegroups = { "all-services", "snmp" },
 
@@ -657,8 +744,10 @@ Example:
 object ServiceGroup "snmp" {
   alias = "SNMP services",
 
-  notes_url = "http://www.example.org/",
-  action_url = "http://www.example.org/",
+  custom = {
+    notes_url = "http://www.example.org/",
+    action_url = "http://www.example.org/",
+  }
 }
 -------------------------------------------------------------------------------
 
@@ -688,27 +777,24 @@ Example:
 object Host "localhost" {
   alias = "The best host there is",
 
-  hostgroups = { "all-hosts" },
+  hostgroups = [ "all-hosts" ],
 
   hostcheck = "ping",
-  dependencies = { "router-ping" }
+  dependencies = [ "router-ping" ]
 
-  services = {
-    "ping",
-    "my-http" {
-      service = "http",
-
-      macros = {
-        vhost = "test1.example.org",
-        port = 81
-      }
+  services["ping"] = { templates = "ping" }
+  services["http"] = {
+    templates = "my-http",
+    macros = {
+      vhost = "test1.example.org",
+      port = 81
     }
   }
 
-  check_interval = 60,
-  retry_interval = 15,
+  check_interval = 60m,
+  retry_interval = 15m,
 
-  servicegroups = { "all-services" },
+  servicegroups = [ "all-services" ],
 
   checkers = { "*" },
 }
@@ -744,15 +830,14 @@ unreachable.
 Attribute: services
 ^^^^^^^^^^^^^^^^^^^
 
-Inline definition of services. Each property in this dictionary specifies a
-service. If the value of a property is a string it is interpreted as the name
-of a service template and is used as a parent object for the new service. If it
-is a dictionary its service property is used to determine the parent object and
-all other service-related properties are additively copied into the new service
+Inline definition of services. Each service name is defined in square brackets
+and got its own dictionary with attribute properties, such as the template service
+being used.
+All other service-related properties are additively copied into the new service
 object.
 
 The new service's name is "hostname-service" - where "service" is the
-dictionary key in the services dictionary.
+array key in the services array.
 
 The priority for service properties is (from highest to lowest):
 
@@ -821,6 +906,9 @@ Configuration Examples
 Non-networked minimal example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+NOTE: Icinga 2 ITL provides itl/standalone.conf which loads all required components, as well
+as itl/itl.conf includes many object templates already for an easy start with Icinga 2.
+
 -------------------------------------------------------------------------------
 local object IcingaApplication "icinga" {
 
@@ -834,7 +922,11 @@ local object Component "delegation" {
 
 }
 
-abstract object Service "icinga-service" {
+object CheckCommand "ping" {
+  command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
+}
+
+template Service "icinga-service" {
   methods = {
     check = "PluginCheck"
   },
@@ -844,9 +936,8 @@ abstract object Service "icinga-service" {
   }
 }
 
-abstract object Service "ping" inherits "icinga-service" {
-  check_command = "$plugindir$/check_ping -H $address$ -w $wrta$,$wpl$% -c $crta$,$cpl$%",
-
+template Service "ping-tmpl" inherits "icinga-service" {
+  check_command = "ping",
   macros += {
     wrta = 50,
     wpl = 5,
@@ -856,13 +947,13 @@ abstract object Service "ping" inherits "icinga-service" {
 }
 
 object Host "localhost" {
-  services = { "ping" },
+  services["ping"]  = { templates = "ping-tmpl" },
 
   macros = {
     address = "127.0.0.1"
   },
 
-  check_interval = 10
+  check_interval = 10m
 }
 -------------------------------------------------------------------------------
 

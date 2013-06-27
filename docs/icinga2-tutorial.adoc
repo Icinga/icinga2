@@ -193,6 +193,8 @@ Setting up the Icinga 1.x Classic UI
 
 Icinga 2 can write status.dat and objects.cache files in the format that is supported
 by the Icinga 1.x Classic UI. External commands (a.k.a. the "command pipe") are also supported.
+If you require the icinga.log for history views and/or reporting in Classic UI, this can be
+added seperately to the CompatComponent object definition by adding a CompatLog object.
 
 In order to enable this feature you will need to load the library 'compat' by adding the following lines
 to your configuration file:
@@ -219,19 +221,30 @@ $ sudo make install classicui-standalone install-webconf-auth
 $ sudo service apache2 restart
 ----
 
-After installing the Classic UI you will need to update the following settings in your cgi.cfg configuration file:
+NOTE: A detailed guide on installing Icinga 1.x Classic UI Standalone can be found on the Icinga Wiki
+here: https://wiki.icinga.org/display/howtos/Setting+up+Icinga+Classic+UI+Standalone
+
+After installing the Classic UI you will need to update the following settings in your cgi.cfg
+configuration file at the bottom (section "STANDALONE (ICINGA 2) OPTIONS"):
 
 |===
-|Configuration Setting | Value
-|object_cache_file     | /var/cache/icinga2/objects.cache
-|status_file           | /var/cache/icinga2/status.dat
-|command_file          | /var/run/icinga2/icinga2.cmd
-|log_file              | /var/log/icinga2/compat/icinga.log
+|Configuration Setting    | Value
+|object_cache_file        | /var/cache/icinga2/objects.cache
+|status_file              | /var/cache/icinga2/status.dat
+|resource_file            | -
+|command_file             | /var/run/icinga2/icinga2.cmd
+|check_external_commands  | 1
+|interval_length          | 60
+|status_update_interval   | 10
+|log_file                 | /var/log/icinga2/compat/icinga.log
+|log_rotation_method      | h
+|log_archive_path         | /var/log/icinga2/compat/archives
+|date_format              | us
 |===
 
-Depending on how you installed Icinga 2 some of those paths might be different.
+Depending on how you installed Icinga 2 some of those paths and options might be different.
 
-Verify that your Icinga 1.x Classic UI work by browsing to your Classic UI installation URL e.g. http://localhost/icinga
+Verify that your Icinga 1.x Classic UI works by browsing to your Classic UI installation URL e.g. http://localhost/icinga
 
 Some More Templates
 -------------------
@@ -289,7 +302,8 @@ object CheckCommand "my-ping" inherits "plugin-check-command" {
 ----
 
 We have replaced our hard-coded timeout values with macros and we're providing default
-values for these same macros right in the template definition.
+values for these same macros right in the template definition. The object inherits the
+basic check command attributes from the ITL provided template 'plugin-check-command'.
 
 In order to oderride some of these macros for a specific host we need to update our
 'icinga.org' host definition like this:
@@ -319,7 +333,8 @@ object Host "icinga.org" {
 
 The '+=' operator allows us to selectively add new key-value pairs to an existing
 dictionary. If we were to use the '=' operator instead we would have to provide
-values for all the macros that are used in the 'my-ping' template.
+values for all the macros that are used in the 'my-ping' template overriding all
+values there.
 
 Icinga Template Library
 -----------------------
@@ -519,6 +534,9 @@ In addition to defining notifications for individual services it is also possibl
 to assign notification templates to all services of a host. You can find more
 information about how to do that in the documentation.
 
+NOTE: Escalations in Icinga 2 are just a notification, only added a defined begin and end time.
+Check the documentation for details.
+
 Time Periods
 ------------
 
@@ -574,14 +592,124 @@ The 'notification_period' attribute is also valid in 'User' and 'Notification' o
 Dependencies
 ------------
 
-TODO
+If you are familiar with Icinga 1.x Host/Service Dependencies and the Parent-Child logic on hosts,
+you might want to look at the conversion script converting your existing configuration. There are
+no extry dependency objects anymore, and no extra parent attribute either.
+
+Using Icinga 2, we can directly define a dependency in the current host or service object to any other
+host or service object. If we want other objects to inherit those dependency attributes, we may just
+define them in a template.
+
+Looking at the following example, we've added a cluster host with the service 'ping' on which we want
+to depend on when defining checks for our client host.
+
+----
+template Service "my-cluster-ping" {
+	check_command = "my-ping",
+}
+
+object Host "my-cluster" {
+	...
+	services["ping"] = {
+		templates = [ "my-cluster-ping" ],
+	}
+	...
+}
+----
+
+We can now define a service dependency as new service template (or directly on the service definition):
+
+----
+template Service "my-cluster-dependency" {
+        servicedependencies = [
+                { host = "my-cluster", service = "ping" },
+        ],
+}
+----
+
+Now use that template for the 'ping' service we've defined previously and assign the servicedependencies
+to that service.
+
+----
+        ...
+        services["ping"] = {
+                templates = [ "ping4", "mail-notification-service", "my-cluster-dependency" ],
+        },
+        ...
+----
+
+
 
 Performance Data
 ----------------
 
-TODO
+Due to the reason that there is no host check in Icinga 2, the PerfdataWriter object will only write service
+performance data files. Loading the object will allow you to set the perfdata_path, format_template and rotation_interval.
+The format template is similar to existing Icinga 1.x configuration for PNP or inGraph using macro formatted strings.
 
-Compat Log Files
-----------------
+Details on the common Icinga 1.x macros can be found on http://docs.icinga.org/latest/en/macrolist.html
 
-TODO
+NOTE: You can define multiple PerfdataWriter objects with different configuration settings, i.e. one for PNP, one for inGraph
+or your preferred graphite collector.
+
+Let's create a new PNP PerfdataWriter object:
+
+----
+local object PerfdataWriter "pnp" {
+        perfdata_path = "/var/lib/icinga2/service-perfdata",
+        format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$TIMET$\tHOSTNAME::$HOSTNAME$\tSERVICEDESC::$SERVICEDESC$\tSERVICEPERFDATA::$SERVICEPERFDATA$\tSERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\tHOSTSTATE::$HOSTSTATE$\tHOSTSTATETYPE::$HOSTSTATETYPE$\tSERVICESTATE::$SERVICESTATE$\tSERVICESTATETYPE::$SERVICESTATETYPE$",
+        rotation_interval = 15s,
+}
+----
+
+Now tell your NPCD daemon where to look for new performance data in the PNP provided npcd.cfg
+
+----
+perfdata_spool_dir = /var/lib/icinga2/
+----
+
+
+Custom Attributes
+-----------------
+
+In Icinga 1.x there were so-called "Custom Variables" available prefixed with an underscore, as well
+as plenty of other attributes such as action_url, notes_url, icon_image, etc. To overcome the limitations
+of hardcoded custom attributes, Icinga 2 ships with the 'custom' attribute as dictionary.
+
+Having PNP for graphing installed, we should add a reference url to Icinga Classic UI by using the classic
+method of defining an action_url.
+
+----
+template Service "my-pnp-svc" {
+	custom = {
+		action_url = "/pnp4nagios/graph?host=$HOSTNAME$&srv=$SERVICEDESC$' class='tips' rel='/pnp4nagios/popup?host=$HOSTNAME$&srv=$SERVICEDESC$",
+	}
+}
+----
+
+And add that template again to our service definition:
+
+----
+        ...
+        services["ping"] = {
+                templates = [ "ping4", "mail-notification-service", "my-cluster-dependency", "my-pnp-svc" ],
+        },
+        ...
+----
+
+While at it, our configuration tool will add its ldap dn and a snmp community to the service too, using += for
+additive attributes:
+
+----
+        ...
+        services["ping"] = {
+                templates = [ "ping4", "mail-notification-service", "my-cluster-dependency", "my-pnp-svc" ],
+		custom += {
+			DN = "cn=icinga2-dev-svc,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org",
+			SNMPCOMMUNITY = "public"
+		}
+        },
+        ...
+
+----
+
