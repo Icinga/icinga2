@@ -18,6 +18,8 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
+#include "icinga/downtimemessage.h"
+#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -127,7 +129,20 @@ void Service::RemoveDowntime(const String& id)
 
 	{
 		ObjectLock olock(owner);
+
 		downtimes->Remove(id);
+
+		RequestMessage rm;
+		rm.SetMethod("icinga::Downtime");
+
+		DowntimeMessage params;
+		params.SetService(owner->GetName());
+		params.SetState(DowntimeCancelled);
+
+		rm.SetParams(params);
+
+		EndpointManager::GetInstance()->SendMulticastMessage(rm);
+
 		owner->Touch("downtimes");
 	}
 }
@@ -179,6 +194,17 @@ void Service::TriggerDowntime(const String& id)
 	BOOST_FOREACH(boost::tie(tid, boost::tuples::ignore), triggers) {
 		TriggerDowntime(tid);
 	}
+
+	RequestMessage rm;
+	rm.SetMethod("icinga::Downtime");
+
+	DowntimeMessage params;
+	params.SetService(owner->GetName());
+	params.SetState(DowntimeStarted);
+
+	rm.SetParams(params);
+
+	EndpointManager::GetInstance()->SendMulticastMessage(rm);
 
 	owner->Touch("downtimes");
 }
@@ -339,6 +365,17 @@ void Service::RemoveExpiredDowntimes(void)
 
 	if (!expiredDowntimes.empty()) {
 		BOOST_FOREACH(const String& id, expiredDowntimes) {
+			RequestMessage rm;
+			rm.SetMethod("icinga::Downtime");
+
+			DowntimeMessage params;
+			params.SetService(GetName());
+			params.SetState(DowntimeStopped);
+
+			rm.SetParams(params);
+
+			EndpointManager::GetInstance()->SendMulticastMessage(rm);
+
 			downtimes->Remove(id);
 		}
 

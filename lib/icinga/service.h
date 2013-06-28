@@ -57,6 +57,18 @@ enum CommentType
 	CommentAcknowledgement = 4
 };
 
+/**
+ * The state of a service downtime.
+ *
+ * @ingroup icinga
+ */
+enum DowntimeState
+{
+	DowntimeStarted = 0,
+	DowntimeCancelled = 1,
+	DowntimeStopped = 2
+};
+
 class CheckCommand;
 class EventCommand;
 

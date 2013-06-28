@@ -34,6 +34,9 @@
     <ClCompile Include="checkresultmessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="downtimemessage.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
     <ClCompile Include="service-comment.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -106,6 +109,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="checkresultmessage.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="downtimemessage.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="pluginnotificationtask.h">

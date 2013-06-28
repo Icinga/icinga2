@@ -17,62 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef COMPATLOG_H
-#define COMPATLOG_H
+#ifndef DOWNTIMEMESSAGE_H
+#define DOWNTIMEMESSAGE_H
 
-#include "remoting/endpoint.h"
-#include "base/dynamicobject.h"
-#include "base/timer.h"
-#include <fstream>
+#include "icinga/i2-icinga.h"
+#include "icinga/service.h"
+#include "remoting/messagepart.h"
 
 namespace icinga
 {
 
 /**
- * An Icinga compat log writer.
+ * A state change message for a service.
  *
- * @ingroup compat
+ * @ingroup icinga
  */
-class CompatLog : public DynamicObject
+class I2_ICINGA_API DowntimeMessage : public MessagePart
 {
 public:
-	typedef shared_ptr<CompatLog> Ptr;
-	typedef weak_ptr<CompatLog> WeakPtr;
+	DowntimeMessage(void) : MessagePart() { }
+	explicit DowntimeMessage(const MessagePart& message) : MessagePart(message) { }
 
-	CompatLog(const Dictionary::Ptr& serializedUpdate);
+	String GetService(void) const;
+	void SetService(const String& service);
 
-	static CompatLog::Ptr GetByName(const String& name);
-
-	String GetLogDir(void) const;
-	String GetRotationMethod(void) const;
-
-	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
-
-protected:
-	virtual void OnAttributeChanged(const String& name);
-	virtual void Start(void);
-
-private:
-	Attribute<String> m_LogDir;
-	Attribute<String> m_RotationMethod;
-
-	double m_LastRotation;
-
-	void WriteLine(const String& line);
-	void Flush(void);
-
-	Endpoint::Ptr m_Endpoint;
-	void CheckResultRequestHandler(const RequestMessage& request);
-	void DowntimeRequestHandler(const RequestMessage& request);
-
-	Timer::Ptr m_RotationTimer;
-	void RotationTimerHandler(void);
-	void ScheduleNextRotation(void);
-
-	std::ofstream m_OutputFile;
-	void ReopenFile(bool rotate);
+	DowntimeState GetState(void) const;
+	void SetState(DowntimeState state);
 };
 
 }
 
-#endif /* COMPATLOG_H */
+#endif /* DOWNTIMEMESSAGE_H */
