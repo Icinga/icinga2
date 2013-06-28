@@ -49,6 +49,9 @@
     <ClCompile Include="notification.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="notificationmessage.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
     <ClCompile Include="notificationrequestmessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -118,6 +121,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="notification.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="notificationmessage.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="notificationrequestmessage.h">

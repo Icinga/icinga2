@@ -17,63 +17,79 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef COMPATLOG_H
-#define COMPATLOG_H
+#include "icinga/notificationmessage.h"
 
-#include "remoting/endpoint.h"
-#include "base/dynamicobject.h"
-#include "base/timer.h"
-#include <fstream>
+using namespace icinga;
 
-namespace icinga
+String NotificationMessage::GetService(void) const
 {
-
-/**
- * An Icinga compat log writer.
- *
- * @ingroup compat
- */
-class CompatLog : public DynamicObject
-{
-public:
-	typedef shared_ptr<CompatLog> Ptr;
-	typedef weak_ptr<CompatLog> WeakPtr;
-
-	CompatLog(const Dictionary::Ptr& serializedUpdate);
-
-	static CompatLog::Ptr GetByName(const String& name);
-
-	String GetLogDir(void) const;
-	String GetRotationMethod(void) const;
-
-	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
-
-protected:
-	virtual void OnAttributeChanged(const String& name);
-	virtual void Start(void);
-
-private:
-	Attribute<String> m_LogDir;
-	Attribute<String> m_RotationMethod;
-
-	double m_LastRotation;
-
-	void WriteLine(const String& line);
-	void Flush(void);
-
-	Endpoint::Ptr m_Endpoint;
-	void CheckResultRequestHandler(const RequestMessage& request);
-	void DowntimeRequestHandler(const RequestMessage& request);
-	void NotificationSentRequestHandler(const RequestMessage& request);
-
-	Timer::Ptr m_RotationTimer;
-	void RotationTimerHandler(void);
-	void ScheduleNextRotation(void);
-
-	std::ofstream m_OutputFile;
-	void ReopenFile(bool rotate);
-};
-
+	String service;
+	Get("service", &service);
+	return service;
 }
 
-#endif /* COMPATLOG_H */
+void NotificationMessage::SetService(const String& service)
+{
+	Set("service", service);
+}
+
+String NotificationMessage::GetUser(void) const
+{
+	String user;
+	Get("user", &user);
+	return user;
+}
+
+void NotificationMessage::SetUser(const String& user)
+{
+	Set("user", user);
+}
+
+NotificationType NotificationMessage::GetType(void) const
+{
+	long type;
+	Get("type", &type);
+	return static_cast<NotificationType>(type);
+}
+
+void NotificationMessage::SetType(NotificationType type)
+{
+	Set("type", type);
+}
+
+String NotificationMessage::GetAuthor(void) const
+{
+	String author;
+	Get("author", &author);
+	return author;
+}
+
+void NotificationMessage::SetAuthor(const String& author)
+{
+	Set("author", author);
+}
+
+String NotificationMessage::GetCommentText(void) const
+{
+	String comment_text;
+	Get("comment_text", &comment_text);
+	return comment_text;
+}
+
+void NotificationMessage::SetCommentText(const String& comment_text)
+{
+	Set("comment_text", comment_text);
+}
+
+Dictionary::Ptr NotificationMessage::GetCheckResult(void) const
+{
+	Dictionary::Ptr cr;
+	Get("check_result", &cr);
+	return cr;
+}
+
+void NotificationMessage::SetCheckResult(const Dictionary::Ptr& result)
+{
+	Set("check_result", result);
+}
+

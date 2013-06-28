@@ -45,6 +45,8 @@ libicinga_la_SOURCES =  \
 	notification.h \
 	notificationcommand.cpp \
 	notificationcommand.h \
+	notificationmessage.cpp \
+	notificationmessage.h \
 	notificationrequestmessage.cpp \
 	notificationrequestmessage.h \
 	nullchecktask.cpp \

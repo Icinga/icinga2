@@ -102,6 +102,7 @@ public:
 	Array::Ptr GetGroups(void) const;
 	String GetHostName(void) const;
 	String GetShortName(void) const;
+	String GetCheckCommandName(void) const;
 
 	std::set<Host::Ptr> GetParentHosts(void) const;
 	std::set<Service::Ptr> GetParentServices(void) const;
@@ -222,6 +223,8 @@ public:
 
 	/* Comments */
 	static int GetNextCommentID(void);
+	String GetLastCommentID(void) const;
+	void SetLastCommentID(String id);
 
 	Dictionary::Ptr GetComments(void) const;
 
@@ -322,6 +325,7 @@ private:
 
 	/* Comments */
 	Attribute<Dictionary::Ptr> m_Comments;
+	Attribute<String> m_LastCommentID;
 
 	static void CommentsExpireTimerHandler(void);
 

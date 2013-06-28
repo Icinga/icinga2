@@ -37,6 +37,7 @@
     <ClCompile Include="macroprocessor.cpp" />
     <ClCompile Include="macroresolver.cpp" />
     <ClCompile Include="notification.cpp" />
+    <ClCompile Include="notificationmessage.cpp" />
     <ClCompile Include="notificationrequestmessage.cpp" />
     <ClCompile Include="pluginchecktask.cpp" />
     <ClCompile Include="nullchecktask.cpp" />
@@ -65,6 +66,7 @@
     <ClInclude Include="macroprocessor.h" />
     <ClInclude Include="macroresolver.h" />
     <ClInclude Include="notification.h" />
+    <ClInclude Include="notificationmessage.h" />
     <ClInclude Include="notificationrequestmessage.h" />
     <ClInclude Include="pluginchecktask.h" />
     <ClInclude Include="nullchecktask.h" />

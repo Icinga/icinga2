@@ -17,63 +17,46 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef COMPATLOG_H
-#define COMPATLOG_H
+#ifndef NOTIFICATIONMESSAGE_H
+#define NOTIFICATIONMESSAGE_H
 
-#include "remoting/endpoint.h"
-#include "base/dynamicobject.h"
-#include "base/timer.h"
-#include <fstream>
+#include "icinga/i2-icinga.h"
+#include "icinga/notification.h"
+#include "remoting/messagepart.h"
 
 namespace icinga
 {
 
 /**
- * An Icinga compat log writer.
+ * A notification message for a service.
  *
- * @ingroup compat
+ * @ingroup icinga
  */
-class CompatLog : public DynamicObject
+class I2_ICINGA_API NotificationMessage : public MessagePart
 {
 public:
-	typedef shared_ptr<CompatLog> Ptr;
-	typedef weak_ptr<CompatLog> WeakPtr;
+	NotificationMessage(void) : MessagePart() { }
+	explicit NotificationMessage(const MessagePart& message) : MessagePart(message) { }
 
-	CompatLog(const Dictionary::Ptr& serializedUpdate);
+	String GetService(void) const;
+	void SetService(const String& service);
 
-	static CompatLog::Ptr GetByName(const String& name);
+	String GetUser(void) const;
+	void SetUser(const String& user);
 
-	String GetLogDir(void) const;
-	String GetRotationMethod(void) const;
+	NotificationType GetType(void) const;
+	void SetType(NotificationType type);
 
-	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
+	String GetAuthor(void) const;
+	void SetAuthor(const String& author);
 
-protected:
-	virtual void OnAttributeChanged(const String& name);
-	virtual void Start(void);
+	String GetCommentText(void) const;
+	void SetCommentText(const String& comment_text);
 
-private:
-	Attribute<String> m_LogDir;
-	Attribute<String> m_RotationMethod;
-
-	double m_LastRotation;
-
-	void WriteLine(const String& line);
-	void Flush(void);
-
-	Endpoint::Ptr m_Endpoint;
-	void CheckResultRequestHandler(const RequestMessage& request);
-	void DowntimeRequestHandler(const RequestMessage& request);
-	void NotificationSentRequestHandler(const RequestMessage& request);
-
-	Timer::Ptr m_RotationTimer;
-	void RotationTimerHandler(void);
-	void ScheduleNextRotation(void);
-
-	std::ofstream m_OutputFile;
-	void ReopenFile(bool rotate);
+	Dictionary::Ptr GetCheckResult(void) const;
+	void SetCheckResult(const Dictionary::Ptr& result);
 };
 
 }
 
-#endif /* COMPATLOG_H */
+#endif /* NOTIFICATIONMESSAGE_H */

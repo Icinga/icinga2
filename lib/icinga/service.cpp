@@ -176,6 +176,11 @@ String Service::GetShortName(void) const
 		return m_ShortName;
 }
 
+String Service::GetCheckCommandName(void) const
+{
+	return m_CheckCommand;
+}
+
 bool Service::IsReachable(void) const
 {
 	ASSERT(!OwnsLock());

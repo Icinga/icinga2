@@ -21,6 +21,8 @@
 #include "icinga/notificationcommand.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/service.h"
+#include "icinga/notificationmessage.h"
+#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -329,6 +331,31 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 
 	try {
 		GetNotificationCommand()->Execute(GetSelf(), user, cr, type);
+
+		RequestMessage rm;
+		rm.SetMethod("icinga::NotificationSent");
+
+		NotificationMessage params;
+		String comment_id = GetService()->GetLastCommentID();
+		Dictionary::Ptr comment = Service::GetCommentByID(comment_id);
+
+		String author = "";
+		String text = "";
+		if (comment) {
+			author = comment->Get("author");
+			text = comment->Get("text");
+			Log(LogDebug, "icinga", "notification for service '" + GetService()->GetName() + "' with author " + author + "and text " + text);
+		}
+		params.SetService(GetService()->GetName());
+		params.SetUser(user->GetName());
+		params.SetType(type);
+		params.SetAuthor(author); // figure out how to receive these attributes properly from service->comments TODO
+		params.SetCommentText(text);
+		params.SetCheckResult(cr);
+
+		rm.SetParams(params);
+
+		EndpointManager::GetInstance()->SendMulticastMessage(rm);
 
 		Log(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
 	} catch (const std::exception& ex) {

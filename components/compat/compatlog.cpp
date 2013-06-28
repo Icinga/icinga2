@@ -21,6 +21,8 @@
 #include "icinga/checkresultmessage.h"
 #include "icinga/downtimemessage.h"
 #include "icinga/service.h"
+#include "icinga/notification.h"
+#include "icinga/notificationmessage.h"
 #include "icinga/macroprocessor.h"
 #include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
@@ -67,6 +69,8 @@ void CompatLog::Start(void)
 	    boost::bind(&CompatLog::CheckResultRequestHandler, this, _3));
 	m_Endpoint->RegisterTopicHandler("icinga::Downtime",
 	    boost::bind(&CompatLog::DowntimeRequestHandler, this, _3));
+	m_Endpoint->RegisterTopicHandler("icinga::NotificationSent",
+	    boost::bind(&CompatLog::NotificationSentRequestHandler, this, _3));
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLog::RotationTimerHandler, this));
@@ -271,6 +275,93 @@ void CompatLog::DowntimeRequestHandler(const RequestMessage& request)
 		Flush();
 	}
 }
+
+/**
+ * @threadsafety Always.
+ */
+void CompatLog::NotificationSentRequestHandler(const RequestMessage& request)
+{
+	Log(LogWarning, "compat", "Got notification");
+
+        NotificationMessage params;
+        if (!request.GetParams(&params))
+                return;
+
+        String svcname = params.GetService();
+        Service::Ptr service = Service::GetByName(svcname);
+
+	Log(LogWarning, "compat", "Got notification for service" + svcname);
+
+        Host::Ptr host = service->GetHost();
+
+        if (!host)
+                return;
+
+	String username = params.GetUser();
+	String author = params.GetAuthor();
+	String comment_text = params.GetCommentText();
+
+	NotificationType notification_type = params.GetType();
+	String notification_type_str = Notification::NotificationTypeToString(notification_type);
+
+	String author_comment = "";
+	if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {
+		author_comment = ";" + author + ";" + comment_text;
+	}
+
+        Dictionary::Ptr cr = params.GetCheckResult();
+        if (!cr)
+                return;
+
+	String output;
+	String raw_output;
+
+        if (cr) {
+                raw_output = cr->Get("output");
+                size_t line_end = raw_output.Find("\n");
+
+                output = raw_output.SubStr(0, line_end);
+        }
+
+        std::ostringstream msgbuf;
+        msgbuf << "SERVICE NOTIFICATION: "
+		<< username << ";"
+                << host->GetName() << ";"
+                << service->GetShortName() << ";"
+                << notification_type_str << " "
+		<< "(" << Service::StateToString(service->GetState()) << ");"
+		<< service->GetCheckCommandName() << ";"
+		<< raw_output << author_comment
+                << "";
+
+        {
+                ObjectLock oLock(this);
+                WriteLine(msgbuf.str());
+        }
+
+        if (service == host->GetHostCheckService()) {
+                std::ostringstream msgbuf;
+                msgbuf << "HOST NOTIFICATION: "
+			<< username << ";"
+                        << host->GetName() << ";"
+                	<< notification_type_str << " "
+			<< "(" << Service::StateToString(service->GetState()) << ");"
+			<< service->GetCheckCommandName() << ";"
+			<< raw_output << author_comment
+                        << "";
+
+                {
+                        ObjectLock oLock(this);
+                        WriteLine(msgbuf.str());
+                }
+        }
+
+        {
+                ObjectLock oLock(this);
+                Flush();
+        }
+}
+
 
 void CompatLog::WriteLine(const String& line)
 {
