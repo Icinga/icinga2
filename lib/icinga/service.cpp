@@ -22,6 +22,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/macroprocessor.h"
+#include "icinga/downtimemessage.h"
 #include "config/configitembuilder.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -33,6 +34,8 @@
 using namespace icinga;
 
 REGISTER_TYPE(Service);
+
+boost::once_flag Service::m_OnceFlag = BOOST_ONCE_INIT;
 
 Service::Service(const Dictionary::Ptr& serializedObject)
 	: DynamicObject(serializedObject), m_CheckRunning(false)
@@ -90,6 +93,8 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("enable_flapping", Attribute_Config, &m_EnableFlapping);
 
 	SetSchedulingOffset(rand());
+
+	boost::call_once(m_OnceFlag, &Service::Initialize);
 }
 
 Service::~Service(void)
@@ -98,6 +103,13 @@ Service::~Service(void)
 	Host::InvalidateServicesCache();
 	Service::InvalidateDowntimesCache();
 	Service::InvalidateCommentsCache();
+}
+
+void Service::Initialize(void)
+{
+	m_Endpoint = Endpoint::MakeEndpoint("service", false);
+	m_Endpoint->RegisterTopicHandler("icinga::Downtime",
+	    boost::bind(&Service::DowntimeRequestHandler, _3));
 }
 
 void Service::OnRegistrationCompleted(void)

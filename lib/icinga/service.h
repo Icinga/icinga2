@@ -25,9 +25,13 @@
 #include "icinga/host.h"
 #include "icinga/timeperiod.h"
 #include "icinga/notification.h"
+#include "remoting/requestmessage.h"
+#include "remoting/endpoint.h"
+#include "base/i2-base.h"
 #include "base/dynamicobject.h"
 #include "base/array.h"
 #include <boost/signals2.hpp>
+#include <boost/thread/once.hpp>
 
 namespace icinga
 {
@@ -191,6 +195,7 @@ public:
 
 	static boost::signals2::signal<void (const Service::Ptr&)> OnCheckerChanged;
 	static boost::signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> OnDowntimeChanged;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
@@ -311,10 +316,16 @@ private:
 	bool m_CheckRunning;
 	long m_SchedulingOffset;
 
+	static boost::once_flag m_OnceFlag;
+	static Endpoint::Ptr m_Endpoint;
+
+	static void Initialize(void);
+
 	/* Downtimes */
 	Attribute<Dictionary::Ptr> m_Downtimes;
 
 	static void DowntimesExpireTimerHandler(void);
+	static void DowntimeRequestHandler(const RequestMessage& request);
 
 	void RemoveExpiredDowntimes(void);
 

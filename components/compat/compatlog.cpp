@@ -68,10 +68,10 @@ void CompatLog::Start(void)
 	m_Endpoint = Endpoint::MakeEndpoint("compatlog_" + GetName(), false);
 	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
 	    boost::bind(&CompatLog::CheckResultRequestHandler, this, _3));
-	m_Endpoint->RegisterTopicHandler("icinga::Downtime",
-	    boost::bind(&CompatLog::DowntimeRequestHandler, this, _3));
 	m_Endpoint->RegisterTopicHandler("icinga::NotificationSent",
 	    boost::bind(&CompatLog::NotificationSentRequestHandler, this, _3));
+
+	Service::OnDowntimeChanged.connect(bind(&CompatLog::DowntimeHandler, this, _1, _2));
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLog::RotationTimerHandler, this));
@@ -208,21 +208,13 @@ void CompatLog::CheckResultRequestHandler(const RequestMessage& request)
 /**
  * @threadsafety Always.
  */
-void CompatLog::DowntimeRequestHandler(const RequestMessage& request)
+void CompatLog::DowntimeHandler(const Service::Ptr& service, DowntimeState downtime_state)
 {
-	DowntimeMessage params;
-	if (!request.GetParams(&params))
-		return;
-
-	String svcname = params.GetService();
-	Service::Ptr service = Service::GetByName(svcname);
-
 	Host::Ptr host = service->GetHost();
 
 	if (!host)
 		return;
 
-	DowntimeState downtime_state = params.GetState();
 	String downtime_state_str;
 	String downtime_output;
 

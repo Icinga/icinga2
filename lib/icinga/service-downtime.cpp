@@ -39,6 +39,20 @@ static bool l_DowntimesCacheNeedsUpdate = false;
 static Timer::Ptr l_DowntimesCacheTimer;
 static Timer::Ptr l_DowntimesExpireTimer;
 
+boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> Service::OnDowntimeChanged;
+
+void Service::DowntimeRequestHandler(const RequestMessage& request)
+{
+	DowntimeMessage params;
+	if (!request.GetParams(&params))
+		return;
+
+	String svcname = params.GetService();
+	Service::Ptr service = Service::GetByName(svcname);
+
+	OnDowntimeChanged(service, params.GetState());
+}
+
 int Service::GetNextDowntimeID(void)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);

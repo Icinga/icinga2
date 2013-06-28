@@ -20,6 +20,7 @@
 #ifndef COMPATLOG_H
 #define COMPATLOG_H
 
+#include "icinga/service.h"
 #include "remoting/endpoint.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
@@ -63,8 +64,8 @@ private:
 
 	Endpoint::Ptr m_Endpoint;
 	void CheckResultRequestHandler(const RequestMessage& request);
-	void DowntimeRequestHandler(const RequestMessage& request);
 	void NotificationSentRequestHandler(const RequestMessage& request);
+	void DowntimeHandler(const Service::Ptr& service, DowntimeState downtime_state);
 
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);
