@@ -28,7 +28,7 @@ namespace icinga
 {
 
 /**
- * A state change message for a service.
+ * A downtime message for a service.
  *
  * @ingroup icinga
  */
