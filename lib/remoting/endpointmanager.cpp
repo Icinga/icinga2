@@ -274,7 +274,7 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 
 /**
  * Sends an anonymous message to all recipients who have a subscription for the
- * message#s topic.
+ * message's topic.
  *
  * @param message The message.
  */
@@ -308,6 +308,7 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
 		if (sender == recipient)
 			continue;
 
+		Log(LogDebug, "remoting", "Send multicast message using method " + method);
 		if (recipient->HasSubscription(method))
 			SendUnicastMessage(sender, recipient, message);
 	}
