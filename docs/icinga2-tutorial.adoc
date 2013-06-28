@@ -592,16 +592,16 @@ The 'notification_period' attribute is also valid in 'User' and 'Notification' o
 Dependencies
 ------------
 
-If you are familiar with Icinga 1.x Host/Service Dependencies and the Parent-Child logic on hosts,
-you might want to look at the conversion script converting your existing configuration. There are
-no extry dependency objects anymore, and no extra parent attribute either.
+If you are familiar with Icinga 1.x host/service dependencies and parent/child relations on hosts,
+you might want to look at the conversion script in order to convert your existing configuration. There are
+no separate dependency objects anymore, and no separate parent attribute either.
 
 Using Icinga 2, we can directly define a dependency in the current host or service object to any other
-host or service object. If we want other objects to inherit those dependency attributes, we may just
+host or service object. If we want other objects to inherit those dependency attributes, we can also
 define them in a template.
 
-Looking at the following example, we've added a cluster host with the service 'ping' on which we want
-to depend on when defining checks for our client host.
+In the following example we've added a cluster host with the service 'ping' which we are going to define
+a dependency for in another host.
 
 ----
 template Service "my-cluster-ping" {
@@ -627,7 +627,7 @@ template Service "my-cluster-dependency" {
 }
 ----
 
-Now use that template for the 'ping' service we've defined previously and assign the servicedependencies
+Now let's use that template for the 'ping' service we've defined previously and assign the servicedependencies
 to that service.
 
 ----
@@ -643,11 +643,11 @@ to that service.
 Performance Data
 ----------------
 
-Due to the reason that there is no host check in Icinga 2, the PerfdataWriter object will only write service
-performance data files. Loading the object will allow you to set the perfdata_path, format_template and rotation_interval.
+Because there are no host checks in Icinga 2, the PerfdataWriter object will only write service
+performance data files. Creating the object will allow you to set the perfdata_path, format_template and rotation_interval.
 The format template is similar to existing Icinga 1.x configuration for PNP or inGraph using macro formatted strings.
 
-Details on the common Icinga 1.x macros can be found on http://docs.icinga.org/latest/en/macrolist.html
+Details on the common Icinga 1.x macros can be found at http://docs.icinga.org/latest/en/macrolist.html
 
 NOTE: You can define multiple PerfdataWriter objects with different configuration settings, i.e. one for PNP, one for inGraph
 or your preferred graphite collector.
@@ -662,7 +662,8 @@ local object PerfdataWriter "pnp" {
 }
 ----
 
-Now tell your NPCD daemon where to look for new performance data in the PNP provided npcd.cfg
+You may need to reconfigure your NPCD daemon with the correct path for your performance data files. This can
+be done in the PNP configuration file npcd.cfg:
 
 ----
 perfdata_spool_dir = /var/lib/icinga2/
@@ -672,11 +673,11 @@ perfdata_spool_dir = /var/lib/icinga2/
 Custom Attributes
 -----------------
 
-In Icinga 1.x there were so-called "Custom Variables" available prefixed with an underscore, as well
+In Icinga 1.x there were so-called "custom variables" available prefixed with an underscore, as well
 as plenty of other attributes such as action_url, notes_url, icon_image, etc. To overcome the limitations
 of hardcoded custom attributes, Icinga 2 ships with the 'custom' attribute as dictionary.
 
-Having PNP for graphing installed, we should add a reference url to Icinga Classic UI by using the classic
+For example, if you have PNP installed we could add a reference url to Icinga Classic UI by using the classic
 method of defining an action_url.
 
 ----
@@ -697,7 +698,7 @@ And add that template again to our service definition:
         ...
 ----
 
-While at it, our configuration tool will add its ldap dn and a snmp community to the service too, using += for
+While at it, our configuration tool will add its LDAP DN and a snmp community to the service too, using += for
 additive attributes:
 
 ----
