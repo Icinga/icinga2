@@ -39,8 +39,6 @@ HostGroup::HostGroup(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-	RegisterAttribute("notes_url", Attribute_Config, &m_NotesUrl);
-	RegisterAttribute("action_url", Attribute_Config, &m_ActionUrl);
 }
 
 HostGroup::~HostGroup(void)
@@ -61,16 +59,6 @@ String HostGroup::GetDisplayName(void) const
 		return m_DisplayName;
 	else
 		return GetName();
-}
-
-String HostGroup::GetNotesUrl(void) const
-{
-	return m_NotesUrl;
-}
-
-String HostGroup::GetActionUrl(void) const
-{
-	return m_ActionUrl;
 }
 
 HostGroup::Ptr HostGroup::GetByName(const String& name)

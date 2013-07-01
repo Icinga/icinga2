@@ -40,8 +40,6 @@ ServiceGroup::ServiceGroup(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
 {
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-	RegisterAttribute("notes_url", Attribute_Config, &m_NotesUrl);
-	RegisterAttribute("action_url", Attribute_Config, &m_ActionUrl);
 }
 
 ServiceGroup::~ServiceGroup(void)
@@ -62,16 +60,6 @@ String ServiceGroup::GetDisplayName(void) const
 		return m_DisplayName;
 	else
 		return GetName();
-}
-
-String ServiceGroup::GetNotesUrl(void) const
-{
-	return m_NotesUrl;
-}
-
-String ServiceGroup::GetActionUrl(void) const
-{
-	return m_ActionUrl;
 }
 
 ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)

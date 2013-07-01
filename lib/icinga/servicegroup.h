@@ -45,8 +45,6 @@ public:
 	static ServiceGroup::Ptr GetByName(const String& name);
 
 	String GetDisplayName(void) const;
-	String GetNotesUrl(void) const;
-	String GetActionUrl(void) const;
 
 	std::set<Service::Ptr> GetMembers(void) const;
 
@@ -57,8 +55,6 @@ protected:
 
 private:
 	Attribute<String> m_DisplayName;
-	Attribute<String> m_NotesUrl;
-	Attribute<String> m_ActionUrl;
 
 	static void RefreshMembersCache(void);
 };
