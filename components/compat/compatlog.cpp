@@ -373,11 +373,11 @@ void CompatLog::FlappingHandler(const Service::Ptr& service, FlappingState flapp
 
 	switch (flapping_state) {
 		case FlappingStarted:
-			flapping_output = "Service appears to have started flapping (00.0% change >= 00.0% threshold)";
+			flapping_output = "Service appears to have started flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change >= " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
 			flapping_state_str = "STARTED";
 			break;
 		case FlappingStopped:
-			flapping_output = "Service appears to have stopped flapping (00.0% change < 00.1% threshold)";
+			flapping_output = "Service appears to have stopped flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change < " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
 			flapping_state_str = "STOPPED";
 			break;
 		case FlappingDisabled:
