@@ -461,12 +461,11 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	olock.Unlock();
 
-	Log(LogDebug, "icinga", "Flapping: Service " +
-			GetName() + " was: " +
-			Convert::ToString(was_flapping) + " is: " +
-			Convert::ToString(was_flapping) + " threshold: " +
-			Convert::ToString(GetFlappingThreshold()) + "% current: " +
-			Convert::ToString(GetFlappingCurrent()) + "%.");
+	Log(LogDebug, "icinga", "Flapping: Service " + GetName() +
+			" was: " + Convert::ToString(was_flapping) +
+			" is: " + Convert::ToString(is_flapping) +
+			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
+			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
 
 	/* Flush the object so other instances see the service's
 	 * new state when they receive the CheckResult message */
