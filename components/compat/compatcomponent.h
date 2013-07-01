@@ -106,6 +106,8 @@ private:
 	void DumpServiceStatus(std::ostream& fp, const Service::Ptr& service);
 	void DumpServiceObject(std::ostream& fp, const Service::Ptr& service);
 
+	void DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object);
+
 	void StatusTimerHandler(void);
 };
 

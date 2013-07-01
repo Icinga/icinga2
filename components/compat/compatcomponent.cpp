@@ -25,6 +25,7 @@
 #include "icinga/servicegroup.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
+#include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/application.h"
@@ -328,6 +329,8 @@ void CompatComponent::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 
 	}
 
+	DumpCustomAttributes(fp, host);
+
 	fp << "\t" << "}" << "\n"
 	   << "\n";
 }
@@ -471,10 +474,13 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
-   		   << "\t" << "notification_interval" << "\t" << notification_interval / 60.0 << "\n"
-		   << "\t" << "}" << "\n"
-		   << "\n";
+   		   << "\t" << "notification_interval" << "\t" << notification_interval / 60.0 << "\n";
 	}
+
+	DumpCustomAttributes(fp, service);
+
+	fp << "\t" << "}" << "\n"
+	   << "\n";
 
 	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
 		Host::Ptr host = service->GetHost();
@@ -496,6 +502,27 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "notification_failure_criteria" << "\t" << "w,u,c" << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
+	}
+}
+
+void CompatComponent::DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object)
+{
+	Dictionary::Ptr custom = object->Get("custom");
+
+	if (!custom)
+		return;
+
+	ObjectLock olock(custom);
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), custom) {
+		fp << "\t";
+
+		if (key != "action_url" && key != "notes_url" && key != "icon_image" &&
+		    key != "icon_image_alt" && key != "statusmap_image" && "2d_coords")
+			fp << "_";
+
+		fp << key << "\t" << Convert::ToString(value) << "\n";
 	}
 }
 
