@@ -102,7 +102,6 @@ public:
 	Array::Ptr GetGroups(void) const;
 	String GetHostName(void) const;
 	String GetShortName(void) const;
-	String GetCheckCommandName(void) const;
 
 	std::set<Host::Ptr> GetParentHosts(void) const;
 	std::set<Service::Ptr> GetParentServices(void) const;

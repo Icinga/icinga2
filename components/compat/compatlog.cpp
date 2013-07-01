@@ -21,6 +21,7 @@
 #include "icinga/checkresultmessage.h"
 #include "icinga/downtimemessage.h"
 #include "icinga/service.h"
+#include "icinga/checkcommand.h"
 #include "icinga/notification.h"
 #include "icinga/notificationmessage.h"
 #include "icinga/macroprocessor.h"
@@ -281,16 +282,12 @@ void CompatLog::DowntimeRequestHandler(const RequestMessage& request)
  */
 void CompatLog::NotificationSentRequestHandler(const RequestMessage& request)
 {
-	Log(LogWarning, "compat", "Got notification");
-
         NotificationMessage params;
         if (!request.GetParams(&params))
                 return;
 
         String svcname = params.GetService();
         Service::Ptr service = Service::GetByName(svcname);
-
-	Log(LogWarning, "compat", "Got notification for service" + svcname);
 
         Host::Ptr host = service->GetHost();
 
@@ -300,6 +297,12 @@ void CompatLog::NotificationSentRequestHandler(const RequestMessage& request)
 	String username = params.GetUser();
 	String author = params.GetAuthor();
 	String comment_text = params.GetCommentText();
+
+	CheckCommand::Ptr commandObj = service->GetCheckCommand();
+
+	String check_command = "";
+	if (commandObj)
+		check_command = commandObj->GetName();
 
 	NotificationType notification_type = params.GetType();
 	String notification_type_str = Notification::NotificationTypeToString(notification_type);
@@ -330,7 +333,7 @@ void CompatLog::NotificationSentRequestHandler(const RequestMessage& request)
                 << service->GetShortName() << ";"
                 << notification_type_str << " "
 		<< "(" << Service::StateToString(service->GetState()) << ");"
-		<< service->GetCheckCommandName() << ";"
+		<< check_command << ";"
 		<< raw_output << author_comment
                 << "";
 
@@ -346,7 +349,7 @@ void CompatLog::NotificationSentRequestHandler(const RequestMessage& request)
                         << host->GetName() << ";"
                 	<< notification_type_str << " "
 			<< "(" << Service::StateToString(service->GetState()) << ");"
-			<< service->GetCheckCommandName() << ";"
+			<< check_command << ";"
 			<< raw_output << author_comment
                         << "";
 
