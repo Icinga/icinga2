@@ -32,6 +32,14 @@ using namespace icinga;
 
 #define FLAPPING_INTERVAL (30 * 60)
 
+double Service::GetFlappingCurrent(void) const
+{
+	if (m_FlappingNegative.IsEmpty() || m_FlappingPositive.IsEmpty())
+		return 0;
+
+	return 100 * m_FlappingPositive / (m_FlappingPositive + m_FlappingNegative);
+}
+
 double Service::GetFlappingThreshold(void) const
 {
 	if (m_FlappingThreshold.IsEmpty())
@@ -105,14 +113,5 @@ void Service::UpdateFlappingStatus(bool stateChange)
 
 bool Service::IsFlapping(void) const
 {
-	double threshold = 20;
-
-	if (!m_FlappingThreshold.IsEmpty())
-		threshold = m_FlappingThreshold;
-
-	if (m_FlappingNegative.IsEmpty() || m_FlappingPositive.IsEmpty())
-		return false;
-
-	return (m_FlappingPositive > threshold * (m_FlappingPositive + m_FlappingNegative) / 100);
-
+	return GetFlappingCurrent() > GetFlappingThreshold();
 }

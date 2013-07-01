@@ -269,6 +269,7 @@ public:
 	bool GetEnableFlapping(void) const;
 	void SetEnableFlapping(bool enabled);
 
+	double GetFlappingCurrent(void) const;
 	double GetFlappingThreshold(void) const;
 
 	bool IsFlapping(void) const;
