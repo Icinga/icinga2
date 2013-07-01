@@ -35,6 +35,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Service);
 
+Endpoint::Ptr Service::m_Endpoint;
 boost::once_flag Service::m_OnceFlag = BOOST_ONCE_INIT;
 
 Service::Service(const Dictionary::Ptr& serializedObject)
