@@ -27,6 +27,7 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/convert.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
@@ -460,6 +461,13 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	olock.Unlock();
 
+	Log(LogDebug, "icinga", "Flapping: Service " +
+			GetName() + " was: " +
+			Convert::ToString(was_flapping) + " is: " +
+			Convert::ToString(was_flapping) + " threshold: " +
+			Convert::ToString(GetFlappingThreshold()) + "% current: " +
+			Convert::ToString(GetFlappingCurrent()) + "%.");
+
 	/* Flush the object so other instances see the service's
 	 * new state when they receive the CheckResult message */
 	Flush();
@@ -495,6 +503,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		rm.SetParams(params);
 
 		EndpointManager::GetInstance()->SendMulticastMessage(rm);
+
+		Log(LogDebug, "icinga", "Flapping: Service " + GetName() + " started flapping (" + Convert::ToString(GetFlappingThreshold()) + "% < " + Convert::ToString(GetFlappingCurrent()) + "%).");
 	}
 	else if (was_flapping && !is_flapping) {
 		RequestNotifications(NotificationFlappingEnd, cr);
@@ -509,6 +519,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		rm.SetParams(params);
 
 		EndpointManager::GetInstance()->SendMulticastMessage(rm);
+
+		Log(LogDebug, "icinga", "Flapping: Service " + GetName() + " stopped flapping (" + Convert::ToString(GetFlappingThreshold()) + "% >= " + Convert::ToString(GetFlappingCurrent()) + "%).");
 	}
 	else if (send_notification)
 		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem, cr);

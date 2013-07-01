@@ -118,6 +118,10 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM", &ExternalCommandProcessor::AcknowledgeHostProblem);
 	RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM_EXPIRE", &ExternalCommandProcessor::AcknowledgeHostProblemExpire);
 	RegisterCommand("REMOVE_HOST_ACKNOWLEDGEMENT", &ExternalCommandProcessor::RemoveHostAcknowledgement);
+	RegisterCommand("DISABLE_HOST_FLAP_DETECTION", &ExternalCommandProcessor::DisableHostFlapping);
+	RegisterCommand("ENABLE_HOST_FLAP_DETECTION", &ExternalCommandProcessor::EnableHostFlapping);
+	RegisterCommand("DISABLE_SVC_FLAP_DETECTION", &ExternalCommandProcessor::DisableSvcFlapping);
+	RegisterCommand("ENABLE_SVC_FLAP_DETECTION", &ExternalCommandProcessor::EnableSvcFlapping);
 	RegisterCommand("ENABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommandProcessor::EnableHostgroupSvcChecks);
 	RegisterCommand("DISABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommandProcessor::DisableHostgroupSvcChecks);
 	RegisterCommand("ENABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommandProcessor::EnableServicegroupSvcChecks);
