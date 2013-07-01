@@ -37,6 +37,9 @@
     <ClCompile Include="downtimemessage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="flappingmessage.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
     <ClCompile Include="service-comment.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -115,6 +118,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="downtimemessage.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="flappingmessage.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="pluginnotificationtask.h">

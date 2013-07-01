@@ -24,6 +24,7 @@
     <ClCompile Include="cib.cpp" />
     <ClCompile Include="downtimemessage.cpp" />
     <ClCompile Include="externalcommandprocessor.cpp" />
+    <ClCompile Include="flappingmessage.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="hostgroup.cpp" />
     <ClCompile Include="icinga-type.cpp">
@@ -58,6 +59,7 @@
     <ClInclude Include="cib.h" />
     <ClInclude Include="downtimemessage.h" />
     <ClInclude Include="externalcommandprocessor.h" />
+    <ClInclude Include="flappingmessage.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="hostgroup.h" />
     <ClInclude Include="i2-icinga.h" />

@@ -27,6 +27,8 @@ libicinga_la_SOURCES =  \
 	eventcommand.h \
 	externalcommandprocessor.cpp \
 	externalcommandprocessor.h \
+	flappingmessage.cpp \
+	flappingmessage.h \
 	host.cpp \
 	hostgroup.cpp \
 	hostgroup.h \

@@ -111,6 +111,8 @@ void Service::Initialize(void)
 	m_Endpoint = Endpoint::MakeEndpoint("service", false);
 	m_Endpoint->RegisterTopicHandler("icinga::Downtime",
 	    boost::bind(&Service::DowntimeRequestHandler, _3));
+	m_Endpoint->RegisterTopicHandler("icinga::Flapping",
+	    boost::bind(&Service::FlappingRequestHandler, _3));
 }
 
 void Service::OnRegistrationCompleted(void)

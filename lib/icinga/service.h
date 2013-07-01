@@ -73,6 +73,18 @@ enum DowntimeState
 	DowntimeStopped = 2
 };
 
+/**
+ * The sate of service flapping.
+ *
+ * @ingroup icinga
+ */
+enum FlappingState
+{
+	FlappingStarted = 0,
+	FlappingDisabled = 1,
+	FlappingStopped = 2
+};
+
 class CheckCommand;
 class EventCommand;
 
@@ -196,6 +208,7 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&)> OnCheckerChanged;
 	static boost::signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> OnDowntimeChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
@@ -359,6 +372,8 @@ private:
 	Attribute<long> m_FlappingNegative;
 	Attribute<double> m_FlappingLastChange;
 	Attribute<double> m_FlappingThreshold;
+
+	static void FlappingRequestHandler(const RequestMessage& request);
 };
 
 }

@@ -21,6 +21,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/checkresultmessage.h"
+#include "icinga/flappingmessage.h"
 #include "icinga/cib.h"
 #include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
@@ -38,6 +39,7 @@ const double Service::CheckIntervalDivisor = 5.0;
 
 boost::signals2::signal<void (const Service::Ptr&)> Service::OnCheckerChanged;
 boost::signals2::signal<void (const Service::Ptr&)> Service::OnNextCheckChanged;
+boost::signals2::signal<void (const Service::Ptr&, FlappingState)> Service::OnFlappingChanged;
 
 CheckCommand::Ptr Service::GetCheckCommand(void) const
 {
@@ -480,10 +482,34 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	if (send_downtime_notification)
 		RequestNotifications(in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr);
 
-	if (!was_flapping && is_flapping)
+	if (!was_flapping && is_flapping) {
 		RequestNotifications(NotificationFlappingStart, cr);
-	else if (was_flapping && !is_flapping)
+
+		RequestMessage rm;
+		rm.SetMethod("icinga::Flapping");
+
+		FlappingMessage params;
+		params.SetService(GetName());
+		params.SetState(FlappingStarted);
+
+		rm.SetParams(params);
+
+		EndpointManager::GetInstance()->SendMulticastMessage(rm);
+	}
+	else if (was_flapping && !is_flapping) {
 		RequestNotifications(NotificationFlappingEnd, cr);
+
+		RequestMessage rm;
+		rm.SetMethod("icinga::Flapping");
+
+		FlappingMessage params;
+		params.SetService(GetName());
+		params.SetState(FlappingStopped);
+
+		rm.SetParams(params);
+
+		EndpointManager::GetInstance()->SendMulticastMessage(rm);
+	}
 	else if (send_notification)
 		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem, cr);
 }

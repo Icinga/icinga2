@@ -72,6 +72,7 @@ void CompatLog::Start(void)
 	    boost::bind(&CompatLog::NotificationSentRequestHandler, this, _3));
 
 	Service::OnDowntimeChanged.connect(bind(&CompatLog::DowntimeHandler, this, _1, _2));
+	Service::OnFlappingChanged.connect(bind(&CompatLog::FlappingHandler, this, _1, _2));
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLog::RotationTimerHandler, this));
@@ -357,6 +358,70 @@ void CompatLog::NotificationSentRequestHandler(const RequestMessage& request)
         }
 }
 
+/**
+ * @threadsafety Always.
+ */
+void CompatLog::FlappingHandler(const Service::Ptr& service, FlappingState flapping_state)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	String flapping_state_str;
+	String flapping_output;
+
+	switch (flapping_state) {
+		case FlappingStarted:
+			flapping_output = "Service appears to have started flapping (00.0% change >= 00.0% threshold)";
+			flapping_state_str = "STARTED";
+			break;
+		case FlappingStopped:
+			flapping_output = "Service appears to have stopped flapping (00.0% change < 00.1% threshold)";
+			flapping_state_str = "STOPPED";
+			break;
+		case FlappingDisabled:
+			flapping_output = "Flap detection has been disabled";
+			flapping_state_str = "DISABLED";
+			break;
+		default:
+			Log(LogCritical, "compat", "Unknown flapping state: " + Convert::ToString(flapping_state));
+			return;
+	}
+
+        std::ostringstream msgbuf;
+        msgbuf << "SERVICE FLAPPING ALERT: "
+                << host->GetName() << ";"
+                << service->GetShortName() << ";"
+                << flapping_state_str << "; "
+                << flapping_output
+                << "";
+
+        {
+                ObjectLock oLock(this);
+                WriteLine(msgbuf.str());
+        }
+
+        if (service == host->GetHostCheckService()) {
+                std::ostringstream msgbuf;
+                msgbuf << "HOST FLAPPING ALERT: "
+                        << host->GetName() << ";"
+                        << flapping_state_str << "; "
+                        << flapping_output
+                        << "";
+
+                {
+                        ObjectLock oLock(this);
+                        WriteLine(msgbuf.str());
+                }
+        }
+
+        {
+                ObjectLock oLock(this);
+                Flush();
+        }
+
+}
 
 void CompatLog::WriteLine(const String& line)
 {

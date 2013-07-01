@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
+#include "icinga/flappingmessage.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -46,6 +47,18 @@ double Service::GetFlappingThreshold(void) const
 		return 30;
 	else
 		return m_FlappingThreshold;
+}
+
+void Service::FlappingRequestHandler(const RequestMessage& request)
+{
+	FlappingMessage params;
+	if (!request.GetParams(&params))
+		return;
+
+	String svcname = params.GetService();
+	Service::Ptr service = Service::GetByName(svcname);
+
+	OnFlappingChanged(service, params.GetState());
 }
 
 bool Service::GetEnableFlapping(void) const

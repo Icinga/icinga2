@@ -17,65 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef COMPATLOG_H
-#define COMPATLOG_H
+#include "icinga/flappingmessage.h"
 
-#include "icinga/service.h"
-#include "remoting/endpoint.h"
-#include "base/dynamicobject.h"
-#include "base/timer.h"
-#include <fstream>
+using namespace icinga;
 
-namespace icinga
+String FlappingMessage::GetService(void) const
 {
-
-/**
- * An Icinga compat log writer.
- *
- * @ingroup compat
- */
-class CompatLog : public DynamicObject
-{
-public:
-	typedef shared_ptr<CompatLog> Ptr;
-	typedef weak_ptr<CompatLog> WeakPtr;
-
-	CompatLog(const Dictionary::Ptr& serializedUpdate);
-
-	static CompatLog::Ptr GetByName(const String& name);
-
-	String GetLogDir(void) const;
-	String GetRotationMethod(void) const;
-
-	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
-
-protected:
-	virtual void OnAttributeChanged(const String& name);
-	virtual void Start(void);
-
-private:
-	Attribute<String> m_LogDir;
-	Attribute<String> m_RotationMethod;
-
-	double m_LastRotation;
-
-	void WriteLine(const String& line);
-	void Flush(void);
-
-	Endpoint::Ptr m_Endpoint;
-	void CheckResultRequestHandler(const RequestMessage& request);
-	void NotificationSentRequestHandler(const RequestMessage& request);
-	void DowntimeHandler(const Service::Ptr& service, DowntimeState downtime_state);
-	void FlappingHandler(const Service::Ptr& service, FlappingState flapping_state);
-
-	Timer::Ptr m_RotationTimer;
-	void RotationTimerHandler(void);
-	void ScheduleNextRotation(void);
-
-	std::ofstream m_OutputFile;
-	void ReopenFile(bool rotate);
-};
-
+	String service;
+	Get("service", &service);
+	return service;
 }
 
-#endif /* COMPATLOG_H */
+void FlappingMessage::SetService(const String& service)
+{
+	Set("service", service);
+}
+
+FlappingState FlappingMessage::GetState(void) const
+{
+	long state;
+	Get("state", &state);
+	return static_cast<FlappingState>(state);
+}
+
+void FlappingMessage::SetState(FlappingState state)
+{
+	Set("state", state);
+}
