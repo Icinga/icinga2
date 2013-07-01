@@ -229,6 +229,46 @@ void CompatComponent::DumpComments(std::ostream& fp, const Service::Ptr& owner, 
 	}
 }
 
+void CompatComponent::DumpTimeperiods(std::ostream& fp, const Service::Ptr& owner)
+{
+
+}
+void CompatComponent::DumpCommands(std::ostream& fp, const Service::Ptr& owner)
+{
+	/* check_command, event_command -> service
+	 * notification_command -> GetNotifications() -> GetNotificationCommand()
+	 */
+	CheckCommand::Ptr check_command = owner->GetCheckCommand();
+	EventCommand::Ptr event_command = owner->GetEventCommand();
+
+	if (check_command) {
+		fp << "define command {" << "\n"
+		   << "\t" << "command_name\t" << check_command->GetName() << "\n"
+		   << "\t" << "command_line\t" << check_command->GetCommandLine() << "\n"
+		   << "\t" << "}" << "\n"
+		   << "\n";
+	}
+
+	if (event_command) {
+		fp << "define command {" << "\n"
+		   << "\t" << "command_name\t" << event_command->GetName() << "\n"
+		   << "\t" << "command_line\t" << event_command->GetCommandLine() << "\n"
+		   << "\t" << "}" << "\n"
+		   << "\n";
+	}
+        BOOST_FOREACH(const Notification::Ptr& notification, owner->GetNotifications()) {
+		NotificationCommand::Ptr notification_command = notification->GetNotificationCommand();
+		if(!notification_command)
+			continue;
+
+		fp << "define command {" << "\n"
+		   << "\t" << "command_name\t" << notification_command->GetName() << "\n"
+		   << "\t" << "command_line\t" << notification_command->GetCommandLine() << "\n"
+		   << "\t" << "}" << "\n"
+		   << "\n";
+        }
+
+}
 void CompatComponent::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Host::Ptr host = owner->GetHost();
@@ -546,6 +586,8 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}
+
+	DumpCommands(fp, service);
 }
 
 void CompatComponent::DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object)

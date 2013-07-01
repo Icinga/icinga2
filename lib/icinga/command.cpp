@@ -54,3 +54,8 @@ bool Command::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, Strin
 
 	return false;
 }
+
+String Command::GetCommandLine(void) const
+{
+	return Get("command");
+}

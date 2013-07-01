@@ -65,6 +65,8 @@ private:
 	String GetObjectsPath(void) const;
 	String GetCommandPath(void) const;
 
+	void DumpCommands(std::ostream& fp, const Service::Ptr& owner);
+	void DumpTimeperiods(std::ostream& fp, const Service::Ptr& owner);
 	void DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
 	void DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
 	void DumpHostStatus(std::ostream& fp, const Host::Ptr& host);
