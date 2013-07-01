@@ -109,6 +109,8 @@ Service::~Service(void)
 void Service::Initialize(void)
 {
 	m_Endpoint = Endpoint::MakeEndpoint("service", false);
+	m_Endpoint->RegisterTopicHandler("icinga::NotificationSent",
+	    boost::bind(&Service::NotificationSentRequestHandler, _3));
 	m_Endpoint->RegisterTopicHandler("icinga::Downtime",
 	    boost::bind(&Service::DowntimeRequestHandler, _3));
 	m_Endpoint->RegisterTopicHandler("icinga::Flapping",

@@ -19,6 +19,7 @@
 
 #include "icinga/service.h"
 #include "icinga/notificationrequestmessage.h"
+#include "icinga/notificationmessage.h"
 #include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -35,6 +36,27 @@ static boost::mutex l_NotificationMutex;
 static std::map<String, std::set<Notification::WeakPtr> > l_NotificationsCache;
 static bool l_NotificationsCacheNeedsUpdate = false;
 static Timer::Ptr l_NotificationsCacheTimer;
+
+boost::signals2::signal<void (const Service::Ptr&, const String&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationSentChanged;
+
+void Service::NotificationSentRequestHandler(const RequestMessage& request)
+{
+	NotificationMessage params;
+	if (!request.GetParams(&params))
+		return;
+
+	String svcname = params.GetService();
+	Service::Ptr service = Service::GetByName(svcname);
+
+	String username = params.GetUser();
+	String author = params.GetAuthor();
+	String comment_text = params.GetCommentText();
+
+	NotificationType notification_type = params.GetType();
+	Dictionary::Ptr cr = params.GetCheckResult();
+
+	OnNotificationSentChanged(service, username, notification_type, cr, author, comment_text);
+}
 
 void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text)
 {

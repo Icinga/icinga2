@@ -64,8 +64,8 @@ private:
 
 	Endpoint::Ptr m_Endpoint;
 	void CheckResultRequestHandler(const RequestMessage& request);
-	void NotificationSentRequestHandler(const RequestMessage& request);
 	void DowntimeHandler(const Service::Ptr& service, DowntimeState downtime_state);
+	void NotificationSentHandler(const Service::Ptr& service, const String& username, NotificationType const& notification_type, Dictionary::Ptr const& cr, const String& author, const String& comment_text);
 	void FlappingHandler(const Service::Ptr& service, FlappingState flapping_state);
 
 	Timer::Ptr m_RotationTimer;

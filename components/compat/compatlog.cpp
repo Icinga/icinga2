@@ -68,10 +68,9 @@ void CompatLog::Start(void)
 	m_Endpoint = Endpoint::MakeEndpoint("compatlog_" + GetName(), false);
 	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
 	    boost::bind(&CompatLog::CheckResultRequestHandler, this, _3));
-	m_Endpoint->RegisterTopicHandler("icinga::NotificationSent",
-	    boost::bind(&CompatLog::NotificationSentRequestHandler, this, _3));
 
 	Service::OnDowntimeChanged.connect(bind(&CompatLog::DowntimeHandler, this, _1, _2));
+	Service::OnNotificationSentChanged.connect(bind(&CompatLog::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6));
 	Service::OnFlappingChanged.connect(bind(&CompatLog::FlappingHandler, this, _1, _2));
 
 	m_RotationTimer = boost::make_shared<Timer>();
@@ -273,23 +272,14 @@ void CompatLog::DowntimeHandler(const Service::Ptr& service, DowntimeState downt
 /**
  * @threadsafety Always.
  */
-void CompatLog::NotificationSentRequestHandler(const RequestMessage& request)
+void CompatLog::NotificationSentHandler(const Service::Ptr& service, const String& username,
+		NotificationType const& notification_type, Dictionary::Ptr const& cr,
+		const String& author, const String& comment_text)
 {
-        NotificationMessage params;
-        if (!request.GetParams(&params))
-                return;
-
-        String svcname = params.GetService();
-        Service::Ptr service = Service::GetByName(svcname);
-
         Host::Ptr host = service->GetHost();
 
         if (!host)
                 return;
-
-	String username = params.GetUser();
-	String author = params.GetAuthor();
-	String comment_text = params.GetCommentText();
 
 	CheckCommand::Ptr commandObj = service->GetCheckCommand();
 
@@ -297,7 +287,6 @@ void CompatLog::NotificationSentRequestHandler(const RequestMessage& request)
 	if (commandObj)
 		check_command = commandObj->GetName();
 
-	NotificationType notification_type = params.GetType();
 	String notification_type_str = Notification::NotificationTypeToString(notification_type);
 
 	String author_comment = "";
@@ -305,7 +294,6 @@ void CompatLog::NotificationSentRequestHandler(const RequestMessage& request)
 		author_comment = ";" + author + ";" + comment_text;
 	}
 
-        Dictionary::Ptr cr = params.GetCheckResult();
         if (!cr)
                 return;
 

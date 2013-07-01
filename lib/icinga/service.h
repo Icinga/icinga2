@@ -207,6 +207,7 @@ public:
 
 	static boost::signals2::signal<void (const Service::Ptr&)> OnCheckerChanged;
 	static boost::signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, const String&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> OnDowntimeChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
 
@@ -362,6 +363,8 @@ private:
 	Attribute<bool> m_ForceNextNotification;
 
 	static void RefreshNotificationsCache(void);
+
+	static void NotificationSentRequestHandler(const RequestMessage& request);
 
 	/* Event Handler */
 	Attribute<String> m_EventCommand;
