@@ -56,3 +56,27 @@ void NotificationRequestMessage::SetCheckResult(const Dictionary::Ptr& cr)
 {
 	Set("check_result", cr);
 }
+
+String NotificationRequestMessage::GetAuthor(void) const
+{
+	String author;
+	Get("author", &author);
+	return author;
+}
+
+void NotificationRequestMessage::SetAuthor(const String& author)
+{
+	Set("author", author);
+}
+
+String NotificationRequestMessage::GetText(void) const
+{
+	String text;
+	Get("text", &text);
+	return text;
+}
+
+void NotificationRequestMessage::SetText(const String& text)
+{
+	Set("text", text);
+}

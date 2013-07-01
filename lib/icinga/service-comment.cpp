@@ -44,16 +44,6 @@ int Service::GetNextCommentID(void)
 	return l_NextCommentID;
 }
 
-String Service::GetLastCommentID(void) const
-{
-	return m_LastCommentID;
-}
-
-void Service::SetLastCommentID(String id)
-{
-	m_LastCommentID = id;
-}
-
 Dictionary::Ptr Service::GetComments(void) const
 {
 	return m_Comments;
@@ -99,8 +89,6 @@ String Service::AddComment(CommentType entryType, const String& author,
 		comments->Set(id, comment);
 		Touch("comments");
 	}
-
-	SetLastCommentID(id);
 
 	return id;
 }

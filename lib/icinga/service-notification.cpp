@@ -36,7 +36,7 @@ static std::map<String, std::set<Notification::WeakPtr> > l_NotificationsCache;
 static bool l_NotificationsCacheNeedsUpdate = false;
 static Timer::Ptr l_NotificationsCacheTimer;
 
-void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr& cr)
+void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text)
 {
 	RequestMessage msg;
 	msg.SetMethod("icinga::SendNotifications");
@@ -47,12 +47,14 @@ void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr&
 	params.SetService(GetName());
 	params.SetType(type);
 	params.SetCheckResult(cr);
+	params.SetAuthor(author);
+	params.SetText(text);
 
 	Log(LogDebug, "icinga", "Sending notification anycast request for service '" + GetName() + "'");
 	EndpointManager::GetInstance()->SendAnycastMessage(Endpoint::Ptr(), msg);
 }
 
-void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr)
+void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text)
 {
 	bool force = false;
 
@@ -75,7 +77,7 @@ void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {
-			notification->BeginExecuteNotification(type, cr, force);
+			notification->BeginExecuteNotification(type, cr, force, author, text);
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
 			msgbuf << "Exception occured during notification for service '"

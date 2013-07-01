@@ -297,7 +297,7 @@ void Service::AcknowledgeProblem(const String& author, const String& comment, Ac
 
 	(void) AddComment(CommentAcknowledgement, author, comment, 0);
 
-	RequestNotifications(NotificationAcknowledgement, GetLastCheckResult());
+	RequestNotifications(NotificationAcknowledgement, GetLastCheckResult(), author, comment);
 }
 
 void Service::ClearAcknowledgement(void)

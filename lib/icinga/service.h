@@ -222,8 +222,6 @@ public:
 
 	/* Comments */
 	static int GetNextCommentID(void);
-	String GetLastCommentID(void) const;
-	void SetLastCommentID(String id);
 
 	Dictionary::Ptr GetComments(void) const;
 
@@ -246,8 +244,8 @@ public:
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled);
 
-	void RequestNotifications(NotificationType type, const Dictionary::Ptr& cr);
-	void SendNotifications(NotificationType type, const Dictionary::Ptr& cr);
+	void RequestNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author = "", const String& text = "");
+	void SendNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author = "", const String& text = "");
 
 	std::set<Notification::Ptr> GetNotifications(void) const;
 
@@ -324,7 +322,6 @@ private:
 
 	/* Comments */
 	Attribute<Dictionary::Ptr> m_Comments;
-	Attribute<String> m_LastCommentID;
 
 	static void CommentsExpireTimerHandler(void);
 

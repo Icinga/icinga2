@@ -1112,7 +1112,7 @@ void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vec
 			service->Flush();
 		}
 
-		service->RequestNotifications(NotificationCustom, service->GetLastCheckResult());
+		service->RequestNotifications(NotificationCustom, service->GetLastCheckResult(), arguments[2], arguments[3]);
 	}
 }
 
@@ -1132,7 +1132,7 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vect
 		service->Flush();
 	}
 
-	service->RequestNotifications(NotificationCustom, service->GetLastCheckResult());
+	service->RequestNotifications(NotificationCustom, service->GetLastCheckResult(), arguments[3], arguments[4]);
 }
 
 void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<String>& arguments)

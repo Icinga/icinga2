@@ -84,7 +84,7 @@ public:
 	double GetNextNotification(void) const;
 	void SetNextNotification(double time);
 
-	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool force);
+	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
 	static String NotificationTypeToString(NotificationType type);
 
@@ -109,7 +109,7 @@ private:
 	Attribute<String> m_HostName;
 	Attribute<String> m_Service;
 
-	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force);
+	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force, const String& author = "", const String& text = "");
 };
 
 }

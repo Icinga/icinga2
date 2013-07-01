@@ -140,5 +140,10 @@ void NotificationComponent::SendNotificationsRequestHandler(const Endpoint::Ptr&
 	if (!service)
 		return;
 
-	service->SendNotifications(static_cast<NotificationType>(type), cr);
+	String author;
+	params.Get("author", &author);
+	String text;
+	params.Get("text", &text);
+
+	service->SendNotifications(static_cast<NotificationType>(type), cr, author, text);
 }

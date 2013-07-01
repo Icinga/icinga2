@@ -234,7 +234,7 @@ String Notification::NotificationTypeToString(NotificationType type)
 	}
 }
 
-void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool force)
+void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool force, const String& author, const String& text)
 {
 	ASSERT(!OwnsLock());
 
@@ -295,11 +295,11 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
 		Log(LogDebug, "icinga", "Sending notification for user '" + user->GetName() + "'");
-		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force));
+		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
 	}
 }
 
-void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force)
+void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force, const String& author, const String& text)
 {
 	ASSERT(!OwnsLock());
 
@@ -336,20 +336,11 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		rm.SetMethod("icinga::NotificationSent");
 
 		NotificationMessage params;
-		String comment_id = GetService()->GetLastCommentID();
-		Dictionary::Ptr comment = Service::GetCommentByID(comment_id);
 
-		String author = "";
-		String text = "";
-		if (comment) {
-			author = comment->Get("author");
-			text = comment->Get("text");
-			Log(LogDebug, "icinga", "notification for service '" + GetService()->GetName() + "' with author " + author + "and text " + text);
-		}
 		params.SetService(GetService()->GetName());
 		params.SetUser(user->GetName());
 		params.SetType(type);
-		params.SetAuthor(author); // figure out how to receive these attributes properly from service->comments TODO
+		params.SetAuthor(author);
 		params.SetCommentText(text);
 		params.SetCheckResult(cr);
 

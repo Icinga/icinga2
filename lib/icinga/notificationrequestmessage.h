@@ -46,6 +46,12 @@ public:
 
 	Dictionary::Ptr GetCheckResult(void) const;
 	void SetCheckResult(const Dictionary::Ptr& cr);
+
+	String GetAuthor(void) const;
+	void SetAuthor(const String& author);
+
+	String GetText(void) const;
+	void SetText(const String& text);
 };
 
 }
