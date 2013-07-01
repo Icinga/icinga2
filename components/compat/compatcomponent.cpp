@@ -23,6 +23,10 @@
 #include "icinga/cib.h"
 #include "icinga/hostgroup.h"
 #include "icinga/servicegroup.h"
+#include "icinga/checkcommand.h"
+#include "icinga/eventcommand.h"
+#include "icinga/timeperiod.h"
+#include "icinga/notificationcommand.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
@@ -343,7 +347,24 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 	String output;
 	String long_output;
 	String perfdata;
+	String check_command = "";
+	String event_command = "";
 	double schedule_end = -1;
+
+	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
+	if (checkcommand)
+		check_command = checkcommand->GetName();
+
+	EventCommand::Ptr eventcommand = service->GetEventCommand();
+	if (eventcommand)
+		event_command = eventcommand->GetName();
+
+	String check_period_str;
+	TimePeriod::Ptr check_period = service->GetCheckPeriod();
+	if (check_period)
+		check_period_str = check_period->GetName();
+	else
+		check_period_str = "24x7";
 
 	Dictionary::Ptr cr = service->GetLastCheckResult();
 
@@ -392,7 +413,10 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 			last_notification = notification->GetLastNotification();
 	}
 
-	fp << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
+	fp << "\t" << "check_command=" << check_command << "\n"
+	   << "\t" << "check_period=" << check_period_str << "\n"
+	   << "\t" << "event_handler=" << event_command << "\n"
+	   << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
 	   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
 	   << "\t" << "should_be_scheduled=1" << "\n"
@@ -453,6 +477,19 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 	if (!host)
 		return;
 
+	String check_command = "";
+
+        CheckCommand::Ptr checkcommand = service->GetCheckCommand();
+        if (checkcommand)
+                check_command = checkcommand->GetName();
+
+        String check_period_str;
+        TimePeriod::Ptr check_period = service->GetCheckPeriod();
+        if (check_period)
+                check_period_str = check_period->GetName();
+        else
+                check_period_str = "24x7";
+
 	double notification_interval = -1;
 	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
 		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
@@ -469,12 +506,15 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
 		   << "\t" << "service_description" << "\t" << service->GetShortName() << "\n"
 		   << "\t" << "display_name" << "\t" << service->GetDisplayName() << "\n"
-		   << "\t" << "check_command" << "\t" << "check_i2" << "\n"
+		   << "\t" << "check_period" << "\t" << check_period_str << "\n"
+		   << "\t" << "check_command" << "\t" << check_command << "\n"
 		   << "\t" << "check_interval" << "\t" << service->GetCheckInterval() / 60.0 << "\n"
 		   << "\t" << "retry_interval" << "\t" << service->GetRetryInterval() / 60.0 << "\n"
-		   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
+		   << "\t" << "max_check_attempts" << "\t" << service->GetMaxCheckAttempts() << "\n"
 		   << "\t" << "active_checks_enabled" << "\t" << (service->GetEnableActiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
+		   << "\t" << "flap_detection_enabled" << "\t" << (service->GetEnableFlapping() ? 1 : 0) << "\n"
+		   << "\t" << "is_volatile" << "\t" << (service->IsVolatile() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
    		   << "\t" << "notification_interval" << "\t" << notification_interval / 60.0 << "\n";
