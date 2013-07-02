@@ -49,7 +49,7 @@ public:
 	Array::Ptr GetExportMacros(void) const;
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
-	String GetCommandLine(void) const;
+	Value GetCommandLine(void) const;
 
 private:
 	Attribute<Dictionary::Ptr> m_Macros;

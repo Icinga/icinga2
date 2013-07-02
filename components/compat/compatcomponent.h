@@ -22,6 +22,7 @@
 
 #include "icinga/host.h"
 #include "icinga/service.h"
+#include "icinga/command.h"
 #include "base/dynamicobject.h"
 #include "base/objectlock.h"
 #include "base/timer.h"
@@ -65,8 +66,8 @@ private:
 	String GetObjectsPath(void) const;
 	String GetCommandPath(void) const;
 
-	void DumpCommands(std::ostream& fp, const Service::Ptr& owner);
-	void DumpTimeperiods(std::ostream& fp, const Service::Ptr& owner);
+	void DumpCommand(std::ostream& fp, const Command::Ptr& command);
+	void DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp);
 	void DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
 	void DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
 	void DumpHostStatus(std::ostream& fp, const Host::Ptr& host);

@@ -38,7 +38,7 @@ REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 {
 	CheckCommand::Ptr commandObj = service->GetCheckCommand();
-	Value raw_command = commandObj->Get("command");
+	Value raw_command = commandObj->GetCommandLine();
 
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(commandObj);

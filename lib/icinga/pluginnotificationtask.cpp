@@ -43,7 +43,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	Service::Ptr service = notification->GetService();
 
-	Value raw_command = commandObj->Get("command");
+	Value raw_command = commandObj->GetCommandLine();
 
 	StaticMacroResolver::Ptr notificationMacroResolver = boost::make_shared<StaticMacroResolver>();
 	notificationMacroResolver->Add("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));

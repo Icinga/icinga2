@@ -229,46 +229,55 @@ void CompatComponent::DumpComments(std::ostream& fp, const Service::Ptr& owner, 
 	}
 }
 
-void CompatComponent::DumpTimeperiods(std::ostream& fp, const Service::Ptr& owner)
+void CompatComponent::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp)
 {
+	fp << "define timeperiod {" << "\n"
+	   << "\t" << "timeperiod_name" << "\t" << tp->GetName() << "\n";
 
-}
-void CompatComponent::DumpCommands(std::ostream& fp, const Service::Ptr& owner)
-{
-	/* check_command, event_command -> service
-	 * notification_command -> GetNotifications() -> GetNotificationCommand()
-	 */
-	CheckCommand::Ptr check_command = owner->GetCheckCommand();
-	EventCommand::Ptr event_command = owner->GetEventCommand();
+	Dictionary::Ptr ranges = tp->Get("ranges");
 
-	if (check_command) {
-		fp << "define command {" << "\n"
-		   << "\t" << "command_name\t" << check_command->GetName() << "\n"
-		   << "\t" << "command_line\t" << check_command->GetCommandLine() << "\n"
-		   << "\t" << "}" << "\n"
-		   << "\n";
+	if (ranges) {
+		ObjectLock olock(ranges);
+		String key;
+		Value value;
+		BOOST_FOREACH(boost::tie(key, value), ranges) {
+			fp << "\t" << key << "\t" << Convert::ToString(value) << "\n";
+		}
 	}
 
-	if (event_command) {
-		fp << "define command {" << "\n"
-		   << "\t" << "command_name\t" << event_command->GetName() << "\n"
-		   << "\t" << "command_line\t" << event_command->GetCommandLine() << "\n"
-		   << "\t" << "}" << "\n"
-		   << "\n";
-	}
-        BOOST_FOREACH(const Notification::Ptr& notification, owner->GetNotifications()) {
-		NotificationCommand::Ptr notification_command = notification->GetNotificationCommand();
-		if(!notification_command)
-			continue;
+	fp << "\t" << "}" << "\n"
+	   << "\n";
+}
 
-		fp << "define command {" << "\n"
-		   << "\t" << "command_name\t" << notification_command->GetName() << "\n"
-		   << "\t" << "command_line\t" << notification_command->GetCommandLine() << "\n"
-		   << "\t" << "}" << "\n"
-		   << "\n";
-        }
+void CompatComponent::DumpCommand(std::ostream& fp, const Command::Ptr& command)
+{
+	fp << "define command {" << "\n"
+	   << "\t" << "command_name\t" << command->GetName() << "\n";
+
+	fp << "\t" << "command_line\t";
+
+	Value commandLine = command->GetCommandLine();
+
+	if (commandLine.IsObjectType<Array>()) {
+		Array::Ptr args = commandLine;
+
+		ObjectLock olock(args);
+		String arg;
+		BOOST_FOREACH(arg, args) {
+			// This is obviously incorrect for non-trivial cases.
+			fp << " \"" << arg << "\"";
+		}
+	} else {
+		fp << Convert::ToString(commandLine) << "\n";
+	}
+
+	fp << "\n";
+
+	fp << "\t" << "}" << "\n"
+	   << "\n";
 
 }
+
 void CompatComponent::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Host::Ptr host = owner->GetHost();
@@ -586,8 +595,6 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}
-
-	DumpCommands(fp, service);
 }
 
 void CompatComponent::DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object)
@@ -781,6 +788,30 @@ void CompatComponent::StatusTimerHandler(void)
 			     << "\t" << "}" << "\n";
 
 		objectfp << tempobjectfp.str();
+	}
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("CheckCommand")) {
+		Command::Ptr command = static_pointer_cast<Command>(object);
+
+		DumpCommand(objectfp, command);
+	}
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("NotificationCommand")) {
+		Command::Ptr command = static_pointer_cast<Command>(object);
+
+		DumpCommand(objectfp, command);
+	}
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("EventCommand")) {
+		Command::Ptr command = static_pointer_cast<Command>(object);
+
+		DumpCommand(objectfp, command);
+	}
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("TimePeriod")) {
+		TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(object);
+
+		DumpTimePeriod(objectfp, tp);
 	}
 
 	statusfp.close();

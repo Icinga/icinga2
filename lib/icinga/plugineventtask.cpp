@@ -36,7 +36,7 @@ REGISTER_SCRIPTFUNCTION(PluginEvent, &PluginEventTask::ScriptFunc);
 void PluginEventTask::ScriptFunc(const Service::Ptr& service)
 {
 	EventCommand::Ptr commandObj = service->GetEventCommand();
-	Value raw_command = commandObj->Get("command");
+	Value raw_command = commandObj->GetCommandLine();
 
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(commandObj);
