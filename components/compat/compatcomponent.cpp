@@ -232,7 +232,8 @@ void CompatComponent::DumpComments(std::ostream& fp, const Service::Ptr& owner, 
 void CompatComponent::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp)
 {
 	fp << "define timeperiod {" << "\n"
-	   << "\t" << "timeperiod_name" << "\t" << tp->GetName() << "\n";
+	   << "\t" << "timeperiod_name" << "\t" << tp->GetName() << "\n"
+	   << "\t" << "alias" << "\t" << tp->GetName() << "\n";
 
 	Dictionary::Ptr ranges = tp->Get("ranges");
 
@@ -267,8 +268,10 @@ void CompatComponent::DumpCommand(std::ostream& fp, const Command::Ptr& command)
 			// This is obviously incorrect for non-trivial cases.
 			fp << " \"" << arg << "\"";
 		}
+	} else if (!commandLine.IsEmpty()) {
+		fp << Convert::ToString(commandLine);
 	} else {
-		fp << Convert::ToString(commandLine) << "\n";
+		fp << "<internal>";
 	}
 
 	fp << "\n";
