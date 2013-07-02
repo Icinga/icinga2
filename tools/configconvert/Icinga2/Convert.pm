@@ -636,6 +636,58 @@ sub obj_1x_get_service_attr {
 }
 
 # get service_description from object
+sub obj_1x_get_host_attr {
+    my $objs_1x = shift;
+    my $obj_1x = shift;
+    my $host_name = shift;
+    my $search_attr = shift;
+    my $host_attr = "";
+
+    # if this object is invalid, bail early
+    return undef if !defined($obj_1x);
+
+    # first, check if we already got a service_description here in our struct (recursion safety)
+    return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} if defined($obj_1x->{'__I2CONVERT_SEARCH_ATTR'});
+    delete $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+
+    # if this object got what we want, return (it can be recursion and a template!)
+    if(defined($obj_1x->{$search_attr})) {
+        $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $obj_1x->{$search_attr};
+        return $obj_1x->{$search_attr};
+        #return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+    }
+
+    # we don't have the attribute, should we look into a template?
+    # make sure _not_ to use
+    if (defined($obj_1x->{'__I2CONVERT_USES_TEMPLATE'}) && $obj_1x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        # get the object referenced as template - this is an array of templates, loop (funny recursion here)
+        foreach my $obj_1x_template (@{$obj_1x->{'__I2CONVERT_TEMPLATE_NAMES'}}) {
+
+            # get the template object associated with by its unique 'name' attr
+            my $obj_1x_tmpl = obj_get_tmpl_obj_by_tmpl_name($objs_1x, 'host', $obj_1x_template);
+
+            # now recurse into ourselves and look for a possible service_description
+            $host_attr = obj_1x_get_host_attr($objs_1x,$obj_1x_tmpl,$host_name,$search_attr); # we must pass the host_name and search_attr
+            #say Dumper($service_attr);
+            # bail here if search did not unveil anything
+            next if(!defined($host_attr));
+
+            # get the service attr and return - first template wins
+            $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $host_attr;
+            return $host_attr;
+            #return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+        }
+    }
+    # no template used, and not service description - broken object, ignore it
+    else {
+        return undef;
+    }
+
+    # we should never hit here
+    return undef;
+}
+
+# get service_description from object
 sub obj_1x_get_contact_attr {
     my $objs_1x = shift;
     my $obj_1x = shift;
@@ -2467,6 +2519,13 @@ sub convert_2x {
 
         #say Dumper(@$cfg_obj_2x{'host'}->{$host_obj_2x_key});
         my $obj_2x_host = @$cfg_obj_2x{'host'}->{$host_obj_2x_key};
+
+        # if there's no host check_command, we must look it up in the tree
+        if(!defined($obj_2x_host->{'check_command'})) {
+            @$cfg_obj_2x{'host'}->{$host_obj_2x_key}->{'check_command'} = obj_1x_get_host_attr($cfg_obj_1x, $obj_2x_host, $obj_2x_host->{'__I2CONVERT_HOSTNAME'}, 'check_command');
+            say Dumper("found check_command in ".$obj_2x_host->{'check_command'});
+            say Dumper(@$cfg_obj_2x{'host'}->{$host_obj_2x_key});
+        }
 
         ####################################################
         # Create Host->Service Relation for later dumping
