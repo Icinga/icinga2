@@ -266,10 +266,10 @@ void CompatComponent::DumpCommand(std::ostream& fp, const Command::Ptr& command)
 		String arg;
 		BOOST_FOREACH(arg, args) {
 			// This is obviously incorrect for non-trivial cases.
-			fp << " \"" << arg << "\"";
+			fp << " \"" << EscapeString(arg) << "\"";
 		}
 	} else if (!commandLine.IsEmpty()) {
-		fp << Convert::ToString(commandLine);
+		fp << EscapeString(Convert::ToString(commandLine));
 	} else {
 		fp << "<internal>";
 	}
@@ -391,6 +391,13 @@ void CompatComponent::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	   << "\n";
 }
 
+String CompatComponent::EscapeString(const String& str)
+{
+	String result = str;
+	boost::algorithm::replace_all(result, "\n", "\\n");
+	return result;
+}
+
 void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type)
 {
 	ASSERT(service->OwnsLock());
@@ -428,7 +435,7 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 
 		if (line_end > 0 && line_end != String::NPos) {
 			long_output = raw_output.SubStr(line_end+1, raw_output.GetLength());
-			boost::algorithm::replace_all(long_output, "\n", "\\n");
+			long_output = EscapeString(long_output);
 		}
 
 		boost::algorithm::replace_all(output, "\n", "\\n");

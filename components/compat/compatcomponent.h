@@ -112,6 +112,8 @@ private:
 	void DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object);
 
 	void StatusTimerHandler(void);
+
+	static String EscapeString(const String& str);
 };
 
 }
