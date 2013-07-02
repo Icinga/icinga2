@@ -38,7 +38,7 @@ double Service::GetFlappingCurrent(void) const
 	if (m_FlappingNegative.IsEmpty() || m_FlappingPositive.IsEmpty())
 		return 0;
 
-	if ((m_FlappingPositive + m_FlappingNegative) <= 0)
+	if (m_FlappingPositive + m_FlappingNegative <= 0)
 		return 0;
 
 	return 100 * m_FlappingPositive / (m_FlappingPositive + m_FlappingNegative);
