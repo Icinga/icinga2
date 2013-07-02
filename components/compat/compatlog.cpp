@@ -36,6 +36,7 @@
 #include "base/scriptfunction.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string.hpp>
 
 using namespace icinga;
 
