@@ -103,7 +103,7 @@ bool User::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *
 		*result = GetName();
 		return true;
 	} else if (macro == "CONTACTALIAS") {
-		*result = GetName();
+		*result = GetDisplayName();
 		return true;
 	} else {
 		Dictionary::Ptr macros = GetMacros();

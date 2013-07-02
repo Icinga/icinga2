@@ -541,11 +541,11 @@ String Host::StateToString(HostState state)
 
 bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
-	if (macro == "HOSTNAME" || macro == "HOSTALIAS") {
+	if (macro == "HOSTNAME") {
 		*result = GetName();
 		return true;
 	}
-	else if (macro == "HOSTDISPLAYNAME") {
+	else if (macro == "HOSTDISPLAYNAME" || macro == "HOSTALIAS") {
 		*result = GetDisplayName();
 		return true;
 	}
