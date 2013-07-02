@@ -253,7 +253,17 @@ void CompatComponent::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp
 void CompatComponent::DumpCommand(std::ostream& fp, const Command::Ptr& command)
 {
 	fp << "define command {" << "\n"
-	   << "\t" << "command_name\t" << command->GetName() << "\n";
+	   << "\t" << "command_name\t";
+
+
+	if (command->GetType() == DynamicType::GetByName("CheckCommand"))
+		fp << "check_";
+	else if (command->GetType() == DynamicType::GetByName("NotificationCommand"))
+		fp << "notification_";
+	else if (command->GetType() == DynamicType::GetByName("EventCommand"))
+		fp << "event_";
+
+	fp << command->GetName() << "\n";
 
 	fp << "\t" << "command_line\t";
 
@@ -406,8 +416,8 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 	String output;
 	String long_output;
 	String perfdata;
-	String check_command = "";
-	String event_command = "";
+	String check_command;
+	String event_command;
 	double schedule_end = -1;
 
 	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
@@ -472,9 +482,9 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 			last_notification = notification->GetLastNotification();
 	}
 
-	fp << "\t" << "check_command=" << check_command << "\n"
+	fp << "\t" << "check_command=check_" << check_command << "\n"
 	   << "\t" << "check_period=" << check_period_str << "\n"
-	   << "\t" << "event_handler=" << event_command << "\n"
+	   << "\t" << "event_handler=event_" << event_command << "\n"
 	   << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
 	   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
 	   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
@@ -536,11 +546,17 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 	if (!host)
 		return;
 
-	String check_command = "";
+	String check_command;
 
         CheckCommand::Ptr checkcommand = service->GetCheckCommand();
         if (checkcommand)
                 check_command = checkcommand->GetName();
+
+	String event_command;
+
+        EventCommand::Ptr eventcommand = service->GetEventCommand();
+        if (eventcommand)
+                event_command = eventcommand->GetName();
 
         String check_period_str;
         TimePeriod::Ptr check_period = service->GetCheckPeriod();
@@ -566,7 +582,7 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "service_description" << "\t" << service->GetShortName() << "\n"
 		   << "\t" << "display_name" << "\t" << service->GetDisplayName() << "\n"
 		   << "\t" << "check_period" << "\t" << check_period_str << "\n"
-		   << "\t" << "check_command" << "\t" << check_command << "\n"
+		   << "\t" << "check_command" << "\t" << "check_" << check_command << "\n"
 		   << "\t" << "check_interval" << "\t" << service->GetCheckInterval() / 60.0 << "\n"
 		   << "\t" << "retry_interval" << "\t" << service->GetRetryInterval() / 60.0 << "\n"
 		   << "\t" << "max_check_attempts" << "\t" << service->GetMaxCheckAttempts() << "\n"
@@ -577,6 +593,9 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
    		   << "\t" << "notification_interval" << "\t" << notification_interval / 60.0 << "\n";
+
+		if (!event_command.IsEmpty())
+			fp << "\t" << "event_handler" << "\t" << "event_" << event_command << "\n";
 	}
 
 	DumpCustomAttributes(fp, service);
