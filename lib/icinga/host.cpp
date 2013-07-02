@@ -610,9 +610,18 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 
 	Dictionary::Ptr macros = GetMacros();
 
-	if (macros && macros->Contains(macro)) {
-		*result = macros->Get(macro);
-		return true;
+	if (macros) {
+		String name = macro;
+
+		if (name == "HOSTADDRESS")
+			name = "address";
+		else if (macro == "HOSTADDRESS6")
+			name = "address6";
+
+		if (macros->Contains(name)) {
+			*result = macros->Get(name);
+			return true;
+		}
 	}
 
 	return false;
