@@ -25,6 +25,7 @@ libremoting_la_SOURCES = \
 
 libremoting_la_CPPFLAGS = \
 	-DI2_REMOTING_BUILD \
+	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib
 

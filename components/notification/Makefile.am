@@ -15,6 +15,7 @@ libnotification_la_SOURCES = \
 	notification-type.cpp
 
 libnotification_la_CPPFLAGS = \
+	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib \
 	-I${top_srcdir}/components
