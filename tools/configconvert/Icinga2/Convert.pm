@@ -104,6 +104,29 @@ sub obj_2x_command_exists {
     return 0;
 }
 
+# check if host service object exists (2.x only)
+sub obj_2x_host_service_exists {
+    my $objs = shift;
+    my $obj_attr = '__I2CONVERT_SERVICEDESCRIPTION';
+    my $obj_val = shift;
+
+    #debug("My objects hive: ".Dumper($objs));
+
+    #debug("Checking for type=$obj_type attr=$obj_attr val=$obj_val ");
+    foreach my $obj_key (keys %{$objs}) {
+        my $obj = $objs->{$obj_key};
+        next if !defined($obj->{$obj_attr});
+        #debug("Getting attr $obj_attr and val $obj_val");
+        if ($obj->{$obj_attr} eq $obj_val) {
+            #debug("Found object: ".Dumper($obj));
+            #say Dumper($obj);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 
 #################################################################################
 # Migration
@@ -1404,8 +1427,6 @@ sub convert_2x {
         my $host_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_1x_host, $user_macros_1x);
         #say Dumper($host_check_command_2x);
 
-        delete($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'check_command'});
-
         if(defined($host_check_command_2x->{'check_command_name_1x'})) {
             # XXX TODO match on the command_name in available services for _this_ host later on. right on, just save it
             $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_HOSTCHECK_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
@@ -2504,21 +2525,91 @@ sub convert_2x {
                 # 4. define the service description for the service
                 $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj_2x_service_service_description;
 
+                # increment the PK now
+                $obj_2x_host_service_cnt++;
+
                 ######################################
                 # LINK HOST COMMAND WITH SERVICE CHECK
                 ######################################
                 my $service_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_2x_service, $user_macros_1x);
+                my $host_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_2x_host, $user_macros_1x);
+                #say Dumper($host_check_command_2x);
 
                 # check if this service check is a possible match for __I2CONVERT_HOST_CHECK?
                 if (defined($service_check_command_2x->{'check_command_name_1x'})) {
+                    #say ("====================================");
+                    #say ($service_check_command_2x->{'check_command_name_1x'});
+                    #say ("-------------");
+                    #say ($cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'__I2CONVERT_HOSTCHECK_NAME'});
+                    #say ("====================================");
+
                     if ($cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'__I2CONVERT_HOSTCHECK_NAME'} eq $service_check_command_2x->{'check_command_name_1x'}) {
                         # set service as hostcheck
                         $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'__I2CONVERT_HOSTCHECK'} = $obj_2x_service_service_description;
+                    } else {
+                        ######################################
+                        # we need to take the old host check_command and create a new service object, linked to it
+                        ######################################
+                        next if (!defined($host_check_command_2x->{'check_command_name_1x'}));
+
+                        # XXX do not add duplicate check commands, they must remain unique by their check_command origin!
+                        if (obj_2x_command_exists($cfg_obj_2x, $host_check_command_2x->{'check_command_name_1x'}) != 1) {
+
+                            # create a new CheckCommand 2x object with the original name
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Check';
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $host_check_command_2x->{'check_command'};
+
+                            # use the ITL plugin check command template
+                            if(defined($icinga2_cfg->{'itl'}->{'checkcommand-template'}) && $icinga2_cfg->{'itl'}->{'checkcommand-template'} ne "") {
+                                push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'checkcommand-template'};
+                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                            }
+
+                            # add the command macros to the command 2x object
+                            if(defined($host_check_command_2x->{'command_macros'})) {
+                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = dclone($host_check_command_2x->{'command_macros'});
+                            }
+
+                            # our PK
+                            $command_obj_cnt++;
+                        }
+
+                        ######################################
+                        # now create a new service, inline into the host
+                        ######################################
+                        my $obj_2x_service_service_description = $host_check_command_2x->{'check_command_name_1x'};
+                        if (obj_2x_host_service_exists($cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}, $obj_2x_service_service_description) != 1) {
+
+                            $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 0;
+
+                            # use the ITL service template
+                            if(defined($icinga2_cfg->{'itl'}->{'service-template'}) && $icinga2_cfg->{'itl'}->{'service-template'} ne "") {
+                                push @{$cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'service-template'};
+                                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                            }
+
+                            $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj_2x_service_service_description;
+                            $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2_CONVERT_CHECKCOMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
+
+                            # XXX make sure to always add the service specific command arguments, since we have a n .. 1 relation here
+                            # add the command macros to the command 2x object
+                            if(defined($host_check_command_2x->{'command_macros'})) {
+                                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_MACROS'} = dclone($host_check_command_2x->{'command_macros'});
+                            }
+
+                            # primary key
+                            $obj_2x_host_service_cnt++;
+                        }
+
+                        ######################################
+                        # now link the service desc to hostcheck
+                        ######################################
+                        $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'__I2CONVERT_HOSTCHECK'} = $obj_2x_service_service_description;
                     }
+
                 }
 
-                # primary key
-                $obj_2x_host_service_cnt++;
             }
             else {
                  # no match

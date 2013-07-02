@@ -494,14 +494,6 @@ sub dump_host_2x {
     dump_config_line($icinga2_cfg, "");
 
     ####################################################
-    # hostcheck
-    ####################################################
-    # this is magic, and must be set during conversion
-    if(defined($host_2x->{'__I2CONVERT_HOSTCHECK'})) {
-        dump_config_line($icinga2_cfg, "\thostcheck = \"$host_2x->{'__I2CONVERT_HOSTCHECK'}\",");
-    }
-
-    ####################################################
     # hostgroups
     ####################################################
     if(defined($host_2x->{'hostgroups'})) {
@@ -619,6 +611,14 @@ sub dump_host_2x {
     }
 
     ####################################################
+    # hostcheck
+    ####################################################
+    # this is magic, and must be set during conversion
+    if(defined($host_2x->{'__I2CONVERT_HOSTCHECK'})) {
+        dump_config_line($icinga2_cfg, "\thostcheck = \"$host_2x->{'__I2CONVERT_HOSTCHECK'}\",");
+    }
+
+    ####################################################
     # host with no services - valid configuration
     ####################################################
     if (!defined($host_2x->{'SERVICE'})) {
@@ -652,22 +652,25 @@ sub dump_host_2x {
         }
 
         dump_config_line($icinga2_cfg, "");
+
         ####################################################
         # macros
         ####################################################
+
         if(defined($service_2x->{'__I2CONVERT_MACROS'}) && $service_2x->{'__I2CONVERT_MACROS'} != 0) {
             dump_config_line($icinga2_cfg, "\t\tmacros = {");
-            foreach my $cmd_arg (keys %{$service_2x->{'__I2CONVERT_MACROS'}}) {
-                dump_config_line($icinga2_cfg, "\t\t\t$cmd_arg = \"$service_2x->{'__I2CONVERT_MACROS'}->{$cmd_arg}\",");
+            foreach my $macro_key (keys %{$service_2x->{'__I2CONVERT_MACROS'}}) {
+                dump_config_line($icinga2_cfg, "\t\t\t$macro_key = \"$service_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
             }
             dump_config_line($icinga2_cfg, "\t\t},");
         }
 
+
         ####################################################
         # check_command
         ####################################################
-        if(defined($service_2x->{'check_command'})) {
-            dump_config_line($icinga2_cfg, "\t\tcheck_command = \"$service_2x->{'check_command'}\",");
+        if(defined($service_2x->{'__I2_CONVERT_CHECKCOMMAND_NAME'})) {
+            dump_config_line($icinga2_cfg, "\t\tcheck_command = \"$service_2x->{'__I2_CONVERT_CHECKCOMMAND_NAME'}\",");
         }
 
         ####################################################
