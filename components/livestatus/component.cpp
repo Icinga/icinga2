@@ -84,13 +84,11 @@ void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
 
 	for (;;) {
 		String line;
-		bool read_line = false;
+		ReadLineContext context;
 
 		std::vector<String> lines;
 
-		while (stream->ReadLine(&line)) {
-			read_line = true;
-
+		while (stream->ReadLine(&line, context)) {
 			if (line.GetLength() > 0)
 				lines.push_back(line);
 			else

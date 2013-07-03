@@ -24,42 +24,54 @@
 
 using namespace icinga;
 
-bool Stream::ReadLine(String *line, size_t maxLength)
+bool Stream::ReadLine(String *line, ReadLineContext& context, size_t maxLength)
 {
-	BOOST_THROW_EXCEPTION(std::runtime_error("Not implemented."));
-	/*
-	char *buffer = new char[maxLength];
-
-	size_t rc = Peek(buffer, maxLength);
-
-	if (rc == 0)
+	if (context.Eof)
 		return false;
 
-	for (size_t i = 0; i < rc; i++) {
-		if (buffer[i] == '\n') {
-			*line = String(buffer, &(buffer[i]));
+	for (;;) {
+		if (context.MustRead) {
+			context.Buffer = (char *)realloc(context.Buffer, context.Size + maxLength);
+
+			if (!context.Buffer)
+				throw std::bad_alloc();
+
+			size_t rc = Read(context.Buffer + context.Size, maxLength);
+
+			if (rc == 0) {
+				*line = String(context.Buffer, &(context.Buffer[context.Size]));
+				boost::algorithm::trim_right(*line);
+
+				context.Eof = true;
+
+				return true;
+			}
+
+			context.Size += rc;
+		}
+
+		int count = 0;
+		size_t first_newline;
+
+		for (size_t i = 0; i < context.Size; i++) {
+			if (context.Buffer[i] == '\n') {
+				count++;
+
+				if (count == 1)
+					first_newline = i;
+			}
+		}
+
+		context.MustRead = (count <= 1);
+
+		if (count > 0) {
+			*line = String(context.Buffer, &(context.Buffer[first_newline]));
 			boost::algorithm::trim_right(*line);
 
-			Read(NULL, i + 1);
-
-			delete buffer;
+			memmove(context.Buffer, context.Buffer + first_newline + 1, context.Size - first_newline - 1);
+			context.Size -= first_newline + 1;
 
 			return true;
 		}
 	}
-
-	if (IsReadEOF()) {
-		*line = String(buffer, buffer + rc);
-		boost::algorithm::trim_right(*line);
-
-		Read(NULL, rc);
-
-		delete buffer;
-
-		return true;
-	}
-
-	delete buffer;*/
-
-	return false;
 }

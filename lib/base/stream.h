@@ -29,6 +29,17 @@
 namespace icinga
 {
 
+struct ReadLineContext
+{
+	ReadLineContext(void) : Buffer(NULL), Size(0), Eof(false), MustRead(true)
+	{ }
+
+	char *Buffer;
+	size_t Size;
+	bool Eof;
+	bool MustRead;
+};
+
 /**
  * A stream.
  *
@@ -64,7 +75,7 @@ public:
 	 */
 	virtual void Close(void) = 0;
 
-	bool ReadLine(String *line, size_t maxLength = 4096);
+	bool ReadLine(String *line, ReadLineContext& context, size_t maxLength = 4096);
 };
 
 }
