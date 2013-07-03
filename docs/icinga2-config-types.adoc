@@ -634,7 +634,7 @@ object NotificationCommand "mail-service-notification" inherits "plugin-notifica
 }
 -------------------------------------------------------------------------------
 
-Type: NotificationCommand
+Type: EventCommand
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An event command definition.
