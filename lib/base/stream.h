@@ -75,7 +75,7 @@ public:
 	 */
 	virtual void Close(void) = 0;
 
-	bool ReadLine(String *line, ReadLineContext& context, size_t maxLength = 4096);
+	bool ReadLine(String *line, ReadLineContext& context);
 };
 
 }

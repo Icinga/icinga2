@@ -24,19 +24,19 @@
 
 using namespace icinga;
 
-bool Stream::ReadLine(String *line, ReadLineContext& context, size_t maxLength)
+bool Stream::ReadLine(String *line, ReadLineContext& context)
 {
 	if (context.Eof)
 		return false;
 
 	for (;;) {
 		if (context.MustRead) {
-			context.Buffer = (char *)realloc(context.Buffer, context.Size + maxLength);
+			context.Buffer = (char *)realloc(context.Buffer, context.Size + 4096);
 
 			if (!context.Buffer)
 				throw std::bad_alloc();
 
-			size_t rc = Read(context.Buffer + context.Size, maxLength);
+			size_t rc = Read(context.Buffer + context.Size, 4096);
 
 			if (rc == 0) {
 				*line = String(context.Buffer, &(context.Buffer[context.Size]));
