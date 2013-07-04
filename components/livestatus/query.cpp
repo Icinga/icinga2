@@ -302,7 +302,7 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 	stream->Write(header.CStr(), header.GetLength());
 }
 
-void Query::Execute(const Stream::Ptr& stream)
+bool Query::Execute(const Stream::Ptr& stream)
 {
 	try {
 	Log(LogInformation, "livestatus", "Executing livestatus query: " + m_Verb);
@@ -319,6 +319,10 @@ void Query::Execute(const Stream::Ptr& stream)
 		SendResponse(stream, 452, boost::diagnostic_information(ex));
 	}
 
-	if (!m_KeepAlive)
+	if (!m_KeepAlive) {
 		stream->Close();
+		return false;
+	}
+
+	return true;
 }

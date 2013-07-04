@@ -96,6 +96,7 @@ void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
 		}
 
 		Query::Ptr query = boost::make_shared<Query>(lines);
-		query->Execute(stream);
+		if (!query->Execute(stream))
+			break;
 	}
 }

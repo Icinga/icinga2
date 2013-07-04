@@ -42,7 +42,7 @@ public:
 
 	Query(const std::vector<String>& lines);
 
-	void Execute(const Stream::Ptr& stream);
+	bool Execute(const Stream::Ptr& stream);
 
 private:
 	String m_Verb;
