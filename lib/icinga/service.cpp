@@ -65,6 +65,7 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("state", Attribute_Replicated, &m_State);
 	RegisterAttribute("state_type", Attribute_Replicated, &m_StateType);
 	RegisterAttribute("last_state", Attribute_Replicated, &m_LastState);
+	RegisterAttribute("last_hard_state", Attribute_Replicated, &m_LastHardState);
 	RegisterAttribute("last_state_type", Attribute_Replicated, &m_LastStateType);
 	RegisterAttribute("last_reachable", Attribute_Replicated, &m_LastReachable);
 	RegisterAttribute("last_result", Attribute_Replicated, &m_LastResult);
