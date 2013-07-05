@@ -55,6 +55,7 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("__type", Attribute_Config, &m_Type);
 	RegisterAttribute("__local", Attribute_Config, &m_Local);
 	RegisterAttribute("__source", Attribute_Local, &m_Source);
+	RegisterAttribute("__extensions", Attribute_Local, &m_Extensions);
 	RegisterAttribute("methods", Attribute_Config, &m_Methods);
 	RegisterAttribute("custom", Attribute_Config, &m_Custom);
 
@@ -349,6 +350,40 @@ void DynamicObject::SetSource(const String& value)
 String DynamicObject::GetSource(void) const
 {
 	return m_Source;
+}
+
+void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)
+{
+	Dictionary::Ptr extensions = m_Extensions;
+
+	if (!extensions) {
+		extensions = boost::make_shared<Dictionary>();
+		m_Extensions = extensions;
+	}
+
+	extensions->Set(key, object);
+	Touch("__extensions");
+}
+
+Object::Ptr DynamicObject::GetExtension(const String& key)
+{
+	Dictionary::Ptr extensions = m_Extensions;
+
+	if (!extensions)
+		return Object::Ptr();
+
+	return extensions->Get(key);
+}
+
+void DynamicObject::ClearExtension(const String& key)
+{
+	Dictionary::Ptr extensions = m_Extensions;
+
+	if (!extensions)
+		return;
+
+	extensions->Remove(key);
+	Touch("__extensions");
 }
 
 void DynamicObject::Register(void)

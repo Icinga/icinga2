@@ -1,0 +1,60 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012 Icinga Development Team (http://www.icinga.org/)        *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
+#ifndef DBCONNECTION_H
+#define DBCONNECTION_H
+
+#include "base/dynamicobject.h"
+#include "ido/dbobject.h"
+
+namespace icinga
+{
+
+/**
+ * A database connection.
+ *
+ * @ingroup ido
+ */
+class DbConnection : public DynamicObject
+{
+public:
+	DECLARE_PTR_TYPEDEFS(DbConnection);
+
+	DbConnection(const Dictionary::Ptr& serializedUpdate);
+
+	void SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref);
+	DbReference GetReference(const DbObject::Ptr& dbobj) const;
+
+protected:
+	virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind) = 0;
+
+	void UpdateAllObjects(void);
+
+private:
+	void Initialize(void);
+
+	static void ObjectRegisteredHandler(const DynamicObject::Ptr& object);
+	static void ObjectUnregisteredHandler(const DynamicObject::Ptr& object);
+
+	std::map<DbObject::Ptr, DbReference> m_References;
+};
+
+}
+
+#endif /* DBCONNECTION_H */

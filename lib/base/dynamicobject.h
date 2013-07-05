@@ -81,6 +81,10 @@ public:
 	void SetSource(const String& value);
 	String GetSource(void) const;
 
+	void SetExtension(const String& key, const Object::Ptr& object);
+	Object::Ptr GetExtension(const String& key);
+	void ClearExtension(const String& key);
+
 	void Flush(void);
 
 	void Register(void);
@@ -126,6 +130,7 @@ private:
 	Attribute<String> m_Type;
 	Attribute<bool> m_Local;
 	Attribute<String> m_Source;
+	Attribute<Dictionary::Ptr> m_Extensions;
 	Attribute<Dictionary::Ptr> m_Methods;
 	Attribute<Dictionary::Ptr> m_Custom;
 
