@@ -250,14 +250,12 @@ Value HostsTable::CheckPeriodAccessor(const Object::Ptr& object)
 	if (!hc)
 		return Value();
 
-	return hc->GetCheckPeriod()->GetName();
-	/*
-	TimePeriod::Ptr timeperiod = hc->GetCheckPeriod;
+	TimePeriod::Ptr timeperiod = hc->GetCheckPeriod();
+
 	if (!timeperiod)
 		return Value();
 
 	return timeperiod->GetName();
-	*/
 }
 
 Value HostsTable::NotesAccessor(const Object::Ptr& object)
