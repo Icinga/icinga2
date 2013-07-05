@@ -176,12 +176,20 @@ Value HostsTable::DisplayNameAccessor(const Object::Ptr& object)
 Value HostsTable::AddressAccessor(const Object::Ptr& object)
 {
 	Dictionary::Ptr macros = static_pointer_cast<Host>(object)->GetMacros();
+
+	if (!macros)
+		return Value();
+
 	return macros->Get("address");
 }
 
 Value HostsTable::Address6Accessor(const Object::Ptr& object)
 {
 	Dictionary::Ptr macros = static_pointer_cast<Host>(object)->GetMacros();
+
+	if (!macros)
+		return Value();
+
 	return macros->Get("address6");
 }
 
@@ -443,6 +451,7 @@ Value HostsTable::AcknowledgementTypeAccessor(const Object::Ptr& object)
 	if (!hc)
 		return Value();
 
+	/* important: lock acknowledgements */
 	ObjectLock olock(hc);
 
 	return static_cast<int>(hc->GetAcknowledgement());
@@ -572,6 +581,7 @@ Value HostsTable::AcknowledgedAccessor(const Object::Ptr& object)
 	if (!hc)
 		return Value();
 
+	/* important: lock acknowledgements */
 	ObjectLock olock(hc);
 
 	return (hc->IsAcknowledged() ? 1 : 0);
@@ -601,7 +611,13 @@ Value HostsTable::CheckFlappingRecoveryNotificationAccessor(const Object::Ptr& o
 
 Value HostsTable::LastCheckAccessor(const Object::Ptr& object)
 {
-	return static_pointer_cast<Host>(object)->GetLastCheck();
+	/* use hostcheck service */
+	Service::Ptr hc = static_pointer_cast<Host>(object)->GetHostCheckService();
+
+	if (!hc)
+		return Value();
+
+	return hc->GetLastCheck();
 }
 
 Value HostsTable::LastStateChangeAccessor(const Object::Ptr& object)
@@ -629,12 +645,24 @@ Value HostsTable::LastTimeUnreachableAccessor(const Object::Ptr& object)
 
 Value HostsTable::IsFlappingAccessor(const Object::Ptr& object)
 {
-	return static_pointer_cast<Host>(object)->IsFlapping();
+	/* use hostcheck service */
+	Service::Ptr hc = static_pointer_cast<Host>(object)->GetHostCheckService();
+
+	if (!hc)
+		return Value();
+
+	return hc->IsFlapping();
 }
 
 Value HostsTable::ScheduledDowntimeDepthAccessor(const Object::Ptr& object)
 {
-	return static_pointer_cast<Host>(object)->GetDowntimeDepth();
+	/* use hostcheck service */
+	Service::Ptr hc = static_pointer_cast<Host>(object)->GetHostCheckService();
+
+	if (!hc)
+		return Value();
+
+	return hc->GetDowntimeDepth();
 }
 
 Value HostsTable::IsExecutingAccessor(const Object::Ptr& object)

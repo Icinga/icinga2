@@ -118,18 +118,9 @@ public:
 	double GetLastStateChange(void) const;
 	double GetLastHardStateChange(void) const;
 
-	bool IsFlapping(void) const;
-
 	static String StateToString(HostState state);
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
-
-	/* Virtual Checks */
-	double GetLastCheck(void) const;
-
-	/* Virtual Downtime */
-	int GetDowntimeDepth(void) const;
-
 protected:
 	virtual void OnRegistrationCompleted(void);
 	virtual void OnAttributeChanged(const String& name);

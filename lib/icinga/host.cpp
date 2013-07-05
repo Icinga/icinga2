@@ -610,36 +610,6 @@ StateType Host::GetStateType(void) const
 	return hc->GetStateType();
 }
 
-double Host::GetLastCheck(void) const
-{
-	Service::Ptr hc = GetHostCheckService();
-
-	if (!hc)
-		return -1;
-
-	return hc->GetLastCheck();
-}
-
-bool Host::IsFlapping(void) const
-{
-	Service::Ptr hc = GetHostCheckService();
-
-	if (!hc)
-		return false;
-
-	return hc->IsFlapping();
-}
-
-int Host::GetDowntimeDepth() const
-{
-	Service::Ptr hc = GetHostCheckService();
-
-	if (!hc)
-		return 0;
-
-	return hc->GetDowntimeDepth();
-}
-
 String Host::StateToString(HostState state)
 {
 	switch (state) {
