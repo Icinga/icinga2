@@ -830,7 +830,30 @@ Value HostsTable::InCheckPeriodAccessor(const Object::Ptr& object)
 
 Value HostsTable::ContactsAccessor(const Object::Ptr& object)
 {
-	/* TODO */
+	/* TODO - host->service->notifications->users */
+	/* use hostcheck service */
+	Service::Ptr hc = static_pointer_cast<Host>(object)->GetHostCheckService();
+
+	if (!hc)
+		return Value();
+
+	std::set<User::Ptr> allUsers;
+	std::set<User::Ptr> users;
+
+	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
+		ObjectLock olock(notification);
+
+		users = notification->GetUsers();
+
+		std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
+
+		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetGroups()) {
+			std::set<User::Ptr> members = ug->GetMembers();
+			std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
+		}
+	}
+
+
 	return Value();
 }
 
@@ -901,8 +924,8 @@ Value HostsTable::ChildsAccessor(const Object::Ptr& object)
 
 Value HostsTable::NumServicesAccessor(const Object::Ptr& object)
 {
-	/* TODO */
-	return Value();
+	/* duplicate of TotalServices */
+	return static_pointer_cast<Host>(object)->GetTotalServices();
 }
 
 Value HostsTable::WorstServiceStateAccessor(const Object::Ptr& object)
@@ -973,37 +996,53 @@ Value HostsTable::NumServicesHardUnknownAccessor(const Object::Ptr& object)
 
 Value HostsTable::HardStateAccessor(const Object::Ptr& object)
 {
-	/* TODO */
-	return Value();
+	/* use hostcheck service */
+	Service::Ptr hc = static_pointer_cast<Host>(object)->GetHostCheckService();
+
+	if (!hc)
+		return Value();
+
+	if (hc->GetState() == StateOK)
+		return StateOK;
+	if (hc->GetStateType() == StateTypeHard)
+		return hc->GetState();
+
+	return hc->GetLastHardState();
 }
 
 Value HostsTable::PnpgraphPresentAccessor(const Object::Ptr& object)
 {
-	/* TODO */
+	/* wtf. not supported */
 	return Value();
 }
 
 Value HostsTable::StalenessAccessor(const Object::Ptr& object)
 {
-	/* TODO */
+	/* TODO time since last check normalized on the check_interval */
 	return Value();
 }
 
 Value HostsTable::GroupsAccessor(const Object::Ptr& object)
 {
-	/* TODO */
-	return Value();
+	/* TODO create array */
+	/* use hostcheck service */
+	Service::Ptr hc = static_pointer_cast<Host>(object)->GetHostCheckService();
+
+	if (!hc)
+		return Value();
+
+	return hc->GetGroups();
 }
 
 Value HostsTable::ContactGroupsAccessor(const Object::Ptr& object)
 {
-	/* TODO */
+	/* TODO create array */
 	return Value();
 }
 
 Value HostsTable::ServicesAccessor(const Object::Ptr& object)
 {
-	/* TODO */
+	/* TODO create array */
 	return Value();
 }
 

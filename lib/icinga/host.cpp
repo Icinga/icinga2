@@ -97,7 +97,7 @@ Host::Ptr Host::GetByName(const String& name)
 
 Array::Ptr Host::GetGroups(void) const
 {
-	return m_HostGroups;;
+	return m_HostGroups;
 }
 
 Dictionary::Ptr Host::GetMacros(void) const
