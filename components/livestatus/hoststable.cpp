@@ -24,6 +24,7 @@
 #include "icinga/eventcommand.h"
 #include "icinga/timeperiod.h"
 #include "base/dynamictype.h"
+#include "base/objectlock.h"
 #include <boost/foreach.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 
@@ -420,6 +421,8 @@ Value HostsTable::AcknowledgementTypeAccessor(const Object::Ptr& object)
 	if (!hc)
 		return Value();
 
+	ObjectLock olock(hc);
+
 	return static_cast<int>(hc->GetAcknowledgement());
 }
 
@@ -546,6 +549,8 @@ Value HostsTable::AcknowledgedAccessor(const Object::Ptr& object)
 
 	if (!hc)
 		return Value();
+
+	ObjectLock olock(hc);
 
 	return (hc->IsAcknowledged() ? 1 : 0);
 }
