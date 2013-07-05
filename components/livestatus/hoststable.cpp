@@ -263,6 +263,10 @@ Value HostsTable::CheckPeriodAccessor(const Object::Ptr& object)
 Value HostsTable::NotesAccessor(const Object::Ptr& object)
 {
 	Dictionary::Ptr custom = static_pointer_cast<Host>(object)->GetCustom();
+
+	if (!custom)
+		return Value();
+
 	return custom->Get("notes");
 }
 
@@ -275,6 +279,10 @@ Value HostsTable::NotesExpandedAccessor(const Object::Ptr& object)
 Value HostsTable::NotesUrlAccessor(const Object::Ptr& object)
 {
 	Dictionary::Ptr custom = static_pointer_cast<Host>(object)->GetCustom();
+
+	if (!custom)
+		return Value();
+
 	return custom->Get("notes_url");
 }
 
@@ -287,6 +295,10 @@ Value HostsTable::NotesUrlExpandedAccessor(const Object::Ptr& object)
 Value HostsTable::ActionUrlAccessor(const Object::Ptr& object)
 {
 	Dictionary::Ptr custom = static_pointer_cast<Host>(object)->GetCustom();
+
+	if (!custom)
+		return Value();
+
 	return custom->Get("action_url");
 }
 
@@ -323,6 +335,10 @@ Value HostsTable::PerfDataAccessor(const Object::Ptr& object)
 Value HostsTable::IconImageAccessor(const Object::Ptr& object)
 {
 	Dictionary::Ptr custom = static_pointer_cast<Host>(object)->GetCustom();
+
+	if (!custom)
+		return Value();
+
 	return custom->Get("icon_image");
 }
 
@@ -335,12 +351,20 @@ Value HostsTable::IconImageExpandedAccessor(const Object::Ptr& object)
 Value HostsTable::IconImageAltAccessor(const Object::Ptr& object)
 {
 	Dictionary::Ptr custom = static_pointer_cast<Host>(object)->GetCustom();
+
+	if (!custom)
+		return Value();
+
 	return custom->Get("icon_image_alt");
 }
 
 Value HostsTable::StatusmapImageAccessor(const Object::Ptr& object)
 {
 	Dictionary::Ptr custom = static_pointer_cast<Host>(object)->GetCustom();
+
+	if (!custom)
+		return Value();
+
 	return custom->Get("statusmap_image");
 }
 
