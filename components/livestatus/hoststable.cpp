@@ -325,6 +325,12 @@ Value HostsTable::IconImageAccessor(const Object::Ptr& object)
 	return custom->Get("icon_image");
 }
 
+Value HostsTable::IconImageExpandedAccessor(const Object::Ptr& object)
+{
+	/* TODO */
+	return Value();
+}
+
 Value HostsTable::IconImageAltAccessor(const Object::Ptr& object)
 {
 	Dictionary::Ptr custom = static_pointer_cast<Host>(object)->GetCustom();
@@ -347,6 +353,12 @@ Value HostsTable::LongPluginOutputAccessor(const Object::Ptr& object)
 		long_output = hc->GetLastCheckLongOutput();
 
 	return long_output;
+}
+
+Value HostsTable::InitialStateAccessor(const Object::Ptr& object)
+{
+	/* TODO */
+	return Value();
 }
 
 Value HostsTable::MaxCheckAttemptsAccessor(const Object::Ptr& object)
@@ -762,6 +774,12 @@ Value HostsTable::InCheckPeriodAccessor(const Object::Ptr& object)
 }
 
 Value HostsTable::ContactsAccessor(const Object::Ptr& object)
+{
+	/* TODO */
+	return Value();
+}
+
+Value HostsTable::DowntimesAccessor(const Object::Ptr& object)
 {
 	/* TODO */
 	return Value();
