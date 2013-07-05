@@ -20,6 +20,7 @@
 #include "icinga/host.h"
 #include "icinga/service.h"
 #include "icinga/hostgroup.h"
+#include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -50,6 +51,7 @@ Host::Host(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("hostgroups", Attribute_Config, &m_HostGroups);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
+	RegisterAttribute("custom", Attribute_Config, &m_Custom);
 	RegisterAttribute("hostdependencies", Attribute_Config, &m_HostDependencies);
 	RegisterAttribute("servicedependencies", Attribute_Config, &m_ServiceDependencies);
 	RegisterAttribute("hostcheck", Attribute_Config, &m_HostCheck);
@@ -101,6 +103,11 @@ Array::Ptr Host::GetGroups(void) const
 Dictionary::Ptr Host::GetMacros(void) const
 {
 	return m_Macros;
+}
+
+Dictionary::Ptr Host::GetCustom(void) const
+{
+	return m_Custom;
 }
 
 Array::Ptr Host::GetHostDependencies(void) const
@@ -303,6 +310,10 @@ std::set<Service::Ptr> Host::GetServices(void) const
 	return services;
 }
 
+int Host::GetTotalServices(void) const
+{
+	return GetServices().size();
+}
 void Host::InvalidateServicesCache(void)
 {
 	{
@@ -494,6 +505,28 @@ HostState Host::CalculateState(ServiceState state, bool reachable)
 	}
 }
 
+HostState Host::GetState(void) const
+{
+	ASSERT(!OwnsLock());
+
+	if (!IsReachable())
+		return HostUnreachable;
+
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return HostUp;
+
+	switch (hc->GetState()) {
+		case StateOK:
+		case StateWarning:
+			return HostUp;
+		default:
+			return HostDown;
+	}
+
+}
+
 HostState Host::GetLastState(void) const
 {
 	ASSERT(!OwnsLock());
@@ -515,6 +548,48 @@ HostState Host::GetLastState(void) const
 	}
 }
 
+HostState Host::GetLastHardState(void) const
+{
+	ASSERT(!OwnsLock());
+
+	if (!IsReachable())
+		return HostUnreachable;
+
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return HostUp;
+
+	switch (hc->GetLastHardState()) {
+		case StateOK:
+		case StateWarning:
+			return HostUp;
+		default:
+			return HostDown;
+	}
+}
+
+double Host::GetLastStateChange(void) const
+{
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return IcingaApplication::GetInstance()->GetStartTime();
+
+	return hc->GetLastStateChange();
+}
+
+
+double Host::GetLastHardStateChange(void) const
+{
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return IcingaApplication::GetInstance()->GetStartTime();
+
+	return hc->GetLastHardStateChange();
+}
+
 StateType Host::GetLastStateType(void) const
 {
 	Service::Ptr hc = GetHostCheckService();
@@ -523,6 +598,46 @@ StateType Host::GetLastStateType(void) const
 		return StateTypeHard;
 
 	return hc->GetLastStateType();
+}
+
+StateType Host::GetStateType(void) const
+{
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return StateTypeHard;
+
+	return hc->GetStateType();
+}
+
+double Host::GetLastCheck(void) const
+{
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return -1;
+
+	return hc->GetLastCheck();
+}
+
+bool Host::IsFlapping(void) const
+{
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return false;
+
+	return hc->IsFlapping();
+}
+
+int Host::GetDowntimeDepth() const
+{
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return 0;
+
+	return hc->GetDowntimeDepth();
 }
 
 String Host::StateToString(HostState state)

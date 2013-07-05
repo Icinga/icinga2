@@ -425,3 +425,22 @@ bool Service::IsInDowntime(void) const
 
 	return false;
 }
+
+int Service::GetDowntimeDepth(void) const
+{
+	int downtime_depth = 0;
+	Dictionary::Ptr downtimes = GetDowntimes();
+
+	if (!downtimes)
+		return 0;
+
+	ObjectLock olock(downtimes);
+
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
+		if (Service::IsDowntimeActive(downtime))
+			downtime_depth++;
+	}
+
+	return downtime_depth;
+}

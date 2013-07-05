@@ -178,6 +178,22 @@ ServiceState Service::GetLastState(void) const
 	return static_cast<ServiceState>(ivalue);
 }
 
+void Service::SetLastHardState(ServiceState state)
+{
+	m_LastHardState = static_cast<long>(state);
+
+	Touch("last_hard_state");
+}
+
+ServiceState Service::GetLastHardState(void) const
+{
+	if (m_LastHardState.IsEmpty())
+		return StateUnknown;
+
+	int ivalue = static_cast<int>(m_LastHardState);
+	return static_cast<ServiceState>(ivalue);
+}
+
 void Service::SetStateType(StateType type)
 {
 	m_StateType = static_cast<long>(type);
@@ -231,6 +247,65 @@ void Service::SetLastCheckResult(const Dictionary::Ptr& result)
 Dictionary::Ptr Service::GetLastCheckResult(void) const
 {
 	return m_LastResult;
+}
+
+bool Service::HasBeenChecked(void) const
+{
+	return GetLastCheckResult();
+}
+
+double Service::GetLastCheck(void) const
+{
+	Dictionary::Ptr cr = GetLastCheckResult();
+	double schedule_end = -1;
+
+	if (cr) {
+		schedule_end = cr->Get("schedule_end");
+	}
+
+	return schedule_end;
+}
+
+String Service::GetLastCheckOutput(void) const
+{
+	Dictionary::Ptr cr = GetLastCheckResult();
+	String output;
+
+	if (cr) {
+		String raw_output = cr->Get("output");
+		size_t line_end = raw_output.Find("\n");
+		output = raw_output.SubStr(0, line_end);
+	}
+
+	return output;
+}
+
+String Service::GetLastCheckLongOutput(void) const
+{
+	Dictionary::Ptr cr = GetLastCheckResult();
+	String long_output;
+
+	if (cr) {
+		String raw_output = cr->Get("output");
+		size_t line_end = raw_output.Find("\n");
+
+		if (line_end > 0 && line_end != String::NPos) {
+			long_output = raw_output.SubStr(line_end + 1, raw_output.GetLength());
+			boost::algorithm::replace_all(long_output, "\n", "\\n");
+		}
+	}
+
+	return long_output;
+}
+
+String Service::GetLastCheckPerfData(void) const
+{
+	Dictionary::Ptr cr = GetLastCheckResult();
+	String perfdata = cr->Get("performance_data_raw");
+
+	boost::algorithm::replace_all(perfdata, "\n", "\\n");
+
+	return perfdata;
 }
 
 void Service::SetLastStateChange(double ts)
@@ -413,8 +488,10 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 	if (IsVolatile())
 		hardChange = true;
 
-	if (hardChange)
+	if (hardChange) {
+		SetLastHardState(GetState());
 		SetLastHardStateChange(now);
+	}
 
 	if (GetState() != StateOK)
 		TriggerDowntimes();

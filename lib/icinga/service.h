@@ -113,6 +113,7 @@ public:
 	String GetDisplayName(void) const;
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
+	Dictionary::Ptr GetCustom(void) const;
 	Array::Ptr GetHostDependencies(void) const;
 	Array::Ptr GetServiceDependencies(void) const;
 	Array::Ptr GetGroups(void) const;
@@ -161,11 +162,21 @@ public:
 	void SetLastState(ServiceState state);
 	ServiceState GetLastState(void) const;
 
+	void SetLastHardState(ServiceState state);
+	ServiceState GetLastHardState(void) const;
+
 	void SetLastStateType(StateType type);
 	StateType GetLastStateType(void) const;
 
 	void SetLastCheckResult(const Dictionary::Ptr& result);
 	Dictionary::Ptr GetLastCheckResult(void) const;
+	bool HasBeenChecked(void) const;
+
+	double GetLastCheck(void) const;
+
+	String GetLastCheckOutput(void) const;
+	String GetLastCheckLongOutput(void) const;
+	String GetLastCheckPerfData(void) const;
 
 	void SetLastStateChange(double ts);
 	double GetLastStateChange(void) const;
@@ -217,6 +228,7 @@ public:
 	static int GetNextDowntimeID(void);
 
 	Dictionary::Ptr GetDowntimes(void) const;
+	int GetDowntimeDepth(void) const;
 
 	String AddDowntime(const String& author, const String& comment,
 	    double startTime, double endTime, bool fixed,
@@ -298,6 +310,7 @@ private:
 
 	Attribute<String> m_DisplayName;
 	Attribute<Dictionary::Ptr> m_Macros;
+	Attribute<Dictionary::Ptr> m_Custom;
 	Attribute<Array::Ptr> m_HostDependencies;
 	Attribute<Array::Ptr> m_ServiceDependencies;
 	Attribute<Array::Ptr> m_ServiceGroups;
@@ -320,6 +333,7 @@ private:
 	Attribute<long> m_State;
 	Attribute<long> m_StateType;
 	Attribute<long> m_LastState;
+	Attribute<long> m_LastHardState;
 	Attribute<long> m_LastStateType;
 	Attribute<bool> m_LastReachable;
 	Attribute<Dictionary::Ptr> m_LastResult;

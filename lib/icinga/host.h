@@ -22,6 +22,7 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/macroresolver.h"
+//#include "base/i2-base.h"
 #include "base/array.h"
 #include "base/dynamicobject.h"
 #include "base/dictionary.h"
@@ -88,6 +89,7 @@ public:
 	Array::Ptr GetGroups(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
+	Dictionary::Ptr GetCustom(void) const;
 	Array::Ptr GetHostDependencies(void) const;
 	Array::Ptr GetServiceDependencies(void) const;
 	String GetHostCheck(void) const;
@@ -101,18 +103,32 @@ public:
 	shared_ptr<Service> GetServiceByShortName(const Value& name) const;
 
 	std::set<shared_ptr<Service> > GetServices(void) const;
+	int GetTotalServices(void) const;
 	static void InvalidateServicesCache(void);
 
 	static Value ValidateServiceDictionary(const String& location, const Dictionary::Ptr& attrs);
 
 	static HostState CalculateState(ServiceState state, bool reachable);
 
+	HostState GetState(void) const;
+	StateType GetStateType(void) const;
 	HostState GetLastState(void) const;
+	HostState GetLastHardState(void) const;
 	StateType GetLastStateType(void) const;
+	double GetLastStateChange(void) const;
+	double GetLastHardStateChange(void) const;
+
+	bool IsFlapping(void) const;
 
 	static String StateToString(HostState state);
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+
+	/* Virtual Checks */
+	double GetLastCheck(void) const;
+
+	/* Virtual Downtime */
+	int GetDowntimeDepth(void) const;
 
 protected:
 	virtual void OnRegistrationCompleted(void);
@@ -122,6 +138,7 @@ private:
 	Attribute<String> m_DisplayName;
 	Attribute<Array::Ptr> m_HostGroups;
 	Attribute<Dictionary::Ptr> m_Macros;
+	Attribute<Dictionary::Ptr> m_Custom;
 	Attribute<Array::Ptr> m_HostDependencies;
 	Attribute<Array::Ptr> m_ServiceDependencies;
 	Attribute<String> m_HostCheck;
