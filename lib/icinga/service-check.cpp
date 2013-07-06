@@ -698,8 +698,10 @@ void Service::ExecuteCheck(void)
 	try {
 		CheckCommand::Ptr command = GetCheckCommand();
 
-		if (!command)
+		if (!command) {
+			Log(LogDebug, "icinga", "No check_command found for service '" + GetName() + "'. Skipping execution.");
 			return;
+		}
 
 		result = command->Execute(GetSelf());
 	} catch (const std::exception& ex) {
