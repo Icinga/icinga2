@@ -46,6 +46,7 @@ protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
 	static Value NameAccessor(const Object::Ptr& object);
+	static Value AliasAccessor(const Object::Ptr& object);
 	static Value MembersAccessor(const Object::Ptr& object);
 };
 

@@ -44,6 +44,56 @@ public:
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
+
+	static Value NebCallbacksAccessor(const Object::Ptr& object);
+	static Value NebCallbacksRateAccessor(const Object::Ptr& object);
+	static Value RequestsAccessor(const Object::Ptr& object);
+	static Value RequestsRateAccessor(const Object::Ptr& object);
+	static Value ConnectionsAccessor(const Object::Ptr& object);
+	static Value ConnectionsRateAccessor(const Object::Ptr& object);
+	static Value ServiceChecksAccessor(const Object::Ptr& object);
+	static Value ServiceChecksRateAccessor(const Object::Ptr& object);
+	static Value HostChecksAccessor(const Object::Ptr& object);
+	static Value HostChecksRateAccessor(const Object::Ptr& object);
+	static Value ForksAccessor(const Object::Ptr& object);
+	static Value ForksRateAccessor(const Object::Ptr& object);
+	static Value LogMessagesAccessor(const Object::Ptr& object);
+	static Value LogMessagesRateAccessor(const Object::Ptr& object);
+	static Value ExternalCommandsAccessor(const Object::Ptr& object);
+	static Value ExternalCommandsRateAccessor(const Object::Ptr& object);
+	static Value LivechecksAccessor(const Object::Ptr& object);
+	static Value LivechecksRateAccessor(const Object::Ptr& object);
+	static Value LivecheckOverflowsAccessor(const Object::Ptr& object);
+	static Value LivecheckOverflowsRateAccessor(const Object::Ptr& object);
+	static Value NagiosPidAccessor(const Object::Ptr& object);
+	static Value EnableNotificationsAccessor(const Object::Ptr& object);
+	static Value ExecuteServiceChecksAccessor(const Object::Ptr& object);
+	static Value AcceptPassiveServiceChecksAccessor(const Object::Ptr& object);
+	static Value ExecuteHostChecksAccessor(const Object::Ptr& object);
+	static Value AcceptPassiveHostChecksAccessor(const Object::Ptr& object);
+	static Value EnableEventHandlersAccessor(const Object::Ptr& object);
+	static Value ObsessOverServicesAccessor(const Object::Ptr& object);
+	static Value ObsessOverHostsAccessor(const Object::Ptr& object);
+	static Value CheckServiceFreshnessAccessor(const Object::Ptr& object);
+	static Value CheckHostFreshnessAccessor(const Object::Ptr& object);
+	static Value EnableFlapDetectionAccessor(const Object::Ptr& object);
+	static Value ProcessPerformanceDataAccessor(const Object::Ptr& object);
+	static Value CheckExternalCommandsAccessor(const Object::Ptr& object);
+	static Value ProgramStartAccessor(const Object::Ptr& object);
+	static Value LastCommandCheckAccessor(const Object::Ptr& object);
+	static Value LastLogRotationAccessor(const Object::Ptr& object);
+	static Value IntervalLengthAccessor(const Object::Ptr& object);
+	static Value NumHostsAccessor(const Object::Ptr& object);
+	static Value NumServicesAccessor(const Object::Ptr& object);
+	static Value ProgramVersionAccessor(const Object::Ptr& object);
+	static Value ExternalCommandBufferSlotsAccessor(const Object::Ptr& object);
+	static Value ExternalCommandBufferUsageAccessor(const Object::Ptr& object);
+	static Value ExternalCommandBufferMaxAccessor(const Object::Ptr& object);
+	static Value CachedLogMessagesAccessor(const Object::Ptr& object);
+	static Value LivestatusVersionAccessor(const Object::Ptr& object);
+	static Value LivestatusActiveConnectionsAccessor(const Object::Ptr& object);
+	static Value LivestatusQueuedConnectionsAccessor(const Object::Ptr& object);
+	static Value LivestatusThreadsAccessor(const Object::Ptr& object);
 };
 
 }

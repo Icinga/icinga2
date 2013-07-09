@@ -44,6 +44,18 @@ public:
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
+
+	static Value AuthorAccessor(const Object::Ptr& object);
+	static Value CommentAccessor(const Object::Ptr& object);
+	static Value IdAccessor(const Object::Ptr& object);
+	static Value EntryTimeAccessor(const Object::Ptr& object);
+	static Value TypeAccessor(const Object::Ptr& object);
+	static Value IsServiceAccessor(const Object::Ptr& object);
+	static Value PersistentAccessor(const Object::Ptr& object);
+	static Value SourceAccessor(const Object::Ptr& object);
+	static Value EntryTypeAccessor(const Object::Ptr& object);
+	static Value ExpiresAccessor(const Object::Ptr& object);
+	static Value ExpireTimeAccessor(const Object::Ptr& object);
 };
 
 }

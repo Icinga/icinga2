@@ -34,7 +34,7 @@ void ContactGroupsTable::AddColumns(Table *table, const String& prefix,
     const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&ContactGroupsTable::NameAccessor, objectAccessor));
-	table->AddColumn(prefix + "alias", Column(&ContactGroupsTable::NameAccessor, objectAccessor));
+	table->AddColumn(prefix + "alias", Column(&ContactGroupsTable::AliasAccessor, objectAccessor));
 	table->AddColumn(prefix + "members", Column(&ContactGroupsTable::MembersAccessor, objectAccessor));
 }
 
@@ -51,6 +51,11 @@ void ContactGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 }
 
 Value ContactGroupsTable::NameAccessor(const Object::Ptr& object)
+{
+	return static_pointer_cast<UserGroup>(object)->GetName();
+}
+
+Value ContactGroupsTable::AliasAccessor(const Object::Ptr& object)
 {
 	return static_pointer_cast<UserGroup>(object)->GetName();
 }

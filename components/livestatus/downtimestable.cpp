@@ -35,17 +35,17 @@ DowntimesTable::DowntimesTable(void)
 void DowntimesTable::AddColumns(Table *table, const String& prefix,
     const Column::ObjectAccessor& objectAccessor)
 {
-	table->AddColumn(prefix + "author", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "comment", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "id", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "entry_time", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "type", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "is_service", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "start_time", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "end_time", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "fixed", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "duration", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "triggered_by", Column(&Table::EmptyStringAccessor, objectAccessor));
+	table->AddColumn(prefix + "author", Column(&DowntimesTable::AuthorAccessor, objectAccessor));
+	table->AddColumn(prefix + "comment", Column(&DowntimesTable::CommentAccessor, objectAccessor));
+	table->AddColumn(prefix + "id", Column(&DowntimesTable::IdAccessor, objectAccessor));
+	table->AddColumn(prefix + "entry_time", Column(&DowntimesTable::EntryTimeAccessor, objectAccessor));
+	table->AddColumn(prefix + "type", Column(&DowntimesTable::TypeAccessor, objectAccessor));
+	table->AddColumn(prefix + "is_service", Column(&DowntimesTable::IsServiceAccessor, objectAccessor));
+	table->AddColumn(prefix + "start_time", Column(&DowntimesTable::StartTimeAccessor, objectAccessor));
+	table->AddColumn(prefix + "end_time", Column(&DowntimesTable::EndTimeAccessor, objectAccessor));
+	table->AddColumn(prefix + "fixed", Column(&DowntimesTable::FixedAccessor, objectAccessor));
+	table->AddColumn(prefix + "duration", Column(&DowntimesTable::DurationAccessor, objectAccessor));
+	table->AddColumn(prefix + "triggered_by", Column(&DowntimesTable::TriggeredByAccessor, objectAccessor));
 
 	// TODO: Join services table.
 }
@@ -71,4 +71,103 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 			addRowFn(downtime);
 		}
 	}
+}
+
+Value DowntimesTable::AuthorAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+
+	return downtime->Get("author");
+	*/
+}
+
+Value DowntimesTable::CommentAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+
+	return downtime->Get("comment");
+	*/
+}
+
+Value DowntimesTable::IdAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+
+	return downtime->Get("legacy_id");
+	*/
+}
+
+Value DowntimesTable::EntryTimeAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+
+	return downtime->Get("entry_time");
+	*/
+}
+
+Value DowntimesTable::TypeAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	// 1 .. active, 0 .. pending
+	return (Service::IsDowntimeActive(downtime) ? 1 : 0);
+	*/
+}
+
+Value DowntimesTable::IsServiceAccessor(const Object::Ptr& object)
+{
+	/*
+	Service::Ptr svc = Service::GetOwnerByDowntimeID(row);
+
+	return (svc->IsHostCheck() ? 0 : 1);
+	*/
+}
+
+Value DowntimesTable::StartTimeAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+
+	return downtime->Get("start_time");
+	*/
+}
+
+Value DowntimesTable::EndTimeAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+
+	return downtime->Get("end_time");
+	*/
+}
+
+Value DowntimesTable::FixedAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+
+	return downtime->Get("fixed");
+	*/
+}
+
+Value DowntimesTable::DurationAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+
+	return downtime->Get("duration");
+	*/
+}
+
+Value DowntimesTable::TriggeredByAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+
+	return downtime->Get("triggered_by");
+	*/
 }

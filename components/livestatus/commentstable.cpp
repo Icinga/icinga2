@@ -35,17 +35,17 @@ CommentsTable::CommentsTable(void)
 void CommentsTable::AddColumns(Table *table, const String& prefix,
     const Column::ObjectAccessor& objectAccessor)
 {
-	table->AddColumn(prefix + "author", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "comment", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "id", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "entry_time", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "type", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "is_service", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "persistent", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "source", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "entry_type", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "expires", Column(&Table::EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "expire_time", Column(&Table::EmptyStringAccessor, objectAccessor));
+	table->AddColumn(prefix + "author", Column(&CommentsTable::AuthorAccessor, objectAccessor));
+	table->AddColumn(prefix + "comment", Column(&CommentsTable::CommentAccessor, objectAccessor));
+	table->AddColumn(prefix + "id", Column(&CommentsTable::IdAccessor, objectAccessor));
+	table->AddColumn(prefix + "entry_time", Column(&CommentsTable::EntryTimeAccessor, objectAccessor));
+	table->AddColumn(prefix + "type", Column(&CommentsTable::TypeAccessor, objectAccessor));
+	table->AddColumn(prefix + "is_service", Column(&CommentsTable::IsServiceAccessor, objectAccessor));
+	table->AddColumn(prefix + "persistent", Column(&CommentsTable::PersistentAccessor, objectAccessor));
+	table->AddColumn(prefix + "source", Column(&CommentsTable::SourceAccessor, objectAccessor));
+	table->AddColumn(prefix + "entry_type", Column(&CommentsTable::EntryTypeAccessor, objectAccessor));
+	table->AddColumn(prefix + "expires", Column(&CommentsTable::ExpiresAccessor, objectAccessor));
+	table->AddColumn(prefix + "expire_time", Column(&CommentsTable::ExpireTimeAccessor, objectAccessor));
 
 	// TODO: Join services table.
 }
@@ -71,4 +71,94 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 			addRowFn(comment);
 		}
 	}
+}
+
+Value CommentsTable::AuthorAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	return comment->Get("author");
+	*/
+}
+
+Value CommentsTable::CommentAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	return comment->Get("text");
+	*/
+}
+
+Value CommentsTable::IdAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	return comment->Get("legacy_id");
+	*/
+}
+
+Value CommentsTable::EntryTimeAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	return comment->Get("entry_time");
+	*/
+}
+
+Value CommentsTable::TypeAccessor(const Object::Ptr& object)
+{
+	/* TODO */
+	return Value();
+}
+
+Value CommentsTable::IsServiceAccessor(const Object::Ptr& object)
+{
+	/*
+	Service::Ptr svc = Service::GetOwnerByCommentID(row);
+
+	return (svc->IsHostCheck() ? 0 : 1);
+	*/
+}
+
+Value CommentsTable::PersistentAccessor(const Object::Ptr& object)
+{
+	/* TODO - always 1 */
+	return 1;
+}
+
+Value CommentsTable::SourceAccessor(const Object::Ptr& object)
+{
+	/* TODO */
+	return Value();
+}
+
+Value CommentsTable::EntryTypeAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	return comment->Get("entry_type");
+	*/
+}
+
+Value CommentsTable::ExpiresAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	return comment->Get("expires");
+	*/
+}
+
+Value CommentsTable::ExpireTimeAccessor(const Object::Ptr& object)
+{
+	/*
+	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	return comment->Get("expire_time");
+	*/
 }

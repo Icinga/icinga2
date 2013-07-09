@@ -46,7 +46,21 @@ protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
 	static Value NameAccessor(const Object::Ptr& object);
-	static Value MembersAccessor(const Object::Ptr& object);
+	static Value AliasAccessor(const Object::Ptr& object);
+	static Value EmailAccessor(const Object::Ptr& object);
+	static Value PagerAccessor(const Object::Ptr& object);
+	static Value HostNotificationPeriodAccessor(const Object::Ptr& object);
+	static Value ServiceNotificationPeriodAccessor(const Object::Ptr& object);
+	static Value CanSubmitCommandsAccessor(const Object::Ptr& object);
+	static Value HostNotificationsEnabledAccessor(const Object::Ptr& object);
+	static Value ServiceNotificationsEnabledAccessor(const Object::Ptr& object);
+	static Value InHostNotificationPeriodAccessor(const Object::Ptr& object);
+	static Value InServiceNotificationPeriodAccessor(const Object::Ptr& object);
+	static Value CustomVariableNamesAccessor(const Object::Ptr& object);
+	static Value CustomVariableValuesAccessor(const Object::Ptr& object);
+	static Value CustomVariablesAccessor(const Object::Ptr& object);
+	static Value ModifiedAttributesAccessor(const Object::Ptr& object);
+	static Value ModifiedAttributesListAccessor(const Object::Ptr& object);
 };
 
 }

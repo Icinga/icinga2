@@ -571,6 +571,7 @@ Value ServicesTable::InNotificationPeriodAccessor(const Object::Ptr& object)
 Value ServicesTable::ContactsAccessor(const Object::Ptr& object)
 {
 	/* TODO - host->service->notifications->users */
+/*
 	std::set<User::Ptr> allUsers;
 	std::set<User::Ptr> users;
 
@@ -586,7 +587,7 @@ Value ServicesTable::ContactsAccessor(const Object::Ptr& object)
 			std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
                 }
         }
-
+*/
 	return Value();
 }
 
@@ -634,6 +635,25 @@ Value ServicesTable::CustomVariableValuesAccessor(const Object::Ptr& object)
 
 Value ServicesTable::CustomVariablesAccessor(const Object::Ptr& object)
 {
+	/*
+	Service::Ptr svc = static_pointer_cast<Service>(object);
+
+	Dictionary::Ptr custom = svc->Get("custom");
+
+	if (!custom)
+		return Value();
+
+	Dictionary::Ptr customvars = custom->ShallowClone();
+	customvars->Remove("notes");
+	customvars->Remove("action_url");
+	customvars->Remove("notes_url");
+	customvars->Remove("icon_image");
+	customvars->Remove("icon_image_alt");
+	customvars->Remove("statusmap_image");
+	customvars->Remove("2d_coords");
+
+	return customvars;
+	*/
 	/* TODO */
 	return Value();
 }
