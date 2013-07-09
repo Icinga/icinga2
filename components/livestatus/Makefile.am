@@ -33,6 +33,8 @@ liblivestatus_la_SOURCES = \
 	hoststable.cpp \
 	hoststable.h \
 	livestatus-type.cpp \
+	logtable.cpp \
+	logtable.h \
 	negatefilter.cpp \
 	negatefilter.h \
 	orfilter.cpp \

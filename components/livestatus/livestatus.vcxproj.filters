@@ -24,6 +24,9 @@
     <ClInclude Include="statustable.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="logtable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
     <ClInclude Include="filter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -75,6 +78,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="statustable.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="logtable.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="filter.cpp">

@@ -25,6 +25,7 @@
 #include "livestatus/servicestable.h"
 #include "livestatus/commentstable.h"
 #include "livestatus/downtimestable.h"
+#include "livestatus/logtable.h"
 #include "livestatus/filter.h"
 #include "base/array.h"
 #include "base/dictionary.h"
@@ -55,6 +56,8 @@ Table::Ptr Table::GetByName(const String& name)
 		return boost::make_shared<CommentsTable>();
 	else if (name == "downtimes")
 		return boost::make_shared<DowntimesTable>();
+	else if (name == "log")
+		return boost::make_shared<LogTable>();
 
 	return Table::Ptr();
 }

@@ -36,6 +36,7 @@
     <ClInclude Include="query.h" />
     <ClInclude Include="servicestable.h" />
     <ClInclude Include="statustable.h" />
+    <ClInclude Include="logtable.h" />
     <ClInclude Include="table.h" />
   </ItemGroup>
   <ItemGroup>
@@ -56,6 +57,7 @@
     <ClCompile Include="query.cpp" />
     <ClCompile Include="servicestable.cpp" />
     <ClCompile Include="statustable.cpp" />
+    <ClCompile Include="logtable.cpp" />
     <ClCompile Include="table.cpp" />
   </ItemGroup>
   <ItemGroup>
