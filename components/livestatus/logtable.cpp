@@ -54,7 +54,7 @@ void LogTable::AddColumns(Table *table, const String& prefix,
 
 String LogTable::GetName(void) const
 {
-	return "status";
+	return "log";
 }
 
 void LogTable::FetchRows(const AddRowFunction& addRowFn)
