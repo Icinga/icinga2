@@ -35,8 +35,7 @@ namespace icinga
 class I2_BASE_API RingBuffer : public Object
 {
 public:
-	typedef shared_ptr<RingBuffer> Ptr;
-	typedef weak_ptr<RingBuffer> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(RingBuffer);
 
 	typedef std::vector<int>::size_type SizeType;
 

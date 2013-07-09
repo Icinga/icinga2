@@ -36,8 +36,7 @@ class Notification;
 class I2_BASE_API NotificationCommand : public Command
 {
 public:
-	typedef shared_ptr<NotificationCommand> Ptr;
-	typedef weak_ptr<NotificationCommand> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(NotificationCommand);
 
 	explicit NotificationCommand(const Dictionary::Ptr& serializedUpdate);
 

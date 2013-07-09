@@ -35,8 +35,7 @@ namespace icinga
 class PythonInterpreter : public ScriptInterpreter
 {
 public:
-	typedef shared_ptr<PythonInterpreter> Ptr;
-	typedef weak_ptr<PythonInterpreter> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(PythonInterpreter);
 
 	PythonInterpreter(const PythonLanguage::Ptr& language, const Script::Ptr& script);
 	~PythonInterpreter(void);

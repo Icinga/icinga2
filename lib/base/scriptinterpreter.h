@@ -36,8 +36,7 @@ namespace icinga
 class I2_BASE_API ScriptInterpreter : public Object
 {
 public:
-	typedef shared_ptr<ScriptInterpreter> Ptr;
-	typedef weak_ptr<ScriptInterpreter> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(ScriptInterpreter);
 
 	~ScriptInterpreter(void);
 

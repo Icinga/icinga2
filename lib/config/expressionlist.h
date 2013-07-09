@@ -36,8 +36,7 @@ namespace icinga
 class I2_CONFIG_API ExpressionList : public Object
 {
 public:
-	typedef shared_ptr<ExpressionList> Ptr;
-	typedef weak_ptr<ExpressionList> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(ExpressionList);
 
 	void AddExpression(const Expression& expression);
 

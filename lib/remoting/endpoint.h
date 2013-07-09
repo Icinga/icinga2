@@ -40,8 +40,7 @@ class EndpointManager;
 class I2_REMOTING_API Endpoint : public DynamicObject
 {
 public:
-	typedef shared_ptr<Endpoint> Ptr;
-	typedef weak_ptr<Endpoint> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Endpoint);
 
 	typedef void (Callback)(const Endpoint::Ptr&, const Endpoint::Ptr&, const RequestMessage&);
 

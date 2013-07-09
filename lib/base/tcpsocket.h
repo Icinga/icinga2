@@ -34,8 +34,7 @@ namespace icinga
 class I2_BASE_API TcpSocket : public Socket
 {
 public:
-	typedef shared_ptr<TcpSocket> Ptr;
-	typedef weak_ptr<TcpSocket> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(TcpSocket);
 
 	void Bind(const String& service, int family);
 	void Bind(const String& node, const String& service, int family);

@@ -36,8 +36,7 @@ namespace icinga
 class I2_BASE_API Dictionary : public Object
 {
 public:
-	typedef shared_ptr<Dictionary> Ptr;
-	typedef weak_ptr<Dictionary> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Dictionary);
 
 	/**
 	 * An iterator that can be used to iterate over dictionary elements.

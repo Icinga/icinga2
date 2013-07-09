@@ -35,8 +35,7 @@ namespace icinga
  */
 class I2_CONFIG_API ConfigItem : public Object {
 public:
-	typedef shared_ptr<ConfigItem> Ptr;
-	typedef weak_ptr<ConfigItem> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
 	ConfigItem(const String& type, const String& name, const String& unit,
 	    bool abstract, const ExpressionList::Ptr& exprl, const std::vector<String>& parents,

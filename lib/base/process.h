@@ -54,8 +54,7 @@ struct ProcessResult
 class I2_BASE_API Process : public Object
 {
 public:
-	typedef shared_ptr<Process> Ptr;
-	typedef weak_ptr<Process> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Process);
 
 	static const std::deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 

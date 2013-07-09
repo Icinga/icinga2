@@ -38,8 +38,7 @@ namespace icinga
 class I2_BASE_API ScriptFunction : public Object
 {
 public:
-	typedef shared_ptr<ScriptFunction> Ptr;
-	typedef weak_ptr<ScriptFunction> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(ScriptFunction);
 
 	typedef boost::function<Value (const std::vector<Value>& arguments)> Callback;
 

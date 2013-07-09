@@ -36,8 +36,7 @@ struct TimerNextExtractor;
 class I2_BASE_API Timer : public Object
 {
 public:
-	typedef shared_ptr<Timer> Ptr;
-	typedef weak_ptr<Timer> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Timer);
 
 	Timer(void);
 

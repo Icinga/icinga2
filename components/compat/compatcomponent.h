@@ -45,6 +45,8 @@ enum CompatObjectType
 class CompatComponent : public DynamicObject
 {
 public:
+	DECLARE_PTR_TYPEDEFS(CompatComponent);
+
 	CompatComponent(const Dictionary::Ptr& serializedUpdate);
 
 	virtual void Start(void);

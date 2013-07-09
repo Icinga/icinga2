@@ -34,8 +34,7 @@ namespace icinga
 class I2_BASE_API EventCommand : public Command
 {
 public:
-	typedef shared_ptr<EventCommand> Ptr;
-	typedef weak_ptr<EventCommand> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(EventCommand);
 
 	explicit EventCommand(const Dictionary::Ptr& serializedUpdate);
 

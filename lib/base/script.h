@@ -36,8 +36,7 @@ class ScriptInterpreter;
 class I2_BASE_API Script : public DynamicObject
 {
 public:
-	typedef shared_ptr<Script> Ptr;
-	typedef weak_ptr<Script> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Script);
 
 	Script(const Dictionary::Ptr& serializedUpdate);
 

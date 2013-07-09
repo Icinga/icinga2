@@ -36,8 +36,7 @@ namespace icinga
  */
 class I2_CONFIG_API ConfigType : public Object {
 public:
-	typedef shared_ptr<ConfigType> Ptr;
-	typedef weak_ptr<ConfigType> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(ConfigType);
 
 	ConfigType(const String& name, const DebugInfo& debuginfo);
 

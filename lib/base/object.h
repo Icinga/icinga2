@@ -44,6 +44,10 @@ namespace icinga
 
 class Value;
 
+#define DECLARE_PTR_TYPEDEFS(klass) \
+	typedef shared_ptr<klass> Ptr; \
+	typedef weak_ptr<klass> WeakPtr
+
 /**
  * Base class for all heap-allocated objects. At least one of its methods
  * has to be virtual for RTTI to work.
@@ -53,8 +57,7 @@ class Value;
 class I2_BASE_API Object : public boost::enable_shared_from_this<Object>
 {
 public:
-	typedef shared_ptr<Object> Ptr;
-	typedef weak_ptr<Object> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Object);
 
 	Object(void);
 	virtual ~Object(void);

@@ -47,8 +47,7 @@ enum TypeValidationResult
 class I2_CONFIG_API TypeRuleList : public Object
 {
 public:
-	typedef shared_ptr<TypeRuleList> Ptr;
-	typedef weak_ptr<TypeRuleList> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(TypeRuleList);
 
 	void SetValidator(const String& validator);
 	String GetValidator(void) const;

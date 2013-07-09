@@ -48,8 +48,7 @@ struct ReadLineContext
 class I2_BASE_API Stream : public Object
 {
 public:
-	typedef shared_ptr<Stream> Ptr;
-	typedef weak_ptr<Stream> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Stream);
 
 	/**
 	 * Reads data from the stream.

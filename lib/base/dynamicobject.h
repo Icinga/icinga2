@@ -42,8 +42,7 @@ class DynamicType;
 class I2_BASE_API DynamicObject : public Object
 {
 public:
-	typedef shared_ptr<DynamicObject> Ptr;
-	typedef weak_ptr<DynamicObject> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(DynamicObject);
 
 	typedef std::map<String, AttributeHolder, string_iless> AttributeMap;
 	typedef AttributeMap::iterator AttributeIterator;

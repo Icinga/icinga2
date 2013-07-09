@@ -33,8 +33,7 @@ namespace livestatus
 class StatusTable : public Table
 {
 public:
-	typedef shared_ptr<StatusTable> Ptr;
-	typedef weak_ptr<StatusTable> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(StatusTable);
 
 	StatusTable(void);
 

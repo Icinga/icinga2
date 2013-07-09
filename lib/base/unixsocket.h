@@ -30,8 +30,7 @@ namespace icinga
 class UnixSocket : public Socket
 {
 public:
-	typedef shared_ptr<UnixSocket> Ptr;
-	typedef weak_ptr<UnixSocket> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(UnixSocket);
 
 	UnixSocket(void);
 

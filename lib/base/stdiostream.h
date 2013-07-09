@@ -29,8 +29,7 @@ namespace icinga {
 class StdioStream : public Stream
 {
 public:
-	typedef shared_ptr<StdioStream> Ptr;
-	typedef weak_ptr<StdioStream> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(StdioStream);
 
 	StdioStream(std::iostream *innerStream, bool ownsStream);
 	~StdioStream(void);

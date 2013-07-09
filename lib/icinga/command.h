@@ -38,8 +38,7 @@ namespace icinga
 class I2_BASE_API Command : public DynamicObject, public MacroResolver
 {
 public:
-	typedef shared_ptr<Command> Ptr;
-	typedef weak_ptr<Command> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Command);
 
 	explicit Command(const Dictionary::Ptr& serializedUpdate);
 

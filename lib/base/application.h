@@ -35,8 +35,7 @@ class Component;
  */
 class I2_BASE_API Application : public DynamicObject {
 public:
-	typedef shared_ptr<Application> Ptr;
-	typedef weak_ptr<Application> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Application);
 
 	explicit Application(const Dictionary::Ptr& serializedUpdate);
 	~Application(void);

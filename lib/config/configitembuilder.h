@@ -38,8 +38,7 @@ namespace icinga
 class I2_CONFIG_API ConfigItemBuilder : public Object
 {
 public:
-	typedef shared_ptr<ConfigItemBuilder> Ptr;
-	typedef weak_ptr<ConfigItemBuilder> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(ConfigItemBuilder);
 
 	ConfigItemBuilder(void);
 	explicit ConfigItemBuilder(const DebugInfo& debugInfo);

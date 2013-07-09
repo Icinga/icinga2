@@ -35,8 +35,7 @@ namespace icinga
 class I2_BASE_API NetworkStream : public Stream
 {
 public:
-	typedef shared_ptr<NetworkStream> Ptr;
-	typedef weak_ptr<NetworkStream> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(NetworkStream);
 
 	NetworkStream(const Socket::Ptr& socket);
 

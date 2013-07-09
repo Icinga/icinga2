@@ -35,8 +35,7 @@ namespace icinga
 class I2_ICINGA_API MacroResolver
 {
 public:
-	typedef shared_ptr<MacroResolver> Ptr;
-	typedef weak_ptr<MacroResolver> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(MacroResolver);
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const = 0;
 };
@@ -44,8 +43,7 @@ public:
 class I2_ICINGA_API StaticMacroResolver : public Object, public MacroResolver
 {
 public:
-	typedef shared_ptr<StaticMacroResolver> Ptr;
-	typedef weak_ptr<StaticMacroResolver> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(StaticMacroResolver);
 
 	StaticMacroResolver(void);
 

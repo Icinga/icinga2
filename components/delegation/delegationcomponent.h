@@ -34,6 +34,8 @@ namespace icinga
 class DelegationComponent : public DynamicObject
 {
 public:
+	DECLARE_PTR_TYPEDEFS(DelegationComponent);
+
 	DelegationComponent(const Dictionary::Ptr& serializedUpdate);
 
 	virtual void Start(void);

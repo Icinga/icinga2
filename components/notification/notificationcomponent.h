@@ -33,6 +33,8 @@ namespace icinga
 class NotificationComponent : public DynamicObject
 {
 public:
+	DECLARE_PTR_TYPEDEFS(NotificationComponent);
+
 	NotificationComponent(const Dictionary::Ptr& serializedUpdate);
 
 	virtual void Start(void);

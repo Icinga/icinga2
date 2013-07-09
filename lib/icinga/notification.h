@@ -58,8 +58,7 @@ class NotificationCommand;
 class I2_ICINGA_API Notification : public DynamicObject, public MacroResolver
 {
 public:
-	typedef shared_ptr<Notification> Ptr;
-	typedef weak_ptr<Notification> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Notification);
 
 	explicit Notification(const Dictionary::Ptr& serializedUpdate);
 	~Notification(void);

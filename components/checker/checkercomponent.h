@@ -63,8 +63,7 @@ struct ServiceNextCheckExtractor
 class CheckerComponent : public DynamicObject
 {
 public:
-	typedef shared_ptr<CheckerComponent> Ptr;
-	typedef weak_ptr<CheckerComponent> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(CheckerComponent);
 
 	typedef boost::multi_index_container<
 		Service::Ptr,

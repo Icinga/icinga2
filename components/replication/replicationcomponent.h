@@ -32,6 +32,8 @@ namespace icinga
 class ReplicationComponent : public DynamicObject
 {
 public:
+	DECLARE_PTR_TYPEDEFS(ReplicationComponent);
+
 	ReplicationComponent(const Dictionary::Ptr& serializedUpdate);
 
 	virtual void Start(void);

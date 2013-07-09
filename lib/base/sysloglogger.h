@@ -35,8 +35,7 @@ namespace icinga
 class I2_BASE_API SyslogLogger : public Logger
 {
 public:
-	typedef shared_ptr<SyslogLogger> Ptr;
-	typedef weak_ptr<SyslogLogger> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(SyslogLogger);
 
 	explicit SyslogLogger(const Dictionary::Ptr& serializedUpdate);
 

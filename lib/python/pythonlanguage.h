@@ -36,8 +36,7 @@ class PythonInterpreter;
 class PythonLanguage : public ScriptLanguage
 {
 public:
-	typedef shared_ptr<PythonLanguage> Ptr;
-	typedef weak_ptr<PythonLanguage> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(PythonLanguage);
 
 	PythonLanguage(void);
 	~PythonLanguage(void);

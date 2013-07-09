@@ -43,8 +43,7 @@ enum TlsRole
 class I2_BASE_API TlsStream : public Stream
 {
 public:
-	typedef shared_ptr<TlsStream> Ptr;
-	typedef weak_ptr<TlsStream> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(TlsStream);
 
 	TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SSL_CTX> sslContext);
 

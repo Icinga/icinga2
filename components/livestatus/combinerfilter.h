@@ -33,8 +33,7 @@ namespace livestatus
 class CombinerFilter : public Filter
 {
 public:
-	typedef shared_ptr<CombinerFilter> Ptr;
-	typedef weak_ptr<CombinerFilter> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(CombinerFilter);
 
 	CombinerFilter(void);
 

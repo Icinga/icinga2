@@ -37,8 +37,7 @@ namespace icinga
 class I2_ICINGA_API PerfdataWriter : public DynamicObject
 {
 public:
-	typedef shared_ptr<PerfdataWriter> Ptr;
-	typedef weak_ptr<PerfdataWriter> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(PerfdataWriter);
 
 	PerfdataWriter(const Dictionary::Ptr& properties);
 

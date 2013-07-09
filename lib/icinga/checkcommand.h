@@ -34,8 +34,7 @@ namespace icinga
 class I2_BASE_API CheckCommand : public Command
 {
 public:
-	typedef shared_ptr<CheckCommand> Ptr;
-	typedef weak_ptr<CheckCommand> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(CheckCommand);
 
 	explicit CheckCommand(const Dictionary::Ptr& serializedUpdate);
 

@@ -37,8 +37,7 @@ namespace icinga
 class CompatLog : public DynamicObject
 {
 public:
-	typedef shared_ptr<CompatLog> Ptr;
-	typedef weak_ptr<CompatLog> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(CompatLog);
 
 	CompatLog(const Dictionary::Ptr& serializedUpdate);
 

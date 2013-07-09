@@ -37,8 +37,7 @@ namespace livestatus
 class Query : public Object
 {
 public:
-	typedef shared_ptr<Query> Ptr;
-	typedef weak_ptr<Query> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Query);
 
 	Query(const std::vector<String>& lines);
 

@@ -34,8 +34,7 @@ namespace icinga
 class I2_BASE_API ConsoleLogger : public StreamLogger
 {
 public:
-	typedef shared_ptr<ConsoleLogger> Ptr;
-	typedef weak_ptr<ConsoleLogger> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(ConsoleLogger);
 
 	explicit ConsoleLogger(const Dictionary::Ptr& serializedUpdate);
 };

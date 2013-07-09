@@ -33,8 +33,7 @@ namespace livestatus
 class OrFilter : public CombinerFilter
 {
 public:
-	typedef shared_ptr<OrFilter> Ptr;
-	typedef weak_ptr<OrFilter> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(OrFilter);
 
 	OrFilter(void);
 

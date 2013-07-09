@@ -96,8 +96,7 @@ class EventCommand;
 class I2_ICINGA_API Service : public DynamicObject, public MacroResolver
 {
 public:
-	typedef shared_ptr<Service> Ptr;
-	typedef weak_ptr<Service> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Service);
 
 	explicit Service(const Dictionary::Ptr& serializedUpdate);
 	~Service(void);

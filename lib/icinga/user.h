@@ -37,8 +37,7 @@ namespace icinga
 class I2_ICINGA_API User : public DynamicObject, public MacroResolver
 {
 public:
-	typedef shared_ptr<User> Ptr;
-	typedef weak_ptr<User> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(User);
 
 	explicit User(const Dictionary::Ptr& serializedUpdate);
 	~User(void);

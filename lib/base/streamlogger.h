@@ -35,8 +35,7 @@ namespace icinga
 class I2_BASE_API StreamLogger : public Logger
 {
 public:
-	typedef shared_ptr<StreamLogger> Ptr;
-	typedef weak_ptr<StreamLogger> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(StreamLogger);
 
 	StreamLogger(const Dictionary::Ptr& serializedUpdate);
 	~StreamLogger(void);

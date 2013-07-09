@@ -33,6 +33,8 @@ namespace icinga
 class DemoComponent : public DynamicObject
 {
 public:
+	DECLARE_PTR_TYPEDEFS(DemoComponent);
+
 	DemoComponent(const Dictionary::Ptr& serializedUpdate);
 
 	virtual void Start(void);

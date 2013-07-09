@@ -33,8 +33,7 @@ namespace livestatus
 class CommentsTable : public Table
 {
 public:
-	typedef shared_ptr<CommentsTable> Ptr;
-	typedef weak_ptr<CommentsTable> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(CommentsTable);
 
 	CommentsTable(void);
 

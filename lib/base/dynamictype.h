@@ -34,8 +34,7 @@ namespace icinga
 class I2_BASE_API DynamicType : public Object
 {
 public:
-	typedef shared_ptr<DynamicType> Ptr;
-	typedef weak_ptr<DynamicType> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(DynamicType);
 
 	typedef boost::function<DynamicObject::Ptr (const Dictionary::Ptr&)> ObjectFactory;
 

@@ -35,8 +35,7 @@ namespace icinga
 class I2_BASE_API ScriptLanguage : public Object
 {
 public:
-	typedef shared_ptr<ScriptLanguage> Ptr;
-	typedef weak_ptr<ScriptLanguage> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(ScriptLanguage);
 
 	static void Register(const String& name, const ScriptLanguage::Ptr& language);
 	static void Unregister(const String& name);

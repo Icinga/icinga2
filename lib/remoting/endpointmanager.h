@@ -39,8 +39,7 @@ namespace icinga
 class I2_REMOTING_API EndpointManager : public Object
 {
 public:
-	typedef shared_ptr<EndpointManager> Ptr;
-	typedef weak_ptr<EndpointManager> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(EndpointManager);
 
 	EndpointManager(void);
 

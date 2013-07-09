@@ -33,8 +33,7 @@ namespace livestatus
 class NegateFilter : public Filter
 {
 public:
-	typedef shared_ptr<NegateFilter> Ptr;
-	typedef weak_ptr<NegateFilter> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(NegateFilter);
 
 	NegateFilter(const Filter::Ptr& inner);
 

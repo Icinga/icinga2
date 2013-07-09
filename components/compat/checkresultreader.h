@@ -36,8 +36,7 @@ namespace icinga
 class CheckResultReader : public DynamicObject
 {
 public:
-	typedef shared_ptr<CheckResultReader> Ptr;
-	typedef weak_ptr<CheckResultReader> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(CheckResultReader);
 
 	CheckResultReader(const Dictionary::Ptr& properties);
 

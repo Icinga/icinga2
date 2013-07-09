@@ -77,8 +77,7 @@ enum StateType
 class I2_ICINGA_API Host : public DynamicObject, public MacroResolver
 {
 public:
-	typedef shared_ptr<Host> Ptr;
-	typedef weak_ptr<Host> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Host);
 
 	explicit Host(const Dictionary::Ptr& serializedUpdate);
 	~Host(void);

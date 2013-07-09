@@ -34,10 +34,9 @@ namespace icinga
 class I2_BASE_API FIFO : public Stream
 {
 public:
-	static const size_t BlockSize = 16 * 1024;
+	DECLARE_PTR_TYPEDEFS(FIFO);
 
-	typedef shared_ptr<FIFO> Ptr;
-	typedef weak_ptr<FIFO> WeakPtr;
+	static const size_t BlockSize = 16 * 1024;
 
 	FIFO(void);
 	~FIFO(void);

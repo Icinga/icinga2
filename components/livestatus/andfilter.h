@@ -33,8 +33,7 @@ namespace livestatus
 class AndFilter : public CombinerFilter
 {
 public:
-	typedef shared_ptr<AndFilter> Ptr;
-	typedef weak_ptr<AndFilter> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(AndFilter);
 
 	AndFilter(void);
 

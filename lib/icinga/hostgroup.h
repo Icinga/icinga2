@@ -36,8 +36,7 @@ namespace icinga
 class I2_ICINGA_API HostGroup : public DynamicObject
 {
 public:
-	typedef shared_ptr<HostGroup> Ptr;
-	typedef weak_ptr<HostGroup> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(HostGroup);
 
 	explicit HostGroup(const Dictionary::Ptr& serializedUpdate);
 	~HostGroup(void);

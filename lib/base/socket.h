@@ -37,8 +37,7 @@ namespace icinga {
 class I2_BASE_API Socket : public Object
 {
 public:
-	typedef shared_ptr<Socket> Ptr;
-	typedef weak_ptr<Socket> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Socket);
 
 	Socket(void);
 	Socket(SOCKET fd);

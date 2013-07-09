@@ -36,8 +36,7 @@ namespace icinga
 class I2_ICINGA_API ServiceGroup : public DynamicObject
 {
 public:
-	typedef shared_ptr<ServiceGroup> Ptr;
-	typedef weak_ptr<ServiceGroup> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(ServiceGroup);
 
 	explicit ServiceGroup(const Dictionary::Ptr& serializedUpdate);
 	~ServiceGroup(void);

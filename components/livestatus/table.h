@@ -36,8 +36,7 @@ class Filter;
 class Table : public Object
 {
 public:
-	typedef shared_ptr<Table> Ptr;
-	typedef weak_ptr<Table> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Table);
 
 	typedef boost::function<void (const Object::Ptr&)> AddRowFunction;
 

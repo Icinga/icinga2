@@ -35,8 +35,7 @@ namespace icinga
 class I2_ICINGA_API UserGroup : public DynamicObject
 {
 public:
-	typedef shared_ptr<UserGroup> Ptr;
-	typedef weak_ptr<UserGroup> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(UserGroup);
 
 	explicit UserGroup(const Dictionary::Ptr& serializedUpdate);
 	~UserGroup(void);

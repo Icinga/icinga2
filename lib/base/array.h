@@ -35,8 +35,7 @@ namespace icinga
 class I2_BASE_API Array : public Object
 {
 public:
-	typedef shared_ptr<Array> Ptr;
-	typedef weak_ptr<Array> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Array);
 
 	/**
 	 * An iterator that can be used to iterate over array elements.

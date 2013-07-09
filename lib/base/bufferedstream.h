@@ -35,8 +35,7 @@ namespace icinga
 class I2_BASE_API BufferedStream : public Stream
 {
 public:
-	typedef shared_ptr<BufferedStream> Ptr;
-	typedef weak_ptr<BufferedStream> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(BufferedStream);
 
 	BufferedStream(const Stream::Ptr& innerStream);
 	~BufferedStream(void);

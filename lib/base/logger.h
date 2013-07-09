@@ -48,8 +48,7 @@ struct LogEntry {
 class I2_BASE_API Logger : public DynamicObject
 {
 public:
-	typedef shared_ptr<Logger> Ptr;
-	typedef weak_ptr<Logger> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Logger);
 
 	explicit Logger(const Dictionary::Ptr& serializedUpdate);
 

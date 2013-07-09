@@ -36,8 +36,7 @@ namespace icinga
 class I2_ICINGA_API IcingaApplication : public Application, public MacroResolver
 {
 public:
-	typedef shared_ptr<IcingaApplication> Ptr;
-	typedef weak_ptr<IcingaApplication> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(IcingaApplication);
 
 	explicit IcingaApplication(const Dictionary::Ptr& serializedUpdate);
 

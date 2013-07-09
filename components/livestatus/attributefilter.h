@@ -33,8 +33,7 @@ namespace livestatus
 class AttributeFilter : public Filter
 {
 public:
-	typedef shared_ptr<AttributeFilter> Ptr;
-	typedef weak_ptr<AttributeFilter> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(AttributeFilter);
 
 	AttributeFilter(const String& column, const String& op, const String& operand);
 

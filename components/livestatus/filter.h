@@ -31,8 +31,7 @@ namespace livestatus
 class Filter : public Object
 {
 public:
-	typedef shared_ptr<Filter> Ptr;
-	typedef weak_ptr<Filter> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(Filter);
 
 	virtual bool Apply(const Table::Ptr& table, const Object::Ptr& object) = 0;
 
