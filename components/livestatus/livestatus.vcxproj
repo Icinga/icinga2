@@ -23,6 +23,7 @@
     <ClInclude Include="attributefilter.h" />
     <ClInclude Include="column.h" />
     <ClInclude Include="combinerfilter.h" />
+    <ClInclude Include="commandstable.h" />
     <ClInclude Include="commentstable.h" />
     <ClInclude Include="contactgroupstable.h" />
     <ClInclude Include="contactstable.h" />
@@ -44,6 +45,7 @@
     <ClCompile Include="attributefilter.cpp" />
     <ClCompile Include="column.cpp" />
     <ClCompile Include="combinerfilter.cpp" />
+    <ClCompile Include="commandstable.cpp" />
     <ClCompile Include="commentstable.cpp" />
     <ClCompile Include="component.cpp" />
     <ClCompile Include="contactgroupstable.cpp" />

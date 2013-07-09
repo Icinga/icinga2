@@ -23,6 +23,7 @@
 #include "livestatus/contactstable.h"
 #include "livestatus/hoststable.h"
 #include "livestatus/servicestable.h"
+#include "livestatus/commandstable.h"
 #include "livestatus/commentstable.h"
 #include "livestatus/downtimestable.h"
 #include "livestatus/logtable.h"
@@ -52,6 +53,8 @@ Table::Ptr Table::GetByName(const String& name)
 		return boost::make_shared<HostsTable>();
 	else if (name == "services")
 		return boost::make_shared<ServicesTable>();
+	else if (name == "commands")
+		return boost::make_shared<CommandsTable>();
 	else if (name == "comments")
 		return boost::make_shared<CommentsTable>();
 	else if (name == "downtimes")

@@ -18,6 +18,8 @@ liblivestatus_la_SOURCES = \
 	column.h \
 	combinerfilter.cpp \
 	combinerfilter.h \
+	commandstable.cpp \
+	commandstable.h \
 	commentstable.cpp \
 	commentstable.h \
 	component.cpp \
