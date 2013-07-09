@@ -32,6 +32,8 @@ liblivestatus_la_SOURCES = \
 	downtimestable.h \
 	filter.cpp \
 	filter.h \
+	hostgroupstable.cpp \
+	hostgroupstable.h \
 	hoststable.cpp \
 	hoststable.h \
 	livestatus-type.cpp \
@@ -43,6 +45,8 @@ liblivestatus_la_SOURCES = \
 	orfilter.h \
 	query.cpp \
 	query.h \
+	servicegroupstable.cpp \
+	servicegroupstable.h \
 	servicestable.cpp \
 	servicestable.h \
 	statustable.cpp \
