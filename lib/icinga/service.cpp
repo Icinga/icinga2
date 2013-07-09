@@ -200,6 +200,19 @@ String Service::GetShortName(void) const
 		return m_ShortName;
 }
 
+bool Service::IsHostCheck(void) const
+{
+	ASSERT(!OwnsLock());
+
+	Service::Ptr hc = GetHost()->GetHostCheckService();
+
+	if (!hc)
+		return false;
+
+	return (hc->GetName() == GetName());
+
+}
+
 bool Service::IsReachable(void) const
 {
 	ASSERT(!OwnsLock());

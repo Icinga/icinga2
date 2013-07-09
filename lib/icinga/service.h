@@ -122,6 +122,8 @@ public:
 	std::set<Host::Ptr> GetParentHosts(void) const;
 	std::set<Service::Ptr> GetParentServices(void) const;
 
+	bool IsHostCheck(void) const;
+
 	bool IsVolatile(void) const;
 
 	bool IsReachable(void) const;

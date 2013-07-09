@@ -314,6 +314,7 @@ int Host::GetTotalServices(void) const
 {
 	return GetServices().size();
 }
+
 void Host::InvalidateServicesCache(void)
 {
 	{
