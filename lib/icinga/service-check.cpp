@@ -301,9 +301,13 @@ String Service::GetLastCheckLongOutput(void) const
 String Service::GetLastCheckPerfData(void) const
 {
 	Dictionary::Ptr cr = GetLastCheckResult();
-	String perfdata = cr->Get("performance_data_raw");
+	String perfdata;
 
-	boost::algorithm::replace_all(perfdata, "\n", "\\n");
+	if (cr) {
+		perfdata = cr->Get("performance_data_raw");
+
+		boost::algorithm::replace_all(perfdata, "\n", "\\n");
+	}
 
 	return perfdata;
 }
