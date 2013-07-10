@@ -19,7 +19,6 @@
 
 #include "livestatus/commentstable.h"
 #include "livestatus/servicestable.h"
-#include "livestatus/hoststable.h"
 #include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -49,8 +48,6 @@ void CommentsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "expires", Column(&CommentsTable::ExpiresAccessor, objectAccessor));
 	table->AddColumn(prefix + "expire_time", Column(&CommentsTable::ExpireTimeAccessor, objectAccessor));
 
-	// TODO: Join hosts and services table with prefix
-	HostsTable::AddColumns(table, "host_", &CommentsTable::HostAccessor);
 	ServicesTable::AddColumns(table, "service_", &CommentsTable::ServiceAccessor);
 }
 
@@ -70,25 +67,11 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 
 		ObjectLock olock(comments);
 
-		/*Value comment;
-		BOOST_FOREACH(boost::tie(boost::tuples::ignore, comment), comments) {
-			addRowFn(comment);
-		}*/
 		String id;
 		BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), comments) {
 			addRowFn(id);
 		}
 	}
-}
-
-Object::Ptr CommentsTable::HostAccessor(const Value& row)
-{
-	Service::Ptr svc = Service::GetOwnerByCommentID(row);
-
-	if (!svc)
-		return Value();
-
-	return svc->GetHost();
 }
 
 Object::Ptr CommentsTable::ServiceAccessor(const Value& row)
@@ -100,12 +83,18 @@ Value CommentsTable::AuthorAccessor(const Value& row)
 {
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
+	if (!comment)
+		return Value();
+
 	return comment->Get("author");
 }
 
 Value CommentsTable::CommentAccessor(const Value& row)
 {
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	if (!comment)
+		return Value();
 
 	return comment->Get("text");
 }
@@ -114,12 +103,18 @@ Value CommentsTable::IdAccessor(const Value& row)
 {
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
+	if (!comment)
+		return Value();
+
 	return comment->Get("legacy_id");
 }
 
 Value CommentsTable::EntryTimeAccessor(const Value& row)
 {
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	if (!comment)
+		return Value();
 
 	return comment->Get("entry_time");
 }
@@ -133,6 +128,9 @@ Value CommentsTable::TypeAccessor(const Value& row)
 Value CommentsTable::IsServiceAccessor(const Value& row)
 {
 	Service::Ptr svc = Service::GetOwnerByCommentID(row);
+
+	if (!svc)
+		return Value();
 
 	return (svc->IsHostCheck() ? 0 : 1);
 }
@@ -153,6 +151,9 @@ Value CommentsTable::EntryTypeAccessor(const Value& row)
 {
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
+	if (!comment)
+		return Value();
+
 	return comment->Get("entry_type");
 }
 
@@ -160,12 +161,18 @@ Value CommentsTable::ExpiresAccessor(const Value& row)
 {
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
+	if (!comment)
+		return Value();
+
 	return comment->Get("expires");
 }
 
 Value CommentsTable::ExpireTimeAccessor(const Value& row)
 {
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
+
+	if (!comment)
+		return Value();
 
 	return comment->Get("expire_time");
 }

@@ -26,10 +26,10 @@ using namespace livestatus;
 AndFilter::AndFilter(void)
 { }
 
-bool AndFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
+bool AndFilter::Apply(const Table::Ptr& table, const Value& row)
 {
 	BOOST_FOREACH(const Filter::Ptr& filter, m_Filters) {
-		if (!filter->Apply(table, object))
+		if (!filter->Apply(table, row))
 			return false;
 	}
 

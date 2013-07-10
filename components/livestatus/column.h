@@ -31,12 +31,12 @@ namespace livestatus
 class Column
 {
 public:
-	typedef boost::function<Value (const Object::Ptr&)> ValueAccessor;
-	typedef boost::function<Object::Ptr (const Object::Ptr&)> ObjectAccessor;
+	typedef boost::function<Value (const Value&)> ValueAccessor;
+	typedef boost::function<Value (const Value&)> ObjectAccessor;
 
 	Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectAccessor);
 
-	Value ExtractValue(const Object::Ptr& uobject) const;
+	Value ExtractValue(const Value& urow) const;
 
 private:
 	ValueAccessor m_ValueAccessor;

@@ -26,7 +26,7 @@ NegateFilter::NegateFilter(const Filter::Ptr& inner)
 	: m_Inner(inner)
 { }
 
-bool NegateFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
+bool NegateFilter::Apply(const Table::Ptr& table, const Value& row)
 {
-	return !m_Inner->Apply(table, object);
+	return !m_Inner->Apply(table, row);
 }

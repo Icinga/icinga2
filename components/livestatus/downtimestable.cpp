@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/downtimestable.h"
+#include "livestatus/servicestable.h"
 #include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -47,7 +48,7 @@ void DowntimesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "duration", Column(&DowntimesTable::DurationAccessor, objectAccessor));
 	table->AddColumn(prefix + "triggered_by", Column(&DowntimesTable::TriggeredByAccessor, objectAccessor));
 
-	// TODO: Join services table.
+	ServicesTable::AddColumns(table, "service_", &DowntimesTable::ServiceAccessor);
 }
 
 String DowntimesTable::GetName(void) const
@@ -66,15 +67,16 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 
 		ObjectLock olock(downtimes);
 
-		/*Value downtime;
-		BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
-			addRowFn(downtime);
-		}*/
 		String id;
 		BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), downtimes) {
 			addRowFn(id);
 		}
 	}
+}
+
+Object::Ptr DowntimesTable::ServiceAccessor(const Value& row)
+{
+	return Service::GetOwnerByDowntimeID(row);
 }
 
 Value DowntimesTable::AuthorAccessor(const Value& row)
@@ -142,18 +144,14 @@ Value DowntimesTable::FixedAccessor(const Value& row)
 
 Value DowntimesTable::DurationAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
 	return downtime->Get("duration");
-	*/
 }
 
 Value DowntimesTable::TriggeredByAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
 	return downtime->Get("triggered_by");
-	*/
 }

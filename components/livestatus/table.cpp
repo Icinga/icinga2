@@ -101,19 +101,19 @@ std::vector<String> Table::GetColumnNames(void) const
 	return names;
 }
 
-std::vector<Object::Ptr> Table::FilterRows(const Filter::Ptr& filter)
+std::vector<Value> Table::FilterRows(const Filter::Ptr& filter)
 {
-	std::vector<Object::Ptr> rs;
+	std::vector<Value> rs;
 
 	FetchRows(boost::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, _1));
 
 	return rs;
 }
 
-void Table::FilteredAddRow(std::vector<Object::Ptr>& rs, const Filter::Ptr& filter, const Object::Ptr& object)
+void Table::FilteredAddRow(std::vector<Value>& rs, const Filter::Ptr& filter, const Value& row)
 {
-	if (!filter || filter->Apply(GetSelf(), object))
-		rs.push_back(object);
+	if (!filter || filter->Apply(GetSelf(), row))
+		rs.push_back(row);
 }
 
 Value Table::ZeroAccessor(const Object::Ptr&)

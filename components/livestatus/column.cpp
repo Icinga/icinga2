@@ -26,14 +26,14 @@ Column::Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectA
 	: m_ValueAccessor(valueAccessor), m_ObjectAccessor(objectAccessor)
 { }
 
-Value Column::ExtractValue(const Object::Ptr& uobject) const
+Value Column::ExtractValue(const Value& urow) const
 {
-	Object::Ptr object;
+	Value row;
 
 	if (!m_ObjectAccessor.empty())
-		object = m_ObjectAccessor(uobject);
+		row = m_ObjectAccessor(urow);
 	else
-		object = uobject;
+		row = urow;
 
-	return m_ValueAccessor(object);
+	return m_ValueAccessor(row);
 }

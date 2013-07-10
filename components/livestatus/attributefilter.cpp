@@ -29,11 +29,11 @@ AttributeFilter::AttributeFilter(const String& column, const String& op, const S
 	: m_Column(column), m_Operator(op), m_Operand(operand)
 { }
 
-bool AttributeFilter::Apply(const Table::Ptr& table, const Object::Ptr& object)
+bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 {
 	Column column = table->GetColumn(m_Column);
 
-	Value value = column.ExtractValue(object);
+	Value value = column.ExtractValue(row);
 
 	if (value.IsObjectType<Array>()) {
 		if (m_Operator == ">=") {

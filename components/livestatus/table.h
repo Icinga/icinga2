@@ -45,7 +45,7 @@ public:
 
 	virtual String GetName(void) const = 0;
 
-	std::vector<Object::Ptr> FilterRows(const shared_ptr<Filter>& filter);
+	std::vector<Value> FilterRows(const shared_ptr<Filter>& filter);
 
 	void AddColumn(const String& name, const Column& column);
 	Column GetColumn(const String& name) const;
@@ -65,7 +65,7 @@ protected:
 private:
 	std::map<String, Column> m_Columns;
 
-	void FilteredAddRow(std::vector<Object::Ptr>& rs, const shared_ptr<Filter>& filter, const Object::Ptr& object);
+	void FilteredAddRow(std::vector<Value>& rs, const shared_ptr<Filter>& filter, const Value& row);
 };
 
 }

@@ -37,7 +37,7 @@ public:
 
 	OrFilter(void);
 
-	virtual bool Apply(const Table::Ptr& table, const Object::Ptr& object);
+	virtual bool Apply(const Table::Ptr& table, const Value& row);
 };
 
 }

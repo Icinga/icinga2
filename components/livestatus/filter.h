@@ -33,7 +33,7 @@ class Filter : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Filter);
 
-	virtual bool Apply(const Table::Ptr& table, const Object::Ptr& object) = 0;
+	virtual bool Apply(const Table::Ptr& table, const Value& row) = 0;
 
 protected:
 	Filter(void);

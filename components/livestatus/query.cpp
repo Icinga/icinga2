@@ -27,6 +27,7 @@
 #include "base/convert.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/exception.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -220,7 +221,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		return;
 	}
 
-	std::vector<Object::Ptr> objects = table->FilterRows(m_Filter);
+	std::vector<Value> objects = table->FilterRows(m_Filter);
 	std::vector<String> columns;
 	
 	if (m_Columns.size() > 0)
@@ -231,7 +232,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 	Array::Ptr rs = boost::make_shared<Array>();
 
 	if (m_Stats.empty()) {
-		BOOST_FOREACH(const Object::Ptr& object, objects) {
+		BOOST_FOREACH(const Value& object, objects) {
 			Array::Ptr row = boost::make_shared<Array>();
 
 			BOOST_FOREACH(const String& columnName, columns) {
@@ -245,7 +246,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 	} else {
 		std::vector<int> stats(m_Stats.size(), 0);
 
-		BOOST_FOREACH(const Object::Ptr& object, objects) {
+		BOOST_FOREACH(const Value& object, objects) {
 			int index = 0;
 			BOOST_FOREACH(const Filter::Ptr filter, m_Stats) {
 				if (filter->Apply(table, object))
@@ -305,17 +306,21 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 bool Query::Execute(const Stream::Ptr& stream)
 {
 	try {
-	Log(LogInformation, "livestatus", "Executing livestatus query: " + m_Verb);
+		Log(LogInformation, "livestatus", "Executing livestatus query: " + m_Verb);
 
-	if (m_Verb == "GET")
-		ExecuteGetHelper(stream);
-	else if (m_Verb == "COMMAND")
-		ExecuteCommandHelper(stream);
-	else if (m_Verb == "ERROR")
-		ExecuteErrorHelper(stream);
-	else
-		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid livestatus query verb."));
+		if (m_Verb == "GET")
+			ExecuteGetHelper(stream);
+		else if (m_Verb == "COMMAND")
+			ExecuteCommandHelper(stream);
+		else if (m_Verb == "ERROR")
+			ExecuteErrorHelper(stream);
+		else
+			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid livestatus query verb."));
 	} catch (const std::exception& ex) {
+		StackTrace *st = Exception::GetLastStackTrace();
+		std::ostringstream info;
+		st->Print(info);
+		Log(LogWarning, "livestatus", info.str());
 		SendResponse(stream, 452, boost::diagnostic_information(ex));
 	}
 

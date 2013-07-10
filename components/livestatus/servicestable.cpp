@@ -119,7 +119,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "groups", Column(&ServicesTable::GroupsAccessor, objectAccessor));
 	table->AddColumn(prefix + "contact_groups", Column(&ServicesTable::ContactGroupsAccessor, objectAccessor));
 
-	HostsTable::AddColumns(table, "host_", &ServicesTable::HostAccessor);
+	HostsTable::AddColumns(table, "host_", boost::bind(&ServicesTable::HostAccessor, _1, objectAccessor));
 }
 
 String ServicesTable::GetName(void) const
@@ -134,9 +134,9 @@ void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Object::Ptr ServicesTable::HostAccessor(const Value& row)
+Object::Ptr ServicesTable::HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
 {
-	return static_cast<Service::Ptr>(row)->GetHost();
+	return static_cast<Service::Ptr>(parentObjectAccessor(row))->GetHost();
 }
 
 Value ServicesTable::ShortNameAccessor(const Value& row)
