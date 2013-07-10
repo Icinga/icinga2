@@ -38,7 +38,7 @@ class Table : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Table);
 
-	typedef boost::function<void (const Object::Ptr&)> AddRowFunction;
+	typedef boost::function<void (const Value&)> AddRowFunction;
 
 	static Table::Ptr GetByName(const String& name);
 

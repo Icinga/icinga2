@@ -58,13 +58,13 @@ void CommandsTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Value CommandsTable::NameAccessor(const Object::Ptr& object)
+Value CommandsTable::NameAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value CommandsTable::LineAccessor(const Object::Ptr& object)
+Value CommandsTable::LineAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();

@@ -45,21 +45,21 @@ public:
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
-	static Value TimeAccessor(const Object::Ptr& object);
-	static Value LinenoAccessor(const Object::Ptr& object);
-	static Value ClassAccessor(const Object::Ptr& object);
-	static Value MessageAccessor(const Object::Ptr& object);
-	static Value TypeAccessor(const Object::Ptr& object);
-	static Value OptionsAccessor(const Object::Ptr& object);
-	static Value CommentAccessor(const Object::Ptr& object);
-	static Value PluginOutputAccessor(const Object::Ptr& object);
-	static Value StateAccessor(const Object::Ptr& object);
-	static Value StateTypeAccessor(const Object::Ptr& object);
-	static Value AttemptAccessor(const Object::Ptr& object);
-	static Value ServiceDescriptionAccessor(const Object::Ptr& object);
-	static Value HostNameAccessor(const Object::Ptr& object);
-	static Value ContactNameAccessor(const Object::Ptr& object);
-	static Value CommandNameAccessor(const Object::Ptr& object);
+	static Value TimeAccessor(const Value& row);
+	static Value LinenoAccessor(const Value& row);
+	static Value ClassAccessor(const Value& row);
+	static Value MessageAccessor(const Value& row);
+	static Value TypeAccessor(const Value& row);
+	static Value OptionsAccessor(const Value& row);
+	static Value CommentAccessor(const Value& row);
+	static Value PluginOutputAccessor(const Value& row);
+	static Value StateAccessor(const Value& row);
+	static Value StateTypeAccessor(const Value& row);
+	static Value AttemptAccessor(const Value& row);
+	static Value ServiceDescriptionAccessor(const Value& row);
+	static Value HostNameAccessor(const Value& row);
+	static Value ContactNameAccessor(const Value& row);
+	static Value CommandNameAccessor(const Value& row);
 };
 
 }

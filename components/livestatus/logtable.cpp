@@ -65,91 +65,91 @@ void LogTable::FetchRows(const AddRowFunction& addRowFn)
 	addRowFn(obj);
 }
 
-Value LogTable::TimeAccessor(const Object::Ptr& object)
+Value LogTable::TimeAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::LinenoAccessor(const Object::Ptr& object)
+Value LogTable::LinenoAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::ClassAccessor(const Object::Ptr& object)
+Value LogTable::ClassAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::MessageAccessor(const Object::Ptr& object)
+Value LogTable::MessageAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::TypeAccessor(const Object::Ptr& object)
+Value LogTable::TypeAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::OptionsAccessor(const Object::Ptr& object)
+Value LogTable::OptionsAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::CommentAccessor(const Object::Ptr& object)
+Value LogTable::CommentAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::PluginOutputAccessor(const Object::Ptr& object)
+Value LogTable::PluginOutputAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::StateAccessor(const Object::Ptr& object)
+Value LogTable::StateAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::StateTypeAccessor(const Object::Ptr& object)
+Value LogTable::StateTypeAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::AttemptAccessor(const Object::Ptr& object)
+Value LogTable::AttemptAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::ServiceDescriptionAccessor(const Object::Ptr& object)
+Value LogTable::ServiceDescriptionAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::HostNameAccessor(const Object::Ptr& object)
+Value LogTable::HostNameAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::ContactNameAccessor(const Object::Ptr& object)
+Value LogTable::ContactNameAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value LogTable::CommandNameAccessor(const Object::Ptr& object)
+Value LogTable::CommandNameAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();

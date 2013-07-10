@@ -66,95 +66,81 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 
 		ObjectLock olock(downtimes);
 
-		Value downtime;
+		/*Value downtime;
 		BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
 			addRowFn(downtime);
+		}*/
+		String id;
+		BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), downtimes) {
+			addRowFn(id);
 		}
 	}
 }
 
-Value DowntimesTable::AuthorAccessor(const Object::Ptr& object)
+Value DowntimesTable::AuthorAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
 	return downtime->Get("author");
-	*/
 }
 
-Value DowntimesTable::CommentAccessor(const Object::Ptr& object)
+Value DowntimesTable::CommentAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
 	return downtime->Get("comment");
-	*/
 }
 
-Value DowntimesTable::IdAccessor(const Object::Ptr& object)
+Value DowntimesTable::IdAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
 	return downtime->Get("legacy_id");
-	*/
 }
 
-Value DowntimesTable::EntryTimeAccessor(const Object::Ptr& object)
+Value DowntimesTable::EntryTimeAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
 	return downtime->Get("entry_time");
-	*/
 }
 
-Value DowntimesTable::TypeAccessor(const Object::Ptr& object)
+Value DowntimesTable::TypeAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 	// 1 .. active, 0 .. pending
 	return (Service::IsDowntimeActive(downtime) ? 1 : 0);
-	*/
 }
 
-Value DowntimesTable::IsServiceAccessor(const Object::Ptr& object)
+Value DowntimesTable::IsServiceAccessor(const Value& row)
 {
-	/*
 	Service::Ptr svc = Service::GetOwnerByDowntimeID(row);
 
 	return (svc->IsHostCheck() ? 0 : 1);
-	*/
 }
 
-Value DowntimesTable::StartTimeAccessor(const Object::Ptr& object)
+Value DowntimesTable::StartTimeAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
 	return downtime->Get("start_time");
-	*/
 }
 
-Value DowntimesTable::EndTimeAccessor(const Object::Ptr& object)
+Value DowntimesTable::EndTimeAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
 	return downtime->Get("end_time");
-	*/
 }
 
-Value DowntimesTable::FixedAccessor(const Object::Ptr& object)
+Value DowntimesTable::FixedAccessor(const Value& row)
 {
-	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
 	return downtime->Get("fixed");
-	*/
 }
 
-Value DowntimesTable::DurationAccessor(const Object::Ptr& object)
+Value DowntimesTable::DurationAccessor(const Value& row)
 {
 	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
@@ -163,7 +149,7 @@ Value DowntimesTable::DurationAccessor(const Object::Ptr& object)
 	*/
 }
 
-Value DowntimesTable::TriggeredByAccessor(const Object::Ptr& object)
+Value DowntimesTable::TriggeredByAccessor(const Value& row)
 {
 	/*
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);

@@ -107,292 +107,292 @@ void StatusTable::FetchRows(const AddRowFunction& addRowFn)
 	addRowFn(obj);
 }
 
-Value StatusTable::NebCallbacksAccessor(const Object::Ptr& object)
+Value StatusTable::NebCallbacksAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value StatusTable::NebCallbacksRateAccessor(const Object::Ptr& object)
+Value StatusTable::NebCallbacksRateAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value StatusTable::RequestsAccessor(const Object::Ptr& object)
+Value StatusTable::RequestsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::RequestsRateAccessor(const Object::Ptr& object)
+Value StatusTable::RequestsRateAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ConnectionsAccessor(const Object::Ptr& object)
+Value StatusTable::ConnectionsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ConnectionsRateAccessor(const Object::Ptr& object)
+Value StatusTable::ConnectionsRateAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ServiceChecksAccessor(const Object::Ptr& object)
+Value StatusTable::ServiceChecksAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ServiceChecksRateAccessor(const Object::Ptr& object)
+Value StatusTable::ServiceChecksRateAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::HostChecksAccessor(const Object::Ptr& object)
+Value StatusTable::HostChecksAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::HostChecksRateAccessor(const Object::Ptr& object)
+Value StatusTable::HostChecksRateAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ForksAccessor(const Object::Ptr& object)
+Value StatusTable::ForksAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ForksRateAccessor(const Object::Ptr& object)
+Value StatusTable::ForksRateAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LogMessagesAccessor(const Object::Ptr& object)
+Value StatusTable::LogMessagesAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LogMessagesRateAccessor(const Object::Ptr& object)
+Value StatusTable::LogMessagesRateAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ExternalCommandsAccessor(const Object::Ptr& object)
+Value StatusTable::ExternalCommandsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ExternalCommandsRateAccessor(const Object::Ptr& object)
+Value StatusTable::ExternalCommandsRateAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LivechecksAccessor(const Object::Ptr& object)
+Value StatusTable::LivechecksAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LivechecksRateAccessor(const Object::Ptr& object)
+Value StatusTable::LivechecksRateAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LivecheckOverflowsAccessor(const Object::Ptr& object)
+Value StatusTable::LivecheckOverflowsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LivecheckOverflowsRateAccessor(const Object::Ptr& object)
+Value StatusTable::LivecheckOverflowsRateAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::NagiosPidAccessor(const Object::Ptr& object)
+Value StatusTable::NagiosPidAccessor(const Value& row)
 {
 	return Utility::GetPid();
 }
 
-Value StatusTable::EnableNotificationsAccessor(const Object::Ptr& object)
+Value StatusTable::EnableNotificationsAccessor(const Value& row)
 {
 	/* TODO - enabled by default*/
 	return 1;
 }
 
-Value StatusTable::ExecuteServiceChecksAccessor(const Object::Ptr& object)
+Value StatusTable::ExecuteServiceChecksAccessor(const Value& row)
 {
 	/* TODO - enabled by default*/
 	return 1;
 }
 
-Value StatusTable::AcceptPassiveServiceChecksAccessor(const Object::Ptr& object)
+Value StatusTable::AcceptPassiveServiceChecksAccessor(const Value& row)
 {
 	/* TODO - enabled by default*/
 	return 1;
 }
 
-Value StatusTable::ExecuteHostChecksAccessor(const Object::Ptr& object)
+Value StatusTable::ExecuteHostChecksAccessor(const Value& row)
 {
 	/* TODO - enabled by default*/
 	return 1;
 }
 
-Value StatusTable::AcceptPassiveHostChecksAccessor(const Object::Ptr& object)
+Value StatusTable::AcceptPassiveHostChecksAccessor(const Value& row)
 {
 	/* TODO - enabled by default*/
 	return 1;
 }
 
-Value StatusTable::EnableEventHandlersAccessor(const Object::Ptr& object)
+Value StatusTable::EnableEventHandlersAccessor(const Value& row)
 {
 	/* TODO - enabled by default*/
 	return 1;
 }
 
-Value StatusTable::ObsessOverServicesAccessor(const Object::Ptr& object)
+Value StatusTable::ObsessOverServicesAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value StatusTable::ObsessOverHostsAccessor(const Object::Ptr& object)
+Value StatusTable::ObsessOverHostsAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value StatusTable::CheckServiceFreshnessAccessor(const Object::Ptr& object)
+Value StatusTable::CheckServiceFreshnessAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::CheckHostFreshnessAccessor(const Object::Ptr& object)
+Value StatusTable::CheckHostFreshnessAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::EnableFlapDetectionAccessor(const Object::Ptr& object)
+Value StatusTable::EnableFlapDetectionAccessor(const Value& row)
 {
 	/* TODO - enabled by default*/
 	return 1;
 }
 
-Value StatusTable::ProcessPerformanceDataAccessor(const Object::Ptr& object)
+Value StatusTable::ProcessPerformanceDataAccessor(const Value& row)
 {
 	/* TODO - enabled by default*/
 	return 1;
 }
 
-Value StatusTable::CheckExternalCommandsAccessor(const Object::Ptr& object)
+Value StatusTable::CheckExternalCommandsAccessor(const Value& row)
 {
 	/* TODO - enabled by default*/
 	return 1;
 }
 
-Value StatusTable::ProgramStartAccessor(const Object::Ptr& object)
+Value StatusTable::ProgramStartAccessor(const Value& row)
 {
 	return IcingaApplication::GetInstance()->GetStartTime();
 }
 
-Value StatusTable::LastCommandCheckAccessor(const Object::Ptr& object)
+Value StatusTable::LastCommandCheckAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LastLogRotationAccessor(const Object::Ptr& object)
+Value StatusTable::LastLogRotationAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::IntervalLengthAccessor(const Object::Ptr& object)
+Value StatusTable::IntervalLengthAccessor(const Value& row)
 {
 	/* hardcoded 60s */
 	return 60;
 }
 
-Value StatusTable::NumHostsAccessor(const Object::Ptr& object)
+Value StatusTable::NumHostsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::NumServicesAccessor(const Object::Ptr& object)
+Value StatusTable::NumServicesAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ProgramVersionAccessor(const Object::Ptr& object)
+Value StatusTable::ProgramVersionAccessor(const Value& row)
 {
 	return "2.0";
 }
 
-Value StatusTable::ExternalCommandBufferSlotsAccessor(const Object::Ptr& object)
+Value StatusTable::ExternalCommandBufferSlotsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ExternalCommandBufferUsageAccessor(const Object::Ptr& object)
+Value StatusTable::ExternalCommandBufferUsageAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::ExternalCommandBufferMaxAccessor(const Object::Ptr& object)
+Value StatusTable::ExternalCommandBufferMaxAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::CachedLogMessagesAccessor(const Object::Ptr& object)
+Value StatusTable::CachedLogMessagesAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LivestatusVersionAccessor(const Object::Ptr& object)
+Value StatusTable::LivestatusVersionAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LivestatusActiveConnectionsAccessor(const Object::Ptr& object)
+Value StatusTable::LivestatusActiveConnectionsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LivestatusQueuedConnectionsAccessor(const Object::Ptr& object)
+Value StatusTable::LivestatusQueuedConnectionsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value StatusTable::LivestatusThreadsAccessor(const Object::Ptr& object)
+Value StatusTable::LivestatusThreadsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();

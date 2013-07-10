@@ -63,19 +63,19 @@ void ContactsTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Value ContactsTable::NameAccessor(const Object::Ptr& object)
+Value ContactsTable::NameAccessor(const Value& row)
 {
-	return static_pointer_cast<User>(object)->GetName();
+	return static_cast<User::Ptr>(row)->GetName();
 }
 
-Value ContactsTable::AliasAccessor(const Object::Ptr& object)
+Value ContactsTable::AliasAccessor(const Value& row)
 {
-	return static_pointer_cast<User>(object)->GetDisplayName();
+	return static_cast<User::Ptr>(row)->GetDisplayName();
 }
 
-Value ContactsTable::EmailAccessor(const Object::Ptr& object)
+Value ContactsTable::EmailAccessor(const Value& row)
 {
-	Dictionary::Ptr macros = static_pointer_cast<User>(object)->GetMacros();
+	Dictionary::Ptr macros = static_cast<User::Ptr>(row)->GetMacros();
 
 	if (!macros)
 		return Value();
@@ -83,9 +83,9 @@ Value ContactsTable::EmailAccessor(const Object::Ptr& object)
 	return macros->Get("email");
 }
 
-Value ContactsTable::PagerAccessor(const Object::Ptr& object)
+Value ContactsTable::PagerAccessor(const Value& row)
 {
-	Dictionary::Ptr macros = static_pointer_cast<User>(object)->GetMacros();
+	Dictionary::Ptr macros = static_cast<User::Ptr>(row)->GetMacros();
 
 	if (!macros)
 		return Value();
@@ -93,73 +93,73 @@ Value ContactsTable::PagerAccessor(const Object::Ptr& object)
 	return macros->Get("pager");
 }
 
-Value ContactsTable::HostNotificationPeriodAccessor(const Object::Ptr& object)
+Value ContactsTable::HostNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ContactsTable::ServiceNotificationPeriodAccessor(const Object::Ptr& object)
+Value ContactsTable::ServiceNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ContactsTable::CanSubmitCommandsAccessor(const Object::Ptr& object)
+Value ContactsTable::CanSubmitCommandsAccessor(const Value& row)
 {
 	/* TODO - default 1*/
 	return 1;
 }
 
-Value ContactsTable::HostNotificationsEnabledAccessor(const Object::Ptr& object)
+Value ContactsTable::HostNotificationsEnabledAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ContactsTable::ServiceNotificationsEnabledAccessor(const Object::Ptr& object)
+Value ContactsTable::ServiceNotificationsEnabledAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ContactsTable::InHostNotificationPeriodAccessor(const Object::Ptr& object)
+Value ContactsTable::InHostNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ContactsTable::InServiceNotificationPeriodAccessor(const Object::Ptr& object)
+Value ContactsTable::InServiceNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ContactsTable::CustomVariableNamesAccessor(const Object::Ptr& object)
+Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ContactsTable::CustomVariableValuesAccessor(const Object::Ptr& object)
+Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ContactsTable::CustomVariablesAccessor(const Object::Ptr& object)
+Value ContactsTable::CustomVariablesAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ContactsTable::ModifiedAttributesAccessor(const Object::Ptr& object)
+Value ContactsTable::ModifiedAttributesAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value ContactsTable::ModifiedAttributesListAccessor(const Object::Ptr& object)
+Value ContactsTable::ModifiedAttributesListAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();

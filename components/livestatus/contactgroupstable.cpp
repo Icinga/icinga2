@@ -50,21 +50,21 @@ void ContactGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Value ContactGroupsTable::NameAccessor(const Object::Ptr& object)
+Value ContactGroupsTable::NameAccessor(const Value& row)
 {
-	return static_pointer_cast<UserGroup>(object)->GetName();
+	return static_cast<UserGroup::Ptr>(row)->GetName();
 }
 
-Value ContactGroupsTable::AliasAccessor(const Object::Ptr& object)
+Value ContactGroupsTable::AliasAccessor(const Value& row)
 {
-	return static_pointer_cast<UserGroup>(object)->GetName();
+	return static_cast<UserGroup::Ptr>(row)->GetName();
 }
 
-Value ContactGroupsTable::MembersAccessor(const Object::Ptr& object)
+Value ContactGroupsTable::MembersAccessor(const Value& row)
 {
 	Array::Ptr members = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const User::Ptr& user, static_pointer_cast<UserGroup>(object)->GetMembers()) {
+	BOOST_FOREACH(const User::Ptr& user, static_cast<UserGroup::Ptr>(row)->GetMembers()) {
 		members->Add(user->GetName());
 	}
 

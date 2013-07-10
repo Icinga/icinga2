@@ -50,21 +50,21 @@ void ServiceGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Value ServiceGroupsTable::NameAccessor(const Object::Ptr& object)
+Value ServiceGroupsTable::NameAccessor(const Value& row)
 {
-	return static_pointer_cast<ServiceGroup>(object)->GetName();
+	return static_cast<ServiceGroup::Ptr>(row)->GetName();
 }
 
-Value ServiceGroupsTable::AliasAccessor(const Object::Ptr& object)
+Value ServiceGroupsTable::AliasAccessor(const Value& row)
 {
-	return static_pointer_cast<ServiceGroup>(object)->GetName();
+	return static_cast<ServiceGroup::Ptr>(row)->GetName();
 }
 
-Value ServiceGroupsTable::MembersAccessor(const Object::Ptr& object)
+Value ServiceGroupsTable::MembersAccessor(const Value& row)
 {
 	Array::Ptr members = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const Service::Ptr& service, static_pointer_cast<ServiceGroup>(object)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
 		members->Add(service->GetName());
 	}
 

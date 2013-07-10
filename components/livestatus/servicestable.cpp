@@ -134,24 +134,24 @@ void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Object::Ptr ServicesTable::HostAccessor(const Object::Ptr& object)
+Object::Ptr ServicesTable::HostAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetHost();
+	return static_cast<Service::Ptr>(row)->GetHost();
 }
 
-Value ServicesTable::ShortNameAccessor(const Object::Ptr& object)
+Value ServicesTable::ShortNameAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetShortName();
+	return static_cast<Service::Ptr>(row)->GetShortName();
 }
 
-Value ServicesTable::DisplayNameAccessor(const Object::Ptr& object)
+Value ServicesTable::DisplayNameAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetDisplayName();
+	return static_cast<Service::Ptr>(row)->GetDisplayName();
 }
 
-Value ServicesTable::CheckCommandAccessor(const Object::Ptr& object)
+Value ServicesTable::CheckCommandAccessor(const Value& row)
 {
-	CheckCommand::Ptr checkcommand = static_pointer_cast<Service>(object)->GetCheckCommand();
+	CheckCommand::Ptr checkcommand = static_cast<Service::Ptr>(row)->GetCheckCommand();
 
 	if (checkcommand)
 		return checkcommand->GetName(); /* this is the name without '!' args */
@@ -159,9 +159,9 @@ Value ServicesTable::CheckCommandAccessor(const Object::Ptr& object)
 	return Value();
 }
 
-Value ServicesTable::CheckCommandExpandedAccessor(const Object::Ptr& object)
+Value ServicesTable::CheckCommandExpandedAccessor(const Value& row)
 {
-	CheckCommand::Ptr checkcommand = static_pointer_cast<Service>(object)->GetCheckCommand();
+	CheckCommand::Ptr checkcommand = static_cast<Service::Ptr>(row)->GetCheckCommand();
 
 	if (checkcommand)
 		return checkcommand->GetName(); /* this is the name without '!' args */
@@ -169,9 +169,9 @@ Value ServicesTable::CheckCommandExpandedAccessor(const Object::Ptr& object)
 	return Value();
 }
 
-Value ServicesTable::EventHandlerAccessor(const Object::Ptr& object)
+Value ServicesTable::EventHandlerAccessor(const Value& row)
 {
-	EventCommand::Ptr eventcommand = static_pointer_cast<Service>(object)->GetEventCommand();
+	EventCommand::Ptr eventcommand = static_cast<Service::Ptr>(row)->GetEventCommand();
 
 	if (eventcommand)
 		return eventcommand->GetName();
@@ -179,30 +179,30 @@ Value ServicesTable::EventHandlerAccessor(const Object::Ptr& object)
 	return Value();
 }
 
-Value ServicesTable::PluginOutputAccessor(const Object::Ptr& object)
+Value ServicesTable::PluginOutputAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetLastCheckOutput();
+	return static_cast<Service::Ptr>(row)->GetLastCheckOutput();
 }
 
-Value ServicesTable::LongPluginOutputAccessor(const Object::Ptr& object)
+Value ServicesTable::LongPluginOutputAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetLastCheckLongOutput();
+	return static_cast<Service::Ptr>(row)->GetLastCheckLongOutput();
 }
 
-Value ServicesTable::PerfDataAccessor(const Object::Ptr& object)
+Value ServicesTable::PerfDataAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetLastCheckPerfData();
+	return static_cast<Service::Ptr>(row)->GetLastCheckPerfData();
 }
 
-Value ServicesTable::NotificationPeriodAccessor(const Object::Ptr& object)
+Value ServicesTable::NotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::CheckPeriodAccessor(const Object::Ptr& object)
+Value ServicesTable::CheckPeriodAccessor(const Value& row)
 {
-	TimePeriod::Ptr timeperiod = static_pointer_cast<Service>(object)->GetCheckPeriod();
+	TimePeriod::Ptr timeperiod = static_cast<Service::Ptr>(row)->GetCheckPeriod();
 
 	if (!timeperiod)
 		return Value();
@@ -210,9 +210,9 @@ Value ServicesTable::CheckPeriodAccessor(const Object::Ptr& object)
 	return timeperiod->GetName();
 }
 
-Value ServicesTable::NotesAccessor(const Object::Ptr& object)
+Value ServicesTable::NotesAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_pointer_cast<Service>(object)->GetCustom();
+	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
 		return Value();
@@ -220,15 +220,15 @@ Value ServicesTable::NotesAccessor(const Object::Ptr& object)
 	return custom->Get("notes");
 }
 
-Value ServicesTable::NotesExpandedAccessor(const Object::Ptr& object)
+Value ServicesTable::NotesExpandedAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::NotesUrlAccessor(const Object::Ptr& object)
+Value ServicesTable::NotesUrlAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_pointer_cast<Service>(object)->GetCustom();
+	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
 		return Value();
@@ -236,15 +236,15 @@ Value ServicesTable::NotesUrlAccessor(const Object::Ptr& object)
 	return custom->Get("notes_url");
 }
 
-Value ServicesTable::NotesUrlExpandedAccessor(const Object::Ptr& object)
+Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::ActionUrlAccessor(const Object::Ptr& object)
+Value ServicesTable::ActionUrlAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_pointer_cast<Service>(object)->GetCustom();
+	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
 		return Value();
@@ -252,15 +252,15 @@ Value ServicesTable::ActionUrlAccessor(const Object::Ptr& object)
 	return custom->Get("action_url");
 }
 
-Value ServicesTable::ActionUrlExpandedAccessor(const Object::Ptr& object)
+Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::IconImageAccessor(const Object::Ptr& object)
+Value ServicesTable::IconImageAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_pointer_cast<Service>(object)->GetCustom();
+	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
 		return Value();
@@ -268,15 +268,15 @@ Value ServicesTable::IconImageAccessor(const Object::Ptr& object)
 	return custom->Get("icon_image");
 }
 
-Value ServicesTable::IconImageExpandedAccessor(const Object::Ptr& object)
+Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::IconImageAltAccessor(const Object::Ptr& object)
+Value ServicesTable::IconImageAltAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_pointer_cast<Service>(object)->GetCustom();
+	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
 		return Value();
@@ -284,55 +284,55 @@ Value ServicesTable::IconImageAltAccessor(const Object::Ptr& object)
 	return custom->Get("icon_image_alt");
 }
 
-Value ServicesTable::InitialStateAccessor(const Object::Ptr& object)
+Value ServicesTable::InitialStateAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value ServicesTable::MaxCheckAttemptsAccessor(const Object::Ptr& object)
+Value ServicesTable::MaxCheckAttemptsAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetMaxCheckAttempts();
+	return static_cast<Service::Ptr>(row)->GetMaxCheckAttempts();
 }
 
-Value ServicesTable::CurrentAttemptAccessor(const Object::Ptr& object)
+Value ServicesTable::CurrentAttemptAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetCurrentCheckAttempt();
+	return static_cast<Service::Ptr>(row)->GetCurrentCheckAttempt();
 }
 
-Value ServicesTable::StateAccessor(const Object::Ptr& object)
+Value ServicesTable::StateAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetState();
+	return static_cast<Service::Ptr>(row)->GetState();
 }
 
-Value ServicesTable::HasBeenCheckedAccessor(const Object::Ptr& object)
+Value ServicesTable::HasBeenCheckedAccessor(const Value& row)
 {
-	return (static_pointer_cast<Service>(object)->HasBeenChecked() ? 1 : 0);
+	return (static_cast<Service::Ptr>(row)->HasBeenChecked() ? 1 : 0);
 }
 
-Value ServicesTable::LastStateAccessor(const Object::Ptr& object)
+Value ServicesTable::LastStateAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetLastState();
+	return static_cast<Service::Ptr>(row)->GetLastState();
 }
 
-Value ServicesTable::LastHardStateAccessor(const Object::Ptr& object)
+Value ServicesTable::LastHardStateAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetLastHardState();
+	return static_cast<Service::Ptr>(row)->GetLastHardState();
 }
 
-Value ServicesTable::StateTypeAccessor(const Object::Ptr& object)
+Value ServicesTable::StateTypeAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetStateType();
+	return static_cast<Service::Ptr>(row)->GetStateType();
 }
 
-Value ServicesTable::CheckTypeAccessor(const Object::Ptr& object)
+Value ServicesTable::CheckTypeAccessor(const Value& row)
 {
-	return (static_pointer_cast<Service>(object)->GetEnableActiveChecks() ? 1 : 0);
+	return (static_cast<Service::Ptr>(row)->GetEnableActiveChecks() ? 1 : 0);
 }
 
-Value ServicesTable::AcknowledgedAccessor(const Object::Ptr& object)
+Value ServicesTable::AcknowledgedAccessor(const Value& row)
 {
-	Service::Ptr service = static_pointer_cast<Service>(object);
+	Service::Ptr service = static_cast<Service::Ptr>(row);
 
 	/* important: lock acknowledgements */
 	ObjectLock olock(service);
@@ -340,9 +340,9 @@ Value ServicesTable::AcknowledgedAccessor(const Object::Ptr& object)
 	return (service->IsAcknowledged() ? 1 : 0);
 }
 
-Value ServicesTable::AcknowledgementTypeAccessor(const Object::Ptr& object)
+Value ServicesTable::AcknowledgementTypeAccessor(const Value& row)
 {
-	Service::Ptr service = static_pointer_cast<Service>(object);
+	Service::Ptr service = static_cast<Service::Ptr>(row);
 
 	/* important: lock acknowledgements */
 	ObjectLock olock(service);
@@ -350,232 +350,232 @@ Value ServicesTable::AcknowledgementTypeAccessor(const Object::Ptr& object)
 	return static_cast<int>(service->GetAcknowledgement());
 }
 
-Value ServicesTable::NoMoreNotificationsAccessor(const Object::Ptr& object)
+Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
 {
 	/* TODO: notification_interval == 0, volatile == false */
 	return Value();
 }
 
-Value ServicesTable::LastTimeOkAccessor(const Object::Ptr& object)
+Value ServicesTable::LastTimeOkAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::LastTimeWarningAccessor(const Object::Ptr& object)
+Value ServicesTable::LastTimeWarningAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::LastTimeCriticalAccessor(const Object::Ptr& object)
+Value ServicesTable::LastTimeCriticalAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::LastTimeUnknownAccessor(const Object::Ptr& object)
+Value ServicesTable::LastTimeUnknownAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::LastCheckAccessor(const Object::Ptr& object)
+Value ServicesTable::LastCheckAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetLastCheck();
+	return static_cast<Service::Ptr>(row)->GetLastCheck();
 }
 
-Value ServicesTable::NextCheckAccessor(const Object::Ptr& object)
+Value ServicesTable::NextCheckAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetNextCheck();
+	return static_cast<Service::Ptr>(row)->GetNextCheck();
 }
 
-Value ServicesTable::LastNotificationAccessor(const Object::Ptr& object)
+Value ServicesTable::LastNotificationAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetNotifications->(loop)->GetLastNotification() */
 	return Value();
 }
 
-Value ServicesTable::NextNotificationAccessor(const Object::Ptr& object)
+Value ServicesTable::NextNotificationAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetNotifications->(loop)->GetLastNotification() */
 	return Value();
 }
 
-Value ServicesTable::CurrentNotificationNumberAccessor(const Object::Ptr& object)
+Value ServicesTable::CurrentNotificationNumberAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetNotifications->(loop) new attribute */
 	return Value();
 }
 
-Value ServicesTable::LastStateChangeAccessor(const Object::Ptr& object)
+Value ServicesTable::LastStateChangeAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetLastStateChange();
+	return static_cast<Service::Ptr>(row)->GetLastStateChange();
 }
 
-Value ServicesTable::LastHardStateChangeAccessor(const Object::Ptr& object)
+Value ServicesTable::LastHardStateChangeAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetLastHardStateChange();
+	return static_cast<Service::Ptr>(row)->GetLastHardStateChange();
 }
 
-Value ServicesTable::ScheduledDowntimeDepthAccessor(const Object::Ptr& object)
+Value ServicesTable::ScheduledDowntimeDepthAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetDowntimeDepth();
+	return static_cast<Service::Ptr>(row)->GetDowntimeDepth();
 }
 
-Value ServicesTable::IsFlappingAccessor(const Object::Ptr& object)
+Value ServicesTable::IsFlappingAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->IsFlapping();
+	return static_cast<Service::Ptr>(row)->IsFlapping();
 }
 
-Value ServicesTable::ChecksEnabledAccessor(const Object::Ptr& object)
+Value ServicesTable::ChecksEnabledAccessor(const Value& row)
 {
-	return (static_pointer_cast<Service>(object)->GetEnableActiveChecks() ? 1 : 0);
+	return (static_cast<Service::Ptr>(row)->GetEnableActiveChecks() ? 1 : 0);
 }
 
-Value ServicesTable::AcceptPassiveChecksAccessor(const Object::Ptr& object)
+Value ServicesTable::AcceptPassiveChecksAccessor(const Value& row)
 {
-	return (static_pointer_cast<Service>(object)->GetEnablePassiveChecks() ? 1 : 0);
+	return (static_cast<Service::Ptr>(row)->GetEnablePassiveChecks() ? 1 : 0);
 }
 
-Value ServicesTable::EventHandlerEnabledAccessor(const Object::Ptr& object)
+Value ServicesTable::EventHandlerEnabledAccessor(const Value& row)
 {
 	/* TODO always enabled*/
 	return Value(1);
 }
 
-Value ServicesTable::NotificationsEnabledAccessor(const Object::Ptr& object)
+Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
 {
-	return (static_pointer_cast<Service>(object)->GetEnableNotifications() ? 1 : 0);
+	return (static_cast<Service::Ptr>(row)->GetEnableNotifications() ? 1 : 0);
 }
 
-Value ServicesTable::ProcessPerformanceDataAccessor(const Object::Ptr& object)
+Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
 {
 	/* TODO always enabled */
 	return Value(1);
 }
 
-Value ServicesTable::IsExecutingAccessor(const Object::Ptr& object)
+Value ServicesTable::IsExecutingAccessor(const Value& row)
 {
 	/* TODO does that make sense with Icinga2? */
 	return Value();
 }
 
-Value ServicesTable::ActiveChecksEnabledAccessor(const Object::Ptr& object)
+Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
 {
-	return (static_pointer_cast<Service>(object)->GetEnableActiveChecks() ? 1 : 0);
+	return (static_cast<Service::Ptr>(row)->GetEnableActiveChecks() ? 1 : 0);
 }
 
-Value ServicesTable::CheckOptionsAccessor(const Object::Ptr& object)
+Value ServicesTable::CheckOptionsAccessor(const Value& row)
 {
 	/* TODO - forcexec, freshness, orphan, none */
 	return Value();
 }
 
-Value ServicesTable::FlapDetectionEnabledAccessor(const Object::Ptr& object)
+Value ServicesTable::FlapDetectionEnabledAccessor(const Value& row)
 {
-	return (static_pointer_cast<Service>(object)->GetEnableFlapping() ? 1 : 0);
+	return (static_cast<Service::Ptr>(row)->GetEnableFlapping() ? 1 : 0);
 }
 
-Value ServicesTable::CheckFreshnessAccessor(const Object::Ptr& object)
+Value ServicesTable::CheckFreshnessAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::ObsessOverServiceAccessor(const Object::Ptr& object)
+Value ServicesTable::ObsessOverServiceAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value ServicesTable::ModifiedAttributesAccessor(const Object::Ptr& object)
+Value ServicesTable::ModifiedAttributesAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value ServicesTable::ModifiedAttributesListAccessor(const Object::Ptr& object)
+Value ServicesTable::ModifiedAttributesListAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value ServicesTable::PnpgraphPresentAccessor(const Object::Ptr& object)
+Value ServicesTable::PnpgraphPresentAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value ServicesTable::CheckIntervalAccessor(const Object::Ptr& object)
+Value ServicesTable::CheckIntervalAccessor(const Value& row)
 {
-	return (static_pointer_cast<Service>(object)->GetCheckInterval() / 60.0);
+	return (static_cast<Service::Ptr>(row)->GetCheckInterval() / 60.0);
 }
 
-Value ServicesTable::RetryIntervalAccessor(const Object::Ptr& object)
+Value ServicesTable::RetryIntervalAccessor(const Value& row)
 {
-	return (static_pointer_cast<Service>(object)->GetRetryInterval() / 60.0);
+	return (static_cast<Service::Ptr>(row)->GetRetryInterval() / 60.0);
 }
 
-Value ServicesTable::NotificationIntervalAccessor(const Object::Ptr& object)
+Value ServicesTable::NotificationIntervalAccessor(const Value& row)
 {
 	/* TODO Host->Services->GetNotifications->(loop)->GetNotificationInterval() */
 	return Value();
 }
 
-Value ServicesTable::FirstNotificationDelayAccessor(const Object::Ptr& object)
+Value ServicesTable::FirstNotificationDelayAccessor(const Value& row)
 {
 	/* not supported */
 	return Value();
 }
 
-Value ServicesTable::LowFlapThresholdAccessor(const Object::Ptr& object)
+Value ServicesTable::LowFlapThresholdAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::HighFlapThresholdAccessor(const Object::Ptr& object)
+Value ServicesTable::HighFlapThresholdAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::LatencyAccessor(const Object::Ptr& object)
+Value ServicesTable::LatencyAccessor(const Value& row)
 {
-	return (Service::CalculateLatency(static_pointer_cast<Service>(object)->GetLastCheckResult()));
+	return (Service::CalculateLatency(static_cast<Service::Ptr>(row)->GetLastCheckResult()));
 }
 
-Value ServicesTable::ExecutionTimeAccessor(const Object::Ptr& object)
+Value ServicesTable::ExecutionTimeAccessor(const Value& row)
 {
-	return (Service::CalculateExecutionTime(static_pointer_cast<Service>(object)->GetLastCheckResult()));
+	return (Service::CalculateExecutionTime(static_cast<Service::Ptr>(row)->GetLastCheckResult()));
 }
 
-Value ServicesTable::PercentStateChangeAccessor(const Object::Ptr& object)
+Value ServicesTable::PercentStateChangeAccessor(const Value& row)
 {
-	return static_pointer_cast<Service>(object)->GetFlappingCurrent();
+	return static_cast<Service::Ptr>(row)->GetFlappingCurrent();
 }
 
-Value ServicesTable::InCheckPeriodAccessor(const Object::Ptr& object)
-{
-	/* TODO */
-	return Value();
-}
-
-Value ServicesTable::InNotificationPeriodAccessor(const Object::Ptr& object)
+Value ServicesTable::InCheckPeriodAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::ContactsAccessor(const Object::Ptr& object)
+Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServicesTable::ContactsAccessor(const Value& row)
 {
 	/* TODO - host->service->notifications->users */
 /*
 	std::set<User::Ptr> allUsers;
 	std::set<User::Ptr> users;
 
-	BOOST_FOREACH(const Notification::Ptr& notification, static_pointer_cast<Service>(object)->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, static_cast<Service::Ptr>(row)->GetNotifications()) {
 		ObjectLock olock(notification);
 
 		users = notification->GetUsers();
@@ -591,52 +591,52 @@ Value ServicesTable::ContactsAccessor(const Object::Ptr& object)
 	return Value();
 }
 
-Value ServicesTable::DowntimesAccessor(const Object::Ptr& object)
+Value ServicesTable::DowntimesAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::DowntimesWithInfoAccessor(const Object::Ptr& object)
+Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::CommentsAccessor(const Object::Ptr& object)
+Value ServicesTable::CommentsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::CommentsWithInfoAccessor(const Object::Ptr& object)
+Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::CommentsWithExtraInfoAccessor(const Object::Ptr& object)
+Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::CustomVariableNamesAccessor(const Object::Ptr& object)
+Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::CustomVariableValuesAccessor(const Object::Ptr& object)
+Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::CustomVariablesAccessor(const Object::Ptr& object)
+Value ServicesTable::CustomVariablesAccessor(const Value& row)
 {
 	/*
-	Service::Ptr svc = static_pointer_cast<Service>(object);
+	Service::Ptr svc = static_cast<Service::Ptr>(row);
 
 	Dictionary::Ptr custom = svc->Get("custom");
 
@@ -658,13 +658,13 @@ Value ServicesTable::CustomVariablesAccessor(const Object::Ptr& object)
 	return Value();
 }
 
-Value ServicesTable::GroupsAccessor(const Object::Ptr& object)
+Value ServicesTable::GroupsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();
 }
 
-Value ServicesTable::ContactGroupsAccessor(const Object::Ptr& object)
+Value ServicesTable::ContactGroupsAccessor(const Value& row)
 {
 	/* TODO */
 	return Value();

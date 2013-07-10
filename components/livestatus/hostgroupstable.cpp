@@ -50,21 +50,21 @@ void HostGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Value HostGroupsTable::NameAccessor(const Object::Ptr& object)
+Value HostGroupsTable::NameAccessor(const Value& row)
 {
-	return static_pointer_cast<HostGroup>(object)->GetName();
+	return static_cast<HostGroup::Ptr>(row)->GetName();
 }
 
-Value HostGroupsTable::AliasAccessor(const Object::Ptr& object)
+Value HostGroupsTable::AliasAccessor(const Value& row)
 {
-	return static_pointer_cast<HostGroup>(object)->GetName();
+	return static_cast<HostGroup::Ptr>(row)->GetName();
 }
 
-Value HostGroupsTable::MembersAccessor(const Object::Ptr& object)
+Value HostGroupsTable::MembersAccessor(const Value& row)
 {
 	Array::Ptr members = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const Host::Ptr& host, static_pointer_cast<HostGroup>(object)->GetMembers()) {
+	BOOST_FOREACH(const Host::Ptr& host, static_cast<HostGroup::Ptr>(row)->GetMembers()) {
 		members->Add(host->GetName());
 	}
 
