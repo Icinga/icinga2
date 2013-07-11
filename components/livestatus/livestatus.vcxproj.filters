@@ -42,6 +42,15 @@
     <ClInclude Include="orfilter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="aggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="countaggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="sumaggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
     <ClInclude Include="andfilter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -111,6 +120,15 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="andfilter.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="aggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="countaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="sumaggregator.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="attributefilter.cpp">

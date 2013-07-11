@@ -19,6 +19,7 @@
 
 #include "livestatus/query.h"
 #include "livestatus/countaggregator.h"
+#include "livestatus/sumaggregator.h"
 #include "livestatus/attributefilter.h"
 #include "livestatus/negatefilter.h"
 #include "livestatus/orfilter.h"
@@ -81,10 +82,10 @@ Query::Query(const std::vector<String>& lines)
 			boost::algorithm::split(m_Columns, params, boost::is_any_of(" "));
 		else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
-		else if (header == "Filter" || header == "Stats") {
+		else if (header == "Filter") {
 
 			Filter::Ptr filter = ParseFilter(params);
-			
+
 			if (!filter) {
 				m_Verb = "ERROR";
 				m_ErrorCode = 452;
@@ -92,14 +93,57 @@ Query::Query(const std::vector<String>& lines)
 				return;
 			}
 
-			std::deque<Filter::Ptr>& deq = (header == "Filter") ? filters : stats;
+			std::deque<Filter::Ptr>& deq = filters;
 			deq.push_back(filter);
-			
-			if (deq == stats) {
+		}
+		else if (header == "Stats") {
+
+			std::vector<String> tokens;
+			boost::algorithm::split(tokens, params, boost::is_any_of(" "));
+
+			String aggregate_arg = tokens[0];
+			String aggregate_attr = tokens[1];
+
+			if (aggregate_arg == "sum") {
+				Aggregator::Ptr aggregator = boost::make_shared<SumAggregator>(aggregate_attr);
+				aggregators.push_back(aggregator);
+			}
+			else if(aggregate_arg == "min") {
+				/* TODO */
+			}
+			else if	(aggregate_arg == "max") {
+				/* TODO */
+			}
+			else if (aggregate_arg == "avg") {
+				/* TODO */
+			}
+			else if (aggregate_arg == "std") {
+				/* TODO */
+			}
+			else if	(aggregate_arg == "suminv") {
+				/* TODO */
+			}
+			else if	(aggregate_arg == "avginv") {
+				/* TODO */
+
+			} else {
+				Filter::Ptr filter = ParseFilter(params);
+
+				if (!filter) {
+					m_Verb = "ERROR";
+					m_ErrorCode = 452;
+					m_ErrorMessage = "Invalid filter specification.";
+					return;
+				}
+
+				std::deque<Filter::Ptr>& deq = stats;
+				deq.push_back(filter);
+
 				Aggregator::Ptr aggregator = boost::make_shared<CountAggregator>();
 				aggregator->SetFilter(filter);
 				aggregators.push_back(aggregator);
 			}
+
 		} else if (header == "Or" || header == "And") {
 			std::deque<Filter::Ptr>& deq = (header == "Or" || header == "And") ? filters : stats;
 
@@ -138,7 +182,7 @@ Query::Query(const std::vector<String>& lines)
 			filters.pop_back();
 
 			deq.push_back(boost::make_shared<NegateFilter>(filter));
-			
+
 			if (deq == stats) {
 				Aggregator::Ptr aggregator = aggregators.back();
 				aggregator->SetFilter(filter);

@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="aggregator.h" />
+    <ClInclude Include="countaggregator.h" />
+    <ClInclude Include="sumaggregator.h" />
     <ClInclude Include="andfilter.h" />
     <ClInclude Include="attributefilter.h" />
     <ClInclude Include="column.h" />
@@ -44,6 +47,9 @@
     <ClInclude Include="table.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="aggregator.cpp" />
+    <ClCompile Include="countaggregator.cpp" />
+    <ClCompile Include="sumaggregator.cpp" />
     <ClCompile Include="andfilter.cpp" />
     <ClCompile Include="attributefilter.cpp" />
     <ClCompile Include="column.cpp" />
