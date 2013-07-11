@@ -24,6 +24,9 @@
     <ClInclude Include="statustable.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="timeperiodstable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
     <ClInclude Include="logtable.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -87,6 +90,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="statustable.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="timeperiodstable.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="logtable.cpp">

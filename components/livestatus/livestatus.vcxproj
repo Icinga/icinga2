@@ -39,6 +39,7 @@
     <ClInclude Include="servicegroupsstable.h" />
     <ClInclude Include="servicestable.h" />
     <ClInclude Include="statustable.h" />
+    <ClInclude Include="timeperiodstable.h" />
     <ClInclude Include="logtable.h" />
     <ClInclude Include="table.h" />
   </ItemGroup>
@@ -63,6 +64,7 @@
     <ClCompile Include="servicegroupstable.cpp" />
     <ClCompile Include="servicestable.cpp" />
     <ClCompile Include="statustable.cpp" />
+    <ClCompile Include="timeperiodstable.cpp" />
     <ClCompile Include="logtable.cpp" />
     <ClCompile Include="table.cpp" />
   </ItemGroup>

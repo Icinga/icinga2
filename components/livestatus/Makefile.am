@@ -51,6 +51,8 @@ liblivestatus_la_SOURCES = \
 	servicestable.h \
 	statustable.cpp \
 	statustable.h \
+	timeperiodstable.cpp \
+	timeperiodstable.h \
 	table.cpp \
 	table.h
 
