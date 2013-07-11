@@ -136,7 +136,14 @@ void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 
 Object::Ptr ServicesTable::HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
 {
-	return static_cast<Service::Ptr>(parentObjectAccessor(row))->GetHost();
+	Value service;
+
+	if (parentObjectAccessor)
+		service = parentObjectAccessor(row);
+	else
+		service = row;
+
+	return static_cast<Service::Ptr>(service)->GetHost();
 }
 
 Value ServicesTable::ShortNameAccessor(const Value& row)
