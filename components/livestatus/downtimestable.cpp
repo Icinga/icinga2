@@ -69,7 +69,8 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 
 		String id;
 		BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), downtimes) {
-			addRowFn(id);
+			if (Service::GetOwnerByDowntimeID(id) == service)
+				addRowFn(id);
 		}
 	}
 }

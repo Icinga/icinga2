@@ -69,7 +69,8 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 
 		String id;
 		BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), comments) {
-			addRowFn(id);
+			if (Service::GetOwnerByCommentID(id) == service)
+				addRowFn(id);
 		}
 	}
 }

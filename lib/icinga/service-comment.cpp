@@ -90,6 +90,11 @@ String Service::AddComment(CommentType entryType, const String& author,
 		Touch("comments");
 	}
 
+	{
+		boost::mutex::scoped_lock lock(l_CommentMutex);
+		l_CommentsCache[id] = GetSelf();
+	}
+
 	return id;
 }
 

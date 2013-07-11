@@ -126,6 +126,11 @@ String Service::AddDowntime(const String& author, const String& comment,
 
 	(void) AddComment(CommentDowntime, author, comment, endTime);
 
+	{
+		boost::mutex::scoped_lock lock(l_DowntimeMutex);
+		l_DowntimesCache[id] = GetSelf();
+	}
+
 	return id;
 }
 
