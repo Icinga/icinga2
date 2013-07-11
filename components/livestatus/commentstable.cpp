@@ -48,7 +48,7 @@ void CommentsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "expires", Column(&CommentsTable::ExpiresAccessor, objectAccessor));
 	table->AddColumn(prefix + "expire_time", Column(&CommentsTable::ExpireTimeAccessor, objectAccessor));
 
-	ServicesTable::AddColumns(table, "service_", &CommentsTable::ServiceAccessor);
+	ServicesTable::AddColumns(table, "service_", boost::bind(&CommentsTable::ServiceAccessor, _1, objectAccessor));
 }
 
 String CommentsTable::GetName(void) const
@@ -75,7 +75,7 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Object::Ptr CommentsTable::ServiceAccessor(const Value& row)
+Object::Ptr CommentsTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
 {
 	return Service::GetOwnerByCommentID(row);
 }

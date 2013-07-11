@@ -48,7 +48,7 @@ void DowntimesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "duration", Column(&DowntimesTable::DurationAccessor, objectAccessor));
 	table->AddColumn(prefix + "triggered_by", Column(&DowntimesTable::TriggeredByAccessor, objectAccessor));
 
-	ServicesTable::AddColumns(table, "service_", &DowntimesTable::ServiceAccessor);
+	ServicesTable::AddColumns(table, "service_", boost::bind(&DowntimesTable::ServiceAccessor, _1, objectAccessor));
 }
 
 String DowntimesTable::GetName(void) const
@@ -75,7 +75,7 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Object::Ptr DowntimesTable::ServiceAccessor(const Value& row)
+Object::Ptr DowntimesTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
 {
 	return Service::GetOwnerByDowntimeID(row);
 }
