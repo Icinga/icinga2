@@ -17,17 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef QUERY_H
-#define QUERY_H
+#ifndef AGGREGATOR_H
+#define AGGREGATOR_H
 
+#include "livestatus/table.h"
 #include "livestatus/filter.h"
-#include "livestatus/aggregator.h"
-#include "base/object.h"
-#include "base/array.h"
-#include "base/stream.h"
-#include <deque>
-
-using namespace icinga;
 
 namespace livestatus
 {
@@ -35,52 +29,24 @@ namespace livestatus
 /**
  * @ingroup livestatus
  */
-class Query : public Object
+class Aggregator : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Query);
+	DECLARE_PTR_TYPEDEFS(Aggregator);
 
-	Query(const std::vector<String>& lines);
+	virtual void Apply(const Table::Ptr& table, const Value& row) = 0;
+	virtual double GetResult(void) const = 0;
+	void SetFilter(const Filter::Ptr& filter);
 
-	bool Execute(const Stream::Ptr& stream);
-
-private:
-	String m_Verb;
-
-	bool m_KeepAlive;
-
-	/* Parameters for GET queries. */
-	String m_Table;
-	std::vector<String> m_Columns;
-
-	Filter::Ptr m_Filter;
-	std::deque<Aggregator::Ptr> m_Aggregators;
-
-	String m_OutputFormat;
-	bool m_ColumnHeaders;
-	int m_Limit;
-
-	String m_ResponseHeader;
-
-	/* Parameters for COMMAND queries. */
-	String m_Command;
-
-	/* Parameters for invalid queries. */
-	int m_ErrorCode;
-	String m_ErrorMessage;
-
-	void PrintResultSet(std::ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs);
-
-	void ExecuteGetHelper(const Stream::Ptr& stream);
-	void ExecuteCommandHelper(const Stream::Ptr& stream);
-	void ExecuteErrorHelper(const Stream::Ptr& stream);
-
-	void SendResponse(const Stream::Ptr& stream, int code, const String& data);
-	void PrintFixed16(const Stream::Ptr& stream, int code, const String& data);
+protected:
+	Aggregator(void);
 	
-	static Filter::Ptr ParseFilter(const String& params);
+	Filter::Ptr GetFilter(void) const;
+	
+private:
+	Filter::Ptr m_Filter;
 };
 
 }
 
-#endif /* QUERY_H */
+#endif /* AGGREGATOR_H */

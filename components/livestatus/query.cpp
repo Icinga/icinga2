@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/query.h"
+#include "livestatus/countaggregator.h"
 #include "livestatus/attributefilter.h"
 #include "livestatus/negatefilter.h"
 #include "livestatus/orfilter.h"
@@ -63,6 +64,7 @@ Query::Query(const std::vector<String>& lines)
 	}
 
 	std::deque<Filter::Ptr> filters, stats;
+	std::deque<Aggregator::Ptr> aggregators;
 
 	for (unsigned int i = 1; i < lines.size(); i++) {
 		line = lines[i];
@@ -80,43 +82,24 @@ Query::Query(const std::vector<String>& lines)
 		else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
 		else if (header == "Filter" || header == "Stats") {
-			std::vector<String> tokens;
-			boost::algorithm::split(tokens, params, boost::is_any_of(" "));
 
-			if (tokens.size() == 2)
-				tokens.push_back("");
-
-			if (tokens.size() < 3) {
+			Filter::Ptr filter = ParseFilter(params);
+			
+			if (!filter) {
 				m_Verb = "ERROR";
 				m_ErrorCode = 452;
-				m_ErrorMessage = "Expected 3 parameters in the filter specification.";
+				m_ErrorMessage = "Invalid filter specification.";
 				return;
 			}
 
-			String op = tokens[1];
-			bool negate = false;
-
-			if (op == "!=") {
-				op = "=";
-				negate = true;
-			} else if (op == "!~") {
-				op = "~";
-				negate = true;
-			} else if (op == "!=~") {
-				op = "=~";
-				negate = true;
-			} else if (op == "!~~") {
-				op = "~~";
-				negate = true;
-			}
-
-			Filter::Ptr filter = boost::make_shared<AttributeFilter>(tokens[0], op, tokens[2]);
-
-			if (negate)
-				filter = boost::make_shared<NegateFilter>(filter);
-
 			std::deque<Filter::Ptr>& deq = (header == "Filter") ? filters : stats;
 			deq.push_back(filter);
+			
+			if (deq == stats) {
+				Aggregator::Ptr aggregator = boost::make_shared<CountAggregator>();
+				aggregator->SetFilter(filter);
+				aggregators.push_back(aggregator);
+			}
 		} else if (header == "Or" || header == "And") {
 			std::deque<Filter::Ptr>& deq = (header == "Or" || header == "And") ? filters : stats;
 
@@ -155,6 +138,11 @@ Query::Query(const std::vector<String>& lines)
 			filters.pop_back();
 
 			deq.push_back(boost::make_shared<NegateFilter>(filter));
+			
+			if (deq == stats) {
+				Aggregator::Ptr aggregator = aggregators.back();
+				aggregator->SetFilter(filter);
+			}
 		}
 	}
 
@@ -166,7 +154,43 @@ Query::Query(const std::vector<String>& lines)
 	}
 
 	m_Filter = top_filter;
-	m_Stats.swap(stats);
+	m_Aggregators.swap(aggregators);
+}
+
+Filter::Ptr Query::ParseFilter(const String& params)
+{
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, params, boost::is_any_of(" "));
+
+	if (tokens.size() == 2)
+		tokens.push_back("");
+
+	if (tokens.size() < 3)
+		return Filter::Ptr();
+
+	String op = tokens[1];
+	bool negate = false;
+
+	if (op == "!=") {
+		op = "=";
+		negate = true;
+	} else if (op == "!~") {
+		op = "~";
+		negate = true;
+	} else if (op == "!=~") {
+		op = "=~";
+		negate = true;
+	} else if (op == "!~~") {
+		op = "~~";
+		negate = true;
+	}
+
+	Filter::Ptr filter = boost::make_shared<AttributeFilter>(tokens[0], op, tokens[2]);
+
+	if (negate)
+		filter = boost::make_shared<NegateFilter>(filter);
+
+	return filter;
 }
 
 void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs)
@@ -231,7 +255,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 
 	Array::Ptr rs = boost::make_shared<Array>();
 
-	if (m_Stats.empty()) {
+	if (m_Aggregators.empty()) {
 		BOOST_FOREACH(const Value& object, objects) {
 			Array::Ptr row = boost::make_shared<Array>();
 
@@ -244,20 +268,20 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 			rs->Add(row);
 		}
 	} else {
-		std::vector<int> stats(m_Stats.size(), 0);
+		std::vector<double> stats(m_Aggregators.size(), 0);
 
-		BOOST_FOREACH(const Value& object, objects) {
-			int index = 0;
-			BOOST_FOREACH(const Filter::Ptr filter, m_Stats) {
-				if (filter->Apply(table, object))
-					stats[index]++;
-
-				index++;
+		int index = 0;
+		BOOST_FOREACH(const Aggregator::Ptr aggregator, m_Aggregators) {
+			BOOST_FOREACH(const Value& object, objects) {
+				aggregator->Apply(table, object);
 			}
+			
+			stats[index] = aggregator->GetResult();
+			index++;
 		}
 
 		Array::Ptr row = boost::make_shared<Array>();
-		for (int i = 0; i < m_Stats.size(); i++)
+		for (int i = 0; i < m_Aggregators.size(); i++)
 			row->Add(stats[i]);
 
 		rs->Add(row);

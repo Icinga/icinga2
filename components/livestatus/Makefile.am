@@ -10,6 +10,8 @@ EXTRA_DIST = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 liblivestatus_la_SOURCES = \
+	aggregator.cpp \
+	aggregator.h \
 	attributefilter.cpp \
 	attributefilter.h \
 	andfilter.cpp \
@@ -28,6 +30,8 @@ liblivestatus_la_SOURCES = \
 	contactgroupstable.h \
 	contactstable.cpp \
 	contactstable.h \
+	countaggregator.cpp \
+	countaggregator.h \
 	downtimestable.cpp \
 	downtimestable.h \
 	filter.cpp \
