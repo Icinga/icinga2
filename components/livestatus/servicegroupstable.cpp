@@ -35,7 +35,22 @@ void ServiceGroupsTable::AddColumns(Table *table, const String& prefix,
 {
 	table->AddColumn(prefix + "name", Column(&ServiceGroupsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "alias", Column(&ServiceGroupsTable::AliasAccessor, objectAccessor));
+	table->AddColumn(prefix + "notes", Column(&ServiceGroupsTable::NotesAccessor, objectAccessor));
+	table->AddColumn(prefix + "notes_url", Column(&ServiceGroupsTable::NotesUrlAccessor, objectAccessor));
+	table->AddColumn(prefix + "action_url", Column(&ServiceGroupsTable::ActionUrlAccessor, objectAccessor));
 	table->AddColumn(prefix + "members", Column(&ServiceGroupsTable::MembersAccessor, objectAccessor));
+	table->AddColumn(prefix + "members_with_state", Column(&ServiceGroupsTable::MembersWithStateAccessor, objectAccessor));
+	table->AddColumn(prefix + "worst_service_state", Column(&ServiceGroupsTable::WorstServiceStateAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services", Column(&ServiceGroupsTable::NumServicesAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services_ok", Column(&ServiceGroupsTable::NumServicesOkAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services_warn", Column(&ServiceGroupsTable::NumServicesWarnAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services_crit", Column(&ServiceGroupsTable::NumServicesCritAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services_unknown", Column(&ServiceGroupsTable::NumServicesUnknownAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services_pending", Column(&ServiceGroupsTable::NumServicesPendingAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services_hard_ok", Column(&ServiceGroupsTable::NumServicesHardOkAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services_hard_warn", Column(&ServiceGroupsTable::NumServicesHardWarnAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services_hard_crit", Column(&ServiceGroupsTable::NumServicesHardCritAccessor, objectAccessor));
+	table->AddColumn(prefix + "num_services_hard_unknown", Column(&ServiceGroupsTable::NumServicesHardUnknownAccessor, objectAccessor));
 }
 
 String ServiceGroupsTable::GetName(void) const
@@ -60,6 +75,24 @@ Value ServiceGroupsTable::AliasAccessor(const Value& row)
 	return static_cast<ServiceGroup::Ptr>(row)->GetName();
 }
 
+Value ServiceGroupsTable::NotesAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NotesUrlAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::ActionUrlAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
 Value ServiceGroupsTable::MembersAccessor(const Value& row)
 {
 	Array::Ptr members = boost::make_shared<Array>();
@@ -69,4 +102,76 @@ Value ServiceGroupsTable::MembersAccessor(const Value& row)
 	}
 
 	return members;
+}
+
+Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::WorstServiceStateAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesOkAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesWarnAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesCritAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesUnknownAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesPendingAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesHardOkAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesHardWarnAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesHardCritAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
+}
+
+Value ServiceGroupsTable::NumServicesHardUnknownAccessor(const Value& row)
+{
+	/* TODO */
+	return Value();
 }

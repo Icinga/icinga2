@@ -21,7 +21,9 @@
 #include "livestatus/statustable.h"
 #include "livestatus/contactgroupstable.h"
 #include "livestatus/contactstable.h"
+#include "livestatus/hostgroupstable.h"
 #include "livestatus/hoststable.h"
+#include "livestatus/servicegroupstable.h"
 #include "livestatus/servicestable.h"
 #include "livestatus/commandstable.h"
 #include "livestatus/commentstable.h"
@@ -50,11 +52,11 @@ Table::Ptr Table::GetByName(const String& name)
 	else if (name == "contacts")
 		return boost::make_shared<ContactsTable>();
 	else if (name == "hostgroups")
-		return boost::make_shared<HostsTable>();
+		return boost::make_shared<HostGroupsTable>();
 	else if (name == "hosts")
 		return boost::make_shared<HostsTable>();
 	else if (name == "servicegroups")
-		return boost::make_shared<ServicesTable>();
+		return boost::make_shared<ServiceGroupsTable>();
 	else if (name == "services")
 		return boost::make_shared<ServicesTable>();
 	else if (name == "commands")

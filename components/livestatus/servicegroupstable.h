@@ -47,7 +47,22 @@ protected:
 
 	static Value NameAccessor(const Value& row);
 	static Value AliasAccessor(const Value& row);
+	static Value NotesAccessor(const Value& row);
+	static Value NotesUrlAccessor(const Value& row);
+	static Value ActionUrlAccessor(const Value& row);
 	static Value MembersAccessor(const Value& row);
+	static Value MembersWithStateAccessor(const Value& row);
+	static Value WorstServiceStateAccessor(const Value& row);
+	static Value NumServicesAccessor(const Value& row);
+	static Value NumServicesOkAccessor(const Value& row);
+	static Value NumServicesWarnAccessor(const Value& row);
+	static Value NumServicesCritAccessor(const Value& row);
+	static Value NumServicesUnknownAccessor(const Value& row);
+	static Value NumServicesPendingAccessor(const Value& row);
+	static Value NumServicesHardOkAccessor(const Value& row);
+	static Value NumServicesHardWarnAccessor(const Value& row);
+	static Value NumServicesHardCritAccessor(const Value& row);
+	static Value NumServicesHardUnknownAccessor(const Value& row);
 };
 
 }
