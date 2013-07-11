@@ -465,7 +465,7 @@ Value HostsTable::CheckTypeAccessor(const Value& row)
 	if (!hc)
 		return Value();
 
-	return (hc->GetEnableActiveChecks() ? 1 : 0);
+	return (hc->GetEnableActiveChecks() ? 0 : 1);
 }
 
 Value HostsTable::LastStateAccessor(const Value& row)

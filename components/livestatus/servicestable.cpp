@@ -334,7 +334,7 @@ Value ServicesTable::StateTypeAccessor(const Value& row)
 
 Value ServicesTable::CheckTypeAccessor(const Value& row)
 {
-	return (static_cast<Service::Ptr>(row)->GetEnableActiveChecks() ? 1 : 0);
+	return (static_cast<Service::Ptr>(row)->GetEnableActiveChecks() ? 0 : 1);
 }
 
 Value ServicesTable::AcknowledgedAccessor(const Value& row)
