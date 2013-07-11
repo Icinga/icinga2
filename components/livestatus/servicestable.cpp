@@ -389,12 +389,12 @@ Value ServicesTable::LastTimeUnknownAccessor(const Value& row)
 
 Value ServicesTable::LastCheckAccessor(const Value& row)
 {
-	return static_cast<Service::Ptr>(row)->GetLastCheck();
+	return static_cast<int>(static_cast<Service::Ptr>(row)->GetLastCheck());
 }
 
 Value ServicesTable::NextCheckAccessor(const Value& row)
 {
-	return static_cast<Service::Ptr>(row)->GetNextCheck();
+	return static_cast<int>(static_cast<Service::Ptr>(row)->GetNextCheck());
 }
 
 Value ServicesTable::LastNotificationAccessor(const Value& row)
@@ -417,12 +417,12 @@ Value ServicesTable::CurrentNotificationNumberAccessor(const Value& row)
 
 Value ServicesTable::LastStateChangeAccessor(const Value& row)
 {
-	return static_cast<Service::Ptr>(row)->GetLastStateChange();
+	return static_cast<int>(static_cast<Service::Ptr>(row)->GetLastStateChange());
 }
 
 Value ServicesTable::LastHardStateChangeAccessor(const Value& row)
 {
-	return static_cast<Service::Ptr>(row)->GetLastHardStateChange();
+	return static_cast<int>(static_cast<Service::Ptr>(row)->GetLastHardStateChange());
 }
 
 Value ServicesTable::ScheduledDowntimeDepthAccessor(const Value& row)

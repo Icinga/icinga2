@@ -312,7 +312,7 @@ Value StatusTable::CheckExternalCommandsAccessor(const Value& row)
 
 Value StatusTable::ProgramStartAccessor(const Value& row)
 {
-	return IcingaApplication::GetInstance()->GetStartTime();
+	return static_cast<int>(IcingaApplication::GetInstance()->GetStartTime());
 }
 
 Value StatusTable::LastCommandCheckAccessor(const Value& row)

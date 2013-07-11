@@ -105,7 +105,7 @@ Value DowntimesTable::EntryTimeAccessor(const Value& row)
 {
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return downtime->Get("entry_time");
+	return static_cast<int>(downtime->Get("entry_time"));
 }
 
 Value DowntimesTable::TypeAccessor(const Value& row)
@@ -126,14 +126,14 @@ Value DowntimesTable::StartTimeAccessor(const Value& row)
 {
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return downtime->Get("start_time");
+	return static_cast<int>(downtime->Get("start_time"));
 }
 
 Value DowntimesTable::EndTimeAccessor(const Value& row)
 {
 	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return downtime->Get("end_time");
+	return static_cast<int>(downtime->Get("end_time"));
 }
 
 Value DowntimesTable::FixedAccessor(const Value& row)

@@ -117,7 +117,7 @@ Value CommentsTable::EntryTimeAccessor(const Value& row)
 	if (!comment)
 		return Value();
 
-	return comment->Get("entry_time");
+	return static_cast<int>(comment->Get("entry_time"));
 }
 
 Value CommentsTable::TypeAccessor(const Value& row)
@@ -175,5 +175,5 @@ Value CommentsTable::ExpireTimeAccessor(const Value& row)
 	if (!comment)
 		return Value();
 
-	return comment->Get("expire_time");
+	return static_cast<int>(comment->Get("expire_time"));
 }

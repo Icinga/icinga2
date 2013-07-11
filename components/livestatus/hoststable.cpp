@@ -509,7 +509,7 @@ Value HostsTable::NextCheckAccessor(const Value& row)
 	if (!hc)
 		return Value();
 
-	return hc->GetNextCheck();
+	return static_cast<int>(hc->GetNextCheck());
 }
 
 Value HostsTable::LastHardStateChangeAccessor(const Value& row)
@@ -520,7 +520,7 @@ Value HostsTable::LastHardStateChangeAccessor(const Value& row)
 	if (!hc)
 		return Value();
 
-	return hc->GetLastHardStateChange();
+	return static_cast<int>(hc->GetLastHardStateChange());
 }
 
 Value HostsTable::HasBeenCheckedAccessor(const Value& row)
@@ -617,12 +617,12 @@ Value HostsTable::LastCheckAccessor(const Value& row)
 	if (!hc)
 		return Value();
 
-	return hc->GetLastCheck();
+	return static_cast<int>(hc->GetLastCheck());
 }
 
 Value HostsTable::LastStateChangeAccessor(const Value& row)
 {
-	return static_cast<Host::Ptr>(row)->GetLastStateChange();
+	return static_cast<int>(static_cast<Host::Ptr>(row)->GetLastStateChange());
 }
 
 Value HostsTable::LastTimeUpAccessor(const Value& row)
