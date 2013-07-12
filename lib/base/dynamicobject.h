@@ -101,6 +101,8 @@ public:
 
 	static double GetCurrentTx(void);
 
+	Dictionary::Ptr GetCustom(void) const;
+
 protected:
 	explicit DynamicObject(const Dictionary::Ptr& serializedObject);
 
@@ -125,6 +127,7 @@ private:
 	Attribute<bool> m_Local;
 	Attribute<String> m_Source;
 	Attribute<Dictionary::Ptr> m_Methods;
+	Attribute<Dictionary::Ptr> m_Custom;
 
 	bool m_Registered;	/**< protected by the type mutex */
 

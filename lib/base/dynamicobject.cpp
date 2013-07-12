@@ -56,6 +56,7 @@ DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("__local", Attribute_Config, &m_Local);
 	RegisterAttribute("__source", Attribute_Local, &m_Source);
 	RegisterAttribute("methods", Attribute_Config, &m_Methods);
+	RegisterAttribute("custom", Attribute_Config, &m_Custom);
 
 	if (!serializedObject->Contains("configTx"))
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Serialized object must contain a config snapshot."));
@@ -615,4 +616,9 @@ const DynamicObject::AttributeMap& DynamicObject::GetAttributes(void) const
 	ASSERT(OwnsLock());
 
 	return m_Attributes;
+}
+
+Dictionary::Ptr DynamicObject::GetCustom(void) const
+{
+	return m_Custom;
 }

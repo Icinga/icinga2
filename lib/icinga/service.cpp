@@ -44,7 +44,6 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
-	RegisterAttribute("custom", Attribute_Config, &m_Custom);
 	RegisterAttribute("hostdependencies", Attribute_Config, &m_HostDependencies);
 	RegisterAttribute("servicedependencies", Attribute_Config, &m_ServiceDependencies);
 	RegisterAttribute("servicegroups", Attribute_Config, &m_ServiceGroups);
@@ -165,11 +164,6 @@ Host::Ptr Service::GetHost(void) const
 Dictionary::Ptr Service::GetMacros(void) const
 {
 	return m_Macros;
-}
-
-Dictionary::Ptr Service::GetCustom(void) const
-{
-	return m_Custom;
 }
 
 Array::Ptr Service::GetHostDependencies(void) const

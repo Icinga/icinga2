@@ -51,7 +51,6 @@ Host::Host(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("hostgroups", Attribute_Config, &m_HostGroups);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
-	RegisterAttribute("custom", Attribute_Config, &m_Custom);
 	RegisterAttribute("hostdependencies", Attribute_Config, &m_HostDependencies);
 	RegisterAttribute("servicedependencies", Attribute_Config, &m_ServiceDependencies);
 	RegisterAttribute("hostcheck", Attribute_Config, &m_HostCheck);
@@ -103,11 +102,6 @@ Array::Ptr Host::GetGroups(void) const
 Dictionary::Ptr Host::GetMacros(void) const
 {
 	return m_Macros;
-}
-
-Dictionary::Ptr Host::GetCustom(void) const
-{
-	return m_Custom;
 }
 
 Array::Ptr Host::GetHostDependencies(void) const

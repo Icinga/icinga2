@@ -624,7 +624,7 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 
 void CompatComponent::DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object)
 {
-	Dictionary::Ptr custom = object->Get("custom");
+	Dictionary::Ptr custom = object->GetCustom();
 
 	if (!custom)
 		return;

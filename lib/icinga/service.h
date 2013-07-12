@@ -112,7 +112,6 @@ public:
 	String GetDisplayName(void) const;
 	Host::Ptr GetHost(void) const;
 	Dictionary::Ptr GetMacros(void) const;
-	Dictionary::Ptr GetCustom(void) const;
 	Array::Ptr GetHostDependencies(void) const;
 	Array::Ptr GetServiceDependencies(void) const;
 	Array::Ptr GetGroups(void) const;
@@ -311,7 +310,6 @@ private:
 
 	Attribute<String> m_DisplayName;
 	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Dictionary::Ptr> m_Custom;
 	Attribute<Array::Ptr> m_HostDependencies;
 	Attribute<Array::Ptr> m_ServiceDependencies;
 	Attribute<Array::Ptr> m_ServiceGroups;
