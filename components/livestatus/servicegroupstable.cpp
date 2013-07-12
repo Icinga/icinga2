@@ -110,7 +110,10 @@ Value ServiceGroupsTable::MembersAccessor(const Value& row)
 	Array::Ptr members = boost::make_shared<Array>();
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		members->Add(service->GetName());
+		Array::Ptr host_svc = boost::make_shared<Array>();
+		host_svc->Add(service->GetHost()->GetName());
+		host_svc->Add(service->GetShortName());
+		members->Add(host_svc);
 	}
 
 	return members;
