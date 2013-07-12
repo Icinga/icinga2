@@ -51,6 +51,24 @@
     <ClInclude Include="sumaggregator.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="sumaggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="minaggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="maxaggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="stdaggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="invavgaggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="invsumaggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
     <ClInclude Include="andfilter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -129,6 +147,24 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="sumaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="avgaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="minaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="maxaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="stdaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="invavgaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="invsumaggregator.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="attributefilter.cpp">

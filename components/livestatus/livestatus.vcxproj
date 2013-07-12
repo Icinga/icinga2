@@ -22,6 +22,12 @@
     <ClInclude Include="aggregator.h" />
     <ClInclude Include="countaggregator.h" />
     <ClInclude Include="sumaggregator.h" />
+    <ClInclude Include="avgaggregator.h" />
+    <ClInclude Include="minaggregator.h" />
+    <ClInclude Include="maxaggregator.h" />
+    <ClInclude Include="stdaggregator.h" />
+    <ClInclude Include="invsumaggregator.h" />
+    <ClInclude Include="invavgaggregator.h" />
     <ClInclude Include="andfilter.h" />
     <ClInclude Include="attributefilter.h" />
     <ClInclude Include="column.h" />
@@ -50,6 +56,12 @@
     <ClCompile Include="aggregator.cpp" />
     <ClCompile Include="countaggregator.cpp" />
     <ClCompile Include="sumaggregator.cpp" />
+    <ClInclude Include="avgaggregator.cpp" />
+    <ClInclude Include="minaggregator.cpp" />
+    <ClInclude Include="maxaggregator.cpp" />
+    <ClInclude Include="stdaggregator.cpp" />
+    <ClInclude Include="invsumaggregator.cpp" />
+    <ClInclude Include="invavgaggregator.cpp" />
     <ClCompile Include="andfilter.cpp" />
     <ClCompile Include="attributefilter.cpp" />
     <ClCompile Include="column.cpp" />

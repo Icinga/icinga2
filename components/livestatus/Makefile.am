@@ -16,6 +16,8 @@ liblivestatus_la_SOURCES = \
 	attributefilter.h \
 	andfilter.cpp \
 	andfilter.h \
+	avgaggregator.cpp \
+	avgaggregator.h \
 	column.cpp \
 	column.h \
 	combinerfilter.cpp \
@@ -40,9 +42,17 @@ liblivestatus_la_SOURCES = \
 	hostgroupstable.h \
 	hoststable.cpp \
 	hoststable.h \
+	invavgaggregator.cpp \
+	invavgaggregator.h \
+	invsumaggregator.cpp \
+	invsumaggregator.h \
 	livestatus-type.cpp \
 	logtable.cpp \
 	logtable.h \
+	maxaggregator.cpp \
+	maxaggregator.h \
+	minaggregator.cpp \
+	minaggregator.h \
 	negatefilter.cpp \
 	negatefilter.h \
 	orfilter.cpp \
@@ -55,6 +65,8 @@ liblivestatus_la_SOURCES = \
 	servicestable.h \
 	statustable.cpp \
 	statustable.h \
+	stdaggregator.cpp \
+	stdaggregator.h \
 	sumaggregator.cpp \
 	sumaggregator.h \
 	timeperiodstable.cpp \

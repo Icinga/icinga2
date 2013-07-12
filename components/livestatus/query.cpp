@@ -20,6 +20,12 @@
 #include "livestatus/query.h"
 #include "livestatus/countaggregator.h"
 #include "livestatus/sumaggregator.h"
+#include "livestatus/minaggregator.h"
+#include "livestatus/maxaggregator.h"
+#include "livestatus/avgaggregator.h"
+#include "livestatus/stdaggregator.h"
+#include "livestatus/invsumaggregator.h"
+#include "livestatus/invavgaggregator.h"
 #include "livestatus/attributefilter.h"
 #include "livestatus/negatefilter.h"
 #include "livestatus/orfilter.h"
@@ -116,17 +122,17 @@ Query::Query(const std::vector<String>& lines)
 			if (aggregate_arg == "sum") {
 				aggregator = boost::make_shared<SumAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "min") {
-				/* TODO */
+				aggregator = boost::make_shared<MinAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "max") {
-				/* TODO */
+				aggregator = boost::make_shared<MaxAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "avg") {
-				/* TODO */
+				aggregator = boost::make_shared<AvgAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "std") {
-				/* TODO */
+				aggregator = boost::make_shared<StdAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "suminv") {
-				/* TODO */
+				aggregator = boost::make_shared<InvSumAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "avginv") {
-				/* TODO */
+				aggregator = boost::make_shared<InvAvgAggregator>(aggregate_attr);
 			} else {
 				filter = ParseFilter(params);
 
