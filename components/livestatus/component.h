@@ -39,13 +39,10 @@ public:
 	LivestatusComponent(const Dictionary::Ptr& serializedUpdate);
 
 	virtual void Start(void);
-	virtual void Stop(void);
 
 	String GetSocketPath(void) const;
 
 private:
-	boost::thread m_Thread;
-
 	Attribute<String> m_SocketPath;
 
 	Socket::Ptr m_Listener;

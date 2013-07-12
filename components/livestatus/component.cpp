@@ -51,20 +51,8 @@ void LivestatusComponent::Start(void)
 
 	m_Listener = socket;
 
-	m_Thread = boost::thread(boost::bind(&LivestatusComponent::ServerThreadProc, this, socket));
-	m_Thread.detach();
-}
-
-/**
- * Stops the component.
- */
-void LivestatusComponent::Stop(void)
-{
-	m_Listener->Close();
-
-	Log(LogInformation, "livestatus", "Socket closed.");
-
-	m_Thread.join();
+	boost::thread thread(boost::bind(&LivestatusComponent::ServerThreadProc, this, socket));
+	thread.detach();
 }
 
 String LivestatusComponent::GetSocketPath(void) const
