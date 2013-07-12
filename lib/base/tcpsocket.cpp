@@ -80,7 +80,7 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 
 #ifndef _WIN32
 		const int optTrue = 1;
-		setsockopt(GetFD(), SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
+		setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
 #endif /* _WIN32 */
 
 		int rc = bind(fd, info->ai_addr, info->ai_addrlen);
