@@ -72,7 +72,10 @@ Query::Query(const std::vector<String>& lines)
 
 		size_t col_index = line.FindFirstOf(":");
 		String header = line.SubStr(0, col_index);
-		String params = line.SubStr(col_index + 2);
+		String params;
+
+		if (line.GetLength() > col_index + 2)
+			params = line.SubStr(col_index + 2);
 
 		if (header == "ResponseHeader")
 			m_ResponseHeader = params;
@@ -83,67 +86,64 @@ Query::Query(const std::vector<String>& lines)
 		else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
 		else if (header == "Filter") {
-
 			Filter::Ptr filter = ParseFilter(params);
 
 			if (!filter) {
 				m_Verb = "ERROR";
 				m_ErrorCode = 452;
-				m_ErrorMessage = "Invalid filter specification.";
+				m_ErrorMessage = "Invalid filter specification: " + line;
 				return;
 			}
 
-			std::deque<Filter::Ptr>& deq = filters;
-			deq.push_back(filter);
-		}
-		else if (header == "Stats") {
-
+			filters.push_back(filter);
+		} else if (header == "Stats") {
 			std::vector<String> tokens;
 			boost::algorithm::split(tokens, params, boost::is_any_of(" "));
+
+			if (tokens.size() < 2) {
+				m_Verb = "ERROR";
+				m_ErrorCode = 452;
+				m_ErrorMessage = "Missing aggregator column name: " + line;
+				return;
+			}
 
 			String aggregate_arg = tokens[0];
 			String aggregate_attr = tokens[1];
 
-			if (aggregate_arg == "sum") {
-				Aggregator::Ptr aggregator = boost::make_shared<SumAggregator>(aggregate_attr);
-				aggregators.push_back(aggregator);
-			}
-			else if(aggregate_arg == "min") {
-				/* TODO */
-			}
-			else if	(aggregate_arg == "max") {
-				/* TODO */
-			}
-			else if (aggregate_arg == "avg") {
-				/* TODO */
-			}
-			else if (aggregate_arg == "std") {
-				/* TODO */
-			}
-			else if	(aggregate_arg == "suminv") {
-				/* TODO */
-			}
-			else if	(aggregate_arg == "avginv") {
-				/* TODO */
+			Aggregator::Ptr aggregator;
+			Filter::Ptr filter;
 
+			if (aggregate_arg == "sum") {
+				aggregator = boost::make_shared<SumAggregator>(aggregate_attr);
+			} else if (aggregate_arg == "min") {
+				/* TODO */
+			} else if (aggregate_arg == "max") {
+				/* TODO */
+			} else if (aggregate_arg == "avg") {
+				/* TODO */
+			} else if (aggregate_arg == "std") {
+				/* TODO */
+			} else if (aggregate_arg == "suminv") {
+				/* TODO */
+			} else if (aggregate_arg == "avginv") {
+				/* TODO */
 			} else {
-				Filter::Ptr filter = ParseFilter(params);
+				filter = ParseFilter(params);
 
 				if (!filter) {
 					m_Verb = "ERROR";
 					m_ErrorCode = 452;
-					m_ErrorMessage = "Invalid filter specification.";
+					m_ErrorMessage = "Invalid filter specification: " + line;
 					return;
 				}
 
-				std::deque<Filter::Ptr>& deq = stats;
-				deq.push_back(filter);
-
-				Aggregator::Ptr aggregator = boost::make_shared<CountAggregator>();
-				aggregator->SetFilter(filter);
-				aggregators.push_back(aggregator);
+				aggregator = boost::make_shared<CountAggregator>();
 			}
 
+			aggregator->SetFilter(filter);
+			aggregators.push_back(aggregator);
+
+			stats.push_back(filter);
 		} else if (header == "Or" || header == "And") {
 			std::deque<Filter::Ptr>& deq = (header == "Or" || header == "And") ? filters : stats;
 
@@ -179,7 +179,14 @@ Query::Query(const std::vector<String>& lines)
 			}
 
 			Filter::Ptr filter = deq.back();
-			filters.pop_back();
+			deq.pop_back();
+
+			if (!filter) {
+				m_Verb = "ERROR";
+				m_ErrorCode = 451;
+				m_ErrorMessage = "Negate/StatsNegate used, however last stats doesn't have a filter";
+				return;
+			}
 
 			deq.push_back(boost::make_shared<NegateFilter>(filter));
 
