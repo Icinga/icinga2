@@ -163,7 +163,7 @@ Value ServicesTable::CheckCommandAccessor(const Value& row)
 	if (checkcommand)
 		return checkcommand->GetName(); /* this is the name without '!' args */
 
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CheckCommandExpandedAccessor(const Value& row)
@@ -173,7 +173,7 @@ Value ServicesTable::CheckCommandExpandedAccessor(const Value& row)
 	if (checkcommand)
 		return checkcommand->GetName(); /* this is the name without '!' args */
 
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::EventHandlerAccessor(const Value& row)
@@ -183,7 +183,7 @@ Value ServicesTable::EventHandlerAccessor(const Value& row)
 	if (eventcommand)
 		return eventcommand->GetName();
 
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::PluginOutputAccessor(const Value& row)
@@ -204,7 +204,7 @@ Value ServicesTable::PerfDataAccessor(const Value& row)
 Value ServicesTable::NotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CheckPeriodAccessor(const Value& row)
@@ -212,7 +212,7 @@ Value ServicesTable::CheckPeriodAccessor(const Value& row)
 	TimePeriod::Ptr timeperiod = static_cast<Service::Ptr>(row)->GetCheckPeriod();
 
 	if (!timeperiod)
-		return Value();
+		return Empty;
 
 	return timeperiod->GetName();
 }
@@ -222,7 +222,7 @@ Value ServicesTable::NotesAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("notes");
 }
@@ -230,7 +230,7 @@ Value ServicesTable::NotesAccessor(const Value& row)
 Value ServicesTable::NotesExpandedAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::NotesUrlAccessor(const Value& row)
@@ -238,7 +238,7 @@ Value ServicesTable::NotesUrlAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("notes_url");
 }
@@ -246,7 +246,7 @@ Value ServicesTable::NotesUrlAccessor(const Value& row)
 Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::ActionUrlAccessor(const Value& row)
@@ -254,7 +254,7 @@ Value ServicesTable::ActionUrlAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("action_url");
 }
@@ -262,7 +262,7 @@ Value ServicesTable::ActionUrlAccessor(const Value& row)
 Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::IconImageAccessor(const Value& row)
@@ -270,7 +270,7 @@ Value ServicesTable::IconImageAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("icon_image");
 }
@@ -278,7 +278,7 @@ Value ServicesTable::IconImageAccessor(const Value& row)
 Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::IconImageAltAccessor(const Value& row)
@@ -286,7 +286,7 @@ Value ServicesTable::IconImageAltAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Service::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("icon_image_alt");
 }
@@ -294,7 +294,7 @@ Value ServicesTable::IconImageAltAccessor(const Value& row)
 Value ServicesTable::InitialStateAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::MaxCheckAttemptsAccessor(const Value& row)
@@ -360,31 +360,31 @@ Value ServicesTable::AcknowledgementTypeAccessor(const Value& row)
 Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
 {
 	/* TODO: notification_interval == 0, volatile == false */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::LastTimeOkAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::LastTimeWarningAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::LastTimeCriticalAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::LastTimeUnknownAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::LastCheckAccessor(const Value& row)
@@ -400,19 +400,19 @@ Value ServicesTable::NextCheckAccessor(const Value& row)
 Value ServicesTable::LastNotificationAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetNotifications->(loop)->GetLastNotification() */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::NextNotificationAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetNotifications->(loop)->GetLastNotification() */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CurrentNotificationNumberAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetNotifications->(loop) new attribute */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::LastStateChangeAccessor(const Value& row)
@@ -465,7 +465,7 @@ Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
 Value ServicesTable::IsExecutingAccessor(const Value& row)
 {
 	/* TODO does that make sense with Icinga2? */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
@@ -476,7 +476,7 @@ Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
 Value ServicesTable::CheckOptionsAccessor(const Value& row)
 {
 	/* TODO - forcexec, freshness, orphan, none */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::FlapDetectionEnabledAccessor(const Value& row)
@@ -487,31 +487,31 @@ Value ServicesTable::FlapDetectionEnabledAccessor(const Value& row)
 Value ServicesTable::CheckFreshnessAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::ObsessOverServiceAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::ModifiedAttributesAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::ModifiedAttributesListAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::PnpgraphPresentAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CheckIntervalAccessor(const Value& row)
@@ -527,25 +527,25 @@ Value ServicesTable::RetryIntervalAccessor(const Value& row)
 Value ServicesTable::NotificationIntervalAccessor(const Value& row)
 {
 	/* TODO Host->Services->GetNotifications->(loop)->GetNotificationInterval() */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::FirstNotificationDelayAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::LowFlapThresholdAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::HighFlapThresholdAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::LatencyAccessor(const Value& row)
@@ -566,13 +566,13 @@ Value ServicesTable::PercentStateChangeAccessor(const Value& row)
 Value ServicesTable::InCheckPeriodAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::ContactsAccessor(const Value& row)
@@ -595,49 +595,49 @@ Value ServicesTable::ContactsAccessor(const Value& row)
                 }
         }
 */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::DowntimesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CommentsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::CustomVariablesAccessor(const Value& row)
@@ -648,7 +648,7 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 	Dictionary::Ptr custom = svc->Get("custom");
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	Dictionary::Ptr customvars = custom->ShallowClone();
 	customvars->Remove("notes");
@@ -662,19 +662,19 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 	return customvars;
 	*/
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::GroupsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ServicesTable::ContactGroupsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 

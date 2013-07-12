@@ -110,121 +110,121 @@ void StatusTable::FetchRows(const AddRowFunction& addRowFn)
 Value StatusTable::NebCallbacksAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::NebCallbacksRateAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::RequestsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::RequestsRateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ConnectionsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ConnectionsRateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ServiceChecksAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ServiceChecksRateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::HostChecksAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::HostChecksRateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ForksAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ForksRateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LogMessagesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LogMessagesRateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ExternalCommandsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ExternalCommandsRateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LivechecksAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LivechecksRateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LivecheckOverflowsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LivecheckOverflowsRateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::NagiosPidAccessor(const Value& row)
@@ -271,25 +271,25 @@ Value StatusTable::EnableEventHandlersAccessor(const Value& row)
 Value StatusTable::ObsessOverServicesAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ObsessOverHostsAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::CheckServiceFreshnessAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::CheckHostFreshnessAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::EnableFlapDetectionAccessor(const Value& row)
@@ -318,13 +318,13 @@ Value StatusTable::ProgramStartAccessor(const Value& row)
 Value StatusTable::LastCommandCheckAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LastLogRotationAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::IntervalLengthAccessor(const Value& row)
@@ -336,13 +336,13 @@ Value StatusTable::IntervalLengthAccessor(const Value& row)
 Value StatusTable::NumHostsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::NumServicesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ProgramVersionAccessor(const Value& row)
@@ -353,47 +353,47 @@ Value StatusTable::ProgramVersionAccessor(const Value& row)
 Value StatusTable::ExternalCommandBufferSlotsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ExternalCommandBufferUsageAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::ExternalCommandBufferMaxAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::CachedLogMessagesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LivestatusVersionAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LivestatusActiveConnectionsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LivestatusQueuedConnectionsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value StatusTable::LivestatusThreadsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }

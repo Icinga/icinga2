@@ -78,7 +78,7 @@ Value ContactsTable::EmailAccessor(const Value& row)
 	Dictionary::Ptr macros = static_cast<User::Ptr>(row)->GetMacros();
 
 	if (!macros)
-		return Value();
+		return Empty;
 
 	return macros->Get("email");
 }
@@ -88,7 +88,7 @@ Value ContactsTable::PagerAccessor(const Value& row)
 	Dictionary::Ptr macros = static_cast<User::Ptr>(row)->GetMacros();
 
 	if (!macros)
-		return Value();
+		return Empty;
 
 	return macros->Get("pager");
 }
@@ -96,13 +96,13 @@ Value ContactsTable::PagerAccessor(const Value& row)
 Value ContactsTable::HostNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::ServiceNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::CanSubmitCommandsAccessor(const Value& row)
@@ -114,53 +114,53 @@ Value ContactsTable::CanSubmitCommandsAccessor(const Value& row)
 Value ContactsTable::HostNotificationsEnabledAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::ServiceNotificationsEnabledAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::InHostNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::InServiceNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::CustomVariablesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::ModifiedAttributesAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value ContactsTable::ModifiedAttributesListAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }

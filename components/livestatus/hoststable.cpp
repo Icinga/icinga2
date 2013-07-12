@@ -178,7 +178,7 @@ Value HostsTable::AddressAccessor(const Value& row)
 	Dictionary::Ptr macros = static_cast<Host::Ptr>(row)->GetMacros();
 
 	if (!macros)
-		return Value();
+		return Empty;
 
 	return macros->Get("address");
 }
@@ -188,7 +188,7 @@ Value HostsTable::Address6Accessor(const Value& row)
 	Dictionary::Ptr macros = static_cast<Host::Ptr>(row)->GetMacros();
 
 	if (!macros)
-		return Value();
+		return Empty;
 
 	return macros->Get("address6");
 }
@@ -199,13 +199,13 @@ Value HostsTable::CheckCommandAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	CheckCommand::Ptr checkcommand = hc->GetCheckCommand();
 	if (checkcommand)
 		return checkcommand->GetName(); /* this is the name without '!' args */
 
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
@@ -214,13 +214,13 @@ Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	CheckCommand::Ptr checkcommand = hc->GetCheckCommand();
 	if (checkcommand)
 		return checkcommand->GetName(); /* this is the name without '!' args */
 
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::EventHandlerAccessor(const Value& row)
@@ -229,13 +229,13 @@ Value HostsTable::EventHandlerAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	EventCommand::Ptr eventcommand = hc->GetEventCommand();
 	if (eventcommand)
 		return eventcommand->GetName();
 
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NotificationPeriodAccessor(const Value& row)
@@ -244,10 +244,10 @@ Value HostsTable::NotificationPeriodAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	/* TODO hc->GetNotifications->(loop)->GetNotificationPeriod() */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::CheckPeriodAccessor(const Value& row)
@@ -256,12 +256,12 @@ Value HostsTable::CheckPeriodAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	TimePeriod::Ptr timeperiod = hc->GetCheckPeriod();
 
 	if (!timeperiod)
-		return Value();
+		return Empty;
 
 	return timeperiod->GetName();
 }
@@ -271,7 +271,7 @@ Value HostsTable::NotesAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("notes");
 }
@@ -279,7 +279,7 @@ Value HostsTable::NotesAccessor(const Value& row)
 Value HostsTable::NotesExpandedAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NotesUrlAccessor(const Value& row)
@@ -287,7 +287,7 @@ Value HostsTable::NotesUrlAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("notes_url");
 }
@@ -295,7 +295,7 @@ Value HostsTable::NotesUrlAccessor(const Value& row)
 Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ActionUrlAccessor(const Value& row)
@@ -303,7 +303,7 @@ Value HostsTable::ActionUrlAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("action_url");
 }
@@ -311,7 +311,7 @@ Value HostsTable::ActionUrlAccessor(const Value& row)
 Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::PluginOutputAccessor(const Value& row)
@@ -343,7 +343,7 @@ Value HostsTable::IconImageAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("icon_image");
 }
@@ -351,7 +351,7 @@ Value HostsTable::IconImageAccessor(const Value& row)
 Value HostsTable::IconImageExpandedAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::IconImageAltAccessor(const Value& row)
@@ -359,7 +359,7 @@ Value HostsTable::IconImageAltAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("icon_image_alt");
 }
@@ -369,7 +369,7 @@ Value HostsTable::StatusmapImageAccessor(const Value& row)
 	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
 
 	if (!custom)
-		return Value();
+		return Empty;
 
 	return custom->Get("statusmap_image");
 }
@@ -389,7 +389,7 @@ Value HostsTable::LongPluginOutputAccessor(const Value& row)
 Value HostsTable::InitialStateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::MaxCheckAttemptsAccessor(const Value& row)
@@ -398,7 +398,7 @@ Value HostsTable::MaxCheckAttemptsAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return hc->GetMaxCheckAttempts();
 }
@@ -409,7 +409,7 @@ Value HostsTable::FlapDetectionEnabledAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (hc->GetEnableFlapping() ? 1 : 0);
 }
@@ -417,7 +417,7 @@ Value HostsTable::FlapDetectionEnabledAccessor(const Value& row)
 Value HostsTable::CheckFreshnessAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ProcessPerformanceDataAccessor(const Value& row)
@@ -432,7 +432,7 @@ Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (hc->GetEnablePassiveChecks() ? 1 : 0);
 }
@@ -449,7 +449,7 @@ Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	/* important: lock acknowledgements */
 	ObjectLock olock(hc);
@@ -463,7 +463,7 @@ Value HostsTable::CheckTypeAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (hc->GetEnableActiveChecks() ? 0 : 1);
 }
@@ -484,7 +484,7 @@ Value HostsTable::CurrentAttemptAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return hc->GetCurrentCheckAttempt();
 }
@@ -492,13 +492,13 @@ Value HostsTable::CurrentAttemptAccessor(const Value& row)
 Value HostsTable::LastNotificationAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetNotifications->(loop)->GetLastNotification() */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NextNotificationAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetNotifications->(loop)->GetNextNotification() */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NextCheckAccessor(const Value& row)
@@ -507,7 +507,7 @@ Value HostsTable::NextCheckAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return static_cast<int>(hc->GetNextCheck());
 }
@@ -518,7 +518,7 @@ Value HostsTable::LastHardStateChangeAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return static_cast<int>(hc->GetLastHardStateChange());
 }
@@ -529,7 +529,7 @@ Value HostsTable::HasBeenCheckedAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (hc->HasBeenChecked() ? 1 : 0);
 }
@@ -537,13 +537,13 @@ Value HostsTable::HasBeenCheckedAccessor(const Value& row)
 Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetNotifications->(loop) new attribute */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::PendingFlexDowntimeAccessor(const Value& row)
 {
 	/* TODO Host->Service->GetDowntimes->(loop) type flexible? */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::TotalServicesAccessor(const Value& row)
@@ -557,7 +557,7 @@ Value HostsTable::ChecksEnabledAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (hc->GetEnableActiveChecks() ? 1 : 0);
 }
@@ -568,7 +568,7 @@ Value HostsTable::NotificationsEnabledAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (hc->GetEnableNotifications() ? 1 : 0);
 }
@@ -579,7 +579,7 @@ Value HostsTable::AcknowledgedAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	/* important: lock acknowledgements */
 	ObjectLock olock(hc);
@@ -615,7 +615,7 @@ Value HostsTable::LastCheckAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return static_cast<int>(hc->GetLastCheck());
 }
@@ -628,19 +628,19 @@ Value HostsTable::LastStateChangeAccessor(const Value& row)
 Value HostsTable::LastTimeUpAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::LastTimeDownAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::LastTimeUnreachableAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::IsFlappingAccessor(const Value& row)
@@ -649,7 +649,7 @@ Value HostsTable::IsFlappingAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return hc->IsFlapping();
 }
@@ -660,7 +660,7 @@ Value HostsTable::ScheduledDowntimeDepthAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return hc->GetDowntimeDepth();
 }
@@ -668,7 +668,7 @@ Value HostsTable::ScheduledDowntimeDepthAccessor(const Value& row)
 Value HostsTable::IsExecutingAccessor(const Value& row)
 {
 	/* TODO does that make sense with Icinga2? */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
@@ -678,7 +678,7 @@ Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (hc->GetEnableActiveChecks() ? 1 : 0);
 }
@@ -686,25 +686,25 @@ Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 Value HostsTable::CheckOptionsAccessor(const Value& row)
 {
 	/* TODO - forcexec, freshness, orphan, none */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ObsessOverHostAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ModifiedAttributesAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ModifiedAttributesListAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::CheckIntervalAccessor(const Value& row)
@@ -713,7 +713,7 @@ Value HostsTable::CheckIntervalAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (hc->GetCheckInterval() / 60.0);
 }
@@ -724,7 +724,7 @@ Value HostsTable::RetryIntervalAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (hc->GetRetryInterval() / 60.0);
 }
@@ -732,55 +732,55 @@ Value HostsTable::RetryIntervalAccessor(const Value& row)
 Value HostsTable::NotificationIntervalAccessor(const Value& row)
 {
 	/* TODO Host->Services->GetNotifications->(loop)->GetNotificationInterval() */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::FirstNotificationDelayAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::LowFlapThresholdAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::HighFlapThresholdAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::X3dAccessor(const Value& row)
 {
 	/* not supported - removed in Icinga 1.x */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::Y3dAccessor(const Value& row)
 {
 	/* not supported - removed in Icinga 1.x */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::Z3dAccessor(const Value& row)
 {
 	/* not supported - removed in Icinga 1.x */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::X2dAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::Y2dAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::LatencyAccessor(const Value& row)
@@ -789,7 +789,7 @@ Value HostsTable::LatencyAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (Service::CalculateLatency(hc->GetLastCheckResult()));
 }
@@ -800,7 +800,7 @@ Value HostsTable::ExecutionTimeAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return (Service::CalculateExecutionTime(hc->GetLastCheckResult()));
 }
@@ -811,7 +811,7 @@ Value HostsTable::PercentStateChangeAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return hc->GetFlappingCurrent();
 }
@@ -819,13 +819,13 @@ Value HostsTable::PercentStateChangeAccessor(const Value& row)
 Value HostsTable::InNotificationPeriodAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::InCheckPeriodAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ContactsAccessor(const Value& row)
@@ -835,7 +835,7 @@ Value HostsTable::ContactsAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	std::set<User::Ptr> allUsers;
 	std::set<User::Ptr> users;
@@ -854,72 +854,72 @@ Value HostsTable::ContactsAccessor(const Value& row)
 	}
 
 
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::DowntimesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::CommentsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::CustomVariablesAccessor(const Value& row)
 {
 	/* TODO Dictionary */
-	return Value();
+	return Empty;
 }
 Value HostsTable::FilenameAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ParentsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ChildsAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesAccessor(const Value& row)
@@ -931,67 +931,67 @@ Value HostsTable::NumServicesAccessor(const Value& row)
 Value HostsTable::WorstServiceStateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesOkAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesWarnAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesCritAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesUnknownAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesPendingAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::WorstServiceHardStateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesHardOkAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesHardWarnAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesHardCritAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::NumServicesHardUnknownAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::HardStateAccessor(const Value& row)
@@ -1000,7 +1000,7 @@ Value HostsTable::HardStateAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	if (hc->GetState() == StateOK)
 		return StateOK;
@@ -1013,13 +1013,13 @@ Value HostsTable::HardStateAccessor(const Value& row)
 Value HostsTable::PnpgraphPresentAccessor(const Value& row)
 {
 	/* wtf. not supported */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::StalenessAccessor(const Value& row)
 {
 	/* TODO time since last check normalized on the check_interval */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::GroupsAccessor(const Value& row)
@@ -1029,7 +1029,7 @@ Value HostsTable::GroupsAccessor(const Value& row)
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
 	if (!hc)
-		return Value();
+		return Empty;
 
 	return hc->GetGroups();
 }
@@ -1037,25 +1037,25 @@ Value HostsTable::GroupsAccessor(const Value& row)
 Value HostsTable::ContactGroupsAccessor(const Value& row)
 {
 	/* TODO create array */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ServicesAccessor(const Value& row)
 {
 	/* TODO create array */
-	return Value();
+	return Empty;
 }
 
 /* dictionary */
 Value HostsTable::ServicesWithStateAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 
 Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 {
 	/* TODO */
-	return Value();
+	return Empty;
 }
 

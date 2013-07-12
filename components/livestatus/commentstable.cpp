@@ -85,7 +85,7 @@ Value CommentsTable::AuthorAccessor(const Value& row)
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
 	if (!comment)
-		return Value();
+		return Empty;
 
 	return comment->Get("author");
 }
@@ -95,7 +95,7 @@ Value CommentsTable::CommentAccessor(const Value& row)
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
 	if (!comment)
-		return Value();
+		return Empty;
 
 	return comment->Get("text");
 }
@@ -105,7 +105,7 @@ Value CommentsTable::IdAccessor(const Value& row)
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
 	if (!comment)
-		return Value();
+		return Empty;
 
 	return comment->Get("legacy_id");
 }
@@ -115,7 +115,7 @@ Value CommentsTable::EntryTimeAccessor(const Value& row)
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
 	if (!comment)
-		return Value();
+		return Empty;
 
 	return static_cast<int>(comment->Get("entry_time"));
 }
@@ -125,7 +125,7 @@ Value CommentsTable::TypeAccessor(const Value& row)
 	Service::Ptr svc = Service::GetOwnerByCommentID(row);
 
 	if (!svc)
-		return Value();
+		return Empty;
 
 	return (svc->IsHostCheck() ? 1 : 2);
 }
@@ -135,7 +135,7 @@ Value CommentsTable::IsServiceAccessor(const Value& row)
 	Service::Ptr svc = Service::GetOwnerByCommentID(row);
 
 	if (!svc)
-		return Value();
+		return Empty;
 
 	return (svc->IsHostCheck() ? 0 : 1);
 }
@@ -157,7 +157,7 @@ Value CommentsTable::EntryTypeAccessor(const Value& row)
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
 	if (!comment)
-		return Value();
+		return Empty;
 
 	return comment->Get("entry_type");
 }
@@ -167,7 +167,7 @@ Value CommentsTable::ExpiresAccessor(const Value& row)
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
 	if (!comment)
-		return Value();
+		return Empty;
 
 	return comment->Get("expires");
 }
@@ -177,7 +177,7 @@ Value CommentsTable::ExpireTimeAccessor(const Value& row)
 	Dictionary::Ptr comment = Service::GetCommentByID(row);
 
 	if (!comment)
-		return Value();
+		return Empty;
 
 	return static_cast<int>(comment->Get("expire_time"));
 }

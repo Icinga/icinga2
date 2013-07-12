@@ -68,89 +68,89 @@ void LogTable::FetchRows(const AddRowFunction& addRowFn)
 Value LogTable::TimeAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::LinenoAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::ClassAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::MessageAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::TypeAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::OptionsAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::CommentAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::PluginOutputAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::StateAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::StateTypeAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::AttemptAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::ServiceDescriptionAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::HostNameAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::ContactNameAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
 
 Value LogTable::CommandNameAccessor(const Value& row)
 {
 	/* not supported */
-	return Value();
+	return Empty;
 }
