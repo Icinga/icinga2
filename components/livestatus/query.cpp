@@ -47,6 +47,13 @@ using namespace livestatus;
 Query::Query(const std::vector<String>& lines)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1)
 {
+	if (lines.size() == 0) {
+		m_Verb = "ERROR";
+		m_ErrorCode = LivestatusErrorQuery;
+		m_ErrorMessage = "Empty Query. Aborting.";
+		return;
+	}
+
 	String line = lines[0];
 
 	size_t sp_index = line.FindFirstOf(" ");
@@ -65,7 +72,7 @@ Query::Query(const std::vector<String>& lines)
 		m_Table = target;
 	} else {
 		m_Verb = "ERROR";
-		m_ErrorCode = 452;
+		m_ErrorCode = LivestatusErrorQuery;
 		m_ErrorMessage = "Unknown livestatus verb: " + m_Verb;
 		return;
 	}
@@ -96,7 +103,7 @@ Query::Query(const std::vector<String>& lines)
 
 			if (!filter) {
 				m_Verb = "ERROR";
-				m_ErrorCode = 452;
+				m_ErrorCode = LivestatusErrorQuery;
 				m_ErrorMessage = "Invalid filter specification: " + line;
 				return;
 			}
@@ -108,7 +115,7 @@ Query::Query(const std::vector<String>& lines)
 
 			if (tokens.size() < 2) {
 				m_Verb = "ERROR";
-				m_ErrorCode = 452;
+				m_ErrorCode = LivestatusErrorQuery;
 				m_ErrorMessage = "Missing aggregator column name: " + line;
 				return;
 			}
@@ -138,7 +145,7 @@ Query::Query(const std::vector<String>& lines)
 
 				if (!filter) {
 					m_Verb = "ERROR";
-					m_ErrorCode = 452;
+					m_ErrorCode = LivestatusErrorQuery;
 					m_ErrorMessage = "Invalid filter specification: " + line;
 					return;
 				}
@@ -312,7 +319,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 	Table::Ptr table = Table::GetByName(m_Table);
 
 	if (!table) {
-		SendResponse(stream, 404, "Table '" + m_Table + "' does not exist.");
+		SendResponse(stream, LivestatusErrorNotFound, "Table '" + m_Table + "' does not exist.");
 
 		return;
 	}
@@ -364,14 +371,14 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 	std::ostringstream result;
 	PrintResultSet(result, columns, rs);
 
-	SendResponse(stream, 200, result.str());
+	SendResponse(stream, LivestatusErrorOK, result.str());
 }
 
 void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
 {
 	Log(LogInformation, "livestatus", "Executing command: " + m_Command);
 	ExternalCommandProcessor::Execute(m_Command);
-	SendResponse(stream, 200, "");
+	SendResponse(stream, LivestatusErrorOK, "");
 }
 
 void Query::ExecuteErrorHelper(const Stream::Ptr& stream)
@@ -384,7 +391,7 @@ void Query::SendResponse(const Stream::Ptr& stream, int code, const String& data
 	if (m_ResponseHeader == "fixed16")
 		PrintFixed16(stream, code, data);
 
-	if (m_ResponseHeader == "fixed16" || code == 200)
+	if (m_ResponseHeader == "fixed16" || code == LivestatusErrorOK)
 		stream->Write(data.CStr(), data.GetLength());
 }
 
@@ -417,7 +424,7 @@ bool Query::Execute(const Stream::Ptr& stream)
 		std::ostringstream info;
 		st->Print(info);
 		Log(LogWarning, "livestatus", info.str());
-		SendResponse(stream, 452, boost::diagnostic_information(ex));
+		SendResponse(stream, LivestatusErrorQuery, boost::diagnostic_information(ex));
 	}
 
 	if (!m_KeepAlive) {

@@ -32,6 +32,13 @@ using namespace icinga;
 namespace livestatus
 {
 
+enum LivestatusError
+{
+	LivestatusErrorOK = 200,
+	LivestatusErrorNotFound = 404,
+	LivestatusErrorQuery = 452
+};
+
 /**
  * @ingroup livestatus
  */
