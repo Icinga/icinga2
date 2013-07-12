@@ -280,7 +280,22 @@ void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns,
 				else
 					fp << ";";
 
-				fp << Convert::ToString(value);
+				if (value.IsObjectType<Array>()) {
+					bool first_inner = true;
+					Array::Ptr arr = static_cast<Array::Ptr>(value);
+
+					ObjectLock rlock(arr);
+					BOOST_FOREACH(const Value& arr_val, arr) {
+						if (first_inner)
+							first_inner = false;
+						else
+							fp << ",";
+
+						fp << Convert::ToString(arr_val);
+					}
+				} else {
+					fp << Convert::ToString(value);
+				}
 			}
 
 			fp << "\n";
