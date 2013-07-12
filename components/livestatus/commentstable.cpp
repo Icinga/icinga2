@@ -122,8 +122,12 @@ Value CommentsTable::EntryTimeAccessor(const Value& row)
 
 Value CommentsTable::TypeAccessor(const Value& row)
 {
-	/* TODO */
-	return Value();
+	Service::Ptr svc = Service::GetOwnerByCommentID(row);
+
+	if (!svc)
+		return Value();
+
+	return (svc->IsHostCheck() ? 1 : 2);
 }
 
 Value CommentsTable::IsServiceAccessor(const Value& row)
@@ -138,14 +142,14 @@ Value CommentsTable::IsServiceAccessor(const Value& row)
 
 Value CommentsTable::PersistentAccessor(const Value& row)
 {
-	/* TODO - always 1 */
+	/* always 1 */
 	return 1;
 }
 
 Value CommentsTable::SourceAccessor(const Value& row)
 {
-	/* TODO */
-	return Value();
+	/* always external */
+	return 1;
 }
 
 Value CommentsTable::EntryTypeAccessor(const Value& row)
