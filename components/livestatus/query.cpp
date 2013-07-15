@@ -287,28 +287,34 @@ void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns,
 				else
 					fp << ";";
 
-				if (value.IsObjectType<Array>()) {
-					bool first_inner = true;
-					Array::Ptr arr = static_cast<Array::Ptr>(value);
-
-					ObjectLock rlock(arr);
-					BOOST_FOREACH(const Value& arr_val, arr) {
-						if (first_inner)
-							first_inner = false;
-						else
-							fp << ",";
-
-						fp << Convert::ToString(arr_val);
-					}
-				} else {
+				if (value.IsObjectType<Array>())
+					PrintCsvArray(fp, value, 0);
+				else
 					fp << Convert::ToString(value);
-				}
 			}
 
 			fp << "\n";
 		}
 	} else if (m_OutputFormat == "json") {
 		fp << Value(rs).Serialize();
+	}
+}
+
+void Query::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level)
+{
+	bool first = true;
+
+	ObjectLock olock(array);
+	BOOST_FOREACH(const Value& value, array) {
+		if (first)
+			first = false;
+		else
+			fp << ((level == 0) ? "," : "|");
+
+		if (value.IsObjectType<Array>())
+			PrintCsvArray(fp, value, level + 1);
+		else
+			fp << Convert::ToString(value);
 	}
 }
 

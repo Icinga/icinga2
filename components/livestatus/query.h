@@ -77,6 +77,7 @@ private:
 	String m_ErrorMessage;
 
 	void PrintResultSet(std::ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs);
+	void PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level);
 
 	void ExecuteGetHelper(const Stream::Ptr& stream);
 	void ExecuteCommandHelper(const Stream::Ptr& stream);
