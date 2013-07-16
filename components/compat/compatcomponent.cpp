@@ -479,9 +479,13 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 	}
 
 	double last_notification = 0;
+	double next_notification = 0;
 	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
 		if (notification->GetLastNotification() > last_notification)
 			last_notification = notification->GetLastNotification();
+
+		if (notification->GetNextNotification() < next_notification)
+			next_notification = notification->GetNextNotification();
 	}
 
 	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
@@ -521,7 +525,8 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
 	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
 	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
-	   << "\t" << "last_notification=" << last_notification << "\n";
+	   << "\t" << "last_notification=" << last_notification << "\n"
+	   << "\t" << "next_notification=" << next_notification << "\n";
 }
 
 void CompatComponent::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)
