@@ -46,6 +46,10 @@ public:
 
 	String GetDisplayName(void) const;
 	Array::Ptr GetGroups(void) const;
+
+	/* Notifications */
+	bool GetEnableNotifications(void) const;
+	void SetEnableNotifications(bool enabled);
 	TimePeriod::Ptr GetNotificationPeriod(void) const;
  	unsigned long GetNotificationTypeFilter(void) const;
 	unsigned long GetNotificationStateFilter(void) const;
@@ -60,8 +64,9 @@ protected:
 private:
 	Attribute<String> m_DisplayName;
 	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<String> m_NotificationPeriod;
 	Attribute<Array::Ptr> m_Groups;
+	Attribute<bool> m_EnableNotifications;
+	Attribute<String> m_NotificationPeriod;
 	Attribute<long> m_NotificationTypeFilter;
 	Attribute<long> m_NotificationStateFilter;
 };

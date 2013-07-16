@@ -33,6 +33,7 @@ User::User(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
+	RegisterAttribute("enable_notifications", Attribute_Config, &m_EnableNotifications);
 	RegisterAttribute("notification_period", Attribute_Config, &m_NotificationPeriod);
 	RegisterAttribute("notification_type_filter", Attribute_Config, &m_NotificationTypeFilter);
 	RegisterAttribute("notification_state_filter", Attribute_Config, &m_NotificationStateFilter);
@@ -74,6 +75,20 @@ Array::Ptr User::GetGroups(void) const
 Dictionary::Ptr User::GetMacros(void) const
 {
 	return m_Macros;
+}
+
+bool User::GetEnableNotifications(void) const
+{
+	if (m_EnableNotifications.IsEmpty())
+		return true;
+	else
+		return m_EnableNotifications;
+}
+
+void User::SetEnableNotifications(bool enabled)
+{
+	m_EnableNotifications = enabled;
+	Touch("enable_notifications");
 }
 
 TimePeriod::Ptr User::GetNotificationPeriod(void) const
