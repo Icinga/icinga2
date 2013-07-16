@@ -34,4 +34,5 @@ libido_log_la_LIBADD = \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
 	${top_builddir}/lib/remoting/libremoting.la \
-	${top_builddir}/lib/icinga/libicinga.la
+	${top_builddir}/lib/icinga/libicinga.la \
+	${top_builddir}/lib/ido/libido.la

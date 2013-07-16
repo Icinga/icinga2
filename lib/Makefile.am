@@ -6,4 +6,5 @@ SUBDIRS = \
 	config \
 	remoting \
 	icinga \
+	ido \
 	python

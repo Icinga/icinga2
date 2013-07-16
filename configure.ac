@@ -122,7 +122,6 @@ components/checker/Makefile
 components/compat/Makefile
 components/delegation/Makefile
 components/demo/Makefile
-components/ido/Makefile
 components/ido_log/Makefile
 components/ido_mysql/Makefile
 components/livestatus/Makefile
@@ -139,6 +138,7 @@ lib/Makefile
 lib/base/Makefile
 lib/config/Makefile
 lib/icinga/Makefile
+lib/ido/Makefile
 lib/python/Makefile
 lib/remoting/Makefile
 test/Makefile

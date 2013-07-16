@@ -25,12 +25,10 @@ libido_la_SOURCES = \
 libido_la_CPPFLAGS = \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/lib \
-	-I${top_srcdir}/components
+	-I${top_srcdir}/lib
 
 libido_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
-	-module \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@

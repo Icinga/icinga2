@@ -6,7 +6,6 @@ SUBDIRS = \
 	compat \
 	delegation \
 	demo \
-	ido \
 	ido_log \
 	ido_mysql \
 	livestatus \

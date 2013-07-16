@@ -49,9 +49,6 @@ protected:
 private:
 	void Initialize(void);
 
-	static void ObjectRegisteredHandler(const DynamicObject::Ptr& object);
-	static void ObjectUnregisteredHandler(const DynamicObject::Ptr& object);
-
 	std::map<DbObject::Ptr, DbReference> m_References;
 };
 
