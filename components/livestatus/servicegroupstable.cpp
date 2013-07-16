@@ -121,8 +121,18 @@ Value ServiceGroupsTable::MembersAccessor(const Value& row)
 
 Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Array::Ptr members = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+		Array::Ptr host_svc = boost::make_shared<Array>();
+		host_svc->Add(service->GetHost()->GetName());
+		host_svc->Add(service->GetShortName());
+		host_svc->Add(service->GetHost()->GetState());
+		host_svc->Add(service->GetState());
+		members->Add(host_svc);
+	}
+
+	return members;
 }
 
 Value ServiceGroupsTable::WorstServiceStateAccessor(const Value& row)

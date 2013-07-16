@@ -127,8 +127,16 @@ Value HostGroupsTable::MembersAccessor(const Value& row)
 
 Value HostGroupsTable::MembersWithStateAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Array::Ptr members = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const Host::Ptr& host, static_cast<HostGroup::Ptr>(row)->GetMembers()) {
+		Array::Ptr member_state = boost::make_shared<Array>();
+		member_state->Add(host->GetName());
+		member_state->Add(host->GetState());
+		members->Add(member_state);
+	}
+
+	return members;
 }
 
 Value HostGroupsTable::WorstHostStateAccessor(const Value& row)
