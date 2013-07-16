@@ -141,7 +141,7 @@ Value ContactsTable::InHostNotificationPeriodAccessor(const Value& row)
 	if (!timeperiod)
 		return Empty;
 
-	return timeperiod->IsInside(Utility::GetTime());
+	return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
 }
 
 Value ContactsTable::InServiceNotificationPeriodAccessor(const Value& row)
@@ -151,7 +151,7 @@ Value ContactsTable::InServiceNotificationPeriodAccessor(const Value& row)
 	if (!timeperiod)
 		return Empty;
 
-	return timeperiod->IsInside(Utility::GetTime());
+	return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
 }
 
 Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
@@ -167,6 +167,15 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	String key;
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), custom) {
+		if (key == "notes" ||
+		    key == "action_url" ||
+		    key == "notes_url" ||
+		    key == "icon_image" ||
+		    key == "icon_image_alt" ||
+		    key == "statusmap_image" ||
+		    key == "2d_coords")
+			continue;
+
 		cv->Add(key);
 	}
 
@@ -186,6 +195,15 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	String key;
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), custom) {
+		if (key == "notes" ||
+		    key == "action_url" ||
+		    key == "notes_url" ||
+		    key == "icon_image" ||
+		    key == "icon_image_alt" ||
+		    key == "statusmap_image" ||
+		    key == "2d_coords")
+			continue;
+
 		cv->Add(value);
 	}
 
@@ -205,6 +223,15 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	String key;
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), custom) {
+		if (key == "notes" ||
+		    key == "action_url" ||
+		    key == "notes_url" ||
+		    key == "icon_image" ||
+		    key == "icon_image_alt" ||
+		    key == "statusmap_image" ||
+		    key == "2d_coords")
+			continue;
+
 		Array::Ptr key_val = boost::make_shared<Array>();
 		key_val->Add(key);
 		key_val->Add(value);
