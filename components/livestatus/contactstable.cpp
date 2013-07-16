@@ -19,8 +19,12 @@
 
 #include "livestatus/contactstable.h"
 #include "icinga/user.h"
+#include "icinga/timeperiod.h"
 #include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -95,62 +99,119 @@ Value ContactsTable::PagerAccessor(const Value& row)
 
 Value ContactsTable::HostNotificationPeriodAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* same as service */
+	TimePeriod::Ptr timeperiod = static_cast<User::Ptr>(row)->GetNotificationPeriod();
+
+	if (!timeperiod)
+		return Empty;
+
+	return timeperiod->GetName();
 }
 
 Value ContactsTable::ServiceNotificationPeriodAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	TimePeriod::Ptr timeperiod = static_cast<User::Ptr>(row)->GetNotificationPeriod();
+
+	if (!timeperiod)
+		return Empty;
+
+	return timeperiod->GetName();
 }
 
 Value ContactsTable::CanSubmitCommandsAccessor(const Value& row)
 {
-	/* TODO - default 1*/
+	/* default enabled */
 	return 1;
 }
 
 Value ContactsTable::HostNotificationsEnabledAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return (static_cast<User::Ptr>(row)->GetEnableNotifications() ? 1 : 0);
 }
 
 Value ContactsTable::ServiceNotificationsEnabledAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return (static_cast<User::Ptr>(row)->GetEnableNotifications() ? 1 : 0);
 }
 
 Value ContactsTable::InHostNotificationPeriodAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	TimePeriod::Ptr timeperiod = static_cast<User::Ptr>(row)->GetNotificationPeriod();
+
+	if (!timeperiod)
+		return Empty;
+
+	return timeperiod->IsInside(Utility::GetTime());
 }
 
 Value ContactsTable::InServiceNotificationPeriodAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	TimePeriod::Ptr timeperiod = static_cast<User::Ptr>(row)->GetNotificationPeriod();
+
+	if (!timeperiod)
+		return Empty;
+
+	return timeperiod->IsInside(Utility::GetTime());
 }
 
 Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Dictionary::Ptr custom = static_cast<User::Ptr>(row)->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	Array::Ptr cv = boost::make_shared<Array>();
+
+	ObjectLock olock(custom);
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), custom) {
+		cv->Add(key);
+	}
+
+	return cv;
 }
 
 Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Dictionary::Ptr custom = static_cast<User::Ptr>(row)->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	Array::Ptr cv = boost::make_shared<Array>();
+
+	ObjectLock olock(custom);
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), custom) {
+		cv->Add(value);
+	}
+
+	return cv;
 }
 
 Value ContactsTable::CustomVariablesAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Dictionary::Ptr custom = static_cast<User::Ptr>(row)->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	Array::Ptr cv = boost::make_shared<Array>();
+
+	ObjectLock olock(custom);
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), custom) {
+		Array::Ptr key_val = boost::make_shared<Array>();
+		key_val->Add(key);
+		key_val->Add(value);
+		cv->Add(key_val);
+	}
+
+	return cv;
 }
 
 Value ContactsTable::ModifiedAttributesAccessor(const Value& row)
