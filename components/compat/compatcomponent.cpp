@@ -195,10 +195,14 @@ void CompatComponent::CommandPipeThread(const String& commandPath)
 void CompatComponent::DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Service::Ptr service;
-	Host::Ptr host;
 	Dictionary::Ptr comments = owner->GetComments();
 
 	if (!comments)
+		return;
+
+	Host::Ptr host = owner->GetHost();
+
+	if (!host)
 		return;
 
 	ObjectLock olock(comments);
@@ -215,7 +219,7 @@ void CompatComponent::DumpComments(std::ostream& fp, const Service::Ptr& owner, 
 			fp << "servicecomment {" << "\n"
 			   << "\t" << "service_description=" << owner->GetShortName() << "\n";
 
-		fp << "\t" << "host_name=" << owner->GetHost()->GetName() << "\n"
+		fp << "\t" << "host_name=" << host->GetName() << "\n"
 		   << "\t" << "comment_id=" << static_cast<String>(comment->Get("legacy_id")) << "\n"
 		   << "\t" << "entry_time=" << static_cast<double>(comment->Get("entry_time")) << "\n"
 		   << "\t" << "entry_type=" << static_cast<long>(comment->Get("entry_type")) << "\n"
