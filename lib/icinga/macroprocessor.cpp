@@ -29,16 +29,16 @@
 
 using namespace icinga;
 
-Value MacroProcessor::ResolveMacros(const Value& cmd, const std::vector<MacroResolver::Ptr>& resolvers,
+Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroResolver::Ptr>& resolvers,
     const Dictionary::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn)
 {
 	Value result;
 
-	if (cmd.IsScalar()) {
-		result = InternalResolveMacros(cmd, resolvers, cr, escapeFn);
-	} else if (cmd.IsObjectType<Array>()) {
+	if (str.IsScalar()) {
+		result = InternalResolveMacros(str, resolvers, cr, escapeFn);
+	} else if (str.IsObjectType<Array>()) {
 		Array::Ptr resultArr = boost::make_shared<Array>();
-		Array::Ptr arr = cmd;
+		Array::Ptr arr = str;
 
 		ObjectLock olock(arr);
 
