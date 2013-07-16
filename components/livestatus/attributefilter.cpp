@@ -20,6 +20,7 @@
 #include "livestatus/attributefilter.h"
 #include "base/convert.h"
 #include "base/array.h"
+#include "base/objectlock.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -38,6 +39,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 	if (value.IsObjectType<Array>()) {
 		if (m_Operator == ">=") {
 			Array::Ptr array = value;
+			ObjectLock olock(array);
 			BOOST_FOREACH(const String& item, array) {
 				if (item == m_Operand)
 					return true; /* Item found in list. */
