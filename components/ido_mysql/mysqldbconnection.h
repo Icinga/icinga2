@@ -20,9 +20,9 @@
 #ifndef MYSQLDBCONNECTION_H
 #define MYSQLDBCONNECTION_H
 
+#include "base/array.h"
 #include "base/dynamictype.h"
 #include "ido/dbconnection.h"
-#include <vector>
 #include <mysql/mysql.h>
 
 namespace icinga
@@ -40,6 +40,7 @@ public:
 	typedef weak_ptr<MysqlDbConnection> WeakPtr;
 
 	MysqlDbConnection(const Dictionary::Ptr& serializedUpdate);
+	virtual void Stop(void);
 
 	virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
 
@@ -49,8 +50,18 @@ private:
 	Attribute<String> m_User;
 	Attribute<String> m_Password;
 	Attribute<String> m_Database;
+	Attribute<String> m_InstanceName;
+	Attribute<String> m_InstanceDescription;
 
-	MYSQL *m_Connection;
+	DbReference m_InstanceID;
+
+	boost::mutex m_ConnectionMutex;
+	MYSQL m_Connection;
+
+	Array::Ptr Query(const String& query);
+	DbReference GetInsertId(void);
+	String Escape(const String& s);
+	Dictionary::Ptr FetchRow(MYSQL_RES *result);
 };
 
 }

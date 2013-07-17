@@ -34,6 +34,8 @@ enum DbUpdateType
 	DbObjectRemoved
 };
 
+class DbType;
+
 /**
  * A database object.
  *
@@ -49,6 +51,7 @@ public:
 
 	String GetName1(void) const;
 	String GetName2(void) const;
+	boost::shared_ptr<DbType> GetType(void) const;
 
 	virtual Dictionary::Ptr GetFields(void) const = 0;
 
@@ -56,12 +59,15 @@ public:
 
 	static boost::signals2::signal<void (const DbObject::Ptr&, DbUpdateType)> OnObjectUpdated;
 
+	void SendUpdate(DbUpdateType kind = DbObjectUpdated);
+
 protected:
-	DbObject(const String& name1, const String& name2);
+	DbObject(const boost::shared_ptr<DbType>& type, const String& name1, const String& name2);
 
 private:
 	String m_Name1;
 	String m_Name2;
+	boost::shared_ptr<DbType> m_Type;
 	DynamicObject::Ptr m_Object;
 
 	friend boost::shared_ptr<DbObject> boost::make_shared<>(const icinga::String&, const icinga::String&);

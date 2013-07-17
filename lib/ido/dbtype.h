@@ -50,6 +50,7 @@ public:
 	static void RegisterType(const DbType::Ptr& type);
 
 	static DbType::Ptr GetByName(const String& name);
+	static DbType::Ptr GetById(long tid);
 
 	DbObject::Ptr GetOrCreateObjectByName(const String& name1, const String& name2);
 

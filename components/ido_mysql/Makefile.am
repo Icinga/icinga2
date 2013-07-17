@@ -17,11 +17,13 @@ libido_mysql_la_SOURCES = \
 libido_mysql_la_CPPFLAGS = \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
+	$(MYSQL_CFLAGS) \
 	-I${top_srcdir}/lib \
 	-I${top_srcdir}/components
 
 libido_mysql_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
+	$(MYSQL_LDFLAGS) \
 	-module \
 	-no-undefined \
 	@RELEASE_INFO@ \

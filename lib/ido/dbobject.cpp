@@ -19,6 +19,7 @@
 
 #include "ido/dbobject.h"
 #include "ido/dbtype.h"
+#include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include <boost/foreach.hpp>
@@ -27,8 +28,8 @@ using namespace icinga;
 
 boost::signals2::signal<void (const DbObject::Ptr&, DbUpdateType)> DbObject::OnObjectUpdated;
 
-DbObject::DbObject(const String& name1, const String& name2)
-	: m_Name1(name1), m_Name2(name2), m_Object()
+DbObject::DbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2)
+	: m_Name1(name1), m_Name2(name2), m_Type(type)
 { }
 
 void DbObject::StaticInitialize(void)
@@ -59,6 +60,16 @@ String DbObject::GetName2(void) const
 	return m_Name2;
 }
 
+DbType::Ptr DbObject::GetType(void) const
+{
+	return m_Type;
+}
+
+void DbObject::SendUpdate(DbUpdateType kind)
+{
+	OnObjectUpdated(GetSelf(), kind);
+}
+
 DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = static_pointer_cast<DbObject>(object->GetExtension("DbObject"));
@@ -71,7 +82,23 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 	if (!dbtype)
 		return DbObject::Ptr();
 
-	/* TODO: Deal with service names. */
+	Service::Ptr service;
+	String name1, name2;
+
+	service = dynamic_pointer_cast<Service>(object);
+
+	if (service) {
+		Host::Ptr host = service->GetHost();
+
+		if (!host)
+			return DbObject::Ptr();
+
+		name1 = service->GetHost()->GetName();
+		name2 = service->GetShortName();
+	} else {
+		name1 = object->GetName();
+	}
+
 	dbobj = dbtype->GetOrCreateObjectByName(object->GetName(), String());
 
 	{
@@ -86,13 +113,21 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 void DbObject::ObjectRegisteredHandler(const DynamicObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
-	OnObjectUpdated(dbobj, DbObjectCreated);
+
+	if (!dbobj)
+		return;
+
+	dbobj->SendUpdate(DbObjectCreated);
 }
 
 void DbObject::ObjectUnregisteredHandler(const DynamicObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
-	OnObjectUpdated(dbobj, DbObjectRemoved);
+
+	if (!dbobj)
+		return;
+
+	dbobj->SendUpdate(DbObjectRemoved);
 
 	{
 		ObjectLock olock(object);
@@ -115,5 +150,9 @@ void DbObject::TransactionClosingHandler(double tx, const std::set<DynamicObject
 void DbObject::FlushObjectHandler(double tx, const DynamicObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
-	OnObjectUpdated(dbobj, DbObjectUpdated);
+
+	if (!dbobj)
+		return;
+
+	dbobj->SendUpdate();
 }

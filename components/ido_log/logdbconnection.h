@@ -22,7 +22,6 @@
 
 #include "base/dynamictype.h"
 #include "ido/dbconnection.h"
-#include <vector>
 
 namespace icinga
 {

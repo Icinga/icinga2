@@ -29,7 +29,7 @@ DbConnection::DbConnection(const Dictionary::Ptr& serializedUpdate)
 
 void DbConnection::Initialize(void)
 {
-	DbObject::OnObjectUpdated.connect(boost::bind(&DbConnection::UpdateObject, this, _1, _2));
+	DbObject::OnObjectUpdated.connect(boost::bind(&DbConnection::InternalUpdateObject, this, _1, _2));
 }
 
 void DbConnection::SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref)
@@ -55,6 +55,14 @@ DbReference DbConnection::GetReference(const DbObject::Ptr& dbobj) const
 void DbConnection::UpdateObject(const DbObject::Ptr&, DbUpdateType)
 {
 	/* Default handler does nothing. */
+}
+
+void DbConnection::InternalUpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind)
+{
+	UpdateObject(dbobj, kind);
+
+	if (kind == DbObjectRemoved)
+		SetReference(dbobj, DbReference());
 }
 
 void DbConnection::UpdateAllObjects(void)

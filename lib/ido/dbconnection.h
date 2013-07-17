@@ -48,6 +48,7 @@ protected:
 
 private:
 	void Initialize(void);
+	void InternalUpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
 
 	std::map<DbObject::Ptr, DbReference> m_References;
 };

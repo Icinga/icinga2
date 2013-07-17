@@ -19,16 +19,22 @@
 
 #include "ido/hostdbobject.h"
 #include "ido/dbtype.h"
+#include "icinga/host.h"
 
 using namespace icinga;
 
-REGISTER_DBTYPE("Host", "hosts", 1, HostDbObject);
+REGISTER_DBTYPE("Host", "host", 1, HostDbObject);
 
 HostDbObject::HostDbObject(const String& name1, const String& name2)
-	: DbObject(name1, name2)
+	: DbObject(DbType::GetByName("Host"), name1, name2)
 { }
 
 Dictionary::Ptr HostDbObject::GetFields(void) const
 {
+	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
+	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
+	fields->Set("display_name", host->GetDisplayName());
+
+	return fields;
 }

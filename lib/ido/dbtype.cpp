@@ -20,6 +20,8 @@
 #include "ido/dbtype.h"
 #include "base/objectlock.h"
 #include <boost/thread/once.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -62,6 +64,18 @@ DbType::Ptr DbType::GetByName(const String& name)
 		return DbType::Ptr();
 
 	return it->second;
+}
+
+DbType::Ptr DbType::GetById(long tid)
+{
+	String name;
+	DbType::Ptr type;
+	BOOST_FOREACH(boost::tie(name, type), GetTypes()) {
+		if (type->GetTypeId() == tid)
+			return type;
+	}
+
+	return DbType::Ptr();
 }
 
 DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String& name2)
