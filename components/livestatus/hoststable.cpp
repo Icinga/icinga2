@@ -215,16 +215,48 @@ Value HostsTable::CheckCommandAccessor(const Value& row)
 Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	Service::Ptr hc = host->GetHostCheckService();
 
 	if (!hc)
 		return Empty;
 
-	CheckCommand::Ptr checkcommand = hc->GetCheckCommand();
-	if (checkcommand)
-		return checkcommand->GetName(); /* this is the name without '!' args */
+	CheckCommand::Ptr commandObj = hc->GetCheckCommand();
 
-	return Empty;
+	if (!commandObj)
+		return Empty;
+
+	Value raw_command = commandObj->GetCommandLine();
+
+	std::vector<MacroResolver::Ptr> resolvers;
+	resolvers.push_back(commandObj);
+	resolvers.push_back(hc);
+	resolvers.push_back(host);
+	resolvers.push_back(IcingaApplication::GetInstance());
+
+	Value commandLine = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd);
+
+	String buf;
+	if (commandLine.IsObjectType<Array>()) {
+		Array::Ptr args = commandLine;
+
+		ObjectLock olock(args);
+		String arg;
+		BOOST_FOREACH(arg, args) {
+			// This is obviously incorrect for non-trivial cases.
+			String argitem = " \"" + arg + "\"";
+			boost::algorithm::replace_all(argitem, "\n", "\\n");
+			buf += argitem;
+		}
+	} else if (!commandLine.IsEmpty()) {
+		String args = Convert::ToString(commandLine);
+		boost::algorithm::replace_all(args, "\n", "\\n");
+		buf += args;
+	} else {
+		buf += "<internal>";
+	}
+
+	return buf;
 }
 
 Value HostsTable::EventHandlerAccessor(const Value& row)
