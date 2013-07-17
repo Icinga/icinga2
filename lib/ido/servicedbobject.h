@@ -17,63 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "ido/dbconnection.h"
-#include "base/dynamictype.h"
-#include <boost/foreach.hpp>
+#ifndef SERVICEDBOBJECT_H
+#define SERVICEDBOBJECT_H
 
-using namespace icinga;
+#include "ido/dbobject.h"
+#include "base/dynamicobject.h"
 
-DbConnection::DbConnection(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{ }
-
-void DbConnection::Start(void)
+namespace icinga
 {
-	DbObject::OnObjectUpdated.connect(boost::bind(&DbConnection::InternalUpdateObject, this, _1, _2));
+
+/**
+ * A Service database object.
+ *
+ * @ingroup ido
+ */
+class ServiceDbObject : public DbObject
+{
+public:
+	DECLARE_PTR_TYPEDEFS(ServiceDbObject);
+
+	ServiceDbObject(const String& name1, const String& name2);
+
+	virtual Dictionary::Ptr GetFields(void) const;
+};
+
 }
 
-void DbConnection::SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref)
-{
-	if (dbref.IsValid())
-		m_References[dbobj] = dbref;
-	else
-		m_References.erase(dbobj);
-}
-
-DbReference DbConnection::GetReference(const DbObject::Ptr& dbobj) const
-{
-	std::map<DbObject::Ptr, DbReference>::const_iterator it;
-
-	it = m_References.find(dbobj);
-
-	if (it == m_References.end())
-		return DbReference();
-
-	return it->second;
-}
-
-void DbConnection::UpdateObject(const DbObject::Ptr&, DbUpdateType)
-{
-	/* Default handler does nothing. */
-}
-
-void DbConnection::InternalUpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind)
-{
-	UpdateObject(dbobj, kind);
-
-	if (kind == DbObjectRemoved)
-		SetReference(dbobj, DbReference());
-}
-
-void DbConnection::UpdateAllObjects(void)
-{
-	DynamicType::Ptr type;
-	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
-			DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
-
-			if (dbobj)
-				UpdateObject(dbobj, DbObjectCreated);
-		}
-	}
-}
+#endif /* SERVICEDBOBJECT_H */

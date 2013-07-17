@@ -28,7 +28,7 @@ using namespace icinga;
 boost::mutex DbType::m_StaticMutex;
 
 DbType::DbType(const String& name, const String& table, long tid, const DbType::ObjectFactory& factory)
-	: m_Name(name), m_Table(table), m_TypeId(tid), m_ObjectFactory(factory)
+	: m_Name(name), m_Table(table), m_TypeID(tid), m_ObjectFactory(factory)
 {
 	static boost::once_flag initializeOnce = BOOST_ONCE_INIT;
 	boost::call_once(initializeOnce, &DbObject::StaticInitialize);
@@ -44,9 +44,9 @@ String DbType::GetTable(void) const
 	return m_Table;
 }
 
-long DbType::GetTypeId(void) const
+long DbType::GetTypeID(void) const
 {
-	return m_TypeId;
+	return m_TypeID;
 }
 
 void DbType::RegisterType(const DbType::Ptr& type)
@@ -66,12 +66,12 @@ DbType::Ptr DbType::GetByName(const String& name)
 	return it->second;
 }
 
-DbType::Ptr DbType::GetById(long tid)
+DbType::Ptr DbType::GetByID(long tid)
 {
 	String name;
 	DbType::Ptr type;
 	BOOST_FOREACH(boost::tie(name, type), GetTypes()) {
-		if (type->GetTypeId() == tid)
+		if (type->GetTypeID() == tid)
 			return type;
 	}
 

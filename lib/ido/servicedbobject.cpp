@@ -17,63 +17,24 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "ido/dbconnection.h"
-#include "base/dynamictype.h"
-#include <boost/foreach.hpp>
+#include "ido/servicedbobject.h"
+#include "ido/dbtype.h"
+#include "icinga/service.h"
 
 using namespace icinga;
 
-DbConnection::DbConnection(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
+REGISTER_DBTYPE("Service", "service", 2, ServiceDbObject);
+
+ServiceDbObject::ServiceDbObject(const String& name1, const String& name2)
+	: DbObject(DbType::GetByName("Service"), name1, name2)
 { }
 
-void DbConnection::Start(void)
+Dictionary::Ptr ServiceDbObject::GetFields(void) const
 {
-	DbObject::OnObjectUpdated.connect(boost::bind(&DbConnection::InternalUpdateObject, this, _1, _2));
-}
+	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
+	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 
-void DbConnection::SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref)
-{
-	if (dbref.IsValid())
-		m_References[dbobj] = dbref;
-	else
-		m_References.erase(dbobj);
-}
+	fields->Set("display_name", service->GetDisplayName());
 
-DbReference DbConnection::GetReference(const DbObject::Ptr& dbobj) const
-{
-	std::map<DbObject::Ptr, DbReference>::const_iterator it;
-
-	it = m_References.find(dbobj);
-
-	if (it == m_References.end())
-		return DbReference();
-
-	return it->second;
-}
-
-void DbConnection::UpdateObject(const DbObject::Ptr&, DbUpdateType)
-{
-	/* Default handler does nothing. */
-}
-
-void DbConnection::InternalUpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind)
-{
-	UpdateObject(dbobj, kind);
-
-	if (kind == DbObjectRemoved)
-		SetReference(dbobj, DbReference());
-}
-
-void DbConnection::UpdateAllObjects(void)
-{
-	DynamicType::Ptr type;
-	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
-			DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
-
-			if (dbobj)
-				UpdateObject(dbobj, DbObjectCreated);
-		}
-	}
+	return fields;
 }

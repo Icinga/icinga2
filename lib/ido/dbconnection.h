@@ -42,12 +42,13 @@ public:
 	DbReference GetReference(const DbObject::Ptr& dbobj) const;
 
 protected:
+	virtual void Start(void);
+
 	virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind) = 0;
 
 	void UpdateAllObjects(void);
 
 private:
-	void Initialize(void);
 	void InternalUpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
 
 	std::map<DbObject::Ptr, DbReference> m_References;

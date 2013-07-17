@@ -45,19 +45,19 @@ public:
 
 	String GetName(void) const;
 	String GetTable(void) const;
-	long GetTypeId(void) const;
+	long GetTypeID(void) const;
 
 	static void RegisterType(const DbType::Ptr& type);
 
 	static DbType::Ptr GetByName(const String& name);
-	static DbType::Ptr GetById(long tid);
+	static DbType::Ptr GetByID(long tid);
 
 	DbObject::Ptr GetOrCreateObjectByName(const String& name1, const String& name2);
 
 private:
 	String m_Name;
 	String m_Table;
-	long m_TypeId;
+	long m_TypeID;
 	ObjectFactory m_ObjectFactory;
 
 	static boost::mutex m_StaticMutex;

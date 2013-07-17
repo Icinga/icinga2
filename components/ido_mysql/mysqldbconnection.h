@@ -22,6 +22,7 @@
 
 #include "base/array.h"
 #include "base/dynamictype.h"
+#include "base/timer.h"
 #include "ido/dbconnection.h"
 #include <mysql/mysql.h>
 
@@ -58,10 +59,14 @@ private:
 	boost::mutex m_ConnectionMutex;
 	MYSQL m_Connection;
 
+	Timer::Ptr m_TxTimer;
+
 	Array::Ptr Query(const String& query);
-	DbReference GetInsertId(void);
+	DbReference GetInsertID(void);
 	String Escape(const String& s);
 	Dictionary::Ptr FetchRow(MYSQL_RES *result);
+
+	void TxTimerHandler(void);
 };
 
 }

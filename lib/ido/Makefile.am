@@ -20,7 +20,9 @@ libido_la_SOURCES = \
 	dbtype.h \
 	hostdbobject.cpp \
 	hostdbobject.h \
-	ido-type.cpp
+	ido-type.cpp \
+	servicedbobject.cpp \
+	servicedbobject.h
 
 libido_la_CPPFLAGS = \
 	$(LTDLINCL) \

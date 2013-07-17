@@ -19,6 +19,7 @@
 
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
+#include "base/convert.h"
 #include "ido/dbtype.h"
 #include "ido_mysql/mysqldbconnection.h"
 #include <boost/tuple/tuple.hpp>
@@ -40,6 +41,11 @@ MysqlDbConnection::MysqlDbConnection(const Dictionary::Ptr& serializedUpdate)
 
 	RegisterAttribute("instance_name", Attribute_Config, &m_InstanceName);
 	RegisterAttribute("instance_description", Attribute_Config, &m_InstanceDescription);
+
+	m_TxTimer = boost::make_shared<Timer>();
+	m_TxTimer->SetInterval(5);
+	m_TxTimer->OnTimerExpired.connect(boost::bind(&MysqlDbConnection::TxTimerHandler, this));
+	m_TxTimer->Start();
 
 	/* TODO: move this to a timer so we can periodically check if we're still connected - and reconnect if necessary */
 	String ihost, iuser, ipasswd, idb;
@@ -75,7 +81,7 @@ MysqlDbConnection::MysqlDbConnection(const Dictionary::Ptr& serializedUpdate)
 
 		if (rows->GetLength() == 0) {
 			Query("INSERT INTO icinga_instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + m_InstanceDescription + "')");
-			m_InstanceID = GetInsertId();
+			m_InstanceID = GetInsertID();
 		} else {
 			Dictionary::Ptr row = rows->Get(0);
 			m_InstanceID = DbReference(row->Get("instance_id"));
@@ -88,19 +94,22 @@ MysqlDbConnection::MysqlDbConnection(const Dictionary::Ptr& serializedUpdate)
 		Query("UPDATE icinga_objects SET is_active = 0");
 
 		std::ostringstream qbuf;
-		qbuf << "SELECT objecttype_id, name1, name2 FROM icinga_objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
+		qbuf << "SELECT object_id, objecttype_id, name1, name2 FROM icinga_objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
 		rows = Query(qbuf.str());
 
 		ObjectLock olock(rows);
 		BOOST_FOREACH(const Dictionary::Ptr& row, rows) {
-			DbType::Ptr dbtype = DbType::GetById(row->Get("objecttype_id"));
+			DbType::Ptr dbtype = DbType::GetByID(row->Get("objecttype_id"));
 
 			if (!dbtype)
 				continue;
 
-			dbtype->GetOrCreateObjectByName(row->Get("name1"), row->Get("name2"));
+			DbObject::Ptr dbobj = dbtype->GetOrCreateObjectByName(row->Get("name1"), row->Get("name2"));
+			SetReference(dbobj, DbReference(row->Get("object_id")));
 		}
 	}
+
+	Query("BEGIN");
 
 	UpdateAllObjects();
 }
@@ -111,8 +120,17 @@ void MysqlDbConnection::Stop(void)
 	mysql_close(&m_Connection);
 }
 
+void MysqlDbConnection::TxTimerHandler(void)
+{
+	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+	Query("COMMIT");
+	Query("BEGIN");
+}
+
 Array::Ptr MysqlDbConnection::Query(const String& query)
 {
+	Log(LogDebug, "ido_mysql", "Query: " + query);
+
 	if (mysql_query(&m_Connection, query.CStr()) != 0)
 	    BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
 
@@ -141,7 +159,7 @@ Array::Ptr MysqlDbConnection::Query(const String& query)
 	return rows;
 }
 
-DbReference MysqlDbConnection::GetInsertId(void)
+DbReference MysqlDbConnection::GetInsertID(void)
 {
 	return DbReference(mysql_insert_id(&m_Connection));
 }
@@ -189,6 +207,8 @@ Dictionary::Ptr MysqlDbConnection::FetchRow(MYSQL_RES *result)
 }
 
 void MysqlDbConnection::UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind) {
+	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+
 	DbReference dbref = GetReference(dbobj);
 
 	if (kind == DbObjectRemoved) {
@@ -200,56 +220,69 @@ void MysqlDbConnection::UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType ki
 		Log(LogWarning, "ido_mysql", "Query: " + qbuf.str());
 	}
 
-	std::ostringstream q1buf;
+	if (kind == DbObjectCreated) {
+		std::ostringstream q1buf;
 
-	if (!dbref.IsValid()) {
-		q1buf << "INSERT INTO icinga_objects (instance_id, objecttype_id, name1, name2, is_active) VALUES (";
-	} else {
-		q1buf << "UPDATE icinga_objects SET is_active = 1 WHERE object_id = " << static_cast<long>(dbref);
-	}
-
-	Dictionary::Ptr cols = boost::make_shared<Dictionary>();
-
-	Dictionary::Ptr fields = dbobj->GetFields();
-
-	if (!fields)
-		return;
-
-	ObjectLock olock(fields);
-
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), fields) {
-		if (value.IsObjectType<DynamicObject>()) {
-			DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(value);
-
-			if (!dbobjcol)
-				return;
-
-			DbReference dbrefcol = GetReference(dbobjcol);
-
-			if (!dbrefcol.IsValid()) {
-				UpdateObject(dbobjcol, DbObjectCreated);
-
-				dbrefcol = GetReference(dbobjcol);
-
-				if (!dbrefcol.IsValid())
-					return;
-			}
-
-			value = static_cast<long>(dbrefcol);
+		if (!dbref.IsValid()) {
+			q1buf << "INSERT INTO icinga_objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
+			      << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
+			      << "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
+			Query(q1buf.str());
+			dbref = GetInsertID();
+		} else if (kind == DbObjectCreated) {
+			q1buf << "UPDATE icinga_objects SET is_active = 1 WHERE object_id = " << static_cast<long>(dbref);
+			Query(q1buf.str());
 		}
 
-		cols->Set(key, value);
+		//Dictionary::Ptr cols = boost::make_shared<Dictionary>();
+
+		Dictionary::Ptr fields = dbobj->GetFields();
+
+		if (!fields)
+			return;
+
+		String cols;
+		String values;
+
+		ObjectLock olock(fields);
+
+		String key;
+		Value value;
+		BOOST_FOREACH(boost::tie(key, value), fields) {
+			if (value.IsObjectType<DynamicObject>()) {
+				DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(value);
+
+				if (!dbobjcol)
+					return;
+
+				DbReference dbrefcol = GetReference(dbobjcol);
+
+				if (!dbrefcol.IsValid()) {
+					UpdateObject(dbobjcol, DbObjectCreated);
+
+					dbrefcol = GetReference(dbobjcol);
+
+					if (!dbrefcol.IsValid())
+						return;
+				}
+
+				value = static_cast<long>(dbrefcol);
+			}
+
+			cols += ", " + key;
+			values += ", '" + Convert::ToString(value) + "'";
+		}
+
+		std::ostringstream q2buf;
+		q2buf << "DELETE FROM icinga_" << dbobj->GetType()->GetTable() << "s WHERE " << dbobj->GetType()->GetTable() << "_object_id = " << static_cast<long>(dbref);
+		Query(q2buf.str());
+
+		std::ostringstream q3buf;
+		q3buf << "INSERT INTO icinga_" << dbobj->GetType()->GetTable()
+		      << "s (instance_id, " << dbobj->GetType()->GetTable() << "_object_id" << cols << ") VALUES ("
+		      << static_cast<long>(m_InstanceID) << ", " << static_cast<long>(dbref) << values << ")";
+		Query(q3buf.str());
 	}
 
-	std::ostringstream q2buf;
-
-	if (dbref.IsValid()) {
-		q2buf << "UPDATE icinga_" << dbobj->GetType()->GetTable() << "s SET xxx WHERE id = " << static_cast<long>(dbref);
-	} else {
-		q2buf << "INSERT INTO icinga_" << dbobj->GetType()->GetTable() << "s xxx";
-	}
-
-	Log(LogWarning, "ido_mysql", "Query: " + q2buf.str());
+	// TODO: Object and status updates
 }
