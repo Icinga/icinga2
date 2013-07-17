@@ -23,10 +23,14 @@
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/timeperiod.h"
+#include "icinga/macroprocessor.h"
+#include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
+#include "base/convert.h"
 #include <boost/foreach.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -246,7 +250,16 @@ Value HostsTable::NotificationPeriodAccessor(const Value& row)
 	if (!hc)
 		return Empty;
 
-	/* TODO hc->GetNotifications->(loop)->GetNotificationPeriod() */
+	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
+		ObjectLock olock(notification);
+
+		TimePeriod::Ptr timeperiod = notification->GetNotificationPeriod();
+
+		/* XXX first notification wins */
+		if (timeperiod)
+			return timeperiod->GetName();
+	}
+
 	return Empty;
 }
 
@@ -278,8 +291,27 @@ Value HostsTable::NotesAccessor(const Value& row)
 
 Value HostsTable::NotesExpandedAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	Service::Ptr service = host->GetHostCheckService();
+	Dictionary::Ptr custom = host->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	std::vector<MacroResolver::Ptr> resolvers;
+
+	if (service)
+		resolvers.push_back(service);
+
+	resolvers.push_back(host);
+	resolvers.push_back(IcingaApplication::GetInstance());
+
+	Value value = custom->Get("notes");
+
+	Dictionary::Ptr cr;
+	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
+
+	return value_expanded;
 }
 
 Value HostsTable::NotesUrlAccessor(const Value& row)
@@ -294,8 +326,27 @@ Value HostsTable::NotesUrlAccessor(const Value& row)
 
 Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	Service::Ptr service = host->GetHostCheckService();
+	Dictionary::Ptr custom = host->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	std::vector<MacroResolver::Ptr> resolvers;
+
+	if (service)
+		resolvers.push_back(service);
+
+	resolvers.push_back(host);
+	resolvers.push_back(IcingaApplication::GetInstance());
+
+	Value value = custom->Get("notes_url");
+
+	Dictionary::Ptr cr;
+	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
+
+	return value_expanded;
 }
 
 Value HostsTable::ActionUrlAccessor(const Value& row)
@@ -310,8 +361,27 @@ Value HostsTable::ActionUrlAccessor(const Value& row)
 
 Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	Service::Ptr service = host->GetHostCheckService();
+	Dictionary::Ptr custom = host->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	std::vector<MacroResolver::Ptr> resolvers;
+
+	if (service)
+		resolvers.push_back(service);
+
+	resolvers.push_back(host);
+	resolvers.push_back(IcingaApplication::GetInstance());
+
+	Value value = custom->Get("action_url");
+
+	Dictionary::Ptr cr;
+	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
+
+	return value_expanded;
 }
 
 Value HostsTable::PluginOutputAccessor(const Value& row)
@@ -350,8 +420,27 @@ Value HostsTable::IconImageAccessor(const Value& row)
 
 Value HostsTable::IconImageExpandedAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	Service::Ptr service = host->GetHostCheckService();
+	Dictionary::Ptr custom = host->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	std::vector<MacroResolver::Ptr> resolvers;
+
+	if (service)
+		resolvers.push_back(service);
+
+	resolvers.push_back(host);
+	resolvers.push_back(IcingaApplication::GetInstance());
+
+	Value value = custom->Get("icon_image");
+
+	Dictionary::Ptr cr;
+	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
+
+	return value_expanded;
 }
 
 Value HostsTable::IconImageAltAccessor(const Value& row)
@@ -388,7 +477,7 @@ Value HostsTable::LongPluginOutputAccessor(const Value& row)
 
 Value HostsTable::InitialStateAccessor(const Value& row)
 {
-	/* TODO */
+	/* not supported */
 	return Empty;
 }
 
@@ -491,14 +580,38 @@ Value HostsTable::CurrentAttemptAccessor(const Value& row)
 
 Value HostsTable::LastNotificationAccessor(const Value& row)
 {
-	/* TODO Host->Service->GetNotifications->(loop)->GetLastNotification() */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	/* XXX Service -> Notifications, latest wins */
+	double last_notification = 0;
+	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
+		if (notification->GetLastNotification() > last_notification)
+			last_notification = notification->GetLastNotification();
+	}
+
+	return static_cast<int>(last_notification);
 }
 
 Value HostsTable::NextNotificationAccessor(const Value& row)
 {
-	/* TODO Host->Service->GetNotifications->(loop)->GetNextNotification() */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	/* XXX Service -> Notifications, latest wins */
+	double next_notification = 0;
+	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
+		if (notification->GetNextNotification() < next_notification)
+			next_notification = notification->GetNextNotification();
+	}
+
+	return static_cast<int>(next_notification);
 }
 
 Value HostsTable::NextCheckAccessor(const Value& row)
@@ -599,8 +712,23 @@ Value HostsTable::StateTypeAccessor(const Value& row)
 
 Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
 {
-	/* TODO: notification_interval == 0, volatile == false */
-	return Value(0);
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	/* XXX take the smallest notification_interval */
+	double notification_interval = -1;
+	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
+		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
+			notification_interval = notification->GetNotificationInterval();
+	}
+
+	if (notification_interval == 0 && !hc->IsVolatile())
+		return 1;
+
+	return 0;
 }
 
 Value HostsTable::CheckFlappingRecoveryNotificationAccessor(const Value& row)
@@ -667,7 +795,7 @@ Value HostsTable::ScheduledDowntimeDepthAccessor(const Value& row)
 
 Value HostsTable::IsExecutingAccessor(const Value& row)
 {
-	/* TODO does that make sense with Icinga2? */
+	/* does that make sense with Icinga2? */
 	return Empty;
 }
 
@@ -731,8 +859,23 @@ Value HostsTable::RetryIntervalAccessor(const Value& row)
 
 Value HostsTable::NotificationIntervalAccessor(const Value& row)
 {
-	/* TODO Host->Services->GetNotifications->(loop)->GetNotificationInterval() */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	/* XXX take the smallest notification_interval */
+	double notification_interval = -1;
+	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
+		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
+			notification_interval = notification->GetNotificationInterval();
+	}
+
+	if (notification_interval == -1)
+		notification_interval = 60;
+
+	return (notification_interval / 60.0);
 }
 
 Value HostsTable::FirstNotificationDelayAccessor(const Value& row)
@@ -818,19 +961,43 @@ Value HostsTable::PercentStateChangeAccessor(const Value& row)
 
 Value HostsTable::InNotificationPeriodAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
+		ObjectLock olock(notification);
+
+		TimePeriod::Ptr timeperiod = notification->GetNotificationPeriod();
+
+		/* XXX first notification wins */
+		if (timeperiod)
+			return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
+	}
+
+	return 0;
 }
 
 Value HostsTable::InCheckPeriodAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	TimePeriod::Ptr timeperiod = hc->GetCheckPeriod();
+
+	if (!timeperiod)
+		return Empty;
+
+	return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
 }
 
 Value HostsTable::ContactsAccessor(const Value& row)
 {
-	/* TODO - host->service->notifications->users */
 	/* use hostcheck service */
 	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
 
@@ -839,6 +1006,7 @@ Value HostsTable::ContactsAccessor(const Value& row)
 
 	std::set<User::Ptr> allUsers;
 	std::set<User::Ptr> users;
+	Array::Ptr contacts = boost::make_shared<Array>();
 
 	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
 		ObjectLock olock(notification);
@@ -853,67 +1021,296 @@ Value HostsTable::ContactsAccessor(const Value& row)
 		}
 	}
 
+	BOOST_FOREACH(const User::Ptr& user, allUsers) {
+		contacts->Add(user->GetName());
+	}
 
-	return Empty;
+	return contacts;
 }
 
 Value HostsTable::DowntimesAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	Dictionary::Ptr downtimes = hc->GetDowntimes();
+
+	if (!downtimes)
+		return Empty;
+
+	Array::Ptr ids = boost::make_shared<Array>();
+
+	ObjectLock olock(downtimes);
+
+	String id;
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
+
+		if (!downtime)
+			continue;
+
+		if (Service::IsDowntimeExpired(downtime))
+			continue;
+
+		ids->Add(downtime->Get("legacy_id"));
+	}
+
+	return ids;
 }
 
 Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	Dictionary::Ptr downtimes = hc->GetDowntimes();
+
+	if (!downtimes)
+		return Empty;
+
+	Array::Ptr ids = boost::make_shared<Array>();
+
+	ObjectLock olock(downtimes);
+
+	String id;
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
+
+		if (!downtime)
+			continue;
+
+		if (Service::IsDowntimeExpired(downtime))
+			continue;
+
+		Array::Ptr downtime_info = boost::make_shared<Array>();
+		downtime_info->Add(downtime->Get("legacy_id"));
+		downtime_info->Add(downtime->Get("author"));
+		downtime_info->Add(downtime->Get("comment"));
+		ids->Add(downtime_info);
+	}
+
+	return ids;
 }
 
 Value HostsTable::CommentsAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	Dictionary::Ptr comments = hc->GetComments();
+
+	if (!comments)
+		return Empty;
+
+	Array::Ptr ids = boost::make_shared<Array>();
+
+	ObjectLock olock(comments);
+
+	String id;
+	Dictionary::Ptr comment;
+	BOOST_FOREACH(boost::tie(id, comment), comments) {
+
+		if (!comment)
+			continue;
+
+		if (Service::IsCommentExpired(comment))
+			continue;
+
+		ids->Add(comment->Get("legacy_id"));
+	}
+
+	return ids;
 }
 
 Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	Dictionary::Ptr comments = hc->GetComments();
+
+	if (!comments)
+		return Empty;
+
+	Array::Ptr ids = boost::make_shared<Array>();
+
+	ObjectLock olock(comments);
+
+	String id;
+	Dictionary::Ptr comment;
+	BOOST_FOREACH(boost::tie(id, comment), comments) {
+
+		if (!comment)
+			continue;
+
+		if (Service::IsCommentExpired(comment))
+			continue;
+
+		Array::Ptr comment_info = boost::make_shared<Array>();
+		comment_info->Add(comment->Get("legacy_id"));
+		comment_info->Add(comment->Get("author"));
+		comment_info->Add(comment->Get("text"));
+		ids->Add(comment_info);
+	}
+
+	return ids;
 }
 
 Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	Dictionary::Ptr comments = hc->GetComments();
+
+	if (!comments)
+		return Empty;
+
+	Array::Ptr ids = boost::make_shared<Array>();
+
+	ObjectLock olock(comments);
+
+	String id;
+	Dictionary::Ptr comment;
+	BOOST_FOREACH(boost::tie(id, comment), comments) {
+
+		if (!comment)
+			continue;
+
+		if (Service::IsCommentExpired(comment))
+			continue;
+
+		Array::Ptr comment_info = boost::make_shared<Array>();
+		comment_info->Add(comment->Get("legacy_id"));
+		comment_info->Add(comment->Get("author"));
+		comment_info->Add(comment->Get("text"));
+		comment_info->Add(comment->Get("entry_type"));
+		comment_info->Add(static_cast<int>(comment->Get("entry_time")));
+		ids->Add(comment_info);
+	}
+
+	return ids;
 }
 
 Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	Array::Ptr cv = boost::make_shared<Array>();
+
+	ObjectLock olock(custom);
+
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), custom) {
+		if (key == "notes" ||
+		    key == "action_url" ||
+		    key == "notes_url" ||
+		    key == "icon_image" ||
+		    key == "icon_image_alt" ||
+		    key == "statusmap_image" ||
+		    key == "2d_coords")
+			continue;
+
+		cv->Add(key);
+	}
+
+	return cv;
 }
 
 Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	Array::Ptr cv = boost::make_shared<Array>();
+
+	ObjectLock olock(custom);
+
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), custom) {
+		if (key == "notes" ||
+		    key == "action_url" ||
+		    key == "notes_url" ||
+		    key == "icon_image" ||
+		    key == "icon_image_alt" ||
+		    key == "statusmap_image" ||
+		    key == "2d_coords")
+			continue;
+
+		cv->Add(value);
+	}
+
+	return cv;
 }
 
 Value HostsTable::CustomVariablesAccessor(const Value& row)
 {
-	/* TODO Dictionary */
-	return Empty;
+	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	Array::Ptr cv = boost::make_shared<Array>();
+
+	ObjectLock olock(custom);
+
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), custom) {
+		if (key == "notes" ||
+		    key == "action_url" ||
+		    key == "notes_url" ||
+		    key == "icon_image" ||
+		    key == "icon_image_alt" ||
+		    key == "statusmap_image" ||
+		    key == "2d_coords")
+			continue;
+
+		Array::Ptr key_val = boost::make_shared<Array>();
+		key_val->Add(key);
+		key_val->Add(value);
+		cv->Add(key_val);
+	}
+
+	return cv;
 }
 Value HostsTable::FilenameAccessor(const Value& row)
 {
-	/* TODO */
+	/* not supported */
 	return Empty;
 }
 
 Value HostsTable::ParentsAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Array::Ptr parents = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const Host::Ptr& parent, static_cast<Host::Ptr>(row)->GetParentHosts()) {
+		parents->Add(parent->GetName());
+	}
+
+	return parents;
 }
 
 Value HostsTable::ChildsAccessor(const Value& row)
@@ -930,68 +1327,136 @@ Value HostsTable::NumServicesAccessor(const Value& row)
 
 Value HostsTable::WorstServiceStateAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Value worst_service = StateOK;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetState() > worst_service)
+			worst_service = service->GetState();
+	}
+
+	return worst_service;
 }
 
 Value HostsTable::NumServicesOkAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	int num_services = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetState() == StateOK)
+			num_services++;
+	}
+
+	return num_services;
 }
 
 Value HostsTable::NumServicesWarnAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	int num_services = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetState() == StateWarning)
+			num_services++;
+	}
+
+	return num_services;
 }
 
 Value HostsTable::NumServicesCritAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	int num_services = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetState() == StateCritical)
+			num_services++;
+	}
+
+	return num_services;
 }
 
 Value HostsTable::NumServicesUnknownAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	int num_services = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetState() == StateUnknown)
+			num_services++;
+	}
+
+	return num_services;
 }
 
 Value HostsTable::NumServicesPendingAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	int num_services = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (!service->GetLastCheckResult())
+			num_services++;
+	}
+
+	return num_services;
 }
 
 Value HostsTable::WorstServiceHardStateAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Value worst_service = StateOK;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetStateType() == StateTypeHard) {
+			if (service->GetState() > worst_service)
+				worst_service = service->GetState();
+		}
+	}
+
+	return worst_service;
 }
 
 Value HostsTable::NumServicesHardOkAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	int num_services = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetStateType() == StateTypeHard && service->GetState() == StateOK)
+			num_services++;
+	}
+
+	return num_services;
 }
 
 Value HostsTable::NumServicesHardWarnAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	int num_services = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetStateType() == StateTypeHard && service->GetState() == StateWarning)
+			num_services++;
+	}
+
+	return num_services;
 }
 
 Value HostsTable::NumServicesHardCritAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	int num_services = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetStateType() == StateTypeHard && service->GetState() == StateCritical)
+			num_services++;
+	}
+
+	return num_services;
 }
 
 Value HostsTable::NumServicesHardUnknownAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	int num_services = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		if (service->GetStateType() == StateTypeHard && service->GetState() == StateUnknown)
+			num_services++;
+	}
+
+	return num_services;
 }
 
 Value HostsTable::HardStateAccessor(const Value& row)
@@ -1024,38 +1489,71 @@ Value HostsTable::StalenessAccessor(const Value& row)
 
 Value HostsTable::GroupsAccessor(const Value& row)
 {
-	/* TODO create array */
-	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+	Array::Ptr groups = static_cast<Host::Ptr>(row)->GetGroups();
 
-	if (!hc)
+	if (!groups)
 		return Empty;
 
-	return hc->GetGroups();
+	return groups;
 }
 
 Value HostsTable::ContactGroupsAccessor(const Value& row)
 {
-	/* TODO create array */
-	return Empty;
+	/* XXX Service -> Notifications -> UserGroups */
+	Array::Ptr contactgroups = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const Notification::Ptr& notification, static_cast<Service::Ptr>(row)->GetNotifications()) {
+		ObjectLock olock(notification);
+
+		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetGroups()) {
+			contactgroups->Add(ug->GetName());
+		}
+	}
+
+	return contactgroups;
 }
 
 Value HostsTable::ServicesAccessor(const Value& row)
 {
-	/* TODO create array */
-	return Empty;
+	Array::Ptr services = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		services->Add(service->GetShortName());
+	}
+
+	return services;
 }
 
-/* dictionary */
 Value HostsTable::ServicesWithStateAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Array::Ptr services = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		Array::Ptr svc_add = boost::make_shared<Array>();
+
+		svc_add->Add(service->GetShortName());
+		svc_add->Add(service->GetState());
+		svc_add->Add(service->HasBeenChecked() ? 1 : 0);
+		services->Add(svc_add);
+	}
+
+	return services;
 }
 
 Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Array::Ptr services = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+		Array::Ptr svc_add = boost::make_shared<Array>();
+
+		svc_add->Add(service->GetShortName());
+		svc_add->Add(service->GetState());
+		svc_add->Add(service->HasBeenChecked() ? 1 : 0);
+		svc_add->Add(service->GetLastCheckOutput());
+		services->Add(svc_add);
+	}
+
+	return services;
 }
 
