@@ -39,6 +39,7 @@ static Timer::Ptr l_UpdateTimer;
 TimePeriod::TimePeriod(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
 {
+	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
 	RegisterAttribute("valid_begin", Attribute_Replicated, &m_ValidBegin);
 	RegisterAttribute("valid_end", Attribute_Replicated, &m_ValidEnd);
 	RegisterAttribute("segments", Attribute_Replicated, &m_Segments);
@@ -57,6 +58,14 @@ void TimePeriod::Start(void)
 	double now = Utility::GetTime();
 	UpdateRegion(now, now + 24 * 3600, true);
 	Dump();
+}
+
+String TimePeriod::GetDisplayName(void) const
+{
+        if (!m_DisplayName.IsEmpty())
+                return m_DisplayName;
+        else
+                return GetName();
 }
 
 TimePeriod::Ptr TimePeriod::GetByName(const String& name)

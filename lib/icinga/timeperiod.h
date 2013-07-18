@@ -41,6 +41,8 @@ public:
 
 	static TimePeriod::Ptr GetByName(const String& name);
 
+	String GetDisplayName(void) const;
+
 	virtual void Start(void);
 
 	void UpdateRegion(double begin, double end, bool clearExisting);
@@ -52,6 +54,7 @@ public:
 	static Array::Ptr EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
 
 private:
+	Attribute<String> m_DisplayName;
 	Attribute<double> m_ValidBegin;
 	Attribute<double> m_ValidEnd;
 	Attribute<Array::Ptr> m_Segments;
