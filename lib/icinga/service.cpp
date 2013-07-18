@@ -70,6 +70,11 @@ Service::Service(const Dictionary::Ptr& serializedObject)
 	RegisterAttribute("last_result", Attribute_Replicated, &m_LastResult);
 	RegisterAttribute("last_state_change", Attribute_Replicated, &m_LastStateChange);
 	RegisterAttribute("last_hard_state_change", Attribute_Replicated, &m_LastHardStateChange);
+	RegisterAttribute("last_state_ok", Attribute_Replicated, &m_LastStateOK);
+	RegisterAttribute("last_state_warning", Attribute_Replicated, &m_LastStateWarning);
+	RegisterAttribute("last_state_critical", Attribute_Replicated, &m_LastStateCritical);
+	RegisterAttribute("last_state_unknown", Attribute_Replicated, &m_LastStateUnknown);
+	RegisterAttribute("last_state_unreachable", Attribute_Replicated, &m_LastStateUnreachable);
 	RegisterAttribute("last_in_downtime", Attribute_Replicated, &m_LastInDowntime);
 	RegisterAttribute("enable_active_checks", Attribute_Replicated, &m_EnableActiveChecks);
 	RegisterAttribute("enable_passive_checks", Attribute_Replicated, &m_EnablePassiveChecks);

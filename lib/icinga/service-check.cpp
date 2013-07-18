@@ -224,6 +224,76 @@ StateType Service::GetLastStateType(void) const
 	return static_cast<StateType>(ivalue);
 }
 
+void Service::SetLastStateOK(double ts)
+{
+	m_LastStateOK = ts;
+	Touch("last_state_ok");
+}
+
+double Service::GetLastStateOK(void) const
+{
+	if (m_LastStateOK.IsEmpty())
+		return 0;
+
+	return m_LastStateOK;
+}
+
+void Service::SetLastStateWarning(double ts)
+{
+	m_LastStateWarning = ts;
+	Touch("last_state_warning");
+}
+
+double Service::GetLastStateWarning(void) const
+{
+	if (m_LastStateWarning.IsEmpty())
+		return 0;
+
+	return m_LastStateWarning;
+}
+
+void Service::SetLastStateCritical(double ts)
+{
+	m_LastStateCritical = ts;
+	Touch("last_state_critical");
+}
+
+double Service::GetLastStateCritical(void) const
+{
+	if (m_LastStateCritical.IsEmpty())
+		return 0;
+
+	return m_LastStateCritical;
+}
+
+void Service::SetLastStateUnknown(double ts)
+{
+	m_LastStateUnknown = ts;
+	Touch("last_state_unknown");
+}
+
+double Service::GetLastStateUnknown(void) const
+{
+	if (m_LastStateUnknown.IsEmpty())
+		return 0;
+
+	return m_LastStateUnknown;
+}
+
+void Service::SetLastStateUnreachable(double ts)
+{
+	m_LastStateUnreachable = ts;
+	Touch("last_state_unreachable");
+}
+
+double Service::GetLastStateUnreachable(void) const
+{
+	if (m_LastStateUnreachable.IsEmpty())
+		return 0;
+
+	return m_LastStateUnreachable;
+}
+
 void Service::SetLastReachable(bool reachable)
 {
 	m_LastReachable = reachable;
@@ -400,6 +470,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	bool reachable = IsReachable();
 
+	if (!reachable)
+		SetLastStateUnreachable(Utility::GetTime());
+
 	Host::Ptr host = GetHost();
 	bool host_reachable = true;
 
@@ -430,6 +503,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		attempt = 1;
 		recovery = true;
 		ResetNotificationNumbers();
+		SetLastStateOK(Utility::GetTime());
 	} else {
 		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
@@ -442,6 +516,13 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		}
 
 		recovery = false;
+
+		if (cr->Get("state") == StateWarning)
+			SetLastStateWarning(Utility::GetTime());
+		if (cr->Get("state") == StateCritical)
+			SetLastStateCritical(Utility::GetTime());
+		if (cr->Get("state") == StateUnknown)
+			SetLastStateUnknown(Utility::GetTime());
 	}
 
 	SetCurrentCheckAttempt(attempt);

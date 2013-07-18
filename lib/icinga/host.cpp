@@ -566,6 +566,45 @@ HostState Host::GetLastHardState(void) const
 	}
 }
 
+double Host::GetLastStateUp(void) const
+{
+	ASSERT(!OwnsLock());
+
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return 0;
+
+	if (hc->GetLastStateOK() > hc->GetLastStateWarning())
+		return hc->GetLastStateOK();
+	else
+		return hc->GetLastStateWarning();
+}
+
+double Host::GetLastStateDown(void) const
+{
+	ASSERT(!OwnsLock());
+
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return 0;
+
+	return hc->GetLastStateCritical();
+}
+
+double Host::GetLastStateUnreachable(void) const
+{
+	ASSERT(!OwnsLock());
+
+	Service::Ptr hc = GetHostCheckService();
+
+	if (!hc)
+		return 0;
+
+	return hc->GetLastStateUnreachable();
+}
+
 double Host::GetLastStateChange(void) const
 {
 	Service::Ptr hc = GetHostCheckService();

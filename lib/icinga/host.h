@@ -115,6 +115,9 @@ public:
 	StateType GetLastStateType(void) const;
 	double GetLastStateChange(void) const;
 	double GetLastHardStateChange(void) const;
+	double GetLastStateUp(void) const;
+	double GetLastStateDown(void) const;
+	double GetLastStateUnreachable(void) const;
 
 	static String StateToString(HostState state);
 

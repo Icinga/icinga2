@@ -184,6 +184,17 @@ public:
 	void SetLastHardStateChange(double ts);
 	double GetLastHardStateChange(void) const;
 
+	void SetLastStateOK(double ts);
+	double GetLastStateOK(void) const;
+	void SetLastStateWarning(double ts);
+	double GetLastStateWarning(void) const;
+	void SetLastStateCritical(double ts);
+	double GetLastStateCritical(void) const;
+	void SetLastStateUnknown(double ts);
+	double GetLastStateUnknown(void) const;
+	void SetLastStateUnreachable(double ts);
+	double GetLastStateUnreachable(void) const;
+
 	void SetLastReachable(bool reachable);
 	bool GetLastReachable(void) const;
 
@@ -340,6 +351,11 @@ private:
 	Attribute<Dictionary::Ptr> m_LastResult;
 	Attribute<double> m_LastStateChange;
 	Attribute<double> m_LastHardStateChange;
+	Attribute<double> m_LastStateOK;
+	Attribute<double> m_LastStateWarning;
+	Attribute<double> m_LastStateCritical;
+	Attribute<double> m_LastStateUnknown;
+	Attribute<double> m_LastStateUnreachable;
 	Attribute<bool> m_LastInDowntime;
 	Attribute<bool> m_EnableActiveChecks;
 	Attribute<bool> m_EnablePassiveChecks;
