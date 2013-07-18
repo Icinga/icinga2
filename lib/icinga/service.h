@@ -283,6 +283,8 @@ public:
 	void SetForceNextNotification(bool force);
 	bool GetForceNextNotification(void) const;
 
+	void ResetNotificationNumbers(void);
+
 	static void InvalidateNotificationsCache(void);
 
 	void UpdateSlaveNotifications(void);

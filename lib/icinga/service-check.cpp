@@ -429,6 +429,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 		attempt = 1;
 		recovery = true;
+		ResetNotificationNumbers();
 	} else {
 		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);

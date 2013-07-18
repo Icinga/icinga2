@@ -44,6 +44,7 @@ Notification::Notification(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("notification_period", Attribute_Config, &m_NotificationPeriod);
 	RegisterAttribute("last_notification", Attribute_Replicated, &m_LastNotification);
 	RegisterAttribute("next_notification", Attribute_Replicated, &m_NextNotification);
+	RegisterAttribute("notification_number", Attribute_Replicated, &m_NotificationNumber);
 	RegisterAttribute("macros", Attribute_Config, &m_Macros);
 	RegisterAttribute("users", Attribute_Config, &m_Users);
 	RegisterAttribute("groups", Attribute_Config, &m_Groups);
@@ -208,6 +209,26 @@ void Notification::SetNextNotification(double time)
 	Touch("next_notification");
 }
 
+int Notification::GetNotificationNumber(void) const
+{
+	if (m_NotificationNumber.IsEmpty())
+		return 0;
+	else
+		return m_NotificationNumber;
+}
+
+void Notification::UpdateNotificationNumber(void)
+{
+	m_NotificationNumber = m_NotificationNumber + 1;
+	Touch("notification_number");
+}
+
+void Notification::ResetNotificationNumber(void)
+{
+	m_NotificationNumber = 0;
+	Touch("notification_number");
+}
+
 String Notification::NotificationTypeToString(NotificationType type)
 {
 	switch (type) {
@@ -331,6 +352,11 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 
 	try {
 		GetNotificationCommand()->Execute(GetSelf(), user, cr, type);
+
+		{
+			ObjectLock olock(this);
+			UpdateNotificationNumber();
+		}
 
 		RequestMessage rm;
 		rm.SetMethod("icinga::NotificationSent");

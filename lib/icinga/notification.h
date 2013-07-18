@@ -83,6 +83,10 @@ public:
 	double GetNextNotification(void) const;
 	void SetNextNotification(double time);
 
+	int GetNotificationNumber(void) const;
+	void UpdateNotificationNumber(void);
+	void ResetNotificationNumber(void);
+
 	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
 	static String NotificationTypeToString(NotificationType type);
@@ -98,6 +102,7 @@ private:
 	Attribute<String> m_NotificationPeriod;
 	Attribute<double> m_LastNotification;
 	Attribute<double> m_NextNotification;
+	Attribute<int> m_NotificationNumber;
 	Attribute<Dictionary::Ptr> m_Macros;
 	Attribute<Array::Ptr> m_ExportMacros;
 	Attribute<Array::Ptr> m_Users;
@@ -107,6 +112,7 @@ private:
 	Attribute<long> m_NotificationStateFilter;
 	Attribute<String> m_HostName;
 	Attribute<String> m_Service;
+
 
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force, const String& author = "", const String& text = "");
 };

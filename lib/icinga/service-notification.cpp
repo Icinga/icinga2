@@ -39,6 +39,14 @@ static Timer::Ptr l_NotificationsCacheTimer;
 
 boost::signals2::signal<void (const Service::Ptr&, const String&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationSentChanged;
 
+void Service::ResetNotificationNumbers(void)
+{
+	BOOST_FOREACH(const Notification::Ptr& notification, GetNotifications()) {
+		ObjectLock olock(notification);
+		notification->ResetNotificationNumber();
+	}
+}
+
 void Service::NotificationSentRequestHandler(const RequestMessage& request)
 {
 	NotificationMessage params;
