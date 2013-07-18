@@ -21,6 +21,7 @@
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/tcpsocket.h"
+#include "base/unixsocket.h"
 #include "base/networkstream.h"
 #include "base/application.h"
 #include <boost/smart_ptr/make_shared.hpp>
@@ -33,7 +34,10 @@ REGISTER_TYPE(LivestatusComponent);
 LivestatusComponent::LivestatusComponent(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
 {
+	RegisterAttribute("socket_type", Attribute_Config, &m_SocketType);
 	RegisterAttribute("socket_path", Attribute_Config, &m_SocketPath);
+	RegisterAttribute("address", Attribute_Config, &m_Address);
+	RegisterAttribute("port", Attribute_Config, &m_Port);
 }
 
 /**
@@ -41,18 +45,37 @@ LivestatusComponent::LivestatusComponent(const Dictionary::Ptr& serializedUpdate
  */
 void LivestatusComponent::Start(void)
 {
-//#ifndef _WIN32
-//	UnixSocket::Ptr socket = boost::make_shared<UnixSocket>();
-//	socket->Bind(GetSocketPath());
-//#else /* _WIN32 */
-	TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
-	socket->Bind("6558", AF_INET);
-//#endif /* _WIN32 */
+	if (GetSocketType() == "tcp") {
+		TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
+		socket->Bind(GetAddress(), GetPort(), AF_INET);
 
-	m_Listener = socket;
+		boost::thread thread(boost::bind(&LivestatusComponent::ServerThreadProc, this, socket));
+		thread.detach();
+	}
+	else if (GetSocketType() == "unix") {
+#ifndef _WIN32
+		UnixSocket::Ptr socket = boost::make_shared<UnixSocket>();
+		socket->Bind(GetSocketPath());
 
-	boost::thread thread(boost::bind(&LivestatusComponent::ServerThreadProc, this, socket));
-	thread.detach();
+		boost::thread thread(boost::bind(&LivestatusComponent::ServerThreadProc, this, socket));
+		thread.detach();
+#else
+		/* no unix sockets on windows */
+		Log(LogCritical, "livestatus", "Unix sockets are not supported on Windows.");
+		return;
+#endif
+	}
+
+	m_ClientsConnected = 0;
+}
+
+String LivestatusComponent::GetSocketType(void) const
+{
+	Value socketType = m_SocketType;
+	if (socketType.IsEmpty())
+		return "unix";
+	else
+		return socketType;
 }
 
 String LivestatusComponent::GetSocketPath(void) const
@@ -62,6 +85,29 @@ String LivestatusComponent::GetSocketPath(void) const
 		return Application::GetLocalStateDir() + "/run/icinga2/livestatus";
 	else
 		return socketPath;
+}
+
+String LivestatusComponent::GetAddress(void) const
+{
+	Value node = m_Address;
+	if (node.IsEmpty())
+		return "127.0.0.1";
+	else
+		return node;
+}
+
+String LivestatusComponent::GetPort(void) const
+{
+	Value service = m_Port;
+	if (service.IsEmpty())
+		return "6558";
+	else
+		return service;
+}
+
+int LivestatusComponent::GetClientsConnected(void) const
+{
+	return m_ClientsConnected;
 }
 
 void LivestatusComponent::ServerThreadProc(const Socket::Ptr& server)
@@ -80,6 +126,8 @@ void LivestatusComponent::ServerThreadProc(const Socket::Ptr& server)
 
 void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
 {
+	m_ClientsConnected++;
+
 	Stream::Ptr stream = boost::make_shared<NetworkStream>(client);
 
 	for (;;) {
@@ -99,4 +147,6 @@ void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
 		if (!query->Execute(stream))
 			break;
 	}
+
+	m_ClientsConnected--;
 }

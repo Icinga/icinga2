@@ -40,12 +40,20 @@ public:
 
 	virtual void Start(void);
 
+	String GetSocketType(void) const;
 	String GetSocketPath(void) const;
+	String GetAddress(void) const;
+	String GetPort(void) const;
+
+	int GetClientsConnected(void) const;
 
 private:
+	Attribute<String> m_SocketType;
 	Attribute<String> m_SocketPath;
+	Attribute<String> m_Address;
+	Attribute<String> m_Port;
 
-	Socket::Ptr m_Listener;
+	int m_ClientsConnected;
 
 	void ServerThreadProc(const Socket::Ptr& server);
 	void ClientThreadProc(const Socket::Ptr& client);
