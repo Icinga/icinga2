@@ -20,6 +20,7 @@
 #include "livestatus/statustable.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
+#include "base/dynamictype.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
@@ -335,14 +336,12 @@ Value StatusTable::IntervalLengthAccessor(const Value& row)
 
 Value StatusTable::NumHostsAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return DynamicType::GetObjects("Host").size();
 }
 
 Value StatusTable::NumServicesAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return DynamicType::GetObjects("Service").size();
 }
 
 Value StatusTable::ProgramVersionAccessor(const Value& row)
