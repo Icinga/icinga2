@@ -354,6 +354,11 @@ void CompatComponent::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 	if (hc)
 		DumpServiceStatusAttrs(fp, hc, CompatTypeHost);
 
+	/* ugly but cgis parse only that */
+	fp << "\t" << "last_time_up=" << host->GetLastStateUp() << "\n"
+	   << "\t" << "last_time_down=" << host->GetLastStateDown() << "\n"
+	   << "\t" << "last_time_unreachable=" << host->GetLastStateUnreachable() << "\n";
+
 	fp << "\t" << "}" << "\n"
 	   << "\n";
 
@@ -518,6 +523,10 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 	   << "\t" << "max_attempts=" << service->GetMaxCheckAttempts() << "\n"
 	   << "\t" << "last_state_change=" << service->GetLastStateChange() << "\n"
 	   << "\t" << "last_hard_state_change=" << service->GetLastHardStateChange() << "\n"
+	   << "\t" << "last_time_ok=" << service->GetLastStateOK() << "\n"
+	   << "\t" << "last_time_warn=" << service->GetLastStateWarning() << "\n"
+	   << "\t" << "last_time_critical=" << service->GetLastStateCritical() << "\n"
+	   << "\t" << "last_time_unknown=" << service->GetLastStateUnknown() << "\n"
 	   << "\t" << "last_update=" << time(NULL) << "\n"
 	   << "\t" << "notifications_enabled=" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 	   << "\t" << "active_checks_enabled=" << (service->GetEnableActiveChecks() ? 1 : 0) <<"\n"
