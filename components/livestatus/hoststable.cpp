@@ -681,8 +681,21 @@ Value HostsTable::HasBeenCheckedAccessor(const Value& row)
 
 Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)
 {
-	/* TODO Host->Service->GetNotifications->(loop) new attribute */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+        /* XXX Service -> Notifications, biggest wins */
+        int notification_number = 0;
+        BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
+                if (notification->GetNotificationNumber() > notification_number)
+                        notification_number = notification->GetNotificationNumber();
+        }
+
+        return notification_number;
+
 }
 
 Value HostsTable::PendingFlexDowntimeAccessor(const Value& row)

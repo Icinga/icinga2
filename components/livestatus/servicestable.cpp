@@ -543,8 +543,16 @@ Value ServicesTable::NextNotificationAccessor(const Value& row)
 
 Value ServicesTable::CurrentNotificationNumberAccessor(const Value& row)
 {
-	/* TODO not implemented yet */
-	return Empty;
+	Service::Ptr service = static_cast<Service::Ptr>(row);
+
+	/* XXX Service -> Notifications, biggest wins */
+	int notification_number = 0;
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		if (notification->GetNotificationNumber() > notification_number)
+			notification_number = notification->GetNotificationNumber();
+	}
+
+	return notification_number;
 }
 
 Value ServicesTable::LastStateChangeAccessor(const Value& row)
