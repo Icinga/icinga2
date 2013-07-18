@@ -39,6 +39,7 @@ void TimePeriodsTable::AddColumns(Table *table, const String& prefix,
 {
 	table->AddColumn(prefix + "name", Column(&TimePeriodsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "alias", Column(&TimePeriodsTable::AliasAccessor, objectAccessor));
+	table->AddColumn(prefix + "in", Column(&TimePeriodsTable::InAccessor, objectAccessor));
 }
 
 String TimePeriodsTable::GetName(void) const
@@ -60,7 +61,12 @@ Value TimePeriodsTable::NameAccessor(const Value& row)
 
 Value TimePeriodsTable::AliasAccessor(const Value& row)
 {
-	/* TODO GetDisplayName() ? */
-	return static_cast<TimePeriod::Ptr>(row)->GetName();
+	return static_cast<TimePeriod::Ptr>(row)->GetDisplayName();
 }
+
+Value TimePeriodsTable::InAccessor(const Value& row)
+{
+	return (static_cast<TimePeriod::Ptr>(row)->IsInside(Utility::GetTime()) ? 1 : 0);
+}
+
 

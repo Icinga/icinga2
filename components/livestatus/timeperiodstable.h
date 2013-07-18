@@ -47,6 +47,7 @@ protected:
 
 	static Value NameAccessor(const Value& row);
 	static Value AliasAccessor(const Value& row);
+	static Value InAccessor(const Value& row);
 };
 
 }
