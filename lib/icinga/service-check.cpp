@@ -470,9 +470,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	bool reachable = IsReachable();
 
-	if (!reachable)
-		SetLastStateUnreachable(Utility::GetTime());
-
 	Host::Ptr host = GetHost();
 	bool host_reachable = true;
 
@@ -524,6 +521,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 		if (cr->Get("state") == StateUnknown)
 			SetLastStateUnknown(Utility::GetTime());
 	}
+
+	if (!reachable)
+		SetLastStateUnreachable(Utility::GetTime());
 
 	SetCurrentCheckAttempt(attempt);
 
