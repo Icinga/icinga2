@@ -481,26 +481,22 @@ Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
 
 Value ServicesTable::LastTimeOkAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return static_cast<int>(static_cast<Service::Ptr>(row)->GetLastStateOK());
 }
 
 Value ServicesTable::LastTimeWarningAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return static_cast<int>(static_cast<Service::Ptr>(row)->GetLastStateWarning());
 }
 
 Value ServicesTable::LastTimeCriticalAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return static_cast<int>(static_cast<Service::Ptr>(row)->GetLastStateCritical());
 }
 
 Value ServicesTable::LastTimeUnknownAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return static_cast<int>(static_cast<Service::Ptr>(row)->GetLastStateUnknown());
 }
 
 Value ServicesTable::LastCheckAccessor(const Value& row)

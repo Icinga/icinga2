@@ -800,20 +800,17 @@ Value HostsTable::LastStateChangeAccessor(const Value& row)
 
 Value HostsTable::LastTimeUpAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return static_cast<int>(static_cast<Host::Ptr>(row)->GetLastStateUp());
 }
 
 Value HostsTable::LastTimeDownAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return static_cast<int>(static_cast<Host::Ptr>(row)->GetLastStateDown());
 }
 
 Value HostsTable::LastTimeUnreachableAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return static_cast<int>(static_cast<Host::Ptr>(row)->GetLastStateUnreachable());
 }
 
 Value HostsTable::IsFlappingAccessor(const Value& row)
