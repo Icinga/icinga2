@@ -57,8 +57,10 @@ private:
 	DbReference m_InstanceID;
 
 	boost::mutex m_ConnectionMutex;
+	bool m_Connected;
 	MYSQL m_Connection;
 
+	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_TxTimer;
 
 	Array::Ptr Query(const String& query);
@@ -67,6 +69,7 @@ private:
 	Dictionary::Ptr FetchRow(MYSQL_RES *result);
 
 	void TxTimerHandler(void);
+	void ReconnectTimerHandler(void);
 };
 
 }

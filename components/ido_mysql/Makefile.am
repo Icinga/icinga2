@@ -23,7 +23,7 @@ libido_mysql_la_CPPFLAGS = \
 
 libido_mysql_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
-	$(MYSQL_LDFLAGS) \
+	$(MYSQLR_LDFLAGS) \
 	-module \
 	-no-undefined \
 	@RELEASE_INFO@ \
