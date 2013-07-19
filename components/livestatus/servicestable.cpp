@@ -100,6 +100,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "modified_attributes", Column(&ServicesTable::ModifiedAttributesAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes_list", Column(&ServicesTable::ModifiedAttributesListAccessor, objectAccessor));
 	table->AddColumn(prefix + "pnpgraph_present", Column(&ServicesTable::PnpgraphPresentAccessor, objectAccessor));
+	table->AddColumn(prefix + "staleness", Column(&ServicesTable::StalenessAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_interval", Column(&ServicesTable::CheckIntervalAccessor, objectAccessor));
 	table->AddColumn(prefix + "retry_interval", Column(&ServicesTable::RetryIntervalAccessor, objectAccessor));
 	table->AddColumn(prefix + "notification_interval", Column(&ServicesTable::NotificationIntervalAccessor, objectAccessor));
@@ -647,6 +648,16 @@ Value ServicesTable::ModifiedAttributesListAccessor(const Value& row)
 Value ServicesTable::PnpgraphPresentAccessor(const Value& row)
 {
 	/* not supported */
+	return Empty;
+}
+
+Value ServicesTable::StalenessAccessor(const Value& row)
+{
+	Service::Ptr service = static_cast<Service::Ptr>(row);
+
+	if (service->HasBeenChecked() && service->GetLastCheck() > 0)
+		return (Utility::GetTime() - service->GetLastCheck()) / (service->GetCheckInterval() * 3600);
+
 	return Empty;
 }
 

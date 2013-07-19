@@ -105,6 +105,7 @@ protected:
 	static Value ModifiedAttributesAccessor(const Value& row);
 	static Value ModifiedAttributesListAccessor(const Value& row);
 	static Value PnpgraphPresentAccessor(const Value& row);
+	static Value StalenessAccessor(const Value& row);
 	static Value CheckIntervalAccessor(const Value& row);
 	static Value RetryIntervalAccessor(const Value& row);
 	static Value NotificationIntervalAccessor(const Value& row);

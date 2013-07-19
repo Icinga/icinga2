@@ -150,6 +150,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "num_services_hard_unknown", Column(&HostsTable::NumServicesHardUnknownAccessor, objectAccessor));
 	table->AddColumn(prefix + "hard_state", Column(&HostsTable::HardStateAccessor, objectAccessor));
 	table->AddColumn(prefix + "pnpgraph_present", Column(&HostsTable::PnpgraphPresentAccessor, objectAccessor));
+	table->AddColumn(prefix + "staleness", Column(&HostsTable::StalenessAccessor, objectAccessor));
 	table->AddColumn(prefix + "groups", Column(&HostsTable::GroupsAccessor, objectAccessor));
 	table->AddColumn(prefix + "contact_groups", Column(&HostsTable::ContactGroupsAccessor, objectAccessor));
 	table->AddColumn(prefix + "services", Column(&HostsTable::ServicesAccessor, objectAccessor));
@@ -1563,7 +1564,15 @@ Value HostsTable::PnpgraphPresentAccessor(const Value& row)
 
 Value HostsTable::StalenessAccessor(const Value& row)
 {
-	/* TODO time since last check normalized on the check_interval */
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	if (hc->HasBeenChecked() && hc->GetLastCheck() > 0)
+		return (Utility::GetTime() - hc->GetLastCheck()) / (hc->GetCheckInterval() * 3600);
+
 	return Empty;
 }
 
