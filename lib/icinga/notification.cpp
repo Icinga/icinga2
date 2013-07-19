@@ -271,14 +271,16 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 		Dictionary::Ptr times = GetTimes();
 		Service::Ptr service = GetService();
 
-		if (times && times->Contains("begin") && now < service->GetLastHardStateChange() + times->Get("begin")) {
-			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': before escalation range");
-			return;
-		}
+		if (type == NotificationProblem) {
+			if (times && times->Contains("begin") && now < service->GetLastHardStateChange() + times->Get("begin")) {
+				Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': before escalation range");
+				return;
+			}
 
-		if (times && times->Contains("end") && now > service->GetLastHardStateChange() + times->Get("end")) {
-			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': after escalation range");
-			return;
+			if (times && times->Contains("end") && now > service->GetLastHardStateChange() + times->Get("end")) {
+				Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': after escalation range");
+				return;
+			}
 		}
 
 		unsigned long ftype = 1 << type;
