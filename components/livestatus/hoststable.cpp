@@ -28,9 +28,11 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
+#include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -537,14 +539,14 @@ Value HostsTable::FlapDetectionEnabledAccessor(const Value& row)
 
 Value HostsTable::CheckFreshnessAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* always enabled */
+	return 1;
 }
 
 Value HostsTable::ProcessPerformanceDataAccessor(const Value& row)
 {
-	/* TODO always enabled */
-	return Value(1);
+	/* always enabled */
+	return 1;
 }
 
 Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
@@ -560,8 +562,8 @@ Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
 
 Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
 {
-	/* TODO always enabled */
-	return Value(1);
+	/* always enabled */
+	return 1;
 }
 
 Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
@@ -700,7 +702,7 @@ Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)
 
 Value HostsTable::PendingFlexDowntimeAccessor(const Value& row)
 {
-	/* TODO Host->Service->GetDowntimes->(loop) type flexible? */
+	/* not supported */
 	return Empty;
 }
 
@@ -778,8 +780,8 @@ Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
 
 Value HostsTable::CheckFlappingRecoveryNotificationAccessor(const Value& row)
 {
-	/* TODO: if we're flapping, state != OK && notified once, set to true */
-	return Value(0);
+	/* not supported */
+	return Empty;
 }
 
 Value HostsTable::LastCheckAccessor(const Value& row)
@@ -928,14 +930,24 @@ Value HostsTable::FirstNotificationDelayAccessor(const Value& row)
 
 Value HostsTable::LowFlapThresholdAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	return hc->GetFlappingThreshold();
 }
 
 Value HostsTable::HighFlapThresholdAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
+	return hc->GetFlappingThreshold();
 }
 
 Value HostsTable::X3dAccessor(const Value& row)
@@ -958,14 +970,38 @@ Value HostsTable::Z3dAccessor(const Value& row)
 
 Value HostsTable::X2dAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	String coords = custom->Get("2d_coords");
+
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, coords, boost::is_any_of(","));
+
+	if (tokens.size() != 2)
+		return Empty;
+
+	return tokens[0];
 }
 
 Value HostsTable::Y2dAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+
+	if (!custom)
+		return Empty;
+
+	String coords = custom->Get("2d_coords");
+
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, coords, boost::is_any_of(","));
+
+	if (tokens.size() != 2)
+		return Empty;
+
+	return tokens[1];
 }
 
 Value HostsTable::LatencyAccessor(const Value& row)
@@ -1019,7 +1055,8 @@ Value HostsTable::InNotificationPeriodAccessor(const Value& row)
 			return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
 	}
 
-	return 0;
+	/* none set means always notified */
+	return 1;
 }
 
 Value HostsTable::InCheckPeriodAccessor(const Value& row)
@@ -1032,8 +1069,9 @@ Value HostsTable::InCheckPeriodAccessor(const Value& row)
 
 	TimePeriod::Ptr timeperiod = hc->GetCheckPeriod();
 
+	/* none set means always checked */
 	if (!timeperiod)
-		return Empty;
+		return 1;
 
 	return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
 }

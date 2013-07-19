@@ -583,8 +583,8 @@ Value ServicesTable::AcceptPassiveChecksAccessor(const Value& row)
 
 Value ServicesTable::EventHandlerEnabledAccessor(const Value& row)
 {
-	/* TODO always enabled*/
-	return Value(1);
+	/* always enabled */
+	return 1;
 }
 
 Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
@@ -594,13 +594,13 @@ Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
 
 Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
 {
-	/* TODO always enabled */
-	return Value(1);
+	/* always enabled */
+	return 1;
 }
 
 Value ServicesTable::IsExecutingAccessor(const Value& row)
 {
-	/* TODO does that make sense with Icinga2? */
+	/* not supported */
 	return Empty;
 }
 
@@ -622,8 +622,8 @@ Value ServicesTable::FlapDetectionEnabledAccessor(const Value& row)
 
 Value ServicesTable::CheckFreshnessAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	/* always enabled */
+	return 1;
 }
 
 Value ServicesTable::ObsessOverServiceAccessor(const Value& row)
@@ -685,14 +685,12 @@ Value ServicesTable::FirstNotificationDelayAccessor(const Value& row)
 
 Value ServicesTable::LowFlapThresholdAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return static_cast<Service::Ptr>(row)->GetFlappingThreshold();
 }
 
 Value ServicesTable::HighFlapThresholdAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return static_cast<Service::Ptr>(row)->GetFlappingThreshold();
 }
 
 Value ServicesTable::LatencyAccessor(const Value& row)
@@ -714,8 +712,9 @@ Value ServicesTable::InCheckPeriodAccessor(const Value& row)
 {
 	TimePeriod::Ptr timeperiod = static_cast<Service::Ptr>(row)->GetCheckPeriod();
 
+	/* none set means always checked */
 	if (!timeperiod)
-		return Empty;
+		return 1;
 
 	return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
 }
@@ -732,7 +731,8 @@ Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
 			return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
 	}
 
-	return 0;
+	/* none set means always notified */
+	return 1;
 }
 
 Value ServicesTable::ContactsAccessor(const Value& row)
