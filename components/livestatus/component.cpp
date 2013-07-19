@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/component.h"
+#include "base/objectlock.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/tcpsocket.h"
@@ -30,6 +31,10 @@ using namespace icinga;
 using namespace livestatus;
 
 REGISTER_TYPE(LivestatusComponent);
+
+static int l_ClientsConnected = 0;
+static int l_Connections = 0;
+static boost::mutex l_ComponentMutex;
 
 LivestatusComponent::LivestatusComponent(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
@@ -65,8 +70,6 @@ void LivestatusComponent::Start(void)
 		return;
 #endif
 	}
-
-	m_ClientsConnected = 0;
 }
 
 String LivestatusComponent::GetSocketType(void) const
@@ -105,9 +108,18 @@ String LivestatusComponent::GetPort(void) const
 		return service;
 }
 
-int LivestatusComponent::GetClientsConnected(void) const
+int LivestatusComponent::GetClientsConnected(void)
 {
-	return m_ClientsConnected;
+	boost::mutex::scoped_lock lock(l_ComponentMutex);
+
+	return l_ClientsConnected;
+}
+
+int LivestatusComponent::GetConnections(void)
+{
+	boost::mutex::scoped_lock lock(l_ComponentMutex);
+
+	return l_Connections;
 }
 
 void LivestatusComponent::ServerThreadProc(const Socket::Ptr& server)
@@ -126,7 +138,11 @@ void LivestatusComponent::ServerThreadProc(const Socket::Ptr& server)
 
 void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
 {
-	m_ClientsConnected++;
+	{
+		boost::mutex::scoped_lock lock(l_ComponentMutex);
+		l_ClientsConnected++;
+		l_Connections++;
+	}
 
 	Stream::Ptr stream = boost::make_shared<NetworkStream>(client);
 
@@ -148,5 +164,8 @@ void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
 			break;
 	}
 
-	m_ClientsConnected--;
+	{
+		boost::mutex::scoped_lock lock(l_ComponentMutex);
+		l_ClientsConnected--;
+	}
 }

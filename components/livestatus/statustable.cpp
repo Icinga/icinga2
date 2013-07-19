@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/statustable.h"
+#include "livestatus/component.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
 #include "base/dynamictype.h"
@@ -134,14 +135,12 @@ Value StatusTable::RequestsRateAccessor(const Value& row)
 
 Value StatusTable::ConnectionsAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return LivestatusComponent::GetConnections();
 }
 
 Value StatusTable::ConnectionsRateAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return (LivestatusComponent::GetConnections() / (Utility::GetTime() - IcingaApplication::GetInstance()->GetStartTime()));
 }
 
 Value StatusTable::ServiceChecksAccessor(const Value& row)
@@ -194,14 +193,12 @@ Value StatusTable::LogMessagesRateAccessor(const Value& row)
 
 Value StatusTable::ExternalCommandsAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return Query::GetExternalCommands();
 }
 
 Value StatusTable::ExternalCommandsRateAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return (Query::GetExternalCommands() / (Utility::GetTime() - IcingaApplication::GetInstance()->GetStartTime()));
 }
 
 Value StatusTable::LivechecksAccessor(const Value& row)
@@ -380,8 +377,7 @@ Value StatusTable::LivestatusVersionAccessor(const Value& row)
 
 Value StatusTable::LivestatusActiveConnectionsAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	return LivestatusComponent::GetClientsConnected();
 }
 
 Value StatusTable::LivestatusQueuedConnectionsAccessor(const Value& row)

@@ -51,6 +51,8 @@ public:
 
 	bool Execute(const Stream::Ptr& stream);
 
+	static int GetExternalCommands(void);
+
 private:
 	String m_Verb;
 

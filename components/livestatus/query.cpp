@@ -44,6 +44,9 @@
 using namespace icinga;
 using namespace livestatus;
 
+static int l_ExternalCommands = 0;
+static boost::mutex l_QueryMutex;
+
 Query::Query(const std::vector<String>& lines)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1)
 {
@@ -221,6 +224,13 @@ Query::Query(const std::vector<String>& lines)
 	m_Aggregators.swap(aggregators);
 }
 
+int Query::GetExternalCommands(void)
+{
+	boost::mutex::scoped_lock lock(l_QueryMutex);
+
+	return l_ExternalCommands;
+}
+
 Filter::Ptr Query::ParseFilter(const String& params)
 {
 	std::vector<String> tokens;
@@ -382,6 +392,12 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 
 void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
 {
+	{
+		boost::mutex::scoped_lock lock(l_QueryMutex);
+
+		l_ExternalCommands++;
+	}
+
 	Log(LogInformation, "livestatus", "Executing command: " + m_Command);
 	ExternalCommandProcessor::Execute(m_Command);
 	SendResponse(stream, LivestatusErrorOK, "");
