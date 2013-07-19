@@ -112,7 +112,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "livestatus", "components\li
 		{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8} = {C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mkembedconfig", "tools\mkembedconfig.vcxproj", "{D5EE8062-8FC5-40E8-81C0-B435B06AB311}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mkembedconfig", "tools\mkembedconfig\mkembedconfig.vcxproj", "{D5EE8062-8FC5-40E8-81C0-B435B06AB311}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
