@@ -1396,8 +1396,13 @@ Value HostsTable::ParentsAccessor(const Value& row)
 
 Value HostsTable::ChildsAccessor(const Value& row)
 {
-	/* TODO */
-	return Empty;
+	Array::Ptr childs = boost::make_shared<Array>();
+
+	BOOST_FOREACH(const Host::Ptr& child, static_cast<Host::Ptr>(row)->GetChildHosts()) {
+		childs->Add(child->GetName());
+	}
+
+	return childs;
 }
 
 Value HostsTable::NumServicesAccessor(const Value& row)
