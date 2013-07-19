@@ -461,6 +461,29 @@ std::set<Host::Ptr> Host::GetParentHosts(void) const
 	return parents;
 }
 
+std::set<Host::Ptr> Host::GetChildHosts(void) const
+{
+	std::set<Host::Ptr> childs;
+
+        BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
+		const Host::Ptr& host = static_pointer_cast<Host>(object);
+
+		Array::Ptr dependencies = host->GetHostDependencies();
+
+		if (dependencies) {
+			ObjectLock olock(dependencies);
+
+			BOOST_FOREACH(const Value& value, dependencies) {
+				if (value == GetName())
+					childs.insert(host);
+			}
+		}
+	}
+
+	return childs;
+
+}
+
 Service::Ptr Host::GetHostCheckService(void) const
 {
 	String host_check = GetHostCheck();

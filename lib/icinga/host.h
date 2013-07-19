@@ -94,6 +94,7 @@ public:
 
 	shared_ptr<Service> GetHostCheckService(void) const;
 	std::set<Host::Ptr> GetParentHosts(void) const;
+	std::set<Host::Ptr> GetChildHosts(void) const;
 	std::set<shared_ptr<Service> > GetParentServices(void) const;
 
 	bool IsReachable() const;
