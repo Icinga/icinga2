@@ -1593,10 +1593,16 @@ Value HostsTable::GroupsAccessor(const Value& row)
 
 Value HostsTable::ContactGroupsAccessor(const Value& row)
 {
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetHostCheckService();
+
+	if (!hc)
+		return Empty;
+
 	/* XXX Service -> Notifications -> UserGroups */
 	Array::Ptr contactgroups = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const Notification::Ptr& notification, static_cast<Service::Ptr>(row)->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, hc->GetNotifications()) {
 		ObjectLock olock(notification);
 
 		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetGroups()) {
