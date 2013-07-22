@@ -237,6 +237,10 @@ Dictionary::Ptr MysqlDbConnection::FetchRow(MYSQL_RES *result)
 void MysqlDbConnection::ActivateObject(const DbObject::Ptr& dbobj)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+
+	if (!m_Connected)
+		return;
+
 	DbReference dbref = GetReference(dbobj);
 	std::ostringstream qbuf;
 
@@ -255,6 +259,9 @@ void MysqlDbConnection::ActivateObject(const DbObject::Ptr& dbobj)
 void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+
+	if (!m_Connected)
+		return;
 
 	DbReference dbref = GetReference(dbobj);
 
