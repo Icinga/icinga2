@@ -20,17 +20,17 @@
 #ifndef DBOBJECT_H
 #define DBOBJECT_H
 
-#include "dbreference.h"
+#include "ido/dbreference.h"
+#include "ido/dbquery.h"
 #include "base/dynamicobject.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 namespace icinga
 {
 
-enum DbUpdateType
+enum DbObjectUpdateType
 {
 	DbObjectCreated,
-	DbObjectUpdated,
 	DbObjectRemoved
 };
 
@@ -53,13 +53,17 @@ public:
 	String GetName2(void) const;
 	boost::shared_ptr<DbType> GetType(void) const;
 
-	virtual Dictionary::Ptr GetFields(void) const = 0;
+	virtual Dictionary::Ptr GetConfigFields(void) const = 0;
+	virtual Dictionary::Ptr GetStatusFields(void) const = 0;
 
 	static DbObject::Ptr GetOrCreateByObject(const DynamicObject::Ptr& object);
 
-	static boost::signals2::signal<void (const DbObject::Ptr&, DbUpdateType)> OnObjectUpdated;
+	static boost::signals2::signal<void (const DbObject::Ptr&)> OnRegistered;
+	static boost::signals2::signal<void (const DbObject::Ptr&)> OnUnregistered;
+	static boost::signals2::signal<void (const DbQuery&)> OnQuery;
 
-	void SendUpdate(DbUpdateType kind = DbObjectUpdated);
+	void SendConfigUpdate(void);
+	void SendStatusUpdate(void);
 
 protected:
 	DbObject(const boost::shared_ptr<DbType>& type, const String& name1, const String& name2);
@@ -76,8 +80,8 @@ private:
 
 	static void ObjectRegisteredHandler(const DynamicObject::Ptr& object);
 	static void ObjectUnregisteredHandler(const DynamicObject::Ptr& object);
-	static void TransactionClosingHandler(double tx, const std::set<DynamicObject::WeakPtr>& modifiedObjects);
-	static void FlushObjectHandler(double tx, const DynamicObject::Ptr& object);
+	//static void TransactionClosingHandler(double tx, const std::set<DynamicObject::WeakPtr>& modifiedObjects);
+	//static void FlushObjectHandler(double tx, const DynamicObject::Ptr& object);
 
 	friend class DbType;
 };

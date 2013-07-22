@@ -29,7 +29,9 @@ DbConnection::DbConnection(const Dictionary::Ptr& serializedUpdate)
 
 void DbConnection::Start(void)
 {
-	DbObject::OnObjectUpdated.connect(boost::bind(&DbConnection::InternalUpdateObject, this, _1, _2));
+	DbObject::OnRegistered.connect(boost::bind(&DbConnection::ActivateObject, this, _1));
+	DbObject::OnUnregistered.connect(boost::bind(&DbConnection::DeactivateObject, this, _1));
+	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
 }
 
 void DbConnection::SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref)
@@ -52,17 +54,9 @@ DbReference DbConnection::GetReference(const DbObject::Ptr& dbobj) const
 	return it->second;
 }
 
-void DbConnection::UpdateObject(const DbObject::Ptr&, DbUpdateType)
+void DbConnection::ExecuteQuery(const DbQuery&)
 {
 	/* Default handler does nothing. */
-}
-
-void DbConnection::InternalUpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind)
-{
-	UpdateObject(dbobj, kind);
-
-	if (kind == DbObjectRemoved)
-		SetReference(dbobj, DbReference());
 }
 
 void DbConnection::UpdateAllObjects(void)
@@ -72,8 +66,11 @@ void DbConnection::UpdateAllObjects(void)
 		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
 			DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
 
-			if (dbobj)
-				UpdateObject(dbobj, DbObjectCreated);
+			if (dbobj) {
+				ActivateObject(dbobj);
+				dbobj->SendConfigUpdate();
+				dbobj->SendStatusUpdate();
+			}
 		}
 	}
 }

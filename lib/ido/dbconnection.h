@@ -22,6 +22,7 @@
 
 #include "base/dynamicobject.h"
 #include "ido/dbobject.h"
+#include "ido/dbquery.h"
 
 namespace icinga
 {
@@ -44,13 +45,13 @@ public:
 protected:
 	virtual void Start(void);
 
-	virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind) = 0;
+	virtual void ExecuteQuery(const DbQuery& query) = 0;
+	virtual void ActivateObject(const DbObject::Ptr& dbobj) = 0;
+	virtual void DeactivateObject(const DbObject::Ptr& dbobj) = 0;
 
 	void UpdateAllObjects(void);
 
 private:
-	void InternalUpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
-
 	std::map<DbObject::Ptr, DbReference> m_References;
 };
 

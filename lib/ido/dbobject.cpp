@@ -26,7 +26,9 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const DbObject::Ptr&, DbUpdateType)> DbObject::OnObjectUpdated;
+boost::signals2::signal<void (const DbObject::Ptr&)> DbObject::OnRegistered;
+boost::signals2::signal<void (const DbObject::Ptr&)> DbObject::OnUnregistered;
+boost::signals2::signal<void (const DbQuery&)> DbObject::OnQuery;
 
 DbObject::DbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2)
 	: m_Name1(name1), m_Name2(name2), m_Type(type)
@@ -36,8 +38,8 @@ void DbObject::StaticInitialize(void)
 {
 	DynamicObject::OnRegistered.connect(boost::bind(&DbObject::ObjectRegisteredHandler, _1));
 	DynamicObject::OnUnregistered.connect(boost::bind(&DbObject::ObjectUnregisteredHandler, _1));
-	DynamicObject::OnTransactionClosing.connect(boost::bind(&DbObject::TransactionClosingHandler, _1, _2));
-	DynamicObject::OnFlushObject.connect(boost::bind(&DbObject::FlushObjectHandler, _1, _2));
+//	DynamicObject::OnTransactionClosing.connect(boost::bind(&DbObject::TransactionClosingHandler, _1, _2));
+//	DynamicObject::OnFlushObject.connect(boost::bind(&DbObject::FlushObjectHandler, _1, _2));
 }
 
 void DbObject::SetObject(const DynamicObject::Ptr& object)
@@ -65,9 +67,51 @@ DbType::Ptr DbObject::GetType(void) const
 	return m_Type;
 }
 
-void DbObject::SendUpdate(DbUpdateType kind)
+void DbObject::SendConfigUpdate(void)
 {
-	OnObjectUpdated(GetSelf(), kind);
+	DbQuery query1;
+	query1.Table = "icinga_" + GetType()->GetTable() + "s";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set(GetType()->GetTable() + "_object_id", GetObject());
+	OnQuery(query1);
+
+	DbQuery query2;
+	query2.Table = "icinga_" + GetType()->GetTable() + "s";
+	query2.Type = DbQueryInsert;
+
+	query2.Fields = GetConfigFields();
+
+	if (!query2.Fields)
+		return;
+
+	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());
+	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	OnQuery(query2);
+}
+
+void DbObject::SendStatusUpdate(void)
+{
+	DbQuery query1;
+	query1.Table = "icinga_" + GetType()->GetTable() + "status";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set(GetType()->GetTable() + "_object_id", GetObject());
+	OnQuery(query1);
+
+	DbQuery query2;
+	query2.Table = "icinga_" + GetType()->GetTable() + "status";
+	query2.Type = DbQueryInsert;
+
+	query2.Fields = GetStatusFields();
+
+	if (!query2.Fields)
+		return;
+
+	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());
+	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query2.Fields->Set("status_update_time", Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime()));
+	OnQuery(query2);
 }
 
 DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
@@ -117,7 +161,10 @@ void DbObject::ObjectRegisteredHandler(const DynamicObject::Ptr& object)
 	if (!dbobj)
 		return;
 
-	dbobj->SendUpdate(DbObjectCreated);
+	OnRegistered(dbobj);
+
+	dbobj->SendConfigUpdate();
+	dbobj->SendStatusUpdate();
 }
 
 void DbObject::ObjectUnregisteredHandler(const DynamicObject::Ptr& object)
@@ -127,7 +174,8 @@ void DbObject::ObjectUnregisteredHandler(const DynamicObject::Ptr& object)
 	if (!dbobj)
 		return;
 
-	dbobj->SendUpdate(DbObjectRemoved);
+	OnUnregistered(dbobj);
+	//dbobj->SendUpdate(DbObjectRemoved);
 
 	{
 		ObjectLock olock(object);
@@ -135,24 +183,24 @@ void DbObject::ObjectUnregisteredHandler(const DynamicObject::Ptr& object)
 	}
 }
 
-void DbObject::TransactionClosingHandler(double tx, const std::set<DynamicObject::WeakPtr>& modifiedObjects)
-{
-        BOOST_FOREACH(const DynamicObject::WeakPtr& wobject, modifiedObjects) {
-                DynamicObject::Ptr object = wobject.lock();
-
-                if (!object)
-                        continue;
-
-                FlushObjectHandler(tx, object);
-        }
-}
-
-void DbObject::FlushObjectHandler(double tx, const DynamicObject::Ptr& object)
-{
-	DbObject::Ptr dbobj = GetOrCreateByObject(object);
-
-	if (!dbobj)
-		return;
-
-	dbobj->SendUpdate();
-}
+//void DbObject::TransactionClosingHandler(double tx, const std::set<DynamicObject::WeakPtr>& modifiedObjects)
+//{
+//        BOOST_FOREACH(const DynamicObject::WeakPtr& wobject, modifiedObjects) {
+//                DynamicObject::Ptr object = wobject.lock();
+//
+//                if (!object)
+//                        continue;
+//
+//                FlushObjectHandler(tx, object);
+//        }
+//}
+//
+//void DbObject::FlushObjectHandler(double tx, const DynamicObject::Ptr& object)
+//{
+//	DbObject::Ptr dbobj = GetOrCreateByObject(object);
+//
+//	if (!dbobj)
+//		return;
+//
+//	dbobj->SendUpdate();
+//}

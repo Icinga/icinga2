@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-struct DbType : public Object
+class DbType : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbType);

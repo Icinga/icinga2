@@ -14,6 +14,8 @@ libido_la_SOURCES = \
 	dbconnection.h \
 	dbobject.cpp \
 	dbobject.h \
+	dbquery.cpp \
+	dbquery.h \
 	dbreference.cpp \
 	dbreference.h \
 	dbtype.cpp \

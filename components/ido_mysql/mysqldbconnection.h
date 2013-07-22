@@ -43,7 +43,12 @@ public:
 	MysqlDbConnection(const Dictionary::Ptr& serializedUpdate);
 	virtual void Stop(void);
 
-	virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
+	//virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
+
+protected:
+	virtual void ActivateObject(const DbObject::Ptr& dbobj);
+	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
+	virtual void ExecuteQuery(const DbQuery& query);
 
 private:
 	Attribute<String> m_Host;
@@ -67,6 +72,8 @@ private:
 	DbReference GetInsertID(void);
 	String Escape(const String& s);
 	Dictionary::Ptr FetchRow(MYSQL_RES *result);
+
+	bool FieldToString(const String& key, const Value& value, Value *result);
 
 	void TxTimerHandler(void);
 	void ReconnectTimerHandler(void);

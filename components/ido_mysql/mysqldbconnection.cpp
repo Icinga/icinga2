@@ -58,6 +58,11 @@ MysqlDbConnection::MysqlDbConnection(const Dictionary::Ptr& serializedUpdate)
 void MysqlDbConnection::Stop(void)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+
+	if (!m_Connected)
+		return;
+
+	Query("COMMIT");
 	mysql_close(&m_Connection);
 }
 
@@ -220,9 +225,8 @@ Dictionary::Ptr MysqlDbConnection::FetchRow(MYSQL_RES *result)
 	for (field = mysql_fetch_field(result), i = 0; field; field = mysql_fetch_field(result), i++) {
 		Value value;
 
-		if (field) {
+		if (field)
 			value = String(row[i], row[i] + lengths[i]);
-		}
 
 		dict->Set(field->name, value);
 	}
@@ -230,85 +234,147 @@ Dictionary::Ptr MysqlDbConnection::FetchRow(MYSQL_RES *result)
 	return dict;
 }
 
-void MysqlDbConnection::UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind) {
+void MysqlDbConnection::ActivateObject(const DbObject::Ptr& dbobj)
+{
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+	DbReference dbref = GetReference(dbobj);
+	std::ostringstream qbuf;
 
-	/* Check if we can handle updates right now */
-	if (!m_Connected)
-		return;
+	if (!dbref.IsValid()) {
+		qbuf << "INSERT INTO icinga_objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
+		      << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
+		      << "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
+		Query(qbuf.str());
+		SetReference(dbobj, GetInsertID());
+	} else {
+		qbuf << "UPDATE icinga_objects SET is_active = 1 WHERE object_id = " << static_cast<long>(dbref);
+		Query(qbuf.str());
+	}
+}
+
+void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
+{
+	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
 	DbReference dbref = GetReference(dbobj);
 
-	if (kind == DbObjectRemoved) {
-		if (!dbref.IsValid())
-			return;
+	if (!dbref.IsValid())
+		return;
 
-		std::ostringstream qbuf;
-		qbuf << "DELETE FROM icinga_" << dbobj->GetType()->GetTable() << "s WHERE id = " << static_cast<long>(dbref);
-		Log(LogWarning, "ido_mysql", "Query: " + qbuf.str());
-	}
+	std::ostringstream qbuf;
+	qbuf << "UPDATE icinga_objects SET is_active = 0 WHERE object_id = " << static_cast<long>(dbref);
+	Query(qbuf.str());
 
-	if (kind == DbObjectCreated) {
-		std::ostringstream q1buf;
+	SetReference(dbobj, DbReference());
+}
 
-		if (!dbref.IsValid()) {
-			q1buf << "INSERT INTO icinga_objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
-			      << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
-			      << "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
-			Query(q1buf.str());
-			dbref = GetInsertID();
-		} else if (kind == DbObjectCreated) {
-			q1buf << "UPDATE icinga_objects SET is_active = 1 WHERE object_id = " << static_cast<long>(dbref);
-			Query(q1buf.str());
+bool MysqlDbConnection::FieldToString(const String& key, const Value& value, Value *result)
+{
+	*result = value;
+
+	if (value.IsObjectType<DynamicObject>()) {
+		DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(value);
+
+		if (!dbobjcol) {
+			*result = 0;
+			return true;
 		}
 
-		Dictionary::Ptr fields = dbobj->GetFields();
+		DbReference dbrefcol = GetReference(dbobjcol);
 
-		if (!fields)
-			return;
+		if (!dbrefcol.IsValid()) {
+			ActivateObject(dbobjcol);
 
+			dbrefcol = GetReference(dbobjcol);
+
+			if (!dbrefcol.IsValid())
+				return false;
+		}
+
+		*result = static_cast<long>(dbrefcol);
+	}
+
+	if (key == "instance_id")
+		*result = static_cast<long>(m_InstanceID);
+
+	return true;
+}
+
+void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
+{
+	std::ostringstream qbuf;
+
+	switch (query.Type) {
+		case DbQueryInsert:
+			qbuf << "INSERT INTO " << query.Table;
+			break;
+		case DbQueryUpdate:
+			qbuf << "UPDATE " << query.Table << "SET";
+			break;
+		case DbQueryDelete:
+			qbuf << "DELETE FROM " << query.Table;
+			break;
+		default:
+			ASSERT(!"Invalid query type.");
+	}
+
+	if (query.Type == DbQueryInsert || query.Type == DbQueryUpdate) {
 		String cols;
 		String values;
 
-		ObjectLock olock(fields);
+		ObjectLock olock(query.Fields);
 
 		String key;
 		Value value;
-		BOOST_FOREACH(boost::tie(key, value), fields) {
-			if (value.IsObjectType<DynamicObject>()) {
-				DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(value);
+		bool first = true;
+		BOOST_FOREACH(boost::tie(key, value), query.Fields) {
+			if (!FieldToString(key, value, &value))
+				return;
 
-				if (!dbobjcol)
-					return;
-
-				DbReference dbrefcol = GetReference(dbobjcol);
-
-				if (!dbrefcol.IsValid()) {
-					UpdateObject(dbobjcol, DbObjectCreated);
-
-					dbrefcol = GetReference(dbobjcol);
-
-					if (!dbrefcol.IsValid())
-						return;
+			if (query.Type == DbQueryInsert) {
+				if (!first) {
+					cols += ", ";
+					values += ", ";
 				}
 
-				value = static_cast<long>(dbrefcol);
+				cols += key;
+				values += "'" + Convert::ToString(value) + "'";
+			} else {
+				if (!first)
+					qbuf << ", ";
+
+				qbuf << " " << key << " = '" << Escape(value) << "'";
 			}
 
-			cols += ", " + key;
-			values += ", '" + Convert::ToString(value) + "'";
+			if (first)
+				first = false;
 		}
 
-		std::ostringstream q2buf;
-		q2buf << "DELETE FROM icinga_" << dbobj->GetType()->GetTable() << "s WHERE " << dbobj->GetType()->GetTable() << "_object_id = " << static_cast<long>(dbref);
-		Query(q2buf.str());
-
-		std::ostringstream q3buf;
-		q3buf << "INSERT INTO icinga_" << dbobj->GetType()->GetTable()
-		      << "s (instance_id, " << dbobj->GetType()->GetTable() << "_object_id" << cols << ") VALUES ("
-		      << static_cast<long>(m_InstanceID) << ", " << static_cast<long>(dbref) << values << ")";
-		Query(q3buf.str());
+		if (query.Type == DbQueryInsert)
+			qbuf << " (" << cols << ") VALUES (" << values << ")";
 	}
 
-	// TODO: Object and status updates
+	if (query.WhereCriteria) {
+		qbuf << " WHERE ";
+
+		ObjectLock olock(query.WhereCriteria);
+
+		String key;
+		Value value;
+		bool first = true;
+		BOOST_FOREACH(boost::tie(key, value), query.WhereCriteria) {
+			if (!FieldToString(Empty, value, &value))
+				return;
+
+			if (!first)
+				qbuf << " AND ";
+
+			qbuf << key << " = '" << Escape(value) << "'";
+
+			if (first)
+				first = false;
+		}
+	}
+
+	Query(qbuf.str());
 }

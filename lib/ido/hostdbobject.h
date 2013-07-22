@@ -38,7 +38,8 @@ public:
 
 	HostDbObject(const String& name1, const String& name2);
 
-	virtual Dictionary::Ptr GetFields(void) const;
+	virtual Dictionary::Ptr GetConfigFields(void) const;
+	virtual Dictionary::Ptr GetStatusFields(void) const;
 };
 
 }

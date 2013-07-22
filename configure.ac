@@ -123,7 +123,6 @@ components/checker/Makefile
 components/compat/Makefile
 components/delegation/Makefile
 components/demo/Makefile
-components/ido_log/Makefile
 components/ido_mysql/Makefile
 components/livestatus/Makefile
 components/notification/Makefile
