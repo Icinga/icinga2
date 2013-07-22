@@ -383,5 +383,6 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 		}
 	}
 
+	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 	Query(qbuf.str());
 }
