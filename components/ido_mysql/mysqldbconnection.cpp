@@ -20,6 +20,7 @@
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
+#include "base/utility.h"
 #include "ido/dbtype.h"
 #include "ido_mysql/mysqldbconnection.h"
 #include <boost/tuple/tuple.hpp>
