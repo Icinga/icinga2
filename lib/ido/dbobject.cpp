@@ -22,6 +22,7 @@
 #include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
+#include "base/utility.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

@@ -19,6 +19,7 @@
 
 #include "ido/dbtype.h"
 #include "base/objectlock.h"
+#include "base/utility.h"
 #include <boost/thread/once.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
