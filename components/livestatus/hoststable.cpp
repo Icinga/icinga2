@@ -28,6 +28,7 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
+#include "base/utility.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
