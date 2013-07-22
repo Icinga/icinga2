@@ -37,8 +37,9 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 	Value value = column.ExtractValue(row);
 
 	if (value.IsObjectType<Array>()) {
+		Array::Ptr array = value;
+
 		if (m_Operator == ">=") {
-			Array::Ptr array = value;
 			ObjectLock olock(array);
 			BOOST_FOREACH(const String& item, array) {
 				if (item == m_Operand)
@@ -46,8 +47,10 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 			}
 
 			return false; /* Item not found in list. */
+		} else if (m_Operator == "=") {
+			return (array->GetLength() == 0);
 		} else {
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid operator for column '" + m_Column + "': " + m_Operator + " (expected '>=')."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid operator for column '" + m_Column + "': " + m_Operator + " (expected '>=' or '=')."));
 		}
 	} else {
 		if (m_Operator == "=") {
