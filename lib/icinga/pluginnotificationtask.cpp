@@ -26,7 +26,6 @@
 #include "base/scriptfunction.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"
-#include "base/convert.h"
 #include "base/process.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -87,7 +86,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	if (pr.ExitStatus != 0) {
 		std::ostringstream msgbuf;
-		msgbuf << "Notification command '" << Convert::ToString(command) << "' for service '"
+		msgbuf << "Notification command '" << command << "' for service '"
 		       << service->GetName() << "' failed; exit status: "
 		       << pr.ExitStatus << ", output: " << pr.Output;
 		Log(LogWarning, "icinga", msgbuf.str());

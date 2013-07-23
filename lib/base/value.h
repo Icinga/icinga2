@@ -114,6 +114,9 @@ private:
 
 static Value Empty;
 
+I2_BASE_API std::ostream& operator<<(std::ostream& stream, const Value& value);
+I2_BASE_API std::istream& operator>>(std::istream& stream, Value& value);
+
 }
 
 #endif /* VALUE_H */

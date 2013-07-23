@@ -300,7 +300,7 @@ void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns,
 				if (value.IsObjectType<Array>())
 					PrintCsvArray(fp, value, 0);
 				else
-					fp << Convert::ToString(value);
+					fp << value;
 			}
 
 			fp << "\n";
@@ -324,7 +324,7 @@ void Query::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level)
 		if (value.IsObjectType<Array>())
 			PrintCsvArray(fp, value, level + 1);
 		else
-			fp << Convert::ToString(value);
+			fp << value;
 	}
 }
 

@@ -237,3 +237,17 @@ ValueType Value::GetType(void) const
 {
 	return static_cast<ValueType>(m_Value.which());
 }
+
+std::ostream& icinga::operator<<(std::ostream& stream, const Value& value)
+{
+	stream << static_cast<String>(value);
+	return stream;
+}
+
+std::istream& icinga::operator>>(std::istream& stream, Value& value)
+{
+	String tstr;
+	stream >> tstr;
+	value = tstr;
+	return stream;
+}
