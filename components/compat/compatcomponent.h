@@ -23,6 +23,7 @@
 #include "icinga/host.h"
 #include "icinga/service.h"
 #include "icinga/command.h"
+#include "icinga/compatutility.h"
 #include "base/dynamicobject.h"
 #include "base/objectlock.h"
 #include "base/timer.h"
@@ -32,12 +33,6 @@
 
 namespace icinga
 {
-
-enum CompatObjectType
-{
-	CompatTypeService,
-	CompatTypeHost
-};
 
 /**
  * @ingroup compat
@@ -114,8 +109,6 @@ private:
 	void DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object);
 
 	void StatusTimerHandler(void);
-
-	static String EscapeString(const String& str);
 };
 
 }

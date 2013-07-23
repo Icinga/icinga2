@@ -21,6 +21,8 @@ libicinga_la_SOURCES =  \
 	cib.h \
 	command.cpp \
 	command.h \
+	compatutility.cpp \
+	compatutility.h \
 	downtimemessage.cpp \
 	downtimemessage.h \
 	eventcommand.cpp \

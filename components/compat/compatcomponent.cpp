@@ -27,6 +27,7 @@
 #include "icinga/eventcommand.h"
 #include "icinga/timeperiod.h"
 #include "icinga/notificationcommand.h"
+#include "icinga/compatutility.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
@@ -280,10 +281,10 @@ void CompatComponent::DumpCommand(std::ostream& fp, const Command::Ptr& command)
 		String arg;
 		BOOST_FOREACH(arg, args) {
 			// This is obviously incorrect for non-trivial cases.
-			fp << " \"" << EscapeString(arg) << "\"";
+			fp << " \"" << CompatUtility::EscapeString(arg) << "\"";
 		}
 	} else if (!commandLine.IsEmpty()) {
-		fp << EscapeString(Convert::ToString(commandLine));
+		fp << CompatUtility::EscapeString(Convert::ToString(commandLine));
 	} else {
 		fp << "<internal>";
 	}
@@ -418,129 +419,48 @@ void CompatComponent::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	   << "\n";
 }
 
-String CompatComponent::EscapeString(const String& str)
-{
-	String result = str;
-	boost::algorithm::replace_all(result, "\n", "\\n");
-	return result;
-}
-
 void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type)
 {
-	ASSERT(service->OwnsLock());
+	Dictionary::Ptr attrs = CompatUtility::GetServiceStatusAttributes(service, type);
 
-	String raw_output;
-	String output;
-	String long_output;
-	String perfdata;
-	double schedule_end = -1;
-
-	String check_period_str;
-	TimePeriod::Ptr check_period = service->GetCheckPeriod();
-	if (check_period)
-		check_period_str = check_period->GetName();
-	else
-		check_period_str = "24x7";
-
-	Dictionary::Ptr cr = service->GetLastCheckResult();
-
-	if (cr) {
-		raw_output = cr->Get("output");
-		size_t line_end = raw_output.Find("\n");
-
-		output = raw_output.SubStr(0, line_end);
-
-		if (line_end > 0 && line_end != String::NPos) {
-			long_output = raw_output.SubStr(line_end+1, raw_output.GetLength());
-			long_output = EscapeString(long_output);
-		}
-
-		boost::algorithm::replace_all(output, "\n", "\\n");
-
-		schedule_end = cr->Get("schedule_end");
-
-		perfdata = cr->Get("performance_data_raw");
-		boost::algorithm::replace_all(perfdata, "\n", "\\n");
-	}
-
-	int state = service->GetState();
-
-	if (state > StateUnknown)
-		state = StateUnknown;
-
-	if (type == CompatTypeHost) {
-		if (state == StateOK || state == StateWarning)
-			state = 0; /* UP */
-		else
-			state = 1; /* DOWN */
-
-		Host::Ptr host = service->GetHost();
-
-		if (!host)
-			return;
-
-		if (!host->IsReachable())
-			state = 2; /* UNREACHABLE */
-	}
-
-	double last_notification = 0;
-	double next_notification = 0;
-	int notification_number = 0;
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		if (notification->GetLastNotification() > last_notification)
-			last_notification = notification->GetLastNotification();
-
-		if (notification->GetNextNotification() < next_notification)
-			next_notification = notification->GetNextNotification();
-
-		if (notification->GetNotificationNumber() > notification_number)
-			notification_number = notification->GetNotificationNumber();
-	}
-
-	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
-	if (checkcommand)
-		fp << "\t" << "check_command=check_" << checkcommand->GetName() << "\n";
-
-	EventCommand::Ptr eventcommand = service->GetEventCommand();
-	if (eventcommand)
-		fp << "\t" << "event_handler=event_" << eventcommand->GetName() << "\n";
-
-	fp << "\t" << "check_period=" << check_period_str << "\n"
-	   << "\t" << "check_interval=" << service->GetCheckInterval() / 60.0 << "\n"
-	   << "\t" << "retry_interval=" << service->GetRetryInterval() / 60.0 << "\n"
-	   << "\t" << "has_been_checked=" << (service->GetLastCheckResult() ? 1 : 0) << "\n"
-	   << "\t" << "should_be_scheduled=1" << "\n"
-	   << "\t" << "check_execution_time=" << Service::CalculateExecutionTime(cr) << "\n"
-	   << "\t" << "check_latency=" << Service::CalculateLatency(cr) << "\n"
-	   << "\t" << "current_state=" << state << "\n"
-	   << "\t" << "state_type=" << service->GetStateType() << "\n"
-	   << "\t" << "plugin_output=" << output << "\n"
-	   << "\t" << "long_plugin_output=" << long_output << "\n"
-	   << "\t" << "performance_data=" << perfdata << "\n"
-	   << "\t" << "last_check=" << schedule_end << "\n"
-	   << "\t" << "next_check=" << service->GetNextCheck() << "\n"
-	   << "\t" << "current_attempt=" << service->GetCurrentCheckAttempt() << "\n"
-	   << "\t" << "max_attempts=" << service->GetMaxCheckAttempts() << "\n"
-	   << "\t" << "last_state_change=" << service->GetLastStateChange() << "\n"
-	   << "\t" << "last_hard_state_change=" << service->GetLastHardStateChange() << "\n"
-	   << "\t" << "last_time_ok=" << service->GetLastStateOK() << "\n"
-	   << "\t" << "last_time_warn=" << service->GetLastStateWarning() << "\n"
-	   << "\t" << "last_time_critical=" << service->GetLastStateCritical() << "\n"
-	   << "\t" << "last_time_unknown=" << service->GetLastStateUnknown() << "\n"
-	   << "\t" << "last_update=" << time(NULL) << "\n"
-	   << "\t" << "notifications_enabled=" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
-	   << "\t" << "active_checks_enabled=" << (service->GetEnableActiveChecks() ? 1 : 0) <<"\n"
-	   << "\t" << "passive_checks_enabled=" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
-	   << "\t" << "flap_detection_enabled=" << "\t" << (service->GetEnableFlapping() ? 1 : 0) << "\n"
-	   << "\t" << "is_flapping=" << "\t" << (service->IsFlapping() ? 1 : 0) << "\n"
-	   << "\t" << "percent_state_change=" << "\t" << Convert::ToString(service->GetFlappingCurrent()) << "\n"
-	   << "\t" << "problem_has_been_acknowledged=" << (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
-	   << "\t" << "acknowledgement_type=" << static_cast<int>(service->GetAcknowledgement()) << "\n"
-	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
-	   << "\t" << "scheduled_downtime_depth=" << (service->IsInDowntime() ? 1 : 0) << "\n"
-	   << "\t" << "last_notification=" << last_notification << "\n"
-	   << "\t" << "next_notification=" << next_notification << "\n"
-	   << "\t" << "current_notification_number=" << notification_number << "\n";
+	fp << "\t" << "check_command=" << attrs->Get("check_command") << "\n"
+	   << "\t" << "event_handler=" << attrs->Get("event_handler") << "\n"
+	   << "\t" << "check_period=" << attrs->Get("check_period") << "\n"
+	   << "\t" << "check_interval=" << attrs->Get("check_interval") << "\n"
+	   << "\t" << "retry_interval=" << attrs->Get("retry_interval") << "\n"
+	   << "\t" << "has_been_checked=" << attrs->Get("has_been_checked") << "\n"
+	   << "\t" << "should_be_scheduled=" << attrs->Get("should_be_scheduled") << "\n"
+	   << "\t" << "check_execution_time=" << attrs->Get("check_execution_time") << "\n"
+	   << "\t" << "check_latency=" << attrs->Get("check_latency") << "\n"
+	   << "\t" << "current_state=" << attrs->Get("current_state") << "\n"
+	   << "\t" << "state_type=" << attrs->Get("state_type") << "\n"
+	   << "\t" << "plugin_output=" << attrs->Get("plugin_output") << "\n"
+	   << "\t" << "long_plugin_output=" << attrs->Get("long_plugin_output") << "\n"
+	   << "\t" << "performance_data=" << attrs->Get("performance_data") << "\n"
+	   << "\t" << "last_check=" << attrs->Get("last_check") << "\n"
+	   << "\t" << "next_check=" << attrs->Get("next_check") << "\n"
+	   << "\t" << "current_attempt=" << attrs->Get("current_attempt") << "\n"
+	   << "\t" << "max_attempts=" << attrs->Get("max_attempts") << "\n"
+	   << "\t" << "last_state_change=" << attrs->Get("last_state_change") << "\n"
+	   << "\t" << "last_hard_state_change=" << attrs->Get("last_hard_state_change") << "\n"
+	   << "\t" << "last_time_ok=" << attrs->Get("last_time_ok") << "\n"
+	   << "\t" << "last_time_warn=" << attrs->Get("last_time_warn") << "\n"
+	   << "\t" << "last_time_critical=" << attrs->Get("last_time_critical") << "\n"
+	   << "\t" << "last_time_unknown=" << attrs->Get("last_time_unknown") << "\n"
+	   << "\t" << "last_update=" << attrs->Get("last_update") << "\n"
+	   << "\t" << "notifications_enabled=" << attrs->Get("notifications_enabled") << "\n"
+	   << "\t" << "active_checks_enabled=" << attrs->Get("active_checks_enabled") << "\n"
+	   << "\t" << "passive_checks_enabled=" << attrs->Get("passive_checks_enabled") << "\n"
+	   << "\t" << "flap_detection_enabled=" << attrs->Get("flap_detection_enabled") << "\n"
+	   << "\t" << "is_flapping=" << attrs->Get("is_flapping") << "\n"
+	   << "\t" << "percent_state_change=" << attrs->Get("percent_state_change") << "\n"
+	   << "\t" << "problem_has_been_acknowledged=" << attrs->Get("problem_has_been_acknowledged") << "\n"
+	   << "\t" << "acknowledgement_type=" << attrs->Get("acknowledgement_type") << "\n"
+	   << "\t" << "acknowledgement_end_time=" << attrs->Get("acknowledgement_end_time") << "\n"
+	   << "\t" << "scheduled_downtime_depth=" << attrs->Get("scheduled_downtime_depth") << "\n"
+	   << "\t" << "last_notification=" << attrs->Get("last_notification") << "\n"
+	   << "\t" << "next_notification=" << attrs->Get("next_notification") << "\n"
+	   << "\t" << "current_notification_number=" << attrs->Get("current_notification_number") << "\n";
 }
 
 void CompatComponent::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)
