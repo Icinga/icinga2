@@ -17,68 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef MYSQLDBCONNECTION_H
-#define MYSQLDBCONNECTION_H
+#ifndef DBQUERY_H
+#define DBQUERY_H
 
-#include "base/array.h"
-#include "base/dynamictype.h"
-#include "base/timer.h"
-#include "ido/dbconnection.h"
-#include <mysql/mysql.h>
+#include "base/dictionary.h"
 
 namespace icinga
 {
 
-/**
- * A MySQL database connection.
- *
- * @ingroup ido
- */
-class MysqlDbConnection : public DbConnection
+enum DbQueryType
 {
-public:
-	typedef shared_ptr<MysqlDbConnection> Ptr;
-	typedef weak_ptr<MysqlDbConnection> WeakPtr;
+	DbQueryInsert,
+	DbQueryUpdate,
+	DbQueryDelete
+};
 
-	MysqlDbConnection(const Dictionary::Ptr& serializedUpdate);
-	virtual void Stop(void);
-
-	//virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
-
-protected:
-	virtual void ActivateObject(const DbObject::Ptr& dbobj);
-	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
-	virtual void ExecuteQuery(const DbQuery& query);
-
-private:
-	Attribute<String> m_Host;
-	Attribute<long> m_Port;
-	Attribute<String> m_User;
-	Attribute<String> m_Password;
-	Attribute<String> m_Database;
-	Attribute<String> m_InstanceName;
-	Attribute<String> m_InstanceDescription;
-
-	DbReference m_InstanceID;
-
-	boost::mutex m_ConnectionMutex;
-	bool m_Connected;
-	MYSQL m_Connection;
-
-	Timer::Ptr m_ReconnectTimer;
-	Timer::Ptr m_TxTimer;
-
-	Array::Ptr Query(const String& query);
-	DbReference GetInsertID(void);
-	String Escape(const String& s);
-	Dictionary::Ptr FetchRow(MYSQL_RES *result);
-
-	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
-
-	void TxTimerHandler(void);
-	void ReconnectTimerHandler(void);
+struct DbQuery
+{
+	DbQueryType Type;
+	String Table;
+	Dictionary::Ptr Fields;
+	Dictionary::Ptr WhereCriteria;
 };
 
 }
 
-#endif /* MYSQLDBCONNECTION_H */
+#endif /* DBQUERY_H */

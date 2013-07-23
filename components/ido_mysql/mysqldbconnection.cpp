@@ -22,6 +22,7 @@
 #include "base/convert.h"
 #include "base/utility.h"
 #include "ido/dbtype.h"
+#include "ido/dbvalue.h"
 #include "ido_mysql/mysqldbconnection.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -136,9 +137,9 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 
 		Query("UPDATE icinga_objects SET is_active = 0");
 
-		std::ostringstream qbuf;
-		qbuf << "SELECT object_id, objecttype_id, name1, name2 FROM icinga_objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
-		rows = Query(qbuf.str());
+		std::ostringstream q1buf;
+		q1buf << "SELECT object_id, objecttype_id, name1, name2 FROM icinga_objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
+		rows = Query(q1buf.str());
 
 		ObjectLock olock(rows);
 		BOOST_FOREACH(const Dictionary::Ptr& row, rows) {
@@ -150,6 +151,11 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 			DbObject::Ptr dbobj = dbtype->GetOrCreateObjectByName(row->Get("name1"), row->Get("name2"));
 			SetReference(dbobj, DbReference(row->Get("object_id")));
 		}
+
+		// TODO: Use a timer, move to libido
+		std::ostringstream q2buf;
+		q2buf << "REPLACE INTO icinga_programstatus (instance_id, status_update_time) VALUES (" << static_cast<long>(m_InstanceID) << ", NOW())";
+ 		Query(q2buf.str());
 
 		Query("BEGIN");
 	}
@@ -276,9 +282,12 @@ void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 	SetReference(dbobj, DbReference());
 }
 
-bool MysqlDbConnection::FieldToString(const String& key, const Value& value, Value *result)
+bool MysqlDbConnection::FieldToEscapedString(const String& key, const Value& value, Value *result)
 {
-	*result = value;
+	if (key == "instance_id") {
+		*result = static_cast<long>(m_InstanceID);
+		return true;
+	}
 
 	if (value.IsObjectType<DynamicObject>()) {
 		DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(value);
@@ -300,16 +309,27 @@ bool MysqlDbConnection::FieldToString(const String& key, const Value& value, Val
 		}
 
 		*result = static_cast<long>(dbrefcol);
+	} else if (DbValue::IsTimestamp(value)) {
+		double ts = DbValue::ExtractValue(value);
+		std::ostringstream msgbuf;
+		msgbuf << "FROM_UNIXTIME(" << ts << ")";
+		*result = Value(msgbuf.str());
+	} else if (DbValue::IsTimestampNow(value)) {
+		*result = "NOW()";
+	} else {
+		*result = "'" + Escape(DbValue::ExtractValue(value)) + "'";
 	}
-
-	if (key == "instance_id")
-		*result = static_cast<long>(m_InstanceID);
 
 	return true;
 }
 
 void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 {
+	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+
+	if (!m_Connected)
+		return;
+
 	std::ostringstream qbuf;
 
 	switch (query.Type) {
@@ -336,7 +356,7 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 		Value value;
 		bool first = true;
 		BOOST_FOREACH(boost::tie(key, value), query.Fields) {
-			if (!FieldToString(key, value, &value))
+			if (!FieldToEscapedString(key, value, &value))
 				return;
 
 			if (query.Type == DbQueryInsert) {
@@ -346,12 +366,12 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 				}
 
 				cols += key;
-				values += "'" + Convert::ToString(value) + "'";
+				values += Convert::ToString(value);
 			} else {
 				if (!first)
 					qbuf << ", ";
 
-				qbuf << " " << key << " = '" << Escape(value) << "'";
+				qbuf << " " << key << " = " << value;
 			}
 
 			if (first)
@@ -371,7 +391,7 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 		Value value;
 		bool first = true;
 		BOOST_FOREACH(boost::tie(key, value), query.WhereCriteria) {
-			if (!FieldToString(Empty, value, &value))
+			if (!FieldToEscapedString(Empty, value, &value))
 				return;
 
 			if (!first)
@@ -384,6 +404,5 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 		}
 	}
 
-	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 	Query(qbuf.str());
 }

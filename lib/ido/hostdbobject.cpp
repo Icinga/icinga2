@@ -19,6 +19,7 @@
 
 #include "ido/hostdbobject.h"
 #include "ido/dbtype.h"
+#include "ido/dbvalue.h"
 #include "icinga/host.h"
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
@@ -133,14 +134,14 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("output", attrs->Get("plugin_output"));
 	fields->Set("long_output", attrs->Get("long_plugin_output"));
 	fields->Set("perfdata", attrs->Get("performance_data"));
-	fields->Set("last_check", attrs->Get("last_check"));
-	fields->Set("next_check", attrs->Get("next_check"));
+	fields->Set("last_check", DbValue::FromTimestamp(attrs->Get("last_check")));
+	fields->Set("next_check", DbValue::FromTimestamp(attrs->Get("next_check")));
 	fields->Set("current_check_attempt", attrs->Get("current_attempt"));
 	fields->Set("max_check_attempts", attrs->Get("max_attempts"));
-	fields->Set("last_state_change", attrs->Get("last_state_change"));
-	fields->Set("last_hard_state_change", attrs->Get("last_hard_state_change"));
-	fields->Set("last_time_up", attrs->Get("last_time_up"));
-	fields->Set("last_time_down", attrs->Get("last_time_down"));
+	fields->Set("last_state_change", DbValue::FromTimestamp(attrs->Get("last_state_change")));
+	fields->Set("last_hard_state_change", DbValue::FromTimestamp(attrs->Get("last_hard_state_change")));
+	fields->Set("last_time_up", DbValue::FromTimestamp(attrs->Get("last_time_up")));
+	fields->Set("last_time_down", DbValue::FromTimestamp(attrs->Get("last_time_down")));
 	fields->Set("last_time_unreachable", attrs->Get("last_time_unreachable"));
 	//fields->Set("last_update", attrs->Get("last_update"));
 	fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
@@ -153,8 +154,8 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("acknowledgement_type", attrs->Get("acknowledgement_type"));
 	//fields->Set("acknowledgement_end_time", attrs->Get("acknowledgement_end_time"));
 	fields->Set("scheduled_downtime_depth", attrs->Get("scheduled_downtime_depth"));
-	fields->Set("last_notification", attrs->Get("last_notification"));
-	fields->Set("next_notification", attrs->Get("next_notification"));
+	fields->Set("last_notification", DbValue::FromTimestamp(attrs->Get("last_notification")));
+	fields->Set("next_notification", DbValue::FromTimestamp(attrs->Get("next_notification")));
 	fields->Set("current_notification_number", attrs->Get("current_notification_number"));
 
 

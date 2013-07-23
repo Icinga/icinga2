@@ -17,68 +17,54 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef MYSQLDBCONNECTION_H
-#define MYSQLDBCONNECTION_H
+#ifndef DBVALUE_H
+#define DBVALUE_H
 
-#include "base/array.h"
-#include "base/dynamictype.h"
-#include "base/timer.h"
-#include "ido/dbconnection.h"
-#include <mysql/mysql.h>
+#include "base/object.h"
+#include "base/value.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
 namespace icinga
 {
 
+enum DbValueType
+{
+	DbValueTimestamp,
+	DbValueTimestampNow,
+};
+
 /**
- * A MySQL database connection.
+ * A database value.
  *
  * @ingroup ido
  */
-class MysqlDbConnection : public DbConnection
+struct DbValue : public Object
 {
 public:
-	typedef shared_ptr<MysqlDbConnection> Ptr;
-	typedef weak_ptr<MysqlDbConnection> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(DbValue);
 
-	MysqlDbConnection(const Dictionary::Ptr& serializedUpdate);
-	virtual void Stop(void);
+	static Value FromTimestamp(const Value& ts);
+	static Value FromTimestampNow(void);
+	static Value FromValue(const Value& value);
 
-	//virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
+	static bool IsTimestamp(const Value& value);
+	static bool IsTimestampNow(const Value& value);
+	static Value ExtractValue(const Value& value);
+
+	DbValueType GetType(void) const;
+	Value GetValue(void) const;
 
 protected:
-	virtual void ActivateObject(const DbObject::Ptr& dbobj);
-	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
-	virtual void ExecuteQuery(const DbQuery& query);
+	DbValue(DbValueType type, const Value& value);
 
 private:
-	Attribute<String> m_Host;
-	Attribute<long> m_Port;
-	Attribute<String> m_User;
-	Attribute<String> m_Password;
-	Attribute<String> m_Database;
-	Attribute<String> m_InstanceName;
-	Attribute<String> m_InstanceDescription;
+	DbValueType m_Type;
+	Value m_Value;
 
-	DbReference m_InstanceID;
-
-	boost::mutex m_ConnectionMutex;
-	bool m_Connected;
-	MYSQL m_Connection;
-
-	Timer::Ptr m_ReconnectTimer;
-	Timer::Ptr m_TxTimer;
-
-	Array::Ptr Query(const String& query);
-	DbReference GetInsertID(void);
-	String Escape(const String& s);
-	Dictionary::Ptr FetchRow(MYSQL_RES *result);
-
-	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
-
-	void TxTimerHandler(void);
-	void ReconnectTimerHandler(void);
+	friend boost::shared_ptr<DbValue> boost::make_shared<>(const icinga::DbValueType&, const double&);
+	friend boost::shared_ptr<DbValue> boost::make_shared<>(const icinga::DbValueType&, const icinga::Value&);
 };
 
 }
 
-#endif /* MYSQLDBCONNECTION_H */
+#endif /* DBVALUE_H */

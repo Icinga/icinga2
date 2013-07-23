@@ -88,6 +88,7 @@ void DbObject::SendConfigUpdate(void)
 
 	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query2.Fields->Set("config_type", 1);
 	OnQuery(query2);
 }
 

@@ -20,6 +20,8 @@ libido_la_SOURCES = \
 	dbreference.h \
 	dbtype.cpp \
 	dbtype.h \
+	dbvalue.cpp \
+	dbvalue.h \
 	hostdbobject.cpp \
 	hostdbobject.h \
 	ido-type.cpp \
