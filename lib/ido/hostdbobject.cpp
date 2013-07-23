@@ -22,6 +22,8 @@
 #include "icinga/host.h"
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
+#include "icinga/compatutility.h"
+#include "base/objectlock.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -112,109 +114,49 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	if (!service)
 		return Empty;
 
-	String raw_output;
-	String output;
-	String long_output;
-	String perfdata;
-	double schedule_end = -1;
+	Dictionary::Ptr attrs;
 
-	String check_period_str;
-	TimePeriod::Ptr check_period = service->GetCheckPeriod();
-	if (check_period)
-		check_period_str = check_period->GetName();
-	else
-		check_period_str = "24x7";
-
-	Dictionary::Ptr cr = service->GetLastCheckResult();
-
-	if (cr) {
-		raw_output = cr->Get("output");
-		size_t line_end = raw_output.Find("\n");
-
-		output = raw_output.SubStr(0, line_end);
-
-		if (line_end > 0 && line_end != String::NPos)
-			long_output = raw_output.SubStr(line_end+1, raw_output.GetLength());
-
-		boost::algorithm::replace_all(output, "\n", "\\n");
-
-		schedule_end = cr->Get("schedule_end");
-
-		perfdata = cr->Get("performance_data_raw");
-		boost::algorithm::replace_all(perfdata, "\n", "\\n");
+	{
+		ObjectLock olock(service);
+		attrs = CompatUtility::GetServiceStatusAttributes(service, CompatTypeService);
 	}
 
-	int state = service->GetState();
+	//fields->Set("check_period", attrs->Get("check_period"));
+	fields->Set("normal_check_interval", attrs->Get("check_interval"));
+	fields->Set("retry_check_interval", attrs->Get("retry_interval"));
+	fields->Set("has_been_checked", attrs->Get("has_been_checked"));
+	fields->Set("should_be_scheduled", attrs->Get("should_be_scheduled"));
+	//fields->Set("execution_time", attrs->Get("check_execution_time"));
+	//fields->Set("latency", attrs->Get("check_latency"));
+	fields->Set("current_state", attrs->Get("current_state"));
+	fields->Set("state_type", attrs->Get("state_type"));
+	fields->Set("output", attrs->Get("plugin_output"));
+	fields->Set("long_output", attrs->Get("long_plugin_output"));
+	fields->Set("perfdata", attrs->Get("performance_data"));
+	fields->Set("last_check", attrs->Get("last_check"));
+	fields->Set("next_check", attrs->Get("next_check"));
+	fields->Set("current_check_attempt", attrs->Get("current_attempt"));
+	fields->Set("max_check_attempts", attrs->Get("max_attempts"));
+	fields->Set("last_state_change", attrs->Get("last_state_change"));
+	fields->Set("last_hard_state_change", attrs->Get("last_hard_state_change"));
+	fields->Set("last_time_up", attrs->Get("last_time_up"));
+	fields->Set("last_time_down", attrs->Get("last_time_down"));
+	fields->Set("last_time_unreachable", attrs->Get("last_time_unreachable"));
+	//fields->Set("last_update", attrs->Get("last_update"));
+	fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
+	fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
+	fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
+	fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
+	fields->Set("is_flapping", attrs->Get("is_flapping"));
+	fields->Set("percent_state_change", attrs->Get("percent_state_change"));
+	fields->Set("problem_has_been_acknowledged", attrs->Get("problem_has_been_acknowledged"));
+	fields->Set("acknowledgement_type", attrs->Get("acknowledgement_type"));
+	//fields->Set("acknowledgement_end_time", attrs->Get("acknowledgement_end_time"));
+	fields->Set("scheduled_downtime_depth", attrs->Get("scheduled_downtime_depth"));
+	fields->Set("last_notification", attrs->Get("last_notification"));
+	fields->Set("next_notification", attrs->Get("next_notification"));
+	fields->Set("current_notification_number", attrs->Get("current_notification_number"));
 
-	if (state > StateUnknown)
-		state = StateUnknown;
-
-//	if (type == CompatTypeHost) {
-		if (state == StateOK || state == StateWarning)
-			state = 0; /* UP */
-		else
-			state = 1; /* DOWN */
-
-		if (!host->IsReachable())
-			state = 2; /* UNREACHABLE */
-//	}
-
-	double last_notification = 0;
-	double next_notification = 0;
-	int notification_number = 0;
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		if (notification->GetLastNotification() > last_notification)
-			last_notification = notification->GetLastNotification();
-
-		if (notification->GetNextNotification() < next_notification)
-			next_notification = notification->GetNextNotification();
-
-		if (notification->GetNotificationNumber() > notification_number)
-			notification_number = notification->GetNotificationNumber();
-	}
-	fields->Set("output", output);
-	fields->Set("long_output", long_output);
-	fields->Set("perfdata", perfdata);
-	fields->Set("current_state", state);
-	fields->Set("has_been_checked", (service->GetLastCheckResult() ? 1 : 0));
-	fields->Set("should_be_scheduled", 1);
-	fields->Set("current_check_attempt", service->GetCurrentCheckAttempt());
-	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
-	fields->Set("last_check", schedule_end);
-	fields->Set("next_check", service->GetNextCheck());
-	fields->Set("check_type", Empty);
-	fields->Set("last_state_change", Empty);
-	fields->Set("last_hard_state_change", Empty);
-	fields->Set("last_hard_state", Empty);
-	fields->Set("last_time_up", Empty);
-	fields->Set("last_time_down", Empty);
-	fields->Set("last_time_unreachable", Empty);
-	fields->Set("state_type", Empty);
-	fields->Set("last_notification", Empty);
-	fields->Set("next_notification", Empty);
-	fields->Set("no_more_notifications", Empty);
-	fields->Set("notifications_enabled", Empty);
-	fields->Set("problem_has_been_acknowledged", Empty);
-	fields->Set("acknowledgement_type", Empty);
-	fields->Set("current_notification_number", Empty);
-	fields->Set("passive_checks_enabled", Empty);
-	fields->Set("active_checks_enabled", Empty);
-	fields->Set("event_handler_enabled", Empty);
-	fields->Set("flap_detection_enabled", Empty);
-	fields->Set("is_flapping", Empty);
-	fields->Set("percent_state_change", Empty);
-	fields->Set("latency", Empty);
-	fields->Set("execution_time", Empty);
-	fields->Set("scheduled_downtime_depth", Empty);
-	fields->Set("failure_prediction_enabled", Empty);
-	fields->Set("process_performance_data", Empty);
-	fields->Set("obsess_over_host", Empty);
-	fields->Set("modified_host_attributes", Empty);
-	fields->Set("event_handler", Empty);
-	fields->Set("check_command", Empty);
-	fields->Set("normal_check_interval", Empty);
-	fields->Set("retry_check_interval", Empty);
-	fields->Set("check_timeperiod_object_id", Empty);
 
 	return fields;
 }

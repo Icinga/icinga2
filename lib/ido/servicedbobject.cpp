@@ -19,8 +19,10 @@
 
 #include "ido/servicedbobject.h"
 #include "ido/dbtype.h"
+#include "base/objectlock.h"
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
+#include "icinga/compatutility.h"
 
 using namespace icinga;
 
@@ -90,51 +92,50 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 {
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
+	Dictionary::Ptr attrs;
 
-	fields->Set("output", Empty);
-	fields->Set("long_output", Empty);
-	fields->Set("perfdata", Empty);
-	fields->Set("current_state", Empty);
-	fields->Set("has_been_checked", Empty);
-	fields->Set("should_be_scheduled", Empty);
-	fields->Set("current_check_attempt", Empty);
-	fields->Set("max_check_attempts", Empty);
-	fields->Set("last_check", Empty);
-	fields->Set("next_check", Empty);
-	fields->Set("check_type", Empty);
-	fields->Set("last_state_change", Empty);
-	fields->Set("last_hard_state_change", Empty);
-	fields->Set("last_hard_state", Empty);
-	fields->Set("last_time_ok", Empty);
-	fields->Set("last_time_warning", Empty);
-	fields->Set("last_time_unknown", Empty);
-	fields->Set("last_time_critical", Empty);
-	fields->Set("state_type", Empty);
-	fields->Set("last_notification", Empty);
-	fields->Set("next_notification", Empty);
-	fields->Set("no_more_notifications", Empty);
-	fields->Set("notifications_enabled", Empty);
-	fields->Set("problem_has_been_acknowledged", Empty);
-	fields->Set("acknowledgement_type", Empty);
-	fields->Set("current_notification_number", Empty);
-	fields->Set("passive_checks_enabled", Empty);
-	fields->Set("active_checks_enabled", Empty);
-	fields->Set("event_handler_enabled", Empty);
-	fields->Set("flap_detection_enabled", Empty);
-	fields->Set("is_flapping", Empty);
-	fields->Set("percent_state_change", Empty);
-	fields->Set("latency", Empty);
-	fields->Set("execution_time", Empty);
-	fields->Set("scheduled_downtime_depth", Empty);
-	fields->Set("failure_prediction_enabled", Empty);
-	fields->Set("process_performance_data", Empty);
-	fields->Set("obsess_over_service", Empty);
-	fields->Set("modified_service_attributes", Empty);
-	fields->Set("event_handler", Empty);
-	fields->Set("check_command", Empty);
-	fields->Set("normal_check_interval", Empty);
-	fields->Set("retry_check_interval", Empty);
-	fields->Set("check_timeperiod_object_id", Empty);
+	{
+		ObjectLock olock(service);
+		attrs = CompatUtility::GetServiceStatusAttributes(service, CompatTypeService);
+	}
+
+	//fields->Set("check_period", attrs->Get("check_period"));
+	fields->Set("normal_check_interval", attrs->Get("check_interval"));
+	fields->Set("retry_check_interval", attrs->Get("retry_interval"));
+	fields->Set("has_been_checked", attrs->Get("has_been_checked"));
+	fields->Set("should_be_scheduled", attrs->Get("should_be_scheduled"));
+	//fields->Set("execution_time", attrs->Get("check_execution_time"));
+	//fields->Set("latency", attrs->Get("check_latency"));
+	fields->Set("current_state", attrs->Get("current_state"));
+	fields->Set("state_type", attrs->Get("state_type"));
+	fields->Set("output", attrs->Get("plugin_output"));
+	fields->Set("long_output", attrs->Get("long_plugin_output"));
+	fields->Set("perfdata", attrs->Get("performance_data"));
+	fields->Set("last_check", attrs->Get("last_check"));
+	fields->Set("next_check", attrs->Get("next_check"));
+	fields->Set("current_check_attempt", attrs->Get("current_attempt"));
+	fields->Set("max_check_attempts", attrs->Get("max_attempts"));
+	fields->Set("last_state_change", attrs->Get("last_state_change"));
+	fields->Set("last_hard_state_change", attrs->Get("last_hard_state_change"));
+	fields->Set("last_time_ok", attrs->Get("last_time_ok"));
+	fields->Set("last_time_warning", attrs->Get("last_time_warn"));
+	fields->Set("last_time_critical", attrs->Get("last_time_critical"));
+	fields->Set("last_time_unknown", attrs->Get("last_time_unknown"));
+	//fields->Set("last_update", attrs->Get("last_update"));
+	fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
+	fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
+	fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
+	fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
+	fields->Set("is_flapping", attrs->Get("is_flapping"));
+	fields->Set("percent_state_change", attrs->Get("percent_state_change"));
+	fields->Set("problem_has_been_acknowledged", attrs->Get("problem_has_been_acknowledged"));
+	fields->Set("acknowledgement_type", attrs->Get("acknowledgement_type"));
+	//fields->Set("acknowledgement_end_time", attrs->Get("acknowledgement_end_time"));
+	fields->Set("scheduled_downtime_depth", attrs->Get("scheduled_downtime_depth"));
+	fields->Set("last_notification", attrs->Get("last_notification"));
+	fields->Set("next_notification", attrs->Get("next_notification"));
+	fields->Set("current_notification_number", attrs->Get("current_notification_number"));
+
 
 	return fields;
 }

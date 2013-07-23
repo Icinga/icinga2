@@ -83,6 +83,15 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 
 		if (!host->IsReachable())
 			state = 2; /* UNREACHABLE */
+
+		attr->Set("last_time_up", host->GetLastStateUp());
+		attr->Set("last_time_down", host->GetLastStateDown());
+		attr->Set("last_time_unreachable", host->GetLastStateUnreachable());
+	} else {
+		attr->Set("last_time_ok", service->GetLastStateOK());
+		attr->Set("last_time_warn", service->GetLastStateWarning());
+		attr->Set("last_time_critical", service->GetLastStateCritical());
+		attr->Set("last_time_unknown", service->GetLastStateUnknown());
 	}
 
 	double last_notification = 0;
@@ -125,10 +134,6 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("max_attempts", service->GetMaxCheckAttempts());
 	attr->Set("last_state_change", service->GetLastStateChange());
 	attr->Set("last_hard_state_change", service->GetLastHardStateChange());
-	attr->Set("last_time_ok", service->GetLastStateOK());
-	attr->Set("last_time_warn", service->GetLastStateWarning());
-	attr->Set("last_time_critical", service->GetLastStateCritical());
-	attr->Set("last_time_unknown", service->GetLastStateUnknown());
 	attr->Set("last_update", time(NULL));
 	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
 	attr->Set("active_checks_enabled", (service->GetEnableActiveChecks() ? 1 : 0));
