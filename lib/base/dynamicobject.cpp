@@ -47,6 +47,7 @@ boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnRegis
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnUnregistered;
 boost::signals2::signal<void (double, const std::set<DynamicObject::WeakPtr>&)> DynamicObject::OnTransactionClosing;
 boost::signals2::signal<void (double, const DynamicObject::Ptr&)> DynamicObject::OnFlushObject;
+boost::signals2::signal<void (const DynamicObject::Ptr&, const std::set<String, string_iless>&)> DynamicObject::OnAttributesChanged;
 
 DynamicObject::DynamicObject(const Dictionary::Ptr& serializedObject)
 	: m_ConfigTx(0), m_LocalTx(0), m_Registered(false)
@@ -626,6 +627,8 @@ void DynamicObject::NewTx(void)
 			ObjectLock olock(object);
 			attrs.swap(object->m_ModifiedAttributes);
 		}
+
+		OnAttributesChanged(object, attrs);
 
 		BOOST_FOREACH(const String& attr, attrs) {
 			object->OnAttributeChanged(attr);

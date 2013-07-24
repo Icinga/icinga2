@@ -146,3 +146,8 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 
 	return fields;
 }
+
+bool ServiceDbObject::IsStatusAttribute(const String& attribute) const
+{
+	return (attribute == "last_result");
+}

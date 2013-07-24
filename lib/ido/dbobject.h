@@ -65,14 +65,22 @@ public:
 	void SendConfigUpdate(void);
 	void SendStatusUpdate(void);
 
+	double GetLastConfigUpdate(void) const;
+	double GetLastStatusUpdate(void) const;
+
 protected:
 	DbObject(const boost::shared_ptr<DbType>& type, const String& name1, const String& name2);
+
+	virtual bool IsConfigAttribute(const String& attribute) const;
+	virtual bool IsStatusAttribute(const String& attribute) const;
 
 private:
 	String m_Name1;
 	String m_Name2;
 	boost::shared_ptr<DbType> m_Type;
 	DynamicObject::Ptr m_Object;
+	double m_LastConfigUpdate;
+	double m_LastStatusUpdate;
 
 	friend boost::shared_ptr<DbObject> boost::make_shared<>(const icinga::String&, const icinga::String&);
 
@@ -80,6 +88,7 @@ private:
 
 	static void ObjectRegisteredHandler(const DynamicObject::Ptr& object);
 	static void ObjectUnregisteredHandler(const DynamicObject::Ptr& object);
+	static void AttributesChangedHandler(const DynamicObject::Ptr& object, const std::set<String, string_iless>& attributes);
 	//static void TransactionClosingHandler(double tx, const std::set<DynamicObject::WeakPtr>& modifiedObjects);
 	//static void FlushObjectHandler(double tx, const DynamicObject::Ptr& object);
 

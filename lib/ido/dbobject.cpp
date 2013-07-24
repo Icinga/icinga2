@@ -23,6 +23,7 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
+#include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -32,15 +33,14 @@ boost::signals2::signal<void (const DbObject::Ptr&)> DbObject::OnUnregistered;
 boost::signals2::signal<void (const DbQuery&)> DbObject::OnQuery;
 
 DbObject::DbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2)
-	: m_Name1(name1), m_Name2(name2), m_Type(type)
+	: m_Name1(name1), m_Name2(name2), m_Type(type), m_LastConfigUpdate(0), m_LastStatusUpdate(0)
 { }
 
 void DbObject::StaticInitialize(void)
 {
 	DynamicObject::OnRegistered.connect(boost::bind(&DbObject::ObjectRegisteredHandler, _1));
 	DynamicObject::OnUnregistered.connect(boost::bind(&DbObject::ObjectUnregisteredHandler, _1));
-//	DynamicObject::OnTransactionClosing.connect(boost::bind(&DbObject::TransactionClosingHandler, _1, _2));
-//	DynamicObject::OnFlushObject.connect(boost::bind(&DbObject::FlushObjectHandler, _1, _2));
+	DynamicObject::OnAttributesChanged.connect(boost::bind(&DbObject::AttributesChangedHandler, _1, _2));
 }
 
 void DbObject::SetObject(const DynamicObject::Ptr& object)
@@ -90,6 +90,8 @@ void DbObject::SendConfigUpdate(void)
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query2.Fields->Set("config_type", 1);
 	OnQuery(query2);
+
+	m_LastConfigUpdate = Utility::GetTime();
 }
 
 void DbObject::SendStatusUpdate(void)
@@ -114,6 +116,37 @@ void DbObject::SendStatusUpdate(void)
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query2.Fields->Set("status_update_time", Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime()));
 	OnQuery(query2);
+
+	m_LastStatusUpdate = Utility::GetTime();
+}
+
+double DbObject::GetLastConfigUpdate(void) const
+{
+	return m_LastConfigUpdate;
+}
+
+double DbObject::GetLastStatusUpdate(void) const
+{
+	return m_LastStatusUpdate;
+}
+
+bool DbObject::IsConfigAttribute(const String& attribute) const
+{
+	DynamicObject::Ptr object = GetObject();
+	ObjectLock olock(object);
+	DynamicObject::AttributeConstIterator it;
+
+	it = object->GetAttributes().find(attribute);
+
+	if (it == object->GetAttributes().end())
+		return false;
+
+	return (it->second.GetType() == Attribute_Config);
+}
+
+bool DbObject::IsStatusAttribute(const String&) const
+{
+	return false;
 }
 
 DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
@@ -145,7 +178,7 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 		name1 = object->GetName();
 	}
 
-	dbobj = dbtype->GetOrCreateObjectByName(object->GetName(), String());
+	dbobj = dbtype->GetOrCreateObjectByName(name1, name2);
 
 	{
 		ObjectLock olock(object);
@@ -185,24 +218,26 @@ void DbObject::ObjectUnregisteredHandler(const DynamicObject::Ptr& object)
 	}
 }
 
-//void DbObject::TransactionClosingHandler(double tx, const std::set<DynamicObject::WeakPtr>& modifiedObjects)
-//{
-//        BOOST_FOREACH(const DynamicObject::WeakPtr& wobject, modifiedObjects) {
-//                DynamicObject::Ptr object = wobject.lock();
-//
-//                if (!object)
-//                        continue;
-//
-//                FlushObjectHandler(tx, object);
-//        }
-//}
-//
-//void DbObject::FlushObjectHandler(double tx, const DynamicObject::Ptr& object)
-//{
-//	DbObject::Ptr dbobj = GetOrCreateByObject(object);
-//
-//	if (!dbobj)
-//		return;
-//
-//	dbobj->SendUpdate();
-//}
+void DbObject::AttributesChangedHandler(const DynamicObject::Ptr& object, const std::set<String, string_iless>& attributes)
+{
+	DbObject::Ptr dbobj = GetOrCreateByObject(object);
+
+	if (!dbobj)
+		return;
+
+	bool configUpdate = false, statusUpdate = false;
+
+	BOOST_FOREACH(const String& attribute, attributes) {
+		if (!configUpdate && dbobj->IsConfigAttribute(attribute))
+			configUpdate = true;
+
+		if (!statusUpdate && dbobj->IsStatusAttribute(attribute))
+			statusUpdate = true;
+	}
+
+	if (configUpdate)
+		dbobj->SendConfigUpdate();
+
+	if (statusUpdate)
+		dbobj->SendStatusUpdate();
+}

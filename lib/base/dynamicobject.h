@@ -69,6 +69,7 @@ public:
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnUnregistered;
 	static boost::signals2::signal<void (double, const std::set<DynamicObject::WeakPtr>&)> OnTransactionClosing;
 	static boost::signals2::signal<void (double, const DynamicObject::Ptr&)> OnFlushObject;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&, const std::set<String, string_iless>&)> OnAttributesChanged;
 
 	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
 

@@ -244,7 +244,11 @@ Dictionary::Ptr MysqlDbConnection::FetchRow(MYSQL_RES *result)
 void MysqlDbConnection::ActivateObject(const DbObject::Ptr& dbobj)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+	InternalActivateObject(dbobj);
+}
 
+void MysqlDbConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
+{
 	if (!m_Connected)
 		return;
 
@@ -282,6 +286,7 @@ void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 	SetReference(dbobj, DbReference());
 }
 
+/* caller must hold m_ConnectionMutex */
 bool MysqlDbConnection::FieldToEscapedString(const String& key, const Value& value, Value *result)
 {
 	if (key == "instance_id") {
@@ -300,7 +305,7 @@ bool MysqlDbConnection::FieldToEscapedString(const String& key, const Value& val
 		DbReference dbrefcol = GetReference(dbobjcol);
 
 		if (!dbrefcol.IsValid()) {
-			ActivateObject(dbobjcol);
+			InternalActivateObject(dbobjcol);
 
 			dbrefcol = GetReference(dbobjcol);
 
@@ -310,7 +315,7 @@ bool MysqlDbConnection::FieldToEscapedString(const String& key, const Value& val
 
 		*result = static_cast<long>(dbrefcol);
 	} else if (DbValue::IsTimestamp(value)) {
-		double ts = DbValue::ExtractValue(value);
+		long ts = DbValue::ExtractValue(value);
 		std::ostringstream msgbuf;
 		msgbuf << "FROM_UNIXTIME(" << ts << ")";
 		*result = Value(msgbuf.str());

@@ -74,6 +74,7 @@ private:
 	Dictionary::Ptr FetchRow(MYSQL_RES *result);
 
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
+	void InternalActivateObject(const DbObject::Ptr& dbobj);
 
 	void TxTimerHandler(void);
 	void ReconnectTimerHandler(void);
