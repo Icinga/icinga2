@@ -97,6 +97,9 @@ Value::operator double(void) const
 	if (value)
 		return *value;
 
+	if (IsEmpty())
+		return 0;
+
 	return boost::lexical_cast<double>(m_Value);
 }
 
