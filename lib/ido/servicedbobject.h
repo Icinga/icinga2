@@ -41,7 +41,12 @@ public:
 	virtual Dictionary::Ptr GetConfigFields(void) const;
 	virtual Dictionary::Ptr GetStatusFields(void) const;
 
+protected:
 	virtual bool IsStatusAttribute(const String& attribute) const;
+
+	virtual void OnConfigUpdate(void);
+	virtual void OnStatusUpdate(void);
+
 };
 
 }

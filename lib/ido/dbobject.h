@@ -74,6 +74,9 @@ protected:
 	virtual bool IsConfigAttribute(const String& attribute) const;
 	virtual bool IsStatusAttribute(const String& attribute) const;
 
+	virtual void OnConfigUpdate(void);
+	virtual void OnStatusUpdate(void);
+
 private:
 	String m_Name1;
 	String m_Name2;

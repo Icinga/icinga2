@@ -92,6 +92,8 @@ void DbObject::SendConfigUpdate(void)
 	OnQuery(query2);
 
 	m_LastConfigUpdate = Utility::GetTime();
+
+	OnConfigUpdate();
 }
 
 void DbObject::SendStatusUpdate(void)
@@ -118,6 +120,8 @@ void DbObject::SendStatusUpdate(void)
 	OnQuery(query2);
 
 	m_LastStatusUpdate = Utility::GetTime();
+
+	OnStatusUpdate();
 }
 
 double DbObject::GetLastConfigUpdate(void) const
@@ -147,6 +151,16 @@ bool DbObject::IsConfigAttribute(const String& attribute) const
 bool DbObject::IsStatusAttribute(const String&) const
 {
 	return false;
+}
+
+void DbObject::OnConfigUpdate(void)
+{
+	/* Default handler does nothing. */
+}
+
+void DbObject::OnStatusUpdate(void)
+{
+	/* Default handler does nothing. */
 }
 
 DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
@@ -210,7 +224,6 @@ void DbObject::ObjectUnregisteredHandler(const DynamicObject::Ptr& object)
 		return;
 
 	OnUnregistered(dbobj);
-	//dbobj->SendUpdate(DbObjectRemoved);
 
 	{
 		ObjectLock olock(object);

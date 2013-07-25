@@ -151,3 +151,41 @@ bool ServiceDbObject::IsStatusAttribute(const String& attribute) const
 {
 	return (attribute == "last_result");
 }
+
+void ServiceDbObject::OnConfigUpdate(void)
+{
+	Service::Ptr service = static_pointer_cast<Service>(GetObject());
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (host->GetHostCheckService() != service)
+		return;
+
+	DbObject::Ptr dbobj = GetOrCreateByObject(host);
+
+	if (!dbobj)
+		return;
+
+	dbobj->SendConfigUpdate();
+}
+
+void ServiceDbObject::OnStatusUpdate(void)
+{
+	Service::Ptr service = static_pointer_cast<Service>(GetObject());
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (host->GetHostCheckService() != service)
+		return;
+
+	DbObject::Ptr dbobj = GetOrCreateByObject(host);
+
+	if (!dbobj)
+		return;
+
+	dbobj->SendStatusUpdate();
+}
