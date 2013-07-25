@@ -152,11 +152,6 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 			SetReference(dbobj, DbReference(row->Get("object_id")));
 		}
 
-		// TODO: Use a timer, move to libido
-		std::ostringstream q2buf;
-		q2buf << "REPLACE INTO icinga_programstatus (instance_id, status_update_time) VALUES (" << static_cast<long>(m_InstanceID) << ", NOW())";
- 		Query(q2buf.str());
-
 		Query("BEGIN");
 	}
 
@@ -396,13 +391,13 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 		Value value;
 		bool first = true;
 		BOOST_FOREACH(boost::tie(key, value), query.WhereCriteria) {
-			if (!FieldToEscapedString(Empty, value, &value))
+			if (!FieldToEscapedString(key, value, &value))
 				return;
 
 			if (!first)
 				qbuf << " AND ";
 
-			qbuf << key << " = '" << Escape(value) << "'";
+			qbuf << key << " = '" << value << "'";
 
 			if (first)
 				first = false;

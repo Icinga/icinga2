@@ -64,6 +64,8 @@ private:
 	static TypeMap& GetTypes(void);
 
 	ObjectMap& GetObjects(void);
+
+	static void StaticInitialize(void);
 };
 
 /**

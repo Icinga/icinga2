@@ -19,6 +19,7 @@
 
 #include "ido/dbobject.h"
 #include "ido/dbtype.h"
+#include "ido/dbvalue.h"
 #include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -116,7 +117,7 @@ void DbObject::SendStatusUpdate(void)
 
 	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	query2.Fields->Set("status_update_time", Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime()));
+	query2.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	OnQuery(query2);
 
 	m_LastStatusUpdate = Utility::GetTime();

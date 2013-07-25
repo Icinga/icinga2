@@ -251,6 +251,12 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<Strin
 
 	Service::Ptr hc = host->GetHostCheckService();
 
+	if (!hc) {
+		Log(LogInformation, "icinga", "Ignoring request request for host '" +
+		    arguments[0] + "' (does not have a host check)");
+		return;
+	}
+
 	double planned_check = Convert::ToDouble(arguments[1]);
 
 	if (planned_check > hc->GetNextCheck()) {
@@ -276,6 +282,12 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Service::Ptr hc = host->GetHostCheckService();
+
+	if (!hc) {
+		Log(LogInformation, "icinga", "Ignoring request request for host '" +
+		    arguments[0] + "' (does not have a host check)");
+		return;
+	}
 
 	Log(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
 

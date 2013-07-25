@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "ido/dbtype.h"
+#include "ido/dbconnection.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include <boost/thread/once.hpp>
@@ -32,7 +33,13 @@ DbType::DbType(const String& name, const String& table, long tid, const DbType::
 	: m_Name(name), m_Table(table), m_TypeID(tid), m_ObjectFactory(factory)
 {
 	static boost::once_flag initializeOnce = BOOST_ONCE_INIT;
-	boost::call_once(initializeOnce, &DbObject::StaticInitialize);
+	boost::call_once(initializeOnce, &DbType::StaticInitialize);
+}
+
+void DbType::StaticInitialize(void)
+{
+	DbConnection::StaticInitialize();
+	DbObject::StaticInitialize();
 }
 
 String DbType::GetName(void) const

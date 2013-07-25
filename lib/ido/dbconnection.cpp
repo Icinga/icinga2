@@ -18,10 +18,14 @@
  ******************************************************************************/
 
 #include "ido/dbconnection.h"
+#include "ido/dbvalue.h"
+#include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
+
+Timer::Ptr DbConnection::m_ProgramStatusTimer;
 
 DbConnection::DbConnection(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
@@ -32,6 +36,45 @@ void DbConnection::Start(void)
 	DbObject::OnRegistered.connect(boost::bind(&DbConnection::ActivateObject, this, _1));
 	DbObject::OnUnregistered.connect(boost::bind(&DbConnection::DeactivateObject, this, _1));
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
+}
+
+void DbConnection::StaticInitialize(void)
+{
+	m_ProgramStatusTimer = boost::make_shared<Timer>();
+	m_ProgramStatusTimer->SetInterval(10);
+	m_ProgramStatusTimer->OnTimerExpired.connect(boost::bind(&DbConnection::ProgramStatusHandler));
+	m_ProgramStatusTimer->Start();
+}
+
+void DbConnection::ProgramStatusHandler(void)
+{
+	DbQuery query1;
+	query1.Table = "icinga_programstatus";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+	DbObject::OnQuery(query1);
+
+	DbQuery query2;
+	query2.Table = "icinga_programstatus";
+	query2.Type = DbQueryInsert;
+
+	query2.Fields = boost::make_shared<Dictionary>();
+	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query2.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
+	query2.Fields->Set("program_start_time", DbValue::FromTimestamp(IcingaApplication::GetInstance()->GetStartTime()));
+	query2.Fields->Set("is_currently_running", 1);
+	query2.Fields->Set("process_id", Utility::GetPid());
+	query2.Fields->Set("daemon_mode", 1);
+	query2.Fields->Set("last_command_check", DbValue::FromTimestamp(Utility::GetTime()));
+	query2.Fields->Set("notifications_enabled", 1);
+	query2.Fields->Set("active_service_checks_enabled", 1);
+	query2.Fields->Set("passive_service_checks_enabled", 1);
+	query2.Fields->Set("event_handlers_enabled", 1);
+	query2.Fields->Set("flap_detection_enabled", 1);
+	query2.Fields->Set("failure_prediction_enabled", 1);
+	query2.Fields->Set("process_performance_data", 1);
+	DbObject::OnQuery(query2);
 }
 
 void DbConnection::SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref)

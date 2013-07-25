@@ -21,6 +21,7 @@
 #define DBCONNECTION_H
 
 #include "base/dynamicobject.h"
+#include "base/timer.h"
 #include "ido/dbobject.h"
 #include "ido/dbquery.h"
 
@@ -53,6 +54,12 @@ protected:
 
 private:
 	std::map<DbObject::Ptr, DbReference> m_References;
+	static Timer::Ptr m_ProgramStatusTimer;
+
+	static void StaticInitialize(void);
+	static void ProgramStatusHandler(void);
+
+	friend class DbType;
 };
 
 }
