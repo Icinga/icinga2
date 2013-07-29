@@ -61,6 +61,7 @@ private:
 	/* Parameters for GET queries. */
 	String m_Table;
 	std::vector<String> m_Columns;
+	std::vector<String> m_Separators;
 
 	Filter::Ptr m_Filter;
 	std::deque<Aggregator::Ptr> m_Aggregators;

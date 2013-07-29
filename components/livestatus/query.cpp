@@ -57,6 +57,12 @@ Query::Query(const std::vector<String>& lines)
 		return;
 	}
 
+	/* default separators */
+	m_Separators.push_back("\n");
+	m_Separators.push_back(";");
+	m_Separators.push_back(",");
+	m_Separators.push_back("|");
+
 	String line = lines[0];
 
 	size_t sp_index = line.FindFirstOf(" ");
@@ -89,6 +95,7 @@ Query::Query(const std::vector<String>& lines)
 		size_t col_index = line.FindFirstOf(":");
 		String header = line.SubStr(0, col_index);
 		String params;
+		std::vector<String> separators;
 
 		if (line.GetLength() > col_index + 2)
 			params = line.SubStr(col_index + 2);
@@ -99,6 +106,17 @@ Query::Query(const std::vector<String>& lines)
 			m_OutputFormat = params;
 		else if (header == "Columns")
 			boost::algorithm::split(m_Columns, params, boost::is_any_of(" "));
+		else if (header == "Separators")
+			boost::algorithm::split(separators, params, boost::is_any_of(" "));
+			/* ugly ascii long to char conversion, but works */
+			if (separators.size() > 0)
+				m_Separators[0] = String(1, static_cast<char>(Convert::ToLong(separators[0])));
+			if (separators.size() > 1)
+				m_Separators[1] = String(1, static_cast<char>(Convert::ToLong(separators[1])));
+			if (separators.size() > 2)
+				m_Separators[2] = String(1, static_cast<char>(Convert::ToLong(separators[2])));
+			if (separators.size() > 3)
+				m_Separators[3] = String(1, static_cast<char>(Convert::ToLong(separators[3])));
 		else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
 		else if (header == "Filter") {
@@ -276,12 +294,12 @@ void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns,
 			if (first)
 				first = false;
 			else
-				fp << ";";
+				fp << m_Separators[1];
 
 			fp << column;
 		}
 
-		fp << "\n";
+		fp << m_Separators[0];
 	}
 
 	if (m_OutputFormat == "csv") {
@@ -295,7 +313,7 @@ void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns,
 				if (first)
 					first = false;
 				else
-					fp << ";";
+					fp << m_Separators[1];
 
 				if (value.IsObjectType<Array>())
 					PrintCsvArray(fp, value, 0);
@@ -303,7 +321,7 @@ void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns,
 					fp << value;
 			}
 
-			fp << "\n";
+			fp << m_Separators[0];
 		}
 	} else if (m_OutputFormat == "json") {
 		fp << Value(rs).Serialize();
@@ -319,7 +337,7 @@ void Query::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level)
 		if (first)
 			first = false;
 		else
-			fp << ((level == 0) ? "," : "|");
+			fp << ((level == 0) ? m_Separators[2] : m_Separators[3]);
 
 		if (value.IsObjectType<Array>())
 			PrintCsvArray(fp, value, level + 1);
@@ -424,7 +442,7 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 	String sCode = Convert::ToString(code);
 	String sLength = Convert::ToString(data.GetLength());
 
-	String header = sCode + String(16 - 3 - sLength.GetLength() - 1, ' ') + sLength + "\n";
+	String header = sCode + String(16 - 3 - sLength.GetLength() - 1, ' ') + sLength + m_Separators[0];
 	stream->Write(header.CStr(), header.GetLength());
 }
 
