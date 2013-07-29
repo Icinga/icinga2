@@ -42,7 +42,7 @@ public:
 
 	String GetSocketType(void) const;
 	String GetSocketPath(void) const;
-	String GetAddress(void) const;
+	String GetHost(void) const;
 	String GetPort(void) const;
 
 	static int GetClientsConnected(void);
@@ -51,7 +51,7 @@ public:
 private:
 	Attribute<String> m_SocketType;
 	Attribute<String> m_SocketPath;
-	Attribute<String> m_Address;
+	Attribute<String> m_Host;
 	Attribute<String> m_Port;
 
 	void ServerThreadProc(const Socket::Ptr& server);

@@ -41,7 +41,7 @@ LivestatusComponent::LivestatusComponent(const Dictionary::Ptr& serializedUpdate
 {
 	RegisterAttribute("socket_type", Attribute_Config, &m_SocketType);
 	RegisterAttribute("socket_path", Attribute_Config, &m_SocketPath);
-	RegisterAttribute("address", Attribute_Config, &m_Address);
+	RegisterAttribute("host", Attribute_Config, &m_Host);
 	RegisterAttribute("port", Attribute_Config, &m_Port);
 }
 
@@ -52,7 +52,7 @@ void LivestatusComponent::Start(void)
 {
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
-		socket->Bind(GetAddress(), GetPort(), AF_INET);
+		socket->Bind(GetHost(), GetPort(), AF_INET);
 
 		boost::thread thread(boost::bind(&LivestatusComponent::ServerThreadProc, this, socket));
 		thread.detach();
@@ -90,9 +90,9 @@ String LivestatusComponent::GetSocketPath(void) const
 		return socketPath;
 }
 
-String LivestatusComponent::GetAddress(void) const
+String LivestatusComponent::GetHost(void) const
 {
-	Value node = m_Address;
+	Value node = m_Host;
 	if (node.IsEmpty())
 		return "127.0.0.1";
 	else
