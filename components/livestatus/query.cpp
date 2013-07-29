@@ -445,7 +445,7 @@ bool Query::Execute(const Stream::Ptr& stream)
 		StackTrace *st = Exception::GetLastStackTrace();
 		std::ostringstream info;
 		st->Print(info);
-		Log(LogWarning, "livestatus", info.str());
+		Log(LogDebug, "livestatus", info.str());
 		SendResponse(stream, LivestatusErrorQuery, boost::diagnostic_information(ex));
 	}
 
