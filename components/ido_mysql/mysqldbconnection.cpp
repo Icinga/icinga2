@@ -202,7 +202,11 @@ String MysqlDbConnection::Escape(const String& s)
 
 	mysql_real_escape_string(&m_Connection, to, s.CStr(), length);
 
-	return String(to);
+	String result = String(to);
+
+	delete [] to;
+
+	return result;
 }
 
 Dictionary::Ptr MysqlDbConnection::FetchRow(MYSQL_RES *result)
@@ -277,8 +281,6 @@ void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 	std::ostringstream qbuf;
 	qbuf << "UPDATE icinga_objects SET is_active = 0 WHERE object_id = " << static_cast<long>(dbref);
 	Query(qbuf.str());
-
-	SetReference(dbobj, DbReference());
 }
 
 /* caller must hold m_ConnectionMutex */
