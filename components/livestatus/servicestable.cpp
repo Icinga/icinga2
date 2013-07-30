@@ -31,6 +31,7 @@
 #include "base/utility.h"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 using namespace livestatus;

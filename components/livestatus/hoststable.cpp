@@ -33,6 +33,7 @@
 #include <boost/foreach.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 
 using namespace icinga;

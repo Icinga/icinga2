@@ -21,8 +21,11 @@
 #include "icinga/compatutility.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 

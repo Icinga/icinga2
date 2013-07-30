@@ -21,6 +21,7 @@
 #include "ido/dbvalue.h"
 #include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
+#include "base/utility.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

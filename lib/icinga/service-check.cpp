@@ -31,6 +31,7 @@
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 
