@@ -23,6 +23,8 @@
 #include "icinga/eventcommand.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 using namespace icinga;
 
@@ -147,9 +149,135 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("scheduled_downtime_depth", (service->IsInDowntime() ? 1 : 0));
 	attr->Set("last_notification", last_notification);
 	attr->Set("next_notification", next_notification);
-	attr->Set("current_notification_number", notification_number);;
+	attr->Set("current_notification_number", notification_number);
 
 	return attr;
+}
+
+Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& service, CompatObjectType type)
+{
+	Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+
+	ASSERT(service->OwnsLock());
+
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return Dictionary::Ptr();
+
+	String check_period_str;
+	TimePeriod::Ptr check_period = service->GetCheckPeriod();
+	if (check_period)
+		check_period_str = check_period->GetName();
+	else
+		check_period_str = "24x7";
+
+	double notification_interval = -1;
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
+			notification_interval = notification->GetNotificationInterval();
+	}
+
+	if (notification_interval == -1)
+		notification_interval = 60;
+
+	String check_command_str;
+	String event_command_str;
+	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
+	EventCommand::Ptr eventcommand = service->GetEventCommand();
+
+	if (checkcommand)
+		check_command_str = checkcommand->GetName();
+
+	if (eventcommand)
+		event_command_str = eventcommand->GetName();
+
+	Dictionary::Ptr custom;
+	Dictionary::Ptr macros;
+	if (type == CompatTypeHost) {
+		custom = host->GetCustom();
+		macros = host->GetMacros();
+	}
+	else {
+		custom = service->GetCustom();
+		macros = service->GetMacros();
+	}
+
+	if (type == CompatTypeHost) {
+		if (!host->GetDisplayName().IsEmpty())
+			attr->Set("alias", host->GetName());
+		else
+			attr->Set("alias", host->GetDisplayName());
+	}
+
+	attr->Set("check_period", check_period_str);
+	attr->Set("check_interval", service->GetCheckInterval() / 60.0);
+	attr->Set("retry_interval", service->GetRetryInterval() / 60.0);
+	attr->Set("max_check_attempts", service->GetMaxCheckAttempts());
+	attr->Set("active_checks_enabled", (service->GetEnableActiveChecks() ? 1 : 0));
+	attr->Set("passive_checks_enabled", (service->GetEnablePassiveChecks() ? 1 : 0));
+	attr->Set("flap_detection_enabled", (service->GetEnableFlapping() ? 1 : 0));
+	attr->Set("low_flap_threshold", service->GetFlappingThreshold());
+	attr->Set("high_flap_threshold", service->GetFlappingThreshold());
+	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
+	attr->Set("eventhandler_enabled", 1); /* always 1 */
+	attr->Set("is_volatile", (service->IsVolatile() ? 1 : 0));
+	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
+	attr->Set("notification_options", "u,w,c,r");
+	attr->Set("notification_interval", notification_interval / 60.0);
+	attr->Set("process_performance_data", 1); /* always 1 */
+	attr->Set("check_freshness", 1); /* always 1 */
+	attr->Set("check_command", check_command_str);
+	attr->Set("event_handler", event_command_str);
+
+	/* macros attr */
+	if (macros) {
+		if (type == CompatTypeHost) {
+			attr->Set("address", macros->Get("address"));
+			attr->Set("address6", macros->Get("address6"));
+		}
+	}
+
+	/* custom attr */
+	/* TODO resolve all static macros */
+	if (custom) {
+		attr->Set("notes", custom->Get("notes"));
+		attr->Set("notes_url", custom->Get("notes_url"));
+		attr->Set("action_url", custom->Get("action_url"));
+		attr->Set("icon_image", custom->Get("icon_image"));
+		attr->Set("icon_image_alt", custom->Get("icon_image_alt"));
+
+		if (type == CompatTypeHost) {
+			attr->Set("statusmap_image", custom->Get("statusmap_image"));
+			attr->Set("2d_coords", custom->Get("2d_coords"));
+
+			if (!custom->Get("2d_coords").IsEmpty()) {
+				std::vector<String> tokens;
+				String coords = custom->Get("2d_coords");
+				boost::algorithm::split(tokens, coords, boost::is_any_of(","));
+				if (tokens.size() == 2) {
+					attr->Set("have_2d_coords", 1);
+					attr->Set("x_2d", tokens[0]);
+					attr->Set("y_2d", tokens[1]);
+				}
+				else
+					attr->Set("have_2d_coords", 0);
+			}
+			else
+				attr->Set("have_2d_coords", 0);
+
+			/* deprecated in 1.x, but empty */
+			attr->Set("vrml_image", Empty);
+			attr->Set("3d_coords", Empty);
+			attr->Set("have_3d_coords", 0);
+			attr->Set("x_3d", Empty);
+			attr->Set("y_3d", Empty);
+			attr->Set("z_3d", Empty);
+		}
+	}
+
+	return attr;
+
 }
 
 String CompatUtility::EscapeString(const String& str)
