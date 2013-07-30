@@ -38,3 +38,5 @@ stamp-h1
 icinga-app/icinga
 docs/dev
 m4/ylwrap
+m4/test-driver
+icinga2-*.tar.gz
