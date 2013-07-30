@@ -45,24 +45,31 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	if (!service)
 		return Empty;
 
-	fields->Set("alias", host->GetName());
-	fields->Set("display_name", host->GetDisplayName());
+	Dictionary::Ptr attrs;
+
+	{
+		ObjectLock olock(service);
+		attrs = CompatUtility::GetServiceConfigAttributes(service, CompatTypeHost);
+	}
+
+	fields->Set("alias", attrs->Get("alias"));
+	fields->Set("display_name", attrs->Get("display_name"));
 
 	fields->Set("check_command_object_id", service->GetCheckCommand());
 	fields->Set("check_command_args", Empty);
-	fields->Set("check_interval", service->GetCheckInterval() / 60);
-	fields->Set("retry_interval", service->GetRetryInterval() / 60);
-	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
+	fields->Set("check_interval", attrs->Get("check_interval"));
+	fields->Set("retry_interval", attrs->Get("retry_interval"));
+	fields->Set("max_check_attempts", attrs->Get("max_check_attempts"));
 
-	fields->Set("address", Empty);
-	fields->Set("address6", Empty);
+	fields->Set("address", attrs->Get("address"));
+	fields->Set("address6", attrs->Get("address6"));
 	fields->Set("eventhandler_command_object_id", Empty);
 	fields->Set("eventhandler_command_args", Empty);
 	fields->Set("notification_timeperiod_object_id", Empty);
 	fields->Set("check_timeperiod_object_id", Empty);
 	fields->Set("failure_prediction_options", Empty);
 	fields->Set("first_notification_delay", Empty);
-	fields->Set("notification_interval", Empty);
+	fields->Set("notification_interval", attrs->Get("notification_interval"));
 	fields->Set("notify_on_down", Empty);
 	fields->Set("notify_on_unreachable", Empty);
 	fields->Set("notify_on_recovery", Empty);
@@ -71,37 +78,37 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	fields->Set("stalk_on_up", Empty);
 	fields->Set("stalk_on_down", Empty);
 	fields->Set("stalk_on_unreachable", Empty);
-	fields->Set("flap_detection_enabled", Empty);
+	fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
 	fields->Set("flap_detection_on_up", Empty);
 	fields->Set("flap_detection_on_down", Empty);
 	fields->Set("flap_detection_on_unreachable", Empty);
-	fields->Set("low_flap_threshold", Empty);
-	fields->Set("high_flap_threshold", Empty);
-	fields->Set("process_performance_data", Empty);
-	fields->Set("freshness_checks_enabled", Empty);
+	fields->Set("low_flap_threshold", attrs->Get("low_flap_threshold"));
+	fields->Set("high_flap_threshold", attrs->Get("high_flap_threshold"));
+	fields->Set("process_performance_data", 1);
+	fields->Set("freshness_checks_enabled", 1);
 	fields->Set("freshness_threshold", Empty);
-	fields->Set("passive_checks_enabled", Empty);
-	fields->Set("event_handler_enabled", Empty);
-	fields->Set("active_checks_enabled", Empty);
+	fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
+	fields->Set("event_handler_enabled", 1);
+	fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
 	fields->Set("retain_status_information", 1);
 	fields->Set("retain_nonstatus_information", 1);
 	fields->Set("notifications_enabled", 1);
 	fields->Set("obsess_over_host", 0);
 	fields->Set("failure_prediction_enabled", 0);
-	fields->Set("notes", Empty);
-	fields->Set("notes_url", Empty);
-	fields->Set("action_url", Empty);
-	fields->Set("icon_image", Empty);
-	fields->Set("icon_image_alt", Empty);
-	fields->Set("vrml_image", Empty);
-	fields->Set("statusmap_image", Empty);
-	fields->Set("have_2d_coords", Empty);
-	fields->Set("x_2d", Empty);
-	fields->Set("y_2d", Empty);
-	fields->Set("have_3d_coords", Empty);
-	fields->Set("x_3d", Empty);
-	fields->Set("y_3d", Empty);
-	fields->Set("z_3d", Empty);
+	fields->Set("notes", attrs->Get("notes"));
+	fields->Set("notes_url", attrs->Get("notes_url"));
+	fields->Set("action_url", attrs->Get("action_url"));
+	fields->Set("icon_image", attrs->Get("icon_image"));
+	fields->Set("icon_image_alt", attrs->Get("icon_image_alt"));
+	fields->Set("vrml_image", attrs->Get("vrml_image"));
+	fields->Set("statusmap_image", attrs->Get("statusmap_image"));
+	fields->Set("have_2d_coords", attrs->Get("have_2d_coords"));
+	fields->Set("x_2d", attrs->Get("x_2d"));
+	fields->Set("y_2d", attrs->Get("y_2d"));
+	fields->Set("have_3d_coords", attrs->Get("have_3d_coords"));
+	fields->Set("x_3d", attrs->Get("y_3d"));
+	fields->Set("y_3d", attrs->Get("y_3d"));
+	fields->Set("z_3d", attrs->Get("z_3d"));
 
 	return fields;
 }
@@ -142,7 +149,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("last_hard_state_change", DbValue::FromTimestamp(attrs->Get("last_hard_state_change")));
 	fields->Set("last_time_up", DbValue::FromTimestamp(attrs->Get("last_time_up")));
 	fields->Set("last_time_down", DbValue::FromTimestamp(attrs->Get("last_time_down")));
-	fields->Set("last_time_unreachable", attrs->Get("last_time_unreachable"));
+	fields->Set("last_time_unreachable", DbValue::FromTimestamp(attrs->Get("last_time_unreachable")));
 	//fields->Set("last_update", attrs->Get("last_update"));
 	fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
 	fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));

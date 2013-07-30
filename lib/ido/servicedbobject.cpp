@@ -43,6 +43,13 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 	if (!host)
 		return Dictionary::Ptr();
 
+	Dictionary::Ptr attrs;
+
+	{
+		ObjectLock olock(service);
+		attrs = CompatUtility::GetServiceConfigAttributes(service, CompatTypeService);
+	}
+
 	fields->Set("host_object_id", host);
 	fields->Set("display_name", service->GetDisplayName());
 	fields->Set("check_command_object_id", service->GetCheckCommand());
@@ -52,11 +59,11 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 	fields->Set("notification_timeperiod_object_id", Empty);
 	fields->Set("check_timeperiod_object_id", Empty);
 	fields->Set("failure_prediction_options", Empty);
-	fields->Set("check_interval", service->GetCheckInterval() / 60);
-	fields->Set("retry_interval", service->GetRetryInterval() / 60);
-	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
+	fields->Set("check_interval", attrs->Get("check_interval"));
+	fields->Set("retry_interval", attrs->Get("retry_interval"));
+	fields->Set("max_check_attempts", attrs->Get("max_check_attempts"));
 	fields->Set("first_notification_delay", Empty);
-	fields->Set("notification_interval", Empty);
+	fields->Set("notification_interval", attrs->Get("notification_interval"));
 	fields->Set("notify_on_warning", Empty);
 	fields->Set("notify_on_unknown", Empty);
 	fields->Set("notify_on_critical", Empty);
@@ -67,30 +74,30 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 	fields->Set("stalk_on_warning", 0);
 	fields->Set("stalk_on_unknown", 0);
 	fields->Set("stalk_on_critical", 0);
-	fields->Set("is_volatile", Empty);
-	fields->Set("flap_detection_enabled", Empty);
+	fields->Set("is_volatile", attrs->Get("is_volatile"));
+	fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
 	fields->Set("flap_detection_on_ok", Empty);
 	fields->Set("flap_detection_on_warning", Empty);
 	fields->Set("flap_detection_on_unknown", Empty);
 	fields->Set("flap_detection_on_critical", Empty);
-	fields->Set("low_flap_threshold", Empty);
-	fields->Set("high_flap_threshold", Empty);
-	fields->Set("process_performance_data", Empty);
-	fields->Set("freshness_checks_enabled", Empty);
+	fields->Set("low_flap_threshold", attrs->Get("low_flap_threshold"));
+	fields->Set("high_flap_threshold", attrs->Get("high_flap_threshold"));
+	fields->Set("process_performance_data", attrs->Get("process_performance_data"));
+	fields->Set("freshness_checks_enabled", attrs->Get("freshness_checks_enabled"));
 	fields->Set("freshness_threshold", Empty);
-	fields->Set("passive_checks_enabled", Empty);
-	fields->Set("event_handler_enabled", Empty);
-	fields->Set("active_checks_enabled", Empty);
+	fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
+	fields->Set("event_handler_enabled", attrs->Get("event_handler_enabled"));
+	fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
 	fields->Set("retain_status_information", Empty);
 	fields->Set("retain_nonstatus_information", Empty);
-	fields->Set("notifications_enabled", Empty);
+	fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
 	fields->Set("obsess_over_service", Empty);
 	fields->Set("failure_prediction_enabled", Empty);
-	fields->Set("notes", Empty);
-	fields->Set("notes_url", Empty);
-	fields->Set("action_url", Empty);
-	fields->Set("icon_image", Empty);
-	fields->Set("icon_image_alt", Empty);
+	fields->Set("notes", attrs->Get("notes"));
+	fields->Set("notes_url", attrs->Get("notes_url"));
+	fields->Set("action_url", attrs->Get("action_url"));
+	fields->Set("icon_image", attrs->Get("icon_image"));
+	fields->Set("icon_image_alt", attrs->Get("icon_image_alt"));
 
 	return fields;
 }
