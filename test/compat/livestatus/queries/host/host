@@ -1,0 +1,4 @@
+GET hosts
+Columns: name parents childs
+ResponseHeader: fixed16
+

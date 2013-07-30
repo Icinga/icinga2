@@ -1,0 +1,4 @@
+GET hosts 
+Columns: custom_variable_names custom_variable_values custom_variables
+ResponseHeader: fixed16
+

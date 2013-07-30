@@ -1,0 +1,4 @@
+GET services
+Columns: downtimes downtimes_with_info
+ResponseHeader: fixed16
+

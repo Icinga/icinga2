@@ -1,0 +1,4 @@
+GET services
+Columns: description current_notification_number notification_period notification_interval notifications_enabled no_more_notifications last_notification next_notification
+ResponseHeader: fixed16
+

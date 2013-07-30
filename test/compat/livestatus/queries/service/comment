@@ -1,0 +1,4 @@
+GET services
+Columns: comments comments_with_info comments_with_extra_info
+ResponseHeader: fixed16
+

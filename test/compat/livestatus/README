@@ -1,0 +1,12 @@
+Compat Livestatus Component Query Tests
+=======================================
+
+Collection of queries used for execution
+on the livestatus socket.
+
+
+$ ./run_queries host/services
+
+or
+
+$ ./run_queries

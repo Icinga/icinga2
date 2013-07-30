@@ -1,0 +1,4 @@
+GET status
+Columns: connections connections_rate external_commands external_commands_rate livestatus_active_connections 
+ResponseHeader: fixed16
+

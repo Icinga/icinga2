@@ -1,0 +1,3 @@
+GET status
+ResponseHeader: fixed16
+

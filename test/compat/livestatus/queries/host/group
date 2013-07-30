@@ -1,0 +1,3 @@
+GET hostgroups
+ResponseHeader: fixed16
+

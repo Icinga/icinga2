@@ -1,0 +1,4 @@
+GET services
+Columns: description host_name host_address notes notes_expanded notes_url notes_url_expanded action_url action_url_expanded icon_image icon_image_expanded icon_image_alt
+ResponseHeader: fixed16
+

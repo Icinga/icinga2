@@ -1,0 +1,3 @@
+GET servicegroups
+ResponseHeader: fixed16
+

@@ -1,0 +1,4 @@
+GET hosts
+Columns: name num_services worst_service_state num_services_ok num_services_warn num_services_crit num_services_unknown num_services_pending worst_service_hard_state num_services_hard_ok num_services_hard_warn num_services_hard_crit num_services_hard_unknown services services_with_state services_with_info
+ResponseHeader: fixed16
+

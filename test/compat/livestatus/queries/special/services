@@ -1,0 +1,5 @@
+GET services
+Separators: 10 32 35 95
+Columns: description custom_variables
+ResponseHeader: fixed16
+

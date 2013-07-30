@@ -1,0 +1,5 @@
+GET hosts
+ResponseHeader: fixed16
+Stats: latency = 3
+Stats: sum latency
+

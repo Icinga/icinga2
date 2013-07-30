@@ -1,0 +1,21 @@
+#!/bin/bash
+
+LIVESTATUSHOST="10.0.10.18"
+LIVESTATUSPORT="6558"
+LIVESTATUSQUERIES="./queries"
+
+LIVESTATUSTABLE=$1
+
+if [ -n "$LIVESTATUSTABLE" ]; then
+	cat "$LIVESTATUSQUERIES/$LIVESTATUSTABLE"
+	(cat "$LIVESTATUSQUERIES/$LIVESTATUSTABLE"; sleep 1) | netcat $LIVESTATUSHOST $LIVESTATUSPORT
+else
+
+	echo -e "Looking into $LIVESTATUSQUERIES\n"
+	for q in $(find $LIVESTATUSQUERIES -type f)
+	do
+		cat $q
+		(cat $q; sleep 1) | netcat $LIVESTATUSHOST $LIVESTATUSPORT
+		echo -e "================================\n\n"
+	done
+fi

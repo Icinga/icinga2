@@ -1,0 +1,4 @@
+GET hosts
+Columns: name address notes notes_expanded notes_url notes_url_expanded action_url action_url_expanded icon_image icon_image_expanded icon_image_alt x_2d y_2d
+ResponseHeader: fixed16
+

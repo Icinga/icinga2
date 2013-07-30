@@ -1,0 +1,4 @@
+GET status
+Columns: nagios_pid program_start num_hosts num_services program_version
+ResponseHeader: fixed16
+

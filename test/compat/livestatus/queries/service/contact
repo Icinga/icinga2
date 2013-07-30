@@ -1,0 +1,4 @@
+GET services
+Columns: contacts contact_groups
+ResponseHeader: fixed16
+

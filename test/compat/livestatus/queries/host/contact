@@ -1,0 +1,4 @@
+GET hosts
+Columns: contacts contact_groups
+ResponseHeader: fixed16
+
