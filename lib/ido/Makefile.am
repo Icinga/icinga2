@@ -27,6 +27,8 @@ libido_la_SOURCES = \
 	ido-type.cpp \
 	servicedbobject.cpp \
 	servicedbobject.h \
+	timeperioddbobject.cpp \
+	timeperioddbobject.h \
 	userdbobject.cpp \
 	userdbobject.h
 
