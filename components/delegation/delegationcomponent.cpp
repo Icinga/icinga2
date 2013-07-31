@@ -196,8 +196,6 @@ void DelegationComponent::DelegationTimerHandler(void)
 				cr->Set("state", StateUncheckable);
 				cr->Set("output", "No checker is available for this service.");
 
-				cr->Seal();
-
 				service->ProcessCheckResult(cr);
 
 				Log(LogWarning, "delegation", "Can't delegate service: " + service->GetName());
