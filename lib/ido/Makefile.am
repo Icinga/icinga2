@@ -24,6 +24,8 @@ libido_la_SOURCES = \
 	dbvalue.h \
 	hostdbobject.cpp \
 	hostdbobject.h \
+	hostgroupdbobject.cpp \
+	hostgroupdbobject.h \
 	ido-type.cpp \
 	servicedbobject.cpp \
 	servicedbobject.h \
