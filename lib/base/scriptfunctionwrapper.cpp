@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-Value icinga::ScriptFunctionWrapperVV(void (*function)(void), const std::vector<Value>& arguments)
+Value icinga::ScriptFunctionWrapperVV(void (*function)(void), const std::vector<Value>&)
 {
 	function();
 
