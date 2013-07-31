@@ -28,6 +28,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -140,7 +141,10 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("last_state_change", service->GetLastStateChange());
 	attr->Set("last_hard_state_change", service->GetLastHardStateChange());
 	attr->Set("last_update", time(NULL));
+	attr->Set("process_performance_data", 1); /* always enabled */
+	attr->Set("freshness_checks_enabled", 1); /* always enabled */
 	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
+	attr->Set("event_handler_enabled", 1); /* always enabled */
 	attr->Set("active_checks_enabled", (service->GetEnableActiveChecks() ? 1 : 0));
 	attr->Set("passive_checks_enabled", (service->GetEnablePassiveChecks() ? 1 : 0));
 	attr->Set("flap_detection_enabled", (service->GetEnableFlapping() ? 1 : 0));
@@ -176,9 +180,22 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 		check_period_str = "24x7";
 
 	double notification_interval = -1;
+	String notification_period;
+	unsigned long notification_type_filter;
+	unsigned long notification_state_filter;
+
 	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
 		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
 			notification_interval = notification->GetNotificationInterval();
+
+		if (notification->GetNotificationPeriod())
+			notification_period = notification->GetNotificationPeriod()->GetName();
+
+		if (notification->GetNotificationTypeFilter())
+			notification_type_filter = notification->GetNotificationTypeFilter();
+
+		if (notification->GetNotificationStateFilter())
+			notification_state_filter = notification->GetNotificationStateFilter();
 	}
 
 	if (notification_interval == -1)
@@ -197,20 +214,66 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 
 	Dictionary::Ptr custom;
 	Dictionary::Ptr macros;
-	if (type == CompatTypeHost) {
-		custom = host->GetCustom();
-		macros = host->GetMacros();
-	}
-	else {
-		custom = service->GetCustom();
-		macros = service->GetMacros();
-	}
+	std::vector<String> notification_options;
 
 	if (type == CompatTypeHost) {
+
+		/* dicts */
+		custom = host->GetCustom();
+		macros = host->GetMacros();
+
+		/* alias */
 		if (!host->GetDisplayName().IsEmpty())
 			attr->Set("alias", host->GetName());
 		else
 			attr->Set("alias", host->GetDisplayName());
+
+		/* notification filters */
+		if (notification_state_filter & (1<<StateWarning) ||
+				notification_state_filter & (1<<StateCritical)) {
+			attr->Set("notify_on_down", 1);
+			notification_options.push_back("d");
+		}
+		if (notification_state_filter & (1<<StateUncheckable)) {
+			attr->Set("notify_on_unreachable", 1);
+			notification_options.push_back("u");
+		}
+	}
+	else {
+		/* dicts */
+		custom = service->GetCustom();
+		macros = service->GetMacros();
+
+		/* notification filters */
+		if (notification_state_filter & (1<<StateWarning)) {
+			attr->Set("notify_on_warning", 1);
+			notification_options.push_back("w");
+		}
+		if (notification_state_filter & (1<<StateUnknown)) {
+			attr->Set("notify_on_unknown", 1);
+			notification_options.push_back("u");
+		}
+		if (notification_state_filter & (1<<StateCritical)) {
+			attr->Set("notify_on_critical", 1);
+			notification_options.push_back("c");
+		}
+	}
+
+	/* notification type filters */
+	if (notification_type_filter & (1<<NotificationRecovery)) {
+		attr->Set("notify_on_recovery", 1);
+		notification_options.push_back("r");
+	}
+	if (notification_type_filter & (1<<NotificationFlappingStart) ||
+			notification_type_filter & (1<<NotificationFlappingEnd)) {
+		attr->Set("notify_on_flapping", 1);
+		notification_options.push_back("f");
+	}
+	if (notification_type_filter & (1<<NotificationDowntimeStart) ||
+			notification_type_filter & (1<<NotificationDowntimeEnd) ||
+			notification_type_filter & (1<<NotificationDowntimeRemoved)) {
+		attr->Set("notify_on_downtime", 1);
+		notification_options.push_back("s");
 	}
 
 	attr->Set("check_period", check_period_str);
@@ -226,9 +289,10 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 	attr->Set("eventhandler_enabled", 1); /* always 1 */
 	attr->Set("is_volatile", (service->IsVolatile() ? 1 : 0));
 	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
-	attr->Set("notification_options", "u,w,c,r");
+	attr->Set("notification_options", boost::algorithm::join(notification_options, ","));
 	attr->Set("notification_interval", notification_interval / 60.0);
 	attr->Set("process_performance_data", 1); /* always 1 */
+	attr->Set("notification_period", notification_period);
 	attr->Set("check_freshness", 1); /* always 1 */
 	attr->Set("check_command", check_command_str);
 	attr->Set("event_handler", event_command_str);
