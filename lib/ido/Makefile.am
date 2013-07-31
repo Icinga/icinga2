@@ -30,7 +30,9 @@ libido_la_SOURCES = \
 	timeperioddbobject.cpp \
 	timeperioddbobject.h \
 	userdbobject.cpp \
-	userdbobject.h
+	userdbobject.h \
+	usergroupdbobject.cpp \
+	usergroupdbobject.h
 
 libido_la_CPPFLAGS = \
 	$(LTDLINCL) \
