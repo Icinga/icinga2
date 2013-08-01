@@ -22,6 +22,7 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/service.h"
+#include "icinga/checkcommand.h"
 #include "base/dictionary.h"
 #include <vector>
 
@@ -48,6 +49,7 @@ public:
 	static Dictionary::Ptr GetServiceStatusAttributes(const Service::Ptr& service, CompatObjectType type);
 	static Dictionary::Ptr GetServiceConfigAttributes(const Service::Ptr& service, CompatObjectType type);
 
+	static Dictionary::Ptr GetCommandConfigAttributes(const Command::Ptr& command);
 	static String EscapeString(const String& str);
 
 private:

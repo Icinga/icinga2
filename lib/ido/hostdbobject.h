@@ -36,7 +36,7 @@ class HostDbObject : public DbObject
 public:
 	DECLARE_PTR_TYPEDEFS(HostDbObject);
 
-	HostDbObject(const String& name1, const String& name2);
+	HostDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
 	virtual Dictionary::Ptr GetConfigFields(void) const;
 	virtual Dictionary::Ptr GetStatusFields(void) const;

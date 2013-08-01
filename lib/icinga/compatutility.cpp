@@ -349,6 +349,33 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 
 }
 
+Dictionary::Ptr CompatUtility::GetCommandConfigAttributes(const Command::Ptr& command)
+{
+	Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+
+	Value commandLine = command->GetCommandLine();
+
+	String commandline;
+	if (commandLine.IsObjectType<Array>()) {
+		Array::Ptr args = commandLine;
+
+		ObjectLock olock(args);
+		String arg;
+		BOOST_FOREACH(arg, args) {
+			// This is obviously incorrect for non-trivial cases.
+			commandline = " \"" + CompatUtility::EscapeString(arg) + "\"";
+		}
+	} else if (!commandLine.IsEmpty()) {
+		commandline = CompatUtility::EscapeString(Convert::ToString(commandLine));
+	} else {
+		commandline = "<internal>";
+	}
+
+	attr->Set("command_line", commandline);
+
+	return attr;
+}
+
 String CompatUtility::EscapeString(const String& str)
 {
 	String result = str;

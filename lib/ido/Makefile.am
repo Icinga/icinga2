@@ -10,6 +10,8 @@ EXTRA_DIST = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libido_la_SOURCES = \
+	commanddbobject.cpp \
+	commanddbobject.h \
 	dbconnection.cpp \
 	dbconnection.h \
 	dbobject.cpp \

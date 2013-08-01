@@ -36,7 +36,7 @@ class UserGroupDbObject : public DbObject
 public:
 	DECLARE_PTR_TYPEDEFS(UserGroupDbObject);
 
-	UserGroupDbObject(const String& name1, const String& name2);
+	UserGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
 	virtual Dictionary::Ptr GetConfigFields(void) const;
 	virtual Dictionary::Ptr GetStatusFields(void) const;

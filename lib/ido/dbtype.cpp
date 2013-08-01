@@ -88,7 +88,7 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 	if (it != GetObjects().end())
 		return it->second;
 
-	DbObject::Ptr dbobj = m_ObjectFactory(name1, name2);
+	DbObject::Ptr dbobj = m_ObjectFactory(GetSelf(), name1, name2);
 	GetObjects()[std::make_pair(name1, name2)] = dbobj;
 
 	return dbobj;

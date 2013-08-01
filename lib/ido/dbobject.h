@@ -22,8 +22,8 @@
 
 #include "ido/dbreference.h"
 #include "ido/dbquery.h"
+#include "ido/dbtype.h"
 #include "base/dynamicobject.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 namespace icinga
 {
@@ -33,8 +33,6 @@ enum DbObjectUpdateType
 	DbObjectCreated,
 	DbObjectRemoved
 };
-
-class DbType;
 
 /**
  * A database object.

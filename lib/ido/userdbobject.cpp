@@ -26,10 +26,10 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE("User", "contact", 10, UserDbObject);
+REGISTER_DBTYPE(User, "contact", 10, UserDbObject);
 
-UserDbObject::UserDbObject(const String& name1, const String& name2)
-	: DbObject(DbType::GetByName("User"), name1, name2)
+UserDbObject::UserDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
+	: DbObject(type, name1, name2)
 { }
 
 Dictionary::Ptr UserDbObject::GetConfigFields(void) const

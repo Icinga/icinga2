@@ -26,10 +26,10 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE("HostGroup", "hostgroup", 3, HostGroupDbObject);
+REGISTER_DBTYPE(HostGroup, "hostgroup", 3, HostGroupDbObject);
 
-HostGroupDbObject::HostGroupDbObject(const String& name1, const String& name2)
-	: DbObject(DbType::GetByName("HostGroup"), name1, name2)
+HostGroupDbObject::HostGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
+	: DbObject(type, name1, name2)
 { }
 
 Dictionary::Ptr HostGroupDbObject::GetConfigFields(void) const

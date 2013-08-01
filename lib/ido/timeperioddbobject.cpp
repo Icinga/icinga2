@@ -26,10 +26,10 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE("TimePeriod", "timeperiod", 9, TimePeriodDbObject);
+REGISTER_DBTYPE(TimePeriod, "timeperiod", 9, TimePeriodDbObject);
 
-TimePeriodDbObject::TimePeriodDbObject(const String& name1, const String& name2)
-	: DbObject(DbType::GetByName("TimePeriod"), name1, name2)
+TimePeriodDbObject::TimePeriodDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
+	: DbObject(type, name1, name2)
 { }
 
 Dictionary::Ptr TimePeriodDbObject::GetConfigFields(void) const

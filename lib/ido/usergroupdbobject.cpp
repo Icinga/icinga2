@@ -26,10 +26,10 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE("UserGroup", "contactgroup", 11, UserGroupDbObject);
+REGISTER_DBTYPE(UserGroup, "contactgroup", 11, UserGroupDbObject);
 
-UserGroupDbObject::UserGroupDbObject(const String& name1, const String& name2)
-	: DbObject(DbType::GetByName("UserGroup"), name1, name2)
+UserGroupDbObject::UserGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
+	: DbObject(type, name1, name2)
 { }
 
 Dictionary::Ptr UserGroupDbObject::GetConfigFields(void) const

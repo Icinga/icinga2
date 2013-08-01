@@ -17,32 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "ido/servicegroupdbobject.h"
-#include "ido/dbtype.h"
-#include "ido/dbvalue.h"
-#include "icinga/servicegroup.h"
-#include "base/objectlock.h"
-#include <boost/foreach.hpp>
+#ifndef COMMANDDBOBJECT_H
+#define COMMANDDBOBJECT_H
 
-using namespace icinga;
+#include "ido/dbobject.h"
+#include "base/dynamicobject.h"
 
-REGISTER_DBTYPE(ServiceGroup, "servicegroup", 4, ServiceGroupDbObject);
-
-ServiceGroupDbObject::ServiceGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
-	: DbObject(type, name1, name2)
-{ }
-
-Dictionary::Ptr ServiceGroupDbObject::GetConfigFields(void) const
+namespace icinga
 {
-	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
-	ServiceGroup::Ptr group = static_pointer_cast<ServiceGroup>(GetObject());
 
-	fields->Set("alias", Empty);
+/**
+ * A Command database object.
+ *
+ * @ingroup ido
+ */
+class CommandDbObject : public DbObject
+{
+public:
+	DECLARE_PTR_TYPEDEFS(CommandDbObject);
 
-	return fields;
+	CommandDbObject(const boost::shared_ptr<DbType>& type, const String& name1, const String& name2);
+
+	virtual Dictionary::Ptr GetConfigFields(void) const;
+	virtual Dictionary::Ptr GetStatusFields(void) const;
+};
+
 }
 
-Dictionary::Ptr ServiceGroupDbObject::GetStatusFields(void) const
-{
-	return Empty;
-}
+#endif /* COMMANDDBOBJECT_H */

@@ -17,32 +17,41 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "ido/servicegroupdbobject.h"
+#include "ido/commanddbobject.h"
 #include "ido/dbtype.h"
 #include "ido/dbvalue.h"
-#include "icinga/servicegroup.h"
+#include "icinga/command.h"
+#include "icinga/compatutility.h"
 #include "base/objectlock.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-REGISTER_DBTYPE(ServiceGroup, "servicegroup", 4, ServiceGroupDbObject);
+REGISTER_DBTYPE(CheckCommand, "command", 12, CommandDbObject);
+REGISTER_DBTYPE(EventCommand, "command", 12, CommandDbObject);
+REGISTER_DBTYPE(NotificationCommand, "command", 12, CommandDbObject);
 
-ServiceGroupDbObject::ServiceGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
+CommandDbObject::CommandDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr ServiceGroupDbObject::GetConfigFields(void) const
+Dictionary::Ptr CommandDbObject::GetConfigFields(void) const
 {
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
-	ServiceGroup::Ptr group = static_pointer_cast<ServiceGroup>(GetObject());
+	Command::Ptr command = static_pointer_cast<Command>(GetObject());
 
-	fields->Set("alias", Empty);
+	Dictionary::Ptr attrs;
+
+	attrs = CompatUtility::GetCommandConfigAttributes(command);
+
+	Log(LogDebug, "ido", "get command");
+
+	fields->Set("command_line", attrs->Get("command_line"));
 
 	return fields;
 }
 
-Dictionary::Ptr ServiceGroupDbObject::GetStatusFields(void) const
+Dictionary::Ptr CommandDbObject::GetStatusFields(void) const
 {
 	return Empty;
 }

@@ -29,10 +29,10 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE("Service", "service", 2, ServiceDbObject);
+REGISTER_DBTYPE(Service, "service", 2, ServiceDbObject);
 
-ServiceDbObject::ServiceDbObject(const String& name1, const String& name2)
-	: DbObject(DbType::GetByName("Service"), name1, name2)
+ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
+	: DbObject(type, name1, name2)
 { }
 
 Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const

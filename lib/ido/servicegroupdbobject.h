@@ -36,7 +36,7 @@ class ServiceGroupDbObject : public DbObject
 public:
 	DECLARE_PTR_TYPEDEFS(ServiceGroupDbObject);
 
-	ServiceGroupDbObject(const String& name1, const String& name2);
+	ServiceGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
 	virtual Dictionary::Ptr GetConfigFields(void) const;
 	virtual Dictionary::Ptr GetStatusFields(void) const;
