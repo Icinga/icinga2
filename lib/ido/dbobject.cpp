@@ -71,6 +71,11 @@ DbType::Ptr DbObject::GetType(void) const
 
 void DbObject::SendConfigUpdate(void)
 {
+	Dictionary::Ptr fields = GetConfigFields();
+
+	if (!fields)
+		return;
+
 	DbQuery query1;
 	query1.Table = "icinga_" + GetType()->GetTable() + "s";
 	query1.Type = DbQueryDelete;
@@ -81,12 +86,7 @@ void DbObject::SendConfigUpdate(void)
 	DbQuery query2;
 	query2.Table = "icinga_" + GetType()->GetTable() + "s";
 	query2.Type = DbQueryInsert;
-
-	query2.Fields = GetConfigFields();
-
-	if (!query2.Fields)
-		return;
-
+	query2.Fields = fields;
 	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query2.Fields->Set("config_type", 1);
@@ -99,6 +99,11 @@ void DbObject::SendConfigUpdate(void)
 
 void DbObject::SendStatusUpdate(void)
 {
+	Dictionary::Ptr fields = GetStatusFields();
+
+	if (!fields)
+		return;
+
 	DbQuery query1;
 	query1.Table = "icinga_" + GetType()->GetTable() + "status";
 	query1.Type = DbQueryDelete;
@@ -109,12 +114,7 @@ void DbObject::SendStatusUpdate(void)
 	DbQuery query2;
 	query2.Table = "icinga_" + GetType()->GetTable() + "status";
 	query2.Type = DbQueryInsert;
-
-	query2.Fields = GetStatusFields();
-
-	if (!query2.Fields)
-		return;
-
+	query2.Fields = fields;
 	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query2.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
