@@ -29,7 +29,7 @@ using namespace icinga;
 
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
 
-INITIALIZE_ONCE(&DbConnection::StaticInitialize);
+INITIALIZE_ONCE(DbConnection, &DbConnection::StaticInitialize);
 
 DbConnection::DbConnection(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)

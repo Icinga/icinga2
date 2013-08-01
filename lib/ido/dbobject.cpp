@@ -34,7 +34,7 @@ boost::signals2::signal<void (const DbObject::Ptr&)> DbObject::OnRegistered;
 boost::signals2::signal<void (const DbObject::Ptr&)> DbObject::OnUnregistered;
 boost::signals2::signal<void (const DbQuery&)> DbObject::OnQuery;
 
-INITIALIZE_ONCE(&DbObject::StaticInitialize);
+INITIALIZE_ONCE(DbObject, &DbObject::StaticInitialize);
 
 DbObject::DbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2)
 	: m_Name1(name1), m_Name2(name2), m_Type(type), m_LastConfigUpdate(0), m_LastStatusUpdate(0)

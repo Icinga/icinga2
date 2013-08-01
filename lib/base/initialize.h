@@ -34,8 +34,8 @@ inline bool InitializeOnceHelper(InitializeFunc func)
 	return true;
 }
 
-#define INITIALIZE_ONCE(func) \
-	static bool l_InitializeOnce ## __LINE__(InitializeOnceHelper(func));
+#define INITIALIZE_ONCE(name, func) \
+	bool l_InitializeOnce ## name(InitializeOnceHelper(func));
 
 }
 

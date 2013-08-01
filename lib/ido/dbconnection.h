@@ -40,6 +40,8 @@ public:
 
 	DbConnection(const Dictionary::Ptr& serializedUpdate);
 
+	static void StaticInitialize(void);
+
 	void SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref);
 	DbReference GetReference(const DbObject::Ptr& dbobj) const;
 
@@ -60,7 +62,6 @@ private:
 	std::map<DbObject::Ptr, DbReference> m_References;
 	static Timer::Ptr m_ProgramStatusTimer;
 
-	static void StaticInitialize(void);
 	static void ProgramStatusHandler(void);
 
 	friend class DbType;

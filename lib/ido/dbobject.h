@@ -46,6 +46,8 @@ class DbObject : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DbObject);
 
+	static void StaticInitialize(void);
+
 	void SetObject(const DynamicObject::Ptr& object);
 	DynamicObject::Ptr GetObject(void) const;
 
@@ -86,8 +88,6 @@ private:
 	double m_LastStatusUpdate;
 
 	friend boost::shared_ptr<DbObject> boost::make_shared<>(const icinga::String&, const icinga::String&);
-
-	static void StaticInitialize(void);
 
 	static void ObjectRegisteredHandler(const DynamicObject::Ptr& object);
 	static void ObjectUnregisteredHandler(const DynamicObject::Ptr& object);
