@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef INITIALIZE_H
+#define INITIALIZE_H
 
 #include "base/i2-base.h"
 
@@ -39,4 +39,4 @@ inline bool InitializeOnceHelper(InitializeFunc func)
 
 }
 
-#endif /* UTILITY_H */
+#endif /* INITIALIZE_H */
