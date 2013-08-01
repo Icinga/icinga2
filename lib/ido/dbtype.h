@@ -43,11 +43,12 @@ public:
 	typedef std::map<String, DbType::Ptr, string_iless> TypeMap;
 	typedef std::map<std::pair<String, String>, boost::shared_ptr<DbObject>, pair_string_iless> ObjectMap;
 
-	DbType(const String& name, const String& table, long tid, const ObjectFactory& factory);
+	DbType(const String& name, const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
 
 	String GetName(void) const;
 	String GetTable(void) const;
 	long GetTypeID(void) const;
+	String GetIDColumn(void) const;
 
 	static void RegisterType(const DbType::Ptr& type);
 
@@ -60,6 +61,7 @@ private:
 	String m_Name;
 	String m_Table;
 	long m_TypeID;
+	String m_IDColumn;
 	ObjectFactory m_ObjectFactory;
 
 	static boost::mutex m_StaticMutex;
@@ -84,9 +86,9 @@ class DbTypeRegistry : public Registry<DbType::Ptr>
 class RegisterDbTypeHelper
 {
 public:
-	RegisterDbTypeHelper(const String& name, const String& table, long tid, const DbType::ObjectFactory& factory)
+	RegisterDbTypeHelper(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
 	{
-		DbType::Ptr dbtype = boost::make_shared<DbType>(name, table, tid, factory);
+		DbType::Ptr dbtype = boost::make_shared<DbType>(name, table, tid, idcolumn, factory);
 		DbType::RegisterType(dbtype);
 	}
 };
@@ -102,8 +104,8 @@ shared_ptr<T> DbObjectFactory(const DbType::Ptr& type, const String& name1, cons
 	return boost::make_shared<T>(type, name1, name2);
 }
 
-#define REGISTER_DBTYPE(name, table, tid, type) \
-	I2_EXPORT icinga::RegisterDbTypeHelper g_RegisterDBT_ ## name(#name, table, tid, DbObjectFactory<type>);
+#define REGISTER_DBTYPE(name, table, tid, idcolumn, type) \
+	I2_EXPORT icinga::RegisterDbTypeHelper g_RegisterDBT_ ## name(#name, table, tid, idcolumn, DbObjectFactory<type>);
 
 }
 

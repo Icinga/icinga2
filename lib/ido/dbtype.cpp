@@ -29,8 +29,8 @@ using namespace icinga;
 
 boost::mutex DbType::m_StaticMutex;
 
-DbType::DbType(const String& name, const String& table, long tid, const DbType::ObjectFactory& factory)
-	: m_Name(name), m_Table(table), m_TypeID(tid), m_ObjectFactory(factory)
+DbType::DbType(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
+	: m_Name(name), m_Table(table), m_TypeID(tid), m_IDColumn(idcolumn), m_ObjectFactory(factory)
 { }
 
 String DbType::GetName(void) const
@@ -46,6 +46,11 @@ String DbType::GetTable(void) const
 long DbType::GetTypeID(void) const
 {
 	return m_TypeID;
+}
+
+String DbType::GetIDColumn(void) const
+{
+	return m_IDColumn;
 }
 
 void DbType::RegisterType(const DbType::Ptr& type)

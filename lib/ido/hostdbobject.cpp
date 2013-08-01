@@ -31,7 +31,7 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE(Host, "host", 1, HostDbObject);
+REGISTER_DBTYPE(Host, "host", 1, "host_object_id", HostDbObject);
 
 HostDbObject::HostDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)

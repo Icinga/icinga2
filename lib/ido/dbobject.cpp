@@ -83,14 +83,14 @@ void DbObject::SendConfigUpdate(void)
 	query1.Table = GetType()->GetTable() + "s";
 	query1.Type = DbQueryDelete;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
-	query1.WhereCriteria->Set(GetType()->GetTable() + "_object_id", GetObject());
+	query1.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
 	OnQuery(query1);
 
 	DbQuery query2;
 	query2.Table = GetType()->GetTable() + "s";
 	query2.Type = DbQueryInsert;
 	query2.Fields = fields;
-	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());
+	query2.Fields->Set(GetType()->GetIDColumn(), GetObject());
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query2.Fields->Set("config_type", 1);
 	OnQuery(query2);
@@ -111,14 +111,14 @@ void DbObject::SendStatusUpdate(void)
 	query1.Table = GetType()->GetTable() + "status";
 	query1.Type = DbQueryDelete;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
-	query1.WhereCriteria->Set(GetType()->GetTable() + "_object_id", GetObject());
+	query1.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
 	OnQuery(query1);
 
 	DbQuery query2;
 	query2.Table = GetType()->GetTable() + "status";
 	query2.Type = DbQueryInsert;
 	query2.Fields = fields;
-	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());
+	query2.Fields->Set(GetType()->GetIDColumn(), GetObject());
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query2.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	OnQuery(query2);
