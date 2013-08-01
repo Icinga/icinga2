@@ -66,12 +66,12 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 	fields->Set("max_check_attempts", attrs->Get("max_check_attempts"));
 	fields->Set("first_notification_delay", Empty);
 	fields->Set("notification_interval", attrs->Get("notification_interval"));
-	fields->Set("notify_on_warning", Empty);
-	fields->Set("notify_on_unknown", Empty);
-	fields->Set("notify_on_critical", Empty);
-	fields->Set("notify_on_recovery", Empty);
-	fields->Set("notify_on_flapping", Empty);
-	fields->Set("notify_on_downtime", Empty);
+	fields->Set("notify_on_warning", attrs->Get("notify_on_warning"));
+	fields->Set("notify_on_unknown", attrs->Get("notify_on_unknown"));
+	fields->Set("notify_on_critical", attrs->Get("notify_on_critical"));
+	fields->Set("notify_on_recovery", attrs->Get("notify_on_recovery"));
+	fields->Set("notify_on_flapping", attrs->Get("notify_on_flapping"));
+	fields->Set("notify_on_downtime", attrs->Get("notify_on_downtime"));
 	fields->Set("stalk_on_ok", 0);
 	fields->Set("stalk_on_warning", 0);
 	fields->Set("stalk_on_unknown", 0);

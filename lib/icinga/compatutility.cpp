@@ -196,7 +196,10 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 
 		if (notification->GetNotificationStateFilter())
 			notification_state_filter = notification->GetNotificationStateFilter();
+
+		Log(LogDebug, "compatutility", "notification_type_filter: " + Convert::ToString(notification_type_filter) + " notification_state_filter: " + Convert::ToString(notification_state_filter));
 	}
+
 
 	if (notification_interval == -1)
 		notification_interval = 60;
@@ -228,7 +231,7 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 		else
 			attr->Set("alias", host->GetDisplayName());
 
-		/* notification filters */
+		/* notification state filters */
 		if (notification_state_filter & (1<<StateWarning) ||
 				notification_state_filter & (1<<StateCritical)) {
 			attr->Set("notify_on_down", 1);
@@ -244,7 +247,7 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 		custom = service->GetCustom();
 		macros = service->GetMacros();
 
-		/* notification filters */
+		/* notification state filters */
 		if (notification_state_filter & (1<<StateWarning)) {
 			attr->Set("notify_on_warning", 1);
 			notification_options.push_back("w");
@@ -306,7 +309,6 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 	}
 
 	/* custom attr */
-	/* TODO resolve all static macros */
 	if (custom) {
 		attr->Set("notes", custom->Get("notes"));
 		attr->Set("notes_url", custom->Get("notes_url"));

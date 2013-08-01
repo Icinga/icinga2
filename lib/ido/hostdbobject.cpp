@@ -74,11 +74,11 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 
 	fields->Set("first_notification_delay", Empty);
 	fields->Set("notification_interval", attrs->Get("notification_interval"));
-	fields->Set("notify_on_down", Empty);
-	fields->Set("notify_on_unreachable", Empty);
-	fields->Set("notify_on_recovery", Empty);
-	fields->Set("notify_on_flapping", Empty);
-	fields->Set("notify_on_downtime", Empty);
+	fields->Set("notify_on_down", attrs->Get("notify_on_down"));
+	fields->Set("notify_on_unreachable", attrs->Get("notify_on_unreachable"));
+	fields->Set("notify_on_recovery", attrs->Get("notify_on_recovery"));
+	fields->Set("notify_on_flapping", attrs->Get("notify_on_flapping"));
+	fields->Set("notify_on_downtime", attrs->Get("notify_on_downtime"));
 
 	fields->Set("stalk_on_up", Empty);
 	fields->Set("stalk_on_down", Empty);
