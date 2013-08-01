@@ -77,14 +77,14 @@ void DbObject::SendConfigUpdate(void)
 		return;
 
 	DbQuery query1;
-	query1.Table = "icinga_" + GetType()->GetTable() + "s";
+	query1.Table = GetType()->GetTable() + "s";
 	query1.Type = DbQueryDelete;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set(GetType()->GetTable() + "_object_id", GetObject());
 	OnQuery(query1);
 
 	DbQuery query2;
-	query2.Table = "icinga_" + GetType()->GetTable() + "s";
+	query2.Table = GetType()->GetTable() + "s";
 	query2.Type = DbQueryInsert;
 	query2.Fields = fields;
 	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());
@@ -105,14 +105,14 @@ void DbObject::SendStatusUpdate(void)
 		return;
 
 	DbQuery query1;
-	query1.Table = "icinga_" + GetType()->GetTable() + "status";
+	query1.Table = GetType()->GetTable() + "status";
 	query1.Type = DbQueryDelete;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set(GetType()->GetTable() + "_object_id", GetObject());
 	OnQuery(query1);
 
 	DbQuery query2;
-	query2.Table = "icinga_" + GetType()->GetTable() + "status";
+	query2.Table = GetType()->GetTable() + "status";
 	query2.Type = DbQueryInsert;
 	query2.Fields = fields;
 	query2.Fields->Set(GetType()->GetTable() + "_object_id", GetObject());

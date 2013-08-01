@@ -30,7 +30,9 @@ Timer::Ptr DbConnection::m_ProgramStatusTimer;
 
 DbConnection::DbConnection(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)
-{ }
+{
+	RegisterAttribute("table_prefix", Attribute_Config, &m_TablePrefix);
+}
 
 void DbConnection::Start(void)
 {
@@ -47,17 +49,25 @@ void DbConnection::StaticInitialize(void)
 	m_ProgramStatusTimer->Start();
 }
 
+String DbConnection::GetTablePrefix(void) const
+{
+	if (m_TablePrefix.IsEmpty())
+		return "icinga_";
+	else
+		return m_TablePrefix;
+}
+
 void DbConnection::ProgramStatusHandler(void)
 {
 	DbQuery query1;
-	query1.Table = "icinga_programstatus";
+	query1.Table = "programstatus";
 	query1.Type = DbQueryDelete;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query1);
 
 	DbQuery query2;
-	query2.Table = "icinga_programstatus";
+	query2.Table = "programstatus";
 	query2.Type = DbQueryInsert;
 
 	query2.Fields = boost::make_shared<Dictionary>();

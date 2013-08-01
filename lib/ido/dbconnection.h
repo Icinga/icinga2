@@ -43,6 +43,8 @@ public:
 	void SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref);
 	DbReference GetReference(const DbObject::Ptr& dbobj) const;
 
+	String GetTablePrefix(void) const;
+
 protected:
 	virtual void Start(void);
 
@@ -53,6 +55,8 @@ protected:
 	void UpdateAllObjects(void);
 
 private:
+	Attribute<String> m_TablePrefix;
+
 	std::map<DbObject::Ptr, DbReference> m_References;
 	static Timer::Ptr m_ProgramStatusTimer;
 

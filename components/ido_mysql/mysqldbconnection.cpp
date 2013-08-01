@@ -121,10 +121,10 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 		if (!m_InstanceName.IsEmpty())
 			instanceName = m_InstanceName;
 
-		Array::Ptr rows = Query("SELECT instance_id FROM icinga_instances WHERE instance_name = '" + Escape(instanceName) + "'");
+		Array::Ptr rows = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = '" + Escape(instanceName) + "'");
 
 		if (rows->GetLength() == 0) {
-			Query("INSERT INTO icinga_instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + m_InstanceDescription + "')");
+			Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + m_InstanceDescription + "')");
 			m_InstanceID = GetInsertID();
 		} else {
 			Dictionary::Ptr row = rows->Get(0);
@@ -135,10 +135,10 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 		msgbuf << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID);
 		Log(LogInformation, "ido_mysql", msgbuf.str());
 
-		Query("UPDATE icinga_objects SET is_active = 0");
+		Query("UPDATE " + GetTablePrefix() + "objects SET is_active = 0");
 
 		std::ostringstream q1buf;
-		q1buf << "SELECT object_id, objecttype_id, name1, name2 FROM icinga_objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
+		q1buf << "SELECT object_id, objecttype_id, name1, name2 FROM " + GetTablePrefix() + "objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
 		rows = Query(q1buf.str());
 
 		ObjectLock olock(rows);
@@ -255,13 +255,13 @@ void MysqlDbConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 	std::ostringstream qbuf;
 
 	if (!dbref.IsValid()) {
-		qbuf << "INSERT INTO icinga_objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
+		qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
 		      << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
 		      << "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
 		Query(qbuf.str());
 		SetReference(dbobj, GetInsertID());
 	} else {
-		qbuf << "UPDATE icinga_objects SET is_active = 1 WHERE object_id = " << static_cast<long>(dbref);
+		qbuf << "UPDATE " + GetTablePrefix() + "objects SET is_active = 1 WHERE object_id = " << static_cast<long>(dbref);
 		Query(qbuf.str());
 	}
 }
@@ -279,7 +279,7 @@ void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 		return;
 
 	std::ostringstream qbuf;
-	qbuf << "UPDATE icinga_objects SET is_active = 0 WHERE object_id = " << static_cast<long>(dbref);
+	qbuf << "UPDATE " + GetTablePrefix() + "objects SET is_active = 0 WHERE object_id = " << static_cast<long>(dbref);
 	Query(qbuf.str());
 }
 
