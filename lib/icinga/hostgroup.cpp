@@ -32,6 +32,7 @@ static boost::mutex l_Mutex;
 static std::map<String, std::vector<Host::WeakPtr> > l_MembersCache;
 static bool l_MembersCacheNeedsUpdate = false;
 static Timer::Ptr l_MembersCacheTimer;
+boost::signals2::signal<void (void)> HostGroup::OnMembersChanged;
 
 REGISTER_TYPE(HostGroup);
 
@@ -139,4 +140,6 @@ void HostGroup::RefreshMembersCache(void)
 
 	boost::mutex::scoped_lock lock(l_Mutex);
 	l_MembersCache.swap(newMembersCache);
+
+	OnMembersChanged();
 }
