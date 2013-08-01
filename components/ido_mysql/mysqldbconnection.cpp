@@ -399,7 +399,7 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 			if (!first)
 				qbuf << " AND ";
 
-			qbuf << key << " = '" << value << "'";
+			qbuf << key << " = " << value;
 
 			if (first)
 				first = false;
