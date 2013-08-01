@@ -336,13 +336,13 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 
 	switch (query.Type) {
 		case DbQueryInsert:
-			qbuf << "INSERT INTO " << query.Table;
+			qbuf << "INSERT INTO " << GetTablePrefix() << query.Table;
 			break;
 		case DbQueryUpdate:
-			qbuf << "UPDATE " << query.Table << "SET";
+			qbuf << "UPDATE " << GetTablePrefix() << query.Table << "SET";
 			break;
 		case DbQueryDelete:
-			qbuf << "DELETE FROM " << query.Table;
+			qbuf << "DELETE FROM " << GetTablePrefix() << query.Table;
 			break;
 		default:
 			ASSERT(!"Invalid query type.");
