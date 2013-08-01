@@ -30,6 +30,7 @@ libbase_la_SOURCES =  \
 	filelogger.cpp \
 	filelogger.h \
 	i2-base.h \
+	initialize.h \
 	logger.cpp \
 	logger.h \
 	logger_fwd.h \

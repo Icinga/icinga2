@@ -22,11 +22,14 @@
 #include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include "base/utility.h"
+#include "base/initialize.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
+
+INITIALIZE_ONCE(&DbConnection::StaticInitialize);
 
 DbConnection::DbConnection(const Dictionary::Ptr& serializedUpdate)
 	: DynamicObject(serializedUpdate)

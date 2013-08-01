@@ -31,16 +31,7 @@ boost::mutex DbType::m_StaticMutex;
 
 DbType::DbType(const String& name, const String& table, long tid, const DbType::ObjectFactory& factory)
 	: m_Name(name), m_Table(table), m_TypeID(tid), m_ObjectFactory(factory)
-{
-	static boost::once_flag initializeOnce = BOOST_ONCE_INIT;
-	boost::call_once(initializeOnce, &DbType::StaticInitialize);
-}
-
-void DbType::StaticInitialize(void)
-{
-	DbConnection::StaticInitialize();
-	DbObject::StaticInitialize();
-}
+{ }
 
 String DbType::GetName(void) const
 {
