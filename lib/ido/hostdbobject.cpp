@@ -44,14 +44,11 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 
 	Service::Ptr service = host->GetHostCheckService();
 
-	if (!service)
-		return Empty;
-
 	Dictionary::Ptr attrs;
 
 	{
-		ObjectLock olock(service);
-		attrs = CompatUtility::GetServiceConfigAttributes(service, CompatTypeHost);
+		ObjectLock olock(host);
+		attrs = CompatUtility::GetHostConfigAttributes(host);
 	}
 
 	fields->Set("alias", attrs->Get("alias"));
@@ -60,12 +57,18 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	fields->Set("address", attrs->Get("address"));
 	fields->Set("address6", attrs->Get("address6"));
 
-	fields->Set("check_command_object_id", service->GetCheckCommand());
-	fields->Set("check_command_args", Empty);
-	fields->Set("eventhandler_command_object_id", service->GetEventCommand());
-	fields->Set("eventhandler_command_args", Empty);
+	if (service) {
+		fields->Set("check_command_object_id", service->GetCheckCommand());
+		fields->Set("check_command_args", Empty);
+		fields->Set("eventhandler_command_object_id", service->GetEventCommand());
+		fields->Set("eventhandler_command_args", Empty);
+	}
+
 	fields->Set("notification_timeperiod_object_id", Notification::GetByName(attrs->Get("notification_period")));
-	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
+
+	if (service)
+		fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
+
 	fields->Set("failure_prediction_options", Empty);
 
 	fields->Set("check_interval", attrs->Get("check_interval"));
@@ -123,58 +126,63 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 	Service::Ptr service = host->GetHostCheckService();
 
-	if (!service)
-		return Empty;
-
 	Dictionary::Ptr attrs;
 
-	{
+	/* fetch service status, or dump a pending hoststatus */
+	if (service) {
+
 		ObjectLock olock(service);
 		attrs = CompatUtility::GetServiceStatusAttributes(service, CompatTypeHost);
-	}
 
-	fields->Set("output", attrs->Get("plugin_output"));
-	fields->Set("long_output", attrs->Get("long_plugin_output"));
-	fields->Set("perfdata", attrs->Get("performance_data"));
-	fields->Set("current_state", attrs->Get("current_state"));
-	fields->Set("has_been_checked", attrs->Get("has_been_checked"));
-	fields->Set("should_be_scheduled", attrs->Get("should_be_scheduled"));
-	fields->Set("current_check_attempt", attrs->Get("current_attempt"));
-	fields->Set("max_check_attempts", attrs->Get("max_attempts"));
-	fields->Set("last_check", DbValue::FromTimestamp(attrs->Get("last_check")));
-	fields->Set("next_check", DbValue::FromTimestamp(attrs->Get("next_check")));
-	fields->Set("check_type", Empty);
-	fields->Set("last_state_change", DbValue::FromTimestamp(attrs->Get("last_state_change")));
-	fields->Set("last_hard_state_change", DbValue::FromTimestamp(attrs->Get("last_hard_state_change")));
-	fields->Set("last_time_up", DbValue::FromTimestamp(attrs->Get("last_time_up")));
-	fields->Set("last_time_down", DbValue::FromTimestamp(attrs->Get("last_time_down")));
-	fields->Set("last_time_unreachable", DbValue::FromTimestamp(attrs->Get("last_time_unreachable")));
-	fields->Set("state_type", attrs->Get("state_type"));
-	fields->Set("last_notification", DbValue::FromTimestamp(attrs->Get("last_notification")));
-	fields->Set("next_notification", DbValue::FromTimestamp(attrs->Get("next_notification")));
-	fields->Set("no_more_notifications", Empty);
-	fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
-	fields->Set("problem_has_been_acknowledged", attrs->Get("problem_has_been_acknowledged"));
-	fields->Set("acknowledgement_type", attrs->Get("acknowledgement_type"));
-	fields->Set("current_notification_number", attrs->Get("current_notification_number"));
-	fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
-	fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
-	fields->Set("eventhandler_enabled", attrs->Get("eventhandler_enabled"));
-	fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
-	fields->Set("is_flapping", attrs->Get("is_flapping"));
-	fields->Set("percent_state_change", attrs->Get("percent_state_change"));
-	fields->Set("latency", attrs->Get("check_latency"));
-	fields->Set("execution_time", attrs->Get("check_execution_time"));
-	fields->Set("scheduled_downtime_depth", attrs->Get("scheduled_downtime_depth"));
-	fields->Set("failure_prediction_enabled", Empty);
-	fields->Set("process_performance_data", attrs->Get("process_performance_data"));
-	fields->Set("obsess_over_host", Empty);
-	fields->Set("modified_host_attributes", Empty);
-	fields->Set("event_handler", attrs->Get("event_handler"));
-	fields->Set("check_command", attrs->Get("check_command"));
-	fields->Set("normal_check_interval", attrs->Get("check_interval"));
-	fields->Set("retry_check_interval", attrs->Get("retry_interval"));
-	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
+		fields->Set("output", attrs->Get("plugin_output"));
+		fields->Set("long_output", attrs->Get("long_plugin_output"));
+		fields->Set("perfdata", attrs->Get("performance_data"));
+		fields->Set("current_state", attrs->Get("current_state"));
+		fields->Set("has_been_checked", attrs->Get("has_been_checked"));
+		fields->Set("should_be_scheduled", attrs->Get("should_be_scheduled"));
+		fields->Set("current_check_attempt", attrs->Get("current_attempt"));
+		fields->Set("max_check_attempts", attrs->Get("max_attempts"));
+		fields->Set("last_check", DbValue::FromTimestamp(attrs->Get("last_check")));
+		fields->Set("next_check", DbValue::FromTimestamp(attrs->Get("next_check")));
+		fields->Set("check_type", Empty);
+		fields->Set("last_state_change", DbValue::FromTimestamp(attrs->Get("last_state_change")));
+		fields->Set("last_hard_state_change", DbValue::FromTimestamp(attrs->Get("last_hard_state_change")));
+		fields->Set("last_time_up", DbValue::FromTimestamp(attrs->Get("last_time_up")));
+		fields->Set("last_time_down", DbValue::FromTimestamp(attrs->Get("last_time_down")));
+		fields->Set("last_time_unreachable", DbValue::FromTimestamp(attrs->Get("last_time_unreachable")));
+		fields->Set("state_type", attrs->Get("state_type"));
+		fields->Set("last_notification", DbValue::FromTimestamp(attrs->Get("last_notification")));
+		fields->Set("next_notification", DbValue::FromTimestamp(attrs->Get("next_notification")));
+		fields->Set("no_more_notifications", Empty);
+		fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
+		fields->Set("problem_has_been_acknowledged", attrs->Get("problem_has_been_acknowledged"));
+		fields->Set("acknowledgement_type", attrs->Get("acknowledgement_type"));
+		fields->Set("current_notification_number", attrs->Get("current_notification_number"));
+		fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
+		fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
+		fields->Set("eventhandler_enabled", attrs->Get("eventhandler_enabled"));
+		fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
+		fields->Set("is_flapping", attrs->Get("is_flapping"));
+		fields->Set("percent_state_change", attrs->Get("percent_state_change"));
+		fields->Set("latency", attrs->Get("check_latency"));
+		fields->Set("execution_time", attrs->Get("check_execution_time"));
+		fields->Set("scheduled_downtime_depth", attrs->Get("scheduled_downtime_depth"));
+		fields->Set("failure_prediction_enabled", Empty);
+		fields->Set("process_performance_data", attrs->Get("process_performance_data"));
+		fields->Set("obsess_over_host", Empty);
+		fields->Set("modified_host_attributes", Empty);
+		fields->Set("event_handler", attrs->Get("event_handler"));
+		fields->Set("check_command", attrs->Get("check_command"));
+		fields->Set("normal_check_interval", attrs->Get("check_interval"));
+		fields->Set("retry_check_interval", attrs->Get("retry_interval"));
+		fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
+	}
+	else {
+		fields->Set("has_been_checked", 0);
+		fields->Set("last_check", DbValue::FromTimestamp(0));
+		fields->Set("next_check", DbValue::FromTimestamp(0));
+		fields->Set("active_checks_enabled", 0);
+	}
 
 	return fields;
 }

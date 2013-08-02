@@ -32,6 +32,140 @@
 
 using namespace icinga;
 
+Dictionary::Ptr CompatUtility::GetHostConfigAttributes(const Host::Ptr& host)
+{
+	Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+	Dictionary::Ptr service_attr = boost::make_shared<Dictionary>();
+
+	ASSERT(host->OwnsLock());
+
+	/* host config attributes */
+	Dictionary::Ptr custom;
+	Dictionary::Ptr macros;
+	std::vector<String> notification_options;
+
+	/* dicts */
+	macros = host->GetMacros();
+	custom = host->GetCustom();
+
+	if (macros) {
+		attr->Set("address", macros->Get("address"));
+		attr->Set("address6", macros->Get("address6"));
+	}
+
+	if (custom) {
+		attr->Set("notes", custom->Get("notes"));
+		attr->Set("notes_url", custom->Get("notes_url"));
+		attr->Set("action_url", custom->Get("action_url"));
+		attr->Set("icon_image", custom->Get("icon_image"));
+		attr->Set("icon_image_alt", custom->Get("icon_image_alt"));
+
+		attr->Set("statusmap_image", custom->Get("statusmap_image"));
+		attr->Set("2d_coords", custom->Get("2d_coords"));
+
+		if (!custom->Get("2d_coords").IsEmpty()) {
+			std::vector<String> tokens;
+			String coords = custom->Get("2d_coords");
+			boost::algorithm::split(tokens, coords, boost::is_any_of(","));
+
+			if (tokens.size() == 2) {
+				attr->Set("have_2d_coords", 1);
+				attr->Set("x_2d", tokens[0]);
+				attr->Set("y_2d", tokens[1]);
+			}
+			else
+				attr->Set("have_2d_coords", 0);
+		}
+		else
+			attr->Set("have_2d_coords", 0);
+
+		/* deprecated in 1.x, but empty */
+		attr->Set("vrml_image", Empty);
+		attr->Set("3d_coords", Empty);
+		attr->Set("have_3d_coords", 0);
+		attr->Set("x_3d", Empty);
+		attr->Set("y_3d", Empty);
+		attr->Set("z_3d", Empty);
+	}
+
+	/* alias */
+	if (!host->GetDisplayName().IsEmpty())
+		attr->Set("alias", host->GetName());
+	else
+		attr->Set("alias", host->GetDisplayName());
+
+	/* get additonal attributes from hostcheck service */
+	Service::Ptr service = host->GetHostCheckService();
+
+	if (service) {
+		unsigned long notification_type_filter;
+		unsigned long notification_state_filter;
+
+		ObjectLock olock(service);
+
+		BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+			if (notification->GetNotificationTypeFilter())
+				notification_type_filter = notification->GetNotificationTypeFilter();
+
+			if (notification->GetNotificationStateFilter())
+				notification_state_filter = notification->GetNotificationStateFilter();
+		}
+
+		/* notification state filters */
+		if (notification_state_filter & (1<<StateWarning) ||
+		    notification_state_filter & (1<<StateCritical)) {
+			attr->Set("notify_on_down", 1);
+			notification_options.push_back("d");
+		}
+		if (notification_state_filter & (1<<StateUncheckable)) {
+			attr->Set("notify_on_unreachable", 1);
+			notification_options.push_back("u");
+		}
+
+		/* notification type filters */
+		if (notification_type_filter & (1<<NotificationRecovery)) {
+			attr->Set("notify_on_recovery", 1);
+			notification_options.push_back("r");
+		}
+		if (notification_type_filter & (1<<NotificationFlappingStart) ||
+		    notification_type_filter & (1<<NotificationFlappingEnd)) {
+			attr->Set("notify_on_flapping", 1);
+			notification_options.push_back("f");
+		}
+		if (notification_type_filter & (1<<NotificationDowntimeStart) ||
+		    notification_type_filter & (1<<NotificationDowntimeEnd) ||
+		    notification_type_filter & (1<<NotificationDowntimeRemoved)) {
+			attr->Set("notify_on_downtime", 1);
+			notification_options.push_back("s");
+		}
+
+		service_attr = CompatUtility::GetServiceConfigAttributes(service, CompatTypeService);
+
+		attr->Set("check_period", service_attr->Get("check_period"));
+		attr->Set("check_interval", service_attr->Get("check_interval"));
+		attr->Set("retry_interval", service_attr->Get("retry_interval"));
+		attr->Set("max_check_attempts", service_attr->Get("max_check_attempts"));
+		attr->Set("active_checks_enabled", service_attr->Get("active_checks_enabled"));
+		attr->Set("passive_checks_enabled", service_attr->Get("passive_checks_enabled"));
+		attr->Set("flap_detection_enabled", service_attr->Get("flap_detection_enabled"));
+		attr->Set("low_flap_threshold", service_attr->Get("low_flap_threshold"));
+		attr->Set("high_flap_threshold", service_attr->Get("high_flap_threshold"));
+		attr->Set("notifications_enabled", service_attr->Get("notifications_enabled"));
+		attr->Set("eventhandler_enabled", service_attr->Get("eventhandler_enabled"));
+		attr->Set("is_volatile", service_attr->Get("is_volatile"));
+		attr->Set("notifications_enabled", service_attr->Get("notifications_enabled"));
+		attr->Set("notification_options", boost::algorithm::join(notification_options, ","));
+		attr->Set("notification_interval", service_attr->Get("notification_interval"));
+		attr->Set("process_performance_data", service_attr->Get("process_performance_data"));
+		attr->Set("notification_period", service_attr->Get("notification_period"));
+		attr->Set("check_freshness", service_attr->Get("check_freshness"));
+		attr->Set("check_command", service_attr->Get("check_command"));
+		attr->Set("event_handler", service_attr->Get("event_handler"));
+	}
+
+	return attr;
+}
+
 Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& service, CompatObjectType type)
 {
 	Dictionary::Ptr attr = boost::make_shared<Dictionary>();

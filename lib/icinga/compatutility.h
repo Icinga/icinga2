@@ -46,6 +46,8 @@ enum CompatObjectType
 class I2_ICINGA_API CompatUtility
 {
 public:
+	static Dictionary::Ptr GetHostConfigAttributes(const Host::Ptr& host);
+
 	static Dictionary::Ptr GetServiceStatusAttributes(const Service::Ptr& service, CompatObjectType type);
 	static Dictionary::Ptr GetServiceConfigAttributes(const Service::Ptr& service, CompatObjectType type);
 
