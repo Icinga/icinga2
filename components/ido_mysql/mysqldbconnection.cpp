@@ -426,6 +426,6 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 
 	Query(qbuf.str());
 
-	if (type == DbQueryInsert && query.Object)
+	if (type == DbQueryInsert && query.Object && query.UpdateObjectID)
 		SetInsertID(query.Object, GetLastInsertID());
 }

@@ -89,6 +89,7 @@ void DbObject::SendConfigUpdate(void)
 	query.WhereCriteria = boost::make_shared<Dictionary>();
 	query.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
 	query.Object = GetSelf();
+	query.UpdateObjectID = true;
 	OnQuery(query);
 
 	m_LastConfigUpdate = Utility::GetTime();
@@ -113,6 +114,7 @@ void DbObject::SendStatusUpdate(void)
 	query.WhereCriteria = boost::make_shared<Dictionary>();
 	query.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
 	query.Object = GetSelf();
+	query.UpdateObjectID = false;
 	OnQuery(query);
 
 	m_LastStatusUpdate = Utility::GetTime();
