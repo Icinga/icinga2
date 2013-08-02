@@ -78,6 +78,9 @@ private:
 
 	void TxTimerHandler(void);
 	void ReconnectTimerHandler(void);
+
+	void ClearConfigTables(void);
+	void ClearConfigTable(const String& table);
 };
 
 }

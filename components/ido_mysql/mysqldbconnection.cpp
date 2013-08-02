@@ -135,6 +135,8 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 		msgbuf << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID);
 		Log(LogInformation, "ido_mysql", msgbuf.str());
 
+		ClearConfigTables();
+
 		Query("UPDATE " + GetTablePrefix() + "objects SET is_active = 0");
 
 		std::ostringstream q1buf;
@@ -156,6 +158,38 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 	}
 
 	UpdateAllObjects();
+}
+
+void MysqlDbConnection::ClearConfigTables(void)
+{
+	/* TODO make hardcoded table names modular */
+	ClearConfigTable("commands");
+	ClearConfigTable("contact_addresses");
+	ClearConfigTable("contact_notificationcommands");
+	ClearConfigTable("contactgroup_members");
+	ClearConfigTable("contactgroups");
+	ClearConfigTable("contacts");
+	ClearConfigTable("customvariables");
+	ClearConfigTable("host_contactgroups");
+	ClearConfigTable("host_contacts");
+	ClearConfigTable("host_parenthosts");
+	ClearConfigTable("hostdependencies");
+	ClearConfigTable("hostgroup_members");
+	ClearConfigTable("hostgroups");
+	ClearConfigTable("hosts");
+	ClearConfigTable("service_contactgroups");
+	ClearConfigTable("service_contacts");
+	ClearConfigTable("servicedependencies");
+	ClearConfigTable("servicegroup_members");
+	ClearConfigTable("servicegroups");
+	ClearConfigTable("services");
+	ClearConfigTable("timeperiod_timeranges");
+	ClearConfigTable("timeperiods");
+}
+
+void MysqlDbConnection::ClearConfigTable(const String& table)
+{
+	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " + Convert::ToString(static_cast<long>(m_InstanceID)));
 }
 
 Array::Ptr MysqlDbConnection::Query(const String& query)
@@ -325,7 +359,7 @@ bool MysqlDbConnection::FieldToEscapedString(const String& key, const Value& val
 
 		*result = static_cast<long>(dbrefcol);
 	} else if (DbValue::IsTimestamp(value)) {
-		long ts = rawvalue; 
+		long ts = rawvalue;
 		std::ostringstream msgbuf;
 		msgbuf << "FROM_UNIXTIME(" << ts << ")";
 		*result = Value(msgbuf.str());
