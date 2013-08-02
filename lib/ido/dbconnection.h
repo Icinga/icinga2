@@ -42,8 +42,11 @@ public:
 
 	static void StaticInitialize(void);
 
-	void SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref);
-	DbReference GetReference(const DbObject::Ptr& dbobj) const;
+	void SetObjectID(const DbObject::Ptr& dbobj, const DbReference& dbref);
+	DbReference GetObjectID(const DbObject::Ptr& dbobj) const;
+
+	void SetInsertID(const DbObject::Ptr& dbobj, const DbReference& dbref);
+	DbReference GetInsertID(const DbObject::Ptr& dbobj) const;
 
 	String GetTablePrefix(void) const;
 
@@ -59,7 +62,8 @@ protected:
 private:
 	Attribute<String> m_TablePrefix;
 
-	std::map<DbObject::Ptr, DbReference> m_References;
+	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
+	std::map<DbObject::Ptr, DbReference> m_InsertIDs;
 	static Timer::Ptr m_ProgramStatusTimer;
 
 	static void ProgramStatusHandler(void);

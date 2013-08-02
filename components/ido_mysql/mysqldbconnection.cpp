@@ -125,7 +125,7 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 
 		if (rows->GetLength() == 0) {
 			Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + m_InstanceDescription + "')");
-			m_InstanceID = GetInsertID();
+			m_InstanceID = GetLastInsertID();
 		} else {
 			Dictionary::Ptr row = rows->Get(0);
 			m_InstanceID = DbReference(row->Get("instance_id"));
@@ -149,7 +149,7 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 				continue;
 
 			DbObject::Ptr dbobj = dbtype->GetOrCreateObjectByName(row->Get("name1"), row->Get("name2"));
-			SetReference(dbobj, DbReference(row->Get("object_id")));
+			SetObjectID(dbobj, DbReference(row->Get("object_id")));
 		}
 
 		Query("BEGIN");
@@ -190,7 +190,7 @@ Array::Ptr MysqlDbConnection::Query(const String& query)
 	return rows;
 }
 
-DbReference MysqlDbConnection::GetInsertID(void)
+DbReference MysqlDbConnection::GetLastInsertID(void)
 {
 	return DbReference(mysql_insert_id(&m_Connection));
 }
@@ -251,7 +251,7 @@ void MysqlDbConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 	if (!m_Connected)
 		return;
 
-	DbReference dbref = GetReference(dbobj);
+	DbReference dbref = GetObjectID(dbobj);
 	std::ostringstream qbuf;
 
 	if (!dbref.IsValid()) {
@@ -259,7 +259,7 @@ void MysqlDbConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 		      << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
 		      << "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
 		Query(qbuf.str());
-		SetReference(dbobj, GetInsertID());
+		SetObjectID(dbobj, GetLastInsertID());
 	} else {
 		qbuf << "UPDATE " + GetTablePrefix() + "objects SET is_active = 1 WHERE object_id = " << static_cast<long>(dbref);
 		Query(qbuf.str());
@@ -273,7 +273,7 @@ void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 	if (!m_Connected)
 		return;
 
-	DbReference dbref = GetReference(dbobj);
+	DbReference dbref = GetObjectID(dbobj);
 
 	if (!dbref.IsValid())
 		return;
@@ -299,12 +299,12 @@ bool MysqlDbConnection::FieldToEscapedString(const String& key, const Value& val
 			return true;
 		}
 
-		DbReference dbrefcol = GetReference(dbobjcol);
+		DbReference dbrefcol = GetObjectID(dbobjcol);
 
 		if (!dbrefcol.IsValid()) {
 			InternalActivateObject(dbobjcol);
 
-			dbrefcol = GetReference(dbobjcol);
+			dbrefcol = GetObjectID(dbobjcol);
 
 			if (!dbrefcol.IsValid())
 				return false;
@@ -332,14 +332,51 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 	if (!m_Connected)
 		return;
 
-	std::ostringstream qbuf;
+	std::ostringstream qbuf, where;
+	int type;
 
-	switch (query.Type) {
+	if (query.WhereCriteria) {
+		where << " WHERE ";
+
+		ObjectLock olock(query.WhereCriteria);
+
+		String key;
+		Value value;
+		bool first = true;
+		BOOST_FOREACH(boost::tie(key, value), query.WhereCriteria) {
+			if (!FieldToEscapedString(key, value, &value))
+				return;
+
+			if (!first)
+				qbuf << " AND ";
+
+			where << key << " = " << value;
+
+			if (first)
+				first = false;
+		}
+	}
+
+	if ((query.Type & DbQueryInsert) && (query.Type & DbQueryUpdate)) {
+		assert(query.Object);
+
+		if (GetInsertID(query.Object).IsValid())
+			type = DbQueryUpdate;
+		else {
+			if (query.WhereCriteria)
+				Query("DELETE FROM " + GetTablePrefix() + query.Table + where.str());
+
+			type = DbQueryInsert;
+		}
+	} else
+		type = query.Type;
+
+	switch (type) {
 		case DbQueryInsert:
 			qbuf << "INSERT INTO " << GetTablePrefix() << query.Table;
 			break;
 		case DbQueryUpdate:
-			qbuf << "UPDATE " << GetTablePrefix() << query.Table << "SET";
+			qbuf << "UPDATE " << GetTablePrefix() << query.Table << " SET";
 			break;
 		case DbQueryDelete:
 			qbuf << "DELETE FROM " << GetTablePrefix() << query.Table;
@@ -348,7 +385,7 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 			ASSERT(!"Invalid query type.");
 	}
 
-	if (query.Type == DbQueryInsert || query.Type == DbQueryUpdate) {
+	if (type == DbQueryInsert || type == DbQueryUpdate) {
 		String cols;
 		String values;
 
@@ -361,7 +398,7 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 			if (!FieldToEscapedString(key, value, &value))
 				return;
 
-			if (query.Type == DbQueryInsert) {
+			if (type == DbQueryInsert) {
 				if (!first) {
 					cols += ", ";
 					values += ", ";
@@ -380,31 +417,15 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 				first = false;
 		}
 
-		if (query.Type == DbQueryInsert)
+		if (type == DbQueryInsert)
 			qbuf << " (" << cols << ") VALUES (" << values << ")";
 	}
 
-	if (query.WhereCriteria) {
-		qbuf << " WHERE ";
-
-		ObjectLock olock(query.WhereCriteria);
-
-		String key;
-		Value value;
-		bool first = true;
-		BOOST_FOREACH(boost::tie(key, value), query.WhereCriteria) {
-			if (!FieldToEscapedString(key, value, &value))
-				return;
-
-			if (!first)
-				qbuf << " AND ";
-
-			qbuf << key << " = " << value;
-
-			if (first)
-				first = false;
-		}
-	}
+	if (type != DbQueryInsert)
+		qbuf << where.str();
 
 	Query(qbuf.str());
+
+	if (type == DbQueryInsert && query.Object)
+		SetInsertID(query.Object, GetLastInsertID());
 }

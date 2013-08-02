@@ -69,7 +69,7 @@ private:
 	Timer::Ptr m_TxTimer;
 
 	Array::Ptr Query(const String& query);
-	DbReference GetInsertID(void);
+	DbReference GetLastInsertID(void);
 	String Escape(const String& s);
 	Dictionary::Ptr FetchRow(MYSQL_RES *result);
 

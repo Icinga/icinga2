@@ -27,17 +27,20 @@ namespace icinga
 
 enum DbQueryType
 {
-	DbQueryInsert,
-	DbQueryUpdate,
-	DbQueryDelete
+	DbQueryInsert = 1,
+	DbQueryUpdate = 2,
+	DbQueryDelete = 4
 };
+
+class DbObject;
 
 struct DbQuery
 {
-	DbQueryType Type;
+	int Type;
 	String Table;
 	Dictionary::Ptr Fields;
 	Dictionary::Ptr WhereCriteria;
+	boost::shared_ptr<DbObject> Object;
 };
 
 }

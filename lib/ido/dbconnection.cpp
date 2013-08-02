@@ -91,25 +91,46 @@ void DbConnection::ProgramStatusHandler(void)
 	DbObject::OnQuery(query2);
 }
 
-void DbConnection::SetReference(const DbObject::Ptr& dbobj, const DbReference& dbref)
+void DbConnection::SetObjectID(const DbObject::Ptr& dbobj, const DbReference& dbref)
 {
 	if (dbref.IsValid())
-		m_References[dbobj] = dbref;
+		m_ObjectIDs[dbobj] = dbref;
 	else
-		m_References.erase(dbobj);
+		m_ObjectIDs.erase(dbobj);
 }
 
-DbReference DbConnection::GetReference(const DbObject::Ptr& dbobj) const
+DbReference DbConnection::GetObjectID(const DbObject::Ptr& dbobj) const
 {
 	std::map<DbObject::Ptr, DbReference>::const_iterator it;
 
-	it = m_References.find(dbobj);
+	it = m_ObjectIDs.find(dbobj);
 
-	if (it == m_References.end())
+	if (it == m_ObjectIDs.end())
 		return DbReference();
 
 	return it->second;
 }
+
+void DbConnection::SetInsertID(const DbObject::Ptr& dbobj, const DbReference& dbref)
+{
+	if (dbref.IsValid())
+		m_InsertIDs[dbobj] = dbref;
+	else
+		m_InsertIDs.erase(dbobj);
+}
+
+DbReference DbConnection::GetInsertID(const DbObject::Ptr& dbobj) const
+{
+	std::map<DbObject::Ptr, DbReference>::const_iterator it;
+
+	it = m_InsertIDs.find(dbobj);
+
+	if (it == m_InsertIDs.end())
+		return DbReference();
+
+	return it->second;
+}
+
 
 void DbConnection::ExecuteQuery(const DbQuery&)
 {
