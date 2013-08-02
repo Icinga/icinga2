@@ -358,7 +358,7 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 	}
 
 	if ((query.Type & DbQueryInsert) && (query.Type & DbQueryUpdate)) {
-		assert(query.Object);
+		ASSERT(query.Object);
 
 		if (GetInsertID(query.Object).IsValid())
 			type = DbQueryUpdate;
