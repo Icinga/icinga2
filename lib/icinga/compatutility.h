@@ -49,7 +49,7 @@ public:
 	static Dictionary::Ptr GetHostConfigAttributes(const Host::Ptr& host);
 
 	static Dictionary::Ptr GetServiceStatusAttributes(const Service::Ptr& service, CompatObjectType type);
-	static Dictionary::Ptr GetServiceConfigAttributes(const Service::Ptr& service, CompatObjectType type);
+	static Dictionary::Ptr GetServiceConfigAttributes(const Service::Ptr& service);
 
 	static Dictionary::Ptr GetCommandConfigAttributes(const Command::Ptr& command);
 	static String EscapeString(const String& str);

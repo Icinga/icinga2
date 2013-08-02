@@ -49,7 +49,7 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 
 	{
 		ObjectLock olock(service);
-		attrs = CompatUtility::GetServiceConfigAttributes(service, CompatTypeService);
+		attrs = CompatUtility::GetServiceConfigAttributes(service);
 	}
 
 	fields->Set("host_object_id", host);

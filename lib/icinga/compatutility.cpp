@@ -139,7 +139,7 @@ Dictionary::Ptr CompatUtility::GetHostConfigAttributes(const Host::Ptr& host)
 			notification_options.push_back("s");
 		}
 
-		service_attr = CompatUtility::GetServiceConfigAttributes(service, CompatTypeService);
+		service_attr = CompatUtility::GetServiceConfigAttributes(service);
 
 		attr->Set("check_period", service_attr->Get("check_period"));
 		attr->Set("check_interval", service_attr->Get("check_interval"));
@@ -295,7 +295,7 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	return attr;
 }
 
-Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& service, CompatObjectType type)
+Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& service)
 {
 	Dictionary::Ptr attr = boost::make_shared<Dictionary>();
 
@@ -353,47 +353,22 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 	Dictionary::Ptr macros;
 	std::vector<String> notification_options;
 
-	if (type == CompatTypeHost) {
+	/* dicts */
+	custom = service->GetCustom();
+	macros = service->GetMacros();
 
-		/* dicts */
-		custom = host->GetCustom();
-		macros = host->GetMacros();
-
-		/* alias */
-		if (!host->GetDisplayName().IsEmpty())
-			attr->Set("alias", host->GetName());
-		else
-			attr->Set("alias", host->GetDisplayName());
-
-		/* notification state filters */
-		if (notification_state_filter & (1<<StateWarning) ||
-				notification_state_filter & (1<<StateCritical)) {
-			attr->Set("notify_on_down", 1);
-			notification_options.push_back("d");
-		}
-		if (notification_state_filter & (1<<StateUncheckable)) {
-			attr->Set("notify_on_unreachable", 1);
-			notification_options.push_back("u");
-		}
+	/* notification state filters */
+	if (notification_state_filter & (1<<StateWarning)) {
+		attr->Set("notify_on_warning", 1);
+		notification_options.push_back("w");
 	}
-	else {
-		/* dicts */
-		custom = service->GetCustom();
-		macros = service->GetMacros();
-
-		/* notification state filters */
-		if (notification_state_filter & (1<<StateWarning)) {
-			attr->Set("notify_on_warning", 1);
-			notification_options.push_back("w");
-		}
-		if (notification_state_filter & (1<<StateUnknown)) {
-			attr->Set("notify_on_unknown", 1);
-			notification_options.push_back("u");
-		}
-		if (notification_state_filter & (1<<StateCritical)) {
-			attr->Set("notify_on_critical", 1);
-			notification_options.push_back("c");
-		}
+	if (notification_state_filter & (1<<StateUnknown)) {
+		attr->Set("notify_on_unknown", 1);
+		notification_options.push_back("u");
+	}
+	if (notification_state_filter & (1<<StateCritical)) {
+		attr->Set("notify_on_critical", 1);
+		notification_options.push_back("c");
 	}
 
 	/* notification type filters */
@@ -434,14 +409,6 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 	attr->Set("check_command", check_command_str);
 	attr->Set("event_handler", event_command_str);
 
-	/* macros attr */
-	if (macros) {
-		if (type == CompatTypeHost) {
-			attr->Set("address", macros->Get("address"));
-			attr->Set("address6", macros->Get("address6"));
-		}
-	}
-
 	/* custom attr */
 	if (custom) {
 		attr->Set("notes", custom->Get("notes"));
@@ -449,34 +416,6 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 		attr->Set("action_url", custom->Get("action_url"));
 		attr->Set("icon_image", custom->Get("icon_image"));
 		attr->Set("icon_image_alt", custom->Get("icon_image_alt"));
-
-		if (type == CompatTypeHost) {
-			attr->Set("statusmap_image", custom->Get("statusmap_image"));
-			attr->Set("2d_coords", custom->Get("2d_coords"));
-
-			if (!custom->Get("2d_coords").IsEmpty()) {
-				std::vector<String> tokens;
-				String coords = custom->Get("2d_coords");
-				boost::algorithm::split(tokens, coords, boost::is_any_of(","));
-				if (tokens.size() == 2) {
-					attr->Set("have_2d_coords", 1);
-					attr->Set("x_2d", tokens[0]);
-					attr->Set("y_2d", tokens[1]);
-				}
-				else
-					attr->Set("have_2d_coords", 0);
-			}
-			else
-				attr->Set("have_2d_coords", 0);
-
-			/* deprecated in 1.x, but empty */
-			attr->Set("vrml_image", Empty);
-			attr->Set("3d_coords", Empty);
-			attr->Set("have_3d_coords", 0);
-			attr->Set("x_3d", Empty);
-			attr->Set("y_3d", Empty);
-			attr->Set("z_3d", Empty);
-		}
 	}
 
 	return attr;
