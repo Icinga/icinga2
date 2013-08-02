@@ -131,6 +131,31 @@ DbReference DbConnection::GetInsertID(const DbObject::Ptr& dbobj) const
 	return it->second;
 }
 
+void DbConnection::SetConfigUpdate(const DbObject::Ptr& dbobj, bool hasupdate)
+{
+	if (hasupdate)
+		m_ConfigUpdates.insert(dbobj);
+	else
+		m_ConfigUpdates.erase(dbobj);
+}
+
+bool DbConnection::GetConfigUpdate(const DbObject::Ptr& dbobj) const
+{
+	return (m_ConfigUpdates.find(dbobj) != m_ConfigUpdates.end());
+}
+
+void DbConnection::SetStatusUpdate(const DbObject::Ptr& dbobj, bool hasupdate)
+{
+	if (hasupdate)
+		m_StatusUpdates.insert(dbobj);
+	else
+		m_StatusUpdates.erase(dbobj);
+}
+
+bool DbConnection::GetStatusUpdate(const DbObject::Ptr& dbobj) const
+{
+	return (m_StatusUpdates.find(dbobj) != m_StatusUpdates.end());
+}
 
 void DbConnection::ExecuteQuery(const DbQuery&)
 {

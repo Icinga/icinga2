@@ -281,6 +281,9 @@ void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 	std::ostringstream qbuf;
 	qbuf << "UPDATE " + GetTablePrefix() + "objects SET is_active = 0 WHERE object_id = " << static_cast<long>(dbref);
 	Query(qbuf.str());
+
+	/* Note that we're _NOT_ clearing the db refs via SetReference/SetConfigUpdate/SetStatusUpdate
+	 * because the object is still in the database. */
 }
 
 /* caller must hold m_ConnectionMutex */
@@ -368,9 +371,18 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 	}
 
 	if ((query.Type & DbQueryInsert) && (query.Type & DbQueryUpdate)) {
+		bool hasid;
+
 		ASSERT(query.Object);
 
-		if (GetInsertID(query.Object).IsValid())
+		if (query.ConfigUpdate)
+			hasid = GetConfigUpdate(query.Object);
+		else if (query.StatusUpdate)
+			hasid = GetStatusUpdate(query.Object);
+		else
+			ASSERT(!"Invalid query flags.");
+
+		if (hasid)
 			type = DbQueryUpdate;
 		else {
 			if (query.WhereCriteria)
@@ -436,6 +448,13 @@ void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
 
 	Query(qbuf.str());
 
-	if (type == DbQueryInsert && query.Object && query.UpdateObjectID)
-		SetInsertID(query.Object, GetLastInsertID());
+	if (query.Object) {
+		if (query.ConfigUpdate)
+			SetConfigUpdate(query.Object, true);
+		else if (query.StatusUpdate)
+			SetStatusUpdate(query.Object, true);
+
+		if (type == DbQueryInsert && query.ConfigUpdate)
+			SetInsertID(query.Object, GetLastInsertID());
+	}
 }

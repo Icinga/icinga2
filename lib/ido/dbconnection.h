@@ -48,6 +48,12 @@ public:
 	void SetInsertID(const DbObject::Ptr& dbobj, const DbReference& dbref);
 	DbReference GetInsertID(const DbObject::Ptr& dbobj) const;
 
+	void SetConfigUpdate(const DbObject::Ptr& dbobj, bool hasupdate);
+	bool GetConfigUpdate(const DbObject::Ptr& dbobj) const;
+
+	void SetStatusUpdate(const DbObject::Ptr& dbobj, bool hasupdate);
+	bool GetStatusUpdate(const DbObject::Ptr& dbobj) const;
+
 	String GetTablePrefix(void) const;
 
 protected:
@@ -64,6 +70,8 @@ private:
 
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<DbObject::Ptr, DbReference> m_InsertIDs;
+	std::set<DbObject::Ptr> m_ConfigUpdates;
+	std::set<DbObject::Ptr> m_StatusUpdates;
 	static Timer::Ptr m_ProgramStatusTimer;
 
 	static void ProgramStatusHandler(void);

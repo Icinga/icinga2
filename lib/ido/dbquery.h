@@ -41,7 +41,12 @@ struct DbQuery
 	Dictionary::Ptr Fields;
 	Dictionary::Ptr WhereCriteria;
 	boost::shared_ptr<DbObject> Object;
-	bool UpdateObjectID;
+	bool ConfigUpdate;
+	bool StatusUpdate;
+
+	DbQuery(void)
+		: Type(0), ConfigUpdate(false), StatusUpdate(false)
+	{ }
 };
 
 }
