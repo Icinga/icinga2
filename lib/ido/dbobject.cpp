@@ -112,7 +112,6 @@ void DbObject::SendStatusUpdate(void)
 	query.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	query.WhereCriteria = boost::make_shared<Dictionary>();
 	query.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
-	query.Object = GetSelf();
 	OnQuery(query);
 
 	m_LastStatusUpdate = Utility::GetTime();
