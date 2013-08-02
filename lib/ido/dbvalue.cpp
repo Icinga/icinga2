@@ -43,6 +43,11 @@ Value DbValue::FromValue(const Value& value)
 	return value;
 }
 
+Value DbValue::FromObjectInsertID(const Value& value)
+{
+	return boost::make_shared<DbValue>(DbValueObjectInsertID, value);
+}
+
 bool DbValue::IsTimestamp(const Value& value)
 {
 	if (!value.IsObjectType<DbValue>())
@@ -59,6 +64,15 @@ bool DbValue::IsTimestampNow(const Value& value)
 
 	DbValue::Ptr dbv = value;
 	return dbv->GetType() == DbValueTimestampNow;
+}
+
+bool DbValue::IsObjectInsertID(const Value& value)
+{
+	if (!value.IsObjectType<DbValue>())
+		return false;
+
+	DbValue::Ptr dbv = value;
+	return dbv->GetType() == DbValueObjectInsertID;
 }
 
 Value DbValue::ExtractValue(const Value& value)

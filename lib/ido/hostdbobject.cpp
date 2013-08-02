@@ -186,3 +186,37 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 
 	return fields;
 }
+
+void HostDbObject::OnConfigUpdate(void)
+{
+	Host::Ptr host = static_pointer_cast<Host>(GetObject());
+
+	/* parents: host_id, parent_host_object_id */
+
+	/* delete possible definitions - TODO do that on startup */
+	DbQuery query1;
+	query1.Table = GetType()->GetTable() + "_parenthosts";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
+	OnQuery(query1);
+
+	BOOST_FOREACH(const Host::Ptr& parent, host->GetParentHosts()) {
+		Log(LogDebug, "ido", "host parents: " + parent->GetName());
+
+		Dictionary::Ptr fields = boost::make_shared<Dictionary>();
+		fields->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
+		fields->Set("parent_host_object_id", parent);
+		fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+		DbQuery query2;
+		query2.Table = GetType()->GetTable() + "_parenthosts";
+		query2.Type = DbQueryInsert;
+		query2.Fields = fields;
+		OnQuery(query2);
+	}
+}
+
+void HostDbObject::OnStatusUpdate(void)
+{
+}

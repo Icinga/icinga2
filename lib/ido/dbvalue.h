@@ -31,6 +31,7 @@ enum DbValueType
 {
 	DbValueTimestamp,
 	DbValueTimestampNow,
+	DbValueObjectInsertID,
 };
 
 /**
@@ -46,9 +47,11 @@ public:
 	static Value FromTimestamp(const Value& ts);
 	static Value FromTimestampNow(void);
 	static Value FromValue(const Value& value);
+	static Value FromObjectInsertID(const Value& value);
 
 	static bool IsTimestamp(const Value& value);
 	static bool IsTimestampNow(const Value& value);
+	static bool IsObjectInsertID(const Value& value);
 	static Value ExtractValue(const Value& value);
 
 	DbValueType GetType(void) const;

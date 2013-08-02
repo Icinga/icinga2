@@ -291,35 +291,45 @@ bool MysqlDbConnection::FieldToEscapedString(const String& key, const Value& val
 		return true;
 	}
 
-	if (value.IsObjectType<DynamicObject>()) {
-		DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(value);
+	Value rawvalue = DbValue::ExtractValue(value);
+
+	if (rawvalue.IsObjectType<DynamicObject>()) {
+		DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(rawvalue);
 
 		if (!dbobjcol) {
 			*result = 0;
 			return true;
 		}
 
-		DbReference dbrefcol = GetObjectID(dbobjcol);
+		DbReference dbrefcol;
 
-		if (!dbrefcol.IsValid()) {
-			InternalActivateObject(dbobjcol);
+		if (DbValue::IsObjectInsertID(value)) {
+			dbrefcol = GetInsertID(dbobjcol);
 
+			ASSERT(dbrefcol.IsValid());
+		} else {
 			dbrefcol = GetObjectID(dbobjcol);
 
-			if (!dbrefcol.IsValid())
-				return false;
+			if (!dbrefcol.IsValid()) {
+				InternalActivateObject(dbobjcol);
+
+				dbrefcol = GetObjectID(dbobjcol);
+
+				if (!dbrefcol.IsValid())
+					return false;
+			}
 		}
 
 		*result = static_cast<long>(dbrefcol);
 	} else if (DbValue::IsTimestamp(value)) {
-		long ts = DbValue::ExtractValue(value);
+		long ts = rawvalue; 
 		std::ostringstream msgbuf;
 		msgbuf << "FROM_UNIXTIME(" << ts << ")";
 		*result = Value(msgbuf.str());
 	} else if (DbValue::IsTimestampNow(value)) {
 		*result = "NOW()";
 	} else {
-		*result = "'" + Escape(DbValue::ExtractValue(value)) + "'";
+		*result = "'" + Escape(rawvalue) + "'";
 	}
 
 	return true;
