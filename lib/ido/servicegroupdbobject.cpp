@@ -26,7 +26,7 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE(ServiceGroup, "servicegroup", 4, "servicegroup_object_id", ServiceGroupDbObject);
+REGISTER_DBTYPE(ServiceGroup, "servicegroup", DbObjectTypeServiceGroup, "servicegroup_object_id", ServiceGroupDbObject);
 
 ServiceGroupDbObject::ServiceGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)

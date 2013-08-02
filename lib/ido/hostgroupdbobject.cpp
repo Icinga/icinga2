@@ -28,7 +28,7 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE(HostGroup, "hostgroup", 3, "hostgroup_object_id", HostGroupDbObject);
+REGISTER_DBTYPE(HostGroup, "hostgroup", DbObjectTypeHostGroup, "hostgroup_object_id", HostGroupDbObject);
 INITIALIZE_ONCE(HostGroupDbObject, &HostGroupDbObject::StaticInitialize);
 
 HostGroupDbObject::HostGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2)

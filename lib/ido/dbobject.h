@@ -34,6 +34,22 @@ enum DbObjectUpdateType
 	DbObjectRemoved
 };
 
+enum DbObjectType
+{
+	DbObjectTypeHost = 1,
+	DbObjectTypeService = 2,
+	DbObjectTypeHostGroup = 3,
+	DbObjectTypeServiceGroup = 4,
+	DbObjectTypeHostEscalation = 5,
+	DbObjectTypeServiceEscalation = 6,
+	DbObjectTypeHostDependency = 7,
+	DbObjectTypeServiceDependency = 8,
+	DbObjectTypeTimePeriod = 9,
+	DbObjectTypeContact = 10,
+	DbObjectTypeContactGroup = 11,
+	DbObjectTypeCommand = 12,
+};
+
 /**
  * A database object.
  *

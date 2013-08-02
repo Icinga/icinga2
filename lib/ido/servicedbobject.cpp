@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE(Service, "service", 2, "service_object_id", ServiceDbObject);
+REGISTER_DBTYPE(Service, "service", DbObjectTypeService, "service_object_id", ServiceDbObject);
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)

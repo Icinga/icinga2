@@ -26,7 +26,7 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE(User, "contact", 10, "contact_object_id", UserDbObject);
+REGISTER_DBTYPE(User, "contact", DbObjectTypeContact, "contact_object_id", UserDbObject);
 
 UserDbObject::UserDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)

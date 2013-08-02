@@ -26,7 +26,7 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE(TimePeriod, "timeperiod", 9, "timeperiod_object_id", TimePeriodDbObject);
+REGISTER_DBTYPE(TimePeriod, "timeperiod", DbObjectTypeTimePeriod, "timeperiod_object_id", TimePeriodDbObject);
 
 TimePeriodDbObject::TimePeriodDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)
