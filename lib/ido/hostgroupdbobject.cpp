@@ -22,15 +22,23 @@
 #include "ido/dbvalue.h"
 #include "icinga/hostgroup.h"
 #include "base/objectlock.h"
+#include "base/initialize.h"
+#include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_DBTYPE(HostGroup, "hostgroup", 3, "hostgroup_object_id", HostGroupDbObject);
+INITIALIZE_ONCE(HostGroupDbObject, &HostGroupDbObject::StaticInitialize);
 
 HostGroupDbObject::HostGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)
 { }
+
+void HostGroupDbObject::StaticInitialize(void)
+{
+	HostGroup::OnMembersChanged.connect(&HostGroupDbObject::MembersChangedHandler);
+}
 
 Dictionary::Ptr HostGroupDbObject::GetConfigFields(void) const
 {
@@ -45,4 +53,14 @@ Dictionary::Ptr HostGroupDbObject::GetConfigFields(void) const
 Dictionary::Ptr HostGroupDbObject::GetStatusFields(void) const
 {
 	return Empty;
+}
+
+void HostGroupDbObject::OnConfigUpdate(void)
+{
+	MembersChangedHandler();
+}
+
+void HostGroupDbObject::MembersChangedHandler(void)
+{
+	Log(LogWarning, "ido", "MOO");
 }
