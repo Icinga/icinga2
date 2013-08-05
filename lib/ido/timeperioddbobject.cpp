@@ -35,9 +35,9 @@ TimePeriodDbObject::TimePeriodDbObject(const DbType::Ptr& type, const String& na
 Dictionary::Ptr TimePeriodDbObject::GetConfigFields(void) const
 {
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
-	TimePeriod::Ptr user = static_pointer_cast<TimePeriod>(GetObject());
+	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
 
-	fields->Set("alias", Empty);
+	fields->Set("alias", tp->GetDisplayName());
 
 	return fields;
 }
