@@ -138,8 +138,10 @@ void HostGroup::RefreshMembersCache(void)
 		}
 	}
 
-	boost::mutex::scoped_lock lock(l_Mutex);
-	l_MembersCache.swap(newMembersCache);
+	{
+		boost::mutex::scoped_lock lock(l_Mutex);
+		l_MembersCache.swap(newMembersCache);
+	}
 
 	OnMembersChanged();
 }

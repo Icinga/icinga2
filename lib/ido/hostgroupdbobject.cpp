@@ -24,6 +24,7 @@
 #include "base/objectlock.h"
 #include "base/initialize.h"
 #include "base/logger_fwd.h"
+#include "base/dynamictype.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -62,5 +63,27 @@ void HostGroupDbObject::OnConfigUpdate(void)
 
 void HostGroupDbObject::MembersChangedHandler(void)
 {
-	Log(LogWarning, "ido", "MOO");
+	DbQuery query1;
+	query1.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set("instance_id", 0);
+	OnQuery(query1);
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
+		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
+
+		Log(LogWarning, "ido", "HG: " + hg->GetName());
+
+		BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+			DbQuery query2;
+			query2.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
+			query2.Type = DbQueryInsert;
+			query2.Fields = boost::make_shared<Dictionary>();
+			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query2.Fields->Set("hostgroup_id", hg);
+			query2.Fields->Set("host_object_id", host);
+			OnQuery(query2);
+		}
+	}
 }
