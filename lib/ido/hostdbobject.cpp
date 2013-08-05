@@ -191,28 +191,46 @@ void HostDbObject::OnConfigUpdate(void)
 {
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
-	/* parents: host_id, parent_host_object_id */
+	/* safety delete */
+	DbQuery query_del1;
+	query_del1.Table = GetType()->GetTable() + "_parenthosts";
+	query_del1.Type = DbQueryDelete;
+	query_del1.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del1.WhereCriteria->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
+	OnQuery(query_del1);
 
-	/* delete possible definitions - TODO do that on startup */
-	DbQuery query1;
-	query1.Table = GetType()->GetTable() + "_parenthosts";
-	query1.Type = DbQueryDelete;
-	query1.WhereCriteria = boost::make_shared<Dictionary>();
-	query1.WhereCriteria->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
-	OnQuery(query1);
+	DbQuery query_del2;
+	query_del2.Table = GetType()->GetTable() + "dependencies";
+	query_del2.Type = DbQueryDelete;
+	query_del2.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del2.WhereCriteria->Set("dependent_host_object_id", host);
+	OnQuery(query_del2);
 
 	BOOST_FOREACH(const Host::Ptr& parent, host->GetParentHosts()) {
 		Log(LogDebug, "ido", "host parents: " + parent->GetName());
 
-		Dictionary::Ptr fields = boost::make_shared<Dictionary>();
-		fields->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
-		fields->Set("parent_host_object_id", parent);
-		fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+		/* parents: host_id, parent_host_object_id */
+		Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+		fields1->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
+		fields1->Set("parent_host_object_id", parent);
+		fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+		DbQuery query1;
+		query1.Table = GetType()->GetTable() + "_parenthosts";
+		query1.Type = DbQueryInsert;
+		query1.Fields = fields1;
+		OnQuery(query1);
+
+		/* host dependencies */
+		Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
+		fields2->Set("host_object_id", parent);
+		fields2->Set("dependent_host_object_id", host);
+		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		DbQuery query2;
-		query2.Table = GetType()->GetTable() + "_parenthosts";
+		query2.Table = GetType()->GetTable() + "dependencies";
 		query2.Type = DbQueryInsert;
-		query2.Fields = fields;
+		query2.Fields = fields2;
 		OnQuery(query2);
 	}
 }

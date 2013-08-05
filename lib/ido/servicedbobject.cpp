@@ -26,6 +26,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/compatutility.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -167,6 +168,34 @@ bool ServiceDbObject::IsStatusAttribute(const String& attribute) const
 void ServiceDbObject::OnConfigUpdate(void)
 {
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
+
+	/* service dependencies */
+	Log(LogDebug, "ido", "service dependencies for '" + service->GetName() + "'");
+
+	DbQuery query_del1;
+	query_del1.Table = GetType()->GetTable() + "dependencies";
+	query_del1.Type = DbQueryDelete;
+	query_del1.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del1.WhereCriteria->Set("dependent_service_object_id", service);
+	OnQuery(query_del1);
+
+	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
+		Log(LogDebug, "ido", "service parents: " + parent->GetName());
+
+                /* service dependencies */
+                Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+                fields1->Set("service_object_id", parent);
+                fields1->Set("dependent_service_object_id", service);
+                fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+                DbQuery query1;
+                query1.Table = GetType()->GetTable() + "dependencies";
+                query1.Type = DbQueryInsert;
+                query1.Fields = fields1;
+                OnQuery(query1);
+	}
+
+	/* service host config update */
 	Host::Ptr host = service->GetHost();
 
 	if (!host)
