@@ -21,6 +21,7 @@
 #include "ido/dbtype.h"
 #include "ido/dbvalue.h"
 #include "icinga/user.h"
+#include "icinga/notification.h"
 #include "base/objectlock.h"
 #include <boost/foreach.hpp>
 
@@ -37,25 +38,31 @@ Dictionary::Ptr UserDbObject::GetConfigFields(void) const
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
-	fields->Set("alias", Empty);
-	fields->Set("email_address", Empty);
-	fields->Set("pager_address", Empty);
-	fields->Set("host_timeperiod_object_id", Empty);
-	fields->Set("service_timeperiod_object_id", Empty);
-	fields->Set("host_notifications_enabled", Empty);
-	fields->Set("service_notifications_enabled", Empty);
-	fields->Set("can_submit_commands", Empty);
-	fields->Set("notify_service_recovery", Empty);
-	fields->Set("notify_service_warning", Empty);
-	fields->Set("notify_service_unknown", Empty);
-	fields->Set("notify_service_critical", Empty);
-	fields->Set("notify_service_flapping", Empty);
-	fields->Set("notify_service_downtime", Empty);
-	fields->Set("notify_host_recovery", Empty);
-	fields->Set("notify_host_down", Empty);
-	fields->Set("notify_host_unreachable", Empty);
-	fields->Set("notify_host_flapping", Empty);
-	fields->Set("notify_host_downtime", Empty);
+	fields->Set("alias", user->GetDisplayName());
+
+	Dictionary::Ptr macros = user->GetMacros();
+
+	if (macros) { /* Yuck. */
+		fields->Set("email_address", macros->Get("email"));
+		fields->Set("pager_address", macros->Get("pager"));
+	}
+
+	fields->Set("host_timeperiod_object_id", user->GetNotificationPeriod());
+	fields->Set("service_timeperiod_object_id", user->GetNotificationPeriod());
+	fields->Set("host_notifications_enabled", user->GetEnableNotifications());
+	fields->Set("service_notifications_enabled", user->GetEnableNotifications());
+	fields->Set("can_submit_commands", 1);
+	fields->Set("notify_service_recovery", user->GetNotificationStateFilter() & NotificationRecovery);
+	fields->Set("notify_service_warning", user->GetNotificationStateFilter() & NotificationProblem);
+	fields->Set("notify_service_unknown", user->GetNotificationStateFilter() & NotificationProblem);
+	fields->Set("notify_service_critical", user->GetNotificationStateFilter() & NotificationProblem);
+	fields->Set("notify_service_flapping", user->GetNotificationStateFilter() & (NotificationFlappingStart | NotificationFlappingEnd));
+	fields->Set("notify_service_downtime", user->GetNotificationStateFilter() & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved));
+	fields->Set("notify_host_recovery", user->GetNotificationStateFilter() & NotificationRecovery);
+	fields->Set("notify_host_down", user->GetNotificationStateFilter() & NotificationProblem);
+	fields->Set("notify_host_unreachable", user->GetNotificationStateFilter() & NotificationProblem);
+	fields->Set("notify_host_flapping", user->GetNotificationStateFilter() & (NotificationFlappingStart | NotificationFlappingEnd));
+	fields->Set("notify_host_downtime", user->GetNotificationStateFilter() & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved));
 
 	return fields;
 }
