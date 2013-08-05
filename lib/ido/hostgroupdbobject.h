@@ -21,6 +21,7 @@
 #define HOSTGROUPDBOBJECT_H
 
 #include "ido/dbobject.h"
+#include "icinga/hostgroup.h"
 #include "base/dynamicobject.h"
 
 namespace icinga
@@ -47,7 +48,7 @@ protected:
 	virtual void OnConfigUpdate(void);
 
 private:
-	static void MembersChangedHandler(void);
+	static void MembersChangedHandler(const HostGroup::Ptr& hgfilter);
 };
 
 }

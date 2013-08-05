@@ -20,7 +20,6 @@
 #include "ido/hostgroupdbobject.h"
 #include "ido/dbtype.h"
 #include "ido/dbvalue.h"
-#include "icinga/hostgroup.h"
 #include "base/objectlock.h"
 #include "base/initialize.h"
 #include "base/dynamictype.h"
@@ -37,7 +36,7 @@ HostGroupDbObject::HostGroupDbObject(const DbType::Ptr& type, const String& name
 
 void HostGroupDbObject::StaticInitialize(void)
 {
-	HostGroup::OnMembersChanged.connect(&HostGroupDbObject::MembersChangedHandler);
+	HostGroup::OnMembersChanged.connect(boost::bind(&HostGroupDbObject::MembersChangedHandler, HostGroup::Ptr()));
 }
 
 Dictionary::Ptr HostGroupDbObject::GetConfigFields(void) const
@@ -57,10 +56,11 @@ Dictionary::Ptr HostGroupDbObject::GetStatusFields(void) const
 
 void HostGroupDbObject::OnConfigUpdate(void)
 {
-	MembersChangedHandler();
+	HostGroup::Ptr group = static_pointer_cast<HostGroup>(GetObject());
+	MembersChangedHandler(group);
 }
 
-void HostGroupDbObject::MembersChangedHandler(void)
+void HostGroupDbObject::MembersChangedHandler(const HostGroup::Ptr& hgfilter)
 {
 	DbQuery query1;
 	query1.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
@@ -71,6 +71,9 @@ void HostGroupDbObject::MembersChangedHandler(void)
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
 		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
+
+		if (hgfilter && hg != hgfilter)
+			continue;
 
 		BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 			DbQuery query2;
