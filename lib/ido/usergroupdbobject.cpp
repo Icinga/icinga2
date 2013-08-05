@@ -35,6 +35,11 @@ UserGroupDbObject::UserGroupDbObject(const DbType::Ptr& type, const String& name
 	: DbObject(type, name1, name2)
 { }
 
+void UserGroupDbObject::StaticInitialize(void)
+{
+	UserGroup::OnMembersChanged.connect(&UserGroupDbObject::MembersChangedHandler);
+}
+
 Dictionary::Ptr UserGroupDbObject::GetConfigFields(void) const
 {
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
