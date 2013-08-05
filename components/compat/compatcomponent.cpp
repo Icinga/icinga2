@@ -557,7 +557,7 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 		   << "\t" << "dependent_host_name" << "\t" << host->GetName() << "\n"
 		   << "\t" << "dependent_service_description" << "\t" << service->GetShortName() << "\n"
 		   << "\t" << "host_name" << "\t" << parent_host->GetName() << "\n"
-		   << "\t" << "service_description" << "\t" << service->GetShortName() << "\n"
+		   << "\t" << "service_description" << "\t" << parent->GetShortName() << "\n"
 		   << "\t" << "execution_failure_criteria" << "\t" << "n" << "\n"
 		   << "\t" << "notification_failure_criteria" << "\t" << "w,u,c" << "\n"
 		   << "\t" << "}" << "\n"
