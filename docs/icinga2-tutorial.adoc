@@ -244,6 +244,11 @@ configuration file at the bottom (section "STANDALONE (ICINGA 2) OPTIONS"):
 
 Depending on how you installed Icinga 2 some of those paths and options might be different.
 
+NOTE: You need to grant permissions for the apache user manually after starting Icinga 2 for now.
+----
+# chmod o+rwx /var/run/icinga2/{icinga2.cmd,livestatus}
+----
+
 Verify that your Icinga 1.x Classic UI works by browsing to your Classic UI installation URL e.g. http://localhost/icinga
 
 Some More Templates
@@ -668,6 +673,71 @@ be done in the PNP configuration file npcd.cfg:
 ----
 perfdata_spool_dir = /var/lib/icinga2/
 ----
+
+Livestatus Component
+--------------------
+
+The Livestatus component will provide access to Icinga 2 using the livestatus api. In addition to the unix socket Icinga 2
+also service livestatus directly via tcp socket.
+
+NOTE: Only config and status tables are available at this time. History tables such as log, statehist will follow.
+
+Once Icinga 2 is started, configure your gui (e.g. Thruk) using the livestatus backend.
+
+TCP Socket
+----
+library "livestatus"
+local object LivestatusComponent "livestatus-tcp" {
+	socket_type = "tcp",
+	host = "10.0.10.18",
+	port = "6558"
+}
+----
+
+Unix Socket
+----
+library "livestatus"
+local object LivestatusComponent "livestatus-unix" {
+	socket_type = "unix",
+	socket_path = "/var/run/icinga2/livestatus"
+}
+----
+
+NOTE: You need to grant permissions for the apache user manually after starting Icinga 2 for now.
+----
+# chmod o+rwx /var/run/icinga2/{icinga2.cmd,livestatus}
+----
+
+
+
+IDO Database Component
+----------------------
+
+The IDO component will write to the same database backend as known from Icinga 1.x IDOUtils. Therefore you'll
+need to have your database schema and users already installed, like described in
+http://docs.icinga.org/latest/en/quickstart-idoutils.html#createidoutilsdatabase
+
+NOTE: Currently there's only MySQL support in progress, Postgresql, Oracle tbd.
+
+Configure the IDO MySQL component with the defined credentials and start Icinga 2.
+
+NOTE: Make sure to define a unique instance_name. That way the Icinga 2 IDO component will not interfere with your
+Icinga 1.x setup, if existing.
+
+----
+library "ido_mysql"
+local object MysqlDbConnection "ido-mysql" {
+	host = "127.0.0.1",
+	port = "3306",
+	user = "icinga",
+	password = "icinga",
+	database = "icinga",
+	instance_name = "icinga2",
+	instance_description = "icinga2 instance"
+}
+----
+
+Starting Icinga 2 in debug mode in foreground using -x will show all database queries.
 
 
 Custom Attributes
