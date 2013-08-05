@@ -21,6 +21,7 @@
 #define SERVICEGROUPDBOBJECT_H
 
 #include "ido/dbobject.h"
+#include "icinga/servicegroup.h"
 #include "base/dynamicobject.h"
 
 namespace icinga
@@ -47,7 +48,7 @@ protected:
 	virtual void OnConfigUpdate(void);
 
 private:
-	static void MembersChangedHandler(void);
+	static void MembersChangedHandler(const ServiceGroup::Ptr& sgfilter);
 };
 
 }

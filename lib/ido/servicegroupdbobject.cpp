@@ -20,7 +20,6 @@
 #include "ido/servicegroupdbobject.h"
 #include "ido/dbtype.h"
 #include "ido/dbvalue.h"
-#include "icinga/servicegroup.h"
 #include "base/objectlock.h"
 #include "base/initialize.h"
 #include <boost/foreach.hpp>
@@ -36,7 +35,7 @@ ServiceGroupDbObject::ServiceGroupDbObject(const DbType::Ptr& type, const String
 
 void ServiceGroupDbObject::StaticInitialize(void)
 {
-	ServiceGroup::OnMembersChanged.connect(&ServiceGroupDbObject::MembersChangedHandler);
+	ServiceGroup::OnMembersChanged.connect(boost::bind(&ServiceGroupDbObject::MembersChangedHandler, ServiceGroup::Ptr()));
 }
 
 Dictionary::Ptr ServiceGroupDbObject::GetConfigFields(void) const
@@ -56,10 +55,12 @@ Dictionary::Ptr ServiceGroupDbObject::GetStatusFields(void) const
 
 void ServiceGroupDbObject::OnConfigUpdate(void)
 {
-	MembersChangedHandler();
+	ServiceGroup::Ptr group = static_pointer_cast<ServiceGroup>(GetObject());
+
+	MembersChangedHandler(group);
 }
 
-void ServiceGroupDbObject::MembersChangedHandler(void)
+void ServiceGroupDbObject::MembersChangedHandler(const ServiceGroup::Ptr& sgfilter)
 {
 	DbQuery query1;
 	query1.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
@@ -70,6 +71,9 @@ void ServiceGroupDbObject::MembersChangedHandler(void)
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("ServiceGroup")) {
 		ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
+
+		if (sgfilter && sgfilter != sg)
+			continue;
 
 		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 			DbQuery query2;

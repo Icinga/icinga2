@@ -20,7 +20,6 @@
 #include "ido/usergroupdbobject.h"
 #include "ido/dbtype.h"
 #include "ido/dbvalue.h"
-#include "icinga/usergroup.h"
 #include "base/objectlock.h"
 #include "base/initialize.h"
 #include "base/dynamictype.h"
@@ -37,7 +36,7 @@ UserGroupDbObject::UserGroupDbObject(const DbType::Ptr& type, const String& name
 
 void UserGroupDbObject::StaticInitialize(void)
 {
-	UserGroup::OnMembersChanged.connect(&UserGroupDbObject::MembersChangedHandler);
+	UserGroup::OnMembersChanged.connect(boost::bind(&UserGroupDbObject::MembersChangedHandler, UserGroup::Ptr()));
 }
 
 Dictionary::Ptr UserGroupDbObject::GetConfigFields(void) const
@@ -57,10 +56,12 @@ Dictionary::Ptr UserGroupDbObject::GetStatusFields(void) const
 
 void UserGroupDbObject::OnConfigUpdate(void)
 {
-	MembersChangedHandler();
+	UserGroup::Ptr group = static_pointer_cast<UserGroup>(GetObject());
+
+	MembersChangedHandler(group);
 }
 
-void UserGroupDbObject::MembersChangedHandler(void)
+void UserGroupDbObject::MembersChangedHandler(const UserGroup::Ptr& ugfilter)
 {
 	DbQuery query1;
 	query1.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
@@ -71,6 +72,9 @@ void UserGroupDbObject::MembersChangedHandler(void)
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("UserGroup")) {
 		UserGroup::Ptr ug = static_pointer_cast<UserGroup>(object);
+
+		if (ugfilter && ugfilter != ug)
+			continue;
 
 		BOOST_FOREACH(const User::Ptr& user, ug->GetMembers()) {
 			DbQuery query2;
