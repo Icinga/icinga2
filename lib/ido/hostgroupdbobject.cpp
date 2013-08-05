@@ -73,8 +73,6 @@ void HostGroupDbObject::MembersChangedHandler(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
 		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
 
-		Log(LogWarning, "ido", "HG: " + hg->GetName());
-
 		BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 			DbQuery query2;
 			query2.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
