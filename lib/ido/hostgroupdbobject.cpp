@@ -46,7 +46,7 @@ Dictionary::Ptr HostGroupDbObject::GetConfigFields(void) const
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
 	HostGroup::Ptr group = static_pointer_cast<HostGroup>(GetObject());
 
-	fields->Set("alias", Empty);
+	fields->Set("alias", group->GetDisplayName());
 
 	return fields;
 }
@@ -81,7 +81,7 @@ void HostGroupDbObject::MembersChangedHandler(void)
 			query2.Type = DbQueryInsert;
 			query2.Fields = boost::make_shared<Dictionary>();
 			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query2.Fields->Set("hostgroup_id", hg);
+			query2.Fields->Set("hostgroup_id", DbValue::FromObjectInsertID(hg));
 			query2.Fields->Set("host_object_id", host);
 			OnQuery(query2);
 		}
