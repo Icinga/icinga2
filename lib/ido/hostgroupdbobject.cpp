@@ -23,7 +23,6 @@
 #include "icinga/hostgroup.h"
 #include "base/objectlock.h"
 #include "base/initialize.h"
-#include "base/logger_fwd.h"
 #include "base/dynamictype.h"
 #include <boost/foreach.hpp>
 

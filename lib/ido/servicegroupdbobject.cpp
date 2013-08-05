@@ -54,7 +54,6 @@ Dictionary::Ptr ServiceGroupDbObject::GetStatusFields(void) const
 	return Empty;
 }
 
-
 void ServiceGroupDbObject::OnConfigUpdate(void)
 {
 	MembersChangedHandler();

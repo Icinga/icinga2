@@ -48,6 +48,8 @@ public:
 
 	static void InvalidateMembersCache(void);
 
+	static boost::signals2::signal<void (void)> OnMembersChanged;
+
 protected:
 	virtual void OnRegistrationCompleted(void);
 
