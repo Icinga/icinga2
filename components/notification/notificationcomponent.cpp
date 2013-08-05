@@ -77,6 +77,10 @@ void NotificationComponent::NotificationTimerHandler(void)
 			continue;
 
 		Service::Ptr service = notification->GetService();
+
+		if (!service)
+			continue;
+
 		bool reachable = service->IsReachable();
 
 		{
