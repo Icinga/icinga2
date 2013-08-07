@@ -330,16 +330,22 @@ void ServiceDbObject::AddCommentByType(DynamicObject::Ptr const& object, Diction
 	if (object->GetType() == DynamicType::GetByName("Host")) {
 		fields1->Set("comment_type", 2);
 		fields1->Set("object_id", static_pointer_cast<Host>(object));
+		/* this is obviously bullshit, but otherwise we would hit
+		 * the unique constraint on the table for the same service
+		 * comment. dynamically incremented/decremented numbers as
+		 * unique constraint - wtf?
+		 */
+		fields1->Set("internal_comment_id", 0);
 	} else if (object->GetType() == DynamicType::GetByName("Service")) {
 		fields1->Set("comment_type", 1);
 		fields1->Set("object_id", static_pointer_cast<Service>(object));
+		fields1->Set("internal_comment_id", comment->Get("legacy_id"));
 	} else {
 		Log(LogDebug, "ido", "unknown object type for adding comment.");
 		return;
 	}
 
-	fields1->Set("comment_time", DbValue::FromTimestamp(Utility::GetTime()));
-	fields1->Set("internal_comment_id", comment->Get("legacy_id")); /* not sure if that's accurate? */
+	fields1->Set("comment_time", DbValue::FromTimestamp(entry_time)); /* same as entry_time */
 	fields1->Set("author_name", comment->Get("author"));
 	fields1->Set("comment_data", comment->Get("text"));
 	fields1->Set("is_persistent", 1);
