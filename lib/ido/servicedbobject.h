@@ -22,6 +22,7 @@
 
 #include "ido/dbobject.h"
 #include "base/dynamicobject.h"
+#include "icinga/service.h"
 
 namespace icinga
 {
@@ -38,6 +39,8 @@ public:
 
 	ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
+	static void StaticInitialize(void);
+
 	virtual Dictionary::Ptr GetConfigFields(void) const;
 	virtual Dictionary::Ptr GetStatusFields(void) const;
 
@@ -47,6 +50,7 @@ protected:
 	virtual void OnConfigUpdate(void);
 	virtual void OnStatusUpdate(void);
 
+	static void CommentsChangedHandler(const Service::Ptr& service, const String& id, CommentChangedType type);
 };
 
 }

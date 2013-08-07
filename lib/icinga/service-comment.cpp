@@ -37,6 +37,8 @@ static bool l_CommentsCacheNeedsUpdate = false;
 static Timer::Ptr l_CommentsCacheTimer;
 static Timer::Ptr l_CommentsExpireTimer;
 
+boost::signals2::signal<void (const Service::Ptr&, const String&, CommentChangedType)> Service::OnCommentsChanged;
+
 int Service::GetNextCommentID(void)
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
@@ -95,11 +97,15 @@ String Service::AddComment(CommentType entryType, const String& author,
 		l_CommentsCache[id] = GetSelf();
 	}
 
+	OnCommentsChanged(GetSelf(), id, CommentChangedAdded);
+
 	return id;
 }
 
 void Service::RemoveAllComments(void)
 {
+	OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
+
 	m_Comments = Empty;
 	Touch("comments");
 }
@@ -118,6 +124,8 @@ void Service::RemoveComment(const String& id)
 
 		comments->Remove(id);
 		owner->Touch("comments");
+
+		OnCommentsChanged(owner, id, CommentChangedDeleted);
 	}
 }
 
@@ -242,6 +250,8 @@ void Service::RefreshCommentsCache(void)
 		l_CommentsExpireTimer->OnTimerExpired.connect(boost::bind(&Service::CommentsExpireTimerHandler));
 		l_CommentsExpireTimer->Start();
 	}
+
+	OnCommentsChanged(Service::Ptr(), Empty, CommentChangedUpdated);
 }
 
 void Service::RemoveCommentsByType(int type)
@@ -272,6 +282,8 @@ void Service::RemoveCommentsByType(int type)
 		ObjectLock olock(this);
 		Touch("comments");
 	}
+
+	OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
 }
 
 void Service::RemoveExpiredComments(void)
@@ -302,6 +314,8 @@ void Service::RemoveExpiredComments(void)
 		ObjectLock olock(this);
 		Touch("comments");
 	}
+
+	OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
 }
 
 void Service::CommentsExpireTimerHandler(void)

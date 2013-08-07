@@ -21,16 +21,25 @@
 #include "ido/dbtype.h"
 #include "ido/dbvalue.h"
 #include "base/objectlock.h"
-#include "icinga/service.h"
+#include "base/initialize.h"
+#include "base/dynamictype.h"
 #include "icinga/notification.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/compatutility.h"
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
 REGISTER_DBTYPE(Service, "service", DbObjectTypeService, "service_object_id", ServiceDbObject);
+
+INITIALIZE_ONCE(ServiceDbObject, &ServiceDbObject::StaticInitialize);
+
+void ServiceDbObject::StaticInitialize(void)
+{
+	Service::OnCommentsChanged.connect(boost::bind(&ServiceDbObject::CommentsChangedHandler, _1, _2, _3));
+}
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)
@@ -229,4 +238,145 @@ void ServiceDbObject::OnStatusUpdate(void)
 		return;
 
 	dbobj->SendStatusUpdate();
+}
+
+void ServiceDbObject::CommentsChangedHandler(const Service::Ptr& svcfilter, const String& id, CommentChangedType type)
+{
+	unsigned long entry_time;
+	unsigned long entry_time_usec;
+	Service::Ptr service;
+	Host::Ptr host;
+	Dictionary::Ptr comment;
+	DbQuery query1, query2, query_del1;
+	Dictionary::Ptr fields1, fields2;
+
+	if (type == CommentChangedUpdated || type == CommentChangedDeleted) {
+
+		/* we cannot determine which comment id is deleted
+		 * ido schema does not store legacy id
+		 */
+		BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
+			service = static_pointer_cast<Service>(object);
+
+			if (svcfilter && svcfilter != service)
+				continue;
+
+			host = service->GetHost();
+
+			if (!host)
+				continue;
+
+			/* delete all comments associated for this host/service */
+			Log(LogDebug, "ido", "delete comments for '" + service->GetName() + "'");
+
+			query_del1;
+			query_del1.Table = "comments";
+			query_del1.Type = DbQueryDelete;
+			query_del1.WhereCriteria = boost::make_shared<Dictionary>();
+			if (host->GetHostCheckService() == service)
+				query_del1.WhereCriteria->Set("object_id", host);
+			else
+				query_del1.WhereCriteria->Set("object_id", service);
+
+			OnQuery(query_del1);
+
+			/* dump all comments */
+			Dictionary::Ptr comments = service->GetComments();
+
+			if (!comments)
+				continue;
+
+			ObjectLock olock(comments);
+
+			String cid;
+			BOOST_FOREACH(boost::tie(cid, comment), comments) {
+				Log(LogDebug, "ido", "adding service comment (id = " + cid + ") for '" + service->GetName() + "'");
+
+				entry_time = static_cast<long>(comment->Get("entry_time"));
+				entry_time_usec = (comment->Get("entry_time") - entry_time) * 1000 * 1000;
+
+				Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+				fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
+				fields1->Set("entry_time_usec", entry_time_usec);
+				fields1->Set("entry_type", comment->Get("entry_type"));
+
+				if (host->GetHostCheckService() == service) {
+					fields1->Set("comment_type", 2);
+					fields1->Set("object_id", host);
+				} else {
+					fields1->Set("comment_type", 1);
+					fields1->Set("object_id", service);
+				}
+
+				fields1->Set("comment_time", DbValue::FromTimestamp(Utility::GetTime()));
+				fields1->Set("internal_comment_id", comment->Get("legacy_id")); /* not sure if that's accurate? */
+				fields1->Set("author_name", comment->Get("author"));
+				fields1->Set("comment_data", comment->Get("text"));
+				fields1->Set("is_persistent", 1);
+				fields1->Set("comment_source", 1); /* external */
+				fields1->Set("expires", (comment->Get("expire_time") > 0) ? 1 : 0);
+				fields1->Set("expiration_time", comment->Get("expire_time"));
+				fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+				DbQuery query1;
+				query1.Table = "comments";
+				query1.Type = DbQueryInsert;
+				query1.Fields = fields1;
+				OnQuery(query1);
+			}
+		}
+
+	} else if (type == CommentChangedAdded) {
+
+		service = svcfilter;
+		host = service->GetHost();
+
+		if (!host)
+			return;
+
+		Dictionary::Ptr add_comment = Service::GetCommentByID(id);
+
+		if (!add_comment || id.IsEmpty()) {
+			Log(LogWarning, "ido", "comment with id '" + id + "' does not exist. not adding it.");
+			return;
+		}
+
+		/* newly added comment */
+		Log(LogDebug, "ido", "adding service comment (id = " + id + ") for '" + service->GetName() + "'");
+
+		entry_time = static_cast<long>(comment->Get("entry_time"));
+		entry_time_usec = (add_comment->Get("entry_time") - entry_time) * 1000 * 1000;
+
+		fields2 = boost::make_shared<Dictionary>();
+		fields2->Set("entry_time", DbValue::FromTimestamp(entry_time));
+		fields2->Set("entry_time_usec", entry_time_usec);
+		fields2->Set("entry_type", add_comment->Get("entry_type"));
+
+		if (host->GetHostCheckService() == service) {
+			fields2->Set("comment_type", 2);
+			fields2->Set("object_id", host);
+		} else {
+			fields2->Set("comment_type", 1);
+			fields2->Set("object_id", service);
+		}
+
+		fields2->Set("comment_time", DbValue::FromTimestamp(Utility::GetTime()));
+		fields2->Set("internal_comment_id", add_comment->Get("legacy_id")); /* not sure if that's accurate? */
+		fields2->Set("author_name", add_comment->Get("author"));
+		fields2->Set("comment_data", add_comment->Get("text"));
+		fields2->Set("is_persistent", 1);
+		fields2->Set("comment_source", 1); /* external */
+		fields2->Set("expires", (add_comment->Get("expire_time") > 0) ? 1 : 0);
+		fields2->Set("expiration_time", add_comment->Get("expire_time"));
+		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+		query2;
+		query2.Table = "comments";
+		query2.Type = DbQueryInsert;
+		query2.Fields = fields2;
+		OnQuery(query2);
+
+	} else {
+		Log(LogDebug, "ido", "invalid comment change type: " + type);
+	}
 }

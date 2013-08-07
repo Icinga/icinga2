@@ -74,7 +74,7 @@ enum DowntimeState
 };
 
 /**
- * The sate of service flapping.
+ * The state of service flapping.
  *
  * @ingroup icinga
  */
@@ -83,6 +83,18 @@ enum FlappingState
 	FlappingStarted = 0,
 	FlappingDisabled = 1,
 	FlappingStopped = 2
+};
+
+/**
+ * The state of a changed comment
+ *
+ * @ingroup icinga
+ */
+enum CommentChangedType
+{
+	CommentChangedAdded = 0,
+	CommentChangedUpdated = 1,
+	CommentChangedDeleted = 2
 };
 
 class CheckCommand;
@@ -232,6 +244,7 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, const String&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> OnDowntimeChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, const String&, CommentChangedType)> OnCommentsChanged;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
