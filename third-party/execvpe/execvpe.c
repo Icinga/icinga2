@@ -1,170 +1,207 @@
-/* -----------------------------------------------------------------------------
-   (c) The University of Glasgow 1995-2004
+/* Copyright (C) 1991,92, 1995-99, 2002, 2004, 2005, 2007, 2009
+   Free Software Foundation, Inc.
+   This file is part of the GNU C Library.
 
-   Our low-level exec() variant.
-   -------------------------------------------------------------------------- */
-#include "execvpe.h"
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-#ifdef __GLASGOW_HASKELL__
-#include "Rts.h"
-#endif
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-#if !(defined(_MSC_VER) || defined(__MINGW32__) || defined(_WIN32) || defined(HAVE_EXECVPE)) /* to the end */
-#ifndef __QNXNTO__
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+   02111-1307 USA.  */
 
-/* Evidently non-Posix. */
-/* #include "PosixSource.h" */
-
+#include <alloca.h>
 #include <unistd.h>
-#include <sys/time.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <paths.h>
+#include "execvpe.h"
 
-/*
- * We want the search semantics of execvp, but we want to provide our
- * own environment, like execve.  The following copyright applies to
- * this code, as it is a derivative of execvp:
- *-
- * Copyright (c) 1991 The Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
+#if !defined(_MSC_VER) && !defined(HAVE_EXECVPE)
 
+/* The file is accessible but it is not an executable file.  Invoke
+   the shell to interpret it as a script.  */
+static void
+scripts_argv (const char *file, char *const argv[], int argc, char **new_argv)
+{
+  /* Construct an argument list for the shell.  */
+  new_argv[0] = (char *) _PATH_BSHELL;
+  new_argv[1] = (char *) file;
+  while (argc > 1)
+    {
+      new_argv[argc] = argv[argc - 1];
+      --argc;
+    }
+}
+
+
+/* Execute FILE, searching in the `PATH' environment variable if it contains
+   no slashes, with arguments ARGV and environment from ENVP.  */
 int
-execvpe(char *name, char *const argv[], char **envp)
+execvpe (file, argv, envp)
+     const char *file;
+     char *const argv[];
+     char *const envp[];
 {
-    register int lp, ln;
-    register char *p;
-    int eacces=0, etxtbsy=0;
-    char *bp, *cur, *path, *buf = 0;
-
-    /* If it's an absolute or relative path name, it's easy. */
-    if (strchr(name, '/')) {
-	bp = (char *) name;
-	cur = path = buf = NULL;
-	goto retry;
+  if (*file == '\0')
+    {
+      /* We check the simple case first. */
+      errno = ENOENT;
+      return -1;
     }
 
-    /* Get the path we're searching. */
-    if (!(path = getenv("PATH"))) {
-#ifdef HAVE_CONFSTR
-        ln = confstr(_CS_PATH, NULL, 0);
-        if ((cur = path = alloca(ln + 1)) != NULL) {
-	    path[0] = ':';
-	    (void) confstr (_CS_PATH, path + 1, ln);
-	}
-#else
-        if ((cur = path = alloca(1 + 1)) != NULL) {
-	    path[0] = ':';
-	    path[1] = '\0';
-	}
-#endif
-    } else {
-        cur = alloca(strlen(path) + 1);
-        strcpy(cur, path);
-        path = cur;
-    }
+  if (strchr (file, '/') != NULL)
+    {
+      /* Don't search when it contains a slash.  */
+      execve (file, argv, envp);
 
-    if (path == NULL || (bp = buf = alloca(strlen(path)+strlen(name)+2)) == NULL)
-	goto done;
+      if (errno == ENOEXEC)
+	{
+	  /* Count the arguments.  */
+	  int argc = 0;
+	  while (argv[argc++])
+	    ;
+	  size_t len = (argc + 1) * sizeof (char *);
+	  char **script_argv;
+	  void *ptr = NULL;
+	  script_argv = alloca (len);
 
-    while (cur != NULL) {
-	p = cur;
-        if ((cur = strchr(cur, ':')) != NULL)
-	    *cur++ = '\0';
-
-	/*
-	 * It's a SHELL path -- double, leading and trailing colons mean the current
-	 * directory.
-	 */
-	if (!*p) {
-	    p = ".";
-	    lp = 1;
-	} else
-	    lp = strlen(p);
-	ln = strlen(name);
-
-	memcpy(buf, p, lp);
-	buf[lp] = '/';
-	memcpy(buf + lp + 1, name, ln);
-	buf[lp + ln + 1] = '\0';
-
-      retry:
-        (void) execve(bp, argv, envp);
-	switch (errno) {
-	case EACCES:
-	    eacces = 1;
-	    break;
-	case ENOENT:
-	    break;
-	case ENOEXEC:
+	  if (script_argv != NULL)
 	    {
-		register size_t cnt;
-		register char **ap;
+	      scripts_argv (file, argv, argc, script_argv);
+	      execve (script_argv[0], script_argv, envp);
 
-		for (cnt = 0, ap = (char **) argv; *ap; ++ap, ++cnt)
-		    ;
-		if ((ap = alloca((cnt + 2) * sizeof(char *))) != NULL) {
-		    memcpy(ap + 2, argv + 1, cnt * sizeof(char *));
-
-		    ap[0] = "sh";
-		    ap[1] = bp;
-		    (void) execve("/bin/sh", ap, envp);
-		}
-		goto done;
+	      free (ptr);
 	    }
-	case ETXTBSY:
-	    if (etxtbsy < 3)
-		(void) sleep(++etxtbsy);
-	    goto retry;
-	default:
-	    goto done;
 	}
     }
-    if (eacces)
+  else
+    {
+      size_t pathlen;
+      size_t alloclen = 0;
+      char *path = getenv ("PATH");
+      if (path == NULL)
+	{
+	  pathlen = confstr (_CS_PATH, (char *) NULL, 0);
+	  alloclen = pathlen + 1;
+	}
+      else
+	pathlen = strlen (path);
+
+      size_t len = strlen (file) + 1;
+      alloclen += pathlen + len + 1;
+
+      char *name;
+      name = alloca (alloclen);
+
+      if (path == NULL)
+	{
+	  /* There is no `PATH' in the environment.
+	     The default search path is the current directory
+	     followed by the path `confstr' returns for `_CS_PATH'.  */
+	  path = name + pathlen + len + 1;
+	  path[0] = ':';
+	  (void) confstr (_CS_PATH, path + 1, pathlen);
+	}
+
+      /* Copy the file name at the top.  */
+      name = (char *) memcpy (name + pathlen + 1, file, len);
+      /* And add the slash.  */
+      *--name = '/';
+
+      char **script_argv = NULL;
+      bool got_eacces = false;
+      char *p = path;
+      do
+	{
+	  char *startp;
+
+	  path = p;
+	  p = strchr (path, ':');
+	  if (!p)
+	    p = path + strlen(path);
+
+	  if (p == path)
+	    /* Two adjacent colons, or a colon at the beginning or the end
+	       of `PATH' means to search the current directory.  */
+	    startp = name + 1;
+	  else
+	    startp = (char *) memcpy (name - (p - path), path, p - path);
+
+	  /* Try to execute this name.  If it works, execve will not return. */
+	  execve (startp, argv, envp);
+
+	  if (errno == ENOEXEC)
+	    {
+	      if (script_argv == NULL)
+		{
+		  /* Count the arguments.  */
+		  int argc = 0;
+		  while (argv[argc++])
+		    ;
+		  size_t arglen = (argc + 1) * sizeof (char *);
+		  script_argv = alloca (arglen);
+		  if (script_argv == NULL)
+		    {
+		      /* A possible EACCES error is not as important as
+			 the ENOMEM.  */
+		      got_eacces = false;
+		      break;
+		    }
+		  scripts_argv (startp, argv, argc, script_argv);
+		}
+
+	      execve (script_argv[0], script_argv, envp);
+	    }
+
+	  switch (errno)
+	    {
+	    case EACCES:
+	      /* Record the we got a `Permission denied' error.  If we end
+		 up finding no executable we can use, we want to diagnose
+		 that we did find one but were denied access.  */
+	      got_eacces = true;
+	    case ENOENT:
+	    case ESTALE:
+	    case ENOTDIR:
+	      /* Those errors indicate the file is missing or not executable
+		 by us, in which case we want to just try the next path
+		 directory.  */
+	    case ENODEV:
+	    case ETIMEDOUT:
+	      /* Some strange filesystems like AFS return even
+		 stranger error numbers.  They cannot reasonably mean
+		 anything else so ignore those, too.  */
+	      break;
+
+	    default:
+	      /* Some other error means we found an executable file, but
+		 something went wrong executing it; return the error to our
+		 caller.  */
+	      return -1;
+	    }
+	}
+      while (*p++ != '\0');
+
+      /* We tried every element and none of them worked.  */
+      if (got_eacces)
+	/* At least one failure was due to permissions, so report that
+	   error.  */
 	errno = EACCES;
-    else if (!errno)
-	errno = ENOENT;
-  done:
-    return (-1);
-}
-#endif
+    }
 
-
-/* Copied verbatim from ghc/lib/std/cbits/system.c. */
-void pPrPr_disableITimers (void)
-{
-#ifdef __GLASGOW_HASKELL__
-    stopTimer();
-#endif
+  /* Return the error from the last attempt (probably ENOENT).  */
+  return -1;
 }
 
-#endif
+#endif /* !defined(_MSC_VER) && !defined(HAVE_EXECVPE) */

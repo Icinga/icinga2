@@ -1,29 +1,37 @@
-/* ----------------------------------------------------------------------------
-   (c) The University of Glasgow 2004
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012 Icinga Development Team (http://www.icinga.org/)        *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
 
-   Interface for code in execvpe.c
-   ------------------------------------------------------------------------- */
+#ifndef EXECVPE_H
+#define EXECVPE_H
 
 #include "config.h"
-
-#include <unistd.h>
-#include <errno.h>
-#include <sys/types.h>
-#if HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(_WIN32) && !defined(HAVE_EXECVPE)
-#	ifndef __QNXNTO__
-extern int execvpe(char *name, char *const argv[], char **envp);
-#	endif
-extern void pPrPr_disableITimers (void);
-#endif
+#if !defined(_MSC_VER) && !defined(HAVE_EXECVPE)
+int execvpe(const char *file, char *const argv[], char *const envp[]);
+#endif /* !defined(_MSC_VER) && !defined(HAVE_EXECVPE) */
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#endif /* EXECVPE_H */
