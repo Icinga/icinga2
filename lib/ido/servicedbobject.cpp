@@ -305,10 +305,20 @@ void ServiceDbObject::AddComment(Service::Ptr const& service, Dictionary::Ptr co
 		return;
 	}
 
-	String comment_id = comment->Get("id");
+	Log(LogDebug, "ido", "adding service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
-	Log(LogDebug, "ido", "adding service comment (id = " + comment_id + ") for '" + service->GetName() + "'");
+	/* add the service comment */
+	AddCommentByType(service, comment);
 
+	/* add the hostcheck service comment to the host as well */
+	if (host->GetHostCheckService() == service) {
+		Log(LogDebug, "ido", "adding host comment (id = " + comment->Get("legacy_id") + ") for '" + host->GetName() + "'");
+		AddCommentByType(host, comment);
+	}
+}
+
+void ServiceDbObject::AddCommentByType(DynamicObject::Ptr const& object, Dictionary::Ptr const& comment)
+{
 	unsigned long entry_time = static_cast<long>(comment->Get("entry_time"));
 	unsigned long entry_time_usec = (comment->Get("entry_time") - entry_time) * 1000 * 1000;
 
@@ -317,12 +327,15 @@ void ServiceDbObject::AddComment(Service::Ptr const& service, Dictionary::Ptr co
 	fields1->Set("entry_time_usec", entry_time_usec);
 	fields1->Set("entry_type", comment->Get("entry_type"));
 
-	if (host->GetHostCheckService() == service) {
+	if (object->GetType() == DynamicType::GetByName("Host")) {
 		fields1->Set("comment_type", 2);
-		fields1->Set("object_id", host);
-	} else {
+		fields1->Set("object_id", static_pointer_cast<Host>(object));
+	} else if (object->GetType() == DynamicType::GetByName("Service")) {
 		fields1->Set("comment_type", 1);
-		fields1->Set("object_id", service);
+		fields1->Set("object_id", static_pointer_cast<Service>(object));
+	} else {
+		Log(LogDebug, "ido", "unknown object type for adding comment.");
+		return;
 	}
 
 	fields1->Set("comment_time", DbValue::FromTimestamp(Utility::GetTime()));
@@ -340,7 +353,6 @@ void ServiceDbObject::AddComment(Service::Ptr const& service, Dictionary::Ptr co
 	query1.Type = DbQueryInsert;
 	query1.Fields = fields1;
 	OnQuery(query1);
-	/* TODO add hostcheck service AND host comments */
 }
 
 void ServiceDbObject::DeleteComments(Service::Ptr const& service)
@@ -357,12 +369,17 @@ void ServiceDbObject::DeleteComments(Service::Ptr const& service)
 	query1.Table = "comments";
 	query1.Type = DbQueryDelete;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
-	if (host->GetHostCheckService() == service)
-		query1.WhereCriteria->Set("object_id", host);
-	else
-		query1.WhereCriteria->Set("object_id", service);
-
+	query1.WhereCriteria->Set("object_id", service);
 	OnQuery(query1);
 
-	/* TODO delete hostcheck service AND host comments */
+	/* delete hostcheck service's host comments */
+	if (host->GetHostCheckService() == service) {
+		DbQuery query2;
+		query2.Table = "comments";
+		query2.Type = DbQueryDelete;
+		query2.WhereCriteria = boost::make_shared<Dictionary>();
+		query2.WhereCriteria->Set("object_id", host);
+		OnQuery(query2);
+	}
+
 }

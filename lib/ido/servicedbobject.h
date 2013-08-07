@@ -54,6 +54,7 @@ protected:
 
 	static void AddComments(Service::Ptr const& service);
 	static void AddComment(Service::Ptr const& service, Dictionary::Ptr const& comment);
+	static void AddCommentByType(DynamicObject::Ptr const& object, Dictionary::Ptr const& comment);
 	static void DeleteComments(Service::Ptr const& service);
 };
 
