@@ -44,7 +44,7 @@ Dictionary::Ptr UserGroupDbObject::GetConfigFields(void) const
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
 	UserGroup::Ptr group = static_pointer_cast<UserGroup>(GetObject());
 
-	fields->Set("alias", Empty);
+	fields->Set("alias", group->GetDisplayName());
 
 	return fields;
 }
