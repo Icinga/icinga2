@@ -250,8 +250,6 @@ void Service::RefreshCommentsCache(void)
 		l_CommentsExpireTimer->OnTimerExpired.connect(boost::bind(&Service::CommentsExpireTimerHandler));
 		l_CommentsExpireTimer->Start();
 	}
-
-	OnCommentsChanged(Service::Ptr(), Empty, CommentChangedUpdated);
 }
 
 void Service::RemoveCommentsByType(int type)

@@ -204,6 +204,9 @@ void ServiceDbObject::OnConfigUpdate(void)
                 OnQuery(query1);
 	}
 
+	/* update comments */
+	OnCommentsChanged(service, Empty, CommentChangedUpdated);
+
 	/* service host config update */
 	Host::Ptr host = service->GetHost();
 
@@ -344,7 +347,7 @@ void ServiceDbObject::CommentsChangedHandler(const Service::Ptr& svcfilter, cons
 		/* newly added comment */
 		Log(LogDebug, "ido", "adding service comment (id = " + id + ") for '" + service->GetName() + "'");
 
-		entry_time = static_cast<long>(comment->Get("entry_time"));
+		entry_time = static_cast<long>(add_comment->Get("entry_time"));
 		entry_time_usec = (add_comment->Get("entry_time") - entry_time) * 1000 * 1000;
 
 		fields2 = boost::make_shared<Dictionary>();
