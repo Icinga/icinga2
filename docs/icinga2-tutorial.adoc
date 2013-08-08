@@ -732,6 +732,7 @@ local object MysqlDbConnection "ido-mysql" {
 	user = "icinga",
 	password = "icinga",
 	database = "icinga",
+	table_prefix = "icinga_",
 	instance_name = "icinga2",
 	instance_description = "icinga2 instance"
 }
