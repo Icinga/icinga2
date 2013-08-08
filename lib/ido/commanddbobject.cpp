@@ -44,8 +44,6 @@ Dictionary::Ptr CommandDbObject::GetConfigFields(void) const
 
 	attrs = CompatUtility::GetCommandConfigAttributes(command);
 
-	Log(LogDebug, "ido", "get command");
-
 	fields->Set("command_line", attrs->Get("command_line"));
 
 	return fields;
