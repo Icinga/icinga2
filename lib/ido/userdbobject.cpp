@@ -72,13 +72,18 @@ Dictionary::Ptr UserDbObject::GetStatusFields(void) const
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
-	fields->Set("host_notifications_enabled", Empty);
-	fields->Set("service_notifications_enabled", Empty);
-	fields->Set("last_host_notification", Empty);
-	fields->Set("last_service_notification", Empty);
+	fields->Set("host_notifications_enabled", user->GetEnableNotifications());
+	fields->Set("service_notifications_enabled", user->GetEnableNotifications());
+	fields->Set("last_host_notification", DbValue::FromTimestamp(user->GetLastNotification()));
+	fields->Set("last_service_notification", DbValue::FromTimestamp(user->GetLastNotification()));
 	fields->Set("modified_attributes", Empty);
 	fields->Set("modified_host_attributes", Empty);
 	fields->Set("modified_service_attributes", Empty);
 
 	return fields;
+}
+
+bool UserDbObject::IsStatusAttribute(const String& attribute) const
+{
+	return (attribute == "last_notification");
 }

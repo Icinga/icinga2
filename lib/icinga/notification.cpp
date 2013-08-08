@@ -358,6 +358,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		{
 			ObjectLock olock(this);
 			UpdateNotificationNumber();
+			SetLastNotification(Utility::GetTime());
 		}
 
 		RequestMessage rm;

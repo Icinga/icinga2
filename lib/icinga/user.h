@@ -53,6 +53,8 @@ public:
 	TimePeriod::Ptr GetNotificationPeriod(void) const;
  	unsigned long GetNotificationTypeFilter(void) const;
 	unsigned long GetNotificationStateFilter(void) const;
+	void SetLastNotification(double ts);
+	double GetLastNotification(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
 
@@ -69,6 +71,7 @@ private:
 	Attribute<String> m_NotificationPeriod;
 	Attribute<long> m_NotificationTypeFilter;
 	Attribute<long> m_NotificationStateFilter;
+	Attribute<double> m_LastNotification;
 };
 
 }

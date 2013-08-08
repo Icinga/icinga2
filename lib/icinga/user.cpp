@@ -37,6 +37,7 @@ User::User(const Dictionary::Ptr& serializedUpdate)
 	RegisterAttribute("notification_period", Attribute_Config, &m_NotificationPeriod);
 	RegisterAttribute("notification_type_filter", Attribute_Config, &m_NotificationTypeFilter);
 	RegisterAttribute("notification_state_filter", Attribute_Config, &m_NotificationStateFilter);
+	RegisterAttribute("last_notification", Attribute_Replicated, &m_LastNotification);
 }
 
 User::~User(void)
@@ -112,6 +113,17 @@ unsigned long User::GetNotificationStateFilter(void) const
 		return m_NotificationStateFilter;
 }
 
+void User::SetLastNotification(double ts)
+{
+	m_LastNotification = ts;
+	Touch("last_notification");
+}
+
+double User::GetLastNotification(void) const
+{
+	return m_LastNotification;
+}
+
 bool User::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
 {
 	if (macro == "CONTACTNAME") {
@@ -131,3 +143,4 @@ bool User::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *
 		return false;
 	}
 }
+
