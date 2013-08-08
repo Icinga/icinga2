@@ -63,7 +63,8 @@ String DbConnection::GetTablePrefix(void) const
 void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
 {
 	DbQuery query;
-
+	query.Table = "runtimevariables";
+	query.Type = DbQueryInsert;
 	query.Fields = boost::make_shared<Dictionary>();
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query.Fields->Set("varname", key);
@@ -103,10 +104,10 @@ void DbConnection::ProgramStatusHandler(void)
 
 	DbQuery query3;
 	query3.Table = "runtimevariables";
-	query1.Type = DbQueryDelete;
-	query1.WhereCriteria = boost::make_shared<Dictionary>();
-	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
-	DbObject::OnQuery(query1);
+	query3.Type = DbQueryDelete;
+	query3.WhereCriteria = boost::make_shared<Dictionary>();
+	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+	DbObject::OnQuery(query3);
 
 	InsertRuntimeVariable("total_services", DynamicType::GetObjects("Service").size());
 	InsertRuntimeVariable("total_scheduled_services", DynamicType::GetObjects("Service").size());
