@@ -60,6 +60,17 @@ String DbConnection::GetTablePrefix(void) const
 		return m_TablePrefix;
 }
 
+void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
+{
+	DbQuery query;
+
+	query.Fields = boost::make_shared<Dictionary>();
+	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query.Fields->Set("varname", key);
+	query.Fields->Set("varvalue", value);
+	DbObject::OnQuery(query);
+}
+
 void DbConnection::ProgramStatusHandler(void)
 {
 	DbQuery query1;
@@ -89,6 +100,18 @@ void DbConnection::ProgramStatusHandler(void)
 	query2.Fields->Set("failure_prediction_enabled", 1);
 	query2.Fields->Set("process_performance_data", 1);
 	DbObject::OnQuery(query2);
+
+	DbQuery query3;
+	query3.Table = "runtimevariables";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+	DbObject::OnQuery(query1);
+
+	InsertRuntimeVariable("total_services", DynamicType::GetObjects("Service").size());
+	InsertRuntimeVariable("total_scheduled_services", DynamicType::GetObjects("Service").size());
+	InsertRuntimeVariable("total_hosts", DynamicType::GetObjects("Host").size());
+	InsertRuntimeVariable("total_scheduled_hosts", DynamicType::GetObjects("Host").size());
 }
 
 void DbConnection::SetObjectID(const DbObject::Ptr& dbobj, const DbReference& dbref)

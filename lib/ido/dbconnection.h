@@ -74,6 +74,7 @@ private:
 	std::set<DbObject::Ptr> m_StatusUpdates;
 	static Timer::Ptr m_ProgramStatusTimer;
 
+	static void InsertRuntimeVariable(const String& key, const Value& value);
 	static void ProgramStatusHandler(void);
 
 	friend class DbType;
