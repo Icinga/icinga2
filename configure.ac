@@ -63,7 +63,6 @@ AX_BOOST_THREAD
 AX_BOOST_SYSTEM
 AX_BOOST_UNIT_TEST_FRAMEWORK
 AX_BOOST_PROGRAM_OPTIONS
-AX_LIB_MYSQL([5.0])
 AX_CHECK_OPENSSL([], [AC_MSG_ERROR([You need the OpenSSL headers and libraries in order to build this application])])
 AC_CHECK_LIB(ssl, SSL_new)
 AC_CHECK_LIB(crypto, X509_NAME_oneline)
@@ -95,6 +94,10 @@ if test "x$enable_coverage" = "xyes"; then
 	CXXFLAGS="$CXXFLAGS -g -O0 -DNDEBUG -fprofile-arcs -ftest-coverage -lgcov"
 fi
 AC_MSG_RESULT($enable_coverage)
+
+AX_LIB_MYSQL([5.0])
+AC_CHECK_HEADERS([mysql/mysql.h], [mysql_use=true], [AC_MSG_WARN([mysql.h not found. Will not build mysql related libs/components.])])
+AM_CONDITIONAL(MYSQL_USE, test x"$mysql_use" = x"true")
 
 AX_PYTHON_DEFAULT
 AX_PYTHON_ENABLE

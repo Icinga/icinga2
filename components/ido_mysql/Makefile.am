@@ -1,5 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
+if MYSQL_USE
 pkglib_LTLIBRARIES = \
 	libido_mysql.la
 
@@ -38,3 +39,10 @@ libido_mysql_la_LIBADD = \
 	${top_builddir}/lib/remoting/libremoting.la \
 	${top_builddir}/lib/icinga/libicinga.la \
 	${top_builddir}/lib/ido/libido.la
+
+else
+
+all-local:
+	@echo 'MySQL not enabled. Install libs/headers and rerun configure/make.'
+
+endif
