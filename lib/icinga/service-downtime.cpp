@@ -40,6 +40,7 @@ static Timer::Ptr l_DowntimesCacheTimer;
 static Timer::Ptr l_DowntimesExpireTimer;
 
 boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> Service::OnDowntimeChanged;
+boost::signals2::signal<void (const Service::Ptr&, const String&, DowntimeChangedType)> Service::OnDowntimesChanged;
 
 void Service::DowntimeRequestHandler(const RequestMessage& request)
 {
@@ -131,6 +132,8 @@ String Service::AddDowntime(const String& author, const String& comment,
 		l_DowntimesCache[id] = GetSelf();
 	}
 
+	OnDowntimesChanged(GetSelf(), id, DowntimeChangedAdded);
+
 	return id;
 }
 
@@ -164,6 +167,8 @@ void Service::RemoveDowntime(const String& id)
 
 		owner->Touch("downtimes");
 	}
+
+	OnDowntimesChanged(owner, id, DowntimeChangedDeleted);
 }
 
 void Service::TriggerDowntimes(void)
@@ -226,6 +231,8 @@ void Service::TriggerDowntime(const String& id)
 	EndpointManager::GetInstance()->SendMulticastMessage(rm);
 
 	owner->Touch("downtimes");
+
+	OnDowntimesChanged(owner, Empty, DowntimeChangedUpdated);
 }
 
 String Service::GetDowntimeIDFromLegacyID(int id)
@@ -402,6 +409,8 @@ void Service::RemoveExpiredDowntimes(void)
 			ObjectLock olock(this);
 			Touch("downtimes");
 		}
+
+		OnDowntimesChanged(GetSelf(), Empty, DowntimeChangedDeleted);
 	}
 }
 

@@ -97,6 +97,18 @@ enum CommentChangedType
 	CommentChangedDeleted = 2
 };
 
+/**
+ * The state of a changed downtime
+ *
+ * @ingroup icinga
+ */
+enum DowntimeChangedType
+{
+	DowntimeChangedAdded = 0,
+	DowntimeChangedUpdated = 1,
+	DowntimeChangedDeleted = 2
+};
+
 class CheckCommand;
 class EventCommand;
 
@@ -245,6 +257,7 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> OnDowntimeChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&, CommentChangedType)> OnCommentsChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, const String&, DowntimeChangedType)> OnDowntimesChanged;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 

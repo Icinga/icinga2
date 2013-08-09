@@ -40,6 +40,7 @@ INITIALIZE_ONCE(ServiceDbObject, &ServiceDbObject::StaticInitialize);
 void ServiceDbObject::StaticInitialize(void)
 {
 	Service::OnCommentsChanged.connect(boost::bind(&ServiceDbObject::CommentsChangedHandler, _1, _2, _3));
+	Service::OnDowntimesChanged.connect(boost::bind(&ServiceDbObject::DowntimesChangedHandler, _1, _2, _3));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -366,10 +367,10 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	fields1->Set("entry_time_usec", entry_time_usec);
 	fields1->Set("entry_type", comment->Get("entry_type"));
+	fields1->Set("object_id", object);
 
 	if (object->GetType() == DynamicType::GetByName("Host")) {
 		fields1->Set("comment_type", 2);
-		fields1->Set("object_id", static_pointer_cast<Host>(object));
 		/* this is obviously bullshit, but otherwise we would hit
 		 * the unique constraint on the table for the same service
 		 * comment. dynamically incremented/decremented numbers as
@@ -378,7 +379,6 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 		fields1->Set("internal_comment_id", 0);
 	} else if (object->GetType() == DynamicType::GetByName("Service")) {
 		fields1->Set("comment_type", 1);
-		fields1->Set("object_id", static_pointer_cast<Service>(object));
 		fields1->Set("internal_comment_id", comment->Get("legacy_id"));
 	} else {
 		Log(LogDebug, "ido", "unknown object type for adding comment.");
@@ -427,6 +427,150 @@ void ServiceDbObject::DeleteComments(const Service::Ptr& service)
 		query2.WhereCriteria->Set("object_id", host);
 		OnQuery(query2);
 	}
+}
 
+void ServiceDbObject::DowntimesChangedHandler(const Service::Ptr& svcfilter, const String& id, DowntimeChangedType type)
+{
+	if (type == DowntimeChangedUpdated || type == DowntimeChangedDeleted) {
+		/* we cannot determine which downtime id is deleted
+		 * ido schema does not store legacy id
+		 */
+		BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
+			Service::Ptr service = static_pointer_cast<Service>(object);
+
+			if (svcfilter && svcfilter != service)
+				continue;
+
+			Host::Ptr host = service->GetHost();
+
+			if (!host)
+				continue;
+
+			/* delete all downtimes associated for this host/service */
+			DeleteDowntimes(service);
+
+			/* dump all downtimes */
+			AddDowntimes(service);
+		}
+	} else if (type == DowntimeChangedAdded) {
+		Dictionary::Ptr downtime = Service::GetDowntimeByID(id);
+		AddDowntime(svcfilter, downtime);
+	} else {
+		Log(LogDebug, "ido", "invalid downtime change type: " + type);
+	}
+}
+
+void ServiceDbObject::AddDowntimes(const Service::Ptr& service)
+{
+	/* dump all downtimes */
+	Dictionary::Ptr downtimes = service->GetDowntimes();
+
+	if (!downtimes)
+		return;
+
+	ObjectLock olock(downtimes);
+
+	String downtime_id;
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(boost::tie(downtime_id, downtime), downtimes) {
+		AddDowntime(service, downtime);
+	}
+}
+
+void ServiceDbObject::AddDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (!downtime) {
+		Log(LogWarning, "ido", "downtime does not exist. not adding it.");
+		return;
+	}
+
+	Log(LogDebug, "ido", "adding service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
+
+	/* add the service downtime */
+	AddDowntimeByType(service, downtime);
+
+	/* add the hostcheck service downtime to the host as well */
+	if (host->GetHostCheckService() == service) {
+		Log(LogDebug, "ido", "adding host downtime (id = " + downtime->Get("legacy_id") + ") for '" + host->GetName() + "'");
+		AddDowntimeByType(host, downtime);
+	}
+}
+
+void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& downtime)
+{
+	unsigned long entry_time = static_cast<long>(downtime->Get("entry_time"));
+	unsigned long entry_time_usec = (downtime->Get("entry_time") - entry_time) * 1000 * 1000;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
+	fields1->Set("object_id", object);
+
+	if (object->GetType() == DynamicType::GetByName("Host")) {
+		fields1->Set("downtime_type", 2);
+		/* this is obviously bullshit, but otherwise we would hit
+		 * the unique constraint on the table for the same service
+		 * downtime. dynamically incremented/decremented numbers as
+		 * unique constraint - wtf?
+		 */
+		fields1->Set("internal_downtime_id", 0);
+	} else if (object->GetType() == DynamicType::GetByName("Service")) {
+		fields1->Set("downtime_type", 1);
+		fields1->Set("internal_downtime_id", downtime->Get("legacy_id"));
+	} else {
+		Log(LogDebug, "ido", "unknown object type for adding downtime.");
+		return;
+	}
+
+	fields1->Set("author_name", downtime->Get("author"));
+	fields1->Set("triggered_by_id", downtime->Get("triggered_by"));
+	fields1->Set("is_fixed", downtime->Get("is_fixed"));
+	fields1->Set("duration", downtime->Get("duration"));
+	fields1->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->Get("start_time")));
+	fields1->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->Get("end_time")));
+	fields1->Set("was_started", Empty);
+	fields1->Set("actual_start_time", Empty);
+	fields1->Set("actual_start_time_usec", Empty);
+	fields1->Set("is_in_effect", Empty);
+	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->Get("trigger_time")));
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	DbQuery query1;
+	query1.Table = "scheduleddowntime";
+	query1.Type = DbQueryInsert;
+	query1.Fields = fields1;
+	OnQuery(query1);
+}
+
+void ServiceDbObject::DeleteDowntimes(const Service::Ptr& service)
+{
+	/* delete all downtimes associated for this host/service */
+	Log(LogDebug, "ido", "delete downtimes for '" + service->GetName() + "'");
+
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	DbQuery query1;
+	query1.Table = "scheduleddowntime";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set("object_id", service);
+	OnQuery(query1);
+
+	/* delete hostcheck service's host downtimes */
+	if (host->GetHostCheckService() == service) {
+		DbQuery query2;
+		query2.Table = "scheduleddowntime";
+		query2.Type = DbQueryDelete;
+		query2.WhereCriteria = boost::make_shared<Dictionary>();
+		query2.WhereCriteria->Set("object_id", host);
+		OnQuery(query2);
+	}
 }
 

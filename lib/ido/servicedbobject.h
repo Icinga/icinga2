@@ -50,12 +50,18 @@ protected:
 	virtual void OnConfigUpdate(void);
 	virtual void OnStatusUpdate(void);
 
+private:
 	static void CommentsChangedHandler(const Service::Ptr& service, const String& id, CommentChangedType type);
-
 	static void AddComments(const Service::Ptr& service);
 	static void AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
 	static void AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment);
 	static void DeleteComments(const Service::Ptr& service);
+
+	static void DowntimesChangedHandler(const Service::Ptr& service, const String& id, DowntimeChangedType type);
+	static void AddDowntimes(const Service::Ptr& service);
+	static void AddDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+	static void AddDowntimeByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& downtime);
+	static void DeleteDowntimes(const Service::Ptr& service);
 };
 
 }
