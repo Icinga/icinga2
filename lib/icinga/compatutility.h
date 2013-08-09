@@ -24,6 +24,7 @@
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
 #include "base/dictionary.h"
+#include "base/dynamicobject.h"
 #include <vector>
 
 namespace icinga
@@ -52,6 +53,8 @@ public:
 	static Dictionary::Ptr GetServiceConfigAttributes(const Service::Ptr& service);
 
 	static Dictionary::Ptr GetCommandConfigAttributes(const Command::Ptr& command);
+
+	static Dictionary::Ptr GetCustomVariableConfig(DynamicObject::Ptr const& object);
 	static String EscapeString(const String& str);
 
 private:

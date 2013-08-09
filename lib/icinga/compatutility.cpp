@@ -21,10 +21,12 @@
 #include "icinga/compatutility.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
+#include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -448,6 +450,42 @@ Dictionary::Ptr CompatUtility::GetCommandConfigAttributes(const Command::Ptr& co
 	attr->Set("command_line", commandline);
 
 	return attr;
+}
+
+
+Dictionary::Ptr CompatUtility::GetCustomVariableConfig(DynamicObject::Ptr const& object)
+{
+	Dictionary::Ptr custom;
+
+	if (object->GetType() == DynamicType::GetByName("Host")) {
+		custom = static_pointer_cast<Host>(object)->GetCustom();
+	} else if (object->GetType() == DynamicType::GetByName("Service")) {
+		custom = static_pointer_cast<Service>(object)->GetCustom();
+	} else if (object->GetType() == DynamicType::GetByName("User")) {
+		custom = static_pointer_cast<User>(object)->GetCustom();
+	} else {
+		Log(LogDebug, "compatutility", "unknown object type for custom vars");
+		return Dictionary::Ptr();
+	}
+
+	Dictionary::Ptr customvars = boost::make_shared<Dictionary>();
+
+	if (!custom)
+		return Dictionary::Ptr();
+
+        ObjectLock olock(custom);
+        String key;
+        Value value;
+        BOOST_FOREACH(boost::tie(key, value), custom) {
+
+                if (key != "notes" && key != "action_url" && key != "notes_url" &&
+                    key != "icon_image" && key != "icon_image_alt" && key != "statusmap_image" && "2d_coords")
+                        continue;
+
+		customvars->Set(key, value);
+        }
+
+	return customvars;
 }
 
 String CompatUtility::EscapeString(const String& str)
