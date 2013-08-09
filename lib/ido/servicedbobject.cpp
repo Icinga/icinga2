@@ -20,6 +20,7 @@
 #include "ido/servicedbobject.h"
 #include "ido/dbtype.h"
 #include "ido/dbvalue.h"
+#include "base/convert.h"
 #include "base/objectlock.h"
 #include "base/initialize.h"
 #include "base/dynamictype.h"
@@ -202,6 +203,46 @@ void ServiceDbObject::OnConfigUpdate(void)
                 query1.Type = DbQueryInsert;
                 query1.Fields = fields1;
                 OnQuery(query1);
+	}
+
+	/* custom variables */
+	Log(LogDebug, "ido", "service customvars for '" + service->GetName() + "'");
+
+	DbQuery query_del2;
+	query_del2.Table = "customvariables";
+	query_del2.Type = DbQueryDelete;
+	query_del2.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del2.WhereCriteria->Set("object_id", service);
+	OnQuery(query_del2);
+
+	Dictionary::Ptr customvars;
+	{
+		ObjectLock olock(service);
+		customvars = CompatUtility::GetCustomVariableConfig(service);
+	}
+
+	if (customvars) {
+		ObjectLock olock (customvars);
+
+		String key;
+		Value value;
+		BOOST_FOREACH(boost::tie(key, value), customvars) {
+			Log(LogDebug, "ido", "service customvar key: '" + key + "' value: '" + Convert::ToString(value) + "'");
+
+			Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
+			fields2->Set("varname", Convert::ToString(key));
+			fields2->Set("varvalue", Convert::ToString(value));
+			fields2->Set("config_type", 1);
+			fields2->Set("has_been_modified", 0);
+			fields2->Set("object_id", service);
+			fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+			DbQuery query2;
+			query2.Table = "customvariables";
+			query2.Type = DbQueryInsert;
+			query2.Fields = fields2;
+			OnQuery(query2);
+		}
 	}
 
 	/* update comments */

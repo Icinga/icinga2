@@ -26,8 +26,10 @@
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/compatutility.h"
+#include "base/convert.h"
 #include "base/objectlock.h"
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -191,7 +193,7 @@ void HostDbObject::OnConfigUpdate(void)
 {
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
-	/* safety delete */
+	/* parents, host dependencies */
 	DbQuery query_del1;
 	query_del1.Table = GetType()->GetTable() + "_parenthosts";
 	query_del1.Type = DbQueryDelete;
@@ -232,6 +234,46 @@ void HostDbObject::OnConfigUpdate(void)
 		query2.Type = DbQueryInsert;
 		query2.Fields = fields2;
 		OnQuery(query2);
+	}
+
+	/* custom variables */
+	Log(LogDebug, "ido", "host customvars for '" + host->GetName() + "'");
+
+	DbQuery query_del3;
+	query_del3.Table = "customvariables";
+	query_del3.Type = DbQueryDelete;
+	query_del3.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del3.WhereCriteria->Set("object_id", host);
+	OnQuery(query_del3);
+
+	Dictionary::Ptr customvars;
+	{
+		ObjectLock olock(host);
+		customvars = CompatUtility::GetCustomVariableConfig(host);
+	}
+
+	if (customvars) {
+		ObjectLock olock (customvars);
+
+		String key;
+		Value value;
+		BOOST_FOREACH(boost::tie(key, value), customvars) {
+			Log(LogDebug, "ido", "host customvar key: '" + key + "' value: '" + Convert::ToString(value) + "'");
+
+			Dictionary::Ptr fields3 = boost::make_shared<Dictionary>();
+			fields3->Set("varname", Convert::ToString(key));
+			fields3->Set("varvalue", Convert::ToString(value));
+			fields3->Set("config_type", 1);
+			fields3->Set("has_been_modified", 0);
+			fields3->Set("object_id", host);
+			fields3->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+			DbQuery query3;
+			query3.Table = "customvariables";
+			query3.Type = DbQueryInsert;
+			query3.Fields = fields3;
+			OnQuery(query3);
+		}
 	}
 }
 
