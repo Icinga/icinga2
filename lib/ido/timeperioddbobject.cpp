@@ -21,8 +21,11 @@
 #include "ido/dbtype.h"
 #include "ido/dbvalue.h"
 #include "icinga/timeperiod.h"
+#include "icinga/legacytimeperiod.h"
+#include "base/exception.h"
 #include "base/objectlock.h"
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -45,4 +48,71 @@ Dictionary::Ptr TimePeriodDbObject::GetConfigFields(void) const
 Dictionary::Ptr TimePeriodDbObject::GetStatusFields(void) const
 {
 	return Empty;
+}
+
+void TimePeriodDbObject::OnConfigUpdate(void)
+{
+	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
+
+	DbQuery query_del1;
+	query_del1.Table = GetType()->GetTable() + "_timeranges";
+	query_del1.Type = DbQueryDelete;
+	query_del1.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del1.WhereCriteria->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
+	OnQuery(query_del1);
+
+	Dictionary::Ptr ranges = tp->Get("ranges");
+
+	if (!ranges)
+		return;
+
+	time_t refts = Utility::GetTime();
+	ObjectLock olock(ranges);
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), ranges) {
+		int wday = LegacyTimePeriod::WeekdayFromString(key);
+
+		if (wday == -1)
+			continue;
+
+		tm reference;
+
+#ifdef _MSC_VER
+		tm *temp = localtime(&refts);
+
+		if (temp == NULL) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("localtime")
+			    << boost::errinfo_errno(errno));
+		}
+
+		reference = *temp;
+#else /* _MSC_VER */
+		if (localtime_r(&refts, &reference) == NULL) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("localtime_r")
+			    << boost::errinfo_errno(errno));
+		}
+#endif /* _MSC_VER */
+
+		tm begin, end;
+		int stride;
+
+		LegacyTimePeriod::ParseTimeRange(key, &begin, &end, &stride, &reference);
+
+		if (stride != 1)
+			continue;
+
+		DbQuery query;
+		query.Table = GetType()->GetTable() + "_timeranges";
+		query.Type = DbQueryInsert;
+		query.Fields = boost::make_shared<Dictionary>();
+		query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+		query.Fields->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
+		query.Fields->Set("day", wday);
+		query.Fields->Set("start_sec", mktime(&begin));
+		query.Fields->Set("end_sec", mktime(&end));
+		OnQuery(query);
+	}
 }
