@@ -54,7 +54,7 @@ public:
 
 	static Dictionary::Ptr GetCommandConfigAttributes(const Command::Ptr& command);
 
-	static Dictionary::Ptr GetCustomVariableConfig(DynamicObject::Ptr const& object);
+	static Dictionary::Ptr GetCustomVariableConfig(const DynamicObject::Ptr& object);
 	static String EscapeString(const String& str);
 
 private:

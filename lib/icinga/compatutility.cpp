@@ -453,7 +453,7 @@ Dictionary::Ptr CompatUtility::GetCommandConfigAttributes(const Command::Ptr& co
 }
 
 
-Dictionary::Ptr CompatUtility::GetCustomVariableConfig(DynamicObject::Ptr const& object)
+Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr& object)
 {
 	Dictionary::Ptr custom;
 
