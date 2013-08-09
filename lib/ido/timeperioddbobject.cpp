@@ -97,12 +97,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 #endif /* _MSC_VER */
 
 		tm begin, end;
-		int stride;
-
-		LegacyTimePeriod::ParseTimeRange(key, &begin, &end, &stride, &reference);
-
-		if (stride != 1)
-			continue;
+		LegacyTimePeriod::ProcessTimeRangeRaw(value, &reference, &begin, &end);
 
 		DbQuery query;
 		query.Table = GetType()->GetTable() + "_timeranges";
@@ -111,8 +106,8 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 		query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 		query.Fields->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
 		query.Fields->Set("day", wday);
-		query.Fields->Set("start_sec", mktime(&begin));
-		query.Fields->Set("end_sec", mktime(&end));
+		query.Fields->Set("start_sec", begin.tm_hour * 3600 + begin.tm_min * 60 + begin.tm_sec);
+		query.Fields->Set("end_sec", end.tm_hour * 3600 + end.tm_min * 60 + end.tm_sec);
 		OnQuery(query);
 	}
 }

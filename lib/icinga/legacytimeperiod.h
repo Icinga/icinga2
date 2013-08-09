@@ -44,6 +44,7 @@ public:
 	static void ParseTimeSpec(const String& timespec, tm *begin, tm *end, tm *reference);
 	static void ParseTimeRange(const String& timerange, tm *begin, tm *end, int *stride, tm *reference);
 	static bool IsInDayDefinition(const String& daydef, tm *reference);
+	static void ProcessTimeRangeRaw(const String& timerange, tm *reference, tm *begin, tm *end);
 	static Dictionary::Ptr ProcessTimeRange(const String& timerange, tm *reference);
 	static void ProcessTimeRanges(const String& timeranges, tm *reference, const Array::Ptr& result);
 

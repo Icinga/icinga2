@@ -329,7 +329,7 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
 
-Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timerange, tm *reference)
+void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *reference, tm *begin, tm *end)
 {
 	std::vector<String> times;
 
@@ -349,22 +349,24 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timerange, tm *
 	if (hd2.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + times[1]));
 
+	*begin = *reference;
+	begin->tm_sec = 0;
+	begin->tm_min = Convert::ToLong(hd1[1]);
+	begin->tm_hour = Convert::ToLong(hd1[0]);
+
+	*end = *reference;
+	end->tm_sec = 0;
+	end->tm_min = Convert::ToLong(hd2[1]);
+	end->tm_hour = Convert::ToLong(hd2[0]);
+}
+
+Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *reference)
+{
 	tm begin, end;
-
-	begin = *reference;
-	begin.tm_sec = 0;
-	begin.tm_min = Convert::ToLong(hd1[1]);
-	begin.tm_hour = Convert::ToLong(hd1[0]);
-
-	end = *reference;
-	end.tm_sec = 0;
-	end.tm_min = Convert::ToLong(hd2[1]);
-	end.tm_hour = Convert::ToLong(hd2[0]);
-
+	ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
 	Dictionary::Ptr segment = boost::make_shared<Dictionary>();
 	segment->Set("begin", (long)mktime(&begin));
 	segment->Set("end", (long)mktime(&end));
-
 	return segment;
 }
 
