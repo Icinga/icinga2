@@ -144,7 +144,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 		fields->Set("max_check_attempts", attrs->Get("max_attempts"));
 		fields->Set("last_check", DbValue::FromTimestamp(attrs->Get("last_check")));
 		fields->Set("next_check", DbValue::FromTimestamp(attrs->Get("next_check")));
-		fields->Set("check_type", Empty);
+		fields->Set("check_type", attrs->Get("check_type"));
 		fields->Set("last_state_change", DbValue::FromTimestamp(attrs->Get("last_state_change")));
 		fields->Set("last_hard_state_change", DbValue::FromTimestamp(attrs->Get("last_hard_state_change")));
 		fields->Set("last_time_up", DbValue::FromTimestamp(attrs->Get("last_time_up")));
