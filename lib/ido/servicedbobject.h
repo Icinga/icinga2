@@ -52,10 +52,10 @@ protected:
 
 	static void CommentsChangedHandler(const Service::Ptr& service, const String& id, CommentChangedType type);
 
-	static void AddComments(Service::Ptr const& service);
-	static void AddComment(Service::Ptr const& service, Dictionary::Ptr const& comment);
-	static void AddCommentByType(DynamicObject::Ptr const& object, Dictionary::Ptr const& comment);
-	static void DeleteComments(Service::Ptr const& service);
+	static void AddComments(const Service::Ptr& service);
+	static void AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
+	static void AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment);
+	static void DeleteComments(const Service::Ptr& service);
 };
 
 }

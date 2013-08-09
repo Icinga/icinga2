@@ -317,7 +317,7 @@ void ServiceDbObject::CommentsChangedHandler(const Service::Ptr& svcfilter, cons
 	}
 }
 
-void ServiceDbObject::AddComments(Service::Ptr const& service)
+void ServiceDbObject::AddComments(const Service::Ptr& service)
 {
 	/* dump all comments */
 	Dictionary::Ptr comments = service->GetComments();
@@ -334,7 +334,7 @@ void ServiceDbObject::AddComments(Service::Ptr const& service)
 	}
 }
 
-void ServiceDbObject::AddComment(Service::Ptr const& service, Dictionary::Ptr const& comment)
+void ServiceDbObject::AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -358,7 +358,7 @@ void ServiceDbObject::AddComment(Service::Ptr const& service, Dictionary::Ptr co
 	}
 }
 
-void ServiceDbObject::AddCommentByType(DynamicObject::Ptr const& object, Dictionary::Ptr const& comment)
+void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment)
 {
 	unsigned long entry_time = static_cast<long>(comment->Get("entry_time"));
 	unsigned long entry_time_usec = (comment->Get("entry_time") - entry_time) * 1000 * 1000;
@@ -402,7 +402,7 @@ void ServiceDbObject::AddCommentByType(DynamicObject::Ptr const& object, Diction
 	OnQuery(query1);
 }
 
-void ServiceDbObject::DeleteComments(Service::Ptr const& service)
+void ServiceDbObject::DeleteComments(const Service::Ptr& service)
 {
 	/* delete all comments associated for this host/service */
 	Log(LogDebug, "ido", "delete comments for '" + service->GetName() + "'");
