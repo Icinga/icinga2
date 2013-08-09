@@ -478,8 +478,13 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(DynamicObject::Ptr const&
         Value value;
         BOOST_FOREACH(boost::tie(key, value), custom) {
 
-                if (key != "notes" && key != "action_url" && key != "notes_url" &&
-                    key != "icon_image" && key != "icon_image_alt" && key != "statusmap_image" && "2d_coords")
+                if (key == "notes" ||
+		    key == "action_url" ||
+		    key == "notes_url" ||
+		    key == "icon_image" ||
+		    key == "icon_image_alt" ||
+		    key == "statusmap_image" ||
+		    key == "2d_coords")
                         continue;
 
 		customvars->Set(key, value);
