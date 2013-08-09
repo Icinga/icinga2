@@ -216,6 +216,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	OnQuery(query_del2);
 
 	Dictionary::Ptr customvars;
+
 	{
 		ObjectLock olock(service);
 		customvars = CompatUtility::GetCustomVariableConfig(service);
@@ -287,7 +288,6 @@ void ServiceDbObject::OnStatusUpdate(void)
 void ServiceDbObject::CommentsChangedHandler(const Service::Ptr& svcfilter, const String& id, CommentChangedType type)
 {
 	if (type == CommentChangedUpdated || type == CommentChangedDeleted) {
-
 		/* we cannot determine which comment id is deleted
 		 * ido schema does not store legacy id
 		 */
@@ -309,7 +309,6 @@ void ServiceDbObject::CommentsChangedHandler(const Service::Ptr& svcfilter, cons
 			AddComments(service);
 		}
 	} else if (type == CommentChangedAdded) {
-
 		Dictionary::Ptr comment = Service::GetCommentByID(id);
 		AddComment(svcfilter, comment);
 	} else {
@@ -430,3 +429,4 @@ void ServiceDbObject::DeleteComments(const Service::Ptr& service)
 	}
 
 }
+
