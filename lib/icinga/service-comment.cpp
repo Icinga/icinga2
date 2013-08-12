@@ -277,11 +277,12 @@ void Service::RemoveCommentsByType(int type)
 			comments->Remove(id);
 		}
 
+		OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
+
 		ObjectLock olock(this);
 		Touch("comments");
 	}
 
-	OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
 }
 
 void Service::RemoveExpiredComments(void)
@@ -309,11 +310,12 @@ void Service::RemoveExpiredComments(void)
 			comments->Remove(id);
 		}
 
+		OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
+
 		ObjectLock olock(this);
 		Touch("comments");
 	}
 
-	OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
 }
 
 void Service::CommentsExpireTimerHandler(void)
