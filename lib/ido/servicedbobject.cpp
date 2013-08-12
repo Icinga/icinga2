@@ -247,8 +247,9 @@ void ServiceDbObject::OnConfigUpdate(void)
 		}
 	}
 
-	/* update comments */
-	//OnCommentsChanged(service, Empty, CommentChangedUpdated);
+	/* update comments and downtimes on config change */
+	CommentsChangedHandler(service, Empty, CommentChangedUpdated);
+	DowntimesChangedHandler(service, Empty, DowntimeChangedUpdated);
 
 	/* service host config update */
 	Host::Ptr host = service->GetHost();
@@ -272,6 +273,7 @@ void ServiceDbObject::OnStatusUpdate(void)
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 	Host::Ptr host = service->GetHost();
 
+	/* update the host if hostcheck service */
 	if (!host)
 		return;
 
@@ -290,7 +292,7 @@ void ServiceDbObject::CommentsChangedHandler(const Service::Ptr& svcfilter, cons
 {
 	if (type == CommentChangedUpdated || type == CommentChangedDeleted) {
 		/* we cannot determine which comment id is deleted
-		 * ido schema does not store legacy id
+		 * id cache may not be in sync
 		 */
 		BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 			Service::Ptr service = static_pointer_cast<Service>(object);
@@ -433,7 +435,7 @@ void ServiceDbObject::DowntimesChangedHandler(const Service::Ptr& svcfilter, con
 {
 	if (type == DowntimeChangedUpdated || type == DowntimeChangedDeleted) {
 		/* we cannot determine which downtime id is deleted
-		 * ido schema does not store legacy id
+		 * id cache may not be in sync
 		 */
 		BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
 			Service::Ptr service = static_pointer_cast<Service>(object);
