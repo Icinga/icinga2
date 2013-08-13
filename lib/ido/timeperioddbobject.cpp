@@ -22,6 +22,7 @@
 #include "ido/dbvalue.h"
 #include "icinga/timeperiod.h"
 #include "icinga/legacytimeperiod.h"
+#include "base/utility.h"
 #include "base/exception.h"
 #include "base/objectlock.h"
 #include <boost/foreach.hpp>
