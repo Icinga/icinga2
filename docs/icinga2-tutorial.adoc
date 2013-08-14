@@ -785,3 +785,4 @@ additive attributes:
 
 ----
 
+/* vim: set syntax=asciidoc filetype=asciidoc: */

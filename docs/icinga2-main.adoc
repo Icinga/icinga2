@@ -1,0 +1,55 @@
+Icinga 2
+========
+
+:keywords:	Icinga, documentation, index
+:description:	Main index of Icinga 2 documentation
+
+Introduction
+------------
+
+A detailed introduction can be found in the chapter link:icinga2-intro.html[Introduction]. /* TODO insert url */
+
+Installation
+------------
+
+For more information see the chapter Installation. /* TODO insert url */
+
+Quick Example
+-------------
+
+/* TODO */
+
+For a general tutorial see the chapter link:icinga2-tutorial.html[Tutorial]. /* TODO insert url */
+
+Requirements
+------------
+
+/* TODO */
+
+License
+-------
+Icinga 2 is licensed under the GPLv2 license, a copy of this license can be found in the LICENSE file on
+the main source tree.
+
+
+Community
+---------
+
+* http://webchat.freenode.net/?channels=icinga[#icinga] on the Freenode IRC Network
+* https://lists.sourceforge.net/lists/listinfo/icinga-users[Mailinglists]
+* http://www.monitoring-portal.org[Monitoring Portal]
+
+More details at http://www.icinga.org/support/
+
+Support
+-------
+
+For more information on the support options refer to https://www.icinga.org/support
+
+
+Chapters
+--------
+
+/* TODO */
+
+/* vim: set syntax=asciidoc filetype=asciidoc: */
