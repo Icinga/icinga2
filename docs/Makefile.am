@@ -1,6 +1,7 @@
 .PHONY: clean
 
 EXTRA_DIST = \
+	icinga2.adoc \
 	icinga2-config.adoc \
 	icinga2-config-syntax.adoc \
 	icinga2-config-types.adoc \
@@ -20,6 +21,7 @@ man8_MANS = \
 
 if AD_COND_doc
 icinga2doc_DATA += \
+	icinga2.html \
 	icinga2-config.html \
 	icinga2-config-syntax.html \
 	icinga2-config-types.html \

@@ -1,0 +1,32 @@
+Icinga 2
+========
+
+:keywords:	Icinga, documentation, all
+:description:	Everything.
+
+//push included files sections one level down
+//put a blank line as seperator to ensure that the title of the included
+//document is not seen as part of the last paragraph of the previous document.
+:leveloffset: 1
+include::icinga2-main.adoc[]
+
+:leveloffset: 1
+include::icinga2-intro.adoc[]
+
+:leveloffset: 1
+include::icinga2-install.adoc[]
+
+:leveloffset: 1
+include::icinga2-tutorial.adoc[]
+
+:leveloffset: 1
+include::icinga2-config.adoc[]
+
+:leveloffset: 1
+include::icinga2-config-syntax.adoc[]
+
+:leveloffset: 1
+include::icinga2-config-types.adoc[]
+
+
+/* vim: set syntax=asciidoc filetype=asciidoc: */
