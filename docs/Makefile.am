@@ -42,5 +42,8 @@ icinga2.8: $(top_builddir)/icinga-app/icinga2
 $(top_builddir)/icinga-app/icinga2:
 	$(MAKE) -C  $(top_builddir)
 
+clean:
+	rm -f $(icinga2doc_DATA)
+
 distclean:
 	rm -f $(icinga2doc_DATA)

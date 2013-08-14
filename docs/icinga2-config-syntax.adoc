@@ -1,5 +1,5 @@
-Icinga 2 Configuration
-======================
+Icinga 2 Configuration Syntax
+=============================
 
 :keywords:	Icinga, documentation, configuration
 :description:	Description of the Icinga 2 config

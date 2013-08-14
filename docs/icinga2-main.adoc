@@ -1,5 +1,5 @@
-Icinga 2
-========
+Icinga 2 Main
+=============
 
 :keywords:	Icinga, documentation, index
 :description:	Main index of Icinga 2 documentation

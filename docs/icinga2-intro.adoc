@@ -1,5 +1,5 @@
-Icinga 2
-========
+Icinga 2 Introduction
+=====================
 
 Icinga 2 is a network monitoring application that tries to improve upon the
 success of Icinga 1.x while fixing some of its shortcomings. A few frequently
