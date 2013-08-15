@@ -17,6 +17,12 @@ include::icinga2-intro.adoc[]
 include::icinga2-install.adoc[]
 
 :leveloffset: 1
+include::icinga2-migration.adoc[]
+
+:leveloffset: 1
+include::icinga2-compat.adoc[]
+
+:leveloffset: 1
 include::icinga2-tutorial.adoc[]
 
 :leveloffset: 1
