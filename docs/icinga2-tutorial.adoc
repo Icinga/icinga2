@@ -75,7 +75,7 @@ your check plugins you may need to update this path in your configuration file.
 You can verify that your configuration file works by starting Icinga 2:
 
 ----
-$ /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf
+$ /usr/bin/icinga2 -c /etc/icinga2/icinga2.conf
 [2013/04/23 13:36:20 +0200] <Main Thread> information/icinga-app: Icinga application loader (version: 0.0.1, git branch master, commit 0fcbfdb2)
 [2013/04/23 13:36:20 +0200] <Main Thread> information/base: Adding library search dir: /usr/lib/icinga2
 [2013/04/23 13:36:20 +0200] <Main Thread> information/base: Loading library 'libicinga.la'

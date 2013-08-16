@@ -36,7 +36,7 @@ make install DESTDIR=%{buildroot}
 %{_sysconfdir}/%{name}
 #%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
-%{_sbindir}/%{name}
+%{_bindir}/%{name}
 %{_libdir}/%{name}
 %{_datadir}/doc/%{name}
 %{_datadir}/%{name}
@@ -47,7 +47,6 @@ make install DESTDIR=%{buildroot}
 
 %changelog
 * Sat May 04 2013 Michael Friedrich <michael.friedrich@netways.de> - 0.0.2-1
-- icinga2 binary in sbindir
 - new initscript in initdir
 - itl is installed into datadir
 - man pages in mandir
