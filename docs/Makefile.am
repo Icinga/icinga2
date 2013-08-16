@@ -35,7 +35,7 @@ icinga2doc_DATA += \
 	icinga2-migration.html
 
 .adoc.html:
-	$(AD_ENV) $(AD_ASCIIDOC) -a toc -a numbered -o $@ $<
+	$(AD_ENV) $(AD_ASCIIDOC) -d book -a toc -a numbered -o $@ $<
 endif AD_COND_doc
 
 icinga2.8: $(top_builddir)/icinga-app/icinga2
