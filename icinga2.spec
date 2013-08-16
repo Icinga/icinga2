@@ -33,13 +33,16 @@ make %{?_smp_mflags}
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
 make install DESTDIR=%{buildroot}
 
+# dist config
+mv %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf.dist %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf
+
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
 %{_sysconfdir}/%{name}
-#%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %{_bindir}/%{name}
 %{_libdir}/%{name}
