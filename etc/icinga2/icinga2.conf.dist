@@ -3,7 +3,7 @@
  * - this is where you define settings for the Icinga application including
  * which hosts/services to check.
  *
- * The docs/icinga2-config.txt file in the source tarball has a detailed
+ * The docs/icinga2-config.adoc file in the source tarball has a detailed
  * description of what configuration options are available.
  */
 
