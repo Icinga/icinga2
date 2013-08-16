@@ -41,6 +41,7 @@ mv %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf.dist %{buildroot}%{_sysconfdi
 
 %files
 %defattr(-,root,root)
+%doc README AUTHORS ChangeLog COPYING COPYING.Exceptions
 %{_sysconfdir}/%{name}
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
@@ -50,6 +51,13 @@ mv %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf.dist %{buildroot}%{_sysconfdi
 %{_datadir}/%{name}
 %{_datadir}/%{name}/itl
 %{_mandir}/man8/%{name}.8.gz
+
+%{_localstatedir}/cache/%{name}
+%{_localstatedir}/log/%{name}
+%{_localstatedir}/run/%{name}
+%{_localstatedir}/lib/%{name}
+%{_localstatedir}/spool/%{name}
+%{_localstatedir}/spool/%{name}/perfdata
 
 
 
