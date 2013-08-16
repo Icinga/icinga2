@@ -16,10 +16,11 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 sbindir=@sbindir@
+bindir=@bindir@
 sysconfdir=@sysconfdir@
 localstatedir=@localstatedir@
 
-DAEMON=$sbindir/icinga2
+DAEMON=$bindir/icinga2
 ICINGA2_CONFIG_FILE=$sysconfdir/icinga2/icinga2.conf
 ICINGA2_PID_FILE=$localstatedir/run/icinga2/icinga2.pid
 ICINGA2_ERROR_LOG=$localstatedir/log/icinga2/error.log
