@@ -726,7 +726,7 @@ Icinga 1.x setup, if existing.
 
 ----
 library "ido_mysql"
-local object MysqlDbConnection "ido-mysql" {
+local object IdoMysqlDbConnection "my-ido-mysql" {
 	host = "127.0.0.1",
 	port = "3306",
 	user = "icinga",
