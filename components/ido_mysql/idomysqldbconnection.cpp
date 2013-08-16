@@ -23,16 +23,16 @@
 #include "base/utility.h"
 #include "ido/dbtype.h"
 #include "ido/dbvalue.h"
-#include "ido_mysql/mysqldbconnection.h"
+#include "ido_mysql/idomysqldbconnection.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-REGISTER_TYPE(MysqlDbConnection);
+REGISTER_TYPE(IdoMysqlDbConnection);
 
-MysqlDbConnection::MysqlDbConnection(const Dictionary::Ptr& serializedUpdate)
+IdoMysqlDbConnection::IdoMysqlDbConnection(const Dictionary::Ptr& serializedUpdate)
 	: DbConnection(serializedUpdate), m_Connected(false)
 {
 	RegisterAttribute("host", Attribute_Config, &m_Host);
@@ -46,18 +46,18 @@ MysqlDbConnection::MysqlDbConnection(const Dictionary::Ptr& serializedUpdate)
 
 	m_TxTimer = boost::make_shared<Timer>();
 	m_TxTimer->SetInterval(5);
-	m_TxTimer->OnTimerExpired.connect(boost::bind(&MysqlDbConnection::TxTimerHandler, this));
+	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlDbConnection::TxTimerHandler, this));
 	m_TxTimer->Start();
 
 	m_ReconnectTimer = boost::make_shared<Timer>();
 	m_ReconnectTimer->SetInterval(10);
-	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&MysqlDbConnection::ReconnectTimerHandler, this));
+	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlDbConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
 
 	ASSERT(mysql_thread_safe());
 }
 
-void MysqlDbConnection::Stop(void)
+void IdoMysqlDbConnection::Stop(void)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -68,7 +68,7 @@ void MysqlDbConnection::Stop(void)
 	mysql_close(&m_Connection);
 }
 
-void MysqlDbConnection::TxTimerHandler(void)
+void IdoMysqlDbConnection::TxTimerHandler(void)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -79,7 +79,7 @@ void MysqlDbConnection::TxTimerHandler(void)
 	Query("BEGIN");
 }
 
-void MysqlDbConnection::ReconnectTimerHandler(void)
+void IdoMysqlDbConnection::ReconnectTimerHandler(void)
 {
 	{
 		boost::mutex::scoped_lock lock(m_ConnectionMutex);
@@ -160,7 +160,7 @@ void MysqlDbConnection::ReconnectTimerHandler(void)
 	UpdateAllObjects();
 }
 
-void MysqlDbConnection::ClearConfigTables(void)
+void IdoMysqlDbConnection::ClearConfigTables(void)
 {
 	/* TODO make hardcoded table names modular */
 	ClearConfigTable("commands");
@@ -187,12 +187,12 @@ void MysqlDbConnection::ClearConfigTables(void)
 	ClearConfigTable("timeperiods");
 }
 
-void MysqlDbConnection::ClearConfigTable(const String& table)
+void IdoMysqlDbConnection::ClearConfigTable(const String& table)
 {
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " + Convert::ToString(static_cast<long>(m_InstanceID)));
 }
 
-Array::Ptr MysqlDbConnection::Query(const String& query)
+Array::Ptr IdoMysqlDbConnection::Query(const String& query)
 {
 	Log(LogDebug, "ido_mysql", "Query: " + query);
 
@@ -224,12 +224,12 @@ Array::Ptr MysqlDbConnection::Query(const String& query)
 	return rows;
 }
 
-DbReference MysqlDbConnection::GetLastInsertID(void)
+DbReference IdoMysqlDbConnection::GetLastInsertID(void)
 {
 	return DbReference(mysql_insert_id(&m_Connection));
 }
 
-String MysqlDbConnection::Escape(const String& s)
+String IdoMysqlDbConnection::Escape(const String& s)
 {
 	ssize_t length = s.GetLength();
 	char *to = new char[s.GetLength() * 2 + 1];
@@ -243,7 +243,7 @@ String MysqlDbConnection::Escape(const String& s)
 	return result;
 }
 
-Dictionary::Ptr MysqlDbConnection::FetchRow(MYSQL_RES *result)
+Dictionary::Ptr IdoMysqlDbConnection::FetchRow(MYSQL_RES *result)
 {
 	MYSQL_ROW row;
 	MYSQL_FIELD *field;
@@ -274,13 +274,13 @@ Dictionary::Ptr MysqlDbConnection::FetchRow(MYSQL_RES *result)
 	return dict;
 }
 
-void MysqlDbConnection::ActivateObject(const DbObject::Ptr& dbobj)
+void IdoMysqlDbConnection::ActivateObject(const DbObject::Ptr& dbobj)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 	InternalActivateObject(dbobj);
 }
 
-void MysqlDbConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
+void IdoMysqlDbConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 {
 	if (!m_Connected)
 		return;
@@ -300,7 +300,7 @@ void MysqlDbConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 	}
 }
 
-void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
+void IdoMysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -321,7 +321,7 @@ void MysqlDbConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 }
 
 /* caller must hold m_ConnectionMutex */
-bool MysqlDbConnection::FieldToEscapedString(const String& key, const Value& value, Value *result)
+bool IdoMysqlDbConnection::FieldToEscapedString(const String& key, const Value& value, Value *result)
 {
 	if (key == "instance_id") {
 		*result = static_cast<long>(m_InstanceID);
@@ -372,7 +372,7 @@ bool MysqlDbConnection::FieldToEscapedString(const String& key, const Value& val
 	return true;
 }
 
-void MysqlDbConnection::ExecuteQuery(const DbQuery& query)
+void IdoMysqlDbConnection::ExecuteQuery(const DbQuery& query)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 

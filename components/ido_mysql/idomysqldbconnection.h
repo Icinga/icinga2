@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef MYSQLDBCONNECTION_H
-#define MYSQLDBCONNECTION_H
+#ifndef IDOMYSQLDBCONNECTION_H
+#define IDOMYSQLDBCONNECTION_H
 
 #include "base/array.h"
 #include "base/dynamictype.h"
@@ -30,17 +30,17 @@ namespace icinga
 {
 
 /**
- * A MySQL database connection.
+ * An IDO MySQL database connection.
  *
  * @ingroup ido
  */
-class MysqlDbConnection : public DbConnection
+class IdoMysqlDbConnection : public DbConnection
 {
 public:
-	typedef shared_ptr<MysqlDbConnection> Ptr;
-	typedef weak_ptr<MysqlDbConnection> WeakPtr;
+	typedef shared_ptr<IdoMysqlDbConnection> Ptr;
+	typedef weak_ptr<IdoMysqlDbConnection> WeakPtr;
 
-	MysqlDbConnection(const Dictionary::Ptr& serializedUpdate);
+	IdoMysqlDbConnection(const Dictionary::Ptr& serializedUpdate);
 	virtual void Stop(void);
 
 	//virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
@@ -85,4 +85,4 @@ private:
 
 }
 
-#endif /* MYSQLDBCONNECTION_H */
+#endif /* IDOMYSQLDBCONNECTION_H */

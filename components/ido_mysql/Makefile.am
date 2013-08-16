@@ -12,8 +12,8 @@ EXTRA_DIST = \
 
 libido_mysql_la_SOURCES = \
 	ido_mysql-type.cpp \
-	mysqldbconnection.cpp \
-	mysqldbconnection.h
+	idomysqldbconnection.cpp \
+	idomysqldbconnection.h
 
 libido_mysql_la_CPPFLAGS = \
 	$(LTDLINCL) \
