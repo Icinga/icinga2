@@ -8,8 +8,13 @@ Source: %{name}-%{version}.tar.gz
 URL: http://www.icinga.org/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
+BuildRequires: asciidoc
+BuildRequires: docbook-simple
+BuildRequires: doxygen
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
+BuildRequires: libstdc++-devel
+BuildRequires: libtool-ltdl-devel
 BuildRequires: boost
 BuildRequires: boost-devel
 BuildRequires: boost-test
