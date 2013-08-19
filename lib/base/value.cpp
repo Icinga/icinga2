@@ -241,6 +241,16 @@ ValueType Value::GetType(void) const
 	return static_cast<ValueType>(m_Value.which());
 }
 
+Value icinga::operator+(const Value& lhs, const char *rhs)
+{
+	return static_cast<String>(lhs) + rhs;
+}
+
+Value icinga::operator+(const char *lhs, const Value& rhs)
+{
+	return lhs + static_cast<String>(rhs);
+}
+
 std::ostream& icinga::operator<<(std::ostream& stream, const Value& value)
 {
 	stream << static_cast<String>(value);
