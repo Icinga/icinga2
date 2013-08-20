@@ -27,19 +27,12 @@ using namespace icinga;
 
 REGISTER_TYPE(DemoComponent);
 
-DemoComponent::DemoComponent(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{ }
-
 /**
  * Starts the component.
  */
 void DemoComponent::Start(void)
 {
-	m_Endpoint = Endpoint::MakeEndpoint("demo", false);
-	m_Endpoint->RegisterTopicHandler("demo::HelloWorld",
-	    boost::bind(&DemoComponent::HelloWorldRequestHandler, this, _2,
-	    _3));
+	DynamicObject::Start();
 
 	m_DemoTimer = boost::make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);
@@ -52,7 +45,7 @@ void DemoComponent::Start(void)
  */
 void DemoComponent::Stop(void)
 {
-	m_Endpoint->Unregister();
+	/* Nothing to do here. */
 }
 
 /**
@@ -62,20 +55,5 @@ void DemoComponent::Stop(void)
  */
 void DemoComponent::DemoTimerHandler(void)
 {
-	Log(LogInformation, "demo", "Sending multicast 'hello world' message.");
-
-	RequestMessage request;
-	request.SetMethod("demo::HelloWorld");
-
-	EndpointManager::GetInstance()->SendMulticastMessage(m_Endpoint, request);
-}
-
-/**
- * Processes demo::HelloWorld messages.
- */
-void DemoComponent::HelloWorldRequestHandler(const Endpoint::Ptr& sender,
-    const RequestMessage&)
-{
-	Log(LogInformation, "demo", "Got 'hello world' from identity=" +
-	    (sender ? sender->GetName() : "(anonymous)"));
+	Log(LogInformation, "demo", "Hello World!");
 }

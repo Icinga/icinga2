@@ -24,22 +24,6 @@ using namespace icinga;
 
 REGISTER_TYPE(NotificationCommand);
 
-/**
- * Constructor for the NotificationCommand class.
- *
- * @param serializedUpdate A serialized dictionary containing attributes.
- */
-NotificationCommand::NotificationCommand(const Dictionary::Ptr& serializedUpdate)
-	: Command(serializedUpdate)
-{ }
-
-NotificationCommand::Ptr NotificationCommand::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("NotificationCommand", name);
-
-	return dynamic_pointer_cast<NotificationCommand>(configObject);
-}
-
 Dictionary::Ptr NotificationCommand::Execute(const Notification::Ptr& notification,
     const User::Ptr& user, const Dictionary::Ptr& cr, const NotificationType& type)
 {

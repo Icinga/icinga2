@@ -18,8 +18,6 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
-#include "icinga/downtimemessage.h"
-#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -35,24 +33,10 @@ static int l_NextDowntimeID = 1;
 static boost::mutex l_DowntimeMutex;
 static std::map<int, String> l_LegacyDowntimesCache;
 static std::map<String, Service::WeakPtr> l_DowntimesCache;
-static bool l_DowntimesCacheNeedsUpdate = false;
-static Timer::Ptr l_DowntimesCacheTimer;
 static Timer::Ptr l_DowntimesExpireTimer;
 
 boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> Service::OnDowntimeChanged;
 boost::signals2::signal<void (const Service::Ptr&, const String&, DowntimeChangedType)> Service::OnDowntimesChanged;
-
-void Service::DowntimeRequestHandler(const RequestMessage& request)
-{
-	DowntimeMessage params;
-	if (!request.GetParams(&params))
-		return;
-
-	String svcname = params.GetService();
-	Service::Ptr service = Service::GetByName(svcname);
-
-	OnDowntimeChanged(service, params.GetState());
-}
 
 int Service::GetNextDowntimeID(void)
 {
@@ -93,14 +77,13 @@ String Service::AddDowntime(const String& author, const String& comment,
 
 	if (!triggeredBy.IsEmpty()) {
 		Service::Ptr otherOwner = GetOwnerByDowntimeID(triggeredBy);
-		Dictionary::Ptr otherDowntimes = otherOwner->Get("downtimes");
+		Dictionary::Ptr otherDowntimes = otherOwner->m_Downtimes;
 		Dictionary::Ptr otherDowntime = otherDowntimes->Get(triggeredBy);
 		Dictionary::Ptr triggers = otherDowntime->Get("triggers");
 
 		{
 			ObjectLock olock(otherOwner);
 			triggers->Set(triggeredBy, triggeredBy);
-			otherOwner->Touch("downtimes");
 		}
 	}
 
@@ -120,15 +103,11 @@ String Service::AddDowntime(const String& author, const String& comment,
 	String id = Utility::NewUniqueID();
 	downtimes->Set(id, downtime);
 
-	{
-		ObjectLock olock(this);
-		Touch("downtimes");
-	}
-
 	(void) AddComment(CommentDowntime, author, comment, endTime);
 
 	{
 		boost::mutex::scoped_lock lock(l_DowntimeMutex);
+		l_LegacyDowntimesCache[legacy_id] = id;
 		l_DowntimesCache[id] = GetSelf();
 	}
 
@@ -152,21 +131,20 @@ void Service::RemoveDowntime(const String& id)
 	{
 		ObjectLock olock(owner);
 
+		Dictionary::Ptr downtime = downtimes->Get(id);
+
+		int legacy_id = downtime->Get("legacy_id");
+
 		downtimes->Remove(id);
 
-		RequestMessage rm;
-		rm.SetMethod("icinga::Downtime");
-
-		DowntimeMessage params;
-		params.SetService(owner->GetName());
-		params.SetState(DowntimeCancelled);
-
-		rm.SetParams(params);
-
-		EndpointManager::GetInstance()->SendMulticastMessage(rm);
-
-		owner->Touch("downtimes");
+		{
+			boost::mutex::scoped_lock lock(l_DowntimeMutex);
+			l_LegacyDowntimesCache.erase(legacy_id);
+			l_DowntimesCache.erase(id);
+		}
 	}
+
+	OnDowntimeChanged(owner, DowntimeCancelled);
 
 	OnDowntimesChanged(owner, id, DowntimeChangedDeleted);
 }
@@ -186,7 +164,6 @@ void Service::TriggerDowntimes(void)
 		String id;
 		BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), downtimes) {
 			ids.push_back(id);
-
 		}
 	}
 
@@ -219,19 +196,7 @@ void Service::TriggerDowntime(const String& id)
 		TriggerDowntime(tid);
 	}
 
-	RequestMessage rm;
-	rm.SetMethod("icinga::Downtime");
-
-	DowntimeMessage params;
-	params.SetService(owner->GetName());
-	params.SetState(DowntimeStarted);
-
-	rm.SetParams(params);
-
-	EndpointManager::GetInstance()->SendMulticastMessage(rm);
-
-	owner->Touch("downtimes");
-
+	OnDowntimeChanged(owner, DowntimeStarted);
 	OnDowntimesChanged(owner, Empty, DowntimeChangedUpdated);
 }
 
@@ -292,80 +257,29 @@ bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
 	return (downtime->Get("end_time") < Utility::GetTime());
 }
 
-void Service::InvalidateDowntimesCache(void)
+void Service::AddDowntimesToCache(void)
 {
-	boost::mutex::scoped_lock lock(l_DowntimeMutex);
-
-	if (l_DowntimesCacheNeedsUpdate)
-		return; /* Someone else has already requested a refresh. */
-
-	if (!l_DowntimesCacheTimer) {
-		l_DowntimesCacheTimer = boost::make_shared<Timer>();
-		l_DowntimesCacheTimer->SetInterval(0.5);
-		l_DowntimesCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshDowntimesCache));
-		l_DowntimesCacheTimer->Start();
-	}
-
-	l_DowntimesCacheNeedsUpdate = true;
-}
-
-void Service::RefreshDowntimesCache(void)
-{
-	{
-		boost::mutex::scoped_lock lock(l_DowntimeMutex);
-
-		if (!l_DowntimesCacheNeedsUpdate)
-			return;
-
-		l_DowntimesCacheNeedsUpdate = false;
-	}
-
 	Log(LogDebug, "icinga", "Updating Service downtimes cache.");
 
-	std::map<int, String> newLegacyDowntimesCache;
-	std::map<String, Service::WeakPtr> newDowntimesCache;
+	Dictionary::Ptr downtimes = GetDowntimes();
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		Service::Ptr service = dynamic_pointer_cast<Service>(object);
-
-		Dictionary::Ptr downtimes = service->GetDowntimes();
-
-		if (!downtimes)
-			continue;
-
-		ObjectLock olock(downtimes);
-
-		String id;
-		Dictionary::Ptr downtime;
-		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
-			int legacy_id = downtime->Get("legacy_id");
-
-			if (legacy_id >= l_NextDowntimeID)
-				l_NextDowntimeID = legacy_id + 1;
-
-			if (newLegacyDowntimesCache.find(legacy_id) != newLegacyDowntimesCache.end()) {
-				/* The legacy_id is already in use by another downtime;
-				 * this shouldn't usually happen - assign it a new ID. */
-				legacy_id = l_NextDowntimeID++;
-				downtime->Set("legacy_id", legacy_id);
-				service->Touch("downtimes");
-			}
-
-			newLegacyDowntimesCache[legacy_id] = id;
-			newDowntimesCache[id] = service;
-		}
-	}
+	if (!downtimes)
+		return;
 
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
-	l_DowntimesCache.swap(newDowntimesCache);
-	l_LegacyDowntimesCache.swap(newLegacyDowntimesCache);
+	ObjectLock olock(downtimes);
 
-	if (!l_DowntimesExpireTimer) {
-		l_DowntimesExpireTimer = boost::make_shared<Timer>();
-		l_DowntimesExpireTimer->SetInterval(300);
-		l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimesExpireTimerHandler));
-		l_DowntimesExpireTimer->Start();
+	String id;
+	Dictionary::Ptr downtime;
+	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
+		int legacy_id = downtime->Get("legacy_id");
+
+		if (legacy_id >= l_NextDowntimeID)
+			l_NextDowntimeID = legacy_id + 1;
+
+		l_LegacyDowntimesCache[legacy_id] = id;
+		l_DowntimesCache[id] = GetSelf();
 	}
 }
 
@@ -391,33 +305,14 @@ void Service::RemoveExpiredDowntimes(void)
 
 	if (!expiredDowntimes.empty()) {
 		BOOST_FOREACH(const String& id, expiredDowntimes) {
-			RequestMessage rm;
-			rm.SetMethod("icinga::Downtime");
-
-			DowntimeMessage params;
-			params.SetService(GetName());
-			params.SetState(DowntimeStopped);
-
-			rm.SetParams(params);
-
-			EndpointManager::GetInstance()->SendMulticastMessage(rm);
-
-			downtimes->Remove(id);
+			RemoveDowntime(id);
 		}
-
-		{
-			ObjectLock olock(this);
-			Touch("downtimes");
-		}
-
-		OnDowntimesChanged(GetSelf(), Empty, DowntimeChangedDeleted);
 	}
 }
 
 void Service::DowntimesExpireTimerHandler(void)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		service->RemoveExpiredDowntimes();
 	}
 }

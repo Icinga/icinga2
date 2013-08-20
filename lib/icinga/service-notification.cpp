@@ -18,12 +18,10 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
-#include "icinga/notificationrequestmessage.h"
-#include "icinga/notificationmessage.h"
-#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/timer.h"
 #include "config/configitembuilder.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -32,12 +30,12 @@
 
 using namespace icinga;
 
-static boost::mutex l_NotificationMutex;
-static std::map<String, std::set<Notification::WeakPtr> > l_NotificationsCache;
-static bool l_NotificationsCacheNeedsUpdate = false;
-static Timer::Ptr l_NotificationsCacheTimer;
+boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationSentChanged;
 
-boost::signals2::signal<void (const Service::Ptr&, const String&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationSentChanged;
+Dictionary::Ptr Service::GetNotificationDescriptions(void) const
+{
+	return m_NotificationDescriptions;
+}
 
 void Service::ResetNotificationNumbers(void)
 {
@@ -45,43 +43,6 @@ void Service::ResetNotificationNumbers(void)
 		ObjectLock olock(notification);
 		notification->ResetNotificationNumber();
 	}
-}
-
-void Service::NotificationSentRequestHandler(const RequestMessage& request)
-{
-	NotificationMessage params;
-	if (!request.GetParams(&params))
-		return;
-
-	String svcname = params.GetService();
-	Service::Ptr service = Service::GetByName(svcname);
-
-	String username = params.GetUser();
-	String author = params.GetAuthor();
-	String comment_text = params.GetCommentText();
-
-	NotificationType notification_type = params.GetType();
-	Dictionary::Ptr cr = params.GetCheckResult();
-
-	OnNotificationSentChanged(service, username, notification_type, cr, author, comment_text);
-}
-
-void Service::RequestNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text)
-{
-	RequestMessage msg;
-	msg.SetMethod("icinga::SendNotifications");
-
-	NotificationRequestMessage params;
-	msg.SetParams(params);
-
-	params.SetService(GetName());
-	params.SetType(type);
-	params.SetCheckResult(cr);
-	params.SetAuthor(author);
-	params.SetText(text);
-
-	Log(LogDebug, "icinga", "Sending notification anycast request for service '" + GetName() + "'");
-	EndpointManager::GetInstance()->SendAnycastMessage(Endpoint::Ptr(), msg);
 }
 
 void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text)
@@ -119,76 +80,23 @@ void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr
 	}
 }
 
-void Service::InvalidateNotificationsCache(void)
-{
-	boost::mutex::scoped_lock lock(l_NotificationMutex);
-
-	if (l_NotificationsCacheNeedsUpdate)
-		return; /* Someone else has already requested a refresh. */
-
-	if (!l_NotificationsCacheTimer) {
-		l_NotificationsCacheTimer = boost::make_shared<Timer>();
-		l_NotificationsCacheTimer->SetInterval(0.5);
-		l_NotificationsCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshNotificationsCache));
-		l_NotificationsCacheTimer->Start();
-	}
-
-	l_NotificationsCacheNeedsUpdate = true;
-}
-
-void Service::RefreshNotificationsCache(void)
-{
-	{
-		boost::mutex::scoped_lock lock(l_NotificationMutex);
-
-		if (!l_NotificationsCacheNeedsUpdate)
-			return;
-
-		l_NotificationsCacheNeedsUpdate = false;
-	}
-
-	Log(LogDebug, "icinga", "Updating Service notifications cache.");
-
-	std::map<String, std::set<Notification::WeakPtr> > newNotificationsCache;
-
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Notification")) {
-		const Notification::Ptr& notification = static_pointer_cast<Notification>(object);
-
-		Service::Ptr service = notification->GetService();
-
-		if (!service)
-			continue;
-
-		newNotificationsCache[service->GetName()].insert(notification);
-	}
-
-	boost::mutex::scoped_lock lock(l_NotificationMutex);
-	l_NotificationsCache.swap(newNotificationsCache);
-}
-
 std::set<Notification::Ptr> Service::GetNotifications(void) const
 {
-	std::set<Notification::Ptr> notifications;
+	return m_Notifications;
+}
 
-	{
-		boost::mutex::scoped_lock lock(l_NotificationMutex);
+void Service::AddNotification(const Notification::Ptr& notification)
+{
+	m_Notifications.insert(notification);
+}
 
-		BOOST_FOREACH(const Notification::WeakPtr& wservice, l_NotificationsCache[GetName()]) {
-			Notification::Ptr notification = wservice.lock();
-
-			if (!notification)
-				continue;
-
-			notifications.insert(notification);
-		}
-	}
-
-	return notifications;
+void Service::RemoveNotification(const Notification::Ptr& notification)
+{
+	m_Notifications.erase(notification);
 }
 
 void Service::UpdateSlaveNotifications(void)
 {
-	Dictionary::Ptr oldNotifications;
 	ConfigItem::Ptr serviceItem, hostItem;
 
 	serviceItem = ConfigItem::GetObject("Service", GetName());
@@ -208,19 +116,10 @@ void Service::UpdateSlaveNotifications(void)
 	if (!hostItem)
 		return;
 
-	{
-		ObjectLock olock(this);
-		oldNotifications = m_SlaveNotifications;
-	}
-
 	std::vector<Dictionary::Ptr> descLists;
 
-	descLists.push_back(Get("notifications"));
-
-	Dictionary::Ptr newNotifications;
-	newNotifications = boost::make_shared<Dictionary>();
-
-	descLists.push_back(host->Get("notifications"));
+	descLists.push_back(GetNotificationDescriptions());
+	descLists.push_back(host->GetNotificationDescriptions());
 
 	for (int i = 0; i < 2; i++) {
 		Dictionary::Ptr descs;
@@ -228,11 +127,11 @@ void Service::UpdateSlaveNotifications(void)
 
 		if (i == 0) {
 			/* Host notification descs */
-			descs = host->Get("notifications");
+			descs = host->GetNotificationDescriptions();
 			item = hostItem;
 		} else {
 			/* Service notification descs */
-			descs = Get("notifications");
+			descs = GetNotificationDescriptions();
 			item = serviceItem;
 		}
 
@@ -294,27 +193,7 @@ void Service::UpdateSlaveNotifications(void)
 
 			ConfigItem::Ptr notificationItem = builder->Compile();
 			notificationItem->Commit();
-
-			newNotifications->Set(name, notificationItem);
 		}
-	}
-
-	if (oldNotifications) {
-		ObjectLock olock(oldNotifications);
-
-		ConfigItem::Ptr notification;
-		BOOST_FOREACH(boost::tie(boost::tuples::ignore, notification), oldNotifications) {
-			if (!notification)
-				continue;
-
-			if (!newNotifications->Contains(notification->GetName()))
-				notification->Unregister();
-		}
-	}
-
-	{
-		ObjectLock olock(this);
-		m_SlaveNotifications = newNotifications;
 	}
 }
 
@@ -329,7 +208,6 @@ bool Service::GetEnableNotifications(void) const
 void Service::SetEnableNotifications(bool enabled)
 {
 	m_EnableNotifications = enabled;
-	Touch("enable_notifications");
 }
 
 bool Service::GetForceNextNotification(void) const
@@ -343,5 +221,4 @@ bool Service::GetForceNextNotification(void) const
 void Service::SetForceNextNotification(bool forced)
 {
 	m_ForceNextNotification = forced ? 1 : 0;
-	Touch("force_next_notification");
 }

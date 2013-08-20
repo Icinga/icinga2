@@ -55,19 +55,6 @@ void ExpressionList::Execute(const Dictionary::Ptr& dictionary) const
 	}
 }
 
-/**
- * Dumps the expression list to the specified stream.
- *
- * @param fp The stream.
- * @param indent The indentation level.
- */
-void ExpressionList::Dump(std::ostream& fp, int indent) const
-{
-	BOOST_FOREACH(const Expression& expression, m_Expressions) {
-		expression.Dump(fp, indent);
-	}
-}
-
 void ExpressionList::ExtractPath(const std::vector<String>& path, const ExpressionList::Ptr& result) const
 {
 	BOOST_FOREACH(const Expression& expression, m_Expressions) {

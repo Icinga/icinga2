@@ -24,6 +24,7 @@
 #include "ido/dbquery.h"
 #include "ido/dbtype.h"
 #include "base/dynamicobject.h"
+#include <boost/smart_ptr.hpp>
 
 namespace icinga
 {
@@ -87,7 +88,6 @@ public:
 protected:
 	DbObject(const boost::shared_ptr<DbType>& type, const String& name1, const String& name2);
 
-	virtual bool IsConfigAttribute(const String& attribute) const;
 	virtual bool IsStatusAttribute(const String& attribute) const;
 
 	virtual void OnConfigUpdate(void);
@@ -101,13 +101,9 @@ private:
 	double m_LastConfigUpdate;
 	double m_LastStatusUpdate;
 
-	friend boost::shared_ptr<DbObject> boost::make_shared<>(const icinga::String&, const icinga::String&);
-
-	static void ObjectRegisteredHandler(const DynamicObject::Ptr& object);
-	static void ObjectUnregisteredHandler(const DynamicObject::Ptr& object);
-	static void AttributesChangedHandler(const DynamicObject::Ptr& object, const std::set<String, string_iless>& attributes);
-	//static void TransactionClosingHandler(double tx, const std::set<DynamicObject::WeakPtr>& modifiedObjects);
-	//static void FlushObjectHandler(double tx, const DynamicObject::Ptr& object);
+	static void ObjectStartedHandler(const DynamicObject::Ptr& object);
+	static void ObjectStoppedHandler(const DynamicObject::Ptr& object);
+	static void StateChangedHandler(const DynamicObject::Ptr& object);
 
 	friend class DbType;
 };

@@ -26,10 +26,10 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 
-Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr& service)
+Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 {
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
-	cr->Set("state", StateUnknown);
+	cr->Set("state", StateOK);
 
 	return cr;
 }

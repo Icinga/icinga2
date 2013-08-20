@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
-#include "icinga/flappingmessage.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -35,9 +34,6 @@ using namespace icinga;
 
 double Service::GetFlappingCurrent(void) const
 {
-	if (m_FlappingNegative.IsEmpty() || m_FlappingPositive.IsEmpty())
-		return 0;
-
 	if (m_FlappingPositive + m_FlappingNegative <= 0)
 		return 0;
 
@@ -52,18 +48,6 @@ double Service::GetFlappingThreshold(void) const
 		return m_FlappingThreshold;
 }
 
-void Service::FlappingRequestHandler(const RequestMessage& request)
-{
-	FlappingMessage params;
-	if (!request.GetParams(&params))
-		return;
-
-	String svcname = params.GetService();
-	Service::Ptr service = Service::GetByName(svcname);
-
-	OnFlappingChanged(service, params.GetState());
-}
-
 bool Service::GetEnableFlapping(void) const
 {
 	if (m_EnableFlapping.IsEmpty())
@@ -75,8 +59,9 @@ bool Service::GetEnableFlapping(void) const
 
 void Service::SetEnableFlapping(bool enabled)
 {
-	m_EnableFlapping = enabled ? 1 : 0;
-	Touch("enable_flapping");
+	OnFlappingChanged(GetSelf(), enabled ? FlappingEnabled : FlappingDisabled);
+
+	m_EnableFlapping = enabled;
 }
 
 void Service::UpdateFlappingStatus(bool stateChange)
@@ -118,13 +103,8 @@ void Service::UpdateFlappingStatus(bool stateChange)
 	Log(LogDebug, "icinga", "Flapping counter for '" + GetName() + "' is positive=" + Convert::ToString(positive) + ", negative=" + Convert::ToString(negative));
 
 	m_FlappingPositive = positive;
-	Touch("flapping_positive");
-
 	m_FlappingNegative = negative;
-	Touch("flapping_negative");
-
 	m_FlappingLastChange = now;
-	Touch("flapping_lastchange");
 }
 
 bool Service::IsFlapping(void) const

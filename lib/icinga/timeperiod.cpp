@@ -36,13 +36,9 @@ REGISTER_SCRIPTFUNCTION(EvenMinutesTimePeriod, &TimePeriod::EvenMinutesTimePerio
 
 static Timer::Ptr l_UpdateTimer;
 
-TimePeriod::TimePeriod(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
+void TimePeriod::Start(void)
 {
-	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-	RegisterAttribute("valid_begin", Attribute_Replicated, &m_ValidBegin);
-	RegisterAttribute("valid_end", Attribute_Replicated, &m_ValidEnd);
-	RegisterAttribute("segments", Attribute_Replicated, &m_Segments);
+	DynamicObject::Start();
 
 	if (!l_UpdateTimer) {
 		l_UpdateTimer = boost::make_shared<Timer>();
@@ -50,10 +46,7 @@ TimePeriod::TimePeriod(const Dictionary::Ptr& serializedUpdate)
 		l_UpdateTimer->OnTimerExpired.connect(boost::bind(&TimePeriod::UpdateTimerHandler));
 		l_UpdateTimer->Start();
 	}
-}
 
-void TimePeriod::Start(void)
-{
 	/* Pre-fill the time period for the next 24 hours. */
 	double now = Utility::GetTime();
 	UpdateRegion(now, now + 24 * 3600, true);
@@ -68,26 +61,20 @@ String TimePeriod::GetDisplayName(void) const
                 return GetName();
 }
 
-TimePeriod::Ptr TimePeriod::GetByName(const String& name)
+Dictionary::Ptr TimePeriod::GetRanges(void) const
 {
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("TimePeriod", name);
-
-	return dynamic_pointer_cast<TimePeriod>(configObject);
+	return m_Ranges;
 }
 
 void TimePeriod::AddSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
-	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin) {
+	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin)
 		m_ValidBegin = begin;
-		Touch("valid_begin");
-	}
 
-	if (m_ValidEnd.IsEmpty() || end > m_ValidEnd) {
+	if (m_ValidEnd.IsEmpty() || end > m_ValidEnd)
 		m_ValidEnd = end;
-		Touch("valid_end");
-	}
 
 	Array::Ptr segments = m_Segments;
 
@@ -121,7 +108,6 @@ void TimePeriod::AddSegment(double begin, double end)
 	}
 
 	segments->Add(segment);
-	Touch("segments");
 }
 
 void TimePeriod::AddSegment(const Dictionary::Ptr& segment)
@@ -133,15 +119,11 @@ void TimePeriod::RemoveSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
-	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin) {
+	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin)
 		m_ValidBegin = begin;
-		Touch("valid_begin");
-	}
 
-	if (m_ValidEnd.IsEmpty() || end > m_ValidEnd) {
+	if (m_ValidEnd.IsEmpty() || end > m_ValidEnd)
 		m_ValidEnd = end;
-		Touch("valid_end");
-	}
 
 	Array::Ptr segments = m_Segments;
 
@@ -175,7 +157,6 @@ void TimePeriod::RemoveSegment(double begin, double end)
 	}
 
 	m_Segments = newSegments;
-	Touch("segments");
 }
 
 void TimePeriod::PurgeSegments(double end)
@@ -186,7 +167,6 @@ void TimePeriod::PurgeSegments(double end)
 		return;
 
 	m_ValidBegin = end;
-	Touch("valid_begin");
 
 	Array::Ptr segments = m_Segments;
 
@@ -203,7 +183,6 @@ void TimePeriod::PurgeSegments(double end)
 	}
 
 	m_Segments = newSegments;
-	Touch("segments");
 }
 
 void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
@@ -284,9 +263,7 @@ void TimePeriod::UpdateTimerHandler(void)
 {
 	double now = Utility::GetTime();
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("TimePeriod")) {
-		TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(object);
-
+	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjects<TimePeriod>()) {
 		/* Only update time periods that have been defined on this node. */
 		if (!ConfigItem::GetObject("TimePeriod", tp->GetName()))
 			continue;
@@ -344,4 +321,32 @@ void TimePeriod::Dump(void)
 	}
 
 	Log(LogDebug, "icinga", "---");
+}
+
+void TimePeriod::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("display_name", m_DisplayName);
+		bag->Set("ranges", m_Ranges);
+	}
+
+	bag->Set("valid_begin", m_ValidBegin);
+	bag->Set("valid_end", m_ValidEnd);
+	bag->Set("segments", m_Segments);
+}
+
+void TimePeriod::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_DisplayName = bag->Get("display_name");
+		m_Ranges = bag->Get("ranges");
+	}
+
+	m_ValidBegin = bag->Get("valid_begin");
+	m_ValidEnd = bag->Get("valid_end");
+	m_Segments = bag->Get("segments");
 }

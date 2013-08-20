@@ -62,7 +62,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 	query_del1.WhereCriteria->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
 	OnQuery(query_del1);
 
-	Dictionary::Ptr ranges = tp->Get("ranges");
+	Dictionary::Ptr ranges = tp->GetRanges();
 
 	if (!ranges)
 		return;

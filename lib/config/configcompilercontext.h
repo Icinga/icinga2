@@ -27,15 +27,6 @@
 namespace icinga
 {
 
-/**
- * @ingroup config
- */
-enum ConfigCompilerFlag
-{
-        CompilerStrict = 1, /**< Treat warnings as errors. */
-        CompilerLinkExisting = 2 /**< Link objects to existing config items. */
-};
-
 struct I2_CONFIG_API ConfigCompilerError
 {
 	bool Warning;
@@ -52,43 +43,15 @@ struct I2_CONFIG_API ConfigCompilerError
 class I2_CONFIG_API ConfigCompilerContext
 {
 public:
-	ConfigCompilerContext(void);
-
-	void AddItem(const ConfigItem::Ptr& item);
-	ConfigItem::Ptr GetItem(const String& type, const String& name) const;
-	std::vector<ConfigItem::Ptr> GetItems(void) const;
-
-	void AddType(const ConfigType::Ptr& type);
-	ConfigType::Ptr GetType(const String& name) const;
-
 	void AddError(bool warning, const String& message);
 	std::vector<ConfigCompilerError> GetErrors(void) const;
 
-	void SetFlags(int flags);
-	int GetFlags(void) const;
+	void Reset(void);
 
-	String GetUnit(void) const;
-
-	void LinkItems(void);
-	void ValidateItems(void);
-	void ActivateItems(void);
-
-	static void SetContext(ConfigCompilerContext *context);
-	static ConfigCompilerContext *GetContext(void);
+	static ConfigCompilerContext *GetInstance(void);
 
 private:
-	String m_Unit;
-
-        int m_Flags;
-
-	std::vector<ConfigItem::Ptr> m_Items;
-        std::map<std::pair<String, String>, ConfigItem::Ptr, pair_string_iless> m_ItemsMap;
-
-        std::map<String, shared_ptr<ConfigType>, string_iless> m_Types;
-
         std::vector<ConfigCompilerError> m_Errors;
-
-	static ConfigCompilerContext *m_Context;
 };
 
 }

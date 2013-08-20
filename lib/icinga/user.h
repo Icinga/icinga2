@@ -38,11 +38,7 @@ class I2_ICINGA_API User : public DynamicObject, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(User);
-
-	explicit User(const Dictionary::Ptr& serializedUpdate);
-	~User(void);
-
-	static User::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(User);
 
 	String GetDisplayName(void) const;
 	Array::Ptr GetGroups(void) const;
@@ -61,17 +57,21 @@ public:
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
 protected:
-	virtual void OnAttributeChanged(const String& name);
+	virtual void Start(void);
+	virtual void Stop(void);
+
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Attribute<String> m_DisplayName;
-	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Array::Ptr> m_Groups;
-	Attribute<bool> m_EnableNotifications;
-	Attribute<String> m_NotificationPeriod;
-	Attribute<long> m_NotificationTypeFilter;
-	Attribute<long> m_NotificationStateFilter;
-	Attribute<double> m_LastNotification;
+	String m_DisplayName;
+	Dictionary::Ptr m_Macros;
+	Array::Ptr m_Groups;
+	Value m_EnableNotifications;
+	String m_NotificationPeriod;
+	Value m_NotificationTypeFilter;
+	Value m_NotificationStateFilter;
+	double m_LastNotification;
 };
 
 }

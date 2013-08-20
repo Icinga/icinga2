@@ -18,12 +18,9 @@
  ******************************************************************************/
 
 #include "compat/compatlog.h"
-#include "icinga/checkresultmessage.h"
-#include "icinga/downtimemessage.h"
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
 #include "icinga/notification.h"
-#include "icinga/notificationmessage.h"
 #include "icinga/macroprocessor.h"
 #include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
@@ -43,33 +40,16 @@ using namespace icinga;
 REGISTER_TYPE(CompatLog);
 REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLog::ValidateRotationMethod);
 
-CompatLog::CompatLog(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate), m_LastRotation(0)
-{
-	RegisterAttribute("log_dir", Attribute_Config, &m_LogDir);
-	RegisterAttribute("rotation_method", Attribute_Config, &m_RotationMethod);
-}
-
-/**
- * @threadsafety Always.
- */
-void CompatLog::OnAttributeChanged(const String& name)
-{
-	ASSERT(!OwnsLock());
-
-	if (name == "rotation_method")
-		ScheduleNextRotation();
-}
+CompatLog::CompatLog(void)
+	: m_LastRotation(0)
+{ }
 
 /**
  * @threadsafety Always.
  */
 void CompatLog::Start(void)
 {
-	m_Endpoint = Endpoint::MakeEndpoint("compatlog_" + GetName(), false);
-	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
-	    boost::bind(&CompatLog::CheckResultRequestHandler, this, _3));
-
+	Service::OnNewCheckResult.connect(bind(&CompatLog::CheckResultHandler, this, _1, _2));
 	Service::OnDowntimeChanged.connect(bind(&CompatLog::DowntimeHandler, this, _1, _2));
 	Service::OnNotificationSentChanged.connect(bind(&CompatLog::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6));
 	Service::OnFlappingChanged.connect(bind(&CompatLog::FlappingHandler, this, _1, _2));
@@ -80,16 +60,6 @@ void CompatLog::Start(void)
 
 	ReopenFile(false);
 	ScheduleNextRotation();
-}
-
-/**
- * @threadsafety Always.
- */
-CompatLog::Ptr CompatLog::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("CompatLog", name);
-
-	return dynamic_pointer_cast<CompatLog>(configObject);
 }
 
 /**
@@ -117,22 +87,11 @@ String CompatLog::GetRotationMethod(void) const
 /**
  * @threadsafety Always.
  */
-void CompatLog::CheckResultRequestHandler(const RequestMessage& request)
+void CompatLog::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr &cr)
 {
-	CheckResultMessage params;
-	if (!request.GetParams(&params))
-		return;
-
-	String svcname = params.GetService();
-	Service::Ptr service = Service::GetByName(svcname);
-
 	Host::Ptr host = service->GetHost();
 
 	if (!host)
-		return;
-
-	Dictionary::Ptr cr = params.GetCheckResult();
-	if (!cr)
 		return;
 
 	Dictionary::Ptr vars_after = cr->Get("vars_after");
@@ -273,7 +232,7 @@ void CompatLog::DowntimeHandler(const Service::Ptr& service, DowntimeState downt
 /**
  * @threadsafety Always.
  */
-void CompatLog::NotificationSentHandler(const Service::Ptr& service, const String& username,
+void CompatLog::NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user,
 		NotificationType const& notification_type, Dictionary::Ptr const& cr,
 		const String& author, const String& comment_text)
 {
@@ -310,7 +269,7 @@ void CompatLog::NotificationSentHandler(const Service::Ptr& service, const Strin
 
         std::ostringstream msgbuf;
         msgbuf << "SERVICE NOTIFICATION: "
-		<< username << ";"
+		<< user->GetName() << ";"
                 << host->GetName() << ";"
                 << service->GetShortName() << ";"
                 << notification_type_str << " "
@@ -327,7 +286,7 @@ void CompatLog::NotificationSentHandler(const Service::Ptr& service, const Strin
         if (service == host->GetHostCheckService()) {
                 std::ostringstream msgbuf;
                 msgbuf << "HOST NOTIFICATION: "
-			<< username << ";"
+			<< user->GetName() << ";"
                         << host->GetName() << ";"
                 	<< notification_type_str << " "
 			<< "(" << Service::StateToString(service->GetState()) << ");"
@@ -463,9 +422,7 @@ void CompatLog::ReopenFile(bool rotate)
 	WriteLine("LOG ROTATION: " + GetRotationMethod());
 	WriteLine("LOG VERSION: 2.0");
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
-		Host::Ptr host = static_pointer_cast<Host>(object);
-
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
 		Service::Ptr hc = host->GetHostCheckService();
 
 		if (!hc)
@@ -486,9 +443,7 @@ void CompatLog::ReopenFile(bool rotate)
 		WriteLine(msgbuf.str());
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		Service::Ptr service = static_pointer_cast<Service>(object);
-
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		Host::Ptr host = service->GetHost();
 
 		if (!host)
@@ -580,7 +535,27 @@ void CompatLog::ValidateRotationMethod(const String& location, const Dictionary:
 
 	if (!rotation_method.IsEmpty() && rotation_method != "HOURLY" && rotation_method != "DAILY" &&
 	    rotation_method != "WEEKLY" && rotation_method != "MONTHLY" && rotation_method != "NONE") {
-		ConfigCompilerContext::GetContext()->AddError(false, "Validation failed for " +
+		ConfigCompilerContext::GetInstance()->AddError(false, "Validation failed for " +
 		    location + ": Rotation method '" + rotation_method + "' is invalid.");
+	}
+}
+
+void CompatLog::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("log_dir", m_LogDir);
+		bag->Set("rotation_method", m_RotationMethod);
+	}
+}
+
+void CompatLog::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_LogDir = bag->Get("log_dir");
+		m_RotationMethod = bag->Get("rotation_method");
 	}
 }

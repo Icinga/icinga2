@@ -21,7 +21,6 @@
   <ItemGroup>
     <ClCompile Include="application.cpp" />
     <ClCompile Include="array.cpp" />
-    <ClCompile Include="attribute.cpp" />
     <ClCompile Include="bufferedstream.cpp" />
     <ClCompile Include="consolelogger.cpp" />
     <ClCompile Include="convert.cpp" />
@@ -66,7 +65,6 @@
   <ItemGroup>
     <ClInclude Include="application.h" />
     <ClInclude Include="array.h" />
-    <ClInclude Include="attribute.h" />
     <ClInclude Include="bufferedstream.h" />
     <ClInclude Include="consolelogger.h" />
     <ClInclude Include="convert.h" />

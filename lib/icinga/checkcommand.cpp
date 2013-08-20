@@ -24,22 +24,6 @@ using namespace icinga;
 
 REGISTER_TYPE(CheckCommand);
 
-/**
- * Constructor for the CheckCommand class.
- *
- * @param serializedUpdate A serialized dictionary containing attributes.
- */
-CheckCommand::CheckCommand(const Dictionary::Ptr& serializedUpdate)
-	: Command(serializedUpdate)
-{ }
-
-CheckCommand::Ptr CheckCommand::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("CheckCommand", name);
-
-	return dynamic_pointer_cast<CheckCommand>(configObject);
-}
-
 Dictionary::Ptr CheckCommand::Execute(const Service::Ptr& service)
 {
 	std::vector<Value> arguments;

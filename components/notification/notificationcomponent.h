@@ -20,7 +20,7 @@
 #ifndef NOTIFICATIONCOMPONENT_H
 #define NOTIFICATIONCOMPONENT_H
 
-#include "remoting/endpoint.h"
+#include "icinga/service.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
 
@@ -35,17 +35,14 @@ class NotificationComponent : public DynamicObject
 public:
 	DECLARE_PTR_TYPEDEFS(NotificationComponent);
 
-	NotificationComponent(const Dictionary::Ptr& serializedUpdate);
-
 	virtual void Start(void);
-	virtual void Stop(void);
 
 private:
 	Timer::Ptr m_NotificationTimer;
-	Endpoint::Ptr m_Endpoint;
 
 	void NotificationTimerHandler(void);
-	void SendNotificationsRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
+	void SendNotificationsHandler(const Service::Ptr& service, NotificationType type,
+	    const Dictionary::Ptr& cr, const String& author, const String& text);
 };
 
 }

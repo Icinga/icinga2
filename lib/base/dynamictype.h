@@ -23,6 +23,7 @@
 #include "base/i2-base.h"
 #include "base/registry.h"
 #include "base/dynamicobject.h"
+#include "base/utility.h"
 #include <map>
 #include <set>
 #include <boost/function.hpp>
@@ -36,7 +37,7 @@ class I2_BASE_API DynamicType : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DynamicType);
 
-	typedef boost::function<DynamicObject::Ptr (const Dictionary::Ptr&)> ObjectFactory;
+	typedef boost::function<DynamicObject::Ptr (void)> ObjectFactory;
 
 	DynamicType(const String& name, const ObjectFactory& factory);
 
@@ -50,29 +51,44 @@ public:
 	DynamicObject::Ptr GetObject(const String& name) const;
 
 	void RegisterObject(const DynamicObject::Ptr& object);
-	void UnregisterObject(const DynamicObject::Ptr& object);
 
-	static std::set<DynamicType::Ptr> GetTypes(void);
-	std::set<DynamicObject::Ptr> GetObjects(void) const;
+	static std::vector<DynamicType::Ptr> GetTypes(void);
+	std::vector<DynamicObject::Ptr> GetObjects(void) const;
 
-	static std::set<DynamicObject::Ptr> GetObjects(const String& type);
+	template<typename T>
+	static std::vector<shared_ptr<T> > GetObjects(void)
+	{
+		std::vector<shared_ptr<T> > objects;
+
+		BOOST_FOREACH(const DynamicObject::Ptr& object, GetObjects(T::GetTypeName())) {
+			shared_ptr<T> tobject = dynamic_pointer_cast<T>(object);
+
+			ASSERT(tobject);
+
+			objects.push_back(tobject);
+		}
+
+		return objects;
+	}
 
 private:
 	String m_Name;
 	ObjectFactory m_ObjectFactory;
 
 	typedef std::map<String, DynamicObject::Ptr, string_iless> ObjectMap;
-	typedef std::set<DynamicObject::Ptr> ObjectSet;
+	typedef std::vector<DynamicObject::Ptr> ObjectVector;
 
 	ObjectMap m_ObjectMap;
-	ObjectSet m_ObjectSet;
+	ObjectVector m_ObjectVector;
 
 	typedef std::map<String, DynamicType::Ptr, string_iless> TypeMap;
-	typedef std::set<DynamicType::Ptr> TypeSet;
+	typedef std::vector<DynamicType::Ptr> TypeVector;
 
 	static TypeMap& InternalGetTypeMap(void);
-	static TypeSet& InternalGetTypeSet(void);
+	static TypeVector& InternalGetTypeVector(void);
 	static boost::mutex& GetStaticMutex(void);
+
+	static std::vector<DynamicObject::Ptr> GetObjects(const String& type);
 };
 
 /**
@@ -104,9 +120,9 @@ public:
  * @ingroup base
  */
 template<typename T>
-shared_ptr<T> DynamicObjectFactory(const Dictionary::Ptr& serializedUpdate)
+shared_ptr<T> DynamicObjectFactory(void)
 {
-	return boost::make_shared<T>(serializedUpdate);
+	return boost::make_shared<T>();
 }
 
 #define REGISTER_TYPE_ALIAS(type, alias) \

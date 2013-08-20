@@ -42,9 +42,10 @@ DbObject::DbObject(const shared_ptr<DbType>& type, const String& name1, const St
 
 void DbObject::StaticInitialize(void)
 {
-	DynamicObject::OnRegistered.connect(boost::bind(&DbObject::ObjectRegisteredHandler, _1));
-	DynamicObject::OnUnregistered.connect(boost::bind(&DbObject::ObjectUnregisteredHandler, _1));
-	DynamicObject::OnAttributesChanged.connect(boost::bind(&DbObject::AttributesChangedHandler, _1, _2));
+	DynamicObject::OnStarted.connect(boost::bind(&DbObject::ObjectStartedHandler, _1));
+	DynamicObject::OnStopped.connect(boost::bind(&DbObject::ObjectStoppedHandler, _1));
+
+	DynamicObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
 }
 
 void DbObject::SetObject(const DynamicObject::Ptr& object)
@@ -132,20 +133,6 @@ double DbObject::GetLastStatusUpdate(void) const
 	return m_LastStatusUpdate;
 }
 
-bool DbObject::IsConfigAttribute(const String& attribute) const
-{
-	DynamicObject::Ptr object = GetObject();
-	ObjectLock olock(object);
-	DynamicObject::AttributeConstIterator it;
-
-	it = object->GetAttributes().find(attribute);
-
-	if (it == object->GetAttributes().end())
-		return false;
-
-	return (it->second.GetType() == Attribute_Config);
-}
-
 bool DbObject::IsStatusAttribute(const String&) const
 {
 	return false;
@@ -201,7 +188,7 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 	return dbobj;
 }
 
-void DbObject::ObjectRegisteredHandler(const DynamicObject::Ptr& object)
+void DbObject::ObjectStartedHandler(const DynamicObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
 
@@ -214,7 +201,7 @@ void DbObject::ObjectRegisteredHandler(const DynamicObject::Ptr& object)
 	dbobj->SendStatusUpdate();
 }
 
-void DbObject::ObjectUnregisteredHandler(const DynamicObject::Ptr& object)
+void DbObject::ObjectStoppedHandler(const DynamicObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
 
@@ -229,26 +216,12 @@ void DbObject::ObjectUnregisteredHandler(const DynamicObject::Ptr& object)
 	}
 }
 
-void DbObject::AttributesChangedHandler(const DynamicObject::Ptr& object, const std::set<String, string_iless>& attributes)
+void DbObject::StateChangedHandler(const DynamicObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
 
 	if (!dbobj)
 		return;
 
-	bool configUpdate = false, statusUpdate = false;
-
-	BOOST_FOREACH(const String& attribute, attributes) {
-		if (!configUpdate && dbobj->IsConfigAttribute(attribute))
-			configUpdate = true;
-
-		if (!statusUpdate && dbobj->IsStatusAttribute(attribute))
-			statusUpdate = true;
-	}
-
-	if (configUpdate)
-		dbobj->SendConfigUpdate();
-
-	if (statusUpdate)
-		dbobj->SendStatusUpdate();
+	dbobj->SendStatusUpdate();
 }

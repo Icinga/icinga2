@@ -26,6 +26,5 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(NullEvent, &NullEventTask::ScriptFunc);
 
-void NullEventTask::ScriptFunc(const Service::Ptr& service)
-{
-}
+void NullEventTask::ScriptFunc(const Service::Ptr&)
+{ }

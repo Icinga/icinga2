@@ -1,6 +1,5 @@
 icinga2itldir = ${pkgdatadir}/itl
 icinga2itl_DATA = \
-	cluster.conf \
 	command.conf \
 	command-common.conf \
 	constants.conf \

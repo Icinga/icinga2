@@ -21,7 +21,7 @@
 #define PERFDATAWRITER_H
 
 #include "icinga/i2-icinga.h"
-#include "remoting/endpoint.h"
+#include "icinga/service.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
 #include <fstream>
@@ -38,26 +38,26 @@ class I2_ICINGA_API PerfdataWriter : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(PerfdataWriter);
+	DECLARE_TYPENAME(PerfdataWriter);
 
-	PerfdataWriter(const Dictionary::Ptr& properties);
-
-	static PerfdataWriter::Ptr GetByName(const String& name);
+	PerfdataWriter(void);
 
 	String GetPerfdataPath(void) const;
 	String GetFormatTemplate(void) const;
 	double GetRotationInterval(void) const;
 
 protected:
-	virtual void OnAttributeChanged(const String& name);
 	virtual void Start(void);
 
-private:
-	Attribute<String> m_PerfdataPath;
-	Attribute<String> m_FormatTemplate;
-	Attribute<double> m_RotationInterval;
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
-	Endpoint::Ptr m_Endpoint;
-	void CheckResultRequestHandler(const RequestMessage& request);
+private:
+	String m_PerfdataPath;
+	String m_FormatTemplate;
+	double m_RotationInterval;
+
+	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr);
 
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);

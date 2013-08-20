@@ -25,6 +25,7 @@
 #include "config/typerulelist.h"
 #include "config/configitem.h"
 #include "base/array.h"
+#include "base/registry.h"
 
 namespace icinga
 {
@@ -50,6 +51,11 @@ public:
 	DebugInfo GetDebugInfo(void) const;
 
 	void ValidateItem(const ConfigItem::Ptr& object);
+
+	void Register(void);
+	static ConfigType::Ptr GetByName(const String& name);
+	static Registry<ConfigType::Ptr>::ItemMap GetTypes(void);
+	static void DiscardTypes(void);
 
 private:
 	String m_Name; /**< The type name. */

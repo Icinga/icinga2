@@ -58,8 +58,7 @@ String DowntimesTable::GetName(void) const
 
 void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		Service::Ptr service = static_pointer_cast<Service>(object);
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		Dictionary::Ptr downtimes = service->GetDowntimes();
 
 		if (!downtimes)

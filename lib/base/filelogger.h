@@ -36,10 +36,14 @@ class I2_BASE_API FileLogger : public StreamLogger
 public:
 	DECLARE_PTR_TYPEDEFS(FileLogger);
 
-	explicit FileLogger(const Dictionary::Ptr& serializedUpdate);
+	virtual void Start(void);
+
+protected:
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Attribute<String> m_Path;
+	String m_Path;
 };
 
 }

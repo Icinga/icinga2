@@ -23,7 +23,6 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/host.h"
 #include "base/dynamicobject.h"
-#include <set>
 
 namespace icinga
 {
@@ -37,27 +36,21 @@ class I2_ICINGA_API HostGroup : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(HostGroup);
-
-	explicit HostGroup(const Dictionary::Ptr& serializedUpdate);
-	~HostGroup(void);
-
-	static HostGroup::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(HostGroup);
 
 	String GetDisplayName(void) const;
 
 	std::set<Host::Ptr> GetMembers(void) const;
-
-	static void InvalidateMembersCache(void);
-
-	static boost::signals2::signal<void (void)> OnMembersChanged;
+	void AddMember(const Host::Ptr& host);
+	void RemoveMember(const Host::Ptr& host);
 
 protected:
-	virtual void OnRegistrationCompleted(void);
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Attribute<String> m_DisplayName;
-
-	static void RefreshMembersCache(void);
+	String m_DisplayName;
+	std::set<Host::Ptr> m_Members;
 };
 
 }

@@ -48,29 +48,29 @@ DynamicType::TypeMap& DynamicType::InternalGetTypeMap(void)
 	return typemap;
 }
 
-DynamicType::TypeSet& DynamicType::InternalGetTypeSet(void)
+DynamicType::TypeVector& DynamicType::InternalGetTypeVector(void)
 {
-	static DynamicType::TypeSet typeset;
-	return typeset;
+	static DynamicType::TypeVector typevector;
+	return typevector;
 }
 
-DynamicType::TypeSet DynamicType::GetTypes(void)
+DynamicType::TypeVector DynamicType::GetTypes(void)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
-	return InternalGetTypeSet(); /* Making a copy of the set here. */
+	return InternalGetTypeVector(); /* Making a copy of the vector here. */
 }
 
-std::set<DynamicObject::Ptr> DynamicType::GetObjects(const String& type)
+std::vector<DynamicObject::Ptr> DynamicType::GetObjects(const String& type)
 {
 	DynamicType::Ptr dt = GetByName(type);
 	return dt->GetObjects();
 }
 
-std::set<DynamicObject::Ptr> DynamicType::GetObjects(void) const
+std::vector<DynamicObject::Ptr> DynamicType::GetObjects(void) const
 {
 	ObjectLock olock(this);
 
-	return m_ObjectSet; /* Making a copy of the set here. */
+	return m_ObjectVector; /* Making a copy of the vector here. */
 }
 
 String DynamicType::GetName(void) const
@@ -95,26 +95,8 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 		}
 
 		m_ObjectMap[name] = object;
-		m_ObjectSet.insert(object);
-
-		object->m_Registered = true;
+		m_ObjectVector.push_back(object);
 	}
-
-	object->OnRegistrationCompleted();
-}
-
-void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
-{
-	{
-		ObjectLock olock(this);
-
-		m_ObjectMap.erase(object->GetName());
-		m_ObjectSet.erase(object);
-
-		object->m_Registered = false;
-	}
-
-	object->OnUnregistrationCompleted();
 }
 
 DynamicObject::Ptr DynamicType::GetObject(const String& name) const
@@ -140,7 +122,7 @@ void DynamicType::RegisterType(const DynamicType::Ptr& type)
 		    type->GetName() + "': Objects of this type already exist."));
 
 	InternalGetTypeMap()[type->GetName()] = type;
-	InternalGetTypeSet().insert(type);
+	InternalGetTypeVector().push_back(type);
 }
 
 DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUpdate)
@@ -154,10 +136,9 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 		factory = m_ObjectFactory;
 	}
 
-	DynamicObject::Ptr object = factory(serializedUpdate);
+	DynamicObject::Ptr object = factory();
 
-	/* apply the object's non-config attributes */
-	object->ApplyUpdate(serializedUpdate, Attribute_All & ~Attribute_Config);
+	object->Deserialize(serializedUpdate, Attribute_All);
 
 	return object;
 }

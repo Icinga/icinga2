@@ -116,7 +116,7 @@ static char *lb_steal(lex_buf *lb)
 <STRING>\n			{
 	std::ostringstream msgbuf;
 	msgbuf << "Unterminated string found: " << *yylloc;
-	ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
+	ConfigCompilerContext::GetInstance()->AddError(false, msgbuf.str());
 	BEGIN(INITIAL);
 				}
 
@@ -130,7 +130,7 @@ static char *lb_steal(lex_buf *lb)
 		/* error, constant is out-of-bounds */
 		std::ostringstream msgbuf;
 		msgbuf << "Constant is out-of-bounds: " << yytext << " " << *yylloc;
-		ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
+		ConfigCompilerContext::GetInstance()->AddError(false, msgbuf.str());
 	}
 
 	lb_append_char(&string_buf, result);
@@ -142,7 +142,7 @@ static char *lb_steal(lex_buf *lb)
 	 */
 	std::ostringstream msgbuf;
 	msgbuf << "Bad escape sequence found: " << yytext << " " << *yylloc;
-	ConfigCompilerContext::GetContext()->AddError(false, msgbuf.str());
+	ConfigCompilerContext::GetInstance()->AddError(false, msgbuf.str());
 				}
 
 <STRING>\\n			{ lb_append_char(&string_buf, '\n'); }
@@ -199,7 +199,6 @@ name				{ yylval->type = TypeName; return T_TYPE_NAME; }
 %require			{ return T_REQUIRE; }
 %attribute			{ return T_ATTRIBUTE; }
 abstract			return T_ABSTRACT;
-local				return T_LOCAL;
 object				return T_OBJECT;
 template			return T_TEMPLATE;
 include				return T_INCLUDE;

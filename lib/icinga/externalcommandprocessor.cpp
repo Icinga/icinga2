@@ -24,13 +24,11 @@
 #include "icinga/hostgroup.h"
 #include "icinga/servicegroup.h"
 #include "icinga/pluginchecktask.h"
-#include "icinga/flappingmessage.h"
 #include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
 #include "base/application.h"
 #include "base/utility.h"
-#include "remoting/endpointmanager.h"
 #include <fstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
@@ -1127,10 +1125,9 @@ void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vec
 		if (options & 2) {
 			ObjectLock olock(service);
 			service->SetForceNextNotification(true);
-			service->Flush();
 		}
 
-		service->RequestNotifications(NotificationCustom, service->GetLastCheckResult(), arguments[2], arguments[3]);
+		Service::OnNotificationsRequested(service, NotificationCustom, service->GetLastCheckResult(), arguments[2], arguments[3]);
 	}
 }
 
@@ -1147,10 +1144,9 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vect
 	if (options & 2) {
 		ObjectLock olock(service);
 		service->SetForceNextNotification(true);
-		service->Flush();
 	}
 
-	service->RequestNotifications(NotificationCustom, service->GetLastCheckResult(), arguments[3], arguments[4]);
+	Service::OnNotificationsRequested(service, NotificationCustom, service->GetLastCheckResult(), arguments[3], arguments[4]);
 }
 
 void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<String>& arguments)
@@ -1517,16 +1513,5 @@ void ExternalCommandProcessor::DisableSvcFlapping(double, const std::vector<Stri
 		ObjectLock olock(service);
 
 		service->SetEnableFlapping(false);
-
-		RequestMessage rm;
-		rm.SetMethod("icinga::Flapping");
-
-		FlappingMessage params;
-		params.SetService(service->GetName());
-		params.SetState(FlappingDisabled);
-
-		rm.SetParams(params);
-
-		EndpointManager::GetInstance()->SendMulticastMessage(rm);
 	}
 }

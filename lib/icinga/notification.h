@@ -59,11 +59,7 @@ class I2_ICINGA_API Notification : public DynamicObject, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Notification);
-
-	explicit Notification(const Dictionary::Ptr& serializedUpdate);
-	~Notification(void);
-
-	static Notification::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(Notification);
 
 	shared_ptr<Service> GetService(void) const;
 	shared_ptr<NotificationCommand> GetNotificationCommand(void) const;
@@ -83,7 +79,7 @@ public:
 	double GetNextNotification(void) const;
 	void SetNextNotification(double time);
 
-	int GetNotificationNumber(void) const;
+	long GetNotificationNumber(void) const;
 	void UpdateNotificationNumber(void);
 	void ResetNotificationNumber(void);
 
@@ -94,25 +90,28 @@ public:
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
 protected:
-	void OnAttributeChanged(const String& name);
+	virtual void Start(void);
+	virtual void Stop(void);
+
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Attribute<String> m_NotificationCommand;
-	Attribute<double> m_NotificationInterval;
-	Attribute<String> m_NotificationPeriod;
-	Attribute<double> m_LastNotification;
-	Attribute<double> m_NextNotification;
-	Attribute<int> m_NotificationNumber;
-	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Array::Ptr> m_ExportMacros;
-	Attribute<Array::Ptr> m_Users;
-	Attribute<Array::Ptr> m_Groups;
-	Attribute<Dictionary::Ptr> m_Times;
-	Attribute<long> m_NotificationTypeFilter;
-	Attribute<long> m_NotificationStateFilter;
-	Attribute<String> m_HostName;
-	Attribute<String> m_Service;
-
+	String m_NotificationCommand;
+	Value m_NotificationInterval;
+	String m_NotificationPeriod;
+	Value m_LastNotification;
+	Value m_NextNotification;
+	Value m_NotificationNumber;
+	Dictionary::Ptr m_Macros;
+	Array::Ptr m_ExportMacros;
+	Array::Ptr m_Users;
+	Array::Ptr m_Groups;
+	Dictionary::Ptr m_Times;
+	Value m_NotificationTypeFilter;
+	Value m_NotificationStateFilter;
+	String m_HostName;
+	String m_Service;
 
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force, const String& author = "", const String& text = "");
 };

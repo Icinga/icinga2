@@ -37,8 +37,7 @@ class I2_ICINGA_API IcingaApplication : public Application, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(IcingaApplication);
-
-	explicit IcingaApplication(const Dictionary::Ptr& serializedUpdate);
+	DECLARE_TYPENAME(IcingaApplication);
 
 	int Main(void);
 
@@ -57,14 +56,18 @@ public:
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
+protected:
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 private:
-	Attribute<String> m_CertPath;
-	Attribute<String> m_CAPath;
-	Attribute<String> m_Node;
-	Attribute<String> m_Service;
-	Attribute<String> m_PidPath;
-	Attribute<String> m_StatePath;
-	Attribute<Dictionary::Ptr> m_Macros;
+	String m_CertPath;
+	String m_CAPath;
+	String m_Node;
+	String m_Service;
+	String m_PidPath;
+	String m_StatePath;
+	Dictionary::Ptr m_Macros;
 
 	shared_ptr<SSL_CTX> m_SSLContext;
 

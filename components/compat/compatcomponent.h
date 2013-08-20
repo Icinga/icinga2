@@ -42,14 +42,16 @@ class CompatComponent : public DynamicObject
 public:
 	DECLARE_PTR_TYPEDEFS(CompatComponent);
 
-	CompatComponent(const Dictionary::Ptr& serializedUpdate);
-
+protected:
 	virtual void Start(void);
 
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 private:
-	Attribute<String> m_StatusPath;
-	Attribute<String> m_ObjectsPath;
-	Attribute<String> m_CommandPath;
+	String m_StatusPath;
+	String m_ObjectsPath;
+	String m_CommandPath;
 
 #ifndef _WIN32
 	boost::thread m_CommandThread;

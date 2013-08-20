@@ -40,19 +40,24 @@ class I2_ICINGA_API Command : public DynamicObject, public MacroResolver
 public:
 	DECLARE_PTR_TYPEDEFS(Command);
 
-	explicit Command(const Dictionary::Ptr& serializedUpdate);
-
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
+
+	Value GetCommandLine(void) const;
+	double GetTimeout(void) const;
 
 	Dictionary::Ptr GetMacros(void) const;
 	Array::Ptr GetExportMacros(void) const;
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
-	Value GetCommandLine(void) const;
+protected:
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Array::Ptr> m_ExportMacros;
+	Value m_CommandLine;
+	Value m_Timeout;
+	Dictionary::Ptr m_Macros;
+	Array::Ptr m_ExportMacros;
 };
 
 }

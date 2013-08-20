@@ -52,11 +52,11 @@ char **Application::m_ArgV;
 /**
  * Constructor for the Application class.
  */
-Application::Application(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate), m_PidFile(NULL)
+void Application::Start(void)
 {
-	if (!IsLocal())
-		BOOST_THROW_EXCEPTION(std::runtime_error("Application objects must be local."));
+	DynamicObject::Start();
+
+	m_PidFile = NULL;
 
 #ifdef _WIN32
 	/* disable GUI-based error messages for LoadLibrary() */
@@ -82,10 +82,8 @@ Application::Application(const Dictionary::Ptr& serializedUpdate)
 /**
  * Destructor for the application class.
  */
-Application::~Application(void)
+void Application::Stop(void)
 {
-	m_Instance = NULL;
-
 	m_ShuttingDown = true;
 
 #ifdef _WIN32
@@ -93,6 +91,11 @@ Application::~Application(void)
 #endif /* _WIN32 */
 
 	ClosePidFile();
+}
+
+Application::~Application(void)
+{
+	m_Instance = NULL;
 }
 
 /**
@@ -134,7 +137,7 @@ void Application::ShutdownTimerHandler(void)
 		Log(LogInformation, "base", "Shutting down Icinga...");
 		Application::GetInstance()->OnShutdown();
 
-		DynamicObject::DeactivateObjects();
+		DynamicObject::StopObjects();
 		GetTP().Stop();
 		m_ShuttingDown = false;
 	}
@@ -314,12 +317,10 @@ void Application::DisplayBugMessage(void)
  * Signal handler for SIGINT. Prepares the application for cleanly
  * shutting down during the next execution of the event loop.
  *
- * @param signum The signal number.
+ * @param - The signal number.
  */
-void Application::SigIntHandler(int signum)
+void Application::SigIntHandler(int)
 {
-	ASSERT(signum == SIGINT);
-
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
@@ -336,12 +337,10 @@ void Application::SigIntHandler(int signum)
 /**
  * Signal handler for SIGABRT. Helps with debugging ASSERT()s.
  *
- * @param signum The signal number.
+ * @param - The signal number.
  */
-void Application::SigAbrtHandler(int signum)
+void Application::SigAbrtHandler(int)
 {
-	ASSERT(signum == SIGABRT);
-
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));

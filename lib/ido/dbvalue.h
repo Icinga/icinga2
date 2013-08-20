@@ -60,12 +60,11 @@ public:
 protected:
 	DbValue(DbValueType type, const Value& value);
 
+	friend DbValue::Ptr boost::make_shared<DbValue, DbValueType, Value>(const icinga::DbValueType&, const icinga::Value&);
+
 private:
 	DbValueType m_Type;
 	Value m_Value;
-
-	friend boost::shared_ptr<DbValue> boost::make_shared<>(const icinga::DbValueType&, const double&);
-	friend boost::shared_ptr<DbValue> boost::make_shared<>(const icinga::DbValueType&, const icinga::Value&);
 };
 
 }

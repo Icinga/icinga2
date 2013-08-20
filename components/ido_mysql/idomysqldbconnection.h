@@ -37,27 +37,29 @@ namespace icinga
 class IdoMysqlDbConnection : public DbConnection
 {
 public:
-	typedef shared_ptr<IdoMysqlDbConnection> Ptr;
-	typedef weak_ptr<IdoMysqlDbConnection> WeakPtr;
-
-	IdoMysqlDbConnection(const Dictionary::Ptr& serializedUpdate);
-	virtual void Stop(void);
+	DECLARE_PTR_TYPEDEFS(IdoMysqlDbConnection);
 
 	//virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
 
 protected:
+	virtual void Start(void);
+	virtual void Stop(void);
+
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 	virtual void ActivateObject(const DbObject::Ptr& dbobj);
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
 	virtual void ExecuteQuery(const DbQuery& query);
 
 private:
-	Attribute<String> m_Host;
-	Attribute<long> m_Port;
-	Attribute<String> m_User;
-	Attribute<String> m_Password;
-	Attribute<String> m_Database;
-	Attribute<String> m_InstanceName;
-	Attribute<String> m_InstanceDescription;
+	String m_Host;
+	Value m_Port;
+	String m_User;
+	String m_Password;
+	String m_Database;
+	String m_InstanceName;
+	String m_InstanceDescription;
 
 	DbReference m_InstanceID;
 

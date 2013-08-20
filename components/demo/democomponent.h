@@ -35,17 +35,13 @@ class DemoComponent : public DynamicObject
 public:
 	DECLARE_PTR_TYPEDEFS(DemoComponent);
 
-	DemoComponent(const Dictionary::Ptr& serializedUpdate);
-
 	virtual void Start(void);
 	virtual void Stop(void);
 
 private:
 	Timer::Ptr m_DemoTimer;
-	Endpoint::Ptr m_Endpoint;
 
 	void DemoTimerHandler(void);
-	void HelloWorldRequestHandler(const Endpoint::Ptr& sender, const RequestMessage& request);
 };
 
 }

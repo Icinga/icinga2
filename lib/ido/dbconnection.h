@@ -38,8 +38,6 @@ class DbConnection : public DynamicObject
 public:
 	DECLARE_PTR_TYPEDEFS(DbConnection);
 
-	DbConnection(const Dictionary::Ptr& serializedUpdate);
-
 	static void StaticInitialize(void);
 
 	void SetObjectID(const DbObject::Ptr& dbobj, const DbReference& dbref);
@@ -59,6 +57,9 @@ public:
 protected:
 	virtual void Start(void);
 
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 	virtual void ExecuteQuery(const DbQuery& query) = 0;
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) = 0;
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj) = 0;
@@ -66,7 +67,7 @@ protected:
 	void UpdateAllObjects(void);
 
 private:
-	Attribute<String> m_TablePrefix;
+	String m_TablePrefix;
 
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<DbObject::Ptr, DbReference> m_InsertIDs;
@@ -76,8 +77,6 @@ private:
 
 	static void InsertRuntimeVariable(const String& key, const Value& value);
 	static void ProgramStatusHandler(void);
-
-	friend class DbType;
 };
 
 }

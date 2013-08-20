@@ -60,8 +60,8 @@ String ServiceGroupsTable::GetName(void) const
 
 void ServiceGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("ServiceGroup")) {
-		addRowFn(object);
+	BOOST_FOREACH(const ServiceGroup::Ptr& sg, DynamicType::GetObjects<ServiceGroup>()) {
+		addRowFn(sg);
 	}
 }
 

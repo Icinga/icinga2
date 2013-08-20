@@ -56,6 +56,8 @@ REGISTER_TYPE(CompatComponent);
  */
 void CompatComponent::Start(void)
 {
+	DynamicObject::Start();
+
 	m_StatusTimer = boost::make_shared<Timer>();
 	m_StatusTimer->SetInterval(15);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatComponent::StatusTimerHandler, this));
@@ -75,11 +77,10 @@ void CompatComponent::Start(void)
  */
 String CompatComponent::GetStatusPath(void) const
 {
-	Value statusPath = m_StatusPath;
-	if (statusPath.IsEmpty())
+	if (m_StatusPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/cache/icinga2/status.dat";
 	else
-		return statusPath;
+		return m_StatusPath;
 }
 
 /**
@@ -89,11 +90,10 @@ String CompatComponent::GetStatusPath(void) const
  */
 String CompatComponent::GetObjectsPath(void) const
 {
-	Value objectsPath = m_ObjectsPath;
-	if (objectsPath.IsEmpty())
+	if (m_ObjectsPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache";
 	else
-		return objectsPath;
+		return m_ObjectsPath;
 }
 
 /**
@@ -103,20 +103,12 @@ String CompatComponent::GetObjectsPath(void) const
  */
 String CompatComponent::GetCommandPath(void) const
 {
-	Value commandPath = m_CommandPath;
-	if (commandPath.IsEmpty())
+	if (m_CommandPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/run/icinga2/icinga2.cmd";
 	else
-		return commandPath;
+		return m_CommandPath;
 }
 
-CompatComponent::CompatComponent(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("status_path", Attribute_Config, &m_StatusPath);
-	RegisterAttribute("objects_path", Attribute_Config, &m_ObjectsPath);
-	RegisterAttribute("command_path", Attribute_Config, &m_CommandPath);
-}
 
 #ifndef _WIN32
 void CompatComponent::CommandPipeThread(const String& commandPath)
@@ -240,7 +232,7 @@ void CompatComponent::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp
 	   << "\t" << "timeperiod_name" << "\t" << tp->GetName() << "\n"
 	   << "\t" << "alias" << "\t" << tp->GetName() << "\n";
 
-	Dictionary::Ptr ranges = tp->Get("ranges");
+	Dictionary::Ptr ranges = tp->GetRanges();
 
 	if (ranges) {
 		ObjectLock olock(ranges);
@@ -426,12 +418,12 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 	fp << "\t" << "check_command=" << attrs->Get("check_command") << "\n"
 	   << "\t" << "event_handler=" << attrs->Get("event_handler") << "\n"
 	   << "\t" << "check_period=" << attrs->Get("check_period") << "\n"
-	   << "\t" << "check_interval=" << attrs->Get("check_interval") << "\n"
-	   << "\t" << "retry_interval=" << attrs->Get("retry_interval") << "\n"
+	   << "\t" << "check_interval=" << static_cast<double>(attrs->Get("check_interval")) << "\n"
+	   << "\t" << "retry_interval=" << static_cast<double>(attrs->Get("retry_interval")) << "\n"
 	   << "\t" << "has_been_checked=" << attrs->Get("has_been_checked") << "\n"
 	   << "\t" << "should_be_scheduled=" << attrs->Get("should_be_scheduled") << "\n"
-	   << "\t" << "check_execution_time=" << attrs->Get("check_execution_time") << "\n"
-	   << "\t" << "check_latency=" << attrs->Get("check_latency") << "\n"
+	   << "\t" << "check_execution_time=" << static_cast<double>(attrs->Get("check_execution_time")) << "\n"
+	   << "\t" << "check_latency=" << static_cast<double>(attrs->Get("check_latency")) << "\n"
 	   << "\t" << "current_state=" << attrs->Get("current_state") << "\n"
 	   << "\t" << "state_type=" << attrs->Get("state_type") << "\n"
 	   << "\t" << "plugin_output=" << attrs->Get("plugin_output") << "\n"
@@ -642,9 +634,7 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "# This file is auto-generated. Do not modify this file." << "\n"
 		 << "\n";
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
-		Host::Ptr host = static_pointer_cast<Host>(object);
-
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
 		std::ostringstream tempstatusfp;
 		tempstatusfp << std::fixed;
 		DumpHostStatus(tempstatusfp, host);
@@ -656,9 +646,7 @@ void CompatComponent::StatusTimerHandler(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("HostGroup")) {
-		HostGroup::Ptr hg = static_pointer_cast<HostGroup>(object);
-
+	BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjects<HostGroup>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -675,9 +663,7 @@ void CompatComponent::StatusTimerHandler(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		Service::Ptr service = static_pointer_cast<Service>(object);
-
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		std::ostringstream tempstatusfp;
 		tempstatusfp << std::fixed;
 		DumpServiceStatus(tempstatusfp, service);
@@ -689,9 +675,7 @@ void CompatComponent::StatusTimerHandler(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("ServiceGroup")) {
-		ServiceGroup::Ptr sg = static_pointer_cast<ServiceGroup>(object);
-
+	BOOST_FOREACH(const ServiceGroup::Ptr& sg, DynamicType::GetObjects<ServiceGroup>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -721,9 +705,7 @@ void CompatComponent::StatusTimerHandler(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
-		User::Ptr user = static_pointer_cast<User>(object);
-
+	BOOST_FOREACH(const User::Ptr& user, DynamicType::GetObjects<User>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -740,9 +722,7 @@ void CompatComponent::StatusTimerHandler(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("UserGroup")) {
-		UserGroup::Ptr ug = static_pointer_cast<UserGroup>(object);
-
+	BOOST_FOREACH(const UserGroup::Ptr& ug, DynamicType::GetObjects<UserGroup>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -758,27 +738,19 @@ void CompatComponent::StatusTimerHandler(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("CheckCommand")) {
-		Command::Ptr command = static_pointer_cast<Command>(object);
-
+	BOOST_FOREACH(const Command::Ptr& command, DynamicType::GetObjects<CheckCommand>()) {
 		DumpCommand(objectfp, command);
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("NotificationCommand")) {
-		Command::Ptr command = static_pointer_cast<Command>(object);
-
+	BOOST_FOREACH(const Command::Ptr& command, DynamicType::GetObjects<NotificationCommand>()) {
 		DumpCommand(objectfp, command);
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("EventCommand")) {
-		Command::Ptr command = static_pointer_cast<Command>(object);
-
+	BOOST_FOREACH(const Command::Ptr& command, DynamicType::GetObjects<EventCommand>()) {
 		DumpCommand(objectfp, command);
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("TimePeriod")) {
-		TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(object);
-
+	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjects<TimePeriod>()) {
 		DumpTimePeriod(objectfp, tp);
 	}
 
@@ -804,5 +776,27 @@ void CompatComponent::StatusTimerHandler(void)
 		    << boost::errinfo_api_function("rename")
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(objectspathtmp));
+	}
+}
+
+void CompatComponent::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("status_path", m_StatusPath);
+		bag->Set("objects_path", m_ObjectsPath);
+		bag->Set("command_path", m_CommandPath);
+	}
+}
+
+void CompatComponent::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_StatusPath = bag->Get("status_path");
+		m_ObjectsPath = bag->Get("objects_path");
+		m_CommandPath = bag->Get("command_path");
 	}
 }

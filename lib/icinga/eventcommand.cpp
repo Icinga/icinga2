@@ -24,22 +24,6 @@ using namespace icinga;
 
 REGISTER_TYPE(EventCommand);
 
-/**
- * Constructor for the EventCommand class.
- *
- * @param serializedUpdate A serialized dictionary containing attributes.
- */
-EventCommand::EventCommand(const Dictionary::Ptr& serializedUpdate)
-	: Command(serializedUpdate)
-{ }
-
-EventCommand::Ptr EventCommand::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("EventCommand", name);
-
-	return dynamic_pointer_cast<EventCommand>(configObject);
-}
-
 void EventCommand::Execute(const Service::Ptr& service)
 {
 	std::vector<Value> arguments;

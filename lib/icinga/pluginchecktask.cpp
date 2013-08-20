@@ -67,10 +67,7 @@ Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), envMacros);
 
-	Value timeout = commandObj->Get("timeout");
-
-	if (!timeout.IsEmpty())
-		process->SetTimeout(timeout);
+	process->SetTimeout(commandObj->GetTimeout());
 
 	ProcessResult pr = process->Run();
 

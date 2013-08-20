@@ -50,8 +50,6 @@ class I2_BASE_API Logger : public DynamicObject
 public:
 	DECLARE_PTR_TYPEDEFS(Logger);
 
-	explicit Logger(const Dictionary::Ptr& serializedUpdate);
-
 	static String SeverityToString(LogSeverity severity);
 	static LogSeverity StringToSeverity(const String& severity);
 
@@ -71,8 +69,11 @@ protected:
 	virtual void Start(void);
 	virtual void Stop(void);
 
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 private:
-	Attribute<String> m_Severity;
+	String m_Severity;
 
 	LogSeverity m_MinSeverity;
 

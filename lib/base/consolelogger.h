@@ -36,7 +36,7 @@ class I2_BASE_API ConsoleLogger : public StreamLogger
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleLogger);
 
-	explicit ConsoleLogger(const Dictionary::Ptr& serializedUpdate);
+	virtual void Start(void);
 };
 
 }

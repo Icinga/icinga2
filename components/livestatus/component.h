@@ -36,10 +36,6 @@ namespace livestatus
 class LivestatusComponent : public DynamicObject
 {
 public:
-	LivestatusComponent(const Dictionary::Ptr& serializedUpdate);
-
-	virtual void Start(void);
-
 	String GetSocketType(void) const;
 	String GetSocketPath(void) const;
 	String GetHost(void) const;
@@ -48,11 +44,17 @@ public:
 	static int GetClientsConnected(void);
 	static int GetConnections(void);
 
+protected:
+	virtual void Start(void);
+
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 private:
-	Attribute<String> m_SocketType;
-	Attribute<String> m_SocketPath;
-	Attribute<String> m_Host;
-	Attribute<String> m_Port;
+	String m_SocketType;
+	String m_SocketPath;
+	String m_Host;
+	String m_Port;
 
 	void ServerThreadProc(const Socket::Ptr& server);
 	void ClientThreadProc(const Socket::Ptr& client);

@@ -39,8 +39,6 @@ public:
 
 	HostGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
-	static void StaticInitialize(void);
-
 	virtual Dictionary::Ptr GetConfigFields(void) const;
 	virtual Dictionary::Ptr GetStatusFields(void) const;
 

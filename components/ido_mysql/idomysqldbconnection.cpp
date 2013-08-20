@@ -32,17 +32,11 @@ using namespace icinga;
 
 REGISTER_TYPE(IdoMysqlDbConnection);
 
-IdoMysqlDbConnection::IdoMysqlDbConnection(const Dictionary::Ptr& serializedUpdate)
-	: DbConnection(serializedUpdate), m_Connected(false)
+void IdoMysqlDbConnection::Start(void)
 {
-	RegisterAttribute("host", Attribute_Config, &m_Host);
-	RegisterAttribute("port", Attribute_Config, &m_Port);
-	RegisterAttribute("user", Attribute_Config, &m_User);
-	RegisterAttribute("password", Attribute_Config, &m_Password);
-	RegisterAttribute("database", Attribute_Config, &m_Database);
+	DbConnection::Start();
 
-	RegisterAttribute("instance_name", Attribute_Config, &m_InstanceName);
-	RegisterAttribute("instance_description", Attribute_Config, &m_InstanceDescription);
+	m_Connected = false;
 
 	m_TxTimer = boost::make_shared<Timer>();
 	m_TxTimer->SetInterval(5);
@@ -395,7 +389,7 @@ void IdoMysqlDbConnection::ExecuteQuery(const DbQuery& query)
 				return;
 
 			if (!first)
-				qbuf << " AND ";
+				where << " AND ";
 
 			where << key << " = " << value;
 
@@ -490,5 +484,35 @@ void IdoMysqlDbConnection::ExecuteQuery(const DbQuery& query)
 
 		if (type == DbQueryInsert && query.ConfigUpdate)
 			SetInsertID(query.Object, GetLastInsertID());
+	}
+}
+
+void IdoMysqlDbConnection::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DbConnection::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("host", m_Host);
+		bag->Set("port", m_Port);
+		bag->Set("user", m_User);
+		bag->Set("password", m_Password);
+		bag->Set("database", m_Database);
+		bag->Set("instance_name", m_InstanceName);
+		bag->Set("instance_description", m_InstanceDescription);
+	}
+}
+
+void IdoMysqlDbConnection::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DbConnection::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_Host = bag->Get("host");
+		m_Port = bag->Get("port");
+		m_User = bag->Get("user");
+		m_Password = bag->Get("password");
+		m_Database = bag->Get("database");
+		m_InstanceName = bag->Get("instance_name");
+		m_InstanceDescription = bag->Get("instance_description");
 	}
 }

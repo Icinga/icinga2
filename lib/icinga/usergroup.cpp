@@ -28,31 +28,7 @@
 
 using namespace icinga;
 
-static boost::mutex l_Mutex;
-static std::map<String, std::vector<User::WeakPtr> > l_MembersCache;
-static bool l_MembersCacheNeedsUpdate = false;
-static Timer::Ptr l_MembersCacheTimer;
-boost::signals2::signal<void (void)> UserGroup::OnMembersChanged;
-
 REGISTER_TYPE(UserGroup);
-
-UserGroup::UserGroup(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-}
-
-UserGroup::~UserGroup(void)
-{
-	InvalidateMembersCache();
-}
-
-void UserGroup::OnRegistrationCompleted(void)
-{
-	ASSERT(!OwnsLock());
-
-	InvalidateMembersCache();
-}
 
 String UserGroup::GetDisplayName(void) const
 {
@@ -62,85 +38,33 @@ String UserGroup::GetDisplayName(void) const
 		return GetName();
 }
 
-UserGroup::Ptr UserGroup::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("UserGroup", name);
-
-	if (!configObject)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("UserGroup '" + name + "' does not exist."));
-
-	return dynamic_pointer_cast<UserGroup>(configObject);
-}
-
 std::set<User::Ptr> UserGroup::GetMembers(void) const
 {
-	std::set<User::Ptr> users;
-
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
-
-		BOOST_FOREACH(const User::WeakPtr& wuser, l_MembersCache[GetName()]) {
-			User::Ptr user = wuser.lock();
-
-			if (!user)
-				continue;
-
-			users.insert(user);
-		}
-	}
-
-	return users;
+	return m_Members;
 }
 
-void UserGroup::InvalidateMembersCache(void)
+void UserGroup::AddMember(const User::Ptr& user)
 {
-	boost::mutex::scoped_lock lock(l_Mutex);
-
-	if (l_MembersCacheNeedsUpdate)
-		return; /* Someone else has already requested a refresh. */
-
-	if (!l_MembersCacheTimer) {
-		l_MembersCacheTimer = boost::make_shared<Timer>();
-		l_MembersCacheTimer->SetInterval(0.5);
-		l_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&UserGroup::RefreshMembersCache));
-		l_MembersCacheTimer->Start();
-	}
-
-	l_MembersCacheNeedsUpdate = true;
+	m_Members.insert(user);
 }
 
-void UserGroup::RefreshMembersCache(void)
+void UserGroup::RemoveMember(const User::Ptr& user)
 {
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
+	m_Members.erase(user);
+}
 
-		if (!l_MembersCacheNeedsUpdate)
-			return;
+void UserGroup::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
 
-		l_MembersCacheNeedsUpdate = false;
-	}
+	if (attributeTypes & Attribute_Config)
+		bag->Set("display_name", m_DisplayName);
+}
 
-	Log(LogDebug, "icinga", "Updating UserGroup members cache.");
+void UserGroup::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
-	std::map<String, std::vector<User::WeakPtr> > newMembersCache;
-
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
-		const User::Ptr& user = static_pointer_cast<User>(object);
-
-		Array::Ptr groups = user->GetGroups();
-
-		if (groups) {
-			ObjectLock mlock(groups);
-			BOOST_FOREACH(const Value& group, groups) {
-				newMembersCache[group].push_back(user);
-			}
-		}
-	}
-
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
-		l_MembersCache.swap(newMembersCache);
-	}
-
-	OnMembersChanged();
+	if (attributeTypes & Attribute_Config)
+		m_DisplayName = bag->Get("display_name");
 }

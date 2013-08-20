@@ -4,9 +4,7 @@
 SUBDIRS = \
 	checker \
 	compat \
-	delegation \
 	demo \
 	ido_mysql \
 	livestatus \
-	notification \
-	replication
+	notification

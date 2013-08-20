@@ -37,13 +37,12 @@ class I2_CONFIG_API ConfigItem : public Object {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
-	ConfigItem(const String& type, const String& name, const String& unit,
-	    bool abstract, const ExpressionList::Ptr& exprl, const std::vector<String>& parents,
+	ConfigItem(const String& type, const String& name, bool abstract,
+	    const ExpressionList::Ptr& exprl, const std::vector<String>& parents,
 	    const DebugInfo& debuginfo);
 
 	String GetType(void) const;
 	String GetName(void) const;
-	String GetUnit(void) const;
 	bool IsAbstract(void) const;
 
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
@@ -55,9 +54,6 @@ public:
 
 	DynamicObject::Ptr Commit(void);
 	void Register(void);
-	void Unregister(void);
-
-	void Dump(std::ostream& fp) const;
 
 	DynamicObject::Ptr GetDynamicObject(void) const;
 
@@ -66,35 +62,27 @@ public:
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
 
-	static void UnloadUnit(const String& unit);
-
-	static boost::signals2::signal<void (const ConfigItem::Ptr&)> OnCommitted;
-	static boost::signals2::signal<void (const ConfigItem::Ptr&)> OnRemoved;
+	static void LinkItems(void);
+	static void ValidateItems(void);
+	static void ActivateItems(void);
+	static void DiscardItems(void);
 
 private:
 	ExpressionList::Ptr GetExpressionList(void) const;
 
-	void UnregisterFromParents(void);
-
-	void OnParentCommitted(void);
-
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
-	String m_Unit; /**< The compilation unit. */
 	bool m_Abstract; /**< Whether this is a template. */
 
 	ExpressionList::Ptr m_ExpressionList;
 	std::vector<String> m_ParentNames; /**< The names of parent configuration
 				       items. */
-	std::vector<ConfigItem::Ptr> m_Parents;
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
 	ExpressionList::Ptr m_LinkedExpressionList;
 
 	DynamicObject::WeakPtr m_DynamicObject; /**< The instantiated version
                                                  * of this configuration item */
-	std::set<ConfigItem::WeakPtr> m_ChildObjects; /**< Instantiated items
-                                                     * that inherit from this item */
 
 	static boost::mutex m_Mutex;
 

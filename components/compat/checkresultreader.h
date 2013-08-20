@@ -37,18 +37,18 @@ class CheckResultReader : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CheckResultReader);
-
-	CheckResultReader(const Dictionary::Ptr& properties);
-
-	static CheckResultReader::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(CheckResultReader);
 
 	String GetSpoolDir(void) const;
 
 protected:
 	virtual void Start(void);
 
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 private:
-	Attribute<String> m_SpoolDir;
+	String m_SpoolDir;
 
 	Timer::Ptr m_ReadTimer;
 	void ReadTimerHandler(void) const;

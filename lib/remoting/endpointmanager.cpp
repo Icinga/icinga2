@@ -89,12 +89,12 @@ void EndpointManager::SetIdentity(const String& identity)
 	m_Identity = identity;
 
 	if (m_Endpoint)
-		m_Endpoint->Unregister();
+		m_Endpoint->Stop();
 
-	DynamicObject::Ptr object = DynamicObject::GetObject("Endpoint", identity);
+	Endpoint::Ptr endpoint = DynamicObject::GetObject<Endpoint>(identity);
 
-	if (object)
-		m_Endpoint = dynamic_pointer_cast<Endpoint>(object);
+	if (endpoint)
+		m_Endpoint = endpoint;
 	else
 		m_Endpoint = Endpoint::MakeEndpoint(identity, true, true);
 }
@@ -230,8 +230,8 @@ void EndpointManager::SendUnicastMessage(const Endpoint::Ptr& sender,
 {
 	/* don't forward messages between non-local endpoints, assume that
 	 * anonymous senders (sender == null) are local */
-	if ((sender && !sender->IsLocal()) && !recipient->IsLocal())
-		return;
+//	if ((sender && !sender->IsLocal()) && !recipient->IsLocal())
+//		return;
 
 	if (ResponseMessage::IsResponseMessage(message))
 		recipient->ProcessResponse(sender, message);
@@ -255,11 +255,10 @@ void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
 
 	std::vector<Endpoint::Ptr> candidates;
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
-		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
 		/* don't forward messages between non-local endpoints */
-		if ((sender && !sender->IsLocal()) && !endpoint->IsLocal())
-			continue;
+//		if ((sender && !sender->IsLocal()) && !endpoint->IsLocal())
+//			continue;
 
 		if (endpoint->HasSubscription(method))
 			candidates.push_back(endpoint);
@@ -301,9 +300,7 @@ void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
 	if (!message.GetMethod(&method))
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Message is missing the 'method' property."));
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
-		Endpoint::Ptr recipient = dynamic_pointer_cast<Endpoint>(object);
-
+	BOOST_FOREACH(const Endpoint::Ptr& recipient, DynamicType::GetObjects<Endpoint>()) {
 		/* don't forward messages back to the sender */
 		if (sender == recipient)
 			continue;
@@ -348,12 +345,10 @@ void EndpointManager::SubscriptionTimerHandler(void)
 {
 	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
-		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
-
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
 		/* don't copy subscriptions from non-local endpoints or the identity endpoint */
-		if (!endpoint->IsLocalEndpoint() || endpoint == m_Endpoint)
-			continue;
+//		if (!endpoint->IsLocalEndpoint() || endpoint == m_Endpoint)
+//			continue;
 
 		Dictionary::Ptr endpointSubscriptions = endpoint->GetSubscriptions();
 
@@ -377,9 +372,7 @@ void EndpointManager::SubscriptionTimerHandler(void)
 
 void EndpointManager::ReconnectTimerHandler(void)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Endpoint")) {
-		Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
-
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
 		if (endpoint->IsConnected() || endpoint == m_Endpoint)
 			continue;
 

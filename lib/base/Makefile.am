@@ -9,8 +9,6 @@ libbase_la_SOURCES =  \
 	application.h \
 	array.cpp \
 	array.h \
-	attribute.cpp \
-	attribute.h \
 	bufferedstream.cpp \
 	bufferedstream.h \
 	consolelogger.cpp \

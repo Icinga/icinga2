@@ -98,5 +98,8 @@ String MacroProcessor::InternalResolveMacros(const String& str, const std::vecto
 		offset = pos_first + resolved_macro.GetLength();
 	}
 
+	if (escapeFn)
+		result = escapeFn(result);
+
 	return result;
 }

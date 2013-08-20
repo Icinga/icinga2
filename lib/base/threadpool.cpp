@@ -30,8 +30,8 @@
 using namespace icinga;
 
 ThreadPool::ThreadPool(void)
-	: m_Stopped(false), m_ThreadDeaths(0), m_WaitTime(0),
-	  m_ServiceTime(0), m_TaskCount(0)
+	: m_ThreadDeaths(0), m_WaitTime(0), m_ServiceTime(0),
+	  m_TaskCount(0), m_Stopped(false)
 {
 	for (int i = 0; i < 2; i++)
 		SpawnWorker();
@@ -71,7 +71,7 @@ void ThreadPool::Join(void)
 
 	do {
 		alive = 0;
-		for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
+		for (size_t i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
 			if (m_ThreadStats[i].State != ThreadDead) {
 				alive++;
 				KillWorker();
@@ -223,7 +223,7 @@ void ThreadPool::ManagerThreadProc(void)
 	Utility::SetThreadName(idbuf.str());
 
 	for (;;) {
-		int pending, alive;
+		size_t pending, alive;
 		double avg_latency, max_latency;
 		double utilization = 0;
 
@@ -239,7 +239,7 @@ void ThreadPool::ManagerThreadProc(void)
 
 			alive = 0;
 
-			for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
+			for (size_t i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
 				if (m_ThreadStats[i].State != ThreadDead) {
 					alive++;
 					utilization += m_ThreadStats[i].Utilization * 100;
@@ -294,7 +294,7 @@ void ThreadPool::ManagerThreadProc(void)
  */
 void ThreadPool::SpawnWorker(void)
 {
-	for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
+	for (size_t i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
 		if (m_ThreadStats[i].State == ThreadDead) {
 			Log(LogDebug, "debug", "Spawning worker thread.");
 
@@ -331,7 +331,7 @@ void ThreadPool::StatsThreadProc(void)
 		if (m_Stopped)
 			break;
 
-		for (int i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++)
+		for (size_t i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++)
 			UpdateThreadUtilization(i);
 	}
 }

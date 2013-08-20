@@ -34,20 +34,11 @@ boost::mutex Logger::m_Mutex;
 
 /**
  * Constructor for the Logger class.
- *
- * @param serializedUpdate A serialized dictionary containing attributes.
  */
-Logger::Logger(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("severity", Attribute_Config, &m_Severity);
-
-	if (!IsLocal())
-		BOOST_THROW_EXCEPTION(std::runtime_error("Logger objects must be local."));
-}
-
 void Logger::Start(void)
 {
+	DynamicObject::Start();
+
 	boost::mutex::scoped_lock(m_Mutex);
 	m_Loggers.insert(GetSelf());
 }
@@ -161,12 +152,17 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity: " + severity));
 }
 
-///**
-// * Retrieves the configuration object that belongs to this logger.
-// *
-// * @returns The configuration object.
-// */
-//DynamicObject::Ptr ILogger::GetConfig(void) const
-//{
-//	return m_Config.lock();
-//}
+void Logger::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	bag->Set("severity", m_Severity);
+}
+
+void Logger::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config)
+		m_Severity = bag->Get("severity");
+}

@@ -294,9 +294,7 @@ void ServiceDbObject::CommentsChangedHandler(const Service::Ptr& svcfilter, cons
 		/* we cannot determine which comment id is deleted
 		 * id cache may not be in sync
 		 */
-		BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-			Service::Ptr service = static_pointer_cast<Service>(object);
-
+		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 			if (svcfilter && svcfilter != service)
 				continue;
 
@@ -437,9 +435,7 @@ void ServiceDbObject::DowntimesChangedHandler(const Service::Ptr& svcfilter, con
 		/* we cannot determine which downtime id is deleted
 		 * id cache may not be in sync
 		 */
-		BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-			Service::Ptr service = static_pointer_cast<Service>(object);
-
+		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 			if (svcfilter && svcfilter != service)
 				continue;
 
@@ -505,11 +501,8 @@ void ServiceDbObject::AddDowntime(const Service::Ptr& service, const Dictionary:
 
 void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& downtime)
 {
-	unsigned long entry_time = static_cast<long>(downtime->Get("entry_time"));
-	unsigned long entry_time_usec = (downtime->Get("entry_time") - entry_time) * 1000 * 1000;
-
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
-	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
+	fields1->Set("entry_time", DbValue::FromTimestamp(downtime->Get("entry_time")));
 	fields1->Set("object_id", object);
 
 	if (object->GetType() == DynamicType::GetByName("Host")) {

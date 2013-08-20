@@ -45,7 +45,6 @@ bool TypeRule::MatchName(const String& name) const
 
 bool TypeRule::MatchValue(const Value& value, String *hint) const
 {
-	ConfigCompilerContext *context;
 	ConfigItem::Ptr item;
 
 	if (value.IsEmpty())
@@ -79,13 +78,7 @@ bool TypeRule::MatchValue(const Value& value, String *hint) const
 			if (!value.IsScalar())
 				return false;
 
-			context = ConfigCompilerContext::GetContext();
-
-			if (context)
-				item = context->GetItem(m_NameType, value);
-
-			if (!item && (!context || (context->GetFlags() & CompilerLinkExisting)))
-				item = ConfigItem::GetObject(m_NameType, value);
+			item = ConfigItem::GetObject(m_NameType, value);
 
 			if (!item) {
 				*hint = "Object '" + value + "' of type '" + m_NameType + "' does not exist.";

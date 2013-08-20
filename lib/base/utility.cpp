@@ -454,7 +454,7 @@ String Utility::FormatDateTime(const char *format, double ts)
 String Utility::EscapeShellCmd(const String& s)
 {
 	String result;
-	int prev_quote = String::NPos;
+	size_t prev_quote = String::NPos;
 	int index = -1;
 
 	BOOST_FOREACH(char ch, s) {

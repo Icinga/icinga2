@@ -15,22 +15,16 @@ libicinga_la_SOURCES =  \
 	api.h \
 	checkcommand.cpp \
 	checkcommand.h \
-	checkresultmessage.cpp \
-	checkresultmessage.h \
 	cib.cpp \
 	cib.h \
 	command.cpp \
 	command.h \
 	compatutility.cpp \
 	compatutility.h \
-	downtimemessage.cpp \
-	downtimemessage.h \
 	eventcommand.cpp \
 	eventcommand.h \
 	externalcommandprocessor.cpp \
 	externalcommandprocessor.h \
-	flappingmessage.cpp \
-	flappingmessage.h \
 	host.cpp \
 	hostgroup.cpp \
 	hostgroup.h \
@@ -49,10 +43,6 @@ libicinga_la_SOURCES =  \
 	notification.h \
 	notificationcommand.cpp \
 	notificationcommand.h \
-	notificationmessage.cpp \
-	notificationmessage.h \
-	notificationrequestmessage.cpp \
-	notificationrequestmessage.h \
 	nullchecktask.cpp \
 	nullchecktask.h \
 	nulleventtask.cpp \

@@ -36,12 +36,10 @@ class I2_ICINGA_API TimePeriod : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TimePeriod);
-
-	explicit TimePeriod(const Dictionary::Ptr& serializedUpdate);
-
-	static TimePeriod::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(TimePeriod);
 
 	String GetDisplayName(void) const;
+	Dictionary::Ptr GetRanges(void) const;
 
 	virtual void Start(void);
 
@@ -53,11 +51,16 @@ public:
 	static Array::Ptr EmptyTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
 	static Array::Ptr EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
 
+protected:
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 private:
-	Attribute<String> m_DisplayName;
-	Attribute<double> m_ValidBegin;
-	Attribute<double> m_ValidEnd;
-	Attribute<Array::Ptr> m_Segments;
+	String m_DisplayName;
+	Dictionary::Ptr m_Ranges;
+	Value m_ValidBegin;
+	Value m_ValidEnd;
+	Array::Ptr m_Segments;
 
 	void AddSegment(double s, double end);
 	void AddSegment(const Dictionary::Ptr& segment);

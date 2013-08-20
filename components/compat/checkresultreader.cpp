@@ -33,12 +33,6 @@ using namespace icinga;
 
 REGISTER_TYPE(CheckResultReader);
 
-CheckResultReader::CheckResultReader(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
-{
-	RegisterAttribute("spool_dir", Attribute_Config, &m_SpoolDir);
-}
-
 /**
  * @threadsafety Always.
  */
@@ -48,16 +42,6 @@ void CheckResultReader::Start(void)
 	m_ReadTimer->OnTimerExpired.connect(boost::bind(&CheckResultReader::ReadTimerHandler, this));
 	m_ReadTimer->SetInterval(5);
 	m_ReadTimer->Start();
-}
-
-/**
- * @threadsafety Always.
- */
-CheckResultReader::Ptr CheckResultReader::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("CheckResultReader", name);
-
-	return dynamic_pointer_cast<CheckResultReader>(configObject);
 }
 
 /**
@@ -96,7 +80,7 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 		if (line.empty() || line[0] == '#')
 			continue; /* Ignore comments and empty lines. */
 
-		int pos = line.find_first_of('=');
+		size_t pos = line.find_first_of('=');
 
 		if (pos == std::string::npos)
 			continue; /* Ignore invalid lines. */
@@ -148,4 +132,20 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 		 * active checks. */
 		service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
 	}
+}
+
+void CheckResultReader::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config)
+		bag->Set("spool_dir", m_SpoolDir);
+}
+
+void CheckResultReader::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config)
+		m_SpoolDir = bag->Get("spool_dir");
 }

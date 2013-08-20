@@ -20,6 +20,8 @@
 #include "ido/dbconnection.h"
 #include "ido/dbvalue.h"
 #include "icinga/icingaapplication.h"
+#include "icinga/host.h"
+#include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/utility.h"
 #include "base/initialize.h"
@@ -31,14 +33,10 @@ Timer::Ptr DbConnection::m_ProgramStatusTimer;
 
 INITIALIZE_ONCE(DbConnection, &DbConnection::StaticInitialize);
 
-DbConnection::DbConnection(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("table_prefix", Attribute_Config, &m_TablePrefix);
-}
-
 void DbConnection::Start(void)
 {
+	DynamicObject::Start();
+
 	DbObject::OnRegistered.connect(boost::bind(&DbConnection::ActivateObject, this, _1));
 	DbObject::OnUnregistered.connect(boost::bind(&DbConnection::DeactivateObject, this, _1));
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
@@ -109,10 +107,10 @@ void DbConnection::ProgramStatusHandler(void)
 	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query3);
 
-	InsertRuntimeVariable("total_services", DynamicType::GetObjects("Service").size());
-	InsertRuntimeVariable("total_scheduled_services", DynamicType::GetObjects("Service").size());
-	InsertRuntimeVariable("total_hosts", DynamicType::GetObjects("Host").size());
-	InsertRuntimeVariable("total_scheduled_hosts", DynamicType::GetObjects("Host").size());
+	InsertRuntimeVariable("total_services", DynamicType::GetObjects<Service>().size());
+	InsertRuntimeVariable("total_scheduled_services", DynamicType::GetObjects<Service>().size());
+	InsertRuntimeVariable("total_hosts", DynamicType::GetObjects<Host>().size());
+	InsertRuntimeVariable("total_scheduled_hosts", DynamicType::GetObjects<Host>().size());
 }
 
 void DbConnection::SetObjectID(const DbObject::Ptr& dbobj, const DbReference& dbref)
@@ -200,4 +198,20 @@ void DbConnection::UpdateAllObjects(void)
 			}
 		}
 	}
+}
+
+void DbConnection::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config)
+		bag->Set("table_prefix", m_TablePrefix);
+}
+
+void DbConnection::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config)
+		m_TablePrefix = bag->Get("table_prefix");
 }

@@ -50,8 +50,8 @@ String TimePeriodsTable::GetName(void) const
 
 void TimePeriodsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("TimePeriod")) {
-		addRowFn(object);
+	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjects<TimePeriod>()) {
+		addRowFn(tp);
 	}
 }
 

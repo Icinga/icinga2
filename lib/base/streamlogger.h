@@ -37,7 +37,7 @@ class I2_BASE_API StreamLogger : public Logger
 public:
 	DECLARE_PTR_TYPEDEFS(StreamLogger);
 
-	StreamLogger(const Dictionary::Ptr& serializedUpdate);
+	virtual void Start(void);
 	~StreamLogger(void);
 
 	void BindStream(std::ostream *stream, bool ownsStream);

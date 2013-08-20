@@ -45,8 +45,8 @@ String ContactGroupsTable::GetName(void) const
 
 void ContactGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("UserGroup")) {
-		addRowFn(object);
+	BOOST_FOREACH(const UserGroup::Ptr& ug, DynamicType::GetObjects<UserGroup>()) {
+		addRowFn(ug);
 	}
 }
 

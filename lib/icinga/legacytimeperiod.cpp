@@ -386,7 +386,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 {
 	Array::Ptr segments = boost::make_shared<Array>();
 
-	Dictionary::Ptr ranges = tp->Get("ranges");
+	Dictionary::Ptr ranges = tp->GetRanges();
 
 	if (ranges) {
 		for (int i = 0; i <= (end - begin) / (24 * 60 * 60); i++) {

@@ -35,37 +35,6 @@ REGISTER_TYPE(Endpoint);
 boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
 
 /**
- * Constructor for the Endpoint class.
- *
- * @param properties A serialized dictionary containing attributes.
- */
-Endpoint::Endpoint(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("local", Attribute_Config, &m_Local);
-
-	RegisterAttribute("node", Attribute_Replicated, &m_Node);
-	RegisterAttribute("service", Attribute_Replicated, &m_Service);
-	RegisterAttribute("subscriptions", Attribute_Replicated, &m_Subscriptions);
-}
-
-Endpoint::~Endpoint(void)
-{ }
-
-/**
- * Retrieves an endpoint by name.
- *
- * @param name The name of the endpoint.
- * @returns The endpoint.
- */
-Endpoint::Ptr Endpoint::GetByName(const String& name)
-{
-        DynamicObject::Ptr configObject = DynamicObject::GetObject("Endpoint", name);
-
-        return dynamic_pointer_cast<Endpoint>(configObject);
-}
-
-/**
  * Helper function for creating new endpoint objects.
  *
  * @param name The name of the new endpoint.
@@ -78,7 +47,7 @@ Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool replicated, bool l
 	ConfigItemBuilder::Ptr endpointConfig = boost::make_shared<ConfigItemBuilder>();
 	endpointConfig->SetType("Endpoint");
 	endpointConfig->SetName((!replicated && local) ? "local:" + name : name);
-	endpointConfig->SetLocal(!replicated);
+	//TODO: endpointConfig->SetLocal(!replicated);
 	endpointConfig->AddExpression("local", OperatorSet, local);
 
 	ConfigItem::Ptr item = endpointConfig->Compile();
@@ -190,7 +159,6 @@ bool Endpoint::HasSubscription(const String& topic) const
 void Endpoint::ClearSubscriptions(void)
 {
 	m_Subscriptions = Empty;
-	Touch("subscriptions");
 }
 
 Dictionary::Ptr Endpoint::GetSubscriptions(void) const
@@ -202,7 +170,6 @@ void Endpoint::SetSubscriptions(const Dictionary::Ptr& subscriptions)
 {
 	subscriptions->Seal();
 	m_Subscriptions = subscriptions;
-	Touch("subscriptions");
 }
 
 void Endpoint::RegisterTopicHandler(const String& topic, const boost::function<Endpoint::Callback>& callback)
@@ -340,4 +307,30 @@ String Endpoint::GetService(void) const
 	ObjectLock olock(this);
 
 	return m_Service;
+}
+
+void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("local", m_Local);
+		bag->Set("node", m_Node);
+		bag->Set("service", m_Service);
+	}
+
+	bag->Set("subscriptions", m_Subscriptions);
+}
+
+void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_Local = bag->Get("local");
+		m_Node = bag->Get("node");
+		m_Service = bag->Get("service");
+	}
+
+	bag->Set("subscriptions", m_Subscriptions);
 }

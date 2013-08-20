@@ -28,20 +28,10 @@ using namespace icinga;
 
 REGISTER_TYPE(Script);
 
-/**
- * Constructor for the Script class.
- *
- * @param serializedUpdate A serialized dictionary containing attributes.
- */
-Script::Script(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("language", Attribute_Config, &m_Language);
-	RegisterAttribute("code", Attribute_Config, &m_Code);
-}
-
 void Script::Start(void)
 {
+	DynamicObject::Start();
+
 	ASSERT(OwnsLock());
 
 	SpawnInterpreter();
@@ -61,18 +51,27 @@ String Script::GetCode(void) const
 	return m_Code;
 }
 
-void Script::OnAttributeUpdate(const String& name)
-{
-	ASSERT(!OwnsLock());
-
-	if (name == "language" || name == "code")
-		SpawnInterpreter();
-}
-
 void Script::SpawnInterpreter(void)
 {
 	Log(LogInformation, "base", "Reloading script '" + GetName() + "'");
 
 	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
 	m_Interpreter = language->CreateInterpreter(GetSelf());
+}
+
+void Script::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	bag->Set("language", m_Language);
+	bag->Set("code", m_Code);
+}
+
+void Script::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	m_Language = bag->Get("language");
+	m_Code = bag->Get("code");
+
 }

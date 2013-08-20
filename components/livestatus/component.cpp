@@ -36,20 +36,13 @@ static int l_ClientsConnected = 0;
 static int l_Connections = 0;
 static boost::mutex l_ComponentMutex;
 
-LivestatusComponent::LivestatusComponent(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("socket_type", Attribute_Config, &m_SocketType);
-	RegisterAttribute("socket_path", Attribute_Config, &m_SocketPath);
-	RegisterAttribute("host", Attribute_Config, &m_Host);
-	RegisterAttribute("port", Attribute_Config, &m_Port);
-}
-
 /**
  * Starts the component.
  */
 void LivestatusComponent::Start(void)
 {
+	DynamicObject::Start();
+
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
 		socket->Bind(GetHost(), GetPort(), AF_INET);
@@ -167,5 +160,29 @@ void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
 	{
 		boost::mutex::scoped_lock lock(l_ComponentMutex);
 		l_ClientsConnected--;
+	}
+}
+
+void LivestatusComponent::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("socket_type", m_SocketType);
+		bag->Set("socket_path", m_SocketPath);
+		bag->Set("host", m_Host);
+		bag->Set("port", m_Port);
+	}
+}
+
+void LivestatusComponent::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_SocketType = bag->Get("socket_type");
+		m_SocketPath = bag->Get("socket_path");
+		m_Host = bag->Get("host");
+		m_Port = bag->Get("port");
 	}
 }

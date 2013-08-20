@@ -28,16 +28,10 @@
 using namespace icinga;
 
 REGISTER_DBTYPE(UserGroup, "contactgroup", DbObjectTypeContactGroup, "contactgroup_object_id", UserGroupDbObject);
-INITIALIZE_ONCE(UserGroupDbObject, &UserGroupDbObject::StaticInitialize);
 
 UserGroupDbObject::UserGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)
 { }
-
-void UserGroupDbObject::StaticInitialize(void)
-{
-	UserGroup::OnMembersChanged.connect(boost::bind(&UserGroupDbObject::MembersChangedHandler, UserGroup::Ptr()));
-}
 
 Dictionary::Ptr UserGroupDbObject::GetConfigFields(void) const
 {
@@ -58,33 +52,22 @@ void UserGroupDbObject::OnConfigUpdate(void)
 {
 	UserGroup::Ptr group = static_pointer_cast<UserGroup>(GetObject());
 
-	MembersChangedHandler(group);
-}
-
-void UserGroupDbObject::MembersChangedHandler(const UserGroup::Ptr& ugfilter)
-{
 	DbQuery query1;
 	query1.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
 	query1.Type = DbQueryDelete;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set("instance_id", 0);
+	query1.WhereCriteria->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
 	OnQuery(query1);
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("UserGroup")) {
-		UserGroup::Ptr ug = static_pointer_cast<UserGroup>(object);
-
-		if (ugfilter && ugfilter != ug)
-			continue;
-
-		BOOST_FOREACH(const User::Ptr& user, ug->GetMembers()) {
-			DbQuery query2;
-			query2.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
-			query2.Type = DbQueryInsert;
-			query2.Fields = boost::make_shared<Dictionary>();
-			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query2.Fields->Set("contactgroup_id", DbValue::FromObjectInsertID(ug));
-			query2.Fields->Set("contact_object_id", user);
-			OnQuery(query2);
-		}
+	BOOST_FOREACH(const User::Ptr& user, group->GetMembers()) {
+		DbQuery query2;
+		query2.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
+		query2.Type = DbQueryInsert;
+		query2.Fields = boost::make_shared<Dictionary>();
+		query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+		query2.Fields->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
+		query2.Fields->Set("contact_object_id", user);
+		OnQuery(query2);
 	}
 }

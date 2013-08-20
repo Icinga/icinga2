@@ -36,29 +36,23 @@ class I2_ICINGA_API UserGroup : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(UserGroup);
-
-	explicit UserGroup(const Dictionary::Ptr& serializedUpdate);
-	~UserGroup(void);
-
-	static UserGroup::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(UserGroup);
 
 	String GetDisplayName(void) const;
 
 	std::set<User::Ptr> GetMembers(void) const;
-
-	static void InvalidateMembersCache(void);
-
-	static boost::signals2::signal<void (void)> OnMembersChanged;
+	void AddMember(const User::Ptr& user);
+	void RemoveMember(const User::Ptr& user);
 
 protected:
-	virtual void OnRegistrationCompleted(void);
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Attribute<String> m_DisplayName;
-
-	static void RefreshMembersCache(void);
+	String m_DisplayName;
+	std::set<User::Ptr> m_Members;
 };
 
 }
 
-#endif /* HOSTGROUP_H */
+#endif /* USERGROUP_H */

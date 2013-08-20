@@ -35,10 +35,7 @@ class I2_ICINGA_API CheckCommand : public Command
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CheckCommand);
-
-	explicit CheckCommand(const Dictionary::Ptr& serializedUpdate);
-
-	static CheckCommand::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(CheckCommand);
 
 	virtual Dictionary::Ptr Execute(const Service::Ptr& service);
 };

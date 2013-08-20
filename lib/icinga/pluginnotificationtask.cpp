@@ -77,10 +77,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), envMacros);
 
-	Value timeout = commandObj->Get("timeout");
-
-	if (!timeout.IsEmpty())
-		process->SetTimeout(timeout);
+	process->SetTimeout(commandObj->GetTimeout());
 
 	ProcessResult pr = process->Run();
 

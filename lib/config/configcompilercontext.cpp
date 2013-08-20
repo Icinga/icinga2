@@ -20,60 +20,10 @@
 #include "config/configcompilercontext.h"
 #include "base/utility.h"
 #include "base/logger_fwd.h"
+#include "base/singleton.h"
 #include <boost/foreach.hpp>
 
-using std::ifstream;
-
 using namespace icinga;
-
-ConfigCompilerContext *ConfigCompilerContext::m_Context = NULL;
-
-ConfigCompilerContext::ConfigCompilerContext(void)
-	: m_Unit(Utility::NewUniqueID()), m_Flags(0)
-{ }
-
-void ConfigCompilerContext::AddItem(const ConfigItem::Ptr& item)
-{
-	Log(LogDebug, "config", "Adding item to compiler context: type=" +
-	    item->GetType() + "; name=" + item->GetName());
-
-	m_Items.push_back(item);
-	m_ItemsMap[std::make_pair(item->GetType(), item->GetName())] = item;
-}
-
-ConfigItem::Ptr ConfigCompilerContext::GetItem(const String& type, const String& name) const
-{
-	std::map<std::pair<String, String>, ConfigItem::Ptr, pair_string_iless>::const_iterator it;
-
-	it = m_ItemsMap.find(std::make_pair(type, name));
-
-	if (it == m_ItemsMap.end())
-		return ConfigItem::Ptr();
-
-	return it->second;
-}
-
-std::vector<ConfigItem::Ptr> ConfigCompilerContext::GetItems(void) const
-{
-	return m_Items;
-}
-
-void ConfigCompilerContext::AddType(const ConfigType::Ptr& type)
-{
-	m_Types[type->GetName()] = type;
-}
-
-ConfigType::Ptr ConfigCompilerContext::GetType(const String& name) const
-{
-	std::map<String, ConfigType::Ptr, string_iless>::const_iterator it;
-
-	it = m_Types.find(name);
-
-	if (it == m_Types.end())
-		return ConfigType::Ptr();
-
-	return it->second;
-}
 
 void ConfigCompilerContext::AddError(bool warning, const String& message)
 {
@@ -85,81 +35,12 @@ std::vector<ConfigCompilerError> ConfigCompilerContext::GetErrors(void) const
 	return m_Errors;
 }
 
-void ConfigCompilerContext::SetFlags(int flags)
+void ConfigCompilerContext::Reset(void)
 {
-	m_Flags = flags;
+	m_Errors.clear();
 }
 
-int ConfigCompilerContext::GetFlags(void) const
+ConfigCompilerContext *ConfigCompilerContext::GetInstance(void)
 {
-	return m_Flags;
-}
-
-void ConfigCompilerContext::SetContext(ConfigCompilerContext *context)
-{
-	ASSERT(m_Context == NULL || context == NULL);
-
-	m_Context = context;
-}
-
-ConfigCompilerContext *ConfigCompilerContext::GetContext(void)
-{
-	return m_Context;
-}
-
-String ConfigCompilerContext::GetUnit(void) const
-{
-	return m_Unit;
-}
-
-void ConfigCompilerContext::LinkItems(void)
-{
-	SetContext(this);
-
-	Log(LogInformation, "config", "Linking config items...");
-
-	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
-		item->Link();
-	}
-
-	SetContext(NULL);
-}
-
-void ConfigCompilerContext::ValidateItems(void)
-{
-	SetContext(this);
-
-	Log(LogInformation, "config", "Validating config items...");
-
-	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
-		ConfigType::Ptr ctype;
-
-		{
-			ctype = GetType(item->GetType());
-
-			if (!ctype) {
-				AddError(true, "No validation type found for object '" + item->GetName() + "' of type '" + item->GetType() + "'");
-
-				continue;
-			}
-		}
-
-		ctype->ValidateItem(item);
-	}
-
-	SetContext(NULL);
-}
-
-void ConfigCompilerContext::ActivateItems(void)
-{
-	ASSERT(m_Context == NULL);
-
-	Log(LogInformation, "config", "Activating config items in compilation unit '" + m_Unit + "'");
-	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
-		item->Register();
-	}
-
-	BOOST_FOREACH(const ConfigItem::Ptr& item, m_Items) {
-		item->Commit();
-	}
+	return Singleton<ConfigCompilerContext>::GetInstance();
 }

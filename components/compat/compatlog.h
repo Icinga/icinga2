@@ -38,10 +38,9 @@ class CompatLog : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CompatLog);
+	DECLARE_TYPENAME(CompatLog);
 
-	CompatLog(const Dictionary::Ptr& serializedUpdate);
-
-	static CompatLog::Ptr GetByName(const String& name);
+	CompatLog(void);
 
 	String GetLogDir(void) const;
 	String GetRotationMethod(void) const;
@@ -49,22 +48,23 @@ public:
 	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
 
 protected:
-	virtual void OnAttributeChanged(const String& name);
 	virtual void Start(void);
 
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 private:
-	Attribute<String> m_LogDir;
-	Attribute<String> m_RotationMethod;
+	String m_LogDir;
+	String m_RotationMethod;
 
 	double m_LastRotation;
 
 	void WriteLine(const String& line);
 	void Flush(void);
 
-	Endpoint::Ptr m_Endpoint;
-	void CheckResultRequestHandler(const RequestMessage& request);
+	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr);
 	void DowntimeHandler(const Service::Ptr& service, DowntimeState downtime_state);
-	void NotificationSentHandler(const Service::Ptr& service, const String& username, NotificationType const& notification_type, Dictionary::Ptr const& cr, const String& author, const String& comment_text);
+	void NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user, NotificationType const& notification_type, Dictionary::Ptr const& cr, const String& author, const String& comment_text);
 	void FlappingHandler(const Service::Ptr& service, FlappingState flapping_state);
 
 	Timer::Ptr m_RotationTimer;

@@ -38,19 +38,18 @@ class I2_BASE_API Script : public DynamicObject
 public:
 	DECLARE_PTR_TYPEDEFS(Script);
 
-	Script(const Dictionary::Ptr& serializedUpdate);
-
 	virtual void Start(void);
 
 	String GetLanguage(void) const;
 	String GetCode(void) const;
 
 protected:
-	virtual void OnAttributeUpdate(const String& name);
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Attribute<String> m_Language;
-	Attribute<String> m_Code;
+	String m_Language;
+	String m_Code;
 
 	shared_ptr<ScriptInterpreter> m_Interpreter;
 

@@ -23,7 +23,6 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/service.h"
 #include "base/dynamictype.h"
-#include <set>
 
 namespace icinga
 {
@@ -37,27 +36,21 @@ class I2_ICINGA_API ServiceGroup : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ServiceGroup);
-
-	explicit ServiceGroup(const Dictionary::Ptr& serializedUpdate);
-	~ServiceGroup(void);
-
-	static ServiceGroup::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(ServiceGroup);
 
 	String GetDisplayName(void) const;
 
 	std::set<Service::Ptr> GetMembers(void) const;
-
-	static void InvalidateMembersCache(void);
-
-	static boost::signals2::signal<void (void)> OnMembersChanged;
+	void AddMember(const Service::Ptr& service);
+	void RemoveMember(const Service::Ptr& service);
 
 protected:
-	virtual void OnRegistrationCompleted(void);
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Attribute<String> m_DisplayName;
-
-	static void RefreshMembersCache(void);
+	String m_DisplayName;
+	std::set<Service::Ptr> m_Members;
 };
 
 }

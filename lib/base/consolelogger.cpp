@@ -28,8 +28,9 @@ REGISTER_TYPE(ConsoleLogger);
 /**
  * Constructor for the ConsoleLogger class.
  */
-ConsoleLogger::ConsoleLogger(const Dictionary::Ptr& serializedUpdate)
-	: StreamLogger(serializedUpdate)
+void ConsoleLogger::Start()
 {
+	StreamLogger::Start();
+
 	BindStream(&std::cout, false);
 }

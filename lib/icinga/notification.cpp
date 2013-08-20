@@ -21,7 +21,6 @@
 #include "icinga/notificationcommand.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/service.h"
-#include "icinga/notificationmessage.h"
 #include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -36,36 +35,18 @@ using namespace icinga;
 
 REGISTER_TYPE(Notification);
 
-Notification::Notification(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
+void Notification::Start(void)
 {
-	RegisterAttribute("notification_command", Attribute_Config, &m_NotificationCommand);
-	RegisterAttribute("notification_interval", Attribute_Config, &m_NotificationInterval);
-	RegisterAttribute("notification_period", Attribute_Config, &m_NotificationPeriod);
-	RegisterAttribute("last_notification", Attribute_Replicated, &m_LastNotification);
-	RegisterAttribute("next_notification", Attribute_Replicated, &m_NextNotification);
-	RegisterAttribute("notification_number", Attribute_Replicated, &m_NotificationNumber);
-	RegisterAttribute("macros", Attribute_Config, &m_Macros);
-	RegisterAttribute("users", Attribute_Config, &m_Users);
-	RegisterAttribute("groups", Attribute_Config, &m_Groups);
-	RegisterAttribute("times", Attribute_Config, &m_Times);
-	RegisterAttribute("notification_type_filter", Attribute_Config, &m_NotificationTypeFilter);
-	RegisterAttribute("notification_state_filter", Attribute_Config, &m_NotificationStateFilter);
-	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
-	RegisterAttribute("service", Attribute_Config, &m_Service);
-	RegisterAttribute("export_macros", Attribute_Config, &m_ExportMacros);
+	DynamicObject::Start();
+
+	GetService()->AddNotification(GetSelf());
 }
 
-Notification::~Notification(void)
+void Notification::Stop(void)
 {
-	Service::InvalidateNotificationsCache();
-}
+	DynamicObject::Stop();
 
-Notification::Ptr Notification::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("Notification", name);
-
-	return dynamic_pointer_cast<Notification>(configObject);
+	GetService()->RemoveNotification(GetSelf());
 }
 
 Service::Ptr Notification::GetService(void) const
@@ -188,7 +169,6 @@ double Notification::GetLastNotification(void) const
 void Notification::SetLastNotification(double time)
 {
 	m_LastNotification = time;
-	Touch("last_notification");
 }
 
 double Notification::GetNextNotification(void) const
@@ -206,10 +186,9 @@ double Notification::GetNextNotification(void) const
 void Notification::SetNextNotification(double time)
 {
 	m_NextNotification = time;
-	Touch("next_notification");
 }
 
-int Notification::GetNotificationNumber(void) const
+long Notification::GetNotificationNumber(void) const
 {
 	if (m_NotificationNumber.IsEmpty())
 		return 0;
@@ -220,13 +199,11 @@ int Notification::GetNotificationNumber(void) const
 void Notification::UpdateNotificationNumber(void)
 {
 	m_NotificationNumber = m_NotificationNumber + 1;
-	Touch("notification_number");
 }
 
 void Notification::ResetNotificationNumber(void)
 {
 	m_NotificationNumber = 0;
-	Touch("notification_number");
 }
 
 String Notification::NotificationTypeToString(NotificationType type)
@@ -361,21 +338,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 			SetLastNotification(Utility::GetTime());
 		}
 
-		RequestMessage rm;
-		rm.SetMethod("icinga::NotificationSent");
-
-		NotificationMessage params;
-
-		params.SetService(GetService()->GetName());
-		params.SetUser(user->GetName());
-		params.SetType(type);
-		params.SetAuthor(author);
-		params.SetCommentText(text);
-		params.SetCheckResult(cr);
-
-		rm.SetParams(params);
-
-		EndpointManager::GetInstance()->SendMulticastMessage(rm);
+		Service::OnNotificationSentChanged(GetSelf(), user, type, cr, author, text);
 
 		Log(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
 	} catch (const std::exception& ex) {
@@ -388,14 +351,6 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 	}
 }
 
-void Notification::OnAttributeChanged(const String& name)
-{
-	ASSERT(!OwnsLock());
-
-	if (name == "host_name" || name == "service")
-		Service::InvalidateNotificationsCache();
-}
-
 bool Notification::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
 	Dictionary::Ptr macros = GetMacros();
@@ -406,4 +361,46 @@ bool Notification::ResolveMacro(const String& macro, const Dictionary::Ptr&, Str
 	}
 
 	return false;
+}
+
+void Notification::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	bag->Set("notification_command", m_NotificationCommand);
+	bag->Set("notification_interval", m_NotificationInterval);
+	bag->Set("notification_period", m_NotificationPeriod);
+	bag->Set("last_notification", m_LastNotification);
+	bag->Set("next_notification", m_NextNotification);
+	bag->Set("notification_number", m_NotificationNumber);
+	bag->Set("macros", m_Macros);
+	bag->Set("users", m_Users);
+	bag->Set("groups", m_Groups);
+	bag->Set("times", m_Times);
+	bag->Set("notification_type_filter", m_NotificationTypeFilter);
+	bag->Set("notification_state_filter", m_NotificationStateFilter);
+	bag->Set("host_name", m_HostName);
+	bag->Set("export_macros", m_ExportMacros);
+	bag->Set("service", m_Service);
+}
+
+void Notification::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	m_NotificationCommand = bag->Get("notification_command");
+	m_NotificationInterval = bag->Get("notification_interval");
+	m_NotificationPeriod = bag->Get("notification_period");
+	m_LastNotification = bag->Get("last_notification");
+	m_NextNotification = bag->Get("next_notification");
+	m_NotificationNumber = bag->Get("notification_number");
+	m_Macros = bag->Get("macros");
+	m_Users = bag->Get("users");
+	m_Groups = bag->Get("groups");
+	m_Times = bag->Get("times");
+	m_NotificationTypeFilter = bag->Get("notification_type_filter");
+	m_NotificationStateFilter = bag->Get("notification_state_filter");
+	m_HostName = bag->Get("host_name");
+	m_ExportMacros = bag->Get("export_macros");
+	m_Service = bag->Get("service");
 }

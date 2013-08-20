@@ -6,3 +6,10 @@ sys.path.insert(0, '/home/gbeutner/strawberry/contrib/gdb')
 from icingadbg import register_icinga_printers
 register_icinga_printers()
 end
+
+python
+import sys
+sys.path.insert(0, '/home/gbeutner/gdb_printers/python')
+from libstdcxx.v6.printers import register_libstdcxx_printers
+register_libstdcxx_printers (None)
+end

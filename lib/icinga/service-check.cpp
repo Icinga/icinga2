@@ -20,14 +20,12 @@
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
-#include "icinga/checkresultmessage.h"
-#include "icinga/flappingmessage.h"
 #include "icinga/cib.h"
-#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/convert.h"
+#include "base/utility.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
@@ -39,7 +37,8 @@ const int Service::DefaultMaxCheckAttempts = 3;
 const double Service::DefaultCheckInterval = 5 * 60;
 const double Service::CheckIntervalDivisor = 5.0;
 
-boost::signals2::signal<void (const Service::Ptr&)> Service::OnCheckerChanged;
+boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> Service::OnNewCheckResult;
+boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationsRequested;
 boost::signals2::signal<void (const Service::Ptr&)> Service::OnNextCheckChanged;
 boost::signals2::signal<void (const Service::Ptr&, FlappingState)> Service::OnFlappingChanged;
 
@@ -95,7 +94,8 @@ long Service::GetSchedulingOffset(void)
 void Service::SetNextCheck(double nextCheck)
 {
 	m_NextCheck = nextCheck;
-	Touch("next_check");
+
+	Utility::QueueAsyncCallback(bind(boost::ref(Service::OnNextCheckChanged), GetSelf()));
 }
 
 double Service::GetNextCheck(void)
@@ -126,7 +126,6 @@ void Service::UpdateNextCheck(void)
 void Service::SetCurrentChecker(const String& checker)
 {
 	m_CurrentChecker = checker;
-	Touch("current_checker");
 }
 
 String Service::GetCurrentChecker(void) const
@@ -137,7 +136,6 @@ String Service::GetCurrentChecker(void) const
 void Service::SetCurrentCheckAttempt(long attempt)
 {
 	m_CheckAttempt = attempt;
-	Touch("check_attempt");
 }
 
 long Service::GetCurrentCheckAttempt(void) const
@@ -151,7 +149,6 @@ long Service::GetCurrentCheckAttempt(void) const
 void Service::SetState(ServiceState state)
 {
 	m_State = static_cast<long>(state);
-	Touch("state");
 }
 
 ServiceState Service::GetState(void) const
@@ -166,8 +163,6 @@ ServiceState Service::GetState(void) const
 void Service::SetLastState(ServiceState state)
 {
 	m_LastState = static_cast<long>(state);
-
-	Touch("last_state");
 }
 
 ServiceState Service::GetLastState(void) const
@@ -182,8 +177,6 @@ ServiceState Service::GetLastState(void) const
 void Service::SetLastHardState(ServiceState state)
 {
 	m_LastHardState = static_cast<long>(state);
-
-	Touch("last_hard_state");
 }
 
 ServiceState Service::GetLastHardState(void) const
@@ -198,7 +191,6 @@ ServiceState Service::GetLastHardState(void) const
 void Service::SetStateType(StateType type)
 {
 	m_StateType = static_cast<long>(type);
-	Touch("state_type");
 }
 
 StateType Service::GetStateType(void) const
@@ -213,7 +205,6 @@ StateType Service::GetStateType(void) const
 void Service::SetLastStateType(StateType type)
 {
 	m_LastStateType = static_cast<long>(type);
-	Touch("last_state_type");
 }
 
 StateType Service::GetLastStateType(void) const
@@ -228,7 +219,6 @@ StateType Service::GetLastStateType(void) const
 void Service::SetLastStateOK(double ts)
 {
 	m_LastStateOK = ts;
-	Touch("last_state_ok");
 }
 
 double Service::GetLastStateOK(void) const
@@ -242,7 +232,6 @@ double Service::GetLastStateOK(void) const
 void Service::SetLastStateWarning(double ts)
 {
 	m_LastStateWarning = ts;
-	Touch("last_state_warning");
 }
 
 double Service::GetLastStateWarning(void) const
@@ -256,7 +245,6 @@ double Service::GetLastStateWarning(void) const
 void Service::SetLastStateCritical(double ts)
 {
 	m_LastStateCritical = ts;
-	Touch("last_state_critical");
 }
 
 double Service::GetLastStateCritical(void) const
@@ -270,7 +258,6 @@ double Service::GetLastStateCritical(void) const
 void Service::SetLastStateUnknown(double ts)
 {
 	m_LastStateUnknown = ts;
-	Touch("last_state_unknown");
 }
 
 double Service::GetLastStateUnknown(void) const
@@ -284,7 +271,6 @@ double Service::GetLastStateUnknown(void) const
 void Service::SetLastStateUnreachable(double ts)
 {
 	m_LastStateUnreachable = ts;
-	Touch("last_state_unreachable");
 }
 
 double Service::GetLastStateUnreachable(void) const
@@ -298,7 +284,6 @@ double Service::GetLastStateUnreachable(void) const
 void Service::SetLastReachable(bool reachable)
 {
 	m_LastReachable = reachable;
-	Touch("last_reachable");
 }
 
 bool Service::GetLastReachable(void) const
@@ -312,7 +297,6 @@ bool Service::GetLastReachable(void) const
 void Service::SetLastCheckResult(const Dictionary::Ptr& result)
 {
 	m_LastResult = result;
-	Touch("last_result");
 }
 
 Dictionary::Ptr Service::GetLastCheckResult(void) const
@@ -386,7 +370,6 @@ String Service::GetLastCheckPerfData(void) const
 void Service::SetLastStateChange(double ts)
 {
 	m_LastStateChange = ts;
-	Touch("last_state_change");
 }
 
 double Service::GetLastStateChange(void) const
@@ -400,7 +383,6 @@ double Service::GetLastStateChange(void) const
 void Service::SetLastHardStateChange(double ts)
 {
 	m_LastHardStateChange = ts;
-	Touch("last_hard_state_change");
 }
 
 double Service::GetLastHardStateChange(void) const
@@ -422,7 +404,6 @@ bool Service::GetEnableActiveChecks(void) const
 void Service::SetEnableActiveChecks(bool enabled)
 {
 	m_EnableActiveChecks = enabled ? 1 : 0;
-	Touch("enable_active_checks");
 }
 
 bool Service::GetEnablePassiveChecks(void) const
@@ -436,7 +417,6 @@ bool Service::GetEnablePassiveChecks(void) const
 void Service::SetEnablePassiveChecks(bool enabled)
 {
 	m_EnablePassiveChecks = enabled ? 1 : 0;
-	Touch("enable_passive_checks");
 }
 
 bool Service::GetForceNextCheck(void) const
@@ -450,7 +430,6 @@ bool Service::GetForceNextCheck(void) const
 void Service::SetForceNextCheck(bool forced)
 {
 	m_ForceNextCheck = forced ? 1 : 0;
-	Touch("force_next_check");
 }
 
 void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
@@ -593,7 +572,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	bool send_downtime_notification = m_LastInDowntime != in_downtime;
 	m_LastInDowntime = in_downtime;
-	Touch("last_in_downtime");
 
 	olock.Unlock();
 
@@ -631,62 +609,27 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
 			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
 
-	/* Flush the object so other instances see the service's
-	 * new state when they receive the CheckResult message */
-	Flush();
-
-	RequestMessage rm;
-	rm.SetMethod("checker::CheckResult");
-
-	/* TODO: add _old_ state to message */
-	CheckResultMessage params;
-	params.SetService(GetName());
-	params.SetCheckResult(cr);
-
-	rm.SetParams(params);
-
-	EndpointManager::GetInstance()->SendMulticastMessage(rm);
+	OnNewCheckResult(GetSelf(), cr);
+	OnStateChanged(GetSelf());
 
 	if (call_eventhandler)
 		ExecuteEventHandler();
 
 	if (send_downtime_notification)
-		RequestNotifications(in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr);
+		OnNotificationsRequested(GetSelf(), in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr, "", "");
 
 	if (!was_flapping && is_flapping) {
-		RequestNotifications(NotificationFlappingStart, cr);
-
-		RequestMessage rm;
-		rm.SetMethod("icinga::Flapping");
-
-		FlappingMessage params;
-		params.SetService(GetName());
-		params.SetState(FlappingStarted);
-
-		rm.SetParams(params);
-
-		EndpointManager::GetInstance()->SendMulticastMessage(rm);
+		OnNotificationsRequested(GetSelf(), NotificationFlappingStart, cr, "", "");
 
 		Log(LogDebug, "icinga", "Flapping: Service " + GetName() + " started flapping (" + Convert::ToString(GetFlappingThreshold()) + "% < " + Convert::ToString(GetFlappingCurrent()) + "%).");
-	}
-	else if (was_flapping && !is_flapping) {
-		RequestNotifications(NotificationFlappingEnd, cr);
-
-		RequestMessage rm;
-		rm.SetMethod("icinga::Flapping");
-
-		FlappingMessage params;
-		params.SetService(GetName());
-		params.SetState(FlappingStopped);
-
-		rm.SetParams(params);
-
-		EndpointManager::GetInstance()->SendMulticastMessage(rm);
+		OnFlappingChanged(GetSelf(), FlappingStarted);
+	} else if (was_flapping && !is_flapping) {
+		OnNotificationsRequested(GetSelf(), NotificationFlappingEnd, cr, "", "");
 
 		Log(LogDebug, "icinga", "Flapping: Service " + GetName() + " stopped flapping (" + Convert::ToString(GetFlappingThreshold()) + "% >= " + Convert::ToString(GetFlappingCurrent()) + "%).");
-	}
-	else if (send_notification)
-		RequestNotifications(recovery ? NotificationRecovery : NotificationProblem, cr);
+		OnFlappingChanged(GetSelf(), FlappingStopped);
+	} else if (send_notification)
+		OnNotificationsRequested(GetSelf(), recovery ? NotificationRecovery : NotificationProblem, cr, "", "");
 }
 
 ServiceState Service::StateFromString(const String& state)
@@ -826,9 +769,6 @@ void Service::ExecuteCheck(void)
 
 		if (!result->Contains("active"))
 			result->Set("active", 1);
-
-		if (!result->Contains("current_checker"))
-			result->Set("current_checker", EndpointManager::GetInstance()->GetIdentity());
 	}
 
 	if (result)

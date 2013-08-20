@@ -26,13 +26,6 @@ using namespace icinga;
 REGISTER_TYPE(SyslogLogger);
 
 /**
- * Constructor for the SyslogLogger class.
- */
-SyslogLogger::SyslogLogger(const Dictionary::Ptr& serializedUpdate)
-	: Logger(serializedUpdate)
-{ }
-
-/**
  * Processes a log entry and outputs it to syslog.
  *
  * @param entry The log entry.

@@ -237,7 +237,12 @@ Value PythonLanguage::MarshalFromPython(PyObject *value)
 
 		String name = PyString_AsString(pname);
 
-		DynamicObject::Ptr object = DynamicObject::GetObject(type, name);
+		DynamicType::Ptr dtype = DynamicType::GetByName(type);
+
+		if (!dtype)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Type '" + type + "' does not exist."));
+
+		DynamicObject::Ptr object = dtype->GetObject(name);
 
 		if (!object)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Object '" + name + "' of type '" + type + "' does not exist."));

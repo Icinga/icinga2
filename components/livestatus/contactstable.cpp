@@ -63,8 +63,8 @@ String ContactsTable::GetName(void) const
 
 void ContactsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("User")) {
-		addRowFn(object);
+	BOOST_FOREACH(const User::Ptr& user, DynamicType::GetObjects<User>()) {
+		addRowFn(user);
 	}
 }
 

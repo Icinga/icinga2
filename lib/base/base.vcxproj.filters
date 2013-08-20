@@ -88,9 +88,6 @@
     <ClCompile Include="process-windows.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="attribute.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="stacktrace.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -220,9 +217,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="objectlock.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="attribute.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="stacktrace.h">

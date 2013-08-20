@@ -28,10 +28,9 @@ REGISTER_TYPE(FileLogger);
 /**
  * Constructor for the FileLogger class.
  */
-FileLogger::FileLogger(const Dictionary::Ptr& serializedUpdate)
-	: StreamLogger(serializedUpdate)
+void FileLogger::Start()
 {
-	RegisterAttribute("path", Attribute_Config, &m_Path);
+	StreamLogger::Start();
 
 	std::ofstream *stream = new std::ofstream();
 
@@ -48,4 +47,19 @@ FileLogger::FileLogger(const Dictionary::Ptr& serializedUpdate)
 	}
 
 	BindStream(stream, true);
+}
+
+void FileLogger::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	StreamLogger::InternalSerialize(bag, attributeTypes);
+
+	bag->Set("path", m_Path);
+}
+
+void FileLogger::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	StreamLogger::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config)
+		m_Path = bag->Get("path");
 }

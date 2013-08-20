@@ -26,6 +26,8 @@
 #include <map>
 #include <boost/thread/mutex.hpp>
 #include <boost/signals2.hpp>
+#include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 namespace icinga
 {
@@ -76,6 +78,26 @@ public:
 
 		if (erased > 0)
 			OnUnregistered(name);
+	}
+
+	void Clear(void)
+	{
+		typename Registry<T>::ItemMap items;
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			items = m_Items;
+		}
+
+		String name;
+		BOOST_FOREACH(boost::tie(name, boost::tuples::ignore), items) {
+			OnUnregistered(name);
+		}
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			m_Items.clear();
+		}
 	}
 
 	T GetItem(const String& name) const

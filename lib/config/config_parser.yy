@@ -88,7 +88,6 @@ using namespace icinga;
 %token T_ATTRIBUTE "%attribute (T_ATTRIBUTE)"
 %token T_TYPE "type (T_TYPE)"
 %token T_ABSTRACT "abstract (T_ABSTRACT)"
-%token T_LOCAL "local (T_LOCAL)"
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
 %token T_INCLUDE "include (T_INCLUDE)"
@@ -125,26 +124,23 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
 {
 	std::ostringstream message;
 	message << *locp << ": " << err;
-	ConfigCompilerContext::GetContext()->AddError(false, message.str());
+	ConfigCompilerContext::GetInstance()->AddError(false, message.str());
 }
 
 int yyparse(ConfigCompiler *context);
 
 static std::stack<Array::Ptr> m_Arrays;
 static bool m_Abstract;
-static bool m_Local;
 
 static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
 void ConfigCompiler::Compile(void)
 {
-	ASSERT(ConfigCompilerContext::GetContext() != NULL);
-
 	try {
 		yyparse(this);
 	} catch (const std::exception& ex) {
-		ConfigCompilerContext::GetContext()->AddError(false, boost::diagnostic_information(ex));
+		ConfigCompilerContext::GetInstance()->AddError(false, boost::diagnostic_information(ex));
 	}
 }
 
@@ -196,14 +192,14 @@ type: partial_specifier T_TYPE identifier
 		String name = String($3);
 		free($3);
 
-		m_Type = ConfigCompilerContext::GetContext()->GetType(name);
+		m_Type = ConfigType::GetByName(name);
 
 		if (!m_Type) {
 			if ($1)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Partial type definition for unknown type '" + name + "'"));
 
 			m_Type = boost::make_shared<ConfigType>(name, yylloc);
-			ConfigCompilerContext::GetContext()->AddType(m_Type);
+			m_Type->Register();
 		}
 	}
 	type_inherits_specifier typerulelist
@@ -307,7 +303,6 @@ type: T_TYPE_DICTIONARY
 object:
 	{
 		m_Abstract = false;
-		m_Local = false;
 	}
 object_declaration identifier T_STRING object_inherits_specifier expressionlist
 	{
@@ -327,8 +322,6 @@ object_declaration identifier T_STRING object_inherits_specifier expressionlist
 		item->SetName($4);
 		free($4);
 
-		item->SetUnit(ConfigCompilerContext::GetContext()->GetUnit());
-
 		if ($5) {
 			BOOST_FOREACH(const String& parent, *$5) {
 				item->AddParent(parent);
@@ -342,10 +335,9 @@ object_declaration identifier T_STRING object_inherits_specifier expressionlist
 			item->AddExpressionList(exprl);
 		}
 
-		item->SetLocal(m_Local);
 		item->SetAbstract(m_Abstract);
 
-		ConfigCompilerContext::GetContext()->AddItem(item->Compile());
+		item->Compile()->Register();
 		item.reset();
 	}
 	;
@@ -363,10 +355,6 @@ attributes: /* empty */
 attribute: T_ABSTRACT
 	{
 		m_Abstract = true;
-	}
-	| T_LOCAL
-	{
-		m_Local = true;
 	}
 	;
 

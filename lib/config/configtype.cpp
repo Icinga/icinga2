@@ -62,9 +62,9 @@ void ConfigType::AddParentRules(std::vector<TypeRuleList::Ptr>& ruleLists, const
 	ConfigType::Ptr parent;
 	if (item->m_Parent.IsEmpty()) {
 		if (item->GetName() != "DynamicObject")
-			parent = ConfigCompilerContext::GetContext()->GetType("DynamicObject");
+			parent = ConfigType::GetByName("DynamicObject");
 	} else {
-		parent = ConfigCompilerContext::GetContext()->GetType(item->m_Parent);
+		parent = ConfigType::GetByName(item->m_Parent);
 	}
 
 	if (parent) {
@@ -121,7 +121,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 			Value value = dictionary->Get(require);
 
 			if (value.IsEmpty()) {
-				ConfigCompilerContext::GetContext()->AddError(false,
+				ConfigCompilerContext::GetInstance()->AddError(false,
 				    "Required attribute is missing: " + LocationToString(locations));
 			}
 
@@ -175,14 +175,14 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 		}
 
 		if (overallResult == ValidationUnknownField)
-			ConfigCompilerContext::GetContext()->AddError(true, "Unknown attribute: " + LocationToString(locations));
+			ConfigCompilerContext::GetInstance()->AddError(true, "Unknown attribute: " + LocationToString(locations));
 		else if (overallResult == ValidationInvalidType) {
 			String message = "Invalid value for attribute: " + LocationToString(locations);
 
 			if (!hint.IsEmpty())
 				message += ": " + hint;
 
-			ConfigCompilerContext::GetContext()->AddError(false, message);
+			ConfigCompilerContext::GetInstance()->AddError(false, message);
 		}
 
 		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
@@ -204,7 +204,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 			locations.push_back("Attribute '" + require + "'");
 
 			if (array->GetLength() < index) {
-				ConfigCompilerContext::GetContext()->AddError(false,
+				ConfigCompilerContext::GetInstance()->AddError(false,
 				    "Required array index is missing: " + LocationToString(locations));
 			}
 
@@ -261,14 +261,14 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 		}
 
 		if (overallResult == ValidationUnknownField)
-			ConfigCompilerContext::GetContext()->AddError(true, "Unknown attribute: " + LocationToString(locations));
+			ConfigCompilerContext::GetInstance()->AddError(true, "Unknown attribute: " + LocationToString(locations));
 		else if (overallResult == ValidationInvalidType) {
 			String message = "Invalid value for array index: " + LocationToString(locations);
 
 			if (!hint.IsEmpty())
 				message += ": " + hint;
 
-			ConfigCompilerContext::GetContext()->AddError(false, message);
+			ConfigCompilerContext::GetInstance()->AddError(false, message);
 		}
 
 		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
@@ -278,4 +278,24 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 
 		locations.pop_back();
 	}
+}
+
+void ConfigType::Register(void)
+{
+	Registry<ConfigType::Ptr>::GetInstance()->Register(GetName(), GetSelf());
+}
+
+ConfigType::Ptr ConfigType::GetByName(const String& name)
+{
+	return Registry<ConfigType::Ptr>::GetInstance()->GetItem(name);
+}
+
+Registry<ConfigType::Ptr>::ItemMap ConfigType::GetTypes(void)
+{
+	return Registry<ConfigType::Ptr>::GetInstance()->GetItems();
+}
+
+void ConfigType::DiscardTypes(void)
+{
+	Registry<ConfigType::Ptr>::GetInstance()->Clear();
 }

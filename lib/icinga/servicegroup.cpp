@@ -29,119 +29,43 @@
 
 using namespace icinga;
 
-static boost::mutex l_Mutex;
-static std::map<String, std::vector<Service::WeakPtr> > l_MembersCache;
-static bool l_MembersCacheNeedsUpdate = false;
-static Timer::Ptr l_MembersCacheTimer;
-boost::signals2::signal<void (void)> ServiceGroup::OnMembersChanged;
-
 REGISTER_TYPE(ServiceGroup);
-
-ServiceGroup::ServiceGroup(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-}
-
-ServiceGroup::~ServiceGroup(void)
-{
-	InvalidateMembersCache();
-}
-
-void ServiceGroup::OnRegistrationCompleted(void)
-{
-	ASSERT(!OwnsLock());
-
-	InvalidateMembersCache();
-}
 
 String ServiceGroup::GetDisplayName(void) const
 {
-	if (!m_DisplayName.Get().IsEmpty())
+	if (!m_DisplayName.IsEmpty())
 		return m_DisplayName;
 	else
 		return GetName();
 }
 
-ServiceGroup::Ptr ServiceGroup::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("ServiceGroup", name);
-
-	if (!configObject)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("ServiceGroup '" + name + "' does not exist."));
-
-	return dynamic_pointer_cast<ServiceGroup>(configObject);
-}
-
 std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
 {
-	std::set<Service::Ptr> services;
-
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
-
-		BOOST_FOREACH(const Service::WeakPtr& wservice, l_MembersCache[GetName()]) {
-			Service::Ptr service = wservice.lock();
-
-			if (!service)
-				continue;
-
-			services.insert(service);
-		}
-	}
-
-	return services;
+	return m_Members;
 }
 
-void ServiceGroup::InvalidateMembersCache(void)
+void ServiceGroup::AddMember(const Service::Ptr& service)
 {
-	boost::mutex::scoped_lock lock(l_Mutex);
-
-	if (l_MembersCacheNeedsUpdate)
-		return; /* Someone else has already requested a refresh. */
-
-	if (!l_MembersCacheTimer) {
-		l_MembersCacheTimer = boost::make_shared<Timer>();
-		l_MembersCacheTimer->SetInterval(0.5);
-		l_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&ServiceGroup::RefreshMembersCache));
-		l_MembersCacheTimer->Start();
-	}
-
-	l_MembersCacheNeedsUpdate = true;
+	m_Members.insert(service);
 }
 
-void ServiceGroup::RefreshMembersCache(void)
+void ServiceGroup::RemoveMember(const Service::Ptr& service)
 {
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
+	m_Members.erase(service);
+}
 
-		if (!l_MembersCacheNeedsUpdate)
-			return;
+void ServiceGroup::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
 
-		l_MembersCacheNeedsUpdate = false;
-	}
+	if (attributeTypes & Attribute_Config)
+		bag->Set("display_name", m_DisplayName);
+}
 
-	Log(LogDebug, "icinga", "Updating ServiceGroup members cache.");
+void ServiceGroup::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
-	std::map<String, std::vector<Service::WeakPtr> > newMembersCache;
-
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		const Service::Ptr& service = static_pointer_cast<Service>(object);
-
-		Array::Ptr groups = service->GetGroups();
-
-		if (groups) {
-			ObjectLock mlock(groups);
-			BOOST_FOREACH(const Value& group, groups) {
-				newMembersCache[group].push_back(service);
-			}
-		}
-	}
-
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
-		l_MembersCache.swap(newMembersCache);
-	}
-
-	OnMembersChanged();
+	if (attributeTypes & Attribute_Config)
+		m_DisplayName = bag->Get("display_name");
 }

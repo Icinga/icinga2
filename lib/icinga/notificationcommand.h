@@ -37,10 +37,7 @@ class I2_ICINGA_API NotificationCommand : public Command
 {
 public:
 	DECLARE_PTR_TYPEDEFS(NotificationCommand);
-
-	explicit NotificationCommand(const Dictionary::Ptr& serializedUpdate);
-
-	static NotificationCommand::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(NotificationCommand);
 
 	virtual Dictionary::Ptr Execute(const shared_ptr<Notification>& notification,
 	    const User::Ptr& user, const Dictionary::Ptr& cr, const NotificationType& type);

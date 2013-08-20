@@ -59,7 +59,6 @@ public:
 	    const DebugInfo& debuginfo);
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
-	void Dump(std::ostream& fp, int indent = 0) const;
 
 	void ExtractPath(const std::vector<String>& path, const shared_ptr<ExpressionList>& result) const;
 	void ExtractFiltered(const std::set<String, string_iless>& keys, const shared_ptr<ExpressionList>& result) const;
@@ -69,8 +68,6 @@ private:
 	ExpressionOperator m_Operator;
 	Value m_Value;
 	DebugInfo m_DebugInfo;
-
-	static void DumpValue(std::ostream& fp, int indent, const Value& value, bool inlineDict = false);
 };
 
 }

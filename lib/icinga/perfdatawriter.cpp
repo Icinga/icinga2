@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "icinga/perfdatawriter.h"
-#include "icinga/checkresultmessage.h"
 #include "icinga/service.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/icingaapplication.h"
@@ -34,28 +33,15 @@ using namespace icinga;
 
 REGISTER_TYPE(PerfdataWriter);
 
-PerfdataWriter::PerfdataWriter(const Dictionary::Ptr& properties)
-	: DynamicObject(properties)
-{
-	RegisterAttribute("perfdata_path", Attribute_Config, &m_PerfdataPath);
-	RegisterAttribute("format_template", Attribute_Config, &m_FormatTemplate);
-	RegisterAttribute("rotation_interval", Attribute_Config, &m_RotationInterval);
-}
-
-void PerfdataWriter::OnAttributeChanged(const String& name)
-{
-	ASSERT(!OwnsLock());
-
-	if (name == "rotation_interval") {
-		m_RotationTimer->SetInterval(GetRotationInterval());
-	}
-}
+PerfdataWriter::PerfdataWriter(void)
+	: m_RotationInterval(30)
+{ }
 
 void PerfdataWriter::Start(void)
 {
-	m_Endpoint = Endpoint::MakeEndpoint("perfdata_" + GetName(), false);
-	m_Endpoint->RegisterTopicHandler("checker::CheckResult",
-	    boost::bind(&PerfdataWriter::CheckResultRequestHandler, this, _3));
+	DynamicObject::Start();
+
+	Service::OnNewCheckResult.connect(bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&PerfdataWriter::RotationTimerHandler, this));
@@ -63,13 +49,6 @@ void PerfdataWriter::Start(void)
 	m_RotationTimer->Start();
 
 	RotateFile();
-}
-
-PerfdataWriter::Ptr PerfdataWriter::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("PerfdataWriter", name);
-
-	return dynamic_pointer_cast<PerfdataWriter>(configObject);
 }
 
 String PerfdataWriter::GetPerfdataPath(void) const
@@ -100,28 +79,19 @@ String PerfdataWriter::GetFormatTemplate(void) const
 
 double PerfdataWriter::GetRotationInterval(void) const
 {
-	if (!m_RotationInterval.IsEmpty())
-		return m_RotationInterval;
-	else
-		return 30;
+	return m_RotationInterval;
 }
 
-void PerfdataWriter::CheckResultRequestHandler(const RequestMessage& request)
+void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr)
 {
-	CheckResultMessage params;
-	if (!request.GetParams(&params))
-		return;
+	Host::Ptr host = service->GetHost();
 
-	String svcname = params.GetService();
-	Service::Ptr service = Service::GetByName(svcname);
-
-	Dictionary::Ptr cr = params.GetCheckResult();
-	if (!cr)
+	if (!host)
 		return;
 
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(service);
-	resolvers.push_back(service->GetHost());
+	resolvers.push_back(host);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
 	String line = MacroProcessor::ResolveMacros(GetFormatTemplate(), resolvers, cr);
@@ -155,4 +125,26 @@ void PerfdataWriter::RotateFile(void)
 void PerfdataWriter::RotationTimerHandler(void)
 {
 	RotateFile();
+}
+
+void PerfdataWriter::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("perfdata_path", m_PerfdataPath);
+		bag->Set("format_template", m_FormatTemplate);
+		bag->Set("rotation_interval", m_RotationInterval);
+	}
+}
+
+void PerfdataWriter::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_PerfdataPath = bag->Get("perfdata_path");
+		m_FormatTemplate = bag->Get("format_template");
+		m_RotationInterval = bag->Get("rotation_interval");
+	}
 }

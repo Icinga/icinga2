@@ -18,29 +18,24 @@
  ******************************************************************************/
 
 #include "checker/checkercomponent.h"
-#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
+#include "base/utility.h"
 #include "base/logger_fwd.h"
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(CheckerComponent);
 
-CheckerComponent::CheckerComponent(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{ }
-
 void CheckerComponent::Start(void)
 {
-	m_Endpoint = Endpoint::MakeEndpoint("checker", false);
+	DynamicObject::Start();
 
-	/* dummy registration so the delegation module knows this is a checker
-	   TODO: figure out a better way for this */
-	m_Endpoint->RegisterSubscription("checker");
+	DynamicObject::OnStarted.connect(bind(&CheckerComponent::ObjectStartedHandler, this, _1));
+	DynamicObject::OnStopped.connect(bind(&CheckerComponent::ObjectStoppedHandler, this, _1));
 
-	Service::OnCheckerChanged.connect(bind(&CheckerComponent::CheckerChangedHandler, this, _1));
 	Service::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 
 	m_Stopped = false;
@@ -51,12 +46,15 @@ void CheckerComponent::Start(void)
 	m_ResultTimer->SetInterval(5);
 	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));
 	m_ResultTimer->Start();
+
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+		if (service->IsActive())
+			ObjectStartedHandler(service);
+	}
 }
 
 void CheckerComponent::Stop(void)
 {
-	m_Endpoint->Unregister();
-
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Stopped = true;
@@ -83,7 +81,7 @@ void CheckerComponent::CheckThreadProc(void)
 		CheckTimeView::iterator it = idx.begin();
 		Service::Ptr service = *it;
 
-		if (!service->IsRegistered()) {
+		if (!service->IsActive()) {
 			idx.erase(it);
 			continue;
 		}
@@ -191,19 +189,34 @@ void CheckerComponent::ResultTimerHandler(void)
 	Log(LogInformation, "checker", msgbuf.str());
 }
 
-void CheckerComponent::CheckerChangedHandler(const Service::Ptr& service)
+void CheckerComponent::ObjectStartedHandler(const DynamicObject::Ptr& object)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	if (object->GetType() != DynamicType::GetByName("Service"))
+		return;
 
-	String checker = service->GetCurrentChecker();
+	Service::Ptr service = static_pointer_cast<Service>(object);
 
-	if (checker == EndpointManager::GetInstance()->GetIdentity() || Endpoint::GetByName(checker) == m_Endpoint) {
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
 		if (m_PendingServices.find(service) != m_PendingServices.end())
 			return;
 
 		m_IdleServices.insert(service);
 		m_CV.notify_all();
-	} else {
+	}
+}
+
+void CheckerComponent::ObjectStoppedHandler(const DynamicObject::Ptr& object)
+{
+	if (object->GetType() != DynamicType::GetByName("Service"))
+		return;
+
+	Service::Ptr service = static_pointer_cast<Service>(object);
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
 		m_IdleServices.erase(service);
 		m_PendingServices.erase(service);
 		m_CV.notify_all();

@@ -37,8 +37,6 @@ class I2_BASE_API SyslogLogger : public Logger
 public:
 	DECLARE_PTR_TYPEDEFS(SyslogLogger);
 
-	explicit SyslogLogger(const Dictionary::Ptr& serializedUpdate);
-
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);
 };

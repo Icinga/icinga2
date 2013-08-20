@@ -22,7 +22,6 @@
 #include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/macroprocessor.h"
-#include "icinga/downtimemessage.h"
 #include "config/configitembuilder.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -35,101 +34,30 @@ using namespace icinga;
 
 REGISTER_TYPE(Service);
 
-Endpoint::Ptr Service::m_Endpoint;
-boost::once_flag Service::m_OnceFlag = BOOST_ONCE_INIT;
-
-Service::Service(const Dictionary::Ptr& serializedObject)
-	: DynamicObject(serializedObject), m_CheckRunning(false)
+void Service::Start(void)
 {
-
-	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-	RegisterAttribute("macros", Attribute_Config, &m_Macros);
-	RegisterAttribute("hostdependencies", Attribute_Config, &m_HostDependencies);
-	RegisterAttribute("servicedependencies", Attribute_Config, &m_ServiceDependencies);
-	RegisterAttribute("servicegroups", Attribute_Config, &m_ServiceGroups);
-
-	RegisterAttribute("check_command", Attribute_Config, &m_CheckCommand);
-	RegisterAttribute("max_check_attempts", Attribute_Config, &m_MaxCheckAttempts);
-	RegisterAttribute("check_period", Attribute_Config, &m_CheckPeriod);
-	RegisterAttribute("check_interval", Attribute_Config, &m_CheckInterval);
-	RegisterAttribute("retry_interval", Attribute_Config, &m_RetryInterval);
-	RegisterAttribute("checkers", Attribute_Config, &m_Checkers);
-
-	RegisterAttribute("event_command", Attribute_Config, &m_EventCommand);
-	RegisterAttribute("volatile", Attribute_Config, &m_Volatile);
-
-	RegisterAttribute("next_check", Attribute_Replicated, &m_NextCheck);
-	RegisterAttribute("current_checker", Attribute_Replicated, &m_CurrentChecker);
-	RegisterAttribute("check_attempt", Attribute_Replicated, &m_CheckAttempt);
-	RegisterAttribute("state", Attribute_Replicated, &m_State);
-	RegisterAttribute("state_type", Attribute_Replicated, &m_StateType);
-	RegisterAttribute("last_state", Attribute_Replicated, &m_LastState);
-	RegisterAttribute("last_hard_state", Attribute_Replicated, &m_LastHardState);
-	RegisterAttribute("last_state_type", Attribute_Replicated, &m_LastStateType);
-	RegisterAttribute("last_reachable", Attribute_Replicated, &m_LastReachable);
-	RegisterAttribute("last_result", Attribute_Replicated, &m_LastResult);
-	RegisterAttribute("last_state_change", Attribute_Replicated, &m_LastStateChange);
-	RegisterAttribute("last_hard_state_change", Attribute_Replicated, &m_LastHardStateChange);
-	RegisterAttribute("last_state_ok", Attribute_Replicated, &m_LastStateOK);
-	RegisterAttribute("last_state_warning", Attribute_Replicated, &m_LastStateWarning);
-	RegisterAttribute("last_state_critical", Attribute_Replicated, &m_LastStateCritical);
-	RegisterAttribute("last_state_unknown", Attribute_Replicated, &m_LastStateUnknown);
-	RegisterAttribute("last_state_unreachable", Attribute_Replicated, &m_LastStateUnreachable);
-	RegisterAttribute("last_in_downtime", Attribute_Replicated, &m_LastInDowntime);
-	RegisterAttribute("enable_active_checks", Attribute_Replicated, &m_EnableActiveChecks);
-	RegisterAttribute("enable_passive_checks", Attribute_Replicated, &m_EnablePassiveChecks);
-	RegisterAttribute("force_next_check", Attribute_Replicated, &m_ForceNextCheck);
-
-	RegisterAttribute("short_name", Attribute_Config, &m_ShortName);
-	RegisterAttribute("host_name", Attribute_Config, &m_HostName);
-
-	RegisterAttribute("acknowledgement", Attribute_Replicated, &m_Acknowledgement);
-	RegisterAttribute("acknowledgement_expiry", Attribute_Replicated, &m_AcknowledgementExpiry);
-
-	RegisterAttribute("comments", Attribute_Replicated, &m_Comments);
-
-	RegisterAttribute("downtimes", Attribute_Replicated, &m_Downtimes);
-
-	RegisterAttribute("enable_notifications", Attribute_Replicated, &m_EnableNotifications);
-	RegisterAttribute("force_next_notification", Attribute_Replicated, &m_ForceNextNotification);
-
-	RegisterAttribute("flapping_positive", Attribute_Replicated, &m_FlappingPositive);
-	RegisterAttribute("flapping_negative", Attribute_Replicated, &m_FlappingNegative);
-	RegisterAttribute("flapping_lastchange", Attribute_Replicated, &m_FlappingLastChange);
-	RegisterAttribute("flapping_threshold", Attribute_Config, &m_FlappingThreshold);
-	RegisterAttribute("enable_flapping", Attribute_Replicated, &m_EnableFlapping);
+	DynamicObject::Start();
 
 	SetSchedulingOffset(rand());
+	UpdateNextCheck();
 
-	boost::call_once(m_OnceFlag, &Service::Initialize);
-}
+	Array::Ptr groups = GetGroups();
 
-Service::~Service(void)
-{
-	ServiceGroup::InvalidateMembersCache();
-	Host::InvalidateServicesCache();
-	Service::InvalidateDowntimesCache();
-	Service::InvalidateCommentsCache();
-}
+	if (groups) {
+		BOOST_FOREACH(const String& name, groups) {
+			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
 
-void Service::Initialize(void)
-{
-	m_Endpoint = Endpoint::MakeEndpoint("service", false);
-	m_Endpoint->RegisterTopicHandler("icinga::NotificationSent",
-	    boost::bind(&Service::NotificationSentRequestHandler, _3));
-	m_Endpoint->RegisterTopicHandler("icinga::Downtime",
-	    boost::bind(&Service::DowntimeRequestHandler, _3));
-	m_Endpoint->RegisterTopicHandler("icinga::Flapping",
-	    boost::bind(&Service::FlappingRequestHandler, _3));
-}
+			if (sg)
+				sg->AddMember(GetSelf());
+		}
+	}
 
-void Service::OnRegistrationCompleted(void)
-{
-	ASSERT(!OwnsLock());
+	AddDowntimesToCache();
+	AddCommentsToCache();
 
-	DynamicObject::OnRegistrationCompleted();
-
-	InvalidateNotificationsCache();
+	Host::Ptr host = GetHost();
+	if (host)
+		host->AddService(GetSelf());
 }
 
 String Service::GetDisplayName(void) const
@@ -138,13 +66,6 @@ String Service::GetDisplayName(void) const
 		return GetShortName();
 	else
 		return m_DisplayName;
-}
-
-Service::Ptr Service::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("Service", name);
-
-	return dynamic_pointer_cast<Service>(configObject);
 }
 
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)
@@ -300,7 +221,6 @@ AcknowledgementType Service::GetAcknowledgement(void)
 void Service::SetAcknowledgement(AcknowledgementType acknowledgement)
 {
 	m_Acknowledgement = acknowledgement;
-	Touch("acknowledgement");
 }
 
 bool Service::IsAcknowledged(void)
@@ -319,7 +239,6 @@ double Service::GetAcknowledgementExpiry(void) const
 void Service::SetAcknowledgementExpiry(double timestamp)
 {
 	m_AcknowledgementExpiry = timestamp;
-	Touch("acknowledgement_expiry");
 }
 
 void Service::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry)
@@ -333,7 +252,7 @@ void Service::AcknowledgeProblem(const String& author, const String& comment, Ac
 
 	(void) AddComment(CommentAcknowledgement, author, comment, 0);
 
-	RequestNotifications(NotificationAcknowledgement, GetLastCheckResult(), author, comment);
+	OnNotificationsRequested(GetSelf(), NotificationAcknowledgement, GetLastCheckResult(), author, comment);
 }
 
 void Service::ClearAcknowledgement(void)
@@ -342,37 +261,6 @@ void Service::ClearAcknowledgement(void)
 
 	SetAcknowledgement(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
-}
-
-void Service::OnAttributeChanged(const String& name)
-{
-	ASSERT(!OwnsLock());
-
-	Service::Ptr self = GetSelf();
-
-	if (name == "current_checker")
-		OnCheckerChanged(self);
-	else if (name == "next_check")
-		OnNextCheckChanged(self);
-	else if (name == "servicegroups")
-		ServiceGroup::InvalidateMembersCache();
-	else if (name == "host_name" || name == "short_name") {
-		Host::InvalidateServicesCache();
-
-		UpdateSlaveNotifications();
-	} else if (name == "downtimes")
-		Service::InvalidateDowntimesCache();
-	else if (name == "comments")
-		Service::InvalidateCommentsCache();
-	else if (name == "notifications")
-		UpdateSlaveNotifications();
-	else if (name == "check_interval") {
-		ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
-
-		/* update the next check timestamp if we're the owner of this service */
-		if (item)
-			UpdateNextCheck();
-	}
 }
 
 std::set<Host::Ptr> Service::GetParentHosts(void) const
@@ -504,4 +392,118 @@ bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, Strin
 	}
 
 	return false;
+}
+
+void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("display_name", m_DisplayName);
+		bag->Set("macros", m_Macros);
+		bag->Set("hostdependencies", m_HostDependencies);
+		bag->Set("servicedependencies", m_ServiceDependencies);
+		bag->Set("servicegroups", m_ServiceGroups);
+		bag->Set("check_command", m_CheckCommand);
+		bag->Set("max_check_attempts", m_MaxCheckAttempts);
+		bag->Set("check_period", m_CheckPeriod);
+		bag->Set("check_interval", m_CheckInterval);
+		bag->Set("retry_interval", m_RetryInterval);
+		bag->Set("checkers", m_Checkers);
+		bag->Set("event_command", m_EventCommand);
+		bag->Set("volatile", m_Volatile);
+		bag->Set("short_name", m_ShortName);
+		bag->Set("host_name", m_HostName);
+		bag->Set("flapping_threshold", m_FlappingThreshold);
+		bag->Set("notifications", m_NotificationDescriptions);
+	}
+
+	bag->Set("next_check", m_NextCheck);
+	bag->Set("current_checker", m_CurrentChecker);
+	bag->Set("check_attempt", m_CheckAttempt);
+	bag->Set("state", m_State);
+	bag->Set("state_type", m_StateType);
+	bag->Set("last_state", m_LastState);
+	bag->Set("last_hard_state", m_LastHardState);
+	bag->Set("last_state_type", m_LastStateType);
+	bag->Set("last_reachable", m_LastReachable);
+	bag->Set("last_result", m_LastResult);
+	bag->Set("last_state_change", m_LastStateChange);
+	bag->Set("last_hard_state_change", m_LastHardStateChange);
+	bag->Set("last_state_ok", m_LastStateOK);
+	bag->Set("last_state_warning", m_LastStateWarning);
+	bag->Set("last_state_critical", m_LastStateCritical);
+	bag->Set("last_state_unknown", m_LastStateUnknown);
+	bag->Set("last_state_unreachable", m_LastStateUnreachable);
+	bag->Set("last_in_downtime", m_LastInDowntime);
+	bag->Set("enable_active_checks", m_EnableActiveChecks);
+	bag->Set("enable_passive_checks", m_EnablePassiveChecks);
+	bag->Set("force_next_check", m_ForceNextCheck);
+	bag->Set("acknowledgement", m_Acknowledgement);
+	bag->Set("acknowledgement_expiry", m_AcknowledgementExpiry);
+	bag->Set("comments", m_Comments);
+	bag->Set("downtimes", m_Downtimes);
+	bag->Set("enable_notifications", m_EnableNotifications);
+	bag->Set("force_next_notification", m_ForceNextNotification);
+	bag->Set("flapping_positive", m_FlappingPositive);
+	bag->Set("flapping_negative", m_FlappingNegative);
+	bag->Set("flapping_lastchange", m_FlappingLastChange);
+	bag->Set("enable_flapping", m_EnableFlapping);
+}
+
+void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_DisplayName = bag->Get("display_name");
+		m_Macros = bag->Get("macros");
+		m_HostDependencies = bag->Get("hostdependencies");
+		m_ServiceDependencies = bag->Get("servicedependencies");
+		m_ServiceGroups = bag->Get("servicegroups");
+		m_CheckCommand = bag->Get("check_command");
+		m_MaxCheckAttempts = bag->Get("max_check_attempts");
+		m_CheckPeriod = bag->Get("check_period");
+		m_CheckInterval = bag->Get("check_interval");
+		m_RetryInterval = bag->Get("retry_interval");
+		m_Checkers = bag->Get("checkers");
+		m_EventCommand = bag->Get("event_command");
+		m_Volatile = bag->Get("volatile");
+		m_ShortName = bag->Get("short_name");
+		m_HostName = bag->Get("host_name");
+		m_FlappingThreshold = bag->Get("flapping_threshold");
+		m_NotificationDescriptions = bag->Get("notifications");
+	}
+
+	m_NextCheck = bag->Get("next_check");
+	m_CurrentChecker = bag->Get("current_checker");
+	m_CheckAttempt = bag->Get("check_attempt");
+	m_State = bag->Get("state");
+	m_StateType = bag->Get("state_type");
+	m_LastState = bag->Get("last_state");
+	m_LastHardState = bag->Get("last_hard_state");
+	m_LastStateType = bag->Get("last_state_type");
+	m_LastReachable = bag->Get("last_reachable");
+	m_LastResult = bag->Get("last_result");
+	m_LastStateChange = bag->Get("last_state_change");
+	m_LastHardStateChange = bag->Get("last_hard_state_change");
+	m_LastStateOK = bag->Get("last_state_ok");
+	m_LastStateWarning = bag->Get("last_state_warning");
+	m_LastStateCritical = bag->Get("last_state_critical");
+	m_LastStateUnknown = bag->Get("last_state_unknown");
+	m_LastStateUnreachable = bag->Get("last_state_unreachable");
+	m_LastInDowntime = bag->Get("last_in_downtime");
+	m_EnableActiveChecks = bag->Get("enable_active_checks");
+	m_EnablePassiveChecks = bag->Get("enable_passive_checks");
+	m_ForceNextCheck = bag->Get("force_next_check");
+	m_Acknowledgement = bag->Get("acknowledgement");
+	m_AcknowledgementExpiry = bag->Get("acknowledgement_expiry");
+	m_Comments = bag->Get("comments");
+	m_Downtimes = bag->Get("downtimes");
+	m_EnableNotifications = bag->Get("enable_notifications");
+	m_ForceNextNotification = bag->Get("force_next_notification");
+	m_FlappingPositive = bag->Get("flapping_positive");
+	m_FlappingNegative = bag->Get("flapping_negative");
+	m_FlappingLastChange = bag->Get("flapping_lastchange");
+	m_EnableFlapping = bag->Get("enable_flapping");
 }

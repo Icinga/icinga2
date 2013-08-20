@@ -124,12 +124,10 @@ Makefile
 components/Makefile
 components/checker/Makefile
 components/compat/Makefile
-components/delegation/Makefile
 components/demo/Makefile
 components/ido_mysql/Makefile
 components/livestatus/Makefile
 components/notification/Makefile
-components/replication/Makefile
 docs/Doxyfile
 docs/Makefile
 etc/Makefile

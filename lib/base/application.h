@@ -37,7 +37,6 @@ class I2_BASE_API Application : public DynamicObject {
 public:
 	DECLARE_PTR_TYPEDEFS(Application);
 
-	explicit Application(const Dictionary::Ptr& serializedUpdate);
 	~Application(void);
 
 	static Application::Ptr GetInstance(void);
@@ -84,6 +83,9 @@ public:
 	static ThreadPool& GetTP(void);
 
 protected:
+	virtual void Start(void);
+	virtual void Stop(void);
+
 	void RunEventLoop(void) const;
 
 	virtual void OnShutdown(void) = 0;

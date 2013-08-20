@@ -73,14 +73,10 @@ public:
 		>
 	> ServiceSet;
 
-	CheckerComponent(const Dictionary::Ptr& serializedUpdate);
-
 	virtual void Start(void);
 	virtual void Stop(void);
 
 private:
-	Endpoint::Ptr m_Endpoint;
-
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
 	bool m_Stopped;
@@ -98,7 +94,8 @@ private:
 
 	void AdjustCheckTimer(void);
 
-	void CheckerChangedHandler(const Service::Ptr& service);
+	void ObjectStartedHandler(const DynamicObject::Ptr& object);
+	void ObjectStoppedHandler(const DynamicObject::Ptr& object);
 	void NextCheckChangedHandler(const Service::Ptr& service);
 
 	void RescheduleCheckTimer(void);

@@ -27,8 +27,7 @@
 using namespace icinga;
 
 ConfigItemBuilder::ConfigItemBuilder(void)
-	: m_Local(false), m_Abstract(false),
-	  m_ExpressionList(boost::make_shared<ExpressionList>())
+	: m_Abstract(false), m_ExpressionList(boost::make_shared<ExpressionList>())
 {
 	m_DebugInfo.FirstLine = 0;
 	m_DebugInfo.FirstColumn = 0;
@@ -37,8 +36,7 @@ ConfigItemBuilder::ConfigItemBuilder(void)
 }
 
 ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
-	: m_Local(false), m_Abstract(false),
-	  m_ExpressionList(boost::make_shared<ExpressionList>())
+	: m_Abstract(false), m_ExpressionList(boost::make_shared<ExpressionList>())
 {
 	m_DebugInfo = debugInfo;
 }
@@ -51,16 +49,6 @@ void ConfigItemBuilder::SetType(const String& type)
 void ConfigItemBuilder::SetName(const String& name)
 {
 	m_Name = name;
-}
-
-void ConfigItemBuilder::SetUnit(const String& unit)
-{
-	m_Unit = unit;
-}
-
-void ConfigItemBuilder::SetLocal(bool local)
-{
-	m_Local = local;
 }
 
 void ConfigItemBuilder::SetAbstract(bool abstract)
@@ -126,9 +114,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Expression nameExpr("__name", OperatorSet, m_Name, m_DebugInfo);
 	exprl->AddExpression(nameExpr);
 
-	Expression localExpr("__local", OperatorSet, m_Local, m_DebugInfo);
-	exprl->AddExpression(localExpr);
-
-	return boost::make_shared<ConfigItem>(m_Type, m_Name, m_Unit, m_Abstract, exprl, m_Parents,
-	    m_DebugInfo);
+	return boost::make_shared<ConfigItem>(m_Type, m_Name, m_Abstract, exprl,
+	    m_Parents, m_DebugInfo);
 }

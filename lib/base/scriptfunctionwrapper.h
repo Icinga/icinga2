@@ -34,7 +34,7 @@ Value ScriptFunctionWrapperVV(void (*function)(void), const std::vector<Value>& 
 boost::function<Value (const std::vector<Value>& arguments)> I2_BASE_API WrapScriptFunction(void (*function)(void));
 
 template<typename TR>
-Value ScriptFunctionWrapperR(TR (*function)(void), const std::vector<Value>& arguments)
+Value ScriptFunctionWrapperR(TR (*function)(void), const std::vector<Value>&)
 {
 	return function();
 }

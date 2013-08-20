@@ -33,8 +33,8 @@ static int l_NextCommentID = 1;
 static boost::mutex l_CommentMutex;
 static std::map<int, String> l_LegacyCommentsCache;
 static std::map<String, Service::WeakPtr> l_CommentsCache;
-static bool l_CommentsCacheNeedsUpdate = false;
-static Timer::Ptr l_CommentsCacheTimer;
+//static bool l_CommentsCacheNeedsUpdate = false;
+//static Timer::Ptr l_CommentsCacheTimer;
 static Timer::Ptr l_CommentsExpireTimer;
 
 boost::signals2::signal<void (const Service::Ptr&, const String&, CommentChangedType)> Service::OnCommentsChanged;
@@ -89,11 +89,11 @@ String Service::AddComment(CommentType entryType, const String& author,
 		ObjectLock olock(this);
 
 		comments->Set(id, comment);
-		Touch("comments");
 	}
 
 	{
 		boost::mutex::scoped_lock lock(l_CommentMutex);
+		l_LegacyCommentsCache[legacy_id] = id;
 		l_CommentsCache[id] = GetSelf();
 	}
 
@@ -104,10 +104,15 @@ String Service::AddComment(CommentType entryType, const String& author,
 
 void Service::RemoveAllComments(void)
 {
-	OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
-
 	m_Comments = Empty;
-	Touch("comments");
+
+	{
+		boost::mutex::scoped_lock lock(l_CommentMutex);
+		l_LegacyCommentsCache.clear();
+		l_CommentsCache.clear();
+	}
+
+	OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
 }
 
 void Service::RemoveComment(const String& id)
@@ -122,8 +127,20 @@ void Service::RemoveComment(const String& id)
 	if (comments) {
 		ObjectLock olock(owner);
 
+		Dictionary::Ptr comment = comments->Get(id);
+
+		if (!comment)
+			return;
+
+		int legacy_id = comment->Get("legacy_id");
+
 		comments->Remove(id);
-		owner->Touch("comments");
+
+		{
+			boost::mutex::scoped_lock lock(l_CommentMutex);
+			l_LegacyCommentsCache.erase(legacy_id);
+			l_CommentsCache.erase(id);
+		}
 
 		OnCommentsChanged(owner, id, CommentChangedDeleted);
 	}
@@ -170,85 +187,29 @@ bool Service::IsCommentExpired(const Dictionary::Ptr& comment)
 	return (expire_time != 0 && expire_time < Utility::GetTime());
 }
 
-void Service::InvalidateCommentsCache(void)
+void Service::AddCommentsToCache(void)
 {
-	boost::mutex::scoped_lock lock(l_CommentMutex);
-
-	if (l_CommentsCacheNeedsUpdate)
-		return; /* Someone else has already requested a refresh. */
-
-	if (!l_CommentsCacheTimer) {
-		l_CommentsCacheTimer = boost::make_shared<Timer>();
-		l_CommentsCacheTimer->SetInterval(0.5);
-		l_CommentsCacheTimer->OnTimerExpired.connect(boost::bind(&Service::RefreshCommentsCache));
-		l_CommentsCacheTimer->Start();
-	}
-
-	l_CommentsCacheNeedsUpdate = true;
-}
-
-void Service::RefreshCommentsCache(void)
-{
-	{
-		boost::mutex::scoped_lock lock(l_CommentMutex);
-
-		if (!l_CommentsCacheNeedsUpdate)
-			return;
-
-		l_CommentsCacheNeedsUpdate = false;
-	}
-
 	Log(LogDebug, "icinga", "Updating Service comments cache.");
 
-	std::map<int, String> newLegacyCommentsCache;
-	std::map<String, Service::WeakPtr> newCommentsCache;
+	Dictionary::Ptr comments = GetComments();
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+	if (!comments)
+		return;
 
-		Dictionary::Ptr comments = service->GetComments();
-
-		if (!comments)
-			continue;
-
-		ObjectLock olock(comments);
-
-		String id;
-		Dictionary::Ptr comment;
-		BOOST_FOREACH(tie(id, comment), comments) {
-			int legacy_id = comment->Get("legacy_id");
-
-			if (legacy_id >= l_NextCommentID)
-				l_NextCommentID = legacy_id + 1;
-
-			if (newLegacyCommentsCache.find(legacy_id) != newLegacyCommentsCache.end()) {
-				/* The legacy_id is already in use by another comment;
-				 * this shouldn't usually happen - assign it a new ID */
-
-				legacy_id = l_NextCommentID++;
-				comment->Set("legacy_id", legacy_id);
-
-				{
-					ObjectLock olock(service);
-					service->Touch("comments");
-				}
-			}
-
-			newLegacyCommentsCache[legacy_id] = id;
-			newCommentsCache[id] = service;
-		}
-	}
+	ObjectLock olock(comments);
 
 	boost::mutex::scoped_lock lock(l_CommentMutex);
 
-	l_CommentsCache.swap(newCommentsCache);
-	l_LegacyCommentsCache.swap(newLegacyCommentsCache);
+	String id;
+	Dictionary::Ptr comment;
+	BOOST_FOREACH(tie(id, comment), comments) {
+		int legacy_id = comment->Get("legacy_id");
 
-	if (!l_CommentsExpireTimer) {
-		l_CommentsExpireTimer = boost::make_shared<Timer>();
-		l_CommentsExpireTimer->SetInterval(300);
-		l_CommentsExpireTimer->OnTimerExpired.connect(boost::bind(&Service::CommentsExpireTimerHandler));
-		l_CommentsExpireTimer->Start();
+		if (legacy_id >= l_NextCommentID)
+			l_NextCommentID = legacy_id + 1;
+
+		l_LegacyCommentsCache[legacy_id] = id;
+		l_CommentsCache[id] = GetSelf();
 	}
 }
 
@@ -274,15 +235,9 @@ void Service::RemoveCommentsByType(int type)
 
 	if (!removedComments.empty()) {
 		BOOST_FOREACH(const String& id, removedComments) {
-			comments->Remove(id);
+			RemoveComment(id);
 		}
-
-		OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
-
-		ObjectLock olock(this);
-		Touch("comments");
 	}
-
 }
 
 void Service::RemoveExpiredComments(void)
@@ -307,21 +262,15 @@ void Service::RemoveExpiredComments(void)
 
 	if (!expiredComments.empty()) {
 		BOOST_FOREACH(const String& id, expiredComments) {
-			comments->Remove(id);
+			RemoveComment(id);
 		}
-
-		OnCommentsChanged(GetSelf(), Empty, CommentChangedDeleted);
-
-		ObjectLock olock(this);
-		Touch("comments");
 	}
 
 }
 
 void Service::CommentsExpireTimerHandler(void)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		Service::Ptr service = dynamic_pointer_cast<Service>(object);
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		service->RemoveExpiredComments();
 	}
 }

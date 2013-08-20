@@ -31,9 +31,14 @@ boost::mutex StreamLogger::m_Mutex;
 /**
  * Constructor for the StreamLogger class.
  */
-StreamLogger::StreamLogger(const Dictionary::Ptr& serializedUpdate)
-	: Logger(serializedUpdate), m_Stream(NULL), m_OwnsStream(false), m_Tty(false)
-{ }
+void StreamLogger::Start(void)
+{
+	Logger::Start();
+
+	m_Stream = NULL;
+	m_OwnsStream = false;
+	m_Tty = false;
+}
 
 /**
  * Destructor for the StreamLogger class.

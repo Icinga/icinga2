@@ -22,7 +22,6 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/macroresolver.h"
-//#include "base/i2-base.h"
 #include "base/array.h"
 #include "base/dynamicobject.h"
 #include "base/dictionary.h"
@@ -78,11 +77,7 @@ class I2_ICINGA_API Host : public DynamicObject, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Host);
-
-	explicit Host(const Dictionary::Ptr& serializedUpdate);
-	~Host(void);
-
-	static Host::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(Host);
 
 	String GetDisplayName(void) const;
 	Array::Ptr GetGroups(void) const;
@@ -91,6 +86,8 @@ public:
 	Array::Ptr GetHostDependencies(void) const;
 	Array::Ptr GetServiceDependencies(void) const;
 	String GetHostCheck(void) const;
+	//Dictionary::Ptr GetServiceDescriptions(void) const;
+	Dictionary::Ptr GetNotificationDescriptions(void) const;
 
 	shared_ptr<Service> GetHostCheckService(void) const;
 	std::set<Host::Ptr> GetParentHosts(void) const;
@@ -102,8 +99,10 @@ public:
 	shared_ptr<Service> GetServiceByShortName(const Value& name) const;
 
 	std::set<shared_ptr<Service> > GetServices(void) const;
+	void AddService(const shared_ptr<Service>& service);
+	void RemoveService(const shared_ptr<Service>& service);
+
 	int GetTotalServices(void) const;
-	static void InvalidateServicesCache(void);
 
 	static Value ValidateServiceDictionary(const String& location, const Dictionary::Ptr& attrs);
 
@@ -123,18 +122,26 @@ public:
 	static String StateToString(HostState state);
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+
 protected:
-	virtual void OnRegistrationCompleted(void);
-	virtual void OnAttributeChanged(const String& name);
+	virtual void Start(void);
+	virtual void Stop(void);
+
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Attribute<String> m_DisplayName;
-	Attribute<Array::Ptr> m_HostGroups;
-	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Array::Ptr> m_HostDependencies;
-	Attribute<Array::Ptr> m_ServiceDependencies;
-	Attribute<String> m_HostCheck;
-	Dictionary::Ptr m_SlaveServices;
+	String m_DisplayName;
+	Array::Ptr m_HostGroups;
+	Dictionary::Ptr m_Macros;
+	Array::Ptr m_HostDependencies;
+	Array::Ptr m_ServiceDependencies;
+	String m_HostCheck;
+	Dictionary::Ptr m_ServiceDescriptions;
+	Dictionary::Ptr m_NotificationDescriptions;
+
+	mutable boost::mutex m_ServicesMutex;
+	std::map<String, shared_ptr<Service> > m_Services;
 
 	void UpdateSlaveServices(void);
 

@@ -21,16 +21,17 @@
 
 using namespace icinga;
 
-/**
- * Constructor for the Command class.
- *
- * @param serializedUpdate A serialized dictionary containing attributes.
- */
-Command::Command(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
+Value Command::GetCommandLine(void) const
 {
-	RegisterAttribute("macros", Attribute_Config, &m_Macros);
-	RegisterAttribute("export_macros", Attribute_Config, &m_ExportMacros);
+	return m_CommandLine;
+}
+
+double Command::GetTimeout(void) const
+{
+	if (m_Timeout.IsEmpty())
+		return 300;
+	else
+		return m_Timeout;
 }
 
 Dictionary::Ptr Command::GetMacros(void) const
@@ -43,7 +44,7 @@ Array::Ptr Command::GetExportMacros(void) const
 	return m_ExportMacros;
 }
 
-bool Command::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
+bool Command::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
 	Dictionary::Ptr macros = GetMacros();
 
@@ -55,7 +56,27 @@ bool Command::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, Strin
 	return false;
 }
 
-Value Command::GetCommandLine(void) const
+void Command::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
 {
-	return Get("command");
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("command", m_CommandLine);
+		bag->Set("timeout", m_Timeout);
+		bag->Set("macros", m_Macros);
+		bag->Set("export_macros", m_ExportMacros);
+	}
+}
+
+void Command::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_CommandLine = bag->Get("command");
+		m_Timeout = bag->Get("timeout");
+		m_Macros = bag->Get("macros");
+		m_Macros = bag->Get("macros");
+		m_ExportMacros = bag->Get("export_macros");
+	}
 }

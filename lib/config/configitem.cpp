@@ -32,8 +32,6 @@ using namespace icinga;
 
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::ItemMap ConfigItem::m_Items;
-boost::signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnCommitted;
-boost::signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
 
 /**
  * Constructor for the ConfigItem class.
@@ -47,9 +45,9 @@ boost::signals2::signal<void (const ConfigItem::Ptr&)> ConfigItem::OnRemoved;
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
-    const String& unit, bool abstract, const ExpressionList::Ptr& exprl,
+    bool abstract, const ExpressionList::Ptr& exprl,
     const std::vector<String>& parents, const DebugInfo& debuginfo)
-	: m_Type(type), m_Name(name), m_Unit(unit), m_Abstract(abstract),
+	: m_Type(type), m_Name(name), m_Abstract(abstract),
 	  m_ExpressionList(exprl), m_ParentNames(parents), m_DebugInfo(debuginfo)
 {
 }
@@ -72,16 +70,6 @@ String ConfigItem::GetType(void) const
 String ConfigItem::GetName(void) const
 {
 	return m_Name;
-}
-
-/**
- * Retrieves the name of the compilation unit this item belongs to.
- *
- * @returns The unit name.
- */
-String ConfigItem::GetUnit(void) const
-{
-	return m_Unit;
 }
 
 /**
@@ -114,36 +102,14 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 	return m_ExpressionList;
 }
 
-/**
- * Retrieves the list of parents for the configuration item.
- *
- * @returns The list of parents.
- */
-std::vector<ConfigItem::Ptr> ConfigItem::GetParents(void) const
-{
-	return m_Parents;
-}
-
 void ConfigItem::Link(void)
 {
 	ObjectLock olock(this);
 
 	m_LinkedExpressionList = boost::make_shared<ExpressionList>();
 
-	m_Parents.clear();
-
 	BOOST_FOREACH(const String& name, m_ParentNames) {
-		ConfigItem::Ptr parent;
-
-		ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
-
-		if (context)
-			parent = context->GetItem(m_Type, name);
-
-		/* ignore already active objects while we're in the compiler
-		 * context and linking to existing items is disabled. */
-		if (!parent && (!context || (context->GetFlags() & CompilerLinkExisting)))
-			parent = ConfigItem::GetObject(m_Type, name);
+		ConfigItem::Ptr parent = ConfigItem::GetObject(m_Type, name);
 
 		if (!parent) {
 			std::ostringstream message;
@@ -156,8 +122,6 @@ void ConfigItem::Link(void)
 
 		ExpressionList::Ptr pexprl = parent->GetLinkedExpressionList();
 		m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, pexprl, m_DebugInfo));
-
-		m_Parents.push_back(parent);
 	}
 
 	m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, m_ExpressionList, m_DebugInfo));
@@ -190,60 +154,15 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	if (!dtype)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Type '" + GetType() + "' does not exist."));
 
-	/* Try to find an existing item with the same type and name. */
-	std::pair<String, String> ikey = std::make_pair(GetType(), GetName());
-	ConfigItem::Ptr oldItem;
+	if (m_DynamicObject.lock() || dtype->GetObject(m_Name))
+	    BOOST_THROW_EXCEPTION(std::runtime_error("An object with type '" + GetType() + "' and name '" + GetName() + "' already exists."));
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-
-		ItemMap::iterator it = m_Items.find(ikey);
-
-		if (it != m_Items.end())
-			oldItem = it->second;
-	}
-
-	std::set<ConfigItem::WeakPtr> children;
-
-	if (oldItem) {
-		ObjectLock olock(oldItem);
-
-		/* Unregister the old item from its parents. */
-		oldItem->UnregisterFromParents();
-
-		/* Steal the old item's children. */
-		children = oldItem->m_ChildObjects;
-	}
-
-	{
-		ObjectLock olock(this);
-		m_ChildObjects = children;
-	}
-
-	ConfigItem::Ptr self = GetSelf();
-
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-
-		/* Register this item. */
-		m_Items[ikey] = self;
-	}
-
-	DynamicObject::Ptr dobj = m_DynamicObject.lock();
-
-	if (!dobj)
-		dobj = dtype->GetObject(m_Name);
-
-	/* Register this item with its parents. */
-	BOOST_FOREACH(const ConfigItem::Ptr& parent, m_Parents) {
-		parent->m_ChildObjects.insert(self);
-	}
+	if (IsAbstract())
+		return DynamicObject::Ptr();
 
 	/* Create a fake update in the format that
-	 * DynamicObject::ApplyUpdate expects. */
+	 * DynamicObject::Deserialize expects. */
 	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
-
-	double tx = DynamicObject::GetCurrentTx();
 
 	Link();
 
@@ -256,60 +175,14 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		String key;
 		Value data;
 		BOOST_FOREACH(boost::tie(key, data), properties) {
-			Dictionary::Ptr attr = boost::make_shared<Dictionary>();
-			attr->Set("data", data);
-			attr->Set("type", Attribute_Config);
-			attr->Set("tx", tx);
-			attr->Seal();
-
-			attrs->Set(key, attr);
+			attrs->Set(key, data);
 		}
 	}
 
 	attrs->Seal();
 
-	Dictionary::Ptr update = boost::make_shared<Dictionary>();
-	update->Set("attrs", attrs);
-	update->Set("configTx", DynamicObject::GetCurrentTx());
-	update->Seal();
-
-	/* Update or create the object and apply the configuration settings. */
-	bool was_null = false;
-
-	if (!dobj) {
-		if (!IsAbstract())
-			dobj = dtype->CreateObject(update);
-
-		was_null = true;
-	}
-
-	if (!was_null)
-		dobj->ApplyUpdate(update, Attribute_Config);
-
-	{
-		ObjectLock olock(this);
-
-		m_DynamicObject = dobj;
-	}
-
-	if (dobj) {
-		if (IsAbstract())
-			dobj->Unregister();
-		else
-			dobj->Register();
-	}
-
-	/* notify our children of the update */
-	BOOST_FOREACH(const ConfigItem::WeakPtr wchild, children) {
-		const ConfigItem::Ptr& child = wchild.lock();
-
-		if (!child)
-			continue;
-
-		child->OnParentCommitted();
-	}
-
-	OnCommitted(self);
+	DynamicObject::Ptr dobj = dtype->CreateObject(attrs);
+	dobj->Register();
 
 	return dobj;
 }
@@ -326,57 +199,6 @@ void ConfigItem::Register(void)
 
 		m_Items[std::make_pair(m_Type, m_Name)] = GetSelf();
 	}
-}
-
-/**
- * Unregisters the configuration item.
- */
-void ConfigItem::Unregister(void)
-{
-	ASSERT(!OwnsLock());
-
-	DynamicObject::Ptr dobj = m_DynamicObject.lock();
-
-	if (dobj)
-		dobj->Unregister();
-
-	{
-		ObjectLock olock(this);
-
-		ConfigItem::ItemMap::iterator it;
-		it = m_Items.find(std::make_pair(m_Type, m_Name));
-
-		if (it != m_Items.end())
-			m_Items.erase(it);
-
-		UnregisterFromParents();
-	}
-
-	OnRemoved(GetSelf());
-}
-
-void ConfigItem::UnregisterFromParents(void)
-{
-	ASSERT(OwnsLock());
-
-	BOOST_FOREACH(const ConfigItem::Ptr& parent, m_Parents) {
-		parent->m_ChildObjects.erase(GetSelf());
-	}
-}
-
-/*
- * Notifies an item that one of its parents has been committed.
- */
-void ConfigItem::OnParentCommitted(void)
-{
-	ASSERT(!OwnsLock());
-
-	ConfigItem::Ptr self = GetSelf();
-
-	if (GetObject(m_Type, m_Name) != self)
-		return;
-
-	Commit();
 }
 
 /**
@@ -412,58 +234,57 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 	return ConfigItem::Ptr();
 }
 
-/**
- * Dumps the config item to the specified stream using Icinga's config item
- * syntax.
- *
- * @param fp The stream.
- */
-void ConfigItem::Dump(std::ostream& fp) const
+void ConfigItem::LinkItems(void)
 {
-	ObjectLock olock(this);
+	Log(LogInformation, "config", "Linking config items...");
 
-	fp << "object \"" << m_Type << "\" \"" << m_Name << "\"";
-
-	if (m_Parents.size() > 0) {
-		fp << " inherits";
-
-		bool first = true;
-		BOOST_FOREACH(const String& name, m_ParentNames) {
-			if (!first)
-				fp << ",";
-			else
-				first = false;
-
-			fp << " \"" << name << "\"";
-		}
+	ConfigItem::Ptr item;
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
+		item->Link();
 	}
-
-	fp << " {" << "\n";
-	m_ExpressionList->Dump(fp, 1);
-	fp << "}" << "\n";
 }
 
-void ConfigItem::UnloadUnit(const String& unit)
+void ConfigItem::ValidateItems(void)
 {
-	std::vector<ConfigItem::Ptr> obsoleteItems;
+	Log(LogInformation, "config", "Validating config items...");
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+	ConfigItem::Ptr item;
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
+		ConfigType::Ptr ctype = ConfigType::GetByName(item->GetType());
 
-		Log(LogInformation, "config", "Unloading config items from compilation unit '" + unit + "'");
+		if (!ctype) {
+			ConfigCompilerContext::GetInstance()->AddError(true, "No validation type found for object '" + item->GetName() + "' of type '" + item->GetType() + "'");
 
-		ConfigItem::Ptr item;
-		BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
-			ObjectLock olock(item);
-
-			if (item->m_Unit != unit)
-				continue;
-
-			obsoleteItems.push_back(item);
+			continue;
 		}
+
+		ctype->ValidateItem(item);
+	}
+}
+
+void ConfigItem::ActivateItems(void)
+{
+	Log(LogInformation, "config", "Activating config items");
+
+	std::vector<DynamicObject::Ptr> objects;
+
+	ConfigItem::Ptr item;
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
+		DynamicObject::Ptr object = item->Commit();
+
+		if (object)
+			objects.push_back(object);
 	}
 
-	BOOST_FOREACH(const ConfigItem::Ptr& item, obsoleteItems) {
-		item->Unregister();
+	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
+		Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
+		object->Start();
+
+		ASSERT(object->IsActive());
 	}
+}
+
+void ConfigItem::DiscardItems(void)
+{
+	m_Items.clear();
 }

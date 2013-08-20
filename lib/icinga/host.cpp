@@ -36,47 +36,46 @@
 
 using namespace icinga;
 
-static boost::mutex l_ServiceMutex;
-static std::map<String, std::map<String, Service::WeakPtr> > l_ServicesCache;
-static bool l_ServicesCacheNeedsUpdate = false;
-static Timer::Ptr l_ServicesCacheTimer;
-
 REGISTER_SCRIPTFUNCTION(ValidateServiceDictionary, &Host::ValidateServiceDictionary);
 
 REGISTER_TYPE(Host);
 
-Host::Host(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
+void Host::Start(void)
 {
-	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-	RegisterAttribute("hostgroups", Attribute_Config, &m_HostGroups);
-	RegisterAttribute("macros", Attribute_Config, &m_Macros);
-	RegisterAttribute("hostdependencies", Attribute_Config, &m_HostDependencies);
-	RegisterAttribute("servicedependencies", Attribute_Config, &m_ServiceDependencies);
-	RegisterAttribute("hostcheck", Attribute_Config, &m_HostCheck);
+	DynamicObject::Start();
 
-}
-
-Host::~Host(void)
-{
-	HostGroup::InvalidateMembersCache();
-
-	if (m_SlaveServices) {
-		ConfigItem::Ptr service;
-		BOOST_FOREACH(boost::tie(boost::tuples::ignore, service), m_SlaveServices) {
-			service->Unregister();
-		}
-	}
-}
-
-void Host::OnRegistrationCompleted(void)
-{
 	ASSERT(!OwnsLock());
 
-	DynamicObject::OnRegistrationCompleted();
+	Array::Ptr groups = GetGroups();
 
-	Host::InvalidateServicesCache();
+	if (groups) {
+		BOOST_FOREACH(const String& name, groups) {
+			HostGroup::Ptr hg = HostGroup::GetByName(name);
+
+			if (hg)
+				hg->AddMember(GetSelf());
+		}
+	}
+
 	UpdateSlaveServices();
+}
+
+void Host::Stop(void)
+{
+	DynamicObject::Stop();
+
+	Array::Ptr groups = GetGroups();
+
+	if (groups) {
+		BOOST_FOREACH(const String& name, groups) {
+			HostGroup::Ptr hg = HostGroup::GetByName(name);
+
+			if (hg)
+				hg->RemoveMember(GetSelf());
+		}
+	}
+
+	// TODO: unregister slave services/notifications?
 }
 
 String Host::GetDisplayName(void) const
@@ -85,13 +84,6 @@ String Host::GetDisplayName(void) const
 		return m_DisplayName;
 	else
 		return GetName();
-}
-
-Host::Ptr Host::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("Host", name);
-
-	return dynamic_pointer_cast<Host>(configObject);
 }
 
 Array::Ptr Host::GetGroups(void) const
@@ -117,6 +109,11 @@ Array::Ptr Host::GetServiceDependencies(void) const
 String Host::GetHostCheck(void) const
 {
 	return m_HostCheck;
+}
+
+Dictionary::Ptr Host::GetNotificationDescriptions(void) const
+{
+	return m_NotificationDescriptions;
 }
 
 bool Host::IsReachable(void) const
@@ -179,122 +176,83 @@ void Host::UpdateSlaveServices(void)
 	if (!item)
 		return;
 
-	Dictionary::Ptr oldServices = m_SlaveServices;
-	Dictionary::Ptr serviceDescs = Get("services");
+	if (!m_ServiceDescriptions)
+		return;
 
-	Dictionary::Ptr newServices = boost::make_shared<Dictionary>();
+	ObjectLock olock(m_ServiceDescriptions);
+	String svcname;
+	Value svcdesc;
+	BOOST_FOREACH(boost::tie(svcname, svcdesc), m_ServiceDescriptions) {
+		if (svcdesc.IsScalar())
+			svcname = svcdesc;
 
-	if (serviceDescs) {
-		ObjectLock olock(serviceDescs);
-		String svcname;
-		Value svcdesc;
-		BOOST_FOREACH(boost::tie(svcname, svcdesc), serviceDescs) {
-			if (svcdesc.IsScalar())
-				svcname = svcdesc;
+		std::ostringstream namebuf;
+		namebuf << GetName() << ":" << svcname;
+		String name = namebuf.str();
 
-			std::ostringstream namebuf;
-			namebuf << GetName() << ":" << svcname;
-			String name = namebuf.str();
+		ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
+		builder->SetType("Service");
+		builder->SetName(name);
+		builder->AddExpression("host_name", OperatorSet, GetName());
+		builder->AddExpression("display_name", OperatorSet, svcname);
+		builder->AddExpression("short_name", OperatorSet, svcname);
 
-			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
-			builder->SetType("Service");
-			builder->SetName(name);
-			builder->AddExpression("host_name", OperatorSet, GetName());
-			builder->AddExpression("display_name", OperatorSet, svcname);
-			builder->AddExpression("short_name", OperatorSet, svcname);
+		if (!svcdesc.IsObjectType<Dictionary>())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
 
-			if (!svcdesc.IsObjectType<Dictionary>())
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
+		Dictionary::Ptr service = svcdesc;
 
-			Dictionary::Ptr service = svcdesc;
+		Array::Ptr templates = service->Get("templates");
 
-			Array::Ptr templates = service->Get("templates");
+		if (templates) {
+			ObjectLock olock(templates);
 
-			if (templates) {
-				ObjectLock olock(templates);
-
-				BOOST_FOREACH(const Value& tmpl, templates) {
-					builder->AddParent(tmpl);
-				}
+			BOOST_FOREACH(const Value& tmpl, templates) {
+				builder->AddParent(tmpl);
 			}
-
-			/* Clone attributes from the host object. */
-			std::set<String, string_iless> keys;
-			keys.insert("check_interval");
-			keys.insert("retry_interval");
-			keys.insert("servicegroups");
-			keys.insert("checkers");
-			keys.insert("notification_interval");
-			keys.insert("notification_type_filter");
-			keys.insert("notification_state_filter");
-			keys.insert("check_period");
-			keys.insert("servicedependencies");
-			keys.insert("hostdependencies");
-			keys.insert("export_macros");
-			keys.insert("macros");
-			keys.insert("custom");
-
-			ExpressionList::Ptr host_exprl = boost::make_shared<ExpressionList>();
-			item->GetLinkedExpressionList()->ExtractFiltered(keys, host_exprl);
-			builder->AddExpressionList(host_exprl);
-
-			/* Clone attributes from the service expression list. */
-			std::vector<String> path;
-			path.push_back("services");
-			path.push_back(svcname);
-
-			ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();
-			item->GetLinkedExpressionList()->ExtractPath(path, svc_exprl);
-			builder->AddExpressionList(svc_exprl);
-
-			ConfigItem::Ptr serviceItem = builder->Compile();
-			DynamicObject::Ptr dobj = serviceItem->Commit();
-
-			newServices->Set(name, serviceItem);
 		}
-	}
 
-	if (oldServices) {
-		ObjectLock olock(oldServices);
+		/* Clone attributes from the host object. */
+		std::set<String, string_iless> keys;
+		keys.insert("check_interval");
+		keys.insert("retry_interval");
+		keys.insert("servicegroups");
+		keys.insert("checkers");
+		keys.insert("notification_interval");
+		keys.insert("notification_type_filter");
+		keys.insert("notification_state_filter");
+		keys.insert("check_period");
+		keys.insert("servicedependencies");
+		keys.insert("hostdependencies");
+		keys.insert("export_macros");
+		keys.insert("macros");
+		keys.insert("custom");
 
-		ConfigItem::Ptr service;
-		BOOST_FOREACH(boost::tie(boost::tuples::ignore, service), oldServices) {
-			if (!service)
-				continue;
+		ExpressionList::Ptr host_exprl = boost::make_shared<ExpressionList>();
+		item->GetLinkedExpressionList()->ExtractFiltered(keys, host_exprl);
+		builder->AddExpressionList(host_exprl);
 
-			if (!newServices->Contains(service->GetName()))
-				service->Unregister();
-		}
-	}
+		/* Clone attributes from the service expression list. */
+		std::vector<String> path;
+		path.push_back("services");
+		path.push_back(svcname);
 
-	newServices->Seal();
+		ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();
+		item->GetLinkedExpressionList()->ExtractPath(path, svc_exprl);
+		builder->AddExpressionList(svc_exprl);
 
-	Set("slave_services", newServices);
-}
-
-void Host::OnAttributeChanged(const String& name)
-{
-	ASSERT(!OwnsLock());
-
-	if (name == "hostgroups")
-		HostGroup::InvalidateMembersCache();
-	else if (name == "services") {
-		UpdateSlaveServices();
-	} else if (name == "notifications") {
-		BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
-			service->UpdateSlaveNotifications();
-		}
+		ConfigItem::Ptr serviceItem = builder->Compile();
+		DynamicObject::Ptr dobj = serviceItem->Commit();
 	}
 }
 
 std::set<Service::Ptr> Host::GetServices(void) const
 {
+	boost::mutex::scoped_lock lock(m_ServicesMutex);
+
 	std::set<Service::Ptr> services;
-
-	boost::mutex::scoped_lock lock(l_ServiceMutex);
-
 	Service::WeakPtr wservice;
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, wservice), l_ServicesCache[GetName()]) {
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, wservice), m_Services) {
 		Service::Ptr service = wservice.lock();
 
 		if (!service)
@@ -306,60 +264,23 @@ std::set<Service::Ptr> Host::GetServices(void) const
 	return services;
 }
 
+void Host::AddService(const Service::Ptr& service)
+{
+	boost::mutex::scoped_lock lock(m_ServicesMutex);
+
+	m_Services[service->GetShortName()] = service;
+}
+
+void Host::RemoveService(const Service::Ptr& service)
+{
+	boost::mutex::scoped_lock lock(m_ServicesMutex);
+
+	m_Services.erase(service->GetShortName());
+}
+
 int Host::GetTotalServices(void) const
 {
 	return GetServices().size();
-}
-
-void Host::InvalidateServicesCache(void)
-{
-	{
-		boost::mutex::scoped_lock lock(l_ServiceMutex);
-
-		if (l_ServicesCacheNeedsUpdate)
-			return; /* Someone else has already requested a refresh. */
-
-		if (!l_ServicesCacheTimer) {
-			l_ServicesCacheTimer = boost::make_shared<Timer>();
-			l_ServicesCacheTimer->SetInterval(0.5);
-			l_ServicesCacheTimer->OnTimerExpired.connect(boost::bind(&Host::RefreshServicesCache));
-			l_ServicesCacheTimer->Start();
-		}
-
-		l_ServicesCacheNeedsUpdate = true;
-	}
-}
-
-void Host::RefreshServicesCache(void)
-{
-	{
-		boost::mutex::scoped_lock lock(l_ServiceMutex);
-
-		if (!l_ServicesCacheNeedsUpdate)
-			return;
-
-		l_ServicesCacheNeedsUpdate = false;
-	}
-
-	Log(LogDebug, "icinga", "Updating Host services cache.");
-
-	std::map<String, std::map<String, Service::WeakPtr> > newServicesCache;
-
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Service")) {
-		const Service::Ptr& service = static_pointer_cast<Service>(object);
-
-		Host::Ptr host = service->GetHost();
-
-		if (!host)
-			continue;
-
-		// TODO: assert for duplicate short_names
-
-		newServicesCache[host->GetName()][service->GetShortName()] = service;
-	}
-
-	boost::mutex::scoped_lock lock(l_ServiceMutex);
-	l_ServicesCache.swap(newServicesCache);
 }
 
 Value Host::ValidateServiceDictionary(const String& location, const Dictionary::Ptr& attrs)
@@ -387,22 +308,11 @@ Value Host::ValidateServiceDictionary(const String& location, const Dictionary::
 		}
 
 		BOOST_FOREACH(const String& name, templates) {
-			ConfigItem::Ptr item;
+			ConfigItem::Ptr item = ConfigItem::GetObject("Service", name);
 
-			ConfigCompilerContext *context = ConfigCompilerContext::GetContext();
-
-			if (context)
-				item = context->GetItem("Service", name);
-
-			/* ignore already active objects while we're in the compiler
-			 * context and linking to existing items is disabled. */
-			if (!item && (!context || (context->GetFlags() & CompilerLinkExisting)))
-				item = ConfigItem::GetObject("Service", name);
-
-			if (!item) {
-				ConfigCompilerContext::GetContext()->AddError(false, "Validation failed for " +
-				    location + ": Template '" + name + "' not found.");
-			}
+			if (!item)
+				ConfigCompilerContext::GetInstance()->AddError(false, "Validation failed for " +
+					    location + ": Template '" + name + "' not found.");
 		}
 	}
 
@@ -413,16 +323,12 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 {
 	if (name.IsScalar()) {
 		{
-			boost::mutex::scoped_lock lock(l_ServiceMutex);
+			boost::mutex::scoped_lock lock(m_ServicesMutex);
 
-			std::map<String, Service::WeakPtr>& services = l_ServicesCache[GetName()];
-			std::map<String, Service::WeakPtr>::iterator it = services.find(name);
+			std::map<String, Service::Ptr>::const_iterator it = m_Services.find(name);
 
-			if (it != services.end()) {
-				Service::Ptr service = it->second.lock();
-				ASSERT(service);
-				return service;
-			}
+			if (it != m_Services.end())
+				return it->second;
 		}
 
 		return Service::Ptr();
@@ -465,9 +371,7 @@ std::set<Host::Ptr> Host::GetChildHosts(void) const
 {
 	std::set<Host::Ptr> childs;
 
-        BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
-		const Host::Ptr& host = static_pointer_cast<Host>(object);
-
+        BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
 		Array::Ptr dependencies = host->GetHostDependencies();
 
 		if (dependencies) {
@@ -772,4 +676,36 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 	}
 
 	return false;
+}
+
+void Host::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("display_name", m_DisplayName);
+		bag->Set("hostgroups", m_HostGroups);
+		bag->Set("macros", m_Macros);
+		bag->Set("hostdependencies", m_HostDependencies);
+		bag->Set("servicedependencies", m_ServiceDependencies);
+		bag->Set("hostcheck", m_HostCheck);
+		bag->Set("services", m_ServiceDescriptions);
+		bag->Set("notifications", m_NotificationDescriptions);
+	}
+}
+
+void Host::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_DisplayName = bag->Get("display_name");
+		m_HostGroups = bag->Get("hostgroups");
+		m_Macros = bag->Get("macros");
+		m_HostDependencies = bag->Get("hostdependencies");
+		m_ServiceDependencies = bag->Get("servicedependencies");
+		m_HostCheck = bag->Get("hostcheck");
+		m_ServiceDescriptions = bag->Get("services");
+		m_NotificationDescriptions = bag->Get("notifications");
+	}
 }

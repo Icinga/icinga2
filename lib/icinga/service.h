@@ -82,7 +82,8 @@ enum FlappingState
 {
 	FlappingStarted = 0,
 	FlappingDisabled = 1,
-	FlappingStopped = 2
+	FlappingStopped = 2,
+	FlappingEnabled = 3
 };
 
 /**
@@ -121,11 +122,7 @@ class I2_ICINGA_API Service : public DynamicObject, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Service);
-
-	explicit Service(const Dictionary::Ptr& serializedUpdate);
-	~Service(void);
-
-	static Service::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(Service);
 
 	static Service::Ptr GetByNamePair(const String& hostName, const String& serviceName);
 
@@ -251,9 +248,10 @@ public:
 	static StateType StateTypeFromString(const String& state);
 	static String StateTypeToString(StateType state);
 
-	static boost::signals2::signal<void (const Service::Ptr&)> OnCheckerChanged;
 	static boost::signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
-	static boost::signals2::signal<void (const Service::Ptr&, const String&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> OnNewCheckResult;
+	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> OnNotificationsRequested;
+	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> OnDowntimeChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&, CommentChangedType)> OnCommentsChanged;
@@ -283,8 +281,6 @@ public:
 	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
 	static bool IsDowntimeExpired(const Dictionary::Ptr& downtime);
 
-	static void InvalidateDowntimesCache(void);
-
 	bool IsInDowntime(void) const;
 	bool IsAcknowledged(void);
 
@@ -306,23 +302,22 @@ public:
 
 	static bool IsCommentExpired(const Dictionary::Ptr& comment);
 
-	static void InvalidateCommentsCache(void);
-
 	/* Notifications */
+	Dictionary::Ptr GetNotificationDescriptions(void) const;
+
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled);
 
-	void RequestNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author = "", const String& text = "");
 	void SendNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author = "", const String& text = "");
 
 	std::set<Notification::Ptr> GetNotifications(void) const;
+	void AddNotification(const Notification::Ptr& notification);
+	void RemoveNotification(const Notification::Ptr& notification);
 
 	void SetForceNextNotification(bool force);
 	bool GetForceNextNotification(void) const;
 
 	void ResetNotificationNumbers(void);
-
-	static void InvalidateNotificationsCache(void);
 
 	void UpdateSlaveNotifications(void);
 
@@ -341,99 +336,90 @@ public:
 	void UpdateFlappingStatus(bool stateChange);
 
 protected:
-	virtual void OnRegistrationCompleted(void);
-	virtual void OnAttributeChanged(const String& name);
+	virtual void Start(void);
+
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	Dictionary::Ptr m_SlaveNotifications;
-
-	Attribute<String> m_DisplayName;
-	Attribute<Dictionary::Ptr> m_Macros;
-	Attribute<Array::Ptr> m_HostDependencies;
-	Attribute<Array::Ptr> m_ServiceDependencies;
-	Attribute<Array::Ptr> m_ServiceGroups;
-	Attribute<String> m_ShortName;
-	Attribute<long> m_Acknowledgement;
-	Attribute<double> m_AcknowledgementExpiry;
-	Attribute<String> m_HostName;
-	Attribute<bool> m_Volatile;
+	String m_DisplayName;
+	Dictionary::Ptr m_Macros;
+	Array::Ptr m_HostDependencies;
+	Array::Ptr m_ServiceDependencies;
+	Array::Ptr m_ServiceGroups;
+	String m_ShortName;
+	Value m_Acknowledgement;
+	Value m_AcknowledgementExpiry;
+	String m_HostName;
+	Value m_Volatile;
 
 	/* Checks */
-	Attribute<String> m_CheckCommand;
-	Attribute<long> m_MaxCheckAttempts;
-	Attribute<String> m_CheckPeriod;
-	Attribute<double> m_CheckInterval;
-	Attribute<double> m_RetryInterval;
-	Attribute<double> m_NextCheck;
-	Attribute<Array::Ptr> m_Checkers;
-	Attribute<String> m_CurrentChecker;
-	Attribute<long> m_CheckAttempt;
-	Attribute<long> m_State;
-	Attribute<long> m_StateType;
-	Attribute<long> m_LastState;
-	Attribute<long> m_LastHardState;
-	Attribute<long> m_LastStateType;
-	Attribute<bool> m_LastReachable;
-	Attribute<Dictionary::Ptr> m_LastResult;
-	Attribute<double> m_LastStateChange;
-	Attribute<double> m_LastHardStateChange;
-	Attribute<double> m_LastStateOK;
-	Attribute<double> m_LastStateWarning;
-	Attribute<double> m_LastStateCritical;
-	Attribute<double> m_LastStateUnknown;
-	Attribute<double> m_LastStateUnreachable;
-	Attribute<bool> m_LastInDowntime;
-	Attribute<bool> m_EnableActiveChecks;
-	Attribute<bool> m_EnablePassiveChecks;
-	Attribute<bool> m_ForceNextCheck;
+	String m_CheckCommand;
+	Value m_MaxCheckAttempts;
+	String m_CheckPeriod;
+	Value m_CheckInterval;
+	Value m_RetryInterval;
+	double m_NextCheck;
+	Array::Ptr m_Checkers;
+	String m_CurrentChecker;
+	Value m_CheckAttempt;
+	Value m_State;
+	Value m_StateType;
+	Value m_LastState;
+	Value m_LastHardState;
+	Value m_LastStateType;
+	Value m_LastReachable;
+	Dictionary::Ptr m_LastResult;
+	Value m_LastStateChange;
+	Value m_LastHardStateChange;
+	Value m_LastStateOK;
+	Value m_LastStateWarning;
+	Value m_LastStateCritical;
+	Value m_LastStateUnknown;
+	Value m_LastStateUnreachable;
+	bool m_LastInDowntime;
+	Value m_EnableActiveChecks;
+	Value m_EnablePassiveChecks;
+	Value m_ForceNextCheck;
 
 	bool m_CheckRunning;
 	long m_SchedulingOffset;
 
-	static boost::once_flag m_OnceFlag;
-	static Endpoint::Ptr m_Endpoint;
-
-	static void Initialize(void);
-
 	/* Downtimes */
-	Attribute<Dictionary::Ptr> m_Downtimes;
+	Dictionary::Ptr m_Downtimes;
 
 	static void DowntimesExpireTimerHandler(void);
-	static void DowntimeRequestHandler(const RequestMessage& request);
 
 	void RemoveExpiredDowntimes(void);
 
-	static void RefreshDowntimesCache(void);
+	void AddDowntimesToCache(void);
 
 	/* Comments */
-	Attribute<Dictionary::Ptr> m_Comments;
+	Dictionary::Ptr m_Comments;
 
 	static void CommentsExpireTimerHandler(void);
 
-	void AddCommentsToCache(void);
 	void RemoveExpiredComments(void);
 
-	static void RefreshCommentsCache(void);
+	void AddCommentsToCache(void);
 
 	/* Notifications */
-	Attribute<bool> m_EnableNotifications;
-	Attribute<bool> m_ForceNextNotification;
+	Dictionary::Ptr m_NotificationDescriptions;
 
-	static void RefreshNotificationsCache(void);
+	Value m_EnableNotifications;
+	Value m_ForceNextNotification;
 
-	static void NotificationSentRequestHandler(const RequestMessage& request);
+	std::set<Notification::Ptr> m_Notifications;
 
 	/* Event Handler */
-	Attribute<String> m_EventCommand;
+	String m_EventCommand;
 
 	/* Flapping */
-	Attribute<bool> m_EnableFlapping;
-	Attribute<long> m_FlappingPositive;
-	Attribute<long> m_FlappingNegative;
-	Attribute<double> m_FlappingLastChange;
-	Attribute<double> m_FlappingThreshold;
-
-	static void FlappingRequestHandler(const RequestMessage& request);
+	Value m_EnableFlapping;
+	long m_FlappingPositive;
+	long m_FlappingNegative;
+	Value m_FlappingLastChange;
+	Value m_FlappingThreshold;
 };
 
 }

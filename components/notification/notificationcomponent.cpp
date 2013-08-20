@@ -30,32 +30,20 @@ using namespace icinga;
 
 REGISTER_TYPE(NotificationComponent);
 
-NotificationComponent::NotificationComponent(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{ }
-
 /**
  * Starts the component.
  */
 void NotificationComponent::Start(void)
 {
-	m_Endpoint = Endpoint::MakeEndpoint("notification", false);
-	m_Endpoint->RegisterTopicHandler("icinga::SendNotifications",
-	    boost::bind(&NotificationComponent::SendNotificationsRequestHandler, this, _2,
-	    _3));
+	DynamicObject::Start();
+
+	Service::OnNotificationsRequested.connect(bind(&NotificationComponent::SendNotificationsHandler, this, _1,
+	    _2, _3, _4, _5));
 
 	m_NotificationTimer = boost::make_shared<Timer>();
 	m_NotificationTimer->SetInterval(5);
 	m_NotificationTimer->OnTimerExpired.connect(boost::bind(&NotificationComponent::NotificationTimerHandler, this));
 	m_NotificationTimer->Start();
-}
-
-/**
- * Stops the component.
- */
-void NotificationComponent::Stop(void)
-{
-	m_Endpoint->Unregister();
 }
 
 /**
@@ -67,9 +55,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 {
 	double now = Utility::GetTime();
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Notification")) {
-		Notification::Ptr notification = dynamic_pointer_cast<Notification>(object);
-
+	BOOST_FOREACH(const Notification::Ptr& notification, DynamicType::GetObjects<Notification>()) {
 		if (notification->GetNotificationInterval() <= 0)
 			continue;
 
@@ -87,8 +73,6 @@ void NotificationComponent::NotificationTimerHandler(void)
 			ObjectLock olock(notification);
 			notification->SetNextNotification(Utility::GetTime() + notification->GetNotificationInterval());
 		}
-
-		bool send_notification;
 
 		{
 			ObjectLock olock(service);
@@ -120,34 +104,8 @@ void NotificationComponent::NotificationTimerHandler(void)
 /**
  * Processes icinga::SendNotifications messages.
  */
-void NotificationComponent::SendNotificationsRequestHandler(const Endpoint::Ptr& sender,
-    const RequestMessage& request)
+void NotificationComponent::SendNotificationsHandler(const Service::Ptr& service, NotificationType type,
+    const Dictionary::Ptr& cr, const String& author, const String& text)
 {
-	MessagePart params;
-	if (!request.GetParams(&params))
-		return;
-
-	String svc;
-	if (!params.Get("service", &svc))
-		return;
-
-	int type;
-	if (!params.Get("type", &type))
-		return;
-
-	Dictionary::Ptr cr;
-	if (!params.Get("check_result", &cr))
-		return;
-
-	Service::Ptr service = Service::GetByName(svc);
-
-	if (!service)
-		return;
-
-	String author;
-	params.Get("author", &author);
-	String text;
-	params.Get("text", &text);
-
 	service->SendNotifications(static_cast<NotificationType>(type), cr, author, text);
 }

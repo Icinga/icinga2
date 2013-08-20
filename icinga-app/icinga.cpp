@@ -39,18 +39,10 @@ using namespace icinga;
 namespace po = boost::program_options;
 
 static po::variables_map g_AppParams;
-static String g_ConfigUnit;
-
-#ifndef _WIN32
-static bool l_ReloadConfig = false;
-static Timer::Ptr l_ReloadConfigTimer;
-#endif /* _WIN32 */
 
 static bool LoadConfigFiles(bool validateOnly)
 {
-	ConfigCompilerContext context;
-
-	ConfigCompilerContext::SetContext(&context);
+	ConfigCompilerContext::GetInstance()->Reset();
 
 	BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<std::vector<String> >()) {
 		ConfigCompiler::CompileFile(configPath);
@@ -61,11 +53,9 @@ static bool LoadConfigFiles(bool validateOnly)
 		ConfigCompiler::CompileText(name, fragment);
 	}
 
-	ConfigCompilerContext::SetContext(NULL);
-
 	bool hasError = false;
 
-	BOOST_FOREACH(const ConfigCompilerError& error, context.GetErrors()) {
+	BOOST_FOREACH(const ConfigCompilerError& error, ConfigCompilerContext::GetInstance()->GetErrors()) {
 		if (!error.Warning) {
 			hasError = true;
 			break;
@@ -74,13 +64,13 @@ static bool LoadConfigFiles(bool validateOnly)
 
 	/* Don't link or validate if we have already encountered at least one error. */
 	if (!hasError) {
-		context.LinkItems();
-		context.ValidateItems();
+		ConfigItem::LinkItems();
+		ConfigItem::ValidateItems();
 	}
 
 	hasError = false;
 
-	BOOST_FOREACH(const ConfigCompilerError& error, context.GetErrors()) {
+	BOOST_FOREACH(const ConfigCompilerError& error, ConfigCompilerContext::GetInstance()->GetErrors()) {
 		if (error.Warning) {
 			Log(LogWarning, "icinga-app", "Config warning: " + error.Message);
 		} else {
@@ -95,39 +85,13 @@ static bool LoadConfigFiles(bool validateOnly)
 	if (validateOnly)
 		return true;
 
-	context.ActivateItems();
+	ConfigItem::ActivateItems();
 
-	if (!g_ConfigUnit.IsEmpty()) {
-		/* ActivateItems has taken care of replacing all previous items
-		 * with new versions - which are automatically in a different
-		 * compilation unit. This UnloadUnit() call takes care of
-		 * removing all left-over items from the previous config. */
-		ConfigItem::UnloadUnit(g_ConfigUnit);
-	}
-
-	g_ConfigUnit = context.GetUnit();
+	ConfigItem::DiscardItems();
+	ConfigType::DiscardTypes();
 
 	return true;
 }
-
-#ifndef _WIN32
-static void ReloadConfigTimerHandler(void)
-{
-	if (l_ReloadConfig) {
-		Log(LogInformation, "icinga-app", "Received SIGHUP. Reloading config files.");
-		LoadConfigFiles(false);
-
-		l_ReloadConfig = false;
-	}
-}
-
-static void SigHupHandler(int signum)
-{
-	ASSERT(signum == SIGHUP);
-
-	l_ReloadConfig = true;
-}
-#endif /* _WIN32 */
 
 static bool Daemonize(const String& stderrFile)
 {
@@ -342,18 +306,6 @@ int main(int argc, char **argv)
 
 	if (!app)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Configuration must create an Application object."));
-
-#ifndef _WIN32
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &SigHupHandler;
-	sigaction(SIGHUP, &sa, NULL);
-
-	l_ReloadConfigTimer = boost::make_shared<Timer>();
-	l_ReloadConfigTimer->SetInterval(1);
-	l_ReloadConfigTimer->OnTimerExpired.connect(boost::bind(&ReloadConfigTimerHandler));
-	l_ReloadConfigTimer->Start();
-#endif /* _WIN32 */
 
 	return app->Run();
 }

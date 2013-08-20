@@ -35,10 +35,7 @@ class I2_ICINGA_API EventCommand : public Command
 {
 public:
 	DECLARE_PTR_TYPEDEFS(EventCommand);
-
-	explicit EventCommand(const Dictionary::Ptr& serializedUpdate);
-
-	static EventCommand::Ptr GetByName(const String& name);
+	DECLARE_TYPENAME(EventCommand);
 
 	virtual void Execute(const Service::Ptr& context);
 };

@@ -28,31 +28,7 @@
 
 using namespace icinga;
 
-static boost::mutex l_Mutex;
-static std::map<String, std::vector<Host::WeakPtr> > l_MembersCache;
-static bool l_MembersCacheNeedsUpdate = false;
-static Timer::Ptr l_MembersCacheTimer;
-boost::signals2::signal<void (void)> HostGroup::OnMembersChanged;
-
 REGISTER_TYPE(HostGroup);
-
-HostGroup::HostGroup(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
-{
-	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-}
-
-HostGroup::~HostGroup(void)
-{
-	InvalidateMembersCache();
-}
-
-void HostGroup::OnRegistrationCompleted(void)
-{
-	ASSERT(!OwnsLock());
-
-	InvalidateMembersCache();
-}
 
 String HostGroup::GetDisplayName(void) const
 {
@@ -62,86 +38,33 @@ String HostGroup::GetDisplayName(void) const
 		return GetName();
 }
 
-HostGroup::Ptr HostGroup::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("HostGroup", name);
-
-	if (!configObject)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("HostGroup '" + name + "' does not exist."));
-
-	return dynamic_pointer_cast<HostGroup>(configObject);
-}
-
 std::set<Host::Ptr> HostGroup::GetMembers(void) const
 {
-	std::set<Host::Ptr> hosts;
-
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
-
-		BOOST_FOREACH(const Host::WeakPtr& whost, l_MembersCache[GetName()]) {
-			Host::Ptr host = whost.lock();
-
-			if (!host)
-				continue;
-
-			hosts.insert(host);
-		}
-	}
-
-	return hosts;
+	return m_Members;
 }
 
-void HostGroup::InvalidateMembersCache(void)
+void HostGroup::AddMember(const Host::Ptr& host)
 {
-	boost::mutex::scoped_lock lock(l_Mutex);
-
-	if (l_MembersCacheNeedsUpdate)
-		return; /* Someone else has already requested a refresh. */
-
-	if (!l_MembersCacheTimer) {
-		l_MembersCacheTimer = boost::make_shared<Timer>();
-		l_MembersCacheTimer->SetInterval(0.5);
-		l_MembersCacheTimer->OnTimerExpired.connect(boost::bind(&HostGroup::RefreshMembersCache));
-		l_MembersCacheTimer->Start();
-	}
-
-	l_MembersCacheNeedsUpdate = true;
+	m_Members.insert(host);
 }
 
-void HostGroup::RefreshMembersCache(void)
+void HostGroup::RemoveMember(const Host::Ptr& host)
 {
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
+	m_Members.erase(host);
+}
 
-		if (!l_MembersCacheNeedsUpdate)
-			return;
+void HostGroup::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
 
-		l_MembersCacheNeedsUpdate = false;
-	}
+	if (attributeTypes & Attribute_Config)
+		bag->Set("display_name", m_DisplayName);
+}
 
-	Log(LogDebug, "icinga", "Updating HostGroup members cache.");
+void HostGroup::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
-	std::map<String, std::vector<Host::WeakPtr> > newMembersCache;
-
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects("Host")) {
-		const Host::Ptr& host = static_pointer_cast<Host>(object);
-
-		Array::Ptr groups;
-		groups = host->GetGroups();
-
-		if (groups) {
-			ObjectLock mlock(groups);
-			BOOST_FOREACH(const Value& group, groups) {
-				newMembersCache[group].push_back(host);
-			}
-		}
-	}
-
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
-		l_MembersCache.swap(newMembersCache);
-	}
-
-	OnMembersChanged();
+	if (attributeTypes & Attribute_Config)
+		m_DisplayName = bag->Get("display_name");
 }

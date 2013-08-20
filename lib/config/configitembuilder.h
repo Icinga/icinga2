@@ -45,8 +45,6 @@ public:
 
 	void SetType(const String& type);
 	void SetName(const String& name);
-	void SetUnit(const String& unit);
-	void SetLocal(bool local);
 	void SetAbstract(bool abstract);
 
 	void AddParent(const String& parent);
@@ -61,8 +59,6 @@ public:
 private:
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
-	String m_Unit; /**< The compilation unit. */
-	bool m_Local; /**< Whether the item is local. */
 	bool m_Abstract; /**< Whether the item is abstract. */
 	std::vector<String> m_Parents; /**< The names of parent configuration
 				       items. */

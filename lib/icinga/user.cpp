@@ -27,37 +27,36 @@ using namespace icinga;
 
 REGISTER_TYPE(User);
 
-User::User(const Dictionary::Ptr& serializedUpdate)
-	: DynamicObject(serializedUpdate)
+void User::Start(void)
 {
-	RegisterAttribute("display_name", Attribute_Config, &m_DisplayName);
-	RegisterAttribute("macros", Attribute_Config, &m_Macros);
-	RegisterAttribute("groups", Attribute_Config, &m_Groups);
-	RegisterAttribute("enable_notifications", Attribute_Config, &m_EnableNotifications);
-	RegisterAttribute("notification_period", Attribute_Config, &m_NotificationPeriod);
-	RegisterAttribute("notification_type_filter", Attribute_Config, &m_NotificationTypeFilter);
-	RegisterAttribute("notification_state_filter", Attribute_Config, &m_NotificationStateFilter);
-	RegisterAttribute("last_notification", Attribute_Replicated, &m_LastNotification);
+	DynamicObject::Start();
+
+	Array::Ptr groups = GetGroups();
+
+	if (groups) {
+		BOOST_FOREACH(const String& name, groups) {
+			UserGroup::Ptr ug = UserGroup::GetByName(name);
+
+			if (ug)
+				ug->AddMember(GetSelf());
+		}
+	}
 }
 
-User::~User(void)
+void User::Stop(void)
 {
-	UserGroup::InvalidateMembersCache();
-}
+	DynamicObject::Stop();
 
-void User::OnAttributeChanged(const String& name)
-{
-	ASSERT(!OwnsLock());
+	Array::Ptr groups = GetGroups();
 
-	if (name == "groups")
-		UserGroup::InvalidateMembersCache();
-}
+	if (groups) {
+		BOOST_FOREACH(const String& name, groups) {
+			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
-User::Ptr User::GetByName(const String& name)
-{
-	DynamicObject::Ptr configObject = DynamicObject::GetObject("User", name);
-
-	return dynamic_pointer_cast<User>(configObject);
+			if (ug)
+				ug->RemoveMember(GetSelf());
+		}
+	}
 }
 
 String User::GetDisplayName(void) const
@@ -89,7 +88,6 @@ bool User::GetEnableNotifications(void) const
 void User::SetEnableNotifications(bool enabled)
 {
 	m_EnableNotifications = enabled;
-	Touch("enable_notifications");
 }
 
 TimePeriod::Ptr User::GetNotificationPeriod(void) const
@@ -116,7 +114,6 @@ unsigned long User::GetNotificationStateFilter(void) const
 void User::SetLastNotification(double ts)
 {
 	m_LastNotification = ts;
-	Touch("last_notification");
 }
 
 double User::GetLastNotification(void) const
@@ -124,7 +121,7 @@ double User::GetLastNotification(void) const
 	return m_LastNotification;
 }
 
-bool User::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
+bool User::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
 	if (macro == "CONTACTNAME") {
 		*result = GetName();
@@ -144,3 +141,36 @@ bool User::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *
 	}
 }
 
+void User::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("display_name", m_DisplayName);
+		bag->Set("macros", m_Macros);
+		bag->Set("groups", m_Groups);
+		bag->Set("notification_period", m_NotificationPeriod);
+		bag->Set("notification_type_filter", m_NotificationTypeFilter);
+		bag->Set("notification_state_filter", m_NotificationStateFilter);
+	}
+
+	bag->Set("enable_notifications", m_EnableNotifications);
+	bag->Set("last_notification", m_LastNotification);
+}
+
+void User::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_DisplayName = bag->Get("display_name");
+		m_Macros = bag->Get("macros");
+		m_Groups = bag->Get("groups");
+		m_NotificationPeriod = bag->Get("notification_period");
+		m_NotificationTypeFilter = bag->Get("notification_type_filter");
+		m_NotificationStateFilter = bag->Get("notification_state_filter");
+	}
+
+	m_EnableNotifications = bag->Get("enable_notifications");
+	m_LastNotification = bag->Get("last_notification");
+}

@@ -37,18 +37,6 @@ REGISTER_TYPE(IcingaApplication);
 #	define ICINGA_VERSION GIT_MESSAGE
 #endif /* _WIN32 */
 
-IcingaApplication::IcingaApplication(const Dictionary::Ptr& serializedUpdate)
-	: Application(serializedUpdate)
-{
-	RegisterAttribute("cert_path", Attribute_Config, &m_CertPath);
-	RegisterAttribute("ca_path", Attribute_Config, &m_CAPath);
-	RegisterAttribute("node", Attribute_Config, &m_Node);
-	RegisterAttribute("service", Attribute_Config, &m_Service);
-	RegisterAttribute("pid_path", Attribute_Config, &m_PidPath);
-	RegisterAttribute("state_path", Attribute_Config, &m_StatePath);
-	RegisterAttribute("macros", Attribute_Config, &m_Macros);
-}
-
 /**
  * The entry point for the Icinga application.
  *
@@ -214,4 +202,34 @@ bool IcingaApplication::ResolveMacro(const String& macro, const Dictionary::Ptr&
 	}
 
 	return false;
+}
+
+void IcingaApplication::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("cert_path", m_CertPath);
+		bag->Set("ca_path", m_CAPath);
+		bag->Set("node", m_Node);
+		bag->Set("service", m_Service);
+		bag->Set("pid_path", m_PidPath);
+		bag->Set("state_path", m_StatePath);
+		bag->Set("macros", m_Macros);
+	}
+}
+
+void IcingaApplication::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		m_CertPath = bag->Get("cert_path");
+		m_CAPath = bag->Get("ca_path");
+		m_Node = bag->Get("node");
+		m_Service = bag->Get("service");
+		m_PidPath = bag->Get("pid_path");
+		m_StatePath = bag->Get("state_path");
+		m_Macros = bag->Get("macros");
+	}
 }

@@ -41,13 +41,9 @@ class I2_REMOTING_API Endpoint : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Endpoint);
+	DECLARE_TYPENAME(Endpoint);
 
 	typedef void (Callback)(const Endpoint::Ptr&, const Endpoint::Ptr&, const RequestMessage&);
-
-	explicit Endpoint(const Dictionary::Ptr& serializedUpdate);
-	~Endpoint(void);
-
-	static Endpoint::Ptr GetByName(const String& name);
 
 	Stream::Ptr GetClient(void) const;
 	void SetClient(const Stream::Ptr& client);
@@ -76,11 +72,15 @@ public:
 
 	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
 
+protected:
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 private:
-	Attribute<bool> m_Local;
-	Attribute<Dictionary::Ptr> m_Subscriptions;
-	Attribute<String> m_Node;
-	Attribute<String> m_Service;
+	bool m_Local;
+	Dictionary::Ptr m_Subscriptions;
+	String m_Node;
+	String m_Service;
 
 	Stream::Ptr m_Client;
 

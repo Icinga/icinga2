@@ -21,6 +21,8 @@
 #include "livestatus/component.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
+#include "icinga/host.h"
+#include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/utility.h"
 #include <boost/smart_ptr/make_shared.hpp>
@@ -334,12 +336,12 @@ Value StatusTable::IntervalLengthAccessor(const Value& row)
 
 Value StatusTable::NumHostsAccessor(const Value& row)
 {
-	return static_cast<long>(DynamicType::GetObjects("Host").size());
+	return DynamicType::GetObjects<Host>().size();
 }
 
 Value StatusTable::NumServicesAccessor(const Value& row)
 {
-	return static_cast<long>(DynamicType::GetObjects("Service").size());
+	return DynamicType::GetObjects<Service>().size();
 }
 
 Value StatusTable::ProgramVersionAccessor(const Value& row)
