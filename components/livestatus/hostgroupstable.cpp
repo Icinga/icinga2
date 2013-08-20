@@ -153,7 +153,7 @@ Value HostGroupsTable::WorstHostStateAccessor(const Value& row)
 
 Value HostGroupsTable::NumHostsAccessor(const Value& row)
 {
-	return static_cast<HostGroup::Ptr>(row)->GetMembers().size();
+	return static_cast<long>(static_cast<HostGroup::Ptr>(row)->GetMembers().size());
 }
 
 Value HostGroupsTable::NumHostsPendingAccessor(const Value& row)

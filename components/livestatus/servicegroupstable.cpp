@@ -149,7 +149,7 @@ Value ServiceGroupsTable::WorstServiceStateAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesAccessor(const Value& row)
 {
-	return static_cast<ServiceGroup::Ptr>(row)->GetMembers().size();
+	return static_cast<long>(static_cast<ServiceGroup::Ptr>(row)->GetMembers().size());
 }
 
 Value ServiceGroupsTable::NumServicesOkAccessor(const Value& row)

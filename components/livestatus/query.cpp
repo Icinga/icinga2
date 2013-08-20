@@ -192,7 +192,7 @@ Query::Query(const std::vector<String>& lines)
 			if (num > deq.size()) {
 				m_Verb = "ERROR";
 				m_ErrorCode = 451;
-				m_ErrorMessage = "Or/StatsOr is referencing " + Convert::ToString(num) + " filters; stack only contains " + Convert::ToString(deq.size()) + " filters";
+				m_ErrorMessage = "Or/StatsOr is referencing " + Convert::ToString(num) + " filters; stack only contains " + Convert::ToString(static_cast<long>(deq.size())) + " filters";
 				return;
 			}
 
@@ -440,7 +440,7 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 	ASSERT(code >= 100 && code <= 999);
 
 	String sCode = Convert::ToString(code);
-	String sLength = Convert::ToString(data.GetLength());
+	String sLength = Convert::ToString(static_cast<long>(data.GetLength()));
 
 	String header = sCode + String(16 - 3 - sLength.GetLength() - 1, ' ') + sLength + m_Separators[0];
 	stream->Write(header.CStr(), header.GetLength());

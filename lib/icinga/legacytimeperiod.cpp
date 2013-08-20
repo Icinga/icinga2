@@ -429,7 +429,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 		}
 	}
 
-	Log(LogDebug, "icinga", "Legacy timeperiod update returned " + Convert::ToString(segments->GetLength()) + " segments.");
+	Log(LogDebug, "icinga", "Legacy timeperiod update returned " + Convert::ToString(static_cast<long>(segments->GetLength())) + " segments.");
 
 	return segments;
 }
