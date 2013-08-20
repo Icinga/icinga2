@@ -324,7 +324,7 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
-	Log(LogDebug, "icinga", "ParseTimeRange: '" + daydef + "' => " + Convert::ToString(mktime(&begin)) + " -> " + Convert::ToString(mktime(&end)) + ", stride: " + Convert::ToString(stride));
+	Log(LogDebug, "icinga", "ParseTimeRange: '" + daydef + "' => " + Convert::ToString(static_cast<long>(mktime(&begin))) + " -> " + Convert::ToString(static_cast<long>(mktime(&end))) + ", stride: " + Convert::ToString(stride));
 
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
@@ -393,7 +393,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 			time_t refts = begin + i * 24 * 60 * 60;
 			tm reference;
 
-			Log(LogDebug, "icinga", "Checking reference time " + Convert::ToString(refts));
+			Log(LogDebug, "icinga", "Checking reference time " + Convert::ToString(static_cast<long>(refts)));
 
 #ifdef _MSC_VER
 			tm *temp = localtime(&refts);

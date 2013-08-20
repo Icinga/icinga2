@@ -29,9 +29,9 @@ namespace icinga
 /**
  * A command.
  *
- * @ingroup base
+ * @ingroup icinga
  */
-class I2_BASE_API CheckCommand : public Command
+class I2_ICINGA_API CheckCommand : public Command
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CheckCommand);

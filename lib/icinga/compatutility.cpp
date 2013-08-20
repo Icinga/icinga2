@@ -277,7 +277,7 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("max_attempts", service->GetMaxCheckAttempts());
 	attr->Set("last_state_change", service->GetLastStateChange());
 	attr->Set("last_hard_state_change", service->GetLastHardStateChange());
-	attr->Set("last_update", time(NULL));
+	attr->Set("last_update", static_cast<long>(time(NULL)));
 	attr->Set("process_performance_data", 1); /* always enabled */
 	attr->Set("freshness_checks_enabled", 1); /* always enabled */
 	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));

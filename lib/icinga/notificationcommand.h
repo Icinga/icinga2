@@ -31,9 +31,9 @@ class Notification;
 /**
  * A notification command.
  *
- * @ingroup base
+ * @ingroup icinga
  */
-class I2_BASE_API NotificationCommand : public Command
+class I2_ICINGA_API NotificationCommand : public Command
 {
 public:
 	DECLARE_PTR_TYPEDEFS(NotificationCommand);

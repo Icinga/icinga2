@@ -29,9 +29,9 @@ namespace icinga
 /**
  * An event handler command.
  *
- * @ingroup base
+ * @ingroup icinga
  */
-class I2_BASE_API EventCommand : public Command
+class I2_ICINGA_API EventCommand : public Command
 {
 public:
 	DECLARE_PTR_TYPEDEFS(EventCommand);

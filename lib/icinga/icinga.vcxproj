@@ -20,9 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api.cpp" />
+    <ClCompile Include="checkcommand.cpp" />
     <ClCompile Include="checkresultmessage.cpp" />
     <ClCompile Include="cib.cpp" />
+    <ClCompile Include="command.cpp" />
+    <ClCompile Include="compatutility.cpp" />
     <ClCompile Include="downtimemessage.cpp" />
+    <ClCompile Include="eventcommand.cpp" />
     <ClCompile Include="externalcommandprocessor.cpp" />
     <ClCompile Include="flappingmessage.cpp" />
     <ClCompile Include="host.cpp" />
@@ -38,11 +42,17 @@
     <ClCompile Include="macroprocessor.cpp" />
     <ClCompile Include="macroresolver.cpp" />
     <ClCompile Include="notification.cpp" />
+    <ClCompile Include="notificationcommand.cpp" />
     <ClCompile Include="notificationmessage.cpp" />
     <ClCompile Include="notificationrequestmessage.cpp" />
+    <ClCompile Include="nulleventtask.cpp" />
+    <ClCompile Include="perfdatawriter.cpp" />
     <ClCompile Include="pluginchecktask.cpp" />
     <ClCompile Include="nullchecktask.cpp" />
+    <ClCompile Include="plugineventtask.cpp" />
     <ClCompile Include="pluginnotificationtask.cpp" />
+    <ClCompile Include="service-event.cpp" />
+    <ClCompile Include="service-flapping.cpp" />
     <ClCompile Include="service-notification.cpp" />
     <ClCompile Include="service.cpp" />
     <ClCompile Include="service-check.cpp" />
@@ -55,9 +65,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="api.h" />
+    <ClInclude Include="checkcommand.h" />
     <ClInclude Include="checkresultmessage.h" />
     <ClInclude Include="cib.h" />
+    <ClInclude Include="command.h" />
+    <ClInclude Include="compatutility.h" />
     <ClInclude Include="downtimemessage.h" />
+    <ClInclude Include="eventcommand.h" />
     <ClInclude Include="externalcommandprocessor.h" />
     <ClInclude Include="flappingmessage.h" />
     <ClInclude Include="host.h" />
@@ -68,10 +82,14 @@
     <ClInclude Include="macroprocessor.h" />
     <ClInclude Include="macroresolver.h" />
     <ClInclude Include="notification.h" />
+    <ClInclude Include="notificationcommand.h" />
     <ClInclude Include="notificationmessage.h" />
     <ClInclude Include="notificationrequestmessage.h" />
+    <ClInclude Include="nulleventtask.h" />
+    <ClInclude Include="perfdatawriter.h" />
     <ClInclude Include="pluginchecktask.h" />
     <ClInclude Include="nullchecktask.h" />
+    <ClInclude Include="plugineventtask.h" />
     <ClInclude Include="pluginnotificationtask.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="servicegroup.h" />

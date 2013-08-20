@@ -90,9 +90,6 @@
     <ClInclude Include="column.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="servicegroupstable.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="servicestable.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -103,6 +100,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="downtimestable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="avgaggregator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="servicegroupsstable.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -146,27 +149,6 @@
     <ClCompile Include="countaggregator.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="sumaggregator.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="avgaggregator.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="minaggregator.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="maxaggregator.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="stdaggregator.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="invavgaggregator.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="invsumaggregator.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="attributefilter.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -201,6 +183,27 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="livestatus-type.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="avgaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="invavgaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="invsumaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="maxaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="minaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="stdaggregator.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="sumaggregator.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

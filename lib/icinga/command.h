@@ -33,9 +33,9 @@ namespace icinga
 /**
  * A command.
  *
- * @ingroup base
+ * @ingroup icinga
  */
-class I2_BASE_API Command : public DynamicObject, public MacroResolver
+class I2_ICINGA_API Command : public DynamicObject, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Command);

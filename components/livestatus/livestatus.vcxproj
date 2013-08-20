@@ -54,14 +54,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="aggregator.cpp" />
+    <ClCompile Include="avgaggregator.cpp" />
     <ClCompile Include="countaggregator.cpp" />
-    <ClCompile Include="sumaggregator.cpp" />
-    <ClInclude Include="avgaggregator.cpp" />
-    <ClInclude Include="minaggregator.cpp" />
-    <ClInclude Include="maxaggregator.cpp" />
-    <ClInclude Include="stdaggregator.cpp" />
-    <ClInclude Include="invsumaggregator.cpp" />
-    <ClInclude Include="invavgaggregator.cpp" />
     <ClCompile Include="andfilter.cpp" />
     <ClCompile Include="attributefilter.cpp" />
     <ClCompile Include="column.cpp" />
@@ -75,13 +69,19 @@
     <ClCompile Include="filter.cpp" />
     <ClCompile Include="hostgroupstable.cpp" />
     <ClCompile Include="hoststable.cpp" />
+    <ClCompile Include="invavgaggregator.cpp" />
+    <ClCompile Include="invsumaggregator.cpp" />
     <ClCompile Include="livestatus-type.cpp" />
+    <ClCompile Include="maxaggregator.cpp" />
+    <ClCompile Include="minaggregator.cpp" />
     <ClCompile Include="negatefilter.cpp" />
     <ClCompile Include="orfilter.cpp" />
     <ClCompile Include="query.cpp" />
     <ClCompile Include="servicegroupstable.cpp" />
     <ClCompile Include="servicestable.cpp" />
     <ClCompile Include="statustable.cpp" />
+    <ClCompile Include="stdaggregator.cpp" />
+    <ClCompile Include="sumaggregator.cpp" />
     <ClCompile Include="timeperiodstable.cpp" />
     <ClCompile Include="logtable.cpp" />
     <ClCompile Include="table.cpp" />

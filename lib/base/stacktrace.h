@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class StackTrace
+class I2_BASE_API StackTrace
 {
 public:
 	StackTrace(void);
