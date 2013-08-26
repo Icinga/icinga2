@@ -21,8 +21,6 @@
 #define ENDPOINT_H
 
 #include "remoting/i2-remoting.h"
-#include "remoting/requestmessage.h"
-#include "remoting/responsemessage.h"
 #include "base/dynamicobject.h"
 #include "base/stream.h"
 #include <boost/signals2.hpp>
@@ -43,34 +41,18 @@ public:
 	DECLARE_PTR_TYPEDEFS(Endpoint);
 	DECLARE_TYPENAME(Endpoint);
 
-	typedef void (Callback)(const Endpoint::Ptr&, const Endpoint::Ptr&, const RequestMessage&);
+	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
+	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
 
 	Stream::Ptr GetClient(void) const;
 	void SetClient(const Stream::Ptr& client);
 
-	void RegisterSubscription(const String& topic);
-	void UnregisterSubscription(const String& topic);
-	bool HasSubscription(const String& topic) const;
-
-	Dictionary::Ptr GetSubscriptions(void) const;
-	void SetSubscriptions(const Dictionary::Ptr& subscriptions);
-
-	bool IsLocalEndpoint(void) const;
 	bool IsConnected(void) const;
 
-	void ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage& message);
-	void ProcessResponse(const Endpoint::Ptr& sender, const ResponseMessage& message);
+	void SendMessage(const Dictionary::Ptr& request);
 
-	void ClearSubscriptions(void);
-
-	void RegisterTopicHandler(const String& topic, const boost::function<Callback>& callback);
-
-	String GetNode(void) const;
-	String GetService(void) const;
-
-	static Endpoint::Ptr MakeEndpoint(const String& name, bool replicated, bool local = true);
-
-	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
+	String GetHost(void) const;
+	String GetPort(void) const;
 
 protected:
 	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
@@ -79,17 +61,10 @@ protected:
 private:
 	bool m_Local;
 	Dictionary::Ptr m_Subscriptions;
-	String m_Node;
-	String m_Service;
+	String m_Host;
+	String m_Port;
 
 	Stream::Ptr m_Client;
-
-	bool m_ReceivedWelcome; /**< Have we received a welcome message
-				     from this endpoint? */
-	bool m_SentWelcome; /**< Have we sent a welcome message to this
-			         endpoint? */
-
-	std::map<String, shared_ptr<boost::signals2::signal<Callback> > > m_TopicHandlers;
 
 	void MessageThreadProc(const Stream::Ptr& stream);
 };

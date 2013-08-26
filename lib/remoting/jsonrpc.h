@@ -21,8 +21,8 @@
 #define JSONRPC_H
 
 #include "remoting/i2-remoting.h"
-#include "remoting/messagepart.h"
 #include "base/stream.h"
+#include "base/dictionary.h"
 
 namespace icinga
 {
@@ -35,8 +35,8 @@ namespace icinga
 class I2_REMOTING_API JsonRpc
 {
 public:
-	static void SendMessage(const Stream::Ptr& stream, const MessagePart& message);
-	static MessagePart ReadMessage(const Stream::Ptr& stream);
+	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
+	static Dictionary::Ptr ReadMessage(const Stream::Ptr& stream);
 
 private:
 	JsonRpc(void);

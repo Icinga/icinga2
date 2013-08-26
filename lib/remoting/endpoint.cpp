@@ -33,37 +33,7 @@ using namespace icinga;
 REGISTER_TYPE(Endpoint);
 
 boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
-
-/**
- * Helper function for creating new endpoint objects.
- *
- * @param name The name of the new endpoint.
- * @param replicated Whether replication is enabled for the endpoint object.
- * @param local Whether the new endpoint should be local.
- * @returns The new endpoint.
- */
-Endpoint::Ptr Endpoint::MakeEndpoint(const String& name, bool replicated, bool local)
-{
-	ConfigItemBuilder::Ptr endpointConfig = boost::make_shared<ConfigItemBuilder>();
-	endpointConfig->SetType("Endpoint");
-	endpointConfig->SetName((!replicated && local) ? "local:" + name : name);
-	//TODO: endpointConfig->SetLocal(!replicated);
-	endpointConfig->AddExpression("local", OperatorSet, local);
-
-	ConfigItem::Ptr item = endpointConfig->Compile();
-	DynamicObject::Ptr object = item->Commit();
-	return dynamic_pointer_cast<Endpoint>(object);
-}
-
-/**
- * Checks whether this is a local endpoint.
- *
- * @returns true if this is a local endpoint, false otherwise.
- */
-bool Endpoint::IsLocalEndpoint(void) const
-{
-	return m_Local;
-}
+boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> Endpoint::OnMessageReceived;
 
 /**
  * Checks whether this endpoint is connected.
@@ -72,11 +42,7 @@ bool Endpoint::IsLocalEndpoint(void) const
  */
 bool Endpoint::IsConnected(void) const
 {
-	if (IsLocalEndpoint()) {
-		return true;
-	} else {
-		return GetClient();
-	}
+	return GetClient();
 }
 
 Stream::Ptr Endpoint::GetClient(void) const
@@ -100,159 +66,28 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 	OnConnected(GetSelf());
 }
 
-/**
- * Registers a topic subscription for this endpoint.
- *
- * @param topic The name of the topic.
- */
-void Endpoint::RegisterSubscription(const String& topic)
-{
-	Dictionary::Ptr subscriptions = GetSubscriptions();
-
-	if (!subscriptions)
-		subscriptions = boost::make_shared<Dictionary>();
-
-	if (!subscriptions->Contains(topic)) {
-		Dictionary::Ptr newSubscriptions = subscriptions->ShallowClone();
-		newSubscriptions->Set(topic, topic);
-
-		ObjectLock olock(this);
-		SetSubscriptions(newSubscriptions);
-	}
-}
-
-/**
- * Removes a topic subscription from this endpoint.
- *
- * @param topic The name of the topic.
- */
-void Endpoint::UnregisterSubscription(const String& topic)
-{
-	Dictionary::Ptr subscriptions = GetSubscriptions();
-
-	if (!subscriptions)
-		return;
-
-	if (subscriptions->Contains(topic)) {
-		Dictionary::Ptr newSubscriptions = subscriptions->ShallowClone();
-		newSubscriptions->Remove(topic);
-		SetSubscriptions(newSubscriptions);
-	}
-}
-
-/**
- * Checks whether the endpoint has a subscription for the specified topic.
- *
- * @param topic The name of the topic.
- * @returns true if the endpoint is subscribed to the topic, false otherwise.
- */
-bool Endpoint::HasSubscription(const String& topic) const
-{
-	Dictionary::Ptr subscriptions = GetSubscriptions();
-
-	return (subscriptions && subscriptions->Contains(topic));
-}
-
-/**
- * Removes all subscriptions for the endpoint.
- */
-void Endpoint::ClearSubscriptions(void)
-{
-	m_Subscriptions = Empty;
-}
-
-Dictionary::Ptr Endpoint::GetSubscriptions(void) const
-{
-	return m_Subscriptions;
-}
-
-void Endpoint::SetSubscriptions(const Dictionary::Ptr& subscriptions)
-{
-	subscriptions->Seal();
-	m_Subscriptions = subscriptions;
-}
-
-void Endpoint::RegisterTopicHandler(const String& topic, const boost::function<Endpoint::Callback>& callback)
-{
-	ObjectLock olock(this);
-
-	std::map<String, shared_ptr<boost::signals2::signal<Endpoint::Callback> > >::iterator it;
-	it = m_TopicHandlers.find(topic);
-
-	shared_ptr<boost::signals2::signal<Endpoint::Callback> > sig;
-
-	if (it == m_TopicHandlers.end()) {
-		sig = boost::make_shared<boost::signals2::signal<Endpoint::Callback> >();
-		m_TopicHandlers.insert(make_pair(topic, sig));
-	} else {
-		sig = it->second;
-	}
-
-	sig->connect(callback);
-
-	olock.Unlock();
-
-	RegisterSubscription(topic);
-}
-
-void Endpoint::ProcessRequest(const Endpoint::Ptr& sender, const RequestMessage& request)
+void Endpoint::SendMessage(const Dictionary::Ptr& message)
 {
 	if (!IsConnected()) {
 		// TODO: persist the message
 		return;
 	}
 
-	if (IsLocalEndpoint()) {
-		ObjectLock olock(this);
+	try {
+		JsonRpc::SendMessage(GetClient(), message);
+	} catch (const std::exception& ex) {
+		std::ostringstream msgbuf;
+		msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << boost::diagnostic_information(ex);
+		Log(LogWarning, "remoting", msgbuf.str());
 
-		String method;
-		if (!request.GetMethod(&method))
-			return;
-
-		std::map<String, shared_ptr<boost::signals2::signal<Endpoint::Callback> > >::iterator it;
-		it = m_TopicHandlers.find(method);
-
-		if (it == m_TopicHandlers.end())
-			return;
-
-		Utility::QueueAsyncCallback(boost::bind(boost::ref(*it->second), GetSelf(), sender, request));
-	} else {
-		try {
-			JsonRpc::SendMessage(GetClient(), request);
-		} catch (const std::exception& ex) {
-			std::ostringstream msgbuf;
-			msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << boost::diagnostic_information(ex);
-			Log(LogWarning, "remoting", msgbuf.str());
-
-			m_Client.reset();
-		}
-	}
-}
-
-void Endpoint::ProcessResponse(const Endpoint::Ptr& sender, const ResponseMessage& response)
-{
-	if (!IsConnected())
-		return;
-
-	if (IsLocalEndpoint())
-		EndpointManager::GetInstance()->ProcessResponseMessage(sender, response);
-	else {
-		try {
-			JsonRpc::SendMessage(GetClient(), response);
-		} catch (const std::exception& ex) {
-			std::ostringstream msgbuf;
-			msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << boost::diagnostic_information(ex);
-			Log(LogWarning, "remoting", msgbuf.str());
-
-			m_Client.reset();
-		}
+		m_Client.reset();
 	}
 }
 
 void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 {
 	for (;;) {
-		MessagePart message;
+		Dictionary::Ptr message;
 
 		try {
 			message = JsonRpc::ReadMessage(stream);
@@ -262,26 +97,7 @@ void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 			m_Client.reset();
 		}
 
-		Endpoint::Ptr sender = GetSelf();
-
-		if (ResponseMessage::IsResponseMessage(message)) {
-			/* rather than routing the message to the right virtual
-			 * endpoint we just process it here right away. */
-			EndpointManager::GetInstance()->ProcessResponseMessage(sender, message);
-			return;
-		}
-
-		RequestMessage request = message;
-
-		String method;
-		if (!request.GetMethod(&method))
-			return;
-
-		String id;
-		if (request.GetID(&id))
-			EndpointManager::GetInstance()->SendAnycastMessage(sender, request);
-		else
-			EndpointManager::GetInstance()->SendMulticastMessage(sender, request);
+		Utility::QueueAsyncCallback(bind(boost::ref(Endpoint::OnMessageReceived), GetSelf(), message));
 	}
 }
 
@@ -290,11 +106,11 @@ void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
  *
  * @returns The node address (hostname).
  */
-String Endpoint::GetNode(void) const
+String Endpoint::GetHost(void) const
 {
 	ObjectLock olock(this);
 
-	return m_Node;
+	return m_Host;
 }
 
 /**
@@ -302,11 +118,11 @@ String Endpoint::GetNode(void) const
  *
  * @returns The service name (port).
  */
-String Endpoint::GetService(void) const
+String Endpoint::GetPort(void) const
 {
 	ObjectLock olock(this);
 
-	return m_Service;
+	return m_Port;
 }
 
 void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
@@ -315,11 +131,9 @@ void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes)
 
 	if (attributeTypes & Attribute_Config) {
 		bag->Set("local", m_Local);
-		bag->Set("node", m_Node);
-		bag->Set("service", m_Service);
+		bag->Set("host", m_Host);
+		bag->Set("port", m_Port);
 	}
-
-	bag->Set("subscriptions", m_Subscriptions);
 }
 
 void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
@@ -328,9 +142,7 @@ void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeType
 
 	if (attributeTypes & Attribute_Config) {
 		m_Local = bag->Get("local");
-		m_Node = bag->Get("node");
-		m_Service = bag->Get("service");
+		m_Host = bag->Get("host");
+		m_Port = bag->Get("port");
 	}
-
-	bag->Set("subscriptions", m_Subscriptions);
 }

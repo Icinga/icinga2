@@ -34,18 +34,7 @@ using namespace icinga;
  * Constructor for the EndpointManager class.
  */
 EndpointManager::EndpointManager(void)
-	: m_NextMessageID(0)
 {
-	m_RequestTimer = boost::make_shared<Timer>();
-	m_RequestTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::RequestTimerHandler, this));
-	m_RequestTimer->SetInterval(5);
-	m_RequestTimer->Start();
-
-	m_SubscriptionTimer = boost::make_shared<Timer>();
-	m_SubscriptionTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::SubscriptionTimerHandler, this));
-	m_SubscriptionTimer->SetInterval(5);
-	m_SubscriptionTimer->Start();
-
 	m_ReconnectTimer = boost::make_shared<Timer>();
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&EndpointManager::ReconnectTimerHandler, this));
 	m_ReconnectTimer->SetInterval(5);
@@ -87,16 +76,6 @@ void EndpointManager::SetIdentity(const String& identity)
 	ObjectLock olock(this);
 
 	m_Identity = identity;
-
-	if (m_Endpoint)
-		m_Endpoint->Stop();
-
-	Endpoint::Ptr endpoint = DynamicObject::GetObject<Endpoint>(identity);
-
-	if (endpoint)
-		m_Endpoint = endpoint;
-	else
-		m_Endpoint = Endpoint::MakeEndpoint(identity, true, true);
 }
 
 /**
@@ -200,175 +179,173 @@ void EndpointManager::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 
 	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
-	if (!endpoint)
-		endpoint = Endpoint::MakeEndpoint(identity, true);
+	if (!endpoint) {
+		Log(LogInformation, "remoting", "Closing endpoint '" + identity + "': No configuration available.");
+		return;
+	}
 
 	endpoint->SetClient(tlsStream);
 }
 
-/**
- * Sends an anonymous unicast message to the specified recipient.
- *
- * @param recipient The recipient of the message.
- * @param message The message.
- */
-void EndpointManager::SendUnicastMessage(const Endpoint::Ptr& recipient,
-    const MessagePart& message)
-{
-	SendUnicastMessage(Endpoint::Ptr(), recipient, message);
-}
+///**
+// * Sends an anonymous unicast message to the specified recipient.
+// *
+// * @param recipient The recipient of the message.
+// * @param message The message.
+// */
+//void EndpointManager::SendUnicastMessage(const Endpoint::Ptr& recipient,
+//    const MessagePart& message)
+//{
+//	SendUnicastMessage(Endpoint::Ptr(), recipient, message);
+//}
 
-/**
- * Sends a unicast message to the specified recipient.
- *
- * @param sender The sender of the message.
- * @param recipient The recipient of the message.
- * @param message The message.
- */
-void EndpointManager::SendUnicastMessage(const Endpoint::Ptr& sender,
-    const Endpoint::Ptr& recipient, const MessagePart& message)
-{
-	/* don't forward messages between non-local endpoints, assume that
-	 * anonymous senders (sender == null) are local */
-//	if ((sender && !sender->IsLocal()) && !recipient->IsLocal())
+///**
+// * Sends a unicast message to the specified recipient.
+// *
+// * @param sender The sender of the message.
+// * @param recipient The recipient of the message.
+// * @param message The message.
+// */
+//void EndpointManager::SendUnicastMessage(const Endpoint::Ptr& sender,
+//    const Endpoint::Ptr& recipient, const MessagePart& message)
+//{
+//	/* don't forward messages between non-local endpoints, assume that
+//	 * anonymous senders (sender == null) are local */
+////	if ((sender && !sender->IsLocal()) && !recipient->IsLocal())
+////		return;
+//
+//	if (ResponseMessage::IsResponseMessage(message))
+//		recipient->ProcessResponse(sender, message);
+//	else
+//		recipient->ProcessRequest(sender, message);
+//}
+
+///**
+// * Sends a message to exactly one recipient out of all recipients who have a
+// * subscription for the message's topic.
+// *
+// * @param sender The sender of the message.
+// * @param message The message.
+// */
+//void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
+//    const RequestMessage& message)
+//{
+//	String method;
+//	if (!message.GetMethod(&method))
+//		BOOST_THROW_EXCEPTION(std::invalid_argument("Message is missing the 'method' property."));
+//
+//	std::vector<Endpoint::Ptr> candidates;
+//
+//	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+//		/* don't forward messages between non-local endpoints */
+////		if ((sender && !sender->IsLocal()) && !endpoint->IsLocal())
+////			continue;
+//
+//		if (endpoint->HasSubscription(method))
+//			candidates.push_back(endpoint);
+//	}
+//
+//	if (candidates.empty())
 //		return;
+//
+//	Endpoint::Ptr recipient = candidates[rand() % candidates.size()];
+//	SendUnicastMessage(sender, recipient, message);
+//}
 
-	if (ResponseMessage::IsResponseMessage(message))
-		recipient->ProcessResponse(sender, message);
-	else
-		recipient->ProcessRequest(sender, message);
-}
+///**
+// * Sends an anonymous message to all recipients who have a subscription for the
+// * message's topic.
+// *
+// * @param message The message.
+// */
+//void EndpointManager::SendMulticastMessage(const RequestMessage& message)
+//{
+//	SendMulticastMessage(Endpoint::Ptr(), message);
+//}
 
-/**
- * Sends a message to exactly one recipient out of all recipients who have a
- * subscription for the message's topic.
- *
- * @param sender The sender of the message.
- * @param message The message.
- */
-void EndpointManager::SendAnycastMessage(const Endpoint::Ptr& sender,
-    const RequestMessage& message)
-{
-	String method;
-	if (!message.GetMethod(&method))
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Message is missing the 'method' property."));
-
-	std::vector<Endpoint::Ptr> candidates;
-
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		/* don't forward messages between non-local endpoints */
-//		if ((sender && !sender->IsLocal()) && !endpoint->IsLocal())
+///**
+// * Sends a message to all recipients who have a subscription for the
+// * message's topic.
+// *
+// * @param sender The sender of the message.
+// * @param message The message.
+// */
+//void EndpointManager::SendBroadcastMessage(const Endpoint::Ptr& sender,
+//    const RequestMessage& message)
+//{
+//	String method;
+//	if (!message.GetMethod(&method))
+//		BOOST_THROW_EXCEPTION(std::invalid_argument("Message is missing the 'method' property."));
+//
+//	BOOST_FOREACH(const Endpoint::Ptr& recipient, DynamicType::GetObjects<Endpoint>()) {
+//		/* don't forward messages back to the sender */
+//		if (sender == recipient)
 //			continue;
+//
+//		Log(LogDebug, "remoting", "Send multicast message using method " + method);
+//		if (recipient->HasSubscription(method))
+//			SendUnicastMessage(sender, recipient, message);
+//	}
+//}
 
-		if (endpoint->HasSubscription(method))
-			candidates.push_back(endpoint);
-	}
-
-	if (candidates.empty())
-		return;
-
-	Endpoint::Ptr recipient = candidates[rand() % candidates.size()];
-	SendUnicastMessage(sender, recipient, message);
-}
-
-/**
- * Sends an anonymous message to all recipients who have a subscription for the
- * message's topic.
- *
- * @param message The message.
- */
-void EndpointManager::SendMulticastMessage(const RequestMessage& message)
-{
-	SendMulticastMessage(Endpoint::Ptr(), message);
-}
-
-/**
- * Sends a message to all recipients who have a subscription for the
- * message's topic.
- *
- * @param sender The sender of the message.
- * @param message The message.
- */
-void EndpointManager::SendMulticastMessage(const Endpoint::Ptr& sender,
-    const RequestMessage& message)
-{
-	String id;
-	if (message.GetID(&id))
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Multicast requests must not have an ID."));
-
-	String method;
-	if (!message.GetMethod(&method))
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Message is missing the 'method' property."));
-
-	BOOST_FOREACH(const Endpoint::Ptr& recipient, DynamicType::GetObjects<Endpoint>()) {
-		/* don't forward messages back to the sender */
-		if (sender == recipient)
-			continue;
-
-		Log(LogDebug, "remoting", "Send multicast message using method " + method);
-		if (recipient->HasSubscription(method))
-			SendUnicastMessage(sender, recipient, message);
-	}
-}
-
-void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient,
-    RequestMessage& message,
-    const EndpointManager::APICallback& callback, double timeout)
-{
-	ObjectLock olock(this);
-
-	m_NextMessageID++;
-
-	String id = Convert::ToString(m_NextMessageID);
-	message.SetID(id);
-
-	PendingRequest pr;
-	pr.Request = message;
-	pr.Callback = callback;
-	pr.Timeout = Utility::GetTime() + timeout;
-
-	m_Requests[id] = pr;
-
-	if (!recipient)
-		SendAnycastMessage(sender, message);
-	else
-		SendUnicastMessage(sender, recipient, message);
-}
-
-bool EndpointManager::RequestTimeoutLessComparer(const std::pair<String, PendingRequest>& a,
-    const std::pair<String, PendingRequest>& b)
-{
-	return a.second.Timeout < b.second.Timeout;
-}
-
-void EndpointManager::SubscriptionTimerHandler(void)
-{
-	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
-
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		/* don't copy subscriptions from non-local endpoints or the identity endpoint */
-//		if (!endpoint->IsLocalEndpoint() || endpoint == m_Endpoint)
-//			continue;
-
-		Dictionary::Ptr endpointSubscriptions = endpoint->GetSubscriptions();
-
-		if (endpointSubscriptions) {
-			ObjectLock olock(endpointSubscriptions);
-
-			String topic;
-			BOOST_FOREACH(boost::tie(boost::tuples::ignore, topic), endpointSubscriptions) {
-				subscriptions->Set(topic, topic);
-			}
-		}
-	}
-
-	subscriptions->Seal();
-
-	if (m_Endpoint) {
-		ObjectLock olock(m_Endpoint);
-		m_Endpoint->SetSubscriptions(subscriptions);
-	}
-}
+//void EndpointManager::SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient,
+//    RequestMessage& message,
+//    const EndpointManager::APICallback& callback, double timeout)
+//{
+//	ObjectLock olock(this);
+//
+//	m_NextMessageID++;
+//
+//	String id = Convert::ToString(m_NextMessageID);
+//	message.SetID(id);
+//
+//	PendingRequest pr;
+//	pr.Request = message;
+//	pr.Callback = callback;
+//	pr.Timeout = Utility::GetTime() + timeout;
+//
+//	m_Requests[id] = pr;
+//
+//	if (!recipient)
+//		SendAnycastMessage(sender, message);
+//	else
+//		SendUnicastMessage(sender, recipient, message);
+//}
+//
+//bool EndpointManager::RequestTimeoutLessComparer(const std::pair<String, PendingRequest>& a,
+//    const std::pair<String, PendingRequest>& b)
+//{
+//	return a.second.Timeout < b.second.Timeout;
+//}
+//
+//void EndpointManager::SubscriptionTimerHandler(void)
+//{
+//	Dictionary::Ptr subscriptions = boost::make_shared<Dictionary>();
+//
+//	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+//		/* don't copy subscriptions from non-local endpoints or the identity endpoint */
+////		if (!endpoint->IsLocalEndpoint() || endpoint == m_Endpoint)
+////			continue;
+//
+//		Dictionary::Ptr endpointSubscriptions = endpoint->GetSubscriptions();
+//
+//		if (endpointSubscriptions) {
+//			ObjectLock olock(endpointSubscriptions);
+//
+//			String topic;
+//			BOOST_FOREACH(boost::tie(boost::tuples::ignore, topic), endpointSubscriptions) {
+//				subscriptions->Set(topic, topic);
+//			}
+//		}
+//	}
+//
+//	subscriptions->Seal();
+//
+//	if (m_Endpoint) {
+//		ObjectLock olock(m_Endpoint);
+//		m_Endpoint->SetSubscriptions(subscriptions);
+//	}
+//}
 
 void EndpointManager::ReconnectTimerHandler(void)
 {
@@ -376,57 +353,57 @@ void EndpointManager::ReconnectTimerHandler(void)
 		if (endpoint->IsConnected() || endpoint == m_Endpoint)
 			continue;
 
-		String node, service;
-		node = endpoint->GetNode();
-		service = endpoint->GetService();
+		String host, port;
+		host = endpoint->GetHost();
+		port = endpoint->GetPort();
 
-		if (node.IsEmpty() || service.IsEmpty()) {
+		if (host.IsEmpty() || port.IsEmpty()) {
 			Log(LogWarning, "icinga", "Can't reconnect "
 			    "to endpoint '" + endpoint->GetName() + "': No "
-			    "node/service information.");
+			    "host/port information.");
 			continue;
 		}
 
-		AddConnection(node, service);
+		AddConnection(host, port);
 	}
 }
 
-void EndpointManager::RequestTimerHandler(void)
-{
-	ObjectLock olock(this);
+//void EndpointManager::RequestTimerHandler(void)
+//{
+//	ObjectLock olock(this);
+//
+//	std::map<String, PendingRequest>::iterator it;
+//	for (it = m_Requests.begin(); it != m_Requests.end(); ++it) {
+//		if (it->second.HasTimedOut()) {
+//			it->second.Callback(Endpoint::Ptr(), it->second.Request,
+//			    ResponseMessage(), true);
+//
+//			m_Requests.erase(it);
+//
+//			break;
+//		}
+//	}
+//}
 
-	std::map<String, PendingRequest>::iterator it;
-	for (it = m_Requests.begin(); it != m_Requests.end(); ++it) {
-		if (it->second.HasTimedOut()) {
-			it->second.Callback(Endpoint::Ptr(), it->second.Request,
-			    ResponseMessage(), true);
-
-			m_Requests.erase(it);
-
-			break;
-		}
-	}
-}
-
-void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender,
-    const ResponseMessage& message)
-{
-	ObjectLock olock(this);
-
-	String id;
-	if (!message.GetID(&id))
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Response message must have a message ID."));
-
-	std::map<String, PendingRequest>::iterator it;
-	it = m_Requests.find(id);
-
-	if (it == m_Requests.end())
-		return;
-
-	it->second.Callback(sender, it->second.Request, message, false);
-
-	m_Requests.erase(it);
-}
+//void EndpointManager::ProcessResponseMessage(const Endpoint::Ptr& sender,
+//    const ResponseMessage& message)
+//{
+//	ObjectLock olock(this);
+//
+//	String id;
+//	if (!message.GetID(&id))
+//		BOOST_THROW_EXCEPTION(std::invalid_argument("Response message must have a message ID."));
+//
+//	std::map<String, PendingRequest>::iterator it;
+//	it = m_Requests.find(id);
+//
+//	if (it == m_Requests.end())
+//		return;
+//
+//	it->second.Callback(sender, it->second.Request, message, false);
+//
+//	m_Requests.erase(it);
+//}
 
 EndpointManager *EndpointManager::GetInstance(void)
 {

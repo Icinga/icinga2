@@ -54,18 +54,11 @@ public:
 	void AddListener(const String& service);
 	void AddConnection(const String& node, const String& service);
 
-	void SendUnicastMessage(const Endpoint::Ptr& recipient, const MessagePart& message);
-	void SendUnicastMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, const MessagePart& message);
-	void SendAnycastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
-	void SendMulticastMessage(const RequestMessage& message);
-	void SendMulticastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
-
-	typedef boost::function<void(const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> APICallback;
-
-	void SendAPIMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, RequestMessage& message,
-	    const APICallback& callback, double timeout = 30);
-
-	void ProcessResponseMessage(const Endpoint::Ptr& sender, const ResponseMessage& message);
+	//void SendUnicastMessage(const Endpoint::Ptr& recipient, const Dictionary::Ptr& message);
+	//void SendUnicastMessage(const Endpoint::Ptr& sender, const Endpoint::Ptr& recipient, const MessagePart& message);
+	//void SendAnycastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
+	//void SendMulticastMessage(const RequestMessage& message);
+	//void SendMulticastMessage(const Endpoint::Ptr& sender, const RequestMessage& message);
 
 	boost::signals2::signal<void (const Endpoint::Ptr&)> OnNewEndpoint;
 
@@ -75,37 +68,9 @@ private:
 
 	shared_ptr<SSL_CTX> m_SSLContext;
 
-	Timer::Ptr m_SubscriptionTimer;
-
 	Timer::Ptr m_ReconnectTimer;
 
 	std::set<TcpSocket::Ptr> m_Servers;
-
-	/**
-	 * Information about a pending API request.
-	 *
-	 * @ingroup remoting
-	 */
-	struct I2_REMOTING_API PendingRequest
-	{
-		double Timeout;
-		RequestMessage Request;
-		boost::function<void(const Endpoint::Ptr, const RequestMessage&, const ResponseMessage&, bool TimedOut)> Callback;
-
-		bool HasTimedOut(void) const
-		{
-			return Utility::GetTime() > Timeout;
-		}
-	};
-
-	long m_NextMessageID;
-	std::map<String, PendingRequest> m_Requests;
-	Timer::Ptr m_RequestTimer;
-
-	static bool RequestTimeoutLessComparer(const std::pair<String, PendingRequest>& a, const std::pair<String, PendingRequest>& b);
-	void RequestTimerHandler(void);
-
-	void SubscriptionTimerHandler(void);
 
 	void ReconnectTimerHandler(void);
 

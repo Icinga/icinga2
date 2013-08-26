@@ -15,13 +15,7 @@ libremoting_la_SOURCES = \
 	i2-remoting.h \
 	jsonrpc.cpp \
 	jsonrpc.h \
-	messagepart.cpp \
-	messagepart.h \
-	remoting-type.cpp \
-	requestmessage.cpp \
-	requestmessage.h \
-	responsemessage.cpp \
-	responsemessage.h
+	remoting-type.cpp
 
 libremoting_la_CPPFLAGS = \
 	-DI2_REMOTING_BUILD \

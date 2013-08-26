@@ -25,8 +25,6 @@
 #include "icinga/host.h"
 #include "icinga/timeperiod.h"
 #include "icinga/notification.h"
-#include "remoting/requestmessage.h"
-#include "remoting/endpoint.h"
 #include "base/i2-base.h"
 #include "base/dynamicobject.h"
 #include "base/array.h"

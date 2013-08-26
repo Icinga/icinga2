@@ -31,15 +31,14 @@ using namespace icinga;
  *
  * @param message The message.
  */
-void JsonRpc::SendMessage(const Stream::Ptr& stream, const MessagePart& message)
+void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
 {
-	Value value = message.GetDictionary();
-	String json = value.Serialize();
+	String json = Value(message).Serialize();
 	//std::cerr << ">> " << json << std::endl;
 	NetString::WriteStringToStream(stream, json);
 }
 
-MessagePart JsonRpc::ReadMessage(const Stream::Ptr& stream)
+Dictionary::Ptr JsonRpc::ReadMessage(const Stream::Ptr& stream)
 {
 	String jsonString;
 	if (!NetString::ReadStringFromStream(stream, &jsonString))
@@ -53,5 +52,5 @@ MessagePart JsonRpc::ReadMessage(const Stream::Ptr& stream)
 		    " message must be a dictionary."));
 	}
 
-	return MessagePart(value);
+	return value;
 }
