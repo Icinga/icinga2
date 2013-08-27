@@ -15,6 +15,8 @@ BuildRequires: openssl-devel
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
 BuildRequires: libtool-ltdl-devel
+
+# TODO: figure out how to handle boost on el5
 BuildRequires: boost
 BuildRequires: boost-devel
 BuildRequires: boost-test
