@@ -30,7 +30,7 @@
 using namespace icinga;
 
 ThreadPool::ThreadPool(void)
-	: m_ThreadDeaths(0), m_WaitTime(0), m_ServiceTime(0),
+	: m_WaitTime(0), m_ServiceTime(0),
 	  m_TaskCount(0), m_Stopped(false)
 {
 	for (int i = 0; i < 2; i++)
@@ -106,13 +106,11 @@ void ThreadPool::QueueThreadProc(int tid)
 
 			UpdateThreadUtilization(tid, ThreadIdle);
 
-			while (m_WorkItems.empty() && !m_Stopped && m_ThreadDeaths == 0)
+			while (m_WorkItems.empty() && !m_Stopped && !m_ThreadStats[tid].Zombie)
 				m_WorkCV.wait(lock);
 
-			if (m_ThreadDeaths > 0) {
-				m_ThreadDeaths--;
+			if (m_ThreadStats[tid].Zombie)
 				break;
-			}
 
 			if (m_WorkItems.empty() && m_Stopped)
 				break;
@@ -191,6 +189,7 @@ void ThreadPool::QueueThreadProc(int tid)
 	}
 
 	UpdateThreadUtilization(tid, ThreadDead);
+	m_ThreadStats[tid].Zombie = false;
 }
 
 /**
@@ -240,7 +239,7 @@ void ThreadPool::ManagerThreadProc(void)
 			alive = 0;
 
 			for (size_t i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
-				if (m_ThreadStats[i].State != ThreadDead) {
+				if (m_ThreadStats[i].State != ThreadDead && !m_ThreadStats[i].Zombie) {
 					alive++;
 					utilization += m_ThreadStats[i].Utilization * 100;
 				}
@@ -254,7 +253,12 @@ void ThreadPool::ManagerThreadProc(void)
 				avg_latency = 0;
 
 			if (utilization < 60 || utilization > 80 || alive < 2) {
-				int tthreads = ceil((utilization * alive) / 80.0) - alive;
+				double wthreads = ceil((utilization * alive) / 80.0);
+
+				if (!finite(wthreads))
+					wthreads = 0;
+
+				int tthreads = wthreads - alive;
 
 				/* Don't ever kill the last 2 threads. */
 				if (alive + tthreads < 2)
@@ -263,6 +267,10 @@ void ThreadPool::ManagerThreadProc(void)
 				/* Spawn more workers if there are outstanding work items. */
 				if (tthreads > 0 && pending > 0)
 					tthreads = 8;
+
+				std::ostringstream msgbuf;
+				msgbuf << "Thread pool; current: " << alive << "; adjustment: " << tthreads;
+				Log(LogDebug, "base", msgbuf.str());
 
 				for (int i = 0; i < -tthreads; i++)
 					KillWorker();
@@ -312,9 +320,16 @@ void ThreadPool::SpawnWorker(void)
  */
 void ThreadPool::KillWorker(void)
 {
-	Log(LogDebug, "base", "Killing worker thread.");
+	for (size_t i = 0; i < sizeof(m_ThreadStats) / sizeof(m_ThreadStats[0]); i++) {
+		if (m_ThreadStats[i].State == ThreadIdle && !m_ThreadStats[i].Zombie) {
+			Log(LogDebug, "base", "Killing worker thread.");
 
-	m_ThreadDeaths++;
+			m_ThreadStats[i].Zombie = true;
+			m_WorkCV.notify_all();
+
+			break;
+		}
+	}
 }
 
 void ThreadPool::StatsThreadProc(void)

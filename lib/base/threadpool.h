@@ -60,16 +60,16 @@ private:
 	struct ThreadStats
 	{
 		ThreadState State;
+		bool Zombie;
 		double Utilization;
 		double LastUpdate;
 
 		ThreadStats(ThreadState state = ThreadDead)
-			: State(state), Utilization(0), LastUpdate(0)
+			: State(state), Zombie(false), Utilization(0), LastUpdate(0)
 		{ }
 	};
 
 	ThreadStats m_ThreadStats[512];
-	int m_ThreadDeaths;
 
 	boost::thread m_ManagerThread;
 	boost::thread m_StatsThread;

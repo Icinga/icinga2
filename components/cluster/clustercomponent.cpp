@@ -286,6 +286,11 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& endpoint, const Dicti
 			return;
 
 		service->ProcessCheckResult(cr);
+
+		/* Reschedule the next check. The side effect of this is that for as long
+		 * as we receive results for a service we won't execute any
+		 * active checks. */
+		service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
 	}
 }
 

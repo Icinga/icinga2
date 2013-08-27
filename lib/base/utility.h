@@ -93,7 +93,7 @@ private:
 #	include <cassert>
 #	define ASSERT(expr) assert(expr)
 #else /* _DEBUG */
-#	define ASSERT(expr)
+#	define ASSERT(expr) __builtin_unreachable()
 #endif /* _DEBUG */
 
 #endif /* UTILITY_H */
