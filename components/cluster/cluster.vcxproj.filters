@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="democomponent.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="i2-demo.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headerdateien">
+      <UniqueIdentifier>{11a495bf-a705-4766-b3d3-9b5db266a6ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien">
+      <UniqueIdentifier>{1fb6337f-a17f-46ea-9316-2d800a94b53d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="democomponent.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="demo-type.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="demo-type.conf">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

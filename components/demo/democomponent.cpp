@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "demo/democomponent.h"
-#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include <boost/smart_ptr/make_shared.hpp>

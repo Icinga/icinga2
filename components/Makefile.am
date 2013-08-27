@@ -3,6 +3,7 @@
 
 SUBDIRS = \
 	checker \
+	cluster \
 	compat \
 	demo \
 	ido_mysql \

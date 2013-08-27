@@ -1,36 +1,40 @@
 ## Process this file with automake to produce Makefile.in
 
-
 pkglib_LTLIBRARIES = \
-	libremoting.la
+	libcluster.la
+
+EXTRA_DIST = \
+	cluster-type.conf
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig.c
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
-libremoting_la_SOURCES = \
+libcluster_la_SOURCES = \
+	clustercomponent.cpp \
+	clustercomponent.h \
+	cluster-type.cpp \
 	endpoint.cpp \
 	endpoint.h \
-	endpointmanager.cpp \
-	endpointmanager.h \
-	i2-remoting.h \
 	jsonrpc.cpp \
-	jsonrpc.h \
-	remoting-type.cpp
+	jsonrpc.h
 
-libremoting_la_CPPFLAGS = \
-	-DI2_REMOTING_BUILD \
+libcluster_la_CPPFLAGS = \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
-	-I${top_srcdir}/lib
+	-I${top_srcdir}/lib \
+	-I${top_srcdir}/components
 
-libremoting_la_LDFLAGS = \
+libcluster_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
+	-module \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
-libremoting_la_LIBADD = \
+libcluster_la_LIBADD = \
+	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_SYSTEM_LIB) \
 	${top_builddir}/lib/base/libbase.la \
-	${top_builddir}/lib/config/libconfig.la
+	${top_builddir}/lib/config/libconfig.la \
+	${top_builddir}/lib/icinga/libicinga.la

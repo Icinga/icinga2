@@ -39,6 +39,8 @@ public:
 
 	virtual void Close(void);
 
+	virtual bool IsEof(void) const;
+
 private:
 	std::iostream *m_InnerStream;
 	bool m_OwnsStream;

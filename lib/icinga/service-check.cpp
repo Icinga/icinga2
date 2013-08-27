@@ -590,8 +590,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 
 	cr->Set("vars_after", vars_after);
 
-	cr->Seal();
-
 	olock.Lock();
 	SetLastCheckResult(cr);
 
@@ -749,7 +747,6 @@ void Service::ExecuteCheck(void)
 
 	checkInfo->Set("execution_end", Utility::GetTime());
 	checkInfo->Set("schedule_end", Utility::GetTime());
-	checkInfo->Seal();
 
 	if (result) {
 		if (!result->Contains("schedule_start"))

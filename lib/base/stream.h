@@ -74,6 +74,13 @@ public:
 	 */
 	virtual void Close(void) = 0;
 
+	/**
+	 * Checks whether we've reached the end-of-file condition.
+	 *
+	 * @returns true if EOF.
+	 */
+	virtual bool IsEof(void) const = 0;
+
 	bool ReadLine(String *line, ReadLineContext& context);
 };
 

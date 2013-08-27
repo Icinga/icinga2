@@ -44,6 +44,7 @@ public:
 	virtual size_t Read(void *buffer, size_t count);
 	virtual void Write(const void *buffer, size_t count);
 	virtual void Close(void);
+	virtual bool IsEof(void) const;
 
 	size_t GetAvailableBytes(void) const;
 

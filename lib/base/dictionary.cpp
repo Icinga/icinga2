@@ -60,13 +60,6 @@ struct DictionaryKeyLessComparer
 };
 
 /**
- * Constructor for the Dictionary class.
- */
-Dictionary::Dictionary(void)
-	: m_Sealed(false)
-{ }
-
-/**
  * Restrieves a value from a dictionary.
  *
  * @param key The key whose value should be retrieved.
@@ -113,9 +106,6 @@ void Dictionary::Set(const String& key, const Value& value)
 
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
-
-	if (m_Sealed)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be sealed."));
 
 	std::pair<std::map<String, Value>::iterator, bool> ret;
 	ret = m_Data.insert(std::make_pair(key, value));
@@ -194,9 +184,6 @@ void Dictionary::Remove(const String& key)
 	if (it == m_Data.end())
 		return;
 
-	if (m_Sealed)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be sealed."));
-
 	m_Data.erase(it);
 }
 
@@ -209,35 +196,7 @@ void Dictionary::Remove(Dictionary::Iterator it)
 {
 	ASSERT(OwnsLock());
 
-	if (m_Sealed)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be sealed."));
-
 	m_Data.erase(it);
-}
-
-/**
- * Marks the dictionary as read-only. Attempting to modify a sealed
- * dictionary is an error.
- */
-void Dictionary::Seal(void)
-{
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
-
-	m_Sealed = true;
-}
-
-/**
- * Checks whether the dictionary is sealed.
- *
- * @returns true if the dictionary is sealed, false otherwise.
- */
-bool Dictionary::IsSealed(void) const
-{
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
-
-	return m_Sealed;
 }
 
 /**

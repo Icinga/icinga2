@@ -26,13 +26,6 @@ class IcingaValuePrinter:
         else:
             return '<INVALID>'
 
-class IcingaAttributePrinter:
-    def __init__(self, val):
-        self.val = val
-
-    def to_string(self):
-        return self.val['m_Value']
-
 class IcingaSignalPrinter:
     def __init__(self, val):
         self.val = val
@@ -40,16 +33,28 @@ class IcingaSignalPrinter:
     def to_string(self):
         return '<SIGNAL>'
 
+class IcingaMutexPrinter:
+    def __init__(self, val):
+      self.val = val
+
+    def to_string(self):
+      owner = self.val['__data']['__owner']
+
+      if owner == 0:
+          return '<unlocked>'
+      else:
+          return '<locked by #' + owner + '>'
+
 def lookup_icinga_type(val):
     t = val.type.unqualified()
     if str(t) == 'icinga::String':
         return IcingaStringPrinter(val)
     elif str(t) == 'icinga::Value':
         return IcingaValuePrinter(val)
-    elif str(t) == 'icinga::AttributeBase' or re.match('^icinga::Attribute<.*>$', str(t)):
-        return IcingaAttributePrinter(val)
     elif re.match('^boost::signals2::signal.*<.*>$', str(t)):
         return IcingaSignalPrinter(val)
+    elif str(t) == 'pthread_mutex_t':
+        return IcingaMutexPrinter(val)
 
     return None
 

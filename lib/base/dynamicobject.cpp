@@ -272,7 +272,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 		DynamicType::Ptr dt = DynamicType::GetByName(type);
 
 		if (!dt)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type: " + type));
+			continue;
 
 		DynamicObject::Ptr object = dt->GetObject(name);
 

@@ -123,6 +123,7 @@ AC_CONFIG_FILES([
 Makefile
 components/Makefile
 components/checker/Makefile
+components/cluster/Makefile
 components/compat/Makefile
 components/demo/Makefile
 components/ido_mysql/Makefile
@@ -141,7 +142,6 @@ lib/config/Makefile
 lib/icinga/Makefile
 lib/ido/Makefile
 lib/python/Makefile
-lib/remoting/Makefile
 test/Makefile
 third-party/Makefile
 third-party/cJSON/Makefile

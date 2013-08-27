@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "icinga/icingaapplication.h"
-#include "remoting/endpointmanager.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
@@ -49,22 +48,6 @@ int IcingaApplication::Main(void)
 	m_StartTime = Utility::GetTime();
 
 	UpdatePidFile(GetPidPath());
-
-	if (!GetCertificateFile().IsEmpty() && !GetCAFile().IsEmpty()) {
-		/* set up SSL context */
-		shared_ptr<X509> cert = GetX509Certificate(GetCertificateFile());
-		String identity = GetCertificateCN(cert);
-		Log(LogInformation, "icinga", "My identity: " + identity);
-		EndpointManager::GetInstance()->SetIdentity(identity);
-
-		m_SSLContext = MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
-
-		EndpointManager::GetInstance()->SetSSLContext(m_SSLContext);
-	}
-
-	/* create the primary RPC listener */
-	if (!GetService().IsEmpty())
-		EndpointManager::GetInstance()->AddListener(GetService());
 
 	/* restore the previous program state */
 	DynamicObject::RestoreObjects(GetStatePath());
@@ -104,34 +87,6 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
 
-String IcingaApplication::GetCertificateFile(void) const
-{
-	ObjectLock olock(this);
-
-	return m_CertPath;
-}
-
-String IcingaApplication::GetCAFile(void) const
-{
-	ObjectLock olock(this);
-
-	return m_CAPath;
-}
-
-String IcingaApplication::GetNode(void) const
-{
-	ObjectLock olock(this);
-
-	return m_Node;
-}
-
-String IcingaApplication::GetService(void) const
-{
-	ObjectLock olock(this);
-
-	return m_Service;
-}
-
 String IcingaApplication::GetPidPath(void) const
 {
 	ObjectLock olock(this);
@@ -146,10 +101,10 @@ String IcingaApplication::GetStatePath(void) const
 {
 	ObjectLock olock(this);
 
-	if (m_PidPath.IsEmpty())
+	if (m_StatePath.IsEmpty())
 		return Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state";
 	else
-		return m_PidPath;
+		return m_StatePath;
 }
 
 Dictionary::Ptr IcingaApplication::GetMacros(void) const
@@ -164,13 +119,6 @@ double IcingaApplication::GetStartTime(void) const
 	ObjectLock olock(this);
 
 	return m_StartTime;
-}
-
-shared_ptr<SSL_CTX> IcingaApplication::GetSSLContext(void) const
-{
-	ObjectLock olock(this);
-
-	return m_SSLContext;
 }
 
 bool IcingaApplication::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
@@ -209,10 +157,6 @@ void IcingaApplication::InternalSerialize(const Dictionary::Ptr& bag, int attrib
 	DynamicObject::InternalSerialize(bag, attributeTypes);
 
 	if (attributeTypes & Attribute_Config) {
-		bag->Set("cert_path", m_CertPath);
-		bag->Set("ca_path", m_CAPath);
-		bag->Set("node", m_Node);
-		bag->Set("service", m_Service);
 		bag->Set("pid_path", m_PidPath);
 		bag->Set("state_path", m_StatePath);
 		bag->Set("macros", m_Macros);
@@ -224,10 +168,6 @@ void IcingaApplication::InternalDeserialize(const Dictionary::Ptr& bag, int attr
 	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
 	if (attributeTypes & Attribute_Config) {
-		m_CertPath = bag->Get("cert_path");
-		m_CAPath = bag->Get("ca_path");
-		m_Node = bag->Get("node");
-		m_Service = bag->Get("service");
 		m_PidPath = bag->Get("pid_path");
 		m_StatePath = bag->Get("state_path");
 		m_Macros = bag->Get("macros");

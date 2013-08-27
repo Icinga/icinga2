@@ -27,13 +27,6 @@
 using namespace icinga;
 
 /**
- * Constructor for the Array class.
- */
-Array::Array(void)
-	: m_Sealed(false)
-{ }
-
-/**
  * Restrieves a value from an array.
  *
  * @param index The index..
@@ -58,9 +51,6 @@ void Array::Set(unsigned int index, const Value& value)
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	if (m_Sealed)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be sealed."));
-
 	m_Data.at(index) = value;
 }
 
@@ -73,9 +63,6 @@ void Array::Add(const Value& value)
 {
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
-
-	if (m_Sealed)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be sealed."));
 
 	m_Data.push_back(value);
 }
@@ -131,9 +118,6 @@ void Array::Remove(unsigned int index)
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	if (m_Sealed)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be sealed."));
-
 	m_Data.erase(m_Data.begin() + index);
 }
 
@@ -146,35 +130,7 @@ void Array::Remove(Array::Iterator it)
 {
 	ASSERT(OwnsLock());
 
-	if (m_Sealed)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be sealed."));
-
 	m_Data.erase(it);
-}
-
-/**
- * Marks the array as read-only. Attempting to modify a sealed
- * array is an error.
- */
-void Array::Seal(void)
-{
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
-
-	m_Sealed = true;
-}
-
-/**
- * Checks whether the array is sealed.
- *
- * @returns true if the array is sealed, false otherwise.
- */
-bool Array::IsSealed(void) const
-{
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
-
-	return m_Sealed;
 }
 
 /**

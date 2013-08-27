@@ -42,14 +42,9 @@ public:
 	 */
 	typedef std::vector<Value>::iterator Iterator;
 
-	Array(void);
-
 	Value Get(unsigned int index) const;
 	void Set(unsigned int index, const Value& value);
 	void Add(const Value& value);
-
-	void Seal(void);
-	bool IsSealed(void) const;
 
 	Iterator Begin(void);
 	Iterator End(void);
@@ -66,7 +61,6 @@ public:
 
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
-	bool m_Sealed; /**< Whether the array is read-only. */
 };
 
 inline Array::Iterator range_begin(Array::Ptr x)

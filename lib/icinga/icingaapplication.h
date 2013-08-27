@@ -23,7 +23,6 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/macroresolver.h"
 #include "base/application.h"
-#include "base/tlsutility.h"
 
 namespace icinga
 {
@@ -43,14 +42,9 @@ public:
 
 	static IcingaApplication::Ptr GetInstance(void);
 
-	String GetCertificateFile(void) const;
-	String GetCAFile(void) const;
-	String GetNode(void) const;
-	String GetService(void) const;
 	String GetPidPath(void) const;
 	String GetStatePath(void) const;
 	Dictionary::Ptr GetMacros(void) const;
-	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 
 	double GetStartTime(void) const;
 
@@ -61,15 +55,9 @@ protected:
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	String m_CertPath;
-	String m_CAPath;
-	String m_Node;
-	String m_Service;
 	String m_PidPath;
 	String m_StatePath;
 	Dictionary::Ptr m_Macros;
-
-	shared_ptr<SSL_CTX> m_SSLContext;
 
 	double m_StartTime;
 

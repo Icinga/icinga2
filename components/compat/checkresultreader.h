@@ -20,7 +20,6 @@
 #ifndef CHECKRESULTREADER_H
 #define CHECKRESULTREADER_H
 
-#include "remoting/endpoint.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
 #include <fstream>

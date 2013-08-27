@@ -27,7 +27,7 @@
 using namespace icinga;
 
 BufferedStream::BufferedStream(const Stream::Ptr& innerStream)
-	: m_InnerStream(innerStream), m_Stopped(false),
+	: m_InnerStream(innerStream), m_Stopped(false), m_Eof(false),
 	  m_RecvQ(boost::make_shared<FIFO>()), m_SendQ(boost::make_shared<FIFO>()),
 	  m_Blocking(true), m_Exception()
 {
@@ -64,8 +64,15 @@ void BufferedStream::ReadThreadProc(void)
 		for (;;) {
 			size_t rc = m_InnerStream->Read(buffer, sizeof(buffer));
 
-			if (rc == 0)
+			if (rc == 0) {
+				boost::mutex::scoped_lock lock(m_Mutex);
+				m_Eof = true;
+				m_Stopped = true;
+				m_ReadCV.notify_all();
+				m_WriteCV.notify_all();
+
 				break;
+			}
 
 			boost::mutex::scoped_lock lock(m_Mutex);
 			m_RecvQ->Write(buffer, rc);
@@ -173,7 +180,7 @@ void BufferedStream::WaitReadable(size_t count)
 
 void BufferedStream::InternalWaitReadable(size_t count, boost::mutex::scoped_lock& lock)
 {
-	while (m_RecvQ->GetAvailableBytes() < count && !m_Exception)
+	while (m_RecvQ->GetAvailableBytes() < count && !m_Exception && !m_Stopped)
 		m_ReadCV.wait(lock);
 }
 
@@ -185,4 +192,11 @@ void BufferedStream::MakeNonBlocking(void)
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	m_Blocking = false;
+}
+
+bool BufferedStream::IsEof(void) const
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	return m_Eof;
 }

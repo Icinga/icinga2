@@ -44,8 +44,11 @@ public:
 
 	virtual void Close(void);
 
+	virtual bool IsEof(void) const;
+
 private:
 	Socket::Ptr m_Socket;
+	bool m_Eof;
 };
 
 }

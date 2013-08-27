@@ -45,6 +45,8 @@ public:
 
 	virtual void Close(void);
 
+	virtual bool IsEof(void) const;
+
 	void WaitReadable(size_t count);
 	void WaitWritable(size_t count);
 
@@ -54,6 +56,7 @@ private:
 	Stream::Ptr m_InnerStream;
 
 	bool m_Stopped;
+	bool m_Eof;
 
 	FIFO::Ptr m_RecvQ;
 	FIFO::Ptr m_SendQ;
@@ -62,7 +65,7 @@ private:
 
 	boost::exception_ptr m_Exception;
 
-	boost::mutex m_Mutex;
+	mutable boost::mutex m_Mutex;
 	boost::condition_variable m_ReadCV;
 	boost::condition_variable m_WriteCV;
 

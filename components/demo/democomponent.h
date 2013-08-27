@@ -20,7 +20,6 @@
 #ifndef DEMOCOMPONENT_H
 #define DEMOCOMPONENT_H
 
-#include "remoting/endpoint.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
 
@@ -34,6 +33,7 @@ class DemoComponent : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DemoComponent);
+	DECLARE_TYPENAME(DemoComponent);
 
 	virtual void Start(void);
 	virtual void Stop(void);

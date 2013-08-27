@@ -111,6 +111,11 @@ void FIFO::Write(const void *buffer, size_t count)
 void FIFO::Close(void)
 { }
 
+bool FIFO::IsEof(void) const
+{
+	return false;
+}
+
 size_t FIFO::GetAvailableBytes(void) const
 {
 	return m_DataSize;

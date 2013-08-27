@@ -111,7 +111,7 @@ static int I2Stream_read(BIO *bi, char *out, int outl)
 		return -1;
 	}
 
-	if (data_read == 0) {
+	if (data_read == 0 && !bp->StreamObj->IsEof()) {
 		BIO_set_retry_read(bi);
 		return -1;
 	}

@@ -17,8 +17,40 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-type Endpoint {
-	%attribute string "node",
-	%attribute string "service",
-	%attribute number "local"
+#include "cluster/jsonrpc.h"
+#include "base/netstring.h"
+#include "base/objectlock.h"
+#include "base/logger_fwd.h"
+#include <boost/exception/diagnostic_information.hpp>
+#include <iostream>
+
+using namespace icinga;
+
+/**
+ * Sends a message to the connected peer.
+ *
+ * @param message The message.
+ */
+void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
+{
+	String json = Value(message).Serialize();
+	//std::cerr << ">> " << json << std::endl;
+	NetString::WriteStringToStream(stream, json);
+}
+
+Dictionary::Ptr JsonRpc::ReadMessage(const Stream::Ptr& stream)
+{
+	String jsonString;
+	if (!NetString::ReadStringFromStream(stream, &jsonString))
+		BOOST_THROW_EXCEPTION(std::runtime_error("ReadStringFromStream signalled EOF."));
+
+	//std::cerr << "<< " << jsonString << std::endl;
+	Value value = Value::Deserialize(jsonString);
+
+	if (!value.IsObjectType<Dictionary>()) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"
+		    " message must be a dictionary."));
+	}
+
+	return value;
 }

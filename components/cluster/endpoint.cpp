@@ -17,9 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remoting/endpoint.h"
-#include "remoting/endpointmanager.h"
-#include "remoting/jsonrpc.h"
+#include "cluster/endpoint.h"
+#include "cluster/jsonrpc.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -78,7 +77,7 @@ void Endpoint::SendMessage(const Dictionary::Ptr& message)
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << boost::diagnostic_information(ex);
-		Log(LogWarning, "remoting", msgbuf.str());
+		Log(LogWarning, "cluster", msgbuf.str());
 
 		m_Client.reset();
 	}
@@ -92,9 +91,11 @@ void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 		try {
 			message = JsonRpc::ReadMessage(stream);
 		} catch (const std::exception& ex) {
-			Log(LogWarning, "jsonrpc", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + boost::diagnostic_information(ex));
+			Log(LogWarning, "cluster", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + boost::diagnostic_information(ex));
 
 			m_Client.reset();
+
+			return;
 		}
 
 		Utility::QueueAsyncCallback(bind(boost::ref(Endpoint::OnMessageReceived), GetSelf(), message));

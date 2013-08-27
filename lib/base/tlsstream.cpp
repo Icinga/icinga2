@@ -214,3 +214,8 @@ void TlsStream::Close(void)
 {
 	m_InnerStream->Close();
 }
+
+bool TlsStream::IsEof(void) const
+{
+	return m_InnerStream->IsEof();
+}

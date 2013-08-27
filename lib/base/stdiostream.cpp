@@ -61,3 +61,8 @@ void StdioStream::Close(void)
 		m_OwnsStream = false;
 	}
 }
+
+bool StdioStream::IsEof(void) const
+{
+	return m_InnerStream->eof();
+}

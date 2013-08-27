@@ -179,8 +179,6 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 		}
 	}
 
-	attrs->Seal();
-
 	DynamicObject::Ptr dobj = dtype->CreateObject(attrs);
 	dobj->Register();
 

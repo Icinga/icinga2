@@ -20,7 +20,6 @@
 #ifndef JSONRPC_H
 #define JSONRPC_H
 
-#include "remoting/i2-remoting.h"
 #include "base/stream.h"
 #include "base/dictionary.h"
 
@@ -30,9 +29,9 @@ namespace icinga
 /**
  * A JSON-RPC connection.
  *
- * @ingroup remoting
+ * @ingroup cluster
  */
-class I2_REMOTING_API JsonRpc
+class JsonRpc
 {
 public:
 	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);

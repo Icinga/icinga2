@@ -25,7 +25,7 @@
 using namespace icinga;
 
 NetworkStream::NetworkStream(const Socket::Ptr& socket)
-	: m_Socket(socket)
+	: m_Socket(socket), m_Eof(false)
 { }
 
 void NetworkStream::Close(void)
@@ -43,7 +43,12 @@ void NetworkStream::Close(void)
  */
 size_t NetworkStream::Read(void *buffer, size_t count)
 {
-	return m_Socket->Read(buffer, count);
+	size_t rc = m_Socket->Read(buffer, count);
+
+	if (rc == 0)
+		m_Eof = true;
+
+	return rc;
 }
 
 /**
@@ -58,4 +63,9 @@ void NetworkStream::Write(const void *buffer, size_t count)
 	size_t rc = m_Socket->Write(buffer, count);
 	if (rc < count)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Short write for socket."));
+}
+
+bool NetworkStream::IsEof(void) const
+{
+	return m_Eof;
 }

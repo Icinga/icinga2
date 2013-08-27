@@ -17,40 +17,57 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remoting/jsonrpc.h"
-#include "base/netstring.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include <boost/exception/diagnostic_information.hpp>
-#include <iostream>
+#ifndef ENDPOINT_H
+#define ENDPOINT_H
 
-using namespace icinga;
+#include "base/dynamicobject.h"
+#include "base/stream.h"
+#include <boost/signals2.hpp>
+
+namespace icinga
+{
+
+class EndpointManager;
 
 /**
- * Sends a message to the connected peer.
+ * An endpoint that can be used to send and receive messages.
  *
- * @param message The message.
+ * @ingroup cluster
  */
-void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
+class Endpoint : public DynamicObject
 {
-	String json = Value(message).Serialize();
-	//std::cerr << ">> " << json << std::endl;
-	NetString::WriteStringToStream(stream, json);
+public:
+	DECLARE_PTR_TYPEDEFS(Endpoint);
+	DECLARE_TYPENAME(Endpoint);
+
+	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
+	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
+
+	Stream::Ptr GetClient(void) const;
+	void SetClient(const Stream::Ptr& client);
+
+	bool IsConnected(void) const;
+
+	void SendMessage(const Dictionary::Ptr& request);
+
+	String GetHost(void) const;
+	String GetPort(void) const;
+
+protected:
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
+private:
+	bool m_Local;
+	Dictionary::Ptr m_Subscriptions;
+	String m_Host;
+	String m_Port;
+
+	Stream::Ptr m_Client;
+
+	void MessageThreadProc(const Stream::Ptr& stream);
+};
+
 }
 
-Dictionary::Ptr JsonRpc::ReadMessage(const Stream::Ptr& stream)
-{
-	String jsonString;
-	if (!NetString::ReadStringFromStream(stream, &jsonString))
-		BOOST_THROW_EXCEPTION(std::runtime_error("ReadStringFromStream signalled EOF."));
-
-	//std::cerr << "<< " << jsonString << std::endl;
-	Value value = Value::Deserialize(jsonString);
-
-	if (!value.IsObjectType<Dictionary>()) {
-		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"
-		    " message must be a dictionary."));
-	}
-
-	return value;
-}
+#endif /* ENDPOINT_H */

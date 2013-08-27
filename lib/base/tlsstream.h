@@ -57,6 +57,8 @@ public:
 	virtual size_t Read(void *buffer, size_t count);
 	virtual void Write(const void *buffer, size_t count);
 
+	virtual bool IsEof(void) const;
+
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	shared_ptr<SSL> m_SSL;

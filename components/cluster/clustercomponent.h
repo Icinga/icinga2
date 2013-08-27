@@ -17,58 +17,73 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ENDPOINT_H
-#define ENDPOINT_H
+#ifndef CLUSTERCOMPONENT_H
+#define CLUSTERCOMPONENT_H
 
-#include "remoting/i2-remoting.h"
 #include "base/dynamicobject.h"
-#include "base/stream.h"
-#include <boost/signals2.hpp>
+#include "base/timer.h"
+#include "base/array.h"
+#include "base/tcpsocket.h"
+#include "base/tlsstream.h"
+#include "base/utility.h"
+#include "base/tlsutility.h"
+#include "icinga/service.h"
+#include "cluster/endpoint.h"
 
 namespace icinga
 {
 
-class EndpointManager;
-
 /**
- * An endpoint that can be used to send and receive messages.
- *
- * @ingroup remoting
+ * @ingroup demo
  */
-class I2_REMOTING_API Endpoint : public DynamicObject
+class ClusterComponent : public DynamicObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Endpoint);
-	DECLARE_TYPENAME(Endpoint);
+	DECLARE_PTR_TYPEDEFS(ClusterComponent);
+	DECLARE_TYPENAME(ClusterComponent);
 
-	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
-	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
+	virtual void Start(void);
+	virtual void Stop(void);
 
-	Stream::Ptr GetClient(void) const;
-	void SetClient(const Stream::Ptr& client);
+	String GetCertificateFile(void) const;
+	String GetCAFile(void) const;
+	String GetBindHost(void) const;
+	String GetBindPort(void) const;
+	Array::Ptr GetPeers(void) const;
 
-	bool IsConnected(void) const;
-
-	void SendMessage(const Dictionary::Ptr& request);
-
-	String GetHost(void) const;
-	String GetPort(void) const;
+	shared_ptr<SSL_CTX> GetSSLContext(void) const;
+	String GetIdentity(void) const;
 
 protected:
 	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	bool m_Local;
-	Dictionary::Ptr m_Subscriptions;
-	String m_Host;
-	String m_Port;
+	String m_CertPath;
+	String m_CAPath;
+	String m_BindHost;
+	String m_BindPort;
+	Array::Ptr m_Peers;
 
-	Stream::Ptr m_Client;
+	shared_ptr<SSL_CTX> m_SSLContext;
+	String m_Identity;
 
-	void MessageThreadProc(const Stream::Ptr& stream);
+	Timer::Ptr m_ReconnectTimer;
+	void ReconnectTimerHandler(void);
+
+	std::set<TcpSocket::Ptr> m_Servers;
+
+	void AddListener(const String& service);
+	void AddConnection(const String& node, const String& service);
+
+	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
+	void ListenerThreadProc(const Socket::Ptr& server);
+
+	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr);
+	void MessageHandler(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
+
 };
 
 }
 
-#endif /* ENDPOINT_H */
+#endif /* CLUSTERCOMPONENT_H */
