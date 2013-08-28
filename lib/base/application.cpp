@@ -503,7 +503,11 @@ void Application::UpdatePidFile(const String& filename)
 		_exit(EXIT_FAILURE);
 	}
 
-	(void) ftruncate(fd, 0);
+	if (ftruncate(fd, 0) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("ftruncate")
+		    << boost::errinfo_errno(errno));
+	}
 #endif /* _WIN32 */
 
 	fprintf(m_PidFile, "%d", Utility::GetPid());
