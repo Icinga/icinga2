@@ -41,7 +41,9 @@ void ServiceDbObject::StaticInitialize(void)
 {
 	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddComment, _1, _2));
 	Service::OnCommentRemoved.connect(boost::bind(&ServiceDbObject::RemoveComment, _1, _2));
-	Service::OnDowntimesChanged.connect(boost::bind(&ServiceDbObject::DowntimesChangedHandler, _1, _2, _3));
+	Service::OnDowntimeAdded.connect(boost::bind(&ServiceDbObject::AddDowntime, _1, _2));
+	Service::OnDowntimeRemoved.connect(boost::bind(&ServiceDbObject::RemoveDowntime, _1, _2));
+	Service::OnDowntimeTriggered.connect(boost::bind(&ServiceDbObject::TriggerDowntime, _1, _2));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -250,8 +252,8 @@ void ServiceDbObject::OnConfigUpdate(void)
 
 	/* update comments and downtimes on config change */
 	AddComments(service);
-	DowntimesChangedHandler(service, Empty, DowntimeChangedUpdated);
-
+	AddDowntimes(service);
+ 
 	/* service host config update */
 	Host::Ptr host = service->GetHost();
 
@@ -373,66 +375,9 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 	OnQuery(query1);
 }
 
-void ServiceDbObject::RemoveComments(const Service::Ptr& service)
-{
-	/* remove all comments associated for this host/service */
-	Log(LogDebug, "ido", "remove comments for '" + service->GetName() + "'");
-
-	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
-
-	DbQuery query1;
-	query1.Table = "comments";
-	query1.Type = DbQueryDelete;
-	query1.WhereCriteria = boost::make_shared<Dictionary>();
-	query1.WhereCriteria->Set("object_id", service);
-	OnQuery(query1);
-
-	/* remove hostcheck service's host comments */
-	if (host->GetHostCheckService() == service) {
-		DbQuery query2;
-		query2.Table = "comments";
-		query2.Type = DbQueryDelete;
-		query2.WhereCriteria = boost::make_shared<Dictionary>();
-		query2.WhereCriteria->Set("object_id", host);
-		OnQuery(query2);
-	}
-}
-
 void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionary::Ptr& comment)
 {
 	/* TODO: implement */
-}
-
-void ServiceDbObject::DowntimesChangedHandler(const Service::Ptr& svcfilter, const String& id, DowntimeChangedType type)
-{
-	if (type == DowntimeChangedUpdated || type == DowntimeChangedDeleted) {
-		/* we cannot determine which downtime id is deleted
-		 * id cache may not be in sync
-		 */
-		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-			if (svcfilter && svcfilter != service)
-				continue;
-
-			Host::Ptr host = service->GetHost();
-
-			if (!host)
-				continue;
-
-			/* delete all downtimes associated for this host/service */
-			DeleteDowntimes(service);
-
-			/* dump all downtimes */
-			AddDowntimes(service);
-		}
-	} else if (type == DowntimeChangedAdded) {
-		Dictionary::Ptr downtime = Service::GetDowntimeByID(id);
-		AddDowntime(svcfilter, downtime);
-	} else {
-		Log(LogDebug, "ido", "invalid downtime change type: " + type);
-	}
 }
 
 void ServiceDbObject::AddDowntimes(const Service::Ptr& service)
@@ -518,31 +463,12 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 	OnQuery(query1);
 }
 
-void ServiceDbObject::DeleteDowntimes(const Service::Ptr& service)
+void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime)
 {
-	/* delete all downtimes associated for this host/service */
-	Log(LogDebug, "ido", "delete downtimes for '" + service->GetName() + "'");
-
-	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
-
-	DbQuery query1;
-	query1.Table = "scheduleddowntime";
-	query1.Type = DbQueryDelete;
-	query1.WhereCriteria = boost::make_shared<Dictionary>();
-	query1.WhereCriteria->Set("object_id", service);
-	OnQuery(query1);
-
-	/* delete hostcheck service's host downtimes */
-	if (host->GetHostCheckService() == service) {
-		DbQuery query2;
-		query2.Table = "scheduleddowntime";
-		query2.Type = DbQueryDelete;
-		query2.WhereCriteria = boost::make_shared<Dictionary>();
-		query2.WhereCriteria->Set("object_id", host);
-		OnQuery(query2);
-	}
+	/* TODO: implement */
 }
 
+void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+{
+	/* TODO: implement */
+}

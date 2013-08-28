@@ -241,11 +241,12 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> OnNotificationsRequested;
 	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentChanged;
-	static boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> OnDowntimeChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentAdded;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentRemoved;
-	static boost::signals2::signal<void (const Service::Ptr&, const String&, DowntimeChangedType)> OnDowntimesChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeAdded;
+	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeRemoved;
+	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> OnDowntimeTriggered;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
@@ -255,11 +256,12 @@ public:
 	Dictionary::Ptr GetDowntimes(void) const;
 	int GetDowntimeDepth(void) const;
 
-	String AddDowntime(const String& author, const String& comment,
+	String AddDowntime(const String& comment_id,
 	    double startTime, double endTime, bool fixed,
-	    const String& triggeredBy, double duration);
+	    const String& triggeredBy, double duration,
+	    const String& id = String(), const String& authority = String());
 
-	static void RemoveDowntime(const String& id);
+	static void RemoveDowntime(const String& id, const String& = String());
 
         void TriggerDowntimes(void);
 	static void TriggerDowntime(const String& id);

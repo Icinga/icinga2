@@ -864,7 +864,8 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double, const std::vector<Str
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-	(void) service->AddDowntime(arguments[7], arguments[8],
+	String comment_id = service->AddComment(CommentDowntime, arguments[7], arguments[8], Convert::ToDouble(arguments[3]));
+	(void) service->AddDowntime(comment_id,
 	    Convert::ToDouble(arguments[2]), Convert::ToDouble(arguments[3]),
 	    Convert::ToBool(arguments[4]), triggeredBy, Convert::ToDouble(arguments[6]));
 }
@@ -895,7 +896,8 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<St
 	Log(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
 	Service::Ptr service = host->GetHostCheckService();
 	if (service) {
-		(void) service->AddDowntime(arguments[6], arguments[7],
+		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
+		(void) service->AddDowntime(comment_id,
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -926,7 +928,8 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		(void) service->AddDowntime(arguments[6], arguments[7],
+		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
+		(void) service->AddDowntime(comment_id,
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -948,7 +951,8 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::
 		Log(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
 		Service::Ptr service = host->GetHostCheckService();
 		if (service) {
-			(void) service->AddDowntime(arguments[6], arguments[7],
+			String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
+			(void) service->AddDowntime(comment_id,
 			    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 			    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 		}
@@ -981,7 +985,8 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const std::v
 
 	BOOST_FOREACH(const Service::Ptr& service, services) {
 		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		(void) service->AddDowntime(arguments[6], arguments[7],
+		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
+		(void) service->AddDowntime(comment_id,
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -1014,7 +1019,8 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const st
 
 	BOOST_FOREACH(const Service::Ptr& service, services) {
 		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		(void) service->AddDowntime(arguments[6], arguments[7],
+		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
+		(void) service->AddDowntime(comment_id,
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -1034,7 +1040,8 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const std
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		(void) service->AddDowntime(arguments[6], arguments[7],
+		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
+		(void) service->AddDowntime(comment_id,
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}

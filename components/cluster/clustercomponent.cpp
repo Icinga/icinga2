@@ -60,6 +60,8 @@ void ClusterComponent::Start(void)
 	Service::OnEnablePassiveChecksChanged.connect(bind(&ClusterComponent::EnablePassiveChecksChangedHandler, this, _1, _2, _3));
 	Service::OnCommentAdded.connect(bind(&ClusterComponent::CommentAddedHandler, this, _1, _2, _3));
 	Service::OnCommentRemoved.connect(bind(&ClusterComponent::CommentRemovedHandler, this, _1, _2, _3));
+	Service::OnDowntimeAdded.connect(bind(&ClusterComponent::DowntimeAddedHandler, this, _1, _2, _3));
+	Service::OnDowntimeRemoved.connect(bind(&ClusterComponent::DowntimeRemovedHandler, this, _1, _2, _3));
 
 	Endpoint::OnMessageReceived.connect(bind(&ClusterComponent::MessageHandler, this, _1, _2));
 }
@@ -404,6 +406,44 @@ void ClusterComponent::CommentRemovedHandler(const Service::Ptr& service, const 
 	}
 }
 
+void ClusterComponent::DowntimeAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("downtime", downtime);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::AddDowntime");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
+void ClusterComponent::DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("id", downtime->Get("id"));
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::RemoveDowntime");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
 void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
 {
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
@@ -509,6 +549,31 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		String id = params->Get("id");
 
 		service->RemoveComment(id, sender->GetName());
+	} else if (message->Get("method") == "cluster::AddDowntime") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		Dictionary::Ptr downtime = params->Get("downtime");
+
+		service->AddDowntime(downtime->Get("comment_id"),
+		    downtime->Get("start_time"), downtime->Get("end_time"),
+		    downtime->Get("fixed"), downtime->Get("triggered_by"),
+		    downtime->Get("duration"), downtime->Get("id"), sender->GetName());
+	} else if (message->Get("method") == "cluster::RemoveDowntime") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		String id = params->Get("id");
+
+		service->RemoveDowntime(id, sender->GetName());
 	}
 }
 

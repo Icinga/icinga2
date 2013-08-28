@@ -35,8 +35,9 @@ static std::map<int, String> l_LegacyDowntimesCache;
 static std::map<String, Service::WeakPtr> l_DowntimesCache;
 static Timer::Ptr l_DowntimesExpireTimer;
 
-boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> Service::OnDowntimeChanged;
-boost::signals2::signal<void (const Service::Ptr&, const String&, DowntimeChangedType)> Service::OnDowntimesChanged;
+boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> Service::OnDowntimeAdded;
+boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> Service::OnDowntimeRemoved;
+boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> Service::OnDowntimeTriggered;
 
 int Service::GetNextDowntimeID(void)
 {
@@ -50,14 +51,21 @@ Dictionary::Ptr Service::GetDowntimes(void) const
 	return m_Downtimes;
 }
 
-String Service::AddDowntime(const String& author, const String& comment,
+String Service::AddDowntime(const String& comment_id,
     double startTime, double endTime, bool fixed,
-    const String& triggeredBy, double duration)
+    const String& triggeredBy, double duration, const String& id, const String& authority)
 {
+	String uid;
+
+	if (id.IsEmpty())
+		uid = Utility::NewUniqueID();
+	else
+		uid = id;
+
 	Dictionary::Ptr downtime = boost::make_shared<Dictionary>();
+	downtime->Set("id", uid);
 	downtime->Set("entry_time", Utility::GetTime());
-	downtime->Set("author", author);
-	downtime->Set("comment", comment);
+	downtime->Set("comment_id", comment_id);
 	downtime->Set("start_time", startTime);
 	downtime->Set("end_time", endTime);
 	downtime->Set("fixed", fixed);
@@ -100,23 +108,20 @@ String Service::AddDowntime(const String& author, const String& comment,
 		m_Downtimes = downtimes;
 	}
 
-	String id = Utility::NewUniqueID();
-	downtimes->Set(id, downtime);
-
-	(void) AddComment(CommentDowntime, author, comment, endTime);
+	downtimes->Set(uid, downtime);
 
 	{
 		boost::mutex::scoped_lock lock(l_DowntimeMutex);
-		l_LegacyDowntimesCache[legacy_id] = id;
-		l_DowntimesCache[id] = GetSelf();
+		l_LegacyDowntimesCache[legacy_id] = uid;
+		l_DowntimesCache[uid] = GetSelf();
 	}
 
-	OnDowntimesChanged(GetSelf(), id, DowntimeChangedAdded);
+	OnDowntimeAdded(GetSelf(), downtime, authority);
 
-	return id;
+	return uid;
 }
 
-void Service::RemoveDowntime(const String& id)
+void Service::RemoveDowntime(const String& id, const String& authority)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
 
@@ -128,25 +133,25 @@ void Service::RemoveDowntime(const String& id)
 	if (!downtimes)
 		return;
 
+	ObjectLock olock(owner);
+
+	Dictionary::Ptr downtime = downtimes->Get(id);
+
+	String comment_id = downtime->Get("comment_id");
+	
+	RemoveComment(comment_id);
+
+	int legacy_id = downtime->Get("legacy_id");
+
+	downtimes->Remove(id);
+
 	{
-		ObjectLock olock(owner);
-
-		Dictionary::Ptr downtime = downtimes->Get(id);
-
-		int legacy_id = downtime->Get("legacy_id");
-
-		downtimes->Remove(id);
-
-		{
-			boost::mutex::scoped_lock lock(l_DowntimeMutex);
-			l_LegacyDowntimesCache.erase(legacy_id);
-			l_DowntimesCache.erase(id);
-		}
+		boost::mutex::scoped_lock lock(l_DowntimeMutex);
+		l_LegacyDowntimesCache.erase(legacy_id);
+		l_DowntimesCache.erase(id);
 	}
 
-	OnDowntimeChanged(owner, DowntimeCancelled);
-
-	OnDowntimesChanged(owner, id, DowntimeChangedDeleted);
+	OnDowntimeRemoved(owner, downtime, authority);
 }
 
 void Service::TriggerDowntimes(void)
@@ -196,8 +201,7 @@ void Service::TriggerDowntime(const String& id)
 		TriggerDowntime(tid);
 	}
 
-	OnDowntimeChanged(owner, DowntimeStarted);
-	OnDowntimesChanged(owner, Empty, DowntimeChangedUpdated);
+	OnDowntimeTriggered(owner, downtime);
 }
 
 String Service::GetDowntimeIDFromLegacyID(int id)

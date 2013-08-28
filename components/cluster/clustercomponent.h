@@ -87,6 +87,8 @@ private:
 	void EnablePassiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
 	void CommentAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority);
 	void CommentRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority);
+	void DowntimeAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority);
+	void DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority);
 	void MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
 
 };
