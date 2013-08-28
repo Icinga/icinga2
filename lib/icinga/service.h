@@ -85,18 +85,6 @@ enum FlappingState
 };
 
 /**
- * The state of a changed comment
- *
- * @ingroup icinga
- */
-enum CommentChangedType
-{
-	CommentChangedAdded = 0,
-	CommentChangedUpdated = 1,
-	CommentChangedDeleted = 2
-};
-
-/**
  * The state of a changed downtime
  *
  * @ingroup icinga
@@ -255,7 +243,8 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> OnDowntimeChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
-	static boost::signals2::signal<void (const Service::Ptr&, const String&, CommentChangedType)> OnCommentsChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentAdded;
+	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&, DowntimeChangedType)> OnDowntimesChanged;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
@@ -291,11 +280,11 @@ public:
 	Dictionary::Ptr GetComments(void) const;
 
 	String AddComment(CommentType entryType, const String& author,
-	    const String& text, double expireTime);
+	    const String& text, double expireTime, const String& id = String(), const String& authority = String());
 
 	void RemoveAllComments(void);
 	void RemoveCommentsByType(int type);
-	static void RemoveComment(const String& id);
+	static void RemoveComment(const String& id, const String& authority = String());
 
 	static String GetCommentIDFromLegacyID(int id);
 	static Service::Ptr GetOwnerByCommentID(const String& id);

@@ -77,7 +77,7 @@ public:
 	void SetLastNotification(double time);
 
 	double GetNextNotification(void) const;
-	void SetNextNotification(double time);
+	void SetNextNotification(double time, const String& authority = String());
 
 	long GetNotificationNumber(void) const;
 	void UpdateNotificationNumber(void);
@@ -88,6 +88,8 @@ public:
 	static String NotificationTypeToString(NotificationType type);
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+
+	static boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> OnNextNotificationChanged;
 
 protected:
 	virtual void Start(void);

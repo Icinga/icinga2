@@ -54,9 +54,12 @@ void ClusterComponent::Start(void)
 
 	Service::OnNewCheckResult.connect(bind(&ClusterComponent::CheckResultHandler, this, _1, _2, _3));
 	Service::OnNextCheckChanged.connect(bind(&ClusterComponent::NextCheckChangedHandler, this, _1, _2, _3));
+	Notification::OnNextNotificationChanged.connect(bind(&ClusterComponent::NextNotificationChangedHandler, this, _1, _2, _3));
 	Service::OnForceNextCheckChanged.connect(bind(&ClusterComponent::ForceNextCheckChangedHandler, this, _1, _2, _3));
 	Service::OnEnableActiveChecksChanged.connect(bind(&ClusterComponent::EnableActiveChecksChangedHandler, this, _1, _2, _3));
 	Service::OnEnablePassiveChecksChanged.connect(bind(&ClusterComponent::EnablePassiveChecksChangedHandler, this, _1, _2, _3));
+	Service::OnCommentAdded.connect(bind(&ClusterComponent::CommentAddedHandler, this, _1, _2, _3));
+	Service::OnCommentRemoved.connect(bind(&ClusterComponent::CommentRemovedHandler, this, _1, _2, _3));
 
 	Endpoint::OnMessageReceived.connect(bind(&ClusterComponent::MessageHandler, this, _1, _2));
 }
@@ -287,6 +290,25 @@ void ClusterComponent::NextCheckChangedHandler(const Service::Ptr& service, doub
 	}
 }
 
+void ClusterComponent::NextNotificationChangedHandler(const Notification::Ptr& notification, double nextNotification, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("notification", notification->GetName());
+	params->Set("next_notification", nextNotification);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::SetNextNotification");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
 void ClusterComponent::ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
@@ -337,6 +359,44 @@ void ClusterComponent::EnablePassiveChecksChangedHandler(const Service::Ptr& ser
 	Dictionary::Ptr message = boost::make_shared<Dictionary>();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::SetEnablePassiveChecks");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
+void ClusterComponent::CommentAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("comment", comment);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::AddComment");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
+void ClusterComponent::CommentRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("id", comment->Get("id"));
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::RemoveComment");
 	message->Set("params", params);
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
@@ -414,6 +474,41 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool enabled = params->Get("enabled");
 
 		service->SetEnablePassiveChecks(enabled, sender->GetName());
+	} else if (message->Get("method") == "cluster::SetNextNotification") {
+		String nfc = params->Get("notification");
+
+		Notification::Ptr notification = Notification::GetByName(nfc);
+
+		if (!notification)
+			return;
+
+		bool nextNotification = params->Get("next_notification");
+
+		notification->SetNextNotification(nextNotification, sender->GetName());
+	} else if (message->Get("method") == "cluster::AddComment") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		Dictionary::Ptr comment = params->Get("comment");
+
+		long type = static_cast<long>(comment->Get("entry_type"));
+		service->AddComment(static_cast<CommentType>(type), comment->Get("author"),
+		    comment->Get("text"), comment->Get("expire_time"), comment->Get("id"), sender->GetName());
+	} else if (message->Get("method") == "cluster::RemoveComment") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		String id = params->Get("id");
+
+		service->RemoveComment(id, sender->GetName());
 	}
 }
 

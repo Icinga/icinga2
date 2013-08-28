@@ -34,6 +34,8 @@ using namespace icinga;
 
 REGISTER_TYPE(Notification);
 
+boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> Notification::OnNextNotificationChanged;
+
 void Notification::Start(void)
 {
 	DynamicObject::Start();
@@ -182,9 +184,11 @@ double Notification::GetNextNotification(void) const
  * Sets the timestamp when the next periodical notification should be sent.
  * This does not affect notifications that are sent for state changes.
  */
-void Notification::SetNextNotification(double time)
+void Notification::SetNextNotification(double time, const String& authority)
 {
 	m_NextNotification = time;
+
+	Utility::QueueAsyncCallback(bind(boost::ref(OnNextNotificationChanged), GetSelf(), time, authority));
 }
 
 long Notification::GetNotificationNumber(void) const

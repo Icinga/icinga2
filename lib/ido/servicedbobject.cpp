@@ -39,7 +39,8 @@ INITIALIZE_ONCE(ServiceDbObject, &ServiceDbObject::StaticInitialize);
 
 void ServiceDbObject::StaticInitialize(void)
 {
-	Service::OnCommentsChanged.connect(boost::bind(&ServiceDbObject::CommentsChangedHandler, _1, _2, _3));
+	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddComment, _1, _2));
+	Service::OnCommentRemoved.connect(boost::bind(&ServiceDbObject::RemoveComment, _1, _2));
 	Service::OnDowntimesChanged.connect(boost::bind(&ServiceDbObject::DowntimesChangedHandler, _1, _2, _3));
 }
 
@@ -248,7 +249,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	}
 
 	/* update comments and downtimes on config change */
-	CommentsChangedHandler(service, Empty, CommentChangedUpdated);
+	AddComments(service);
 	DowntimesChangedHandler(service, Empty, DowntimeChangedUpdated);
 
 	/* service host config update */
@@ -286,35 +287,6 @@ void ServiceDbObject::OnStatusUpdate(void)
 		return;
 
 	dbobj->SendStatusUpdate();
-}
-
-void ServiceDbObject::CommentsChangedHandler(const Service::Ptr& svcfilter, const String& id, CommentChangedType type)
-{
-	if (type == CommentChangedUpdated || type == CommentChangedDeleted) {
-		/* we cannot determine which comment id is deleted
-		 * id cache may not be in sync
-		 */
-		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-			if (svcfilter && svcfilter != service)
-				continue;
-
-			Host::Ptr host = service->GetHost();
-
-			if (!host)
-				continue;
-
-			/* delete all comments associated for this host/service */
-			DeleteComments(service);
-
-			/* dump all comments */
-			AddComments(service);
-		}
-	} else if (type == CommentChangedAdded) {
-		Dictionary::Ptr comment = Service::GetCommentByID(id);
-		AddComment(svcfilter, comment);
-	} else {
-		Log(LogDebug, "ido", "invalid comment change type: " + type);
-	}
 }
 
 void ServiceDbObject::AddComments(const Service::Ptr& service)
@@ -401,10 +373,10 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 	OnQuery(query1);
 }
 
-void ServiceDbObject::DeleteComments(const Service::Ptr& service)
+void ServiceDbObject::RemoveComments(const Service::Ptr& service)
 {
-	/* delete all comments associated for this host/service */
-	Log(LogDebug, "ido", "delete comments for '" + service->GetName() + "'");
+	/* remove all comments associated for this host/service */
+	Log(LogDebug, "ido", "remove comments for '" + service->GetName() + "'");
 
 	Host::Ptr host = service->GetHost();
 
@@ -418,7 +390,7 @@ void ServiceDbObject::DeleteComments(const Service::Ptr& service)
 	query1.WhereCriteria->Set("object_id", service);
 	OnQuery(query1);
 
-	/* delete hostcheck service's host comments */
+	/* remove hostcheck service's host comments */
 	if (host->GetHostCheckService() == service) {
 		DbQuery query2;
 		query2.Table = "comments";
@@ -427,6 +399,11 @@ void ServiceDbObject::DeleteComments(const Service::Ptr& service)
 		query2.WhereCriteria->Set("object_id", host);
 		OnQuery(query2);
 	}
+}
+
+void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionary::Ptr& comment)
+{
+	/* TODO: implement */
 }
 
 void ServiceDbObject::DowntimesChangedHandler(const Service::Ptr& svcfilter, const String& id, DowntimeChangedType type)
