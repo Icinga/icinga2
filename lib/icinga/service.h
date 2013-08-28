@@ -160,7 +160,7 @@ public:
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
 
-	void SetNextCheck(double nextCheck);
+	void SetNextCheck(double nextCheck, const String& authority = String());
 	double GetNextCheck(void);
 	void UpdateNextCheck(void);
 
@@ -218,13 +218,13 @@ public:
 	bool GetLastReachable(void) const;
 
 	bool GetEnableActiveChecks(void) const;
-	void SetEnableActiveChecks(bool enabled);
+	void SetEnableActiveChecks(bool enabled, const String& authority = String());
 
 	bool GetEnablePassiveChecks(void) const;
-	void SetEnablePassiveChecks(bool enabled);
+	void SetEnablePassiveChecks(bool enabled, const String& authority = String());
 
 	bool GetForceNextCheck(void) const;
-	void SetForceNextCheck(bool forced);
+	void SetForceNextCheck(bool forced, const String& authority = String());
 
 	double GetAcknowledgementExpiry(void) const;
 	void SetAcknowledgementExpiry(double timestamp);
@@ -235,7 +235,7 @@ public:
 	void ClearAcknowledgement(void);
 
 	void ExecuteCheck(void);
-	void ProcessCheckResult(const Dictionary::Ptr& cr);
+	void ProcessCheckResult(const Dictionary::Ptr& cr, const String& authority = String());
 
 	static double CalculateExecutionTime(const Dictionary::Ptr& cr);
 	static double CalculateLatency(const Dictionary::Ptr& cr);
@@ -246,8 +246,11 @@ public:
 	static StateType StateTypeFromString(const String& state);
 	static String StateTypeToString(StateType state);
 
-	static boost::signals2::signal<void (const Service::Ptr&)> OnNextCheckChanged;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> OnNewCheckResult;
+	static boost::signals2::signal<void (const Service::Ptr&, double, const String&)> OnNextCheckChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnForceNextCheckChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableActiveChecksChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnablePassiveChecksChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> OnNotificationsRequested;
 	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, DowntimeState)> OnDowntimeChanged;

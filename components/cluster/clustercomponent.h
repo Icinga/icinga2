@@ -79,8 +79,12 @@ private:
 	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
 
-	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr);
-	void MessageHandler(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
+	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority);
+	void NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority);
+	void ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority);
+	void EnableActiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
+	void EnablePassiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
+	void MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
 
 };
 

@@ -52,7 +52,12 @@ void ClusterComponent::Start(void)
 	m_ReconnectTimer->SetInterval(5);
 	m_ReconnectTimer->Start();
 
-	Service::OnNewCheckResult.connect(bind(&ClusterComponent::CheckResultHandler, this, _1, _2));
+	Service::OnNewCheckResult.connect(bind(&ClusterComponent::CheckResultHandler, this, _1, _2, _3));
+	Service::OnNextCheckChanged.connect(bind(&ClusterComponent::NextCheckChangedHandler, this, _1, _2, _3));
+	Service::OnForceNextCheckChanged.connect(bind(&ClusterComponent::ForceNextCheckChangedHandler, this, _1, _2, _3));
+	Service::OnEnableActiveChecksChanged.connect(bind(&ClusterComponent::EnableActiveChecksChangedHandler, this, _1, _2, _3));
+	Service::OnEnablePassiveChecksChanged.connect(bind(&ClusterComponent::EnablePassiveChecksChangedHandler, this, _1, _2, _3));
+
 	Endpoint::OnMessageReceived.connect(bind(&ClusterComponent::MessageHandler, this, _1, _2));
 }
 
@@ -244,12 +249,10 @@ void ClusterComponent::ReconnectTimerHandler(void)
 	}
 }
 
-void ClusterComponent::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr)
+void ClusterComponent::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority)
 {
-	if (cr->Contains("source") && cr->Get("source") != GetIdentity())
+	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
-
-	cr->Set("source", GetIdentity());
 
 	Dictionary::Ptr params = boost::make_shared<Dictionary>();
 	params->Set("service", service->GetName());
@@ -265,19 +268,95 @@ void ClusterComponent::CheckResultHandler(const Service::Ptr& service, const Dic
 	}
 }
 
-void ClusterComponent::MessageHandler(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message)
+void ClusterComponent::NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority)
 {
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("next_check", nextCheck);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::SetNextCheck");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
+void ClusterComponent::ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("forced", forced);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::SetForceNextCheck");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
+void ClusterComponent::EnableActiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("enabled", enabled);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::SetEnableActiveChecks");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
+void ClusterComponent::EnablePassiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("enabled", enabled);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::SetEnablePassiveChecks");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
+void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
+{
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		if (sender != endpoint)
+			endpoint->SendMessage(message);
+	}
+
+	Dictionary::Ptr params = message->Get("params");
+
+	if (!params)
+		return;
+
 	if (message->Get("method") == "cluster::CheckResult") {
-		Dictionary::Ptr params = message->Get("params");
-
-		if (!params)
-			return;
-
-		Dictionary::Ptr cr = params->Get("check_result");
-
-		if (!cr)
-			return;
-
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -285,12 +364,56 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& endpoint, const Dicti
 		if (!service)
 			return;
 
-		service->ProcessCheckResult(cr);
+		Dictionary::Ptr cr = params->Get("check_result");
 
-		/* Reschedule the next check. The side effect of this is that for as long
-		 * as we receive results for a service we won't execute any
-		 * active checks. */
-		service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
+		if (!cr)
+			return;
+
+		service->ProcessCheckResult(cr, sender->GetName());
+	} else if (message->Get("method") == "cluster::SetNextCheck") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		double nextCheck = params->Get("next_check");
+
+		service->SetNextCheck(nextCheck, sender->GetName());
+	} else if (message->Get("method") == "cluster::SetForceNextCheck") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		bool forced = params->Get("forced");
+
+		service->SetForceNextCheck(forced, sender->GetName());
+	} else if (message->Get("method") == "cluster::SetEnableActiveChecks") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		bool enabled = params->Get("enabled");
+
+		service->SetEnableActiveChecks(enabled, sender->GetName());
+	} else if (message->Get("method") == "cluster::SetEnablePassiveChecks") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		bool enabled = params->Get("enabled");
+
+		service->SetEnablePassiveChecks(enabled, sender->GetName());
 	}
 }
 

@@ -37,9 +37,12 @@ const int Service::DefaultMaxCheckAttempts = 3;
 const double Service::DefaultCheckInterval = 5 * 60;
 const double Service::CheckIntervalDivisor = 5.0;
 
-boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> Service::OnNewCheckResult;
+boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> Service::OnNewCheckResult;
 boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationsRequested;
-boost::signals2::signal<void (const Service::Ptr&)> Service::OnNextCheckChanged;
+boost::signals2::signal<void (const Service::Ptr&, double, const String&)> Service::OnNextCheckChanged;
+boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnForceNextCheckChanged;
+boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnableActiveChecksChanged;
+boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnablePassiveChecksChanged;
 boost::signals2::signal<void (const Service::Ptr&, FlappingState)> Service::OnFlappingChanged;
 
 CheckCommand::Ptr Service::GetCheckCommand(void) const
@@ -91,11 +94,11 @@ long Service::GetSchedulingOffset(void)
 	return m_SchedulingOffset;
 }
 
-void Service::SetNextCheck(double nextCheck)
+void Service::SetNextCheck(double nextCheck, const String& authority)
 {
 	m_NextCheck = nextCheck;
 
-	Utility::QueueAsyncCallback(bind(boost::ref(Service::OnNextCheckChanged), GetSelf()));
+	Utility::QueueAsyncCallback(bind(boost::ref(Service::OnNextCheckChanged), GetSelf(), nextCheck, authority));
 }
 
 double Service::GetNextCheck(void)
@@ -401,9 +404,11 @@ bool Service::GetEnableActiveChecks(void) const
 		return m_EnableActiveChecks;
 }
 
-void Service::SetEnableActiveChecks(bool enabled)
+void Service::SetEnableActiveChecks(bool enabled, const String& authority)
 {
 	m_EnableActiveChecks = enabled ? 1 : 0;
+
+	Utility::QueueAsyncCallback(bind(boost::ref(OnEnableActiveChecksChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetEnablePassiveChecks(void) const
@@ -414,9 +419,11 @@ bool Service::GetEnablePassiveChecks(void) const
 		return m_EnablePassiveChecks;
 }
 
-void Service::SetEnablePassiveChecks(bool enabled)
+void Service::SetEnablePassiveChecks(bool enabled, const String& authority)
 {
 	m_EnablePassiveChecks = enabled ? 1 : 0;
+
+	Utility::QueueAsyncCallback(bind(boost::ref(OnEnablePassiveChecksChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetForceNextCheck(void) const
@@ -427,12 +434,14 @@ bool Service::GetForceNextCheck(void) const
 	return static_cast<bool>(m_ForceNextCheck);
 }
 
-void Service::SetForceNextCheck(bool forced)
+void Service::SetForceNextCheck(bool forced, const String& authority)
 {
 	m_ForceNextCheck = forced ? 1 : 0;
+
+	Utility::QueueAsyncCallback(bind(boost::ref(OnForceNextCheckChanged), GetSelf(), forced, authority));
 }
 
-void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
+void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& authority)
 {
 	double now = Utility::GetTime();
 
@@ -607,7 +616,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr)
 			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
 			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
 
-	OnNewCheckResult(GetSelf(), cr);
+	OnNewCheckResult(GetSelf(), cr, authority);
 	OnStateChanged(GetSelf());
 
 	if (call_eventhandler)

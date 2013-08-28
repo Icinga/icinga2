@@ -27,6 +27,7 @@ icinga2_LDADD = \
 	${top_builddir}/lib/config/libconfig.la \
 	-dlopen ${top_builddir}/lib/icinga/libicinga.la \
 	-dlopen ${top_builddir}/components/checker/libchecker.la \
+	-dlopen ${top_builddir}/components/cluster/libcluster.la \
 	-dlopen ${top_builddir}/components/compat/libcompat.la \
 	-dlopen ${top_builddir}/components/demo/libdemo.la \
 	-dlopen ${top_builddir}/components/livestatus/liblivestatus.la \
