@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 		if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
 			appName = appName.SubStr(3, appName.GetLength() - 3);
 
-		std::cout << appName << " " << "- The Icinga 2 networking monitoring daemon.";
+		std::cout << appName << " " << "- The Icinga 2 network monitoring daemon.";
 
 		if (g_AppParams.count("version")) {
 #ifndef _WIN32
