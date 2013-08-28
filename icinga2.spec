@@ -15,6 +15,13 @@ BuildRequires: openssl-devel
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
 BuildRequires: libtool-ltdl-devel
+BuildRequires: automake
+BuildRequires: autoconf
+BuildRequires: libtool
+BuildRequires: help2man
+BuildRequires: flex
+BuildRequires: bison
+
 
 # TODO: figure out how to handle boost on el5
 BuildRequires: boost
@@ -28,6 +35,7 @@ Icinga is a general-purpose network monitoring application.
 %setup -q -n %{name}-%{version}
 
 %build
+sh autogen.sh
 %configure
 make %{?_smp_mflags}
 
