@@ -20,6 +20,7 @@
 #include "base/threadpool.h"
 #include "base/logger_fwd.h"
 #include "base/convert.h"
+#include "base/debug.h"
 #include "base/utility.h"
 #include <sstream>
 #include <iostream>

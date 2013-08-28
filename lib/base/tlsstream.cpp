@@ -20,6 +20,7 @@
 #include "base/tlsstream.h"
 #include "base/stream_bio.h"
 #include "base/objectlock.h"
+#include "base/debug.h"
 #include "base/utility.h"
 #include "base/exception.h"
 #include <boost/bind.hpp>

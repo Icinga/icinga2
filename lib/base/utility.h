@@ -89,11 +89,4 @@ private:
 
 }
 
-#ifdef _DEBUG
-#	include <cassert>
-#	define ASSERT(expr) assert(expr)
-#else /* _DEBUG */
-#	define ASSERT(expr) __builtin_unreachable()
-#endif /* _DEBUG */
-
 #endif /* UTILITY_H */

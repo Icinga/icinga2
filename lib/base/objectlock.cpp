@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/objectlock.h"
-#include "base/utility.h"
+#include "base/debug.h"
 
 using namespace icinga;
 

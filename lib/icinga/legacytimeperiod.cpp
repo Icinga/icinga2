@@ -23,7 +23,7 @@
 #include "base/exception.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
-#include "base/utility.h"
+#include "base/debug.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>

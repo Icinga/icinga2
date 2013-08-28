@@ -19,7 +19,7 @@
 
 #include "base/dictionary.h"
 #include "base/objectlock.h"
-#include "base/utility.h"
+#include "base/debug.h"
 #include <cJSON.h>
 #include <boost/tuple/tuple.hpp>
 #include <boost/make_shared.hpp>

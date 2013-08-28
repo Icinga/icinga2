@@ -22,6 +22,8 @@
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
+#include "base/debug.h"
+#include "base/utility.h"
 #include "base/timer.h"
 #include <boost/smart_ptr/make_shared.hpp>
 

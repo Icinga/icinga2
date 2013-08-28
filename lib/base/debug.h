@@ -17,61 +17,24 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/script.h"
-#include "base/scriptlanguage.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
-#include "base/objectlock.h"
-#include "base/debug.h"
+#ifndef DEBUG_H
+#define DEBUG_H
 
-using namespace icinga;
+#include <stdlib.h>
+#include <stdio.h>
 
-REGISTER_TYPE(Script);
+#ifdef NDEBUG
+#	define ASSERT(expr) ((void)0)
+#else /* NDEBUG */
+#	define ASSERT(expr) define ASSERT(expr) ((expr) ? 0 : icinga_assert_fail(#expr, __FILE__, __LINE__))
+#endif /* NDEBUG */
 
-void Script::Start(void)
+#define VERIFY(expr) ((expr) ? 0 : icinga_assert_fail(#expr, __FILE__, __LINE__))
+
+inline void icinga_assert_fail(const char *expr, const char *file, int line)
 {
-	DynamicObject::Start();
-
-	ASSERT(OwnsLock());
-
-	SpawnInterpreter();
+	fprintf(stderr, "%s:%d: assertion failed: %s\n", file, line, expr);
+	abort();
 }
 
-String Script::GetLanguage(void) const
-{
-	ObjectLock olock(this);
-
-	return m_Language;
-}
-
-String Script::GetCode(void) const
-{
-	ObjectLock olock(this);
-
-	return m_Code;
-}
-
-void Script::SpawnInterpreter(void)
-{
-	Log(LogInformation, "base", "Reloading script '" + GetName() + "'");
-
-	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
-	m_Interpreter = language->CreateInterpreter(GetSelf());
-}
-
-void Script::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	bag->Set("language", m_Language);
-	bag->Set("code", m_Code);
-}
-
-void Script::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	m_Language = bag->Get("language");
-	m_Code = bag->Get("code");
-
-}
+#endif /* DEBUG_H */

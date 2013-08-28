@@ -24,6 +24,7 @@
 #include "base/exception.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
+#include "base/debug.h"
 #include <sstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/thread/thread.hpp>

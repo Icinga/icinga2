@@ -15,6 +15,7 @@ libbase_la_SOURCES =  \
 	consolelogger.h \
 	convert.cpp \
 	convert.h \
+	debug.h \
 	dictionary.cpp \
 	dictionary.h \
 	dynamicobject.cpp \

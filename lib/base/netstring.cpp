@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/netstring.h"
-#include "base/utility.h"
+#include "base/debug.h"
 #include <sstream>
 
 using namespace icinga;

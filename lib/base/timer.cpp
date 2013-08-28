@@ -19,6 +19,7 @@
 
 #include "base/timer.h"
 #include "base/application.h"
+#include "base/debug.h"
 #include "base/utility.h"
 #include "base/logger_fwd.h"
 #include <boost/bind.hpp>

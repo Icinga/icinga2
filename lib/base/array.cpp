@@ -19,7 +19,7 @@
 
 #include "base/array.h"
 #include "base/objectlock.h"
-#include "base/utility.h"
+#include "base/debug.h"
 #include <cJSON.h>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>

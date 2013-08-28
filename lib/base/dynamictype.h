@@ -23,7 +23,7 @@
 #include "base/i2-base.h"
 #include "base/registry.h"
 #include "base/dynamicobject.h"
-#include "base/utility.h"
+#include "base/debug.h"
 #include <map>
 #include <set>
 #include <boost/function.hpp>
