@@ -22,6 +22,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/timer.h"
+#include "base/utility.h"
 #include "config/configitembuilder.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -219,7 +220,9 @@ bool Service::GetForceNextNotification(void) const
 	return static_cast<bool>(m_ForceNextNotification);
 }
 
-void Service::SetForceNextNotification(bool forced)
+void Service::SetForceNextNotification(bool forced, const String& authority)
 {
 	m_ForceNextNotification = forced ? 1 : 0;
+
+	Utility::QueueAsyncCallback(bind(boost::ref(OnForceNextNotificationChanged), GetSelf(), forced, authority));
 }

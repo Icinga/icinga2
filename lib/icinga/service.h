@@ -236,6 +236,7 @@ public:
 
 	static boost::signals2::signal<void (const Service::Ptr&, double, const String&)> OnNextCheckChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnForceNextCheckChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnForceNextNotificationChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableActiveChecksChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnablePassiveChecksChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnNewCheckResult;
@@ -306,7 +307,7 @@ public:
 	void AddNotification(const Notification::Ptr& notification);
 	void RemoveNotification(const Notification::Ptr& notification);
 
-	void SetForceNextNotification(bool force);
+	void SetForceNextNotification(bool force, const String& authority = String());
 	bool GetForceNextNotification(void) const;
 
 	void ResetNotificationNumbers(void);

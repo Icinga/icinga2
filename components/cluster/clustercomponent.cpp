@@ -56,6 +56,7 @@ void ClusterComponent::Start(void)
 	Service::OnNextCheckChanged.connect(bind(&ClusterComponent::NextCheckChangedHandler, this, _1, _2, _3));
 	Notification::OnNextNotificationChanged.connect(bind(&ClusterComponent::NextNotificationChangedHandler, this, _1, _2, _3));
 	Service::OnForceNextCheckChanged.connect(bind(&ClusterComponent::ForceNextCheckChangedHandler, this, _1, _2, _3));
+	Service::OnForceNextNotificationChanged.connect(bind(&ClusterComponent::ForceNextNotificationChangedHandler, this, _1, _2, _3));
 	Service::OnEnableActiveChecksChanged.connect(bind(&ClusterComponent::EnableActiveChecksChangedHandler, this, _1, _2, _3));
 	Service::OnEnablePassiveChecksChanged.connect(bind(&ClusterComponent::EnablePassiveChecksChangedHandler, this, _1, _2, _3));
 	Service::OnCommentAdded.connect(bind(&ClusterComponent::CommentAddedHandler, this, _1, _2, _3));
@@ -330,6 +331,25 @@ void ClusterComponent::ForceNextCheckChangedHandler(const Service::Ptr& service,
 	}
 }
 
+void ClusterComponent::ForceNextNotificationChangedHandler(const Service::Ptr& service, bool forced, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("forced", forced);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::SetForceNextNotification");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
 void ClusterComponent::EnableActiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
@@ -492,6 +512,17 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool forced = params->Get("forced");
 
 		service->SetForceNextCheck(forced, sender->GetName());
+	} else if (message->Get("method") == "cluster::SetForceNextNotification") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		bool forced = params->Get("forced");
+
+		service->SetForceNextNotification(forced, sender->GetName());
 	} else if (message->Get("method") == "cluster::SetEnableActiveChecks") {
 		String svc = params->Get("service");
 

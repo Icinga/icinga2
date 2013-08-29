@@ -83,6 +83,7 @@ private:
 	void NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority);
 	void NextNotificationChangedHandler(const Notification::Ptr& notification, double nextCheck, const String& authority);
 	void ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority);
+	void ForceNextNotificationChangedHandler(const Service::Ptr& service, bool forced, const String& authority);
 	void EnableActiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
 	void EnablePassiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
 	void CommentAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority);
