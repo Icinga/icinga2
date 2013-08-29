@@ -138,7 +138,7 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 
 	DynamicObject::Ptr object = factory();
 
-	object->Deserialize(serializedUpdate, Attribute_All);
+	object->Deserialize(serializedUpdate, Attribute_Config);
 
 	return object;
 }

@@ -131,7 +131,6 @@ void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes)
 	DynamicObject::InternalSerialize(bag, attributeTypes);
 
 	if (attributeTypes & Attribute_Config) {
-		bag->Set("local", m_Local);
 		bag->Set("host", m_Host);
 		bag->Set("port", m_Port);
 	}
@@ -142,7 +141,6 @@ void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeType
 	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
 	if (attributeTypes & Attribute_Config) {
-		m_Local = bag->Get("local");
 		m_Host = bag->Get("host");
 		m_Port = bag->Get("port");
 	}

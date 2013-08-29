@@ -154,8 +154,10 @@ void User::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) con
 		bag->Set("notification_state_filter", m_NotificationStateFilter);
 	}
 
-	bag->Set("enable_notifications", m_EnableNotifications);
-	bag->Set("last_notification", m_LastNotification);
+	if (attributeTypes & Attribute_State) {
+		bag->Set("enable_notifications", m_EnableNotifications);
+		bag->Set("last_notification", m_LastNotification);
+	}
 }
 
 void User::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
@@ -171,6 +173,8 @@ void User::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 		m_NotificationStateFilter = bag->Get("notification_state_filter");
 	}
 
-	m_EnableNotifications = bag->Get("enable_notifications");
-	m_LastNotification = bag->Get("last_notification");
+	if (attributeTypes & Attribute_State) {
+		m_EnableNotifications = bag->Get("enable_notifications");
+		m_LastNotification = bag->Get("last_notification");
+	}
 }

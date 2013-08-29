@@ -332,9 +332,11 @@ void TimePeriod::InternalSerialize(const Dictionary::Ptr& bag, int attributeType
 		bag->Set("ranges", m_Ranges);
 	}
 
-	bag->Set("valid_begin", m_ValidBegin);
-	bag->Set("valid_end", m_ValidEnd);
-	bag->Set("segments", m_Segments);
+	if (attributeTypes & Attribute_State) {
+		bag->Set("valid_begin", m_ValidBegin);
+		bag->Set("valid_end", m_ValidEnd);
+		bag->Set("segments", m_Segments);
+	}
 }
 
 void TimePeriod::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
@@ -346,7 +348,9 @@ void TimePeriod::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTy
 		m_Ranges = bag->Get("ranges");
 	}
 
-	m_ValidBegin = bag->Get("valid_begin");
-	m_ValidEnd = bag->Get("valid_end");
-	m_Segments = bag->Get("segments");
+	if (attributeTypes & Attribute_State) {
+		m_ValidBegin = bag->Get("valid_begin");
+		m_ValidEnd = bag->Get("valid_end");
+		m_Segments = bag->Get("segments");
+	}
 }

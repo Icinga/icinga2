@@ -85,9 +85,6 @@ static bool LoadConfigFiles(bool validateOnly)
 	if (validateOnly)
 		return true;
 
-	/* restore the previous program state */
-	DynamicObject::RestoreObjects(Application::GetStatePath());
-
 	ConfigItem::ActivateItems();
 
 	ConfigItem::DiscardItems();

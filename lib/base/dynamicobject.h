@@ -39,18 +39,8 @@ class DynamicType;
  */
 enum AttributeType
 {
-	Attribute_Transient = 1,
-
-	/* Unlike transient attributes local attributes are persisted
-	 * in the program state file. */
-	Attribute_Local = 2,
-
-	/* Attributes read from the config file are implicitly marked
-	 * as config attributes. */
-	Attribute_Config = 4,
-
-	/* Combination of all attribute types */
-	Attribute_All = Attribute_Transient | Attribute_Local | Attribute_Config
+	Attribute_State = 1,
+	Attribute_Config = 2,
 };
 
 /**
@@ -100,8 +90,8 @@ public:
 		return dynamic_pointer_cast<T>(object);
 	}
 
-	static void DumpObjects(const String& filename, int attributeTypes = Attribute_Local);
-	static void RestoreObjects(const String& filename, int attributeTypes = Attribute_Local);
+	static void DumpObjects(const String& filename, int attributeTypes = Attribute_State);
+	static void RestoreObjects(const String& filename, int attributeTypes = Attribute_State);
 	static void StopObjects(void);
 
 	Dictionary::Ptr GetCustom(void) const;

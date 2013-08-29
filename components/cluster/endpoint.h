@@ -58,7 +58,6 @@ protected:
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	bool m_Local;
 	Dictionary::Ptr m_Subscriptions;
 	String m_Host;
 	String m_Port;

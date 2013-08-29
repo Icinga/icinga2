@@ -418,37 +418,39 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("notifications", m_NotificationDescriptions);
 	}
 
-	bag->Set("next_check", m_NextCheck);
-	bag->Set("current_checker", m_CurrentChecker);
-	bag->Set("check_attempt", m_CheckAttempt);
-	bag->Set("state", m_State);
-	bag->Set("state_type", m_StateType);
-	bag->Set("last_state", m_LastState);
-	bag->Set("last_hard_state", m_LastHardState);
-	bag->Set("last_state_type", m_LastStateType);
-	bag->Set("last_reachable", m_LastReachable);
-	bag->Set("last_result", m_LastResult);
-	bag->Set("last_state_change", m_LastStateChange);
-	bag->Set("last_hard_state_change", m_LastHardStateChange);
-	bag->Set("last_state_ok", m_LastStateOK);
-	bag->Set("last_state_warning", m_LastStateWarning);
-	bag->Set("last_state_critical", m_LastStateCritical);
-	bag->Set("last_state_unknown", m_LastStateUnknown);
-	bag->Set("last_state_unreachable", m_LastStateUnreachable);
-	bag->Set("last_in_downtime", m_LastInDowntime);
-	bag->Set("enable_active_checks", m_EnableActiveChecks);
-	bag->Set("enable_passive_checks", m_EnablePassiveChecks);
-	bag->Set("force_next_check", m_ForceNextCheck);
-	bag->Set("acknowledgement", m_Acknowledgement);
-	bag->Set("acknowledgement_expiry", m_AcknowledgementExpiry);
-	bag->Set("comments", m_Comments);
-	bag->Set("downtimes", m_Downtimes);
-	bag->Set("enable_notifications", m_EnableNotifications);
-	bag->Set("force_next_notification", m_ForceNextNotification);
-	bag->Set("flapping_positive", m_FlappingPositive);
-	bag->Set("flapping_negative", m_FlappingNegative);
-	bag->Set("flapping_lastchange", m_FlappingLastChange);
-	bag->Set("enable_flapping", m_EnableFlapping);
+	if (attributeTypes & Attribute_State) {
+		bag->Set("next_check", m_NextCheck);
+		bag->Set("current_checker", m_CurrentChecker);
+		bag->Set("check_attempt", m_CheckAttempt);
+		bag->Set("state", m_State);
+		bag->Set("state_type", m_StateType);
+		bag->Set("last_state", m_LastState);
+		bag->Set("last_hard_state", m_LastHardState);
+		bag->Set("last_state_type", m_LastStateType);
+		bag->Set("last_reachable", m_LastReachable);
+		bag->Set("last_result", m_LastResult);
+		bag->Set("last_state_change", m_LastStateChange);
+		bag->Set("last_hard_state_change", m_LastHardStateChange);
+		bag->Set("last_state_ok", m_LastStateOK);
+		bag->Set("last_state_warning", m_LastStateWarning);
+		bag->Set("last_state_critical", m_LastStateCritical);
+		bag->Set("last_state_unknown", m_LastStateUnknown);
+		bag->Set("last_state_unreachable", m_LastStateUnreachable);
+		bag->Set("last_in_downtime", m_LastInDowntime);
+		bag->Set("enable_active_checks", m_EnableActiveChecks);
+		bag->Set("enable_passive_checks", m_EnablePassiveChecks);
+		bag->Set("force_next_check", m_ForceNextCheck);
+		bag->Set("acknowledgement", m_Acknowledgement);
+		bag->Set("acknowledgement_expiry", m_AcknowledgementExpiry);
+		bag->Set("comments", m_Comments);
+		bag->Set("downtimes", m_Downtimes);
+		bag->Set("enable_notifications", m_EnableNotifications);
+		bag->Set("force_next_notification", m_ForceNextNotification);
+		bag->Set("flapping_positive", m_FlappingPositive);
+		bag->Set("flapping_negative", m_FlappingNegative);
+		bag->Set("flapping_lastchange", m_FlappingLastChange);
+		bag->Set("enable_flapping", m_EnableFlapping);
+	}
 }
 
 void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
@@ -475,35 +477,37 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_NotificationDescriptions = bag->Get("notifications");
 	}
 
-	m_NextCheck = bag->Get("next_check");
-	m_CurrentChecker = bag->Get("current_checker");
-	m_CheckAttempt = bag->Get("check_attempt");
-	m_State = bag->Get("state");
-	m_StateType = bag->Get("state_type");
-	m_LastState = bag->Get("last_state");
-	m_LastHardState = bag->Get("last_hard_state");
-	m_LastStateType = bag->Get("last_state_type");
-	m_LastReachable = bag->Get("last_reachable");
-	m_LastResult = bag->Get("last_result");
-	m_LastStateChange = bag->Get("last_state_change");
-	m_LastHardStateChange = bag->Get("last_hard_state_change");
-	m_LastStateOK = bag->Get("last_state_ok");
-	m_LastStateWarning = bag->Get("last_state_warning");
-	m_LastStateCritical = bag->Get("last_state_critical");
-	m_LastStateUnknown = bag->Get("last_state_unknown");
-	m_LastStateUnreachable = bag->Get("last_state_unreachable");
-	m_LastInDowntime = bag->Get("last_in_downtime");
-	m_EnableActiveChecks = bag->Get("enable_active_checks");
-	m_EnablePassiveChecks = bag->Get("enable_passive_checks");
-	m_ForceNextCheck = bag->Get("force_next_check");
-	m_Acknowledgement = bag->Get("acknowledgement");
-	m_AcknowledgementExpiry = bag->Get("acknowledgement_expiry");
-	m_Comments = bag->Get("comments");
-	m_Downtimes = bag->Get("downtimes");
-	m_EnableNotifications = bag->Get("enable_notifications");
-	m_ForceNextNotification = bag->Get("force_next_notification");
-	m_FlappingPositive = bag->Get("flapping_positive");
-	m_FlappingNegative = bag->Get("flapping_negative");
-	m_FlappingLastChange = bag->Get("flapping_lastchange");
-	m_EnableFlapping = bag->Get("enable_flapping");
+	if (attributeTypes & Attribute_State) {
+		m_NextCheck = bag->Get("next_check");
+		m_CurrentChecker = bag->Get("current_checker");
+		m_CheckAttempt = bag->Get("check_attempt");
+		m_State = bag->Get("state");
+		m_StateType = bag->Get("state_type");
+		m_LastState = bag->Get("last_state");
+		m_LastHardState = bag->Get("last_hard_state");
+		m_LastStateType = bag->Get("last_state_type");
+		m_LastReachable = bag->Get("last_reachable");
+		m_LastResult = bag->Get("last_result");
+		m_LastStateChange = bag->Get("last_state_change");
+		m_LastHardStateChange = bag->Get("last_hard_state_change");
+		m_LastStateOK = bag->Get("last_state_ok");
+		m_LastStateWarning = bag->Get("last_state_warning");
+		m_LastStateCritical = bag->Get("last_state_critical");
+		m_LastStateUnknown = bag->Get("last_state_unknown");
+		m_LastStateUnreachable = bag->Get("last_state_unreachable");
+		m_LastInDowntime = bag->Get("last_in_downtime");
+		m_EnableActiveChecks = bag->Get("enable_active_checks");
+		m_EnablePassiveChecks = bag->Get("enable_passive_checks");
+		m_ForceNextCheck = bag->Get("force_next_check");
+		m_Acknowledgement = bag->Get("acknowledgement");
+		m_AcknowledgementExpiry = bag->Get("acknowledgement_expiry");
+		m_Comments = bag->Get("comments");
+		m_Downtimes = bag->Get("downtimes");
+		m_EnableNotifications = bag->Get("enable_notifications");
+		m_ForceNextNotification = bag->Get("force_next_notification");
+		m_FlappingPositive = bag->Get("flapping_positive");
+		m_FlappingNegative = bag->Get("flapping_negative");
+		m_FlappingLastChange = bag->Get("flapping_lastchange");
+		m_EnableFlapping = bag->Get("enable_flapping");
+	}
 }

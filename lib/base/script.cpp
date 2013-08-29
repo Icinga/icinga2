@@ -63,15 +63,18 @@ void Script::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) c
 {
 	DynamicObject::InternalSerialize(bag, attributeTypes);
 
-	bag->Set("language", m_Language);
-	bag->Set("code", m_Code);
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("language", m_Language);
+		bag->Set("code", m_Code);
+	}
 }
 
 void Script::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 {
 	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
-	m_Language = bag->Get("language");
-	m_Code = bag->Get("code");
-
+	if (attributeTypes & Attribute_Config) {
+		m_Language = bag->Get("language");
+		m_Code = bag->Get("code");
+	}
 }

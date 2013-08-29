@@ -53,7 +53,8 @@ void FileLogger::InternalSerialize(const Dictionary::Ptr& bag, int attributeType
 {
 	StreamLogger::InternalSerialize(bag, attributeTypes);
 
-	bag->Set("path", m_Path);
+	if (attributeTypes & Attribute_Config)
+		bag->Set("path", m_Path);
 }
 
 void FileLogger::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)

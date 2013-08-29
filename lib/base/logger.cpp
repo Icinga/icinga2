@@ -156,7 +156,8 @@ void Logger::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) c
 {
 	DynamicObject::InternalSerialize(bag, attributeTypes);
 
-	bag->Set("severity", m_Severity);
+	if (attributeTypes & Attribute_Config)
+		bag->Set("severity", m_Severity);
 }
 
 void Logger::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)

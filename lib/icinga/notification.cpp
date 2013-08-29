@@ -370,40 +370,50 @@ void Notification::InternalSerialize(const Dictionary::Ptr& bag, int attributeTy
 {
 	DynamicObject::InternalSerialize(bag, attributeTypes);
 
-	bag->Set("notification_command", m_NotificationCommand);
-	bag->Set("notification_interval", m_NotificationInterval);
-	bag->Set("notification_period", m_NotificationPeriod);
-	bag->Set("last_notification", m_LastNotification);
-	bag->Set("next_notification", m_NextNotification);
-	bag->Set("notification_number", m_NotificationNumber);
-	bag->Set("macros", m_Macros);
-	bag->Set("users", m_Users);
-	bag->Set("groups", m_Groups);
-	bag->Set("times", m_Times);
-	bag->Set("notification_type_filter", m_NotificationTypeFilter);
-	bag->Set("notification_state_filter", m_NotificationStateFilter);
-	bag->Set("host_name", m_HostName);
-	bag->Set("export_macros", m_ExportMacros);
-	bag->Set("service", m_Service);
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("notification_command", m_NotificationCommand);
+		bag->Set("notification_interval", m_NotificationInterval);
+		bag->Set("notification_period", m_NotificationPeriod);
+		bag->Set("macros", m_Macros);
+		bag->Set("users", m_Users);
+		bag->Set("groups", m_Groups);
+		bag->Set("times", m_Times);
+		bag->Set("notification_type_filter", m_NotificationTypeFilter);
+		bag->Set("notification_state_filter", m_NotificationStateFilter);
+		bag->Set("host_name", m_HostName);
+		bag->Set("export_macros", m_ExportMacros);
+		bag->Set("service", m_Service);
+	}
+
+	if (attributeTypes & Attribute_State) {
+		bag->Set("last_notification", m_LastNotification);
+		bag->Set("next_notification", m_NextNotification);
+		bag->Set("notification_number", m_NotificationNumber);
+	}
 }
 
 void Notification::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 {
 	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
-	m_NotificationCommand = bag->Get("notification_command");
-	m_NotificationInterval = bag->Get("notification_interval");
-	m_NotificationPeriod = bag->Get("notification_period");
-	m_LastNotification = bag->Get("last_notification");
-	m_NextNotification = bag->Get("next_notification");
-	m_NotificationNumber = bag->Get("notification_number");
-	m_Macros = bag->Get("macros");
-	m_Users = bag->Get("users");
-	m_Groups = bag->Get("groups");
-	m_Times = bag->Get("times");
-	m_NotificationTypeFilter = bag->Get("notification_type_filter");
-	m_NotificationStateFilter = bag->Get("notification_state_filter");
-	m_HostName = bag->Get("host_name");
-	m_ExportMacros = bag->Get("export_macros");
-	m_Service = bag->Get("service");
+	if (attributeTypes & Attribute_Config) {
+		m_NotificationCommand = bag->Get("notification_command");
+		m_NotificationInterval = bag->Get("notification_interval");
+		m_NotificationPeriod = bag->Get("notification_period");
+		m_Macros = bag->Get("macros");
+		m_Users = bag->Get("users");
+		m_Groups = bag->Get("groups");
+		m_Times = bag->Get("times");
+		m_NotificationTypeFilter = bag->Get("notification_type_filter");
+		m_NotificationStateFilter = bag->Get("notification_state_filter");
+		m_HostName = bag->Get("host_name");
+		m_ExportMacros = bag->Get("export_macros");
+		m_Service = bag->Get("service");
+	}
+
+	if (attributeTypes & Attribute_State) {
+		m_LastNotification = bag->Get("last_notification");
+		m_NextNotification = bag->Get("next_notification");
+		m_NotificationNumber = bag->Get("notification_number");
+	}
 }

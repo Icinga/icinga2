@@ -19,6 +19,7 @@
 
 #include "config/configitem.h"
 #include "config/configcompilercontext.h"
+#include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -273,6 +274,9 @@ void ConfigItem::ActivateItems(void)
 		if (object)
 			objects.push_back(object);
 	}
+
+	/* restore the previous program state */
+	DynamicObject::RestoreObjects(Application::GetStatePath());
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
 		Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
