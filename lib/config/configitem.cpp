@@ -282,15 +282,16 @@ void ConfigItem::ActivateItems(void)
 	/* restore the previous program state */
 	DynamicObject::RestoreObjects(Application::GetStatePath());
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
-		object->OnStateLoaded();
-	}
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+			if (object->IsActive())
+				continue;
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
-		Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
-		object->Start();
+			Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
+			object->Start();
 
-		ASSERT(object->IsActive());
+			ASSERT(object->IsActive());
+		}
 	}
 }
 

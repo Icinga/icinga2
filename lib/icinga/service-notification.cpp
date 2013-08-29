@@ -194,7 +194,7 @@ void Service::UpdateSlaveNotifications(void)
 
 			ConfigItem::Ptr notificationItem = builder->Compile();
 			DynamicObject::Ptr dobj = notificationItem->Commit();
-			dobj->Start();
+			dobj->OnConfigLoaded();
 		}
 	}
 }

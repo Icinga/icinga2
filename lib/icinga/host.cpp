@@ -246,7 +246,7 @@ void Host::UpdateSlaveServices(void)
 
 		ConfigItem::Ptr serviceItem = builder->Compile();
 		DynamicObject::Ptr dobj = serviceItem->Commit();
-		dobj->Start();
+		dobj->OnConfigLoaded();
 	}
 }
 
