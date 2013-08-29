@@ -11,19 +11,19 @@ cat >> $CONFFILE << EOF
 include <itl/itl.conf>
 include <itl/standalone.conf>
 
-local object IcingaApplication "icinga" {
+object IcingaApplication "icinga" {
  macros = {
     plugindir = "/usr/lib/nagios/plugins"
   }
 }
 
 library "compat"
-local object CompatComponent "compat" { }
-local object CompatLog "compat-log" { }
+object CompatComponent "compat" { }
+object CompatLog "compat-log" { }
 
 /*
 library "livestatus"
-local object LivestatusComponent "livestatus" {}
+object LivestatusComponent "livestatus" {}
 */
 
 object CheckCommand "check_dummy" inherits "plugin-check-command" {

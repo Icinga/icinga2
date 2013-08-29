@@ -13,7 +13,7 @@ include <itl/standalone.conf>
 /**
  * Global configuration settings
  */
-local object IcingaApplication "icinga" {
+object IcingaApplication "icinga" {
  macros = {
     plugindir = "/usr/local/icinga/libexec"
   }
@@ -25,8 +25,8 @@ local object IcingaApplication "icinga" {
  * hosts and services. CompatLog writeis the Icinga 1.x icinga.log and archives.
  */
 library "compat"
-local object CompatComponent "compat" { }
-local object CompatLog "compat-log" { }
+object CompatComponent "compat" { }
+object CompatLog "compat-log" { }
 
 /**
  * And finally we define some host that should be checked.

@@ -52,7 +52,7 @@ Start by creating the file /etc/icinga2/icinga2.conf with the following content:
 include <itl/itl.conf>
 include <itl/standalone.conf>
 
-local object IcingaApplication "my-icinga" {
+object IcingaApplication "my-icinga" {
 	macros["plugindir"] = "/usr/lib/nagios/plugins"
 }
 ----
@@ -202,8 +202,8 @@ to your configuration file:
 ----
 library "compat"
 
-local object CompatComponent "compat" { }
-local object CompatLog "my-log" { }
+object CompatComponent "compat" { }
+object CompatLog "my-log" { }
 ----
 
 After restarting Icinga 2 you should be able to find the status.dat and objects.cache files in
@@ -660,7 +660,7 @@ or your preferred graphite collector.
 Let's create a new PNP PerfdataWriter object:
 
 ----
-local object PerfdataWriter "pnp" {
+object PerfdataWriter "pnp" {
         perfdata_path = "/var/lib/icinga2/service-perfdata",
         format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$TIMET$\tHOSTNAME::$HOSTNAME$\tSERVICEDESC::$SERVICEDESC$\tSERVICEPERFDATA::$SERVICEPERFDATA$\tSERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\tHOSTSTATE::$HOSTSTATE$\tHOSTSTATETYPE::$HOSTSTATETYPE$\tSERVICESTATE::$SERVICESTATE$\tSERVICESTATETYPE::$SERVICESTATETYPE$",
         rotation_interval = 15s,
@@ -687,7 +687,7 @@ Once Icinga 2 is started, configure your gui (e.g. Thruk) using the livestatus b
 TCP Socket
 ----
 library "livestatus"
-local object LivestatusComponent "livestatus-tcp" {
+object LivestatusComponent "livestatus-tcp" {
 	socket_type = "tcp",
 	host = "10.0.10.18",
 	port = "6558"
@@ -697,7 +697,7 @@ local object LivestatusComponent "livestatus-tcp" {
 Unix Socket
 ----
 library "livestatus"
-local object LivestatusComponent "livestatus-unix" {
+object LivestatusComponent "livestatus-unix" {
 	socket_type = "unix",
 	socket_path = "/var/run/icinga2/livestatus"
 }
@@ -726,7 +726,7 @@ Icinga 1.x setup, if existing.
 
 ----
 library "ido_mysql"
-local object IdoMysqlDbConnection "my-ido-mysql" {
+object IdoMysqlDbConnection "my-ido-mysql" {
 	host = "127.0.0.1",
 	port = "3306",
 	user = "icinga",

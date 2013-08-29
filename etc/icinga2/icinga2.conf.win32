@@ -13,7 +13,7 @@
 /**
  * Global configuration settings
  */
-local object IcingaApplication "icinga" {
+object IcingaApplication "icinga" {
   pid_path = "icinga2.pid",
   state_path = "icinga2.state",
 
@@ -28,7 +28,7 @@ local object IcingaApplication "icinga" {
  * hosts and services.
  */
 library "compat"
-local object Component "compat" {
+object Component "compat" {
   status_path = "status.dat",
   objects_path = "objects.cache",
 }
