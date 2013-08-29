@@ -253,7 +253,7 @@ void ThreadPool::ManagerThreadProc(void)
 			else
 				avg_latency = 0;
 
-			if (utilization < 60 || utilization > 80 || alive < 2) {
+			if (utilization < 60 || utilization > 80 || alive < 8) {
 				double wthreads = ceil((utilization * alive) / 80.0);
 
 				if (!finite(wthreads))
@@ -261,9 +261,9 @@ void ThreadPool::ManagerThreadProc(void)
 
 				int tthreads = wthreads - alive;
 
-				/* Don't ever kill the last 2 threads. */
-				if (alive + tthreads < 2)
-					tthreads = 2 - alive;
+				/* Don't ever kill the last 8 threads. */
+				if (alive + tthreads < 8)
+					tthreads = 8 - alive;
 
 				/* Spawn more workers if there are outstanding work items. */
 				if (tthreads > 0 && pending > 0)
