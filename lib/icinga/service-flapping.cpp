@@ -110,5 +110,8 @@ void Service::UpdateFlappingStatus(bool stateChange)
 
 bool Service::IsFlapping(void) const
 {
-	return GetFlappingCurrent() > GetFlappingThreshold();
+	if (!GetEnableFlapping())
+		return false;
+	else
+		return GetFlappingCurrent() > GetFlappingThreshold();
 }
