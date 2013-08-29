@@ -116,7 +116,7 @@ String Service::AddDowntime(const String& comment_id,
 		l_DowntimesCache[uid] = GetSelf();
 	}
 
-	OnDowntimeAdded(GetSelf(), downtime, authority);
+	Utility::QueueAsyncCallback(bind(boost::ref(OnDowntimeAdded), GetSelf(), downtime, authority));
 
 	return uid;
 }
@@ -133,13 +133,12 @@ void Service::RemoveDowntime(const String& id, const String& authority)
 	if (!downtimes)
 		return;
 
-	ObjectLock olock(owner);
-
 	Dictionary::Ptr downtime = downtimes->Get(id);
 
+	if (!downtime)
+		return;
+
 	String comment_id = downtime->Get("comment_id");
-	
-	RemoveComment(comment_id);
 
 	int legacy_id = downtime->Get("legacy_id");
 
@@ -150,8 +149,10 @@ void Service::RemoveDowntime(const String& id, const String& authority)
 		l_LegacyDowntimesCache.erase(legacy_id);
 		l_DowntimesCache.erase(id);
 	}
+	
+	RemoveComment(comment_id);
 
-	OnDowntimeRemoved(owner, downtime, authority);
+	Utility::QueueAsyncCallback(bind(boost::ref(OnDowntimeRemoved), owner, downtime, authority));
 }
 
 void Service::TriggerDowntimes(void)
@@ -201,7 +202,7 @@ void Service::TriggerDowntime(const String& id)
 		TriggerDowntime(tid);
 	}
 
-	OnDowntimeTriggered(owner, downtime);
+	Utility::QueueAsyncCallback(bind(boost::ref(OnDowntimeTriggered), owner, downtime));
 }
 
 String Service::GetDowntimeIDFromLegacyID(int id)
