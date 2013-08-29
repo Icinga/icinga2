@@ -6,7 +6,12 @@ pkglib_LTLIBRARIES = \
 EXTRA_DIST = \
 	checker-type.conf
 
-.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig.c
+BUILT_SOURCES = \
+	checker-type.cpp
+
+CLEANFILES = $(BUILT_SOURCES)
+
+.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libchecker_la_SOURCES = \

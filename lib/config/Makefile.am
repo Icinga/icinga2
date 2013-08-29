@@ -4,14 +4,19 @@
 pkglib_LTLIBRARIES = \
 	libconfig.la
 
-BUILT_SOURCES = config_parser.h
+BUILT_SOURCES = \
+	config_parser.h \
+	base-type.cpp
+
+CLEANFILES = \
+	base-type.cpp
 
 AM_YFLAGS = -d
 
 EXTRA_DIST = \
 	base-type.conf
 
-.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig.c
+.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libconfig_la_SOURCES = \

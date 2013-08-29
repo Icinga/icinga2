@@ -6,7 +6,12 @@ pkglib_LTLIBRARIES = \
 EXTRA_DIST = \
 	cluster-type.conf
 
-.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig.c
+BUILT_SOURCES = \
+	cluster-type.cpp
+
+CLEANFILES = $(BUILT_SOURCES)
+
+.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libcluster_la_SOURCES = \

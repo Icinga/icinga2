@@ -6,7 +6,12 @@ pkglib_LTLIBRARIES = \
 EXTRA_DIST = \
 	notification-type.conf
 
-.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig.c
+BUILT_SOURCES = \
+	notification-type.cpp
+
+CLEANFILES = $(BUILT_SOURCES)
+
+.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libnotification_la_SOURCES = \

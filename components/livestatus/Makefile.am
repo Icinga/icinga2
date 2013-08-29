@@ -6,7 +6,12 @@ pkglib_LTLIBRARIES = \
 EXTRA_DIST = \
 	livestatus-type.conf
 
-.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig.c
+BUILT_SOURCES = \
+	livestatus-type.cpp
+
+CLEANFILES = $(BUILT_SOURCES)
+
+.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 liblivestatus_la_SOURCES = \

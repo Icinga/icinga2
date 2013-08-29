@@ -7,7 +7,12 @@ pkglib_LTLIBRARIES = \
 EXTRA_DIST = \
 	ido_mysql-type.conf
 
-.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig.c
+BUILT_SOURCES = \
+	ido_mysql-type.cpp
+
+CLEANFILES = $(BUILT_SOURCES)
+
+.conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libido_mysql_la_SOURCES = \
