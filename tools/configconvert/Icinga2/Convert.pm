@@ -845,6 +845,10 @@ sub convert_notification_options_to_filter {
         push @{$filter->{'type'}}, 0;
         return $filter;
     }
+
+    # always add NotificationFilterProblem
+    push @{$filter->{'type'}}, 'NotificationFilterProblem';
+
     if (grep /a/, @options) {
         foreach my $by (keys %{$filter_by}) {
             push @{$filter->{$filter_by->{$by}}}, $filter_names->{$by};
