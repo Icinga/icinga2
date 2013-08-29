@@ -73,12 +73,6 @@ void DynamicObject::Deserialize(const Dictionary::Ptr& update, int attributeType
 		ObjectLock olock(this);
 		InternalDeserialize(update, attributeTypes);
 	}
-
-	if (attributeTypes & Attribute_Config)
-		OnConfigLoaded();
-
-	if (attributeTypes & Attribute_State)
-		OnStateLoaded();
 }
 
 void DynamicObject::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const

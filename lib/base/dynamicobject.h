@@ -82,6 +82,9 @@ public:
 	virtual void Start(void);
 	virtual void Stop(void);
 
+	virtual void OnConfigLoaded(void);
+	virtual void OnStateLoaded(void);
+
 	template<typename T>
 	static shared_ptr<T> GetObject(const String& name)
 	{
@@ -101,9 +104,6 @@ protected:
 
 	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
-	virtual void OnConfigLoaded(void);
-	virtual void OnStateLoaded(void);
 
 private:
 	String m_Name;

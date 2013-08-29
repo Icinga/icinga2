@@ -275,8 +275,16 @@ void ConfigItem::ActivateItems(void)
 			objects.push_back(object);
 	}
 
+	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
+		object->OnConfigLoaded();
+	}
+
 	/* restore the previous program state */
 	DynamicObject::RestoreObjects(Application::GetStatePath());
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
+		object->OnStateLoaded();
+	}
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
 		Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
