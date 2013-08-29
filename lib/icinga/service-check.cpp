@@ -43,6 +43,8 @@ boost::signals2::signal<void (const Service::Ptr&, double, const String&)> Servi
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnForceNextCheckChanged;
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnableActiveChecksChanged;
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnablePassiveChecksChanged;
+boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnableNotificationsChanged;
+boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnableFlappingChanged;
 boost::signals2::signal<void (const Service::Ptr&, FlappingState)> Service::OnFlappingChanged;
 
 CheckCommand::Ptr Service::GetCheckCommand(void) const

@@ -239,14 +239,16 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnForceNextNotificationChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableActiveChecksChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnablePassiveChecksChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableNotificationsChanged;
+	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> OnNotificationsRequested;
 	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentChanged;
-	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentAdded;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeAdded;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeRemoved;
+	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> OnDowntimeTriggered;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
@@ -299,7 +301,7 @@ public:
 	Dictionary::Ptr GetNotificationDescriptions(void) const;
 
 	bool GetEnableNotifications(void) const;
-	void SetEnableNotifications(bool enabled);
+	void SetEnableNotifications(bool enabled, const String& authority = String());
 
 	void SendNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author = "", const String& text = "");
 
@@ -320,7 +322,7 @@ public:
 
 	/* Flapping Detection */
 	bool GetEnableFlapping(void) const;
-	void SetEnableFlapping(bool enabled);
+	void SetEnableFlapping(bool enabled, const String& authority = String());
 
 	double GetFlappingCurrent(void) const;
 	double GetFlappingThreshold(void) const;

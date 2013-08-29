@@ -59,6 +59,8 @@ void ClusterComponent::Start(void)
 	Service::OnForceNextNotificationChanged.connect(bind(&ClusterComponent::ForceNextNotificationChangedHandler, this, _1, _2, _3));
 	Service::OnEnableActiveChecksChanged.connect(bind(&ClusterComponent::EnableActiveChecksChangedHandler, this, _1, _2, _3));
 	Service::OnEnablePassiveChecksChanged.connect(bind(&ClusterComponent::EnablePassiveChecksChangedHandler, this, _1, _2, _3));
+	Service::OnEnableNotificationsChanged.connect(bind(&ClusterComponent::EnableNotificationsChangedHandler, this, _1, _2, _3));
+	Service::OnEnableFlappingChanged.connect(bind(&ClusterComponent::EnableFlappingChangedHandler, this, _1, _2, _3));
 	Service::OnCommentAdded.connect(bind(&ClusterComponent::CommentAddedHandler, this, _1, _2, _3));
 	Service::OnCommentRemoved.connect(bind(&ClusterComponent::CommentRemovedHandler, this, _1, _2, _3));
 	Service::OnDowntimeAdded.connect(bind(&ClusterComponent::DowntimeAddedHandler, this, _1, _2, _3));
@@ -388,6 +390,44 @@ void ClusterComponent::EnablePassiveChecksChangedHandler(const Service::Ptr& ser
 	}
 }
 
+void ClusterComponent::EnableNotificationsChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("enabled", enabled);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::SetEnableNotifications");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
+void ClusterComponent::EnableFlappingChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("enabled", enabled);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::SetEnableFlapping");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
 void ClusterComponent::CommentAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
@@ -545,6 +585,28 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool enabled = params->Get("enabled");
 
 		service->SetEnablePassiveChecks(enabled, sender->GetName());
+	} else if (message->Get("method") == "cluster::SetEnableNotifications") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		bool enabled = params->Get("enabled");
+
+		service->SetEnableNotifications(enabled, sender->GetName());
+	} else if (message->Get("method") == "cluster::SetEnableFlapping") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		bool enabled = params->Get("enabled");
+
+		service->SetEnableFlapping(enabled, sender->GetName());
 	} else if (message->Get("method") == "cluster::SetNextNotification") {
 		String nfc = params->Get("notification");
 

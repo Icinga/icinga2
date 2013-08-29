@@ -207,9 +207,11 @@ bool Service::GetEnableNotifications(void) const
 		return m_EnableNotifications;
 }
 
-void Service::SetEnableNotifications(bool enabled)
+void Service::SetEnableNotifications(bool enabled, const String& authority)
 {
 	m_EnableNotifications = enabled;
+
+	Utility::QueueAsyncCallback(bind(boost::ref(OnEnableNotificationsChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetForceNextNotification(void) const
