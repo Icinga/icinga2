@@ -41,6 +41,7 @@ boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const
 boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationsRequested;
 boost::signals2::signal<void (const Service::Ptr&, double, const String&)> Service::OnNextCheckChanged;
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnForceNextCheckChanged;
+boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnForceNextNotificationChanged;
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnableActiveChecksChanged;
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnablePassiveChecksChanged;
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnableNotificationsChanged;
