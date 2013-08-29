@@ -24,11 +24,7 @@
 #include <stdio.h>
 
 #ifdef NDEBUG
-#	if defined(__clang__) || (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-#		define ASSERT(expr) __builtin_unreachable()
-#	else
-#		define ASSERT(expr) ((void)0)
-#	endif
+#	define ASSERT(expr) ((void)0)
 #else /* NDEBUG */
 #	define ASSERT(expr) ((expr) ? 0 : icinga_assert_fail(#expr, __FILE__, __LINE__))
 #endif /* NDEBUG */
