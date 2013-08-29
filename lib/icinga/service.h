@@ -135,7 +135,10 @@ public:
 	bool IsReachable(void) const;
 
 	AcknowledgementType GetAcknowledgement(void);
-	void SetAcknowledgement(AcknowledgementType acknowledgement);
+	double GetAcknowledgementExpiry(void) const;
+
+	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry = 0, const String& authority = String());
+	void ClearAcknowledgement(const String& authority = String());
 
 	/* Checks */
 	Array::Ptr GetCheckers(void) const;
@@ -214,13 +217,7 @@ public:
 	bool GetForceNextCheck(void) const;
 	void SetForceNextCheck(bool forced, const String& authority = String());
 
-	double GetAcknowledgementExpiry(void) const;
-	void SetAcknowledgementExpiry(double timestamp);
-
 	static void UpdateStatistics(const Dictionary::Ptr& cr);
-
-	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry = 0);
-	void ClearAcknowledgement(void);
 
 	void ExecuteCheck(void);
 	void ProcessCheckResult(const Dictionary::Ptr& cr, const String& authority = String());
@@ -250,6 +247,8 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> OnDowntimeTriggered;
+	static boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> OnAcknowledgementSet;
+	static boost::signals2::signal<void (const Service::Ptr&, const String&)> OnAcknowledgementCleared;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 

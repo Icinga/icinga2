@@ -530,8 +530,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 		/* remove acknowledgements */
 		if (GetAcknowledgement() == AcknowledgementNormal ||
 		    (GetAcknowledgement() == AcknowledgementSticky && GetStateType() == StateTypeHard && GetState() == StateOK)) {
-			SetAcknowledgement(AcknowledgementNone);
-			SetAcknowledgementExpiry(0);
+			ClearAcknowledgement();
 		}
 
 		/* reschedule service dependencies */

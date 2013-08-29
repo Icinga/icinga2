@@ -34,6 +34,9 @@ using namespace icinga;
 
 REGISTER_TYPE(Service);
 
+boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> Service::OnAcknowledgementSet;
+boost::signals2::signal<void (const Service::Ptr&, const String&)> Service::OnAcknowledgementCleared;
+
 void Service::Start(void)
 {
 	DynamicObject::Start();
@@ -210,17 +213,11 @@ AcknowledgementType Service::GetAcknowledgement(void)
 
 		if (expiry != 0 && expiry < Utility::GetTime()) {
 			avalue = AcknowledgementNone;
-			SetAcknowledgement(avalue);
-			SetAcknowledgementExpiry(0);
+			ClearAcknowledgement();
 		}
 	}
 
 	return avalue;
-}
-
-void Service::SetAcknowledgement(AcknowledgementType acknowledgement)
-{
-	m_Acknowledgement = acknowledgement;
 }
 
 bool Service::IsAcknowledged(void)
@@ -236,31 +233,30 @@ double Service::GetAcknowledgementExpiry(void) const
 	return static_cast<double>(m_AcknowledgementExpiry);
 }
 
-void Service::SetAcknowledgementExpiry(double timestamp)
-{
-	m_AcknowledgementExpiry = timestamp;
-}
-
-void Service::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry)
+void Service::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
 {
 	{
 		ObjectLock olock(this);
 
-		SetAcknowledgement(type);
-		SetAcknowledgementExpiry(expiry);
+		m_Acknowledgement = type;
+		m_AcknowledgementExpiry = expiry;
 	}
 
 	(void) AddComment(CommentAcknowledgement, author, comment, 0);
 
 	OnNotificationsRequested(GetSelf(), NotificationAcknowledgement, GetLastCheckResult(), author, comment);
+
+	Utility::QueueAsyncCallback(bind(boost::ref(OnAcknowledgementSet), GetSelf(), author, comment, type, expiry, authority));
 }
 
-void Service::ClearAcknowledgement(void)
+void Service::ClearAcknowledgement(const String& authority)
 {
-	ObjectLock olock(this);
+	ASSERT(OwnsLock());
 
-	SetAcknowledgement(AcknowledgementNone);
-	SetAcknowledgementExpiry(0);
+	m_Acknowledgement = AcknowledgementNone;
+	m_AcknowledgementExpiry = 0;
+
+	Utility::QueueAsyncCallback(bind(boost::ref(OnAcknowledgementCleared), GetSelf(), authority));
 }
 
 std::set<Host::Ptr> Service::GetParentHosts(void) const

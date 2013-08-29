@@ -92,6 +92,8 @@ private:
 	void CommentRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority);
 	void DowntimeAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority);
 	void DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority);
+	void AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
+	void AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority);
 	void MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
 
 };

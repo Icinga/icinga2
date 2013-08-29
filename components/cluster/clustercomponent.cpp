@@ -65,6 +65,8 @@ void ClusterComponent::Start(void)
 	Service::OnCommentRemoved.connect(bind(&ClusterComponent::CommentRemovedHandler, this, _1, _2, _3));
 	Service::OnDowntimeAdded.connect(bind(&ClusterComponent::DowntimeAddedHandler, this, _1, _2, _3));
 	Service::OnDowntimeRemoved.connect(bind(&ClusterComponent::DowntimeRemovedHandler, this, _1, _2, _3));
+	Service::OnAcknowledgementSet.connect(bind(&ClusterComponent::AcknowledgementSetHandler, this, _1, _2, _3, _4, _5, _6));
+	Service::OnAcknowledgementCleared.connect(bind(&ClusterComponent::AcknowledgementClearedHandler, this, _1, _2));
 
 	Endpoint::OnMessageReceived.connect(bind(&ClusterComponent::MessageHandler, this, _1, _2));
 }
@@ -504,6 +506,46 @@ void ClusterComponent::DowntimeRemovedHandler(const Service::Ptr& service, const
 	}
 }
 
+void ClusterComponent::AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+	params->Set("author", author);
+	params->Set("comment", comment);
+	params->Set("type", type);
+	params->Set("expiry", expiry);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::SetAcknowledgement");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
+void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority)
+{
+	if (!authority.IsEmpty() && authority != GetIdentity())
+		return;
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("service", service->GetName());
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::ClearAcknowledgement");
+	message->Set("params", params);
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+}
+
 void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
 {
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
@@ -667,6 +709,30 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		String id = params->Get("id");
 
 		service->RemoveDowntime(id, sender->GetName());
+	} else if (message->Get("method") == "cluster::SetAcknowledgement") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		String author = params->Get("author");
+		String comment = params->Get("comment");
+		int type = params->Get("type");
+		double expiry = params->Get("expiry");
+
+		service->AcknowledgeProblem(author, comment, static_cast<AcknowledgementType>(type), expiry, sender->GetName());
+	} else if (message->Get("method") == "cluster::ClearAcknowledgement") {
+		String svc = params->Get("service");
+
+		Service::Ptr service = Service::GetByName(svc);
+
+		if (!service)
+			return;
+
+		ObjectLock olock(service);
+		service->ClearAcknowledgement(sender->GetName());
 	}
 }
 
