@@ -278,6 +278,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 
 		if (object) {
 			ASSERT(!object->IsActive());
+			Log(LogDebug, "base", "Restoring object '" + name + "' of type '" + type "'.");
 			object->Deserialize(update, attributeTypes);
 		}
 
