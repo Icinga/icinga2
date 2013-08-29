@@ -203,10 +203,20 @@ sub dump_groups_2x {
 
     start_object_type_config_dump($icinga2_cfg, 'groups');
 
+    if (!@$cfg_obj_2x{'hostgroup'}) {
+        goto SKIP_HOSTGROUPS;
+    }
+
     foreach my $hostgroup_2x_key (keys %{@$cfg_obj_2x{'hostgroup'}}) {
         my $hostgroup_2x = @$cfg_obj_2x{'hostgroup'}->{$hostgroup_2x_key};
 
         Icinga2::ExportIcinga2Cfg::dump_group_2x($icinga2_cfg, $hostgroup_2x);
+    }
+
+SKIP_HOSTGROUPS:
+
+    if (!@$cfg_obj_2x{'servicegroup'}) {
+        goto SKIP_SERVICEGROUPS;
     }
 
     foreach my $servicegroup_2x_key (keys %{@$cfg_obj_2x{'servicegroup'}}) {
@@ -215,12 +225,19 @@ sub dump_groups_2x {
         Icinga2::ExportIcinga2Cfg::dump_group_2x($icinga2_cfg, $servicegroup_2x);
     }
 
+SKIP_SERVICEGROUPS:
+
+    if (!@$cfg_obj_2x{'usergroup'}) {
+        goto SKIP_USERGROUPS;
+    }
+
     foreach my $usergroup_2x_key (keys %{@$cfg_obj_2x{'usergroup'}}) {
         my $usergroup_2x = @$cfg_obj_2x{'usergroup'}->{$usergroup_2x_key};
 
         Icinga2::ExportIcinga2Cfg::dump_group_2x($icinga2_cfg, $usergroup_2x);
     }
 
+SKIP_USERGROUPS:
     end_object_type_config_dump($icinga2_cfg);
 }
 

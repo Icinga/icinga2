@@ -87,9 +87,9 @@ sub slurp {
             <$fh>;
         }
     } elsif (! -r $file) {
-        die "$file not readable. check permissions/user!"
+        print " ERROR: $file not readable. check permissions/user!\n"
     } else {
-        die "$file does not exist";
+        print " ERROR: $file does not exist\n";
     }
 }
 
