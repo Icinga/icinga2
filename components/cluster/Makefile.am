@@ -3,13 +3,8 @@
 pkglib_LTLIBRARIES = \
 	libcluster.la
 
-EXTRA_DIST = \
-	cluster-type.conf
-
-BUILT_SOURCES = \
+CLEANFILES = \
 	cluster-type.cpp
-
-CLEANFILES = $(BUILT_SOURCES)
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
@@ -17,7 +12,7 @@ CLEANFILES = $(BUILT_SOURCES)
 libcluster_la_SOURCES = \
 	clustercomponent.cpp \
 	clustercomponent.h \
-	cluster-type.cpp \
+	cluster-type.conf \
 	endpoint.cpp \
 	endpoint.h \
 	jsonrpc.cpp \

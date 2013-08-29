@@ -3,13 +3,8 @@
 pkglib_LTLIBRARIES = \
 	libdemo.la
 
-EXTRA_DIST = \
-	demo-type.conf
-
-BUILT_SOURCES = \
+CLEANFILES = \
 	demo-type.cpp
-
-CLEANFILES = $(BUILT_SOURCES)
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
@@ -17,7 +12,7 @@ CLEANFILES = $(BUILT_SOURCES)
 libdemo_la_SOURCES = \
 	democomponent.cpp \
 	democomponent.h \
-	demo-type.cpp
+	demo-type.conf
 
 libdemo_la_CPPFLAGS = \
 	$(LTDLINCL) \

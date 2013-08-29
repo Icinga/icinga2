@@ -3,13 +3,8 @@
 pkglib_LTLIBRARIES = \
 	libido.la
 
-EXTRA_DIST = \
-	ido-type.conf
-
-BUILT_SOURCES = \
+CLEANFILES = \
 	ido-type.cpp
-
-CLEANFILES = $(BUILT_SOURCES)
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
@@ -33,7 +28,7 @@ libido_la_SOURCES = \
 	hostdbobject.h \
 	hostgroupdbobject.cpp \
 	hostgroupdbobject.h \
-	ido-type.cpp \
+	ido-type.conf \
 	servicedbobject.cpp \
 	servicedbobject.h \
 	servicegroupdbobject.cpp \

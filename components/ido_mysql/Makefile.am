@@ -4,19 +4,14 @@ if MYSQL_USE
 pkglib_LTLIBRARIES = \
 	libido_mysql.la
 
-EXTRA_DIST = \
-	ido_mysql-type.conf
-
-BUILT_SOURCES = \
+CLEANFILES = \
 	ido_mysql-type.cpp
-
-CLEANFILES = $(BUILT_SOURCES)
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libido_mysql_la_SOURCES = \
-	ido_mysql-type.cpp \
+	ido_mysql-type.conf \
 	idomysqldbconnection.cpp \
 	idomysqldbconnection.h
 

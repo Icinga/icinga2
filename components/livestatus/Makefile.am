@@ -3,13 +3,8 @@
 pkglib_LTLIBRARIES = \
 	liblivestatus.la
 
-EXTRA_DIST = \
-	livestatus-type.conf
-
-BUILT_SOURCES = \
+CLEANFILES = \
 	livestatus-type.cpp
-
-CLEANFILES = $(BUILT_SOURCES)
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
@@ -51,7 +46,7 @@ liblivestatus_la_SOURCES = \
 	invavgaggregator.h \
 	invsumaggregator.cpp \
 	invsumaggregator.h \
-	livestatus-type.cpp \
+	livestatus-type.conf \
 	logtable.cpp \
 	logtable.h \
 	maxaggregator.cpp \

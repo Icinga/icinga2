@@ -3,13 +3,8 @@
 pkglib_LTLIBRARIES = \
 	libcompat.la
 
-EXTRA_DIST = \
-	compat-type.conf
-
-BUILT_SOURCES = \
+CLEANFILES = \
 	compat-type.cpp
-
-CLEANFILES = $(BUILT_SOURCES)
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
@@ -21,7 +16,7 @@ libcompat_la_SOURCES = \
 	compatcomponent.h \
 	compatlog.cpp \
 	compatlog.h \
-	compat-type.cpp
+	compat-type.conf
 
 libcompat_la_CPPFLAGS = \
 	$(LTDLINCL) \

@@ -4,13 +4,8 @@
 pkglib_LTLIBRARIES =  \
 	libicinga.la
 
-EXTRA_DIST = \
-	icinga-type.conf
-
-BUILT_SOURCES = \
+CLEANFILES = \
 	icinga-type.cpp
-
-CLEANFILES = $(BUILT_SOURCES)
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
@@ -35,7 +30,7 @@ libicinga_la_SOURCES =  \
 	hostgroup.h \
 	host.h \
 	i2-icinga.h \
-	icinga-type.cpp \
+	icinga-type.conf \
 	icingaapplication.cpp \
 	icingaapplication.h \
 	legacytimeperiod.cpp \

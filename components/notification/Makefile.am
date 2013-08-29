@@ -3,13 +3,8 @@
 pkglib_LTLIBRARIES = \
 	libnotification.la
 
-EXTRA_DIST = \
-	notification-type.conf
-
-BUILT_SOURCES = \
+CLEANFILES = \
 	notification-type.cpp
-
-CLEANFILES = $(BUILT_SOURCES)
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
@@ -17,7 +12,7 @@ CLEANFILES = $(BUILT_SOURCES)
 libnotification_la_SOURCES = \
 	notificationcomponent.cpp \
 	notificationcomponent.h \
-	notification-type.cpp
+	notification-type.conf
 
 libnotification_la_CPPFLAGS = \
 	$(LTDLINCL) \
