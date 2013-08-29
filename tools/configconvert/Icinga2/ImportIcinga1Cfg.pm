@@ -284,6 +284,7 @@ sub parse_icinga1_objects {
     my $cfg_objs = {};
 
     foreach my $cfg_file (@cfg_files) {
+        print "Processing file '$cfg_file'...\n";
         $cfg_objs = parse_icinga1_object_cfg($cfg_objs, $cfg_file);
     }
 
