@@ -365,7 +365,7 @@ void CompatComponent::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 {
 	fp << "define host {" << "\n"
 	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
-	   << "\t" << "display_name" << "\t" << host->GetDisplayName() << "\n";
+	   << "\t" << "alias" << "\t" << host->GetDisplayName() << "\n";
 
 	std::set<Host::Ptr> parents = host->GetParentHosts();
 
