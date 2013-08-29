@@ -80,6 +80,8 @@ public:
 	static String GetPkgDataDir(void);
 	static void SetPkgDataDir(const String& path);
 
+	static String GetStatePath(void);
+
 	static ThreadPool& GetTP(void);
 
 protected:

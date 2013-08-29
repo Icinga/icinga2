@@ -276,8 +276,10 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 
 		DynamicObject::Ptr object = dt->GetObject(name);
 
-		if (object)
+		if (object) {
+			ASSERT(!object->IsActive());
 			object->Deserialize(update, attributeTypes);
+		}
 
 		restored++;
 	}

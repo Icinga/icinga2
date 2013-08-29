@@ -51,9 +51,6 @@ int IcingaApplication::Main(void)
 
 	UpdatePidFile(GetPidPath());
 
-	/* restore the previous program state */
-	DynamicObject::RestoreObjects(GetStatePath());
-
 	/* periodically dump the program state */
 	l_RetentionTimer = boost::make_shared<Timer>();
 	l_RetentionTimer->SetInterval(300);
@@ -97,16 +94,6 @@ String IcingaApplication::GetPidPath(void) const
 		return Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid";
 	else
 		return m_PidPath;
-}
-
-String IcingaApplication::GetStatePath(void) const
-{
-	ObjectLock olock(this);
-
-	if (m_StatePath.IsEmpty())
-		return Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state";
-	else
-		return m_StatePath;
 }
 
 Dictionary::Ptr IcingaApplication::GetMacros(void) const
@@ -160,7 +147,6 @@ void IcingaApplication::InternalSerialize(const Dictionary::Ptr& bag, int attrib
 
 	if (attributeTypes & Attribute_Config) {
 		bag->Set("pid_path", m_PidPath);
-		bag->Set("state_path", m_StatePath);
 		bag->Set("macros", m_Macros);
 	}
 }
@@ -171,7 +157,6 @@ void IcingaApplication::InternalDeserialize(const Dictionary::Ptr& bag, int attr
 
 	if (attributeTypes & Attribute_Config) {
 		m_PidPath = bag->Get("pid_path");
-		m_StatePath = bag->Get("state_path");
 		m_Macros = bag->Get("macros");
 	}
 }

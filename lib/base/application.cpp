@@ -25,6 +25,7 @@
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/debug.h"
+#include "base/scriptvariable.h"
 #include <sstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/thread/thread.hpp>
@@ -618,6 +619,22 @@ String Application::GetPkgDataDir(void)
 void Application::SetPkgDataDir(const String& path)
 {
         m_PkgDataDir = path;
+}
+
+/**
+ * Retrieves the path for the state file.
+ *
+ * @returns The path.
+ */
+String Application::GetStatePath(void)
+{
+	String statePath = ScriptVariable::Get("IcingaStatePath");
+
+
+	if (statePath.IsEmpty())
+		return GetLocalStateDir() + "/lib/icinga2/icinga2.state";
+	else
+		return statePath;
 }
 
 /**

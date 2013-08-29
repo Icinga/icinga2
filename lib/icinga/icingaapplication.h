@@ -43,7 +43,6 @@ public:
 	static IcingaApplication::Ptr GetInstance(void);
 
 	String GetPidPath(void) const;
-	String GetStatePath(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 
 	double GetStartTime(void) const;
@@ -56,7 +55,6 @@ protected:
 
 private:
 	String m_PidPath;
-	String m_StatePath;
 	Dictionary::Ptr m_Macros;
 
 	double m_StartTime;
