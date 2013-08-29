@@ -27,10 +27,8 @@ using namespace icinga;
 
 REGISTER_TYPE(User);
 
-void User::Start(void)
+void User::OnConfigLoaded(void)
 {
-	DynamicObject::Start();
-
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {

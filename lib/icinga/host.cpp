@@ -56,7 +56,10 @@ void Host::Start(void)
 				hg->AddMember(GetSelf());
 		}
 	}
+}
 
+void Host::OnConfigLoaded(void)
+{
 	UpdateSlaveServices();
 }
 

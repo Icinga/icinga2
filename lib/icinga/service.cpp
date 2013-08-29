@@ -44,6 +44,12 @@ void Service::Start(void)
 	SetSchedulingOffset(rand());
 	UpdateNextCheck();
 
+	AddDowntimesToCache();
+	AddCommentsToCache();
+}
+
+void Service::OnConfigLoaded(void)
+{
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
@@ -55,12 +61,11 @@ void Service::Start(void)
 		}
 	}
 
-	AddDowntimesToCache();
-	AddCommentsToCache();
-
 	Host::Ptr host = GetHost();
 	if (host)
 		host->AddService(GetSelf());
+
+	UpdateSlaveNotifications();
 }
 
 String Service::GetDisplayName(void) const

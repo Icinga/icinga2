@@ -68,9 +68,17 @@ Dictionary::Ptr DynamicObject::Serialize(int attributeTypes) const
 void DynamicObject::Deserialize(const Dictionary::Ptr& update, int attributeTypes)
 {
 	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
 
-	InternalDeserialize(update, attributeTypes);
+	{
+		ObjectLock olock(this);
+		InternalDeserialize(update, attributeTypes);
+	}
+
+	if (attributeTypes & Attribute_Config)
+		OnConfigLoaded();
+
+	if (attributeTypes & Attribute_State)
+		OnStateLoaded();
 }
 
 void DynamicObject::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
@@ -174,6 +182,16 @@ void DynamicObject::Stop(void)
 	m_Active = false;
 
 	OnStopped(GetSelf());
+}
+
+void DynamicObject::OnConfigLoaded(void)
+{
+	/* Nothing to do here. */
+}
+
+void DynamicObject::OnStateLoaded(void)
+{
+	/* Nothing to do here. */
 }
 
 Value DynamicObject::InvokeMethod(const String& method,

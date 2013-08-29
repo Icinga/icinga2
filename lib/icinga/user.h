@@ -57,8 +57,9 @@ public:
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
 protected:
-	virtual void Start(void);
 	virtual void Stop(void);
+
+	virtual void OnConfigLoaded(void);
 
 	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);

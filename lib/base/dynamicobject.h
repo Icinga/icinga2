@@ -102,6 +102,9 @@ protected:
 	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
+	virtual void OnConfigLoaded(void);
+	virtual void OnStateLoaded(void);
+
 private:
 	String m_Name;
 	String m_Type;
