@@ -242,8 +242,6 @@ void Service::AcknowledgeProblem(const String& author, const String& comment, Ac
 		m_AcknowledgementExpiry = expiry;
 	}
 
-	(void) AddComment(CommentAcknowledgement, author, comment, 0);
-
 	OnNotificationsRequested(GetSelf(), NotificationAcknowledgement, GetLastCheckResult(), author, comment);
 
 	Utility::QueueAsyncCallback(bind(boost::ref(OnAcknowledgementSet), GetSelf(), author, comment, type, expiry, authority));
