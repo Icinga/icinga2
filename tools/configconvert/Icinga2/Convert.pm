@@ -997,7 +997,7 @@ sub convert_checkcommand {
             #Icinga2::Utils::debug("2x Command: $command_2x->{'check_command'}");
 
             # detect $USERn$ macros and replace them too XXX - this should be a global macro?
-            if ($commands_1x->{$command_1x_key}->{'command_line'} =~/\$(USER\d)\$/) {
+            if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/) {
                 $command_2x->{'command_macros'}->{$1} = Icinga2::Utils::escape_str($user_macros_1x->{$1});
                 #debug("\$$1\$=$command_2x->{'macros'}->{$1}");
             }
