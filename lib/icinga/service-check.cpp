@@ -618,7 +618,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
 			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
 
-	OnNewCheckResult(GetSelf(), cr, authority);
+	Utility::QueueAsyncCallback(bind(boost::ref(OnNewCheckResult), GetSelf(), cr, authority));
 	OnStateChanged(GetSelf());
 
 	if (call_eventhandler)

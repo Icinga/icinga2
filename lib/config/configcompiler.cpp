@@ -99,7 +99,7 @@ void ConfigCompiler::HandleInclude(const String& include, bool search, const Deb
 {
 	String path;
 
-	if (search)
+	if (search || (include.GetLength() > 0 && include[0] == '/'))
 		path = include;
 	else
 		path = Utility::DirName(GetPath()) + "/" + include;

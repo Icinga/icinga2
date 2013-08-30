@@ -44,10 +44,6 @@ using namespace icinga;
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_Debugging = false;
-String Application::m_PrefixDir;
-String Application::m_LocalStateDir;
-String Application::m_PkgLibDir;
-String Application::m_PkgDataDir;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 
@@ -538,10 +534,7 @@ void Application::ClosePidFile(void)
  */
 String Application::GetPrefixDir(void)
 {
-	if (m_PrefixDir.IsEmpty())
-		return ".";
-	else
-		return m_PrefixDir;
+	return ScriptVariable::Get("IcingaPrefixDir");
 }
 
 /**
@@ -551,7 +544,7 @@ String Application::GetPrefixDir(void)
  */
 void Application::SetPrefixDir(const String& path)
 {
-	m_PrefixDir = path;
+	ScriptVariable::Set("IcingaPrefixDir", path);
 }
 
 /**
@@ -561,10 +554,7 @@ void Application::SetPrefixDir(const String& path)
  */
 String Application::GetLocalStateDir(void)
 {
-	if (m_LocalStateDir.IsEmpty())
-		return "./var";
-	else
-		return m_LocalStateDir;
+	return ScriptVariable::Get("IcingaLocalStateDir");
 }
 
 /**
@@ -574,7 +564,7 @@ String Application::GetLocalStateDir(void)
  */
 void Application::SetLocalStateDir(const String& path)
 {
-	m_LocalStateDir = path;
+	ScriptVariable::Set("IcingaLocalStateDir", path);
 }
 
 /**
@@ -584,10 +574,7 @@ void Application::SetLocalStateDir(const String& path)
  */
 String Application::GetPkgLibDir(void)
 {
-	if (m_PkgLibDir.IsEmpty())
-		return ".";
-	else
-		return m_PkgLibDir;
+	return ScriptVariable::Get("IcingaPkgLibDir");
 }
 
 /**
@@ -597,7 +584,7 @@ String Application::GetPkgLibDir(void)
  */
 void Application::SetPkgLibDir(const String& path)
 {
-	m_PkgLibDir = path;
+	ScriptVariable::Set("IcingaPkgLibDir", path);
 }
 
 /**
@@ -607,10 +594,7 @@ void Application::SetPkgLibDir(const String& path)
  */
 String Application::GetPkgDataDir(void)
 {
-        if (m_PkgDataDir.IsEmpty())
-                return ".";
-        else
-                return m_PkgDataDir;
+	return ScriptVariable::Get("IcingaPkgDataDir");
 }
 
 /**
@@ -620,7 +604,7 @@ String Application::GetPkgDataDir(void)
  */
 void Application::SetPkgDataDir(const String& path)
 {
-        m_PkgDataDir = path;
+	ScriptVariable::Set("IcingaPkgDataDir", path);
 }
 
 /**
@@ -630,13 +614,17 @@ void Application::SetPkgDataDir(const String& path)
  */
 String Application::GetStatePath(void)
 {
-	String statePath = ScriptVariable::Get("IcingaStatePath");
+	return ScriptVariable::Get("IcingaStatePath");
+}
 
-
-	if (statePath.IsEmpty())
-		return GetLocalStateDir() + "/lib/icinga2/icinga2.state";
-	else
-		return statePath;
+/**
+ * Sets the path for the package data dir.
+ *
+ * @param path The new path.
+ */
+void Application::SetStatePath(const String& path)
+{
+	ScriptVariable::Set("IcingaStatePath", path);
 }
 
 /**

@@ -172,19 +172,29 @@ int main(int argc, char **argv)
 
 #ifdef ICINGA_PREFIX
 	Application::SetPrefixDir(ICINGA_PREFIX);
+#else /* ICINGA_PREFIX */
+	Application::SetPrefixDir(".");
 #endif /* ICINGA_PREFIX */
 
 #ifdef ICINGA_LOCALSTATEDIR
 	Application::SetLocalStateDir(ICINGA_LOCALSTATEDIR);
+#else /* ICINGA_LOCALSTATEDIR */
+	Application::SetLocalStateDir("./var");
 #endif /* ICINGA_LOCALSTATEDIR */
 
 #ifdef ICINGA_PKGLIBDIR
 	Application::SetPkgLibDir(ICINGA_PKGLIBDIR);
+#else /* ICINGA_PKGLIBDIR */
+	Application::SetPkgLibDir(".");
 #endif /* ICINGA_PKGLIBDIR */
 
 #ifdef ICINGA_PKGDATADIR
 	Application::SetPkgDataDir(ICINGA_PKGDATADIR);
+#else /* ICINGA_PKGDATADIR */
+	Application::SetPkgDataDir(".");
 #endif /* ICINGA_PKGDATADIR */
+
+	Application::SetStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
 
 	po::options_description desc("Supported options");
 	desc.add_options()

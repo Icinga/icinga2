@@ -81,6 +81,7 @@ public:
 	static void SetPkgDataDir(const String& path);
 
 	static String GetStatePath(void);
+	static void SetStatePath(const String& path);
 
 	static ThreadPool& GetTP(void);
 
@@ -101,10 +102,6 @@ private:
 	static char **m_ArgV; /**< Command-line arguments. */
 	FILE *m_PidFile; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
-	static String m_PrefixDir; /**< The installation prefix. */
-	static String m_LocalStateDir; /**< The local state dir. */
-	static String m_PkgLibDir; /**< The package lib dir. */
-	static String m_PkgDataDir; /**< The package data dir. */
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);

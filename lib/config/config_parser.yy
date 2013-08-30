@@ -110,8 +110,8 @@ using namespace icinga;
 %type <num> partial_specifier
 %type <slist> object_inherits_list
 %type <slist> object_inherits_specifier
-%type <num> constterm
-%type <num> constexpression
+%type <variant> constterm
+%type <variant> constexpression
 %left '+' '-'
 %left '*' '/'
 %left '&'
@@ -156,10 +156,10 @@ statements: /* empty */
 statement: object | type | include | library | variable
 	;
 
-include: T_INCLUDE T_STRING
+include: T_INCLUDE value
 	{
-		context->HandleInclude($2, false, yylloc);
-		free($2);
+		context->HandleInclude(*$2, false, yylloc);
+		delete $2;
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
@@ -539,46 +539,54 @@ constterm: '(' constexpression ')'
 		$$ = $2;
 	}
 
-constexpression: T_NUMBER
+constexpression: T_STRING
 	{
-		$$ = $1;
+		$$ = new Value($1);
+		free($1);
 	}
-	| identifier
+	| T_NUMBER
 	{
-		$$ = ScriptVariable::Get($1);
+		$$ = new Value($1);
+	}
+	| T_IDENTIFIER
+	{
+		$$ = new Value(ScriptVariable::Get($1));
 		free($1);
 	}
 	| constexpression '+' constexpression
 	{
-		$$ = $1 + $3;
+		if ($1->GetType() == ValueString || $3->GetType() == ValueString)
+			$$ = new Value((String)*$1 + (String)*$3);
+		else
+			$$ = new Value((double)*$1 + (double)*$3);
 	}
 	| constexpression '-' constexpression
 	{
-		$$ = $1 - $3;
+		$$ = new Value((double)*$1 - (double)*$3);
 	}
 	| constexpression '*' constexpression
 	{
-		$$ = $1 * $3;
+		$$ = new Value((double)*$1 * (double)*$3);
 	}
 	| constexpression '/' constexpression
 	{
-		$$ = $1 / $3;
+		$$ = new Value((double)*$1 / (double)*$3);
 	}
 	| constexpression '&' constexpression
 	{
-		$$ = (long)$1 & (long)$3;
+		$$ = new Value((long)*$1 & (long)*$3);
 	}
 	| constexpression '|' constexpression
 	{
-		$$ = (long)$1 | (long)$3;
+		$$ = new Value((long)*$1 | (long)*$3);
 	}
 	| constexpression T_SHIFT_LEFT constexpression
 	{
-		$$ = (long)$1 << (long)$3;
+		$$ = new Value((long)*$1 << (long)*$3);
 	}
 	| constexpression T_SHIFT_RIGHT constexpression
 	{
-		$$ = (long)$1 >> (long)$3;
+		$$ = new Value((long)*$1 >> (long)*$3);
 	}
 	| '(' constexpression ')'
 	{
@@ -594,7 +602,7 @@ value: simplevalue
 	}
 	| constterm
 	{
-		$$ = new Value($1);
+		$$ = $1;
 	}
 	;
 %%
