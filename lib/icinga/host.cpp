@@ -611,7 +611,22 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 		bool reachable = IsReachable();
 
 		if (macro == "HOSTSTATE") {
-			*result = Convert::ToString(CalculateState(state, reachable));
+			HostState hstate = CalculateState(state, reachable);
+
+			switch (hstate) {
+				case HostUnreachable:
+					*result = "UNREACHABLE";
+					break;
+				case HostUp:
+					*result = "UP";
+					break;
+				case HostDown:
+					*result = "DOWN";
+					break;
+				default:
+					ASSERT(0);
+			}
+
 			return true;
 		} else if (macro == "HOSTSTATEID") {
 			*result = Convert::ToString(state);
