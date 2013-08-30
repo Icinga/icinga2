@@ -128,10 +128,19 @@ bool User::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 		*result = GetDisplayName();
 		return true;
 	} else {
+		String tmacro;
+
+		if (macro == "CONTACTEMAIL")
+			tmacro = "email";
+		else if (macro == "CONTACTPAGER")
+			tmacro = "pager";
+		else
+			tmacro = macro;
+
 		Dictionary::Ptr macros = GetMacros();
 
-		if (macros && macros->Contains(macro)) {
-			*result = macros->Get(macro);
+		if (macros && macros->Contains(tmacro)) {
+			*result = macros->Get(tmacro);
 			return true;
 		}
 
