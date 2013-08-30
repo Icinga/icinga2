@@ -173,6 +173,8 @@ void Application::RunEventLoop(void) const
  */
 void Application::TimeWatchThreadProc(void)
 {
+	Utility::SetThreadName("Time Watch");
+
 	double lastLoop = Utility::GetTime();
 
 	for (;;) {

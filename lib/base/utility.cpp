@@ -500,6 +500,29 @@ String Utility::EscapeShellCmd(const String& s)
 void Utility::SetThreadName(const String& name)
 {
 	m_ThreadName.reset(new String(name));
+
+#ifdef _WIN32
+	THREADNAME_INFO info;
+	info.dwType = 0x1000;
+	info.szName = name.CStr();
+	info.dwThreadID = -1;
+	info.dwFlags = 0;
+
+	__try {
+		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR *)&info);
+	} __except(EXCEPTION_EXECUTE_HANDLER) {
+		/* Nothing to do here. */
+	}
+#endif /* _WIN32 */
+
+#ifdef __APPLE__
+	pthread_setname_np(name.CStr());
+#endif /* __APPLE__ */
+
+#ifdef __linux__
+	String tname = name.SubStr(0, 15);
+	pthread_setname_np(pthread_self(), tname.CStr());
+#endif /* __linux__ */
 }
 
 String Utility::GetThreadName(void)

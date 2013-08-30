@@ -157,6 +157,8 @@ void ClusterComponent::AddListener(const String& service)
 
 void ClusterComponent::ListenerThreadProc(const Socket::Ptr& server)
 {
+	Utility::SetThreadName("Cluster Listener");
+
 	server->Listen();
 
 	for (;;) {

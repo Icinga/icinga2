@@ -261,6 +261,8 @@ void Timer::AdjustTimers(double adjustment)
  */
 void Timer::TimerThreadProc(void)
 {
+	Utility::SetThreadName("Timer Thread");
+
 	for (;;) {
 		boost::mutex::scoped_lock lock(l_Mutex);
 

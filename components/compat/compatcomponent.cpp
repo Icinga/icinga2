@@ -113,6 +113,8 @@ String CompatComponent::GetCommandPath(void) const
 #ifndef _WIN32
 void CompatComponent::CommandPipeThread(const String& commandPath)
 {
+	Utility::SetThreadName("Command Pipe");
+
 	struct stat statbuf;
 	bool fifo_ok = false;
 

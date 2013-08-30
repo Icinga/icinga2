@@ -69,6 +69,9 @@ private:
 		{ }
 	};
 
+	int m_ID;
+	static int m_NextID;
+
 	ThreadStats m_ThreadStats[512];
 
 	boost::thread m_ManagerThread;

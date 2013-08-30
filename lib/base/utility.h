@@ -29,6 +29,20 @@
 namespace icinga
 {
 
+#ifdef _WIN32
+#define MS_VC_EXCEPTION 0x406D1388
+
+#	pragma pack(push, 8)
+struct THREADNAME_INFO
+{
+	DWORD dwType;
+	LPCSTR szName;
+	DWORD dwThreadID;
+	DWORD dwFlags;
+};
+#	pragma pack(pop)
+#endif
+
 /**
  * Helper functions.
  *

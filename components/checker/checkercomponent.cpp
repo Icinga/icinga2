@@ -66,6 +66,8 @@ void CheckerComponent::Stop(void)
 
 void CheckerComponent::CheckThreadProc(void)
 {
+	Utility::SetThreadName("Check Scheduler");
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	for (;;) {

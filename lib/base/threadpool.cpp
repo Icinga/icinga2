@@ -30,8 +30,10 @@
 
 using namespace icinga;
 
+int ThreadPool::m_NextID = 1;
+
 ThreadPool::ThreadPool(void)
-	: m_WaitTime(0), m_ServiceTime(0),
+	: m_ID(m_NextID++), m_WaitTime(0), m_ServiceTime(0),
 	  m_TaskCount(0), m_Stopped(false)
 {
 	for (int i = 0; i < 2; i++)
@@ -96,7 +98,7 @@ void ThreadPool::Join(void)
 void ThreadPool::QueueThreadProc(int tid)
 {
 	std::ostringstream idbuf;
-	idbuf << "TP " << this << " Worker #" << tid;
+	idbuf << "TP #" << m_ID << " Worker #" << tid;
 	Utility::SetThreadName(idbuf.str());
 
 	for (;;) {
@@ -219,7 +221,7 @@ bool ThreadPool::Post(const ThreadPool::WorkFunction& callback)
 void ThreadPool::ManagerThreadProc(void)
 {
 	std::ostringstream idbuf;
-	idbuf << "TP " << this << " Manager";
+	idbuf << "TP #" << m_ID << " Manager";
 	Utility::SetThreadName(idbuf.str());
 
 	for (;;) {
@@ -336,7 +338,7 @@ void ThreadPool::KillWorker(void)
 void ThreadPool::StatsThreadProc(void)
 {
 	std::ostringstream idbuf;
-	idbuf << "TP " << this << " Stats";
+	idbuf << "TP #" << m_ID << " Stats";
 	Utility::SetThreadName(idbuf.str());
 
 	for (;;) {
