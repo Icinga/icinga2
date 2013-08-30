@@ -245,6 +245,7 @@ void Host::UpdateSlaveServices(void)
 		builder->AddExpressionList(svc_exprl);
 
 		ConfigItem::Ptr serviceItem = builder->Compile();
+		serviceItem->Register();
 		DynamicObject::Ptr dobj = serviceItem->Commit();
 		dobj->OnConfigLoaded();
 	}

@@ -193,6 +193,7 @@ void Service::UpdateSlaveNotifications(void)
 			builder->AddExpressionList(nfc_exprl);
 
 			ConfigItem::Ptr notificationItem = builder->Compile();
+			notificationItem->Register();
 			DynamicObject::Ptr dobj = notificationItem->Commit();
 			dobj->OnConfigLoaded();
 		}
