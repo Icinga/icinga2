@@ -68,8 +68,8 @@ private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	String m_Identity;
 
-	Timer::Ptr m_ReconnectTimer;
-	void ReconnectTimerHandler(void);
+	Timer::Ptr m_ClusterTimer;
+	void ClusterTimerHandler(void);
 
 	std::set<TcpSocket::Ptr> m_Servers;
 

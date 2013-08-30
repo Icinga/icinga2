@@ -53,6 +53,9 @@ public:
 	String GetHost(void) const;
 	String GetPort(void) const;
 
+	double GetSeen(void) const;
+	void SetSeen(double ts);
+
 protected:
 	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
@@ -63,6 +66,7 @@ private:
 	String m_Port;
 
 	Stream::Ptr m_Client;
+	double m_Seen;
 
 	void MessageThreadProc(const Stream::Ptr& stream);
 };

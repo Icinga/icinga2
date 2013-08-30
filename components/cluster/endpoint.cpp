@@ -126,6 +126,16 @@ String Endpoint::GetPort(void) const
 	return m_Port;
 }
 
+double Endpoint::GetSeen(void) const
+{
+	return m_Seen;
+}
+
+void Endpoint::SetSeen(double ts)
+{
+	m_Seen = ts;
+}
+
 void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
 {
 	DynamicObject::InternalSerialize(bag, attributeTypes);
@@ -134,6 +144,9 @@ void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes)
 		bag->Set("host", m_Host);
 		bag->Set("port", m_Port);
 	}
+
+	if (attributeTypes & Attribute_State)
+		bag->Set("seen", m_Seen);
 }
 
 void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
@@ -144,4 +157,7 @@ void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeType
 		m_Host = bag->Get("host");
 		m_Port = bag->Get("port");
 	}
+
+	if (attributeTypes & Attribute_State)
+		m_Seen = bag->Get("seen");
 }

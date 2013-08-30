@@ -47,10 +47,10 @@ void ClusterComponent::Start(void)
 	if (!GetBindPort().IsEmpty())
 		AddListener(GetBindPort());
 
-	m_ReconnectTimer = boost::make_shared<Timer>();
-	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&ClusterComponent::ReconnectTimerHandler, this));
-	m_ReconnectTimer->SetInterval(5);
-	m_ReconnectTimer->Start();
+	m_ClusterTimer = boost::make_shared<Timer>();
+	m_ClusterTimer->OnTimerExpired.connect(boost::bind(&ClusterComponent::ClusterTimerHandler, this));
+	m_ClusterTimer->SetInterval(5);
+	m_ClusterTimer->Start();
 
 	Service::OnNewCheckResult.connect(bind(&ClusterComponent::CheckResultHandler, this, _1, _2, _3));
 	Service::OnNextCheckChanged.connect(bind(&ClusterComponent::NextCheckChangedHandler, this, _1, _2, _3));
@@ -226,8 +226,17 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 	endpoint->SetClient(tlsStream);
 }
 
-void ClusterComponent::ReconnectTimerHandler(void)
+void ClusterComponent::ClusterTimerHandler(void)
 {
+	/* broadcast a heartbeat message */
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::HeartBeat");
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		endpoint->SendMessage(message);
+	}
+
 	Array::Ptr peers = GetPeers();
 
 	if (!peers)
@@ -551,6 +560,11 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
 		if (sender != endpoint)
 			endpoint->SendMessage(message);
+	}
+
+	if (message->Get("method") == "cluster::HeartBeat") {
+		sender->SetSeen(Utility::GetTime());
+		return;
 	}
 
 	Dictionary::Ptr params = message->Get("params");
