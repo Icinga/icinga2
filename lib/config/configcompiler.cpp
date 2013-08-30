@@ -198,9 +198,9 @@ void ConfigCompiler::HandleFileInclude(const String& include, bool search,
 
 	std::vector<ConfigItem::Ptr> items;
 
-	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFile, _1))) {
+	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFile, _1)) && includePath.FindFirstOf("*?") == String::NPos) {
 		std::ostringstream msgbuf;
-		msgbuf << "Include file '" + include + "' does not exist (or no files found for pattern): " << debuginfo;
+		msgbuf << "Include file '" + include + "' does not exist: " << debuginfo;
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 }
