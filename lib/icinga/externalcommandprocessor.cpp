@@ -106,6 +106,7 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("ENABLE_SVC_CHECK", &ExternalCommandProcessor::EnableSvcCheck);
 	RegisterCommand("DISABLE_SVC_CHECK", &ExternalCommandProcessor::DisableSvcCheck);
 	RegisterCommand("SHUTDOWN_PROCESS", &ExternalCommandProcessor::ShutdownProcess);
+	RegisterCommand("RESTART_PROCESS", &ExternalCommandProcessor::RestartProcess);
 	RegisterCommand("SCHEDULE_FORCED_HOST_SVC_CHECKS", &ExternalCommandProcessor::ScheduleForcedHostSvcChecks);
 	RegisterCommand("SCHEDULE_HOST_SVC_CHECKS", &ExternalCommandProcessor::ScheduleHostSvcChecks);
 	RegisterCommand("ENABLE_HOST_SVC_CHECKS", &ExternalCommandProcessor::EnableHostSvcChecks);
@@ -414,6 +415,12 @@ void ExternalCommandProcessor::ShutdownProcess(double, const std::vector<String>
 {
 	Log(LogInformation, "icinga", "Shutting down Icinga via external command.");
 	Application::RequestShutdown();
+}
+
+void ExternalCommandProcessor::RestartProcess(double, const std::vector<String>&)
+{
+	Log(LogInformation, "icinga", "Restarting Icinga via external command.");
+	Application::RequestRestart();
 }
 
 void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const std::vector<String>& arguments)

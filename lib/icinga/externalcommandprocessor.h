@@ -59,6 +59,7 @@ private:
 	static void EnableSvcCheck(double time, const std::vector<String>& arguments);
 	static void DisableSvcCheck(double time, const std::vector<String>& arguments);
 	static void ShutdownProcess(double time, const std::vector<String>& arguments);
+	static void RestartProcess(double time, const std::vector<String>& arguments);
 	static void ScheduleForcedHostSvcChecks(double time, const std::vector<String>& arguments);
 	static void ScheduleHostSvcChecks(double time, const std::vector<String>& arguments);
 	static void EnableHostSvcChecks(double time, const std::vector<String>& arguments);

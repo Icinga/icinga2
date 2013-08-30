@@ -93,6 +93,11 @@ static bool LoadConfigFiles(bool validateOnly)
 	return true;
 }
 
+static void SigHupHandler(int)
+{
+	Application::RequestRestart();
+}
+
 static bool Daemonize(const String& stderrFile)
 {
 #ifndef _WIN32
@@ -316,6 +321,13 @@ int main(int argc, char **argv)
 
 	if (!app)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Configuration must create an Application object."));
+
+#ifndef _WIN32
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = &SigHupHandler;
+	sigaction(SIGHUP, &sa, NULL);
+#endif /* _WIN32 */
 
 	return app->Run();
 }

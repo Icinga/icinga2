@@ -59,6 +59,7 @@ public:
 	static void InstallExceptionHandlers(void);
 
 	static void RequestShutdown(void);
+	static void RequestRestart(void);
 
 	static void SetDebugging(bool debug);
 	static bool IsDebugging(void);
@@ -98,6 +99,7 @@ private:
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */
+	static bool m_Restarting;
 	static int m_ArgC; /**< The number of command-line arguments. */
 	static char **m_ArgV; /**< Command-line arguments. */
 	FILE *m_PidFile; /**< The PID file */

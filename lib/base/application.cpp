@@ -43,6 +43,7 @@ using namespace icinga;
 
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
+bool Application::m_Restarting = false;
 bool Application::m_Debugging = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
@@ -131,7 +132,7 @@ void Application::SetArgV(char **argv)
 
 void Application::ShutdownTimerHandler(void)
 {
-	if (m_ShuttingDown) {
+	if (m_ShuttingDown || m_Restarting) {
 		Log(LogInformation, "base", "Shutting down Icinga...");
 		Application::GetInstance()->OnShutdown();
 
@@ -201,6 +202,15 @@ void Application::TimeWatchThreadProc(void)
 void Application::RequestShutdown(void)
 {
 	m_ShuttingDown = true;
+}
+
+/**
+ * Signals the application to restart during the next
+ * execution of the event loop.
+ */
+void Application::RequestRestart(void)
+{
+	m_Restarting = true;
 }
 
 /**
@@ -463,6 +473,23 @@ int Application::Run(void)
 #endif /* _WIN32 */
 
 	result = Main();
+
+	if (m_Restarting) {
+		Log(LogInformation, "base", "Restarting application.");
+
+#ifndef _WIN32
+		String exePath = GetExePath(m_ArgV[0]);
+
+		(void) execv(exePath.CStr(), m_ArgV);
+#else /* _WIN32 */
+		STARTUPINFO si;
+		memset(&si, 0, sizeof(si));
+		si.cb = sizeof(si);
+		CreateProcess(NULL, GetCommandLine(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+#endif /* _WIN32 */
+
+		_exit(0);
+	}
 
 	return result;
 }

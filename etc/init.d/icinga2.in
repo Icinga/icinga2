@@ -84,6 +84,24 @@ stop() {
 	echo "Done"
 }
 
+# Reload Icinga 2
+reload() {
+	printf "Reloading Icinga 2: "
+	if [ ! -e $ICINGA2_PID_FILE ]; then
+		echo "The PID file '$ICINGA2_PID_FILE' does not exist."
+		exit 1
+	fi
+
+	pid=`cat $ICINGA2_PID_FILE`
+
+	if ! kill -HUP $pid >/dev/null 2>&1; then
+		echo "Failed - Icinga 2 is not running."
+	else
+		echo "Done"
+	fi
+}
+
+
 # Print status for Icinga 2
 status() {
 	printf "Icinga 2 status: "
@@ -111,6 +129,9 @@ case "$1" in
         stop
         start
         ;;
+reload)
+	reload
+	;;
   *)
         echo $"Usage: $0 {start|stop|restart|status}"
         exit 1
