@@ -164,13 +164,7 @@ void ClusterComponent::ListenerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		Socket::Ptr client = server->Accept();
 
-		try {
-			NewClientHandler(client, TlsRoleServer);
-		} catch (const std::exception& ex) {
-			std::stringstream message;
-			message << "Error for new JSON-RPC socket: " << boost::diagnostic_information(ex);
-			Log(LogInformation, "cluster", message.str());
-		}
+		Utility::QueueAsyncCallback(bind(&ClusterComponent::NewClientHandler, this, client, TlsRoleServer));
 	}
 }
 
@@ -192,12 +186,8 @@ void ClusterComponent::AddConnection(const String& node, const String& service) 
 
 	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
 
-	try {
-		client->Connect(node, service);
-		NewClientHandler(client, TlsRoleClient);
-	} catch (const std::exception& ex) {
-		Log(LogInformation, "cluster", "Could not connect to " + node + ":" + service + ": " + ex.what());
-	}
+	client->Connect(node, service);
+	Utility::QueueAsyncCallback(bind(&ClusterComponent::NewClientHandler, this, client, TlsRoleClient));
 }
 
 /**
