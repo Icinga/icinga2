@@ -919,6 +919,18 @@ sub convert_notificationcommand {
                     # save the type (host, service) and then by command name
                     $notification_commands_2x->{$notification_command_type}->{$notification_command} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
                     #say Dumper($commands_1x->{$command_1x_key});
+
+                    # detect $USERn$ macros and replace them too XXX - this should be a global macro?
+                    if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/ ||
+                        $commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/) {
+                        my @user_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
+                        my @admin_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/g);
+                        push @user_macros, @admin_macros;
+
+                        foreach my $macro_name (@user_macros) {
+                            $notification_commands_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($user_macros_1x->{$macro_name});
+                        }
+                    }
                 }
             }
 
@@ -952,6 +964,18 @@ sub convert_eventhandler {
             # save the command line and command name
             $event_commands_2x->{'command_name'} = $event_command;
             $event_commands_2x->{'command_line'} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
+
+            # detect $USERn$ macros and replace them too XXX - this should be a global macro?
+            if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/ ||
+                $commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/) {
+                my @user_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
+                my @admin_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/g);
+                push @user_macros, @admin_macros;
+
+                foreach my $macro_name (@user_macros) {
+                    $event_commands_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($user_macros_1x->{$macro_name});
+                }
+            }
         }
     }
 
@@ -1238,6 +1262,7 @@ sub convert_2x {
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Event';
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $service_event_command_2x->{'command_name'};
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $service_event_command_2x->{'command_line'};
+                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $service_event_command_2x->{'command_macros'};
 
                     # use the ITL plugin check command template
                     if(defined($icinga2_cfg->{'itl'}->{'eventcommand-template'}) && $icinga2_cfg->{'itl'}->{'eventcommand-template'} ne "") {
@@ -2073,7 +2098,7 @@ sub convert_2x {
         # get all notification_commands, and create new notification templates
         ####################################################
         my $notification_commands = $obj_2x_user->{'__I2CONVERT_NOTIFICATION_COMMANDS'};
-        #say Dumper($notification_commands);
+        say Dumper($notification_commands);
 
         foreach my $notification_command_type (keys %{$notification_commands}) {
             foreach my $notification_command_name (keys %{$notification_commands->{$notification_command_type}}) {
@@ -2109,6 +2134,7 @@ sub convert_2x {
                 $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
                 $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
                 $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $notification_commands->{'command_macros'};
 
                 # use the ITL plugin notification command template
                 if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
@@ -2534,8 +2560,8 @@ sub convert_2x {
         # if there's no host check_command, we must look it up in the tree
         if(!defined($obj_2x_host->{'check_command'})) {
             @$cfg_obj_2x{'host'}->{$host_obj_2x_key}->{'check_command'} = obj_1x_get_host_attr($cfg_obj_1x, $obj_2x_host, $obj_2x_host->{'__I2CONVERT_HOSTNAME'}, 'check_command');
-            say Dumper("found check_command in ".$obj_2x_host->{'check_command'});
-            say Dumper(@$cfg_obj_2x{'host'}->{$host_obj_2x_key});
+            #say Dumper("found check_command in ".$obj_2x_host->{'check_command'});
+            #say Dumper(@$cfg_obj_2x{'host'}->{$host_obj_2x_key});
         }
 
         ####################################################
