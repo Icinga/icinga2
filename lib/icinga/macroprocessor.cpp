@@ -95,7 +95,7 @@ String MacroProcessor::InternalResolveMacros(const String& str, const std::vecto
 			Log(LogWarning, "icinga", "Macro '" + name + "' is not defined.");
 
 		if (escapeFn)
-			resolved_macro = escapeFn(resolvedMacro);
+			resolved_macro = escapeFn(resolved_macro);
 
 		result.Replace(pos_first, pos_second - pos_first + 1, resolved_macro);
 		offset = pos_first + resolved_macro.GetLength();
