@@ -48,15 +48,14 @@ void Service::ResetNotificationNumbers(void)
 
 void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text)
 {
-	bool force = false;
+	bool force = GetForceNextNotification();
 
 	if (!GetEnableNotifications()) {
-		if (!GetForceNextNotification()) {
+		if (!force) {
 			Log(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
 			return;
 		}
 
-		force = true;
 		SetForceNextNotification(false);
 	}
 
