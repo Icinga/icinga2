@@ -1056,6 +1056,11 @@ sub dump_command_2x {
     my $object_type = "object";
 
     #say Dumper($command_2x);
+    # skip used commands
+    if ($command_2x->{'__I2_CONVERT_NOTIFICATION_COMMAND_USED'} == 1) {
+        say "Skipping already processed notification command" . Dumper($command_2x);
+        return;
+    }
 
     if ($command_2x->{__I2CONVERT_IS_TEMPLATE} == 1) {
         $object_type = "template";

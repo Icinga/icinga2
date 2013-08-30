@@ -928,9 +928,12 @@ sub convert_notificationcommand {
                         push @user_macros, @admin_macros;
 
                         foreach my $macro_name (@user_macros) {
-                            $notification_commands_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($user_macros_1x->{$macro_name});
+                            $notification_commands_2x->{$notification_command_type}->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($user_macros_1x->{$macro_name});
                         }
                     }
+
+                    # flag this 1.x command as being used
+                    $commands_1x->{$command_1x_key}->{__I2_CONVERT_NOTIFICATION_COMMAND_USED} = 1;
                 }
             }
 
@@ -1304,6 +1307,7 @@ sub convert_2x {
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Check';
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $service_check_command_2x->{'check_command_name_1x'};
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $service_check_command_2x->{'check_command'};
+                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $service_check_command_2x->{'command_macros'};
 
                     # use the ITL plugin check command template
                     if(defined($icinga2_cfg->{'itl'}->{'checkcommand-template'}) && $icinga2_cfg->{'itl'}->{'checkcommand-template'} ne "") {
@@ -2098,7 +2102,7 @@ sub convert_2x {
         # get all notification_commands, and create new notification templates
         ####################################################
         my $notification_commands = $obj_2x_user->{'__I2CONVERT_NOTIFICATION_COMMANDS'};
-        say Dumper($notification_commands);
+        #say Dumper($notification_commands);
 
         foreach my $notification_command_type (keys %{$notification_commands}) {
             foreach my $notification_command_name (keys %{$notification_commands->{$notification_command_type}}) {
@@ -2131,22 +2135,24 @@ sub convert_2x {
                 next if (!defined($notification_command_name_2x));
 
                 # create a new NotificationCommand 2x object with the original name
-                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
-                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
-                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
-                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $notification_commands->{'command_macros'};
+                if (obj_2x_command_exists($cfg_obj_2x, $notification_command_name) != 1) {
+                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
+                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
+                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $notification_commands->{$notification_command_type}->{'command_macros'};
 
-                # use the ITL plugin notification command template
-                if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
-                    push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
-                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                    # use the ITL plugin notification command template
+                    if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
+                        push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
+                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                    }
+
+                    # the check command name of 1.x is still the unique command object name, so we just keep it
+                    # in __I2CONVERT_NOTIFICATION_COMMAND
+
+                    # our global PK
+                    $command_obj_cnt++;
                 }
-
-                # the check command name of 1.x is still the unique command object name, so we just keep it
-                # in __I2CONVERT_NOTIFICATION_COMMAND
-
-                # our global PK
-                $command_obj_cnt++;
 
                 # create a new notification template object
                 $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x;
@@ -2340,21 +2346,24 @@ sub convert_2x {
                         next if (!defined($notification_command_name_2x));
 
                         # create a new NotificationCommand 2x object with the original name
-                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
-                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
-                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+                        if (obj_2x_notification_exists($cfg_obj_2x, $notification_command_name) != 1) {
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $notification_commands->{$notification_command_type}->{'command_macros'};
 
-                        # use the ITL plugin notification command template
-                        if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
-                            push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
-                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                            # use the ITL plugin notification command template
+                            if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
+                                push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
+                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                            }
+
+                            # the check command name of 1.x is still the unique command object name, so we just keep it
+                            # in __I2CONVERT_NOTIFICATION_COMMAND
+
+                            # our global PK
+                            $command_obj_cnt++;
                         }
-
-                        # the check command name of 1.x is still the unique command object name, so we just keep it
-                        # in __I2CONVERT_NOTIFICATION_COMMAND
-
-                        # our global PK
-                        $command_obj_cnt++;
 
                         # create a new notification template object
                         $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x;
@@ -2419,21 +2428,24 @@ sub convert_2x {
                                     next if (!defined($notification_command_name_2x));
 
                                     # create a new NotificationCommand 2x object with the original name
-                                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
-                                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
-                                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+                                    if (obj_2x_notification_exists($cfg_obj_2x, $notification_command_name) != 1) {
+                                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
+                                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
+                                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+                                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $notification_commands->{$notification_command_type}->{'command_macros'};
 
-                                    # use the ITL plugin notification command template
-                                    if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
-                                        push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
-                                        $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                                        # use the ITL plugin notification command template
+                                        if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
+                                            push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
+                                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                                        }
+
+                                        # the check command name of 1.x is still the unique command object name, so we just keep it
+                                        # in __I2CONVERT_NOTIFICATION_COMMAND
+
+                                        # our global PK
+                                        $command_obj_cnt++;
                                     }
-
-                                    # the check command name of 1.x is still the unique command object name, so we just keep it
-                                    # in __I2CONVERT_NOTIFICATION_COMMAND
-
-                                    # our global PK
-                                    $command_obj_cnt++;
 
                                     # create a new notification template object
                                     $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x;
@@ -2499,21 +2511,24 @@ sub convert_2x {
                             next if (!defined($notification_command_name_2x));
 
                             # create a new NotificationCommand 2x object with the original name
-                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
-                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
-                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+                            if (obj_2x_notification_exists($cfg_obj_2x, $notification_command_name) != 1) {
+                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
+                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
+                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
+                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $notification_commands->{$notification_command_type}->{'command_macros'};
 
-                            # use the ITL plugin notification command template
-                            if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
-                                push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
-                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                                # use the ITL plugin notification command template
+                                if(defined($icinga2_cfg->{'itl'}->{'notificationcommand-template'}) && $icinga2_cfg->{'itl'}->{'notificationcommand-template'} ne "") {
+                                    push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'notificationcommand-template'};
+                                    $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                                }
+
+                                # the check command name of 1.x is still the unique command object name, so we just keep it
+                                # in __I2CONVERT_NOTIFICATION_COMMAND
+
+                                # our global PK
+                                $command_obj_cnt++;
                             }
-
-                            # the check command name of 1.x is still the unique command object name, so we just keep it
-                            # in __I2CONVERT_NOTIFICATION_COMMAND
-
-                            # our global PK
-                            $command_obj_cnt++;
 
                             # create a new notification template object
                             $cfg_obj_2x->{'notification'}->{$notification_obj_cnt}->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'} = $notification_command_name_2x;
@@ -2655,6 +2670,7 @@ sub convert_2x {
                             $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Check';
                             $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
                             $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $host_check_command_2x->{'check_command'};
+                            $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $host_check_command_2x->{'command_macros'};
 
                             # use the ITL plugin check command template
                             if(defined($icinga2_cfg->{'itl'}->{'checkcommand-template'}) && $icinga2_cfg->{'itl'}->{'checkcommand-template'} ne "") {
