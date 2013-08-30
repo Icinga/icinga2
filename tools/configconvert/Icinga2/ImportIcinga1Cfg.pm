@@ -94,7 +94,15 @@ sub parse_icinga1_user_macros {
 
     my ($icinga1_resource_file) = get_key_from_icinga1_main_cfg($icinga1_cfg, "resource_file");
 
+    # resource.cfg
     my $user_macros = parse_icinga1_resource_cfg($icinga1_resource_file);
+
+    # special attributes in icinga.cfg (admin_*)
+    my ($admin_pager) = get_key_from_icinga1_main_cfg($icinga1_cfg, "admin_pager");
+    my ($admin_email) = get_key_from_icinga1_main_cfg($icinga1_cfg, "admin_email");
+
+    $user_macros->{'ADMINPAGER'} = $admin_pager;
+    $user_macros->{'ADMINEMAIL'} = $admin_email;
 
     return $user_macros;
 }

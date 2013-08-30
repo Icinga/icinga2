@@ -846,8 +846,9 @@ sub convert_notification_options_to_filter {
         return $filter;
     }
 
-    # always add NotificationFilterProblem
+    # always add NotificationFilterProblem|Custom
     push @{$filter->{'type'}}, 'NotificationFilterProblem';
+    push @{$filter->{'type'}}, 'NotificationFilterCustom';
 
     if (grep /a/, @options) {
         foreach my $by (keys %{$filter_by}) {
@@ -997,9 +998,15 @@ sub convert_checkcommand {
             #Icinga2::Utils::debug("2x Command: $command_2x->{'check_command'}");
 
             # detect $USERn$ macros and replace them too XXX - this should be a global macro?
-            if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/) {
-                $command_2x->{'command_macros'}->{$1} = Icinga2::Utils::escape_str($user_macros_1x->{$1});
-                #debug("\$$1\$=$command_2x->{'macros'}->{$1}");
+            if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/ ||
+                $commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/) {
+                my @user_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
+                my @admin_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/g);
+                push @user_macros, @admin_macros;
+
+                foreach my $macro_name (@user_macros) {
+                    $command_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($user_macros_1x->{$macro_name});
+                }
             }
 
             # save all command args as macros (we'll deal later with them in service definitions)
