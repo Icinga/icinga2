@@ -105,35 +105,6 @@ BOOST_AUTO_TEST_CASE(clone)
 	BOOST_CHECK(clone->Get(2) == 5);
 }
 
-BOOST_AUTO_TEST_CASE(seal)
-{
-	Array::Ptr array = boost::make_shared<Array>();
-	array->Add(7);
-
-	BOOST_CHECK(!array->IsSealed());
-	array->Seal();
-	BOOST_CHECK(array->IsSealed());
-
-	BOOST_CHECK_THROW(array->Add(2), boost::exception);
-	BOOST_CHECK(array->GetLength() == 1);
-
-	BOOST_CHECK_THROW(array->Set(0, 8), boost::exception);
-	BOOST_CHECK(array->Get(0) == 7);
-
-	BOOST_CHECK_THROW(array->Remove(0), boost::exception);
-	BOOST_CHECK(array->GetLength() == 1);
-	BOOST_CHECK(array->Get(0) == 7);
-
-	{
-		ObjectLock olock(array);
-		Array::Iterator it = array->Begin();
-		BOOST_CHECK_THROW(array->Remove(it), boost::exception);
-	}
-
-	BOOST_CHECK(array->GetLength() == 1);
-	BOOST_CHECK(array->Get(0) == 7);
-}
-
 BOOST_AUTO_TEST_CASE(serialize)
 {
 	Array::Ptr array = boost::make_shared<Array>();

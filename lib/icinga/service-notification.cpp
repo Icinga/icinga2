@@ -211,7 +211,7 @@ void Service::SetEnableNotifications(bool enabled, const String& authority)
 {
 	m_EnableNotifications = enabled;
 
-	Utility::QueueAsyncCallback(bind(boost::ref(OnEnableNotificationsChanged), GetSelf(), enabled, authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnableNotificationsChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetForceNextNotification(void) const
@@ -226,5 +226,5 @@ void Service::SetForceNextNotification(bool forced, const String& authority)
 {
 	m_ForceNextNotification = forced ? 1 : 0;
 
-	Utility::QueueAsyncCallback(bind(boost::ref(OnForceNextNotificationChanged), GetSelf(), forced, authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnForceNextNotificationChanged), GetSelf(), forced, authority));
 }

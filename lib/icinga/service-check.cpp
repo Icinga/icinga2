@@ -101,7 +101,7 @@ void Service::SetNextCheck(double nextCheck, const String& authority)
 {
 	m_NextCheck = nextCheck;
 
-	Utility::QueueAsyncCallback(bind(boost::ref(Service::OnNextCheckChanged), GetSelf(), nextCheck, authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(Service::OnNextCheckChanged), GetSelf(), nextCheck, authority));
 }
 
 double Service::GetNextCheck(void)
@@ -411,7 +411,7 @@ void Service::SetEnableActiveChecks(bool enabled, const String& authority)
 {
 	m_EnableActiveChecks = enabled ? 1 : 0;
 
-	Utility::QueueAsyncCallback(bind(boost::ref(OnEnableActiveChecksChanged), GetSelf(), enabled, authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnableActiveChecksChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetEnablePassiveChecks(void) const
@@ -426,7 +426,7 @@ void Service::SetEnablePassiveChecks(bool enabled, const String& authority)
 {
 	m_EnablePassiveChecks = enabled ? 1 : 0;
 
-	Utility::QueueAsyncCallback(bind(boost::ref(OnEnablePassiveChecksChanged), GetSelf(), enabled, authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnablePassiveChecksChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetForceNextCheck(void) const
@@ -441,7 +441,7 @@ void Service::SetForceNextCheck(bool forced, const String& authority)
 {
 	m_ForceNextCheck = forced ? 1 : 0;
 
-	Utility::QueueAsyncCallback(bind(boost::ref(OnForceNextCheckChanged), GetSelf(), forced, authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnForceNextCheckChanged), GetSelf(), forced, authority));
 }
 
 void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& authority)
@@ -618,7 +618,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
 			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
 
-	Utility::QueueAsyncCallback(bind(boost::ref(OnNewCheckResult), GetSelf(), cr, authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnNewCheckResult), GetSelf(), cr, authority));
 	OnStateChanged(GetSelf());
 
 	if (call_eventhandler)

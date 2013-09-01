@@ -44,6 +44,8 @@ struct DbValue : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DbValue);
 
+	DbValue(DbValueType type, const Value& value);
+
 	static Value FromTimestamp(const Value& ts);
 	static Value FromTimestampNow(void);
 	static Value FromValue(const Value& value);
@@ -56,11 +58,6 @@ public:
 
 	DbValueType GetType(void) const;
 	Value GetValue(void) const;
-
-protected:
-	DbValue(DbValueType type, const Value& value);
-
-	friend DbValue::Ptr boost::make_shared<DbValue, DbValueType, Value>(const icinga::DbValueType&, const icinga::Value&);
 
 private:
 	DbValueType m_Type;

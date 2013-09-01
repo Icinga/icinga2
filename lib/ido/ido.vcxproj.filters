@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="democomponent.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="i2-demo.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="Headerdateien">
       <UniqueIdentifier>{11a495bf-a705-4766-b3d3-9b5db266a6ef}</UniqueIdentifier>
     </Filter>
@@ -17,15 +9,98 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="democomponent.cpp">
+    <ClCompile Include="commanddbobject.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="demo-type.cpp">
+    <ClCompile Include="dbconnection.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="dbobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="dbquery.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="dbreference.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="dbtype.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="dbvalue.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="hostdbobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="hostgroupdbobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="servicedbobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="servicegroupdbobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="timeperioddbobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="userdbobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="usergroupdbobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="ido-type.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="demo-type.conf">
+    <ClInclude Include="commanddbobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="usergroupdbobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="dbconnection.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="dbobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="dbquery.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="dbreference.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="dbtype.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="dbvalue.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="hostdbobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="hostgroupdbobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="servicedbobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="servicegroupdbobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="timeperioddbobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="userdbobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="ido-type.conf">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
   </ItemGroup>

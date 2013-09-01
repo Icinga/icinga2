@@ -41,7 +41,7 @@ void PerfdataWriter::Start(void)
 {
 	DynamicObject::Start();
 
-	Service::OnNewCheckResult.connect(bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
+	Service::OnNewCheckResult.connect(boost::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&PerfdataWriter::RotationTimerHandler, this));

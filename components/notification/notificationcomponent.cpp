@@ -38,7 +38,7 @@ void NotificationComponent::Start(void)
 {
 	DynamicObject::Start();
 
-	Service::OnNotificationsRequested.connect(bind(&NotificationComponent::SendNotificationsHandler, this, _1,
+	Service::OnNotificationsRequested.connect(boost::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
 	    _2, _3, _4, _5));
 
 	m_NotificationTimer = boost::make_shared<Timer>();

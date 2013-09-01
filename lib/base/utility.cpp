@@ -497,14 +497,12 @@ String Utility::EscapeShellCmd(const String& s)
 	return result;
 }
 
-void Utility::SetThreadName(const String& name)
-{
-	m_ThreadName.reset(new String(name));
-
 #ifdef _WIN32
+static void WindowsSetThreadName(const char *name)
+{
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;
-	info.szName = name.CStr();
+	info.szName = name;
 	info.dwThreadID = -1;
 	info.dwFlags = 0;
 
@@ -513,6 +511,15 @@ void Utility::SetThreadName(const String& name)
 	} __except(EXCEPTION_EXECUTE_HANDLER) {
 		/* Nothing to do here. */
 	}
+}
+#endif /* _WIN32 */
+
+void Utility::SetThreadName(const String& name)
+{
+	m_ThreadName.reset(new String(name));
+
+#ifdef _WIN32
+	WindowsSetThreadName(name.CStr());
 #endif /* _WIN32 */
 
 #ifdef __APPLE__

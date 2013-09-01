@@ -62,7 +62,7 @@ void Service::SetEnableFlapping(bool enabled, const String& authority)
 	m_EnableFlapping = enabled;
 
 	OnFlappingChanged(GetSelf(), enabled ? FlappingEnabled : FlappingDisabled);
-	Utility::QueueAsyncCallback(bind(boost::ref(OnEnableFlappingChanged), GetSelf(), enabled, authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnableFlappingChanged), GetSelf(), enabled, authority));
 }
 
 void Service::UpdateFlappingStatus(bool stateChange)

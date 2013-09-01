@@ -162,35 +162,6 @@ BOOST_AUTO_TEST_CASE(clone)
 	BOOST_CHECK(dictionary->Get("test2") == "hello world");
 }
 
-BOOST_AUTO_TEST_CASE(seal)
-{
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	dictionary->Set("test1", 7);
-
-	BOOST_CHECK(!dictionary->IsSealed());
-	dictionary->Seal();
-	BOOST_CHECK(dictionary->IsSealed());
-
-	BOOST_CHECK_THROW(dictionary->Set("test2", "hello world"), boost::exception);
-	BOOST_CHECK(dictionary->GetLength() == 1);
-
-	BOOST_CHECK_THROW(dictionary->Set("test1", 8), boost::exception);
-	BOOST_CHECK(dictionary->Get("test1") == 7);
-
-	BOOST_CHECK_THROW(dictionary->Remove("test1"), boost::exception);
-	BOOST_CHECK(dictionary->GetLength() == 1);
-	BOOST_CHECK(dictionary->Get("test1") == 7);
-
-	{
-		ObjectLock olock(dictionary);
-		Dictionary::Iterator it = dictionary->Begin();
-		BOOST_CHECK_THROW(dictionary->Remove(it), boost::exception);
-	}
-
-	BOOST_CHECK(dictionary->GetLength() == 1);
-	BOOST_CHECK(dictionary->Get("test1") == 7);
-}
-
 BOOST_AUTO_TEST_CASE(serialize)
 {
 	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();

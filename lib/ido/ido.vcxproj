@@ -18,8 +18,62 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="commanddbobject.cpp" />
+    <ClCompile Include="dbconnection.cpp" />
+    <ClCompile Include="dbobject.cpp" />
+    <ClCompile Include="dbquery.cpp" />
+    <ClCompile Include="dbreference.cpp" />
+    <ClCompile Include="dbtype.cpp" />
+    <ClCompile Include="dbvalue.cpp" />
+    <ClCompile Include="hostdbobject.cpp" />
+    <ClCompile Include="hostgroupdbobject.cpp" />
+    <ClCompile Include="ido-type.cpp" />
+    <ClCompile Include="servicedbobject.cpp" />
+    <ClCompile Include="servicegroupdbobject.cpp" />
+    <ClCompile Include="timeperioddbobject.cpp" />
+    <ClCompile Include="userdbobject.cpp" />
+    <ClCompile Include="usergroupdbobject.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="commanddbobject.h" />
+    <ClInclude Include="dbconnection.h" />
+    <ClInclude Include="dbobject.h" />
+    <ClInclude Include="dbquery.h" />
+    <ClInclude Include="dbreference.h" />
+    <ClInclude Include="dbtype.h" />
+    <ClInclude Include="dbvalue.h" />
+    <ClInclude Include="hostdbobject.h" />
+    <ClInclude Include="hostgroupdbobject.h" />
+    <ClInclude Include="servicedbobject.h" />
+    <ClInclude Include="servicegroupdbobject.h" />
+    <ClInclude Include="timeperioddbobject.h" />
+    <ClInclude Include="userdbobject.h" />
+    <ClInclude Include="usergroupdbobject.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="ido-type.conf">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Preparing config fragment for embedding</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Preparing config fragment for embedding</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Preparing config fragment for embedding</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Preparing config fragment for embedding</Message>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\tools\mkembedconfig\mkembedconfig.c</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\tools\mkembedconfig\mkembedconfig.c</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\tools\mkembedconfig\mkembedconfig.c</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\tools\mkembedconfig\mkembedconfig.c</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{2E6C1133-730F-4875-A72C-B455B1DD4C5C}</ProjectGuid>
+    <ProjectGuid>{87BBCE4C-36F5-4C04-90FB-9B74618AF988}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>demo</RootNamespace>
   </PropertyGroup>
@@ -102,7 +156,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;config.lib;remoting.lib;icinga.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;config.lib;icinga.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -117,7 +171,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;config.lib;remoting.lib;icinga.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;config.lib;icinga.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -136,7 +190,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>base.lib;config.lib;remoting.lib;icinga.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;config.lib;icinga.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -155,38 +209,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>base.lib;config.lib;remoting.lib;icinga.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;config.lib;icinga.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="democomponent.h" />
-    <ClInclude Include="i2-demo.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="demo-type.cpp" />
-    <ClCompile Include="democomponent.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="demo-type.conf">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Preparing config fragment for embedding</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Preparing config fragment for embedding</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Preparing config fragment for embedding</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkembedconfig.exe" "%(Identity)" "%(Filename).cpp"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Preparing config fragment for embedding</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cpp;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\tools\mkembedconfig\mkembedconfig.c</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\tools\mkembedconfig\mkembedconfig.c</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\tools\mkembedconfig\mkembedconfig.c</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\tools\mkembedconfig\mkembedconfig.c</AdditionalInputs>
-    </CustomBuild>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

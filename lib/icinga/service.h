@@ -110,6 +110,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(Service);
 	DECLARE_TYPENAME(Service);
 
+	Service(void);
+
 	static Service::Ptr GetByNamePair(const String& hostName, const String& serviceName);
 
 	static const int DefaultMaxCheckAttempts;

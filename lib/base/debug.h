@@ -31,12 +31,20 @@
 
 #define VERIFY(expr) ((expr) ? 0 : icinga_assert_fail(#expr, __FILE__, __LINE__))
 
-int icinga_assert_fail(const char *expr, const char *file, int line) __attribute__((noreturn));
+#ifdef __GNUC__
+#	define NORETURN __attribute__((noreturn))
+#else /* __GNUC__ */
+#	define NORETURN
+#endif /* __GNUC__ */
+
+int icinga_assert_fail(const char *expr, const char *file, int line) NORETURN;
 
 inline int icinga_assert_fail(const char *expr, const char *file, int line)
 {
 	fprintf(stderr, "%s:%d: assertion failed: %s\n", file, line, expr);
 	abort();
+
+	return 0;
 }
 
 #endif /* DEBUG_H */

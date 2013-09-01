@@ -29,6 +29,7 @@
 #include "base/utility.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
+#include <boost/bind/apply.hpp>
 
 using namespace icinga;
 
@@ -36,6 +37,10 @@ REGISTER_TYPE(Service);
 
 boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> Service::OnAcknowledgementSet;
 boost::signals2::signal<void (const Service::Ptr&, const String&)> Service::OnAcknowledgementCleared;
+
+Service::Service(void)
+	: m_CheckRunning(false)
+{ }
 
 void Service::Start(void)
 {
@@ -249,7 +254,8 @@ void Service::AcknowledgeProblem(const String& author, const String& comment, Ac
 
 	OnNotificationsRequested(GetSelf(), NotificationAcknowledgement, GetLastCheckResult(), author, comment);
 
-	Utility::QueueAsyncCallback(bind(boost::ref(OnAcknowledgementSet), GetSelf(), author, comment, type, expiry, authority));
+	boost::function<void (void)> f = boost::bind(boost::ref(Service::OnAcknowledgementSet), GetSelf(), author, comment, type, expiry, authority);
+	Utility::QueueAsyncCallback(f);
 }
 
 void Service::ClearAcknowledgement(const String& authority)
@@ -259,7 +265,7 @@ void Service::ClearAcknowledgement(const String& authority)
 	m_Acknowledgement = AcknowledgementNone;
 	m_AcknowledgementExpiry = 0;
 
-	Utility::QueueAsyncCallback(bind(boost::ref(OnAcknowledgementCleared), GetSelf(), authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnAcknowledgementCleared), GetSelf(), authority));
 }
 
 std::set<Host::Ptr> Service::GetParentHosts(void) const

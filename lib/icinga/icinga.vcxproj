@@ -21,14 +21,11 @@
   <ItemGroup>
     <ClCompile Include="api.cpp" />
     <ClCompile Include="checkcommand.cpp" />
-    <ClCompile Include="checkresultmessage.cpp" />
     <ClCompile Include="cib.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="compatutility.cpp" />
-    <ClCompile Include="downtimemessage.cpp" />
     <ClCompile Include="eventcommand.cpp" />
     <ClCompile Include="externalcommandprocessor.cpp" />
-    <ClCompile Include="flappingmessage.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="hostgroup.cpp" />
     <ClCompile Include="icinga-type.cpp">
@@ -43,8 +40,6 @@
     <ClCompile Include="macroresolver.cpp" />
     <ClCompile Include="notification.cpp" />
     <ClCompile Include="notificationcommand.cpp" />
-    <ClCompile Include="notificationmessage.cpp" />
-    <ClCompile Include="notificationrequestmessage.cpp" />
     <ClCompile Include="nulleventtask.cpp" />
     <ClCompile Include="perfdatawriter.cpp" />
     <ClCompile Include="pluginchecktask.cpp" />
@@ -66,14 +61,11 @@
   <ItemGroup>
     <ClInclude Include="api.h" />
     <ClInclude Include="checkcommand.h" />
-    <ClInclude Include="checkresultmessage.h" />
     <ClInclude Include="cib.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="compatutility.h" />
-    <ClInclude Include="downtimemessage.h" />
     <ClInclude Include="eventcommand.h" />
     <ClInclude Include="externalcommandprocessor.h" />
-    <ClInclude Include="flappingmessage.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="hostgroup.h" />
     <ClInclude Include="i2-icinga.h" />
@@ -83,8 +75,6 @@
     <ClInclude Include="macroresolver.h" />
     <ClInclude Include="notification.h" />
     <ClInclude Include="notificationcommand.h" />
-    <ClInclude Include="notificationmessage.h" />
-    <ClInclude Include="notificationrequestmessage.h" />
     <ClInclude Include="nulleventtask.h" />
     <ClInclude Include="perfdatawriter.h" />
     <ClInclude Include="pluginchecktask.h" />
@@ -204,7 +194,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;remoting.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -220,7 +210,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;remoting.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -241,7 +231,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>base.lib;remoting.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -262,7 +252,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>base.lib;remoting.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;config.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

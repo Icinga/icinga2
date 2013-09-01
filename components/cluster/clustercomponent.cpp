@@ -52,23 +52,23 @@ void ClusterComponent::Start(void)
 	m_ClusterTimer->SetInterval(5);
 	m_ClusterTimer->Start();
 
-	Service::OnNewCheckResult.connect(bind(&ClusterComponent::CheckResultHandler, this, _1, _2, _3));
-	Service::OnNextCheckChanged.connect(bind(&ClusterComponent::NextCheckChangedHandler, this, _1, _2, _3));
-	Notification::OnNextNotificationChanged.connect(bind(&ClusterComponent::NextNotificationChangedHandler, this, _1, _2, _3));
-	Service::OnForceNextCheckChanged.connect(bind(&ClusterComponent::ForceNextCheckChangedHandler, this, _1, _2, _3));
-	Service::OnForceNextNotificationChanged.connect(bind(&ClusterComponent::ForceNextNotificationChangedHandler, this, _1, _2, _3));
-	Service::OnEnableActiveChecksChanged.connect(bind(&ClusterComponent::EnableActiveChecksChangedHandler, this, _1, _2, _3));
-	Service::OnEnablePassiveChecksChanged.connect(bind(&ClusterComponent::EnablePassiveChecksChangedHandler, this, _1, _2, _3));
-	Service::OnEnableNotificationsChanged.connect(bind(&ClusterComponent::EnableNotificationsChangedHandler, this, _1, _2, _3));
-	Service::OnEnableFlappingChanged.connect(bind(&ClusterComponent::EnableFlappingChangedHandler, this, _1, _2, _3));
-	Service::OnCommentAdded.connect(bind(&ClusterComponent::CommentAddedHandler, this, _1, _2, _3));
-	Service::OnCommentRemoved.connect(bind(&ClusterComponent::CommentRemovedHandler, this, _1, _2, _3));
-	Service::OnDowntimeAdded.connect(bind(&ClusterComponent::DowntimeAddedHandler, this, _1, _2, _3));
-	Service::OnDowntimeRemoved.connect(bind(&ClusterComponent::DowntimeRemovedHandler, this, _1, _2, _3));
-	Service::OnAcknowledgementSet.connect(bind(&ClusterComponent::AcknowledgementSetHandler, this, _1, _2, _3, _4, _5, _6));
-	Service::OnAcknowledgementCleared.connect(bind(&ClusterComponent::AcknowledgementClearedHandler, this, _1, _2));
+	Service::OnNewCheckResult.connect(boost::bind(&ClusterComponent::CheckResultHandler, this, _1, _2, _3));
+	Service::OnNextCheckChanged.connect(boost::bind(&ClusterComponent::NextCheckChangedHandler, this, _1, _2, _3));
+	Notification::OnNextNotificationChanged.connect(boost::bind(&ClusterComponent::NextNotificationChangedHandler, this, _1, _2, _3));
+	Service::OnForceNextCheckChanged.connect(boost::bind(&ClusterComponent::ForceNextCheckChangedHandler, this, _1, _2, _3));
+	Service::OnForceNextNotificationChanged.connect(boost::bind(&ClusterComponent::ForceNextNotificationChangedHandler, this, _1, _2, _3));
+	Service::OnEnableActiveChecksChanged.connect(boost::bind(&ClusterComponent::EnableActiveChecksChangedHandler, this, _1, _2, _3));
+	Service::OnEnablePassiveChecksChanged.connect(boost::bind(&ClusterComponent::EnablePassiveChecksChangedHandler, this, _1, _2, _3));
+	Service::OnEnableNotificationsChanged.connect(boost::bind(&ClusterComponent::EnableNotificationsChangedHandler, this, _1, _2, _3));
+	Service::OnEnableFlappingChanged.connect(boost::bind(&ClusterComponent::EnableFlappingChangedHandler, this, _1, _2, _3));
+	Service::OnCommentAdded.connect(boost::bind(&ClusterComponent::CommentAddedHandler, this, _1, _2, _3));
+	Service::OnCommentRemoved.connect(boost::bind(&ClusterComponent::CommentRemovedHandler, this, _1, _2, _3));
+	Service::OnDowntimeAdded.connect(boost::bind(&ClusterComponent::DowntimeAddedHandler, this, _1, _2, _3));
+	Service::OnDowntimeRemoved.connect(boost::bind(&ClusterComponent::DowntimeRemovedHandler, this, _1, _2, _3));
+	Service::OnAcknowledgementSet.connect(boost::bind(&ClusterComponent::AcknowledgementSetHandler, this, _1, _2, _3, _4, _5, _6));
+	Service::OnAcknowledgementCleared.connect(boost::bind(&ClusterComponent::AcknowledgementClearedHandler, this, _1, _2));
 
-	Endpoint::OnMessageReceived.connect(bind(&ClusterComponent::MessageHandler, this, _1, _2));
+	Endpoint::OnMessageReceived.connect(boost::bind(&ClusterComponent::MessageHandler, this, _1, _2));
 }
 
 /**
@@ -164,7 +164,7 @@ void ClusterComponent::ListenerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		Socket::Ptr client = server->Accept();
 
-		Utility::QueueAsyncCallback(bind(&ClusterComponent::NewClientHandler, this, client, TlsRoleServer));
+		Utility::QueueAsyncCallback(boost::bind(&ClusterComponent::NewClientHandler, this, client, TlsRoleServer));
 	}
 }
 
@@ -187,7 +187,7 @@ void ClusterComponent::AddConnection(const String& node, const String& service) 
 	TcpSocket::Ptr client = boost::make_shared<TcpSocket>();
 
 	client->Connect(node, service);
-	Utility::QueueAsyncCallback(bind(&ClusterComponent::NewClientHandler, this, client, TlsRoleClient));
+	Utility::QueueAsyncCallback(boost::bind(&ClusterComponent::NewClientHandler, this, client, TlsRoleClient));
 }
 
 /**

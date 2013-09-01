@@ -188,7 +188,7 @@ void Notification::SetNextNotification(double time, const String& authority)
 {
 	m_NextNotification = time;
 
-	Utility::QueueAsyncCallback(bind(boost::ref(OnNextNotificationChanged), GetSelf(), time, authority));
+	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnNextNotificationChanged), GetSelf(), time, authority));
 }
 
 long Notification::GetNotificationNumber(void) const

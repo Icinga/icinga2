@@ -258,9 +258,6 @@ void ThreadPool::ManagerThreadProc(void)
 			if (utilization < 60 || utilization > 80 || alive < 8) {
 				double wthreads = ceil((utilization * alive) / 80.0);
 
-				if (!finite(wthreads))
-					wthreads = 0;
-
 				int tthreads = wthreads - alive;
 
 				/* Don't ever kill the last 8 threads. */

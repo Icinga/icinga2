@@ -483,6 +483,7 @@ int Application::Run(void)
 		(void) execv(exePath.CStr(), m_ArgV);
 #else /* _WIN32 */
 		STARTUPINFO si;
+		PROCESS_INFORMATION pi;
 		memset(&si, 0, sizeof(si));
 		si.cb = sizeof(si);
 		CreateProcess(NULL, GetCommandLine(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
