@@ -270,6 +270,9 @@
     <ClInclude Include="scriptvariable.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="debug.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Quelldateien">

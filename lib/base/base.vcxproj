@@ -68,6 +68,7 @@
     <ClInclude Include="bufferedstream.h" />
     <ClInclude Include="consolelogger.h" />
     <ClInclude Include="convert.h" />
+    <ClInclude Include="debug.h" />
     <ClInclude Include="dynamicobject.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="dynamictype.h" />
