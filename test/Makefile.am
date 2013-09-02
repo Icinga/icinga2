@@ -17,6 +17,7 @@ icinga2_test_SOURCES = \
 	base-object.cpp \
 	base-shellescape.cpp \
 	base-stacktrace.cpp \
+	base-string.cpp \
 	base-timer.cpp \
 	base-value.cpp
 
