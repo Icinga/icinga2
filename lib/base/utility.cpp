@@ -425,7 +425,7 @@ void Utility::QueueAsyncCallback(const boost::function<void (void)>& callback)
 String Utility::FormatDateTime(const char *format, double ts)
 {
 	char timestamp[128];
-	time_t tempts = (time_t)ts; /* We don't handle sub-second timestamp here just yet. */
+	time_t tempts = (time_t)ts; /* We don't handle sub-second timestamps here just yet. */
 	tm tmthen;
 
 #ifdef _MSC_VER
