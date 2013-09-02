@@ -15,7 +15,9 @@ icinga2_test_SOURCES = \
 	base-match.cpp \
 	base-object.cpp \
 	base-shellescape.cpp \
-	base-timer.cpp
+	base-stacktrace.cpp \
+	base-timer.cpp \
+	base-value.cpp
 
 icinga2_test_CPPFLAGS = \
 	$(BOOST_CPPFLAGS) \
