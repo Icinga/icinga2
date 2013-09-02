@@ -114,8 +114,8 @@ const char *String::CStr(void) const
 
 void String::Clear(void)
 {
-		m_Data.clear();
-	}
+	m_Data.clear();
+}
 
 size_t String::GetLength(void) const
 {
