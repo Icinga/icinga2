@@ -26,6 +26,7 @@
 #include "base/logger_fwd.h"
 #include "config/configitembuilder.h"
 #include <boost/smart_ptr/make_shared.hpp>
+#include <fstream>
 
 using namespace icinga;
 
@@ -33,6 +34,41 @@ REGISTER_TYPE(Endpoint);
 
 boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
 boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> Endpoint::OnMessageReceived;
+
+void Endpoint::OnConfigLoaded(void)
+{
+	ObjectLock olock(this);
+
+	OpenSpoolFile();
+}
+
+void Endpoint::Stop(void)
+{
+	ObjectLock olock(this);
+
+	CloseSpoolFile();
+}
+
+void Endpoint::OpenSpoolFile(void)
+{
+	ASSERT(OwnsLock());
+
+	String path = GetSpoolPath();
+	std::fstream *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
+
+	if (!fp->good())
+		Log(LogWarning, "cluster", "Could not open spool file: " + path);
+
+	m_SpoolFile = boost::make_shared<StdioStream>(fp, true);
+}
+
+void Endpoint::CloseSpoolFile(void)
+{
+	ASSERT(OwnsLock());
+
+	m_SpoolFile->Close();
+	m_SpoolFile.reset();
+}
 
 /**
  * Checks whether this endpoint is connected.
@@ -56,6 +92,24 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 	{
 		ObjectLock olock(this);
 
+		CloseSpoolFile();
+
+		String path = GetSpoolPath();
+		std::ifstream *fp = new std::ifstream(path.CStr(), std::ifstream::in);
+
+		while (fp && !fp->eof()) {
+			char data[1024];
+			fp->read(data, sizeof(data));
+			client->Write(data, fp->gcount());
+		}
+
+		fp->close();
+		delete fp;
+
+		(void) unlink(path.CStr());
+
+		OpenSpoolFile();
+
 		m_Client = client;
 	}
 
@@ -67,13 +121,15 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 
 void Endpoint::SendMessage(const Dictionary::Ptr& message)
 {
-	if (!IsConnected()) {
-		// TODO: persist the message
-		return;
-	}
+	Stream::Ptr destination;
+
+	if (!IsConnected())
+		destination = m_SpoolFile;
+	else
+		destination = GetClient();
 
 	try {
-		JsonRpc::SendMessage(GetClient(), message);
+		JsonRpc::SendMessage(destination, message);
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << boost::diagnostic_information(ex);
@@ -134,6 +190,11 @@ double Endpoint::GetSeen(void) const
 void Endpoint::SetSeen(double ts)
 {
 	m_Seen = ts;
+}
+
+String Endpoint::GetSpoolPath(void) const
+{
+	return Application::GetLocalStateDir() + "/spool/icinga2/cluster/" + GetName() + ".ns";
 }
 
 void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const

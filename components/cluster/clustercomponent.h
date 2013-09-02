@@ -79,6 +79,8 @@ private:
 	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
 
+	void RelayMessage(const Endpoint::Ptr& except, const Dictionary::Ptr& message, bool persistent);
+
 	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority);
 	void NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority);
 	void NextNotificationChangedHandler(const Notification::Ptr& notification, double nextCheck, const String& authority);

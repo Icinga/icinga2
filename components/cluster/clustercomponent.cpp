@@ -190,6 +190,22 @@ void ClusterComponent::AddConnection(const String& node, const String& service) 
 	Utility::QueueAsyncCallback(boost::bind(&ClusterComponent::NewClientHandler, this, client, TlsRoleClient));
 }
 
+void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionary::Ptr& message, bool persistent)
+{
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		if (!persistent && !endpoint->IsConnected())
+			continue;
+
+		if (endpoint == except)
+			continue;
+
+		if (endpoint->GetName() == GetIdentity())
+			continue;
+
+		endpoint->SendMessage(message);
+	}
+}
+
 /**
  * Processes a new client connection.
  *
@@ -225,9 +241,7 @@ void ClusterComponent::ClusterTimerHandler(void)
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::HeartBeat");
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, false);
 
 	Array::Ptr peers = GetPeers();
 
@@ -274,9 +288,7 @@ void ClusterComponent::CheckResultHandler(const Service::Ptr& service, const Dic
 	message->Set("method", "cluster::CheckResult");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority)
@@ -293,9 +305,7 @@ void ClusterComponent::NextCheckChangedHandler(const Service::Ptr& service, doub
 	message->Set("method", "cluster::SetNextCheck");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::NextNotificationChangedHandler(const Notification::Ptr& notification, double nextNotification, const String& authority)
@@ -312,9 +322,7 @@ void ClusterComponent::NextNotificationChangedHandler(const Notification::Ptr& n
 	message->Set("method", "cluster::SetNextNotification");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority)
@@ -331,9 +339,7 @@ void ClusterComponent::ForceNextCheckChangedHandler(const Service::Ptr& service,
 	message->Set("method", "cluster::SetForceNextCheck");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::ForceNextNotificationChangedHandler(const Service::Ptr& service, bool forced, const String& authority)
@@ -350,9 +356,7 @@ void ClusterComponent::ForceNextNotificationChangedHandler(const Service::Ptr& s
 	message->Set("method", "cluster::SetForceNextNotification");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::EnableActiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
@@ -369,9 +373,7 @@ void ClusterComponent::EnableActiveChecksChangedHandler(const Service::Ptr& serv
 	message->Set("method", "cluster::SetEnableActiveChecks");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::EnablePassiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
@@ -388,9 +390,7 @@ void ClusterComponent::EnablePassiveChecksChangedHandler(const Service::Ptr& ser
 	message->Set("method", "cluster::SetEnablePassiveChecks");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::EnableNotificationsChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
@@ -407,9 +407,7 @@ void ClusterComponent::EnableNotificationsChangedHandler(const Service::Ptr& ser
 	message->Set("method", "cluster::SetEnableNotifications");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::EnableFlappingChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
@@ -426,9 +424,7 @@ void ClusterComponent::EnableFlappingChangedHandler(const Service::Ptr& service,
 	message->Set("method", "cluster::SetEnableFlapping");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::CommentAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
@@ -445,9 +441,7 @@ void ClusterComponent::CommentAddedHandler(const Service::Ptr& service, const Di
 	message->Set("method", "cluster::AddComment");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::CommentRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
@@ -464,9 +458,7 @@ void ClusterComponent::CommentRemovedHandler(const Service::Ptr& service, const 
 	message->Set("method", "cluster::RemoveComment");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::DowntimeAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
@@ -483,9 +475,7 @@ void ClusterComponent::DowntimeAddedHandler(const Service::Ptr& service, const D
 	message->Set("method", "cluster::AddDowntime");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
@@ -502,9 +492,7 @@ void ClusterComponent::DowntimeRemovedHandler(const Service::Ptr& service, const
 	message->Set("method", "cluster::RemoveDowntime");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
@@ -524,9 +512,7 @@ void ClusterComponent::AcknowledgementSetHandler(const Service::Ptr& service, co
 	message->Set("method", "cluster::SetAcknowledgement");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority)
@@ -542,17 +528,12 @@ void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service
 	message->Set("method", "cluster::ClearAcknowledgement");
 	message->Set("params", params);
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		endpoint->SendMessage(message);
-	}
+	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
 {
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		if (sender != endpoint)
-			endpoint->SendMessage(message);
-	}
+	RelayMessage(sender, message, true);
 
 	if (message->Get("method") == "cluster::HeartBeat") {
 		sender->SetSeen(Utility::GetTime());

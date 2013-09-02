@@ -22,6 +22,7 @@
 
 #include "base/dynamicobject.h"
 #include "base/stream.h"
+#include "base/stdiostream.h"
 #include <boost/signals2.hpp>
 
 namespace icinga
@@ -56,9 +57,14 @@ public:
 	double GetSeen(void) const;
 	void SetSeen(double ts);
 
+	String GetSpoolPath(void) const;
+
 protected:
 	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
+	virtual void OnConfigLoaded(void);
+	virtual void Stop(void);
 
 private:
 	Dictionary::Ptr m_Subscriptions;
@@ -67,8 +73,12 @@ private:
 
 	Stream::Ptr m_Client;
 	double m_Seen;
+	StdioStream::Ptr m_SpoolFile;
 
 	void MessageThreadProc(const Stream::Ptr& stream);
+
+	void OpenSpoolFile(void);
+	void CloseSpoolFile(void);
 };
 
 }
