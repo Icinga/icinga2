@@ -67,12 +67,6 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 		}
 	}
 
-	/* minimum netstring length is 3 */
-	if (read_length < 3) {
-		free(header);
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (short header)"));
-	}
-
 	/* no leading zeros allowed */
 	if (header[0] == '0' && isdigit(header[1])) {
 		free(header);
