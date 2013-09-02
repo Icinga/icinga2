@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/object.h"
+#include "base/value.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 
@@ -48,6 +49,10 @@ BOOST_AUTO_TEST_CASE(getself)
 	TestObject::Ptr tobject = boost::make_shared<TestObject>();
 	TestObject::Ptr tobject_self = tobject->GetTestRef();
 	BOOST_CHECK(tobject == tobject_self);
+
+	Value vobject = tobject;
+	BOOST_CHECK(!vobject.IsEmpty());
+	BOOST_CHECK(vobject.IsObjectType<TestObject>());
 }
 
 BOOST_AUTO_TEST_CASE(weak)
