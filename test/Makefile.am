@@ -13,6 +13,7 @@ icinga2_test_SOURCES = \
 	base-dictionary.cpp \
 	base-fifo.cpp \
 	base-match.cpp \
+	base-netstring.cpp \
 	base-object.cpp \
 	base-shellescape.cpp \
 	base-stacktrace.cpp \

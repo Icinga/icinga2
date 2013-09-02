@@ -17,44 +17,24 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "base/netstring.h"
 #include "base/fifo.h"
-#include "base/objectlock.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
-BOOST_AUTO_TEST_SUITE(base_fifo)
+BOOST_AUTO_TEST_SUITE(base_netstring)
 
-BOOST_AUTO_TEST_CASE(construct)
-{
-	FIFO::Ptr fifo = boost::make_shared<FIFO>();
-	BOOST_CHECK(fifo);
-	BOOST_CHECK(fifo->GetAvailableBytes() == 0);
-
-	fifo->Close();
-}
-
-BOOST_AUTO_TEST_CASE(io)
+BOOST_AUTO_TEST_CASE(netstring)
 {
 	FIFO::Ptr fifo = boost::make_shared<FIFO>();
 
-	fifo->Write("hello", 5);
-	BOOST_CHECK(fifo->GetAvailableBytes() == 5);
+	NetString::WriteStringToStream(fifo, "hello");
 
-	char buffer1[2];
-	fifo->Read(buffer1, 2);
-	BOOST_CHECK(memcmp(buffer1, "he", 2) == 0);
-	BOOST_CHECK(fifo->GetAvailableBytes() == 3);
-
-	char buffer2[5];
-	size_t rc = fifo->Read(buffer2, 5);
-	BOOST_CHECK(rc == 3);
-	BOOST_CHECK(memcmp(buffer2, "llo", 3) == 0);
-	BOOST_CHECK(fifo->GetAvailableBytes() == 0);
-
-	BOOST_CHECK(!fifo->IsEof());
+	String s;
+	BOOST_CHECK(NetString::ReadStringFromStream(fifo, &s));
+	BOOST_CHECK(s == "hello");
 
 	fifo->Close();
 }
