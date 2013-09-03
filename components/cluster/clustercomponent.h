@@ -88,7 +88,7 @@ private:
 	static void LogGlobHandler(std::vector<int>& files, const String& file);
 	void ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream);
 
-	StdioStream::Ptr m_LogFile;
+	Stream::Ptr m_LogFile;
 	double m_LogMessageTimestamp;
 	size_t m_LogMessageCount;
 

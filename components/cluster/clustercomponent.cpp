@@ -24,6 +24,7 @@
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
 #include "base/networkstream.h"
+#include "base/zlibstream.h"
 #include "base/application.h"
 #include "base/convert.h"
 #include <boost/smart_ptr/make_shared.hpp>
@@ -260,7 +261,8 @@ void ClusterComponent::OpenLogFile(void)
 		return;
 	}
 
-	m_LogFile = boost::make_shared<StdioStream>(fp, true);
+	StdioStream::Ptr logStream = boost::make_shared<StdioStream>(fp, true);
+	m_LogFile = boost::make_shared<ZlibStream>(logStream);
 	m_LogMessageCount = 0;
 	m_LogMessageTimestamp = 0;
 }
@@ -268,6 +270,9 @@ void ClusterComponent::OpenLogFile(void)
 void ClusterComponent::CloseLogFile(void)
 {
 	ASSERT(OwnsLock());
+
+	if (!m_LogFile)
+		return;
 
 	m_LogFile->Close();
 	m_LogFile.reset();
@@ -317,10 +322,19 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 		Log(LogInformation, "cluster", "Replaying log: " + path);
 
 		std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
-		StdioStream::Ptr lstream = boost::make_shared<StdioStream>(fp, true);
+		StdioStream::Ptr logStream = boost::make_shared<StdioStream>(fp, true);
+		ZlibStream::Ptr lstream = boost::make_shared<ZlibStream>(logStream);
 
 		String message;
-		while (NetString::ReadStringFromStream(lstream, &message)) {
+		while (true) {
+			try {
+				if (!NetString::ReadStringFromStream(lstream, &message))
+					break;
+			} catch (std::exception&) {
+				/* Log files may be incomplete or corrupted. This is perfectly OK. */
+				break;
+			}
+
 			Dictionary::Ptr pmessage = Value::Deserialize(message);
 
 			if (pmessage->Get("timestamp") < endpoint->GetLocalLogPosition())

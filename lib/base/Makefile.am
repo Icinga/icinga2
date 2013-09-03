@@ -94,7 +94,9 @@ libbase_la_SOURCES =  \
 	utility.h \
 	value.cpp \
 	value.h \
-	win32.h
+	win32.h \
+	zlibstream.cpp \
+	zlibstream.h
 
 libbase_la_CPPFLAGS = \
 	-DI2_BASE_BUILD \

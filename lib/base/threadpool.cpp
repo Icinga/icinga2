@@ -22,6 +22,7 @@
 #include "base/convert.h"
 #include "base/debug.h"
 #include "base/utility.h"
+#include "base/scriptvariable.h"
 #include <sstream>
 #include <iostream>
 #include <boost/bind.hpp>
@@ -228,6 +229,11 @@ void ThreadPool::ManagerThreadProc(void)
 		size_t pending, alive;
 		double avg_latency, max_latency;
 		double utilization = 0;
+
+		Value adaptive = ScriptVariable::Get("ThreadPoolAdaptive");
+
+		if (!adaptive.IsEmpty() && !static_cast<bool>(adaptive))
+			break;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);

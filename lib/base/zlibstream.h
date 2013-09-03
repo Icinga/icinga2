@@ -17,44 +17,35 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TLSUTILITY_H
-#define TLSUTILITY_H
+#ifndef ZLIBSTREAM_H
+#define ZLIBSTREAM_H
 
 #include "base/i2-base.h"
-#include "base/object.h"
-#include "base/qstring.h"
-#include "base/exception.h"
-#include <openssl/ssl.h>
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/comp.h>
+#include "base/stream_bio.h"
+#include <iostream>
 
-namespace icinga
+namespace icinga {
+
+class ZlibStream : public Stream
 {
+public:
+	DECLARE_PTR_TYPEDEFS(ZlibStream);
 
-shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
-String I2_BASE_API GetCertificateCN(const shared_ptr<X509>& certificate);
-shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);
+	ZlibStream(const Stream::Ptr& innerStream);
+	~ZlibStream(void);
 
-class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
+	virtual size_t Read(void *buffer, size_t size);
+	virtual void Write(const void *buffer, size_t size);
 
-struct errinfo_openssl_error_;
-typedef boost::error_info<struct errinfo_openssl_error_, int> errinfo_openssl_error;
+	virtual void Close(void);
 
-inline std::string to_string(const errinfo_openssl_error& e)
-{
-        std::ostringstream tmp;
-        int code = e.value();
+	virtual bool IsEof(void) const;
 
-        const char *message = ERR_error_string(code, NULL);
-
-        if (message == NULL)
-                message = "Unknown error.";
-
-        tmp << code << ", \"" << message << "\"";
-        return tmp.str();
-}
+private:
+	Stream::Ptr m_InnerStream;
+	BIO *m_BIO;
+};
 
 }
 
-#endif /* TLSUTILITY_H */
+#endif /* ZLIBSTREAM_H */

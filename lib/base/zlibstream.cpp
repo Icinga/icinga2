@@ -17,44 +17,64 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TLSUTILITY_H
-#define TLSUTILITY_H
+#include "base/zlibstream.h"
+#include "base/objectlock.h"
+#include "base/convert.h"
+#include "base/logger_fwd.h"
+#include <boost/make_shared.hpp>
 
-#include "base/i2-base.h"
-#include "base/object.h"
-#include "base/qstring.h"
-#include "base/exception.h"
-#include <openssl/ssl.h>
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/comp.h>
+using namespace icinga;
 
-namespace icinga
+extern "C" BIO_METHOD *BIO_f_zlib(void);
+
+/**
+ * Constructor for the ZlibStream class.
+ *
+ * @param innerStream The inner stream.
+ * @param compress Whether we're compressing, false if we're decompressing.
+ */
+ZlibStream::ZlibStream(const Stream::Ptr& innerStream)
+	: m_InnerStream(innerStream)
 {
-
-shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
-String I2_BASE_API GetCertificateCN(const shared_ptr<X509>& certificate);
-shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);
-
-class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
-
-struct errinfo_openssl_error_;
-typedef boost::error_info<struct errinfo_openssl_error_, int> errinfo_openssl_error;
-
-inline std::string to_string(const errinfo_openssl_error& e)
-{
-        std::ostringstream tmp;
-        int code = e.value();
-
-        const char *message = ERR_error_string(code, NULL);
-
-        if (message == NULL)
-                message = "Unknown error.";
-
-        tmp << code << ", \"" << message << "\"";
-        return tmp.str();
+	BIO *ibio = BIO_new_I2Stream(innerStream);
+	BIO *zbio = BIO_new(BIO_f_zlib());
+	m_BIO = BIO_push(zbio, ibio);
 }
 
+ZlibStream::~ZlibStream(void)
+{
+	Close();
 }
 
-#endif /* TLSUTILITY_H */
+size_t ZlibStream::Read(void *buffer, size_t size)
+{
+	ObjectLock olock(this);
+
+	return BIO_read(m_BIO, buffer, size);
+}
+
+void ZlibStream::Write(const void *buffer, size_t size)
+{
+	ObjectLock olock(this);
+
+	BIO_write(m_BIO, buffer, size);
+}
+
+void ZlibStream::Close(void)
+{
+	ObjectLock olock(this);
+
+	if (m_BIO) {
+		BIO_free_all(m_BIO);
+		m_BIO = NULL;
+
+		m_InnerStream->Close();
+	}
+}
+
+bool ZlibStream::IsEof(void) const
+{
+	ObjectLock olock(this);
+
+	return BIO_eof(m_BIO);
+}
