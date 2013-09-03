@@ -656,6 +656,8 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		lmessage->Set("params", lparams);
 
 		sender->SendMessage(lmessage);
+
+		sender->SetRemoteLogPosition(message->Get("ts"));
 	}
 
 	Dictionary::Ptr params = message->Get("params");
@@ -839,7 +841,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		ObjectLock olock(service);
 		service->ClearAcknowledgement(sender->GetName());
 	} else if (message->Get("method") == "cluster::SetLogPosition") {
-		sender->SetRemoteLogPosition(params->Get("log_position"));
+		sender->SetLocalLogPosition(params->Get("log_position"));
 	}
 }
 
