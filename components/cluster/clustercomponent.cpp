@@ -676,11 +676,6 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 {
 	RelayMessage(sender, message, true);
 
-	if (message->Get("method") == "cluster::HeartBeat") {
-		sender->SetSeen(Utility::GetTime());
-		return;
-	}
-
 	if (sender->GetRemoteLogPosition() + 10 < message->Get("ts")) {
 		Dictionary::Ptr lparams = boost::make_shared<Dictionary>();
 		lparams->Set("log_position", message->Get("ts"));
@@ -693,6 +688,11 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		sender->SendMessage(lmessage);
 
 		sender->SetRemoteLogPosition(message->Get("ts"));
+	}
+
+	if (message->Get("method") == "cluster::HeartBeat") {
+		sender->SetSeen(Utility::GetTime());
+		return;
 	}
 
 	Dictionary::Ptr params = message->Get("params");
