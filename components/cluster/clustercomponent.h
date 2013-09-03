@@ -89,6 +89,7 @@ private:
 	void ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream);
 
 	StdioStream::Ptr m_LogFile;
+	double m_LogMessageTimestamp;
 	size_t m_LogMessageCount;
 
 	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority);
