@@ -215,14 +215,16 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionar
 		pmessage->Set("message", message);
 
 		ObjectLock olock(this);
-		String json = Value(pmessage).Serialize();
-		NetString::WriteStringToStream(m_LogFile, json);
-		m_LogMessageCount++;
-		m_LogMessageTimestamp = ts;
+		if (m_LogFile) {
+			String json = Value(pmessage).Serialize();
+			NetString::WriteStringToStream(m_LogFile, json);
+			m_LogMessageCount++;
+			m_LogMessageTimestamp = ts;
 
-		if (m_LogMessageCount > 250000) {
-			CloseLogFile();
-			OpenLogFile();
+			if (m_LogMessageCount > 250000) {
+				CloseLogFile();
+				OpenLogFile();
+			}
 		}
 	}
 
