@@ -514,9 +514,12 @@ static void WindowsSetThreadName(const char *name)
 }
 #endif /* _WIN32 */
 
-void Utility::SetThreadName(const String& name)
+void Utility::SetThreadName(const String& name, bool os)
 {
 	m_ThreadName.reset(new String(name));
+
+	if (!os)
+		return;
 
 #ifdef _WIN32
 	WindowsSetThreadName(name.CStr());

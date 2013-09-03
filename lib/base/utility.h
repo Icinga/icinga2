@@ -92,7 +92,7 @@ public:
 
 	static String EscapeShellCmd(const String& s);
 
-	static void SetThreadName(const String& name);
+	static void SetThreadName(const String& name, bool os = true);
 	static String GetThreadName(void);
 
 private:

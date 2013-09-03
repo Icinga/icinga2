@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 #endif /* _WIN32 */
 
 	/* Set thread title. */
-	Utility::SetThreadName("Main Thread");
+	Utility::SetThreadName("Main Thread", false);
 
 	/* Set command-line arguments. */
 	Application::SetArgC(argc);
