@@ -84,6 +84,7 @@ private:
 	void RelayMessage(const Endpoint::Ptr& except, const Dictionary::Ptr& message, bool persistent);
 
 	void OpenLogFile(void);
+	void RotateLogFile(void);
 	void CloseLogFile(void);
 	static void LogGlobHandler(std::vector<int>& files, const String& file);
 	void ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream);

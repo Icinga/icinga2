@@ -44,6 +44,7 @@ void ClusterComponent::Start(void)
 
 	{
 		ObjectLock olock(this);
+		RotateLogFile();
 		OpenLogFile();
 	}
 
@@ -89,6 +90,7 @@ void ClusterComponent::Stop(void)
 {
 	ObjectLock olock(this);
 	CloseLogFile();
+	RotateLogFile();
 }
 
 String ClusterComponent::GetCertificateFile(void) const
@@ -225,6 +227,7 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionar
 
 			if (m_LogMessageCount > 250000) {
 				CloseLogFile();
+				RotateLogFile();
 				OpenLogFile();
 			}
 		}
@@ -278,11 +281,20 @@ void ClusterComponent::CloseLogFile(void)
 	m_LogFile->Close();
 	m_LogFile.reset();
 
-	if (m_LogMessageTimestamp != 0) {
-		String oldpath = GetClusterDir() + "current";
-		String newpath = GetClusterDir() + Convert::ToString(static_cast<int>(m_LogMessageTimestamp) + 1);
-		(void) rename(oldpath.CStr(), newpath.CStr());
-	}
+}
+
+void ClusterComponent::RotateLogFile(void)
+{
+	ASSERT(OwnsLock());
+
+	double ts = m_LogMessageTimestamp;
+
+	if (ts == 0)
+		ts = Utility::GetTime();
+
+	String oldpath = GetClusterDir() + "current";
+	String newpath = GetClusterDir() + Convert::ToString(static_cast<int>(ts) + 1);
+	(void) rename(oldpath.CStr(), newpath.CStr());
 }
 
 void ClusterComponent::LogGlobHandler(std::vector<int>& files, const String& file)
@@ -307,6 +319,7 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 	ASSERT(OwnsLock());
 
 	CloseLogFile();
+	RotateLogFile();
 
 	std::vector<int> files;
 	Utility::Glob(GetClusterDir() + "*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
@@ -934,6 +947,9 @@ void ClusterComponent::InternalSerialize(const Dictionary::Ptr& bag, int attribu
 		bag->Set("bind_port", m_BindPort);
 		bag->Set("peers", m_Peers);
 	}
+
+	if (attributeTypes & Attribute_State)
+		bag->Set("log_message_timestamp", m_LogMessageTimestamp);
 }
 
 void ClusterComponent::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
@@ -947,4 +963,7 @@ void ClusterComponent::InternalDeserialize(const Dictionary::Ptr& bag, int attri
 		m_BindPort = bag->Get("bind_port");
 		m_Peers = bag->Get("peers");
 	}
+
+	if (attributeTypes & Attribute_State)
+		m_LogMessageTimestamp = bag->Get("log_message_timestamp");
 }
