@@ -208,6 +208,10 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionar
 		Dictionary::Ptr pmessage = boost::make_shared<Dictionary>();
 		double ts = Utility::GetTime();
 		pmessage->Set("timestamp", ts);
+
+		if (except)
+			pmessage->Set("except", except->GetName());
+
 		pmessage->Set("message", message);
 
 		ObjectLock olock(this);
@@ -318,6 +322,9 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 			Dictionary::Ptr pmessage = Value::Deserialize(message);
 
 			if (pmessage->Get("timestamp") < endpoint->GetLocalLogPosition())
+				continue;
+
+			if (pmessage->Get("except") == endpoint->GetName())
 				continue;
 
 			String json = Value(pmessage->Get("message")).Serialize();
