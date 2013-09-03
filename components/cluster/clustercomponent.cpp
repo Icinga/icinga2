@@ -276,7 +276,15 @@ void ClusterComponent::CloseLogFile(void)
 void ClusterComponent::LogGlobHandler(std::vector<int>& files, const String& file)
 {
 	String name = Utility::BaseName(file);
-	int ts = Convert::ToLong(name);
+
+	int ts;
+
+	try {
+		ts = Convert::ToLong(name);
+	} catch (const std::exception&) {
+		return;
+	}
+
 	files.push_back(ts);
 }
 
