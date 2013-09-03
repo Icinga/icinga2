@@ -19,11 +19,15 @@
 
 #include "cluster/clustercomponent.h"
 #include "cluster/endpoint.h"
+#include "base/netstring.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
 #include "base/networkstream.h"
+#include "base/application.h"
+#include "base/convert.h"
 #include <boost/smart_ptr/make_shared.hpp>
+#include <fstream>
 
 using namespace icinga;
 
@@ -35,6 +39,8 @@ REGISTER_TYPE(ClusterComponent);
 void ClusterComponent::Start(void)
 {
 	DynamicObject::Start();
+
+	OpenLogFile();
 
 	/* set up SSL context */
 	shared_ptr<X509> cert = GetX509Certificate(GetCertificateFile());
@@ -76,7 +82,7 @@ void ClusterComponent::Start(void)
  */
 void ClusterComponent::Stop(void)
 {
-	/* Nothing to do here. */
+	CloseLogFile();
 }
 
 String ClusterComponent::GetCertificateFile(void) const
@@ -192,6 +198,24 @@ void ClusterComponent::AddConnection(const String& node, const String& service) 
 
 void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionary::Ptr& message, bool persistent)
 {
+	message->Set("ts", Utility::GetTime());
+
+	if (persistent) {
+		Dictionary::Ptr pmessage = boost::make_shared<Dictionary>();
+		pmessage->Set("timestamp", Utility::GetTime());
+		pmessage->Set("message", message);
+
+		ObjectLock olock(this);
+		String json = Value(pmessage).Serialize();
+		NetString::WriteStringToStream(m_LogFile, json);
+		m_LogMessageCount++;
+
+		if (m_LogMessageCount > 250000) {
+			CloseLogFile();
+			OpenLogFile();
+		}
+	}
+
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
 		if (!persistent && !endpoint->IsConnected())
 			continue;
@@ -204,6 +228,83 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionar
 
 		endpoint->SendMessage(message);
 	}
+}
+
+String ClusterComponent::GetClusterDir(void) const
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/cluster/";
+}
+
+void ClusterComponent::OpenLogFile(void)
+{
+	std::ostringstream msgbuf;
+	msgbuf << GetClusterDir() << static_cast<long>(Utility::GetTime());
+	String path = msgbuf.str();
+
+	std::fstream *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
+
+	if (!fp->good()) {
+		Log(LogWarning, "cluster", "Could not open spool file: " + path);
+		return;
+	}
+
+	m_LogFile = boost::make_shared<StdioStream>(fp, true);
+	m_LogMessageCount = 0;
+}
+
+void ClusterComponent::CloseLogFile(void)
+{
+	m_LogFile->Close();
+	m_LogFile.reset();
+}
+
+void ClusterComponent::LogGlobHandler(std::vector<int>& files, const String& file)
+{
+	String name = Utility::BaseName(file);
+	int ts = Convert::ToLong(name);
+	files.push_back(ts);
+}
+
+void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream)
+{
+	int count = 0;
+
+	ASSERT(OwnsLock());
+
+	CloseLogFile();
+
+	std::vector<int> files;
+	Utility::Glob(GetClusterDir() + "*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
+	std::sort(files.begin(), files.end());
+
+	BOOST_FOREACH(int ts, files) {
+		std::ostringstream msgbuf;
+		msgbuf << GetClusterDir() << ts;
+		String path = msgbuf.str();
+
+		Log(LogInformation, "cluster", "Replaying log: " + path);
+
+		std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
+		StdioStream::Ptr lstream = boost::make_shared<StdioStream>(fp, true);
+
+		String message;
+		while (NetString::ReadStringFromStream(lstream, &message)) {
+			Dictionary::Ptr pmessage = Value::Deserialize(message);
+
+			if (pmessage->Get("timestamp") < endpoint->GetLocalLogPosition())
+				continue;
+
+			String json = Value(pmessage->Get("message")).Serialize();
+			NetString::WriteStringToStream(stream, json);
+			count++;
+		}
+
+		lstream->Close();
+	}
+
+	Log(LogInformation, "cluster", "Replayed " + Convert::ToString(count) + " messages.");
+
+	OpenLogFile();
 }
 
 /**
@@ -229,6 +330,11 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 		Log(LogInformation, "cluster", "Closing endpoint '" + identity + "': No configuration available.");
 		tlsStream->Close();
 		return;
+	}
+
+	{
+		ObjectLock olock(this);
+		ReplayLog(endpoint, tlsStream);
 	}
 
 	endpoint->SetClient(tlsStream);
@@ -540,6 +646,18 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		return;
 	}
 
+	if (sender->GetRemoteLogPosition() + 10 < message->Get("ts")) {
+		Dictionary::Ptr lparams = boost::make_shared<Dictionary>();
+		lparams->Set("log_position", message->Get("ts"));
+
+		Dictionary::Ptr lmessage = boost::make_shared<Dictionary>();
+		lmessage->Set("jsonrpc", "2.0");
+		lmessage->Set("method", "cluster::SetLogPosition");
+		lmessage->Set("params", lparams);
+
+		sender->SendMessage(lmessage);
+	}
+
 	Dictionary::Ptr params = message->Get("params");
 
 	if (!params)
@@ -720,6 +838,8 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		ObjectLock olock(service);
 		service->ClearAcknowledgement(sender->GetName());
+	} else if (message->Get("method") == "cluster::SetLogPosition") {
+		sender->SetRemoteLogPosition(params->Get("log_position"));
 	}
 }
 

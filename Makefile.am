@@ -29,7 +29,7 @@ install-data-local:
 	$(MKDIR_P) $(DESTDIR)${localstatedir}/log/${PACKAGE}/compat/archives
 	$(MKDIR_P) $(DESTDIR)${localstatedir}/cache/${PACKAGE}
 	$(MKDIR_P) $(DESTDIR)${localstatedir}/spool/${PACKAGE}/perfdata
-	$(MKDIR_P) $(DESTDIR)${localstatedir}/spool/${PACKAGE}/cluster
+	$(MKDIR_P) $(DESTDIR)${localstatedir}/lib/${PACKAGE}/cluster
 	$(MKDIR_P) $(DESTDIR)${localstatedir}/lib/${PACKAGE}
 	$(MKDIR_P) $(DESTDIR)${localstatedir}/run/${PACKAGE}
 

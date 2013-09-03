@@ -26,7 +26,6 @@
 #include "base/logger_fwd.h"
 #include "config/configitembuilder.h"
 #include <boost/smart_ptr/make_shared.hpp>
-#include <fstream>
 
 using namespace icinga;
 
@@ -34,41 +33,6 @@ REGISTER_TYPE(Endpoint);
 
 boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
 boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> Endpoint::OnMessageReceived;
-
-void Endpoint::OnConfigLoaded(void)
-{
-	ObjectLock olock(this);
-
-	OpenSpoolFile();
-}
-
-void Endpoint::Stop(void)
-{
-	ObjectLock olock(this);
-
-	CloseSpoolFile();
-}
-
-void Endpoint::OpenSpoolFile(void)
-{
-	ASSERT(OwnsLock());
-
-	String path = GetSpoolPath();
-	std::fstream *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
-
-	if (!fp->good())
-		Log(LogWarning, "cluster", "Could not open spool file: " + path);
-
-	m_SpoolFile = boost::make_shared<StdioStream>(fp, true);
-}
-
-void Endpoint::CloseSpoolFile(void)
-{
-	ASSERT(OwnsLock());
-
-	m_SpoolFile->Close();
-	m_SpoolFile.reset();
-}
 
 /**
  * Checks whether this endpoint is connected.
@@ -92,24 +56,6 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 	{
 		ObjectLock olock(this);
 
-		CloseSpoolFile();
-
-		String path = GetSpoolPath();
-		std::ifstream *fp = new std::ifstream(path.CStr(), std::ifstream::in);
-
-		while (fp && !fp->eof()) {
-			char data[1024];
-			fp->read(data, sizeof(data));
-			client->Write(data, fp->gcount());
-		}
-
-		fp->close();
-		delete fp;
-
-		(void) unlink(path.CStr());
-
-		OpenSpoolFile();
-
 		m_Client = client;
 	}
 
@@ -121,15 +67,13 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 
 void Endpoint::SendMessage(const Dictionary::Ptr& message)
 {
-	Stream::Ptr destination;
+	Stream::Ptr client = GetClient();
 
-	if (!IsConnected())
-		destination = m_SpoolFile;
-	else
-		destination = GetClient();
+	if (!client)
+		return;
 
 	try {
-		JsonRpc::SendMessage(destination, message);
+		JsonRpc::SendMessage(client, message);
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << boost::diagnostic_information(ex);
@@ -192,9 +136,24 @@ void Endpoint::SetSeen(double ts)
 	m_Seen = ts;
 }
 
-String Endpoint::GetSpoolPath(void) const
+double Endpoint::GetLocalLogPosition(void) const
 {
-	return Application::GetLocalStateDir() + "/spool/icinga2/cluster/" + GetName() + ".ns";
+	return m_LocalLogPosition;
+}
+
+void Endpoint::SetLocalLogPosition(double ts)
+{
+	m_LocalLogPosition = ts;
+}
+
+double Endpoint::GetRemoteLogPosition(void) const
+{
+	return m_RemoteLogPosition;
+}
+
+void Endpoint::SetRemoteLogPosition(double ts)
+{
+	m_RemoteLogPosition = ts;
 }
 
 void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
@@ -206,8 +165,11 @@ void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes)
 		bag->Set("port", m_Port);
 	}
 
-	if (attributeTypes & Attribute_State)
+	if (attributeTypes & Attribute_State) {
 		bag->Set("seen", m_Seen);
+		bag->Set("local_log_position", m_LocalLogPosition);
+		bag->Set("remote_log_position", m_RemoteLogPosition);
+	}
 }
 
 void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
@@ -219,6 +181,9 @@ void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeType
 		m_Port = bag->Get("port");
 	}
 
-	if (attributeTypes & Attribute_State)
+	if (attributeTypes & Attribute_State) {
 		m_Seen = bag->Get("seen");
+		m_LocalLogPosition = bag->Get("local_log_position");
+		m_RemoteLogPosition = bag->Get("remote_log_position");
+	}
 }

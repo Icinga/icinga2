@@ -27,6 +27,7 @@
 #include "base/tlsstream.h"
 #include "base/utility.h"
 #include "base/tlsutility.h"
+#include "base/stdiostream.h"
 #include "icinga/service.h"
 #include "cluster/endpoint.h"
 
@@ -50,6 +51,7 @@ public:
 	String GetBindHost(void) const;
 	String GetBindPort(void) const;
 	Array::Ptr GetPeers(void) const;
+	String GetClusterDir(void) const;
 
 	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 	String GetIdentity(void) const;
@@ -81,6 +83,14 @@ private:
 
 	void RelayMessage(const Endpoint::Ptr& except, const Dictionary::Ptr& message, bool persistent);
 
+	void OpenLogFile(void);
+	void CloseLogFile(void);
+	static void LogGlobHandler(std::vector<int>& files, const String& file);
+	void ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream);
+
+	StdioStream::Ptr m_LogFile;
+	size_t m_LogMessageCount;
+
 	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority);
 	void NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority);
 	void NextNotificationChangedHandler(const Notification::Ptr& notification, double nextCheck, const String& authority);
@@ -97,7 +107,6 @@ private:
 	void AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
 	void AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority);
 	void MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
-
 };
 
 }
