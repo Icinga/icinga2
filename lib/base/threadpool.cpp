@@ -230,11 +230,6 @@ void ThreadPool::ManagerThreadProc(void)
 		double avg_latency, max_latency;
 		double utilization = 0;
 
-		Value adaptive = ScriptVariable::Get("ThreadPoolAdaptive");
-
-		if (!adaptive.IsEmpty() && !static_cast<bool>(adaptive))
-			break;
-
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
 

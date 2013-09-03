@@ -19,8 +19,6 @@
 
 #include "base/zlibstream.h"
 #include "base/objectlock.h"
-#include "base/convert.h"
-#include "base/logger_fwd.h"
 #include <boost/make_shared.hpp>
 
 using namespace icinga;
