@@ -410,6 +410,17 @@ void ClusterComponent::ClusterTimerHandler(void)
 
 	RelayMessage(Endpoint::Ptr(), message, false);
 
+	/* check if we've recently seen heartbeat messages from our peers */
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		if (!endpoint->IsConnected() || endpoint->GetSeen() > Utility::GetTime() - 60)
+			continue;
+
+		Stream::Ptr client = endpoint->GetClient();
+
+		if (client)
+			client->Close();
+	}
+
 	Array::Ptr peers = GetPeers();
 
 	if (!peers)
