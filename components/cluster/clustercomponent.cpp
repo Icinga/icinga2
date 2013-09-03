@@ -29,6 +29,7 @@
 #include "base/convert.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <fstream>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -312,9 +313,7 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 	std::sort(files.begin(), files.end());
 
 	BOOST_FOREACH(int ts, files) {
-		std::ostringstream msgbuf;
-		msgbuf << GetClusterDir() << ts;
-		String path = msgbuf.str();
+		String path = GetClusterDir() + Convert::ToString(ts);
 
 		if (ts < endpoint->GetLocalLogPosition())
 			continue;
@@ -424,8 +423,38 @@ void ClusterComponent::ClusterTimerHandler(void)
 			continue;
 		}
 
-		Log(LogInformation, "cluster", "Attempting to reconnect to cluster endpoint '" + endpoint->GetName() + "' via '" + host + ":" + port + "'.");
-		AddConnection(host, port);
+		try {
+			Log(LogInformation, "cluster", "Attempting to reconnect to cluster endpoint '" + endpoint->GetName() + "' via '" + host + ":" + port + "'.");
+			AddConnection(host, port);
+		} catch (std::exception& ex) {
+			std::ostringstream msgbuf;
+			msgbuf << "Exception occured while reconnecting to endpoint '"
+			       << endpoint->GetName() << "': " << boost::diagnostic_information(ex);
+			Log(LogWarning, "cluster", msgbuf.str());
+		}
+	}
+
+	std::vector<int> files;
+	Utility::Glob(GetClusterDir() + "*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
+	std::sort(files.begin(), files.end());
+
+	BOOST_FOREACH(int ts, files) {
+		bool need = false;
+
+		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+			double position = endpoint->GetLocalLogPosition();
+
+			if (position != 0 && ts > position) {
+				need = true;
+				break;
+			}
+		}
+
+		if (!need) {
+			String path = GetClusterDir() + Convert::ToString(ts);
+			Log(LogInformation, "cluster", "Removing old log file: " + path);
+			(void) unlink(path.CStr());
+		}
 	}
 }
 

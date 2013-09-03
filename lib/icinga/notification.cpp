@@ -348,9 +348,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		std::ostringstream msgbuf;
 		msgbuf << "Exception occured during notification for service '"
 		       << GetService()->GetName() << "': " << boost::diagnostic_information(ex);
-		String message = msgbuf.str();
-
-		Log(LogWarning, "icinga", message);
+		Log(LogWarning, "icinga", msgbuf.str());
 	}
 }
 
