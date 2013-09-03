@@ -98,7 +98,7 @@ void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 			return;
 		}
 
-		Utility::QueueAsyncCallback(boost::bind(boost::ref(Endpoint::OnMessageReceived), GetSelf(), message));
+		OnMessageReceived(GetSelf(), message);
 	}
 }
 
