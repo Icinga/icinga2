@@ -548,39 +548,6 @@ sub dump_host_2x {
         }
     }
 
-    if(defined($host_2x->{'__I2CONVERT_NOTIFICATIONS'})) {
-        #say Dumper ($host_2x->{'__I2CONVERT_NOTIFICATIONS'});
-        # this is an array of notification objects
-        foreach my $host_notification_hash (@{$host_2x->{'__I2CONVERT_NOTIFICATIONS'}}) {
-
-            #say Dumper($host_notification_hash);
-
-            # this is a hash by unique key of the notification template, but all further attributes are seperatedly available too
-            foreach my $host_notification_key (keys %{$host_notification_hash}) {
-                my $host_notification = $host_notification_hash->{$host_notification_key};
-                #say Dumper($host_notification);
-
-                # skip everything not related to host notifications
-                next if ($host_notification->{'type'} ne 'host');
-
-                dump_config_line($icinga2_cfg, "\tnotifications[\"$host_notification->{'name'}\"] = {");
-
-                if (defined ($host_notification->{'templates'}) && @{$host_notification->{'templates'}} > 0) {
-                    my $host_notification_templates = join '", "', @{$host_notification->{'templates'}};
-                    dump_config_line($icinga2_cfg, "\t\ttemplates = [ \"$host_notification_templates\" ],");
-                }
-
-                if(defined($host_notification->{'users'}) && @{$host_notification->{'users'}} > 0) {
-                    my $host_users = join '", "', @{$host_notification->{'users'}};
-                    dump_config_line($icinga2_cfg, "\t\tusers = [ \"$host_users\" ],");
-                }
-
-                dump_config_line($icinga2_cfg, "\t},");
-            }
-        }
-    }
-
-
     if(defined($host_2x->{'notification_period'})) {
         dump_config_line($icinga2_cfg, "\tnotification_period = \"$host_2x->{'notification_period'}\",");
     }
@@ -755,6 +722,38 @@ sub dump_host_2x {
                         dump_config_line($icinga2_cfg, "\t\t\t\tbegin = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'},");
                         dump_config_line($icinga2_cfg, "\t\t\t\tend = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'}");
                         dump_config_line($icinga2_cfg, "\t\t\t},");
+                    }
+
+                    dump_config_line($icinga2_cfg, "\t\t},");
+                }
+            }
+        }
+
+        if(defined($host_2x->{'__I2CONVERT_NOTIFICATIONS'}) && $host_2x->{'__I2CONVERT_HOSTCHECK'} eq $service_2x->{__I2CONVERT_SERVICEDESCRIPTION}) {
+            #say Dumper ($host_2x->{'__I2CONVERT_NOTIFICATIONS'});
+            # this is an array of notification objects
+            foreach my $host_notification_hash (@{$host_2x->{'__I2CONVERT_NOTIFICATIONS'}}) {
+
+                #say Dumper($host_notification_hash);
+
+                # this is a hash by unique key of the notification template, but all further attributes are seperatedly available too
+                foreach my $host_notification_key (keys %{$host_notification_hash}) {
+                    my $host_notification = $host_notification_hash->{$host_notification_key};
+                    #say Dumper($host_notification);
+
+                    # skip everything not related to host notifications
+                    next if ($host_notification->{'type'} ne 'host');
+
+                    dump_config_line($icinga2_cfg, "\t\tnotifications[\"$host_notification->{'name'}\"] = {");
+
+                    if (defined ($host_notification->{'templates'}) && @{$host_notification->{'templates'}} > 0) {
+                        my $host_notification_templates = join '", "', @{$host_notification->{'templates'}};
+                        dump_config_line($icinga2_cfg, "\t\t\ttemplates = [ \"$host_notification_templates\" ],");
+                    }
+
+                    if(defined($host_notification->{'users'}) && @{$host_notification->{'users'}} > 0) {
+                        my $host_users = join '", "', @{$host_notification->{'users'}};
+                        dump_config_line($icinga2_cfg, "\t\t\tusers = [ \"$host_users\" ],");
                     }
 
                     dump_config_line($icinga2_cfg, "\t\t},");
