@@ -22,6 +22,7 @@
 
 #include "base/dynamicobject.h"
 #include "base/stream.h"
+#include "base/array.h"
 #include <boost/signals2.hpp>
 
 namespace icinga
@@ -52,6 +53,8 @@ public:
 
 	String GetHost(void) const;
 	String GetPort(void) const;
+	Array::Ptr GetConfigFiles(void) const;
+	Array::Ptr GetAcceptConfig(void) const;
 
 	double GetSeen(void) const;
 	void SetSeen(double ts);
@@ -70,6 +73,8 @@ private:
 	Dictionary::Ptr m_Subscriptions;
 	String m_Host;
 	String m_Port;
+	Array::Ptr m_ConfigFiles;
+	Array::Ptr m_AcceptConfig;
 
 	Stream::Ptr m_Client;
 	double m_Seen;

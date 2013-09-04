@@ -78,6 +78,8 @@ private:
 	void AddListener(const String& service);
 	void AddConnection(const String& node, const String& service);
 
+	static void ConfigGlobHandler(const Dictionary::Ptr& config, const String& file);
+
 	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
 

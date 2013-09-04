@@ -126,6 +126,16 @@ String Endpoint::GetPort(void) const
 	return m_Port;
 }
 
+Array::Ptr Endpoint::GetConfigFiles(void) const
+{
+	return m_ConfigFiles;
+}
+
+Array::Ptr Endpoint::GetAcceptConfig(void) const
+{
+	return m_AcceptConfig;
+}
+
 double Endpoint::GetSeen(void) const
 {
 	return m_Seen;
@@ -163,6 +173,8 @@ void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes)
 	if (attributeTypes & Attribute_Config) {
 		bag->Set("host", m_Host);
 		bag->Set("port", m_Port);
+		bag->Set("config_files", m_ConfigFiles);
+		bag->Set("accept_config", m_AcceptConfig);
 	}
 
 	if (attributeTypes & Attribute_State) {
@@ -179,6 +191,8 @@ void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeType
 	if (attributeTypes & Attribute_Config) {
 		m_Host = bag->Get("host");
 		m_Port = bag->Get("port");
+		m_ConfigFiles = bag->Get("config_files");
+		m_AcceptConfig = bag->Get("accept_config");
 	}
 
 	if (attributeTypes & Attribute_State) {

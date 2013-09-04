@@ -53,6 +53,11 @@ void ClusterComponent::Start(void)
 	m_Identity = GetCertificateCN(cert);
 	Log(LogInformation, "cluster", "My identity: " + m_Identity);
 
+	Endpoint::Ptr self = Endpoint::GetByName(GetIdentity());
+
+	if (!self)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("No configuration available for the local endpoint."));
+
 	m_SSLContext = MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
 
 	/* create the primary JSON-RPC listener */
@@ -256,7 +261,7 @@ void ClusterComponent::OpenLogFile(void)
 {
 	ASSERT(OwnsLock());
 
-	String path = GetClusterDir() + "current";
+	String path = GetClusterDir() + "log/current";
 
 	std::fstream *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
 
@@ -292,8 +297,8 @@ void ClusterComponent::RotateLogFile(void)
 	if (ts == 0)
 		ts = Utility::GetTime();
 
-	String oldpath = GetClusterDir() + "current";
-	String newpath = GetClusterDir() + Convert::ToString(static_cast<int>(ts) + 1);
+	String oldpath = GetClusterDir() + "log/current";
+	String newpath = GetClusterDir() + "log/" + Convert::ToString(static_cast<int>(ts) + 1);
 	(void) rename(oldpath.CStr(), newpath.CStr());
 }
 
@@ -322,11 +327,11 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 	RotateLogFile();
 
 	std::vector<int> files;
-	Utility::Glob(GetClusterDir() + "*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
+	Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
 	std::sort(files.begin(), files.end());
 
 	BOOST_FOREACH(int ts, files) {
-		String path = GetClusterDir() + Convert::ToString(ts);
+		String path = GetClusterDir() + "log/" + Convert::ToString(ts);
 
 		if (ts < endpoint->GetLocalLogPosition())
 			continue;
@@ -368,6 +373,20 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 	OpenLogFile();
 }
 
+void ClusterComponent::ConfigGlobHandler(const Dictionary::Ptr& config, const String& file)
+{
+	Dictionary::Ptr elem = boost::make_shared<Dictionary>();
+
+	std::ifstream fp(file.CStr());
+	if (!fp)
+		return;
+
+	String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
+	elem->Set("content", content);
+
+	config->Set(file, elem);
+}
+
 /**
  * Processes a new client connection.
  *
@@ -392,6 +411,26 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 		tlsStream->Close();
 		return;
 	}
+
+	Dictionary::Ptr config = boost::make_shared<Dictionary>();
+	Array::Ptr configFiles = endpoint->GetConfigFiles();
+
+	if (configFiles) {
+		BOOST_FOREACH(const String& pattern, configFiles) {
+			Utility::Glob(pattern, boost::bind(&ClusterComponent::ConfigGlobHandler, boost::cref(config), _1));
+		}
+	}
+
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("config_files", config);
+
+	Dictionary::Ptr message = boost::make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "cluster::Config");
+	message->Set("params", params);
+
+	String json = Value(message).Serialize();
+	NetString::WriteStringToStream(tlsStream, json);
 
 	{
 		ObjectLock olock(this);
@@ -448,7 +487,7 @@ void ClusterComponent::ClusterTimerHandler(void)
 	}
 
 	std::vector<int> files;
-	Utility::Glob(GetClusterDir() + "*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
+	Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
 	std::sort(files.begin(), files.end());
 
 	BOOST_FOREACH(int ts, files) {
@@ -464,7 +503,7 @@ void ClusterComponent::ClusterTimerHandler(void)
 		}
 
 		if (!need) {
-			String path = GetClusterDir() + Convert::ToString(ts);
+			String path = GetClusterDir() + "log/" + Convert::ToString(ts);
 			Log(LogInformation, "cluster", "Removing old log file: " + path);
 			(void) unlink(path.CStr());
 		}
@@ -933,6 +972,41 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		service->ClearAcknowledgement(sender->GetName());
 	} else if (message->Get("method") == "cluster::SetLogPosition") {
 		sender->SetLocalLogPosition(params->Get("log_position"));
+	} else if (message->Get("method") == "cluster::Config") {
+		Dictionary::Ptr files = params->Get("config_files");
+		
+		if (!files)
+			return;
+
+		Endpoint::Ptr self = Endpoint::GetByName(GetIdentity());
+
+		Array::Ptr acceptConfig = self->GetAcceptConfig();
+
+		bool accept = false;
+
+		if (acceptConfig) {
+			BOOST_FOREACH(const String& pattern, acceptConfig) {
+				if (Utility::Match(pattern, sender->GetName())) {
+					accept = true;
+					break;
+				}
+			}
+		}
+
+		if (!accept) {
+			Log(LogWarning, "cluster", "Ignoring cluster::Config message from endpoint '" + sender->GetName() + "'.");
+			return;
+		}
+
+		String dir = GetClusterDir() + "config/" + SHA256(sender->GetName());
+		Log(LogInformation, "cluster", "Creating cluster config directory: " + dir);
+		if (mkdir(dir.CStr(), 0700) < 0 && errno != EEXIST) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("localtime")
+				<< boost::errinfo_errno(errno));
+		}
+
+		/* TODO: update files, remove old files, figure out whether we need to restart */
 	}
 }
 

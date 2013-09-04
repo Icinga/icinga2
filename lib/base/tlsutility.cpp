@@ -148,4 +148,35 @@ shared_ptr<X509> GetX509Certificate(const String& pemfile)
 	return shared_ptr<X509>(cert, X509_free);
 }
 
+String SHA256(const String& s)
+{
+	SHA256_CTX context;
+	unsigned char digest[SHA256_DIGEST_LENGTH];
+
+	if (!SHA256_Init(&context)) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("SHA256_Init")
+			<< errinfo_openssl_error(ERR_get_error()));
+	}
+
+	if (!SHA256_Update(&context, (unsigned char*)s.CStr(), s.GetLength())) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("SHA256_Update")
+			<< errinfo_openssl_error(ERR_get_error()));
+	}
+
+	if (!SHA256_Final(digest, &context)) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("SHA256_Final")
+			<< errinfo_openssl_error(ERR_get_error()));
+	}
+
+	int i;
+	char output[SHA256_DIGEST_LENGTH*2+1];
+	for (i = 0; i < 32; i++)
+		sprintf(output + 2 * i, "%02x", digest[i]);
+
+	return output;
+}
+
 }
