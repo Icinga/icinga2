@@ -75,8 +75,6 @@ protected:
 private:
 	String m_Severity;
 
-	LogSeverity m_MinSeverity;
-
 	static boost::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
 
