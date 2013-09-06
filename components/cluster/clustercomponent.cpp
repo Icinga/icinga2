@@ -770,8 +770,6 @@ void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service
 
 void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
 {
-	RelayMessage(sender, message, true);
-
 	if (sender->GetRemoteLogPosition() + 10 < message->Get("ts")) {
 		Dictionary::Ptr lparams = boost::make_shared<Dictionary>();
 		lparams->Set("log_position", message->Get("ts"));
@@ -785,8 +783,10 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		sender->SetRemoteLogPosition(message->Get("ts"));
 
-		Log(LogInformation, "cluster", "Acknowledging log position: " + Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", message->Get("ts")));
+		Log(LogInformation, "cluster", "Acknowledging log position for identity '" + sender->GetName() + "': " + Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", message->Get("ts")));
 	}
+
+	RelayMessage(sender, message, true);
 
 	if (message->Get("method") == "cluster::HeartBeat") {
 		sender->SetSeen(Utility::GetTime());
@@ -999,12 +999,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		String identity = params->Get("identity");
 
 		if (!accept) {
-			Log(LogWarning, "cluster", "Ignoring cluster::Config message from endpoint '" + sender->GetName() + "' for identity '" + identity + "'.");
+			Log(LogWarning, "cluster", "Ignoring config update from endpoint '" + sender->GetName() + "' for identity '" + identity + "'.");
 			return;
 		}
 
+		Log(LogInformation, "cluster", "Processing config update for identity '" + identity + "'.");
+
 		String dir = GetClusterDir() + "config/" + SHA256(identity);
-		Log(LogInformation, "cluster", "Creating cluster config directory: " + dir);
 		if (mkdir(dir.CStr(), 0700) < 0 && errno != EEXIST) {
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("localtime")
