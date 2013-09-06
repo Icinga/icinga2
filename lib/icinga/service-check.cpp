@@ -607,7 +607,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	bool was_flapping, is_flapping;
 
 	was_flapping = IsFlapping();
-	UpdateFlappingStatus(stateChange);
+	if (GetStateType() == StateTypeHard)
+		UpdateFlappingStatus(stateChange);
 	is_flapping = IsFlapping();
 
 	olock.Unlock();
