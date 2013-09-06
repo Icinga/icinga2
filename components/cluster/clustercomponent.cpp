@@ -221,7 +221,7 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionar
 		if (except)
 			pmessage->Set("except", except->GetName());
 
-		pmessage->Set("message", message);
+		pmessage->Set("message", Value(message).Serialize());
 
 		ObjectLock olock(this);
 		if (m_LogFile) {
@@ -360,8 +360,7 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 			if (pmessage->Get("except") == endpoint->GetName())
 				continue;
 
-			String json = Value(pmessage->Get("message")).Serialize();
-			NetString::WriteStringToStream(stream, json);
+			NetString::WriteStringToStream(stream, pmessage->Get("message"));
 			count++;
 		}
 
