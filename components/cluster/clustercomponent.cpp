@@ -211,11 +211,11 @@ void ClusterComponent::AddConnection(const String& node, const String& service) 
 
 void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionary::Ptr& message, bool persistent)
 {
-	message->Set("ts", Utility::GetTime());
+	double ts = Utility::GetTime();
+	message->Set("ts", ts);
 
 	if (persistent) {
 		Dictionary::Ptr pmessage = boost::make_shared<Dictionary>();
-		double ts = Utility::GetTime();
 		pmessage->Set("timestamp", ts);
 
 		if (except)
@@ -422,6 +422,7 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 	}
 
 	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("identity", GetIdentity());
 	params->Set("config_files", config);
 
 	Dictionary::Ptr message = boost::make_shared<Dictionary>();
@@ -783,6 +784,8 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		sender->SendMessage(lmessage);
 
 		sender->SetRemoteLogPosition(message->Get("ts"));
+
+		Log(LogInformation, "cluster", "Acknowledging log position: " + Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", message->Get("ts")));
 	}
 
 	if (message->Get("method") == "cluster::HeartBeat") {
@@ -993,12 +996,14 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			}
 		}
 
+		String identity = params->Get("identity");
+
 		if (!accept) {
-			Log(LogWarning, "cluster", "Ignoring cluster::Config message from endpoint '" + sender->GetName() + "'.");
+			Log(LogWarning, "cluster", "Ignoring cluster::Config message from endpoint '" + sender->GetName() + "' for identity '" + identity + "'.");
 			return;
 		}
 
-		String dir = GetClusterDir() + "config/" + SHA256(sender->GetName());
+		String dir = GetClusterDir() + "config/" + SHA256(identity);
 		Log(LogInformation, "cluster", "Creating cluster config directory: " + dir);
 		if (mkdir(dir.CStr(), 0700) < 0 && errno != EEXIST) {
 			BOOST_THROW_EXCEPTION(posix_error()
