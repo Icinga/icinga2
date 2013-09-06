@@ -769,7 +769,7 @@ void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service
 
 void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
 {
-	if (sender->GetRemoteLogPosition() + 10 < message->Get("ts")) {
+	if (message->Contains("ts") && sender->GetRemoteLogPosition() + 10 < message->Get("ts")) {
 		Dictionary::Ptr lparams = boost::make_shared<Dictionary>();
 		lparams->Set("log_position", message->Get("ts"));
 
