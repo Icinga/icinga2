@@ -230,7 +230,7 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionar
 			m_LogMessageCount++;
 			m_LogMessageTimestamp = ts;
 
-			if (m_LogMessageCount > 250000) {
+			if (m_LogMessageCount > 50000) {
 				CloseLogFile();
 				RotateLogFile();
 				OpenLogFile();
