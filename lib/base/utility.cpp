@@ -525,14 +525,18 @@ void Utility::SetThreadName(const String& name, bool os)
 	WindowsSetThreadName(name.CStr());
 #endif /* _WIN32 */
 
-#ifdef __APPLE__
-	pthread_setname_np(name.CStr());
-#endif /* __APPLE__ */
+#ifdef HAVE_PTHREAD_SET_NAME_NP
+	pthread_set_name_np(pthread_self(), name.CStr());
+#endif /* HAVE_PTHREAD_SET_NAME_NP */
 
-#ifdef __linux__
+#ifdef HAVE_PTHREAD_SETNAME_NP
+#	ifdef __APPLE__
+	pthread_setname_np(name.CStr());
+#	else /* __APPLE__ */
 	String tname = name.SubStr(0, 15);
 	pthread_setname_np(pthread_self(), tname.CStr());
-#endif /* __linux__ */
+#	endif /* __APPLE__ */
+#endif /* HAVE_PTHREAD_SETNAME_NP */
 }
 
 String Utility::GetThreadName(void)

@@ -52,6 +52,9 @@ AD_INIT_ASCIIDOC([icinga], [docs])
 
 AM_MISSING_PROG(HELP2MAN, help2man, $missing_dir)
 
+CFLAGS="$CFLAGS -D_GNU_SOURCE -pthread"
+CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -pthread"
+
 AC_PROG_INSTALL
 AC_PROG_LEX
 AC_PROG_YACC
@@ -71,7 +74,7 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
-AC_CHECK_FUNCS([backtrace_symbols execvpe pipe2])
+AC_CHECK_FUNCS([backtrace_symbols execvpe pipe2 pthread_set_name_np pthread_setname_np])
 
 CFLAGS="$CFLAGS -Wall -Wextra"
 CXXFLAGS="$CXXFLAGS -Wall -Wextra"
