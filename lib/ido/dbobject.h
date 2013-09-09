@@ -75,8 +75,6 @@ public:
 
 	static DbObject::Ptr GetOrCreateByObject(const DynamicObject::Ptr& object);
 
-	static boost::signals2::signal<void (const DbObject::Ptr&)> OnRegistered;
-	static boost::signals2::signal<void (const DbObject::Ptr&)> OnUnregistered;
 	static boost::signals2::signal<void (const DbQuery&)> OnQuery;
 
 	void SendConfigUpdate(void);
@@ -101,8 +99,6 @@ private:
 	double m_LastConfigUpdate;
 	double m_LastStatusUpdate;
 
-	static void ObjectStartedHandler(const DynamicObject::Ptr& object);
-	static void ObjectStoppedHandler(const DynamicObject::Ptr& object);
 	static void StateChangedHandler(const DynamicObject::Ptr& object);
 
 	friend class DbType;

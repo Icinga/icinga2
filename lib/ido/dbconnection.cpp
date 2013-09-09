@@ -37,8 +37,6 @@ void DbConnection::Start(void)
 {
 	DynamicObject::Start();
 
-	DbObject::OnRegistered.connect(boost::bind(&DbConnection::ActivateObject, this, _1));
-	DbObject::OnUnregistered.connect(boost::bind(&DbConnection::DeactivateObject, this, _1));
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
 }
 

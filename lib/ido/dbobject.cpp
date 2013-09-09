@@ -30,8 +30,6 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const DbObject::Ptr&)> DbObject::OnRegistered;
-boost::signals2::signal<void (const DbObject::Ptr&)> DbObject::OnUnregistered;
 boost::signals2::signal<void (const DbQuery&)> DbObject::OnQuery;
 
 INITIALIZE_ONCE(DbObject, &DbObject::StaticInitialize);
@@ -42,9 +40,6 @@ DbObject::DbObject(const shared_ptr<DbType>& type, const String& name1, const St
 
 void DbObject::StaticInitialize(void)
 {
-	DynamicObject::OnStarted.connect(boost::bind(&DbObject::ObjectStartedHandler, _1));
-	DynamicObject::OnStopped.connect(boost::bind(&DbObject::ObjectStoppedHandler, _1));
-
 	DynamicObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
 }
 
@@ -186,34 +181,6 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 	}
 
 	return dbobj;
-}
-
-void DbObject::ObjectStartedHandler(const DynamicObject::Ptr& object)
-{
-	DbObject::Ptr dbobj = GetOrCreateByObject(object);
-
-	if (!dbobj)
-		return;
-
-	OnRegistered(dbobj);
-
-	dbobj->SendConfigUpdate();
-	dbobj->SendStatusUpdate();
-}
-
-void DbObject::ObjectStoppedHandler(const DynamicObject::Ptr& object)
-{
-	DbObject::Ptr dbobj = GetOrCreateByObject(object);
-
-	if (!dbobj)
-		return;
-
-	OnUnregistered(dbobj);
-
-	{
-		ObjectLock olock(object);
-		object->ClearExtension("DbObject");
-	}
 }
 
 void DbObject::StateChangedHandler(const DynamicObject::Ptr& object)
