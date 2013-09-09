@@ -51,7 +51,7 @@ char **Application::m_ArgV;
 /**
  * Constructor for the Application class.
  */
-void Application::Start(void)
+void Application::OnConfigLoaded(void)
 {
 	DynamicObject::Start();
 

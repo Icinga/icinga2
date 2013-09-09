@@ -87,7 +87,7 @@ public:
 	static ThreadPool& GetTP(void);
 
 protected:
-	virtual void Start(void);
+	virtual void OnConfigLoaded(void);
 	virtual void Stop(void);
 
 	void RunEventLoop(void) const;
