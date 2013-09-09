@@ -49,6 +49,8 @@ CompatLog::CompatLog(void)
  */
 void CompatLog::Start(void)
 {
+	DynamicObject::Start();
+
 	Service::OnNewCheckResult.connect(bind(&CompatLog::CheckResultHandler, this, _1, _2));
 //	Service::OnDowntimeTriggered.connect(bind(&CompatLog::DowntimeHandler, this, _1));
 	Service::OnNotificationSentChanged.connect(bind(&CompatLog::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6));

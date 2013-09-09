@@ -415,6 +415,7 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 	Array::Ptr configFiles = endpoint->GetConfigFiles();
 
 	if (configFiles) {
+		ObjectLock olock(configFiles);
 		BOOST_FOREACH(const String& pattern, configFiles) {
 			Utility::Glob(pattern, boost::bind(&ClusterComponent::ConfigGlobHandler, boost::cref(config), _1, false));
 		}
@@ -458,8 +459,10 @@ void ClusterComponent::ClusterTimerHandler(void)
 	BOOST_FOREACH(const String& peer, peers) {
 		Endpoint::Ptr endpoint = Endpoint::GetByName(peer);
 
-		if (!endpoint)
+		if (!endpoint) {
+			Log(LogWarning, "cluster", "Attempted to reconnect to endpoint '" + peer + "': No configuration found.");
 			continue;
+		}
 
 		if (endpoint->IsConnected())
 			continue;
@@ -995,6 +998,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool accept = false;
 
 		if (acceptConfig) {
+			ObjectLock olock(acceptConfig);
 			BOOST_FOREACH(const String& pattern, acceptConfig) {
 				if (Utility::Match(pattern, sender->GetName())) {
 					accept = true;
@@ -1030,6 +1034,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		String key;
 		Value value;
+		ObjectLock olock(remoteConfig);
 		BOOST_FOREACH(boost::tie(key, value), remoteConfig) {
 			Dictionary::Ptr remoteFile = value;
 			bool writeFile = false;
@@ -1061,6 +1066,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			localConfig->Remove(hash);
 		}
 
+		ObjectLock olock2(localConfig);
 		BOOST_FOREACH(boost::tie(key, boost::tuples::ignore), localConfig) {
 			String path = dir + "/" + key;
 			Log(LogInformation, "cluster", "Removing obsolete config file: " + path);
