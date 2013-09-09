@@ -49,6 +49,8 @@ void Host::Start(void)
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
+		ObjectLock olock(groups);
+
 		BOOST_FOREACH(const String& name, groups) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
@@ -70,6 +72,8 @@ void Host::Stop(void)
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
+		ObjectLock olock(groups);
+
 		BOOST_FOREACH(const String& name, groups) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 

@@ -21,6 +21,7 @@
 #include "icinga/usergroup.h"
 #include "base/dynamictype.h"
 #include "base/utility.h"
+#include "base/objectlock.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
@@ -32,6 +33,8 @@ void User::OnConfigLoaded(void)
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
+		ObjectLock olock(groups);
+
 		BOOST_FOREACH(const String& name, groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
@@ -48,6 +51,8 @@ void User::Stop(void)
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
+		ObjectLock olock(groups);
+
 		BOOST_FOREACH(const String& name, groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 

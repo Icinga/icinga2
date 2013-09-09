@@ -58,6 +58,8 @@ void Service::OnConfigLoaded(void)
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
+		ObjectLock olock(groups);
+
 		BOOST_FOREACH(const String& name, groups) {
 			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
 
