@@ -47,6 +47,7 @@ public:
 
 	Dictionary::Ptr GetMacros(void) const;
 	Array::Ptr GetExportMacros(void) const;
+	Array::Ptr GetEscapeMacros(void) const;
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
 protected:
@@ -58,6 +59,7 @@ private:
 	Value m_Timeout;
 	Dictionary::Ptr m_Macros;
 	Array::Ptr m_ExportMacros;
+	Array::Ptr m_EscapeMacros;
 };
 
 }

@@ -44,6 +44,11 @@ Array::Ptr Command::GetExportMacros(void) const
 	return m_ExportMacros;
 }
 
+Array::Ptr Command::GetEscapeMacros(void) const
+{
+	return m_EscapeMacros;
+}
+
 bool Command::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
 	Dictionary::Ptr macros = GetMacros();
@@ -65,6 +70,7 @@ void Command::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("timeout", m_Timeout);
 		bag->Set("macros", m_Macros);
 		bag->Set("export_macros", m_ExportMacros);
+		bag->Set("escape_macros", m_EscapeMacros);
 	}
 }
 
@@ -78,5 +84,6 @@ void Command::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_Macros = bag->Get("macros");
 		m_Macros = bag->Get("macros");
 		m_ExportMacros = bag->Get("export_macros");
+		m_EscapeMacros = bag->Get("escape_macros");
 	}
 }

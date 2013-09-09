@@ -56,7 +56,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	resolvers.push_back(service->GetHost());
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd);
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
 	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
 

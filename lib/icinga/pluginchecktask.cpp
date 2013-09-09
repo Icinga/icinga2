@@ -46,7 +46,7 @@ Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 	resolvers.push_back(service->GetHost());
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd);
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
 	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
 
