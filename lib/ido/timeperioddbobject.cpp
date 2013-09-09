@@ -97,18 +97,24 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 		}
 #endif /* _MSC_VER */
 
-		tm begin, end;
-		LegacyTimePeriod::ProcessTimeRangeRaw(value, &reference, &begin, &end);
+		Array::Ptr segments = boost::make_shared<Array>();
+		LegacyTimePeriod::ProcessTimeRanges(value, &reference, segments);
 
-		DbQuery query;
-		query.Table = GetType()->GetTable() + "_timeranges";
-		query.Type = DbQueryInsert;
-		query.Fields = boost::make_shared<Dictionary>();
-		query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-		query.Fields->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
-		query.Fields->Set("day", wday);
-		query.Fields->Set("start_sec", begin.tm_hour * 3600 + begin.tm_min * 60 + begin.tm_sec);
-		query.Fields->Set("end_sec", end.tm_hour * 3600 + end.tm_min * 60 + end.tm_sec);
-		OnQuery(query);
+		BOOST_FOREACH(const Value& vsegment, segments) {
+			Dictionary::Ptr segment = vsegment;
+			int begin = segment->Get("begin");
+			int end = segment->Get("end");
+
+			DbQuery query;
+			query.Table = GetType()->GetTable() + "_timeranges";
+			query.Type = DbQueryInsert;
+			query.Fields = boost::make_shared<Dictionary>();
+			query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query.Fields->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
+			query.Fields->Set("day", wday);
+			query.Fields->Set("start_sec", begin % 86400);
+			query.Fields->Set("end_sec", end % 86400);
+			OnQuery(query);
+		}
 	}
 }
