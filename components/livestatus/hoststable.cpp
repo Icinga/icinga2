@@ -234,9 +234,9 @@ Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
 	Value raw_command = commandObj->GetCommandLine();
 
 	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(commandObj);
 	resolvers.push_back(hc);
 	resolvers.push_back(host);
+	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
 	Value commandLine = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd);
