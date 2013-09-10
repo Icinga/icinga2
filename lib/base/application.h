@@ -84,6 +84,12 @@ public:
 	static String GetStatePath(void);
 	static void SetStatePath(const String& path);
 
+	static String GetPidPath(void);
+	static void SetPidPath(const String& path);
+
+	static String GetApplicationType(void);
+	static void SetApplicationType(const String& type);
+
 	static ThreadPool& GetTP(void);
 
 protected:

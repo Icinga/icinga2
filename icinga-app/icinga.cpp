@@ -19,6 +19,7 @@
 
 #include "config/configcompilercontext.h"
 #include "config/configcompiler.h"
+#include "config/configitembuilder.h"
 #include "base/application.h"
 #include "base/logger_fwd.h"
 #include "base/timer.h"
@@ -200,6 +201,9 @@ int main(int argc, char **argv)
 #endif /* ICINGA_PKGDATADIR */
 
 	Application::SetStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
+	Application::SetPidPath(Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid");
+
+	Application::SetApplicationType("IcingaApplication");
 
 	po::options_description desc("Supported options");
 	desc.add_options()
@@ -319,8 +323,20 @@ int main(int argc, char **argv)
 
 	Application::Ptr app = Application::GetInstance();
 
-	if (!app)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Configuration must create an Application object."));
+	if (app) {
+		Log(LogCritical, "icinga-app", "You must not manually create an Application object.");
+		return EXIT_FAILURE;
+	}
+
+	ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>();
+	builder->SetType(Application::GetApplicationType());
+	builder->SetName("application");
+	ConfigItem::Ptr item = builder->Compile();
+	item->Register();
+	DynamicObject::Ptr dobj = item->Commit();
+	dobj->OnConfigLoaded();
+	dobj->Start();
+	app = static_pointer_cast<Application>(dobj);
 
 #ifndef _WIN32
 	struct sigaction sa;

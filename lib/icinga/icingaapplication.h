@@ -49,14 +49,7 @@ public:
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
-protected:
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_PidPath;
-	Dictionary::Ptr m_Macros;
-
 	double m_StartTime;
 
 	void DumpProgramState(void);

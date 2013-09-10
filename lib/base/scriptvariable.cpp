@@ -22,7 +22,7 @@
 
 using namespace icinga;
 
-Registry<String> ScriptVariable::m_Registry;
+Registry<Value> ScriptVariable::m_Registry;
 
 Value ScriptVariable::Get(const String& name)
 {

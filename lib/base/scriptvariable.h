@@ -39,7 +39,7 @@ public:
 	static void Set(const String& name, const Value& value);
 
 private:
-	static Registry<String> m_Registry;
+	static Registry<Value> m_Registry;
 };
 
 }

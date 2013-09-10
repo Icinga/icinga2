@@ -25,6 +25,7 @@
 #include "base/debug.h"
 #include "base/utility.h"
 #include "base/timer.h"
+#include "base/scriptvariable.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
@@ -48,8 +49,6 @@ int IcingaApplication::Main(void)
 	Log(LogDebug, "icinga", "In IcingaApplication::Main()");
 
 	m_StartTime = Utility::GetTime();
-
-	UpdatePidFile(GetPidPath());
 
 	/* periodically dump the program state */
 	l_RetentionTimer = boost::make_shared<Timer>();
@@ -86,21 +85,9 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
 
-String IcingaApplication::GetPidPath(void) const
-{
-	ObjectLock olock(this);
-
-	if (m_PidPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid";
-	else
-		return m_PidPath;
-}
-
 Dictionary::Ptr IcingaApplication::GetMacros(void) const
 {
-	ObjectLock olock(this);
-
-	return m_Macros;
+	return ScriptVariable::Get("IcingaMacros");
 }
 
 double IcingaApplication::GetStartTime(void) const
@@ -139,24 +126,4 @@ bool IcingaApplication::ResolveMacro(const String& macro, const Dictionary::Ptr&
 	}
 
 	return false;
-}
-
-void IcingaApplication::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("pid_path", m_PidPath);
-		bag->Set("macros", m_Macros);
-	}
-}
-
-void IcingaApplication::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_PidPath = bag->Get("pid_path");
-		m_Macros = bag->Get("macros");
-	}
 }

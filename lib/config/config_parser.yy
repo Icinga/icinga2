@@ -175,9 +175,18 @@ library: T_LIBRARY T_STRING
 
 variable: T_SET identifier T_EQUAL value
 	{
-		ScriptVariable::Set($2, *$4);
+		Value *value = $4;
+		if (value->IsObjectType<ExpressionList>()) {
+			Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+			ExpressionList::Ptr exprl = *value;
+			exprl->Execute(dict);
+			delete value;
+			value = new Value(dict);
+		}
+
+		ScriptVariable::Set($2, *value);
 		free($2);
-		delete $4;
+		delete value;
 	}
 
 identifier: T_IDENTIFIER

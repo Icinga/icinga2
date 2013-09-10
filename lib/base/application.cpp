@@ -472,6 +472,8 @@ int Application::Run(void)
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
+	UpdatePidFile(GetPidPath());
+
 	result = Main();
 
 	if (m_Restarting) {
@@ -646,13 +648,53 @@ String Application::GetStatePath(void)
 }
 
 /**
- * Sets the path for the package data dir.
+ * Sets the path for the state file.
  *
  * @param path The new path.
  */
 void Application::SetStatePath(const String& path)
 {
 	ScriptVariable::Set("IcingaStatePath", path);
+}
+
+/**
+ * Retrieves the path for the PID file.
+ *
+ * @returns The path.
+ */
+String Application::GetPidPath(void)
+{
+	return ScriptVariable::Get("IcingaPidPath");
+}
+
+/**
+ * Sets the path for the PID file.
+ *
+ * @param path The new path.
+ */
+void Application::SetPidPath(const String& path)
+{
+	ScriptVariable::Set("IcingaPidPath", path);
+}
+
+/**
+ * Retrieves the name of the Application type.
+ *
+ * @returns The name.
+ */
+String Application::GetApplicationType(void)
+{
+	return ScriptVariable::Get("ApplicationType");
+}
+
+/**
+ * Sets the name of the Application type.
+ *
+ * @param path The new type name.
+ */
+void Application::SetApplicationType(const String& type)
+{
+	ScriptVariable::Set("ApplicationType", type);
 }
 
 /**
