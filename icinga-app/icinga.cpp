@@ -96,8 +96,6 @@ static bool LoadConfigFiles(bool validateOnly)
 	builder->SetName("application");
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
-	DynamicObject::Ptr dobj = item->Commit();
-	dobj->OnConfigLoaded();
 
 	ConfigItem::ActivateItems();
 
