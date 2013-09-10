@@ -231,9 +231,6 @@ void Host::UpdateSlaveServices(void)
 		keys.insert("check_period");
 		keys.insert("servicedependencies");
 		keys.insert("hostdependencies");
-		keys.insert("export_macros");
-		keys.insert("macros");
-		keys.insert("custom");
 
 		ExpressionList::Ptr host_exprl = boost::make_shared<ExpressionList>();
 		item->GetLinkedExpressionList()->ExtractFiltered(keys, host_exprl);
