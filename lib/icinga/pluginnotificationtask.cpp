@@ -50,10 +50,10 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(user);
 	resolvers.push_back(notificationMacroResolver);
-	resolvers.push_back(commandObj);
 	resolvers.push_back(notification);
 	resolvers.push_back(service);
 	resolvers.push_back(service->GetHost());
+	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
 	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd, commandObj->GetEscapeMacros());

@@ -39,9 +39,9 @@ void PluginEventTask::ScriptFunc(const Service::Ptr& service)
 	Value raw_command = commandObj->GetCommandLine();
 
 	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(commandObj);
 	resolvers.push_back(service);
 	resolvers.push_back(service->GetHost());
+	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
 	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
