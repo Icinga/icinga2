@@ -46,7 +46,7 @@ sub get_key_from_icinga1_main_cfg {
     my @key_arr = ();
 
     if ( !-f $file) {
-        errlog(1, "cfg file $file does not exist!");
+        print "cfg file $file does not exist!";
         return;
     }
 

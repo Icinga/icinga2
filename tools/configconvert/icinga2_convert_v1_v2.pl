@@ -90,7 +90,7 @@ GetOptions(
     "V|version"         => \$opt->{version}
 );
 
-my $icinga1_cfg = "/etc/icinga/icinga.cfg";
+my $icinga1_cfg;
 my $icinga2_cfg = {};
 my $conf_prefix = "./conf";
 my $verbose = 1;
@@ -137,6 +137,11 @@ my $type_cnt;
 ################################################################################
 
 # TODO import/export files in parallel?
+
+# verify that we have something to read
+if ( !-f $icinga1_cfg) {
+    pod2usage(1);
+}
 
 # the import
 my $icinga1_cfg_obj = Icinga2::ImportIcinga1Cfg::parse_icinga1_objects($icinga1_cfg);
