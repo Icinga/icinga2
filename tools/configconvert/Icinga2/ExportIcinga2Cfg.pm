@@ -299,7 +299,7 @@ sub dump_service_2x {
     ####################################################
 
     if(defined($service_2x->{'__I2CONVERT_MACROS'}) && $service_2x->{'__I2CONVERT_MACROS'} != 0) {
-        dump_config_line($icinga2_cfg, "\tmacros = {");
+        dump_config_line($icinga2_cfg, "\tmacros += {");
         foreach my $macro_key (keys %{$service_2x->{'__I2CONVERT_MACROS'}}) {
             next if $macro_key =~ /USER/;
             dump_config_line($icinga2_cfg, "\t\t$macro_key = \"$service_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
@@ -455,7 +455,7 @@ sub dump_service_2x {
     # custom attr
     ####################################################
     if(defined($service_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $service_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
-        dump_config_line($icinga2_cfg, "\tcustom = {");
+        dump_config_line($icinga2_cfg, "\tcustom += {");
         foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
             dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
         }
@@ -503,7 +503,7 @@ sub dump_host_2x {
     dump_config_line($icinga2_cfg, "");
 
     if(defined($host_2x->{'__I2CONVERT_MACROS'}) && $host_2x->{'__I2CONVERT_MACROS'} != 0) {
-        dump_config_line($icinga2_cfg, "\tmacros = {");
+        dump_config_line($icinga2_cfg, "\tmacros += {");
         foreach my $macro_key (keys %{$host_2x->{'__I2CONVERT_MACROS'}}) {
             next if $macro_key =~ /USER/;
             dump_config_line($icinga2_cfg, "\t\t$macro_key = \"$host_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
@@ -589,7 +589,7 @@ sub dump_host_2x {
     ####################################################
 
     if(defined($host_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $host_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
-        dump_config_line($icinga2_cfg, "\tcustom = {");
+        dump_config_line($icinga2_cfg, "\tcustom += {");
         foreach my $custom_key (keys %{$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
             dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
         }
@@ -644,7 +644,7 @@ sub dump_host_2x {
         ####################################################
 
         if(defined($service_2x->{'__I2CONVERT_MACROS'}) && $service_2x->{'__I2CONVERT_MACROS'} != 0) {
-            dump_config_line($icinga2_cfg, "\t\tmacros = {");
+            dump_config_line($icinga2_cfg, "\t\tmacros += {");
             foreach my $macro_key (keys %{$service_2x->{'__I2CONVERT_MACROS'}}) {
                 next if $macro_key =~ /USER/;
                 dump_config_line($icinga2_cfg, "\t\t\t$macro_key = \"$service_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
@@ -802,7 +802,7 @@ sub dump_host_2x {
         ####################################################
 
         if(defined($service_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $service_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
-            dump_config_line($icinga2_cfg, "\t\tcustom = {");
+            dump_config_line($icinga2_cfg, "\t\tcustom += {");
             foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
                 dump_config_line($icinga2_cfg, "\t\t\t$custom_key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
             }
@@ -847,7 +847,7 @@ sub dump_user_2x {
     ####################################################
 
     if(defined($user_2x->{'__I2CONVERT_MACROS'}) && $user_2x->{'__I2CONVERT_MACROS'} != 0) {
-        dump_config_line($icinga2_cfg, "\tmacros = {");
+        dump_config_line($icinga2_cfg, "\tmacros += {");
         foreach my $macro_key (keys %{$user_2x->{'__I2CONVERT_MACROS'}}) {
             next if $macro_key =~ /USER/;
             dump_config_line($icinga2_cfg, "\t\t$macro_key = \"$user_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
@@ -896,7 +896,7 @@ sub dump_user_2x {
     ####################################################
 
     if(defined($user_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $user_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
-        dump_config_line($icinga2_cfg, "\tcustom = {");
+        dump_config_line($icinga2_cfg, "\tcustom += {");
         foreach my $custom_key (keys %{$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
             dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
         }
@@ -1034,7 +1034,7 @@ sub dump_group_2x {
     ####################################################
 
     if(defined($group_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $group_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
-        dump_config_line($icinga2_cfg, "\tcustom = {");
+        dump_config_line($icinga2_cfg, "\tcustom += {");
         foreach my $custom_key (keys %{$group_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
             dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$group_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
         }
@@ -1092,7 +1092,7 @@ sub dump_command_2x {
     ####################################################
 
     if(defined($command_2x->{'__I2CONVERT_COMMAND_MACROS'}) && $command_2x->{'__I2CONVERT_COMMAND_MACROS'} != 0) {
-        dump_config_line($icinga2_cfg, "\tmacros = {");
+        dump_config_line($icinga2_cfg, "\tmacros += {");
         foreach my $cmd_arg (keys %{$command_2x->{'__I2CONVERT_COMMAND_MACROS'}}) {
             dump_config_line($icinga2_cfg, "\t\t$cmd_arg = \"$command_2x->{'__I2CONVERT_COMMAND_MACROS'}->{$cmd_arg}\",");
         }
