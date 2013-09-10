@@ -86,6 +86,19 @@ static bool LoadConfigFiles(bool validateOnly)
 	if (validateOnly)
 		return true;
 
+	if (Application::GetInstance()) {
+		Log(LogCritical, "icinga-app", "You must not manually create an Application object.");
+		return false;
+	}
+
+	ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>();
+	builder->SetType(Application::GetApplicationType());
+	builder->SetName("application");
+	ConfigItem::Ptr item = builder->Compile();
+	item->Register();
+	DynamicObject::Ptr dobj = item->Commit();
+	dobj->OnConfigLoaded();
+
 	ConfigItem::ActivateItems();
 
 	ConfigItem::DiscardItems();
@@ -321,23 +334,6 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
-	Application::Ptr app = Application::GetInstance();
-
-	if (app) {
-		Log(LogCritical, "icinga-app", "You must not manually create an Application object.");
-		return EXIT_FAILURE;
-	}
-
-	ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>();
-	builder->SetType(Application::GetApplicationType());
-	builder->SetName("application");
-	ConfigItem::Ptr item = builder->Compile();
-	item->Register();
-	DynamicObject::Ptr dobj = item->Commit();
-	dobj->OnConfigLoaded();
-	dobj->Start();
-	app = static_pointer_cast<Application>(dobj);
-
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -345,5 +341,5 @@ int main(int argc, char **argv)
 	sigaction(SIGHUP, &sa, NULL);
 #endif /* _WIN32 */
 
-	return app->Run();
+	return Application::GetInstance()->Run();
 }
