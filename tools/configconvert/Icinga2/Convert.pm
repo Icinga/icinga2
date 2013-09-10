@@ -839,17 +839,23 @@ sub convert_notification_options_to_filter {
     # split the string
     my @options = Icinga2::Utils::str2arr_by_delim_without_excludes($notification_options, ',', 1);
 
-    # verify if there's 'n' (none) or 'a' (all) and ignore the rest then
+    # verify if there's 'n' (none) and ignore the rest then
     if (grep /n/, @options) {
         push @{$filter->{'state'}}, 0;
         push @{$filter->{'type'}}, 0;
         return $filter;
     }
 
+    # recovery requires state up
+    if (grep /r/, @options) {
+        push @{$filter->{'state'}}, 'StateFilterOK';
+    }
+
     # always add NotificationFilterProblem|Custom
     push @{$filter->{'type'}}, 'NotificationFilterProblem';
     push @{$filter->{'type'}}, 'NotificationFilterCustom';
 
+    # verify if there's 'a' (all) and add all filters
     if (grep /a/, @options) {
         foreach my $by (keys %{$filter_by}) {
             push @{$filter->{$filter_by->{$by}}}, $filter_names->{$by};
