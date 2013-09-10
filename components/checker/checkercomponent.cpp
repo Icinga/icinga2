@@ -103,9 +103,10 @@ void CheckerComponent::CheckThreadProc(void)
 
 		m_IdleServices.erase(service);
 
+		bool forced = service->GetForceNextCheck();
 		bool check = true;
 
-		if (!service->GetForceNextCheck()) {
+		if (!forced) {
 			if (!service->GetEnableActiveChecks()) {
 				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active checks are disabled");
 				check = false;
@@ -136,7 +137,7 @@ void CheckerComponent::CheckThreadProc(void)
 
 		lock.unlock();
 
-		{
+		if (forced) {
 			ObjectLock olock(service);
 			service->SetForceNextCheck(false);
 		}
