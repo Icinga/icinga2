@@ -59,10 +59,12 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 		m_Client = client;
 	}
 
-	boost::thread thread(boost::bind(&Endpoint::MessageThreadProc, this, client));
-	thread.detach();
+	if (client) {
+		boost::thread thread(boost::bind(&Endpoint::MessageThreadProc, this, client));
+		thread.detach();
 
-	OnConnected(GetSelf());
+		OnConnected(GetSelf());
+	}
 }
 
 void Endpoint::SendMessage(const Dictionary::Ptr& message)
