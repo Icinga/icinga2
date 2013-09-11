@@ -411,6 +411,8 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 		return;
 	}
 
+	endpoint->SetSeen(Utility::GetTime());
+
 	Dictionary::Ptr config = boost::make_shared<Dictionary>();
 	Array::Ptr configFiles = endpoint->GetConfigFiles();
 
@@ -469,7 +471,7 @@ void ClusterComponent::ClusterTimerHandler(void)
 		ObjectLock olock(this);
 		/* check if we've recently seen heartbeat messages from our peers */
 		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-			if (!endpoint->IsConnected() || endpoint->GetSeen() > Utility::GetTime() - 60)
+			if (endpoint->GetSeen() > Utility::GetTime() - 60)
 				continue;
 
 			Stream::Ptr client = endpoint->GetClient();
