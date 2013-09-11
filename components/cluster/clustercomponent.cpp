@@ -435,10 +435,9 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 
 	{
 		ObjectLock olock(this);
+		endpoint->SetClient(tlsStream);
 		ReplayLog(endpoint, tlsStream);
 	}
-
-	endpoint->SetClient(tlsStream);
 }
 
 void ClusterComponent::ClusterTimerHandler(void)
@@ -1089,8 +1088,6 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			Log(LogInformation, "cluster", "Restarting after configuration change.");
 			Application::RequestRestart();
 		}
-
-		/* TODO: update files, remove old files, figure out whether we need to restart */
 	}
 }
 
