@@ -86,13 +86,13 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 
 	ObjectLock olock(this);
 
-	DbType::ObjectMap::const_iterator it = GetObjects().find(std::make_pair(name1, name2));
+	DbType::ObjectMap::const_iterator it = m_Objects.find(std::make_pair(name1, name2));
 
-	if (it != GetObjects().end())
+	if (it != m_Objects.end())
 		return it->second;
 
 	DbObject::Ptr dbobj = m_ObjectFactory(GetSelf(), name1, name2);
-	GetObjects()[std::make_pair(name1, name2)] = dbobj;
+	m_Objects[std::make_pair(name1, name2)] = dbobj;
 
 	return dbobj;
 }
@@ -110,13 +110,4 @@ DbType::TypeMap& DbType::GetTypes(void)
 {
 	static DbType::TypeMap tm;
 	return tm;
-}
-
-/**
- * Caller must hold object mutex.
- */
-DbType::ObjectMap& DbType::GetObjects(void)
-{
-	static DbType::ObjectMap om;
-	return om;
 }

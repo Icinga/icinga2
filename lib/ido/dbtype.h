@@ -67,7 +67,7 @@ private:
 	static boost::mutex& GetStaticMutex(void);
 	static TypeMap& GetTypes(void);
 
-	ObjectMap& GetObjects(void);
+	ObjectMap m_Objects;
 };
 
 /**
