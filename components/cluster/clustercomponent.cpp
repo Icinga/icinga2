@@ -443,9 +443,13 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 void ClusterComponent::ClusterTimerHandler(void)
 {
 	/* broadcast a heartbeat message */
+	Dictionary::Ptr params = boost::make_shared<Dictionary>();
+	params->Set("identity", GetIdentity());
+
 	Dictionary::Ptr message = boost::make_shared<Dictionary>();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::HeartBeat");
+	message->Set("params", params);
 
 	RelayMessage(Endpoint::Ptr(), message, false);
 
@@ -808,17 +812,21 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 	RelayMessage(sender, message, true);
 
-	if (message->Get("method") == "cluster::HeartBeat") {
-		sender->SetSeen(Utility::GetTime());
-		return;
-	}
-
 	Dictionary::Ptr params = message->Get("params");
 
 	if (!params)
 		return;
 
-	if (message->Get("method") == "cluster::CheckResult") {
+	if (message->Get("method") == "cluster::HeartBeat") {
+		sender->SetSeen(Utility::GetTime());
+
+		String identity = params->Get("identity");
+
+		Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
+
+		if (endpoint && endpoint != sender)
+			endpoint->SetSeen(Utility::GetTime());
+	} else if (message->Get("method") == "cluster::CheckResult") {
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
