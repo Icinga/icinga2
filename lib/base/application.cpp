@@ -53,8 +53,6 @@ char **Application::m_ArgV;
  */
 void Application::OnConfigLoaded(void)
 {
-	DynamicObject::Start();
-
 	m_PidFile = NULL;
 
 #ifdef _WIN32
