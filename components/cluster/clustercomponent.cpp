@@ -435,11 +435,13 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 
 	{
 		ObjectLock olock(this);
+
 		Stream::Ptr oldClient = endpoint->GetClient();
 		if (oldClient)
 			oldClient->Close();
-		endpoint->SetClient(tlsStream);
+
 		ReplayLog(endpoint, tlsStream);
+		endpoint->SetClient(tlsStream);
 	}
 }
 
@@ -449,6 +451,12 @@ void ClusterComponent::ClusterTimerHandler(void)
 	Dictionary::Ptr params = boost::make_shared<Dictionary>();
 	params->Set("identity", GetIdentity());
 
+	/* Eww. */
+	Dictionary::Ptr features = boost::make_shared<Dictionary>();
+	features->Set("checker", DynamicType::GetByName("CheckerComponent") ? 1 : 0);
+	features->Set("notification", DynamicType::GetByName("NotificationComponent") ? 1 : 0);
+	params->Set("features", features);
+
 	Dictionary::Ptr message = boost::make_shared<Dictionary>();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::HeartBeat");
@@ -456,16 +464,20 @@ void ClusterComponent::ClusterTimerHandler(void)
 
 	RelayMessage(Endpoint::Ptr(), message, false);
 
-	/* check if we've recently seen heartbeat messages from our peers */
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		if (!endpoint->IsConnected() || endpoint->GetSeen() > Utility::GetTime() - 300)
-			continue;
+	{
+		ObjectLock olock(this);
+		/* check if we've recently seen heartbeat messages from our peers */
+		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+			if (!endpoint->IsConnected() || endpoint->GetSeen() > Utility::GetTime() - 60)
+				continue;
 
-		Stream::Ptr client = endpoint->GetClient();
+			Stream::Ptr client = endpoint->GetClient();
 
-		if (client) {
-			Log(LogWarning, "cluster", "Closing connection for endpoiint '" + endpoint->GetName() + "' due to inactivity.");
-			client->Close();
+			if (client) {
+				Log(LogWarning, "cluster", "Closing connection for endpoint '" + endpoint->GetName() + "' due to inactivity.");
+				client->Close();
+				endpoint->SetClient(Endpoint::Ptr());
+			}
 		}
 	}
 
