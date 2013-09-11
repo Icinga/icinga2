@@ -34,6 +34,9 @@ Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroRes
 {
 	Value result;
 
+	if (str.IsEmpty())
+		return Empty;
+
 	if (str.IsScalar()) {
 		result = InternalResolveMacros(str, resolvers, cr, escapeFn, escapeMacros);
 	} else if (str.IsObjectType<Array>()) {
