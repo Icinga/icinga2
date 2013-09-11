@@ -476,7 +476,7 @@ void ClusterComponent::ClusterTimerHandler(void)
 			if (client) {
 				Log(LogWarning, "cluster", "Closing connection for endpoint '" + endpoint->GetName() + "' due to inactivity.");
 				client->Close();
-				endpoint->SetClient(Endpoint::Ptr());
+				endpoint->SetClient(Stream::Ptr());
 			}
 		}
 	}
