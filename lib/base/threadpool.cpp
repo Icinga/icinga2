@@ -192,6 +192,7 @@ void ThreadPool::QueueThreadProc(int tid)
 #endif /* _DEBUG */
 	}
 
+	boost::mutex::scoped_lock lock(m_Mutex);
 	UpdateThreadUtilization(tid, ThreadDead);
 	m_ThreadStats[tid].Zombie = false;
 }
