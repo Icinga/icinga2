@@ -806,6 +806,8 @@ void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service
 
 void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
 {
+	sender->SetSeen(Utility::GetTime());
+
 	if (message->Contains("ts")) {
 		double ts = message->Get("ts");
 
@@ -838,13 +840,11 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		return;
 
 	if (message->Get("method") == "cluster::HeartBeat") {
-		sender->SetSeen(Utility::GetTime());
-
 		String identity = params->Get("identity");
 
 		Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
-		if (endpoint && endpoint != sender)
+		if (endpoint)
 			endpoint->SetSeen(Utility::GetTime());
 	} else if (message->Get("method") == "cluster::CheckResult") {
 		String svc = params->Get("service");
