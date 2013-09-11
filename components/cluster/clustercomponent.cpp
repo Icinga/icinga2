@@ -440,8 +440,9 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 		if (oldClient)
 			oldClient->Close();
 
-		ReplayLog(endpoint, tlsStream);
 		endpoint->SetClient(tlsStream);
+
+		ReplayLog(endpoint, tlsStream);
 	}
 }
 
