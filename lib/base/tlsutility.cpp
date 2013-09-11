@@ -35,6 +35,8 @@ static void InitializeOpenSSL(void)
 	SSL_library_init();
 	SSL_load_error_strings();
 
+	SSL_COMP_get_compression_methods();
+
 	l_SSLInitialized = true;
 }
 
