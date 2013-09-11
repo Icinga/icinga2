@@ -11,12 +11,10 @@ include <itl/itl.conf>
 include <itl/standalone.conf>
 
 /**
- * Global configuration settings
+ * Global macros
  */
-object IcingaApplication "icinga" {
- macros = {
-    plugindir = "/usr/local/icinga/libexec"
-  }
+set IcingaMacros = {
+  plugindir = "/usr/local/icinga/libexec"
 }
 
 /**
