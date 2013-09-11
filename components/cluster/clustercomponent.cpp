@@ -435,6 +435,9 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 
 	{
 		ObjectLock olock(this);
+		Stream::Ptr oldClient = endpoint->GetClient();
+		if (oldClient)
+			oldClient->Close();
 		endpoint->SetClient(tlsStream);
 		ReplayLog(endpoint, tlsStream);
 	}
@@ -455,13 +458,15 @@ void ClusterComponent::ClusterTimerHandler(void)
 
 	/* check if we've recently seen heartbeat messages from our peers */
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		if (!endpoint->IsConnected() || endpoint->GetSeen() > Utility::GetTime() - 60)
+		if (!endpoint->IsConnected() || endpoint->GetSeen() > Utility::GetTime() - 300)
 			continue;
 
 		Stream::Ptr client = endpoint->GetClient();
 
-		if (client)
+		if (client) {
+			Log(LogWarning, "cluster", "Closing connection for endpoiint '" + endpoint->GetName() + "' due to inactivity.");
 			client->Close();
+		}
 	}
 
 	Array::Ptr peers = GetPeers();
