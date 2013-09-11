@@ -27,8 +27,6 @@
 
 using namespace icinga;
 
-boost::mutex DbType::m_StaticMutex;
-
 DbType::DbType(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
 	: m_Name(name), m_Table(table), m_TypeID(tid), m_IDColumn(idcolumn), m_ObjectFactory(factory)
 { }
@@ -55,13 +53,13 @@ String DbType::GetIDColumn(void) const
 
 void DbType::RegisterType(const DbType::Ptr& type)
 {
-	boost::mutex::scoped_lock lock(m_StaticMutex);
+	boost::mutex::scoped_lock lock(GetStaticMutex());
 	GetTypes()[type->GetName()] = type;
 }
 
 DbType::Ptr DbType::GetByName(const String& name)
 {
-	boost::mutex::scoped_lock lock(m_StaticMutex);
+	boost::mutex::scoped_lock lock(GetStaticMutex());
 	DbType::TypeMap::const_iterator it = GetTypes().find(name);
 
 	if (it == GetTypes().end())
@@ -99,8 +97,14 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 	return dbobj;
 }
 
+boost::mutex& DbType::GetStaticMutex(void)
+{
+	static boost::mutex mutex;
+	return mutex;
+}
+
 /**
- * Caller must hold m_StaticMutex.
+ * Caller must hold static mutex.
  */
 DbType::TypeMap& DbType::GetTypes(void)
 {
