@@ -837,5 +837,10 @@ double Service::CalculateLatency(const Dictionary::Ptr& cr)
 		schedule_end = cr->Get("schedule_end");
 	}
 
-	return (schedule_end - schedule_start) - CalculateExecutionTime(cr);
+	double latency = (schedule_end - schedule_start) - CalculateExecutionTime(cr);
+
+	if (latency < 0)
+		latency = 0;
+
+	return latency;
 }
