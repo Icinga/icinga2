@@ -264,10 +264,6 @@ void TimePeriod::UpdateTimerHandler(void)
 	double now = Utility::GetTime();
 
 	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjects<TimePeriod>()) {
-		/* Only update time periods that have been defined on this node. */
-		if (!ConfigItem::GetObject("TimePeriod", tp->GetName()))
-			continue;
-
 		double valid_end;
 
 		{
