@@ -807,6 +807,93 @@ sub obj_convert_custom_attr_to_custom_hash {
     return $custom;
 }
 
+sub resolve_macro_attribute {
+    my $cfg_obj = shift;
+    my $obj = shift;
+    my $macro_name = shift;
+
+    my $macro_value;
+    my $attr_name;
+    my $obj_host;
+    my $host_name;
+
+    # NOTE: BIG FAT NOTE: we only support static configuration macros as arguments
+    # we cannot resolve macros which require the full configuration in memory, but
+    # only local service (or host related macros) for command arguments
+
+    # _ == custom var from host/service
+    if ($macro_name =~ /^_HOST(\w+)/) {
+        $attr_name = "_$1";
+        Icinga2::Utils::debug("MACRO RESOLVER: found Host CV '$macro_name'.");
+
+        if (defined($obj->{'__I2CONVERT_HOSTNAME'})) {
+            $host_name = $obj->{'__I2CONVERT_HOSTNAME'};
+            $obj_host = $obj;
+        } else {
+            $host_name = $obj->{'__I2CONVERT_SERVICE_HOSTNAME'};
+            # first grab the according host object (this is a service object)
+            $obj_host = obj_get_host_obj_by_host_name($cfg_obj, $host_name);
+        }
+
+        $macro_value = obj_1x_get_host_attr($cfg_obj, $obj, $host_name, $attr_name);
+
+        Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+        return $macro_value;
+    }
+    elsif ($macro_name =~ /^_SERVICE(\w+)/) {
+        $attr_name = "_$1";
+
+        # if this is a host object, this macro is invalid! XXX
+        return undef if defined($obj->{'__I2CONVERT_HOSTNAME'});
+
+        Icinga2::Utils::debug("MACRO RESOLVER: found Service CV '$macro_name'.");
+        $macro_value = obj_1x_get_service_attr($cfg_obj, $obj, $obj->{'__I2CONVERT_SERVICE_HOSTNAME'}, $attr_name);
+
+        Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+        return $macro_value;
+    }
+    else {
+        # XXX this is way too modular to actually work with macros not having any underscores and other magic
+        if ($macro_name =~ /HOST(\w+)/) {
+            $attr_name = lc $1;
+            Icinga2::Utils::debug("MACRO RESOLVER: found Host attribute '$macro_name'.");
+
+            if (defined($obj->{'__I2CONVERT_HOSTNAME'})) {
+                $host_name = $obj->{'__I2CONVERT_HOSTNAME'};
+                $obj_host = $obj;
+            } else {
+                $host_name = $obj->{'__I2CONVERT_SERVICE_HOSTNAME'};
+                # first grab the according host object (this is a service object)
+                $obj_host = obj_get_host_obj_by_host_name($cfg_obj, $host_name);
+            }
+
+            $macro_value = obj_1x_get_host_attr($cfg_obj, $obj, $host_name, $attr_name);
+
+            Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+            return $macro_value;
+        }
+        elsif ($macro_name =~ /SERVICE(\w+)/) {
+            $attr_name = lc $1;
+
+            # if this is a host object, this macro is invalid! XXX
+            return undef if defined($obj->{'__I2CONVERT_HOSTNAME'});
+
+            Icinga2::Utils::debug("MACRO RESOLVER: found Service attribute '$macro_name'.");
+            $macro_value = obj_1x_get_service_attr($cfg_obj, $obj, $obj->{'__I2CONVERT_SERVICE_HOSTNAME'}, $attr_name);
+
+            Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+            return $macro_value;
+        }
+        elsif ($macro_name =~ /CONTACT(\w+)/) {
+            $attr_name = lc $1;
+            # XXX is that possible from command arguments?
+            # http://docs.icinga.org/latest/en/macrolist.html#availabilitychart (NO)
+        }
+    }
+
+    return undef;
+}
+
 # convert notification_options to state|type_filter
 sub convert_notification_options_to_filter {
     my $notification_options = shift;
@@ -971,6 +1058,7 @@ sub convert_eventhandler {
 
 # check_command accepts argument parameters, special treatment
 sub convert_checkcommand {
+    my $cfg_obj_1x = shift;
     my $commands_1x = shift;
     my $obj_1x = shift; #host or service
     my $global_macros_1x = shift;
@@ -1009,9 +1097,38 @@ sub convert_checkcommand {
             # save all command args as macros (we'll deal later with them in service definitions)
             my $arg_cnt = 1;
             foreach my $command_arg_1x (@command_args_1x) {
-                my $macro_name_2x = "ARG" . $arg_cnt;
-                $command_2x->{'command_macros'}->{$macro_name_2x} = Icinga2::Utils::escape_str($command_arg_1x);
-                #debug("\$$macro_name_2x\$=$command_2x->{'macros'}->{$macro_name_2x}");
+                my $macro_name_2x;
+                my $macro_value_2x;
+
+                # XXX if the argument is a macro itsself (i.e. custom var), fetch its value and use its name as macro name
+                if ($command_arg_1x =~ /\$(\w+)\$/) {
+                    $macro_name_2x = $1;
+                    $macro_value_2x = resolve_macro_attribute($cfg_obj_1x, $obj_1x, $macro_name_2x);
+                    # if we cannot resolve the macro (for being on-runtime e.g.) we'll replace it on the command line itsself
+                    if (!defined($macro_value_2x)) {
+                        Icinga2::Utils::debug("CONVERT COMMAND: Couldn't resolve macro, so removing argument and replacing command_line");
+                        Icinga2::Utils::debug("CONVERT COMMAND: old: '$command_2x->{'check_command'}'");
+                        my $old_arg_macro_name = "\\\$ARG$arg_cnt\\\$";
+                        my $new_arg_macro_name = "\$$macro_name_2x\$";
+                        $command_2x->{'check_command'} =~ s/$old_arg_macro_name/$new_arg_macro_name/;
+                        Icinga2::Utils::debug("CONVERT COMMAND: new: '$command_2x->{'check_command'}'");
+                        # do not add this macro (increment counter and skip it) XXX
+                        $arg_cnt++;
+                        next;
+                    } else {
+                        Icinga2::Utils::debug("CONVERT COMMAND: old: '$command_2x->{'check_command'}'");
+                        my $old_arg_macro_name = "\\\$ARG$arg_cnt\\\$";
+                        my $new_arg_macro_name = "\$$macro_name_2x\$";
+                        $command_2x->{'check_command'} =~ s/$old_arg_macro_name/$new_arg_macro_name/;
+                        Icinga2::Utils::debug("CONVERT COMMAND: new: '$command_2x->{'check_command'}'");
+                    }
+
+                } else {
+                    $macro_name_2x = "ARG" . $arg_cnt;
+                    $macro_value_2x = $command_arg_1x;
+                }
+
+                $command_2x->{'command_macros'}->{$macro_name_2x} = Icinga2::Utils::escape_str($macro_value_2x);
                 $arg_cnt++;
             }
         }
@@ -1264,7 +1381,7 @@ sub convert_2x {
             ##########################################
             # map the service check_command to 2.x
             ##########################################
-            my $service_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_1x_service, $global_macros_1x);
+            my $service_check_command_2x = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_service, $global_macros_1x);
 
             #say Dumper($service_check_command_2x);
 
@@ -1486,7 +1603,7 @@ sub convert_2x {
         #   and link that service
         ####################################################
 
-        my $host_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_1x_host, $global_macros_1x);
+        my $host_check_command_2x = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_host, $global_macros_1x);
         #say Dumper($host_check_command_2x);
 
         if(defined($host_check_command_2x->{'check_command_name_1x'})) {
@@ -2612,8 +2729,8 @@ sub convert_2x {
                 ######################################
                 # LINK HOST COMMAND WITH SERVICE CHECK
                 ######################################
-                my $service_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_2x_service, $global_macros_1x);
-                my $host_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_2x_host, $global_macros_1x);
+                my $service_check_command_2x = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_service, $global_macros_1x);
+                my $host_check_command_2x = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $global_macros_1x);
                 #say Dumper($host_check_command_2x);
 
                 # check if this service check is a possible match for __I2CONVERT_HOST_CHECK?
