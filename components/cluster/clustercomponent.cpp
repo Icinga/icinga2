@@ -1153,6 +1153,9 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 			endpoints.push_back(endpoint->GetName());
 	}
 
+	if (endpoints.empty())
+		return;
+
 	std::sort(endpoints.begin(), endpoints.end());
 
 	String key = object->GetType()->GetName() + "\t" + object->GetName();
