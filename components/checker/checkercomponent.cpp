@@ -83,17 +83,18 @@ void CheckerComponent::CheckThreadProc(void)
 		CheckTimeView::iterator it = idx.begin();
 		Service::Ptr service = *it;
 
+		if (!service->HasAuthority("checker")) {
+			idx.erase(it);
+			idx.insert(service);
+			continue;
+		}
+
 		if (!service->IsActive()) {
 			idx.erase(it);
 			continue;
 		}
 
 		double wait = service->GetNextCheck() - Utility::GetTime();
-
-		bool authoritative = service->HasAuthority("checker");
-
-		if (!authoritative)
-			wait = 60;
 
 		if (wait > 0) {
 			/* Make sure the service we just examined can be destroyed while we're waiting. */
@@ -110,6 +111,7 @@ void CheckerComponent::CheckThreadProc(void)
 
 		bool forced = service->GetForceNextCheck();
 		bool check = true;
+		bool authoritative = service->HasAuthority("checker");
 
 		if (!forced) {
 			if (!service->GetEnableActiveChecks()) {
