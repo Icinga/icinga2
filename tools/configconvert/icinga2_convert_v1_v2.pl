@@ -112,6 +112,7 @@ if (defined $opt->{version}) { print $version."\n"; exit 0; }
 if ($opt->{help}) { pod2usage(1); }
 
 $icinga2_cfg->{'main'}= "$conf_prefix/icinga2.conf";
+$icinga2_cfg->{'resource'}= "$conf_prefix/resource.conf";
 $icinga2_cfg->{'hosts'}= "$conf_prefix/hosts.conf";
 $icinga2_cfg->{'services'}= "$conf_prefix/services.conf";
 $icinga2_cfg->{'users'}= "$conf_prefix/users.conf";
@@ -152,6 +153,7 @@ my $icinga1_user_macros = Icinga2::ImportIcinga1Cfg::parse_icinga1_user_macros($
 my $icinga2_cfg_obj = Icinga2::Convert::convert_2x($icinga2_cfg, $icinga1_cfg_obj, $icinga1_cfg_obj_cache, $icinga1_user_macros);
 
 # the export
+Icinga2::ExportIcinga2Cfg::dump_cfg_resource_2x($icinga2_cfg, $icinga1_user_macros);
 Icinga2::ExportIcinga2Cfg::dump_cfg_obj_2x($icinga2_cfg, $icinga2_cfg_obj);
 
 # vi: sw=4 ts=4 expandtab :

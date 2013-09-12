@@ -103,6 +103,21 @@ sub end_object_type_config_dump {
 # DUMP ALL OBJECTS 2.x
 ################################################################################
 
+sub dump_cfg_resource_2x {
+    my $icinga2_cfg = shift;
+    my $icinga2_global_macros = shift;
+
+    start_object_type_config_dump($icinga2_cfg, 'resource');
+
+    dump_config_line($icinga2_cfg, "set IcingaMacros = {");
+    foreach my $global_macro_2x_key (sort keys %{$icinga2_global_macros}) {
+        dump_config_line($icinga2_cfg, "\t\"$global_macro_2x_key\" = \"$icinga2_global_macros->{$global_macro_2x_key}\",");
+    }
+
+    dump_config_line($icinga2_cfg, "}");
+
+    end_object_type_config_dump($icinga2_cfg);
+}
 
 sub dump_cfg_obj_2x {
     my $icinga2_cfg = shift;
