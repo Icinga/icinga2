@@ -1133,7 +1133,7 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
 		bool match = false;
 
-		if (!endpoint->IsConnected() || !endpoint->HasFeature(type))
+		if ((!endpoint->IsConnected() && endpoint->GetName() != GetIdentity()) || !endpoint->HasFeature(type))
 			continue;
 
 		if (authorities) {
@@ -1153,8 +1153,11 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 			endpoints.push_back(endpoint->GetName());
 	}
 
-	if (endpoints.empty())
+	if (endpoints.empty()) {
+		result = false;
+
 		return;
+	}
 
 	std::sort(endpoints.begin(), endpoints.end());
 
