@@ -467,6 +467,8 @@ void ClusterComponent::ClusterTimerHandler(void)
 	message->Set("method", "cluster::HeartBeat");
 	message->Set("params", params);
 
+	Endpoint::GetByName(GetIdentity())->SetFeatures(features);
+
 	RelayMessage(Endpoint::Ptr(), message, false);
 
 	{
@@ -1128,10 +1130,6 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 	Array::Ptr authorities = object->GetAuthorities();
 	std::vector<String> endpoints;
 
-	if ((type == "checker" && SupportsChecks()) ||
-	    (type == "notification" && SupportsNotifications()))
-		endpoints.push_back(GetIdentity());
-
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
 		bool match = false;
 
@@ -1156,12 +1154,6 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 	}
 
 	std::sort(endpoints.begin(), endpoints.end());
-
-	std::ostringstream msgbuf;
-	BOOST_FOREACH(const String& name, endpoints) {
-		msgbuf << name << ", ";
-	}
-	Log(LogDebug, "cluster", "Responsible for " + object->GetName() + ": " + msgbuf.str());
 
 	String key = object->GetType()->GetName() + "\t" + object->GetName();
 	unsigned long hash = Utility::SDBM(key);
