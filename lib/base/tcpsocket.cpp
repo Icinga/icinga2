@@ -47,6 +47,8 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 {
 	addrinfo hints;
 	addrinfo *result;
+	int error;
+	const char *func;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = family;
@@ -54,17 +56,13 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 
-	if (getaddrinfo(node.IsEmpty() ? NULL : node.CStr(),
-	    service.CStr(), &hints, &result) < 0) {
-#ifndef _WIN32
+	int rc = getaddrinfo(node.IsEmpty() ? NULL : node.CStr(),
+	    service.CStr(), &hints, &result);
+
+	if (rc != 0) {
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("getaddrinfo")
-		    << boost::errinfo_errno(errno));
-#else /* _WIN32 */
-		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getaddrinfo")
-		    << errinfo_win32_error(WSAGetLastError()));
-#endif /* _WIN32 */
+		    << errinfo_getaddrinfo_error(rc));
 	}
 
 	int fd = INVALID_SOCKET;
@@ -72,8 +70,16 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 	for (addrinfo *info = result; info != NULL; info = info->ai_next) {
 		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
 
-		if (fd == INVALID_SOCKET)
+		if (fd == INVALID_SOCKET) {
+#ifdef _WIN32           
+			error = WSAGetLastError();
+#else /* _WIN32 */
+			error = errno;
+#endif /* _WIN32 */
+			func = "socket";
+
 			continue;
+		}
 
 		const int optFalse = 0;
 		setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&optFalse), sizeof(optFalse));
@@ -86,6 +92,13 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 		int rc = bind(fd, info->ai_addr, info->ai_addrlen);
 
 		if (rc < 0) {
+#ifdef _WIN32
+			error = WSAGetLastError();
+#else /* _WIN32 */
+			error = errno;
+#endif /* _WIN32 */
+			func = "bind";
+
 			closesocket(fd);
 
 			continue;
@@ -98,8 +111,17 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 
 	freeaddrinfo(result);
 
-	if (GetFD() == INVALID_SOCKET)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create a suitable socket."));
+	if (GetFD() == INVALID_SOCKET) {
+#ifndef _WIN32
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function(func)
+		    << boost::errinfo_errno(error));
+#else /* _WIN32 */
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function(func)
+		    << errinfo_win32_error(error));
+#endif /* _WIN32 */
+	}
 }
 
 /**
@@ -112,6 +134,8 @@ void TcpSocket::Connect(const String& node, const String& service)
 {
 	addrinfo hints;
 	addrinfo *result;
+	int error;
+	const char *func;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -120,16 +144,10 @@ void TcpSocket::Connect(const String& node, const String& service)
 
 	int rc = getaddrinfo(node.CStr(), service.CStr(), &hints, &result);
 
-	if (rc < 0) {
-#ifndef _WIN32
+	if (rc != 0) {
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("getaddrinfo")
-		    << boost::errinfo_errno(errno));
-#else /* _WIN32 */
-		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getaddrinfo")
-		    << errinfo_win32_error(WSAGetLastError()));
-#endif /* _WIN32 */
+		    << errinfo_getaddrinfo_error(rc));
 	}
 
 	int fd = INVALID_SOCKET;
@@ -137,12 +155,27 @@ void TcpSocket::Connect(const String& node, const String& service)
 	for (addrinfo *info = result; info != NULL; info = info->ai_next) {
 		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
 
-		if (fd == INVALID_SOCKET)
+		if (fd == INVALID_SOCKET) {
+#ifdef _WIN32
+			error = WSAGetLastError();
+#else /* _WIN32 */
+			error = errno;
+#endif /* _WIN32 */
+			func = "socket";
+
 			continue;
+		}
 
 		rc = connect(fd, info->ai_addr, info->ai_addrlen);
 
 		if (rc < 0) {
+#ifdef _WIN32
+			error = WSAGetLastError();
+#else /* _WIN32 */
+			error = errno;
+#endif /* _WIN32 */
+			func = "connect";
+
 			closesocket(fd);
 
 			continue;
@@ -155,6 +188,15 @@ void TcpSocket::Connect(const String& node, const String& service)
 
 	freeaddrinfo(result);
 
-	if (GetFD() == INVALID_SOCKET)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not connect to remote host."));
+	if (GetFD() == INVALID_SOCKET) {
+#ifndef _WIN32
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function(func)
+		    << boost::errinfo_errno(error));
+#else /* _WIN32 */
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function(func)
+		    << errinfo_win32_error(error));
+#endif /* _WIN32 */
+	}
 }

@@ -86,6 +86,14 @@ inline std::string to_string(const errinfo_win32_error& e)
 }
 #endif /* _WIN32 */
 
+struct errinfo_getaddrinfo_error_;
+typedef boost::error_info<struct errinfo_getaddrinfo_error_, int> errinfo_getaddrinfo_error;
+
+inline std::string to_string(const errinfo_getaddrinfo_error& e)
+{
+	return gai_strerror(e.value());
+}
+
 }
 
 #endif /* EXCEPTION_H */
