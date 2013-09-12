@@ -28,8 +28,16 @@ REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 
 Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 {
+	char name[255];
+
+	if (gethostname(name, sizeof(name)) < 0)
+		strcpy(name, "<unknown host>");
+
+	String output = "Hello from ";
+	output += name;
+
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
-	cr->Set("output", "This is a test.");
+	cr->Set("output", output);
 	cr->Set("state", StateOK);
 
 	return cr;
