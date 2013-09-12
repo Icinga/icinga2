@@ -266,6 +266,9 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<Strin
 
 	Log(LogInformation, "icinga", "Rescheduling next check for host '" + arguments[0] + "'");
 
+	if (planned_check < Utility::GetTime())
+		planned_check = Utility::GetTime();
+
 	{
 		ObjectLock olock(hc);
 
@@ -314,6 +317,9 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String
 	}
 
 	Log(LogInformation, "icinga", "Rescheduling next check for service '" + arguments[1] + "'");
+
+	if (planned_check < Utility::GetTime())
+		planned_check = Utility::GetTime();
 
 	{
 		ObjectLock olock(service);
@@ -452,6 +458,9 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const std::vector<S
 	double planned_check = Convert::ToDouble(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (planned_check < Utility::GetTime())
+		planned_check = Utility::GetTime();
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (planned_check > service->GetNextCheck()) {
