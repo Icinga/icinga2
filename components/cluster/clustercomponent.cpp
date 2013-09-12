@@ -458,8 +458,8 @@ void ClusterComponent::ClusterTimerHandler(void)
 
 	/* Eww. */
 	Dictionary::Ptr features = boost::make_shared<Dictionary>();
-	features->Set("checker", DynamicType::GetByName("CheckerComponent") ? 1 : 0);
-	features->Set("notification", DynamicType::GetByName("NotificationComponent") ? 1 : 0);
+	features->Set("checker", SupportsChecks() ? 1 : 0);
+	features->Set("notification", SupportsNotifications() ? 1 : 0);
 	params->Set("features", features);
 
 	Dictionary::Ptr message = boost::make_shared<Dictionary>();
@@ -1126,14 +1126,14 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 	Array::Ptr authorities = object->GetAuthorities();
 	std::vector<String> endpoints;
 
-	if ((type == "checker" && DynamicType::GetByName("CheckerComponent")) ||
-	    (type == "notification" && DynamicType::GetByName("NotificationComponent")))
+	if ((type == "checker" && SupportsChecks()) ||
+	    (type == "notification" && SupportsNotifications()))
 		endpoints.push_back(GetIdentity());
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
 		bool match = false;
 
-		if (!endpoint->IsConnected())
+		if (!endpoint->IsConnected() || !endpoint->HasFeature(type))
 			continue;
 
 		if (authorities) {
@@ -1161,6 +1161,16 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 	Log(LogDebug, "cluster", "Authority for object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' is '" + endpoints[index] + "'.");
 
 	result = (endpoints[index] == GetIdentity());
+}
+
+bool ClusterComponent::SupportsChecks(void)
+{
+	return DynamicType::GetByName("CheckerComponent");
+}
+
+bool ClusterComponent::SupportsNotifications(void)
+{
+	return DynamicType::GetByName("NotificationComponent");
 }
 
 void ClusterComponent::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const

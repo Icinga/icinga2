@@ -112,6 +112,9 @@ private:
 	void AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority);
 	void MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
 	void CheckAuthorityHandler(const DynamicObject::Ptr& object, const String& type, bool& result);
+
+	static bool SupportsChecks(void);
+	static bool SupportsNotifications(void);
 };
 
 }
