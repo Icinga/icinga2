@@ -231,6 +231,7 @@ void Host::UpdateSlaveServices(void)
 		keys.insert("check_period");
 		keys.insert("servicedependencies");
 		keys.insert("hostdependencies");
+		keys.insert("authorities");
 
 		ExpressionList::Ptr host_exprl = boost::make_shared<ExpressionList>();
 		item->GetLinkedExpressionList()->ExtractFiltered(keys, host_exprl);
