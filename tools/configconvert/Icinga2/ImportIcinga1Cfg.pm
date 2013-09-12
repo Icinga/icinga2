@@ -68,7 +68,7 @@ sub parse_icinga1_resource_cfg {
 
     my @cfg = Icinga2::Utils::slurp($file);
 
-    my $user_macros = {};
+    my $global_macros = {};
 
     foreach my $line (@cfg) {
         $line = Icinga2::Utils::strip($line);
@@ -82,29 +82,29 @@ sub parse_icinga1_resource_cfg {
         $macro_name =~ /\$(.*)\$/;
         $macro_name = $1;
 
-        $user_macros->{$macro_name} = $macro_value;
+        $global_macros->{$macro_name} = $macro_value;
     }
 
-    return $user_macros;
+    return $global_macros;
 
 }
 
-sub parse_icinga1_user_macros {
+sub parse_icinga1_global_macros {
     my $icinga1_cfg = shift;
 
     my ($icinga1_resource_file) = get_key_from_icinga1_main_cfg($icinga1_cfg, "resource_file");
 
     # resource.cfg
-    my $user_macros = parse_icinga1_resource_cfg($icinga1_resource_file);
+    my $global_macros = parse_icinga1_resource_cfg($icinga1_resource_file);
 
     # special attributes in icinga.cfg (admin_*)
     my ($admin_pager) = get_key_from_icinga1_main_cfg($icinga1_cfg, "admin_pager");
     my ($admin_email) = get_key_from_icinga1_main_cfg($icinga1_cfg, "admin_email");
 
-    $user_macros->{'ADMINPAGER'} = $admin_pager;
-    $user_macros->{'ADMINEMAIL'} = $admin_email;
+    $global_macros->{'ADMINPAGER'} = $admin_pager;
+    $global_macros->{'ADMINEMAIL'} = $admin_email;
 
-    return $user_macros;
+    return $global_macros;
 }
 
 sub parse_icinga1_object_cfg {

@@ -876,7 +876,7 @@ sub convert_notificationcommand {
     my $objs_1x = shift;
     my $commands_1x = shift;
     my $obj_1x = shift;
-    my $user_macros_1x = shift;
+    my $global_macros_1x = shift;
     my $command_name_1x;
     my @commands = ();
     my $notification_commands_2x = ();
@@ -929,12 +929,12 @@ sub convert_notificationcommand {
                     # detect $USERn$ macros and replace them too XXX - this should be a global macro?
                     if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/ ||
                         $commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/) {
-                        my @user_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
+                        my @global_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
                         my @admin_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/g);
-                        push @user_macros, @admin_macros;
+                        push @global_macros, @admin_macros;
 
-                        foreach my $macro_name (@user_macros) {
-                            $notification_commands_2x->{$notification_command_type}->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($user_macros_1x->{$macro_name});
+                        foreach my $macro_name (@global_macros) {
+                            $notification_commands_2x->{$notification_command_type}->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($global_macros_1x->{$macro_name});
                         }
                     }
 
@@ -954,7 +954,7 @@ sub convert_notificationcommand {
 sub convert_eventhandler {
     my $commands_1x = shift;
     my $obj_1x = shift;
-    my $user_macros_1x = shift;
+    my $global_macros_1x = shift;
     my $command_name_1x;
     my @commands = ();
     my $event_commands_2x = ();
@@ -977,12 +977,12 @@ sub convert_eventhandler {
             # detect $USERn$ macros and replace them too XXX - this should be a global macro?
             if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/ ||
                 $commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/) {
-                my @user_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
+                my @global_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
                 my @admin_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/g);
-                push @user_macros, @admin_macros;
+                push @global_macros, @admin_macros;
 
-                foreach my $macro_name (@user_macros) {
-                    $event_commands_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($user_macros_1x->{$macro_name});
+                foreach my $macro_name (@global_macros) {
+                    $event_commands_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($global_macros_1x->{$macro_name});
                 }
             }
         }
@@ -997,7 +997,7 @@ sub convert_eventhandler {
 sub convert_checkcommand {
     my $commands_1x = shift;
     my $obj_1x = shift; #host or service
-    my $user_macros_1x = shift;
+    my $global_macros_1x = shift;
 
     my $command_1x;
     my $command_2x = {};
@@ -1033,12 +1033,12 @@ sub convert_checkcommand {
             # detect $USERn$ macros and replace them too XXX - this should be a global macro?
             if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/ ||
                 $commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/) {
-                my @user_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
+                my @global_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
                 my @admin_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/g);
-                push @user_macros, @admin_macros;
+                push @global_macros, @admin_macros;
 
-                foreach my $macro_name (@user_macros) {
-                    $command_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($user_macros_1x->{$macro_name});
+                foreach my $macro_name (@global_macros) {
+                    $command_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($global_macros_1x->{$macro_name});
                 }
             }
 
@@ -1069,7 +1069,7 @@ sub convert_2x {
     my $icinga2_cfg = shift;
     my $cfg_obj_1x = shift;
     my $cfg_obj_cache_1x = shift;
-    my $user_macros_1x = shift;
+    my $global_macros_1x = shift;
 
     # build a new hashref with the actual 2.x config inside
     my $cfg_obj_2x = {};
@@ -1261,7 +1261,7 @@ sub convert_2x {
             ##########################################
             if (defined($obj_1x_service->{'event_handler'})) {
 
-                my $service_event_command_2x = Icinga2::Convert::convert_eventhandler(@$cfg_obj_1x{'command'}, $obj_1x_service, $user_macros_1x);
+                my $service_event_command_2x = Icinga2::Convert::convert_eventhandler(@$cfg_obj_1x{'command'}, $obj_1x_service, $global_macros_1x);
                 #say Dumper($service_event_command_2x);
 
                 # XXX do not add duplicate event commands, they must remain unique by their check_command origin!
@@ -1300,7 +1300,7 @@ sub convert_2x {
             ##########################################
             # map the service check_command to 2.x
             ##########################################
-            my $service_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_1x_service, $user_macros_1x);
+            my $service_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_1x_service, $global_macros_1x);
 
             #say Dumper($service_check_command_2x);
 
@@ -1522,7 +1522,7 @@ sub convert_2x {
         #   and link that service
         ####################################################
 
-        my $host_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_1x_host, $user_macros_1x);
+        my $host_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_1x_host, $global_macros_1x);
         #say Dumper($host_check_command_2x);
 
         if(defined($host_check_command_2x->{'check_command_name_1x'})) {
@@ -1572,7 +1572,7 @@ sub convert_2x {
         ####################################################
         # get all notification commands
         ####################################################
-        my $notification_commands_2x = Icinga2::Convert::convert_notificationcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_contact, $user_macros_1x);
+        my $notification_commands_2x = Icinga2::Convert::convert_notificationcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_contact, $global_macros_1x);
         #say Dumper($obj_1x_contact);
         #say Dumper($notification_commands_2x);
         #say Dumper("======================================");
@@ -2648,8 +2648,8 @@ sub convert_2x {
                 ######################################
                 # LINK HOST COMMAND WITH SERVICE CHECK
                 ######################################
-                my $service_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_2x_service, $user_macros_1x);
-                my $host_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_2x_host, $user_macros_1x);
+                my $service_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_2x_service, $global_macros_1x);
+                my $host_check_command_2x = Icinga2::Convert::convert_checkcommand(@$cfg_obj_1x{'command'}, $obj_2x_host, $global_macros_1x);
                 #say Dumper($host_check_command_2x);
 
                 # check if this service check is a possible match for __I2CONVERT_HOST_CHECK?
