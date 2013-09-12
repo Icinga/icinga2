@@ -535,6 +535,9 @@ void ClusterComponent::ClusterTimerHandler(void)
 		bool need = false;
 
 		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+			if (endpoint->GetName() == GetIdentity())
+				continue;
+
 			double position = endpoint->GetLocalLogPosition();
 
 			if (position != 0 && ts > position) {
