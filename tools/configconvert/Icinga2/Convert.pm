@@ -854,7 +854,7 @@ sub resolve_macro_attribute {
     }
     else {
         # XXX this is way too modular to actually work with macros not having any underscores and other magic
-        if ($macro_name =~ /HOST(\w+)/) {
+        if ($macro_name =~ /^HOST(\w+)/) {
             $attr_name = lc $1;
             Icinga2::Utils::debug("MACRO RESOLVER: found Host attribute '$macro_name'.");
 
@@ -872,7 +872,7 @@ sub resolve_macro_attribute {
             Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
             return $macro_value;
         }
-        elsif ($macro_name =~ /SERVICE(\w+)/) {
+        elsif ($macro_name =~ /^SERVICE(\w+)/) {
             $attr_name = lc $1;
 
             # if this is a host object, this macro is invalid! XXX
@@ -884,7 +884,7 @@ sub resolve_macro_attribute {
             Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
             return $macro_value;
         }
-        elsif ($macro_name =~ /CONTACT(\w+)/) {
+        elsif ($macro_name =~ /^CONTACT(\w+)/) {
             $attr_name = lc $1;
             # XXX is that possible from command arguments?
             # http://docs.icinga.org/latest/en/macrolist.html#availabilitychart (NO)
