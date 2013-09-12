@@ -926,18 +926,6 @@ sub convert_notificationcommand {
                     $notification_commands_2x->{$notification_command_type}->{$notification_command} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
                     #say Dumper($commands_1x->{$command_1x_key});
 
-                    # detect $USERn$ macros and replace them too XXX - this should be a global macro?
-                    if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/ ||
-                        $commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/) {
-                        my @global_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
-                        my @admin_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/g);
-                        push @global_macros, @admin_macros;
-
-                        foreach my $macro_name (@global_macros) {
-                            $notification_commands_2x->{$notification_command_type}->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($global_macros_1x->{$macro_name});
-                        }
-                    }
-
                     # flag this 1.x command as being used
                     $commands_1x->{$command_1x_key}->{__I2_CONVERT_NOTIFICATION_COMMAND_USED} = 1;
                 }
@@ -973,18 +961,6 @@ sub convert_eventhandler {
             # save the command line and command name
             $event_commands_2x->{'command_name'} = $event_command;
             $event_commands_2x->{'command_line'} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
-
-            # detect $USERn$ macros and replace them too XXX - this should be a global macro?
-            if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/ ||
-                $commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/) {
-                my @global_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
-                my @admin_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/g);
-                push @global_macros, @admin_macros;
-
-                foreach my $macro_name (@global_macros) {
-                    $event_commands_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($global_macros_1x->{$macro_name});
-                }
-            }
         }
     }
 
@@ -1029,18 +1005,6 @@ sub convert_checkcommand {
             $command_2x->{'check_command'} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
             $command_2x->{'check_command_name_1x'} = $real_command_name_1x;
             #Icinga2::Utils::debug("2x Command: $command_2x->{'check_command'}");
-
-            # detect $USERn$ macros and replace them too XXX - this should be a global macro?
-            if ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/ ||
-                $commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/) {
-                my @global_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(USER\d+)\$/g);
-                my @admin_macros = ($commands_1x->{$command_1x_key}->{'command_line'} =~ /\$(ADMIN\w+)\$/g);
-                push @global_macros, @admin_macros;
-
-                foreach my $macro_name (@global_macros) {
-                    $command_2x->{'command_macros'}->{$macro_name} = Icinga2::Utils::escape_str($global_macros_1x->{$macro_name});
-                }
-            }
 
             # save all command args as macros (we'll deal later with them in service definitions)
             my $arg_cnt = 1;
