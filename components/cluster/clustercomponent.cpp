@@ -1139,6 +1139,7 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 			continue;
 
 		if (authorities) {
+			ObjectLock olock(authorities);
 			BOOST_FOREACH(const String& authority, authorities) {
 				if (Utility::Match(authority, endpoint->GetName())) {
 					match = true;
@@ -1155,6 +1156,12 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 	}
 
 	std::sort(endpoints.begin(), endpoints.end());
+
+	std::ostringstream msgbuf;
+	BOOST_FOREACH(const String& name, endpoints) {
+		msgbuf << name << ", ";
+	}
+	Log(LogDebug, "cluster", "Responsible for " + object->GetName() + ": " + msgbuf.str());
 
 	String key = object->GetType()->GetName() + "\t" + object->GetName();
 	unsigned long hash = Utility::SDBM(key);
