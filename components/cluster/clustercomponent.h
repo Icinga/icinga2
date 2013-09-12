@@ -111,6 +111,7 @@ private:
 	void AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
 	void AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority);
 	void MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
+	void CheckAuthorityHandler(const DynamicObject::Ptr& object, const String& type, bool& result);
 };
 
 }

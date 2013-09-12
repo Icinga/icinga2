@@ -41,6 +41,7 @@ using namespace icinga;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
+boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool&)> DynamicObject::OnCheckAuthority;
 
 DynamicObject::DynamicObject(void)
 	: m_Active(false)
@@ -82,6 +83,7 @@ void DynamicObject::InternalSerialize(const Dictionary::Ptr& bag, int attributeT
 		bag->Set("__type", m_Type);
 		bag->Set("methods", m_Methods);
 		bag->Set("custom", m_Custom);
+		bag->Set("authorities", m_Authorities);
 	}
 
 	bag->Set("extensions", m_Extensions);
@@ -98,6 +100,7 @@ void DynamicObject::InternalDeserialize(const Dictionary::Ptr& bag, int attribut
 		m_Type = bag->Get("__type");
 		m_Methods = bag->Get("methods");
 		m_Custom = bag->Get("custom");
+		m_Authorities = bag->Get("authorities");
 	}
 
 	m_Extensions = bag->Get("extensions");
@@ -116,6 +119,18 @@ String DynamicObject::GetName(void) const
 bool DynamicObject::IsActive(void) const
 {
 	return m_Active;
+}
+
+Array::Ptr DynamicObject::GetAuthorities(void) const
+{
+	return m_Authorities;
+}
+
+bool DynamicObject::HasAuthority(const String& type)
+{
+	bool result = true;
+	OnCheckAuthority(GetSelf(), type, result);
+	return result;
 }
 
 void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)

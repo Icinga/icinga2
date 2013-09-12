@@ -168,6 +168,26 @@ void Endpoint::SetRemoteLogPosition(double ts)
 	m_RemoteLogPosition = ts;
 }
 
+Dictionary::Ptr Endpoint::GetFeatures(void) const
+{
+	return m_Features;
+}
+
+void Endpoint::SetFeatures(const Dictionary::Ptr& features)
+{
+	m_Features = features;
+}
+
+bool Endpoint::HasFeature(const String& type) const
+{
+	Dictionary::Ptr features = GetFeatures();
+
+	if (!features)
+		return false;
+
+	return features->Get(type);
+}
+
 void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
 {
 	DynamicObject::InternalSerialize(bag, attributeTypes);
@@ -183,6 +203,7 @@ void Endpoint::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes)
 		bag->Set("seen", m_Seen);
 		bag->Set("local_log_position", m_LocalLogPosition);
 		bag->Set("remote_log_position", m_RemoteLogPosition);
+		bag->Set("features", m_Features);
 	}
 }
 
@@ -201,5 +222,6 @@ void Endpoint::InternalDeserialize(const Dictionary::Ptr& bag, int attributeType
 		m_Seen = bag->Get("seen");
 		m_LocalLogPosition = bag->Get("local_log_position");
 		m_RemoteLogPosition = bag->Get("remote_log_position");
+		m_Features = bag->Get("features");
 	}
 }

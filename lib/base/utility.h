@@ -95,6 +95,8 @@ public:
 	static void SetThreadName(const String& name, bool os = true);
 	static String GetThreadName(void);
 
+	static unsigned long SDBM(const String& str);
+
 private:
 	Utility(void);
 

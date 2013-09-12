@@ -23,6 +23,7 @@
 #include "base/i2-base.h"
 #include "base/object.h"
 #include "base/dictionary.h"
+#include "base/array.h"
 #include <boost/signals2.hpp>
 #include <map>
 #include <set>
@@ -62,6 +63,7 @@ public:
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStarted;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool&)> OnCheckAuthority;
 
 	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
 
@@ -69,6 +71,9 @@ public:
 	String GetName(void) const;
 
 	bool IsActive(void) const;
+
+	Array::Ptr GetAuthorities(void) const;
+	bool HasAuthority(const String& type);
 
 	void SetExtension(const String& key, const Object::Ptr& object);
 	Object::Ptr GetExtension(const String& key);
@@ -111,6 +116,7 @@ private:
 	Dictionary::Ptr m_Extensions;
 	Dictionary::Ptr m_Methods;
 	Dictionary::Ptr m_Custom;
+	Array::Ptr m_Authorities;
 
 	bool m_Active;
 

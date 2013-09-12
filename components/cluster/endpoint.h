@@ -65,6 +65,11 @@ public:
 	double GetRemoteLogPosition(void) const;
 	void SetRemoteLogPosition(double ts);
 
+	Dictionary::Ptr GetFeatures(void) const;
+	void SetFeatures(const Dictionary::Ptr& features);
+
+	bool HasFeature(const String& type) const;
+
 protected:
 	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
@@ -80,6 +85,7 @@ private:
 	double m_Seen;
 	double m_LocalLogPosition;
 	double m_RemoteLogPosition;
+	Dictionary::Ptr m_Features;
 
 	void MessageThreadProc(const Stream::Ptr& stream);
 };

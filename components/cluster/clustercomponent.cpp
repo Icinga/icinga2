@@ -85,6 +85,8 @@ void ClusterComponent::Start(void)
 	Service::OnAcknowledgementSet.connect(boost::bind(&ClusterComponent::AcknowledgementSetHandler, this, _1, _2, _3, _4, _5, _6));
 	Service::OnAcknowledgementCleared.connect(boost::bind(&ClusterComponent::AcknowledgementClearedHandler, this, _1, _2));
 
+	DynamicObject::OnCheckAuthority.connect(boost::bind(&ClusterComponent::CheckAuthorityHandler, this, _1, _2, _3));
+
 	Endpoint::OnMessageReceived.connect(boost::bind(&ClusterComponent::MessageHandler, this, _1, _2));
 }
 
@@ -1117,6 +1119,48 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			Application::RequestRestart();
 		}
 	}
+}
+
+void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, const String& type, bool& result)
+{
+	Array::Ptr authorities = object->GetAuthorities();
+	std::vector<String> endpoints;
+
+	if ((type == "checker" && DynamicType::GetByName("CheckerComponent")) ||
+	    (type == "notification" && DynamicType::GetByName("NotificationComponent")))
+		endpoints.push_back(GetIdentity());
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		bool match = false;
+
+		if (!endpoint->IsConnected())
+			continue;
+
+		if (authorities) {
+			BOOST_FOREACH(const String& authority, authorities) {
+				if (Utility::Match(authority, endpoint->GetName())) {
+					match = true;
+
+					break;
+				}
+			}
+		} else {
+			match = true;
+		}
+
+		if (match)
+			endpoints.push_back(endpoint->GetName());
+	}
+
+	std::sort(endpoints.begin(), endpoints.end());
+
+	String key = object->GetType()->GetName() + "\t" + object->GetName();
+	unsigned long hash = Utility::SDBM(key);
+	unsigned long index = hash % endpoints.size();
+
+	Log(LogDebug, "cluster", "Authority for object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' is '" + endpoints[index] + "'.");
+
+	result = (endpoints[index] == GetIdentity());
 }
 
 void ClusterComponent::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const

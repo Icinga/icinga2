@@ -106,6 +106,11 @@ void CheckerComponent::CheckThreadProc(void)
 		bool forced = service->GetForceNextCheck();
 		bool check = true;
 
+		if (!service->HasAuthority("checker")) {
+			Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': not authoritative");
+			check = false;
+		}
+
 		if (!forced) {
 			if (!service->GetEnableActiveChecks()) {
 				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active checks are disabled");
