@@ -846,8 +846,10 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
-		if (endpoint)
+		if (endpoint) {
 			endpoint->SetSeen(Utility::GetTime());
+			endpoint->SetFeatures(params->Get("features"));
+		}
 	} else if (message->Get("method") == "cluster::CheckResult") {
 		String svc = params->Get("service");
 
