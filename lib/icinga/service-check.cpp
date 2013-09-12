@@ -472,6 +472,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	long old_attempt = GetCurrentCheckAttempt();
 	bool recovery;
 
+	if (old_cr && cr->Get("execution_start") < old_cr->Get("execution_start"))
+		return;
+
 	/* The ExecuteCheck function already sets the old state, but we need to do it again
 	 * in case this was a passive check result. */
 	SetLastState(old_state);
