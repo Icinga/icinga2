@@ -105,8 +105,9 @@ void CheckerComponent::CheckThreadProc(void)
 
 		bool forced = service->GetForceNextCheck();
 		bool check = true;
+		bool authoritative = service->HasAuthority("checker");
 
-		if (!service->HasAuthority("checker")) {
+		if (!authoritative) {
 			Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': not authoritative");
 			check = false;
 		}
@@ -127,7 +128,8 @@ void CheckerComponent::CheckThreadProc(void)
 
 		/* reschedule the service if checks are disabled */
 		if (!check) {
-			service->UpdateNextCheck();
+			if (authoritative)
+				service->UpdateNextCheck();
 
 			typedef boost::multi_index::nth_index<ServiceSet, 1>::type CheckTimeView;
 			CheckTimeView& idx = boost::get<1>(m_IdleServices);

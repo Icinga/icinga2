@@ -23,6 +23,7 @@
 #include "icinga/service.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
+#include "base/utility.h"
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -45,6 +46,9 @@ struct ServiceNextCheckExtractor
 	 */
 	double operator()(const Service::Ptr& service)
 	{
+		if (!service->HasAuthority("checker"))
+			return Utility::GetTime() + 60;
+
 		double next = service->GetNextCheck();
 
 		while (next == 0) {
