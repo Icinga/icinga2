@@ -29,6 +29,7 @@ REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 {
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
+	cr->Set("output", "This is a test.");
 	cr->Set("state", StateOK);
 
 	return cr;
