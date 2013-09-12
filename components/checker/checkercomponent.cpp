@@ -90,6 +90,11 @@ void CheckerComponent::CheckThreadProc(void)
 
 		double wait = service->GetNextCheck() - Utility::GetTime();
 
+		bool authoritative = service->HasAuthority("checker");
+
+		if (!authoritative)
+			wait = 60;
+
 		if (wait > 0) {
 			/* Make sure the service we just examined can be destroyed while we're waiting. */
 			service.reset();
@@ -105,12 +110,6 @@ void CheckerComponent::CheckThreadProc(void)
 
 		bool forced = service->GetForceNextCheck();
 		bool check = true;
-		bool authoritative = service->HasAuthority("checker");
-
-		if (!authoritative) {
-			Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': not authoritative");
-			check = false;
-		}
 
 		if (!forced) {
 			if (!service->GetEnableActiveChecks()) {
