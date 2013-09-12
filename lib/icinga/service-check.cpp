@@ -82,11 +82,6 @@ double Service::GetRetryInterval(void) const
 	return m_RetryInterval;
 }
 
-Array::Ptr Service::GetCheckers(void) const
-{
-	return m_Checkers;
-}
-
 void Service::SetSchedulingOffset(long offset)
 {
 	m_SchedulingOffset = offset;
@@ -687,23 +682,6 @@ String Service::StateTypeToString(StateType type)
 		return "SOFT";
 	else
 		return "HARD";
-}
-
-bool Service::IsAllowedChecker(const String& checker) const
-{
-	Array::Ptr checkers = GetCheckers();
-
-	if (!checkers)
-		return true;
-
-	ObjectLock olock(checkers);
-
-	BOOST_FOREACH(const Value& pattern, checkers) {
-		if (Utility::Match(pattern, checker))
-			return true;
-	}
-
-	return false;
 }
 
 void Service::ExecuteCheck(void)

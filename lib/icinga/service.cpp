@@ -416,7 +416,6 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("check_period", m_CheckPeriod);
 		bag->Set("check_interval", m_CheckInterval);
 		bag->Set("retry_interval", m_RetryInterval);
-		bag->Set("checkers", m_Checkers);
 		bag->Set("event_command", m_EventCommand);
 		bag->Set("volatile", m_Volatile);
 		bag->Set("short_name", m_ShortName);
@@ -475,7 +474,6 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_CheckPeriod = bag->Get("check_period");
 		m_CheckInterval = bag->Get("check_interval");
 		m_RetryInterval = bag->Get("retry_interval");
-		m_Checkers = bag->Get("checkers");
 		m_EventCommand = bag->Get("event_command");
 		m_Volatile = bag->Get("volatile");
 		m_ShortName = bag->Get("short_name");

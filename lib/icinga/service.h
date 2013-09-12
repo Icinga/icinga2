@@ -143,7 +143,6 @@ public:
 	void ClearAcknowledgement(const String& authority = String());
 
 	/* Checks */
-	Array::Ptr GetCheckers(void) const;
 	shared_ptr<CheckCommand> GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
 	TimePeriod::Ptr GetCheckPeriod(void) const;
@@ -159,8 +158,6 @@ public:
 
 	void SetCurrentChecker(const String& checker);
 	String GetCurrentChecker(void) const;
-
-	bool IsAllowedChecker(const String& checker) const;
 
 	void SetCurrentCheckAttempt(long attempt);
 	long GetCurrentCheckAttempt(void) const;
@@ -358,7 +355,6 @@ private:
 	Value m_CheckInterval;
 	Value m_RetryInterval;
 	double m_NextCheck;
-	Array::Ptr m_Checkers;
 	String m_CurrentChecker;
 	Value m_CheckAttempt;
 	Value m_State;
