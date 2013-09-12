@@ -60,6 +60,8 @@ void IdoMysqlDbConnection::Stop(void)
 
 	Query("COMMIT");
 	mysql_close(&m_Connection);
+
+	m_Connected = false;
 }
 
 void IdoMysqlDbConnection::TxTimerHandler(void)
