@@ -168,7 +168,7 @@ sub parse_icinga1_object_cfg {
         elsif ($in_define == 1) {
 
             # first, remove the annoying inline comments after ';'
-            $line =~ s/\s*;(.*)$//;
+            $line =~ s/\s*[;\#](.*)$//;
             $inline_comment = $1;
 
             # then split it and save it by type->cnt->attr->val
