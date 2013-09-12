@@ -100,6 +100,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 		Array::Ptr segments = boost::make_shared<Array>();
 		LegacyTimePeriod::ProcessTimeRanges(value, &reference, segments);
 
+		ObjectLock olock(segments);
 		BOOST_FOREACH(const Value& vsegment, segments) {
 			Dictionary::Ptr segment = vsegment;
 			int begin = segment->Get("begin");
