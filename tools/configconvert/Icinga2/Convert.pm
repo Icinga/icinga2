@@ -894,6 +894,18 @@ sub resolve_macro_attribute {
     return undef;
 }
 
+sub resolve_macros {
+    my $cfg_obj = shift;
+    my $obj = shift;
+    my $str = shift;
+
+    if ($str =~ /^\$(\w+)\$$/) {
+        return resolve_macro_attribute($cfg_obj, $obj, $1);
+    } else {
+        return $str;
+    }
+}
+
 # convert notification_options to state|type_filter
 sub convert_notification_options_to_filter {
     my $notification_options = shift;
@@ -1089,52 +1101,14 @@ sub convert_checkcommand {
         if ($commands_1x->{$command_1x_key}->{'command_name'} eq $real_command_name_1x) {
             #debug("Found: $real_command_name_1x");
 
-            # save the command_line and the $ARGn$ macros
+            # save the command_line
             $command_2x->{'check_command'} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
             $command_2x->{'check_command_name_1x'} = $real_command_name_1x;
             #Icinga2::Utils::debug("2x Command: $command_2x->{'check_command'}");
-
-            # save all command args as macros (we'll deal later with them in service definitions)
-            my $arg_cnt = 1;
-            foreach my $command_arg_1x (@command_args_1x) {
-                my $macro_name_2x;
-                my $macro_value_2x;
-
-                # XXX if the argument is a macro itsself (i.e. custom var), fetch its value and use its name as macro name
-                if ($command_arg_1x =~ /\$(\w+)\$/) {
-                    $macro_name_2x = $1;
-                    $macro_value_2x = resolve_macro_attribute($cfg_obj_1x, $obj_1x, $macro_name_2x);
-                    # if we cannot resolve the macro (for being on-runtime e.g.) we'll replace it on the command line itsself
-                    if (!defined($macro_value_2x)) {
-                        Icinga2::Utils::debug("CONVERT COMMAND: Couldn't resolve macro, so removing argument and replacing command_line");
-                        Icinga2::Utils::debug("CONVERT COMMAND: old: '$command_2x->{'check_command'}'");
-                        my $old_arg_macro_name = "\\\$ARG$arg_cnt\\\$";
-                        my $new_arg_macro_name = "\$$macro_name_2x\$";
-                        $command_2x->{'check_command'} =~ s/$old_arg_macro_name/$new_arg_macro_name/;
-                        Icinga2::Utils::debug("CONVERT COMMAND: new: '$command_2x->{'check_command'}'");
-                        # do not add this macro (increment counter and skip it) XXX
-                        $arg_cnt++;
-                        next;
-                    } else {
-                        Icinga2::Utils::debug("CONVERT COMMAND: old: '$command_2x->{'check_command'}'");
-                        my $old_arg_macro_name = "\\\$ARG$arg_cnt\\\$";
-                        my $new_arg_macro_name = "\$$macro_name_2x\$";
-                        $command_2x->{'check_command'} =~ s/$old_arg_macro_name/$new_arg_macro_name/;
-                        Icinga2::Utils::debug("CONVERT COMMAND: new: '$command_2x->{'check_command'}'");
-                    }
-
-                } else {
-                    $macro_name_2x = "ARG" . $arg_cnt;
-                    $macro_value_2x = $command_arg_1x;
-                }
-
-                $command_2x->{'command_macros'}->{$macro_name_2x} = Icinga2::Utils::escape_str($macro_value_2x);
-                $arg_cnt++;
-            }
         }
     }
 
-    return $command_2x;
+    return ($command_2x, @command_args_1x);
 }
 
 
@@ -1381,7 +1355,7 @@ sub convert_2x {
             ##########################################
             # map the service check_command to 2.x
             ##########################################
-            my $service_check_command_2x = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_service, $global_macros_1x);
+            my ($service_check_command_2x, @command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_service, $global_macros_1x);
 
             #say Dumper($service_check_command_2x);
 
@@ -1402,7 +1376,7 @@ sub convert_2x {
                         $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
                     }
 
-                    # add the command macros to the command 2x object
+                    # add the command macros to the service 2x object
                     if(defined($service_check_command_2x->{'command_macros'})) {
                         $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = dclone($service_check_command_2x->{'command_macros'});
                     }
@@ -1419,10 +1393,12 @@ sub convert_2x {
 
             }
 
-            # XXX make sure to always add the service specific command arguments, since we have a n .. 1 relation here
-            # add the command macros to the command 2x object
-            if(defined($service_check_command_2x->{'command_macros'})) {
-                @$cfg_obj_2x{'service'}->{$service_cnt}->{'__I2CONVERT_MACROS'} = dclone($service_check_command_2x->{'command_macros'});
+            # save all command args as macros
+            my $arg_cnt = 1;
+            foreach my $command_arg_1x (@command_args_1x) {
+                my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_service, $command_arg_1x);
+                @$cfg_obj_2x{'service'}->{$service_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
+                $arg_cnt++;
             }
 
             # our PK
@@ -1603,7 +1579,7 @@ sub convert_2x {
         #   and link that service
         ####################################################
 
-        my $host_check_command_2x = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_host, $global_macros_1x);
+        my ($host_check_command_2x, @command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_host, $global_macros_1x);
         #say Dumper($host_check_command_2x);
 
         if(defined($host_check_command_2x->{'check_command_name_1x'})) {
@@ -2729,8 +2705,8 @@ sub convert_2x {
                 ######################################
                 # LINK HOST COMMAND WITH SERVICE CHECK
                 ######################################
-                my $service_check_command_2x = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_service, $global_macros_1x);
-                my $host_check_command_2x = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $global_macros_1x);
+                my ($service_check_command_2x, @service_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_service, $global_macros_1x);
+                my ($host_check_command_2x, @host_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $global_macros_1x);
                 #say Dumper($host_check_command_2x);
 
                 # check if this service check is a possible match for __I2CONVERT_HOST_CHECK?
@@ -2791,10 +2767,13 @@ sub convert_2x {
                             $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj_2x_service_service_description;
                             $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2_CONVERT_CHECKCOMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
 
-                            # XXX make sure to always add the service specific command arguments, since we have a n .. 1 relation here
-                            # add the command macros to the command 2x object
-                            if(defined($host_check_command_2x->{'command_macros'})) {
-                                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_MACROS'} = dclone($host_check_command_2x->{'command_macros'});
+                            # save all command args as macros
+                            my $arg_cnt = 1;
+                            foreach my $command_arg_1x (@service_command_args_1x) {
+                                my $obj_1x_host = obj_get_host_obj_by_host_name($cfg_obj_1x, $host_obj_2x_key);
+                                my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_host, $command_arg_1x);
+                                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
+                                $arg_cnt++;
                             }
 
                             # primary key

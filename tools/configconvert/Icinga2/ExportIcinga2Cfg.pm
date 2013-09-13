@@ -1146,19 +1146,6 @@ sub dump_command_2x {
         dump_config_line($icinga2_cfg, "\tcommand = \"$command_line\",");
     }
 
-    ####################################################
-    # macros
-    ####################################################
-
-    if(defined($command_2x->{'__I2CONVERT_COMMAND_MACROS'}) && $command_2x->{'__I2CONVERT_COMMAND_MACROS'} != 0) {
-        dump_config_line($icinga2_cfg, "\tmacros = {");
-        foreach my $cmd_arg (keys %{$command_2x->{'__I2CONVERT_COMMAND_MACROS'}}) {
-            next if $cmd_arg =~ /ARG\d+/;
-            dump_config_line($icinga2_cfg, "\t\t$cmd_arg = \"$command_2x->{'__I2CONVERT_COMMAND_MACROS'}->{$cmd_arg}\",");
-        }
-        dump_config_line($icinga2_cfg, "\t},");
-    }
-
     dump_config_line($icinga2_cfg, "");
     dump_config_line($icinga2_cfg, "}");
     dump_config_line($icinga2_cfg, "\n");
