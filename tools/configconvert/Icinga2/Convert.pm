@@ -594,15 +594,9 @@ sub obj_1x_get_service_attr {
     # if this object is invalid, bail early
     return undef if !defined($obj_1x);
 
-    # first, check if we already got a service_description here in our struct (recursion safety)
-    return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} if defined($obj_1x->{'__I2CONVERT_SEARCH_ATTR'});
-    delete $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
-
     # if this object got what we want, return (it can be recursion and a template!)
     if(defined($obj_1x->{$search_attr})) {
-        $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $obj_1x->{$search_attr};
         return $obj_1x->{$search_attr};
-        #return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
     }
 
     # we don't have the attribute, should we look into a template?
@@ -621,9 +615,7 @@ sub obj_1x_get_service_attr {
             next if(!defined($service_attr));
 
             # get the service attr and return - first template wins
-            $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $service_attr;
             return $service_attr;
-            #return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
         }
     }
     # no template used, and not service description - broken object, ignore it
@@ -646,15 +638,9 @@ sub obj_1x_get_host_attr {
     # if this object is invalid, bail early
     return undef if !defined($obj_1x);
 
-    # first, check if we already got a service_description here in our struct (recursion safety)
-    return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} if defined($obj_1x->{'__I2CONVERT_SEARCH_ATTR'});
-    delete $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
-
     # if this object got what we want, return (it can be recursion and a template!)
-    if(defined($obj_1x->{$search_attr})) {
-        $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $obj_1x->{$search_attr};
+    if (defined($obj_1x->{$search_attr})) {
         return $obj_1x->{$search_attr};
-        #return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
     }
 
     # we don't have the attribute, should we look into a template?
@@ -673,9 +659,7 @@ sub obj_1x_get_host_attr {
             next if(!defined($host_attr));
 
             # get the service attr and return - first template wins
-            $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $host_attr;
             return $host_attr;
-            #return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
         }
     }
     # no template used, and not service description - broken object, ignore it
@@ -697,14 +681,9 @@ sub obj_1x_get_contact_attr {
     # if this object is invalid, bail early
     return undef if !defined($obj_1x);
 
-    # first, check if we already got a attr here in our struct (recursion safety)
-    return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} if defined($obj_1x->{'__I2CONVERT_SEARCH_ATTR'});
-    delete $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
-
     # if this object got what we want, return (it can be recursion and a template!)
     if(defined($obj_1x->{$search_attr})) {
-        $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $obj_1x->{$search_attr};
-        return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+        return $obj_1x->{$search_attr};
     }
 
     # we don't have the attribute, should we look into a template?
@@ -722,8 +701,7 @@ sub obj_1x_get_contact_attr {
             next if(!defined($contact_attr));
 
             # get the contact attr and return - first template wins
-            $obj_1x->{'__I2CONVERT_SEARCH_ATTR'} = $contact_attr;
-            return $obj_1x->{'__I2CONVERT_SEARCH_ATTR'};
+            return $contact_attr;
         }
     }
     # no template used, and attr - broken object, ignore it
@@ -837,7 +815,7 @@ sub resolve_macro_attribute {
 
         $macro_value = obj_1x_get_host_attr($cfg_obj, $obj_host, $host_name, $attr_name);
 
-        Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+        Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
         return $macro_value;
     }
     elsif ($macro_name =~ /^_SERVICE(\w+)/) {
@@ -867,9 +845,9 @@ sub resolve_macro_attribute {
                 $obj_host = obj_get_host_obj_by_host_name($cfg_obj, $host_name);
             }
 
-            $macro_value = obj_1x_get_host_attr($cfg_obj, $obj, $host_name, $attr_name);
+            $macro_value = obj_1x_get_host_attr($cfg_obj, $obj_host, $host_name, $attr_name);
 
-            Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+            Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
             return $macro_value;
         }
         elsif ($macro_name =~ /^SERVICE(\w+)/) {
