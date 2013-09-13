@@ -82,7 +82,7 @@ sub parse_icinga1_resource_cfg {
         $macro_name =~ /\$(.*)\$/;
         $macro_name = $1;
 
-        $global_macros->{$macro_name} = $macro_value;
+        $global_macros->{$macro_name} = Icinga2::Utils::escape_str($macro_value);
     }
 
     return $global_macros;
