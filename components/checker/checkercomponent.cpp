@@ -33,8 +33,9 @@ void CheckerComponent::Start(void)
 {
 	DynamicObject::Start();
 
-	DynamicObject::OnStarted.connect(bind(&CheckerComponent::ObjectStartedHandler, this, _1));
-	DynamicObject::OnStopped.connect(bind(&CheckerComponent::ObjectStoppedHandler, this, _1));
+	DynamicObject::OnStarted.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
+	DynamicObject::OnStopped.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
+	DynamicObject::OnAuthorityChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 
 	Service::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 
@@ -48,8 +49,7 @@ void CheckerComponent::Start(void)
 	m_ResultTimer->Start();
 
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-		if (service->IsActive())
-			ObjectStartedHandler(service);
+		ObjectHandler(service);
 	}
 }
 
@@ -82,17 +82,6 @@ void CheckerComponent::CheckThreadProc(void)
 
 		CheckTimeView::iterator it = idx.begin();
 		Service::Ptr service = *it;
-
-		if (!service->HasAuthority("checker")) {
-			idx.erase(it);
-			idx.insert(service);
-			continue;
-		}
-
-		if (!service->IsActive()) {
-			idx.erase(it);
-			continue;
-		}
 
 		double wait = service->GetNextCheck() - Utility::GetTime();
 
@@ -177,7 +166,10 @@ void CheckerComponent::ExecuteCheckHelper(const Service::Ptr& service)
 		it = m_PendingServices.find(service);
 		if (it != m_PendingServices.end()) {
 			m_PendingServices.erase(it);
-			m_IdleServices.insert(service);
+
+			if (service->IsActive() && service->HasAuthority("checker"))
+				m_IdleServices.insert(service);
+
 			m_CV.notify_all();
 		}
 	}
@@ -200,7 +192,7 @@ void CheckerComponent::ResultTimerHandler(void)
 	Log(LogInformation, "checker", msgbuf.str());
 }
 
-void CheckerComponent::ObjectStartedHandler(const DynamicObject::Ptr& object)
+void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)
 {
 	if (object->GetType() != DynamicType::GetByName("Service"))
 		return;
@@ -210,26 +202,16 @@ void CheckerComponent::ObjectStartedHandler(const DynamicObject::Ptr& object)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		if (m_PendingServices.find(service) != m_PendingServices.end())
-			return;
+		if (object->IsActive() && object->HasAuthority("checker")) {
+			if (m_PendingServices.find(service) != m_PendingServices.end())
+				return;
 
-		m_IdleServices.insert(service);
-		m_CV.notify_all();
-	}
-}
+			m_IdleServices.insert(service);
+		} else {
+			m_IdleServices.erase(service);
+			m_PendingServices.erase(service);
+		}
 
-void CheckerComponent::ObjectStoppedHandler(const DynamicObject::Ptr& object)
-{
-	if (object->GetType() != DynamicType::GetByName("Service"))
-		return;
-
-	Service::Ptr service = static_pointer_cast<Service>(object);
-
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-
-		m_IdleServices.erase(service);
-		m_PendingServices.erase(service);
 		m_CV.notify_all();
 	}
 }

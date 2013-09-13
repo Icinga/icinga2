@@ -85,8 +85,6 @@ void ClusterComponent::Start(void)
 	Service::OnAcknowledgementSet.connect(boost::bind(&ClusterComponent::AcknowledgementSetHandler, this, _1, _2, _3, _4, _5, _6));
 	Service::OnAcknowledgementCleared.connect(boost::bind(&ClusterComponent::AcknowledgementClearedHandler, this, _1, _2));
 
-	DynamicObject::OnCheckAuthority.connect(boost::bind(&ClusterComponent::CheckAuthorityHandler, this, _1, _2, _3));
-
 	Endpoint::OnMessageReceived.connect(boost::bind(&ClusterComponent::MessageHandler, this, _1, _2));
 }
 
@@ -552,6 +550,8 @@ void ClusterComponent::ClusterTimerHandler(void)
 			(void) unlink(path.CStr());
 		}
 	}
+
+	UpdateAuthority();
 }
 
 void ClusterComponent::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority)
@@ -1128,7 +1128,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 	}
 }
 
-void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, const String& type, bool& result)
+bool ClusterComponent::IsAuthority(const DynamicObject::Ptr& object, const String& type)
 {
 	Array::Ptr authorities = object->GetAuthorities();
 	std::vector<String> endpoints;
@@ -1156,11 +1156,8 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 			endpoints.push_back(endpoint->GetName());
 	}
 
-	if (endpoints.empty()) {
-		result = false;
-
-		return;
-	}
+	if (endpoints.empty())
+		return false;
 
 	std::sort(endpoints.begin(), endpoints.end());
 
@@ -1170,7 +1167,17 @@ void ClusterComponent::CheckAuthorityHandler(const DynamicObject::Ptr& object, c
 
 	Log(LogDebug, "cluster", "Authority for object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' is '" + endpoints[index] + "'.");
 
-	result = (endpoints[index] == GetIdentity());
+	return (endpoints[index] == GetIdentity());
+}
+
+void ClusterComponent::UpdateAuthority(void)
+{
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+			object->SetAuthority("checker", IsAuthority(object, "checker"));
+			object->SetAuthority("notifications", IsAuthority(object, "notifications"));
+		}
+	}
 }
 
 bool ClusterComponent::SupportsChecks(void)

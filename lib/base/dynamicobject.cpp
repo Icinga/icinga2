@@ -41,7 +41,7 @@ using namespace icinga;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
-boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool&)> DynamicObject::OnCheckAuthority;
+boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> DynamicObject::OnAuthorityChanged;
 
 DynamicObject::DynamicObject(void)
 	: m_Active(false)
@@ -126,11 +126,33 @@ Array::Ptr DynamicObject::GetAuthorities(void) const
 	return m_Authorities;
 }
 
-bool DynamicObject::HasAuthority(const String& type)
+void DynamicObject::SetAuthority(const String& type, bool value)
 {
-	bool result = true;
-	OnCheckAuthority(GetSelf(), type, result);
-	return result;
+	ASSERT(!OwnsLock());
+
+	{
+		ObjectLock olock(this);
+
+		if (!m_Authority)
+			m_Authority = boost::make_shared<Dictionary>();
+
+		bool old_value = HasAuthority(type);
+
+		if (old_value == value)
+			return;
+
+		m_Authority->Set(type, value);
+	}
+
+	OnAuthorityChanged(GetSelf(), type, value);
+}
+
+bool DynamicObject::HasAuthority(const String& type) const
+{
+	if (!m_Authority)
+		return true;
+
+	return m_Authority->Get(type);
 }
 
 void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)

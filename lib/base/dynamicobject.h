@@ -63,7 +63,7 @@ public:
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStarted;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;
-	static boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool&)> OnCheckAuthority;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> OnAuthorityChanged;
 
 	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
 
@@ -73,7 +73,9 @@ public:
 	bool IsActive(void) const;
 
 	Array::Ptr GetAuthorities(void) const;
-	bool HasAuthority(const String& type);
+
+	void SetAuthority(const String& type, bool value);
+	bool HasAuthority(const String& type) const;
 
 	void SetExtension(const String& key, const Object::Ptr& object);
 	Object::Ptr GetExtension(const String& key);
@@ -119,6 +121,7 @@ private:
 	Array::Ptr m_Authorities;
 
 	bool m_Active;
+	Dictionary::Ptr m_Authority;
 
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 };

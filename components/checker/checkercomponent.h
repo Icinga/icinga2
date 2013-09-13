@@ -97,8 +97,7 @@ private:
 
 	void AdjustCheckTimer(void);
 
-	void ObjectStartedHandler(const DynamicObject::Ptr& object);
-	void ObjectStoppedHandler(const DynamicObject::Ptr& object);
+	void ObjectHandler(const DynamicObject::Ptr& object);
 	void NextCheckChangedHandler(const Service::Ptr& service);
 
 	void RescheduleCheckTimer(void);
