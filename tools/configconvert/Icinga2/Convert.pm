@@ -1396,7 +1396,10 @@ sub convert_2x {
             # save all command args as macros
             my $arg_cnt = 1;
             foreach my $command_arg_1x (@command_args_1x) {
+                $obj_1x_service->{__I2CONVERT_SERVICE_HOSTNAME} = $service_host_name;
                 my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_service, $command_arg_1x);
+                $obj_1x_service->{__I2CONVERT_SERVICE_HOSTNAME} = undef;
+
                 @$cfg_obj_2x{'service'}->{$service_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
                 $arg_cnt++;
             }
