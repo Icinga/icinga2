@@ -1182,12 +1182,22 @@ void ClusterComponent::UpdateAuthority(void)
 
 bool ClusterComponent::SupportsChecks(void)
 {
-	return DynamicType::GetByName("CheckerComponent");
+	DynamicType::Ptr type = DynamicType::GetByName("CheckerComponent");
+
+	if (!type)
+		return false;
+
+	return !type->GetObjects().empty();
 }
 
 bool ClusterComponent::SupportsNotifications(void)
 {
-	return DynamicType::GetByName("NotificationComponent");
+	DynamicType::Ptr type = DynamicType::GetByName("NotificationComponent");
+
+	if (!type)
+		return false;
+
+	return !type->GetObjects().empty();
 }
 
 void ClusterComponent::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
