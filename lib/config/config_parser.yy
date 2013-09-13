@@ -401,7 +401,10 @@ object_inherits_specifier:
 
 expressionlist: '{' expressions	'}'
 	{
-		$$ = $2;
+		if ($2)
+			$$ = $2;
+		else
+			$$ = new ExpressionList();
 	}
 	;
 
