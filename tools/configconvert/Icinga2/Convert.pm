@@ -835,7 +835,7 @@ sub resolve_macro_attribute {
             $obj_host = obj_get_host_obj_by_host_name($cfg_obj, $host_name);
         }
 
-        $macro_value = obj_1x_get_host_attr($cfg_obj, $obj, $host_name, $attr_name);
+        $macro_value = obj_1x_get_host_attr($cfg_obj, $obj_host, $host_name, $attr_name);
 
         Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
         return $macro_value;
