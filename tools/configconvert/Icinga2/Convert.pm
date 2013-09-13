@@ -2722,11 +2722,6 @@ sub convert_2x {
                                 $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
                             }
 
-                            # add the command macros to the command 2x object
-                            if(defined($host_check_command_2x->{'command_macros'})) {
-                                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = dclone($host_check_command_2x->{'command_macros'});
-                            }
-
                             # our PK
                             $command_obj_cnt++;
                         }
@@ -2750,7 +2745,7 @@ sub convert_2x {
 
                             # save all command args as macros
                             my $arg_cnt = 1;
-                            foreach my $command_arg_1x (@service_command_args_1x) {
+                            foreach my $command_arg_1x (@host_command_args_1x) {
                                 my $obj_1x_host = obj_get_host_obj_by_host_name($cfg_obj_1x, $host_obj_2x_key);
                                 my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_host, $command_arg_1x);
                                 $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
