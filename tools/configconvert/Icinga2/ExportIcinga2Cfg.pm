@@ -478,7 +478,7 @@ sub dump_service_2x {
 
         dump_config_line($icinga2_cfg, "\tmacros += {");
         foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
-            if ($custom_key =~ /^_/) {
+            if ($custom_key !~ /^_/) {
                 next;
             }
 
@@ -623,7 +623,7 @@ sub dump_host_2x {
 
         dump_config_line($icinga2_cfg, "\tmacros += {");
         foreach my $custom_key (keys %{$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
-            if ($custom_key =~ /^_/) {
+            if ($custom_key !~ /^_/) {
                 next;
             }
 
@@ -847,7 +847,7 @@ sub dump_host_2x {
 
             dump_config_line($icinga2_cfg, "\t\tmacros += {");
             foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
-                if ($custom_key =~ /^_/) {
+                if ($custom_key !~ /^_/) {
                     next;
                 }
 
@@ -952,7 +952,7 @@ sub dump_user_2x {
 
         dump_config_line($icinga2_cfg, "\tmacros += {");
         foreach my $custom_key (keys %{$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
-            if ($custom_key =~ /^_/) {
+            if ($custom_key !~ /^_/) {
                 next;
             }
 
