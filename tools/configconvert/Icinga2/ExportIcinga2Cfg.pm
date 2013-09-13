@@ -475,6 +475,17 @@ sub dump_service_2x {
             dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
         }
         dump_config_line($icinga2_cfg, "\t},");
+
+        dump_config_line($icinga2_cfg, "\tmacros += {");
+        foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            if ($custom_key =~ /^_/) {
+                next;
+            }
+
+            my $key = substr($custom_key, 1);
+            dump_config_line($icinga2_cfg, "\t\t_SERVICE$key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
     }
 
     dump_config_line($icinga2_cfg, "");
@@ -607,6 +618,17 @@ sub dump_host_2x {
         dump_config_line($icinga2_cfg, "\tcustom = {");
         foreach my $custom_key (keys %{$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
             dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+
+        dump_config_line($icinga2_cfg, "\tmacros += {");
+        foreach my $custom_key (keys %{$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            if ($custom_key =~ /^_/) {
+                next;
+            }
+
+            my $key = substr($custom_key, 1);
+            dump_config_line($icinga2_cfg, "\t\t_HOST$key = \"$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
         }
         dump_config_line($icinga2_cfg, "\t},");
     }
@@ -822,6 +844,17 @@ sub dump_host_2x {
                 dump_config_line($icinga2_cfg, "\t\t\t$custom_key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
             }
             dump_config_line($icinga2_cfg, "\t\t},");
+
+            dump_config_line($icinga2_cfg, "\t\tmacros += {");
+            foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+                if ($custom_key =~ /^_/) {
+                    next;
+                }
+
+                my $key = substr($custom_key, 1);
+                dump_config_line($icinga2_cfg, "\t\t\t_SERVICE$key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+            }
+            dump_config_line($icinga2_cfg, "\t\t},");
         }
 
         dump_config_line($icinga2_cfg, "\t},");
@@ -914,6 +947,17 @@ sub dump_user_2x {
         dump_config_line($icinga2_cfg, "\tcustom = {");
         foreach my $custom_key (keys %{$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
             dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+
+        dump_config_line($icinga2_cfg, "\tmacros += {");
+        foreach my $custom_key (keys %{$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            if ($custom_key =~ /^_/) {
+                next;
+            }
+
+            my $key = substr($custom_key, 1);
+            dump_config_line($icinga2_cfg, "\t\t_CONTACT$key = \"$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
         }
         dump_config_line($icinga2_cfg, "\t},");
     }
