@@ -249,25 +249,6 @@ int main(int argc, char **argv)
 	po::notify(g_AppParams);
 
 #ifndef _WIN32
-	if (g_AppParams.count("user")) {
-		String user = g_AppParams["user"].as<String>();
-
-		errno = 0;
-		struct passwd *pw = getpwnam(user.CStr());
-
-		if (!pw) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("getpwnam")
-				<< boost::errinfo_errno(errno));
-		}
-
-		if (setuid(pw->pw_uid) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("setuid")
-				<< boost::errinfo_errno(errno));
-		}
-	}
-
 	if (g_AppParams.count("group")) {
 		String group = g_AppParams["group"].as<String>();
 
@@ -283,6 +264,25 @@ int main(int argc, char **argv)
 		if (setgid(gr->gr_gid) < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("setgid")
+				<< boost::errinfo_errno(errno));
+		}
+	}
+
+	if (g_AppParams.count("user")) {
+		String user = g_AppParams["user"].as<String>();
+
+		errno = 0;
+		struct passwd *pw = getpwnam(user.CStr());
+
+		if (!pw) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("getpwnam")
+				<< boost::errinfo_errno(errno));
+		}
+
+		if (setuid(pw->pw_uid) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("setuid")
 				<< boost::errinfo_errno(errno));
 		}
 	}
