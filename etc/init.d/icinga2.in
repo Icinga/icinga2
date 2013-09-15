@@ -24,6 +24,8 @@ DAEMON=$bindir/icinga2
 ICINGA2_CONFIG_FILE=$sysconfdir/icinga2/icinga2.conf
 ICINGA2_PID_FILE=$localstatedir/run/icinga2/icinga2.pid
 ICINGA2_ERROR_LOG=$localstatedir/log/icinga2/error.log
+ICINGA2_USER=icinga
+ICINGA2_GROUP=icinga
 
 test -x $DAEMON || exit 0
 
@@ -49,7 +51,7 @@ start() {
         fi
 
         printf "Starting Icinga 2: "
-        $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG
+        $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP
 
         echo "Done"
         echo

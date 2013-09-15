@@ -24,6 +24,7 @@
 #include "base/logger_fwd.h"
 #include "base/timer.h"
 #include "base/utility.h"
+#include "base/exception.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -34,6 +35,9 @@
 #	define ICINGA_VERSION VERSION ", " GIT_MESSAGE
 
 #	include <ltdl.h>
+#	include <sys/types.h>
+#	include <pwd.h>
+#	include <grp.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -227,6 +231,10 @@ int main(int argc, char **argv)
 		("debug,x", "enable debugging")
 		("daemonize,d", "detach from the controlling terminal")
 		("errorlog,e", po::value<String>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
+#ifndef _WIN32
+		("user,u", po::value<String>(), "user to run Icinga as")
+		("group,g", po::value<String>(), "group to run Icinga as")
+#endif
 	;
 
 	try {
@@ -239,6 +247,46 @@ int main(int argc, char **argv)
 	}
 
 	po::notify(g_AppParams);
+
+#ifndef _WIN32
+	if (g_AppParams.count("user")) {
+		String user = g_AppParams["user"].as<String>();
+
+		errno = 0;
+		struct passwd *pw = getpwnam(user.CStr());
+
+		if (!pw) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("getpwnam")
+				<< boost::errinfo_errno(errno));
+		}
+
+		if (setuid(pw->pw_uid) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("setuid")
+				<< boost::errinfo_errno(errno));
+		}
+	}
+
+	if (g_AppParams.count("group")) {
+		String group = g_AppParams["group"].as<String>();
+
+		errno = 0;
+		struct group *gr = getgrnam(group.CStr());
+
+		if (!gr) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("getpwnam")
+				<< boost::errinfo_errno(errno));
+		}
+
+		if (setgid(gr->gr_gid) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("setgid")
+				<< boost::errinfo_errno(errno));
+		}
+	}
+#endif /* _WIN32 */
 
 	if (g_AppParams.count("debug"))
 		Application::SetDebugging(true);
