@@ -519,40 +519,39 @@ void ClusterComponent::ClusterTimerHandler(void)
 
 	Array::Ptr peers = GetPeers();
 
-	if (!peers)
-		return;
+	if (peers) {
+		ObjectLock olock(peers);
+		BOOST_FOREACH(const String& peer, peers) {
+			Endpoint::Ptr endpoint = Endpoint::GetByName(peer);
 
-	ObjectLock olock(peers);
-	BOOST_FOREACH(const String& peer, peers) {
-		Endpoint::Ptr endpoint = Endpoint::GetByName(peer);
+			if (!endpoint) {
+				Log(LogWarning, "cluster", "Attempted to reconnect to endpoint '" + peer + "': No configuration found.");
+				continue;
+			}
 
-		if (!endpoint) {
-			Log(LogWarning, "cluster", "Attempted to reconnect to endpoint '" + peer + "': No configuration found.");
-			continue;
-		}
+			if (endpoint->IsConnected())
+				continue;
 
-		if (endpoint->IsConnected())
-			continue;
+			String host, port;
+			host = endpoint->GetHost();
+			port = endpoint->GetPort();
 
-		String host, port;
-		host = endpoint->GetHost();
-		port = endpoint->GetPort();
+			if (host.IsEmpty() || port.IsEmpty()) {
+				Log(LogWarning, "cluster", "Can't reconnect "
+				    "to endpoint '" + endpoint->GetName() + "': No "
+				    "host/port information.");
+				continue;
+			}
 
-		if (host.IsEmpty() || port.IsEmpty()) {
-			Log(LogWarning, "cluster", "Can't reconnect "
-			    "to endpoint '" + endpoint->GetName() + "': No "
-			    "host/port information.");
-			continue;
-		}
-
-		try {
-			Log(LogInformation, "cluster", "Attempting to reconnect to cluster endpoint '" + endpoint->GetName() + "' via '" + host + ":" + port + "'.");
-			AddConnection(host, port);
-		} catch (std::exception& ex) {
-			std::ostringstream msgbuf;
-			msgbuf << "Exception occured while reconnecting to endpoint '"
-			       << endpoint->GetName() << "': " << boost::diagnostic_information(ex);
-			Log(LogWarning, "cluster", msgbuf.str());
+			try {
+				Log(LogInformation, "cluster", "Attempting to reconnect to cluster endpoint '" + endpoint->GetName() + "' via '" + host + ":" + port + "'.");
+				AddConnection(host, port);
+			} catch (std::exception& ex) {
+				std::ostringstream msgbuf;
+				msgbuf << "Exception occured while reconnecting to endpoint '"
+				       << endpoint->GetName() << "': " << boost::diagnostic_information(ex);
+				Log(LogWarning, "cluster", msgbuf.str());
+			}
 		}
 	}
 
