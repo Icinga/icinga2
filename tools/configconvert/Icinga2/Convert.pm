@@ -1051,19 +1051,30 @@ sub convert_checkcommand {
     my $cfg_obj_1x = shift;
     my $commands_1x = shift;
     my $obj_1x = shift; #host or service
+    my $service_hostname = shift;
     my $global_macros_1x = shift;
 
     my $command_1x;
     my $command_2x = {};
+    my $check_command;
     #say Dumper($commands_1x);
     #say Dumper($obj_1x);
 
-    # ignore objects without check_command (may defined in template!)
-    return if (!defined($obj_1x->{'check_command'}));
+    # objects without check_command may have it defined in template!
+    if (!defined($obj_1x->{'check_command'})) {
+        # service
+        if (defined($obj_1x->{'__I2CONVERT_SERVICEDESCRIPTION'})) {
+            $check_command = obj_1x_get_service_attr($cfg_obj_1x, $obj_1x, $service_hostname, 'check_command');
+        } else {
+            $check_command = obj_1x_get_host_attr($cfg_obj_1x, $obj_1x, $service_hostname, 'check_command');
+        }
+    } else {
+        $check_command = $obj_1x->{'check_command'};
+    }
 
     #debug("check_command: $obj_1x->{'check_command'}" );
     # split by ! and take only the check command
-    my ($real_command_name_1x, @command_args_1x) = split /!/, $obj_1x->{'check_command'};
+    my ($real_command_name_1x, @command_args_1x) = split /!/, $check_command;
 
     # ignore objects with empty check_command attribute
     #return if (!defined($real_command_name_1x));
@@ -1333,7 +1344,7 @@ sub convert_2x {
             ##########################################
             # map the service check_command to 2.x
             ##########################################
-            my ($service_check_command_2x, @command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_service, $global_macros_1x);
+            my ($service_check_command_2x, @command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_service, $service_host_name, $global_macros_1x);
 
             #say Dumper($service_check_command_2x);
 
@@ -1560,7 +1571,7 @@ sub convert_2x {
         #   and link that service
         ####################################################
 
-        my ($host_check_command_2x, @command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_host, $global_macros_1x);
+        my ($host_check_command_2x, @command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_host, $obj_1x_host->{'__I2CONVERT_HOSTNAME'}, $global_macros_1x);
         #say Dumper($host_check_command_2x);
 
         if(defined($host_check_command_2x->{'check_command_name_1x'})) {
@@ -2686,8 +2697,8 @@ sub convert_2x {
                 ######################################
                 # LINK HOST COMMAND WITH SERVICE CHECK
                 ######################################
-                my ($service_check_command_2x, @service_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_service, $global_macros_1x);
-                my ($host_check_command_2x, @host_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $global_macros_1x);
+                my ($service_check_command_2x, @service_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_service, $obj_2x_service_host_name, $global_macros_1x);
+                my ($host_check_command_2x, @host_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $obj_2x_service_host_name, $global_macros_1x);
                 #say Dumper($host_check_command_2x);
 
                 # check if this service check is a possible match for __I2CONVERT_HOST_CHECK?
