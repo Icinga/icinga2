@@ -1202,7 +1202,7 @@ bool ClusterComponent::IsAuthority(const DynamicObject::Ptr& object, const Strin
 
 void ClusterComponent::UpdateAuthority(void)
 {
-	Log(LogInformation, "cluster", "Updating authority for objects.");
+	Log(LogDebug, "cluster", "Updating authority for objects.");
 
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
