@@ -2781,6 +2781,68 @@ sub convert_2x {
                 #say "ERROR: No Match with ". Dumper($obj_1x_host);
             }
         }
+
+        ######################################
+        # this host object does not have any
+        # services assigned
+        ######################################
+        if ($obj_2x_host_service_cnt == 0 && $obj_2x_host->{'__I2CONVERT_IS_TEMPLATE'} == 0) {
+           say "Found host '". $obj_2x_host->{'__I2CONVERT_HOSTNAME'} ."' without any services";
+
+           # now, add the hostcheck service
+           my ($host_check_command_2x, @host_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $obj_2x_host->{'__I2CONVERT_HOSTNAME'} , $global_macros_1x);
+
+           next if (!defined($host_check_command_2x->{'check_command_name_1x'}));
+
+           if (obj_2x_command_exists($cfg_obj_2x, $host_check_command_2x->{'check_command_name_1x'}) != 1) {
+               $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Check';
+               $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
+               $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $host_check_command_2x->{'check_command'};
+               $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_MACROS'} = $host_check_command_2x->{'command_macros'};
+
+               # use the ITL plugin check command template
+               if(defined($icinga2_cfg->{'itl'}->{'checkcommand-template'}) && $icinga2_cfg->{'itl'}->{'checkcommand-template'} ne "") {
+                   push @{$cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'checkcommand-template'};
+                   $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+               }
+
+               # our PK
+               $command_obj_cnt++;
+            }
+
+            # now create a new service, inline into the host
+            my $obj_2x_service_service_description = $host_check_command_2x->{'check_command_name_1x'};
+            if (obj_2x_host_service_exists($cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}, $obj_2x_service_service_description) != 1) {
+                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 0;
+
+                # use the ITL service template
+                if(defined($icinga2_cfg->{'itl'}->{'service-template'}) && $icinga2_cfg->{'itl'}->{'service-template'} ne "") {
+                    push @{$cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'service-template'};
+                    $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                }
+
+                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj_2x_service_service_description;
+                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2_CONVERT_CHECKCOMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
+
+                # save all command args as macros
+                my $arg_cnt = 1;
+                foreach my $command_arg_1x (@host_command_args_1x) {
+                    my $obj_1x_host = obj_get_host_obj_by_host_name($cfg_obj_1x, $host_obj_2x_key);
+                    my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_host, $command_arg_1x);
+                    $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
+                    $arg_cnt++;
+                }
+
+                # primary key
+                $obj_2x_host_service_cnt++;
+            }
+
+            # now link the service desc to hostcheck
+            $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'__I2CONVERT_HOSTCHECK'} = $obj_2x_service_service_description;
+
+            say "Added hostcheck $obj_2x_service_service_description to host $obj_2x_host->{'__I2CONVERT_HOSTNAME'}";
+
+        }
     }
 
     ############################################################################
