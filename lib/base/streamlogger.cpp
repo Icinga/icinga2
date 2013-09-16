@@ -91,7 +91,7 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
 	if (tty)
 		stream << "\x1b[0m"; // clear colors
 
-	stream << std::endl;
+	stream << "\n";
 }
 
 /**
