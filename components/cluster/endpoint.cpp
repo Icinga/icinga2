@@ -34,6 +34,10 @@ REGISTER_TYPE(Endpoint);
 boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
 boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> Endpoint::OnMessageReceived;
 
+Endpoint::Endpoint(void)
+	: m_Syncing(false)
+{ }
+
 /**
  * Checks whether this endpoint is connected.
  *
@@ -46,18 +50,12 @@ bool Endpoint::IsConnected(void) const
 
 Stream::Ptr Endpoint::GetClient(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Client;
 }
 
 void Endpoint::SetClient(const Stream::Ptr& client)
 {
-	{
-		ObjectLock olock(this);
-
-		m_Client = client;
-	}
+	m_Client = client;
 
 	if (client) {
 		boost::thread thread(boost::bind(&Endpoint::MessageThreadProc, this, client));
@@ -111,8 +109,6 @@ void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
  */
 String Endpoint::GetHost(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Host;
 }
 
@@ -123,8 +119,6 @@ String Endpoint::GetHost(void) const
  */
 String Endpoint::GetPort(void) const
 {
-	ObjectLock olock(this);
-
 	return m_Port;
 }
 
@@ -166,6 +160,16 @@ double Endpoint::GetRemoteLogPosition(void) const
 void Endpoint::SetRemoteLogPosition(double ts)
 {
 	m_RemoteLogPosition = ts;
+}
+
+bool Endpoint::IsSyncing(void) const
+{
+	return m_Syncing;
+}
+
+void Endpoint::SetSyncing(bool syncing)
+{
+	m_Syncing = syncing;
 }
 
 Dictionary::Ptr Endpoint::GetFeatures(void) const

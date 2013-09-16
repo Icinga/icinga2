@@ -41,6 +41,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(Endpoint);
 	DECLARE_TYPENAME(Endpoint);
 
+	Endpoint(void);
+
 	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
 	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
 
@@ -70,6 +72,9 @@ public:
 
 	bool HasFeature(const String& type) const;
 
+	bool IsSyncing(void) const;
+	void SetSyncing(bool syncing);
+
 protected:
 	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
@@ -86,6 +91,7 @@ private:
 	double m_LocalLogPosition;
 	double m_RemoteLogPosition;
 	Dictionary::Ptr m_Features;
+	bool m_Syncing;
 
 	void MessageThreadProc(const Stream::Ptr& stream);
 };

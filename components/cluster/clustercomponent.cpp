@@ -248,7 +248,12 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionar
 		if (endpoint->GetName() == GetIdentity())
 			continue;
 
-		endpoint->SendMessage(message);
+		{
+			ObjectLock olock(endpoint);
+
+			if (!endpoint->IsSyncing())
+				endpoint->SendMessage(message);
+		}
 	}
 }
 
@@ -321,55 +326,69 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 {
 	int count = 0;
 
-	ASSERT(OwnsLock());
+	ASSERT(!OwnsLock());
 
-	CloseLogFile();
-	RotateLogFile();
+	for (;;) {
+		ObjectLock olock(this);
 
-	std::vector<int> files;
-	Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
-	std::sort(files.begin(), files.end());
+		CloseLogFile();
+		RotateLogFile();
 
-	BOOST_FOREACH(int ts, files) {
-		String path = GetClusterDir() + "log/" + Convert::ToString(ts);
+		std::vector<int> files;
+		Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
+		std::sort(files.begin(), files.end());
 
-		if (ts < endpoint->GetLocalLogPosition())
-			continue;
-
-		Log(LogInformation, "cluster", "Replaying log: " + path);
-
-		std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
-		StdioStream::Ptr logStream = boost::make_shared<StdioStream>(fp, true);
-		ZlibStream::Ptr lstream = boost::make_shared<ZlibStream>(logStream);
-
-		String message;
-		while (true) {
-			try {
-				if (!NetString::ReadStringFromStream(lstream, &message))
-					break;
-			} catch (std::exception&) {
-				/* Log files may be incomplete or corrupted. This is perfectly OK. */
-				break;
-			}
-
-			Dictionary::Ptr pmessage = Value::Deserialize(message);
-
-			if (pmessage->Get("timestamp") < endpoint->GetLocalLogPosition())
-				continue;
-
-			if (pmessage->Get("except") == endpoint->GetName())
-				continue;
-
-			NetString::WriteStringToStream(stream, pmessage->Get("message"));
-			count++;
+		if (files.size() > 1) {
+			OpenLogFile();
+			olock.Unlock();
 		}
 
-		lstream->Close();
+		BOOST_FOREACH(int ts, files) {
+			String path = GetClusterDir() + "log/" + Convert::ToString(ts);
+
+			if (ts < endpoint->GetLocalLogPosition())
+				continue;
+
+			Log(LogInformation, "cluster", "Replaying log: " + path);
+
+			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
+			StdioStream::Ptr logStream = boost::make_shared<StdioStream>(fp, true);
+			ZlibStream::Ptr lstream = boost::make_shared<ZlibStream>(logStream);
+
+			String message;
+			while (true) {
+				try {
+					if (!NetString::ReadStringFromStream(lstream, &message))
+						break;
+				} catch (std::exception&) {
+					/* Log files may be incomplete or corrupted. This is perfectly OK. */
+					break;
+				}
+
+				Dictionary::Ptr pmessage = Value::Deserialize(message);
+
+				if (pmessage->Get("timestamp") < endpoint->GetLocalLogPosition())
+					continue;
+
+				if (pmessage->Get("except") == endpoint->GetName())
+					continue;
+
+				NetString::WriteStringToStream(stream, pmessage->Get("message"));
+				count++;
+			}
+
+			lstream->Close();
+		}
+
+		Log(LogInformation, "cluster", "Replayed " + Convert::ToString(count) + " messages.");
+
+		if (files.size() == 1) {
+			ObjectLock olock2(endpoint);
+
+			endpoint->SetSyncing(false);
+			break;
+		}
 	}
-
-	Log(LogInformation, "cluster", "Replayed " + Convert::ToString(count) + " messages.");
-
-	OpenLogFile();
 }
 
 void ClusterComponent::ConfigGlobHandler(const Dictionary::Ptr& config, const String& file, bool basename)
@@ -411,7 +430,17 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 		return;
 	}
 
-	endpoint->SetSeen(Utility::GetTime());
+	{
+		ObjectLock olock(endpoint);
+
+		Stream::Ptr oldClient = endpoint->GetClient();
+		if (oldClient)
+			oldClient->Close();
+
+		endpoint->SetSyncing(true);
+		endpoint->SetSeen(Utility::GetTime());
+		endpoint->SetClient(tlsStream);
+	}
 
 	Dictionary::Ptr config = boost::make_shared<Dictionary>();
 	Array::Ptr configFiles = endpoint->GetConfigFiles();
@@ -435,17 +464,7 @@ void ClusterComponent::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 	String json = Value(message).Serialize();
 	NetString::WriteStringToStream(tlsStream, json);
 
-	{
-		ObjectLock olock(this);
-
-		Stream::Ptr oldClient = endpoint->GetClient();
-		if (oldClient)
-			oldClient->Close();
-
-		endpoint->SetClient(tlsStream);
-
-		ReplayLog(endpoint, tlsStream);
-	}
+	ReplayLog(endpoint, tlsStream);
 }
 
 void ClusterComponent::ClusterTimerHandler(void)
