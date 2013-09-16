@@ -336,10 +336,6 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 		CloseLogFile();
 		RotateLogFile();
 
-		std::vector<int> files;
-		Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
-		std::sort(files.begin(), files.end());
-
 		if (count == -1 || count > 50000) {
 			OpenLogFile();
 			olock.Unlock();
@@ -348,6 +344,10 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 		}
 
 		count = 0;
+
+		std::vector<int> files;
+		Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
+		std::sort(files.begin(), files.end());
 
 		BOOST_FOREACH(int ts, files) {
 			String path = GetClusterDir() + "log/" + Convert::ToString(ts);
@@ -391,9 +391,13 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 		Log(LogInformation, "cluster", "Replayed " + Convert::ToString(count) + " messages.");
 
 		if (last_sync) {
-			ObjectLock olock2(endpoint);
+			{
+				ObjectLock olock2(endpoint);
+				endpoint->SetSyncing(false);
+			}
 
-			endpoint->SetSyncing(false);
+			OpenLogFile();
+
 			break;
 		}
 	}
