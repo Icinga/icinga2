@@ -347,6 +347,8 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 			last_sync = true;
 		}
 
+		count = 0;
+
 		BOOST_FOREACH(int ts, files) {
 			String path = GetClusterDir() + "log/" + Convert::ToString(ts);
 
