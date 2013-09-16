@@ -517,6 +517,34 @@ void ClusterComponent::ClusterTimerHandler(void)
 		}
 	}
 
+	std::vector<int> files;
+	Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
+	std::sort(files.begin(), files.end());
+
+	BOOST_FOREACH(int ts, files) {
+		bool need = false;
+
+		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+			if (endpoint->GetName() == GetIdentity())
+				continue;
+
+			double position = endpoint->GetLocalLogPosition();
+
+			if (position != 0 && ts > position) {
+				need = true;
+				break;
+			}
+		}
+
+		if (!need) {
+			String path = GetClusterDir() + "log/" + Convert::ToString(ts);
+			Log(LogInformation, "cluster", "Removing old log file: " + path);
+			(void) unlink(path.CStr());
+		}
+	}
+
+	UpdateAuthority();
+
 	Array::Ptr peers = GetPeers();
 
 	if (peers) {
@@ -554,34 +582,6 @@ void ClusterComponent::ClusterTimerHandler(void)
 			}
 		}
 	}
-
-	std::vector<int> files;
-	Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
-	std::sort(files.begin(), files.end());
-
-	BOOST_FOREACH(int ts, files) {
-		bool need = false;
-
-		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-			if (endpoint->GetName() == GetIdentity())
-				continue;
-
-			double position = endpoint->GetLocalLogPosition();
-
-			if (position != 0 && ts > position) {
-				need = true;
-				break;
-			}
-		}
-
-		if (!need) {
-			String path = GetClusterDir() + "log/" + Convert::ToString(ts);
-			Log(LogInformation, "cluster", "Removing old log file: " + path);
-			(void) unlink(path.CStr());
-		}
-	}
-
-	UpdateAuthority();
 }
 
 void ClusterComponent::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority)
