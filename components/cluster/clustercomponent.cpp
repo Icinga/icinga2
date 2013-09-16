@@ -324,7 +324,7 @@ void ClusterComponent::LogGlobHandler(std::vector<int>& files, const String& fil
 
 void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream)
 {
-	int count = 0;
+	int count = -1;
 	double peer_ts = endpoint->GetLocalLogPosition();
 	bool last_sync = false;
 
@@ -340,7 +340,7 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 		Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterComponent::LogGlobHandler, boost::ref(files), _1));
 		std::sort(files.begin(), files.end());
 
-		if (count == 0 || count > 50000) {
+		if (count == -1 || count > 50000) {
 			OpenLogFile();
 			olock.Unlock();
 		} else {
