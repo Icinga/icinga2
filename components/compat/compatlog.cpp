@@ -52,9 +52,10 @@ void CompatLog::Start(void)
 	DynamicObject::Start();
 
 	Service::OnNewCheckResult.connect(bind(&CompatLog::CheckResultHandler, this, _1, _2));
-//	Service::OnDowntimeTriggered.connect(bind(&CompatLog::DowntimeHandler, this, _1));
 	Service::OnNotificationSentChanged.connect(bind(&CompatLog::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6));
 	Service::OnFlappingChanged.connect(bind(&CompatLog::FlappingHandler, this, _1, _2));
+	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLog::TriggerDowntimeHandler, this, _1, _2));
+	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLog::RemoveDowntimeHandler, this, _1, _2));
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLog::RotationTimerHandler, this));
@@ -167,69 +168,111 @@ void CompatLog::CheckResultHandler(const Service::Ptr& service, const Dictionary
 	}
 }
 
-///**
-// * @threadsafety Always.
-// */
-//void CompatLog::DowntimeHandler(const Service::Ptr& service)
-//{
-//	Host::Ptr host = service->GetHost();
-//
-//	if (!host)
-//		return;
-//
-//	String downtime_state_str;
-//	String downtime_output;
-//
-//	switch (downtime_state) {
-//		case DowntimeStarted:
-//			downtime_output = "Service has entered a period of scheduled downtime.";
-//			downtime_state_str = "STARTED";
-//			break;
-//		case DowntimeStopped:
-//			downtime_output = "Service has exited from a period of scheduled downtime.";
-//			downtime_state_str = "STOPPED";
-//			break;
-//		case DowntimeCancelled:
-//			downtime_output = "Scheduled downtime for service has been cancelled.";
-//			downtime_state_str = "CANCELLED";
-//			break;
-//		default:
-//			Log(LogCritical, "compat", "Unknown downtime state: " + Convert::ToString(downtime_state));
-//			return;
-//	}
-//
-//	std::ostringstream msgbuf;
-//	msgbuf << "SERVICE DOWNTIME ALERT: "
-//		<< host->GetName() << ";"
-//		<< service->GetShortName() << ";"
-//		<< downtime_state_str << "; "
-//		<< downtime_output
-//		<< "";
-//
-//	{
-//		ObjectLock oLock(this);
-//		WriteLine(msgbuf.str());
-//	}
-//
-//	if (service == host->GetHostCheckService()) {
-//		std::ostringstream msgbuf;
-//		msgbuf << "HOST DOWNTIME ALERT: "
-//			<< host->GetName() << ";"
-//			<< downtime_state_str << "; "
-//			<< downtime_output
-//			<< "";
-//
-//		{
-//			ObjectLock oLock(this);
-//			WriteLine(msgbuf.str());
-//		}
-//	}
-//
-//	{
-//		ObjectLock oLock(this);
-//		Flush();
-//	}
-//}
+/**
+ * @threadsafety Always.
+ */
+void CompatLog::TriggerDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (!downtime)
+		return;
+
+	String downtime_output = "Service has entered a period of scheduled downtime.";
+	String downtime_state_str = "STARTED";
+
+	std::ostringstream msgbuf;
+	msgbuf << "SERVICE DOWNTIME ALERT: "
+		<< host->GetName() << ";"
+		<< service->GetShortName() << ";"
+		<< downtime_state_str << "; "
+		<< downtime_output
+		<< "";
+
+	{
+		ObjectLock oLock(this);
+		WriteLine(msgbuf.str());
+	}
+
+	if (service == host->GetHostCheckService()) {
+		std::ostringstream msgbuf;
+		msgbuf << "HOST DOWNTIME ALERT: "
+			<< host->GetName() << ";"
+			<< downtime_state_str << "; "
+			<< downtime_output
+			<< "";
+
+		{
+			ObjectLock oLock(this);
+			WriteLine(msgbuf.str());
+		}
+	}
+
+	{
+		ObjectLock oLock(this);
+		Flush();
+	}
+}
+
+/**
+ * @threadsafety Always.
+ */
+void CompatLog::RemoveDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (!downtime)
+		return;
+
+	String downtime_output;
+	String downtime_state_str;
+
+	if (downtime->Get("was_cancelled") == true) {
+		downtime_output = "Scheduled downtime for service has been cancelled.";
+		downtime_state_str = "CANCELLED";
+	} else {
+		downtime_output = "Service has exited from a period of scheduled downtime.";
+		downtime_state_str = "STOPPED";
+	}
+
+	std::ostringstream msgbuf;
+	msgbuf << "SERVICE DOWNTIME ALERT: "
+		<< host->GetName() << ";"
+		<< service->GetShortName() << ";"
+		<< downtime_state_str << "; "
+		<< downtime_output
+		<< "";
+
+	{
+		ObjectLock oLock(this);
+		WriteLine(msgbuf.str());
+	}
+
+	if (service == host->GetHostCheckService()) {
+		std::ostringstream msgbuf;
+		msgbuf << "HOST DOWNTIME ALERT: "
+			<< host->GetName() << ";"
+			<< downtime_state_str << "; "
+			<< downtime_output
+			<< "";
+
+		{
+			ObjectLock oLock(this);
+			WriteLine(msgbuf.str());
+		}
+	}
+
+	{
+		ObjectLock oLock(this);
+		Flush();
+	}
+}
 
 /**
  * @threadsafety Always.

@@ -65,6 +65,8 @@ private:
 	void DowntimeHandler(const Service::Ptr& service, DowntimeState downtime_state);
 	void NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user, NotificationType const& notification_type, Dictionary::Ptr const& cr, const String& author, const String& comment_text);
 	void FlappingHandler(const Service::Ptr& service, FlappingState flapping_state);
+        void TriggerDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+        void RemoveDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);
