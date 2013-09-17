@@ -251,6 +251,8 @@ void ServiceDbObject::OnConfigUpdate(void)
 	}
 
 	/* update comments and downtimes on config change */
+	RemoveComments(service);
+	RemoveDowntimes(service);
 	AddComments(service);
 	AddDowntimes(service);
  
@@ -345,12 +347,8 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 
 	if (object->GetType() == DynamicType::GetByName("Host")) {
 		fields1->Set("comment_type", 2);
-		/* this is obviously bullshit, but otherwise we would hit
-		 * the unique constraint on the table for the same service
-		 * comment. dynamically incremented/decremented numbers as
-		 * unique constraint - wtf?
-		 */
-		fields1->Set("internal_comment_id", 0);
+		/* requires idoutils 1.10 schema fix */
+		fields1->Set("internal_comment_id", comment->Get("legacy_id"));
 	} else if (object->GetType() == DynamicType::GetByName("Service")) {
 		fields1->Set("comment_type", 1);
 		fields1->Set("internal_comment_id", comment->Get("legacy_id"));
@@ -375,9 +373,65 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 	OnQuery(query1);
 }
 
+void ServiceDbObject::RemoveComments(const Service::Ptr& service)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Log(LogDebug, "ido", "removing service comments for '" + service->GetName() + "'");
+
+	DbQuery query1;
+	query1.Table = "comments";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set("object_id", service);
+	OnQuery(query1);
+
+	/* delete hostcheck service's host comments */
+	if (host->GetHostCheckService() == service) {
+		DbQuery query2;
+		query2.Table = "comments";
+		query2.Type = DbQueryDelete;
+		query2.WhereCriteria = boost::make_shared<Dictionary>();
+		query2.WhereCriteria->Set("object_id", host);
+		OnQuery(query2);
+	}
+}
+
 void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionary::Ptr& comment)
 {
-	/* TODO: implement */
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (!comment) {
+		Log(LogWarning, "ido", "comment does not exist. not adding it.");
+		return;
+	}
+
+	Log(LogDebug, "ido", "removing service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
+
+	DbQuery query1;
+	query1.Table = "comments";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set("object_id", service);
+	query1.WhereCriteria->Set("internal_comment_id", comment->Get("legacy_id"));
+	OnQuery(query1);
+
+	/* delete hostcheck service's host comments */
+	if (host->GetHostCheckService() == service) {
+		DbQuery query2;
+		query2.Table = "comments";
+		query2.Type = DbQueryDelete;
+		query2.WhereCriteria = boost::make_shared<Dictionary>();
+		query2.WhereCriteria->Set("object_id", host);
+		query2.WhereCriteria->Set("internal_comment_id", comment->Get("legacy_id"));
+		OnQuery(query2);
+	}
 }
 
 void ServiceDbObject::AddDowntimes(const Service::Ptr& service)
@@ -429,12 +483,8 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 
 	if (object->GetType() == DynamicType::GetByName("Host")) {
 		fields1->Set("downtime_type", 2);
-		/* this is obviously bullshit, but otherwise we would hit
-		 * the unique constraint on the table for the same service
-		 * downtime. dynamically incremented/decremented numbers as
-		 * unique constraint - wtf?
-		 */
-		fields1->Set("internal_downtime_id", 0);
+		/* requires idoutils 1.10 schema fix */
+		fields1->Set("internal_downtime_id", downtime->Get("legacy_id"));
 	} else if (object->GetType() == DynamicType::GetByName("Service")) {
 		fields1->Set("downtime_type", 1);
 		fields1->Set("internal_downtime_id", downtime->Get("legacy_id"));
@@ -463,9 +513,65 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 	OnQuery(query1);
 }
 
+void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Log(LogDebug, "ido", "removing service downtimes for '" + service->GetName() + "'");
+
+	DbQuery query1;
+	query1.Table = "scheduleddowntime";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set("object_id", service);
+	OnQuery(query1);
+
+	/* delete hostcheck service's host downtimes */
+	if (host->GetHostCheckService() == service) {
+		DbQuery query2;
+		query2.Table = "scheduleddowntime";
+		query2.Type = DbQueryDelete;
+		query2.WhereCriteria = boost::make_shared<Dictionary>();
+		query2.WhereCriteria->Set("object_id", host);
+		OnQuery(query2);
+	}
+}
+
 void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime)
 {
-	/* TODO: implement */
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (!downtime) {
+		Log(LogWarning, "ido", "downtime does not exist. not adding it.");
+		return;
+	}
+
+	Log(LogDebug, "ido", "removing service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
+
+	DbQuery query1;
+	query1.Table = "scheduleddowntime";
+	query1.Type = DbQueryDelete;
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set("object_id", service);
+	query1.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
+	OnQuery(query1);
+
+	/* delete hostcheck service's host comments */
+	if (host->GetHostCheckService() == service) {
+		DbQuery query2;
+		query2.Table = "scheduleddowntime";
+		query2.Type = DbQueryDelete;
+		query2.WhereCriteria = boost::make_shared<Dictionary>();
+		query2.WhereCriteria->Set("object_id", host);
+		query2.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
+		OnQuery(query2);
+	}
 }
 
 void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime)

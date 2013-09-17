@@ -54,11 +54,13 @@ private:
 	static void AddComments(const Service::Ptr& service);
 	static void AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
 	static void AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment);
+        static void RemoveComments(const Service::Ptr& service);
 	static void RemoveComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
 
 	static void AddDowntimes(const Service::Ptr& service);
 	static void AddDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 	static void AddDowntimeByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& downtime);
+        static void RemoveDowntimes(const Service::Ptr& service);
 	static void RemoveDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 	static void TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 };
