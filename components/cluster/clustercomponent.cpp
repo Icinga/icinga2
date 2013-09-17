@@ -106,7 +106,7 @@ void ClusterComponent::Start(void)
 						privs |= domainObj->GetPrivileges(endpoint->GetName());
 					}
 				} else {
-					privs = ~0;
+					privs = INT_MAX;
 				}
 
 				Log(LogDebug, "cluster", "Privileges for object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' for instance '" + endpoint->GetName() + "' are '" + Convert::ToString(privs) + "'");
