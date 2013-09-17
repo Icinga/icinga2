@@ -51,6 +51,8 @@ void Service::Start(void)
 
 	AddDowntimesToCache();
 	AddCommentsToCache();
+
+	StartDowntimesExpiredTimer();
 }
 
 void Service::OnConfigLoaded(void)

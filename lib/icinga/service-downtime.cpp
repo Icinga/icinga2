@@ -289,6 +289,16 @@ bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
 	return (downtime->Get("end_time") < Utility::GetTime());
 }
 
+void Service::StartDowntimesExpiredTimer(void)
+{
+        if (!l_DowntimesExpireTimer) {
+		l_DowntimesExpireTimer = boost::make_shared<Timer>();
+		l_DowntimesExpireTimer->SetInterval(60);
+		l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimesExpireTimerHandler));
+		l_DowntimesExpireTimer->Start();
+        }
+}
+
 void Service::AddDowntimesToCache(void)
 {
 	Log(LogDebug, "icinga", "Updating Service downtimes cache.");

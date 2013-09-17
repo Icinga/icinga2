@@ -275,6 +275,8 @@ public:
 	static bool IsDowntimeTriggered(const Dictionary::Ptr& downtime);
 	static bool IsDowntimeExpired(const Dictionary::Ptr& downtime);
 
+	void StartDowntimesExpiredTimer(void);
+
 	bool IsInDowntime(void) const;
 	bool IsAcknowledged(void);
 
