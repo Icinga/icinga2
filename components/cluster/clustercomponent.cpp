@@ -1023,7 +1023,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		Dictionary::Ptr cr = params->Get("check_result");
@@ -1042,7 +1042,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		double nextCheck = params->Get("next_check");
@@ -1058,7 +1058,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		bool forced = params->Get("forced");
@@ -1074,7 +1074,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		bool forced = params->Get("forced");
@@ -1090,7 +1090,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		bool enabled = params->Get("enabled");
@@ -1106,7 +1106,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		bool enabled = params->Get("enabled");
@@ -1122,7 +1122,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		bool enabled = params->Get("enabled");
@@ -1138,7 +1138,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		bool enabled = params->Get("enabled");
@@ -1154,7 +1154,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Notification::Ptr notification = Notification::GetByName(nfc);
 
-		if (!notification)
+		if (!notification || !notification->GetService()->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		bool nextNotification = params->Get("next_notification");
@@ -1170,7 +1170,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		Dictionary::Ptr comment = params->Get("comment");
@@ -1188,7 +1188,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		String id = params->Get("id");
@@ -1204,7 +1204,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		Dictionary::Ptr downtime = params->Get("downtime");
@@ -1223,7 +1223,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		String id = params->Get("id");
@@ -1239,7 +1239,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		String author = params->Get("author");
@@ -1258,7 +1258,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service)
+		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
 			return;
 
 		{
