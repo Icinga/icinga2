@@ -24,6 +24,7 @@
 #include "base/objectlock.h"
 #include "base/initialize.h"
 #include "base/dynamictype.h"
+#include "base/utility.h"
 #include "icinga/notification.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
@@ -577,4 +578,59 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictiona
 void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime)
 {
 	/* TODO: implement */
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (!downtime) {
+		Log(LogWarning, "ido", "downtime does not exist. not updating it.");
+		return;
+	}
+
+	Log(LogDebug, "ido", "updating triggered service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
+
+	double now = Utility::GetTime();
+	unsigned long actual_start_time = static_cast<long>(now);
+	unsigned long actual_start_time_usec = static_cast<long>((now - actual_start_time) * 1000 * 1000);
+
+	DbQuery query1;
+	query1.Table = "scheduleddowntime";
+	query1.Type = DbQueryUpdate;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+	fields1->Set("was_started", 1);
+	fields1->Set("actual_start_time", DbValue::FromTimestamp(actual_start_time));
+	fields1->Set("actual_start_time_usec", actual_start_time_usec);
+	fields1->Set("is_in_effect", 1);
+	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->Get("trigger_time")));
+
+	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria->Set("object_id", service);
+	query1.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
+
+	query1.Fields = fields1;
+	OnQuery(query1);
+
+	/* delete hostcheck service's host comments */
+	if (host->GetHostCheckService() == service) {
+
+		DbQuery query2;
+		query2.Table = "scheduleddowntime";
+		query2.Type = DbQueryUpdate;
+
+		Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
+		fields2->Set("was_started", 1);
+		fields2->Set("actual_start_time", DbValue::FromTimestamp(actual_start_time));
+		fields2->Set("actual_start_time_usec", actual_start_time_usec);
+		fields2->Set("is_in_effect", 1);
+		fields2->Set("trigger_time", DbValue::FromTimestamp(downtime->Get("trigger_time")));
+
+		query2.WhereCriteria = boost::make_shared<Dictionary>();
+		query2.WhereCriteria->Set("object_id", host);
+		query2.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
+
+		query2.Fields = fields2;
+		OnQuery(query2);
+		}
 }
