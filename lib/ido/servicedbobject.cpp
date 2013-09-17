@@ -577,7 +577,6 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictiona
 
 void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime)
 {
-	/* TODO: implement */
 	Host::Ptr host = service->GetHost();
 
 	if (!host)
@@ -632,5 +631,5 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 
 		query2.Fields = fields2;
 		OnQuery(query2);
-		}
+	}
 }
