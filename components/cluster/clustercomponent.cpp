@@ -1294,7 +1294,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		String id = params->Get("id");
 
-		service->RemoveDowntime(id, sender->GetName());
+		service->RemoveDowntime(id, false, sender->GetName());
 
 		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetAcknowledgement") {

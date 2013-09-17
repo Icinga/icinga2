@@ -262,7 +262,7 @@ public:
 	    const String& triggeredBy, double duration,
 	    const String& id = String(), const String& authority = String());
 
-	static void RemoveDowntime(const String& id, const String& = String());
+	static void RemoveDowntime(const String& id, const bool& cancelled, const String& = String());
 
         void TriggerDowntimes(void);
 	static void TriggerDowntime(const String& id);
@@ -272,6 +272,7 @@ public:
 	static Dictionary::Ptr GetDowntimeByID(const String& id);
 
 	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
+	static bool IsDowntimeTriggered(const Dictionary::Ptr& downtime);
 	static bool IsDowntimeExpired(const Dictionary::Ptr& downtime);
 
 	bool IsInDowntime(void) const;

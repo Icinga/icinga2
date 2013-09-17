@@ -898,7 +898,7 @@ void ExternalCommandProcessor::DelSvcDowntime(double, const std::vector<String>&
 	int id = Convert::ToLong(arguments[0]);
 	Log(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
 	String rid = Service::GetDowntimeIDFromLegacyID(id);
-	Service::RemoveDowntime(rid);
+	Service::RemoveDowntime(rid, true);
 }
 
 void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<String>& arguments)
@@ -931,7 +931,7 @@ void ExternalCommandProcessor::DelHostDowntime(double, const std::vector<String>
 	int id = Convert::ToLong(arguments[0]);
 	Log(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
 	String rid = Service::GetDowntimeIDFromLegacyID(id);
-	Service::RemoveDowntime(rid);
+	Service::RemoveDowntime(rid, true);
 }
 
 void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector<String>& arguments)
