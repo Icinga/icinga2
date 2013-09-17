@@ -44,6 +44,13 @@ enum AttributeType
 	Attribute_Config = 2,
 };
 
+enum DomainPriv
+{
+	DomainPrivRead = (1<<0),
+	DomainPrivCheckResult = (1<<1),
+	DomainPrivCommand = (1<<2)
+};
+
 /**
  * A dynamic object that can be instantiated from the configuration file
  * and that supports attribute replication to remote application instances.
@@ -76,6 +83,11 @@ public:
 
 	void SetAuthority(const String& type, bool value);
 	bool HasAuthority(const String& type) const;
+
+	Array::Ptr GetDomains(void) const;
+
+	void SetPrivileges(const String& instance, int privs);
+	bool HasPrivileges(const String& instance, int privs) const;
 
 	void SetExtension(const String& key, const Object::Ptr& object);
 	Object::Ptr GetExtension(const String& key);
@@ -119,6 +131,8 @@ private:
 	Dictionary::Ptr m_Methods;
 	Dictionary::Ptr m_Custom;
 	Array::Ptr m_Authorities;
+	Array::Ptr m_Domains;
+	std::map<String, int> m_Privileges;
 
 	bool m_Active;
 	Dictionary::Ptr m_Authority;

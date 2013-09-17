@@ -17,47 +17,37 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-type DynamicObject {
-	%require "__name",
-	%attribute string "__name",
+#include "icinga/domain.h"
+#include "base/dynamictype.h"
 
-	%require "__type",
-	%attribute string "__type",
+using namespace icinga;
 
-	%attribute dictionary "methods",
+REGISTER_TYPE(Domain);
 
-	%attribute dictionary "custom" {
-		%attribute string "*"
-	},
+Dictionary::Ptr Domain::GetAcl(void) const
+{
+	return m_Acl;
+}
 
-	%attribute array "authorities" {
-		%attribute string "*"
-	},
+int Domain::GetPrivileges(const String& instance) const
+{
+	return m_Acl->Get(instance);
+}
 
-	%attribute array "domains" {
-		%attribute string "*"
+void Domain::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+{
+	DynamicObject::InternalSerialize(bag, attributeTypes);
+
+	if (attributeTypes & Attribute_Config) {
+		bag->Set("acl", m_Acl);
 	}
 }
 
-type Logger {
-	%attribute string "severity"
-}
+void Domain::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+{
+	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
-type ConsoleLogger inherits Logger {
-}
-
-type FileLogger inherits Logger {
-	%require "path",
-	%attribute string "path"
-}
-
-type SyslogLogger inherits Logger {
-}
-
-type Script {
-	%require "language",
-	%attribute string "language",
-
-	%require "code",
-	%attribute string "code"
+	if (attributeTypes & Attribute_Config) {
+		m_Acl = bag->Get("acl");
+	}
 }

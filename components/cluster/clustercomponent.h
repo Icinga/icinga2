@@ -83,7 +83,7 @@ private:
 	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
 
-	void RelayMessage(const Endpoint::Ptr& except, const Dictionary::Ptr& message, bool persistent);
+	void RelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent);
 
 	void OpenLogFile(void);
 	void RotateLogFile(void);
@@ -117,6 +117,8 @@ private:
 
 	static bool SupportsChecks(void);
 	static bool SupportsNotifications(void);
+
+	void SetSecurityInfo(const Dictionary::Ptr& message, const DynamicObject::Ptr& object, int privs);
 };
 
 }

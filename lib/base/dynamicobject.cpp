@@ -84,9 +84,11 @@ void DynamicObject::InternalSerialize(const Dictionary::Ptr& bag, int attributeT
 		bag->Set("methods", m_Methods);
 		bag->Set("custom", m_Custom);
 		bag->Set("authorities", m_Authorities);
+		bag->Set("domains", m_Domains);
 	}
 
-	bag->Set("extensions", m_Extensions);
+	if (attributeTypes & Attribute_State)
+		bag->Set("extensions", m_Extensions);
 
 	/* This attribute is used by Serialize() to check that this
 	 * method was called. */
@@ -101,9 +103,11 @@ void DynamicObject::InternalDeserialize(const Dictionary::Ptr& bag, int attribut
 		m_Methods = bag->Get("methods");
 		m_Custom = bag->Get("custom");
 		m_Authorities = bag->Get("authorities");
+		m_Domains = bag->Get("domains");
 	}
 
-	m_Extensions = bag->Get("extensions");
+	if (attributeTypes & Attribute_State)
+		m_Extensions = bag->Get("extensions");
 }
 
 DynamicType::Ptr DynamicObject::GetType(void) const
@@ -153,6 +157,27 @@ bool DynamicObject::HasAuthority(const String& type) const
 		return true;
 
 	return m_Authority->Get(type);
+}
+
+Array::Ptr DynamicObject::GetDomains(void) const
+{
+	return m_Domains;
+}
+
+void DynamicObject::SetPrivileges(const String& instance, int privs)
+{
+	m_Privileges[instance] = privs;
+}
+
+bool DynamicObject::HasPrivileges(const String& instance, int privs) const
+{
+	std::map<String, int>::const_iterator it;
+	it = m_Privileges.find(instance);
+
+	if (it == m_Privileges.end())
+		return false;
+
+	return (it->second & privs) == privs;
 }
 
 void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)

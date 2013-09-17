@@ -21,6 +21,8 @@ libicinga_la_SOURCES =  \
 	command.h \
 	compatutility.cpp \
 	compatutility.h \
+	domain.cpp \
+	domain.h \
 	eventcommand.cpp \
 	eventcommand.h \
 	externalcommandprocessor.cpp \

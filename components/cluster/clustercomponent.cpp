@@ -19,6 +19,7 @@
 
 #include "cluster/clustercomponent.h"
 #include "cluster/endpoint.h"
+#include "icinga/domain.h"
 #include "base/netstring.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
@@ -86,6 +87,33 @@ void ClusterComponent::Start(void)
 	Service::OnAcknowledgementCleared.connect(boost::bind(&ClusterComponent::AcknowledgementClearedHandler, this, _1, _2));
 
 	Endpoint::OnMessageReceived.connect(boost::bind(&ClusterComponent::MessageHandler, this, _1, _2));
+
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+			BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+				int privs = 0;
+
+				Array::Ptr domains = object->GetDomains();
+
+				if (domains) {
+					ObjectLock olock(domains);
+					BOOST_FOREACH(const String& domain, domains) {
+						Domain::Ptr domainObj = Domain::GetByName(domain);
+
+						if (!domainObj)
+							BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid domain: " + domain));
+
+						privs |= domainObj->GetPrivileges(endpoint->GetName());
+					}
+				} else {
+					privs = ~0;
+				}
+
+				Log(LogInformation, "cluster", "Privileges for object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' for instance '" + endpoint->GetName() + "' are '" + Convert::ToString(privs) + "'");
+				object->SetPrivileges(endpoint->GetName(), privs);
+			}
+		}
+	}
 }
 
 /**
@@ -209,7 +237,7 @@ void ClusterComponent::AddConnection(const String& node, const String& service) 
 	Utility::QueueAsyncCallback(boost::bind(&ClusterComponent::NewClientHandler, this, client, TlsRoleClient));
 }
 
-void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionary::Ptr& message, bool persistent)
+void ClusterComponent::RelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent)
 {
 	double ts = Utility::GetTime();
 	message->Set("ts", ts);
@@ -218,8 +246,10 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionar
 		Dictionary::Ptr pmessage = boost::make_shared<Dictionary>();
 		pmessage->Set("timestamp", ts);
 
-		if (except)
-			pmessage->Set("except", except->GetName());
+		if (source)
+			pmessage->Set("source", source->GetName());
+
+		pmessage->Set("security", message->Get("security"));
 
 		pmessage->Set("message", Value(message).Serialize());
 
@@ -238,15 +268,44 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& except, const Dictionar
 		}
 	}
 
+	Dictionary::Ptr security = message->Get("security");
+	DynamicObject::Ptr secobj;
+	int privs;
+
+	if (security) {
+		String type = security->Get("type");
+		DynamicType::Ptr dtype = DynamicType::GetByName(type);
+
+		if (!dtype) {
+			Log(LogWarning, "cluster", "Invalid type in security attribute: " + type);
+			return;
+		}
+
+		String name = security->Get("name");
+		secobj = dtype->GetObject(name);
+
+		if (!secobj) {
+			Log(LogWarning, "cluster", "Invalid object name in security attribute: " + name + " (of type '" + type + "')");
+			return;
+		}
+
+		privs = security->Get("privs");
+	}
+
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
 		if (!persistent && !endpoint->IsConnected())
 			continue;
 
-		if (endpoint == except)
+		if (endpoint == source)
 			continue;
 
 		if (endpoint->GetName() == GetIdentity())
 			continue;
+
+		if (secobj && !secobj->HasPrivileges(endpoint->GetName(), privs)) {
+			Log(LogDebug, "cluster", "Not sending message to endpoint '" + endpoint->GetName() + "': Insufficient privileges.");
+			continue;
+		}
 
 		{
 			ObjectLock olock(endpoint);
@@ -376,8 +435,37 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 				if (pmessage->Get("timestamp") < peer_ts)
 					continue;
 
-				if (pmessage->Get("except") == endpoint->GetName())
+				if (pmessage->Get("source") == endpoint->GetName())
 					continue;
+
+				Dictionary::Ptr security = pmessage->Get("security");
+				DynamicObject::Ptr secobj;
+				int privs;
+
+				if (security) {
+					String type = security->Get("type");
+					DynamicType::Ptr dtype = DynamicType::GetByName(type);
+
+					if (!dtype) {
+						Log(LogWarning, "cluster", "Invalid type in security attribute: " + type);
+						return;
+					}
+
+					String name = security->Get("name");
+					secobj = dtype->GetObject(name);
+
+					if (!secobj) {
+						Log(LogWarning, "cluster", "Invalid object name in security attribute: " + name + " (of type '" + type + "')");
+						return;
+					}
+
+					privs = security->Get("privs");
+				}
+
+				if (secobj && !secobj->HasPrivileges(endpoint->GetName(), privs)) {
+					Log(LogDebug, "cluster", "Not replaying message: Insufficient privileges.");
+					continue;
+				}
 
 				NetString::WriteStringToStream(stream, pmessage->Get("message"));
 				count++;
@@ -584,6 +672,18 @@ void ClusterComponent::ClusterTimerHandler(void)
 	}
 }
 
+void ClusterComponent::SetSecurityInfo(const Dictionary::Ptr& message, const DynamicObject::Ptr& object, int privs)
+{
+	ASSERT(object);
+
+	Dictionary::Ptr security = boost::make_shared<Dictionary>();
+	security->Set("type", object->GetType()->GetName());
+	security->Set("name", object->GetName());
+	security->Set("privs", privs);
+
+	message->Set("security", security);
+}
+
 void ClusterComponent::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
@@ -597,6 +697,8 @@ void ClusterComponent::CheckResultHandler(const Service::Ptr& service, const Dic
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::CheckResult");
 	message->Set("params", params);
+
+	SetSecurityInfo(message, service, DomainPrivRead);
 
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -615,6 +717,8 @@ void ClusterComponent::NextCheckChangedHandler(const Service::Ptr& service, doub
 	message->Set("method", "cluster::SetNextCheck");
 	message->Set("params", params);
 
+	SetSecurityInfo(message, service, DomainPrivRead);
+
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
@@ -631,6 +735,8 @@ void ClusterComponent::NextNotificationChangedHandler(const Notification::Ptr& n
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::SetNextNotification");
 	message->Set("params", params);
+
+	SetSecurityInfo(message, notification->GetService(), DomainPrivRead);
 
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -649,6 +755,8 @@ void ClusterComponent::ForceNextCheckChangedHandler(const Service::Ptr& service,
 	message->Set("method", "cluster::SetForceNextCheck");
 	message->Set("params", params);
 
+	SetSecurityInfo(message, service, DomainPrivRead);
+
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
@@ -665,6 +773,8 @@ void ClusterComponent::ForceNextNotificationChangedHandler(const Service::Ptr& s
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::SetForceNextNotification");
 	message->Set("params", params);
+
+	SetSecurityInfo(message, service, DomainPrivRead);
 
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -683,6 +793,8 @@ void ClusterComponent::EnableActiveChecksChangedHandler(const Service::Ptr& serv
 	message->Set("method", "cluster::SetEnableActiveChecks");
 	message->Set("params", params);
 
+	SetSecurityInfo(message, service, DomainPrivRead);
+
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
@@ -699,6 +811,8 @@ void ClusterComponent::EnablePassiveChecksChangedHandler(const Service::Ptr& ser
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::SetEnablePassiveChecks");
 	message->Set("params", params);
+
+	SetSecurityInfo(message, service, DomainPrivRead);
 
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -717,6 +831,8 @@ void ClusterComponent::EnableNotificationsChangedHandler(const Service::Ptr& ser
 	message->Set("method", "cluster::SetEnableNotifications");
 	message->Set("params", params);
 
+	SetSecurityInfo(message, service, DomainPrivRead);
+
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
@@ -733,6 +849,8 @@ void ClusterComponent::EnableFlappingChangedHandler(const Service::Ptr& service,
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::SetEnableFlapping");
 	message->Set("params", params);
+
+	SetSecurityInfo(message, service, DomainPrivRead);
 
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -751,6 +869,8 @@ void ClusterComponent::CommentAddedHandler(const Service::Ptr& service, const Di
 	message->Set("method", "cluster::AddComment");
 	message->Set("params", params);
 
+	SetSecurityInfo(message, service, DomainPrivRead);
+
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
@@ -767,6 +887,8 @@ void ClusterComponent::CommentRemovedHandler(const Service::Ptr& service, const 
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::RemoveComment");
 	message->Set("params", params);
+
+	SetSecurityInfo(message, service, DomainPrivRead);
 
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -785,6 +907,8 @@ void ClusterComponent::DowntimeAddedHandler(const Service::Ptr& service, const D
 	message->Set("method", "cluster::AddDowntime");
 	message->Set("params", params);
 
+	SetSecurityInfo(message, service, DomainPrivRead);
+
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
@@ -801,6 +925,8 @@ void ClusterComponent::DowntimeRemovedHandler(const Service::Ptr& service, const
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::RemoveDowntime");
 	message->Set("params", params);
+
+	SetSecurityInfo(message, service, DomainPrivRead);
 
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -822,6 +948,8 @@ void ClusterComponent::AcknowledgementSetHandler(const Service::Ptr& service, co
 	message->Set("method", "cluster::SetAcknowledgement");
 	message->Set("params", params);
 
+	SetSecurityInfo(message, service, DomainPrivRead);
+
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
 
@@ -837,6 +965,8 @@ void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::ClearAcknowledgement");
 	message->Set("params", params);
+
+	SetSecurityInfo(message, service, DomainPrivRead);
 
 	RelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -869,14 +999,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		}
 	}
 
-	RelayMessage(sender, message, true);
-
 	Dictionary::Ptr params = message->Get("params");
 
-	if (!params)
-		return;
-
 	if (message->Get("method") == "cluster::HeartBeat") {
+		if (!params)
+			return;
+
 		String identity = params->Get("identity");
 
 		Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
@@ -885,7 +1013,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			endpoint->SetSeen(Utility::GetTime());
 			endpoint->SetFeatures(params->Get("features"));
 		}
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::CheckResult") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -899,7 +1032,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		service->ProcessCheckResult(cr, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetNextCheck") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -910,7 +1048,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		double nextCheck = params->Get("next_check");
 
 		service->SetNextCheck(nextCheck, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetForceNextCheck") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -921,7 +1064,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool forced = params->Get("forced");
 
 		service->SetForceNextCheck(forced, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetForceNextNotification") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -932,7 +1080,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool forced = params->Get("forced");
 
 		service->SetForceNextNotification(forced, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnableActiveChecks") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -943,7 +1096,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool enabled = params->Get("enabled");
 
 		service->SetEnableActiveChecks(enabled, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnablePassiveChecks") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -954,7 +1112,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool enabled = params->Get("enabled");
 
 		service->SetEnablePassiveChecks(enabled, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnableNotifications") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -965,7 +1128,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool enabled = params->Get("enabled");
 
 		service->SetEnableNotifications(enabled, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnableFlapping") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -976,7 +1144,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool enabled = params->Get("enabled");
 
 		service->SetEnableFlapping(enabled, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetNextNotification") {
+		if (!params)
+			return;
+
 		String nfc = params->Get("notification");
 
 		Notification::Ptr notification = Notification::GetByName(nfc);
@@ -987,7 +1160,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		bool nextNotification = params->Get("next_notification");
 
 		notification->SetNextNotification(nextNotification, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::AddComment") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -1000,7 +1178,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		long type = static_cast<long>(comment->Get("entry_type"));
 		service->AddComment(static_cast<CommentType>(type), comment->Get("author"),
 		    comment->Get("text"), comment->Get("expire_time"), comment->Get("id"), sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::RemoveComment") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -1011,7 +1194,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		String id = params->Get("id");
 
 		service->RemoveComment(id, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::AddDowntime") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -1025,7 +1213,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		    downtime->Get("start_time"), downtime->Get("end_time"),
 		    downtime->Get("fixed"), downtime->Get("triggered_by"),
 		    downtime->Get("duration"), downtime->Get("id"), sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::RemoveDowntime") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -1036,7 +1229,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		String id = params->Get("id");
 
 		service->RemoveDowntime(id, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetAcknowledgement") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -1050,7 +1248,12 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		double expiry = params->Get("expiry");
 
 		service->AcknowledgeProblem(author, comment, static_cast<AcknowledgementType>(type), expiry, sender->GetName());
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::ClearAcknowledgement") {
+		if (!params)
+			return;
+
 		String svc = params->Get("service");
 
 		Service::Ptr service = Service::GetByName(svc);
@@ -1058,11 +1261,21 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		if (!service)
 			return;
 
-		ObjectLock olock(service);
-		service->ClearAcknowledgement(sender->GetName());
+		{
+			ObjectLock olock(service);
+			service->ClearAcknowledgement(sender->GetName());
+		}
+
+		RelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetLogPosition") {
+		if (!params)
+			return;
+
 		sender->SetLocalLogPosition(params->Get("log_position"));
 	} else if (message->Get("method") == "cluster::Config") {
+		if (!params)
+			return;
+
 		Dictionary::Ptr remoteConfig = params->Get("config_files");
 		
 		if (!remoteConfig)
@@ -1155,6 +1368,8 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			Log(LogInformation, "cluster", "Restarting after configuration change.");
 			Application::RequestRestart();
 		}
+
+		RelayMessage(sender, message, true);
 	}
 }
 

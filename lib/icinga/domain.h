@@ -17,47 +17,38 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-type DynamicObject {
-	%require "__name",
-	%attribute string "__name",
+#ifndef DOMAIN_H
+#define DOMAIN_H
 
-	%require "__type",
-	%attribute string "__type",
+#include "icinga/i2-icinga.h"
+#include "base/dynamicobject.h"
+#include "base/dictionary.h"
 
-	%attribute dictionary "methods",
+namespace icinga
+{
 
-	%attribute dictionary "custom" {
-		%attribute string "*"
-	},
+/**
+ * A domain.
+ *
+ * @ingroup icinga
+ */
+class I2_ICINGA_API Domain : public DynamicObject
+{
+public:
+	DECLARE_PTR_TYPEDEFS(Domain);
+	DECLARE_TYPENAME(Domain);
 
-	%attribute array "authorities" {
-		%attribute string "*"
-	},
+	Dictionary::Ptr GetAcl(void) const;
+	int GetPrivileges(const String& instance) const;
 
-	%attribute array "domains" {
-		%attribute string "*"
-	}
+protected:
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
+private:
+	Dictionary::Ptr m_Acl;
+};
+
 }
 
-type Logger {
-	%attribute string "severity"
-}
-
-type ConsoleLogger inherits Logger {
-}
-
-type FileLogger inherits Logger {
-	%require "path",
-	%attribute string "path"
-}
-
-type SyslogLogger inherits Logger {
-}
-
-type Script {
-	%require "language",
-	%attribute string "language",
-
-	%require "code",
-	%attribute string "code"
-}
+#endif /* DOMAIN_H */
