@@ -1022,8 +1022,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		Dictionary::Ptr cr = params->Get("check_result");
 
@@ -1041,8 +1046,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		double nextCheck = params->Get("next_check");
 
@@ -1057,8 +1067,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		bool forced = params->Get("forced");
 
@@ -1073,8 +1088,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		bool forced = params->Get("forced");
 
@@ -1089,8 +1109,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		bool enabled = params->Get("enabled");
 
@@ -1105,8 +1130,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		bool enabled = params->Get("enabled");
 
@@ -1121,8 +1151,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		bool enabled = params->Get("enabled");
 
@@ -1137,8 +1172,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		bool enabled = params->Get("enabled");
 
@@ -1153,8 +1193,15 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Notification::Ptr notification = Notification::GetByName(nfc);
 
-		if (!notification || !notification->GetService()->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!notification)
 			return;
+
+		Service::Ptr service = notification->GetService();
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		bool nextNotification = params->Get("next_notification");
 
@@ -1169,8 +1216,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		Dictionary::Ptr comment = params->Get("comment");
 
@@ -1187,8 +1239,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		String id = params->Get("id");
 
@@ -1203,8 +1260,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		Dictionary::Ptr downtime = params->Get("downtime");
 
@@ -1222,8 +1284,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		String id = params->Get("id");
 
@@ -1238,8 +1305,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		String author = params->Get("author");
 		String comment = params->Get("comment");
@@ -1257,8 +1329,13 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 		Service::Ptr service = Service::GetByName(svc);
 
-		if (!service || !service->HasPrivileges(sender->GetName(), DomainPrivCommand))
+		if (!service)
 			return;
+
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			return;
+		}
 
 		{
 			ObjectLock olock(service);
