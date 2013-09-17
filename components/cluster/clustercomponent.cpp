@@ -109,7 +109,7 @@ void ClusterComponent::Start(void)
 					privs = ~0;
 				}
 
-				Log(LogInformation, "cluster", "Privileges for object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' for instance '" + endpoint->GetName() + "' are '" + Convert::ToString(privs) + "'");
+				Log(LogDebug, "cluster", "Privileges for object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' for instance '" + endpoint->GetName() + "' are '" + Convert::ToString(privs) + "'");
 				object->SetPrivileges(endpoint->GetName(), privs);
 			}
 		}
