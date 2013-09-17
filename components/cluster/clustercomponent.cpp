@@ -249,9 +249,8 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& source, const Dictionar
 		if (source)
 			pmessage->Set("source", source->GetName());
 
-		pmessage->Set("security", message->Get("security"));
-
 		pmessage->Set("message", Value(message).Serialize());
+		pmessage->Set("security", message->Get("security"));
 
 		ObjectLock olock(this);
 		if (m_LogFile) {
@@ -303,7 +302,7 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& source, const Dictionar
 			continue;
 
 		if (secobj && !secobj->HasPrivileges(endpoint->GetName(), privs)) {
-			Log(LogDebug, "cluster", "Not sending message to endpoint '" + endpoint->GetName() + "': Insufficient privileges.");
+			Log(LogWarning, "cluster", "Not sending message to endpoint '" + endpoint->GetName() + "': Insufficient privileges.");
 			continue;
 		}
 
@@ -463,7 +462,7 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 				}
 
 				if (secobj && !secobj->HasPrivileges(endpoint->GetName(), privs)) {
-					Log(LogDebug, "cluster", "Not replaying message: Insufficient privileges.");
+					Log(LogWarning, "cluster", "Not replaying message: Insufficient privileges.");
 					continue;
 				}
 
