@@ -1354,6 +1354,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 
 			localConfig->Remove(hash);
 		}
+		olock.Unlock();
 
 		ObjectLock olock2(localConfig);
 		BOOST_FOREACH(boost::tie(key, boost::tuples::ignore), localConfig) {
@@ -1362,6 +1363,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			(void) unlink(path.CStr());
 			configChange = true;
 		}
+		olock2.Unlock();
 
 		if (configChange) {
 			Log(LogInformation, "cluster", "Restarting after configuration change.");
