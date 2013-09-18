@@ -47,6 +47,38 @@ Path to your Icinga 1.x main configuration file "icinga.cfg".
 
 Directory to Icinga 2.x configuration output.
 
+=item --hosttmpl=<template name>
+
+Custom template name for all host objects.
+
+=item --servicetmpl=<template name>
+
+Custom template name for all service objects.
+
+=item --usertmpl=<template name>
+
+Custom template name for all user objects.
+
+=item --timeperiodtmpl=<template name>
+
+Custom template name for all timeperiod objects.
+
+=item --notificationtmpl=<template name>
+
+Custom template name for all notification objects.
+
+=item --checkcommandtmpl=<template name>
+
+Custom template name for all checkcommand objects.
+
+=item --notificationcommandtmpl=<template name>
+
+Custom template name for all notificationcommand objects.
+
+=item --eventcommandtmpl=<template name>
+
+Custom template name for all eventcommand objects.
+
 =item -v|--verbose
 
 Verbose mode.
