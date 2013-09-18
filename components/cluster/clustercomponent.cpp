@@ -282,7 +282,7 @@ void ClusterComponent::RelayMessage(const Endpoint::Ptr& source, const Dictionar
 
 	Dictionary::Ptr security = message->Get("security");
 	DynamicObject::Ptr secobj;
-	int privs;
+	int privs = 0;
 
 	if (security) {
 		String type = security->Get("type");
