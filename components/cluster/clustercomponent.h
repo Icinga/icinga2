@@ -28,6 +28,7 @@
 #include "base/utility.h"
 #include "base/tlsutility.h"
 #include "base/stdiostream.h"
+#include "base/workqueue.h"
 #include "icinga/service.h"
 #include "cluster/endpoint.h"
 
@@ -70,6 +71,10 @@ private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	String m_Identity;
 
+	WorkQueue m_RelayQueue;
+	WorkQueue m_MessageQueue;
+	WorkQueue m_LogQueue;
+
 	Timer::Ptr m_ClusterTimer;
 	void ClusterTimerHandler(void);
 
@@ -84,6 +89,7 @@ private:
 	void ListenerThreadProc(const Socket::Ptr& server);
 
 	void RelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent);
+	void RealRelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent);
 
 	void OpenLogFile(void);
 	void RotateLogFile(void);
@@ -110,7 +116,9 @@ private:
 	void DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority);
 	void AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
 	void AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority);
+
 	void MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
+	void RealMessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
 
 	bool IsAuthority(const DynamicObject::Ptr& object, const String& type);
 	void UpdateAuthority(void);
@@ -119,6 +127,8 @@ private:
 	static bool SupportsNotifications(void);
 
 	void SetSecurityInfo(const Dictionary::Ptr& message, const DynamicObject::Ptr& object, int privs);
+
+	void PersistMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message);
 };
 
 }

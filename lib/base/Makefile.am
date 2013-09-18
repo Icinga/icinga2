@@ -95,6 +95,8 @@ libbase_la_SOURCES =  \
 	value.cpp \
 	value.h \
 	win32.h \
+	workqueue.cpp \
+	workqueue.h \
 	zlibstream.cpp \
 	zlibstream.h
 

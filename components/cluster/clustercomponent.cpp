@@ -239,33 +239,46 @@ void ClusterComponent::AddConnection(const String& node, const String& service) 
 
 void ClusterComponent::RelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent)
 {
+	m_RelayQueue.Enqueue(boost::bind(&ClusterComponent::RealRelayMessage, this, source, message, persistent));
+}
+
+void ClusterComponent::PersistMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message)
+{
+	double ts = message->Get("ts");
+
+	ASSERT(ts != 0);
+
+	Dictionary::Ptr pmessage = boost::make_shared<Dictionary>();
+	pmessage->Set("timestamp", ts);
+
+	if (source)
+		pmessage->Set("source", source->GetName());
+
+	pmessage->Set("message", Value(message).Serialize());
+	pmessage->Set("security", message->Get("security"));
+
+	ObjectLock olock(this);
+	if (m_LogFile) {
+		String json = Value(pmessage).Serialize();
+		NetString::WriteStringToStream(m_LogFile, json);
+		m_LogMessageCount++;
+		m_LogMessageTimestamp = ts;
+
+		if (m_LogMessageCount > 50000) {
+			CloseLogFile();
+			RotateLogFile();
+			OpenLogFile();
+		}
+	}
+}
+
+void ClusterComponent::RealRelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent)
+{
 	double ts = Utility::GetTime();
 	message->Set("ts", ts);
 
-	if (persistent) {
-		Dictionary::Ptr pmessage = boost::make_shared<Dictionary>();
-		pmessage->Set("timestamp", ts);
-
-		if (source)
-			pmessage->Set("source", source->GetName());
-
-		pmessage->Set("message", Value(message).Serialize());
-		pmessage->Set("security", message->Get("security"));
-
-		ObjectLock olock(this);
-		if (m_LogFile) {
-			String json = Value(pmessage).Serialize();
-			NetString::WriteStringToStream(m_LogFile, json);
-			m_LogMessageCount++;
-			m_LogMessageTimestamp = ts;
-
-			if (m_LogMessageCount > 50000) {
-				CloseLogFile();
-				RotateLogFile();
-				OpenLogFile();
-			}
-		}
-	}
+	if (persistent)
+		m_LogQueue.Enqueue(boost::bind(&ClusterComponent::PersistMessage, this, source, message));
 
 	Dictionary::Ptr security = message->Get("security");
 	DynamicObject::Ptr secobj;
@@ -971,6 +984,11 @@ void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service
 }
 
 void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
+{
+	m_MessageQueue.Enqueue(boost::bind(&ClusterComponent::RealMessageHandler, this, sender, message));
+}
+
+void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
 {
 	sender->SetSeen(Utility::GetTime());
 
