@@ -30,7 +30,7 @@ use File::Find;
 use Storable qw(dclone);
 
 use feature 'say';
-our $dbg_lvl = 1;
+our $dbg_lvl;
 
 ################################################################################
 ## Validation
@@ -2846,7 +2846,32 @@ sub convert_2x {
     }
 
     ############################################################################
+    # add custom templates to every existing object
     ############################################################################
+    my @objects = ('host', 'service', 'user', 'notification', 'timeperiod', 'command');
+
+    foreach my $object (@objects) {
+        Icinga2::Utils::debug("Custom template for $object");
+        #say "Custom template for $object";
+
+        foreach my $obj_2x_key (keys %{@$cfg_obj_2x{$object}}) {
+            my $obj_2x = @$cfg_obj_2x{$object}->{$obj_2x_key};
+
+            my $obj_template = "$object-template";
+            if (defined($obj_2x->{'__I2CONVERT_COMMAND_TYPE'})) {
+                $obj_template = lc $obj_2x->{'__I2CONVERT_COMMAND_TYPE'} . "$object-template";
+            }
+
+            if(defined($icinga2_cfg->{'customtmpl'}->{$obj_template}) && $icinga2_cfg->{'customtmpl'}->{$obj_template} ne "") {
+                if (!defined($cfg_obj_2x->{$object}->{$obj_2x_key}->{'__I2CONVERT_TEMPLATE_NAMES'})) {
+                    @{$cfg_obj_2x->{$object}->{$obj_2x_key}->{'__I2CONVERT_TEMPLATE_NAMES'}} = ();
+                }
+                push @{$cfg_obj_2x->{$object}->{$obj_2x_key}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'customtmpl'}->{$obj_template};
+                $cfg_obj_2x->{$object}->{$obj_2x_key}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+            }
+        }
+    }
+
     # export takes place outside again
 
     return $cfg_obj_2x;

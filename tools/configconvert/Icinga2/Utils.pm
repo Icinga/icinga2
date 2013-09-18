@@ -26,7 +26,7 @@ package Icinga2::Utils;
 use strict;
 #use Icinga2;
 
-our $dbg_lvl = 1;
+our $dbg_lvl;
 
 ################################################################################
 # HELPER FUNCTIONS

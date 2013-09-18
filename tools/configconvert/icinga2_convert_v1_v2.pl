@@ -83,18 +83,28 @@ my $version = "0.0.1";
 # get command-line parameters
 our $opt;
 GetOptions(
-    "c|icingacfgfile=s" => \$opt->{icinga1xcfg},
-    "o|outputcfgdir=s"  => \$opt->{icinga2xoutputprefix},
-    "v|verbose"         => \$opt->{verbose},
-    "h|help"            => \$opt->{help},
-    "V|version"         => \$opt->{version}
+    "c|icingacfgfile=s"         => \$opt->{icinga1xcfg},
+    "o|outputcfgdir=s"          => \$opt->{icinga2xoutputprefix},
+    "hosttmpl=s"                => \$opt->{hosttmpl},
+    "servicetmpl=s"             => \$opt->{servicetmpl},
+    "usertmpl=s"                => \$opt->{usertmpl},
+    "notificationtmpl=s"        => \$opt->{notificationtmpl},
+    "timeperiodtmpl=s"          => \$opt->{timeperiodtmpl},
+    "checkcommandtmpl=s"        => \$opt->{checkcommandtmpl},
+    "notificationcommandtmpl=s" => \$opt->{notificationcommandtmpl},
+    "eventcommandtmpl=s"        => \$opt->{eventcommandtmpl},
+    "tmpl=s"                    => \$opt->{tmpl},
+    "tmpl=s"                    => \$opt->{tmpl},
+    "v|verbose"                 => \$opt->{verbose},
+    "h|help"                    => \$opt->{help},
+    "V|version"                 => \$opt->{version}
 );
 
 my $icinga1_cfg;
 my $icinga2_cfg = {};
 my $conf_prefix = "./conf";
-my $verbose = 1;
-our $dbg_lvl = 1;
+my $verbose = 0;
+our $dbg_lvl = 0;
 $icinga2_cfg->{'__I2EXPORT_DEBUG'} = 0;
 
 if(defined($opt->{icinga1xcfg})) {
@@ -106,6 +116,7 @@ if(defined($opt->{icinga2xoutputprefix})) {
 if(defined($opt->{verbose})) {
     $verbose = $opt->{verbose};
     $icinga2_cfg->{'__I2EXPORT_DEBUG'} = 1;
+    $dbg_lvl = 1;
 }
 
 if (defined $opt->{version}) { print $version."\n"; exit 0; }
@@ -129,6 +140,40 @@ $icinga2_cfg->{'itl'}->{'timeperiod-template'} = "legacy-timeperiod";
 $icinga2_cfg->{'itl'}->{'checkcommand-template'} = "plugin-check-command";
 $icinga2_cfg->{'itl'}->{'notificationcommand-template'} = "plugin-notification-command";
 $icinga2_cfg->{'itl'}->{'eventcommand-template'} = "plugin-event-command";
+
+if (defined($opt->{hosttmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'host-template'} = $opt->{hosttmpl};
+    print "Custom host template: '" . $icinga2_cfg->{'customtmpl'}->{'host-template'} . "'\n";
+}
+if (defined($opt->{servicetmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'service-template'} = $opt->{servicetmpl};
+    print "Custom service template: '" . $icinga2_cfg->{'customtmpl'}->{'service-template'} . "'\n";
+}
+if (defined($opt->{usertmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'user-template'} = $opt->{usertmpl};
+    print "Custom user template: '" . $icinga2_cfg->{'customtmpl'}->{'user-template'} . "'\n";
+}
+if (defined($opt->{notificationtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'notification-template'} = $opt->{notificationtmpl};
+    print "Custom notification template: '" . $icinga2_cfg->{'customtmpl'}->{'notification-template'} . "'\n";
+}
+if (defined($opt->{timeperiodtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'timeperiod-template'} = $opt->{timeperiodtmpl};
+    print "Custom timeperiod template: '" . $icinga2_cfg->{'customtmpl'}->{'timeperiod-template'} . "'\n";
+}
+if (defined($opt->{checkcommandtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'checkcommand-template'} = $opt->{checkcommandtmpl};
+    print "Custom checkcommand template: '" . $icinga2_cfg->{'customtmpl'}->{'checkcommand-template'} . "'\n";
+}
+if (defined($opt->{notificationcommandtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'notificationcommand-template'} = $opt->{notificationcommandtmpl};
+    print "Custom notificationcommand template: '" . $icinga2_cfg->{'customtmpl'}->{'notificationcommand-template'} . "'\n";
+}
+if (defined($opt->{eventcommandtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'eventcommand-template'} = $opt->{eventcommandtmpl};
+    print "Custom eventcommand template: '" . $icinga2_cfg->{'customtmpl'}->{'eventcommand-template'} . "'\n";
+}
+
 
 
 my $type_cnt;
