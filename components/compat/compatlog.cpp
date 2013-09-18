@@ -181,15 +181,12 @@ void CompatLog::TriggerDowntimeHandler(const Service::Ptr& service, const Dictio
 	if (!downtime)
 		return;
 
-	String downtime_output = "Service has entered a period of scheduled downtime.";
-	String downtime_state_str = "STARTED";
-
 	std::ostringstream msgbuf;
 	msgbuf << "SERVICE DOWNTIME ALERT: "
 		<< host->GetName() << ";"
 		<< service->GetShortName() << ";"
-		<< downtime_state_str << "; "
-		<< downtime_output
+		<< "STARTED" << "; "
+		<< "Service has entered a period of scheduled downtime."
 		<< "";
 
 	{
@@ -201,8 +198,8 @@ void CompatLog::TriggerDowntimeHandler(const Service::Ptr& service, const Dictio
 		std::ostringstream msgbuf;
 		msgbuf << "HOST DOWNTIME ALERT: "
 			<< host->GetName() << ";"
-			<< downtime_state_str << "; "
-			<< downtime_output
+			<< "STARTED" << "; "
+			<< "Service has entered a period of scheduled downtime."
 			<< "";
 
 		{
