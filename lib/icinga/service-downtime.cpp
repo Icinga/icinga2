@@ -193,12 +193,12 @@ void Service::TriggerDowntime(const String& id)
 		return;
 
 	if (IsDowntimeActive(downtime) && IsDowntimeTriggered(downtime)) {
-		Log(LogWarning, "icinga", "not triggering downtime with ID '" + downtime->Get("legacy_id") + "': already triggered.");
+		Log(LogDebug, "icinga", "Not triggering downtime with ID '" + downtime->Get("legacy_id") + "': already triggered.");
 		return;
 	}
 
 	if (IsDowntimeExpired(downtime)) {
-		Log(LogWarning, "icinga", "not triggering downtime with ID '" + downtime->Get("legacy_id") + "': expired.");
+		Log(LogDebug, "icinga", "Not triggering downtime with ID '" + downtime->Get("legacy_id") + "': expired.");
 		return;
 	}
 
@@ -208,7 +208,7 @@ void Service::TriggerDowntime(const String& id)
 	    now > downtime->Get("end_time"))
 		return;
 
-	Log(LogWarning, "icinga", "triggering downtime with ID '" + downtime->Get("legacy_id") + "'.");
+	Log(LogDebug, "icinga", "Triggering downtime with ID '" + downtime->Get("legacy_id") + "'.");
 
 	if (downtime->Get("trigger_time") == 0)
 		downtime->Set("trigger_time", now);
