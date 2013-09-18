@@ -571,34 +571,58 @@ constexpression: T_STRING
 			$$ = new Value((String)*$1 + (String)*$3);
 		else
 			$$ = new Value((double)*$1 + (double)*$3);
+
+		delete $1;
+		delete $3;
 	}
 	| constexpression '-' constexpression
 	{
 		$$ = new Value((double)*$1 - (double)*$3);
+
+		delete $1;
+		delete $3;
 	}
 	| constexpression '*' constexpression
 	{
 		$$ = new Value((double)*$1 * (double)*$3);
+
+		delete $1;
+		delete $3;
 	}
 	| constexpression '/' constexpression
 	{
 		$$ = new Value((double)*$1 / (double)*$3);
+
+		delete $1;
+		delete $3;
 	}
 	| constexpression '&' constexpression
 	{
 		$$ = new Value((long)*$1 & (long)*$3);
+
+		delete $1;
+		delete $3;
 	}
 	| constexpression '|' constexpression
 	{
 		$$ = new Value((long)*$1 | (long)*$3);
+
+		delete $1;
+		delete $3;
 	}
 	| constexpression T_SHIFT_LEFT constexpression
 	{
 		$$ = new Value((long)*$1 << (long)*$3);
+
+		delete $1;
+		delete $3;
 	}
 	| constexpression T_SHIFT_RIGHT constexpression
 	{
 		$$ = new Value((long)*$1 >> (long)*$3);
+
+		delete $1;
+		delete $3;
 	}
 	| '(' constexpression ')'
 	{
