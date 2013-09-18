@@ -38,8 +38,10 @@ void WorkQueue::Enqueue(const WorkCallback& item)
 	m_Items.push_back(item);
 	m_CV.notify_all();
 
-	if (!m_Executing)
+	if (!m_Executing) {
+		m_Executing = true;
 		Utility::QueueAsyncCallback(boost::bind(&WorkQueue::ExecuteItem, this));
+	}
 }
 
 void WorkQueue::Join(void)
@@ -59,7 +61,6 @@ void WorkQueue::Clear(void)
 void WorkQueue::ExecuteItem(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Executing = true;
 
 	while (!m_Items.empty()) {
 		try {
