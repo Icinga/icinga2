@@ -67,7 +67,7 @@ void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
  */
 void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntry& entry)
 {
-	String timestamp = Utility::FormatDateTime("%Y/%m/%d %H:%M:%S %z", entry.Timestamp);
+	String timestamp = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", entry.Timestamp);
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
