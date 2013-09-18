@@ -345,10 +345,8 @@ void Service::RemoveExpiredDowntimes(void)
 		}
 	}
 
-	if (!expiredDowntimes.empty()) {
-		BOOST_FOREACH(const String& id, expiredDowntimes) {
-			RemoveDowntime(id, false);
-		}
+	BOOST_FOREACH(const String& id, expiredDowntimes) {
+		RemoveDowntime(id, false);
 	}
 }
 
