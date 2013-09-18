@@ -49,8 +49,10 @@ bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
 		int rc = stream->Read(header + read_length, 1);
 
 		if (rc == 0) {
-			if (read_length == 0)
+			if (read_length == 0) {
+				free(header);
 				return false;
+			}
 
 			BOOST_THROW_EXCEPTION(std::runtime_error("Read() failed."));
 		}
