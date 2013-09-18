@@ -88,8 +88,8 @@ private:
 	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
 
+	void AsyncRelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent);
 	void RelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent);
-	void RealRelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent);
 
 	void OpenLogFile(void);
 	void RotateLogFile(void);
@@ -117,8 +117,8 @@ private:
 	void AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
 	void AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority);
 
+	void AsyncMessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
 	void MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
-	void RealMessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
 
 	bool IsAuthority(const DynamicObject::Ptr& object, const String& type);
 	void UpdateAuthority(void);

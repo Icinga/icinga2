@@ -86,7 +86,7 @@ void ClusterComponent::Start(void)
 	Service::OnAcknowledgementSet.connect(boost::bind(&ClusterComponent::AcknowledgementSetHandler, this, _1, _2, _3, _4, _5, _6));
 	Service::OnAcknowledgementCleared.connect(boost::bind(&ClusterComponent::AcknowledgementClearedHandler, this, _1, _2));
 
-	Endpoint::OnMessageReceived.connect(boost::bind(&ClusterComponent::MessageHandler, this, _1, _2));
+	Endpoint::OnMessageReceived.connect(boost::bind(&ClusterComponent::AsyncMessageHandler, this, _1, _2));
 
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
@@ -237,9 +237,9 @@ void ClusterComponent::AddConnection(const String& node, const String& service) 
 	Utility::QueueAsyncCallback(boost::bind(&ClusterComponent::NewClientHandler, this, client, TlsRoleClient));
 }
 
-void ClusterComponent::RelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent)
+void ClusterComponent::AsyncRelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent)
 {
-	m_RelayQueue.Enqueue(boost::bind(&ClusterComponent::RealRelayMessage, this, source, message, persistent));
+	m_RelayQueue.Enqueue(boost::bind(&ClusterComponent::RelayMessage, this, source, message, persistent));
 }
 
 void ClusterComponent::PersistMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message)
@@ -272,7 +272,7 @@ void ClusterComponent::PersistMessage(const Endpoint::Ptr& source, const Diction
 	}
 }
 
-void ClusterComponent::RealRelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent)
+void ClusterComponent::RelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent)
 {
 	double ts = Utility::GetTime();
 	message->Set("ts", ts);
@@ -598,7 +598,7 @@ void ClusterComponent::ClusterTimerHandler(void)
 
 	Endpoint::GetByName(GetIdentity())->SetFeatures(features);
 
-	RelayMessage(Endpoint::Ptr(), message, false);
+	AsyncRelayMessage(Endpoint::Ptr(), message, false);
 
 	{
 		ObjectLock olock(this);
@@ -712,7 +712,7 @@ void ClusterComponent::CheckResultHandler(const Service::Ptr& service, const Dic
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority)
@@ -731,7 +731,7 @@ void ClusterComponent::NextCheckChangedHandler(const Service::Ptr& service, doub
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::NextNotificationChangedHandler(const Notification::Ptr& notification, double nextNotification, const String& authority)
@@ -750,7 +750,7 @@ void ClusterComponent::NextNotificationChangedHandler(const Notification::Ptr& n
 
 	SetSecurityInfo(message, notification->GetService(), DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority)
@@ -769,7 +769,7 @@ void ClusterComponent::ForceNextCheckChangedHandler(const Service::Ptr& service,
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::ForceNextNotificationChangedHandler(const Service::Ptr& service, bool forced, const String& authority)
@@ -788,7 +788,7 @@ void ClusterComponent::ForceNextNotificationChangedHandler(const Service::Ptr& s
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::EnableActiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
@@ -807,7 +807,7 @@ void ClusterComponent::EnableActiveChecksChangedHandler(const Service::Ptr& serv
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::EnablePassiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
@@ -826,7 +826,7 @@ void ClusterComponent::EnablePassiveChecksChangedHandler(const Service::Ptr& ser
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::EnableNotificationsChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
@@ -845,7 +845,7 @@ void ClusterComponent::EnableNotificationsChangedHandler(const Service::Ptr& ser
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::EnableFlappingChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
@@ -864,7 +864,7 @@ void ClusterComponent::EnableFlappingChangedHandler(const Service::Ptr& service,
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::CommentAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
@@ -883,7 +883,7 @@ void ClusterComponent::CommentAddedHandler(const Service::Ptr& service, const Di
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::CommentRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
@@ -902,7 +902,7 @@ void ClusterComponent::CommentRemovedHandler(const Service::Ptr& service, const 
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::DowntimeAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
@@ -921,7 +921,7 @@ void ClusterComponent::DowntimeAddedHandler(const Service::Ptr& service, const D
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
@@ -940,7 +940,7 @@ void ClusterComponent::DowntimeRemovedHandler(const Service::Ptr& service, const
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
@@ -962,7 +962,7 @@ void ClusterComponent::AcknowledgementSetHandler(const Service::Ptr& service, co
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
 void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority)
@@ -980,15 +980,15 @@ void ClusterComponent::AcknowledgementClearedHandler(const Service::Ptr& service
 
 	SetSecurityInfo(message, service, DomainPrivRead);
 
-	RelayMessage(Endpoint::Ptr(), message, true);
+	AsyncRelayMessage(Endpoint::Ptr(), message, true);
+}
+
+void ClusterComponent::AsyncMessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
+{
+	m_MessageQueue.Enqueue(boost::bind(&ClusterComponent::MessageHandler, this, sender, message));
 }
 
 void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
-{
-	m_MessageQueue.Enqueue(boost::bind(&ClusterComponent::RealMessageHandler, this, sender, message));
-}
-
-void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
 {
 	sender->SetSeen(Utility::GetTime());
 
@@ -1031,7 +1031,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 			endpoint->SetFeatures(params->Get("features"));
 		}
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::CheckResult") {
 		if (!params)
 			return;
@@ -1055,7 +1055,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->ProcessCheckResult(cr, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetNextCheck") {
 		if (!params)
 			return;
@@ -1076,7 +1076,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->SetNextCheck(nextCheck, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetForceNextCheck") {
 		if (!params)
 			return;
@@ -1097,7 +1097,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->SetForceNextCheck(forced, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetForceNextNotification") {
 		if (!params)
 			return;
@@ -1118,7 +1118,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->SetForceNextNotification(forced, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnableActiveChecks") {
 		if (!params)
 			return;
@@ -1139,7 +1139,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->SetEnableActiveChecks(enabled, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnablePassiveChecks") {
 		if (!params)
 			return;
@@ -1160,7 +1160,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->SetEnablePassiveChecks(enabled, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnableNotifications") {
 		if (!params)
 			return;
@@ -1181,7 +1181,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->SetEnableNotifications(enabled, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnableFlapping") {
 		if (!params)
 			return;
@@ -1202,7 +1202,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->SetEnableFlapping(enabled, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetNextNotification") {
 		if (!params)
 			return;
@@ -1225,7 +1225,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		notification->SetNextNotification(nextNotification, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::AddComment") {
 		if (!params)
 			return;
@@ -1248,7 +1248,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 		service->AddComment(static_cast<CommentType>(type), comment->Get("author"),
 		    comment->Get("text"), comment->Get("expire_time"), comment->Get("id"), sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::RemoveComment") {
 		if (!params)
 			return;
@@ -1269,7 +1269,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->RemoveComment(id, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::AddDowntime") {
 		if (!params)
 			return;
@@ -1293,7 +1293,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 		    downtime->Get("fixed"), downtime->Get("triggered_by"),
 		    downtime->Get("duration"), downtime->Get("id"), sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::RemoveDowntime") {
 		if (!params)
 			return;
@@ -1314,7 +1314,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->RemoveDowntime(id, false, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetAcknowledgement") {
 		if (!params)
 			return;
@@ -1338,7 +1338,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 		service->AcknowledgeProblem(author, comment, static_cast<AcknowledgementType>(type), expiry, sender->GetName());
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::ClearAcknowledgement") {
 		if (!params)
 			return;
@@ -1360,7 +1360,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 			service->ClearAcknowledgement(sender->GetName());
 		}
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetLogPosition") {
 		if (!params)
 			return;
@@ -1465,7 +1465,7 @@ void ClusterComponent::RealMessageHandler(const Endpoint::Ptr& sender, const Dic
 			Application::RequestRestart();
 		}
 
-		RelayMessage(sender, message, true);
+		AsyncRelayMessage(sender, message, true);
 	}
 }
 
