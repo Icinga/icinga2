@@ -99,7 +99,7 @@ void ThreadPool::Join(void)
 void ThreadPool::QueueThreadProc(int tid)
 {
 	std::ostringstream idbuf;
-	idbuf << "TP #" << m_ID << " Worker #" << tid;
+	idbuf << "TP #" << m_ID << " W #" << tid;
 	Utility::SetThreadName(idbuf.str());
 
 	for (;;) {
