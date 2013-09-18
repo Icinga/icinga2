@@ -70,6 +70,8 @@ void TimePeriod::AddSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
+	Log(LogDebug, "icinga", "Adding segment '" + Utility::FormatDateTime("%c", begin) + "' <-> '" + Utility::FormatDateTime("%c", end) + "' to TimePeriod '" + GetName() + "'");
+
 	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin)
 		m_ValidBegin = begin;
 
@@ -119,6 +121,8 @@ void TimePeriod::RemoveSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
+	Log(LogDebug, "icinga", "Removing segment '" + Utility::FormatDateTime("%c", begin) + "' <-> '" + Utility::FormatDateTime("%c", end) + "' from TimePeriod '" + GetName() + "'");
+
 	if (m_ValidBegin.IsEmpty() || begin < m_ValidBegin)
 		m_ValidBegin = begin;
 
@@ -147,21 +151,25 @@ void TimePeriod::RemoveSegment(double begin, double end)
 		}
 
 		/* Adjust the begin/end timestamps so as to not overlap with the specified range. */
-		if (segment->Get("begin") < end)
+		if (segment->Get("begin") > begin && segment->Get("begin") < end)
 			segment->Set("begin", end);
 
-		if (segment->Get("end") > begin)
+		if (segment->Get("end") > begin && segment->Get("end") < end)
 			segment->Set("end", begin);
 
 		newSegments->Add(segment);
 	}
 
 	m_Segments = newSegments;
+
+	Dump();
 }
 
 void TimePeriod::PurgeSegments(double end)
 {
 	ASSERT(OwnsLock());
+
+	Log(LogDebug, "icinga", "Purging segments older than '" + Utility::FormatDateTime("%c", end) + "' from TimePeriod '" + GetName() + "'");
 
 	if (m_ValidBegin.IsEmpty() || end < m_ValidBegin)
 		return;
@@ -306,6 +314,7 @@ void TimePeriod::Dump(void)
 	Array::Ptr segments = m_Segments;
 
 	Log(LogDebug, "icinga", "Dumping TimePeriod '" + GetName() + "'");
+	Log(LogDebug, "icinga", "Valid from '" + Utility::FormatDateTime("%c", m_ValidBegin) + "' until '" + Utility::FormatDateTime("%c", m_ValidEnd));
 
 	if (segments) {
 		ObjectLock dlock(segments);
