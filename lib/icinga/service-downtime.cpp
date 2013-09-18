@@ -123,7 +123,7 @@ String Service::AddDowntime(const String& comment_id,
 	return uid;
 }
 
-void Service::RemoveDowntime(const String& id, const bool& cancelled, const String& authority)
+void Service::RemoveDowntime(const String& id, bool cancelled, const String& authority)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
 

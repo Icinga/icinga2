@@ -262,7 +262,7 @@ public:
 	    const String& triggeredBy, double duration,
 	    const String& id = String(), const String& authority = String());
 
-	static void RemoveDowntime(const String& id, const bool& cancelled, const String& = String());
+	static void RemoveDowntime(const String& id, bool cancelled, const String& = String());
 
         void TriggerDowntimes(void);
 	static void TriggerDowntime(const String& id);
