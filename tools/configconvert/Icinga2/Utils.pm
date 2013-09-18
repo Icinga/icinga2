@@ -125,6 +125,14 @@ sub strip_object_name {
     return $obj_str;
 }
 
+sub print_sorted_hash {
+    my $hash = shift;
+
+    foreach my $key (sort keys %{$hash}) {
+        print "$key = $hash->{$key}\n";
+    }
+}
+
 1;
 
 __END__

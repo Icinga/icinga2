@@ -127,6 +127,29 @@ sub obj_2x_host_service_exists {
     return 0;
 }
 
+# check if hostcheck service template object exists (2.x only)
+sub obj_2x_hostcheck_service_template_exists {
+    my $objs = shift;
+    my $obj_attr = '__I2CONVERT_TEMPLATE_NAME';
+    my $obj_val = shift;
+
+    #debug("My objects hive: ".Dumper($objs));
+
+    #debug("Checking for type=$obj_type attr=$obj_attr val=$obj_val ");
+    foreach my $obj_key (keys %{$objs}) {
+        my $obj = $objs->{$obj_key};
+        next if !defined($obj->{$obj_attr});
+        #debug("Getting attr $obj_attr and val $obj_val");
+        if ($obj->{$obj_attr} eq $obj_val) {
+            #debug("Found object: ".Dumper($obj));
+            #say Dumper($obj);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 
 #################################################################################
 # Migration
@@ -1119,6 +1142,10 @@ sub convert_2x {
     my $cfg_obj_2x = {};
 
     my $command_obj_cnt = 0;
+
+    # stats
+    my $count = {};
+    my $count_original_services;
 
     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = '__I2CONVERT_COMMAND_DUMMY';
 
@@ -2621,6 +2648,14 @@ sub convert_2x {
     # manipulated all service objects!
     ######################################
 
+    # save the current service count for additional hostcheck services
+    my $service_object_cnt = keys %{@$cfg_obj_2x{'service'}};
+    $count_original_services = $service_object_cnt;
+
+    $service_object_cnt++;
+
+    say "service object count " . keys %{@$cfg_obj_2x{'service'}};
+
     # "get all 'host' hashref as array in hashmap, and their keys to access it"
     foreach my $host_obj_2x_key (keys %{@$cfg_obj_2x{'host'}}) {
 
@@ -2680,6 +2715,8 @@ sub convert_2x {
                 # 1. generate template name "host-service"
                 my $service_template_name = $obj_2x_service_host_name."-".$obj_2x_service_service_description;
 
+                # make sure that service (template) object does not exist XXX
+
                 # 2. make the service object a template with a special unique name
                 $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_IS_TEMPLATE'} = 1;
                 $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_TEMPLATE_NAME'} = $service_template_name;
@@ -2738,30 +2775,47 @@ sub convert_2x {
                         }
 
                         ######################################
-                        # now create a new service, inline into the host
+                        # now create a new service template linked to the host
                         ######################################
                         my $obj_2x_service_service_description = $host_check_command_2x->{'check_command_name_1x'};
                         if (obj_2x_host_service_exists($cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}, $obj_2x_service_service_description) != 1) {
 
+                            # 1. generate template name "host-service"
+                            my $service_template_name = $obj_2x_service_host_name."-".$obj_2x_service_service_description;
+                            
+                            if (obj_2x_hostcheck_service_template_exists($cfg_obj_2x->{'service'}, $service_template_name) != 1) {
+
+                                # 2. create a new service template object based on $service_object_cnt
+                                $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1;
+                                $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_TEMPLATE_NAME'} = $service_template_name;
+                                $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj_2x_service_service_description;
+                                $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2_CONVERT_CHECKCOMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
+                                
+                                # 3. save all command args as macros
+                                my $arg_cnt = 1;
+                                foreach my $command_arg_1x (@host_command_args_1x) {
+                                    my $obj_1x_host = obj_get_host_obj_by_host_name($cfg_obj_1x, $host_obj_2x_key);
+                                    my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_host, $command_arg_1x);
+                                    $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
+                                    $arg_cnt++;
+                                }
+
+                                # 4. use the ITL service template
+                                if(defined($icinga2_cfg->{'itl'}->{'service-template'}) && $icinga2_cfg->{'itl'}->{'service-template'} ne "") {
+                                    push @{$cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'service-template'};
+                                    $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                                }
+                                # primary service key
+                                $service_object_cnt++;
+                            }
+                            
+                            # 5. link the hostcheck service to the template
+                            $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                            push @{$cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $service_template_name;
+
+                            # 6. set hostservice attributes
                             $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 0;
-
-                            # use the ITL service template
-                            if(defined($icinga2_cfg->{'itl'}->{'service-template'}) && $icinga2_cfg->{'itl'}->{'service-template'} ne "") {
-                                push @{$cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'service-template'};
-                                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
-                            }
-
                             $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj_2x_service_service_description;
-                            $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2_CONVERT_CHECKCOMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
-
-                            # save all command args as macros
-                            my $arg_cnt = 1;
-                            foreach my $command_arg_1x (@host_command_args_1x) {
-                                my $obj_1x_host = obj_get_host_obj_by_host_name($cfg_obj_1x, $host_obj_2x_key);
-                                my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_host, $command_arg_1x);
-                                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
-                                $arg_cnt++;
-                            }
 
                             # primary key
                             $obj_2x_host_service_cnt++;
@@ -2810,28 +2864,48 @@ sub convert_2x {
                $command_obj_cnt++;
             }
 
-            # now create a new service, inline into the host
+            # now create a new service template linked to the host
             my $obj_2x_service_service_description = $host_check_command_2x->{'check_command_name_1x'};
+            my $obj_2x_service_host_name = $obj_2x_host->{'__I2CONVERT_HOSTNAME'};
+
             if (obj_2x_host_service_exists($cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}, $obj_2x_service_service_description) != 1) {
+
+                # 1. generate template name "host-service"
+                my $service_template_name = $obj_2x_service_host_name."-".$obj_2x_service_service_description;
+                
+                if (obj_2x_hostcheck_service_template_exists($cfg_obj_2x->{'service'}, $service_template_name) != 1) {
+
+                    # 2. create a new service template object based on $service_object_cnt
+                    $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 1;
+                    $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_TEMPLATE_NAME'} = $service_template_name;
+                    $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj_2x_service_service_description;
+                    $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2_CONVERT_CHECKCOMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
+                    
+                    # 3. save all command args as macros
+                    my $arg_cnt = 1;
+                    foreach my $command_arg_1x (@host_command_args_1x) {
+                        my $obj_1x_host = obj_get_host_obj_by_host_name($cfg_obj_1x, $host_obj_2x_key);
+                        my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_host, $command_arg_1x);
+                        $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
+                        $arg_cnt++;
+                    }
+
+                    # 4. use the ITL service template
+                    if(defined($icinga2_cfg->{'itl'}->{'service-template'}) && $icinga2_cfg->{'itl'}->{'service-template'} ne "") {
+                        push @{$cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'service-template'};
+                        $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                    }
+                    # primary service key
+                    $service_object_cnt++;
+                }
+                
+                # 5. link the hostcheck service to the template
+                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
+                push @{$cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $service_template_name;
+
+                # 6. set hostservice attributes
                 $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_IS_TEMPLATE'} = 0;
-
-                # use the ITL service template
-                if(defined($icinga2_cfg->{'itl'}->{'service-template'}) && $icinga2_cfg->{'itl'}->{'service-template'} ne "") {
-                    push @{$cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_TEMPLATE_NAMES'}}, $icinga2_cfg->{'itl'}->{'service-template'};
-                    $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_USES_TEMPLATE'} = 1;
-                }
-
                 $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_SERVICEDESCRIPTION'} = $obj_2x_service_service_description;
-                $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2_CONVERT_CHECKCOMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
-
-                # save all command args as macros
-                my $arg_cnt = 1;
-                foreach my $command_arg_1x (@host_command_args_1x) {
-                    my $obj_1x_host = obj_get_host_obj_by_host_name($cfg_obj_1x, $host_obj_2x_key);
-                    my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_host, $command_arg_1x);
-                    $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'SERVICE'}->{$obj_2x_host_service_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
-                    $arg_cnt++;
-                }
 
                 # primary key
                 $obj_2x_host_service_cnt++;
@@ -2872,6 +2946,25 @@ sub convert_2x {
         }
     }
 
+    ############################################################################
+    # stats
+    ############################################################################
+
+
+    $count->{'hosts'} = keys %{@$cfg_obj_2x{'host'}};
+    #$count->{'host_templates'} = grep $_->{'__I2_CONVERT_IS_TEMPLATE'} == 1, values %{@$cfg_obj_2x{'host'}};
+    #$count->{'host_objects'} = grep $_->{'__I2_CONVERT_IS_TEMPLATE'} != 1, values %{@$cfg_obj_2x{'host'}};
+    $count->{'services_hostcheck'} = $service_object_cnt - $count_original_services;
+    $count->{'services_original'} = $count_original_services;
+    $count->{'services'} = $service_object_cnt;
+    #$count->{'service_templates'} = grep $_->{'__I2_CONVERT_IS_TEMPLATE'} == 1, values %{@$cfg_obj_2x{'service'}};
+    #$count->{'service_objects'} = grep $_->{'__I2_CONVERT_IS_TEMPLATE'} != 1, values %{@$cfg_obj_2x{'service'}};    
+    $count->{'users'} = keys %{@$cfg_obj_2x{'user'}};
+    $count->{'timeperiods'} = keys %{@$cfg_obj_2x{'timeperiod'}};
+    $count->{'notifications'} = keys %{@$cfg_obj_2x{'notification'}};
+    $count->{'commands'} = keys %{@$cfg_obj_2x{'command'}};
+
+    $cfg_obj_2x->{'__I2_CONVERT_STATS'} = $count;
     # export takes place outside again
 
     return $cfg_obj_2x;

@@ -201,4 +201,11 @@ my $icinga2_cfg_obj = Icinga2::Convert::convert_2x($icinga2_cfg, $icinga1_cfg_ob
 Icinga2::ExportIcinga2Cfg::dump_cfg_resource_2x($icinga2_cfg, $icinga1_global_macros);
 Icinga2::ExportIcinga2Cfg::dump_cfg_obj_2x($icinga2_cfg, $icinga2_cfg_obj);
 
+# print stats
+print "######################################################################\n";
+print "# CONVERSION STATISTICS\n";
+print "######################################################################\n";
+
+Icinga2::Utils::print_sorted_hash($icinga2_cfg_obj->{'__I2_CONVERT_STATS'});
+
 # vi: sw=4 ts=4 expandtab :
