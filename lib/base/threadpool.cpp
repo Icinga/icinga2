@@ -205,17 +205,19 @@ void ThreadPool::QueueThreadProc(int tid)
  */
 bool ThreadPool::Post(const ThreadPool::WorkFunction& callback)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-	if (m_Stopped)
-		return false;
-
 	WorkItem wi;
 	wi.Callback = callback;
 	wi.Timestamp = Utility::GetTime();
 
-	m_WorkItems.push_back(wi);
-	m_WorkCV.notify_one();
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		if (m_Stopped)
+			return false;
+
+		m_WorkItems.push_back(wi);
+		m_WorkCV.notify_one();
+	}
 
 	return true;
 }
