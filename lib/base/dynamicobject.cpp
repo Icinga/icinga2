@@ -171,6 +171,9 @@ void DynamicObject::SetPrivileges(const String& instance, int privs)
 
 bool DynamicObject::HasPrivileges(const String& instance, int privs) const
 {
+	if (privs == 0)
+		return true;
+
 	std::map<String, int>::const_iterator it;
 	it = m_Privileges.find(instance);
 
