@@ -438,6 +438,8 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 					if (!NetString::ReadStringFromStream(lstream, &message))
 						break;
 				} catch (std::exception&) {
+					Log(LogWarning, "cluster", "Unexpected end-of-file for cluster log: " + path);
+
 					/* Log files may be incomplete or corrupted. This is perfectly OK. */
 					break;
 				}
@@ -460,7 +462,7 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 
 					if (!dtype) {
 						Log(LogWarning, "cluster", "Invalid type in security attribute: " + type);
-						return;
+						continue;
 					}
 
 					String name = security->Get("name");
@@ -468,7 +470,7 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 
 					if (!secobj) {
 						Log(LogWarning, "cluster", "Invalid object name in security attribute: " + name + " (of type '" + type + "')");
-						return;
+						continue;
 					}
 
 					privs = security->Get("privs");
