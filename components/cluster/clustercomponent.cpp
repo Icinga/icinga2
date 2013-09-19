@@ -1044,7 +1044,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::CheckResult message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1068,7 +1068,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::SetNextCheck message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1089,7 +1089,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::SetForceNextCheck message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1110,7 +1110,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::SetForceNextNotification message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1131,7 +1131,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::SetEnableActiveChecks message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1152,7 +1152,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::SetEnablePassiveChecks message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1173,7 +1173,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::SetEnableNotifications message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1194,7 +1194,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::SetEnableFlapping message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1217,7 +1217,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		Service::Ptr service = notification->GetService();
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::SetNextNotification message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1238,7 +1238,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::AddComment message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1261,7 +1261,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::RemoveComment message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1282,7 +1282,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::AddDowntime message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1306,7 +1306,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::RemoveDowntime message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1327,7 +1327,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::SetAcknowledgement message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1351,7 +1351,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 			return;
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+			Log(LogDebug, "cluster", "Not accepting cluster::ClearAcknowledgement message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
