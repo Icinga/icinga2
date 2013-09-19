@@ -461,7 +461,7 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 					DynamicType::Ptr dtype = DynamicType::GetByName(type);
 
 					if (!dtype) {
-						Log(LogWarning, "cluster", "Invalid type in security attribute: " + type);
+						Log(LogDebug, "cluster", "Invalid type in security attribute: " + type);
 						continue;
 					}
 
@@ -469,7 +469,7 @@ void ClusterComponent::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Pt
 					secobj = dtype->GetObject(name);
 
 					if (!secobj) {
-						Log(LogWarning, "cluster", "Invalid object name in security attribute: " + name + " (of type '" + type + "')");
+						Log(LogDebug, "cluster", "Invalid object name in security attribute: " + name + " (of type '" + type + "')");
 						continue;
 					}
 
