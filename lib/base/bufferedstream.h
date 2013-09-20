@@ -37,7 +37,7 @@ class I2_BASE_API BufferedStream : public Stream
 public:
 	DECLARE_PTR_TYPEDEFS(BufferedStream);
 
-	BufferedStream(const Stream::Ptr& innerStream);
+	BufferedStream(const Stream::Ptr& innerStream, size_t maxBufferSize = 64 * 1024 * 1024);
 	~BufferedStream(void);
 
 	virtual size_t Read(void *buffer, size_t count);
@@ -62,6 +62,7 @@ private:
 	FIFO::Ptr m_SendQ;
 
 	bool m_Blocking;
+	size_t m_MaxBufferSize;
 
 	boost::exception_ptr m_Exception;
 
@@ -75,6 +76,7 @@ private:
 	boost::thread m_ReadThread;
 	boost::thread m_WriteThread;
 
+	void InternalWaitWritable(size_t count, boost::mutex::scoped_lock& lock);
 	void InternalWaitReadable(size_t count, boost::mutex::scoped_lock& lock);
 };
 
