@@ -101,7 +101,7 @@ void Service::UpdateFlappingStatus(bool stateChange)
 	if (negative < 0)
 		negative = 0;
 
-	Log(LogDebug, "icinga", "Flapping counter for '" + GetName() + "' is positive=" + Convert::ToString(positive) + ", negative=" + Convert::ToString(negative));
+//	Log(LogDebug, "icinga", "Flapping counter for '" + GetName() + "' is positive=" + Convert::ToString(positive) + ", negative=" + Convert::ToString(negative));
 
 	m_FlappingPositive = positive;
 	m_FlappingNegative = negative;

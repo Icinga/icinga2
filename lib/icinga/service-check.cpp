@@ -611,11 +611,11 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 
 	olock.Unlock();
 
-	Log(LogDebug, "icinga", "Flapping: Service " + GetName() +
-			" was: " + Convert::ToString(was_flapping) +
-			" is: " + Convert::ToString(is_flapping) +
-			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
-			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
+//	Log(LogDebug, "icinga", "Flapping: Service " + GetName() +
+//			" was: " + Convert::ToString(was_flapping) +
+//			" is: " + Convert::ToString(is_flapping) +
+//			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
+//			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnNewCheckResult), GetSelf(), cr, authority));
 	OnStateChanged(GetSelf());

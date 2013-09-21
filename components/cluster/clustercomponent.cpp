@@ -1508,7 +1508,7 @@ bool ClusterComponent::IsAuthority(const DynamicObject::Ptr& object, const Strin
 	unsigned long hash = Utility::SDBM(key);
 	unsigned long index = hash % endpoints.size();
 
-	Log(LogDebug, "cluster", "Authority for object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' is '" + endpoints[index] + "'.");
+//	Log(LogDebug, "cluster", "Authority for object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "' is '" + endpoints[index] + "'.");
 
 	return (endpoints[index] == GetIdentity());
 }
