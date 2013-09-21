@@ -55,6 +55,10 @@ AM_MISSING_PROG(HELP2MAN, help2man, $missing_dir)
 CFLAGS="$CFLAGS -D_GNU_SOURCE -pthread"
 CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -pthread"
 
+CFLAGS="$CFLAGS -I/opt/local/include"
+CXXFLAGS="$CXXFLAGS -I/opt/local/include"
+LDFLAGS="$LDFLAGS -L/opt/local/lib"
+
 AC_PROG_INSTALL
 AC_PROG_LEX
 AC_PROG_YACC
