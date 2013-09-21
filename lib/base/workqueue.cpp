@@ -23,6 +23,10 @@
 
 using namespace icinga;
 
+WorkQueue::WorkQueue(size_t maxItems)
+	: m_MaxItems(maxItems)
+{ }
+
 WorkQueue::~WorkQueue(void)
 {
 	Join();
@@ -35,6 +39,10 @@ WorkQueue::~WorkQueue(void)
 void WorkQueue::Enqueue(const WorkCallback& item)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
+
+	while (m_Items.size() >= m_MaxItems)
+		m_CV.wait(lock);
+
 	m_Items.push_back(item);
 	m_CV.notify_all();
 
@@ -66,6 +74,7 @@ void WorkQueue::ExecuteItem(void)
 		try {
 			WorkCallback wi = m_Items.front();
 			m_Items.pop_front();
+			m_CV.notify_all();
 
 			lock.unlock();
 			wi();

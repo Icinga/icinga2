@@ -39,6 +39,7 @@ class I2_BASE_API WorkQueue
 public:
 	typedef boost::function<void (void)> WorkCallback;
 
+	WorkQueue(size_t maxItems = 25000);
 	~WorkQueue(void);
 
 	void Enqueue(const WorkCallback& item);
@@ -48,6 +49,7 @@ public:
 private:
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
+	size_t m_MaxItems;
 	bool m_Executing;
 	std::deque<WorkCallback> m_Items;
 
