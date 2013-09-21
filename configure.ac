@@ -27,13 +27,6 @@ AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
 AM_SILENT_RULES([yes])
 
-CFLAGS="$CFLAGS -D_GNU_SOURCE -pthread"
-CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -pthread"
-
-CFLAGS="$CFLAGS -I/opt/local/include"
-CXXFLAGS="$CXXFLAGS -I/opt/local/include"
-LDFLAGS="$LDFLAGS -L/opt/local/lib"
-
 AC_PROG_CXX
 AC_LANG_CPLUSPLUS
 AC_PROG_CC
@@ -41,6 +34,13 @@ AC_LANG_C
 AC_PROG_MKDIR_P
 
 AC_FUNC_VFORK
+
+CFLAGS="$CFLAGS -D_GNU_SOURCE -pthread"
+CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -pthread"
+
+CFLAGS="$CFLAGS -I/opt/local/include"
+CXXFLAGS="$CXXFLAGS -I/opt/local/include"
+LDFLAGS="$LDFLAGS -L/opt/local/lib"
 
 LT_INIT([dlopen disable-static win32-dll])
 LT_CONFIG_LTDL_DIR([third-party/ltdl])
