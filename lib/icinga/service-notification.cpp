@@ -147,7 +147,17 @@ void Service::UpdateSlaveNotifications(void)
 			namebuf << GetName() << ":" << nfcname;
 			String name = namebuf.str();
 
-			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
+			std::vector<String> path;
+			path.push_back("notifications");
+			path.push_back(nfcname);
+
+			DebugInfo di;
+			item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
+
+			if (di.Path.IsEmpty())
+				di = item->GetDebugInfo();
+
+			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(di);
 			builder->SetType("Notification");
 			builder->SetName(name);
 			builder->AddExpression("host_name", OperatorSet, host->GetName());
@@ -183,12 +193,13 @@ void Service::UpdateSlaveNotifications(void)
 			builder->AddExpressionList(svc_exprl);
 
 			/* Clone attributes from the notification expression list. */
-			std::vector<String> path;
-			path.push_back("notifications");
-			path.push_back(nfcname);
-
 			ExpressionList::Ptr nfc_exprl = boost::make_shared<ExpressionList>();
 			item->GetLinkedExpressionList()->ExtractPath(path, nfc_exprl);
+
+			std::vector<String> dpath;
+			dpath.push_back("templates");
+			nfc_exprl->ErasePath(dpath);
+
 			builder->AddExpressionList(nfc_exprl);
 
 			ConfigItem::Ptr notificationItem = builder->Compile();

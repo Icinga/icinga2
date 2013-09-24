@@ -27,13 +27,13 @@
 namespace icinga
 {
 
-struct I2_CONFIG_API ConfigCompilerError
+struct I2_CONFIG_API ConfigCompilerMessage
 {
-	bool Warning;
-	String Message;
+	bool Error;
+	String Text;
 
-	ConfigCompilerError(bool warning, const String& message)
-		: Warning(warning), Message(message)
+	ConfigCompilerMessage(bool error, const String& text)
+		: Error(error), Text(text)
 	{ }
 };
 
@@ -43,15 +43,16 @@ struct I2_CONFIG_API ConfigCompilerError
 class I2_CONFIG_API ConfigCompilerContext
 {
 public:
-	void AddError(bool warning, const String& message);
-	std::vector<ConfigCompilerError> GetErrors(void) const;
+	void AddMessage(bool error, const String& message);
+	std::vector<ConfigCompilerMessage> GetMessages(void) const;
+	bool HasErrors(void) const;
 
 	void Reset(void);
 
 	static ConfigCompilerContext *GetInstance(void);
 
 private:
-        std::vector<ConfigCompilerError> m_Errors;
+        std::vector<ConfigCompilerMessage> m_Messages;
 };
 
 }

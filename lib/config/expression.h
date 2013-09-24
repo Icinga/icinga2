@@ -37,6 +37,7 @@ namespace icinga
  */
 enum ExpressionOperator
 {
+	OperatorNop,
 	OperatorExecute,
 	OperatorSet,
 	OperatorPlus,
@@ -62,6 +63,10 @@ public:
 
 	void ExtractPath(const std::vector<String>& path, const shared_ptr<ExpressionList>& result) const;
 	void ExtractFiltered(const std::set<String, string_iless>& keys, const shared_ptr<ExpressionList>& result) const;
+
+	void ErasePath(const std::vector<String>& path);
+
+	void FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const;
 
 private:
 	String m_Key;

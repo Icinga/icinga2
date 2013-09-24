@@ -25,19 +25,29 @@
 
 using namespace icinga;
 
-void ConfigCompilerContext::AddError(bool warning, const String& message)
+void ConfigCompilerContext::AddMessage(bool error, const String& message)
 {
-	m_Errors.push_back(ConfigCompilerError(warning, message));
+	m_Messages.push_back(ConfigCompilerMessage(error, message));
 }
 
-std::vector<ConfigCompilerError> ConfigCompilerContext::GetErrors(void) const
+std::vector<ConfigCompilerMessage> ConfigCompilerContext::GetMessages(void) const
 {
-	return m_Errors;
+	return m_Messages;
+}
+
+bool ConfigCompilerContext::HasErrors(void) const
+{
+	BOOST_FOREACH(const ConfigCompilerMessage& message, m_Messages) {
+		if (message.Error)
+			return true;
+	}
+
+	return false;
 }
 
 void ConfigCompilerContext::Reset(void)
 {
-	m_Errors.clear();
+	m_Messages.clear();
 }
 
 ConfigCompilerContext *ConfigCompilerContext::GetInstance(void)

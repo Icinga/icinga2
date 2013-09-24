@@ -47,6 +47,10 @@ public:
 	void ExtractPath(const std::vector<String>& path, const ExpressionList::Ptr& result) const;
 	void ExtractFiltered(const std::set<String, string_iless>& keys, const ExpressionList::Ptr& result) const;
 
+	void ErasePath(const std::vector<String>& path);
+
+	void FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const;
+
 private:
 	std::vector<Expression> m_Expressions;
 };

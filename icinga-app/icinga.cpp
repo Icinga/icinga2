@@ -58,50 +58,23 @@ static bool LoadConfigFiles(bool validateOnly)
 		ConfigCompiler::CompileText(name, fragment);
 	}
 
-	bool hasError = false;
-
-	BOOST_FOREACH(const ConfigCompilerError& error, ConfigCompilerContext::GetInstance()->GetErrors()) {
-		if (!error.Warning) {
-			hasError = true;
-			break;
-		}
-	}
-
-	/* Don't link or validate if we have already encountered at least one error. */
-	if (!hasError) {
-		ConfigItem::LinkItems();
-		ConfigItem::ValidateItems();
-	}
-
-	hasError = false;
-
-	BOOST_FOREACH(const ConfigCompilerError& error, ConfigCompilerContext::GetInstance()->GetErrors()) {
-		if (error.Warning) {
-			Log(LogWarning, "icinga-app", "Config warning: " + error.Message);
-		} else {
-			hasError = true;
-			Log(LogCritical, "icinga-app", "Config error: " + error.Message);
-		}
-	}
-
-	if (hasError)
-		return false;
-
-	if (validateOnly)
-		return true;
-
-	if (Application::GetInstance()) {
-		Log(LogCritical, "icinga-app", "You must not manually create an Application object.");
-		return false;
-	}
-
 	ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>();
 	builder->SetType(Application::GetApplicationType());
 	builder->SetName("application");
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
 
-	ConfigItem::ActivateItems();
+	bool result = ConfigItem::ActivateItems(validateOnly);
+
+	BOOST_FOREACH(const ConfigCompilerMessage& message, ConfigCompilerContext::GetInstance()->GetMessages()) {
+		if (message.Error)
+			Log(LogCritical, "config", "Config error: " + message.Text);
+		else
+			Log(LogWarning, "config", "Config warning: " + message.Text);
+	}
+
+	if (!result)
+		return false;
 
 	ConfigItem::DiscardItems();
 	ConfigType::DiscardTypes();

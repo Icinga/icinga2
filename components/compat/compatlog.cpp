@@ -577,7 +577,7 @@ void CompatLog::ValidateRotationMethod(const String& location, const Dictionary:
 
 	if (!rotation_method.IsEmpty() && rotation_method != "HOURLY" && rotation_method != "DAILY" &&
 	    rotation_method != "WEEKLY" && rotation_method != "MONTHLY" && rotation_method != "NONE") {
-		ConfigCompilerContext::GetInstance()->AddError(false, "Validation failed for " +
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": Rotation method '" + rotation_method + "' is invalid.");
 	}
 }

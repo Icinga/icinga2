@@ -36,8 +36,6 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(ValidateServiceDictionary, &Host::ValidateServiceDictionary);
-
 REGISTER_TYPE(Host);
 
 void Host::Start(void)
@@ -197,7 +195,17 @@ void Host::UpdateSlaveServices(void)
 		namebuf << GetName() << ":" << svcname;
 		String name = namebuf.str();
 
-		ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(item->GetDebugInfo());
+		std::vector<String> path;
+		path.push_back("services");
+		path.push_back(svcname);
+
+		DebugInfo di;
+		item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
+
+		if (di.Path.IsEmpty())
+			di = item->GetDebugInfo();
+
+		ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(di);
 		builder->SetType("Service");
 		builder->SetName(name);
 		builder->AddExpression("host_name", OperatorSet, GetName());
@@ -238,12 +246,13 @@ void Host::UpdateSlaveServices(void)
 		builder->AddExpressionList(host_exprl);
 
 		/* Clone attributes from the service expression list. */
-		std::vector<String> path;
-		path.push_back("services");
-		path.push_back(svcname);
-
 		ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();
 		item->GetLinkedExpressionList()->ExtractPath(path, svc_exprl);
+
+		std::vector<String> dpath;
+		dpath.push_back("templates");
+		svc_exprl->ErasePath(dpath);
+
 		builder->AddExpressionList(svc_exprl);
 
 		ConfigItem::Ptr serviceItem = builder->Compile();
@@ -288,42 +297,6 @@ void Host::RemoveService(const Service::Ptr& service)
 int Host::GetTotalServices(void) const
 {
 	return GetServices().size();
-}
-
-Value Host::ValidateServiceDictionary(const String& location, const Dictionary::Ptr& attrs)
-{
-	ObjectLock olock(attrs);
-
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), attrs) {
-		std::vector<String> templates;
-
-		if (!value.IsObjectType<Dictionary>())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be a dictionary."));
-
-		Dictionary::Ptr serviceDesc = value;
-
-		Array::Ptr templatesArray = serviceDesc->Get("templates");
-
-		if (templatesArray) {
-			ObjectLock tlock(templatesArray);
-
-			BOOST_FOREACH(const Value& tmpl, templatesArray) {
-				templates.push_back(tmpl);
-			}
-		}
-
-		BOOST_FOREACH(const String& name, templates) {
-			ConfigItem::Ptr item = ConfigItem::GetObject("Service", name);
-
-			if (!item)
-				ConfigCompilerContext::GetInstance()->AddError(false, "Validation failed for " +
-					    location + ": Template '" + name + "' not found.");
-		}
-	}
-
-	return Empty;
 }
 
 Service::Ptr Host::GetServiceByShortName(const Value& name) const

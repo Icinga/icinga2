@@ -267,7 +267,7 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
 {
 	std::ostringstream message;
 	message << *locp << ": " << err;
-	ConfigCompilerContext::GetInstance()->AddError(false, message.str());
+	ConfigCompilerContext::GetInstance()->AddMessage(true, message.str());
 }
 
 int yyparse(ConfigCompiler *context);
@@ -283,7 +283,7 @@ void ConfigCompiler::Compile(void)
 	try {
 		yyparse(this);
 	} catch (const std::exception& ex) {
-		ConfigCompilerContext::GetInstance()->AddError(false, boost::diagnostic_information(ex));
+		ConfigCompilerContext::GetInstance()->AddMessage(true, boost::diagnostic_information(ex));
 	}
 }
 

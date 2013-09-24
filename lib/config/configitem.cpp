@@ -116,13 +116,13 @@ void ConfigItem::Link(void)
 			std::ostringstream message;
 			message << "Parent object '" << name << "' does not"
 			    " exist (" << m_DebugInfo << ")";
-			BOOST_THROW_EXCEPTION(std::invalid_argument(message.str()));
+			ConfigCompilerContext::GetInstance()->AddMessage(true, message.str());
+		} else {
+			parent->Link();
+
+			ExpressionList::Ptr pexprl = parent->GetLinkedExpressionList();
+			m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, pexprl, m_DebugInfo));
 		}
-
-		parent->Link();
-
-		ExpressionList::Ptr pexprl = parent->GetLinkedExpressionList();
-		m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, pexprl, m_DebugInfo));
 	}
 
 	m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, m_ExpressionList, m_DebugInfo));
@@ -233,41 +233,38 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 	return ConfigItem::Ptr();
 }
 
-void ConfigItem::LinkItems(void)
+void ConfigItem::ValidateItem(void)
 {
+	ConfigType::Ptr ctype = ConfigType::GetByName(GetType());
+
+	if (!ctype) {
+		ConfigCompilerContext::GetInstance()->AddMessage(false, "No validation type found for object '" + GetName() + "' of type '" + GetType() + "'");
+
+		return;
+	}
+
+	ctype->ValidateItem(GetSelf());
+}
+
+bool ConfigItem::ActivateItems(bool validateOnly)
+{
+	if (ConfigCompilerContext::GetInstance()->HasErrors())
+		return false;
+
 	Log(LogInformation, "config", "Linking config items...");
 
 	ConfigItem::Ptr item;
 	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
 		item->Link();
 	}
-}
 
-void ConfigItem::ValidateItems(void)
-{
-	Log(LogInformation, "config", "Validating config items...");
+	if (ConfigCompilerContext::GetInstance()->HasErrors())
+		return false;
 
-	ConfigItem::Ptr item;
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
-		ConfigType::Ptr ctype = ConfigType::GetByName(item->GetType());
-
-		if (!ctype) {
-			ConfigCompilerContext::GetInstance()->AddError(true, "No validation type found for object '" + item->GetName() + "' of type '" + item->GetType() + "'");
-
-			continue;
-		}
-
-		ctype->ValidateItem(item);
-	}
-}
-
-void ConfigItem::ActivateItems(void)
-{
 	Log(LogInformation, "config", "Activating config items");
 
 	std::vector<DynamicObject::Ptr> objects;
 
-	ConfigItem::Ptr item;
 	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
 		DynamicObject::Ptr object = item->Commit();
 
@@ -278,6 +275,16 @@ void ConfigItem::ActivateItems(void)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
 		object->OnConfigLoaded();
 	}
+
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
+		item->ValidateItem();
+	}
+
+	if (ConfigCompilerContext::GetInstance()->HasErrors())
+		return false;
+
+	if (validateOnly)
+		return true;
 
 	/* restore the previous program state */
 	DynamicObject::RestoreObjects(Application::GetStatePath());
@@ -293,6 +300,8 @@ void ConfigItem::ActivateItems(void)
 			ASSERT(object->IsActive());
 		}
 	}
+
+	return true;
 }
 
 void ConfigItem::DiscardItems(void)

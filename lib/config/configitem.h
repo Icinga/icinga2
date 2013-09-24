@@ -62,9 +62,9 @@ public:
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
 
-	static void LinkItems(void);
-	static void ValidateItems(void);
-	static void ActivateItems(void);
+	void ValidateItem(void);
+
+	static bool ActivateItems(bool validateOnly);
 	static void DiscardItems(void);
 
 private:

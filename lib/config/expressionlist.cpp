@@ -68,3 +68,17 @@ void ExpressionList::ExtractFiltered(const std::set<String, string_iless>& keys,
 		expression.ExtractFiltered(keys, result);
 	}
 }
+
+void ExpressionList::ErasePath(const std::vector<String>& path)
+{
+	BOOST_FOREACH(Expression& expression, m_Expressions) {
+		expression.ErasePath(path);
+	}
+}
+
+void ExpressionList::FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const
+{
+	BOOST_FOREACH(const Expression& expression, m_Expressions) {
+		expression.FindDebugInfoPath(path, result);
+	}
+}

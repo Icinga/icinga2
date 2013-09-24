@@ -1061,7 +1061,7 @@ YY_RULE_SETUP
 {
 	std::ostringstream msgbuf;
 	msgbuf << "Unterminated string found: " << *yylloc;
-	ConfigCompilerContext::GetInstance()->AddError(false, msgbuf.str());
+	ConfigCompilerContext::GetInstance()->AddMessage(true, msgbuf.str());
 	BEGIN(INITIAL);
 				}
 	YY_BREAK
@@ -1078,7 +1078,7 @@ YY_RULE_SETUP
 		/* error, constant is out-of-bounds */
 		std::ostringstream msgbuf;
 		msgbuf << "Constant is out-of-bounds: " << yytext << " " << *yylloc;
-		ConfigCompilerContext::GetInstance()->AddError(false, msgbuf.str());
+		ConfigCompilerContext::GetInstance()->AddMessage(true, msgbuf.str());
 	}
 
 	lb_append_char(&string_buf, result);
@@ -1093,7 +1093,7 @@ YY_RULE_SETUP
 	 */
 	std::ostringstream msgbuf;
 	msgbuf << "Bad escape sequence found: " << yytext << " " << *yylloc;
-	ConfigCompilerContext::GetInstance()->AddError(false, msgbuf.str());
+	ConfigCompilerContext::GetInstance()->AddMessage(true, msgbuf.str());
 				}
 	YY_BREAK
 case 6:

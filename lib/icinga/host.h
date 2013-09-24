@@ -104,8 +104,6 @@ public:
 
 	int GetTotalServices(void) const;
 
-	static Value ValidateServiceDictionary(const String& location, const Dictionary::Ptr& attrs);
-
 	static HostState CalculateState(ServiceState state, bool reachable);
 
 	HostState GetState(void) const;

@@ -121,7 +121,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 			Value value = dictionary->Get(require);
 
 			if (value.IsEmpty()) {
-				ConfigCompilerContext::GetInstance()->AddError(false,
+				ConfigCompilerContext::GetInstance()->AddMessage(true,
 				    "Required attribute is missing: " + LocationToString(locations));
 			}
 
@@ -175,14 +175,14 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 		}
 
 		if (overallResult == ValidationUnknownField)
-			ConfigCompilerContext::GetInstance()->AddError(true, "Unknown attribute: " + LocationToString(locations));
+			ConfigCompilerContext::GetInstance()->AddMessage(false, "Unknown attribute: " + LocationToString(locations));
 		else if (overallResult == ValidationInvalidType) {
 			String message = "Invalid value for attribute: " + LocationToString(locations);
 
 			if (!hint.IsEmpty())
 				message += ": " + hint;
 
-			ConfigCompilerContext::GetInstance()->AddError(false, message);
+			ConfigCompilerContext::GetInstance()->AddMessage(true, message);
 		}
 
 		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
@@ -204,7 +204,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 			locations.push_back("Attribute '" + require + "'");
 
 			if (array->GetLength() < index) {
-				ConfigCompilerContext::GetInstance()->AddError(false,
+				ConfigCompilerContext::GetInstance()->AddMessage(true,
 				    "Required array index is missing: " + LocationToString(locations));
 			}
 
@@ -261,14 +261,14 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 		}
 
 		if (overallResult == ValidationUnknownField)
-			ConfigCompilerContext::GetInstance()->AddError(true, "Unknown attribute: " + LocationToString(locations));
+			ConfigCompilerContext::GetInstance()->AddMessage(false, "Unknown attribute: " + LocationToString(locations));
 		else if (overallResult == ValidationInvalidType) {
 			String message = "Invalid value for array index: " + LocationToString(locations);
 
 			if (!hint.IsEmpty())
 				message += ": " + hint;
 
-			ConfigCompilerContext::GetInstance()->AddError(false, message);
+			ConfigCompilerContext::GetInstance()->AddMessage(true, message);
 		}
 
 		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
