@@ -452,7 +452,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 	unsigned long entry_time = static_cast<long>(comment->Get("entry_time"));
 	double now = Utility::GetTime();
 	unsigned long deletion_time = static_cast<long>(now);
-	unsigned long deletion_time_usec = (now - entry_time) * 1000 * 1000;
+	unsigned long deletion_time_usec = (now - deletion_time) * 1000 * 1000;
 
 	DbQuery query2;
 	query2.Table = "commenthistory";
@@ -543,11 +543,19 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->Get("trigger_time")));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
+	/* Status */
 	DbQuery query1;
 	query1.Table = "scheduleddowntime";
 	query1.Type = DbQueryInsert;
 	query1.Fields = fields1;
 	OnQuery(query1);
+
+	/* History */
+	DbQuery query2;
+	query2.Table = "downtimehistory";
+	query2.Type = DbQueryInsert;
+	query2.Fields = fields1;
+	OnQuery(query2);
 }
 
 void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
@@ -591,6 +599,7 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictiona
 
 	Log(LogDebug, "ido", "removing service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
+	/* Status */
 	DbQuery query1;
 	query1.Table = "scheduleddowntime";
 	query1.Type = DbQueryDelete;
@@ -609,6 +618,30 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictiona
 		query2.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
 		OnQuery(query2);
 	}
+
+	/* History - update actual_end_time, was_cancelled for service (and host in case) */
+	double now = Utility::GetTime();
+	unsigned long actual_end_time = static_cast<long>(now);
+	unsigned long actual_end_time_usec = (now - actual_end_time) * 1000 * 1000;
+
+	DbQuery query3;
+	query3.Table = "downtimehistory";
+	query3.Type = DbQueryUpdate;
+
+	Dictionary::Ptr fields3 = boost::make_shared<Dictionary>();
+	fields3->Set("was_cancelled", downtime->Get("was_cancelled") ? 1 : 0);
+	fields3->Set("actual_end_time", DbValue::FromTimestamp(actual_end_time));
+	fields3->Set("actual_end_time_usec", actual_end_time_usec);
+	query3.Fields = fields3;
+
+	query3.WhereCriteria = boost::make_shared<Dictionary>();
+	query3.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
+	query3.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->Get("entry_time")));
+	query3.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->Get("start_time")));
+	query3.WhereCriteria->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->Get("end_time")));
+	query3.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	OnQuery(query3);
 }
 
 void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime)
@@ -629,6 +662,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 	unsigned long actual_start_time = static_cast<long>(now);
 	unsigned long actual_start_time_usec = static_cast<long>((now - actual_start_time) * 1000 * 1000);
 
+	/* Status */
 	DbQuery query1;
 	query1.Table = "scheduleddowntime";
 	query1.Type = DbQueryUpdate;
@@ -670,6 +704,28 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 		query2.Fields = fields2;
 		OnQuery(query2);
 	}
+
+	/* History - downtime was started for service (and host in case) */
+	DbQuery query3;
+	query3.Table = "downtimehistory";
+	query3.Type = DbQueryUpdate;
+
+	Dictionary::Ptr fields3 = boost::make_shared<Dictionary>();
+	fields3->Set("was_started", 1);
+	fields3->Set("is_in_effect", 1);
+	fields3->Set("actual_start_time", DbValue::FromTimestamp(actual_start_time));
+	fields3->Set("actual_start_time_usec", actual_start_time_usec);
+	fields3->Set("trigger_time", DbValue::FromTimestamp(downtime->Get("trigger_time")));
+	query3.Fields = fields3;
+
+	query3.WhereCriteria = boost::make_shared<Dictionary>();
+	query3.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
+	query3.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->Get("entry_time")));
+	query3.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->Get("start_time")));
+	query3.WhereCriteria->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->Get("end_time")));
+	query3.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	OnQuery(query3);
 }
 
 void ServiceDbObject::AddAcknowledgement(const Service::Ptr& service, const String& author, const String& comment,
