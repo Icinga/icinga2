@@ -25,6 +25,7 @@
 #include "base/timer.h"
 #include "base/utility.h"
 #include "base/exception.h"
+#include "base/convert.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -66,11 +67,27 @@ static bool LoadConfigFiles(bool validateOnly)
 
 	bool result = ConfigItem::ActivateItems(validateOnly);
 
+	int warnings = 0, errors = 0;
+
 	BOOST_FOREACH(const ConfigCompilerMessage& message, ConfigCompilerContext::GetInstance()->GetMessages()) {
-		if (message.Error)
+		if (message.Error) {
 			Log(LogCritical, "config", "Config error: " + message.Text);
-		else
+			errors++;
+		} else {
 			Log(LogWarning, "config", "Config warning: " + message.Text);
+			warnings++;
+		}
+	}
+
+	if (warnings > 0 || errors > 0) {
+		LogSeverity severity;
+
+		if (errors == 0)
+			severity = LogWarning;
+		else
+			severity = LogCritical;
+
+		Log(severity, "config", Convert::ToString(errors) + " errors, " + Convert::ToString(warnings) + " warnings.");
 	}
 
 	if (!result)
