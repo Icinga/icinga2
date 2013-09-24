@@ -30,15 +30,38 @@ object CompatLog "compat-log" { }
  * And finally we define some host that should be checked.
  */
 object Host "localhost" {
-  services["ping4"] = { templates = [ "ping4" ] },
-  services["ping6"] = { templates = [ "ping6" ] }, 
-  services["http"] = { templates = [ "http_ip" ] }, 
-  services["ssh"] = { templates = [ "ssh" ] }, 
-  services["load"] = { templates = [ "load" ] }, 
-  services["processes"] = { templates = [ "processes" ] }, 
-  services["users"] = { templates = [ "users" ] }, 
-  services["disk"] = { templates = [ "disk" ] }, 
-  
+  services["ping4"] = {
+    templates = [ "ping4" ]
+  },
+
+  services["ping6"] = {
+    templates = [ "ping6" ]
+  },
+
+  services["http"] = {
+    templates = [ "http_ip" ]
+  },
+
+  services["ssh"] = {
+    templates = [ "ssh" ]
+  },
+
+  services["load"] = {
+    templates = [ "load" ]
+  },
+
+  services["processes"] = {
+    templates = [ "processes" ]
+  },
+
+  services["users"] = {
+    templates = [ "users" ]
+  },
+
+  services["disk"] = {
+    templates = [ "disk" ]
+  },
+
   macros = {
     address = "127.0.0.1",
     address6 = "::1",

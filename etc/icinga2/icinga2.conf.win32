@@ -37,7 +37,9 @@ object Component "compat" {
  * And finally we define some host that should be checked.
  */
 object Host "localhost" inherits "itl-host" {
-  services["ping4"] = { templates = [ "ping4" ] },
+  services["ping4"] = {
+    templates = [ "ping4" ]
+  },
 
   macros = {
     address = "127.0.0.1"
