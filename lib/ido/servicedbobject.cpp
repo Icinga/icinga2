@@ -372,11 +372,19 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 	fields1->Set("expiration_time", comment->Get("expire_time"));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
+	/* Status */
 	DbQuery query1;
 	query1.Table = "comments";
 	query1.Type = DbQueryInsert;
 	query1.Fields = fields1;
 	OnQuery(query1);
+
+	/* History */
+	DbQuery query2;
+	query2.Table = "commenthistory";
+	query2.Type = DbQueryInsert;
+	query2.Fields = fields1;
+	OnQuery(query2);
 }
 
 void ServiceDbObject::RemoveComments(const Service::Ptr& service)
@@ -414,12 +422,13 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 		return;
 
 	if (!comment) {
-		Log(LogWarning, "ido", "comment does not exist. not adding it.");
+		Log(LogWarning, "ido", "comment does not exist. not deleting it.");
 		return;
 	}
 
 	Log(LogDebug, "ido", "removing service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
+	/* Status */
 	DbQuery query1;
 	query1.Table = "comments";
 	query1.Type = DbQueryDelete;
@@ -438,6 +447,28 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 		query2.WhereCriteria->Set("internal_comment_id", comment->Get("legacy_id"));
 		OnQuery(query2);
 	}
+
+	/* History - update deletion time for service (and host in case) */
+	unsigned long entry_time = static_cast<long>(comment->Get("entry_time"));
+	double now = Utility::GetTime();
+	unsigned long deletion_time = static_cast<long>(now);
+	unsigned long deletion_time_usec = (now - entry_time) * 1000 * 1000;
+
+	DbQuery query2;
+	query2.Table = "commenthistory";
+	query2.Type = DbQueryUpdate;
+
+	Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
+	fields2->Set("deletion_time", DbValue::FromTimestamp(deletion_time));
+	fields2->Set("deletion_time_usec", deletion_time_usec);
+	query2.Fields = fields2;
+
+	query2.WhereCriteria = boost::make_shared<Dictionary>();
+	query2.WhereCriteria->Set("internal_comment_id", comment->Get("legacy_id"));
+	query2.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
+	query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	OnQuery(query2);
 }
 
 void ServiceDbObject::AddDowntimes(const Service::Ptr& service)
