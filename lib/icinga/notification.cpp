@@ -296,10 +296,14 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
 
+	unsigned long notified_users = 0;
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
 		Log(LogDebug, "icinga", "Sending notification for user '" + user->GetName() + "'");
 		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
+		notified_users++;
 	}
+
+	Service::OnNotificationSentToAllUsers(GetService(), allUsers, type, cr, author, text, notified_users);
 }
 
 void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force, const String& author, const String& text)
@@ -333,6 +337,11 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 	}
 
 	try {
+		NotificationCommand::Ptr notificationCommand = GetNotificationCommand();
+
+		if (!notificationCommand)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Notification command for notification object '" + GetName() + " and user '" + user->GetName() + "' does not exist."));
+
 		GetNotificationCommand()->Execute(GetSelf(), user, cr, type);
 
 		{
@@ -341,7 +350,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 			SetLastNotification(Utility::GetTime());
 		}
 
-		Service::OnNotificationSentChanged(GetService(), user, type, cr, author, text);
+		Service::OnNotificationSentToUser(GetService(), user, type, cr, author, text);
 
 		Log(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
 	} catch (const std::exception& ex) {

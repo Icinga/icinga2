@@ -52,7 +52,7 @@ void CompatLog::Start(void)
 	DynamicObject::Start();
 
 	Service::OnNewCheckResult.connect(bind(&CompatLog::CheckResultHandler, this, _1, _2));
-	Service::OnNotificationSentChanged.connect(bind(&CompatLog::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6));
+	Service::OnNotificationSentToUser.connect(bind(&CompatLog::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6));
 	Service::OnFlappingChanged.connect(bind(&CompatLog::FlappingHandler, this, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLog::TriggerDowntimeHandler, this, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLog::RemoveDowntimeHandler, this, _1, _2));
