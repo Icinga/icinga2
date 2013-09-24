@@ -51,6 +51,7 @@ protected:
 	virtual void OnStatusUpdate(void);
 
 private:
+        /* Status */
 	static void AddComments(const Service::Ptr& service);
 	static void AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
 	static void AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment);
@@ -63,6 +64,10 @@ private:
         static void RemoveDowntimes(const Service::Ptr& service);
 	static void RemoveDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 	static void TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+
+        /* History */
+        static void AddAcknowledgement(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
+
 };
 
 }

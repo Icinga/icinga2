@@ -40,11 +40,16 @@ INITIALIZE_ONCE(ServiceDbObject, &ServiceDbObject::StaticInitialize);
 
 void ServiceDbObject::StaticInitialize(void)
 {
+	/* Status */
 	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddComment, _1, _2));
 	Service::OnCommentRemoved.connect(boost::bind(&ServiceDbObject::RemoveComment, _1, _2));
 	Service::OnDowntimeAdded.connect(boost::bind(&ServiceDbObject::AddDowntime, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&ServiceDbObject::RemoveDowntime, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&ServiceDbObject::TriggerDowntime, _1, _2));
+
+	/* History */
+	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgement, _1, _2, _3, _4, _5, _6));
+
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -603,6 +608,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 	fields1->Set("actual_start_time_usec", actual_start_time_usec);
 	fields1->Set("is_in_effect", 1);
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->Get("trigger_time")));
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set("object_id", service);
@@ -624,6 +630,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 		fields2->Set("actual_start_time_usec", actual_start_time_usec);
 		fields2->Set("is_in_effect", 1);
 		fields2->Set("trigger_time", DbValue::FromTimestamp(downtime->Get("trigger_time")));
+		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		query2.WhereCriteria = boost::make_shared<Dictionary>();
 		query2.WhereCriteria->Set("object_id", host);
@@ -633,3 +640,62 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 		OnQuery(query2);
 	}
 }
+
+void ServiceDbObject::AddAcknowledgement(const Service::Ptr& service, const String& author, const String& comment,
+					 AcknowledgementType type, double expiry, const String& authority)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Log(LogDebug, "ido", "add acknowledgement for '" + service->GetName() + "'");
+
+	double now = Utility::GetTime();
+	unsigned long entry_time = static_cast<long>(now);
+	unsigned long entry_time_usec = (now - entry_time) * 1000 * 1000;
+	unsigned long end_time = static_cast<long>(expiry);
+
+	DbQuery query1;
+	query1.Table = "acknowledgements";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
+	fields1->Set("entry_time_usec", entry_time_usec);
+	fields1->Set("acknowledgement_type", type);
+	fields1->Set("object_id", service);
+	fields1->Set("state", service->GetState());
+	fields1->Set("author_name", author);
+	fields1->Set("comment_data", comment);
+	fields1->Set("is_sticky", type == AcknowledgementSticky ? 1 : 0);
+	fields1->Set("end_time", DbValue::FromTimestamp(end_time));
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	query1.Fields = fields1;
+	OnQuery(query1);
+
+	if (host->GetHostCheckService() == service) {
+
+		DbQuery query2;
+		query2.Table = "acknowledgements";
+		query2.Type = DbQueryInsert;
+
+		Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
+		fields2->Set("entry_time", DbValue::FromTimestamp(entry_time));
+		fields2->Set("entry_time_usec", entry_time_usec);
+		fields2->Set("acknowledgement_type", type);
+		fields2->Set("object_id", host);
+		fields2->Set("state", service->GetState());
+		fields2->Set("author_name", author);
+		fields2->Set("comment_data", comment);
+		fields2->Set("is_sticky", type == AcknowledgementSticky ? 1 : 0);
+		fields2->Set("end_time", DbValue::FromTimestamp(end_time));
+		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+		query2.Fields = fields2;
+		OnQuery(query2);
+	}
+}
+
+
