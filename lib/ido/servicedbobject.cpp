@@ -49,7 +49,7 @@ void ServiceDbObject::StaticInitialize(void)
 
 	/* History */
 	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgement, _1, _2, _3, _4, _5, _6));
-
+	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotification, _1, _2, _3, _4, _5, _6, _7));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -261,7 +261,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	RemoveDowntimes(service);
 	AddComments(service);
 	AddDowntimes(service);
- 
+
 	/* service host config update */
 	Host::Ptr host = service->GetHost();
 
@@ -785,4 +785,81 @@ void ServiceDbObject::AddAcknowledgement(const Service::Ptr& service, const Stri
 	}
 }
 
+void ServiceDbObject::AddNotification(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
+				      const Dictionary::Ptr& cr, const String& author, const String& text, unsigned long notified_users)
+{
+	Host::Ptr host = service->GetHost();
 
+	if (!host)
+		return;
+
+	Log(LogDebug, "ido", "add notification for '" + service->GetName() + "'");
+
+	/* start and end happen at the same time */
+	double now = Utility::GetTime();
+	unsigned long start_time = static_cast<long>(now);
+	unsigned long end_time = start_time;
+	unsigned long start_time_usec = (now - start_time) * 1000 * 1000;
+	unsigned long end_time_usec = start_time_usec;
+
+	DbQuery query1;
+	query1.Table = "notifications";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+	fields1->Set("notification_type", 1); /* service */
+	fields1->Set("notification_reason", CompatUtility::MapNotificationReasonType(type));
+	fields1->Set("object_id", service);
+	fields1->Set("start_time", DbValue::FromTimestamp(start_time));
+	fields1->Set("start_time_usec", start_time_usec);
+	fields1->Set("end_time", DbValue::FromTimestamp(end_time));
+	fields1->Set("end_time_usec", end_time_usec);
+	fields1->Set("state", service->GetState());
+
+	if (cr) {
+		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+		fields1->Set("output", output_bag->Get("output"));
+		fields1->Set("long_output", output_bag->Get("long_output"));
+	}
+
+	fields1->Set("escalated", 0);
+	fields1->Set("contacts_notified", notified_users);
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	query1.Fields = fields1;
+	OnQuery(query1);
+
+	if (host->GetHostCheckService() == service) {
+	DbQuery query1;
+	query1.Table = "notifications";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+		DbQuery query2;
+		query2.Table = "notifications";
+		query2.Type = DbQueryInsert;
+
+		Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
+		fields2->Set("notification_type", 2); /* host */
+		fields2->Set("notification_reason", CompatUtility::MapNotificationReasonType(type));
+		fields2->Set("object_id", host);
+		fields2->Set("start_time", DbValue::FromTimestamp(start_time));
+		fields2->Set("start_time_usec", start_time_usec);
+		fields2->Set("end_time", DbValue::FromTimestamp(end_time));
+		fields2->Set("end_time_usec", end_time_usec);
+		fields2->Set("state", service->GetState());
+
+		if (cr) {
+			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+			fields2->Set("output", output_bag->Get("output"));
+			fields2->Set("long_output", output_bag->Get("long_output"));
+		}
+
+		fields2->Set("escalated", 0);
+		fields2->Set("contacts_notified", notified_users);
+		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+		query2.Fields = fields2;
+		OnQuery(query2);
+	}
+}
