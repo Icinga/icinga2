@@ -337,12 +337,14 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 	}
 
 	try {
-		NotificationCommand::Ptr notificationCommand = GetNotificationCommand();
+		NotificationCommand::Ptr command = GetNotificationCommand();
 
-		if (!notificationCommand)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Notification command for notification object '" + GetName() + " and user '" + user->GetName() + "' does not exist."));
+		if (!command) {
+			Log(LogDebug, "icinga", "No notification_command found for notification '" + GetName() + "'. Skipping execution.");
+			return;
+		}
 
-		GetNotificationCommand()->Execute(GetSelf(), user, cr, type);
+		command->Execute(GetSelf(), user, cr, type);
 
 		{
 			ObjectLock olock(this);
