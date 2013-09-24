@@ -608,7 +608,7 @@ void CompatComponent::StatusTimerHandler(void)
 		 << "\n";
 
 	statusfp << "programstatus {" << "\n"
-		 << "icinga_pid=" << Utility::GetPid() << "\n"
+		 << "\t" << "icinga_pid=" << Utility::GetPid() << "\n"
 		 << "\t" << "daemon_mode=1" << "\n"
 		 << "\t" << "program_start=" << static_cast<long>(IcingaApplication::GetInstance()->GetStartTime()) << "\n"
 		 << "\t" << "active_service_checks_enabled=1" << "\n"
