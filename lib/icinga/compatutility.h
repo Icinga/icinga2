@@ -55,6 +55,12 @@ public:
 	static Dictionary::Ptr GetCommandConfigAttributes(const Command::Ptr& command);
 
 	static Dictionary::Ptr GetCustomVariableConfig(const DynamicObject::Ptr& object);
+
+	static Dictionary::Ptr GetCheckResultOutput(const Dictionary::Ptr& cr);
+	static String GetCheckResultPerfdata(const Dictionary::Ptr& cr);
+
+	static int MapNotificationReasonType(NotificationType type);
+
 	static String EscapeString(const String& str);
 
 private:

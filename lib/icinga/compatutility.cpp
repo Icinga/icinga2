@@ -190,22 +190,12 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	Dictionary::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
-		raw_output = cr->Get("output");
-		size_t line_end = raw_output.Find("\n");
+		Dictionary::Ptr output_bag = GetCheckResultOutput(cr);
+		output = output_bag->Get("output");
+		long_output = output_bag->Get("long_output");
 
-		output = raw_output.SubStr(0, line_end);
-
-		if (line_end > 0 && line_end != String::NPos) {
-			long_output = raw_output.SubStr(line_end+1, raw_output.GetLength());
-			long_output = EscapeString(long_output);
-		}
-
-		boost::algorithm::replace_all(output, "\n", "\\n");
-
+		perfdata = GetCheckResultPerfdata(cr);
 		schedule_end = cr->Get("schedule_end");
-
-		perfdata = cr->Get("performance_data_raw");
-		boost::algorithm::replace_all(perfdata, "\n", "\\n");
 	}
 
 	int state = service->GetState();
@@ -491,6 +481,66 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr&
         }
 
 	return customvars;
+}
+
+Dictionary::Ptr CompatUtility::GetCheckResultOutput(const Dictionary::Ptr& cr)
+{
+	if (!cr)
+		return Empty;
+
+	String long_output;
+	String output;
+	Dictionary::Ptr bag = boost::make_shared<Dictionary>();
+
+	String raw_output = cr->Get("output");
+	size_t line_end = raw_output.Find("\n");
+
+	output = raw_output.SubStr(0, line_end);
+
+	if (line_end > 0 && line_end != String::NPos) {
+		long_output = raw_output.SubStr(line_end+1, raw_output.GetLength());
+		long_output = EscapeString(long_output);
+	}
+
+	output = EscapeString(output);
+
+	bag->Set("output", output);
+	bag->Set("long_output", long_output);
+	return bag;
+}
+
+String CompatUtility::GetCheckResultPerfdata(const Dictionary::Ptr& cr)
+{
+	if (!cr)
+		return Empty;
+
+	return EscapeString(cr->Get("performance_data_raw"));
+}
+
+int CompatUtility::MapNotificationReasonType(NotificationType type)
+{
+	switch (type) {
+		case NotificationDowntimeStart:
+			return 5;
+		case NotificationDowntimeEnd:
+			return 6;
+		case NotificationDowntimeRemoved:
+			return 7;
+		case NotificationCustom:
+			return 8;
+		case NotificationAcknowledgement:
+			return 1;
+		case NotificationProblem:
+			return 0;
+		case NotificationRecovery:
+			return 0;
+		case NotificationFlappingStart:
+			return 2;
+		case NotificationFlappingEnd:
+			return 3;
+		default:
+			return 0;
+	}
 }
 
 String CompatUtility::EscapeString(const String& str)
