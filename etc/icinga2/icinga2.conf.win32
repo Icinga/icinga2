@@ -10,16 +10,11 @@
 #include <itl/itl.conf>
 #include <itl/standalone.conf>
 
-/**
- * Global configuration settings
- */
-object IcingaApplication "icinga" {
-  pid_path = "icinga2.pid",
-  state_path = "icinga2.state",
+set IcingaPidPath = "icinga2.pid"
+set IcingaStatePath = "icinga2.state"
 
-  macros = {
-    plugindir = "C:\\Plugins"
-  }
+set IcingaMacros = {
+  plugindir = "C:\\Plugins"
 }
 
 /**
@@ -28,7 +23,7 @@ object IcingaApplication "icinga" {
  * hosts and services.
  */
 library "compat"
-object Component "compat" {
+object StatusDataWriter "status" {
   status_path = "status.dat",
   objects_path = "objects.cache",
 }
@@ -45,6 +40,6 @@ object Host "localhost" inherits "itl-host" {
     address = "127.0.0.1"
   },
 
-  check_interval = 1m
+  check = "ping4"
 }
 

@@ -18,12 +18,13 @@ set IcingaMacros = {
 }
 
 /**
- * The compat component periodically updates the status.dat and objects.cache
+ * The compat library periodically updates the status.dat and objects.cache
  * files. These are used by the Icinga 1.x CGIs to display the state of
  * hosts and services. CompatLog writeis the Icinga 1.x icinga.log and archives.
  */
 library "compat"
-object CompatComponent "compat" { }
+object StatusDataWriter "status" { }
+object ExternalCommandListener "command" { }
 object CompatLog "compat-log" { }
 
 /**
@@ -67,7 +68,5 @@ object Host "localhost" {
     address6 = "::1",
   },
   
-  hostcheck = "ping4",
-
-  check_interval = 1m
+  check = "ping4",
 }
