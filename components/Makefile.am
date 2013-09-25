@@ -6,6 +6,6 @@ SUBDIRS = \
 	cluster \
 	compat \
 	demo \
-	ido_mysql \
+	db_ido_mysql \
 	livestatus \
 	notification

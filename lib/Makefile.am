@@ -5,5 +5,5 @@ SUBDIRS = \
 	base \
 	config \
 	icinga \
-	ido \
+	db_ido \
 	python

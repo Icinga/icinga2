@@ -133,7 +133,7 @@ components/checker/Makefile
 components/cluster/Makefile
 components/compat/Makefile
 components/demo/Makefile
-components/ido_mysql/Makefile
+components/db_ido_mysql/Makefile
 components/livestatus/Makefile
 components/notification/Makefile
 docs/Doxyfile
@@ -147,7 +147,7 @@ lib/Makefile
 lib/base/Makefile
 lib/config/Makefile
 lib/icinga/Makefile
-lib/ido/Makefile
+lib/db_ido/Makefile
 lib/python/Makefile
 test/Makefile
 third-party/Makefile
