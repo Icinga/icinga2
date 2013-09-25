@@ -132,7 +132,7 @@ protected:
 
 private:
 	String m_DisplayName;
-	Array::Ptr m_HostGroups;
+	Array::Ptr m_Groups;
 	Dictionary::Ptr m_Macros;
 	Array::Ptr m_HostDependencies;
 	Array::Ptr m_ServiceDependencies;

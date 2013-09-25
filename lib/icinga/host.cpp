@@ -93,7 +93,7 @@ String Host::GetDisplayName(void) const
 
 Array::Ptr Host::GetGroups(void) const
 {
-	return m_HostGroups;
+	return m_Groups;
 }
 
 Dictionary::Ptr Host::GetMacros(void) const
@@ -661,7 +661,7 @@ void Host::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) con
 
 	if (attributeTypes & Attribute_Config) {
 		bag->Set("display_name", m_DisplayName);
-		bag->Set("hostgroups", m_HostGroups);
+		bag->Set("groups", m_Groups);
 		bag->Set("macros", m_Macros);
 		bag->Set("hostdependencies", m_HostDependencies);
 		bag->Set("servicedependencies", m_ServiceDependencies);
@@ -677,7 +677,7 @@ void Host::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 
 	if (attributeTypes & Attribute_Config) {
 		m_DisplayName = bag->Get("display_name");
-		m_HostGroups = bag->Get("hostgroups");
+		m_Groups = bag->Get("groups");
 		m_Macros = bag->Get("macros");
 		m_HostDependencies = bag->Get("hostdependencies");
 		m_ServiceDependencies = bag->Get("servicedependencies");
