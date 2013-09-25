@@ -1,0 +1,811 @@
+Preface
+=======
+
+This tutorial is a step-by-step introduction to installing Icinga 2 and
+setting up your first couple of service checks. It assumes some
+familiarity with Icinga 1.x.
+
+Installation
+============
+
+In order to get started with Icinga 2 we will have to install it. The
+preferred way of doing this is to use the official Debian or RPM
+packages depending on which Linux distribution you are running.
+
+  ------------------------------------ ------------------------------------
+  Distribution                         Package URL
+
+  Debian                               [http://icingabuild.dus.dg-i.net:808
+                                       0/job/icinga2/](http://icingabuild.d
+                                       us.dg-i.net:8080/job/icinga2/)
+
+  RHEL                                 TBD
+  ------------------------------------ ------------------------------------
+
+In case you’re running a distribution for which Icinga 2 packages are
+not yet available you will have to check out the Icinga 2 Git repository
+from git://git.icinga.org/icinga2 and read the *INSTALL* file.
+
+By default Icinga 2 uses the following files and directories:
+
+  ------------------------------------ ------------------------------------
+  Path                                 Description
+
+  /etc/icinga2                         Contains Icinga 2 configuration
+                                       files.
+
+  /etc/init.d/icinga2                  The Icinga 2 init script.
+
+  /usr/share/doc/icinga2               Documentation files that come with
+                                       Icinga 2.
+
+  /usr/share/icinga2/itl               The Icinga Template Library.
+
+  /var/run/icinga2                     Command pipe and PID file.
+
+  /var/cache/icinga2                   Performance data files and
+                                       status.dat/objects.cache.
+
+  /var/lib/icinga2                     The Icinga 2 state file.
+  ------------------------------------ ------------------------------------
+
+Our First Service Check
+=======================
+
+The Icinga 2 package comes with a number of example configuration files.
+However, in order to explain some of the basics we’re going write our
+own configuration file from scratch.
+
+Start by creating the file /etc/icinga2/icinga2.conf with the following
+content:
+
+    include <itl/itl.conf>
+    include <itl/standalone.conf>
+
+    object IcingaApplication "my-icinga" {
+            macros["plugindir"] = "/usr/lib/nagios/plugins"
+    }
+
+The configuration snippet includes the *itl/itl.conf* and
+*itl/standalone.conf* files which are distributed as part of Icinga 2.
+We will discuss the Icinga Template Library (ITL) in more detail later
+on.
+
+The *itl/standalone.conf* configuration file takes care of configuring
+Icinga 2 for single-instance (i.e. non-clustered) mode.
+
+Our configuration file also creates an object of type
+*IcingaApplication* with the name *my-icinga*. The *IcingaApplication*
+type can be used to define global macros and some other global settings.
+
+For now we’re only defining the global macro *plugindir* which we’re
+going to use later on when referring to the path which contains our
+check plugins. Depending on where you’ve installed your check plugins
+you may need to update this path in your configuration file.
+
+You can verify that your configuration file works by starting Icinga 2:
+
+    $ /usr/bin/icinga2 -c /etc/icinga2/icinga2.conf
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/icinga-app: Icinga application loader (version: 0.0.1, git branch master, commit 0fcbfdb2)
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/base: Adding library search dir: /usr/lib/icinga2
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/base: Loading library 'libicinga.la'
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/config: Adding include search dir: /usr/share/icinga2
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/config: Compiling config file: /etc/icinga2/icinga2.conf
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/config: Linking config items...
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/config: Validating config items...
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/config: Activating config items in compilation unit 'b2d21c28-a2e8-4fcb-ba00-45646bc1afb9'
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/base: Restoring program state from file '/var/lib/icinga2/icinga2.state'
+    [2013/04/23 13:36:20 +0200] <Main Thread> information/base: Restored 0 objects
+
+In case there are any configuration errors Icinga 2 should print error
+messages containing details about what went wrong.
+
+You can stop Icinga 2 with Control-C:
+
+    ^C
+    [2013/04/23 13:39:39 +0200] <TP 0x7f2e9070f500 Worker #0> information/base: Shutting down Icinga...
+    [2013/04/23 13:39:39 +0200] <TP 0x7f2e9070f500 Worker #0> information/base: Dumping program state to file '/var/lib/icinga2/icinga2.state'
+    [2013/04/23 13:39:39 +0200] <Main Thread> information/icinga: Icinga has shut down.
+    $
+
+Icinga 2 automatically saves its current state every couple of minutes
+and when it’s being shut down.
+
+So far our Icinga 2 setup doesn’t do much. Lets change that by setting
+up a service check for localhost. Modify your *icinga2.conf*
+configuration file by adding the following lines:
+
+    object CheckCommand "my-ping" inherits "plugin-check-command" {
+            command = [
+                    "$plugindir$/check_ping",
+                    "-H", "$address$",
+                    "-w", "10,5%",
+                    "-c", "25,10%"
+            ]
+    }
+
+    template Service "my-ping" inherits "plugin-service" {
+            check_command = "my-ping"
+    }
+
+    object Host "localhost" {
+            display_name = "Home, sweet home!",
+
+            services["ping"] = {
+                    templates = [ "my-ping" ]
+            },
+
+            macros = {
+                    address = "127.0.0.1"
+            },
+
+            check_interval = 10s,
+
+            hostcheck = "ping"
+    }
+
+We’re defining a command object called "my-ping" which inherits from the
+*plugin-check-command* template. The *plugin-check-command* template is
+provided as part of the Icinga Template Library and describes how checks
+are performed. In the case of plugin-based services this means that the
+command specified by the *command* property is executed.
+
+The *command* property is an array or command-line arguments for the
+check plugin. Alternatively you can specify the check command as a
+string.
+
+The check command can make use of macros. Unlike in Icinga 1.x we have
+free-form macros which means that users can choose arbitrary names for
+their macros.
+
+By convention the following macros are usually used:
+
+  ------------------------------------ ------------------------------------
+  Macro                                Description
+  plugindir                            The path of your check plugins.
+  address                              The IPv4 address of the host.
+  address6                             The IPv6 address of the host.
+  ------------------------------------ ------------------------------------
+
+Note that the *my-ping* command object does not define a value for the
+*address* macro. This is perfectly fine as long as that macro is defined
+somewhere else (e.g. in the host).
+
+We’re also defining a service template called *my-ping* which uses the
+command object we just created.
+
+Next we’re defining a *Host* object called *localhost*. We’re setting an
+optional display\_name which is used by the Icinga Classic UI when
+showing that host in the host overview.
+
+The services dictionary defines which services belong to a host. Using
+the [] indexing operator we can manipulate individual items in this
+dictionary. In this case we’re creating a new service called *ping*.
+
+The templates array inside the service definition lists all the
+templates we want to use for this particular service. For now we’re just
+listing our *my-ping* template.
+
+Remember how we used the *address* macro in the *command* setting
+earlier? Now we’re defining a value for this macro which is used for all
+services and their commands which belong to the *localhost* Host object.
+
+We’re also setting the check\_interval for all services belonging to
+this host to 10 seconds.
+
+> **Note**
+>
+> When you don’t specify an explicit time unit Icinga 2 automatically
+> assumes that you meant seconds.
+
+And finally we’re specifying which of the services we’ve created before
+is used to define the host’s state. Note that unlike in Icinga 1.x this
+just "clones" the service’s state and does not cause any additional
+checks to be performed.
+
+Setting up the Icinga 1.x Classic UI
+====================================
+
+Icinga 2 can write status.dat and objects.cache files in the format that
+is supported by the Icinga 1.x Classic UI. External commands (a.k.a. the
+"command pipe") are also supported. If you require the icinga.log for
+history views and/or reporting in Classic UI, this can be added
+seperately to the CompatComponent object definition by adding a
+CompatLog object.
+
+In order to enable this feature you will need to load the library
+*compat* by adding the following lines to your configuration file:
+
+    library "compat"
+
+    object CompatComponent "compat" { }
+    object CompatLog "my-log" { }
+
+After restarting Icinga 2 you should be able to find the status.dat and
+objects.cache files in /var/cache/icinga2. The log files can be found in
+/var/log/icinga2/compat. The command pipe can be found in
+/var/run/icinga2.
+
+You can install the Icinga 1.x Classic UI in standalone mode using the
+following commands:
+
+    $ wget http://downloads.sourceforge.net/project/icinga/icinga/1.9.0/icinga-1.9.0.tar.gz
+    $ tar xzf icinga-1.9.0.tar.gz ; cd icinga-1.9.0
+    $ ./configure --enable-classicui-standalone --prefix=/usr/local/icinga2-classicui
+    $ make classicui-standalone
+    $ sudo make install classicui-standalone install-webconf-auth
+    $ sudo service apache2 restart
+
+> **Note**
+>
+> A detailed guide on installing Icinga 1.x Classic UI Standalone can be
+> found on the Icinga Wiki here:
+> [https://wiki.icinga.org/display/howtos/Setting+up+Icinga+Classic+UI+Standalone](https://wiki.icinga.org/display/howtos/Setting+up+Icinga+Classic+UI+Standalone)
+
+After installing the Classic UI you will need to update the following
+settings in your cgi.cfg configuration file at the bottom (section
+"STANDALONE (ICINGA 2) OPTIONS"):
+
+  ------------------------------------ ------------------------------------
+  Configuration Setting                Value
+  object\_cache\_file                  /var/cache/icinga2/objects.cache
+  status\_file                         /var/cache/icinga2/status.dat
+  resource\_file                       -
+  command\_file                        /var/run/icinga2/icinga2.cmd
+  check\_external\_commands            1
+  interval\_length                     60
+  status\_update\_interval             10
+  log\_file                            /var/log/icinga2/compat/icinga.log
+  log\_rotation\_method                h
+  log\_archive\_path                   /var/log/icinga2/compat/archives
+  date\_format                         us
+  ------------------------------------ ------------------------------------
+
+Depending on how you installed Icinga 2 some of those paths and options
+might be different.
+
+> **Note**
+>
+> You need to grant permissions for the apache user manually after
+> starting Icinga 2 for now.
+
+    # chmod o+rwx /var/run/icinga2/{icinga2.cmd,livestatus}
+
+Verify that your Icinga 1.x Classic UI works by browsing to your Classic
+UI installation URL e.g.
+[http://localhost/icinga](http://localhost/icinga)
+
+Some More Templates
+===================
+
+Now that we’ve got our basic monitoring setup as well as the Icinga 1.x
+Classic UI to work we can define a second host. Add the following lines
+to your configuration file:
+
+    object Host "icinga.org" {
+            display_name = "Icinga Website",
+
+            services["ping"] = {
+                    templates = [ "my-ping" ]
+            },
+
+            macros = {
+                    address = "www.icinga.org"
+            },
+
+            check_interval = 10s,
+
+            hostcheck = "ping"
+    }
+
+Restart your Icinga 2 instance and check the Classic UI for your new
+service’s state. Unless you have a low-latency network connection you
+will note that the service’s state is *CRITICAL*. This is because in the
+*my-ping* command object we have hard-coded the timeout as 25
+milliseconds.
+
+Ideally we’d be able to specify different timeouts for our new service.
+Using macros we can easily do this.
+
+> **Note**
+>
+> If you’ve used Icinga 1.x before you’re probably familiar with doing
+> this by passing ARGx macros to your check commands.
+
+Start by replacing your *my-ping* command object with this:
+
+    object CheckCommand "my-ping" inherits "plugin-check-command" {
+            command = [
+                    "$plugindir$/check_ping",
+                    "-H", "$address$",
+                    "-w", "$wrta$,$wpl$%",
+                    "-c", "$crta$,$cpl$%"
+            ],
+
+            macros = {
+                    wrta = 10,
+                    wpl = 5,
+
+                    crta = 25,
+                    cpl = 10
+            }
+    }
+
+We have replaced our hard-coded timeout values with macros and we’re
+providing default values for these same macros right in the template
+definition. The object inherits the basic check command attributes from
+the ITL provided template *plugin-check-command*.
+
+In order to oderride some of these macros for a specific host we need to
+update our *icinga.org* host definition like this:
+
+    object Host "icinga.org" {
+            display_name = "Icinga Website",
+
+            services["ping"] = {
+                    templates = [ "my-ping" ],
+
+                    macros += {
+                            wrta = 100,
+                            crta = 250
+                    }
+            },
+
+            macros = {
+                    address = "www.icinga.org"
+            },
+
+            check_interval = 10s,
+
+            hostcheck = "ping"
+    }
+
+The *+=* operator allows us to selectively add new key-value pairs to an
+existing dictionary. If we were to use the *=* operator instead we would
+have to provide values for all the macros that are used in the *my-ping*
+template overriding all values there.
+
+Icinga Template Library
+=======================
+
+The Icinga Template Library is a collection of configuration templates
+for commonly used services. By default it is installed in
+*/usr/share/icinga2/itl* and you can include it in your configuration
+files using the include directive:
+
+    include <itl/itl.conf>
+
+> **Note**
+>
+> Ordinarily you’d use double-quotes for the include path. This way only
+> paths relative to the current configuration file are considered. The
+> angle brackets tell Icinga 2 to search its list of global include
+> directories.
+
+One of the templates in the ITL is the *ping4* service template which is
+quite similar to our example objects:
+
+    object CheckCommand "ping4" inherits "plugin-check-command" {
+            command = [
+                    "$plugindir$/check_ping",
+                    "-4",
+                    "-H", "$address$",
+                    "-w", "$wrta$,$wpl$%",
+                    "-c", "$crta$,$cpl$%",
+                    "-p", "$packets$",
+                    "-t", "$timeout$"
+            ],
+
+            macros = {
+                    wrta = 100,
+                    wpl = 5,
+
+                    crta = 200,
+                    cpl = 15,
+
+                    packets = 5,
+                    timeout = 0
+            }
+    }
+
+    template Service "ping4" {
+            check_command = "ping4"
+    }
+
+Lets simplify our configuration file by removing our custom *my-ping*
+template and updating our service definitions to use the *ping4*
+template instead.
+
+Include Files
+=============
+
+So far we’ve been using just one configuration file. However, once
+you’ve created a few more host objects and service templates this can
+get rather confusing.
+
+Icinga 2 lets you include other files from your configuration file. We
+can use this feature to make our configuration a bit more modular and
+easier to understand.
+
+Lets start by moving our two *Host* objects to a separate configuration
+file: hosts.conf
+
+We will also need to tell Icinga 2 that it should include our newly
+created configuration file when parsing the main configuration file.
+This can be done by adding the include directive to our *icinga2.conf*
+file:
+
+    include "hosts.conf"
+
+Depending on the number of hosts you have it might be useful to split
+your configuration files based on other criteria (e.g. device type,
+location, etc.).
+
+You can use wildcards in the include path in order to refer to multiple
+files. Assuming you’re keeping your host configuration files in a
+directory called *hosts* you could include them like this:
+
+    include "hosts/*.conf"
+
+Notifications
+=============
+
+Icinga 2 can send you notifications when your services change state. In
+order to do this we’re going to write a shell script in
+*/etc/icinga2/mail-notification.sh* that sends e-mail based
+notifications:
+
+    #!/bin/sh
+
+    if [ -z "$1" ]; then
+            echo "Syntax: $0 <e-mail>"
+            echo
+            echo "Sends a mail notification to the specified e-mail address."
+            exit 1
+    fi
+
+    mail -s "** $NOTIFICATIONTYPE Service Alert: $HOSTALIAS/$SERVICEDESC is $SERVICESTATE **" $1 <<TEXT
+    ***** Icinga *****
+
+    Notification Type: $NOTIFICATIONTYPE
+
+    Service: $SERVICEDESC
+    Host: $HOSTALIAS
+    Address: $address
+    State: $SERVICESTATE
+
+    Date/Time: $LONGDATETIME
+
+    Additional Info:
+
+    $SERVICEOUTPUT
+    TEXT
+
+    exit 0
+
+Our shell script uses a couple of pre-defined macros (e.g. SERVICEDESC,
+HOSTALIAS, etc.) that are always available.
+
+Next we’re going to create a *Notification* template which tells Icinga
+how to invoke the shell script:
+
+    object NotificationCommand "mail-notification" inherits "plugin-notification-command" {
+            command = [
+                    "/etc/icinga2/mail-notification.sh",
+                    "$email$"
+            ],
+
+            export_macros = [
+                    "NOTIFICATIONTYPE",
+                    "HOSTALIAS",
+                    "SERVICEDESC",
+                    "SERVICESTATE",
+                    "SERVICEDESC",
+                    "address",
+                    "LONGDATETIME",
+                    "SERVICEOUTPUT"
+            ]
+    }
+
+    template Notification "mail-notification" {
+            notification_command = "mail-notification"
+    }
+
+> **Note**
+>
+> Rather than adding these templates to your main configuration file you
+> might want to create a separate file, e.g. *notifications.conf* and
+> include it in *icinga2.conf*.
+
+The *export\_macros* property tells Icinga which macros to export into
+the environment for the notification script.
+
+We also need to create a *User* object which Icinga can use to send
+notifications to specific people:
+
+    object User "tutorial-user" {
+            display_name = "Some User",
+
+            macros = {
+                    email = "tutorial@example.org"
+            }
+    }
+
+Each time a notification is sent for a service the user’s macros are
+used when resolving the macros we used in the *Notification* template.
+
+In the next step we’re going to create a *Service* template which
+specifies who notifications should be sent to:
+
+    template Service "mail-notification-service" {
+            notifications["mail"] = {
+                    templates = [ "mail-notification" ],
+
+                    users = [ "tutorial-user" ]
+            },
+
+            notification_interval = 1m
+    }
+
+And finally we can assign this new service template to our services:
+
+            ...
+            services["ping"] = {
+                    templates = [ "ping4", "mail-notification-service" ]
+            },
+            ...
+
+In addition to defining notifications for individual services it is also
+possible to assign notification templates to all services of a host. You
+can find more information about how to do that in the documentation.
+
+> **Note**
+>
+> Escalations in Icinga 2 are just a notification, only added a defined
+> begin and end time. Check the documentation for details.
+
+Time Periods
+============
+
+Time periods allow you to specify when certain services should be
+checked and when notifications should be sent.
+
+Here is an example time period definition:
+
+    object TimePeriod "work-hours" inherits "legacy-timeperiod" {
+            ranges = {
+                    monday = "9:00-17:00",
+                    tuesday = "9:00-17:00",
+                    wednesday = "9:00-17:00",
+                    thursday = "9:00-17:00",
+                    friday = "9:00-17:00",
+            }
+    }
+
+The *legacy-timeperiod* template is defined in the Icinga Template
+Library and supports Icinga 1.x time periods. A complete definition of
+the time Icinga 1.x time period syntax can be found at
+[http://docs.icinga.org/latest/en/objectdefinitions.html\#timeperiod](http://docs.icinga.org/latest/en/objectdefinitions.html#timeperiod).
+
+Using the *check\_period* attribute you can define when services should
+be checked:
+
+            ...
+            services["ping"] = {
+                    templates = [ "ping4", "mail-notification-service" ],
+                    check_period = "work-hours"
+            },
+            ...
+
+Also, using the *notification\_period* attribute you can define when
+notifications should be sent:
+
+    template Service "mail-notification-service" {
+            notifications["mail"] = {
+                    templates = [ "mail-notification" ],
+
+                    users = [ "tutorial-user" ]
+            },
+
+            notification_interval = 1m,
+            notification_period = "work-hours"
+    }
+
+The *notification\_period* attribute is also valid in *User* and
+*Notification* objects.
+
+Dependencies
+============
+
+If you are familiar with Icinga 1.x host/service dependencies and
+parent/child relations on hosts, you might want to look at the
+conversion script in order to convert your existing configuration. There
+are no separate dependency objects anymore, and no separate parent
+attribute either.
+
+Using Icinga 2, we can directly define a dependency in the current host
+or service object to any other host or service object. If we want other
+objects to inherit those dependency attributes, we can also define them
+in a template.
+
+In the following example we’ve added a cluster host with the service
+*ping* which we are going to define a dependency for in another host.
+
+    template Service "my-cluster-ping" {
+            check_command = "my-ping",
+    }
+
+    object Host "my-cluster" {
+            ...
+            services["ping"] = {
+                    templates = [ "my-cluster-ping" ],
+            }
+            ...
+    }
+
+We can now define a service dependency as new service template (or
+directly on the service definition):
+
+    template Service "my-cluster-dependency" {
+            servicedependencies = [
+                    { host = "my-cluster", service = "ping" },
+            ],
+    }
+
+Now let’s use that template for the *ping* service we’ve defined
+previously and assign the servicedependencies to that service.
+
+            ...
+            services["ping"] = {
+                    templates = [ "ping4", "mail-notification-service", "my-cluster-dependency" ],
+            },
+            ...
+
+Performance Data
+================
+
+Because there are no host checks in Icinga 2, the PerfdataWriter object
+will only write service performance data files. Creating the object will
+allow you to set the perfdata\_path, format\_template and
+rotation\_interval. The format template is similar to existing Icinga
+1.x configuration for PNP or inGraph using macro formatted strings.
+
+Details on the common Icinga 1.x macros can be found at
+[http://docs.icinga.org/latest/en/macrolist.html](http://docs.icinga.org/latest/en/macrolist.html)
+
+> **Note**
+>
+> You can define multiple PerfdataWriter objects with different
+> configuration settings, i.e. one for PNP, one for inGraph or your
+> preferred graphite collector.
+
+Let’s create a new PNP PerfdataWriter object:
+
+    object PerfdataWriter "pnp" {
+            perfdata_path = "/var/lib/icinga2/service-perfdata",
+            format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$TIMET$\tHOSTNAME::$HOSTNAME$\tSERVICEDESC::$SERVICEDESC$\tSERVICEPERFDATA::$SERVICEPERFDATA$\tSERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\tHOSTSTATE::$HOSTSTATE$\tHOSTSTATETYPE::$HOSTSTATETYPE$\tSERVICESTATE::$SERVICESTATE$\tSERVICESTATETYPE::$SERVICESTATETYPE$",
+            rotation_interval = 15s,
+    }
+
+You may need to reconfigure your NPCD daemon with the correct path for
+your performance data files. This can be done in the PNP configuration
+file npcd.cfg:
+
+    perfdata_spool_dir = /var/lib/icinga2/
+
+Livestatus Component
+====================
+
+The Livestatus component will provide access to Icinga 2 using the
+livestatus api. In addition to the unix socket Icinga 2 also service
+livestatus directly via tcp socket.
+
+> **Note**
+>
+> Only config and status tables are available at this time. History
+> tables such as log, statehist will follow.
+
+Once Icinga 2 is started, configure your gui (e.g. Thruk) using the
+livestatus backend.
+
+TCP Socket
+
+    library "livestatus"
+    object LivestatusComponent "livestatus-tcp" {
+            socket_type = "tcp",
+            host = "10.0.10.18",
+            port = "6558"
+    }
+
+Unix Socket
+
+    library "livestatus"
+    object LivestatusComponent "livestatus-unix" {
+            socket_type = "unix",
+            socket_path = "/var/run/icinga2/livestatus"
+    }
+
+> **Note**
+>
+> You need to grant permissions for the apache user manually after
+> starting Icinga 2 for now.
+
+    # chmod o+rwx /var/run/icinga2/{icinga2.cmd,livestatus}
+
+IDO Database Component
+======================
+
+The IDO component will write to the same database backend as known from
+Icinga 1.x IDOUtils. Therefore you’ll need to have your database schema
+and users already installed, like described in
+[http://docs.icinga.org/latest/en/quickstart-idoutils.html\#createidoutilsdatabase](http://docs.icinga.org/latest/en/quickstart-idoutils.html#createidoutilsdatabase)
+
+> **Note**
+>
+> Currently there’s only MySQL support in progress, Postgresql, Oracle
+> tbd.
+
+Configure the IDO MySQL component with the defined credentials and start
+Icinga 2.
+
+> **Note**
+>
+> Make sure to define a unique instance\_name. That way the Icinga 2 IDO
+> component will not interfere with your Icinga 1.x setup, if existing.
+
+    library "ido_mysql"
+    object IdoMysqlDbConnection "my-ido-mysql" {
+            host = "127.0.0.1",
+            port = "3306",
+            user = "icinga",
+            password = "icinga",
+            database = "icinga",
+            table_prefix = "icinga_",
+            instance_name = "icinga2",
+            instance_description = "icinga2 instance"
+    }
+
+Starting Icinga 2 in debug mode in foreground using -x will show all
+database queries.
+
+Custom Attributes
+=================
+
+In Icinga 1.x there were so-called "custom variables" available prefixed
+with an underscore, as well as plenty of other attributes such as
+action\_url, notes\_url, icon\_image, etc. To overcome the limitations
+of hardcoded custom attributes, Icinga 2 ships with the *custom*
+attribute as dictionary.
+
+For example, if you have PNP installed we could add a reference url to
+Icinga Classic UI by using the classic method of defining an
+action\_url.
+
+    template Service "my-pnp-svc" {
+            custom = {
+                    action_url = "/pnp4nagios/graph?host=$HOSTNAME$&srv=$SERVICEDESC$' class='tips' rel='/pnp4nagios/popup?host=$HOSTNAME$&srv=$SERVICEDESC$",
+            }
+    }
+
+And add that template again to our service definition:
+
+            ...
+            services["ping"] = {
+                    templates = [ "ping4", "mail-notification-service", "my-cluster-dependency", "my-pnp-svc" ],
+            },
+            ...
+
+While at it, our configuration tool will add its LDAP DN and a snmp
+community to the service too, using += for additive attributes:
+
+            ...
+            services["ping"] = {
+                    templates = [ "ping4", "mail-notification-service", "my-cluster-dependency", "my-pnp-svc" ],
+                    custom += {
+                            DN = "cn=icinga2-dev-svc,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org",
+                            SNMPCOMMUNITY = "public"
+                    }
+            },
+            ...
+
+/\* vim: set syntax=asciidoc filetype=asciidoc: \*/

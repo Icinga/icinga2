@@ -1,0 +1,72 @@
+Requirements
+============
+
+Packages
+========
+
+> **Note**
+>
+> Use packages whenever possible.
+
+  ------------------------------------ ------------------------------------
+  Distribution                         Package URL
+  Debian                               TBD
+  RHEL/CentOS                          TBD
+  SLES                                 TBD
+  ------------------------------------ ------------------------------------
+
+In case you’re running a distribution for which Icinga 2 packages are
+not yet available download the source tarball and jump to Source Builds.
+
+Windows Installer
+=================
+
+TODO
+
+Source Builds
+=============
+
+Download the source tarball and read the *INSTALL* file for details and
+requirements.
+
+Linux Builds
+------------
+
+Building from source on specific linux distributions is described on the
+wiki:
+[https://wiki.icinga.org/display/icinga2/Linux+Builds](https://wiki.icinga.org/display/icinga2/Linux+Builds)
+
+Windows Builds
+--------------
+
+Icinga 2 ships a MS Visual Studio solution file. Requirements and
+compilation instructions can be found on the wiki:
+[https://wiki.icinga.org/display/icinga2/Windows+Builds](https://wiki.icinga.org/display/icinga2/Windows+Builds)
+
+Installation Locations
+======================
+
+  ------------------------------------ ------------------------------------
+  Path                                 Description
+
+  /etc/icinga2                         Contains Icinga 2 configuration
+                                       files.
+
+  /etc/init.d/icinga2                  The Icinga 2 init script.
+
+  /usr/share/doc/icinga2               Documentation files that come with
+                                       Icinga 2.
+
+  /usr/share/icinga2/itl               The Icinga Template Library.
+
+  /var/run/icinga2                     Command pipe and PID file.
+
+  /var/cache/icinga2                   Performance data files and
+                                       status.dat/objects.cache.
+
+  /var/lib/icinga2                     The Icinga 2 state file.
+  ------------------------------------ ------------------------------------
+
+/\* TODO \*/
+
+/\* vim: set syntax=asciidoc filetype=asciidoc: \*/
