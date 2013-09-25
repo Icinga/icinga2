@@ -111,9 +111,9 @@ Array::Ptr Host::GetServiceDependencies(void) const
 	return m_ServiceDependencies;
 }
 
-String Host::GetHostCheck(void) const
+String Host::GetCheck(void) const
 {
-	return m_HostCheck;
+	return m_Check;
 }
 
 Dictionary::Ptr Host::GetNotificationDescriptions(void) const
@@ -149,9 +149,9 @@ bool Host::IsReachable(void) const
 	std::set<Host::Ptr> parentHosts = GetParentHosts();
 
 	BOOST_FOREACH(const Host::Ptr& host, parentHosts) {
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
-		/* ignore hosts that don't have a hostcheck */
+		/* ignore hosts that don't have a check */
 		if (!hc)
 			continue;
 
@@ -350,9 +350,9 @@ std::set<Host::Ptr> Host::GetChildHosts(void) const
 
 }
 
-Service::Ptr Host::GetHostCheckService(void) const
+Service::Ptr Host::GetCheckService(void) const
 {
-	String host_check = GetHostCheck();
+	String host_check = GetCheck();
 
 	if (host_check.IsEmpty())
 		return Service::Ptr();
@@ -398,7 +398,7 @@ HostState Host::GetState(void) const
 	if (!IsReachable())
 		return HostUnreachable;
 
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return HostUp;
@@ -420,7 +420,7 @@ HostState Host::GetLastState(void) const
 	if (!IsReachable())
 		return HostUnreachable;
 
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return HostUp;
@@ -441,7 +441,7 @@ HostState Host::GetLastHardState(void) const
 	if (!IsReachable())
 		return HostUnreachable;
 
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return HostUp;
@@ -459,7 +459,7 @@ double Host::GetLastStateUp(void) const
 {
 	ASSERT(!OwnsLock());
 
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return 0;
@@ -474,7 +474,7 @@ double Host::GetLastStateDown(void) const
 {
 	ASSERT(!OwnsLock());
 
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return 0;
@@ -486,7 +486,7 @@ double Host::GetLastStateUnreachable(void) const
 {
 	ASSERT(!OwnsLock());
 
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return 0;
@@ -496,7 +496,7 @@ double Host::GetLastStateUnreachable(void) const
 
 double Host::GetLastStateChange(void) const
 {
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return IcingaApplication::GetInstance()->GetStartTime();
@@ -507,7 +507,7 @@ double Host::GetLastStateChange(void) const
 
 double Host::GetLastHardStateChange(void) const
 {
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return IcingaApplication::GetInstance()->GetStartTime();
@@ -517,7 +517,7 @@ double Host::GetLastHardStateChange(void) const
 
 StateType Host::GetLastStateType(void) const
 {
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return StateTypeHard;
@@ -527,7 +527,7 @@ StateType Host::GetLastStateType(void) const
 
 StateType Host::GetStateType(void) const
 {
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
 		return StateTypeHard;
@@ -560,7 +560,7 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 		return true;
 	}
 
-	Service::Ptr hc = GetHostCheckService();
+	Service::Ptr hc = GetCheckService();
 	Dictionary::Ptr hccr;
 
 	if (hc) {
@@ -665,7 +665,7 @@ void Host::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) con
 		bag->Set("macros", m_Macros);
 		bag->Set("hostdependencies", m_HostDependencies);
 		bag->Set("servicedependencies", m_ServiceDependencies);
-		bag->Set("hostcheck", m_HostCheck);
+		bag->Set("check", m_Check);
 		bag->Set("services", m_ServiceDescriptions);
 		bag->Set("notifications", m_NotificationDescriptions);
 	}
@@ -681,7 +681,7 @@ void Host::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 		m_Macros = bag->Get("macros");
 		m_HostDependencies = bag->Get("hostdependencies");
 		m_ServiceDependencies = bag->Get("servicedependencies");
-		m_HostCheck = bag->Get("hostcheck");
+		m_Check = bag->Get("check");
 		m_ServiceDescriptions = bag->Get("services");
 		m_NotificationDescriptions = bag->Get("notifications");
 	}

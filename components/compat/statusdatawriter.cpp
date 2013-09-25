@@ -246,7 +246,7 @@ void StatusDataWriter::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 	fp << "hoststatus {" << "\n"
 	   << "\t" << "host_name=" << host->GetName() << "\n";
 
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 	ObjectLock olock(hc);
 
 	if (hc)
@@ -280,7 +280,7 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 		fp << "\n";
 	}
 
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 	if (hc) {
 		ObjectLock olock(hc);
 

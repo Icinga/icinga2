@@ -143,7 +143,7 @@ bool Service::IsHostCheck(void) const
 {
 	ASSERT(!OwnsLock());
 
-	Service::Ptr hc = GetHost()->GetHostCheckService();
+	Service::Ptr hc = GetHost()->GetCheckService();
 
 	if (!hc)
 		return false;
@@ -180,7 +180,7 @@ bool Service::IsReachable(void) const
 	}
 
 	BOOST_FOREACH(const Host::Ptr& host, GetParentHosts()) {
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		/* ignore hosts that don't have a hostcheck */
 		if (!hc)

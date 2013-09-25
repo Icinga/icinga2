@@ -161,7 +161,7 @@ Value HostGroupsTable::NumHostsPendingAccessor(const Value& row)
 	int num_hosts = 0;
 
 	BOOST_FOREACH(const Host::Ptr& host, static_cast<HostGroup::Ptr>(row)->GetMembers()) {
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		/* no hostcheck service or no checkresult */
 		if (!hc || !hc->GetLastCheckResult())

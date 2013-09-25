@@ -268,7 +268,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	if (!host)
 		return;
 
-	if (host->GetHostCheckService() != service)
+	if (host->GetCheckService() != service)
 		return;
 
 	DbObject::Ptr dbobj = GetOrCreateByObject(host);
@@ -288,7 +288,7 @@ void ServiceDbObject::OnStatusUpdate(void)
 	if (!host)
 		return;
 
-	if (host->GetHostCheckService() != service)
+	if (host->GetCheckService() != service)
 		return;
 
 	DbObject::Ptr dbobj = GetOrCreateByObject(host);
@@ -334,7 +334,7 @@ void ServiceDbObject::AddComment(const Service::Ptr& service, const Dictionary::
 	AddCommentByType(service, comment);
 
 	/* add the hostcheck service comment to the host as well */
-	if (host->GetHostCheckService() == service) {
+	if (host->GetCheckService() == service) {
 		Log(LogDebug, "ido", "adding host comment (id = " + comment->Get("legacy_id") + ") for '" + host->GetName() + "'");
 		AddCommentByType(host, comment);
 	}
@@ -404,7 +404,7 @@ void ServiceDbObject::RemoveComments(const Service::Ptr& service)
 	OnQuery(query1);
 
 	/* delete hostcheck service's host comments */
-	if (host->GetHostCheckService() == service) {
+	if (host->GetCheckService() == service) {
 		DbQuery query2;
 		query2.Table = "comments";
 		query2.Type = DbQueryDelete;
@@ -438,7 +438,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 	OnQuery(query1);
 
 	/* delete hostcheck service's host comments */
-	if (host->GetHostCheckService() == service) {
+	if (host->GetCheckService() == service) {
 		DbQuery query2;
 		query2.Table = "comments";
 		query2.Type = DbQueryDelete;
@@ -506,7 +506,7 @@ void ServiceDbObject::AddDowntime(const Service::Ptr& service, const Dictionary:
 	AddDowntimeByType(service, downtime);
 
 	/* add the hostcheck service downtime to the host as well */
-	if (host->GetHostCheckService() == service) {
+	if (host->GetCheckService() == service) {
 		Log(LogDebug, "ido", "adding host downtime (id = " + downtime->Get("legacy_id") + ") for '" + host->GetName() + "'");
 		AddDowntimeByType(host, downtime);
 	}
@@ -575,7 +575,7 @@ void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
 	OnQuery(query1);
 
 	/* delete hostcheck service's host downtimes */
-	if (host->GetHostCheckService() == service) {
+	if (host->GetCheckService() == service) {
 		DbQuery query2;
 		query2.Table = "scheduleddowntime";
 		query2.Type = DbQueryDelete;
@@ -609,7 +609,7 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictiona
 	OnQuery(query1);
 
 	/* delete hostcheck service's host comments */
-	if (host->GetHostCheckService() == service) {
+	if (host->GetCheckService() == service) {
 		DbQuery query2;
 		query2.Table = "scheduleddowntime";
 		query2.Type = DbQueryDelete;
@@ -683,7 +683,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 	OnQuery(query1);
 
 	/* delete hostcheck service's host comments */
-	if (host->GetHostCheckService() == service) {
+	if (host->GetCheckService() == service) {
 
 		DbQuery query2;
 		query2.Table = "scheduleddowntime";
@@ -762,7 +762,7 @@ void ServiceDbObject::AddAcknowledgement(const Service::Ptr& service, const Stri
 	query1.Fields = fields1;
 	OnQuery(query1);
 
-	if (host->GetHostCheckService() == service) {
+	if (host->GetCheckService() == service) {
 
 		DbQuery query2;
 		query2.Table = "acknowledgements";
@@ -829,12 +829,12 @@ void ServiceDbObject::AddNotification(const Service::Ptr& service, const std::se
 	query1.Fields = fields1;
 	OnQuery(query1);
 
-	if (host->GetHostCheckService() == service) {
-	DbQuery query1;
-	query1.Table = "notifications";
-	query1.Type = DbQueryInsert;
+	if (host->GetCheckService() == service) {
+		DbQuery query1;
+		query1.Table = "notifications";
+		query1.Type = DbQueryInsert;
 
-	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+		Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 		DbQuery query2;
 		query2.Table = "notifications";
 		query2.Type = DbQueryInsert;

@@ -58,7 +58,7 @@ Service::Ptr Notification::GetService(void) const
 		return Service::Ptr();
 
 	if (m_Service.IsEmpty())
-		return host->GetHostCheckService();
+		return host->GetCheckService();
 	else
 		return host->GetServiceByShortName(m_Service);
 }

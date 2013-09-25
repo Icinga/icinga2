@@ -96,8 +96,8 @@ Dictionary::Ptr CompatUtility::GetHostConfigAttributes(const Host::Ptr& host)
 	else
 		attr->Set("alias", host->GetDisplayName());
 
-	/* get additonal attributes from hostcheck service */
-	Service::Ptr service = host->GetHostCheckService();
+	/* get additonal attributes from check service */
+	Service::Ptr service = host->GetCheckService();
 
 	if (service) {
 		unsigned long notification_type_filter;

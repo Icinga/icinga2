@@ -145,7 +145,7 @@ void CompatLog::CheckResultHandler(const Service::Ptr& service, const Dictionary
 		WriteLine(msgbuf.str());
 	}
 
-	if (service == host->GetHostCheckService()) {
+	if (service == host->GetCheckService()) {
 		std::ostringstream msgbuf;
 		msgbuf << "HOST ALERT: "
 		       << host->GetName() << ";"
@@ -194,7 +194,7 @@ void CompatLog::TriggerDowntimeHandler(const Service::Ptr& service, const Dictio
 		WriteLine(msgbuf.str());
 	}
 
-	if (service == host->GetHostCheckService()) {
+	if (service == host->GetCheckService()) {
 		std::ostringstream msgbuf;
 		msgbuf << "HOST DOWNTIME ALERT: "
 			<< host->GetName() << ";"
@@ -251,7 +251,7 @@ void CompatLog::RemoveDowntimeHandler(const Service::Ptr& service, const Diction
 		WriteLine(msgbuf.str());
 	}
 
-	if (service == host->GetHostCheckService()) {
+	if (service == host->GetCheckService()) {
 		std::ostringstream msgbuf;
 		msgbuf << "HOST DOWNTIME ALERT: "
 			<< host->GetName() << ";"
@@ -325,7 +325,7 @@ void CompatLog::NotificationSentHandler(const Service::Ptr& service, const User:
                 WriteLine(msgbuf.str());
         }
 
-        if (service == host->GetHostCheckService()) {
+        if (service == host->GetCheckService()) {
                 std::ostringstream msgbuf;
                 msgbuf << "HOST NOTIFICATION: "
 			<< user->GetName() << ";"
@@ -392,7 +392,7 @@ void CompatLog::FlappingHandler(const Service::Ptr& service, FlappingState flapp
                 WriteLine(msgbuf.str());
         }
 
-        if (service == host->GetHostCheckService()) {
+        if (service == host->GetCheckService()) {
                 std::ostringstream msgbuf;
                 msgbuf << "HOST FLAPPING ALERT: "
                         << host->GetName() << ";"
@@ -465,7 +465,7 @@ void CompatLog::ReopenFile(bool rotate)
 	WriteLine("LOG VERSION: 2.0");
 
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
 			continue;

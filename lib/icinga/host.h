@@ -85,11 +85,11 @@ public:
 	Dictionary::Ptr GetMacros(void) const;
 	Array::Ptr GetHostDependencies(void) const;
 	Array::Ptr GetServiceDependencies(void) const;
-	String GetHostCheck(void) const;
+	String GetCheck(void) const;
 	//Dictionary::Ptr GetServiceDescriptions(void) const;
 	Dictionary::Ptr GetNotificationDescriptions(void) const;
 
-	shared_ptr<Service> GetHostCheckService(void) const;
+	shared_ptr<Service> GetCheckService(void) const;
 	std::set<Host::Ptr> GetParentHosts(void) const;
 	std::set<Host::Ptr> GetChildHosts(void) const;
 	std::set<shared_ptr<Service> > GetParentServices(void) const;
@@ -136,7 +136,7 @@ private:
 	Dictionary::Ptr m_Macros;
 	Array::Ptr m_HostDependencies;
 	Array::Ptr m_ServiceDependencies;
-	String m_HostCheck;
+	String m_Check;
 	Dictionary::Ptr m_ServiceDescriptions;
 	Dictionary::Ptr m_NotificationDescriptions;
 

@@ -180,7 +180,7 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc->GetEnablePassiveChecks())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
@@ -248,7 +248,7 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<Strin
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc) {
 		Log(LogInformation, "icinga", "Ignoring request request for host '" +
@@ -283,7 +283,7 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc) {
 		Log(LogInformation, "icinga", "Ignoring request request for host '" +
@@ -353,7 +353,7 @@ void ExternalCommandProcessor::EnableHostCheck(double, const std::vector<String>
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Enabling active checks for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return;
@@ -373,7 +373,7 @@ void ExternalCommandProcessor::DisableHostCheck(double, const std::vector<String
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Disabling active checks for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return;
@@ -569,7 +569,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Setting acknowledgement for host '" + host->GetName() + "'");
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = host->GetCheckService();
 	if (service) {
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
@@ -590,7 +590,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Setting timed acknowledgement for host '" + host->GetName() + "'");
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = host->GetCheckService();
 	if (service) {
 		if (service->GetState() == StateOK)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
@@ -608,7 +608,7 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vect
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = host->GetCheckService();
 	if (service)
 		service->ClearAcknowledgement();
 }
@@ -697,7 +697,7 @@ void ExternalCommandProcessor::EnablePassiveHostChecks(double, const std::vector
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Enabling passive checks for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return;
@@ -717,7 +717,7 @@ void ExternalCommandProcessor::DisablePassiveHostChecks(double, const std::vecto
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Disabling passive checks for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return;
@@ -914,7 +914,7 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<St
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	Log(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = host->GetCheckService();
 	if (service) {
 		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
 		(void) service->AddDowntime(comment_id,
@@ -969,7 +969,7 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 		Log(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
-		Service::Ptr service = host->GetHostCheckService();
+		Service::Ptr service = host->GetCheckService();
 		if (service) {
 			String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
 			(void) service->AddDowntime(comment_id,
@@ -1032,7 +1032,7 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const st
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
-		Service::Ptr hcService = host->GetHostCheckService();
+		Service::Ptr hcService = host->GetCheckService();
 		if (hcService)
 			services.insert(hcService);
 	}
@@ -1075,7 +1075,7 @@ void ExternalCommandProcessor::AddHostComment(double, const std::vector<String>&
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Creating comment for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = host->GetCheckService();
 	if (service)
 		(void) service->AddComment(CommentUser, arguments[2], arguments[3], 0);
 }
@@ -1122,7 +1122,7 @@ void ExternalCommandProcessor::DelAllHostComments(double, const std::vector<Stri
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Removing all comments for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = host->GetCheckService();
 	if (service)
 		service->RemoveAllComments();
 }
@@ -1147,7 +1147,7 @@ void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vec
 	int options = Convert::ToLong(arguments[1]);
 
 	Log(LogInformation, "icinga", "Sending custom notification for host " + host->GetName());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = host->GetCheckService();
 	if (service) {
 		if (options & 2) {
 			ObjectLock olock(service);
@@ -1184,7 +1184,7 @@ void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<S
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Delaying notifications for host " + host->GetName());
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 	if (!hc)
 		return;
 
@@ -1219,7 +1219,7 @@ void ExternalCommandProcessor::EnableHostNotifications(double, const std::vector
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Enabling notifications for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return;
@@ -1239,7 +1239,7 @@ void ExternalCommandProcessor::DisableHostNotifications(double, const std::vecto
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Disabling notifications for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return;
@@ -1291,7 +1291,7 @@ void ExternalCommandProcessor::DisableHostgroupHostChecks(double, const std::vec
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
 			continue;
@@ -1314,7 +1314,7 @@ void ExternalCommandProcessor::DisableHostgroupPassiveHostChecks(double, const s
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
 			continue;
@@ -1342,7 +1342,7 @@ void ExternalCommandProcessor::DisableServicegroupHostChecks(double, const std::
 		if (!host)
 			continue;
 
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
 			continue;
@@ -1370,7 +1370,7 @@ void ExternalCommandProcessor::DisableServicegroupPassiveHostChecks(double, cons
 		if (!host)
 			continue;
 
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
 			continue;
@@ -1393,7 +1393,7 @@ void ExternalCommandProcessor::EnableHostgroupHostChecks(double, const std::vect
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
 			continue;
@@ -1428,7 +1428,7 @@ void ExternalCommandProcessor::EnableServicegroupHostChecks(double, const std::v
 		if (!host)
 			continue;
 
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
 			continue;
@@ -1456,7 +1456,7 @@ void ExternalCommandProcessor::EnableServicegroupPassiveHostChecks(double, const
 		if (!host)
 			continue;
 
-		Service::Ptr hc = host->GetHostCheckService();
+		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
 			continue;
@@ -1479,7 +1479,7 @@ void ExternalCommandProcessor::EnableHostFlapping(double, const std::vector<Stri
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Enabling flapping detection for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return;
@@ -1499,7 +1499,7 @@ void ExternalCommandProcessor::DisableHostFlapping(double, const std::vector<Str
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	Log(LogInformation, "icinga", "Disabling flapping detection for host '" + arguments[0] + "'");
-	Service::Ptr hc = host->GetHostCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return;

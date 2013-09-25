@@ -44,7 +44,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = host->GetCheckService();
 
 	Dictionary::Ptr attrs;
 
@@ -126,13 +126,12 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 {
 	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
-	Service::Ptr service = host->GetHostCheckService();
+	Service::Ptr service = host->GetCheckService();
 
 	Dictionary::Ptr attrs;
 
 	/* fetch service status, or dump a pending hoststatus */
 	if (service) {
-
 		ObjectLock olock(service);
 		attrs = CompatUtility::GetServiceStatusAttributes(service, CompatTypeHost);
 

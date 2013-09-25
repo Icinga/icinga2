@@ -539,7 +539,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 
 		/* reschedule host dependencies */
 		BOOST_FOREACH(const Host::Ptr& parent, GetParentHosts()) {
-			Service::Ptr service = parent->GetHostCheckService();
+			Service::Ptr service = parent->GetCheckService();
 
 			if (service && service->GetName() != GetName()) {
 				ObjectLock olock(service);
