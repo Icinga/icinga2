@@ -345,9 +345,9 @@ sub dump_service_2x {
         #say Dumper($service_2x->{'servicegroups'});
         my $servicegroups = join '", "', @{$service_2x->{'servicegroups'}};
         if ($service_2x->{'__I2_CONVERT_SG_ADD'} == 1) {
-            dump_config_line($icinga2_cfg, "\tservicegroups += [ \"$servicegroups\" ],");
+            dump_config_line($icinga2_cfg, "\tgroups += [ \"$servicegroups\" ],");
         } else {
-            dump_config_line($icinga2_cfg, "\tservicegroups = [ \"$servicegroups\" ],");
+            dump_config_line($icinga2_cfg, "\tgroups = [ \"$servicegroups\" ],");
         }
         #say Dumper($service_description);
         #say Dumper($service_2x->{'servicegroups'});
@@ -538,9 +538,9 @@ sub dump_host_2x {
     if(defined($host_2x->{'hostgroups'})) {
         my $hostgroups = join '", "', @{$host_2x->{'hostgroups'}};
         if ($host_2x->{'__I2_CONVERT_HG_ADD'} == 1) {
-            dump_config_line($icinga2_cfg, "\thostgroups += [ \"$hostgroups\" ],");
+            dump_config_line($icinga2_cfg, "\tgroups += [ \"$hostgroups\" ],");
         } else {
-            dump_config_line($icinga2_cfg, "\thostgroups = [ \"$hostgroups\" ],");
+            dump_config_line($icinga2_cfg, "\tgroups = [ \"$hostgroups\" ],");
         }
     }
 
@@ -692,9 +692,9 @@ sub dump_host_2x {
             #say Dumper($service_2x->{'servicegroups'});
             my $servicegroups = join '", "', @{$service_2x->{'servicegroups'}};
             if ($service_2x->{'__I2_CONVERT_SG_ADD'} == 1) {
-                dump_config_line($icinga2_cfg, "\t\tservicegroups += [ \"$servicegroups\" ],");
+                dump_config_line($icinga2_cfg, "\t\tgroups += [ \"$servicegroups\" ],");
             } else {
-                dump_config_line($icinga2_cfg, "\t\tservicegroups = [ \"$servicegroups\" ],");
+                dump_config_line($icinga2_cfg, "\t\tgroups = [ \"$servicegroups\" ],");
             }
         }
 
@@ -991,6 +991,11 @@ sub dump_notification_2x {
     if(defined($notification_2x->{'users'}) && @{$notification_2x->{'users'}} > 0) {
         my $service_users = join '", "', @{$notification_2x->{'users'}};
         dump_config_line($icinga2_cfg, "\tusers = [ \"$service_users\" ],");
+    }
+
+    if(defined($notification_2x->{'usergroups'}) && @{$notification_2x->{'usergroups'}} > 0) {
+        my $service_usergroups = join '", "', @{$notification_2x->{'usergroups'}};
+        dump_config_line($icinga2_cfg, "\tusergroups = [ \"$service_usergroups\" ],");
     }
 
     # this is set for escalations
