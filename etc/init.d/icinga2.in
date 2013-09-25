@@ -45,7 +45,7 @@ start() {
 	mkdir -p `dirname -- $ICINGA2_ERROR_LOG`
 
         echo "Validating the configuration file:"
-        if ! $DAEMON -c $ICINGA2_CONFIG_FILE -v; then
+        if ! $DAEMON -c $ICINGA2_CONFIG_FILE -C; then
                 echo "Not starting Icinga 2 due to configuration errors."
                 exit 1
         fi
