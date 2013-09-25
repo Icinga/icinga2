@@ -68,7 +68,7 @@ public:
 	Dictionary::Ptr GetMacros(void) const;
 	Array::Ptr GetExportMacros(void) const;
 	std::set<User::Ptr> GetUsers(void) const;
-	std::set<UserGroup::Ptr> GetGroups(void) const;
+	std::set<UserGroup::Ptr> GetUserGroups(void) const;
 	Dictionary::Ptr GetTimes(void) const;
  	unsigned long GetNotificationTypeFilter(void) const;
 	unsigned long GetNotificationStateFilter(void) const;
@@ -108,7 +108,7 @@ private:
 	Dictionary::Ptr m_Macros;
 	Array::Ptr m_ExportMacros;
 	Array::Ptr m_Users;
-	Array::Ptr m_Groups;
+	Array::Ptr m_UserGroups;
 	Dictionary::Ptr m_Times;
 	Value m_NotificationTypeFilter;
 	Value m_NotificationStateFilter;

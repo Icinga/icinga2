@@ -100,11 +100,11 @@ std::set<User::Ptr> Notification::GetUsers(void) const
 	return result;
 }
 
-std::set<UserGroup::Ptr> Notification::GetGroups(void) const
+std::set<UserGroup::Ptr> Notification::GetUserGroups(void) const
 {
 	std::set<UserGroup::Ptr> result;
 
-	Array::Ptr groups = m_Groups;
+	Array::Ptr groups = m_UserGroups;
 
 	if (groups) {
 		ObjectLock olock(groups);
@@ -291,7 +291,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 	std::set<User::Ptr> users = GetUsers();
 	std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
 
-	BOOST_FOREACH(const UserGroup::Ptr& ug, GetGroups()) {
+	BOOST_FOREACH(const UserGroup::Ptr& ug, GetUserGroups()) {
 		std::set<User::Ptr> members = ug->GetMembers();
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
@@ -385,7 +385,7 @@ void Notification::InternalSerialize(const Dictionary::Ptr& bag, int attributeTy
 		bag->Set("notification_period", m_NotificationPeriod);
 		bag->Set("macros", m_Macros);
 		bag->Set("users", m_Users);
-		bag->Set("groups", m_Groups);
+		bag->Set("user_groups", m_UserGroups);
 		bag->Set("times", m_Times);
 		bag->Set("notification_type_filter", m_NotificationTypeFilter);
 		bag->Set("notification_state_filter", m_NotificationStateFilter);
@@ -411,7 +411,7 @@ void Notification::InternalDeserialize(const Dictionary::Ptr& bag, int attribute
 		m_NotificationPeriod = bag->Get("notification_period");
 		m_Macros = bag->Get("macros");
 		m_Users = bag->Get("users");
-		m_Groups = bag->Get("groups");
+		m_UserGroups = bag->Get("user_groups");
 		m_Times = bag->Get("times");
 		m_NotificationTypeFilter = bag->Get("notification_type_filter");
 		m_NotificationStateFilter = bag->Get("notification_state_filter");
