@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CLUSTERCOMPONENT_H
-#define CLUSTERCOMPONENT_H
+#ifndef CLUSTERLISTENER_H
+#define CLUSTERLISTENER_H
 
 #include "base/dynamicobject.h"
 #include "base/timer.h"
@@ -36,13 +36,13 @@ namespace icinga
 {
 
 /**
- * @ingroup demo
+ * @ingroup cluster
  */
-class ClusterComponent : public DynamicObject
+class ClusterListener : public DynamicObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ClusterComponent);
-	DECLARE_TYPENAME(ClusterComponent);
+	DECLARE_PTR_TYPEDEFS(ClusterListener);
+	DECLARE_TYPENAME(ClusterListener);
 
 	virtual void Start(void);
 	virtual void Stop(void);
@@ -133,4 +133,4 @@ private:
 
 }
 
-#endif /* CLUSTERCOMPONENT_H */
+#endif /* CLUSTERLISTENER_H */

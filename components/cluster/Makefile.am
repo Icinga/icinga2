@@ -10,8 +10,8 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libcluster_la_SOURCES = \
-	clustercomponent.cpp \
-	clustercomponent.h \
+	clusterlistener.cpp \
+	clusterlistener.h \
 	cluster-type.conf \
 	endpoint.cpp \
 	endpoint.h \
