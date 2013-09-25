@@ -317,7 +317,7 @@ void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const Us
                 << notification_type_str << " "
 		<< "(" << Service::StateToString(service->GetState()) << ");"
 		<< check_command << ";"
-		<< raw_output << author_comment
+		<< output << author_comment
                 << "";
 
         {
@@ -333,7 +333,7 @@ void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const Us
                 	<< notification_type_str << " "
 			<< "(" << Service::StateToString(service->GetState()) << ");"
 			<< check_command << ";"
-			<< raw_output << author_comment
+			<< output << author_comment
                         << "";
 
                 {
