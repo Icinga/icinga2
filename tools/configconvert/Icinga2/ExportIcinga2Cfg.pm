@@ -456,12 +456,6 @@ sub dump_service_2x {
         dump_config_line($icinga2_cfg, "\tvolatile = $service_2x->{'volatile'},");
     }
 
-    if(defined($service_2x->{'active_checks_enabled'})) {
-        dump_config_line($icinga2_cfg, "\tenable_active_checks = $service_2x->{'active_checks_enabled'},");
-    }
-    if(defined($service_2x->{'passive_checks_enabled'})) {
-        dump_config_line($icinga2_cfg, "\tenable_passive_checks = $service_2x->{'passive_checks_enabled'},");
-    }
     if(defined($service_2x->{'flap_detection_enabled'})) {
         dump_config_line($icinga2_cfg, "\tenable_flapping = $service_2x->{'flap_detection_enabled'},");
     }
@@ -600,12 +594,6 @@ sub dump_host_2x {
         dump_config_line($icinga2_cfg, "\tcheck_period = \"$host_2x->{'check_period'}\",");
     }
 
-    if(defined($host_2x->{'active_checks_enabled'})) {
-        dump_config_line($icinga2_cfg, "\tenable_active_checks = $host_2x->{'active_checks_enabled'},");
-    }
-    if(defined($host_2x->{'passive_checks_enabled'})) {
-        dump_config_line($icinga2_cfg, "\tenable_passive_checks = $host_2x->{'passive_checks_enabled'},");
-    }
     if(defined($host_2x->{'flap_detection_enabled'})) {
         dump_config_line($icinga2_cfg, "\tenable_flapping = $host_2x->{'flap_detection_enabled'},");
     }
@@ -824,12 +812,6 @@ sub dump_host_2x {
             dump_config_line($icinga2_cfg, "\tcheck_period = \"$service_2x->{'check_period'}\",");
         }
 
-        if(defined($service_2x->{'active_checks_enabled'})) {
-            dump_config_line($icinga2_cfg, "\t\tenable_active_checks = $service_2x->{'active_checks_enabled'},");
-        }
-        if(defined($service_2x->{'passive_checks_enabled'})) {
-            dump_config_line($icinga2_cfg, "\t\tenable_passive_checks = $service_2x->{'passive_checks_enabled'},");
-        }
         if(defined($service_2x->{'flap_detection_enabled'})) {
             dump_config_line($icinga2_cfg, "\t\tenable_flapping = $service_2x->{'flap_detection_enabled'},");
         }
