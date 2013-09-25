@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "ido/dbconnection.h"
-#include "ido/dbvalue.h"
+#include "db_ido/dbconnection.h"
+#include "db_ido/dbvalue.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/host.h"
 #include "icinga/service.h"

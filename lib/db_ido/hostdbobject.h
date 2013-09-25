@@ -20,7 +20,7 @@
 #ifndef HOSTDBOBJECT_H
 #define HOSTDBOBJECT_H
 
-#include "ido/dbobject.h"
+#include "db_ido/dbobject.h"
 #include "base/dynamicobject.h"
 
 namespace icinga

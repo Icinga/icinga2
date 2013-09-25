@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "ido/userdbobject.h"
-#include "ido/dbtype.h"
-#include "ido/dbvalue.h"
+#include "db_ido/userdbobject.h"
+#include "db_ido/dbtype.h"
+#include "db_ido/dbvalue.h"
 #include "icinga/user.h"
 #include "icinga/notification.h"
 #include "base/objectlock.h"

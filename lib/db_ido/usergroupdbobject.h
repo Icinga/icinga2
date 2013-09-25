@@ -20,7 +20,7 @@
 #ifndef USERGROUPDBOBJECT_H
 #define USERGROUPDBOBJECT_H
 
-#include "ido/dbobject.h"
+#include "db_ido/dbobject.h"
 #include "icinga/usergroup.h"
 #include "base/dynamicobject.h"
 

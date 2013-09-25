@@ -20,7 +20,7 @@
 #ifndef HOSTGROUPDBOBJECT_H
 #define HOSTGROUPDBOBJECT_H
 
-#include "ido/dbobject.h"
+#include "db_ido/dbobject.h"
 #include "icinga/hostgroup.h"
 #include "base/dynamicobject.h"
 

@@ -2,27 +2,27 @@
 
 if MYSQL_USE
 pkglib_LTLIBRARIES = \
-	libido_mysql.la
+	libdb_ido_mysql.la
 
 CLEANFILES = \
-	ido_mysql-type.cpp
+	db_ido_mysql-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
-libido_mysql_la_SOURCES = \
-	ido_mysql-type.conf \
-	idomysqldbconnection.cpp \
-	idomysqldbconnection.h
+libdb_ido_mysql_la_SOURCES = \
+	db_ido_mysql-type.conf \
+	idomysqlconnection.cpp \
+	idomysqlconnection.h
 
-libido_mysql_la_CPPFLAGS = \
+libdb_ido_mysql_la_CPPFLAGS = \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I${top_srcdir}/lib \
 	-I${top_srcdir}/components
 
-libido_mysql_la_LDFLAGS = \
+libdb_ido_mysql_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
 	$(MYSQLR_LDFLAGS) \
 	-module \
@@ -30,14 +30,14 @@ libido_mysql_la_LDFLAGS = \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
-libido_mysql_la_LIBADD = \
+libdb_ido_mysql_la_LIBADD = \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_SYSTEM_LIB) \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/config/libconfig.la \
 	${top_builddir}/lib/icinga/libicinga.la \
-	${top_builddir}/lib/ido/libido.la
+	${top_builddir}/lib/db_ido/libdb_ido.la
 
 else
 

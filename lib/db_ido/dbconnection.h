@@ -22,8 +22,8 @@
 
 #include "base/dynamicobject.h"
 #include "base/timer.h"
-#include "ido/dbobject.h"
-#include "ido/dbquery.h"
+#include "db_ido/dbobject.h"
+#include "db_ido/dbquery.h"
 
 namespace icinga
 {

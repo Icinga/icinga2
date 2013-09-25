@@ -20,7 +20,7 @@
 #ifndef SERVICEDBOBJECT_H
 #define SERVICEDBOBJECT_H
 
-#include "ido/dbobject.h"
+#include "db_ido/dbobject.h"
 #include "base/dynamicobject.h"
 #include "icinga/service.h"
 

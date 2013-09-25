@@ -17,6 +17,6 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "ido/dbquery.h"
+#include "db_ido/dbquery.h"
 
 using namespace icinga;

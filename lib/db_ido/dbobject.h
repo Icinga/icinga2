@@ -20,9 +20,9 @@
 #ifndef DBOBJECT_H
 #define DBOBJECT_H
 
-#include "ido/dbreference.h"
-#include "ido/dbquery.h"
-#include "ido/dbtype.h"
+#include "db_ido/dbreference.h"
+#include "db_ido/dbquery.h"
+#include "db_ido/dbtype.h"
 #include "base/dynamicobject.h"
 #include <boost/smart_ptr.hpp>
 

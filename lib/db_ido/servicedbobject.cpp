@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "ido/servicedbobject.h"
-#include "ido/dbtype.h"
-#include "ido/dbvalue.h"
+#include "db_ido/servicedbobject.h"
+#include "db_ido/dbtype.h"
+#include "db_ido/dbvalue.h"
 #include "base/convert.h"
 #include "base/objectlock.h"
 #include "base/initialize.h"

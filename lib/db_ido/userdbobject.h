@@ -20,7 +20,7 @@
 #ifndef USERDBOBJECT_H
 #define USERDBOBJECT_H
 
-#include "ido/dbobject.h"
+#include "db_ido/dbobject.h"
 #include "base/dynamicobject.h"
 
 namespace icinga

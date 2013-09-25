@@ -20,7 +20,7 @@
 #ifndef TIMEPERIODDBOBJECT_H
 #define TIMEPERIODDBOBJECT_H
 
-#include "ido/dbobject.h"
+#include "db_ido/dbobject.h"
 #include "base/dynamicobject.h"
 
 namespace icinga

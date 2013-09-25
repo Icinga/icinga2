@@ -1,15 +1,15 @@
 ## Process this file with automake to produce Makefile.in
 
 pkglib_LTLIBRARIES = \
-	libido.la
+	libdb_ido.la
 
 CLEANFILES = \
-	ido-type.cpp
+	db_ido-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
-libido_la_SOURCES = \
+libdb_ido_la_SOURCES = \
 	commanddbobject.cpp \
 	commanddbobject.h \
 	dbconnection.cpp \
@@ -28,7 +28,7 @@ libido_la_SOURCES = \
 	hostdbobject.h \
 	hostgroupdbobject.cpp \
 	hostgroupdbobject.h \
-	ido-type.conf \
+	db_ido-type.conf \
 	servicedbobject.cpp \
 	servicedbobject.h \
 	servicegroupdbobject.cpp \
@@ -40,18 +40,18 @@ libido_la_SOURCES = \
 	usergroupdbobject.cpp \
 	usergroupdbobject.h
 
-libido_la_CPPFLAGS = \
+libdb_ido_la_CPPFLAGS = \
 	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib
 
-libido_la_LDFLAGS = \
+libdb_ido_la_LDFLAGS = \
 	$(BOOST_LDFLAGS) \
 	-no-undefined \
 	@RELEASE_INFO@ \
 	@VERSION_INFO@
 
-libido_la_LIBADD = \
+libdb_ido_la_LIBADD = \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_SYSTEM_LIB) \

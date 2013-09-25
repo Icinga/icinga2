@@ -17,13 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef IDOMYSQLDBCONNECTION_H
-#define IDOMYSQLDBCONNECTION_H
+#ifndef IDOMYSQLCONNECTION_H
+#define IDOMYSQLCONNECTION_H
 
 #include "base/array.h"
 #include "base/dynamictype.h"
 #include "base/timer.h"
-#include "ido/dbconnection.h"
+#include "db_ido/dbconnection.h"
 #include <mysql/mysql.h>
 
 namespace icinga
@@ -34,10 +34,10 @@ namespace icinga
  *
  * @ingroup ido
  */
-class IdoMysqlDbConnection : public DbConnection
+class IdoMysqlConnection : public DbConnection
 {
 public:
-	DECLARE_PTR_TYPEDEFS(IdoMysqlDbConnection);
+	DECLARE_PTR_TYPEDEFS(IdoMysqlConnection);
 
 	//virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
 
@@ -87,4 +87,4 @@ private:
 
 }
 
-#endif /* IDOMYSQLDBCONNECTION_H */
+#endif /* IDOMYSQLCONNECTION_H */
