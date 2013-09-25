@@ -1316,7 +1316,10 @@ sub convert_2x {
             my $service_notification_interval = undef;
             if(defined($obj_1x_service->{'notification_interval'})) {
                 $service_notification_interval = $obj_1x_service->{'notification_interval'};
+            } else {
+                $service_notification_interval = obj_1x_get_service_attr($cfg_obj_1x, $obj_1x_service, $service_host_name, 'notification_interval');
             }
+
             # we assume that 1.x kept 1m default interval, and map it
             if (defined($service_notification_interval)) {
                 $cfg_obj_2x->{'service'}->{$service_cnt}->{'notification_interval'} = $service_notification_interval."m";
@@ -1581,7 +1584,10 @@ sub convert_2x {
         my $host_notification_interval = undef;
         if(defined($obj_1x_host->{'notification_interval'})) {
             $host_notification_interval = $obj_1x_host->{'notification_interval'};
+        } else {
+            $host_notification_interval = obj_1x_get_host_attr($cfg_obj_1x, $obj_1x_host, 'notification_interval');
         }
+
         # we assume that 1.x kept 1m default interval, and map it
         if (defined($host_notification_interval)) {
             $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'notification_interval'} = $host_notification_interval."m";
@@ -2331,12 +2337,14 @@ sub convert_2x {
             # we'll add a reference to all notifications here. decide on dump which object type is given, and dump only those notifications!
         }
 
-        # inherit notification filters from service to all newly created notifications
+        # inherit notification attributes from service to all newly created notifications
         foreach my $notification (@{$cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATIONS'}}) {
             foreach my $notification_key (keys %{$notification}) {
                 next if $notification->{$notification_key}->{'type'} ne 'service';
 
                 $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'};
+                $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_INTERVAL'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'notification_interval'};
+                $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_PERIOD'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'notification_period'};
                 say Dumper($notification);
             }
         }

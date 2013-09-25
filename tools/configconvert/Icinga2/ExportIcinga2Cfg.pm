@@ -398,18 +398,26 @@ sub dump_service_2x {
                     dump_config_line($icinga2_cfg, "\t\tusers = [ \"$service_users\" ],");
                 }
 
-                if(defined($service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
-                    #say Dumper($service_2x);
-                    foreach my $by (keys %{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
-                        next if !@{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
+                if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+                    #say Dumper($service_notification);
+                    foreach my $by (keys %{$service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+                        next if !@{$service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
                         my $notification_filter;
-                        if (grep /0/, @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                        if (grep /0/, @{$service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
                             $notification_filter = 0;
                         } else {
-                            $notification_filter = "(". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+                            $notification_filter = "(". (join ' | ', @{$service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
                         }
                         dump_config_line($icinga2_cfg, "\t\tnotification_".$by."_filter = $notification_filter,");
                     }
+                }
+
+                if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_INTERVAL'})) {
+                    dump_config_line($icinga2_cfg, "\t\tnotification_interval = $service_notification->{'__I2CONVERT_NOTIFICATION_INTERVAL'},");
+                }
+
+                if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_PERIOD'})) {
+                    dump_config_line($icinga2_cfg, "\t\tnotification_period = \"$service_notification->{'__I2CONVERT_NOTIFICATION_PERIOD'}\",");
                 }
 
                 # this is set for escalations
@@ -425,12 +433,6 @@ sub dump_service_2x {
         }
     }
 
-    if(defined($service_2x->{'notification_period'})) {
-        dump_config_line($icinga2_cfg, "\tnotification_period = \"$service_2x->{'notification_period'}\",");
-    }
-    if(defined($service_2x->{'notification_interval'})) {
-        dump_config_line($icinga2_cfg, "\tnotification_interval = $service_2x->{'notification_interval'},");
-    }
     if(defined($service_2x->{'notifications_enabled'})) {
         dump_config_line($icinga2_cfg, "\tenable_notifications = $service_2x->{'notifications_enabled'},");
     }
@@ -553,39 +555,6 @@ sub dump_host_2x {
     }
 
     ####################################################
-    # notifications
-    ####################################################
-    if(defined($host_2x->{'notification_period'})) {
-        dump_config_line($icinga2_cfg, "\tnotification_period = \"$host_2x->{'notification_period'}\",");
-    }
-    if(defined($host_2x->{'notification_interval'})) {
-        dump_config_line($icinga2_cfg, "\tnotification_interval = $host_2x->{'notification_interval'},");
-    }
-    if(defined($host_2x->{'notifications_enabled'})) {
-        dump_config_line($icinga2_cfg, "\tenable_notifications = $host_2x->{'notifications_enabled'},");
-    }
-
-    ####################################################
-    # other host attributes, if set
-    ####################################################
-    if(defined($host_2x->{'check_interval'})) {
-        dump_config_line($icinga2_cfg, "\tcheck_interval = $host_2x->{'check_interval'},");
-    }
-    if(defined($host_2x->{'retry_interval'})) {
-        dump_config_line($icinga2_cfg, "\tretry_interval = $host_2x->{'retry_interval'},");
-    }
-    if(defined($host_2x->{'max_check_attempts'})) {
-        dump_config_line($icinga2_cfg, "\tmax_check_attempts = $host_2x->{'max_check_attempts'},");
-    }
-    if(defined($host_2x->{'check_period'})) {
-        dump_config_line($icinga2_cfg, "\tcheck_period = \"$host_2x->{'check_period'}\",");
-    }
-
-    if(defined($host_2x->{'flap_detection_enabled'})) {
-        dump_config_line($icinga2_cfg, "\tenable_flapping = $host_2x->{'flap_detection_enabled'},");
-    }
-
-    ####################################################
     # custom attr
     ####################################################
 
@@ -688,19 +657,6 @@ sub dump_host_2x {
         ####################################################
         # notifications
         ####################################################
-        if(defined($service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
-            foreach my $by (keys %{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
-                next if !@{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
-                my $notification_filter;
-                if (grep /0/, @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
-                    $notification_filter = 0;
-                } else {
-                    $notification_filter = "(". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
-                }
-                dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
-            }
-        }
-
         if(defined($service_2x->{'__I2CONVERT_NOTIFICATIONS'})) {
             #say Dumper ($service_2x->{'__I2CONVERT_NOTIFICATIONS'});
             # this is an array of notification objects
@@ -773,12 +729,6 @@ sub dump_host_2x {
             }
         }
 
-        if(defined($service_2x->{'notification_period'})) {
-            dump_config_line($icinga2_cfg, "\t\tnotification_period = \"$service_2x->{'notification_period'}\",");
-        }
-        if(defined($service_2x->{'notification_interval'})) {
-            dump_config_line($icinga2_cfg, "\t\tnotification_interval = $service_2x->{'notification_interval'},");
-        }
         if(defined($service_2x->{'notifications_enabled'})) {
             dump_config_line($icinga2_cfg, "\tenable_notifications = $service_2x->{'notifications_enabled'},");
         }
@@ -996,6 +946,14 @@ sub dump_notification_2x {
             }
             dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
         }
+    }
+
+    if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_INTERVAL'})) {
+        dump_config_line($icinga2_cfg, "\tnotification_interval = $notification_2x->{'__I2CONVERT_NOTIFICATION_INTERVAL'},");
+    }
+
+    if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_PERIOD'})) {
+        dump_config_line($icinga2_cfg, "\tnotification_period = $notification_2x->{'__I2CONVERT_NOTIFICATION_PERIOD'},");
     }
 
     # this is set for escalations
