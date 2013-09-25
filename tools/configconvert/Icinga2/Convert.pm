@@ -87,6 +87,8 @@ sub obj_2x_command_exists {
     my $obj_type = 'command';
     my $obj_attr = '__I2CONVERT_COMMAND_NAME';
     my $obj_val = shift;
+    my $command_type = shift;
+    my $command_type_attr = '__I2CONVERT_COMMAND_TYPE';
 
     #debug("My objects hive: ".Dumper($objs));
 
@@ -95,6 +97,9 @@ sub obj_2x_command_exists {
         my $obj = @$objs{$obj_type}->{$obj_key};
         next if !defined($obj->{$obj_attr});
         #debug("Getting attr $obj_attr and val $obj_val");
+
+        next if $obj->{$command_type_attr} ne $command_type;
+
         if ($obj->{$obj_attr} eq $obj_val) {
             #debug("Found object: ".Dumper($obj));
             return 1;
@@ -2231,7 +2236,8 @@ sub convert_2x {
                 next if (!defined($notification_command_name_2x));
 
                 # create a new NotificationCommand 2x object with the original name
-                if (obj_2x_command_exists($cfg_obj_2x, $notification_command_name) != 1) {
+                my $command_type = 'Notification';
+                if (obj_2x_command_exists($cfg_obj_2x, $notification_command_name, $command_type) != 1) {
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Notification';
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $notification_command_name;
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $notification_command_line;
@@ -2785,7 +2791,8 @@ sub convert_2x {
                         next if (!defined($host_check_command_2x->{'check_command_name_1x'}));
 
                         # XXX do not add duplicate check commands, they must remain unique by their check_command origin!
-                        if (obj_2x_command_exists($cfg_obj_2x, $host_check_command_2x->{'check_command_name_1x'}) != 1) {
+                        my $command_type = 'Check';
+                        if (obj_2x_command_exists($cfg_obj_2x, $host_check_command_2x->{'check_command_name_1x'}, $command_type) != 1) {
 
                             # create a new CheckCommand 2x object with the original name
                             $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Check';
@@ -2877,7 +2884,8 @@ sub convert_2x {
 
            next if (!defined($host_check_command_2x->{'check_command_name_1x'}));
 
-           if (obj_2x_command_exists($cfg_obj_2x, $host_check_command_2x->{'check_command_name_1x'}) != 1) {
+           my $command_type = 'Check';
+           if (obj_2x_command_exists($cfg_obj_2x, $host_check_command_2x->{'check_command_name_1x'}, $command_type) != 1) {
                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Check';
                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_NAME'} = $host_check_command_2x->{'check_command_name_1x'};
                $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_LINE'} = $host_check_command_2x->{'check_command'};
