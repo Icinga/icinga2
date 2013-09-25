@@ -415,12 +415,8 @@ void ServiceDbObject::RemoveComments(const Service::Ptr& service)
 
 	/* delete hostcheck service's host comments */
 	if (host->GetCheckService() == service) {
-		DbQuery query2;
-		query2.Table = "comments";
-		query2.Type = DbQueryDelete;
-		query2.WhereCriteria = boost::make_shared<Dictionary>();
-		query2.WhereCriteria->Set("object_id", host);
-		OnQuery(query2);
+		query1.WhereCriteria->Set("object_id", host);
+		OnQuery(query1);
 	}
 }
 
@@ -449,13 +445,8 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 
 	/* delete hostcheck service's host comments */
 	if (host->GetCheckService() == service) {
-		DbQuery query2;
-		query2.Table = "comments";
-		query2.Type = DbQueryDelete;
-		query2.WhereCriteria = boost::make_shared<Dictionary>();
-		query2.WhereCriteria->Set("object_id", host);
-		query2.WhereCriteria->Set("internal_comment_id", comment->Get("legacy_id"));
-		OnQuery(query2);
+		query1.WhereCriteria->Set("object_id", host);
+		OnQuery(query1);
 	}
 
 	/* History - update deletion time for service (and host in case) */
@@ -592,12 +583,8 @@ void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
 
 	/* delete hostcheck service's host downtimes */
 	if (host->GetCheckService() == service) {
-		DbQuery query2;
-		query2.Table = "scheduleddowntime";
-		query2.Type = DbQueryDelete;
-		query2.WhereCriteria = boost::make_shared<Dictionary>();
-		query2.WhereCriteria->Set("object_id", host);
-		OnQuery(query2);
+		query1.WhereCriteria->Set("object_id", host);
+		OnQuery(query1);
 	}
 }
 
@@ -626,13 +613,8 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictiona
 
 	/* delete hostcheck service's host comments */
 	if (host->GetCheckService() == service) {
-		DbQuery query2;
-		query2.Table = "scheduleddowntime";
-		query2.Type = DbQueryDelete;
-		query2.WhereCriteria = boost::make_shared<Dictionary>();
-		query2.WhereCriteria->Set("object_id", host);
-		query2.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
-		OnQuery(query2);
+		query1.WhereCriteria->Set("object_id", host);
+		OnQuery(query1);
 	}
 
 	/* History - update actual_end_time, was_cancelled for service (and host in case) */
@@ -700,25 +682,8 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 
 	/* delete hostcheck service's host comments */
 	if (host->GetCheckService() == service) {
-
-		DbQuery query2;
-		query2.Table = "scheduleddowntime";
-		query2.Type = DbQueryUpdate;
-
-		Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
-		fields2->Set("was_started", 1);
-		fields2->Set("actual_start_time", DbValue::FromTimestamp(actual_start_time));
-		fields2->Set("actual_start_time_usec", actual_start_time_usec);
-		fields2->Set("is_in_effect", 1);
-		fields2->Set("trigger_time", DbValue::FromTimestamp(downtime->Get("trigger_time")));
-		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-		query2.WhereCriteria = boost::make_shared<Dictionary>();
-		query2.WhereCriteria->Set("object_id", host);
-		query2.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
-
-		query2.Fields = fields2;
-		OnQuery(query2);
+		query1.WhereCriteria->Set("object_id", host);
+		OnQuery(query1);
 	}
 
 	/* History - downtime was started for service (and host in case) */
@@ -779,25 +744,10 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	OnQuery(query1);
 
 	if (host->GetCheckService() == service) {
-
-		DbQuery query2;
-		query2.Table = "acknowledgements";
-		query2.Type = DbQueryInsert;
-
-		Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
-		fields2->Set("entry_time", DbValue::FromTimestamp(entry_time));
-		fields2->Set("entry_time_usec", entry_time_usec);
-		fields2->Set("acknowledgement_type", type);
-		fields2->Set("object_id", host);
-		fields2->Set("state", service->GetState());
-		fields2->Set("author_name", author);
-		fields2->Set("comment_data", comment);
-		fields2->Set("is_sticky", type == AcknowledgementSticky ? 1 : 0);
-		fields2->Set("end_time", DbValue::FromTimestamp(end_time));
-		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-		query2.Fields = fields2;
-		OnQuery(query2);
+		fields1->Set("object_id", host);
+		fields1->Set("state", host->GetState());
+		query1.Fields = fields1;
+		OnQuery(query1);
 	}
 }
 
@@ -846,37 +796,11 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 	OnQuery(query1);
 
 	if (host->GetCheckService() == service) {
-		DbQuery query1;
-		query1.Table = "notifications";
-		query1.Type = DbQueryInsert;
-
-		Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
-		DbQuery query2;
-		query2.Table = "notifications";
-		query2.Type = DbQueryInsert;
-
-		Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
-		fields2->Set("notification_type", 2); /* host */
-		fields2->Set("notification_reason", CompatUtility::MapNotificationReasonType(type));
-		fields2->Set("object_id", host);
-		fields2->Set("start_time", DbValue::FromTimestamp(start_time));
-		fields2->Set("start_time_usec", start_time_usec);
-		fields2->Set("end_time", DbValue::FromTimestamp(end_time));
-		fields2->Set("end_time_usec", end_time_usec);
-		fields2->Set("state", service->GetState());
-
-		if (cr) {
-			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-			fields2->Set("output", output_bag->Get("output"));
-			fields2->Set("long_output", output_bag->Get("long_output"));
-		}
-
-		fields2->Set("escalated", 0);
-		fields2->Set("contacts_notified", users.size());
-		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-		query2.Fields = fields2;
-		OnQuery(query2);
+		fields1->Set("notification_type", 2); /* host */
+		fields1->Set("object_id", host);
+		fields1->Set("state", host->GetState());
+		query1.Fields = fields1;
+		OnQuery(query1);
 	}
 }
 
