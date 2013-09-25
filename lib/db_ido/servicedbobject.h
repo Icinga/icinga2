@@ -51,23 +51,30 @@ protected:
 	virtual void OnStatusUpdate(void);
 
 private:
-        /* Status */
-	static void AddComments(const Service::Ptr& service);
-	static void AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
-	static void AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment);
+        static void AddCommentInternal(const Service::Ptr& service, const Dictionary::Ptr& comment, bool historical);
+        static void AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment, bool historical);
+        static void AddComments(const Service::Ptr& service);
         static void RemoveComments(const Service::Ptr& service);
+
+        static void AddDowntimeInternal(const Service::Ptr& service, const Dictionary::Ptr& downtime, bool historical);
+        static void AddDowntimeByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& downtime, bool historical);
+        static void AddDowntimes(const Service::Ptr& service);
+        static void RemoveDowntimes(const Service::Ptr& service);
+
+        /* Status */
+
+	static void AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
 	static void RemoveComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
 
-	static void AddDowntimes(const Service::Ptr& service);
 	static void AddDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
-	static void AddDowntimeByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& downtime);
-        static void RemoveDowntimes(const Service::Ptr& service);
 	static void RemoveDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 	static void TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 
         /* History */
-        static void AddAcknowledgement(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry);
-        static void AddNotification(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text);
+        static void AddCommentHistory(const Service::Ptr& service, const Dictionary::Ptr& comment);
+        static void AddDowntimeHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+        static void AddAcknowledgementHistory(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry);
+        static void AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text);
 
 };
 

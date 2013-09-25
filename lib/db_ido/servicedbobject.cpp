@@ -48,8 +48,10 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnDowntimeTriggered.connect(boost::bind(&ServiceDbObject::TriggerDowntime, _1, _2));
 
 	/* History */
-	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgement, _1, _2, _3, _4, _5));
-	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotification, _1, _2, _3, _4, _5, _6));
+	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddCommentHistory, _1, _2));
+	Service::OnDowntimeAdded.connect(boost::bind(&ServiceDbObject::AddDowntimeHistory, _1, _2));
+	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
+	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotificationHistory, _1, _2, _3, _4, _5, _6));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -318,6 +320,16 @@ void ServiceDbObject::AddComments(const Service::Ptr& service)
 
 void ServiceDbObject::AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment)
 {
+	AddCommentInternal(service, comment, false);
+}
+
+void ServiceDbObject::AddCommentHistory(const Service::Ptr& service, const Dictionary::Ptr& comment)
+{
+	AddCommentInternal(service, comment, true);
+}
+
+void ServiceDbObject::AddCommentInternal(const Service::Ptr& service, const Dictionary::Ptr& comment, bool historical)
+{
 	Host::Ptr host = service->GetHost();
 
 	if (!host)
@@ -331,16 +343,16 @@ void ServiceDbObject::AddComment(const Service::Ptr& service, const Dictionary::
 	Log(LogDebug, "db_ido", "adding service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
 	/* add the service comment */
-	AddCommentByType(service, comment);
+	AddCommentByType(service, comment, historical);
 
 	/* add the hostcheck service comment to the host as well */
 	if (host->GetCheckService() == service) {
 		Log(LogDebug, "db_ido", "adding host comment (id = " + comment->Get("legacy_id") + ") for '" + host->GetName() + "'");
-		AddCommentByType(host, comment);
+		AddCommentByType(host, comment, historical);
 	}
 }
 
-void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment)
+void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment, bool historical)
 {
 	unsigned long entry_time = static_cast<long>(comment->Get("entry_time"));
 	unsigned long entry_time_usec = (comment->Get("entry_time") - entry_time) * 1000 * 1000;
@@ -372,19 +384,15 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 	fields1->Set("expiration_time", comment->Get("expire_time"));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	/* Status */
 	DbQuery query1;
-	query1.Table = "comments";
+	if (!historical) {
+		query1.Table = "comments";
+	} else {
+		query1.Table = "commenthistory";
+	}
 	query1.Type = DbQueryInsert;
 	query1.Fields = fields1;
 	OnQuery(query1);
-
-	/* History */
-	DbQuery query2;
-	query2.Table = "commenthistory";
-	query2.Type = DbQueryInsert;
-	query2.Fields = fields1;
-	OnQuery(query2);
 }
 
 void ServiceDbObject::RemoveComments(const Service::Ptr& service)
@@ -490,6 +498,16 @@ void ServiceDbObject::AddDowntimes(const Service::Ptr& service)
 
 void ServiceDbObject::AddDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime)
 {
+	AddDowntimeInternal(service, downtime, false);
+}
+
+void ServiceDbObject::AddDowntimeHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+{
+	AddDowntimeInternal(service, downtime, true);
+}
+
+void ServiceDbObject::AddDowntimeInternal(const Service::Ptr& service, const Dictionary::Ptr& downtime, bool historical)
+{
 	Host::Ptr host = service->GetHost();
 
 	if (!host)
@@ -503,16 +521,16 @@ void ServiceDbObject::AddDowntime(const Service::Ptr& service, const Dictionary:
 	Log(LogDebug, "db_ido", "adding service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
 	/* add the service downtime */
-	AddDowntimeByType(service, downtime);
+	AddDowntimeByType(service, downtime, historical);
 
 	/* add the hostcheck service downtime to the host as well */
 	if (host->GetCheckService() == service) {
 		Log(LogDebug, "db_ido", "adding host downtime (id = " + downtime->Get("legacy_id") + ") for '" + host->GetName() + "'");
-		AddDowntimeByType(host, downtime);
+		AddDowntimeByType(host, downtime, historical);
 	}
 }
 
-void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& downtime)
+void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& downtime, bool historical)
 {
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 	fields1->Set("entry_time", DbValue::FromTimestamp(downtime->Get("entry_time")));
@@ -543,19 +561,15 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->Get("trigger_time")));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	/* Status */
 	DbQuery query1;
-	query1.Table = "scheduleddowntime";
+	if (!historical) {
+		query1.Table = "scheduleddowntime";
+	} else {
+		query1.Table = "downtimehistory";
+	}
 	query1.Type = DbQueryInsert;
 	query1.Fields = fields1;
 	OnQuery(query1);
-
-	/* History */
-	DbQuery query2;
-	query2.Table = "downtimehistory";
-	query2.Type = DbQueryInsert;
-	query2.Fields = fields1;
-	OnQuery(query2);
 }
 
 void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
@@ -728,7 +742,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 	OnQuery(query3);
 }
 
-void ServiceDbObject::AddAcknowledgement(const Service::Ptr& service, const String& author, const String& comment,
+void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, const String& author, const String& comment,
     AcknowledgementType type, double expiry)
 {
 	Host::Ptr host = service->GetHost();
@@ -785,7 +799,7 @@ void ServiceDbObject::AddAcknowledgement(const Service::Ptr& service, const Stri
 	}
 }
 
-void ServiceDbObject::AddNotification(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
+void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
 				      const Dictionary::Ptr& cr, const String& author, const String& text)
 {
 	Host::Ptr host = service->GetHost();
