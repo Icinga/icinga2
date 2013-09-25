@@ -25,7 +25,7 @@ set IcingaMacros = {
 library "compat"
 object StatusDataWriter "status" { }
 object ExternalCommandListener "command" { }
-object CompatLog "compat-log" { }
+object CompatLogger "compat-log" { }
 
 /**
  * And finally we define some host that should be checked.
