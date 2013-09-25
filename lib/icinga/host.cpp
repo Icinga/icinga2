@@ -208,7 +208,7 @@ void Host::UpdateSlaveServices(void)
 		ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(di);
 		builder->SetType("Service");
 		builder->SetName(name);
-		builder->AddExpression("host_name", OperatorSet, GetName());
+		builder->AddExpression("host", OperatorSet, GetName());
 		builder->AddExpression("display_name", OperatorSet, svcname);
 		builder->AddExpression("short_name", OperatorSet, svcname);
 

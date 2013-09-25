@@ -389,7 +389,7 @@ void Notification::InternalSerialize(const Dictionary::Ptr& bag, int attributeTy
 		bag->Set("times", m_Times);
 		bag->Set("notification_type_filter", m_NotificationTypeFilter);
 		bag->Set("notification_state_filter", m_NotificationStateFilter);
-		bag->Set("host_name", m_HostName);
+		bag->Set("host", m_HostName);
 		bag->Set("export_macros", m_ExportMacros);
 		bag->Set("service", m_Service);
 	}
@@ -415,7 +415,7 @@ void Notification::InternalDeserialize(const Dictionary::Ptr& bag, int attribute
 		m_Times = bag->Get("times");
 		m_NotificationTypeFilter = bag->Get("notification_type_filter");
 		m_NotificationStateFilter = bag->Get("notification_state_filter");
-		m_HostName = bag->Get("host_name");
+		m_HostName = bag->Get("host");
 		m_ExportMacros = bag->Get("export_macros");
 		m_Service = bag->Get("service");
 	}

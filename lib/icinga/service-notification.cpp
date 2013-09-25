@@ -132,7 +132,7 @@ void Service::UpdateSlaveNotifications(void)
 		ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(di);
 		builder->SetType("Notification");
 		builder->SetName(name);
-		builder->AddExpression("host_name", OperatorSet, GetHost()->GetName());
+		builder->AddExpression("host", OperatorSet, GetHost()->GetName());
 		builder->AddExpression("service", OperatorSet, GetShortName());
 
 		if (!nfcdesc.IsObjectType<Dictionary>())

@@ -423,7 +423,7 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("event_command", m_EventCommand);
 		bag->Set("volatile", m_Volatile);
 		bag->Set("short_name", m_ShortName);
-		bag->Set("host_name", m_HostName);
+		bag->Set("host", m_HostName);
 		bag->Set("flapping_threshold", m_FlappingThreshold);
 		bag->Set("notifications", m_NotificationDescriptions);
 	}
@@ -481,7 +481,7 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_EventCommand = bag->Get("event_command");
 		m_Volatile = bag->Get("volatile");
 		m_ShortName = bag->Get("short_name");
-		m_HostName = bag->Get("host_name");
+		m_HostName = bag->Get("host");
 		m_FlappingThreshold = bag->Get("flapping_threshold");
 		m_NotificationDescriptions = bag->Get("notifications");
 	}
