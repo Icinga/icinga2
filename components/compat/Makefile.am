@@ -16,8 +16,8 @@ libcompat_la_SOURCES = \
 	externalcommandlistener.h \
 	statusdatawriter.cpp \
 	statusdatawriter.h \
-	compatlog.cpp \
-	compatlog.h \
+	compatlogger.cpp \
+	compatlogger.h \
 	compat-type.conf
 
 libcompat_la_CPPFLAGS = \

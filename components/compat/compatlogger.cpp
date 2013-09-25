@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "compat/compatlog.h"
+#include "compat/compatlogger.h"
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
 #include "icinga/notification.h"
@@ -37,28 +37,28 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(CompatLog);
-REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLog::ValidateRotationMethod);
+REGISTER_TYPE(CompatLogger);
+REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLogger::ValidateRotationMethod);
 
-CompatLog::CompatLog(void)
+CompatLogger::CompatLogger(void)
 	: m_LastRotation(0)
 { }
 
 /**
  * @threadsafety Always.
  */
-void CompatLog::Start(void)
+void CompatLogger::Start(void)
 {
 	DynamicObject::Start();
 
-	Service::OnNewCheckResult.connect(bind(&CompatLog::CheckResultHandler, this, _1, _2));
-	Service::OnNotificationSentToUser.connect(bind(&CompatLog::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6));
-	Service::OnFlappingChanged.connect(bind(&CompatLog::FlappingHandler, this, _1, _2));
-	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLog::TriggerDowntimeHandler, this, _1, _2));
-	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLog::RemoveDowntimeHandler, this, _1, _2));
+	Service::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
+	Service::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6));
+	Service::OnFlappingChanged.connect(bind(&CompatLogger::FlappingHandler, this, _1, _2));
+	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
+	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
 
 	m_RotationTimer = boost::make_shared<Timer>();
-	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLog::RotationTimerHandler, this));
+	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLogger::RotationTimerHandler, this));
 	m_RotationTimer->Start();
 
 	ReopenFile(false);
@@ -68,7 +68,7 @@ void CompatLog::Start(void)
 /**
  * @threadsafety Always.
  */
-String CompatLog::GetLogDir(void) const
+String CompatLogger::GetLogDir(void) const
 {
 	if (!m_LogDir.IsEmpty())
 		return m_LogDir;
@@ -79,7 +79,7 @@ String CompatLog::GetLogDir(void) const
 /**
  * @threadsafety Always.
  */
-String CompatLog::GetRotationMethod(void) const
+String CompatLogger::GetRotationMethod(void) const
 {
 	if (!m_RotationMethod.IsEmpty())
 		return m_RotationMethod;
@@ -90,7 +90,7 @@ String CompatLog::GetRotationMethod(void) const
 /**
  * @threadsafety Always.
  */
-void CompatLog::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr &cr)
+void CompatLogger::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr &cr)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -171,7 +171,7 @@ void CompatLog::CheckResultHandler(const Service::Ptr& service, const Dictionary
 /**
  * @threadsafety Always.
  */
-void CompatLog::TriggerDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -217,7 +217,7 @@ void CompatLog::TriggerDowntimeHandler(const Service::Ptr& service, const Dictio
 /**
  * @threadsafety Always.
  */
-void CompatLog::RemoveDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -274,7 +274,7 @@ void CompatLog::RemoveDowntimeHandler(const Service::Ptr& service, const Diction
 /**
  * @threadsafety Always.
  */
-void CompatLog::NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user,
+void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user,
 		NotificationType const& notification_type, Dictionary::Ptr const& cr,
 		const String& author, const String& comment_text)
 {
@@ -351,7 +351,7 @@ void CompatLog::NotificationSentHandler(const Service::Ptr& service, const User:
 /**
  * @threadsafety Always.
  */
-void CompatLog::FlappingHandler(const Service::Ptr& service, FlappingState flapping_state)
+void CompatLogger::FlappingHandler(const Service::Ptr& service, FlappingState flapping_state)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -413,7 +413,7 @@ void CompatLog::FlappingHandler(const Service::Ptr& service, FlappingState flapp
 
 }
 
-void CompatLog::WriteLine(const String& line)
+void CompatLogger::WriteLine(const String& line)
 {
 	ASSERT(OwnsLock());
 
@@ -423,7 +423,7 @@ void CompatLog::WriteLine(const String& line)
 	m_OutputFile << "[" << (long)Utility::GetTime() << "] " << line << "\n";
 }
 
-void CompatLog::Flush(void)
+void CompatLogger::Flush(void)
 {
 	ASSERT(OwnsLock());
 
@@ -436,7 +436,7 @@ void CompatLog::Flush(void)
 /**
  * @threadsafety Always.
  */
-void CompatLog::ReopenFile(bool rotate)
+void CompatLogger::ReopenFile(bool rotate)
 {
 	ObjectLock olock(this);
 
@@ -506,7 +506,7 @@ void CompatLog::ReopenFile(bool rotate)
 	Flush();
 }
 
-void CompatLog::ScheduleNextRotation(void)
+void CompatLogger::ScheduleNextRotation(void)
 {
 	time_t now = (time_t)Utility::GetTime();
 	String method = GetRotationMethod();
@@ -558,7 +558,7 @@ void CompatLog::ScheduleNextRotation(void)
 /**
  * @threadsafety Always.
  */
-void CompatLog::RotationTimerHandler(void)
+void CompatLogger::RotationTimerHandler(void)
 {
 	try {
 		ReopenFile(true);
@@ -571,7 +571,7 @@ void CompatLog::RotationTimerHandler(void)
 	ScheduleNextRotation();
 }
 
-void CompatLog::ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs)
+void CompatLogger::ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs)
 {
 	Value rotation_method = attrs->Get("rotation_method");
 
@@ -582,7 +582,7 @@ void CompatLog::ValidateRotationMethod(const String& location, const Dictionary:
 	}
 }
 
-void CompatLog::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+void CompatLogger::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
 {
 	DynamicObject::InternalSerialize(bag, attributeTypes);
 
@@ -592,7 +592,7 @@ void CompatLog::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes
 	}
 }
 
-void CompatLog::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+void CompatLogger::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 {
 	DynamicObject::InternalDeserialize(bag, attributeTypes);
 

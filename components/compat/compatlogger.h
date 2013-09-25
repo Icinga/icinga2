@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef COMPATLOG_H
-#define COMPATLOG_H
+#ifndef COMPATLOGGER_H
+#define COMPATLOGGER_H
 
 #include "icinga/service.h"
 #include "base/dynamicobject.h"
@@ -33,13 +33,13 @@ namespace icinga
  *
  * @ingroup compat
  */
-class CompatLog : public DynamicObject
+class CompatLogger : public DynamicObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CompatLog);
-	DECLARE_TYPENAME(CompatLog);
+	DECLARE_PTR_TYPEDEFS(CompatLogger);
+	DECLARE_TYPENAME(CompatLogger);
 
-	CompatLog(void);
+	CompatLogger(void);
 
 	String GetLogDir(void) const;
 	String GetRotationMethod(void) const;
@@ -78,4 +78,4 @@ private:
 
 }
 
-#endif /* COMPATLOG_H */
+#endif /* COMPATLOGGER_H */
