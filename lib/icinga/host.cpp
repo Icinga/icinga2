@@ -663,8 +663,8 @@ void Host::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) con
 		bag->Set("display_name", m_DisplayName);
 		bag->Set("groups", m_Groups);
 		bag->Set("macros", m_Macros);
-		bag->Set("hostdependencies", m_HostDependencies);
-		bag->Set("servicedependencies", m_ServiceDependencies);
+		bag->Set("host_dependencies", m_HostDependencies);
+		bag->Set("service_dependencies", m_ServiceDependencies);
 		bag->Set("check", m_Check);
 		bag->Set("services", m_ServiceDescriptions);
 		bag->Set("notifications", m_NotificationDescriptions);
@@ -679,8 +679,8 @@ void Host::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 		m_DisplayName = bag->Get("display_name");
 		m_Groups = bag->Get("groups");
 		m_Macros = bag->Get("macros");
-		m_HostDependencies = bag->Get("hostdependencies");
-		m_ServiceDependencies = bag->Get("servicedependencies");
+		m_HostDependencies = bag->Get("host_dependencies");
+		m_ServiceDependencies = bag->Get("service_dependencies");
 		m_Check = bag->Get("check");
 		m_ServiceDescriptions = bag->Get("services");
 		m_NotificationDescriptions = bag->Get("notifications");

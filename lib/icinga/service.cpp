@@ -412,8 +412,8 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 	if (attributeTypes & Attribute_Config) {
 		bag->Set("display_name", m_DisplayName);
 		bag->Set("macros", m_Macros);
-		bag->Set("hostdependencies", m_HostDependencies);
-		bag->Set("servicedependencies", m_ServiceDependencies);
+		bag->Set("host_dependencies", m_HostDependencies);
+		bag->Set("service_dependencies", m_ServiceDependencies);
 		bag->Set("servicegroups", m_ServiceGroups);
 		bag->Set("check_command", m_CheckCommand);
 		bag->Set("max_check_attempts", m_MaxCheckAttempts);
@@ -470,8 +470,8 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 	if (attributeTypes & Attribute_Config) {
 		m_DisplayName = bag->Get("display_name");
 		m_Macros = bag->Get("macros");
-		m_HostDependencies = bag->Get("hostdependencies");
-		m_ServiceDependencies = bag->Get("servicedependencies");
+		m_HostDependencies = bag->Get("host_dependencies");
+		m_ServiceDependencies = bag->Get("service_dependencies");
 		m_ServiceGroups = bag->Get("servicegroups");
 		m_CheckCommand = bag->Get("check_command");
 		m_MaxCheckAttempts = bag->Get("max_check_attempts");
