@@ -46,6 +46,8 @@ void Service::Start(void)
 {
 	DynamicObject::Start();
 
+	VERIFY(GetHost());
+
 	SetSchedulingOffset(rand());
 	UpdateNextCheck();
 

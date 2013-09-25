@@ -227,24 +227,6 @@ void Host::UpdateSlaveServices(void)
 			}
 		}
 
-		/* Clone attributes from the host object. */
-		std::set<String, string_iless> keys;
-		keys.insert("check_interval");
-		keys.insert("retry_interval");
-		keys.insert("servicegroups");
-		keys.insert("notification_interval");
-		keys.insert("notification_type_filter");
-		keys.insert("notification_state_filter");
-		keys.insert("check_period");
-		keys.insert("servicedependencies");
-		keys.insert("hostdependencies");
-		keys.insert("authorities");
-		keys.insert("domains");
-
-		ExpressionList::Ptr host_exprl = boost::make_shared<ExpressionList>();
-		item->GetLinkedExpressionList()->ExtractFiltered(keys, host_exprl);
-		builder->AddExpressionList(host_exprl);
-
 		/* Clone attributes from the service expression list. */
 		ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();
 		item->GetLinkedExpressionList()->ExtractPath(path, svc_exprl);

@@ -98,116 +98,72 @@ void Service::RemoveNotification(const Notification::Ptr& notification)
 
 void Service::UpdateSlaveNotifications(void)
 {
-	ConfigItem::Ptr serviceItem, hostItem;
-
-	serviceItem = ConfigItem::GetObject("Service", GetName());
+	ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
 
 	/* Don't create slave notifications unless we own this object */
-	if (!serviceItem)
+	if (!item)
 		return;
 
-	Host::Ptr host = GetHost();
+	/* Service notification descs */
+	Dictionary::Ptr descs = GetNotificationDescriptions();
 
-	if (!host)
+	if (!descs)
 		return;
 
-	hostItem = ConfigItem::GetObject("Host", host->GetName());
+	ObjectLock olock(descs);
 
-	/* Don't create slave notifications unless we own the host */
-	if (!hostItem)
-		return;
+	String nfcname;
+	Value nfcdesc;
+	BOOST_FOREACH(boost::tie(nfcname, nfcdesc), descs) {
+		std::ostringstream namebuf;
+		namebuf << GetName() << ":" << nfcname;
+		String name = namebuf.str();
 
-	std::vector<Dictionary::Ptr> descLists;
+		std::vector<String> path;
+		path.push_back("notifications");
+		path.push_back(nfcname);
 
-	descLists.push_back(GetNotificationDescriptions());
-	descLists.push_back(host->GetNotificationDescriptions());
+		DebugInfo di;
+		item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
 
-	for (int i = 0; i < 2; i++) {
-		Dictionary::Ptr descs;
-		ConfigItem::Ptr item;
+		if (di.Path.IsEmpty())
+			di = item->GetDebugInfo();
 
-		if (i == 0) {
-			/* Host notification descs */
-			descs = host->GetNotificationDescriptions();
-			item = hostItem;
-		} else {
-			/* Service notification descs */
-			descs = GetNotificationDescriptions();
-			item = serviceItem;
-		}
+		ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(di);
+		builder->SetType("Notification");
+		builder->SetName(name);
+		builder->AddExpression("host_name", OperatorSet, GetHost()->GetName());
+		builder->AddExpression("service", OperatorSet, GetShortName());
 
-		if (!descs)
-			continue;
+		if (!nfcdesc.IsObjectType<Dictionary>())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Notification description must be a dictionary."));
 
-		ObjectLock olock(descs);
+		Dictionary::Ptr notification = nfcdesc;
 
-		String nfcname;
-		Value nfcdesc;
-		BOOST_FOREACH(boost::tie(nfcname, nfcdesc), descs) {
-			std::ostringstream namebuf;
-			namebuf << GetName() << ":" << nfcname;
-			String name = namebuf.str();
+		Array::Ptr templates = notification->Get("templates");
 
-			std::vector<String> path;
-			path.push_back("notifications");
-			path.push_back(nfcname);
+		if (templates) {
+			ObjectLock tlock(templates);
 
-			DebugInfo di;
-			item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
-
-			if (di.Path.IsEmpty())
-				di = item->GetDebugInfo();
-
-			ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(di);
-			builder->SetType("Notification");
-			builder->SetName(name);
-			builder->AddExpression("host_name", OperatorSet, host->GetName());
-			builder->AddExpression("service", OperatorSet, GetShortName());
-
-			if (!nfcdesc.IsObjectType<Dictionary>())
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Notification description must be a dictionary."));
-
-			Dictionary::Ptr notification = nfcdesc;
-
-			Array::Ptr templates = notification->Get("templates");
-
-			if (templates) {
-				ObjectLock tlock(templates);
-
-				BOOST_FOREACH(const Value& tmpl, templates) {
-					builder->AddParent(tmpl);
-				}
+			BOOST_FOREACH(const Value& tmpl, templates) {
+				builder->AddParent(tmpl);
 			}
-
-			/* Clone attributes from the host/service object. */
-			std::set<String, string_iless> keys;
-			keys.insert("users");
-			keys.insert("groups");
-			keys.insert("notification_interval");
-			keys.insert("notification_period");
-			keys.insert("notification_type_filter");
-			keys.insert("notification_state_filter");
-			keys.insert("export_macros");
-
-			ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();
-			item->GetLinkedExpressionList()->ExtractFiltered(keys, svc_exprl);
-			builder->AddExpressionList(svc_exprl);
-
-			/* Clone attributes from the notification expression list. */
-			ExpressionList::Ptr nfc_exprl = boost::make_shared<ExpressionList>();
-			item->GetLinkedExpressionList()->ExtractPath(path, nfc_exprl);
-
-			std::vector<String> dpath;
-			dpath.push_back("templates");
-			nfc_exprl->ErasePath(dpath);
-
-			builder->AddExpressionList(nfc_exprl);
-
-			ConfigItem::Ptr notificationItem = builder->Compile();
-			notificationItem->Register();
-			DynamicObject::Ptr dobj = notificationItem->Commit();
-			dobj->OnConfigLoaded();
 		}
+
+		/* Clone attributes from the notification expression list. */
+		ExpressionList::Ptr nfc_exprl = boost::make_shared<ExpressionList>();
+		item->GetLinkedExpressionList()->ExtractPath(path, nfc_exprl);
+
+		std::vector<String> dpath;
+		dpath.push_back("templates");
+		nfc_exprl->ErasePath(dpath);
+
+		builder->AddExpressionList(nfc_exprl);
+
+		ConfigItem::Ptr notificationItem = builder->Compile();
+		notificationItem->Register();
+		DynamicObject::Ptr dobj = notificationItem->Commit();
+		dobj->OnConfigLoaded();
 	}
 }
 
