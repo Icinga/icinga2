@@ -112,13 +112,12 @@ using namespace icinga;
      T_REQUIRE = 279,
      T_ATTRIBUTE = 280,
      T_TYPE = 281,
-     T_ABSTRACT = 282,
-     T_OBJECT = 283,
-     T_TEMPLATE = 284,
-     T_INCLUDE = 285,
-     T_LIBRARY = 286,
-     T_INHERITS = 287,
-     T_PARTIAL = 288
+     T_OBJECT = 282,
+     T_TEMPLATE = 283,
+     T_INCLUDE = 284,
+     T_LIBRARY = 285,
+     T_INHERITS = 286,
+     T_PARTIAL = 287
    };
 #endif
 /* Tokens.  */
@@ -146,13 +145,12 @@ using namespace icinga;
 #define T_REQUIRE 279
 #define T_ATTRIBUTE 280
 #define T_TYPE 281
-#define T_ABSTRACT 282
-#define T_OBJECT 283
-#define T_TEMPLATE 284
-#define T_INCLUDE 285
-#define T_LIBRARY 286
-#define T_INHERITS 287
-#define T_PARTIAL 288
+#define T_OBJECT 282
+#define T_TEMPLATE 283
+#define T_INCLUDE 284
+#define T_LIBRARY 285
+#define T_INHERITS 286
+#define T_PARTIAL 287
 
 
 
@@ -177,7 +175,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 181 "../../../lib/config/config_parser.h"
+#line 179 "../../../lib/config/config_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

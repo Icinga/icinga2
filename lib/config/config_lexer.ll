@@ -198,7 +198,6 @@ name				{ yylval->type = TypeName; return T_TYPE_NAME; }
 %validator			{ return T_VALIDATOR; }
 %require			{ return T_REQUIRE; }
 %attribute			{ return T_ATTRIBUTE; }
-abstract			return T_ABSTRACT;
 object				return T_OBJECT;
 template			return T_TEMPLATE;
 include				return T_INCLUDE;

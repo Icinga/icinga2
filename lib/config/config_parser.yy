@@ -87,7 +87,6 @@ using namespace icinga;
 %token T_REQUIRE "%require (T_REQUIRE)"
 %token T_ATTRIBUTE "%attribute (T_ATTRIBUTE)"
 %token T_TYPE "type (T_TYPE)"
-%token T_ABSTRACT "abstract (T_ABSTRACT)"
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
 %token T_INCLUDE "include (T_INCLUDE)"
@@ -351,21 +350,11 @@ object_declaration identifier T_STRING object_inherits_specifier expressionlist
 	}
 	;
 
-object_declaration: attributes T_OBJECT
+object_declaration: T_OBJECT
 	| T_TEMPLATE
 	{
 		m_Abstract = true;
 	}
-
-attributes: /* empty */
-	| attributes attribute
-	;
-
-attribute: T_ABSTRACT
-	{
-		m_Abstract = true;
-	}
-	;
 
 object_inherits_list:
 	{
