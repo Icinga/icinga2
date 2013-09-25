@@ -12,8 +12,10 @@ CLEANFILES = \
 libcompat_la_SOURCES = \
 	checkresultreader.cpp \
 	checkresultreader.h \
-	compatcomponent.cpp \
-	compatcomponent.h \
+	externalcommandlistener.cpp \
+	externalcommandlistener.h \
+	statusdatawriter.cpp \
+	statusdatawriter.h \
 	compatlog.cpp \
 	compatlog.h \
 	compat-type.conf

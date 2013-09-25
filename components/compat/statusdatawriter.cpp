@@ -17,8 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "compat/compatcomponent.h"
-#include "icinga/externalcommandprocessor.h"
+#include "compat/statusdatawriter.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
 #include "icinga/hostgroup.h"
@@ -43,7 +42,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(CompatComponent);
+REGISTER_TYPE(StatusDataWriter);
 
 /**
  * Hint: The reason why we're using "\n" rather than std::endl is because
@@ -54,20 +53,15 @@ REGISTER_TYPE(CompatComponent);
 /**
  * Starts the component.
  */
-void CompatComponent::Start(void)
+void StatusDataWriter::Start(void)
 {
 	DynamicObject::Start();
 
 	m_StatusTimer = boost::make_shared<Timer>();
 	m_StatusTimer->SetInterval(15);
-	m_StatusTimer->OnTimerExpired.connect(boost::bind(&CompatComponent::StatusTimerHandler, this));
+	m_StatusTimer->OnTimerExpired.connect(boost::bind(&StatusDataWriter::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
-
-#ifndef _WIN32
-	m_CommandThread = boost::thread(boost::bind(&CompatComponent::CommandPipeThread, this, GetCommandPath()));
-	m_CommandThread.detach();
-#endif /* _WIN32 */
 }
 
 /**
@@ -75,7 +69,7 @@ void CompatComponent::Start(void)
  *
  * @returns statuspath from config, or static default
  */
-String CompatComponent::GetStatusPath(void) const
+String StatusDataWriter::GetStatusPath(void) const
 {
 	if (m_StatusPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/cache/icinga2/status.dat";
@@ -88,7 +82,7 @@ String CompatComponent::GetStatusPath(void) const
  *
  * @returns objectspath from config, or static default
  */
-String CompatComponent::GetObjectsPath(void) const
+String StatusDataWriter::GetObjectsPath(void) const
 {
 	if (m_ObjectsPath.IsEmpty())
 		return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache";
@@ -96,98 +90,7 @@ String CompatComponent::GetObjectsPath(void) const
 		return m_ObjectsPath;
 }
 
-/**
- * Retrieves the icinga.cmd path.
- *
- * @returns icinga.cmd path
- */
-String CompatComponent::GetCommandPath(void) const
-{
-	if (m_CommandPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/icinga2.cmd";
-	else
-		return m_CommandPath;
-}
-
-
-#ifndef _WIN32
-void CompatComponent::CommandPipeThread(const String& commandPath)
-{
-	Utility::SetThreadName("Command Pipe");
-
-	struct stat statbuf;
-	bool fifo_ok = false;
-
-	if (lstat(commandPath.CStr(), &statbuf) >= 0) {
-		if (S_ISFIFO(statbuf.st_mode) && access(commandPath.CStr(), R_OK) >= 0) {
-			fifo_ok = true;
-		} else {
-			if (unlink(commandPath.CStr()) < 0) {
-				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("unlink")
-				    << boost::errinfo_errno(errno)
-				    << boost::errinfo_file_name(commandPath));
-			}
-		}
-	}
-
-	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("mkfifo")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(commandPath));
-	}
-
-	for (;;) {
-		int fd;
-
-		do {
-			fd = open(commandPath.CStr(), O_RDONLY);
-		} while (fd < 0 && errno == EINTR);
-
-		if (fd < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("open")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(commandPath));
-		}
-
-		FILE *fp = fdopen(fd, "r");
-
-		if (fp == NULL) {
-			(void) close(fd);
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("fdopen")
-			    << boost::errinfo_errno(errno));
-		}
-
-		char line[2048];
-
-		while (fgets(line, sizeof(line), fp) != NULL) {
-			// remove trailing new-line
-			while (strlen(line) > 0 &&
-			    (line[strlen(line) - 1] == '\r' || line[strlen(line) - 1] == '\n'))
-				line[strlen(line) - 1] = '\0';
-
-			String command = line;
-
-			try {
-				Log(LogInformation, "compat", "Executing external command: " + command);
-
-				ExternalCommandProcessor::Execute(command);
-			} catch (const std::exception& ex) {
-				std::ostringstream msgbuf;
-				msgbuf << "External command failed: " << boost::diagnostic_information(ex);
-				Log(LogWarning, "compat", msgbuf.str());
-			}
-		}
-
-		fclose(fp);
-	}
-}
-#endif /* _WIN32 */
-
-void CompatComponent::DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
+void StatusDataWriter::DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Service::Ptr service;
 	Dictionary::Ptr comments = owner->GetComments();
@@ -228,7 +131,7 @@ void CompatComponent::DumpComments(std::ostream& fp, const Service::Ptr& owner, 
 	}
 }
 
-void CompatComponent::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp)
+void StatusDataWriter::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp)
 {
 	fp << "define timeperiod {" << "\n"
 	   << "\t" << "timeperiod_name" << "\t" << tp->GetName() << "\n"
@@ -249,7 +152,7 @@ void CompatComponent::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp
 	   << "\n";
 }
 
-void CompatComponent::DumpCommand(std::ostream& fp, const Command::Ptr& command)
+void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command)
 {
 	fp << "define command {" << "\n"
 	   << "\t" << "command_name\t";
@@ -290,7 +193,7 @@ void CompatComponent::DumpCommand(std::ostream& fp, const Command::Ptr& command)
 
 }
 
-void CompatComponent::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
+void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Host::Ptr host = owner->GetHost();
 
@@ -338,7 +241,7 @@ void CompatComponent::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner,
 	}
 }
 
-void CompatComponent::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
+void StatusDataWriter::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 {
 	fp << "hoststatus {" << "\n"
 	   << "\t" << "host_name=" << host->GetName() << "\n";
@@ -363,7 +266,7 @@ void CompatComponent::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 	}
 }
 
-void CompatComponent::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
+void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 {
 	fp << "define host {" << "\n"
 	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
@@ -413,7 +316,7 @@ void CompatComponent::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	   << "\n";
 }
 
-void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type)
+void StatusDataWriter::DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type)
 {
 	Dictionary::Ptr attrs = CompatUtility::GetServiceStatusAttributes(service, type);
 
@@ -457,7 +360,7 @@ void CompatComponent::DumpServiceStatusAttrs(std::ostream& fp, const Service::Pt
 	   << "\t" << "current_notification_number=" << attrs->Get("current_notification_number") << "\n";
 }
 
-void CompatComponent::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)
+void StatusDataWriter::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -480,7 +383,7 @@ void CompatComponent::DumpServiceStatus(std::ostream& fp, const Service::Ptr& se
 	DumpComments(fp, service, CompatTypeService);
 }
 
-void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& service)
+void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -559,7 +462,7 @@ void CompatComponent::DumpServiceObject(std::ostream& fp, const Service::Ptr& se
 	}
 }
 
-void CompatComponent::DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object)
+void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object)
 {
 	Dictionary::Ptr custom = object->GetCustom();
 
@@ -583,7 +486,7 @@ void CompatComponent::DumpCustomAttributes(std::ostream& fp, const DynamicObject
 /**
  * Periodically writes the status.dat and objects.cache files.
  */
-void CompatComponent::StatusTimerHandler(void)
+void StatusDataWriter::StatusTimerHandler(void)
 {
 	Log(LogInformation, "compat", "Writing compat status information");
 
@@ -781,24 +684,22 @@ void CompatComponent::StatusTimerHandler(void)
 	}
 }
 
-void CompatComponent::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+void StatusDataWriter::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
 {
 	DynamicObject::InternalSerialize(bag, attributeTypes);
 
 	if (attributeTypes & Attribute_Config) {
 		bag->Set("status_path", m_StatusPath);
 		bag->Set("objects_path", m_ObjectsPath);
-		bag->Set("command_path", m_CommandPath);
 	}
 }
 
-void CompatComponent::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+void StatusDataWriter::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 {
 	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
 	if (attributeTypes & Attribute_Config) {
 		m_StatusPath = bag->Get("status_path");
 		m_ObjectsPath = bag->Get("objects_path");
-		m_CommandPath = bag->Get("command_path");
 	}
 }

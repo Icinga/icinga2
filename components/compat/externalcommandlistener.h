@@ -17,13 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef COMPATCOMPONENT_H
-#define COMPATCOMPONENT_H
+#ifndef EXTERNALCOMMANDLISTENER_H
+#define EXTERNALCOMMANDLISTENER_H
 
-#include "icinga/host.h"
-#include "icinga/service.h"
-#include "icinga/command.h"
-#include "icinga/compatutility.h"
 #include "base/dynamicobject.h"
 #include "base/objectlock.h"
 #include "base/timer.h"
@@ -37,10 +33,10 @@ namespace icinga
 /**
  * @ingroup compat
  */
-class CompatComponent : public DynamicObject
+class ExternalCommandListener : public DynamicObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CompatComponent);
+	DECLARE_PTR_TYPEDEFS(ExternalCommandListener);
 
 protected:
 	virtual void Start(void);
@@ -49,8 +45,6 @@ protected:
 	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
 
 private:
-	String m_StatusPath;
-	String m_ObjectsPath;
 	String m_CommandPath;
 
 #ifndef _WIN32
@@ -59,60 +53,9 @@ private:
 	void CommandPipeThread(const String& commandPath);
 #endif /* _WIN32 */
 
-	Timer::Ptr m_StatusTimer;
-
-	String GetStatusPath(void) const;
-	String GetObjectsPath(void) const;
 	String GetCommandPath(void) const;
-
-	void DumpCommand(std::ostream& fp, const Command::Ptr& command);
-	void DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp);
-	void DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
-	void DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
-	void DumpHostStatus(std::ostream& fp, const Host::Ptr& host);
-	void DumpHostObject(std::ostream& fp, const Host::Ptr& host);
-
-	void DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type);
-
-	template<typename T>
-	void DumpNameList(std::ostream& fp, const T& list)
-	{
-		typename T::const_iterator it;
-		bool first = true;
-		for (it = list.begin(); it != list.end(); it++) {
-			if (!first)
-				fp << ",";
-			else
-				first = false;
-
-			ObjectLock olock(*it);
-			fp << (*it)->GetName();
-		}
-	}
-
-	template<typename T>
-	void DumpStringList(std::ostream& fp, const T& list)
-	{
-		typename T::const_iterator it;
-		bool first = true;
-		for (it = list.begin(); it != list.end(); it++) {
-			if (!first)
-				fp << ",";
-			else
-				first = false;
-
-			fp << *it;
-		}
-	}
-
-	void DumpServiceStatus(std::ostream& fp, const Service::Ptr& service);
-	void DumpServiceObject(std::ostream& fp, const Service::Ptr& service);
-
-	void DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object);
-
-	void StatusTimerHandler(void);
 };
 
 }
 
-#endif /* COMPATCOMPONENT_H */
+#endif /* EXTERNALCOMMANDLISTENER_H */
