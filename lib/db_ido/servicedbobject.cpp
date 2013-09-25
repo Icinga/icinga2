@@ -52,6 +52,8 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnDowntimeAdded.connect(boost::bind(&ServiceDbObject::AddDowntimeHistory, _1, _2));
 	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
 	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotificationHistory, _1, _2, _3, _4, _5, _6));
+
+	Service::OnStateChange.connect(boost::bind(&ServiceDbObject::AddStateChangeHistory, _1, _2, _3));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -875,5 +877,58 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 
 		query2.Fields = fields2;
 		OnQuery(query2);
+	}
+}
+
+void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const Dictionary::Ptr& cr, StateType type)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Log(LogDebug, "db_ido", "add state change for '" + service->GetName() + "'");
+
+	double now = Utility::GetTime();
+	unsigned long state_time = static_cast<long>(now);
+	unsigned long state_time_usec = (now - state_time) * 1000 * 1000;
+
+	DbQuery query1;
+	query1.Table = "statehistory";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+	fields1->Set("state_time", DbValue::FromTimestamp(state_time));
+	fields1->Set("state_time_usec", state_time_usec);
+	fields1->Set("object_id", service);
+	fields1->Set("state_change", 1); /* service */
+	fields1->Set("state", service->GetState());
+	fields1->Set("state_type", service->GetStateType());
+	fields1->Set("current_check_attempt", service->GetCurrentCheckAttempt());
+	fields1->Set("max_check_attempts", service->GetMaxCheckAttempts());
+	fields1->Set("last_state", service->GetLastState());
+	fields1->Set("last_hard_state", service->GetLastHardState());
+
+	if (cr) {
+		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+		fields1->Set("output", output_bag->Get("output"));
+		fields1->Set("long_output", output_bag->Get("long_output"));
+	}
+
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	query1.Fields = fields1;
+	OnQuery(query1);
+
+	if (host->GetCheckService() == service) {
+		fields1->Set("object_id", host);
+		fields1->Set("state_change", 0); /* host */
+		/* get host states instead */
+		fields1->Set("state", host->GetState());
+		fields1->Set("state_type", host->GetStateType());
+		fields1->Set("last_state", host->GetLastState());
+		fields1->Set("last_hard_state", host->GetLastHardState());
+		query1.Fields = fields1;
+		OnQuery(query1);
 	}
 }

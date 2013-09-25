@@ -38,6 +38,7 @@ const double Service::DefaultCheckInterval = 5 * 60;
 const double Service::CheckIntervalDivisor = 5.0;
 
 boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> Service::OnNewCheckResult;
+boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, StateType, const String&)> Service::OnStateChange;
 boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationsRequested;
 boost::signals2::signal<void (const Service::Ptr&, double, const String&)> Service::OnNextCheckChanged;
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnForceNextCheckChanged;
@@ -619,6 +620,13 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnNewCheckResult), GetSelf(), cr, authority));
 	OnStateChanged(GetSelf());
+
+	if (hardChange) {
+		Utility::QueueAsyncCallback(boost::bind(boost::ref(OnStateChange), GetSelf(), cr, StateTypeHard, authority));
+	}
+	else if (stateChange) {
+		Utility::QueueAsyncCallback(boost::bind(boost::ref(OnStateChange), GetSelf(), cr, StateTypeSoft, authority));
+	}
 
 	if (call_eventhandler)
 		ExecuteEventHandler();

@@ -75,6 +75,7 @@ private:
         static void AddDowntimeHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
         static void AddAcknowledgementHistory(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry);
         static void AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text);
+        static void AddStateChangeHistory(const Service::Ptr& service, const Dictionary::Ptr& cr, StateType type);
 
 };
 

@@ -238,6 +238,7 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableNotificationsChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnNewCheckResult;
+	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, StateType, const String&)> OnStateChange;
 	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> OnNotificationsRequested;
 	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentToUser;
 	static boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentToAllUsers;
