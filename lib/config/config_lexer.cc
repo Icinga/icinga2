@@ -593,7 +593,7 @@ static yyconst flex_int32_t yy_rule_can_match_eol[60] =
 #line 2 "config_lexer.ll"
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012 Icinga Development Team (http://www.icinga.org/)        *
+ * Copyright (C) 2012-2013 Icinga Development Team (http://www.icinga.org/)   *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
