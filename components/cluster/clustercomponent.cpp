@@ -1386,7 +1386,7 @@ void ClusterComponent::MessageHandler(const Endpoint::Ptr& sender, const Diction
 		if (acceptConfig) {
 			ObjectLock olock(acceptConfig);
 			BOOST_FOREACH(const String& pattern, acceptConfig) {
-				if (Utility::Match(pattern, sender->GetName())) {
+				if (pattern == sender->GetName()) {
 					accept = true;
 					break;
 				}
@@ -1485,7 +1485,7 @@ bool ClusterComponent::IsAuthority(const DynamicObject::Ptr& object, const Strin
 		if (authorities) {
 			ObjectLock olock(authorities);
 			BOOST_FOREACH(const String& authority, authorities) {
-				if (Utility::Match(authority, endpoint->GetName())) {
+				if (authority == endpoint->GetName()) {
 					match = true;
 
 					break;
