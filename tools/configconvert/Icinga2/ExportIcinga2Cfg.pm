@@ -626,7 +626,7 @@ sub dump_host_2x {
     ####################################################
     # this is magic, and must be set during conversion
     if(defined($host_2x->{'__I2CONVERT_HOSTCHECK'})) {
-        dump_config_line($icinga2_cfg, "\thostcheck = \"$host_2x->{'__I2CONVERT_HOSTCHECK'}\",");
+        dump_config_line($icinga2_cfg, "\tcheck = \"$host_2x->{'__I2CONVERT_HOSTCHECK'}\",");
     }
 
     ####################################################
