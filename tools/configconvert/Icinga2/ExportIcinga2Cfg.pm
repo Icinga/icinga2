@@ -398,6 +398,20 @@ sub dump_service_2x {
                     dump_config_line($icinga2_cfg, "\t\tusers = [ \"$service_users\" ],");
                 }
 
+                if(defined($service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+                    #say Dumper($service_2x);
+                    foreach my $by (keys %{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+                        next if !@{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
+                        my $notification_filter;
+                        if (grep /0/, @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                            $notification_filter = 0;
+                        } else {
+                            $notification_filter = "(". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+                        }
+                        dump_config_line($icinga2_cfg, "\t\tnotification_".$by."_filter = $notification_filter,");
+                    }
+                }
+
                 # this is set for escalations
                 if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}) && $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'} != 0) {
                     dump_config_line($icinga2_cfg, "\t\ttimes = {");
@@ -419,20 +433,6 @@ sub dump_service_2x {
     }
     if(defined($service_2x->{'notifications_enabled'})) {
         dump_config_line($icinga2_cfg, "\tenable_notifications = $service_2x->{'notifications_enabled'},");
-    }
-
-    if(defined($service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
-        #say Dumper($service_2x);
-        foreach my $by (keys %{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
-            next if !@{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
-            my $notification_filter;
-            if (grep /0/, @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
-                $notification_filter = 0;
-            } else {
-                $notification_filter = "(". (join ' | ', @{$service_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
-            }
-            dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
-        }
     }
 
     ####################################################
@@ -555,19 +555,6 @@ sub dump_host_2x {
     ####################################################
     # notifications
     ####################################################
-    if(defined($host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
-        foreach my $by (keys %{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
-            next if !@{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
-            my $notification_filter;
-            if (grep /0/, @{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
-                $notification_filter = 0;
-            } else {
-                $notification_filter = "(". (join ' | ', @{$host_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
-            }
-            dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
-        }
-    }
-
     if(defined($host_2x->{'notification_period'})) {
         dump_config_line($icinga2_cfg, "\tnotification_period = \"$host_2x->{'notification_period'}\",");
     }
@@ -996,6 +983,19 @@ sub dump_notification_2x {
     if(defined($notification_2x->{'usergroups'}) && @{$notification_2x->{'usergroups'}} > 0) {
         my $service_usergroups = join '", "', @{$notification_2x->{'usergroups'}};
         dump_config_line($icinga2_cfg, "\tusergroups = [ \"$service_usergroups\" ],");
+    }
+
+    if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+        foreach my $by (keys %{$notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+            next if !@{$notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
+            my $notification_filter;
+            if (grep /0/, @{$notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                $notification_filter = 0;
+            } else {
+                $notification_filter = "(". (join ' | ', @{$notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+            }
+            dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
+        }
     }
 
     # this is set for escalations

@@ -1325,6 +1325,10 @@ sub convert_2x {
             if(defined($obj_1x_service->{'notification_options'})) {
                 $cfg_obj_2x->{'service'}->{$service_cnt}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = convert_notification_options_to_filter($obj_1x_service->{'notification_options'});
                 #say Dumper($cfg_obj_2x->{'service'}->{$service_cnt});
+            } else {
+                # fetch them from template tree for later notification object mapping
+                my $notification_options = obj_1x_get_service_attr($cfg_obj_1x, $obj_1x_service, $service_host_name, 'notification_options');
+                $cfg_obj_2x->{'service'}->{$service_cnt}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = convert_notification_options_to_filter($notification_options);
             }
 
             ##########################################
@@ -1586,6 +1590,10 @@ sub convert_2x {
         if(defined($obj_1x_host->{'notification_options'})) {
             $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = convert_notification_options_to_filter($obj_1x_host->{'notification_options'});
             #say Dumper($cfg_obj_2x->{'host'}->{$host_obj_1x_key});
+        } else {
+            # fetch them from template tree for later notification object mapping
+            my $notification_options = obj_1x_get_host_attr($cfg_obj_1x, $obj_1x_host, 'notification_options');
+            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = convert_notification_options_to_filter($notification_options);
         }
 
         if(defined($obj_1x_host->{'parents'})) {
@@ -2315,9 +2323,22 @@ sub convert_2x {
         # now loop and fetch objects, and their needed notification values as array
         # (prepared above - look for $user_notification->{$notification_command_name_2x}...)
         foreach my $uniq_user (@uniq_users) {
+
             my $obj_2x_user = obj_get_user_obj_by_user_name($cfg_obj_2x, $uniq_user);
+
+            #say Dumper($obj_2x_user);
             push @{$cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATIONS'}}, $obj_2x_user->{'__I2CONVERT_NOTIFICATIONS'};
             # we'll add a reference to all notifications here. decide on dump which object type is given, and dump only those notifications!
+        }
+
+        # inherit notification filters from service to all newly created notifications
+        foreach my $notification (@{$cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATIONS'}}) {
+            foreach my $notification_key (keys %{$notification}) {
+                next if $notification->{$notification_key}->{'type'} ne 'service';
+
+                $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'};
+                say Dumper($notification);
+            }
         }
         #say Dumper($obj_2x_service);
 
