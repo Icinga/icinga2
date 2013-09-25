@@ -67,7 +67,7 @@ private:
 
         /* History */
         static void AddAcknowledgement(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
-        static void AddNotification(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text, unsigned long notified_users);
+        static void AddNotification(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text);
 
 };
 

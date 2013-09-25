@@ -49,7 +49,7 @@ void ServiceDbObject::StaticInitialize(void)
 
 	/* History */
 	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgement, _1, _2, _3, _4, _5, _6));
-	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotification, _1, _2, _3, _4, _5, _6, _7));
+	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotification, _1, _2, _3, _4, _5, _6));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -786,7 +786,7 @@ void ServiceDbObject::AddAcknowledgement(const Service::Ptr& service, const Stri
 }
 
 void ServiceDbObject::AddNotification(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
-				      const Dictionary::Ptr& cr, const String& author, const String& text, unsigned long notified_users)
+				      const Dictionary::Ptr& cr, const String& author, const String& text)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -823,7 +823,7 @@ void ServiceDbObject::AddNotification(const Service::Ptr& service, const std::se
 	}
 
 	fields1->Set("escalated", 0);
-	fields1->Set("contacts_notified", notified_users);
+	fields1->Set("contacts_notified", users.size());
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	query1.Fields = fields1;
@@ -856,7 +856,7 @@ void ServiceDbObject::AddNotification(const Service::Ptr& service, const std::se
 		}
 
 		fields2->Set("escalated", 0);
-		fields2->Set("contacts_notified", notified_users);
+		fields2->Set("contacts_notified", users.size());
 		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		query2.Fields = fields2;

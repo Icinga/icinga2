@@ -303,7 +303,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 		notified_users++;
 	}
 
-	Service::OnNotificationSentToAllUsers(GetService(), allUsers, type, cr, author, text, notified_users);
+	Service::OnNotificationSentToAllUsers(GetService(), allUsers, type, cr, author, text);
 }
 
 void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force, const String& author, const String& text)

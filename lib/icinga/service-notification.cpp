@@ -31,7 +31,7 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&, unsigned long)> Service::OnNotificationSentToAllUsers;
+boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationSentToAllUsers;
 boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationSentToUser;
 
 Dictionary::Ptr Service::GetNotificationDescriptions(void) const
