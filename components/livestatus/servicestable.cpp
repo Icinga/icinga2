@@ -762,7 +762,7 @@ Value ServicesTable::ContactsAccessor(const Value& row)
 
 		std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
 
-		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetGroups()) {
+		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetUserGroups()) {
 			std::set<User::Ptr> members = ug->GetMembers();
 			std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
                 }
@@ -1029,7 +1029,7 @@ Value ServicesTable::ContactGroupsAccessor(const Value& row)
 	BOOST_FOREACH(const Notification::Ptr& notification, static_cast<Service::Ptr>(row)->GetNotifications()) {
 		ObjectLock olock(notification);
 
-		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetGroups()) {
+		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetUserGroups()) {
 			contactgroups->Add(ug->GetName());
                 }
         }

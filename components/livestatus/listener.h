@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef LIVESTATUSCOMPONENT_H
-#define LIVESTATUSCOMPONENT_H
+#ifndef LIVESTATUSLISTENER_H
+#define LIVESTATUSLISTENER_H
 
 #include "livestatus/query.h"
 #include "base/dynamicobject.h"
@@ -33,13 +33,15 @@ namespace livestatus
 /**
  * @ingroup livestatus
  */
-class LivestatusComponent : public DynamicObject
+class LivestatusListener : public DynamicObject
 {
 public:
+	DECLARE_PTR_TYPEDEFS(LivestatusListener);
+
 	String GetSocketType(void) const;
 	String GetSocketPath(void) const;
-	String GetHost(void) const;
-	String GetPort(void) const;
+	String GetBindHost(void) const;
+	String GetBindPort(void) const;
 
 	static int GetClientsConnected(void);
 	static int GetConnections(void);
@@ -53,8 +55,8 @@ protected:
 private:
 	String m_SocketType;
 	String m_SocketPath;
-	String m_Host;
-	String m_Port;
+	String m_BindHost;
+	String m_BindPort;
 
 	void ServerThreadProc(const Socket::Ptr& server);
 	void ClientThreadProc(const Socket::Ptr& client);
@@ -62,4 +64,4 @@ private:
 
 }
 
-#endif /* LIVESTATUSCOMPONENT_H */
+#endif /* LIVESTATUSLISTENER_H */

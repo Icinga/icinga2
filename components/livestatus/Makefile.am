@@ -26,8 +26,6 @@ liblivestatus_la_SOURCES = \
 	commandstable.h \
 	commentstable.cpp \
 	commentstable.h \
-	component.cpp \
-	component.h \
 	contactgroupstable.cpp \
 	contactgroupstable.h \
 	contactstable.cpp \
@@ -46,6 +44,8 @@ liblivestatus_la_SOURCES = \
 	invavgaggregator.h \
 	invsumaggregator.cpp \
 	invsumaggregator.h \
+	listener.cpp \
+	listener.h \
 	livestatus-type.conf \
 	logtable.cpp \
 	logtable.h \

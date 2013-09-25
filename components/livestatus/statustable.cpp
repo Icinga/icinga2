@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/statustable.h"
-#include "livestatus/component.h"
+#include "livestatus/listener.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
 #include "icinga/host.h"
@@ -138,12 +138,12 @@ Value StatusTable::RequestsRateAccessor(const Value& row)
 
 Value StatusTable::ConnectionsAccessor(const Value& row)
 {
-	return LivestatusComponent::GetConnections();
+	return LivestatusListener::GetConnections();
 }
 
 Value StatusTable::ConnectionsRateAccessor(const Value& row)
 {
-	return (LivestatusComponent::GetConnections() / (Utility::GetTime() - IcingaApplication::GetInstance()->GetStartTime()));
+	return (LivestatusListener::GetConnections() / (Utility::GetTime() - IcingaApplication::GetInstance()->GetStartTime()));
 }
 
 Value StatusTable::ServiceChecksAccessor(const Value& row)
@@ -380,7 +380,7 @@ Value StatusTable::LivestatusVersionAccessor(const Value& row)
 
 Value StatusTable::LivestatusActiveConnectionsAccessor(const Value& row)
 {
-	return LivestatusComponent::GetClientsConnected();
+	return LivestatusListener::GetClientsConnected();
 }
 
 Value StatusTable::LivestatusQueuedConnectionsAccessor(const Value& row)

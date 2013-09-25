@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/component.h"
+#include "livestatus/listener.h"
 #include "base/objectlock.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
@@ -30,7 +30,7 @@
 using namespace icinga;
 using namespace livestatus;
 
-REGISTER_TYPE(LivestatusComponent);
+REGISTER_TYPE(LivestatusListener);
 
 static int l_ClientsConnected = 0;
 static int l_Connections = 0;
@@ -39,15 +39,15 @@ static boost::mutex l_ComponentMutex;
 /**
  * Starts the component.
  */
-void LivestatusComponent::Start(void)
+void LivestatusListener::Start(void)
 {
 	DynamicObject::Start();
 
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
-		socket->Bind(GetHost(), GetPort(), AF_INET);
+		socket->Bind(GetBindHost(), GetBindPort(), AF_INET);
 
-		boost::thread thread(boost::bind(&LivestatusComponent::ServerThreadProc, this, socket));
+		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
 	}
 	else if (GetSocketType() == "unix") {
@@ -55,7 +55,7 @@ void LivestatusComponent::Start(void)
 		UnixSocket::Ptr socket = boost::make_shared<UnixSocket>();
 		socket->Bind(GetSocketPath());
 
-		boost::thread thread(boost::bind(&LivestatusComponent::ServerThreadProc, this, socket));
+		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
 #else
 		/* no unix sockets on windows */
@@ -65,7 +65,7 @@ void LivestatusComponent::Start(void)
 	}
 }
 
-String LivestatusComponent::GetSocketType(void) const
+String LivestatusListener::GetSocketType(void) const
 {
 	Value socketType = m_SocketType;
 	if (socketType.IsEmpty())
@@ -74,7 +74,7 @@ String LivestatusComponent::GetSocketType(void) const
 		return socketType;
 }
 
-String LivestatusComponent::GetSocketPath(void) const
+String LivestatusListener::GetSocketPath(void) const
 {
 	Value socketPath = m_SocketPath;
 	if (socketPath.IsEmpty())
@@ -83,39 +83,37 @@ String LivestatusComponent::GetSocketPath(void) const
 		return socketPath;
 }
 
-String LivestatusComponent::GetHost(void) const
+String LivestatusListener::GetBindHost(void) const
 {
-	Value node = m_Host;
-	if (node.IsEmpty())
+	if (m_BindHost.IsEmpty())
 		return "127.0.0.1";
 	else
-		return node;
+		return m_BindHost;
 }
 
-String LivestatusComponent::GetPort(void) const
+String LivestatusListener::GetBindPort(void) const
 {
-	Value service = m_Port;
-	if (service.IsEmpty())
+	if (m_BindPort.IsEmpty())
 		return "6558";
 	else
-		return service;
+		return m_BindPort;
 }
 
-int LivestatusComponent::GetClientsConnected(void)
+int LivestatusListener::GetClientsConnected(void)
 {
 	boost::mutex::scoped_lock lock(l_ComponentMutex);
 
 	return l_ClientsConnected;
 }
 
-int LivestatusComponent::GetConnections(void)
+int LivestatusListener::GetConnections(void)
 {
 	boost::mutex::scoped_lock lock(l_ComponentMutex);
 
 	return l_Connections;
 }
 
-void LivestatusComponent::ServerThreadProc(const Socket::Ptr& server)
+void LivestatusListener::ServerThreadProc(const Socket::Ptr& server)
 {
 	server->Listen();
 
@@ -124,12 +122,12 @@ void LivestatusComponent::ServerThreadProc(const Socket::Ptr& server)
 
 		Log(LogInformation, "livestatus", "Client connected");
 
-		boost::thread thread(boost::bind(&LivestatusComponent::ClientThreadProc, this, client));
+		boost::thread thread(boost::bind(&LivestatusListener::ClientThreadProc, this, client));
 		thread.detach();
 	}
 }
 
-void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
+void LivestatusListener::ClientThreadProc(const Socket::Ptr& client)
 {
 	{
 		boost::mutex::scoped_lock lock(l_ComponentMutex);
@@ -163,26 +161,26 @@ void LivestatusComponent::ClientThreadProc(const Socket::Ptr& client)
 	}
 }
 
-void LivestatusComponent::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
+void LivestatusListener::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
 {
 	DynamicObject::InternalSerialize(bag, attributeTypes);
 
 	if (attributeTypes & Attribute_Config) {
 		bag->Set("socket_type", m_SocketType);
 		bag->Set("socket_path", m_SocketPath);
-		bag->Set("host", m_Host);
-		bag->Set("port", m_Port);
+		bag->Set("bind_host", m_BindHost);
+		bag->Set("bind_port", m_BindPort);
 	}
 }
 
-void LivestatusComponent::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
+void LivestatusListener::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 {
 	DynamicObject::InternalDeserialize(bag, attributeTypes);
 
 	if (attributeTypes & Attribute_Config) {
 		m_SocketType = bag->Get("socket_type");
 		m_SocketPath = bag->Get("socket_path");
-		m_Host = bag->Get("host");
-		m_Port = bag->Get("port");
+		m_BindHost = bag->Get("bind_host");
+		m_BindPort = bag->Get("bind_port");
 	}
 }
