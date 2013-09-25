@@ -48,7 +48,7 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnDowntimeTriggered.connect(boost::bind(&ServiceDbObject::TriggerDowntime, _1, _2));
 
 	/* History */
-	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgement, _1, _2, _3, _4, _5, _6));
+	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgement, _1, _2, _3, _4, _5));
 	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotification, _1, _2, _3, _4, _5, _6));
 }
 
@@ -729,7 +729,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 }
 
 void ServiceDbObject::AddAcknowledgement(const Service::Ptr& service, const String& author, const String& comment,
-					 AcknowledgementType type, double expiry, const String& authority)
+    AcknowledgementType type, double expiry)
 {
 	Host::Ptr host = service->GetHost();
 

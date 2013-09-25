@@ -100,8 +100,8 @@ Dictionary::Ptr CompatUtility::GetHostConfigAttributes(const Host::Ptr& host)
 	Service::Ptr service = host->GetCheckService();
 
 	if (service) {
-		unsigned long notification_type_filter;
-		unsigned long notification_state_filter;
+		unsigned long notification_type_filter = 0;
+		unsigned long notification_state_filter = 0;
 
 		ObjectLock olock(service);
 
@@ -308,8 +308,8 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 
 	double notification_interval = -1;
 	String notification_period;
-	unsigned long notification_type_filter;
-	unsigned long notification_state_filter;
+	unsigned long notification_type_filter = 0;
+	unsigned long notification_state_filter = 0;
 
 	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
 		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
@@ -324,7 +324,7 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 		if (notification->GetNotificationStateFilter())
 			notification_state_filter = notification->GetNotificationStateFilter();
 
-		Log(LogDebug, "compatutility", "notification_type_filter: " + Convert::ToString(notification_type_filter) + " notification_state_filter: " + Convert::ToString(notification_state_filter));
+		Log(LogDebug, "icinga", "notification_type_filter: " + Convert::ToString(notification_type_filter) + " notification_state_filter: " + Convert::ToString(notification_state_filter));
 	}
 
 
@@ -454,7 +454,7 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr&
 	} else if (object->GetType() == DynamicType::GetByName("User")) {
 		custom = static_pointer_cast<User>(object)->GetCustom();
 	} else {
-		Log(LogDebug, "compatutility", "unknown object type for custom vars");
+		Log(LogDebug, "icinga", "unknown object type for custom vars");
 		return Dictionary::Ptr();
 	}
 
