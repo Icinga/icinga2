@@ -357,7 +357,7 @@ sub dump_service_2x {
     # servicedependencies (1.x deps)
     ####################################################
     if(defined($service_2x->{'__I2CONVERT_PARENT_SERVICES'})) {
-        dump_config_line($icinga2_cfg, "\tservicedependencies = [");
+        dump_config_line($icinga2_cfg, "\tservice_dependencies = [");
 
         #say Dumper($service_2x);
         # this is a hash with keys
@@ -551,7 +551,7 @@ sub dump_host_2x {
     ####################################################
     if(defined($host_2x->{'__I2CONVERT_PARENT_HOSTNAMES'})) {
         my $hostdependency_hosts = join '", "', @{$host_2x->{'__I2CONVERT_PARENT_HOSTNAMES'}};
-        dump_config_line($icinga2_cfg, "\thostdependencies = [ \"$hostdependency_hosts\" ],");
+        dump_config_line($icinga2_cfg, "\thost_dependencies = [ \"$hostdependency_hosts\" ],");
     }
 
     ####################################################

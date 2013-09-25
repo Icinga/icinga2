@@ -2351,7 +2351,6 @@ sub convert_2x {
                 $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'};
                 $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_INTERVAL'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'notification_interval'};
                 $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_PERIOD'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'notification_period'};
-                say Dumper($notification);
             }
         }
         #say Dumper($obj_2x_service);
