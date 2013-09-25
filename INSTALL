@@ -13,7 +13,7 @@ Build Requirements
 
 The following requirements need to be fulfilled in order to build the
 application using a dist tarball (package names for RHEL and Debian in
-parenthesis):
+parentheses):
 
 * GNU make (make)
 * C++ compiler (gcc-c++ on RHEL, build-essential on Debian)
