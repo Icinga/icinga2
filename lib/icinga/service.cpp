@@ -123,7 +123,7 @@ Array::Ptr Service::GetServiceDependencies(void) const
 
 Array::Ptr Service::GetGroups(void) const
 {
-	return m_ServiceGroups;
+	return m_Groups;
 }
 
 String Service::GetHostName(void) const
@@ -414,7 +414,7 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("macros", m_Macros);
 		bag->Set("host_dependencies", m_HostDependencies);
 		bag->Set("service_dependencies", m_ServiceDependencies);
-		bag->Set("servicegroups", m_ServiceGroups);
+		bag->Set("groups", m_Groups);
 		bag->Set("check_command", m_CheckCommand);
 		bag->Set("max_check_attempts", m_MaxCheckAttempts);
 		bag->Set("check_period", m_CheckPeriod);
@@ -472,7 +472,7 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_Macros = bag->Get("macros");
 		m_HostDependencies = bag->Get("host_dependencies");
 		m_ServiceDependencies = bag->Get("service_dependencies");
-		m_ServiceGroups = bag->Get("servicegroups");
+		m_Groups = bag->Get("groups");
 		m_CheckCommand = bag->Get("check_command");
 		m_MaxCheckAttempts = bag->Get("max_check_attempts");
 		m_CheckPeriod = bag->Get("check_period");
