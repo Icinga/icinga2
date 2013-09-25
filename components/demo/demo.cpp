@@ -17,32 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "demo/democomponent.h"
+#include "demo/demo.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
-REGISTER_TYPE(DemoComponent);
+REGISTER_TYPE(Demo);
 
 /**
  * Starts the component.
  */
-void DemoComponent::Start(void)
+void Demo::Start(void)
 {
 	DynamicObject::Start();
 
 	m_DemoTimer = boost::make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);
-	m_DemoTimer->OnTimerExpired.connect(boost::bind(&DemoComponent::DemoTimerHandler, this));
+	m_DemoTimer->OnTimerExpired.connect(boost::bind(&Demo::DemoTimerHandler, this));
 	m_DemoTimer->Start();
 }
 
 /**
  * Stops the component.
  */
-void DemoComponent::Stop(void)
+void Demo::Stop(void)
 {
 	/* Nothing to do here. */
 }
@@ -52,7 +52,7 @@ void DemoComponent::Stop(void)
  *
  * @param - Event arguments for the timer.
  */
-void DemoComponent::DemoTimerHandler(void)
+void Demo::DemoTimerHandler(void)
 {
 	Log(LogInformation, "demo", "Hello World!");
 }

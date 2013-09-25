@@ -10,8 +10,8 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 libdemo_la_SOURCES = \
-	democomponent.cpp \
-	democomponent.h \
+	demo.cpp \
+	demo.h \
 	demo-type.conf
 
 libdemo_la_CPPFLAGS = \

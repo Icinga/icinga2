@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DEMOCOMPONENT_H
-#define DEMOCOMPONENT_H
+#ifndef DEMO_H
+#define DEMO_H
 
 #include "base/dynamicobject.h"
 #include "base/timer.h"
@@ -29,11 +29,11 @@ namespace icinga
 /**
  * @ingroup demo
  */
-class DemoComponent : public DynamicObject
+class Demo : public DynamicObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(DemoComponent);
-	DECLARE_TYPENAME(DemoComponent);
+	DECLARE_PTR_TYPEDEFS(Demo);
+	DECLARE_TYPENAME(Demo);
 
 	virtual void Start(void);
 	virtual void Stop(void);
@@ -46,4 +46,4 @@ private:
 
 }
 
-#endif /* DEMOCOMPONENT_H */
+#endif /* DEMO_H */
