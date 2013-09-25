@@ -345,7 +345,7 @@ private:
 	Dictionary::Ptr m_Macros;
 	Array::Ptr m_HostDependencies;
 	Array::Ptr m_ServiceDependencies;
-	Array::Ptr m_ServiceGroups;
+	Array::Ptr m_Groups;
 	String m_ShortName;
 	Value m_Acknowledgement;
 	Value m_AcknowledgementExpiry;
