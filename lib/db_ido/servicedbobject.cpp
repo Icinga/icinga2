@@ -190,7 +190,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 
 	/* service dependencies */
-	Log(LogDebug, "ido", "service dependencies for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "service dependencies for '" + service->GetName() + "'");
 
 	DbQuery query_del1;
 	query_del1.Table = GetType()->GetTable() + "dependencies";
@@ -200,7 +200,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	OnQuery(query_del1);
 
 	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
-		Log(LogDebug, "ido", "service parents: " + parent->GetName());
+		Log(LogDebug, "db_ido", "service parents: " + parent->GetName());
 
                 /* service dependencies */
                 Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
@@ -216,7 +216,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	}
 
 	/* custom variables */
-	Log(LogDebug, "ido", "service customvars for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "service customvars for '" + service->GetName() + "'");
 
 	DbQuery query_del2;
 	query_del2.Table = "customvariables";
@@ -238,7 +238,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 		String key;
 		Value value;
 		BOOST_FOREACH(boost::tie(key, value), customvars) {
-			Log(LogDebug, "ido", "service customvar key: '" + key + "' value: '" + Convert::ToString(value) + "'");
+			Log(LogDebug, "db_ido", "service customvar key: '" + key + "' value: '" + Convert::ToString(value) + "'");
 
 			Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
 			fields2->Set("varname", Convert::ToString(key));
@@ -324,18 +324,18 @@ void ServiceDbObject::AddComment(const Service::Ptr& service, const Dictionary::
 		return;
 
 	if (!comment) {
-		Log(LogWarning, "ido", "comment does not exist. not adding it.");
+		Log(LogWarning, "db_ido", "comment does not exist. not adding it.");
 		return;
 	}
 
-	Log(LogDebug, "ido", "adding service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "adding service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
 	/* add the service comment */
 	AddCommentByType(service, comment);
 
 	/* add the hostcheck service comment to the host as well */
 	if (host->GetCheckService() == service) {
-		Log(LogDebug, "ido", "adding host comment (id = " + comment->Get("legacy_id") + ") for '" + host->GetName() + "'");
+		Log(LogDebug, "db_ido", "adding host comment (id = " + comment->Get("legacy_id") + ") for '" + host->GetName() + "'");
 		AddCommentByType(host, comment);
 	}
 }
@@ -359,7 +359,7 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 		fields1->Set("comment_type", 1);
 		fields1->Set("internal_comment_id", comment->Get("legacy_id"));
 	} else {
-		Log(LogDebug, "ido", "unknown object type for adding comment.");
+		Log(LogDebug, "db_ido", "unknown object type for adding comment.");
 		return;
 	}
 
@@ -394,7 +394,7 @@ void ServiceDbObject::RemoveComments(const Service::Ptr& service)
 	if (!host)
 		return;
 
-	Log(LogDebug, "ido", "removing service comments for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "removing service comments for '" + service->GetName() + "'");
 
 	DbQuery query1;
 	query1.Table = "comments";
@@ -422,11 +422,11 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 		return;
 
 	if (!comment) {
-		Log(LogWarning, "ido", "comment does not exist. not deleting it.");
+		Log(LogWarning, "db_ido", "comment does not exist. not deleting it.");
 		return;
 	}
 
-	Log(LogDebug, "ido", "removing service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "removing service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
 	/* Status */
 	DbQuery query1;
@@ -496,18 +496,18 @@ void ServiceDbObject::AddDowntime(const Service::Ptr& service, const Dictionary:
 		return;
 
 	if (!downtime) {
-		Log(LogWarning, "ido", "downtime does not exist. not adding it.");
+		Log(LogWarning, "db_ido", "downtime does not exist. not adding it.");
 		return;
 	}
 
-	Log(LogDebug, "ido", "adding service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "adding service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
 	/* add the service downtime */
 	AddDowntimeByType(service, downtime);
 
 	/* add the hostcheck service downtime to the host as well */
 	if (host->GetCheckService() == service) {
-		Log(LogDebug, "ido", "adding host downtime (id = " + downtime->Get("legacy_id") + ") for '" + host->GetName() + "'");
+		Log(LogDebug, "db_ido", "adding host downtime (id = " + downtime->Get("legacy_id") + ") for '" + host->GetName() + "'");
 		AddDowntimeByType(host, downtime);
 	}
 }
@@ -526,7 +526,7 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 		fields1->Set("downtime_type", 1);
 		fields1->Set("internal_downtime_id", downtime->Get("legacy_id"));
 	} else {
-		Log(LogDebug, "ido", "unknown object type for adding downtime.");
+		Log(LogDebug, "db_ido", "unknown object type for adding downtime.");
 		return;
 	}
 
@@ -565,7 +565,7 @@ void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
 	if (!host)
 		return;
 
-	Log(LogDebug, "ido", "removing service downtimes for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "removing service downtimes for '" + service->GetName() + "'");
 
 	DbQuery query1;
 	query1.Table = "scheduleddowntime";
@@ -593,11 +593,11 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictiona
 		return;
 
 	if (!downtime) {
-		Log(LogWarning, "ido", "downtime does not exist. not adding it.");
+		Log(LogWarning, "db_ido", "downtime does not exist. not adding it.");
 		return;
 	}
 
-	Log(LogDebug, "ido", "removing service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "removing service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
 	/* Status */
 	DbQuery query1;
@@ -652,11 +652,11 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 		return;
 
 	if (!downtime) {
-		Log(LogWarning, "ido", "downtime does not exist. not updating it.");
+		Log(LogWarning, "db_ido", "downtime does not exist. not updating it.");
 		return;
 	}
 
-	Log(LogDebug, "ido", "updating triggered service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "updating triggered service downtime (id = " + downtime->Get("legacy_id") + ") for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
 	unsigned long actual_start_time = static_cast<long>(now);
@@ -736,7 +736,7 @@ void ServiceDbObject::AddAcknowledgement(const Service::Ptr& service, const Stri
 	if (!host)
 		return;
 
-	Log(LogDebug, "ido", "add acknowledgement for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "add acknowledgement for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
 	unsigned long entry_time = static_cast<long>(now);
@@ -793,7 +793,7 @@ void ServiceDbObject::AddNotification(const Service::Ptr& service, const std::se
 	if (!host)
 		return;
 
-	Log(LogDebug, "ido", "add notification for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "add notification for '" + service->GetName() + "'");
 
 	/* start and end happen at the same time */
 	double now = Utility::GetTime();
