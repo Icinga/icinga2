@@ -27,6 +27,30 @@
 namespace icinga
 {
 
+enum LogEntryType
+{
+    LogEntryTypeRuntimeError = 1,
+    LogEntryTypeRuntimeWarning = 2,
+    LogEntryTypeVerificationError = 4,
+    LogEntryTypeVerificationWarning = 8,
+    LogEntryTypeConfigError = 16,
+    LogEntryTypeConfigWarning = 32,
+    LogEntryTypeProcessInfo = 64,
+    LogEntryTypeEventHandler = 128,
+    LogEntryTypeExternalCommand = 512,
+    LogEntryTypeHostUp = 1024,
+    LogEntryTypeHostDown = 2048,
+    LogEntryTypeHostUnreachable = 4096,
+    LogEntryTypeServiceOk = 8192,
+    LogEntryTypeServiceUnknown = 16384,
+    LogEntryTypeServiceWarning = 32768,
+    LogEntryTypeServiceCritical = 65536,
+    LogEntryTypePassiveCheck = 1231072,
+    LogEntryTypeInfoMessage = 262144,
+    LogEntryTypeHostNotification = 524288,
+    LogEntryTypeServiceNotification = 1048576
+};
+
 /**
  * A Service database object.
  *
@@ -61,8 +85,9 @@ private:
         static void AddDowntimes(const Service::Ptr& service);
         static void RemoveDowntimes(const Service::Ptr& service);
 
-        /* Status */
+        static void AddLogHistory(const Service::Ptr& service, String buffer, LogEntryType type);
 
+        /* Status */
 	static void AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
 	static void RemoveComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
 
@@ -77,6 +102,11 @@ private:
         static void AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text);
         static void AddStateChangeHistory(const Service::Ptr& service, const Dictionary::Ptr& cr, StateType type);
 
+        static void AddCheckResultLogHistory(const Service::Ptr& service, const Dictionary::Ptr &cr);
+        static void AddTriggerDowntimeLogHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+        static void AddRemoveDowntimeLogHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+        static void AddNotificationSentLogHistory(const Service::Ptr& service, const User::Ptr& user, NotificationType const& notification_type, Dictionary::Ptr const& cr, const String& author, const String& comment_text);
+        static void AddFlappingLogHistory(const Service::Ptr& service, FlappingState flapping_state);
 };
 
 }

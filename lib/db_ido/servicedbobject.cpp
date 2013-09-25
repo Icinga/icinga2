@@ -54,6 +54,12 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotificationHistory, _1, _2, _3, _4, _5, _6));
 
 	Service::OnStateChange.connect(boost::bind(&ServiceDbObject::AddStateChangeHistory, _1, _2, _3));
+
+	Service::OnNewCheckResult.connect(bind(&ServiceDbObject::AddCheckResultLogHistory, _1, _2));
+	Service::OnNotificationSentToUser.connect(bind(&ServiceDbObject::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6));
+	Service::OnFlappingChanged.connect(bind(&ServiceDbObject::AddFlappingLogHistory, _1, _2));
+	Service::OnDowntimeTriggered.connect(boost::bind(&ServiceDbObject::AddTriggerDowntimeLogHistory, _1, _2));
+	Service::OnDowntimeRemoved.connect(boost::bind(&ServiceDbObject::AddRemoveDowntimeLogHistory, _1, _2));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -855,4 +861,323 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const D
 		query1.Fields = fields1;
 		OnQuery(query1);
 	}
+}
+
+void ServiceDbObject::AddCheckResultLogHistory(const Service::Ptr& service, const Dictionary::Ptr &cr)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Dictionary::Ptr vars_after = cr->Get("vars_after");
+
+	long state_after = vars_after->Get("state");
+	long stateType_after = vars_after->Get("state_type");
+	long attempt_after = vars_after->Get("attempt");
+	bool reachable_after = vars_after->Get("reachable");
+	bool host_reachable_after = vars_after->Get("host_reachable");
+
+	Dictionary::Ptr vars_before = cr->Get("vars_before");
+
+	if (vars_before) {
+		long state_before = vars_before->Get("state");
+		long stateType_before = vars_before->Get("state_type");
+		long attempt_before = vars_before->Get("attempt");
+		bool reachable_before = vars_before->Get("reachable");
+
+		if (state_before == state_after && stateType_before == stateType_after &&
+		    attempt_before == attempt_after && reachable_before == reachable_after)
+			return; /* Nothing changed, ignore this checkresult. */
+	}
+
+	LogEntryType type;
+	switch (service->GetState()) {
+		case StateOK:
+			type = LogEntryTypeServiceOk;
+			break;
+		case StateUnknown:
+			type = LogEntryTypeServiceUnknown;
+			break;
+		case StateWarning:
+			type = LogEntryTypeServiceWarning;
+			break;
+		case StateCritical:
+			type = LogEntryTypeServiceCritical;
+			break;
+		default:
+			Log(LogCritical, "db_ido", "Unknown service state: " + Convert::ToString(state_after));
+			return;
+	}
+
+        String output;
+
+        if (cr) {
+		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag->Get("output");
+        }
+
+	std::ostringstream msgbuf;
+	msgbuf << "SERVICE ALERT: "
+	       << host->GetName() << ";"
+	       << service->GetShortName() << ";"
+	       << Service::StateToString(static_cast<ServiceState>(state_after)) << ";"
+	       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
+	       << attempt_after << ";"
+	       << output << ""
+	       << "";
+
+	AddLogHistory(service, msgbuf.str(), type);
+
+	if (service == host->GetCheckService()) {
+		std::ostringstream msgbuf;
+		msgbuf << "HOST ALERT: "
+		       << host->GetName() << ";"
+		       << Host::StateToString(Host::CalculateState(static_cast<ServiceState>(state_after), host_reachable_after)) << ";"
+		       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
+		       << attempt_after << ";"
+		       << output << ""
+		       << "";
+
+		switch (host->GetState()) {
+			case HostUp:
+				type = LogEntryTypeHostUp;
+				break;
+			case HostDown:
+				type = LogEntryTypeHostDown;
+				break;
+			case HostUnreachable:
+				type = LogEntryTypeHostUnreachable;
+				break;
+			default:
+				Log(LogCritical, "db_ido", "Unknown host state: " + Convert::ToString(state_after));
+				return;
+		}
+
+		AddLogHistory(service, msgbuf.str(), type);
+	}
+}
+
+void ServiceDbObject::AddTriggerDowntimeLogHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (!downtime)
+		return;
+
+	std::ostringstream msgbuf;
+	msgbuf << "SERVICE DOWNTIME ALERT: "
+		<< host->GetName() << ";"
+		<< service->GetShortName() << ";"
+		<< "STARTED" << "; "
+		<< "Service has entered a period of scheduled downtime."
+		<< "";
+
+	AddLogHistory(service, msgbuf.str(), LogEntryTypeInfoMessage);
+
+	if (service == host->GetCheckService()) {
+		std::ostringstream msgbuf;
+		msgbuf << "HOST DOWNTIME ALERT: "
+			<< host->GetName() << ";"
+			<< "STARTED" << "; "
+			<< "Service has entered a period of scheduled downtime."
+			<< "";
+
+		AddLogHistory(service, msgbuf.str(), LogEntryTypeInfoMessage);
+	}
+}
+
+void ServiceDbObject::AddRemoveDowntimeLogHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	if (!downtime)
+		return;
+
+	String downtime_output;
+	String downtime_state_str;
+
+	if (downtime->Get("was_cancelled") == true) {
+		downtime_output = "Scheduled downtime for service has been cancelled.";
+		downtime_state_str = "CANCELLED";
+	} else {
+		downtime_output = "Service has exited from a period of scheduled downtime.";
+		downtime_state_str = "STOPPED";
+	}
+
+	std::ostringstream msgbuf;
+	msgbuf << "SERVICE DOWNTIME ALERT: "
+		<< host->GetName() << ";"
+		<< service->GetShortName() << ";"
+		<< downtime_state_str << "; "
+		<< downtime_output
+		<< "";
+
+	AddLogHistory(service, msgbuf.str(), LogEntryTypeInfoMessage);
+
+	if (service == host->GetCheckService()) {
+		std::ostringstream msgbuf;
+		msgbuf << "HOST DOWNTIME ALERT: "
+			<< host->GetName() << ";"
+			<< downtime_state_str << "; "
+			<< downtime_output
+			<< "";
+
+		AddLogHistory(service, msgbuf.str(), LogEntryTypeInfoMessage);
+	}
+}
+
+void ServiceDbObject::AddNotificationSentLogHistory(const Service::Ptr& service, const User::Ptr& user,
+    NotificationType const& notification_type, Dictionary::Ptr const& cr,
+    const String& author, const String& comment_text)
+{
+        Host::Ptr host = service->GetHost();
+
+        if (!host)
+                return;
+
+	CheckCommand::Ptr commandObj = service->GetCheckCommand();
+
+	String check_command = "";
+	if (commandObj)
+		check_command = commandObj->GetName();
+
+	String notification_type_str = Notification::NotificationTypeToString(notification_type);
+
+	String author_comment = "";
+	if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {
+		author_comment = ";" + author + ";" + comment_text;
+	}
+
+        if (!cr)
+                return;
+
+        String output;
+
+        if (cr) {
+		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag->Get("output");
+        }
+
+        std::ostringstream msgbuf;
+        msgbuf << "SERVICE NOTIFICATION: "
+		<< user->GetName() << ";"
+                << host->GetName() << ";"
+                << service->GetShortName() << ";"
+                << notification_type_str << " "
+		<< "(" << Service::StateToString(service->GetState()) << ");"
+		<< check_command << ";"
+		<< output << author_comment
+                << "";
+
+        AddLogHistory(service, msgbuf.str(), LogEntryTypeServiceNotification);
+
+        if (service == host->GetCheckService()) {
+                std::ostringstream msgbuf;
+                msgbuf << "HOST NOTIFICATION: "
+			<< user->GetName() << ";"
+                        << host->GetName() << ";"
+			<< notification_type_str << " "
+			<< "(" << Service::StateToString(service->GetState()) << ");"
+			<< check_command << ";"
+			<< output << author_comment
+                        << "";
+
+                AddLogHistory(service, msgbuf.str(), LogEntryTypeHostNotification);
+        }
+}
+
+void ServiceDbObject::AddFlappingLogHistory(const Service::Ptr& service, FlappingState flapping_state)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	String flapping_state_str;
+	String flapping_output;
+
+	switch (flapping_state) {
+		case FlappingStarted:
+			flapping_output = "Service appears to have started flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change >= " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
+			flapping_state_str = "STARTED";
+			break;
+		case FlappingStopped:
+			flapping_output = "Service appears to have stopped flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change < " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
+			flapping_state_str = "STOPPED";
+			break;
+		case FlappingDisabled:
+			flapping_output = "Flap detection has been disabled";
+			flapping_state_str = "DISABLED";
+			break;
+		default:
+			Log(LogCritical, "db_ido", "Unknown flapping state: " + Convert::ToString(flapping_state));
+			return;
+	}
+
+        std::ostringstream msgbuf;
+        msgbuf << "SERVICE FLAPPING ALERT: "
+                << host->GetName() << ";"
+                << service->GetShortName() << ";"
+                << flapping_state_str << "; "
+                << flapping_output
+                << "";
+
+	AddLogHistory(service, msgbuf.str(), LogEntryTypeInfoMessage);
+
+        if (service == host->GetCheckService()) {
+                std::ostringstream msgbuf;
+                msgbuf << "HOST FLAPPING ALERT: "
+                        << host->GetName() << ";"
+                        << flapping_state_str << "; "
+                        << flapping_output
+                        << "";
+
+		AddLogHistory(service, msgbuf.str(), LogEntryTypeInfoMessage);
+        }
+}
+
+void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, LogEntryType type)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Log(LogDebug, "db_ido", "add log entry for '" + service->GetName() + "'");
+
+	double now = Utility::GetTime();
+	unsigned long entry_time = static_cast<long>(now);
+	unsigned long entry_time_usec = (now - entry_time) * 1000 * 1000;
+
+	DbQuery query1;
+	query1.Table = "logentries";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+	fields1->Set("logentry_time", DbValue::FromTimestamp(entry_time));
+	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
+	fields1->Set("entry_time_usec", entry_time_usec);
+	//fields1->Set("object_id", service); // not supported in 1.x see #4754
+	fields1->Set("logentry_type", type);
+	fields1->Set("logentry_data", buffer);
+
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	query1.Fields = fields1;
+	OnQuery(query1);
+
+	/*
+	if (host->GetCheckService() == service) {
+		//fields1->Set("object_id", host); // not supported in 1.x see #4754
+		query1.Fields = fields1;
+		OnQuery(query1);
+	}
+	*/
 }
