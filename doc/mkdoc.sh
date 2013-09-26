@@ -6,7 +6,7 @@ cat <<HTML
 <head>
 <link rel="stylesheet" type="text/css" href="toc.css" media="all" />
 <link rel="stylesheet" type="text/css" href="toc-print.css" media="print" />
-<xmp theme="united" style="display:none;">
+<xmp theme="cerulean" style="display:none;">
 HTML
 
 for file in *.md; do
@@ -26,6 +26,7 @@ cat <<HTML
     'selectors': 'h1,h2,h3,h4,h5,h6'
 });
 </script>
+<link rel="stylesheet" type="text/css" href="toc-margin.css" media="screen" />
 </head>
 <body>
 <div id="content" />
