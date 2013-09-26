@@ -29,7 +29,6 @@ icinga2_LDADD = \
 	-dlopen ${top_builddir}/components/checker/libchecker.la \
 	-dlopen ${top_builddir}/components/cluster/libcluster.la \
 	-dlopen ${top_builddir}/components/compat/libcompat.la \
-	-dlopen ${top_builddir}/components/db_ido_mysql/libdb_ido_mysql.la \
 	-dlopen ${top_builddir}/components/demo/libdemo.la \
 	-dlopen ${top_builddir}/components/livestatus/liblivestatus.la \
 	-dlopen ${top_builddir}/components/notification/libnotification.la
@@ -37,4 +36,9 @@ icinga2_LDADD = \
 if PYTHON_USE
 icinga2_LDADD += \
 	-dlopen ${top_builddir}/lib/python/libpython.la
+endif
+
+if MYSQL_USE
+icinga2_LDADD += \
+	-dlopen ${top_builddir}/components/db_ido_mysql/libdb_ido_mysql.la
 endif
