@@ -38,14 +38,6 @@ icinga2doc_DATA += \
 	$(AD_ENV) $(AD_ASCIIDOC) -d book -a toc -a numbered -o $@ $<
 endif AD_COND_doc
 
-icinga2.8: $(top_builddir)/icinga-app/icinga2
-	-$(HELP2MAN) --name='The Icinga 2 networking monitoring daemon.' --section=8 --no-info --output=$@ $(top_builddir)/icinga-app/icinga2
-
-# The icinga2.8 file is in EXTRA_DIST which means we need to build it when "make dist" is run.
-# Unfortunately in order to build this man page we need to build Icinga 2. Meh.
-$(top_builddir)/icinga-app/icinga2:
-	$(MAKE) -C  $(top_builddir)
-
 clean:
 	rm -f $(icinga2doc_DATA)
 

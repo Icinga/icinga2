@@ -18,7 +18,6 @@ BuildRequires: libtool-ltdl-devel
 BuildRequires: automake
 BuildRequires: autoconf
 BuildRequires: libtool
-BuildRequires: help2man
 BuildRequires: flex
 BuildRequires: bison
 

@@ -36,7 +36,6 @@ mentioned above:
                libltdl-dev on Debian)
 * GNU bison (bison)
 * GNU flex (flex)
-* GNU help2man (help2man)
 
 Building Icinga 2
 -----------------
