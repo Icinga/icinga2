@@ -24,7 +24,7 @@
 using namespace icinga;
 
 WorkQueue::WorkQueue(size_t maxItems)
-	: m_MaxItems(maxItems)
+	: m_MaxItems(maxItems), m_Executing(false)
 { }
 
 WorkQueue::~WorkQueue(void)
