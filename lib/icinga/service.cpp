@@ -336,7 +336,7 @@ void Service::SetCheckResultAuthority(const String& authority)
 String Service::GetCheckResultAuthority(void) const
 {
 	if (m_CheckResultAuthority.IsEmpty())
-		return "(local)";
+		return "(i2 local)";
 	else
 		return m_CheckResultAuthority;
 }

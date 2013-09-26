@@ -138,6 +138,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 		fields->Set("output", attrs->Get("plugin_output"));
 		fields->Set("long_output", attrs->Get("long_plugin_output"));
 		fields->Set("perfdata", attrs->Get("performance_data"));
+		fields->Set("check_source", attrs->Get("check_source"));
 		fields->Set("current_state", attrs->Get("current_state"));
 		fields->Set("has_been_checked", attrs->Get("has_been_checked"));
 		fields->Set("should_be_scheduled", attrs->Get("should_be_scheduled"));
