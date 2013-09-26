@@ -28,6 +28,14 @@
 namespace icinga
 {
 
+enum CleanUpAge
+{
+    CleanUpAgeNone = 0,
+    CleanUpAgeOneMonth = 44640,
+    CleanUpAgeOneMeek = 10080,
+    CleanUpAgeOneDay = 1440,
+};
+
 /**
  * A database connection.
  *
@@ -53,6 +61,22 @@ public:
 	bool GetStatusUpdate(const DbObject::Ptr& dbobj) const;
 
 	String GetTablePrefix(void) const;
+        Dictionary::Ptr GetCleanUp(void) const;
+        Value GetCleanUpAcknowledgementsAge(void) const;
+        Value GetCleanUpCommentHistoryAge(void) const;
+        Value GetCleanUpContactNotificationsAge(void) const;
+        Value GetCleanUpContactNotificationMethodsAge(void) const;
+        Value GetCleanUpDowntimeHistoryAge(void) const;
+        Value GetCleanUpEventHandlersAge(void) const;
+        Value GetCleanUpExternalCommandsAge(void) const;
+        Value GetCleanUpFlappingHistoryAge(void) const;
+        Value GetCleanUpHostChecksAge(void) const;
+        Value GetCleanUpLogEntriesAge(void) const;
+        Value GetCleanUpNotificationsAge(void) const;
+        Value GetCleanUpProcessEventsAge(void) const;
+        Value GetCleanUpStateHistoryAge(void) const;
+        Value GetCleanUpServiceChecksAge(void) const;
+        Value GetCleanUpSystemCommandsAge(void) const;
 
 protected:
 	virtual void Start(void);
@@ -64,15 +88,22 @@ protected:
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) = 0;
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj) = 0;
 
+        virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) = 0;
+
 	void UpdateAllObjects(void);
 
 private:
 	String m_TablePrefix;
+        Dictionary::Ptr m_CleanUp;
 
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<DbObject::Ptr, DbReference> m_InsertIDs;
 	std::set<DbObject::Ptr> m_ConfigUpdates;
 	std::set<DbObject::Ptr> m_StatusUpdates;
+        Timer::Ptr m_CleanUpTimer;
+
+        void CleanUpHandler(void);
+
 	static Timer::Ptr m_ProgramStatusTimer;
 
 	static void InsertRuntimeVariable(const String& key, const Value& value);

@@ -129,7 +129,7 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 
 		std::ostringstream msgbuf;
 		msgbuf << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID);
-		Log(LogInformation, "ido_mysql", msgbuf.str());
+		Log(LogInformation, "db_ido_mysql", msgbuf.str());
 
 		ClearConfigTables();
 
@@ -190,7 +190,7 @@ void IdoMysqlConnection::ClearConfigTable(const String& table)
 
 Array::Ptr IdoMysqlConnection::Query(const String& query)
 {
-	Log(LogDebug, "ido_mysql", "Query: " + query);
+	Log(LogDebug, "db_ido_mysql", "Query: " + query);
 
 	if (mysql_query(&m_Connection, query.CStr()) != 0)
 	    BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
@@ -382,10 +382,10 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 		where << " WHERE ";
 
 		ObjectLock olock(query.WhereCriteria);
-
 		String key;
 		Value value;
 		bool first = true;
+
 		BOOST_FOREACH(boost::tie(key, value), query.WhereCriteria) {
 			if (!FieldToEscapedString(key, value, &value))
 				return;
@@ -401,7 +401,7 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 	}
 
 	if ((query.Type & DbQueryInsert) && (query.Type & DbQueryUpdate)) {
-		bool hasid;
+		bool hasid = false;
 
 		ASSERT(query.Object);
 
@@ -487,6 +487,18 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 		if (type == DbQueryInsert && query.ConfigUpdate)
 			SetInsertID(query.Object, GetLastInsertID());
 	}
+}
+
+void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& time_key, double time_value)
+{
+	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+
+	if (!m_Connected)
+		return;
+
+	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
+	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_key +
+	    "<FROM_UNIXTIME(" + Convert::ToString(static_cast<long>(time_value)) + ")");
 }
 
 void IdoMysqlConnection::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const

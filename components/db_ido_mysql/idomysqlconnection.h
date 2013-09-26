@@ -51,6 +51,7 @@ protected:
 	virtual void ActivateObject(const DbObject::Ptr& dbobj);
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
 	virtual void ExecuteQuery(const DbQuery& query);
+        virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 private:
 	String m_Host;

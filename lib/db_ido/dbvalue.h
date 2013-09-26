@@ -54,6 +54,7 @@ public:
 	static bool IsTimestamp(const Value& value);
 	static bool IsTimestampNow(const Value& value);
 	static bool IsObjectInsertID(const Value& value);
+
 	static Value ExtractValue(const Value& value);
 
 	DbValueType GetType(void) const;
