@@ -603,6 +603,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	olock.Lock();
 	SetLastCheckResult(cr);
 
+	if (!authority.IsEmpty())
+		SetCheckResultAuthority(authority);
+
 	bool was_flapping, is_flapping;
 
 	was_flapping = IsFlapping();

@@ -328,6 +328,19 @@ std::set<Service::Ptr> Service::GetParentServices(void) const
 	return parents;
 }
 
+void Service::SetCheckResultAuthority(const String& authority)
+{
+	m_CheckResultAuthority = authority;
+}
+
+String Service::GetCheckResultAuthority(void) const
+{
+	if (m_CheckResultAuthority.IsEmpty())
+		return "(local)";
+	else
+		return m_CheckResultAuthority;
+}
+
 bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
 {
 	if (macro == "SERVICEDESC") {

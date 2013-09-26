@@ -285,6 +285,10 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("next_notification", next_notification);
 	attr->Set("current_notification_number", notification_number);
 
+	String authority = service->GetCheckResultAuthority();
+	if (!authority.IsEmpty())
+		attr->Set("check_source", authority);
+
 	return attr;
 }
 

@@ -334,6 +334,7 @@ void StatusDataWriter::DumpServiceStatusAttrs(std::ostream& fp, const Service::P
 	   << "\t" << "plugin_output=" << attrs->Get("plugin_output") << "\n"
 	   << "\t" << "long_plugin_output=" << attrs->Get("long_plugin_output") << "\n"
 	   << "\t" << "performance_data=" << attrs->Get("performance_data") << "\n"
+	   << "\t" << "check_source=" << attrs->Get("check_source") << "\n"
 	   << "\t" << "last_check=" << static_cast<long>(attrs->Get("last_check")) << "\n"
 	   << "\t" << "next_check=" << static_cast<long>(attrs->Get("next_check")) << "\n"
 	   << "\t" << "current_attempt=" << attrs->Get("current_attempt") << "\n"
