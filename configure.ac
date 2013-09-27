@@ -138,6 +138,8 @@ docs/Doxyfile
 docs/Makefile
 etc/Makefile
 etc/icinga2/Makefile
+etc/icinga2/conf.d/Makefile
+etc/icinga2/mods-available/Makefile
 etc/init.d/Makefile
 icinga-app/Makefile
 itl/Makefile
@@ -153,6 +155,7 @@ third-party/cJSON/Makefile
 third-party/execvpe/Makefile
 third-party/mmatch/Makefile
 tools/Makefile
+tools/i2modconf
 tools/mkembedconfig/Makefile
 ])
 AC_OUTPUT([

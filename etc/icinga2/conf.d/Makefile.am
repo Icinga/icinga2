@@ -1,13 +1,10 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = \
-	conf.d \
-	mods-available
-
-icinga2confdir = $(sysconfdir)/icinga2
+icinga2confdir = $(sysconfdir)/icinga2/conf.d
 
 CONFIG_FILES = \
-	icinga2.conf
+	localhost.conf \
+	macros.conf
 
 install-data-local:
 	@for file in $(CONFIG_FILES); do \
@@ -17,10 +14,3 @@ install-data-local:
 	done
 
 EXTRA_DIST = $(CONFIG_FILES)
-
-install-exec-hook:
-	@cd $(icinga2confdir) && \
-	if [ ! -e mods-enabled ]; then \
-	  $(MKDIR_P) mods-enabled && \
-	  $(LN_S) ../mods-available/compat.conf mods-enabled/; \
-	fi

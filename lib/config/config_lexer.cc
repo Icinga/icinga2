@@ -1,5 +1,5 @@
 
-#line 3 "config_lexer.cc"
+#line 3 "../../../lib/config/config_lexer.cc"
 
 #define  YY_INT_ALIGNED short int
 
@@ -676,7 +676,7 @@ static char *lb_steal(lex_buf *lb)
 
 
 
-#line 680 "config_lexer.cc"
+#line 680 "../../../lib/config/config_lexer.cc"
 
 #define INITIAL 0
 #define C_COMMENT 1
@@ -933,7 +933,7 @@ YY_DECL
 
 	lex_buf string_buf;
 
-#line 937 "config_lexer.cc"
+#line 937 "../../../lib/config/config_lexer.cc"
 
     yylval = yylval_param;
 
@@ -1382,7 +1382,7 @@ YY_RULE_SETUP
 #line 230 "config_lexer.ll"
 ECHO;
 	YY_BREAK
-#line 1386 "config_lexer.cc"
+#line 1386 "../../../lib/config/config_lexer.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(C_COMMENT):
 case YY_STATE_EOF(STRING):
