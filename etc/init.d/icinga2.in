@@ -19,13 +19,15 @@ sbindir=@sbindir@
 bindir=@bindir@
 sysconfdir=@sysconfdir@
 localstatedir=@localstatedir@
+icinga_user=@icinga_user@
+icinga_group=@icinga_group@
 
 DAEMON=$bindir/icinga2
 ICINGA2_CONFIG_FILE=$sysconfdir/icinga2/icinga2.conf
 ICINGA2_PID_FILE=$localstatedir/run/icinga2/icinga2.pid
 ICINGA2_ERROR_LOG=$localstatedir/log/icinga2/error.log
-ICINGA2_USER=icinga
-ICINGA2_GROUP=icinga
+ICINGA2_USER=$icinga_user
+ICINGA2_GROUP=$icinga_group
 
 test -x $DAEMON || exit 0
 
@@ -35,8 +37,18 @@ if [ ! -e $ICINGA2_CONFIG_FILE ]; then
 fi
 
 # Get function from functions library
-if [ -e /etc/init.d/functions ]; then
+if [ -f /etc/rc.d/init.d/functions ]; then
+        . /etc/rc.d/init.d/functions
+elif [ -f /etc/init.d/functions ]; then
         . /etc/init.d/functions
+fi
+
+# Load extra environment variables
+if [ -f /etc/sysconfig/icinga ]; then
+        . /etc/sysconfig/icinga
+fi
+if [ -f /etc/default/icinga ]; then
+        . /etc/default/icinga
 fi
 
 # Start Icinga 2

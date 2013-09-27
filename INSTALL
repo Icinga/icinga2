@@ -39,6 +39,24 @@ mentioned above:
 * GNU bison (bison)
 * GNU flex (flex)
 
+User Requirements
+-----------------
+
+By default Icinga will run as user 'icinga' and group 'icinga'. Additionally the
+ExternalCommandListener and LivestatusListener require a dedicated command group
+'icingacmd'. You can choose your own user/group names and pass them to configure
+later.
+
+# groupadd icinga
+# groupadd icingacmd
+# useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga
+
+Add the webserver user to the icingacmd group for granting write permissions.
+Change 'www-data' to your distribution specific webserver user.
+
+# usermod -a -G icingacmd www-data
+
+
 Building Icinga 2
 -----------------
 
@@ -52,6 +70,9 @@ $ make install
 The configure script supports all the usual parameters one comes to expect
 from autoconf. In particular you may want to use --prefix to specify an
 alternative installation prefix.
+
+Use --with-icinga[cmd]-{user,group}= to set the run and command user/group
+for Icinga 2.
 
 Note: The Git repository does not contain any auto-generated Autotools files,
 i.e. there is no 'configure' script. In this case you will need to regenerate

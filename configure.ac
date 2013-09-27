@@ -33,6 +33,45 @@ AC_PROG_MKDIR_P
 
 AC_FUNC_VFORK
 
+AC_ARG_WITH([icinga_user],
+	    AC_HELP_STRING([--with-icinga-user=<user>],[sets user name to run icinga2]),
+	    icinga_user=$withval,
+	    icinga_user=icinga
+)
+ACICINGA_CHECK_USER([$icinga_user], run)
+AC_SUBST(icinga_user)
+
+AC_ARG_WITH(icinga_group,
+	    AC_HELP_STRING([--with-icinga-group=<group>],[sets group name to run icinga2]),
+	    icinga_group=$withval,
+	    icinga_group=icinga
+)
+ACICINGA_CHECK_GROUP([$icinga_group], run)
+AC_SUBST(icinga_group)
+
+INSTALL_OPTS="-o $icinga_user -g $icinga_grp"
+AC_SUBST(INSTALL_OPTS)
+
+AC_ARG_WITH(icingacmd_user,
+	    AC_HELP_STRING([--with-icingacmd-user=<user>],[sets user name for icinga2 command access]),
+	    icingacmd_user=$withval,
+	    icingacmd_user=icinga
+)
+ACICINGA_CHECK_USER([$icingacmd_user], cmd)
+AC_SUBST(icingacmd_user)
+
+AC_ARG_WITH(icingacmd_group,
+	    AC_HELP_STRING([--with-icingacmd-group=<group>] ,[sets group name for icinga2 command access]),
+	    icingacmd_group=$withval,
+	    icingacmd_group=icingacmd
+)
+ACICINGA_CHECK_GROUP([$icingacmd_group], cmd)
+AC_SUBST(icingacmd_group)
+
+COMMAND_OPTS="-o $icingacmd_user -g $icingacmd_group"
+AC_SUBST(COMMAND_OPTS)
+
+
 CFLAGS="$CFLAGS -D_GNU_SOURCE -pthread"
 CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -pthread"
 

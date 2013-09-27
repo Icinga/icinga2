@@ -35,6 +35,8 @@ install-data-local:
 	$(MKDIR_P) $(DESTDIR)${localstatedir}/lib/${PACKAGE}/cluster/log
 	$(MKDIR_P) $(DESTDIR)${localstatedir}/lib/${PACKAGE}
 	$(MKDIR_P) $(DESTDIR)${localstatedir}/run/${PACKAGE}
+	$(INSTALL) -m 775 -d $(COMMAND_OPTS) $(DESTDIR)${localstatedir}/run/${PACKAGE}/rw
+	chmod g+s $(DESTDIR)${localstatedir}/run/${PACKAGE}/rw
 
 EXTRA_DIST = $(icinga2doc_DATA) git_version.sh icinga2.spec
 
