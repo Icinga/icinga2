@@ -12,7 +12,7 @@ CONFIG_FILES = \
 install-data-local:
 	@for file in $(CONFIG_FILES); do \
 	if [ ! -e $(icinga2confdir)/$$file ]; then \
-	  $(INSTALL_DATA) $$file $(icinga2confdir)/$$file; \
+	  $(INSTALL_DATA) $(srcdir)/$$file $(icinga2confdir)/$$file; \
 	fi; \
 	done
 
