@@ -2,7 +2,7 @@
 
 SUBDIRS = \
 	conf.d \
-	mods-available
+	features-available
 
 icinga2confdir = $(sysconfdir)/icinga2
 
@@ -20,7 +20,7 @@ EXTRA_DIST = $(CONFIG_FILES)
 
 install-exec-hook:
 	@cd $(icinga2confdir) && \
-	if [ ! -e mods-enabled ]; then \
-	  $(MKDIR_P) mods-enabled && \
-	  $(LN_S) ../mods-available/compat.conf mods-enabled/; \
+	if [ ! -e features-enabled ]; then \
+	  $(MKDIR_P) features-enabled && \
+	  $(LN_S) ../features-available/compat.conf features-enabled/; \
 	fi

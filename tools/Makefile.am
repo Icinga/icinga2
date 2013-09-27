@@ -1,11 +1,10 @@
 SUBDIRS = \
 		  mkembedconfig
 
-bin_SCRIPTS = i2modconf
+bin_SCRIPTS = i2enfeature
 CLEANFILES = $(bin_SCRIPTS)
 
-EXTRA_DIST = i2modconf.in
+EXTRA_DIST = i2enfeature.in
 
 install-exec-hook:
-	$(LN_S) -f i2modconf $(bindir)/i2enmod
-	$(LN_S) -f i2modconf $(bindir)/i2dismod
+	$(LN_S) -f i2enfeature $(bindir)/i2disfeature

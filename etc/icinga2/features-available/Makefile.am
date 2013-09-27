@@ -1,8 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-icinga2confdir = $(sysconfdir)/icinga2/mods-available
-icinga2conf_DATA = \
-	compat.load
+icinga2confdir = $(sysconfdir)/icinga2/features-available
 
 CONFIG_FILES = \
 	compat.conf
@@ -15,4 +13,4 @@ install-data-local:
 	fi; \
 	done
 
-EXTRA_DIST = $(CONFIG_FILES) $(icinga2conf_DATA)
+EXTRA_DIST = $(CONFIG_FILES)
