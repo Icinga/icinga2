@@ -7,7 +7,8 @@ CONFIG_FILES = \
 	macros.conf
 
 install-data-local:
-	@for file in $(CONFIG_FILES); do \
+	@$(MKDIR_P) $(icinga2confdir); \
+	for file in $(CONFIG_FILES); do \
 	if [ ! -e $(icinga2confdir)/$$file ]; then \
 	  $(INSTALL_DATA) $$file $(icinga2confdir)/$$file; \
 	fi; \
