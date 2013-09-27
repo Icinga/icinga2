@@ -26,6 +26,8 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/function.hpp>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 #if HAVE_GCC_ABI_DEMANGLE
 #	include <cxxabi.h>
@@ -561,4 +563,26 @@ unsigned long Utility::SDBM(const String& str)
 	}
 
 	return hash;
+}
+
+int Utility::CompareVersion(const String& v1, const String& v2)
+{
+	std::vector<String> tokensv1, tokensv2;
+	boost::algorithm::split(tokensv1, v1, boost::is_any_of("."));
+	boost::algorithm::split(tokensv2, v2, boost::is_any_of("."));
+
+	for (int i = 0; i < tokensv2.size() - tokensv1.size(); i++)
+		tokensv1.push_back("0");
+
+	for (int i = 0; i < tokensv1.size() - tokensv2.size(); i++)
+		tokensv2.push_back("0");
+
+	for (size_t i = 0; i < tokensv1.size(); i++) {
+		if (Convert::ToLong(tokensv2[i]) > Convert::ToLong(tokensv1[i]))
+			return 1;
+		else if (Convert::ToLong(tokensv2[i]) < Convert::ToLong(tokensv1[i]))
+			return -1;
+	}
+
+	return 0;
 }

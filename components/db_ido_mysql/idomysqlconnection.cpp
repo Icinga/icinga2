@@ -24,6 +24,7 @@
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido_mysql/idomysqlconnection.h"
+#include <boost/exception/diagnostic_information.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -37,6 +38,7 @@ void IdoMysqlConnection::Start(void)
 	DbConnection::Start();
 
 	m_Connected = false;
+	m_RequiredSchemaVersion = "1.10.0";
 
 	m_TxTimer = boost::make_shared<Timer>();
 	m_TxTimer->SetInterval(5);
@@ -112,6 +114,20 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 
 		m_Connected = true;
 
+		String dbVersionName = "idoutils";
+		Array::Ptr version_rows = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name='" + Escape(dbVersionName) + "'");
+
+		if (version_rows->GetLength() == 0)
+			BOOST_THROW_EXCEPTION(std::runtime_error("Schema does not provide any valid version! Verify your schema installation."));
+
+		Dictionary::Ptr version_row = version_rows->Get(0);
+		String version = version_row->Get("version");
+
+		if (Utility::CompareVersion(m_RequiredSchemaVersion, version) < 0) {
+			BOOST_THROW_EXCEPTION(std::runtime_error("Schema version '" + version + "' does not match the required version '" +
+			   m_RequiredSchemaVersion + "'! Please check the upgrade documentation."));
+		}
+
 		String instanceName = "default";
 
 		if (!m_InstanceName.IsEmpty())
@@ -128,7 +144,7 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 		}
 
 		std::ostringstream msgbuf;
-		msgbuf << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID);
+		msgbuf << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
 		Log(LogInformation, "db_ido_mysql", msgbuf.str());
 
 		ClearConfigTables();

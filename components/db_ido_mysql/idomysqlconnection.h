@@ -68,6 +68,8 @@ private:
 	bool m_Connected;
 	MYSQL m_Connection;
 
+        String m_RequiredSchemaVersion;
+
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_TxTimer;
 

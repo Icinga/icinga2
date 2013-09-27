@@ -97,6 +97,8 @@ public:
 
 	static unsigned long SDBM(const String& str);
 
+	static int CompareVersion(const String& v1, const String& v2);
+
 private:
 	Utility(void);
 
