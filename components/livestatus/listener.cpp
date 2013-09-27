@@ -55,6 +55,12 @@ void LivestatusListener::Start(void)
 		UnixSocket::Ptr socket = boost::make_shared<UnixSocket>();
 		socket->Bind(GetSocketPath());
 
+		/* group must be able to write */
+		if (chmod(GetSocketPath().CStr(), 0660) < 0) {
+			Log(LogCritical, "livestatus", "Cannot chmod unix socket '" + GetSocketPath() + "' to 0660: " + strerror(errno));
+			return;
+		}
+
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
 #else
@@ -78,7 +84,7 @@ String LivestatusListener::GetSocketPath(void) const
 {
 	Value socketPath = m_SocketPath;
 	if (socketPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/livestatus";
+		return Application::GetLocalStateDir() + "/run/icinga2/rw/livestatus";
 	else
 		return socketPath;
 }
