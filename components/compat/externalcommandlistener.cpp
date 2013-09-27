@@ -50,7 +50,7 @@ void ExternalCommandListener::Start(void)
 String ExternalCommandListener::GetCommandPath(void) const
 {
 	if (m_CommandPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/icinga2.cmd";
+		return Application::GetLocalStateDir() + "/run/icinga2/rw/icinga2.cmd";
 	else
 		return m_CommandPath;
 }
@@ -77,12 +77,21 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		}
 	}
 
+	/*
+	 * process would override group write permissions
+	 * so reset them. man 3 mkfifo: (mode & ~umask)
+	 */
+	mode_t oldMask = umask(S_IWOTH);
+
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("mkfifo")
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(commandPath));
 	}
+
+	/* restore old umask */
+	umask(oldMask);
 
 	for (;;) {
 		int fd;
