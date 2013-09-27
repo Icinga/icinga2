@@ -17,8 +17,8 @@ done
 cat <<HTML
 </xmp>
 
-<script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="strapdownjs/strapdown.js"></script>
+<script src="jquery.min.js"></script>
 <script src="jquery.toc.min.js"></script>
 <script>
 \$('div#content').prepend('<div id="toc"></div>');
