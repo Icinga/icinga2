@@ -166,9 +166,16 @@ else
 	ltdl_msg="system-provided"
 fi
 
+AM_COND_IF([MYSQL_USE], [mysql_msg="enabled"], [mysql_msg="disabled"])
+AM_COND_IF([PYTHON_USE], [python_msg="enabled"], [python_msg="disabled"])
+
 echo "
 Libraries:
      ltdl: $ltdl_msg
+
+Features:
+     MySQL: $mysql_msg
+     Python: $python_msg
 
 *** Please note that at this point Icinga 2 is highly experimental software
 *** and is missing a significant portion of the planned features. This
