@@ -40,6 +40,10 @@
     padding-left: 20px;
 }
 
+#toc .toc-h4 {
+    padding-left: 30px;
+}
+
 #toc .toc-active {
     background: #336699;
     box-shadow: inset -5px 0px 10px -5px #000;

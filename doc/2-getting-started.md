@@ -6,7 +6,7 @@ This tutorial is a step-by-step introduction to installing Icinga 2 and
 the standalone version of the Icinga 1.x classic web interface. It assumes
 that you are familiar with the system you're installing Icinga 2 on.
 
-### Installing Icinga 2
+### Setting up Icinga 2
 
 In order to get started with Icinga 2 you will have to install it. The
 preferred way of doing this is to use the official Debian or RPM
@@ -27,6 +27,8 @@ In case you're running a distribution for which Icinga 2 packages are
 not yet available you will have to check out the Icinga 2 Git repository
 from git://git.icinga.org/icinga2 and read the *INSTALL* file.
 
+#### Installation Paths
+
 By default Icinga 2 uses the following files and directories:
 
   Path                                |Description
@@ -38,6 +40,8 @@ By default Icinga 2 uses the following files and directories:
   /var/run/icinga2                    |Command pipe and PID file.
   /var/cache/icinga2                  |Performance data files and status.dat/objects.cache.
   /var/lib/icinga2                    |The Icinga 2 state file.
+
+#### Configuration
 
 An example configuration file is installed for you in /etc/icinga2/icinga2.conf.
 
@@ -149,7 +153,7 @@ The *macros* attribute can be used to define macros that are available for all
 services which belong to this host. Most of the templates in the Icinga Template
 Library require an *address* macro.
 
-### Installing the Icinga Classic UI
+### Setting up the Icinga Classic UI
 
 Icinga 2 can write status.dat and objects.cache files in the format that
 is supported by the Icinga 1.x Classic UI. External commands (a.k.a. the
@@ -162,6 +166,8 @@ by default in the example configuration file.
 You should be able to find the status.dat and objects.cache files in
 /var/cache/icinga2. The log files can be found in /var/log/icinga2/compat.
 The command pipe can be found in /var/run/icinga2.
+
+#### Installing the Icinga Classic UI
 
 You can install the Icinga 1.x Classic UI in standalone mode using the
 following commands:
@@ -179,9 +185,11 @@ following commands:
 > found on the Icinga Wiki here:
 > [https://wiki.icinga.org/display/howtos/Setting+up+Icinga+Classic+UI+Standalone](https://wiki.icinga.org/display/howtos/Setting+up+Icinga+Classic+UI+Standalone)
 
+#### Configuring the Classic UI
+
 After installing the Classic UI you will need to update the following
-settings in your cgi.cfg configuration file in the "STANDALONE (ICINGA 2)
-OPTIONS" section:
+settings in your *cgi.cfg* configuration file in the *STANDALONE (ICINGA 2)
+OPTIONS* section:
 
   Configuration Setting               |Value
   ------------------------------------|------------------------------------
@@ -216,3 +224,49 @@ write permissions for the command pipe:
 Verify that your Icinga 1.x Classic UI works by browsing to your Classic
 UI installation URL, e.g.
 [http://localhost/icinga](http://localhost/icinga)
+
+### Configuring IDO Support
+
+TODO
+
+## Running Icinga
+
+TODO
+
+## Monitoring Basics
+
+### Hosts
+
+TODO
+
+### Services
+
+TODO
+
+### Check Commands
+
+TODO
+
+### Macros
+
+TODO
+
+## Using Templates
+
+TODO
+
+## Groups
+
+TODO
+
+## Host/Service Dependencies
+
+TODO
+
+## Time Periods
+
+TODO
+
+## Notifications
+
+TODO
