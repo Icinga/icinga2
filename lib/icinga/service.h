@@ -142,9 +142,6 @@ public:
 	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry = 0, const String& authority = String());
 	void ClearAcknowledgement(const String& authority = String());
 
-	void SetCheckResultAuthority(const String& authority);
-	String GetCheckResultAuthority(void) const;
-
 	/* Checks */
 	shared_ptr<CheckCommand> GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
@@ -355,7 +352,6 @@ private:
 	Value m_AcknowledgementExpiry;
 	String m_HostName;
 	Value m_Volatile;
-	String m_CheckResultAuthority;
 
 	/* Checks */
 	String m_CheckCommand;

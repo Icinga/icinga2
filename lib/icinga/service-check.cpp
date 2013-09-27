@@ -456,6 +456,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	if (!cr->Contains("execution_end"))
 		cr->Set("execution_end", now);
 
+	if (!cr->Contains("check_source"))
+		cr->Set("check_source", authority);
+
 	bool reachable = IsReachable();
 
 	Host::Ptr host = GetHost();
@@ -602,9 +605,6 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 
 	olock.Lock();
 	SetLastCheckResult(cr);
-
-	if (!authority.IsEmpty())
-		SetCheckResultAuthority(authority);
 
 	bool was_flapping, is_flapping;
 

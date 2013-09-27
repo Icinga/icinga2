@@ -178,6 +178,7 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	String output;
 	String long_output;
 	String perfdata;
+	String check_source;
 	double schedule_end = -1;
 
 	String check_period_str;
@@ -193,6 +194,8 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 		Dictionary::Ptr output_bag = GetCheckResultOutput(cr);
 		output = output_bag->Get("output");
 		long_output = output_bag->Get("long_output");
+
+		check_source = cr->Get("check_source");
 
 		perfdata = GetCheckResultPerfdata(cr);
 		schedule_end = cr->Get("schedule_end");
@@ -260,6 +263,7 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("plugin_output", output);
 	attr->Set("long_plugin_output", long_output);
 	attr->Set("performance_data", perfdata);
+	attr->Set("check_source", check_source);
 	attr->Set("check_type", (service->GetEnableActiveChecks() ? 1 : 0));
 	attr->Set("last_check", schedule_end);
 	attr->Set("next_check", service->GetNextCheck());
@@ -284,10 +288,6 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("last_notification", last_notification);
 	attr->Set("next_notification", next_notification);
 	attr->Set("current_notification_number", notification_number);
-
-	String authority = service->GetCheckResultAuthority();
-	if (!authority.IsEmpty())
-		attr->Set("check_source", authority);
 
 	return attr;
 }
