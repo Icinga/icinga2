@@ -27,7 +27,7 @@ if [ -z "$1" ]; then
 	echo
 	echo -n "Available feature: "
 
-	for file in $ICINGA2CONFDIR/mods-available/*.conf; do
+	for file in $ICINGA2CONFDIR/features-available/*.conf; do
 		echo -n $(basename -- $file .conf)
 	done
 
@@ -38,27 +38,27 @@ fi
 
 FEATURE=$1
 
-if [ ! -e $ICINGA2CONFDIR/mods-available/$FEATURE.conf ]; then
+if [ ! -e $ICINGA2CONFDIR/features-available/$FEATURE.conf ]; then
 	echo "The feature '$FEATURE' does not exist."
 	exit 1
 fi
 
 if [ "$TOOL" = "i2enfeature" ]; then
-	if [ -e $ICINGA2CONFDIR/mods-enabled/$FEATURE.conf ]; then
+	if [ -e $ICINGA2CONFDIR/features-enabled/$FEATURE.conf ]; then
 		echo "The feature '$FEATURE' is already enabled."
 		exit 0
 	fi
 
-	ln -s ../mods-available/$FEATURE.conf $ICINGA2CONFDIR/mods-enabled/
+	ln -s ../features-available/$FEATURE.conf $ICINGA2CONFDIR/features-enabled/
 
 	echo "Module '$FEATURE' was enabled."
 elif [ "$TOOL" = "i2disfeature" ]; then
-	if [ ! -e $ICINGA2CONFDIR/mods-enabled/$FEATURE.conf ]; then
+	if [ ! -e $ICINGA2CONFDIR/features-enabled/$FEATURE.conf ]; then
 		echo "The feature '$FEATURE' is already disabled."
 		exit 0
 	fi
 
-	rm -f $ICINGA2CONFDIR/mods-enabled/$FEATURE.conf
+	rm -f $ICINGA2CONFDIR/features-enabled/$FEATURE.conf
 
 	echo "Module '$FEATURE' was disabled."
 fi
