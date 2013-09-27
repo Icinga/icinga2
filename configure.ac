@@ -17,13 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-AC_INIT
-AX_SPEC_FILE([icinga2.spec])
-AX_SPEC_DEFAULTS
+AC_INIT([icinga2], [2.0])
+AX_SPEC_DEFAULTS([icinga2.spec])
 AX_SET_VERSION_INFO
 AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
+AM_INIT_AUTOMAKE([subdir-objects])
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
 AM_SILENT_RULES([yes])
 
