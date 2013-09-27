@@ -57,14 +57,14 @@ introduces:
      * description of what configuration options are available.
      */
 
-Icinga 2 supports C- and C++-style comments.
+Icinga 2 supports [C/C++-style comments](#comments).
 
     include <itl/itl.conf>
     include <itl/standalone.conf>
 
 The *include* directive can be used to include other files. The *itl/itl.conf*
-file defines a number of useful templates and constants you can use to
-configure your services.
+file is distributed as part of Icinga 2 and provides a number of useful templates
+and constants you can use to configure your services.
 
     /**
      * Global macros
@@ -91,10 +91,11 @@ what you want the library to do.
     object ExternalCommandListener "command" { }
     object CompatLogger "compat-log" { }
 
-Those three object types are provided by the *compat* library. The *StatusDataWriter*
+Those three object types are provided by the *compat* library:
 
   Type                     | Description
-  StatusDataWriter         | Is responsible for writing the status.dat and objects.cache files.
+  -------------------------|-------------------------
+  StatusDataWriter         | Responsible for writing the status.dat and objects.cache files.
   ExternalCommandListener  | Implements the command pipe which is used by the CGIs to send commands to Icinga 2.
   CompatLogger             | Writes log files in a format that is compatible with Icinga 1.x.
 
@@ -153,23 +154,23 @@ The *macros* attribute can be used to define macros that are available for all
 services which belong to this host. Most of the templates in the Icinga Template
 Library require an *address* macro.
 
-### Setting up the Icinga Classic UI
+### Setting up Icinga Classic UI
 
-Icinga 2 can write status.dat and objects.cache files in the format that
+Icinga 2 can write *status.dat* and *objects.cache* files in the format that
 is supported by the Icinga 1.x Classic UI. External commands (a.k.a. the
 "command pipe") are also supported. It also supports writing Icinga 1.x
 log files which are required for the reporting functionality in the Classic UI.
 
-These features are implemented as part of the "compat" library and are enabled
+These features are implemented as part of the *compat* library and are enabled
 by default in the example configuration file.
 
-You should be able to find the status.dat and objects.cache files in
-/var/cache/icinga2. The log files can be found in /var/log/icinga2/compat.
-The command pipe can be found in /var/run/icinga2.
+You should be able to find the *status.dat* and *objects.cache* files in
+*/var/cache/icinga2*. The log files can be found in */var/log/icinga2/compat*.
+The command pipe can be found in */var/run/icinga2*.
 
-#### Installing the Icinga Classic UI
+#### Installing Icinga Classic UI
 
-You can install the Icinga 1.x Classic UI in standalone mode using the
+You can install Icinga 1.x Classic UI in standalone mode using the
 following commands:
 
     $ wget http://downloads.sourceforge.net/project/icinga/icinga/1.9.3/icinga-1.9.3.tar.gz
@@ -225,7 +226,7 @@ Verify that your Icinga 1.x Classic UI works by browsing to your Classic
 UI installation URL, e.g.
 [http://localhost/icinga](http://localhost/icinga)
 
-### Configuring IDO Support
+### Configuring IDO
 
 TODO
 
