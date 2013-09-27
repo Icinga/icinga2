@@ -22,6 +22,8 @@ parentheses):
 * Boost library and header files (boost-devel on RHEL, libboost-all-dev
                                   on Debian)
 * optional: Doxygen (doxygen)
+* optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian)
+* optional: Python (python-devel on RHEL, python-dev on Debian)
 
 Packaging Requirements
 ----------------------
