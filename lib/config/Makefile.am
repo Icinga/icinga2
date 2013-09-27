@@ -4,9 +4,6 @@
 pkglib_LTLIBRARIES = \
 	libconfig.la
 
-EXTRA_DIST = \
-	config_parser.h
-
 BUILT_SOURCES = \
 	config_parser.h
 
