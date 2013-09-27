@@ -181,7 +181,7 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot passive host check result for non-existent host '" + arguments[0] + "'"));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot process passive host check result for non-existent host '" + arguments[0] + "'"));
 
 	Service::Ptr hc = host->GetCheckService();
 
