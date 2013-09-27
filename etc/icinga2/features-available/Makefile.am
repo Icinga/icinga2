@@ -3,7 +3,8 @@
 icinga2confdir = $(sysconfdir)/icinga2/features-available
 
 CONFIG_FILES = \
-	compat.conf
+	compat.conf \
+	ido-mysql.conf
 
 install-data-local:
 	@$(MKDIR_P) $(icinga2confdir); \

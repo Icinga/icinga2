@@ -145,7 +145,7 @@ case "$1" in
 	checkconfig
 	;;
   *)
-        echo $"Usage: $0 {start|stop|restart|reload|checkconfig|status}"
+        echo "Usage: $0 {start|stop|restart|reload|checkconfig|status}"
         exit 1
 esac
 exit 0
