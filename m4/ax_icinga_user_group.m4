@@ -21,7 +21,7 @@ AC_DEFUN([ACICINGA_CHECK_USER],[
   x=$1
   y=$2
   AC_MSG_CHECKING([if $y user $x exists])
-  AS_IF([ $GREP -q "^$x:" /etc/passwd ],
+  AS_IF([ id -u $x ],
     [ AC_MSG_RESULT([found]) ],
     [ AC_MSG_ERROR([not found]) ])
 ])
