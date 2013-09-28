@@ -21,11 +21,14 @@
 #include "base/objectlock.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
+#include "base/exception.h"
 #include "base/tcpsocket.h"
 #include "base/unixsocket.h"
 #include "base/networkstream.h"
 #include "base/application.h"
 #include <boost/smart_ptr/make_shared.hpp>
+#include <boost/exception/diagnostic_information.hpp>
+
 
 using namespace icinga;
 using namespace livestatus;
@@ -49,6 +52,7 @@ void LivestatusListener::Start(void)
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
+		Log(LogInformation, "livestatus", "Created tcp socket listening on host '" + GetBindHost() + "' port '" + GetBindPort() + "'.");
 	}
 	else if (GetSocketType() == "unix") {
 #ifndef _WIN32
@@ -56,13 +60,18 @@ void LivestatusListener::Start(void)
 		socket->Bind(GetSocketPath());
 
 		/* group must be able to write */
-		if (chmod(GetSocketPath().CStr(), 0660) < 0) {
-			Log(LogCritical, "livestatus", "Cannot chmod unix socket '" + GetSocketPath() + "' to 0660: " + strerror(errno));
-			return;
+		mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+
+		if (chmod(GetSocketPath().CStr(), mode) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("chmod")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(GetSocketPath()));
 		}
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
+		Log(LogInformation, "livestatus", "Created unix socket in '" + GetSocketPath() + "'.");
 #else
 		/* no unix sockets on windows */
 		Log(LogCritical, "livestatus", "Unix sockets are not supported on Windows.");
