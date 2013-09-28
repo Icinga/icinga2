@@ -77,11 +77,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		}
 	}
 
-	/*
-	 * process would override group write permissions
-	 * so reset them. man 3 mkfifo: (mode & ~umask)
-	 */
-	mode_t oldMask = umask(S_IWOTH);
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
 
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
@@ -90,8 +86,14 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		    << boost::errinfo_file_name(commandPath));
 	}
 
-	/* restore old umask */
-	umask(oldMask);
+	/* mkfifo() uses umask to mask off some bits, which means we need to chmod() the
+	 * fifo to get the right mask. */
+	if (chmod(commandPath.CStr(), mode) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("chmod")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(commandPath));
+	}
 
 	for (;;) {
 		int fd;
