@@ -34,7 +34,7 @@ EOF
 
 
 ECHO="/bin/echo"
-CMDFILE="/var/run/icinga2/rw/icinga2.cmd"
+CMDFILE="/var/run/icinga2/cmd/icinga2.cmd"
 HOST=""
 SERVICE=""
 RETURNCODE=0

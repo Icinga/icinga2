@@ -93,7 +93,7 @@ String LivestatusListener::GetSocketPath(void) const
 {
 	Value socketPath = m_SocketPath;
 	if (socketPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/rw/livestatus";
+		return Application::GetLocalStateDir() + "/run/icinga2/cmd/livestatus";
 	else
 		return socketPath;
 }

@@ -50,7 +50,7 @@ void ExternalCommandListener::Start(void)
 String ExternalCommandListener::GetCommandPath(void) const
 {
 	if (m_CommandPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/rw/icinga2.cmd";
+		return Application::GetLocalStateDir() + "/run/icinga2/cmd/icinga2.cmd";
 	else
 		return m_CommandPath;
 }
