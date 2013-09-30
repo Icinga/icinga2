@@ -21,6 +21,7 @@ AC_INIT([icinga2], [0.0.3])
 AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([subdir-objects])
+AX_SET_VERSION_INFO
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_PROG_CXX
