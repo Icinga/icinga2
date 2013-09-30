@@ -17,9 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-AC_INIT([icinga2], [2.0])
-AX_SPEC_DEFAULTS([icinga2.spec])
-AX_SET_VERSION_INFO
+AC_INIT([icinga2], [0.0.3])
 AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([subdir-objects])
@@ -161,6 +159,7 @@ AS_AC_EXPAND([ICINGA_PKGDATADIR], $datadir/$PACKAGE)
 AC_DEFINE_UNQUOTED([ICINGA_PKGDATADIR], "$ICINGA_PKGDATADIR", [The package data dir.])
 
 AC_CONFIG_FILES([
+icinga2.spec
 Makefile
 components/Makefile
 components/checker/Makefile
