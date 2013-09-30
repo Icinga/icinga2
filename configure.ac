@@ -216,6 +216,12 @@ Features:
      MySQL: $mysql_msg
      Python: $python_msg
 
+Users:
+     User: $icinga_user
+     Group: $icinga_group
+     Command User: $icingacmd_user
+     Command Group: $icingacmd_group
+
 *** Please note that at this point Icinga 2 is highly experimental software
 *** and is missing a significant portion of the planned features. This
 *** is merely a technology preview and if you're planning to set up
