@@ -67,6 +67,7 @@ private:
 	void FlappingHandler(const Service::Ptr& service, FlappingState flapping_state);
         void TriggerDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime);
         void RemoveDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+        void ExternalCommandHandler(const String& command, const std::vector<String>& arguments);
 
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);

@@ -22,6 +22,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/notification.h"
 #include "icinga/macroprocessor.h"
+#include "icinga/externalcommandprocessor.h"
 #include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -56,6 +57,7 @@ void CompatLogger::Start(void)
 	Service::OnFlappingChanged.connect(bind(&CompatLogger::FlappingHandler, this, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
+	ExternalCommandProcessor::OnNewExternalCommand.connect(bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLogger::RotationTimerHandler, this));
@@ -411,6 +413,21 @@ void CompatLogger::FlappingHandler(const Service::Ptr& service, FlappingState fl
                 Flush();
         }
 
+}
+
+
+void CompatLogger::ExternalCommandHandler(const String& command, const std::vector<String>& arguments)
+{
+        std::ostringstream msgbuf;
+        msgbuf << "EXTERNAL COMMAND: "
+                << command << ";"
+                << boost::algorithm::join(arguments, ";")
+                << "";
+
+        {
+                ObjectLock oLock(this);
+                WriteLine(msgbuf.str());
+        }
 }
 
 void CompatLogger::WriteLine(const String& line)
