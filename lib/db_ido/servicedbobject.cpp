@@ -62,6 +62,7 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnDowntimeRemoved.connect(boost::bind(&ServiceDbObject::AddRemoveDowntimeLogHistory, _1, _2));
 
 	Service::OnFlappingChanged.connect(bind(&ServiceDbObject::AddFlappingHistory, _1, _2));
+	Service::OnNewCheckResult.connect(bind(&ServiceDbObject::AddServiceCheckHistory, _1, _2));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -1245,6 +1246,75 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 	if (host->GetCheckService() == service) {
 		fields1->Set("object_id", host);
 		fields1->Set("flapping_type", 0); /* host */
+		query1.Fields = fields1;
+		OnQuery(query1);
+	}
+}
+
+/* servicechecks */
+void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const Dictionary::Ptr &cr)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Log(LogDebug, "db_ido", "add service check history for '" + service->GetName() + "'");
+
+
+
+	DbQuery query1;
+	query1.Table = "servicechecks";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+	Dictionary::Ptr attrs;
+
+	{
+		ObjectLock olock(service);
+		attrs = CompatUtility::GetServiceStatusAttributes(service, CompatTypeService);
+	}
+
+	fields1->Set("check_type", attrs->Get("check_type"));
+	fields1->Set("current_check_attempt", attrs->Get("current_attempt"));
+	fields1->Set("max_check_attempts", attrs->Get("max_attempts"));
+	fields1->Set("state", attrs->Get("current_state"));
+	fields1->Set("state_type", attrs->Get("state_type"));
+
+	double now = Utility::GetTime();
+	unsigned long start_time = static_cast<long>(now);
+	unsigned long start_time_usec = (now - start_time) * 1000 * 1000;
+
+	double end = now + attrs->Get("check_execution_time");
+	unsigned long end_time = static_cast<long>(end);
+	unsigned long end_time_usec = (end - end_time) * 1000 * 1000;
+
+	fields1->Set("start_time", DbValue::FromTimestamp(start_time));
+	fields1->Set("start_time_usec", start_time_usec);
+	fields1->Set("end_time", DbValue::FromTimestamp(end_time));
+	fields1->Set("end_time_usec", end_time_usec);
+	fields1->Set("command_object_id", service->GetCheckCommand());
+	fields1->Set("command_args", Empty);
+	fields1->Set("command_line", cr->Get("command"));
+	fields1->Set("execution_time", attrs->Get("check_execution_time"));
+	fields1->Set("latency", attrs->Get("check_latency"));
+	fields1->Set("return_code", cr->Get("exit_state"));
+	fields1->Set("output", attrs->Get("plugin_output"));
+	fields1->Set("long_output", attrs->Get("long_plugin_output"));
+	fields1->Set("perfdata", attrs->Get("performance_data"));
+
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	query1.Fields = fields1;
+	OnQuery(query1);
+
+	if (host->GetCheckService() == service) {
+		query1.Table = "hostchecks";
+
+		fields1->Remove("service_object_id");
+		fields1->Set("host_object_id", host);
+		fields1->Set("state", host->GetState());
+		fields1->Set("state_type", host->GetStateType());
 		query1.Fields = fields1;
 		OnQuery(query1);
 	}

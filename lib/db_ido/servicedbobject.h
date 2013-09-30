@@ -109,6 +109,7 @@ private:
         static void AddFlappingLogHistory(const Service::Ptr& service, FlappingState flapping_state);
 
         static void AddFlappingHistory(const Service::Ptr& service, FlappingState flapping_state);
+        static void AddServiceCheckHistory(const Service::Ptr& service, const Dictionary::Ptr &cr);
 };
 
 }

@@ -76,6 +76,7 @@ Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 	Dictionary::Ptr result = ParseCheckOutput(output);
 	result->Set("command", command);
 	result->Set("state", ExitStatusToState(pr.ExitStatus));
+	result->Set("exit_state", pr.ExitStatus);
 	result->Set("execution_start", pr.ExecutionStart);
 	result->Set("execution_end", pr.ExecutionEnd);
 
