@@ -264,7 +264,7 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("long_plugin_output", long_output);
 	attr->Set("performance_data", perfdata);
 	attr->Set("check_source", check_source);
-	attr->Set("check_type", (service->GetEnableActiveChecks() ? 1 : 0));
+	attr->Set("check_type", (service->GetEnableActiveChecks() ? 0 : 1));
 	attr->Set("last_check", schedule_end);
 	attr->Set("next_check", service->GetNextCheck());
 	attr->Set("current_attempt", service->GetCurrentCheckAttempt());
