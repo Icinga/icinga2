@@ -41,6 +41,8 @@ boost::once_flag ExternalCommandProcessor::m_InitializeOnce = BOOST_ONCE_INIT;
 boost::mutex ExternalCommandProcessor::m_Mutex;
 std::map<String, ExternalCommandProcessor::Callback> ExternalCommandProcessor::m_Commands;
 
+boost::signals2::signal<void (double, const String&, const std::vector<String>&)> ExternalCommandProcessor::OnNewExternalCommand;
+
 void ExternalCommandProcessor::Execute(const String& line)
 {
 	if (line.IsEmpty())
@@ -89,6 +91,8 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 
 		callback = it->second;
 	}
+
+	OnNewExternalCommand(time, command, arguments);
 
 	callback(time, arguments);
 }

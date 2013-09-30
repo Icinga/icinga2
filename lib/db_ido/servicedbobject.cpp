@@ -28,9 +28,11 @@
 #include "icinga/notification.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
+#include "icinga/externalcommandprocessor.h"
 #include "icinga/compatutility.h"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -63,6 +65,8 @@ void ServiceDbObject::StaticInitialize(void)
 
 	Service::OnFlappingChanged.connect(bind(&ServiceDbObject::AddFlappingHistory, _1, _2));
 	Service::OnNewCheckResult.connect(bind(&ServiceDbObject::AddServiceCheckHistory, _1, _2));
+
+	ExternalCommandProcessor::OnNewExternalCommand.connect(bind(&ServiceDbObject::AddExternalCommandHistory, _1, _2, _3));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -1261,8 +1265,6 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 
 	Log(LogDebug, "db_ido", "add service check history for '" + service->GetName() + "'");
 
-
-
 	DbQuery query1;
 	query1.Table = "servicechecks";
 	query1.Type = DbQueryInsert;
@@ -1318,4 +1320,26 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 		query1.Fields = fields1;
 		OnQuery(query1);
 	}
+}
+
+/* externalcommands */
+void ServiceDbObject::AddExternalCommandHistory(double time, const String& command, const std::vector<String>& arguments)
+{
+	Log(LogDebug, "db_ido", "add external command history");
+
+	DbQuery query1;
+	query1.Table = "externalcommands";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+
+	fields1->Set("entry_time", DbValue::FromTimestamp(static_cast<long>(time)));
+	fields1->Set("command_type", Empty); // FIXME
+	fields1->Set("command_name", command);
+	fields1->Set("command_args", boost::algorithm::join(arguments, ";"));
+
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	query1.Fields = fields1;
+	OnQuery(query1);
 }

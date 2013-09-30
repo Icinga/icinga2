@@ -25,6 +25,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/once.hpp>
 #include <boost/function.hpp>
+#include <boost/signals2.hpp>
 #include <vector>
 
 namespace icinga
@@ -34,6 +35,8 @@ class I2_ICINGA_API ExternalCommandProcessor {
 public:
 	static void Execute(const String& line);
 	static void Execute(double time, const String& command, const std::vector<String>& arguments);
+
+        static boost::signals2::signal<void (double, const String&, const std::vector<String>&)> OnNewExternalCommand;
 
 private:
 	typedef boost::function<void (double time, const std::vector<String>& arguments)> Callback;
