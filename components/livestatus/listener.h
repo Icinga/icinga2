@@ -46,6 +46,8 @@ public:
 	static int GetClientsConnected(void);
 	static int GetConnections(void);
 
+	static void ValidateSocketType(const String& location, const Dictionary::Ptr& attrs);
+
 protected:
 	virtual void Start(void);
 

@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/listener.h"
+#include "config/configcompilercontext.h"
 #include "base/objectlock.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
@@ -26,6 +27,7 @@
 #include "base/unixsocket.h"
 #include "base/networkstream.h"
 #include "base/application.h"
+#include "base/scriptfunction.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 
@@ -34,6 +36,7 @@ using namespace icinga;
 using namespace livestatus;
 
 REGISTER_TYPE(LivestatusListener);
+REGISTER_SCRIPTFUNCTION(ValidateSocketType, &LivestatusListener::ValidateSocketType);
 
 static int l_ClientsConnected = 0;
 static int l_Connections = 0;
@@ -173,6 +176,16 @@ void LivestatusListener::ClientThreadProc(const Socket::Ptr& client)
 	{
 		boost::mutex::scoped_lock lock(l_ComponentMutex);
 		l_ClientsConnected--;
+	}
+}
+
+void LivestatusListener::ValidateSocketType(const String& location, const Dictionary::Ptr& attrs)
+{
+	Value socket_type = attrs->Get("socket_type");
+
+	if (!socket_type.IsEmpty() && socket_type != "unix" && socket_type != "tcp") {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": Socket type '" + socket_type + "' is invalid.");
 	}
 }
 
