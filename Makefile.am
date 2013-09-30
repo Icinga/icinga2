@@ -14,7 +14,7 @@ SUBDIRS = \
 	test \
 	itl \
 	etc \
-	docs
+	doc
 
 #doc
 icinga2docdir = ${docdir}

@@ -91,8 +91,7 @@ DX_RTF_FEATURE(OFF)
 DX_XML_FEATURE(OFF)
 DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
-DX_INIT_DOXYGEN([icinga], [docs/Doxyfile], [docs/dev])
-AD_INIT_ASCIIDOC([icinga], [docs])
+DX_INIT_DOXYGEN([icinga], [doc/Doxyfile], [doc/dev])
 
 AC_PROG_INSTALL
 AC_PROG_LEX
@@ -171,8 +170,8 @@ components/demo/Makefile
 components/db_ido_mysql/Makefile
 components/livestatus/Makefile
 components/notification/Makefile
-docs/Doxyfile
-docs/Makefile
+doc/Doxyfile
+doc/Makefile
 etc/Makefile
 etc/icinga2/Makefile
 etc/icinga2/conf.d/Makefile
