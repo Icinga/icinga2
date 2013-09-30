@@ -60,6 +60,8 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnFlappingChanged.connect(bind(&ServiceDbObject::AddFlappingLogHistory, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&ServiceDbObject::AddTriggerDowntimeLogHistory, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&ServiceDbObject::AddRemoveDowntimeLogHistory, _1, _2));
+
+	Service::OnFlappingChanged.connect(bind(&ServiceDbObject::AddFlappingHistory, _1, _2));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -310,6 +312,7 @@ void ServiceDbObject::OnStatusUpdate(void)
 	dbobj->SendStatusUpdate();
 }
 
+/* comments */
 void ServiceDbObject::AddComments(const Service::Ptr& service)
 {
 	/* dump all comments */
@@ -479,6 +482,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 	OnQuery(query2);
 }
 
+/* downtimes */
 void ServiceDbObject::AddDowntimes(const Service::Ptr& service)
 {
 	/* dump all downtimes */
@@ -716,6 +720,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 	OnQuery(query3);
 }
 
+/* acknowledgements */
 void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, const String& author, const String& comment,
     AcknowledgementType type, double expiry)
 {
@@ -758,6 +763,7 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	}
 }
 
+/* notifications */
 void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
 				      const Dictionary::Ptr& cr, const String& author, const String& text)
 {
@@ -811,6 +817,7 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 	}
 }
 
+/* statehistory */
 void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const Dictionary::Ptr& cr, StateType type)
 {
 	Host::Ptr host = service->GetHost();
@@ -864,6 +871,7 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const D
 	}
 }
 
+/* logentries */
 void ServiceDbObject::AddCheckResultLogHistory(const Service::Ptr& service, const Dictionary::Ptr &cr)
 {
 	Host::Ptr host = service->GetHost();
@@ -1181,4 +1189,63 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 		OnQuery(query1);
 	}
 	*/
+}
+
+/* flappinghistory */
+void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingState flapping_state)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Log(LogDebug, "db_ido", "add flapping history for '" + service->GetName() + "'");
+
+	double now = Utility::GetTime();
+	unsigned long event_time = static_cast<long>(now);
+	unsigned long event_time_usec = (now - event_time) * 1000 * 1000;
+
+	DbQuery query1;
+	query1.Table = "flappinghistory";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+
+	fields1->Set("event_time", DbValue::FromTimestamp(event_time));
+	fields1->Set("event_time_usec", event_time_usec);
+
+	switch (flapping_state) {
+		case FlappingStarted:
+			fields1->Set("event_type", 1000);
+			break;
+		case FlappingStopped:
+			fields1->Set("event_type", 1001);
+			fields1->Set("reason_type", 1);
+			break;
+		case FlappingDisabled:
+			fields1->Set("event_type", 1001);
+			fields1->Set("reason_type", 2);
+			break;
+		default:
+			Log(LogDebug, "db_ido", "Unhandled flapping state: " + Convert::ToString(flapping_state));
+			return;
+	}
+
+	fields1->Set("flapping_type", 1); /* service */
+	fields1->Set("object_id", service);
+	fields1->Set("percent_state_change", service->GetFlappingCurrent());
+	fields1->Set("low_threshold", service->GetFlappingThreshold());
+	fields1->Set("high_threshold", service->GetFlappingThreshold());
+
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	query1.Fields = fields1;
+	OnQuery(query1);
+
+	if (host->GetCheckService() == service) {
+		fields1->Set("object_id", host);
+		fields1->Set("flapping_type", 0); /* host */
+		query1.Fields = fields1;
+		OnQuery(query1);
+	}
 }

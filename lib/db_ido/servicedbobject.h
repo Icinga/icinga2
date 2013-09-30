@@ -107,6 +107,8 @@ private:
         static void AddRemoveDowntimeLogHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
         static void AddNotificationSentLogHistory(const Service::Ptr& service, const User::Ptr& user, NotificationType const& notification_type, Dictionary::Ptr const& cr, const String& author, const String& comment_text);
         static void AddFlappingLogHistory(const Service::Ptr& service, FlappingState flapping_state);
+
+        static void AddFlappingHistory(const Service::Ptr& service, FlappingState flapping_state);
 };
 
 }
