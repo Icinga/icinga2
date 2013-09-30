@@ -60,6 +60,7 @@ public:
 	static String GetCheckResultPerfdata(const Dictionary::Ptr& cr);
 
 	static int MapNotificationReasonType(NotificationType type);
+	static int MapExternalCommandType(const String& name);
 
 	static String EscapeString(const String& str);
 

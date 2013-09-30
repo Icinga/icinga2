@@ -1334,7 +1334,7 @@ void ServiceDbObject::AddExternalCommandHistory(double time, const String& comma
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 
 	fields1->Set("entry_time", DbValue::FromTimestamp(static_cast<long>(time)));
-	fields1->Set("command_type", Empty); // FIXME
+	fields1->Set("command_type", CompatUtility::MapExternalCommandType(command));
 	fields1->Set("command_name", command);
 	fields1->Set("command_args", boost::algorithm::join(arguments, ";"));
 
