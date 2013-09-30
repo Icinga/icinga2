@@ -15,6 +15,9 @@ AM_YFLAGS = -d
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
+config_parser.h: config_parser.hh
+	cp $< $@
+
 libconfig_la_SOURCES = \
 	base-type.conf \
 	configcompiler.cpp \
