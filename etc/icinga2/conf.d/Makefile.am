@@ -7,11 +7,11 @@ CONFIG_FILES = \
 	macros.conf
 
 install-data-local:
-	@$(MKDIR_P) $(icinga2confdir); \
-	for file in $(CONFIG_FILES); do \
-	if [ ! -e $(icinga2confdir)/$$file ]; then \
-	  $(INSTALL_DATA) -o @icinga_user@ -g @icinga_group@ -m 0640 $(srcdir)/$$file $(icinga2confdir)/$$file; \
-	fi; \
-	done
+	if [ ! -e $(icinga2confdir); ]; then \
+	  @$(MKDIR_P) $(icinga2confdir); \
+	  for file in $(CONFIG_FILES); do \
+	    $(INSTALL_DATA) -o @icinga_user@ -g @icinga_group@ -m 0640 $(srcdir)/$$file $(icinga2confdir)/$$file; \
+	  done;
+	fi
 
 EXTRA_DIST = $(CONFIG_FILES)
