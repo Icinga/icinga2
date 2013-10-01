@@ -14,7 +14,8 @@ EXTRA_DIST = \
 	3.3-object-types.md \
 	3-configuring-icinga.md \
 	4-icinga-template-library.md \
-	5-advanced-topics.md
+	5-advanced-topics.md \
+	icinga2.8
 
 icinga2docdir = ${docdir}
 icinga2doc_DATA =
