@@ -236,6 +236,46 @@ void ServiceDbObject::OnConfigUpdate(void)
                 OnQuery(query1);
 	}
 
+	/* service contacts, contactgroups */
+	Array::Ptr contacts = CompatUtility::GetServiceNotificationUsers(service);
+	Log(LogDebug, "db_ido", "service contacts: " + service->GetName() + " length: " + Convert::ToString(contacts->GetLength()));
+
+	{
+		ObjectLock olock(contacts);
+		BOOST_FOREACH(const User::Ptr& user, contacts) {
+			Log(LogDebug, "db_ido", "service contacts: " + user->GetName());
+
+			Dictionary::Ptr fields_contact = boost::make_shared<Dictionary>();
+			fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));
+			fields_contact->Set("contact_object_id", user);
+
+			DbQuery query_contact;
+			query_contact.Table = GetType()->GetTable() + "_contacts";
+			query_contact.Type = DbQueryInsert;
+			query_contact.Fields = fields_contact;
+			OnQuery(query_contact);
+		}
+	}
+
+	Array::Ptr contactgroups = CompatUtility::GetServiceNotificationUserGroups(service);
+	Log(LogDebug, "db_ido", "service contactgroups: " + service->GetName() + " length: " + Convert::ToString(contactgroups->GetLength()));
+	{
+		ObjectLock olock(contactgroups);
+		BOOST_FOREACH(const UserGroup::Ptr& usergroup, contactgroups) {
+			Log(LogDebug, "db_ido", "service contactgroups: " + usergroup->GetName());
+
+			Dictionary::Ptr fields_contact = boost::make_shared<Dictionary>();
+			fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));
+			fields_contact->Set("contactgroup_object_id", usergroup);
+
+			DbQuery query_contact;
+			query_contact.Table = GetType()->GetTable() + "_contactgroups";
+			query_contact.Type = DbQueryInsert;
+			query_contact.Fields = fields_contact;
+			OnQuery(query_contact);
+		}
+	}
+
 	/* custom variables */
 	Log(LogDebug, "db_ido", "service customvars for '" + service->GetName() + "'");
 

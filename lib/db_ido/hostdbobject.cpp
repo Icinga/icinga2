@@ -209,7 +209,7 @@ void HostDbObject::OnConfigUpdate(void)
 	OnQuery(query_del2);
 
 	BOOST_FOREACH(const Host::Ptr& parent, host->GetParentHosts()) {
-		Log(LogDebug, "ido", "host parents: " + parent->GetName());
+		Log(LogDebug, "db_ido", "host parents: " + parent->GetName());
 
 		/* parents: host_id, parent_host_object_id */
 		Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
@@ -236,6 +236,50 @@ void HostDbObject::OnConfigUpdate(void)
 		OnQuery(query2);
 	}
 
+	/* host contacts, contactgroups */
+	Service::Ptr service = host->GetCheckService();
+
+	if (service) {
+		Array::Ptr contacts = CompatUtility::GetServiceNotificationUsers(service);
+		Log(LogDebug, "db_ido", "host contacts: " + host->GetName() + " length: " + Convert::ToString(contacts->GetLength()));
+
+		{
+			ObjectLock olock(contacts);
+			BOOST_FOREACH(const User::Ptr& user, contacts) {
+				Log(LogDebug, "db_ido", "host contacts: " + user->GetName());
+
+				Dictionary::Ptr fields_contact = boost::make_shared<Dictionary>();
+				fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
+				fields_contact->Set("contact_object_id", user);
+
+				DbQuery query_contact;
+				query_contact.Table = GetType()->GetTable() + "_contacts";
+				query_contact.Type = DbQueryInsert;
+				query_contact.Fields = fields_contact;
+				OnQuery(query_contact);
+			}
+		}
+
+		Array::Ptr contactgroups = CompatUtility::GetServiceNotificationUserGroups(service);
+		Log(LogDebug, "db_ido", "host contactgroups: " + host->GetName() + " length: " + Convert::ToString(contactgroups->GetLength()));
+		{
+			ObjectLock olock(contactgroups);
+			BOOST_FOREACH(const UserGroup::Ptr& usergroup, contactgroups) {
+				Log(LogDebug, "db_ido", "host contactgroups: " + usergroup->GetName());
+
+				Dictionary::Ptr fields_contact = boost::make_shared<Dictionary>();
+				fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
+				fields_contact->Set("contactgroup_object_id", usergroup);
+
+				DbQuery query_contact;
+				query_contact.Table = GetType()->GetTable() + "_contactgroups";
+				query_contact.Type = DbQueryInsert;
+				query_contact.Fields = fields_contact;
+				OnQuery(query_contact);
+			}
+		}
+	}
+
 	/* custom variables */
 	Log(LogDebug, "ido", "host customvars for '" + host->GetName() + "'");
 
@@ -258,7 +302,7 @@ void HostDbObject::OnConfigUpdate(void)
 		String key;
 		Value value;
 		BOOST_FOREACH(boost::tie(key, value), customvars) {
-			Log(LogDebug, "ido", "host customvar key: '" + key + "' value: '" + Convert::ToString(value) + "'");
+			Log(LogDebug, "db_ido", "host customvar key: '" + key + "' value: '" + Convert::ToString(value) + "'");
 
 			Dictionary::Ptr fields3 = boost::make_shared<Dictionary>();
 			fields3->Set("varname", Convert::ToString(key));
