@@ -251,6 +251,7 @@ void HostDbObject::OnConfigUpdate(void)
 				Dictionary::Ptr fields_contact = boost::make_shared<Dictionary>();
 				fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
 				fields_contact->Set("contact_object_id", user);
+				fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 				DbQuery query_contact;
 				query_contact.Table = GetType()->GetTable() + "_contacts";
@@ -270,6 +271,7 @@ void HostDbObject::OnConfigUpdate(void)
 				Dictionary::Ptr fields_contact = boost::make_shared<Dictionary>();
 				fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
 				fields_contact->Set("contactgroup_object_id", usergroup);
+				fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 				DbQuery query_contact;
 				query_contact.Table = GetType()->GetTable() + "_contactgroups";
