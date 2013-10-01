@@ -53,6 +53,7 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddCommentHistory, _1, _2));
 	Service::OnDowntimeAdded.connect(boost::bind(&ServiceDbObject::AddDowntimeHistory, _1, _2));
 	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
+	Service::OnNotificationSentToUser.connect(bind(&ServiceDbObject::AddContactNotificationHistory, _1, _2));
 	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotificationHistory, _1, _2, _3, _4, _5, _6));
 
 	Service::OnStateChange.connect(boost::bind(&ServiceDbObject::AddStateChangeHistory, _1, _2, _3));
@@ -736,7 +737,7 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	if (!host)
 		return;
 
-	Log(LogDebug, "db_ido", "add acknowledgement for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "add acknowledgement history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
 	unsigned long entry_time = static_cast<long>(now);
@@ -771,6 +772,46 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 }
 
 /* notifications */
+
+void ServiceDbObject::AddContactNotificationHistory(const Service::Ptr& service, const User::Ptr& user)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Log(LogDebug, "db_ido", "add contact notification history for '" + service->GetName() + "'");
+
+	/* start and end happen at the same time */
+	double now = Utility::GetTime();
+	unsigned long start_time = static_cast<long>(now);
+	unsigned long end_time = start_time;
+	unsigned long start_time_usec = (now - start_time) * 1000 * 1000;
+	unsigned long end_time_usec = start_time_usec;
+
+	DbQuery query1;
+	query1.Table = "contactnotifications";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+	fields1->Set("contact_object_id", user);
+	fields1->Set("start_time", DbValue::FromTimestamp(start_time));
+	fields1->Set("start_time_usec", start_time_usec);
+	fields1->Set("end_time", DbValue::FromTimestamp(end_time));
+	fields1->Set("end_time_usec", end_time_usec);
+
+	fields1->Set("notification_id", 0); /* DbConnection class fills in real ID */
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	query1.Fields = fields1;
+	OnQuery(query1);
+
+	if (host->GetCheckService() == service) {
+		query1.Fields = fields1;
+		OnQuery(query1);
+	}
+}
+
 void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
 				      const Dictionary::Ptr& cr, const String& author, const String& text)
 {
@@ -779,7 +820,7 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 	if (!host)
 		return;
 
-	Log(LogDebug, "db_ido", "add notification for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "add notification history for '" + service->GetName() + "'");
 
 	/* start and end happen at the same time */
 	double now = Utility::GetTime();
@@ -832,7 +873,7 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const D
 	if (!host)
 		return;
 
-	Log(LogDebug, "db_ido", "add state change for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "add state change history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
 	unsigned long state_time = static_cast<long>(now);
@@ -1166,7 +1207,7 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 	if (!host)
 		return;
 
-	Log(LogDebug, "db_ido", "add log entry for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "add log entry history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
 	unsigned long entry_time = static_cast<long>(now);
