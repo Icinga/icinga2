@@ -40,3 +40,4 @@ docs/dev
 m4/ylwrap
 m4/test-driver
 icinga2-*.tar.gz
+icinga2.spec

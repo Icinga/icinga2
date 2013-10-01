@@ -82,6 +82,8 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 	{
 		boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
+		bool reconnect = false;
+
 		if (m_Connected) {
 			/* Check if we're really still connected */
 			if (mysql_ping(&m_Connection) == 0)
@@ -89,6 +91,7 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 
 			mysql_close(&m_Connection);
 			m_Connected = false;
+			reconnect = true;
 		}
 
 		String ihost, iuser, ipasswd, idb;
@@ -147,6 +150,15 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 		msgbuf << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
 		Log(LogInformation, "db_ido_mysql", msgbuf.str());
 
+		/* set session time zone to utc */
+		Query("SET SESSION TIME_ZONE='+00:00'");
+
+		/* record connection */
+		Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
+		    "(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
+		    + Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), 'icinga2 db_ido_mysql', '2.0', '" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
+
+		/* clear config tables for the initial config dump */
 		ClearConfigTables();
 
 		Query("UPDATE " + GetTablePrefix() + "objects SET is_active = 0");
