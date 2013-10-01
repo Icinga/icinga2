@@ -66,6 +66,8 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnFlappingChanged.connect(bind(&ServiceDbObject::AddFlappingHistory, _1, _2));
 	Service::OnNewCheckResult.connect(bind(&ServiceDbObject::AddServiceCheckHistory, _1, _2));
 
+	Service::OnEventCommandExecuted.connect(bind(&ServiceDbObject::AddEventHandlerHistory, _1));
+
 	ExternalCommandProcessor::OnNewExternalCommand.connect(bind(&ServiceDbObject::AddExternalCommandHistory, _1, _2, _3));
 }
 
@@ -1315,6 +1317,52 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 
 		fields1->Remove("service_object_id");
 		fields1->Set("host_object_id", host);
+		fields1->Set("state", host->GetState());
+		fields1->Set("state_type", host->GetStateType());
+		query1.Fields = fields1;
+		OnQuery(query1);
+	}
+}
+
+/* eventhandlers */
+void ServiceDbObject::AddEventHandlerHistory(const Service::Ptr& service)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	Log(LogDebug, "db_ido", "add eventhandler history for '" + service->GetName() + "'");
+
+	double now = Utility::GetTime();
+	unsigned long event_time = static_cast<long>(now);
+	unsigned long event_time_usec = (now - event_time) * 1000 * 1000;
+
+	DbQuery query1;
+	query1.Table = "eventhandlers";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+
+	fields1->Set("eventhandler_type", 1); /* service */
+	fields1->Set("object_id", service);
+	fields1->Set("state", service->GetState());
+	fields1->Set("state_type", service->GetStateType());
+
+	fields1->Set("start_time", DbValue::FromTimestamp(event_time));
+	fields1->Set("start_time_usec", event_time_usec);
+	fields1->Set("end_time", DbValue::FromTimestamp(event_time));
+	fields1->Set("end_time_usec", event_time_usec);
+	fields1->Set("command_object_id", service->GetEventCommand());
+
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	query1.Fields = fields1;
+	OnQuery(query1);
+
+	if (host->GetCheckService() == service) {
+		fields1->Set("eventhandler_type", 0); /* host */
+		fields1->Set("object_id", host);
 		fields1->Set("state", host->GetState());
 		fields1->Set("state_type", host->GetStateType());
 		query1.Fields = fields1;

@@ -250,6 +250,7 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> OnDowntimeTriggered;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&)> OnAcknowledgementCleared;
+	static boost::signals2::signal<void (const Service::Ptr&)> OnEventCommandExecuted;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 

@@ -22,6 +22,8 @@
 
 using namespace icinga;
 
+boost::signals2::signal<void (const Service::Ptr&)> Service::OnEventCommandExecuted;
+
 EventCommand::Ptr Service::GetEventCommand(void) const
 {
 	return EventCommand::GetByName(m_EventCommand);
@@ -35,5 +37,8 @@ void Service::ExecuteEventHandler(void)
 		return;
 
 	Log(LogDebug, "icinga", "Executing event handler for service '" + GetName() + "'");
+
 	ec->Execute(GetSelf());
+
+	OnEventCommandExecuted(GetSelf());
 }
