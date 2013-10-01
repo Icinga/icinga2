@@ -4,7 +4,7 @@ SUBDIRS = \
 	conf.d \
 	features-available
 
-icinga2confdir = $(sysconfdir)/icinga2
+icinga2confdir = $(DESTDIR)${sysconfdir}/icinga2
 
 CONFIG_FILES = \
 	icinga2.conf

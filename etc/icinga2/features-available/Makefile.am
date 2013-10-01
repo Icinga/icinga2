@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-icinga2confdir = $(sysconfdir)/icinga2/features-available
+icinga2confdir = $(DESTDIR)${sysconfdir}/icinga2/features-available
 
 CONFIG_FILES = \
 	checker.conf \
