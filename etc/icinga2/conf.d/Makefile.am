@@ -11,7 +11,7 @@ install-data-local:
 	  @$(MKDIR_P) $(icinga2confdir); \
 	  for file in $(CONFIG_FILES); do \
 	    $(INSTALL_DATA) -o @icinga_user@ -g @icinga_group@ -m 0640 $(srcdir)/$$file $(icinga2confdir)/$$file; \
-	  done;
+	  done; \
 	fi
 
 EXTRA_DIST = $(CONFIG_FILES)
