@@ -25,6 +25,7 @@
 #include "icinga/timeperiod.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/icingaapplication.h"
+#include "icinga/compatutility.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
@@ -750,29 +751,7 @@ Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
 
 Value ServicesTable::ContactsAccessor(const Value& row)
 {
-	/* XXX Service -> Notifications -> (Users + UserGroups -> Users) */
-	std::set<User::Ptr> allUsers;
-	std::set<User::Ptr> users;
-	Array::Ptr contacts = boost::make_shared<Array>();
-
-	BOOST_FOREACH(const Notification::Ptr& notification, static_cast<Service::Ptr>(row)->GetNotifications()) {
-		ObjectLock olock(notification);
-
-		users = notification->GetUsers();
-
-		std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
-
-		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetUserGroups()) {
-			std::set<User::Ptr> members = ug->GetMembers();
-			std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
-                }
-        }
-
-	BOOST_FOREACH(const User::Ptr& user, allUsers) {
-		contacts->Add(user->GetName());
-	}
-
-	return contacts;
+	return CompatUtility::GetServiceNotificationUsers(static_cast<Service::Ptr>(row));
 }
 
 Value ServicesTable::DowntimesAccessor(const Value& row)
@@ -1023,18 +1002,7 @@ Value ServicesTable::GroupsAccessor(const Value& row)
 
 Value ServicesTable::ContactGroupsAccessor(const Value& row)
 {
-	/* XXX Service -> Notifications -> UserGroups */
-	Array::Ptr contactgroups = boost::make_shared<Array>();
-
-	BOOST_FOREACH(const Notification::Ptr& notification, static_cast<Service::Ptr>(row)->GetNotifications()) {
-		ObjectLock olock(notification);
-
-		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetUserGroups()) {
-			contactgroups->Add(ug->GetName());
-                }
-        }
-
-	return contactgroups;
+	return CompatUtility::GetServiceNotificationUserGroups(static_cast<Service::Ptr>(row));
 }
 
 
