@@ -28,7 +28,7 @@ if [ -z "$1" ]; then
 	echo -n "Available features: "
 
 	for file in $ICINGA2CONFDIR/features-available/*.conf; do
-		echo -n $(basename -- $file .conf)
+		echo -n "$(basename -- $file .conf) "
 	done
 
 	echo
