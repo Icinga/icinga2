@@ -22,7 +22,9 @@
 #include "db_ido/dbvalue.h"
 #include "icinga/user.h"
 #include "icinga/notification.h"
+#include "base/convert.h"
 #include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -81,6 +83,38 @@ Dictionary::Ptr UserDbObject::GetStatusFields(void) const
 	fields->Set("modified_service_attributes", Empty);
 
 	return fields;
+}
+
+void UserDbObject::OnConfigUpdate(void)
+{
+	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
+	User::Ptr user = static_pointer_cast<User>(GetObject());
+
+	/* contact addresses */
+	Log(LogDebug, "db_ido", "contact addresses for '" + user->GetName() + "'");
+
+	Dictionary::Ptr macros = user->GetMacros();
+
+	if (macros) { /* This is sparta. */
+		for (int i = 1; i <= 6; i++) {
+			String key = "address" + Convert::ToString(i);
+			String val = macros->Get(key);
+
+			if (val.IsEmpty())
+				continue;
+
+			fields->Set("contact_id", DbValue::FromObjectInsertID(user));
+			fields->Set("address_number", i);
+			fields->Set("address", val);
+			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+			DbQuery query;
+			query.Type = DbQueryInsert;
+			query.Table = "contact_addresses";
+			query.Fields = fields;
+			OnQuery(query);
+		}
+	}
 }
 
 bool UserDbObject::IsStatusAttribute(const String& attribute) const
