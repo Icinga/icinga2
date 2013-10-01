@@ -119,10 +119,6 @@ Dictionary::Ptr CompatUtility::GetHostConfigAttributes(const Host::Ptr& host)
 			attr->Set("notify_on_down", 1);
 			notification_options.push_back("d");
 		}
-		if (notification_state_filter & (1<<StateUncheckable)) {
-			attr->Set("notify_on_unreachable", 1);
-			notification_options.push_back("u");
-		}
 
 		/* notification type filters */
 		if (notification_type_filter & (1<<NotificationRecovery)) {

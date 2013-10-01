@@ -659,8 +659,6 @@ ServiceState Service::StateFromString(const String& state)
 		return StateWarning;
 	else if (state == "CRITICAL")
 		return StateCritical;
-	else if (state == "UNCHECKABLE")
-		return StateUncheckable;
 	else
 		return StateUnknown;
 }
@@ -674,8 +672,6 @@ String Service::StateToString(ServiceState state)
 			return "WARNING";
 		case StateCritical:
 			return "CRITICAL";
-		case StateUncheckable:
-			return "UNCHECKABLE";
 		case StateUnknown:
 		default:
 			return "UNKNOWN";

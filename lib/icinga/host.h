@@ -53,8 +53,7 @@ enum ServiceState
 	StateOK = 0,
 	StateWarning = 1,
 	StateCritical = 2,
-	StateUnknown = 3,
-	StateUncheckable = 4,
+	StateUnknown = 3
 };
 
 /**
