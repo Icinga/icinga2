@@ -63,6 +63,7 @@ private:
 	String m_InstanceDescription;
 
 	DbReference m_InstanceID;
+        DbReference m_LastNotificationID;
 
 	boost::mutex m_ConnectionMutex;
 	bool m_Connected;
