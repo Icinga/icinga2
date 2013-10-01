@@ -509,7 +509,7 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 	}
 	if (type == DbQueryInsert && query.Table == "notifications") { // FIXME remove hardcoded table name
 		m_LastNotificationID = GetLastInsertID();
-		Log(LogWarning, "db_ido", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(m_LastNotificationID)));
+		Log(LogDebug, "db_ido", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(m_LastNotificationID)));
 	}
 }
 
