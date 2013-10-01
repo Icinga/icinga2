@@ -3,10 +3,12 @@
 icinga2confdir = $(sysconfdir)/icinga2/features-available
 
 CONFIG_FILES = \
+	checker.conf \
 	command.conf \
 	compat-log.conf \
 	ido-mysql.conf \
 	livestatus.conf \
+	notification.conf \
 	perfdata.conf \
 	statusdat.conf
 
