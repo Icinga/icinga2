@@ -13,7 +13,8 @@ EXTRA_DIST = \
 	3.2-global-variables.md \
 	3.3-object-types.md \
 	3-configuring-icinga.md \
-	4-advanced-topics.md
+	4-icinga-template-library.md \
+	5-advanced-topics.md
 
 icinga2docdir = ${docdir}
 icinga2doc_DATA =
