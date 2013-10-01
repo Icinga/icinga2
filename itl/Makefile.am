@@ -4,7 +4,6 @@ icinga2itl_DATA = \
 	command-common.conf \
 	constants.conf \
 	itl.conf \
-	timeperiod.conf \
-	standalone.conf
+	timeperiod.conf
 
 EXTRA_DIST = $(icinga2itl_DATA)
