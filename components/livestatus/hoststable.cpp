@@ -1088,7 +1088,15 @@ Value HostsTable::ContactsAccessor(const Value& row)
 	if (!hc)
 		return Empty;
 
-	return CompatUtility::GetServiceNotificationUsers(hc);
+	Array::Ptr contacts = CompatUtility::GetServiceNotificationUsers(hc);
+	Array::Ptr contact_names = boost::make_shared<Array>();
+
+	ObjectLock olock(contacts);
+	BOOST_FOREACH(const User::Ptr& user, contacts) {
+		contact_names->Add(user->GetName());
+	}
+
+	return contact_names;
 }
 
 Value HostsTable::DowntimesAccessor(const Value& row)
@@ -1581,7 +1589,16 @@ Value HostsTable::ContactGroupsAccessor(const Value& row)
 	if (!hc)
 		return Empty;
 
-	return CompatUtility::GetServiceNotificationUserGroups(hc);
+	Array::Ptr contactgroups = CompatUtility::GetServiceNotificationUserGroups(hc);
+
+	Array::Ptr contactgroup_names = boost::make_shared<Array>();
+
+	ObjectLock olock(contactgroups);
+	BOOST_FOREACH(const UserGroup::Ptr& usergroup, contactgroups) {
+		contactgroup_names->Add(usergroup->GetName());
+	}
+
+	return contactgroup_names;
 }
 
 Value HostsTable::ServicesAccessor(const Value& row)

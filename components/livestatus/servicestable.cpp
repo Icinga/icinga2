@@ -751,7 +751,15 @@ Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
 
 Value ServicesTable::ContactsAccessor(const Value& row)
 {
-	return CompatUtility::GetServiceNotificationUsers(static_cast<Service::Ptr>(row));
+	Array::Ptr contacts = CompatUtility::GetServiceNotificationUsers(static_cast<Service::Ptr>(row));
+	Array::Ptr contact_names = boost::make_shared<Array>();
+
+	ObjectLock olock(contacts);
+	BOOST_FOREACH(const User::Ptr& user, contacts) {
+		contact_names->Add(user->GetName());
+	}
+
+	return contact_names;
 }
 
 Value ServicesTable::DowntimesAccessor(const Value& row)
@@ -1002,7 +1010,16 @@ Value ServicesTable::GroupsAccessor(const Value& row)
 
 Value ServicesTable::ContactGroupsAccessor(const Value& row)
 {
-	return CompatUtility::GetServiceNotificationUserGroups(static_cast<Service::Ptr>(row));
+	Array::Ptr contactgroups = CompatUtility::GetServiceNotificationUserGroups(static_cast<Service::Ptr>(row));
+
+	Array::Ptr contactgroup_names = boost::make_shared<Array>();
+
+	ObjectLock olock(contactgroups);
+	BOOST_FOREACH(const UserGroup::Ptr& usergroup, contactgroups) {
+		contactgroup_names->Add(usergroup->GetName());
+	}
+
+	return contactgroup_names;
 }
 
 

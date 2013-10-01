@@ -504,7 +504,7 @@ Value CompatUtility::GetServiceNotificationUsers(const Service::Ptr& service)
         }
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
-		contacts->Add(user->GetName());
+		contacts->Add(user);
 	}
 
 	return contacts;
@@ -519,7 +519,7 @@ Value CompatUtility::GetServiceNotificationUserGroups(const Service::Ptr& servic
 		ObjectLock olock(notification);
 
 		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetUserGroups()) {
-			contactgroups->Add(ug->GetName());
+			contactgroups->Add(ug);
                 }
         }
 
