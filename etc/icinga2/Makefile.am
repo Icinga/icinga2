@@ -23,4 +23,6 @@ install-exec-hook:
 	if [ ! -e features-enabled ]; then \
 	  $(MKDIR_P) features-enabled && \
 	  $(LN_S) ../features-available/compat.conf features-enabled/; \
+	  $(LN_S) ../features-available/checker.conf features-enabled/; \
+	  $(LN_S) ../features-available/notification.conf features-enabled/; \
 	fi
