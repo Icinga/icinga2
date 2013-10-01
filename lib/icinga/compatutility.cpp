@@ -906,5 +906,7 @@ int CompatUtility::MapExternalCommandType(const String& name)
 		return 176;
 	if (name == "CUSTOM_COMMAND")
 		return 999;
+
+	return 0;
 }
 
