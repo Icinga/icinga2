@@ -126,18 +126,18 @@ double User::GetLastNotification(void) const
 
 bool User::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
-	if (macro == "CONTACTNAME") {
+	if (macro == "USERNAME" || macro == "CONTACTNAME") {
 		*result = GetName();
 		return true;
-	} else if (macro == "CONTACTALIAS") {
+	} else if (macro == "USERDISPLAYNAME" || macro == "CONTACTALIAS") {
 		*result = GetDisplayName();
 		return true;
 	} else {
 		String tmacro;
 
-		if (macro == "CONTACTEMAIL")
+		if (macro == "USEREMAIL" || macro == "CONTACTEMAIL")
 			tmacro = "email";
-		else if (macro == "CONTACTPAGER")
+		else if (macro == "USERPAGER" || macro == "CONTACTPAGER")
 			tmacro = "pager";
 		else
 			tmacro = macro;
