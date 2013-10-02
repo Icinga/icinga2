@@ -7,4 +7,4 @@ CLEANFILES = $(bin_SCRIPTS)
 EXTRA_DIST = i2enfeature.in
 
 install-exec-hook:
-	$(LN_S) -f i2enfeature $(sbindir)/i2disfeature
+	$(LN_S) -f i2enfeature $(DESTDIR)$(sbindir)/i2disfeature
