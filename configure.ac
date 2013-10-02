@@ -194,9 +194,19 @@ tools/Makefile
 tools/i2enfeature
 tools/mkembedconfig/Makefile
 ])
+
 AC_OUTPUT([
 etc/init.d/icinga2
 ])
+
+# Fix -rpath problem (https://wiki.debian.org/RpathIssue)
+case ${host} in
+  *-linux-gnu)
+    test -f libtool.old || (mv libtool libtool.old && cp libtool.old libtool)
+    sed 's|^sys_lib_dlsearch_path_spec=.*|sys_lib_dlsearch_path_spec="/lib64 /lib /usr/lib64 /usr/lib /usr/local/lib64 /usr/local/lib"|g' libtool >libtool.new
+    mv libtool.new libtool
+  ;;
+esac
 
 if ! test -z "$LTDLDEPS"; then
 	ltdl_msg="bundled"

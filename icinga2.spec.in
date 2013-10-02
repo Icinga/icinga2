@@ -71,10 +71,6 @@ IDOUtils schema >= 1.10
 	--with-icingacmd-user=$USER \
 	--with-icingacmd-group=$USER
 
-# http://fedoraproject.org/wiki/RPath_Packaging_Draft
-sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
-sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
-
 make %{?_smp_mflags}
 
 %install
