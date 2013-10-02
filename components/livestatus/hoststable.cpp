@@ -1088,11 +1088,9 @@ Value HostsTable::ContactsAccessor(const Value& row)
 	if (!hc)
 		return Empty;
 
-	Array::Ptr contacts = CompatUtility::GetServiceNotificationUsers(hc);
 	Array::Ptr contact_names = boost::make_shared<Array>();
 
-	ObjectLock olock(contacts);
-	BOOST_FOREACH(const User::Ptr& user, contacts) {
+	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetServiceNotificationUsers(hc)) {
 		contact_names->Add(user->GetName());
 	}
 
@@ -1589,12 +1587,9 @@ Value HostsTable::ContactGroupsAccessor(const Value& row)
 	if (!hc)
 		return Empty;
 
-	Array::Ptr contactgroups = CompatUtility::GetServiceNotificationUserGroups(hc);
-
 	Array::Ptr contactgroup_names = boost::make_shared<Array>();
 
-	ObjectLock olock(contactgroups);
-	BOOST_FOREACH(const UserGroup::Ptr& usergroup, contactgroups) {
+	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetServiceNotificationUserGroups(hc)) {
 		contactgroup_names->Add(usergroup->GetName());
 	}
 

@@ -56,8 +56,8 @@ public:
 
 	static Dictionary::Ptr GetCustomVariableConfig(const DynamicObject::Ptr& object);
 
-	static Value GetServiceNotificationUsers(const Service::Ptr& service);
-	static Value GetServiceNotificationUserGroups(const Service::Ptr& service);
+	static std::set<User::Ptr> GetServiceNotificationUsers(const Service::Ptr& service);
+	static std::set<UserGroup::Ptr> GetServiceNotificationUserGroups(const Service::Ptr& service);
 
 	static Dictionary::Ptr GetCheckResultOutput(const Dictionary::Ptr& cr);
 	static String GetCheckResultPerfdata(const Dictionary::Ptr& cr);

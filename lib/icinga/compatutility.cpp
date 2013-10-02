@@ -483,12 +483,11 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr&
 	return customvars;
 }
 
-Value CompatUtility::GetServiceNotificationUsers(const Service::Ptr& service)
+std::set<User::Ptr> CompatUtility::GetServiceNotificationUsers(const Service::Ptr& service)
 {
 	/* Service -> Notifications -> (Users + UserGroups -> Users) */
 	std::set<User::Ptr> allUsers;
 	std::set<User::Ptr> users;
-	Array::Ptr contacts = boost::make_shared<Array>();
 
 	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
 		ObjectLock olock(notification);
@@ -503,27 +502,22 @@ Value CompatUtility::GetServiceNotificationUsers(const Service::Ptr& service)
                 }
         }
 
-	BOOST_FOREACH(const User::Ptr& user, allUsers) {
-		contacts->Add(user);
-	}
-
-	return contacts;
+	return allUsers;
 }
 
-Value CompatUtility::GetServiceNotificationUserGroups(const Service::Ptr& service)
+std::set<UserGroup::Ptr> CompatUtility::GetServiceNotificationUserGroups(const Service::Ptr& service)
 {
+	std::set<UserGroup::Ptr> usergroups;
 	/* Service -> Notifications -> UserGroups */
-	Array::Ptr contactgroups = boost::make_shared<Array>();
-
 	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
 		ObjectLock olock(notification);
 
 		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetUserGroups()) {
-			contactgroups->Add(ug);
+			usergroups.insert(ug);
                 }
         }
 
-	return contactgroups;
+	return usergroups;
 }
 
 Dictionary::Ptr CompatUtility::GetCheckResultOutput(const Dictionary::Ptr& cr)

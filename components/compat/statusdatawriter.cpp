@@ -270,7 +270,15 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 {
 	fp << "define host {" << "\n"
 	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
+	   << "\t" << "display_name" << "\t" << host->GetDisplayName() << "\n"
 	   << "\t" << "alias" << "\t" << host->GetDisplayName() << "\n";
+
+	Dictionary::Ptr macros = host->GetMacros();
+
+	if (macros) {
+		fp << "\t" << "address" << "\t" << macros->Get("address") << "\n"
+		   << "\t" << "address6" << "\t" << macros->Get("address6") << "\n";
+	}
 
 	std::set<Host::Ptr> parents = host->GetParentHosts();
 
@@ -298,8 +306,31 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 			fp << "\t" << "check_command" << "\t" << "check_" << checkcommand->GetName() << "\n";
 
 		EventCommand::Ptr eventcommand = hc->GetEventCommand();
-		if (eventcommand)
-			fp << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
+		if (eventcommand) {
+			fp << "\t" << "event_handler_enabled" << "\t" << 1 << "\n"
+			   << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
+		} else {
+			fp << "\t" << "event_handler_enabled" << "\t" << 0 << "\n";
+		}
+
+		TimePeriod::Ptr check_period = hc->GetCheckPeriod();
+		if (check_period)
+			fp << "\t" << "check_period" << "\t" << check_period->GetName() << "\n";
+
+		fp << "\t" << "contacts" << "\t";
+		DumpNameList(fp, CompatUtility::GetServiceNotificationUsers(hc));
+		fp << "\n";
+
+		fp << "\t" << "contact_groups" << "\t";
+		DumpNameList(fp, CompatUtility::GetServiceNotificationUserGroups(hc));
+		fp << "\n";
+
+		fp << "\t" << "initial_state" << "\t" << "o" << "\n"
+		   << "\t" << "low_flap_threshold" << "\t" << hc->GetFlappingThreshold() << "\n"
+		   << "\t" << "high_flap_threshold" << "\t" << hc->GetFlappingThreshold() << "\n"
+		   << "\t" << "process_perf_data" << "\t" << 1 << "\n"
+		   << "\t" << "check_freshness" << "\t" << 1 << "\n";
+
 	} else {
 		fp << "\t" << "check_interval" << "\t" << 60 << "\n"
 		   << "\t" << "retry_interval" << "\t" << 60 << "\n"
@@ -309,6 +340,15 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 		   << "\t" << "notifications_enabled" << "\t" << 0 << "\n";
 
 	}
+
+	/* TODO FIXME
+	Array::Ptr groups = host->GetGroups();
+	if (groups) {
+		fp << "\t" << "hostgroups" << "\t";
+		DumpNameArray(fp, host->GetGroups());
+		fp << "\n";
+	}
+	*/
 
 	DumpCustomAttributes(fp, host);
 
@@ -684,6 +724,22 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    << boost::errinfo_file_name(objectspathtmp));
 	}
 }
+
+/*
+void StatusDataWriter::DumpNameArray(std::ostream& fp, const Array::Ptr& array)
+{
+	bool first = true;
+	ObjectLock olock(array);
+	BOOST_FOREACH(const Array::Ptr& obj, array) {
+		if (!first)
+			fp << ",";
+		else
+			first = false;
+
+		fp << obj->GetName();
+	}
+}
+*/
 
 void StatusDataWriter::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
 {
