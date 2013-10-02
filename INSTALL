@@ -43,19 +43,22 @@ User Requirements
 -----------------
 
 By default Icinga will run as user 'icinga' and group 'icinga'. Additionally the
-ExternalCommandListener and LivestatusListener require a dedicated command group
-'icingacmd'. You can choose your own user/group names and pass them to configure
-later.
+external command pipe and livestatus features require a dedicated command group
+'icingacmd'. You can choose your own user/group names and pass them to the
+configure script using the --with-icinga-user, --with-icinga-group,
+--with-icingacmd-user and --with-icingacmd-group options.
 
 # groupadd icinga
 # groupadd icingacmd
 # useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga
 
-Add the webserver user to the icingacmd group for granting write permissions.
-Change 'www-data' to your distribution specific webserver user.
+Add the web server user to the icingacmd group in order to grant it write
+permissions to the external command pipe and livestatus socket:
 
 # usermod -a -G icingacmd www-data
 
+Make sure to replace "www-data" with the name of the user your web server
+is running as.
 
 Building Icinga 2
 -----------------
@@ -71,9 +74,6 @@ The configure script supports all the usual parameters one comes to expect
 from autoconf. In particular you may want to use --prefix to specify an
 alternative installation prefix.
 
-Use --with-icinga[cmd]-{user,group}= to set the run and command user/group
-for Icinga 2.
-
 Note: The Git repository does not contain any auto-generated Autotools files,
 i.e. there is no 'configure' script. In this case you will need to regenerate
 the 'configure' script by running 'autogen.sh'. However, as an end-user you
@@ -86,15 +86,16 @@ Running Icinga 2
 Icinga 2 comes with a single binary that takes care of loading all the relevant
 components (e.g. for check execution, notifications, etc.):
 
-$ /tmp/i2/bin/icinga
+$ icinga2
 [2012/09/14 10:36:12] information/icinga: Icinga application loader (version:
                       2.0, git branch master, commit 8e4bdf38 + changes)
-[2012/09/14 10:36:12] information/base: Syntax: ./bin/icinga -c <config-file> ...
+[2012/09/14 10:36:12] information/base: Syntax: icinga2 -c <config-file> ...
 
 Icinga 2 reads a single configuration file which is used to specify all
 configuration settings (global settings, hosts, services, etc.). The
 configuration format is explained in detail in the docs/icinga2-config.txt
 file.
 
-By default "make install" installs example configuration files to /etc/icinga2
-unless you have specified a different prefix or sysconfdir.
+By default "make install" installs example configuration files in
+/usr/local/etc/icinga2 unless you have specified a different prefix or
+sysconfdir.
