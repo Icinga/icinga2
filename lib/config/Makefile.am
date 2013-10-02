@@ -16,7 +16,7 @@ AM_YFLAGS = -d
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .hh.h:
-	cp $(srcdir)/$< $(srcdir)/$@
+	if [ -e $(srcdir)/$< ]; then cp $(srcdir)/$< $(srcdir)/$@; fi
 
 libconfig_la_SOURCES = \
 	base-type.conf \
