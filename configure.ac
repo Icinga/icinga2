@@ -48,7 +48,7 @@ AC_ARG_WITH(icinga_group,
 ACICINGA_CHECK_GROUP([$icinga_group], run)
 AC_SUBST(icinga_group)
 
-INSTALL_OPTS="-o $icinga_user -g $icinga_grp"
+INSTALL_OPTS="-o $icinga_user -g $icinga_group"
 AC_SUBST(INSTALL_OPTS)
 
 AC_ARG_WITH(icingacmd_user,

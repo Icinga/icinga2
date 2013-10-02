@@ -28,13 +28,17 @@ icinga2doc_DATA = \
 	NEWS
 
 install-data-local:
-	$(MKDIR_P) $(DESTDIR)${localstatedir}/log/${PACKAGE}/compat/archives
-	$(MKDIR_P) $(DESTDIR)${localstatedir}/cache/${PACKAGE}
-	$(MKDIR_P) $(DESTDIR)${localstatedir}/spool/${PACKAGE}/perfdata
-	$(MKDIR_P) $(DESTDIR)${localstatedir}/lib/${PACKAGE}/cluster/config
-	$(MKDIR_P) $(DESTDIR)${localstatedir}/lib/${PACKAGE}/cluster/log
-	$(MKDIR_P) $(DESTDIR)${localstatedir}/lib/${PACKAGE}
-	$(MKDIR_P) $(DESTDIR)${localstatedir}/run/${PACKAGE}
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/log/${PACKAGE}
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/log/${PACKAGE}/compat
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/log/${PACKAGE}/compat/archives
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/cache/${PACKAGE}
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/spool/${PACKAGE}
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/spool/${PACKAGE}/perfdata
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/lib/${PACKAGE}
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/lib/${PACKAGE}/cluster
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/lib/${PACKAGE}/cluster/config
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/lib/${PACKAGE}/cluster/log
+	$(INSTALL) -d $(INSTALL_OPTS) $(DESTDIR)${localstatedir}/run/${PACKAGE}
 	$(INSTALL) -m 775 -d $(COMMAND_OPTS) $(DESTDIR)${localstatedir}/run/${PACKAGE}/cmd
 	chmod g+s $(DESTDIR)${localstatedir}/run/${PACKAGE}/cmd
 
