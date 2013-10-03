@@ -97,8 +97,6 @@ private:
 		}
 	}
 
-	void DumpNameArray(std::ostream& fp, const Array::Ptr& array);
-
 	void DumpServiceStatus(std::ostream& fp, const Service::Ptr& service);
 	void DumpServiceObject(std::ostream& fp, const Service::Ptr& service);
 

@@ -341,14 +341,29 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 
 	}
 
-	/* TODO FIXME
-	Array::Ptr groups = host->GetGroups();
-	if (groups) {
-		fp << "\t" << "hostgroups" << "\t";
-		DumpNameArray(fp, host->GetGroups());
-		fp << "\n";
-	}
-	*/
+	fp << "\t" << "host_groups" << "\t";
+	bool first = true;
+
+        Array::Ptr groups = host->GetGroups();
+
+        if (groups) {
+                ObjectLock olock(groups);
+
+                BOOST_FOREACH(const String& name, groups) {
+                        HostGroup::Ptr hg = HostGroup::GetByName(name);
+
+                        if (hg) {
+				if (!first)
+					fp << ",";
+				else
+					first = false;
+
+				fp << hg->GetName();
+                        }
+                }
+        }
+
+	fp << "\n";
 
 	DumpCustomAttributes(fp, host);
 
@@ -496,6 +511,30 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
                    << "\t" << "process_perf_data" << "\t" << 1 << "\n"
                    << "\t" << "check_freshness" << "\t" << 1 << "\n";
 	}
+
+	fp << "\t" << "service_groups" << "\t";
+	bool first = true;
+
+        Array::Ptr groups = service->GetGroups();
+
+        if (groups) {
+                ObjectLock olock(groups);
+
+                BOOST_FOREACH(const String& name, groups) {
+                        ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
+
+                        if (sg) {
+				if (!first)
+					fp << ",";
+				else
+					first = false;
+
+				fp << sg->GetName();
+                        }
+                }
+        }
+
+	fp << "\n";
 
 	DumpCustomAttributes(fp, service);
 
@@ -746,22 +785,6 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    << boost::errinfo_file_name(objectspathtmp));
 	}
 }
-
-/*
-void StatusDataWriter::DumpNameArray(std::ostream& fp, const Array::Ptr& array)
-{
-	bool first = true;
-	ObjectLock olock(array);
-	BOOST_FOREACH(const Array::Ptr& obj, array) {
-		if (!first)
-			fp << ",";
-		else
-			first = false;
-
-		fp << obj->GetName();
-	}
-}
-*/
 
 void StatusDataWriter::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
 {
