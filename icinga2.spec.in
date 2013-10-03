@@ -106,6 +106,7 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %{_sysconfdir}/%{name}/conf.d/*.conf
 %config(noreplace) %{_sysconfdir}/%{name}/features-available/*.conf
+%config(noreplace) %{_sysconfdir}/%{name}/features-enabled/*.conf
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %{_bindir}/%{name}
 %{_sbindir}/i2enfeature
@@ -114,7 +115,6 @@ fi
 %{_libdir}/%{name}
 %{_datadir}/doc/%{name}
 %{_datadir}/%{name}
-%{_datadir}/%{name}/itl
 %{_mandir}/man8/%{name}.8.gz
 
 %{_localstatedir}/cache/%{name}
@@ -122,7 +122,6 @@ fi
 %{_localstatedir}/run/%{name}
 %{_localstatedir}/lib/%{name}
 %{_localstatedir}/spool/%{name}
-%{_localstatedir}/spool/%{name}/perfdata
 
 %attr(2755,icinga,icingacmd) %{_localstatedir}/run/icinga2/cmd
 
