@@ -157,6 +157,11 @@ Value StatusTable::ProgramVersionAccessor(const Value& row)
 	return "2.0";
 }
 
+Value StatusTable::LivestatusVersionAccessor(const Value& row)
+{
+	return "2.0";
+}
+
 Value StatusTable::LivestatusActiveConnectionsAccessor(const Value& row)
 {
 	return LivestatusListener::GetClientsConnected();
