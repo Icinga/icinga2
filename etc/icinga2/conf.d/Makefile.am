@@ -14,4 +14,10 @@ install-data-local:
 	  done; \
 	fi
 
+uninstall-hook:
+	@for file in $(CONFIG_FILES); do \
+	  rm -f $(icinga2confdir)/$$file; \
+	done; \
+	rmdir $(icinga2confdir)
+
 EXTRA_DIST = $(CONFIG_FILES)

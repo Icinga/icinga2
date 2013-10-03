@@ -26,3 +26,13 @@ install-exec-hook:
 	  $(LN_S) ../features-available/notification.conf features-enabled/; \
 	  $(LN_S) ../features-available/syslog.conf features-enabled/; \
 	fi
+
+uninstall-hook:
+	rm -f $(icinga2confdir)/features-enabled/checker.conf
+	rm -f $(icinga2confdir)/features-enabled/notification.conf
+	rm -f $(icinga2confdir)/features-enabled/syslog.conf
+	rmdir $(icinga2confdir)/features-enabled
+	@for file in $(CONFIG_FILES); do \
+	  rm -f $(icinga2confdir)/$$file; \
+	done; \
+	rmdir $(icinga2confdir)
