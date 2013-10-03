@@ -44,7 +44,7 @@ void ContactsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "pager", Column(&ContactsTable::PagerAccessor, objectAccessor));
 	table->AddColumn(prefix + "host_notification_period", Column(&ContactsTable::HostNotificationPeriodAccessor, objectAccessor));
 	table->AddColumn(prefix + "service_notification_period", Column(&ContactsTable::ServiceNotificationPeriodAccessor, objectAccessor));
-	table->AddColumn(prefix + "can_submit_commands", Column(&ContactsTable::CanSubmitCommandsAccessor, objectAccessor));
+	table->AddColumn(prefix + "can_submit_commands", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "host_notifications_enabled", Column(&ContactsTable::HostNotificationsEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "service_notifications_enabled", Column(&ContactsTable::ServiceNotificationsEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "in_host_notification_period", Column(&ContactsTable::InHostNotificationPeriodAccessor, objectAccessor));
@@ -117,12 +117,6 @@ Value ContactsTable::ServiceNotificationPeriodAccessor(const Value& row)
 		return Empty;
 
 	return timeperiod->GetName();
-}
-
-Value ContactsTable::CanSubmitCommandsAccessor(const Value& row)
-{
-	/* default enabled */
-	return 1;
 }
 
 Value ContactsTable::HostNotificationsEnabledAccessor(const Value& row)

@@ -71,11 +71,11 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "icon_image_alt", Column(&HostsTable::IconImageAltAccessor, objectAccessor));
 	table->AddColumn(prefix + "statusmap_image", Column(&HostsTable::StatusmapImageAccessor, objectAccessor));
 	table->AddColumn(prefix + "long_plugin_output", Column(&HostsTable::LongPluginOutputAccessor, objectAccessor));
-	table->AddColumn(prefix + "initial_state", Column(&HostsTable::InitialStateAccessor, objectAccessor));
+	table->AddColumn(prefix + "initial_state", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "max_check_attempts", Column(&HostsTable::MaxCheckAttemptsAccessor, objectAccessor));
 	table->AddColumn(prefix + "flap_detection_enabled", Column(&HostsTable::FlapDetectionEnabledAccessor, objectAccessor));
-	table->AddColumn(prefix + "check_freshness", Column(&HostsTable::CheckFreshnessAccessor, objectAccessor));
-	table->AddColumn(prefix + "process_performance_data", Column(&HostsTable::ProcessPerformanceDataAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_freshness", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "process_performance_data", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_checks", Column(&HostsTable::AcceptPassiveChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "event_handler_enabled", Column(&HostsTable::EventHandlerEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "acknowledgement_type", Column(&HostsTable::AcknowledgementTypeAccessor, objectAccessor));
@@ -89,7 +89,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "last_hard_state_change", Column(&HostsTable::LastHardStateChangeAccessor, objectAccessor));
 	table->AddColumn(prefix + "has_been_checked", Column(&HostsTable::HasBeenCheckedAccessor, objectAccessor));
 	table->AddColumn(prefix + "current_notification_number", Column(&HostsTable::CurrentNotificationNumberAccessor, objectAccessor));
-	table->AddColumn(prefix + "pending_flex_downtime", Column(&HostsTable::PendingFlexDowntimeAccessor, objectAccessor));
+	table->AddColumn(prefix + "pending_flex_downtime", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "total_services", Column(&HostsTable::TotalServicesAccessor, objectAccessor));
 	table->AddColumn(prefix + "checks_enabled", Column(&HostsTable::ChecksEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "notifications_enabled", Column(&HostsTable::NotificationsEnabledAccessor, objectAccessor));
@@ -97,7 +97,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "state", Column(&HostsTable::StateAccessor, objectAccessor));
 	table->AddColumn(prefix + "state_type", Column(&HostsTable::StateTypeAccessor, objectAccessor));
 	table->AddColumn(prefix + "no_more_notifications", Column(&HostsTable::NoMoreNotificationsAccessor, objectAccessor));
-	table->AddColumn(prefix + "check_flapping_recovery_notification", Column(&HostsTable::CheckFlappingRecoveryNotificationAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_flapping_recovery_notification", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_check", Column(&HostsTable::LastCheckAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_state_change", Column(&HostsTable::LastStateChangeAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_time_up", Column(&HostsTable::LastTimeUpAccessor, objectAccessor));
@@ -105,21 +105,21 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "last_time_unreachable", Column(&HostsTable::LastTimeUnreachableAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_flapping", Column(&HostsTable::IsFlappingAccessor, objectAccessor));
 	table->AddColumn(prefix + "scheduled_downtime_depth", Column(&HostsTable::ScheduledDowntimeDepthAccessor, objectAccessor));
-	table->AddColumn(prefix + "is_executing", Column(&HostsTable::IsExecutingAccessor, objectAccessor));
+	table->AddColumn(prefix + "is_executing", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "active_checks_enabled", Column(&HostsTable::ActiveChecksEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_options", Column(&HostsTable::CheckOptionsAccessor, objectAccessor));
-	table->AddColumn(prefix + "obsess_over_host", Column(&HostsTable::ObsessOverHostAccessor, objectAccessor));
+	table->AddColumn(prefix + "obsess_over_host", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes", Column(&HostsTable::ModifiedAttributesAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes_list", Column(&HostsTable::ModifiedAttributesListAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_interval", Column(&HostsTable::CheckIntervalAccessor, objectAccessor));
 	table->AddColumn(prefix + "retry_interval", Column(&HostsTable::RetryIntervalAccessor, objectAccessor));
 	table->AddColumn(prefix + "notification_interval", Column(&HostsTable::NotificationIntervalAccessor, objectAccessor));
-	table->AddColumn(prefix + "first_notification_delay", Column(&HostsTable::FirstNotificationDelayAccessor, objectAccessor));
+	table->AddColumn(prefix + "first_notification_delay", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "low_flap_threshold", Column(&HostsTable::LowFlapThresholdAccessor, objectAccessor));
 	table->AddColumn(prefix + "high_flap_threshold", Column(&HostsTable::HighFlapThresholdAccessor, objectAccessor));
-	table->AddColumn(prefix + "x_3d", Column(&HostsTable::X3dAccessor, objectAccessor));
-	table->AddColumn(prefix + "y_3d", Column(&HostsTable::Y3dAccessor, objectAccessor));
-	table->AddColumn(prefix + "z_3d", Column(&HostsTable::Z3dAccessor, objectAccessor));
+	table->AddColumn(prefix + "x_3d", Column(&EmptyStringAccessor, objectAccessor));
+	table->AddColumn(prefix + "y_3d", Column(&EmptyStringAccessor, objectAccessor));
+	table->AddColumn(prefix + "z_3d", Column(&EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "x_2d", Column(&HostsTable::X2dAccessor, objectAccessor));
 	table->AddColumn(prefix + "y_2d", Column(&HostsTable::Y2dAccessor, objectAccessor));
 	table->AddColumn(prefix + "latency", Column(&HostsTable::LatencyAccessor, objectAccessor));
@@ -136,7 +136,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "custom_variable_names", Column(&HostsTable::CustomVariableNamesAccessor, objectAccessor));
 	table->AddColumn(prefix + "custom_variable_values", Column(&HostsTable::CustomVariableValuesAccessor, objectAccessor));
 	table->AddColumn(prefix + "custom_variables", Column(&HostsTable::CustomVariablesAccessor, objectAccessor));
-	table->AddColumn(prefix + "filename", Column(&HostsTable::FilenameAccessor, objectAccessor));
+	table->AddColumn(prefix + "filename", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "parents", Column(&HostsTable::ParentsAccessor, objectAccessor));
 	table->AddColumn(prefix + "childs", Column(&HostsTable::ChildsAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_services", Column(&HostsTable::NumServicesAccessor, objectAccessor));
@@ -152,7 +152,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "num_services_hard_crit", Column(&HostsTable::NumServicesHardCritAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_services_hard_unknown", Column(&HostsTable::NumServicesHardUnknownAccessor, objectAccessor));
 	table->AddColumn(prefix + "hard_state", Column(&HostsTable::HardStateAccessor, objectAccessor));
-	table->AddColumn(prefix + "pnpgraph_present", Column(&HostsTable::PnpgraphPresentAccessor, objectAccessor));
+	table->AddColumn(prefix + "pnpgraph_present", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "staleness", Column(&HostsTable::StalenessAccessor, objectAccessor));
 	table->AddColumn(prefix + "groups", Column(&HostsTable::GroupsAccessor, objectAccessor));
 	table->AddColumn(prefix + "contact_groups", Column(&HostsTable::ContactGroupsAccessor, objectAccessor));
@@ -513,12 +513,6 @@ Value HostsTable::LongPluginOutputAccessor(const Value& row)
 	return long_output;
 }
 
-Value HostsTable::InitialStateAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
-}
-
 Value HostsTable::MaxCheckAttemptsAccessor(const Value& row)
 {
 	/* use hostcheck service */
@@ -541,18 +535,6 @@ Value HostsTable::FlapDetectionEnabledAccessor(const Value& row)
 	return (hc->GetEnableFlapping() ? 1 : 0);
 }
 
-Value HostsTable::CheckFreshnessAccessor(const Value& row)
-{
-	/* always enabled */
-	return 1;
-}
-
-Value HostsTable::ProcessPerformanceDataAccessor(const Value& row)
-{
-	/* always enabled */
-	return 1;
-}
-
 Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
 {
 	/* use hostcheck service */
@@ -566,8 +548,17 @@ Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
 
 Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
 {
-	/* always enabled */
-	return 1;
+	/* use hostcheck service */
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+
+	if (!hc)
+		return Empty;
+
+	EventCommand::Ptr eventcommand = hc->GetEventCommand();
+	if (eventcommand)
+		return 1;
+
+	return 0;
 }
 
 Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
@@ -704,12 +695,6 @@ Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)
 
 }
 
-Value HostsTable::PendingFlexDowntimeAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
-}
-
 Value HostsTable::TotalServicesAccessor(const Value& row)
 {
 	return static_cast<Host::Ptr>(row)->GetTotalServices();
@@ -782,12 +767,6 @@ Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
 	return 0;
 }
 
-Value HostsTable::CheckFlappingRecoveryNotificationAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
-}
-
 Value HostsTable::LastCheckAccessor(const Value& row)
 {
 	/* use hostcheck service */
@@ -841,12 +820,6 @@ Value HostsTable::ScheduledDowntimeDepthAccessor(const Value& row)
 	return hc->GetDowntimeDepth();
 }
 
-Value HostsTable::IsExecutingAccessor(const Value& row)
-{
-	/* does that make sense with Icinga2? */
-	return Empty;
-}
-
 Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 {
 	/* duplicate of ChecksEnableAccessor */
@@ -862,12 +835,6 @@ Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 Value HostsTable::CheckOptionsAccessor(const Value& row)
 {
 	/* TODO - forcexec, freshness, orphan, none */
-	return Empty;
-}
-
-Value HostsTable::ObsessOverHostAccessor(const Value& row)
-{
-	/* not supported */
 	return Empty;
 }
 
@@ -926,12 +893,6 @@ Value HostsTable::NotificationIntervalAccessor(const Value& row)
 	return (notification_interval / 60.0);
 }
 
-Value HostsTable::FirstNotificationDelayAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
-}
-
 Value HostsTable::LowFlapThresholdAccessor(const Value& row)
 {
 	/* use hostcheck service */
@@ -952,24 +913,6 @@ Value HostsTable::HighFlapThresholdAccessor(const Value& row)
 		return Empty;
 
 	return hc->GetFlappingThreshold();
-}
-
-Value HostsTable::X3dAccessor(const Value& row)
-{
-	/* not supported - removed in Icinga 1.x */
-	return Empty;
-}
-
-Value HostsTable::Y3dAccessor(const Value& row)
-{
-	/* not supported - removed in Icinga 1.x */
-	return Empty;
-}
-
-Value HostsTable::Z3dAccessor(const Value& row)
-{
-	/* not supported - removed in Icinga 1.x */
-	return Empty;
 }
 
 Value HostsTable::X2dAccessor(const Value& row)
@@ -1365,11 +1308,6 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 
 	return cv;
 }
-Value HostsTable::FilenameAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
-}
 
 Value HostsTable::ParentsAccessor(const Value& row)
 {
@@ -1547,12 +1485,6 @@ Value HostsTable::HardStateAccessor(const Value& row)
 		return hc->GetState();
 
 	return hc->GetLastHardState();
-}
-
-Value HostsTable::PnpgraphPresentAccessor(const Value& row)
-{
-	/* wtf. not supported */
-	return Empty;
 }
 
 Value HostsTable::StalenessAccessor(const Value& row)

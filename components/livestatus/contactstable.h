@@ -51,7 +51,6 @@ protected:
 	static Value PagerAccessor(const Value& row);
 	static Value HostNotificationPeriodAccessor(const Value& row);
 	static Value ServiceNotificationPeriodAccessor(const Value& row);
-	static Value CanSubmitCommandsAccessor(const Value& row);
 	static Value HostNotificationsEnabledAccessor(const Value& row);
 	static Value ServiceNotificationsEnabledAccessor(const Value& row);
 	static Value InHostNotificationPeriodAccessor(const Value& row);

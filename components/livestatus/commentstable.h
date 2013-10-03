@@ -54,8 +54,6 @@ private:
 	static Value EntryTimeAccessor(const Value& row);
 	static Value TypeAccessor(const Value& row);
 	static Value IsServiceAccessor(const Value& row);
-	static Value PersistentAccessor(const Value& row);
-	static Value SourceAccessor(const Value& row);
 	static Value EntryTypeAccessor(const Value& row);
 	static Value ExpiresAccessor(const Value& row);
 	static Value ExpireTimeAccessor(const Value& row);

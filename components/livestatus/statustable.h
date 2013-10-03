@@ -45,55 +45,17 @@ public:
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
-	static Value NebCallbacksAccessor(const Value& row);
-	static Value NebCallbacksRateAccessor(const Value& row);
-	static Value RequestsAccessor(const Value& row);
-	static Value RequestsRateAccessor(const Value& row);
 	static Value ConnectionsAccessor(const Value& row);
 	static Value ConnectionsRateAccessor(const Value& row);
-	static Value ServiceChecksAccessor(const Value& row);
-	static Value ServiceChecksRateAccessor(const Value& row);
-	static Value HostChecksAccessor(const Value& row);
-	static Value HostChecksRateAccessor(const Value& row);
-	static Value ForksAccessor(const Value& row);
-	static Value ForksRateAccessor(const Value& row);
-	static Value LogMessagesAccessor(const Value& row);
-	static Value LogMessagesRateAccessor(const Value& row);
 	static Value ExternalCommandsAccessor(const Value& row);
 	static Value ExternalCommandsRateAccessor(const Value& row);
-	static Value LivechecksAccessor(const Value& row);
-	static Value LivechecksRateAccessor(const Value& row);
-	static Value LivecheckOverflowsAccessor(const Value& row);
-	static Value LivecheckOverflowsRateAccessor(const Value& row);
 	static Value NagiosPidAccessor(const Value& row);
-	static Value EnableNotificationsAccessor(const Value& row);
-	static Value ExecuteServiceChecksAccessor(const Value& row);
-	static Value AcceptPassiveServiceChecksAccessor(const Value& row);
-	static Value ExecuteHostChecksAccessor(const Value& row);
-	static Value AcceptPassiveHostChecksAccessor(const Value& row);
-	static Value EnableEventHandlersAccessor(const Value& row);
-	static Value ObsessOverServicesAccessor(const Value& row);
-	static Value ObsessOverHostsAccessor(const Value& row);
-	static Value CheckServiceFreshnessAccessor(const Value& row);
-	static Value CheckHostFreshnessAccessor(const Value& row);
-	static Value EnableFlapDetectionAccessor(const Value& row);
-	static Value ProcessPerformanceDataAccessor(const Value& row);
-	static Value CheckExternalCommandsAccessor(const Value& row);
 	static Value ProgramStartAccessor(const Value& row);
-	static Value LastCommandCheckAccessor(const Value& row);
-	static Value LastLogRotationAccessor(const Value& row);
-	static Value IntervalLengthAccessor(const Value& row);
 	static Value NumHostsAccessor(const Value& row);
 	static Value NumServicesAccessor(const Value& row);
 	static Value ProgramVersionAccessor(const Value& row);
-	static Value ExternalCommandBufferSlotsAccessor(const Value& row);
-	static Value ExternalCommandBufferUsageAccessor(const Value& row);
-	static Value ExternalCommandBufferMaxAccessor(const Value& row);
-	static Value CachedLogMessagesAccessor(const Value& row);
 	static Value LivestatusVersionAccessor(const Value& row);
 	static Value LivestatusActiveConnectionsAccessor(const Value& row);
-	static Value LivestatusQueuedConnectionsAccessor(const Value& row);
-	static Value LivestatusThreadsAccessor(const Value& row);
 };
 
 }

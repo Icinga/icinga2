@@ -64,7 +64,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "icon_image", Column(&ServicesTable::IconImageAccessor, objectAccessor));
 	table->AddColumn(prefix + "icon_image_expanded", Column(&ServicesTable::IconImageExpandedAccessor, objectAccessor));
 	table->AddColumn(prefix + "icon_image_alt", Column(&ServicesTable::IconImageAltAccessor, objectAccessor));
-	table->AddColumn(prefix + "initial_state", Column(&ServicesTable::InitialStateAccessor, objectAccessor));
+	table->AddColumn(prefix + "initial_state", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "max_check_attempts", Column(&ServicesTable::MaxCheckAttemptsAccessor, objectAccessor));
 	table->AddColumn(prefix + "current_attempt", Column(&ServicesTable::CurrentAttemptAccessor, objectAccessor));
 	table->AddColumn(prefix + "state", Column(&ServicesTable::StateAccessor, objectAccessor));
@@ -93,21 +93,21 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "accept_passive_checks", Column(&ServicesTable::AcceptPassiveChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "event_handler_enabled", Column(&ServicesTable::EventHandlerEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "notifications_enabled", Column(&ServicesTable::NotificationsEnabledAccessor, objectAccessor));
-	table->AddColumn(prefix + "process_performance_data", Column(&ServicesTable::ProcessPerformanceDataAccessor, objectAccessor));
-	table->AddColumn(prefix + "is_executing", Column(&ServicesTable::IsExecutingAccessor, objectAccessor));
+	table->AddColumn(prefix + "process_performance_data", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "is_executing", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "active_checks_enabled", Column(&ServicesTable::ActiveChecksEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_options", Column(&ServicesTable::CheckOptionsAccessor, objectAccessor));
 	table->AddColumn(prefix + "flap_detection_enabled", Column(&ServicesTable::FlapDetectionEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_freshness", Column(&ServicesTable::CheckFreshnessAccessor, objectAccessor));
-	table->AddColumn(prefix + "obsess_over_service", Column(&ServicesTable::ObsessOverServiceAccessor, objectAccessor));
+	table->AddColumn(prefix + "obsess_over_service", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes", Column(&ServicesTable::ModifiedAttributesAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes_list", Column(&ServicesTable::ModifiedAttributesListAccessor, objectAccessor));
-	table->AddColumn(prefix + "pnpgraph_present", Column(&ServicesTable::PnpgraphPresentAccessor, objectAccessor));
+	table->AddColumn(prefix + "pnpgraph_present", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "staleness", Column(&ServicesTable::StalenessAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_interval", Column(&ServicesTable::CheckIntervalAccessor, objectAccessor));
 	table->AddColumn(prefix + "retry_interval", Column(&ServicesTable::RetryIntervalAccessor, objectAccessor));
 	table->AddColumn(prefix + "notification_interval", Column(&ServicesTable::NotificationIntervalAccessor, objectAccessor));
-	table->AddColumn(prefix + "first_notification_delay", Column(&ServicesTable::FirstNotificationDelayAccessor, objectAccessor));
+	table->AddColumn(prefix + "first_notification_delay", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "low_flap_threshold", Column(&ServicesTable::LowFlapThresholdAccessor, objectAccessor));
 	table->AddColumn(prefix + "high_flap_threshold", Column(&ServicesTable::HighFlapThresholdAccessor, objectAccessor));
 	table->AddColumn(prefix + "latency", Column(&ServicesTable::LatencyAccessor, objectAccessor));
@@ -400,12 +400,6 @@ Value ServicesTable::IconImageAltAccessor(const Value& row)
 	return custom->Get("icon_image_alt");
 }
 
-Value ServicesTable::InitialStateAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
-}
-
 Value ServicesTable::MaxCheckAttemptsAccessor(const Value& row)
 {
 	return static_cast<Service::Ptr>(row)->GetMaxCheckAttempts();
@@ -587,25 +581,17 @@ Value ServicesTable::AcceptPassiveChecksAccessor(const Value& row)
 
 Value ServicesTable::EventHandlerEnabledAccessor(const Value& row)
 {
-	/* always enabled */
-	return 1;
+	EventCommand::Ptr eventcommand = static_cast<Service::Ptr>(row)->GetEventCommand();
+
+	if (eventcommand)
+		return 1;
+
+	return 0;
 }
 
 Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
 {
 	return (static_cast<Service::Ptr>(row)->GetEnableNotifications() ? 1 : 0);
-}
-
-Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
-{
-	/* always enabled */
-	return 1;
-}
-
-Value ServicesTable::IsExecutingAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
 }
 
 Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
@@ -630,12 +616,6 @@ Value ServicesTable::CheckFreshnessAccessor(const Value& row)
 	return 1;
 }
 
-Value ServicesTable::ObsessOverServiceAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
-}
-
 Value ServicesTable::ModifiedAttributesAccessor(const Value& row)
 {
 	/* not supported */
@@ -643,12 +623,6 @@ Value ServicesTable::ModifiedAttributesAccessor(const Value& row)
 }
 
 Value ServicesTable::ModifiedAttributesListAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
-}
-
-Value ServicesTable::PnpgraphPresentAccessor(const Value& row)
 {
 	/* not supported */
 	return Empty;
@@ -689,12 +663,6 @@ Value ServicesTable::NotificationIntervalAccessor(const Value& row)
                 notification_interval = 60;
 
 	return (notification_interval / 60.0);
-}
-
-Value ServicesTable::FirstNotificationDelayAccessor(const Value& row)
-{
-	/* not supported */
-	return Empty;
 }
 
 Value ServicesTable::LowFlapThresholdAccessor(const Value& row)

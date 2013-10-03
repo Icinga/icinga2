@@ -42,8 +42,8 @@ void CommentsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "entry_time", Column(&CommentsTable::EntryTimeAccessor, objectAccessor));
 	table->AddColumn(prefix + "type", Column(&CommentsTable::TypeAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_service", Column(&CommentsTable::IsServiceAccessor, objectAccessor));
-	table->AddColumn(prefix + "persistent", Column(&CommentsTable::PersistentAccessor, objectAccessor));
-	table->AddColumn(prefix + "source", Column(&CommentsTable::SourceAccessor, objectAccessor));
+	table->AddColumn(prefix + "persistent", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "source", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "entry_type", Column(&CommentsTable::EntryTypeAccessor, objectAccessor));
 	table->AddColumn(prefix + "expires", Column(&CommentsTable::ExpiresAccessor, objectAccessor));
 	table->AddColumn(prefix + "expire_time", Column(&CommentsTable::ExpireTimeAccessor, objectAccessor));
@@ -137,18 +137,6 @@ Value CommentsTable::IsServiceAccessor(const Value& row)
 		return Empty;
 
 	return (svc->IsHostCheck() ? 0 : 1);
-}
-
-Value CommentsTable::PersistentAccessor(const Value& row)
-{
-	/* always 1 */
-	return 1;
-}
-
-Value CommentsTable::SourceAccessor(const Value& row)
-{
-	/* always external */
-	return 1;
 }
 
 Value CommentsTable::EntryTypeAccessor(const Value& row)

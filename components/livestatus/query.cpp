@@ -181,7 +181,7 @@ Query::Query(const std::vector<String>& lines)
 		} else if (header == "Or" || header == "And") {
 			std::deque<Filter::Ptr>& deq = (header == "Or" || header == "And") ? filters : stats;
 
-			int num = Convert::ToLong(params);
+			unsigned int num = Convert::ToLong(params);
 			CombinerFilter::Ptr filter;
 
 			if (header == "Or" || header == "StatsOr")
@@ -196,7 +196,7 @@ Query::Query(const std::vector<String>& lines)
 				return;
 			}
 
-			while (num--) {
+			while (num-- && num > 0) {
 				filter->AddSubFilter(deq.back());
 				deq.pop_back();
 			}
@@ -394,7 +394,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		}
 
 		Array::Ptr row = boost::make_shared<Array>();
-		for (int i = 0; i < m_Aggregators.size(); i++)
+		for (size_t i = 0; i < m_Aggregators.size(); i++)
 			row->Add(stats[i]);
 
 		rs->Add(row);

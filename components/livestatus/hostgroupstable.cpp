@@ -216,9 +216,7 @@ Value HostGroupsTable::NumServicesAccessor(const Value& row)
 		return 0;
 
 	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
-		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-			num_services++;
-		}
+		num_services += host->GetServices().size();
 	}
 
 	return num_services;
