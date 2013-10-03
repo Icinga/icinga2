@@ -30,6 +30,7 @@ depcomp
 icinga-version.h
 install-sh
 libtool
+libtool.old
 ltdl
 ltmain.sh
 missing
