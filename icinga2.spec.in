@@ -17,7 +17,6 @@ BuildRequires: doxygen
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
-BuildRequires: libtool-ltdl-devel
 BuildRequires: automake
 BuildRequires: autoconf
 BuildRequires: libtool
@@ -26,12 +25,13 @@ BuildRequires: bison
 
 # TODO: figure out how to handle boost on el5
 %if "%{_vendor}" == "redhat"
+BuildRequires: libtool-ltdl-devel
 BuildRequires: boost >= 1.41
 BuildRequires: boost-devel >= 1.41
 BuildRequires: boost-test >= 1.41
-
 Requires: boost >= 1.41
 %endif
+
 %if "%{_vendor}" == "suse"
 BuildRequires: boost-devel >= 1.41
 Requires: libboost_program_options%{opensuse_boost_version}
@@ -46,7 +46,7 @@ Requires: libboost_thread%{opensuse_boost_version}
 Icinga is a general-purpose network monitoring application.
 
 %package ido-mysql
-Summary:      ido mysql database backend for Icinga 2
+Summary:      IDO MySQL database backend for Icinga 2
 Group:        Applications/System
 %if "%{_vendor}" == "suse"
 BuildRequires: libmysqlclient-devel
