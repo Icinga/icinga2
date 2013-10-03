@@ -27,6 +27,7 @@ icinga2_test_CPPFLAGS = \
 
 icinga2_test_LDADD = \
 	$(BOOST_LDFLAGS) \
+	$(BOOST_SYSTEM_LIB) \
 	$(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
 	${top_builddir}/lib/base/libbase.la \
 	${top_builddir}/lib/icinga/libicinga.la
