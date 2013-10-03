@@ -1256,7 +1256,7 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 	fields1->Set("logentry_time", DbValue::FromTimestamp(entry_time));
 	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	fields1->Set("entry_time_usec", entry_time_usec);
-	//fields1->Set("object_id", service); // not supported in 1.x see #4754
+	fields1->Set("object_id", service); // added in 1.10 see #4754
 	fields1->Set("logentry_type", type);
 	fields1->Set("logentry_data", buffer);
 
@@ -1265,13 +1265,11 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 	query1.Fields = fields1;
 	OnQuery(query1);
 
-	/*
 	if (host->GetCheckService() == service) {
-		//fields1->Set("object_id", host); // not supported in 1.x see #4754
+		fields1->Set("object_id", host); // added in 1.10 see #4754
 		query1.Fields = fields1;
 		OnQuery(query1);
 	}
-	*/
 }
 
 /* flappinghistory */

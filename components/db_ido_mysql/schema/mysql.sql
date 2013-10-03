@@ -819,6 +819,7 @@ CREATE TABLE IF NOT EXISTS icinga_logentries (
   logentry_data TEXT character set latin1  default '',
   realtime_data smallint default 0,
   inferred_data_extracted smallint default 0,
+  object_id bigint unsigned default NULL,
   PRIMARY KEY  (logentry_id)
 ) ENGINE=InnoDB COMMENT='Historical record of log entries';
 
