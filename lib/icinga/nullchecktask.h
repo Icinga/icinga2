@@ -36,6 +36,7 @@ class I2_ICINGA_API NullCheckTask
 {
 public:
 	static Dictionary::Ptr ScriptFunc(const Service::Ptr& service);
+        static ServiceState ExitStatusToState(int exitStatus);
 
 private:
 	NullCheckTask(void);
