@@ -54,7 +54,7 @@ BuildRequires: libmysqlclient-devel
 Requires: libmysqlclient18
 %endif
 %if "%{_vendor}" == "redhat"
-BuildRequires: mysql
+BuildRequires: mysql-libs
 BuildRequires: mysql-devel
 Requires: mysql
 %endif
