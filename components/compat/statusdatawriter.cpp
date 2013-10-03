@@ -471,8 +471,30 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 			fp << "\t" << "check_command" << "\t" << "check_" << checkcommand->GetName() << "\n";
 
 		EventCommand::Ptr eventcommand = service->GetEventCommand();
-		if (eventcommand)
-			fp << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
+		if (eventcommand) {
+			fp << "\t" << "event_handler_enabled" << "\t" << 1 << "\n"
+			   << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
+		} else {
+			fp << "\t" << "event_handler_enabled" << "\t" << 0 << "\n";
+		}
+
+                TimePeriod::Ptr check_period = service->GetCheckPeriod();
+                if (check_period)
+                        fp << "\t" << "check_period" << "\t" << check_period->GetName() << "\n";
+
+                fp << "\t" << "contacts" << "\t";
+                DumpNameList(fp, CompatUtility::GetServiceNotificationUsers(service));
+                fp << "\n";
+
+                fp << "\t" << "contact_groups" << "\t";
+                DumpNameList(fp, CompatUtility::GetServiceNotificationUserGroups(service));
+                fp << "\n";
+
+                fp << "\t" << "initial_state" << "\t" << "o" << "\n"
+                   << "\t" << "low_flap_threshold" << "\t" << service->GetFlappingThreshold() << "\n"
+                   << "\t" << "high_flap_threshold" << "\t" << service->GetFlappingThreshold() << "\n"
+                   << "\t" << "process_perf_data" << "\t" << 1 << "\n"
+                   << "\t" << "check_freshness" << "\t" << 1 << "\n";
 	}
 
 	DumpCustomAttributes(fp, service);
