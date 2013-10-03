@@ -128,7 +128,7 @@ Value Table::ZeroAccessor(const Object::Ptr&)
 
 Value Table::OneAccessor(const Object::Ptr&)
 {
-	return 0;
+	return 1;
 }
 
 Value Table::EmptyStringAccessor(const Object::Ptr&)
