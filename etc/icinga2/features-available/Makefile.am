@@ -10,6 +10,7 @@ CONFIG_FILES = \
 	livestatus.conf \
 	notification.conf \
 	perfdata.conf \
+	syslog.conf \
 	statusdat.conf
 
 install-data-local:

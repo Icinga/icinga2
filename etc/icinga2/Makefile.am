@@ -24,4 +24,5 @@ install-exec-hook:
 	  $(MKDIR_P) features-enabled && \
 	  $(LN_S) ../features-available/checker.conf features-enabled/; \
 	  $(LN_S) ../features-available/notification.conf features-enabled/; \
+	  $(LN_S) ../features-available/syslog.conf features-enabled/; \
 	fi
