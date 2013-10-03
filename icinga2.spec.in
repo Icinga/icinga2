@@ -33,6 +33,7 @@ Requires: boost >= 1.41
 %endif
 
 %if "%{_vendor}" == "suse"
+BuildRequires: libgfortran45
 BuildRequires: boost-devel >= 1.41
 Requires: libboost_program_options%{opensuse_boost_version}
 Requires: libboost_signals%{opensuse_boost_version}
