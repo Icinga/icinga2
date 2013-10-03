@@ -586,3 +586,11 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 
 	return 0;
 }
+
+int Utility::Random(void)
+{
+	static boost::mutex mtx;
+	boost::mutex::scoped_lock lock(mtx);
+
+	return rand();
+}

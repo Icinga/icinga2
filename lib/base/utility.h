@@ -99,6 +99,8 @@ public:
 
 	static int CompareVersion(const String& v1, const String& v2);
 
+	static int Random(void);
+
 private:
 	Utility(void);
 

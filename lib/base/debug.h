@@ -20,8 +20,7 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include <stdlib.h>
-#include <stdio.h>
+#include "i2-base.h"
 
 #ifdef NDEBUG
 #	define ASSERT(expr) ((void)0)

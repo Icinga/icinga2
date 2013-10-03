@@ -40,30 +40,10 @@ Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 	String output = "Hello from ";
 	output += name;
 
-#ifndef _WIN32
-	unsigned int seed = Utility::GetPid() * time(NULL);
-	int state = rand_r(&seed) % 4;
-#else
-	int state = 0;
-#endif
-
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("output", output);
-	cr->Set("state", ExitStatusToState(state));
+	cr->Set("state", static_cast<ServiceState>(Utility::Random() % 4));
 
 	return cr;
 }
 
-ServiceState NullCheckTask::ExitStatusToState(int exitStatus)
-{
-	switch (exitStatus) {
-		case 0:
-			return StateOK;
-		case 1:
-			return StateWarning;
-		case 2:
-			return StateCritical;
-		default:
-			return StateUnknown;
-	}
-}

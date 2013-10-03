@@ -48,7 +48,7 @@ void Service::Start(void)
 
 	VERIFY(GetHost());
 
-	SetSchedulingOffset(rand());
+	SetSchedulingOffset(Utility::Random());
 	UpdateNextCheck();
 
 	AddDowntimesToCache();
