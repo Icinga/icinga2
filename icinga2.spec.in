@@ -103,13 +103,13 @@ fi
 %files
 %defattr(-,root,root)
 %doc README AUTHORS ChangeLog COPYING COPYING.Exceptions
-%{_sysconfdir}/%{name}
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %{_sysconfdir}/%{name}/conf.d/*.conf
 %config(noreplace) %{_sysconfdir}/%{name}/features-available/*.conf
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %{_bindir}/%{name}
 %{_sbindir}/i2enfeature
+%{_sbindir}/i2disfeature
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %{_libdir}/%{name}
 %{_datadir}/doc/%{name}
