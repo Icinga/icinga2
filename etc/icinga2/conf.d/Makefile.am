@@ -3,6 +3,8 @@
 icinga2confdir = $(DESTDIR)${sysconfdir}/icinga2/conf.d
 
 CONFIG_FILES = \
+	generic-host.conf \
+	generic-service.conf \
 	localhost.conf \
 	macros.conf
 
