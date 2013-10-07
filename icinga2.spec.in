@@ -28,12 +28,12 @@ BuildRequires: bison
 BuildRequires: libtool-ltdl-devel
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
 # el5 requires EPEL
-BuildRequires: boost-devel%{el5_boost_version}
-Requires: boost-program-options%{el5_boost_version}
-Requires: boost-signals%{el5_boost_version}
-Requires: boost-system%{el5_boost_version}
-Requires: boost-test%{el5_boost_version}
-Requires: boost-thread%{el5_boost_version}
+BuildRequires: boost%{el5_boost_version}-devel
+Requires: boost%{el5_boost_version}-program-options
+Requires: boost%{el5_boost_version}-signals
+Requires: boost%{el5_boost_version}-system
+Requires: boost%{el5_boost_version}-test
+Requires: boost%{el5_boost_version}-thread
 %else
 BuildRequires: boost-devel >= 1.41
 Requires: boost-program-options >= 1.41
