@@ -65,13 +65,18 @@ BuildRequires: libmysqlclient-devel
 Requires: libmysqlclient18
 %endif
 %if "%{_vendor}" == "redhat"
+# el5 only provides mysql package
+%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
+BuildRequires: mysql
+%else
 BuildRequires: mysql-libs
 BuildRequires: mysql
+%fi
 BuildRequires: mysql-devel
 Requires: mysql
 %endif
 
-%description ido-mysql 
+%description ido-mysql
 Icinga 2 IDO mysql database backend. Compatible with Icinga 1.x
 IDOUtils schema >= 1.10
 
