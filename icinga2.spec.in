@@ -1,5 +1,6 @@
 %define revision 1
 %define opensuse_boost_version 1_49_0
+%define el5_boost_version 141
 
 %define logmsg logger -t %{name}/rpm
 
@@ -23,13 +24,24 @@ BuildRequires: libtool
 BuildRequires: flex
 BuildRequires: bison
 
-# TODO: figure out how to handle boost on el5
 %if "%{_vendor}" == "redhat"
 BuildRequires: libtool-ltdl-devel
-BuildRequires: boost >= 1.41
+%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
+# el5 requires EPEL
+BuildRequires: boost-devel%{el5_boost_version}
+Requires: boost-program-options%{el5_boost_version}
+Requires: boost-signals%{el5_boost_version}
+Requires: boost-system%{el5_boost_version}
+Requires: boost-test%{el5_boost_version}
+Requires: boost-thread%{el5_boost_version}
+%else
 BuildRequires: boost-devel >= 1.41
-BuildRequires: boost-test >= 1.41
-Requires: boost >= 1.41
+Requires: boost-program-options >= 1.41
+Requires: boost-signals >= 1.41
+Requires: boost-system >= 1.41
+Requires: boost-test >= 1.41
+Requires: boost-thread >= 1.41
+%fi
 %endif
 
 %if "%{_vendor}" == "suse"
