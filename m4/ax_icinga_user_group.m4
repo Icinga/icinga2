@@ -30,7 +30,7 @@ AC_DEFUN([ACICINGA_CHECK_GROUP],[
   x=$1
   y=$2
   AC_MSG_CHECKING([if $y group $x exists])
-  AS_IF([ $GREP -q "^$x:" /etc/group ],
+  AS_IF([ id -g $x ],
     [ AC_MSG_RESULT([found]) ],
     [ AC_MSG_ERROR([not found]) ])
 ])
