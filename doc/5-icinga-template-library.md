@@ -5,7 +5,7 @@
 The Icinga Template Library (ITL) implements standard templates and object
 definitions for commonly used services.
 
-You can include the ITL by using the *include* directive in your configuration
+You can include the ITL by using the `include` directive in your configuration
 file:
 
     include <itl/itl.conf>
@@ -14,7 +14,7 @@ file:
 
 ### ping4
 
-Check command object for the *check_ping* plugin.
+Check command object for the `check_ping` plugin.
 
 Macros:
 
@@ -31,7 +31,7 @@ timeout         | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 ### ping6
 
-Check command object for the *check_ping* plugin.
+Check command object for the `check_ping` plugin.
 
 Macros:
 
@@ -48,7 +48,7 @@ timeout         | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 ### dummy
 
-Check command object for the *check_dummy* plugin.
+Check command object for the `check_dummy` plugin.
 
 Macros:
 
@@ -60,7 +60,7 @@ text            | **Optional.** Plugin output. Defaults to "Check was successful
 
 ### tcp
 
-Check command object for the *check_tcp* plugin.
+Check command object for the `check_tcp` plugin.
 
 Macros:
 
@@ -72,7 +72,7 @@ port            | **Required.** The port that should be checked.
 
 ### udp
 
-Check command object for the *check_udp* plugin.
+Check command object for the `check_udp` plugin.
 
 Macros:
 
@@ -84,7 +84,7 @@ port            | **Required.** The port that should be checked.
 
 ### http_vhost
 
-Check command object for the *check_http* plugin.
+Check command object for the `check_http` plugin.
 
 Macros:
 
@@ -95,7 +95,7 @@ vhost           | **Required.** The name of the virtual host that should be chec
 
 ### http_ip
 
-Check command object for the *check_http* plugin.
+Check command object for the `check_http` plugin.
 
 Macros:
 
@@ -106,7 +106,7 @@ address         | **Required.** The host's address.
 
 ### https_vhost
 
-Check command object for the *check_http* plugin.
+Check command object for the `check_http` plugin.
 
 Macros:
 
@@ -117,7 +117,7 @@ vhost           | **Required.** The name of the virtual host that should be chec
 
 ### https_ip
 
-Check command object for the *check_http* plugin.
+Check command object for the `check_http` plugin.
 
 Macros:
 
@@ -128,7 +128,7 @@ address         | **Required.** The host's address.
 
 ### smtp
 
-Check command object for the *check_smtp* plugin.
+Check command object for the `check_smtp` plugin.
 
 Macros:
 
@@ -139,7 +139,7 @@ address         | **Required.** The host's address.
 
 ### ssmtp
 
-Check command object for the *check_ssmtp* plugin.
+Check command object for the `check_ssmtp` plugin.
 
 Macros:
 
@@ -151,7 +151,7 @@ port            | **Optional.** The port that should be checked. Defaults to 465
 
 ### ntp_time
 
-Check command object for the *check_ntp_time* plugin.
+Check command object for the `check_ntp_time` plugin.
 
 Macros:
 
@@ -162,7 +162,7 @@ address         | **Required.** The host's address.
 
 ### ssh
 
-Check command object for the *check_ssh* plugin.
+Check command object for the `check_ssh` plugin.
 
 Macros:
 
@@ -173,7 +173,7 @@ address         | **Required.** The host's address.
 
 ### disk
 
-Check command object for the *check_disk* plugin.
+Check command object for the `check_disk` plugin.
 
 Macros:
 
@@ -185,7 +185,7 @@ cfree           | **Optional.** The free space critical threshold in %. Defaults
 
 ### users
 
-Check command object for the *check_disk* plugin.
+Check command object for the `check_disk` plugin.
 
 Macros:
 
@@ -197,7 +197,7 @@ cgreater        | **Optional.** The user count warning threshold. Defaults to 50
 
 ### processes
 
-Check command object for the *check_processes* plugin.
+Check command object for the `check_processes` plugin.
 
 Macros:
 
@@ -209,7 +209,7 @@ cgreater        | **Optional.** The process count warning threshold. Defaults to
 
 ### load
 
-Check command object for the *check_load* plugin.
+Check command object for the `check_load` plugin.
 
 Macros:
 
@@ -225,7 +225,7 @@ cload15         | **Optional.** The 15-minute critical threshold. Defaults to 4.
 
 ### snmp
 
-Check command object for the *check_snmp* plugin.
+Check command object for the `check_snmp` plugin.
 
 Macros:
 
@@ -238,7 +238,7 @@ community       | **Optional.** The SNMP community. Defaults to "public".
 
 ### snmp-uptime
 
-Check command object for the *check_snmp* plugin.
+Check command object for the `check_snmp` plugin.
 
 Macros:
 

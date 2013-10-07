@@ -2,7 +2,7 @@
 
 ## What is Icinga 2?
 
-Icinga 2 is a network monitoring application.
+Icinga 2 is an enterprise-grade open source monitoring system which keeps watch over networks and any conceivable network resource, notifies the user of errors and recoveries and generates performance data for reporting. Scalable and extensible, Icinga can monitor complex, large environments across dispersed locations.
 
 ## Licensing
 
