@@ -134,7 +134,7 @@ esac
 
 # verify that libtool-ltdl-devel is installed
 echo "Running libtoolize dry-run..."
-if ! $LIBTOOLIZE --quiet --copy --force ; then
+if ! $LIBTOOLIZE --copy --force ; then
   echo ""
   echo "**Error**: $LIBTOOLIZE cannot detect necessary files."
   echo ""
