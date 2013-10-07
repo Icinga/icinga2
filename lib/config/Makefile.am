@@ -4,9 +4,6 @@
 pkglib_LTLIBRARIES = \
 	libconfig.la
 
-BUILT_SOURCES = \
-	config_parser.h
-
 CLEANFILES = \
 	base-type.cpp
 
