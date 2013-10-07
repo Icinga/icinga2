@@ -22,7 +22,7 @@
 #include "config/expression.h"
 #include "config/typerule.h"
 #include "config/configcompilercontext.h"
-#include "config/config_parser.hh"
+#include "config/config_parser.h"
 #include <sstream>
 
 using namespace icinga;

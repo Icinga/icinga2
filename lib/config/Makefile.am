@@ -15,6 +15,8 @@ AM_YFLAGS = -d
 .hh.h:
 	if [ -e $(srcdir)/$< ]; then cp $(srcdir)/$< $(srcdir)/$@; fi
 
+config_lexer.cc: config_parser.h
+
 libconfig_la_SOURCES = \
 	base-type.conf \
 	configcompiler.cpp \
