@@ -29,6 +29,7 @@ BuildRequires: libtool-ltdl-devel
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
 # el5 requires EPEL
 BuildRequires: boost%{el5_boost_version}-devel
+BuildRequires: boost%{el5_boost_version}
 Requires: boost%{el5_boost_version}-program-options
 Requires: boost%{el5_boost_version}-signals
 Requires: boost%{el5_boost_version}-system
@@ -41,7 +42,7 @@ Requires: boost-signals >= 1.41
 Requires: boost-system >= 1.41
 Requires: boost-test >= 1.41
 Requires: boost-thread >= 1.41
-%fi
+%endif
 %endif
 
 %if "%{_vendor}" == "suse"
@@ -71,7 +72,7 @@ BuildRequires: mysql
 %else
 BuildRequires: mysql-libs
 BuildRequires: mysql
-%fi
+%endif
 BuildRequires: mysql-devel
 Requires: mysql
 %endif
