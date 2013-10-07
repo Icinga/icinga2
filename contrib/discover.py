@@ -28,7 +28,7 @@ if len(sys.argv) < 2:
     print "Syntax: %s <xml-file> [<xml-file> ...]" % (sys.argv[0])
     sys.exit(1)
 
-tcp_service_templates = {
+tcp_service_commands = {
   'ssh': 'ssh',
   'http': 'http_ip',
   'https': 'https_ip',
@@ -36,7 +36,7 @@ tcp_service_templates = {
   'ssmtp': 'ssmtp'
 }
 
-udp_service_templates = {
+udp_service_commands = {
   'ntp': 'ntp_time',
   'snmp': 'snmp-uptime'
 }
@@ -90,43 +90,37 @@ def process_host(host_element):
 
         try:
             if protocol == "tcp":
-                template = tcp_service_templates[serv]
+                command = tcp_service_commands[serv]
             elif protocol == "udp":
-                template = udp_service_templates[serv]
+                command = udp_service_commands[serv]
             else:
                 raise "Unknown protocol."
         except:
-            template = protocol
+            command = protocol
 
-        if template == "udp":
+        if command == "udp":
             continue
 
-        services[serv] = { "template": template, "port": port }
+        services[serv] = { "command": command, "port": port }
 
     hosts[name] = { "name": name, "address": address, "services": services }
 
 def print_host(host):
     print "object Host \"%s\" inherits \"discovered-host\" {" % (host["name"])
-    print "\tmacros = {"
-    print "\t\taddress = \"%s\"" % (host["address"])
-    print "\t},"
+    print "\tmacros[\"address\"] = \"%s\"," % (host["address"])
 
     for serv, service in host["services"].iteritems():
         print ""
         print "\tservices[\"%s\"] = {" % (serv)
-        print "\t\ttemplates = { \"%s\" }," % (service["template"])
+        print "\t\ttemplates = [ \"discovered-service\" ],"
         print ""
-        print "\t\tmacros = {"
-        print "\t\t\tport = %s" % (service["port"])
-        print "\t\t}"
+        print "\t\tcheck_command = \"%s\"," % (service["command"])
+        print ""
+        print "\t\tmacros[\"port\"] = %s" % (service["port"])
         print "\t},"
 
     print "}"
     print ""
-
-
-print "#include <itl/itl.conf>"
-print ""
 
 for arg in sys.argv[1:]:
     # Expects XML output from 'nmap -oX'
