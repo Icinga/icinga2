@@ -69,15 +69,6 @@ Requires: libboost_thread%{opensuse_boost_version}
 
 Requires: %{name}-common = %{version}
 
-%if "%{_vendor}" == "redhat"
-Requires: user(%{icinga_user})
-Requires(pre): user(%{icinga_user})
-Requires: group(%{icinga_group})
-Requires(pre): group(%{icinga_group})
-Requires: group(%{icingacmd_group})
-Requires(pre): group(%{icingacmd_group})
-%endif
-
 %description
 Icinga is a general-purpose network monitoring application.
 
@@ -87,9 +78,6 @@ Group:        Applications/System
 %if "%{_vendor}" == "redhat"
 Requires(pre): shadow-utils
 Requires(post): shadow-utils
-Provides: user(%{icinga_user})
-Provides: group(%{icinga_group})
-Provides: group(%{icingacmd_group})
 %endif
 
 %description common
