@@ -161,7 +161,7 @@ if test "x$want_boost" = "xyes"; then
         _version=0
         if test "$ac_boost_path" != ""; then
             if test -d "$ac_boost_path" && test -r "$ac_boost_path"; then
-                for i in `ls -d $ac_boost_path/include/boost-* 2>/dev/null`; do
+                for i in `ls -d $ac_boost_path/include/boost-* $ac_boost_path/include/boost-[0-9][0-9][0-9] 2>/dev/null`; do
                     _version_tmp=`echo $i | sed "s#$ac_boost_path##" | sed 's/\/include\/boost-//' | sed 's/_/./'`
                     V_CHECK=`expr $_version_tmp \> $_version`
                     if test "$V_CHECK" = "1" ; then
@@ -175,7 +175,7 @@ if test "x$want_boost" = "xyes"; then
             if test "$cross_compiling" != yes; then
                 for ac_boost_path in /usr /usr/local /opt /opt/local ; do
                     if test -d "$ac_boost_path" && test -r "$ac_boost_path"; then
-                        for i in `ls -d $ac_boost_path/include/boost-* 2>/dev/null`; do
+                        for i in `ls -d $ac_boost_path/include/boost-* $ac_boost_path/include/boost-[0-9][0-9][0-9] 2>/dev/null`; do
                             _version_tmp=`echo $i | sed "s#$ac_boost_path##" | sed 's/\/include\/boost-//' | sed 's/_/./'`
                             V_CHECK=`expr $_version_tmp \> $_version`
                             if test "$V_CHECK" = "1" ; then
