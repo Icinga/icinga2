@@ -7,6 +7,11 @@ pkglib_LTLIBRARIES = \
 CLEANFILES = \
 	base-type.cpp
 
+EXTRA_DIST = \
+	config_lexer.cc \
+	config_parser.cc \
+	config_parser.h
+
 AM_YFLAGS = -d
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
