@@ -161,38 +161,53 @@ if test "x$want_boost" = "xyes"; then
         _version=0
         if test "$ac_boost_path" != ""; then
             if test -d "$ac_boost_path" && test -r "$ac_boost_path"; then
-                for i in `ls -d $ac_boost_path/include/boost-* $ac_boost_path/include/boost-[0-9][0-9][0-9] 2>/dev/null`; do
-                    _version_tmp=`echo $i | sed "s#$ac_boost_path##" | sed 's/\/include\/boost-//' | sed 's/_/./'`
+                for i in `ls -d $ac_boost_path/include/boost-* $ac_boost_path/include/boost[[0-9]][[0-9]][[0-9]] 2>/dev/null`; do
+                    _version_tmp=`echo $i | sed "s#$ac_boost_path##" | sed 's/\/include\/boost//' | sed 's/^-//' | sed 's/_/./'`
                     V_CHECK=`expr $_version_tmp \> $_version`
                     if test "$V_CHECK" = "1" ; then
-                        _version=$_version_tmp
+                        _version=$_version_tmp 
+                        _include_path=$i
                     fi
                     VERSION_UNDERSCORE=`echo $_version | sed 's/\./_/'`
-                    BOOST_CPPFLAGS="-I$ac_boost_path/include/boost-$VERSION_UNDERSCORE"
+                    BOOST_CPPFLAGS="-I_$include_path"
                 done
             fi
         else
             if test "$cross_compiling" != yes; then
                 for ac_boost_path in /usr /usr/local /opt /opt/local ; do
                     if test -d "$ac_boost_path" && test -r "$ac_boost_path"; then
-                        for i in `ls -d $ac_boost_path/include/boost-* $ac_boost_path/include/boost-[0-9][0-9][0-9] 2>/dev/null`; do
-                            _version_tmp=`echo $i | sed "s#$ac_boost_path##" | sed 's/\/include\/boost-//' | sed 's/_/./'`
+                        for i in `ls -d $ac_boost_path/include/boost-* $ac_boost_path/include/boost[[0-9]][[0-9]][[0-9]] 2>/dev/null`; do
+                            _version_tmp=`echo $i | sed "s#$ac_boost_path##" | sed 's/\/include\/boost//' | sed 's/^-//' | sed 's/_/./'`
                             V_CHECK=`expr $_version_tmp \> $_version`
                             if test "$V_CHECK" = "1" ; then
                                 _version=$_version_tmp
                                 best_path=$ac_boost_path
+                                _include_path=$i
                             fi
                         done
                     fi
                 done
 
                 VERSION_UNDERSCORE=`echo $_version | sed 's/\./_/'`
-                BOOST_CPPFLAGS="-I$best_path/include/boost-$VERSION_UNDERSCORE"
+                BOOST_CPPFLAGS="-I$_include_path"
                 if test "$ac_boost_lib_path" = ""; then
+                    _library_path=""
                     for libsubdir in $libsubdirs ; do
-                        if ls "$best_path/$libsubdir/libboost_"* >/dev/null 2>&1 ; then break; fi
+                        if ls "$best_path/$libsubdir/libboost_"*".so" >/dev/null 2>&1 ; then
+                            _library_path=$best_path/$libsubdir
+                            break
+                        fi
+                        for i in `ls -d $best_path/$libsubdir/boost[[0-9]][[0-9]][[0-9]] 2>/dev/null`; do
+                            if ls "$i/libboost_"*".so" >/dev/null 2>&1 ; then
+                                _library_path=$i
+                                break
+                            fi
+                        done
+                        if test "x$_library_path" != "x"; then
+                            break
+                        fi
                     done
-                    BOOST_LDFLAGS="-L$best_path/$libsubdir"
+                    BOOST_LDFLAGS="-L$_library_path"
                 fi
             fi
 
@@ -241,7 +256,7 @@ if test "x$want_boost" = "xyes"; then
         if test "$_version" = "0" ; then
             AC_MSG_NOTICE([[We could not detect the boost libraries (version $boost_lib_version_req_shorten or higher). If you have a staged boost library (still not installed) please specify \$BOOST_ROOT in your environment and do not give a PATH to --with-boost option.  If you are sure you have boost installed, then check your version number looking in <boost/version.hpp>. See http://randspringer.de/boost for more documentation.]])
         else
-            AC_MSG_NOTICE([Your boost libraries seems to old (version $_version).])
+            AC_MSG_NOTICE([Your boost libraries are too old (version $_version).])
         fi
         # execute ACTION-IF-NOT-FOUND (if present):
         ifelse([$3], , :, [$3])
