@@ -84,6 +84,9 @@ double PerfdataWriter::GetRotationInterval(void) const
 
 void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr)
 {
+	if (!IcingaApplication::GetInstance()->GetEnablePerfdata())
+		return;
+
 	Host::Ptr host = service->GetHost();
 
 	if (!host)

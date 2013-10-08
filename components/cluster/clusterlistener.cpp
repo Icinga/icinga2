@@ -20,6 +20,7 @@
 #include "cluster/clusterlistener.h"
 #include "cluster/endpoint.h"
 #include "icinga/domain.h"
+#include "icinga/icingaapplication.h"
 #include "base/netstring.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
@@ -1534,7 +1535,7 @@ bool ClusterListener::SupportsChecks(void)
 	if (!type)
 		return false;
 
-	return !type->GetObjects().empty();
+	return !type->GetObjects().empty() && IcingaApplication::GetInstance()->GetEnableChecks();
 }
 
 bool ClusterListener::SupportsNotifications(void)
@@ -1544,7 +1545,7 @@ bool ClusterListener::SupportsNotifications(void)
 	if (!type)
 		return false;
 
-	return !type->GetObjects().empty();
+	return !type->GetObjects().empty() && IcingaApplication::GetInstance()->GetEnableNotifications();
 }
 
 void ClusterListener::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const

@@ -24,6 +24,7 @@
 #include "icinga/hostgroup.h"
 #include "icinga/servicegroup.h"
 #include "icinga/pluginchecktask.h"
+#include "icinga/icingaapplication.h"
 #include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
@@ -169,6 +170,16 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnableHostgroupPassiveHostChecks);
 	RegisterCommand("ENABLE_SERVICEGROUP_HOST_CHECKS", &ExternalCommandProcessor::EnableServicegroupHostChecks);
 	RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnableServicegroupPassiveHostChecks);
+	RegisterCommand("ENABLE_NOTIFICATIONS", &ExternalCommandProcessor::EnableNotifications);
+	RegisterCommand("DISABLE_NOTIFICATIONS", &ExternalCommandProcessor::DisableNotifications);
+	RegisterCommand("ENABLE_FLAP_DETECTION", &ExternalCommandProcessor::EnableFlapDetection);
+	RegisterCommand("DISABLE_FLAP_DETECTION", &ExternalCommandProcessor::DisableFlapDetection);
+	RegisterCommand("ENABLE_EVENT_HANDLERS", &ExternalCommandProcessor::EnableEventHandlers);
+	RegisterCommand("DISABLE_EVENT_HANDLERS", &ExternalCommandProcessor::DisableEventHandlers);
+	RegisterCommand("ENABLE_PERFORMANCE_DATA", &ExternalCommandProcessor::EnablePerformanceData);
+	RegisterCommand("DISABLE_PERFORMANCE_DATA", &ExternalCommandProcessor::DisablePerformanceData);
+	RegisterCommand("START_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StartExecutingSvcChecks);
+	RegisterCommand("STOP_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StopExecutingSvcChecks);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
@@ -1733,4 +1744,74 @@ void ExternalCommandProcessor::DisableSvcFlapping(double, const std::vector<Stri
 
 		service->SetEnableFlapping(false);
 	}
+}
+
+void ExternalCommandProcessor::EnableNotifications(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally enabling notifications.");
+
+	IcingaApplication::GetInstance()->SetEnableNotifications(true);
+}
+
+void ExternalCommandProcessor::DisableNotifications(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally disabling notifications.");
+
+	IcingaApplication::GetInstance()->SetEnableNotifications(false);
+}
+
+void ExternalCommandProcessor::EnableFlapDetection(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally enabling flap detection.");
+
+	IcingaApplication::GetInstance()->SetEnableFlapping(true);
+}
+
+void ExternalCommandProcessor::DisableFlapDetection(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally disabling flap detection.");
+
+	IcingaApplication::GetInstance()->SetEnableFlapping(false);
+}
+
+void ExternalCommandProcessor::EnableEventHandlers(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally enabling event handlers.");
+
+	IcingaApplication::GetInstance()->SetEnableEventHandlers(true);
+}
+
+void ExternalCommandProcessor::DisableEventHandlers(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally disabling event handlers.");
+
+	IcingaApplication::GetInstance()->SetEnableEventHandlers(false);
+}
+
+void ExternalCommandProcessor::EnablePerformanceData(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally enabling performance data processing.");
+
+	IcingaApplication::GetInstance()->SetEnablePerfdata(true);
+}
+
+void ExternalCommandProcessor::DisablePerformanceData(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally disabling performance data processing.");
+
+	IcingaApplication::GetInstance()->SetEnablePerfdata(false);
+}
+
+void ExternalCommandProcessor::StartExecutingSvcChecks(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally enabling checks.");
+
+	IcingaApplication::GetInstance()->SetEnableChecks(true);
+}
+
+void ExternalCommandProcessor::StopExecutingSvcChecks(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally disabling checks.");
+
+	IcingaApplication::GetInstance()->SetEnableChecks(false);
 }

@@ -121,6 +121,16 @@ private:
 	static void DisableSvcFlapping(double time, const std::vector<String>& arguments);
 	static void EnableHostFlapping(double time, const std::vector<String>& arguments);
 	static void DisableHostFlapping(double time, const std::vector<String>& arguments);
+	static void EnableNotifications(double time, const std::vector<String>& arguments);
+	static void DisableNotifications(double time, const std::vector<String>& arguments);
+	static void EnableFlapDetection(double time, const std::vector<String>& arguments);
+	static void DisableFlapDetection(double time, const std::vector<String>& arguments);
+	static void EnableEventHandlers(double time, const std::vector<String>& arguments);
+	static void DisableEventHandlers(double time, const std::vector<String>& arguments);
+	static void EnablePerformanceData(double time, const std::vector<String>& arguments);
+	static void DisablePerformanceData(double time, const std::vector<String>& arguments);
+	static void StartExecutingSvcChecks(double time, const std::vector<String>& arguments);
+	static void StopExecutingSvcChecks(double time, const std::vector<String>& arguments);
 };
 
 }

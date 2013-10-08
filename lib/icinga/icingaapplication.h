@@ -38,6 +38,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(IcingaApplication);
 	DECLARE_TYPENAME(IcingaApplication);
 
+	IcingaApplication(void);
+
 	int Main(void);
 
 	static IcingaApplication::Ptr GetInstance(void);
@@ -49,8 +51,44 @@ public:
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
+	bool GetEnableNotifications(void) const;
+	void SetEnableNotifications(bool enabled);
+	void ClearEnableNotifications(void);
+
+	bool GetEnableEventHandlers(void) const;
+	void SetEnableEventHandlers(bool enabled);
+	void ClearEnableEventHandlers(void);
+
+	bool GetEnableFlapping(void) const;
+	void SetEnableFlapping(bool enabled);
+	void ClearEnableFlapping(void);
+
+	bool GetEnableChecks(void) const;
+	void SetEnableChecks(bool enabled);
+	void ClearEnableChecks(void);
+
+	bool GetEnablePerfdata(void) const;
+	void SetEnablePerfdata(bool enabled);
+	void ClearEnablePerfdata(void);
+
+protected:
+	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
+	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
+
 private:
 	double m_StartTime;
+
+	Value m_EnableNotifications;
+	Value m_EnableEventHandlers;
+	Value m_EnableFlapping;
+	Value m_EnableChecks;
+	Value m_EnablePerfdata;
+
+	Value m_OverrideEnableNotifications;
+	Value m_OverrideEnableEventHandlers;
+	Value m_OverrideEnableFlapping;
+	Value m_OverrideEnableChecks;
+	Value m_OverrideEnablePerfdata;
 
 	void DumpProgramState(void);
 

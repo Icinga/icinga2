@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
+#include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -110,7 +111,7 @@ void Service::UpdateFlappingStatus(bool stateChange)
 
 bool Service::IsFlapping(void) const
 {
-	if (!GetEnableFlapping())
+	if (!GetEnableFlapping() || !IcingaApplication::GetInstance()->GetEnableFlapping())
 		return false;
 	else
 		return GetFlappingCurrent() > GetFlappingThreshold();

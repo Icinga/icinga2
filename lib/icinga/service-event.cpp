@@ -19,6 +19,7 @@
 
 #include "icinga/service.h"
 #include "icinga/eventcommand.h"
+#include "icinga/icingaapplication.h"
 
 using namespace icinga;
 
@@ -31,6 +32,9 @@ EventCommand::Ptr Service::GetEventCommand(void) const
 
 void Service::ExecuteEventHandler(void)
 {
+	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers())
+		return;
+
 	EventCommand::Ptr ec = GetEventCommand();
 
 	if (!ec)

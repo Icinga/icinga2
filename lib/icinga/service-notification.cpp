@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
+#include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -51,7 +52,7 @@ void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr
 {
 	bool force = GetForceNextNotification();
 
-	if (!GetEnableNotifications()) {
+	if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !GetEnableNotifications()) {
 		if (!force) {
 			Log(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
 			return;

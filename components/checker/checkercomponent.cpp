@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "checker/checkercomponent.h"
+#include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
@@ -103,7 +104,7 @@ void CheckerComponent::CheckThreadProc(void)
 		bool authoritative = service->HasAuthority("checker");
 
 		if (!forced) {
-			if (!service->GetEnableActiveChecks()) {
+			if (!service->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableChecks()) {
 				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active checks are disabled");
 				check = false;
 			}
