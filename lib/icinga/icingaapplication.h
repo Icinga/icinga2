@@ -38,7 +38,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(IcingaApplication);
 	DECLARE_TYPENAME(IcingaApplication);
 
-	IcingaApplication(void);
+	static void StaticInitialize(void);
 
 	int Main(void);
 
@@ -77,12 +77,6 @@ protected:
 
 private:
 	double m_StartTime;
-
-	Value m_EnableNotifications;
-	Value m_EnableEventHandlers;
-	Value m_EnableFlapping;
-	Value m_EnableChecks;
-	Value m_EnablePerfdata;
 
 	Value m_OverrideEnableNotifications;
 	Value m_OverrideEnableEventHandlers;

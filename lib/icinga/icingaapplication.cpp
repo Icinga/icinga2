@@ -26,6 +26,7 @@
 #include "base/utility.h"
 #include "base/timer.h"
 #include "base/scriptvariable.h"
+#include "base/initialize.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
@@ -33,19 +34,20 @@ using namespace icinga;
 static Timer::Ptr l_RetentionTimer;
 
 REGISTER_TYPE(IcingaApplication);
+INITIALIZE_ONCE(IcingaApplication, &IcingaApplication::StaticInitialize);
 
 #ifndef _WIN32
 #	include "icinga-version.h"
 #	define ICINGA_VERSION GIT_MESSAGE
 #endif /* _WIN32 */
 
-IcingaApplication::IcingaApplication(void)
+void IcingaApplication::StaticInitialize(void)
 {
-	m_EnableNotifications = true;
-	m_EnableEventHandlers = true;
-	m_EnableFlapping = true;
-	m_EnableChecks = true;
-	m_EnablePerfdata = true;
+	ScriptVariable::Set("IcingaEnableNotifications", true);
+	ScriptVariable::Set("IcingaEnableEventHandlers", true);
+	ScriptVariable::Set("IcingaEnableFlapping", true);
+	ScriptVariable::Set("IcingaEnableChecks", true);
+	ScriptVariable::Set("IcingaEnablePerfdata", true);
 }
 
 /**
@@ -231,14 +233,6 @@ void IcingaApplication::InternalSerialize(const Dictionary::Ptr& bag, int attrib
 {
 	DynamicObject::InternalSerialize(bag, attributeTypes);
 
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("enable_notifications", m_EnableNotifications);
-		bag->Set("enable_event_handlers", m_EnableEventHandlers);
-		bag->Set("enable_flapping", m_EnableFlapping);
-		bag->Set("enable_checks", m_EnableChecks);
-		bag->Set("enable_perfdata", m_EnablePerfdata);
-	}
-
 	if (attributeTypes & Attribute_State) {
 		bag->Set("override_enable_notifications", m_OverrideEnableNotifications);
 		bag->Set("override_enable_event_handlers", m_OverrideEnableEventHandlers);
@@ -251,14 +245,6 @@ void IcingaApplication::InternalSerialize(const Dictionary::Ptr& bag, int attrib
 void IcingaApplication::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
 {
 	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_EnableNotifications = bag->Get("enable_notifications");
-		m_EnableEventHandlers = bag->Get("enable_event_handlers");
-		m_EnableFlapping = bag->Get("enable_flapping");
-		m_EnableChecks = bag->Get("enable_checks");
-		m_EnablePerfdata = bag->Get("enable_perfdata");
-	}
 
 	if (attributeTypes & Attribute_State) {
 		m_OverrideEnableNotifications = bag->Get("override_enable_notifications");
