@@ -1,8 +1,15 @@
 %define revision 1
-%define opensuse_boost_version 1_49_0
+
+%if "%{_vendor}" == "redhat"
 %define el5_boost_version 141
 %define el5_boost_libs %{_libdir}/boost%{el5_boost_version}
 %define el5_boost_includes /usr/include/boost%{el5_boost_version}
+%define apacheuser apache
+%endif
+%if "%{_vendor}" == "suse"
+%define opensuse_boost_version 1_49_0
+%define apacheuser www
+%endif
 
 %define logmsg logger -t %{name}/rpm
 
@@ -56,9 +63,38 @@ Requires: libboost_test%{opensuse_boost_version}
 Requires: libboost_thread%{opensuse_boost_version}
 %endif
 
+Requires: %{name}-common = %{version}
+Requires: user(icinga)
+Requires(pre): user(icinga)
+Requires: group(icinga)
+Requires(pre): group(icinga)
+Requires: group(icingacmd)
+Requires(pre): group(icingacmd)
 
 %description
 Icinga is a general-purpose network monitoring application.
+
+%package common
+Summary:      Common Icinga 2 configuration
+Group:        Applications/System
+Requires(pre): shadow-utils
+Requires(post): shadow-utils
+Provides: user(icinga)
+Provides: group(icinga)
+Provides: group(icingacmd)
+
+%description common
+Provides common directories, uid and gid among Icinga 2 related
+packages.
+
+
+%package doc
+Summary:      Documentation for Icinga 2
+Group:        Applications/System
+
+%description doc
+Documentation for Icinga 2
+
 
 %package ido-mysql
 Summary:      IDO MySQL database backend for Icinga 2
@@ -118,34 +154,44 @@ make install \
 	INSTALL_OPTS="" \
 	COMMAND_OPTS=""
 
-%pre
-%{_sbindir}/groupadd icinga 2> /dev/null || :
-%{_sbindir}/groupadd icingacmd 2> /dev/null || :
-%{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G icingacmd -g icinga icinga 2> /dev/null || :
-
-%post
-/sbin/chkconfig --add %{name}
-/sbin/service %{name} start &>/dev/null || :
-
-%preun
-if [ $1 -eq 0 ]; then
-	/sbin/service %{name} stop &>/dev/null || :
-	/sbin/chkconfig --del %{name}
-fi
-
-%postun
-
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
+
+%pre common
+getent group icinga >/dev/null || groupadd -r icinga
+getent group icingacmd >/dev/null || groupadd -r icingacmd
+getent passwd icinga >/dev/null || /useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G icingacmd -g icinga icinga
+exit 0
+
+%preun
+if [ $1 = 0 ]; then
+	/sbin/service %{name} stop &>/dev/null || :
+	/sbin/chkconfig --del %{name} || :
+fi
+
+%post
+%{_sbindir}/usermod -a -G icingacmd %{apacheuser} || :
+/sbin/chkconfig --add %{name} || :
+/sbin/service %{name} start &>/dev/null || :
+
+%post ido-mysql
+ln -s %{_sysconfdir}/%{name}/features-available/ido-mysql.conf %{_sysconfdir}/%{name}/features-enabled/ido-mysql.conf
+
+%postun ido-mysql
+[ -f "%{_sysconfdir}/%{name}/features-enabled/ido-mysql.conf" ] && rm -f %{_sysconfdir}/%{name}/features-enabled/ido-mysql.conf
+
 
 %files
 %defattr(-,root,root)
 %doc README AUTHORS ChangeLog COPYING COPYING.Exceptions
+%attr(755,-,-) %{_sysconfdir}/init.d/%{name}
+%attr(0750,icinga,icinga) %dir %{_sysconfdir}/%{name}/conf.d
+%attr(0750,icinga,icinga) %dir %{_sysconfdir}/%{name}/features-available
+%attr(0750,icinga,icinga) %dir %{_sysconfdir}/%{name}/features-enabled
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %{_sysconfdir}/%{name}/conf.d/*.conf
 %config(noreplace) %{_sysconfdir}/%{name}/features-available/*.conf
 %config(noreplace) %{_sysconfdir}/%{name}/features-enabled/*.conf
-%attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %{_bindir}/%{name}
 %{_sbindir}/i2enfeature
 %{_sbindir}/i2disfeature
@@ -156,12 +202,19 @@ fi
 %{_mandir}/man8/%{name}.8.gz
 
 %{_localstatedir}/cache/%{name}
-%{_localstatedir}/log/%{name}
+%attr(0750,icinga,icinga) %dir %{_localstatedir}/log/%{name}
+%attr(0750,icinga,icinga) %dir %{_localstatedir}/log/%{name}/compat
+%attr(0750,icinga,icinga) %dir %{_localstatedir}/log/%{name}/compat/archives
 %{_localstatedir}/run/%{name}
 %{_localstatedir}/lib/%{name}
-%{_localstatedir}/spool/%{name}
 
 %attr(2755,icinga,icingacmd) %{_localstatedir}/run/icinga2/cmd
+
+%files common
+%attr(0750,icinga,icinga) %dir %{_localstatedir}/spool/%{name}
+
+%files doc
+%doc README AUTHORS ChangeLog COPYING COPYING.Exceptions
 
 %files ido-mysql
 %{_libdir}/%{name}/libdb_ido_mysql*
