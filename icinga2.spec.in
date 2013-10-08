@@ -124,26 +124,10 @@ IDOUtils schema >= 1.10
 %setup -q -n %{name}-%{version}
 
 %build
-
-# el5 requires special treatment for boost from epel
-# 1) set CPATH, LD_LIBRARY_PATH for path detection
-# 2) set --with-boost[-libdir] for library version checks
-%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
-export CPATH="%{el5_boost_includes}:$CPATH"
-export LD_LIBRARY_PATH="%{el5_boost_libs}:$LD_LIBRARY_PATH"
-%configure --with-icinga-user=$USER \
-	--with-icinga-group=$USER \
-	--with-icingacmd-user=$USER \
-	--with-icingacmd-group=$USER \
-	--with-boost="%{el5_boost_libs}" \
-	--with-boost-libdir="%{el5_boost_libs}"
-%else
-# the famous others
 %configure --with-icinga-user=$USER \
 	--with-icinga-group=$USER \
 	--with-icingacmd-user=$USER \
 	--with-icingacmd-group=$USER
-%endif
 
 make %{?_smp_mflags}
 
