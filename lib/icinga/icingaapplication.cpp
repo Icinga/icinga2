@@ -141,10 +141,8 @@ bool IcingaApplication::GetEnableNotifications(void) const
 {
 	if (!m_OverrideEnableNotifications.IsEmpty())
 		return m_OverrideEnableNotifications;
-	else if (!m_EnableNotifications.IsEmpty())
-		return m_EnableNotifications;
 	else
-		return true;
+		return ScriptVariable::Get("IcingaEnableNotifications");
 }
 
 void IcingaApplication::SetEnableNotifications(bool enabled)
@@ -161,10 +159,8 @@ bool IcingaApplication::GetEnableEventHandlers(void) const
 {
 	if (!m_OverrideEnableEventHandlers.IsEmpty())
 		return m_OverrideEnableEventHandlers;
-	else if (!m_EnableEventHandlers.IsEmpty())
-		return m_EnableEventHandlers;
 	else
-		return true;
+		return ScriptVariable::Get("IcingaEnableEventHandlers");
 }
 
 void IcingaApplication::SetEnableEventHandlers(bool enabled)
@@ -181,10 +177,8 @@ bool IcingaApplication::GetEnableFlapping(void) const
 {
 	if (!m_OverrideEnableFlapping.IsEmpty())
 		return m_OverrideEnableFlapping;
-	else if (!m_EnableFlapping.IsEmpty())
-		return m_EnableFlapping;
 	else
-		return true;
+		return ScriptVariable::Get("IcingaEnableFlapping");
 }
 
 void IcingaApplication::SetEnableFlapping(bool enabled)
@@ -201,10 +195,8 @@ bool IcingaApplication::GetEnableChecks(void) const
 {
 	if (!m_OverrideEnableChecks.IsEmpty())
 		return m_OverrideEnableChecks;
-	else if (!m_EnableChecks.IsEmpty())
-		return m_EnableChecks;
 	else
-		return true;
+		return ScriptVariable::Get("IcingaEnableChecks");
 }
 
 void IcingaApplication::SetEnableChecks(bool enabled)
@@ -221,10 +213,8 @@ bool IcingaApplication::GetEnablePerfdata(void) const
 {
 	if (!m_OverrideEnablePerfdata.IsEmpty())
 		return m_OverrideEnablePerfdata;
-	else if (!m_EnablePerfdata.IsEmpty())
-		return m_EnablePerfdata;
 	else
-		return true;
+		return ScriptVariable::Get("IcingaEnablePerfdata");
 }
 
 void IcingaApplication::SetEnablePerfdata(bool enabled)
