@@ -24,6 +24,8 @@
 #include "base/stream_bio.h"
 #include <iostream>
 
+#ifdef ZLIB
+
 namespace icinga {
 
 class ZlibStream : public Stream
@@ -47,5 +49,7 @@ private:
 };
 
 }
+
+#endif /* ZLIB */
 
 #endif /* ZLIBSTREAM_H */

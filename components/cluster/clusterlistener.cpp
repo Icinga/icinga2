@@ -348,7 +348,11 @@ void ClusterListener::OpenLogFile(void)
 	}
 
 	StdioStream::Ptr logStream = boost::make_shared<StdioStream>(fp, true);
+#ifdef ZLIB
 	m_LogFile = boost::make_shared<ZlibStream>(logStream);
+#else /* ZLIB */
+	m_LogFile = logStream;
+#endif /* ZLIB */
 	m_LogMessageCount = 0;
 	m_LogMessageTimestamp = 0;
 }
@@ -431,7 +435,11 @@ void ClusterListener::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr
 
 			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
 			StdioStream::Ptr logStream = boost::make_shared<StdioStream>(fp, true);
+#ifdef ZLIB
 			ZlibStream::Ptr lstream = boost::make_shared<ZlibStream>(logStream);
+#else /* ZLIB */
+			Stream::Ptr lstream = logStream;
+#endif /* ZLIB */
 
 			String message;
 			while (true) {

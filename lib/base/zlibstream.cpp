@@ -21,6 +21,8 @@
 #include "base/objectlock.h"
 #include <boost/make_shared.hpp>
 
+#ifdef ZLIB
+
 using namespace icinga;
 
 extern "C" BIO_METHOD *BIO_f_zlib(void);
@@ -76,3 +78,5 @@ bool ZlibStream::IsEof(void) const
 
 	return BIO_eof(m_BIO);
 }
+
+#endif /* ZLIB */
