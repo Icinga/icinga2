@@ -199,6 +199,7 @@ fi
 %{_libdir}/%{name}
 %{_datadir}/doc/%{name}
 %{_datadir}/%{name}
+%exclude %{_datadir}/%{name}/itl
 %{_mandir}/man8/%{name}.8.gz
 
 %{_localstatedir}/cache/%{name}
@@ -212,6 +213,8 @@ fi
 
 %files common
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
+%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_datadir}/%{name}/itl
+%{_datadir}/%{name}/itl
 
 %files doc
 %doc README AUTHORS ChangeLog COPYING COPYING.Exceptions
