@@ -17,8 +17,6 @@ parentheses):
 
 * GNU make (make)
 * C++ compiler (gcc-c++ on RHEL, build-essential on Debian)
-* Flex
-* GNU Bison
 * OpenSSL library and header files (openssl-devel on RHEL, libssl-dev
                                     on Debian)
 * Boost library and header files (boost-devel on RHEL, libboost-all-dev
@@ -40,6 +38,9 @@ mentioned above:
                libltdl-dev on Debian)
 * GNU bison (bison)
 * GNU flex (flex)
+
+In order to build the dist tarball (using "make dist") you need sufficiently
+recent versions of the packages listed above.
 
 User Requirements
 -----------------
