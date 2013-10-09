@@ -11,9 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="i2-checker.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="checkercomponent.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -30,5 +27,8 @@
     <CustomBuild Include="checker-type.conf">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

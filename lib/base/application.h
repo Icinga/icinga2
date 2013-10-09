@@ -23,8 +23,6 @@
 #include "base/i2-base.h"
 #include "base/threadpool.h"
 #include "base/dynamicobject.h"
-#include "icinga-version.h"
-#define ICINGA_VERSION VERSION ", " GIT_MESSAGE
 
 namespace icinga {
 

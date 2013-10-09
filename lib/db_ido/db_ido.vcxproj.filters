@@ -51,7 +51,7 @@
     <ClCompile Include="usergroupdbobject.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="ido-type.cpp">
+    <ClCompile Include="db_ido-type.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -100,7 +100,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="ido-type.conf">
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="db_ido-type.conf">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
   </ItemGroup>

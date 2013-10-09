@@ -9,9 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="clustercomponent.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="endpoint.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -21,15 +18,18 @@
     <ClCompile Include="cluster-type.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="clusterlistener.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="clustercomponent.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="jsonrpc.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="endpoint.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="clusterlistener.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -37,5 +37,8 @@
     <CustomBuild Include="cluster-type.conf">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

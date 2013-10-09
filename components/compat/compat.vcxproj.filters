@@ -11,18 +11,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="compatcomponent.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="i2-compat.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="compatcomponent.cpp">
+    <ClCompile Include="compat-type.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="compat-type.cpp">
+    <ClCompile Include="checkresultreader.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="compatlogger.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="externalcommandlistener.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="statusdatawriter.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -30,5 +31,22 @@
     <CustomBuild Include="compat-type.conf">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="checkresultreader.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="compatlogger.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="externalcommandlistener.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="statusdatawriter.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

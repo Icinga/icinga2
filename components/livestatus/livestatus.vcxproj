@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\openssl.1.0.1.24\build\native\openssl.props" Condition="Exists('..\..\packages\openssl.1.0.1.24\build\native\openssl.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -21,6 +22,7 @@
   <ItemGroup>
     <ClInclude Include="aggregator.h" />
     <ClInclude Include="countaggregator.h" />
+    <ClInclude Include="listener.h" />
     <ClInclude Include="sumaggregator.h" />
     <ClInclude Include="avgaggregator.h" />
     <ClInclude Include="minaggregator.h" />
@@ -40,8 +42,6 @@
     <ClInclude Include="filter.h" />
     <ClInclude Include="hostgroupstable.h" />
     <ClInclude Include="hoststable.h" />
-    <ClInclude Include="i2-livestatus.h" />
-    <ClInclude Include="component.h" />
     <ClInclude Include="negatefilter.h" />
     <ClInclude Include="orfilter.h" />
     <ClInclude Include="query.h" />
@@ -62,7 +62,6 @@
     <ClCompile Include="combinerfilter.cpp" />
     <ClCompile Include="commandstable.cpp" />
     <ClCompile Include="commentstable.cpp" />
-    <ClCompile Include="component.cpp" />
     <ClCompile Include="contactgroupstable.cpp" />
     <ClCompile Include="contactstable.cpp" />
     <ClCompile Include="downtimestable.cpp" />
@@ -71,6 +70,7 @@
     <ClCompile Include="hoststable.cpp" />
     <ClCompile Include="invavgaggregator.cpp" />
     <ClCompile Include="invsumaggregator.cpp" />
+    <ClCompile Include="listener.cpp" />
     <ClCompile Include="livestatus-type.cpp" />
     <ClCompile Include="maxaggregator.cpp" />
     <ClCompile Include="minaggregator.cpp" />
@@ -107,6 +107,9 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\tools\mkembedconfig\mkembedconfig.c</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{950E8743-BB34-4F8A-99EC-C87E8FC0EB3F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -117,23 +120,27 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -249,5 +256,17 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\packages\boost.1.54.0.1\build\native\boost.targets" Condition="Exists('..\..\packages\boost.1.54.0.1\build\native\boost.targets')" />
+    <Import Project="..\..\packages\boost_thread.1.54.0.2\build\native\boost_thread.targets" Condition="Exists('..\..\packages\boost_thread.1.54.0.2\build\native\boost_thread.targets')" />
+    <Import Project="..\..\packages\boost_system.1.54.0.2\build\native\boost_system.targets" Condition="Exists('..\..\packages\boost_system.1.54.0.2\build\native\boost_system.targets')" />
+    <Import Project="..\..\packages\boost_exception.1.54.0.2\build\native\boost_exception.targets" Condition="Exists('..\..\packages\boost_exception.1.54.0.2\build\native\boost_exception.targets')" />
+    <Import Project="..\..\packages\boost_program_options.1.54.0.2\build\native\boost_program_options.targets" Condition="Exists('..\..\packages\boost_program_options.1.54.0.2\build\native\boost_program_options.targets')" />
+    <Import Project="..\..\packages\boost_unit_test_framework.1.54.0.2\build\native\boost_unit_test_framework.targets" Condition="Exists('..\..\packages\boost_unit_test_framework.1.54.0.2\build\native\boost_unit_test_framework.targets')" />
+    <Import Project="..\..\packages\zlib.redist.1.2.8.6\build\native\zlib.redist.targets" Condition="Exists('..\..\packages\zlib.redist.1.2.8.6\build\native\zlib.redist.targets')" />
+    <Import Project="..\..\packages\zlib.1.2.8.6\build\native\zlib.targets" Condition="Exists('..\..\packages\zlib.1.2.8.6\build\native\zlib.targets')" />
+    <Import Project="..\..\packages\openssl.redist.1.0.1.24\build\native\openssl.redist.targets" Condition="Exists('..\..\packages\openssl.redist.1.0.1.24\build\native\openssl.redist.targets')" />
+    <Import Project="..\..\packages\openssl.1.0.1.24\build\native\openssl.targets" Condition="Exists('..\..\packages\openssl.1.0.1.24\build\native\openssl.targets')" />
+    <Import Project="..\..\packages\boost_date_time.1.54.0.2\build\native\boost_date_time.targets" Condition="Exists('..\..\packages\boost_date_time.1.54.0.2\build\native\boost_date_time.targets')" />
+    <Import Project="..\..\packages\boost_chrono.1.54.0.2\build\native\boost_chrono.targets" Condition="Exists('..\..\packages\boost_chrono.1.54.0.2\build\native\boost_chrono.targets')" />
   </ImportGroup>
 </Project>

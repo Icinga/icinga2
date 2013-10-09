@@ -57,7 +57,7 @@ void CompatLogger::Start(void)
 	Service::OnFlappingChanged.connect(bind(&CompatLogger::FlappingHandler, this, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
-	ExternalCommandProcessor::OnNewExternalCommand.connect(bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
+	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
 
 	m_RotationTimer = boost::make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLogger::RotationTimerHandler, this));

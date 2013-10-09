@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\openssl.1.0.1.24\build\native\openssl.props" Condition="Exists('..\..\packages\openssl.1.0.1.24\build\native\openssl.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -112,6 +113,9 @@
     <ClInclude Include="value.h" />
     <ClInclude Include="win32.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9C92DA90-FD53-43A9-A244-90F2E8AF9677}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -122,23 +126,27 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -193,7 +201,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MTd.lib;ssleay32MTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
@@ -236,7 +244,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
@@ -268,5 +276,17 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\packages\boost.1.54.0.1\build\native\boost.targets" Condition="Exists('..\..\packages\boost.1.54.0.1\build\native\boost.targets')" />
+    <Import Project="..\..\packages\boost_thread.1.54.0.2\build\native\boost_thread.targets" Condition="Exists('..\..\packages\boost_thread.1.54.0.2\build\native\boost_thread.targets')" />
+    <Import Project="..\..\packages\boost_system.1.54.0.2\build\native\boost_system.targets" Condition="Exists('..\..\packages\boost_system.1.54.0.2\build\native\boost_system.targets')" />
+    <Import Project="..\..\packages\boost_exception.1.54.0.2\build\native\boost_exception.targets" Condition="Exists('..\..\packages\boost_exception.1.54.0.2\build\native\boost_exception.targets')" />
+    <Import Project="..\..\packages\boost_program_options.1.54.0.2\build\native\boost_program_options.targets" Condition="Exists('..\..\packages\boost_program_options.1.54.0.2\build\native\boost_program_options.targets')" />
+    <Import Project="..\..\packages\boost_unit_test_framework.1.54.0.2\build\native\boost_unit_test_framework.targets" Condition="Exists('..\..\packages\boost_unit_test_framework.1.54.0.2\build\native\boost_unit_test_framework.targets')" />
+    <Import Project="..\..\packages\zlib.redist.1.2.8.6\build\native\zlib.redist.targets" Condition="Exists('..\..\packages\zlib.redist.1.2.8.6\build\native\zlib.redist.targets')" />
+    <Import Project="..\..\packages\zlib.1.2.8.6\build\native\zlib.targets" Condition="Exists('..\..\packages\zlib.1.2.8.6\build\native\zlib.targets')" />
+    <Import Project="..\..\packages\openssl.redist.1.0.1.24\build\native\openssl.redist.targets" Condition="Exists('..\..\packages\openssl.redist.1.0.1.24\build\native\openssl.redist.targets')" />
+    <Import Project="..\..\packages\openssl.1.0.1.24\build\native\openssl.targets" Condition="Exists('..\..\packages\openssl.1.0.1.24\build\native\openssl.targets')" />
+    <Import Project="..\..\packages\boost_date_time.1.54.0.2\build\native\boost_date_time.targets" Condition="Exists('..\..\packages\boost_date_time.1.54.0.2\build\native\boost_date_time.targets')" />
+    <Import Project="..\..\packages\boost_chrono.1.54.0.2\build\native\boost_chrono.targets" Condition="Exists('..\..\packages\boost_chrono.1.54.0.2\build\native\boost_chrono.targets')" />
   </ImportGroup>
 </Project>

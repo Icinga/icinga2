@@ -39,6 +39,10 @@
 #include <boost/exception/errinfo_file_name.hpp>
 #include <iostream>
 
+#ifndef _WIN32
+#	include "icinga-version.h"
+#endif /* _WIN32 */
+
 using namespace icinga;
 
 Application *Application::m_Instance = NULL;
@@ -708,5 +712,9 @@ ThreadPool& Application::GetTP(void)
 
 String Application::GetVersion(void)
 {
-	return ICINGA_VERSION;
+#ifndef _WIN32
+	return VERSION ", " GIT_MESSAGE;
+#else /* _WIN32 */
+	return "unspecified version";
+#endif /* _WIN32 */
 }

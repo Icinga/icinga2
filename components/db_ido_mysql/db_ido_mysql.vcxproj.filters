@@ -1,10 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="democomponent.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="i2-demo.h">
+    <ClInclude Include="idomysqlconnection.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -17,15 +14,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="democomponent.cpp">
+    <ClCompile Include="idomysqlconnection.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="demo-type.cpp">
+    <ClCompile Include="db_ido_mysql-type.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="demo-type.conf">
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="db_ido_mysql-type.conf">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
   </ItemGroup>

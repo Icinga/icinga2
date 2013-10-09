@@ -9,12 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="i2-livestatus.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="component.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="query.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -108,11 +102,11 @@
     <ClInclude Include="servicegroupsstable.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="listener.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="component.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="query.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -206,10 +200,16 @@
     <ClCompile Include="sumaggregator.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="listener.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="livestatus-type.conf">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

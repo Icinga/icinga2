@@ -77,12 +77,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="config_lexer.ll">
-      <Filter>Quelldateien</Filter>
-    </None>
-    <None Include="config_parser.yy">
-      <Filter>Quelldateien</Filter>
-    </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headerdateien">
@@ -94,6 +89,12 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="base-type.conf">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="config_lexer.ll">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="config_parser.yy">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
   </ItemGroup>

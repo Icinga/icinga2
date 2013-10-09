@@ -4,9 +4,6 @@
     <ClInclude Include="notificationcomponent.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="i2-notification.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headerdateien">
@@ -28,5 +25,8 @@
     <CustomBuild Include="notification-type.conf">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
