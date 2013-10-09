@@ -244,7 +244,7 @@ int main(int argc, char **argv)
 
 		if (!gr) {
 			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("getpwnam")
+				<< boost::errinfo_api_function("getgrnam")
 				<< boost::errinfo_errno(errno));
 		}
 
