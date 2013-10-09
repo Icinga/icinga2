@@ -309,11 +309,7 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
-	Log(LogInformation, "icinga-app", "Icinga application loader"
-#ifndef _WIN32
-	    " (version: " ICINGA_VERSION ")"
-#endif /* _WIN32 */
-	    );
+	Log(LogInformation, "icinga-app", "Icinga application loader (version: " + Application::GetVersion() + ")");
 
 	String searchDir = Application::GetPkgLibDir();
 	Log(LogInformation, "base", "Adding library search dir: " + searchDir);
