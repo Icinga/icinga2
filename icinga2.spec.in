@@ -8,6 +8,7 @@
 %endif
 %if "%{_vendor}" == "suse"
 %define opensuse_boost_version 1_49_0
+%define sles_boost_version 1_54_0
 %define apacheuser wwwrun
 %endif
 
@@ -59,6 +60,14 @@ Requires: boost-thread >= 1.41
 %endif
 
 %if "%{_vendor}" == "suse"
+%if 0%{?sles_version} == 11
+BuildRequires: boost-devel >= 1.41
+Requires: libboost_program_options%{sles_boost_version}
+Requires: libboost_signals%{sles_boost_version}
+Requires: libboost_system%{sles_boost_version}
+Requires: libboost_test%{sles_boost_version}
+Requires: libboost_thread%{sles_boost_version}
+%else
 BuildRequires: boost-devel >= 1.41
 Requires: libboost_program_options%{opensuse_boost_version}
 Requires: libboost_signals%{opensuse_boost_version}
