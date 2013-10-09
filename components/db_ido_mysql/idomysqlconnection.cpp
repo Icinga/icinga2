@@ -21,6 +21,7 @@
 #include "base/objectlock.h"
 #include "base/convert.h"
 #include "base/utility.h"
+#include "base/application.h"
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido_mysql/idomysqlconnection.h"

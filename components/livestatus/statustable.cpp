@@ -25,6 +25,7 @@
 #include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/utility.h"
+#include "base/application.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
