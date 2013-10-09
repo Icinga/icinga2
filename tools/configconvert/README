@@ -16,8 +16,8 @@ will be converted into Icinga2's logic with new notification objects,
 allowing to define notifications directly on the service definition then.
 
 Commands will be split by type (Check, Event, Notification) and relinked where
-possible. The host's check_command is dropped, and a possible service hostcheck
-looked up, if possible.
+possible. The host's check_command is dropped, and a possible host check service
+looked up, if possible. Otherwise a new service object will be added and linked.
 
 Notifications will be built based on the service->contact relations, and
 escalations will also be merged into notifications, having times begin/end as
@@ -36,18 +36,21 @@ dictionary (freely definable macros in Icinga 2.x).
 
 All required templates will be inherited from Icinga2's Template Library (ITL).
 
+Regular expressions are not supported, also for the reason that this is optional in Icinga 1.x
+
 RUN
-# ./icinga2_convert_v1_v2.pl -v -o conf/
+# ./icinga2_convert_v1_v2.pl -c /etc/icinga/icinga.cfg -o conf/
 
 HELP
 # ./icinga2_convert_v1_v2.pl -h
 
+VERBOSE
+# ./icinga2_convert_v1_v2.pl -v -c /etc/icinga/icinga.cfg -o conf/
+
 TEST
 There's a small icinga2 conversion test config available, including conf/ folder.
 
-# ~/i2/sbin/icinga2 -c icinga2-conv.conf
-
-(or if icinga2 binary is located in $HOME/i2/sbin/icinga2, simply use run_icinga2)
+# /usr/bin/icinga2 -c icinga2-conv.conf
 
 
 REQUIREMENTS
