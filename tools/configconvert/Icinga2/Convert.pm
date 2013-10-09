@@ -2348,9 +2348,15 @@ sub convert_2x {
             foreach my $notification_key (keys %{$notification}) {
                 next if $notification->{$notification_key}->{'type'} ne 'service';
 
+                my $notifications_enabled = obj_1x_get_service_attr($cfg_obj_2x, $obj_2x_service, $obj_2x_service->{'__I2CONVERT_SERVICE_HOSTNAME'}, 'notifications_enabled');
+                my $notification_interval = obj_1x_get_service_attr($cfg_obj_2x, $obj_2x_service, $obj_2x_service->{'__I2CONVERT_SERVICE_HOSTNAME'}, 'notification_internval');
+                my $notification_period = obj_1x_get_service_attr($cfg_obj_2x, $obj_2x_service, $obj_2x_service->{'__I2CONVERT_SERVICE_HOSTNAME'}, 'notification_period');
+
                 $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATION_FILTERS'};
-                $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_INTERVAL'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'notification_interval'};
-                $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_PERIOD'} = $cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'notification_period'};
+                $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_INTERVAL'} = $notification_interval;
+                $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_PERIOD'} = $notification_period;
+                $notification->{$notification_key}->{'__I2CONVERT_NOTIFICATION_ENABLED'} = $notifications_enabled;
+                #say Dumper($notification->{$notification_key});
             }
         }
         #say Dumper($obj_2x_service);

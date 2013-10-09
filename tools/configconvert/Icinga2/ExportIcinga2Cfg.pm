@@ -433,10 +433,6 @@ sub dump_service_2x {
         }
     }
 
-    if(defined($service_2x->{'notifications_enabled'})) {
-        dump_config_line($icinga2_cfg, "\tenable_notifications = $service_2x->{'notifications_enabled'},");
-    }
-
     ####################################################
     # other service attributes, if set
     ####################################################
@@ -729,10 +725,6 @@ sub dump_host_2x {
             }
         }
 
-        if(defined($service_2x->{'notifications_enabled'})) {
-            dump_config_line($icinga2_cfg, "\tenable_notifications = $service_2x->{'notifications_enabled'},");
-        }
-
         ####################################################
         # other service attributes, if set
         ####################################################
@@ -845,6 +837,9 @@ sub dump_user_2x {
         }
     }
 
+    if(defined($user_2x->{'notifications_enabled'})) {
+        dump_config_line($icinga2_cfg, "\tenable_notifications = \"$user_2x->{'notifications_enabled'}\",");
+    }
     ####################################################
     # usergroups
     ####################################################
@@ -953,7 +948,7 @@ sub dump_notification_2x {
     }
 
     if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_PERIOD'})) {
-        dump_config_line($icinga2_cfg, "\tnotification_period = $notification_2x->{'__I2CONVERT_NOTIFICATION_PERIOD'},");
+        dump_config_line($icinga2_cfg, "\tnotification_period = \"$notification_2x->{'__I2CONVERT_NOTIFICATION_PERIOD'}\",");
     }
 
     # this is set for escalations
