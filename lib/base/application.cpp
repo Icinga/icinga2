@@ -705,3 +705,8 @@ ThreadPool& Application::GetTP(void)
 	static ThreadPool tp;
 	return tp;
 }
+
+String Application::GetVersion(void)
+{
+	return ICINGA_VERSION;
+}

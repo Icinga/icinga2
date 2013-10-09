@@ -32,9 +32,6 @@
 #include <boost/foreach.hpp>
 
 #ifndef _WIN32
-#	include "icinga-version.h"
-#	define ICINGA_VERSION VERSION ", " GIT_MESSAGE
-
 #	include <ltdl.h>
 #	include <sys/types.h>
 #	include <pwd.h>
@@ -290,9 +287,7 @@ int main(int argc, char **argv)
 		std::cout << appName << " " << "- The Icinga 2 network monitoring daemon.";
 
 		if (g_AppParams.count("version")) {
-#ifndef _WIN32
-			std::cout  << " (Version: " << ICINGA_VERSION << ")";
-#endif /* _WIN32 */
+			std::cout  << " (Version: " << Application::GetVersion() << ")";
 			std::cout << std::endl
 				  << "Copyright (c) 2012-2013 Icinga Development Team (http://www.icinga.org)" << std::endl
 				  << "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl

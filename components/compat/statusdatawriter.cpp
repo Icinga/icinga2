@@ -608,7 +608,7 @@ void StatusDataWriter::StatusTimerHandler(void)
 
 	statusfp << "info {" << "\n"
 		 << "\t" << "created=" << Utility::GetTime() << "\n"
-		 << "\t" << "version=2.0" << "\n"
+		 << "\t" << "version=" << Application::GetVersion() << "\n"
 		 << "\t" << "}" << "\n"
 		 << "\n";
 
