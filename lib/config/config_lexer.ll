@@ -183,6 +183,14 @@ static char *lb_steal(lex_buf *lb)
 "*"				/* ignore star */
 }
 
+<C_COMMENT><<EOF>>              {
+		std::ostringstream msgbuf;
+		msgbuf << "End-of-file while in comment: " << yytext << " " << *yylloc;
+		ConfigCompilerContext::GetInstance()->AddMessage(true, msgbuf.str());
+		yyterminate();
+		       	        }
+
+
 \/\/[^\n]*			/* ignore C++-style comments */
 [ \t\r\n]			/* ignore whitespace */
 
