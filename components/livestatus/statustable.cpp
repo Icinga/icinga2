@@ -154,12 +154,12 @@ Value StatusTable::NumServicesAccessor(const Value& row)
 
 Value StatusTable::ProgramVersionAccessor(const Value& row)
 {
-	return "2.0";
+	return Application::GetVersion();
 }
 
 Value StatusTable::LivestatusVersionAccessor(const Value& row)
 {
-	return "2.0";
+	return Application::GetVersion();
 }
 
 Value StatusTable::LivestatusActiveConnectionsAccessor(const Value& row)

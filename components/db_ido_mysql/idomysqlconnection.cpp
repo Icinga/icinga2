@@ -156,7 +156,8 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 		/* record connection */
 		Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
 		    "(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
-		    + Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), 'icinga2 db_ido_mysql', '2.0', '" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
+		    + Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), 'icinga2 db_ido_mysql', " + Application::GetVersion()
+		    + ", '" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
 
 		/* clear config tables for the initial config dump */
 		ClearConfigTables();
