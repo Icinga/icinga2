@@ -61,7 +61,10 @@ Requires: boost-thread >= 1.41
 
 %if "%{_vendor}" == "suse"
 %if 0%{?sles_version} == 11
+BuildRequires: libgfortran46
+BuildRequires: boost-license%{sles_boost_version}
 BuildRequires: boost-devel >= 1.41
+Requires: boost-license%{sles_boost_version}
 Requires: libboost_program_options%{sles_boost_version}
 Requires: libboost_signals%{sles_boost_version}
 Requires: libboost_system%{sles_boost_version}
@@ -74,6 +77,7 @@ Requires: libboost_signals%{opensuse_boost_version}
 Requires: libboost_system%{opensuse_boost_version}
 Requires: libboost_test%{opensuse_boost_version}
 Requires: libboost_thread%{opensuse_boost_version}
+%endif
 %endif
 
 Requires: %{name}-common = %{version}
