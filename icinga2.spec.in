@@ -132,10 +132,10 @@ IDOUtils schema >= 1.10
 %setup -q -n %{name}-%{version}
 
 %build
-%configure --with-icinga-user=$USER \
-	--with-icinga-group=$USER \
-	--with-icingacmd-user=$USER \
-	--with-icingacmd-group=$USER
+%configure --with-icinga-user=%{icinga_user} \
+	--with-icinga-group=%{icinga_group} \
+	--with-icingacmd-user=%{icinga_user} \
+	--with-icingacmd-group=%{icinga_group}
 
 make %{?_smp_mflags}
 
