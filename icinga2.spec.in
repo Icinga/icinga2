@@ -4,15 +4,19 @@
 %define el5_boost_version 141
 %define el5_boost_libs %{_libdir}/boost%{el5_boost_version}
 %define el5_boost_includes /usr/include/boost%{el5_boost_version}
+%define apacheconfdir %{_sysconfdir}/httpd/conf.d
 %endif
 %if "%{_vendor}" == "suse"
 %define opensuse_boost_version 1_49_0
 %define sles_boost_version 1_54_0
+%define apacheconfdir  %{_sysconfdir}/apache2/conf.d
 %endif
 
 %define icinga_user icinga
 %define icinga_group icinga
 %define icingacmd_group icingacmd
+
+%define icingaclassicconfdir %{_sysconfdir}/icinga
 
 %define logmsg logger -t %{name}/rpm
 
@@ -127,6 +131,16 @@ Requires: mysql
 Icinga 2 IDO mysql database backend. Compatible with Icinga 1.x
 IDOUtils schema >= 1.10
 
+%package classicui-config
+Summary:      Icinga 2 Classic UI Standalone configuration
+Group:        Applications/System
+Provides:     icinga-classicui-config
+Conflicts:    icinga-gui-config
+
+%description classicui-config
+Icinga 1.x Classic UI Standalone configuration with locations
+for Icinga 2.
+
 
 %prep
 %setup -q -n %{name}-%{version}
@@ -145,6 +159,12 @@ make install \
 	DESTDIR="%{buildroot}" \
 	INSTALL_OPTS="" \
 	COMMAND_OPTS=""
+
+# install classicui config
+install -D -m 0644 etc/icinga/icinga-classic.htpasswd %{buildroot}%{icingaclassicconfdir}/passwd
+install -D -m 0644 etc/icinga/cgi.cfg %{buildroot}%{icingaclassicconfdir}/cgi.cfg
+install -D -m 0644 etc/icinga/icinga-classic-apache.conf %{buildroot}%{apacheconfdir}/icinga.conf
+
 
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
@@ -219,6 +239,11 @@ fi
 
 %files ido-mysql
 %{_libdir}/%{name}/libdb_ido_mysql*
+
+%files classicui-config
+%config(noreplace) %{icingaclassicconfdir}/cgi.cfg
+%config(noreplace) %{apacheconfdir}/icinga.conf
+%attr(0640,root,apache) %config(noreplace) %{icingaclassicconfdir}/passwd
 
 
 %changelog
