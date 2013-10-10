@@ -173,6 +173,7 @@ components/notification/Makefile
 doc/Doxyfile
 doc/Makefile
 etc/Makefile
+etc/icinga/Makefile
 etc/icinga2/Makefile
 etc/icinga2/conf.d/Makefile
 etc/icinga2/features-available/Makefile
