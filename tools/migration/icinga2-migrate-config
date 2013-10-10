@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 
 =pod
 /******************************************************************************
@@ -20,17 +21,497 @@
  ******************************************************************************/
 =cut
 
+=head1 NAME
 
-package Icinga2::Convert;
+icinga2-migrate-config - Migrate Icinga 1.x config to Icinga 2 format
 
-use strict;
-#use Icinga2;
+=head1 SYNOPSIS
+
+icinga2-migrate-config -c <path to icinga.cfg from Icinga 1.x>
+                         -o <output directory for Icinga 2 config>
+                         [-v]
+                         [-h]
+                         [-V]
+
+Migrate Icinga 1.x configuration to new Icinga 2 configuration format.
+
+=head1 OPTIONS
+
+=over
+
+=item -c|--icingacfgfile <path to icinga.cfg>
+
+Path to the Icinga 1.x main configuration file "icinga.cfg".
+
+=item -o|--outputcfgdir <output directory for icinga2 config>
+
+Directory to the Icinga 2 configuration output.
+
+=item --hosttmpl=<template name>
+
+Custom template name for all host objects.
+
+=item --servicetmpl=<template name>
+
+Custom template name for all service objects.
+
+=item --usertmpl=<template name>
+
+Custom template name for all user objects.
+
+=item --timeperiodtmpl=<template name>
+
+Custom template name for all timeperiod objects.
+
+=item --notificationtmpl=<template name>
+
+Custom template name for all notification objects.
+
+=item --checkcommandtmpl=<template name>
+
+Custom template name for all checkcommand objects.
+
+=item --notificationcommandtmpl=<template name>
+
+Custom template name for all notificationcommand objects.
+
+=item --eventcommandtmpl=<template name>
+
+Custom template name for all eventcommand objects.
+
+=item -v|--verbose
+
+Verbose mode.
+
+=item -h|--help
+
+Print help page.
+
+=item -V|--version
+
+print version.
+
+=cut
+
+#use warnings;
+#use strict;
+
 use Data::Dumper;
 use File::Find;
 use Storable qw(dclone);
+use Getopt::Long qw(:config no_ignore_case bundling);
+use Pod::Usage;
+use POSIX qw(strftime);
 
 use feature 'say';
-our $dbg_lvl;
+
+my $version = "0.0.3";
+
+# get command-line parameters
+our $opt;
+GetOptions(
+    "c|icingacfgfile=s"         => \$opt->{icinga1xcfg},
+    "o|outputcfgdir=s"          => \$opt->{icinga2xoutputprefix},
+    "hosttmpl=s"                => \$opt->{hosttmpl},
+    "servicetmpl=s"             => \$opt->{servicetmpl},
+    "usertmpl=s"                => \$opt->{usertmpl},
+    "notificationtmpl=s"        => \$opt->{notificationtmpl},
+    "timeperiodtmpl=s"          => \$opt->{timeperiodtmpl},
+    "checkcommandtmpl=s"        => \$opt->{checkcommandtmpl},
+    "notificationcommandtmpl=s" => \$opt->{notificationcommandtmpl},
+    "eventcommandtmpl=s"        => \$opt->{eventcommandtmpl},
+    "tmpl=s"                    => \$opt->{tmpl},
+    "tmpl=s"                    => \$opt->{tmpl},
+    "v|verbose"                 => \$opt->{verbose},
+    "h|help"                    => \$opt->{help},
+    "V|version"                 => \$opt->{version}
+);
+
+my $icinga1_cfg = "";
+my $icinga2_cfg = {};
+my $conf_prefix = "./conf";
+my $verbose = 0;
+our $dbg_lvl = 0;
+$icinga2_cfg->{'__I2EXPORT_DEBUG'} = 0;
+
+if(defined($opt->{icinga1xcfg})) {
+    $icinga1_cfg = $opt->{icinga1xcfg};
+}
+if(defined($opt->{icinga2xoutputprefix})) {
+    $conf_prefix = $opt->{icinga2xoutputprefix};
+}
+if(defined($opt->{verbose})) {
+    $verbose = $opt->{verbose};
+    $icinga2_cfg->{'__I2EXPORT_DEBUG'} = 1;
+    $dbg_lvl = 1;
+}
+
+if (defined $opt->{version}) { print $version."\n"; exit 0; }
+if ($opt->{help}) { pod2usage(1); }
+
+$icinga2_cfg->{'main'}= "$conf_prefix/icinga2.conf";
+$icinga2_cfg->{'resource'}= "$conf_prefix/resource.conf";
+$icinga2_cfg->{'hosts'}= "$conf_prefix/hosts.conf";
+$icinga2_cfg->{'services'}= "$conf_prefix/services.conf";
+$icinga2_cfg->{'users'}= "$conf_prefix/users.conf";
+$icinga2_cfg->{'groups'}= "$conf_prefix/groups.conf";
+$icinga2_cfg->{'notifications'}= "$conf_prefix/notifications.conf";
+$icinga2_cfg->{'timeperiods'}= "$conf_prefix/timeperiods.conf";
+$icinga2_cfg->{'commands'}= "$conf_prefix/commands.conf";
+
+$icinga2_cfg->{'itl'}->{'host-template'} = "";
+$icinga2_cfg->{'itl'}->{'service-template'} = "";
+$icinga2_cfg->{'itl'}->{'user-template'} = "";
+$icinga2_cfg->{'itl'}->{'notification-template'} = "";
+$icinga2_cfg->{'itl'}->{'timeperiod-template'} = "legacy-timeperiod";
+$icinga2_cfg->{'itl'}->{'checkcommand-template'} = "plugin-check-command";
+$icinga2_cfg->{'itl'}->{'notificationcommand-template'} = "plugin-notification-command";
+$icinga2_cfg->{'itl'}->{'eventcommand-template'} = "plugin-event-command";
+
+if (defined($opt->{hosttmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'host-template'} = $opt->{hosttmpl};
+    print "Custom host template: '" . $icinga2_cfg->{'customtmpl'}->{'host-template'} . "'\n";
+}
+if (defined($opt->{servicetmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'service-template'} = $opt->{servicetmpl};
+    print "Custom service template: '" . $icinga2_cfg->{'customtmpl'}->{'service-template'} . "'\n";
+}
+if (defined($opt->{usertmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'user-template'} = $opt->{usertmpl};
+    print "Custom user template: '" . $icinga2_cfg->{'customtmpl'}->{'user-template'} . "'\n";
+}
+if (defined($opt->{notificationtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'notification-template'} = $opt->{notificationtmpl};
+    print "Custom notification template: '" . $icinga2_cfg->{'customtmpl'}->{'notification-template'} . "'\n";
+}
+if (defined($opt->{timeperiodtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'timeperiod-template'} = $opt->{timeperiodtmpl};
+    print "Custom timeperiod template: '" . $icinga2_cfg->{'customtmpl'}->{'timeperiod-template'} . "'\n";
+}
+if (defined($opt->{checkcommandtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'checkcommand-template'} = $opt->{checkcommandtmpl};
+    print "Custom checkcommand template: '" . $icinga2_cfg->{'customtmpl'}->{'checkcommand-template'} . "'\n";
+}
+if (defined($opt->{notificationcommandtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'notificationcommand-template'} = $opt->{notificationcommandtmpl};
+    print "Custom notificationcommand template: '" . $icinga2_cfg->{'customtmpl'}->{'notificationcommand-template'} . "'\n";
+}
+if (defined($opt->{eventcommandtmpl})) {
+    $icinga2_cfg->{'customtmpl'}->{'eventcommand-template'} = $opt->{eventcommandtmpl};
+    print "Custom eventcommand template: '" . $icinga2_cfg->{'customtmpl'}->{'eventcommand-template'} . "'\n";
+}
+
+
+
+my $type_cnt;
+
+################################################################################
+# MAIN
+################################################################################
+
+# verify that we have something to read
+if ( !-f $icinga1_cfg) {
+    pod2usage(1);
+}
+
+# the import
+my $icinga1_cfg_obj = parse_icinga1_objects($icinga1_cfg);
+my $icinga1_cfg_obj_cache = parse_icinga1_objects_cache($icinga1_cfg);
+my $icinga1_global_macros = parse_icinga1_global_macros($icinga1_cfg);
+
+# the conversion magic inside
+my $icinga2_cfg_obj = migrate_2x($icinga2_cfg, $icinga1_cfg_obj, $icinga1_cfg_obj_cache, $icinga1_global_macros);
+
+# the export
+dump_cfg_resource_2x($icinga2_cfg, $icinga1_global_macros);
+dump_cfg_obj_2x($icinga2_cfg, $icinga2_cfg_obj);
+
+# print stats
+print "######################################################################\n";
+print "# CONVERSION STATISTICS\n";
+print "######################################################################\n";
+
+print_sorted_hash($icinga2_cfg_obj->{'__I2_CONVERT_STATS'});
+
+
+=pod
+IMPORT OPTIONS
+=cut
+
+################################################################################
+# PARSE 1.x
+################################################################################
+
+sub get_key_from_icinga1_main_cfg {
+    my ($file, $key) = @_;
+
+    my @key_arr = ();
+
+    if ( !-f $file) {
+        print "cfg file $file does not exist!";
+        return;
+    }
+
+    if ( open ( my $fh, '<', $file ) ) {
+        while ( my $line = <$fh> ) {
+            chomp($line);
+            $line =~ s/#.*//;
+            if ($line =~ /^\s*$key=([^\s]+)/) {
+                push @key_arr, $1; # we may have multiple occurences
+            }
+        }
+    }
+
+    return @key_arr;
+}
+
+sub parse_icinga1_resource_cfg {
+    my $file = shift;
+
+    my @cfg = slurp($file);
+
+    my $global_macros = {};
+
+    foreach my $line (@cfg) {
+        $line = strip($line);
+
+        # skip comments and empty lines
+        next if ($line eq "" || !defined($line) || $line =~ /^\s+$/);
+        next if ($line =~ /^[#;]/ || $line =~ /;.*/);
+
+        #debug($line);
+        my ($macro_name, $macro_value) = split /=/, $line, 2;
+        $macro_name =~ /\$(.*)\$/;
+        $macro_name = $1;
+
+        $global_macros->{$macro_name} = escape_str($macro_value);
+    }
+
+    return $global_macros;
+
+}
+
+sub parse_icinga1_global_macros {
+    my $icinga1_cfg = shift;
+
+    my ($icinga1_resource_file) = get_key_from_icinga1_main_cfg($icinga1_cfg, "resource_file");
+
+    # resource.cfg
+    my $global_macros = parse_icinga1_resource_cfg($icinga1_resource_file);
+
+    # special attributes in icinga.cfg (admin_*)
+    my ($admin_pager) = get_key_from_icinga1_main_cfg($icinga1_cfg, "admin_pager");
+    my ($admin_email) = get_key_from_icinga1_main_cfg($icinga1_cfg, "admin_email");
+
+    $global_macros->{'ADMINPAGER'} = $admin_pager;
+    $global_macros->{'ADMINEMAIL'} = $admin_email;
+
+    return $global_macros;
+}
+
+sub parse_icinga1_object_cfg {
+    my $cfg_obj = shift;
+    my $file = shift;
+
+    my $obj = {}; #hashref
+    my $in_define = 0;
+    my $in_timeperiod = 0;
+    my $type;
+    my $append; # this is a special case where multiple lines are appended with \ - not sure if we support THAT.
+    my $inline_comment;
+
+    my $attr;
+    my $val;
+
+    my @cfg = slurp($file);
+
+    #debug("========================================================");
+    #debug("File: $file");
+    foreach my $line (@cfg) {
+        $line = strip($line);
+
+        #debug("Processing line: '$line'");
+
+        # skip comments and empty lines
+        next if ($line eq "" || !defined($line) || $line =~ /^\s+$/);
+        next if ($line =~ /^[#;]/);
+
+        # || $line =~ /;.*/);
+        $line =~ s/[\r\n\s]+$//;
+        $line =~ s/^\s+//;
+
+        # end of def
+        if ($line =~ /}(\s*)$/) {
+            $in_define = undef;
+            # store type for later
+            $cfg_obj->{'type_cnt'}->{$type} = $cfg_obj->{'type_cnt'}->{$type} + 1;
+            $type = "";
+            next;
+        }
+        # start of def
+        elsif ($line =~ /define\s+(\w+)\s*{?(.*)$/) {
+            $type = $1;
+            $append = $2;
+
+            next if (!defined($type));
+
+            if ($type eq "timeperiod") {
+                $in_timeperiod = 1;
+            } else {
+                $in_timeperiod = 0;
+            }
+
+            # save the type
+            $cfg_obj->{$type}->{$cfg_obj->{'type_cnt'}->{$type}}->{'__I2CONVERT_TYPE'} = $type;
+
+            # we're ready to process entries
+            $in_define = 1;
+            # save the current type counter, being our unique key here
+            next;
+        }
+        # in def
+        elsif ($in_define == 1) {
+
+            # first, remove the annoying inline comments after ';'
+            $line =~ s/\s*[;\#](.*)$//;
+            $inline_comment = $1;
+
+            # then split it and save it by type->cnt->attr->val
+            #($attr, $val) = split (/\s+/, $line, 2); # important - only split into 2 elements
+
+            # timeperiods require special parser
+            if ($in_timeperiod == 1) {
+                if ($line =~ /timeperiod_name/ || $line =~ /alias/ || $line =~ /exclude/) {
+                    $line =~ m/([\w]+)\s*(.*)/;
+                    $attr = strip($1); $val = strip($2);
+                } else {
+                    $line =~ m/(.*)\s+([\d\W]+)/;
+                    $attr = strip($1); $val = strip($2);
+                }
+            } else {
+                    $line =~ m/([\w]+)\s*(.*)/;
+                    $attr = strip($1); $val = strip($2);
+            }
+            # ignore empty values
+            next if (!defined($val));
+            next if ($val eq "");
+            #debug("cnt: $cfg_obj->{'type_cnt'}->{$type}");
+            #debug("line: '$line'");
+            #debug("type: $type");
+            #debug("attr: $attr");
+            #debug("val: $val");
+            #debug("\n");
+
+            # strip illegal object name characters, replace with _
+            if ( ($attr =~ /name/ && $attr !~ /display_name/) ||
+                    $attr =~ /description/ ||
+                    $attr =~ /contact/ ||
+                    $attr =~ /groups/ ||
+                    $attr =~ /members/ ||
+                    $attr =~ /use/ ||
+                    $attr =~ /parents/
+                ) {
+                $val = strip_object_name($val);
+            }
+            # treat 'null' (disable) as '0'
+            if ($val eq "null") {
+                $val = 0;
+            }
+
+            $cfg_obj->{$type}->{$cfg_obj->{'type_cnt'}->{$type}}->{$attr} = $val;
+
+            # ignore duplicated attributes, last one wins
+        }
+        else {
+            $in_define = 0;
+        }
+
+    }
+
+    #debug("========================================================");
+
+    return $cfg_obj;
+
+}
+
+# the idea is to reduce work load - get all the existing object relations (host->service)
+# and have core 1.x already mapped that. we focus on getting the details when
+# needed, but do not print the object without templates - only if there's no other way.
+sub parse_icinga1_objects_cache {
+    my $icinga1_cfg = shift;
+
+    # XXX not needed right now
+    return undef;
+
+    # functions return array in case of multiple occurences, we'll take only the first one
+    my ($object_cache_file) = get_key_from_icinga1_main_cfg($icinga1_cfg, "object_cache_file");
+
+    if(!defined($object_cache_file)) {
+        print "ERROR: No objects cache file found in $icinga1_cfg! We'll need for final object conversion.\n";
+        return -1;
+    }
+
+    if(! -r $object_cache_file) {
+        print "ERROR: objects cache file '$object_cache_file' from $icinga1_cfg not found! We'll need it for final object conversion.\n";
+        return -1;
+    }
+
+    my $cfg_obj_cache = {};
+
+    $cfg_obj_cache = parse_icinga1_object_cfg($cfg_obj_cache, $object_cache_file);
+
+    #say Dumper($cfg_obj_cache);
+
+    return $cfg_obj_cache;
+
+}
+
+# parse all existing config object included in icinga.cfg, with all their templates
+# and grouping tricks
+sub parse_icinga1_objects {
+    my $icinga1_cfg = shift;
+
+    my @cfg_files = get_key_from_icinga1_main_cfg($icinga1_cfg, "cfg_file");
+    my @cfg_dirs = get_key_from_icinga1_main_cfg($icinga1_cfg, "cfg_dir");
+
+    sub find_icinga1_cfg_files {
+        my $file = $File::Find::name;
+        return if -d $file;
+        if ($file =~ /\.cfg$/) {
+            push @cfg_files, $file;
+        }
+    }
+
+    foreach my $cfg_dir (@cfg_dirs) {
+        find(\&find_icinga1_cfg_files, $cfg_dir);
+    }
+
+    # check if there was nothing to include
+    if (!@cfg_files) {
+        print "ERROR: $icinga1_cfg did not contain any object includes.\n";
+        return -1;
+    }
+    #print "@cfg_files";
+
+    # now fetch all the config information into our global hash ref
+    my $cfg_objs = {};
+
+    foreach my $cfg_file (@cfg_files) {
+        print "Processing file '$cfg_file'...\n";
+        $cfg_objs = parse_icinga1_object_cfg($cfg_objs, $cfg_file);
+    }
+
+    #say Dumper($cfg_obj);
+    #say Dumper($cfg_obj->{'service'});
+
+    return $cfg_objs;
+}
+
+
+=pod
+MIGRATION
+=cut
+
 
 ################################################################################
 ## Validation
@@ -199,14 +680,14 @@ sub obj_get_service_obj_by_host_name_service_description {
 
     #debug("My objects hive: ".Dumper($objs));
 
-    #Icinga2::Utils::debug("Checking for service with host_name=$obj_val_host service_description=$obj_val_service ");
+    #debug("Checking for service with host_name=$obj_val_host service_description=$obj_val_service ");
     foreach my $obj_key (keys %{@$objs{$obj_type}}) {
         my $obj = @$objs{$obj_type}->{$obj_key};
         next if !defined($obj->{$obj_attr_host});
         next if !defined($obj->{$obj_attr_service});
-        #Icinga2::Utils::debug("Getting attr $obj_attr_host/$obj_attr_service and val $obj_val_host/$obj_val_service");
+        #debug("Getting attr $obj_attr_host/$obj_attr_service and val $obj_val_host/$obj_val_service");
         if (($obj->{$obj_attr_host} eq $obj_val_host) && ($obj->{$obj_attr_service} eq $obj_val_service)) {
-            #Icinga2::Utils::debug("Found object: ".Dumper($obj));
+            #debug("Found object: ".Dumper($obj));
             return $obj;
         }
     }
@@ -268,13 +749,13 @@ sub obj_get_tmpl_obj_by_tmpl_name {
 
     #debug("My objects hive: ".Dumper($objs));
 
-    #Icinga2::Utils::debug("Checking for template name with $obj_attr_tmpl_name");
+    #debug("Checking for template name with $obj_attr_tmpl_name");
     foreach my $obj_key (keys %{@$objs{$obj_tmpl_type}}) {
         my $obj = @$objs{$obj_tmpl_type}->{$obj_key};
         next if !defined($obj->{'name'});
         # XXX it would be safe, but we cannot garantuee it here, so better check before if we want a template or not
         if ($obj->{'name'} eq $obj_attr_tmpl_name) {
-            #Icinga2::Utils::debug("Found object: ".Dumper($obj));
+            #debug("Found object: ".Dumper($obj));
             return $obj;
         }
     }
@@ -521,7 +1002,7 @@ sub obj_1x_get_service_host_name_arr {
         if ($obj_1x->{'host_name'} =~ /^\*$/) {
             @host_name = obj_1x_get_all_hostnames_arr($objs_1x);
         } else {
-            @host_name = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x->{'host_name'}, ',', 1);
+            @host_name = str2arr_by_delim_without_excludes($obj_1x->{'host_name'}, ',', 1);
         }
         push @{$obj_1x->{'__I2CONVERT_HOSTNAMES'}}, @host_name;
 
@@ -804,7 +1285,7 @@ sub obj_convert_custom_attr_to_custom_hash {
     foreach my $key (keys %{$obj}) {
         if ($key =~ /^_|_url$|notes|image|coords/ && $key !~ /__I2CONVERT/) {
             my $new_key = ($key =~ /^\d/) ? "\"$key\"" : $key;
-            $custom->{$new_key} = Icinga2::Utils::escape_str($obj->{$key});
+            $custom->{$new_key} = escape_str($obj->{$key});
         }
     }
 
@@ -830,7 +1311,7 @@ sub resolve_macro_attribute {
     # _ == custom var from host/service
     if ($macro_name =~ /^_HOST(\w+)/) {
         $attr_name = "_$1";
-        Icinga2::Utils::debug("MACRO RESOLVER: found Host CV '$macro_name'.");
+        debug("MACRO RESOLVER: found Host CV '$macro_name'.");
 
         if (defined($obj->{'__I2CONVERT_HOSTNAME'})) {
             $host_name = $obj->{'__I2CONVERT_HOSTNAME'};
@@ -843,7 +1324,7 @@ sub resolve_macro_attribute {
 
         $macro_value = obj_1x_get_host_attr($cfg_obj, $obj_host, $host_name, $attr_name);
 
-        Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
+        debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
         return $macro_value;
     }
     elsif ($macro_name =~ /^_SERVICE(\w+)/) {
@@ -852,17 +1333,17 @@ sub resolve_macro_attribute {
         # if this is a host object, this macro is invalid! XXX
         return undef if defined($obj->{'__I2CONVERT_HOSTNAME'});
 
-        Icinga2::Utils::debug("MACRO RESOLVER: found Service CV '$macro_name'.");
+        debug("MACRO RESOLVER: found Service CV '$macro_name'.");
         $macro_value = obj_1x_get_service_attr($cfg_obj, $obj, $obj->{'__I2CONVERT_SERVICE_HOSTNAME'}, $attr_name);
 
-        Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+        debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
         return $macro_value;
     }
     else {
         # XXX this is way too modular to actually work with macros not having any underscores and other magic
         if ($macro_name =~ /^HOST(\w+)/) {
             $attr_name = lc $1;
-            Icinga2::Utils::debug("MACRO RESOLVER: found Host attribute '$macro_name'.");
+            debug("MACRO RESOLVER: found Host attribute '$macro_name'.");
 
             if (defined($obj->{'__I2CONVERT_HOSTNAME'})) {
                 $host_name = $obj->{'__I2CONVERT_HOSTNAME'};
@@ -875,7 +1356,7 @@ sub resolve_macro_attribute {
 
             $macro_value = obj_1x_get_host_attr($cfg_obj, $obj_host, $host_name, $attr_name);
 
-            Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
+            debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
             return $macro_value;
         }
         elsif ($macro_name =~ /^SERVICE(\w+)/) {
@@ -884,10 +1365,10 @@ sub resolve_macro_attribute {
             # if this is a host object, this macro is invalid! XXX
             return undef if defined($obj->{'__I2CONVERT_HOSTNAME'});
 
-            Icinga2::Utils::debug("MACRO RESOLVER: found Service attribute '$macro_name'.");
+            debug("MACRO RESOLVER: found Service attribute '$macro_name'.");
             $macro_value = obj_1x_get_service_attr($cfg_obj, $obj, $obj->{'__I2CONVERT_SERVICE_HOSTNAME'}, $attr_name);
 
-            Icinga2::Utils::debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+            debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
             return $macro_value;
         }
         elsif ($macro_name =~ /^CONTACT(\w+)/) {
@@ -942,7 +1423,7 @@ sub convert_notification_options_to_filter {
     };
 
     # split the string
-    my @options = Icinga2::Utils::str2arr_by_delim_without_excludes($notification_options, ',', 1);
+    my @options = str2arr_by_delim_without_excludes($notification_options, ',', 1);
 
     # verify if there's 'n' (none) and ignore the rest then
     if (grep /n/, @options) {
@@ -1028,7 +1509,7 @@ sub convert_notificationcommand {
 
                 if ($commands_1x->{$command_1x_key}->{'command_name'} eq $notification_command) {
                     # save the type (host, service) and then by command name
-                    $notification_commands_2x->{$notification_command_type}->{$notification_command} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
+                    $notification_commands_2x->{$notification_command_type}->{$notification_command} = escape_str($commands_1x->{$command_1x_key}->{'command_line'});
                     #say Dumper($commands_1x->{$command_1x_key});
 
                     # flag this 1.x command as being used
@@ -1065,7 +1546,7 @@ sub convert_eventhandler {
         if ($commands_1x->{$command_1x_key}->{'command_name'} eq $event_command) {
             # save the command line and command name
             $event_commands_2x->{'command_name'} = $event_command;
-            $event_commands_2x->{'command_line'} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
+            $event_commands_2x->{'command_line'} = escape_str($commands_1x->{$command_1x_key}->{'command_line'});
         }
     }
 
@@ -1119,9 +1600,9 @@ sub convert_checkcommand {
             #debug("Found: $real_command_name_1x");
 
             # save the command_line
-            $command_2x->{'check_command'} = Icinga2::Utils::escape_str($commands_1x->{$command_1x_key}->{'command_line'});
+            $command_2x->{'check_command'} = escape_str($commands_1x->{$command_1x_key}->{'command_line'});
             $command_2x->{'check_command_name_1x'} = $real_command_name_1x;
-            #Icinga2::Utils::debug("2x Command: $command_2x->{'check_command'}");
+            #debug("2x Command: $command_2x->{'check_command'}");
         }
     }
 
@@ -1130,7 +1611,7 @@ sub convert_checkcommand {
 
 
 # convert existing 1x objects into the 2x objects hive
-sub convert_2x {
+sub migrate_2x {
 # v1 -> v2
 # register 0 == template
 # use == inherits template
@@ -1177,7 +1658,7 @@ sub convert_2x {
         # this can be a comma seperated list of templates
         my @service_templates = ();
         if(defined($obj_1x_service->{'use'})) {
-            @service_templates = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_service->{'use'}, ',', 1);
+            @service_templates = str2arr_by_delim_without_excludes($obj_1x_service->{'use'}, ',', 1);
         }
 
         push @{$obj_1x_service->{'__I2CONVERT_TEMPLATE_NAMES'}}, @service_templates;
@@ -1222,7 +1703,7 @@ sub convert_2x {
             # skip non-template objects without a valid service description (we cannot tolerate 'name' here!)
             # XXX find a better way - we actually need all services in the list, even if __I2CONVERT_SERVICEDESCRIPTION is undef
             if (!defined($obj_1x_service->{'__I2CONVERT_SERVICEDESCRIPTION'}) && $obj_1x_service->{'__I2CONVERT_IS_TEMPLATE'} == 0) {
-                #Icinga2::Utils::debug("Skipping invalid service object without service_description ".Dumper($obj_1x_service));
+                #debug("Skipping invalid service object without service_description ".Dumper($obj_1x_service));
                 next;
             }
 
@@ -1279,7 +1760,7 @@ sub convert_2x {
                     $obj_1x_service->{'servicegroups'} =~ s/^\+//;
                 }
                 # convert comma seperated list to array
-                push @{$cfg_obj_2x->{'service'}->{$service_cnt}->{'servicegroups'}}, Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_service->{'servicegroups'}, ',', 1);
+                push @{$cfg_obj_2x->{'service'}->{$service_cnt}->{'servicegroups'}}, str2arr_by_delim_without_excludes($obj_1x_service->{'servicegroups'}, ',', 1);
                 #print "DEBUG: servicegroups " . join (" ", @{$cfg_obj_2x->{'service'}->{$service_cnt}->{'servicegroups'}});
             }
             #say Dumper($cfg_obj_2x->{'service'}->{$service_cnt}->{__I2CONVERT_SERVICE_HOSTNAME});
@@ -1344,7 +1825,7 @@ sub convert_2x {
             ##########################################
             if (defined($obj_1x_service->{'event_handler'})) {
 
-                my $service_event_command_2x = Icinga2::Convert::convert_eventhandler(@$cfg_obj_1x{'command'}, $obj_1x_service, $global_macros_1x);
+                my $service_event_command_2x = convert_eventhandler(@$cfg_obj_1x{'command'}, $obj_1x_service, $global_macros_1x);
                 #say Dumper($service_event_command_2x);
 
                 # XXX do not add duplicate event commands, they must remain unique by their check_command origin!
@@ -1383,7 +1864,7 @@ sub convert_2x {
             ##########################################
             # map the service check_command to 2.x
             ##########################################
-            my ($service_check_command_2x, @command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_service, $service_host_name, $global_macros_1x);
+            my ($service_check_command_2x, @command_args_1x) = convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_service, $service_host_name, $global_macros_1x);
 
             #say Dumper($service_check_command_2x);
 
@@ -1428,7 +1909,7 @@ sub convert_2x {
                 my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_service, $command_arg_1x);
                 $obj_1x_service->{__I2CONVERT_SERVICE_HOSTNAME} = undef;
 
-                @$cfg_obj_2x{'service'}->{$service_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
+                @$cfg_obj_2x{'service'}->{$service_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = escape_str($command_arg_2x);
                 $arg_cnt++;
             }
 
@@ -1460,7 +1941,7 @@ sub convert_2x {
         # this can be a comma seperated list of templates
         my @host_templates = ();
         if(defined($obj_1x_host->{'use'})) {
-            @host_templates = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_host->{'use'}, ',', 1);
+            @host_templates = str2arr_by_delim_without_excludes($obj_1x_host->{'use'}, ',', 1);
         }
 
         push @{$obj_1x_host->{'__I2CONVERT_TEMPLATE_NAMES'}}, @host_templates;
@@ -1475,7 +1956,7 @@ sub convert_2x {
         # skip objects without a valid hostname
         ####################################################
         if (!defined($obj_1x_host->{'__I2CONVERT_HOSTNAME'}) && $obj_1x_host->{'__I2CONVERT_IS_TEMPLATE'} == 0) {
-            #Icinga2::Utils::debug("Skipping invalid host object without host_name ".Dumper($obj_1x_host));
+            #debug("Skipping invalid host object without host_name ".Dumper($obj_1x_host));
             next;
         }
         #say Dumper($obj_1x_host);
@@ -1533,7 +2014,7 @@ sub convert_2x {
         ####################################################
         # if there was an host alias defined, make this the primary display_name for 2x
         if(defined($obj_1x_host->{'alias'})) {
-            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'display_name'} = Icinga2::Utils::escape_str($obj_1x_host->{'alias'});
+            $cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'display_name'} = escape_str($obj_1x_host->{'alias'});
         }
 
         ##########################################
@@ -1549,7 +2030,7 @@ sub convert_2x {
             }
 
             # convert comma seperated list to array
-            push @{$cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'hostgroups'}}, Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_host->{'hostgroups'}, ',', 1);
+            push @{$cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'hostgroups'}}, str2arr_by_delim_without_excludes($obj_1x_host->{'hostgroups'}, ',', 1);
             #print "DEBUG: hostgroups " . join (" ", @{$cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'hostgroups'}});
         }
 
@@ -1608,7 +2089,7 @@ sub convert_2x {
         }
 
         if(defined($obj_1x_host->{'parents'})) {
-            my @host_parents = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_host->{'parents'}, ',', 1);
+            my @host_parents = str2arr_by_delim_without_excludes($obj_1x_host->{'parents'}, ',', 1);
             push @{$cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_PARENT_HOSTNAMES'}}, @host_parents;
         }
         ####################################################
@@ -1617,7 +2098,7 @@ sub convert_2x {
         #   and link that service
         ####################################################
 
-        my ($host_check_command_2x, @command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_host, $obj_1x_host->{'__I2CONVERT_HOSTNAME'}, $global_macros_1x);
+        my ($host_check_command_2x, @command_args_1x) = convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_host, $obj_1x_host->{'__I2CONVERT_HOSTNAME'}, $global_macros_1x);
         #say Dumper($host_check_command_2x);
 
         if(defined($host_check_command_2x->{'check_command_name_1x'})) {
@@ -1627,7 +2108,7 @@ sub convert_2x {
 
         # XXX skip all host templates, they do not need to be linked with services!
         #if ($cfg_obj_2x->{'host'}->{$host_obj_1x_key}->{'__I2CONVERT_IS_TEMPLATE'} == 1) {
-        #    Icinga2::Utils::debug("Skipping host template for linking against service.");
+        #    debug("Skipping host template for linking against service.");
         #    next;
         #}
 
@@ -1659,7 +2140,7 @@ sub convert_2x {
         # this can be a comma seperated list of templates
         my @contact_templates = ();
         if(defined($obj_1x_contact->{'use'})) {
-            @contact_templates = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_contact->{'use'}, ',', 1);
+            @contact_templates = str2arr_by_delim_without_excludes($obj_1x_contact->{'use'}, ',', 1);
         }
 
         push @{$obj_1x_contact->{'__I2CONVERT_TEMPLATE_NAMES'}}, @contact_templates;
@@ -1667,7 +2148,7 @@ sub convert_2x {
         ####################################################
         # get all notification commands
         ####################################################
-        my $notification_commands_2x = Icinga2::Convert::convert_notificationcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_contact, $global_macros_1x);
+        my $notification_commands_2x = convert_notificationcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_1x_contact, $global_macros_1x);
         #say Dumper($obj_1x_contact);
         #say Dumper($notification_commands_2x);
         #say Dumper("======================================");
@@ -1707,7 +2188,7 @@ sub convert_2x {
         $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'user_name'} = $obj_1x_contact->{'contact_name'};
 
         if(defined($obj_1x_contact->{'alias'})) {
-            $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'display_name'} = Icinga2::Utils::escape_str($obj_1x_contact->{'alias'});
+            $cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'display_name'} = escape_str($obj_1x_contact->{'alias'});
         }
 
         delete($cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'usergroups'});
@@ -1719,7 +2200,7 @@ sub convert_2x {
                 $obj_1x_contact->{'contactgroups'} =~ s/^\+//;
             }
 
-            push @{$cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'usergroups'}}, Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_contact->{'contactgroups'}, ',', 1);
+            push @{$cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'usergroups'}}, str2arr_by_delim_without_excludes($obj_1x_contact->{'contactgroups'}, ',', 1);
             #print "DEBUG: usergroups " . join (" ", @{$cfg_obj_2x->{'user'}->{$contact_obj_1x_key}->{'usergroups'}});
         }
 
@@ -1747,7 +2228,7 @@ sub convert_2x {
         $cfg_obj_2x->{'hostgroup'}->{$hostgroup_obj_1x_key} = dclone(@$cfg_obj_1x{'hostgroup'}->{$hostgroup_obj_1x_key});
 
         if(defined($obj_1x_hostgroup->{'alias'})) {
-            $cfg_obj_2x->{'hostgroup'}->{$hostgroup_obj_1x_key}->{'display_name'} = Icinga2::Utils::escape_str($obj_1x_hostgroup->{'alias'});
+            $cfg_obj_2x->{'hostgroup'}->{$hostgroup_obj_1x_key}->{'display_name'} = escape_str($obj_1x_hostgroup->{'alias'});
         }
 
         ####################################################
@@ -1776,7 +2257,7 @@ sub convert_2x {
             if ($obj_1x_hostgroup->{'members'} =~ /^\*$/) {
                 @hg_members = obj_1x_get_all_hostnames_arr($cfg_obj_2x);
             } else {
-                @hg_members = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_hostgroup->{'members'}, ',', 1);
+                @hg_members = str2arr_by_delim_without_excludes($obj_1x_hostgroup->{'members'}, ',', 1);
             }
 
             foreach my $hg_member (@hg_members) {
@@ -1800,7 +2281,7 @@ sub convert_2x {
         $cfg_obj_2x->{'servicegroup'}->{$servicegroup_obj_1x_key} = dclone(@$cfg_obj_1x{'servicegroup'}->{$servicegroup_obj_1x_key});
 
         if(defined($obj_1x_servicegroup->{'alias'})) {
-            $cfg_obj_2x->{'servicegroup'}->{$servicegroup_obj_1x_key}->{'display_name'} = Icinga2::Utils::escape_str($obj_1x_servicegroup->{'alias'});
+            $cfg_obj_2x->{'servicegroup'}->{$servicegroup_obj_1x_key}->{'display_name'} = escape_str($obj_1x_servicegroup->{'alias'});
         }
 
         ####################################################
@@ -1823,10 +2304,10 @@ sub convert_2x {
         if(defined($obj_1x_servicegroup->{'members'})) {
 
             # host1,svc1,host2,svc2 is just an insane way of parsing stuff - do NOT sort here.
-            my @sg_members = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_servicegroup->{'members'}, ',', 0);
+            my @sg_members = str2arr_by_delim_without_excludes($obj_1x_servicegroup->{'members'}, ',', 0);
             # just some safety for debugging
             if(@sg_members % 2 != 0) {
-                Icinga2::Utils::debug("servicegroup $obj_1x_servicegroup->{'servicegroup_name'} members list not even: $obj_1x_servicegroup->{'members'}");
+                debug("servicegroup $obj_1x_servicegroup->{'servicegroup_name'} members list not even: $obj_1x_servicegroup->{'members'}");
             }
             #print "DEBUG: $obj_1x_servicegroup->{'servicegroup_name'}: @sg_members\n";
             my $obj_2x_sg_member;
@@ -1862,7 +2343,7 @@ sub convert_2x {
         $cfg_obj_2x->{'usergroup'}->{$contactgroup_obj_1x_key}->{'usergroup_name'} = $obj_1x_contactgroup->{'contactgroup_name'};
 
         if(defined($obj_1x_contactgroup->{'alias'})) {
-            $cfg_obj_2x->{'usergroup'}->{$contactgroup_obj_1x_key}->{'display_name'} = Icinga2::Utils::escape_str($obj_1x_contactgroup->{'alias'});
+            $cfg_obj_2x->{'usergroup'}->{$contactgroup_obj_1x_key}->{'display_name'} = escape_str($obj_1x_contactgroup->{'alias'});
         }
 
         ####################################################
@@ -1883,7 +2364,7 @@ sub convert_2x {
         # check if there are members defined, we must re-link them in their host object again
         ####################################################
         if(defined($obj_1x_contactgroup->{'members'})) {
-            my @cg_members = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_contactgroup->{'members'}, ',', 1);
+            my @cg_members = str2arr_by_delim_without_excludes($obj_1x_contactgroup->{'members'}, ',', 1);
             foreach my $cg_member (@cg_members) {
                 my $obj_2x_cg_member = obj_get_contact_obj_by_contact_name($cfg_obj_2x, "user", "user_name", $cg_member);
                 #print "DEBUG: $cg_member found.\n";
@@ -1920,7 +2401,7 @@ sub convert_2x {
         ####################################################
         # if there was a timeperiod alias defined, make this the primary display_name for 2x
         if(defined($obj_1x_timeperiod->{'alias'})) {
-            $cfg_obj_2x->{'timeperiod'}->{$timeperiod_obj_1x_key}->{'display_name'} = Icinga2::Utils::escape_str($obj_1x_timeperiod->{'alias'});
+            $cfg_obj_2x->{'timeperiod'}->{$timeperiod_obj_1x_key}->{'display_name'} = escape_str($obj_1x_timeperiod->{'alias'});
             delete($cfg_obj_2x->{'timeperiod'}->{$timeperiod_obj_1x_key}->{'alias'});
         }
 
@@ -1944,8 +2425,8 @@ sub convert_2x {
         # 1. the single host_name entries
         # host_name is the master host (comma seperated list)
         # dependent_host_name is the child host (comma seperated list)
-        my @master_host_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_hostdependency->{'host_name'}, ',', 1);
-        my @child_host_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_hostdependency->{'dependent_host_name'}, ',', 1);
+        my @master_host_names = str2arr_by_delim_without_excludes($obj_1x_hostdependency->{'host_name'}, ',', 1);
+        my @child_host_names = str2arr_by_delim_without_excludes($obj_1x_hostdependency->{'dependent_host_name'}, ',', 1);
 
         # go through all child hosts, and push to the parents array
         foreach my $child_host_name (@child_host_names) {
@@ -1955,8 +2436,8 @@ sub convert_2x {
         }
 
         # 2. the infamous group logic - let's loop because we're cool
-        my @master_hostgroup_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_hostdependency->{'hostgroup_name'}, ',', 1);
-        my @child_hostgroup_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_hostdependency->{'dependent_hostgroup_name'}, ',', 1);
+        my @master_hostgroup_names = str2arr_by_delim_without_excludes($obj_1x_hostdependency->{'hostgroup_name'}, ',', 1);
+        my @child_hostgroup_names = str2arr_by_delim_without_excludes($obj_1x_hostdependency->{'dependent_hostgroup_name'}, ',', 1);
 
         my @all_master_hostgroup_hostnames = ();
 
@@ -1990,8 +2471,8 @@ sub convert_2x {
 
         # 1. the single host_name / service_description entries
         # service_description is a string, while the host_name directive is still a comma seperated list
-        my @master_host_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_servicedependency->{'host_name'}, ',', 1);
-        my @child_host_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_servicedependency->{'dependent_host_name'}, ',', 1);
+        my @master_host_names = str2arr_by_delim_without_excludes($obj_1x_servicedependency->{'host_name'}, ',', 1);
+        my @child_host_names = str2arr_by_delim_without_excludes($obj_1x_servicedependency->{'dependent_host_name'}, ',', 1);
 
         my $master_service_description = $obj_1x_servicedependency->{'service_description'};
         my $child_service_description = $obj_1x_servicedependency->{'dependent_service_description'};
@@ -2013,8 +2494,8 @@ sub convert_2x {
         }
 
         # 2. the infamous group logic - but only for hostgroups here
-        my @master_hostgroup_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_servicedependency->{'hostgroup_name'}, ',', 1);
-        my @child_hostgroup_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_servicedependency->{'dependent_hostgroup_name'}, ',', 1);
+        my @master_hostgroup_names = str2arr_by_delim_without_excludes($obj_1x_servicedependency->{'hostgroup_name'}, ',', 1);
+        my @child_hostgroup_names = str2arr_by_delim_without_excludes($obj_1x_servicedependency->{'dependent_hostgroup_name'}, ',', 1);
 
         my @all_master_hostgroup_hostnames = ();
 
@@ -2082,7 +2563,7 @@ sub convert_2x {
 
         # XXX object tricks allow to use a comma seperated list of hostgroup_names!
         # http://docs.icinga.org/latest/en/objecttricks.html
-        my @hostgroup_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_service->{'hostgroup_name'}, ',', 1);
+        my @hostgroup_names = str2arr_by_delim_without_excludes($obj_2x_service->{'hostgroup_name'}, ',', 1);
 
         foreach my $hostgroup_name (@hostgroup_names) {
             # we need to save all services first, but our new key is the hostgroupname
@@ -2290,8 +2771,8 @@ sub convert_2x {
         @{$cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'__I2CONVERT_NOTIFICATIONS'}} = ();
 
         # convert users and usergroupmembers into a unique list of users
-        my @users = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_host->{'contacts'}, ',', 1);
-        my @usergroups = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_host->{'contact_groups'}, ',', 1);
+        my @users = str2arr_by_delim_without_excludes($obj_2x_host->{'contacts'}, ',', 1);
+        my @usergroups = str2arr_by_delim_without_excludes($obj_2x_host->{'contact_groups'}, ',', 1);
 
         # get all members of the usergroups
         foreach my $usergroup (@usergroups) {
@@ -2299,7 +2780,7 @@ sub convert_2x {
             push @users, @users_ug;
         }
         # create a unique array of users (XXX important! XXX)
-        my @uniq_users = Icinga2::Utils::uniq(@users);
+        my @uniq_users = uniq(@users);
 
         # now loop and fetch objects, and their needed notification values as array
         # (prepared above - look for $user_notification->{$notification_command_name_2x}...)
@@ -2321,8 +2802,8 @@ sub convert_2x {
         @{$cfg_obj_2x->{'service'}->{$service_obj_2x_key}->{'__I2CONVERT_NOTIFICATIONS'}} = ();
 
         # convert users and usergroupmembers into a unique list of users
-        my @users = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_service->{'contacts'}, ',', 1);
-        my @usergroups = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_2x_service->{'contact_groups'}, ',', 1);
+        my @users = str2arr_by_delim_without_excludes($obj_2x_service->{'contacts'}, ',', 1);
+        my @usergroups = str2arr_by_delim_without_excludes($obj_2x_service->{'contact_groups'}, ',', 1);
 
         # get all members of the usergroups
         foreach my $usergroup (@usergroups) {
@@ -2330,7 +2811,7 @@ sub convert_2x {
             push @users, @users_ug;
         }
         # create a unique array of users (XXX important! XXX)
-        my @uniq_users = Icinga2::Utils::uniq(@users);
+        my @uniq_users = uniq(@users);
 
         # now loop and fetch objects, and their needed notification values as array
         # (prepared above - look for $user_notification->{$notification_command_name_2x}...)
@@ -2382,8 +2863,8 @@ sub convert_2x {
         my $notification_prefix = 'serviceescalation';
 
         # convert users and usergroupmembers into a unique list of users
-        my @users = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_serviceescalation->{'contacts'}, ',', 1);
-        my @usergroups = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_serviceescalation->{'contact_groups'}, ',', 1);
+        my @users = str2arr_by_delim_without_excludes($obj_1x_serviceescalation->{'contacts'}, ',', 1);
+        my @usergroups = str2arr_by_delim_without_excludes($obj_1x_serviceescalation->{'contact_groups'}, ',', 1);
 
         # get all members of the usergroups
         foreach my $usergroup (@usergroups) {
@@ -2391,7 +2872,7 @@ sub convert_2x {
             push @users, @users_ug;
         }
         # create a unique array of users (XXX important! XXX)
-        my @uniq_users = Icinga2::Utils::uniq(@users);
+        my @uniq_users = uniq(@users);
 
         ######################################
         # link users to this notification
@@ -2514,7 +2995,7 @@ sub convert_2x {
                     # get all hosts in hostgroup, with service_description
                     ######################################
                     if (defined($obj_1x_serviceescalation->{'hostgroup_name'}) && defined($obj_1x_serviceescalation->{'service_description'})) {
-                        my @serviceescalation_hostgroup_names = Icinga2::Utils::str2arr_by_delim_without_excludes($obj_1x_serviceescalation->{'hostgroup_name'}, ',', 1);
+                        my @serviceescalation_hostgroup_names = str2arr_by_delim_without_excludes($obj_1x_serviceescalation->{'hostgroup_name'}, ',', 1);
 
                         foreach my $serviceescalation_hostgroup_name (@serviceescalation_hostgroup_names) {
                             # get hg members
@@ -2732,7 +3213,7 @@ sub convert_2x {
             # skip service templates
             ######################################
             if ($obj_2x_service->{'__I2CONVERT_IS_TEMPLATE'} == 1) {
-                #Icinga2::Utils::debug("WARNING: Skipping service template '$obj_2x_service->{'__I2CONVERT_TEMPLATE_NAMES'}' for linking to host '$obj_2x_host->{'__I2CONVERT_HOSTNAME'}'.");
+                #debug("WARNING: Skipping service template '$obj_2x_service->{'__I2CONVERT_TEMPLATE_NAMES'}' for linking to host '$obj_2x_host->{'__I2CONVERT_HOSTNAME'}'.");
                 next;
             }
 
@@ -2774,8 +3255,8 @@ sub convert_2x {
                 ######################################
                 # LINK HOST COMMAND WITH SERVICE CHECK
                 ######################################
-                my ($service_check_command_2x, @service_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_service, $obj_2x_service_host_name, $global_macros_1x);
-                my ($host_check_command_2x, @host_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $obj_2x_service_host_name, $global_macros_1x);
+                my ($service_check_command_2x, @service_command_args_1x) = convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_service, $obj_2x_service_host_name, $global_macros_1x);
+                my ($host_check_command_2x, @host_command_args_1x) = convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $obj_2x_service_host_name, $global_macros_1x);
                 #say Dumper($host_check_command_2x);
 
                 # check if this service check is a possible match for __I2CONVERT_HOST_CHECK?
@@ -2837,7 +3318,7 @@ sub convert_2x {
                                 foreach my $command_arg_1x (@host_command_args_1x) {
                                     my $obj_1x_host = obj_get_host_obj_by_host_name($cfg_obj_1x, $host_obj_2x_key);
                                     my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_host, $command_arg_1x);
-                                    $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
+                                    $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = escape_str($command_arg_2x);
                                     $arg_cnt++;
                                 }
 
@@ -2885,7 +3366,7 @@ sub convert_2x {
            say "Found host '". $obj_2x_host->{'__I2CONVERT_HOSTNAME'} ."' without any services";
 
            # now, add the hostcheck service
-           my ($host_check_command_2x, @host_command_args_1x) = Icinga2::Convert::convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $obj_2x_host->{'__I2CONVERT_HOSTNAME'} , $global_macros_1x);
+           my ($host_check_command_2x, @host_command_args_1x) = convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $obj_2x_host->{'__I2CONVERT_HOSTNAME'} , $global_macros_1x);
 
            next if (!defined($host_check_command_2x->{'check_command_name_1x'}));
 
@@ -2928,7 +3409,7 @@ sub convert_2x {
                     foreach my $command_arg_1x (@host_command_args_1x) {
                         my $obj_1x_host = obj_get_host_obj_by_host_name($cfg_obj_1x, $host_obj_2x_key);
                         my $command_arg_2x = resolve_macros($cfg_obj_1x, $obj_1x_host, $command_arg_1x);
-                        $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = Icinga2::Utils::escape_str($command_arg_2x);
+                        $cfg_obj_2x->{'service'}->{$service_object_cnt}->{'__I2CONVERT_MACROS'}->{"ARG" . $arg_cnt} = escape_str($command_arg_2x);
                         $arg_cnt++;
                     }
 
@@ -2967,7 +3448,7 @@ sub convert_2x {
     my @objects = ('host', 'service', 'user', 'notification', 'timeperiod', 'command');
 
     foreach my $object (@objects) {
-        Icinga2::Utils::debug("Custom template for $object");
+        debug("Custom template for $object");
         #say "Custom template for $object";
 
         foreach my $obj_2x_key (keys %{@$cfg_obj_2x{$object}}) {
@@ -3013,6 +3494,1173 @@ sub convert_2x {
 }
 
 
+=pod
+EXPORT ICINGA 2 CONFIG
+=cut
+
+# XXX figure a better way for \t count printing, making dumps more modular
+# XXX sort macros and linked hostservices by name
+
+################################################################################
+# Helpers
+################################################################################
+
+sub open_cfg_file {
+    my $file = shift;
+    my $FH;
+
+    say "writing file '$file'...\n";
+    open($FH, ">".$file);
+
+    if (!-w $FH) {
+        print "ERROR: cannot write file '$file'. Check permissions!\n";
+    }
+
+    return $FH;
+}
+
+sub close_cfg_file {
+    my $FH = shift;
+
+    close($FH);
+}
+
+sub add_header {
+    my $icinga2_cfg = shift;
+
+    dump_config_line($icinga2_cfg, "/******************************************************************************");
+    dump_config_line($icinga2_cfg, " * GENERATED BY ICINGA2 CONVERSION SCRIPT");
+    dump_config_line($icinga2_cfg, " * " . strftime('%Y-%m-%d %H:%M:%S',localtime));
+    dump_config_line($icinga2_cfg, " ******************************************************************************/");
+}
+
+sub dump_config_line {
+    my $icinga2_cfg = shift;
+    my $line = shift;
+    my $dbg_lvl = $icinga2_cfg->{'__I2EXPORT_DEBUG'};
+
+    if ($dbg_lvl) {
+        print $line. "\n";
+    }
+
+    print { $icinga2_cfg->{'__I2EXPORT_FH'} } "$line\n";
+}
+
+sub start_object_type_config_dump {
+    my $icinga2_cfg = shift;
+    my $cfg_type = shift;
+
+    $icinga2_cfg->{'__I2EXPORT_FH'} = open_cfg_file($icinga2_cfg->{$cfg_type});
+    add_header($icinga2_cfg);
+}
+
+sub end_object_type_config_dump {
+    my $icinga2_cfg = shift;
+
+    close_cfg_file($icinga2_cfg->{'__I2EXPORT_FH'});
+}
+
+################################################################################
+# DUMP ALL OBJECTS 2.x
+################################################################################
+
+sub dump_cfg_resource_2x {
+    my $icinga2_cfg = shift;
+    my $icinga2_global_macros = shift;
+
+    start_object_type_config_dump($icinga2_cfg, 'resource');
+
+    dump_config_line($icinga2_cfg, "set IcingaMacros = {");
+    foreach my $global_macro_2x_key (sort keys %{$icinga2_global_macros}) {
+        dump_config_line($icinga2_cfg, "\t\"$global_macro_2x_key\" = \"$icinga2_global_macros->{$global_macro_2x_key}\",");
+    }
+
+    dump_config_line($icinga2_cfg, "}");
+
+    end_object_type_config_dump($icinga2_cfg);
+}
+
+sub dump_cfg_obj_2x {
+    my $icinga2_cfg = shift;
+    my $cfg_obj_2x = shift;
+
+    dump_hosts_2x($icinga2_cfg, $cfg_obj_2x);
+    dump_services_2x($icinga2_cfg, $cfg_obj_2x);
+    dump_users_2x($icinga2_cfg, $cfg_obj_2x);
+    dump_notifications_2x($icinga2_cfg, $cfg_obj_2x);
+    dump_timeperiods_2x($icinga2_cfg, $cfg_obj_2x);
+    dump_groups_2x($icinga2_cfg, $cfg_obj_2x);
+    dump_commands_2x($icinga2_cfg, $cfg_obj_2x);
+
+}
+sub dump_hosts_2x {
+    my $icinga2_cfg = shift;
+    my $cfg_obj_2x = shift;
+
+    start_object_type_config_dump($icinga2_cfg, 'hosts');
+    #say Dumper($icinga2_cfg);
+
+    foreach my $host_2x_key (keys %{@$cfg_obj_2x{'host'}}) {
+        my $host_2x = @$cfg_obj_2x{'host'}->{$host_2x_key};
+        #say Dumper($host_2x);
+        #say "==============\n";
+        # function decides itsself if object or template
+        dump_host_2x($icinga2_cfg, $host_2x);
+    }
+
+    end_object_type_config_dump($icinga2_cfg);
+}
+
+sub dump_services_2x {
+    my $icinga2_cfg = shift;
+    my $cfg_obj_2x = shift;
+
+    start_object_type_config_dump($icinga2_cfg, 'services');
+
+    foreach my $service_2x_key (keys %{@$cfg_obj_2x{'service'}}) {
+        my $service_2x = @$cfg_obj_2x{'service'}->{$service_2x_key};
+
+        dump_service_2x($icinga2_cfg, $service_2x);
+    }
+
+    end_object_type_config_dump($icinga2_cfg);
+}
+
+sub dump_users_2x {
+    my $icinga2_cfg = shift;
+    my $cfg_obj_2x = shift;
+
+    start_object_type_config_dump($icinga2_cfg, 'users');
+
+    foreach my $user_2x_key (keys %{@$cfg_obj_2x{'user'}}) {
+        my $user_2x = @$cfg_obj_2x{'user'}->{$user_2x_key};
+
+        dump_user_2x($icinga2_cfg, $user_2x);
+    }
+
+    end_object_type_config_dump($icinga2_cfg);
+}
+
+sub dump_notifications_2x {
+    my $icinga2_cfg = shift;
+    my $cfg_obj_2x = shift;
+
+    start_object_type_config_dump($icinga2_cfg, 'notifications');
+
+    foreach my $notification_2x_key (keys %{@$cfg_obj_2x{'notification'}}) {
+        my $notification_2x = @$cfg_obj_2x{'notification'}->{$notification_2x_key};
+
+        dump_notification_2x($icinga2_cfg, $notification_2x);
+    }
+
+    end_object_type_config_dump($icinga2_cfg);
+}
+
+
+sub dump_timeperiods_2x {
+    my $icinga2_cfg = shift;
+    my $cfg_obj_2x = shift;
+
+    start_object_type_config_dump($icinga2_cfg, 'timeperiods');
+
+    foreach my $timeperiod_2x_key (keys %{@$cfg_obj_2x{'timeperiod'}}) {
+        my $timeperiod_2x = @$cfg_obj_2x{'timeperiod'}->{$timeperiod_2x_key};
+
+        dump_timeperiod_2x($icinga2_cfg, $timeperiod_2x);
+    }
+
+    end_object_type_config_dump($icinga2_cfg);
+}
+
+# XXX maybe split later
+sub dump_groups_2x {
+    my $icinga2_cfg = shift;
+    my $cfg_obj_2x = shift;
+
+    start_object_type_config_dump($icinga2_cfg, 'groups');
+
+    if (!@$cfg_obj_2x{'hostgroup'}) {
+        goto SKIP_HOSTGROUPS;
+    }
+
+    foreach my $hostgroup_2x_key (keys %{@$cfg_obj_2x{'hostgroup'}}) {
+        my $hostgroup_2x = @$cfg_obj_2x{'hostgroup'}->{$hostgroup_2x_key};
+
+        dump_group_2x($icinga2_cfg, $hostgroup_2x);
+    }
+
+SKIP_HOSTGROUPS:
+
+    if (!@$cfg_obj_2x{'servicegroup'}) {
+        goto SKIP_SERVICEGROUPS;
+    }
+
+    foreach my $servicegroup_2x_key (keys %{@$cfg_obj_2x{'servicegroup'}}) {
+        my $servicegroup_2x = @$cfg_obj_2x{'servicegroup'}->{$servicegroup_2x_key};
+
+        dump_group_2x($icinga2_cfg, $servicegroup_2x);
+    }
+
+SKIP_SERVICEGROUPS:
+
+    if (!@$cfg_obj_2x{'usergroup'}) {
+        goto SKIP_USERGROUPS;
+    }
+
+    foreach my $usergroup_2x_key (keys %{@$cfg_obj_2x{'usergroup'}}) {
+        my $usergroup_2x = @$cfg_obj_2x{'usergroup'}->{$usergroup_2x_key};
+
+        dump_group_2x($icinga2_cfg, $usergroup_2x);
+    }
+
+SKIP_USERGROUPS:
+    end_object_type_config_dump($icinga2_cfg);
+}
+
+sub dump_commands_2x {
+    my $icinga2_cfg = shift;
+    my $cfg_obj_2x = shift;
+
+    start_object_type_config_dump($icinga2_cfg, 'commands');
+
+    foreach my $command_2x_key (keys %{@$cfg_obj_2x{'command'}}) {
+        my $command_2x = @$cfg_obj_2x{'command'}->{$command_2x_key};
+
+        dump_command_2x($icinga2_cfg, $command_2x);
+    }
+
+    end_object_type_config_dump($icinga2_cfg);
+}
+
+################################################################################
+# DUMP OBJECT 2.x
+################################################################################
+
+
+sub dump_service_2x {
+    my $icinga2_cfg = shift;
+    my $service_2x = shift;
+    my $object_type = "object"; # object or template
+    my $service_description = $service_2x->{__I2CONVERT_SERVICEDESCRIPTION};
+
+    # only dump templates, the objects will be directly created in host objects
+    if ($service_2x->{__I2CONVERT_IS_TEMPLATE} == 0) {
+        return;
+    }
+    #say Dumper($host_2x);
+    if ($service_2x->{__I2CONVERT_IS_TEMPLATE} == 1) {
+        $object_type = "template";
+        $service_description = $service_2x->{'__I2CONVERT_TEMPLATE_NAME'};
+    }
+
+    ####################################################
+    # start, inherit from template?
+    ####################################################
+    if (defined($service_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $service_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        my $service_2x_templates = join '", "', @{$service_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
+        dump_config_line($icinga2_cfg, "$object_type Service \"$service_description\" inherits \"$service_2x_templates\" {");
+    } else {
+        dump_config_line($icinga2_cfg, "$object_type Service \"$service_description\" {");
+    }
+
+    ####################################################
+    # display_name
+    ####################################################
+    if(defined($service_2x->{'display_name'})) {
+        dump_config_line($icinga2_cfg, "\tdisplay_name = \"$service_2x->{'display_name'}\",");
+    }
+
+    ####################################################
+    # macros
+    ####################################################
+
+    if(defined($service_2x->{'__I2CONVERT_MACROS'}) && $service_2x->{'__I2CONVERT_MACROS'} != 0) {
+        dump_config_line($icinga2_cfg, "\tmacros = {");
+        foreach my $macro_key (keys %{$service_2x->{'__I2CONVERT_MACROS'}}) {
+            next if $macro_key =~ /USER/;
+            dump_config_line($icinga2_cfg, "\t\t$macro_key = \"$service_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
+    dump_config_line($icinga2_cfg, "");
+
+    ####################################################
+    # check command
+    ####################################################
+    if(defined($service_2x->{'__I2_CONVERT_CHECKCOMMAND_NAME'})) {
+        dump_config_line($icinga2_cfg, "\tcheck_command = \"$service_2x->{'__I2_CONVERT_CHECKCOMMAND_NAME'}\",");
+    }
+
+    ####################################################
+    # event command
+    ####################################################
+    if(defined($service_2x->{'__I2_CONVERT_EVENTCOMMAND_NAME'})) {
+        dump_config_line($icinga2_cfg, "\tevent_command = \"$service_2x->{'__I2_CONVERT_EVENTCOMMAND_NAME'}\",");
+    }
+
+    ####################################################
+    # servicegroups
+    ####################################################
+    if(defined($service_2x->{'servicegroups'}) && scalar(@{$service_2x->{'servicegroups'}}) > 0) {
+        #say Dumper($service_2x->{'servicegroups'});
+        my $servicegroups = join '", "', @{$service_2x->{'servicegroups'}};
+        if ($service_2x->{'__I2_CONVERT_SG_ADD'} == 1) {
+            dump_config_line($icinga2_cfg, "\tgroups += [ \"$servicegroups\" ],");
+        } else {
+            dump_config_line($icinga2_cfg, "\tgroups = [ \"$servicegroups\" ],");
+        }
+        #say Dumper($service_description);
+        #say Dumper($service_2x->{'servicegroups'});
+    }
+
+    ####################################################
+    # servicedependencies (1.x deps)
+    ####################################################
+    if(defined($service_2x->{'__I2CONVERT_PARENT_SERVICES'})) {
+        dump_config_line($icinga2_cfg, "\tservice_dependencies = [");
+
+        #say Dumper($service_2x);
+        # this is a hash with keys
+        foreach my $servicedep_key (keys %{$service_2x->{'__I2CONVERT_PARENT_SERVICES'}}) {
+            my $servicedep = $service_2x->{'__I2CONVERT_PARENT_SERVICES'}->{$servicedep_key};
+            dump_config_line($icinga2_cfg, "\t\t{ host = \"$servicedep->{'host'}\", service = \"$servicedep->{'service'}\" },");
+        }
+        dump_config_line($icinga2_cfg, "\t],");
+    }
+
+    ####################################################
+    # notifications
+    ####################################################
+    if(defined($service_2x->{'__I2CONVERT_NOTIFICATIONS'})) {
+        #say Dumper ($service_2x->{'__I2CONVERT_NOTIFICATIONS'});
+        # this is an array of notification objects
+        foreach my $service_notification_hash (@{$service_2x->{'__I2CONVERT_NOTIFICATIONS'}}) {
+
+            #say Dumper($service_notification_hash);
+
+            # this is a hash by unique key of the notification template, but all further attributes are seperatedly available too
+            foreach my $service_notification_key (keys %{$service_notification_hash}) {
+                my $service_notification = $service_notification_hash->{$service_notification_key};
+                #say Dumper($service_notification);
+
+                # skip everything not related to service notifications
+                next if ($service_notification->{'type'} ne 'service');
+
+                dump_config_line($icinga2_cfg, "\tnotifications[\"$service_notification->{'name'}\"] = {");
+
+                if (defined ($service_notification->{'templates'}) && @{$service_notification->{'templates'}} > 0) {
+                    my $service_notification_templates = join '", "', @{$service_notification->{'templates'}};
+                    dump_config_line($icinga2_cfg, "\t\ttemplates = [ \"$service_notification_templates\" ],");
+                }
+
+                if(defined($service_notification->{'users'}) && @{$service_notification->{'users'}} > 0) {
+                    my $service_users = join '", "', @{$service_notification->{'users'}};
+                    dump_config_line($icinga2_cfg, "\t\tusers = [ \"$service_users\" ],");
+                }
+
+                if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+                    #say Dumper($service_notification);
+                    foreach my $by (keys %{$service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+                        next if !@{$service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
+                        my $notification_filter;
+                        if (grep /0/, @{$service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                            $notification_filter = 0;
+                        } else {
+                            $notification_filter = "(". (join ' | ', @{$service_notification->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+                        }
+                        dump_config_line($icinga2_cfg, "\t\tnotification_".$by."_filter = $notification_filter,");
+                    }
+                }
+
+                if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_INTERVAL'})) {
+                    dump_config_line($icinga2_cfg, "\t\tnotification_interval = $service_notification->{'__I2CONVERT_NOTIFICATION_INTERVAL'},");
+                }
+
+                if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_PERIOD'})) {
+                    dump_config_line($icinga2_cfg, "\t\tnotification_period = \"$service_notification->{'__I2CONVERT_NOTIFICATION_PERIOD'}\",");
+                }
+
+                # this is set for escalations
+                if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}) && $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'} != 0) {
+                    dump_config_line($icinga2_cfg, "\t\ttimes = {");
+                    dump_config_line($icinga2_cfg, "\t\t\tbegin = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'},");
+                    dump_config_line($icinga2_cfg, "\t\t\tend = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'}");
+                    dump_config_line($icinga2_cfg, "\t\t},");
+                }
+
+                dump_config_line($icinga2_cfg, "\t},");
+            }
+        }
+    }
+
+    ####################################################
+    # other service attributes, if set
+    ####################################################
+    if(defined($service_2x->{'check_interval'})) {
+        dump_config_line($icinga2_cfg, "\tcheck_interval = $service_2x->{'check_interval'},");
+    }
+    if(defined($service_2x->{'retry_interval'})) {
+        dump_config_line($icinga2_cfg, "\tretry_interval = $service_2x->{'retry_interval'},");
+    }
+    if(defined($service_2x->{'max_check_attempts'})) {
+        dump_config_line($icinga2_cfg, "\tmax_check_attempts = $service_2x->{'max_check_attempts'},");
+    }
+
+    if(defined($service_2x->{'check_period'})) {
+        dump_config_line($icinga2_cfg, "\tcheck_period = \"$service_2x->{'check_period'}\",");
+    }
+
+    if(defined($service_2x->{'volatile'})) {
+        dump_config_line($icinga2_cfg, "\tvolatile = $service_2x->{'volatile'},");
+    }
+
+    if(defined($service_2x->{'flap_detection_enabled'})) {
+        dump_config_line($icinga2_cfg, "\tenable_flapping = $service_2x->{'flap_detection_enabled'},");
+    }
+
+    ####################################################
+    # custom attr
+    ####################################################
+    if(defined($service_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $service_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+        dump_config_line($icinga2_cfg, "\tcustom = {");
+        foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+
+        dump_config_line($icinga2_cfg, "\tmacros += {");
+        foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            if ($custom_key !~ /^_/) {
+                next;
+            }
+
+            my $key = substr($custom_key, 1);
+            dump_config_line($icinga2_cfg, "\t\t_SERVICE$key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
+    dump_config_line($icinga2_cfg, "");
+
+    dump_config_line($icinga2_cfg, "}");
+    dump_config_line($icinga2_cfg, "\n");
+}
+
+sub dump_host_2x {
+    my $icinga2_cfg = shift;
+    my $host_2x = shift;
+    my $object_type = "object"; # object or template
+    my $host_name = $host_2x->{'host_name'}; # default, may be changed for templates
+
+    #say Dumper($host_2x);
+    if ($host_2x->{__I2CONVERT_IS_TEMPLATE} == 1) {
+        $object_type = "template";
+        $host_name = $host_2x->{'__I2CONVERT_TEMPLATE_NAME'};
+    }
+
+    ####################################################
+    # start, inherit from template?
+    ####################################################
+    if (defined($host_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $host_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        my $host_2x_templates = join '", "', @{$host_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
+        dump_config_line($icinga2_cfg, "$object_type Host \"$host_name\" inherits \"$host_2x_templates\" {");
+    } else {
+        dump_config_line($icinga2_cfg, "$object_type Host \"$host_name\" {");
+    }
+
+    ####################################################
+    # display_name
+    ####################################################
+    if(defined($host_2x->{'display_name'})) {
+        dump_config_line($icinga2_cfg, "\tdisplay_name = \"$host_2x->{'display_name'}\",");
+    }
+
+    ####################################################
+    # macros
+    ####################################################
+    dump_config_line($icinga2_cfg, "");
+
+    if(defined($host_2x->{'__I2CONVERT_MACROS'}) && $host_2x->{'__I2CONVERT_MACROS'} != 0) {
+        dump_config_line($icinga2_cfg, "\tmacros = {");
+        foreach my $macro_key (keys %{$host_2x->{'__I2CONVERT_MACROS'}}) {
+            next if $macro_key =~ /USER/;
+            dump_config_line($icinga2_cfg, "\t\t$macro_key = \"$host_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+    dump_config_line($icinga2_cfg, "");
+
+    ####################################################
+    # hostgroups
+    ####################################################
+    if(defined($host_2x->{'hostgroups'})) {
+        my $hostgroups = join '", "', @{$host_2x->{'hostgroups'}};
+        if ($host_2x->{'__I2_CONVERT_HG_ADD'} == 1) {
+            dump_config_line($icinga2_cfg, "\tgroups += [ \"$hostgroups\" ],");
+        } else {
+            dump_config_line($icinga2_cfg, "\tgroups = [ \"$hostgroups\" ],");
+        }
+    }
+
+    ####################################################
+    # hostdependencies (1.x deps and parents combined)
+    ####################################################
+    if(defined($host_2x->{'__I2CONVERT_PARENT_HOSTNAMES'})) {
+        my $hostdependency_hosts = join '", "', @{$host_2x->{'__I2CONVERT_PARENT_HOSTNAMES'}};
+        dump_config_line($icinga2_cfg, "\thost_dependencies = [ \"$hostdependency_hosts\" ],");
+    }
+
+    ####################################################
+    # custom attr
+    ####################################################
+
+    if(defined($host_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $host_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+        dump_config_line($icinga2_cfg, "\tcustom = {");
+        foreach my $custom_key (keys %{$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+
+        dump_config_line($icinga2_cfg, "\tmacros += {");
+        foreach my $custom_key (keys %{$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            if ($custom_key !~ /^_/) {
+                next;
+            }
+
+            my $key = substr($custom_key, 1);
+            dump_config_line($icinga2_cfg, "\t\t_HOST$key = \"$host_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
+    ####################################################
+    # hostcheck
+    ####################################################
+    # this is magic, and must be set during conversion
+    if(defined($host_2x->{'__I2CONVERT_HOSTCHECK'})) {
+        dump_config_line($icinga2_cfg, "\tcheck = \"$host_2x->{'__I2CONVERT_HOSTCHECK'}\",");
+    }
+
+    ####################################################
+    # host with no services - valid configuration
+    ####################################################
+    if (!defined($host_2x->{'SERVICE'})) {
+        dump_config_line($icinga2_cfg, "}");
+        dump_config_line($icinga2_cfg, "\n");
+        return;
+    }
+
+    #say Dumper($host_2x->{'SERVICE'});
+
+    ####################################################
+    # now all services with templates
+    ####################################################
+    foreach my $service_2x_key (keys %{$host_2x->{'SERVICE'}}) {
+        my $service_2x = $host_2x->{'SERVICE'}->{$service_2x_key};
+
+        dump_config_line($icinga2_cfg, "\tservices[\"$service_2x->{__I2CONVERT_SERVICEDESCRIPTION}\"] = {");
+
+        ####################################################
+        # templates
+        ####################################################
+        if (defined($service_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $service_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+            my $service_2x_templates = join '", "', @{$service_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
+            dump_config_line($icinga2_cfg, "\t\ttemplates = [ \"$service_2x_templates\" ],")
+        }
+        ####################################################
+        # display_name
+        ####################################################
+        if(defined($service_2x->{'display_name'})) {
+            dump_config_line($icinga2_cfg, "\t\tdisplay_name = \"$service_2x->{'display_name'}\",");
+        }
+
+        dump_config_line($icinga2_cfg, "");
+
+        ####################################################
+        # macros
+        ####################################################
+
+        if(defined($service_2x->{'__I2CONVERT_MACROS'}) && $service_2x->{'__I2CONVERT_MACROS'} != 0) {
+            dump_config_line($icinga2_cfg, "\t\tmacros = {");
+            foreach my $macro_key (keys %{$service_2x->{'__I2CONVERT_MACROS'}}) {
+                next if $macro_key =~ /USER/;
+                dump_config_line($icinga2_cfg, "\t\t\t$macro_key = \"$service_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
+            }
+            dump_config_line($icinga2_cfg, "\t\t},");
+        }
+
+
+        ####################################################
+        # check_command
+        ####################################################
+        if(defined($service_2x->{'__I2_CONVERT_CHECKCOMMAND_NAME'})) {
+            dump_config_line($icinga2_cfg, "\t\tcheck_command = \"$service_2x->{'__I2_CONVERT_CHECKCOMMAND_NAME'}\",");
+        }
+
+        ####################################################
+        # servicegroups
+        ####################################################
+        if(defined($service_2x->{'servicegroups'}) && scalar(@{$service_2x->{'servicegroups'}}) > 0) {
+            #say Dumper($service_2x->{'servicegroups'});
+            my $servicegroups = join '", "', @{$service_2x->{'servicegroups'}};
+            if ($service_2x->{'__I2_CONVERT_SG_ADD'} == 1) {
+                dump_config_line($icinga2_cfg, "\t\tgroups += [ \"$servicegroups\" ],");
+            } else {
+                dump_config_line($icinga2_cfg, "\t\tgroups = [ \"$servicegroups\" ],");
+            }
+        }
+
+        ####################################################
+        # notifications
+        ####################################################
+        if(defined($service_2x->{'__I2CONVERT_NOTIFICATIONS'})) {
+            #say Dumper ($service_2x->{'__I2CONVERT_NOTIFICATIONS'});
+            # this is an array of notification objects
+            foreach my $service_notification_hash (@{$service_2x->{'__I2CONVERT_NOTIFICATIONS'}}) {
+
+                #say Dumper($service_notification_hash);
+
+                # this is a hash by unique key of the notification template, but all further attributes are seperatedly available too
+                foreach my $service_notification_key (keys %{$service_notification_hash}) {
+                    my $service_notification = $service_notification_hash->{$service_notification_key};
+                    #say Dumper($service_notification);
+
+                    # skip everything not related to service notifications
+                    next if ($service_notification->{'type'} ne 'service');
+
+                    dump_config_line($icinga2_cfg, "\t\tnotifications[\"$service_notification->{'name'}\"] = {");
+
+                    if (defined ($service_notification->{'templates'}) && @{$service_notification->{'templates'}} > 0) {
+                        my $service_notification_templates = join '", "', @{$service_notification->{'templates'}};
+                        dump_config_line($icinga2_cfg, "\t\t\ttemplates = [ \"$service_notification_templates\" ],");
+                    }
+
+                    if(defined($service_notification->{'users'}) && @{$service_notification->{'users'}} > 0) {
+                        my $service_users = join '", "', @{$service_notification->{'users'}};
+                        dump_config_line($icinga2_cfg, "\t\t\tusers = [ \"$service_users\" ],");
+                    }
+
+                    # this is set for escalations
+                    if(defined($service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}) && $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'} != 0) {
+                        dump_config_line($icinga2_cfg, "\t\t\ttimes = {");
+                        dump_config_line($icinga2_cfg, "\t\t\t\tbegin = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'},");
+                        dump_config_line($icinga2_cfg, "\t\t\t\tend = $service_notification->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'}");
+                        dump_config_line($icinga2_cfg, "\t\t\t},");
+                    }
+
+                    dump_config_line($icinga2_cfg, "\t\t},");
+                }
+            }
+        }
+
+        if(defined($host_2x->{'__I2CONVERT_NOTIFICATIONS'}) && $host_2x->{'__I2CONVERT_HOSTCHECK'} eq $service_2x->{__I2CONVERT_SERVICEDESCRIPTION}) {
+            #say Dumper ($host_2x->{'__I2CONVERT_NOTIFICATIONS'});
+            # this is an array of notification objects
+            foreach my $host_notification_hash (@{$host_2x->{'__I2CONVERT_NOTIFICATIONS'}}) {
+
+                #say Dumper($host_notification_hash);
+
+                # this is a hash by unique key of the notification template, but all further attributes are seperatedly available too
+                foreach my $host_notification_key (keys %{$host_notification_hash}) {
+                    my $host_notification = $host_notification_hash->{$host_notification_key};
+                    #say Dumper($host_notification);
+
+                    # skip everything not related to host notifications
+                    next if ($host_notification->{'type'} ne 'host');
+
+                    dump_config_line($icinga2_cfg, "\t\tnotifications[\"$host_notification->{'name'}\"] = {");
+
+                    if (defined ($host_notification->{'templates'}) && @{$host_notification->{'templates'}} > 0) {
+                        my $host_notification_templates = join '", "', @{$host_notification->{'templates'}};
+                        dump_config_line($icinga2_cfg, "\t\t\ttemplates = [ \"$host_notification_templates\" ],");
+                    }
+
+                    if(defined($host_notification->{'users'}) && @{$host_notification->{'users'}} > 0) {
+                        my $host_users = join '", "', @{$host_notification->{'users'}};
+                        dump_config_line($icinga2_cfg, "\t\t\tusers = [ \"$host_users\" ],");
+                    }
+
+                    dump_config_line($icinga2_cfg, "\t\t},");
+                }
+            }
+        }
+
+        ####################################################
+        # other service attributes, if set
+        ####################################################
+        if(defined($service_2x->{'check_interval'})) {
+            dump_config_line($icinga2_cfg, "\t\tcheck_interval = $service_2x->{'check_interval'},");
+        }
+        if(defined($service_2x->{'retry_interval'})) {
+            dump_config_line($icinga2_cfg, "\t\tretry_interval = $service_2x->{'retry_interval'},");
+        }
+        if(defined($service_2x->{'max_check_attempts'})) {
+            dump_config_line($icinga2_cfg, "\t\tmax_check_attempts = $service_2x->{'max_check_attempts'},");
+        }
+        if(defined($service_2x->{'check_period'})) {
+            dump_config_line($icinga2_cfg, "\tcheck_period = \"$service_2x->{'check_period'}\",");
+        }
+
+        if(defined($service_2x->{'flap_detection_enabled'})) {
+            dump_config_line($icinga2_cfg, "\t\tenable_flapping = $service_2x->{'flap_detection_enabled'},");
+        }
+
+        ####################################################
+        # custom attr
+        ####################################################
+
+        if(defined($service_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $service_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+            dump_config_line($icinga2_cfg, "\t\tcustom = {");
+            foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+                dump_config_line($icinga2_cfg, "\t\t\t$custom_key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+            }
+            dump_config_line($icinga2_cfg, "\t\t},");
+
+            dump_config_line($icinga2_cfg, "\t\tmacros += {");
+            foreach my $custom_key (keys %{$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+                if ($custom_key !~ /^_/) {
+                    next;
+                }
+
+                my $key = substr($custom_key, 1);
+                dump_config_line($icinga2_cfg, "\t\t\t_SERVICE$key = \"$service_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+            }
+            dump_config_line($icinga2_cfg, "\t\t},");
+        }
+
+        dump_config_line($icinga2_cfg, "\t},");
+        dump_config_line($icinga2_cfg, "");
+    }
+    dump_config_line($icinga2_cfg, "}");
+    dump_config_line($icinga2_cfg, "\n");
+}
+
+sub dump_user_2x {
+    my $icinga2_cfg = shift;
+    my $user_2x = shift;
+    my $object_type = "object"; # object or template
+    my $user_name = $user_2x->{'contact_name'}; # default, may be changed for templates
+
+    #say Dumper($user_2x);
+    if ($user_2x->{__I2CONVERT_IS_TEMPLATE} == 1) {
+        $object_type = "template";
+        $user_name = $user_2x->{'__I2CONVERT_TEMPLATE_NAME'};
+    }
+
+    ####################################################
+    # start, inherit from template?
+    ####################################################
+    if (defined($user_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $user_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        my $user_2x_templates = join '", "', @{$user_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
+        dump_config_line($icinga2_cfg, "$object_type User \"$user_name\" inherits \"$user_2x_templates\" {");
+    } else {
+        dump_config_line($icinga2_cfg, "$object_type User \"$user_name\" {");
+    }
+
+    if(defined($user_2x->{'display_name'})) {
+        dump_config_line($icinga2_cfg, "\tdisplay_name = \"$user_2x->{'display_name'}\",");
+    }
+
+    ####################################################
+    # macros
+    ####################################################
+
+    if(defined($user_2x->{'__I2CONVERT_MACROS'}) && $user_2x->{'__I2CONVERT_MACROS'} != 0) {
+        dump_config_line($icinga2_cfg, "\tmacros = {");
+        foreach my $macro_key (keys %{$user_2x->{'__I2CONVERT_MACROS'}}) {
+            next if $macro_key =~ /USER/;
+            dump_config_line($icinga2_cfg, "\t\t$macro_key = \"$user_2x->{'__I2CONVERT_MACROS'}->{$macro_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
+    dump_config_line($icinga2_cfg, "");
+
+    ####################################################
+    # notifications
+    ####################################################
+
+    if(defined($user_2x->{'notification_period'})) {
+        dump_config_line($icinga2_cfg, "\tnotification_period = \"$user_2x->{'notification_period'}\",");
+    }
+
+    if(defined($user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+        foreach my $by (keys %{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+            next if !@{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
+            my $notification_filter;
+            if (grep /0/, @{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                $notification_filter = 0;
+            } else {
+                $notification_filter = "(". (join ' | ', @{$user_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+            }
+            dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
+        }
+    }
+
+    if(defined($user_2x->{'notifications_enabled'})) {
+        dump_config_line($icinga2_cfg, "\tenable_notifications = \"$user_2x->{'notifications_enabled'}\",");
+    }
+    ####################################################
+    # usergroups
+    ####################################################
+    if(defined($user_2x->{'usergroups'})) {
+        #say Dumper($user_2x->{'usergroups'});
+        my $usergroups = join '", "', @{$user_2x->{'usergroups'}};
+        if ($user_2x->{'__I2_CONVERT_UG_ADD'} == 1) {
+            dump_config_line($icinga2_cfg, "\tgroups += [ \"$usergroups\" ],");
+        } else {
+            dump_config_line($icinga2_cfg, "\tgroups = [ \"$usergroups\" ],");
+        }
+    }
+
+    ####################################################
+    # custom attr
+    ####################################################
+
+    if(defined($user_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $user_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+        dump_config_line($icinga2_cfg, "\tcustom = {");
+        foreach my $custom_key (keys %{$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+
+        dump_config_line($icinga2_cfg, "\tmacros += {");
+        foreach my $custom_key (keys %{$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            if ($custom_key !~ /^_/) {
+                next;
+            }
+
+            my $key = substr($custom_key, 1);
+            dump_config_line($icinga2_cfg, "\t\t_CONTACT$key = \"$user_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
+    dump_config_line($icinga2_cfg, "");
+    dump_config_line($icinga2_cfg, "}");
+    dump_config_line($icinga2_cfg, "\n");
+}
+
+sub dump_notification_2x {
+    my $icinga2_cfg = shift;
+    my $notification_2x = shift;
+    my $object_type = "object"; # object or template
+    my $notification_name = $notification_2x->{'__I2CONVERT_NOTIFICATION_NAME'}; # default, may be changed for templates
+
+    #say Dumper($notification_2x);
+    if ($notification_2x->{__I2CONVERT_IS_TEMPLATE} == 1) {
+        $object_type = "template";
+        $notification_name = $notification_2x->{'__I2CONVERT_NOTIFICATION_TEMPLATE_NAME'};
+    }
+
+    return if (!defined($notification_name));
+
+    ####################################################
+    # start, inherit from template?
+    ####################################################
+    if (defined($notification_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $notification_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        my $notification_2x_templates = join '", "', @{$notification_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
+        dump_config_line($icinga2_cfg, "$object_type Notification \"$notification_name\" inherits \"$notification_2x_templates\" {");
+    } else {
+        dump_config_line($icinga2_cfg, "$object_type Notification \"$notification_name\" {");
+    }
+
+    if(defined($notification_2x->{'display_name'})) {
+        dump_config_line($icinga2_cfg, "\tdisplay_name = \"$notification_2x->{'display_name'}\",");
+    }
+
+    if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_COMMAND'})) {
+        #say Dumper($notifications_2x->{'notification_command'});
+        dump_config_line($icinga2_cfg, "\tnotification_command = \"$notification_2x->{'__I2CONVERT_NOTIFICATION_COMMAND'}\",");
+    }
+
+    if(defined($notification_2x->{'export_macros'})) {
+        #say Dumper($notification_2x->{'export_macros'});
+        my $export_macros = join '",\n"', @{$notification_2x->{'export_macros'}};
+        dump_config_line($icinga2_cfg, "\texport_macros = [ \"$export_macros\" ],");
+    }
+
+    if(defined($notification_2x->{'users'}) && @{$notification_2x->{'users'}} > 0) {
+        my $service_users = join '", "', @{$notification_2x->{'users'}};
+        dump_config_line($icinga2_cfg, "\tusers = [ \"$service_users\" ],");
+    }
+
+    if(defined($notification_2x->{'usergroups'}) && @{$notification_2x->{'usergroups'}} > 0) {
+        my $service_usergroups = join '", "', @{$notification_2x->{'usergroups'}};
+        dump_config_line($icinga2_cfg, "\tusergroups = [ \"$service_usergroups\" ],");
+    }
+
+    if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'})) {
+        foreach my $by (keys %{$notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}}) {
+            next if !@{$notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}};
+            my $notification_filter;
+            if (grep /0/, @{$notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) {
+                $notification_filter = 0;
+            } else {
+                $notification_filter = "(". (join ' | ', @{$notification_2x->{'__I2CONVERT_NOTIFICATION_FILTERS'}->{$by}}) .")";
+            }
+            dump_config_line($icinga2_cfg, "\tnotification_".$by."_filter = $notification_filter,");
+        }
+    }
+
+    if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_INTERVAL'})) {
+        dump_config_line($icinga2_cfg, "\tnotification_interval = $notification_2x->{'__I2CONVERT_NOTIFICATION_INTERVAL'},");
+    }
+
+    if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_PERIOD'})) {
+        dump_config_line($icinga2_cfg, "\tnotification_period = \"$notification_2x->{'__I2CONVERT_NOTIFICATION_PERIOD'}\",");
+    }
+
+    # this is set for escalations
+    if(defined($notification_2x->{'__I2CONVERT_NOTIFICATION_TIMES'}) && $notification_2x->{'__I2CONVERT_NOTIFICATION_TIMES'} != 0) {
+        dump_config_line($icinga2_cfg, "\ttimes = {");
+        dump_config_line($icinga2_cfg, "\t\tbegin = $notification_2x->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'begin'},");
+        dump_config_line($icinga2_cfg, "\t\tend = $notification_2x->{'__I2CONVERT_NOTIFICATION_TIMES'}->{'end'}");
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
+    dump_config_line($icinga2_cfg, "");
+    dump_config_line($icinga2_cfg, "}");
+    dump_config_line($icinga2_cfg, "\n");
+}
+
+
+sub dump_timeperiod_2x {
+    my $icinga2_cfg = shift;
+    my $object_type = "object"; # object or template
+    my $timeperiod_2x = shift;
+    my $timeperiod_name = $timeperiod_2x->{'timeperiod_name'};
+
+    #say Dumper($timeperiod_2x);
+    if ($timeperiod_2x->{__I2CONVERT_IS_TEMPLATE} == 1) {
+        $object_type = "template";
+        $timeperiod_name = $timeperiod_2x->{'__I2CONVERT_TEMPLATE_NAME'};
+    }
+
+    ####################################################
+    # start, inherit from template?
+    ####################################################
+    if (defined($timeperiod_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $timeperiod_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        my $timeperiod_2x_templates = join '", "', @{$timeperiod_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
+        dump_config_line($icinga2_cfg, "$object_type TimePeriod \"$timeperiod_name\" inherits \"$timeperiod_2x_templates\" {");
+    } else {
+        dump_config_line($icinga2_cfg, "$object_type TimePeriod \"$timeperiod_name\" {");
+    }
+
+    # display_name is seperated at first position
+    if(defined($timeperiod_2x->{'display_name'})) {
+        dump_config_line($icinga2_cfg, "\tdisplay_name = \"$timeperiod_2x->{'display_name'}\",");
+    }
+
+    dump_config_line($icinga2_cfg, "\tranges = {");
+
+    # dump all possible keys (there's no fixed string attr here)
+    foreach my $key (sort (keys %{$timeperiod_2x})) {
+        if ($key !~ /__I2CONVERT/ &&
+            $key ne 'alias' &&
+            $key ne 'name' &&
+            $key ne 'timeperiod_name' &&
+            $key ne 'display_name' &&
+            $key ne 'use'
+        ) {
+            dump_config_line($icinga2_cfg, "\t\t\"$key\" \t= \"$timeperiod_2x->{$key}\",");
+        }
+    }
+
+    dump_config_line($icinga2_cfg, "\t},");
+    dump_config_line($icinga2_cfg, "");
+    dump_config_line($icinga2_cfg, "}");
+    dump_config_line($icinga2_cfg, "\n");
+}
+
+sub dump_group_2x {
+    my $icinga2_cfg = shift;
+    my $group_2x = shift;
+    my $group_name_attr = $group_2x->{__I2CONVERT_TYPE} . "_name";
+    my $group_name = $group_2x->{$group_name_attr};
+    my $group_type = ucfirst("$group_2x->{__I2CONVERT_TYPE}");
+    $group_type =~ s/group/Group/;
+
+    #say Dumper($group_2x);
+
+    dump_config_line($icinga2_cfg, "object $group_type \"$group_name\" {");
+    if(defined($group_2x->{'display_name'})) {
+        dump_config_line($icinga2_cfg, "\tdisplay_name = \"$group_2x->{'display_name'}\",");
+    }
+
+    ####################################################
+    # custom attr
+    ####################################################
+
+    if(defined($group_2x->{'__I2CONVERT_CUSTOM_ATTR'}) && $group_2x->{'__I2CONVERT_CUSTOM_ATTR'} != 0) {
+        dump_config_line($icinga2_cfg, "\tcustom = {");
+        foreach my $custom_key (keys %{$group_2x->{'__I2CONVERT_CUSTOM_ATTR'}}) {
+            dump_config_line($icinga2_cfg, "\t\t$custom_key = \"$group_2x->{'__I2CONVERT_CUSTOM_ATTR'}->{$custom_key}\",");
+        }
+        dump_config_line($icinga2_cfg, "\t},");
+    }
+
+    dump_config_line($icinga2_cfg, "");
+    dump_config_line($icinga2_cfg, "}");
+    dump_config_line($icinga2_cfg, "\n");
+}
+
+sub dump_command_2x {
+    my $icinga2_cfg = shift;
+    my $command_2x = shift;
+    my $command_name = $command_2x->{'__I2CONVERT_COMMAND_NAME'};
+    my $command_line = $command_2x->{'__I2CONVERT_COMMAND_LINE'};
+    my $command_type = ucfirst("$command_2x->{__I2CONVERT_COMMAND_TYPE}Command");
+    my $object_type = "object";
+
+    #say Dumper($command_2x);
+    # skip used commands
+    if ($command_2x->{'__I2_CONVERT_NOTIFICATION_COMMAND_USED'} == 1) {
+        say "Skipping already processed notification command" . Dumper($command_2x);
+        return;
+    }
+
+    if ($command_2x->{__I2CONVERT_IS_TEMPLATE} == 1) {
+        $object_type = "template";
+        $command_name = $command_2x->{'__I2CONVERT_TEMPLATE_NAME'};
+    }
+
+    ####################################################
+    # start, inherit from template?
+    ####################################################
+    if (defined($command_2x->{'__I2CONVERT_USES_TEMPLATE'}) && $command_2x->{'__I2CONVERT_USES_TEMPLATE'} == 1) {
+        my $command_2x_templates = join '", "', @{$command_2x->{'__I2CONVERT_TEMPLATE_NAMES'}};
+        dump_config_line($icinga2_cfg, "$object_type $command_type \"$command_name\" inherits \"$command_2x_templates\" {");
+    } else {
+        dump_config_line($icinga2_cfg, "$object_type $command_type \"$command_name\" {");
+    }
+
+    ####################################################
+    # attributes
+    ####################################################
+    if(defined($command_2x->{'display_name'})) {
+        dump_config_line($icinga2_cfg, "\tdisplay_name = \"$command_2x->{'display_name'}\",");
+    }
+
+    if(defined($command_line)) {
+        dump_config_line($icinga2_cfg, "\tcommand = \"$command_line\",");
+    }
+
+    dump_config_line($icinga2_cfg, "");
+    dump_config_line($icinga2_cfg, "}");
+    dump_config_line($icinga2_cfg, "\n");
+}
+
+
+=pod
+UTILS
+=cut
+
+################################################################################
+# HELPER FUNCTIONS
+################################################################################
+
+sub strip {
+    my $str = shift;
+
+    #strip trailing and leading whitespaces
+    $str =~ s/^\s+//;
+    $str =~ s/\s+$//;
+
+    return $str;
+}
+
+sub errlog {
+    my $err_lvl = shift;
+    my $log_str = shift;
+
+    if ($err_lvl > 0) {
+        print STDERR color("red"), "$log_str\n";;
+    } else {
+        print "$log_str\n";
+    }
+
+}
+
+sub escape_str {
+    my $str = shift;
+
+    $str =~ s/"/\\"/g;
+    $str =~ s/\\\\"/\\"/g;
+
+    return $str;
+}
+sub escape_shell_meta {
+    my $str = shift;
+
+    $str =~ s/([;<>`'":&!#\$\[\]\{\}\(\)\*\|])/\\$1/g;
+    return $str;
+}
+
+sub debug {
+    my $dbg_str = shift;
+    our $dbg_lvl;
+
+    if ($dbg_lvl > 0) {
+        print "$dbg_str\n";
+    }
+}
+
+sub slurp {
+    my $file = shift;
+
+    if ( -f $file ) {
+        open ( my $fh, "<", $file ) or die "Could not open $file: $!";
+        return do {
+            <$fh>;
+        }
+    } elsif (! -r $file) {
+        print " ERROR: $file not readable. check permissions/user!\n"
+    } else {
+        print " ERROR: $file does not exist\n";
+    }
+}
+
+# stolen from http://stackoverflow.com/questions/7651/how-do-i-remove-duplicate-items-from-an-array-in-perl
+sub uniq {
+    return keys %{{ map { $_ => 1 } @_ }};
+}
+
+sub str2arr_by_delim_without_excludes {
+    my $str = shift;
+    my $delim = shift;
+    my $sort = shift;
+    my $exclude = shift;
+    my @arr = ();
+
+    @arr = map { s/^\s+//; s/\s+$//; $_ }
+            grep { !/^!/ }
+            split (/$delim/, $str);
+
+    if ($sort == 1) {
+        @arr = sort (@arr);
+    }
+
+    return @arr;
+}
+
+sub strip_object_name {
+    my $obj_str = shift;
+
+    #$obj_str =~ s/[`~!\\\$%\^&\*|'"<>\?,\(\)=:]/_/g;
+    $obj_str =~ s/[:]/_/g;
+
+    return $obj_str;
+}
+
+sub print_sorted_hash {
+    my $hash = shift;
+
+    foreach my $key (sort keys %{$hash}) {
+        print "$key = $hash->{$key}\n";
+    }
+}
 
 1;
 

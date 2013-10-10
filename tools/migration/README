@@ -39,13 +39,13 @@ All required templates will be inherited from Icinga2's Template Library (ITL).
 Regular expressions are not supported, also for the reason that this is optional in Icinga 1.x
 
 RUN
-# ./icinga2_convert_v1_v2.pl -c /etc/icinga/icinga.cfg -o conf/
+# /usr/sbin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o conf/
 
 HELP
-# ./icinga2_convert_v1_v2.pl -h
+# /usr/sbin/icinga2-migrate-config -h
 
 VERBOSE
-# ./icinga2_convert_v1_v2.pl -v -c /etc/icinga/icinga.cfg -o conf/
+# /usr/sbin/icinga2-migrate-config -v -c /etc/icinga/icinga.cfg -o conf/
 
 TEST
 There's a small icinga2 conversion test config available, including conf/ folder.
@@ -68,7 +68,7 @@ DEBUG
 Compile Icinga2 with --enable-debug=yes and start it with -x. Alternatively, define the
 ConsoleLogger Object and set severity to "debug".
 
-local object ConsoleLogger "my-debug-log" {
+object ConsoleLogger "my-debug-log" {
     severity = "debug"
 }
 

@@ -215,6 +215,7 @@ fi
 %{_bindir}/%{name}
 %{_sbindir}/i2enfeature
 %{_sbindir}/i2disfeature
+%{_sbindir}/icinga2-migrate-config
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %{_libdir}/%{name}
 %{_datadir}/doc/%{name}

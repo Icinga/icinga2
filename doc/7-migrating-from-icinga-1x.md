@@ -26,8 +26,7 @@ possible.
 > Please check the provided README file for additional notes and possible
 > scaveats.
 
-    # cd tools/configconvert
-    # ./icinga2_convert_v1_v2.pl -c /etc/icinga/icinga.cfg -o conf/
+    # /usr/sbin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o conf/
 
 
 ### Manual Config Conversion

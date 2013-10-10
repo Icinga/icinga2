@@ -1,5 +1,6 @@
 SUBDIRS = \
-		  mkembedconfig
+	  migration \
+	  mkembedconfig
 
 sbin_SCRIPTS = i2enfeature
 CLEANFILES = $(bin_SCRIPTS)

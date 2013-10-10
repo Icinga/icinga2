@@ -192,6 +192,7 @@ third-party/cJSON/Makefile
 third-party/execvpe/Makefile
 third-party/mmatch/Makefile
 tools/Makefile
+tools/migration/Makefile
 tools/i2enfeature
 tools/mkembedconfig/Makefile
 ])
