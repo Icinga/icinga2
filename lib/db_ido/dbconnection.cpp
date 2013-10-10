@@ -112,10 +112,10 @@ void DbConnection::ProgramStatusHandler(void)
 	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query3);
 
-	InsertRuntimeVariable("total_services", DynamicType::GetObjects<Service>().size());
-	InsertRuntimeVariable("total_scheduled_services", DynamicType::GetObjects<Service>().size());
-	InsertRuntimeVariable("total_hosts", DynamicType::GetObjects<Host>().size());
-	InsertRuntimeVariable("total_scheduled_hosts", DynamicType::GetObjects<Host>().size());
+	InsertRuntimeVariable("total_services", static_cast<long>(DynamicType::GetObjects<Service>().size()));
+	InsertRuntimeVariable("total_scheduled_services", static_cast<long>(DynamicType::GetObjects<Service>().size()));
+	InsertRuntimeVariable("total_hosts", static_cast<long>(DynamicType::GetObjects<Host>().size()));
+	InsertRuntimeVariable("total_scheduled_hosts", static_cast<long>(DynamicType::GetObjects<Host>().size()));
 }
 
 void DbConnection::CleanUpHandler(void)

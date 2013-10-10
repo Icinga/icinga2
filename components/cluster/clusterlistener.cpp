@@ -575,7 +575,7 @@ void ClusterListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 		}
 	}
 
-	Log(LogInformation, "cluster", "Sending " + Convert::ToString(config->GetLength()) + " config files to endpoint '" + endpoint->GetName() + "'.");
+	Log(LogInformation, "cluster", "Sending " + Convert::ToString(static_cast<long>(config->GetLength())) + " config files to endpoint '" + endpoint->GetName() + "'.");
 
 	Dictionary::Ptr params = boost::make_shared<Dictionary>();
 	params->Set("identity", GetIdentity());

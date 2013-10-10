@@ -885,7 +885,7 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 	}
 
 	fields1->Set("escalated", 0);
-	fields1->Set("contacts_notified", users.size());
+	fields1->Set("contacts_notified", static_cast<long>(users.size()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	query1.Fields = fields1;
