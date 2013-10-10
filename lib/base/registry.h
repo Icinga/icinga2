@@ -37,15 +37,15 @@ namespace icinga
  *
  * @ingroup base
  */
-template<typename T>
+template<typename U, typename T>
 class Registry
 {
 public:
 	typedef std::map<String, T, string_iless> ItemMap;
 
-	static Registry<T> *GetInstance(void)
+	static Registry<U, T> *GetInstance(void)
 	{
-		return Singleton<Registry<T> >::GetInstance();
+		return Singleton<Registry<U, T> >::GetInstance();
 	}
 
 	void Register(const String& name, const T& item)
@@ -82,7 +82,7 @@ public:
 
 	void Clear(void)
 	{
-		typename Registry<T>::ItemMap items;
+		typename Registry<U, T>::ItemMap items;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
@@ -125,7 +125,7 @@ public:
 
 private:
 	mutable boost::mutex m_Mutex;
-	typename Registry<T>::ItemMap m_Items;
+	typename Registry<U, T>::ItemMap m_Items;
 };
 
 }

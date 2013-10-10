@@ -96,7 +96,7 @@ private:
  *
  * @ingroup base
  */
-class DynamicTypeRegistry : public Registry<DynamicType::Ptr>
+class DynamicTypeRegistry : public Registry<DynamicTypeRegistry, DynamicType::Ptr>
 { };
 
 /**

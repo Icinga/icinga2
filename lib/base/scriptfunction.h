@@ -55,7 +55,7 @@ private:
  *
  * @ingroup base
  */
-class I2_BASE_API ScriptFunctionRegistry : public Registry<ScriptFunction::Ptr>
+class I2_BASE_API ScriptFunctionRegistry : public Registry<ScriptFunctionRegistry, ScriptFunction::Ptr>
 { };
 
 /**

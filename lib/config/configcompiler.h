@@ -78,7 +78,7 @@ private:
 	void DestroyScanner(void);
 };
 
-class I2_CONFIG_API ConfigFragmentRegistry : public Registry<String>
+class I2_CONFIG_API ConfigFragmentRegistry : public Registry<ConfigFragmentRegistry, String>
 { };
 
 /**
