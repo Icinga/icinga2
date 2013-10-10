@@ -2,6 +2,8 @@
 sed -i 's/^HOSTNAME=.*/HOSTNAME=icinga-demo.icinga.org/' /etc/sysconfig/network
 hostname icinga-demo.icinga.org
 
+yum install -y wget
+
 rpm --import http://packages.icinga.org/icinga.key
 wget http://packages.icinga.org/epel/6/snapshot/ICINGA-snapshot.repo -O /etc/yum.repos.d/ICINGA-snapshot.repo
 yum makecache

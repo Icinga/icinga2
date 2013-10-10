@@ -43,3 +43,4 @@ m4/test-driver
 icinga2-*.tar.gz
 icinga2.spec
 packages
+.vagrant
