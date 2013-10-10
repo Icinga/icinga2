@@ -25,6 +25,7 @@
     <ClCompile Include="cib.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="compatutility.cpp" />
+    <ClCompile Include="domain.cpp" />
     <ClCompile Include="eventcommand.cpp" />
     <ClCompile Include="externalcommandprocessor.cpp" />
     <ClCompile Include="host.cpp" />
@@ -65,6 +66,7 @@
     <ClInclude Include="cib.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="compatutility.h" />
+    <ClInclude Include="domain.h" />
     <ClInclude Include="eventcommand.h" />
     <ClInclude Include="externalcommandprocessor.h" />
     <ClInclude Include="host.h" />

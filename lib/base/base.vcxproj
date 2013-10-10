@@ -62,6 +62,8 @@
     <ClCompile Include="unixsocket.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="value.cpp" />
+    <ClCompile Include="workqueue.cpp" />
+    <ClCompile Include="zlibstream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h" />
@@ -112,6 +114,8 @@
     <ClInclude Include="utility.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="win32.h" />
+    <ClInclude Include="workqueue.h" />
+    <ClInclude Include="zlibstream.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

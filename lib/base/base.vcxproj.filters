@@ -127,6 +127,12 @@
     <ClCompile Include="threadpool.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="workqueue.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="zlibstream.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -271,6 +277,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="debug.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="workqueue.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="zlibstream.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

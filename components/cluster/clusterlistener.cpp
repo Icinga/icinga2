@@ -1414,7 +1414,11 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		Log(LogInformation, "cluster", "Processing config update for identity '" + identity + "'.");
 
 		String dir = GetClusterDir() + "config/" + SHA256(identity);
+#ifndef _WIN32
 		if (mkdir(dir.CStr(), 0700) < 0 && errno != EEXIST) {
+#else /*_ WIN32 */
+		if (mkdir(dir.CStr()) < 0 && errno != EEXIST) {
+#endif /* _WIN32 */
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("localtime")
 				<< boost::errinfo_errno(errno));

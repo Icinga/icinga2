@@ -28,7 +28,7 @@
 
 namespace icinga {
 
-class ZlibStream : public Stream
+class I2_BASE_API ZlibStream : public Stream
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ZlibStream);

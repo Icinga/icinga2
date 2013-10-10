@@ -36,7 +36,7 @@ namespace icinga
 shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
 String I2_BASE_API GetCertificateCN(const shared_ptr<X509>& certificate);
 shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);
-String SHA256(const String& s);
+String I2_BASE_API SHA256(const String& s);
 
 class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
 

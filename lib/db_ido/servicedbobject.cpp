@@ -69,7 +69,7 @@ void ServiceDbObject::StaticInitialize(void)
 
 	Service::OnEventCommandExecuted.connect(bind(&ServiceDbObject::AddEventHandlerHistory, _1));
 
-	ExternalCommandProcessor::OnNewExternalCommand.connect(bind(&ServiceDbObject::AddExternalCommandHistory, _1, _2, _3));
+	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&ServiceDbObject::AddExternalCommandHistory, _1, _2, _3));
 }
 
 ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
