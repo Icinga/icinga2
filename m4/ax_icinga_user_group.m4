@@ -23,7 +23,7 @@ AC_DEFUN([ACICINGA_CHECK_USER],[
   AC_MSG_CHECKING([if $y user $x exists])
   AS_IF([ getent passwd $x >/dev/null 2>&1 || dscl . -read /Users/$x >/dev/null 2>&1 ],
     [ AC_MSG_RESULT([found]) ],
-    [ AC_MSG_ERROR([not found]) ])
+    [ AC_MSG_WARN([not found]) ])
 ])
 
 AC_DEFUN([ACICINGA_CHECK_GROUP],[
@@ -32,5 +32,5 @@ AC_DEFUN([ACICINGA_CHECK_GROUP],[
   AC_MSG_CHECKING([if $y group $x exists])
   AS_IF([ getent group $x >/dev/null 2>&1 || dscl . -read /Groups/$x >/dev/null 2>&1 ],
     [ AC_MSG_RESULT([found]) ],
-    [ AC_MSG_ERROR([not found]) ])
+    [ AC_MSG_WARN([not found]) ])
 ])
