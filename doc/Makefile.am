@@ -23,6 +23,7 @@ EXTRA_DIST = \
 	5-icinga-template-library.md \
 	6-advanced-topics.md \
 	7-migrating-from-icinga-1x.md \
+	8-differences-between-icinga-1x-and-2.md \
 	icinga2.8
 
 icinga2docdir = ${docdir}
