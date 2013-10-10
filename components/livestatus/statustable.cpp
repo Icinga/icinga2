@@ -145,12 +145,12 @@ Value StatusTable::ProgramStartAccessor(const Value& row)
 
 Value StatusTable::NumHostsAccessor(const Value& row)
 {
-	return DynamicType::GetObjects<Host>().size();
+	return static_cast<long>(DynamicType::GetObjects<Host>().size());
 }
 
 Value StatusTable::NumServicesAccessor(const Value& row)
 {
-	return DynamicType::GetObjects<Service>().size();
+	return static_cast<long>(DynamicType::GetObjects<Service>().size());
 }
 
 Value StatusTable::ProgramVersionAccessor(const Value& row)

@@ -69,7 +69,7 @@ public:
 
 	void Unregister(const String& name)
 	{
-		int erased;
+		size_t erased;
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);

@@ -224,7 +224,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MTd.lib;ssleay32MTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
@@ -272,7 +272,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;ws2_32.lib;shlwapi.lib;mmatch.lib;cJSON.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>ws2_32.lib;shlwapi.lib</AdditionalDependencies>
