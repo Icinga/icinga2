@@ -57,12 +57,11 @@ suffix does not matter as long as it matches the (wildcard) include expression.
 >
 > By convention the `.conf` suffix is used for Icinga 2 configuration files.
 
-
 ## Resource File and Global Macros
 
-Global macros such as for the plugin directory, or hidden passwords/community
-strings can be set in the `resource.cfg` configuration file in Icinga 1.x. By
-convention the `USER1` macro is used to define the directory for the plugins.
+Global macros such as for the plugin directory, usernames and passwords can be
+set in the `resource.cfg` configuration file in Icinga 1.x. By convention the
+`USER1` macro is used to define the directory for the plugins.
 
 Icinga 2 uses a global `IcingaMacros` variable which is set in the
 `conf.d/macros.conf` file:
@@ -79,6 +78,7 @@ Icinga 2 uses a global `IcingaMacros` variable which is set in the
 
 In Icinga 1.x comments are made using a leading hash (`#`) or a semi-colon (`;`)
 for inline comments.
+
 In Icinga 2 comments can either be encapsulated by `/*` and `*/` (allowing for
 multi-line comments) or starting with two slashes (`//`).
 
@@ -88,7 +88,7 @@ Object names must not contain a colon (`:`). Use the `display_name` attribute
 to specify user-friendly names which should be shown in UIs (supported by
 Icinga 1.x Classic UI and Web).
 
-Object names are not defined using attributes (e.g. `service_description` for
+Object names are not specified using attributes (e.g. `service_description` for
 hosts) like in Icinga 1.x but directly after their type definition.
 
     define service {
@@ -97,7 +97,6 @@ hosts) like in Icinga 1.x but directly after their type definition.
     }
 
     object Service "localhost-ping4" { }
-
 
 ## Templates
 
@@ -209,34 +208,31 @@ be used for host service relation building.
 > It's also possible to modify attributes in the host's service array inherited
 > from the host template. E.g. macros.
 
-
-
-
 ## Users
 
 Contacts have been renamed to Users (same for groups). A user does not
 only provide attributes and macros used for notifications, but is also
 used for authorization checks.
-The revamped notification logic removes the notification commands from
-the contacts (users) too.
 
-StatusDataWriter, IdoMySqlConnection and LivestatusListener will provide
-the contact and contactgroups attributes for services for compatibility
+In Icinga 2 notification commands are not directly associated with users. Instead
+the notification command is specified in `Notification` objects.
+
+The `StatusDataWriter`, `IdoMySqlConnection` and `LivestatusListener` types will
+provide the contact and contactgroups attributes for services for compatibility
 reasons. These values are calculated from all services, their notifications,
 and their users.
-
 
 ## Macros
 
 ### Command Macros
 
 If you have previously used Icinga 1.x you may already be familiar with
-user and argument macros (e.g., USER1 or ARG1). Unlike in Icinga 1.x macros
+user and argument macros (e.g., `USER1` or `ARG1`). Unlike in Icinga 1.x macros
 may have arbitrary names and arguments are no longer specified in the
-check_command setting.
+`check_command` setting.
 
-In Icinga 1.x the 2 argument macros will be passed onto the 'check_command'
-attribute separated by an exclamation mark (!).
+In Icinga 1.x argument macros are specified in the `check_command` attribute and
+are separated from the command name using an exclamation mark (`!`).
 
     define command {
         command_name  ping4
@@ -254,9 +250,10 @@ In Icinga 2
 
 ### Environment Macros
 
-The global configuration setting 'enable_environment_macros' does not exist in
+The global configuration setting `enable_environment_macros` does not exist in
 Icinga 2.
-Macros exported into the environment must be set using the 'export_macros' attribute
+
+Macros exported into the environment must be set using the `export_macros` attribute
 in command objects.
 
 
@@ -270,17 +267,20 @@ inherit their state from the service that is specified using the `check` attribu
 
 ### Check Output
 
-Icinga 2 does not make a difference between output (first line) and long_output
-(remaining lines) like in Icinga 1.x. Performance Data is provided separately.
+Icinga 2 does not make a difference between `output` (first line) and
+`long_output` (remaining lines) like in Icinga 1.x. Performance Data is
+provided separately.
 
-StatusDataWriter, IdoMysqlConnection, LivestatusListener split the raw output into
-output (first line) and long_output (remaining lines) for compatibility reasons.
+The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
+split the raw output into `output` (first line) and `long_output` (remaining
+lines) for compatibility reasons.
 
 ### Initial State
 
-Icinga 1.x uses max_service_check_spread to define a timerange where the initial
-state checks must have happened. Icinga 2 will use the retry_interval instead
-and check_interval / 5 if not defined.
+Icinga 1.x uses the `max_service_check_spread` setting to specify a timerange
+where the initial state checks must have happened. Icinga 2 will use the
+`retry_interval` setting instead and `check_interval` divided by 5 if
+`retry_interval` is not defined.
 
 ### Performance Data
 
@@ -288,21 +288,23 @@ There is no host performance data generated in Icinga 2 because there are no
 real host checks anymore. Therefore the PerfDataWriter will only write service
 performance data files.
 
-
 ## Commands
 
-Unlike in Icinga 1.x there are 3 different command types in Icinga 2: CheckCommand,
-NotificationCommand, EventCommand.
-Previously it was possible to accidently use e.g. a notification command as event
-handler, generating problems with macro resolution and so on.
-In Icinga 2 those types are separated and will generate an error on configuration
-validation if used in the wrong context.
+Unlike in Icinga 1.x there are 3 different command types in Icinga 2:
+`CheckCommand`, `NotificationCommand` and EventCommand`.
+
+For example in Icinga 1.x it is possible to accidently use a notification
+command as an event handler which might cause problems depending on which
+macros are used in the notification command.
+
+In Icinga 2 these command types are separated and will generate an error on
+configuration validation if used in the wrong context.
 
 While Icinga 2 still supports the complete command line in command objects, it's
 also possible to encapsulate all arguments into double quotes and passing them as
-array to the 'command_line' attribute i.e. for better readability.
+array to the `command_line` attribute i.e. for better readability.
 
-It's also possible to define default (argument) macros for the command itsself which
+It's also possible to define default (argument) macros for the command itself which
 can be overridden by a service (argument) macro.
 
 
@@ -378,8 +380,8 @@ Escalations in Icinga 1.x require a separated object matching on existing
 objects. Escalations happen between a defined start and end time which is
 calculated from the notification_interval:
 
-start = notification start + (notification_interval * first_notification)
-end = notification start + (notification_interval * last_notification)
+    start = notification start + (notification_interval * first_notification)
+    end = notification start + (notification_interval * last_notification)
 
 In theory first_notification and last_notification can be set to readable
 numbers. In practice users are manipulating those attributes in combination
@@ -394,7 +396,7 @@ In Icinga 1.x it's required to copy the contacts from the service notification
 to the escalation to garantuee the normal notifications once an escalation
 happens.
 That's not necessary with Icinga 2 only requiring an additional notification
-object for the escalation itsself.
+object for the escalation itself.
 
 ### Notification Options
 
@@ -407,13 +409,12 @@ All state and type filter use long names or'd with a pipe together
     notification_state_filter = (StateFilterWarning | StateFilterUnknown | StateFilterCritical),
     notification_type_filter = (NotificationProblem | NotificationRecovery | NotificationFlappingStart | NotificationFlappingEnd | NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)
 
-
 > **Note**
 >
-> Please note that 'NotificationProblem' as type is required for all problem
+> Please note that `NotificationProblem` as type is required for all problem
 > notifications.
 
-Icinga 2 adds more fine granular type filters for acknowledgements, downtime
+Icinga 2 adds more fine-grained type filters for acknowledgements, downtime
 and flapping type (start, end, ...).
 
 > **Note**
@@ -442,7 +443,7 @@ schema with dependencies and parent attributes for compatibility reasons.
 
 ## Flapping
 
-The Icinga 1.x logic on flapping detection uses the last 21 states of a service. This
+The Icinga 1.x flapping detection uses the last 21 states of a service. This
 value is hardcoded and cannot be changed. The algorithm on determining a flapping state
 is
 
@@ -481,7 +482,7 @@ Icinga 1.x IDOUtils was implemented from scratch as Icinga 2 feature which can b
 and enabled on-demand. The Icinga 1.x Livestatus addon is implemented as Icinga 2
 LivestatusListener. Icinga 1.x broker modules used for check distributions are replaced
 by the Icinga 2 cluster and distributed capabilities using the same protocol and security
-mechanisms as the Icinga 2 instance itsself.
+mechanisms as the Icinga 2 instance itself.
 
 Each feature can be created multiple times, i.e. having 3 IDO Mysql databases, 5 Performance
 Data Writers and 2 Livestatus Listeners (one listening on tcp, and one on unix sockets).
@@ -496,4 +497,4 @@ for max age of table entries.
 
 Icinga 2 features require a library to be loaded, and object configuration. In order to simplify
 the process of enabling/disabling these features Icinga 2 ships with two scripts inspired by
-Apache: i2enfeature and i2disfeature.
+Apache: `i2enfeature` and `i2disfeature`.

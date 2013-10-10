@@ -1,12 +1,12 @@
 #!/bin/sh
 cd -- `dirname $0`
 
-for badword in $(cat BLACKLIST); do
-	if grep $badword *.md; then
+while read badword; do
+	if grep -i "$badword" *.md; then
 		echo "Documentation contains banned word."
 		exit 1
 	fi
-done
+done < BLACKLIST
 
 cat <<HTML
 <!DOCTYPE html>
