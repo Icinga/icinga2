@@ -77,7 +77,8 @@ done
 DATETIME=`date +%s`
 
 if [ -z "$HOST" ]; then
-  echo "Host name missing. Please use -h with a valid host name."
+  echo "Host name missing. Please use -H with a valid host name."
+  usage
   exit 1;
 fi
 
