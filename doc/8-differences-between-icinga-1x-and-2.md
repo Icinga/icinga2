@@ -28,7 +28,7 @@ While Icinga 1.x ships sample configuration and templates spread in various
 object files Icinga 2 moves all templates into the Icinga Template Library (ITL)
 and includes that in the sample configuration.
 
-The ITL will be updated on every releases and should not be edited by the user.
+The ITL will be updated on every release and should not be edited by the user.
 
 > **Note**
 >
@@ -90,7 +90,7 @@ to specify user-friendly names which should be shown in UIs (supported by
 Icinga 1.x Classic UI and Web).
 
 Object names are not specified using attributes (e.g. `service_description` for
-hosts) like in Icinga 1.x but directly after their type definition.
+services) like in Icinga 1.x but directly after their type definition.
 
     define service {
         host_name  localhost
@@ -144,10 +144,59 @@ with double quotes as well.
 Unlike in Icinga 1.x all attributes within the current object must be
 terminated with a comma (,).
 
+### Alias vs. Display Name
+
+In Icinga 1.x a host can have an `alias` and a `display_name` attribute used
+for a more descriptive name. A service only can have a `display_name` attribute.
+The `alias` is used for group, timeperiod, etc. objects too.
+Icinga 2 only supports the `display_name` attribute which is also taken into
+account by Icinga 1.x Classic UI and Web.
+
+## Custom Attributes
+
+### Action Url, Notes Url, Notes
+
+Icinga 1.x objects support configuration attributes not required as runtime
+values but for external ressources such as Icinga 1.x Classic UI or Web.
+The `notes`, `notes_url`, `action_url`, `icon_image`, `icon_image_alt`
+attributes for host and service objects, additionally `statusmap_image` and
+`2d_coords` for the host's representation in status maps.
+
+These attributes can be set using the `custom` dictionary in Icinga 2 `Host`
+or `Service` objects:
+
+    custom = {
+        notes = "Icinga 2 is the best!",
+        notes_url = "http://docs.icinga.org",
+        action_url = "http://dev.icinga.org",
+        icon_image = "../../images/logos/Stats2.png",
+        icon_image_alt = "icinga2 alt icon text",
+        "2d_coords" = "1,2",
+        statusmap_image = "../../images/logos/icinga.gif",
+    }
+
+External interfaces will recognize and display these attributes accordingly.
+
+### Custom Variables
+
+Icinga 1.x custom variable attributes must be prefixed using an underscore (`_`).
+In Icinga 2 these attributes must be added to the `custom`dictionary.
+
+    custom = {
+        DN = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org",
+        CV = "my custom cmdb description",
+    }
+
+> **Note**
+>
+> If you are planning to access custom variables as runtime macros you should
+> add them to the macros dictionary instead!
+
+
 ## Host Service Relation
 
 In Icinga 1.x a service object is associated with a host by defining the
-`host_name` attribute in the service definition. Alternate object tricks refer
+`host_name` attribute in the service definition. Alternate methods refer
 to `hostgroup_name` or behavior changing regular expression. It's not possible
 to define a service definition within a host definition.
 
@@ -174,6 +223,24 @@ and their users.
 
 ## Macros
 
+Various object attributes and runtime variables can be accessed as macros in
+commands in Icinga 1.x - Icinga 2 supports all required [macros](#macros).
+
+> **Note**
+>
+> Due to the `contact`objects renamed to `user` objects the associated macros
+> have changed.
+> Furthermore an `alias` is now reflected as `display_name`. The Icinga 1.x
+> notation is still supported for compatibility reasons.
+
+  Icinga 1.x Name        | Icinga 2 Name
+  -----------------------|--------------
+  CONTACTNAME            | USERNAME
+  CONTACTALIAS           | USERDISPLAYNAME
+  CONTACTEMAIL           | USEREMAIL
+  CONTACTPAGER           | USERPAGER
+
+
 ### Command Macros
 
 If you have previously used Icinga 1.x you may already be familiar with
@@ -189,14 +256,34 @@ are separated from the command name using an exclamation mark (`!`).
         command_line  $USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
     }
 
-    define service{
+    define service {
         use                     local-service
         host_name               localhost
         service_description     PING
-        check_command           check_ping!100.0,20%!500.0,60%
+        check_command           ping4!100.0,20%!500.0,60%
     }
 
-In Icinga 2
+With the freely definable macros in Icinga 2 it looks like this:
+
+    object CheckCommand "ping4" {
+        command = "$plugindir$/check_ping -H $HOSTADDRESS$ -w $wrta$,$wpl%$ -c $crta$,$cpl%$",
+    }
+
+    object Service "PING" {
+        check_command = "ping4",
+        macros = {
+            wrta = 100,
+            wpl = 20,
+            crta = 500,
+            cpl = 60
+        }
+    }
+
+> **Note**
+>
+> Tip: The above example uses the global $plugindir$ macro instead of the Icinga 1.x
+> $USER1$ macro. It also replaces the Icinga 1.x notation with $ARGn$ with freely
+> definable macros.
 
 ### Environment Macros
 
@@ -441,3 +528,17 @@ popular broker modules was implemented for Icinga 2:
 In Icinga 1.x broker modules may only be loaded once which means it is not easily possible
 to have one Icinga instance write to multiple IDO databases. Due to the way
 objects work in Icinga 2 it is possible to set up multiple IDO database instances.
+
+
+## Distributed Monitoring
+
+Icinga 1.x uses the native "obsess over host/service" method which requires the NSCA addon
+passing the slave's checkresults passively onto the master's external command pipe.
+While this method may be used for check load distribution, it does not provide any configuration
+distribution out-of-the-box. Furthermore comments, downtimes and other stateful runtime data is
+not synced between the master and slave nodes. There are addons available solving the check
+and configuration distribution problems Icinga 1.x distributed monitoring currently suffers from.
+
+Icinga 2 implements a new built-in distributed monitoring architecture, including config and check
+distribution, IPv4/IPv6 support, SSL certificates and domain support for DMZ. High Availability
+and load balancing are also part of the Icinga 2 Cluster setup.
