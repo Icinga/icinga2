@@ -200,11 +200,11 @@ fi
 %exclude %{_datadir}/%{name}/itl
 %{_mandir}/man8/%{name}.8.gz
 
-%attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
-%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
-%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat
-%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
-%attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/run/%{name}
+%attr(0751,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
+%attr(0751,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
+%attr(0751,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat
+%attr(0751,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
+%attr(0751,%{icinga_user},%{icinga_group}) %{_localstatedir}/run/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/lib/%{name}
 
 %attr(2755,%{icinga_user},%{icingacmd_group}) %{_localstatedir}/run/icinga2/cmd
