@@ -243,9 +243,13 @@ int main(int argc, char **argv)
 		struct group *gr = getgrnam(group.CStr());
 
 		if (!gr) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("getgrnam")
-				<< boost::errinfo_errno(errno));
+			if (errno == 0) {
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid group specified: " + group));
+			} else {
+				BOOST_THROW_EXCEPTION(posix_error()
+					<< boost::errinfo_api_function("getgrnam")
+					<< boost::errinfo_errno(errno));
+			}
 		}
 
 		if (setgid(gr->gr_gid) < 0) {
@@ -262,9 +266,13 @@ int main(int argc, char **argv)
 		struct passwd *pw = getpwnam(user.CStr());
 
 		if (!pw) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("getpwnam")
-				<< boost::errinfo_errno(errno));
+			if (errno == 0) {
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid user specified: " + user));
+			} else {
+				BOOST_THROW_EXCEPTION(posix_error()
+					<< boost::errinfo_api_function("getpwnam")
+					<< boost::errinfo_errno(errno));
+			}
 		}
 
 		if (setuid(pw->pw_uid) < 0) {
