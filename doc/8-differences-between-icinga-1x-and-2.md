@@ -13,8 +13,8 @@ the Icinga daemon at startup.
        notifications_enabled=0
     }
 
-Icinga 2 supports objects and (global) variables, but does not make a difference if it's
-the main configuration file, or any included file.
+Icinga 2 supports objects and (global) variables, but does not make a difference
+if it's the main configuration file, or any included file.
 
     set IcingaEnableNotifications = 1,
 
@@ -24,9 +24,9 @@ the main configuration file, or any included file.
 
 ### Sample Configuration and ITL
 
-While Icinga 1.x ships sample configuration and templates spread in various object files
-Icinga 2 moves all templates into the Icinga Template Library (ITL) and includes that
-in the sample configuration.
+While Icinga 1.x ships sample configuration and templates spread in various
+object files Icinga 2 moves all templates into the Icinga Template Library (ITL)
+and includes that in the sample configuration.
 
 The ITL will be updated on every releases and should not be edited by the user.
 
@@ -101,8 +101,8 @@ hosts) like in Icinga 1.x but directly after their type definition.
 
 ## Templates
 
-In Icinga 1.x templates are identified using `register 0`. Icinga 2 uses the
-`template` identifier.
+In Icinga 1.x templates are identified using the `register 0` setting. Icinga 2
+uses the `template` identifier:
 
     template Service "ping4-template" { }
 
@@ -147,8 +147,8 @@ terminated with a comma (,).
 ## Host Service Relation
 
 In Icinga 1.x a service object is associated with a host by defining the
-`host_name` attribute in the service definition. Alternate object tricks refer to
-`hostgroup_name` or behavior changing regular expression. It's not possible
+`host_name` attribute in the service definition. Alternate object tricks refer
+to `hostgroup_name` or behavior changing regular expression. It's not possible
 to define a service definition within a host definition.
 
 The preferred way of associating hosts with services in Icinga 2 are services
@@ -158,57 +158,14 @@ inline service definitions can reference service templates.
 Linking a service to a host is still possible with the 'host' attribute in
 a service object in Icinga 2.
 
-### Service Hostgroup to Hosts Trick
-
-A common pattern in Icinga 1.x is to add services to hostgroups. When a host
-is added as hostgroup member, it will automatically collect all services linked
-to that hostgroup. Inheriting services from a parent hostgroup to a member
-hostgroup does not work.
-
-    define hostgroup {
-        hostgroup_name      testhg
-    }
-    define service {
-        service_description testservice
-        hostgroup_name      testhg
-    }
-    define host {
-        host_name           testhost
-        hostgroups          testhg
-    }
-
-Since it's possible to define services inline in a host template object and
-inherit them to actual host objects in Icinga 2 the preferred method works
-like: Create a host template (acting as "hostgroup" relation) and define all
-services (either inline, or reference a service template). Then let all hosts
-inherit from that host template, collecting all service relations.
-
-    template Host "testhg" {
-        services["testservice"] = {
-            ...
-        }
-    }
-
-    object Host "testhost" inherits "testhg" {
-        ...
-    }
-
-Hostgroups in Icinga 2 are only used for grouping the views but must not
-be used for host service relation building.
-
-> **Note**
->
-> It's also possible to modify attributes in the host's service array inherited
-> from the host template. E.g. macros.
-
 ## Users
 
 Contacts have been renamed to Users (same for groups). A user does not
 only provide attributes and macros used for notifications, but is also
 used for authorization checks.
 
-In Icinga 2 notification commands are not directly associated with users. Instead
-the notification command is specified in `Notification` objects.
+In Icinga 2 notification commands are not directly associated with users.
+Instead the notification command is specified using `Notification` objects.
 
 The `StatusDataWriter`, `IdoMySqlConnection` and `LivestatusListener` types will
 provide the contact and contactgroups attributes for services for compatibility
@@ -246,17 +203,16 @@ In Icinga 2
 The global configuration setting `enable_environment_macros` does not exist in
 Icinga 2.
 
-Macros exported into the environment must be set using the `export_macros` attribute
-in command objects.
-
-
+Macros exported into the environment must be set using the `export_macros`
+attribute in command objects.
 
 ## Checks
 
 ### Host Check
 
 Unlike in Icinga 1.x hosts are not checkable objects in Icinga 2. Instead hosts
-inherit their state from the service that is specified using the `check` attribute.
+inherit their state from the service that is specified using the `check`
+attribute.
 
 ### Check Output
 
@@ -278,7 +234,7 @@ where the initial state checks must have happened. Icinga 2 will use the
 ### Performance Data
 
 There is no host performance data generated in Icinga 2 because there are no
-real host checks anymore. Therefore the PerfDataWriter will only write service
+real host checks. Therefore the PerfDataWriter will only write service
 performance data files.
 
 ## Commands
@@ -294,27 +250,33 @@ In Icinga 2 these command types are separated and will generate an error on
 configuration validation if used in the wrong context.
 
 While Icinga 2 still supports the complete command line in command objects, it's
-also possible to encapsulate all arguments into double quotes and passing them as
-array to the `command_line` attribute i.e. for better readability.
+also possible to encapsulate all arguments into double quotes and passing them
+as array to the `command_line` attribute i.e. for better readability.
 
-It's also possible to define default (argument) macros for the command itself which
-can be overridden by a service (argument) macro.
-
+It's also possible to define default macros for the command itself which can be
+overridden by a service macro.
 
 ## Groups
 
-### Group Membership
+In Icinga 2 hosts, services and users are added to groups using the `groups`
+attribute in the object. The old way of listing all group members in the group's
+`members` attribute is not supported.
 
-Assigning members to hostgroups, servicegroups, usergroups is done only at the
-host/service/user object using the 'groups' attribute. The old method defining
-that directly as group attribute is not supported. Better use templates inheriting
-the 'groups' attribute to all your objects.
+The preferred way of assigning objects to groups is by using a template:
 
-### Hostgroup with Services
+    template Host "dev-host" {
+      groups += [ "dev-hosts" ],
 
-Hostgroups are used for grouping only, and cannot be used for object tricks like in
-Icinga 1.x.
+      services["http"] = {
+        check_command = [ "http-ip" ]
+      }
+    }
 
+    object Host "web-dev" inherits "dev-host" { }
+
+Host groups in Icinga 2 cannot be used to associate services with all members
+of that group. The example above shows how to use templates to accomplish
+the same effect.
 
 ## Notifications
 
@@ -328,9 +290,12 @@ notification configuration problem in Icinga 1.x:
 
 The only way achieving a semi-clean solution is to
 
-* Create contact X-sms, set service_notification_command for sms, assign contact to service A
-* Create contact X-mail, set service_notification_command for mail, assign contact to service B
-* Create contact Y, set service_notification_command for sms and mail, assign contact to service C
+* Create contact X-sms, set service_notification_command for sms, assign contact
+  to service A
+* Create contact X-mail, set service_notification_command for mail, assign
+  contact to service B
+* Create contact Y, set service_notification_command for sms and mail, assign
+  contact to service C
 * Create contact X without notification commands, assign to service A and B
 
 Basically you are required to create duplicated contacts for either each
@@ -340,10 +305,14 @@ Icinga 2 attempts to solve that problem in this way
 
 * Create user X, set SMS and Mail attributes, used for authorization
 * Create user Y, set SMS and Mail attributes, used for authorization
-* Create notification A-SMS, set notification_command for sms, add user X, assign notification A-SMS to service A
-* Create notification B-Mail, set notification_command for mail, add user X, assign notification Mail to service B
-* Create notification C-SMS, set notification_command for sms, add user Y, assign notification C-SMS to service C
-* Create notification C-Mail, set notification_command for mail, add user Y, assign notification C-Mail to service C
+* Create notification A-SMS, set notification_command for sms, add user X,
+  assign notification A-SMS to service A
+* Create notification B-Mail, set notification_command for mail, add user X,
+  assign notification Mail to service B
+* Create notification C-SMS, set notification_command for sms, add user Y,
+  assign notification C-SMS to service C
+* Create notification C-Mail, set notification_command for mail, add user Y,
+  assign notification C-Mail to service C
 
 > **Note**
 >
@@ -358,7 +327,6 @@ In Icinga 2 it will look like this:
 
     Service -> Notification -> NotificationCommand
                             -> User, UserGroup
-
 
 ### Escalations
 
@@ -406,8 +374,7 @@ and flapping type (start, end, ...).
 > **Note**
 >
 > Notification state and type filters are only valid configuration attributes for
-> Notification and User objects.
-
+> `Notification` and `User` objects.
 
 ## Dependencies and Parents
 
@@ -423,35 +390,36 @@ service object or template. A service can now depend on a host, and vice versa. 
 service has an implicit dependeny (parent) to its host. A host to host dependency acts
 implicit as host parent relation.
 
-StatusDataWriter, IdoMysqlConnection and LivestatusListener support the Icinga 1.x
-schema with dependencies and parent attributes for compatibility reasons.
-
+The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
+support the Icinga 1.x schema with dependencies and parent attributes for
+compatibility reasons.
 
 ## Flapping
 
 The Icinga 1.x flapping detection uses the last 21 states of a service. This
 value is hardcoded and cannot be changed. The algorithm on determining a flapping state
-is
+is as follows:
 
-   flap threshold = (number of actual state changes / number of possible state changes) * 100%
+    flapping value = (number of actual state changes / number of possible state changes)
 
-comparing that to low and high flapping thresholds.
+The flapping value is then compared to the low and high flapping thresholds.
 
-The algorithm uses in Icinga 2 does not store the past states but calculcates the flapping
+The algorithm used in Icinga 2 does not store the past states but calculcates the flapping
 threshold from a single value based on counters and half-life values. Icinga 2 compares
 the value with a single flapping threshold configuration attribute.
 
-
 ## State Retention
 
-Icinga 1.x uses retention.dat to save historical and modified-at-runtime data over restarts.
-Icinga 2 uses its own icinga2.state file with a json-like serialized format.
+Icinga 1.x uses the `retention.dat` file to save its state in order to be able
+to reload it after a restart. In Icinga 2 this file is called `icinga2.state`.
 
+The format objects are stored in is not compatible with Icinga 1.x.
 
 ## Logging
 
-Icinga 1.x supports syslog facilities and writes to its own icinga.log and archives. These logs
-are used in Icinga 1.x Classic UI to generate historical reports.
+Icinga 1.x supports syslog facilities and writes its own `icinga.log` log file
+and archives. These logs are used in Icinga 1.x Classic UI to generate
+historical reports.
 
 Icinga 2 compat library provides the CompatLogger object which writes the icinga.log and archive
 in Icinga 1.x format in order to stay compatible with Classic UI and other addons.
@@ -461,26 +429,15 @@ FileLogger, StreamLogger. Each of them got their own severity and target configu
 
 ## Broker Modules and Features
 
-Icinga 1.x broker modules are binary incompatible with the Icinga 2 component loader.
-Therefore the module configuration cannot be copied 1:1
+Icinga 1.x broker modules are incompatible with Icinga 2.
 
-Icinga 1.x IDOUtils was implemented from scratch as Icinga 2 feature which can be loaded
-and enabled on-demand. The Icinga 1.x Livestatus addon is implemented as Icinga 2
-LivestatusListener. Icinga 1.x broker modules used for check distributions are replaced
-by the Icinga 2 cluster and distributed capabilities using the same protocol and security
-mechanisms as the Icinga 2 instance itself.
+In order to provide compatibility with Icinga 1.x the functionality of several
+popular broker modules was implemented for Icinga 2:
 
-Each feature can be created multiple times, i.e. having 3 IDO Mysql databases, 5 Performance
-Data Writers and 2 Livestatus Listeners (one listening on tcp, and one on unix sockets).
+* IDOUtils
+* Livestatus
+* Cluster (allows for high availability and load balancing)
 
-### IDOUtils Database Backend
-
-Icinga 2 uses Ido<DBType>Connection configuration objects re-using some options known from
-Icinga 1.x IDOUtils such as the database credentials, instance_name or the cleanup attributes
-for max age of table entries.
-
-### Enable Features
-
-Icinga 2 features require a library to be loaded, and object configuration. In order to simplify
-the process of enabling/disabling these features Icinga 2 ships with two scripts inspired by
-Apache: `i2enfeature` and `i2disfeature`.
+In Icinga 1.x broker modules may only be loaded once which means it is not easily possible
+to have one Icinga instance write to multiple IDO databases. Due to the way
+objects work in Icinga 2 it is possible to set up multiple IDO database instances.

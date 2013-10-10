@@ -62,7 +62,7 @@ start() {
                 exit 1
         fi
 
-        printf "Starting Icinga 2: "
+        echo "Starting Icinga 2: "
         ulimit -n 8192
         $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP
 
