@@ -2,10 +2,10 @@
 
 ## Configuration Format
 
-Icinga 1.x supports two configuration formats: key-value-based settings in
-`icinga.cfg` and object-based in included files (`cfg_dir`, `cfg_file`). The
-path to the `icinga.cfg` configuration file must be passed to the Icinga daemon
-at startup.
+Icinga 1.x supports two configuration formats: key-value-based settings in the
+`icinga.cfg` cofiguration file and object-based in included files (`cfg_dir`,
+`cfg_file`). The path to the `icinga.cfg` configuration file must be passed to
+the Icinga daemon at startup.
 
     enable_notifications=1
 
@@ -32,15 +32,16 @@ The ITL will be updated on every releases and should not be edited by the user.
 
 > **Note**
 >
-> Sample configuration is located in `conf.d/` which is included in `icinga2.conf` by default.
+> Sample configuration files are located in the `conf.d/` directory which is
+> included in `icinga2.conf` by default.
 
 ### Include Files and Directories
 
 In Icinga 1.x the `icinga.cfg` file contains `cfg_file` and `cfg_dir`
 directives. The `cfg_dir` directive recursively includes all files with a `.cfg`
-suffix in the given directory. All paths must be configured absolute, relative
-paths are not possible. The `cfg_file` and `cfg_dir` directives can include the
-same file twice which leads into configuration errors in Icinga 1.x.
+suffix in the given directory. Only absolute paths may be used. The `cfg_file`
+and `cfg_dir` directives can include the same file twice which leads to
+configuration errors in Icinga 1.x.
 
     cfg_file=/etc/icinga/objects/commands.cfg
     cfg_dir=/etc/icinga/objects
@@ -101,7 +102,7 @@ hosts) like in Icinga 1.x but directly after their type definition.
 ## Templates
 
 In Icinga 1.x templates are identified using `register 0`. Icinga 2 uses the
-"template" identifier.
+`template` identifier.
 
     template Service "ping4-template" { }
 
@@ -119,8 +120,6 @@ comma-separated list with template names in double quotes.
 
 ## Object attributes
 
-### Attribute values
-
 Icinga 1.x separates attribute and value with whitespaces/tabs. Icinga 2
 requires an equal sign (=) between them.
 
@@ -137,28 +136,22 @@ requires an equal sign (=) between them.
 > Please note that the default time value is seconds, if no duration literal
 > is given. check_interval = 5 behaves the same as check_interval = 5s.
 
-### Attribute strings
-
 All strings require double quotes in Icinga 2. Therefore a double-quote
 must be escaped with a backslash (e.g. in command line).
 If an attribute identifier starts with a number, it must be encapsulated
 with double quotes as well.
 
-### Attribute lines
-
 Unlike in Icinga 1.x all attributes within the current object must be
 terminated with a comma (,).
 
-
 ## Host Service Relation
 
-In Icinga 1.x a service object is linked to a host by defining the 'host_name'
-attribute in the service definition. Alternate object tricks refer to
-'hostgroup_name' or behavior changing regular expression. It's not possible
-to define a service definition within a host definition, or even link from
-a host definition to services.
+In Icinga 1.x a service object is associated with a host by defining the
+`host_name` attribute in the service definition. Alternate object tricks refer to
+`hostgroup_name` or behavior changing regular expression. It's not possible
+to define a service definition within a host definition.
 
-The preferred way of linking hosts with services in Icinga 2 are services
+The preferred way of associating hosts with services in Icinga 2 are services
 defined inline to the host object (or template) definition. Icinga 2 will
 implicitely create a new service object on configuration activation. These
 inline service definitions can reference service templates.
@@ -328,50 +321,43 @@ Icinga 1.x.
 Notifications are a new object type in Icinga 2. Imagine the following
 notification configuration problem in Icinga 1.x:
 
-Service A should notify contact X via SMS
-Service B should notify contact X via Mail
-Service C should notify contact Y via Mail and SMS
-Contact X and Y should also be used for authorization (e.g. in Classic UI)
+* Service A should notify contact X via SMS
+* Service B should notify contact X via Mail
+* Service C should notify contact Y via Mail and SMS
+* Contact X and Y should also be used for authorization (e.g. in Classic UI)
 
 The only way achieving a semi-clean solution is to
 
-Create contact X-sms, set service_notification_command for sms, assign
-contact to service A
-Create contact X-mail, set service_notification_command for mail, assign
-contact to service B
-Create contact Y, set service_notification_command for sms and mail, assign
-contact to service C
-Create contact X without notification commands, assign to service A and B
+* Create contact X-sms, set service_notification_command for sms, assign contact to service A
+* Create contact X-mail, set service_notification_command for mail, assign contact to service B
+* Create contact Y, set service_notification_command for sms and mail, assign contact to service C
+* Create contact X without notification commands, assign to service A and B
 
 Basically you are required to create duplicated contacts for either each
 notification method or used for authorization only.
 
 Icinga 2 attempts to solve that problem in this way
 
-Create user X, set SMS and Mail attributes, used for authorization
-Create user Y, set SMS and Mail attributes, used for authorization
-Create notification A-SMS, set notification_command for sms, add user X, assign
-notification A-SMS to service A
-Create notification B-Mail, set notification_command for mail, add user X, assign
-notification Mail to service B
-Create notification C-SMS, set notification_command for sms, add user Y, assign
-notification C-SMS to service C
-Create notification C-Mail, set notification_command for mail, add user Y, assign
-notification C-Mail to service C
+* Create user X, set SMS and Mail attributes, used for authorization
+* Create user Y, set SMS and Mail attributes, used for authorization
+* Create notification A-SMS, set notification_command for sms, add user X, assign notification A-SMS to service A
+* Create notification B-Mail, set notification_command for mail, add user X, assign notification Mail to service B
+* Create notification C-SMS, set notification_command for sms, add user Y, assign notification C-SMS to service C
+* Create notification C-Mail, set notification_command for mail, add user Y, assign notification C-Mail to service C
 
 > **Note**
 >
-> Notification objects are not required to be service agnostic. They may use
+> Notification objects are not required to be service-agnostic. They may use
 > global notification templates and can be added to a service wherever needed.
 
-Previously in Icinga 1.x it looked like
+Previously in Icinga 1.x it looked like this:
 
-service -> (contact, contactgroup) -> notification command
+    service -> (contact, contactgroup) -> notification command
 
-In Icinga 2 it will look like
+In Icinga 2 it will look like this:
 
-Service -> Notification -> NotificationCommand
-                        -> User, UserGroup
+    Service -> Notification -> NotificationCommand
+                            -> User, UserGroup
 
 
 ### Escalations

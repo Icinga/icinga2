@@ -9,12 +9,20 @@ EXTRA_DIST = \
 	2.4-setting-up-ido.md \
 	2.5-setting-up-livestatus.md \
 	2.6-running-icinga.md \
-	3.1-hosts-and-services.md \
-	3.2-commands.md \
-	3.3-macros.md \
-	3.4-notifications.md \
-	3.5-groups.md \
-	3.5-using-templates.md \
+	3.01-hosts-and-services.md \
+	3.02-commands.md \
+	3.03-macros.md \
+	3.04-notifications.md \
+	3.05-using-templates.md \
+	3.06-groups.md \
+	3.07-time-periods.md \
+	3.08-external-commands.md \
+	3.09-event-handlers.md \
+	3.10-logging.md \
+	3.11-performance-data.md \
+	3.12-status-data.md \
+	3.13-compat-logging.md \
+	3.14-check-result-files.md \
 	3-monitoring-basics.md \
 	4.1-configuration-syntax.md \
 	4.2-global-variables.md \
