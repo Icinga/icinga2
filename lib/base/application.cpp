@@ -318,8 +318,9 @@ bool Application::IsDebugging(void)
 void Application::DisplayBugMessage(void)
 {
 	std::cerr << "***" << std::endl
-		  << "*** This would indicate a bug in Icinga 2. Please submit a bug report at https://dev.icinga.org/ and include" << std::endl
-		  << "*** this stack trace as well as any other information that might be useful in order to reproduce this problem." << std::endl
+		  << "*** This would indicate a runtime problem or configuration error. If you believe this is a bug in Icinga 2" << std::endl
+		  << "*** please submit a bug report at https://dev.icinga.org/ and include this stack trace as well as any other" << std::endl
+		  << "*** information that might be useful in order to reproduce this problem." << std::endl
 		  << "***" << std::endl
 		  << std::endl;
 }
