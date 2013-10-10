@@ -8,7 +8,7 @@ rpm --import http://packages.icinga.org/icinga.key
 wget http://packages.icinga.org/epel/6/snapshot/ICINGA-snapshot.repo -O /etc/yum.repos.d/ICINGA-snapshot.repo
 yum makecache
 yum install -y httpd
-yum install -y --nogpgcheck icinga2 icinga-gui
+yum install -y --nogpgcheck icinga2 icinga2-classicui-config icinga-gui
 chkconfig httpd on
 chkconfig icinga2 on
 
@@ -22,20 +22,9 @@ yum install -y /tmp/epel.rpm
 rm -f /tmp/epel.rpm
 yum install -y nagios-plugins-all
 
-# Remove once icinga2-classicui-config works
-ln -sf /var/cache/icinga2/status.dat /var/spool/icinga/status.dat
-ln -sf /var/cache/icinga2/objects.cache /var/spool/icinga/objects.cache
-ln -sf /var/run/icinga2/cmd/icinga2.cmd /var/icinga/cmd/icinga.cmd
-ln -sf /var/log/icinga2/compat/icinga.log /var/log/icinga/icinga.log
-rm -Rf /var/log/icinga/archives
-ln -s /var/log/icinga2/compat/archives /var/log/icinga/
-
 i2enfeature statusdat
 i2enfeature compat-log
 i2enfeature command
-
-# Remove once the plugin path is fixed
-sed -i 's/lib/lib64/' /etc/icinga2/conf.d/macros.conf
 
 # 4845
 sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/sysconfig/selinux
