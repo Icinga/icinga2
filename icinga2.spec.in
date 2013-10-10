@@ -165,6 +165,8 @@ install -D -m 0644 etc/icinga/icinga-classic.htpasswd %{buildroot}%{icingaclassi
 install -D -m 0644 etc/icinga/cgi.cfg %{buildroot}%{icingaclassicconfdir}/cgi.cfg
 install -D -m 0644 etc/icinga/icinga-classic-apache.conf %{buildroot}%{apacheconfdir}/icinga.conf
 
+# fix plugin path on x64
+sed -i 's@plugindir = .*@plugindir = "%{_libdir}/nagios/plugins"@' %{buildroot}/%{_sysconfdir}/%{name}/conf.d/macros.conf
 
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
