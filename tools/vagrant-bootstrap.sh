@@ -10,9 +10,10 @@ yum makecache
 yum install -y httpd
 yum install -y --nogpgcheck icinga2 icinga-gui
 chkconfig httpd on
-chkconfig icinga off
 chkconfig icinga2 on
 
+# Remove once packages are fixed
+chkconfig icinga off
 /etc/init.d/icinga stop
 /etc/init.d/icinga2 stop
 
@@ -21,6 +22,7 @@ yum install -y /tmp/epel.rpm
 rm -f /tmp/epel.rpm
 yum install -y nagios-plugins-all
 
+# Remove once icinga2-classicui-config works
 ln -sf /var/cache/icinga2/status.dat /var/spool/icinga/status.dat
 ln -sf /var/cache/icinga2/objects.cache /var/spool/icinga/objects.cache
 ln -sf /var/run/icinga2/cmd/icinga2.cmd /var/icinga/cmd/icinga.cmd
@@ -32,7 +34,12 @@ i2enfeature statusdat
 i2enfeature compat-log
 i2enfeature command
 
+# Remove once the plugin path is fixed
 sed -i 's/lib/lib64/' /etc/icinga2/conf.d/macros.conf
+
+# 4845
+sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/sysconfig/selinux
+setenforce Permissive
 
 /etc/init.d/httpd start
 /etc/init.d/icinga2 start
