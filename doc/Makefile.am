@@ -35,9 +35,19 @@ MARKDOWN_FILES = \
 	8-differences-between-icinga-1x-and-2.md \
 	9-vagrant-demo-vm.md
 
+DOCVIEWER_FILES = \
+	jquery.min.js \
+	jquery.toc.min.js \
+	toc.css \
+	toc-margin.css \
+	toc-print.css
+
 EXTRA_DIST = \
 	$(MARKDOWN_FILES) \
-	icinga2.8
+	$(DOCVIEWER_FILES) \
+	icinga2.8 \
+	mkdoc.sh \
+	BLACKLIST
 
 CLEANFILES = \
 	index.html
@@ -45,11 +55,7 @@ CLEANFILES = \
 icinga2docdir = ${docdir}
 icinga2doc_DATA = \
 	index.html \
-	jquery.min.js \
-	jquery.toc.min.js \
-	toc.css \
-	toc-margin.css \
-	toc-print.css
+	$(DOCVIEWER_FILES)
 
 index.html: $(MARKDOWN_FILES)
 	./mkdoc.sh > $@.tmp && mv $@.tmp $@
