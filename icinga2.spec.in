@@ -213,9 +213,9 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/features-available/*.conf
 %config(noreplace) %{_sysconfdir}/%{name}/features-enabled/*.conf
 %{_bindir}/%{name}
+%{_bindir}/icinga2-migrate-config
 %{_sbindir}/i2enfeature
 %{_sbindir}/i2disfeature
-%{_sbindir}/icinga2-migrate-config
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %{_libdir}/%{name}
 %{_datadir}/doc/%{name}
