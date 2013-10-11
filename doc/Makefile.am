@@ -58,7 +58,7 @@ icinga2doc_DATA = \
 	$(DOCVIEWER_FILES)
 
 index.html: $(MARKDOWN_FILES)
-	./mkdoc.sh > $@.tmp && mv $@.tmp $@
+	$(srcdir)/mkdoc.sh > $@.tmp && mv $@.tmp $@
 
 man8_MANS = \
 	icinga2.8
