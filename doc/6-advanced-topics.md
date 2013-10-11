@@ -20,9 +20,19 @@ TODO
 
 TODO
 
-## Check Freshness
+## Check Result Freshness
 
-TODO
+In Icinga 2 active check freshness is enabled by default. It is determined by the
+`check_interval` attribute and no incoming check results in that period of time.
+
+    threshold = last check execution time + check interval
+
+Passive check freshness is calculated from the `check_interval` attribute if set.
+
+    threshold = last check result time + check interval
+
+If the freshness checks are invalid, a new check is executed defined by the
+`check_command` attribute.
 
 ## Check Flapping
 

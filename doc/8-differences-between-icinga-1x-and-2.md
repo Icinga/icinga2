@@ -495,6 +495,19 @@ The algorithm used in Icinga 2 does not store the past states but calculcates th
 threshold from a single value based on counters and half-life values. Icinga 2 compares
 the value with a single flapping threshold configuration attribute.
 
+## Check Result Freshness
+
+Freshness of check results must be explicitely enabled in Icinga 1.x. The attribute
+`freshness_treshold` defines the threshold in seconds. Once the threshold is triggered, an
+active freshness check is executed defined by the `check_command` attribute. Both check
+methods (active and passive) use the same freshness check method.
+
+In Icinga 2 active check freshness is determined by the `check_interval` attribute and no
+incoming check results in that period of time (last check + check interval). Passive check
+freshness is calculated from the `check_interval` attribute if set. There is no extra
+`freshness_threshold` attribute in Icinga 2. If the freshness checks are invalid, a new
+service check is forced.
+
 ## State Retention
 
 Icinga 1.x uses the `retention.dat` file to save its state in order to be able
