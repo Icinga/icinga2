@@ -443,17 +443,19 @@ void ClusterListener::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr
 
 			String message;
 			while (true) {
+				Dictionary::Ptr pmessage;
+
 				try {
 					if (!NetString::ReadStringFromStream(lstream, &message))
 						break;
+
+					pmessage = Value::Deserialize(message);
 				} catch (std::exception&) {
 					Log(LogWarning, "cluster", "Unexpected end-of-file for cluster log: " + path);
 
 					/* Log files may be incomplete or corrupted. This is perfectly OK. */
 					break;
 				}
-
-				Dictionary::Ptr pmessage = Value::Deserialize(message);
 
 				if (pmessage->Get("timestamp") < peer_ts)
 					continue;
