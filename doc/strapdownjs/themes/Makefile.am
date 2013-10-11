@@ -5,3 +5,5 @@ icinga2doc_DATA = \
 	cerulean.min.css \
 	LICENSE
 
+EXTRA_DIST = \
+	$(icinga2doc_DATA)
