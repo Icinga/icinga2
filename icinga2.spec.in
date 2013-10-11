@@ -177,16 +177,6 @@ getent group %{icingacmd_group} >/dev/null || %{_sbindir}/groupadd -r %{icingacm
 getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G %{icingacmd_group} -g %{icinga_group} %{icinga_user}
 exit 0
 
-%preun
-if [ "$1" = "0" ]; then
-	/sbin/service %{name} stop &>/dev/null || :
-	/sbin/chkconfig --del %{name} || :
-fi
-
-%post
-/sbin/chkconfig --add %{name} || :
-/sbin/service %{name} start &>/dev/null || :
-
 %post ido-mysql
 if [ ${1:-0} -eq 1 ]
 then
