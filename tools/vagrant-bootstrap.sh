@@ -30,6 +30,13 @@ i2enfeature command
 sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/sysconfig/selinux
 setenforce Permissive
 
+cat > /etc/httpd/conf.d/doc-redirect.conf <<HTML
+Alias /icinga2-doc "/usr/share/doc/icinga2"
+
+RewriteEngine On
+RewriteRule ^/$ /icinga2-doc/#vagrant [NE,L,R=301]
+HTML
+
 /etc/init.d/httpd start
 /etc/init.d/icinga2 start
 
