@@ -1,6 +1,10 @@
 ## Process this file with automake to produce Makefile.in
 
 if MYSQL_USE
+
+SUBDIRS = \
+	schema
+
 pkglib_LTLIBRARIES = \
 	libdb_ido_mysql.la
 

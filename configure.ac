@@ -168,6 +168,8 @@ components/cluster/Makefile
 components/compat/Makefile
 components/demo/Makefile
 components/db_ido_mysql/Makefile
+components/db_ido_mysql/schema/Makefile
+components/db_ido_mysql/schema/upgrade/Makefile
 components/livestatus/Makefile
 components/notification/Makefile
 doc/Doxyfile

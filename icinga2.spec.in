@@ -230,6 +230,7 @@ fi
 %docdir %{_datadir}/doc/%{name}
 
 %files ido-mysql
+%doc components/db_ido_mysql/schema
 %{_libdir}/%{name}/libdb_ido_mysql*
 
 %files classicui-config
