@@ -226,7 +226,7 @@ fi
 %attr(0751,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
 %attr(0751,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
 %attr(0751,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat
-%attr(0751,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
+%attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
 %attr(0751,%{icinga_user},%{icinga_group}) %{_localstatedir}/run/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/lib/%{name}
 
