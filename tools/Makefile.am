@@ -3,7 +3,7 @@ SUBDIRS = \
 	  mkembedconfig
 
 sbin_SCRIPTS = i2enfeature
-CLEANFILES = $(bin_SCRIPTS)
+CLEANFILES = $(sbin_SCRIPTS)
 
 EXTRA_DIST = i2enfeature.in
 

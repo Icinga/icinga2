@@ -3,3 +3,4 @@
 bin_SCRIPTS = icinga2-migrate-config
 
 
+EXTRA_DIST = $(bin_SCRIPTS)
