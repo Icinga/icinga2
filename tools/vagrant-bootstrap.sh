@@ -42,3 +42,7 @@ HTML
 
 iptables -I INPUT 2 -m tcp -p tcp --dport 80 -j ACCEPT
 /etc/init.d/iptables save
+
+clear
+
+echo "The Icinga 2 Vagrant VM has finished installing. See http://localhost:8080/ for more details."
