@@ -10,7 +10,7 @@ the Icinga daemon at startup.
     enable_notifications=1
 
     define service {
-       notifications_enabled=0
+       notifications_enabled    0
     }
 
 Icinga 2 supports objects and (global) variables, but does not make a difference
