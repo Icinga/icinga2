@@ -217,7 +217,6 @@ fi
 %{_sbindir}/i2disfeature
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %{_libdir}/%{name}
-%{_datadir}/doc/%{name}
 %{_datadir}/%{name}
 %exclude %{_datadir}/%{name}/itl
 %{_mandir}/man8/%{name}.8.gz
@@ -237,8 +236,8 @@ fi
 %{_datadir}/%{name}/itl
 
 %files doc
-%doc README AUTHORS ChangeLog COPYING COPYING.Exceptions
-%doc %{_datadir}/doc/%{name}
+%{_datadir}/doc/%{name}
+%docdir %{_datadir}/doc/%{name}
 
 %files ido-mysql
 %{_libdir}/%{name}/libdb_ido_mysql*
