@@ -24,9 +24,10 @@ possible.
 > **Note**
 >
 > Please check the provided README file for additional notes and possible
-> scaveats.
+> caveats.
 
-    # /usr/sbin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o conf/
+    # mkdir /etc/icinga2/conf.d/migrate
+    # /usr/bin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o /etc/icinga2/conf.d/migrate
 
 
 ### Manual Config Conversion
