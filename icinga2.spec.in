@@ -203,7 +203,6 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc README AUTHORS ChangeLog COPYING COPYING.Exceptions
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/features-available
@@ -239,6 +238,7 @@ fi
 
 %files doc
 %doc README AUTHORS ChangeLog COPYING COPYING.Exceptions
+%doc %{_datadir}/doc/%{name}
 
 %files ido-mysql
 %{_libdir}/%{name}/libdb_ido_mysql*

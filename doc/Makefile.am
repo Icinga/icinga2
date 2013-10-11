@@ -1,6 +1,7 @@
-.PHONY: clean
+SUBDIRS = \
+	strapdownjs
 
-EXTRA_DIST = \
+MARKDOWN_FILES = \
 	1-about.md \
 	2.0-getting-started.md \
 	2.1-setting-up-icinga-2.md \
@@ -32,10 +33,26 @@ EXTRA_DIST = \
 	6-advanced-topics.md \
 	7-migrating-from-icinga-1x.md \
 	8-differences-between-icinga-1x-and-2.md \
+	9-vagrant-demo-vm.md
+
+EXTRA_DIST = \
+	$(MARKDOWN_FILES) \
 	icinga2.8
 
+CLEANFILES = \
+	index.html
+
 icinga2docdir = ${docdir}
-icinga2doc_DATA =
+icinga2doc_DATA = \
+	index.html \
+	jquery.min.js \
+	jquery.toc.min.js \
+	toc.css \
+	toc-margin.css \
+	toc-print.css
+
+index.html: $(MARKDOWN_FILES)
+	./mkdoc.sh > $@.tmp && mv $@.tmp $@
 
 man8_MANS = \
 	icinga2.8

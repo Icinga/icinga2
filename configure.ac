@@ -172,6 +172,8 @@ components/livestatus/Makefile
 components/notification/Makefile
 doc/Doxyfile
 doc/Makefile
+doc/strapdownjs/Makefile
+doc/strapdownjs/themes/Makefile
 etc/Makefile
 etc/icinga/Makefile
 etc/icinga2/Makefile
