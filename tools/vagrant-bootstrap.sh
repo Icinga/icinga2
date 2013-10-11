@@ -7,7 +7,8 @@ yum install -y wget
 rpm --import http://packages.icinga.org/icinga.key
 wget http://packages.icinga.org/epel/6/snapshot/ICINGA-snapshot.repo -O /etc/yum.repos.d/ICINGA-snapshot.repo
 yum makecache
-yum install -y httpd icinga2 icinga2-doc icinga2-classicui-config icinga-gui
+yum install -y httpd
+yum install -y icinga2 icinga2-doc icinga2-classicui-config icinga-gui
 chkconfig httpd on
 chkconfig icinga2 on
 
