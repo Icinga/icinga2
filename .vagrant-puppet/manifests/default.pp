@@ -7,7 +7,6 @@ include icinga-rpm-snapshot
 
 Exec { path => '/bin:/usr/bin:/sbin:/usr/sbin' }
 
-
 exec { 'create-mysql-icinga2-ido-db':
   unless => 'mysql -uicinga -picinga icinga',
   command => 'mysql -uroot -e "CREATE DATABASE icinga; \
@@ -24,7 +23,6 @@ exec { 'create-mysql-icinga2-ido-db':
 #              sudo -u postgres createlang plpgsql icinga',
 #  require => Service['postgresql']
 #}
-
 
 php::extension { ['php-mysql']:
   require => [ Class['mysql'] ]
@@ -54,24 +52,6 @@ user { 'apache':
 file { '/etc/profile.d/env.sh':
   source => 'puppet:////vagrant/.vagrant-puppet/files/etc/profile.d/env.sh'
 }
-
-
-exec { 'install nodejs':
-  command => 'yum -d 0 -e 0 -y --enablerepo=epel install npm',
-  unless  => 'rpm -qa | grep ^npm',
-  require => Class['epel']
-}
-
-
-# for development only, not rpms
-$icinga2_dev_packages = [ 'doxygen', 'openssl-devel',
-                      'gcc-c++', 'libstdc++-devel',
-                      'automake', 'autoconf',
-                      'libtool', 'flex', 'bison',
-                      'boost-devel', 'boost-program-options',
-                      'boost-signals', 'boost-system',
-                      'boost-test', 'boost-thread' ]
-package { $icinga2_dev_packages: ensure => installed }
 
 # nagios plugins from epel
 package { 'nagios-plugins-all':
@@ -125,6 +105,7 @@ user { 'vagrant':
 service { 'icinga2':
   enable => true,
   ensure => running,
+  hasrestart => true,
   require => Package['icinga2']
 }
 
@@ -140,7 +121,7 @@ file { "/etc/icinga2/features-enabled/*":
   notify => Service['icinga2']
 }
 
-# provision icinga2-ido-mysql db
+# populate icinga2-ido-mysql db
 exec { 'populate-icinga2-ido-mysql-db':
   unless  => 'mysql -uicinga -picinga icinga -e "SELECT * FROM icinga_dbversion;" &> /dev/null',
   command => 'mysql -uicinga -picinga icinga < /usr/share/doc/icinga2-ido-mysql-$(rpm -q icinga2-ido-mysql | cut -d\'-\' -f4)/schema/mysql.sql',
