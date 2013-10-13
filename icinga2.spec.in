@@ -197,10 +197,10 @@ fi
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/features-available
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/features-enabled
-%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
-%config(noreplace) %{_sysconfdir}/%{name}/conf.d/*.conf
-%config(noreplace) %{_sysconfdir}/%{name}/features-available/*.conf
-%config(noreplace) %{_sysconfdir}/%{name}/features-enabled/*.conf
+%config(noreplace) %attr(0750,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %attr(0750,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/*.conf
+%config(noreplace) %attr(0750,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/*.conf
+%config(noreplace) %attr(0750,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-enabled/*.conf
 %{_bindir}/%{name}
 %{_bindir}/icinga2-migrate-config
 %{_sbindir}/i2enfeature
@@ -211,11 +211,11 @@ fi
 %exclude %{_datadir}/%{name}/itl
 %{_mandir}/man8/%{name}.8.gz
 
-%attr(0751,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
-%attr(0751,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
-%attr(0751,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat
+%attr(0755,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
+%attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
+%attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
-%attr(0751,%{icinga_user},%{icinga_group}) %{_localstatedir}/run/%{name}
+%attr(0755,%{icinga_user},%{icinga_group}) %{_localstatedir}/run/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/lib/%{name}
 
 %attr(2755,%{icinga_user},%{icingacmd_group}) %{_localstatedir}/run/icinga2/cmd
