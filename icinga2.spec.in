@@ -5,11 +5,15 @@
 %define el5_boost_libs %{_libdir}/boost%{el5_boost_version}
 %define el5_boost_includes /usr/include/boost%{el5_boost_version}
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
+%define apacheuser apache
+%define apachegroup apache
 %endif
 %if "%{_vendor}" == "suse"
 %define opensuse_boost_version 1_49_0
 %define sles_boost_version 1_54_0
 %define apacheconfdir  %{_sysconfdir}/apache2/conf.d
+%define apacheuser wwwrun
+%define apachegroup www
 %endif
 
 %define icinga_user icinga
@@ -192,7 +196,7 @@ fi
 
 
 %files
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/features-available
@@ -221,22 +225,26 @@ fi
 %attr(2755,%{icinga_user},%{icingacmd_group}) %{_localstatedir}/run/icinga2/cmd
 
 %files common
+%defattr(-,root,root,-)
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_datadir}/%{name}/itl
 %{_datadir}/%{name}/itl
 
 %files doc
+%defattr(-,root,root,-)
 %{_datadir}/doc/%{name}
 %docdir %{_datadir}/doc/%{name}
 
 %files ido-mysql
+%defattr(-,root,root,-)
 %doc components/db_ido_mysql/schema
 %{_libdir}/%{name}/libdb_ido_mysql*
 
 %files classicui-config
+%defattr(-,root,root,-)
 %config(noreplace) %{icingaclassicconfdir}/cgi.cfg
 %config(noreplace) %{apacheconfdir}/icinga.conf
-%attr(0640,root,apache) %config(noreplace) %{icingaclassicconfdir}/passwd
+%attr(0640,root,%{apachegroup}) %config(noreplace) %{icingaclassicconfdir}/passwd
 
 
 %changelog
