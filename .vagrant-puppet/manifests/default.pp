@@ -130,14 +130,27 @@ service { 'icinga2':
 
 exec { 'Enable Icinga 2 features':
   command => 'i2enfeature statusdat; \
-              i2enfeature compat-log;
-              i2enfeature command;',
-  require => Package['icinga2'],
+              i2enfeature compat-log; \
+              i2enfeature command; \
+              i2enfeature ido-mysql;',
+  require => [ Package['icinga2'], Exec['populate-icinga2-ido-mysql-db'] ]
 }
 
 file { "/etc/icinga2/features-enabled/*":
   notify => Service['icinga2']
 }
-  
+
+# provision icinga2-ido-mysql db
+exec { 'populate-icinga2-ido-mysql-db':
+  unless  => 'mysql -uicinga -picinga icinga -e "SELECT * FROM icinga_dbversion;" &> /dev/null',
+  command => 'mysql -uicinga -picinga icinga < /usr/share/doc/icinga2-ido-mysql-$(rpm -q icinga2-ido-mysql | cut -d\'-\' -f4)/schema/mysql.sql',
+  require => [ Package['icinga2-ido-mysql'], Exec['create-mysql-icinga2-ido-db'] ]
+}
+
+#exec { 'populate-icinga2-ido-pgsql-db':
+#  unless  => 'psql -U icinga -d icinga -c "SELECT * FROM icinga_dbversion;" &> /dev/null',
+#  command => 'sudo -u postgres psql -U icinga -d icinga < /usr/share/doc/icinga2-ido-pgsql-$(rpm -q icinga2-ido-mysql | cut -d\'-\' -f4)/schema/pgsql.sql',
+#  require => [ Package['icinga2-ido-pgsql'], Exec['create-pgsql-icinga2-ido-db'] ]
+#}
 
 

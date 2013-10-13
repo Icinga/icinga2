@@ -90,6 +90,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     puppet.module_path = ".vagrant-puppet/modules"
     puppet.manifests_path = ".vagrant-puppet/manifests"
     # puppet.options = "-v -d"
+    puppet.options = "--verbose --debug"
   end
 
   config.vm.provision :shell, :path => ".vagrant-puppet/manifests/finalize.sh"
