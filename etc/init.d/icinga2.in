@@ -75,7 +75,11 @@ stop() {
         printf "Stopping Icinga 2: "
         if [ ! -e $ICINGA2_PID_FILE ]; then
                 echo "The PID file '$ICINGA2_PID_FILE' does not exist."
-                exit 1
+                if [ "x$1" = "xnofail" ]; then
+			return
+		else
+			exit 1
+		fi
         fi
 
 	pid=`cat $ICINGA2_PID_FILE`
@@ -145,10 +149,10 @@ case "$1" in
         stop
         ;;
   status)
-        status FOO
+        status
         ;;
   restart|condrestart)
-        stop
+        stop nofail
         start
         ;;
   reload)
