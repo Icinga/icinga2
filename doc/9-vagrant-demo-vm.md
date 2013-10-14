@@ -19,3 +19,6 @@ project.
 
 The Classic UI is available at [http://localhost:8080/icinga](http://localhost:8080/icinga).
 By default both the username and password are `icingaadmin`.
+
+An instance of icinga-web is installed at [http://localhost:8080/icinga-web](http://localhost:8080/icinga-web).
+The username is `root` and the password is `password`.
