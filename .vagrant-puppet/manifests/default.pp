@@ -80,13 +80,15 @@ package { 'icinga2-classicui-config':
 
 package { $icinga2_main_packages:
   ensure => installed,
-  require => Class['icinga-rpm-snapshot']
+  require => Class['icinga-rpm-snapshot'],
+  notify  => Service['apache']
 }
 
 
 package { 'icinga-web':
   ensure => installed,
-  require => Class['icinga-rpm-snapshot']
+  require => Class['icinga-rpm-snapshot'],
+  notify  => Service['apache']
 }
 
 # enable http 80
