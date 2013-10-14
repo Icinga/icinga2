@@ -29,9 +29,4 @@ class apache {
     alias   => 'apache',
     require => Package['apache']
   }
-
-  exec { 'reload-apache':
-    command => '/etc/init.d/httpd force-reload',
-    refreshonly => true,
-  }
 }
