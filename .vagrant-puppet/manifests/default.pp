@@ -109,6 +109,13 @@ service { 'icinga2':
   require => Package['icinga2']
 }
 
+# icinga 2 IDO config
+file { '/etc/icinga2/features-available/ido-mysql.conf':
+  source  => 'puppet:////vagrant/.vagrant-puppet/files/etc/icinga2/features-available/ido-mysql.conf',
+  require => Package['icinga2'],
+  notify  => Service['icinga2']
+}
+
 exec { 'Enable Icinga 2 features':
   command => 'i2enfeature statusdat; \
               i2enfeature compat-log; \
