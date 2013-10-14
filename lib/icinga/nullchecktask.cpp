@@ -40,10 +40,11 @@ Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 
 	String output = "Hello from ";
 	output += name;
-	output += " | time=" + Convert::ToString(static_cast<long>(Utility::GetTime()));
+	String perfdata = "time=" + Convert::ToString(Utility::GetTime());
 
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("output", output);
+	cr->Set("performance_data_raw", perfdata);
 	cr->Set("state", static_cast<ServiceState>(Utility::Random() % 4));
 
 	return cr;
