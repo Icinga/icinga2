@@ -15,6 +15,14 @@ exec { 'create-mysql-icinga2-ido-db':
   require => Service['mysqld']
 }
 
+exec { 'create-mysql-icinga-web-db':
+  unless => 'mysql -uicinga_web -picinga_web icinga_web',
+  command => 'mysql -uroot -e "CREATE DATABASE icinga_web; \
+	      GRANT ALL ON icinga_web.* TO icinga_web@localhost \
+	      IDENTIFIED BY \'icinga_web\';"',
+  require => Service['mysqld']
+}
+
 # enable when icinga2-ido-pgsql is ready
 #exec { 'create-pgsql-icinga2-ido-db':
 #  unless => 'sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname=\'icinga\'" | grep -q 1',
@@ -75,6 +83,11 @@ package { $icinga2_main_packages:
   require => Class['icinga-rpm-snapshot']
 }
 
+
+package { 'icinga-web':
+  ensure => installed,
+  require => Class['icinga-rpm-snapshot']
+}
 
 # enable http 80
 exec { 'iptables-allow-http':
@@ -141,4 +154,9 @@ exec { 'populate-icinga2-ido-mysql-db':
 #  require => [ Package['icinga2-ido-pgsql'], Exec['create-pgsql-icinga2-ido-db'] ]
 #}
 
+exec { 'populate-icinga-web-mysql-db':
+  unless  => 'mysql -uicinga_web -picinga_web icinga_web -e "SELECT * FROM nsm_user;" &> /dev/null',
+  command => 'mysql -uicinga_web -picinga_web icinga_web < /usr/share/icinga-web/etc/schema/mysql.sql',
+  require => [ Package['icinga-web'], Exec['create-mysql-icinga-web-db'] ]
+}
 
