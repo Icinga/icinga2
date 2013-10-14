@@ -4,6 +4,7 @@
 %define el5_boost_version 141
 %define el5_boost_libs %{_libdir}/boost%{el5_boost_version}
 %define el5_boost_includes /usr/include/boost%{el5_boost_version}
+%define apachename httpd
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
 %define apacheuser apache
 %define apachegroup apache
@@ -11,6 +12,7 @@
 %if "%{_vendor}" == "suse"
 %define opensuse_boost_version 1_49_0
 %define sles_boost_version 1_54_0
+%define apachename apache2
 %define apacheconfdir  %{_sysconfdir}/apache2/conf.d
 %define apacheuser wwwrun
 %define apachegroup www
@@ -43,6 +45,7 @@ BuildRequires: autoconf
 BuildRequires: libtool
 BuildRequires: flex
 BuildRequires: bison
+BuildRequires: %{apachename}
 
 %if "%{_vendor}" == "redhat"
 BuildRequires: libtool-ltdl-devel
@@ -138,6 +141,7 @@ IDOUtils schema >= 1.10
 %package classicui-config
 Summary:      Icinga 2 Classic UI Standalone configuration
 Group:        Applications/System
+Requires:     %{apachename}
 Provides:     icinga-classicui-config
 Conflicts:    icinga-gui-config
 
