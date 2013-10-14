@@ -8,4 +8,5 @@ SUBDIRS = \
 	demo \
 	db_ido_mysql \
 	livestatus \
-	notification
+	notification \
+	perfdata

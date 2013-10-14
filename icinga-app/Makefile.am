@@ -31,7 +31,8 @@ icinga2_LDADD = \
 	-dlopen ${top_builddir}/components/compat/libcompat.la \
 	-dlopen ${top_builddir}/components/demo/libdemo.la \
 	-dlopen ${top_builddir}/components/livestatus/liblivestatus.la \
-	-dlopen ${top_builddir}/components/notification/libnotification.la
+	-dlopen ${top_builddir}/components/notification/libnotification.la \
+	-dlopen ${top_builddir}/components/perfdata/libperfdata.la
 
 if PYTHON_USE
 icinga2_LDADD += \

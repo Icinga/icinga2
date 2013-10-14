@@ -39,7 +39,7 @@ enum CleanUpAge
 /**
  * A database connection.
  *
- * @ingroup ido
+ * @ingroup db_ido
  */
 class DbConnection : public DynamicObject
 {

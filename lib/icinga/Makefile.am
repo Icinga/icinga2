@@ -49,8 +49,6 @@ libicinga_la_SOURCES =  \
 	nullchecktask.h \
 	nulleventtask.cpp \
 	nulleventtask.h \
-	perfdatawriter.cpp \
-	perfdatawriter.h \
 	pluginchecktask.cpp \
 	pluginchecktask.h \
 	plugineventtask.cpp \

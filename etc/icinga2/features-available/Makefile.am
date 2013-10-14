@@ -6,6 +6,7 @@ CONFIG_FILES = \
 	checker.conf \
 	command.conf \
 	compat-log.conf \
+	graphite.conf \
 	ido-mysql.conf \
 	livestatus.conf \
 	notification.conf \

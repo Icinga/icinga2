@@ -180,6 +180,7 @@ components/db_ido_mysql/schema/Makefile
 components/db_ido_mysql/schema/upgrade/Makefile
 components/livestatus/Makefile
 components/notification/Makefile
+components/perfdata/Makefile
 doc/Doxyfile
 doc/Makefile
 doc/strapdownjs/Makefile
