@@ -110,6 +110,7 @@ packages.
 %package doc
 Summary:      Documentation for Icinga 2
 Group:        Applications/System
+Requires:     %{name} = %{version}-%{release}
 
 %description doc
 Documentation for Icinga 2
@@ -133,6 +134,7 @@ BuildRequires: mysql
 BuildRequires: mysql-devel
 Requires: mysql
 %endif
+Requires: %{name} = %{version}-%{release}
 
 %description ido-mysql
 Icinga 2 IDO mysql database backend. Compatible with Icinga 1.x
