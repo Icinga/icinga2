@@ -22,3 +22,5 @@ By default both the username and password are `icingaadmin`.
 
 An instance of icinga-web is installed at [http://localhost:8080/icinga-web](http://localhost:8080/icinga-web).
 The username is `root` and the password is `password`.
+
+SSH login is available via `ssh -p 2222 vagrant@localhost`. By default the password is `vagrant`.
