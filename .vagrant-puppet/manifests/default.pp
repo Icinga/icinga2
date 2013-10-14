@@ -86,7 +86,8 @@ package { $icinga2_main_packages:
 
 package { 'icinga-web':
   ensure => installed,
-  require => Class['icinga-rpm-snapshot']
+  require => Class['icinga-rpm-snapshot'],
+  notify => Exec['reload-apache']
 }
 
 # enable http 80
