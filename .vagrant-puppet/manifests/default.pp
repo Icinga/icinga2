@@ -94,7 +94,7 @@ package { 'icinga-web':
 # enable http 80
 exec { 'iptables-allow-http':
   unless  => 'grep -Fxqe "-A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT" /etc/sysconfig/iptables',
-  command => 'iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT && iptables-save > /etc/sysconfig/iptables'
+  command => 'lokkit --enabled --service=http'
 }
 
 # icinga 2 docs at /icinga2-doc
