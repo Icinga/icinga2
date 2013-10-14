@@ -22,6 +22,7 @@
 #endif
 #include "icinga/nullchecktask.h"
 #include "base/utility.h"
+#include "base/convert.h"
 #include "base/scriptfunction.h"
 #include "base/logger_fwd.h"
 #include <boost/smart_ptr/make_shared.hpp>
@@ -39,6 +40,7 @@ Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 
 	String output = "Hello from ";
 	output += name;
+	output += " | time=" + Convert::ToString(static_cast<long>(Utility::GetTime()));
 
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("output", output);
