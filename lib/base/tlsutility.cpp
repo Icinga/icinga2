@@ -70,6 +70,12 @@ shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, 
 		    << boost::errinfo_file_name(privkey));
 	}
 
+	if (!SSL_CTX_check_private_key(sslContext.get())) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SSL_CTX_check_private_key")
+		    << errinfo_openssl_error(ERR_get_error()));
+	}
+
 	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), NULL)) {
 		BOOST_THROW_EXCEPTION(openssl_error()
 		    << boost::errinfo_api_function("SSL_CTX_load_verify_locations")
