@@ -13,7 +13,6 @@
 #   include icinga-rpm-snapshot
 #
 class icinga-rpm-snapshot {
-
   yumrepo { 'icinga-rpm-snapshot':
     mirrorlist => "http://packages.icinga.org/epel/6/snapshot/ICINGA-snapshot.repo",
     # baseurl is required, otherwise mirrorlist errors by yum
