@@ -48,6 +48,7 @@ public:
 	virtual void Stop(void);
 
 	String GetCertificateFile(void) const;
+	String GetKeyFile(void) const;
 	String GetCAFile(void) const;
 	String GetBindHost(void) const;
 	String GetBindPort(void) const;
@@ -63,6 +64,7 @@ protected:
 
 private:
 	String m_CertPath;
+	String m_KeyPath;
 	String m_CAPath;
 	String m_BindHost;
 	String m_BindPort;

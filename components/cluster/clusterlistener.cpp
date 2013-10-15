@@ -60,7 +60,7 @@ void ClusterListener::Start(void)
 	if (!self)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("No configuration available for the local endpoint."));
 
-	m_SSLContext = MakeSSLContext(GetCertificateFile(), GetCertificateFile(), GetCAFile());
+	m_SSLContext = MakeSSLContext(GetCertificateFile(), GetKeyFile(), GetCAFile());
 
 	/* create the primary JSON-RPC listener */
 	if (!GetBindPort().IsEmpty())
@@ -132,6 +132,13 @@ String ClusterListener::GetCertificateFile(void) const
 	ObjectLock olock(this);
 
 	return m_CertPath;
+}
+
+String ClusterListener::GetKeyFile(void) const
+{
+	ObjectLock olock(this);
+
+	return m_KeyPath;
 }
 
 String ClusterListener::GetCAFile(void) const
@@ -1568,6 +1575,7 @@ void ClusterListener::InternalSerialize(const Dictionary::Ptr& bag, int attribut
 
 	if (attributeTypes & Attribute_Config) {
 		bag->Set("cert_path", m_CertPath);
+		bag->Set("key_path", m_KeyPath);
 		bag->Set("ca_path", m_CAPath);
 		bag->Set("bind_host", m_BindHost);
 		bag->Set("bind_port", m_BindPort);
@@ -1584,6 +1592,7 @@ void ClusterListener::InternalDeserialize(const Dictionary::Ptr& bag, int attrib
 
 	if (attributeTypes & Attribute_Config) {
 		m_CertPath = bag->Get("cert_path");
+		m_KeyPath = bag->Get("key_path");
 		m_CAPath = bag->Get("ca_path");
 		m_BindHost = bag->Get("bind_host");
 		m_BindPort = bag->Get("bind_port");
