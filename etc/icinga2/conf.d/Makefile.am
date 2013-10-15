@@ -5,9 +5,12 @@ icinga2confdir = $(DESTDIR)${sysconfdir}/icinga2/conf.d
 CONFIG_FILES = \
 	generic-host.conf \
 	generic-service.conf \
+	groups.conf \
 	localhost.conf \
 	macros.conf \
-	timeperiods.conf
+	notifications.conf \
+	timeperiods.conf \
+	users.conf
 
 install-data-local:
 	@if [ ! -e $(icinga2confdir) ]; then \
