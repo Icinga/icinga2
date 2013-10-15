@@ -36,6 +36,7 @@ class icinga-classicui {
     command => 'i2enfeature statusdat; \
                 i2enfeature compat-log; \
                 i2enfeature command;',
-    require => [ Package['icinga2'] ]
+    require => [ Package['icinga2'] ],
+    notify  => Service['icinga2']
   }
 }

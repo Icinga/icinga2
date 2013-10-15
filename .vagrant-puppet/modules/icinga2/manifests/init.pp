@@ -44,7 +44,8 @@ class icinga2-ido-mysql {
   exec { 'enable-icinga2-ido-mysql':
     path    => '/bin:/usr/bin:/sbin:/usr/sbin',
     command => 'i2enfeature ido-mysql;',
-    require => [ Package['icinga2'], Exec['populate-icinga2-ido-mysql-db'] ]
+    require => [ Package['icinga2'], Exec['populate-icinga2-ido-mysql-db'] ],
+    notify  => Service['icinga2']
   }
 
   exec { 'create-mysql-icinga2-ido-db':
