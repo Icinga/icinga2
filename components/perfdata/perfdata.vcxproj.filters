@@ -4,9 +4,16 @@
     <ClCompile Include="graphitewriter.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="perfdata-type.cpp" />
+    <ClCompile Include="perfdatawriter.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="graphitewriter.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="perfdatawriter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

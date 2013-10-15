@@ -91,9 +91,6 @@
     <ClCompile Include="nulleventtask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="perfdatawriter.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="plugineventtask.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -181,9 +178,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="nulleventtask.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="perfdatawriter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="domain.h">

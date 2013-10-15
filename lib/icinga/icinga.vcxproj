@@ -43,7 +43,6 @@
     <ClCompile Include="notification.cpp" />
     <ClCompile Include="notificationcommand.cpp" />
     <ClCompile Include="nulleventtask.cpp" />
-    <ClCompile Include="perfdatawriter.cpp" />
     <ClCompile Include="pluginchecktask.cpp" />
     <ClCompile Include="nullchecktask.cpp" />
     <ClCompile Include="plugineventtask.cpp" />
@@ -79,7 +78,6 @@
     <ClInclude Include="notification.h" />
     <ClInclude Include="notificationcommand.h" />
     <ClInclude Include="nulleventtask.h" />
-    <ClInclude Include="perfdatawriter.h" />
     <ClInclude Include="pluginchecktask.h" />
     <ClInclude Include="nullchecktask.h" />
     <ClInclude Include="plugineventtask.h" />

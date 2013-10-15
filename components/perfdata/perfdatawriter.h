@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API PerfdataWriter : public DynamicObject
+class PerfdataWriter : public DynamicObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(PerfdataWriter);
