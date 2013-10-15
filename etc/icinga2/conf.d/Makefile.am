@@ -6,7 +6,8 @@ CONFIG_FILES = \
 	generic-host.conf \
 	generic-service.conf \
 	localhost.conf \
-	macros.conf
+	macros.conf \
+	timeperiods.conf
 
 install-data-local:
 	@if [ ! -e $(icinga2confdir) ]; then \
