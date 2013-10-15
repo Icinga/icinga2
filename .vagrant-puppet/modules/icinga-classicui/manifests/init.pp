@@ -12,7 +12,7 @@ class icinga-classicui {
 
   package { 'icinga-gui':
     ensure => installed,
-    alias  => 'icinga-gui'
+    alias => 'icinga-gui'
   }
 
   # runtime users
@@ -32,11 +32,11 @@ class icinga-classicui {
   }
 
   exec { 'enable-icinga2-features':
-    path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+    path => '/bin:/usr/bin:/sbin:/usr/sbin',
     command => 'i2enfeature statusdat; \
                 i2enfeature compat-log; \
                 i2enfeature command;',
     require => [ Package['icinga2'] ],
-    notify  => Service['icinga2']
+    notify => Service['icinga2']
   }
 }

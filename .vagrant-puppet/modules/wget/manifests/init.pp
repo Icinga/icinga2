@@ -13,8 +13,7 @@
 #   include wget
 #
 class wget {
-
   package { 'wget':
-    ensure  => installed,
+    ensure => installed,
   }
 }

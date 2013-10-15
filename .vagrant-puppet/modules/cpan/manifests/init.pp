@@ -31,7 +31,7 @@ define cpan(
   }
 
   file { [ '/root/.cpan/', '/root/.cpan/CPAN/' ]:
-    ensure  => directory
+    ensure => directory
   }
 
   file { '/root/.cpan/CPAN/MyConfig.pm':

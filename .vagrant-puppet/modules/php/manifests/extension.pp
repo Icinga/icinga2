@@ -27,8 +27,8 @@ define php::extension(
   }
 
   package { $name:
-    ensure  => $ensure,
+    ensure => $ensure,
     require => $require_,
-    notify  => Service['apache']
+    notify => Service['apache']
   }
 }
