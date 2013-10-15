@@ -72,13 +72,19 @@ String GraphiteWriter::GetPort(void) const
 
 void GraphiteWriter::ReconnectTimerHandler(void)
 {
-	/* TODO try to write the stream, and catch the exception - not connected */
-	if (m_Stream)
-		return;
+	try {
+		if (m_Stream) {
+			m_Stream->Write("\n", 1);
+			Log(LogWarning, "perfdata", "GraphiteWriter already connected on socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+			return;
+		}
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "perfdata", "GraphiteWriter socket on host '" + GetHost() + "' port '" + GetPort() + "' gone. Attempting to reconnect.");	
+	}
 
 	TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
 
-	Log(LogInformation, "icinga", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+	Log(LogInformation, "perfdata", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 	socket->Connect(GetHost(), GetPort());
 
 	NetworkStream::Ptr net_stream = boost::make_shared<NetworkStream>(socket);
@@ -112,7 +118,7 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 	String perfdata = CompatUtility::GetCheckResultPerfdata(cr);
 
 	if (!perfdata.IsEmpty()) {
-		Log(LogDebug, "icinga", "GraphiteWriter: Processing perfdata: '" + perfdata + "'.");
+		Log(LogDebug, "perfdata", "GraphiteWriter: Processing perfdata: '" + perfdata + "'.");
 
 		/*
 		 * 'foo bar'=0;;; baz=0.0;;;
@@ -127,14 +133,14 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 			boost::algorithm::split(key_val, token, boost::is_any_of("="));
 
 			if (key_val.size() == 0) {
-				Log(LogWarning, "icinga", "GraphiteWriter: Invalid performance data: '" + token + "'.");
+				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + token + "'.");
 				return;
 			}
 
 			String metricName = key_val[0];
 
 			if (key_val.size() == 1) {
-				Log(LogWarning, "icinga", "GraphiteWriter: Invalid performance data: '" + token + "'.");
+				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + token + "'.");
 				return;
 			}
 
@@ -142,7 +148,7 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 			boost::algorithm::split(perfdata_values, key_val[1], boost::is_any_of(";"));
 
 			if (perfdata_values.size() == 0) {
-				Log(LogWarning, "icinga", "GraphiteWriter: Invalid performance data: '" + token + "'.");
+				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + token + "'.");
 				return;
 			}
 
@@ -175,17 +181,24 @@ void GraphiteWriter::AddServiceMetric(std::vector<String>& metrics, const Servic
 	String hostName = service->GetHost()->GetName();
 	String serviceName = service->GetShortName();	
 	String metricPrefix = hostName + "." + serviceName;
+	
+	boost::replace_all(metricPrefix, " ", "_");
+	boost::replace_all(metricPrefix, "-", "_");
+	boost::replace_all(metricPrefix, ".", "_");
+	boost::replace_all(metricPrefix, "\\", "_");
+	boost::replace_all(metricPrefix, "/", "_");
+	
 	String graphitePrefix = "icinga";
 
-	String metric = graphitePrefix + ".service." + metricPrefix + "." + name + " " + Convert::ToString(value) + " " + Convert::ToString(static_cast<long>(Utility::GetTime())) + "\n";
-	Log(LogDebug, "icinga", "GraphiteWriter: Add to metric list:'" + metric + "'.");
+	String metric = graphitePrefix + "." + metricPrefix + "." + name + " " + Convert::ToString(value) + " " + Convert::ToString(static_cast<long>(Utility::GetTime())) + "\n";
+	Log(LogDebug, "perfdata", "GraphiteWriter: Add to metric list:'" + metric + "'.");
 	metrics.push_back(metric);
 }
 
 void GraphiteWriter::SendMetrics(const std::vector<String>& metrics)
 {
 	if (!m_Stream) {
-		Log(LogWarning, "icinga", "GraphiteWriter not connected!");
+		Log(LogWarning, "perfdata", "GraphiteWriter not connected!");
 		return;
 	}
 
@@ -193,7 +206,7 @@ void GraphiteWriter::SendMetrics(const std::vector<String>& metrics)
 		if (metric.IsEmpty())
 			continue;
 
-		Log(LogDebug, "icinga", "GraphiteWriter: Sending metric '" + metric + "'.");
+		Log(LogDebug, "perfdata", "GraphiteWriter: Sending metric '" + metric + "'.");
 		m_Stream->Write(metric.CStr(), metric.GetLength());
 	}
 }
