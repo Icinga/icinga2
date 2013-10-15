@@ -1,5 +1,6 @@
 class icinga-web {
   include icinga-rpm-snapshot
+  include icinga2-ido-mysql
 
   php::extension { ['php-mysql']:
     require => [ Class['mysql'] ]
