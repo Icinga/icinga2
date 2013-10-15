@@ -52,7 +52,7 @@ EXTRA_DIST = \
 CLEANFILES = \
 	index.html
 
-icinga2docdir = ${docdir}
+icinga2docdir = ${docdir}/htdocs
 icinga2doc_DATA = \
 	index.html \
 	$(DOCVIEWER_FILES)
