@@ -15,6 +15,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # doesn't already exist on the user's system.
   config.vm.box_url = "http://vagrant-boxes.icinga.org/centos-64-x64-vbox4212.box"
 
+  # The hostname the machine should have. Defaults to nil. If nil, Vagrant
+  # won't manage the hostname. If set to a string, the hostname will be set on boot.
+  config.vm.hostname = "icinga2.demo.icinga.org"
+
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
