@@ -113,6 +113,14 @@ AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 AC_CHECK_FUNCS([backtrace_symbols execvpe pipe2 pthread_set_name_np pthread_setname_np])
 
+AC_TRY_LINK([#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/comp.h>], [BIO_f_zlib();], ac_cv_lib_biozlib="yes")
+if test "$ac_cv_lib_biozlib" = "yes"; then
+  AC_DEFINE(HAVE_BIOZLIB, 1,
+    [Define if BIO_f_zlib is available])
+fi
+
 CFLAGS="$CFLAGS -Wall -Wextra"
 CXXFLAGS="$CXXFLAGS -Wall -Wextra"
 

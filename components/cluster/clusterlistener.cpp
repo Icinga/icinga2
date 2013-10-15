@@ -348,11 +348,11 @@ void ClusterListener::OpenLogFile(void)
 	}
 
 	StdioStream::Ptr logStream = boost::make_shared<StdioStream>(fp, true);
-#ifdef ZLIB
+#ifdef HAVE_BIOZLIB
 	m_LogFile = boost::make_shared<ZlibStream>(logStream);
-#else /* ZLIB */
+#else /* HAVE_BIOZLIB */
 	m_LogFile = logStream;
-#endif /* ZLIB */
+#endif /* HAVE_BIOZLIB */
 	m_LogMessageCount = 0;
 	m_LogMessageTimestamp = 0;
 }
@@ -435,11 +435,11 @@ void ClusterListener::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr
 
 			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
 			StdioStream::Ptr logStream = boost::make_shared<StdioStream>(fp, true);
-#ifdef ZLIB
+#ifdef HAVE_BIOZLIB
 			ZlibStream::Ptr lstream = boost::make_shared<ZlibStream>(logStream);
-#else /* ZLIB */
+#else /* HAVE_BIOZLIB */
 			Stream::Ptr lstream = logStream;
-#endif /* ZLIB */
+#endif /* HAVE_BIOZLIB */
 
 			String message;
 			while (true) {
