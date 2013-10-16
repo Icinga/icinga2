@@ -45,7 +45,7 @@ Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("output", output);
 	cr->Set("performance_data_raw", perfdata);
-	cr->Set("state", static_cast<ServiceState>(Utility::Random() % 4));
+	cr->Set("state", StateOK);
 
 	return cr;
 }
