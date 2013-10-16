@@ -1875,7 +1875,7 @@ void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double time, const s
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update check interval for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	int interval = Convert::ToLong(arguments[2]);
+	double interval = Convert::ToDouble(arguments[2]);
 
 	Log(LogInformation, "icinga", "Updating check interval for service '" + arguments[1] + "'");
 
@@ -1899,7 +1899,7 @@ void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double time, const 
 	Log(LogInformation, "icinga", "Updating check interval for for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetCheckService();
 
-	int interval = Convert::ToLong(arguments[1]);
+	double interval = Convert::ToDouble(arguments[1]);
 
 	{
 		ObjectLock olock(hc);
@@ -1918,7 +1918,7 @@ void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double time, const st
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update retry interval for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	int interval = Convert::ToLong(arguments[2]);
+	double interval = Convert::ToDouble(arguments[2]);
 
 	Log(LogInformation, "icinga", "Updating retry interval for service '" + arguments[1] + "'");
 
@@ -1942,7 +1942,7 @@ void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double time, const s
 	Log(LogInformation, "icinga", "Updating check interval for for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetCheckService();
 
-	int interval = Convert::ToLong(arguments[1]);
+	double interval = Convert::ToDouble(arguments[1]);
 
 	{
 		ObjectLock olock(hc);
