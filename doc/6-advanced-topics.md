@@ -42,7 +42,7 @@ Then you can start CA creation using
 
 After that you can find your ca.crt and ca.key file in the keys directory and can create a server certificate for every node in the cluster using
 
-	./build-key-server <node-name> 
+	./build-key <node-name> 
 
 Please don't use a passphrase during the certificate creation process.
 
@@ -66,6 +66,7 @@ The ClusterListener needs to be configured on every node in the cluster with the
   -------------------------|------------------------------------
   ca_path                  | path to ca.crt file
   cert_path                | path to server certificate
+  key_path                 | path to server key
   bind_port                | port for incoming and outgoing conns
   peers                    | array of all reachable nodes
   ------------------------- ------------------------------------
@@ -100,7 +101,7 @@ In addition to the configured port and hostname every endpoint can have specific
   host                     | hostname
   port                     | port
   accept_config            | defines all nodes allowed to send configs
-  config_files             | defines all files to be send to other nodes
+  config_files             | defines all files to be send to that node - MUST BE ABSOLUTE PATH
   ------------------------- ------------------------------------
 
 A sample config part can look like this:
@@ -111,10 +112,11 @@ A sample config part can look like this:
 	
 	object Endpoint "icinga-node-1" {
     	host = "icinga-node-1.localdomain",
-    	port = 8888
+    	port = 8888,
+	config_files = ["/etc/icinga2/conf.d/*.conf"]
 	}
 
-
+If you update the configs on the configured file sender, it will force a restart on all receiving nodes after validating the new config.
 
 ## Dependencies
 
