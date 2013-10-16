@@ -328,6 +328,11 @@ std::set<Service::Ptr> Service::GetParentServices(void) const
 	return parents;
 }
 
+bool Service::GetEnablePerfdata(void) const
+{
+	return m_EnablePerfdata;
+}
+
 bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
 {
 	if (macro == "SERVICEDESC") {
@@ -460,6 +465,8 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("flapping_negative", m_FlappingNegative);
 		bag->Set("flapping_lastchange", m_FlappingLastChange);
 		bag->Set("enable_flapping", m_EnableFlapping);
+		bag->Set("enable_perfdata", m_EnablePerfdata);
+		bag->Set("enable_event_handlers", m_EnableEventHandlers);
 	}
 }
 
@@ -518,5 +525,7 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_FlappingNegative = bag->Get("flapping_negative");
 		m_FlappingLastChange = bag->Get("flapping_lastchange");
 		m_EnableFlapping = bag->Get("enable_flapping");
+		m_EnablePerfdata = bag->Get("enable_perfdata");
+		m_EnableEventHandlers = bag->Get("enable_event_handlers");
 	}
 }

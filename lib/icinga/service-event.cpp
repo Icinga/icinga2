@@ -25,6 +25,11 @@ using namespace icinga;
 
 boost::signals2::signal<void (const Service::Ptr&)> Service::OnEventCommandExecuted;
 
+bool Service::GetEnableEventHandlers(void) const
+{
+	return m_EnableEventHandlers;
+}
+
 EventCommand::Ptr Service::GetEventCommand(void) const
 {
 	return EventCommand::GetByName(m_EventCommand);
@@ -32,7 +37,7 @@ EventCommand::Ptr Service::GetEventCommand(void) const
 
 void Service::ExecuteEventHandler(void)
 {
-	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers())
+	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandlers())
 		return;
 
 	EventCommand::Ptr ec = GetEventCommand();

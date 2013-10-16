@@ -213,6 +213,8 @@ public:
 	bool GetEnablePassiveChecks(void) const;
 	void SetEnablePassiveChecks(bool enabled, const String& authority = String());
 
+	bool GetEnablePerfdata(void) const;
+
 	bool GetForceNextCheck(void) const;
 	void SetForceNextCheck(bool forced, const String& authority = String());
 
@@ -323,6 +325,7 @@ public:
 	/* Event Handler */
 	void ExecuteEventHandler(void);
 	shared_ptr<EventCommand> GetEventCommand(void) const;
+	bool GetEnableEventHandlers(void) const;
 
 	/* Flapping Detection */
 	bool GetEnableFlapping(void) const;
@@ -353,6 +356,7 @@ private:
 	Value m_AcknowledgementExpiry;
 	String m_HostName;
 	Value m_Volatile;
+	Value m_EnablePerfdata;
 
 	/* Checks */
 	String m_CheckCommand;
@@ -412,6 +416,7 @@ private:
 	std::set<Notification::Ptr> m_Notifications;
 
 	/* Event Handler */
+	Value m_EnableEventHandlers;
 	String m_EventCommand;
 
 	/* Flapping */
