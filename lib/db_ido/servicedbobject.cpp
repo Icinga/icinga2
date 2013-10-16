@@ -197,7 +197,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	fields->Set("normal_check_interval", attrs->Get("check_interval"));
 	fields->Set("retry_check_interval", attrs->Get("retry_interval"));
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("modified_attributes", attrs->Get("modified_attributes"));
+	fields->Set("modified_service_attributes", attrs->Get("modified_attributes"));
 
 	return fields;
 }
