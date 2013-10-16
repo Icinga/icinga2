@@ -1845,7 +1845,7 @@ void ExternalCommandProcessor::ChangeSvcModattr(double time, const std::vector<S
 
 void ExternalCommandProcessor::ChangeHostModattr(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
+	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
@@ -1888,7 +1888,7 @@ void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double time, const s
 
 void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
+	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
@@ -1931,15 +1931,15 @@ void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double time, const st
 
 void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update retry interval for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogInformation, "icinga", "Updating check interval for for host '" + arguments[0] + "'");
+	Log(LogInformation, "icinga", "Updating retry interval for for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetCheckService();
 
 	double interval = Convert::ToDouble(arguments[1]);
