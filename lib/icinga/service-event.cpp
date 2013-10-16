@@ -25,9 +25,19 @@ using namespace icinga;
 
 boost::signals2::signal<void (const Service::Ptr&)> Service::OnEventCommandExecuted;
 
-bool Service::GetEnableEventHandlers(void) const
+bool Service::GetEnableEventHandler(void) const
 {
-	return m_EnableEventHandlers;
+	if (!m_OverrideEnableEventHandler.IsEmpty())
+		return m_EnableEventHandler;
+	else if (!m_EnableEventHandler.IsEmpty())
+		return m_EnableEventHandler;
+	else
+		return true;
+}
+
+void Service::SetEnableEventHandler(bool enabled)
+{
+	m_OverrideEnableEventHandler = enabled;
 }
 
 EventCommand::Ptr Service::GetEventCommand(void) const
@@ -37,7 +47,7 @@ EventCommand::Ptr Service::GetEventCommand(void) const
 
 void Service::ExecuteEventHandler(void)
 {
-	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandlers())
+	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandler())
 		return;
 
 	EventCommand::Ptr ec = GetEventCommand();

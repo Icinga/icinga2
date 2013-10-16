@@ -137,6 +137,10 @@ private:
 	static void ChangeNormalHostCheckInterval(double time, const std::vector<String>& arguments);
 	static void ChangeRetrySvcCheckInterval(double time, const std::vector<String>& arguments);
 	static void ChangeRetryHostCheckInterval(double time, const std::vector<String>& arguments);
+	static void EnableHostEventHandler(double time, const std::vector<String>& arguments);
+	static void DisableHostEventHandler(double time, const std::vector<String>& arguments);
+	static void EnableSvcEventHandler(double time, const std::vector<String>& arguments);
+	static void DisableSvcEventHandler(double time, const std::vector<String>& arguments);
 };
 
 }

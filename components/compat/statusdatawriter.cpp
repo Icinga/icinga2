@@ -299,19 +299,16 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 		   << "\t" << "passive_checks_enabled" << "\t" << (hc->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (hc->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "d,u,r" << "\n"
-		   << "\t" << "notification_interval" << "\t" << 1 << "\n";
+		   << "\t" << "notification_interval" << "\t" << 1 << "\n"
+		   << "\t" << "event_handler_enabled" << "\t" << (hc->GetEnableEventHandler() ? 1 : 0) << "\n";
 
 		CheckCommand::Ptr checkcommand = hc->GetCheckCommand();
 		if (checkcommand)
 			fp << "\t" << "check_command" << "\t" << "check_" << checkcommand->GetName() << "\n";
 
 		EventCommand::Ptr eventcommand = hc->GetEventCommand();
-		if (eventcommand) {
-			fp << "\t" << "event_handler_enabled" << "\t" << 1 << "\n"
-			   << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
-		} else {
-			fp << "\t" << "event_handler_enabled" << "\t" << 0 << "\n";
-		}
+		if (eventcommand)
+			fp << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
 
 		TimePeriod::Ptr check_period = hc->GetCheckPeriod();
 		if (check_period)
@@ -480,19 +477,16 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 		   << "\t" << "is_volatile" << "\t" << (service->IsVolatile() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
-   		   << "\t" << "notification_interval" << "\t" << notification_interval / 60.0 << "\n";
+   		   << "\t" << "notification_interval" << "\t" << notification_interval / 60.0 << "\n"
+		   << "\t" << "event_handler_enabled" << "\t" << (service->GetEnableEventHandler() ? 1 : 0) << "\n";
 
 		CheckCommand::Ptr checkcommand = service->GetCheckCommand();
 		if (checkcommand)
 			fp << "\t" << "check_command" << "\t" << "check_" << checkcommand->GetName() << "\n";
 
 		EventCommand::Ptr eventcommand = service->GetEventCommand();
-		if (eventcommand) {
-			fp << "\t" << "event_handler_enabled" << "\t" << 1 << "\n"
-			   << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
-		} else {
-			fp << "\t" << "event_handler_enabled" << "\t" << 0 << "\n";
-		}
+		if (eventcommand)
+			fp << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
 
                 TimePeriod::Ptr check_period = service->GetCheckPeriod();
                 if (check_period)

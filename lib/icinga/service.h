@@ -358,7 +358,9 @@ public:
 	/* Event Handler */
 	void ExecuteEventHandler(void);
 	shared_ptr<EventCommand> GetEventCommand(void) const;
-	bool GetEnableEventHandlers(void) const;
+
+	bool GetEnableEventHandler(void) const;
+	void SetEnableEventHandler(bool enabled);
 
 	/* Flapping Detection */
 	bool GetEnableFlapping(void) const;
@@ -453,7 +455,8 @@ private:
 	std::set<Notification::Ptr> m_Notifications;
 
 	/* Event Handler */
-	Value m_EnableEventHandlers;
+	Value m_EnableEventHandler;
+	Value m_OverrideEnableEventHandler;
 	String m_EventCommand;
 
 	/* Flapping */

@@ -343,6 +343,9 @@ int Service::GetModifiedAttributes(void) const
 	if (!m_OverrideEnablePassiveChecks.IsEmpty())
 		attrs |= ModAttrPassiveChecksEnabled;
 
+	if (!m_OverrideEnableEventHandler.IsEmpty())
+		attrs |= ModAttrEventHandlerEnabled;
+
 	if (!m_OverrideCheckInterval.IsEmpty())
 		attrs |= ModAttrNormalCheckInterval;
 
@@ -361,6 +364,9 @@ void Service::SetModifiedAttributes(int flags)
 
 	if ((flags & ModAttrPassiveChecksEnabled) == 0)
 		m_OverrideEnablePassiveChecks = Empty;
+
+	if ((flags & ModAttrEventHandlerEnabled) == 0)
+		m_OverrideEnableEventHandler = Empty;
 
 	if ((flags & ModAttrNormalCheckInterval) == 0)
 		m_OverrideCheckInterval = Empty;
@@ -467,6 +473,9 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("host", m_HostName);
 		bag->Set("flapping_threshold", m_FlappingThreshold);
 		bag->Set("notifications", m_NotificationDescriptions);
+		bag->Set("enable_active_checks", m_EnableActiveChecks);
+		bag->Set("enable_passive_checks", m_EnablePassiveChecks);
+		bag->Set("enable_event_handler", m_EnableEventHandler);
 	}
 
 	if (attributeTypes & Attribute_State) {
@@ -502,11 +511,11 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("flapping_lastchange", m_FlappingLastChange);
 		bag->Set("enable_flapping", m_EnableFlapping);
 		bag->Set("enable_perfdata", m_EnablePerfdata);
-		bag->Set("enable_event_handlers", m_EnableEventHandlers);
 		bag->Set("override_enable_active_checks", m_OverrideEnableActiveChecks);
 		bag->Set("override_enable_passive_checks", m_OverrideEnablePassiveChecks);
 		bag->Set("override_check_interval", m_OverrideCheckInterval);
 		bag->Set("override_retry_interval", m_OverrideRetryInterval);
+		bag->Set("override_enable_event_handler", m_OverrideEnableEventHandler);
 	}
 }
 
@@ -533,6 +542,7 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_NotificationDescriptions = bag->Get("notifications");
 		m_EnableActiveChecks = bag->Get("enable_active_checks");
 		m_EnablePassiveChecks = bag->Get("enable_passive_checks");
+		m_EnableEventHandler = bag->Get("enable_event_handler");
 	}
 
 	if (attributeTypes & Attribute_State) {
@@ -566,10 +576,10 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_FlappingLastChange = bag->Get("flapping_lastchange");
 		m_EnableFlapping = bag->Get("enable_flapping");
 		m_EnablePerfdata = bag->Get("enable_perfdata");
-		m_EnableEventHandlers = bag->Get("enable_event_handlers");
 		m_OverrideEnableActiveChecks = bag->Get("override_enable_active_checks");
 		m_OverrideEnablePassiveChecks = bag->Get("override_enable_passive_checks");
 		m_OverrideCheckInterval = bag->Get("override_check_interval");
 		m_OverrideRetryInterval = bag->Get("override_retry_interval");
+		m_OverrideEnableEventHandler = bag->Get("override_enable_event_handler");
 	}
 }
