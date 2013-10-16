@@ -182,6 +182,10 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("STOP_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StopExecutingSvcChecks);
 	RegisterCommand("CHANGE_SVC_MODATTR", &ExternalCommandProcessor::ChangeSvcModattr);
 	RegisterCommand("CHANGE_HOST_MODATTR", &ExternalCommandProcessor::ChangeHostModattr);
+	RegisterCommand("CHANGE_NORMAL_SVC_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeNormalSvcCheckInterval);
+	RegisterCommand("CHANGE_NORMAL_HOST_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeNormalHostCheckInterval);
+	RegisterCommand("CHANGE_RETRY_SVC_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeRetrySvcCheckInterval);
+	RegisterCommand("CHANGE_RETRY_HOST_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeRetryHostCheckInterval);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
@@ -1852,11 +1856,97 @@ void ExternalCommandProcessor::ChangeHostModattr(double time, const std::vector<
 	Log(LogInformation, "icinga", "Updating modified attributes for for host '" + arguments[0] + "'");
 	Service::Ptr hc = host->GetCheckService();
 
-	int modifiedAttributes = Convert::ToLong(arguments[2]);
+	int modifiedAttributes = Convert::ToLong(arguments[1]);
 
 	{
 		ObjectLock olock(hc);
 
 		hc->SetModifiedAttributes(modifiedAttributes);
+	}
+}
+
+void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	if (!service)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update check interval for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
+	int interval = Convert::ToLong(arguments[2]);
+
+	Log(LogInformation, "icinga", "Updating check interval for service '" + arguments[1] + "'");
+
+	{
+		ObjectLock olock(service);
+
+		service->SetCheckInterval(interval * 60);
+	}
+}
+
+void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update check interval for non-existent host '" + arguments[0] + "'"));
+
+	Log(LogInformation, "icinga", "Updating check interval for for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetCheckService();
+
+	int interval = Convert::ToLong(arguments[1]);
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetModifiedAttributes(interval * 60);
+	}
+}
+
+void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	if (!service)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update retry interval for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
+	int interval = Convert::ToLong(arguments[2]);
+
+	Log(LogInformation, "icinga", "Updating retry interval for service '" + arguments[1] + "'");
+
+	{
+		ObjectLock olock(service);
+
+		service->SetRetryInterval(interval * 60);
+	}
+}
+
+void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update retry interval for non-existent host '" + arguments[0] + "'"));
+
+	Log(LogInformation, "icinga", "Updating check interval for for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetCheckService();
+
+	int interval = Convert::ToLong(arguments[1]);
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetRetryInterval(interval * 60);
 	}
 }

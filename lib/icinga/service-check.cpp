@@ -69,18 +69,33 @@ TimePeriod::Ptr Service::GetCheckPeriod(void) const
 
 double Service::GetCheckInterval(void) const
 {
-	if (m_CheckInterval.IsEmpty())
+	if (!m_OverrideCheckInterval.IsEmpty())
+		return m_OverrideCheckInterval;
+	else if (!m_CheckInterval.IsEmpty())
+		return m_CheckInterval;
+	else
 		return DefaultCheckInterval;
-
-	return m_CheckInterval;
 }
+
+void Service::SetCheckInterval(double interval)
+{
+	m_OverrideCheckInterval = interval;
+}
+
 
 double Service::GetRetryInterval(void) const
 {
-	if (m_RetryInterval.IsEmpty())
+	if (!m_OverrideRetryInterval.IsEmpty())
+		return m_OverrideRetryInterval;
+	if (!m_RetryInterval.IsEmpty())
+		return m_RetryInterval;
+	else
 		return GetCheckInterval() / CheckIntervalDivisor;
+}
 
-	return m_RetryInterval;
+void Service::SetRetryInterval(double interval)
+{
+	m_OverrideRetryInterval = interval;
 }
 
 void Service::SetSchedulingOffset(long offset)

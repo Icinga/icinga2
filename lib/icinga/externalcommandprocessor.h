@@ -133,6 +133,10 @@ private:
 	static void StopExecutingSvcChecks(double time, const std::vector<String>& arguments);
 	static void ChangeSvcModattr(double time, const std::vector<String>& arguments);
 	static void ChangeHostModattr(double time, const std::vector<String>& arguments);
+	static void ChangeNormalSvcCheckInterval(double time, const std::vector<String>& arguments);
+	static void ChangeNormalHostCheckInterval(double time, const std::vector<String>& arguments);
+	static void ChangeRetrySvcCheckInterval(double time, const std::vector<String>& arguments);
+	static void ChangeRetryHostCheckInterval(double time, const std::vector<String>& arguments);
 };
 
 }

@@ -172,8 +172,12 @@ public:
 	shared_ptr<CheckCommand> GetCheckCommand(void) const;
 	long GetMaxCheckAttempts(void) const;
 	TimePeriod::Ptr GetCheckPeriod(void) const;
+
 	double GetCheckInterval(void) const;
+	void SetCheckInterval(double interval);
+
 	double GetRetryInterval(void) const;
+	void SetRetryInterval(double interval);
 
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
@@ -392,7 +396,9 @@ private:
 	Value m_MaxCheckAttempts;
 	String m_CheckPeriod;
 	Value m_CheckInterval;
+	Value m_OverrideCheckInterval;
 	Value m_RetryInterval;
+	Value m_OverrideRetryInterval;
 	double m_NextCheck;
 	String m_CurrentChecker;
 	Value m_CheckAttempt;

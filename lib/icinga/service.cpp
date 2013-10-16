@@ -343,6 +343,12 @@ int Service::GetModifiedAttributes(void) const
 	if (!m_OverrideEnablePassiveChecks.IsEmpty())
 		attrs |= ModAttrPassiveChecksEnabled;
 
+	if (!m_OverrideCheckInterval)
+		attrs |= ModAttrNormalCheckInterval;
+
+	if (!m_OverrideRetryInterval.IsEmpty())
+		attrs |= ModAttrRetryCheckInterval;
+
 	// TODO: finish
 
 	return attrs;
@@ -493,6 +499,8 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("enable_event_handlers", m_EnableEventHandlers);
 		bag->Set("override_enable_active_checks", m_OverrideEnableActiveChecks);
 		bag->Set("override_enable_passive_checks", m_OverrideEnablePassiveChecks);
+		bag->Set("override_check_interval", m_OverrideCheckInterval);
+		bag->Set("override_retry_interval", m_OverrideRetryInterval);
 	}
 }
 
@@ -555,5 +563,7 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_EnableEventHandlers = bag->Get("enable_event_handlers");
 		m_OverrideEnableActiveChecks = bag->Get("override_enable_active_checks");
 		m_OverrideEnablePassiveChecks = bag->Get("override_enable_passive_checks");
+		m_OverrideCheckInterval = bag->Get("override_check_interval");
+		m_OverrideRetryInterval = bag->Get("override_retry_interval");
 	}
 }
