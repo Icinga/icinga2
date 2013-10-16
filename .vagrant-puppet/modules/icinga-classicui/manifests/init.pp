@@ -1,5 +1,6 @@
 class icinga-classicui {
   include icinga-rpm-snapshot
+  include icinga2
 
   # workaround for package conflicts
   # icinga-gui pulls icinga-gui-config automatically
@@ -31,12 +32,9 @@ class icinga-classicui {
     require => [ Class['apache'], Group['icingacmd'] ]
   }
 
-  exec { 'enable-icinga2-features':
-    path => '/bin:/usr/bin:/sbin:/usr/sbin',
-    command => 'i2enfeature statusdat; \
-                i2enfeature compat-log; \
-                i2enfeature command;',
-    require => [ Package['icinga2'] ],
-    notify => Service['icinga2']
-  }
+  icinga2::feature { 'statusdat': }
+
+  icinga2::feature { 'command': }
+
+  icinga2::feature { 'compat-log': }
 }

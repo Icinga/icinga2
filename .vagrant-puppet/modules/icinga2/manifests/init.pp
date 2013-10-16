@@ -42,13 +42,6 @@ class icinga2-ido-mysql {
     notify => Service['icinga2']
   }
 
-  exec { 'enable-icinga2-ido-mysql':
-    path => '/bin:/usr/bin:/sbin:/usr/sbin',
-    command => 'i2enfeature ido-mysql;',
-    require => [ Package['icinga2'], Exec['populate-icinga2-ido-mysql-db'] ],
-    notify => Service['icinga2']
-  }
-
   exec { 'create-mysql-icinga2-ido-db':
     path => '/bin:/usr/bin:/sbin:/usr/sbin',
     unless => 'mysql -uicinga -picinga icinga',
@@ -64,6 +57,10 @@ class icinga2-ido-mysql {
     unless => 'mysql -uicinga -picinga icinga -e "SELECT * FROM icinga_dbversion;" &> /dev/null',
     command => 'mysql -uicinga -picinga icinga < /usr/share/doc/icinga2-ido-mysql-$(rpm -q icinga2-ido-mysql | cut -d\'-\' -f4)/schema/mysql.sql',
     require => [ Package['icinga2-ido-mysql'], Exec['create-mysql-icinga2-ido-db'] ]
+  }
+
+  icinga2::feature { 'ido-mysql':
+    require => Exec['create-mysql-icinga2-ido-db']
   }
 }
 
@@ -94,3 +91,13 @@ class icinga2-ido-mysql {
 #    require => [ Class['pgsql'] ]
 #  }
 #}
+
+define icinga2::feature ($feature = $title) {
+  exec { "icinga2-feature-${feature}":
+    path => '/bin:/usr/bin:/sbin:/usr/sbin',
+    unless => "readlink /etc/icinga2/features-enabled/${feature}.conf",
+    command => "i2enfeature ${feature}",
+    require => [ Package['icinga2'] ],
+    notify => Service['icinga2']
+  }
+}

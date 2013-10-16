@@ -1,10 +1,5 @@
 include apache
-include mysql
-# enable when icinga2-ido-pgsql is ready
-#include pgsql
-include epel
 include icinga-classicui
-include icinga2
 include icinga-web
 include nagios-plugins
 
