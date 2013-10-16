@@ -45,9 +45,7 @@ class icinga2-ido-mysql {
   exec { 'create-mysql-icinga2-ido-db':
     path => '/bin:/usr/bin:/sbin:/usr/sbin',
     unless => 'mysql -uicinga -picinga icinga',
-    command => 'mysql -uroot -e "CREATE DATABASE icinga; \
-  	        GRANT ALL ON icinga.* TO icinga@localhost \
-                IDENTIFIED BY \'icinga\';"',
+    command => 'mysql -uroot -e "CREATE DATABASE icinga; GRANT ALL ON icinga.* TO icinga@localhost IDENTIFIED BY \'icinga\';"',
     require => Service['mysqld']
   }
 

@@ -13,12 +13,16 @@ class icinga-web {
     notify => Service['apache']
   }
 
+  package { 'icinga-web-mysql':
+    ensure => installed,
+    require => Class['icinga-rpm-snapshot'],
+    notify => Service['apache']
+  }
+
   exec { 'create-mysql-icinga-web-db':
     path => '/bin:/usr/bin:/sbin:/usr/sbin',
     unless => 'mysql -uicinga_web -picinga_web icinga_web',
-    command => 'mysql -uroot -e "CREATE DATABASE icinga_web; \
-	        GRANT ALL ON icinga_web.* TO icinga_web@localhost \
-	        IDENTIFIED BY \'icinga_web\';"',
+    command => 'mysql -uroot -e "CREATE DATABASE icinga_web; GRANT ALL ON icinga_web.* TO icinga_web@localhost IDENTIFIED BY \'icinga_web\';"',
     require => Service['mysqld']
   }
 
