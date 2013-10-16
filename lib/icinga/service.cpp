@@ -330,7 +330,10 @@ std::set<Service::Ptr> Service::GetParentServices(void) const
 
 bool Service::GetEnablePerfdata(void) const
 {
-	return m_EnablePerfdata;
+	if (!m_EnablePerfdata.IsEmpty())
+		return m_EnablePerfdata;
+	else
+		return true;
 }
 
 int Service::GetModifiedAttributes(void) const

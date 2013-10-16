@@ -94,7 +94,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 
 void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr)
 {
-	if (!(IcingaApplication::GetInstance()->GetEnablePerfdata() && service->GetEnablePerfdata()))
+	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !service->GetEnablePerfdata())
 		return;
 
 	Host::Ptr host = service->GetHost();
