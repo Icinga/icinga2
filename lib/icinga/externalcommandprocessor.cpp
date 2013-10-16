@@ -1855,7 +1855,7 @@ void ExternalCommandProcessor::ChangeHostModattr(double time, const std::vector<
 	int modifiedAttributes = Convert::ToLong(arguments[2]);
 
 	{
-		ObjectLock olock(service);
+		ObjectLock olock(hc);
 
 		hc->SetModifiedAttributes(modifiedAttributes);
 	}
