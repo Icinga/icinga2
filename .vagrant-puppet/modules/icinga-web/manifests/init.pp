@@ -32,4 +32,17 @@ class icinga-web {
     command => 'mysql -uicinga_web -picinga_web icinga_web < /usr/share/icinga-web/etc/schema/mysql.sql',
     require => [ Package['icinga-web'], Exec['create-mysql-icinga-web-db'] ]
   }
+
+  exec { 'create-icinga1x-spool-dir':
+    path => '/bin:/usr/bin:/sbin:/usr/sbin',
+    unless => 'test -d /var/spool/icinga/cmd',
+	command => 'mkdir -p /var/spool/icinga/cmd',
+  }
+
+  exec { 'create-icinga1x-command-symlink':
+    path => '/bin:/usr/bin:/sbin:/usr/sbin',
+    unless => 'test -L /var/spool/icinga/cmd/icinga.cmd',
+	command => 'ln -sf /var/run/icinga2/cmd/icinga2.cmd /var/spool/icinga/cmd/icinga.cmd',
+	require => Exec['create-icinga1x-spool-dir']
+  }
 }
