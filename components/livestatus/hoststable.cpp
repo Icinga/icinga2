@@ -840,8 +840,12 @@ Value HostsTable::CheckOptionsAccessor(const Value& row)
 
 Value HostsTable::ModifiedAttributesAccessor(const Value& row)
 {
-	/* not supported */
-	return Empty;
+	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+
+	if (!hc)
+		return Empty;
+
+	return hc->GetModifiedAttributes();
 }
 
 Value HostsTable::ModifiedAttributesListAccessor(const Value& row)

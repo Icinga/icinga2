@@ -618,8 +618,7 @@ Value ServicesTable::CheckFreshnessAccessor(const Value& row)
 
 Value ServicesTable::ModifiedAttributesAccessor(const Value& row)
 {
-	/* not supported */
-	return Empty;
+	return static_cast<Service::Ptr>(row)->GetModifiedAttributes();
 }
 
 Value ServicesTable::ModifiedAttributesListAccessor(const Value& row)
