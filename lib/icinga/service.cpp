@@ -343,7 +343,7 @@ int Service::GetModifiedAttributes(void) const
 	if (!m_OverrideEnablePassiveChecks.IsEmpty())
 		attrs |= ModAttrPassiveChecksEnabled;
 
-	if (!m_OverrideCheckInterval)
+	if (!m_OverrideCheckInterval.IsEmpty())
 		attrs |= ModAttrNormalCheckInterval;
 
 	if (!m_OverrideRetryInterval.IsEmpty())
@@ -361,6 +361,12 @@ void Service::SetModifiedAttributes(int flags)
 
 	if ((flags & ModAttrPassiveChecksEnabled) == 0)
 		m_OverrideEnablePassiveChecks = Empty;
+
+	if ((flags & ModAttrNormalCheckInterval) == 0)
+		m_OverrideCheckInterval = Empty;
+
+	if ((flags & ModAttrRetryCheckInterval) == 0)
+		m_OverrideRetryInterval = Empty;
 }
 
 bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
