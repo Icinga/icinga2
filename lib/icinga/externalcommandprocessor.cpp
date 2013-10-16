@@ -1908,7 +1908,7 @@ void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double time, const 
 	{
 		ObjectLock olock(hc);
 
-		hc->SetModifiedAttributes(interval * 60);
+		hc->SetCheckInterval(interval * 60);
 	}
 }
 
