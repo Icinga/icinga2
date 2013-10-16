@@ -181,6 +181,7 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("START_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StartExecutingSvcChecks);
 	RegisterCommand("STOP_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StopExecutingSvcChecks);
 	RegisterCommand("CHANGE_SVC_MODATTR", &ExternalCommandProcessor::ChangeSvcModAttr);
+	RegisterCommand("CHANGE_HOST_MODATTR", &ExternalCommandProcessor::ChangeHostModAttr);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
@@ -1835,5 +1836,27 @@ void ExternalCommandProcessor::ChangeSvcModAttr(double time, const std::vector<S
 		ObjectLock olock(service);
 
 		service->SetModifiedAttributes(modifiedAttributes);
+	}
+}
+
+void ExternalCommandProcessor::ChangeHostModAttr(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update modified attributes for non-existent host '" + arguments[0] + "'"));
+
+	Log(LogInformation, "icinga", "Updating modified attributes for for host '" + arguments[0] + "'");
+	Service::Ptr hc = host->GetCheckService();
+
+	int modifiedAttributes = Convert::ToLong(arguments[2]);
+
+	{
+		ObjectLock olock(service);
+
+		hc->SetModifiedAttributes(modifiedAttributes);
 	}
 }

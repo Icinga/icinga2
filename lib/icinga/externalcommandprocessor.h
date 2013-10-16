@@ -132,6 +132,7 @@ private:
 	static void StartExecutingSvcChecks(double time, const std::vector<String>& arguments);
 	static void StopExecutingSvcChecks(double time, const std::vector<String>& arguments);
 	static void ChangeSvcModAttr(double time, const std::vector<String>& arguments);
+	static void ChangeHostModAttr(double time, const std::vector<String>& arguments);
 };
 
 }
