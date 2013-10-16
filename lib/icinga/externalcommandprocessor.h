@@ -131,6 +131,7 @@ private:
 	static void DisablePerformanceData(double time, const std::vector<String>& arguments);
 	static void StartExecutingSvcChecks(double time, const std::vector<String>& arguments);
 	static void StopExecutingSvcChecks(double time, const std::vector<String>& arguments);
+	static void ChangeSvcModAttr(double time, const std::vector<String>& arguments);
 };
 
 }

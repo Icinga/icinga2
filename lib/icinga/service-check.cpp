@@ -397,30 +397,34 @@ double Service::GetLastHardStateChange(void) const
 
 bool Service::GetEnableActiveChecks(void) const
 {
-	if (m_EnableActiveChecks.IsEmpty())
-		return true;
-	else
+	if (!m_OverrideEnableActiveChecks.IsEmpty())
+		return m_OverrideEnableActiveChecks;
+	else if (!m_EnableActiveChecks.IsEmpty())
 		return m_EnableActiveChecks;
+	else
+		return true;
 }
 
 void Service::SetEnableActiveChecks(bool enabled, const String& authority)
 {
-	m_EnableActiveChecks = enabled ? 1 : 0;
+	m_OverrideEnableActiveChecks = enabled ? 1 : 0;
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnableActiveChecksChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetEnablePassiveChecks(void) const
 {
-	if (m_EnablePassiveChecks.IsEmpty())
-		return true;
-	else
+	if (!m_OverrideEnablePassiveChecks.IsEmpty())
+		return m_OverrideEnablePassiveChecks;
+	if (!m_EnablePassiveChecks.IsEmpty())
 		return m_EnablePassiveChecks;
+	else
+		return true;
 }
 
 void Service::SetEnablePassiveChecks(bool enabled, const String& authority)
 {
-	m_EnablePassiveChecks = enabled ? 1 : 0;
+	m_OverrideEnablePassiveChecks = enabled ? 1 : 0;
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnablePassiveChecksChanged), GetSelf(), enabled, authority));
 }

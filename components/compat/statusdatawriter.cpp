@@ -413,7 +413,8 @@ void StatusDataWriter::DumpServiceStatusAttrs(std::ostream& fp, const Service::P
 	   << "\t" << "scheduled_downtime_depth=" << attrs->Get("scheduled_downtime_depth") << "\n"
 	   << "\t" << "last_notification=" << static_cast<long>(attrs->Get("last_notification")) << "\n"
 	   << "\t" << "next_notification=" << static_cast<long>(attrs->Get("next_notification")) << "\n"
-	   << "\t" << "current_notification_number=" << attrs->Get("current_notification_number") << "\n";
+	   << "\t" << "current_notification_number=" << attrs->Get("current_notification_number") << "\n"
+	   << "\t" << "modified_attributes=" << attrs->Get("modified_attributes") << "\n";
 }
 
 void StatusDataWriter::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)

@@ -284,6 +284,7 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("last_notification", last_notification);
 	attr->Set("next_notification", next_notification);
 	attr->Set("current_notification_number", notification_number);
+	attr->Set("modified_attributes", service->GetModifiedAttributes());
 
 	return attr;
 }

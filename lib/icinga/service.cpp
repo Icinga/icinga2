@@ -333,6 +333,30 @@ bool Service::GetEnablePerfdata(void) const
 	return m_EnablePerfdata;
 }
 
+int Service::GetModifiedAttributes(void) const
+{
+	int attrs = 0;
+
+	if (!m_OverrideEnableActiveChecks.IsEmpty())
+		attrs |= ModAttrActiveChecksEnabled;
+
+	if (!m_OverrideEnablePassiveChecks.IsEmpty())
+		attrs |= ModAttrPassiveChecksEnabled;
+
+	// TODO: finish
+
+	return attrs;
+}
+
+void Service::SetModifiedAttributes(int flags)
+{
+	if ((flags & ModAttrActiveChecksEnabled) == 0)
+		m_OverrideEnableActiveChecks = Empty;
+
+	if ((flags & ModAttrPassiveChecksEnabled) == 0)
+		m_OverrideEnablePassiveChecks = Empty;
+}
+
 bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
 {
 	if (macro == "SERVICEDESC") {
@@ -467,6 +491,8 @@ void Service::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) 
 		bag->Set("enable_flapping", m_EnableFlapping);
 		bag->Set("enable_perfdata", m_EnablePerfdata);
 		bag->Set("enable_event_handlers", m_EnableEventHandlers);
+		bag->Set("override_enable_active_checks", m_OverrideEnableActiveChecks);
+		bag->Set("override_enable_passive_checks", m_OverrideEnablePassiveChecks);
 	}
 }
 
@@ -491,6 +517,8 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_HostName = bag->Get("host");
 		m_FlappingThreshold = bag->Get("flapping_threshold");
 		m_NotificationDescriptions = bag->Get("notifications");
+		m_EnableActiveChecks = bag->Get("enable_active_checks");
+		m_EnablePassiveChecks = bag->Get("enable_passive_checks");
 	}
 
 	if (attributeTypes & Attribute_State) {
@@ -512,8 +540,6 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_LastStateUnknown = bag->Get("last_state_unknown");
 		m_LastStateUnreachable = bag->Get("last_state_unreachable");
 		m_LastInDowntime = bag->Get("last_in_downtime");
-		m_EnableActiveChecks = bag->Get("enable_active_checks");
-		m_EnablePassiveChecks = bag->Get("enable_passive_checks");
 		m_ForceNextCheck = bag->Get("force_next_check");
 		m_Acknowledgement = bag->Get("acknowledgement");
 		m_AcknowledgementExpiry = bag->Get("acknowledgement_expiry");
@@ -527,5 +553,7 @@ void Service::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes
 		m_EnableFlapping = bag->Get("enable_flapping");
 		m_EnablePerfdata = bag->Get("enable_perfdata");
 		m_EnableEventHandlers = bag->Get("enable_event_handlers");
+		m_OverrideEnableActiveChecks = bag->Get("override_enable_active_checks");
+		m_OverrideEnablePassiveChecks = bag->Get("override_enable_passive_checks");
 	}
 }

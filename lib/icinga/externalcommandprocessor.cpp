@@ -180,6 +180,7 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("DISABLE_PERFORMANCE_DATA", &ExternalCommandProcessor::DisablePerformanceData);
 	RegisterCommand("START_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StartExecutingSvcChecks);
 	RegisterCommand("STOP_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StopExecutingSvcChecks);
+	RegisterCommand("CHANGE_SVC_MODATTR", &ExternalCommandProcessor::ChangeSvcModAttr);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
@@ -1814,4 +1815,25 @@ void ExternalCommandProcessor::StopExecutingSvcChecks(double time, const std::ve
 	Log(LogInformation, "icinga", "Globally disabling checks.");
 
 	IcingaApplication::GetInstance()->SetEnableChecks(false);
+}
+
+void ExternalCommandProcessor::ChangeSvcModAttr(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	if (!service)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update modified attributes for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
+	int modifiedAttributes = Convert::ToLong(arguments[2]);
+
+	Log(LogInformation, "icinga", "Updating modified attributes for service '" + arguments[1] + "'");
+
+	{
+		ObjectLock olock(service);
+
+		service->SetModifiedAttributes(modifiedAttributes);
+	}
 }
