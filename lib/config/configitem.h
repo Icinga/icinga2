@@ -73,6 +73,7 @@ private:
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether this is a template. */
+	bool m_Validated; /** Whether this object has been validated. */
 
 	ExpressionList::Ptr m_ExpressionList;
 	std::vector<String> m_ParentNames; /**< The names of parent configuration

@@ -48,7 +48,7 @@ ConfigItem::ItemMap ConfigItem::m_Items;
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const ExpressionList::Ptr& exprl,
     const std::vector<String>& parents, const DebugInfo& debuginfo)
-	: m_Type(type), m_Name(name), m_Abstract(abstract),
+	: m_Type(type), m_Name(name), m_Abstract(abstract), m_Validated(false),
 	  m_ExpressionList(exprl), m_ParentNames(parents), m_DebugInfo(debuginfo)
 {
 }
@@ -235,6 +235,9 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 
 void ConfigItem::ValidateItem(void)
 {
+	if (m_Validated)
+		return;
+
 	ConfigType::Ptr ctype = ConfigType::GetByName(GetType());
 
 	if (!ctype) {
@@ -244,6 +247,8 @@ void ConfigItem::ValidateItem(void)
 	}
 
 	ctype->ValidateItem(GetSelf());
+
+	m_Validated = true;
 }
 
 bool ConfigItem::ActivateItems(bool validateOnly)
@@ -256,6 +261,15 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	ConfigItem::Ptr item;
 	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
 		item->Link();
+	}
+
+	if (ConfigCompilerContext::GetInstance()->HasErrors())
+		return false;
+
+	Log(LogInformation, "config", "Validating config items (step 1)...");
+
+	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
+		item->ValidateItem();
 	}
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
@@ -275,6 +289,8 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
 		object->OnConfigLoaded();
 	}
+
+	Log(LogInformation, "config", "Validating config items (step 2)...");
 
 	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
 		item->ValidateItem();
