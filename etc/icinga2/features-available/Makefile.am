@@ -5,14 +5,14 @@ icinga2confdir = $(DESTDIR)${sysconfdir}/icinga2/features-available
 CONFIG_FILES = \
 	checker.conf \
 	command.conf \
-	compat-log.conf \
+	compatlog.conf \
 	graphite.conf \
 	ido-mysql.conf \
 	livestatus.conf \
 	notification.conf \
 	perfdata.conf \
 	syslog.conf \
-	statusdat.conf
+	statusdata.conf
 
 install-data-local:
 	@$(MKDIR_P) $(icinga2confdir); \

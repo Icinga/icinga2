@@ -32,9 +32,9 @@ class icinga-classicui {
     require => [ Class['apache'], Group['icingacmd'] ]
   }
 
-  icinga2::feature { 'statusdat': }
+  icinga2::feature { 'statusdata': }
 
   icinga2::feature { 'command': }
 
-  icinga2::feature { 'compat-log': }
+  icinga2::feature { 'compatlog': }
 }
