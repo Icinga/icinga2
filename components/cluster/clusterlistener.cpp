@@ -1541,12 +1541,27 @@ void ClusterListener::UpdateAuthority(void)
 {
 	Log(LogDebug, "cluster", "Updating authority for objects.");
 
+	int checker_count = 0, notifications_count = 0;
+
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
-			object->SetAuthority("checker", IsAuthority(object, "checker"));
-			object->SetAuthority("notifications", IsAuthority(object, "notifications"));
+			bool checkerAuthority = IsAuthority(object, "checker");
+
+			if (checkerAuthority)
+				checker_count++;
+
+			object->SetAuthority("checker", checkerAuthority);
+
+			bool notificationAuthority = IsAuthority(object, "notifications");
+
+			if (notificationAuthority)
+				notifications_count++;
+
+			object->SetAuthority("notifications", notificationAuthority);
 		}
 	}
+
+	Log(LogInformation, "cluster", "Cluster authority: " + Convert::ToString(checker_count) + "x checker, " + Convert::ToString(notifications_count) + "x notifications");
 }
 
 bool ClusterListener::SupportsChecks(void)
