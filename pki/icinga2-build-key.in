@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 prefix=@prefix@
 datarootdir=@datarootdir@
 datadir=@datadir@
@@ -21,7 +21,7 @@ if [ ! -f $ICINGA_CA/ca.crt -o ! -f $ICINGA_CA/ca.key ]; then
 	exit 1
 fi
 
-CN_DEFAULT=$name KEY_DIR=$ICINGA_CA openssl req -new -newkey rsa:4096 -config openssl.cnf -keyform PEM -keyout $name.key -outform PEM -out $name.csr -nodes && \
-	openssl x509 -days 3650 -CA ca.crt -CAkey ca.key -req -in $name.csr -outform PEM -out $name.crt -CAserial serial
+CN_DEFAULT=$name KEY_DIR=$ICINGA_CA openssl req -config $ICINGA2PKIDIR/openssl.cnf -new -newkey rsa:4096 -keyform PEM -keyout $ICINGA_CA/$name.key -outform PEM -out $ICINGA_CA/$name.csr -nodes && \
+	openssl x509 -days 3650 -CA $ICINGA_CA/ca.crt -CAkey $ICINGA_CA/ca.key -req -in $ICINGA_CA/$name.csr -outform PEM -out $ICINGA_CA/$name.crt -CAserial $ICINGA_CA/serial
 
 

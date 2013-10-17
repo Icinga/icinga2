@@ -17,4 +17,4 @@ fi
 echo '01' > $ICINGA_CA/serial
 touch $ICINGA_CA/index.txt
 
-CN_DEFAULT="Icinga CA" KEY_DIR=$ICINGA_CA openssl req -new -newkey rsa:4096 -x509 -nodes -days 3650 -config openssl.cnf -keyform PEM -keyout ca.key -outform PEM -out ca.crt
+CN_DEFAULT="Icinga CA" KEY_DIR=$ICINGA_CA openssl req -config $ICINGA2PKIDIR/openssl.cnf -new -newkey rsa:4096 -x509 -nodes -days 3650 -keyform PEM -keyout $ICINGA_CA/ca.key -outform PEM -out $ICINGA_CA/ca.crt
