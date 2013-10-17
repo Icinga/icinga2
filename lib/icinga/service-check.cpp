@@ -475,7 +475,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	if (!cr->Contains("execution_end"))
 		cr->Set("execution_end", now);
 
-	if (!cr->Contains("check_source"))
+	String check_source = cr->Get("check_source");
+
+	if (check_source.IsEmpty())
 		cr->Set("check_source", authority);
 
 	bool reachable = IsReachable();
