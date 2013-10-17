@@ -479,6 +479,11 @@ int Application::Run(void)
 #ifndef _WIN32
 		String exePath = GetExePath(m_ArgV[0]);
 
+		int fdcount = getdtablesize();
+
+		for (int i = 3; i < fdcount; i++)
+			(void) close(i);
+
 		(void) execv(exePath.CStr(), m_ArgV);
 #else /* _WIN32 */
 		STARTUPINFO si;
