@@ -63,8 +63,6 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 	if (m_Client)
 		m_Client->Close();
 
-	Log(LogInformation, "cluster", "Joining endpoint message thread.");
-
 	m_Thread.join();
 
 	m_Client = client;
