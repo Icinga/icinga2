@@ -144,6 +144,7 @@ IDOUtils schema >= 1.10
 Summary:      Icinga 2 Classic UI Standalone configuration
 Group:        Applications/System
 Requires:     %{apachename}
+Requires:     %{name} = %{version}-%{release}
 Provides:     icinga-classicui-config
 Conflicts:    icinga-gui-config
 
@@ -200,6 +201,22 @@ if [ "$1" = "0" ]; then
 	test -x %{_sbindir}/i2disfeature && %{_sbindir}/i2disfeature ido-mysql
 fi
 
+%post classicui-config
+if [ ${1:-0} -eq 1 ]
+then
+        # initial installation, enable features
+        %{_sbindir}/i2enfeature statusdata
+        %{_sbindir}/i2enfeature compatlog
+        %{_sbindir}/i2enfeature command
+fi
+
+%postun classicui-config
+if [ "$1" = "0" ]; then
+        # deinstallation of the package - remove feature
+        test -x %{_sbindir}/i2disfeature && %{_sbindir}/i2disfeature statusdata
+        test -x %{_sbindir}/i2disfeature && %{_sbindir}/i2disfeature compatlog
+        test -x %{_sbindir}/i2disfeature && %{_sbindir}/i2disfeature command
+fi
 
 %files
 %defattr(-,root,root,-)
