@@ -6,7 +6,7 @@ fi
 
 name=$1
 
-source ./pkifuncs
+source $(dirname -- $0)/icinga2-pkifuncs
 
 check_pki_dir
 

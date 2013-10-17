@@ -199,6 +199,7 @@ lib/config/Makefile
 lib/icinga/Makefile
 lib/db_ido/Makefile
 lib/python/Makefile
+pki/Makefile
 test/Makefile
 third-party/Makefile
 third-party/cJSON/Makefile
