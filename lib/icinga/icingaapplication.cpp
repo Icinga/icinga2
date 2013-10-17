@@ -36,11 +36,6 @@ static Timer::Ptr l_RetentionTimer;
 REGISTER_TYPE(IcingaApplication);
 INITIALIZE_ONCE(IcingaApplication, &IcingaApplication::StaticInitialize);
 
-#ifndef _WIN32
-#	include "icinga-version.h"
-#	define ICINGA_VERSION GIT_MESSAGE
-#endif /* _WIN32 */
-
 void IcingaApplication::StaticInitialize(void)
 {
 	ScriptVariable::Set("IcingaEnableNotifications", true);
