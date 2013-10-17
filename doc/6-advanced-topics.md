@@ -18,11 +18,21 @@ An Icinga 2 cluster consists of two or more nodes and can resist on multiple arc
 
 ### Certificate authority and Certificates
 
-If you have no other way, we would suggest to use easy-rsa for certificate creation. You can get easy-rsa using your distribution package manager or the following git clone
+Icinga2 comes with to scripts helping you to create CA and node certificates for you Icinga2 Cluster. 
 
-	$ git clone https://github.com/OpenVPN/easy-rsa.git
+The first step is the creation of CA using 
 
-Before you create your CA please add your minium local variables to /easy-rsa/vars
+	icinga2-build-ca 
+
+Please make sure to export a varialbe containing an empty folder for the created CA-files
+
+	export ICINGA_CA="/root/icinga-ca"
+
+In the next step you have to create a certificate and a key file for every node using
+
+	icinga2-build-key icinga-node-1
+
+If you don't want to fill in all the data multiple times, please export the following variables
 
 * KEY_COUNTRY
 * KEY_PROVINCE
@@ -31,26 +41,7 @@ Before you create your CA please add your minium local variables to /easy-rsa/va
 * KEY_EMAIL
 * KEY_OU
 
-After that you have to export the defined var and clean-up all previously created files
-
-	source ./vars
-	./clean-all
-
-Then you can start CA creation using
-
-	./build-ca
-
-After that you can find your ca.crt and ca.key file in the keys directory and can create a server certificate for every node in the cluster using
-
-	./build-key <node-name> 
-
-Please don't use a passphrase during the certificate creation process.
-
-Icinga 2 needs all certification information in one file which could be easily achieved using
-
-	cat <node-name>.crt <node-name>.key > <node-name>.pem
-
-Please create a key-file for every node in the Icinga 2 Cluster and save the CA-Key for additional nodes at a later date
+Please create a certificate- and a key-file for every node in the Icinga 2 Cluster and save the CA-Key for additional nodes at a later date
 
 ### Enable the cluster configuration
 
