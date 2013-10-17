@@ -101,7 +101,7 @@ TimePeriod::Ptr User::GetNotificationPeriod(void) const
 unsigned long User::GetNotificationTypeFilter(void) const
 {
 	if (m_NotificationTypeFilter.IsEmpty())
-		return ~(unsigned long)0; /* All states. */
+		return ~(unsigned long)0; /* All types. */
 	else
 		return m_NotificationTypeFilter;
 }

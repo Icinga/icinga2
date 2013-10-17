@@ -1,4 +1,4 @@
-# Differences between Icinga 1.x and 2
+# <a id="differences-1x-2"></a> Differences between Icinga 1.x and 2
 
 ## Configuration Format
 
