@@ -1,16 +1,151 @@
 # Advanced Topics
 
+## Soft and Hard State Types
+
+### Soft State Type
+
+A `SOFT` state type is being entered when a service checks ends up in
+a `NOT-OK` state and its check counter has not yet reached the
+configured `max_check_attempts` attribute.
+
+Additionally a `SOFT` state type happens when a service recovers
+from a soft error changing from `NOT-OK` state to `OK` state.
+
+`SOFT` states are logged as alerts and event commands are executed.
+
+> **Note**
+>
+> Event commands can filter the `SOFT` state type by using the
+> macro `$SERVICESTATETYPE$` and its value being `"SOFT"`.
+
+### Hard State Type
+
+A `HARD` state type happens when a service has been re-checked
+as many times as the `max_check_attempts` attribute defines
+being in a `NOT-OK` state during the entire re-check starting
+with the first `NOT-OK` transition.
+
+If a service state changes from one `NOT-OK` state into another
+`NOT-OK` state (for example from `WARNING` to `CRITICAL`) this
+is also considered a `HARD` state change.
+
+Additionally a `HARD` state type happens when a service recovers
+from a hard error changing from `NOT-OK` state to `OK` state.
+
+`HARD` states are logged, event commands are executed and notifications
+are triggered notifying all associated users.
+
+> **Note**
+>
+> Event commands can filter the `HARD` state type by using the
+> macro `$SERVICESTATETYPE$` and its value being `"HARD"`.
+
 ## Downtimes
 
-TODO (move to basics?)
+Downtimes can be scheduled for planned server maintenance or
+any other targetted service outage you are aware of in advance.
+
+Downtimes will suppress any notifications, and may trigger other
+downtimes too. If the downtime was set by accident, or the duration
+exceeds the maintenance, you can manually cancel the downtime.
+Planned downtimes will also be taken into account for SLA reporting
+tools calculating the SLAs based on the state and downtime history.
+
+> **Note**
+>
+> Downtimes may overlap with their start and end times. If there
+> are multiple downtimes triggered, the overall downtime depth
+> will be more than `1`. This is useful when you want to extend
+> your maintenance window taking longer than expected.
+
+### Fixed and Flexible Downtimes
+
+A `fixed` downtime will be activated at the defined start time, and
+removed at the end time. During this time window the service state
+will change to `NOT-OK` and then actually trigger the downtime.
+Notifications are suppressed and the downtime depth is incremented.
+
+Common scenarios are a planned distribution upgrade on your linux
+servers, or database updates in your warehouse. The customer knows
+about a fixed downtime window between 23:00 and 24:00. After 24:00
+all problems should be alerted again. Solution is simple -
+schedule a `fixed` downtime starting at 23:00 and ending at 24:00.
+
+Unlike a `fixed` downtime, a `flexible` downtime end does not necessarily
+happen at the provided end time. Instead the downtime will be triggered
+in the time span defined by start and end time, but then last a defined
+duration in minutes.
+
+Imagine the following scenario: Your service is frequently polled
+by users trying to grab free deleted domains for immediate registration.
+Between 07:30 and 08:00 the impact will hit for 15 minutes and generate
+a network outage visible to the monitoring. The service is still alive,
+but answering too slow to Icinga 2 service checks.
+For that reason, you may want to schedule a downtime between 07:30 and
+08:00 with a duration of 15 minutes. The downtime will then last from
+its trigger time until the duration is over. After that, the downtime
+is removed (may happen before or after the actual end time!).
+
+### Scheduling a downtime
+
+This can either happen through a web interface (Icinga 1.x Classic UI or Web)
+or by using the external command pipe provided by the `ExternalCommandListener`
+configuration.
+
+Fixed downtimes require a start and end time (a duration will be ignored).
+Flexible downtimes need a start and end time for the time span, and a duration
+independant of that.
+
+> **Note**
+>
+> Modern web interfaces treat services in a downtime as `handled`.
+
+### Triggered Downtimes
+
+This is optional when scheduling a downtime. If there is already a downtime
+scheduled for a future maintenance, the current downtime can be triggered by
+that downtime. This renders useful if you have scheduled a host downtime and
+are now scheduling a child host's downtime getting triggered by the parent
+downtime on NOT-OK state change.
 
 ## Comments
 
-TODO (move to basics?)
+Comments can be added at runtime and are persistent over restarts. You can
+add useful information for others on repeating incidents (for example
+"last time syslog at 100% cpu on 17.10.2013 due to stale nfs mount") which
+is primarly accessible using web interfaces.
+
+Adding and deleting comment actions are possible through the external command pipe
+provided with the `ExternalCommandListener` configuration. The caller must
+pass the the comment id in case of manipulating an existing comment.
 
 ## Acknowledgements
 
-TODO (move to basics?)
+If a problem is alerted and notified you may signal the other notification
+receipients that you are aware of the problem and will handle it.
+
+By sending an acknowledgement to Icinga 2 (using the external command pipe
+provided with `ExternalCommandListener` configuration) all future notifications
+are suppressed, a new comment is added with the provided description and
+a notification with the type `NotificationFilterAcknowledgement` is sent
+to all notified users.
+
+> **Note**
+>
+> Modern web interfaces treat acknowledged problems as `handled`.
+
+### Expiring Acknowledgements
+
+Once a problem is acknowledged it may disappear from your `handled problems`
+dashboard and no-one ever looks at it again since it will suppress
+notifications too.
+
+This `fire-and-forget` action is quite common. If you're sure that a
+current problem should be resolved in the future at a defined time
+you can define an expiration time when acknowledging the problem.
+
+Icinga 2 will clear the acknowledgement when expired and start to
+re-notify if the problem persists.
 
 ## Cluster
 
@@ -24,7 +159,7 @@ The first step is the creation of CA using
 
 	icinga2-build-ca 
 
-Please make sure to export a varialbe containing an empty folder for the created CA-files
+Please make sure to export a variable containing an empty folder for the created CA-files
 
 	export ICINGA_CA="/root/icinga-ca"
 
@@ -111,7 +246,43 @@ If you update the configs on the configured file sender, it will force a restart
 
 ## Dependencies
 
-TODO
+Icinga 2 uses host and service dependencies as attribute directly on the host or
+service object or template. A service can depend on a host, and vice versa. A
+service has an implicit dependeny (parent) to its host. A host to host dependency acts
+implicit as host parent relation.
+
+A common scenario is the Icinga 2 server behind a router. Checking internet access
+by pinging the Google DNS server `google-dns` is a common method, but will fail in
+case the `dsl-router` host is down. Therefore the example below defines a host dependency
+which acts implicit as parent relation too.
+Furthermore the host may be reachable but ping samples are dropped by the router's iptables.
+By defining a service dependency the `google-dns ping4` re-check will be skipped in
+case the parent service `dsl-router ping4` is in a `NOT-OK` state.
+
+    object Host "dsl-router" {
+      services["ping4"] = {
+        templates = "generic-service",
+        check_command = "ping4"
+      }
+      
+      macros = {
+        address = "192.168.1.1",
+      },
+    }
+
+    object Host "google-dns" {
+      services["ping4"] = {
+        templates = "generic-service",
+        check_command = "ping4"
+        service_dependencies = { "dsl-router", "ping4" }
+      }
+      
+      macros = {
+        address = "8.8.8.8",
+      }, 
+      
+      host_dependencies = [ "dsl-router" ]
+    }
 
 ## Check Result Freshness
 
@@ -129,23 +300,47 @@ If the freshness checks are invalid, a new check is executed defined by the
 
 ## Check Flapping
 
-TODO
+The flapping algorithm used in Icinga 2 does not store the past states but
+calculcates the flapping threshold from a single value based on counters and
+half-life values. Icinga 2 compares the value with a single flapping threshold
+configuration attribute named `flapping_threshold`.
+
+> **Note**
+>
+> Flapping must be explicitely enabled seting the `Service` object attribute
+> `enable_flapping = 1`.
 
 ## Volatile Services
 
-TODO
+By default all services remain in a non-volatile state. Whe a problem
+occurs, the `SOFT` state applies and once `max_check_attempts` attribute
+is reached with the check counter, a `HARD` state transition happens.
+Notifications are only triggered by `HARD` state changes and are then
+re-sent defined by the `notification_interval` attribute.
+
+It may be reasonable to have a volatile service which stays in a `HARD`
+state type if the service stays in a `NOT-OK` state. That way each
+service recheck will automatically trigger a notification unless the
+service is acknowledged or in a scheduled downtime.
 
 ## Modified Attributes
 
-TODO
+Icinga 2 allows you to modify defined object attributes at runtime different to
+the local configuration object attributes. These modified attributes are
+stored as bit-shifted-value and made available in backends. Icinga 2 stores
+modified attributes in its state file and restores them on restart.
 
-## List of External Commands
+Modified Attributes can be reset using external commands.
 
-TODO
 
 ## Plugin API
 
-TODO
+Currently the native plugin api inherited from the `Nagios Plugins` project is available.
+Future specifications will be documented here.
 
-### Nagios Plugins
+### Nagios Plugin API
+
+The `Nagios Plugin API` is defined the [Nagios Plugins Development Guidelines](https://www.nagios-plugins.org/doc/guidelines.html).
+
+
 
