@@ -1,5 +1,11 @@
 #!/bin/bash
-source $(dirname -- $0)/icinga2-pkifuncs
+prefix=@prefix@
+datarootdir=@datarootdir@
+datadir=@datadir@
+
+ICINGA2PKIDIR=$datadir/icinga2/pki
+
+source $ICINGA2PKIDIR/pkifuncs
 
 check_pki_dir
 

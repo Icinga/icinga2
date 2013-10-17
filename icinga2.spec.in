@@ -232,7 +232,6 @@ fi
 %{_bindir}/icinga2-migrate-config
 %{_bindir}/icinga2-build-ca
 %{_bindir}/icinga2-build-key
-%{_bindir}/icinga2-pkifuncs
 %{_sbindir}/i2enfeature
 %{_sbindir}/i2disfeature
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*

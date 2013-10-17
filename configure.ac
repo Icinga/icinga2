@@ -200,6 +200,8 @@ lib/icinga/Makefile
 lib/db_ido/Makefile
 lib/python/Makefile
 pki/Makefile
+pki/icinga2-build-ca
+pki/icinga2-build-key
 test/Makefile
 third-party/Makefile
 third-party/cJSON/Makefile
