@@ -19,17 +19,26 @@
 
 #include "base/workqueue.h"
 #include "base/utility.h"
+#include "base/debug.h"
+#include "base/logger_fwd.h"
 #include <boost/bind.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
-WorkQueue::WorkQueue(void)
-	: m_Executing(false)
-{ }
+int WorkQueue::m_NextID = 1;
+
+WorkQueue::WorkQueue(size_t maxItems)
+	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Joined(false), m_Stopped(false)
+{
+	m_Thread = boost::thread(boost::bind(&WorkQueue::WorkerThreadProc, this));
+}
 
 WorkQueue::~WorkQueue(void)
 {
 	Join();
+
+	ASSERT(m_Stopped);
 }
 
 /**
@@ -40,34 +49,38 @@ void WorkQueue::Enqueue(const WorkCallback& item)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
+	ASSERT(m_Stopped);
+
+	while (m_Items.size() >= m_MaxItems)
+		m_CV.wait(lock);
+
 	m_Items.push_back(item);
 	m_CV.notify_all();
-
-	if (!m_Executing) {
-		m_Executing = true;
-		Utility::QueueAsyncCallback(boost::bind(&WorkQueue::ExecuteItem, this));
-	}
 }
 
 void WorkQueue::Join(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	while (m_Executing || !m_Items.empty())
+	m_Joined = true;
+	while (!m_Stopped)
 		m_CV.wait(lock);
 }
 
-void WorkQueue::Clear(void)
-{
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Items.clear();
-	m_CV.notify_all();
-}
-
-void WorkQueue::ExecuteItem(void)
+void WorkQueue::WorkerThreadProc(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	while (!m_Items.empty()) {
+	std::ostringstream idbuf;
+	idbuf << "WQ #" << m_ID;
+	Utility::SetThreadName(idbuf.str());
+
+	for (;;) {
+		while (m_Items.empty() && !m_Joined)
+			m_CV.wait(lock);
+
+		if (m_Joined)
+			break;
+
 		try {
 			WorkCallback wi = m_Items.front();
 			m_Items.pop_front();
@@ -75,14 +88,19 @@ void WorkQueue::ExecuteItem(void)
 
 			lock.unlock();
 			wi();
-			lock.lock();
+		} catch (const std::exception& ex) {
+			std::ostringstream msgbuf;
+			msgbuf << "Exception thrown in workqueue handler: " << std::endl
+			       << boost::diagnostic_information(ex);
+
+			Log(LogCritical, "base", msgbuf.str());
 		} catch (...) {
-			lock.lock();
-			m_Executing = false;
-			throw;
+			Log(LogCritical, "base", "Exception of unknown type thrown in workqueue handler.");
 		}
+
+		lock.lock();
 	}
 
-	m_Executing = false;
+	m_Stopped = true;
 	m_CV.notify_all();
 }

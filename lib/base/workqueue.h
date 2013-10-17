@@ -23,6 +23,7 @@
 #include "base/i2-base.h"
 #include <deque>
 #include <boost/function.hpp>
+#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 
@@ -39,21 +40,25 @@ class I2_BASE_API WorkQueue
 public:
 	typedef boost::function<void (void)> WorkCallback;
 
-	WorkQueue(void);
+	WorkQueue(size_t maxItems = 25000);
 	~WorkQueue(void);
 
 	void Enqueue(const WorkCallback& item);
 	void Join(void);
-	void Clear(void);
 
 private:
+	int m_ID;
+	static int m_NextID;
+
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
+	boost::thread m_Thread;
 	size_t m_MaxItems;
-	bool m_Executing;
+	bool m_Joined;
+	bool m_Stopped;
 	std::deque<WorkCallback> m_Items;
 
-	void ExecuteItem(void);
+	void WorkerThreadProc(void);
 };
 
 }
