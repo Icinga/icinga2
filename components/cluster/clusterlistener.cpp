@@ -1557,7 +1557,7 @@ void ClusterListener::UpdateAuthority(void)
 		}
 	}
 
-	Log(LogInformation, "cluster", "Cluster authority: " + Convert::ToString(checker_count) + "x checker, " + Convert::ToString(notifications_count) + "x notifications");
+	Log(LogDebug, "cluster", "Cluster authority: " + Convert::ToString(checker_count) + "x checker, " + Convert::ToString(notifications_count) + "x notifications");
 }
 
 bool ClusterListener::SupportsChecks(void)
