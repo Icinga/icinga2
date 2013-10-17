@@ -2,7 +2,7 @@ set env LD_PRELOAD /lib/x86_64-linux-gnu/libpthread.so.0
 
 python
 import sys
-sys.path.insert(0, '/home/gbeutner/strawberry/contrib/gdb')
+sys.path.insert(0, '/home/gbeutner/strawberry/tools/debug/gdb')
 from icingadbg import register_icinga_printers
 register_icinga_printers()
 end
