@@ -3,7 +3,7 @@
 ## Configuration Format
 
 Icinga 1.x supports two configuration formats: key-value-based settings in the
-`icinga.cfg` cofiguration file and object-based in included files (`cfg_dir`,
+`icinga.cfg` configuration file and object-based in included files (`cfg_dir`,
 `cfg_file`). The path to the `icinga.cfg` configuration file must be passed to
 the Icinga daemon at startup.
 

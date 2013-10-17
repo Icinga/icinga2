@@ -1,45 +1,5 @@
 # Advanced Topics
 
-## Soft and Hard State Types
-
-### Soft State Type
-
-A `SOFT` state type is being entered when a service checks ends up in
-a `NOT-OK` state and its check counter has not yet reached the
-configured `max_check_attempts` attribute.
-
-Additionally a `SOFT` state type happens when a service recovers
-from a soft error changing from `NOT-OK` state to `OK` state.
-
-`SOFT` states are logged as alerts and event commands are executed.
-
-> **Note**
->
-> Event commands can filter the `SOFT` state type by using the
-> macro `$SERVICESTATETYPE$` and its value being `"SOFT"`.
-
-### Hard State Type
-
-A `HARD` state type happens when a service has been re-checked
-as many times as the `max_check_attempts` attribute defines
-being in a `NOT-OK` state during the entire re-check starting
-with the first `NOT-OK` transition.
-
-If a service state changes from one `NOT-OK` state into another
-`NOT-OK` state (for example from `WARNING` to `CRITICAL`) this
-is also considered a `HARD` state change.
-
-Additionally a `HARD` state type happens when a service recovers
-from a hard error changing from `NOT-OK` state to `OK` state.
-
-`HARD` states are logged, event commands are executed and notifications
-are triggered notifying all associated users.
-
-> **Note**
->
-> Event commands can filter the `HARD` state type by using the
-> macro `$SERVICESTATETYPE$` and its value being `"HARD"`.
-
 ## Downtimes
 
 Downtimes can be scheduled for planned server maintenance or
