@@ -1,0 +1,21 @@
+#!/bin/sh
+if [ -z "$1" ]; then
+	echo "Syntax: $0 <name>" >&2
+	exit 1
+fi
+
+name=$1
+
+source ./pkifuncs
+
+check_pki_dir
+
+if [ ! -f $ICINGA_CA/ca.crt -o ! -f $ICINGA_CA/ca.key ]; then
+	echo "Please build a CA certificate first." >&2
+	exit 1
+fi
+
+CN_DEFAULT=$name KEY_DIR=$ICINGA_CA openssl req -new -newkey rsa:4096 -config openssl.cnf -keyform PEM -keyout $name.key -outform PEM -out $name.csr -nodes && \
+	openssl x509 -days 3650 -CA ca.crt -CAkey ca.key -req -in $name.csr -outform PEM -out $name.crt -CAserial serial
+
+
