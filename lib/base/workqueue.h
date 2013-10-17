@@ -39,7 +39,7 @@ class I2_BASE_API WorkQueue
 public:
 	typedef boost::function<void (void)> WorkCallback;
 
-	WorkQueue(size_t maxItems = 25000);
+	WorkQueue(void);
 	~WorkQueue(void);
 
 	void Enqueue(const WorkCallback& item);
