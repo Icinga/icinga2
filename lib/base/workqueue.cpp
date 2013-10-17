@@ -62,6 +62,8 @@ void WorkQueue::Join(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Joined = true;
+	m_CV.notify_all();
+
 	while (!m_Stopped)
 		m_CV.wait(lock);
 }
