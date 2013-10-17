@@ -148,7 +148,8 @@ shared_ptr<X509> GetX509Certificate(const String& pemfile)
 	if (cert == NULL) {
 		BOOST_THROW_EXCEPTION(openssl_error()
 		    << boost::errinfo_api_function("PEM_read_bio_X509_AUX")
-		    << errinfo_openssl_error(ERR_get_error()));
+		    << errinfo_openssl_error(ERR_get_error()))
+		    << boost::errinfo_file_name(pemfile));
 	}
 
 	BIO_free(fpcert);
