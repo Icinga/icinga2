@@ -42,6 +42,7 @@ public:
 	DECLARE_TYPENAME(Endpoint);
 
 	Endpoint(void);
+	~Endpoint(void);
 
 	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
 	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
@@ -92,6 +93,8 @@ private:
 	double m_RemoteLogPosition;
 	Dictionary::Ptr m_Features;
 	bool m_Syncing;
+
+	boost::thread m_Thread;
 
 	void MessageThreadProc(const Stream::Ptr& stream);
 };

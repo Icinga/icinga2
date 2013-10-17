@@ -565,10 +565,6 @@ void ClusterListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 	{
 		ObjectLock olock(endpoint);
 
-		Stream::Ptr oldClient = endpoint->GetClient();
-		if (oldClient)
-			oldClient->Close();
-
 		endpoint->SetSyncing(true);
 		endpoint->SetSeen(Utility::GetTime());
 		endpoint->SetClient(tlsStream);

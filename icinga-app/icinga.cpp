@@ -376,5 +376,11 @@ int main(int argc, char **argv)
 	sigaction(SIGHUP, &sa, NULL);
 #endif /* _WIN32 */
 
-	return Application::GetInstance()->Run();
+	int rc = Application::GetInstance()->Run();
+
+#ifdef _DEBUG
+	exit(rc);
+#else /* _DEBUG */
+	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
+#endif /* _DEBUG */
 }

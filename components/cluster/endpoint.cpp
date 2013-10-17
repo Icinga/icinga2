@@ -38,6 +38,11 @@ Endpoint::Endpoint(void)
 	: m_Syncing(false)
 { }
 
+Endpoint::~Endpoint(void)
+{
+	SetClient(Stream::Ptr());
+}
+
 /**
  * Checks whether this endpoint is connected.
  *
@@ -55,11 +60,17 @@ Stream::Ptr Endpoint::GetClient(void) const
 
 void Endpoint::SetClient(const Stream::Ptr& client)
 {
+	if (m_Client)
+		m_Client->Close();
+
+	Log(LogInformation, "cluster", "Joining endpoint message thread.");
+
+	m_Thread.join();
+
 	m_Client = client;
 
 	if (client) {
-		boost::thread thread(boost::bind(&Endpoint::MessageThreadProc, this, client));
-		thread.detach();
+		m_Thread = boost::thread(boost::bind(&Endpoint::MessageThreadProc, this, client));
 
 		OnConnected(GetSelf());
 	}

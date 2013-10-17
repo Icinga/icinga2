@@ -132,18 +132,6 @@ void Application::SetArgV(char **argv)
 	m_ArgV = argv;
 }
 
-void Application::ShutdownTimerHandler(void)
-{
-	if (m_ShuttingDown || m_Restarting) {
-		Log(LogInformation, "base", "Shutting down Icinga...");
-		Application::GetInstance()->OnShutdown();
-
-		DynamicObject::StopObjects();
-		GetTP().Stop();
-		m_ShuttingDown = false;
-	}
-}
-
 /**
  * Processes events for registered sockets and timers and calls whatever
  * handlers have been set up for these events.
@@ -154,17 +142,23 @@ void Application::RunEventLoop(void) const
 	boost::thread t(&Application::TimeWatchThreadProc);
 	t.detach();
 
-	/* Set up a timer that watches the m_Shutdown flag. */
-	Timer::Ptr shutdownTimer = boost::make_shared<Timer>();
-	shutdownTimer->OnTimerExpired.connect(boost::bind(&Application::ShutdownTimerHandler));
-	shutdownTimer->SetInterval(0.5);
-	shutdownTimer->Start();
-
 	Timer::Initialize();
+
+	while (!m_ShuttingDown && !m_Restarting)
+		Utility::Sleep(0.5);
+
+	Log(LogInformation, "base", "Shutting down Icinga...");
+	Application::GetInstance()->OnShutdown();
+
+#ifdef _DEBUG
+	DynamicObject::StopObjects();
+	GetTP().Stop();
+	m_ShuttingDown = false;
 
 	GetTP().Join();
 
 	Timer::Uninitialize();
+#endif /* _DEBUG */
 }
 
 /**

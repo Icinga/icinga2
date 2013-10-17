@@ -127,7 +127,6 @@ private:
 
 	static void TimeWatchThreadProc(void);
 	static void NewTxTimerHandler(void);
-	static void ShutdownTimerHandler(void);
 };
 
 }
