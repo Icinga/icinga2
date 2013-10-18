@@ -220,6 +220,7 @@ fi
 
 %files
 %defattr(-,root,root,-)
+%doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/features-available
@@ -251,18 +252,20 @@ fi
 
 %files common
 %defattr(-,root,root,-)
+%doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_datadir}/%{name}/itl
 %{_datadir}/%{name}/itl
 
 %files doc
 %defattr(-,root,root,-)
+%doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %{_datadir}/doc/%{name}
 %docdir %{_datadir}/doc/%{name}
 
 %files ido-mysql
 %defattr(-,root,root,-)
-%doc components/db_ido_mysql/schema
+%doc components/db_ido_mysql/schema COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %{_libdir}/%{name}/libdb_ido_mysql*
 
 %files classicui-config
