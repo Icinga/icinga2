@@ -26,6 +26,7 @@
 #include "base/logger_fwd.h"
 #include "base/timer.h"
 #include "base/convert.h"
+#include "base/utility.h"
 #include "base/scriptfunction.h"
 #include "base/debug.h"
 #include "config/configitembuilder.h"
