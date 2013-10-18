@@ -42,7 +42,6 @@ public:
 	DECLARE_TYPENAME(Endpoint);
 
 	Endpoint(void);
-	~Endpoint(void);
 
 	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
 	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
