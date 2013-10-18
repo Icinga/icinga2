@@ -185,6 +185,88 @@ boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(
 	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2, T3>, function, _1);
 }
 
+template<typename T0, typename T1, typename T2, typename T3, typename T4>
+Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4), const std::vector<Value>& arguments)
+{
+	if (arguments.size() < 5)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+
+	function(static_cast<T0>(arguments[0]),
+	    static_cast<T1>(arguments[1]),
+	    static_cast<T2>(arguments[2]),
+	    static_cast<T3>(arguments[3]),
+	    static_cast<T4>(arguments[4]));
+
+	return Empty;
+}
+
+template<typename T0, typename T1, typename T2, typename T3, typename T4>
+boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0, T1, T2, T3, T4))
+{
+	return boost::bind(&ScriptFunctionWrapperV<T0, T1, T2, T3, T4>, function, _1);
+}
+
+template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4>
+Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4), const std::vector<Value>& arguments)
+{
+	if (arguments.size() < 5)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+
+	return function(static_cast<T0>(arguments[0]),
+	    static_cast<T1>(arguments[1]),
+	    static_cast<T2>(arguments[2]),
+	    static_cast<T3>(arguments[3]),
+	    static_cast<T4>(arguments[4]));
+}
+
+template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4>
+boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0, T1, T2, T3, T4))
+{
+	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2, T3, T4>, function, _1);
+}
+
+template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5), const std::vector<Value>& arguments)
+{
+	if (arguments.size() < 6)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+
+	function(static_cast<T0>(arguments[0]),
+	    static_cast<T1>(arguments[1]),
+	    static_cast<T2>(arguments[2]),
+	    static_cast<T3>(arguments[3]),
+	    static_cast<T4>(arguments[4]),
+	    static_cast<T5>(arguments[5]));
+
+	return Empty;
+}
+
+template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0, T1, T2, T3, T4, T5))
+{
+	return boost::bind(&ScriptFunctionWrapperV<T0, T1, T2, T3, T4, T5>, function, _1);
+}
+
+template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5), const std::vector<Value>& arguments)
+{
+	if (arguments.size() < 6)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+
+	return function(static_cast<T0>(arguments[0]),
+	    static_cast<T1>(arguments[1]),
+	    static_cast<T2>(arguments[2]),
+	    static_cast<T3>(arguments[3]),
+	    static_cast<T4>(arguments[4]),
+	    static_cast<T5>(arguments[5]));
+}
+
+template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0, T1, T2, T3, T4, T5))
+{
+	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2, T3, T4, T5>, function, _1);
+}
+
 boost::function<Value (const std::vector<Value>& arguments)> I2_BASE_API WrapScriptFunction(Value (*function)(const std::vector<Value>&));
 
 }

@@ -34,7 +34,8 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginNotification, &PluginNotificationTask::ScriptFunc);
 
-void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, const User::Ptr& user, const Dictionary::Ptr& cr, int itype)
+void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, const User::Ptr& user, const Dictionary::Ptr& cr, int itype,
+    const String& author, const String& comment)
 {
 	NotificationCommand::Ptr commandObj = notification->GetNotificationCommand();
 
@@ -46,6 +47,9 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	StaticMacroResolver::Ptr notificationMacroResolver = boost::make_shared<StaticMacroResolver>();
 	notificationMacroResolver->Add("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));
+	notificationMacroResolver->Add("NOTIFICATIONAUTHOR", author);
+	notificationMacroResolver->Add("NOTIFICATIONAUTHORNAME", author);
+	notificationMacroResolver->Add("NOTIFICATIONCOMMENT", comment);
 
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(user);

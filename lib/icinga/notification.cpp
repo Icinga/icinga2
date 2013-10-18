@@ -344,7 +344,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 			return;
 		}
 
-		command->Execute(GetSelf(), user, cr, type);
+		command->Execute(GetSelf(), user, cr, type, author, text);
 
 		{
 			ObjectLock olock(this);
