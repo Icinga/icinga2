@@ -169,7 +169,9 @@ A sample config part can look like this:
       ca_path = "/etc/icinga2/ca/ca.crt",
       cert_path = "/etc/icinga2/ca/icinga-node-1.crt",
       key_path = "/etc/icinga2/ca/icinga-node-1.key",
+
       bind_port = 8888,
+
       peers = [ "icinga-node-2" ]
     }
 
