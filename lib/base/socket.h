@@ -58,8 +58,6 @@ protected:
 	void SetFD(SOCKET fd);
 	SOCKET GetFD(void) const;
 
-	void SetConnected(bool connected);
-
 	int GetError(void) const;
 
 	mutable boost::mutex m_SocketMutex;

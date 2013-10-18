@@ -43,7 +43,15 @@ void NetworkStream::Close(void)
  */
 size_t NetworkStream::Read(void *buffer, size_t count)
 {
-	size_t rc = m_Socket->Read(buffer, count);
+	size_t rc;
+
+	try {
+		rc = m_Socket->Read(buffer, count);
+	} catch (...) {
+		m_Eof = true;
+
+		throw;
+	}
 
 	if (rc == 0)
 		m_Eof = true;
@@ -60,7 +68,16 @@ size_t NetworkStream::Read(void *buffer, size_t count)
  */
 void NetworkStream::Write(const void *buffer, size_t count)
 {
-	size_t rc = m_Socket->Write(buffer, count);
+	size_t rc;
+
+	try {
+		rc = m_Socket->Write(buffer, count);
+	} catch (...) {
+		m_Eof = true;
+
+		throw;
+	}
+
 	if (rc < count)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Short write for socket."));
 }

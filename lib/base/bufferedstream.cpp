@@ -210,5 +210,5 @@ bool BufferedStream::IsEof(void) const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	return m_Eof;
+	return m_InnerStream->IsEof() && m_RecvQ->GetAvailableBytes() == 0;
 }

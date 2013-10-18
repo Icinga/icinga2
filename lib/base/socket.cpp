@@ -62,8 +62,8 @@ Socket::~Socket(void)
 void Socket::SetFD(SOCKET fd)
 {
 	if (fd != INVALID_SOCKET) {
-		/* mark the socket as close-on-exec */
 #ifndef _WIN32
+		/* mark the socket as close-on-exec */
 		Utility::SetCloExec(fd);
 #endif /* _WIN32 */
 	}
