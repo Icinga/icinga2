@@ -94,6 +94,8 @@ void Endpoint::SendMessage(const Dictionary::Ptr& message)
 
 void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 {
+	Utility::SetThreadName("EndpointMsg");
+
 	for (;;) {
 		Dictionary::Ptr message;
 
