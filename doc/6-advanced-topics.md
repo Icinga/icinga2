@@ -109,40 +109,41 @@ re-notify if the problem persists.
 
 ## Cluster
 
-An Icinga 2 cluster consists of two or more nodes and can resist on multiple architectures. The base concept of Icinga 2 is the possibility to add additional features using components. In case of a cluster setup you have to add the cluster feature to all involved nodes. Before you start configuring the diffent nodes its necessary to setup the underlaying communication layer based on SSL.
+An Icinga 2 cluster consists of two or more nodes and can reside on multiple
+architectures. The base concept of Icinga 2 is the possibility to add additional
+features using components. In case of a cluster setup you have to add the
+cluster feature to all nodes. Before you start configuring the diffent nodes
+it's necessary to setup the underlying communication layer based on SSL.
 
-### Certificate authority and Certificates
+### Certificate Authority and Certificates
 
-Icinga2 comes with to scripts helping you to create CA and node certificates for you Icinga2 Cluster. 
+Icinga 2 comes with two scripts helping you to create CA and node certificates
+for you Icinga 2 Cluster.
 
-The first step is the creation of CA using 
+The first step is the creation of CA using the following command:
 
-	icinga2-build-ca 
+    icinga2-build-ca
 
-Please make sure to export a variable containing an empty folder for the created CA-files
+Please make sure to export a variable containing an empty folder for the created
+CA files:
 
-	export ICINGA_CA="/root/icinga-ca"
+    export ICINGA_CA="/root/icinga-ca"
 
-In the next step you have to create a certificate and a key file for every node using
+In the next step you have to create a certificate and a key file for every node
+using the following command:
 
-	icinga2-build-key icinga-node-1
+    icinga2-build-key icinga-node-1
 
-If you don't want to fill in all the data multiple times, please export the following variables
+Please create a certificate and a key file for every node in the Icinga 2
+Cluster and save the CA key in case you want to set up certificates for
+additional nodes at a later date.
 
-* KEY_COUNTRY
-* KEY_PROVINCE
-* KEY_CITY
-* KEY_ORG
-* KEY_EMAIL
-* KEY_OU
+### Enable the Cluster Configuration
 
-Please create a certificate- and a key-file for every node in the Icinga 2 Cluster and save the CA-Key for additional nodes at a later date
+Until the cluster-component is moved into an independent feature you have to
+enable the required libraries in the icinga2.conf configuration file:
 
-### Enable the cluster configuration
-
-Until the cluster-component is moved into an independent feature you have to enable the required libraries in the icinga2.conf
-
-	library "cluster"
+    library "cluster"
 
 ### Configure the ClusterListener Object
 
@@ -159,24 +160,26 @@ The ClusterListener needs to be configured on every node in the cluster with the
 
 A sample config part can look like this:
 
-	/**
- 	* Load cluster-library and configure Cluster-Listener using CA-files
- 	*/
-	library "cluster"
-	object ClusterListener "cluster" {
-    		ca_path = "/etc/icinga2/ca/ca.crt",
-    		cert_path = "/etc/icinga2/ca/icinga-node-1.pem",
-    		bind_port = 8888,
-    		peers = [ "icinga-node-1", "icinga-node-2" ]
-	}
+    /**
+     * Load cluster library and configure ClusterListener using certificate files
+     */
+    library "cluster"
 
-Peers configures the direction used to connect multipe nodes together. If have a three node cluster consisting of 
+    object ClusterListener "cluster" {
+      ca_path = "/etc/icinga2/ca/ca.crt",
+      cert_path = "/etc/icinga2/ca/icinga-node-1.crt",
+      key_path = "/etc/icinga2/ca/icinga-node-1.key",
+      bind_port = 8888,
+      peers = [ "icinga-node-2" ]
+    }
+
+Peers configures the direction used to connect multiple nodes together. If have a three node cluster consisting of
 
 * node-1
 * node-2
 * node-3
 
-and node-3 is only reachable from node-2, you have to consider this in your peer configuration
+and `node-3` is only reachable from `node-2`, you have to consider this in your peer configuration
 
 ### Configure Cluster Endpoints
 
@@ -192,32 +195,36 @@ In addition to the configured port and hostname every endpoint can have specific
 
 A sample config part can look like this:
 
-	/**
- 	* Configure endpoints for cluster configuration
- 	*/
+    /**
+     * Configure endpoints for cluster configuration
+     */
 	
-	object Endpoint "icinga-node-1" {
-    	host = "icinga-node-1.localdomain",
-    	port = 8888,
-	config_files = ["/etc/icinga2/conf.d/*.conf"]
-	}
+    object Endpoint "icinga-node-1" {
+      host = "icinga-node-1.localdomain",
+      port = 8888,
+      config_files = ["/etc/icinga2/conf.d/*.conf"]
+    }
 
-If you update the configs on the configured file sender, it will force a restart on all receiving nodes after validating the new config.
+If you update the configuration files on the configured file sender, it will
+force a restart on all receiving nodes after validating the new config.
 
 ## Dependencies
 
 Icinga 2 uses host and service dependencies as attribute directly on the host or
 service object or template. A service can depend on a host, and vice versa. A
-service has an implicit dependeny (parent) to its host. A host to host dependency acts
-implicit as host parent relation.
+service has an implicit dependeny (parent) to its host. A host to host
+dependency acts implicit as host parent relation.
 
-A common scenario is the Icinga 2 server behind a router. Checking internet access
-by pinging the Google DNS server `google-dns` is a common method, but will fail in
-case the `dsl-router` host is down. Therefore the example below defines a host dependency
-which acts implicit as parent relation too.
-Furthermore the host may be reachable but ping samples are dropped by the router's iptables.
-By defining a service dependency the `google-dns ping4` re-check will be skipped in
-case the parent service `dsl-router ping4` is in a `NOT-OK` state.
+A common scenario is the Icinga 2 server behind a router. Checking internet
+access by pinging the Google DNS server `google-dns` is a common method, but
+will fail in case the `dsl-router` host is down. Therefore the example below
+defines a host dependency which acts implicit as parent relation too.
+
+Furthermore the host may be reachable but ping samples are dropped by the
+router's firewall.
+
+By defining a service dependency the `google-dns ping4` re-check will be skipped
+in case the parent service `dsl-router ping4` is in a `NOT-OK` state.
 
     object Host "dsl-router" {
       services["ping4"] = {
