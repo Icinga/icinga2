@@ -151,6 +151,9 @@ size_t BufferedStream::Read(void *buffer, size_t count)
 	if (m_Exception)
 		boost::rethrow_exception(m_Exception);
 
+	if (m_Eof)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to read from closed socket."));
+
 	return m_RecvQ->Read(buffer, count);
 }
 
@@ -168,6 +171,9 @@ void BufferedStream::Write(const void *buffer, size_t count)
 
 	if (m_Exception)
 		boost::rethrow_exception(m_Exception);
+
+	if (m_Eof)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to write to closed socket."));
 
 	m_SendQ->Write(buffer, count);
 	m_WriteCV.notify_all();

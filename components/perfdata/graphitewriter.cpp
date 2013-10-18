@@ -37,6 +37,7 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -198,17 +199,28 @@ void GraphiteWriter::AddServiceMetric(std::vector<String>& metrics, const Servic
 
 void GraphiteWriter::SendMetrics(const std::vector<String>& metrics)
 {
-	if (!m_Stream) {
-		Log(LogWarning, "perfdata", "GraphiteWriter not connected!");
-		return;
-	}
-
 	BOOST_FOREACH(const String& metric, metrics) {
 		if (metric.IsEmpty())
 			continue;
 
 		Log(LogDebug, "perfdata", "GraphiteWriter: Sending metric '" + metric + "'.");
-		m_Stream->Write(metric.CStr(), metric.GetLength());
+
+		ObjectLock olock(this);
+
+		if (!m_Stream)
+			return;
+
+		try {
+			m_Stream->Write(metric.CStr(), metric.GetLength());
+		} catch (const std::exception& ex) {
+			std::ostringstream msgbuf;
+			msgbuf << "Exception thrown while writing to the Graphite socket: " << std::endl
+                               << boost::diagnostic_information(ex);
+
+			Log(LogCritical, "base", msgbuf.str());
+
+			m_Stream.reset();
+		}
 	}
 }
 

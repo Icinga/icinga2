@@ -45,6 +45,9 @@ size_t NetworkStream::Read(void *buffer, size_t count)
 {
 	size_t rc;
 
+	if (m_Eof)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to read from closed socket."));
+
 	try {
 		rc = m_Socket->Read(buffer, count);
 	} catch (...) {
@@ -70,6 +73,9 @@ void NetworkStream::Write(const void *buffer, size_t count)
 {
 	size_t rc;
 
+	if (m_Eof)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to write to closed socket."));
+
 	try {
 		rc = m_Socket->Write(buffer, count);
 	} catch (...) {
@@ -78,8 +84,11 @@ void NetworkStream::Write(const void *buffer, size_t count)
 		throw;
 	}
 
-	if (rc < count)
+	if (rc < count) {
+		m_Eof = true;
+
 		BOOST_THROW_EXCEPTION(std::runtime_error("Short write for socket."));
+	}
 }
 
 bool NetworkStream::IsEof(void) const

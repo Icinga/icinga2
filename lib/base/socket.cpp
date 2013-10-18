@@ -216,7 +216,7 @@ void Socket::Listen(void)
 }
 
 /**
- * Processes data that is available for this socket.
+ * Sends data for the socket.
  */
 size_t Socket::Write(const void *buffer, size_t count)
 {
