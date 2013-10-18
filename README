@@ -4,8 +4,7 @@ Icinga 2
 Icinga 2 is a network monitoring application. Read the INSTALL file for more
 information about how to install it.
 
-The documentation file docs/icinga2-intro.txt contains an in-depth overview
-of currently implemented and planned features for Icinga 2.
+The documentation is located in the doc/ directory.
 
 Check the project website at http://www.icinga.org/ for status updates and
 https://www.icinga.org/support/ if you want to contact us.
