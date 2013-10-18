@@ -609,6 +609,9 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 		} else if (macro == "LASTHOSTSTATECHANGE") {
 			*result = Convert::ToString((long)hc->GetLastStateChange());
 			return true;
+		} else if (macro == "HOSTDURATIONSEC") {
+			*result = Convert::ToString((long)(Utility::GetTime() - hc->GetLastStateChange()));
+			return true;
 		}
 
 		hccr = hc->GetLastCheckResult();

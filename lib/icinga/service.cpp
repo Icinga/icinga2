@@ -424,6 +424,9 @@ bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, Strin
 	} else if (macro == "LASTSERVICESTATECHANGE") {
 		*result = Convert::ToString((long)GetLastStateChange());
 		return true;
+	} else if (macro == "SERVICEDURATIONSEC") {
+		*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
+		return true;
 	}
 
 	if (cr) {
