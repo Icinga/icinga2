@@ -94,7 +94,7 @@ define icinga2::feature ($feature = $title) {
   exec { "icinga2-feature-${feature}":
     path => '/bin:/usr/bin:/sbin:/usr/sbin',
     unless => "readlink /etc/icinga2/features-enabled/${feature}.conf",
-    command => "i2enfeature ${feature}",
+    command => "icinga2-enable-feature ${feature}",
     require => [ Package['icinga2'] ],
     notify => Service['icinga2']
   }

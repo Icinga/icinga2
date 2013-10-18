@@ -10,15 +10,15 @@ ICINGA2CONFDIR=@sysconfdir@/icinga2
 
 TOOL=$(basename -- $0)
 
-if [ "$TOOL" != "i2enfeature" -a "$TOOL" != "i2disfeature" ]; then
-	echo "Invalid tool name ($TOOL). Should be 'i2enfeature' or 'i2disfeature'."
+if [ "$TOOL" != "icinga2-enable-feature" -a "$TOOL" != "icinga2-disable-feature" ]; then
+	echo "Invalid tool name ($TOOL). Should be 'icinga2-enable-feature' or 'icinga2-disable-feature'."
 	exit 1
 fi
 
 if [ -z "$1" ]; then
 	echo "Syntax: $0 <feature>"
 
-	if [ "$TOOL" = "i2enfeature" ]; then
+	if [ "$TOOL" = "icinga2-enable-feature" ]; then
 		echo "Enables the specified feature."
 	else
 		echo "Disables the specified feature."
@@ -43,7 +43,7 @@ if [ ! -e $ICINGA2CONFDIR/features-available/$FEATURE.conf ]; then
 	exit 1
 fi
 
-if [ "$TOOL" = "i2enfeature" ]; then
+if [ "$TOOL" = "icinga2-enable-feature" ]; then
 	if [ -e $ICINGA2CONFDIR/features-enabled/$FEATURE.conf ]; then
 		echo "The feature '$FEATURE' is already enabled."
 		exit 0
@@ -52,7 +52,7 @@ if [ "$TOOL" = "i2enfeature" ]; then
 	ln -s ../features-available/$FEATURE.conf $ICINGA2CONFDIR/features-enabled/
 
 	echo "Module '$FEATURE' was enabled."
-elif [ "$TOOL" = "i2disfeature" ]; then
+elif [ "$TOOL" = "icinga2-disable-feature" ]; then
 	if [ ! -e $ICINGA2CONFDIR/features-enabled/$FEATURE.conf ]; then
 		echo "The feature '$FEATURE' is already disabled."
 		exit 0

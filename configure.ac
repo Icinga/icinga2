@@ -209,7 +209,7 @@ third-party/execvpe/Makefile
 third-party/mmatch/Makefile
 tools/Makefile
 tools/migration/Makefile
-tools/i2enfeature
+tools/icinga2-enable-feature
 tools/mkembedconfig/Makefile
 ])
 

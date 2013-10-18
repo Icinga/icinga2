@@ -192,30 +192,30 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
 	# initial installation, enable ido-mysql feature
-	%{_sbindir}/i2enfeature ido-mysql
+	%{_sbindir}/icinga2-enable-feature ido-mysql
 fi
 
 %postun ido-mysql
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove feature
-	test -x %{_sbindir}/i2disfeature && %{_sbindir}/i2disfeature ido-mysql
+	test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature ido-mysql
 fi
 
 %post classicui-config
 if [ ${1:-0} -eq 1 ]
 then
         # initial installation, enable features
-        %{_sbindir}/i2enfeature statusdata
-        %{_sbindir}/i2enfeature compatlog
-        %{_sbindir}/i2enfeature command
+        %{_sbindir}/icinga2-enable-feature statusdata
+        %{_sbindir}/icinga2-enable-feature compatlog
+        %{_sbindir}/icinga2-enable-feature command
 fi
 
 %postun classicui-config
 if [ "$1" = "0" ]; then
         # deinstallation of the package - remove feature
-        test -x %{_sbindir}/i2disfeature && %{_sbindir}/i2disfeature statusdata
-        test -x %{_sbindir}/i2disfeature && %{_sbindir}/i2disfeature compatlog
-        test -x %{_sbindir}/i2disfeature && %{_sbindir}/i2disfeature command
+        test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature statusdata
+        test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature compatlog
+        test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature command
 fi
 
 %files
@@ -232,8 +232,8 @@ fi
 %{_bindir}/icinga2-migrate-config
 %{_bindir}/icinga2-build-ca
 %{_bindir}/icinga2-build-key
-%{_sbindir}/i2enfeature
-%{_sbindir}/i2disfeature
+%{_sbindir}/icinga2-enable-feature
+%{_sbindir}/icinga2-disable-feature
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %{_libdir}/%{name}
 %{_datadir}/%{name}
