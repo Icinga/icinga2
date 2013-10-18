@@ -427,6 +427,29 @@ bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, Strin
 	} else if (macro == "SERVICEDURATIONSEC") {
 		*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
 		return true;
+	} else if (macro == "TOTALHOSTSERVICES" || macro == "TOTALHOSTSERVICESOK" || macro == "TOTALHOSTSERVICESWARNING"
+	    || macro == "TOTALHOSTSERVICESUNKNOWN" || macro == "TOTALHOSTSERVICESCRITICAL") {
+		int filter = -1;
+		int count = 0;
+
+		if (macro == "TOTALHOSTSERVICESOK")
+			filter = StateOK;
+		else if (macro == "TOTALHOSTSERVICESWARNING")
+			filter = StateWarning;
+		else if (macro == "TOTALHOSTSERVICESUNKNOWN")
+			filter = StateUnknown;
+		else if (macro == "TOTALHOSTSERVICESCRITICAL")
+			filter = StateCritical;
+
+		BOOST_FOREACH(const Service::Ptr& service, GetHost()->GetServices()) {
+			if (filter != -1 && service->GetState() != filter)
+				continue;
+
+			count++;
+		}
+
+		*result = Convert::ToString(count);
+		return true;
 	}
 
 	if (cr) {
