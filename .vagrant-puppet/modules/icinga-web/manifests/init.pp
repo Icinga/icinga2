@@ -33,16 +33,16 @@ class icinga-web {
     require => [ Package['icinga-web'], Exec['create-mysql-icinga-web-db'] ]
   }
 
-  exec { 'create-icinga1x-spool-dir':
+  exec { 'set-icinga2-cmd-pipe-path':
     path => '/bin:/usr/bin:/sbin:/usr/sbin',
-    unless => 'test -d /var/spool/icinga/cmd',
-	command => 'mkdir -p /var/spool/icinga/cmd',
+    command => 'sed -i \'s/\/var\/spool\/icinga\/cmd\/icinga.cmd/\/var\/run\/icinga2\/cmd\/icinga2.cmd/g\' /etc/icinga-web/conf.d/access.xml',
+    require => Package['icinga-web']
   }
 
-  exec { 'create-icinga1x-command-symlink':
+  exec { 'clear-config-cache':
     path => '/bin:/usr/bin:/sbin:/usr/sbin',
-    unless => 'test -L /var/spool/icinga/cmd/icinga.cmd',
-	command => 'ln -sf /var/run/icinga2/cmd/icinga2.cmd /var/spool/icinga/cmd/icinga.cmd',
-	require => Exec['create-icinga1x-spool-dir']
+    command => '/usr/bin/icinga-web-clearcache',
+    require => Exec['set-icinga2-cmd-pipe-path']
   }
+
 }
