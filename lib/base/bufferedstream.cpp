@@ -60,6 +60,8 @@ void BufferedStream::ReadThreadProc(void)
 {
 	char buffer[512];
 
+	Utility::SetThreadName("BufS Read");
+
 	try {
 		for (;;) {
 			size_t rc = m_InnerStream->Read(buffer, sizeof(buffer));
@@ -96,6 +98,8 @@ void BufferedStream::ReadThreadProc(void)
 void BufferedStream::WriteThreadProc(void)
 {
 	char buffer[512];
+
+	Utility::SetThreadName("BufS Write");
 
 	try {
 		for (;;) {
