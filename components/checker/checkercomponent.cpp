@@ -91,8 +91,7 @@ void CheckerComponent::CheckThreadProc(void)
 			service.reset();
 
 			/* Wait for the next check. */
-			if (!m_Stopped)
-				m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+			m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
 
 			continue;
 		}
@@ -101,7 +100,6 @@ void CheckerComponent::CheckThreadProc(void)
 
 		bool forced = service->GetForceNextCheck();
 		bool check = true;
-		bool authoritative = service->HasAuthority("checker");
 
 		if (!forced) {
 			if (!service->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableChecks()) {
@@ -117,20 +115,22 @@ void CheckerComponent::CheckThreadProc(void)
 			}
 		}
 
+		bool authoritative = service->HasAuthority("checker");
+
+		if (!authoritative)
+			check = false;
+
 		/* reschedule the service if checks are disabled */
 		if (!check) {
-			if (authoritative)
+			if (authoritative) {
 				service->UpdateNextCheck();
 
-			typedef boost::multi_index::nth_index<ServiceSet, 1>::type CheckTimeView;
-			CheckTimeView& idx = boost::get<1>(m_IdleServices);
-
-			idx.insert(service);
+				m_IdleServices.insert(service);
+			}
 
 			continue;
 		}
 
-		m_IdleServices.erase(service);
 		m_PendingServices.insert(service);
 
 		lock.unlock();
