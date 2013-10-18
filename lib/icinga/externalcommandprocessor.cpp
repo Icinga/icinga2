@@ -632,6 +632,7 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vecto
 
 	Log(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
 
+	ObjectLock olock(service);
 	service->ClearAcknowledgement();
 }
 
