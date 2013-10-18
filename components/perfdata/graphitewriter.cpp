@@ -32,6 +32,7 @@
 #include "base/stream.h"
 #include "base/networkstream.h"
 #include "base/bufferedstream.h"
+#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -86,7 +87,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 
 	TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
 
-	Log(LogInformation, "perfdata", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+	Log(LogDebug, "perfdata", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 	socket->Connect(GetHost(), GetPort());
 
 	NetworkStream::Ptr net_stream = boost::make_shared<NetworkStream>(socket);
@@ -120,6 +121,8 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 	String perfdata = CompatUtility::GetCheckResultPerfdata(cr);
 
 	if (!perfdata.IsEmpty()) {
+		perfdata.Trim();
+
 		Log(LogDebug, "perfdata", "GraphiteWriter: Processing perfdata: '" + perfdata + "'.");
 
 		/*
@@ -129,33 +132,64 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 		std::vector<String> tokens;
 		boost::algorithm::split(tokens, perfdata, boost::is_any_of(" "));
 
-		/* TODO deal with 'foo bar'=0;;; 'baz'=1.0;;; */
+		/* TODO deal with white spaces in single quoted labels: 'foo bar'=0;;; 'baz'=1.0;;;
+		 * 1. find first ', find second ' -> if no '=' in between, this is a label
+		 * 2. two single quotes define an escaped single quite
+		 * 3. warn/crit/min/max may be null and semicolon delimiter omitted
+		 * https://www.nagios-plugins.org/doc/guidelines.html#AEN200
+		 */
 		BOOST_FOREACH(const String& token, tokens) {
+			String metricKeyVal = token;
+			metricKeyVal.Trim();
+
 			std::vector<String> key_val;
-			boost::algorithm::split(key_val, token, boost::is_any_of("="));
+			boost::algorithm::split(key_val, metricKeyVal, boost::is_any_of("="));
 
 			if (key_val.size() == 0) {
-				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + token + "'.");
+				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data. No assignment operator found in :'" + metricKeyVal + "'.");
 				return;
 			}
 
 			String metricName = key_val[0];
+			metricName.Trim();
 
 			if (key_val.size() == 1) {
-				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + token + "'.");
+				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + metricKeyVal + "' with key: '" + metricName + "'.");
 				return;
 			}
+
+			String metricValues = key_val[1];
+			metricValues.Trim();
 
 			std::vector<String> perfdata_values;
-			boost::algorithm::split(perfdata_values, key_val[1], boost::is_any_of(";"));
+			boost::algorithm::split(perfdata_values, metricValues, boost::is_any_of(";"));
 
 			if (perfdata_values.size() == 0) {
-				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + token + "'.");
+				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + metricKeyVal +
+				    "' with key: '" + metricName + "' and values: '" + metricValues + "'.");
 				return;
 			}
 
-			/* TODO remove UOM from value */
 			String metricValue = perfdata_values[0];
+
+			metricValue.Trim();
+			Log(LogDebug, "perfdata", "GraphiteWriter: Trimmed metric value: '" + metricValue + "'.");
+
+			/* extract raw value (digit number digit as double) and uom
+			 * http://en.highscore.de/cpp/boost/stringhandling.html
+			 */
+			String metricValueRaw = boost::algorithm::trim_right_copy_if(metricValue, (!boost::algorithm::is_digit() && !boost::algorithm::is_any_of(".,")));
+			String metricValueUom = boost::algorithm::trim_left_copy_if(metricValue, (boost::algorithm::is_digit() || boost::algorithm::is_any_of(".,")));
+
+			Log(LogDebug, "perfdata", "GraphiteWriter: Raw metric value: '" + metricValueRaw + "' with UOM: '" + metricValueUom + "'.");
+
+			/* TODO: Normalize raw value based on UOM
+			 * a. empty - assume a number
+			 * b. 's' - seconds (us, ms)
+			 * c. '%' - percentage
+			 * d. 'B' - bytes (KB, MB, GB, TB)
+			 * e. 'c' - continous counter (snmp)
+			 */
 
 			/* //TODO: Figure out how graphite handles warn/crit/min/max
 			String metricValueWarn, metricValueCrit, metricValueMin, metricValueMax;
@@ -170,7 +204,10 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 				metricValueMax = perfdata_values[4];
 			*/
 
-			AddServiceMetric(metrics, service, metricName, metricValue);
+			/* sanitize invalid metric characters */
+			SanitizeMetric(metricName);
+
+			AddServiceMetric(metrics, service, metricName, metricValueRaw);
 		}
 	}
 
@@ -182,14 +219,11 @@ void GraphiteWriter::AddServiceMetric(std::vector<String>& metrics, const Servic
 	/* TODO: sanitize host and service names */
 	String hostName = service->GetHost()->GetName();
 	String serviceName = service->GetShortName();	
+
+	SanitizeMetric(hostName);
+	SanitizeMetric(serviceName);
+
 	String metricPrefix = hostName + "." + serviceName;
-	
-	boost::replace_all(metricPrefix, " ", "_");
-	boost::replace_all(metricPrefix, "-", "_");
-	boost::replace_all(metricPrefix, ".", "_");
-	boost::replace_all(metricPrefix, "\\", "_");
-	boost::replace_all(metricPrefix, "/", "_");
-	
 	String graphitePrefix = "icinga";
 
 	String metric = graphitePrefix + "." + metricPrefix + "." + name + " " + Convert::ToString(value) + " " + Convert::ToString(static_cast<long>(Utility::GetTime())) + "\n";
@@ -222,6 +256,15 @@ void GraphiteWriter::SendMetrics(const std::vector<String>& metrics)
 			m_Stream.reset();
 		}
 	}
+}
+
+void GraphiteWriter::SanitizeMetric(String& str)
+{
+	boost::replace_all(str, " ", "_");
+	boost::replace_all(str, "-", "_");
+	boost::replace_all(str, ".", "_");
+	boost::replace_all(str, "\\", "_");
+	boost::replace_all(str, "/", "_");
 }
 
 void GraphiteWriter::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const

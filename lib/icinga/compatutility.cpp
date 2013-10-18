@@ -430,10 +430,10 @@ Dictionary::Ptr CompatUtility::GetCommandConfigAttributes(const Command::Ptr& co
 		String arg;
 		BOOST_FOREACH(arg, args) {
 			// This is obviously incorrect for non-trivial cases.
-			commandline = " \"" + CompatUtility::EscapeString(arg) + "\"";
+			commandline = " \"" + EscapeString(arg) + "\"";
 		}
 	} else if (!commandLine.IsEmpty()) {
-		commandline = CompatUtility::EscapeString(Convert::ToString(commandLine));
+		commandline = EscapeString(Convert::ToString(commandLine));
 	} else {
 		commandline = "<internal>";
 	}
@@ -552,7 +552,10 @@ String CompatUtility::GetCheckResultPerfdata(const Dictionary::Ptr& cr)
 	if (!cr)
 		return Empty;
 
-	return EscapeString(cr->Get("performance_data_raw"));
+	String perfdata = EscapeString(cr->Get("performance_data_raw"));
+	perfdata.Trim();
+
+	return perfdata;
 }
 
 String CompatUtility::EscapeString(const String& str)
