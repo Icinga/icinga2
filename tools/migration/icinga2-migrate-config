@@ -211,6 +211,7 @@ my $type_cnt;
 
 # verify that we have something to read
 if ( !-f $icinga1_cfg) {
+    print "ERROR: Icinga 1.x config file '$icinga1_cfg' not found.\n";
     pod2usage(1);
 }
 
