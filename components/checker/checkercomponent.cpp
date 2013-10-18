@@ -84,12 +84,15 @@ void CheckerComponent::CheckThreadProc(void)
 		CheckTimeView::iterator it = idx.begin();
 		Service::Ptr service = *it;
 
+		if (!service->HasAuthority("checker")) {
+			m_IdleServices.erase(service);
+
+			continue;
+		}
+
 		double wait = service->GetNextCheck() - Utility::GetTime();
 
 		if (wait > 0) {
-			/* Make sure the service we just examined can be destroyed while we're waiting. */
-			service.reset();
-
 			/* Wait for the next check. */
 			m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
 
@@ -115,18 +118,11 @@ void CheckerComponent::CheckThreadProc(void)
 			}
 		}
 
-		bool authoritative = service->HasAuthority("checker");
-
-		if (!authoritative)
-			check = false;
-
 		/* reschedule the service if checks are disabled */
 		if (!check) {
-			if (authoritative) {
-				service->UpdateNextCheck();
+			service->UpdateNextCheck();
 
-				m_IdleServices.insert(service);
-			}
+			m_IdleServices.insert(service);
 
 			continue;
 		}
