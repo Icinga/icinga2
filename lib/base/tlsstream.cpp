@@ -121,7 +121,7 @@ void TlsStream::Handshake(void)
 			default:
 				I2Stream_check_exception(m_BIO);
 				BOOST_THROW_EXCEPTION(openssl_error()
-				    << boost::errinfo_api_function("SSL_read")
+				    << boost::errinfo_api_function("SSL_do_handshake")
 				    << errinfo_openssl_error(ERR_get_error()));
 		}
 	}
