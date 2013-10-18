@@ -40,7 +40,7 @@ Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 
 	String output = "Hello from ";
 	output += name;
-	String perfdata = "time=" + Convert::ToString(Utility::GetTime());
+	String perfdata = "time=" + Convert::ToString(static_cast<double>(Utility::GetTime()));
 
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("output", output);
