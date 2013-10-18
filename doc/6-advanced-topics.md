@@ -281,7 +281,7 @@ configuration attribute named `flapping_threshold`.
 
 ## Volatile Services
 
-By default all services remain in a non-volatile state. Whe a problem
+By default all services remain in a non-volatile state. When a problem
 occurs, the `SOFT` state applies and once `max_check_attempts` attribute
 is reached with the check counter, a `HARD` state transition happens.
 Notifications are only triggered by `HARD` state changes and are then
