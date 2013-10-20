@@ -37,6 +37,12 @@
     <ClCompile Include="base-type.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="avalue.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="aexpression.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config_parser.h">
@@ -73,6 +79,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="typerule.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="avalue.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="aexpression.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

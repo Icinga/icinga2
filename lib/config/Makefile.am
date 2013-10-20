@@ -23,6 +23,10 @@ AM_YFLAGS = -d
 config_lexer.cc: config_parser.h
 
 libconfig_la_SOURCES = \
+	aexpression.cpp \
+	aexpression.h \
+	avalue.cpp \
+	avalue.h \
 	base-type.conf \
 	configcompiler.cpp \
 	configcompiler.h \

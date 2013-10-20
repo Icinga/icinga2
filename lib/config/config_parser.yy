@@ -26,6 +26,7 @@
 #include "config/configcompilercontext.h"
 #include "config/typerule.h"
 #include "config/typerulelist.h"
+#include "config/aexpression.h"
 #include "base/value.h"
 #include "base/utility.h"
 #include "base/array.h"
@@ -61,6 +62,7 @@ using namespace icinga;
 	Expression *expr;
 	ExpressionList *exprl;
 	Array *array;
+	Value *aexpr;
 }
 
 %token <text> T_STRING
@@ -109,8 +111,8 @@ using namespace icinga;
 %type <num> partial_specifier
 %type <slist> object_inherits_list
 %type <slist> object_inherits_specifier
-%type <variant> constterm
-%type <variant> constexpression
+%type <aexpr> aterm
+%type <aexpr> aexpression
 %left '+' '-'
 %left '*' '/'
 %left '&'
@@ -535,85 +537,74 @@ simplevalue: T_STRING
 	}
 	;
 
-constterm: '(' constexpression ')'
+aterm: '(' aexpression ')'
 	{
 		$$ = $2;
 	}
 
-constexpression: T_STRING
+aexpression: T_STRING
 	{
-		$$ = new Value($1);
+		$$ = new Value(boost::make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
 		free($1);
 	}
 	| T_NUMBER
 	{
-		$$ = new Value($1);
+		$$ = new Value(boost::make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
 	}
 	| T_IDENTIFIER
 	{
-		$$ = new Value(ScriptVariable::Get($1));
+		$$ = new Value(boost::make_shared<AExpression>(AEReturn, AValue(ATVariable, $1)));
 		free($1);
 	}
-	| constexpression '+' constexpression
+	| aexpression '+' aexpression
 	{
-		if ($1->GetType() == ValueString || $3->GetType() == ValueString)
-			$$ = new Value((String)*$1 + (String)*$3);
-		else
-			$$ = new Value((double)*$1 + (double)*$3);
-
+		$$ = new Value(boost::make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
-	| constexpression '-' constexpression
+	| aexpression '-' aexpression
 	{
-		$$ = new Value((double)*$1 - (double)*$3);
-
+		$$ = new Value(boost::make_shared<AExpression>(AESubtract, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
-	| constexpression '*' constexpression
+	| aexpression '*' aexpression
 	{
-		$$ = new Value((double)*$1 * (double)*$3);
-
+		$$ = new Value(boost::make_shared<AExpression>(AEMultiply, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
-	| constexpression '/' constexpression
+	| aexpression '/' aexpression
 	{
-		$$ = new Value((double)*$1 / (double)*$3);
-
+		$$ = new Value(boost::make_shared<AExpression>(AEDivide, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
-	| constexpression '&' constexpression
+	| aexpression '&' aexpression
 	{
-		$$ = new Value((long)*$1 & (long)*$3);
-
+		$$ = new Value(boost::make_shared<AExpression>(AEBinaryAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
-	| constexpression '|' constexpression
+	| aexpression '|' aexpression
 	{
-		$$ = new Value((long)*$1 | (long)*$3);
-
+		$$ = new Value(boost::make_shared<AExpression>(AEBinaryOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
-	| constexpression T_SHIFT_LEFT constexpression
+	| aexpression T_SHIFT_LEFT aexpression
 	{
-		$$ = new Value((long)*$1 << (long)*$3);
-
+		$$ = new Value(boost::make_shared<AExpression>(AEShiftLeft, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
-	| constexpression T_SHIFT_RIGHT constexpression
+	| aexpression T_SHIFT_RIGHT aexpression
 	{
-		$$ = new Value((long)*$1 >> (long)*$3);
-
+		$$ = new Value(boost::make_shared<AExpression>(AEShiftRight, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
-	| '(' constexpression ')'
+	| '(' aexpression ')'
 	{
 		$$ = $2;
 	}
@@ -625,9 +616,11 @@ value: simplevalue
 		ExpressionList::Ptr exprl = ExpressionList::Ptr($1);
 		$$ = new Value(exprl);
 	}
-	| constterm
+	| aterm
 	{
-		$$ = $1;
+		AExpression::Ptr aexpr = *$1;
+		$$ = new Value(aexpr->Evaluate(Object::Ptr()));
+		delete $1;
 	}
 	;
 %%

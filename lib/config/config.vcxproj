@@ -20,6 +20,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="aexpression.h" />
+    <ClInclude Include="avalue.h" />
     <ClInclude Include="configcompiler.h" />
     <ClInclude Include="configcompilercontext.h" />
     <ClInclude Include="configitem.h" />
@@ -34,6 +36,8 @@
     <ClInclude Include="typerulelist.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="aexpression.cpp" />
+    <ClCompile Include="avalue.cpp" />
     <ClCompile Include="base-type.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
