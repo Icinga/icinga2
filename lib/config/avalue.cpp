@@ -24,7 +24,7 @@
 using namespace icinga;
 
 AValue::AValue(void)
-	: m_Type(ATSimple), m_Expression(NULL)
+	: m_Type(ATSimple)
 { }
 
 AValue::AValue(const AExpression::Ptr& expr)
