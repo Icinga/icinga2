@@ -43,7 +43,7 @@ class AExpression;
 /**
  * @ingroup config
  */
-class AValue
+class I2_CONFIG_API AValue
 {
 public:
 	AValue(void);

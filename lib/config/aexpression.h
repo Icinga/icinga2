@@ -46,7 +46,7 @@ enum AOperator
 /**
  * @ingroup config
  */
-class AExpression : public Object
+class I2_CONFIG_API AExpression : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(AExpression);

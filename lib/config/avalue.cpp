@@ -32,7 +32,7 @@ AValue::AValue(const AExpression::Ptr& expr)
 { }
 
 AValue::AValue(AValueType type, const Value& value)
-	: m_Type(type), m_Value(value), m_Expression(NULL)
+	: m_Type(type), m_Value(value)
 { }
 
 Value AValue::Evaluate(const Object::Ptr& thisRef) const
