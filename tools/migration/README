@@ -39,18 +39,18 @@ All required templates will be inherited from Icinga2's Template Library (ITL).
 Regular expressions are not supported, also for the reason that this is optional in Icinga 1.x
 
 RUN
-# /usr/sbin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o conf/
+# /usr/bin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o conf/
 
 HELP
-# /usr/sbin/icinga2-migrate-config -h
+# /usr/bin/icinga2-migrate-config -h
 
 VERBOSE
-# /usr/sbin/icinga2-migrate-config -v -c /etc/icinga/icinga.cfg -o conf/
+# /usr/bin/icinga2-migrate-config -v -c /etc/icinga/icinga.cfg -o conf/
 
 TEST
 There's a small icinga2 conversion test config available, including conf/ folder.
 
-# /usr/bin/icinga2 -c icinga2-conv.conf
+# /usr/sbin/icinga2 -c icinga2-conv.conf
 
 
 REQUIREMENTS
