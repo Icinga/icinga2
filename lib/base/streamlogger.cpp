@@ -21,6 +21,7 @@
 #include "base/utility.h"
 #include "base/objectlock.h"
 #include <boost/thread/thread.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -38,6 +39,11 @@ void StreamLogger::Start(void)
 	m_Stream = NULL;
 	m_OwnsStream = false;
 	m_Tty = false;
+
+	m_FlushLogTimer = boost::make_shared<Timer>();
+	m_FlushLogTimer->SetInterval(1);
+	m_FlushLogTimer->OnTimerExpired.connect(boost::bind(&StreamLogger::FlushLogTimerHandler, this));
+	m_FlushLogTimer->Start();
 }
 
 /**
@@ -47,6 +53,12 @@ StreamLogger::~StreamLogger(void)
 {
 	if (m_OwnsStream)
 		delete m_Stream;
+}
+
+void StreamLogger::FlushLogTimerHandler(void)
+{
+	if (m_OwnsStream && m_Stream)
+		m_Stream->flush();
 }
 
 void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)

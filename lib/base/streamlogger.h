@@ -22,6 +22,7 @@
 
 #include "base/i2-base.h"
 #include "base/logger.h"
+#include "base/timer.h"
 #include <ostream>
 
 namespace icinga
@@ -53,6 +54,10 @@ private:
 	std::ostream *m_Stream;
 	bool m_OwnsStream;
         bool m_Tty;
+
+        Timer::Ptr m_FlushLogTimer;
+
+        void FlushLogTimerHandler(void);
 };
 
 }
