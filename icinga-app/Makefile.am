@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-bin_PROGRAMS = \
+sbin_PROGRAMS = \
 	icinga2
 
 icinga2_SOURCES = \

@@ -229,12 +229,12 @@ fi
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-enabled/*.conf
-%{_bindir}/%{name}
-%{_bindir}/icinga2-migrate-config
-%{_bindir}/icinga2-build-ca
-%{_bindir}/icinga2-build-key
-%{_sbindir}/icinga2-enable-feature
-%{_sbindir}/icinga2-disable-feature
+%{_sbindir}/%{name}
+%{_bindir}/%{name}-migrate-config
+%{_bindir}/%{name}-build-ca
+%{_bindir}/%{name}-build-key
+%{_sbindir}/%{name}-enable-feature
+%{_sbindir}/%{name}-disable-feature
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %{_libdir}/%{name}
 %{_datadir}/%{name}
