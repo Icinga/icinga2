@@ -29,6 +29,10 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
+#ifdef __FreeBSD__
+#	include <pthread_np.h>
+#endif /* __FreeBSD__ */
+
 #if HAVE_GCC_ABI_DEMANGLE
 #	include <cxxabi.h>
 #endif /* HAVE_GCC_ABI_DEMANGLE */
