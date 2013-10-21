@@ -43,8 +43,12 @@ install-data-local:
 	$(INSTALL) -m 775 -d $(COMMAND_OPTS) $(DESTDIR)${localstatedir}/run/${PACKAGE}/cmd
 	chmod g+s $(DESTDIR)${localstatedir}/run/${PACKAGE}/cmd
 
-EXTRA_DIST = $(icinga2doc_DATA) git_version.sh icinga2.spec
-
+EXTRA_DIST = \
+	$(icinga2doc_DATA) \
+	git_version.sh \
+	icinga2.spec \
+	Vagrantfile \
+	.vagrant-puppet
 
 # Remove doc directory on uninstall
 uninstall-local:
