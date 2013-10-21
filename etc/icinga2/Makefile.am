@@ -19,12 +19,11 @@ install-data-local:
 EXTRA_DIST = $(CONFIG_FILES)
 
 install-exec-hook:
-	@cd $(icinga2confdir) && \
-	if [ ! -e features-enabled ]; then \
-	  $(MKDIR_P) features-enabled && \
-	  $(LN_S) ../features-available/checker.conf features-enabled/; \
-	  $(LN_S) ../features-available/notification.conf features-enabled/; \
-	  $(LN_S) ../features-available/syslog.conf features-enabled/; \
+	@if [ ! -e $(icinga2confdir)/features-enabled ]; then \
+	  $(MKDIR_P) $(icinga2confdir)/features-enabled && \
+	  $(LN_S) ../features-available/checker.conf $(icinga2confdir)/features-enabled/; \
+	  $(LN_S) ../features-available/notification.conf $(icinga2confdir)/features-enabled/; \
+	  $(LN_S) ../features-available/syslog.conf $(icinga2confdir)/features-enabled/; \
 	fi
 
 uninstall-hook:
