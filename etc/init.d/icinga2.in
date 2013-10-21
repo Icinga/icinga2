@@ -22,7 +22,7 @@ localstatedir=@localstatedir@
 icinga_user=@icinga_user@
 icinga_group=@icinga_group@
 
-DAEMON=$bindir/icinga2
+DAEMON=$sbindir/icinga2
 ICINGA2_CONFIG_FILE=$sysconfdir/icinga2/icinga2.conf
 ICINGA2_PID_FILE=$localstatedir/run/icinga2/icinga2.pid
 ICINGA2_ERROR_LOG=$localstatedir/log/icinga2/error.log
