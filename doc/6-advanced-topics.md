@@ -54,7 +54,7 @@ configuration.
 
 Fixed downtimes require a start and end time (a duration will be ignored).
 Flexible downtimes need a start and end time for the time span, and a duration
-independant of that.
+independent from that time span.
 
 > **Note**
 >
@@ -77,7 +77,7 @@ is primarly accessible using web interfaces.
 
 Adding and deleting comment actions are possible through the external command pipe
 provided with the `ExternalCommandListener` configuration. The caller must
-pass the the comment id in case of manipulating an existing comment.
+pass the comment id in case of manipulating an existing comment.
 
 ## Acknowledgements
 
@@ -101,7 +101,7 @@ dashboard and no-one ever looks at it again since it will suppress
 notifications too.
 
 This `fire-and-forget` action is quite common. If you're sure that a
-current problem should be resolved in the future at a defined time
+current problem should be resolved in the future at a defined time,
 you can define an expiration time when acknowledging the problem.
 
 Icinga 2 will clear the acknowledgement when expired and start to
@@ -224,9 +224,6 @@ defines a host dependency which acts implicit as parent relation too.
 
 Furthermore the host may be reachable but ping samples are dropped by the
 router's firewall.
-
-By defining a service dependency the `google-dns ping4` re-check will be skipped
-in case the parent service `dsl-router ping4` is in a `NOT-OK` state.
 
     object Host "dsl-router" {
       services["ping4"] = {
