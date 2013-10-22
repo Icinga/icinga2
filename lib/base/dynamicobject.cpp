@@ -26,11 +26,9 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
-#include "base/timer.h"
 #include "base/scriptfunction.h"
 #include <fstream>
 #include <boost/make_shared.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>

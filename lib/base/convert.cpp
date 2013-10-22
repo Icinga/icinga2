@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/convert.h"
-#include <sstream>
 #include <boost/lexical_cast.hpp>
 
 using namespace icinga;

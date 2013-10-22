@@ -23,7 +23,6 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"
-#include <map>
 #include <boost/bind.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/make_shared.hpp>
