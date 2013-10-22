@@ -8,6 +8,9 @@ For the "finished" version we're planning to release packages for the most
 common Linux distributions as well as for Windows - or at least co-operate
 with the package maintainers.
 
+Please check the documentation in the doc/ directory for a current list
+of available packages.
+
 Build Requirements
 ------------------
 
@@ -89,15 +92,21 @@ Running Icinga 2
 Icinga 2 comes with a single binary that takes care of loading all the relevant
 components (e.g. for check execution, notifications, etc.):
 
-$ icinga2
-[2012/09/14 10:36:12] information/icinga: Icinga application loader (version:
-                      2.0, git branch master, commit 8e4bdf38 + changes)
-[2012/09/14 10:36:12] information/base: Syntax: icinga2 -c <config-file> ...
+# /usr/bin/icinga2
+[2013-10-22 13:06:22 +0200] <Main Thread> information/icinga-app: Icinga application loader (version: 0.0.3, git branch master, commit 07d9a59f + changes)
+[2013-10-22 13:06:22 +0200] <Main Thread> information/base: Adding library search dir: /usr/lib/icinga2
+[2013-10-22 13:06:22 +0200] <Main Thread> information/base: Loading library 'libicinga.la'
+[2013-10-22 13:06:22 +0200] <Main Thread> information/config: Adding include search dir: /usr/share/icinga2
+[2013-10-22 13:06:22 +0200] <Main Thread> critical/icinga-app: You need to specify at least one config file (using the --config option).
+
+Icinga 2 can be started as daemon using the provided init script:
+
+# /etc/init.d/icinga2
+Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 
 Icinga 2 reads a single configuration file which is used to specify all
 configuration settings (global settings, hosts, services, etc.). The
-configuration format is explained in detail in the docs/icinga2-config.txt
-file.
+configuration format is explained in detail in the doc/ directory.
 
 By default "make install" installs example configuration files in
 /usr/local/etc/icinga2 unless you have specified a different prefix or
