@@ -111,9 +111,17 @@ if test "x$want_boost" = "xyes"; then
         for ac_boost_path_tmp in /usr /usr/local /opt /opt/local /usr/g++ "`pwd`/compat" ; do
             if test -d "$ac_boost_path_tmp/include/boost" && test -r "$ac_boost_path_tmp/include/boost"; then
                 for libsubdir in $libsubdirs ; do
-                    if ls "$ac_boost_path_tmp/$libsubdir/libboost_"* >/dev/null 2>&1 ; then break; fi
+                    if ls "$ac_boost_path_tmp/$libsubdir/libboost_"* >/dev/null 2>&1 ; then
+                        BOOST_LDFLAGS="-L$ac_boost_path_tmp/$libsubdir"
+                        break
+                    fi
                 done
-                BOOST_LDFLAGS="-L$ac_boost_path_tmp/$libsubdir"
+                for libsubdir in ${sys_dlsearch_path//:/ }; do
+                    if ls "$libsubdir/libboost_"* >/dev/null 2>&1 ; then
+                        BOOST_LDFLAGS="-L$libsubdir"
+                        break
+                    fi
+                done
                 BOOST_CPPFLAGS="-I$ac_boost_path_tmp/include"
                 BOOST_PATH="$ac_boost_path_tmp"
                 break;
