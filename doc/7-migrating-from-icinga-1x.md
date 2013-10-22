@@ -4,21 +4,21 @@
 
 The Icinga 2 configuration format introduces plenty of behavioral changes. In
 order to ease migration from Icinga 1.x,
-Icinga 2 ships its own config conversion script.
+Icinga 2 ships its own config migration script.
 
-### Configuration Conversion Script
+### Configuration Migration Script
 
-Due to the complexity of the Icinga 1.x configuration format the conversion
+Due to the complexity of the Icinga 1.x configuration format the migration
 script might not currently work for all use cases.
 
-The config conversion script provides support for basic Icinga 1.x
-configuration format conversion to native Icinga 2 configuration syntax.
+The config migration script provides support for basic Icinga 1.x
+configuration format migration to native Icinga 2 configuration syntax.
 
-The conversion script tries to preserve your existing template structure and
+The migration script tries to preserve your existing template structure and
 adds new templates where appropriate. However, the original file structure is
 not preserved.
 
-The conversion script uses templates from the Icinga Template Library where
+The migration script uses templates from the Icinga Template Library where
 possible.
 
 > **Note**
@@ -30,7 +30,7 @@ possible.
     # /usr/bin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o /etc/icinga2/conf.d/migrate
 
 
-### Manual Config Conversion
+### Manual Config Migration
 
 For a long-term migration of your configuration you should consider re-creating
 your configuration based on the Icinga 2 proposed way of doing configuration right.
