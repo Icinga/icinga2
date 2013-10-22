@@ -116,12 +116,14 @@ if test "x$want_boost" = "xyes"; then
                         break
                     fi
                 done
-                for libsubdir in ${sys_dlsearch_path//:/ }; do
+                save_IFS=$IFS; IFS=:
+                for libsubdir in $sys_dlsearch_path; do
                     if ls "$libsubdir/libboost_"* >/dev/null 2>&1 ; then
                         BOOST_LDFLAGS="-L$libsubdir"
                         break
                     fi
                 done
+                IFS=$save_IFS
                 BOOST_CPPFLAGS="-I$ac_boost_path_tmp/include"
                 BOOST_PATH="$ac_boost_path_tmp"
                 break;
