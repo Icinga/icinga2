@@ -20,7 +20,7 @@
 #ifndef _WIN32
 #include <stdlib.h>
 #endif
-#include "icinga/nullchecktask.h"
+#include "icinga/randomchecktask.h"
 #include "base/utility.h"
 #include "base/convert.h"
 #include "base/scriptfunction.h"
@@ -29,9 +29,9 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION(RandomCheck, &RandomCheckTask::ScriptFunc);
 
-Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
+Dictionary::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 {
 	char name[255];
 
@@ -45,7 +45,7 @@ Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
 	cr->Set("output", output);
 	cr->Set("performance_data_raw", perfdata);
-	cr->Set("state", StateOK);
+	cr->Set("state", static_cast<ServiceState>(Utility::Random() % 4));
 
 	return cr;
 }
