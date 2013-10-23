@@ -1,0 +1,8 @@
+# Icinga 2 default CA vars
+
+export REQ_COUNTRY_NAME="AU"
+export REQ_STATE="Some-State"
+export REQ_ORGANISATION="Internet Widgits Pty Ltd"
+export REQ_ORG_UNIT="Monitoring"
+export REQ_COMMON_NAME="Icinga CA"
+export REQ_DAYS="3650"
