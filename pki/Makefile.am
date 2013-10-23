@@ -5,6 +5,7 @@ bin_SCRIPTS = \
 icinga2pkidir = ${pkgdatadir}/pki
 icinga2pki_DATA = \
 	pkifuncs \
+	vars \
 	openssl.cnf
 
 CLEANFILES = $(bin_SCRIPTS)
