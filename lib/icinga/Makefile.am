@@ -55,6 +55,8 @@ libicinga_la_SOURCES =  \
 	plugineventtask.h \
 	pluginnotificationtask.cpp \
 	pluginnotificationtask.h \
+	randomchecktask.cpp \
+	randomchecktask.h \
 	service.cpp \
 	service-check.cpp \
 	service-comment.cpp \
