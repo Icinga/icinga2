@@ -1,7 +1,13 @@
 ## Process this file with automake to produce Makefile.in
 
 TESTS = \
-	icinga2_test
+	run-tests.sh
+
+EXTRA_DIST = \
+	run-tests.sh
+
+CLEANFILES = \
+	results.xml
 
 check_PROGRAMS = \
 	icinga2_test
