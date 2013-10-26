@@ -42,20 +42,6 @@ void ExternalCommandListener::Start(void)
 #endif /* _WIN32 */
 }
 
-/**
- * Retrieves the icinga.cmd path.
- *
- * @returns icinga.cmd path
- */
-String ExternalCommandListener::GetCommandPath(void) const
-{
-	if (m_CommandPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/cmd/icinga2.cmd";
-	else
-		return m_CommandPath;
-}
-
-
 #ifndef _WIN32
 void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 {
@@ -143,19 +129,3 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	}
 }
 #endif /* _WIN32 */
-
-void ExternalCommandListener::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		bag->Set("command_path", m_CommandPath);
-}
-
-void ExternalCommandListener::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		m_CommandPath = bag->Get("command_path");
-}

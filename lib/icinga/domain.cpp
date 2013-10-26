@@ -24,30 +24,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Domain);
 
-Dictionary::Ptr Domain::GetAcl(void) const
-{
-	return m_Acl;
-}
-
 int Domain::GetPrivileges(const String& instance) const
 {
-	return m_Acl->Get(instance);
-}
-
-void Domain::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("acl", m_Acl);
-	}
-}
-
-void Domain::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_Acl = bag->Get("acl");
-	}
+	return GetAcl()->Get(instance);
 }

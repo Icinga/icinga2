@@ -20,7 +20,7 @@
 #ifndef NOTIFICATIONCOMMAND_H
 #define NOTIFICATIONCOMMAND_H
 
-#include "icinga/command.h"
+#include "icinga/notificationcommand.th"
 #include "icinga/notification.h"
 
 namespace icinga
@@ -33,7 +33,7 @@ class Notification;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API NotificationCommand : public Command
+class I2_ICINGA_API NotificationCommand : public ReflectionObjectImpl<NotificationCommand>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(NotificationCommand);

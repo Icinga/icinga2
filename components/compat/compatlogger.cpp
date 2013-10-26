@@ -70,28 +70,6 @@ void CompatLogger::Start(void)
 /**
  * @threadsafety Always.
  */
-String CompatLogger::GetLogDir(void) const
-{
-	if (!m_LogDir.IsEmpty())
-		return m_LogDir;
-	else
-		return Application::GetLocalStateDir() + "/log/icinga2/compat";
-}
-
-/**
- * @threadsafety Always.
- */
-String CompatLogger::GetRotationMethod(void) const
-{
-	if (!m_RotationMethod.IsEmpty())
-		return m_RotationMethod;
-	else
-		return "HOURLY";
-}
-
-/**
- * @threadsafety Always.
- */
 void CompatLogger::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr &cr)
 {
 	Host::Ptr host = service->GetHost();
@@ -412,9 +390,7 @@ void CompatLogger::FlappingHandler(const Service::Ptr& service, FlappingState fl
                 ObjectLock oLock(this);
                 Flush();
         }
-
 }
-
 
 void CompatLogger::ExternalCommandHandler(const String& command, const std::vector<String>& arguments)
 {
@@ -496,7 +472,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		       << host->GetName() << ";"
 		       << Host::StateToString(Host::CalculateState(hc->GetState(), reachable)) << ";"
 		       << Service::StateTypeToString(hc->GetStateType()) << ";"
-		       << hc->GetCurrentCheckAttempt() << ";"
+		       << hc->GetCheckAttempt() << ";"
 		       << "";
 
 		WriteLine(msgbuf.str());
@@ -514,7 +490,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		       << service->GetShortName() << ";"
 		       << Service::StateToString(service->GetState()) << ";"
 		       << Service::StateTypeToString(service->GetStateType()) << ";"
-		       << service->GetCurrentCheckAttempt() << ";"
+		       << service->GetCheckAttempt() << ";"
 		       << "";
 
 		WriteLine(msgbuf.str());
@@ -599,22 +575,3 @@ void CompatLogger::ValidateRotationMethod(const String& location, const Dictiona
 	}
 }
 
-void CompatLogger::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("log_dir", m_LogDir);
-		bag->Set("rotation_method", m_RotationMethod);
-	}
-}
-
-void CompatLogger::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_LogDir = bag->Get("log_dir");
-		m_RotationMethod = bag->Get("rotation_method");
-	}
-}

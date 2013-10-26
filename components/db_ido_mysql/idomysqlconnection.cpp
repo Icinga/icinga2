@@ -22,6 +22,7 @@
 #include "base/convert.h"
 #include "base/utility.h"
 #include "base/application.h"
+#include "base/dynamictype.h"
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido_mysql/idomysqlconnection.h"
@@ -34,12 +35,13 @@ using namespace icinga;
 
 REGISTER_TYPE(IdoMysqlConnection);
 
+#define SCHEMA_VERSION "1.10.0"
+
 void IdoMysqlConnection::Start(void)
 {
 	DbConnection::Start();
 
 	m_Connected = false;
-	m_RequiredSchemaVersion = "1.10.0";
 
 	m_TxTimer = boost::make_shared<Timer>();
 	m_TxTimer->SetInterval(5);
@@ -99,13 +101,13 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 		const char *host, *user , *passwd, *db;
 		long port;
 
-		ihost = m_Host;
-		iuser = m_User;
-		ipasswd = m_Password;
-		idb = m_Database;
+		ihost = GetHost();
+		iuser = GetUser();
+		ipasswd = GetPassword();
+		idb = GetDatabase();
 
 		host = (!ihost.IsEmpty()) ? ihost.CStr() : NULL;
-		port = m_Port;
+		port = GetPort();
 		user = (!iuser.IsEmpty()) ? iuser.CStr() : NULL;
 		passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : NULL;
 		db = (!idb.IsEmpty()) ? idb.CStr() : NULL;
@@ -127,20 +129,17 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 		Dictionary::Ptr version_row = version_rows->Get(0);
 		String version = version_row->Get("version");
 
-		if (Utility::CompareVersion(m_RequiredSchemaVersion, version) < 0) {
+		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
 			BOOST_THROW_EXCEPTION(std::runtime_error("Schema version '" + version + "' does not match the required version '" +
-			   m_RequiredSchemaVersion + "'! Please check the upgrade documentation."));
+			   SCHEMA_VERSION + "'! Please check the upgrade documentation."));
 		}
 
-		String instanceName = "default";
-
-		if (!m_InstanceName.IsEmpty())
-			instanceName = m_InstanceName;
+		String instanceName = GetInstanceName();
 
 		Array::Ptr rows = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = '" + Escape(instanceName) + "'");
 
 		if (rows->GetLength() == 0) {
-			Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + m_InstanceDescription + "')");
+			Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + Escape(GetInstanceDescription()) + "')");
 			m_InstanceID = GetLastInsertID();
 		} else {
 			Dictionary::Ptr row = rows->Get(0);
@@ -539,32 +538,3 @@ void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& 
 	    "<FROM_UNIXTIME(" + Convert::ToString(static_cast<long>(time_value)) + ")");
 }
 
-void IdoMysqlConnection::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DbConnection::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("host", m_Host);
-		bag->Set("port", m_Port);
-		bag->Set("user", m_User);
-		bag->Set("password", m_Password);
-		bag->Set("database", m_Database);
-		bag->Set("instance_name", m_InstanceName);
-		bag->Set("instance_description", m_InstanceDescription);
-	}
-}
-
-void IdoMysqlConnection::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DbConnection::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_Host = bag->Get("host");
-		m_Port = bag->Get("port");
-		m_User = bag->Get("user");
-		m_Password = bag->Get("password");
-		m_Database = bag->Get("database");
-		m_InstanceName = bag->Get("instance_name");
-		m_InstanceDescription = bag->Get("instance_description");
-	}
-}

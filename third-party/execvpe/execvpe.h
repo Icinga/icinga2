@@ -20,15 +20,13 @@
 #ifndef EXECVPE_H
 #define EXECVPE_H
 
-#include "config.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#if !defined(_MSC_VER) && !defined(HAVE_EXECVPE)
-int execvpe(const char *file, char *const argv[], char *const envp[]);
-#endif /* !defined(_MSC_VER) && !defined(HAVE_EXECVPE) */
+#ifndef _MSC_VER
+int icinga2_execvpe(const char *file, char *const argv[], char *const envp[]);
+#endif /* _MSC_VER */
 
 #ifdef __cplusplus
 }

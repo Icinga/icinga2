@@ -20,7 +20,7 @@
 #ifndef CHECKRESULTREADER_H
 #define CHECKRESULTREADER_H
 
-#include "base/dynamicobject.h"
+#include "compat/checkresultreader.th"
 #include "base/timer.h"
 #include <fstream>
 
@@ -32,23 +32,16 @@ namespace icinga
  *
  * @ingroup compat
  */
-class CheckResultReader : public DynamicObject
+class CheckResultReader : public ReflectionObjectImpl<CheckResultReader>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CheckResultReader);
 	DECLARE_TYPENAME(CheckResultReader);
 
-	String GetSpoolDir(void) const;
-
 protected:
 	virtual void Start(void);
 
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_SpoolDir;
-
 	Timer::Ptr m_ReadTimer;
 	void ReadTimerHandler(void) const;
 	void ProcessCheckResultFile(const String& path) const;

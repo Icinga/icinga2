@@ -1,0 +1,17 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class Command : DynamicObject
+{
+	[config] Value command_line;
+	[config] Value timeout {
+		default {{{ return 300; }}}
+	};
+	[config] Dictionary::Ptr macros;
+	[config] Array::Ptr export_macros;
+	[config] Array::Ptr escape_macros;
+};
+
+}

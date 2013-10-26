@@ -21,8 +21,8 @@
 #define SERVICEGROUP_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/servicegroup.th"
 #include "icinga/service.h"
-#include "base/dynamictype.h"
 
 namespace icinga
 {
@@ -32,24 +32,17 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API ServiceGroup : public DynamicObject
+class I2_ICINGA_API ServiceGroup : public ReflectionObjectImpl<ServiceGroup>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ServiceGroup);
 	DECLARE_TYPENAME(ServiceGroup);
 
-	String GetDisplayName(void) const;
-
 	std::set<Service::Ptr> GetMembers(void) const;
 	void AddMember(const Service::Ptr& service);
 	void RemoveMember(const Service::Ptr& service);
 
-protected:
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_DisplayName;
 	std::set<Service::Ptr> m_Members;
 };
 

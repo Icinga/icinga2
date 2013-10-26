@@ -20,10 +20,9 @@
 #ifndef IDOMYSQLCONNECTION_H
 #define IDOMYSQLCONNECTION_H
 
+#include "db_ido_mysql/idomysqlconnection.th"
 #include "base/array.h"
-#include "base/dynamictype.h"
 #include "base/timer.h"
-#include "db_ido/dbconnection.h"
 #include <mysql/mysql.h>
 
 namespace icinga
@@ -34,7 +33,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-class IdoMysqlConnection : public DbConnection
+class IdoMysqlConnection : public ReflectionObjectImpl<IdoMysqlConnection>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(IdoMysqlConnection);
@@ -54,22 +53,12 @@ protected:
         virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 private:
-	String m_Host;
-	Value m_Port;
-	String m_User;
-	String m_Password;
-	String m_Database;
-	String m_InstanceName;
-	String m_InstanceDescription;
-
 	DbReference m_InstanceID;
         DbReference m_LastNotificationID;
 
 	boost::mutex m_ConnectionMutex;
 	bool m_Connected;
 	MYSQL m_Connection;
-
-        String m_RequiredSchemaVersion;
 
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_TxTimer;

@@ -1,0 +1,32 @@
+#include "base/dynamicobject.h"
+#include "base/application.h"
+
+namespace icinga
+{
+
+class PerfdataWriter : DynamicObject
+{
+	[config] String perfdata_path {
+		default {{{ return Application::GetLocalStateDir() + "/cache/icinga2/perfdata/perfdata"; }}}
+	};
+	[config] String format_template {
+		default {{{
+			return "DATATYPE::SERVICEPERFDATA\t"
+			    "TIMET::$TIMET$\t"
+			    "HOSTNAME::$HOSTNAME$\t"
+			    "SERVICEDESC::$SERVICEDESC$\t"
+			    "SERVICEPERFDATA::$SERVICEPERFDATA$\t"
+			    "SERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\t"
+			    "HOSTSTATE::$HOSTSTATE$\t"
+			    "HOSTSTATETYPE::$HOSTSTATETYPE$\t"
+			    "SERVICESTATE::$SERVICESTATE$\t"
+			    "SERVICESTATETYPE::$SERVICESTATETYPE$";
+		}}}
+	};
+
+	[config] double rotation_interval {
+		default {{{ return 30; }}}
+	};
+};
+
+}

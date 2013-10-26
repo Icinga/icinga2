@@ -50,7 +50,7 @@ scripts_argv (const char *file, char *const argv[], int argc, char **new_argv)
 /* Execute FILE, searching in the `PATH' environment variable if it contains
    no slashes, with arguments ARGV and environment from ENVP.  */
 int
-execvpe (file, argv, envp)
+icinga2_execvpe (file, argv, envp)
      const char *file;
      char *const argv[];
      char *const envp[];

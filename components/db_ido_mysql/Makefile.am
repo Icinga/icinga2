@@ -8,16 +8,23 @@ SUBDIRS = \
 pkglib_LTLIBRARIES = \
 	libdb_ido_mysql.la
 
+BUILT_SOURCES = \
+	idomysqlconnection.th
+
 CLEANFILES = \
 	db_ido_mysql-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
+.ti.th: $(top_builddir)/tools/mkclass/mkclass
+	$(top_builddir)/tools/mkclass/mkclass $< > $@
+
 libdb_ido_mysql_la_SOURCES = \
 	db_ido_mysql-type.conf \
 	idomysqlconnection.cpp \
-	idomysqlconnection.h
+	idomysqlconnection.h \
+	idomysqlconnection.ti
 
 libdb_ido_mysql_la_CPPFLAGS = \
 	$(LTDLINCL) \

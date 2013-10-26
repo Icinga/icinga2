@@ -51,16 +51,16 @@ void ClusterListener::Start(void)
 	}
 
 	/* set up SSL context */
-	shared_ptr<X509> cert = GetX509Certificate(GetCertificateFile());
-	m_Identity = GetCertificateCN(cert);
-	Log(LogInformation, "cluster", "My identity: " + m_Identity);
+	shared_ptr<X509> cert = GetX509Certificate(GetCertPath());
+	SetIdentity(GetCertificateCN(cert));
+	Log(LogInformation, "cluster", "My identity: " + GetIdentity());
 
 	Endpoint::Ptr self = Endpoint::GetByName(GetIdentity());
 
 	if (!self)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("No configuration available for the local endpoint."));
 
-	m_SSLContext = MakeSSLContext(GetCertificateFile(), GetKeyFile(), GetCAFile());
+	m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
 
 	/* create the primary JSON-RPC listener */
 	if (!GetBindPort().IsEmpty())
@@ -127,60 +127,9 @@ void ClusterListener::Stop(void)
 	RotateLogFile();
 }
 
-String ClusterListener::GetCertificateFile(void) const
-{
-	ObjectLock olock(this);
-
-	return m_CertPath;
-}
-
-String ClusterListener::GetKeyFile(void) const
-{
-	ObjectLock olock(this);
-
-	return m_KeyPath;
-}
-
-String ClusterListener::GetCAFile(void) const
-{
-	ObjectLock olock(this);
-
-	return m_CAPath;
-}
-
-String ClusterListener::GetBindHost(void) const
-{
-	ObjectLock olock(this);
-
-	return m_BindHost;
-}
-
-String ClusterListener::GetBindPort(void) const
-{
-	ObjectLock olock(this);
-
-	return m_BindPort;
-}
-
-Array::Ptr ClusterListener::GetPeers(void) const
-{
-	ObjectLock olock(this);
-
-	return m_Peers;
-}
-
 shared_ptr<SSL_CTX> ClusterListener::GetSSLContext(void) const
 {
-	ObjectLock olock(this);
-
 	return m_SSLContext;
-}
-
-String ClusterListener::GetIdentity(void) const
-{
-	ObjectLock olock(this);
-
-	return m_Identity;
 }
 
 /**
@@ -270,7 +219,7 @@ void ClusterListener::PersistMessage(const Endpoint::Ptr& source, const Dictiona
 		String json = Value(pmessage).Serialize();
 		NetString::WriteStringToStream(m_LogFile, json);
 		m_LogMessageCount++;
-		m_LogMessageTimestamp = ts;
+		SetLogMessageTimestamp(ts);
 
 		if (m_LogMessageCount > 50000) {
 			CloseLogFile();
@@ -330,7 +279,7 @@ void ClusterListener::RelayMessage(const Endpoint::Ptr& source, const Dictionary
 		{
 			ObjectLock olock(endpoint);
 
-			if (!endpoint->IsSyncing())
+			if (!endpoint->GetSyncing())
 				endpoint->SendMessage(message);
 		}
 	}
@@ -361,7 +310,7 @@ void ClusterListener::OpenLogFile(void)
 	m_LogFile = logStream;
 #endif /* HAVE_BIOZLIB */
 	m_LogMessageCount = 0;
-	m_LogMessageTimestamp = 0;
+	SetLogMessageTimestamp(0);
 }
 
 void ClusterListener::CloseLogFile(void)
@@ -380,7 +329,7 @@ void ClusterListener::RotateLogFile(void)
 {
 	ASSERT(OwnsLock());
 
-	double ts = m_LogMessageTimestamp;
+	double ts = GetLogMessageTimestamp();
 
 	if (ts == 0)
 		ts = Utility::GetTime();
@@ -1578,38 +1527,4 @@ bool ClusterListener::SupportsNotifications(void)
 		return false;
 
 	return !type->GetObjects().empty() && IcingaApplication::GetInstance()->GetEnableNotifications();
-}
-
-void ClusterListener::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("cert_path", m_CertPath);
-		bag->Set("key_path", m_KeyPath);
-		bag->Set("ca_path", m_CAPath);
-		bag->Set("bind_host", m_BindHost);
-		bag->Set("bind_port", m_BindPort);
-		bag->Set("peers", m_Peers);
-	}
-
-	if (attributeTypes & Attribute_State)
-		bag->Set("log_message_timestamp", m_LogMessageTimestamp);
-}
-
-void ClusterListener::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_CertPath = bag->Get("cert_path");
-		m_KeyPath = bag->Get("key_path");
-		m_CAPath = bag->Get("ca_path");
-		m_BindHost = bag->Get("bind_host");
-		m_BindPort = bag->Get("bind_port");
-		m_Peers = bag->Get("peers");
-	}
-
-	if (attributeTypes & Attribute_State)
-		m_LogMessageTimestamp = bag->Get("log_message_timestamp");
 }

@@ -604,7 +604,7 @@ Value HostsTable::CurrentAttemptAccessor(const Value& row)
 	if (!hc)
 		return Empty;
 
-	return hc->GetCurrentCheckAttempt();
+	return hc->GetCheckAttempt();
 }
 
 Value HostsTable::LastNotificationAccessor(const Value& row)
@@ -761,7 +761,7 @@ Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
 			notification_interval = notification->GetNotificationInterval();
 	}
 
-	if (notification_interval == 0 && !hc->IsVolatile())
+	if (notification_interval == 0 && !hc->GetVolatile())
 		return 1;
 
 	return 0;
@@ -1054,9 +1054,6 @@ Value HostsTable::DowntimesAccessor(const Value& row)
 
 	Dictionary::Ptr downtimes = hc->GetDowntimes();
 
-	if (!downtimes)
-		return Empty;
-
 	Array::Ptr ids = boost::make_shared<Array>();
 
 	ObjectLock olock(downtimes);
@@ -1086,9 +1083,6 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 		return Empty;
 
 	Dictionary::Ptr downtimes = hc->GetDowntimes();
-
-	if (!downtimes)
-		return Empty;
 
 	Array::Ptr ids = boost::make_shared<Array>();
 
@@ -1124,9 +1118,6 @@ Value HostsTable::CommentsAccessor(const Value& row)
 
 	Dictionary::Ptr comments = hc->GetComments();
 
-	if (!comments)
-		return Empty;
-
 	Array::Ptr ids = boost::make_shared<Array>();
 
 	ObjectLock olock(comments);
@@ -1156,9 +1147,6 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 		return Empty;
 
 	Dictionary::Ptr comments = hc->GetComments();
-
-	if (!comments)
-		return Empty;
 
 	Array::Ptr ids = boost::make_shared<Array>();
 
@@ -1193,9 +1181,6 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 		return Empty;
 
 	Dictionary::Ptr comments = hc->GetComments();
-
-	if (!comments)
-		return Empty;
 
 	Array::Ptr ids = boost::make_shared<Array>();
 

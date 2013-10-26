@@ -120,7 +120,7 @@ Value StatusTable::ConnectionsAccessor(const Value& row)
 
 Value StatusTable::ConnectionsRateAccessor(const Value& row)
 {
-	return (LivestatusListener::GetConnections() / (Utility::GetTime() - IcingaApplication::GetInstance()->GetStartTime()));
+	return (LivestatusListener::GetConnections() / (Utility::GetTime() - Application::GetStartTime()));
 }
 
 Value StatusTable::ExternalCommandsAccessor(const Value& row)
@@ -130,7 +130,7 @@ Value StatusTable::ExternalCommandsAccessor(const Value& row)
 
 Value StatusTable::ExternalCommandsRateAccessor(const Value& row)
 {
-	return (Query::GetExternalCommands() / (Utility::GetTime() - IcingaApplication::GetInstance()->GetStartTime()));
+	return (Query::GetExternalCommands() / (Utility::GetTime() - Application::GetStartTime()));
 }
 
 Value StatusTable::NagiosPidAccessor(const Value& row)
@@ -140,7 +140,7 @@ Value StatusTable::NagiosPidAccessor(const Value& row)
 
 Value StatusTable::ProgramStartAccessor(const Value& row)
 {
-	return static_cast<int>(IcingaApplication::GetInstance()->GetStartTime());
+	return Application::GetStartTime();
 }
 
 Value StatusTable::NumHostsAccessor(const Value& row)

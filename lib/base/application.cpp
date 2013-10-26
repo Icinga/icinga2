@@ -51,6 +51,7 @@ bool Application::m_Restarting = false;
 bool Application::m_Debugging = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
+double Application::m_StartTime;
 
 /**
  * Constructor for the Application class.
@@ -717,4 +718,14 @@ String Application::GetVersion(void)
 #else /* _WIN32 */
 	return "unspecified version";
 #endif /* _WIN32 */
+}
+
+double Application::GetStartTime(void)
+{
+	return m_StartTime;
+}
+
+void Application::SetStartTime(double ts)
+{
+	m_StartTime = ts;
 }

@@ -1,0 +1,16 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class GraphiteWriter : DynamicObject
+{
+	[config] String host {
+		default {{{ return "127.0.0.1"; }}}
+	};
+	[config] String port {
+		default {{{ return "2003"; }}}
+	};
+};
+
+}

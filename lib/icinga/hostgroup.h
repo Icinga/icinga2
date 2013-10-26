@@ -21,8 +21,8 @@
 #define HOSTGROUP_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/hostgroup.th"
 #include "icinga/host.h"
-#include "base/dynamicobject.h"
 
 namespace icinga
 {
@@ -32,24 +32,17 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API HostGroup : public DynamicObject
+class I2_ICINGA_API HostGroup : public ReflectionObjectImpl<HostGroup>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(HostGroup);
 	DECLARE_TYPENAME(HostGroup);
 
-	String GetDisplayName(void) const;
-
 	std::set<Host::Ptr> GetMembers(void) const;
 	void AddMember(const Host::Ptr& host);
 	void RemoveMember(const Host::Ptr& host);
 
-protected:
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_DisplayName;
 	std::set<Host::Ptr> m_Members;
 };
 

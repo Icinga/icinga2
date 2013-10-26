@@ -11,6 +11,7 @@ ipch
 *.gcda
 *.o
 *.a
+*.th
 .deps
 *.in
 Makefile

@@ -21,7 +21,7 @@
 #define CONSOLELOGGER_H
 
 #include "base/i2-base.h"
-#include "base/streamlogger.h"
+#include "base/consolelogger.th"
 
 namespace icinga
 {
@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API ConsoleLogger : public StreamLogger
+class I2_BASE_API ConsoleLogger : public ReflectionObjectImpl<ConsoleLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleLogger);

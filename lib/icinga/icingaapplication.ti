@@ -1,0 +1,15 @@
+#include "base/application.h"
+
+namespace icinga
+{
+
+class IcingaApplication : Application
+{
+	[state, protected] Value override_enable_notifications;
+	[state, protected] Value override_enable_event_handlers;
+	[state, protected] Value override_enable_flapping;
+	[state, protected] Value override_enable_checks;
+	[state, protected] Value override_enable_perfdata;
+};
+
+}

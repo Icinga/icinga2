@@ -21,9 +21,9 @@
 #define USER_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/user.th"
 #include "icinga/macroresolver.h"
 #include "icinga/timeperiod.h"
-#include "base/dynamicobject.h"
 #include "base/array.h"
 
 namespace icinga
@@ -34,25 +34,14 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API User : public DynamicObject, public MacroResolver
+class I2_ICINGA_API User : public ReflectionObjectImpl<User>, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(User);
 	DECLARE_TYPENAME(User);
 
-	String GetDisplayName(void) const;
-	Array::Ptr GetGroups(void) const;
-
 	/* Notifications */
-	bool GetEnableNotifications(void) const;
-	void SetEnableNotifications(bool enabled);
 	TimePeriod::Ptr GetNotificationPeriod(void) const;
- 	unsigned long GetNotificationTypeFilter(void) const;
-	unsigned long GetNotificationStateFilter(void) const;
-	void SetLastNotification(double ts);
-	double GetLastNotification(void) const;
-
-	Dictionary::Ptr GetMacros(void) const;
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 
@@ -60,19 +49,6 @@ protected:
 	virtual void Stop(void);
 
 	virtual void OnConfigLoaded(void);
-
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
-private:
-	String m_DisplayName;
-	Dictionary::Ptr m_Macros;
-	Array::Ptr m_Groups;
-	Value m_EnableNotifications;
-	String m_NotificationPeriod;
-	Value m_NotificationTypeFilter;
-	Value m_NotificationStateFilter;
-	double m_LastNotification;
 };
 
 }

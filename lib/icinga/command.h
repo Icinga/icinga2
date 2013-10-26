@@ -20,10 +20,10 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
+#include "icinga/command.th"
 #include "icinga/macroresolver.h"
 #include "base/i2-base.h"
 #include "base/array.h"
-#include "base/dynamicobject.h"
 #include "base/logger_fwd.h"
 #include <set>
 
@@ -35,31 +35,14 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Command : public DynamicObject, public MacroResolver
+class I2_ICINGA_API Command : public ReflectionObjectImpl<Command>, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Command);
 
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
 
-	Value GetCommandLine(void) const;
-	double GetTimeout(void) const;
-
-	Dictionary::Ptr GetMacros(void) const;
-	Array::Ptr GetExportMacros(void) const;
-	Array::Ptr GetEscapeMacros(void) const;
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
-
-protected:
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
-private:
-	Value m_CommandLine;
-	Value m_Timeout;
-	Dictionary::Ptr m_Macros;
-	Array::Ptr m_ExportMacros;
-	Array::Ptr m_EscapeMacros;
 };
 
 }

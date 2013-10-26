@@ -1,0 +1,17 @@
+#include "base/dynamicobject.h"
+#include "base/application.h"
+
+namespace icinga
+{
+
+class CompatLogger : DynamicObject
+{
+	[config] String log_dir {
+		default {{{ return Application::GetLocalStateDir() + "/log/icinga2/compat"; }}}
+	};
+	[config] String rotation_method {
+		default {{{ return "HOURLY"; }}}
+	};
+};
+
+}

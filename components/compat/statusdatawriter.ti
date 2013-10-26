@@ -1,0 +1,17 @@
+#include "base/dynamicobject.h"
+#include "base/application.h"
+
+namespace icinga
+{
+
+class StatusDataWriter : DynamicObject
+{
+	[config] String status_path {
+		default {{{ return Application::GetLocalStateDir() + "/cache/icinga2/status.dat"; }}}
+	};
+	[config] String objects_path {
+		default {{{ return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache"; }}}
+	};
+};
+
+}

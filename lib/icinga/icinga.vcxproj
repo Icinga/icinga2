@@ -112,7 +112,173 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="checkcommand.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="checkcommand.th" />
+    <CustomBuild Include="command.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="command.th" />
+    <CustomBuild Include="eventcommand.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="domain.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="eventcommand.th" />
+    <CustomBuild Include="host.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="host.th" />
+    <CustomBuild Include="hostgroup.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="hostgroup.th" />
+    <CustomBuild Include="icingaapplication.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="icingaapplication.th" />
+    <CustomBuild Include="notificationcommand.ti">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="notification.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="notification.th" />
+    <None Include="notificationcommand.th" />
     <None Include="packages.config" />
+    <CustomBuild Include="timeperiod.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="servicegroup.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="service.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="service.th" />
+    <None Include="servicegroup.th" />
+    <None Include="timeperiod.th" />
+    <CustomBuild Include="usergroup.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="user.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="user.th" />
+    <None Include="usergroup.th" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C1FC77E1-04A4-481B-A78B-2F7AF489C2F8}</ProjectGuid>

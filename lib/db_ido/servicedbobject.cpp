@@ -362,9 +362,6 @@ void ServiceDbObject::AddComments(const Service::Ptr& service)
 	/* dump all comments */
 	Dictionary::Ptr comments = service->GetComments();
 
-	if (!comments)
-		return;
-
 	ObjectLock olock(comments);
 
 	String comment_id;
@@ -531,9 +528,6 @@ void ServiceDbObject::AddDowntimes(const Service::Ptr& service)
 {
 	/* dump all downtimes */
 	Dictionary::Ptr downtimes = service->GetDowntimes();
-
-	if (!downtimes)
-		return;
 
 	ObjectLock olock(downtimes);
 
@@ -926,7 +920,7 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const D
 	fields1->Set("state_change", 1); /* service */
 	fields1->Set("state", service->GetState());
 	fields1->Set("state_type", service->GetStateType());
-	fields1->Set("current_check_attempt", service->GetCurrentCheckAttempt());
+	fields1->Set("current_check_attempt", service->GetCheckAttempt());
 	fields1->Set("max_check_attempts", service->GetMaxCheckAttempts());
 	fields1->Set("last_state", service->GetLastState());
 	fields1->Set("last_hard_state", service->GetLastHardState());

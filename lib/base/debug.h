@@ -22,30 +22,45 @@
 
 #include "i2-base.h"
 
-#ifdef NDEBUG
+#ifndef _DEBUG
 #	define ASSERT(expr) ((void)0)
-#else /* NDEBUG */
+#else /* _DEBUG */
 #	define ASSERT(expr) ((expr) ? 0 : icinga_assert_fail(#expr, __FILE__, __LINE__))
-#endif /* NDEBUG */
+#endif /* _DEBUG */
 
 #define VERIFY(expr) ((expr) ? 0 : icinga_assert_fail(#expr, __FILE__, __LINE__))
 
+#ifdef _MSC_VER
+#	define NORETURNPRE __declspec(noreturn)
+#else /* _MSC_VER */
+#	define NORETURNPRE
+#endif /* _MSC_VER */
+
 #ifdef __GNUC__
-#	define NORETURN __attribute__((noreturn))
+#	define NORETURNPOST __attribute__((noreturn))
 #else /* __GNUC__ */
-#	define NORETURN
+#	define NORETURNPOST
 #endif /* __GNUC__ */
 
-int icinga_assert_fail(const char *expr, const char *file, int line) NORETURN;
+NORETURNPRE int icinga_assert_fail(const char *expr, const char *file, int line) NORETURNPOST;
+
+#ifdef _MSC_VER
+#	pragma warning( push )
+#	pragma warning( disable : 4646 ) /* function declared with __declspec(noreturn) has non-void return type */
+#endif /* _MSC_VER */
 
 inline int icinga_assert_fail(const char *expr, const char *file, int line)
 {
 	fprintf(stderr, "%s:%d: assertion failed: %s\n", file, line, expr);
 	abort();
 
-#ifndef __GNUC__
+#if !defined(__GNUC__) && !defined(_MSC_VER)
 	return 0;
-#endif /* __GNUC__ */
+#endif /* !defined(__GNUC__) && !defined(_MSC_VER) */
 }
+
+#ifdef _MSC_VER
+#	pragma warning( pop )
+#endif /* _MSC_VER */
 
 #endif /* DEBUG_H */

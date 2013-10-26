@@ -84,44 +84,6 @@ void Host::Stop(void)
 	// TODO: unregister slave services/notifications?
 }
 
-String Host::GetDisplayName(void) const
-{
-	if (!m_DisplayName.IsEmpty())
-		return m_DisplayName;
-	else
-		return GetName();
-}
-
-Array::Ptr Host::GetGroups(void) const
-{
-	return m_Groups;
-}
-
-Dictionary::Ptr Host::GetMacros(void) const
-{
-	return m_Macros;
-}
-
-Array::Ptr Host::GetHostDependencies(void) const
-{
-	return m_HostDependencies;;
-}
-
-Array::Ptr Host::GetServiceDependencies(void) const
-{
-	return m_ServiceDependencies;
-}
-
-String Host::GetCheck(void) const
-{
-	return m_Check;
-}
-
-Dictionary::Ptr Host::GetNotificationDescriptions(void) const
-{
-	return m_NotificationDescriptions;
-}
-
 bool Host::IsReachable(void) const
 {
 	ASSERT(!OwnsLock());
@@ -182,13 +144,15 @@ void Host::UpdateSlaveServices(void)
 	if (!item)
 		return;
 
-	if (!m_ServiceDescriptions)
+	Dictionary::Ptr service_descriptions = GetServiceDescriptions();
+
+	if (!service_descriptions)
 		return;
 
-	ObjectLock olock(m_ServiceDescriptions);
+	ObjectLock olock(service_descriptions);
 	String svcname;
 	Value svcdesc;
-	BOOST_FOREACH(boost::tie(svcname, svcdesc), m_ServiceDescriptions) {
+	BOOST_FOREACH(boost::tie(svcname, svcdesc), service_descriptions) {
 		if (svcdesc.IsScalar())
 			svcname = svcdesc;
 
@@ -332,7 +296,7 @@ std::set<Host::Ptr> Host::GetParentHosts(void) const
 
 std::set<Host::Ptr> Host::GetChildHosts(void) const
 {
-	std::set<Host::Ptr> childs;
+	std::set<Host::Ptr> children;
 
         BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
 		Array::Ptr dependencies = host->GetHostDependencies();
@@ -342,13 +306,12 @@ std::set<Host::Ptr> Host::GetChildHosts(void) const
 
 			BOOST_FOREACH(const Value& value, dependencies) {
 				if (value == GetName())
-					childs.insert(host);
+					children.insert(host);
 			}
 		}
 	}
 
-	return childs;
-
+	return children;
 }
 
 Service::Ptr Host::GetCheckService(void) const
@@ -500,7 +463,7 @@ double Host::GetLastStateChange(void) const
 	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
-		return IcingaApplication::GetInstance()->GetStartTime();
+		return Application::GetStartTime();
 
 	return hc->GetLastStateChange();
 }
@@ -511,7 +474,7 @@ double Host::GetLastHardStateChange(void) const
 	Service::Ptr hc = GetCheckService();
 
 	if (!hc)
-		return IcingaApplication::GetInstance()->GetStartTime();
+		return Application::GetStartTime();
 
 	return hc->GetLastHardStateChange();
 }
@@ -593,7 +556,7 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 			*result = Service::StateTypeToString(hc->GetStateType());
 			return true;
 		} else if (macro == "HOSTATTEMPT") {
-			*result = Convert::ToString(hc->GetCurrentCheckAttempt());
+			*result = Convert::ToString(hc->GetCheckAttempt());
 			return true;
 		} else if (macro == "MAXHOSTATTEMPT") {
 			*result = Convert::ToString(hc->GetMaxCheckAttempts());
@@ -657,36 +620,4 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 	}
 
 	return false;
-}
-
-void Host::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("display_name", m_DisplayName);
-		bag->Set("groups", m_Groups);
-		bag->Set("macros", m_Macros);
-		bag->Set("host_dependencies", m_HostDependencies);
-		bag->Set("service_dependencies", m_ServiceDependencies);
-		bag->Set("check", m_Check);
-		bag->Set("services", m_ServiceDescriptions);
-		bag->Set("notifications", m_NotificationDescriptions);
-	}
-}
-
-void Host::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_DisplayName = bag->Get("display_name");
-		m_Groups = bag->Get("groups");
-		m_Macros = bag->Get("macros");
-		m_HostDependencies = bag->Get("host_dependencies");
-		m_ServiceDependencies = bag->Get("service_dependencies");
-		m_Check = bag->Get("check");
-		m_ServiceDescriptions = bag->Get("services");
-		m_NotificationDescriptions = bag->Get("notifications");
-	}
 }

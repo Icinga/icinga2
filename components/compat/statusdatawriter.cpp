@@ -64,39 +64,10 @@ void StatusDataWriter::Start(void)
 	m_StatusTimer->Reschedule(0);
 }
 
-/**
- * Retrieves the status.dat path.
- *
- * @returns statuspath from config, or static default
- */
-String StatusDataWriter::GetStatusPath(void) const
-{
-	if (m_StatusPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/cache/icinga2/status.dat";
-	else
-		return m_StatusPath;
-}
-
-/**
- * Retrieves the objects.cache path.
- *
- * @returns objectspath from config, or static default
- */
-String StatusDataWriter::GetObjectsPath(void) const
-{
-	if (m_ObjectsPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache";
-	else
-		return m_ObjectsPath;
-}
-
 void StatusDataWriter::DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Service::Ptr service;
 	Dictionary::Ptr comments = owner->GetComments();
-
-	if (!comments)
-		return;
 
 	Host::Ptr host = owner->GetHost();
 
@@ -201,9 +172,6 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner
 		return;
 
 	Dictionary::Ptr downtimes = owner->GetDowntimes();
-
-	if (!downtimes)
-		return;
 
 	ObjectLock olock(downtimes);
 
@@ -474,7 +442,7 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 		   << "\t" << "active_checks_enabled" << "\t" << (service->GetEnableActiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
 		   << "\t" << "flap_detection_enabled" << "\t" << (service->GetEnableFlapping() ? 1 : 0) << "\n"
-		   << "\t" << "is_volatile" << "\t" << (service->IsVolatile() ? 1 : 0) << "\n"
+		   << "\t" << "is_volatile" << "\t" << (service->GetVolatile() ? 1 : 0) << "\n"
 		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
 		   << "\t" << "notification_options" << "\t" << "u,w,c,r" << "\n"
    		   << "\t" << "notification_interval" << "\t" << notification_interval / 60.0 << "\n"
@@ -610,7 +578,7 @@ void StatusDataWriter::StatusTimerHandler(void)
 	statusfp << "programstatus {" << "\n"
 		 << "\t" << "icinga_pid=" << Utility::GetPid() << "\n"
 		 << "\t" << "daemon_mode=1" << "\n"
-		 << "\t" << "program_start=" << static_cast<long>(IcingaApplication::GetInstance()->GetStartTime()) << "\n"
+		 << "\t" << "program_start=" << static_cast<long>(Application::GetStartTime()) << "\n"
 		 << "\t" << "active_service_checks_enabled=" << (IcingaApplication::GetInstance()->GetEnableChecks() ? 1 : 0) << "\n"
 		 << "\t" << "passive_service_checks_enabled=1" << "\n"
 		 << "\t" << "active_host_checks_enabled=1" << "\n"
@@ -782,22 +750,3 @@ void StatusDataWriter::StatusTimerHandler(void)
 	}
 }
 
-void StatusDataWriter::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("status_path", m_StatusPath);
-		bag->Set("objects_path", m_ObjectsPath);
-	}
-}
-
-void StatusDataWriter::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_StatusPath = bag->Get("status_path");
-		m_ObjectsPath = bag->Get("objects_path");
-	}
-}

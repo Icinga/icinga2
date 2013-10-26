@@ -1,0 +1,19 @@
+#include "db_ido/dbconnection.h"
+
+namespace icinga
+{
+
+class IdoMysqlConnection : DbConnection
+{
+	[config] String host;
+	[config] int port;
+	[config] String user;
+	[config] String password;
+	[config] String database;
+	[config] String instance_name {
+		default {{{ return "default"; }}}
+	};
+	[config] String instance_description;
+};
+
+}

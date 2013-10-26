@@ -21,8 +21,8 @@
 #define USERGROUP_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/usergroup.th"
 #include "icinga/user.h"
-#include "base/dynamicobject.h"
 
 namespace icinga
 {
@@ -32,24 +32,17 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API UserGroup : public DynamicObject
+class I2_ICINGA_API UserGroup : public ReflectionObjectImpl<UserGroup>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(UserGroup);
 	DECLARE_TYPENAME(UserGroup);
 
-	String GetDisplayName(void) const;
-
 	std::set<User::Ptr> GetMembers(void) const;
 	void AddMember(const User::Ptr& user);
 	void RemoveMember(const User::Ptr& user);
 
-protected:
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_DisplayName;
 	std::set<User::Ptr> m_Members;
 };
 

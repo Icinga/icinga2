@@ -1,0 +1,310 @@
+%code requires {
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2013 Icinga Development Team (http://www.icinga.org/)   *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
+ #include "classcompiler.h"
+ #include <iostream>
+ #include <vector>
+
+using namespace icinga;
+
+#define YYLTYPE icinga::ClassDebugInfo
+
+}
+
+%pure-parser
+
+%locations
+%defines
+%error-verbose
+
+%parse-param { ClassCompiler *context }
+%lex-param { void *scanner }
+
+%union {
+	char *text;
+	int num;
+	Field *field;
+	std::vector<Field> *fields;
+	Klass *klass;
+	FieldAccessor *fieldaccessor;
+	std::vector<FieldAccessor> *fieldaccessors;
+}
+
+%token T_INCLUDE "include (T_INCLUDE)"
+%token T_CLASS "class (T_CLASS)"
+%token T_CODE "code (T_CODE)"
+%token T_NAMESPACE "namespace (T_NAMESPACE)"
+%token T_STRING "string (T_STRING)"
+%token T_ANGLE_STRING "angle_string (T_ANGLE_STRING)"
+%token T_FIELD_ATTRIBUTE "field_attribute (T_FIELD_ATTRIBUTE)"
+%token T_IDENTIFIER "identifier (T_IDENTIFIER)"
+%token T_GET "get (T_GET)"
+%token T_SET "set (T_SET)"
+%token T_DEFAULT "default (T_DEFAULT)"
+%token T_FIELD_ACCESSOR_TYPE "field_accessor_type (T_FIELD_ACCESSOR_TYPE)"
+%type <text> T_IDENTIFIER
+%type <text> T_STRING
+%type <text> T_ANGLE_STRING
+%type <text> identifier
+%type <text> alternative_name_specifier
+%type <text> inherits_specifier
+%type <text> include
+%type <text> angle_include
+%type <text> code
+%type <num> T_FIELD_ATTRIBUTE
+%type <num> field_attributes
+%type <num> field_attribute_list
+%type <num> T_FIELD_ACCESSOR_TYPE
+%type <field> class_field
+%type <fields> class_fields
+%type <klass> class
+%type <fieldaccessors> field_accessor_list
+%type <fieldaccessors> field_accessors
+%type <fieldaccessor> field_accessor
+
+%{
+
+int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
+
+void yyerror(YYLTYPE *locp, ClassCompiler *, const char *err)
+{
+	std::cerr << "in " << locp->path << " at " << locp->first_line << ":" << locp->first_column << "-" << locp->last_line << ":" << locp->last_column << ": "
+			  << err
+			  << std::endl;
+}
+
+int yyparse(ClassCompiler *context);
+
+void ClassCompiler::Compile(void)
+{
+	try {
+		yyparse(this);
+	} catch (const std::exception& ex) {
+		std::cerr << "Exception: " << ex.what();
+	}
+}
+
+#define scanner (context->GetScanner())
+
+%}
+
+%%
+
+statements: /* empty */
+	| statements statement
+	;
+
+statement: include
+	{
+		context->HandleInclude($1, yylloc);
+		free($1);
+	}
+	| angle_include
+	{
+		context->HandleAngleInclude($1, yylloc);
+		free($1);
+	}
+	| class
+	{
+		context->HandleClass(*$1, yylloc);
+		delete $1;
+	}
+	| namespace
+	| code
+	{
+		context->HandleCode($1, yylloc);
+		free($1);
+	}
+	;
+
+include: T_INCLUDE T_STRING
+	{
+		$$ = $2;
+	}
+	;
+
+angle_include: T_INCLUDE T_ANGLE_STRING
+	{
+		$$ = $2;
+	}
+	;
+
+namespace: T_NAMESPACE identifier '{'
+	{
+		context->HandleNamespaceBegin($2, yylloc);
+		free($2);
+	}
+	statements '}'
+	{
+		context->HandleNamespaceEnd(yylloc);
+	}
+	;
+
+code: T_CODE T_STRING
+	{
+		$$ = $2;
+	}
+	;
+
+class: T_CLASS T_IDENTIFIER inherits_specifier '{' class_fields '}' ';'
+	{
+		$$ = new Klass();
+
+		$$->Name = $2;
+		free($2);
+
+		if ($3) {
+			$$->Parent = $3;
+			free($3);
+		}
+
+		$$->Fields = *$5;
+		delete $5;
+	}
+	;
+
+inherits_specifier: /* empty */
+	{
+		$$ = NULL;
+	}
+	| ':' identifier
+	{
+		$$ = $2;
+	}
+	;
+
+class_fields: /* empty */
+	{
+		$$ = new std::vector<Field>();
+	}
+	| class_fields class_field
+	{
+		$$->push_back(*$2);
+		delete $2;
+	}
+	;
+
+class_field: field_attribute_list identifier identifier alternative_name_specifier field_accessor_list ';'
+	{
+		Field *field = new Field();
+
+		field->Attributes = $1;
+
+		field->Type = $2;
+		free($2);
+
+		field->Name = $3;
+		free($3);
+
+		if ($4) {
+			field->AlternativeName = $4;
+			free($4);
+		}
+
+		std::vector<FieldAccessor>::const_iterator it;
+		for (it = $5->begin(); it != $5->end(); it++) {
+			switch (it->Type) {
+				case FTGet:
+					field->GetAccessor = it->Accessor;
+					break;
+				case FTSet:
+					field->SetAccessor = it->Accessor;
+					break;
+				case FTDefault:
+					field->DefaultAccessor = it->Accessor;
+					break;
+				}
+		}
+
+		delete $5;
+
+		$$ = field;
+	}
+	;
+
+alternative_name_specifier: /* empty */
+	{
+		$$ = NULL;
+	}
+	| '(' identifier ')'
+	{
+		$$ = $2;
+	}
+	;
+
+field_attribute_list: /* empty */
+	{
+		$$ = 0;
+	}
+	| '[' field_attributes ']'
+	{
+		$$ = $2;
+	}
+	;
+
+field_attributes: /* empty */
+	{
+		$$ = 0;
+	}
+	| field_attributes ',' T_FIELD_ATTRIBUTE
+	{
+		$$ = $1 | $3;
+	}
+	| T_FIELD_ATTRIBUTE
+	{
+		$$ = $1;
+	}
+	;
+
+field_accessor_list: /* empty */
+	{
+		$$ = new std::vector<FieldAccessor>();
+	}
+	| '{' field_accessors '}'
+	{
+		$$ = $2;
+	}
+	;
+
+field_accessors: /* empty */
+	{
+		$$ = new std::vector<FieldAccessor>();
+	}
+	| field_accessors field_accessor
+	{
+		$$ = $1;
+		$$->push_back(*$2);
+		delete $2;
+	}
+	;
+
+field_accessor: T_FIELD_ACCESSOR_TYPE T_STRING
+	{
+		$$ = new FieldAccessor(static_cast<FieldAccessorType>($1), $2);
+		free($2);
+	}
+	;
+
+identifier: T_IDENTIFIER
+	| T_STRING
+	{
+		$$ = $1;
+	}
+	;

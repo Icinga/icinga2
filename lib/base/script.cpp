@@ -37,44 +37,10 @@ void Script::Start(void)
 	SpawnInterpreter();
 }
 
-String Script::GetLanguage(void) const
-{
-	ObjectLock olock(this);
-
-	return m_Language;
-}
-
-String Script::GetCode(void) const
-{
-	ObjectLock olock(this);
-
-	return m_Code;
-}
-
 void Script::SpawnInterpreter(void)
 {
 	Log(LogInformation, "base", "Reloading script '" + GetName() + "'");
 
 	ScriptLanguage::Ptr language = ScriptLanguage::GetByName(GetLanguage());
 	m_Interpreter = language->CreateInterpreter(GetSelf());
-}
-
-void Script::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("language", m_Language);
-		bag->Set("code", m_Code);
-	}
-}
-
-void Script::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_Language = bag->Get("language");
-		m_Code = bag->Get("code");
-	}
 }

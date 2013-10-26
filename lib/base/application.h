@@ -21,6 +21,7 @@
 #define APPLICATION_H
 
 #include "base/i2-base.h"
+#include "base/application.th"
 #include "base/threadpool.h"
 #include "base/dynamicobject.h"
 
@@ -33,7 +34,7 @@ class Component;
  *
  * @ingroup base
  */
-class I2_BASE_API Application : public DynamicObject {
+class I2_BASE_API Application : public ReflectionObjectImpl<Application> {
 public:
 	DECLARE_PTR_TYPEDEFS(Application);
 
@@ -94,6 +95,9 @@ public:
 
 	static String GetVersion(void);
 
+	static double GetStartTime(void);
+	static void SetStartTime(double ts);
+
 protected:
 	virtual void OnConfigLoaded(void);
 	virtual void Stop(void);
@@ -112,6 +116,7 @@ private:
 	static char **m_ArgV; /**< Command-line arguments. */
 	FILE *m_PidFile; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
+	static double m_StartTime;
 
 #ifndef _WIN32
 	static void SigIntHandler(int signum);

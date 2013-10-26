@@ -1,0 +1,18 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class ClusterListener : DynamicObject
+{
+	[config] String cert_path;
+	[config] String key_path;
+	[config] String ca_path;
+	[config] String bind_host;
+	[config] String bind_port;
+	[config] Array::Ptr peers;
+	[state] double log_message_timestamp;
+	String identity;
+};
+
+}

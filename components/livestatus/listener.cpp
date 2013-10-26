@@ -83,40 +83,6 @@ void LivestatusListener::Start(void)
 	}
 }
 
-String LivestatusListener::GetSocketType(void) const
-{
-	Value socketType = m_SocketType;
-	if (socketType.IsEmpty())
-		return "unix";
-	else
-		return socketType;
-}
-
-String LivestatusListener::GetSocketPath(void) const
-{
-	Value socketPath = m_SocketPath;
-	if (socketPath.IsEmpty())
-		return Application::GetLocalStateDir() + "/run/icinga2/cmd/livestatus";
-	else
-		return socketPath;
-}
-
-String LivestatusListener::GetBindHost(void) const
-{
-	if (m_BindHost.IsEmpty())
-		return "127.0.0.1";
-	else
-		return m_BindHost;
-}
-
-String LivestatusListener::GetBindPort(void) const
-{
-	if (m_BindPort.IsEmpty())
-		return "6558";
-	else
-		return m_BindPort;
-}
-
 int LivestatusListener::GetClientsConnected(void)
 {
 	boost::mutex::scoped_lock lock(l_ComponentMutex);
@@ -189,26 +155,3 @@ void LivestatusListener::ValidateSocketType(const String& location, const Dictio
 	}
 }
 
-void LivestatusListener::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("socket_type", m_SocketType);
-		bag->Set("socket_path", m_SocketPath);
-		bag->Set("bind_host", m_BindHost);
-		bag->Set("bind_port", m_BindPort);
-	}
-}
-
-void LivestatusListener::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_SocketType = bag->Get("socket_type");
-		m_SocketPath = bag->Get("socket_path");
-		m_BindHost = bag->Get("bind_host");
-		m_BindPort = bag->Get("bind_port");
-	}
-}

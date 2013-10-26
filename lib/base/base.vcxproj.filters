@@ -133,6 +133,9 @@
     <ClCompile Include="zlibstream.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="reflectionobject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -285,6 +288,12 @@
     <ClInclude Include="zlibstream.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="reflectionobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamicobject.th">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Quelldateien">
@@ -296,5 +305,52 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="script.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="application.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="logger.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="streamlogger.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="filelogger.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="sysloglogger.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="consolelogger.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="dynamicobject.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="script.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="application.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="logger.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="streamlogger.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="filelogger.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="sysloglogger.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="consolelogger.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

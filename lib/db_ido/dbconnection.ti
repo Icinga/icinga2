@@ -1,0 +1,18 @@
+#include "base/dynamicobject.h"
+#include <boost/smart_ptr/make_shared.hpp>
+
+namespace icinga
+{
+
+class DbConnection : DynamicObject
+{
+	[config] String table_prefix {
+		default {{{ return "icinga_"; }}}
+	};
+
+	[config] Dictionary::Ptr cleanup {
+		default {{{ return boost::make_shared<Dictionary>(); }}}
+	};
+};
+
+}

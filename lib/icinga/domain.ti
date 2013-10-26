@@ -1,0 +1,11 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class Domain : DynamicObject
+{
+	[config] Dictionary::Ptr acl;
+};
+
+}

@@ -3,15 +3,22 @@
 pkglib_LTLIBRARIES = \
 	libchecker.la
 
+BUILT_SOURCES = \
+	checkercomponent.th
+
 CLEANFILES = \
 	checker-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
+.ti.th: $(top_builddir)/tools/mkclass/mkclass
+	$(top_builddir)/tools/mkclass/mkclass $< > $@
+
 libchecker_la_SOURCES = \
 	checkercomponent.cpp \
 	checkercomponent.h \
+	checkercomponent.th \
 	checker-type.conf
 
 libchecker_la_CPPFLAGS = \

@@ -160,6 +160,8 @@ static bool Daemonize(const String& stderrFile)
  */
 int main(int argc, char **argv)
 {
+	Application::SetStartTime(Utility::GetTime());
+
 #ifndef _WIN32
 	LTDL_SET_PRELOADED_SYMBOLS();
 #endif /* _WIN32 */

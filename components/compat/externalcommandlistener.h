@@ -20,7 +20,7 @@
 #ifndef EXTERNALCOMMANDLISTENER_H
 #define EXTERNALCOMMANDLISTENER_H
 
-#include "base/dynamicobject.h"
+#include "compat/externalcommandlistener.th"
 #include "base/objectlock.h"
 #include "base/timer.h"
 #include "base/utility.h"
@@ -33,7 +33,7 @@ namespace icinga
 /**
  * @ingroup compat
  */
-class ExternalCommandListener : public DynamicObject
+class ExternalCommandListener : public ReflectionObjectImpl<ExternalCommandListener>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ExternalCommandListener);
@@ -41,19 +41,12 @@ public:
 protected:
 	virtual void Start(void);
 
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_CommandPath;
-
 #ifndef _WIN32
 	boost::thread m_CommandThread;
 
 	void CommandPipeThread(const String& commandPath);
 #endif /* _WIN32 */
-
-	String GetCommandPath(void) const;
 };
 
 }

@@ -64,7 +64,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
 
-	Array::Ptr export_macros = notification->GetExportMacros();
+	Array::Ptr export_macros = commandObj->GetExportMacros();
 
 	if (export_macros) {
 		BOOST_FOREACH(const String& macro, export_macros) {

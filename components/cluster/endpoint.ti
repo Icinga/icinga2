@@ -1,0 +1,23 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class Endpoint : DynamicObject
+{
+	[config] String host;
+	[config] String port;
+	[config] Array::Ptr config_files;
+	[config] Array::Ptr accept_config;
+
+	[state] double seen;
+	[state] double local_log_position;
+	[state] double remote_log_position;
+	[state] Dictionary::Ptr features;
+
+	bool syncing {
+		default {{{ return false; }}}
+	};
+};
+
+}

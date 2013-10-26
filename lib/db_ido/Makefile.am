@@ -3,17 +3,24 @@
 pkglib_LTLIBRARIES = \
 	libdb_ido.la
 
+BUILT_SOURCES = \
+	dbconnection.th
+
 CLEANFILES = \
 	db_ido-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
+.ti.th: $(top_builddir)/tools/mkclass/mkclass
+	$(top_builddir)/tools/mkclass/mkclass $< > $@
+
 libdb_ido_la_SOURCES = \
 	commanddbobject.cpp \
 	commanddbobject.h \
 	dbconnection.cpp \
 	dbconnection.h \
+	dbconnection.ti \
 	dbobject.cpp \
 	dbobject.h \
 	dbquery.cpp \

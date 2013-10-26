@@ -61,9 +61,6 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		Dictionary::Ptr comments = service->GetComments();
 
-		if (!comments)
-			continue;
-
 		ObjectLock olock(comments);
 
 		String id;

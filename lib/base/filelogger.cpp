@@ -34,7 +34,7 @@ void FileLogger::Start()
 
 	std::ofstream *stream = new std::ofstream();
 
-	String path = m_Path;
+	String path = GetPath();
 
 	try {
 		stream->open(path.CStr(), std::fstream::out | std::fstream::trunc);
@@ -47,20 +47,4 @@ void FileLogger::Start()
 	}
 
 	BindStream(stream, true);
-}
-
-void FileLogger::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	StreamLogger::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		bag->Set("path", m_Path);
-}
-
-void FileLogger::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	StreamLogger::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		m_Path = bag->Get("path");
 }
