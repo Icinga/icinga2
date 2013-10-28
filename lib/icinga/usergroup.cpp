@@ -30,14 +30,6 @@ using namespace icinga;
 
 REGISTER_TYPE(UserGroup);
 
-String UserGroup::GetDisplayName(void) const
-{
-	if (!m_DisplayName.IsEmpty())
-		return m_DisplayName;
-	else
-		return GetName();
-}
-
 std::set<User::Ptr> UserGroup::GetMembers(void) const
 {
 	return m_Members;
@@ -51,20 +43,4 @@ void UserGroup::AddMember(const User::Ptr& user)
 void UserGroup::RemoveMember(const User::Ptr& user)
 {
 	m_Members.erase(user);
-}
-
-void UserGroup::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		bag->Set("display_name", m_DisplayName);
-}
-
-void UserGroup::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		m_DisplayName = bag->Get("display_name");
 }

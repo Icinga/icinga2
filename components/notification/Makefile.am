@@ -3,15 +3,22 @@
 pkglib_LTLIBRARIES = \
 	libnotification.la
 
+BUILT_SOURCES = \
+	notificationcomponent.th
+
 CLEANFILES = \
 	notification-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
+.ti.th: $(top_builddir)/tools/mkclass/mkclass
+	$(top_builddir)/tools/mkclass/mkclass $< > $@
+
 libnotification_la_SOURCES = \
 	notificationcomponent.cpp \
 	notificationcomponent.h \
+	notificationcomponent.ti \
 	notification-type.conf
 
 libnotification_la_CPPFLAGS = \

@@ -57,22 +57,6 @@ void GraphiteWriter::Start(void)
 	Service::OnNewCheckResult.connect(boost::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
 }
 
-String GraphiteWriter::GetHost(void) const
-{
-	if (m_Host.IsEmpty())
-		return "127.0.0.1";
-	else
-		return m_Host;
-}
-
-String GraphiteWriter::GetPort(void) const
-{
-	if (m_Port.IsEmpty())
-		return "2003";
-	else
-		return m_Port;
-}
-
 void GraphiteWriter::ReconnectTimerHandler(void)
 {
 	try {
@@ -110,7 +94,7 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 	Value metricValue;
 
 	/* basic metrics */
-	AddServiceMetric(metrics, service, "current_attempt", service->GetCurrentCheckAttempt());
+	AddServiceMetric(metrics, service, "current_attempt", service->GetCheckAttempt());
 	AddServiceMetric(metrics, service, "max_check_attempts", service->GetMaxCheckAttempts());
 	AddServiceMetric(metrics, service, "state_type", service->GetStateType());
 	AddServiceMetric(metrics, service, "state", service->GetState());
@@ -267,22 +251,3 @@ void GraphiteWriter::SanitizeMetric(String& str)
 	boost::replace_all(str, "/", "_");
 }
 
-void GraphiteWriter::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("host", m_Host);
-		bag->Set("port", m_Port);
-	}
-}
-
-void GraphiteWriter::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_Host = bag->Get("host");
-		m_Port = bag->Get("port");
-	}
-}

@@ -1,0 +1,14 @@
+#include "base/dynamicobject.h"
+#include "base/application.h"
+
+namespace icinga
+{
+
+class ExternalCommandListener : DynamicObject
+{
+	[config] String command_path {
+		default {{{ return Application::GetLocalStateDir() + "/run/icinga2/cmd/icinga2.cmd"; }}}
+	};
+};
+
+}

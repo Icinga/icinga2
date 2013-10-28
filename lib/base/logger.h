@@ -21,6 +21,7 @@
 #define LOGGER_H
 
 #include "base/i2-base.h"
+#include "base/logger.th"
 #include "base/dynamicobject.h"
 #include "base/logger_fwd.h"
 #include <set>
@@ -45,7 +46,7 @@ struct LogEntry {
  *
  * @ingroup base
  */
-class I2_BASE_API Logger : public DynamicObject
+class I2_BASE_API Logger : public ReflectionObjectImpl<Logger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Logger);
@@ -69,12 +70,7 @@ protected:
 	virtual void Start(void);
 	virtual void Stop(void);
 
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_Severity;
-
 	static boost::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
 

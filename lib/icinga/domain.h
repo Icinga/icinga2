@@ -21,7 +21,7 @@
 #define DOMAIN_H
 
 #include "icinga/i2-icinga.h"
-#include "base/dynamicobject.h"
+#include "icinga/domain.th"
 #include "base/dictionary.h"
 
 namespace icinga
@@ -32,21 +32,13 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Domain : public DynamicObject
+class I2_ICINGA_API Domain : public ReflectionObjectImpl<Domain>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Domain);
 	DECLARE_TYPENAME(Domain);
 
-	Dictionary::Ptr GetAcl(void) const;
 	int GetPrivileges(const String& instance) const;
-
-protected:
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
-private:
-	Dictionary::Ptr m_Acl;
 };
 
 }

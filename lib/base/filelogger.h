@@ -21,7 +21,7 @@
 #define FILELOGGER_H
 
 #include "base/i2-base.h"
-#include "base/streamlogger.h"
+#include "base/filelogger.th"
 
 namespace icinga
 {
@@ -31,19 +31,12 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API FileLogger : public StreamLogger
+class I2_BASE_API FileLogger : public ReflectionObjectImpl<FileLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(FileLogger);
 
 	virtual void Start(void);
-
-protected:
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
-private:
-	String m_Path;
 };
 
 }

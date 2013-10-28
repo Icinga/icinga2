@@ -105,7 +105,7 @@ void icinga::Log(LogSeverity severity, const String& facility,
  */
 LogSeverity Logger::GetMinSeverity(void) const
 {
-	String severity = m_Severity;
+	String severity = GetSeverity();
 	if (severity.IsEmpty())
 		return LogInformation;
 	else
@@ -150,20 +150,4 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 		return LogCritical;
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity: " + severity));
-}
-
-void Logger::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		bag->Set("severity", m_Severity);
-}
-
-void Logger::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		m_Severity = bag->Get("severity");
 }

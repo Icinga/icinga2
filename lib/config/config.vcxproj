@@ -119,8 +119,8 @@ del config_parser.cc
 ren config_parser.tab.cc config_parser.cc
 del config_parser.h
 ren config_parser.tab.hh config_parser.h</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">config_parser.cc config_parser.h</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">config_parser.cc config_parser.h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">config_parser.cc;config_parser.h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">config_parser.cc;config_parser.h</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_bison -d "%(FullPath)"
 del config_parser.cc
 ren config_parser.tab.cc config_parser.cc
@@ -131,8 +131,8 @@ del config_parser.cc
 ren config_parser.tab.cc config_parser.cc
 del config_parser.h
 ren config_parser.tab.hh config_parser.h</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">config_parser.cc config_parser.h</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">config_parser.cc config_parser.h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">config_parser.cc;config_parser.h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">config_parser.cc;config_parser.h</Outputs>
     </CustomBuild>
     <None Include="packages.config" />
   </ItemGroup>

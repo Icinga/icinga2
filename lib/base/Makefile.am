@@ -4,15 +4,30 @@
 pkglib_LTLIBRARIES =  \
 	libbase.la
 
+BUILT_SOURCES = \
+	application.th \
+	consolelogger.th \
+	dynamicobject.th \
+	filelogger.th \
+	logger.th \
+	script.th \
+	streamlogger.th \
+	sysloglogger.th
+
+.ti.th: $(top_builddir)/tools/mkclass/mkclass
+	$(top_builddir)/tools/mkclass/mkclass $< > $@
+
 libbase_la_SOURCES =  \
 	application.cpp \
 	application.h \
+	application.ti \
 	array.cpp \
 	array.h \
 	bufferedstream.cpp \
 	bufferedstream.h \
 	consolelogger.cpp \
 	consolelogger.h \
+	consolelogger.ti \
 	convert.cpp \
 	convert.h \
 	debug.h \
@@ -20,6 +35,7 @@ libbase_la_SOURCES =  \
 	dictionary.h \
 	dynamicobject.cpp \
 	dynamicobject.h \
+	dynamicobject.ti \
 	dynamictype.cpp \
 	dynamictype.h \
 	exception.cpp \
@@ -28,10 +44,12 @@ libbase_la_SOURCES =  \
 	fifo.h \
 	filelogger.cpp \
 	filelogger.h \
+	filelogger.ti \
 	i2-base.h \
 	initialize.h \
 	logger.cpp \
 	logger.h \
+	logger.ti \
 	logger_fwd.h \
 	netstring.cpp \
 	netstring.h \
@@ -47,11 +65,14 @@ libbase_la_SOURCES =  \
 	process.h \
 	qstring.cpp \
 	qstring.h \
+	reflectionobject.cpp \
+	reflectionobject.h \
 	registry.h \
 	ringbuffer.cpp \
 	ringbuffer.h \
 	script.cpp \
 	script.h \
+	script.ti \
 	scriptfunction.cpp \
 	scriptfunction.h \
 	scriptfunctionwrapper.cpp \
@@ -75,8 +96,10 @@ libbase_la_SOURCES =  \
 	stream_bio.h \
 	streamlogger.cpp \
 	streamlogger.h \
+	streamlogger.ti \
 	sysloglogger.cpp \
 	sysloglogger.h \
+	sysloglogger.ti \
 	tcpsocket.cpp \
 	tcpsocket.h \
 	threadpool.cpp \

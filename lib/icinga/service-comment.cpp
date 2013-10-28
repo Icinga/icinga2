@@ -45,11 +45,6 @@ int Service::GetNextCommentID(void)
 	return l_NextCommentID;
 }
 
-Dictionary::Ptr Service::GetComments(void) const
-{
-	return m_Comments;
-}
-
 String Service::AddComment(CommentType entryType, const String& author,
     const String& text, double expireTime, const String& id, const String& authority)
 {
@@ -77,24 +72,7 @@ String Service::AddComment(CommentType entryType, const String& author,
 
 	comment->Set("legacy_id", legacy_id);
 
-	Dictionary::Ptr comments;
-
-	{
-		ObjectLock olock(this);
-
-		comments = GetComments();
-
-		if (!comments)
-			comments = boost::make_shared<Dictionary>();
-
-		m_Comments = comments;
-	}
-
-	{
-		ObjectLock olock(this);
-
-		comments->Set(uid, comment);
-	}
+	GetComments()->Set(uid, comment);
 
 	{
 		boost::mutex::scoped_lock lock(l_CommentMutex);
@@ -110,10 +88,7 @@ String Service::AddComment(CommentType entryType, const String& author,
 void Service::RemoveAllComments(void)
 {
 	std::vector<String> ids;
-	Dictionary::Ptr comments = m_Comments;
-
-	if (!comments)
-		return;
+	Dictionary::Ptr comments = GetComments();
 
 	ObjectLock olock(comments);
 	String id;
@@ -134,9 +109,6 @@ void Service::RemoveComment(const String& id, const String& authority)
 		return;
 
 	Dictionary::Ptr comments = owner->GetComments();
-
-	if (!comments)
-		return;
 
 	ObjectLock olock(owner);
 
@@ -205,9 +177,6 @@ void Service::AddCommentsToCache(void)
 
 	Dictionary::Ptr comments = GetComments();
 
-	if (!comments)
-		return;
-
 	ObjectLock olock(comments);
 
 	boost::mutex::scoped_lock lock(l_CommentMutex);
@@ -228,9 +197,6 @@ void Service::AddCommentsToCache(void)
 void Service::RemoveCommentsByType(int type)
 {
 	Dictionary::Ptr comments = GetComments();
-
-	if (!comments)
-		return;
 
 	std::vector<String> removedComments;
 
@@ -253,9 +219,6 @@ void Service::RemoveCommentsByType(int type)
 void Service::RemoveExpiredComments(void)
 {
 	Dictionary::Ptr comments = GetComments();
-
-	if (!comments)
-		return;
 
 	std::vector<String> expiredComments;
 

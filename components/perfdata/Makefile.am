@@ -4,17 +4,26 @@
 pkglib_LTLIBRARIES =  \
 	libperfdata.la
 
+BUILT_SOURCES = \
+	graphitewriter.th \
+	perfdatawriter.th
+
 CLEANFILES = \
 	perfdata-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
+.ti.th: $(top_builddir)/tools/mkclass/mkclass
+	$(top_builddir)/tools/mkclass/mkclass $< > $@
+
 libperfdata_la_SOURCES =  \
 	graphitewriter.cpp \
 	graphitewriter.h \
+	graphitewriter.ti \
 	perfdatawriter.cpp \
 	perfdatawriter.h \
+	perfdatawriter.th \
 	perfdata-type.conf
 
 libperfdata_la_CPPFLAGS = \

@@ -3,11 +3,17 @@
 pkglib_LTLIBRARIES = \
 	liblivestatus.la
 
+BUILT_SOURCES = \
+	listener.th
+
 CLEANFILES = \
 	livestatus-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
+
+.ti.th: $(top_builddir)/tools/mkclass/mkclass
+	$(top_builddir)/tools/mkclass/mkclass $< > $@
 
 liblivestatus_la_SOURCES = \
 	aggregator.cpp \
@@ -46,6 +52,7 @@ liblivestatus_la_SOURCES = \
 	invsumaggregator.h \
 	listener.cpp \
 	listener.h \
+	listener.ti \
 	livestatus-type.conf \
 	logtable.cpp \
 	logtable.h \

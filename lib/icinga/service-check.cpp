@@ -33,10 +33,6 @@
 
 using namespace icinga;
 
-const int Service::DefaultMaxCheckAttempts = 3;
-const double Service::DefaultCheckInterval = 5 * 60;
-const double Service::CheckIntervalDivisor = 5.0;
-
 boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> Service::OnNewCheckResult;
 boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, StateType, const String&)> Service::OnStateChange;
 boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationsRequested;
@@ -51,51 +47,38 @@ boost::signals2::signal<void (const Service::Ptr&, FlappingState)> Service::OnFl
 
 CheckCommand::Ptr Service::GetCheckCommand(void) const
 {
-	return CheckCommand::GetByName(m_CheckCommand);
-}
-
-long Service::GetMaxCheckAttempts(void) const
-{
-	if (m_MaxCheckAttempts.IsEmpty())
-		return DefaultMaxCheckAttempts;
-
-	return m_MaxCheckAttempts;
+	return CheckCommand::GetByName(GetCheckCommandRaw());
 }
 
 TimePeriod::Ptr Service::GetCheckPeriod(void) const
 {
-	return TimePeriod::GetByName(m_CheckPeriod);
+	return TimePeriod::GetByName(GetCheckPeriodRaw());
 }
 
 double Service::GetCheckInterval(void) const
 {
-	if (!m_OverrideCheckInterval.IsEmpty())
-		return m_OverrideCheckInterval;
-	else if (!m_CheckInterval.IsEmpty())
-		return m_CheckInterval;
+	if (!GetOverrideCheckInterval().IsEmpty())
+		return GetOverrideCheckInterval();
 	else
-		return DefaultCheckInterval;
+		return GetCheckIntervalRaw();
 }
 
 void Service::SetCheckInterval(double interval)
 {
-	m_OverrideCheckInterval = interval;
+	SetOverrideCheckInterval(interval);
 }
-
 
 double Service::GetRetryInterval(void) const
 {
-	if (!m_OverrideRetryInterval.IsEmpty())
-		return m_OverrideRetryInterval;
-	if (!m_RetryInterval.IsEmpty())
-		return m_RetryInterval;
+	if (!GetOverrideRetryInterval().IsEmpty())
+		return GetOverrideRetryInterval();
 	else
-		return GetCheckInterval() / CheckIntervalDivisor;
+		return GetRetryIntervalRaw();
 }
 
 void Service::SetRetryInterval(double interval)
 {
-	m_OverrideRetryInterval = interval;
+	SetOverrideRetryInterval(interval);
 }
 
 void Service::SetSchedulingOffset(long offset)
@@ -110,14 +93,14 @@ long Service::GetSchedulingOffset(void)
 
 void Service::SetNextCheck(double nextCheck, const String& authority)
 {
-	m_NextCheck = nextCheck;
+	SetNextCheckRaw(nextCheck);
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(Service::OnNextCheckChanged), GetSelf(), nextCheck, authority));
 }
 
 double Service::GetNextCheck(void)
 {
-	return m_NextCheck;
+	return GetNextCheckRaw();
 }
 
 void Service::UpdateNextCheck(void)
@@ -140,187 +123,6 @@ void Service::UpdateNextCheck(void)
 	SetNextCheck(now - adj + interval);
 }
 
-void Service::SetCurrentChecker(const String& checker)
-{
-	m_CurrentChecker = checker;
-}
-
-String Service::GetCurrentChecker(void) const
-{
-	return m_CurrentChecker;
-}
-
-void Service::SetCurrentCheckAttempt(long attempt)
-{
-	m_CheckAttempt = attempt;
-}
-
-long Service::GetCurrentCheckAttempt(void) const
-{
-	if (m_CheckAttempt.IsEmpty())
-		return 1;
-
-	return m_CheckAttempt;
-}
-
-void Service::SetState(ServiceState state)
-{
-	m_State = static_cast<long>(state);
-}
-
-ServiceState Service::GetState(void) const
-{
-	if (m_State.IsEmpty())
-		return StateUnknown;
-
-	int ivalue = static_cast<int>(m_State);
-	return static_cast<ServiceState>(ivalue);
-}
-
-void Service::SetLastState(ServiceState state)
-{
-	m_LastState = static_cast<long>(state);
-}
-
-ServiceState Service::GetLastState(void) const
-{
-	if (m_LastState.IsEmpty())
-		return StateUnknown;
-
-	int ivalue = static_cast<int>(m_LastState);
-	return static_cast<ServiceState>(ivalue);
-}
-
-void Service::SetLastHardState(ServiceState state)
-{
-	m_LastHardState = static_cast<long>(state);
-}
-
-ServiceState Service::GetLastHardState(void) const
-{
-	if (m_LastHardState.IsEmpty())
-		return StateUnknown;
-
-	int ivalue = static_cast<int>(m_LastHardState);
-	return static_cast<ServiceState>(ivalue);
-}
-
-void Service::SetStateType(StateType type)
-{
-	m_StateType = static_cast<long>(type);
-}
-
-StateType Service::GetStateType(void) const
-{
-	if (m_StateType.IsEmpty())
-		return StateTypeSoft;
-
-	int ivalue = static_cast<int>(m_StateType);
-	return static_cast<StateType>(ivalue);
-}
-
-void Service::SetLastStateType(StateType type)
-{
-	m_LastStateType = static_cast<long>(type);
-}
-
-StateType Service::GetLastStateType(void) const
-{
-	if (m_LastStateType.IsEmpty())
-		return StateTypeSoft;
-
-	int ivalue = static_cast<int>(m_LastStateType);
-	return static_cast<StateType>(ivalue);
-}
-
-void Service::SetLastStateOK(double ts)
-{
-	m_LastStateOK = ts;
-}
-
-double Service::GetLastStateOK(void) const
-{
-	if (m_LastStateOK.IsEmpty())
-		return 0;
-
-	return m_LastStateOK;
-}
-
-void Service::SetLastStateWarning(double ts)
-{
-	m_LastStateWarning = ts;
-}
-
-double Service::GetLastStateWarning(void) const
-{
-	if (m_LastStateWarning.IsEmpty())
-		return 0;
-
-	return m_LastStateWarning;
-}
-
-void Service::SetLastStateCritical(double ts)
-{
-	m_LastStateCritical = ts;
-}
-
-double Service::GetLastStateCritical(void) const
-{
-	if (m_LastStateCritical.IsEmpty())
-		return 0;
-
-	return m_LastStateCritical;
-}
-
-void Service::SetLastStateUnknown(double ts)
-{
-	m_LastStateUnknown = ts;
-}
-
-double Service::GetLastStateUnknown(void) const
-{
-	if (m_LastStateUnknown.IsEmpty())
-		return 0;
-
-	return m_LastStateUnknown;
-}
-
-void Service::SetLastStateUnreachable(double ts)
-{
-	m_LastStateUnreachable = ts;
-}
-
-double Service::GetLastStateUnreachable(void) const
-{
-	if (m_LastStateUnreachable.IsEmpty())
-		return 0;
-
-	return m_LastStateUnreachable;
-}
-
-void Service::SetLastReachable(bool reachable)
-{
-	m_LastReachable = reachable;
-}
-
-bool Service::GetLastReachable(void) const
-{
-	if (m_LastReachable.IsEmpty())
-		return true;
-
-	return m_LastReachable;
-}
-
-void Service::SetLastCheckResult(const Dictionary::Ptr& result)
-{
-	m_LastResult = result;
-}
-
-Dictionary::Ptr Service::GetLastCheckResult(void) const
-{
-	return m_LastResult;
-}
-
 bool Service::HasBeenChecked(void) const
 {
 	return GetLastCheckResult();
@@ -331,9 +133,8 @@ double Service::GetLastCheck(void) const
 	Dictionary::Ptr cr = GetLastCheckResult();
 	double schedule_end = -1;
 
-	if (cr) {
+	if (cr)
 		schedule_end = cr->Get("schedule_end");
-	}
 
 	return schedule_end;
 }
@@ -384,77 +185,44 @@ String Service::GetLastCheckPerfData(void) const
 	return perfdata;
 }
 
-void Service::SetLastStateChange(double ts)
-{
-	m_LastStateChange = ts;
-}
-
-double Service::GetLastStateChange(void) const
-{
-	if (m_LastStateChange.IsEmpty())
-		return IcingaApplication::GetInstance()->GetStartTime();
-
-	return m_LastStateChange;
-}
-
-void Service::SetLastHardStateChange(double ts)
-{
-	m_LastHardStateChange = ts;
-}
-
-double Service::GetLastHardStateChange(void) const
-{
-	if (m_LastHardStateChange.IsEmpty())
-		return IcingaApplication::GetInstance()->GetStartTime();
-
-	return m_LastHardStateChange;
-}
-
 bool Service::GetEnableActiveChecks(void) const
 {
-	if (!m_OverrideEnableActiveChecks.IsEmpty())
-		return m_OverrideEnableActiveChecks;
-	else if (!m_EnableActiveChecks.IsEmpty())
-		return m_EnableActiveChecks;
+	if (!GetOverrideEnableActiveChecks().IsEmpty())
+		return GetOverrideEnableActiveChecks();
 	else
-		return true;
+		return GetEnableActiveChecksRaw();
 }
 
 void Service::SetEnableActiveChecks(bool enabled, const String& authority)
 {
-	m_OverrideEnableActiveChecks = enabled ? 1 : 0;
+	SetOverrideEnableActiveChecks(enabled);
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnableActiveChecksChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetEnablePassiveChecks(void) const
 {
-	if (!m_OverrideEnablePassiveChecks.IsEmpty())
-		return m_OverrideEnablePassiveChecks;
-	if (!m_EnablePassiveChecks.IsEmpty())
-		return m_EnablePassiveChecks;
+	if (!GetOverrideEnablePassiveChecks().IsEmpty())
+		return GetOverrideEnablePassiveChecks();
 	else
-		return true;
+		return GetEnablePassiveChecksRaw();
 }
 
 void Service::SetEnablePassiveChecks(bool enabled, const String& authority)
 {
-	m_OverrideEnablePassiveChecks = enabled ? 1 : 0;
+	SetOverrideEnablePassiveChecks(enabled);
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnablePassiveChecksChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetForceNextCheck(void) const
 {
-	if (m_ForceNextCheck.IsEmpty())
-		return false;
-
-	return static_cast<bool>(m_ForceNextCheck);
+	return GetForceNextCheckRaw();
 }
 
 void Service::SetForceNextCheck(bool forced, const String& authority)
 {
-	m_ForceNextCheck = forced ? 1 : 0;
+	SetForceNextCheckRaw(forced);
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnForceNextCheckChanged), GetSelf(), forced, authority));
 }
@@ -494,7 +262,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	Dictionary::Ptr old_cr = GetLastCheckResult();
 	ServiceState old_state = GetState();
 	StateType old_stateType = GetStateType();
-	long old_attempt = GetCurrentCheckAttempt();
+	long old_attempt = GetCheckAttempt();
 	bool recovery;
 
 	if (old_cr && cr->Get("execution_start") < old_cr->Get("execution_start"))
@@ -540,7 +308,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	if (!reachable)
 		SetLastStateUnreachable(Utility::GetTime());
 
-	SetCurrentCheckAttempt(attempt);
+	SetCheckAttempt(attempt);
 
 	int state = cr->Get("state");
 	SetState(static_cast<ServiceState>(state));
@@ -585,7 +353,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	if (old_state != GetState() && old_stateType == StateTypeHard && GetStateType() == StateTypeHard)
 		hardChange = true;
 
-	if (IsVolatile())
+	if (GetVolatile())
 		hardChange = true;
 
 	if (hardChange) {
@@ -604,8 +372,8 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	if (old_state == StateOK && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
 
-	bool send_downtime_notification = m_LastInDowntime != in_downtime;
-	m_LastInDowntime = in_downtime;
+	bool send_downtime_notification = (GetLastInDowntime() != in_downtime);
+	SetLastInDowntime(in_downtime);
 
 	olock.Unlock();
 
@@ -615,7 +383,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	Dictionary::Ptr vars_after = boost::make_shared<Dictionary>();
 	vars_after->Set("state", GetState());
 	vars_after->Set("state_type", GetStateType());
-	vars_after->Set("attempt", GetCurrentCheckAttempt());
+	vars_after->Set("attempt", GetCheckAttempt());
 	vars_after->Set("reachable", reachable);
 	vars_after->Set("host_reachable", host_reachable);
 

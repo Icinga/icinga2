@@ -35,11 +35,6 @@ using namespace icinga;
 boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationSentToAllUsers;
 boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationSentToUser;
 
-Dictionary::Ptr Service::GetNotificationDescriptions(void) const
-{
-	return m_NotificationDescriptions;
-}
-
 void Service::ResetNotificationNumbers(void)
 {
 	BOOST_FOREACH(const Notification::Ptr& notification, GetNotifications()) {
@@ -170,30 +165,24 @@ void Service::UpdateSlaveNotifications(void)
 
 bool Service::GetEnableNotifications(void) const
 {
-	if (m_EnableNotifications.IsEmpty())
-		return true;
-	else
-		return m_EnableNotifications;
+	return GetEnableNotificationsRaw();
 }
 
 void Service::SetEnableNotifications(bool enabled, const String& authority)
 {
-	m_EnableNotifications = enabled;
+	SetEnableNotificationsRaw(enabled);
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnableNotificationsChanged), GetSelf(), enabled, authority));
 }
 
 bool Service::GetForceNextNotification(void) const
 {
-	if (m_ForceNextNotification.IsEmpty())
-		return false;
-
-	return static_cast<bool>(m_ForceNextNotification);
+	return GetForceNextNotificationRaw();
 }
 
 void Service::SetForceNextNotification(bool forced, const String& authority)
 {
-	m_ForceNextNotification = forced ? 1 : 0;
+	SetForceNextNotificationRaw(forced);
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnForceNextNotificationChanged), GetSelf(), forced, authority));
 }

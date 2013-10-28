@@ -1,0 +1,134 @@
+#include "icinga/host.h"
+#include "icinga/icingaapplication.h"
+#include "base/dynamicobject.h"
+#include <boost/smart_ptr/make_shared.hpp>
+
+namespace icinga
+{
+
+code {{{
+/**
+ * The acknowledgement type of a service.
+ *
+ * @ingroup icinga
+ */
+enum AcknowledgementType
+{
+	AcknowledgementNone = 0,
+	AcknowledgementNormal = 1,
+	AcknowledgementSticky = 2
+};
+}}}
+
+class Service : DynamicObject
+{
+	[config] String display_name {
+		get {{{
+			if (m_DisplayName.IsEmpty())
+				return GetShortName();
+			else
+				return m_DisplayName;
+		}}}
+	};
+	[config] Dictionary::Ptr macros;
+	[config] Array::Ptr host_dependencies;
+	[config] Array::Ptr service_dependencies;
+	[config] Array::Ptr groups;
+	[config, protected] String check_command (CheckCommandRaw);
+	[config] int max_check_attempts {
+		default {{{ return 3; }}}
+	};
+	[config, protected] String check_period (CheckPeriodRaw);
+	[config] double check_interval (CheckIntervalRaw) {
+		default {{{ return 5 * 60; }}}
+	};
+	[config] double retry_interval (RetryIntervalRaw) {
+		default {{{ return 60; }}}
+	};
+	[config] String event_command (EventCommandRaw);
+	[config] bool volatile;
+	[config] String short_name {
+		default {{{ return GetName(); }}}
+	};
+	[config] String host (HostRaw);
+	[config] double flapping_threshold {
+		default {{{ return 30; }}}
+	};
+	[config] Dictionary::Ptr notifications (NotificationDescriptions);
+	[config] bool enable_active_checks (EnableActiveChecksRaw) {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_passive_checks (EnablePassiveChecksRaw) {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_event_handler (EnableEventHandlerRaw) {
+		default {{{ return true; }}}
+	};
+
+	[state] double next_check (NextCheckRaw);
+	[state] int check_attempt {
+		default {{{ return 1; }}}
+	};
+	[state, enum] ServiceState "state" {
+		default {{{ return StateUnknown; }}}
+	};
+	[state, enum] StateType state_type {
+		default {{{ return StateTypeSoft; }}}
+	};
+	[state, enum] ServiceState last_state {
+		default {{{ return StateUnknown; }}}
+	};
+	[state, enum] ServiceState last_hard_state {
+		default {{{ return StateUnknown; }}}
+	};
+	[state, enum] StateType last_state_type {
+		default {{{ return StateTypeSoft; }}}
+	};
+	[state] bool last_reachable {
+		default {{{ return true; }}}
+	};
+	[state] Dictionary::Ptr last_check_result;
+	[state] double last_state_change {
+		default {{{ return Application::GetStartTime(); }}}
+	};
+	[state] double last_hard_state_change {
+		default {{{ return Application::GetStartTime(); }}}
+	};
+	[state] double last_state_ok (LastStateOK);
+	[state] double last_state_warning;
+	[state] double last_state_critical;
+	[state] double last_state_unknown;
+	[state] double last_state_unreachable;
+	[state] bool last_in_downtime;
+	[state] bool force_next_check (ForceNextCheckRaw);
+	[state] int acknowledgement (AcknowledgementRaw) {
+		default {{{ return AcknowledgementNone; }}}
+	};
+	[state] double acknowledgement_expiry;
+	[state] Dictionary::Ptr comments {
+		default {{{ return boost::make_shared<Dictionary>(); }}}
+	};
+	[state] Dictionary::Ptr downtimes {
+		default {{{ return boost::make_shared<Dictionary>(); }}}
+	};
+	[state] bool enable_notifications (EnableNotificationsRaw) {
+		default {{{ return true; }}}
+	};
+	[state] bool force_next_notification (ForceNextNotificationRaw);
+	[state] int flapping_positive;
+	[state] int flapping_negative;
+	[state] double flapping_last_change;
+	[state] bool enable_flapping (EnableFlappingRaw) {
+		default {{{ return true; }}}
+	};
+	[state] bool enable_perfdata {
+		default {{{ return true; }}}
+	};
+	[state] Value override_enable_active_checks;
+	[state] Value override_enable_passive_checks;
+	[state] Value override_check_interval;
+	[state] Value override_retry_interval;
+	[state] Value override_enable_event_handler;
+};
+
+}

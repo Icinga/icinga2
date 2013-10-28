@@ -21,30 +21,18 @@
 #define SERVICE_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/service.th"
 #include "icinga/macroresolver.h"
 #include "icinga/host.h"
 #include "icinga/timeperiod.h"
 #include "icinga/notification.h"
 #include "base/i2-base.h"
-#include "base/dynamicobject.h"
 #include "base/array.h"
 #include <boost/signals2.hpp>
 #include <boost/thread/once.hpp>
 
 namespace icinga
 {
-
-/**
- * The acknowledgement type of a service.
- *
- * @ingroup icinga
- */
-enum AcknowledgementType
-{
-	AcknowledgementNone = 0,
-	AcknowledgementNormal = 1,
-	AcknowledgementSticky = 2
-};
 
 /**
  * The type of a service comment.
@@ -130,7 +118,7 @@ class EventCommand;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Service : public DynamicObject, public MacroResolver
+class I2_ICINGA_API Service : public ReflectionObjectImpl<Service>, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Service);
@@ -140,37 +128,22 @@ public:
 
 	static Service::Ptr GetByNamePair(const String& hostName, const String& serviceName);
 
-	static const int DefaultMaxCheckAttempts;
-	static const double DefaultCheckInterval;
-	static const double CheckIntervalDivisor;
-
-	String GetDisplayName(void) const;
 	Host::Ptr GetHost(void) const;
-	Dictionary::Ptr GetMacros(void) const;
-	Array::Ptr GetHostDependencies(void) const;
-	Array::Ptr GetServiceDependencies(void) const;
-	Array::Ptr GetGroups(void) const;
-	String GetHostName(void) const;
-	String GetShortName(void) const;
 
 	std::set<Host::Ptr> GetParentHosts(void) const;
 	std::set<Service::Ptr> GetParentServices(void) const;
 
 	bool IsHostCheck(void) const;
 
-	bool IsVolatile(void) const;
-
 	bool IsReachable(void) const;
 
 	AcknowledgementType GetAcknowledgement(void);
-	double GetAcknowledgementExpiry(void) const;
 
 	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry = 0, const String& authority = String());
 	void ClearAcknowledgement(const String& authority = String());
 
 	/* Checks */
 	shared_ptr<CheckCommand> GetCheckCommand(void) const;
-	long GetMaxCheckAttempts(void) const;
 	TimePeriod::Ptr GetCheckPeriod(void) const;
 
 	double GetCheckInterval(void) const;
@@ -186,29 +159,6 @@ public:
 	double GetNextCheck(void);
 	void UpdateNextCheck(void);
 
-	void SetCurrentChecker(const String& checker);
-	String GetCurrentChecker(void) const;
-
-	void SetCurrentCheckAttempt(long attempt);
-	long GetCurrentCheckAttempt(void) const;
-
-	void SetState(ServiceState state);
-	ServiceState GetState(void) const;
-
-	void SetStateType(StateType type);
-	StateType GetStateType(void) const;
-
-	void SetLastState(ServiceState state);
-	ServiceState GetLastState(void) const;
-
-	void SetLastHardState(ServiceState state);
-	ServiceState GetLastHardState(void) const;
-
-	void SetLastStateType(StateType type);
-	StateType GetLastStateType(void) const;
-
-	void SetLastCheckResult(const Dictionary::Ptr& result);
-	Dictionary::Ptr GetLastCheckResult(void) const;
 	bool HasBeenChecked(void) const;
 
 	double GetLastCheck(void) const;
@@ -217,33 +167,11 @@ public:
 	String GetLastCheckLongOutput(void) const;
 	String GetLastCheckPerfData(void) const;
 
-	void SetLastStateChange(double ts);
-	double GetLastStateChange(void) const;
-
-	void SetLastHardStateChange(double ts);
-	double GetLastHardStateChange(void) const;
-
-	void SetLastStateOK(double ts);
-	double GetLastStateOK(void) const;
-	void SetLastStateWarning(double ts);
-	double GetLastStateWarning(void) const;
-	void SetLastStateCritical(double ts);
-	double GetLastStateCritical(void) const;
-	void SetLastStateUnknown(double ts);
-	double GetLastStateUnknown(void) const;
-	void SetLastStateUnreachable(double ts);
-	double GetLastStateUnreachable(void) const;
-
-	void SetLastReachable(bool reachable);
-	bool GetLastReachable(void) const;
-
 	bool GetEnableActiveChecks(void) const;
 	void SetEnableActiveChecks(bool enabled, const String& authority = String());
 
 	bool GetEnablePassiveChecks(void) const;
 	void SetEnablePassiveChecks(bool enabled, const String& authority = String());
-
-	bool GetEnablePerfdata(void) const;
 
 	bool GetForceNextCheck(void) const;
 	void SetForceNextCheck(bool forced, const String& authority = String());
@@ -292,7 +220,6 @@ public:
 	/* Downtimes */
 	static int GetNextDowntimeID(void);
 
-	Dictionary::Ptr GetDowntimes(void) const;
 	int GetDowntimeDepth(void) const;
 
 	String AddDowntime(const String& comment_id,
@@ -321,8 +248,6 @@ public:
 	/* Comments */
 	static int GetNextCommentID(void);
 
-	Dictionary::Ptr GetComments(void) const;
-
 	String AddComment(CommentType entryType, const String& author,
 	    const String& text, double expireTime, const String& id = String(), const String& authority = String());
 
@@ -337,8 +262,6 @@ public:
 	static bool IsCommentExpired(const Dictionary::Ptr& comment);
 
 	/* Notifications */
-	Dictionary::Ptr GetNotificationDescriptions(void) const;
-
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled, const String& authority = String());
 
@@ -363,11 +286,10 @@ public:
 	void SetEnableEventHandler(bool enabled);
 
 	/* Flapping Detection */
+	double GetFlappingCurrent(void) const;
+
 	bool GetEnableFlapping(void) const;
 	void SetEnableFlapping(bool enabled, const String& authority = String());
-
-	double GetFlappingCurrent(void) const;
-	double GetFlappingThreshold(void) const;
 
 	bool IsFlapping(void) const;
 	void UpdateFlappingStatus(bool stateChange);
@@ -377,94 +299,22 @@ protected:
 
 	virtual void OnConfigLoaded(void);
 
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_DisplayName;
-	Dictionary::Ptr m_Macros;
-	Array::Ptr m_HostDependencies;
-	Array::Ptr m_ServiceDependencies;
-	Array::Ptr m_Groups;
-	String m_ShortName;
-	Value m_Acknowledgement;
-	Value m_AcknowledgementExpiry;
-	String m_HostName;
-	Value m_Volatile;
-	Value m_EnablePerfdata;
-
-	/* Checks */
-	String m_CheckCommand;
-	Value m_MaxCheckAttempts;
-	String m_CheckPeriod;
-	Value m_CheckInterval;
-	Value m_OverrideCheckInterval;
-	Value m_RetryInterval;
-	Value m_OverrideRetryInterval;
-	double m_NextCheck;
-	String m_CurrentChecker;
-	Value m_CheckAttempt;
-	Value m_State;
-	Value m_StateType;
-	Value m_LastState;
-	Value m_LastHardState;
-	Value m_LastStateType;
-	Value m_LastReachable;
-	Dictionary::Ptr m_LastResult;
-	Value m_LastStateChange;
-	Value m_LastHardStateChange;
-	Value m_LastStateOK;
-	Value m_LastStateWarning;
-	Value m_LastStateCritical;
-	Value m_LastStateUnknown;
-	Value m_LastStateUnreachable;
-	bool m_LastInDowntime;
-	Value m_EnableActiveChecks;
-	Value m_OverrideEnableActiveChecks;
-	Value m_EnablePassiveChecks;
-	Value m_OverrideEnablePassiveChecks;
-	Value m_ForceNextCheck;
-
 	bool m_CheckRunning;
 	long m_SchedulingOffset;
 
 	/* Downtimes */
-	Dictionary::Ptr m_Downtimes;
-
 	static void DowntimesExpireTimerHandler(void);
-
 	void RemoveExpiredDowntimes(void);
-
 	void AddDowntimesToCache(void);
 
 	/* Comments */
-	Dictionary::Ptr m_Comments;
-
 	static void CommentsExpireTimerHandler(void);
-
 	void RemoveExpiredComments(void);
-
 	void AddCommentsToCache(void);
 
 	/* Notifications */
-	Dictionary::Ptr m_NotificationDescriptions;
-
-	Value m_EnableNotifications;
-	Value m_ForceNextNotification;
-
 	std::set<Notification::Ptr> m_Notifications;
-
-	/* Event Handler */
-	Value m_EnableEventHandler;
-	Value m_OverrideEnableEventHandler;
-	String m_EventCommand;
-
-	/* Flapping */
-	Value m_EnableFlapping;
-	long m_FlappingPositive;
-	long m_FlappingNegative;
-	Value m_FlappingLastChange;
-	Value m_FlappingThreshold;
 };
 
 }

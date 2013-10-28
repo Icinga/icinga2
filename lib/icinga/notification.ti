@@ -1,0 +1,31 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class Notification : DynamicObject
+{
+	[config, protected] String notification_command (NotificationCommandRaw);
+	[config] double notification_interval {
+		default {{{ return 300; }}}
+	};
+	[config] String notification_period (NotificationPeriodRaw);
+	[config] Dictionary::Ptr macros;
+	[config, protected] Array::Ptr users (UsersRaw);
+	[config, protected] Array::Ptr user_groups (UserGroupsRaw);
+	[config] Dictionary::Ptr times;
+	[config] int notification_type_filter {
+		default {{{ return ~(int)0; }}}
+	};
+	[config] int notification_state_filter {
+		default {{{ return ~(int)0; }}}
+	};
+	[config, protected] String host (HostRaw);
+	[config, protected] String service (ServiceRaw);
+
+	[state] double last_notification;
+	[state, set_protected] double next_notification (NextNotificationRaw);
+	[state, set_protected] Value notification_number;
+};
+
+}

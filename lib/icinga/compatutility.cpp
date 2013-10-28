@@ -263,7 +263,7 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	attr->Set("check_type", (service->GetEnableActiveChecks() ? 0 : 1));
 	attr->Set("last_check", schedule_end);
 	attr->Set("next_check", service->GetNextCheck());
-	attr->Set("current_attempt", service->GetCurrentCheckAttempt());
+	attr->Set("current_attempt", service->GetCheckAttempt());
 	attr->Set("max_attempts", service->GetMaxCheckAttempts());
 	attr->Set("last_state_change", service->GetLastStateChange());
 	attr->Set("last_hard_state_change", service->GetLastHardStateChange());
@@ -393,7 +393,7 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 	attr->Set("high_flap_threshold", service->GetFlappingThreshold());
 	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
 	attr->Set("eventhandler_enabled", 1); /* always 1 */
-	attr->Set("is_volatile", (service->IsVolatile() ? 1 : 0));
+	attr->Set("is_volatile", (service->GetVolatile() ? 1 : 0));
 	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
 	attr->Set("notification_options", boost::algorithm::join(notification_options, ","));
 	attr->Set("notification_interval", notification_interval / 60.0);

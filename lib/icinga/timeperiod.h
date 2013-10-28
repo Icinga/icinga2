@@ -21,7 +21,7 @@
 #define TIMEPERIOD_H
 
 #include "icinga/i2-icinga.h"
-#include "base/dynamicobject.h"
+#include "icinga/timeperiod.th"
 #include "base/array.h"
 
 namespace icinga
@@ -32,14 +32,11 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API TimePeriod : public DynamicObject
+class I2_ICINGA_API TimePeriod : public ReflectionObjectImpl<TimePeriod>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TimePeriod);
 	DECLARE_TYPENAME(TimePeriod);
-
-	String GetDisplayName(void) const;
-	Dictionary::Ptr GetRanges(void) const;
 
 	virtual void Start(void);
 
@@ -51,17 +48,7 @@ public:
 	static Array::Ptr EmptyTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
 	static Array::Ptr EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
 
-protected:
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_DisplayName;
-	Dictionary::Ptr m_Ranges;
-	Value m_ValidBegin;
-	Value m_ValidEnd;
-	Array::Ptr m_Segments;
-
 	void AddSegment(double s, double end);
 	void AddSegment(const Dictionary::Ptr& segment);
 	void RemoveSegment(double begin, double end);

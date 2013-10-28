@@ -20,8 +20,8 @@
 #ifndef COMPATLOGGER_H
 #define COMPATLOGGER_H
 
+#include "compat/compatlogger.th"
 #include "icinga/service.h"
-#include "base/dynamicobject.h"
 #include "base/timer.h"
 #include <fstream>
 
@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup compat
  */
-class CompatLogger : public DynamicObject
+class CompatLogger : public ReflectionObjectImpl<CompatLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CompatLogger);
@@ -41,21 +41,12 @@ public:
 
 	CompatLogger(void);
 
-	String GetLogDir(void) const;
-	String GetRotationMethod(void) const;
-
 	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
 
 protected:
 	virtual void Start(void);
 
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_LogDir;
-	String m_RotationMethod;
-
 	double m_LastRotation;
 
 	void WriteLine(const String& line);

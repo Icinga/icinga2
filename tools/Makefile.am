@@ -1,5 +1,6 @@
 SUBDIRS = \
 	  migration \
+	  mkclass \
 	  mkembedconfig
 
 sbin_SCRIPTS = icinga2-enable-feature

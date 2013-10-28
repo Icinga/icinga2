@@ -1,0 +1,13 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class ServiceGroup : DynamicObject
+{
+	[config] String display_name {
+		default {{{ return GetName(); }}}
+	};
+};
+
+}

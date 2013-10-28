@@ -20,6 +20,7 @@
 #ifndef CLUSTERLISTENER_H
 #define CLUSTERLISTENER_H
 
+#include "cluster/clusterlistener.th"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
 #include "base/array.h"
@@ -38,7 +39,7 @@ namespace icinga
 /**
  * @ingroup cluster
  */
-class ClusterListener : public DynamicObject
+class ClusterListener : public ReflectionObjectImpl<ClusterListener>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ClusterListener);
@@ -47,31 +48,11 @@ public:
 	virtual void Start(void);
 	virtual void Stop(void);
 
-	String GetCertificateFile(void) const;
-	String GetKeyFile(void) const;
-	String GetCAFile(void) const;
-	String GetBindHost(void) const;
-	String GetBindPort(void) const;
-	Array::Ptr GetPeers(void) const;
+	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 	String GetClusterDir(void) const;
 
-	shared_ptr<SSL_CTX> GetSSLContext(void) const;
-	String GetIdentity(void) const;
-
-protected:
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_CertPath;
-	String m_KeyPath;
-	String m_CAPath;
-	String m_BindHost;
-	String m_BindPort;
-	Array::Ptr m_Peers;
-
 	shared_ptr<SSL_CTX> m_SSLContext;
-	String m_Identity;
 
 	WorkQueue m_RelayQueue;
 	WorkQueue m_MessageQueue;
@@ -100,7 +81,6 @@ private:
 	void ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream);
 
 	Stream::Ptr m_LogFile;
-	double m_LogMessageTimestamp;
 	size_t m_LogMessageCount;
 
 	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority);

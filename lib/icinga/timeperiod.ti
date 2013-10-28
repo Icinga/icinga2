@@ -1,0 +1,17 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class TimePeriod : DynamicObject
+{
+	[config] String display_name {
+		default {{{ return GetName(); }}}
+	};
+	[config] Dictionary::Ptr ranges;
+	[state] Value valid_begin;
+	[state] Value valid_end;
+	[state] Array::Ptr segments;
+};
+
+}

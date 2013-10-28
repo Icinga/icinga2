@@ -210,6 +210,7 @@ third-party/mmatch/Makefile
 tools/Makefile
 tools/migration/Makefile
 tools/icinga2-enable-feature
+tools/mkclass/Makefile
 tools/mkembedconfig/Makefile
 ])
 

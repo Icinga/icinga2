@@ -3,21 +3,34 @@
 pkglib_LTLIBRARIES = \
 	libcompat.la
 
+BUILT_SOURCES = \
+	checkresultreader.th \
+	externalcommandlistener.th \
+	statusdatawriter.th \
+	compatlogger.th
+
 CLEANFILES = \
 	compat-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
+.ti.th: $(top_builddir)/tools/mkclass/mkclass
+	$(top_builddir)/tools/mkclass/mkclass $< > $@
+
 libcompat_la_SOURCES = \
 	checkresultreader.cpp \
 	checkresultreader.h \
+	checkresultreader.th \
 	externalcommandlistener.cpp \
 	externalcommandlistener.h \
+	externalcommandlistener.th \
 	statusdatawriter.cpp \
 	statusdatawriter.h \
+	statusdatawriter.th \
 	compatlogger.cpp \
 	compatlogger.h \
+	compatlogger.th \
 	compat-type.conf
 
 libcompat_la_CPPFLAGS = \

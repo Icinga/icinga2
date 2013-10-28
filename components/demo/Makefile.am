@@ -3,15 +3,22 @@
 pkglib_LTLIBRARIES = \
 	libdemo.la
 
+BUILT_SOURCES = \
+	demo.th
+
 CLEANFILES = \
 	demo-type.cpp
 
 .conf.cpp: $(top_builddir)/tools/mkembedconfig/mkembedconfig
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
+.ti.th: $(top_builddir)/tools/mkclass/mkclass
+	$(top_builddir)/tools/mkclass/mkclass $< > $@
+
 libdemo_la_SOURCES = \
 	demo.cpp \
 	demo.h \
+	demo.ti \
 	demo-type.conf
 
 libdemo_la_CPPFLAGS = \

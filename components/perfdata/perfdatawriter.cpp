@@ -33,10 +33,6 @@ using namespace icinga;
 
 REGISTER_TYPE(PerfdataWriter);
 
-PerfdataWriter::PerfdataWriter(void)
-	: m_RotationInterval(30)
-{ }
-
 void PerfdataWriter::Start(void)
 {
 	DynamicObject::Start();
@@ -49,37 +45,6 @@ void PerfdataWriter::Start(void)
 	m_RotationTimer->Start();
 
 	RotateFile();
-}
-
-String PerfdataWriter::GetPerfdataPath(void) const
-{
-	if (!m_PerfdataPath.IsEmpty())
-		return m_PerfdataPath;
-	else
-		return Application::GetLocalStateDir() + "/cache/icinga2/perfdata/perfdata";
-}
-
-String PerfdataWriter::GetFormatTemplate(void) const
-{
-	if (!m_FormatTemplate.IsEmpty()) {
-		return m_FormatTemplate;
-	} else {
-		return "DATATYPE::SERVICEPERFDATA\t"
-			"TIMET::$TIMET$\t"
-			"HOSTNAME::$HOSTNAME$\t"
-			"SERVICEDESC::$SERVICEDESC$\t"
-			"SERVICEPERFDATA::$SERVICEPERFDATA$\t"
-			"SERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\t"
-			"HOSTSTATE::$HOSTSTATE$\t"
-			"HOSTSTATETYPE::$HOSTSTATETYPE$\t"
-			"SERVICESTATE::$SERVICESTATE$\t"
-			"SERVICESTATETYPE::$SERVICESTATETYPE$";
-	}
-}
-
-double PerfdataWriter::GetRotationInterval(void) const
-{
-	return m_RotationInterval;
 }
 
 void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr)
@@ -130,24 +95,3 @@ void PerfdataWriter::RotationTimerHandler(void)
 	RotateFile();
 }
 
-void PerfdataWriter::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("perfdata_path", m_PerfdataPath);
-		bag->Set("format_template", m_FormatTemplate);
-		bag->Set("rotation_interval", m_RotationInterval);
-	}
-}
-
-void PerfdataWriter::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_PerfdataPath = bag->Get("perfdata_path");
-		m_FormatTemplate = bag->Get("format_template");
-		m_RotationInterval = bag->Get("rotation_interval");
-	}
-}

@@ -20,7 +20,7 @@
 #ifndef PERFDATAWRITER_H
 #define PERFDATAWRITER_H
 
-#include "icinga/i2-icinga.h"
+#include "perfdata/perfdatawriter.th"
 #include "icinga/service.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
@@ -34,29 +34,16 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class PerfdataWriter : public DynamicObject
+class PerfdataWriter : public ReflectionObjectImpl<PerfdataWriter>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(PerfdataWriter);
 	DECLARE_TYPENAME(PerfdataWriter);
 
-	PerfdataWriter(void);
-
-	String GetPerfdataPath(void) const;
-	String GetFormatTemplate(void) const;
-	double GetRotationInterval(void) const;
-
 protected:
 	virtual void Start(void);
 
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_PerfdataPath;
-	String m_FormatTemplate;
-	double m_RotationInterval;
-
 	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr);
 
 	Timer::Ptr m_RotationTimer;

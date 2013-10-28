@@ -1,0 +1,11 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class Logger : DynamicObject
+{
+	[config] String severity;
+};
+
+}

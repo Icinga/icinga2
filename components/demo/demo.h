@@ -20,7 +20,7 @@
 #ifndef DEMO_H
 #define DEMO_H
 
-#include "base/dynamicobject.h"
+#include "demo/demo.th"
 #include "base/timer.h"
 
 namespace icinga
@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup demo
  */
-class Demo : public DynamicObject
+class Demo : public ReflectionObjectImpl<Demo>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Demo);

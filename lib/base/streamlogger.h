@@ -21,7 +21,7 @@
 #define STREAMLOGGER_H
 
 #include "base/i2-base.h"
-#include "base/logger.h"
+#include "base/streamlogger.th"
 #include "base/timer.h"
 #include <ostream>
 
@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API StreamLogger : public Logger
+class I2_BASE_API StreamLogger : public ReflectionObjectImpl<StreamLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StreamLogger);
@@ -53,11 +53,11 @@ private:
 	static boost::mutex m_Mutex;
 	std::ostream *m_Stream;
 	bool m_OwnsStream;
-        bool m_Tty;
+	bool m_Tty;
 
-        Timer::Ptr m_FlushLogTimer;
+	Timer::Ptr m_FlushLogTimer;
 
-        void FlushLogTimerHandler(void);
+	void FlushLogTimerHandler(void);
 };
 
 }

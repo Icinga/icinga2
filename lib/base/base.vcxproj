@@ -30,6 +30,7 @@
     <ClCompile Include="dynamictype.cpp" />
     <ClCompile Include="filelogger.cpp" />
     <ClCompile Include="networkstream.cpp" />
+    <ClCompile Include="reflectionobject.cpp" />
     <ClCompile Include="script.cpp" />
     <ClCompile Include="scriptinterpreter.cpp" />
     <ClCompile Include="scriptlanguage.cpp" />
@@ -78,6 +79,7 @@
     <ClInclude Include="filelogger.h" />
     <ClInclude Include="initialize.h" />
     <ClInclude Include="networkstream.h" />
+    <ClInclude Include="reflectionobject.h" />
     <ClInclude Include="script.h" />
     <ClInclude Include="scriptinterpreter.h" />
     <ClInclude Include="scriptlanguage.h" />
@@ -118,7 +120,105 @@
     <ClInclude Include="zlibstream.h" />
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="dynamicobject.ti">
+      <FileType>Document</FileType>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+    </CustomBuild>
+    <ClInclude Include="dynamicobject.th">
+      <FileType>Document</FileType>
+    </ClInclude>
+    <CustomBuild Include="application.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="application.th" />
+    <CustomBuild Include="logger.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="filelogger.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="consolelogger.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="consolelogger.th" />
+    <None Include="filelogger.th" />
+    <None Include="logger.th" />
     <None Include="packages.config" />
+    <CustomBuild Include="script.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="script.th" />
+    <CustomBuild Include="streamlogger.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="streamlogger.th" />
+    <CustomBuild Include="sysloglogger.ti">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)$(Platform)\$(Configuration)\mkclass.exe" "%(Identity)" &gt; "%(Filename).th"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).th;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).th;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="sysloglogger.th" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9C92DA90-FD53-43A9-A244-90F2E8AF9677}</ProjectGuid>

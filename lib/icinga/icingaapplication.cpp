@@ -54,8 +54,6 @@ int IcingaApplication::Main(void)
 {
 	Log(LogDebug, "icinga", "In IcingaApplication::Main()");
 
-	m_StartTime = Utility::GetTime();
-
 	/* periodically dump the program state */
 	l_RetentionTimer = boost::make_shared<Timer>();
 	l_RetentionTimer->SetInterval(300);
@@ -96,13 +94,6 @@ Dictionary::Ptr IcingaApplication::GetMacros(void) const
 	return ScriptVariable::Get("IcingaMacros");
 }
 
-double IcingaApplication::GetStartTime(void) const
-{
-	ObjectLock olock(this);
-
-	return m_StartTime;
-}
-
 bool IcingaApplication::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
 	double now = Utility::GetTime();
@@ -136,116 +127,90 @@ bool IcingaApplication::ResolveMacro(const String& macro, const Dictionary::Ptr&
 
 bool IcingaApplication::GetEnableNotifications(void) const
 {
-	if (!m_OverrideEnableNotifications.IsEmpty())
-		return m_OverrideEnableNotifications;
+	if (!GetOverrideEnableNotifications().IsEmpty())
+		return GetOverrideEnableNotifications();
 	else
 		return ScriptVariable::Get("IcingaEnableNotifications");
 }
 
 void IcingaApplication::SetEnableNotifications(bool enabled)
 {
-	m_OverrideEnableNotifications = enabled;
+	SetOverrideEnableNotifications(enabled);
 }
 
 void IcingaApplication::ClearEnableNotifications(void)
 {
-	m_OverrideEnableNotifications = Empty;
+	SetOverrideEnableNotifications(Empty);
 }
 
 bool IcingaApplication::GetEnableEventHandlers(void) const
 {
-	if (!m_OverrideEnableEventHandlers.IsEmpty())
-		return m_OverrideEnableEventHandlers;
+	if (!GetOverrideEnableEventHandlers().IsEmpty())
+		return GetOverrideEnableEventHandlers();
 	else
 		return ScriptVariable::Get("IcingaEnableEventHandlers");
 }
 
 void IcingaApplication::SetEnableEventHandlers(bool enabled)
 {
-	m_OverrideEnableEventHandlers = enabled;
+	SetOverrideEnableEventHandlers(enabled);
 }
 
 void IcingaApplication::ClearEnableEventHandlers(void)
 {
-	m_OverrideEnableEventHandlers = Empty;
+	SetOverrideEnableEventHandlers(Empty);
 }
 
 bool IcingaApplication::GetEnableFlapping(void) const
 {
-	if (!m_OverrideEnableFlapping.IsEmpty())
-		return m_OverrideEnableFlapping;
+	if (!GetOverrideEnableFlapping().IsEmpty())
+		return GetOverrideEnableFlapping();
 	else
 		return ScriptVariable::Get("IcingaEnableFlapping");
 }
 
 void IcingaApplication::SetEnableFlapping(bool enabled)
 {
-	m_OverrideEnableFlapping = enabled;
+	SetOverrideEnableFlapping(enabled);
 }
 
 void IcingaApplication::ClearEnableFlapping(void)
 {
-	m_OverrideEnableFlapping = Empty;
+	SetOverrideEnableFlapping(Empty);
 }
 
 bool IcingaApplication::GetEnableChecks(void) const
 {
-	if (!m_OverrideEnableChecks.IsEmpty())
-		return m_OverrideEnableChecks;
+	if (!GetOverrideEnableChecks().IsEmpty())
+		return GetOverrideEnableChecks();
 	else
 		return ScriptVariable::Get("IcingaEnableChecks");
 }
 
 void IcingaApplication::SetEnableChecks(bool enabled)
 {
-	m_OverrideEnableChecks = enabled;
+	SetOverrideEnableChecks(enabled);
 }
 
 void IcingaApplication::ClearEnableChecks(void)
 {
-	m_OverrideEnableChecks = Empty;
+	SetOverrideEnableChecks(Empty);
 }
 
 bool IcingaApplication::GetEnablePerfdata(void) const
 {
-	if (!m_OverrideEnablePerfdata.IsEmpty())
-		return m_OverrideEnablePerfdata;
+	if (!GetOverrideEnablePerfdata().IsEmpty())
+		return GetOverrideEnablePerfdata();
 	else
 		return ScriptVariable::Get("IcingaEnablePerfdata");
 }
 
 void IcingaApplication::SetEnablePerfdata(bool enabled)
 {
-	m_OverrideEnablePerfdata = enabled;
+	SetOverrideEnablePerfdata(enabled);
 }
 
 void IcingaApplication::ClearEnablePerfdata(void)
 {
-	m_OverrideEnablePerfdata = Empty;
-}
-
-void IcingaApplication::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_State) {
-		bag->Set("override_enable_notifications", m_OverrideEnableNotifications);
-		bag->Set("override_enable_event_handlers", m_OverrideEnableEventHandlers);
-		bag->Set("override_enable_flapping", m_OverrideEnableFlapping);
-		bag->Set("override_enable_checks", m_OverrideEnableChecks);
-		bag->Set("override_enable_perfdata", m_OverrideEnablePerfdata);
-	}
-}
-
-void IcingaApplication::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_State) {
-		m_OverrideEnableNotifications = bag->Get("override_enable_notifications");
-		m_OverrideEnableEventHandlers = bag->Get("override_enable_event_handlers");
-		m_OverrideEnableFlapping = bag->Get("override_enable_flapping");
-		m_OverrideEnableChecks = bag->Get("override_enable_checks");
-		m_OverrideEnablePerfdata = bag->Get("override_enable_perfdata");
-	}
+	SetOverrideEnablePerfdata(Empty);
 }

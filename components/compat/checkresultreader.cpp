@@ -47,17 +47,6 @@ void CheckResultReader::Start(void)
 /**
  * @threadsafety Always.
  */
-String CheckResultReader::GetSpoolDir(void) const
-{
-	if (!m_SpoolDir.IsEmpty())
-		return m_SpoolDir;
-	else
-		return Application::GetLocalStateDir() + "/lib/icinga2/spool/checkresults/";
-}
-
-/**
- * @threadsafety Always.
- */
 void CheckResultReader::ReadTimerHandler(void) const
 {
 	Utility::Glob(GetSpoolDir() + "/c??????.ok", boost::bind(&CheckResultReader::ProcessCheckResultFile, this, _1));
@@ -134,18 +123,3 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	}
 }
 
-void CheckResultReader::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		bag->Set("spool_dir", m_SpoolDir);
-}
-
-void CheckResultReader::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config)
-		m_SpoolDir = bag->Get("spool_dir");
-}

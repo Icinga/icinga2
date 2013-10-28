@@ -52,37 +52,27 @@ void Notification::Stop(void)
 
 Service::Ptr Notification::GetService(void) const
 {
-	Host::Ptr host = Host::GetByName(m_HostName);
+	Host::Ptr host = Host::GetByName(GetHostRaw());
 
 	if (!host)
 		return Service::Ptr();
 
-	if (m_Service.IsEmpty())
+	if (GetServiceRaw().IsEmpty())
 		return host->GetCheckService();
 	else
-		return host->GetServiceByShortName(m_Service);
+		return host->GetServiceByShortName(GetServiceRaw());
 }
 
 NotificationCommand::Ptr Notification::GetNotificationCommand(void) const
 {
-	return NotificationCommand::GetByName(m_NotificationCommand);
-}
-
-Dictionary::Ptr Notification::GetMacros(void) const
-{
-	return m_Macros;
-}
-
-Array::Ptr Notification::GetExportMacros(void) const
-{
-	return m_ExportMacros;
+	return NotificationCommand::GetByName(GetNotificationCommandRaw());
 }
 
 std::set<User::Ptr> Notification::GetUsers(void) const
 {
 	std::set<User::Ptr> result;
 
-	Array::Ptr users = m_Users;
+	Array::Ptr users = GetUsersRaw();
 
 	if (users) {
 		ObjectLock olock(users);
@@ -104,7 +94,7 @@ std::set<UserGroup::Ptr> Notification::GetUserGroups(void) const
 {
 	std::set<UserGroup::Ptr> result;
 
-	Array::Ptr groups = m_UserGroups;
+	Array::Ptr groups = GetUserGroupsRaw();
 
 	if (groups) {
 		ObjectLock olock(groups);
@@ -122,62 +112,14 @@ std::set<UserGroup::Ptr> Notification::GetUserGroups(void) const
 	return result;
 }
 
-Dictionary::Ptr Notification::GetTimes(void) const
-{
-	return m_Times;
-}
-
-unsigned long Notification::GetNotificationTypeFilter(void) const
-{
-	if (m_NotificationTypeFilter.IsEmpty())
-		return ~(unsigned long)0; /* All types. */
-	else
-		return m_NotificationTypeFilter;
-}
-
-unsigned long Notification::GetNotificationStateFilter(void) const
-{
-	if (m_NotificationStateFilter.IsEmpty())
-		return ~(unsigned long)0; /* All states. */
-	else
-		return m_NotificationStateFilter;
-}
-
-double Notification::GetNotificationInterval(void) const
-{
-	if (m_NotificationInterval.IsEmpty())
-		return 300;
-	else
-		return m_NotificationInterval;
-}
-
 TimePeriod::Ptr Notification::GetNotificationPeriod(void) const
 {
-	return TimePeriod::GetByName(m_NotificationPeriod);
-}
-
-double Notification::GetLastNotification(void) const
-{
-	if (m_LastNotification.IsEmpty())
-		return 0;
-	else
-		return m_LastNotification;
-}
-
-/**
- * Sets the timestamp when the last notification was sent.
- */
-void Notification::SetLastNotification(double time)
-{
-	m_LastNotification = time;
+	return TimePeriod::GetByName(GetNotificationPeriodRaw());
 }
 
 double Notification::GetNextNotification(void) const
 {
-	if (m_NextNotification.IsEmpty())
-		return 0;
-	else
-		return m_NextNotification;
+	return GetNextNotificationRaw();
 }
 
 /**
@@ -186,27 +128,19 @@ double Notification::GetNextNotification(void) const
  */
 void Notification::SetNextNotification(double time, const String& authority)
 {
-	m_NextNotification = time;
+	SetNextNotificationRaw(time);
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnNextNotificationChanged), GetSelf(), time, authority));
 }
 
-long Notification::GetNotificationNumber(void) const
-{
-	if (m_NotificationNumber.IsEmpty())
-		return 0;
-	else
-		return m_NotificationNumber;
-}
-
 void Notification::UpdateNotificationNumber(void)
 {
-	m_NotificationNumber = m_NotificationNumber + 1;
+	SetNotificationNumber(GetNotificationNumber() + 1);
 }
 
 void Notification::ResetNotificationNumber(void)
 {
-	m_NotificationNumber = 0;
+	SetNotificationNumber(0);
 }
 
 String Notification::NotificationTypeToString(NotificationType type)
@@ -373,56 +307,4 @@ bool Notification::ResolveMacro(const String& macro, const Dictionary::Ptr&, Str
 	}
 
 	return false;
-}
-
-void Notification::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	DynamicObject::InternalSerialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("notification_command", m_NotificationCommand);
-		bag->Set("notification_interval", m_NotificationInterval);
-		bag->Set("notification_period", m_NotificationPeriod);
-		bag->Set("macros", m_Macros);
-		bag->Set("users", m_Users);
-		bag->Set("user_groups", m_UserGroups);
-		bag->Set("times", m_Times);
-		bag->Set("notification_type_filter", m_NotificationTypeFilter);
-		bag->Set("notification_state_filter", m_NotificationStateFilter);
-		bag->Set("host", m_HostName);
-		bag->Set("export_macros", m_ExportMacros);
-		bag->Set("service", m_Service);
-	}
-
-	if (attributeTypes & Attribute_State) {
-		bag->Set("last_notification", m_LastNotification);
-		bag->Set("next_notification", m_NextNotification);
-		bag->Set("notification_number", m_NotificationNumber);
-	}
-}
-
-void Notification::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	DynamicObject::InternalDeserialize(bag, attributeTypes);
-
-	if (attributeTypes & Attribute_Config) {
-		m_NotificationCommand = bag->Get("notification_command");
-		m_NotificationInterval = bag->Get("notification_interval");
-		m_NotificationPeriod = bag->Get("notification_period");
-		m_Macros = bag->Get("macros");
-		m_Users = bag->Get("users");
-		m_UserGroups = bag->Get("user_groups");
-		m_Times = bag->Get("times");
-		m_NotificationTypeFilter = bag->Get("notification_type_filter");
-		m_NotificationStateFilter = bag->Get("notification_state_filter");
-		m_HostName = bag->Get("host");
-		m_ExportMacros = bag->Get("export_macros");
-		m_Service = bag->Get("service");
-	}
-
-	if (attributeTypes & Attribute_State) {
-		m_LastNotification = bag->Get("last_notification");
-		m_NextNotification = bag->Get("next_notification");
-		m_NotificationNumber = bag->Get("notification_number");
-	}
 }

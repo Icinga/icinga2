@@ -100,6 +100,9 @@
     <ClCompile Include="domain.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="randomchecktask.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="i2-icinga.h">
@@ -183,6 +186,9 @@
     <ClInclude Include="domain.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="randomchecktask.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headerdateien">
@@ -196,8 +202,89 @@
     <CustomBuild Include="icinga-type.conf">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
+    <CustomBuild Include="checkcommand.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="command.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="eventcommand.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="domain.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="host.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="hostgroup.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="icingaapplication.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="timeperiod.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="usergroup.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="servicegroup.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="notificationcommand.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="notification.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="user.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="service.ti">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="checkcommand.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="command.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="eventcommand.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="host.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="hostgroup.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="icingaapplication.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="timeperiod.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="usergroup.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="servicegroup.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="notificationcommand.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="notification.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="user.th">
+      <Filter>Headerdateien</Filter>
+    </None>
+    <None Include="service.th">
+      <Filter>Headerdateien</Filter>
+    </None>
   </ItemGroup>
 </Project>

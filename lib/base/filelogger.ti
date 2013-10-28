@@ -1,0 +1,11 @@
+#include "base/streamlogger.h"
+
+namespace icinga
+{
+
+class FileLogger : StreamLogger
+{
+	[config] String path;
+};
+
+}

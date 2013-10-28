@@ -20,6 +20,7 @@
 #ifndef GRAPHITEWRITER_H
 #define GRAPHITEWRITER_H
 
+#include "perfdata/graphitewriter.th"
 #include "icinga/service.h"
 #include "base/dynamicobject.h"
 #include "base/tcpsocket.h"
@@ -34,24 +35,16 @@ namespace icinga
  *
  * @ingroup perfdata
  */
-class GraphiteWriter : public DynamicObject
+class GraphiteWriter : public ReflectionObjectImpl<GraphiteWriter>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(GraphiteWriter);
 	DECLARE_TYPENAME(GraphiteWriter);
 
-        String GetHost(void) const;
-        String GetPort(void) const;
-
 protected:
 	virtual void Start(void);
 
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_Host;
-	String m_Port;
         Stream::Ptr m_Stream;
         
         Timer::Ptr m_ReconnectTimer;

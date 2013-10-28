@@ -27,22 +27,20 @@ boost::signals2::signal<void (const Service::Ptr&)> Service::OnEventCommandExecu
 
 bool Service::GetEnableEventHandler(void) const
 {
-	if (!m_OverrideEnableEventHandler.IsEmpty())
-		return m_EnableEventHandler;
-	else if (!m_EnableEventHandler.IsEmpty())
-		return m_EnableEventHandler;
+	if (!GetOverrideEnableEventHandler().IsEmpty())
+		return GetOverrideEnableEventHandler();
 	else
-		return true;
+		return GetEnableEventHandlerRaw();
 }
 
 void Service::SetEnableEventHandler(bool enabled)
 {
-	m_OverrideEnableEventHandler = enabled;
+	SetOverrideEnableEventHandler(enabled);
 }
 
 EventCommand::Ptr Service::GetEventCommand(void) const
 {
-	return EventCommand::GetByName(m_EventCommand);
+	return EventCommand::GetByName(GetEventCommandRaw());
 }
 
 void Service::ExecuteEventHandler(void)

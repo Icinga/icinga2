@@ -1,0 +1,10 @@
+#include "icinga/command.h"
+
+namespace icinga
+{
+
+class CheckCommand : Command
+{
+};
+
+}

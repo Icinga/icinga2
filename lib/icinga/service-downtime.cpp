@@ -46,11 +46,6 @@ int Service::GetNextDowntimeID(void)
 	return l_NextDowntimeID;
 }
 
-Dictionary::Ptr Service::GetDowntimes(void) const
-{
-	return m_Downtimes;
-}
-
 String Service::AddDowntime(const String& comment_id,
     double startTime, double endTime, bool fixed,
     const String& triggeredBy, double duration, const String& id, const String& authority)
@@ -85,7 +80,7 @@ String Service::AddDowntime(const String& comment_id,
 
 	if (!triggeredBy.IsEmpty()) {
 		Service::Ptr otherOwner = GetOwnerByDowntimeID(triggeredBy);
-		Dictionary::Ptr otherDowntimes = otherOwner->m_Downtimes;
+		Dictionary::Ptr otherDowntimes = otherOwner->GetDowntimes();
 		Dictionary::Ptr otherDowntime = otherDowntimes->Get(triggeredBy);
 		Dictionary::Ptr triggers = otherDowntime->Get("triggers");
 
@@ -95,20 +90,7 @@ String Service::AddDowntime(const String& comment_id,
 		}
 	}
 
-	Dictionary::Ptr downtimes;
-
-	{
-		ObjectLock olock(this);
-
-		downtimes = m_Downtimes;
-
-		if (!downtimes)
-			downtimes = boost::make_shared<Dictionary>();
-
-		m_Downtimes = downtimes;
-	}
-
-	downtimes->Set(uid, downtime);
+	GetDowntimes()->Set(uid, downtime);
 
 	{
 		boost::mutex::scoped_lock lock(l_DowntimeMutex);
@@ -131,9 +113,6 @@ void Service::RemoveDowntime(const String& id, bool cancelled, const String& aut
 		return;
 
 	Dictionary::Ptr downtimes = owner->GetDowntimes();
-
-	if (!downtimes)
-		return;
 
 	Dictionary::Ptr downtime = downtimes->Get(id);
 
@@ -164,9 +143,6 @@ void Service::RemoveDowntime(const String& id, bool cancelled, const String& aut
 void Service::TriggerDowntimes(void)
 {
 	Dictionary::Ptr downtimes = GetDowntimes();
-
-	if (!downtimes)
-		return;
 
 	std::vector<String> ids;
 
@@ -305,9 +281,6 @@ void Service::AddDowntimesToCache(void)
 
 	Dictionary::Ptr downtimes = GetDowntimes();
 
-	if (!downtimes)
-		return;
-
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
 	ObjectLock olock(downtimes);
@@ -328,9 +301,6 @@ void Service::AddDowntimesToCache(void)
 void Service::RemoveExpiredDowntimes(void)
 {
 	Dictionary::Ptr downtimes = GetDowntimes();
-
-	if (!downtimes)
-		return;
 
 	std::vector<String> expiredDowntimes;
 
@@ -361,9 +331,6 @@ bool Service::IsInDowntime(void) const
 {
 	Dictionary::Ptr downtimes = GetDowntimes();
 
-	if (!downtimes)
-		return false;
-
 	ObjectLock olock(downtimes);
 
 	Dictionary::Ptr downtime;
@@ -379,9 +346,6 @@ int Service::GetDowntimeDepth(void) const
 {
 	int downtime_depth = 0;
 	Dictionary::Ptr downtimes = GetDowntimes();
-
-	if (!downtimes)
-		return 0;
 
 	ObjectLock olock(downtimes);
 

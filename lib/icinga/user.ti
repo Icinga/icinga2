@@ -1,0 +1,24 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class User : DynamicObject
+{
+	[config] String display_name {
+		default {{{ return GetName(); }}}
+	};
+	[config] Dictionary::Ptr macros;
+	[config] Array::Ptr groups;
+	[config] String notification_period (NotificationPeriodRaw);
+	[config] int notification_type_filter {
+		default {{{ return ~(int)0; }}}
+	};
+	[config] int notification_state_filter {
+		default {{{ return ~(int)0; }}}
+	};
+	[state] bool enable_notifications;
+	[state] double last_notification;
+};
+
+}

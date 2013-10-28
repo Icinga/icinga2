@@ -42,90 +42,21 @@ boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnState
 boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> DynamicObject::OnAuthorityChanged;
 
 DynamicObject::DynamicObject(void)
-	: m_Active(false)
-{ }
+{
+	SetActive(false);
+}
 
 DynamicObject::~DynamicObject(void)
 { }
 
-Dictionary::Ptr DynamicObject::Serialize(int attributeTypes) const
-{
-	Dictionary::Ptr update = boost::make_shared<Dictionary>();
-
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
-
-	InternalSerialize(update, attributeTypes);
-
-	/* Make sure our own InternalSerialize() method was called. */
-	ASSERT(update->Contains("__marker"));
-	update->Remove("__marker");
-
-	return update;
-}
-
-void DynamicObject::Deserialize(const Dictionary::Ptr& update, int attributeTypes)
-{
-	ASSERT(!OwnsLock());
-
-	{
-		ObjectLock olock(this);
-		InternalDeserialize(update, attributeTypes);
-	}
-}
-
-void DynamicObject::InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const
-{
-	if (attributeTypes & Attribute_Config) {
-		bag->Set("__name", m_Name);
-		bag->Set("__type", m_Type);
-		bag->Set("methods", m_Methods);
-		bag->Set("custom", m_Custom);
-		bag->Set("authorities", m_Authorities);
-		bag->Set("domains", m_Domains);
-	}
-
-	if (attributeTypes & Attribute_State)
-		bag->Set("extensions", m_Extensions);
-
-	/* This attribute is used by Serialize() to check that this
-	 * method was called. */
-	bag->Set("__marker", 1);
-}
-
-void DynamicObject::InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes)
-{
-	if (attributeTypes & Attribute_Config) {
-		m_Name = bag->Get("__name");
-		m_Type = bag->Get("__type");
-		m_Methods = bag->Get("methods");
-		m_Custom = bag->Get("custom");
-		m_Authorities = bag->Get("authorities");
-		m_Domains = bag->Get("domains");
-	}
-
-	if (attributeTypes & Attribute_State)
-		m_Extensions = bag->Get("extensions");
-}
-
 DynamicType::Ptr DynamicObject::GetType(void) const
 {
-	return DynamicType::GetByName(m_Type);
-}
-
-String DynamicObject::GetName(void) const
-{
-	return m_Name;
+	return DynamicType::GetByName(GetTypeName());
 }
 
 bool DynamicObject::IsActive(void) const
 {
-	return m_Active;
-}
-
-Array::Ptr DynamicObject::GetAuthorities(void) const
-{
-	return m_Authorities;
+	return GetActive();
 }
 
 void DynamicObject::SetAuthority(const String& type, bool value)
@@ -135,15 +66,12 @@ void DynamicObject::SetAuthority(const String& type, bool value)
 	{
 		ObjectLock olock(this);
 
-		if (!m_Authority)
-			m_Authority = boost::make_shared<Dictionary>();
-
 		bool old_value = HasAuthority(type);
 
 		if (old_value == value)
 			return;
 
-		m_Authority->Set(type, value);
+		GetAuthorityInfo()->Set(type, value);
 	}
 
 	OnAuthorityChanged(GetSelf(), type, value);
@@ -151,15 +79,7 @@ void DynamicObject::SetAuthority(const String& type, bool value)
 
 bool DynamicObject::HasAuthority(const String& type) const
 {
-	if (!m_Authority)
-		return true;
-
-	return m_Authority->Get(type);
-}
-
-Array::Ptr DynamicObject::GetDomains(void) const
-{
-	return m_Domains;
+	return GetAuthorityInfo()->Get(type);
 }
 
 void DynamicObject::SetPrivileges(const String& instance, int privs)
@@ -183,11 +103,11 @@ bool DynamicObject::HasPrivileges(const String& instance, int privs) const
 
 void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)
 {
-	Dictionary::Ptr extensions = m_Extensions;
+	Dictionary::Ptr extensions = GetExtensions();
 
 	if (!extensions) {
 		extensions = boost::make_shared<Dictionary>();
-		m_Extensions = extensions;
+		SetExtensions(extensions);
 	}
 
 	extensions->Set(key, object);
@@ -195,7 +115,7 @@ void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)
 
 Object::Ptr DynamicObject::GetExtension(const String& key)
 {
-	Dictionary::Ptr extensions = m_Extensions;
+	Dictionary::Ptr extensions = GetExtensions();
 
 	if (!extensions)
 		return Object::Ptr();
@@ -205,7 +125,7 @@ Object::Ptr DynamicObject::GetExtension(const String& key)
 
 void DynamicObject::ClearExtension(const String& key)
 {
-	Dictionary::Ptr extensions = m_Extensions;
+	Dictionary::Ptr extensions = GetExtensions();
 
 	if (!extensions)
 		return;
@@ -225,8 +145,8 @@ void DynamicObject::Start(void)
 {
 	ASSERT(!OwnsLock());
 
-	ASSERT(!m_Active);
-	m_Active = true;
+	ASSERT(!IsActive());
+	SetActive(true);
 
 	OnStarted(GetSelf());
 }
@@ -235,8 +155,8 @@ void DynamicObject::Stop(void)
 {
 	ASSERT(!OwnsLock());
 
-	ASSERT(m_Active);
-	m_Active = false;
+	ASSERT(IsActive());
+	SetActive(false);
 
 	OnStopped(GetSelf());
 }
@@ -256,7 +176,7 @@ Value DynamicObject::InvokeMethod(const String& method,
 {
 	Dictionary::Ptr methods;
 
-	methods = m_Methods;
+	methods = GetMethods();
 
 	if (!methods)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Method '" + method + "' does not exist."));
@@ -382,9 +302,4 @@ DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& na
 {
 	DynamicType::Ptr dtype = DynamicType::GetByName(type);
 	return dtype->GetObject(name);
-}
-
-Dictionary::Ptr DynamicObject::GetCustom(void) const
-{
-	return m_Custom;
 }

@@ -20,6 +20,7 @@
 #ifndef NOTIFICATIONCOMPONENT_H
 #define NOTIFICATIONCOMPONENT_H
 
+#include "notification/notificationcomponent.th"
 #include "icinga/service.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
@@ -30,7 +31,7 @@ namespace icinga
 /**
  * @ingroup notification
  */
-class NotificationComponent : public DynamicObject
+class NotificationComponent : public ReflectionObjectImpl<NotificationComponent>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(NotificationComponent);

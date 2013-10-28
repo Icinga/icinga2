@@ -21,7 +21,7 @@
 #define SYSLOGLOGGER_H
 
 #include "base/i2-base.h"
-#include "base/logger.h"
+#include "base/sysloglogger.th"
 
 #ifndef _WIN32
 namespace icinga
@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API SyslogLogger : public Logger
+class I2_BASE_API SyslogLogger : public ReflectionObjectImpl<SyslogLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(SyslogLogger);

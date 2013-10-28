@@ -20,11 +20,11 @@
 #ifndef STATUSDATAWRITER_H
 #define STATUSDATAWRITER_H
 
+#include "compat/statusdatawriter.th"
 #include "icinga/host.h"
 #include "icinga/service.h"
 #include "icinga/command.h"
 #include "icinga/compatutility.h"
-#include "base/dynamicobject.h"
 #include "base/objectlock.h"
 #include "base/timer.h"
 #include "base/utility.h"
@@ -37,7 +37,7 @@ namespace icinga
 /**
  * @ingroup compat
  */
-class StatusDataWriter : public DynamicObject
+class StatusDataWriter : public ReflectionObjectImpl<StatusDataWriter>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StatusDataWriter);
@@ -45,17 +45,8 @@ public:
 protected:
 	virtual void Start(void);
 
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 private:
-	String m_StatusPath;
-	String m_ObjectsPath;
-
 	Timer::Ptr m_StatusTimer;
-
-	String GetStatusPath(void) const;
-	String GetObjectsPath(void) const;
 
 	void DumpCommand(std::ostream& fp, const Command::Ptr& command);
 	void DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp);

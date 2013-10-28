@@ -20,7 +20,7 @@
 #ifndef EVENTCOMMAND_H
 #define EVENTCOMMAND_H
 
-#include "icinga/command.h"
+#include "icinga/eventcommand.th"
 #include "icinga/service.h"
 
 namespace icinga
@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API EventCommand : public Command
+class I2_ICINGA_API EventCommand : public ReflectionObjectImpl<EventCommand>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(EventCommand);

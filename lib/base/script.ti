@@ -1,0 +1,12 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class Script : DynamicObject
+{
+	[config] String language;
+	[config] String "code";
+};
+
+}

@@ -1,0 +1,31 @@
+#include "base/dynamicobject.h"
+#include "base/application.h"
+
+namespace livestatus
+{
+
+code {{{
+class LivestatusListener;
+}}}
+
+}
+
+namespace icinga
+{
+
+class livestatus::LivestatusListener : DynamicObject {
+	[config] String socket_type {
+		default {{{ return "unix"; }}}
+	};
+	[config] String socket_path {
+		default {{{ return Application::GetLocalStateDir() + "/run/icinga2/cmd/livestatus"; }}}
+	};
+	[config] String bind_host {
+		default {{{ return "127.0.0.1"; }}}
+	};
+	[config] String bind_port {
+		default {{{ return "6558"; }}}
+	};
+};
+
+}

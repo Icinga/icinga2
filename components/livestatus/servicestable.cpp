@@ -407,7 +407,7 @@ Value ServicesTable::MaxCheckAttemptsAccessor(const Value& row)
 
 Value ServicesTable::CurrentAttemptAccessor(const Value& row)
 {
-	return static_cast<Service::Ptr>(row)->GetCurrentCheckAttempt();
+	return static_cast<Service::Ptr>(row)->GetCheckAttempt();
 }
 
 Value ServicesTable::StateAccessor(const Value& row)
@@ -471,7 +471,7 @@ Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
                         notification_interval = notification->GetNotificationInterval();
         }
 
-        if (notification_interval == 0 && !service->IsVolatile())
+        if (notification_interval == 0 && !service->GetVolatile())
                 return 1;
 
 	return 0;
@@ -731,9 +731,6 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 {
 	Dictionary::Ptr downtimes = static_cast<Service::Ptr>(row)->GetDowntimes();
 
-	if (!downtimes)
-		return Empty;
-
 	Array::Ptr ids = boost::make_shared<Array>();
 
 	ObjectLock olock(downtimes);
@@ -757,9 +754,6 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 {
 	Dictionary::Ptr downtimes = static_cast<Service::Ptr>(row)->GetDowntimes();
-
-	if (!downtimes)
-		return Empty;
 
 	Array::Ptr ids = boost::make_shared<Array>();
 
@@ -789,9 +783,6 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 {
 	Dictionary::Ptr comments = static_cast<Service::Ptr>(row)->GetComments();
 
-	if (!comments)
-		return Empty;
-
 	Array::Ptr ids = boost::make_shared<Array>();
 
 	ObjectLock olock(comments);
@@ -815,9 +806,6 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 {
 	Dictionary::Ptr comments = static_cast<Service::Ptr>(row)->GetComments();
-
-	if (!comments)
-		return Empty;
 
 	Array::Ptr ids = boost::make_shared<Array>();
 
@@ -846,9 +834,6 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 {
 	Dictionary::Ptr comments = static_cast<Service::Ptr>(row)->GetComments();
-
-	if (!comments)
-		return Empty;
 
 	Array::Ptr ids = boost::make_shared<Array>();
 
