@@ -70,17 +70,32 @@ void ContactsTable::FetchRows(const AddRowFunction& addRowFn)
 
 Value ContactsTable::NameAccessor(const Value& row)
 {
-	return static_cast<User::Ptr>(row)->GetName();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	return user->GetName();
 }
 
 Value ContactsTable::AliasAccessor(const Value& row)
 {
-	return static_cast<User::Ptr>(row)->GetDisplayName();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	return user->GetDisplayName();
 }
 
 Value ContactsTable::EmailAccessor(const Value& row)
 {
-	Dictionary::Ptr macros = static_cast<User::Ptr>(row)->GetMacros();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	Dictionary::Ptr macros = user->GetMacros();
 
 	if (!macros)
 		return Empty;
@@ -90,7 +105,12 @@ Value ContactsTable::EmailAccessor(const Value& row)
 
 Value ContactsTable::PagerAccessor(const Value& row)
 {
-	Dictionary::Ptr macros = static_cast<User::Ptr>(row)->GetMacros();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	Dictionary::Ptr macros = user->GetMacros();
 
 	if (!macros)
 		return Empty;
@@ -100,8 +120,13 @@ Value ContactsTable::PagerAccessor(const Value& row)
 
 Value ContactsTable::HostNotificationPeriodAccessor(const Value& row)
 {
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
 	/* same as service */
-	TimePeriod::Ptr timeperiod = static_cast<User::Ptr>(row)->GetNotificationPeriod();
+	TimePeriod::Ptr timeperiod = user->GetNotificationPeriod();
 
 	if (!timeperiod)
 		return Empty;
@@ -111,7 +136,12 @@ Value ContactsTable::HostNotificationPeriodAccessor(const Value& row)
 
 Value ContactsTable::ServiceNotificationPeriodAccessor(const Value& row)
 {
-	TimePeriod::Ptr timeperiod = static_cast<User::Ptr>(row)->GetNotificationPeriod();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	TimePeriod::Ptr timeperiod = user->GetNotificationPeriod();
 
 	if (!timeperiod)
 		return Empty;
@@ -121,17 +151,32 @@ Value ContactsTable::ServiceNotificationPeriodAccessor(const Value& row)
 
 Value ContactsTable::HostNotificationsEnabledAccessor(const Value& row)
 {
-	return (static_cast<User::Ptr>(row)->GetEnableNotifications() ? 1 : 0);
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	return (user->GetEnableNotifications() ? 1 : 0);
 }
 
 Value ContactsTable::ServiceNotificationsEnabledAccessor(const Value& row)
 {
-	return (static_cast<User::Ptr>(row)->GetEnableNotifications() ? 1 : 0);
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	return (user->GetEnableNotifications() ? 1 : 0);
 }
 
 Value ContactsTable::InHostNotificationPeriodAccessor(const Value& row)
 {
-	TimePeriod::Ptr timeperiod = static_cast<User::Ptr>(row)->GetNotificationPeriod();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	TimePeriod::Ptr timeperiod = user->GetNotificationPeriod();
 
 	if (!timeperiod)
 		return Empty;
@@ -141,7 +186,12 @@ Value ContactsTable::InHostNotificationPeriodAccessor(const Value& row)
 
 Value ContactsTable::InServiceNotificationPeriodAccessor(const Value& row)
 {
-	TimePeriod::Ptr timeperiod = static_cast<User::Ptr>(row)->GetNotificationPeriod();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	TimePeriod::Ptr timeperiod = user->GetNotificationPeriod();
 
 	if (!timeperiod)
 		return Empty;
@@ -151,7 +201,12 @@ Value ContactsTable::InServiceNotificationPeriodAccessor(const Value& row)
 
 Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<User::Ptr>(row)->GetCustom();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	Dictionary::Ptr custom = user->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -179,7 +234,12 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 
 Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<User::Ptr>(row)->GetCustom();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	Dictionary::Ptr custom = user->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -207,7 +267,12 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 
 Value ContactsTable::CustomVariablesAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<User::Ptr>(row)->GetCustom();
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	Dictionary::Ptr custom = user->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -238,12 +303,22 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 
 Value ContactsTable::ModifiedAttributesAccessor(const Value& row)
 {
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
 	/* not supported */
 	return Empty;
 }
 
 Value ContactsTable::ModifiedAttributesListAccessor(const Value& row)
 {
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
 	/* not supported */
 	return Empty;
 }

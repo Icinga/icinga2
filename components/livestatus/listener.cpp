@@ -28,9 +28,9 @@
 #include "base/networkstream.h"
 #include "base/application.h"
 #include "base/scriptfunction.h"
+#include "base/convert.h"
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-
 
 using namespace icinga;
 using namespace livestatus;
@@ -145,6 +145,7 @@ void LivestatusListener::ClientThreadProc(const Socket::Ptr& client)
 	}
 }
 
+
 void LivestatusListener::ValidateSocketType(const String& location, const Dictionary::Ptr& attrs)
 {
 	Value socket_type = attrs->Get("socket_type");
@@ -154,4 +155,3 @@ void LivestatusListener::ValidateSocketType(const String& location, const Dictio
 		    location + ": Socket type '" + socket_type + "' is invalid.");
 	}
 }
-

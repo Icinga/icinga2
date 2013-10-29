@@ -53,7 +53,7 @@ void CompatLogger::Start(void)
 	DynamicObject::Start();
 
 	Service::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
-	Service::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6));
+	Service::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7));
 	Service::OnFlappingChanged.connect(bind(&CompatLogger::FlappingHandler, this, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
@@ -256,24 +256,18 @@ void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Dict
  */
 void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user,
 		NotificationType const& notification_type, Dictionary::Ptr const& cr,
-		const String& author, const String& comment_text)
+		const String& author, const String& comment_text, const String& command_name)
 {
         Host::Ptr host = service->GetHost();
 
         if (!host)
                 return;
 
-	CheckCommand::Ptr commandObj = service->GetCheckCommand();
-
-	String check_command = "";
-	if (commandObj)
-		check_command = commandObj->GetName();
-
 	String notification_type_str = Notification::NotificationTypeToString(notification_type);
 
 	String author_comment = "";
 	if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {
-		author_comment = ";" + author + ";" + comment_text;
+		author_comment = author + ";" + comment_text;
 	}
 
         if (!cr)
@@ -296,8 +290,9 @@ void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const Us
                 << service->GetShortName() << ";"
                 << notification_type_str << " "
 		<< "(" << Service::StateToString(service->GetState()) << ");"
-		<< check_command << ";"
-		<< output << author_comment
+		<< command_name << ";"
+		<< output << ";"
+		<< author_comment
                 << "";
 
         {
@@ -312,8 +307,9 @@ void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const Us
                         << host->GetName() << ";"
                 	<< notification_type_str << " "
 			<< "(" << Service::StateToString(service->GetState()) << ");"
-			<< check_command << ";"
-			<< output << author_comment
+			<< command_name << ";"
+			<< output << ";"
+			<< author_comment
                         << "";
 
                 {
@@ -468,12 +464,12 @@ void CompatLogger::ReopenFile(bool rotate)
 		ObjectLock olock(hc);
 
 		std::ostringstream msgbuf;
-		msgbuf << "HOST STATE: CURRENT;"
+		msgbuf << "CURRENT HOST STATE: "
 		       << host->GetName() << ";"
 		       << Host::StateToString(Host::CalculateState(hc->GetState(), reachable)) << ";"
 		       << Service::StateTypeToString(hc->GetStateType()) << ";"
 		       << hc->GetCheckAttempt() << ";"
-		       << "";
+		       << hc->GetLastCheckOutput() << "";
 
 		WriteLine(msgbuf.str());
 	}
@@ -485,13 +481,13 @@ void CompatLogger::ReopenFile(bool rotate)
 			continue;
 
 		std::ostringstream msgbuf;
-		msgbuf << "SERVICE STATE: CURRENT;"
+		msgbuf << "CURRENT SERVICE STATE: "
 		       << host->GetName() << ";"
 		       << service->GetShortName() << ";"
 		       << Service::StateToString(service->GetState()) << ";"
 		       << Service::StateTypeToString(service->GetStateType()) << ";"
 		       << service->GetCheckAttempt() << ";"
-		       << "";
+		       << service->GetLastCheckOutput() << "";
 
 		WriteLine(msgbuf.str());
 	}

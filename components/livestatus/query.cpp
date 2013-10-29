@@ -36,6 +36,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
+#include "base/utility.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -48,7 +49,8 @@ static int l_ExternalCommands = 0;
 static boost::mutex l_QueryMutex;
 
 Query::Query(const std::vector<String>& lines)
-	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1)
+	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1),
+	  m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
 {
 	if (lines.size() == 0) {
 		m_Verb = "ERROR";
@@ -120,7 +122,7 @@ Query::Query(const std::vector<String>& lines)
 		else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
 		else if (header == "Filter") {
-			Filter::Ptr filter = ParseFilter(params);
+			Filter::Ptr filter = ParseFilter(params, m_LogTimeFrom, m_LogTimeUntil);
 
 			if (!filter) {
 				m_Verb = "ERROR";
@@ -162,7 +164,7 @@ Query::Query(const std::vector<String>& lines)
 			} else if (aggregate_arg == "avginv") {
 				aggregator = boost::make_shared<InvAvgAggregator>(aggregate_attr);
 			} else {
-				filter = ParseFilter(params);
+				filter = ParseFilter(params, m_LogTimeFrom, m_LogTimeUntil);
 
 				if (!filter) {
 					m_Verb = "ERROR";
@@ -249,7 +251,7 @@ int Query::GetExternalCommands(void)
 	return l_ExternalCommands;
 }
 
-Filter::Ptr Query::ParseFilter(const String& params)
+Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsigned long& until)
 {
 	std::vector<String> tokens;
 	boost::algorithm::split(tokens, params, boost::is_any_of(" "));
@@ -281,6 +283,15 @@ Filter::Ptr Query::ParseFilter(const String& params)
 
 	if (negate)
 		filter = boost::make_shared<NegateFilter>(filter);
+
+	/* pre-filter log time duration */
+	if (tokens[0] == "time") {
+		if (op == "<" || op == "<=") {
+			until = Convert::ToLong(tokens[2]);
+		} else if (op == ">" || op == ">=") {
+			from = Convert::ToLong(tokens[2]);
+		}
+	}
 
 	return filter;
 }
@@ -350,7 +361,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 {
 	Log(LogInformation, "livestatus", "Table: " + m_Table);
 
-	Table::Ptr table = Table::GetByName(m_Table);
+	Table::Ptr table = Table::GetByName(m_Table, m_LogTimeFrom, m_LogTimeUntil);
 
 	if (!table) {
 		SendResponse(stream, LivestatusErrorNotFound, "Table '" + m_Table + "' does not exist.");
