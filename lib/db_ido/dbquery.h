@@ -32,11 +32,33 @@ enum DbQueryType
 	DbQueryDelete = 4
 };
 
+enum DbQueryCategory
+{
+	DbCatInvalid,
+
+	DbCatConfig,
+	DbCatState,
+
+	DbCatAcknowledgement,
+	DbCatComment,
+	DbCatDowntime,
+	DbCatEventHandler,
+	DbCatExternalCommand,
+	DbCatFlapping,
+	DbCatCheck,
+	DbCatLog,
+	DbCatNotification,
+	DbCatProgramStatus,
+	DbCatRetention,
+	DbCatStateHistory
+};
+
 class DbObject;
 
 struct DbQuery
 {
 	int Type;
+	DbQueryCategory Category;
 	String Table;
 	Dictionary::Ptr Fields;
 	Dictionary::Ptr WhereCriteria;
@@ -45,7 +67,7 @@ struct DbQuery
 	bool StatusUpdate;
 
 	DbQuery(void)
-		: Type(0), ConfigUpdate(false), StatusUpdate(false)
+		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false)
 	{ }
 };
 

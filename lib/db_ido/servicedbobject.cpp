@@ -217,6 +217,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	DbQuery query_del1;
 	query_del1.Table = GetType()->GetTable() + "dependencies";
 	query_del1.Type = DbQueryDelete;
+	query_del1.Category = DbCatConfig;
 	query_del1.WhereCriteria = boost::make_shared<Dictionary>();
 	query_del1.WhereCriteria->Set("dependent_service_object_id", service);
 	OnQuery(query_del1);
@@ -233,6 +234,7 @@ void ServiceDbObject::OnConfigUpdate(void)
                 DbQuery query1;
                 query1.Table = GetType()->GetTable() + "dependencies";
                 query1.Type = DbQueryInsert;
+		query1.Category = DbCatConfig;
                 query1.Fields = fields1;
                 OnQuery(query1);
 	}
@@ -251,6 +253,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contacts";
 		query_contact.Type = DbQueryInsert;
+		query_contact.Category = DbCatConfig;
 		query_contact.Fields = fields_contact;
 		OnQuery(query_contact);
 	}
@@ -268,6 +271,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contactgroups";
 		query_contact.Type = DbQueryInsert;
+		query_contact.Category = DbCatConfig;
 		query_contact.Fields = fields_contact;
 		OnQuery(query_contact);
 	}
@@ -278,6 +282,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	DbQuery query_del2;
 	query_del2.Table = "customvariables";
 	query_del2.Type = DbQueryDelete;
+	query_del2.Category = DbCatConfig;
 	query_del2.WhereCriteria = boost::make_shared<Dictionary>();
 	query_del2.WhereCriteria->Set("object_id", service);
 	OnQuery(query_del2);
@@ -308,6 +313,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 			DbQuery query2;
 			query2.Table = "customvariables";
 			query2.Type = DbQueryInsert;
+			query2.Category = DbCatConfig;
 			query2.Fields = fields2;
 			OnQuery(query2);
 		}
@@ -444,6 +450,7 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const D
 		query1.Table = "commenthistory";
 	}
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatComment;
 	query1.Fields = fields1;
 	OnQuery(query1);
 }
@@ -460,6 +467,7 @@ void ServiceDbObject::RemoveComments(const Service::Ptr& service)
 	DbQuery query1;
 	query1.Table = "comments";
 	query1.Type = DbQueryDelete;
+	query1.Category = DbCatComment;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set("object_id", service);
 	OnQuery(query1);
@@ -489,6 +497,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 	DbQuery query1;
 	query1.Table = "comments";
 	query1.Type = DbQueryDelete;
+	query1.Category = DbCatComment;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set("object_id", service);
 	query1.WhereCriteria->Set("internal_comment_id", comment->Get("legacy_id"));
@@ -509,6 +518,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 	DbQuery query2;
 	query2.Table = "commenthistory";
 	query2.Type = DbQueryUpdate;
+	query2.Category = DbCatComment;
 
 	Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
 	fields2->Set("deletion_time", DbValue::FromTimestamp(deletion_time));
@@ -610,6 +620,7 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 		query1.Table = "downtimehistory";
 	}
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatDowntime;
 	query1.Fields = fields1;
 	OnQuery(query1);
 }
@@ -626,6 +637,7 @@ void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
 	DbQuery query1;
 	query1.Table = "scheduleddowntime";
 	query1.Type = DbQueryDelete;
+	query1.Category = DbCatDowntime;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set("object_id", service);
 	OnQuery(query1);
@@ -655,6 +667,7 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictiona
 	DbQuery query1;
 	query1.Table = "scheduleddowntime";
 	query1.Type = DbQueryDelete;
+	query1.Category = DbCatDowntime;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set("object_id", service);
 	query1.WhereCriteria->Set("internal_downtime_id", downtime->Get("legacy_id"));
@@ -674,6 +687,7 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Dictiona
 	DbQuery query3;
 	query3.Table = "downtimehistory";
 	query3.Type = DbQueryUpdate;
+	query3.Category = DbCatDowntime;
 
 	Dictionary::Ptr fields3 = boost::make_shared<Dictionary>();
 	fields3->Set("was_cancelled", downtime->Get("was_cancelled") ? 1 : 0);
@@ -713,6 +727,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 	DbQuery query1;
 	query1.Table = "scheduleddowntime";
 	query1.Type = DbQueryUpdate;
+	query1.Category = DbCatDowntime;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 	fields1->Set("was_started", 1);
@@ -739,6 +754,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Diction
 	DbQuery query3;
 	query3.Table = "downtimehistory";
 	query3.Type = DbQueryUpdate;
+	query3.Category = DbCatDowntime;
 
 	Dictionary::Ptr fields3 = boost::make_shared<Dictionary>();
 	fields3->Set("was_started", 1);
@@ -777,6 +793,7 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	DbQuery query1;
 	query1.Table = "acknowledgements";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatAcknowledgement;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
@@ -822,6 +839,7 @@ void ServiceDbObject::AddContactNotificationHistory(const Service::Ptr& service,
 	DbQuery query1;
 	query1.Table = "contactnotifications";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatNotification;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 	fields1->Set("contact_object_id", user);
@@ -862,6 +880,7 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 	DbQuery query1;
 	query1.Table = "notifications";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatNotification;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 	fields1->Set("notification_type", 1); /* service */
@@ -912,6 +931,7 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const D
 	DbQuery query1;
 	query1.Table = "statehistory";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatStateHistory;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 	fields1->Set("state_time", DbValue::FromTimestamp(state_time));
@@ -1246,6 +1266,7 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 	DbQuery query1;
 	query1.Table = "logentries";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatLog;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 	fields1->Set("logentry_time", DbValue::FromTimestamp(entry_time));
@@ -1284,6 +1305,7 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 	DbQuery query1;
 	query1.Table = "flappinghistory";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatFlapping;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 
@@ -1339,6 +1361,7 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	DbQuery query1;
 	query1.Table = "servicechecks";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatCheck;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 	Dictionary::Ptr attrs;
@@ -1410,6 +1433,7 @@ void ServiceDbObject::AddEventHandlerHistory(const Service::Ptr& service)
 	DbQuery query1;
 	query1.Table = "eventhandlers";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatEventHandler;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 
@@ -1447,6 +1471,7 @@ void ServiceDbObject::AddExternalCommandHistory(double time, const String& comma
 	DbQuery query1;
 	query1.Table = "externalcommands";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatExternalCommand;
 
 	Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
 

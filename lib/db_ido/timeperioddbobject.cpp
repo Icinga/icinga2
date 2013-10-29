@@ -58,6 +58,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 	DbQuery query_del1;
 	query_del1.Table = GetType()->GetTable() + "_timeranges";
 	query_del1.Type = DbQueryDelete;
+	query_del1.Category = DbCatConfig;
 	query_del1.WhereCriteria = boost::make_shared<Dictionary>();
 	query_del1.WhereCriteria->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
 	OnQuery(query_del1);
@@ -109,6 +110,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 			DbQuery query;
 			query.Table = GetType()->GetTable() + "_timeranges";
 			query.Type = DbQueryInsert;
+			query.Category = DbCatConfig;
 			query.Fields = boost::make_shared<Dictionary>();
 			query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 			query.Fields->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));

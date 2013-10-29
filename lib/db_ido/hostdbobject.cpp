@@ -197,6 +197,7 @@ void HostDbObject::OnConfigUpdate(void)
 	DbQuery query_del1;
 	query_del1.Table = GetType()->GetTable() + "_parenthosts";
 	query_del1.Type = DbQueryDelete;
+	query_del1.Category = DbCatConfig;
 	query_del1.WhereCriteria = boost::make_shared<Dictionary>();
 	query_del1.WhereCriteria->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
 	OnQuery(query_del1);
@@ -204,6 +205,7 @@ void HostDbObject::OnConfigUpdate(void)
 	DbQuery query_del2;
 	query_del2.Table = GetType()->GetTable() + "dependencies";
 	query_del2.Type = DbQueryDelete;
+	query_del2.Category = DbCatConfig;
 	query_del2.WhereCriteria = boost::make_shared<Dictionary>();
 	query_del2.WhereCriteria->Set("dependent_host_object_id", host);
 	OnQuery(query_del2);
@@ -220,6 +222,7 @@ void HostDbObject::OnConfigUpdate(void)
 		DbQuery query1;
 		query1.Table = GetType()->GetTable() + "_parenthosts";
 		query1.Type = DbQueryInsert;
+		query1.Category = DbCatConfig;
 		query1.Fields = fields1;
 		OnQuery(query1);
 
@@ -232,6 +235,7 @@ void HostDbObject::OnConfigUpdate(void)
 		DbQuery query2;
 		query2.Table = GetType()->GetTable() + "dependencies";
 		query2.Type = DbQueryInsert;
+		query2.Category = DbCatConfig;
 		query2.Fields = fields2;
 		OnQuery(query2);
 	}
@@ -253,6 +257,7 @@ void HostDbObject::OnConfigUpdate(void)
 			DbQuery query_contact;
 			query_contact.Table = GetType()->GetTable() + "_contacts";
 			query_contact.Type = DbQueryInsert;
+			query_contact.Category = DbCatConfig;
 			query_contact.Fields = fields_contact;
 			OnQuery(query_contact);
 		}
@@ -270,6 +275,7 @@ void HostDbObject::OnConfigUpdate(void)
 			DbQuery query_contact;
 			query_contact.Table = GetType()->GetTable() + "_contactgroups";
 			query_contact.Type = DbQueryInsert;
+			query_contact.Category = DbCatConfig;
 			query_contact.Fields = fields_contact;
 			OnQuery(query_contact);
 		}
@@ -281,6 +287,7 @@ void HostDbObject::OnConfigUpdate(void)
 	DbQuery query_del3;
 	query_del3.Table = "customvariables";
 	query_del3.Type = DbQueryDelete;
+	query_del3.Category = DbCatConfig;
 	query_del3.WhereCriteria = boost::make_shared<Dictionary>();
 	query_del3.WhereCriteria->Set("object_id", host);
 	OnQuery(query_del3);
@@ -310,6 +317,7 @@ void HostDbObject::OnConfigUpdate(void)
 			DbQuery query3;
 			query3.Table = "customvariables";
 			query3.Type = DbQueryInsert;
+			query3.Category = DbCatConfig;
 			query3.Fields = fields3;
 			OnQuery(query3);
 		}
