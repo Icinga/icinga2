@@ -73,7 +73,7 @@ void DbConnection::ProgramStatusHandler(void)
 	DbQuery query1;
 	query1.Table = "programstatus";
 	query1.Type = DbQueryDelete;
-	query1.Type = DbCatProgramStatus;
+	query1.Category = DbCatProgramStatus;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query1);

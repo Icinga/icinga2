@@ -407,6 +407,9 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 
 	ASSERT(query.Category != DbCatInvalid);
 
+	if ((query.Category & GetCategories()) == 0)
+		return;
+
 	if (!m_Connected)
 		return;
 
