@@ -23,6 +23,7 @@
 #include "db_ido_mysql/idomysqlconnection.th"
 #include "base/array.h"
 #include "base/timer.h"
+#include "base/workqueue.h"
 #include <mysql/mysql.h>
 
 namespace icinga
@@ -53,6 +54,8 @@ private:
 	DbReference m_InstanceID;
         DbReference m_LastNotificationID;
 
+	WorkQueue m_QueryQueue;
+
 	boost::mutex m_ConnectionMutex;
 	bool m_Connected;
 	MYSQL m_Connection;
@@ -68,8 +71,17 @@ private:
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
 
+	void Disconnect(void);
+	void NewTransaction(void);
+	void Reconnect(void);
+
+	void AssertOnWorkQueue(void);
+
 	void TxTimerHandler(void);
 	void ReconnectTimerHandler(void);
+
+	void InternalExecuteQuery(const DbQuery& query);
+        void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 	void ClearConfigTables(void);
 	void ClearConfigTable(const String& table);
