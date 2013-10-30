@@ -79,7 +79,12 @@ void DynamicObject::SetAuthority(const String& type, bool value)
 
 bool DynamicObject::HasAuthority(const String& type) const
 {
-	return GetAuthorityInfo()->Get(type);
+	Dictionary::Ptr authorityInfo = GetAuthorityInfo();
+
+	if (!authorityInfo->Contains(type))
+		return true;
+
+	return authorityInfo->Get(type);
 }
 
 void DynamicObject::SetPrivileges(const String& instance, int privs)
