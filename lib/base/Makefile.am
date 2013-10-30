@@ -14,8 +14,10 @@ BUILT_SOURCES = \
 	streamlogger.th \
 	sysloglogger.th
 
+nodist_libbase_la_SOURCES = $(BUILT_SOURCES)
+
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 libbase_la_SOURCES =  \
 	application.cpp \

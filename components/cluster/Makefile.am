@@ -7,6 +7,8 @@ BUILT_SOURCES = \
 	clusterlistener.th \
 	endpoint.th
 
+nodist_libcluster_la_SOURCES = $(BUILT_SOURCES)
+
 CLEANFILES = \
 	cluster-type.cpp
 
@@ -14,7 +16,7 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 libcluster_la_SOURCES = \
 	clusterlistener.cpp \

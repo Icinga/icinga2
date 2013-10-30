@@ -6,6 +6,8 @@ pkglib_LTLIBRARIES = \
 BUILT_SOURCES = \
 	listener.th
 
+nodist_liblivestatus_la_SOURCES = $(BUILT_SOURCES)
+
 CLEANFILES = \
 	livestatus-type.cpp
 
@@ -13,7 +15,7 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 liblivestatus_la_SOURCES = \
 	aggregator.cpp \
