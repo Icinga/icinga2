@@ -44,9 +44,6 @@ protected:
 	virtual void Start(void);
 	virtual void Stop(void);
 
-	virtual void InternalSerialize(const Dictionary::Ptr& bag, int attributeTypes) const;
-	virtual void InternalDeserialize(const Dictionary::Ptr& bag, int attributeTypes);
-
 	virtual void ActivateObject(const DbObject::Ptr& dbobj);
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
 	virtual void ExecuteQuery(const DbQuery& query);

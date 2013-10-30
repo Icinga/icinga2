@@ -405,6 +405,11 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
+	ASSERT(query.Category != DbCatInvalid);
+
+	if ((query.Category & GetCategories()) == 0)
+		return;
+
 	if (!m_Connected)
 		return;
 

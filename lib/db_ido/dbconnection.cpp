@@ -60,6 +60,7 @@ void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
 	DbQuery query;
 	query.Table = "runtimevariables";
 	query.Type = DbQueryInsert;
+	query.Category = DbCatProgramStatus;
 	query.Fields = boost::make_shared<Dictionary>();
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query.Fields->Set("varname", key);
@@ -72,6 +73,7 @@ void DbConnection::ProgramStatusHandler(void)
 	DbQuery query1;
 	query1.Table = "programstatus";
 	query1.Type = DbQueryDelete;
+	query1.Category = DbCatProgramStatus;
 	query1.WhereCriteria = boost::make_shared<Dictionary>();
 	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query1);
@@ -79,6 +81,7 @@ void DbConnection::ProgramStatusHandler(void)
 	DbQuery query2;
 	query2.Table = "programstatus";
 	query2.Type = DbQueryInsert;
+	query2.Category = DbCatProgramStatus;
 
 	query2.Fields = boost::make_shared<Dictionary>();
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -100,6 +103,7 @@ void DbConnection::ProgramStatusHandler(void)
 	DbQuery query3;
 	query3.Table = "runtimevariables";
 	query3.Type = DbQueryDelete;
+	query3.Category = DbCatProgramStatus;
 	query3.WhereCriteria = boost::make_shared<Dictionary>();
 	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query3);

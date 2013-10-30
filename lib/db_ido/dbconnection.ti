@@ -1,3 +1,4 @@
+#include "db_ido/dbquery.h"
 #include "base/dynamicobject.h"
 #include <boost/smart_ptr/make_shared.hpp>
 
@@ -12,6 +13,14 @@ class DbConnection : DynamicObject
 
 	[config] Dictionary::Ptr cleanup {
 		default {{{ return boost::make_shared<Dictionary>(); }}}
+	};
+
+	[config] int categories {
+		default {{{
+			return DbCatConfig | DbCatState | DbCatAcknowledgement |
+			    DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand | DbCatFlapping |
+			    DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention | DbCatStateHistory;
+		}}}
 	};
 };
 
