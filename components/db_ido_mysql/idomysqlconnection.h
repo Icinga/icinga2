@@ -71,8 +71,17 @@ private:
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
 
+	void Disconnect(void);
+	void NewTransaction(void);
+	void Reconnect(void);
+
+	void AssertOnWorkQueue(void);
+
 	void TxTimerHandler(void);
 	void ReconnectTimerHandler(void);
+
+	void InternalExecuteQuery(const DbQuery& query);
+        void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 	void ClearConfigTables(void);
 	void ClearConfigTable(const String& table);
