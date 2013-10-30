@@ -5,7 +5,7 @@ namespace icinga
 
 class Command : DynamicObject
 {
-	[config] Value command_line;
+	[config] Value command (CommandLine);
 	[config] Value timeout {
 		default {{{ return 300; }}}
 	};
