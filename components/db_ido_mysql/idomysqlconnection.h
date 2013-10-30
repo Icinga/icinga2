@@ -23,6 +23,7 @@
 #include "db_ido_mysql/idomysqlconnection.th"
 #include "base/array.h"
 #include "base/timer.h"
+#include "base/workqueue.h"
 #include <mysql/mysql.h>
 
 namespace icinga
@@ -52,6 +53,8 @@ protected:
 private:
 	DbReference m_InstanceID;
         DbReference m_LastNotificationID;
+
+	WorkQueue m_QueryQueue;
 
 	boost::mutex m_ConnectionMutex;
 	bool m_Connected;

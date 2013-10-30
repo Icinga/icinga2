@@ -46,6 +46,8 @@ public:
 	void Enqueue(const WorkCallback& item);
 	void Join(void);
 
+	boost::thread::id GetThreadId(void) const;
+
 private:
 	int m_ID;
 	static int m_NextID;

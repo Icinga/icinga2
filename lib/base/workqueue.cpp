@@ -68,6 +68,11 @@ void WorkQueue::Join(void)
 		m_CV.wait(lock);
 }
 
+boost::thread::id WorkQueue::GetThreadId(void) const
+{
+	return m_Thread.get_id();
+}
+
 void WorkQueue::WorkerThreadProc(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
