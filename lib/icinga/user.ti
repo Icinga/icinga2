@@ -6,7 +6,12 @@ namespace icinga
 class User : DynamicObject
 {
 	[config] String display_name {
-		default {{{ return GetName(); }}}
+		get {{{
+			if (m_DisplayName.IsEmpty())
+				return GetName();
+			else
+				return m_DisplayName;
+		}}}
 	};
 	[config] Dictionary::Ptr macros;
 	[config] Array::Ptr groups;

@@ -32,7 +32,12 @@ enum StateType
 class Host : DynamicObject
 {
 	[config] String display_name {
-		default {{{ return GetName(); }}}
+		get {{{
+			if (m_DisplayName.IsEmpty())
+				return GetName();
+			else
+				return m_DisplayName;
+		}}}
 	};
 	[config] Array::Ptr groups;
 	[config] Dictionary::Ptr macros;
