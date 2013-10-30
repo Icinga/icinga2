@@ -1,0 +1,29 @@
+#include "db_ido/dbconnection.h"
+
+namespace icinga
+{
+
+class IdoPgsqlConnection : DbConnection
+{
+	[config] String host {
+		default {{{ return "localhost"; }}}
+	};
+	[config] String port {
+		default {{{ return "5432"; }}}
+	};
+	[config] String user {
+		default {{{ return "icinga"; }}}
+	};
+	[config] String password {
+		default {{{ return "icinga"; }}}
+	};
+	[config] String database {
+		default {{{ return "icinga"; }}}
+	};
+	[config] String instance_name {
+		default {{{ return "default"; }}}
+	};
+	[config] String instance_description;
+};
+
+}

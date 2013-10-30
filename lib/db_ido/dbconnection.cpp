@@ -80,6 +80,7 @@ void DbConnection::ProgramStatusHandler(void)
 
 	DbQuery query2;
 	query2.Table = "programstatus";
+	query2.IdColumn = "programstatus_id";
 	query2.Type = DbQueryInsert;
 	query2.Category = DbCatProgramStatus;
 
