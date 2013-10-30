@@ -22,7 +22,6 @@ libdemo_la_SOURCES = \
 	demo-type.conf
 
 libdemo_la_CPPFLAGS = \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib \
 	-I${top_srcdir}/components

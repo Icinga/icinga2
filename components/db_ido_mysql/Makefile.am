@@ -27,7 +27,6 @@ libdb_ido_mysql_la_SOURCES = \
 	idomysqlconnection.ti
 
 libdb_ido_mysql_la_CPPFLAGS = \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I${top_srcdir}/lib \

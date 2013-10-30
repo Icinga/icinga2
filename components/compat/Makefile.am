@@ -34,7 +34,6 @@ libcompat_la_SOURCES = \
 	compat-type.conf
 
 libcompat_la_CPPFLAGS = \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib \
 	-I${top_srcdir}/components

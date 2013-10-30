@@ -109,7 +109,6 @@ libicinga_la_SOURCES =  \
 
 libicinga_la_CPPFLAGS = \
 	-DI2_ICINGA_BUILD \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib
 

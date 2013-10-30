@@ -27,7 +27,6 @@ libperfdata_la_SOURCES =  \
 	perfdata-type.conf
 
 libperfdata_la_CPPFLAGS = \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib \
 	-I${top_srcdir}/components

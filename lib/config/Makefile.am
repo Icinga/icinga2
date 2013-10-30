@@ -53,7 +53,6 @@ libconfig_la_SOURCES = \
 
 libconfig_la_CPPFLAGS = \
 	-DI2_CONFIG_BUILD \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib
 

@@ -19,6 +19,7 @@
 
 AC_INIT([icinga2], [0.0.3])
 AC_CONFIG_AUX_DIR([m4])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([subdir-objects])
 AX_SET_VERSION_INFO
@@ -79,8 +80,6 @@ CXXFLAGS="$CXXFLAGS -I/opt/local/include"
 LDFLAGS="$LDFLAGS -L/opt/local/lib"
 
 LT_INIT([dlopen disable-static win32-dll])
-LT_CONFIG_LTDL_DIR([third-party/ltdl])
-LTDL_INIT
 
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
@@ -226,19 +225,10 @@ case ${host} in
   ;;
 esac
 
-if ! test -z "$LTDLDEPS"; then
-	ltdl_msg="bundled"
-else
-	ltdl_msg="system-provided"
-fi
-
 AM_COND_IF([MYSQL_USE], [mysql_msg="enabled"], [mysql_msg="disabled"])
 AM_COND_IF([PYTHON_USE], [python_msg="enabled"], [python_msg="disabled"])
 
 echo "
-Libraries:
-     ltdl: $ltdl_msg
-
 Features:
      MySQL: $mysql_msg
      Python: $python_msg

@@ -79,7 +79,7 @@ public:
 #ifdef _WIN32
 	HMODULE
 #else /* _WIN32 */
-	lt_dlhandle
+	void *
 #endif /* _WIN32 */
 	LoadExtensionLibrary(const String& library);
 
