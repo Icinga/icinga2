@@ -246,15 +246,15 @@ void Utility::Sleep(double timeout)
 #ifdef _WIN32
 HMODULE
 #else /* _WIN32 */
-lt_dlhandle
+void *
 #endif /* _WIN32 */
 Utility::LoadExtensionLibrary(const String& library)
 {
 	String path;
 #ifdef _WIN32
-	path = library + ".dll";
+	path = Application::GetPkgLibDir() + "/" + library + ".dll";
 #else /* _WIN32 */
-	path = "lib" + library + ".la";
+	path = Application::GetPkgLibDir() + "/lib" + library + ".so";
 #endif /* _WIN32 */
 
 	Log(LogInformation, "base", "Loading library '" + path + "'");
@@ -269,10 +269,10 @@ Utility::LoadExtensionLibrary(const String& library)
 		    << boost::errinfo_file_name(path));
 	}
 #else /* _WIN32 */
-	lt_dlhandle hModule = lt_dlopen(path.CStr());
+	void *hModule = dlopen(path.CStr(), RTLD_NOW);
 
 	if (hModule == NULL) {
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not load library '" + path + "': " +  lt_dlerror()));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not load library '" + path + "': " + dlerror()));
 	}
 #endif /* _WIN32 */
 

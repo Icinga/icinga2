@@ -174,7 +174,6 @@ do
 	if test -z "$NO_LIBTOOLIZE" ; then 
 	  echo "Running $LIBTOOLIZE..."
 	  $LIBTOOLIZE --force --copy
-          find third-party/ltdl \! -perm u=w -exec chmod u+w '{}' ';'
 	fi
       fi
       echo "Running aclocal $aclocalinclude ..."

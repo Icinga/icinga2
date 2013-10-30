@@ -32,7 +32,6 @@
 #include <boost/foreach.hpp>
 
 #ifndef _WIN32
-#	include <ltdl.h>
 #	include <sys/types.h>
 #	include <pwd.h>
 #	include <grp.h>
@@ -161,14 +160,6 @@ static bool Daemonize(const String& stderrFile)
 int main(int argc, char **argv)
 {
 	Application::SetStartTime(Utility::GetTime());
-
-#ifndef _WIN32
-	LTDL_SET_PRELOADED_SYMBOLS();
-#endif /* _WIN32 */
-
-#ifndef _WIN32
-	lt_dlinit();
-#endif /* _WIN32 */
 
 	/* Set thread title. */
 	Utility::SetThreadName("Main Thread", false);
@@ -320,15 +311,6 @@ int main(int argc, char **argv)
 	}
 
 	Log(LogInformation, "icinga-app", "Icinga application loader (version: " + Application::GetVersion() + ")");
-
-	String searchDir = Application::GetPkgLibDir();
-	Log(LogInformation, "base", "Adding library search dir: " + searchDir);
-
-#ifdef _WIN32
-	SetDllDirectory(searchDir.CStr());
-#else /* _WIN32 */
-	lt_dladdsearchdir(searchDir.CStr());
-#endif /* _WIN32 */
 
 	(void) Utility::LoadExtensionLibrary("icinga");
 

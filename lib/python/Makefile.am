@@ -12,7 +12,6 @@ libpython_la_SOURCES =  \
 
 libpython_la_CPPFLAGS = \
 	-DI2_PYTHON_BUILD \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	@PYTHON_CSPEC@ \
 	-I${top_srcdir}/lib

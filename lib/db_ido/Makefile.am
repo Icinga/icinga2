@@ -48,7 +48,6 @@ libdb_ido_la_SOURCES = \
 	usergroupdbobject.h
 
 libdb_ido_la_CPPFLAGS = \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib
 

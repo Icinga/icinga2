@@ -82,7 +82,6 @@ liblivestatus_la_SOURCES = \
 	table.h
 
 liblivestatus_la_CPPFLAGS = \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/lib \
 	-I${top_srcdir}/components

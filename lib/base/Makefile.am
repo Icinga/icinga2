@@ -125,7 +125,6 @@ libbase_la_SOURCES =  \
 
 libbase_la_CPPFLAGS = \
 	-DI2_BASE_BUILD \
-	$(LTDLINCL) \
 	$(BOOST_CPPFLAGS) \
 	$(OPENSSL_INCLUDES) \
 	-I${top_srcdir}/lib \
@@ -141,7 +140,7 @@ libbase_la_LDFLAGS = \
 	@VERSION_INFO@
 
 libbase_la_LIBADD = \
-	$(LIBLTDL) \
+	-ldl \
 	$(OPENSSL_LIBS) \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \
