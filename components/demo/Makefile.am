@@ -6,6 +6,8 @@ pkglib_LTLIBRARIES = \
 BUILT_SOURCES = \
 	demo.th
 
+nodist_libdemo_SOURCES = $(BUILT_SOURCES)
+
 CLEANFILES = \
 	demo-type.cpp
 
@@ -13,7 +15,7 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 libdemo_la_SOURCES = \
 	demo.cpp \

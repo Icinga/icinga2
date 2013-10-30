@@ -20,6 +20,8 @@ BUILT_SOURCES = \
 	user.th \
 	usergroup.th
 
+nodist_libicinga_SOURCES = $(BUILT_SOURCES)
+
 CLEANFILES = \
 	icinga-type.cpp
 
@@ -27,7 +29,7 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 libicinga_la_SOURCES =  \
 	api.cpp \

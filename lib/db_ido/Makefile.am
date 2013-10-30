@@ -13,7 +13,7 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 libdb_ido_la_SOURCES = \
 	commanddbobject.cpp \

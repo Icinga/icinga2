@@ -8,6 +8,8 @@ BUILT_SOURCES = \
 	graphitewriter.th \
 	perfdatawriter.th
 
+nodist_libperfdata_la_SOURCES = $(BUILT_SOURCES)
+
 CLEANFILES = \
 	perfdata-type.cpp
 
@@ -15,7 +17,7 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 libperfdata_la_SOURCES =  \
 	graphitewriter.cpp \
@@ -23,7 +25,7 @@ libperfdata_la_SOURCES =  \
 	graphitewriter.ti \
 	perfdatawriter.cpp \
 	perfdatawriter.h \
-	perfdatawriter.th \
+	perfdatawriter.ti \
 	perfdata-type.conf
 
 libperfdata_la_CPPFLAGS = \

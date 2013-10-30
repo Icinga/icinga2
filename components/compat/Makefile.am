@@ -9,6 +9,8 @@ BUILT_SOURCES = \
 	statusdatawriter.th \
 	compatlogger.th
 
+nodist_libcompat_la_SOURCES = $(BUILT_SOURCES)
+
 CLEANFILES = \
 	compat-type.cpp
 
@@ -16,21 +18,21 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 libcompat_la_SOURCES = \
 	checkresultreader.cpp \
 	checkresultreader.h \
-	checkresultreader.th \
+	checkresultreader.ti \
 	externalcommandlistener.cpp \
 	externalcommandlistener.h \
-	externalcommandlistener.th \
+	externalcommandlistener.ti \
 	statusdatawriter.cpp \
 	statusdatawriter.h \
-	statusdatawriter.th \
+	statusdatawriter.ti \
 	compatlogger.cpp \
 	compatlogger.h \
-	compatlogger.th \
+	compatlogger.ti \
 	compat-type.conf
 
 libcompat_la_CPPFLAGS = \

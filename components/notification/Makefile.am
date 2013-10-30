@@ -6,6 +6,8 @@ pkglib_LTLIBRARIES = \
 BUILT_SOURCES = \
 	notificationcomponent.th
 
+nodist_libnotification_la_SOURCES = $(BUILT_SOURCES)
+
 CLEANFILES = \
 	notification-type.cpp
 
@@ -13,7 +15,7 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 libnotification_la_SOURCES = \
 	notificationcomponent.cpp \

@@ -11,6 +11,8 @@ pkglib_LTLIBRARIES = \
 BUILT_SOURCES = \
 	idomysqlconnection.th
 
+nodist_libdb_ido_mysql_la_SOURCES = $(BUILT_SOURCES)
+
 CLEANFILES = \
 	db_ido_mysql-type.cpp
 
@@ -18,7 +20,7 @@ CLEANFILES = \
 	$(top_builddir)/tools/mkembedconfig/mkembedconfig $< $@
 
 .ti.th: $(top_builddir)/tools/mkclass/mkclass
-	$(top_builddir)/tools/mkclass/mkclass $< > $@
+	$(top_builddir)/tools/mkclass/mkclass $< > $@.tmp && mv $@.tmp $@
 
 libdb_ido_mysql_la_SOURCES = \
 	db_ido_mysql-type.conf \
