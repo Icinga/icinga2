@@ -75,7 +75,7 @@ protected:
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) = 0;
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj) = 0;
 
-	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) = 0;
+	virtual void CleanUpExecuteQuery(const String& table, const String& time_column, double max_age);
 
 	void UpdateAllObjects(void);
 

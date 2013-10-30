@@ -65,7 +65,7 @@ void IdoMysqlConnection::Stop(void)
 
 void IdoMysqlConnection::AssertOnWorkQueue(void)
 {
-	VERIFY(boost::this_thread::get_id() == m_QueryQueue.GetThreadId());
+	ASSERT(boost::this_thread::get_id() == m_QueryQueue.GetThreadId());
 }
 
 void IdoMysqlConnection::Disconnect(void)
@@ -570,12 +570,12 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 	}
 }
 
-void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& time_key, double time_value)
+void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_key, time_value));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age));
 }
 
-void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value)
+void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -583,7 +583,6 @@ void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 		return;
 
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
-	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_key +
-	    "<FROM_UNIXTIME(" + Convert::ToString(static_cast<long>(time_value)) + ")");
+	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
+	    " < FROM_UNIXTIME(" + Convert::ToString(static_cast<long>(max_age)) + ")");
 }
-
