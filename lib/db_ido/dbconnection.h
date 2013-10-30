@@ -52,22 +52,6 @@ public:
 	void SetStatusUpdate(const DbObject::Ptr& dbobj, bool hasupdate);
 	bool GetStatusUpdate(const DbObject::Ptr& dbobj) const;
 
-	double GetCleanupAcknowledgementsAge(void) const;
-	double GetCleanupCommentHistoryAge(void) const;
-	double GetCleanupContactNotificationsAge(void) const;
-	double GetCleanupContactNotificationMethodsAge(void) const;
-	double GetCleanupDowntimeHistoryAge(void) const;
-	double GetCleanupEventHandlersAge(void) const;
-	double GetCleanupExternalCommandsAge(void) const;
-	double GetCleanupFlappingHistoryAge(void) const;
-	double GetCleanupHostChecksAge(void) const;
-	double GetCleanupLogEntriesAge(void) const;
-	double GetCleanupNotificationsAge(void) const;
-	double GetCleanupProcessEventsAge(void) const;
-	double GetCleanupStateHistoryAge(void) const;
-	double GetCleanupServiceChecksAge(void) const;
-	double GetCleanupSystemCommandsAge(void) const;
-
 protected:
 	virtual void Start(void);
 
@@ -75,7 +59,7 @@ protected:
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) = 0;
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj) = 0;
 
-	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) = 0;
+	virtual void CleanUpExecuteQuery(const String& table, const String& time_column, double max_age);
 
 	void UpdateAllObjects(void);
 
