@@ -34,23 +34,23 @@ enum DbQueryType
 
 enum DbQueryCategory
 {
-	DbCatInvalid,
+	DbCatInvalid = -1,
 
-	DbCatConfig,
-	DbCatState,
+	DbCatConfig = (1 << 0),
+	DbCatState = (1 << 1),
 
-	DbCatAcknowledgement,
-	DbCatComment,
-	DbCatDowntime,
-	DbCatEventHandler,
-	DbCatExternalCommand,
-	DbCatFlapping,
-	DbCatCheck,
-	DbCatLog,
-	DbCatNotification,
-	DbCatProgramStatus,
-	DbCatRetention,
-	DbCatStateHistory
+	DbCatAcknowledgement = (1 << 2),
+	DbCatComment = (1 << 3),
+	DbCatDowntime = (1 << 4),
+	DbCatEventHandler = (1 << 5),
+	DbCatExternalCommand = (1 << 6),
+	DbCatFlapping = (1 << 7),
+	DbCatCheck = (1 << 8),
+	DbCatLog = (1 << 9),
+	DbCatNotification = (1 << 10),
+	DbCatProgramStatus = (1 << 11),
+	DbCatRetention = (1 << 12),
+	DbCatStateHistory = (1 << 13)
 };
 
 class DbObject;
