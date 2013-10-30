@@ -6,7 +6,7 @@ pkglib_LTLIBRARIES = \
 BUILT_SOURCES = \
 	demo.th
 
-nodist_libdemo_SOURCES = $(BUILT_SOURCES)
+nodist_libdemo_la_SOURCES = $(BUILT_SOURCES)
 
 CLEANFILES = \
 	demo-type.cpp

@@ -112,6 +112,9 @@ AC_CHECK_LIB(ws2_32, getsockname)
 AC_CHECK_LIB(shlwapi, PathRemoveFileSpecA)
 AC_CHECK_FUNCS([backtrace_symbols execvpe pipe2 pthread_set_name_np pthread_setname_np])
 
+AC_CHECK_LIB(c, dlopen, LIBDL="", [AC_CHECK_LIB(dl, dlopen, LIBDL="-ldl")])
+AC_SUBST([LIBDL])
+
 AC_TRY_LINK([#include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/comp.h>], [BIO_f_zlib();], ac_cv_lib_biozlib="yes")
