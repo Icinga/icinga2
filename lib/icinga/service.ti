@@ -48,7 +48,12 @@ class Service : DynamicObject
 	[config] String event_command (EventCommandRaw);
 	[config] bool volatile;
 	[config] String short_name {
-		default {{{ return GetName(); }}}
+		get {{{
+			if (m_ShortName.IsEmpty())
+				return GetName();
+			else
+				return m_ShortName;
+		}}}
 	};
 	[config] String host (HostRaw);
 	[config] double flapping_threshold {
