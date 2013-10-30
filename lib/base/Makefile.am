@@ -142,7 +142,7 @@ libbase_la_LDFLAGS = \
 	@VERSION_INFO@
 
 libbase_la_LIBADD = \
-	-ldl \
+	$(LIBDL) \
 	$(OPENSSL_LIBS) \
 	$(BOOST_SIGNALS_LIB) \
 	$(BOOST_THREAD_LIB) \

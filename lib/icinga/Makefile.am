@@ -20,7 +20,7 @@ BUILT_SOURCES = \
 	user.th \
 	usergroup.th
 
-nodist_libicinga_SOURCES = $(BUILT_SOURCES)
+nodist_libicinga_la_SOURCES = $(BUILT_SOURCES)
 
 CLEANFILES = \
 	icinga-type.cpp
