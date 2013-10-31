@@ -531,6 +531,13 @@ Dictionary::Ptr CompatUtility::GetCheckResultOutput(const Dictionary::Ptr& cr)
 	Dictionary::Ptr bag = boost::make_shared<Dictionary>();
 
 	String raw_output = cr->Get("output");
+
+	/*
+	 * replace semi-colons with colons in output
+	 * semi-colon is used as delimiter in various interfaces
+	 */
+	boost::algorithm::replace_all(raw_output, ";", ":");
+
 	size_t line_end = raw_output.Find("\n");
 
 	output = raw_output.SubStr(0, line_end);
@@ -563,6 +570,19 @@ String CompatUtility::EscapeString(const String& str)
 	String result = str;
 	boost::algorithm::replace_all(result, "\n", "\\n");
 	return result;
+}
+
+Dictionary::Ptr CompatUtility::ConvertTimestamp(double time)
+{
+	Dictionary::Ptr time_bag = boost::make_shared<Dictionary>();
+
+	unsigned long time_sec = static_cast<long>(time);
+	unsigned long time_usec = (time - time_sec) * 1000 * 1000;
+
+	time_bag->Set("time_sec", time_sec);
+	time_bag->Set("time_usec", time_usec);
+
+	return time_bag;
 }
 
 int CompatUtility::MapNotificationReasonType(NotificationType type)

@@ -139,52 +139,6 @@ double Service::GetLastCheck(void) const
 	return schedule_end;
 }
 
-String Service::GetLastCheckOutput(void) const
-{
-	Dictionary::Ptr cr = GetLastCheckResult();
-	String output;
-
-	if (cr) {
-		String raw_output = cr->Get("output");
-		size_t line_end = raw_output.Find("\n");
-		output = raw_output.SubStr(0, line_end);
-	}
-
-	return output;
-}
-
-String Service::GetLastCheckLongOutput(void) const
-{
-	Dictionary::Ptr cr = GetLastCheckResult();
-	String long_output;
-
-	if (cr) {
-		String raw_output = cr->Get("output");
-		size_t line_end = raw_output.Find("\n");
-
-		if (line_end > 0 && line_end != String::NPos) {
-			long_output = raw_output.SubStr(line_end + 1, raw_output.GetLength());
-			boost::algorithm::replace_all(long_output, "\n", "\\n");
-		}
-	}
-
-	return long_output;
-}
-
-String Service::GetLastCheckPerfData(void) const
-{
-	Dictionary::Ptr cr = GetLastCheckResult();
-	String perfdata;
-
-	if (cr) {
-		perfdata = cr->Get("performance_data_raw");
-
-		boost::algorithm::replace_all(perfdata, "\n", "\\n");
-	}
-
-	return perfdata;
-}
-
 bool Service::GetEnableActiveChecks(void) const
 {
 	if (!GetOverrideEnableActiveChecks().IsEmpty())
