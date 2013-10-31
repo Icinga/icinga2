@@ -5,11 +5,21 @@ namespace icinga
 
 class IdoMysqlConnection : DbConnection
 {
-	[config] String host;
-	[config] int port;
-	[config] String user;
-	[config] String password;
-	[config] String database;
+	[config] String host {
+		default {{{ return "localhost"; }}}
+	};
+	[config] int port {
+		default {{{ return 3306; }}}
+	};
+	[config] String user {
+		default {{{ return "icinga"; }}}
+	};
+	[config] String password {
+		default {{{ return "icinga"; }}}
+	};
+	[config] String database {
+		default {{{ return "icinga"; }}}
+	};
 	[config] String instance_name {
 		default {{{ return "default"; }}}
 	};
