@@ -23,6 +23,7 @@
 #include "icinga/notification.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/externalcommandprocessor.h"
+#include "icinga/compatutility.h"
 #include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -98,17 +99,11 @@ void CompatLogger::CheckResultHandler(const Service::Ptr& service, const Diction
 			return; /* Nothing changed, ignore this checkresult. */
 	}
 
-        String raw_output;
-        String output;
-
-        if (cr) {
-                raw_output = cr->Get("output");
-                size_t line_end = raw_output.Find("\n");
-
-                output = raw_output.SubStr(0, line_end);
-
-                boost::algorithm::replace_all(output, "\n", "\\n");
-        }
+	String output;
+	if (cr) {
+		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag->Get("output");
+	}
 
 	std::ostringstream msgbuf;
 	msgbuf << "SERVICE ALERT: "
@@ -274,14 +269,10 @@ void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const Us
                 return;
 
 	String output;
-	String raw_output;
-
-        if (cr) {
-                raw_output = cr->Get("output");
-                size_t line_end = raw_output.Find("\n");
-
-                output = raw_output.SubStr(0, line_end);
-        }
+	if (cr) {
+		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag->Get("output");
+	}
 
         std::ostringstream msgbuf;
         msgbuf << "SERVICE NOTIFICATION: "
@@ -463,13 +454,21 @@ void CompatLogger::ReopenFile(bool rotate)
 
 		ObjectLock olock(hc);
 
+		String output;
+		Dictionary::Ptr cr = hc->GetLastCheckResult();
+
+		if (cr) {
+			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+			output = output_bag->Get("output");
+		}
+
 		std::ostringstream msgbuf;
 		msgbuf << "CURRENT HOST STATE: "
 		       << host->GetName() << ";"
 		       << Host::StateToString(Host::CalculateState(hc->GetState(), reachable)) << ";"
 		       << Service::StateTypeToString(hc->GetStateType()) << ";"
 		       << hc->GetCheckAttempt() << ";"
-		       << hc->GetLastCheckOutput() << "";
+		       << output << "";
 
 		WriteLine(msgbuf.str());
 	}
@@ -480,6 +479,14 @@ void CompatLogger::ReopenFile(bool rotate)
 		if (!host)
 			continue;
 
+		String output;
+		Dictionary::Ptr cr = service->GetLastCheckResult();
+
+		if (cr) {
+			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+			output = output_bag->Get("output");
+		}
+
 		std::ostringstream msgbuf;
 		msgbuf << "CURRENT SERVICE STATE: "
 		       << host->GetName() << ";"
@@ -487,7 +494,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		       << Service::StateToString(service->GetState()) << ";"
 		       << Service::StateTypeToString(service->GetStateType()) << ";"
 		       << service->GetCheckAttempt() << ";"
-		       << service->GetLastCheckOutput() << "";
+		       << output << "";
 
 		WriteLine(msgbuf.str());
 	}

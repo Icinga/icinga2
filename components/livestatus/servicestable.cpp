@@ -150,9 +150,9 @@ Object::Ptr ServicesTable::HostAccessor(const Value& row, const Column::ObjectAc
 		service = parentObjectAccessor(row);
 	else
 		service = row;
-	
+
 	Service::Ptr svc = static_cast<Service::Ptr>(service);
-	
+
 	if (!svc)
 		return Object::Ptr();
 
@@ -197,7 +197,7 @@ Value ServicesTable::CheckCommandAccessor(const Value& row)
 Value ServicesTable::CheckCommandExpandedAccessor(const Value& row)
 {
 	Service::Ptr service = static_cast<Service::Ptr>(row);
-	
+
 	if (!service)
 		return Empty;
 
@@ -242,7 +242,7 @@ Value ServicesTable::CheckCommandExpandedAccessor(const Value& row)
 Value ServicesTable::EventHandlerAccessor(const Value& row)
 {
 	Service::Ptr service = static_cast<Service::Ptr>(row);
-	
+
 	if (!service)
 		return Empty;
 
@@ -261,7 +261,15 @@ Value ServicesTable::PluginOutputAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return service->GetLastCheckOutput();
+	String output;
+	Dictionary::Ptr cr = service->GetLastCheckResult();
+
+	if (cr) {
+		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag->Get("output");
+	}
+
+	return output;
 }
 
 Value ServicesTable::LongPluginOutputAccessor(const Value& row)
@@ -271,7 +279,15 @@ Value ServicesTable::LongPluginOutputAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return service->GetLastCheckLongOutput();
+	String long_output;
+	Dictionary::Ptr cr = service->GetLastCheckResult();
+
+	if (cr) {
+		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
+		long_output = output_bag->Get("long_output");
+	}
+
+	return long_output;
 }
 
 Value ServicesTable::PerfDataAccessor(const Value& row)
@@ -281,7 +297,13 @@ Value ServicesTable::PerfDataAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return service->GetLastCheckPerfData();
+	String perfdata;
+	Dictionary::Ptr cr = service->GetLastCheckResult();
+
+	if (cr)
+		perfdata = CompatUtility::GetCheckResultPerfdata(cr);
+
+	return perfdata;
 }
 
 Value ServicesTable::NotificationPeriodAccessor(const Value& row)
@@ -337,7 +359,7 @@ Value ServicesTable::NotesAccessor(const Value& row)
 Value ServicesTable::NotesExpandedAccessor(const Value& row)
 {
 	Service::Ptr service = static_cast<Service::Ptr>(row);
-	
+
 	if (!service)
 		return Empty;
 
@@ -377,7 +399,7 @@ Value ServicesTable::NotesUrlAccessor(const Value& row)
 Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 {
 	Service::Ptr service = static_cast<Service::Ptr>(row);
-	
+
 	if (!service)
 		return Empty;
 
@@ -417,7 +439,7 @@ Value ServicesTable::ActionUrlAccessor(const Value& row)
 Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 {
 	Service::Ptr service = static_cast<Service::Ptr>(row);
-	
+
 	if (!service)
 		return Empty;
 
@@ -457,7 +479,7 @@ Value ServicesTable::IconImageAccessor(const Value& row)
 Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 {
 	Service::Ptr service = static_cast<Service::Ptr>(row);
-	
+
 	if (!service)
 		return Empty;
 
@@ -1186,26 +1208,21 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
+	Dictionary::Ptr customvars;
 
-	if (!custom)
+	{
+		ObjectLock olock(service);
+		customvars = CompatUtility::GetCustomVariableConfig(service);
+	}
+
+	if (!customvars)
 		return Empty;
 
 	Array::Ptr cv = boost::make_shared<Array>();
 
-	ObjectLock olock(custom);
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), custom) {
-		if (key == "notes" ||
-		    key == "action_url" ||
-		    key == "notes_url" ||
-		    key == "icon_image" ||
-		    key == "icon_image_alt" ||
-		    key == "statusmap_image" ||
-		    key == "2d_coords")
-			continue;
-
+	BOOST_FOREACH(boost::tie(key, value), customvars) {
 		cv->Add(key);
 	}
 
@@ -1219,26 +1236,21 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
+	Dictionary::Ptr customvars;
 
-	if (!custom)
+	{
+		ObjectLock olock(service);
+		customvars = CompatUtility::GetCustomVariableConfig(service);
+	}
+
+	if (!customvars)
 		return Empty;
 
 	Array::Ptr cv = boost::make_shared<Array>();
 
-	ObjectLock olock(custom);
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), custom) {
-		if (key == "notes" ||
-		    key == "action_url" ||
-		    key == "notes_url" ||
-		    key == "icon_image" ||
-		    key == "icon_image_alt" ||
-		    key == "statusmap_image" ||
-		    key == "2d_coords")
-			continue;
-
+	BOOST_FOREACH(boost::tie(key, value), customvars) {
 		cv->Add(value);
 	}
 
@@ -1252,26 +1264,21 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
+	Dictionary::Ptr customvars;
 
-	if (!custom)
+	{
+		ObjectLock olock(service);
+		customvars = CompatUtility::GetCustomVariableConfig(service);
+	}
+
+	if (!customvars)
 		return Empty;
 
 	Array::Ptr cv = boost::make_shared<Array>();
 
-	ObjectLock olock(custom);
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), custom) {
-		if (key == "notes" ||
-		    key == "action_url" ||
-		    key == "notes_url" ||
-		    key == "icon_image" ||
-		    key == "icon_image_alt" ||
-		    key == "statusmap_image" ||
-		    key == "2d_coords")
-			continue;
-
+	BOOST_FOREACH(boost::tie(key, value), customvars) {
 		Array::Ptr key_val = boost::make_shared<Array>();
 		key_val->Add(key);
 		key_val->Add(value);

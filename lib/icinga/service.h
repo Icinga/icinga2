@@ -163,10 +163,6 @@ public:
 
 	double GetLastCheck(void) const;
 
-	String GetLastCheckOutput(void) const;
-	String GetLastCheckLongOutput(void) const;
-	String GetLastCheckPerfData(void) const;
-
 	bool GetEnableActiveChecks(void) const;
 	void SetEnableActiveChecks(bool enabled, const String& authority = String());
 

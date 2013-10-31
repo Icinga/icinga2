@@ -62,6 +62,8 @@ public:
 	static Dictionary::Ptr GetCheckResultOutput(const Dictionary::Ptr& cr);
 	static String GetCheckResultPerfdata(const Dictionary::Ptr& cr);
 
+	static Dictionary::Ptr ConvertTimestamp(double time);
+
 	static int MapNotificationReasonType(NotificationType type);
 	static int MapExternalCommandType(const String& name);
 
