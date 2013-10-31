@@ -125,7 +125,7 @@ void Service::UpdateNextCheck(void)
 
 bool Service::HasBeenChecked(void) const
 {
-	return GetLastCheckResult();
+	return GetLastCheckResult() != NULL;
 }
 
 double Service::GetLastCheck(void) const

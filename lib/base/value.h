@@ -97,7 +97,7 @@ public:
 		if (!IsObject())
 			return false;
 
-		return (dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value)));
+		return (dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value)) != NULL);
 	}
 
 	static Value FromJson(cJSON *json);
