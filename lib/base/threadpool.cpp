@@ -236,7 +236,8 @@ void ThreadPool::ManagerThreadProc(void)
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
 
-			m_MgmtCV.timed_wait(lock, boost::posix_time::seconds(5));
+			if (!m_Stopped)
+				m_MgmtCV.timed_wait(lock, boost::posix_time::seconds(5));
 
 			if (m_Stopped)
 				break;
@@ -345,7 +346,8 @@ void ThreadPool::StatsThreadProc(void)
 	for (;;) {
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		m_MgmtCV.timed_wait(lock, boost::posix_time::milliseconds(250));
+		if (!m_Stopped)
+			m_MgmtCV.timed_wait(lock, boost::posix_time::milliseconds(250));
 
 		if (m_Stopped)
 			break;
