@@ -41,7 +41,7 @@ boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> End
  */
 bool Endpoint::IsConnected(void) const
 {
-	return GetClient();
+	return GetClient() != NULL;
 }
 
 Stream::Ptr Endpoint::GetClient(void) const
