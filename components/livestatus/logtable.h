@@ -21,11 +21,42 @@
 #define LOGTABLE_H
 
 #include "livestatus/table.h"
+#include <boost/thread/mutex.hpp>
 
 using namespace icinga;
 
 namespace livestatus
 {
+
+enum LogType {
+    LogTypeHostAlert,
+    LogTypeHostDowntimeAlert,
+    LogTypeHostFlapping,
+    LogTypeHostNotification,
+    LogTypeHostInitialState,
+    LogTypeHostCurrentState,
+    LogTypeServiceAlert,
+    LogTypeServiceDowntimeAlert,
+    LogTypeServiceFlapping,
+    LogTypeServiceNotification,
+    LogTypeServiceInitialState,
+    LogTypeServiceCurrentState,
+    LogTypeTimeperiodTransition,
+    LogTypeVersion,
+    LogTypeInitialStates,
+    LogTypeProgramStarting
+};
+
+enum LogClass {
+    LogClassInfo = 0,
+    LogClassAlert = 1,
+    LogClassProgram = 2,
+    LogClassNotification = 3,
+    LogClassPassive = 4,
+    LogClassCommand = 5,
+    LogClassState = 6,
+    LogClassText = 7
+};
 
 /**
  * @ingroup livestatus
@@ -35,7 +66,7 @@ class LogTable : public Table
 public:
 	DECLARE_PTR_TYPEDEFS(LogTable);
 
-	LogTable(void);
+	LogTable(const unsigned long& from, const unsigned long& until);
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
@@ -44,6 +75,11 @@ public:
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
+
+        static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+        static Object::Ptr ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+        static Object::Ptr ContactAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+        static Object::Ptr CommandAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
 
 	static Value TimeAccessor(const Value& row);
 	static Value LinenoAccessor(const Value& row);
@@ -60,6 +96,18 @@ protected:
 	static Value HostNameAccessor(const Value& row);
 	static Value ContactNameAccessor(const Value& row);
 	static Value CommandNameAccessor(const Value& row);
+        
+private:
+        std::map<unsigned long, String> m_LogFileIndex;
+        std::map<unsigned long, Dictionary::Ptr> m_RowsCache;
+        unsigned long m_TimeFrom;
+        unsigned long m_TimeUntil;
+        boost::mutex m_Mutex;
+        
+        void CreateLogIndex(const String& path);
+        static void CreateLogIndexFileHandler(const String& path, std::map<unsigned long, String>& index);
+        void GetLogClassType(const String& text, int& log_class, int& log_type);
+        Dictionary::Ptr GetLogEntryAttributes(const String& type, const String& options);
 };
 
 }

@@ -78,6 +78,9 @@ private:
 	/* Parameters for invalid queries. */
 	int m_ErrorCode;
 	String m_ErrorMessage;
+	
+	unsigned long m_LogTimeFrom;
+	unsigned long m_LogTimeUntil;
 
 	void PrintResultSet(std::ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs);
 	void PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level);
@@ -89,7 +92,7 @@ private:
 	void SendResponse(const Stream::Ptr& stream, int code, const String& data);
 	void PrintFixed16(const Stream::Ptr& stream, int code, const String& data);
 	
-	static Filter::Ptr ParseFilter(const String& params);
+	static Filter::Ptr ParseFilter(const String& params, unsigned long& from, unsigned long& until);
 };
 
 }

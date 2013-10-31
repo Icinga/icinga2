@@ -52,19 +52,34 @@ void ContactGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 
 Value ContactGroupsTable::NameAccessor(const Value& row)
 {
-	return static_cast<UserGroup::Ptr>(row)->GetName();
+	UserGroup::Ptr user_group = static_cast<UserGroup::Ptr>(row);
+
+	if(!user_group)
+		return Empty;
+
+	return user_group->GetName();
 }
 
 Value ContactGroupsTable::AliasAccessor(const Value& row)
 {
-	return static_cast<UserGroup::Ptr>(row)->GetName();
+	UserGroup::Ptr user_group = static_cast<UserGroup::Ptr>(row);
+
+	if(!user_group)
+		return Empty;
+
+	return user_group->GetName();
 }
 
 Value ContactGroupsTable::MembersAccessor(const Value& row)
 {
+	UserGroup::Ptr user_group = static_cast<UserGroup::Ptr>(row);
+
+	if(!user_group)
+		return Empty;
+
 	Array::Ptr members = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const User::Ptr& user, static_cast<UserGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const User::Ptr& user, user_group->GetMembers()) {
 		members->Add(user->GetName());
 	}
 

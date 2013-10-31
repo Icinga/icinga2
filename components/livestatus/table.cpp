@@ -44,7 +44,7 @@ using namespace livestatus;
 Table::Table(void)
 { }
 
-Table::Ptr Table::GetByName(const String& name)
+Table::Ptr Table::GetByName(const String& name, const unsigned long& from, const unsigned long& until)
 {
 	if (name == "status")
 		return boost::make_shared<StatusTable>();
@@ -69,7 +69,7 @@ Table::Ptr Table::GetByName(const String& name)
 	else if (name == "timeperiods")
 		return boost::make_shared<TimePeriodsTable>();
 	else if (name == "log")
-		return boost::make_shared<LogTable>();
+		return boost::make_shared<LogTable>(from, until);
 
 	return Table::Ptr();
 }

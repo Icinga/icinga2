@@ -82,7 +82,11 @@ public:
 	double GetLastStateDown(void) const;
 	double GetLastStateUnreachable(void) const;
 
+	static HostState StateFromString(const String& state);
 	static String StateToString(HostState state);
+
+	static StateType StateTypeFromString(const String& state);
+	static String StateTypeToString(StateType state);
 
 	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
 

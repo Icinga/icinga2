@@ -286,7 +286,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 			SetLastNotification(Utility::GetTime());
 		}
 
-		Service::OnNotificationSentToUser(GetService(), user, type, cr, author, text);
+		Service::OnNotificationSentToUser(GetService(), user, type, cr, author, text, command->GetName());
 
 		Log(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
 	} catch (const std::exception& ex) {

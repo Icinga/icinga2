@@ -65,6 +65,9 @@ Value CommandsTable::NameAccessor(const Value& row)
 {
 	String buf;
 	Command::Ptr command = static_cast<Command::Ptr>(row);
+	
+	if (!command)
+		return Empty;
 
 	if (command->GetType() == DynamicType::GetByName("CheckCommand"))
 		buf += "check_";
@@ -82,6 +85,9 @@ Value CommandsTable::LineAccessor(const Value& row)
 {
 	String buf;
 	Command::Ptr command = static_cast<Command::Ptr>(row);
+	
+	if (!command)
+		return Empty;
 
 	Value commandLine = command->GetCommandLine();
 

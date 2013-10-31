@@ -175,17 +175,32 @@ void HostsTable::FetchRows(const AddRowFunction& addRowFn)
 
 Value HostsTable::NameAccessor(const Value& row)
 {
-	return static_cast<Host::Ptr>(row)->GetName();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return host->GetName();
 }
 
 Value HostsTable::DisplayNameAccessor(const Value& row)
 {
-	return static_cast<Host::Ptr>(row)->GetDisplayName();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return host->GetDisplayName();
 }
 
 Value HostsTable::AddressAccessor(const Value& row)
 {
-	Dictionary::Ptr macros = static_cast<Host::Ptr>(row)->GetMacros();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr macros = host->GetMacros();
 
 	if (!macros)
 		return Empty;
@@ -195,7 +210,12 @@ Value HostsTable::AddressAccessor(const Value& row)
 
 Value HostsTable::Address6Accessor(const Value& row)
 {
-	Dictionary::Ptr macros = static_cast<Host::Ptr>(row)->GetMacros();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr macros = host->GetMacros();
 
 	if (!macros)
 		return Empty;
@@ -205,8 +225,14 @@ Value HostsTable::Address6Accessor(const Value& row)
 
 Value HostsTable::CheckCommandAccessor(const Value& row)
 {
+
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -222,6 +248,10 @@ Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
 {
 	/* use hostcheck service */
 	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
@@ -268,7 +298,12 @@ Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
 Value HostsTable::EventHandlerAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -283,7 +318,12 @@ Value HostsTable::EventHandlerAccessor(const Value& row)
 Value HostsTable::NotificationPeriodAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -304,7 +344,12 @@ Value HostsTable::NotificationPeriodAccessor(const Value& row)
 Value HostsTable::CheckPeriodAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -319,7 +364,12 @@ Value HostsTable::CheckPeriodAccessor(const Value& row)
 
 Value HostsTable::NotesAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -330,7 +380,15 @@ Value HostsTable::NotesAccessor(const Value& row)
 Value HostsTable::NotesExpandedAccessor(const Value& row)
 {
 	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
 	Service::Ptr service = host->GetCheckService();
+
+	if (!service)
+		return Empty;
+
 	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
@@ -354,7 +412,12 @@ Value HostsTable::NotesExpandedAccessor(const Value& row)
 
 Value HostsTable::NotesUrlAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -365,7 +428,15 @@ Value HostsTable::NotesUrlAccessor(const Value& row)
 Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 {
 	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Service::Ptr service = host->GetCheckService();
+
+	if (!service)
+		return Empty;
+
 	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
@@ -389,7 +460,12 @@ Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 
 Value HostsTable::ActionUrlAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -400,7 +476,15 @@ Value HostsTable::ActionUrlAccessor(const Value& row)
 Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 {
 	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Service::Ptr service = host->GetCheckService();
+
+	if (!service)
+		return Empty;
+
 	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
@@ -425,7 +509,12 @@ Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 Value HostsTable::PluginOutputAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 	String output;
 
 	if(hc)
@@ -437,7 +526,12 @@ Value HostsTable::PluginOutputAccessor(const Value& row)
 Value HostsTable::PerfDataAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 	String perfdata;
 
 	if (hc)
@@ -448,7 +542,13 @@ Value HostsTable::PerfDataAccessor(const Value& row)
 
 Value HostsTable::IconImageAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	/* use hostcheck service */
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -459,7 +559,15 @@ Value HostsTable::IconImageAccessor(const Value& row)
 Value HostsTable::IconImageExpandedAccessor(const Value& row)
 {
 	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Service::Ptr service = host->GetCheckService();
+
+	if (!service)
+		return Empty;
+
 	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
@@ -483,7 +591,12 @@ Value HostsTable::IconImageExpandedAccessor(const Value& row)
 
 Value HostsTable::IconImageAltAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -493,7 +606,12 @@ Value HostsTable::IconImageAltAccessor(const Value& row)
 
 Value HostsTable::StatusmapImageAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -504,7 +622,12 @@ Value HostsTable::StatusmapImageAccessor(const Value& row)
 Value HostsTable::LongPluginOutputAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 	String long_output;
 
 	if (hc)
@@ -516,7 +639,12 @@ Value HostsTable::LongPluginOutputAccessor(const Value& row)
 Value HostsTable::MaxCheckAttemptsAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -527,7 +655,12 @@ Value HostsTable::MaxCheckAttemptsAccessor(const Value& row)
 Value HostsTable::FlapDetectionEnabledAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -538,7 +671,12 @@ Value HostsTable::FlapDetectionEnabledAccessor(const Value& row)
 Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -549,7 +687,12 @@ Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
 Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -564,7 +707,12 @@ Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
 Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -578,7 +726,12 @@ Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
 Value HostsTable::CheckTypeAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -588,18 +741,33 @@ Value HostsTable::CheckTypeAccessor(const Value& row)
 
 Value HostsTable::LastStateAccessor(const Value& row)
 {
-	return static_cast<Host::Ptr>(row)->GetLastState();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return host->GetLastState();
 }
 
 Value HostsTable::LastHardStateAccessor(const Value& row)
 {
-	return static_cast<Host::Ptr>(row)->GetLastHardState();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return host->GetLastHardState();
 }
 
 Value HostsTable::CurrentAttemptAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -610,7 +778,12 @@ Value HostsTable::CurrentAttemptAccessor(const Value& row)
 Value HostsTable::LastNotificationAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -628,7 +801,12 @@ Value HostsTable::LastNotificationAccessor(const Value& row)
 Value HostsTable::NextNotificationAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -646,7 +824,12 @@ Value HostsTable::NextNotificationAccessor(const Value& row)
 Value HostsTable::NextCheckAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -657,7 +840,12 @@ Value HostsTable::NextCheckAccessor(const Value& row)
 Value HostsTable::LastHardStateChangeAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -668,7 +856,12 @@ Value HostsTable::LastHardStateChangeAccessor(const Value& row)
 Value HostsTable::HasBeenCheckedAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -679,7 +872,12 @@ Value HostsTable::HasBeenCheckedAccessor(const Value& row)
 Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -697,13 +895,23 @@ Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)
 
 Value HostsTable::TotalServicesAccessor(const Value& row)
 {
-	return static_cast<Host::Ptr>(row)->GetTotalServices();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return host->GetTotalServices();
 }
 
 Value HostsTable::ChecksEnabledAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -714,7 +922,12 @@ Value HostsTable::ChecksEnabledAccessor(const Value& row)
 Value HostsTable::NotificationsEnabledAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -725,7 +938,12 @@ Value HostsTable::NotificationsEnabledAccessor(const Value& row)
 Value HostsTable::AcknowledgedAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -738,18 +956,35 @@ Value HostsTable::AcknowledgedAccessor(const Value& row)
 
 Value HostsTable::StateAccessor(const Value& row)
 {
-	return static_cast<Host::Ptr>(row)->GetState();
+	/* use hostcheck service */
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return host->GetState();
 }
 
 Value HostsTable::StateTypeAccessor(const Value& row)
 {
-	return static_cast<Host::Ptr>(row)->GetStateType();
+	/* use hostcheck service */
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return host->GetStateType();
 }
 
 Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -770,7 +1005,12 @@ Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
 Value HostsTable::LastCheckAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -780,28 +1020,57 @@ Value HostsTable::LastCheckAccessor(const Value& row)
 
 Value HostsTable::LastStateChangeAccessor(const Value& row)
 {
-	return static_cast<int>(static_cast<Host::Ptr>(row)->GetLastStateChange());
+	/* use hostcheck service */
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return static_cast<int>(host->GetLastStateChange());
 }
 
 Value HostsTable::LastTimeUpAccessor(const Value& row)
 {
-	return static_cast<int>(static_cast<Host::Ptr>(row)->GetLastStateUp());
+	/* use hostcheck service */
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return static_cast<int>(host->GetLastStateUp());
 }
 
 Value HostsTable::LastTimeDownAccessor(const Value& row)
 {
-	return static_cast<int>(static_cast<Host::Ptr>(row)->GetLastStateDown());
+	/* use hostcheck service */
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return static_cast<int>(host->GetLastStateDown());
 }
 
 Value HostsTable::LastTimeUnreachableAccessor(const Value& row)
 {
-	return static_cast<int>(static_cast<Host::Ptr>(row)->GetLastStateUnreachable());
+	/* use hostcheck service */
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return static_cast<int>(host->GetLastStateUnreachable());
 }
 
 Value HostsTable::IsFlappingAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -812,7 +1081,12 @@ Value HostsTable::IsFlappingAccessor(const Value& row)
 Value HostsTable::ScheduledDowntimeDepthAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -824,7 +1098,12 @@ Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 {
 	/* duplicate of ChecksEnableAccessor */
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -840,7 +1119,13 @@ Value HostsTable::CheckOptionsAccessor(const Value& row)
 
 Value HostsTable::ModifiedAttributesAccessor(const Value& row)
 {
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	/* use hostcheck service */
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -857,7 +1142,12 @@ Value HostsTable::ModifiedAttributesListAccessor(const Value& row)
 Value HostsTable::CheckIntervalAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -868,7 +1158,12 @@ Value HostsTable::CheckIntervalAccessor(const Value& row)
 Value HostsTable::RetryIntervalAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -879,7 +1174,12 @@ Value HostsTable::RetryIntervalAccessor(const Value& row)
 Value HostsTable::NotificationIntervalAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -900,7 +1200,12 @@ Value HostsTable::NotificationIntervalAccessor(const Value& row)
 Value HostsTable::LowFlapThresholdAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -911,7 +1216,12 @@ Value HostsTable::LowFlapThresholdAccessor(const Value& row)
 Value HostsTable::HighFlapThresholdAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -921,7 +1231,12 @@ Value HostsTable::HighFlapThresholdAccessor(const Value& row)
 
 Value HostsTable::X2dAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -939,7 +1254,12 @@ Value HostsTable::X2dAccessor(const Value& row)
 
 Value HostsTable::Y2dAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -958,7 +1278,12 @@ Value HostsTable::Y2dAccessor(const Value& row)
 Value HostsTable::LatencyAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -969,7 +1294,12 @@ Value HostsTable::LatencyAccessor(const Value& row)
 Value HostsTable::ExecutionTimeAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -980,7 +1310,12 @@ Value HostsTable::ExecutionTimeAccessor(const Value& row)
 Value HostsTable::PercentStateChangeAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -991,7 +1326,12 @@ Value HostsTable::PercentStateChangeAccessor(const Value& row)
 Value HostsTable::InNotificationPeriodAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1013,7 +1353,12 @@ Value HostsTable::InNotificationPeriodAccessor(const Value& row)
 Value HostsTable::InCheckPeriodAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1030,7 +1375,12 @@ Value HostsTable::InCheckPeriodAccessor(const Value& row)
 Value HostsTable::ContactsAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1047,7 +1397,12 @@ Value HostsTable::ContactsAccessor(const Value& row)
 Value HostsTable::DowntimesAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1077,7 +1432,12 @@ Value HostsTable::DowntimesAccessor(const Value& row)
 Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1111,7 +1471,12 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 Value HostsTable::CommentsAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1141,7 +1506,12 @@ Value HostsTable::CommentsAccessor(const Value& row)
 Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1175,7 +1545,12 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1210,7 +1585,12 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 
 Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -1239,7 +1619,12 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 
 Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -1268,7 +1653,12 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 
 Value HostsTable::CustomVariablesAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<Host::Ptr>(row)->GetCustom();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr custom = host->GetCustom();
 
 	if (!custom)
 		return Empty;
@@ -1300,9 +1690,14 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 
 Value HostsTable::ParentsAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Array::Ptr parents = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const Host::Ptr& parent, static_cast<Host::Ptr>(row)->GetParentHosts()) {
+	BOOST_FOREACH(const Host::Ptr& parent, host->GetParentHosts()) {
 		parents->Add(parent->GetName());
 	}
 
@@ -1311,9 +1706,14 @@ Value HostsTable::ParentsAccessor(const Value& row)
 
 Value HostsTable::ChildsAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Array::Ptr childs = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const Host::Ptr& child, static_cast<Host::Ptr>(row)->GetChildHosts()) {
+	BOOST_FOREACH(const Host::Ptr& child, host->GetChildHosts()) {
 		childs->Add(child->GetName());
 	}
 
@@ -1323,14 +1723,24 @@ Value HostsTable::ChildsAccessor(const Value& row)
 Value HostsTable::NumServicesAccessor(const Value& row)
 {
 	/* duplicate of TotalServices */
-	return static_cast<Host::Ptr>(row)->GetTotalServices();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	return host->GetTotalServices();
 }
 
 Value HostsTable::WorstServiceStateAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Value worst_service = StateOK;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetState() > worst_service)
 			worst_service = service->GetState();
 	}
@@ -1340,9 +1750,14 @@ Value HostsTable::WorstServiceStateAccessor(const Value& row)
 
 Value HostsTable::NumServicesOkAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetState() == StateOK)
 			num_services++;
 	}
@@ -1352,9 +1767,14 @@ Value HostsTable::NumServicesOkAccessor(const Value& row)
 
 Value HostsTable::NumServicesWarnAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetState() == StateWarning)
 			num_services++;
 	}
@@ -1364,9 +1784,14 @@ Value HostsTable::NumServicesWarnAccessor(const Value& row)
 
 Value HostsTable::NumServicesCritAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetState() == StateCritical)
 			num_services++;
 	}
@@ -1376,9 +1801,14 @@ Value HostsTable::NumServicesCritAccessor(const Value& row)
 
 Value HostsTable::NumServicesUnknownAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetState() == StateUnknown)
 			num_services++;
 	}
@@ -1388,9 +1818,14 @@ Value HostsTable::NumServicesUnknownAccessor(const Value& row)
 
 Value HostsTable::NumServicesPendingAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (!service->GetLastCheckResult())
 			num_services++;
 	}
@@ -1400,9 +1835,14 @@ Value HostsTable::NumServicesPendingAccessor(const Value& row)
 
 Value HostsTable::WorstServiceHardStateAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Value worst_service = StateOK;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard) {
 			if (service->GetState() > worst_service)
 				worst_service = service->GetState();
@@ -1414,9 +1854,14 @@ Value HostsTable::WorstServiceHardStateAccessor(const Value& row)
 
 Value HostsTable::NumServicesHardOkAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == StateOK)
 			num_services++;
 	}
@@ -1426,9 +1871,14 @@ Value HostsTable::NumServicesHardOkAccessor(const Value& row)
 
 Value HostsTable::NumServicesHardWarnAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == StateWarning)
 			num_services++;
 	}
@@ -1438,9 +1888,14 @@ Value HostsTable::NumServicesHardWarnAccessor(const Value& row)
 
 Value HostsTable::NumServicesHardCritAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == StateCritical)
 			num_services++;
 	}
@@ -1450,9 +1905,14 @@ Value HostsTable::NumServicesHardCritAccessor(const Value& row)
 
 Value HostsTable::NumServicesHardUnknownAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == StateUnknown)
 			num_services++;
 	}
@@ -1463,7 +1923,12 @@ Value HostsTable::NumServicesHardUnknownAccessor(const Value& row)
 Value HostsTable::HardStateAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1479,7 +1944,12 @@ Value HostsTable::HardStateAccessor(const Value& row)
 Value HostsTable::StalenessAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1492,7 +1962,12 @@ Value HostsTable::StalenessAccessor(const Value& row)
 
 Value HostsTable::GroupsAccessor(const Value& row)
 {
-	Array::Ptr groups = static_cast<Host::Ptr>(row)->GetGroups();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Array::Ptr groups = host->GetGroups();
 
 	if (!groups)
 		return Empty;
@@ -1503,7 +1978,12 @@ Value HostsTable::GroupsAccessor(const Value& row)
 Value HostsTable::ContactGroupsAccessor(const Value& row)
 {
 	/* use hostcheck service */
-	Service::Ptr hc = static_cast<Host::Ptr>(row)->GetCheckService();
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
+	Service::Ptr hc = host->GetCheckService();
 
 	if (!hc)
 		return Empty;
@@ -1519,9 +1999,14 @@ Value HostsTable::ContactGroupsAccessor(const Value& row)
 
 Value HostsTable::ServicesAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Array::Ptr services = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		services->Add(service->GetShortName());
 	}
 
@@ -1530,9 +2015,14 @@ Value HostsTable::ServicesAccessor(const Value& row)
 
 Value HostsTable::ServicesWithStateAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Array::Ptr services = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Array::Ptr svc_add = boost::make_shared<Array>();
 
 		svc_add->Add(service->GetShortName());
@@ -1546,9 +2036,14 @@ Value HostsTable::ServicesWithStateAccessor(const Value& row)
 
 Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 {
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+	
+	if (!host)
+		return Empty;
+
 	Array::Ptr services = boost::make_shared<Array>();
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<Host::Ptr>(row)->GetServices()) {
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Array::Ptr svc_add = boost::make_shared<Array>();
 
 		svc_add->Add(service->GetShortName());

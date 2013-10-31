@@ -1,0 +1,7 @@
+GET log
+Columns: host_name service_description time lineno class type options plugin_output state state_type comment contact_name command_name
+Filter: time >= 1348657741
+Filter: host_name = localhost
+Filter: service_description = disk
+ResponseHeader: fixed16
+
