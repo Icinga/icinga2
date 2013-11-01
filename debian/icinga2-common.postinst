@@ -1,0 +1,61 @@
+#!/bin/sh
+# postinst script for icinga2-common
+
+set -e
+
+setperm() {
+    user="$1"
+    group="$2"
+    mode="$3"
+    file="$4"
+    shift 4
+    # only do something when no setting exists
+    if ! dpkg-statoverride --list "$file" >/dev/null 2>&1; then
+      chown "$user":"$group" "$file"
+      chmod "$mode" "$file"
+    fi
+}
+
+case "$1" in
+    configure)
+        if ! getent passwd nagios > /dev/null ; then
+            echo 'Adding system-user for nagios' 1>&2
+            adduser --system --group --home /var/lib/nagios \
+                    --disabled-login --force-badname nagios > /dev/null
+        fi
+
+        # explicitly set permissions on some files that are dependent
+        # on the uid/gid of the nagios user, which is dynamically created.
+        setperm nagios adm 2751 /var/log/icinga2
+        setperm nagios adm 2751 /var/log/icinga2/compat
+        setperm nagios adm 2755 /var/log/icinga2/compat/archives
+
+        setperm nagios nagios 0750 /var/lib/icinga2
+        setperm nagios nagios 0750 /var/lib/icinga2/cluster
+        setperm nagios nagios 0750 /var/lib/icinga2/cluster/config
+        setperm nagios nagios 0750 /var/lib/icinga2/cluster/log
+
+        setperm nagios www-data 0750 /var/cache/icinga2
+        setperm nagios nagios 0750 /var/spool/icinga2
+
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+init_failed ()
+{
+    echo "Icinga 2 was unable to start due to configuration errors.";
+    echo "Please fix them and manually restart the icinga2 daemon using";
+    echo " ´service icinga2 start´";
+}
+
+#DEBHELPER#
+
+exit 0

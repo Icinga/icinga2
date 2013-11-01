@@ -1,0 +1,19 @@
+Description: Disabled reconf of version includes
+ This helps avoiding the software to use the git-buildpackage for version info
+Author: Markus Frosch <markus@lazyfrosch.de>
+Last-Update: 2013-10-23
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -54,8 +54,8 @@
+ uninstall-local:
+ 	-rm -r $(icinga2docdir)
+ 
+-BUILT_SOURCES = icinga-version.stamp
+-CLEANFILES = icinga-version.h
++#BUILT_SOURCES = icinga-version.stamp
++#CLEANFILES = icinga-version.h
+ GIT_VERSION_CMD = $(SHELL) $(top_srcdir)/git_version.sh
+ icinga-version.stamp:
+ 	@if test -f "$(srcdir)/icinga-version.h"; then \

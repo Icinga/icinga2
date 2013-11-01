@@ -1,0 +1,5 @@
+debian/tmp/etc/icinga2/features-available/ido-mysql.conf
+usr/lib/*/icinga2/libdb_ido_mysql*
+components/db_ido_mysql/schema/*.sql usr/share/icinga2-ido-mysql/schema
+# for later
+#components/db_ido_mysql/schema/upgrades/*.sql usr/share/icinga2-ido-mysql/schema/upgrades

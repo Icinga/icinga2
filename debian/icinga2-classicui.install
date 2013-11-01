@@ -1,0 +1,3 @@
+debian/classicui/*.html         usr/share/icinga2/classicui
+debian/classicui/apache2.conf   etc/icinga2/classicui
+debian/classicui/cgi.cfg        etc/icinga2/classicui
