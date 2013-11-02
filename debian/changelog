@@ -1,7 +1,6 @@
-icinga2 (0.0.3-1~icingaorg+0) UNRELEASED; urgency=low
+icinga2 (0.0.3-0) UNRELEASED; urgency=low
 
-  * Initial Debian packaging for the Icinga 2 alphas and betas
-  * [dac8fa6] Imported Upstream version 0.0.3
+  * Icinga2 Debian packaging for snapshots
 
   *** Please note that at this point Icinga 2 is highly experimental software
   *** and is missing a significant portion of the planned features. This

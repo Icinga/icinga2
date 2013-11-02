@@ -2,31 +2,10 @@
 
 #export DH_VERBOSE=1
 
-define SAVEFILE
-	test -f $1.dh-orig || cp $1 $1.dh-orig
-endef
-define RESTOREFILE
-	test -f $1.dh-orig && mv $1.dh-orig $1; :
-endef
+export NOCONFIGURE=1
 
 %:
-	dh $@  --with autotools-dev --with autoreconf
-
-override_dh_autoreconf:
-	$(call SAVEFILE,Makefile.in)
-	$(call SAVEFILE,icinga2.spec)
-	$(call SAVEFILE,third-party/ltdl/Makefile.in)
-	$(call SAVEFILE,third-party/ltdl/aclocal.m4)
-	$(call SAVEFILE,third-party/ltdl/configure)
-	dh_autoreconf autoreconf -- -f -i third-party/ltdl/
-
-override_dh_autoreconf_clean:
-	dh_autoreconf_clean
-	$(call RESTOREFILE,Makefile.in)
-	$(call RESTOREFILE,icinga2.spec)
-	$(call RESTOREFILE,third-party/ltdl/Makefile.in)
-	$(call RESTOREFILE,third-party/ltdl/aclocal.m4)
-	$(call RESTOREFILE,third-party/ltdl/configure)
+	dh $@  --with autotools-dev
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -34,6 +13,7 @@ override_dh_auto_clean:
 	rm -f config.status
 
 override_dh_auto_configure:
+	./autogen.sh
 	dh_auto_configure -- --enable-python \
         --with-icinga-user=root \
         --with-icinga-group=bin \
