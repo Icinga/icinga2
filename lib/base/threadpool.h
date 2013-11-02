@@ -57,14 +57,15 @@ private:
 		ThreadBusy
 	};
 
-	struct ThreadStats
+	struct WorkerThread
 	{
+		boost::thread Thread;
 		ThreadState State;
 		bool Zombie;
 		double Utilization;
 		double LastUpdate;
 
-		ThreadStats(ThreadState state = ThreadDead)
+		WorkerThread(ThreadState state = ThreadDead)
 			: State(state), Zombie(false), Utilization(0), LastUpdate(0)
 		{ }
 	};
@@ -72,7 +73,7 @@ private:
 	int m_ID;
 	static int m_NextID;
 
-	ThreadStats m_ThreadStats[512];
+	WorkerThread m_Threads[512];
 
 	boost::thread m_ManagerThread;
 	boost::thread m_StatsThread;
