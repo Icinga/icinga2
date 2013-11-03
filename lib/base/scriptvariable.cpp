@@ -37,3 +37,8 @@ void ScriptVariable::Set(const String& name, const Value& value)
 {
 	m_Registry.Register(name, value);
 }
+
+void ScriptVariable::Declare(const String& name, const Value& value)
+{
+	m_Registry.RegisterIfNew(name, value);
+}

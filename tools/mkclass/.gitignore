@@ -1,5 +1,0 @@
-mkclass
-class_lexer.cc
-class_parser.cc
-class_parser.h
-class_parser.hh

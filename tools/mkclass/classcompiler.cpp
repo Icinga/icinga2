@@ -329,8 +329,6 @@ void ClassCompiler::CompileFile(const std::string& path)
 	if (!stream)
 		throw std::invalid_argument("Could not open config file: " + path);
 
-	std::cerr << "Compiling class file: " + path << std::endl;
-
 	return CompileStream(path, &stream);
 }
 

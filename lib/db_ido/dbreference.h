@@ -20,6 +20,8 @@
 #ifndef DBREFERENCE_H
 #define DBREFERENCE_H
 
+#include "db_ido/i2-db_ido.h"
+
 namespace icinga
 {
 
@@ -28,7 +30,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-struct DbReference
+struct I2_DB_IDO_API DbReference
 {
 public:
 	DbReference(void);

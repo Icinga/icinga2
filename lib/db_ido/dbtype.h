@@ -20,6 +20,7 @@
 #ifndef DBTYPE_H
 #define DBTYPE_H
 
+#include "db_ido/i2-db_ido.h"
 #include "base/object.h"
 #include "base/registry.h"
 #include <boost/smart_ptr/make_shared.hpp>
@@ -34,7 +35,7 @@ class DbObject;
  *
  * @ingroup ido
  */
-class DbType : public Object
+class I2_DB_IDO_API DbType : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbType);

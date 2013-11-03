@@ -1,4 +1,4 @@
-%code requires {
+%{
 /******************************************************************************
  * Icinga 2                                                                   *
  * Copyright (C) 2012-2013 Icinga Development Team (http://www.icinga.org/)   *
@@ -37,11 +37,11 @@
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/foreach.hpp>
 
-using namespace icinga;
-
 #define YYLTYPE icinga::DebugInfo
 
-}
+using namespace icinga;
+
+%}
 
 %pure-parser
 

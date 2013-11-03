@@ -20,6 +20,7 @@
 #ifndef DBQUERY_H
 #define DBQUERY_H
 
+#include "db_ido/i2-db_ido.h"
 #include "base/dictionary.h"
 
 namespace icinga
@@ -55,7 +56,7 @@ enum DbQueryCategory
 
 class DbObject;
 
-struct DbQuery
+struct I2_DB_IDO_API DbQuery
 {
 	int Type;
 	DbQueryCategory Category;

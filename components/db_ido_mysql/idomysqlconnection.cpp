@@ -288,7 +288,7 @@ String IdoMysqlConnection::Escape(const String& s)
 {
 	AssertOnWorkQueue();
 
-	ssize_t length = s.GetLength();
+	size_t length = s.GetLength();
 	char *to = new char[s.GetLength() * 2 + 1];
 
 	mysql_real_escape_string(&m_Connection, to, s.CStr(), length);

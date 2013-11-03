@@ -18,10 +18,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
- #include "classcompiler.h"
- #include "class_parser.h"
+#include "classcompiler.h"
 
 using namespace icinga;
+
+#define YYLTYPE icinga::ClassDebugInfo
+
+#include "class_parser.hh"
 
 #define YY_EXTRA_TYPE ClassCompiler *
 #define YY_USER_ACTION 							\

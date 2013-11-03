@@ -1,0 +1,8 @@
+add_subdirectory(checker)
+add_subdirectory(cluster)
+add_subdirectory(compat)
+add_subdirectory(db_ido_mysql)
+add_subdirectory(demo)
+add_subdirectory(livestatus)
+add_subdirectory(notification)
+add_subdirectory(perfdata)

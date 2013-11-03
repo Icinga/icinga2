@@ -33,9 +33,9 @@
 #	include <pthread_np.h>
 #endif /* __FreeBSD__ */
 
-#if HAVE_GCC_ABI_DEMANGLE
+#ifndef _MSC_VER
 #	include <cxxabi.h>
-#endif /* HAVE_GCC_ABI_DEMANGLE */
+#endif /* _MSC_VER */
 
 using namespace icinga;
 
@@ -51,7 +51,7 @@ String Utility::DemangleSymbolName(const String& sym)
 {
 	String result = sym;
 
-#if HAVE_GCC_ABI_DEMANGLE
+#ifndef _MSC_VER
 	int status;
 	char *realname = abi::__cxa_demangle(sym.CStr(), 0, 0, &status);
 
@@ -59,7 +59,7 @@ String Utility::DemangleSymbolName(const String& sym)
 		result = String(realname);
 		free(realname);
 	}
-#endif /* HAVE_GCC_ABI_DEMANGLE */
+#endif /* _MSC_VER */
 
 	return result;
 }
@@ -252,9 +252,9 @@ Utility::LoadExtensionLibrary(const String& library)
 {
 	String path;
 #ifdef _WIN32
-	path = Application::GetPkgLibDir() + "/" + library + ".dll";
+	path = library + ".dll";
 #else /* _WIN32 */
-	path = Application::GetPkgLibDir() + "/lib" + library + ".so";
+	path = "lib" + library + ".so";
 #endif /* _WIN32 */
 
 	Log(LogInformation, "base", "Loading library '" + path + "'");

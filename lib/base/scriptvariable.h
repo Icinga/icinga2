@@ -37,6 +37,7 @@ class I2_BASE_API ScriptVariable
 public:
 	static Value Get(const String& name);
 	static void Set(const String& name, const Value& value);
+	static void Declare(const String& name, const Value& value);
 
 private:
 	static Registry<ScriptVariable, Value> m_Registry;

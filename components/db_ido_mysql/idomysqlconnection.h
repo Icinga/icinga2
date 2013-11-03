@@ -24,7 +24,7 @@
 #include "base/array.h"
 #include "base/timer.h"
 #include "base/workqueue.h"
-#include <mysql/mysql.h>
+#include <mysql.h>
 
 namespace icinga
 {

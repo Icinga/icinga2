@@ -18,32 +18,18 @@ The following requirements need to be fulfilled in order to build the
 application using a dist tarball (package names for RHEL and Debian in
 parentheses):
 
+* cmake
 * GNU make (make)
 * C++ compiler (gcc-c++ on RHEL, build-essential on Debian)
 * OpenSSL library and header files (openssl-devel on RHEL, libssl-dev
                                     on Debian)
 * Boost library and header files (boost-devel on RHEL, libboost-all-dev
                                   on Debian)
+* GNU bison (bison)
+* GNU flex (flex)
 * optional: Doxygen (doxygen)
 * optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian)
 * optional: Python (python-devel on RHEL, python-dev on Debian)
-
-Packaging Requirements
-----------------------
-
-In order to build a dist tarball for the application the following external
-software components need to be installed in addition to the build requirements
-mentioned above:
-
-* GNU Automake (automake)
-* GNU Autoconf (autoconf)
-* GNU Libtool (libtool and libtool-ltdl-devel on RHEL, libtool and
-               libltdl-dev on Debian)
-* GNU bison (bison)
-* GNU flex (flex)
-
-In order to build the dist tarball (using "make dist") you need sufficiently
-recent versions of the packages listed above.
 
 User Requirements
 -----------------
@@ -72,19 +58,14 @@ Building Icinga 2
 Once you have installed all the necessary build requirements you can build
 Icinga 2 using the following commands:
 
-$ ./configure
+$ mkdir build && cd build
+$ cmake ..
 $ make
 $ make install
 
-The configure script supports all the usual parameters one comes to expect
-from autoconf. In particular you may want to use --prefix to specify an
-alternative installation prefix.
+You can specify an alternative installation prefix using -DCMAKE_INSTALL_PREFIX:
 
-Note: The Git repository does not contain any auto-generated Autotools files,
-i.e. there is no 'configure' script. In this case you will need to regenerate
-the 'configure' script by running 'autogen.sh'. However, as an end-user you
-should reconsider whether you really want to use the code from the Git
-repository. In general it is advisable to use one of the dist tarballs instead.
+$ cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
 
 Running Icinga 2
 ----------------

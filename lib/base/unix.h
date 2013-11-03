@@ -45,7 +45,4 @@ typedef int SOCKET;
 #ifndef MAXPATHLEN
 #	define MAXPATHLEN PATH_MAX
 #endif /* MAXPATHLEN */
-
-#define I2_EXPORT
-#define I2_IMPORT
 #endif /* UNIX_H */

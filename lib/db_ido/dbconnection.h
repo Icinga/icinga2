@@ -20,6 +20,7 @@
 #ifndef DBCONNECTION_H
 #define DBCONNECTION_H
 
+#include "db_ido/i2-db_ido.h"
 #include "db_ido/dbconnection.th"
 #include "db_ido/dbobject.h"
 #include "db_ido/dbquery.h"
@@ -33,7 +34,7 @@ namespace icinga
  *
  * @ingroup db_ido
  */
-class DbConnection : public ReflectionObjectImpl<DbConnection>
+class I2_DB_IDO_API DbConnection : public ReflectionObjectImpl<DbConnection>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbConnection);
