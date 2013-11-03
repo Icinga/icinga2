@@ -54,3 +54,4 @@ ConfigCompilerContext *ConfigCompilerContext::GetInstance(void)
 {
 	return Singleton<ConfigCompilerContext>::GetInstance();
 }
+

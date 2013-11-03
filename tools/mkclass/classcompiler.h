@@ -148,3 +148,4 @@ private:
 }
 
 #endif /* CLASSCOMPILER_H */
+
