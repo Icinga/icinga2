@@ -49,7 +49,7 @@ void WorkQueue::Enqueue(const WorkCallback& item)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	ASSERT(m_Stopped);
+	ASSERT(!m_Stopped);
 
 	while (m_Items.size() >= m_MaxItems)
 		m_CV.wait(lock);
