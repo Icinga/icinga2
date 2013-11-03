@@ -37,13 +37,12 @@
 #endif /* __MINGW32__ */
 
 typedef int socklen_t;
-typedef DWORD pid_t;
 
 #define MAXPATHLEN MAX_PATH
 
-#define I2_EXPORT __declspec(dllexport)
-#define I2_IMPORT __declspec(dllimport)
-
+#ifdef _MSC_VER
+typedef DWORD pid_t;
 #define strcasecmp stricmp
+#endif /* _MSC_VER */
 
 #endif /* WIN32_H */

@@ -26,6 +26,8 @@
 #include "base/utility.h"
 #include "base/exception.h"
 #include "base/convert.h"
+#include "base/scriptvariable.h"
+#include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -171,34 +173,11 @@ int main(int argc, char **argv)
 	/* Install exception handlers to make debugging easier. */
 	Application::InstallExceptionHandlers();
 
-#ifdef ICINGA_PREFIX
-	Application::SetPrefixDir(ICINGA_PREFIX);
-#else /* ICINGA_PREFIX */
-	Application::SetPrefixDir(".");
-#endif /* ICINGA_PREFIX */
+	Application::DeclarePrefixDir(ICINGA_PREFIX);
+	Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
+	Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
 
-#ifdef ICINGA_LOCALSTATEDIR
-	Application::SetLocalStateDir(ICINGA_LOCALSTATEDIR);
-#else /* ICINGA_LOCALSTATEDIR */
-	Application::SetLocalStateDir("./var");
-#endif /* ICINGA_LOCALSTATEDIR */
-
-#ifdef ICINGA_PKGLIBDIR
-	Application::SetPkgLibDir(ICINGA_PKGLIBDIR);
-#else /* ICINGA_PKGLIBDIR */
-	Application::SetPkgLibDir(".");
-#endif /* ICINGA_PKGLIBDIR */
-
-#ifdef ICINGA_PKGDATADIR
-	Application::SetPkgDataDir(ICINGA_PKGDATADIR);
-#else /* ICINGA_PKGDATADIR */
-	Application::SetPkgDataDir(".");
-#endif /* ICINGA_PKGDATADIR */
-
-	Application::SetStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
-	Application::SetPidPath(Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid");
-
-	Application::SetApplicationType("IcingaApplication");
+	Application::DeclareApplicationType("IcingaApplication");
 
 	po::options_description desc("Supported options");
 	desc.add_options()
@@ -206,6 +185,7 @@ int main(int argc, char **argv)
 		("version,V", "show version information")
 		("library,l", po::value<std::vector<String> >(), "load a library")
 		("include,I", po::value<std::vector<String> >(), "add include search directory")
+		("define,D", po::value<std::vector<String> >(), "define a variable")
 		("config,c", po::value<std::vector<String> >(), "parse a configuration file")
 		("validate,C", "exit after validating the configuration")
 		("debug,x", "enable debugging")
@@ -309,6 +289,25 @@ int main(int argc, char **argv)
 			  << "Icinga home page: <http://www.icinga.org/>" << std::endl;
 		return EXIT_SUCCESS;
 	}
+
+	if (g_AppParams.count("define")) {
+		BOOST_FOREACH(const String& define, g_AppParams["define"].as<std::vector<String> >()) {
+			String key, value;
+			size_t pos = define.FindFirstOf('=');
+			if (pos != String::NPos) {
+				key = define.SubStr(0, pos);
+				value = define.SubStr(pos + 1);
+			}
+			else {
+				key = define;
+				value = "1";
+			}
+			ScriptVariable::Set(key, value);
+		}
+	}
+
+	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
+	Application::DeclarePidPath(Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid");
 
 	Log(LogInformation, "icinga-app", "Icinga application loader (version: " + Application::GetVersion() + ")");
 

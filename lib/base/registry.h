@@ -48,23 +48,21 @@ public:
 		return Singleton<Registry<U, T> >::GetInstance();
 	}
 
+	void RegisterIfNew(const String& name, const T& item)
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		if (m_Items.find(name) != m_Items.end())
+			return;
+
+		RegisterInternal(name, item, lock);
+	}
+
 	void Register(const String& name, const T& item)
 	{
-		bool old_item = false;
+		boost::mutex::scoped_lock lock(m_Mutex);
 
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
-
-			if (m_Items.erase(name) > 0)
-				old_item = true;
-
-			m_Items[name] = item;
-		}
-
-		if (old_item)
-			OnUnregistered(name);
-
-		OnRegistered(name, item);
+		RegisterInternal(name, item, lock);
 	}
 
 	void Unregister(const String& name)
@@ -126,6 +124,23 @@ public:
 private:
 	mutable boost::mutex m_Mutex;
 	typename Registry<U, T>::ItemMap m_Items;
+
+	void RegisterInternal(const String& name, const T& item, boost::mutex::scoped_lock& lock)
+	{
+		bool old_item = false;
+
+		if (m_Items.erase(name) > 0)
+			old_item = true;
+
+		m_Items[name] = item;
+
+		lock.unlock();
+
+		if (old_item)
+			OnUnregistered(name);
+
+		OnRegistered(name, item);
+	}
 };
 
 }

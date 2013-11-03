@@ -13,21 +13,12 @@
 # Description:       Icinga 2 is a monitoring and management system for hosts, services and networks.
 ### END INIT INFO
 
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-sbindir=@sbindir@
-bindir=@bindir@
-sysconfdir=@sysconfdir@
-localstatedir=@localstatedir@
-icinga_user=@icinga_user@
-icinga_group=@icinga_group@
-
-DAEMON=$sbindir/icinga2
-ICINGA2_CONFIG_FILE=$sysconfdir/icinga2/icinga2.conf
-ICINGA2_PID_FILE=$localstatedir/run/icinga2/icinga2.pid
-ICINGA2_ERROR_LOG=$localstatedir/log/icinga2/error.log
-ICINGA2_USER=$icinga_user
-ICINGA2_GROUP=$icinga_group
+DAEMON=@CMAKE_INSTALL_FULL_SBINDIR@/icinga2
+ICINGA2_CONFIG_FILE=@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/icinga2.conf
+ICINGA2_PID_FILE=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/run/icinga2/icinga2.pid
+ICINGA2_ERROR_LOG=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/error.log
+ICINGA2_USER=@ICINGA2_USER@
+ICINGA2_GROUP=@ICINGA2_GROUP@
 
 test -x $DAEMON || exit 0
 

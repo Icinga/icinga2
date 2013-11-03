@@ -1,12 +1,5 @@
 #!/bin/sh
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-sbindir=@sbindir@
-bindir=@bindir@
-sysconfdir=@sysconfdir@
-localstatedir=@localstatedir@
-
-ICINGA2CONFDIR=@sysconfdir@/icinga2
+ICINGA2CONFDIR=@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2
 
 TOOL=$(basename -- $0)
 

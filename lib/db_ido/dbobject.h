@@ -20,6 +20,7 @@
 #ifndef DBOBJECT_H
 #define DBOBJECT_H
 
+#include "db_ido/i2-db_ido.h"
 #include "db_ido/dbreference.h"
 #include "db_ido/dbquery.h"
 #include "db_ido/dbtype.h"
@@ -56,7 +57,7 @@ enum DbObjectType
  *
  * @ingroup ido
  */
-class DbObject : public Object
+class I2_DB_IDO_API DbObject : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbObject);

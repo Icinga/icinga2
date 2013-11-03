@@ -1,9 +1,5 @@
 #!/bin/bash
-prefix=@prefix@
-datarootdir=@datarootdir@
-datadir=@datadir@
-
-ICINGA2PKIDIR=$datadir/icinga2/pki
+ICINGA2PKIDIR=@CMAKE_INSTALL_FULL_DATADIR@/icinga2/pki
 
 source $ICINGA2PKIDIR/pkifuncs
 

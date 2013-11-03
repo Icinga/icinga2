@@ -1,0 +1,1 @@
+#define VERSION "${GIT_VERSION}"

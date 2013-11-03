@@ -50,7 +50,7 @@ ProcessResult Process::Run(void)
 
 	int fds[2];
 
-#if HAVE_PIPE2
+#ifdef HAVE_PIPE2
 	if (pipe2(fds, O_CLOEXEC) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("pipe2")
@@ -106,11 +106,11 @@ ProcessResult Process::Run(void)
 
 	m_ExtraEnvironment.reset();
 
-#if HAVE_WORKING_VFORK
+#ifdef HAVE_VFORK
 	m_Pid = vfork();
-#else /* HAVE_WORKING_VFORK */
+#else /* HAVE_VFORK */
 	m_Pid = fork();
-#endif /* HAVE_WORKING_VFORK */
+#endif /* HAVE_VFORK */
 
 	if (m_Pid < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()

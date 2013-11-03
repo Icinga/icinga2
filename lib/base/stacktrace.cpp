@@ -21,7 +21,7 @@
 #include "base/qstring.h"
 #include "base/utility.h"
 
-#if HAVE_BACKTRACE_SYMBOLS
+#ifdef HAVE_BACKTRACE_SYMBOLS
 #	include <execinfo.h>
 #endif /* HAVE_BACKTRACE_SYMBOLS */
 
@@ -37,7 +37,7 @@ StackTrace::StackTrace(void)
 {
 	boost::call_once(m_OnceFlag, &StackTrace::Initialize);
 
-#if HAVE_BACKTRACE_SYMBOLS
+#ifdef HAVE_BACKTRACE_SYMBOLS
 	m_Count = backtrace(m_Frames, sizeof(m_Frames) / sizeof(m_Frames[0]));
 #else /* HAVE_BACKTRACE_SYMBOLS */
 #	ifdef _WIN32
@@ -110,7 +110,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 	fp << std::endl << "Stacktrace:" << std::endl;
 
 #ifndef _WIN32
-#	if HAVE_BACKTRACE_SYMBOLS
+#	ifdef HAVE_BACKTRACE_SYMBOLS
 	char **messages = backtrace_symbols(m_Frames, m_Count);
 
 	for (int i = ignoreFrames + 1; i < m_Count && messages != NULL; ++i) {

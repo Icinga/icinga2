@@ -26,6 +26,7 @@
 #include "base/utility.h"
 #include "base/debug.h"
 #include "base/scriptvariable.h"
+#include "icinga-version.h"
 #include <sstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/thread/thread.hpp>
@@ -38,10 +39,6 @@
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
 #include <iostream>
-
-#ifndef _WIN32
-#	include "icinga-version.h"
-#endif /* _WIN32 */
 
 using namespace icinga;
 
@@ -575,9 +572,9 @@ String Application::GetPrefixDir(void)
  *
  * @param path The new path.
  */
-void Application::SetPrefixDir(const String& path)
+void Application::DeclarePrefixDir(const String& path)
 {
-	ScriptVariable::Set("IcingaPrefixDir", path);
+	ScriptVariable::Declare("IcingaPrefixDir", path);
 }
 
 /**
@@ -595,29 +592,9 @@ String Application::GetLocalStateDir(void)
  *
  * @param path The new path.
  */
-void Application::SetLocalStateDir(const String& path)
+void Application::DeclareLocalStateDir(const String& path)
 {
-	ScriptVariable::Set("IcingaLocalStateDir", path);
-}
-
-/**
- * Retrieves the path for the package lib dir.
- *
- * @returns The path.
- */
-String Application::GetPkgLibDir(void)
-{
-	return ScriptVariable::Get("IcingaPkgLibDir");
-}
-
-/**
- * Sets the path for the package lib dir.
- *
- * @param path The new path.
- */
-void Application::SetPkgLibDir(const String& path)
-{
-	ScriptVariable::Set("IcingaPkgLibDir", path);
+	ScriptVariable::Declare("IcingaLocalStateDir", path);
 }
 
 /**
@@ -635,9 +612,9 @@ String Application::GetPkgDataDir(void)
  *
  * @param path The new path.
  */
-void Application::SetPkgDataDir(const String& path)
+void Application::DeclarePkgDataDir(const String& path)
 {
-	ScriptVariable::Set("IcingaPkgDataDir", path);
+	ScriptVariable::Declare("IcingaPkgDataDir", path);
 }
 
 /**
@@ -655,9 +632,9 @@ String Application::GetStatePath(void)
  *
  * @param path The new path.
  */
-void Application::SetStatePath(const String& path)
+void Application::DeclareStatePath(const String& path)
 {
-	ScriptVariable::Set("IcingaStatePath", path);
+	ScriptVariable::Declare("IcingaStatePath", path);
 }
 
 /**
@@ -675,9 +652,9 @@ String Application::GetPidPath(void)
  *
  * @param path The new path.
  */
-void Application::SetPidPath(const String& path)
+void Application::DeclarePidPath(const String& path)
 {
-	ScriptVariable::Set("IcingaPidPath", path);
+	ScriptVariable::Declare("IcingaPidPath", path);
 }
 
 /**
@@ -695,9 +672,9 @@ String Application::GetApplicationType(void)
  *
  * @param path The new type name.
  */
-void Application::SetApplicationType(const String& type)
+void Application::DeclareApplicationType(const String& type)
 {
-	ScriptVariable::Set("ApplicationType", type);
+	ScriptVariable::Declare("ApplicationType", type);
 }
 
 /**
@@ -713,11 +690,7 @@ ThreadPool& Application::GetTP(void)
 
 String Application::GetVersion(void)
 {
-#ifndef _WIN32
-	return VERSION ", " GIT_MESSAGE;
-#else /* _WIN32 */
-	return "unspecified version";
-#endif /* _WIN32 */
+	return VERSION;
 }
 
 double Application::GetStartTime(void)

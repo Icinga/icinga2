@@ -71,25 +71,22 @@ public:
 	static String GetExePath(const String& argv0);
 
 	static String GetPrefixDir(void);
-	static void SetPrefixDir(const String& path);
+	static void DeclarePrefixDir(const String& path);
 
 	static String GetLocalStateDir(void);
-	static void SetLocalStateDir(const String& path);
-
-	static String GetPkgLibDir(void);
-	static void SetPkgLibDir(const String& path);
+	static void DeclareLocalStateDir(const String& path);
 
 	static String GetPkgDataDir(void);
-	static void SetPkgDataDir(const String& path);
+	static void DeclarePkgDataDir(const String& path);
 
 	static String GetStatePath(void);
-	static void SetStatePath(const String& path);
+	static void DeclareStatePath(const String& path);
 
 	static String GetPidPath(void);
-	static void SetPidPath(const String& path);
+	static void DeclarePidPath(const String& path);
 
 	static String GetApplicationType(void);
-	static void SetApplicationType(const String& type);
+	static void DeclareApplicationType(const String& type);
 
 	static ThreadPool& GetTP(void);
 

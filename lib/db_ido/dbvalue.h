@@ -20,6 +20,7 @@
 #ifndef DBVALUE_H
 #define DBVALUE_H
 
+#include "db_ido/i2-db_ido.h"
 #include "base/object.h"
 #include "base/value.h"
 #include <boost/smart_ptr/make_shared.hpp>
@@ -39,7 +40,7 @@ enum DbValueType
  *
  * @ingroup ido
  */
-struct DbValue : public Object
+struct I2_DB_IDO_API DbValue : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbValue);

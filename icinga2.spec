@@ -46,8 +46,8 @@
 %define logmsg logger -t %{name}/rpm
 
 Summary: network monitoring application
-Name: @PACKAGE@
-Version: @VERSION@
+Name: icinga2
+Version: 0.0.3
 Release: %{revision}%{?dist}
 License: GPLv2+
 Group: Applications/System
@@ -59,9 +59,7 @@ BuildRequires: doxygen
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
-BuildRequires: automake
-BuildRequires: autoconf
-BuildRequires: libtool
+BuildRequires: cmake
 BuildRequires: flex
 BuildRequires: bison
 BuildRequires: %{apachename}
@@ -72,14 +70,12 @@ BuildRequires: %{apachename}
 BuildRequires: boost%{el5_boost_version}-devel
 BuildRequires: boost%{el5_boost_version}
 Requires: boost%{el5_boost_version}-program-options
-Requires: boost%{el5_boost_version}-signals
 Requires: boost%{el5_boost_version}-system
 Requires: boost%{el5_boost_version}-test
 Requires: boost%{el5_boost_version}-thread
 %else
 BuildRequires: boost-devel >= 1.41
 Requires: boost-program-options >= 1.41
-Requires: boost-signals >= 1.41
 Requires: boost-system >= 1.41
 Requires: boost-test >= 1.41
 Requires: boost-thread >= 1.41
@@ -93,14 +89,12 @@ BuildRequires: boost-license%{sles_boost_version}
 BuildRequires: boost-devel >= 1.41
 Requires: boost-license%{sles_boost_version}
 Requires: libboost_program_options%{sles_boost_version}
-Requires: libboost_signals%{sles_boost_version}
 Requires: libboost_system%{sles_boost_version}
 Requires: libboost_test%{sles_boost_version}
 Requires: libboost_thread%{sles_boost_version}
 %else
 BuildRequires: boost-devel >= 1.41
 Requires: libboost_program_options%{opensuse_boost_version}
-Requires: libboost_signals%{opensuse_boost_version}
 Requires: libboost_system%{opensuse_boost_version}
 Requires: libboost_test%{opensuse_boost_version}
 Requires: libboost_thread%{opensuse_boost_version}
@@ -175,19 +169,29 @@ for Icinga 2.
 %setup -q -n %{name}-%{version}
 
 %build
-%configure --with-icinga-user=%{icinga_user} \
-	--with-icinga-group=%{icinga_group} \
-	--with-icingacmd-user=%{icinga_user} \
-	--with-icingacmd-group=%{icingacmd_group}
+CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
+         -DCMAKE_INSTALL_SYSCONFDIR=/etc \
+		 -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
+         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+         -DICINGA2_USER=%{icinga_user} \
+         -DICINGA2_GROUP=%{icinga_group} \
+	     -DICINGA2_COMMAND_USER=%{icinga_user} \
+	     -DICINGA2_COMMAND_GROUP=%{icingacmd_group}"
+%if "%{_vendor}" == "redhat"
+%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
+CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
+ -DBOOST_INCLUDEDIR=/usr/include/boost141 \
+ -DBoost_ADDITIONAL_VERSIONS='1.41;1.41.0'"
+%endif
+%endif
+cmake $CMAKE_OPTS . 
 
 make %{?_smp_mflags}
 
 %install
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
 make install \
-	DESTDIR="%{buildroot}" \
-	INSTALL_OPTS="" \
-	COMMAND_OPTS=""
+	DESTDIR="%{buildroot}"
 
 # install classicui config
 install -D -m 0644 etc/icinga/icinga-classic.htpasswd %{buildroot}%{icingaclassicconfdir}/passwd
