@@ -25,8 +25,6 @@
 #include <vector>
 #include <algorithm>
 
-struct YYLTYPE;
-
 namespace icinga
 {
 

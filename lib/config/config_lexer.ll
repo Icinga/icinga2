@@ -22,10 +22,13 @@
 #include "config/expression.h"
 #include "config/typerule.h"
 #include "config/configcompilercontext.h"
+
+using namespace icinga;
+
 #include "config/config_parser.hh"
 #include <sstream>
 
-using namespace icinga;
+#define YYLTYPE icinga::DebugInfo
 
 #define YY_EXTRA_TYPE ConfigCompiler *
 #define YY_USER_ACTION 					\

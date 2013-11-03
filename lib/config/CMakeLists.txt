@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-find_package(BISON 2.4.1 REQUIRED)
+find_package(BISON 2.3.0 REQUIRED)
 find_package(FLEX 2.5.37 REQUIRED)
 
 bison_target(config_parser config_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc)

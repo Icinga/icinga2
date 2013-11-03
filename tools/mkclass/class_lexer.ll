@@ -19,9 +19,12 @@
  ******************************************************************************/
 
 #include "classcompiler.h"
-#include "class_parser.hh"
 
 using namespace icinga;
+
+#define YYLTYPE icinga::ClassDebugInfo
+
+#include "class_parser.hh"
 
 #define YY_EXTRA_TYPE ClassCompiler *
 #define YY_USER_ACTION 							\
