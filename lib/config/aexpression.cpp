@@ -67,3 +67,4 @@ Value AExpression::Evaluate(const Object::Ptr& thisRef) const
 			ASSERT(!"Invalid operator.");
 	}
 }
+
