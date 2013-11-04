@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API FileLogger : public ReflectionObjectImpl<FileLogger>
+class I2_BASE_API FileLogger : public ObjectImpl<FileLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(FileLogger);

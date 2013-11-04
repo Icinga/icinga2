@@ -19,6 +19,7 @@
 
 #include "base/dynamicobject.h"
 #include "base/dynamictype.h"
+#include "base/serializer.h"
 #include "base/netstring.h"
 #include "base/registry.h"
 #include "base/stdiostream.h"
@@ -220,7 +221,7 @@ void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 			persistentObject->Set("type", type->GetName());
 			persistentObject->Set("name", object->GetName());
 
-			Dictionary::Ptr update = object->Serialize(attributeTypes);
+			Dictionary::Ptr update = Serializer::Serialize(object, attributeTypes);
 
 			if (!update)
 				continue;
@@ -279,7 +280,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 		if (object) {
 			ASSERT(!object->IsActive());
 			Log(LogDebug, "base", "Restoring object '" + name + "' of type '" + type + "'.");
-			object->Deserialize(update, attributeTypes);
+			Serializer::Deserialize(object, update, attributeTypes);
 			object->OnStateLoaded();
 		}
 

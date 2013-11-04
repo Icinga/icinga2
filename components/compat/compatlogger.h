@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup compat
  */
-class CompatLogger : public ReflectionObjectImpl<CompatLogger>
+class CompatLogger : public ObjectImpl<CompatLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CompatLogger);

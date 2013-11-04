@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/dynamictype.h"
+#include "base/serializer.h"
 #include "base/debug.h"
 #include "base/objectlock.h"
 
@@ -138,7 +139,7 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 
 	DynamicObject::Ptr object = factory();
 
-	object->Deserialize(serializedUpdate, Attribute_Config);
+	Serializer::Deserialize(object, serializedUpdate, FAConfig);
 
 	return object;
 }

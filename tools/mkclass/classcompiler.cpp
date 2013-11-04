@@ -85,10 +85,10 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 	if (klass.Name.find_first_of(':') == std::string::npos)
 		std::cout << "class " << klass.Name << ";" << std::endl << std::endl;
 
-	/* ReflectionTypeImpl */
+	/* TypeImpl */
 	std::cout << "template<>" << std::endl
-		<< "class ReflectionTypeImpl<" << klass.Name << ">"
-		<< " : public ReflectionType, public Singleton<ReflectionTypeImpl<" << klass.Name << "> >" << std::endl
+		<< "class TypeImpl<" << klass.Name << ">"
+		<< " : public Type, public Singleton<TypeImpl<" << klass.Name << "> >" << std::endl
 		<< "{" << std::endl
 		<< "public:" << std::endl;
 
@@ -104,7 +104,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 		<< "\t\t" << "int offset = ";
 
 	if (!klass.Parent.empty())
-		std::cout << "ReflectionTypeImpl<" << klass.Parent << ">::StaticGetFieldCount()";
+		std::cout << "TypeImpl<" << klass.Parent << ">::StaticGetFieldCount()";
 	else
 		std::cout << "0";
 
@@ -121,7 +121,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 		<< "\t\t" << "return ";
 
 	if (!klass.Parent.empty())
-		std::cout << "ReflectionTypeImpl<" << klass.Parent << ">::StaticGetFieldId(name)";
+		std::cout << "TypeImpl<" << klass.Parent << ">::StaticGetFieldId(name)";
 	else
 		std::cout << "-1";
 
@@ -129,18 +129,18 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 		<< "\t" << "}" << std::endl << std::endl;
 
 	/* GetFieldInfo */
-	std::cout << "\t" << "virtual ReflectionField GetFieldInfo(int id) const" << std::endl
+	std::cout << "\t" << "virtual Field GetFieldInfo(int id) const" << std::endl
 		<< "\t" << "{" << std::endl
 		<< "\t\t" << "return StaticGetFieldInfo(id);" << std::endl
 		<< "\t" << "}" << std::endl << std::endl;
 
 	/* StaticGetFieldInfo */
-	std::cout << "\t" << "static ReflectionField StaticGetFieldInfo(int id)" << std::endl
+	std::cout << "\t" << "static Field StaticGetFieldInfo(int id)" << std::endl
 		<< "\t" << "{" << std::endl;
 
 	if (!klass.Parent.empty())
-		std::cout << "\t\t" << "int real_id = id - " << "ReflectionTypeImpl<" << klass.Parent << ">::StaticGetFieldCount();" << std::endl
-		<< "\t\t" << "if (real_id < 0) { return " << "ReflectionTypeImpl<" << klass.Parent << ">::StaticGetFieldInfo(id); }" << std::endl;
+		std::cout << "\t\t" << "int real_id = id - " << "TypeImpl<" << klass.Parent << ">::StaticGetFieldCount();" << std::endl
+		<< "\t\t" << "if (real_id < 0) { return " << "TypeImpl<" << klass.Parent << ">::StaticGetFieldInfo(id); }" << std::endl;
 
 	std::cout << "\t\t" << "switch (";
 
@@ -154,7 +154,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 	num = 0;
 	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
 		std::cout << "\t\t\t" << "case " << num << ":" << std::endl
-			<< "\t\t\t\t" << "return ReflectionField(" << num << ", \"" << it->Name << "\", " << it->Attributes << ");" << std::endl;
+			<< "\t\t\t\t" << "return Field(" << num << ", \"" << it->Name << "\", " << it->Attributes << ");" << std::endl;
 		num++;
 	}
 
@@ -176,31 +176,31 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 		<< "\t\t" << "return " << klass.Fields.size();
 
 	if (!klass.Parent.empty())
-		std::cout << " + " << "ReflectionTypeImpl<" << klass.Parent << ">::StaticGetFieldCount()";
+		std::cout << " + " << "TypeImpl<" << klass.Parent << ">::StaticGetFieldCount()";
 
 	std::cout << ";" << std::endl
 		<< "\t" << "}" << std::endl << std::endl;
 
 	std::cout << "};" << std::endl << std::endl;
 
-	/* ReflectionObjectImpl */
+	/* ObjectImpl */
 	std::cout << "template<>" << std::endl
-		  << "class ReflectionObjectImpl<" << klass.Name << ">"
-		  << " : public " << (klass.Parent.empty() ? "ReflectionObject" : klass.Parent) << std::endl
+		  << "class ObjectImpl<" << klass.Name << ">"
+		  << " : public " << (klass.Parent.empty() ? "Object" : klass.Parent) << std::endl
 		  << "{" << std::endl
 		  << "public:" << std::endl
-		  << "\t" << "DECLARE_PTR_TYPEDEFS(ReflectionObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
+		  << "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
 
-	/* GetType */
-	std::cout << "\t" << "virtual const ReflectionType *GetReflectionType(void) const" << std::endl
+	/* GetReflectionType */
+	std::cout << "\t" << "virtual const Type *GetReflectionType(void) const" << std::endl
 			  << "\t" << "{" << std::endl
-			  << "\t\t" << "return ReflectionTypeImpl<" << klass.Name << ">::GetInstance();" << std::endl
+			  << "\t\t" << "return TypeImpl<" << klass.Name << ">::GetInstance();" << std::endl
 			  << "\t" << "}" << std::endl << std::endl;
 
 	if (!klass.Fields.empty()) {
 		/* constructor */
 		std::cout << "public:" << std::endl
-			  << "\t" << "ReflectionObjectImpl<" << klass.Name << ">(void)" << std::endl
+			  << "\t" << "ObjectImpl<" << klass.Name << ">(void)" << std::endl
 			  << "\t" << "{" << std::endl;
 
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
@@ -215,7 +215,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 				  << "\t" << "{" << std::endl;
 
 		if (!klass.Parent.empty())
-			std::cout << "\t\t" << "int real_id = id - ReflectionTypeImpl<" << klass.Parent << ">::StaticGetFieldCount(); " << std::endl
+			std::cout << "\t\t" << "int real_id = id - TypeImpl<" << klass.Parent << ">::StaticGetFieldCount(); " << std::endl
 			          << "\t\t" << "if (real_id < 0) { " << klass.Parent << "::SetField(id, value); return; }" << std::endl;
 
 		std::cout << "\t\t" << "switch (";
@@ -257,7 +257,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 				  << "\t" << "{" << std::endl;
 
 		if (!klass.Parent.empty())
-			std::cout << "\t\t" << "int real_id = id - ReflectionTypeImpl<" << klass.Parent << ">::StaticGetFieldCount(); " << std::endl
+			std::cout << "\t\t" << "int real_id = id - TypeImpl<" << klass.Parent << ">::StaticGetFieldCount(); " << std::endl
 					  << "\t\t" << "if (real_id < 0) { return " << klass.Parent << "::GetField(id); }" << std::endl;
 
 		std::cout << "\t\t" << "switch (";
@@ -368,7 +368,8 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream *stream)
 {
 	stream->exceptions(std::istream::badbit);
 
-	std::cout << "#include \"base/reflectionobject.h\"" << std::endl
+	std::cout << "#include \"base/object.h\"" << std::endl
+			  << "#include \"base/type.h\"" << std::endl
 			  << "#include \"base/singleton.h\"" << std::endl
 			  << "#include \"base/debug.h\"" << std::endl
 			  << "#include \"base/value.h\"" << std::endl

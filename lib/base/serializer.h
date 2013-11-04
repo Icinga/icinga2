@@ -17,70 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef REFLECTIONOBJECT_H
-#define REFLECTIONOBJECT_H
+#ifndef SERIALIZER_H
+#define SERIALIZER_H
 
-#include "base/object.h"
+#include "base/i2-base.h"
 #include "base/dictionary.h"
-#include <vector>
 
 namespace icinga
 {
 
-enum ReflectionFieldAttribute
-{
-	FAConfig = 1,
-	FAState = 2
-};
-
-struct ReflectionField
-{
-	int ID;
-	String Name;
-	int Attributes;
-
-	ReflectionField(int id, const String& name, int attributes)
-		: ID(id), Name(name), Attributes(attributes)
-	{ }
-};
-
-enum InvokationType
-{
-	ITGet,
-	ITSet
-};
-
-class I2_BASE_API ReflectionType
+/**
+ * Serializer utilities.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API Serializer
 {
 public:
-	virtual int GetFieldId(const String& name) const = 0;
-	virtual ReflectionField GetFieldInfo(int id) const = 0;
-	virtual int GetFieldCount(void) const = 0;
-};
+	static Dictionary::Ptr Serialize(const Object::Ptr& object, int attributeTypes);
+	static void Deserialize(const Object::Ptr& object, const Dictionary::Ptr& update, int attributeTypes);
 
-class I2_BASE_API ReflectionObject : public Object
-{
-public:
-	DECLARE_PTR_TYPEDEFS(ReflectionObject);
-
-	virtual const ReflectionType *GetReflectionType(void) const = 0;
-	virtual void SetField(int id, const Value& value) = 0;
-	virtual Value GetField(int id) const = 0;
-
-	Dictionary::Ptr Serialize(int attributeTypes) const;
-	void Deserialize(const Dictionary::Ptr& update, int attributeTypes);
-};
-
-template<typename T>
-class ReflectionTypeImpl
-{
-};
-
-template<typename T>
-class ReflectionObjectImpl
-{
+private:
+	Serializer(void);
 };
 
 }
 
-#endif /* REFLECTIONOBJECT_H */
+#endif /* SERIALIZER_H */

@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class PerfdataWriter : public ReflectionObjectImpl<PerfdataWriter>
+class PerfdataWriter : public ObjectImpl<PerfdataWriter>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(PerfdataWriter);

@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-class IdoPgsqlConnection : public ReflectionObjectImpl<IdoPgsqlConnection>
+class IdoPgsqlConnection : public ObjectImpl<IdoPgsqlConnection>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(IdoPgsqlConnection);

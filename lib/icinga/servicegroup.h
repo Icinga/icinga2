@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API ServiceGroup : public ReflectionObjectImpl<ServiceGroup>
+class I2_ICINGA_API ServiceGroup : public ObjectImpl<ServiceGroup>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ServiceGroup);

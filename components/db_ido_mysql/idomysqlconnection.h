@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-class IdoMysqlConnection : public ReflectionObjectImpl<IdoMysqlConnection>
+class IdoMysqlConnection : public ObjectImpl<IdoMysqlConnection>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(IdoMysqlConnection);

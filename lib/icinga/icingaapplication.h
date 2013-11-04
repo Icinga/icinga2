@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API IcingaApplication : public ReflectionObjectImpl<IcingaApplication>, public MacroResolver
+class I2_ICINGA_API IcingaApplication : public ObjectImpl<IcingaApplication>, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(IcingaApplication);

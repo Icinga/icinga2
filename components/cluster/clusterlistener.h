@@ -39,7 +39,7 @@ namespace icinga
 /**
  * @ingroup cluster
  */
-class ClusterListener : public ReflectionObjectImpl<ClusterListener>
+class ClusterListener : public ObjectImpl<ClusterListener>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ClusterListener);

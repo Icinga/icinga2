@@ -46,7 +46,7 @@ struct LogEntry {
  *
  * @ingroup base
  */
-class I2_BASE_API Logger : public ReflectionObjectImpl<Logger>
+class I2_BASE_API Logger : public ObjectImpl<Logger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Logger);

@@ -34,17 +34,6 @@ namespace icinga
 
 class DynamicType;
 
-/**
- * The type of an attribute for a DynamicObject.
- *
- * @ingroup base
- */
-enum AttributeType
-{
-	Attribute_State = FAState,
-	Attribute_Config = FAConfig
-};
-
 enum DomainPriv
 {
 	DomainPrivRead = (1<<0),
@@ -58,7 +47,7 @@ enum DomainPriv
  *
  * @ingroup base
  */
-class I2_BASE_API DynamicObject : public ReflectionObjectImpl<DynamicObject>
+class I2_BASE_API DynamicObject : public ObjectImpl<DynamicObject>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DynamicObject);
@@ -105,8 +94,8 @@ public:
 		return dynamic_pointer_cast<T>(object);
 	}
 
-	static void DumpObjects(const String& filename, int attributeTypes = Attribute_State);
-	static void RestoreObjects(const String& filename, int attributeTypes = Attribute_State);
+	static void DumpObjects(const String& filename, int attributeTypes = FAState);
+	static void RestoreObjects(const String& filename, int attributeTypes = FAState);
 	static void StopObjects(void);
 
 protected:

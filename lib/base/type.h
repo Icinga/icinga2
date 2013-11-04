@@ -17,42 +17,40 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/reflectionobject.h"
-#include <boost/smart_ptr/make_shared.hpp>
+#ifndef TYPE_H
+#define TYPE_H
 
-using namespace icinga;
+#include "base/i2-base.h"
+#include "base/qstring.h"
 
-Dictionary::Ptr ReflectionObject::Serialize(int attributeTypes) const
+namespace icinga
 {
-	const ReflectionType *type = GetReflectionType();
 
-	Dictionary::Ptr update = boost::make_shared<Dictionary>();
+enum FieldAttribute
+{
+	FAConfig = 1,
+	FAState = 2
+};
 
-	for (int i = 0; i < type->GetFieldCount(); i++) {
-		ReflectionField field = type->GetFieldInfo(i);
+struct Field
+{
+	int ID;
+	String Name;
+	int Attributes;
 
-		if ((field.Attributes & attributeTypes) == 0)
-			continue;
+	Field(int id, const String& name, int attributes)
+		: ID(id), Name(name), Attributes(attributes)
+	{ }
+};
 
-		update->Set(field.Name, GetField(i));
-	}
+class I2_BASE_API Type
+{
+public:
+	virtual int GetFieldId(const String& name) const = 0;
+	virtual Field GetFieldInfo(int id) const = 0;
+	virtual int GetFieldCount(void) const = 0;
+};
 
-	return update;
 }
 
-void ReflectionObject::Deserialize(const Dictionary::Ptr& update, int attributeTypes)
-{
-	const ReflectionType *type = GetReflectionType();
-
-	for (int i = 0; i < type->GetFieldCount(); i++) {
-		ReflectionField field = type->GetFieldInfo(i);
-
-		if ((field.Attributes & attributeTypes) == 0)
-			continue;
-
-		if (!update->Contains(field.Name))
-			continue;
-
-		SetField(i, update->Get(field.Name));
-	}
-}
+#endif /* TYPE_H */

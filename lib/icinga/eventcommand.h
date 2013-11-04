@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API EventCommand : public ReflectionObjectImpl<EventCommand>
+class I2_ICINGA_API EventCommand : public ObjectImpl<EventCommand>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(EventCommand);

@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API ConsoleLogger : public ReflectionObjectImpl<ConsoleLogger>
+class I2_BASE_API ConsoleLogger : public ObjectImpl<ConsoleLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleLogger);

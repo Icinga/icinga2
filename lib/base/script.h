@@ -33,7 +33,7 @@ class ScriptInterpreter;
  *
  * @ingroup base
  */
-class I2_BASE_API Script : public ReflectionObjectImpl<Script>
+class I2_BASE_API Script : public ObjectImpl<Script>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Script);
