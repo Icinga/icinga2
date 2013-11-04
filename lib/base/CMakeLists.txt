@@ -38,7 +38,7 @@ add_library(base SHARED
   unixsocket.cpp utility.cpp value.cpp workqueue.cpp zlibstream.cpp
 )
 
-target_link_libraries(base ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} cJSON mmatch)
+target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} cJSON mmatch)
 
 include_directories(${icinga2_SOURCE_DIR}/third-party/cJSON)
 link_directories(${icinga2_BINARY_DIR}/third-party/cJSON)
