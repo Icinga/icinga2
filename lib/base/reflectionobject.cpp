@@ -24,10 +24,12 @@ using namespace icinga;
 
 Dictionary::Ptr ReflectionObject::Serialize(int attributeTypes) const
 {
+	const ReflectionType *type = GetReflectionType();
+
 	Dictionary::Ptr update = boost::make_shared<Dictionary>();
 
-	for (int i = 0; i < GetFieldCount(); i++) {
-		ReflectionField field = GetFieldInfo(i);
+	for (int i = 0; i < type->GetFieldCount(); i++) {
+		ReflectionField field = type->GetFieldInfo(i);
 
 		if ((field.Attributes & attributeTypes) == 0)
 			continue;
@@ -40,8 +42,10 @@ Dictionary::Ptr ReflectionObject::Serialize(int attributeTypes) const
 
 void ReflectionObject::Deserialize(const Dictionary::Ptr& update, int attributeTypes)
 {
-	for (int i = 0; i < GetFieldCount(); i++) {
-		ReflectionField field = GetFieldInfo(i);
+	const ReflectionType *type = GetReflectionType();
+
+	for (int i = 0; i < type->GetFieldCount(); i++) {
+		ReflectionField field = type->GetFieldInfo(i);
 
 		if ((field.Attributes & attributeTypes) == 0)
 			continue;

@@ -48,9 +48,8 @@ public:
 
 		return instance;
 	}
-private:
-	friend T *T::GetInstance(void);
 
+private:
 	static T *m_Instance;
 };
 

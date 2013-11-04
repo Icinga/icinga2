@@ -38,10 +38,9 @@ struct ReflectionField
 	int ID;
 	String Name;
 	int Attributes;
-	Value DefaultValue;
 
-	ReflectionField(int id, const String& name, int attributes, const Value& default_value = Empty)
-		: ID(id), Name(name), Attributes(attributes), DefaultValue(default_value)
+	ReflectionField(int id, const String& name, int attributes)
+		: ID(id), Name(name), Attributes(attributes)
 	{ }
 };
 
@@ -51,19 +50,30 @@ enum InvokationType
 	ITSet
 };
 
+class I2_BASE_API ReflectionType
+{
+public:
+	virtual int GetFieldId(const String& name) const = 0;
+	virtual ReflectionField GetFieldInfo(int id) const = 0;
+	virtual int GetFieldCount(void) const = 0;
+};
+
 class I2_BASE_API ReflectionObject : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ReflectionObject);
 
-	virtual int GetFieldId(const String& name) const = 0;
-	virtual ReflectionField GetFieldInfo(int id) const = 0;
-	virtual int GetFieldCount(void) const = 0;
+	virtual const ReflectionType *GetReflectionType(void) const = 0;
 	virtual void SetField(int id, const Value& value) = 0;
 	virtual Value GetField(int id) const = 0;
 
 	Dictionary::Ptr Serialize(int attributeTypes) const;
 	void Deserialize(const Dictionary::Ptr& update, int attributeTypes);
+};
+
+template<typename T>
+class ReflectionTypeImpl
+{
 };
 
 template<typename T>
