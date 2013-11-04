@@ -46,7 +46,7 @@ Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, service->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
 	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
 
@@ -56,7 +56,7 @@ Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 		BOOST_FOREACH(const String& macro, export_macros) {
 			String value;
 
-			if (!MacroProcessor::ResolveMacro(macro, resolvers, Dictionary::Ptr(), &value)) {
+			if (!MacroProcessor::ResolveMacro(macro, resolvers, service->GetLastCheckResult(), &value)) {
 				Log(LogWarning, "icinga", "export_macros for service '" + service->GetName() + "' refers to unknown macro '" + macro + "'");
 				continue;
 			}
