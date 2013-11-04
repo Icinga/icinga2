@@ -159,6 +159,11 @@ void Application::RunEventLoop(void) const
 #endif /* _DEBUG */
 }
 
+void Application::OnShutdown(void)
+{
+	/* Nothing to do here. */
+}
+
 /**
  * Watches for changes to the system time. Adjusts timers if necessary.
  */
