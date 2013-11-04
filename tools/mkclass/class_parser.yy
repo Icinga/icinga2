@@ -50,6 +50,7 @@ using namespace icinga;
 %token T_INCLUDE "include (T_INCLUDE)"
 %token T_CLASS "class (T_CLASS)"
 %token T_CODE "code (T_CODE)"
+%token T_ABSTRACT "abstract (T_ABSTRACT)"
 %token T_NAMESPACE "namespace (T_NAMESPACE)"
 %token T_STRING "string (T_STRING)"
 %token T_ANGLE_STRING "angle_string (T_ANGLE_STRING)"
@@ -72,6 +73,7 @@ using namespace icinga;
 %type <num> field_attributes
 %type <num> field_attribute_list
 %type <num> T_FIELD_ACCESSOR_TYPE
+%type <num> abstract_specifier
 %type <field> class_field
 %type <fields> class_fields
 %type <klass> class
@@ -163,20 +165,32 @@ code: T_CODE T_STRING
 	}
 	;
 
-class: T_CLASS T_IDENTIFIER inherits_specifier '{' class_fields '}' ';'
+class: abstract_specifier T_CLASS T_IDENTIFIER inherits_specifier '{' class_fields '}' ';'
 	{
 		$$ = new Klass();
 
-		$$->Name = $2;
-		free($2);
+		$$->Name = $3;
+		free($3);
 
-		if ($3) {
-			$$->Parent = $3;
-			free($3);
+		if ($4) {
+			$$->Parent = $4;
+			free($4);
 		}
 
-		$$->Fields = *$5;
-		delete $5;
+		$$->Abstract = $1;
+
+		$$->Fields = *$6;
+		delete $6;
+	}
+	;
+
+abstract_specifier: /* empty */
+	{
+		$$ = false;
+	}
+	| T_ABSTRACT
+	{
+		$$ = true;
 	}
 	;
 
