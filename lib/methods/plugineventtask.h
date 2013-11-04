@@ -17,14 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/nulleventtask.h"
-#include "base/scriptfunction.h"
-#include "base/logger_fwd.h"
-#include <boost/smart_ptr/make_shared.hpp>
+#ifndef PLUGINEVENTTASK_H
+#define PLUGINEVENTTASK_H
 
-using namespace icinga;
+#include "methods/i2-methods.h"
+#include "icinga/service.h"
 
-REGISTER_SCRIPTFUNCTION(NullEvent, &NullEventTask::ScriptFunc);
+namespace icinga
+{
 
-void NullEventTask::ScriptFunc(const Service::Ptr&)
-{ }
+/**
+ * Implements event handlers based on external plugins.
+ *
+ * @ingroup methods
+ */
+class I2_METHODS_API PluginEventTask
+{
+public:
+	static void ScriptFunc(const Service::Ptr& service);
+
+private:
+	PluginEventTask(void);
+};
+
+}
+
+#endif /* PLUGINEVENTTASK_H */

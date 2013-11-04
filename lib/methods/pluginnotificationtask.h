@@ -17,30 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef NULLCHECKTASK_H
-#define NULLCHECKTASK_H
+#ifndef PLUGINNOTIFICATIONTASK_H
+#define PLUGINNOTIFICATIONTASK_H
 
-#include "icinga/i2-icinga.h"
-#include "icinga/service.h"
-#include "base/dictionary.h"
+#include "methods/i2-methods.h"
+#include "icinga/notification.h"
 
 namespace icinga
 {
 
 /**
- * Test class for additional check types. Implements the "null" check type.
+ * Implements sending notifications based on external plugins.
  *
- * @ingroup icinga
+ * @ingroup methods
  */
-class I2_ICINGA_API NullCheckTask
+class I2_METHODS_API PluginNotificationTask
 {
 public:
-	static Dictionary::Ptr ScriptFunc(const Service::Ptr& service);
+	static void ScriptFunc(const Notification::Ptr& notification,
+	    const User::Ptr& user, const Dictionary::Ptr& cr, int itype,
+	    const String& author, const String& comment);
 
 private:
-	NullCheckTask(void);
+	PluginNotificationTask(void);
 };
 
 }
 
-#endif /* NULLCHECKTASK_H */
+#endif /* PLUGINNOTIFICATIONTASK_H */
