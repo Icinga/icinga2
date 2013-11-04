@@ -44,7 +44,25 @@ namespace po = boost::program_options;
 
 static po::variables_map g_AppParams;
 
-static bool LoadConfigFiles(bool validateOnly)
+static String LoadAppType(const String& typeSpec)
+{
+	int index;
+
+	Log(LogInformation, "icinga-app", "Loading application type: " + typeSpec);
+
+	index = typeSpec.FindFirstOf('/');
+
+	if (index == String::NPos)
+		return typeSpec;
+
+	String library = typeSpec.SubStr(0, index);
+
+	(void) Utility::LoadExtensionLibrary(library);
+
+	return typeSpec.SubStr(index + 1);
+}
+
+static bool LoadConfigFiles(const String& appType, bool validateOnly)
 {
 	ConfigCompilerContext::GetInstance()->Reset();
 
@@ -58,7 +76,7 @@ static bool LoadConfigFiles(bool validateOnly)
 	}
 
 	ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>();
-	builder->SetType(Application::GetApplicationType());
+	builder->SetType(appType);
 	builder->SetName("application");
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
@@ -177,7 +195,7 @@ int main(int argc, char **argv)
 	Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
 	Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
 
-	Application::DeclareApplicationType("IcingaApplication");
+	Application::DeclareApplicationType("icinga/IcingaApplication");
 
 	po::options_description desc("Supported options");
 	desc.add_options()
@@ -311,8 +329,7 @@ int main(int argc, char **argv)
 
 	Log(LogInformation, "icinga-app", "Icinga application loader (version: " + Application::GetVersion() + ")");
 
-	(void) Utility::LoadExtensionLibrary("icinga");
-	(void) Utility::LoadExtensionLibrary("methods");
+	String appType = LoadAppType(Application::GetApplicationType());
 
 	if (g_AppParams.count("library")) {
 		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<std::vector<String> >()) {
@@ -345,7 +362,7 @@ int main(int argc, char **argv)
 
 	bool validateOnly = g_AppParams.count("validate");
 
-	if (!LoadConfigFiles(validateOnly))
+	if (!LoadConfigFiles(appType, validateOnly))
 		return EXIT_FAILURE;
 
 	if (validateOnly) {
