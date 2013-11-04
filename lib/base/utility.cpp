@@ -251,9 +251,11 @@ void *
 Utility::LoadExtensionLibrary(const String& library)
 {
 	String path;
-#ifdef _WIN32
+#if defined(_WIN32)
 	path = library + ".dll";
-#else /* _WIN32 */
+#elif defined(__APPLE__)
+	path = "lib" + library + ".dylib";
+#else /* __APPLE__ */
 	path = "lib" + library + ".so";
 #endif /* _WIN32 */
 
