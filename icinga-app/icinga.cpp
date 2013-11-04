@@ -312,6 +312,7 @@ int main(int argc, char **argv)
 	Log(LogInformation, "icinga-app", "Icinga application loader (version: " + Application::GetVersion() + ")");
 
 	(void) Utility::LoadExtensionLibrary("icinga");
+	(void) Utility::LoadExtensionLibrary("methods");
 
 	if (g_AppParams.count("library")) {
 		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<std::vector<String> >()) {

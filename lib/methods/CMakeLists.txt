@@ -15,8 +15,24 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_subdirectory(base)
-add_subdirectory(config)
-add_subdirectory(icinga)
-add_subdirectory(db_ido)
-add_subdirectory(methods)
+add_library(methods SHARED
+  legacytimeperiod.cpp nullchecktask.cpp nulleventtask.cpp pluginchecktask.cpp
+  plugineventtask.cpp pluginnotificationtask.cpp randomchecktask.cpp
+)
+
+target_link_libraries(methods ${Boost_LIBRARIES} base config icinga)
+
+set_target_properties (
+  methods PROPERTIES
+  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_METHODS_BUILD
+  FOLDER Lib
+)
+
+install(
+  TARGETS methods
+  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
+)
+
+

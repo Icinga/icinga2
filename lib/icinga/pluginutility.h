@@ -17,31 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef PLUGINNOTIFICATIONTASK_H
-#define PLUGINNOTIFICATIONTASK_H
+#ifndef PLUGINUTILITY_H
+#define PLUGINUTILITY_H
 
 #include "icinga/i2-icinga.h"
-#include "icinga/notification.h"
+#include "icinga/service.h"
+#include "icinga/checkcommand.h"
+#include "base/dictionary.h"
+#include "base/dynamicobject.h"
+#include <vector>
 
 namespace icinga
 {
 
 /**
- * Implements sending notifications based on external plugins.
+ * Utility functions for plugin-based checks.
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API PluginNotificationTask
+class I2_ICINGA_API PluginUtility
 {
 public:
-	static void ScriptFunc(const Notification::Ptr& notification,
-	    const User::Ptr& user, const Dictionary::Ptr& cr, int itype,
-	    const String& author, const String& comment);
+	static ServiceState ExitStatusToState(int exitStatus);
+	static Dictionary::Ptr ParseCheckOutput(const String& output);
 
 private:
-	PluginNotificationTask(void);
+	PluginUtility(void);
 };
 
 }
 
-#endif /* PLUGINNOTIFICATIONTASK_H */
+#endif /* PLUGINUTILITY_H */

@@ -17,32 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef PLUGINCHECKTASK_H
-#define PLUGINCHECKTASK_H
-
-#include "icinga/i2-icinga.h"
-#include "icinga/service.h"
-
-namespace icinga
-{
+#ifndef I2METHODS_H
+#define I2METHODS_H
 
 /**
- * Implements service checks based on external plugins.
+ * @defgroup methods Icinga methods
  *
- * @ingroup icinga
+ * The methods library implements methods for various task (e.g. checks, event
+ * handlers, etc.).
  */
-class I2_ICINGA_API PluginCheckTask
-{
-public:
-	static Dictionary::Ptr ScriptFunc(const Service::Ptr& service);
 
-	static ServiceState ExitStatusToState(int exitStatus);
-	static Dictionary::Ptr ParseCheckOutput(const String& output);
+#include "base/i2-base.h"
 
-private:
-	PluginCheckTask(void);
-};
+#ifdef I2_METHODS_BUILD
+#	define I2_METHODS_API I2_EXPORT
+#else /* I2_METHODS_BUILD */
+#	define I2_METHODS_API I2_IMPORT
+#endif /* I2_METHODS_BUILD */
 
-}
-
-#endif /* PLUGINCHECKTASK_H */
+#endif /* I2METHODS_H */

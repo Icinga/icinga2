@@ -17,50 +17,37 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/pluginnotificationtask.h"
-#include "icinga/notification.h"
-#include "icinga/notificationcommand.h"
-#include "icinga/service.h"
+#include "methods/pluginchecktask.h"
+#include "icinga/pluginutility.h"
+#include "icinga/checkcommand.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/icingaapplication.h"
-#include "base/scriptfunction.h"
+#include "base/dynamictype.h"
 #include "base/logger_fwd.h"
+#include "base/scriptfunction.h"
 #include "base/utility.h"
 #include "base/process.h"
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(PluginNotification, &PluginNotificationTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 
-void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, const User::Ptr& user, const Dictionary::Ptr& cr, int itype,
-    const String& author, const String& comment)
+Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 {
-	NotificationCommand::Ptr commandObj = notification->GetNotificationCommand();
-
-	NotificationType type = static_cast<NotificationType>(itype);
-
-	Service::Ptr service = notification->GetService();
-
+	CheckCommand::Ptr commandObj = service->GetCheckCommand();
 	Value raw_command = commandObj->GetCommandLine();
 
-	StaticMacroResolver::Ptr notificationMacroResolver = boost::make_shared<StaticMacroResolver>();
-	notificationMacroResolver->Add("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));
-	notificationMacroResolver->Add("NOTIFICATIONAUTHOR", author);
-	notificationMacroResolver->Add("NOTIFICATIONAUTHORNAME", author);
-	notificationMacroResolver->Add("NOTIFICATIONCOMMENT", comment);
-
 	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(user);
-	resolvers.push_back(notificationMacroResolver);
-	resolvers.push_back(notification);
 	resolvers.push_back(service);
 	resolvers.push_back(service->GetHost());
 	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, service->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
 	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
 
@@ -70,8 +57,8 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 		BOOST_FOREACH(const String& macro, export_macros) {
 			String value;
 
-			if (!MacroProcessor::ResolveMacro(macro, resolvers, cr, &value)) {
-				Log(LogWarning, "icinga", "export_macros for notification '" + notification->GetName() + "' refers to unknown macro '" + macro + "'");
+			if (!MacroProcessor::ResolveMacro(macro, resolvers, service->GetLastCheckResult(), &value)) {
+				Log(LogWarning, "icinga", "export_macros for service '" + service->GetName() + "' refers to unknown macro '" + macro + "'");
 				continue;
 			}
 
@@ -85,11 +72,15 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	ProcessResult pr = process->Run();
 
-	if (pr.ExitStatus != 0) {
-		std::ostringstream msgbuf;
-		msgbuf << "Notification command '" << command << "' for service '"
-		       << service->GetName() << "' failed; exit status: "
-		       << pr.ExitStatus << ", output: " << pr.Output;
-		Log(LogWarning, "icinga", msgbuf.str());
-	}
+	String output = pr.Output;
+	output.Trim();
+	Dictionary::Ptr result = PluginUtility::ParseCheckOutput(output);
+	result->Set("command", command);
+	result->Set("state", PluginUtility::ExitStatusToState(pr.ExitStatus));
+	result->Set("exit_state", pr.ExitStatus);
+	result->Set("execution_start", pr.ExecutionStart);
+	result->Set("execution_end", pr.ExecutionEnd);
+
+	return result;
 }
+

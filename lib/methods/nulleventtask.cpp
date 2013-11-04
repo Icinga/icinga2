@@ -17,30 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef NULLEVENTTASK_H
-#define NULLEVENTTASK_H
+#include "methods/nulleventtask.h"
+#include "base/scriptfunction.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
-#include "icinga/i2-icinga.h"
-#include "icinga/service.h"
-#include "base/dictionary.h"
+using namespace icinga;
 
-namespace icinga
-{
+REGISTER_SCRIPTFUNCTION(NullEvent, &NullEventTask::ScriptFunc);
 
-/**
- * Test class for additional event handler types. Implements the "null" event handler type.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API NullEventTask
-{
-public:
-	static void ScriptFunc(const Service::Ptr& service);
-
-private:
-	NullEventTask(void);
-};
-
-}
-
-#endif /* NULLEVENTTASK_H */
+void NullEventTask::ScriptFunc(const Service::Ptr&)
+{ }

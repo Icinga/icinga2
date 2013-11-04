@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/legacytimeperiod.h"
+#include "methods/legacytimeperiod.h"
 #include "base/scriptfunction.h"
 #include "base/convert.h"
 #include "base/exception.h"

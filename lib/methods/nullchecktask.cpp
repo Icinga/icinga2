@@ -17,30 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef RANDOMCHECKTASK_H
-#define RANDOMCHECKTASK_H
+#ifndef _WIN32
+#	include <stdlib.h>
+#endif /* _WIN32 */
+#include "methods/nullchecktask.h"
+#include "base/utility.h"
+#include "base/convert.h"
+#include "base/scriptfunction.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
-#include "icinga/i2-icinga.h"
-#include "icinga/service.h"
-#include "base/dictionary.h"
+using namespace icinga;
 
-namespace icinga
+REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
+
+Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 {
+	char name[255];
 
-/**
- * Test class for additional check types. Implements the "null" check type.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API RandomCheckTask
-{
-public:
-	static Dictionary::Ptr ScriptFunc(const Service::Ptr& service);
+	if (gethostname(name, sizeof(name)) < 0)
+		strcpy(name, "<unknown host>");
 
-private:
-	RandomCheckTask(void);
-};
+	String output = "Hello from ";
+	output += name;
+	String perfdata = "time=" + Convert::ToString(static_cast<double>(Utility::GetTime()));
 
+	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
+	cr->Set("output", output);
+	cr->Set("performance_data_raw", perfdata);
+	cr->Set("state", StateOK);
+
+	return cr;
 }
 
-#endif /* RANDOMCHECKTASK_H */

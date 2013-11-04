@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/plugineventtask.h"
+#include "methods/plugineventtask.h"
 #include "icinga/eventcommand.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/icingaapplication.h"

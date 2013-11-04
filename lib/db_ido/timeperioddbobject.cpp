@@ -21,7 +21,7 @@
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "icinga/timeperiod.h"
-#include "icinga/legacytimeperiod.h"
+#include "methods/legacytimeperiod.h"
 #include "base/utility.h"
 #include "base/exception.h"
 #include "base/objectlock.h"

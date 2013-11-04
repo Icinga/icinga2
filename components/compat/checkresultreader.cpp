@@ -19,7 +19,7 @@
 
 #include "compat/checkresultreader.h"
 #include "icinga/service.h"
-#include "icinga/pluginchecktask.h"
+#include "icinga/pluginutility.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -102,8 +102,8 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 		return;
 	}
 
-	Dictionary::Ptr result = PluginCheckTask::ParseCheckOutput(attrs["output"]);
-	result->Set("state", PluginCheckTask::ExitStatusToState(Convert::ToLong(attrs["return_code"])));
+	Dictionary::Ptr result = PluginUtility::ParseCheckOutput(attrs["output"]);
+	result->Set("state", PluginUtility::ExitStatusToState(Convert::ToLong(attrs["return_code"])));
 	result->Set("execution_start", Convert::ToDouble(attrs["start_time"]));
 	result->Set("execution_end", Convert::ToDouble(attrs["finish_time"]));
 	result->Set("active", 1);

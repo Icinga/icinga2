@@ -36,11 +36,9 @@ add_library(icinga SHARED
   api.cpp api.h checkcommand.cpp checkcommand.th cib.cpp command.cpp command.th
   compatutility.cpp domain.cpp domain.th eventcommand.cpp eventcommand.th
   externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th
-  icingaapplication.cpp icingaapplication.th legacytimeperiod.cpp
-  macroprocessor.cpp macroresolver.cpp notificationcommand.cpp
-  notificationcommand.th notification.cpp notification.th nullchecktask.cpp
-  nulleventtask.cpp pluginchecktask.cpp plugineventtask.cpp
-  pluginnotificationtask.cpp randomchecktask.cpp service-check.cpp
+  icingaapplication.cpp icingaapplication.th macroprocessor.cpp
+  macroresolver.cpp notificationcommand.cpp notificationcommand.th
+  notification.cpp notification.th pluginutility.cpp service-check.cpp
   service-comment.cpp service.cpp service-downtime.cpp service-event.cpp
   service-flapping.cpp service.th servicegroup.cpp servicegroup.th
   service-notification.cpp timeperiod.cpp timeperiod.th user.cpp user.th

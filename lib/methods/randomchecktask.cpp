@@ -17,29 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef PLUGINEVENTTASK_H
-#define PLUGINEVENTTASK_H
+#ifndef _WIN32
+#	include <stdlib.h>
+#endif /* _WIN32 */
+#include "methods/randomchecktask.h"
+#include "base/utility.h"
+#include "base/convert.h"
+#include "base/scriptfunction.h"
+#include "base/logger_fwd.h"
+#include <boost/smart_ptr/make_shared.hpp>
 
-#include "icinga/i2-icinga.h"
-#include "icinga/service.h"
+using namespace icinga;
 
-namespace icinga
+REGISTER_SCRIPTFUNCTION(RandomCheck, &RandomCheckTask::ScriptFunc);
+
+Dictionary::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 {
+	char name[255];
 
-/**
- * Implements event handlers based on external plugins.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API PluginEventTask
-{
-public:
-	static void ScriptFunc(const Service::Ptr& service);
+	if (gethostname(name, sizeof(name)) < 0)
+		strcpy(name, "<unknown host>");
 
-private:
-	PluginEventTask(void);
-};
+	String output = "Hello from ";
+	output += name;
+	String perfdata = "time=" + Convert::ToString(static_cast<double>(Utility::GetTime()));
 
+	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
+	cr->Set("output", output);
+	cr->Set("performance_data_raw", perfdata);
+	cr->Set("state", static_cast<ServiceState>(Utility::Random() % 4));
+
+	return cr;
 }
 
-#endif /* PLUGINEVENTTASK_H */
