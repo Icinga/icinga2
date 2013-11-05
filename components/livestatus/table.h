@@ -55,11 +55,11 @@ protected:
 
 	virtual void FetchRows(const AddRowFunction& addRowFn) = 0;
 
-	static Value ZeroAccessor(const Object::Ptr&);
-	static Value OneAccessor(const Object::Ptr&);
-	static Value EmptyStringAccessor(const Object::Ptr&);
-	static Value EmptyArrayAccessor(const Object::Ptr&);
-	static Value EmptyDictionaryAccessor(const Object::Ptr&);
+	static Value ZeroAccessor(const Value&);
+	static Value OneAccessor(const Value&);
+	static Value EmptyStringAccessor(const Value&);
+	static Value EmptyArrayAccessor(const Value&);
+	static Value EmptyDictionaryAccessor(const Value&);
 
 private:
 	std::map<String, Column> m_Columns;
