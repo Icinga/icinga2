@@ -24,7 +24,7 @@
 #include "base/array.h"
 #include "base/timer.h"
 #include "base/workqueue.h"
-#include <postgresql/libpq-fe.h>
+#include <libpq-fe.h>
 
 namespace icinga
 {

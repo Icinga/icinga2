@@ -152,6 +152,22 @@ Requires: %{name} = %{version}-%{release}
 Icinga 2 IDO mysql database backend. Compatible with Icinga 1.x
 IDOUtils schema >= 1.10
 
+
+%package ido-pgsql
+Summary:      IDO PostgreSQL database backend for Icinga 2
+Group:        Applications/System
+%if "%{_vendor}" == "suse"
+BuildRequires: postgresql-libs
+%endif
+BuildRequires: postgresql-devel
+Requires: postgresql-libs
+Requires: %{name} = %{version}-%{release}
+
+%description ido-pgsql
+Icinga 2 IDO PostgreSQL database backend. Compatible with Icinga 1.x
+IDOUtils schema >= 1.10
+
+
 %package classicui-config
 Summary:      Icinga 2 Classic UI Standalone configuration
 Group:        Applications/System
@@ -223,6 +239,19 @@ if [ "$1" = "0" ]; then
 	test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature ido-mysql
 fi
 
+%post ido-pgsql
+if [ ${1:-0} -eq 1 ]
+then
+	# initial installation, enable ido-pgsql feature
+	%{_sbindir}/icinga2-enable-feature ido-pgsql
+fi
+
+%postun ido-pgsql
+if [ "$1" = "0" ]; then
+	# deinstallation of the package - remove feature
+	test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature ido-pgsql
+fi
+
 %post classicui-config
 if [ ${1:-0} -eq 1 ]
 then
@@ -289,6 +318,11 @@ fi
 %defattr(-,root,root,-)
 %doc components/db_ido_mysql/schema COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %{_libdir}/%{name}/libdb_ido_mysql*
+
+%files ido-pgsql
+%defattr(-,root,root,-)
+%doc components/db_ido_pgsql/schema COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
+%{_libdir}/%{name}/libdb_ido_pgsql*
 
 %files classicui-config
 %defattr(-,root,root,-)
