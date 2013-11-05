@@ -20,6 +20,7 @@
 #include "compat/compatlogger.h"
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
+#include "icinga/eventcommand.h"
 #include "icinga/notification.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/externalcommandprocessor.h"
@@ -58,6 +59,7 @@ void CompatLogger::Start(void)
 	Service::OnFlappingChanged.connect(bind(&CompatLogger::FlappingHandler, this, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
+	Service::OnEventCommandExecuted.connect(bind(&CompatLogger::EventCommandHandler, this, _1));
 	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
 
 	m_RotationTimer = boost::make_shared<Timer>();
@@ -390,6 +392,55 @@ void CompatLogger::ExternalCommandHandler(const String& command, const std::vect
         {
                 ObjectLock oLock(this);
                 WriteLine(msgbuf.str());
+        }
+}
+
+void CompatLogger::EventCommandHandler(const Service::Ptr& service)
+{
+	Host::Ptr host = service->GetHost();
+
+	if (!host)
+		return;
+
+	EventCommand::Ptr event_command = service->GetEventCommand();
+	String event_command_name = event_command->GetName();
+	String state = Service::StateToString(service->GetState());
+	String state_type = Service::StateTypeToString(service->GetStateType());
+	long current_attempt = service->GetCheckAttempt();
+
+        std::ostringstream msgbuf;
+
+        msgbuf << "SERVICE EVENT HANDLER: "
+                << host->GetName() << ";"
+                << service->GetShortName() << ";"
+		<< state << ";"
+		<< state_type << ";"
+		<< current_attempt << ";"
+                << event_command_name;
+
+        {
+                ObjectLock oLock(this);
+                WriteLine(msgbuf.str());
+        }
+
+        if (service == host->GetCheckService()) {
+                std::ostringstream msgbuf;
+                msgbuf << "HOST EVENT HANDLER: "
+                        << host->GetName() << ";"
+			<< state << ";"
+			<< state_type << ";"
+			<< current_attempt << ";"
+			<< event_command_name;
+
+                {
+                        ObjectLock oLock(this);
+                        WriteLine(msgbuf.str());
+                }
+        }
+
+        {
+                ObjectLock oLock(this);
+                Flush();
         }
 }
 
