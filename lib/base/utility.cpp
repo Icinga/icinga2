@@ -59,6 +59,11 @@ String Utility::DemangleSymbolName(const String& sym)
 		result = String(realname);
 		free(realname);
 	}
+#else /* _MSC_VER */
+	CHAR output[256];
+
+	if (UnDecorateSymbolName(sym.CStr(), output, sizeof(output), UNDNAME_COMPLETE) > 0)
+		result = output;
 #endif /* _MSC_VER */
 
 	return result;
