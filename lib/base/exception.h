@@ -94,6 +94,9 @@ inline std::string to_string(const errinfo_getaddrinfo_error& e)
 	return gai_strerror(e.value());
 }
 
+struct errinfo_message_;
+typedef boost::error_info<struct errinfo_message_, std::string> errinfo_message;
+
 }
 
 #endif /* EXCEPTION_H */

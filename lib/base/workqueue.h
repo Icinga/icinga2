@@ -26,6 +26,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <boost/exception_ptr.hpp>
 
 namespace icinga
 {
@@ -39,6 +40,7 @@ class I2_BASE_API WorkQueue
 {
 public:
 	typedef boost::function<void (void)> WorkCallback;
+	typedef boost::function<void (boost::exception_ptr)> ExceptionCallback;
 
 	WorkQueue(size_t maxItems = 25000);
 	~WorkQueue(void);
@@ -47,6 +49,8 @@ public:
 	void Join(void);
 
 	boost::thread::id GetThreadId(void) const;
+
+	void SetExceptionCallback(const ExceptionCallback& callback);
 
 private:
 	int m_ID;
@@ -59,8 +63,11 @@ private:
 	bool m_Joined;
 	bool m_Stopped;
 	std::deque<WorkCallback> m_Items;
+	ExceptionCallback m_ExceptionCallback;
 
 	void WorkerThreadProc(void);
+
+	static void DefaultExceptionCallback(boost::exception_ptr exp);
 };
 
 }

@@ -23,6 +23,7 @@
 #include "base/utility.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
+#include "base/exception.h"
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido_mysql/idomysqlconnection.h"
@@ -43,6 +44,8 @@ void IdoMysqlConnection::Start(void)
 
 	m_Connected = false;
 
+	m_QueryQueue.SetExceptionCallback(&IdoMysqlConnection::ExceptionHandler);
+
 	m_TxTimer = boost::make_shared<Timer>();
 	m_TxTimer->SetInterval(5);
 	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlConnection::TxTimerHandler, this));
@@ -61,6 +64,19 @@ void IdoMysqlConnection::Stop(void)
 {
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Disconnect, this));
 	m_QueryQueue.Join();
+}
+
+void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
+{
+	Log(LogCritical, "db_ido_mysql", "Exception during database operation: " + boost::diagnostic_information(exp));
+
+	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+
+	if (m_Connected) {
+		mysql_close(&m_Connection);
+
+		m_Connected = false;
+	}
 }
 
 void IdoMysqlConnection::AssertOnWorkQueue(void)
@@ -250,13 +266,21 @@ Array::Ptr IdoMysqlConnection::Query(const String& query)
 	Log(LogDebug, "db_ido_mysql", "Query: " + query);
 
 	if (mysql_query(&m_Connection, query.CStr()) != 0)
-	    BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
+		BOOST_THROW_EXCEPTION(
+		    database_error()
+		        << errinfo_message(mysql_error(&m_Connection))
+			<< errinfo_database_query(query)
+		);
 
 	MYSQL_RES *result = mysql_store_result(&m_Connection);
 
 	if (!result) {
 		if (mysql_field_count(&m_Connection) > 0)
-			BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
+			BOOST_THROW_EXCEPTION(
+			    database_error()
+				<< errinfo_message(mysql_error(&m_Connection))
+				<< errinfo_database_query(query)
+			);
 
 		return Array::Ptr();
 	}
@@ -437,14 +461,14 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
+	ASSERT(query.Category != DbCatInvalid);
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query));
 }
 
 void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
-
-	ASSERT(query.Category != DbCatInvalid);
 
 	if ((query.Category & GetCategories()) == 0)
 		return;

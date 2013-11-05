@@ -39,8 +39,6 @@ class IdoMysqlConnection : public ObjectImpl<IdoMysqlConnection>
 public:
 	DECLARE_PTR_TYPEDEFS(IdoMysqlConnection);
 
-	//virtual void UpdateObject(const DbObject::Ptr& dbobj, DbUpdateType kind);
-
 protected:
 	virtual void Start(void);
 	virtual void Stop(void);
@@ -48,11 +46,11 @@ protected:
 	virtual void ActivateObject(const DbObject::Ptr& dbobj);
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
 	virtual void ExecuteQuery(const DbQuery& query);
-        virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
+	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 private:
 	DbReference m_InstanceID;
-        DbReference m_LastNotificationID;
+	DbReference m_LastNotificationID;
 
 	WorkQueue m_QueryQueue;
 
@@ -81,10 +79,12 @@ private:
 	void ReconnectTimerHandler(void);
 
 	void InternalExecuteQuery(const DbQuery& query);
-        void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
+	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 	void ClearConfigTables(void);
 	void ClearConfigTable(const String& table);
+
+	void ExceptionHandler(boost::exception_ptr exp);
 };
 
 }

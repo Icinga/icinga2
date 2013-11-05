@@ -79,6 +79,11 @@ private:
 	static void ProgramStatusHandler(void);
 };
 
+struct database_error : virtual std::exception, virtual boost::exception { };
+
+struct errinfo_database_query_;
+typedef boost::error_info<struct errinfo_database_query_, std::string> errinfo_database_query;
+
 }
 
 #endif /* DBCONNECTION_H */

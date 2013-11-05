@@ -78,7 +78,7 @@ void DbObject::SendConfigUpdate(void)
 	DbQuery query;
 	query.Table = GetType()->GetTable() + "s";
 	query.Type = DbQueryInsert | DbQueryUpdate;
-	query.Type = DbCatConfig;
+	query.Category = DbCatConfig;
 	query.Fields = fields;
 	query.Fields->Set(GetType()->GetIDColumn(), GetObject());
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */

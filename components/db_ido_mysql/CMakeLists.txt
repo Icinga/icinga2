@@ -30,7 +30,12 @@ if(MYSQL_FOUND)
     set_target_properties (
       db_ido_mysql PROPERTIES
       INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+      FOLDER Components
     )
 
-    install(TARGETS db_ido_mysql RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2)
+    install(
+      TARGETS db_ido_mysql
+      RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+    )
 endif()

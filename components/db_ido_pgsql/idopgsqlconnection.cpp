@@ -23,6 +23,7 @@
 #include "base/utility.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
+#include "base/exception.h"
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido_pgsql/idopgsqlconnection.h"
@@ -43,6 +44,8 @@ void IdoPgsqlConnection::Start(void)
 
 	m_Connection = NULL;
 
+	m_QueryQueue.SetExceptionCallback(&IdoPgsqlConnection::ExceptionHandler);
+
 	m_TxTimer = boost::make_shared<Timer>();
 	m_TxTimer->SetInterval(5);
 	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoPgsqlConnection::TxTimerHandler, this));
@@ -61,6 +64,18 @@ void IdoPgsqlConnection::Stop(void)
 {
 	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::Disconnect, this));
 	m_QueryQueue.Join();
+}
+
+void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
+{
+	Log(LogCritical, "db_ido_pgsql", "Exception during database operation: " + boost::diagnostic_information(exp));
+
+	boost::mutex::scoped_lock lock(m_ConnectionMutex);
+
+	if (m_Connection) {
+		PQfinish(m_Connection);
+		m_Connection = NULL;
+	}
 }
 
 void IdoPgsqlConnection::AssertOnWorkQueue(void)
@@ -256,7 +271,10 @@ Array::Ptr IdoPgsqlConnection::Query(const String& query)
 	PGresult *result = PQexec(m_Connection, query.CStr());
 
 	if (!result)
-	    BOOST_THROW_EXCEPTION(std::runtime_error("unknown error during pgSQL query"));
+		BOOST_THROW_EXCEPTION(
+		    database_error()
+		        << errinfo_database_query(query)
+		);
 
 	if (PQresultStatus(result) == PGRES_COMMAND_OK)
 		return Array::Ptr();
@@ -265,7 +283,11 @@ Array::Ptr IdoPgsqlConnection::Query(const String& query)
 		String message = PQresultErrorMessage(result);
 		PQclear(result);
 
-		BOOST_THROW_EXCEPTION(std::runtime_error(message));
+		BOOST_THROW_EXCEPTION(
+		    database_error()
+		        << errinfo_message(message)
+		        << errinfo_database_query(query)
+		);
 	}
 
 	Array::Ptr rows = boost::make_shared<Array>();
@@ -298,6 +320,10 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 
 	Dictionary::Ptr row = rows->Get(0);
 
+	std::ostringstream msgbuf;
+	msgbuf << "Sequence Value: " << row->Get("id");
+	Log(LogDebug, "db_ido_pgsql", msgbuf.str());
+
 	return DbReference(Convert::ToLong(row->Get("id")));
 }
 
@@ -305,7 +331,7 @@ String IdoPgsqlConnection::Escape(const String& s)
 {
 	AssertOnWorkQueue();
 
-	ssize_t length = s.GetLength();
+	size_t length = s.GetLength();
 	char *to = new char[s.GetLength() * 2 + 1];
 
 	PQescapeStringConn(m_Connection, to, s.CStr(), length, NULL);
@@ -444,14 +470,14 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 {
+	ASSERT(query.Category != DbCatInvalid);
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query));
 }
 
 void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
-
-	ASSERT(query.Category != DbCatInvalid);
 
 	if ((query.Category & GetCategories()) == 0)
 		return;

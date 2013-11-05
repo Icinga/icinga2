@@ -29,7 +29,8 @@ using namespace icinga;
 int WorkQueue::m_NextID = 1;
 
 WorkQueue::WorkQueue(size_t maxItems)
-	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Joined(false), m_Stopped(false)
+	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Joined(false),
+	  m_Stopped(false), m_ExceptionCallback(WorkQueue::DefaultExceptionCallback)
 {
 	m_Thread = boost::thread(boost::bind(&WorkQueue::WorkerThreadProc, this));
 }
@@ -73,6 +74,18 @@ boost::thread::id WorkQueue::GetThreadId(void) const
 	return m_Thread.get_id();
 }
 
+void WorkQueue::SetExceptionCallback(const ExceptionCallback& callback)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	m_ExceptionCallback = callback;
+}
+
+void WorkQueue::DefaultExceptionCallback(boost::exception_ptr exp)
+{
+	throw;
+}
+
 void WorkQueue::WorkerThreadProc(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
@@ -96,13 +109,13 @@ void WorkQueue::WorkerThreadProc(void)
 			lock.unlock();
 			wi();
 		} catch (const std::exception& ex) {
-			std::ostringstream msgbuf;
-			msgbuf << "Exception thrown in workqueue handler: " << std::endl
-			       << boost::diagnostic_information(ex);
+			lock.lock();
 
-			Log(LogCritical, "base", msgbuf.str());
-		} catch (...) {
-			Log(LogCritical, "base", "Exception of unknown type thrown in workqueue handler.");
+			ExceptionCallback callback = m_ExceptionCallback;
+
+			lock.unlock();
+
+			callback(boost::current_exception());
 		}
 
 		lock.lock();

@@ -30,6 +30,7 @@ if(PostgreSQL_FOUND)
     set_target_properties (
       db_ido_pgsql PROPERTIES
       INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+      FOLDER Components
     )
 
     install(
