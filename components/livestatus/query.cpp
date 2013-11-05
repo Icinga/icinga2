@@ -59,6 +59,12 @@ Query::Query(const std::vector<String>& lines)
 		return;
 	}
 
+	String msg;
+	BOOST_FOREACH(const String& line, lines) {
+		msg += line + "\n";
+	}
+	Log(LogDebug, "livestatus", msg);
+
 	/* default separators */
 	m_Separators.push_back("\n");
 	m_Separators.push_back(";");
@@ -253,8 +259,28 @@ int Query::GetExternalCommands(void)
 
 Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsigned long& until)
 {
+	/*
+	 * time >= 1382696656
+	 * type = SERVICE FLAPPING ALERT
+	 */
 	std::vector<String> tokens;
-	boost::algorithm::split(tokens, params, boost::is_any_of(" "));
+	size_t sp_index;
+	String temp_buffer = params;
+
+	/* extract attr and op */
+	for (int i = 0; i < 2; i++) {
+		sp_index = temp_buffer.FindFirstOf(" ");
+
+		/* 'attr op' or 'attr op val' is valid */
+		if (i < 1 && sp_index == String::NPos)
+			BOOST_THROW_EXCEPTION(std::runtime_error("Livestatus filter '" + params + "' does not contain all required fields."));
+
+		tokens.push_back(temp_buffer.SubStr(0, sp_index));
+		temp_buffer = temp_buffer.SubStr(sp_index + 1);
+	}
+	
+	/* add the rest as value */
+	tokens.push_back(temp_buffer);
 
 	if (tokens.size() == 2)
 		tokens.push_back("");
@@ -262,8 +288,10 @@ Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsign
 	if (tokens.size() < 3)
 		return Filter::Ptr();
 
-	String op = tokens[1];
 	bool negate = false;
+	String attr = tokens[0];
+	String op = tokens[1];
+	String val = tokens[2];
 
 	if (op == "!=") {
 		op = "=";
@@ -279,19 +307,21 @@ Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsign
 		negate = true;
 	}
 
-	Filter::Ptr filter = boost::make_shared<AttributeFilter>(tokens[0], op, tokens[2]);
+	Filter::Ptr filter = boost::make_shared<AttributeFilter>(attr, op, val);
 
 	if (negate)
 		filter = boost::make_shared<NegateFilter>(filter);
 
 	/* pre-filter log time duration */
-	if (tokens[0] == "time") {
+	if (attr == "time") {
 		if (op == "<" || op == "<=") {
-			until = Convert::ToLong(tokens[2]);
+			until = Convert::ToLong(val);
 		} else if (op == ">" || op == ">=") {
-			from = Convert::ToLong(tokens[2]);
+			from = Convert::ToLong(val);
 		}
 	}
+	
+	Log(LogDebug, "livestatus", "Parsed filter with attr: '" + attr + "' op: '" + op + "' val: '" + val + "'.");
 
 	return filter;
 }
@@ -371,7 +401,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 
 	std::vector<Value> objects = table->FilterRows(m_Filter);
 	std::vector<String> columns;
-	
+
 	if (m_Columns.size() > 0)
 		columns = m_Columns;
 	else
@@ -399,7 +429,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 			BOOST_FOREACH(const Value& object, objects) {
 				aggregator->Apply(table, object);
 			}
-			
+
 			stats[index] = aggregator->GetResult();
 			index++;
 		}
@@ -434,6 +464,7 @@ void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
 
 void Query::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
+	Log(LogDebug, "livestatus", "ERROR: Code: '" + Convert::ToString(m_ErrorCode) + "' Message: '" + m_ErrorMessage + "'.");
 	SendResponse(stream, m_ErrorCode, m_ErrorMessage);
 }
 

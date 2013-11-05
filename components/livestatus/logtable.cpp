@@ -334,6 +334,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 
 	/* States - TODO refactor */
 	if (boost::algorithm::contains(type, "INITIAL HOST STATE")) {
+		if (tokens.size() < 5)
+			return Dictionary::Ptr();
+
 		log_class = LogClassState;
 		log_type = LogTypeHostInitialState;
 
@@ -344,6 +347,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		plugin_output = tokens[4];
 	}
 	else if (boost::algorithm::contains(type, "CURRENT HOST STATE")) {
+		if (tokens.size() < 5)
+			return Dictionary::Ptr();
+
 		log_class = LogClassState;
 		log_type = LogTypeHostCurrentState;
 
@@ -354,6 +360,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		plugin_output = tokens[4];
 	}
 	else if (boost::algorithm::contains(type, "HOST ALERT")) {
+		if (tokens.size() < 5)
+			return Dictionary::Ptr();
+
 		log_class = LogClassAlert;
 		log_type = LogTypeHostAlert;
 
@@ -364,6 +373,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		plugin_output = tokens[4];
 	}
 	else if (boost::algorithm::contains(type, "HOST DOWNTIME ALERT")) {
+		if (tokens.size() < 3)
+			return Dictionary::Ptr();
+
 		log_class = LogClassAlert;
 		log_type = LogTypeHostDowntimeAlert;
 
@@ -372,6 +384,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		comment = tokens[2];
 	}
 	else if (boost::algorithm::contains(type, "HOST FLAPPING ALERT")) {
+		if (tokens.size() < 3)
+			return Dictionary::Ptr();
+
 		log_class = LogClassAlert;
 		log_type = LogTypeHostFlapping;
 
@@ -380,6 +395,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		comment = tokens[2];
 	}
 	else if (boost::algorithm::contains(type, "INITIAL SERVICE STATE")) {
+		if (tokens.size() < 6)
+			return Dictionary::Ptr();
+
 		log_class = LogClassState;
 		log_type = LogTypeServiceInitialState;
 
@@ -391,6 +409,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		plugin_output = tokens[5];
 	}
 	else if (boost::algorithm::contains(type, "CURRENT SERVICE STATE")) {
+		if (tokens.size() < 6)
+			return Dictionary::Ptr();
+
 		log_class = LogClassState;
 		log_type = LogTypeServiceCurrentState;
 
@@ -402,6 +423,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		plugin_output = tokens[5];
 	}
 	else if (boost::algorithm::contains(type, "SERVICE ALERT")) {
+		if (tokens.size() < 6)
+			return Dictionary::Ptr();
+
 		log_class = LogClassAlert;
 		log_type = LogTypeServiceAlert;
 
@@ -413,6 +437,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		plugin_output = tokens[5];
 	}
 	else if (boost::algorithm::contains(type, "SERVICE DOWNTIME ALERT")) {
+		if (tokens.size() < 4)
+			return Dictionary::Ptr();
+
 		log_class = LogClassAlert;
 		log_type = LogTypeServiceDowntimeAlert;
 
@@ -422,6 +449,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		comment = tokens[3];
 	}
 	else if (boost::algorithm::contains(type, "SERVICE FLAPPING ALERT")) {
+		if (tokens.size() < 4)
+			return Dictionary::Ptr();
+
 		log_class = LogClassAlert;
 		log_type = LogTypeServiceFlapping;
 
@@ -431,6 +461,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		comment = tokens[3];
 	}
 	else if (boost::algorithm::contains(type, "TIMEPERIOD TRANSITION")) {
+		if (tokens.size() < 4)
+			return Dictionary::Ptr();
+
 		log_class = LogClassState;
 		log_type = LogTypeTimeperiodTransition;
 
@@ -441,6 +474,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 	}
 	/* Notifications - TODO refactor */
 	else if (boost::algorithm::contains(type, "HOST NOTIFICATION")) {
+		if (tokens.size() < 6)
+			return Dictionary::Ptr();
+
 		log_class = LogClassNotification;
 		log_type = LogTypeHostNotification;
 
@@ -452,6 +488,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		plugin_output = tokens[5];
 	}
 	else if (boost::algorithm::contains(type, "SERVICE NOTIFICATION")) {
+		if (tokens.size() < 7)
+			return Dictionary::Ptr();
+
 		log_class = LogClassNotification;
 		log_type = LogTypeHostNotification;
 
@@ -465,6 +504,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 	}
 	/* Passive Checks - TODO refactor */
 	else if (boost::algorithm::contains(type, "PASSIVE HOST CHECK")) {
+		if (tokens.size() < 3)
+			return Dictionary::Ptr();
+
 		log_class = LogClassPassive;
 
 		host_name = tokens[0];
@@ -472,6 +514,9 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		plugin_output = tokens[2];
 	}
 	else if (boost::algorithm::contains(type, "PASSIVE SERVICE CHECK")) {
+		if (tokens.size() < 4)
+			return Dictionary::Ptr();
+
 		log_class = LogClassPassive;
 
 		host_name = tokens[0];
