@@ -118,7 +118,7 @@ class EventCommand;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Service : public ReflectionObjectImpl<Service>, public MacroResolver
+class I2_ICINGA_API Service : public ObjectImpl<Service>, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Service);

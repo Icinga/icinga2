@@ -31,7 +31,7 @@ namespace icinga
 /**
  * @ingroup notification
  */
-class NotificationComponent : public ReflectionObjectImpl<NotificationComponent>
+class NotificationComponent : public ObjectImpl<NotificationComponent>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(NotificationComponent);

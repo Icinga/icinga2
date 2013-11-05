@@ -48,7 +48,7 @@ enum HostState
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Host : public ReflectionObjectImpl<Host>, public MacroResolver
+class I2_ICINGA_API Host : public ObjectImpl<Host>, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Host);

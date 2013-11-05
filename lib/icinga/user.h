@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API User : public ReflectionObjectImpl<User>, public MacroResolver
+class I2_ICINGA_API User : public ObjectImpl<User>, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(User);

@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API SyslogLogger : public ReflectionObjectImpl<SyslogLogger>
+class I2_BASE_API SyslogLogger : public ObjectImpl<SyslogLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(SyslogLogger);

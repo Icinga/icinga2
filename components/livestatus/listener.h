@@ -33,7 +33,7 @@ namespace livestatus
 /**
  * @ingroup livestatus
  */
-class LivestatusListener : public ReflectionObjectImpl<LivestatusListener>
+class LivestatusListener : public ObjectImpl<LivestatusListener>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(LivestatusListener);

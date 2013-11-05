@@ -34,7 +34,7 @@ class Component;
  *
  * @ingroup base
  */
-class I2_BASE_API Application : public ReflectionObjectImpl<Application> {
+class I2_BASE_API Application : public ObjectImpl<Application> {
 public:
 	DECLARE_PTR_TYPEDEFS(Application);
 

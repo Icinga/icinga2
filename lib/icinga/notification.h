@@ -56,7 +56,7 @@ class NotificationCommand;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Notification : public ReflectionObjectImpl<Notification>, public MacroResolver
+class I2_ICINGA_API Notification : public ObjectImpl<Notification>, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Notification);

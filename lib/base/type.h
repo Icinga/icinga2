@@ -17,60 +17,41 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef REFLECTIONOBJECT_H
-#define REFLECTIONOBJECT_H
+#ifndef TYPE_H
+#define TYPE_H
 
-#include "base/object.h"
-#include "base/dictionary.h"
-#include <vector>
+#include "base/i2-base.h"
+#include "base/qstring.h"
 
 namespace icinga
 {
 
-enum ReflectionFieldAttribute
+enum FieldAttribute
 {
 	FAConfig = 1,
 	FAState = 2
 };
 
-struct ReflectionField
+struct Field
 {
 	int ID;
 	String Name;
 	int Attributes;
-	Value DefaultValue;
 
-	ReflectionField(int id, const String& name, int attributes, const Value& default_value = Empty)
-		: ID(id), Name(name), Attributes(attributes), DefaultValue(default_value)
+	Field(int id, const String& name, int attributes)
+		: ID(id), Name(name), Attributes(attributes)
 	{ }
 };
 
-enum InvokationType
-{
-	ITGet,
-	ITSet
-};
-
-class I2_BASE_API ReflectionObject : public Object
+class I2_BASE_API Type
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ReflectionObject);
-
+	virtual Type *GetBaseType(void) const = 0;
 	virtual int GetFieldId(const String& name) const = 0;
-	virtual ReflectionField GetFieldInfo(int id) const = 0;
+	virtual Field GetFieldInfo(int id) const = 0;
 	virtual int GetFieldCount(void) const = 0;
-	virtual void SetField(int id, const Value& value) = 0;
-	virtual Value GetField(int id) const = 0;
-
-	Dictionary::Ptr Serialize(int attributeTypes) const;
-	void Deserialize(const Dictionary::Ptr& update, int attributeTypes);
-};
-
-template<typename T>
-class ReflectionObjectImpl
-{
 };
 
 }
 
-#endif /* REFLECTIONOBJECT_H */
+#endif /* TYPE_H */

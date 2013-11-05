@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup compat
  */
-class CheckResultReader : public ReflectionObjectImpl<CheckResultReader>
+class CheckResultReader : public ObjectImpl<CheckResultReader>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CheckResultReader);

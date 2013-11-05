@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup perfdata
  */
-class GraphiteWriter : public ReflectionObjectImpl<GraphiteWriter>
+class GraphiteWriter : public ObjectImpl<GraphiteWriter>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(GraphiteWriter);

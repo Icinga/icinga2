@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API UserGroup : public ReflectionObjectImpl<UserGroup>
+class I2_ICINGA_API UserGroup : public ObjectImpl<UserGroup>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(UserGroup);

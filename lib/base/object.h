@@ -48,6 +48,8 @@ class Value;
 	typedef shared_ptr<klass> Ptr; \
 	typedef weak_ptr<klass> WeakPtr
 
+class Type;
+
 /**
  * Base class for all heap-allocated objects. At least one of its methods
  * has to be virtual for RTTI to work.
@@ -61,6 +63,10 @@ public:
 
 	Object(void);
 	virtual ~Object(void);
+
+	virtual const Type *GetReflectionType(void) const;
+	virtual void SetField(int id, const Value& value);
+	virtual Value GetField(int id) const;
 
 	/**
 	 * Holds a shared pointer and provides support for implicit upcasts.
@@ -173,6 +179,16 @@ public:
 	{
 		return (wref.lock().get() == static_cast<const T *>(m_Ref));
 	}
+};
+
+template<typename T>
+class TypeImpl
+{
+};
+
+template<typename T>
+class ObjectImpl
+{
 };
 
 }

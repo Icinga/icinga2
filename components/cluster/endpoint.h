@@ -35,7 +35,7 @@ class EndpointManager;
  *
  * @ingroup cluster
  */
-class Endpoint : public ReflectionObjectImpl<Endpoint>
+class Endpoint : public ObjectImpl<Endpoint>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Endpoint);

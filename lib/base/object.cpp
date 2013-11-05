@@ -69,3 +69,18 @@ Object::SharedPtrHolder::operator Value(void) const
 {
 	return m_Object;
 }
+
+const Type *Object::GetReflectionType(void) const
+{
+	return NULL;
+}
+
+void Object::SetField(int id, const Value& value)
+{
+	throw std::runtime_error("Invalid field ID.");
+}
+
+Value Object::GetField(int id) const
+{
+	throw std::runtime_error("Invalid field ID.");
+}

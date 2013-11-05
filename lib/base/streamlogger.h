@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API StreamLogger : public ReflectionObjectImpl<StreamLogger>
+class I2_BASE_API StreamLogger : public ObjectImpl<StreamLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StreamLogger);

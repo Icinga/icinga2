@@ -107,6 +107,7 @@ struct Klass
 {
 	std::string Name;
 	std::string Parent;
+	bool Abstract;
 	std::vector<Field> Fields;
 };
 

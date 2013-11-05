@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup demo
  */
-class Demo : public ReflectionObjectImpl<Demo>
+class Demo : public ObjectImpl<Demo>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Demo);

@@ -33,7 +33,7 @@ namespace icinga
 /**
  * @ingroup compat
  */
-class ExternalCommandListener : public ReflectionObjectImpl<ExternalCommandListener>
+class ExternalCommandListener : public ObjectImpl<ExternalCommandListener>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ExternalCommandListener);

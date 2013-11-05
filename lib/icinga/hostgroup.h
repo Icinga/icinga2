@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API HostGroup : public ReflectionObjectImpl<HostGroup>
+class I2_ICINGA_API HostGroup : public ObjectImpl<HostGroup>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(HostGroup);

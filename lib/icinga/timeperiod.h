@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API TimePeriod : public ReflectionObjectImpl<TimePeriod>
+class I2_ICINGA_API TimePeriod : public ObjectImpl<TimePeriod>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TimePeriod);

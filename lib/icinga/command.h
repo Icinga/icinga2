@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Command : public ReflectionObjectImpl<Command>, public MacroResolver
+class I2_ICINGA_API Command : public ObjectImpl<Command>, public MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Command);

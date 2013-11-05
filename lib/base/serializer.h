@@ -17,38 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/reflectionobject.h"
-#include <boost/smart_ptr/make_shared.hpp>
+#ifndef SERIALIZER_H
+#define SERIALIZER_H
 
-using namespace icinga;
+#include "base/i2-base.h"
+#include "base/dictionary.h"
 
-Dictionary::Ptr ReflectionObject::Serialize(int attributeTypes) const
+namespace icinga
 {
-	Dictionary::Ptr update = boost::make_shared<Dictionary>();
 
-	for (int i = 0; i < GetFieldCount(); i++) {
-		ReflectionField field = GetFieldInfo(i);
+/**
+ * Serializer utilities.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API Serializer
+{
+public:
+	static Dictionary::Ptr Serialize(const Object::Ptr& object, int attributeTypes);
+	static void Deserialize(const Object::Ptr& object, const Dictionary::Ptr& update, int attributeTypes);
 
-		if ((field.Attributes & attributeTypes) == 0)
-			continue;
+private:
+	Serializer(void);
+};
 
-		update->Set(field.Name, GetField(i));
-	}
-
-	return update;
 }
 
-void ReflectionObject::Deserialize(const Dictionary::Ptr& update, int attributeTypes)
-{
-	for (int i = 0; i < GetFieldCount(); i++) {
-		ReflectionField field = GetFieldInfo(i);
-
-		if ((field.Attributes & attributeTypes) == 0)
-			continue;
-
-		if (!update->Contains(field.Name))
-			continue;
-
-		SetField(i, update->Get(field.Name));
-	}
-}
+#endif /* SERIALIZER_H */

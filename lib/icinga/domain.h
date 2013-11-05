@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Domain : public ReflectionObjectImpl<Domain>
+class I2_ICINGA_API Domain : public ObjectImpl<Domain>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Domain);

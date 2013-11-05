@@ -37,7 +37,7 @@ namespace icinga
 /**
  * @ingroup compat
  */
-class StatusDataWriter : public ReflectionObjectImpl<StatusDataWriter>
+class StatusDataWriter : public ObjectImpl<StatusDataWriter>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StatusDataWriter);
