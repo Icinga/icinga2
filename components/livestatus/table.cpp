@@ -121,27 +121,27 @@ void Table::FilteredAddRow(std::vector<Value>& rs, const Filter::Ptr& filter, co
 		rs.push_back(row);
 }
 
-Value Table::ZeroAccessor(const Object::Ptr&)
+Value Table::ZeroAccessor(const Value&)
 {
 	return 0;
 }
 
-Value Table::OneAccessor(const Object::Ptr&)
+Value Table::OneAccessor(const Value&)
 {
 	return 1;
 }
 
-Value Table::EmptyStringAccessor(const Object::Ptr&)
+Value Table::EmptyStringAccessor(const Value&)
 {
 	return "";
 }
 
-Value Table::EmptyArrayAccessor(const Object::Ptr&)
+Value Table::EmptyArrayAccessor(const Value&)
 {
 	return boost::make_shared<Array>();
 }
 
-Value Table::EmptyDictionaryAccessor(const Object::Ptr&)
+Value Table::EmptyDictionaryAccessor(const Value&)
 {
 	return boost::make_shared<Dictionary>();
 }
