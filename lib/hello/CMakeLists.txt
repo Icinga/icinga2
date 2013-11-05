@@ -23,7 +23,7 @@ add_library(hello SHARED
   hello.cpp hello.th hello-type.cpp
 )
 
-target_link_libraries(hello ${Boost_LIBRARIES} base)
+target_link_libraries(hello ${Boost_LIBRARIES} base config)
 
 set_target_properties (
   hello PROPERTIES
