@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup hello
  */
-class Hello : public ReflectionObjectImpl<Hello>
+class Hello : public ObjectImpl<Hello>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Hello);
