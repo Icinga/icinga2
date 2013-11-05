@@ -67,8 +67,14 @@
 # TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
 
 # icinga
-host    icinga      icinga      127.0.0.1/32          md5
-host    icinga      icinga      ::1/128               md5
+local   icinga      icinga                            trust
+host    icinga      icinga      127.0.0.1/32          trust
+host    icinga      icinga      ::1/128               trust
+
+# icinga
+local   icinga      icinga                            trust
+host    icinga      icinga      127.0.0.1/32          trust
+host    icinga      icinga      ::1/128               trust
 
 # "local" is for Unix domain socket connections only
 local   all         all                               ident
