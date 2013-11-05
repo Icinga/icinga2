@@ -46,6 +46,7 @@ struct Field
 class I2_BASE_API Type
 {
 public:
+	virtual Type *GetBaseType(void) const = 0;
 	virtual int GetFieldId(const String& name) const = 0;
 	virtual Field GetFieldInfo(int id) const = 0;
 	virtual int GetFieldCount(void) const = 0;

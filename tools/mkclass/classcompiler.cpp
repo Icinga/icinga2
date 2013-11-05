@@ -92,6 +92,20 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 		<< "{" << std::endl
 		<< "public:" << std::endl;
 
+	/* GetBaseType */
+	std::cout << "\t" << "virtual Type *GetBaseType(void) const" << std::endl
+		<< "\t" << "{" << std::endl;
+
+	std::cout << "\t\t" << "return ";
+
+	if (!klass.Parent.empty())
+		std::cout << "Singleton<TypeImpl<" << klass.Parent << "> >::GetInstance()";
+	else
+		std::cout << "NULL";
+
+	std::cout << ";" << std::endl
+			  << "\t" << "}" << std::endl << std::endl;
+
 	/* GetFieldId */
 	std::cout << "\t" << "virtual int GetFieldId(const String& name) const" << std::endl
 		<< "\t" << "{" << std::endl
