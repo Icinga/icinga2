@@ -61,13 +61,10 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 			else
 				return (static_cast<String>(value) == m_Operand);
 		} else if (m_Operator == "~") {
-			boost::regex expr(static_cast<std::string>(m_Operand));
+			boost::regex expr(m_Operand.GetData());
+			String operand = value;
 			boost::smatch what;
-			String val = static_cast<String>(value);
-			std::string::const_iterator begin = val.Begin();
-			std::string::const_iterator end = val.End();
-
-			bool ret = boost::regex_search(begin, end, what, expr);
+			bool ret = boost::regex_search(operand.GetData(), what, expr);
 
 			//Log(LogDebug, "livestatus", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
 			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );
@@ -76,13 +73,10 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 		} else if (m_Operator == "=~") {
 			return string_iless()(value, m_Operand);
 		} else if (m_Operator == "~~") {
-			boost::regex expr(static_cast<std::string>(m_Operand), boost::regex::icase);
+			boost::regex expr(m_Operand.GetData(), boost::regex::icase);
+			String operand = value;
 			boost::smatch what;
-			String val = static_cast<String>(value);
-			std::string::const_iterator begin = val.Begin();
-			std::string::const_iterator end = val.End();
-
-			bool ret = boost::regex_search(begin, end, what, expr);
+			bool ret = boost::regex_search(operand.GetData(), what, expr);
 
 			//Log(LogDebug, "livestatus", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
 			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );
