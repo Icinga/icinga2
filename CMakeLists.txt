@@ -65,6 +65,11 @@ if(APPLE)
   set(CMAKE_INSTALL_NAME_DIR "@executable_path/../lib/icinga2")
 endif(APPLE)
 
+if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments")
+endif()
+
 if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
