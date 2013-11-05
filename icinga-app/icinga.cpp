@@ -66,8 +66,10 @@ static bool LoadConfigFiles(const String& appType, bool validateOnly)
 {
 	ConfigCompilerContext::GetInstance()->Reset();
 
-	BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<std::vector<String> >()) {
-		ConfigCompiler::CompileFile(configPath);
+	if (g_AppParams.count("config") > 0) {
+		BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<std::vector<String> >()) {
+			ConfigCompiler::CompileFile(configPath);
+		}
 	}
 
 	String name, fragment;
@@ -207,6 +209,7 @@ int main(int argc, char **argv)
 		("include,I", po::value<std::vector<String> >(), "add include search directory")
 		("define,D", po::value<std::vector<String> >(), "define a variable")
 		("config,c", po::value<std::vector<String> >(), "parse a configuration file")
+		("no-config,z", "start without a configuration file")
 		("validate,C", "exit after validating the configuration")
 		("debug,x", "enable debugging")
 		("daemonize,d", "detach from the controlling terminal")
@@ -347,7 +350,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (g_AppParams.count("config") == 0) {
+	if (g_AppParams.count("no-config") == 0 && g_AppParams.count("config") == 0) {
 		Log(LogCritical, "icinga-app", "You need to specify at least one config file (using the --config option).");
 
 		return EXIT_FAILURE;
