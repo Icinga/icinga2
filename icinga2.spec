@@ -73,12 +73,14 @@ Requires: boost%{el5_boost_version}-program-options
 Requires: boost%{el5_boost_version}-system
 Requires: boost%{el5_boost_version}-test
 Requires: boost%{el5_boost_version}-thread
+Requires: boost%{el5_boost_version}-regex
 %else
 BuildRequires: boost-devel >= 1.41
 Requires: boost-program-options >= 1.41
 Requires: boost-system >= 1.41
 Requires: boost-test >= 1.41
 Requires: boost-thread >= 1.41
+Requires: boost-regex >= 1.41
 %endif
 %endif
 
@@ -98,6 +100,7 @@ Requires: libboost_program_options%{opensuse_boost_version}
 Requires: libboost_system%{opensuse_boost_version}
 Requires: libboost_test%{opensuse_boost_version}
 Requires: libboost_thread%{opensuse_boost_version}
+Requires: libboost_regex%{opensuse_boost_version}
 %endif
 %endif
 

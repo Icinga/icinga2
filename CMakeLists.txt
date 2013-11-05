@@ -48,7 +48,7 @@ if(WIN32)
   add_definitions(-DBOOST_ALL_NO_LIB)
 endif()
 
-find_package(Boost 1.41.0 COMPONENTS thread system program_options REQUIRED)
+find_package(Boost 1.41.0 COMPONENTS thread system program_options regex REQUIRED)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 

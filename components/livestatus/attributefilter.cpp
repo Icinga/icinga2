@@ -21,7 +21,9 @@
 #include "base/convert.h"
 #include "base/array.h"
 #include "base/objectlock.h"
+#include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
+#include <boost/regex.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -59,11 +61,33 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 			else
 				return (static_cast<String>(value) == m_Operand);
 		} else if (m_Operator == "~") {
+			boost::regex expr(static_cast<std::string>(m_Operand));
+			boost::smatch what;
+			String val = static_cast<String>(value);
+			std::string::const_iterator begin = val.Begin();
+			std::string::const_iterator end = val.End();
 
+			bool ret = boost::regex_search(begin, end, what, expr);
+
+			//Log(LogDebug, "livestatus", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
+			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );
+
+			return ret;
 		} else if (m_Operator == "=~") {
 			return string_iless()(value, m_Operand);
 		} else if (m_Operator == "~~") {
+			boost::regex expr(static_cast<std::string>(m_Operand), boost::regex::icase);
+			boost::smatch what;
+			String val = static_cast<String>(value);
+			std::string::const_iterator begin = val.Begin();
+			std::string::const_iterator end = val.End();
 
+			bool ret = boost::regex_search(begin, end, what, expr);
+
+			//Log(LogDebug, "livestatus", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
+			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );
+
+			return ret;
 		} else if (m_Operator == "<") {
 			if (value.GetType() == ValueNumber)
 				return (static_cast<double>(value) < Convert::ToDouble(m_Operand));
