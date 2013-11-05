@@ -44,7 +44,7 @@ void IdoPgsqlConnection::Start(void)
 
 	m_Connection = NULL;
 
-	m_QueryQueue.SetExceptionCallback(&IdoPgsqlConnection::ExceptionHandler);
+	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoPgsqlConnection::ExceptionHandler, this, _1));
 
 	m_TxTimer = boost::make_shared<Timer>();
 	m_TxTimer->SetInterval(5);

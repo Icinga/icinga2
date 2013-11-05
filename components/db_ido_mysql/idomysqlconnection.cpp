@@ -44,7 +44,7 @@ void IdoMysqlConnection::Start(void)
 
 	m_Connected = false;
 
-	m_QueryQueue.SetExceptionCallback(&IdoMysqlConnection::ExceptionHandler);
+	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
 
 	m_TxTimer = boost::make_shared<Timer>();
 	m_TxTimer->SetInterval(5);
