@@ -38,8 +38,6 @@ INITIALIZE_ONCE(IcingaApplication, &IcingaApplication::StaticInitialize);
 
 void IcingaApplication::StaticInitialize(void)
 {
-	(void) Utility::LoadExtensionLibrary("methods");
-
 	ScriptVariable::Set("IcingaEnableNotifications", true);
 	ScriptVariable::Set("IcingaEnableEventHandlers", true);
 	ScriptVariable::Set("IcingaEnableFlapping", true);

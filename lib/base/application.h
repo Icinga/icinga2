@@ -101,7 +101,7 @@ protected:
 
 	void RunEventLoop(void) const;
 
-	virtual void OnShutdown(void) = 0;
+	virtual void OnShutdown(void);
 
 private:
 	static Application *m_Instance; /**< The application instance. */

@@ -17,22 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-library "methods"
+#ifndef HELLO_H
+#define HELLO_H
 
-template CheckCommand "plugin-check-command" {
-	methods = {
-		execute = "PluginCheck"
-	}
+#include "hello/hello.th"
+
+namespace icinga
+{
+
+/**
+ * The Hello application.
+ *
+ * @ingroup hello
+ */
+class Hello : public ReflectionObjectImpl<Hello>
+{
+public:
+	DECLARE_PTR_TYPEDEFS(Hello);
+	DECLARE_TYPENAME(Hello);
+
+	int Main(void);
+};
+
 }
 
-template NotificationCommand "plugin-notification-command" {
-	methods = {
-		execute = "PluginNotification"
-	}
-}
-
-template EventCommand "plugin-event-command" {
-	methods = {
-		execute = "PluginEvent"
-	}
-}
+#endif /* HELLO_H */

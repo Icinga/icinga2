@@ -1,0 +1,10 @@
+#include "base/application.h"
+
+namespace icinga
+{
+
+class Hello : Application
+{
+};
+
+}

@@ -115,10 +115,12 @@ static bool LoadConfigFiles(const String& appType, bool validateOnly)
 	return true;
 }
 
+#ifndef _WIN32
 static void SigHupHandler(int)
 {
 	Application::RequestRestart();
 }
+#endif /* _WIN32 */
 
 static bool Daemonize(const String& stderrFile)
 {

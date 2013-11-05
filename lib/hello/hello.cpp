@@ -17,22 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-library "methods"
+#include "hello/hello.h"
+#include "base/dynamictype.h"
+#include "base/logger_fwd.h"
 
-template CheckCommand "plugin-check-command" {
-	methods = {
-		execute = "PluginCheck"
-	}
-}
+using namespace icinga;
 
-template NotificationCommand "plugin-notification-command" {
-	methods = {
-		execute = "PluginNotification"
-	}
-}
+REGISTER_TYPE(Hello);
 
-template EventCommand "plugin-event-command" {
-	methods = {
-		execute = "PluginEvent"
-	}
+/**
+ * The entry point for the Hello application.
+ *
+ * @returns An exit status.
+ */
+int Hello::Main(void)
+{
+	Log(LogInformation, "hello", "Hello World!");
+
+	return 0;
 }
