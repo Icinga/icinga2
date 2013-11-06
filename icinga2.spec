@@ -85,7 +85,7 @@ Requires: boost-regex >= 1.41
 %endif
 
 %if "%{_vendor}" == "suse"
-%if 0%{?sles_version} == 11
+%if 0%{?sles_version} >= 1110
 BuildRequires: libgfortran46
 BuildRequires: boost-license%{sles_boost_version}
 BuildRequires: boost-devel >= 1.41
@@ -95,12 +95,14 @@ Requires: libboost_system%{sles_boost_version}
 Requires: libboost_test%{sles_boost_version}
 Requires: libboost_thread%{sles_boost_version}
 %else
+%if 0%{?suse_version} >= 1210
 BuildRequires: boost-devel >= 1.41
 Requires: libboost_program_options%{opensuse_boost_version}
 Requires: libboost_system%{opensuse_boost_version}
 Requires: libboost_test%{opensuse_boost_version}
 Requires: libboost_thread%{opensuse_boost_version}
 Requires: libboost_regex%{opensuse_boost_version}
+%endif
 %endif
 %endif
 
